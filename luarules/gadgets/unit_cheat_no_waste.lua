@@ -47,7 +47,6 @@ local isAllyTeamWinning
 local averageAlliedTechGuesstimate
 
 --localized functions
-local spGetTeamResources = Spring.GetTeamResources
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
@@ -70,7 +69,7 @@ local function updateTeamOverflowing(allyID, oldMultiplier)
 
 	local wastingMetal = true
 	for teamID, _ in pairs(teamIDs) do
-		local metal, metalStorage, pull, metalIncome, metalExpense,share, metalSent, metalReceived = spGetTeamResources(teamID, "metal")
+		local metal, metalStorage, pull, metalIncome, metalExpense, share, metalSent, metalReceived = GG.GetTeamResources(teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		totalMetalReceived = totalMetalReceived + metalReceived

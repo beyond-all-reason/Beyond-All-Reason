@@ -538,10 +538,11 @@ describe("Easy Tax stun mechanics #stun", function()
         [1] = { id = 1, name = "mockfusion", customParams = { unitgroup = "energy" } },
         [2] = { id = 2, name = "mockcon", canAssist = true, buildOptions = {}, customParams = { techlevel = "1" } },
         [3] = { id = 3, name = "mockpawn", customParams = { unitgroup = "weapon" }, weapons = { "gun" } },
+        [4] = { id = 4, name = "mockbuilder", isBuilder = true, customParams = { techlevel = "1" } },
     }
 
     describe("GetPolicy", function()
-        it("should expose stunSeconds and stunCategory from Easy Tax config", function()
+        it("should expose stunSeconds, stunCategory and buildDelaySeconds from Easy Tax config", function()
             local api = spring:Build()
             api.GetModOptions = function() return modeModOpts(easyTaxMode) end
 
@@ -550,9 +551,10 @@ describe("Easy Tax stun mechanics #stun", function()
 
             assert.equal(30, policy.stunSeconds)
             assert.equal(ModeEnums.UnitFilterCategory.Resource, policy.stunCategory)
+            assert.equal(30, policy.buildDelaySeconds)
         end)
 
-        it("should default stunSeconds to 0 when not configured", function()
+        it("should default stunSeconds and buildDelaySeconds to 0 when not configured", function()
             local api = spring:Build()
             api.GetModOptions = function() return { unit_sharing_mode = "all" } end
 
@@ -560,6 +562,7 @@ describe("Easy Tax stun mechanics #stun", function()
             local policy = UnitTransfer.GetPolicy(ctx)
 
             assert.equal(0, policy.stunSeconds)
+            assert.equal(0, policy.buildDelaySeconds)
         end)
     end)
 
@@ -691,6 +694,80 @@ describe("Easy Tax stun mechanics #stun", function()
             local result = UnitTransfer.ValidateUnits(policy, { combatNanoId }, api, mockDefs)
             assert.equal(0, result.validUnitCount)
             assert.equal(1, result.invalidUnitCount)
+        end)
+    end)
+
+    describe("ValidateUnits build-delay tally", function()
+        it("counts mobile builders among the valid units", function()
+            local builderId, fusionId = 910, 911
+            sender.units = {}
+            sender.units[builderId] = { unitDefId = 4, beingBuilt = false, buildProgress = 1.0 }
+            sender.units[fusionId] = { unitDefId = 1, beingBuilt = false, buildProgress = 1.0 }
+            local api = spring:Build()
+
+            local policy = {
+                canShare = true,
+                sharingModes = { ModeEnums.UnitFilterCategory.All },
+                stunSeconds = 0,
+            }
+
+            local result = UnitTransfer.ValidateUnits(policy, { builderId, fusionId }, api, mockDefs)
+            assert.equal(2, result.validUnitCount)
+            assert.equal(1, result.buildDelayedUnitCount)
+        end)
+
+        it("counts zero when the selection has no mobile builders", function()
+            local fusionId = 912
+            sender.units = {}
+            sender.units[fusionId] = { unitDefId = 1, beingBuilt = false, buildProgress = 1.0 }
+            local api = spring:Build()
+
+            local policy = {
+                canShare = true,
+                sharingModes = { ModeEnums.UnitFilterCategory.All },
+                stunSeconds = 0,
+            }
+
+            local result = UnitTransfer.ValidateUnits(policy, { fusionId }, api, mockDefs)
+            assert.equal(0, result.buildDelayedUnitCount)
+        end)
+    end)
+
+    describe("ValidateUnits stun tally", function()
+        it("counts stun-category units among the valid units", function()
+            local fusionId, builderId = 920, 921
+            sender.units = {}
+            sender.units[fusionId] = { unitDefId = 1, beingBuilt = false, buildProgress = 1.0 }
+            sender.units[builderId] = { unitDefId = 4, beingBuilt = false, buildProgress = 1.0 }
+            local api = spring:Build()
+
+            local policy = {
+                canShare = true,
+                sharingModes = { ModeEnums.UnitFilterCategory.All },
+                stunSeconds = 30,
+                stunCategory = ModeEnums.UnitFilterCategory.Resource,
+            }
+
+            local result = UnitTransfer.ValidateUnits(policy, { fusionId, builderId }, api, mockDefs)
+            assert.equal(2, result.validUnitCount)
+            assert.equal(1, result.stunnedUnitCount)
+        end)
+
+        it("counts zero when the selection has no stun-category units", function()
+            local builderId = 922
+            sender.units = {}
+            sender.units[builderId] = { unitDefId = 4, beingBuilt = false, buildProgress = 1.0 }
+            local api = spring:Build()
+
+            local policy = {
+                canShare = true,
+                sharingModes = { ModeEnums.UnitFilterCategory.All },
+                stunSeconds = 30,
+                stunCategory = ModeEnums.UnitFilterCategory.Resource,
+            }
+
+            local result = UnitTransfer.ValidateUnits(policy, { builderId }, api, mockDefs)
+            assert.equal(0, result.stunnedUnitCount)
         end)
     end)
 end)

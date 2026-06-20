@@ -78,6 +78,20 @@ function sharing.isConstructorDef(unitDef)
 	return unitDef.isBuilder == true or unitDef.canAssist == true
 end
 
+---Mobile builders that receive the constructor build delay when shared. Stricter than
+---isConstructorDef: immobile nano/con turrets are excluded (they cannot move) and the unit
+---must actually be a builder; fast T2 engineers are included since they are mobile builders.
+---MUST match the affected set applied in game_unit_transfer_controller so the share
+---tooltip's prediction equals what actually happens.
+---@param unitDef table
+---@return boolean
+function sharing.isMobileBuilderDef(unitDef)
+	return unitDef ~= nil
+		and unitDef.isBuilder == true
+		and not unitDef.isImmobile
+		and not unitDef.isFactory
+end
+
 ---Unit-producing factories.
 ---@param unitDef table
 ---@return boolean

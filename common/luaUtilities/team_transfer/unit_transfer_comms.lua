@@ -83,6 +83,41 @@ function Comms.DecideCommunicationCase(policy, validationResult)
   end
 end
 
+---Append share-time effect notes for the current selection. Unit-aware: each note is
+---driven by the validation's affected count, so it only shows (and counts) when units that
+---the effect applies to are actually being shared. Covers the constructor build delay and
+---the stun-category stun.
+---@param text string
+---@param policy UnitPolicyResult
+---@param validationResult UnitValidationResult?
+---@return string
+local function withPolicyEffects(text, policy, validationResult)
+  if not validationResult then
+    return text
+  end
+
+  local buildDelay = tonumber(policy.buildDelaySeconds) or 0
+  local builderCount = tonumber(validationResult.buildDelayedUnitCount) or 0
+  if buildDelay > 0 and builderCount > 0 then
+    text = text .. " " .. Spring.I18N('ui.playersList.shareUnits.base.buildDelay', {
+      count = builderCount,
+      buildDelaySeconds = buildDelay,
+    })
+  end
+
+  local stunSeconds = tonumber(policy.stunSeconds) or 0
+  local stunnedCount = tonumber(validationResult.stunnedUnitCount) or 0
+  if stunSeconds > 0 and stunnedCount > 0 then
+    text = text .. " " .. Spring.I18N('ui.playersList.shareUnits.base.stunDelay', {
+      count = stunnedCount,
+      stunSeconds = stunSeconds,
+      stunCategory = policy.stunCategory and Spring.I18N('ui.unitSharingMode.' .. policy.stunCategory) or "",
+    })
+  end
+
+  return text
+end
+
 ---@param policy UnitPolicyResult
 ---@param validationResult UnitValidationResult?
 function Comms.TooltipText(policy, validationResult)
@@ -130,14 +165,14 @@ function Comms.TooltipText(policy, validationResult)
       local td = techI18nData(policy)
       for k, v in pairs(td) do i18nData[k] = v end
     end
-    return Spring.I18N(u .. '.invalid', i18nData)
+    return withPolicyEffects(Spring.I18N(u .. '.invalid', i18nData), policy, validationResult)
 
   elseif case == TransferEnums.UnitCommunicationCase.OnFullyShareable then
     local i18nData = {}
     if validationResult then
       i18nData.validUnitCount = validationResult.validUnitCount
     end
-    return Spring.I18N('ui.playersList.shareUnits.base.default', i18nData)
+    return withPolicyEffects(Spring.I18N('ui.playersList.shareUnits.base.default', i18nData), policy, validationResult)
   else
     error('Invalid unit communication case: ' .. case)
   end

@@ -114,6 +114,28 @@ describe("unit_sharing_categories #categories", function()
         end)
     end)
 
+    describe("isMobileBuilderDef", function()
+        it("should return true for mobile builders", function()
+            assert.is_true(Categories.isMobileBuilderDef({ isBuilder = true }))
+        end)
+
+        it("should return false for immobile builders (nano/con turrets)", function()
+            assert.is_false(Categories.isMobileBuilderDef({ isBuilder = true, isImmobile = true }))
+        end)
+
+        it("should return false for assist-only turrets that are not builders", function()
+            assert.is_false(Categories.isMobileBuilderDef({ canAssist = true }))
+        end)
+
+        it("should return false for factories", function()
+            assert.is_false(Categories.isMobileBuilderDef({ isBuilder = true, isFactory = true }))
+        end)
+
+        it("should return false for non-builders", function()
+            assert.is_false(Categories.isMobileBuilderDef({ customParams = { unitgroup = "weapon" } }))
+        end)
+    end)
+
     describe("isCombatGroupBuilderDef", function()
         it("should return true for the listed fast T2 engineers", function()
             for _, name in ipairs({ "corfast", "armfark", "armconsul" }) do

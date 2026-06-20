@@ -1,14 +1,18 @@
 local gadget = gadget ---@type Gadget
 
+local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
+
+local assistEnabled = Spring.GetModOptions()[ModeEnums.ModOptions.AlliedAssistMode] == ModeEnums.AlliedAssistMode.Enabled
+
 function gadget:GetInfo()
 	return {
 		name    = 'Disable Assist Ally Construction',
-		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is enabled',
+		desc    = 'Disable assisting allied units (e.g. labs and units/buildings under construction) when modoption is disabled',
 		author  = 'Rimilel',
 		date    = 'April 2024',
 		license = 'GNU GPL, v2 or later',
-		layer   = 1, -- after unit_mex_upgrade_reclaimer and unit_geo_upgrade_reclaimer
-		enabled = Spring.GetModOptions().disable_assist_ally_construction, -- or Spring.GetModOptions().easytax,  -- disabled for easytax and replaced with tax in game_tax_resource_sharing.lua
+		layer   = 1,
+		enabled = not assistEnabled,
 	}
 end
 
@@ -16,8 +20,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+if assistEnabled then
+	return false
+end
+
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -31,8 +40,6 @@ local MOVESTATE_ROAM = CMD.MOVESTATE_ROAM
 
 local footprintSize = Game.squareSize * Game.footprintScale
 
--- Local state
-
 local builderMoveStateCmdDesc = {
 	params = { 1, "Hold pos", "Maneuver", --[["Roam"]] },
 }
@@ -40,15 +47,13 @@ local builderMoveStateCmdDesc = {
 local gaiaTeam = Spring.GetGaiaTeamID()
 
 local isFactory = {}
-local canBuildStep = {} -- i.e. anything that spends resources when assisted
+local canBuildStep = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	isFactory[unitDefID] = unitDef.isFactory
 	canBuildStep[unitDefID] = unitDef.isFactory or (unitDef.isBuilder and (unitDef.canBuild or unitDef.canAssist))
 end
 
 local checkUnitCommandList = {} -- Delay validating given units so the order of calls to UnitGiven does not matter.
-
--- Local functions
 
 local function removeRoamMoveState(unitID)
 	local index = Spring.FindUnitCmdDesc(unitID, CMD_MOVESTATE)
@@ -103,8 +108,6 @@ local function validateCommands(unitID, unitTeam)
 	end
 end
 
--- Engine call-ins
-
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
 	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
@@ -116,8 +119,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		removeRoamMoveState(unitID)
 	end
 
-	-- In unit_{xyz}_upgrade_reclaimer, units are transferred instantly,
-	-- so we can check immediately whether they are bypassing the rules:
+	-- upgrade-reclaimer gadgets transfer units instantly, so check immediately
 	if builderID and isAlliedUnit(unitTeam, builderID) then
 		checkUnitCommandList[unitID] = spGetUnitTeam(builderID)
 	end
@@ -136,7 +138,6 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
-	-- Identical blueprints placed on top of one another are converted to build assist.
 	if builderID and not isFactory[spGetUnitDefID(builderID)] then
 		local units = spGetUnitsInCylinder(x, z, footprintSize)
 		for _, unitID in pairs(units) do
@@ -145,6 +146,7 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, fa
 			end
 		end
 	end
+
 	return true, true
 end
 
@@ -164,7 +166,6 @@ local function _GameFramePost(unitList)
 	end
 end
 function gadget:GameFramePost()
-	-- We rarely need to call this function:
 	if next(checkUnitCommandList) then
 		_GameFramePost(checkUnitCommandList)
 	end

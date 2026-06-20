@@ -10,6 +10,10 @@ local FieldTypes = PolicyShared.FieldTypes
 Shared.UnitPolicyFields = {
   canShare = FieldTypes.boolean,
   sharingModes = FieldTypes.string,
+  -- carried to the widget so the share tooltip can surface the share-time effects
+  buildDelaySeconds = FieldTypes.number,
+  stunSeconds = FieldTypes.number,
+  stunCategory = FieldTypes.string,
 }
 
 -- Per-team unit policy factors. The unit policy is separable: canShare =
@@ -77,6 +81,8 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
     invalidUnitCount = 0,
     invalidUnitNames = {},
     invalidUnitIds = {},
+    buildDelayedUnitCount = 0, -- valid units that will receive the constructor build delay
+    stunnedUnitCount = 0,      -- valid units that will be stunned (stun category)
   }
 
   if (not policyResult.canShare) or (not unitIds or #unitIds == 0) then
@@ -115,6 +121,12 @@ function Shared.ValidateUnits(policyResult, unitIds, springApi, unitDefs)
       if ok then
         out.validUnitCount = out.validUnitCount + 1
         table.insert(out.validUnitIds, unitId)
+        if UnitSharingCategories.isMobileBuilderDef(def) then
+          out.buildDelayedUnitCount = out.buildDelayedUnitCount + 1
+        end
+        if wouldBeStunned(unitDefID, stunCategory, defs) then
+          out.stunnedUnitCount = out.stunnedUnitCount + 1
+        end
         if not validUnitNamesSet[unitName] then
           validUnitNamesSet[unitName] = true
           table.insert(out.validUnitNames, unitName)
@@ -143,8 +155,8 @@ end
 
 ---Reconstruct the (sender,receiver) unit policy from cached per-team factors plus live
 ---gates. Mirrors Synced.GetPolicy: canShare = areAllied AND modeNotNone(sender); cheating
----bypasses only the active check (alliance is still required). Stun config is always read
----live from modoptions. Missing factors fall back to the global unit_sharing_mode.
+---bypasses only the active check (alliance is still required). Stun and build-delay config
+---is always read live from modoptions. Missing factors fall back to the global unit_sharing_mode.
 ---@param senderTeamId number
 ---@param receiverTeamId number
 ---@param springApi SpringSynced?
@@ -154,6 +166,7 @@ function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
   local modOptions = spring.GetModOptions()
   local stunSeconds = tonumber(modOptions[ModeEnums.ModOptions.UnitShareStunSeconds]) or 0
   local stunCategory = modOptions[ModeEnums.ModOptions.UnitStunCategory] or ModeEnums.UnitFilterCategory.Resource
+  local buildDelaySeconds = tonumber(modOptions[ModeEnums.ModOptions.ConstructorBuildDelay]) or 0
 
   local areAllied = (spring.AreTeamsAllied and spring.AreTeamsAllied(senderTeamId, receiverTeamId)) == true
 
@@ -172,6 +185,7 @@ function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
       sharingModes = { category },
       stunSeconds = stunSeconds,
       stunCategory = stunCategory,
+      buildDelaySeconds = buildDelaySeconds,
     }
   end
 
@@ -195,6 +209,7 @@ function Shared.GetCachedPolicyResult(senderTeamId, receiverTeamId, springApi)
     sharingModes = modes,
     stunSeconds = stunSeconds,
     stunCategory = stunCategory,
+    buildDelaySeconds = buildDelaySeconds,
   }
 end
 

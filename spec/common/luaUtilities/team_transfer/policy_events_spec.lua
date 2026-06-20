@@ -50,3 +50,17 @@ describe("PolicyEvents.NotifyIfChanged", function()
 		assert.are.equal(5, sent[1].teamId)
 	end)
 end)
+
+describe("PolicyEvents build-delay debuff", function()
+	it("forwards NotifyBuildDelay with unit and frame window", function()
+		local args
+		PolicyEvents.NotifyBuildDelay(42, 100, 190, function(...) args = { ... } end)
+		assert.are.same({ "UnitBuildDelayStarted", 42, 100, 190 }, args)
+	end)
+
+	it("forwards NotifyBuildDelayEnd with the unit", function()
+		local args
+		PolicyEvents.NotifyBuildDelayEnd(42, function(...) args = { ... } end)
+		assert.are.same({ "UnitBuildDelayEnded", 42 }, args)
+	end)
+end)

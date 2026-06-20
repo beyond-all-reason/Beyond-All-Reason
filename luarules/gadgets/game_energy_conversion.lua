@@ -65,7 +65,6 @@ local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop r
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
-local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -313,7 +312,7 @@ function gadget:GameFrame(n)
 			if tpos <= teamListCount then
 				tID = teamList[tpos]
 
-				local eCur, eStor = spGetTeamResources(tID, 'energy')
+				local eCur, eStor = GG.GetTeamResources(tID, 'energy')
 				local mmLevel = spGetTeamRulesParam(tID, mmLevelParamName)
 				local convertAmount = eCur - eStor * mmLevel
 				local eConverted, mConverted, teamUsages = 0, 0, 0

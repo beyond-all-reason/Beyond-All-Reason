@@ -462,6 +462,12 @@ return {
 	Tech4TeamReached = {
 		delay = 9999999,
 	},
+	Tech2TeamLost = {
+		delay = 9999999,
+	},
+	Tech3TeamLost = {
+		delay = 9999999,
+	},
 
 	-- Units Detected
 	["UnitDetected/Tech2UnitDetected"] = {
