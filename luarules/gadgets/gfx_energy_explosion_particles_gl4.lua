@@ -250,7 +250,6 @@ local deathBuckets = {}
 
 local particleVBO
 local particleShader
-local particleUseGeometryShader = true
 
 -- When NanoParticleMode == 0 the engine renders its own nano spray and the
 -- GL4 nano gadget is inactive; energy explosion particles would look out of
@@ -690,100 +689,6 @@ void main() {
 }
 ]]
 
-local vsSrcNoGS = [[
-#version 430 core
-
-layout(location = 0) in vec4 vertexPosUV;
-layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
-layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity (elmos/frame), w=spawnFrame
-layout(location = 3) in vec4 instColor;         // rgb + alpha
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAcc (deg/frame²), w=deathFrame
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform float drag;
-uniform vec3 gravity;
-uniform float fadeInFrames;
-uniform float drawRadius;
-uniform float wobbleAmp;
-uniform float wobbleFreq;
-uniform float wobbleVar;
-uniform float wobbleFreqVar;
-uniform float wobbleRampFrames;
-
-out vec4 v_color;
-out vec2 v_uv;
-
-void main() {
-	float currentFrame = timeInfo.x + timeInfo.w;
-	float spawnFrame = velAndSpawnFrame.w;
-	float deathFrame = rotData.w;
-
-	if (currentFrame >= deathFrame) {
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		v_color = vec4(0.0);
-		v_uv = vec2(0.0);
-		return;
-	}
-
-	float t = max(currentFrame - spawnFrame, 0.0);
-	float tCap = (drag > 0.0001) ? (1.0 / drag) : 1.0e6;
-	float tClamp = min(t, tCap);
-	vec3 worldPos = spawnPosAndSize.xyz
-	              + velAndSpawnFrame.xyz * tClamp * (1.0 - 0.5 * drag * tClamp)
-	              + 0.5 * gravity * t * t;
-
-	if (wobbleAmp > 0.0001) {
-		float totalLife = max(deathFrame - spawnFrame, 1.0);
-		float bell = sin(3.14159265 * t / totalLife);
-		if (wobbleRampFrames > 0.5) {
-			bell *= min(1.0, t / wobbleRampFrames);
-		}
-		float hash = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-		float hash2 = fract(hash * 113.7 + 0.317);
-		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-		float phase = currentFrame * wobbleFreq * freqScale * (6.2831853 / 30.0) + radians(rotData.x);
-		vec2 swirl = vec2(cos(phase), sin(phase));
-		worldPos.xz += swirl * (wobbleAmp * ampScale * bell);
-	}
-
-	float packedW = abs(spawnPosAndSize.w);
-	float fadeFrames = floor(packedW / 1024.0);
-	float sizeMult = (packedW - fadeFrames * 1024.0) / 256.0;
-
-	float fadeOut = (fadeFrames > 0.5) ? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0) : 1.0;
-	float fadeIn = (fadeInFrames > 0.5) ? clamp(t / fadeInFrames, 0.0, 1.0) : 1.0;
-	float fade = fadeOut * fadeIn;
-
-	float radius = drawRadius * sizeMult;
-	vec3 right = cameraViewInv[0].xyz * (vertexPosUV.x * radius);
-	vec3 up = cameraViewInv[1].xyz * (vertexPosUV.y * radius);
-	vec3 billboardPos = worldPos + right + up;
-
-	v_color = vec4(instColor.rgb * fade, instColor.a * fade);
-	v_uv = vertexPosUV.xy;
-	gl_Position = cameraViewProj * vec4(billboardPos, 1.0);
-}
-]]
-
-local fsSrcNoGS = [[
-#version 430 core
-
-in vec4 v_color;
-in vec2 v_uv;
-out vec4 fragColor;
-
-void main() {
-	float r2 = dot(v_uv, v_uv);
-	if (r2 > 1.0) discard;
-	float alphaShape = (1.0 - r2);
-	alphaShape *= alphaShape;
-	float outA = v_color.a * alphaShape;
-	fragColor = vec4(v_color.rgb * outA, outA);
-}
-]]
-
 --------------------------------------------------------------------------------
 -- Init / shutdown
 --------------------------------------------------------------------------------
@@ -826,7 +731,11 @@ local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
 
 local function initGL4()
-	local shaderCacheGS = {
+	if not LuaShader.isGeometryShaderSupported then
+		goodbye("geometry shader not supported")
+		return false
+	end
+	local shaderCache = {
 		vsSrc = vsSrc,
 		fsSrc = fsSrc,
 		gsSrc = gsSrc,
@@ -861,39 +770,10 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate  = true,
 	}
-	local shaderCacheNoGS = {
-		vsSrc = vsSrcNoGS,
-		fsSrc = fsSrcNoGS,
-		shaderName = "UnitEnergyExplosionParticlesGL4_NoGS",
-		uniformFloat = {
-			drag        = CONFIG.drag,
-			gravity     = { 0, CONFIG.gravityY, 0 },
-			fadeInFrames = CONFIG.fadeInFrames,
-			drawRadius  = DRAW_RADIUS,
-			wobbleAmp     = WOBBLE_AMP,
-			wobbleVar     = WOBBLE_VAR,
-			wobbleFreq    = WOBBLE_FREQ,
-			wobbleFreqVar = WOBBLE_FREQ_VAR,
-			wobbleRampFrames = WOBBLE_RAMP_FRAMES,
-		},
-		shaderConfig = {},
-		forceupdate  = true,
-	}
-
-	particleUseGeometryShader = (LuaShader and LuaShader.isGeometryShaderSupported) or false
-	if particleUseGeometryShader then
-		particleShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
-		if not particleShader then
-			particleUseGeometryShader = false
-			spEcho("EEP: GS compile failed, enabling NoGS fallback")
-		end
-	end
-	if not particleUseGeometryShader then
-		particleShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
-		if not particleShader then
-			goodbye("Failed to compile shader (GS and NoGS)")
-			return false
-		end
+	particleShader = LuaShader.CheckShaderUpdates(shaderCache)
+	if not particleShader then
+		goodbye("Failed to compile shader")
+		return false
 	end
 
 	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
@@ -904,13 +784,8 @@ local function initGL4()
 	-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
 	-- GS doesn't get invoked twice per particle.
 	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	if particleUseGeometryShader then
-		indexVBO:Define(3)
-		indexVBO:Upload({0, 1, 2})
-	else
-		indexVBO:Define(6)
-		indexVBO:Upload({0, 1, 2, 0, 2, 3})
-	end
+	indexVBO:Define(3)
+	indexVBO:Upload({0, 1, 2})
 
 	local layout = {
 		{ id = 1, name = "spawnPosAndSize",  size = 4 },
