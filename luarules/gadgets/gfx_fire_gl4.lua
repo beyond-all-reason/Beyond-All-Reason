@@ -1512,7 +1512,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 	local isUnfinished = buildProgress and buildProgress < 1.0
 	local e = unitFireEmitter[unitID]
-	Spring.Echo("UnitDestroyed: unitID=" .. unitID .. " unitDefID=" .. unitDefID .. " attackerID=" .. (attackerID or "nil") .. " weaponDefID=" .. (weaponDefID or "nil") .. " isReclaimed=" .. tostring(isReclaimed) .. " isUnfinished=" .. tostring(isUnfinished))
 	if isReclaimed or isUnfinished then
 		pendingWreckFire[unitID] = nil
 		if e then
