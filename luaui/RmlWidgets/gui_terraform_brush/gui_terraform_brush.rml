@@ -6791,6 +6791,27 @@
 
 		<div class="text-base text-keybind mb-2">Create a fresh flat map and reload the current session onto it. Unsaved terrain edits will be lost.</div>
 
+		<!-- Procedural terrain is opt-in; default is a dead-flat canvas. -->
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<div class="text-base text-light" style="flex: 1;">GENERATE TERRAIN</div>
+			<div id="btn-newmap-gen" class="tf-action-btn" style="flex: 0.9;" data-class-active="newMapGen" data-event-mousedown="onNewMapGenToggle()">
+				<div class="tf-action-btn-text" data-if="newMapGen">ON</div>
+				<div class="tf-action-btn-text" data-if="!newMapGen">OFF</div>
+			</div>
+		</div>
+
+		<!-- Randomizer (samples archetypes learned from all BAR maps) -->
+		<div data-if="newMapGen">
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div id="btn-newmap-randomize" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onNewMapRandomize()">
+					<div class="tf-action-btn-text">RANDOMIZE</div>
+				</div>
+			</div>
+			<div class="flex flex-row justify-center items-center mb-2" data-if="newMapArchetypeStr != ''">
+				<div class="text-base text-keybind">Archetype: {{newMapArchetypeStr}}</div>
+			</div>
+		</div>
+
 		<!-- Width -->
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div class="text-lg text-light">WIDTH: <span class="text-xl font-bold">{{newMapWidthStr}}</span></div>
@@ -6816,6 +6837,56 @@
 		<div class="flex flex-row justify-center items-center mb-2">
 			<div class="text-base text-keybind">{{newMapElmoStr}}</div>
 		</div>
+
+		<!-- ===== Procedural terrain / water / resources / layout (gated by toggle) ===== -->
+		<div data-if="newMapGen">
+		<!-- ===== Procedural terrain ===== -->
+		<div class="tf-newmap-section">TERRAIN</div>
+
+		<div class="text-base text-light">HILLINESS: <span class="font-bold text-keybind">{{newMapHilStr}}</span></div>
+		<input type="range" id="slider-newmap-hil" class="tf-slider mb-1" min="0" max="100" step="1" value="50" data-event-change="onNewMapSlider('hilliness')" />
+
+		<div class="text-base text-light">ROUGHNESS: <span class="font-bold text-keybind">{{newMapRoughStr}}</span></div>
+		<input type="range" id="slider-newmap-rough" class="tf-slider mb-1" min="0" max="100" step="1" value="50" data-event-change="onNewMapSlider('roughness')" />
+
+		<div class="text-base text-light">TERRAIN SCALE: <span class="font-bold text-keybind">{{newMapScaleStr}}</span></div>
+		<input type="range" id="slider-newmap-scale" class="tf-slider mb-1" min="0" max="100" step="1" value="50" data-event-change="onNewMapSlider('featureScale')" />
+
+		<div class="text-base text-light">JAGGEDNESS: <span class="font-bold text-keybind">{{newMapJagStr}}</span></div>
+		<input type="range" id="slider-newmap-jag" class="tf-slider mb-1" min="0" max="100" step="1" value="45" data-event-change="onNewMapSlider('jaggedness')" />
+
+		<!-- ===== Water ===== -->
+		<div class="tf-newmap-section">WATER (sea level at height 0)</div>
+
+		<div class="text-base text-light">WATER COVERAGE: <span class="font-bold text-keybind">{{newMapWaterStr}}</span></div>
+		<input type="range" id="slider-newmap-water" class="tf-slider mb-1" min="0" max="85" step="1" value="0" data-event-change="onNewMapSlider('waterLevel')" />
+
+		<div class="text-base text-light">COASTLINE / ISLAND: <span class="font-bold text-keybind">{{newMapCoastStr}}</span></div>
+		<input type="range" id="slider-newmap-coast" class="tf-slider mb-1" min="0" max="100" step="1" value="0" data-event-change="onNewMapSlider('islandness')" />
+
+		<!-- ===== Resources ===== -->
+		<div class="tf-newmap-section">RESOURCES</div>
+
+		<div class="text-base text-light">METAL DENSITY: <span class="font-bold text-keybind">{{newMapMetalStr}}</span></div>
+		<input type="range" id="slider-newmap-metal" class="tf-slider mb-1" min="0" max="100" step="1" value="50" data-event-change="onNewMapSlider('metalDensity')" />
+
+		<!-- ===== Symmetry + Seed ===== -->
+		<div class="tf-newmap-section">LAYOUT</div>
+
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-base text-light" style="flex: 1;">SYMMETRY</div>
+			<div id="btn-newmap-sym" class="tf-action-btn" style="flex: 1.4;" data-event-mousedown="onNewMapSymCycle()">
+				<div class="tf-action-btn-text">{{newMapSymStr}}</div>
+			</div>
+		</div>
+
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<div class="text-base text-light" style="flex: 1;">SEED: <span class="font-bold text-keybind">{{newMapSeedStr}}</span></div>
+			<div id="btn-newmap-seed" class="tf-action-btn" style="flex: 0.9;" data-event-mousedown="onNewMapSeedReroll()">
+				<div class="tf-action-btn-text">RANDOM</div>
+			</div>
+		</div>
+		</div><!-- /newMapGen procedural controls -->
 
 		<!-- Splat set (DNTS detail textures baked into the generated map) -->
 		<div class="flex flex-row justify-between items-center mb-1">

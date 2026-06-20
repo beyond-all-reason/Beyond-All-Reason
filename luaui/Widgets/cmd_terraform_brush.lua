@@ -1562,6 +1562,137 @@ local pendingExport = false
 -- 200-local limit).
 extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
 
+-- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
+-- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
+extraState._mapgen = VFS.Include("luaui/Widgets/cmd_terraform_brush_mapgen.lua")
+
+-- ============ New Map: post-reload procedural terrain apply ============
+-- The New Map dialog writes a recipe file and reloads the engine onto a flat
+-- blank map (the engine can only make flat maps). On the new session we read the
+-- recipe, generate a full heightmap in Lua, and stamp it through the SAME import
+-- streaming path the heightmap importer uses (undo-free, throttled). Water needs
+-- no special handling: the engine renders the water plane at world height 0, so
+-- the generator's sub-zero cells simply become sea/lakes. Start positions are
+-- placed symmetrically AFTER the import settles so ground heights are final.
+--
+-- These helpers are stored on extraState so they can mutate the file-local
+-- importHeightRows/importRowIndex as upvalues without adding chunk-level locals.
+-- (Recipe path "Terraform Brush/pending_newmap.lua" is inlined below — the main
+-- chunk is at the Lua 5.1 200-local limit, so no new file-scope local is added.)
+
+extraState._newmapApplyHeights = function(cols)
+	importHeightRows = cols
+	importRowIndex = 0
+end
+
+-- Read (and one-shot consume) the recipe left by the dialog before the reload.
+-- Use io.open for BOTH read and write (raw filesystem) so there is no chance of
+-- VFS read-cache returning a stale (e.g. previously-blanked) copy across reloads.
+extraState._newmapConsumeRecipe = function()
+	local rf = io.open("Terraform Brush/pending_newmap.lua", "r")
+	if not rf then return nil end
+	local raw = rf:read("*a")
+	rf:close()
+	if not raw or raw == "" then return nil end
+	-- Blank the file immediately so a plain /reload never regenerates.
+	local wf = io.open("Terraform Brush/pending_newmap.lua", "w")
+	if wf then wf:write(""); wf:close() end
+	local ok, recipe = pcall(function() return loadstring(raw)() end)
+	if ok and type(recipe) == "table" then return recipe end
+	return nil
+end
+
+-- Driver: runs each frame while a New Map is pending. Phase 1 generates and
+-- starts streaming the heightmap; phase 2 places symmetric spawns once the
+-- stream has finished and heights have settled.
+extraState._newmapDrive = function()
+	local recipe = extraState._newmapPending
+	if recipe then
+		local msx = Game.mapSizeX
+		if not msx or msx <= 0 then return end
+		-- Let the freshly-reloaded session settle (map + the synced terraform
+		-- gadget must be ready to receive messages) before streaming. We do NOT
+		-- gate on /cheat: the import is sent with the "$c$" certification prefix,
+		-- which the gadget trusts even though cheat resets to OFF across the
+		-- engine reload. We still nudge /cheat on once so the editor is usable
+		-- afterwards, but terrain no longer depends on it taking effect.
+		if not extraState._newmapStartFrame then
+			extraState._newmapStartFrame = GetDrawFrame() + 15
+			if not Spring.IsCheatingEnabled() then Spring.SendCommands("cheat") end
+			return
+		end
+		if GetDrawFrame() < extraState._newmapStartFrame then return end
+		if importHeightRows then return end  -- a stream is already in flight
+		local sq = Game.squareSize
+		recipe.numX = msx / sq + 1
+		recipe.numZ = Game.mapSizeZ / sq + 1
+		recipe.squareSize = sq
+		local cols, info = extraState._mapgen.generate(recipe)
+		if not cols then
+			Echo("[Terraform Brush] New Map generation failed: " .. tostring(info))
+			extraState._newmapPending = nil
+			return
+		end
+		extraState._newmapPending = nil
+		extraState._newmapInfo = info
+		extraState._newmapCertify = true   -- certify the import + metal stamps
+		extraState._newmapApplyHeights(cols)
+		Echo(string.format(
+			"[Terraform Brush] New Map: stamping terrain (%s, %d spawns, water %.0f%%, h %.0f..%.0f)...",
+			info.symmetry, #info.spawns, info.waterPct, info.minHeight, info.maxHeight))
+		return
+	end
+
+	-- Phase 2: the stream finished (importHeightRows cleared by the importer).
+	-- Wait ~30 draw frames so the synced SetHeightMap edits and the unsynced
+	-- heightmap have fully propagated before we sample ground heights for spawns
+	-- (SetHeightMap lands asynchronously a few sim frames after the last column).
+	local info = extraState._newmapInfo
+	if info and not importHeightRows then
+		if not extraState._newmapPlaceFrame then
+			extraState._newmapPlaceFrame = GetDrawFrame() + 30
+			return
+		end
+		if GetDrawFrame() < extraState._newmapPlaceFrame then return end
+
+		-- Symmetric start positions (each spawn its own allyteam). Capture each
+		-- result so a silent slope rejection can't quietly break spawn symmetry.
+		local placed, wanted = 0, #info.spawns
+		pcall(function()
+			local spt = WG.StartPosTool
+			if spt and spt.addPosition then
+				spt.clearAllPositions()
+				for idx, sp in ipairs(info.spawns) do
+					if spt.addPosition(sp.x, sp.z, idx, 1) then placed = placed + 1 end
+				end
+			end
+		end)
+		if placed < wanted then
+			Echo(string.format(
+				"[Terraform Brush] New Map: only %d/%d spawns placed (terrain too steep?) — symmetry may be incomplete.",
+				placed, wanted))
+		end
+
+		-- Symmetric metal spots (already pixel-exact symmetric from the generator).
+		-- $metal_stamp$[$c$]<x> <z> <radius> <value> <shape> <angleDeg> <direction>;
+		-- $c$ certifies it (the metal gadget puts $c$ AFTER the header). The metal
+		-- gadget computes the per-square amount for the target value itself.
+		local nMetal = 0
+		pcall(function()
+			for _, ms in ipairs(info.metal or {}) do
+				Spring.SendLuaRulesMsg(string.format("$metal_stamp$$c$%d %d 24 %.2f circle 0 1",
+					math.floor(ms.x), math.floor(ms.z), ms.amount or 2.0))
+				nMetal = nMetal + 1
+			end
+		end)
+
+		Echo(string.format("[Terraform Brush] New Map ready — %d spawns, %d metal spots.", placed, nMetal))
+		extraState._newmapInfo = nil
+		extraState._newmapPlaceFrame = nil
+		extraState._newmapCertify = nil
+	end
+end
+
 local function getState()
 	return {
 		active = activeMode ~= nil,
@@ -1985,7 +2116,10 @@ local function doImportHeightmapSend()
 			parts[j] = string.format("%.0f", heights[j])
 		end
 
-		local msg = MSG.IMPORT .. x .. " " .. table.concat(parts, " ")
+		-- New Map generation certifies its messages ($c$ prefix) so the gadget
+		-- accepts them even though /cheat resets to OFF across the engine reload.
+		local cert = extraState._newmapCertify and "$c$" or ""
+		local msg = cert .. MSG.IMPORT .. x .. " " .. table.concat(parts, " ")
 		SendLuaRulesMsg(msg)
 	end
 
@@ -2000,7 +2134,7 @@ local function doImportHeightmapSend()
 		-- gadget to force a full-map dirty (AdjustHeightMap by 0), then run a
 		-- prolonged tessellation refresh covering normal + shadow passes so
 		-- the entire imported map redraws without requiring a local edit.
-		SendLuaRulesMsg(MSG.IMPORT_END)
+		SendLuaRulesMsg((extraState._newmapCertify and "$c$" or "") .. MSG.IMPORT_END)
 		tessellationDirtyFrames = 60
 		extraState._importNeedsShadowRefresh = 60
 	end
@@ -2037,6 +2171,14 @@ function widget:Initialize()
 	widgetHandler:AddAction("terraformimport", importHeightmap, nil, "t")
 
 	loadKeybindsFromDisk()
+
+	-- New Map: pick up a generation recipe left by the dialog before the reload.
+	extraState._newmapPending = extraState._newmapConsumeRecipe()
+	if extraState._newmapPending then
+		Echo(string.format(
+			"[Terraform Brush] New Map recipe detected (%s, seed %s) — generating terrain after load...",
+			tostring(extraState._newmapPending.symmetry), tostring(extraState._newmapPending.seed)))
+	end
 
 	WG.TerraformBrush = {
 		setMode = setMode,
@@ -5421,6 +5563,10 @@ function extraState.measureFindNearEndpoint(sx, sy)
 end
 
 function widget:DrawScreen()
+	-- New Map procedural terrain: generate + stream + place spawns post-reload.
+	if extraState._newmapPending or extraState._newmapInfo then
+		extraState._newmapDrive()
+	end
 	if pendingExport then
 		pendingExport = false
 		doExportHeightmap()

@@ -1318,6 +1318,17 @@ body {
 	z-index: 920;
 	width: 300dp;
 	min-width: 260dp;
+	max-height: 84vh;
+	overflow-y: auto;
+}
+
+/* New Map: compact section divider label */
+.tf-newmap-section {
+	color: #8fb0c8;
+	font-size: 0.85rem;
+	font-weight: bold;
+	margin-top: 6dp;
+	margin-bottom: 2dp;
 }
 
 /* === Sound Toggle Button === */

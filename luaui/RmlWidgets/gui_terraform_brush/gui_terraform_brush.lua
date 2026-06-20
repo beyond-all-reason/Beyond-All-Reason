@@ -1028,6 +1028,9 @@ end
 -- thumb, and refresh labels.
 local function _nmSetAxis(axis, units)
 	units = _nmClampEven(units, NEWMAP_DEFAULT_UNIT)
+	-- Guard the code->thumb write so the resulting change event is ignored
+	-- (consistent with the terrain sliders; prevents any future feedback loop).
+	uiState.updatingFromCode = true
 	if axis == "h" then
 		widgetState.newMapH = units
 		_elemSetSliderVal("slider-newmap-height", units)
@@ -1035,6 +1038,7 @@ local function _nmSetAxis(axis, units)
 		widgetState.newMapW = units
 		_elemSetSliderVal("slider-newmap-width", units)
 	end
+	uiState.updatingFromCode = false
 	_nmRefreshLabels()
 end
 
@@ -1110,6 +1114,81 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet)
 	return script
 end
 
+-- ---- Procedural terrain controls for New Map ----
+-- The dialog collects a "recipe" of 0..1 sliders + symmetry + seed in
+-- widgetState.newMap. On CREATE we serialize it to a write-dir file and reload
+-- onto a flat blank map; the command widget (cmd_terraform_brush.lua) reads the
+-- file post-reload, generates the heightmap and stamps it via the import path.
+local NEWMAP_SYMS = {
+	{ id = "rot180",  label = "Rotational 180\194\176" },
+	{ id = "mirrorx", label = "Mirror H \226\134\148" },
+	{ id = "mirrorz", label = "Mirror V \226\134\149" },
+	{ id = "rot90",   label = "4-Way (square)" },
+	{ id = "none",    label = "Asymmetric" },
+}
+
+-- Push widgetState.newMap into the data-model labels (and optionally the slider
+-- thumbs). setSliders is only true on dialog open / randomize, never inside a
+-- slider change handler (which would fight the thumb the user is dragging).
+local function _nmRefreshTerrain(setSliders)
+	local d = widgetState.dmHandle
+	if not d then return end
+	local nm = widgetState.newMap or {}
+	local function pct(v) return tostring(math.floor((v or 0) * 100 + 0.5)) .. "%" end
+	if d.newMapHilStr   ~= pct(nm.hilliness)    then d.newMapHilStr   = pct(nm.hilliness) end
+	if d.newMapRoughStr ~= pct(nm.roughness)    then d.newMapRoughStr = pct(nm.roughness) end
+	if d.newMapScaleStr ~= pct(nm.featureScale) then d.newMapScaleStr = pct(nm.featureScale) end
+	if d.newMapJagStr   ~= pct(nm.jaggedness)   then d.newMapJagStr   = pct(nm.jaggedness) end
+	if d.newMapWaterStr ~= pct(nm.waterLevel)   then d.newMapWaterStr = pct(nm.waterLevel) end
+	if d.newMapCoastStr ~= pct(nm.islandness)   then d.newMapCoastStr = pct(nm.islandness) end
+	if d.newMapMetalStr ~= pct(nm.metalDensity) then d.newMapMetalStr = pct(nm.metalDensity) end
+	local symLabel = NEWMAP_SYMS[1].label
+	for _, s in ipairs(NEWMAP_SYMS) do if s.id == nm.symmetry then symLabel = s.label break end end
+	if d.newMapSymStr ~= symLabel then d.newMapSymStr = symLabel end
+	local seedStr = tostring(nm.seed or 0)
+	if d.newMapSeedStr ~= seedStr then d.newMapSeedStr = seedStr end
+	local arch = nm.archetypeName or ""
+	if d.newMapArchetypeStr ~= arch then d.newMapArchetypeStr = arch end
+	if setSliders then
+		uiState.updatingFromCode = true
+		_elemSetSliderVal("slider-newmap-hil",   math.floor((nm.hilliness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-rough", math.floor((nm.roughness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-scale", math.floor((nm.featureScale or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-jag",   math.floor((nm.jaggedness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-water", math.floor((nm.waterLevel or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-coast", math.floor((nm.islandness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-metal", math.floor((nm.metalDensity or 0) * 100 + 0.5))
+		uiState.updatingFromCode = false
+	end
+end
+
+-- Serialize the recipe to the write-dir file consumed by the command widget
+-- after the reload. Returns true on success.
+local function writePendingNewMapRecipe(nm)
+	Spring.CreateDir("Terraform Brush")
+	local players = (nm.symmetry == "rot90") and 4 or 2
+	local body = string.format(
+		"return {\n  seed=%d,\n  hilliness=%g,\n  roughness=%g,\n  featureScale=%g,\n"
+		.. "  jaggedness=%g,\n  waterLevel=%g,\n  islandness=%g,\n  metalDensity=%g,\n"
+		.. "  symmetry=%q,\n  players=%d,\n}\n",
+		nm.seed or 1, nm.hilliness or 0.5, nm.roughness or 0.5, nm.featureScale or 0.5,
+		nm.jaggedness or 0.45, nm.waterLevel or 0, nm.islandness or 0, nm.metalDensity or 0.5,
+		nm.symmetry or "rot180", players)
+	local f = io.open("Terraform Brush/pending_newmap.lua", "w")
+	if f then f:write(body); f:close(); return true end
+	return false
+end
+
+-- Load the randomizer archetypes derived offline from a scan of all BAR maps
+-- (tools/mapgen/build_archetypes.py). Optional: the randomizer falls back to
+-- sensible hand ranges if the file is missing.
+do
+	local ok, t = pcall(function()
+		return VFS.Include("luaui/RmlWidgets/gui_terraform_brush/newmap_archetypes.lua")
+	end)
+	if ok and type(t) == "table" then widgetState.newMapArchetypes = t end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -1133,6 +1212,18 @@ local initialModel = {
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
+	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
+	newMapHilStr   = "50%",
+	newMapRoughStr = "50%",
+	newMapScaleStr = "50%",
+	newMapJagStr   = "45%",
+	newMapWaterStr = "0%",
+	newMapCoastStr = "0%",
+	newMapMetalStr = "50%",
+	newMapSymStr   = "Rotational 180\194\176",
+	newMapSeedStr  = "\226\128\148",
+	newMapArchetypeStr = "",
+	newMapGen = false,   -- procedural terrain toggle; off (default) = dead-flat map
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
@@ -3668,17 +3759,47 @@ local initialModel = {
 		-- all agree when the (re)created dialog appears.
 		widgetState.newMapW = NEWMAP_DEFAULT_UNIT
 		widgetState.newMapH = NEWMAP_DEFAULT_UNIT
+		-- Seed the procedural-terrain recipe (keep last session's feel, reroll seed).
+		widgetState.newMap = widgetState.newMap or {}
+		local nm = widgetState.newMap
+		nm.hilliness    = nm.hilliness    or 0.5
+		nm.roughness    = nm.roughness    or 0.5
+		nm.featureScale = nm.featureScale or 0.5
+		nm.jaggedness   = nm.jaggedness   or 0.45
+		nm.waterLevel   = nm.waterLevel   or 0.0
+		nm.islandness   = nm.islandness   or 0.0
+		nm.metalDensity = nm.metalDensity or 0.5
+		nm.symmetry     = nm.symmetry     or "rot180"
+		nm.seed         = math.random(1, 999999)
+		-- Default to a flat canvas every time the dialog opens; procedural terrain
+		-- is opt-in via the GENERATE TERRAIN toggle.
+		widgetState.newMapGen = false
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = false
 			d.newMapOpen = true
+			d.newMapGen = false
 		end
+		-- Reset the width/height slider thumbs too (label+state are reset above,
+		-- so the thumbs must follow or they desync if the user dragged last time).
+		uiState.updatingFromCode = true
+		_elemSetSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT)
+		_elemSetSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT)
+		uiState.updatingFromCode = false
 		_nmRefreshLabels()
 		_nmRefreshSplatLabel()
+		_nmRefreshTerrain(true)
 	end,
 	onNewMapClose = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
+	end,
+	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
+	-- the procedural terrain/water/resources/layout controls and the randomizer.
+	onNewMapGenToggle = function(_event)
+		playSound("click")
+		widgetState.newMapGen = not widgetState.newMapGen
+		local d = widgetState.dmHandle; if d then d.newMapGen = widgetState.newMapGen end
 	end,
 	onNewMapSplatPrev = function(_event)
 		if #dntsSets == 0 then return end
@@ -3720,6 +3841,101 @@ local initialModel = {
 	onNewMapHeightDown = function(_event)
 		_nmSetAxis("h", (widgetState.newMapH or NEWMAP_DEFAULT_UNIT) - 2)
 	end,
+	-- Parametric terrain slider: data-event-change="onNewMapSlider('hilliness')".
+	-- Value arrives 0..100 (the slider range); stored as 0..1 in widgetState.newMap.
+	onNewMapSlider = function(event, key)
+		if uiState.updatingFromCode then return end
+		if not key then return end
+		local raw = (event and event.parameters and event.parameters.value)
+		if raw == nil then return end
+		local v = (tonumber(raw) or 0) / 100
+		if v < 0 then v = 0 elseif v > 1 then v = 1 end
+		widgetState.newMap = widgetState.newMap or {}
+		widgetState.newMap[key] = v
+		_nmRefreshTerrain(false)  -- labels only; don't fight the dragged thumb
+	end,
+	onNewMapSymCycle = function(_event)
+		playSound("click")
+		local nm = widgetState.newMap or {}
+		local cur = nm.symmetry or "rot180"
+		local idx = 1
+		for i, s in ipairs(NEWMAP_SYMS) do if s.id == cur then idx = i break end end
+		idx = idx % #NEWMAP_SYMS + 1
+		nm.symmetry = NEWMAP_SYMS[idx].id
+		widgetState.newMap = nm
+		_nmRefreshTerrain(false)
+	end,
+	onNewMapSeedReroll = function(_event)
+		playSound("click")
+		widgetState.newMap = widgetState.newMap or {}
+		widgetState.newMap.seed = math.random(1, 999999)
+		_nmRefreshTerrain(false)
+	end,
+	-- Randomizer: samples a recipe from archetypes learned by scanning all BAR
+	-- maps (weight = real-map frequency; ranges = p20..p80 of maps in the bucket;
+	-- symmetry + size from the corpus distribution). Falls back to hand ranges if
+	-- the archetype file is missing.
+	onNewMapRandomize = function(_event)
+		playSound("exit")
+		local A = widgetState.newMapArchetypes
+		local nm = widgetState.newMap or {}
+		widgetState.newMap = nm
+		local function rrange(r, dflt)
+			if type(r) ~= "table" then return dflt end
+			return r[1] + math.random() * (r[2] - r[1])
+		end
+		local function pickWeighted(weights)  -- {key=weight,...} -> key
+			local total = 0
+			for _, w in pairs(weights) do total = total + (w or 0) end
+			if total <= 0 then return nil end
+			local r = math.random() * total
+			for k, w in pairs(weights) do r = r - (w or 0); if r <= 0 then return k end end
+			return nil
+		end
+		if A and A.archetypes and #A.archetypes > 0 then
+			local total = 0
+			for _, e in ipairs(A.archetypes) do total = total + (e.weight or 0) end
+			local pick, r = A.archetypes[1], math.random() * total
+			for _, e in ipairs(A.archetypes) do r = r - (e.weight or 0); if r <= 0 then pick = e break end end
+			nm.hilliness    = rrange(pick.hilliness, 0.5)
+			nm.roughness    = rrange(pick.roughness, 0.5)
+			nm.featureScale = rrange(pick.featureScale, 0.5)
+			nm.jaggedness   = rrange(pick.jaggedness, 0.45)
+			nm.waterLevel   = rrange(pick.waterLevel, 0.0)
+			nm.islandness   = rrange(pick.islandness, 0.0)
+			nm.archetypeName = pick.name
+			if A.symmetryWeights then nm.symmetry = pickWeighted(A.symmetryWeights) or nm.symmetry or "rot180" end
+			if A.sizeWeights then
+				local sk = pickWeighted(A.sizeWeights)
+				local sz = sk and tonumber(sk)
+				if sz then
+					sz = _nmClampEven(sz, NEWMAP_DEFAULT_UNIT)
+					widgetState.newMapW = sz   -- square so 4-way symmetry stays valid
+					widgetState.newMapH = sz
+				end
+			end
+		else
+			-- No archetype DB: sample sensible ranges by hand.
+			nm.hilliness = 0.3 + math.random() * 0.6
+			nm.roughness = 0.3 + math.random() * 0.5
+			nm.featureScale = 0.3 + math.random() * 0.5
+			nm.jaggedness = 0.3 + math.random() * 0.4
+			nm.waterLevel = (math.random() < 0.5) and 0.0 or math.random() * 0.5
+			nm.islandness = (nm.waterLevel > 0.3) and (0.5 + math.random() * 0.5) or (math.random() * 0.3)
+			nm.archetypeName = "Random"
+		end
+		-- clamp to slider ranges, randomize metal richness, reroll the seed
+		nm.waterLevel = math.max(0, math.min(0.85, nm.waterLevel or 0))
+		nm.metalDensity = 0.3 + math.random() * 0.5
+		nm.seed = math.random(1, 999999)
+		-- push everything to the dialog (thumbs + labels)
+		uiState.updatingFromCode = true
+		_elemSetSliderVal("slider-newmap-width",  widgetState.newMapW or NEWMAP_DEFAULT_UNIT)
+		_elemSetSliderVal("slider-newmap-height", widgetState.newMapH or NEWMAP_DEFAULT_UNIT)
+		uiState.updatingFromCode = false
+		_nmRefreshLabels()
+		_nmRefreshTerrain(true)
+	end,
 	onNewMapCreate = function(_event)
 		local w = _nmClampEven(widgetState.newMapW or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
 		local h = _nmClampEven(widgetState.newMapH or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
@@ -3728,9 +3944,31 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
 		end
+		-- Procedural terrain is opt-in. When GENERATE TERRAIN is on we persist the
+		-- recipe so the command widget can stamp terrain onto the flat map after the
+		-- reload (the engine only makes flat maps). When off we clear any leftover
+		-- recipe so the post-reload driver does nothing and a dead-flat canvas loads.
+		local nm = widgetState.newMap or {}
+		if widgetState.newMapGen then
+			nm.seed = nm.seed or math.random(1, 999999)
+			if not writePendingNewMapRecipe(nm) then
+				Spring.Echo("[Terraform Brush] New Map: could not write terrain recipe (flat map only).")
+			end
+			Spring.Echo(string.format(
+				"[Terraform Brush] New Map %dx%d (%dx%d elmos), %s, water %d%%, seed %d; reloading...",
+				w, h, w * 512, h * 512, nm.symmetry or "rot180",
+				math.floor((nm.waterLevel or 0) * 100 + 0.5), nm.seed))
+		else
+			-- Blank any leftover recipe so a stale procedural recipe from a previous
+			-- create can't be picked up by the post-reload driver on this flat map.
+			Spring.CreateDir("Terraform Brush")
+			local rf = io.open("Terraform Brush/pending_newmap.lua", "w")
+			if rf then rf:write(""); rf:close() end
+			Spring.Echo(string.format(
+				"[Terraform Brush] New Map %dx%d (%dx%d elmos), flat; reloading...",
+				w, h, w * 512, h * 512))
+		end
 		playSound("exit")
-		Spring.Echo(string.format("[Terraform Brush] Generating blank %dx%d map (%dx%d elmos); reloading...",
-			w, h, w * 512, h * 512))
 		Spring.Restart("", script)
 	end,
 	onGuideToggleSound = function(_event)

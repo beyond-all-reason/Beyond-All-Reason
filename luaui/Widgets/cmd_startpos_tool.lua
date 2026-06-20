@@ -2873,6 +2873,7 @@ function widget:Initialize()
 		togglePlacementMode = togglePlacementMode,
 		setStartboxMode     = setStartboxMode,
 		clearAllPositions   = clearAllPositions,
+		addPosition         = addPosition,
 		placeRandomPositions = placeRandomPositions,
 		saveStartPositions  = saveStartPositions,
 		loadStartPositions  = loadStartPositions,
