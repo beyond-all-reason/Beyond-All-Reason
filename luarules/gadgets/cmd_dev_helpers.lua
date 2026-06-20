@@ -641,7 +641,11 @@ if gadgetHandler:IsSyncedCode() then
 					local unitTeam = Spring.GetUnitTeam(unitID)
 					Spring.DestroyUnit(unitID, false, true)
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
-						Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+						local fDefID = FeatureDefNames[UnitDefs[unitDefID].corpse].id
+						local fID = Spring.CreateFeature(fDefID, x, y, z, heading, unitTeam)
+						if fID then
+							Spring.SetFeatureResurrect(fID, unitDefID, heading)
+						end
 					end
 				end
 			end
