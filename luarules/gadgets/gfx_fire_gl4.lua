@@ -66,6 +66,9 @@ local mathCos    = math.cos
 local mathPi     = math.pi
 local TWO_PI     = mathPi * 2
 
+local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
+local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.SelfD
+
 local LuaShader = gl.LuaShader
 local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
 local popElementInstance  = gl.InstanceVBOTable.popElementInstance
@@ -1498,13 +1501,18 @@ end
 
 -- A unit that leaves a wreckage spawns short fire + long smoke at its position.
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	-- Skip effects when the unit was reclaimed: attacker exists, is a different
-	-- unit, and no combat weapon was involved (weaponDefID nil or negative).
-	local isReclaimed = attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0)
+
+	-- Skip effects when the unit was reclaimed. Prefer the engine reclaim damage
+	-- type, but keep fallbacks for older/scripted env-death paths.
+	local nilAttackerEnvRemoval = attackerID == nil and weaponDefID and weaponDefID < 0 and weaponDefID ~= selfdWeaponDefID
+	local isReclaimed = weaponDefID == reclaimedWeaponDefID
+		or nilAttackerEnvRemoval
+		or (attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0))
 	-- Skip effects for unfinished (still-being-built) units.
 	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
 	local isUnfinished = buildProgress and buildProgress < 1.0
 	local e = unitFireEmitter[unitID]
+	Spring.Echo("UnitDestroyed: unitID=" .. unitID .. " unitDefID=" .. unitDefID .. " attackerID=" .. (attackerID or "nil") .. " weaponDefID=" .. (weaponDefID or "nil") .. " isReclaimed=" .. tostring(isReclaimed) .. " isUnfinished=" .. tostring(isUnfinished))
 	if isReclaimed or isUnfinished then
 		pendingWreckFire[unitID] = nil
 		if e then
