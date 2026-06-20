@@ -614,7 +614,7 @@ if gadgetHandler:IsSyncedCode() then
 			if unitID and Spring.ValidUnitID(unitID) then
 				local h, mh = Spring.GetUnitHealth(unitID)
 				if not action then
-					Spring.DestroyUnit(unitID, false, false, unitID)
+					Spring.DestroyUnit(unitID)  -- bare call: engine handles explosion + resurrectible wreck naturally
 				elseif action == 'xp' and params then
 					--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
 					if type(tonumber(params)) == 'number' then
@@ -636,12 +636,18 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
 				elseif action == 'wreck' then
 					local unitDefID = Spring.GetUnitDefID(unitID)
-					local x, y, z = Spring.GetUnitPosition(unitID)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
 					local heading = Spring.GetUnitHeading(unitID)
 					local unitTeam = Spring.GetUnitTeam(unitID)
+					local uDef = UnitDefs[unitDefID]
+					-- Destroy silently (no explosion, no natural wreck), then manually create a resurrectible wreck
 					Spring.DestroyUnit(unitID, false, true)
-					if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
-						Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+					if uDef and uDef.corpse and FeatureDefNames[uDef.corpse] then
+						local fDefID = FeatureDefNames[uDef.corpse].id
+						local fID = Spring.CreateFeature(fDefID, ux, uy, uz, heading, unitTeam)
+						if fID then
+							Spring.SetFeatureResurrect(fID, unitDefID, heading)
+						end
 					end
 				end
 			end
