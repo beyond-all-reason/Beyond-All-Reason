@@ -2070,11 +2070,11 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
+				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
+					unitCowardCooldown[unitID] = nil
+					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
 				if ((math.random(1,10) == 1 or queenIDs[unitID]) and GetUnitCommandCount(unitID) == 0) then
-					if unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
-						unitCowardCooldown[unitID] = nil
-						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					end
 					if unitCowardCooldown[unitID] then
 						unitCowardCooldown[unitID] = nil
 					end
