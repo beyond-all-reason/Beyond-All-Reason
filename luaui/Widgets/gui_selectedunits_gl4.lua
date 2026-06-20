@@ -154,24 +154,27 @@ local function AddPrimitiveAtUnit(unitID)
 		unitTeam[unitID] = spGetUnitTeam(unitID)
 	end
 
-	local isBeingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+	local buildingDims = unitBuilding[unitDefID]
+	local isBeingBuilt = not buildingDims and Spring.GetUnitIsBeingBuilt(unitID)
 
 	local additionalheight = 0
 	local width, length
-	if isBeingBuilt then
-		width = radius
-		length = radius
+	if buildingDims then
+		width = buildingDims[1]
+		length = buildingDims[2]
+		cornersize = (width + length) * 0.075
+		numVertices = 2
+	elseif isBeingBuilt then
+		-- The cornered square will be replaced by a circle later.
+		-- Use the same or similar size for the swap to look good:
+		width = radius * 0.88
+		length = radius * 0.88
 		cornersize = (width + length) * 0.075
 		numVertices = 2
 	elseif unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
 		width = radius
 		length = radius
-	elseif unitBuilding[unitDefID] then
-		width = unitBuilding[unitDefID][1]
-		length = unitBuilding[unitDefID][2]
-		cornersize = (width + length) * 0.075
-		numVertices = 2
 	else
 		width = radius
 		length = radius
