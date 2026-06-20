@@ -14,26 +14,6 @@
 ---@field GetScriptEnv fun(unitID: integer): table
 ---@field GetLongestReloadTime fun(unitID: integer): number
 
--- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
----@class ResourceData
----@field resourceType ResourceName
----@field current number
----@field storage number
----@field pull number
----@field income number
----@field expense number
----@field shareSlider number
----@field sent number
----@field received number
----@field excess number
-
----@class TeamResourceData
----@field allyTeam number
----@field isDead boolean
----@field metal ResourceData
----@field energy ResourceData
-
--- TODO: delete when recoil-lua-library publishes TeamData types
 ---@class TeamData
 ---@field id number
 ---@field name string
@@ -65,4 +45,10 @@
 ---@class ObjectRenderingTable
 ---@field ActivateMaterial fun(objectID: integer, lod: integer)
 ---@field DeactivateMaterial fun(objectID: integer, lod: integer)
+
+--- Payload of the synced gadget:ResourceExcess(excesses) callin. Fires every frame for
+--- every team; excesses[teamID] = { [1]=metalOverflow, [2]=energyOverflow } is the overflow
+--- the engine already deducted from the producer this frame. Return true to take ownership
+--- (engine skips native buffering into resDelayedShare).
+---@alias ResourceExcesses table<number, number[]>
 

@@ -31,7 +31,8 @@ _G.Spring = _G.Spring or {
         if LOG_LEVELS[level] and LOG_LEVELS[level] >= LOG_LEVELS[_G.CURRENT_LOG_LEVEL] then
             print(string.format("[%s] %s: %s", tag, level, message))
         end
-    end
+    end,
+    GetGameFrame = function() return 0 end,
 }
 
 _G.Spring.Echo = _G.Spring.Echo or function(...)

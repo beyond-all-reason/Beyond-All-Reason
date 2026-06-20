@@ -228,6 +228,11 @@ function TeamBuilder:WithMetalReceived(received)
     return self
 end
 
+function TeamBuilder:WithMetalExcess(excess)
+    self.metal.excess = excess
+    return self
+end
+
 function TeamBuilder:WithEnergyPull(pull)
     self.energy.pull = pull
     return self
@@ -255,6 +260,11 @@ end
 
 function TeamBuilder:WithEnergyReceived(received)
     self.energy.received = received
+    return self
+end
+
+function TeamBuilder:WithEnergyExcess(excess)
+    self.energy.excess = excess
     return self
 end
 
