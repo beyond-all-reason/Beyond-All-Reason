@@ -7,23 +7,40 @@ function widget:GetInfo()
         author = "uBdead",
         date = "June 2026",
         license = "GNU LGPL, v2.1 or later",
-        layer = 1,
+        layer = 1, -- hypothetical stuff in layer = 0 could be doing things to boxes
         enabled = true
     }
 end
 
+function byeBye()
+    widgetHandler:RemoveWidget()
+end
+
 function widget:Initialize()
     if Spring.GetGameFrame() > 0 then
+        byeBye()
         return
     end
 
     local nameCameraState = Spring.GetCameraState(true)
     if nameCameraState.name ~= "ta" and nameCameraState.name ~= "spring" then
+        byeBye()
         return
     end
 
-    -- Calculate the center of the startbox
-    local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(Spring.GetMyAllyTeamID())
+    -- Calculate the center of the startbox (or map for spectators)
+    local xMin, zMin, xMax, zMax
+
+    local isSpectator = select(1, Spring.GetSpectatingState())
+    if isSpectator then
+        xMin = 0
+        zMin = 0
+        xMax = Game.mapSizeX
+        zMax = Game.mapSizeZ
+    else
+        xMin, zMin, xMax, zMax= Spring.GetAllyTeamStartBox(Spring.GetMyAllyTeamID())
+    end
+
     if not xMin or not zMin or not xMax or not zMax then
         return
     end
@@ -41,5 +58,5 @@ function widget:Initialize()
 
     Spring.SetCameraState(currentCameraState)
 
-    widgetHandler:RemoveWidget()
+    byeBye()
 end
