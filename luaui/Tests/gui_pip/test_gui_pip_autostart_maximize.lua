@@ -12,7 +12,7 @@ function setup()
 		return false, false
 	end
 	widget = Test.prepareWidget(widgetName)
-	assert(widget)
+	assert(widget, string.format("prepareWidget: widget %q returned nil from FindWidget after EnableWidgetRaw", widgetName))
 end
 
 function cleanup()
@@ -38,7 +38,7 @@ function test()
 	widget:Update(0.25)
 
 	local data = widget:GetConfigData()
-	assert(data)
+	assert(data, "widget:GetConfigData should not be nil")
 	assert(data.inMinMode == false, "PIP should exit minimized mode on GameStart auto-maximize")
 
 	local expandedWidth = (data.pr - data.pl) * vsx
