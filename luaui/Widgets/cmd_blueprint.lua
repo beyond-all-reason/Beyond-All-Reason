@@ -893,6 +893,33 @@ local function handleSpacingAction(_, _, args)
 end
 
 function widget:MousePress(x, y, button)
+	-- We consume the presses so they can't trigger other bindings, which makes us the handler's mouseOwner.
+	-- But barwidgets.lua sends no MouseRelease for buttons 4/5 to clear it.
+	-- So we release any stale mouse capture left over from a previous button 4/5 press.
+	local wh = self.widgetHandler
+	if wh.DisownMouse then
+		wh:DisownMouse()
+	elseif wh.mouseOwner == self then
+		wh.mouseOwner = nil
+	end
+
+	-- mousebuttons 4 and 5 adjust blueprint spacing while placing
+	if button == 4 or button == 5 then
+		if not blueprintPlacementActive or not getSelectedBlueprint() then
+			return false
+		end
+
+		-- only when shift or shift+alt is held
+		local alt, ctrl, meta, shift = SpringGetModKeyState()
+		if not shift or ctrl or meta then
+			return false
+		end
+
+		handleSpacingAction(nil, nil, { button == 4 and "inc" or "dec" })
+
+		return true
+	end
+
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
 	end
