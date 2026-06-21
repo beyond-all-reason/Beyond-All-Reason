@@ -110,9 +110,14 @@ local transporterCoroutines = {} -- transporterID → { type = "area" or "succes
 --local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerID → number frames }
 --local minConsecutiveFramesToLoadEnemy = 60 -- how many consecutive frames within load range of an enemy unit do we need to allow loading it; set to math.huge to disable this feature
 
+local autoClaimBlackList = {} -- passengerID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
+local autoClaimBlackListDefIDs = {}  -- passengerDefID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
 		isAirTransport[udefID] = true
+	end
+	if def.customParams.cantbeautoloaded == "1" then
+		autoClaimBlackListDefIDs[udefID] = true
 	end
 end
 ---------------------
@@ -333,6 +338,9 @@ local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that
 	end
 	if spGetUnitIsDead(passengerID) then
 		return false	
+	end
+	if autoClaimBlackList[passengerID] then
+		return false
 	end
 	return not claimedBy[transporterAllyTeam][passengerID]
 end
@@ -806,6 +814,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		transporterClaims[unitID] = {}
 		queuedSeats[unitID] = 0
 	end
+	if autoClaimBlackListDefIDs[unitDefID] then
+		autoClaimBlackList[unitID] = true
+	end
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -843,6 +854,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local gx, gy, gz = spGetUnitPosition(transporterID)
 		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
 	end
+	autoClaimBlackList[unitID] = nil
 	--consecutiveFramesOverEnemyPassenger[unitID] = nil
 end
 
