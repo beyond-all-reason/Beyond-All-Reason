@@ -92,6 +92,17 @@ local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in c
 local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
 local cachedCylinderUnitsLifespan = 1 -- 1 frame
 local cachedCylinderUnitsRounding = 16 -- 1 how close a previously cached result do we need to be to actually use it?
+-- Enemy loading mode:
+--   1 = NONE: enemies can never be loaded (even explicit CMD_LOAD_UNIT is rejected)
+--   2 = Stunned only: stunned enemies are treated as neutral at the load stage; unstunned enemies are never loaded
+--   3 = Stunned + consecutive frames: stunned enemies load immediately; unstunned enemies load after
+--         minConsecutiveFramesToLoadEnemy frames within load range while barely moving (speed < 0.5 elmos/frame)
+--   4 = Mode 3 + reduced radius: unstunned enemies must be within ENEMY_LOAD_RADIUS for the consecutive-frames countdown
+--   5 = Mode 4 + no per-frame movegoal: the transporter will not receive a per-frame movegoal update toward a queued enemy unit
+local ALLOW_ENEMY_LOAD_MODE = 2
+local ENEMY_LOAD_RADIUS_MULTIPLIER = 0.5
+local ENEMY_LOAD_RADIUS = LOAD_RADIUS * ENEMY_LOAD_RADIUS_MULTIPLIER
+local minConsecutiveFramesToLoadEnemy = 60 -- frames within load range + low velocity required to load an unstunned enemy (modes 3-5)
 
 
 local customTransportLoad = {} -- transporterDefID → LUS function or COB script function
@@ -107,8 +118,7 @@ local offset = 0 -- reusable offset for coroutines cleanup in GameFrame
 local areaLoadCoroutinesCount = 0
 local successiveLoadCoroutinesCount = 0
 local transporterCoroutines = {} -- transporterID → { type = "area" or "successive", index = number }
---local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerID → number frames }
---local minConsecutiveFramesToLoadEnemy = 60 -- how many consecutive frames within load range of an enemy unit do we need to allow loading it; set to math.huge to disable this feature
+local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerID → number frames }; populated for modes 3-5
 
 local autoClaimBlackList = {} -- passengerID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
 local autoClaimBlackListDefIDs = {}  -- passengerDefID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
@@ -170,9 +180,9 @@ end
 ---@param goalZ number
 ---@return boolean inLoadRange
 
-local function inLoadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
+local function inLoadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ, reducedRadius)
 	local dY = transporterPosY - goalY
-	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= LOAD_RADIUS and dY >= 0
+	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= (reducedRadius and ENEMY_LOAD_RADIUS or LOAD_RADIUS) and dY >= 0
 end
 
 ---@param transporterPosX number
@@ -315,13 +325,16 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if allied then
 		return true
 	end
+	if ALLOW_ENEMY_LOAD_MODE == 1 then
+		return false
+	end
 	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander or UnitDefs[passengerDefID].transportByEnemy == false
 	if cantLoadAsEnemy then
-		return false	
+		return false
 	end
 	local losState = spGetUnitLosState(passengerID, transporterAllyTeam, false)
 	if not losState or not (losState.los or losState.radar) then
-		return false	
+		return false
 	end
 
 
@@ -370,34 +383,35 @@ end
 --- @param transporterPosZ number
 --- @return boolean
 local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) -- things that should delay loading without removing from queue
-
-	if not inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) then
-		-- consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter if we move out of range
+	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
+		return inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ)
+	end
+	-- enemy unit: check stun state first to decide which radius applies
+	local isStunned = spGetUnitIsStunned(passengerID) -- first bool is (beingBuilt OR stunned); beingBuilt already excluded by CanBeTransportedDynamic
+	if isStunned then
+		return inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) -- stunned enemy treated as neutral; full LOAD_RADIUS applies
+	end
+	-- unstunned enemy: mode 4-5 uses reduced radius for the consecutive-frames countdown
+	local useReducedRadius = ALLOW_ENEMY_LOAD_MODE >= 4
+	if not inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ, useReducedRadius) then
+		if ALLOW_ENEMY_LOAD_MODE >= 3 then
+			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter when out of range
+		end
 		return false
 	end
-	if not spAreTeamsAllied(passengerTeamID, transporterTeamID) then
-		local isStunned = spGetUnitIsStunned(passengerID) -- the first bool is (beingBuilt OR stunned), but we supposedly already excluded beingBuilt
-		if not isStunned then
-			-- OPTIONAL: allow non stunned after x frames spent within load range of a barely moving unit.
-			--[[
-			local velX, velY, velZ, vw = spGetUnitVelocity(passengerID)
-			if vw < 0.5 then
-				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
-				Spring.Echo("Passenger " .. passengerID .. " has been within load range of transporter " .. transporterID .. " for " .. consecutiveFramesOverEnemyPassenger[transporterID][passengerID] .. " consecutive frames")
-				
-				SpawnWeakBeam(transporterID, passengerID, consecutiveFramesOverEnemyPassenger[transporterID][passengerID] / 60)
-				if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > minConsecutiveFramesToLoadEnemy then
-					consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
-					return true
-				end
-			else
-				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter if we move out of range or the unit starts moving again
+	if ALLOW_ENEMY_LOAD_MODE >= 3 then
+		local _, _, _, vw = spGetUnitVelocity(passengerID)
+		if vw < 0.5 then
+			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
+			if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > minConsecutiveFramesToLoadEnemy then
+				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
+				return true
 			end
-			]]
-			return false -- if the unit isn't stunned, it can't be transported 'yet' (not removed from queue)
+		else
+			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset if unit is moving
 		end
 	end
-	return true
+	return false -- not stunned and consecutive-frames threshold not met (or mode 2)
 end
 
 ---
@@ -432,6 +446,9 @@ end
 local function releasePassenger(passengerID, transporterAllyTeam)
 	local transporterID = claimedBy[transporterAllyTeam][passengerID]
 	if not transporterID then return end
+	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
+		consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- clear any in-progress counter for this passenger
+	end
 	claimedBy[transporterAllyTeam][passengerID] = nil
 	if transporterClaims[transporterID] then
 		local total = 0
@@ -494,6 +511,9 @@ local function releaseAllClaims(transporterID)
 	for i = 1, #claims do
 		local passengerID = claims[i]
 		claimedBy[transporterAllyTeam][passengerID] = nil
+	end
+	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
+		consecutiveFramesOverEnemyPassenger[transporterID] = {} -- clear all in-progress counters
 	end
 	transporterClaims[transporterID] = {}
 	queuedSeats[transporterID] = 0
@@ -614,9 +634,13 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 	end
 
 	if spValidUnitID(transporterClaims[transporterID][1]) then -- because it might now be empty after releasing claims, check before trying to access
-		-- move to first in queue, not avg pos, in case of blocked or immobile passengers
-		local passenger1x, passenger1y, passenger1z = spGetUnitPosition(transporterClaims[transporterID][1])
-		spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
+		local passenger1 = transporterClaims[transporterID][1]
+		local skipMoveGoal = ALLOW_ENEMY_LOAD_MODE >= 5 and not spAreTeamsAllied(spGetUnitTeam(passenger1), transporterTeamID) and not spGetUnitIsStunned(passenger1)
+		if not skipMoveGoal then
+			-- move to first in queue, not avg pos, in case of blocked or immobile passengers
+			local passenger1x, passenger1y, passenger1z = spGetUnitPosition(passenger1)
+			spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
+		end
 	end
 end
 
@@ -753,9 +777,13 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		end
 	end
 	if spValidUnitID(transporterClaims[transporterID][1]) then --it could have been loaded
-		-- move to first in queue, not avg pos, in case of blocked or immobile passengers
-		local passenger1x, passenger1y, passenger1z = spGetUnitPosition(transporterClaims[transporterID][1])
-		spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
+		local passenger1 = transporterClaims[transporterID][1]
+		local skipMoveGoal = ALLOW_ENEMY_LOAD_MODE >= 5 and not spAreTeamsAllied(spGetUnitTeam(passenger1), transporterTeamID) and not spGetUnitIsStunned(passenger1)
+		if not skipMoveGoal then
+			-- move to first in queue, not avg pos, in case of blocked or immobile passengers
+			local passenger1x, passenger1y, passenger1z = spGetUnitPosition(passenger1)
+			spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
+		end
 	end
 end
 
@@ -810,7 +838,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		customTransportUnload[unitDefID] = GetScriptFunc(unitID, 'PerformUnload')
 	end
 	if isAirTransport[unitDefID] then
-		--consecutiveFramesOverEnemyPassenger[unitID] = {}
+		if ALLOW_ENEMY_LOAD_MODE >= 3 then
+			consecutiveFramesOverEnemyPassenger[unitID] = {}
+		end
 		transporterClaims[unitID] = {}
 		queuedSeats[unitID] = 0
 	end
@@ -855,7 +885,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		customTransportUnload[transporterDefID](transporterID, 'PerformUnload', unitID, gx, gy, gz)
 	end
 	autoClaimBlackList[unitID] = nil
-	--consecutiveFramesOverEnemyPassenger[unitID] = nil
+	if ALLOW_ENEMY_LOAD_MODE >= 3 then
+		consecutiveFramesOverEnemyPassenger[unitID] = nil
+	end
 end
 
 function gadget:GameFrame(frame)
