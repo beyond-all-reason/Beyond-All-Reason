@@ -731,49 +731,49 @@ function widget:Initialize()
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
-	-- Compile-probe: test if geometry shader can compile
-	if mapEdgeUseGeometryShader and (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) then
-		local probeShader = gl.CreateShader({
-			vertex = vsSrc,
-			geometry = gsSrc,
+	-- Robust fallback: use the exact same compile/init path for the probe and the real shader.
+	-- Some drivers can fail gl.CreateShader probes while succeeding LuaShader:Initialize().
+	local function InitForwardShader(useGeometry)
+		local shaderConfig = {
+			vertex = useGeometry and vsSrc or vsSrcNoGS,
 			fragment = fsSrc,
-		})
-		if probeShader then
-			gl.DeleteShader(probeShader)
-			mapEdgeUseGeometryShader = true
-		else
-			mapEdgeUseGeometryShader = false
+			uniformInt = {
+				colorTex = 0,
+				heightTex = 1,
+				mapNormalTex = 2,
+			},
+			uniformFloat = {
+				shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+			},
+		}
+
+		if useGeometry then
+			shaderConfig.geometry = gsSrc
 		end
-	else
+
+		local shader = LuaShader(shaderConfig, "Map Extension Shader2")
+		local ok = shader:Initialize()
+		if ok then
+			return shader, true
+		end
+
+		if shader and shader.shaderObj ~= nil then
+			shader:Finalize()
+		end
+		return nil, false
+	end
+
+	local gsSupported = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported)
+	if gsSupported then
+		mapExtensionShader, mapEdgeUseGeometryShader = InitForwardShader(true)
+	end
+
+	if not mapExtensionShader then
+		mapExtensionShader, _ = InitForwardShader(false)
 		mapEdgeUseGeometryShader = false
 	end
 
-	-- Use appropriate shader based on GS availability
-	local vsSrcToUse = mapEdgeUseGeometryShader and vsSrc or vsSrcNoGS
-	local gsSrcToUse = mapEdgeUseGeometryShader and gsSrc or nil
-
-	local shaderConfig = {
-		vertex = vsSrcToUse,
-		fragment = fsSrc,
-		uniformInt = {
-			colorTex = 0,
-			heightTex = 1,
-			mapNormalTex = 2,
-		},
-		uniformFloat = {
-			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
-		},
-	}
-
-	if gsSrcToUse then
-		shaderConfig.geometry = gsSrcToUse
-	end
-
-	mapExtensionShader = LuaShader(shaderConfig, "Map Extension Shader2")
-	local shaderCompiled = mapExtensionShader:Initialize()
-
-	if not shaderCompiled then
-		mapExtensionShader = nil
+	if not mapExtensionShader then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 		return
