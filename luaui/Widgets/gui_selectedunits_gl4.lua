@@ -459,7 +459,9 @@ function widget:GameFrame(frame)
 end
 
 function widget:UnitCreated(unitID)
-	unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
+	if Spring.GetUnitIsBeingBuilt() then
+		unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
+	end
 end
 
 function widget:UnitFinished(unitID)
