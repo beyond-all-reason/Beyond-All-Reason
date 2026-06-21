@@ -127,7 +127,7 @@ void main() {
 ]]
 
 
--- NoGS vertex shader: expands points to quads using gl_VertexID modulo logic
+-- NoGS vertex shader: expands points to quads using explicit triangle lists
 local vsSrcNoGS = [[
 #version 330
 
@@ -204,13 +204,15 @@ bool EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
 }
 
 void main() {
-	// NoGS: Quad expansion done in vertex shader
-	// Each point becomes 4 vertices in TRIANGLE_STRIP order: TL, BL, TR, BR
-	// gl_VertexID mod 4 determines which corner
-	// gl_InstanceID selects which grid point
+	// NoGS: each quad is emitted as two triangles, so every point expands to 6 vertices.
+	// gl_VertexID / 6 selects the grid point; the remainder selects the triangle corner.
 
-	float pointID = floor(float(gl_VertexID) * 0.25);
-	int cornerID = gl_VertexID % 4;
+	float pointID = floor(float(gl_VertexID) / 6.0);
+	int cornerID = gl_VertexID % 6;
+	int quadCornerID = cornerID;
+	if (cornerID == 3) quadCornerID = 1;
+	else if (cornerID == 4) quadCornerID = 2;
+	else if (cornerID == 5) quadCornerID = 3;
 
 	float X = mapSize.x / gridSize;
 	float modX = mod(pointID, X);
@@ -226,18 +228,18 @@ void main() {
 	if (all(equal(aMirrorParams, vec4(0.0)))) {
 		vertexOffset = vec3(0.0, 0.0, 0.0);
 	} else if (all(equal(aMirrorParams.xy, vec2(1.0)))) {
-		if (cornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
-		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
-		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+		if (quadCornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
+		else if (quadCornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (quadCornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
 		else vertexOffset = vec3(0.0, 0.0, gridSize);
 	} else {
-		if (cornerID == 0) vertexOffset = vec3(0.0, 0.0, gridSize);
-		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
-		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+		if (quadCornerID == 0) vertexOffset = vec3(0.0, 0.0, gridSize);
+		else if (quadCornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (quadCornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
 		else vertexOffset = vec3(gridSize, 0.0, 0.0);
 	}
 
-	EmitQuadVertex(basePos, vertexOffset, cornerID == 0);
+	EmitQuadVertex(basePos, vertexOffset, quadCornerID == 0);
 }
 ]]
 
@@ -1025,8 +1027,9 @@ function widget:DrawWorldPreUnit()
 			-- GS mode: draw points, geometry shader expands to quads
 			terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 		else
-			-- NoGS mode: draw triangle strips (4 vertices per point)
-			terrainVAO:DrawArrays(GL.TRIANGLE_STRIP, numPoints * 4, 0, #mirrorParams / 4)
+			-- NoGS mode: draw explicit triangles (6 vertices per point)
+			-- Skip the synthetic zero-mirror seam instance here; it is handled by the GS path only.
+			terrainVAO:DrawArrays(GL.TRIANGLES, numPoints * 6, 0, math.max(0, (#mirrorParams / 4) - 1))
 		end
 	--end)
 	mapExtensionShader:Deactivate()
