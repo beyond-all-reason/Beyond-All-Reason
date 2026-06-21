@@ -483,6 +483,7 @@ function widget:UnitDestroyed(unitID)
 	end
 	unitTeam[unitID] = nil
 	unitUnitDefID[unitID] = nil
+	unitDoneFrame[unitID] = nil
 	unitWaterPass[unitID] = nil
 end
 
