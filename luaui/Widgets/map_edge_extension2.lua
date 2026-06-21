@@ -157,7 +157,7 @@ out DataGS {
 	vec2 mirrorParams;
 };
 
-bool EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
+void EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
 	vec4 worldPos = vec4(basePos + vertexOffset, 1.0);
 	uv = worldPos.xz / mapSize.xy;
 	mirrorParams = aMirrorParams.xy;
@@ -197,10 +197,9 @@ bool EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
 	alphaFog = vec2(alpha, fogFactor);
 	if (testme) {
 		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
-		if ((invisible) || (alpha < 0.05)) return true;
+		if ((invisible) || (alpha < 0.05)) alphaFog.x = 0.0;
 	}
 	gl_Position = cameraViewProj * worldPos;
-	return false;
 }
 
 void main() {
@@ -210,8 +209,8 @@ void main() {
 	float pointID = floor(float(gl_VertexID) / 6.0);
 	int cornerID = gl_VertexID % 6;
 	int quadCornerID = cornerID;
-	if (cornerID == 3) quadCornerID = 1;
-	else if (cornerID == 4) quadCornerID = 2;
+	if (cornerID == 3) quadCornerID = 2;
+	else if (cornerID == 4) quadCornerID = 1;
 	else if (cornerID == 5) quadCornerID = 3;
 
 	float X = mapSize.x / gridSize;
@@ -224,10 +223,12 @@ void main() {
 	vec3 basePos = vec3(x, 0.0, z);
 	vec3 vertexOffset = vec3(0.0, 0.0, 0.0);
 
-	// Determine quad corner offset based on cornerID
+	// Determine quad corner offset.
+	// Keep GS-equivalent ordering for the double-flip corner to preserve diagonal direction.
+	// Use tolerant comparisons instead of exact float equality for robustness on some drivers.
 	if (all(equal(aMirrorParams, vec4(0.0)))) {
 		vertexOffset = vec3(0.0, 0.0, 0.0);
-	} else if (all(equal(aMirrorParams.xy, vec2(1.0)))) {
+	} else if (aMirrorParams.x > 0.5 && aMirrorParams.y > 0.5) {
 		if (quadCornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
 		else if (quadCornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
 		else if (quadCornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
@@ -239,7 +240,8 @@ void main() {
 		else vertexOffset = vec3(gridSize, 0.0, 0.0);
 	}
 
-	EmitQuadVertex(basePos, vertexOffset, quadCornerID == 0);
+	// NoGS cannot cull whole primitives from the vertex stage, so avoid per-corner test-based alpha changes.
+	EmitQuadVertex(basePos, vertexOffset, false);
 }
 ]]
 
@@ -730,7 +732,7 @@ function widget:Initialize()
 	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
 	-- Compile-probe: test if geometry shader can compile
-	if (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) then
+	if mapEdgeUseGeometryShader and (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) then
 		local probeShader = gl.CreateShader({
 			vertex = vsSrc,
 			geometry = gsSrc,
@@ -771,8 +773,10 @@ function widget:Initialize()
 	local shaderCompiled = mapExtensionShader:Initialize()
 
 	if not shaderCompiled then
+		mapExtensionShader = nil
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 
@@ -793,8 +797,14 @@ function widget:Initialize()
 	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
 
 	if not shaderCompiled then
+		mapExtensionShaderDeferred = nil
+		if mapExtensionShader and mapExtensionShader.shaderObj ~= nil then
+			mapExtensionShader:Finalize()
+		end
+		mapExtensionShader = nil
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 	Spring.SendCommands("luaui disablewidget External VR Grid")
@@ -803,9 +813,15 @@ end
 function widget:Shutdown()
 	Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
 
-	if mapExtensionShader then
+	if mapExtensionShader and mapExtensionShader.shaderObj ~= nil then
 		mapExtensionShader:Finalize()
 	end
+	mapExtensionShader = nil
+
+	if mapExtensionShaderDeferred and mapExtensionShaderDeferred.shaderObj ~= nil then
+		mapExtensionShaderDeferred:Finalize()
+	end
+	mapExtensionShaderDeferred = nil
 
 	if terrainVAO then
 		--terrainVAO:Delete()
