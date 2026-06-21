@@ -439,7 +439,7 @@ end
 
 function widget:UnitDestroyed(unitID)
 	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
-	if selectedUnits[unitID] then
+	if selUnits[unitID] then
 		RemovePrimitive(unitID)
 	end
 	unitTeam[unitID] = nil
