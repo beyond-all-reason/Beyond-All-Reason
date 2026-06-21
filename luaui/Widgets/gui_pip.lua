@@ -3633,13 +3633,21 @@ local function InitGL4Icons()
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
 	local useGS = pipUseGeometryShader
+	local shader = nil
 	if useGS then
-		local probeShader = gl.CreateShader(gl4Icons.shaderCode)
-		if probeShader then
-			gl.DeleteShader(probeShader)
-		else
+		shader = gl.CreateShader(gl4Icons.shaderCode)
+		if not shader then
 			useGS = false
 		end
+	end
+	if not shader then
+		shader = gl.CreateShader(gl4Icons.shaderCodeNoGS)
+		useGS = false
+	end
+	if not shader then
+		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
+		gl4Icons.atlas = nil
+		return
 	end
 	local vboLayout
 	if useGS then
@@ -3658,6 +3666,7 @@ local function InitGL4Icons()
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
+		gl.DeleteShader(shader)
 		gl4Icons.atlas = nil
 		return
 	end
@@ -3676,6 +3685,7 @@ local function InitGL4Icons()
 		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 		if not quadVBO then
 			Spring.Echo("[PIP] GL4 icons: Failed to create NoGS quad VBO")
+			gl.DeleteShader(shader)
 			vbo:Delete()
 			gl4Icons.atlas = nil
 			gl4Icons.vbo = nil
@@ -3694,6 +3704,7 @@ local function InitGL4Icons()
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
+		gl.DeleteShader(shader)
 		vbo:Delete()
 		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
@@ -3713,6 +3724,7 @@ local function InitGL4Icons()
 	local bldgVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not bldgVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VBO")
+		gl.DeleteShader(shader)
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3724,6 +3736,7 @@ local function InitGL4Icons()
 	local bldgVao = gl.GetVAO()
 	if not bldgVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VAO")
+		gl.DeleteShader(shader)
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
@@ -3754,6 +3767,7 @@ local function InitGL4Icons()
 	local slowVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not slowVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
+		gl.DeleteShader(shader)
 		bldgVao:Delete()
 		bldgVbo:Delete()
 		vao:Delete()
@@ -3769,6 +3783,7 @@ local function InitGL4Icons()
 	local slowVao = gl.GetVAO()
 	if not slowVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
+		gl.DeleteShader(shader)
 		slowVbo:Delete()
 		bldgVao:Delete()
 		bldgVbo:Delete()
@@ -3798,20 +3813,7 @@ local function InitGL4Icons()
 	end
 	gl4Icons.slowInstanceData = slowInstanceData
 
-	-- Compile shader matching the selected layout/VAO path.
-	local shader = useGS and gl.CreateShader(gl4Icons.shaderCode) or gl.CreateShader(gl4Icons.shaderCodeNoGS)
-	if not shader then
-		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
-		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
-		slowVao:Delete(); slowVbo:Delete()
-		bldgVao:Delete(); bldgVbo:Delete()
-		vao:Delete()
-		vbo:Delete()
-		gl4Icons.atlas = nil
-		gl4Icons.vbo = nil
-		gl4Icons.vao = nil
-		return
-	end
+	-- Shader was already compiled before layout creation to avoid false-negative probe logic.
 	gl4Icons.shader = shader
 	gl4Icons.shaderUsesGS = useGS
 
@@ -3902,19 +3904,32 @@ end
 local function InitGL4Primitives()
 	if not gl.GetVAO or not gl.GetVBO then return end
 	local useGS = pipUseGeometryShader
+	local cShader, qShader
 	if useGS then
-		local probeCircle = gl.CreateShader(gl4Prim.circleShaderCode)
-		local probeQuad = gl.CreateShader(gl4Prim.quadShaderCode)
-		if probeCircle then gl.DeleteShader(probeCircle) end
-		if probeQuad then gl.DeleteShader(probeQuad) end
-		if not probeCircle or not probeQuad then
+		cShader = gl.CreateShader(gl4Prim.circleShaderCode)
+		qShader = gl.CreateShader(gl4Prim.quadShaderCode)
+		if not cShader or not qShader then
+			if cShader then gl.DeleteShader(cShader) end
+			if qShader then gl.DeleteShader(qShader) end
+			cShader, qShader = nil, nil
 			useGS = false
 		end
+	end
+	if not cShader or not qShader then
+		cShader = gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
+		qShader = gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
+		if not cShader or not qShader then
+			if cShader then gl.DeleteShader(cShader) end
+			if qShader then gl.DeleteShader(qShader) end
+			Spring.Echo("[PIP] GL4 primitive shader fallback failed: " .. tostring(gl.GetShaderLog()))
+			return
+		end
+		useGS = false
 	end
 
 	if not useGS then
 		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		if not quadVBO then return end
+		if not quadVBO then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
 		quadVBO:Upload({
 			-1.0, -1.0,
@@ -3941,10 +3956,10 @@ local function InitGL4Primitives()
 		}
 	end
 	local cVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not cVbo then return end
+	if not cVbo then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
-	if not cVao then cVbo:Delete(); return end
+	if not cVao then cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	if useGS then
 		cVao:AttachVertexBuffer(cVbo)
 	else
@@ -3973,10 +3988,10 @@ local function InitGL4Primitives()
 		}
 	end
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not qVbo then cVao:Delete(); cVbo:Delete(); return end
+	if not qVbo then cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
-	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
+	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	if useGS then
 		qVao:AttachVertexBuffer(qVbo)
 	else
@@ -3991,12 +4006,13 @@ local function InitGL4Primitives()
 
 	-- Line VBOs (3 categories share same shader)
 	local glVbo, glVao, glData = CreateLineVBOSet(gl4Prim.LINE_MAX)
-	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
+	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	gl4Prim.glowLines.vbo, gl4Prim.glowLines.vao, gl4Prim.glowLines.data = glVbo, glVao, glData
 
 	local clVbo, clVao, clData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not clVbo then
 		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
+		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.coreLines.vbo, gl4Prim.coreLines.vao, gl4Prim.coreLines.data = clVbo, clVao, clData
@@ -4005,31 +4021,14 @@ local function InitGL4Primitives()
 	if not nlVbo then
 		clVao:Delete(); clVbo:Delete(); glVao:Delete(); glVbo:Delete()
 		qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
+		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
-	-- Compile shaders
-	local cShader = useGS and gl.CreateShader(gl4Prim.circleShaderCode) or gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
-	if not cShader then
-		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
-		-- cleanup all
-		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
-		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
-		cVao:Delete(); cVbo:Delete()
-		return
-	end
+	-- Shader variants were compiled up-front via real GS-attempt/fallback logic.
 	gl4Prim.circles.shader = cShader
 
-	local qShader = useGS and gl.CreateShader(gl4Prim.quadShaderCode) or gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
-	if not qShader then
-		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
-		gl.DeleteShader(cShader)
-		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
-		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
-		cVao:Delete(); cVbo:Delete()
-		return
-	end
 	gl4Prim.quads.shader = qShader
 
 	local lShader = gl.CreateShader(gl4Prim.lineShaderCode)

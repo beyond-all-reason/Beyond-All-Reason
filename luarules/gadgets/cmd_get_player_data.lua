@@ -135,8 +135,14 @@ else
 		return nil
 	end
 
-	local function requestScreenshot(targetPlayerName, width)
+	local function requestScreenshot(targetPlayerName, width, callerID)
 		if not isAuthorized() then
+			return
+		end
+		-- Only the client whose playerID matches the caller should send the request.
+		-- AddChatAction fires on every client, so without this guard every authorized
+		-- client would send a duplicate screenshot request.
+		if callerID ~= myPlayerID then
 			return
 		end
 		if screenshotRequestInProgress then
@@ -162,15 +168,15 @@ else
 	end
 
 	function GetScreenshot(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidth)
+		requestScreenshot(words[1], screenshotWidth, player)
 	end
 
 	function GetScreenshotLq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthLq)
+		requestScreenshot(words[1], screenshotWidthLq, player)
 	end
 
 	function GetScreenshotHq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthHq)
+		requestScreenshot(words[1], screenshotWidthHq, player)
 	end
 
 	-- Optimized encoding using base64 charset (6 bits per char)
