@@ -4529,6 +4529,7 @@ local UpdateTracking  -- forward declaration (called in StartMaximizeAnimation, 
 local InitGL4Decals   -- forward declaration (called in Initialize, defined after decalGL4 table)
 local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
 local decalGL4        -- forward declaration (referenced in DrawDecalsOverlay, defined later)
+local DrawTexturedQuad -- forward declaration (used before helper definition)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -13788,7 +13789,7 @@ local function BlitMapRuler()
 end
 
 -- Helper for drawing a textured quad — passed as callback to gl.BeginEnd to avoid closure allocation
-local function DrawTexturedQuad(qL, qB, qR, qT)
+DrawTexturedQuad = function(qL, qB, qR, qT)
 	if qL == nil then
 		local tq = pools.scratchTexQuad
 		qL, qB, qR, qT = tq.l, tq.b, tq.r, tq.t
