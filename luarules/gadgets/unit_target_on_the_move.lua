@@ -403,8 +403,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		removeFromQueue(unitID)
 		if keeptrack then
-      SendToUnsynced("targetIndex", unitID, 1, false)
-    else
+			SendToUnsynced("targetIndex", unitID, 1, false)
+		else
 			setTargetData[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
 		end
