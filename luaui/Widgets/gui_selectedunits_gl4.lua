@@ -287,13 +287,7 @@ function widget:DrawWorldPreUnit()
 	DrawSelections(selectionVBOGround, false)
 end
 
-local function RemovePrimitive(unitID)
-	local selectionVBO
-	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO = selectionVBOGround end
-	if selectionVBOUnfinished.instanceIDtoIndex[unitID] then selectionVBO = selectionVBOUnfinished end
-	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOWater end
-	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
-
+local function removeFromVBO(unitID, selectionVBO)
 	if selectionVBO then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
@@ -302,6 +296,21 @@ local function RemovePrimitive(unitID)
 			end
 		end
 		popElementInstance(selectionVBO, unitID)
+	end
+end
+
+local function RemovePrimitive(unitID)
+	if selectionVBOGround.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOGround)
+	end
+	if selectionVBOUnfinished.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOUnfinished)
+	end
+	if mapHasWater and selectionVBOWater.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOWater)
+	end
+	if selectionVBOAir.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOAir)
 	end
 	unitWaterPass[unitID] = nil
 end
