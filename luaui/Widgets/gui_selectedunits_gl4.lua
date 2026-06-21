@@ -461,7 +461,12 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
-	selectionVBOUnfinished, unbuiltShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsUnfinished")
+
+	local unbuiltConfig = table.copy(shaderConfig)
+	-- Unbuilt platters may depend on the animated unbuilt unit model and shader, so seem to re-init repeatedly.
+	unbuiltConfig.INITIALSIZE = 0.9999 -- So don't animate init growth. This value does not work if set to 1.0.
+	selectionVBOUnfinished, unbuiltShader = InitDrawPrimitiveAtUnit(unbuiltConfig, "selectedUnitsUnfinished")
+
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
 		selectionVBOAir = selectionVBOGround
