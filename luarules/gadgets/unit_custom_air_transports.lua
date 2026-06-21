@@ -315,7 +315,7 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if allied then
 		return true
 	end
-	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander or UnitDefs[passengerDefID].transportByEnemy
+	local cantLoadAsEnemy = UnitDefs[passengerDefID].customParams.isCommander or UnitDefs[passengerDefID].transportByEnemy == false
 	if cantLoadAsEnemy then
 		return false	
 	end
