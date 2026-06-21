@@ -16389,7 +16389,10 @@ function widget:DrawScreen()
 			miscState.engineFallbackRawWantedSince = now
 		end
 
-		local holdTime = rawUseEngineMinimapFallback and 0.35 or 0.75
+		-- Exit fallback immediately when zooming in so PIP R2T content appears without lag.
+		-- Keep off-debounce for non-zoom transitions (e.g. unit count hovering near threshold).
+		local leavingBecauseZoom = not (IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom))
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingBecauseZoom and 0 or 0.75)
 		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
 			useEngineMinimapFallback = miscState.engineMinimapActive
 		else
