@@ -19,6 +19,7 @@ end
 local screenshotWidthLq = 360
 local screenshotWidth = 600
 local screenshotWidthHq = 900
+local screenshotRequestTimeoutMs = 60000
 
 --------------------------------------------------------------------------------
 
@@ -65,6 +66,8 @@ else
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, texture, player, filename, saved, saveQueued, posX, posY, quality
 	local totalTime = 0
 	local screenshotCompressedBytes = 0
+	local screenshotRequestInProgress = false
+	local screenshotRequestStartedAt = 0
 
 	-- Font
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -116,6 +119,10 @@ else
 
 	function gadget:Update(dt)
 		totalTime = totalTime + (dt * 1000)
+		if screenshotRequestInProgress and (totalTime - screenshotRequestStartedAt > screenshotRequestTimeoutMs) then
+			screenshotRequestInProgress = false
+			Spring.Echo("Screenshot request timed out after 60 seconds. You can try again.")
+		end
 	end
 
 	local function getPlayerIdFromName(targetPlayerName)
@@ -132,6 +139,13 @@ else
 		if not isAuthorized() then
 			return
 		end
+		if screenshotRequestInProgress then
+			if totalTime - screenshotRequestStartedAt <= screenshotRequestTimeoutMs then
+				Spring.Echo("Screenshot request already in progress. Ignoring new request.")
+				return
+			end
+			screenshotRequestInProgress = false
+		end
 		if not targetPlayerName then
 			return
 		end
@@ -143,6 +157,8 @@ else
 		-- Send message to synced code, which will forward to unsynced
 		-- Format: width;targetPlayerID (requestingPlayerID comes from RecvLuaMsg player param)
 		Spring.SendLuaRulesMsg("ss" .. validation .. width .. ";" .. targetPlayerID)
+		screenshotRequestInProgress = true
+		screenshotRequestStartedAt = totalTime
 	end
 
 	function GetScreenshot(_, line, words, player)
@@ -612,6 +628,7 @@ else
 				screenshotVars.dataLast = totalTime
 
 				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+					screenshotRequestInProgress = false
 					screenshotVars.finished = true
 					local compressedKB = screenshotCompressedBytes / 1024
 					Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))
