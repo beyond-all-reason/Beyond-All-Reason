@@ -34,6 +34,7 @@ local texture = "luaui/images/solid.png"
 
 local opacity = 0.19
 local teamcolorOpacity = 0.6
+local leaveFactoryFrames = Game.gameSpeed * 0.5
 
 local selectionHighlight = true
 local mouseoverHighlight = true
@@ -78,6 +79,7 @@ local selectedUnits = spGetSelectedUnits()
 
 local unitTeam = {}
 local unitUnitDefID = {}
+local unitDoneFrame = {}
 local unitWaterPass = {}
 local nextWaterPassCheckFrame = 0
 local waterPassCheckInterval = 6
@@ -155,7 +157,15 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 
 	local buildingDims = unitBuilding[unitDefID]
-	local isBeingBuilt = not buildingDims and Spring.GetUnitIsBeingBuilt(unitID)
+	local isBeingBuilt = false
+	if not buildingDims then
+		if Spring.GetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
+			isBeingBuilt = true
+			if not unitDoneFrame[unitID] then
+				unitDoneFrame[unitID] = 0
+			end
+		end
+	end
 
 	local additionalheight = 0
 	local width, length
@@ -424,16 +434,34 @@ function widget:Update(dt)
 	end
 end
 
-function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	if unitTeam[unitID] then
-		unitTeam[unitID] = newTeamID
+function widget:GameFrame(frame)
+	local swapFrame = frame - leaveFactoryFrames
+	for unitID, doneFrame in pairs(unitDoneFrame) do
+		if doneFrame == 0 then
+			-- continue
+		elseif doneFrame <= swapFrame then
+			unitDoneFrame[unitID] = nil
+			if selUnits[unitID] then
+				RemovePrimitive(unitID)
+				AddPrimitiveAtUnit(unitID)
+			end
+		end
 	end
+end
+
+function widget:UnitCreated(unitID)
+	unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
 end
 
 function widget:UnitFinished(unitID)
 	if selUnits[unitID] then
-		RemovePrimitive(unitID)
-		AddPrimitiveAtUnit(unitID)
+		unitDoneFrame[unitID] = Spring.GetGameFrame()
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	if unitTeam[unitID] then
+		unitTeam[unitID] = newTeamID
 	end
 end
 
@@ -529,6 +557,10 @@ function widget:Initialize()
 	end
 
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		widget:UnitCreated(unitID)
+	end
 end
 
 function widget:Shutdown()
