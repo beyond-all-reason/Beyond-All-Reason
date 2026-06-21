@@ -126,5 +126,5 @@ function test()
 	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
 
 	assert(#builderQueue == bpCount, #builderQueue)
-	assert(builderQueue[1].id == -blueprintUnitDefID)
+	assertEqual(builderQueue[1].id, -blueprintUnitDefID)
 end
