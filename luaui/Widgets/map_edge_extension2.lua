@@ -157,8 +157,8 @@ out DataGS {
 	vec2 mirrorParams;
 };
 
-bool EmitQuadVertex(vec3 vertexOffset, bool testme) {
-	vec4 worldPos = vec4(0.0, 0.0, 0.0, 0.0);
+bool EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
+	vec4 worldPos = vec4(basePos + vertexOffset, 1.0);
 	uv = worldPos.xz / mapSize.xy;
 	mirrorParams = aMirrorParams.xy;
 	vec2 UVHM = heightmapUVatWorldPos(worldPos.xz);
@@ -209,7 +209,7 @@ void main() {
 	// gl_VertexID mod 4 determines which corner
 	// gl_InstanceID selects which grid point
 
-	float pointID = float(gl_InstanceID);
+	float pointID = floor(float(gl_VertexID) * 0.25);
 	int cornerID = gl_VertexID % 4;
 
 	float X = mapSize.x / gridSize;
@@ -237,7 +237,7 @@ void main() {
 		else vertexOffset = vec3(gridSize, 0.0, 0.0);
 	}
 
-	EmitQuadVertex(vertexOffset, cornerID == 0);
+	EmitQuadVertex(basePos, vertexOffset, cornerID == 0);
 }
 ]]
 
