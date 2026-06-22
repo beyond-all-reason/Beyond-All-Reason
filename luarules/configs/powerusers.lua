@@ -34,7 +34,7 @@ local eventmanager = {
 	devhelpers_teams = true,	-- playertoteam, killteam
 	playerdata = false,
 	waterlevel = true,
-	modmarker = true,
+	modmarker = false,
 	sysinfo = false,
 	volcano = true,
 }
