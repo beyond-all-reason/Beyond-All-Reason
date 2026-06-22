@@ -347,7 +347,7 @@ local definitions = {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0.01]],
+        colormap           = [[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -356,9 +356,9 @@ local definitions = {
         sidetexture        = [[none]],
         size               = 7,
         sizegrowth         = 1.8,
-        ttl                = 65,
+        ttl                = 48,
         rotParams          = [[-2 r4, -0.5 r1, -180 r360]],
-        pos                = [[0.5, 1, 0.0]],    
+        pos                = [[0, 8, 0]],
       },
     },
     circlewaves = {
@@ -490,7 +490,7 @@ local definitions = {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0.01]],
+        colormap           = [[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
@@ -499,9 +499,9 @@ local definitions = {
         sidetexture        = [[none]],
         size               = 10.9,
         sizegrowth         = 1.8,
-        ttl                = 65,
+        ttl                = 48,
         rotParams          = [[-2 r4, -0.5 r1, -180 r360]],
-        pos                = [[0.5, 1, 0.0]],
+        pos                = [[0, 8, 0]],
       },
     },
     circlewaves = {

@@ -139,7 +139,6 @@ local allWatchedWeaponDefIDs = {}
 local allWatchedProjectileIDs = {}
 
 local waterIsLava = Spring.GetModOptions().map_waterislava
-local depthChargeSplashGroundClearance = 6
 
 function gadget:Initialize()
 	local minheight, maxheight = Spring.GetGroundExtremes()
@@ -239,8 +238,7 @@ function gadget:GameFrame(gf)
 			local x,y,z = GetProjectilePosition(proID)
 			if y then
 				if y < 0 then
-					local splashY = mathMax(0, GetGroundHeight(x, z) + depthChargeSplashGroundClearance)
-					SpawnCEG(CEG,x,splashY,z)
+					SpawnCEG(CEG,x,0,z)
 					if not removeDepth then removeDepth = {} end
 					removeDepthCount = removeDepthCount + 1
 					removeDepth[removeDepthCount] = proID
@@ -316,4 +314,3 @@ function gadget:GameFrame(gf)
 		allWatchedProjectileIDs[proID] = nil
 	end
 end
-

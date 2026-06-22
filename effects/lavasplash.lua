@@ -4,7 +4,7 @@
 
 -- Lava color palettes (derived from effects/lava.lua)
 local C = {
-	pool   = [[0 0 0 0   0.65 0.48 0.1 .25   0.45 .22 0.08 .15   0.2 .08 0.04 .08   0 0 0 0.01]],
+	pool   = [[0 0 0 0   0.65 0.48 0.1 .25   0.45 .22 0.08 .15   0.2 .08 0.04 .08   0 0 0 0]],
 	waves  = [[0 0 0 0  0.5 0.3 0.1 .01   0.4 .22 0.08 .006   0.2 .08 0.04 .003   0 0 0 0.01]],
 	rush   = [[0 0 0 0  0.7 0.5 0.1 .01   0.6 .33 0.12 .005   0.25 .12 0.05 .004   0 0 0 0.01]],
 	embers = [[0.8 0.8 0.2 0.015   1 0.4 0.1 0.01   0 0 0 0.005]],
@@ -18,7 +18,7 @@ local C = {
 }
 
 -- Component builder: expanding lava pool on surface (replaces waterring)
-local function lavapool(size, ttl, rotParams)
+local function lavapool(size, ttl, rotParams, posY)
 	return {
 		air = true, class = [[CBitmapMuzzleFlame]], count = 1,
 		ground = true, underwater = 1, water = true,
@@ -33,7 +33,7 @@ local function lavapool(size, ttl, rotParams)
 			sizegrowth    = 1.5,
 			ttl           = ttl,
 			rotParams     = rotParams,
-			pos           = [[0.5, 3, 0.0]],
+			pos           = [[0, ]] .. (posY or 3) .. [[, 0]],
 			alwaysvisible = true,
 		},
 	}
@@ -294,7 +294,7 @@ local definitions = {}
 
 definitions["lavasplash-torpedo"] = {
 	entryflare  = lavaentryflare(),
-	lavapool    = lavapool(4, 40),
+	lavapool    = lavapool(4, 30, nil, 8),
 	circlewaves = lavawaves(1, [[0.4 r0.5]], [[0.8 i0.2]], 18),
 	embers      = lavaembers(2, 3, 8, 0.5, 5, 5, 10),
 	lavachunks  = lavachunks(4, 0.8, 8, [[1.2 i0.2]], 1.5, 8, 8),
@@ -302,7 +302,7 @@ definitions["lavasplash-torpedo"] = {
 
 definitions["lavasplash-tiny"] = {
 	entryflare  = lavaentryflare(),
-	lavapool    = lavapool(7, 45, [[-2 r4, -0.5 r1, -180 r360]]),
+	lavapool    = lavapool(7, 34, [[-2 r4, -0.5 r1, -180 r360]], 8),
 	circlewaves = lavawaves(1, [[0.5 r0.7]], [[1.0 i0.2]], 20),
 	embers      = lavaembers(3, 3, 8, 0.6, 6, 6, 12),
 	lavachunks  = lavachunks(5, 1, 8, [[1.3 i0.2]], 1.5, 9, 9),
