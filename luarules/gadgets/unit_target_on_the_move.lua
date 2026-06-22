@@ -463,15 +463,34 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeWithStop(unitID)
 		local unitData = setTargetData[unitID]
 		local targetList = unitData.targets
+		local n = #targetList
+		local canRemoveAll = true
+		for i = 1, n do
+			if targetList[i].ignoreStop then
+				canRemoveAll = false
+				break
+			end
+		end
+		if canRemoveAll then
+			removeUnit(unitID)
+			return
+		end
+		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
 		local currentIndex = unitData.currentIndex
 		local minIndex
-		local n = #targetList
-		for i = n, 1, -1 do
-			if not targetList[i].ignoreStop then
+		local moveToIndex = 0
+		for i = 1, n do
+			if targetList[i].ignoreStop then
+				moveToIndex = moveToIndex + 1
+				if moveToIndex ~= i then
+					targetList[moveToIndex] = i
+				end
+			else
 				currentTargets[targetList[i].target] = nil
-				tremove(targetList, i)
-				minIndex = i
+				if not minIndex then
+					minIndex = i
+				end
 				if i == currentIndex then
 					currentIndex = 0 -- invalid, see below
 				elseif currentIndex > i then
@@ -479,17 +498,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if not targetList[1] then
-			removeUnit(unitID)
-		elseif minIndex then
-			if currentIndex ~= unitData.currentIndex then
-				if currentIndex == 0 then
-					currentIndex = 1
-				end
-				updateTarget(unitID, unitData, 1)
-			end
-			refreshSendData(unitID, unitData, minIndex)
+		if not minIndex then
+			return
 		end
+		for i = moveToIndex + 1, n do
+			targetList[i] = nil
+		end
+		if currentIndex ~= unitData.currentIndex then
+			if currentIndex == 0 then
+				currentIndex = 1
+			end
+			updateTarget(unitID, unitData, currentIndex)
+		end
+		refreshSendData(unitID, unitData, minIndex)
 	end
 
 	function GG.GetUnitTarget(unitID)
