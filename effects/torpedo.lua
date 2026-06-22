@@ -8,7 +8,7 @@ local function torpedoCavitationTrail()
         water              = true,
 
         properties = {
-            colormap           = [[0.55 0.72 1.00 0.040   0.38 0.58 0.95 0.030   0.18 0.32 0.65 0.016   0.04 0.08 0.18 0.006   0 0 0 0.01]],
+            colormap           = [[0.55 0.72 1.00 0.024   0.38 0.58 0.95 0.018   0.18 0.32 0.65 0.010   0.04 0.08 0.18 0.004   0 0 0 0.006]],
             dir                = [[dir]],
             frontoffset        = 0.03,
             fronttexture       = [[blastwave]],

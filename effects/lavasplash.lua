@@ -265,7 +265,7 @@ local function lavaentryflare()
 		ground = false, underwater = true, water = true,
 		properties = {
 			airdrag             = 1,
-			colormap            = [[0.95 0.58 0.16 0.18   0 0 0 0.01]],
+			colormap            = [[0.95 0.58 0.16 0.081   0 0 0 0.0045]],
 			directional         = false,
 			emitrot             = 0,
 			emitrotspread       = 0,

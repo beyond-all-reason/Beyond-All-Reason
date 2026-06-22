@@ -8,7 +8,7 @@ local function torpedoEntryFlare()
         underwater         = true,
         properties = {
             airdrag            = 1,
-            colormap           = [[0.44 0.48 1 0.2   0 0 0 0.01]],
+            colormap           = [[0.44 0.48 1 0.09   0 0 0 0.0045]],
             directional        = false,
             emitrot            = 0,
             emitrotspread      = 0,

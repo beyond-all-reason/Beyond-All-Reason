@@ -142,10 +142,13 @@ local BaseClasses = {
 
 	TorpedoProjectile = {
 		lightType = 'cone', -- or cone or beam
+		delayUntilSubmerged = true,
+		delayWaterline = 2,
+		delayFrames = 8,
 		lightConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 70,
-			r = 1.92, g = 0.05, b = 0.0, a = 1,
-			dirx = 1, diry = 0, dirz = 1, theta = 0.28,  -- cone lights only, specify direction and half-angle in radians
+			posx = 0, posy = 0, posz = 0, radius = 77,
+			r = 1.15, g = 0.32, b = 0.03, a = 1,
+			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
 			lifetime = 0, sustain = 1, selfshadowing = 4,
 		},

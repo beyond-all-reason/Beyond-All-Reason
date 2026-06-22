@@ -1393,6 +1393,42 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+local defaultProjectileLightDelayWaterline = 2
+local defaultProjectileLightDelayFrames = 0
+local delayedProjectileLightFrames = {}
+local function ShouldDelayProjectileLight(projectileLight, projectileID, weaponDefID, py)
+	if not projectileLight or not projectileLight.delayUntilSubmerged then
+		return false
+	end
+	if not isTorpedoLauncher[weaponDefID] then
+		return false
+	end
+
+	-- Skipped torpedoes are intentionally not tracked yet, so this can try again
+	-- on later frames after air-launched torpedoes enter the water.
+	if not py or py > (projectileLight.delayWaterline or defaultProjectileLightDelayWaterline) then
+		delayedProjectileLightFrames[projectileID] = nil
+		return true
+	end
+
+	local delayFrames = projectileLight.delayFrames or defaultProjectileLightDelayFrames
+	if delayFrames <= 0 then
+		return false
+	end
+
+	local readyFrame = delayedProjectileLightFrames[projectileID]
+	if not readyFrame then
+		readyFrame = gameFrame + delayFrames
+		delayedProjectileLightFrames[projectileID] = readyFrame
+	end
+	if gameFrame < readyFrame then
+		return true
+	end
+
+	delayedProjectileLightFrames[projectileID] = nil
+	return false
+end
+
 
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
@@ -1436,20 +1472,18 @@ local function updateProjectileLights(newgameframe)
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
 					local weaponDefID = spGetProjectileDefID(projectileID)
+					local projectileLight = projectileDefLights[weaponDefID]
 
-					-- Torpedo GL4 light delay:
-					-- TorpedoLauncher projectile lights should not appear while the projectile is still above water.
-					-- Do not track skipped torpedoes yet, so this block can try again after the projectile enters water.
-					if isTorpedoLauncher[weaponDefID] and (not py or py > 2) then
+					if ShouldDelayProjectileLight(projectileLight, projectileID, weaponDefID, py) then
 						skipProjectileTracking = true
-					elseif projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
-						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
-						lightType = projectileDefLights[weaponDefID].lightType
+					elseif projectileLight and (projectileID % (projectileLight.fraction or 1) == 0) then
+						local lightParamTable = projectileLight.lightParamTable
+						lightType = projectileLight.lightType
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						if debugproj then spEcho(lightType, projectileLight.lightClassName) end
 
 						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
@@ -1484,6 +1518,11 @@ local function updateProjectileLights(newgameframe)
 					trackedProjectiles[projectileID] = gameFrame
 				end
 			end
+		end
+	end
+	for projectileID, readyFrame in pairs(delayedProjectileLightFrames) do
+		if readyFrame < gameFrame - 300 then
+			delayedProjectileLightFrames[projectileID] = nil
 		end
 	end
 	-- remove theones that werent updated
