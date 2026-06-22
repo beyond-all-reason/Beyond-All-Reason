@@ -426,7 +426,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-	for _, data in ipairs(unitDamageReset[gameFrame]) do
+    for _, data in ipairs(unitDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 
@@ -473,7 +473,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-	for _, data in ipairs(featDamageReset[gameFrame]) do
+    for _, data in ipairs(featDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 
