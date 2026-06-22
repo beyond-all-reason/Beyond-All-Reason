@@ -81,6 +81,7 @@ local unitTeam = {}
 local unitUnitDefID = {}
 local unitDoneFrame = {}
 local unitWaterPass = {}
+local unitBuiltByFactory = {}
 local nextWaterPassCheckFrame = 0
 local waterPassCheckInterval = 6
 
@@ -157,12 +158,16 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 
 	local buildingDims = unitBuilding[unitDefID]
-	local isBeingBuilt = false
+	local useUnfinishedRenderPath = false
+	local useUnfinishedGeometry = false
 	if not buildingDims then
 		if Spring.GetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
-			isBeingBuilt = true
+			useUnfinishedRenderPath = true
 			if not unitDoneFrame[unitID] then
 				unitDoneFrame[unitID] = 0
+			end
+			if not unitBuiltByFactory[unitID] then
+				useUnfinishedGeometry = true
 			end
 		end
 	end
@@ -174,7 +179,7 @@ local function AddPrimitiveAtUnit(unitID)
 		length = buildingDims[2]
 		cornersize = (width + length) * 0.075
 		numVertices = 2
-	elseif isBeingBuilt then
+	elseif useUnfinishedGeometry then
 		-- The cornered square will be replaced by a circle later.
 		-- Use the same or similar size for the swap to look good:
 		width = radius * 0.88
@@ -195,7 +200,7 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
-	if isBeingBuilt then
+	if useUnfinishedRenderPath then
 		targetVBO = selectionVBOUnfinished
 	elseif unitCanFly[unitDefID] then
 		-- Keep air on the same pre-unit path as ground for reliable visibility.
@@ -458,8 +463,19 @@ function widget:GameFrame(frame)
 	end
 end
 
-function widget:UnitCreated(unitID)
-	if Spring.GetUnitIsBeingBuilt() then
+function widget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
+	if type(unitID) ~= "number" then
+		return
+	end
+
+	if type(builderID) == "number" then
+		local builderDefID = Spring.GetUnitDefID(builderID)
+		if builderDefID and UnitDefs[builderDefID] and UnitDefs[builderDefID].isFactory then
+			unitBuiltByFactory[unitID] = true
+		end
+	end
+
+	if Spring.GetUnitIsBeingBuilt(unitID) and not unitBuiltByFactory[unitID] then
 		unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
 	end
 end
@@ -485,6 +501,7 @@ function widget:UnitDestroyed(unitID)
 	unitUnitDefID[unitID] = nil
 	unitDoneFrame[unitID] = nil
 	unitWaterPass[unitID] = nil
+	unitBuiltByFactory[unitID] = nil
 end
 
 local function init()
