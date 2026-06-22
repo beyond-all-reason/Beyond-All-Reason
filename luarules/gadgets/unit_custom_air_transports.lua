@@ -129,7 +129,30 @@ for udefID, def in ipairs(UnitDefs) do
 		autoClaimBlackListDefIDs[udefID] = true
 	end
 end
+
 -- INTERNAL FUNCTIONS
+-- local function GetScriptFunc(...)              -- Return a callable wrapper for a COB or LUS script function by name
+-- local function isUnderwater(...)               -- Return true if the unit would be submerged at the given Y
+-- local function dist2D(...)                     -- Return 2D distance between two XZ points
+-- local function inLoadRange(...)                -- Return true if transporter is within load radius of the goal
+-- local function inUnloadRange(...)              -- Return true if transporter is within unload radius of the goal
+-- local function getCachedUnitsInCylinder(...)   -- Return units in a cylinder, cached per-frame to reduce API calls
+-- local function BuggerOff(...)                  -- Nudge units away from an unload pad location
+-- local function RemoveAreaLoadCoroutine(...)    -- Clean up a finished or cancelled area-load coroutine
+-- local function RemoveSuccessiveCoroutine(...)  -- Clean up a finished or cancelled successive-load coroutine
+-- local function CanBeTransportedStatic(...)     -- Check static eligibility: unit type, alive, not under construction
+-- local function CanBeTransportedDynamic(...)    -- Check dynamic eligibility: LOS, team, distance, not already claimed
+-- local function CanBeAutoClaimed(...)           -- Return true if unit may be auto-claimed by area commands
+-- local function SpawnWeakBeam(...)              -- Spawn a visual targeting beam from transporter to passenger
+-- local function CanBeTransportedNow(...)        -- Return true if transporter is close enough to start loading now
+-- local function CanMoveToTransporter(...)       -- Return true if passenger can currently approach the transporter
+-- local function releasePassenger(...)           -- Remove a passenger claim and clear its queued state
+-- local function claimPassenger(...)             -- Assign a passenger to a transporter and update claim tables
+-- local function releaseAllClaims(...)           -- Release every claim held by a transporter
+-- local function findUnitToTransport(...)        -- Find the best unclaimed passenger within the area-load cylinder
+-- local function ExecuteLoadUnits(...)           -- Per-frame proximity load loop for CMD_AREA_LOAD
+-- local function ExecuteAreaLoad(...)            -- Coroutine: repeatedly find and load passengers within area command radius
+-- local function ExecuteSuccessiveLoadUnits(...) -- Coroutine: parallel load loop of successive CMD_LOAD_UNIT commands
 
 ---@param unitID number
 ---@param functionName string
@@ -151,7 +174,7 @@ end
 ---@param passengerID number
 ---@param y number
 ---@return boolean isUnderwater
-local function isUnderwater(passengerID, y) -- i leave it hanging for now; TODOO: use engine's phys state bit or exact same calc to match
+local function isUnderwater(passengerID, y)
 	local height = spGetUnitHeight(passengerID)
 	return not height or y + height < 0
 end
@@ -200,7 +223,7 @@ local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
 	cz, cx, radius = math.floor(cz / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING, math.floor(cx / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING, math.ceil(radius / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING
 	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius
 	local cached = cylinderCache[key]
-	local frame = math.floor(spGetGameFrame() / CACHED_CYLINDER_UNITS_LIFESPAN) * CACHED_CYLINDER_UNITS_LIFESPAN -- cache over CACHED_CYLINDER_UNITS_LIFESPAN frames
+	local frame = math.floor(spGetGameFrame() / CACHED_CYLINDER_UNITS_LIFESPAN) * CACHED_CYLINDER_UNITS_LIFESPAN
 	if cached and cached.frame == frame then
 		return cached.units
 	end
@@ -209,8 +232,8 @@ local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
 	return units
 end
 
-local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to filter out units that should not be buggered off
-	local padSize = UnitDefs[padDefID].xsize * 8 -- it's by definition a square
+local function BuggerOff(x, y, z, padDefID, transporterID)
+	local padSize = UnitDefs[padDefID].xsize * 8
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	local units = spGetUnitsInBox(x - padSize/2, y-50, z - padSize/2, x + padSize/2, y+5, z + padSize/2)
 	for i = 1, #units do
@@ -241,7 +264,7 @@ local function RemoveAreaLoadCoroutine(transporterID)
 	if not index then 
 		return spEcho("Error in RemoveAreaLoadCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
-	areaLoadCoroutines[index] = nil -- no need to clean up, killed from within
+	areaLoadCoroutines[index] = nil
 	transporterCoroutines[transporterID] = nil
 end
 
@@ -252,7 +275,7 @@ local function RemoveSuccessiveCoroutine(transporterID)
 	if not index then 
 		return spEcho("Error in RemoveSuccessiveCoroutine: no coroutine found for transporterID " .. transporterID)
 	end 
-	successiveLoadCoroutines[index] = nil -- no need to clean up, killed from within	
+	successiveLoadCoroutines[index] = nil
 	transporterCoroutines[transporterID] = nil
 end
 
@@ -262,7 +285,7 @@ end
 ---@param transporterID number
 ---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 ---@return boolean
-local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID) -- things that should cancel or deny queueing and are mostly immutable
+local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID)
 	if not spValidUnitID(passengerID) then
 		return false
 	end
@@ -284,8 +307,7 @@ end
 ---@param transporterID number
 ---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 ---@return boolean
-local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
-	if not spValidUnitID(passengerID) then
+local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)
 		return false
 	end
 	if spGetUnitIsDead(passengerID) then
@@ -294,7 +316,7 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if spGetUnitTransporter(passengerID) ~= nil then
 		return false	
 	end
-	if spGetUnitIsBeingBuilt(passengerID) then -- moved to dynamic, to support other reclaimMode modrules that allows a unit to turn back to a nanoFrame
+	if spGetUnitIsBeingBuilt(passengerID) then
 		return false	
 	end
 	if isUnderwater(passengerID, passengerPosY) then
@@ -329,7 +351,7 @@ end
 ---@param passengerID number
 ---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 ---@return boolean
-local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that should only deny queueing if within area cmds
+local function CanBeAutoClaimed(passengerID, transporterAllyTeam)
 	if not spValidUnitID(passengerID) then
 		return false
 	end
@@ -342,7 +364,8 @@ local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that
 	return not claimedBy[transporterAllyTeam][passengerID]
 end
 
---[[
+
+--[[ if we need to spawn a fake beam to indicate "abduction" progress
 local function SpawnWeakBeam(transporterID, passengerID, size)
 	-- spawn a weak beam or other visual indicator that the unit is within load range but can't be loaded yet; purely cosmetic to give feedback to the player; can be used for debugging the consecutiveFramesOverEnemyPassenger feature
 	local spawnPosX, spawnPosY, spawnPosZ = spGetUnitPosition(passengerID)
@@ -369,16 +392,16 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
 		return inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ)
 	end
-	-- enemy unit: check stun state first to decide which radius applies
-	local isStunned = spGetUnitIsStunned(passengerID) -- first bool is (beingBuilt OR stunned); beingBuilt already excluded by CanBeTransportedDynamic
+	
+	local isStunned = spGetUnitIsStunned(passengerID)
 	if isStunned then
 		return inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ) -- stunned enemy treated as neutral; full LOAD_RADIUS applies
 	end
-	-- unstunned enemy: mode 4-5 uses reduced radius for the consecutive-frames countdown
+
 	local useReducedRadius = ALLOW_ENEMY_LOAD_MODE >= 4
 	if not inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ, useReducedRadius) then
 		if ALLOW_ENEMY_LOAD_MODE >= 3 then
-			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset counter when out of range
+			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 		end
 		return false
 	end
@@ -391,10 +414,10 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 				return true
 			end
 		else
-			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- reset if unit is moving
+			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 		end
 	end
-	return false -- not stunned and consecutive-frames threshold not met (or mode 2)
+	return false
 end
 
 ---@param passengerID number
@@ -402,22 +425,22 @@ end
 ---@param transporterID number
 ---@param transporterTeamID number  -- transporter teamID
 ---@return boolean
-local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, posY) -- things that should allow moving towards transporter to facilitate loading
+local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, posY)
 	if posY < 0 then
 		local passengerDefID = spGetUnitDefID(passengerID)
 		local isHover = UnitDefs[passengerDefID].modCategories["hover"] == true
-		if not isHover then -- ground units should not move to an underwater position
+		if not isHover then
 			return false
 		end
 	end
 	if passengerTeamID == transporterTeamID then
-		return true -- if it's the same team, we can move it towards the transport to facilitate loading
+		return true
 	end
 	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
 		local hasQ = spGetUnitCommands(passengerID, 0) >= 1
-		return not hasQ -- if it's an allied unit, we only can if it's idling
+		return not hasQ
 	else
-		return false -- if it's an enemy unit, we never can
+		return false
 	end
 end
 
@@ -428,7 +451,7 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 	local transporterID = claimedBy[transporterAllyTeam][passengerID]
 	if not transporterID then return end
 	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
-		consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil -- clear any in-progress counter for this passenger
+		consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 	end
 	claimedBy[transporterAllyTeam][passengerID] = nil
 	if transporterClaims[transporterID] then
@@ -440,11 +463,11 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 				resumeFrom = i - 1
 				break
 			end
-			total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+			total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 		end
 		if resumeFrom > 0 then
 			for i = resumeFrom, 1, -1 do
-				total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+				total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 			end
 		end
 		queuedSeats[transporterID] = total
@@ -460,9 +483,9 @@ end
 ---@return boolean claimSuccessful
 local function claimPassenger(transporterID, passengerID, passengerSize, manualClaim)
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
-	if not manualClaim and claimedBy[transporterAllyTeam][passengerID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
+	if not manualClaim and claimedBy[transporterAllyTeam][passengerID] then return false end
 	if claimedBy[transporterAllyTeam][passengerID] then 
-		releasePassenger(passengerID, transporterAllyTeam) -- release previous claim
+		releasePassenger(passengerID, transporterAllyTeam)
 	end
 	claimedBy[transporterAllyTeam][passengerID] = transporterID
 	transporterClaims[transporterID][#transporterClaims[transporterID] + 1] = passengerID
@@ -475,7 +498,7 @@ local function claimPassenger(transporterID, passengerID, passengerSize, manualC
 				spEcho("Error: duplicate claim for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list") -- debug kept for now to debug potential double claims
 			end
 		end
-		total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0) -- API handles the invalid case
+		total = total + (GetPassengerSize(transporterClaims[transporterID][i]) or 0)
 	end
 	queuedSeats[transporterID] = total
 	return true
@@ -492,7 +515,7 @@ local function releaseAllClaims(transporterID)
 		claimedBy[transporterAllyTeam][passengerID] = nil
 	end
 	if ALLOW_ENEMY_LOAD_MODE >= 3 and consecutiveFramesOverEnemyPassenger[transporterID] then
-		consecutiveFramesOverEnemyPassenger[transporterID] = {} -- clear all in-progress counters
+		consecutiveFramesOverEnemyPassenger[transporterID] = {}
 	end
 	transporterClaims[transporterID] = {}
 	queuedSeats[transporterID] = 0
@@ -506,6 +529,11 @@ end
 ---@param radius number
 ---@return number|nil bestUnit
 local function findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
+	-- note: there is a priority system:
+	-- 1. closest > furthest
+	-- 2. mobile > immobile (priority offset: MOBILITY_DIST)
+	-- 3. owned > allied (priority offset: ALLIED_DIST)
+	-- enemies are never considered
 	local transporterAllyTeam      = spGetUnitAllyTeam(transporterID)
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
@@ -513,10 +541,8 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	local bestUnit = nil
 	local bestDist = MAX_DIST_SQ
 	if IsTransportFull(transporterID, queuedSeats[transporterID]) then
-		-- early exit if no seats
 		return nil
 	end
-	-- TODO: remove unclaimable units from cache at runtime
 	if unitsCount == 0 then
 		return nil
 	end
@@ -524,7 +550,6 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	for r = 1, unitsCount do
 		local passengerID = units[r]
 		repeat
-			-- global checks (write back into cache)
 			if not CanBeAutoClaimed(passengerID, transporterAllyTeam) then -- at worse, will be reconsidered in 8 frames
 				break
 			end
@@ -538,18 +563,13 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
 				break
 			end
-			-- passed all global checks: write back into cache
 			units[w] = passengerID
 			w = w + 1
-			-- transporter dependant checks (should not write back into cache)
 			if not CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, passengerSize, queuedSeats[transporterID]) then
 				break
 			end
 			local dx, dz    = passengerPosX - transporterPosX, passengerPosZ - transporterPosZ
 			local rawDistSq = dx * dx + dz * dz
-			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
-			-- mobilityDist is the offset applied to immobile units, by definition dist < mobilityDist for mobile units.
-			-- this gives priority order: mobile own > immobile own > mobile allied > immobile allied
 			local mDist = UnitDefs[passengerDefID].speed>0 and 0 or MOBILITY_DIST
 			local aDist = (passengerTeamID ~= transporterTeamID) and ALLIED_DIST or 0
 			local unitDist  =  rawDistSq + aDist + mDist
@@ -584,7 +604,7 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 		local passengerTeamID = spGetUnitTeam(passengerID)
 		local removalFlag = false
 		local moveToTransporterFlag = false
-		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then
 			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
 		if not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
@@ -595,7 +615,7 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 			removalFlag = true
 		end
 		if removalFlag then
-			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
+			releasePassenger(passengerID, transporterAllyTeam)
 		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) then
 			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
@@ -603,18 +623,17 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 			moveToTransporterFlag = true
 		end
 		if moveToTransporterFlag then
-			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true) -- moves to the transport
+			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true)
 		end
 		if removalFlag then
-			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
+			releasePassenger(passengerID, transporterAllyTeam)
 		end
 	end
 
-	if spValidUnitID(transporterClaims[transporterID][1]) then -- because it might now be empty after releasing claims, check before trying to access
+	if spValidUnitID(transporterClaims[transporterID][1]) then
 		local passenger1 = transporterClaims[transporterID][1]
 		local skipMoveGoal = ALLOW_ENEMY_LOAD_MODE >= 5 and not spAreTeamsAllied(spGetUnitTeam(passenger1), transporterTeamID) and not spGetUnitIsStunned(passenger1)
 		if not skipMoveGoal then
-			-- move to first in queue, not avg pos, in case of blocked or immobile passengers
 			local passenger1x, passenger1y, passenger1z = spGetUnitPosition(passenger1)
 			spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
 		end
@@ -632,24 +651,17 @@ end
 ---@return boolean commandFinished
 local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cx, cy, cz, radius)
 	local passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
-	
-	-- OPTION: one per frame or until filled
-	-- if perfs are a concern, or if you want units to be split among area-loading transports, use one per frame
-	-- i personnally prefer in batch as it allows the commands to be instantly performed in some edge cases
 
-	--if passengerID then
-	--	claimPassenger(transporterID, passengerID, TransportAPI.GetPassengerSize(passengerID), false)
-	--end
 	while passengerID do
 		claimPassenger(transporterID, passengerID, GetPassengerSize(passengerID), false)
 		passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	end
 
-	if queuedSeats[transporterID] == 0 then -- queuedSeats val ~= #transporterClaims but both are 0 when no queue.
+	if queuedSeats[transporterID] == 0 then
 		areaLoadCoroutines[transporterID] = nil
 		local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
 		if not canUnload then
-			return false -- no claimable units, still in load anim
+			return false
 		end
 		return true
 	end
@@ -660,7 +672,7 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 	else
 		spSetUnitMoveGoal(transporterID, cx, cy, cz, 64)
 	end
-	return false -- command is still in progress
+	return false
 end
 
 ---@param transporterID number
@@ -670,8 +682,9 @@ end
 local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 	local idsToRemove = {}
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
+
 	-- 1: Get current queue, remove invalid units, claim valid ones
-	local queue = spGetUnitCommands(transporterID,  spGetUnitRulesParam(transporterID, "transporterSeats")) --  spGetUnitRulesParam(transporterID, "transporterSeats") being the max number of units we can queue on a single transport
+	local queue = spGetUnitCommands(transporterID,  spGetUnitRulesParam(transporterID, "transporterSeats"))
 	local i = 1
 	local cmd = queue and queue[i]
 	if not IsTransportFull(transporterID, queuedSeats[transporterID]) then
@@ -681,19 +694,19 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 			local passengerDefID = spGetUnitDefID(passengerID)
 			local _, passengerPosY = spGetUnitPosition(passengerID)
 			if not CanBeTransportedStatic(passengerID, passengerDefID, transporterID) then
-				idsToRemove[passengerID] = true -- can't be transported, mark for removal
+				idsToRemove[passengerID] = true
 			elseif not CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) then
-				idsToRemove[passengerID] = true -- can't be transported right now, mark for removal
+				idsToRemove[passengerID] = true
 			elseif transporterID ~= claimedBy[transporterAllyTeam][passengerID] then
-				claimPassenger(transporterID, passengerID, GetPassengerSize(passengerID), true) -- force claim for ourselves if not already claimed
+				claimPassenger(transporterID, passengerID, GetPassengerSize(passengerID), true)
 			end
 			i = i + 1
 			cmd = queue and queue[i]
 		end
-	elseif IsTransportFull(transporterID, 0) then -- we still have queued commands despite being full, they can't be performed
+	elseif IsTransportFull(transporterID, 0) then
 		while cmd and cmd.id == CMD_LOAD_UNIT do
 			local passengerID = cmd.params[1]
-			idsToRemove[passengerID] = true -- mark command for removal
+			idsToRemove[passengerID] = true
 			i = i + 1
 			cmd = queue and queue[i]
 		end
@@ -707,7 +720,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 		local removalFlag = false
 		local moveToTransporterFlag = false
-		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then -- keep it during test runs so we can debug if this ever happens
+		if claimedBy[transporterAllyTeam][passengerID] ~= transporterID then
 			spEcho("Error: claim inconsistency for passenger " .. passengerID .. " in transporter " .. transporterID .. "'s claims list")
 		end
 		local passengerTeamID = spGetUnitTeam(passengerID)
@@ -726,26 +739,25 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		elseif dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512  and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, spGetGroundHeight(transporterPosX, transporterPosZ)) then
 			moveToTransporterFlag = true
 		end
-		if moveToTransporterFlag then -- do not order skipped passengers
-			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true) -- moves to the transport
+		if moveToTransporterFlag then
+			spSetUnitMoveGoal(passengerID, transporterPosX, spGetGroundHeight(transporterPosX, transporterPosZ), transporterPosZ,64,nil, true)
 		end
 		if removalFlag then
 			idsToRemove[passengerID] = true
 		end
 	end
-	-- remove invalidated/finished commands before giving a move goal, making sure don't accidently movegoal to a skipped unit
+
 	for passengerID,v in pairs(idsToRemove) do
-		releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
-		if (queue[2] and queue[2].id ~= CMD_LOAD_UNIT) or (not queue[2]) then -- means we're on the last successive load command in the queue
-			--  we keep it around until the load anim finished (load wait stance)
+		releasePassenger(passengerID, transporterAllyTeam)
+		if (queue[2] and queue[2].id ~= CMD_LOAD_UNIT) or (not queue[2]) then
 			local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
 			if canUnload then
 				spUnitFinishCommand(transporterID)
 			end
 		else
 			for i = 1, #queue do
-				if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == passengerID then -- find the corresponding command
-					spGiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0) -- consume the command so the transporter proceeds to the next
+				if queue[i].id == CMD_LOAD_UNIT and queue[i].params[1] == passengerID then
+					spGiveOrderToUnit(transporterID, CMD.REMOVE, {queue[i].tag}, 0)
 					break
 				end
 			end
@@ -755,7 +767,6 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		local passenger1 = transporterClaims[transporterID][1]
 		local skipMoveGoal = ALLOW_ENEMY_LOAD_MODE >= 5 and not spAreTeamsAllied(spGetUnitTeam(passenger1), transporterTeamID) and not spGetUnitIsStunned(passenger1)
 		if not skipMoveGoal then
-			-- move to first in queue, not avg pos, in case of blocked or immobile passengers
 			local passenger1x, passenger1y, passenger1z = spGetUnitPosition(passenger1)
 			spSetUnitMoveGoal(transporterID, passenger1x, passenger1y, passenger1z)
 		end
@@ -763,16 +774,26 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 end
 
 -- GADGET FUNCTIONS
+-- function gadget:Initialize()              -- Repair mid-animation units on save/load; register existing transports; set up custom commands
+-- function gadget:UnitCreated(...)          -- Register new transport units when created
+-- function gadget:UnitCommand(...)          -- Intercept LOAD_UNIT/AREA_LOAD commands to start load sequences
+-- function gadget:UnitCmdDone(...)          -- Release claims when a transport finishes or cancels a command
+-- function gadget:UnitGiven(...)            -- Transfer transport registrations when a unit changes team
+-- function gadget:UnitDestroyed(...)        -- Release all claims when a transporter or passenger is destroyed
+-- function gadget:GameFrame(...)            -- Per-frame: process successive/area load coroutines and proximity checks
+-- function gadget:CommandFallback(...)      -- Handle CMD_AREA_LOAD and CMD_LOAD_UNIT; manage load queues and proximity-gated loading
+-- function gadget:AllowUnitTransport(...)   -- Guard engine load: approve, then call PerformLoad/PerformLoadInstant on the LUS
+-- function gadget:AllowUnitTransportUnload(...)-- Guard engine unload: approve drop position, call PerformUnload on the LUS
+-- function gadget:AllowCommand(...)         -- Inject CMD_LOAD_WAIT to suppress default engine load behavior
 
 -- UNIT LIFECYCLE
 function gadget:Initialize()
 	local AllUnits = spGetAllUnits()
 	if #AllUnits > 0 then
-		for i = 1, #AllUnits do -- save/load compat
+		for i = 1, #AllUnits do
 			local unitID = AllUnits[i]
 			if spGetUnitRulesParam(unitID, "inUnloadAnim") == 1 then
 				spEcho("Repairing unit " .. unitID .. " stuck in unload anim on gadget initialization")
-				-- unit was mid-unload: release MoveCtrl, re-enable abilities, snap to ground
 				spMoveCtrlDisable(unitID, false)
 				spSetUnitRulesParam(unitID, "inUnloadAnim", 0)
 				EnablePassenger(unitID)
@@ -783,7 +804,6 @@ function gadget:Initialize()
 			end
 			if (spGetUnitRulesParam(unitID, "inLoadAnim") or 0) > 0 then
 				spEcho("Repairing unit " .. unitID .. " stuck in load anim on gadget initialization")
-				-- unit was mid-load (not yet attached): release MoveCtrl and snap to ground
 				EnablePassenger(unitID)
 				spMoveCtrlDisable(unitID, false)
 				spSetUnitRulesParam(unitID, "inLoadAnim", 0)
@@ -849,8 +869,8 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local transporterAllyTeam = spGetUnitAllyTeam(unitID)
-	releasePassenger(unitID, transporterAllyTeam)  -- no-op if not claimed
-	releaseAllClaims(unitID)    -- no-op if not a transporter with claims
+	releasePassenger(unitID, transporterAllyTeam)
+	releaseAllClaims(unitID)
 	local transporterID = spGetUnitTransporter(unitID)
 	if not transporterID then return end
 	local transporterDefID = spGetUnitDefID(transporterID)
@@ -867,10 +887,14 @@ end
 -- CMD LIFECYCLE
 
 function gadget:GameFrame(frame)
+	-- we handle table compaction along with firing the coroutine.
+	-- the compaction is known to be imperfect (some niled entries may be left pending when removed from within the coroutine
+	-- but are guaranteed to be removed at the next frame)
+	-- this saves on some table iterations
 	offset = 0
 	for i = 1, areaLoadCoroutinesCount do
 		local co =  areaLoadCoroutines[i] and areaLoadCoroutines[i].co or nil
-		if co then -- first handle the valid coroutines
+		if co then
 			local transporterID = areaLoadCoroutines[i].transporterID
 			local status = coroutine.status(co)
 			if status == "suspended" then
@@ -883,19 +907,16 @@ function gadget:GameFrame(frame)
 				RemoveAreaLoadCoroutine(transporterID)
 			end
 		end
-		-- then prepare for the next frame
-		-- if the current coroutine became nil, it will be treated instantly
-		-- the other ones will be treated on the next frame
 		while areaLoadCoroutines[i + offset] == nil and (i + offset) <= areaLoadCoroutinesCount do
 		    offset = offset + 1
 		end
 		areaLoadCoroutines[i] = areaLoadCoroutines[i + offset]
-		if i+offset <= areaLoadCoroutinesCount then  -- we should be in valid range. i don't nil check, because I actually want an error to show if this was nil despite being in the supposedly valid range for debug purposes.
+		if i+offset <= areaLoadCoroutinesCount then
 			transporterCoroutines[areaLoadCoroutines[i + offset].transporterID].index = i
 		end
 	end
 	areaLoadCoroutinesCount = areaLoadCoroutinesCount - offset
-	offset = 0 -- reuseable offset
+	offset = 0
 	for i = 1, successiveLoadCoroutinesCount do
 		local co = successiveLoadCoroutines[i] and successiveLoadCoroutines[i].co or nil
 		if co then
@@ -915,7 +936,7 @@ function gadget:GameFrame(frame)
 		    offset = offset + 1
 		end
 		successiveLoadCoroutines[i] = successiveLoadCoroutines[i + offset]
-		if i+offset <= successiveLoadCoroutinesCount then -- we should be in valid range. i don't nil check, because I actually want the error to show if this was nil despite being in the supposedly valid range, for debug purposes.
+		if i+offset <= successiveLoadCoroutinesCount then
 			transporterCoroutines[successiveLoadCoroutines[i + offset].transporterID].index = i
 		end
 	end
@@ -934,7 +955,7 @@ end
 -- 2. The coroutine continues running until the successive load commands are removed from the queue (either by being finished or by being invalidated), at which point it stops.
 
 function gadget:CommandFallback(transporterID, transporterDefID, transporterTeamID, cmdID, cmdParams, cmdOptions, cmdTag)
-	if cmdID == CMD_LOAD_WAIT then
+	if cmdID == CMD_LOAD_WAIT then -- wait until the load anim is finished
 		local canUnload = spGetUnitRulesParam(transporterID, "canUnload") == 1
 		if canUnload then
 			return true, true
@@ -942,18 +963,19 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 			return true,false
 		end
 	end
+
 	if cmdID == CMD_LOAD_UNIT then
+		-- first pass before coroutine for an early escape
 		ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 		if not transporterCoroutines[transporterID] or transporterCoroutines[transporterID].type ~= "successive" then
-
 			local co = coroutine.create(function()
 					while true do
-						coroutine.yield() -- ticked by GameFrame every frame
+						coroutine.yield()
 						local posX, posY, posZ = spGetUnitPosition(transporterID)
 						local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
 						local disttoArea = dist2D(posX, posZ, passengerPosX, passengerPosZ)
-						while (disttoArea > 1024) and (spGetGameFrame()%15 ~= transporterID%15) do
-							coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
+						while (disttoArea > 1024) and (spGetGameFrame()%15 ~= transporterID%15) do -- throttle
+							coroutine.yield()
 							posX, posY, posZ = spGetUnitPosition(transporterID)
 							passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(cmdParams[1])
 							disttoArea = dist2D(posX, posZ, passengerPosX, passengerPosZ)
@@ -968,8 +990,8 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 						ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 					end
 			end)
-			if transporterCoroutines[transporterID] then -- no need to test for type
-				RemoveAreaLoadCoroutine(transporterID) -- if we had an area load coroutine, remove it, as successive load takes precedence and they can't run simultaneously
+			if transporterCoroutines[transporterID] then
+				RemoveAreaLoadCoroutine(transporterID)
 			end
 			successiveLoadCoroutinesCount = successiveLoadCoroutinesCount + 1
 			successiveLoadCoroutines[successiveLoadCoroutinesCount] = { co = co, transporterID = transporterID }
@@ -979,10 +1001,9 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 	end
 	if cmdID ~= CMD_AREA_LOAD then return false, false end -- we do not handle this command;
 	local finished = ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4])
-	-- 1st pass of ExecuteAreaLoad: attempt to instantly finish cmd to avoid spawning a coroutine
+	-- first pass before coroutine for an early escape
 	if finished and spGetUnitRulesParam(transporterID, "canLoad") == 0 then
-		-- optional: if we're busy unloading, don't finish the command yet
-		-- this enables overlapping area load/unload cycles
+		-- similar to CMD_LOAD_WAIT, we need to wait until the unload anim is finished before we can finish the load command
 		finished = false
 	end
 	if not finished then
@@ -991,109 +1012,110 @@ function gadget:CommandFallback(transporterID, transporterDefID, transporterTeam
 			-- coroutine params on start
 			local co = coroutine.create(function()
 				while true do
-					coroutine.yield() -- ticked by GameFrame every frame
+					coroutine.yield()
 					coroutine.lastKnownParams = { cx, cy, cz, radius }
 					local posX, posY, posZ = spGetUnitPosition(transporterID)
 					local disttoArea = dist2D(posX, posZ, cx, cz)
-					while (disttoArea > 2*radius) and (spGetGameFrame()%15 ~= transporterID%15) do
-						coroutine.yield() -- wait until we're close enough or every 15 frames to not do expensive checks every frame when far from the area
+					while (disttoArea > 2*radius) and (spGetGameFrame()%15 ~= transporterID%15) do -- throttle
+						coroutine.yield()
 						posX, posY, posZ = spGetUnitPosition(transporterID)
 						disttoArea = dist2D(posX, posZ, cx, cz)
 					end
-					-- update the coroutine's last known params 
-					-- so we can detect mid-coroutine changes, instead of exiting + recreating
 					local Q = spGetUnitCommands(transporterID, 1)
 					local cmd = Q and Q[1]
-					-- are we still performing a CMD_AREA_LOAD ?
 					if not (cmd and cmd.id == CMD_AREA_LOAD) then
-						-- exit coroutine and clean up if command is finished or removed from queue
 						RemoveAreaLoadCoroutine(transporterID)
 						releaseAllClaims(transporterID)
 						break
-					-- have our params changed mid-coroutine ?
+					-- handle changes in area without respawning a new coroutine
 					elseif coroutine.lastKnownParams[1] ~= cmd.params[1] or coroutine.lastKnownParams[2] ~= cmd.params[2] or coroutine.lastKnownParams[3] ~= cmd.params[3] or coroutine.lastKnownParams[4] ~= cmd.params[4] then
-						-- release all claims but keep the coroutine alive
 						releaseAllClaims(transporterID)
 						coroutine.lastKnownParams = cmd.params
 						cx, cy, cz, radius = cmd.params[1], cmd.params[2], cmd.params[3], cmd.params[4]
 					end
-					-- Execute our command logic every tick
 					ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cx, cy, cz, radius)					
-					-- Could Spring.UnitFinishCommand() here instead of waiting next CommandFallback if we need to stop the coroutine ASAP for perfs
 				end
 			end)
-			if transporterCoroutines[transporterID] then -- no need to test for type
-				RemoveSuccessiveCoroutine(transporterID) -- if we had a successive load coroutine, remove it, as area load takes precedence and they can't run simultaneously
+			if transporterCoroutines[transporterID] then
+				RemoveSuccessiveCoroutine(transporterID)
 			end
 			areaLoadCoroutinesCount = areaLoadCoroutinesCount + 1
 			areaLoadCoroutines[areaLoadCoroutinesCount] = { co = co, transporterID = transporterID }
 			transporterCoroutines[transporterID] = { type = "area", index = areaLoadCoroutinesCount }
 		end
-		return true, false -- handled, but not finished; keep command in queue
+		return true, false
 	end
-	return true, true -- handled and finished; remove command from queue
+	return true, true
 end
 
 -- still recquired for defaultCommand to work
 function gadget:AllowUnitTransport(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID)
-	-- allow the attach that our own Load animation initiates
+	-- allow the attach that our own Load animation initiates -- could perhaps use forced = true
 	if spGetUnitRulesParam(passengerID, "inLoadAnim") == transporterID then
 		return true
 	end
-	--use our helper CanTransport
-	--I separated both to avoid FindUnitToTransport calling gadget:AllowUnitTransportLoad with an additional arg
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	local passengerPosX, passengerPosY, passengerPosZ = spGetUnitPosition(passengerID)
 	return CanBeTransportedStatic(passengerID, passengerDefID, transporterID) and CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID) and CanPassengerFitInTransporter(transporterID, passengerID, transporterDefID, GetPassengerSize(passengerID), 0)
 end
 
--- unload commands haven't been changed (yet?)
+-- Note: this ends up functionning like CommandFallback as soon as dist to pos is < unitDef.loadingRadius
+-- Note2: i should be more careful as, unlike the tractor beam specific logic in CommandFallback,
+-- this here is shared with all non tractor beams transports to.
 function gadget:AllowUnitTransportUnload(transporterID, transporterDefID, transporterTeamID, passengerID, passengerDefID, passengerTeamID, goalX, goalY, goalZ)
-	if isUnderwater(passengerID, goalY) then return false end
-	if not isAirTransport[transporterDefID] then return true end	
-	-- distance gate for individual unload commands
+	if isUnderwater(passengerID, goalY) then return false end -- Commands are given with goalY = 0 anyways, so this should no fail unless some hackery happened
+	if not isAirTransport[transporterDefID] then return true end -- only handle air transports here
+
+
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local unloadPadType = GetUnloadPadType(transporterID)
 	local blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 0 then
-		--spEcho("unload position blocked for transporter " .. transporterID .. ", finding closest valid position")
 		goalX, goalY, goalZ = spClosestBuildPos(transporterTeamID, unloadPadType, goalX, goalY, goalZ, 512, 0, 0)
-		if not goalX then
+		if not goalX then 
+			-- this currently does not happen because even unsynced ClosestBuildPos avoids out of sight buildings
+			-- But in hope of getting a fix for this LOSHack, i prepared a final check in the case 
+			-- we only then discovered there was a blocking structure once we started getting LOS.
 			spEcho("Error: no valid unload position found near target point for transporter " .. transporterID .. ", aborting unload")
 			return false
 		end
 	end
-	-- retest because we might still have mobile units in the way
+	-- test for non-blocking mobile units in the way
 	blocked = spTestBuildOrder(unloadPadType, goalX, goalY, goalZ, 0)
 	if blocked == 1 then
 		BuggerOff(goalX, goalY, goalZ, unloadPadType, transporterID)
-		--spEcho("need bugger off logic")
 	elseif blocked == 3 then
-		--spEcho("reclaimable feature in the way, should we unload ?")
+		-- wiki says this is a blocking feature, is it ?
 	end
+
 	if not inUnloadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ) then
-		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- move closer
+		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ)
 		return false
 	end	
-	-- handle custom transports
+
 	if customTransportUnload[transporterDefID] then
 		if spGetUnitRulesParam(transporterID, "canUnload") == 0 then 
-			spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
+			spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- Keep overriding engine's movegoal
 			return false
 		end
 		local targets = GetUnloadTargets(transporterID, passengerID, goalX, goalY, goalZ)
 		for i = 1, #targets do
 			customTransportUnload[transporterDefID](transporterID, 'PerformUnload', targets[i], goalX, goalY, goalZ)
 		end
-		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- just override the engine given movegoal so it does not slowly descend.
-		spUnitFinishCommand(transporterID) -- consume the command so the transporter proceeds to the next
+		spSetUnitMoveGoal(transporterID, goalX, goalY, goalZ) -- Keep overriding engine's movegoal
+		spUnitFinishCommand(transporterID) -- consume the command
 		return false
 	end
-	return true -- default for standard transports
+
+	return true -- default for standard transports, is this enough ?
 end
 
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	-- LOAD_ONTO: Need to figure out how we want to handle this command.
+	-- In current engine, the CMD.LOAD_UNITS is inserted only once;
+	-- due to our different restrictions, that command can be ignored from transport's side, while the passenger will still have a pending LOAD_ONTO command...
+	-- Maybe we should create our custom LOAD_ONTO command too
 	if cmdID == CMD.LOAD_ONTO then
 		if fromInsert then
 			spEcho("Warning: CMD_LOAD_ONTO is deprecated and will be removed in a future update; this command will be ignored")
@@ -1103,7 +1125,10 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of target's queue a load units cmd
 		return false
 	end
+	-- the next commands are only relevant for air transports here, so this guards against messing with other forms of transports
 	if not isAirTransport[unitDefID] then return true end
+
+	-- LOAD_UNITS => reissue an area command or a successive load command depending on the number of params
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 4 then -- inserted area cmd
 			reissueOrder(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions, cmdTag, fromInsert)
@@ -1112,26 +1137,31 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		end
 		return false -- malformed cmd ? ignore
 	end
+
+	-- UNLOAD_UNIT => Can be either a single target unload, or a mass unload.
+	-- Needs special handling for:
+	-- A. Position is valid ?
+	-- B. Transport is loading but not yet loaded ?
 	if cmdID == CMD.UNLOAD_UNIT then
 		local transportedUnits = spGetUnitIsTransporting(unitID)
 		local posX, posY, posZ = cmdParams[1], cmdParams[2], cmdParams[3]
 		if not spValidUnitID(cmdParams[4]) then
-			cmdParams[4] = nil -- force nil in case some odd looking cmd was given
+			cmdParams[4] = nil
 		end
 		local needsShift = false
-		local needsMove = false
+		local needsWaitStance = false
 		local hasShift = cmdOptions.shift == true
 		if #transportedUnits == 0 then
 			local Q = spGetUnitCommands(unitID, 2)
 			local queueEmpty = not Q or #Q == 0
 			local inWaitStance = Q and Q[1] and (Q[1].id == CMD_AREA_LOAD or Q[1].id == CMD_LOAD_UNIT or Q[1].id == CMD_LOAD_WAIT)
 			local hasMoreCommands = #Q > 1
-			needsMove = (queueEmpty or not hasShift) and not (inWaitStance and not hasMoreCommands)
+			needsWaitStance = (queueEmpty or not hasShift) and not (inWaitStance and not hasMoreCommands)
 			-- if we want to override queue, or have no waitStance/queue; we need to spawn a wait stance first
-			needsShift = needsMove or (inWaitStance and not hasMoreCommands)
-			-- if we just spawned a wait stance, or are already on a wait stance
-			if needsMove then
-				spGiveOrderToUnit(unitID, CMD_LOAD_WAIT, {posX, posY, posZ}, {""}) -- just move there, the unload will be triggered by the engine once the load anim is finished
+			needsShift = needsWaitStance or (inWaitStance and not hasMoreCommands)
+			-- if we just spawned a wait stance, or are already on a wait stance, we need to keep the wait stance
+			if needsWaitStance then
+				spGiveOrderToUnit(unitID, CMD_LOAD_WAIT, {posX, posY, posZ}, {""})
 			end	
 			needsShift = needsShift and not hasShift
 			if needsShift then
@@ -1139,6 +1169,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 				cmdOptions.coded = cmdOptions.coded + CMD.OPT_SHIFT
 			end
 		end
+
 		local newPosX, newPosY, newPosZ = spClosestBuildPos(unitTeam, GetUnloadPadType(unitID, cmdParams[4]), posX, posY, posZ, 512, 0, 0)
 		if newPosX ~= posX or newPosY ~= posY or newPosZ ~= posZ then
 			cmdParams[1], cmdParams[2], cmdParams[3] = newPosX, newPosY, newPosZ
@@ -1153,6 +1184,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 
 		return true
 	end
+
+	-- UNLOAD_UNITS => deprecated, reissue as UNLOAD_UNIT with undefined passengerID
+	-- Special handling for position
 	if cmdID == CMD.UNLOAD_UNITS then
 		if cmdParams[4] then
 			spEcho("Warning: CMD.UNLOAD_UNITS areas deprecated, replacing with single point CMD.UNLOAD_UNIT command")
