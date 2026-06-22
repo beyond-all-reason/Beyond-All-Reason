@@ -423,23 +423,18 @@ if gadgetHandler:IsSyncedCode() then
 	local function refreshSendData(unitID, unitData, minIndex)
 		local targetList = unitData.targets
 		local n = #targetList
-		for i = (minIndex or 1), n do
-			targetList[i].sent = false -- TODO: There are no other unsent values; we could be sending these directly.
-		end
-		sendTargetsToUnsynced(unitID)
-		SendToUnsynced("targetList", unitID, n + 1) -- clear the last element in case the list shrank
-		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
-	end
-
-	local function updateTarget(unitID, unitData, index, active)
-		if active == nil then
-			local targetData = unitData.targets[index]
-			if targetData then
-				active = testTarget(unitID, unitData.teamID, unitData.weapons, targetData.target)
+		for index = (minIndex or 1), n do
+			local targetData = targetList[index]
+			targetData.sent = true
+			local target = targetData.target
+			if type(target) == "number" then
+				SendToUnsynced("targetList", unitID, index, targetData.userTarget, target)
+			else
+				SendToUnsynced("targetList", unitID, index, targetData.userTarget, target[1], target[2], target[3])
 			end
 		end
-		unitData.currentIndex = index
-		unitData.activeTarget = active
+		SendToUnsynced("targetList", unitID, n + 1) -- truncate the list
+		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
 	end
 
 	local function removeTarget(unitID, unitData, index)
@@ -505,10 +500,8 @@ if gadgetHandler:IsSyncedCode() then
 			targetList[i] = nil
 		end
 		if currentIndex ~= unitData.currentIndex then
-			if currentIndex == 0 then
-				currentIndex = 1
-			end
-			updateTarget(unitID, unitData, currentIndex)
+			unitData.currentIndex = currentIndex == 0 and 1 or currentIndex
+			unitData.activeTarget = false
 		end
 		refreshSendData(unitID, unitData, minIndex)
 	end
