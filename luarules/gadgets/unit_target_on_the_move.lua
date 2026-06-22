@@ -459,6 +459,7 @@ if gadgetHandler:IsSyncedCode() then
 		local unitData = setTargetData[unitID]
 		local targetList = unitData.targets
 		local n = #targetList
+		-- It is highly likely that we remove the unit:
 		local canRemoveAll = true
 		for i = 1, n do
 			if targetList[i].ignoreStop then
