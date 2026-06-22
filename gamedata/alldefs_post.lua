@@ -853,6 +853,11 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		-- Remove water splashes on lava maps
+		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
+			wDef.explosiongenerator = "custom:blank"
+		end
+
 		----EMP rework
 
 		if modOptions.emprework then
