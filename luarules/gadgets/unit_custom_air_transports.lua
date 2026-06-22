@@ -27,6 +27,7 @@ if not TransportAPI then
 	return false
 end
 
+-- TRANSPORTAPI LOCALS
 local GetPassengerSize = TransportAPI.GetPassengerSize
 local EnablePassenger = TransportAPI.EnablePassenger
 local IsTransportFull = TransportAPI.IsTransportFull
@@ -34,10 +35,8 @@ local CanPassengerFitInTransporter = TransportAPI.CanPassengerFitInTransporter
 local GetUnloadPadType = TransportAPI.GetUnloadPadType
 local GetUnloadTargets = TransportAPI.GetUnloadTargets
 
--- Math locals
+-- SPRING API LOCALS
 local mathSqrt = math.sqrt
-
--- Spring API locals
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitHeight = Spring.GetUnitHeight
 local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -77,34 +76,33 @@ local spGetUnitsInBox = Spring.GetUnitsInBox
 local reissueOrder = Game.Commands.ReissueOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 
-
-
--- Constants
-local mapSizeX = Game.mapSizeX
-local mapSizeZ = Game.mapSizeZ
-local mobilityDist = mapSizeX * mapSizeZ          -- priority offset: mobile < immobile
-local alliedDist = 2 * mobilityDist          -- priority offset: own team < allied < enemy (never)
-local maxDistSq = 2 * alliedDist               -- guaranteed > any real sq distance on the map
+-- CUSTOM SETTINGS
 local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
 local UNLOAD_RADIUS = 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
 local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
-local cachedCylinderUnitsLifespan = 1 -- 1 frame
-local cachedCylinderUnitsRounding = 16 -- 1 how close a previously cached result do we need to be to actually use it?
--- Enemy loading mode:
+local CACHED_CYLINDER_UNITS_LIFESPAN = 1 -- 1 frame
+local CACHED_CYLINDER_UNITS_ROUNDING = 16 -- rounds position and radius to nearest multiple of this to reduce cache misses
+local ALLOW_ENEMY_LOAD_MODE = 2 -- Enemy loading mode:
 --   1 = NONE: enemies can never be loaded (even explicit CMD_LOAD_UNIT is rejected)
 --   2 = Stunned only: stunned enemies are treated as neutral at the load stage; unstunned enemies are never loaded
 --   3 = Stunned + consecutive frames: stunned enemies load immediately; unstunned enemies load after
 --         minConsecutiveFramesToLoadEnemy frames within load range while barely moving (speed < 0.5 elmos/frame)
 --   4 = Mode 3 + reduced radius: unstunned enemies must be within ENEMY_LOAD_RADIUS for the consecutive-frames countdown
 --   5 = Mode 4 + no per-frame movegoal: the transporter will not receive a per-frame movegoal update toward a queued enemy unit
-local ALLOW_ENEMY_LOAD_MODE = 2
-local ENEMY_LOAD_RADIUS_MULTIPLIER = 0.5
+local ENEMY_LOAD_RADIUS_MULTIPLIER = 0.5 -- how much small is the radius (modes 4-5)
+local MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = 60 -- how long does a transport has to hover over a barely moving enemy unit to start loading (modes 3-5)
+
+-- CONSTANTS
+local MAP_SIZE_X = Game.mapSizeX
+local MAP_SIZE_Z = Game.mapSizeZ
+local MOBILITY_DIST = MAP_SIZE_X * MAP_SIZE_Z          -- priority offset: mobile < immobile
+local ALLIED_DIST = 2 * MOBILITY_DIST          -- priority offset: own team < allied < enemy (never)
+local MAX_DIST_SQ = 2 * ALLIED_DIST               -- guaranteed > any real sq distance on the map
 local ENEMY_LOAD_RADIUS = LOAD_RADIUS * ENEMY_LOAD_RADIUS_MULTIPLIER
-local minConsecutiveFramesToLoadEnemy = 60 -- frames within load range + low velocity required to load an unstunned enemy (modes 3-5)
 
-
+-- VARS
 local customTransportLoad = {} -- transporterDefID → LUS function or COB script function
 local customTransportUnload = {} -- transporterDefID → LUS function or COB script function
 local claimedBy = {} -- passengerID → transporterID;
@@ -122,6 +120,7 @@ local consecutiveFramesOverEnemyPassenger = {} -- transporterID → { passengerI
 
 local autoClaimBlackList = {} -- passengerID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
 local autoClaimBlackListDefIDs = {}  -- passengerDefID → true; units that should never be auto-claimed by any transporter (e.g. commanders)
+
 for udefID, def in ipairs(UnitDefs) do
 	if def.canFly and def.isTransport then
 		isAirTransport[udefID] = true
@@ -130,14 +129,11 @@ for udefID, def in ipairs(UnitDefs) do
 		autoClaimBlackListDefIDs[udefID] = true
 	end
 end
----------------------
--- Helper functions--
----------------------
+-- INTERNAL FUNCTIONS
 
 ---@param unitID number
 ---@param functionName string
 ---@return function|false
-
 local function GetScriptFunc(unitID, functionName) 
 	if spGetCOBScriptID(unitID, functionName) then
 		return spCallCOBScript
@@ -155,7 +151,6 @@ end
 ---@param passengerID number
 ---@param y number
 ---@return boolean isUnderwater
-
 local function isUnderwater(passengerID, y) -- i leave it hanging for now; TODOO: use engine's phys state bit or exact same calc to match
 	local height = spGetUnitHeight(passengerID)
 	return not height or y + height < 0
@@ -166,7 +161,6 @@ end
 ---@param x2 number
 ---@param z2 number
 ---@return number distance
-
 local function dist2D(x1, z1, x2, z2)
 	local dx, dz = x1 - x2, z1 - z2
 	return mathSqrt(dx * dx + dz * dz)
@@ -179,7 +173,6 @@ end
 ---@param goalY number
 ---@param goalZ number
 ---@return boolean inLoadRange
-
 local function inLoadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ, reducedRadius)
 	local dY = transporterPosY - goalY
 	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= (reducedRadius and ENEMY_LOAD_RADIUS or LOAD_RADIUS) and dY >= 0
@@ -192,7 +185,6 @@ end
 ---@param goalY number
 ---@param goalZ number
 ---@return boolean inUnloadRange
-
 local function inUnloadRange(transporterPosX, transporterPosY, transporterPosZ, goalX, goalY, goalZ)
 	local dY = transporterPosY - goalY
 	return dist2D(transporterPosX, transporterPosZ, goalX, goalZ) <= UNLOAD_RADIUS and dY >= 0
@@ -204,12 +196,11 @@ end
 ---@param radius number
 ---@param allyTeam number
 ---@return number[] units
-
 local function getCachedUnitsInCylinder(cx, cz, radius, allyTeam)
-	cz, cx, radius = math.floor(cz / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding, math.floor(cx / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding, math.ceil(radius / cachedCylinderUnitsRounding) * cachedCylinderUnitsRounding
+	cz, cx, radius = math.floor(cz / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING, math.floor(cx / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING, math.ceil(radius / CACHED_CYLINDER_UNITS_ROUNDING) * CACHED_CYLINDER_UNITS_ROUNDING
 	local key = allyTeam .. "," .. cx .. "," .. cz .. "," .. radius
 	local cached = cylinderCache[key]
-	local frame = math.floor(spGetGameFrame() / cachedCylinderUnitsLifespan) * cachedCylinderUnitsLifespan -- cache over cachedCylinderUnitsLifespan frames
+	local frame = math.floor(spGetGameFrame() / CACHED_CYLINDER_UNITS_LIFESPAN) * CACHED_CYLINDER_UNITS_LIFESPAN -- cache over CACHED_CYLINDER_UNITS_LIFESPAN frames
 	if cached and cached.frame == frame then
 		return cached.units
 	end
@@ -241,13 +232,10 @@ local function BuggerOff(x, y, z, padDefID, transporterID) -- prolly needs to fi
 end
 
 
--------------------------
--- Core logic functions--
--------------------------
+-- CORE LOGIC FUNCTIONS
 
---- @param transporterID number
---- @return nil
-
+---@param transporterID number
+---@return nil
 local function RemoveAreaLoadCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
 	if not index then 
@@ -257,9 +245,8 @@ local function RemoveAreaLoadCoroutine(transporterID)
 	transporterCoroutines[transporterID] = nil
 end
 
---- @param transporterID number
---- @return nil
-
+---@param transporterID number
+---@return nil
 local function RemoveSuccessiveCoroutine(transporterID)
 	local index = transporterCoroutines[transporterID] and transporterCoroutines[transporterID].index
 	if not index then 
@@ -269,13 +256,12 @@ local function RemoveSuccessiveCoroutine(transporterID)
 	transporterCoroutines[transporterID] = nil
 end
 
----
---- @param passengerID number
---- @param passengerDefID number
---- @param passengerPosY number
---- @param transporterID number
---- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
---- @return boolean
+---@param passengerID number
+---@param passengerDefID number
+---@param passengerPosY number
+---@param transporterID number
+---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
+---@return boolean
 local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID) -- things that should cancel or deny queueing and are mostly immutable
 	if not spValidUnitID(passengerID) then
 		return false
@@ -292,13 +278,12 @@ local function CanBeTransportedStatic(passengerID, passengerDefID, transporterID
 	return true
 end
 
----
---- @param passengerID number
---- @param passengerDefID number
---- @param passengerPosY number
---- @param transporterID number
---- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
---- @return boolean
+---@param passengerID number
+---@param passengerDefID number
+---@param passengerPosY number
+---@param transporterID number
+---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
+---@return boolean
 local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)  -- things that might have changed since CanBeTransportedStatic and should cancel queue (lightweight check for dynamic conditions))
 	if not spValidUnitID(passengerID) then
 		return false
@@ -341,10 +326,9 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	return true
 end
 
----
---- @param passengerID number
---- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
---- @return boolean
+---@param passengerID number
+---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
+---@return boolean
 local function CanBeAutoClaimed(passengerID, transporterAllyTeam) -- things that should only deny queueing if within area cmds
 	if not spValidUnitID(passengerID) then
 		return false
@@ -370,18 +354,17 @@ local function SpawnWeakBeam(transporterID, passengerID, size)
 end
 ]]
 
----
---- @param passengerID number
---- @param passengerTeamID number  -- passenger teamID
---- @param passengerPosX number
---- @param passengerPosY number
---- @param passengerPosZ number
---- @param transporterID number
---- @param transporterTeamID number  -- transporter teamID
---- @param transporterPosX number
---- @param transporterPosY number
---- @param transporterPosZ number
---- @return boolean
+---@param passengerID number
+---@param passengerTeamID number  -- passenger teamID
+---@param passengerPosX number
+---@param passengerPosY number
+---@param passengerPosZ number
+---@param transporterID number
+---@param transporterTeamID number  -- transporter teamID
+---@param transporterPosX number
+---@param transporterPosY number
+---@param transporterPosZ number
+---@return boolean
 local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) -- things that should delay loading without removing from queue
 	if spAreTeamsAllied(passengerTeamID, transporterTeamID) then
 		return inLoadRange(transporterPosX, transporterPosY, transporterPosZ, passengerPosX, passengerPosY, passengerPosZ)
@@ -403,7 +386,7 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 		local _, _, _, vw = spGetUnitVelocity(passengerID)
 		if vw < 0.5 then
 			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
-			if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > minConsecutiveFramesToLoadEnemy then
+			if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY then
 				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 				return true
 			end
@@ -414,12 +397,11 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 	return false -- not stunned and consecutive-frames threshold not met (or mode 2)
 end
 
----
---- @param passengerID number
---- @param passengerTeamID number  -- passenger teamID
---- @param transporterID number
---- @param transporterTeamID number  -- transporter teamID
---- @return boolean
+---@param passengerID number
+---@param passengerTeamID number  -- passenger teamID
+---@param transporterID number
+---@param transporterTeamID number  -- transporter teamID
+---@return boolean
 local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, posY) -- things that should allow moving towards transporter to facilitate loading
 	if posY < 0 then
 		local passengerDefID = spGetUnitDefID(passengerID)
@@ -439,10 +421,9 @@ local function CanMoveToTransporter(passengerID, passengerTeamID, transporterID,
 	end
 end
 
----
---- @param passengerID number
---- @param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
---- @return nil
+---@param passengerID number
+---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
+---@return nil
 local function releasePassenger(passengerID, transporterAllyTeam)
 	local transporterID = claimedBy[transporterAllyTeam][passengerID]
 	if not transporterID then return end
@@ -472,12 +453,11 @@ local function releasePassenger(passengerID, transporterAllyTeam)
 	end
 end
 
----
---- @param transporterID number
---- @param passengerID number
---- @param passengerSize number
---- @param manualClaim boolean
---- @return boolean claimSuccessful
+---@param transporterID number
+---@param passengerID number
+---@param passengerSize number
+---@param manualClaim boolean
+---@return boolean claimSuccessful
 local function claimPassenger(transporterID, passengerID, passengerSize, manualClaim)
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	if not manualClaim and claimedBy[transporterAllyTeam][passengerID] then return false end -- already claimed by another transporter from the allyTeam, and this is not a manual claim (from CMD_LOAD_UNIT))
@@ -501,9 +481,8 @@ local function claimPassenger(transporterID, passengerID, passengerSize, manualC
 	return true
 end
 
----
---- @param transporterID number
---- @return nil
+---@param transporterID number
+---@return nil
 local function releaseAllClaims(transporterID)
 	local claims = transporterClaims[transporterID]
 	if not claims then return end
@@ -519,21 +498,20 @@ local function releaseAllClaims(transporterID)
 	queuedSeats[transporterID] = 0
 end
 
----
---- @param transporterID number
---- @param transporterDefID number
---- @param transporterTeamID number  -- transporter teamID
---- @param cx number
---- @param cz number
---- @param radius number
---- @return number|nil bestUnit
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeamID number  -- transporter teamID
+---@param cx number
+---@param cz number
+---@param radius number
+---@return number|nil bestUnit
 local function findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	local transporterAllyTeam      = spGetUnitAllyTeam(transporterID)
 	local transporterPosX, transporterPosY, transporterPosZ = spGetUnitPosition(transporterID)
 	local units = getCachedUnitsInCylinder(cx, cz, radius, transporterAllyTeam)
 	local unitsCount = #units
 	local bestUnit = nil
-	local bestDist = maxDistSq
+	local bestDist = MAX_DIST_SQ
 	if IsTransportFull(transporterID, queuedSeats[transporterID]) then
 		-- early exit if no seats
 		return nil
@@ -572,8 +550,8 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 			-- alliedDist is the offset applied to allied units, by definition dist < alliedDist for all units (alliedDist = mapSizeX*mapSizeZ)
 			-- mobilityDist is the offset applied to immobile units, by definition dist < mobilityDist for mobile units.
 			-- this gives priority order: mobile own > immobile own > mobile allied > immobile allied
-			local mDist = UnitDefs[passengerDefID].speed>0 and 0 or mobilityDist
-			local aDist = (passengerTeamID ~= transporterTeamID) and alliedDist or 0
+			local mDist = UnitDefs[passengerDefID].speed>0 and 0 or MOBILITY_DIST
+			local aDist = (passengerTeamID ~= transporterTeamID) and ALLIED_DIST or 0
 			local unitDist  =  rawDistSq + aDist + mDist
 			if unitDist >= bestDist then
 				break
@@ -586,18 +564,17 @@ local function findUnitToTransport(transporterID, transporterDefID, transporterT
 	return bestUnit
 end
 
----
---- @param transporterID number
---- @param transporterDefID number
---- @param transporterTeamID number  -- transporter teamID
---- @param transporterPosX number
---- @param transporterPosY number
---- @param transporterPosZ number
---- @param cx number
---- @param cy number
---- @param cz number
---- @param radius number
---- @return nil
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeamID number  -- transporter teamID
+---@param transporterPosX number
+---@param transporterPosY number
+---@param transporterPosZ number
+---@param cx number
+---@param cy number
+---@param cz number
+---@param radius number
+---@return nil
 local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ, cx, cy, cz, radius)
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
 	for i = #transporterClaims[transporterID], 1, -1 do
@@ -619,7 +596,7 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 		end
 		if removalFlag then
 			releasePassenger(passengerID, transporterAllyTeam) -- release claim so it can be targeted by future loads
-		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
+		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) then
 			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
 		elseif dist2D(transporterPosX, transporterPosZ, cx, cz) < radius and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, spGetGroundHeight(transporterPosX, transporterPosZ)) then
@@ -645,15 +622,14 @@ local function ExecuteLoadUnits(transporterID, transporterDefID, transporterTeam
 end
 
 
----
---- @param transporterID number
---- @param transporterDefID number
---- @param transporterTeamID number  -- transporter teamID
---- @param cx number
---- @param cy number
---- @param cz number
---- @param radius number
---- @return boolean commandFinished
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeamID number  -- transporter teamID
+---@param cx number
+---@param cy number
+---@param cz number
+---@param radius number
+---@return boolean commandFinished
 local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamID, cx, cy, cz, radius)
 	local passengerID = findUnitToTransport(transporterID, transporterDefID, transporterTeamID, cx, cz, radius)
 	
@@ -687,11 +663,10 @@ local function ExecuteAreaLoad(transporterID, transporterDefID, transporterTeamI
 	return false -- command is still in progress
 end
 
----
---- @param transporterID number
---- @param transporterDefID number
---- @param transporterTeamID number  -- transporter teamID
---- @return nil
+---@param transporterID number
+---@param transporterDefID number
+---@param transporterTeamID number  -- transporter teamID
+---@return nil
 local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, transporterTeamID)
 	local idsToRemove = {}
 	local transporterAllyTeam = spGetUnitAllyTeam(transporterID)
@@ -745,7 +720,7 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 		end
 		if removalFlag then
 			idsToRemove[passengerID] = true
-		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterAllyTeam, transporterPosX, transporterPosY, transporterPosZ) then
+		elseif CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, passengerPosY, passengerPosZ, transporterID, transporterTeamID, transporterPosX, transporterPosY, transporterPosZ) then
 			customTransportLoad[transporterDefID](transporterID, 'PerformLoad', passengerID)
 			removalFlag = true
 		elseif dist2D(transporterPosX, transporterPosZ, passengerPosX, passengerPosZ) < 512  and CanMoveToTransporter(passengerID, passengerTeamID, transporterID, transporterTeamID, spGetGroundHeight(transporterPosX, transporterPosZ)) then
@@ -787,10 +762,9 @@ local function ExecuteSuccessiveLoadUnits(transporterID, transporterDefID, trans
 	end
 end
 
-------------------
---Gadget Callins--
-------------------
+-- GADGET FUNCTIONS
 
+-- UNIT LIFECYCLE
 function gadget:Initialize()
 	local AllUnits = spGetAllUnits()
 	if #AllUnits > 0 then
@@ -889,6 +863,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		consecutiveFramesOverEnemyPassenger[unitID] = nil
 	end
 end
+
+-- CMD LIFECYCLE
 
 function gadget:GameFrame(frame)
 	offset = 0
@@ -1127,7 +1103,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 		spGiveOrderToUnit( cmdParams[1], CMD.INSERT, { 0, CMD_LOAD_UNIT, 0, unitID }, {"alt"}) -- insert in front of target's queue a load units cmd
 		return false
 	end
-	if not isAirTransport[unitDefID] then return false end
+	if not isAirTransport[unitDefID] then return true end
 	if cmdID == CMD.LOAD_UNITS then
 		if #cmdParams == 4 then -- inserted area cmd
 			reissueOrder(unitID, CMD_AREA_LOAD, cmdParams, cmdOptions, cmdTag, fromInsert)
