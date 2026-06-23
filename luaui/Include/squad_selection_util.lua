@@ -10,11 +10,7 @@ local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-
-local mathMax = math.max
-local mathMin = math.min
-local mathFloor = math.floor
-local mathHuge = math.huge
+local spGetMiniMapRotation = Spring.GetMiniMapRotation
 
 -------------------------------------------------------------------------------
 -- Numeric
@@ -25,7 +21,7 @@ local mathHuge = math.huge
 ---@param max number
 ---@return number
 local function constrain(x, min, max)
-	return mathMax(min, mathMin(max, x))
+	return math.max(min, math.min(max, x))
 end
 
 -- Move `current` toward `target` by at most `step` (for animated blends).
@@ -35,9 +31,9 @@ end
 ---@return number
 local function approach(current, target, step)
 	if current < target then
-		return mathMin(current + step, target)
+		return math.min(current + step, target)
 	end
-	return mathMax(current - step, target)
+	return math.max(current - step, target)
 end
 
 -------------------------------------------------------------------------------
@@ -53,7 +49,7 @@ local SQUAD_VAL = 0.7
 ---@param v number value 0..1
 ---@return number r, number g, number b
 local function hsvToRgb(h, s, v)
-	local i = mathFloor(h * 6)
+	local i = math.floor(h * 6)
 	local f = h * 6 - i
 	local p = v * (1 - s)
 	local q = v * (1 - f * s)
@@ -100,9 +96,9 @@ local function stepToCount(step, poolSize)
 		return 1
 	end
 	if step <= 1 then
-		return mathMax(1, math.ceil(step * poolSize))
+		return math.max(1, math.ceil(step * poolSize))
 	end
-	return mathMin(mathFloor(step), poolSize)
+	return math.min(math.floor(step), poolSize)
 end
 
 -- Parse portion action args: optional "append"/"append_domain" keyword,
@@ -156,7 +152,7 @@ local function sortUnitsByDistance(units, wx, wz)
 		if x then
 			distCache[u] = (x - wx) * (x - wx) + (z - wz) * (z - wz)
 		else
-			distCache[u] = mathHuge
+			distCache[u] = math.huge
 		end
 	end
 	table.sort(units, function(a, b)
@@ -296,7 +292,8 @@ end
 
 -- Resolve the mouse cursor to a world (x, z). Reads the PIP minimap (via the
 -- WG API), then the standard engine minimap geometry, then falls back to a
--- screen ray into the 3D world. Returns nil when the ray misses.
+-- screen ray into the 3D world. Both minimap paths account for minimap
+-- rotation.
 ---@return number? wx, number? wz
 local function getMouseWorldPos()
 	local mx, my = spGetMouseState()
@@ -308,13 +305,26 @@ local function getMouseWorldPos()
 	local pipMinimized = wgPip0 and wgPip0.IsMinimized and wgPip0.IsMinimized()
 	if wgMinimap and wgMinimap.isPipMinimapActive and wgMinimap.isPipMinimapActive() and not pipMinimized then
 		local getBounds = wgMinimap.getScreenBounds ---@type function?
-		if getBounds then
+		local getWorldArea = wgMinimap.getVisibleWorldArea ---@type function?
+		if getBounds and getWorldArea then
 			local l, b, r, t = getBounds()
 			if l and r > l and t > b and mx >= l and mx <= r and my >= b and my <= t then
-				local rx = (mx - l) / (r - l)
-				local ry = (my - b) / (t - b)
-				local wx = Game.mapSizeX * rx
-				local wz = Game.mapSizeZ - Game.mapSizeZ * ry
+				local normX = (mx - l) / (r - l)
+				local normY = (my - b) / (t - b)
+
+				-- (mirrors gui_pip's PipToWorldCoords).
+				local getRotation = wgMinimap.getRotation ---@type function?
+				local rot = getRotation and getRotation() or 0
+				if rot ~= 0 then
+					local dx, dy = normX - 0.5, normY - 0.5
+					local cosR, sinR = math.cos(-rot), math.sin(-rot)
+					normX = dx * cosR - dy * sinR + 0.5
+					normY = dx * sinR + dy * cosR + 0.5
+				end
+
+				local wl, wr, wb, wt = getWorldArea()
+				local wx = wl + (wr - wl) * normX
+				local wz = wb + (wt - wb) * normY
 				return wx, wz
 			end
 		end
@@ -326,8 +336,20 @@ local function getMouseWorldPos()
 		local rx = (mx - mmX) / mmW
 		local ry = (my - mmY) / mmH
 		if rx >= 0 and rx <= 1 and ry >= 0 and ry <= 1 then
-			local wx = Game.mapSizeX * rx
-			local wz = Game.mapSizeZ - Game.mapSizeZ * ry
+			local relX = rx
+			local relY = 1 - ry
+
+			-- (mirrors gui_pip's standard-minimap click handling).
+			local rot = spGetMiniMapRotation and spGetMiniMapRotation() or 0
+			if rot ~= 0 then
+				local dx, dy = relX - 0.5, relY - 0.5
+				local cosR, sinR = math.cos(rot), math.sin(rot)
+				relX = dx * cosR - dy * sinR + 0.5
+				relY = dx * sinR + dy * cosR + 0.5
+			end
+
+			local wx = Game.mapSizeX * relX
+			local wz = Game.mapSizeZ * relY
 			return wx, wz
 		end
 	end
