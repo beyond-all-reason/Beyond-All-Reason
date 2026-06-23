@@ -5076,6 +5076,14 @@ function init()
 			onchange = function(_, value)
 				saveOptionValue("Squad Selection", "squadselection", "setVisualizationMode", { 'visualizationMode' }, value == 1 and "none" or "convexHull")
 				saveOptionValue("Squad Selection", "squadselection", "setShowReserveSquads", { 'showReserveSquads' }, value == 2)
+				if widgetHandler:IsWidgetKnown("Squad Selection Hull") then
+					if value == 1 then
+						widgetHandler:DisableWidget("Squad Selection Hull")
+					else
+						widgetHandler:EnableWidget("Squad Selection Hull")
+					end
+				end
+				init()
 			end,
 		},
 
@@ -5083,18 +5091,18 @@ function init()
 			id = "squad_convexHullPadding",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullPadding'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_Padding'),
 			type = "slider",
 			min = 0,
 			max = 200,
 			step = 5,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullPadding ~= nil and WG['squadselection'].getConvexHullPadding()) or 60,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullPadding_descr'),
+			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullPadding ~= nil and WG['squadselectionhull'].getConvexHullPadding()) or 60,
+			description = Spring.I18N('ui.settings.option.squadSelectionHull_Padding_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullPadding", { 'convexHullPadding' })
+				loadWidgetData("Squad Selection Hull", "squad_convexHullPadding", { 'convexHullPadding' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullPadding", { 'convexHullPadding' }, value)
+				saveOptionValue("Squad Selection Hull", "squadselectionhull", "setConvexHullPadding", { 'convexHullPadding' }, value)
 			end,
 		},
 
@@ -5102,18 +5110,18 @@ function init()
 			id = "squad_convexHullArcResolution",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullArcResolution'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_ArcResolution'),
 			type = "slider",
 			min = 0.05,
 			max = 1.0,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullArcResolution ~= nil and WG['squadselection'].getConvexHullArcResolution()) or 0.4,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullArcResolution_descr'),
+			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullArcResolution ~= nil and WG['squadselectionhull'].getConvexHullArcResolution()) or 0.4,
+			description = Spring.I18N('ui.settings.option.squadSelectionHull_ArcResolution_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullArcResolution", { 'convexHullArcResolution' })
+				loadWidgetData("Squad Selection Hull", "squad_convexHullArcResolution", { 'convexHullArcResolution' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullArcResolution", { 'convexHullArcResolution' }, value)
+				saveOptionValue("Squad Selection Hull", "squadselectionhull", "setConvexHullArcResolution", { 'convexHullArcResolution' }, value)
 			end,
 		},
 
@@ -5121,18 +5129,18 @@ function init()
 			id = "squad_convexHullFillOpacity",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullFillOpacity'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_FillOpacity'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullFillOpacity ~= nil and WG['squadselection'].getConvexHullFillOpacity()) or 0.25,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullFillOpacity_descr'),
+			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullFillOpacity ~= nil and WG['squadselectionhull'].getConvexHullFillOpacity()) or 0.25,
+			description = Spring.I18N('ui.settings.option.squadSelectionHull_FillOpacity_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullFillOpacity", { 'convexHullFillOpacity' })
+				loadWidgetData("Squad Selection Hull", "squad_convexHullFillOpacity", { 'convexHullFillOpacity' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullFillOpacity", { 'convexHullFillOpacity' }, value)
+				saveOptionValue("Squad Selection Hull", "squadselectionhull", "setConvexHullFillOpacity", { 'convexHullFillOpacity' }, value)
 			end,
 		},
 
@@ -5140,17 +5148,17 @@ function init()
 			id = "squad_convexHullBorderOpacity",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullBorderOpacity'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_BorderOpacity'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullBorderOpacity ~= nil and WG['squadselection'].getConvexHullBorderOpacity()) or 0.3,
+			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullBorderOpacity ~= nil and WG['squadselectionhull'].getConvexHullBorderOpacity()) or 0.3,
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullBorderOpacity", { 'convexHullBorderOpacity' })
+				loadWidgetData("Squad Selection Hull", "squad_convexHullBorderOpacity", { 'convexHullBorderOpacity' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullBorderOpacity", { 'convexHullBorderOpacity' }, value)
+				saveOptionValue("Squad Selection Hull", "squadselectionhull", "setConvexHullBorderOpacity", { 'convexHullBorderOpacity' }, value)
 			end,
 		},
 
@@ -5158,37 +5166,37 @@ function init()
 			id = "squad_convexHullBorderThickness",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullBorderThickness'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelectionHull_BorderThickness'),
 			type = "slider",
 			min = 0.5,
 			max = 5,
 			step = 0.5,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullBorderThickness ~= nil and WG['squadselection'].getConvexHullBorderThickness()) or 2,
+			value = (WG['squadselectionhull'] ~= nil and WG['squadselectionhull'].getConvexHullBorderThickness ~= nil and WG['squadselectionhull'].getConvexHullBorderThickness()) or 2,
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullBorderThickness", { 'convexHullBorderThickness' })
+				loadWidgetData("Squad Selection Hull", "squad_convexHullBorderThickness", { 'convexHullBorderThickness' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullBorderThickness", { 'convexHullBorderThickness' }, value)
+				saveOptionValue("Squad Selection Hull", "squadselectionhull", "setConvexHullBorderThickness", { 'convexHullBorderThickness' }, value)
 			end,
 		},
 		{
 			id = "squad_convexHullColorMode",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullColorMode'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadColorMode'),
 			type = "select",
 			options = {
-				Spring.I18N('ui.settings.option.squadSelection_convexHullColorMode_opt1'),
-				Spring.I18N('ui.settings.option.squadSelection_convexHullColorMode_opt2'),
-				Spring.I18N('ui.settings.option.squadSelection_convexHullColorMode_opt3'),
+				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt1'),
+				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt2'),
+				Spring.I18N('ui.settings.option.squadSelection_squadColorMode_opt3'),
 			},
 			value = (WG['squadselection'] == nil and 1)
-				or (WG['squadselection'].getConvexHullColorMode() == "custom" and 2)
-				or (WG['squadselection'].getConvexHullColorMode() == "squad" and 3)
+				or (WG['squadselection'].getSquadColorMode() == "custom" and 2)
+				or (WG['squadselection'].getSquadColorMode() == "squad" and 3)
 				or 1,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullColorMode_descr'),
+			description = Spring.I18N('ui.settings.option.squadSelection_squadColorMode_descr'),
 			onload = function(i)
-				local raw = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullColorMode ~= nil and WG['squadselection'].getConvexHullColorMode()) or "team"
+				local raw = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadColorMode ~= nil and WG['squadselection'].getSquadColorMode()) or "team"
 				local modes = { "team", "custom", "squad" }
 				for idx, v in ipairs(modes) do
 					if v == raw then
@@ -5199,7 +5207,7 @@ function init()
 			end,
 			onchange = function(_, value)
 				local modes = { "team", "custom", "squad" }
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullColorMode", { 'convexHullColorMode' }, modes[value] or "team")
+				saveOptionValue("Squad Selection", "squadselection", "setSquadColorMode", { 'squadColorMode' }, modes[value] or "team")
 			end,
 		},
 
@@ -5207,18 +5215,18 @@ function init()
 			id = "squad_convexHullCustomColorR",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorR'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorR'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullCustomColorR ~= nil and WG['squadselection'].getConvexHullCustomColorR()) or 0,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorR_descr'),
+			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorR ~= nil and WG['squadselection'].getSquadCustomColorR()) or 0,
+			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorR_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { 'convexHullCustomColorR' })
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { 'squadCustomColorR' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullCustomColorR", { 'convexHullCustomColorR' }, value)
+				saveOptionValue("Squad Selection", "squadselection", "setSquadCustomColorR", { 'squadCustomColorR' }, value)
 			end,
 		},
 
@@ -5226,18 +5234,18 @@ function init()
 			id = "squad_convexHullCustomColorG",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorG'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorG'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullCustomColorG ~= nil and WG['squadselection'].getConvexHullCustomColorG()) or 0.3,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorG_descr'),
+			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorG ~= nil and WG['squadselection'].getSquadCustomColorG()) or 0.3,
+			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorG_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { 'convexHullCustomColorG' })
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { 'squadCustomColorG' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullCustomColorG", { 'convexHullCustomColorG' }, value)
+				saveOptionValue("Squad Selection", "squadselection", "setSquadCustomColorG", { 'squadCustomColorG' }, value)
 			end,
 		},
 
@@ -5245,18 +5253,18 @@ function init()
 			id = "squad_convexHullCustomColorB",
 			group = "ui",
 			category = types.advanced,
-			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorB'),
+			name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.squadSelection_squadCustomColorB'),
 			type = "slider",
 			min = 0,
 			max = 1,
 			step = 0.05,
-			value = (WG['squadselection'] ~= nil and WG['squadselection'].getConvexHullCustomColorB ~= nil and WG['squadselection'].getConvexHullCustomColorB()) or 0.7,
-			description = Spring.I18N('ui.settings.option.squadSelection_convexHullCustomColorB_descr'),
+			value = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadCustomColorB ~= nil and WG['squadselection'].getSquadCustomColorB()) or 0.7,
+			description = Spring.I18N('ui.settings.option.squadSelection_squadCustomColorB_descr'),
 			onload = function(i)
-				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { 'convexHullCustomColorB' })
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { 'squadCustomColorB' })
 			end,
 			onchange = function(_, value)
-				saveOptionValue("Squad Selection", "squadselection", "setConvexHullCustomColorB", { 'convexHullCustomColorB' }, value)
+				saveOptionValue("Squad Selection", "squadselection", "setSquadCustomColorB", { 'squadCustomColorB' }, value)
 			end,
 		},
 
@@ -7005,6 +7013,18 @@ function init()
 		options[getOptionByID('gridmenu_shiftclickmodifier')] = nil
 		options[getOptionByID('gridmenu_ctrlkeymodifier')] = nil
 		options[getOptionByID('gridmenu_shiftkeymodifier')] = nil
+	end
+
+	if not GetWidgetToggleValue('Squad Selection Hull') then
+		options[getOptionByID('squad_convexHullPadding')] = nil
+		options[getOptionByID('squad_convexHullArcResolution')] = nil
+		options[getOptionByID('squad_convexHullFillOpacity')] = nil
+		options[getOptionByID('squad_convexHullBorderOpacity')] = nil
+		options[getOptionByID('squad_convexHullBorderThickness')] = nil
+		options[getOptionByID('squad_convexHullColorMode')] = nil
+		options[getOptionByID('squad_convexHullCustomColorR')] = nil
+		options[getOptionByID('squad_convexHullCustomColorG')] = nil
+		options[getOptionByID('squad_convexHullCustomColorB')] = nil
 	end
 
 	if spectatorHUDConfigOptions[options[getOptionByID('spectator_hud_config')].value] ~= Spring.I18N('ui.settings.option.spectator_hud_config_custom') then
