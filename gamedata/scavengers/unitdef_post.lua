@@ -504,7 +504,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "corgant_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
-			uDef.buildoptions[numBuildoptions + 2] = "corgolt4_scav" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 			uDef.buildoptions[numBuildoptions + 4] = "corthermite_scav" -- Thermite/Epic Termite
 			uDef.buildoptions[numBuildoptions + 5] = "cormandot4_scav" -- Epic Commando
@@ -514,7 +514,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "corgantuw_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
-			uDef.buildoptions[numBuildoptions + 2] = "corgolt4_scav" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 			uDef.buildoptions[numBuildoptions + 4] = "cormandot4_scav" -- Epic Commando
 		end
