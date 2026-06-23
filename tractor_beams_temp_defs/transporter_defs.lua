@@ -9,7 +9,7 @@
 -- The transports have power of two sized slots; a transporter of size = k will always have 
 -- any combination of (2^n) sizes possible (ie size = 5 can be 4+1, 2+2+1, 2+1+1+1, 1+1+1+1+1)
 -- GDT asked for 3 categories of units: S, M, L (+untransportable)
--- I'm subdividing this into Tiny, Very-Light, Light, Medium-Light, Medium-Heavy, Heavy, Very-Heavy (+untransportable)
+-- I'm subdividing this into Tiny, Very-Light, Light, Medium-Light, Medium-Heavy, Heavy, Very-Heavy, Commanders (+untransportable)
 -- because even as a "no-op" the disctinction seems intuitive for ticks vs pawns, or mammoth vs bull...
 
 -- SMALL: nSeats = 1 -> one seat inside transport
@@ -24,6 +24,7 @@
 	-- Very Heavy (category 6) = 4 + oversized: counts as 6 weight
     -- Commanders: nSeats = 4 -> four seats inside transport; counts as 6 weight + special case of triggering at least the "commander loaded" speed nerf
 -- UNTRANSPORTABLE...
+-- the concept of weight DOES NOT apply on transportability, but can be used to compute various types of nerfs (ie. speed)
 
 -- 3 additional tags are available per unitDef:
 -- transporterspeedmodmode = 
@@ -32,10 +33,8 @@
 	-- 2: apply a (1 - ((usedWeight - transporterSeats)/(0.5 * transporterSeats) * transporterspeedmodstrength
 -- transporterspeedmodstrength = amount of speed removed from the transport (ratio) depending on speedmodmode
 -- transportercomspeedmodstrength = minimal amount of speed removal that kicks in as soon as a commander is loaded
--- so unless transporterSpeedModMode is set to 2, the previous "subcategories" are just équivalent to the S, M, L categories they belong to
--- the concept of weight DOES NOT apply on transportability, but can be used to compute various types of nerfs (ie speed)
+-- Unless transporterSpeedModMode is set to 2, the previous "subcategories" are just équivalent to the S, M, L categories they belong to
 
--- ie:
 -- For a 4 seats transport, holding a very heavy unit, "speedmodmode = 2", "speedmodstrength = 0.3"
 	-- speedMod = 1-(((6 - 4)/(0.5 * 4))*0.3) = 0.7
 -- same case but within a 6 seats transport:
