@@ -8918,7 +8918,7 @@ function init()
 						widgetHandler:EnableWidget("Squad Selection Hull")
 					end
 				end
-				init()
+				scheduleInit = true
 			end,
 		},
 
