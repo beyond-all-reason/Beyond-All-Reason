@@ -6,6 +6,11 @@ local SplineLib = {}
 
 local DEFAULT_SEGMENTS = 12
 
+---@class SplineXY
+---@field [1] number x coordinate
+---@field [2] number y coordinate
+---@field [3] number? strength Catmull-Rom anchor weight in [0,1]; absent or 0 is a sharp corner
+
 local function clamp01(v)
 	if v < 0 then return 0 end
 	if v > 1 then return 1 end
@@ -73,11 +78,11 @@ end
 --- case where all anchor strengths are zero, producing vertex-identical output
 --- to the input. An anchor with a missing 3rd element is treated as strength 0
 --- (sharp corner): if the caller didn't ask for curvature, they don't get it.
---- @param anchors table array of {x, z} or {x, z, strength} anchors (closed implicitly).
+--- @param anchors SplineXY[] closed ring of anchors (closed implicitly).
 --- @param opts table|nil { segments = number }
 ---   segments: subdivisions per curved edge (default 12). Test-time hook;
 ---   production callers omit this and accept the default.
---- @return table polygon as {{x, z}, ...} suitable for the existing polygon consumers.
+--- @return SplineXY[] polygon vertices suitable for the existing polygon consumers.
 function SplineLib.TessellateRing(anchors, opts)
 	local n = #anchors
 	if n < 2 then
