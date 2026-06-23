@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Squad Selection",
-		desc = "Automagical squad creation and proximity-based selection",
+		desc = "Squad creation, proximity-based squad selection, and squad control",
 		author = "Baldric, yyyy",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -47,19 +47,10 @@ end
 ---@field excludeCombatEngineers boolean
 ---@field excludedUnitTypes string
 ---@field visualizationMode string
----@field convexHullPadding number
----@field convexHullArcResolution number
----@field convexHullFillOpacity number
----@field convexHullBorderOpacity number
----@field convexHullBorderThickness number
----@field convexHullColorMode string
----@field convexHullCustomColorR number
----@field convexHullCustomColorG number
----@field convexHullCustomColorB number
----@field reserveStripePeriod number
----@field reserveStripeAlphaMul number
----@field hullPulseAmplitude number
----@field hullPulseRate number
+---@field squadColorMode string
+---@field squadCustomColorR number
+---@field squadCustomColorG number
+---@field squadCustomColorB number
 ---@field idleColorBlendSeconds number
 ---@field highlightBlendSeconds number
 ---@field debug boolean
@@ -68,41 +59,32 @@ end
 local config = {
 	cyclingToNextSquad = true, -- when full squad/type is selected, exclude it to cycle to next
 	leftClickSelectsSquad = true, -- left-click can be used to select squads
-	leftClickSteps = { 1, 0.5, "distance_850" }, -- step values + optional distance cap for left-click selection; {1} = whole squad, {"distance_850", 0.5, 1} = 50% then 100% within 850 elmos
+	leftClickSteps = { 1, 0.5, "distance_850" }, -- step values + optional distance cap for left-click selection; 100% then 50% within 850 elmos. Only active if leftClickStepsEnabled is true.
 	leftClickStepsEnabled = false, -- when true, left-click (replace and append) uses leftClickSteps; when false (default), both use {1} (whole squad, no distance cap). Bind a hotkey via `squad_setting toggle leftClickStepsEnabled` to flip on demand
-	leftClickAppendFiltersDomain = true, -- when true, left-click Shift-append only cycles into squads whose domains ⊆ the selection's; when false, append behaves like the plain `append` keyword
-	leftClickFilteredRetargets = true, -- when true, Alt+Ctrl-click (replace-mode filtered) acts like the `retarget` keyword: if the closest unit's type isn't in the current selection, treat the click as a fresh selection on that new type instead of using the selection's types as the filter. Append mode is unaffected.
+	leftClickAppendFiltersDomain = true, -- when true, left-click Shift-append squads whose domains ⊆ the selection's. Using it again within inDoubleTapWindow flips to the opposite value.
+	leftClickFilteredRetargets = true, -- when true, Alt+Ctrl-click (replace-mode filtered) acts like the `retarget` keyword: even if the closest unit's type isn't in the current selection, treat the click as a fresh selection on that new type instead of using the selection's types as the filter. Append mode is unaffected.
 	rightClickSquadCreate = false, -- right-click creates squads; bind a hotkey via `squad_setting toggle rightClickSquadCreate` to flip on demand
 	rightClickMovesSquad = true, -- right-click commands the closest squad
 	rightClickMoveRange = 850, -- max world-distance (elmos) from the cursor for the right-click-move feature to highlight/pick a squad; 0 = unlimited
 	ctrlRightClickCreatesSquad = false, -- Ctrl+right-click creates a squad (click still passes through, so the engine's move-in-formation runs too which can cause issues)
-	ctrlRightClickDragCreatesSquad = true, -- hold Ctrl then right-click drag past the engine's MouseDragFrontCommandThreshold to create a squad (click still passes through)
-	commandCreatesSquad = false,
+	ctrlRightClickDragCreatesSquad = true, -- hold Ctrl then right-click drag past the engine's MouseDragFrontCommandThreshold to create a squad (click still passes through but does nothing by default)
+	commandCreatesSquad = false, -- experimental
 	mergeIntoReserves = true, -- when false, `squad_create` never merges the selection into a reserve squad; it always creates a fresh manual squad
-	selectionAutoExtend = false, -- when true, freshly built units auto-extend the current selection while their reserve is fully selected (the wait/patrol rally opt-out still applies on top)
+	selectionAutoExtend = false, -- when true, freshly built units auto-extend the current selection while their reserve is fully selected (factory wait/patrol rally opt-out)
 	showReserveSquads = false, -- when true, auto per-factory reserves + uncategorized reserve are visualized
-	viewselectionDoubleTapMs = 300, -- second rapid same-place non-append squad-select tap (single-step, or multi-step at the last step) calls viewselection on the just-selected squad (0 disables)
-	viewselectionDoubleTapPx = 5, -- max screen-pixel distance between the two taps (0 disables the gesture, same as Ms — the comparison is strict)
+	viewselectionDoubleTapMs = 300, -- second rapid same-place non-append squad-select tap (single-step, or multi-step at the last step) calls viewselection on the just-selected squad (0 disables).
+	viewselectionDoubleTapPx = 5, -- max screen-pixel distance between the two taps (0 disables the gesture). Intentionally not using the game's MouseDragFrontCommandThreshold config
 	mruSize = 3, -- how many recent squads squad_cycle_recent cycles through
 	excludeConstructors = true, -- when true, the curated constructor/commander list (CONSTRUCTOR_UNITS) is excluded from squad tracking
 	excludeResurrectionUnits = false, -- when true, the curated resurrection-unit list (RESURRECTION_UNITS) is excluded from squad tracking
 	excludeCombatEngineers = false, -- when true, the curated combat-engineer list (COMBAT_ENGINEER_UNITS) is excluded from squad tracking
-	excludedUnitTypes = "", -- comma-separated unit names the player has manually excluded from squad tracking (independent of the three toggles above)
+	excludedUnitTypes = "", -- comma-separated unit names the player has manually excluded from squad tracking.
 	visualizationMode = "convexHull", -- "convexHull" or "none"
-	convexHullPadding = 60, -- space (in elmos) between the units and the hull boundary
-	convexHullArcResolution = 0.4, -- angle that each chord of the arc spans in radians; smaller = smoother but more expensive
-	convexHullFillOpacity = 0.25,
-	convexHullBorderOpacity = 0.3,
-	convexHullBorderThickness = 2,
-	convexHullColorMode = "team", -- "team" (team color), "custom" (single custom RGB), "squad" (per-squad golden-ratio hue)
-	convexHullCustomColorR = 0, -- Red component of custom hull color (0–1)
-	convexHullCustomColorG = 0.3, -- Green component
-	convexHullCustomColorB = 0.7, -- Blue component
-	-- Animation tuning (no panel control).
-	reserveStripePeriod = 64, -- diagonal-stripe period in world elmos for reserve squad fills
-	reserveStripeAlphaMul = 0.3, -- opacity of the dim stripe band relative to the bright band
-	hullPulseAmplitude = 0.25, -- breathing pulse amplitude on hull alpha
-	hullPulseRate = 1.5, -- breathing pulse rate; period ≈ 2π / rate seconds
+	-- Shared color group, can be reused by every visualization companion widget.
+	squadColorMode = "team", -- "team" (team color), "custom" (single custom RGB), "squad" (per-squad golden-ratio hue)
+	squadCustomColorR = 0, -- Red component of custom squad color (0–1)
+	squadCustomColorG = 0.3, -- Green component
+	squadCustomColorB = 0.7, -- Blue component
 	idleColorBlendSeconds = 0.5, -- seconds for the idle/active hull color to fully crossfade (0 = instant)
 	highlightBlendSeconds = 0.1, -- seconds for the closest-squad highlight to fade in/out (0 = instant)
 	debug = false,
@@ -116,10 +98,6 @@ end
 
 -------------------------------------------------------------------------------
 -- Localized Spring API
---
--- Avoids repeated global table lookups. Matters most in DrawScreen where we
--- iterate every tracked unit each frame; negligible for one-shot calls in
--- Initialize, but kept here as an at-a-glance "imports" list.
 -------------------------------------------------------------------------------
 
 local spEcho = Spring.Echo
@@ -133,7 +111,6 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spIsGUIHidden = Spring.IsGUIHidden
 local spGetModKeyState = Spring.GetModKeyState
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -146,41 +123,46 @@ local spGetMouseCursor = Spring.GetMouseCursor
 local spGetConfigInt = Spring.GetConfigInt
 local spIsReplay = Spring.IsReplay
 local spGetGroundHeight = Spring.GetGroundHeight
----@type fun(unitID: number, count: integer): commands: Command[]
-local spGetUnitCommands = Spring.GetUnitCommands
 ---@type fun(unitID: number): integer?
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetTeamColor = Spring.GetTeamColor
 local spSendCommands = Spring.SendCommands
 local spGiveOrder = Spring.GiveOrder
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
-local spIsSphereInView = Spring.IsSphereInView
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 
-local glColor = gl.Color
-local glDepthTest = gl.DepthTest
-local glLineWidth = gl.LineWidth
-local glCreateShader = gl.CreateShader
-local glDeleteShader = gl.DeleteShader
-local glUseShader = gl.UseShader
-local glGetUniformLocation = gl.GetUniformLocation
-local glUniform = gl.Uniform
-local glGetVBO = gl.GetVBO
-local glGetVAO = gl.GetVAO
+-------------------------------------------------------------------------------
+-- Stateless utility helpers (shared module)
+-------------------------------------------------------------------------------
+local Util = VFS.Include("luaui/Include/squad_selection_util.lua")
+local constrain = Util.constrain
+local approach = Util.approach
+local indexToColor = Util.indexToColor
+local stepToCount = Util.stepToCount
+local parsePortionArgs = Util.parsePortionArgs
+local sortUnitsByDistance = Util.sortUnitsByDistance
+local squadFullySelected = Util.squadFullySelected
+local countSelectedIn = Util.countSelectedIn
+local poolFullySelected = Util.poolFullySelected
+local resolveTargetCount = Util.resolveTargetCount
+local pickUnits = Util.pickUnits
+local unitQueueHasWait = Util.unitQueueHasWait
+local factoryRallyEndsWithWaitOrPatrol = Util.factoryRallyEndsWithWaitOrPatrol
+local getMouseWorldPos = Util.getMouseWorldPos
+local addExcludedNames = Util.addExcludedNames
 
 -------------------------------------------------------------------------------
 -- State
 -------------------------------------------------------------------------------
 
---- Array of member unitIDs (1-based; order not meaningful) plus identity/visual metadata.
+-- Array of member unitIDs (1-based; order not meaningful) plus identity/visual metadata.
 ---@class Squad
----@field [number] number Member unitIDs (1-based; order not meaningful).
+---@field [number] number Member unitIDs (1-based, integer; order not meaningful).
 ---@field index number? Monotonically increasing squad id. Companion widgets derive colors/letters from it. Set by assignSquadTag right after creation.
 ---@field tagSeed number? Golden-ratio phase offset; drives hull animation phase and per-squad color. Set by assignSquadTag right after creation.
 ---@field color number[]? {r, g, b} squad color (from indexToColor). Set by assignSquadTag right after creation.
----@field isReserve boolean? True for hidden reserve squads (per-factory auto-squads + the uncategorized reserves).
+---@field isReserve boolean? True for reserve squads (per-factory auto-squads + the uncategorized reserves).
 ---@field fromFactory boolean? True when this reserve was auto-created for a factory.
 ---@field uncatDomain Domain? Set only on the three permanent uncategorized reserves.
 
@@ -198,8 +180,8 @@ local squadSelCount = {} ---@type table<Squad, number> squad -> number of select
 local selectionDirty = true -- forces a full recount on the first draw frame
 local squadIdleState = {} ---@type table<Squad, boolean> squad -> true when >50% of the squad is idle
 local squadIdleBlend = {} ---@type table<Squad, number> squad -> 0..1 blend between team color and idle color
-local squadHighlightBlend = {} ---@type table<Squad, number> squad -> 0..1 blend for the closest-squad preview highlight (opacity only)
-local squadControlBlend = {} ---@type table<Squad, number> squad -> 0..1 blend for the actively-commanded squad (RMB held); adds the border emphasis
+local squadHighlightBlend = {} ---@type table<Squad, number> squad -> 0..1 blend for the closest-squad preview highlight
+local squadControlBlend = {} ---@type table<Squad, number> squad -> 0..1 blend for the actively-commanded squad
 local squadHideIdleAirHull = {} ---@type table<Squad, boolean> squad -> true when an idle squad is entirely airborne air units
 local idleScanIndex = 0 -- round-robin index into squads for incremental idle-state updates
 
@@ -207,10 +189,10 @@ local idleScanIndex = 0 -- round-robin index into squads for incremental idle-st
 ---@field x number Mouse screen x at press time.
 ---@field y number Mouse screen y at press time.
 
----@class PendingSquadMove Captured on an Alt/Space RMB (or plain RMB with empty selection) press (config.rightClickMovesSquad).
+---@class PendingSquadMove Captured on an Alt RMB (or plain RMB with empty selection). (config.rightClickMovesSquad).
 ---@field squad Squad The picked squad to command on RMB release.
----@field formation boolean Ctrl held → slowest-speed "move in formation".
----@field keepSelection boolean Space (meta) held → keep the moved squad selected instead of restoring the prior selection.
+---@field formation boolean Ctrl held -> slowest-speed "move in formation".
+---@field keepSelection boolean Space (meta) held -> keep the moved squad selected instead of restoring the prior selection.
 
 local pendingDragCreate = nil ---@type PendingDragCreate?
 local pendingSquadMove = nil ---@type PendingSquadMove?
@@ -223,7 +205,7 @@ local defidOf = {} ---@type table<number, number|false> unitID -> defID (false w
 local isCombat = {} ---@type table<number, boolean> defID -> squad-eligible
 local isFactory = {} ---@type table<number, boolean> defID -> immobile with buildOptions
 local isStrafingAir = {} ---@type table<number, boolean> defID -> air units that strafe/fly around while idle
-local unitDomain = {} ---@type table<number, Domain?> defID -> movement domain (nil when not classified)
+local unitDomain = {} ---@type table<number, Domain?> defID -> movement domain
 
 ---@class LastSquadSelect Snapshot of the most recent doSquadSelect tap.
 ---@field t any Spring timer at tap time (for the double-tap window).
@@ -233,11 +215,10 @@ local unitDomain = {} ---@type table<number, Domain?> defID -> movement domain (
 ---@field kind string Logical selection type ("plain"/"filtered"/"group", optionally ":portion"); same-mode gestures only fire on a matching kind.
 ---@field squad Squad? Final target squad once known; stays nil on no-ops (the reserve-merge gate relies on this).
 
---- Most recent successful doSquadSelect; powers two same-mode double-tap gestures
---- (replace→replace fires viewselection, append→append upgrades plain append to
---- append_domain), both gated to a matching `kind` (selection type) so mixed
---- sequences don't fire, and gates the reserve-merge branch of
---- createSquadFromSelection on `squad`.
+-- Most recent successful doSquadSelect; powers two same-mode double-tap gestures
+-- (replace->replace fires viewselection, append->append upgrades plain append to
+-- append_domain), both gated to a matching `kind` (selection type) so mixed
+-- sequences don't fire, and gates the reserve-merge branch of createSquadFromSelection on `squad`.
 ---@type LastSquadSelect?
 local lastSquadSelect = nil
 
@@ -266,27 +247,7 @@ end
 -- Utility
 -------------------------------------------------------------------------------
 
----@param x number
----@param min number
----@param max number
----@return number
-local function constrain(x, min, max)
-	return math.max(min, math.min(max, x))
-end
-
--- Move `current` toward `target` by at most `step` (for animated blends).
----@param current number
----@param target number
----@param step number
----@return number
-local function approach(current, target, step)
-	if current < target then
-		return math.min(current + step, target)
-	end
-	return math.max(current - step, target)
-end
-
--- Recompute whether a squad is "idle" (>50% units with no commands).
+-- Recompute whether a squad is "idle" (>50% units with no commands) (only round-robin).
 ---@param sq Squad
 ---@return boolean idle
 local function refreshSquadIdleState(sq)
@@ -321,23 +282,17 @@ local function refreshSquadIdleState(sq)
 
 	squadIdleState[sq] = true
 
-	-- Hide hull only when the whole squad is strafing-air and currently flying.
-	local hideHull = true
+	-- Hide hull when any unit in the squad is strafing-air and currently flying.
+	local hideHull = false
 	for i = 1, size do
 		local u = sq[i]
 		local defId = defidOf[u]
-		if not (defId and isStrafingAir[defId]) then
-			hideHull = false
-			break
-		end
-		local x, y, z = spGetUnitPosition(u)
-		if not x then
-			hideHull = false
-			break
-		end
-		if y <= spGetGroundHeight(x, z) + 50 then
-			hideHull = false
-			break
+		if defId and isStrafingAir[defId] then
+			local x, y, z = spGetUnitPosition(u)
+			if x and y > spGetGroundHeight(x, z) + 50 then
+				hideHull = true
+				break
+			end
 		end
 	end
 	squadHideIdleAirHull[sq] = hideHull
@@ -366,48 +321,12 @@ end
 -------------------------------------------------------------------------------
 -- Squad identity
 --
--- Each squad gets a monotonically increasing number index on creation,
--- stored as squad.index. Companion widgets use this to derive their own
--- colors, letters, or other visuals. squad.tag_seed (golden-ratio step
--- over index) is used internally for hull animation phase offsets and color.
+-- Each squad gets a monotonically increasing number index on creation.
+-- Companion widgets use this to derive their own colors, letters, or other visuals.
+-- squad.tag_seed (golden-ratio step over index) is used for hull animation phase offsets and color.
 -------------------------------------------------------------------------------
 
 local nextSquadTag = 0
-
--------------------------------------------------------------------------------
--- Per-squad color helpers
--------------------------------------------------------------------------------
-
-local GOLDEN_HUE_STEP = 0.381966
-local SQUAD_SAT = 0.75
-local SQUAD_VAL = 0.7
-
-local function hsvToRgb(h, s, v)
-	local i = math.floor(h * 6)
-	local f = h * 6 - i
-	local p = v * (1 - s)
-	local q = v * (1 - f * s)
-	local t = v * (1 - (1 - f) * s)
-	i = i % 6
-	if i == 0 then
-		return v, t, p
-	elseif i == 1 then
-		return q, v, p
-	elseif i == 2 then
-		return p, v, t
-	elseif i == 3 then
-		return p, q, v
-	elseif i == 4 then
-		return t, p, v
-	else
-		return v, p, q
-	end
-end
-
-local function indexToColor(idx)
-	local h = ((idx - 1) * GOLDEN_HUE_STEP) % 1
-	return hsvToRgb(h, SQUAD_SAT, SQUAD_VAL)
-end
 
 ---@param squad Squad Receives .index, .tagSeed and .color.
 local function assignSquadTag(squad)
@@ -424,7 +343,7 @@ end
 -------------------------------------------------------------------------------
 
 ---@param unitId number
----@return number|false defID an number defID, or false when the lookup fails
+---@return number|false defID
 local function getDefid(unitId)
 	local v = defidOf[unitId]
 	if v ~= nil then
@@ -448,16 +367,7 @@ local RESURRECTION_UNITS = "armrectr,cornecro,legrezbot,legnavyrezsub,armrecl,co
 -- Curated combat-engineer list.
 local COMBAT_ENGINEER_UNITS = "armfark,legaceb,armconsul,corfast,legdecom,armdecom,cordecom,leganavyengineer,armmls,cormls"
 
---- Parse a comma-separated name list into `set[name] = true` (whitespace trimmed).
----@param set table<string, boolean>
----@param csv string
-local function addExcludedNames(set, csv)
-	for name in csv:gmatch("[^,]+") do
-		set[name:match("^%s*(.-)%s*$")] = true
-	end
-end
-
---- Pre-compute isCombat for every defID in one pass.
+-- Pre-compute isCombat for every defID in one pass.
 --
 -- Squad eligibility is "any mobile unit, minus exclusions".
 local function classifyUnitdefs()
@@ -476,7 +386,7 @@ local function classifyUnitdefs()
 	end
 
 	for defID, def in pairs(UnitDefs) do
-		-- Squad eligibility, speed is needed because of mines
+		-- Squad eligibility, speed is needed because mines canMove for some reason
 		if def.canMove and def.speed and def.speed > 0 and not excluded[def.name] then
 			isCombat[defID] = true
 		else
@@ -584,7 +494,7 @@ end
 --
 -- Push points are both inside createSquadFromSelection: successful squad
 -- creation, and right-click on a selection that already matches an existing squad.
--- Plain selection changes and command issuance do NOT push.
+-- Plain selection changes do NOT push.
 -------------------------------------------------------------------------------
 
 ---@param sq Squad?
@@ -670,54 +580,6 @@ end
 -- Squad creation from selection
 -------------------------------------------------------------------------------
 
--- Returns true if `unitId`'s command queue contains a CMD_WAIT anywhere.
--- Used by the uncategorized-reserve path in UnitCreated to skip the selection
--- auto-extend for a freshly resurrected unit (rez bots leave units in
--- CMD_WAIT until fully healed).
-local function unitQueueHasWait(unitId)
-	local cmds = spGetUnitCommands(unitId, -1)
-	if not cmds then
-		return false
-	end
-	for i = 1, #cmds do
-		if cmds[i].id == CMD.WAIT then
-			return true
-		end
-	end
-	return false
-end
-
--- Returns true if the factory's command queue ends with CMD_WAIT or
--- CMD_PATROL — i.e. the rally's last waypoint is a "stay busy here" signal
--- rather than a move-and-forget. Used to opt the reserve out of the
--- selection auto-extend in UnitCreated.
-local function factoryRallyEndsWithWaitOrPatrol(factoryId)
-	local cmds = spGetUnitCommands(factoryId, -1)
-	if not cmds or #cmds == 0 then
-		return false
-	end
-
-	local lastId = cmds[#cmds].id
-	return lastId == CMD.WAIT or lastId == CMD.PATROL
-end
-
--- Returns true if every unit in `sq` is present in `selectedSet`.
--- Empty squads return false to avoid vacuous matches.
----@param sq Squad
----@param selectedSet table<number, boolean>
----@return boolean
-local function squadFullySelected(sq, selectedSet)
-	if #sq == 0 then
-		return false
-	end
-	for i = 1, #sq do
-		if not selectedSet[sq[i]] then
-			return false
-		end
-	end
-	return true
-end
-
 -- Returns the squad if the selection's combat units exactly match one squad
 -- (including reserves), nil otherwise.
 ---@param selected number[] unitIDs (typically from spGetSelectedUnits).
@@ -744,7 +606,7 @@ local function selectionIsExistingSquad(selected)
 	return squad
 end
 
---- Create a new hidden reserve squad and register it in `squads`.
+-- Create a new reserve squad and register it in `squads`.
 -- Used for per-factory auto-squads and the uncategorized reserve.
 ---@param fromFactory boolean? True for per-factory auto-squads.
 ---@return Squad
@@ -757,21 +619,20 @@ local function makeReserveSquad(fromFactory)
 	return sq
 end
 
---- Auto-create a reserve squad for a newly built/received factory.
+-- Auto-create a reserve squad for a newly built/received factory.
 ---@param factoryId number
 ---@return Squad
 local function createFactorySquad(factoryId)
 	local sq = makeReserveSquad(true)
 	factorySquad[factoryId] = sq
-	log("Factory ", factoryId, " → auto squad [", sq.index, "]")
+	log("Factory ", factoryId, " -> auto squad [", sq.index, "]")
 	return sq
 end
 
---- "This selection becomes one squad" — merges or splits depending on state.
---  - If the selection already exactly occupies one squad (no other factories
---    reference it) → no-op.
---  - Otherwise → reassign all selected factories to a fresh shared squad.
---    Units already built stay in their old squads
+-- "This selection becomes one squad" — merges or splits depending on state.
+--  - If the selection already exactly occupies one squad (no other factories reference it) -> no-op.
+--  - Otherwise -> reassign all selected factories to a fresh shared squad.
+--  - Units already built stay in their old squads
 local function assignFactorySquad()
 	local selected = spGetSelectedUnits()
 	local factories = {} ---@type number[]
@@ -862,8 +723,8 @@ local function createSquadFromSelection(unitThatMustBeInSelection)
 	--
 	-- The `lastSquadSelect.squad == sq` gate captures player intent: merging
 	-- only happens when the player explicitly squad-selected the reserve via
-	-- the widget. Manual selections that happen to include all of a (possibly
-	-- one-unit) reserve don't trigger merges — common case is selecting a
+	-- the widget. Manual selections that happen to include a whole reserve
+	-- don't trigger merges — common case is selecting a
 	-- fresh factory output to reinforce a manual squad, where the new unit's
 	-- reserve being trivially "fully selected" used to swallow the manual
 	-- squad on squad_create.
@@ -897,7 +758,7 @@ local function createSquadFromSelection(unitThatMustBeInSelection)
 			end
 			spSelectUnitArray(units)
 
-			log("Merged ", moved, " unit(s) → reserve squad [", sq.index or "?", "]")
+			log("Merged ", moved, " unit(s) -> reserve squad [", sq.index or "?", "]")
 			return
 		end
 	end
@@ -938,7 +799,7 @@ local function createSquadFromSelection(unitThatMustBeInSelection)
 	playerInputSinceLastResquad = false
 	notifySquadChange("rebuild", nil, nil)
 	-- Selection itself didn't change, but selected units moved between squads.
-	-- Force DrawWorldPreUnit to rebuild per-squad selected counts.
+	-- Force a recount of per-squad selected counts (see widget:Update).
 	selectionDirty = true
 	pushToMru(newSquad)
 
@@ -948,51 +809,9 @@ end
 -------------------------------------------------------------------------------
 -- Finding closest unit
 --
--- Returns the mouse cursor's world position, then iterates all tracked units
--- to find the one nearest to it.
+-- getMouseWorldPos (shared util) gives the cursor's world position; we then
+-- iterate tracked units to find the one nearest to it.
 -------------------------------------------------------------------------------
-
-local function getMouseWorldPos()
-	local mx, my = spGetMouseState()
-
-	-- PIP minimap: when active, the engine minimap is hidden/minimized so
-	-- spGetMiniMapGeometry() returns stale data. Use the WG API instead.
-	local wgMinimap = WG and WG["minimap"]
-	local wgPip0 = WG and WG["pip0"]
-	local pipMinimized = wgPip0 and wgPip0.IsMinimized and wgPip0.IsMinimized()
-	if wgMinimap and wgMinimap.isPipMinimapActive and wgMinimap.isPipMinimapActive() and not pipMinimized then
-		local getBounds = wgMinimap.getScreenBounds ---@type function?
-		if getBounds then
-			local l, b, r, t = getBounds()
-			if l and r > l and t > b and mx >= l and mx <= r and my >= b and my <= t then
-				local rx = (mx - l) / (r - l)
-				local ry = (my - b) / (t - b)
-				local wx = Game.mapSizeX * rx
-				local wz = Game.mapSizeZ - Game.mapSizeZ * ry
-				return wx, wz
-			end
-		end
-	end
-
-	-- Standard minimap (engine geometry).
-	local mmX, mmY, mmW, mmH, minimized, maximized = spGetMiniMapGeometry()
-	if mmX and mmW > 0 and mmH > 0 and not minimized and not maximized then
-		local rx = (mx - mmX) / mmW
-		local ry = (my - mmY) / mmH
-		if rx >= 0 and rx <= 1 and ry >= 0 and ry <= 1 then
-			local wx = Game.mapSizeX * rx
-			local wz = Game.mapSizeZ - Game.mapSizeZ * ry
-			return wx, wz
-		end
-	end
-
-	-- Normal path: trace screen ray into the 3D world.
-	local _, coords = spTraceScreenRay(mx, my, true)
-	if not coords then
-		return nil
-	end
-	return coords[1], coords[3] -- world x, world z
-end
 
 -- Cylinder radius (elmos) for perf heuristic.
 local SEARCH_RADIUS = 850
@@ -1067,8 +886,7 @@ local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFil
 		local squad = unitSquad[u] -- nil for untracked units (enemy/allied/non-combat)
 		if squad and not (exclude and exclude[u]) and not (groupSet and not groupSet[u]) then
 			if not filterDefs or (defidOf[u] and filterDefs[defidOf[u]]) then
-				-- domainFilter is squad-level: check the whole squad, not just its
-				-- in-cylinder units. Memoized so each squad is inspected once.
+				-- domainFilter is squad-level: check the whole squad, not just its in-cylinder units. Memoized so each squad is inspected once.
 				local squadOk = true
 				if domainFilter then
 					local cached = domainOk[squad]
@@ -1120,7 +938,7 @@ end
 ---@field selectedDomainSet table<Domain, boolean> domains ("land"/"air"/"naval") in the selection. Used by append_domain to constrain cycling to compatible squads.
 ---@field hasTrackedUnits boolean True when at least one selected unit is a tracked squad unit with a known type; otherwise callers fall back to type-agnostic behavior.
 
---- Inspect the current selection and return a summary used by squad-select actions.
+-- Inspect the current selection and return a summary used by squad-select actions.
 ---@return SelectionInfo
 local function analyzeSelection()
 	local selected = spGetSelectedUnits()
@@ -1159,100 +977,20 @@ end
 -- All six selection actions share one core, doSquadSelect. The per-action
 -- wrappers only differ in which opts they pass:
 --
---   whole-squad / filtered / group    → steps={1}, cycleWhenFull=true
---   portion / portion-filtered /group → steps=<parsed>, cycleWhenFull=false
+--   whole-squad / filtered / group    -> steps={1}, cycleWhenFull=true
+--   portion / portion-filtered /group -> steps=<parsed>, cycleWhenFull=false
 --
--- Filtering by unit type and by control group is expressed uniformly via the
--- filterDefs / groupSet options.
+-- Filtering by unit type and by control group is expressed uniformly via the filterDefs / groupSet options.
 -------------------------------------------------------------------------------
 
---- Convert a step value to a unit count.
--- 0 → 1 unit; 0 < step <= 1 → percentage; step > 1 → fixed count.
----@param step number|1|integer
----@param poolSize number
----@return number
-local function stepToCount(step, poolSize)
-	if poolSize <= 0 then
-		return 0
-	end
-	if step <= 0 then
-		return 1
-	end
-	if step <= 1 then
-		return math.max(1, math.ceil(step * poolSize))
-	end
-	return math.min(math.floor(step), poolSize)
-end
-
---- Parse portion action args: optional "append"/"append_domain" keyword,
--- optional "distance_<N>" modifier that caps selection to units within N
--- world-distance of the cursor, plus step numbers. "append_domain" implies
--- append and additionally restricts squad cycling to domains present in the
--- current selection.
----@param args (string|number)[]? Raw action args.
----@return boolean append, boolean useDomainFilter, number[] steps, number? maxDistance, boolean retarget
-local function parsePortionArgs(args)
-	if not args then
-		return false, false, {}, nil, false
-	end
-	local append = false
-	local useDomainFilter = false
-	local retarget = false
-	local steps = {}
-	local maxDistance
-	for i = 1, #args do
-		local arg = args[i]
-		if arg == "append" then
-			append = true
-		elseif arg == "append_domain" then
-			append = true
-			useDomainFilter = true
-		elseif arg == "retarget" then
-			retarget = true
-		elseif type(arg) == "string" and arg:sub(1, 9) == "distance_" then
-			local d = tonumber(arg:sub(10))
-			if d and d > 0 then
-				maxDistance = d
-			end
-		else
-			local n = tonumber(arg)
-			if n then
-				steps[#steps + 1] = n
-			end
-		end
-	end
-	return append, useDomainFilter, steps, maxDistance, retarget
-end
-
---- Sort a unit array in-place by distance to a world point.
----@param units number[]
----@param wx number
----@param wz number
-local function sortUnitsByDistance(units, wx, wz)
-	local distCache = {}
-	for i = 1, #units do
-		local u = units[i]
-		local x, _, z = spGetUnitPosition(u)
-		if x then
-			distCache[u] = (x - wx) * (x - wx) + (z - wz) * (z - wz)
-		else
-			distCache[u] = math.huge
-		end
-	end
-	table.sort(units, function(a, b)
-		return distCache[a] < distCache[b]
-	end)
-end
-
---- Build a squad's pool(s): units matching the optional filters.
--- Returns (pool, stepPool). stepPool is the filter-only pool used for step
--- progression; pool is stepPool additionally capped to units within
--- maxDistanceSq of (wx, wz). When maxDistanceSq is nil the two are the
--- same array.
+-- Build a squad's pool(s): units matching the optional filters.
+-- Returns (pool, stepPool). stepPool is the filter-only pool used for step progression
+-- Pool is stepPool additionally capped to units within maxDistanceSq of (wx, wz).
+-- When maxDistanceSq is nil the two are the same array.
 ---@param squad Squad
 ---@param filterDefs table<number, boolean>? defID set narrowing the pool to matching unit types.
 ---@param groupSet table<number, boolean>? unitID set narrowing the pool to control-group members.
----@param maxDistanceSq number? Squared world-distance cap from (wx, wz); nil → pool == stepPool.
+---@param maxDistanceSq number? Squared world-distance cap from (wx, wz); nil -> pool == stepPool.
 ---@param wx number Cursor world x.
 ---@param wz number Cursor world z.
 ---@return number[] pool, number[] stepPool
@@ -1278,79 +1016,7 @@ local function buildPools(squad, filterDefs, groupSet, maxDistanceSq, wx, wz)
 	return pool, stepPool
 end
 
---- Count how many pool units are already selected.
----@param pool number[]
----@param selectedSet table<number, boolean>
----@return integer
-local function countSelectedIn(pool, selectedSet)
-	local n = 0
-	for i = 1, #pool do
-		if selectedSet[pool[i]] then
-			n = n + 1
-		end
-	end
-	return n
-end
-
---- True when every unit in pool is in selectedSet.
----@param pool number[]
----@param selectedSet table<number, boolean>
----@return boolean
-local function poolFullySelected(pool, selectedSet)
-	for i = 1, #pool do
-		if not selectedSet[pool[i]] then
-			return false
-		end
-	end
-	return true
-end
-
---- Walk the step progression: return the first resolved count greater than
--- `currentInPool`, or the last step's count once we're past the end
--- (no-op repeat).
----@param steps number[]
----@param poolSize number
----@param currentInPool number
----@return number
-local function resolveTargetCount(steps, poolSize, currentInPool)
-	for i = 1, #steps do
-		local c = stepToCount(steps[i], poolSize)
-		if c > currentInPool then
-			return c
-		end
-	end
-	return stepToCount(steps[#steps], poolSize)
-end
-
---- Given a distance-sorted pool, pick which units go to SelectUnitArray.
--- Replace mode: first `targetCount` pool units.
--- Append mode: up to `targetCount` closest pool units that aren't already
--- selected (so repeated presses accumulate).
----@param pool number[] Distance-sorted candidate units.
----@param targetCount number
----@param selectedSet table<number, boolean>
----@param append boolean?
----@return number[] toSelect
-local function pickUnits(pool, targetCount, selectedSet, append)
-	local toSelect = {}
-	if append then
-		for i = 1, #pool do
-			if not selectedSet[pool[i]] then
-				toSelect[#toSelect + 1] = pool[i]
-				if #toSelect >= targetCount then
-					break
-				end
-			end
-		end
-	else
-		for i = 1, targetCount do
-			toSelect[i] = pool[i]
-		end
-	end
-	return toSelect
-end
-
---- Determine the defID set for filtered actions. Uses the selection's types
+-- Determine the defID set for filtered actions. Uses the selection's types
 -- if any tracked units are selected; otherwise falls back to the closest
 -- unit's type. Returns nil when nothing suitable is found (caller bails).
 ---@param sel SelectionInfo
@@ -1374,7 +1040,7 @@ local function resolveFilterDefs(sel, wx, wz)
 	}
 end
 
---- Retarget variant: in replace mode, always peek the closest unit. If its
+-- Retarget variant: in replace mode, always peek the closest unit. If its
 -- type is in the current selection's types, behave like resolveFilterDefs
 -- (use the selection). If not, treat the click as a fresh selection on that
 -- single new type — letting the player swing the filter to a different unit
@@ -1400,7 +1066,7 @@ local function resolveRetargetFilterDefs(sel, wx, wz)
 	}
 end
 
---- Build a set of unitIDs belonging to a control group.
+-- Build a set of unitIDs belonging to a control group.
 -- Tries GetGroupUnits first, falls back to iterating tracked units. (I copied this from another widget, I'm not sure how necessary it is)
 ---@param groupNum number
 ---@return table<number, boolean> groupSet
@@ -1431,7 +1097,7 @@ end
 
 ---@class SquadSelectOpts
 ---@field append boolean? Append to the current selection instead of replacing.
----@field steps number[]? Step values (nil → {1}, the whole pool). 0→1 unit, 0<n≤1→fraction of pool, n>1→fixed count.
+---@field steps number[]? Step values (nil -> {1}, the whole pool). 0<n≤1->fraction of pool but at least one unit, n>1->fixed count.
 ---@field filterDefs table<number, boolean>? defID set; narrows the pool to matching unit types.
 ---@field groupSet table<number, boolean>? unitID set; narrows the pool to control-group members.
 ---@field maxDistance number? Cap the pool to units within this world distance of the cursor.
@@ -1478,18 +1144,13 @@ local function doSquadSelect(opts)
 		return
 	end
 
-	-- Selection "kind" identifies the logical selection type so the same-mode
-	-- double-tap gestures only fire on a same-type repeat: e.g. a squadSelect
-	-- followed by a squadSelectFiltered must not trigger viewselection. The
-	-- filter/group dimension plus whole-vs-portion (the codebase's whole-squad
-	-- definition is exactly {} or {1}) captures every action variant.
+	-- Selection "kind" identifies the logical selection type so the same-mode double-tap gestures only fire on a same-type repeat: e.g. a squadSelect followed by a squadSelectFiltered must not trigger viewselection.
 	local kind = (opts.groupSet and "group") or (opts.filterDefs and "filtered") or "plain"
 	if not (#steps == 1 and steps[1] == 1) then
 		kind = kind .. ":portion"
 	end
 
-	-- Compute the double-tap window match against the *previous* tap, then
-	-- snapshot its append flag and kind before we overwrite lastSquadSelect below.
+	-- Compute the double-tap window match against the previous tap, then snapshot its append flag and kind before we overwrite lastSquadSelect below.
 	local inDoubleTapWindow = false
 	local prevAppend = false ---@type boolean?
 	local prevKind = nil
@@ -1504,8 +1165,7 @@ local function doSquadSelect(opts)
 	end
 
 	-- Arm now (not at the end) so subsequent taps detect this one even when the selection ends up a no-op.
-	-- `squad` is filled in below once the final target is known; staying nil on no-ops is the correct
-	-- signal for createSquadFromSelection's reserve-merge gate (no widget selection happened).
+	-- `squad` is filled in below once the final target is known; staying nil on no-ops is the correct signal for createSquadFromSelection's reserve-merge gate (no widget selection happened).
 	lastSquadSelect = {
 		t = spGetTimer(),
 		x = mx,
@@ -1515,8 +1175,7 @@ local function doSquadSelect(opts)
 		squad = nil,
 	}
 
-	-- Single-step same-mode double-tap dispatch. Replace→replace fires
-	-- viewselection. Append→append flips the domain filter
+	-- Single-step same-mode double-tap dispatch. Replace->replace fires viewselection. Append->append flips the domain filter
 	if inDoubleTapWindow and prevAppend == opts.append and prevKind == kind then
 		if opts.append then
 			opts.useDomainFilter = not opts.useDomainFilter
@@ -1546,19 +1205,16 @@ local function doSquadSelect(opts)
 	end
 
 	-- Multi-step calls need currentInStepPool to advance through the step
-	-- progression; single-step ones only need fullySelected, which is a pure
-	-- function of pool size and selection.
+	-- progression; single-step ones only need fullySelected, which is a pure function of pool size and selection.
 	local currentInStepPool = 0
 	if #steps > 1 then
 		currentInStepPool = countSelectedIn(stepPool, sel.selectedSet)
 	end
 	local fullySelected = #pool > 0 and poolFullySelected(pool, sel.selectedSet)
 
-	-- Double-tap viewselection (late): multi-step replace fires only when the
-	-- player has already reached the last step (no progression left), so
-	-- intermediate taps still advance through steps as normal. Same same-mode
-	-- gating as the early check — only replace→replace triggers.
-	-- TODO: should work even with distance filter.
+	-- Double-tap viewselection (late): multi-step replace fires only when the player has already reached the last step (no progression left), so intermediate taps still advance through steps as normal.
+	-- Same same-mode gating as the early check — only replace->replace triggers.
+	-- TODO: should work even with distance filter?
 	if inDoubleTapWindow and prevKind == kind and #steps > 1 and not opts.append and not prevAppend and #pool > 0 and currentInStepPool >= stepToCount(steps[#steps], #stepPool) then
 		spSendCommands("viewselection")
 		lastSquadSelect = nil
@@ -1566,11 +1222,8 @@ local function doSquadSelect(opts)
 	end
 
 	if opts.cycleWhenFull and fullySelected then
-		-- If cycling finds no other squad (e.g. the player previously appended
-		-- their way through every squad so nothing is unselected), keep the
-		-- original target so a replace tap still replaces with the closest
-		-- squad instead of silently doing nothing. For append, the empty
-		-- pickUnits result later short-circuits to a no-op.
+		-- If cycling finds no other squad (e.g. the player previously appended their way through every squad so nothing is unselected), keep the original target so a replace tap still replaces with the closest squad instead of silently doing nothing.
+		-- For append, the empty pickUnits result later short-circuits to a no-op.
 		local cycledTarget = findClosestSquad(filterDefs, groupSet, sel.selectedSet, wx, wz, domainFilter)
 		if cycledTarget then
 			targetSquad = cycledTarget
@@ -1783,16 +1436,13 @@ local function squadSelectPortionGroup(_, _, args)
 	return true
 end
 
--- Shared core for squad_limit / squad_limit_flip. Picks the target squad (owner
--- of the tracked-selected unit closest to the cursor) and shapes the existing
--- selection against that one squad, dropping everything else. Replace-only.
---   do_flip == false → limit/narrow: result = selection ∩ target_squad.
---   do_flip == true  → limit AND flip: result = target_squad \ selection (the
---     target squad's other units). A fully-selected squad flips to empty.
---   No tracked units selected → fall back to plain closest-squad-select.
+-- Shared core for squad_limit / squad_limit_flip. Picks the target squad (owner of the tracked-selected unit closest to the cursor) and shapes the existing selection against that one squad, dropping everything else.
+--   do_flip == false -> limit/narrow: result = selection ∩ target_squad.
+--   do_flip == true  -> limit AND flip: result = target_squad \ selection (the target squad's other units). A fully-selected squad flips to empty.
+--   No tracked units selected -> fall back to plain closest-squad-select.
 local function limitOrFlip(doFlip)
 	local wx, wz = getMouseWorldPos()
-	if not wx then
+	if not wx or not wz then
 		return true
 	end
 
@@ -1810,7 +1460,7 @@ local function limitOrFlip(doFlip)
 		local sq = unitSquad[u]
 		if sq then
 			local x, _, z = spGetUnitPosition(u)
-			if x then
+			if x and z then
 				local dx, dz = x - wx, z - wz
 				local d2 = dx * dx + dz * dz
 				if d2 < closestD2 then
@@ -1848,8 +1498,7 @@ local function squadLimit()
 	return limitOrFlip(false)
 end
 
--- Always flips, across every squad that has a selected unit: each such squad's
--- selected units are swapped for its unselected ones. Cursor-independent.
+-- Always flips, across every squad that has a selected unit: each such squad's selected units are swapped for its unselected ones. Cursor-independent.
 local function squadFlip()
 	local sel = analyzeSelection()
 	if not sel.hasTrackedUnits then
@@ -1886,163 +1535,6 @@ local function squadFlip()
 end
 
 -------------------------------------------------------------------------------
--- GL4 hull rendering
---
--- One shared VBO (2D world x,z + ground-sampled y) is re-uploaded per squad
--- per frame, then drawn as TRIANGLE_FAN (fill) and LINE_LOOP (border).
--- The 2D hull geometry is convex, so a fan starting from vertex 0 covers it.
--------------------------------------------------------------------------------
-
-local HULL_MAX_VERTICES = 512
-local hullShader = nil ---@type integer?
-local hullColorLoc = nil ---@type GL?
-local hullStripeLoc = nil ---@type GL?
-local hullCentroidLoc = nil ---@type GL?
-local hullPulseLoc = nil ---@type GL?
-local hullVbo = nil ---@type VBO?
-local hullVao = nil ---@type VAO?
-local hullReady = false
-local hullInitFailed = false -- so we don't spam retries after a failure
-local hullTimeOrigin = nil ---@type integer? wall-clock origin for stripe/pulse animation
-
--- Center→edge alpha gradient: alpha at the centroid as a fraction of the edge.
-local HULL_GRADIENT_CENTER = 0.2
-
-local hullVsSrc = [[
-#version 330 compatibility
-
-layout(location = 0) in vec3 position;
-
-out vec3 worldPos;
-
-void main() {
-	worldPos = position;
-	gl_Position = gl_ModelViewProjectionMatrix * vec4(position, 1.0);
-}
-]]
-
-local hullFsSrc = [[
-#version 330 compatibility
-
-uniform vec4 color;
-// stripe.x = period in world units (0 disables stripes)
-// stripe.y = alpha multiplier for the dim band
-// stripe.z = phase offset in world units (per-squad, so overlapping hulls don't align)
-uniform vec3 stripe;
-// centroidRadius.xy = squad centroid in world XZ
-// centroidRadius.z  = max distance from centroid to a perimeter vertex (gradient norm)
-uniform vec3 centroidRadius;
-// breathing alpha multiplier (per-squad phase, computed CPU-side)
-uniform float pulse;
-// alpha at the centroid as a fraction of the edge alpha
-uniform float gradientCenter;
-
-in vec3 worldPos;
-
-out vec4 fragColor;
-
-void main() {
-	float a = color.a;
-
-	if (stripe.x > 0.0) {
-		float band = step(0.5, fract((worldPos.x + worldPos.z + stripe.z) / stripe.x));
-		a *= mix(stripe.y, 1.0, band);
-	}
-
-	// soft center→edge alpha gradient
-	vec2 toCenter = worldPos.xz - centroidRadius.xy;
-	float dist = length(toCenter) / max(centroidRadius.z, 1.0);
-	a *= mix(gradientCenter, 1.0, smoothstep(0.0, 1.0, dist));
-
-	a *= pulse;
-
-	fragColor = vec4(color.rgb, a);
-}
-]]
-
-local function initGlHull()
-	if hullReady or hullInitFailed then
-		return hullReady
-	end
-	if not glCreateShader or not glGetVBO or not glGetVAO then
-		log("GL4 unavailable — convex hull drawing disabled")
-		hullInitFailed = true
-		return false
-	end
-
-	hullShader = glCreateShader({
-		vertex = hullVsSrc,
-		fragment = hullFsSrc,
-	})
-	if not hullShader then
-		local shaderLog = gl.GetShaderLog and gl.GetShaderLog() or "(no log)"
-		log("Failed to compile hull shader: ", shaderLog)
-		hullInitFailed = true
-		return false
-	end
-	hullColorLoc = glGetUniformLocation(hullShader, "color")
-	hullStripeLoc = glGetUniformLocation(hullShader, "stripe")
-	hullCentroidLoc = glGetUniformLocation(hullShader, "centroidRadius")
-	hullPulseLoc = glGetUniformLocation(hullShader, "pulse")
-	local gradientLoc = glGetUniformLocation(hullShader, "gradientCenter")
-	glUseShader(hullShader)
-	glUniform(gradientLoc, HULL_GRADIENT_CENTER)
-	glUseShader(0)
-
-	hullVbo = glGetVBO(GL.ARRAY_BUFFER, false)
-	if not hullVbo then
-		glDeleteShader(hullShader)
-		hullShader = nil
-		log("Failed to create hull VBO")
-		hullInitFailed = true
-		return false
-	end
-	hullVbo:Define(HULL_MAX_VERTICES, {
-		{
-			id = 0,
-			name = "position",
-			size = 3,
-		},
-	})
-
-	hullVao = glGetVAO()
-	if not hullVao then
-		hullVbo:Delete()
-		hullVbo = nil
-		glDeleteShader(hullShader)
-		hullShader = nil
-		log("Failed to create hull VAO")
-		hullInitFailed = true
-		return false
-	end
-	hullVao:AttachVertexBuffer(hullVbo)
-
-	hullReady = true
-	return true
-end
-
-local function cleanupGlHull()
-	if hullVao then
-		hullVao:Delete()
-	end
-	if hullVbo then
-		hullVbo:Delete()
-	end
-	if hullShader then
-		glDeleteShader(hullShader)
-	end
-	hullVao = nil
-	hullVbo = nil
-	hullShader = nil
-	hullColorLoc = nil
-	hullStripeLoc = nil
-	hullCentroidLoc = nil
-	hullPulseLoc = nil
-	hullReady = false
-	hullInitFailed = false
-end
-
--------------------------------------------------------------------------------
 -- Config write helper
 --
 -- setOptionValue(key, value) is the single config-write entry point, shared by
@@ -2051,6 +1543,9 @@ end
 
 local function setOptionValue(key, value)
 	config[key] = value
+end
+local function getOptionValue(key)
+	return config[key]
 end
 
 -- Forward declaration; defined in the Lifecycle section. Re-classifies and
@@ -2062,13 +1557,13 @@ local rebuildTracking
 -------------------------------------------------------------------------------
 -- Settings action — toggle/set config values from chat
 -- Usage:
---   /luaui squad_setting toggle rightClickSquadCreate
---   /luaui squad_setting toggle ctrlRightClickCreatesSquad
---   /luaui squad_setting toggle cyclingToNextSquad
---   /luaui squad_setting set visualizationMode convexHull
---   /luaui squad_setting set visualizationMode none
---   /luaui squad_setting get cyclingToNextSquad
---   /luaui squad_setting reload
+--   /squad_setting toggle rightClickSquadCreate
+--   /squad_setting toggle ctrlRightClickCreatesSquad
+--   /squad_setting toggle cyclingToNextSquad
+--   /squad_setting set visualizationMode convexHull
+--   /squad_setting set visualizationMode none
+--   /squad_setting get cyclingToNextSquad
+--   /squad_setting reload
 -------------------------------------------------------------------------------
 
 local function squadSetting(_, _, args)
@@ -2325,15 +1820,10 @@ function widget:Initialize()
 		"mergeIntoReserves",
 		"selectionAutoExtend",
 		"visualizationMode",
-		"convexHullPadding",
-		"convexHullArcResolution",
-		"convexHullFillOpacity",
-		"convexHullBorderOpacity",
-		"convexHullBorderThickness",
-		"convexHullColorMode",
-		"convexHullCustomColorR",
-		"convexHullCustomColorG",
-		"convexHullCustomColorB",
+		"squadColorMode",
+		"squadCustomColorR",
+		"squadCustomColorG",
+		"squadCustomColorB",
 		"excludeConstructors",
 		"excludeResurrectionUnits",
 		"excludeCombatEngineers",
@@ -2342,7 +1832,7 @@ function widget:Initialize()
 	for _, key in ipairs(exposedSettings) do
 		local cap = key:sub(1, 1):upper() .. key:sub(2)
 		WG["squadselection"]["get" .. cap] = function()
-			return config[key]
+			return getOptionValue(key)
 		end
 
 		WG["squadselection"]["set" .. cap] = function(v)
@@ -2365,7 +1855,6 @@ function widget:Initialize()
 	end
 
 	-- Read-only snapshot of all squad state for companion widgets.
-	-- Returns live references — do not mutate the tables.
 	-- Each entry of `squads` is a Squad (see the ---@class Squad definition near
 	-- the top): number keys are unitIDs, plus .index/.tagSeed/.isReserve/etc.
 	WG["squadselection"].getSquadState = function()
@@ -2376,7 +1865,19 @@ function widget:Initialize()
 			uncategorizedReserve = uncategorizedReserve,
 			squadIdleState = squadIdleState,
 			squadIdleBlend = squadIdleBlend,
+			-- Visualization-facing state (read by unit_squad_selection_hull.lua).
+			-- squadIdleBlend/squads/squadHideIdleAirHull are reassigned by rebuildTracking, so consumers must re-fetch on the "rebuild" event.
+			squadSelCount = squadSelCount,
+			squadHighlightBlend = squadHighlightBlend,
+			squadControlBlend = squadControlBlend,
+			squadHideIdleAirHull = squadHideIdleAirHull,
+			teamColor = teamColor,
 		}
+	end
+
+	-- Full config table for companion widgets (e.g. the hull visualization).
+	WG["squadselection"].getConfig = function()
+		return config
 	end
 
 	WG["squadselection"].addSquadChangeListener = function(fn)
@@ -2399,8 +1900,6 @@ function widget:Initialize()
 	end
 
 	-- Create a new manual squad from an explicit list of unit IDs.
-	-- Returns the new squad's .index on success, nil if no eligible units were found.
-	-- Does not touch the player's selection or the reserve-merge gate.
 	WG["squadselection"].createSquadFromUnits = function(unitIds)
 		if not unitIds or #unitIds == 0 then
 			return nil
@@ -2435,6 +1934,22 @@ function widget:Initialize()
 end
 
 function widget:Update(dt)
+	-- Lazy recount if SelectionChanged hasn't fired yet (e.g. first frame).
+	-- Keeps squadSelCount fresh for the hull visualization companion widget which reads it via WG['squadselection'].getSquadState().
+	if selectionDirty then
+		local sel = spGetSelectedUnits()
+		for sq, _ in pairs(squadSelCount) do
+			squadSelCount[sq] = 0
+		end
+		for i = 1, #sel do
+			local sq = unitSquad[sel[i]]
+			if sq then
+				squadSelCount[sq] = (squadSelCount[sq] or 0) + 1
+			end
+		end
+		selectionDirty = false
+	end
+
 	if pendingDragCreate then
 		local mx, my, _, _, rmb = spGetMouseState()
 		local _, ctrl = spGetModKeyState()
@@ -2499,8 +2014,7 @@ function widget:Update(dt)
 	end
 
 	-- Highlight (closest-squad preview) and control (commanded squad) targets.
-	-- While RMB is held both lock to the commanded squad; otherwise highlight
-	-- tracks the closest squad, which Shift latches so a queue stays on one squad.
+	-- While RMB is held both lock to the commanded squad; otherwise highlight tracks the closest squad, which Shift latches so a queue stays on one squad.
 	local highlightTarget, controlTarget
 	if pendingSquadMove then
 		highlightTarget = pendingSquadMove.squad
@@ -2555,7 +2069,6 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("squad_setting")
 	widgetHandler:RemoveAction("squad_cycle_recent")
 	widgetHandler:RemoveAction("squad_cycle_idle")
-	cleanupGlHull()
 	log("Shutdown")
 end
 
@@ -2594,11 +2107,8 @@ function widget:UnitCreated(unitId, unitDefId, unitTeam, builderId)
 			extendSelection = squadFullySelected(sq, selSet)
 		end
 		-- Opt-out for the selection auto-extend, split by reserve kind:
-		--   Factory reserve → the rally's trailing CMD_WAIT or CMD_PATROL is
-		--     the signal — suppress the extend when set.
-		--   Uncategorized reserve → no rally to inspect; fall back to the
-		--     unit's own queue. Covers resurrection bots, which wake with
-		--     CMD_WAIT until fully healed.
+		--   Factory reserve -> the rally's trailing CMD_WAIT or CMD_PATROL is the signal — suppress the extend when set.
+		--   Uncategorized reserve -> no rally to inspect; fall back to the unit's own queue. Covers resurrection bots, which 'make' units with CMD_WAIT on until fully healed.
 		if extendSelection then
 			if sq.fromFactory and builderId then
 				if factoryRallyEndsWithWaitOrPatrol(builderId) then
@@ -2612,11 +2122,11 @@ function widget:UnitCreated(unitId, unitDefId, unitTeam, builderId)
 		if extendSelection then
 			spSelectUnitArray({ unitId }, true)
 		end
-		log("Unit ", unitId, " created → squad [", sq.index or "?", "] (", #sq, " units)")
+		log("Unit ", unitId, " created -> squad [", sq.index or "?", "] (", #sq, " units)")
 	end
 end
 
---- Remove a unit's tracking state (combat unit AND/OR factory).
+-- Remove a unit's tracking state (combat unit AND/OR factory).
 -- Returns true if anything was cleared.
 local function stopTracking(unitId)
 	local tracked = unitSquad[unitId] ~= nil
@@ -2661,7 +2171,7 @@ function widget:UnitGiven(unitId, unitDefId, unitTeam, _oldTeam)
 	if unitDefId and isCombat[unitDefId] then
 		local sq = getUncategorizedReserveForDef(unitDefId)
 		addToSquad(unitId, sq)
-		log("Unit ", unitId, " given to us → uncategorized-", (sq.uncatDomain or "?"), " reserve (", #sq, " units)")
+		log("Unit ", unitId, " given to us -> uncategorized-", (sq.uncatDomain or "?"), " reserve (", #sq, " units)")
 	end
 end
 
@@ -2674,7 +2184,6 @@ function widget:SelectionChanged(sel)
 	for sq, _ in pairs(squadSelCount) do
 		squadSelCount[sq] = 0
 	end
-	-- Tally from the new selection
 	for i = 1, #sel do
 		local sq = unitSquad[sel[i]]
 		if sq then
@@ -2694,18 +2203,13 @@ function widget:MousePress(x, y, button)
 	if button == 3 then
 		local plain = not (alt or ctrl or meta or shift)
 		local modCombo = ctrl and not alt and not meta and not shift
-		-- The squad-move gesture fires like a normal RMB move: Alt commands a squad
-		-- even with units selected; without Alt only when nothing is selected, so we
-		-- never hijack an RMB move of your current selection. Shift queues, Ctrl makes
-		-- it a slowest-speed "move in formation", and Space (meta) keeps the moved
-		-- squad selected — Space sets keepSelection only, never WHEN we fire.
+		-- The squad-move gesture fires like a normal RMB move: Alt commands a squad even with units selected; without Alt only when nothing is selected, so we never hijack an RMB move of your current selection.
+		-- Shift queues, Ctrl makes it a slowest-speed "move in formation", and Space (meta) keeps the moved squad selected (effectively select them) — Space sets keepSelection only, never WHEN we fire.
 		local willCreate = (config.rightClickSquadCreate and plain) or (config.ctrlRightClickCreatesSquad and modCombo)
 		if willCreate and cursor ~= "cursornormal" then
 			squadCreate()
 		elseif config.ctrlRightClickDragCreatesSquad and modCombo and cursor ~= "cursornormal" then
-			-- Defer creation: fire only once the player drags past the engine's
-			-- front-command threshold (checked in widget:Update). A plain Ctrl+RMB
-			-- with no drag never creates in this mode.
+			-- Defer creation: fire only once the player drags past the engine's front-command threshold (checked in widget:Update). A plain Ctrl+RMB with no drag never creates in this mode.
 			pendingDragCreate = {
 				x = x,
 				y = y,
@@ -2723,12 +2227,8 @@ function widget:MousePress(x, y, button)
 						sq = findClosestSquad(nil, nil, nil, wx, wz, nil, maxDistSq)
 					end
 				end
-				-- If the picked squad is exactly the current selection, don't
-				-- intercept — let the engine drive its normal RMB drag (formation
-				-- move) rather than clobbering it with our single-point order.
-				-- Exception: Space (meta) is not a formation drag but the engine's
-				-- front-of-queue insert; Alt+Space explicitly asks for the widget's
-				-- simple move, so we still intercept even when picked == selection.
+				-- If the picked squad is exactly the current selection, don't intercept.
+				-- Exception: Space (meta) is not a formation drag but the engine's front-of-queue insert; Alt+Space explicitly asks for the widget's simple move, so we still intercept even when picked == selection.
 				local pickedIsSelection = false
 				if sq and not meta then
 					local selUnits = spGetSelectedUnits()
@@ -2743,8 +2243,8 @@ function widget:MousePress(x, y, button)
 				if sq and not pickedIsSelection then
 					pendingSquadMove = {
 						squad = sq,
-						formation = ctrl, -- Ctrl → slowest-speed "move in formation" (see widget:Update)
-						keepSelection = meta, -- Space → leave the moved squad selected instead of restoring
+						formation = ctrl,
+						keepSelection = meta,
 					}
 					if alt then
 						return true -- consume so the engine doesn't move the current selection
@@ -2753,18 +2253,9 @@ function widget:MousePress(x, y, button)
 			end
 		end
 	elseif button == 1 and config.leftClickSelectsSquad then
-		-- A plain ground click normally deselects the selection on mouse-release
-		-- (engine behavior), which would wipe the squad we just selected here on
-		-- press. So a modifier is required to trigger: Ctrl → replace,
-		-- Ctrl+Shift → append, +Alt → filtered. Alt+Shift also triggers (filtered
-		-- append) since Ctrl is redundant there.
-		--
-		-- Exception: when SmartSelect's "deselect only when drag-selecting" option
-		-- is on, a plain click keeps the selection, so we drop the modifier
-		-- requirement and allow modifier-free squad-select (plain → replace,
-		-- Shift → append, Alt → filtered, Alt+Shift → filtered append).
-		local smartSelectRetainsClick = WG["smartselect"] and WG["smartselect"].getDeselectOnlyOnDrag and WG["smartselect"].getDeselectOnlyOnDrag()
-		if not smartSelectRetainsClick and not (ctrl or (alt and shift)) then
+		-- A plain ground click normally deselects the selection on mouse-release (engine behavior), which would wipe the squad we just selected here on press. So a modifier is required to trigger:
+		-- Ctrl -> replace, Ctrl+Shift -> append, +Alt -> filtered. Alt+Shift also triggers (filtered append) since Ctrl is redundant there.
+		if not (ctrl or (alt and shift)) then
 			return false
 		end
 
@@ -2777,8 +2268,7 @@ function widget:MousePress(x, y, button)
 		if spTraceScreenRay(x, y) == "unit" then
 			return false
 		end
-		-- Skip when something is already selected and the cursor isn't the move
-		-- cursor (hack: implies we're over a UI element, not open ground).
+		-- Skip when something is already selected and the cursor isn't the move cursor (hack: implies we're over a UI element, not open ground).
 		if spGetSelectedUnits()[1] ~= nil and cursor ~= "Move" then
 			return false
 		end
@@ -2788,12 +2278,11 @@ function widget:MousePress(x, y, button)
 		if #steps == 0 then
 			steps = { 1 }
 		end
-		-- Whole-squad mode = the config is just {1} (or was empty and fell back
-		-- to {1}). Anything else (including {0.5} or {5}) is portion mode.
+		-- Whole-squad mode = the config is just {1}. Anything else (including {0.5} or {5}) is portion mode.
 		local wholeSquad = #steps == 1 and steps[1] == 1
 		local append = shift
 
-		-- Append always cycles across squads (grow-the-selection semantics).
+		-- Append always 'cycles' across squads (grow-the-selection semantics).
 		-- Whole-squad replace cycles per user config.
 		local opts = {
 			append = append,
@@ -2837,373 +2326,10 @@ function widget:SetConfigData(data)
 			config[key] = value
 		end
 	end
-	-- Migrate existing users from the previous default {1} to the new {1, 0.5, "distance_850"}.
-	-- Anyone who deliberately customized leftClickSteps already has something other than {1}.
-	if type(config.leftClickSteps) == "table" and #config.leftClickSteps == 1 and config.leftClickSteps[1] == 1 then
-		config.leftClickSteps = { 1, 0.5, "distance_850" }
-	end
 end
 
 function widget:GetConfigData()
 	return config
-end
-
--------------------------------------------------------------------------------
--- Drawing
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- Convex hull
--------------------------------------------------------------------------------
-
--- Persistent scratch buffers. Tables inside (scratchWorld / scratchPadded
--- entries) are reused across frames. scratchHull / scratchUpper hold refs
--- *into* scratchWorld, not independent tables.
-local scratchWorld = {} -- {x=world_x, y=world_z} per unit
-local scratchHull = {} -- refs into scratchWorld
-local scratchUpper = {} -- internal to convexHull
-local scratchPadded = {} -- {x, y} per padded-hull vertex
-local scratchFlat = {} -- flat {x, y, z, x, y, z, ...} for VBO upload
-
-local function comparePoints(a, b)
-	return a.x < b.x or (a.x == b.x and a.y < b.y)
-end
-
-local function cross(o, a, b)
-	return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-end
-
-local function truncate(buf, newLen)
-	for i = #buf, newLen + 1, -1 do
-		buf[i] = nil
-	end
-end
-
--- Writes refs-into-world into out. Sorts `world` in place. Expects #world == n.
-local function convexHull(world, n, out, upper)
-	table.sort(world, comparePoints)
-
-	local h = 0
-	for i = 1, n do
-		local p = world[i]
-		while h >= 2 and cross(out[h - 1], out[h], p) <= 0 do
-			out[h] = nil
-			h = h - 1
-		end
-		h = h + 1
-		out[h] = p
-	end
-
-	local u = 0
-	for i = n, 1, -1 do
-		local p = world[i]
-		while u >= 2 and cross(upper[u - 1], upper[u], p) <= 0 do
-			upper[u] = nil
-			u = u - 1
-		end
-		u = u + 1
-		upper[u] = p
-	end
-
-	for i = 2, u - 1 do
-		h = h + 1
-		out[h] = upper[i]
-	end
-
-	truncate(upper, 0)
-	truncate(out, h)
-	return h
-end
-
--- circle for squads with only one unit. Writes into out, reuses its tables.
-local function paddedCircle(cx, cy, radius, arcSegmentsAngle, out)
-	local segments = math.max(math.ceil(2 * math.pi / arcSegmentsAngle), 3)
-	for i = 0, segments - 1 do
-		local angle = 2 * math.pi * i / segments
-		local p = out[i + 1]
-		if not p then
-			p = {}
-			out[i + 1] = p
-		end
-		p.x = cx + radius * math.cos(angle)
-		p.y = cy + radius * math.sin(angle)
-	end
-	truncate(out, segments)
-	return segments
-end
-
--- rounded padded convex hull for 2+ units. Writes into out, reuses its tables.
-local function paddedMoreThanOneUnit(hull, nHull, radius, arcSegmentsAngle, out)
-	local n = 0
-	for i = 1, nHull do
-		local prev = hull[i == 1 and nHull or i - 1]
-		local curr = hull[i]
-		local nxt = hull[i == nHull and 1 or i + 1]
-
-		local dxPrev = curr.x - prev.x
-		local dyPrev = curr.y - prev.y
-		local dxNext = nxt.x - curr.x
-		local dyNext = nxt.y - curr.y
-
-		-- right normals (outward for CCW): (dy, -dx)
-		local anglePrev = math.atan2(-dxPrev, dyPrev)
-		local angleNext = math.atan2(-dxNext, dyNext)
-		local angleDiff = angleNext - anglePrev
-		while angleDiff < 0 do
-			angleDiff = angleDiff + 2 * math.pi
-		end
-		local arcSegments = math.max(math.ceil(angleDiff / arcSegmentsAngle), 1)
-		for j = 0, arcSegments do
-			local t = j / arcSegments
-			local theta = anglePrev + t * angleDiff
-			n = n + 1
-			local p = out[n]
-			if not p then
-				p = {}
-				out[n] = p
-			end
-			p.x = curr.x + radius * math.cos(theta)
-			p.y = curr.y + radius * math.sin(theta)
-		end
-	end
-	truncate(out, n)
-	return n
-end
-
--- Fill scratchPadded from scratchWorld[1..nWorld]. Returns padded count.
-local function getPaddedHull(nWorld, radius, arcSegmentsAngle)
-	if nWorld == 1 then
-		local p = scratchWorld[1]
-		return paddedCircle(p.x, p.y, radius, arcSegmentsAngle, scratchPadded)
-	elseif nWorld >= 2 then
-		local nHull = convexHull(scratchWorld, nWorld, scratchHull, scratchUpper)
-		return paddedMoreThanOneUnit(scratchHull, nHull, radius, arcSegmentsAngle, scratchPadded)
-	else
-		truncate(scratchPadded, 0)
-		return 0
-	end
-end
-
-function widget:DrawWorldPreUnit()
-	if spIsGUIHidden() or config.visualizationMode ~= "convexHull" then
-		return
-	end
-	if not squads or #squads == 0 then
-		return
-	end
-	if not hullReady and not initGlHull() then
-		return
-	end
-	-- After a successful init these are all set; assert so the analyzer narrows them.
-	if not (hullShader and hullVbo and hullVao and hullColorLoc and hullStripeLoc and hullCentroidLoc and hullPulseLoc) then
-		return
-	end
-
-	-- Lazy recount if SelectionChanged hasn't fired yet (e.g. first frame)
-	if selectionDirty then
-		local sel = spGetSelectedUnits()
-		for sq, _ in pairs(squadSelCount) do
-			squadSelCount[sq] = 0
-		end
-		for i = 1, #sel do
-			local sq = unitSquad[sel[i]]
-			if sq then
-				squadSelCount[sq] = (squadSelCount[sq] or 0) + 1
-			end
-		end
-		selectionDirty = false
-	end
-
-	-- re-read styling each frame so squad_setting changes take effect live
-	local fillOpacity = config.convexHullFillOpacity
-	local borderOpacity = config.convexHullBorderOpacity
-	local borderThickness = config.convexHullBorderThickness
-	local padding = config.convexHullPadding
-	local arcRes = config.convexHullArcResolution
-	local showReserves = config.showReserveSquads
-	local colorMode = config.convexHullColorMode
-
-	if not hullTimeOrigin then
-		hullTimeOrigin = spGetTimer()
-	end
-	local now = spDiffTimers(spGetTimer(), hullTimeOrigin)
-
-	glDepthTest(false)
-	glUseShader(hullShader)
-	glLineWidth(borderThickness)
-
-	for _, squad in ipairs(squads) do
-		if not squad.isReserve or showReserves then
-			local size = #squad
-			if size > 0 then
-				local idleBlend = squadIdleBlend[squad] or 0
-				local alphaScale = 1 ---@type number
-				if squadHideIdleAirHull[squad] then
-					alphaScale = 1 - idleBlend
-				end
-
-				if alphaScale <= 0.001 then
-					-- Fully hidden for idle flying-air squads.
-				else
-					local cr, cg, cb
-					local fullySelected = (squadSelCount[squad] or 0) >= size
-					if fullySelected then
-						cr, cg, cb = 1, 1, 1
-					elseif colorMode == "custom" then
-						cr, cg, cb = config.convexHullCustomColorR, config.convexHullCustomColorG, config.convexHullCustomColorB
-					elseif colorMode == "squad" and squad.color then
-						cr, cg, cb = squad.color[1], squad.color[2], squad.color[3]
-					else
-						cr = teamColor[1]
-						cg = teamColor[2]
-						cb = teamColor[3]
-					end
-					local hb = squadHighlightBlend[squad] or 0
-					local ctb = squadControlBlend[squad] or 0
-					local effIdle = idleBlend * (1 - hb)
-					if effIdle > 0 and not fullySelected then
-						local ir = cr * 0.3
-						local ig = cg * 0.3
-						local ib = cb * 0.3
-						cr = cr + (ir - cr) * effIdle
-						cg = cg + (ig - cg) * effIdle
-						cb = cb + (ib - cb) * effIdle
-					end
-					if squad.isReserve then
-						alphaScale = alphaScale * 0.6
-						cr, cg, cb = cr * 1.5, cg * 1.5, cb * 1.5
-					end
-
-					-- Highlight tiers faded in by their blends. The commanded squad
-					-- always has hb fading in alongside ctb (see Update), so control
-					-- stacks on top of hover (extra brightness + border width).
-					local effFill, effBorder = fillOpacity, borderOpacity
-					local effPadding = padding
-					if hb > 0 or ctb > 0 then
-						effFill = math.min(1, fillOpacity + 0.2 * hb + 0.2 * ctb)
-						effBorder = math.min(1, borderOpacity + 0.2 * hb + 0.2 * ctb)
-						effPadding = padding + 5 * hb + 5 * ctb
-						local bright = 0.4 * ctb
-						cr = cr + (1 - cr) * bright
-						cg = cg + (1 - cg) * bright
-						cb = cb + (1 - cb) * bright
-					end
-
-					-- fill scratchWorld in place (reuse {x,y} tables) and track
-					-- the bbox in the same pass, so we can frustum-cull without a
-					-- second iteration.
-					local nWorld = 0
-					local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
-					for i = 1, size do
-						local x, _, z = spGetUnitPosition(squad[i])
-						if x and z then
-							nWorld = nWorld + 1
-							local p = scratchWorld[nWorld]
-							if not p then
-								p = {}
-								scratchWorld[nWorld] = p
-							end
-							p.x = x
-							p.y = z
-							if x < minX then
-								minX = x
-							end
-							if x > maxX then
-								maxX = x
-							end
-							if z < minZ then
-								minZ = z
-							end
-							if z > maxZ then
-								maxZ = z
-							end
-						end
-					end
-					truncate(scratchWorld, nWorld)
-
-					if nWorld > 0 then
-						-- Frustum cull: enclose the squad + padding in one sphere
-						-- around the bbox centre. Vertical slop (256) covers
-						-- terrain variation under the ground-projected hull.
-						local cx = (minX + maxX) * 0.5
-						local cz = (minZ + maxZ) * 0.5
-						local hx = (maxX - minX) * 0.5
-						local hz = (maxZ - minZ) * 0.5
-						local cy = spGetGroundHeight(cx, cz)
-						local radius = math.sqrt(hx * hx + hz * hz) + effPadding + 256
-						local visible = (not spIsSphereInView) or spIsSphereInView(cx, cy, cz, radius)
-
-						if visible then
-							local n = getPaddedHull(nWorld, effPadding, arcRes)
-							if n >= 3 and n <= HULL_MAX_VERTICES then
-								local seed = squad.tagSeed or 0
-
-								-- Centroid (average of padded vertices) and max radius
-								-- are uploaded as a uniform to drive the fragment-shader
-								-- center→edge alpha gradient. The hull stays convex so
-								-- TRIANGLE_FAN can still pivot on vertex 0.
-								local pcx, pcy = 0, 0 ---@type number, number
-								local fi = 0
-								for i = 1, n do
-									local p = scratchPadded[i]
-									pcx = pcx + p.x
-									pcy = pcy + p.y
-									scratchFlat[fi + 1] = p.x
-									scratchFlat[fi + 2] = spGetGroundHeight(p.x, p.y)
-									scratchFlat[fi + 3] = p.y
-									fi = fi + 3
-								end
-								pcx = pcx / n
-								pcy = pcy / n
-
-								local maxR2 = 0 ---@type number
-								for i = 1, n do
-									local p = scratchPadded[i]
-									local rdx = p.x - pcx
-									local rdy = p.y - pcy
-									local r2 = rdx * rdx + rdy * rdy
-									if r2 > maxR2 then
-										maxR2 = r2
-									end
-								end
-								local hullRadiusNorm = math.sqrt(maxR2)
-
-								hullVbo:Upload(scratchFlat, nil, nil, 1, fi)
-
-								local pulseVal = 1 + config.hullPulseAmplitude * math.sin(now * config.hullPulseRate + seed * 6.2831853)
-								glUniform(hullCentroidLoc, pcx, pcy, hullRadiusNorm)
-								glUniform(hullPulseLoc, pulseVal)
-
-								if squad.isReserve then
-									glUniform(hullStripeLoc, config.reserveStripePeriod, config.reserveStripeAlphaMul, seed * config.reserveStripePeriod)
-								else
-									glUniform(hullStripeLoc, 0, 1, 0)
-								end
-								glUniform(hullColorLoc, cr, cg, cb, effFill * alphaScale)
-								hullVao:DrawArrays(GL.TRIANGLE_FAN, n)
-								if squad.isReserve then
-									glUniform(hullStripeLoc, 0, 1, 0)
-								end
-								glUniform(hullColorLoc, cr, cg, cb, effBorder * alphaScale)
-								if ctb > 0 then
-									glLineWidth(borderThickness + 2 * ctb)
-									hullVao:DrawArrays(GL.LINE_LOOP, n)
-									glLineWidth(borderThickness)
-								else
-									hullVao:DrawArrays(GL.LINE_LOOP, n)
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	glUseShader(0)
-	glLineWidth(1)
-	glDepthTest(true)
-	glColor(1, 1, 1, 1)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam)
