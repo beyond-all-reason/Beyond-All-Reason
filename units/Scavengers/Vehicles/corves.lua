@@ -40,7 +40,7 @@ return {
 			basename = "base",
 			firingceg = "barrelshot-tiny",
 			kickback = "-4",
-			model_author = "Mr Bob, Hornet",
+			model_author = "Lord_Tragedy",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			techlevel = 3,
