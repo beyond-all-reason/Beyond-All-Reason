@@ -68,7 +68,7 @@ local function getActiveAllyTeamCount()
 	local gaiaAllyTeamID
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	if gaiaTeamID then
-		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
+		gaiaAllyTeamID = Spring.GetTeamAllyTeamID(gaiaTeamID)
 	end
 
 	local count = 0
