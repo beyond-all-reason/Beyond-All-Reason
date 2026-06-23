@@ -28,7 +28,7 @@ return {
 		script = "Units/ARMFARK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
-		sightdistance = 377,
+		sightdistance = 380,
 		speed = 75,
 		terraformspeed = 600,
 		turninplace = true,

@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizex = 20,
 			buildinggrounddecalsizey = 20,
 			buildinggrounddecaltype = "decals/legafus_aoplane.dds",
-			model_author = "Protar/Ghoulish",
+			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,

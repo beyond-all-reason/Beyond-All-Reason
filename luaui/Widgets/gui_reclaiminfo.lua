@@ -128,7 +128,7 @@ function widget:DrawScreen()
 		UpdateMinimapGeometry()
 	end
 
-	if (cmd == CMD.RECLAIM and rangestart ~= nil and b1 and b1was == false) or (nonground == "Reclaim" and b1was == false and b2 and rangestart ~= nil) then
+	if rangestart ~= nil and not b1was and ((cmd == CMD.RECLAIM and b1) or (nonground == "Reclaim" and b2)) then
 		if rangestart[1] == 0 and rangestart[3] == 0 then
 			local inMinimap, rx, ry = InMinimap(x, y)
 			if inMinimap then
@@ -147,9 +147,7 @@ function widget:DrawScreen()
 		b1was = true
 	else
 		b1was = false
-		rangestart[1] = 0
-		rangestart[2] = 0
-		rangestart[3] = 0
+		rangestart = {0, 0, 0}
 	end
 	--bit more precise showing when mouse is moved by 4 pixels (start)
 	if (b1 and rangestart ~= nil and cmd == CMD.RECLAIM and start == false) or (nonground == "Reclaim" and rangestart ~= nil and start == false and b2) then

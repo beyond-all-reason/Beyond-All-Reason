@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "crawl_blast",
 		selfdestructcountdown = 0,
-		sightdistance = 273,
+		sightdistance = 260,
 		speed = 84,
 		turninplace = true,
 		turninplaceanglelimit = 90,

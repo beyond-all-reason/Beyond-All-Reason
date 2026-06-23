@@ -358,7 +358,7 @@ local function updateButtons()
 			topbarArea[2] = topbarArea[4]
 		end
 		widgetPosX = topbarArea[3] - widgetWidth
-		widgetPosY = topbarArea[2] - widgetHeight
+		widgetPosY = (topbarArea[6] or topbarArea[2]) - widgetHeight
 	end
 
 	if widgetPosX + widgetWidth / 2 > vsx / 2 then
@@ -660,6 +660,12 @@ function widget:Initialize()
 	end
 	WG['ecostats'].setReclaim = function(value)
 		cfgTrackReclaim = value
+	end
+	WG['ecostats'].isvisible = function()
+		return myFullview and inSpecMode
+	end
+	WG['ecostats'].getWidgetPosY = function()
+		return widgetPosY
 	end
 
 	Init()
@@ -1491,6 +1497,7 @@ function widget:Update(dt)
 end
 
 local r2tDrawFunc = function()
+	if not areaRect[1] then return end
 	gl.Translate(-1, -1, 0)
 	gl.Scale(2 / (areaRect[3]-areaRect[1]), 2 / (areaRect[4]-areaRect[2]), 0)
 	gl.Translate(-areaRect[1], -areaRect[2], 0)

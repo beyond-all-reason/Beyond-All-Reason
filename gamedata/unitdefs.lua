@@ -52,12 +52,20 @@ local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
 if Spring.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
 	scavengersEnabled = true
-elseif scavengersEnabled then
+end
+
+if scavengersEnabled then
+	legionEnabled = true
+end
+
+if Spring.GetModOptions().zombies ~= "disabled" then
+	scavengersEnabled = true
 	legionEnabled = true
 end
 
 if Spring.GetModOptions().experimentalextraunits or Spring.GetModOptions().scavunitsforplayers then
 	scavengersEnabled = true
+	legionEnabled = true
 end
 
 if Spring.GetModOptions().forceallunits then

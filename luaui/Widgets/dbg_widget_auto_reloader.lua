@@ -74,7 +74,21 @@ local function CheckForChanges(widgetName, fileName)
 end
 
 local lastUpdate = Spring.GetTimer()
+local updateQueue = {}
 function widget:Update()
+	local widgetName, fileName = next(updateQueue)
+	if widgetName then
+		local startTime = Spring.GetTimer()
+		-- 2 ms budget per frame
+		while widgetName and (Spring.DiffTimers(Spring.GetTimer(), startTime, true) < 3.0) do
+			tracy.ZoneBeginN("Widget Auto Reloader:" .. widgetName)
+			CheckForChanges(widgetName, fileName)
+			updateQueue[widgetName] = nil
+			widgetName, fileName = next(updateQueue)
+			tracy.ZoneEnd()
+		end
+	end
+
 	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < 1 then
 		return
 	end
@@ -85,8 +99,9 @@ function widget:Update()
 
 	if not mouseOffscreen and prevMouseOffscreen then
 		widget:Initialize()
+		updateQueue = {}
 		for widgetName, fileName in pairs(widgetFilesNames) do
-			CheckForChanges(widgetName, fileName)
+			updateQueue[widgetName] = fileName
 		end
 	end
 end

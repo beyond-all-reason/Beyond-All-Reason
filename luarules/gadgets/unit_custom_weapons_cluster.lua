@@ -471,7 +471,8 @@ local function spawnClusterProjectiles(data, x, y, z, attackerID, projectileID)
 		local spawnedID = spSpawnProjectile(clusterDefID, params)
 
 		if nearShields and spawnedID then
-			for _, shieldUnitID in pairs(nearShields) do
+			for i = 1, #nearShields do
+				local shieldUnitID = nearShields[i]
 				if isInShield(position[1], position[2], position[3], shieldUnitID) then
 					addShieldDamage(shieldUnitID, shieldDamage)
 					spDeleteProjectile(spawnedID)

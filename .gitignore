@@ -1,7 +1,8 @@
 *.db
 /.git
 /.svn
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.iml
 .project

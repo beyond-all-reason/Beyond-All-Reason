@@ -153,6 +153,10 @@ end
 --------------------------------------------------------------------------------
 local projectileSeeds = {}  -- proID -> random seed
 
+-- Subscription handle for the shared projectile dispatcher (set in Initialize).
+-- When nil, we fall back to calling Spring.GetVisibleProjectiles directly.
+local dispatchHandle = nil
+
 --------------------------------------------------------------------------------
 -- Shader sources: Plasma (velocity-aligned elongated billboard)
 -- The quad is stretched along the projectile's velocity direction to create
@@ -687,6 +691,14 @@ local glowShader
 
 local idleSkipCounter = 0
 
+-- Paused-state camera tracking: while paused, projectiles are frozen so the
+-- only thing that can change the rendered output is the camera moving.
+local lastUpdateWasPaused = false
+local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
+local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
+local pausedLastRebuildTimer = nil
+local PAUSED_MOVE_MIN_INTERVAL = 0.05
+
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
@@ -873,6 +885,33 @@ local mathRandom = math.random
 local lastCleanupFrame = 0
 
 local function updateProjectiles()
+	-- While paused, skip the full scan + VBO upload when the camera hasn't
+	-- moved since the last paused rebuild (uncapped paused FPS otherwise makes
+	-- this a large cost). Camera move forces a fresh rebuild so projectiles
+	-- panned back on-screen reappear.
+	local _, _, isPaused = Spring.GetGameSpeed()
+	local usePausedCache = isPaused and lastUpdateWasPaused
+	lastUpdateWasPaused = isPaused
+	if usePausedCache then
+		local cx, cy, cz = Spring.GetCameraPosition()
+		local dx, dy, dz = Spring.GetCameraDirection()
+		if cx == pausedCamX and cy == pausedCamY and cz == pausedCamZ
+			and dx == pausedCamDX and dy == pausedCamDY and dz == pausedCamDZ then
+			return
+		end
+		local now = Spring.GetTimer()
+		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return
+		end
+		pausedLastRebuildTimer = now
+		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
+	elseif isPaused then
+		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
+		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
+		pausedLastRebuildTimer = nil
+	end
+
 	if idleSkipCounter > 0 then
 		idleSkipCounter = idleSkipCounter - 1
 		return
@@ -880,9 +919,23 @@ local function updateProjectiles()
 
 	plasmaVBO.usedElements = 0
 
-	-- addSynced=false: we only need weapon (cannon) projectiles, not synced features
-	local projectiles = spGetVisibleProjectiles(-1, false, true, false)
-	if not projectiles or #projectiles == 0 then
+	-- Pull the pre-filtered plasma projectile list from the shared dispatcher.
+	-- When the dispatcher is loaded it has already called GetProjectileDefID
+	-- once per projectile (shared with every other gfx_*_gl4 consumer) and
+	-- handed us a parallel defID array, so we skip the per-projectile defID
+	-- query that this loop used to do. Fallback to direct engine call when
+	-- the dispatcher isn't loaded.
+	local projectiles, matchDefIDs, nProj
+	local PS = GG.ProjectileScan
+	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
+	if dispatcherFiltered then
+		projectiles, matchDefIDs, nProj = PS.GetMatchesWithDefIDs(dispatchHandle)
+	else
+		-- addSynced=false: we only need weapon (cannon) projectiles, not synced features
+		projectiles = spGetVisibleProjectiles(-1, false, true, false)
+		nProj = projectiles and #projectiles or 0
+	end
+	if not projectiles or nProj == 0 then
 		idleSkipCounter = IDLE_SKIP_FRAMES
 		projectileSeeds = {}
 		return
@@ -895,13 +948,17 @@ local function updateProjectiles()
 	local needLosCheck = not cachedSpecFullView
 	local seeds = projectileSeeds
 	local configs = weaponConfigs
-	local nProj = #projectiles
 
 	for i = 1, nProj do
 		local proID = projectiles[i]
-		-- GetVisibleProjectiles with addPiece=false already filters piece projectiles,
-		-- so spGetProjectileType check is unnecessary. Just check config directly.
-		local cfg = configs[spGetProjectileDefID(proID)]
+		local cfg
+		if dispatcherFiltered then
+			cfg = configs[matchDefIDs[i]]
+		else
+			-- GetVisibleProjectiles with addPiece=false already filters piece projectiles,
+			-- so spGetProjectileType check is unnecessary. Just check config directly.
+			cfg = configs[spGetProjectileDefID(proID)]
+		end
 		if cfg then
 			local px, py, pz = spGetProjectilePosition(proID)
 			if px then
@@ -992,6 +1049,17 @@ function gadget:Initialize()
 	if not initGL4() then return end
 	local n = 0
 	for _ in pairs(weaponConfigs) do n = n + 1 end
+
+	-- Subscribe to the shared projectile dispatcher so we share the per-frame
+	-- GetVisibleProjectiles + GetProjectileDefID scan with the other gfx_*_gl4
+	-- gadgets instead of each calling them independently.
+	local PS = GG.ProjectileScan
+	if PS then
+		local defIDSet = {}
+		for wDefID in pairs(weaponConfigs) do defIDSet[wDefID] = true end
+		dispatchHandle = PS.Subscribe("plasma_cannon", defIDSet, PS.SCAN_VISIBLE)
+	end
+
 	spEcho("Plasma Cannon GL4: initialized with " .. n .. " cannon weapon configs")
 end
 

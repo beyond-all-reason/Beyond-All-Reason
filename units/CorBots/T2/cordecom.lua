@@ -72,6 +72,7 @@ return {
 		},
 		customparams = {
 			decoyfor = "corcom",
+			firestateoncloak = 0,
 			isdecoycommander = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

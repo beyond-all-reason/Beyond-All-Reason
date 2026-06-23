@@ -34,26 +34,46 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local floor = math.floor
+	local tConcat = table.concat
 	local ZlibCompress = Spring.ZlibCompress
 	local ZlibDeCompress = Spring.ZlibDeCompress
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetSelectedUnits = Spring.GetSelectedUnits
-	local IsUnitSelected = Spring.IsUnitSelected
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local PackU16 = VFS.PackU16
 	local UnpackU16 = VFS.UnpackU16
+	local LuaUICallIn = Script.LuaUI
+	local LuaUI = Script.LuaUI
 
 	local myPlayerID = Spring.GetMyPlayerID()
+	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
+	local PACK_FFFF = PackU16(0xffff)
+	local CLEAR_ALL_MSG = PACK_FFFF .. PACK_FFFF
 
 	local time = 0
 	local timeSeconds = 0
 	local myLastSelectedUnits = {}
+	local nextFullSelectionUpdateAt = fullSelectionUpdateInt
+	local packedUnitIDCache = {}
+	local addPackedBuffer = {}
+	local remPackedBuffer = {}
+	local remUnitIDsBuffer = {}
+	local selectedNowMap = {}
 	local validation = SYNCED.validationSelunits
 
+	local function PackUnitIDCached(unitID)
+		local packed = packedUnitIDCache[unitID]
+		if packed == nil then
+			packed = PackU16(unitID)
+			packedUnitIDCache[unitID] = packed
+		end
+		return packed
+	end
+
 	function gadget:Initialize()
+		myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 		gadgetHandler:AddSyncAction("selectionUpdate", handleSelectionUpdateEvent)
 	end
 
@@ -61,11 +81,17 @@ else
 		gadgetHandler:RemoveSyncAction("selectionUpdate")
 	end
 
+	function gadget:PlayerChanged(playerID)
+		if playerID == myPlayerID then
+			myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
+		end
+	end
+
 	function handleSelectionUpdateEvent(_,playerID,msg,compressed)
-		local spec, fullView = GetSpectatingState()
+		local spec = GetSpectatingState()
 		if not spec then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-			if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
+			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end
 		end
@@ -77,24 +103,37 @@ else
 		local counts = UnpackU16( msg, 1, 2 )
 		if counts[1] == counts[2] and counts[1] == 0xffff then
 			--clear all
-			if Script.LuaUI("selectedUnitsClear") then
-				Script.LuaUI.selectedUnitsClear(playerID)
+			if LuaUICallIn("selectedUnitsClear") then
+				LuaUI.selectedUnitsClear(playerID)
 			end
 		else
 			local addCount = counts[1]
 			local removeCount = counts[2]
+			local addUnits
+			local remUnits
 
-			if removeCount > 0 and Script.LuaUI("selectedUnitsRemove") then
-				local remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
+			if addCount > 0 then
+				addUnits = UnpackU16( msg, 5, addCount )
+			end
+
+			if removeCount > 0 then
+				remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
+			end
+
+			if LuaUICallIn("selectedUnitsBatchUpdate") then
+				LuaUI.selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, removeCount)
+				return
+			end
+
+			if removeCount > 0 and LuaUICallIn("selectedUnitsRemove") then
 				for i=1,removeCount do
-					Script.LuaUI.selectedUnitsRemove(playerID,remUnits[i])
+					LuaUI.selectedUnitsRemove(playerID,remUnits[i])
 				end
 			end
 
-			if addCount > 0 and Script.LuaUI("selectedUnitsAdd") then
-				local addUnits = UnpackU16( msg, 5, addCount )
+			if addCount > 0 and LuaUICallIn("selectedUnitsAdd") then
 				for i=1,addCount do
-					Script.LuaUI.selectedUnitsAdd(playerID,addUnits[i])
+					LuaUI.selectedUnitsAdd(playerID,addUnits[i])
 				end
 			end
 		end
@@ -121,10 +160,13 @@ else
 		end
 		time = 0
 
-		if fullSelectionUpdateInt ~= 0 and floor(timeSeconds)%fullSelectionUpdateInt == 0 then
+		if fullSelectionUpdateInt ~= 0 and timeSeconds >= nextFullSelectionUpdateAt then
 			--its time for a full update
-			sendUnitsMsg(PackU16(0xffff) .. PackU16(0xffff))
+			sendUnitsMsg(CLEAR_ALL_MSG)
 			myLastSelectedUnits = {}
+			repeat
+				nextFullSelectionUpdateAt = nextFullSelectionUpdateAt + fullSelectionUpdateInt
+			until nextFullSelectionUpdateAt > timeSeconds
 		end
 
 		sendSelectedUnits()
@@ -148,68 +190,83 @@ else
 
 	function sendSelectedUnits()
 		local units = GetSelectedUnits()
+		local unitCount = #units
 
-		local partAdd = ""
+		if unitCount == 0 then
+			if next(myLastSelectedUnits) ~= nil then
+				sendUnitsMsg(CLEAR_ALL_MSG)
+				myLastSelectedUnits = {}
+			end
+			return
+		end
+
+		for i=1,unitCount do
+			selectedNowMap[units[i]] = true
+		end
+
+		local addPacked = addPackedBuffer
 		local addCount = 0
-		for i=1,#units do
+		for i=1,unitCount do
 			local unitId = units[i]
 			--check if unit is new this time
 			if not myLastSelectedUnits[unitId] then
-				partAdd = partAdd .. PackU16(unitId)
-				myLastSelectedUnits[unitId] = true
 				addCount = addCount + 1
+				addPacked[addCount] = PackUnitIDCached(unitId)
+				myLastSelectedUnits[unitId] = true
 
-				if addCount > unitLimitPerFrame then
+				if addCount >= unitLimitPerFrame then
 					break
 				end
 			end
 		end
 
-		local remTab = {} --these units will be removed in the next step
-		local partRemove = ""
+		local remPacked = remPackedBuffer
+		local remUnitIDs = remUnitIDsBuffer
 		local remCount = 0
 		for unitId, unit in pairs(myLastSelectedUnits) do
 			--check if unit is still selected
-			if not IsUnitSelected(unitId) then
-				partRemove = partRemove .. PackU16(unitId)
-				remTab[unitId] = true
+			if not selectedNowMap[unitId] then
 				remCount = remCount + 1
+				remPacked[remCount] = PackUnitIDCached(unitId)
+				remUnitIDs[remCount] = unitId
 
-				if (addCount + remCount) > unitLimitPerFrame then
+				if (addCount + remCount) >= unitLimitPerFrame then
 					break
 				end
 			end
 		end
 
 		--remove not anymore selected units
-		for unitId, b in pairs(remTab) do
-			myLastSelectedUnits[unitId] = nil
+		for i=1,remCount do
+			myLastSelectedUnits[remUnitIDs[i]] = nil
+			remUnitIDs[i] = nil
 		end
 
-		local msg = partAdd .. partRemove
-		if msg:len() > 1 then
-			local msgToSend = ""
-			if #units > 0 and ( addCount + remCount) > #units then
-				--its more efficient to clear all and then start from zero
-				--so: 1. Clear All
-				msgToSend = PackU16(0xffff) .. PackU16(0xffff)
-				sendUnitsMsg( msgToSend)
-				myLastSelectedUnits = {}
-				--2. do normal send
-				sendSelectedUnits()
-			else
-				if #units == 0 then
-					--send clear all message
-					msgToSend = PackU16(0xffff) .. PackU16(0xffff)
-					myLastSelectedUnits = {}
-				else
-					--send standard message
-					msgToSend = PackU16(addCount) .. PackU16(remCount) .. msg
+		for i=1,unitCount do
+			selectedNowMap[units[i]] = nil
+		end
 
-				end
+		if addCount == 0 and remCount == 0 then
+			return
+		end
 
-				sendUnitsMsg( msgToSend)
+		if (addCount + remCount) > unitCount then
+			-- More efficient to rebase state than send many removals.
+			sendUnitsMsg(CLEAR_ALL_MSG)
+			myLastSelectedUnits = {}
+			for i=1,unitCount do
+				local unitId = units[i]
+				myLastSelectedUnits[unitId] = true
 			end
+
+			addCount = unitCount
+			for i=1,unitCount do
+				addPacked[i] = PackUnitIDCached(units[i])
+			end
+			remCount = 0
 		end
+
+		local msg = PackU16(addCount) .. PackU16(remCount) .. tConcat(addPacked, "", 1, addCount) .. tConcat(remPacked, "", 1, remCount)
+		sendUnitsMsg(msg)
 	end
 end

@@ -24,7 +24,7 @@ return {
 		script = "Units/CORSTORM.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		speed = 47.7,
 		turninplace = true,
 		turninplaceanglelimit = 90,

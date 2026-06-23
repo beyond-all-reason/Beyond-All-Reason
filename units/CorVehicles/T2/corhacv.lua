@@ -20,7 +20,7 @@ return {
 		leavetracks = true,
 		mass = 2700,
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		maxwaterdepth = 0,
 		metalcost = 1520,
 		movementclass = "MTANK3",

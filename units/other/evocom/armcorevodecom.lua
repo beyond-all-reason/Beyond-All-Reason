@@ -1,93 +1,40 @@
 local unitsTable = {}
 
-unitsTable['armdecomlvl3'] = VFS.Include('units/other/evocom/armcomlvl3.lua').armcomlvl3 --if this filepath is changed, the unit will no longer work!
-unitsTable['armdecomlvl3'].selfdestructas = "decoycommander"
-unitsTable['armdecomlvl3'].explodeas = "decoycommander"
-unitsTable['armdecomlvl3'].corpse = nil
-unitsTable['armdecomlvl3'].customparams.evolution_target = nil
-unitsTable['armdecomlvl3'].customparams.iscommander = nil
-unitsTable['armdecomlvl3'].customparams.effigy = nil
-unitsTable['armdecomlvl3'].customparams.i18nfromunit = "armcomlvl3"
-unitsTable['armdecomlvl3'].decoyfor = "armcomlvl3"
-unitsTable['armdecomlvl3'].customparams.decoyfor = "armcomlvl3"
-unitsTable['armdecomlvl3'].customparams.isdecoycommander = true
-unitsTable['armdecomlvl3'].health = math.ceil(unitsTable['armdecomlvl3'].health*0.5)
-unitsTable['armdecomlvl3'].weapondefs.disintegrator.damage.default = 40
-unitsTable['armdecomlvl3'].weapondefs.backlauncher.customparams.stockpilelimit = 1
+for i = 2, 10 do
+    unitsTable['armdecomlvl' .. i] = VFS.Include('units/other/evocom/armcomlvl' .. i .. '.lua')['armcomlvl' .. i] --if this filepath is changed, the unit will no longer work!
+    unitsTable['armdecomlvl' .. i].selfdestructas = "decoycommander"
+    unitsTable['armdecomlvl' .. i].explodeas = "decoycommander"
+    unitsTable['armdecomlvl' .. i].corpse = nil
+    unitsTable['armdecomlvl' .. i].customparams.evolution_target = nil
+    unitsTable['armdecomlvl' .. i].customparams.iscommander = nil
+    unitsTable['armdecomlvl' .. i].customparams.effigy = nil
+    unitsTable['armdecomlvl' .. i].customparams.i18nfromunit = "armcomlvl" .. i
+    unitsTable['armdecomlvl' .. i].decoyfor = "armcomlvl" .. i
+    unitsTable['armdecomlvl' .. i].customparams.decoyfor = "armcomlvl" .. i
+    unitsTable['armdecomlvl' .. i].customparams.isdecoycommander = true
+    unitsTable['armdecomlvl' .. i].health = math.ceil(unitsTable['armdecomlvl' .. i].health*0.5)
+    unitsTable['armdecomlvl' .. i].weapondefs.disintegrator.damage.default = 40
+    if unitsTable['armdecomlvl' .. i].weapondefs.backlauncher and unitsTable['armdecomlvl' .. i].weapondefs.backlauncher.customparams.stockpilelimit then
+        unitsTable['armdecomlvl' .. i].weapondefs.backlauncher.customparams.stockpilelimit = math.ceil(unitsTable['armdecomlvl' .. i].weapondefs.backlauncher.customparams.stockpilelimit*0.4)
+    end
 
-unitsTable['armdecomlvl6'] = VFS.Include('units/other/evocom/armcomlvl6.lua').armcomlvl6 --if this filepath is changed, the unit will no longer work!
-unitsTable['armdecomlvl6'].selfdestructas = "decoycommander"
-unitsTable['armdecomlvl6'].explodeas = "decoycommander"
-unitsTable['armdecomlvl6'].corpse = nil
-unitsTable['armdecomlvl6'].customparams.evolution_target = nil
-unitsTable['armdecomlvl6'].customparams.iscommander = nil
-unitsTable['armdecomlvl6'].customparams.effigy = nil
-unitsTable['armdecomlvl6'].customparams.i18nfromunit = "armcomlvl6"
-unitsTable['armdecomlvl6'].decoyfor = "armcomlvl6"
-unitsTable['armdecomlvl6'].customparams.decoyfor = "armcomlvl6"
-unitsTable['armdecomlvl6'].customparams.isdecoycommander = true
-unitsTable['armdecomlvl6'].health = math.ceil(unitsTable['armdecomlvl6'].health*0.5)
-unitsTable['armdecomlvl6'].weapondefs.disintegrator.damage.default = 40
-unitsTable['armdecomlvl6'].weapondefs.backlauncher.customparams.stockpilelimit = 2
+    unitsTable['cordecomlvl' .. i] = VFS.Include('units/other/evocom/corcomlvl' .. i .. '.lua')['corcomlvl' .. i] --if this filepath is changed, the unit will no longer work!
+    unitsTable['cordecomlvl' .. i].selfdestructas = "decoycommander"
+    unitsTable['cordecomlvl' .. i].explodeas = "decoycommander"
+    unitsTable['cordecomlvl' .. i].corpse = nil
+    unitsTable['cordecomlvl' .. i].customparams.evolution_target = nil
+    unitsTable['cordecomlvl' .. i].customparams.iscommander = nil
+    unitsTable['cordecomlvl' .. i].customparams.effigy = nil
+    unitsTable['cordecomlvl' .. i].customparams.i18nfromunit = "corcomlvl" .. i
+    unitsTable['cordecomlvl' .. i].decoyfor = "corcomlvl" .. i
+    unitsTable['cordecomlvl' .. i].customparams.decoyfor = "corcomlvl" .. i
+    unitsTable['cordecomlvl' .. i].customparams.isdecoycommander = true
+    unitsTable['cordecomlvl' .. i].health = math.ceil(unitsTable['cordecomlvl' .. i].health*0.5)
+    unitsTable['cordecomlvl' .. i].weapondefs.disintegrator.damage.default = 40
+    if unitsTable['cordecomlvl' .. i].weapondefs.repulsor and unitsTable['cordecomlvl' .. i].weapondefs.repulsor.shield.power then
+        unitsTable['cordecomlvl' .. i].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl' .. i].weapondefs.repulsor.shield.power*0.2
+    end
+end
 
-unitsTable['armdecomlvl10'] = VFS.Include('units/other/evocom/armcomlvl10.lua').armcomlvl10 --if this filepath is changed, the unit will no longer work!
-unitsTable['armdecomlvl10'].selfdestructas = "decoycommander"
-unitsTable['armdecomlvl10'].explodeas = "decoycommander"
-unitsTable['armdecomlvl10'].corpse = nil
-unitsTable['armdecomlvl10'].customparams.evolution_target = nil
-unitsTable['armdecomlvl10'].customparams.iscommander = nil
-unitsTable['armdecomlvl10'].customparams.effigy = nil
-unitsTable['armdecomlvl10'].customparams.i18nfromunit = "armcomlvl10"
-unitsTable['armdecomlvl10'].decoyfor = "armcomlvl10"
-unitsTable['armdecomlvl10'].customparams.decoyfor = "armcomlvl10"
-unitsTable['armdecomlvl10'].customparams.isdecoycommander = true
-unitsTable['armdecomlvl10'].health = math.ceil(unitsTable['armdecomlvl10'].health*0.5)
-unitsTable['armdecomlvl10'].weapondefs.disintegrator.damage.default = 40
-unitsTable['armdecomlvl10'].weapondefs.backlauncher.customparams.stockpilelimit = 2
-
-unitsTable['cordecomlvl3'] = VFS.Include('units/other/evocom/corcomlvl3.lua').corcomlvl3 --if this filepath is changed, the unit will no longer work!
-unitsTable['cordecomlvl3'].selfdestructas = "decoycommander"
-unitsTable['cordecomlvl3'].explodeas = "decoycommander"
-unitsTable['cordecomlvl3'].corpse = nil
-unitsTable['cordecomlvl3'].customparams.evolution_target = nil
-unitsTable['cordecomlvl3'].customparams.iscommander = nil
-unitsTable['cordecomlvl3'].customparams.effigy = nil
-unitsTable['cordecomlvl3'].customparams.i18nfromunit = "corcomlvl3"
-unitsTable['cordecomlvl3'].decoyfor = "corcomlvl3"
-unitsTable['cordecomlvl3'].customparams.decoyfor = "corcomlvl3"
-unitsTable['cordecomlvl3'].customparams.isdecoycommander = true
-unitsTable['cordecomlvl3'].health = math.ceil(unitsTable['cordecomlvl3'].health*0.5)
-unitsTable['cordecomlvl3'].weapondefs.disintegrator.damage.default = 40
-unitsTable['cordecomlvl3'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl3'].weapondefs.repulsor.shield.power*0.25
-
-unitsTable['cordecomlvl6'] = VFS.Include('units/other/evocom/corcomlvl6.lua').corcomlvl6 --if this filepath is changed, the unit will no longer work!
-unitsTable['cordecomlvl6'].selfdestructas = "decoycommander"
-unitsTable['cordecomlvl6'].explodeas = "decoycommander"
-unitsTable['cordecomlvl6'].corpse = nil
-unitsTable['cordecomlvl6'].customparams.evolution_target = nil
-unitsTable['cordecomlvl6'].customparams.iscommander = nil
-unitsTable['cordecomlvl6'].customparams.effigy = nil
-unitsTable['cordecomlvl6'].customparams.i18nfromunit = "corcomlvl6"
-unitsTable['cordecomlvl6'].decoyfor = "corcomlvl6"
-unitsTable['cordecomlvl6'].customparams.decoyfor = "corcomlvl6"
-unitsTable['cordecomlvl6'].customparams.isdecoycommander = true
-unitsTable['cordecomlvl6'].health = math.ceil(unitsTable['cordecomlvl6'].health*0.5)
-unitsTable['cordecomlvl6'].weapondefs.disintegrator.damage.default = 40
-unitsTable['cordecomlvl6'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl6'].weapondefs.repulsor.shield.power*0.25
-
-unitsTable['cordecomlvl10'] = VFS.Include('units/other/evocom/corcomlvl10.lua').corcomlvl10 --if this filepath is changed, the unit will no longer work!
-unitsTable['cordecomlvl10'].selfdestructas = "decoycommander"
-unitsTable['cordecomlvl10'].explodeas = "decoycommander"
-unitsTable['cordecomlvl10'].corpse = nil
-unitsTable['cordecomlvl10'].customparams.evolution_target = nil
-unitsTable['cordecomlvl10'].customparams.iscommander = nil
-unitsTable['cordecomlvl10'].customparams.effigy = nil
-unitsTable['cordecomlvl10'].customparams.i18nfromunit = "corcomlvl10"
-unitsTable['cordecomlvl10'].decoyfor = "corcomlvl10"
-unitsTable['cordecomlvl10'].customparams.decoyfor = "corcomlvl10"
-unitsTable['cordecomlvl10'].customparams.isdecoycommander = true
-unitsTable['cordecomlvl10'].health = math.ceil(unitsTable['cordecomlvl10'].health*0.5)
-unitsTable['cordecomlvl10'].weapondefs.disintegrator.damage.default = 40
-unitsTable['cordecomlvl10'].weapondefs.repulsor.shield.power = unitsTable['cordecomlvl10'].weapondefs.repulsor.shield.power*0.25
 
 return unitsTable

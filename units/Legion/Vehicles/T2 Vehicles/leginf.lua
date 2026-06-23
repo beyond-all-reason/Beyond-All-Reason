@@ -2,7 +2,7 @@ return {
 	leginf = {
 		maxacc = 0.0098,
 		airsightdistance = 1050,
-		maxdec = 0.0196,
+		maxdec = 0.1,
 		energycost = 30000,
 		metalcost = 1700,
 		buildpic = "LEGINF.DDS",

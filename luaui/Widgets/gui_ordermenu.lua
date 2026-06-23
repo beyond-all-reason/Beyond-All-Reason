@@ -90,6 +90,9 @@ local commands = {}
 local rows = 0
 local cols = 0
 local disableInput = false
+
+-- Highlight API state: items[cmdID] = { color={r,g,b}, startTime=os.clock() }
+local highlight = { items = {}, count = 0, defaultColor = { 1.0, 1.0, 1.0 } }
 local math_isInRect = math.isInRect
 local clickCountDown = 2
 
@@ -131,6 +134,10 @@ local cachedWaitState = nil
 local hasWaitCommand = false
 local cachedFirstUnit = nil  -- first selected unit, avoids spGetSelectedUnits() table alloc
 
+-- Cancel target button visibility tracking
+local cancelTargetPollSec = 0
+local cancelTargetLastState = false
+
 -- Command fingerprint to skip redundant R2T redraws
 local prevCmdCount = 0
 local prevCmdIDs = {}
@@ -149,6 +156,8 @@ local lastColorize = -1
 -- Pre-built printable text cache: textColor .. text (cleared on redraw)
 local printTextCache = {}
 
+local CANCEL_TARGET_CMD_ID = 34924 -- UNIT_CANCEL_TARGET
+
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -158,7 +167,7 @@ local hiddenCommands = {
 	[CMD.TIMEWAIT] = true,
 	[CMD.AUTOREPAIRLEVEL] = true, -- retreat/idle mode (air repair pads removed)
 	[39812] = true, -- raw move
-	[34922] = true, -- set unit target
+	[34922] = true, -- set unit target (no ground)
 }
 
 local hiddenCommandTypes = {
@@ -342,13 +351,17 @@ local function refreshCommands()
 		otherCommandsTemp[i] = nil
 	end
 
+	-- cancelTargetLastState is kept current by SelectionChanged and by the poll in Update
+	local cancelTargetRelevant = cancelTargetLastState
+
 	local activeCmdDescs = spGetActiveCmdDescs()
 	for _, command in ipairs(activeCmdDescs) do
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
 			end
-			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
+			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled
+					and not (command.id == CANCEL_TARGET_CMD_ID and not cancelTargetRelevant) then
 				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
@@ -416,6 +429,8 @@ local function refreshCommands()
 
 	hasWaitCommand = (waitCommand ~= nil)
 
+	computeWaitState()
+
 	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
 	commandsVisuallyChanged = false
 	local cmdCount = #commands
@@ -434,6 +449,11 @@ local function refreshCommands()
 					commandsVisuallyChanged = true
 					break
 				end
+			elseif cmd.id == CMD.WAIT then
+				if cachedWaitState ~= prevCmdStates[i] then
+					commandsVisuallyChanged = true
+					break
+				end
 			end
 		end
 	end
@@ -444,6 +464,8 @@ local function refreshCommands()
 			prevCmdIDs[i] = commands[i].id
 			if isStateCommand[commands[i].id] then
 				prevCmdStates[i] = commands[i].params and commands[i].params[1]
+			elseif commands[i].id == CMD.WAIT then
+				prevCmdStates[i] = cachedWaitState
 			else
 				prevCmdStates[i] = nil
 			end
@@ -460,7 +482,6 @@ local function refreshCommands()
 	end
 
 	setupCellGrid(false)
-	computeWaitState()
 end
 
 function widget:ViewResize()
@@ -598,6 +619,43 @@ function widget:Initialize()
 	WG['ordermenu'].getIsShowing = function()
 		return ordermenuShows
 	end
+
+	---Highlight a command in the order menu with an animated pulsing outline +
+	---inner glow. Subsequent calls update the existing highlight (without
+	---restarting the pulse phase).
+	---@param cmdID number The command ID (e.g. CMD.MOVE, CMD.ATTACK) to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['ordermenu'].setHighlight = function(cmdID, color)
+		if not cmdID then return end
+		local items = highlight.items
+		if not items[cmdID] then
+			highlight.count = highlight.count + 1
+		end
+		items[cmdID] = {
+			color = color,
+			startTime = (items[cmdID] and items[cmdID].startTime) or os_clock(),
+		}
+	end
+
+	WG['ordermenu'].removeHighlight = function(cmdID)
+		local items = highlight.items
+		if cmdID and items[cmdID] then
+			items[cmdID] = nil
+			highlight.count = math_max(0, highlight.count - 1)
+		end
+	end
+
+	WG['ordermenu'].clearHighlights = function()
+		local items = highlight.items
+		for k in pairs(items) do
+			items[k] = nil
+		end
+		highlight.count = 0
+	end
+
+	WG['ordermenu'].hasHighlight = function(cmdID)
+		return cmdID ~= nil and highlight.items[cmdID] ~= nil
+	end
 end
 
 function widget:Shutdown()
@@ -659,6 +717,33 @@ function widget:Update(dt)
 		doUpdate = true
 	end
 
+	-- Poll for priority target changes on selected units to show/hide 'canceltarget'
+	cancelTargetPollSec = cancelTargetPollSec + dt
+	if cancelTargetPollSec > 0.1 then
+		cancelTargetPollSec = 0
+		if #commands > 0 or alwaysShow then
+			local hasTarget = false
+			local selected = Spring.GetSelectedUnits()
+			for i = 1, #selected do
+				local uid = selected[i]
+				local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+				if targetID and targetID > 0 then
+					hasTarget = true
+					break
+				end
+				local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+				if targetX and targetX >= 0 then
+					hasTarget = true
+					break
+				end
+			end
+			if hasTarget ~= cancelTargetLastState then
+				cancelTargetLastState = hasTarget
+				doUpdate = true
+			end
+		end
+	end
+
 	if (WG['guishader'] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0)) then
 		ordermenuShows = false
 	else
@@ -680,6 +765,64 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
+
+local function drawHighlights()
+	if highlight.count == 0 or not next(highlight.items) then return end
+	if #commands == 0 then return end
+	local now = os_clock()
+	local pulse = 0.5 + 0.5 * math.sin(now * 4.5)
+	local outlineAlpha = 0.45 + 0.5 * pulse
+	local glowAlpha = 0.10 + 0.20 * pulse
+	for cell = 1, #commands do
+		local cmd = commands[cell]
+		local rect = cellRects[cell]
+		local hl = cmd and highlight.items[cmd.id]
+		if hl and rect and rect[4] then
+			local color = hl.color or highlight.defaultColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			local localPulse = 0.5 + 0.5 * math.sin(t * 4.5)
+			local locOutlineAlpha = 0.45 + 0.5 * localPulse
+			local locGlowAlpha = 0.10 + 0.20 * localPulse
+
+			local leftMargin = cellMarginPx
+			local rightMargin = cellMarginPx2
+			local topMargin = cellMarginPx
+			local bottomMargin = cellMarginPx2
+			if cell % cols == 1 then leftMargin = cellMarginPx2 end
+			if cell % cols == 0 then rightMargin = cellMarginPx2 end
+			if cols / cell >= 1 then
+				topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+			end
+
+			local x1 = rect[1] + leftMargin
+			local y1 = rect[2] + bottomMargin
+			local x2 = rect[3] - rightMargin
+			local y2 = rect[4] - topMargin
+
+			local cs = math_max(2, math_floor((x2 - x1) * 0.04))
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.05))
+
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+
+			-- Feathered inner outline ring
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1,
+				{ r, g, b, locOutlineAlpha }, { r, g, b, locOutlineAlpha * 0.85 }
+			)
+
+			-- Soft inner glow fading inward
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, locGlowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
 
 local function drawCell(cell, zoom)
 	if not zoom then
@@ -1021,6 +1164,9 @@ function widget:DrawScreen()
 		end
 
 		if #commands >0 then
+			-- draw attention highlights (animated, on top of cached content)
+			drawHighlights()
+
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if commands and cellHovered then
@@ -1178,6 +1324,22 @@ function widget:SelectionChanged(sel)
 
 	-- Cache first selected unit to avoid spGetSelectedUnits() table allocation later
 	cachedFirstUnit = sel[1] or nil
+
+	-- Update cancel target state using the selection already provided here
+	cancelTargetLastState = false
+	for i = 1, #sel do
+		local uid = sel[i]
+		local targetID = Spring.GetUnitRulesParam(uid, "targetID")
+		if targetID and targetID > 0 then
+			cancelTargetLastState = true
+			break
+		end
+		local targetX = Spring.GetUnitRulesParam(uid, "targetCoordX")
+		if targetX and targetX >= 0 then
+			cancelTargetLastState = true
+			break
+		end
+	end
 
 	-- Adaptive throttling: increase delay based on selection size
 	local selCount = #sel

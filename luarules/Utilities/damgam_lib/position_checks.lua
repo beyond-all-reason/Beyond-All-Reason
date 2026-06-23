@@ -22,23 +22,35 @@ local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
-for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
-    local allyTeamHasStartbox = true
-    local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
-    if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
-        allyTeamHasStartbox = false
+local allyTeams = Spring.GetAllyTeamList()
+local startPositionsInitialized = false
+
+local function initializeStartPositionTable()
+    if (startPositionsInitialized) then
+        return
     end
-    AllyTeamStartboxes[testAllyTeamID+1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
-        allyTeamHasStartbox = allyTeamHasStartbox,
-        xMin = xMin,
-        zMin = zMin,
-        xMax = xMax,
-        zMax = zMax,
-    }
+    for _, testAllyTeamID in ipairs(allyTeams) do
+        local allyTeamHasStartbox = true
+        local xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(testAllyTeamID)
+        if xMin == 0 and zMin == 0 and xMax == mapSizeX and zMax == mapSizeZ then
+            allyTeamHasStartbox = false
+        end
+        AllyTeamStartboxes[testAllyTeamID + 1] = { -- Lua Tables start at 1, AllyTeamID's start at 0, so we have to add 1 everytime
+            allyTeamHasStartbox = allyTeamHasStartbox,
+            xMin = xMin,
+            zMin = zMin,
+            xMax = xMax,
+            zMax = zMax,
+        }
+        Spring.Echo('AllyTeamId: ' .. tostring(testAllyTeamID) .. ' startx: ' .. tostring(xMin))
+    end
 end
 
-
-
+-- game_ffa_start_setup can shuffle startboxes after this code runs
+if not Spring.Utilities.Gametype.IsFFA() then
+    initializeStartPositionTable()
+    startPositionsInitialized = true
+end
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,7 +216,7 @@ local function VisibilityCheck(posx, posy, posz, posradius, allyTeamID, checkLoS
 end
 
 local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, checkLoS, checkAirLos, checkRadar) -- Return True when position is not in sensor ranges of all enemies of specified allyTeam.
-    for _,testAllyTeamID in ipairs(Spring.GetAllyTeamList()) do
+    for _,testAllyTeamID in ipairs(allyTeams) do
 		local posCheck = true
         if testAllyTeamID ~= allyTeamID and testAllyTeamID ~= GaiaAllyTeamID then
             posCheck = VisibilityCheck(posx, posy, posz, posradius, testAllyTeamID, checkLoS, checkAirLos, checkRadar)
@@ -217,6 +229,10 @@ local function VisibilityCheckEnemy(posx, posy, posz, posradius, allyTeamID, che
 end
 
 local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox) -- Return True when position is within startbox.
+    if (not startPositionsInitialized) then
+        initializeStartPositionTable()
+        startPositionsInitialized = true
+    end
     --local posradius = posradius or 1000
     if not returnTrueWhenNoStartbox then returnTrueWhenNoStartbox = false end
 
@@ -234,6 +250,17 @@ local function StartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStart
     else
         return returnTrueWhenNoStartbox
     end
+end
+
+local function NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID, returnTrueWhenNoStartbox)
+    for _,testAllyTeamID in pairs(allyTeams) do
+        if (testAllyTeamID ~= GaiaAllyTeamID) and (testAllyTeamID ~= allyTeamID) then
+            if StartboxCheck(posx, posy, posz, testAllyTeamID, returnTrueWhenNoStartbox) then
+                return false;
+            end
+        end
+    end
+    return true;
 end
 
 local function MapEdgeCheck(posx, posy, posz, posradius) -- if true then position is far enough from map border
@@ -386,6 +413,7 @@ return {
     VisibilityCheck = VisibilityCheck,
     VisibilityCheckEnemy = VisibilityCheckEnemy,
     StartboxCheck = StartboxCheck,
+    NotInEnemyStartboxCheck = NotInEnemyStartboxCheck,
     MapEdgeCheck = MapEdgeCheck,
     SurfaceCheck = SurfaceCheck,
     LavaCheck = LavaCheck,

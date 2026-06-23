@@ -346,7 +346,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
             range       = areaRange,
             damage      = explosion.damage,
             damageCeg   = explosion.damageCeg,
-            endFrame    = explosion.frames + frameNumber,
+			-- Use water-adjusted duration if we shortened frames above.
+            endFrame    = frames + frameNumber,
 			lastFrames  = explosion.lastFrames,
 			lastDamage  = explosion.lastDamage,
 			suppressed  = blockingShields,
@@ -367,7 +368,9 @@ local function extendTimedExplosion(area, gameFrame)
 end
 
 local function spawnAreaCEGs(loopIndex)
-    for index, area in pairs(aliveExplosions[loopIndex]) do
+    local areas = aliveExplosions[loopIndex]
+    for index = 1, #areas do
+		local area = areas[index]
         spSpawnCEG(area.ceg, area.x, area.y, area.z, area.dx, area.dy, area.dz)
     end
 end
@@ -473,7 +476,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-	for _, data in ipairs(unitDamageReset[gameFrame]) do
+    for _, data in ipairs(unitDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 
@@ -522,7 +525,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-	for _, data in ipairs(featDamageReset[gameFrame]) do
+    for _, data in ipairs(featDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 

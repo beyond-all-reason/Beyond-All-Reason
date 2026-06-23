@@ -92,7 +92,7 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 						x, _, z = spGetUnitPosition(id)
 					end
 					if z then
-						tX, tZ = tX+x, tZ+z
+						tX, tZ = tX + x, tZ + z
 						builderCount = builderCount + 1
 					end
 				end
@@ -104,13 +104,14 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 	return { x = tX / builderCount, z = tZ / builderCount }
 end
 
-
 ---Get all mex spots in an area
 ---@param x number
 ---@param z number
 ---@param radius number
+---@return table Array of spots within the specified area
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
+
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
@@ -180,6 +181,9 @@ function widget:CommandNotify(id, params, options)
 
 	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
 	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
+	if WG['skip_allied_upgrade'] then
+		spots = WG['skip_allied_upgrade'].filterOutAlliedSpots(spots, mexBuildings)
+	end
 
 	if not selectedMex then
 		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
@@ -188,7 +192,6 @@ function widget:CommandNotify(id, params, options)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
-
 
 	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
 

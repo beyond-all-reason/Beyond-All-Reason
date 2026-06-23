@@ -12,10 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
-local broadcastPeriod = 0.12	-- will send packet in this interval (s)
+local broadcastPeriod = 0.1	-- will send packet in this interval (s) for non-spectators
+local spectatorBroadcastPeriod = 0.2	-- will send packet in this interval (s) for spectators
 
 local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = #PACKET_HEADER
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -288,10 +288,11 @@ else	-- UNSYNCED
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
 		timeSinceBroadcast = timeSinceBroadcast + dt
-		if timeSinceBroadcast < broadcastPeriod then
+		local activeBroadcastPeriod = spec and spectatorBroadcastPeriod or broadcastPeriod
+		if timeSinceBroadcast < activeBroadcastPeriod then
 			return
 		end
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
+		timeSinceBroadcast = timeSinceBroadcast - activeBroadcastPeriod
 
 		local state = GetCameraState()
 		if not CameraStateChanged(state) then

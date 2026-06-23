@@ -79,7 +79,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
 			},
 		},
 		sounds = {

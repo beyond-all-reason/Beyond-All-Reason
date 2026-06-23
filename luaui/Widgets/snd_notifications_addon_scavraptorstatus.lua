@@ -9,7 +9,7 @@ function widget:GetInfo()
     }
 end
 
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if (not Spring.Utilities.Gametype.IsRaptors()) and (not Spring.Utilities.Gametype.IsScavengers()) then
 	return false
 end
 
@@ -93,10 +93,16 @@ function widget:Update(dt)
                     WG['notifications'].queueNotification("PvE/Raptor_Queen5HealthLeft")
                     PlayedMessages["FinalBossHealth5"] = true
                 end
+
+                CurrentlyStaggered = Spring.GetGameRulesParam("raptorQueenStaggerActive")
+                if CurrentlyStaggered == true and not PlayedMessages["FinalBossStaggered"] then
+			    	PlayedMessages["FinalBossStaggered"] = true
+			    	WG["notifications"].queueNotification("PvE/Raptor_QueenGotStaggered")
+			    elseif PlayedMessages["FinalBossStaggered"] and CurrentlyStaggered == false then
+			    	PlayedMessages["FinalBossStaggered"] = false
+			    	WG["notifications"].queueNotification("PvE/Raptor_QueenNoLongerStaggered")
+			    end
             end
-
-
-
 
         elseif Spring.Utilities.Gametype.IsScavengers() then
             FinalBossProgress = Spring.GetGameRulesParam("scavBossAnger")
@@ -172,6 +178,15 @@ function widget:Update(dt)
                     WG['notifications'].queueNotification("PvE/Scav_Boss5HealthLeft")
                     PlayedMessages["FinalBossHealth5"] = true
                 end
+
+                CurrentlyStaggered = Spring.GetGameRulesParam("scavBossStaggerActive")
+                if CurrentlyStaggered == true and not PlayedMessages["FinalBossStaggered"] then
+			    	PlayedMessages["FinalBossStaggered"] = true
+			    	WG["notifications"].queueNotification("PvE/Scav_BossGotStaggered")
+			    elseif PlayedMessages["FinalBossStaggered"] and CurrentlyStaggered == false then
+			    	PlayedMessages["FinalBossStaggered"] = false
+			    	WG["notifications"].queueNotification("PvE/Scav_BossNoLongerStaggered")
+			    end
             end
         end
     end

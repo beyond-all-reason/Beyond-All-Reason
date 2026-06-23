@@ -12,6 +12,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		explodeas = "largeBuildingexplosiongeneric",
@@ -37,6 +38,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Defenses",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

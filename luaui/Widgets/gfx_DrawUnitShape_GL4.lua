@@ -648,6 +648,18 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				--
 				-- Clear our bit at the start of the pass so stale marks from
 				-- the previous frame don't leak. Cheap; hits stencil only.
+				--
+				-- IMPORTANT: glClear is gated by the current glStencilMask.
+				-- Other widgets/gadgets (e.g. gfx_raptor_scum_gl4) leave the
+				-- mask in arbitrary states (StencilMask(0) / (1) / ...). If
+				-- bit GHOST_STENCIL_BIT is masked out we'd silently fail to
+				-- clear stale marks, then the nano particles' two-pass
+				-- stencil-aware draw can briefly lose pixels behind/around
+				-- placement ghosts (pass 1 depth-rejected by ghost depth,
+				-- pass 2 stencil-rejected by stale-or-unset bit). Force the
+				-- mask wide open for the clear, then narrow it for the
+				-- ghost stencil writes below.
+				gl.StencilMask(0xFF)
 				gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
 
 				gl.Culling(GL.BACK)

@@ -100,6 +100,13 @@ local avgTLoad = {}
 
 local sortedList = {}
 
+-- Per-callin drill-down state (only populated for the currently selected widget)
+local callinLoadAverages = {} -- [wname] = { [cname] = { tLoad, sLoad } }
+local selectedWidget = nil    -- wname (prefixed plainname) currently drilled into, or nil
+local clickableRows = {}      -- reused each frame: { {x1, y1, x2, y2, plainname}, ... }
+local clickableRowCount = 0   -- how many entries of clickableRows are valid this frame
+local detailColour = "\255\255\255\255"
+
 local deltaTime
 local redStrength = {}
 
@@ -373,6 +380,26 @@ function widget:Shutdown()
 	StopHook()
 end
 
+-- Click a widget row to drill into its per-callin breakdown; click it again to close.
+function widget:MousePress(mx, my, button)
+	if button ~= 1 or clickableRowCount == 0 then
+		return false
+	end
+	for i = 1, clickableRowCount do
+		local r = clickableRows[i]
+		if mx >= r[1] and mx <= r[3] and my >= r[2] and my <= r[4] then
+			if selectedWidget == r[5] then
+				selectedWidget = nil
+			else
+				selectedWidget = r[5]
+				callinLoadAverages[r[5]] = {} -- start a fresh smoothing window
+			end
+			return true
+		end
+	end
+	return false
+end
+
 local function CalcLoad(old_load, new_load, t)
 	if t and t > 0 then
 		local exptick = mathExp(-tick / t)
@@ -465,9 +492,16 @@ local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, dec
 	end
 end
 
-function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
+-- Advance to the next column; when crossing left out of the first column, also
+-- skip past the band reserved for the detail panel.
+local function nextColumn(x, colWidth, firstColX, reserve)
+	return x - colWidth - (x >= firstColX and reserve or 0)
+end
+
+function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth, firstColX, reserve)
+	reserve = reserve or 0
 	if j >= maxLines - 5 then
-		x = x - colWidth;
+		x = nextColumn(x, colWidth, firstColX, reserve);
 		j = 0;
 	end
 	j = j + 1
@@ -477,16 +511,15 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 	local listLen = #list
 	for i = 1, listLen do
 		if j >= maxLines then
-			x = x - colWidth;
+			x = nextColumn(x, colWidth, firstColX, reserve);
 			j = 0;
 		end
 		local v = list[i]
+		local textY = y - lineSpace * j
 
 		-- Draw tinted background and colored square for widget line
 		local color = widgetNameColors[v.name]
 		if color then
-			local textY = y - lineSpace * j
-
 			-- Draw opaque colored square on the left
 			glColor(color[1], color[2], color[3], 1.0)
 			glRect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
@@ -498,9 +531,26 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 			glColor(1, 1, 1, 1)  -- Reset color
 		end
 
-		DrawPercentWithDimmedZeros(v.timeColourString, v.tLoad, x, y - lineSpace * j, fontSize)
-		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, y - lineSpace * j, fontSize, 1, 'kB/s')
-		glText(v.fullname, x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
+		-- Highlight the row that is currently drilled into
+		if v.plainname == selectedWidget then
+			glColor(1, 1, 1, 0.18)
+			glRect(x - 12, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+			glColor(1, 1, 1, 1)
+		end
+
+		-- Record click target so MousePress can map a click back to this widget.
+		-- Reuse the row tables across frames to avoid per-frame GC churn.
+		clickableRowCount = clickableRowCount + 1
+		local r = clickableRows[clickableRowCount]
+		if not r then
+			r = {}
+			clickableRows[clickableRowCount] = r
+		end
+		r[1], r[2], r[3], r[4], r[5] = x - 12, textY - 3, x + colWidth - 15, textY + fontSize - 3, v.plainname
+
+		DrawPercentWithDimmedZeros(v.timeColourString, v.tLoad, x, textY, fontSize)
+		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, textY, fontSize, 1, 'kB/s')
+		glText(v.fullname, x + dataColWidth * 2, textY, fontSize, "no")
 		j = j + 1
 	end
 
@@ -510,6 +560,82 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 	j = j + 1
 
 	return x, j
+end
+
+-- Drill-down view: every callin of the selected widget, sorted by cpu time
+local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
+	local avgs = callinLoadAverages[selectedWidget]
+	if not avgs then
+		return
+	end
+
+	-- Hide a callin only when BOTH its cpu and alloc rate are negligible; hidden
+	-- callins still count towards the total so it stays accurate.
+	local minCallinPerc = 0.003 -- % of running time
+	local minCallinKB = 0.1     -- kB/s allocated
+
+	local list = {}
+	local hidden = 0
+	local total_t, total_s = 0, 0
+	for cname, a in pairs(avgs) do
+		total_t = total_t + a[1]
+		total_s = total_s + a[2]
+		if a[1] >= minCallinPerc or a[2] >= minCallinKB then
+			list[#list + 1] = { name = cname, tLoad = a[1], sLoad = a[2] }
+		else
+			hidden = hidden + 1
+		end
+	end
+	tableSort(list, function(a, b) return a.tLoad > b.tLoad end)
+
+	local colW = fontSize * 8 -- one column width, wide enough for "9999.9 kB/s"
+	local timeColX = x
+	local allocsColX = x + colW
+	local callinColX = x + colW * 2
+	local panelRight = x + panelWidth
+
+	-- Fixed lines: title, blank, header, total, blank, close-hint (+ optional hidden line)
+	local lineCount = #list + 6 + (hidden > 0 and 1 or 0)
+
+	-- translucent backdrop (drawn first so the text lands on top of it)
+	glColor(0, 0, 0, 0.55)
+	glRect(x - 10, y - lineSpace * lineCount - 3, panelRight, y + lineSpace)
+	glColor(1, 1, 1, 1)
+
+	-- Line cursor: returns the current line's y, then advances past it plus any trailing blanks.
+	local cy = y
+	local function line(blanks)
+		local ly = cy
+		cy = cy - lineSpace * (1 + (blanks or 0))
+		return ly
+	end
+
+	glText(title_colour .. "CALLIN BREAKDOWN  " .. detailColour .. (wname2name[selectedWidget] or selectedWidget), x, line(1), fontSize, "no")
+
+	local hy = line()
+	glText(totals_colour .. "time", timeColX, hy, fontSize, "no")
+	glText(totals_colour .. "allocs", allocsColX, hy, fontSize, "no")
+	glText(totals_colour .. "callin", callinColX, hy, fontSize, "no")
+
+	for i = 1, #list do
+		local v = list[i]
+		local ry = line()
+		DrawPercentWithDimmedZeros(detailColour, v.tLoad, timeColX, ry, fontSize)
+		DrawMemoryWithDimmedZeros(detailColour, v.sLoad, allocsColX, ry, fontSize, 1, 'kB/s')
+		glText(detailColour .. v.name, callinColX, ry, fontSize, "no")
+	end
+
+	local ty = line()
+	DrawPercentWithDimmedZeros(totals_colour, total_t, timeColX, ty, fontSize, 2)
+	DrawMemoryWithDimmedZeros(totals_colour, total_s, allocsColX, ty, fontSize, 0, 'kB/s')
+	glText(totals_colour .. "total", callinColX, ty, fontSize, "no")
+
+	if hidden > 0 then
+		glText(totals_colour .. '\255\140\140\140' .. stringFormat("(%d negligible callins hidden)", hidden), x, line(), fontSize, "no")
+	end
+
+	line() -- blank separator before the close hint
+	glText(title_colour .. "click the widget again to close", x, line(), fontSize, "no")
 end
 
 function widget:DrawScreen()
@@ -543,6 +669,18 @@ function widget:DrawScreen()
 			local cmax_space = 0
 			local cmaxname_space = "-"
 
+			-- Only smooth the per-callin breakdown for the widget being drilled into,
+			-- so there is zero extra cost when nothing is selected.
+			local capture = wname == selectedWidget
+			local wCallinAvg
+			if capture then
+				wCallinAvg = callinLoadAverages[wname]
+				if not wCallinAvg then
+					wCallinAvg = {}
+					callinLoadAverages[wname] = wCallinAvg
+				end
+			end
+
 			for cname, c in pairs(callins) do
 				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
 				t = t + c1
@@ -558,6 +696,18 @@ function widget:DrawScreen()
 					cmaxname_space = cname
 				end
 				c[3] = 0
+
+				if capture then
+					local relT = 100 * c1 / deltaTime
+					local relS = c3 / deltaTime
+					local prev = wCallinAvg[cname]
+					if prev then
+						prev[1] = CalcLoad(prev[1], relT, averageTime)
+						prev[2] = CalcLoad(prev[2], relS, averageTime)
+					else
+						wCallinAvg[cname] = { relT, relS }
+					end
+				end
 			end
 
 			local relTime = 100 * t / deltaTime
@@ -632,19 +782,34 @@ function widget:DrawScreen()
 	local dataColWidth = fontSize * 5
 	local colWidth = vsx * 0.98 / 4
 
-	local x, y = vsx - colWidth, vsy * 0.77 -- initial coord for writing
+	local firstColX = vsx - colWidth
+	local x, y = firstColX, vsy * 0.77 -- initial coord for writing
 	local maxLines = mathMax(20, mathFloor(y / lineSpace) - 3)
 	local j = -1 --line number
+
+	-- When a widget is drilled into, reserve a band immediately left of the first
+	-- column for the detail panel; overflow columns then wrap to the left of it.
+	-- detail panel: two 8-wide data columns (time, allocs) + room for the callin name
+	local panelGap = fontSize * 2 -- gutter between the panel and the first column
+	local panelWidth = mathMin(colWidth - panelGap, fontSize * 30)
+	local reserve = selectedWidget and (panelWidth + panelGap) or 0
+
+	clickableRowCount = 0 -- refilled below so MousePress hit-testing matches what is on screen
 
 	glColor(1, 1, 1, 1)
 	glBeginText()
 
-	x, j = DrawWidgetList(gameList, "GAME", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
-	x, j = DrawWidgetList(userList, "USER", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth)
+	x, j = DrawWidgetList(gameList, "GAME", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth, firstColX, reserve)
+	x, j = DrawWidgetList(userList, "USER", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth, firstColX, reserve)
 
 	if j >= maxLines - 15 then
-		x = x - colWidth;
+		x = nextColumn(x, colWidth, firstColX, reserve);
 		j = -1;
+	end
+
+	if selectedWidget then
+		-- Fixed slot in the reserved band, just left of the first column.
+		DrawDetailPanel(firstColX - panelWidth - panelGap, vsy * 0.77, fontSize, lineSpace, panelWidth)
 	end
 	j = j + 1
 	glText(title_colour .. "ALL", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")

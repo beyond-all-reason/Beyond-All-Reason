@@ -67,6 +67,7 @@ return {
 			[7] = "armcv",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			i18nfromunit = "armcom",
 			iscommander = true,
 			model_author = "FireStorm",

@@ -158,7 +158,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local numToTake = 0
 		for _,teamID in ipairs(teamList) do
-			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
+			local luaAI = GetTeamLuaAI(teamID)
+			local isAiTeam = select(4, GetTeamInfo(teamID, false))
+			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				numToTake = numToTake + 1
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)

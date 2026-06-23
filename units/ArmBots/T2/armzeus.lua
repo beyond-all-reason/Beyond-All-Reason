@@ -23,7 +23,7 @@ return {
 		script = "Units/ARMZEUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 331.5,
+		sightdistance = 380,
 		speed = 47.4,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -66,11 +66,6 @@ return {
 				object = "Units/arm2X2E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:barrelshot-lightning",
 			},
 		},
 		sounds = {

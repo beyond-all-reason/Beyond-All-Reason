@@ -97,6 +97,7 @@ local serverFrame = 0
 local bossHasSpawned = false
 local playInterlude = false
 local isChangingTrack = false
+local lastTrackAttemptTime = Spring.GetTimer()
 
 local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
@@ -1224,6 +1225,7 @@ end
 function PlayNewTrack(paused)
 	if isChangingTrack then return end
 	isChangingTrack = true
+	lastTrackAttemptTime = Spring.GetTimer()
 
 	if Spring.GetConfigInt('music', 1) ~= 1 then
 		isChangingTrack = false
@@ -1503,7 +1505,7 @@ function widget:GameFrame(n)
 						fadeDirection = -1
 					end
 				end
-			elseif totalTime == 0 and (not fadeDirection or Spring.GetConfigInt("UseSoundtrackFades", 1) ~= 1) then -- there's no music and not mid-transition (or fades are disabled)
+			elseif totalTime == 0 and (Spring.DiffTimers(Spring.GetTimer(), lastTrackAttemptTime) > 2.0) and (not fadeDirection or Spring.GetConfigInt("UseSoundtrackFades", 1) ~= 1) then -- there's no music and not mid-transition (or fades are disabled)
 				PlayNewTrack()
 			end
 		end

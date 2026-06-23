@@ -429,7 +429,7 @@ FireWeapon1(){
     
     emit-sfx 1024 from gunFlare;
     //wait-for-turn gunBarrel around z-axis;
-    stop-spin gunBarrel around z-axis decelerate <120>;
+    stop-spin gunBarrel around z-axis decelerate <60>;
 }
 
 QueryWeapon2(pieceIndex)
@@ -453,7 +453,7 @@ AimWeapon2(heading, pitch)
     turn railarmbase to x-axis <45> speed <225>;
     turn railarm to x-axis <-45> speed <225>;
 	turn railgun to x-axis (<0> - pitch) speed <225>;
-	//wait-for-turn torsoFlare around y-axis;
+	wait-for-turn torsoFlare around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }

@@ -71,6 +71,7 @@ local lastGameID = nil
 
 local spSetMiniRot		= 	Spring.SetMiniMapRotation
 local spGetMiniRot		= 	Spring.GetMiniMapRotation
+local spGetCameraState		= 	Spring.GetCameraState
 local PI = math.pi
 local HALFPI = PI / 2
 local TWOPI = PI * 2
@@ -223,7 +224,10 @@ function widget:Initialize()
 				autoFitCameraApplied = false
 				applyAutoFitRotation()
 			else
-				widget:CameraRotationChanged(Spring.GetCameraRotation()) -- Force update on mode change
+				local camState = spGetCameraState()
+				local camRotY = camState and camState.ry or 0
+				prevSnap = nil
+				widget:CameraRotationChanged(0, camRotY, 0) -- Force update on mode change
 			end
 		end
 	end
@@ -240,6 +244,14 @@ function widget:Initialize()
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 
 	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
+
+	-- Apply the current camera heading immediately so the minimap starts in the
+	-- correct orientation on game start/reload, without waiting for the first
+	-- manual camera nudge to trigger CameraRotationChanged.
+	local camState = spGetCameraState()
+	local camRotY = camState and camState.ry or 0
+	prevSnap = nil
+	widget:CameraRotationChanged(0, camRotY, 0)
 
 	-- Auto-landscape will be applied in widget:Update once game is loaded
 end
@@ -259,6 +271,10 @@ function widget:Update()
 		lastGameID = currentGameID
 		autoFitTargetRot = nil
 		autoFitCameraApplied = false
+		local camState = spGetCameraState()
+		local camRotY = camState and camState.ry or 0
+		prevSnap = nil
+		widget:CameraRotationChanged(0, camRotY, 0)
 	end
 
 	-- Always try to apply when not yet applied (handles widget reload too)

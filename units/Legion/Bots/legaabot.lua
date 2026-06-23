@@ -24,7 +24,7 @@ return {
 		script = "Units/legaabot.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 379.60001,
+		sightdistance = 380,
 		speed = 55,
 		turninplace = true,
 		turninplaceanglelimit = 90,

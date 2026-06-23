@@ -199,6 +199,8 @@ local MAX_BUILD_GHOSTS = 300  -- cap glUnitShape calls (expensive)
 
 -- Queue sharing: units with identical command queues share one parsed table
 local queueShareCache = {}  -- fingerprint -> { queue, queueSize, refCount }
+local queueShareGeneration = 0
+local EMPTY_TABLE = {}
 
 local function InitGL4()
 	if not gl.GetVBO or not gl.GetVAO or not gl.CreateShader then
@@ -358,6 +360,10 @@ local tablePool = {}
 local tablePoolCount = 0
 local maxTablePoolSize = 100
 
+local queueShareEntryPool = {}
+local queueShareEntryPoolCount = 0
+local maxQueueShareEntryPoolSize = 200
+
 local function getTable()
 	if tablePoolCount > 0 then
 		local t = tablePool[tablePoolCount]
@@ -381,6 +387,27 @@ local function releaseTable(t)
 	end
 end
 
+local function getQueueShareEntry()
+	if queueShareEntryPoolCount > 0 then
+		local t = queueShareEntryPool[queueShareEntryPoolCount]
+		queueShareEntryPool[queueShareEntryPoolCount] = nil
+		queueShareEntryPoolCount = queueShareEntryPoolCount - 1
+		return t
+	else
+		return {}
+	end
+end
+
+local function releaseQueueShareEntry(t)
+	for k in pairs(t) do
+		t[k] = nil
+	end
+	if queueShareEntryPoolCount < maxQueueShareEntryPoolSize then
+		queueShareEntryPoolCount = queueShareEntryPoolCount + 1
+		queueShareEntryPool[queueShareEntryPoolCount] = t
+	end
+end
+
 local function getQueueFingerprint(unitID)
 	local cmdCount = spGetUnitCommandCount(unitID)
 	if not cmdCount or cmdCount <= 0 then return nil end
@@ -400,8 +427,11 @@ local function releaseQueue(command)
 	if shared then
 		shared.refCount = shared.refCount - 1
 		if shared.refCount <= 0 then
+			if shared.fingerprint and queueShareCache[shared.fingerprint] == shared then
+				queueShareCache[shared.fingerprint] = nil
+			end
 			releaseTable(shared.queue)
-			shared.queue = nil
+			releaseQueueShareEntry(shared)
 		end
 	else
 		releaseTable(command.queue)
@@ -411,32 +441,35 @@ local function releaseQueue(command)
 end
 
 -- Cache for unit positions to avoid repeated API calls per frame
--- Uses 3 flat tables instead of {x,y,z} sub-tables to avoid per-unit allocation
+-- Uses 3 flat tables and a frame-stamp table to avoid per-frame clears/reallocations.
 local unitPosCacheX = {}
 local unitPosCacheY = {}
 local unitPosCacheZ = {}
+local unitPosCacheFrame = {}
 local currentGameFrame = -1
 
-local function clearPositionCache()
-	-- Swap to fresh tables: O(1) instead of O(n) iteration with next()
-	unitPosCacheX = {}
-	unitPosCacheY = {}
-	unitPosCacheZ = {}
-end
-
 local function getCachedUnitPosition(unitID)
-	local cx = unitPosCacheX[unitID]
-	if cx then
-		return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
+	if unitPosCacheFrame[unitID] == currentGameFrame then
+		local cx = unitPosCacheX[unitID]
+		if cx then
+			return cx, unitPosCacheY[unitID], unitPosCacheZ[unitID]
+		end
+		return nil
 	end
 
 	local x, y, z = spGetUnitPosition(unitID)
+	unitPosCacheFrame[unitID] = currentGameFrame
 	if x then
 		unitPosCacheX[unitID] = x
 		unitPosCacheY[unitID] = y
 		unitPosCacheZ[unitID] = z
+		return x, y, z
+	else
+		unitPosCacheX[unitID] = nil
+		unitPosCacheY[unitID] = nil
+		unitPosCacheZ[unitID] = nil
+		return nil
 	end
-	return x, y, z
 end
 
 --------------------------------------------------------------------------------
@@ -600,17 +633,19 @@ local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features a
 local function getCommandsQueue(unitID)
 	local cmdCount = spGetUnitCommandCount(unitID)
 	if not cmdCount or cmdCount <= 0 then
-		local empty = getTable()
-		return empty, 0
+		return nil, 0
 	end
 	local fetchCount = cmdCount < cmdLimitPerUnit and cmdCount or cmdLimitPerUnit
-	local q = spGetUnitCommands(unitID, fetchCount) or {}
-	local our_q = getTable()
+	local q = spGetUnitCommands(unitID, fetchCount) or EMPTY_TABLE
+	local our_q = nil
 	local our_qCount = 0
 	for i = 1, #q do
 		local entry = q[i]
 		local id = entry.id
 		if CONFIG[id] or id < 0 then
+			if not our_q then
+				our_q = getTable()
+			end
 			local params = entry.params
 			local a, b, c, d = params[1], params[2], params[3], params[4]
 
@@ -717,8 +752,8 @@ function widget:Update(dt)
 			cmdLimitPerUnit = mathMax(cmdLimitPerUnitMin, mathFloor(cmdLimitPerUnitBase - (totalCommands - 200) * ((cmdLimitPerUnitBase - cmdLimitPerUnitMin) / 600)))
 		end
 
-		-- Clear queue share cache for this batch
-		for fp in pairs(queueShareCache) do queueShareCache[fp] = nil end
+		queueShareGeneration = queueShareGeneration + 1
+		local qGen = queueShareGeneration
 
 		for k = 1, processLimit do
 			local cmd = unprocessedCommands[k]
@@ -735,7 +770,7 @@ function widget:Update(dt)
 				local fingerprint = getQueueFingerprint(cmd.unitID)
 				local cached = fingerprint and queueShareCache[fingerprint]
 				local our_q, qsize
-				if cached and cached.queue then
+				if cached and cached.generation == qGen and cached.queue then
 					-- Reuse existing parsed queue (zero allocation)
 					cached.refCount = cached.refCount + 1
 					our_q = cached.queue
@@ -746,10 +781,20 @@ function widget:Update(dt)
 				else
 					-- Full parse needed
 					our_q, qsize = getCommandsQueue(cmd.unitID)
-					commands[i].queue = our_q
-					commands[i].queueSize = qsize
-					if fingerprint then
-						local entry = { queue = our_q, queueSize = qsize, refCount = 1 }
+					if qsize > 0 then
+						commands[i].queue = our_q
+						commands[i].queueSize = qsize
+					else
+						commands[i].queue = nil
+						commands[i].queueSize = 0
+					end
+					if fingerprint and qsize > 0 then
+						local entry = getQueueShareEntry()
+						entry.queue = our_q
+						entry.queueSize = qsize
+						entry.refCount = 1
+						entry.generation = qGen
+						entry.fingerprint = fingerprint
 						queueShareCache[fingerprint] = entry
 						commands[i].sharedQueue = entry
 					else
@@ -825,7 +870,6 @@ function widget:DrawWorldPreUnit()
 	local gf = spGetGameFrame()
 	if currentGameFrame ~= gf then
 		currentGameFrame = gf
-		clearPositionCache()
 	end
 
 	glDepthTest(false)
