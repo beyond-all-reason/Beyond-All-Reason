@@ -32,6 +32,20 @@ local armorTypeShields = Game.armorTypes.shields
 
 local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
 local scriptedShieldDamages = {}
+local scriptedShieldEntries = {}
+local scriptedShieldEntryIndex = {}
+
+local function registerScriptedShieldEntry(projectileTbl, callback)
+	local index = scriptedShieldEntryIndex[projectileTbl]
+	if index then
+		scriptedShieldEntries[index][2] = callback
+	else
+		scriptedShieldEntries[#scriptedShieldEntries + 1] = { projectileTbl, callback }
+		scriptedShieldEntryIndex[projectileTbl] = #scriptedShieldEntries
+	end
+
+	scriptedShieldDamages[projectileTbl] = callback
+end
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
 
@@ -65,7 +79,10 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 	end
 
 	local function doShieldPreDamaged(self, projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-		for lookup, callback in pairs(scriptedShieldDamages) do
+		for i = 1, #scriptedShieldEntries do
+			local entry = scriptedShieldEntries[i]
+			local lookup = entry[1]
+			local callback = entry[2]
 			if lookup[projectileID] then
 				if callback(projectileID, attackerID, shieldWeaponIndex, shieldUnitID, bounceProjectile, beamWeaponIndex, beamUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
 					return true
@@ -78,11 +95,11 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 	---@param projectileTbl table [projectileID] := true
 	---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 	local function registerShieldPreDamaged(projectileTbl, callback)
-		if not next(scriptedShieldDamages) then
+		if #scriptedShieldEntries == 0 then
 			gadget.ShieldPreDamaged = doShieldPreDamaged
 			gadgetHandler:UpdateCallIn("ShieldPreDamaged")
 		end
-		scriptedShieldDamages[projectileTbl] = callback
+		registerScriptedShieldEntry(projectileTbl, callback)
 	end
 
 	function gadget:Initialize()
@@ -594,7 +611,10 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldWeaponNum, shieldUnitI
 	end
 
 	-- Process scripted weapon types first (dgun, cluster, overpen, area timed). These can override any behaviors, potentially.
-	for lookup, callback in pairs(scriptedShieldDamages) do
+	for i = 1, #scriptedShieldEntries do
+		local entry = scriptedShieldEntries[i]
+		local lookup = entry[1]
+		local callback = entry[2]
 		if lookup[proID] then -- TODO: filtering for beam weapons (projectileID == -1) is not especially effective here.
 			if callback(proID, proOwnerID, shieldWeaponNum, shieldUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ) then
 				return true
@@ -746,7 +766,7 @@ end
 ---@param projectileTbl table [projectileID] := true
 ---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 local function registerShieldPreDamaged(projectileTbl, callback)
-	scriptedShieldDamages[projectileTbl] = callback
+	registerScriptedShieldEntry(projectileTbl, callback)
 end
 
 function gadget:Initialize()

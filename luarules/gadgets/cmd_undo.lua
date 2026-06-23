@@ -42,6 +42,16 @@ if gadgetHandler:IsSyncedCode() then
 	local lastSelfdTeamID = 0
 	local sceduledRestoreHeightmap = {}
 	local CMD_SELFD = CMD.SELFD
+	local enemyNearbyCacheFrame = {}
+	local enemyNearbyCacheValue = {}
+
+	local function HasNoNearbyEnemyCached(unitID, gameFrame)
+		if enemyNearbyCacheFrame[unitID] ~= gameFrame then
+			enemyNearbyCacheFrame[unitID] = gameFrame
+			enemyNearbyCacheValue[unitID] = Spring.GetUnitNearestEnemy(unitID, 1000) == nil
+		end
+		return enemyNearbyCacheValue[unitID]
+	end
 
 	local dgunDef = {}
 	for weaponDefID, weaponDef in ipairs(WeaponDefs) do
@@ -203,32 +213,32 @@ if gadgetHandler:IsSyncedCode() then
 		if safeguardedUnits[unitDefID] and attackerTeam and Spring.AreTeamsAllied(unitTeam, attackerTeam) then
 			local isDgun = dgunDef[weaponID]
 			local isSelfD = selfDWeaponToUnit[weaponID]
-			local hasNoEnemy = (not isDgun and not isSelfD) and not Spring.GetUnitNearestEnemy(unitID, 1000)
+			local hasNoEnemy = (not isDgun and not isSelfD) and HasNoNearbyEnemyCached(unitID, Spring.GetGameFrame())
 
 			if isDgun or isSelfD or hasNoEnemy then
-				local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
-				local victimName = Spring.GetPlayerInfo(playerID, false) or '---'
-				if victimIsAi then
-					local aiName = Spring.GetGameRulesParam('ainame_' .. unitTeam)
-					if aiName then
-						victimName = aiName .. ' (AI)'
-					end
-				end
-
-				local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
-				local attackerName = Spring.GetPlayerInfo(attackerPlayerID, false) or '---'
-				if attackerIsAi then
-					local aiName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)
-					if aiName then
-						attackerName = aiName .. ' (AI)'
-					end
-				end
-
-				local x, _, z = Spring.GetUnitPosition(unitID)
-				local unitName = UnitDefs[unitDefID].name
-				local atPosition = (x and z) and ('   (pos: ' .. mathFloor(mathFloor(x / 100) * 100) .. ', ' .. mathFloor(mathFloor(z / 100) * 100) .. ')') or ''
-
 				if enableAlertEchos then
+					local _, playerID, _, victimIsAi = Spring.GetTeamInfo(unitTeam, false)
+					local victimName = Spring.GetPlayerInfo(playerID, false) or '---'
+					if victimIsAi then
+						local aiName = Spring.GetGameRulesParam('ainame_' .. unitTeam)
+						if aiName then
+							victimName = aiName .. ' (AI)'
+						end
+					end
+
+					local _, attackerPlayerID, _, attackerIsAi = Spring.GetTeamInfo(attackerTeam, false)
+					local attackerName = Spring.GetPlayerInfo(attackerPlayerID, false) or '---'
+					if attackerIsAi then
+						local aiName = Spring.GetGameRulesParam('ainame_' .. attackerTeam)
+						if aiName then
+							attackerName = aiName .. ' (AI)'
+						end
+					end
+
+					local x, _, z = Spring.GetUnitPosition(unitID)
+					local unitName = UnitDefs[unitDefID].name
+					local atPosition = (x and z) and ('   (pos: ' .. mathFloor(mathFloor(x / 100) * 100) .. ', ' .. mathFloor(mathFloor(z / 100) * 100) .. ')') or ''
+
 					if isDgun then
 						if victimName == attackerName then
 							notify('\255\255\100\100 -- ALERT --   ' .. attackerName .. ' tried to DGUN their own ' .. unitName .. atPosition)
@@ -262,6 +272,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- log selfd units and all the deaths they caused
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+		enemyNearbyCacheFrame[unitID] = nil
+		enemyNearbyCacheValue[unitID] = nil
+
 		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID]) then -- attackerID == nil -> selfd/reclaim
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
