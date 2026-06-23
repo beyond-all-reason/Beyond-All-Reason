@@ -704,6 +704,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "arm-hov-small-ok",
 		BaseSoundWeaponType = "aarocket-small",
 	},
+	--armthovr
+	armthovr = {
+		BaseSoundSelectType = "arm-hov-large-sel",
+		BaseSoundMovementType = "arm-hov-large-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
 	armanac = {
 		BaseSoundSelectType = "arm-hov-small-sel",
 		BaseSoundMovementType = "arm-hov-small-ok",
@@ -1011,6 +1017,12 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-sub-small-sel",
 		BaseSoundMovementType = "arm-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
+	},
+	--armtship
+		armtship = {
+		BaseSoundSelectType = "arm-shp-medium-sel",
+		BaseSoundMovementType = "arm-shp-medium-ok",
+		BaseSoundWeaponType = "transport-large",
 	},
 	armpship = {
 		BaseSoundSelectType = "arm-shp-medium-sel",
@@ -1931,6 +1943,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-hov-large-ok",
 		BaseSoundWeaponType = "laser-medium",
 	},
+	--corthovr
+	corthovr = {
+		BaseSoundSelectType = "cor-hov-large-sel",
+		BaseSoundMovementType = "cor-hov-large-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
 	corsok = {
 		BaseSoundSelectType = "cor-hov-large-sel",
 		BaseSoundMovementType = "cor-hov-large-ok",
@@ -2206,6 +2224,12 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-tnk-large-ok",
 		BaseSoundWeaponType = "nuke-anti",
 	},
+	--corintr
+	corintr = {
+		BaseSoundSelectType = "cor-tnk-large-sel",
+		BaseSoundMovementType = "cor-tnk-large-ok",
+		BaseSoundWeaponType = "transport-large",
+	},
 	corgol = {
 		BaseSoundSelectType = "cor-tnk-huge-sel",
 		BaseSoundMovementType = "cor-tnk-huge-ok",
@@ -2264,6 +2288,12 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "cor-sub-small-sel",
 		BaseSoundMovementType = "cor-sub-small-ok",
 		BaseSoundWeaponType = "rez-small",
+	},
+	--cortship
+	cortship = {
+		BaseSoundSelectType = "cor-shp-medium-sel",
+		BaseSoundMovementType = "cor-shp-medium-ok",
+		BaseSoundWeaponType = "transport-large",
 	},
 	corpship = {
 		BaseSoundSelectType = "cor-shp-medium-sel",

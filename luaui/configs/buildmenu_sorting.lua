@@ -463,6 +463,16 @@ local unitOrderTable = {
 
 	['armdfly']        = 010610,
 	['corseah']        = 010620,
+	
+	--REMOVED TRANSPORTS
+	
+	['armtship']       = 010540,
+	['cortship']       = 010550,
+
+	['armthovr']       = 010560,
+	['corthovr']       = 010570,
+
+	['corintr']        = 010600,
 
 	-- ANTINUKES
 	['armscab']        = 020000,
