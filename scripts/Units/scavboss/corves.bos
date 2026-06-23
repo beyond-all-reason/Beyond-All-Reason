@@ -3,16 +3,15 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  Chassis, ban1, ban1Flare1, ban1Flare2, ban2, ban2Flare1,ban2Flare2, FlamePivotXY, FlamePivotZ, Flamer, FlamerFlare1, FlamerFlare2, Turret, Barrel, BarrelFlare1, BarrelFlare2, smoke1, smoke2;
+piece  Chassis, ban1, ban1Flare1, ban1Flare2, ban2, ban2Flare1,ban2Flare2, FlamePivotXY, FlamePivotZ, Flamer, FlamerFlare1, FlamerFlare2, Turret, Barrel, BarrelExit, BarrelFlare1, BarrelFlare2, smoke1, smoke2;
 
-static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lball_heading, last_rball_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc;
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_ban1_heading, last_ban2_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc, BarrelLastFired, Ban1LastFired, Ban2LastFired, FlamerLastFired;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE				4
 #define SIG_AIML				8
 #define SIG_AIMR				16
-#define SIG_TICKLE				32
 
 UnitSpeed()
 {
@@ -96,10 +95,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	wait-for-turn BASEPIECE around x-axis;
 	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
 	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-
-	
-	
 }
+
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
@@ -114,10 +111,12 @@ Create()
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
 	lastfired = 0;
+	BarrelLastFired = 1;
+	Ban1LastFired = 1;
+	Ban2LastFired = 1;
+	FlamerLastFired = 1;
 	restore_delay = 3000;
 	start-script SmokeUnit();
-	last_lball_heading = -1000000;
-	last_rball_heading = -1000000;
 }
 
 StartMoving()
@@ -128,7 +127,6 @@ StartMoving()
 	start-script Smoke();
 	start-script UnitSpeed();
 }
-
 
 StopMoving()
 {
@@ -159,6 +157,7 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
@@ -166,25 +165,25 @@ RestoreAfterDelay()
 }
 
 
-//RestoreAfterDelay_lspon()
-//{
-//	set-signal-mask SIG_AIML; //ensures restore animation is killed if this weapon is aimed
-//	sleep restore_delay;
-//	//large negative values to let wait-for-turn happen on first target
-//	last_lball_heading = -1000000;
-//	turn lball to y-axis <0> speed <90>;
-//	turn lbarrel to x-axis <0.000000> speed <15>;
-//}
-//
-//RestoreAfterDelay_rspon()
-//{
-//	set-signal-mask SIG_AIMR; //ensures restore animation is killed if this weapon is aimed
-//	sleep restore_delay;
-//	//large negative values to let wait-for-turn happen on first target
-//	last_rball_heading = -1000000;
-//	turn rball to y-axis <0> speed <90>;
-//	turn rbarrel to x-axis <0.000000> speed <15>;
-//}
+RestoreAfterDelay_ban1()
+{
+	set-signal-mask SIG_AIML; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_ban1_heading = -1000000;
+	turn ban1 to y-axis <0> speed <90>;
+	turn ban1 to x-axis <0.000000> speed <15>;
+}
+
+RestoreAfterDelay_ban2()
+{
+	set-signal-mask SIG_AIMR; //ensures restore animation is killed if this weapon is aimed
+	sleep restore_delay;
+	//large negative values to let wait-for-turn happen on first target
+	last_ban2_heading = -1000000;
+	turn ban2 to y-axis <0> speed <90>;
+	turn ban2 to x-axis <0.000000> speed <15>;
+}
 
 
 
@@ -204,13 +203,24 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	lastfired = 1;
-
-	emit-sfx 1024 + 0 from Barrel;
-	move Barrel to z-axis [-2.400000] speed [500.000000];
-	emit-sfx 1024 + 0 from Barrel;
-	wait-for-move Barrel along z-axis;
-	move Barrel to z-axis [0.000000] speed [3.000000];//*/
-
+	if ( (BarrelLastFired==2) )
+	{
+		emit-sfx 1024 + 0 from BarrelFlare1;
+		move BarrelExit to z-axis [-2.400000] speed [500.000000];
+		emit-sfx 1024 + 0 from BarrelFlare1;
+		wait-for-move BarrelExit along z-axis;
+		move BarrelExit to z-axis [0.000000] speed [3.000000];//*/
+		BarrelLastFired=1;
+	}
+	else
+	{
+		emit-sfx 1024 + 0 from BarrelFlare2;
+		move BarrelExit to z-axis [-2.400000] speed [500.000000];
+		emit-sfx 1024 + 0 from BarrelFlare2;
+		wait-for-move BarrelExit along z-axis;
+		move BarrelExit to z-axis [0.000000] speed [3.000000];//*/
+		BarrelLastFired=2;
+	}
 }
 
 AimFromPrimary(piecenum)
@@ -220,7 +230,14 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = BarrelFlare1;
+	if ( (BarrelLastFired>1) )
+	{
+		piecenum = BarrelFlare1;
+	}
+	else
+	{
+		piecenum = BarrelFlare2;
+	}
 }
 
 
@@ -247,28 +264,36 @@ AimSecondary(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn ban1 to y-axis heading speed <120>;
 	// if weapon will take more than 1 frame to turn to new angle, wait for turn
-	if ( (get ABS(last_lball_heading - heading) > 720) )
+	if ( (get ABS(last_ban1_heading - heading) > 720) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn ban1 around y-axis;
 	}
-	last_lball_heading = heading;
+	last_ban1_heading = heading;
 	//return (1);	
 	//get PRINT(get GAME_FRAME, heading, pitch);
 
 	turn ban1 to x-axis <0.000000> - pitch speed <80.000000>;
 	wait-for-turn ban1 around x-axis;
+
 	//get PRINT(321);
-	//start-script RestoreAfterDelay_lspon();
+
+	start-script RestoreAfterDelay_ban1();
+
 	return (1);
 }
 
 FireSecondary()
 {
 	lastfired = 2;
-	move ban1 to z-axis [-1] speed [62.500000];
-	wait-for-move ban1 along z-axis;
-	move ban1 to z-axis [0.000000] speed [4.000000];
+	if (Ban1LastFired>1)
+	{
+		Ban1LastFired=1;
+	}
+	else
+	{
+		Ban1LastFired=2;
+	}
 }
 
 AimFromSecondary(piecenum)
@@ -278,8 +303,16 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	piecenum = ban1Flare1;
+	if (Ban1LastFired>1)
+	{
+		piecenum = ban1Flare1;
+	}
+	else
+	{
+		piecenum = ban1Flare2;
+	}
 }
+
 
 
 
@@ -304,29 +337,33 @@ AimTertiary(heading, pitch)
 	// In general, 6 cau per frame ~= 1 degree per second
 	turn ban2 to y-axis heading speed <120>;
 	// if weapon will take more than 1 frame to turn to new angle, wait for turn
-	if ( (get ABS(last_rball_heading - heading)>720) )
+	if ( (get ABS(last_ban2_heading - heading)>720) )
 	{
 		// seems to take 3 frames for wait-for-turn to process
 		wait-for-turn ban2 around y-axis;
 	}
-	last_rball_heading=heading;
+	last_ban2_heading=heading;
 
 
 	//get PRINT(get GAME_FRAME, heading, pitch);
 	turn ban2 to x-axis <0.000000> - pitch speed <80.000000>;
 	wait-for-turn ban2 around x-axis;
 
-	
-	//start-script RestoreAfterDelay_rspon();
+	start-script RestoreAfterDelay_ban2();
 	return (1);
 }	
 	
 FireTertiary()
 {
 	lastfired=3;
-	move ban2 to z-axis [-1] speed [62.500000];
-	wait-for-move ban2 along z-axis;
-	move ban2 to z-axis [0.000000] speed [4.000000];
+	if (Ban2LastFired>1)
+	{
+		Ban2LastFired=1;
+	}
+	else
+	{
+		Ban2LastFired=2;
+	}
 }
 
 AimFromTertiary(piecenum)
@@ -336,8 +373,69 @@ AimFromTertiary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	piecenum = ban2Flare1;
+	if (Ban2LastFired>1)
+	{
+		piecenum = ban2Flare1;
+	}
+	else
+	{
+		piecenum = ban2Flare2;
+	}
 }
+
+
+
+AimWeapon4(heading, pitch)
+{
+	if ( (heading<-11000) or (heading>11000) )
+	{
+		return (0);
+	}
+	if ( (pitch<-16000) or (pitch>16000) )
+	{
+		return (0);
+	}
+
+	turn FlamePivotXY to y-axis heading speed <120>;
+	turn FlamePivotZ to x-axis pitch speed <80>;
+	wait-for-turn FlamePivotXY around y-axis;
+	wait-for-turn FlamePivotZ around x-axis;
+
+	return (1);
+}
+
+FireWeapon4()
+{
+	lastfired=4;
+	if (FlamerLastFired>1)
+	{
+		FlamerLastFired=1;
+	}
+	else
+	{
+		FlamerLastFired=2;
+	}
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = FlamePivotXY;
+}
+
+QueryWeapon4(piecenum)
+{
+	if ( (FlamerLastFired>1) )
+	{
+		piecenum = FlamerFlare1;
+	}
+	else
+	{
+		piecenum = FlamerFlare2;
+	}
+}
+
+
+
 
 SweetSpot(piecenum)
 {
@@ -351,28 +449,40 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode Chassis type BITMAPONLY | NOHEATCLOUD;
 		explode Turret type BITMAPONLY | NOHEATCLOUD;
-		//explode BarrelFlare1 type BITMAPONLY | NOHEATCLOUD;
+		explode Barrel type BITMAPONLY | NOHEATCLOUD;
+		explode BarrelExit type BITMAPONLY | NOHEATCLOUD;
+		explode ban1 type BITMAPONLY | NOHEATCLOUD;
+		explode ban2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode Chassis type BITMAPONLY | NOHEATCLOUD;
-		explode Turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode BarrelFlare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode Turret type FIRE | SMOKE | NOHEATCLOUD;
+		explode Barrel type FIRE | SMOKE | NOHEATCLOUD;
+		explode BarrelExit type FIRE | SMOKE | NOHEATCLOUD;
+		explode ban1 type FIRE | SMOKE | NOHEATCLOUD;
+		explode ban2 type FIRE | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode Chassis type BITMAPONLY | NOHEATCLOUD;
-		explode Turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode BarrelFlare1 type SMOKE | FALL | NOHEATCLOUD;
+		explode Turret type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode Barrel type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode BarrelExit type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode ban1 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode ban2 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode Chassis type BITMAPONLY | NOHEATCLOUD;
-		explode Turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode BarrelFlare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode Turret type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode Barrel type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode BarrelExit type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode ban1 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
+		explode ban2 type EXPLODE_ON_HIT | SMOKE | NOHEATCLOUD;
 	return corpsetype;
 }
