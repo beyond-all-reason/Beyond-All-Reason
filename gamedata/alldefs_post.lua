@@ -255,7 +255,7 @@ local function unitDef_Post(name, uDef)
 		-- apply passenger sizes (nseats + oversized tag) from passengerSizes table
 		local pentry = passengerSizes[name]
 		if pentry then
-			local nseats, oversized = passengerSizeToParams(pentry.passengersize)
+			local nseats, oversized = passengerSizeToParams(pentry.passengercategory)
 			if not uDef.customparams then uDef.customparams = {} end
 			-- skip if already set by tweakUnits/tweakDefs
 			if uDef.customparams.nseats == nil then

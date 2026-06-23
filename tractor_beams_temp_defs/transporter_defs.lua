@@ -4,31 +4,28 @@
 -- Each transporter entry may contain top-level unitDef fields and a nested customparams table.
 -- Non-listed transporters with transportcapacity get the generic defaults (script, model, etc.).
 --
--- passengerSizes: per-unit raw transport weight, converted to (nseats, oversized) by alldefs_post.
+-- passengerCategories: per-unit passenger category sizes, used to compute nseats and oversized tag for each unitDef.
 -- Source: dood_suggested_setup/oversizetable.lua
 -- The transports have power of two sized slots; a transporter of size = k will always have 
 -- any combination of (2^n) sizes possible (ie size = 5 can be 4+1, 2+2+1, 2+1+1+1, 1+1+1+1+1)
--- the term "passengersize" isn't right, it actually refers to "passengerweight" or "passengercategory",
--- it is different from the size (nseats) that will be used when validating/invalidating cargo.
--- i'll change that
 -- GDT asked for 3 categories of units: S, M, L (+untransportable)
 -- I'm subdividing this into Tiny, Very-Light, Light, Medium-Light, Medium-Heavy, Heavy, Very-Heavy (+untransportable)
 -- because even as a "no-op" the disctinction seems intuitive for ticks vs pawns, or mammoth vs bull...
 
 -- SMALL: nSeats = 1 -> one seat inside transport
-	-- Tiny = 1 + undersized tag: counts as 0.5 weight
-	-- Very Light = 1 / no tag: counts as 1 weight
-	-- Light = 1 + oversized: counts as 1.5 weight
+	-- Tiny (category 0.5)= 1 + undersized tag: counts as 0.5 weight
+	-- Very Light (category 1) = 1 / no tag: counts as 1 weight
+	-- Light (category 1.5) = 1 + oversized: counts as 1.5 weight
 -- MEDIUM: nSeats = 2 -> two seats inside transport
-	-- Medium Light = 2 / no tag: counts as 2 weight
-	-- Medium Heavy = 2 + oversized: counts as 3 weight
+	-- Medium Light (category 2) = 2 / no tag: counts as 2 weight
+	-- Medium Heavy (category 3) = 2 + oversized: counts as 3 weight
 -- LARGE: nSeats = 4 -> four seats inside transport
-	-- Heavy = 4 / no tag: counts as 4 weight
-	-- Very Heavy = 4 + oversized: counts as 6 weight
+	-- Heavy (category 4) = 4 / no tag: counts as 4 weight
+	-- Very Heavy (category 6) = 4 + oversized: counts as 6 weight
     -- Commanders: nSeats = 4 -> four seats inside transport; counts as 6 weight + special case of triggering at least the "commander loaded" speed nerf
 -- UNTRANSPORTABLE...
 
--- 3 tags are available per unitDef:
+-- 3 additional tags are available per unitDef:
 -- transporterspeedmodmode = 
 	-- 0: no speed nerf, default value; 
 	-- 1: apply a (1 - (usedSeats/transporterSeats) * transporterspeedmodstrength) modifier to the transporter speed, acc rate, turn rate, cruise alt
@@ -36,7 +33,7 @@
 -- transporterspeedmodstrength = amount of speed removed from the transport (ratio) depending on speedmodmode
 -- transportercomspeedmodstrength = minimal amount of speed removal that kicks in as soon as a commander is loaded
 -- so unless transporterSpeedModMode is set to 2, the previous "subcategories" are just équivalent to the S, M, L categories they belong to
-
+-- the concept of weight DOES NOT apply on transportability, but can be used to compute various types of nerfs (ie speed)
 
 -- ie:
 -- For a 4 seats transport, holding a very heavy unit, "speedmodmode = 2", "speedmodstrength = 0.3"
@@ -180,299 +177,299 @@ return {
 	-- -------------------------------------------------------------------------
 	passengerSizes = {
 		-- ARM Commanders
-		armcom        = { passengersize = 6 },
-		armcomcon     = { passengersize = 6 },
-		armcomlvl2    = { passengersize = 6 },
-		armcomlvl3    = { passengersize = 6 },
-		armcomlvl4    = { passengersize = 6 },
-		armcomlvl5    = { passengersize = 6 },
-		armcomlvl6    = { passengersize = 6 },
-		armcomlvl7    = { passengersize = 6 },
-		armcomlvl8    = { passengersize = 6 },
-		armcomlvl9    = { passengersize = 6 },
-		armcomlvl10   = { passengersize = 6 },
-		armcomnew     = { passengersize = 6 },
+		armcom        = { passengercategory = 6 },
+		armcomcon     = { passengercategory = 6 },
+		armcomlvl2    = { passengercategory = 6 },
+		armcomlvl3    = { passengercategory = 6 },
+		armcomlvl4    = { passengercategory = 6 },
+		armcomlvl5    = { passengercategory = 6 },
+		armcomlvl6    = { passengercategory = 6 },
+		armcomlvl7    = { passengercategory = 6 },
+		armcomlvl8    = { passengercategory = 6 },
+		armcomlvl9    = { passengercategory = 6 },
+		armcomlvl10   = { passengercategory = 6 },
+		armcomnew     = { passengercategory = 6 },
 		-- ARM Bots T1
-		armck         = { passengersize = 2 },
-		armflea       = { passengersize = 0.5 },
-		armham        = { passengersize = 1.5 },
-		armjeth       = { passengersize = 1.5 },
-		armpw         = { passengersize = 1 },
-		armrectr      = { passengersize = 1 },
-		armrock       = { passengersize = 1.5 },
-		armwar        = { passengersize = 2 },
+		armck         = { passengercategory = 2 },
+		armflea       = { passengercategory = 0.5 },
+		armham        = { passengercategory = 1.5 },
+		armjeth       = { passengercategory = 1.5 },
+		armpw         = { passengercategory = 1 },
+		armrectr      = { passengercategory = 1 },
+		armrock       = { passengercategory = 1.5 },
+		armwar        = { passengercategory = 2 },
 		-- ARM Bots T2
-		armaak        = { passengersize = 3 },   -- t2 aa bot
-		armack        = { passengersize = 2 },   -- t2 con
-		armamph       = { passengersize = 2 },   -- platy
-		armaser       = { passengersize = 2 },
-		armdecom      = { passengersize = 6 },   -- decoy com
-		armdecomlvl3  = { passengersize = 6 },
-		armdecomlvl6  = { passengersize = 6 },
-		armdecomlvl10 = { passengersize = 6 },
-		armfark       = { passengersize = 1 },   -- butler
-		armfast       = { passengersize = 2 },   -- sprinter
-		armfboy       = { passengersize = 6 },   -- fattie
-		armfido       = { passengersize = 3 },   -- hound
-		armhack       = { passengersize = 1 },
-		armmark       = { passengersize = 2 },   -- radar bot
-		armmav        = { passengersize = 3 },   -- maverick
-		armsack       = { passengersize = 1 },
-		armscab       = { passengersize = 6 },   -- mob anti
-		armsnipe      = { passengersize = 3 },   -- sniper
-		armspid       = { passengersize = 1.5 }, -- emp spider
-		armsptk       = { passengersize = 4 },   -- rocker spider
-		armspy        = { passengersize = 2 },   -- ghost
-		armvader      = { passengersize = 1 },   -- crawling bomb
-		armzeus       = { passengersize = 3 },   -- welder
+		armaak        = { passengercategory = 3 },   -- t2 aa bot
+		armack        = { passengercategory = 2 },   -- t2 con
+		armamph       = { passengercategory = 2 },   -- platy
+		armaser       = { passengercategory = 2 },
+		armdecom      = { passengercategory = 6 },   -- decoy com
+		armdecomlvl3  = { passengercategory = 6 },
+		armdecomlvl6  = { passengercategory = 6 },
+		armdecomlvl10 = { passengercategory = 6 },
+		armfark       = { passengercategory = 1 },   -- butler
+		armfast       = { passengercategory = 2 },   -- sprinter
+		armfboy       = { passengercategory = 6 },   -- fattie
+		armfido       = { passengercategory = 3 },   -- hound
+		armhack       = { passengercategory = 1 },
+		armmark       = { passengercategory = 2 },   -- radar bot
+		armmav        = { passengercategory = 3 },   -- maverick
+		armsack       = { passengercategory = 1 },
+		armscab       = { passengercategory = 6 },   -- mob anti
+		armsnipe      = { passengercategory = 3 },   -- sniper
+		armspid       = { passengercategory = 1.5 }, -- emp spider
+		armsptk       = { passengercategory = 4 },   -- rocker spider
+		armspy        = { passengercategory = 2 },   -- ghost
+		armvader      = { passengercategory = 1 },   -- crawling bomb
+		armzeus       = { passengercategory = 3 },   -- welder
 		-- ARM Vehicles T1
-		armart        = { passengersize = 2 },
-		armbeaver     = { passengersize = 2 },   -- amphib con
-		armcv         = { passengersize = 2 },
-		armfav        = { passengersize = 0.5 },
-		armflash      = { passengersize = 1.5 }, -- blitz
-		armjanus      = { passengersize = 2 },
-		armmlv        = { passengersize = 1 },   -- minelayer
-		armpincer     = { passengersize = 2 },   -- amphib
-		armsam        = { passengersize = 2 },
-		armstump      = { passengersize = 2 },   -- stout
+		armart        = { passengercategory = 2 },
+		armbeaver     = { passengercategory = 2 },   -- amphib con
+		armcv         = { passengercategory = 2 },
+		armfav        = { passengercategory = 0.5 },
+		armflash      = { passengercategory = 1.5 }, -- blitz
+		armjanus      = { passengercategory = 2 },
+		armmlv        = { passengercategory = 1 },   -- minelayer
+		armpincer     = { passengercategory = 2 },   -- amphib
+		armsam        = { passengercategory = 2 },
+		armstump      = { passengercategory = 2 },   -- stout
 		-- ARM Vehicles T2
-		armacv        = { passengersize = 3 },
-		armbull       = { passengersize = 4 },
-		armconsul     = { passengersize = 2 },
-		armcroc       = { passengersize = 4 },   -- turtle
-		armgremlin    = { passengersize = 2 },
-		armhacv       = { passengersize = 4 },
-		armjam        = { passengersize = 2 },
-		armlatnk      = { passengersize = 2 },   -- jaguar
-		armmanni      = { passengersize = 6 },   -- starlight
-		armmart       = { passengersize = 4 },   -- luger/mauser
-		armmerl       = { passengersize = 6 },
-		armsacv       = { passengersize = 4 },
-		armseer       = { passengersize = 2 },
-		armyork       = { passengersize = 3 },   -- flak
+		armacv        = { passengercategory = 3 },
+		armbull       = { passengercategory = 4 },
+		armconsul     = { passengercategory = 2 },
+		armcroc       = { passengercategory = 4 },   -- turtle
+		armgremlin    = { passengercategory = 2 },
+		armhacv       = { passengercategory = 4 },
+		armjam        = { passengercategory = 2 },
+		armlatnk      = { passengercategory = 2 },   -- jaguar
+		armmanni      = { passengercategory = 6 },   -- starlight
+		armmart       = { passengercategory = 4 },   -- luger/mauser
+		armmerl       = { passengercategory = 6 },
+		armsacv       = { passengercategory = 4 },
+		armseer       = { passengercategory = 2 },
+		armyork       = { passengercategory = 3 },   -- flak
 		-- ARM Hovercraft
-		armah         = { passengersize = 3 },
-		armanac       = { passengersize = 3 },
-		armch         = { passengersize = 2 },
-		armmh         = { passengersize = 3 },
-		armsh         = { passengersize = 1.5 },
+		armah         = { passengercategory = 3 },
+		armanac       = { passengercategory = 3 },
+		armch         = { passengercategory = 2 },
+		armmh         = { passengercategory = 3 },
+		armsh         = { passengercategory = 1.5 },
 		-- ARM Buildings
-		armbeamer     = { passengersize = 4 },
-		armllt        = { passengersize = 4 },
-		armnanotc     = { passengersize = 2 },
-		armnanotc2plat = { passengersize = 6 },
-		armnanotct2   = { passengersize = 6 },
-		armrad        = { passengersize = 4 },
-		armrl         = { passengersize = 4 },
+		armbeamer     = { passengercategory = 4 },
+		armllt        = { passengercategory = 4 },
+		armnanotc     = { passengercategory = 2 },
+		armnanotc2plat = { passengercategory = 6 },
+		armnanotct2   = { passengercategory = 6 },
+		armrad        = { passengercategory = 4 },
+		armrl         = { passengercategory = 4 },
 		-- ARM Assist Drone
-		armassistdrone_land = { passengersize = 1 },
+		armassistdrone_land = { passengercategory = 1 },
 		-- COR Commanders
-		corcom        = { passengersize = 6 },
-		corcomcon     = { passengersize = 6 },
-		corcomlvl2    = { passengersize = 6 },
-		corcomlvl3    = { passengersize = 6 },
-		corcomlvl4    = { passengersize = 6 },
-		corcomlvl5    = { passengersize = 6 },
-		corcomlvl6    = { passengersize = 6 },
-		corcomlvl7    = { passengersize = 6 },
-		corcomlvl8    = { passengersize = 6 },
-		corcomlvl9    = { passengersize = 6 },
-		corcomlvl10   = { passengersize = 6 },
+		corcom        = { passengercategory = 6 },
+		corcomcon     = { passengercategory = 6 },
+		corcomlvl2    = { passengercategory = 6 },
+		corcomlvl3    = { passengercategory = 6 },
+		corcomlvl4    = { passengercategory = 6 },
+		corcomlvl5    = { passengercategory = 6 },
+		corcomlvl6    = { passengercategory = 6 },
+		corcomlvl7    = { passengercategory = 6 },
+		corcomlvl8    = { passengercategory = 6 },
+		corcomlvl9    = { passengercategory = 6 },
+		corcomlvl10   = { passengercategory = 6 },
 		-- COR Bots T1
-		corak         = { passengersize = 1 },   -- grunt
-		corck         = { passengersize = 2 },
-		corcrash      = { passengersize = 1.5 }, -- aa bot
-		cornecro      = { passengersize = 1 },
-		corstorm      = { passengersize = 1.5 },
-		corthud       = { passengersize = 1.5 },
+		corak         = { passengercategory = 1 },   -- grunt
+		corck         = { passengercategory = 2 },
+		corcrash      = { passengercategory = 1.5 }, -- aa bot
+		cornecro      = { passengercategory = 1 },
+		corstorm      = { passengercategory = 1.5 },
+		corthud       = { passengercategory = 1.5 },
 		-- COR Bots T2
-		coraak        = { passengersize = 3 },
-		corack        = { passengersize = 2 },
-		coramph       = { passengersize = 3 },   -- duck
-		corcan        = { passengersize = 3 },   -- sumo
-		cordecom      = { passengersize = 6 },
-		cordecomlvl3  = { passengersize = 6 },
-		cordecomlvl6  = { passengersize = 6 },
-		cordecomlvl10 = { passengersize = 6 },
-		corfast       = { passengersize = 1 },   -- freaker
-		corhack       = { passengersize = 1 },
-		corhrk        = { passengersize = 3 },
-		cormando      = { passengersize = 2 },   -- commando/paratrooper
-		cormort       = { passengersize = 3 },   -- sheldon
-		corpyro       = { passengersize = 2 },
-		corroach      = { passengersize = 1 },
-		corsack       = { passengersize = 1 },
-		corsktl       = { passengersize = 1.5 }, -- skuttle
-		corspec       = { passengersize = 2 },
-		corspy        = { passengersize = 2 },   -- spectre
-		corsumo       = { passengersize = 6 },   -- mammoth
-		cortermite    = { passengersize = 4 },
-		corvoyr       = { passengersize = 2 },
+		coraak        = { passengercategory = 3 },
+		corack        = { passengercategory = 2 },
+		coramph       = { passengercategory = 3 },   -- duck
+		corcan        = { passengercategory = 3 },   -- sumo
+		cordecom      = { passengercategory = 6 },
+		cordecomlvl3  = { passengercategory = 6 },
+		cordecomlvl6  = { passengercategory = 6 },
+		cordecomlvl10 = { passengercategory = 6 },
+		corfast       = { passengercategory = 1 },   -- freaker
+		corhack       = { passengercategory = 1 },
+		corhrk        = { passengercategory = 3 },
+		cormando      = { passengercategory = 2 },   -- commando/paratrooper
+		cormort       = { passengercategory = 3 },   -- sheldon
+		corpyro       = { passengercategory = 2 },
+		corroach      = { passengercategory = 1 },
+		corsack       = { passengercategory = 1 },
+		corsktl       = { passengercategory = 1.5 }, -- skuttle
+		corspec       = { passengercategory = 2 },
+		corspy        = { passengercategory = 2 },   -- spectre
+		corsumo       = { passengercategory = 6 },   -- mammoth
+		cortermite    = { passengercategory = 4 },
+		corvoyr       = { passengercategory = 2 },
 		-- COR Vehicles T1
-		corcv         = { passengersize = 2 },
-		corfav        = { passengersize = 0.5 },
-		corgarp       = { passengersize = 2 },   -- amphib
-		corgator      = { passengersize = 1.5 }, -- incisor
-		corlevlr      = { passengersize = 2 },
-		cormist       = { passengersize = 2 },
-		cormlv        = { passengersize = 2 },   -- minelayer
-		cormuskrat    = { passengersize = 2 },   -- amphib con
-		corraid       = { passengersize = 2 },
-		corwolv       = { passengersize = 2 },
+		corcv         = { passengercategory = 2 },
+		corfav        = { passengercategory = 0.5 },
+		corgarp       = { passengercategory = 2 },   -- amphib
+		corgator      = { passengercategory = 1.5 }, -- incisor
+		corlevlr      = { passengercategory = 2 },
+		cormist       = { passengercategory = 2 },
+		cormlv        = { passengercategory = 2 },   -- minelayer
+		cormuskrat    = { passengercategory = 2 },   -- amphib con
+		corraid       = { passengercategory = 2 },
+		corwolv       = { passengercategory = 2 },
 		-- COR Vehicles T2
-		coracv        = { passengersize = 2 },
-		corban        = { passengersize = 4 },
-		coreter       = { passengersize = 2 },
-		corgol        = { passengersize = 6 },   -- tzar
-		corhacv       = { passengersize = 4 },
-		cormabm       = { passengersize = 6 },
-		cormart       = { passengersize = 4 },
-		corparrow     = { passengersize = 4 },
-		corphantom    = { passengersize = 2 },
-		corprinter    = { passengersize = 4 },
-		correap       = { passengersize = 4 },
-		corsacv       = { passengersize = 4 },
-		corsala       = { passengersize = 4 },   -- salamander
-		corseal       = { passengersize = 4 },   -- alligator
-		corsent       = { passengersize = 4 },
-		corsiegebreaker = { passengersize = 16 },
-		cortrem       = { passengersize = 6 },
-		corvac        = { passengersize = 3 },
-		corvacct      = { passengersize = 3 },
-		corvrad       = { passengersize = 2 },
-		corvroc       = { passengersize = 6 },
+		coracv        = { passengercategory = 2 },
+		corban        = { passengercategory = 4 },
+		coreter       = { passengercategory = 2 },
+		corgol        = { passengercategory = 6 },   -- tzar
+		corhacv       = { passengercategory = 4 },
+		cormabm       = { passengercategory = 6 },
+		cormart       = { passengercategory = 4 },
+		corparrow     = { passengercategory = 4 },
+		corphantom    = { passengercategory = 2 },
+		corprinter    = { passengercategory = 4 },
+		correap       = { passengercategory = 4 },
+		corsacv       = { passengercategory = 4 },
+		corsala       = { passengercategory = 4 },   -- salamander
+		corseal       = { passengercategory = 4 },   -- alligator
+		corsent       = { passengercategory = 4 },
+		corsiegebreaker = { passengercategory = 16 },
+		cortrem       = { passengercategory = 6 },
+		corvac        = { passengercategory = 3 },
+		corvacct      = { passengercategory = 3 },
+		corvrad       = { passengercategory = 2 },
+		corvroc       = { passengercategory = 6 },
 		-- COR Hovercraft
-		corah         = { passengersize = 3 },
-		corch         = { passengersize = 2 },
-		corhal        = { passengersize = 4 },
-		cormh         = { passengersize = 3 },
-		corsh         = { passengersize = 1.5 },
-		corsnap       = { passengersize = 3 },
+		corah         = { passengercategory = 3 },
+		corch         = { passengercategory = 2 },
+		corhal        = { passengercategory = 4 },
+		cormh         = { passengercategory = 3 },
+		corsh         = { passengercategory = 1.5 },
+		corsnap       = { passengercategory = 3 },
 		-- COR Buildings
-		corhllt       = { passengersize = 4 },
-		corllt        = { passengersize = 4 },
-		cornanotc     = { passengersize = 2 },
-		cornanotc2plat = { passengersize = 6 },
-		cornanotct2   = { passengersize = 6 },
-		corrad        = { passengersize = 4 },
-		corrl         = { passengersize = 4 },
+		corhllt       = { passengercategory = 4 },
+		corllt        = { passengercategory = 4 },
+		cornanotc     = { passengercategory = 2 },
+		cornanotc2plat = { passengercategory = 6 },
+		cornanotct2   = { passengercategory = 6 },
+		corrad        = { passengercategory = 4 },
+		corrl         = { passengercategory = 4 },
 		-- COR Assist Drone
-		corassistdrone_land = { passengersize = 1 },
+		corassistdrone_land = { passengercategory = 1 },
 		-- HATs
-		cor_hat_fightnight = { passengersize = 1 },
-		cor_hat_hornet     = { passengersize = 1 },
-		cor_hat_hw         = { passengersize = 1 },
-		cor_hat_legfn      = { passengersize = 1 },
-		cor_hat_ptaq       = { passengersize = 1 },
-		cor_hat_viking     = { passengersize = 1 },
+		cor_hat_fightnight = { passengercategory = 1 },
+		cor_hat_hornet     = { passengercategory = 1 },
+		cor_hat_hw         = { passengercategory = 1 },
+		cor_hat_legfn      = { passengercategory = 1 },
+		cor_hat_ptaq       = { passengercategory = 1 },
+		cor_hat_viking     = { passengercategory = 1 },
 		-- Legion Commanders
-		legcom        = { passengersize = 6 },
-		legcomecon    = { passengersize = 1 },
-		legcomoff     = { passengersize = 6 },
-		legcomt2com   = { passengersize = 6 },
-		legcomt2def   = { passengersize = 6 },
-		legcomt2off   = { passengersize = 6 },
-		legcomlvl2    = { passengersize = 6 },
-		legcomlvl3    = { passengersize = 6 },
-		legcomlvl4    = { passengersize = 6 },
-		legcomlvl5    = { passengersize = 6 },
-		legcomlvl6    = { passengersize = 6 },
-		legcomlvl7    = { passengersize = 6 },
-		legcomlvl8    = { passengersize = 6 },
-		legcomlvl9    = { passengersize = 6 },
-		legcomlvl10   = { passengersize = 6 },
+		legcom        = { passengercategory = 6 },
+		legcomecon    = { passengercategory = 1 },
+		legcomoff     = { passengercategory = 6 },
+		legcomt2com   = { passengercategory = 6 },
+		legcomt2def   = { passengercategory = 6 },
+		legcomt2off   = { passengercategory = 6 },
+		legcomlvl2    = { passengercategory = 6 },
+		legcomlvl3    = { passengercategory = 6 },
+		legcomlvl4    = { passengercategory = 6 },
+		legcomlvl5    = { passengercategory = 6 },
+		legcomlvl6    = { passengercategory = 6 },
+		legcomlvl7    = { passengercategory = 6 },
+		legcomlvl8    = { passengercategory = 6 },
+		legcomlvl9    = { passengercategory = 6 },
+		legcomlvl10   = { passengercategory = 6 },
 		-- Legion Bots T1
-		legaabot      = { passengersize = 1 },
-		legbal        = { passengersize = 1 },
-		legcen        = { passengersize = 1 },
-		leggob        = { passengersize = 1 },
-		legkark       = { passengersize = 1 },
-		leglob        = { passengersize = 1 },
-		legrezbot     = { passengersize = 1 },
+		legaabot      = { passengercategory = 1 },
+		legbal        = { passengercategory = 1 },
+		legcen        = { passengercategory = 1 },
+		leggob        = { passengercategory = 1 },
+		legkark       = { passengercategory = 1 },
+		leglob        = { passengercategory = 1 },
+		legrezbot     = { passengercategory = 1 },
 		-- Legion Bots T2
-		legadvaabot   = { passengersize = 1 },
-		legajamk      = { passengersize = 1 },
-		legamph       = { passengersize = 4 },
-		legaradk      = { passengersize = 1 },
-		legaspy       = { passengersize = 1 },
-		legbart       = { passengersize = 4 },
-		legdecom      = { passengersize = 6 },
-		legdecomlvl3  = { passengersize = 6 },
-		legdecomlvl6  = { passengersize = 6 },
-		legdecomlvl10 = { passengersize = 6 },
-		leghrk        = { passengersize = 4 },
-		leginc        = { passengersize = 4 },
-		leginfestor   = { passengersize = 4 },
-		legshot       = { passengersize = 1 },
-		legsnapper    = { passengersize = 1 },
-		legsrail      = { passengersize = 4 },
-		legstr        = { passengersize = 4 },
+		legadvaabot   = { passengercategory = 1 },
+		legajamk      = { passengercategory = 1 },
+		legamph       = { passengercategory = 4 },
+		legaradk      = { passengercategory = 1 },
+		legaspy       = { passengercategory = 1 },
+		legbart       = { passengercategory = 4 },
+		legdecom      = { passengercategory = 6 },
+		legdecomlvl3  = { passengercategory = 6 },
+		legdecomlvl6  = { passengercategory = 6 },
+		legdecomlvl10 = { passengercategory = 6 },
+		leghrk        = { passengercategory = 4 },
+		leginc        = { passengercategory = 4 },
+		leginfestor   = { passengercategory = 4 },
+		legshot       = { passengercategory = 1 },
+		legsnapper    = { passengercategory = 1 },
+		legsrail      = { passengercategory = 4 },
+		legstr        = { passengercategory = 4 },
 		-- Legion Vehicles T1
-		legamphtank   = { passengersize = 4 },
-		legbar        = { passengersize = 4 },
-		leggat        = { passengersize = 4 },
-		leghades      = { passengersize = 1 },
-		leghelios     = { passengersize = 1 },
-		legmlv        = { passengersize = 1 },
-		legrail       = { passengersize = 4 },
-		legscout      = { passengersize = 1 },
+		legamphtank   = { passengercategory = 4 },
+		legbar        = { passengercategory = 4 },
+		leggat        = { passengercategory = 4 },
+		leghades      = { passengercategory = 1 },
+		leghelios     = { passengercategory = 1 },
+		legmlv        = { passengercategory = 1 },
+		legrail       = { passengercategory = 4 },
+		legscout      = { passengercategory = 1 },
 		-- Legion Vehicles T2
-		legaheattank  = { passengersize = 4 },
-		legamcluster  = { passengersize = 4 },
-		legaskirmtank = { passengersize = 4 },
-		legavantinuke = { passengersize = 4 },
-		legavjam      = { passengersize = 4 },
-		legavrad      = { passengersize = 4 },
-		legavroc      = { passengersize = 4 },
-		legfloat      = { passengersize = 4 },
-		legfmg        = { passengersize = 4 },
-		leginf        = { passengersize = 4 },
-		legmed        = { passengersize = 4 },
-		legmrv        = { passengersize = 1 },
-		legvcarry     = { passengersize = 4 },
-		legvflak      = { passengersize = 4 },
+		legaheattank  = { passengercategory = 4 },
+		legamcluster  = { passengercategory = 4 },
+		legaskirmtank = { passengercategory = 4 },
+		legavantinuke = { passengercategory = 4 },
+		legavjam      = { passengercategory = 4 },
+		legavrad      = { passengercategory = 4 },
+		legavroc      = { passengercategory = 4 },
+		legfloat      = { passengercategory = 4 },
+		legfmg        = { passengercategory = 4 },
+		leginf        = { passengercategory = 4 },
+		legmed        = { passengercategory = 4 },
+		legmrv        = { passengercategory = 1 },
+		legvcarry     = { passengercategory = 4 },
+		legvflak      = { passengercategory = 4 },
 		-- Legion Hovercraft
-		legah         = { passengersize = 4 },
-		legcar        = { passengersize = 4 },
-		legmh         = { passengersize = 4 },
-		legner        = { passengersize = 4 },
-		legsh         = { passengersize = 4 },
+		legah         = { passengercategory = 4 },
+		legcar        = { passengercategory = 4 },
+		legmh         = { passengercategory = 4 },
+		legner        = { passengercategory = 4 },
+		legsh         = { passengercategory = 4 },
 		-- Legion Ships
-		leganavybattleship = { passengersize = 16 },
+		leganavybattleship = { passengercategory = 16 },
 		-- Legion Constructors
-		legack        = { passengersize = 1 },
-		legaceb       = { passengersize = 1 },
-		legacv        = { passengersize = 4 },
-		legafcv       = { passengersize = 4 },
-		legch         = { passengersize = 4 },
-		legck         = { passengersize = 1 },
-		legcv         = { passengersize = 4 },
-		leghack       = { passengersize = 1 },
-		leghacv       = { passengersize = 4 },
-		legotter      = { passengersize = 4 },
+		legack        = { passengercategory = 1 },
+		legaceb       = { passengercategory = 1 },
+		legacv        = { passengercategory = 4 },
+		legafcv       = { passengercategory = 4 },
+		legch         = { passengercategory = 4 },
+		legck         = { passengercategory = 1 },
+		legcv         = { passengercategory = 4 },
+		leghack       = { passengercategory = 1 },
+		leghacv       = { passengercategory = 4 },
+		legotter      = { passengercategory = 4 },
 		-- Legion Buildings
-		leglht        = { passengersize = 1 },
-		legmg         = { passengersize = 4 },
-		legnanotc     = { passengersize = 4 },
-		legnanotct2   = { passengersize = 4 },
-		legnanotct2plat = { passengersize = 4 },
-		legrad        = { passengersize = 1 },
-		legrl         = { passengersize = 4 },
+		leglht        = { passengercategory = 1 },
+		legmg         = { passengercategory = 4 },
+		legnanotc     = { passengercategory = 4 },
+		legnanotct2   = { passengercategory = 4 },
+		legnanotct2plat = { passengercategory = 4 },
+		legrad        = { passengercategory = 1 },
+		legrl         = { passengercategory = 4 },
 		-- Legion T3
-		leegmech      = { passengersize = 4 },
-		legerailtank  = { passengersize = 16 },
-		legeshotgunmech = { passengersize = 4 },
+		leegmech      = { passengercategory = 4 },
+		legerailtank  = { passengercategory = 16 },
+		legeshotgunmech = { passengercategory = 4 },
 		-- Legion Assist Drone
-		legassistdrone_land = { passengersize = 1 },
+		legassistdrone_land = { passengercategory = 1 },
 		-- Baby Units
-		babyleggob    = { passengersize = 1 },
-		babyleglob    = { passengersize = 1 },
-		babylegshotg  = { passengersize = 1 },
+		babyleggob    = { passengercategory = 1 },
+		babyleglob    = { passengercategory = 1 },
+		babylegshotg  = { passengercategory = 1 },
 		-- Debug / Dummy
-		dbg_sphere           = { passengersize = 1 },
-		dbg_sphere_fullmetal = { passengersize = 1 },
-		dummycom             = { passengersize = 6 },
+		dbg_sphere           = { passengercategory = 1 },
+		dbg_sphere_fullmetal = { passengercategory = 1 },
+		dummycom             = { passengercategory = 6 },
 	},
 }
 
