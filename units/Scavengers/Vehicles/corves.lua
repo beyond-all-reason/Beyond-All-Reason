@@ -60,7 +60,7 @@ return {
 				footprintz = 5,
 				height = 20,
 				metal = 12500,
-				object = "Units/scavboss/corgolt4_dead.s3o",
+				object = "Units/corves_dead.s3o",
 				reclaimable = true,
 			},
 
