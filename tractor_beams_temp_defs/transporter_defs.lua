@@ -1,3 +1,5 @@
+--
+
 -- Tractor-beam transport unit defs, applied by alldefs_post when beta_tractorbeam is enabled.
 -- Each transporter entry may contain top-level unitDef fields and a nested customparams table.
 -- Non-listed transporters with transportcapacity get the generic defaults (script, model, etc.).
@@ -10,6 +12,32 @@ local DEFAULT_GENERIC_SCRIPT    = "units/generic_air_transport_lus.lua"
 local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
 
 return {
+    -- -------------------------------------------------------------------------
+	-- LAB BUILDOPTIONS
+	-- Per-factory explicit list of transports when beta_tractorbeam is active.
+	-- All known transporters are stripped from the factory's buildoptions first,
+	-- then only the ones listed here are re-added in order.
+	-- A factory not listed here is left completely untouched.
+	-- An empty list {} removes all transports from that factory.
+	-- -------------------------------------------------------------------------
+	labBuildoptions = {
+		-- ARM T1 Air Plant
+		armap   = { "armatlas", "armhvytrans" },
+		-- ARM T2 Air Plant
+		armaap  = { "armdfly" },
+		-- ARM Platform (no transports by default)
+		armplat = {},
+		-- COR T1 Air Plant
+		corap   = { "corvalk", "corhvytrans" },
+		-- COR T2 Air Plant
+		coraap  = { "corseah" },
+		-- COR Platform (no transports by default)
+		corplat = {},
+		-- Legion T1 Air Plant
+		legap   = { "leglts", "legatrans" },
+		-- Legion T2 Air Plant
+		legaap  = { "legstronghold" },
+	},
 
 	-- -------------------------------------------------------------------------
 	-- TRANSPORTER DEFAULTS
@@ -407,3 +435,4 @@ return {
 		dummycom             = { passengersize = 6 },
 	},
 }
+

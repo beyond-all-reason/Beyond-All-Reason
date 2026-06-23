@@ -74,6 +74,11 @@ local _tractorbeamDefs       = VFS.Include("tractor_beams_temp_defs/transporter_
 local transporterDefs        = _tractorbeamDefs.transporters
 local transporterDefaults    = _tractorbeamDefs.transporterDefaults
 local passengerSizes         = _tractorbeamDefs.passengerSizes
+local labBuildoptions        = _tractorbeamDefs.labBuildoptions
+
+-- Set of all transport names managed by transporter_defs (used to scrub factory buildoptions).
+local knownTransporters = {}
+for k in pairs(transporterDefs) do knownTransporters[k] = true end
 
 -- Convert a raw passengersize float to (nseats, oversized) where nseats is the nearest
 -- lower power-of-2 and oversized is "1" (1.5× weight) or "-1" (0.5× weight) when needed.
@@ -259,6 +264,20 @@ local function unitDef_Post(name, uDef)
 			if oversized and uDef.customparams.oversized == nil then
 				uDef.customparams.oversized = oversized
 			end
+		end
+		-- apply lab buildoptions: strip known transporters then re-add only the listed ones
+		local labOpts = labBuildoptions[name]
+		if labOpts ~= nil then
+			local filtered = {}
+			for _, unitName in pairs(buildoptions) do
+				if not knownTransporters[unitName] then
+					filtered[#filtered + 1] = unitName
+				end
+			end
+			for _, transportName in ipairs(labOpts) do
+				filtered[#filtered + 1] = transportName
+			end
+			uDef.buildoptions = filtered
 		end
 	end
 
