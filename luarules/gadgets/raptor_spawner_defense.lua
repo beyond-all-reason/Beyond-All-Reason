@@ -1527,17 +1527,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				attackerDefID = tostring(attackerDefID)
+				local resistMult = config.queenResistanceMult
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
-						damage = damage * 5 * config.queenResistanceMult,
+						damage = damage * 5 * resistMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local qr = queenResistance[attackerDefID]
+				local resistPercent = math.min(qr.damage / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistance[attackerDefID].notify == 0 then
+					if qr.notify == 0 then
 						raptorEvent("queenResistance", tonumber(attackerDefID))
-						queenResistance[attackerDefID].notify = 1
+						qr.notify = 1
 					end
 
 				end
@@ -1553,10 +1555,10 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					damage = damage - (damage * resistPercent)
 				end
-				
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 5 * config.queenResistanceMult)
-				queenResistance[attackerDefID].percent = resistPercent
-				
+
+				qr.damage = qr.damage + (damage * 5 * resistMult)
+				qr.percent = resistPercent
+
 			else
 				damage = 1
 			end
@@ -1577,7 +1579,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		return damage, 1
-	end	
+	end
 
 	UnitReactionsTimeout = {}
 	UnitLifetimeResetTimeout = {}

@@ -1738,17 +1738,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				attackerDefID = tostring(attackerDefID)
+				local resistMult = config.bossResistanceMult
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
-						damage = damage * 5 * config.bossResistanceMult,
+						damage = damage * 5 * resistMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local br = bossResistance[attackerDefID]
+				local resistPercent = math.min(br.damage / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if bossResistance[attackerDefID].notify == 0 then
+					if br.notify == 0 then
 						scavEvent("bossResistance", tonumber(attackerDefID))
-						bossResistance[attackerDefID].notify = 1
+						br.notify = 1
 					end
 					damage = damage - (damage * resistPercent)
 				end
@@ -1766,8 +1768,8 @@ if gadgetHandler:IsSyncedCode() then
 					damage = damage - (damage * resistPercent)
 				end
 
-				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 5 * config.bossResistanceMult)
-				bossResistance[attackerDefID].percent = resistPercent
+				br.damage = br.damage + (damage * 5 * resistMult)
+				br.percent = resistPercent
 			else
 				damage = 1
 			end
@@ -2221,7 +2223,7 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(scavTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then 
+				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
 					unitCowardCooldown[unitID] = nil
 					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 				end
