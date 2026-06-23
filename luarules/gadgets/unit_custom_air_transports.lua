@@ -308,6 +308,7 @@ end
 ---@param transporterAllyTeam number  -- transporter allyTeam (not teamID!)
 ---@return boolean
 local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPosY, transporterID, transporterAllyTeam, transporterTeamID, passengerTeamID)
+	if not spValidUnitID(passengerID) then
 		return false
 	end
 	if spGetUnitIsDead(passengerID) then
@@ -343,8 +344,6 @@ local function CanBeTransportedDynamic(passengerID, passengerDefID, passengerPos
 	if not losState or not (losState.los or losState.radar) then
 		return false
 	end
-
-
 	return true
 end
 

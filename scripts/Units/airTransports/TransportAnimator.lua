@@ -144,7 +144,7 @@ end
 -- @param setup  table  per-unit anim/slot config loaded from <unitName>/setup.lua
 function TransportAnimator.Init(setup)
 	loadTime       = tonumber(UnitDefs[unitDefID].customParams.loadtime)
-	cegScaleFactor = tonumber(UnitDefs[unitDefID].customParams.transportercegscale or 0.7)
+	cegScaleFactor = 1.0
 	cegName        = UnitDefs[unitDefID].customParams.transportcegname or "tractorbeam"
 	heightOffsetMult   = cegName == "armada_ion" and 1 or cegName == "cortex_grapple" and 0.5 or cegName == "legion_grav_distort" and 0.2 or 1
 	radiusOffsetMult   = cegName == "armada_ion" and 0 or cegName == "cortex_grapple" and 0.85 or cegName == "legion_grav_distort" and 0 or 1

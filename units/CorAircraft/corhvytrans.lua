@@ -34,14 +34,10 @@ return {
 		verticalspeed = 3.75,
 		customparams = {
 			crashable = 0,
-			loadtime = 60,
 			model_author = "Protar",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
-			transporterseats = 4,
-			transportcegname = "cortex_grapple",
-			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

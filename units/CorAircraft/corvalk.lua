@@ -33,15 +33,11 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			loadtime = 30,
 			crashable = 0,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft",
-			transporterseats = 2,
-			transportcegname = "cortex_grapple",
-			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

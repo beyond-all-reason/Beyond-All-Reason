@@ -38,16 +38,12 @@ return {
 		unloadspread = 0,
 		customparams = {
 			crashable = 0,
-			loadtime = 60,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "emp",
-			transporterseats = 4,
-			transportcegname = "armada_ion",
-			transportercegscale = "0.7",
 		},
 		sfxtypes = {
 			explosiongenerators = {

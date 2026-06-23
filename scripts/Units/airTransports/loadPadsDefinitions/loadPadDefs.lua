@@ -1,3 +1,8 @@
+-- Generated universalPadGenerator.py along with the s3o pattern
+-- do not edit manually
+-- this is a temporary "fix" to allow editing transporter sizes via tweakDefs; without having to change models
+-- A fine tuned model with its very own config is preferable to this in the future +++
+
 local loadPads = {
     size1 = {
         cargo = {

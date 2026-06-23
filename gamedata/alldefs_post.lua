@@ -70,6 +70,31 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local _tractorbeamDefs       = VFS.Include("tractor_beams_temp_defs/transporter_defs.lua")
+local transporterDefs        = _tractorbeamDefs.transporters
+local transporterDefaults    = _tractorbeamDefs.transporterDefaults
+local passengerSizes         = _tractorbeamDefs.passengerSizes
+
+-- Convert a raw passengersize float to (nseats, oversized) where nseats is the nearest
+-- lower power-of-2 and oversized is "1" (1.5× weight) or "-1" (0.5× weight) when needed.
+local function passengerSizeToParams(size)
+	if size == 0.5  then return 1,  "-1" end -- 1 * 0.5
+	if size == 1    then return 1,  nil  end
+	if size == 1.5  then return 1,  "1"  end -- 1 * 1.5
+	if size == 2    then return 2,  nil  end
+	if size == 3    then return 2,  "1"  end -- 2 * 1.5
+	if size == 4    then return 4,  nil  end
+	if size == 6    then return 4,  "1"  end -- 4 * 1.5
+	if size == 8    then return 8,  nil  end
+	if size == 16   then return 16, nil  end
+	-- generic fallback: floor to nearest power-of-2
+	local p = 1
+	while p * 2 <= size do p = p * 2 end
+	if size == p * 1.5 then return p, "1"
+	elseif size == p * 0.5 then return p / 2, "1" -- shouldn't happen with known values
+	else return p, nil
+	end
+end
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -200,20 +225,39 @@ local function unitDef_Post(name, uDef)
 
 	--- beta tractorbeam mod option
 	if modOptions.beta_tractorbeam == true then
-		if uDef.transportcapacity then
-			uDef.transportcapacity = 1000
-			uDef.transportsize = 1000
-			uDef.transportunloadmethod = 0
-			uDef.transportmass = 100000
-			uDef.holdsteady = true
-			uDef.releaseheld = true
-			uDef.loadingRadius = 512
-			uDef.unloadSpread = 0
+		-- apply transporter overrides
+		local tentry = transporterDefs[name]
+		if tentry then
+			-- apply shared defaults
+			for k, v in pairs(transporterDefaults) do
+				uDef[k] = v
+			end
 			uDef.objectname = "units/" .. name .. "_tractorbeam.s3o"
-			if name == "armdfly" or name == "legstronghold" then
-				uDef.script = "units/weaponized_air_transport_lus.lua"
-			else
-				uDef.script = "units/generic_air_transport_lus.lua"
+			-- apply per-unit top-level overrides (e.g. script for weaponized transports)
+			for k, v in pairs(tentry) do
+				if k ~= "customparams" then
+					uDef[k] = v
+				end
+			end
+			-- apply per-unit customparams
+			if tentry.customparams then
+				if not uDef.customparams then uDef.customparams = {} end
+				for k, v in pairs(tentry.customparams) do
+					uDef.customparams[k] = v
+				end
+			end
+		end
+		-- apply passenger sizes (nseats + oversized tag) from passengerSizes table
+		local pentry = passengerSizes[name]
+		if pentry then
+			local nseats, oversized = passengerSizeToParams(pentry.passengersize)
+			if not uDef.customparams then uDef.customparams = {} end
+			-- skip if already set by tweakUnits/tweakDefs
+			if uDef.customparams.nseats == nil then
+				uDef.customparams.nseats = nseats
+			end
+			if oversized and uDef.customparams.oversized == nil then
+				uDef.customparams.oversized = oversized
 			end
 		end
 	end

@@ -34,14 +34,10 @@ return {
 		verticalspeed = 3.75,
 		customparams = {
 			crashable = 0,
-			loadtime = 30,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "ArmAircraft",
-			transporterseats = 2,
-			transportcegname = "armada_ion",
-			transportercegscale = "1.0",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

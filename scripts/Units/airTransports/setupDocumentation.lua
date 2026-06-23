@@ -1,30 +1,4 @@
 return {
-    cargo = {
-        primarySlot = string pieceName, -- unused, will be dropped once I fully review
-        transporterSeats      = number seats, -- total amount of seats available at once
-
-        slots = { -- slot ~= seat; a slot is a specific position in the cargo, with a defined size
-            { 
-            name = string pieceName, -- name of the link piece of this slot
-            size = number slotSize, -- size of the slot
-            requires = {  -- piece that are required to be empty for this slot to be used; 
-                string pieceName1, 
-                string pieceName2, 
-                ...,
-                }    
-            },
-
-        },
-    },
-    loadMethod = {
-        cegScaleFactor = number scale, -- multiplier for the size of the CEG, used to adjust the visual effect
-        cegName        = string cegName, -- name of the CEG to use for the loading effect
-        beams = { -- beam pieces to emit CEGs from, indexed by slot name
-            [string slotName1]= { string beamEmmiterPieceName1, string beamEmmiterPieceName2, ...},
-            [string slotName2]= { string beamEmmiterPieceName1, string beamEmmiterPieceName2, ...}, 
-            ...,
-        },
-    },
     anim = {
         idleHover = { -- basic hovering effect
             piece = string pieceName, -- piece to apply the hover effect to (usually root piece)

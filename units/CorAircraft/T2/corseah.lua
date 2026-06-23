@@ -37,15 +37,11 @@ return {
 		upright = true,
 		customparams = {
 			crashable = 0,
-			loadtime = 90,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-			transporterseats = 6,
-			transportcegname = "cortex_grapple",
-			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -33,15 +33,11 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			loadtime = 60,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "Legion/Air",
 			crashable = 0,
-			transporterseats = 4,
-			transportcegname = "legion_grav_distort",
-			transportercegscale = "0.7",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

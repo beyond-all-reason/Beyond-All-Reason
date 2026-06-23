@@ -37,16 +37,12 @@ return {
 		unloadspread = 0,
 		upright = true,
 		customparams = {
-			loadtime = 60,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			crashable = 0,
-			transporterseats = 4,
-			transportcegname = "legion_grav_distort",
-			transportercegscale = "0.7",
 		},
 		sfxtypes = {
 			explosiongenerators = {
