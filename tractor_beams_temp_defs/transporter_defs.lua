@@ -38,6 +38,16 @@
 -- so unless transporterSpeedModMode is set to 2, the previous "subcategories" are just équivalent to the S, M, L categories they belong to
 
 
+-- ie:
+-- For a 4 seats transport, holding a very heavy unit, "speedmodmode = 2", "speedmodstrength = 0.3"
+	-- speedMod = 1-(((6 - 4)/(0.5 * 4))*0.3) = 0.7
+-- same case but within a 6 seats transport:
+	-- speedMod = 1 - ((( 6 - 6 ) / (0.5 * 6)) * 0.3 = 0.0
+-- this time a tiny + 2 light + 1 mediumheavy + 1 very light:
+	-- total weight = 0.5 + 3 + 3 + 1 = 7.5
+	-- speedMod = 1 - ((( 7.5 - 6 ) / (0.5 * 6)) * 0.3 = 0.85
+
+
 local DEFAULT_GENERIC_SCRIPT    = "units/generic_air_transport_lus.lua"
 local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
 
