@@ -364,17 +364,16 @@ local function CanBeAutoClaimed(passengerID, transporterAllyTeam)
 end
 
 
---[[ if we need to spawn a fake beam to indicate "abduction" progress
+-- if we need to spawn a fake beam to indicate "abduction" progress
 local function SpawnWeakBeam(transporterID, passengerID, size)
 	-- spawn a weak beam or other visual indicator that the unit is within load range but can't be loaded yet; purely cosmetic to give feedback to the player; can be used for debugging the consecutiveFramesOverEnemyPassenger feature
 	local spawnPosX, spawnPosY, spawnPosZ = spGetUnitPosition(passengerID)
 	spawnPosY = spawnPosY + Spring.GetUnitHeight(passengerID)
 	local dirPosX, dirPosY, dirPosZ = spGetUnitPosition(transporterID)
-	local ratio = 0.7 * size
 	local dirX, dirY, dirZ = dirPosX - spawnPosX, dirPosY - spawnPosY, dirPosZ - spawnPosZ
-	Spring.SpawnCEG("tractorbeam_weak", spawnPosX, spawnPosY, spawnPosZ, dirX * ratio, dirY * ratio, dirZ * ratio, 1, 0)
+	Spring.SpawnCEG("tractorbeam_weak", spawnPosX, spawnPosY, spawnPosZ, dirX * size, dirY * size, dirZ * size, 1, 0)
 end
-]]
+
 
 ---@param passengerID number
 ---@param passengerTeamID number  -- passenger teamID
@@ -408,6 +407,7 @@ local function CanBeTransportedNow(passengerID, passengerTeamID, passengerPosX, 
 		local _, _, _, vw = spGetUnitVelocity(passengerID)
 		if vw < 0.5 then
 			consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = (consecutiveFramesOverEnemyPassenger[transporterID][passengerID] or 0) + 1
+			 SpawnWeakBeam(transporterID, passengerID, consecutiveFramesOverEnemyPassenger[transporterID][passengerID] / MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY)
 			if consecutiveFramesOverEnemyPassenger[transporterID][passengerID] > MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY then
 				consecutiveFramesOverEnemyPassenger[transporterID][passengerID] = nil
 				return true
