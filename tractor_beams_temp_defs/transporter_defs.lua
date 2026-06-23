@@ -6,7 +6,37 @@
 --
 -- passengerSizes: per-unit raw transport weight, converted to (nseats, oversized) by alldefs_post.
 -- Source: dood_suggested_setup/oversizetable.lua
--- Mapping rule: nseats = nearest lower power-of-2; oversized="1" if size = nseats*1.5; oversized="-1" if size = nseats*0.5
+-- The transports have power of two sized slots; a transporter of size = k will always have 
+-- any combination of (2^n) sizes possible (ie size = 5 can be 4+1, 2+2+1, 2+1+1+1, 1+1+1+1+1)
+-- the term "passengersize" isn't right, it actually refers to "passengerweight" or "passengercategory",
+-- it is different from the size (nseats) that will be used when validating/invalidating cargo.
+-- i'll change that
+-- GDT asked for 3 categories of units: S, M, L (+untransportable)
+-- I'm subdividing this into Tiny, Very-Light, Light, Medium-Light, Medium-Heavy, Heavy, Very-Heavy (+untransportable)
+-- because even as a "no-op" the disctinction seems intuitive for ticks vs pawns, or mammoth vs bull...
+
+-- SMALL: nSeats = 1 -> one seat inside transport
+	-- Tiny = 1 + undersized tag: counts as 0.5 weight
+	-- Very Light = 1 / no tag: counts as 1 weight
+	-- Light = 1 + oversized: counts as 1.5 weight
+-- MEDIUM: nSeats = 2 -> two seats inside transport
+	-- Medium Light = 2 / no tag: counts as 2 weight
+	-- Medium Heavy = 2 + oversized: counts as 3 weight
+-- LARGE: nSeats = 4 -> four seats inside transport
+	-- Heavy = 4 / no tag: counts as 4 weight
+	-- Very Heavy = 4 + oversized: counts as 6 weight
+    -- Commanders: nSeats = 4 -> four seats inside transport; counts as 6 weight + special case of triggering at least the "commander loaded" speed nerf
+-- UNTRANSPORTABLE...
+
+-- 3 tags are available per unitDef:
+-- transporterspeedmodmode = 
+	-- 0: no speed nerf, default value; 
+	-- 1: apply a (1 - (usedSeats/transporterSeats) * transporterspeedmodstrength) modifier to the transporter speed, acc rate, turn rate, cruise alt
+	-- 2: apply a (1 - ((usedWeight - transporterSeats)/(0.5 * transporterSeats) * transporterspeedmodstrength
+-- transporterspeedmodstrength = amount of speed removed from the transport (ratio) depending on speedmodmode
+-- transportercomspeedmodstrength = minimal amount of speed removal that kicks in as soon as a commander is loaded
+-- so unless transporterSpeedModMode is set to 2, the previous "subcategories" are just équivalent to the S, M, L categories they belong to
+
 
 local DEFAULT_GENERIC_SCRIPT    = "units/generic_air_transport_lus.lua"
 local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
