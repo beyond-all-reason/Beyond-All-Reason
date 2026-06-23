@@ -97,7 +97,7 @@ local function recursiveLoad(currentContext, data)
   end
 end
 
-local function localizedTranslate(key, locale, data)
+local function getNodeAtKey(key, locale)
   local path, length = dotSplit(locale .. "." .. key)
   local node = store
 
@@ -106,7 +106,28 @@ local function localizedTranslate(key, locale, data)
     if not node then return nil end
   end
 
+  return node
+end
+
+local function localizedTranslate(key, locale, data)
+  local node = getNodeAtKey(key, locale)
+  if not node then return nil end
   return treatNode(node, data)
+end
+
+local function makeFallbackTable(key, fallbacks, data)
+  return setmetatable({}, {
+    __index = function(_, subKey)
+      local fullKey = key .. '.' .. tostring(subKey)
+      for i=1, #fallbacks do
+        local node = getNodeAtKey(fullKey, fallbacks[i])
+        if node ~= nil then
+          return treatNode(node, data)
+        end
+      end
+      return nil
+    end
+  })
 end
 
 -- public interface
@@ -145,6 +166,9 @@ function i18n.translate(key, data)
     local fallback = fallbacks[i]
     local value = localizedTranslate(key, fallback, data)
     if value then
+      if type(value) == 'table' and not isPluralTable(value) then
+        return makeFallbackTable(key, fallbacks, data)
+      end
       return value
     else
       if missingTranslations[key] == nil then
