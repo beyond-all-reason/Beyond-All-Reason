@@ -406,6 +406,9 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 -- GL4 Backend stuff:
 local healthBarVBO = nil
 local healthBarShader = nil
+local healthBarsShapeVBO = nil
+local healthBarsShapeVertexCount = 78
+local healthBarsMaxElements = 8192
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -455,43 +458,18 @@ if debugmode then
 	shaderConfig.DEBUGSHOW = 1 -- comment this to always show all bars
 end
 
-local vsSrcPath = "LuaUI/Shaders/HealthbarsGL4.vert.glsl"
-local gsSrcPath = "LuaUI/Shaders/HealthbarsGL4.geom.glsl"
+local vsSrcPath = "LuaUI/Shaders/HealthbarsGL4_NoGS.vert.glsl"
 local fsSrcPath = "LuaUI/Shaders/HealthbarsGL4.frag.glsl"
-local fallbackVsSrcPath = "LuaUI/Shaders/HealthbarsGL4_nogs.vert.glsl"
-local fallbackFsSrcPath = "LuaUI/Shaders/HealthbarsGL4_nogs.frag.glsl"
-
-local useGeometryShader = LuaShader.isGeometryShaderSupported
-
-local unitQuadVBO
 
 local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
 		fssrcpath = fsSrcPath,
-		gssrcpath = gsSrcPath,
-		shaderName = "Health Bars Shader GL4",
+		shaderName = "Health Bars Shader GL4 NoGS",
 		uniformInt = {
 			healthbartexture = 0;
 			},
 		uniformFloat = {
 			--addRadius = 1,
-			iconDistance = 27,
-			cameraDistanceMult = 1.0,
-			cameraDistanceMultGlyph = 4.0,
-			skipGlyphsNumbers = 0.0,
-			globalSizeMult = 1.0,
-		  },
-		shaderConfig = shaderConfig,
-	}
-
-local fallbackShaderSourceCache = {
-		vssrcpath = fallbackVsSrcPath,
-		fssrcpath = fallbackFsSrcPath,
-		shaderName = "Health Bars Shader GL4 (NoGS)",
-		uniformInt = {
-			healthbartexture = 0;
-			},
-		uniformFloat = {
 			iconDistance = 27,
 			cameraDistanceMult = 1.0,
 			cameraDistanceMultGlyph = 4.0,
@@ -553,72 +531,76 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget()
 end
 
+local function makeHealthBarsShapeVBO()
+	local data = {}
+	for i = 0, healthBarsShapeVertexCount - 1 do
+		data[#data + 1] = i
+	end
+
+	local shapeVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if shapeVBO == nil then
+		goodbye("Failed to create health bars NoGS shape VBO")
+		return nil
+	end
+
+	shapeVBO:Define(healthBarsShapeVertexCount, {
+		{id = 5, name = "shapeIndex", size = 1},
+	})
+	shapeVBO:Upload(data)
+
+	return shapeVBO
+end
+
+local function makeHealthBarsVAOWrapper(realVAO, instanceTable)
+	return {
+		DrawArrays = function(_, _, vertexCount, _, instanceCount, instanceFirst)
+			local instances = instanceCount or vertexCount or instanceTable.usedElements or 0
+			if instances <= 0 then
+				return
+			end
+			realVAO:DrawArrays(GL.TRIANGLES, healthBarsShapeVertexCount, 0, instances, instanceFirst or 0)
+		end,
+		Delete = function()
+			if realVAO.Delete then
+				realVAO:Delete()
+			end
+		end,
+		realVAO = realVAO,
+	}
+end
+
 
 
 local function initializeInstanceVBOTable(myName, usesFeatures)
 	local newVBOTable
-	local layout
-	local unitIDAttribID
-	if useGeometryShader then
-		layout = {
+	newVBOTable = InstanceVBOTable.makeInstanceVBOTable(
+		{
 			{id = 0, name = 'height_timers', size = 4},
 			{id = 1, name = 'type_index_ssboloc', size = 4, type = GL.UNSIGNED_INT},
 			{id = 2, name = 'startcolor', size = 4},
 			{id = 3, name = 'endcolor', size = 4},
 			{id = 4, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
-		}
-		unitIDAttribID = 4
-	else
-		layout = {
-			{id = 2, name = 'height_timers', size = 4},
-			{id = 3, name = 'type_index_ssboloc', size = 4, type = GL.UNSIGNED_INT},
-			{id = 4, name = 'startcolor', size = 4},
-			{id = 5, name = 'endcolor', size = 4},
-			{id = 6, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
-		}
-		unitIDAttribID = 6
-	end
-	newVBOTable = InstanceVBOTable.makeInstanceVBOTable(
-		layout,
-		256, -- maxelements
+		},
+		healthBarsMaxElements, -- maxelements
 		myName, -- name
-		unitIDAttribID -- unitIDattribID (instData)
+		4 -- unitIDattribID (instData)
 	)
 	if newVBOTable == nil then goodbye("Failed to create " .. myName) end
 
-	if useGeometryShader then
-		local newVAO = gl.GetVAO()
-		newVAO:AttachVertexBuffer(newVBOTable.instanceVBO)
-		newVBOTable.VAO = newVAO
-	else
-		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
-	end
+	local newVAO = gl.GetVAO()
+	newVAO:AttachVertexBuffer(healthBarsShapeVBO)
+	newVAO:AttachInstanceBuffer(newVBOTable.instanceVBO)
+	newVBOTable.VAO = makeHealthBarsVAOWrapper(newVAO, newVBOTable)
 	if usesFeatures then newVBOTable.featureIDs = true end
 	return newVBOTable
 end
 
 
 local function initGL4()
-	-- Prefer geometry shader path when it actually compiles. This avoids false
-	-- negatives from capability detection on some Linux/AMD driver stacks.
-	healthBarShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-	useGeometryShader = (healthBarShader ~= nil)
+	healthBarsShapeVBO = makeHealthBarsShapeVBO()
+	if healthBarsShapeVBO == nil then return end
 
-	if not useGeometryShader then
-		-- A simple quad used by the non-GS path.
-		unitQuadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		unitQuadVBO:Define(4, {
-			{id = 0, name = 'quadPos', size = 2},
-		})
-		unitQuadVBO:Upload({
-			 0.0, 0.0,
-			 1.0, 0.0,
-			 0.0, 1.0,
-			 1.0, 1.0,
-		})
-
-		healthBarShader = LuaShader.CheckShaderUpdates(fallbackShaderSourceCache)
-	end
+	healthBarShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 
 	if not healthBarShader then goodbye("Failed to compile health bars GL4 ") end
 
@@ -1330,37 +1312,21 @@ function widget:DrawScreenEffects()
 		healthBarShader:SetUniform("cameraDistanceMultGlyph", glphydistmult)
 		healthBarShader:SetUniform("skipGlyphsNumbers",skipGlyphsNumbers)  --0.0 is everything,  1.0 means only numbers, 2.0 means only bars,
 		if healthBarVBO.usedElements > 0 then
-			if useGeometryShader then
-				healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
-			else
-				healthBarVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, healthBarVBO.usedElements)
-			end
+			healthBarVBO.VAO:DrawArrays(GL.POINTS,healthBarVBO.usedElements)
 		end
 		-- below its the feature bars being drawn:
 			healthBarShader:SetUniform("cameraDistanceMultGlyph", glyphdistmultfeatures)
 			if featureHealthVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureHealthDistMult)  end
-				if useGeometryShader then
-					featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
-				else
-					featureHealthVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureHealthVBO.usedElements)
-				end
+				featureHealthVBO.VAO:DrawArrays(GL.POINTS,featureHealthVBO.usedElements)
 			end
 			if featureResurrectVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureResurrectDistMult)  end
-				if useGeometryShader then
-					featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
-				else
-					featureResurrectVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureResurrectVBO.usedElements)
-				end
+				featureResurrectVBO.VAO:DrawArrays(GL.POINTS,featureResurrectVBO.usedElements)
 			end
 			if featureReclaimVBO.usedElements > 0 then
 				if not debugmode then healthBarShader:SetUniform("cameraDistanceMult",featureReclaimDistMult)  end
-				if useGeometryShader then
-					featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
-				else
-					featureReclaimVBO.VAO:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, featureReclaimVBO.usedElements)
-				end
+				featureReclaimVBO.VAO:DrawArrays(GL.POINTS,featureReclaimVBO.usedElements)
 			end
 
 		healthBarShader:Deactivate()

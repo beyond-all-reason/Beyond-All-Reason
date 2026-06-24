@@ -119,7 +119,7 @@ function widget:Initialize()
 	end
 
 	-- Init GL4 things
-	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit_NoGS_Mesh.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
@@ -168,4 +168,3 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 		popElementInstance(groundPlateVBO, unitID)
 	end
 end
-

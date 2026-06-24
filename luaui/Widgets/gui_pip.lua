@@ -3633,21 +3633,13 @@ local function InitGL4Icons()
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
 	local useGS = pipUseGeometryShader
-	local shader = nil
 	if useGS then
-		shader = gl.CreateShader(gl4Icons.shaderCode)
-		if not shader then
+		local probeShader = gl.CreateShader(gl4Icons.shaderCode)
+		if probeShader then
+			gl.DeleteShader(probeShader)
+		else
 			useGS = false
 		end
-	end
-	if not shader then
-		shader = gl.CreateShader(gl4Icons.shaderCodeNoGS)
-		useGS = false
-	end
-	if not shader then
-		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
-		gl4Icons.atlas = nil
-		return
 	end
 	local vboLayout
 	if useGS then
@@ -3666,7 +3658,6 @@ local function InitGL4Icons()
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
-		gl.DeleteShader(shader)
 		gl4Icons.atlas = nil
 		return
 	end
@@ -3685,18 +3676,19 @@ local function InitGL4Icons()
 		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
 		if not quadVBO then
 			Spring.Echo("[PIP] GL4 icons: Failed to create NoGS quad VBO")
-			gl.DeleteShader(shader)
 			vbo:Delete()
 			gl4Icons.atlas = nil
 			gl4Icons.vbo = nil
 			return
 		end
-		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Define(6, {{id = 0, name = 'quadPos', size = 2}})
 		quadVBO:Upload({
 			-1.0, -1.0,
 			 1.0, -1.0,
 			-1.0,  1.0,
 			 1.0,  1.0,
+			-1.0,  1.0,
+			 1.0, -1.0,
 		})
 		gl4Icons.quadVBO = quadVBO
 	end
@@ -3704,7 +3696,6 @@ local function InitGL4Icons()
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
-		gl.DeleteShader(shader)
 		vbo:Delete()
 		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
@@ -3724,7 +3715,6 @@ local function InitGL4Icons()
 	local bldgVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not bldgVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VBO")
-		gl.DeleteShader(shader)
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3736,7 +3726,6 @@ local function InitGL4Icons()
 	local bldgVao = gl.GetVAO()
 	if not bldgVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VAO")
-		gl.DeleteShader(shader)
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
@@ -3767,7 +3756,6 @@ local function InitGL4Icons()
 	local slowVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not slowVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
-		gl.DeleteShader(shader)
 		bldgVao:Delete()
 		bldgVbo:Delete()
 		vao:Delete()
@@ -3783,7 +3771,6 @@ local function InitGL4Icons()
 	local slowVao = gl.GetVAO()
 	if not slowVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
-		gl.DeleteShader(shader)
 		slowVbo:Delete()
 		bldgVao:Delete()
 		bldgVbo:Delete()
@@ -3813,7 +3800,20 @@ local function InitGL4Icons()
 	end
 	gl4Icons.slowInstanceData = slowInstanceData
 
-	-- Shader was already compiled before layout creation to avoid false-negative probe logic.
+	-- Compile shader matching the selected layout/VAO path.
+	local shader = useGS and gl.CreateShader(gl4Icons.shaderCode) or gl.CreateShader(gl4Icons.shaderCodeNoGS)
+	if not shader then
+		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
+		slowVao:Delete(); slowVbo:Delete()
+		bldgVao:Delete(); bldgVbo:Delete()
+		vao:Delete()
+		vbo:Delete()
+		gl4Icons.atlas = nil
+		gl4Icons.vbo = nil
+		gl4Icons.vao = nil
+		return
+	end
 	gl4Icons.shader = shader
 	gl4Icons.shaderUsesGS = useGS
 
@@ -3904,38 +3904,27 @@ end
 local function InitGL4Primitives()
 	if not gl.GetVAO or not gl.GetVBO then return end
 	local useGS = pipUseGeometryShader
-	local cShader, qShader
 	if useGS then
-		cShader = gl.CreateShader(gl4Prim.circleShaderCode)
-		qShader = gl.CreateShader(gl4Prim.quadShaderCode)
-		if not cShader or not qShader then
-			if cShader then gl.DeleteShader(cShader) end
-			if qShader then gl.DeleteShader(qShader) end
-			cShader, qShader = nil, nil
+		local probeCircle = gl.CreateShader(gl4Prim.circleShaderCode)
+		local probeQuad = gl.CreateShader(gl4Prim.quadShaderCode)
+		if probeCircle then gl.DeleteShader(probeCircle) end
+		if probeQuad then gl.DeleteShader(probeQuad) end
+		if not probeCircle or not probeQuad then
 			useGS = false
 		end
-	end
-	if not cShader or not qShader then
-		cShader = gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
-		qShader = gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
-		if not cShader or not qShader then
-			if cShader then gl.DeleteShader(cShader) end
-			if qShader then gl.DeleteShader(qShader) end
-			Spring.Echo("[PIP] GL4 primitive shader fallback failed: " .. tostring(gl.GetShaderLog()))
-			return
-		end
-		useGS = false
 	end
 
 	if not useGS then
 		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		if not quadVBO then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
-		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		if not quadVBO then return end
+		quadVBO:Define(6, {{id = 0, name = 'quadPos', size = 2}})
 		quadVBO:Upload({
 			-1.0, -1.0,
 			 1.0, -1.0,
 			-1.0,  1.0,
 			 1.0,  1.0,
+			-1.0,  1.0,
+			 1.0, -1.0,
 		})
 		gl4Prim.quadVBO = quadVBO
 	end
@@ -3956,10 +3945,10 @@ local function InitGL4Primitives()
 		}
 	end
 	local cVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not cVbo then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if not cVbo then return end
 	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
-	if not cVao then cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if not cVao then cVbo:Delete(); return end
 	if useGS then
 		cVao:AttachVertexBuffer(cVbo)
 	else
@@ -3988,10 +3977,10 @@ local function InitGL4Primitives()
 		}
 	end
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not qVbo then cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if not qVbo then cVao:Delete(); cVbo:Delete(); return end
 	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
-	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
 	if useGS then
 		qVao:AttachVertexBuffer(qVbo)
 	else
@@ -4006,13 +3995,12 @@ local function InitGL4Primitives()
 
 	-- Line VBOs (3 categories share same shader)
 	local glVbo, glVao, glData = CreateLineVBOSet(gl4Prim.LINE_MAX)
-	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
 	gl4Prim.glowLines.vbo, gl4Prim.glowLines.vao, gl4Prim.glowLines.data = glVbo, glVao, glData
 
 	local clVbo, clVao, clData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not clVbo then
 		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
-		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.coreLines.vbo, gl4Prim.coreLines.vao, gl4Prim.coreLines.data = clVbo, clVao, clData
@@ -4021,14 +4009,31 @@ local function InitGL4Primitives()
 	if not nlVbo then
 		clVao:Delete(); clVbo:Delete(); glVao:Delete(); glVbo:Delete()
 		qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
-		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
-	-- Shader variants were compiled up-front via real GS-attempt/fallback logic.
+	-- Compile shaders
+	local cShader = useGS and gl.CreateShader(gl4Prim.circleShaderCode) or gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
+	if not cShader then
+		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
+		-- cleanup all
+		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
+		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
+		cVao:Delete(); cVbo:Delete()
+		return
+	end
 	gl4Prim.circles.shader = cShader
 
+	local qShader = useGS and gl.CreateShader(gl4Prim.quadShaderCode) or gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
+	if not qShader then
+		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
+		gl.DeleteShader(cShader)
+		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
+		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
+		cVao:Delete(); cVbo:Delete()
+		return
+	end
 	gl4Prim.quads.shader = qShader
 
 	local lShader = gl.CreateShader(gl4Prim.lineShaderCode)
@@ -4158,7 +4163,7 @@ local function GL4FlushEffects()
 		if gl4Prim.useGeometryShader then
 			c.vao:DrawArrays(GL.POINTS, c.count)
 		else
-			c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+			c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
 		end
 		gl.UseShader(0)
 	end
@@ -4171,7 +4176,7 @@ local function GL4FlushEffects()
 		if gl4Prim.useGeometryShader then
 			q.vao:DrawArrays(GL.POINTS, q.count)
 		else
-			q.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, q.count)
+			q.vao:DrawArrays(GL.TRIANGLES, 6, 0, q.count)
 		end
 		gl.UseShader(0)
 	end
@@ -4221,7 +4226,7 @@ local function GL4FlushCirclesOnly()
 	if gl4Prim.useGeometryShader then
 		c.vao:DrawArrays(GL.POINTS, c.count)
 	else
-		c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+		c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
 	end
 	gl.UseShader(0)
 end
@@ -4528,7 +4533,6 @@ local UpdateTracking  -- forward declaration (called in StartMaximizeAnimation, 
 local InitGL4Decals   -- forward declaration (called in Initialize, defined after decalGL4 table)
 local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
 local decalGL4        -- forward declaration (referenced in DrawDecalsOverlay, defined later)
-local DrawTexturedQuad -- forward declaration (used before helper definition)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -9639,7 +9643,11 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 				local c = gl4Prim.circles
 				c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 				GL4SetPrimUniforms(c.shader, c.uniformLocs)
-				c.vao:DrawArrays(GL.POINTS, c.count)
+				if gl4Prim.useGeometryShader then
+					c.vao:DrawArrays(GL.POINTS, c.count)
+				else
+					c.vao:DrawArrays(GL.TRIANGLES, 6, 0, c.count)
+				end
 				gl.UseShader(0)
 			end
 
@@ -11337,14 +11345,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				if gl4Icons.shaderUsesGS then
 					gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 				else
-					gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+					gl4Icons.bldgVao:DrawArrays(GL.TRIANGLES, 6, 0, bldgUsedElements)
 				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
 			if gl4Icons.shaderUsesGS then
 				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
 			else
-				gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+				gl4Icons.bldgVao:DrawArrays(GL.TRIANGLES, 6, 0, bldgUsedElements)
 			end
 		end
 
@@ -11355,14 +11363,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				if gl4Icons.shaderUsesGS then
 					gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
 				else
-					gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+					gl4Icons.slowVao:DrawArrays(GL.TRIANGLES, 6, 0, slowMobileUsedElements)
 				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
 			if gl4Icons.shaderUsesGS then
 				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
 			else
-				gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+				gl4Icons.slowVao:DrawArrays(GL.TRIANGLES, 6, 0, slowMobileUsedElements)
 			end
 		end
 
@@ -11373,14 +11381,14 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				if gl4Icons.shaderUsesGS then
 					gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
 				else
-					gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+					gl4Icons.vao:DrawArrays(GL.TRIANGLES, 6, 0, mobileUsedElements)
 				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
 			if gl4Icons.shaderUsesGS then
 				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
 			else
-				gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+				gl4Icons.vao:DrawArrays(GL.TRIANGLES, 6, 0, mobileUsedElements)
 			end
 		end
 
@@ -13788,7 +13796,7 @@ local function BlitMapRuler()
 end
 
 -- Helper for drawing a textured quad — passed as callback to gl.BeginEnd to avoid closure allocation
-DrawTexturedQuad = function(qL, qB, qR, qT)
+local function DrawTexturedQuad(qL, qB, qR, qT)
 	if qL == nil then
 		local tq = pools.scratchTexQuad
 		qL, qB, qR, qT = tq.l, tq.b, tq.r, tq.t
@@ -15516,12 +15524,14 @@ InitGL4Decals = function()
 			vbo:Delete()
 			return
 		end
-		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Define(6, {{id = 0, name = 'quadPos', size = 2}})
 		quadVBO:Upload({
 			-1.0, -1.0,
 			 1.0, -1.0,
 			-1.0,  1.0,
 			 1.0,  1.0,
+			-1.0,  1.0,
+			 1.0, -1.0,
 		})
 		decalGL4.quadVBO = quadVBO
 	end
@@ -15656,7 +15666,7 @@ local function decalR2TDraw()
 			if decalGL4.useGeometryShader then
 				decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
 			else
-				decalGL4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, decalGL4.instanceCount)
+				decalGL4.vao:DrawArrays(GL.TRIANGLES, 6, 0, decalGL4.instanceCount)
 			end
 			gl.UseShader(0)
 			glFunc.Texture(false)
@@ -16388,10 +16398,7 @@ function widget:DrawScreen()
 			miscState.engineFallbackRawWantedSince = now
 		end
 
-		-- Exit fallback immediately when zooming in so PIP R2T content appears without lag.
-		-- Keep off-debounce for non-zoom transitions (e.g. unit count hovering near threshold).
-		local leavingBecauseZoom = not (IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom))
-		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingBecauseZoom and 0 or 0.75)
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or 0.75
 		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
 			useEngineMinimapFallback = miscState.engineMinimapActive
 		else

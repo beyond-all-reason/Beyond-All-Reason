@@ -538,7 +538,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 		vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normal);
 		float specular = clamp(pow(clamp(dot(normalize(worldtocam), normalize(reflvect)), 0.0, 1.0), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH);// * shadow;
 		//float specular = clamp(dot(normalize(worldtocam), normalize(reflvect)), 0.0, 1.0);// * shadow;
-		fragColor.rgb += fragColor.rgb * specular;
+		fragColor.rgb = texcolorheight.rgb * 0.0 ;
 
 		vec3 outcolor = texcolorheight.rgb;
 

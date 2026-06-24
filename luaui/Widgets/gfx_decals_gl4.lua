@@ -17,12 +17,15 @@ end
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathMin = math.min
+local mathMax = math.max
 local mathRandom = math.random
 local round = math.round
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spEcho = Spring.Echo
+local spGetUnitPosition = Spring.GetUnitPosition
+local spValidUnitID = Spring.ValidUnitID
 
 -- Notes and TODO
 -- yes these are geometry shader decals
@@ -133,7 +136,6 @@ local decalExtraLargeVBO = nil
 
 local decalShader = nil
 local decalLargeShader = nil
-local decalUseGeometryShader = true
 
 
 local hasBadCulling = false -- AMD+Linux combo
@@ -181,15 +183,14 @@ local uniformInts =  {
 }
 
 local shaderSourceCache = {
-	vssrcpath = vsSrcPath,
+	vssrcpath = vsSrcLargePath,
 	fssrcpath = fsSrcPath,
-	gssrcpath = gsSrcPath,
 	shaderConfig = shaderConfig,
 	uniformInt = uniformInts,
 	uniformFloat = {
 		fadeDistance = 3000,
 	},
-	shaderName = "Decals Gl4 Shader",
+	shaderName = "Decals Gl4 Shader NoGS",
 }
 
 local shaderLargeSourceCache = {
@@ -211,62 +212,36 @@ end
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
-	decalUseGeometryShader = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) or false
-	if decalUseGeometryShader then
-		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-		if not decalShader then
-			decalUseGeometryShader = false
-			spEcho("Decals GL4: geometry shader compile failed, enabling NoGS fallback")
-		end
-	end
+	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
-	if not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	local smallDecalLayout
-	if decalUseGeometryShader then
-		smallDecalLayout = {
-			{id = 0, name = 'lengthwidthrotation', size = 4},
-			{id = 1, name = 'uv_atlaspos', size = 4},
-			{id = 2, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
-			{id = 3, name = 'worldPos', size = 4},
-			{id = 4, name = 'parameters', size = 4},
-		}
-	else
-		smallDecalLayout = {
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
+		{
 			{id = 1, name = 'lengthwidthrotation', size = 4},
 			{id = 2, name = 'uv_atlaspos', size = 4},
 			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
 			{id = 4, name = 'worldPos', size = 4},
 			{id = 5, name = 'parameters', size = 4},
-		}
-	end
-
-	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
-		smallDecalLayout,
+		},
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
 	if decalVBO == nil then goodbye("Failed to create decalVBO") end
 
-	if decalUseGeometryShader then
-		local smallDecalVAO = gl.GetVAO()
-		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-		decalVBO.VAO = smallDecalVAO
-	else
-		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1,1,4,4)
-		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4,4)
-		decalVBO.vertexVBO = planeVBOsmall
-		decalVBO.indexVBO = planeIndexVBOsmall
-		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(
-			decalVBO.vertexVBO,
-			decalVBO.instanceVBO,
-			decalVBO.indexVBO
-		)
-	end
+	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,4,4)
+	local planeIndexVBO, numIndices = InstanceVBOTable.makePlaneIndexVBO(4,4)
+	decalVBO.vertexVBO = planeVBO
+	decalVBO.indexVBO = planeIndexVBO
+	decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(
+		decalVBO.vertexVBO,
+		decalVBO.instanceVBO,
+		decalVBO.indexVBO
+	)
 
-	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
-	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
+	planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
+	planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
 
 	decalLargeVBO = InstanceVBOTable.makeInstanceVBOTable(
 		{
@@ -421,9 +396,7 @@ local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
 	if autoupdate then
-		if decalUseGeometryShader then
-			decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
-		end
+		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
 
@@ -477,6 +450,60 @@ end
 
 local dCT = {} -- decalCacheTable
 
+local function IsFiniteNumber(value)
+	return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+local loggedInvalidDecals = {}
+local function LogInvalidDecal(reason, decalName, ...)
+	local key = tostring(reason) .. ":" .. tostring(decalName)
+	if not loggedInvalidDecals[key] then
+		loggedInvalidDecals[key] = true
+		spEcho("[DecalsGL4] skipped invalid decal", reason, decalName or "unknown", ...)
+	end
+end
+
+local loggedRecoveredDecals = {}
+local function LogRecoveredDecal(reason, decalName, ...)
+	local key = tostring(reason) .. ":" .. tostring(decalName)
+	if not loggedRecoveredDecals[key] then
+		loggedRecoveredDecals[key] = true
+		spEcho("[DecalsGL4] recovered invalid decal input", reason, decalName or "unknown", ...)
+	end
+end
+
+local function NormalizeExplosionPosition(px, py, pz, ownerID, weaponName)
+	if IsFiniteNumber(px) and IsFiniteNumber(py) and IsFiniteNumber(pz) then
+		return px, py, pz, true
+	end
+
+	if ownerID and spValidUnitID(ownerID) then
+		local ux, uy, uz = spGetUnitPosition(ownerID)
+		if IsFiniteNumber(ux) and IsFiniteNumber(uz) then
+			px = IsFiniteNumber(px) and px or ux
+			pz = IsFiniteNumber(pz) and pz or uz
+			py = IsFiniteNumber(py) and py or uy
+			if IsFiniteNumber(px) and IsFiniteNumber(pz) and not IsFiniteNumber(py) then
+				py = spGetGroundHeight(px, pz)
+			end
+			if IsFiniteNumber(px) and IsFiniteNumber(py) and IsFiniteNumber(pz) then
+				LogRecoveredDecal("VisibleExplosion position", weaponName, ownerID)
+				return px, py, pz, true
+			end
+		end
+	end
+
+	if IsFiniteNumber(px) and IsFiniteNumber(pz) then
+		local elevation = spGetGroundHeight(px, pz)
+		if IsFiniteNumber(elevation) then
+			LogRecoveredDecal("VisibleExplosion height", weaponName, px, pz, py, elevation)
+			return px, IsFiniteNumber(py) and py or elevation, pz, true
+		end
+	end
+
+	return px, py, pz, false
+end
+
 
 local function AddDecal(decaltexturename, posx, posz, rotation,
 	width, length,
@@ -503,10 +530,22 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	alphastart = alphastart or 1
 	alphadecay = (alphadecay or 0) / (lifeTimeMult*lifeTimeMultMult)
 
+	maxalpha = maxalpha or 1
 	bwfactor = bwfactor or 1 -- default force to black and white
 	glowsustain = glowsustain or 1 -- how many frames to keep max heat for
 	glowadd = glowadd or 0 -- how much additional additive glow to add
 	fadeintime = fadeintime or shaderConfig.FADEINTIME
+
+	if not IsFiniteNumber(posx) or not IsFiniteNumber(posz) or not IsFiniteNumber(rotation)
+		or not IsFiniteNumber(width) or not IsFiniteNumber(length)
+		or not IsFiniteNumber(heatstart) or not IsFiniteNumber(heatdecay)
+		or not IsFiniteNumber(alphastart) or not IsFiniteNumber(alphadecay)
+		or not IsFiniteNumber(maxalpha) or not IsFiniteNumber(bwfactor)
+		or not IsFiniteNumber(glowsustain) or not IsFiniteNumber(glowadd)
+		or not IsFiniteNumber(fadeintime) then
+		LogInvalidDecal("AddDecal input", decaltexturename, posx, posz, rotation, width, length, alphastart, alphadecay)
+		return nil
+	end
 
 	if CheckDecalAreaSaturation(posx, posz, width, length) then
 		if autoupdate then
@@ -518,6 +557,10 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	end
 
 	spawnframe = spawnframe or spGetGameFrame()
+	if not IsFiniteNumber(spawnframe) then
+		LogInvalidDecal("spawnframe", decaltexturename, spawnframe)
+		return nil
+	end
 	--spEcho(decaltexturename, atlassedImages[decaltexturename], atlasColorAlpha)
 	local p,q,s,t = 0,1,0,1
 
@@ -535,6 +578,10 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
 	local lifetime = mathFloor(alphastart/alphadecay)
+	if not IsFiniteNumber(lifetime) then
+		LogInvalidDecal("lifetime", decaltexturename, alphastart, alphadecay)
+		return nil
+	end
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 
@@ -608,16 +655,10 @@ local function DrawDecals()
 
 
 		if decalVBO.usedElements > 0  then
-			if decalUseGeometryShader then
-				decalShader:Activate()
-				decalShader:SetUniform("fadeDistance",disticon * 1000)
-				decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
-				decalShader:Deactivate()
-			else
-				decalLargeShader:Activate()
-				decalVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalVBO.usedElements, 0)
-				decalLargeShader:Deactivate()
-			end
+			decalShader:Activate()
+			decalShader:SetUniform("fadeDistance",disticon * 1000)
+			decalVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalVBO.usedElements, 0)
+			decalShader:Deactivate()
 		end
 
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
@@ -759,14 +800,25 @@ end
 
 local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
+local MIN_EXPLOSION_DECAL_RADIUS = 12
 
 local weaponConfig = {}
 for weaponDefID=1, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
-	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
-	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
+	local customParams = weaponDef.customParams or {}
+	local nodecal = customParams.nodecal
+	local cegTag = weaponDef.cegTag or ""
+	if (not nodecal) and (not string.find(cegTag, 'aa')) then
+		local damageAreaOfEffect = weaponDef.damageAreaOfEffect or weaponDef.areaOfEffect or 0
+		if not IsFiniteNumber(damageAreaOfEffect) then
+			damageAreaOfEffect = 0
+		end
+		local defaultDamage = 0
+		if weaponDef.damages and IsFiniteNumber(weaponDef.damages[Game.armorTypes.default]) then
+			defaultDamage = weaponDef.damages[Game.armorTypes.default]
+		end
 		--[[  1 ]] local textures          = { "t_groundcrack_17_a.tga", "t_groundcrack_21_a.tga", "t_groundcrack_10_a.tga" }
-		--[[  2 ]] local radius            = weaponDef.damageAreaOfEffect * 1.4
+		--[[  2 ]] local radius            = damageAreaOfEffect * 1.4
 		--[[  3 ]] local radiusVariation   = 0.3 -- 0.3 -> 30% larger or smaller radius
 		--[[  4 ]] local heatstart         = nil
 		--[[  5 ]] local heatdecay         = nil
@@ -775,8 +827,8 @@ for weaponDefID=1, #WeaponDefs do
 		--[[  8 ]] local bwfactor          = 0.5 -- the mix factor of the diffuse texture to black and whiteness, 0 is original color, 1 is black and white
 		--[[  9 ]] local glowsustain       = nil
 		--[[ 10 ]] local glowadd           = nil
-		--[[ 11 ]] local radiusToHeatDecay = weaponDef.damageAreaOfEffect / 2250 -- scaling value as a fallback for heatdecay
-		--[[ 12 ]] local damage            = weaponDef.damages[Game.armorTypes.default] * damageCoefficient
+		--[[ 11 ]] local radiusToHeatDecay = damageAreaOfEffect / 2250 -- scaling value as a fallback for heatdecay
+		--[[ 12 ]] local damage            = defaultDamage * damageCoefficient
 		--[[ 13 ]] local fadeintime        = nil
 		--[[ 14 ]] local positionVariation = 0
 		--[[ 15 ]] local waterDepthRatio   = isWaterVoid and 1 or 2.5 -- increased extinction in water height (vs air height)
@@ -930,7 +982,7 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.05
 
-		elseif weaponDef.customParams.area_onhit_resistance == "_RAPTORACID_" then
+		elseif customParams.area_onhit_resistance == "_RAPTORACID_" then
 			textures = { "t_groundcrack_26_a.tga" }
 			alpha = 6
 			alphadecay = 0.012
@@ -949,7 +1001,7 @@ for weaponDefID=1, #WeaponDefs do
 				heatdecay = 10
 			end
 
-		elseif weaponDef.customParams.area_onhit_resistance == "fire" then
+		elseif customParams.area_onhit_resistance == "fire" then
 			textures = { "t_groundcrack_16_a.tga" }
 			radius = radius * 1.6
 			heatstart = 4000
@@ -960,7 +1012,7 @@ for weaponDefID=1, #WeaponDefs do
 			glowadd = 4.5
 			waterDepthRatio = 5
 
-		elseif weaponDef.customParams.area_onhit_ceg then
+		elseif customParams.area_onhit_ceg then
 			waterDepthRatio = 5
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
@@ -1102,6 +1154,28 @@ for weaponDefID=1, #WeaponDefs do
 			positionVariation = buildingExplosionPositionVariation[weaponDef.name]
 		end
 
+		if not IsFiniteNumber(radius) or radius <= 0 then
+			radius = MIN_EXPLOSION_DECAL_RADIUS
+		end
+		if not IsFiniteNumber(radiusVariation) then
+			radiusVariation = 0
+		end
+		if not IsFiniteNumber(radiusToHeatDecay) then
+			radiusToHeatDecay = 0
+		end
+		if not IsFiniteNumber(damage) then
+			damage = 0
+		end
+		if not IsFiniteNumber(positionVariation) then
+			positionVariation = 0
+		end
+		if not IsFiniteNumber(waterDepthRatio) then
+			waterDepthRatio = isWaterVoid and 1 or 2.5
+		end
+		if not IsFiniteNumber(alphadecay) or alphadecay <= 0 then
+			alphadecay = nil
+		end
+
 		weaponConfig[weaponDefID] = {
 			--[[  1 ]] textures,
 			--[[  2 ]] radius,
@@ -1118,6 +1192,7 @@ for weaponDefID=1, #WeaponDefs do
 			--[[ 13 ]] fadeintime,
 			--[[ 14 ]] positionVariation,
 			--[[ 15 ]] waterDepthRatio,
+			--[[ 16 ]] weaponDef.name,
 		}
 	end
 end
@@ -1127,12 +1202,32 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	if not params then
 		return
 	end
+	local weaponName = params[16] or weaponID
+	px, py, pz = NormalizeExplosionPosition(px, py, pz, ownerID, weaponName)
+	if not IsFiniteNumber(px) or not IsFiniteNumber(py) or not IsFiniteNumber(pz) then
+		LogInvalidDecal("VisibleExplosion position", weaponName, px, py, pz)
+		return
+	end
+	px = mathMin(mathMax(px, 0), Game.mapSizeX)
+	pz = mathMin(mathMax(pz, 0), Game.mapSizeZ)
 
 	local random = mathRandom
 
 	local radius = params[2] * (1 + (random()-0.5) * params[3])
+	if not IsFiniteNumber(radius) or radius <= 0 then
+		LogRecoveredDecal("VisibleExplosion radius", weaponName, radius, params[2], params[3])
+		radius = MIN_EXPLOSION_DECAL_RADIUS
+	end
 	local elevation = spGetGroundHeight(px, pz)
+	if not IsFiniteNumber(elevation) then
+		LogRecoveredDecal("VisibleExplosion ground height", weaponName, px, pz, elevation)
+		elevation = py
+	end
 	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
+	if not IsFiniteNumber(exploHeight) then
+		LogRecoveredDecal("VisibleExplosion height", weaponName, py, elevation, params[15])
+		exploHeight = 0
+	end
 	if exploHeight >= radius then
 		return
 	end
@@ -1141,6 +1236,10 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 	-- reduce severity when explosion is above ground
 	local heightMult = 1 - (exploHeight / radius)
+	if not IsFiniteNumber(heightMult) then
+		LogRecoveredDecal("VisibleExplosion heightMult", weaponName, exploHeight, radius)
+		heightMult = 1
+	end
 
 	local heatstart = params[4] or ((random() * 0.2 + 0.9) * 4900)
 	local heatdecay = params[5] or ((random() * 0.4 + 2.0) - params[11])
@@ -1150,6 +1249,14 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 
 	local alpha = params[6] or ((random() * 1.0 + 1.5) * heightMult * heightMult)
 	local alphadecay = params[7] or ((random() * 0.3 + 0.2) / (4 * radius))
+	if not IsFiniteNumber(heatstart) or not IsFiniteNumber(heatdecay)
+		or not IsFiniteNumber(alpha) or not IsFiniteNumber(alphadecay) or alphadecay <= 0 then
+		LogRecoveredDecal("VisibleExplosion fade", weaponName, heatstart, heatdecay, alpha, alphadecay)
+		heatstart = IsFiniteNumber(heatstart) and heatstart or 4900
+		heatdecay = IsFiniteNumber(heatdecay) and heatdecay or 1
+		alpha = IsFiniteNumber(alpha) and alpha or 1
+		alphadecay = (IsFiniteNumber(alphadecay) and alphadecay > 0) and alphadecay or 0.001
+	end
 
 	local bwfactor = params[8] or 0.5 --the mix factor of the diffuse texture to black and whiteness, 0 is original cololr, 1 is black and white
 	local glowsustain = params[9] or (random() * 20) -- how many frames to elapse before glow starts to recede
@@ -1182,9 +1289,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 end
 
 local UnitScriptDecalsNames = {
-	['corkorg'] = {
-		[1] = {
-			texture = footprintsPath..'f_corkorg_a.png',
+		['corkorg'] = {
+			[1] = {
+				texture = footprintsPath..'f_corkorg_a.png',
 			offsetx = 2, --offset from what the UnitScriptDecal returns
 			offsetz = -25, --
 			offsetrot = 0, -- in radians
@@ -1199,17 +1306,17 @@ local UnitScriptDecalsNames = {
 			glowsustain = 0.0,
 			glowadd = 0.0,
 			fadeintime = 5,
-			}
-		},
+				}
+			},
 
-	['armfboy'] = {
-		[1] = { -- LFOOT
-			texture = footprintsPath..'f_armfboy_a.png',
-			offsetx = -1, --offset from what the UnitScriptDecal returns
-			offsetz = 0, --
-			offsetrot = 0, -- in radians
-			width = 60,
-			height = 30,
+		['armfboy'] = {
+			[1] = { -- LFOOT
+				texture = footprintsPath..'f_armfboy_a.png',
+				offsetx = -1, --offset from what the UnitScriptDecal returns
+				offsetz = 0, --
+				offsetrot = 0, -- in radians
+				width = 60,
+				height = 30,
 			heatstart = 0,
 			heatdecay = 0,
 			alphastart = 0.7,
@@ -1490,11 +1597,11 @@ local UnitScriptDecalsNames = {
 			glowadd = 0.0,
 			fadeintime = 5,
 			}
-		},
+			},
 
-	['corck'] = {
-		[1] = { -- LFOOT
-			texture = footprintsPath..'f_corck_a.png',
+		['corck'] = {
+			[1] = { -- LFOOT
+				texture = footprintsPath..'f_corck_a.png',
 			offsetx = 0, --offset from what the UnitScriptDecal returns
 			offsetz = 0, --
 			offsetrot = 0.0, -- in radians
@@ -1893,9 +2000,13 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 
 			local lifetime = mathFloor(decalTable.alphastart/decalCache[10])
 			decalIndex = decalIndex + 1
+			local targetVBO = decalVBO
+			if mathMax(decalTable.width, decalTable.height) >= shaderConfig.SINGLEQUADDECALSIZETHRESHOLD then
+				targetVBO = decalLargeVBO
+			end
 			--spEcho(decalIndex)
 			pushElementInstance(
-				decalVBO, -- push into this Instance VBO Table
+				targetVBO, -- push into this Instance VBO Table
 				decalCache, -- params
 				decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 				true, -- update existing element

@@ -126,7 +126,7 @@ local function init()
 end
 
 function widget:Initialize()
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit_NoGS_Mesh.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0

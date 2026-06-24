@@ -53,11 +53,8 @@ local CONFIG = {
 	minEnergyScore = 15,
 
 	-- Units whose energy score divided by metalcost is below this ratio are
-	-- treated as "incidental energy" (a combat unit with a passive generator)
-	-- and receive no burst. Units qualifying via energyconv_capacity or an
-	-- explicit overrides.particleCount entry are exempt from this check.
-	-- armbanth (score 24 / metal 13500 = 0.0018) → excluded.
-	-- armcarry  (score 48 / metal  1400 = 0.034)  → included.
+	-- treated as incidental energy and receive no burst. Units qualifying via
+	-- energyconv_capacity or an explicit overrides.particleCount entry are exempt.
 	minEnergyScoreRatio = 0.003,
 
 	-- Final particleCount = clamp(score ^ particleCountPower * particleCountMul, minPC, maxPC)
@@ -218,11 +215,11 @@ local GL_FRONT_AND_BACK      = GL.FRONT_AND_BACK
 local GL_FILL                = GL.FILL
 local GL_LEQUAL              = GL.LEQUAL
 
-local LuaShader              = gl.LuaShader
-local InstanceVBOTable       = gl.InstanceVBOTable
-local pushElementInstance    = InstanceVBOTable.pushElementInstance
-local popElementInstance     = InstanceVBOTable.popElementInstance
-local uploadElementRange     = InstanceVBOTable.uploadElementRange
+local LuaShader           = gl.LuaShader
+local InstanceVBOTable    = gl.InstanceVBOTable
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
+local uploadElementRange  = InstanceVBOTable.uploadElementRange
 
 local mathRandom = math.random
 local mathSqrt   = math.sqrt
@@ -287,157 +284,27 @@ local dirtyMin, dirtyMax = mathHuge, -1
 
 local vsSrc = [[
 #version 430 core
-#line 10000
 
-layout(location = 0) in vec4 vertexPosUV;
-layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
-layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity (elmos/frame), w=spawnFrame
-layout(location = 3) in vec4 instColor;         // rgb + alpha
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=rotAcc (deg/frame²), w=deathFrame
+layout(location = 0) in vec4 shapeLocalAndFlag;     // xyz=local cube corner, w=1 for glow billboard
+layout(location = 1) in vec4 spawnPosAndSize;       // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
+layout(location = 2) in vec4 velAndSpawnFrame;      // xyz=velocity, w=spawnFrame
+layout(location = 3) in vec4 instColor;
+layout(location = 4) in vec4 rotData;               // x=rotVal0, y=rotVel0, z=rotAcc, w=deathFrame
+layout(location = 5) in vec4 shapeNormalAndGlowU;   // xyz=cube normal, w=glow billboard x in [-1,1]
+layout(location = 6) in float shapeGlowV;           // glow billboard y in [-1,1]
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
 uniform float drag;
-uniform vec3  gravity;
-uniform float fadeInFrames;   // 0 = no fade-in
+uniform vec3 gravity;
+uniform float fadeInFrames;
+uniform float drawRadius;
+uniform float glowScale;
 uniform float wobbleAmp;
-uniform float wobbleFreq;
 uniform float wobbleVar;
+uniform float wobbleFreq;
 uniform float wobbleFreqVar;
 uniform float wobbleRampFrames;
-
-out vec3 v_worldPos;
-out vec4 v_color;
-out float v_rotVal;
-out float v_dead;
-out vec3 v_phaseSeed;
-out float v_sizeMult;
-out float v_breathScale;  // glow-breath amplitude envelope: 1.0 for first half of life, ramps to 0 at death
-
-void main() {
-	float currentFrame = timeInfo.x + timeInfo.w;
-	float spawnFrame   = velAndSpawnFrame.w;
-	float deathFrame   = rotData.w;
-
-	if (currentFrame >= deathFrame) {
-		v_dead = 1.0;
-		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-		v_worldPos = vec3(0.0);
-		v_color = vec4(0.0);
-		v_rotVal = 0.0;
-		v_phaseSeed = vec3(0.0);
-		v_sizeMult = 0.0;
-		v_breathScale = 0.0;
-		return;
-	}
-	v_dead = 0.0;
-
-	float t = max(currentFrame - spawnFrame, 0.0);
-
-	// Ballistic motion with linear damping (clamp t so drag doesn't reverse vel).
-	float tCap   = (drag > 0.0001) ? (1.0 / drag) : 1.0e6;
-	float tClamp = min(t, tCap);
-	vec3 worldPos = spawnPosAndSize.xyz
-	              + velAndSpawnFrame.xyz * tClamp * (1.0 - 0.5 * drag * tClamp)
-	              + 0.5 * gravity * t * t;
-
-	// Optional wobble (matches nano gadget's swirl).
-	// rotData.z is now rotAcc (deg/frame²); use spawnFrame for wobble timing.
-	if (wobbleAmp > 0.0001) {
-		float wobbleT   = max(currentFrame - spawnFrame, 0.0);
-		float totalLife = max(deathFrame - spawnFrame, 1.0);
-		float bell      = sin(3.14159265 * wobbleT / totalLife);
-		if (wobbleRampFrames > 0.5)
-			bell *= min(1.0, wobbleT / wobbleRampFrames);
-		vec3 vdir = velAndSpawnFrame.xyz;
-		vec3 ref, axA, axB;
-		float refAngle = rotData.x * 0.01745329;
-		float s1 = sin(refAngle), c1 = cos(refAngle);
-		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
-		if (abs(vdir.y) < 0.95) {
-			ref = normalize(vec3(s1, c1, s2));
-		} else {
-			ref = normalize(vec3(c1, s2, c2));
-		}
-		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
-		axA = normalize(vec3(
-			sin(h1 * 6.28318),
-			sin(h2 * 6.28318),
-			cos(h1 * 3.14159 + h2 * 3.14159)
-		));
-		axB = cross(axA, ref);
-		if (dot(axB, axB) > 0.001) {
-			axB = normalize(axB);
-		} else {
-			axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1, 0, 0) : vec3(0, 1, 0));
-			axB = normalize(axB);
-		}
-		float phaseOff = radians(rotData.x);
-		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
-		float hash2    = fract(hash * 113.7 + 0.317);
-		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
-		worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
-	}
-
-	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above.
-	float packedW    = abs(spawnPosAndSize.w);
-	float fadeFrames = floor(packedW / 1024.0);
-	float sizeMult   = (packedW - fadeFrames * 1024.0) / 256.0;
-
-	float fadeOut = (fadeFrames > 0.5)
-		? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0)
-		: 1.0;
-	float fadeIn  = (fadeInFrames > 0.5)
-		? clamp(t / fadeInFrames, 0.0, 1.0)
-		: 1.0;
-	float fade    = fadeOut * fadeIn;
-
-	// Quadratic rotation integration: val0 + vel*t + 0.5*acc*t²
-	float rotVel = rotData.y;
-	float rotAcc = rotData.z;
-	float rotVal = rotData.x + rotVel * t + 0.5 * rotAcc * t * t;
-
-	v_worldPos = worldPos;
-	v_color    = instColor * fade;
-	v_rotVal   = rotVal;
-	v_sizeMult = sizeMult;
-	v_phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
-
-	// Glow-breath envelope: full amplitude until half-life, then ramps to 0
-	// by death. smoothstep is reversed because we want 1 -> 0 as life goes
-	// 0.5 -> 1.0 (so big lingering particles stop pulsing as they fade out).
-	float totalLifeBR = max(deathFrame - spawnFrame, 1.0);
-	float lifeFrac    = clamp(t / totalLifeBR, 0.0, 1.0);
-	v_breathScale = 1.0 - smoothstep(0.5, 1.0, lifeFrac);
-
-	gl_Position = vec4(worldPos, 1.0);  // GS reads this
-}
-]]
-
-local gsSrc = [[
-#version 430 core
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices = 28) out;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-uniform float drawRadius;
-uniform int   u_shape;
-uniform float glowScale;
-uniform float glowIntensity;
-
-in vec3  v_worldPos[];
-in vec4  v_color[];
-in float v_rotVal[];
-in float v_dead[];
-in vec3  v_phaseSeed[];
-in float v_sizeMult[];
-in float v_breathScale[];
 
 out vec4 g_color;
 out vec3 g_normal;
@@ -461,89 +328,106 @@ mat3 rotXYZ(vec3 a) {
 	return Rz * Ry * Rx;
 }
 
-void emitFace(vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
-	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c3; g_worldPos = center + c3; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	EndPrimitive();
-}
-
-void emitTri(vec3 c0, vec3 c1, vec3 c2, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
-	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	EndPrimitive();
-}
-
-void emitGlow(vec3 center, vec4 col, float halfSize, float seed) {
-	vec3 right = cameraViewInv[0].xyz * halfSize;
-	vec3 up    = cameraViewInv[1].xyz * halfSize;
-	g_color = col; g_normal = vec3(0.0, 1.0, 0.0); g_noiseSeed = vec3(0.0);
-	g_localPos = vec3(0.0); g_isGlow = 1.0; g_seed = seed; g_breathScale = v_breathScale[0];
-	g_glowUV = vec2(-1.0, -1.0); g_worldPos = center - right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2( 1.0, -1.0); g_worldPos = center + right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2(-1.0,  1.0); g_worldPos = center - right + up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2( 1.0,  1.0); g_worldPos = center + right + up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	EndPrimitive();
+void hideVertex() {
+	g_color = vec4(0.0);
+	g_normal = vec3(0.0, 1.0, 0.0);
+	g_worldPos = vec3(0.0);
+	g_localPos = vec3(0.0);
+	g_noiseSeed = vec3(0.0);
+	g_glowUV = vec2(0.0);
+	g_isGlow = 0.0;
+	g_seed = 0.0;
+	g_breathScale = 0.0;
+	gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 }
 
 void main() {
-	if (v_dead[0] > 0.5) return;
-	vec3 center = v_worldPos[0];
-	float size  = drawRadius * v_sizeMult[0];
-	vec3 noiseSeed = v_phaseSeed[0] * 137.0 + vec3(11.0, 47.0, 83.0);
-	float h  = dot(v_phaseSeed[0], vec3(0.123, 0.456, 0.789));
+	float currentFrame = timeInfo.x + timeInfo.w;
+	float spawnFrame   = velAndSpawnFrame.w;
+	float deathFrame   = rotData.w;
+	if (currentFrame >= deathFrame) { hideVertex(); return; }
+
+	float t = currentFrame - spawnFrame;
+	if (t < 0.0) t = 0.0;
+
+	vec3 center = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t * (1.0 - 0.5 * drag * t) + 0.5 * gravity * t * t;
+
+	if (wobbleAmp > 0.0001) {
+		float wobbleT   = max(currentFrame - spawnFrame, 0.0);
+		float totalLife = max(deathFrame - spawnFrame, 1.0);
+		float bell      = sin(3.14159265 * wobbleT / totalLife);
+		if (wobbleRampFrames > 0.5) bell *= min(1.0, wobbleT / wobbleRampFrames);
+		vec3 vdir = velAndSpawnFrame.xyz;
+		vec3 ref, axA, axB;
+		float refAngle = rotData.x * 0.01745329;
+		float s1 = sin(refAngle), c1 = cos(refAngle);
+		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
+		if (abs(vdir.y) < 0.95) ref = normalize(vec3(s1, c1, s2)); else ref = normalize(vec3(c1, s2, c2));
+		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
+		axA = normalize(vec3(sin(h1 * 6.28318), sin(h2 * 6.28318), cos(h1 * 3.14159 + h2 * 3.14159)));
+		axB = cross(axA, ref);
+		if (dot(axB, axB) > 0.001) axB = normalize(axB); else { axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1,0,0) : vec3(0,1,0)); axB = normalize(axB); }
+		float phaseOff = radians(rotData.x);
+		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
+		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
+		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
+		float hash2    = fract(hash * 113.7 + 0.317);
+		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
+		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
+		center += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
+	}
+
+	float packedW    = abs(spawnPosAndSize.w);
+	float fadeFrames = floor(packedW / 1024.0);
+	float sizeMult   = (packedW - fadeFrames * 1024.0) / 256.0;
+	float fadeOut = (fadeFrames > 0.5) ? clamp((deathFrame - currentFrame) / fadeFrames, 0.0, 1.0) : 1.0;
+	float fadeIn  = (fadeInFrames > 0.5) ? clamp(t / fadeInFrames, 0.0, 1.0) : 1.0;
+	float fade    = fadeOut * fadeIn;
+
+	float rotVal = rotData.x + rotData.y * t + 0.5 * rotData.z * t * t;
+	float size = drawRadius * sizeMult;
+	vec3 phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
+	vec3 noiseSeed = phaseSeed * 137.0 + vec3(11.0, 47.0, 83.0);
+	float h  = dot(phaseSeed, vec3(0.123, 0.456, 0.789));
 	vec3 phase = vec3(hash11(h), hash11(h+1.7), hash11(h+3.3)) * 6.2831853;
-	float r = radians(v_rotVal[0]);
-	vec3 ang = phase + vec3(r * 1.0, r * 1.3, r * 0.7);
-	mat3 R = rotXYZ(ang);
-	vec4 col = v_color[0];
-	float seed = radians(v_phaseSeed[0].x);
+	float r = radians(rotVal);
+	mat3 R = rotXYZ(phase + vec3(r * 1.0, r * 1.3, r * 0.7));
 
-	if (u_shape == 1) {
-		vec3 X = R * vec3(size, 0, 0); vec3 nX = -X;
-		vec3 Y = R * vec3(0, size, 0); vec3 nY = -Y;
-		vec3 Z = R * vec3(0, 0, size); vec3 nZ = -Z;
-		float k = 0.57735027;
-		vec3 nPPP = R * vec3( k,  k,  k);
-		vec3 nNPP = R * vec3(-k,  k,  k);
-		vec3 nNPN = R * vec3(-k,  k, -k);
-		vec3 nPPN = R * vec3( k,  k, -k);
-		vec3 nPNP = R * vec3( k, -k,  k);
-		vec3 nNNP = R * vec3(-k, -k,  k);
-		vec3 nNNN = R * vec3(-k, -k, -k);
-		vec3 nPNN = R * vec3( k, -k, -k);
-		emitTri(Y,  Z,  X,  nPPP, center, col, noiseSeed, seed);
-		emitTri(Y, nX,  Z,  nNPP, center, col, noiseSeed, seed);
-		emitTri(Y, nZ, nX,  nNPN, center, col, noiseSeed, seed);
-		emitTri(Y,  X, nZ,  nPPN, center, col, noiseSeed, seed);
-		emitTri(nY,  X,  Z,  nPNP, center, col, noiseSeed, seed);
-		emitTri(nY,  Z, nX,  nNNP, center, col, noiseSeed, seed);
-		emitTri(nY, nX, nZ,  nNNN, center, col, noiseSeed, seed);
-		emitTri(nY, nZ,  X,  nPNN, center, col, noiseSeed, seed);
+	float totalLifeBR = max(deathFrame - spawnFrame, 1.0);
+	float lifeFrac = clamp(t / totalLifeBR, 0.0, 1.0);
+	float breathScale = 1.0 - smoothstep(0.5, 1.0, lifeFrac);
+
+	g_color = instColor * fade;
+	g_noiseSeed = noiseSeed;
+	g_seed = radians(phaseSeed.x);
+
+	if (shapeLocalAndFlag.w > 0.5) {
+		float gu = shapeNormalAndGlowU.w;
+		float gv = shapeGlowV;
+		float halfSize = size * glowScale;
+		vec3 right = cameraViewInv[0].xyz * halfSize;
+		vec3 up    = cameraViewInv[1].xyz * halfSize;
+		g_normal = vec3(0.0, 1.0, 0.0);
+		g_localPos = vec3(0.0);
+		g_isGlow = 1.0;
+		g_glowUV = vec2(gu, gv);
+		g_breathScale = breathScale;
+		g_worldPos = center + right * gu + up * gv;
 	} else {
-		vec3 X = R * vec3(size, 0, 0);
-		vec3 Y = R * vec3(0, size, 0);
-		vec3 Z = R * vec3(0, 0, size);
-		vec3 nXp =  R[0]; vec3 nXm = -R[0];
-		vec3 nYp =  R[1]; vec3 nYm = -R[1];
-		vec3 nZp =  R[2]; vec3 nZm = -R[2];
-		emitFace( X-Y-Z,  X+Y-Z,  X-Y+Z,  X+Y+Z, nXp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z, -X-Y+Z, -X+Y-Z, -X+Y+Z, nXm, center, col, noiseSeed, seed);
-		emitFace(-X+Y-Z, -X+Y+Z,  X+Y-Z,  X+Y+Z, nYp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z,  X-Y-Z, -X-Y+Z,  X-Y+Z, nYm, center, col, noiseSeed, seed);
-		emitFace(-X-Y+Z,  X-Y+Z, -X+Y+Z,  X+Y+Z, nZp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z, -X+Y-Z,  X-Y-Z,  X+Y-Z, nZm, center, col, noiseSeed, seed);
+		vec3 local = R * (shapeLocalAndFlag.xyz * size);
+		g_normal = normalize(R * shapeNormalAndGlowU.xyz);
+		g_localPos = local;
+		g_isGlow = 0.0;
+		g_glowUV = vec2(0.0);
+		g_breathScale = 0.0;
+		g_worldPos = center + local;
 	}
-
-	if (glowIntensity > 0.0 && glowScale > 1.001) {
-		emitGlow(center, col, size * glowScale, seed);
-	}
+	gl_Position = cameraViewProj * vec4(g_worldPos, 1.0);
 }
 ]]
+
+local gsSrc = ""
 
 local fsSrc = [[
 #version 430 core
@@ -698,8 +582,6 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
-local useGeometryShader = true
-
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
 local SHAPE_ID         = 0    -- 0 = cube, 1 = octahedron
@@ -733,12 +615,11 @@ local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
 
 local function initGL4()
-	local shaderCacheGS = {
+	local shaderCache = {
 		vsSrc = vsSrc,
 		fsSrc = fsSrc,
-		gsSrc = gsSrc,
-		shaderName = "UnitEnergyExplosionParticlesGL4",
-		uniformInt   = { u_shape = SHAPE_ID },
+		shaderName = "UnitEnergyExplosionParticlesGL4_NoGS",
+		uniformInt   = {},
 		uniformFloat = {
 			drag        = CONFIG.drag,
 			gravity     = { 0, CONFIG.gravityY, 0 },
@@ -768,156 +649,68 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate  = true,
 	}
-
-	local shaderCacheNoGS = {
-		vssrcpath = "LuaUI/Shaders/energy_explosion_particles_gl4_nogs.vert.glsl",
-		fsSrc = fsSrc,
-		shaderName = "UnitEnergyExplosionParticlesGL4_NoGS",
-		uniformInt   = { u_shape = SHAPE_ID },
-		uniformFloat = shaderCacheGS.uniformFloat,
-		shaderConfig = {},
-		forceupdate  = true,
-	}
-
-	-- Try the geometry-shader path first; only fall back if compile actually
-	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
-	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
-	useGeometryShader = true
-	particleShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
-	if not particleShader then
-		spEcho("Energy Explosion Particles GL4: geometry shader compile failed; trying no-GS fallback.")
-		useGeometryShader = false
-		particleShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
-	end
+	particleShader = LuaShader.CheckShaderUpdates(shaderCache)
 	if not particleShader then
 		goodbye("Failed to compile shader")
 		return false
 	end
 
-	if useGeometryShader then
-		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-			-1, -1, 1, 1,
-			0, 0, 1, 1,
-			"eepQuadVBO"
-		)
-		-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
-		-- GS doesn't get invoked twice per particle.
-		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		indexVBO:Define(3)
-		indexVBO:Upload({0, 1, 2})
-
-		local layout = {
-			{ id = 1, name = "spawnPosAndSize",  size = 4 },
-			{ id = 2, name = "velAndSpawnFrame", size = 4 },
-			{ id = 3, name = "instColor",        size = 4 },
-			{ id = 4, name = "rotData",          size = 4 },
-		}
-		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
-		if not particleVBO then
-			goodbye("Failed to create instance VBO")
-			return false
-		end
-		particleVBO.numVertices = numVertices
-		particleVBO.vertexVBO   = quadVBO
-		particleVBO.indexVBO    = indexVBO
-		particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
-		particleVBO.primitiveType = GL.TRIANGLES
-	else
-		-- No-GS fallback: build a template indexed mesh with one vertex per
-		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
-		-- Octahedron: 8 tris * 3 verts = 24 verts.  Plus a 4-vert glow billboard
-		-- quad.  We use independent triangles, so each template vertex is emitted
-		-- exactly once and indexed in GL order.
-		local NUM_SHAPE_VERTS = 24
-		local NUM_GLOW_VERTS  = 4
-		local NUM_VERTS = NUM_SHAPE_VERTS + NUM_GLOW_VERTS
-		local isOcta = (SHAPE_ID == 1)
-
-		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		templateVBO:Define(NUM_VERTS, {{ id = 0, name = "vertexSlot", size = 1 }}) -- float slot, cast to int in VS
-		local vertexData = {}
-		for i = 0, NUM_VERTS - 1 do
-			vertexData[#vertexData + 1] = i
-		end
-		templateVBO:Upload(vertexData)
-
-		-- Build indices matching the order the no-GS VS emits the template:
-		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
-		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
-		local indexData = {}
-		if isOcta then
-			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
-				local base = shapeTri * 3
-				indexData[#indexData + 1] = base + 0
-				indexData[#indexData + 1] = base + 1
-				indexData[#indexData + 1] = base + 2
-			end
-		else
-			for quad = 0, NUM_SHAPE_VERTS / 4 - 1 do
-				local base = quad * 4
-				indexData[#indexData + 1] = base + 0
-				indexData[#indexData + 1] = base + 1
-				indexData[#indexData + 1] = base + 2
-				indexData[#indexData + 1] = base + 0
-				indexData[#indexData + 1] = base + 2
-				indexData[#indexData + 1] = base + 3
-			end
-		end
-		local glowBase = NUM_SHAPE_VERTS
-		indexData[#indexData + 1] = glowBase + 0
-		indexData[#indexData + 1] = glowBase + 1
-		indexData[#indexData + 1] = glowBase + 2
-		indexData[#indexData + 1] = glowBase + 0
-		indexData[#indexData + 1] = glowBase + 2
-		indexData[#indexData + 1] = glowBase + 3
-
-		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		indexVBO:Define(#indexData)
-		indexVBO:Upload(indexData)
-
-		local layout = {
-			{ id = 1, name = "spawnPosAndSize",  size = 4 },
-			{ id = 2, name = "velAndSpawnFrame", size = 4 },
-			{ id = 3, name = "instColor",        size = 4 },
-			{ id = 4, name = "rotData",          size = 4 },
-		}
-		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO_NoGS")
-		if not particleVBO then
-			goodbye("Failed to create instance VBO")
-			return false
-		end
-
-		local realVAO = particleVBO:makeVAOandAttach(templateVBO, particleVBO.instanceVBO, indexVBO)
-		if not realVAO then
-			goodbye("Failed to create no-GS VAO")
-			return false
-		end
-
-		-- Anchor the template/index VBOs so Lua GC cannot collect them while
-		-- the VAO is alive (same GC fix as DrawPrimitiveAtUnit, commit 2b51f6e863).
-		particleVBO.nogsTemplateVBO = templateVBO
-		particleVBO.nogsIndexVBO    = indexVBO
-
-		local indexCount = #indexData
-		particleVBO.VAO = {
-			realVAO = realVAO,
-			indexCount = indexCount,
-			DrawArrays = function(self, _primitiveType, instanceCount)
-				if instanceCount and instanceCount > 0 then
-					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
-				end
-			end,
-			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
-				if instanceCount and instanceCount > 0 then
-					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
-				end
-			end,
-			Delete = function(self)
-				self.realVAO:Delete()
-			end,
-		}
-		particleVBO.primitiveType = GL.TRIANGLES
+	local shapeData = {}
+	local function addVertex(lx, ly, lz, isGlow, nx, ny, nz, gu, gv)
+		shapeData[#shapeData + 1] = lx; shapeData[#shapeData + 1] = ly; shapeData[#shapeData + 1] = lz; shapeData[#shapeData + 1] = isGlow
+		shapeData[#shapeData + 1] = nx; shapeData[#shapeData + 1] = ny; shapeData[#shapeData + 1] = nz; shapeData[#shapeData + 1] = gu
+		shapeData[#shapeData + 1] = gv
 	end
+	local function addFace(c0, c1, c2, c3, n)
+		addVertex(c0[1], c0[2], c0[3], 0, n[1], n[2], n[3], 0, 0)
+		addVertex(c1[1], c1[2], c1[3], 0, n[1], n[2], n[3], 0, 0)
+		addVertex(c2[1], c2[2], c2[3], 0, n[1], n[2], n[3], 0, 0)
+		addVertex(c2[1], c2[2], c2[3], 0, n[1], n[2], n[3], 0, 0)
+		addVertex(c1[1], c1[2], c1[3], 0, n[1], n[2], n[3], 0, 0)
+		addVertex(c3[1], c3[2], c3[3], 0, n[1], n[2], n[3], 0, 0)
+	end
+	addFace({ 1,-1,-1}, { 1, 1,-1}, { 1,-1, 1}, { 1, 1, 1}, { 1, 0, 0})
+	addFace({-1,-1,-1}, {-1,-1, 1}, {-1, 1,-1}, {-1, 1, 1}, {-1, 0, 0})
+	addFace({-1, 1,-1}, {-1, 1, 1}, { 1, 1,-1}, { 1, 1, 1}, { 0, 1, 0})
+	addFace({-1,-1,-1}, { 1,-1,-1}, {-1,-1, 1}, { 1,-1, 1}, { 0,-1, 0})
+	addFace({-1,-1, 1}, { 1,-1, 1}, {-1, 1, 1}, { 1, 1, 1}, { 0, 0, 1})
+	addFace({-1,-1,-1}, {-1, 1,-1}, { 1,-1,-1}, { 1, 1,-1}, { 0, 0,-1})
+	addVertex(0, 0, 0, 1, 0, 1, 0, -1, -1)
+	addVertex(0, 0, 0, 1, 0, 1, 0,  1, -1)
+	addVertex(0, 0, 0, 1, 0, 1, 0, -1,  1)
+	addVertex(0, 0, 0, 1, 0, 1, 0, -1,  1)
+	addVertex(0, 0, 0, 1, 0, 1, 0,  1, -1)
+	addVertex(0, 0, 0, 1, 0, 1, 0,  1,  1)
+	local numVertices = #shapeData / 9
+	local shapeVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not shapeVBO then
+		goodbye("Failed to create Unit Energy Explosion Particles GL4 NoGS shape VBO")
+		return false
+	end
+	shapeVBO:Define(numVertices, {
+		{id = 0, name = "shapeLocalAndFlag", size = 4},
+		{id = 5, name = "shapeNormalAndGlowU", size = 4},
+		{id = 6, name = "shapeGlowV", size = 1},
+	})
+	shapeVBO:Upload(shapeData)
+
+	local layout = {
+		{ id = 1, name = "spawnPosAndSize",  size = 4 },
+		{ id = 2, name = "velAndSpawnFrame", size = 4 },
+		{ id = 3, name = "instColor",        size = 4 },
+		{ id = 4, name = "rotData",          size = 4 },
+	}
+	particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
+	if not particleVBO then
+		goodbye("Failed to create instance VBO")
+		return false
+	end
+	particleVBO.numVertices = numVertices
+	particleVBO.vertexVBO   = shapeVBO
+	particleVBO.VAO         = gl.GetVAO()
+	particleVBO.VAO:AttachVertexBuffer(shapeVBO)
+	particleVBO.VAO:AttachInstanceBuffer(particleVBO.instanceVBO)
+	particleVBO.primitiveType = GL.TRIANGLES
 	return true
 end
 
@@ -966,9 +759,6 @@ local function classifyDefs()
 			-- Energy converters/metal-makers qualify via their energyconv_capacity
 			-- regardless of the energy score threshold.
 			local hasConverter = cp and tonumber(cp.energyconv_capacity) and tonumber(cp.energyconv_capacity) > 0
-			-- A unit qualifies via energy score only if the score is also significant
-			-- relative to its build cost. This prevents combat units with a small
-			-- passive generator (e.g. armbanth) from triggering the effect.
 			local metalCost = ud.metalCost or 0
 			local scoreQualifies = score >= CONFIG.minEnergyScore
 				and (metalCost == 0 or score / metalCost >= CONFIG.minEnergyScoreRatio)
@@ -1351,9 +1141,15 @@ function gadget:DrawWorld()
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 	particleShader:Activate()
-	_pVBO:Draw()
+	_pVBO.VAO:DrawArrays(GL.TRIANGLES, _pVBO.numVertices, 0, _pVBO.usedElements, 0)
 	particleShader:Deactivate()
 
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glDepthMask(true)
 end
+
+--[[ thread06f rapid-size padding: do not edit below
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+]]
+
+--[[PAD                                                                                                                                                                                                                                                                                                                                                                                                           ]]

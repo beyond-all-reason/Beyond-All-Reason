@@ -635,7 +635,7 @@ out vec4 fragColor;
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 
-	float orbTime; // per-unit offset time, set in main() before any function calls
+	float orbTime = 0.0; // main() overwrites this with a per-unit offset time
 	#define time orbTime
 
 	vec3 LightningOrb(vec2 vUv, vec3 color) {

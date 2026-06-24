@@ -7,6 +7,8 @@ uniform sampler2D distortionTexture;
 uniform float distortionOverallStrength = 1.0;
 uniform vec2 inverseScreenResolution = vec2(1.0/1920.0, 1.0/1080.0);
 
+in vec2 v_uv;
+
 vec3 colormap_jet(float x){
     vec3 color = vec3(0.0);
     vec3 black = vec3(0.0);
@@ -37,7 +39,7 @@ vec2 softClampScreen(vec2 UV){
 void main(void) {
 
     // As of yet, distortion coords are still stored as centered around 0.5, so we need to shift them to 0.0
-    vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
+    vec4 distortion = texture2D(distortionTexture, v_uv);
     distortion.rgb = distortion.rgb;
     distortion.rg = (1536.0 * distortion.rg) * inverseScreenResolution;
     if (length(distortion.rg) < 0.01) {
@@ -55,15 +57,15 @@ void main(void) {
     // Regular distortion
     if (distortion.b > -1.0 ) {
         vec2 distortionXY = distortion.rg * distortionOverallStrength * 0.01;
-        offsetUV1 = softClampScreen(gl_TexCoord[0].st + distortionXY);
-        offsetUV2 = softClampScreen(gl_TexCoord[0].st + distortionXY / CHROMATIC_ABERRATION);
-        offsetUV3 = softClampScreen(gl_TexCoord[0].st + distortionXY * CHROMATIC_ABERRATION);
+        offsetUV1 = softClampScreen(v_uv + distortionXY);
+        offsetUV2 = softClampScreen(v_uv + distortionXY / CHROMATIC_ABERRATION);
+        offsetUV3 = softClampScreen(v_uv + distortionXY * CHROMATIC_ABERRATION);
     }else{
     // Motion blur
         vec2 blurdirection = distortion.rg * 0.8;
-        offsetUV1 = softClampScreen(gl_TexCoord[0].st - 2 * inverseScreenResolution * blurdirection);
-        offsetUV2 = softClampScreen(gl_TexCoord[0].st + 2 * inverseScreenResolution * blurdirection);
-        offsetUV3 = softClampScreen(gl_TexCoord[0].st + 4 * inverseScreenResolution * blurdirection);
+        offsetUV1 = softClampScreen(v_uv - 2 * inverseScreenResolution * blurdirection);
+        offsetUV2 = softClampScreen(v_uv + 2 * inverseScreenResolution * blurdirection);
+        offsetUV3 = softClampScreen(v_uv + 4 * inverseScreenResolution * blurdirection);
     }
     
     
@@ -90,8 +92,8 @@ void main(void) {
         gl_FragColor = outputRGBA ;
 
     #else
-        if (gl_TexCoord[0].x > 0.66){ // right half?
-            if (gl_TexCoord[0].y > 0.75){ // top right
+        if (v_uv.x > 0.66){ // right half?
+            if (v_uv.y > 0.75){ // top right
                 if (distortion.b < -0.01 )
                 gl_FragColor = vec4(vec3(distortion.rg, 0.0) * 0.5 + 0.5, 0.7);
                 else gl_FragColor = vec4(outputRGBA.rgb, 0.0);

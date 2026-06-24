@@ -71,7 +71,7 @@ local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0,
 -- GL4 Initialization
 --------------------------------------------------------------------------------
 local function initGL4()
-	local DrawPrimitiveAtUnit     = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
+	local DrawPrimitiveAtUnit     = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit_NoGS_Mesh.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig            = DrawPrimitiveAtUnit.shaderConfig
 
