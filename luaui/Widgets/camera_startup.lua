@@ -12,19 +12,19 @@ function widget:GetInfo()
     }
 end
 
-function byeBye()
+function removeSelf()
     widgetHandler:RemoveWidget()
 end
 
 function widget:Initialize()
     if Spring.GetGameFrame() > 0 then
-        byeBye()
+        removeSelf()
         return
     end
 
     local nameCameraState = Spring.GetCameraState(true)
     if nameCameraState.name ~= "ta" and nameCameraState.name ~= "spring" then
-        byeBye()
+        removeSelf()
         return
     end
 
@@ -58,5 +58,5 @@ function widget:Initialize()
 
     Spring.SetCameraState(currentCameraState)
 
-    byeBye()
+    removeSelf()
 end
