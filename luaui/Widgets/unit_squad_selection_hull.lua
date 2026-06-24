@@ -535,16 +535,19 @@ function widget:DrawWorldPreUnit()
 			local size = #squad
 			if size > 0 then
 				local idleBlend = squadIdleBlend[squad] or 0
+				local hb = squadHighlightBlend[squad] or 0
+				local ctb = squadControlBlend[squad] or 0
+				local fullySelected = (squadSelCount[squad] or 0) >= size
 				local alphaScale = 1 ---@type number
 				if squadHideIdleAirHull[squad] then
-					alphaScale = 1 - idleBlend
+					-- Idle strafing air squads normally fade their hull out, but keep it visible while fully selected, highlighted, or controlled
+					alphaScale = fullySelected and 1 or math.max(1 - idleBlend, hb, ctb)
 				end
 
 				if alphaScale <= 0.001 then
 					-- Fully hidden for idle flying-air squads.
 				else
 					local cr, cg, cb
-					local fullySelected = (squadSelCount[squad] or 0) >= size
 					if fullySelected then
 						cr, cg, cb = 1, 1, 1
 					elseif colorMode == "custom" then
@@ -556,8 +559,6 @@ function widget:DrawWorldPreUnit()
 						cg = teamColor[2]
 						cb = teamColor[3]
 					end
-					local hb = squadHighlightBlend[squad] or 0
-					local ctb = squadControlBlend[squad] or 0
 					local effIdle = idleBlend * (1 - hb)
 					if effIdle > 0 and not fullySelected then
 						local ir = cr * 0.3
@@ -568,18 +569,16 @@ function widget:DrawWorldPreUnit()
 						cb = cb + (ib - cb) * effIdle
 					end
 					if squad.isReserve then
-						alphaScale = alphaScale * 0.6
-						cr, cg, cb = cr * 1.5, cg * 1.5, cb * 1.5
+						alphaScale = alphaScale * 0.70
+						cr, cg, cb = cr * 1.25, cg * 1.25, cb * 1.25
 					end
 
-					-- Highlight tiers faded in by their blends. The commanded squad
-					-- always has hb fading in alongside ctb, so control
-					-- stacks on top of hover (extra brightness + border width).
+					-- Highlight tiers faded in by their blends.
 					local effFill, effBorder = fillOpacity, borderOpacity
 					local effPadding = padding
 					if hb > 0 or ctb > 0 then
 						effFill = math.min(1, fillOpacity + 0.2 * hb + 0.2 * ctb)
-						effBorder = math.min(1, borderOpacity + 0.2 * hb + 0.2 * ctb)
+						effBorder = math.min(1, borderOpacity + 0.4 * hb + 0.4 * ctb)
 						effPadding = padding + 5 * hb + 5 * ctb
 						local bright = 0.4 * ctb
 						cr = cr + (1 - cr) * bright
@@ -683,8 +682,8 @@ function widget:DrawWorldPreUnit()
 									glUniform(hullStripeLoc, 0, 1, 0)
 								end
 								glUniform(hullColorLoc, cr, cg, cb, effBorder * alphaScale)
-								if ctb > 0 then
-									glLineWidth(borderThickness + 2 * ctb)
+								if hb > 0 then
+									glLineWidth(borderThickness + 1.5 * hb)
 									hullVao:DrawArrays(GL.LINE_LOOP, n)
 									glLineWidth(borderThickness)
 								else
