@@ -1,3 +1,5 @@
+local STARTUP_CAMERA_INITIAL_ZOOM_DISTANCE = 5000
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
@@ -53,8 +55,8 @@ function widget:Initialize()
     -- Set a reasonable zoom level
     -- We need to get the camera state again due to the earlier SetCameraTarget call changed it
     local currentCameraState = Spring.GetCameraState(true)
-    currentCameraState.height = 5000
-    currentCameraState.dist = 5000
+    currentCameraState.height = STARTUP_CAMERA_INITIAL_ZOOM_DISTANCE
+    currentCameraState.dist = STARTUP_CAMERA_INITIAL_ZOOM_DISTANCE
 
     Spring.SetCameraState(currentCameraState)
 
