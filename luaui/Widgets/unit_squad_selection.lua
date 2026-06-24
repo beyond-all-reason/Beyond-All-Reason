@@ -2013,18 +2013,18 @@ function widget:Update(dt)
 		refreshSquadIdleState(sq)
 	end
 
-	-- Highlight (closest-squad preview) and control (commanded squad) targets.
-	-- While RMB is held both lock to the commanded squad; otherwise highlight tracks the closest squad, which Shift latches so a queue stays on one squad.
+	-- Highlight closest-squad, commanded squad, next closest-squad, etc.
 	local highlightTarget, controlTarget
 	if pendingSquadMove then
 		highlightTarget = pendingSquadMove.squad
 		controlTarget = highlightTarget
-	elseif config.rightClickMovesSquad then
+	else
 		local alt, _, _, shift = spGetModKeyState()
-		if alt or spGetSelectedUnits()[1] == nil then
+		local maxDistSq = config.rightClickMoveRange > 0 and config.rightClickMoveRange * config.rightClickMoveRange or nil
+		if config.rightClickMovesSquad and (alt or spGetSelectedUnits()[1] == nil) then
+			-- Squad-move engaged: RMB commands the closest squad.
 			if not (shift and highlightLockedSquad) then
 				local hx, hz = getMouseWorldPos()
-				local maxDistSq = config.rightClickMoveRange > 0 and config.rightClickMoveRange * config.rightClickMoveRange or nil
 				highlightLockedSquad = hx and findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq) or nil
 			end
 			highlightTarget = highlightLockedSquad
@@ -2035,10 +2035,24 @@ function widget:Update(dt)
 				highlightLockedSquad = nil
 			end
 		else
+			-- Passive closest-squad highlight
 			highlightLockedSquad = nil
+			local hx, hz = getMouseWorldPos()
+			if hx then
+				highlightTarget = findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq)
+				if highlightTarget then
+					local sel = analyzeSelection()
+					-- Mirror squad_select's cycle-when-full: if the closest squad is already fully selected, a plain squad-select skips to the next closest, so highlight that one instead.
+					if config.cyclingToNextSquad and squadFullySelected(highlightTarget, sel.selectedSet) then
+						highlightTarget = findClosestSquad(nil, nil, sel.selectedSet, hx, hz, nil, maxDistSq) or highlightTarget
+					end
+					-- Don't redundantly highlight a squad that's already fully selected
+					if not alt and squadFullySelected(highlightTarget, sel.selectedSet) then
+						highlightTarget = nil
+					end
+				end
+			end
 		end
-	else
-		highlightLockedSquad = nil
 	end
 
 	-- Animate idle + highlight + control blends for all squads.
