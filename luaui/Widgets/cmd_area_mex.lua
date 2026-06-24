@@ -19,6 +19,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetSelectedUnits = Spring.GetSelectedUnits
 local spSendCommands = Spring.SendCommands
 local taremove = table.remove
 
@@ -30,6 +31,8 @@ local mexBuildings
 local metalSpots
 
 local metalMap = false
+local controllerAreaMexWarnings = {}
+local IssueAreaMex
 
 
 local function setAreaMexType(uDefID)
@@ -45,6 +48,19 @@ function widget:Initialize()
 	WG['areamex'] = {}
 	WG['areamex'].setAreaMexType = function(uDefID)
 		setAreaMexType(uDefID)
+	end
+
+	WG.controllerAreaMex = WG.controllerAreaMex or {}
+	WG.controllerAreaMex.issueArea = function(x, y, z, radius, opts)
+		local areaParams
+		local areaOptions = opts
+		if type(x) == "table" then
+			areaParams = x
+			areaOptions = y
+		else
+			areaParams = { x, y, z, radius }
+		end
+		return IssueAreaMex(areaParams, areaOptions, "controller")
 	end
 end
 
@@ -92,7 +108,7 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 						x, _, z = spGetUnitPosition(id)
 					end
 					if z then
-						tX, tZ = tX + x, tZ + z
+						tX, tZ = tX+x, tZ+z
 						builderCount = builderCount + 1
 					end
 				end
@@ -104,14 +120,13 @@ local function getAvgPositionOfValidBuilders(units, constructorIds, buildingId, 
 	return { x = tX / builderCount, z = tZ / builderCount }
 end
 
+
 ---Get all mex spots in an area
 ---@param x number
 ---@param z number
 ---@param radius number
----@return table Array of spots within the specified area
 local function getSpotsInArea(x, z, radius)
 	local validSpots = {}
-
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		local dist = math.distance2dSquared(x, z, spot.x, spot.z)
@@ -174,33 +189,149 @@ local function calculateCmdOrder(cmds, spots, shift)
 end
 
 
+local function getAreaParam(params, key, index)
+	if params[key] ~= nil then
+		return params[key]
+	end
+	return params[index]
+end
+
+
+local function isFiniteNumber(value)
+	return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+
+local function warnControllerAreaMex(reason)
+	if controllerAreaMexWarnings[reason] then
+		return
+	end
+	controllerAreaMexWarnings[reason] = true
+	Spring.Echo("[AreaMex] Controller Area Mex ignored: " .. reason)
+end
+
+
+local function validateAreaParams(areaParams, source)
+	if type(areaParams) ~= "table" then
+		if source == "controller" then
+			warnControllerAreaMex("missing area params")
+		end
+		return nil, "missing area params"
+	end
+
+	local cmdX = getAreaParam(areaParams, "x", 1)
+	local cmdY = getAreaParam(areaParams, "y", 2)
+	local cmdZ = getAreaParam(areaParams, "z", 3)
+	local cmdRadius = getAreaParam(areaParams, "radius", 4)
+
+	if not isFiniteNumber(cmdX) or not isFiniteNumber(cmdZ) or (cmdY ~= nil and not isFiniteNumber(cmdY)) then
+		if source == "controller" then
+			warnControllerAreaMex("invalid area position")
+		end
+		return nil, "invalid area position"
+	end
+
+	if not isFiniteNumber(cmdRadius) or cmdRadius <= 0 then
+		if source == "controller" then
+			warnControllerAreaMex("invalid area radius")
+		end
+		return nil, "invalid area radius"
+	end
+
+	return cmdX, cmdY, cmdZ, cmdRadius
+end
+
+
+local function getOptionShift(options)
+	if type(options) ~= "table" then
+		return false, false
+	end
+	if options.shift ~= nil then
+		return options.shift == true, true
+	end
+	for i = 1, #options do
+		if options[i] == "shift" then
+			return true, true
+		end
+	end
+	return false, false
+end
+
+
+IssueAreaMex = function(areaParams, areaOptions, source)
+	local cmdX, cmdY, cmdZ, cmdRadius = validateAreaParams(areaParams, source)
+	if not cmdX then
+		return false, cmdY
+	end
+
+	if type(metalSpots) ~= "table" then
+		return false, "metal spots unavailable"
+	end
+
+	local resourceSpotBuilder = WG['resource_spot_builder']
+	if type(resourceSpotBuilder) ~= "table"
+		or type(resourceSpotBuilder.GetBestExtractorFromBuilders) ~= "function"
+		or type(resourceSpotBuilder.PreviewExtractorCommand) ~= "function"
+		or type(resourceSpotBuilder.SpotHasExtractorQueued) ~= "function"
+		or type(resourceSpotBuilder.ApplyPreviewCmds) ~= "function"
+	then
+		return false, "resource spot builder unavailable"
+	end
+	if type(mexConstructors) ~= "table" or type(mexBuildings) ~= "table" then
+		return false, "mex builder data unavailable"
+	end
+
+	if type(selectedUnits) ~= "table" and type(spGetSelectedUnits) == "function" then
+		selectedUnits = spGetSelectedUnits()
+	end
+	if type(selectedUnits) ~= "table" or #selectedUnits <= 0 then
+		return false, "no selected units"
+	end
+
+	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
+
+	if not selectedMex then
+		selectedMex = resourceSpotBuilder.GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
+	end
+	if not selectedMex then
+		return false, "no mex builder selected"
+	end
+
+	local optionShift, hasOptionShift = getOptionShift(areaOptions)
+	local _, _, _, shift = Spring.GetModKeyState()
+	if source == "controller" then
+		shift = hasOptionShift and optionShift or false
+	end
+	local cmds = getCmdsForValidSpots(spots, shift)
+	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
+
+	local ok, err = pcall(resourceSpotBuilder.ApplyPreviewCmds, sortedCmds, mexConstructors, shift)
+
+	selectedMex = nil
+
+	if not ok then
+		if source == "controller" then
+			warnControllerAreaMex("failed to issue mex build orders")
+		end
+		return false, tostring(err)
+	end
+
+	if source ~= "controller" and not hasOptionShift then
+		optionShift = shift
+	end
+	if not optionShift then
+		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
+	end
+	return true
+end
+
+
 function widget:CommandNotify(id, params, options)
 	if id ~= CMD_AREA_MEX then
 		return
 	end
 
-	local cmdX, _, cmdZ, cmdRadius = params[1], params[2], params[3], params[4]
-	local spots = getSpotsInArea(cmdX, cmdZ, cmdRadius)
-	if WG['skip_allied_upgrade'] then
-		spots = WG['skip_allied_upgrade'].filterOutAlliedSpots(spots, mexBuildings)
-	end
-
-	if not selectedMex then
-		selectedMex = WG['resource_spot_builder'].GetBestExtractorFromBuilders(selectedUnits, mexConstructors, mexBuildings)
-	end
-
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local cmds = getCmdsForValidSpots(spots, shift)
-	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
-
-	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
-
-	selectedMex = nil
-
-	if not options.shift then
-		if WG["gridmenu"] then WG["gridmenu"].clearCategory() end
-	end
-	return true
+	return IssueAreaMex(params, options, "mouse")
 end
 
 
@@ -224,6 +355,13 @@ function widget:Update(dt)
 			end
 			toggledMetal = false
 		end
+	end
+end
+
+
+function widget:Shutdown()
+	if WG.controllerAreaMex then
+		WG.controllerAreaMex.issueArea = nil
 	end
 end
 
