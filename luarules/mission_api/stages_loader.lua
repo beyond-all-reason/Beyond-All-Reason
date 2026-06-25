@@ -1,5 +1,3 @@
-local validation = VFS.Include('luarules/mission_api/validation.lua')
-
 --[[
 	Stages structure:
 	stages = {
@@ -15,7 +13,6 @@ local function processRawStages(rawStages)
 		stages = table.copy(rawStages)
 	end
 
-	validation.ValidateStages(stages)
 
 	return stages
 end

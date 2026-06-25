@@ -15,6 +15,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
+local validation = VFS.Include('luarules/mission_api/validation.lua')
 
 local objectivesController, stagesController, triggersController, actionsController
 
@@ -34,8 +35,12 @@ local function loadMission(scriptPath)
 	GG['MissionAPI'].UnitLoadout = mission.UnitLoadout
 	GG['MissionAPI'].FeatureLoadout = mission.FeatureLoadout
 
-	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
-	validateReferences()
+	validation.ValidateStages(GG['MissionAPI'].Stages)
+	validation.ValidateObjectives(GG['MissionAPI'].Objectives)
+	validation.ValidateInitialStage(initialStage)
+	validation.ValidateTriggers(GG['MissionAPI'].Triggers, rawActions)
+	validation.ValidateActions(GG['MissionAPI'].Actions)
+	validation.ValidateReferences()
 
 	if GG['MissionAPI'].HasValidationErrors then
 		GG['MissionAPI'] = nil -- stops gadget api_missions_triggers from loading

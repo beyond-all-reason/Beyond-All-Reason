@@ -82,8 +82,6 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 		end
 	end
 
-	validation.ValidateObjectives(objectives)
-	validation.ValidateInitialStage(initialStage)
 
 	return objectives
 end
