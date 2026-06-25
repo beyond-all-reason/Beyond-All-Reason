@@ -43,6 +43,15 @@ function widget:Shutdown()
 	Spring.LoadCmdColorsConfig('mouseBoxLineWidth 1.5')
 end
 
+local function DrawLineLoopRect(x1, y1, x2, y2)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		gl.Vertex(x1, y1)
+		gl.Vertex(x2, y1)
+		gl.Vertex(x2, y2)
+		gl.Vertex(x1, y2)
+	end)
+end
+
 function widget:DrawScreen() -- This blurs the UI elements obscured by other UI elements (only unit stats so far!)
 	local x1, y1, x2, y2 = Spring.GetSelectionBox()
 	if y2 then
@@ -72,10 +81,9 @@ function widget:DrawScreen() -- This blurs the UI elements obscured by other UI 
 		gl.Texture(false)
 
 		-- black selection outline
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
 		gl.LineWidth(lineWidth + 2.5)
 		gl.Color(0,0,0,0.12)
-		gl.Rect(x1, y1, x2, y2)
+		DrawLineLoopRect(x1, y1, x2, y2)
 
 		-- colored selection outline based on modifier keys
 		gl.LineStipple(true)	-- animated stipplelines!
@@ -93,8 +101,7 @@ function widget:DrawScreen() -- This blurs the UI elements obscured by other UI 
 			gl.Color(1, 1, 1, 1)
 		end
 
-		gl.Rect(x1, y1, x2, y2)
-		gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+		DrawLineLoopRect(x1, y1, x2, y2)
 		gl.LineStipple(false)
 
 		gl.PopMatrix()

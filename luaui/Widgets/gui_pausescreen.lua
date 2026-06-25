@@ -102,7 +102,7 @@ local fragmentShaderSource = [[
 	}
 
 	void main() {
-	  vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
+	  vec2 texCoord = gl_TexCoord[0].st;
 	  vec4 origColor = texture2D(screencopy, texCoord);
 	  float intensity = getIntensity(origColor);
 	  intensity = intensity * 1.15;
