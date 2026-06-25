@@ -380,7 +380,7 @@ local trackedProjectileTypes = {} -- we have to track the types [point, light, c
 local lastGameFrame = -2
 
 local isTorpedoLauncher = {}
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	isTorpedoLauncher[weaponDefID] = weaponDef.type == "TorpedoLauncher"
 end
