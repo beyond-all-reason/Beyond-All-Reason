@@ -244,6 +244,9 @@ local function refreshIsTeamRealCache()
 end
 
 local function isTeamReal(allyID)
+	if allyID == nil then
+		return false
+	end
 	local cached = eco.isTeamRealCache[allyID]
 	if cached ~= nil then return cached end
 	local result = isTeamRealUncached(allyID)
