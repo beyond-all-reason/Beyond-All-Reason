@@ -256,7 +256,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Target precedence goes before target priority and ideally after target visibility, in range, unblocked, etc.
 	-- Autotargeting "target priority" is then a weighted value, and Set Target priority uses the order of the list.
-	local function hasTargetPrecedence(unitID)
+	local function hasTargetPrecedence(unitID, unitData)
 		local inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_WAIT then
 			return false
@@ -268,6 +268,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
 		if not nextCommand then
+			if not unitData then
+				return true
+			end
 			return inAutoAttack(unitID, unitData)
 		elseif nextCommand == CMD_FIGHT then
 			-- Set Target does not violate an active Fight command by prioritizing the user's target.
@@ -802,6 +805,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function updateTargetList(unitID)
 		local unitData = activeTargets[unitID]
+		if not unitData then
+			removeFromQueue(unitID)
+			return
+		end
 		local targets, teamID, weapons = unitData.targets, unitData.teamID, unitData.weapons
 		local targetCount = #targets
 		local activeIndex = 0
