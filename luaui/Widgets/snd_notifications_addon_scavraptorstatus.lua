@@ -15,6 +15,11 @@ end
 
 local PlayedMessages = {}
 
+local function NumParam(name)
+	local value = Spring.GetGameRulesParam(name)
+	return tonumber(value)
+end
+
 UpdateTimer = 0
 function widget:Update(dt)
     UpdateTimer = UpdateTimer+dt
@@ -22,9 +27,9 @@ function widget:Update(dt)
         UpdateTimer = UpdateTimer - 1
 
         if Spring.Utilities.Gametype.IsRaptors() then
-            FinalBossProgress = Spring.GetGameRulesParam("raptorQueenAnger")
-            FinalBossHealth = Spring.GetGameRulesParam("raptorQueenHealth")
-            TechProgress = Spring.GetGameRulesParam("raptorTechAnger")
+            FinalBossProgress = NumParam("raptorQueenAnger")
+            FinalBossHealth = NumParam("raptorQueenHealth")
+            TechProgress = NumParam("raptorTechAnger")
 
             if TechProgress and TechProgress >= 50 and not PlayedMessages["AntiNukeReminder1"] then
                 WG['notifications'].queueNotification("PvE/AntiNukeReminder")
@@ -105,9 +110,9 @@ function widget:Update(dt)
             end
 
         elseif Spring.Utilities.Gametype.IsScavengers() then
-            FinalBossProgress = Spring.GetGameRulesParam("scavBossAnger")
-            FinalBossHealth = Spring.GetGameRulesParam("scavBossHealth")
-            TechProgress = Spring.GetGameRulesParam("scavTechAnger")
+            FinalBossProgress = NumParam("scavBossAnger")
+            FinalBossHealth = NumParam("scavBossHealth")
+            TechProgress = NumParam("scavTechAnger")
 
             if TechProgress and TechProgress >= 50 and not PlayedMessages["AntiNukeReminder1"] then
                 WG['notifications'].queueNotification("PvE/AntiNukeReminder")

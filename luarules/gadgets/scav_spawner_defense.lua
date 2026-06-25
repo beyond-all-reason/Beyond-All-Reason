@@ -1133,9 +1133,13 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("scavBossStaggerActive", bossStagger.currentlyStaggered)
 		end
 
-		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+		local bossHealthPercentage = 0
+		if totalMaxHealth > 0 then
+			bossHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		end
+		SetGameRulesParam("scavBossHealth", bossHealthPercentage)
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
-		ScavBossHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		ScavBossHealthPercentage = bossHealthPercentage
 	end
 
 	function SpawnBoss()

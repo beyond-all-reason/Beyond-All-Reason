@@ -984,9 +984,13 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptorQueenStaggerActive", queenStagger.currentlyStaggered)
 		end
 
-		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+		local queenHealthPercentage = 0
+		if totalMaxHealth > 0 then
+			queenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		end
+		SetGameRulesParam("raptorQueenHealth", queenHealthPercentage)
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
-		RaptorQueenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		RaptorQueenHealthPercentage = queenHealthPercentage
 	end
 
 	function SpawnQueen()
