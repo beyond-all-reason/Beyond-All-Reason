@@ -55,11 +55,12 @@ local prefixes = { unit = 'area_ondeath_', weapon = 'area_onhit_' }
 --------------------------------------------------------------------------------
 -- Cached globals --------------------------------------------------------------
 
+local abs                     = math.abs
 local max                     = math.max
 local min                     = math.min
 local floor                   = math.floor
-local sqrt                    = math.sqrt
 local round                   = math.round
+local sqrt                    = math.sqrt
 local diag                    = math.diag
 local normalize               = math.normalize
 local stringFind              = string.find
@@ -72,14 +73,33 @@ local spAddUnitDamage         = Spring.AddUnitDamage
 local spAddFeatureDamage      = Spring.AddFeatureDamage
 local spGetFeaturePosition    = Spring.GetFeaturePosition
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spGetFeatureRadius      = Spring.GetFeatureRadius
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spGetGroundNormal       = Spring.GetGroundNormal
+local spGetProjectileAllyTeam = Spring.GetProjectileAllyTeamID
+local spGetUnitAllyTeam       = Spring.GetUnitAllyTeam
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetUnitPosition       = Spring.GetUnitPosition
+local spGetUnitRadius         = Spring.GetUnitRadius
 local spGetUnitsInCylinder    = Spring.GetUnitsInCylinder
+local spGetWaterPlaneLevel    = Spring.GetWaterPlaneLevel
 local spSpawnCEG              = Spring.SpawnCEG
 
 local gameSpeed               = Game.gameSpeed
+
+local waterPlaneLevel         = spGetWaterPlaneLevel()
+local lavaWater               = Spring.Lava.isLavaMap
+local voidWater               = false
+
+local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+if success and mapinfo and mapinfo.voidwater then
+	lavaWater = false
+	voidWater = true
+end
+
+local function updateWaterPlane()
+	waterPlaneLevel = spGetWaterPlaneLevel()
+end
 
 --------------------------------------------------------------------------------
 -- Local variables -------------------------------------------------------------
@@ -95,6 +115,8 @@ local timedDamageWeapons = {}
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
 local isFactory = {}
+local unitRadiusMax = 0
+local featureRadiusMax = 0
 
 local aliveExplosions = {}
 local frameExplosions = {}
@@ -105,10 +127,15 @@ local featureData = {}
 local unitDamageReset = {}
 local featDamageReset = {}
 
+local inExplosion = table.new(1, 0) -- lua trick for ref passing
+
 local regexArea, regexRepeat = '%-area%-', '%-repeat'
 local regexDigits = "%d+"
 local regexCegRadius = regexArea..regexDigits..regexRepeat
 local regexCegToRadius = regexArea.."("..regexDigits..")"..regexRepeat
+
+local areaDamageType = "LuaAreaDamage_"
+local areaDamageTypes = {}
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -134,11 +161,29 @@ local function getExplosionParams(def, prefix)
 	local dpsWanted  = def.customParams[prefix .. "damage"    ]
 	local duration   = def.customParams[prefix .. "time"      ]
 	local range      = def.customParams[prefix .. "range"     ]
+	local penetrates = def.customParams[prefix .. "shieldpen" ]
 
     resistance = stringLower(resistance or "none")
     range = tonumber(range)
 	dpsWanted = tonumber(dpsWanted)
 	duration = tonumber(duration)
+
+	local damageType = areaDamageType .. resistance
+	local weaponDefID = areaDamageTypes[damageType]
+
+	if not weaponDefID then
+		-- Add an envDamage entry for area weapons of the same resistance.
+		-- These are used for scripted damages both by the engine and Lua.
+		local envDamageTypeMin = table.reduce(
+			Game.envDamageTypes,
+			function(acc, index) return index < acc and index or acc end,
+			-1 -- The "real" weaponDefIDs start at 0.
+		)
+		weaponDefID = envDamageTypeMin - 1
+		areaDamageTypes[damageType] = weaponDefID
+		areaDamageTypes[weaponDefID] = damageType
+		Game.envDamageTypes[damageType] = weaponDefID
+	end
 
 	-- With ticks between explosions, we're unable to perfectly match all weapondefs.
 	-- So we fix the last explosion to make up for any excessive/lost time or damage.
@@ -174,9 +219,11 @@ local function getExplosionParams(def, prefix)
 	return {
 		ceg        = ceg,
 		damageCeg  = damageCeg,
-		resistance = resistance,
-		damage     = damagePerTick,
 		range      = range,
+		resistance = resistance,
+		penetrates = penetrates,
+		weapon     = weaponDefID,
+		damage     = damagePerTick,
 		frames     = framesFull,
 		lastFrames = framesPartial,
 		lastDamage = damagePartial,
@@ -198,7 +245,7 @@ local function getNearestCEG(params)
     local sizeBest, diffBest = math.huge, math.huge
     for ii = 1, #areaSizePresets do
         local size = areaSizePresets[ii]
-        local diff = math.abs(range / size - size / range)
+        local diff = abs(range / size - size / range)
         if diff < diffBest then
             diffBest = diff
             sizeBest = size
@@ -240,42 +287,70 @@ local function addToExplosions(explosions, area)
 	tableInsert(explosions, index, area)
 end
 
+local getBlockingShieldUnits -- from shield behaviors
+
+local function getAllyTeam(attackerID, projectileID)
+	return (attackerID and spGetUnitAllyTeam(attackerID))
+		or (projectileID and spGetProjectileAllyTeam(projectileID))
+end
+
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
     local explosion = timedDamageWeapons[weaponDefID]
-    local elevation = max(spGetGroundHeight(px, pz), 0)
+    local elevation = max(spGetGroundHeight(px, pz), waterPlaneLevel)
+	local dispersal = abs(py - elevation) -- death explosions can be underneath lava
+    local areaRange = explosion.range
 
-    if py <= elevation + explosion.range then
+    if dispersal <= areaRange then
+        local frames = explosion.frames
         local dx, dy, dz
-        if elevation > 0 then
+        if elevation > waterPlaneLevel then
             dx, dy, dz = spGetGroundNormal(px, pz, true)
-        else
+		else
+			if voidWater then
+				return
+			end
+            -- Napalm and acid on water are not entirely wanted so we cut the duration.
+            -- Reduce the duration by half and then up to 1/8th penalty from dispersal:
+            frames = round(frames * 0.5 * (1 - 0.5 * dispersal / areaRange))
             dx, dy, dz = 0, 1, 0
         end
 
-        local minY = elevation - explosion.range
-        if minY < 0 then
+        local minY = elevation - areaRange
+        if minY < waterPlaneLevel then
             minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
         end
 
+		-- Shields and area damages express slightly different types of containment of units,
+		-- and the explosion volume and resulting area volume have some discrepancy, as well.
+		local blockingShields
+		if not explosion.penetrates then
+			local allyTeam = getAllyTeam(attackerID, projectileID)
+			local units, count = getBlockingShieldUnits(px, elevation, pz, areaRange, allyTeam, true)
+			if count and count > 0 then
+				blockingShields = units
+			end
+		end
+
         local area = {
-            weapon      = weaponDefID,
+            weapon      = explosion.weapon,
             owner       = attackerID,
             x           = px,
             y           = elevation,
             z           = pz,
             ymin        = minY,
-            ymax        = elevation + explosion.range,
+            ymax        = elevation + areaRange,
             dx          = dx,
             dy          = dy,
             dz          = dz,
             ceg         = explosion.ceg,
-            range       = explosion.range,
-            resistance  = explosion.resistance,
+            range       = areaRange,
             damage      = explosion.damage,
             damageCeg   = explosion.damageCeg,
-            endFrame    = explosion.frames + frameNumber,
+			-- Use water-adjusted duration if we shortened frames above.
+            endFrame    = frames + frameNumber,
 			lastFrames  = explosion.lastFrames,
 			lastDamage  = explosion.lastDamage,
+			suppressed  = blockingShields,
         }
 
 		addToExplosions(frameExplosions, area)
@@ -293,58 +368,72 @@ local function extendTimedExplosion(area, gameFrame)
 end
 
 local function spawnAreaCEGs(loopIndex)
-    for index, area in pairs(aliveExplosions[loopIndex]) do
+    local areas = aliveExplosions[loopIndex]
+    for index = 1, #areas do
+		local area = areas[index]
         spSpawnCEG(area.ceg, area.x, area.y, area.z, area.dx, area.dy, area.dz)
     end
 end
 
+local function getUnitHitData(unitID)
+	return spGetUnitRadius(unitID), spGetUnitPosition(unitID, true)
+end
+
+local function getFeatureHitData(featureID)
+	return spGetFeatureRadius(featureID), spGetFeaturePosition(featureID, true)
+end
+
 ---We prefer the target's midpoint if it is in the radius since the damaged CEGs are easier to see higher up
 ---on the model, but if it is too high/awkward then the base position is fine, with a small vertical offset.
----@param area table contains the timed area properties
----@param baseX? number unit base position coordinates <x, y, z>
----@param baseY number
----@param baseZ number
----@param midX number unit midpoint position coordinates <x, y, z>
----@param midY number
----@param midZ number
 ---@return number? hitX reference coordinates <x, y, z>
 ---@return number? hitY
 ---@return number? hitZ
-local function getAreaHitPosition(area, baseX, baseY, baseZ, midX, midY, midZ)
-	if not baseX then
-		return
-	end
+local function getAreaHitPosition(area, targetRadius, baseX, baseY, baseZ, midX, midY, midZ)
+	local radius = max(area.range, targetRadius)
 
-	local radius = area.range
-
-	if midY >= area.ymin and midY <= area.ymax then
-		if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
-			return midX, midY, midZ
+	if radius > targetRadius then
+		-- Check if the area contains the target.
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return midX, midY, midZ
+			end
 		end
-	end
 
-	if baseY >= area.ymin and baseY <= area.ymax then
-		local dx = baseX - area.x
-		local dy = baseY - area.y
-		local dz = baseZ - area.z
+		if baseY >= area.ymin and baseY <= area.ymax then
+			local dx = baseX - area.x
+			local dy = baseY - area.y
+			local dz = baseZ - area.z
 
-		if diag(dx, dy, dz) <= radius then
-			-- The unit base point is in the area and the mid point is not.
-			-- Find the intersection of a ray from mid->base onto the area.
-			local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
+			if diag(dx, dy, dz) <= radius then
+				-- The unit base point is in the area and the mid point is not.
+				-- Find the intersection of a ray from mid->base onto the area.
+				local rx, ry, rz = normalize(baseX - midX, baseY - midY, baseZ - midZ)
 
-			local a = rx * rx + ry * ry + rz * rz
-			local b = (dx * rx + dy * ry + dz * rz) * 2
-			local c = dx * dx + dy * dy + dz * dz - radius * radius
+				local a = rx * rx + ry * ry + rz * rz
+				local b = (dx * rx + dy * ry + dz * rz) * 2
+				local c = dx * dx + dy * dy + dz * dz - radius * radius
 
-			-- We already know the discriminant is positive:
-			local discriminant = b * b - 4 * a * c
-			local t = (b + sqrt(discriminant)) / (2 * a)
+				-- We already know the discriminant is positive:
+				local discriminant = b * b - 4 * a * c
+				local t = (b + sqrt(discriminant)) / (2 * a)
 
-			return
-				midX + t * rx,
-				midY + t * ry,
-				midZ + t * rz
+				return
+					midX + t * rx,
+					midY + t * ry,
+					midZ + t * rz
+			end
+		end
+	else
+		-- Check if the target contains the area.
+		if baseY >= area.ymin and baseY <= area.ymax then
+			if diag(baseX - area.x, baseY - area.y, baseZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
+		end
+		if midY >= area.ymin and midY <= area.ymax then
+			if diag(midX - area.x, midY - area.y, midZ - area.z) <= radius then
+				return area.x, midY, area.z
+			end
 		end
 	end
 end
@@ -359,13 +448,13 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local unitsInRange = spGetUnitsInCylinder(x, z, radius)
+        local unitsInRange = spGetUnitsInCylinder(x, z, max(radius, unitRadiusMax))
 
         for j = 1, #unitsInRange do
             local unitID = unitsInRange[j]
 			local data = unitData[unitID]
-            if data and not data.resistances[area.resistance] and data.immuneUntil < gameFrame then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetUnitPosition(unitID, true))
+            if data and not data.resistances[area.weapon] and data.immuneUntil < gameFrame then
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getUnitHitData(unitID))
 
 				if hitX then
 					local damageTaken = data.damageTaken
@@ -378,13 +467,16 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
 						spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
 					end
 					data.damageTaken = damageTaken + damage
-					spAddUnitDamage(unitID, damage, nil, area.owner, area.weapon)
+					inExplosion[1] = area
+					-- GetFlankingBonus evaluates the zero-vector to 50% flanking bonus, so conditionally remove:
+					spAddUnitDamage(unitID, damage, nil, area.owner ~= unitID and area.owner or nil, area.weapon)
+					inExplosion[1] = nil
 				end
             end
         end
     end
 
-	for _, data in ipairs(unitDamageReset[gameFrame]) do
+    for _, data in ipairs(unitDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 
@@ -398,14 +490,14 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         local area = timedAreas[index]
         local x, z, radius = area.x, area.z, area.range
 
-        local featuresInRange = spGetFeaturesInCylinder(x, z, radius)
+        local featuresInRange = spGetFeaturesInCylinder(x, z, max(radius, featureRadiusMax))
 
         for j = 1, #featuresInRange do
             local featureID = featuresInRange[j]
 			local data = featureData[featureID]
 
             if data and not data.damageImmune then
-                local hitX, hitY, hitZ = getAreaHitPosition(area, spGetFeaturePosition(featureID, true))
+                local hitX, hitY, hitZ = getAreaHitPosition(area, getFeatureHitData(featureID))
 
                 if hitX then
                     local damageTaken = data.damageTaken
@@ -418,7 +510,9 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
                         spSpawnCEG(area.damageCeg, hitX, hitY, hitZ)
                     end
 					data.damageTaken = damageTaken + damageDealt
+					inExplosion[1] = area
 					spAddFeatureDamage(featureID, damageDealt, nil, area.owner, area.weapon)
+					inExplosion[1] = nil
                 end
             end
         end
@@ -431,7 +525,7 @@ local function damageTargetsInAreas(timedAreas, gameFrame)
         end
     end
 
-	for _, data in ipairs(featDamageReset[gameFrame]) do
+    for _, data in ipairs(featDamageReset[gameFrame] or {}) do
 		data.damageTaken = 0
 	end
 
@@ -443,7 +537,14 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-    timedDamageWeapons = {}
+	getBlockingShieldUnits = GG.Shields.GetBlockingShieldUnits
+
+	areaDamageTypes = GG.EnvAreaWeapons or {}
+	inExplosion = GG.InTimedDamageArea or table.new(1, 0) -- lua trick for ref passing
+	GG.EnvAreaWeapons = areaDamageTypes
+	GG.InTimedDamageArea = inExplosion
+
+	timedDamageWeapons = {}
     for weaponDefID = 0, #WeaponDefs do
         local weaponDef = WeaponDefs[weaponDefID]
         if weaponDef.customParams and weaponDef.customParams[prefixes.weapon.."ceg"] then
@@ -491,18 +592,16 @@ function gadget:Initialize()
 	end
 
     unitDamageImmunity = {}
-    local areaDamageTypes = {}
+    local areaResistances = {}
     for weaponDefID, params in pairs(timedDamageWeapons) do
-        if params.resistance == nil then
-            params.resistance = "none"
-        elseif params.resistance ~= "none" then
-            areaDamageTypes[params.resistance] = true
+        if params.resistance ~= "none" then
+            areaResistances[areaDamageTypes[areaDamageType .. params.resistance]] = true
         end
     end
-    local immunities = { all = areaDamageTypes, none = {} }
+    local immunities = { all = areaResistances, none = {} }
     for unitDefID, unitDef in ipairs(UnitDefs) do
         local unitImmunity
-        if unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
+        if unitDef.isSubmarine or unitDef.canFly or unitDef.armorType == Game.armorTypes.indestructible then
             unitImmunity = immunities.all
         elseif unitDef.customParams.areadamageresistance == nil then
             unitImmunity = immunities.none
@@ -512,9 +611,9 @@ function gadget:Initialize()
                 unitImmunity = immunities[resistance]
             else
                 unitImmunity = {}
-                for damageType in pairs(areaDamageTypes) do
-                    if string.find(resistance, damageType, nil, false) then
-                        unitImmunity[damageType] = true
+                for weaponDefID in pairs(areaResistances) do
+                    if string.find(resistance, areaDamageTypes[weaponDefID], nil, false) then
+                        unitImmunity[weaponDefID] = true
                     end
                 end
                 if not next(unitImmunity) then
@@ -529,6 +628,20 @@ function gadget:Initialize()
     featureDamageImmunity = {}
 	for featureDefID, featureDef in ipairs(FeatureDefs) do
 		featureDamageImmunity[featureDefID] = featureDef.indestructible or featureDef.geoThermal
+	end
+
+	unitRadiusMax = 0
+	for unitDefID = 1, #UnitDefs do
+		if unitDamageImmunity[unitDefID] ~= immunities.all and UnitDefs[unitDefID].radius > unitRadiusMax then
+			unitRadiusMax = UnitDefs[unitDefID].radius
+		end
+	end
+
+	featureRadiusMax = 0
+	for featureDefID = 1, #FeatureDefs do
+		if not featureDamageImmunity[featureDefID] and FeatureDefs[featureDefID].radius > featureRadiusMax then
+			featureRadiusMax = FeatureDefs[featureDefID].radius
+		end
 	end
 
 	aliveExplosions = {}
@@ -559,6 +672,8 @@ function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
 end
 
 function gadget:GameFrame(frame)
+	updateWaterPlane()
+
     local indexDamage = 1 + (frame % frameInterval)
     local indexExpGen = 1 + ((frame + frameCegShift) % frameInterval)
     local frameAreas = aliveExplosions[indexDamage]
@@ -592,4 +707,75 @@ end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	featureData[featureID] = nil
+end
+
+if lavaWater then
+	local positionError = 24
+
+	local spGetProjectilePosition = Spring.GetProjectilePosition
+	local spSetProjectileCollision = Spring.SetProjectileCollision
+
+	local projectiles = {}
+	local lastAreaElevation = waterPlaneLevel
+
+	local function updateAreaPosition(area, elevation, lavaLevel)
+		local areaRange = area.range
+
+		local dx, dy, dz
+        if elevation > lavaLevel then
+            dx, dy, dz = spGetGroundNormal(area.x, area.z, true)
+		else
+            dx, dy, dz = 0, 1, 0
+        end
+
+        local minY = elevation - areaRange
+        if minY < lavaLevel then
+            minY = minY * (1 - dy * 0.5)
+        end
+
+		area.y    = elevation
+		area.ymin = minY
+		area.ymax = elevation + areaRange
+		area.dx   = dx
+		area.dy   = dy
+		area.dz   = dz
+	end
+
+	updateWaterPlane = function()
+		local lavaLevel = _G.lavaLevel -- TODO: Predict near-future lava level for this to act nicely.
+		waterPlaneLevel = lavaLevel
+
+		if abs(lavaLevel - lastAreaElevation) >= positionError then
+			lastAreaElevation = lavaLevel
+
+			for frame, areas in pairs(aliveExplosions) do
+				for i, area in ipairs(areas) do
+					local elevation = max(spGetGroundHeight(area.x, area.z), lavaLevel)
+					local difference = area.y - elevation
+					-- Areas can be subsumed by lava but cannot remain suspended in the air.
+					-- The difference also should exceed lava's sinusoidal height variations.
+					if difference > 1 then
+						updateAreaPosition(area, elevation, lavaLevel)
+					end
+				end
+			end
+		end
+
+		for projectileID in pairs(projectiles) do
+			local _, y = spGetProjectilePosition(projectileID)
+			if y and y < lavaLevel then
+				spSetProjectileCollision(projectileID)
+			end
+		end
+	end
+
+	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
+		if timedDamageWeapons[weaponDefID] then
+			projectiles[projectileID] = true
+		end
+	end
+
+	function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
+		projectiles[projectileID] = nil
+	end
 end

@@ -22,7 +22,7 @@ return {
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corkarganetht4.s3o",
-		script = "Units/scavboss/corkarganetht4.COB",
+		script = "Units/scavboss/corkarganetht4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 550,

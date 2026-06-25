@@ -419,6 +419,9 @@ function widget:Initialize()
 	WG['unitstats'].showUnit = function(unitID)
 		showUnitID = unitID
 	end
+	WG['unitstats'].isShowing = function()
+		return showStats
+	end
 
 	widgetHandler:AddAction("unit_stats", enableStats, nil, "p")
 	widgetHandler:AddAction("unit_stats", disableStats, nil, "r")
@@ -746,8 +749,9 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local custom = uWep.customParams
 
-		if custom.spark_basedamage then
-			local spDamage = custom.spark_basedamage * custom.spark_forkdamage
+		if custom.spark_forkdamage then
+			-- Sparks are hardcoded to target the default armor type:
+			local spDamage = custom.spark_basedamage * defaultArmorDamage
 			local spCount = custom.spark_maxunits
 			baseArmorDamage = baseArmorDamage + spDamage * spCount
 

@@ -81,7 +81,7 @@ return {
 				range = 350,
 				reloadtime = 0.7,
 				rgbcolor = "1 0.95 0.4",
-				size = 2,
+				size = 1.5,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
 				soundtrigger = true,

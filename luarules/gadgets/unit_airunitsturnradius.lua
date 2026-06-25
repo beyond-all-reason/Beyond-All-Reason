@@ -61,8 +61,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if Bombers[unitID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	if Bombers[unitID] and GG.Crashing and GG.Crashing[unitID] then
+		Bombers[unitID] = nil
 	end
 end
 
@@ -74,7 +74,7 @@ local function processNextCmd(unitID, unitDefID, cmdID)
 	local radius = (not cmdID or cmdID == CMD_ATTACK) and attackTurnRadius or bomberTurnRadius[unitDefID]
 	local success = pcall(spMoveCtrlSetAirMoveTypeData, unitID, "turnRadius", radius)
 	if not success then
-		Spring.Echo("Error: unit_airunitsturnradius incompatible movetype for unitdef "..UnitDefs[unitDefID].name)
+		Bombers[unitID] = nil
 	end
 	if curMoveCtrl then
 		spMoveCtrlEnable(unitID)

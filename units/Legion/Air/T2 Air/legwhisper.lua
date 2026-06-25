@@ -41,6 +41,7 @@ return {
 			unitgroup = 'util',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			selectable_as_combat_unit = true,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},

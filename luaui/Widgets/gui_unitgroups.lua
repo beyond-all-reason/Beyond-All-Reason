@@ -477,6 +477,7 @@ local function updateList()
 end
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not spec or showWhenSpec then
 		if doUpdate then
 			doUpdate = false

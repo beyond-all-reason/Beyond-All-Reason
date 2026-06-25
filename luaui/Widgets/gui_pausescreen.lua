@@ -43,7 +43,7 @@ local osClock = os.clock
 
 -- CONFIGURATION
 
-local fontfile = "fonts/unlisted/MicrogrammaDBold.ttf"
+local fontfile = "fonts/unlisted/Xolonium.otf"
 local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35

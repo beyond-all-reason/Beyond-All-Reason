@@ -23,7 +23,9 @@ end
 
 --------------------------------------------------------------------------------
 
-local numMousePos		= 2 	-- num mouse pos in 1 packet
+local numMousePos		= 1 	-- num mouse pos in 1 packet
+local sendPacketEvery	= 0.12
+local sendPacketEveryWhenSpec	= 0.35
 
 --------------------------------------------------------------------------------
 
@@ -62,9 +64,6 @@ else
 
 
 	--------------------------------------------------------------------------------
-
-	local sendPacketEvery	= 0.35
-	local sendPacketEveryWhenSpec	= 0.7
 
 	--------------------------------------------------------------------------------
 
@@ -150,17 +149,16 @@ else
 			local _,pos = TraceScreenRay(mx,my,true)
 
 			if pos and (n == 1 or pos[1] ~= lastx or pos[3] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
-				poshistory[n*2]	 = PackU16(floor(pos[1]))
-				poshistory[n*2+1] = PackU16(floor(pos[3]))
-				--if n == numMousePos then
-					lastx,lastz = pos[1],pos[3]
-				--end
+				local historyIdx = (n + 1) * 2
+				poshistory[historyIdx]	 = PackU16(floor(pos[1]))
+				poshistory[historyIdx + 1] = PackU16(floor(pos[3]))
+				lastx,lastz = pos[1],pos[3]
 				n = n + 1
 			end
 			updateTick = updateTimer + saveEach
 		end
 
-		if n > numMousePos then
+		if n >= numMousePos then
 			n = 0
 			updateTimer = 0
 			updateTick = saveEach

@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name      = 'Place Target On Ground',
 		desc      = 'Make some units, like nukes, target ground instead of units',
-		author    = 'Itanthias',
+		author    = 'Itanthias, Chronographer',
 		date      = 'August 2023',
 		license   = 'GNU GPL, v2 or later',
 		layer     = -12,
@@ -35,12 +35,22 @@ local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local mapx = Game.mapSizeX
+local mapz = Game.mapSizeZ
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
+
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+local hasVoid = false
+if success and type(mapinfo) == "table" and mapinfo.voidwater then
+  hasVoid = true
+elseif not success then
+  Spring.Echo("Place Target On Ground failed to load the mapinfo.lua")
+end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
@@ -98,10 +108,18 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	-- usually from user side DefaultCommand widget function
 	if place_target_on_ground[unitDefID] then
 		-- no need to check cmdID due to RegisterAllowCommand above
-		if (#cmdParams == 1) then -- give an attack command at the ground, and deny the intial attack unit command
+		if hasVoid and (#cmdParams == 3 or #cmdParams == 4) then 
+			local x,y,z = cmdParams[1], cmdParams[2], cmdParams[3]
+			if x ~= nil and (y < 0) and ( x >= 0 and x <= mapx ) and (z >= 0 and z <= mapz) then
+				return false
+			end
+		elseif (#cmdParams == 1) then -- give an attack command at the ground, and deny the intial attack unit command
 			local basePointX, basePointY, basePointZ = spGetUnitPosition(cmdParams[1])
 			if basePointX and basePointZ then
 				local yGround = spGetGroundHeight(basePointX, basePointZ)
+				if hasVoid and (yGround < 0) then
+					return false
+				end 
 				spGiveOrderToUnit(unitID, cmdID, {basePointX, yGround, basePointZ}, cmdOptions)
 				return false
 			end

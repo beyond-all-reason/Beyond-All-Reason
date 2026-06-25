@@ -74,6 +74,7 @@ return {
 		customparams = {
 			unitgroup = 'buildert2',
 			decoyfor = "legcom",
+			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,

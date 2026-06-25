@@ -133,6 +133,7 @@ return {
 			childreninheritxp = "TURRET MOBILEBUILT",
 			parentsinheritxp = "TURRET MOBILEBUILT",
 			effigy = "comeffigylvl2",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
@@ -229,7 +230,7 @@ return {
 				firestarter = 100,
 				flighttime = 7.4,
 				impulsefactor = 0.123,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl0.s3o",
 				name = "HeavyRockets",
 				noselfdamage = true,
 				range = 435,
@@ -387,8 +388,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor1 = {

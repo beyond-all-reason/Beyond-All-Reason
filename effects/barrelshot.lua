@@ -245,7 +245,7 @@ local definitions = {
         frontoffset        = 0,
         fronttexture       = [[flare1]],
         length             = 55,
-        sidetexture        = [[shotgunside]],   
+        sidetexture        = [[shotgunside]],
         size               = 17.2,
         sizegrowth         = -0.5,
         ttl                = 9,
@@ -265,7 +265,7 @@ local definitions = {
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[1InstaHeat1Shock1]],
-        animParams         = [[8,12,19]], 
+        animParams         = [[8,12,19]],
         length             = 45,
         sidetexture        = [[none]],
         size               = 10.5,
@@ -428,7 +428,7 @@ local definitions = {
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.1,
         fronttexture       = [[1InstaHeat1Shock1]],
-        animParams         = [[8,12,30]], 
+        animParams         = [[8,12,30]],
         length             = 15,
         sidetexture        = [[none]],
         size               = 5,
@@ -731,7 +731,7 @@ definitions["barrelshot-small"].smoke2.count                            = 2
 definitions["barrelshot-small"].fire.properties.length							    = definitions["barrelshot-small"].fire.properties.length * size
 definitions["barrelshot-small"].fire.properties.size							      = definitions["barrelshot-small"].fire.properties.size * size
 definitions["barrelshot-small"].fire.properties.ttl								      = 7.5
-definitions["barrelshot-small"].fire2.count = 0						
+definitions["barrelshot-small"].fire2.count = 0
 definitions["barrelshot-small"].fire2.properties.length							    = definitions["barrelshot-small"].fire2.properties.length * size
 definitions["barrelshot-small"].fire2.properties.size							      = definitions["barrelshot-small"].fire2.properties.size * size * 0.6
 definitions["barrelshot-small"].fire2.properties.ttl							      = 13
@@ -894,7 +894,7 @@ definitions["barrelshot-large-impulse"].smoke.properties.particlespeed = definit
 definitions["barrelshot-large-impulse"].smoke.properties.particlesize = 13
 definitions["barrelshot-large-impulse"].impulse.properties.size = 10
 definitions["barrelshot-large-impulse"].impulse.properties.ttl = 25
-definitions["barrelshot-large-impulse"].impulse.properties.animParams = [[8,12,35]] 
+definitions["barrelshot-large-impulse"].impulse.properties.animParams = [[8,12,35]]
 
 definitions["barrelshot-tiny-aa"] = table.copy(definitions["barrelshot-tiny"])
 definitions["barrelshot-tiny-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
@@ -937,7 +937,7 @@ definitions["barrelshot-sniper"].fire.properties.length                         
 definitions["barrelshot-sniper"].fire.properties.size                                    = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
 definitions["barrelshot-sniper"].fire2.properties.length                                 = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
 definitions["barrelshot-sniper"].fire2.properties.size                                   = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
-definitions["barrelshot-sniper"].flare.count                                             = 1       
+definitions["barrelshot-sniper"].flare.count                                             = 1
 --definitions["barrelshot-sniper"].fire.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
 --definitions["barrelshot-sniper"].fire2.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
 --definitions["barrelshot-sniper"].fireglow.properties.colormap = [[0.122 0.066 0.025 0.04   0 0 0 0.01]]
@@ -947,94 +947,94 @@ definitions["barrelshot-sniper"].flare.count                                    
 
 
 definitions["barrelshot-lightning"] = {
-    groundflash = {
-        circlealpha        = 1,
-        circlegrowth       = 0,
-        flashalpha         = 0.12,
-        flashsize          = 35,
-        ttl                = 3,
-        color = {
-            [1]  = 0.66,
-            [2]  = 0.66,
-            [3]  = 1,
-        },
-    },
-    blueelectricityspikes = {
-        air                = true,
-        class              = [[CSimpleParticleSystem]],
-        count              = 1,
-        ground             = true,
-        water              = true,
-        underwater         = true,
-        properties = {
-            airdrag            = 0.8,
-            colormap           = [[0.7 0.7 0.9 0.03   0.5 0.5 0.9 0.01]],
-            directional        = true,
-            emitrot            = 45,
-            emitrotspread      = 32,
-            emitvector         = [[0, 1, 0]],
-            gravity            = [[0, -0.01, 0]],
-            numparticles       = 2,
-            particlelife       = 3,
-            particlelifespread = 2,
-            particlesize       = 7.5,
-            particlesizespread = 3.5,
-            particlespeed      = 0.5,
-            particlespeedspread = 0.5,
-            pos                = [[0, 0, 0]],
-            sizegrowth         = 1.8,
-            sizemod            = 1,
-            texture            = [[whitelightb]],
-            useairlos          = false,
-        },
-    },
-    centerflare = {
-        air                = true,
-        class              = [[CHeatCloudProjectile]],
-        count              = 0,
-        ground             = true,
-        water              = true,
-        underwater         = true,
-        properties = {
-            heat               = 7,
-            heatfalloff        = 0.9,
-            maxheat            = 15,
-            pos                = [[r-2 r2, 0, r-2 r2]],
-            size               = 14,
-            sizegrowth         = -4,
-            speed              = [[0, 1 0, 0]],
-            texture            = [[flare]],
-        },
-    },
-    flare = {
-        air                = true,
-        class              = [[CSimpleParticleSystem]],
-        count              = 2,
-        ground             = true,
-        water              = true,
-        underwater         = true,
-        properties = {
-            airdrag            = 0.95,
-            colormap           = [[0.98 0.98 1 0.2   0.98 0.98 1 0.5   0.92 0.92 0.95 0.2    0 0 0 0   0.98 0.98 1 0.4   0 0 0 0   0.98 0.98 1 0.5   0 0 0 0]],
-            directional        = true,
-            emitrot            = 90,
-            emitrotspread      = 0,
-            emitvector         = [[0, 1, 0]],
-            gravity            = [[0, 0, 0]],
-            numparticles       = 1,
-            particlelife       = 9,
-            particlelifespread = 1,
-            particlesize       = 14,
-            particlesizespread = 8,
-            particlespeed      = 0.1,
-            particlespeedspread = 0.1,
-            pos                = [[10, 2, 0]],
-            sizegrowth         = -0.5,
-            sizemod            = 1,
-            texture            = [[flare2]],
-            useairlos          = false,
-        },
-    },
+    -- groundflash = {
+    --     circlealpha        = 1,
+    --     circlegrowth       = 0,
+    --     flashalpha         = 0.12,
+    --     flashsize          = 35,
+    --     ttl                = 3,
+    --     color = {
+    --         [1]  = 0.66,
+    --         [2]  = 0.66,
+    --         [3]  = 1,
+    --     },
+    -- },
+    -- blueelectricityspikes = {
+    --     air                = true,
+    --     class              = [[CSimpleParticleSystem]],
+    --     count              = 1,
+    --     ground             = true,
+    --     water              = true,
+    --     underwater         = true,
+    --     properties = {
+    --         airdrag            = 0.8,
+    --         colormap           = [[0.7 0.7 0.9 0.03   0.5 0.5 0.9 0.01]],
+    --         directional        = true,
+    --         emitrot            = 45,
+    --         emitrotspread      = 32,
+    --         emitvector         = [[0, 1, 0]],
+    --         gravity            = [[0, -0.01, 0]],
+    --         numparticles       = 2,
+    --         particlelife       = 3,
+    --         particlelifespread = 2,
+    --         particlesize       = 7.5,
+    --         particlesizespread = 3.5,
+    --         particlespeed      = 0.5,
+    --         particlespeedspread = 0.5,
+    --         pos                = [[0, 0, 0]],
+    --         sizegrowth         = 1.8,
+    --         sizemod            = 1,
+    --         texture            = [[whitelightb]],
+    --         useairlos          = false,
+    --     },
+    -- },
+    -- centerflare = {
+    --     air                = true,
+    --     class              = [[CHeatCloudProjectile]],
+    --     count              = 0,
+    --     ground             = true,
+    --     water              = true,
+    --     underwater         = true,
+    --     properties = {
+    --         heat               = 7,
+    --         heatfalloff        = 0.9,
+    --         maxheat            = 15,
+    --         pos                = [[r-2 r2, 0, r-2 r2]],
+    --         size               = 14,
+    --         sizegrowth         = -4,
+    --         speed              = [[0, 1 0, 0]],
+    --         texture            = [[flare]],
+    --     },
+    -- },
+    -- flare = {
+    --     air                = true,
+    --     class              = [[CSimpleParticleSystem]],
+    --     count              = 2,
+    --     ground             = true,
+    --     water              = true,
+    --     underwater         = true,
+    --     properties = {
+    --         airdrag            = 0.95,
+    --         colormap           = [[0.98 0.98 1 0.2   0.98 0.98 1 0.5   0.92 0.92 0.95 0.2    0 0 0 0   0.98 0.98 1 0.4   0 0 0 0   0.98 0.98 1 0.5   0 0 0 0]],
+    --         directional        = true,
+    --         emitrot            = 90,
+    --         emitrotspread      = 0,
+    --         emitvector         = [[0, 1, 0]],
+    --         gravity            = [[0, 0, 0]],
+    --         numparticles       = 1,
+    --         particlelife       = 9,
+    --         particlelifespread = 1,
+    --         particlesize       = 14,
+    --         particlesizespread = 8,
+    --         particlespeed      = 0.1,
+    --         particlespeedspread = 0.1,
+    --         pos                = [[10, 2, 0]],
+    --         sizegrowth         = -0.5,
+    --         sizemod            = 1,
+    --         texture            = [[flare2]],
+    --         useairlos          = false,
+    --     },
+    -- },
 }
 
 -- add purple scavenger variants

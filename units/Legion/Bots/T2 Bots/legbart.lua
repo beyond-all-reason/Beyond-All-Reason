@@ -122,7 +122,7 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "cannhvy2",
-				sprayangle = 2500,
+				sprayangle = 1500,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
@@ -133,6 +133,7 @@ return {
 					area_onhit_damage = 60,
 					area_onhit_range = 75,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,

@@ -162,6 +162,8 @@ local shiftTable = { "shift" }
 local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
 
+local showWeaponGroups = { ["0"] = true, ["1"] = true } -- <0:=fake weapons, 0:=always active, 1:=primary set, >1:=alternate sets
+
 local function refreshUnitInfo()
 	local builderTraits = {
 		canBuild   = function(def) return def.isFactory or next(def.buildOptions) ~= nil end,
@@ -362,7 +364,7 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
 
 			elseif weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
-				if #weapons <= 1 then
+				if #weapons == 1 then
 					unitDefInfo[unitDefID].weapons = {}
 					unitDefInfo[unitDefID].shieldOnly = true
 				end
@@ -436,11 +438,12 @@ local function refreshUnitInfo()
 					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 					local splitn = weaponDef.customParams.number or 1
 					addDPS(calculateWeaponDPS(weaponDef, splitd * splitn))
-				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+				elseif weaponDef.customParams.spark_forkdamage then -- Lightning
 					unitExempt = true
-					local forkd = weaponDef.customParams.spark_forkdamage
-					local forkn = weaponDef.customParams.spark_maxunits or 1
-					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn)))
+					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
+					-- Sparks cannot retarget the original unit they hit, so add them as secondary damages.
+					local forkDamageRate = weaponDef.customParams.spark_forkdamage
+					addSecondaryDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * forkDamageRate))
 					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
 						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
 						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
@@ -449,7 +452,8 @@ local function refreshUnitInfo()
 					end
 				end
 
-				if unitDefInfo[unitDefID].mainWeapon == i then
+				if unitDefInfo[unitDefID].mainWeapon == 0 then
+					unitDefInfo[unitDefID].mainWeapon = i
 					unitDefInfo[unitDefID].range = weaponDef.range
 					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
 						and weaponDef.stockpileTime
@@ -524,15 +528,17 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].maxdps = 0
 				unitDefInfo[unitDefID].range = 0
 				unitDefInfo[unitDefID].reloadTime = 0
-				unitDefInfo[unitDefID].mainWeapon = 1
+				unitDefInfo[unitDefID].mainWeapon = 0
 			end
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			-- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
 			-- Others might be checked for abilities still, e.g. antinuke interceptors.
-			local weaponGroup = weaponDef.customParams.weapons_group
-			if weaponGroup == "0" or weaponGroup == "1" then
+			if showWeaponGroups[weaponDef.customParams.weapons_group] and weaponDef.customParams.bogus ~= "1" then
 				refreshUnitWeaponInfo(i, weaponDef, weaponDef.customParams.weapons_role ~= "secondary")
 			end
+		end
+		if unitDefInfo[unitDefID].mainWeapon == 0 then
+			unitDefInfo[unitDefID].mainWeapon = 1 -- All the unit's weapons were fakes.
 		end
 
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
@@ -2133,6 +2139,7 @@ end
 
 
 function widget:DrawScreen()
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
 	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then

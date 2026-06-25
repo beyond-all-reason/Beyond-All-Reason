@@ -17,44 +17,76 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local stringFind = string.find
 
-	local PRIORITY_BOMBERS = 1
-	local PRIORITY_VTOLS = 10
-	local PRIORITY_FIGHTERS = 20
-	local PRIORITY_SCOUTS = 1000
+	local PRIORITY_BOMBERS = 0.1
+	local PRIORITY_VTOLS = 1
+	local PRIORITY_FIGHTERS = 2
+	local PRIORITY_SCOUTS = 100
 
-	-- Pre-compute direct unitDefID → priority multiplier for all air units
+	local isAirCategory = {
+		vtol = true,
+		mobile = true,
+		nothover = true,
+		notship = true,
+		notsub = true,
+	}
+
+	local nonAntiAirTypes = {
+		AircraftBomb    = true,
+		Shield          = true,
+		TorpedoLauncher = true,
+	}
+
+	local function hasTargeting(unitDef, weapon)
+		return weapon.slavedTo == 0 and not (unitDef.canManualFire and WeaponDefs[weapon.weaponDef].manualFire)
+	end
+
+	local function hasAntiAirTargeting(weapon)
+		return table.any(weapon.onlyTargets, function(v, k) return isAirCategory[k] end) and not
+			   table.any(weapon.badTargets,  function(v, k) return isAirCategory[k] end)
+	end
+
+	local function isBomberWeapon(weapon)
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		return weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true)
+	end
+
+	local function isFighterWeapon(weapon)
+		return weapon.slavedTo == 0 and hasAntiAirTargeting(weapon)
+	end
+
+	local function isNotFakeWeapon(weapon)
+		return not WeaponDefs[weapon.weaponDef].customParams.bogus
+	end
+
+	local function hasAntiAirPriority(unitDef, weapon)
+		if not hasTargeting(unitDef, weapon) or not hasAntiAirTargeting(weapon) then
+			return false
+		end
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		if nonAntiAirTypes[weaponDef.type] or weaponDef.range < 100 then
+			return false
+		end
+		local damages = weaponDef.damages
+		if damages[Game.armorTypes.vtol] <= damages[Game.armorTypes.default] * 0.5 then
+			return false
+		end
+		return true
+	end
+
 	local airPriorityMultiplier = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if unitDef.isAirUnit then
-			local mult = PRIORITY_SCOUTS
-			if unitDef.isTransport or unitDef.isBuilder then
-				mult = PRIORITY_VTOLS
-			else
-				for i = 1, #weapons do
-					local weaponDef = WeaponDefs[weapons[i].weaponDef]
-					if weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true) then
-						mult = PRIORITY_BOMBERS
-					elseif weapons[i].onlyTargets.vtol then
-						mult = PRIORITY_FIGHTERS
-					else
-						mult = PRIORITY_VTOLS
-					end
-				end
-			end
-			airPriorityMultiplier[unitDefID] = mult
+			airPriorityMultiplier[unitDefID] = (unitDef.isTransport or unitDef.isBuilder) and PRIORITY_VTOLS
+				or table.any(weapons, isBomberWeapon) and PRIORITY_BOMBERS
+				or table.any(weapons, isFighterWeapon) and PRIORITY_FIGHTERS
+				or table.any(weapons, isNotFakeWeapon) and PRIORITY_VTOLS -- doubles as the PRIORITY_GUNSHIP
+				or PRIORITY_SCOUTS
 		end
-
-		-- Set watch on vtol-targeting weapons so AllowWeaponTarget gets called
 		for i = 1, #weapons do
-			if weapons[i].onlyTargets.vtol then
-				for wid = 1, #weapons do
-					local weapon = weapons[wid]
-					if weapon.onlyTargets and weapon.onlyTargets.vtol then
-						Script.SetWatchAllowTarget(weapon.weaponDef, true)
-					end
-				end
-				break
+			if hasAntiAirPriority(unitDef, weapons[i]) then
+				-- Watch this weapon so AllowWeaponTarget gets called:
+				Script.SetWatchAllowTarget(weapons[i].weaponDef, true)
 			end
 		end
 	end
@@ -65,8 +97,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 		local mult = airPriorityMultiplier[spGetUnitDefID(targetID)]
 		if mult then
-			return true, (defPriority or 1.0) * mult
+			return defPriority * mult
 		end
-		return true, defPriority or 1.0
 	end
 end

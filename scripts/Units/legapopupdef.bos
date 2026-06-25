@@ -1,6 +1,5 @@
 
 #include "../recoil_common_includes.h"
-#include "../opencloseanim.h"
 
 piece
 	doorA,
@@ -25,7 +24,7 @@ piece
     doorFlare1,
     doorFlare2;
 
-static-var  restore_delay, is_open, wpn1_lasthead;
+static-var  restore_delay, wpn1_lasthead, isOpen;
 static-var  Stunned;
 
 // Signal definitions
@@ -42,7 +41,7 @@ static-var  Stunned;
 
 Close()
 {
-	// set-signal-mask SIGNAL_AIM1;
+	if (!isOpen) return 0;
 
     move backStruts to y-axis [0] speed [7];
     turn minigunHousingL to z-axis <45> speed <45>;
@@ -60,13 +59,14 @@ Close()
     turn doorC to x-axis <120> speed <240>;
 
 	set ARMORED to 1;
+	isOpen = FALSE;
 }
 
 Open()
 {
-	set ARMORED to 0;
+	if (isOpen) return 0;
 
-    /////////////
+	set ARMORED to 0;
 
     turn doorA to x-axis <0> speed <-360>;
     turn doorB to x-axis <0> speed <-360>;
@@ -83,22 +83,9 @@ Open()
     move backStruts to y-axis [7] speed [14];
     turn minigunHousingL to z-axis <0> speed <45>;
     turn minigunHousingR to z-axis <0> speed <45>;
-}
 
-Activate()
-{
-	start-script OpenCloseAnim(1);
-    signal SIGNAL_AIM1;
-    wpn1_lasthead = -1000000;
-	
-}
-
-Deactivate()
-{
-	start-script OpenCloseAnim(0);
-    signal SIGNAL_AIM1;
-    wpn1_lasthead = -1000000;
-	
+	isOpen = TRUE;
+	start-script RestoreAfterDelay();
 }
 
 ExecuteRestoreAfterDelay()
@@ -110,10 +97,10 @@ ExecuteRestoreAfterDelay()
     stop-spin minigunL around z-axis decelerate <10>;
     turn turretBaseHeading to y-axis <0> speed <100>;
 	set-signal-mask 0;
-    start-script OpenCloseAnim(0);
+    start-script Close();
     wpn1_lasthead = -1000000;
-	
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -135,7 +122,7 @@ Create()
     turn minigunHousingL to z-axis <0> now;
     turn minigunHousingR to z-axis <0> now;
 	restore_delay = 3000;
-	is_open = 0;
+	isOpen = FALSE;
 
     turn doorFlare1 to y-axis <-120> now;
     turn doorFlare2 to y-axis <120> now;
@@ -158,18 +145,16 @@ Create()
     turn doorC to x-axis <120> now;
 
 	SLEEP_UNTIL_UNITFINISHED;
-
-
 }
 
 AimWeapon1(heading, pitch)
 {
-    start-script OpenCloseAnim(1);
+    call-script Open();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	
-	if (!IsOpen) return 0;
-	
+
+	if (!isOpen) return 0;
+
 	turn turretBaseHeading to y-axis heading speed <180.0>;
 	turn turretPivotPitch to x-axis (-1*pitch) speed <180.0>;
 	
@@ -195,10 +180,7 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
-	// signal SIGNAL_AIM1;
-	// set-signal-mask SIGNAL_AIM1;
-	
-	if (!IsOpen) return 0;
+	if (!isOpen) return 0;
 	
 	start-script RestoreAfterDelay();
 	return (1);
@@ -228,7 +210,7 @@ AimWeapon3(heading, pitch)
 	// signal SIGNAL_AIM1;
 	// set-signal-mask SIGNAL_AIM1;
 	
-	if (!IsOpen) return 0;
+	if (!isOpen) return 0;
 	
 	start-script RestoreAfterDelay();
 	return (1);
@@ -255,7 +237,7 @@ AimFromWeapon3(pieceIndex){
 
 QueryWeapon1(pieceIndex)
 {
-	if (is_open == 0)
+	if (!isOpen)
 	{
 		pieceIndex = aimFlare;
 	}

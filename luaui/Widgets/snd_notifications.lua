@@ -716,11 +716,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if isT2mobile[unitDefID] then
-			queueNotification('Tech2UnitReady')
+			queueNotification('UnitReady/Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3UnitReady')
+			queueNotification('UnitReady/Tech3UnitReady')
 		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4UnitReady')
+			queueNotification('UnitReady/Tech4UnitReady')
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content

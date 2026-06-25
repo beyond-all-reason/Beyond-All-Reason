@@ -19,7 +19,7 @@ local tableInsert = table.insert
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local shapeOpacity = 0.26
+local shapeOpacity = 0.24
 local maxUnitShapes = 4096
 
 --Changelog

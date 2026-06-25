@@ -79,15 +79,26 @@ end
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local CMD_REMOVE = CMD.REMOVE
 
+local function getCachedUnitDef(unitID)
+    local unitDefID = spGetUnitDefID(unitID)
+    if not unitDefID then
+        return nil
+    end
+    return cachedUnitDefs[unitDefID]
+end
+
 local function isFactory(unitID)
-	return cachedUnitDefs[Spring.GetUnitDefID(unitID)].isFactory
+    local def = getCachedUnitDef(unitID)
+    return def and def.isFactory or false
 end
 
 local function isTransport(unitID)
-	return cachedUnitDefs[Spring.GetUnitDefID(unitID)].isTransport
+    local def = getCachedUnitDef(unitID)
+    return def and def.isTransport or false
 end
 
 local function distance(point1, point2)
@@ -444,6 +455,10 @@ function widget:UnitCommandNotify(unitID, cmdID, cmdParams, cmdOpts)
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
+    if not cmdOpts or not cmdParams then
+        return
+    end
+
     local selectedUnits = Spring.GetSelectedUnits()
 
     for _, orderedUnit in ipairs(selectedUnits) do

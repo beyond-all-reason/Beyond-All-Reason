@@ -30,7 +30,7 @@ return {
 		script = "Units/CORSPEC.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 250,
+		sightdistance = 380,
 		speed = 39,
 		turninplace = true,
 		turninplaceanglelimit = 90,

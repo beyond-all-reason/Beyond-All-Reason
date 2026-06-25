@@ -24,8 +24,8 @@ local GetConfigInt    = Spring.GetConfigInt
 local SendCommands    = Spring.SendCommands
 
 function widget:Initialize()
-	widgetHandler:AddAction("set_camera_anchor", SetCameraAnchor, nil, 'p')
-	widgetHandler:AddAction("focus_camera_anchor", FocusCameraAnchor, nil, 'p')
+	widgetHandler:AddAction("set_camera_anchor", SetCameraAnchor, nil, 'pt')
+	widgetHandler:AddAction("focus_camera_anchor", FocusCameraAnchor, nil, 'pt')
 end
 
 local cameraAnchors = {}

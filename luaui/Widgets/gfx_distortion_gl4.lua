@@ -49,6 +49,12 @@ local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraDirection = Spring.GetCameraDirection
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 
 -- Localized GL functions
 local glClear = gl.Clear
@@ -1019,12 +1025,105 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+-- Cache for the view ground rectangle, used to limit spGetProjectilesInRectangle
+-- to only projectiles whose ground-projected position could plausibly affect the
+-- visible frame. Avoids the previous full-map query which iterated every projectile
+-- on the entire map regardless of camera view.
+local viewRectFrame = -1
+local viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = 0, 0, mapSizeX, mapSizeZ
+-- Previous view rect; used to detect camera movement so we can skip the entire
+-- projectile update while paused with a static camera.
+local lastViewRectMinX, lastViewRectMinZ = -1, -1
+local lastViewRectMaxX, lastViewRectMaxZ = -1, -1
+local VIEW_RECT_PAD = 1500 -- padding for projectile arcs / effect radius slop
+local viewRectCornersX = {0, 0, 0, 0}
+local viewRectCornersY = {0, 0, 0, 0}
+-- Cached camera state so we can skip the TraceScreenRay calls when the camera
+-- hasn't moved (e.g. paused with a static view).
+local lastCamPx, lastCamPy, lastCamPz = nil, nil, nil
+local lastCamDx, lastCamDy, lastCamDz = nil, nil, nil
+
+local function updateViewGroundRect()
+	local drawFrame = Spring.GetDrawFrame and Spring.GetDrawFrame() or 0
+	if drawFrame == viewRectFrame then return end
+	viewRectFrame = drawFrame
+
+	-- Cheap early-out: if the camera position and forward direction are
+	-- byte-identical to the previous frame, the view rect can't have changed.
+	local cpx, cpy, cpz = spGetCameraPosition()
+	local cdx, cdy, cdz = spGetCameraDirection()
+	if cpx == lastCamPx and cpy == lastCamPy and cpz == lastCamPz
+		and cdx == lastCamDx and cdy == lastCamDy and cdz == lastCamDz then
+		return
+	end
+	lastCamPx, lastCamPy, lastCamPz = cpx, cpy, cpz
+	lastCamDx, lastCamDy, lastCamDz = cdx, cdy, cdz
+
+	viewRectCornersX[1], viewRectCornersY[1] = 0,   0
+	viewRectCornersX[2], viewRectCornersY[2] = vsx, 0
+	viewRectCornersX[3], viewRectCornersY[3] = 0,   vsy
+	viewRectCornersX[4], viewRectCornersY[4] = vsx, vsy
+	local minX, maxX =  1e30, -1e30
+	local minZ, maxZ =  1e30, -1e30
+	local hits = 0
+	for i = 1, 4 do
+		-- onlyCoords=true, useMinimap=false, includeSky=true to get the
+		-- ground/sky-plane intersection at each corner
+		local _, pos = spTraceScreenRay(viewRectCornersX[i], viewRectCornersY[i], true, false, true)
+		if type(pos) == 'table' then
+			hits = hits + 1
+			local x, z = pos[1], pos[3]
+			if x < minX then minX = x end
+			if x > maxX then maxX = x end
+			if z < minZ then minZ = z end
+			if z > maxZ then maxZ = z end
+		end
+	end
+	if hits < 2 then
+		-- Degenerate view (e.g. looking straight at the sky): fall back to whole map.
+		viewRectMinX, viewRectMinZ = 0, 0
+		viewRectMaxX, viewRectMaxZ = mapSizeX, mapSizeZ
+		return
+	end
+	-- Also include camera position so projectiles next to/behind the camera
+	-- still get picked up if they're within the padded range.
+	if cpx then
+		if cpx < minX then minX = cpx end
+		if cpx > maxX then maxX = cpx end
+		if cpz < minZ then minZ = cpz end
+		if cpz > maxZ then maxZ = cpz end
+	end
+	minX = minX - VIEW_RECT_PAD; if minX < 0 then minX = 0 end
+	minZ = minZ - VIEW_RECT_PAD; if minZ < 0 then minZ = 0 end
+	maxX = maxX + VIEW_RECT_PAD; if maxX > mapSizeX then maxX = mapSizeX end
+	maxZ = maxZ + VIEW_RECT_PAD; if maxZ > mapSizeZ then maxZ = mapSizeZ end
+	viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = minX, minZ, maxX, maxZ
+end
+
 
 local function updateProjectileDistortions(newgameframe)
-	local nowprojectiles = spGetVisibleProjectiles()
+	-- Use GetProjectilesInRectangle to also capture BeamLaser projectiles
+	-- (spGetVisibleProjectiles misses them). Restrict the rectangle to the
+	-- camera-visible ground footprint (with padding) instead of the whole map,
+	-- so off-screen projectiles don't pay CPU+VBO cost every frame.
+	updateViewGroundRect()
+
 	local gf = spGetGameFrame()
-	gameFrame = gf
 	local newgameframe = (gf ~= lastGameFrame)
+	-- Skip entirely if neither the game frame advanced nor the view changed:
+	-- projectiles haven't moved, no new ones can spawn, and the visible set
+	-- can't have changed. This is the dominant cost while paused.
+	local viewRectChanged =
+		viewRectMinX ~= lastViewRectMinX or viewRectMaxX ~= lastViewRectMaxX or
+		viewRectMinZ ~= lastViewRectMinZ or viewRectMaxZ ~= lastViewRectMaxZ
+	if (not newgameframe) and (not viewRectChanged) then
+		return
+	end
+	lastViewRectMinX, lastViewRectMinZ = viewRectMinX, viewRectMinZ
+	lastViewRectMaxX, lastViewRectMaxZ = viewRectMaxX, viewRectMaxZ
+
+	local nowprojectiles = spGetProjectilesInRectangle(viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ, false, true)
+	gameFrame = gf
 	lastGameFrame = gf
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning distortions is to actually get them to update existing dead distortion candidates, this is very very hard to do sanely
@@ -1035,99 +1134,116 @@ local function updateProjectileDistortions(newgameframe)
 	local projectileDistortionVBOMapCache = projectileDistortionVBOMap
 	for i= 1, nowprojectilesLen do
 		local projectileID = nowprojectiles[i]
-		local px, py, pz = spGetProjectilePosition(projectileID)
-		if px then -- we are somehow getting projectiles with no position?
-			local distortionType = 'point' -- default
-			local trackedProjectile = trackedProjectiles[projectileID]
-			if trackedProjectile then
-				if newgameframe then
-					--update proj pos
-					distortionType = trackedProjectileTypes[projectileID]
-					if distortionType ~= 'beam' then
+		local trackedProjectile = trackedProjectiles[projectileID]
+		if trackedProjectile then
+			-- Already tracked: only do per-frame work on real game frames,
+			-- and only for movable types (beams have fixed endpoints; 'none'
+			-- means the projectile had no distortion to add in the first place).
+			if newgameframe then
+				local distortionType = trackedProjectileTypes[projectileID]
+				if distortionType ~= 'beam' and distortionType ~= 'none' then
+					local px, py, pz = spGetProjectilePosition(projectileID)
+					if px then
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 						local instanceIndex = updateProjectilePosition(projectileDistortionVBOMapCache[distortionType],
 							projectileID, px,py,pz, dx,dy,dz)
 						if debugproj then spEcho("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
 					end
-
 				end
-			else
-				-- add projectile
+				-- Refresh timestamp so the cleanup loop doesn't drop it.
+				trackedProjectiles[projectileID] = gameFrame
+			end
+			-- When !newgameframe, the cleanup loop doesn't run, so no need
+			-- to touch trackedProjectiles[id] at all.
+		else
+			-- Untracked: need position for the add branch.
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			if px then
+				local distortionType = 'none' -- 'none' = saw the projectile but added nothing
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
-					local explosionflags = spGetPieceProjectileParams(projectileID)
+					-- Frustum-cull gibs whose effect sphere is outside the
+					-- view (rectangle test is XZ-only and can include high
+					-- arcs above the camera frustum).
 					local gib = gibDistortion.distortionParamTable
-					gib[1] = px
-					gib[2] = py
-					gib[3] = pz
-					AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
+					if spIsSphereInView(px, py, pz, gib[4]) then
+						local explosionflags = spGetPieceProjectileParams(projectileID)
+						gib[1] = px
+						gib[2] = py
+						gib[3] = pz
+						AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
+						distortionType = 'point'
+					end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
 					local projectileDefDistortion = projectileDefDistortions[weaponDefID]
 					if projectileDefDistortion and ( projectileID % (projectileDefDistortion.fraction or 1) == 0 ) then
 						local distortionParamTable = projectileDefDistortion.distortionParamTable
-						distortionType = projectileDefDistortion.distortionType
-
-
-						distortionParamTable[1] = px
-						distortionParamTable[2] = py
-						distortionParamTable[3] = pz
-						if debugproj then spEcho(distortionType, projectileDefDistortion.distortionClassName) end
+						local thisType = projectileDefDistortion.distortionType
 
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 
-						if distortionType == 'beam' then
-							distortionParamTable[5] = px + dx
-							distortionParamTable[6] = py + dy
-							distortionParamTable[7] = pz + dz
+						-- Frustum cull: skip projectiles whose effect bounds
+						-- are entirely outside the view.
+						local cullRadius = distortionParamTable[4] or 0
+						local inView
+						if thisType == 'beam' then
+							inView = spIsSphereInView(px, py, pz, cullRadius)
+								or spIsSphereInView(px + (dx or 0), py + (dy or 0), pz + (dz or 0), cullRadius)
 						else
-							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
-							distortionParamTable[5] = dx
-							distortionParamTable[6] = dy
-							distortionParamTable[7] = dz
+							inView = spIsSphereInView(px, py, pz, cullRadius)
 						end
-						if debugproj then spEcho(distortionType, px,py,pz, dx, dy,dz) end
+						if inView then
+							distortionParamTable[1] = px
+							distortionParamTable[2] = py
+							distortionParamTable[3] = pz
+							if debugproj then spEcho(thisType, projectileDefDistortion.distortionClassName) end
 
-						AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[distortionType], distortionParamTable,noUpload)
+							if thisType == 'beam' then
+								distortionParamTable[5] = px + dx
+								distortionParamTable[6] = py + dy
+								distortionParamTable[7] = pz + dz
+							else
+								-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
+								distortionParamTable[5] = dx
+								distortionParamTable[6] = dy
+								distortionParamTable[7] = dz
+							end
+							if debugproj then spEcho(thisType, px,py,pz, dx, dy,dz) end
+
+							AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[thisType], distortionParamTable,noUpload)
+							distortionType = thisType
+						end
 						--AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, distortionParamTable)
-					else
-						--spEcho("No projectile distortion defined for", projectileID, weaponDefID, px, pz)
 					end
 				end
 				numadded = numadded + 1
 				if debugproj then spEcho("Adding projdistortion", projectileID, spGetProjectileName(projectileID)) end
-				--trackedProjectiles[]
 				trackedProjectileTypes[projectileID] = distortionType
+				trackedProjectiles[projectileID] = gameFrame
 			end
-			trackedProjectiles[projectileID] = gameFrame
 		end
 	end
 	-- remove the ones that werent updated
 	local numremoved = 0
 	if newgameframe then
+	-- Any tracked projectile whose timestamp wasn't refreshed this frame is
+	-- either dead or has left the view rect. In both cases we drop tracking
+	-- and pop its VBO entry. If it's alive and re-enters the view rect later,
+	-- the add branch above will re-add it. This avoids per-game-frame
+	-- spGetProjectilePosition probes on every off-screen alive projectile,
+	-- which was the dominant remaining cost.
 	for projectileID, pgf in pairs(trackedProjectiles) do
 		if pgf < gf then
-			-- SO says we can modify or remove elements while iterating, we just cant add
-			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then -- this means that this projectile
-				local distortionType = trackedProjectileTypes[projectileID]
-				if distortionType ~= 'beam' then
-					local dx,dy,dz = spGetProjectileVelocity(projectileID)
-					updateProjectilePosition(projectileDistortionVBOMapCache[distortionType],
-						projectileID, px,py,pz, dx,dy,dz )
-				end
-			else
-				numremoved = numremoved + 1
-				trackedProjectiles[projectileID] = nil
-				local distortionType = trackedProjectileTypes[projectileID]
-				--RemoveDistortion('point', projectileID, nil)
-				if projectileDistortionVBOMapCache[distortionType].instanceIDtoIndex[projectileID] then -- god the indirections here ...
-					local success = popElementInstance(projectileDistortionVBOMapCache[distortionType], projectileID, noUpload)
-					if success == nil then PrintProjectileInfo(projectileID) end
-				end
-				trackedProjectileTypes[projectileID] = nil
+			numremoved = numremoved + 1
+			trackedProjectiles[projectileID] = nil
+			local distortionType = trackedProjectileTypes[projectileID]
+			local vbo = projectileDistortionVBOMapCache[distortionType]
+			if vbo and vbo.instanceIDtoIndex[projectileID] then -- god the indirections here ...
+				local success = popElementInstance(vbo, projectileID, noUpload)
+				if success == nil then PrintProjectileInfo(projectileID) end
 			end
+			trackedProjectileTypes[projectileID] = nil
 		end
 	end
 	end -- newgameframe guard

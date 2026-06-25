@@ -329,13 +329,62 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		if unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if not comHeight[unitDefID] or unitTeam == GaiaTeam then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
 		end
-	elseif comms[unitID] then
-		comms[unitID] = nil
+		return false
 	end
+
+	local oldAttributes = comms[unitID]
+	local newAttributes = GetCommAttributes(unitID, unitDefID)
+	if not newAttributes then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
+		end
+		return false
+	end
+
+	comms[unitID] = newAttributes
+
+	if not oldAttributes then
+		return true
+	end
+
+	local hasChanged = (
+		oldAttributes[1] ~= newAttributes[1]
+		or oldAttributes[6] ~= newAttributes[6]
+		or oldAttributes[8] ~= newAttributes[8]
+		or oldAttributes[2][1] ~= newAttributes[2][1]
+		or oldAttributes[2][2] ~= newAttributes[2][2]
+		or oldAttributes[2][3] ~= newAttributes[2][3]
+		or oldAttributes[2][4] ~= newAttributes[2][4]
+	)
+
+	if hasChanged then
+		if oldAttributes[1] and comnameList[oldAttributes[1]] then
+			glDeleteList(comnameList[oldAttributes[1]])
+			comnameList[oldAttributes[1]] = nil
+		end
+		if newAttributes[1] and comnameList[newAttributes[1]] then
+			glDeleteList(comnameList[newAttributes[1]])
+			comnameList[newAttributes[1]] = nil
+		end
+		if comnameIconList[unitID] then
+			glDeleteList(comnameIconList[unitID])
+			comnameIconList[unitID] = nil
+		end
+	end
+
+	return hasChanged
 end
 
 
@@ -373,9 +422,8 @@ local function CheckAllComs()
 			if comUnits then
 				for i = 1, #comUnits do
 					local unitID = comUnits[i]
-					if not comms[unitID] then
-						local unitDefID = spGetUnitDefID(unitID)
-						comms[unitID] = GetCommAttributes(unitID, unitDefID)
+					local unitDefID = spGetUnitDefID(unitID)
+					if unitDefID and CheckCom(unitID, unitDefID, teamID) then
 						commsChanged = true
 					end
 				end
@@ -464,6 +512,8 @@ function widget:Update(dt)
 	end
 end
 
+local spGetGroundHeight = Spring.GetGroundHeight
+
 local function DrawName(attributes)
 	if comnameList[attributes[1]] == nil then
 		createComnameList(attributes)
@@ -477,6 +527,24 @@ local function DrawName(attributes)
 	if nameScaling then
 		glScale(1, 1, 1)
 	end
+end
+
+-- Cheap terrain-occlusion check: sample ground height along the camera->target ray
+-- at a few intermediate points. If any sample is above the ray, the target is
+-- hidden behind a hill. Used to preserve the "hidden behind terrain" behavior we
+-- used to get for free from the depth buffer when drawing in DrawWorld.
+local function isOccludedByTerrain(camX, camY, camZ, tx, ty, tz)
+	local dx, dy, dz = tx - camX, ty - camY, tz - camZ
+	for i = 1, 4 do
+		local t = i * 0.2
+		local px = camX + dx * t
+		local pz = camZ + dz * t
+		local py = camY + dy * t
+		if spGetGroundHeight(px, pz) > py + 4 then
+			return true
+		end
+	end
+	return false
 end
 
 function widget:ViewResize()
@@ -499,11 +567,11 @@ function widget:ViewResize()
 end
 
 local function createComnameIconList(unitID, attributes)
-	if comnameIconList[attributes[1]] ~= nil then
+	if comnameIconList[unitID] ~= nil then
 		-- Don't recreate if it already exists unless forced
 		return
 	end
-	comnameIconList[attributes[1]] = glCreateList(function()
+	comnameIconList[unitID] = glCreateList(function()
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y and z then
 			x, z = spWorldToScreenCoords(x, y, z)
@@ -526,15 +594,76 @@ local function createComnameIconList(unitID, attributes)
 	end)
 end
 
-function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader will blur it when needed
+function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags render after deferred lighting,
+	-- distortion, bloom and tonemapping passes — keeps them readable and uncolored
 	if spIsGUIHidden() then return end
 	if spGetGameFrame() < hideBelowGameframe then return end
 
-	-- Batch process all screen units in one pass
+	-- untested fix: when you resign, to also show enemy com playernames
+	if not CheckedForSpec and spGetGameFrame() > 1 then
+		if spec then
+			CheckedForSpec = true
+			CheckAllComs()
+		end
+	end
+
+	glAlphaTest(GL_GREATER, 0)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+	-- Cache camera position to detect movement
+	local camX, camY, camZ = spGetCameraPosition()
+	local cameraMoved = (camX ~= lastCameraPos[1] or camY ~= lastCameraPos[2] or camZ ~= lastCameraPos[3])
+	if cameraMoved then
+		lastCameraPos[1], lastCameraPos[2], lastCameraPos[3] = camX, camY, camZ
+	end
+
+	-- Process all commanders in a single pass.
+	-- Icon-mode nametags go to drawScreenUnits (drawn below).
+	-- Non-icon (world) nametags get projected to screen and drawn inline here.
+	for unitID, attributes in pairs(comms) do
+		if spIsUnitVisible(unitID, 50, false) then
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			if ux and uy and uz then
+				local camDistance = math.max(150, mathDiag(camX - ux, camY - uy, camZ - uz))
+
+				if drawForIcon and spIsUnitIcon(unitID) then
+					attributes[5] = camDistance
+					drawScreenUnits[unitID] = attributes
+				else
+					-- World-anchored nametag, projected into screen space.
+					local nametagY = uy + attributes[3]
+					if not isOccludedByTerrain(camX, camY, camZ, ux, nametagY, uz) then
+						local sx, sy = spWorldToScreenCoords(ux, nametagY, uz)
+						if sx and sy and sx > -200 and sx < vsx + 200 and sy > -100 and sy < vsy + 100 then
+							if comnameList[attributes[1]] == nil then
+								createComnameList(attributes)
+							end
+							-- Approximate the previous billboarded scale: the world-space
+							-- formula was usedFontSize = 0.5*fontSize + camDistance/scaleFontAmount,
+							-- billboarded; perspective then shrunk it by ~focalPx/camDistance.
+							-- Collapsing both gives a nearly distance-independent pixel size with
+							-- a small near-camera bump.
+							local worldScale = 0.5 + camDistance / (scaleFontAmount * fontSize)
+							local screenScale = worldScale * (vsy * 1.22 / camDistance)
+							if screenScale < 0.9 then screenScale = 0.9 end
+							if screenScale > 5.0 then screenScale = 5.0 end
+							glPushMatrix()
+							glTranslate(sx, sy, 0)
+							glScale(screenScale, screenScale, screenScale)
+							glCallList(comnameList[attributes[1]])
+							glPopMatrix()
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Batch process all icon-mode nametags queued above
 	if next(drawScreenUnits) then
 		for unitID, attributes in pairs(drawScreenUnits) do
 			-- Only create the display list if it doesn't exist or has changed
-			if not comnameIconList[attributes[1]] then
+			if not comnameIconList[unitID] then
 				createComnameIconList(unitID, attributes)
 			end
 
@@ -561,7 +690,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 				glPushMatrix()
 				glTranslate(x, z, 0)
 				glScale(finalScale, finalScale, finalScale)
-				glCallList(comnameIconList[attributes[1]])
+				glCallList(comnameIconList[unitID])
 				glPopMatrix()
 			end
 		end
@@ -575,58 +704,18 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so that guishader
 			iconScaleCache = {}
 		end
 	end
+
+	glAlphaTest(false)
+	glColor(1, 1, 1, 1)
 end
 
 
 
 
 function widget:DrawWorld()
-	if spIsGUIHidden() then return end
-	if spGetGameFrame() < hideBelowGameframe then return end
-
-	-- untested fix: when you resign, to also show enemy com playernames
-	if not CheckedForSpec and spGetGameFrame() > 1 then
-		if spec then
-			CheckedForSpec = true
-			CheckAllComs()
-		end
-	end
-
-	glDepthTest(true)
-	glAlphaTest(GL_GREATER, 0)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	-- Cache camera position to detect movement
-	local camX, camY, camZ = spGetCameraPosition()
-	local cameraMoved = (camX ~= lastCameraPos[1] or camY ~= lastCameraPos[2] or camZ ~= lastCameraPos[3])
-	if cameraMoved then
-		lastCameraPos[1], lastCameraPos[2], lastCameraPos[3] = camX, camY, camZ
-	end
-
-	-- Process all commanders in a single pass
-	for unitID, attributes in pairs(comms) do
-		-- Combined visibility check - avoids multiple function calls
-		if spIsUnitVisible(unitID, 50, false) then
-			local x, y, z = spGetUnitPosition(unitID)
-			if x and y and z then
-				-- Calculate distance once and store it
-				local camDistance = math.max(150, mathDiag(camX - x, camY - y, camZ - z))
-
-				if drawForIcon and spIsUnitIcon(unitID) then
-					attributes[5] = camDistance
-					drawScreenUnits[unitID] = attributes
-				else
-					-- Cache the font size calculation
-					usedFontSize = (fontSize * 0.5) + (camDistance / scaleFontAmount)
-					glDrawFuncAtUnit(unitID, false, DrawName, attributes)
-				end
-			end
-		end
-	end
-
-	glAlphaTest(false)
-	glColor(1, 1, 1, 1)
-	glDepthTest(false)
+	-- intentionally empty; nametags are now drawn in DrawScreenEffects so they
+	-- render after distortion, bloom and tonemap passes (which would otherwise
+	-- discolor / ripple the text).
 end
 
 function widget:Initialize()
@@ -730,14 +819,18 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	comms[unitID] = nil
+	if comnameIconList[unitID] then
+		glDeleteList(comnameIconList[unitID])
+		comnameIconList[unitID] = nil
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or newTeam or unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)

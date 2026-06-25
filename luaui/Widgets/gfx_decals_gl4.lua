@@ -133,6 +133,7 @@ local decalExtraLargeVBO = nil
 
 local decalShader = nil
 local decalLargeShader = nil
+local decalUseGeometryShader = true
 
 
 local hasBadCulling = false -- AMD+Linux combo
@@ -210,27 +211,59 @@ end
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
-	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	decalUseGeometryShader = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) or false
+	if decalUseGeometryShader then
+		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+		if not decalShader then
+			decalUseGeometryShader = false
+			spEcho("Decals GL4: geometry shader compile failed, enabling NoGS fallback")
+		end
+	end
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
-	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
-		{
+	local smallDecalLayout
+	if decalUseGeometryShader then
+		smallDecalLayout = {
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
 			{id = 2, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
 			{id = 3, name = 'worldPos', size = 4},
 			{id = 4, name = 'parameters', size = 4},
-		},
+		}
+	else
+		smallDecalLayout = {
+			{id = 1, name = 'lengthwidthrotation', size = 4},
+			{id = 2, name = 'uv_atlaspos', size = 4},
+			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
+			{id = 4, name = 'worldPos', size = 4},
+			{id = 5, name = 'parameters', size = 4},
+		}
+	end
+
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
+		smallDecalLayout,
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
 	if decalVBO == nil then goodbye("Failed to create decalVBO") end
 
-	local smallDecalVAO = gl.GetVAO()
-	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-	decalVBO.VAO = smallDecalVAO
+	if decalUseGeometryShader then
+		local smallDecalVAO = gl.GetVAO()
+		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
+		decalVBO.VAO = smallDecalVAO
+	else
+		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1,1,4,4)
+		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4,4)
+		decalVBO.vertexVBO = planeVBOsmall
+		decalVBO.indexVBO = planeIndexVBOsmall
+		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(
+			decalVBO.vertexVBO,
+			decalVBO.instanceVBO,
+			decalVBO.indexVBO
+		)
+	end
 
 	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
 	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
@@ -388,7 +421,9 @@ local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
 	if autoupdate then
-		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		if decalUseGeometryShader then
+			decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		end
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
 
@@ -573,10 +608,16 @@ local function DrawDecals()
 
 
 		if decalVBO.usedElements > 0  then
-			decalShader:Activate()
-			decalShader:SetUniform("fadeDistance",disticon * 1000)
-			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
-			decalShader:Deactivate()
+			if decalUseGeometryShader then
+				decalShader:Activate()
+				decalShader:SetUniform("fadeDistance",disticon * 1000)
+				decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
+				decalShader:Deactivate()
+			else
+				decalLargeShader:Activate()
+				decalVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalVBO.usedElements, 0)
+				decalLargeShader:Deactivate()
+			end
 		end
 
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
@@ -889,29 +930,37 @@ for weaponDefID=1, #WeaponDefs do
 			--glowadd = 2.5
 			bwfactor = 0.05
 
-		elseif string.find(weaponDef.name, 'death_acid') then
+		elseif weaponDef.customParams.area_onhit_resistance == "_RAPTORACID_" then
 			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5.5)-- * (mathRandom() * 0.25 + 0.75)
 			alpha = 6
-			heatstart = 550
-			heatdecay = 0.1
 			alphadecay = 0.012
-			glowadd = 2.5
 			fadeintime = 200
 			bwfactor = 0.17
 			waterDepthRatio = 5
+			if string.find(weaponDef.name, 'death_acid') then
+				radius = (radius * 5)-- * (mathRandom() * 0.25 + 0.75)
+				heatstart = 550
+				heatdecay = 0.1
+				glowadd = 2.5
+			else
+				textures = { "t_groundcrack_26_a.tga" }
+				radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
+				heatstart = 500
+				heatdecay = 10
+			end
 
-		elseif string.find(weaponDef.name, 'acid') then
-			textures = { "t_groundcrack_26_a.tga" }
-			radius = (radius * 5)-- * (mathRandom() * 0.15 + 0.85)
-			alpha = 6
-			heatstart = 500
-			heatdecay = 10
-			alphadecay = 0.012
-			--glowadd = 2.5
-			--glowsustain = 0
-			fadeintime = 200
-			bwfactor = 0.17
+		elseif weaponDef.customParams.area_onhit_resistance == "fire" then
+			textures = { "t_groundcrack_16_a.tga" }
+			radius = radius * 1.6
+			heatstart = 4000
+			heatdecay = 0.33
+			alpha = 0.4
+			alphadecay = 0.0002
+			glowsustain = 225
+			glowadd = 4.5
+			waterDepthRatio = 5
+
+		elseif weaponDef.customParams.area_onhit_ceg then
 			waterDepthRatio = 5
 
 		elseif string.find(weaponDef.name, 'vipersabot') then -- viper has very tiny AoE
@@ -931,17 +980,6 @@ for weaponDefID=1, #WeaponDefs do
 			heatstart = 6500
 			heatdecay = 0.8
 			glowadd = 2
-
-		elseif string.find(weaponDef.name, 'napalm') then
-			textures = { "t_groundcrack_16_a.tga" }
-			radius = radius * 1.6
-			heatstart = 4000
-			heatdecay = 0.33
-			alpha = 0.4
-			alphadecay = 0.0002
-			glowsustain = 225
-			glowadd = 4.5
-			waterDepthRatio = 5
 
 			--armliche
 		elseif string.find(weaponDef.name, 'arm_pidr') then

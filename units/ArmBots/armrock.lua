@@ -24,7 +24,7 @@ return {
 		script = "Units/ARMROCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 338,
+		sightdistance = 380,
 		speed = 50.7,
 		turninplace = true,
 		turninplaceanglelimit = 90,

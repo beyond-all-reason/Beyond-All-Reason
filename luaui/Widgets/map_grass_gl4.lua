@@ -104,7 +104,7 @@ local grassConfig = {
 	GRASSBRIGHTNESS = 1.0; -- this is for future dark mode
 	COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
 	UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable
-	UNITBENDSTRENGTH = 7, -- how strongly grass bends away from nearby units
+	UNITBENDSTRENGTH = 5.5, -- how strongly grass bends away from nearby units
 	UNITBENDFALLOFF = 0.8, -- falloff exponent for bending effect (higher = sharper falloff)
 	UNITBENDSHRINK = 0.55, -- how much grass shrinks near unit center (0 = no shrink, 1 = fully gone)
   },
@@ -288,6 +288,8 @@ local cachedUnitCount = 0
 local lastUploadedCount = -1 -- track to skip redundant uploads
 local unitScanDirty = true
 local skipBendUntilGF = 0 -- when conditions fail, skip scanning for 30 frames to avoid table allocs
+local unitScanIntervalGF = 4 -- base scan rate; adaptive logic lowers this when camera is close
+local nextUnitScanGF = 0
 
 local function scanUnitPositions(gf)
 	-- When previously skipped, avoid all API calls until recheck time
@@ -308,7 +310,8 @@ local function scanUnitPositions(gf)
 
 	local visibleUnits = spGetVisibleUnits(-1, nil, false)
 	-- Skip when too many units visible (zoomed out, expensive, not noticeable)
-	if visibleUnits and #visibleUnits > 250 then
+	local visibleCount = visibleUnits and #visibleUnits or 0
+	if visibleCount > 250 then
 		skipBendUntilGF = gf + 30
 		if cachedUnitCount > 0 then
 			cachedUnitCount = 0
@@ -318,8 +321,8 @@ local function scanUnitPositions(gf)
 	end
 
 	local count = 0
-	if visibleUnits then
-		for i = 1, #visibleUnits do
+	if visibleCount > 0 then
+		for i = 1, visibleCount do
 			local unitID = visibleUnits[i]
 			local unitDefID = spGetUnitDefID(unitID)
 			if unitDefID then
@@ -684,9 +687,23 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function widget:GameFrame(gf)
-	-- Scan unit positions every other gameframe (units move on gameframes)
-	if unitBendSSBO then-- and gf % 2 == 0 then
-		scanUnitPositions(gf)
+	-- Scanning visible units allocates with unit count; adapt rate by camera height.
+	if unitBendSSBO then
+		local scanInterval = unitScanIntervalGF
+		local cx, cy, cz = spGetCameraPosition()
+		local gh = spGetGroundHeight(cx, cz) or 0
+		local camHeight = cy - gh
+		local fadeEnd = grassConfig.grassShaderParams.FADEEND * distanceMult
+		if camHeight < fadeEnd * 0.33 then
+			scanInterval = 1
+		elseif camHeight < fadeEnd * 0.66 then
+			scanInterval = 2
+		end
+
+		if gf >= nextUnitScanGF or scanInterval == 1 then
+			nextUnitScanGF = gf + scanInterval
+			scanUnitPositions(gf)
+		end
 	end
 
 	if not processChanges then
@@ -695,9 +712,14 @@ function widget:GameFrame(gf)
 
 	if not placementMode then
 		for unitID, count in pairs(removeUnitGrassQueue) do
-			adjustUnitGrass(unitID, (not unitGrassRemovedHistory[unitID] and 1/removeUnitGrassQueue[unitID]) )
-			removeUnitGrassQueue[unitID] = removeUnitGrassQueue[unitID] - 1
-			if count <= 1 then
+			if not unitGrassRemovedHistory[unitID] then
+				adjustUnitGrass(unitID, 1 / count)
+			else
+				adjustUnitGrass(unitID)
+			end
+			count = count - 1
+			removeUnitGrassQueue[unitID] = count
+			if count <= 0 then
 				removeUnitGrassQueue[unitID] = nil
 			end
 		end
@@ -1162,60 +1184,18 @@ local function mapcoordtorow(mapz, offset) -- is this even worth it?
   return grassRowInstance[rownum]
 end
 
-local spIsAABBInView = Spring.IsAABBInView
+local function GetStartEndRows(cz, fadeEnd)
+	-- Conservative row culling around camera z-distance.
+	-- This avoids TraceScreenRay(..., true), which allocates coord tables every frame.
+	local zPad = patchResolution * 6
+	local minZ = mathMax(0, cz - fadeEnd - zPad)
+	local maxZ = mathMin(mapSizeZ, cz + fadeEnd + zPad)
 
-local viewtables = {{0,0},{vsx-1,0},{0,vsy-1},{vsx-1,vsy-1}}
-
-local function distto2dsqr(camy, camz, mapy, mapz)
-  return math.sqrt((camy-mapy)*(camy-mapy) + (camz-mapz) * (camz-mapz))
-end
-
-local function GetStartEndRows() -- returns start and end indices of the instance buffer for more conservative drawing of grass
-  --check if the top or bottom of map is in view
-  -- this function is an abomination
-	local topseen = spIsAABBInView(-9999,0,-9999, mapSizeX+9999,300,22)
-	local botseen = spIsAABBInView(-9999,0,mapSizeZ, mapSizeX+9999,300,mapSizeZ+9999)
-
-	local vsx, vsy = gl.GetViewSizes()
-	local minZ = mapSizeZ
-	local maxZ = 0
-
-	local _, coordsBottomLeft = spTraceScreenRay(viewtables[1][1], viewtables[1][2], true)
-	if coordsBottomLeft then
-	  minZ = mathMin(minZ,coordsBottomLeft[3])
-	  maxZ = mathMax(maxZ,coordsBottomLeft[3])
-	end
-	dontcare, coordsBottomRight = spTraceScreenRay(viewtables[2][1], viewtables[2][2], true)
-	if coordsBottomRight then
-	  minZ = mathMin(minZ,coordsBottomRight[3])
-	  maxZ = mathMax(maxZ,coordsBottomRight[3])
-	end
-	dontcare, coordsTopLeft = spTraceScreenRay(viewtables[3][1], viewtables[3][2], true)
-	if coordsTopLeft then
-	  minZ = mathMin(minZ,coordsTopLeft[3])
-	  maxZ = mathMax(maxZ,coordsTopLeft[3])
-	end
-	dontcare, coordsTopRight = spTraceScreenRay(viewtables[4][1], viewtables[4][2], true)
-	if coordsTopRight then
-	  minZ = mathMin(minZ,coordsTopRight[3])
-	  maxZ = mathMax(maxZ,coordsTopRight[3])
-	end
-
-	if topseen or minZ == mapSizeX  or (coordsTopLeft == nil and coordTopRight == nil) then minZ = 0 end
-	if botseen or maxZ == 0         then maxZ = mapSizeZ end
-
-	local cx, cy, cz = spGetCameraPosition()
-
-	minZ = mathMax(minZ, (distto2dsqr(cy,cz,maxHeight,0) - (grassConfig.grassShaderParams.FADEEND*distanceMult))) -- additional stupidity
-	maxZ = mathMin(maxZ, mapSizeZ - (distto2dsqr(cy,cz,maxHeight,mapSizeZ) - (grassConfig.grassShaderParams.FADEEND*distanceMult)))
-
-	local startInstanceIndex = mapcoordtorow(minZ,-4)
-	local endInstanceIndex =  mapcoordtorow(maxZ, 4)
-
+	local startInstanceIndex = mapcoordtorow(minZ, -4)
+	local endInstanceIndex = mapcoordtorow(maxZ, 4)
 	local numInstanceElements = endInstanceIndex - startInstanceIndex
-	--spEcho("GetStartEndRows", topseen, botseen,minZ,maxZ, startInstanceIndex,endInstanceIndex, numInstanceElements)
 	return startInstanceIndex, numInstanceElements
-	end
+end
 
 local glTexture = gl.Texture
 
@@ -1255,7 +1235,7 @@ function widget:DrawWorldPreUnit()
 	local startInstanceIndex = 0
 	local instanceCount = grassDataLen / 4
     if not placementMode then
-		startInstanceIndex, instanceCount = GetStartEndRows()
+		startInstanceIndex, instanceCount = GetStartEndRows(cz, fadeEnd)
 	end
 	if instanceCount <= 0 or startInstanceIndex == grassDataLen / 4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()

@@ -46,7 +46,7 @@ for udid, unitDef in pairs(UnitDefs) do
 				if weaponDef.stockpile then
 					neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))
 				elseif weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
-					neededEnergy = weaponDef.energyCost --ToDO: Check if there is reloadtime < 1 sec else adjust similar to stockpile 
+					neededEnergy = weaponDef.energyCost --ToDO: Check if there is reloadtime < 1 sec else adjust similar to stockpile
 				end
 			end
 		end
@@ -240,7 +240,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 

@@ -884,6 +884,16 @@ return {
 		delay = 10,
 	},
 
+	-- Raptor Queen Stagger
+	["PvE/Raptor_QueenGotStaggered"] = {
+		delay = 10,
+		soundEffect = "YouHaveTheLastCommander", -- Placeholder
+	},
+	["PvE/Raptor_QueenNoLongerStaggered"] = {
+		delay = 10,
+		soundEffect = "YourTeamHasTheLastCommander", -- Placeholder
+	},
+
 	-- Scavenger Boss Construction Progress
 	["PvE/Scav_Boss50Ready"] = {
 		delay = 10,
@@ -919,6 +929,16 @@ return {
 	},
 	["PvE/Scav_BossIsDestroyed"] = {
 		delay = 10,
+	},
+
+	-- Scav Boss Stagger
+	["PvE/Scav_BossGotStaggered"] = {
+		delay = 10,
+		soundEffect = "YouHaveTheLastCommander", -- Placeholder
+	},
+	["PvE/Scav_BossNoLongerStaggered"] = {
+		delay = 10,
+		soundEffect = "YourTeamHasTheLastCommander", -- Placeholder
 	},
 
 }

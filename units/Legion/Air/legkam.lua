@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = false,
-		collisionvolumeoffsets = "0 5 12",
+		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "15 15 40",
 		collisionvolumetype = "CylZ",
 		cruisealtitude = 50,

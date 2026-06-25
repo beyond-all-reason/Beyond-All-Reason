@@ -2,10 +2,10 @@ return {
 	armmeatball = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		energycost = 30000,
+		energycost = 54000,
 		metalcost = 3000,
 		buildpic = "ARMMEATBALL.DDS",
-		buildtime = 30000,
+		buildtime = 94000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "34 68 38",

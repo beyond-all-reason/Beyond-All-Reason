@@ -425,6 +425,9 @@ function widget:DrawScreen()
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
+	if WG['unitstats'] and WG['unitstats'].isShowing() then
+		return
+	end
 	local x, y = spGetMouseState()
 	local now = os.clock()
 

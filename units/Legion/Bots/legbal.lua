@@ -24,7 +24,7 @@ return {
 		script = "Units/LEGBAL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 344.5,
+		sightdistance = 380,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.089,

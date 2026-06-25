@@ -27,7 +27,7 @@ return {
 		script = "Units/LEGACK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 323.70001,
+		sightdistance = 380,
 		speed = 33,
 		terraformspeed = 900,
 		turninplace = true,

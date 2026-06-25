@@ -23,7 +23,7 @@ return {
 		script = "Units/corcan.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 350,
+		sightdistance = 380,
 		speed = 37.5,
 		turninplace = true,
 		turninplaceanglelimit = 90,

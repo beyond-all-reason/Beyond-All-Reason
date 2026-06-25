@@ -34,11 +34,13 @@ local texture = "luaui/images/solid.png"
 
 local opacity = 0.19
 local teamcolorOpacity = 0.6
+local leaveFactoryFrames = Game.gameSpeed * 0.5
 
 local selectionHighlight = true
 local mouseoverHighlight = true
 
 ---- GL4 Backend Stuff----
+local selectionVBOUnfinished = nil
 local selectionVBOGround = nil
 local selectionVBOWater = nil
 local selectionVBOAir = nil
@@ -46,6 +48,7 @@ local selectionVBOAir = nil
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
 
 local selectShader = nil
+local unbuiltShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -76,7 +79,9 @@ local selectedUnits = spGetSelectedUnits()
 
 local unitTeam = {}
 local unitUnitDefID = {}
+local unitDoneFrame = {}
 local unitWaterPass = {}
+local unitBuiltByFactory = {}
 local nextWaterPassCheckFrame = 0
 local waterPassCheckInterval = 6
 
@@ -152,17 +157,39 @@ local function AddPrimitiveAtUnit(unitID)
 		unitTeam[unitID] = spGetUnitTeam(unitID)
 	end
 
+	local buildingDims = unitBuilding[unitDefID]
+	local useUnfinishedRenderPath = false
+	local useUnfinishedGeometry = false
+	if not buildingDims then
+		if Spring.GetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
+			useUnfinishedRenderPath = true
+			if not unitDoneFrame[unitID] then
+				unitDoneFrame[unitID] = 0
+			end
+			if not unitBuiltByFactory[unitID] then
+				useUnfinishedGeometry = true
+			end
+		end
+	end
+
 	local additionalheight = 0
 	local width, length
-	if unitCanFly[unitDefID] then
+	if buildingDims then
+		width = buildingDims[1]
+		length = buildingDims[2]
+		cornersize = (width + length) * 0.075
+		numVertices = 2
+	elseif useUnfinishedGeometry then
+		-- The cornered square will be replaced by a circle later.
+		-- Use the same or similar size for the swap to look good:
+		width = radius * 0.88
+		length = radius * 0.88
+		cornersize = (width + length) * 0.075
+		numVertices = 2
+	elseif unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
 		width = radius
 		length = radius
-	elseif unitBuilding[unitDefID] then
-		width = unitBuilding[unitDefID][1]
-		length = unitBuilding[unitDefID][2]
-		cornersize = (width + length) * 0.075
-		numVertices = 2
 	else
 		width = radius
 		length = radius
@@ -173,8 +200,11 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
-	if unitCanFly[unitDefID] then
-		targetVBO = selectionVBOAir
+	if useUnfinishedRenderPath then
+		targetVBO = selectionVBOUnfinished
+	elseif unitCanFly[unitDefID] then
+		-- Keep air on the same pre-unit path as ground for reliable visibility.
+		targetVBO = selectionVBOGround
 		unitWaterPass[unitID] = false
 	else
 		local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
@@ -200,40 +230,41 @@ local function AddPrimitiveAtUnit(unitID)
 end
 
 
-local function DrawSelections(selectionVBO, isAir)
-	if selectionVBO.usedElements > 0 then
+local function DrawSelections(selectionVBO, shader)
+	if selectionVBO.usedElements > -1 then
 		if hasBadCulling then
 			gl.Culling(false)
 		end
 
+		shader = shader or selectShader
+
 		glTexture(0, texture)
-		selectShader:Activate()
-		selectShader:SetUniform("iconDistance", 99999) -- pass
+		shader:Activate()
+		shader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
 
-		selectShader:SetUniform("addRadius", 0)
+		shader:SetUniform("addRadius", 0)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 1.3)
+		shader:SetUniform("addRadius", 1.3)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)
 		glStencilFunc(GL_ALWAYS, 1, 1)
 		glDepthTest(true)
 
-		selectShader:Deactivate()
+		shader:Deactivate()
 		glTexture(0, false)
-
 
 		-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 		glStencilTest(false)
@@ -247,9 +278,12 @@ end
 if mapHasWater then
 	function widget:DrawWorld()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
-		DrawSelections(selectionVBOWater, false)
-		-- Draw air platters after water pass to avoid water refraction distortion.
-		DrawSelections(selectionVBOAir, true)
+		DrawSelections(selectionVBOWater)
+		DrawSelections(selectionVBOUnfinished, unbuiltShader)
+	end
+else
+	function widget:DrawWorld()
+		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 end
 
@@ -258,13 +292,8 @@ function widget:DrawWorldPreUnit()
 	DrawSelections(selectionVBOGround, false)
 end
 
-local function RemovePrimitive(unitID)
-	local selectionVBO
-	if selectionVBOGround.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOGround end
-	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOWater end
-	if selectionVBOAir.instanceIDtoIndex[unitID] then selectionVBO =  selectionVBOAir end
-
-	if selectionVBO and selectionVBO.instanceIDtoIndex[unitID] then
+local function removeFromVBO(unitID, selectionVBO)
+	if selectionVBO then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
 			if spValidUnitID(unitID) then
@@ -272,6 +301,21 @@ local function RemovePrimitive(unitID)
 			end
 		end
 		popElementInstance(selectionVBO, unitID)
+	end
+end
+
+local function RemovePrimitive(unitID)
+	if selectionVBOGround.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOGround)
+	end
+	if selectionVBOUnfinished.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOUnfinished)
+	end
+	if mapHasWater and selectionVBOWater.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOWater)
+	end
+	if selectionVBOAir.instanceIDtoIndex[unitID] then
+		removeFromVBO(unitID, selectionVBOAir)
 	end
 	unitWaterPass[unitID] = nil
 end
@@ -404,6 +448,44 @@ function widget:Update(dt)
 	end
 end
 
+function widget:GameFrame(frame)
+	local swapFrame = frame - leaveFactoryFrames
+	for unitID, doneFrame in pairs(unitDoneFrame) do
+		if doneFrame == 0 then
+			-- continue
+		elseif doneFrame <= swapFrame then
+			unitDoneFrame[unitID] = nil
+			if selUnits[unitID] then
+				RemovePrimitive(unitID)
+				AddPrimitiveAtUnit(unitID)
+			end
+		end
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
+	if type(unitID) ~= "number" then
+		return
+	end
+
+	if type(builderID) == "number" then
+		local builderDefID = Spring.GetUnitDefID(builderID)
+		if builderDefID and UnitDefs[builderDefID] and UnitDefs[builderDefID].isFactory then
+			unitBuiltByFactory[unitID] = true
+		end
+	end
+
+	if Spring.GetUnitIsBeingBuilt(unitID) and not unitBuiltByFactory[unitID] then
+		unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
+	end
+end
+
+function widget:UnitFinished(unitID)
+	if selUnits[unitID] then
+		unitDoneFrame[unitID] = Spring.GetGameFrame()
+	end
+end
+
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
 		unitTeam[unitID] = newTeamID
@@ -412,12 +494,14 @@ end
 
 function widget:UnitDestroyed(unitID)
 	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
-	if selectedUnits[unitID] then
+	if selUnits[unitID] then
 		RemovePrimitive(unitID)
 	end
 	unitTeam[unitID] = nil
 	unitUnitDefID[unitID] = nil
+	unitDoneFrame[unitID] = nil
 	unitWaterPass[unitID] = nil
+	unitBuiltByFactory[unitID] = nil
 end
 
 local function init()
@@ -434,9 +518,15 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
+
+	local unbuiltConfig = table.copy(shaderConfig)
+	-- Unbuilt platters may depend on the animated unbuilt unit model and shader, so seem to re-init repeatedly.
+	unbuiltConfig.INITIALSIZE = 0.9999 -- So don't animate init growth. This value does not work if set to 1.0.
+	selectionVBOUnfinished, unbuiltShader = InitDrawPrimitiveAtUnit(unbuiltConfig, "selectedUnitsUnfinished")
+
 	if mapHasWater then
 		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
-		selectionVBOAir = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsAir")
+		selectionVBOAir = selectionVBOGround
 	else
 		selectionVBOWater = selectionVBOGround
 		selectionVBOAir = selectionVBOGround
@@ -492,10 +582,14 @@ function widget:Initialize()
 		init()
 	end
 	WG.selectedunits.getMouseoverHighlight = function()
-		return selectimouseoverHighlightonHighlight
+		return mouseoverHighlight
 	end
 
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		widget:UnitCreated(unitID)
+	end
 end
 
 function widget:Shutdown()

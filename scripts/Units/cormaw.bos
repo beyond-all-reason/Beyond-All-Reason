@@ -105,7 +105,7 @@ AimWeapon1(heading, pitch)
 
 Shot1()
 {
-	emit-sfx 1024 + 0 from firepoint;
+	//emit-sfx 1024 + 0 from firepoint;
 	return (TRUE);
 }
 

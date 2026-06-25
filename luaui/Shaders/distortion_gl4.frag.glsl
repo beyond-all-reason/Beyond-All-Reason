@@ -683,6 +683,11 @@ void main(void)
 		float coneEdgeFactor = clamp((distortionAngleCosine - coneAngleCosine) / (1.0 - coneAngleCosine), 0.0, 1.0);
 		coneEdgeFactor = sqrt(	coneEdgeFactor) * 4;
 		relativeDensity = clamp(length(EntryPoint- ExitPoint) / (2*biggestradius), 0.0, 1.0);
+
+		// Dampen cone distortion slightly when viewed perpendicular to cone axis
+		// (perpendicular rays traverse more volume, making it appear disproportionately strong)
+		float viewConeAlignment = abs(dot(viewDirection, coneDirection));
+		relativeDensity *= mix(0.7, 1.0, viewConeAlignment);
 	}
 
 	#line 35000

@@ -4,7 +4,7 @@ return {
 		buildpic = "legperdition.DDS",
 		buildtime = 62000,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "80 70 80",
+		collisionvolumescales = "80 45 80",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		energycost = 15000,
@@ -160,6 +160,7 @@ return {
 					area_onhit_resistance = "fire",
 					area_onhit_time = 15,
 					stockpilelimit = 10,
+					water_splash = 0,
 				},
 				damage = {
 					commanders = 700,

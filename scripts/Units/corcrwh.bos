@@ -212,7 +212,7 @@ FireWeapon1()
 	return (1);
 }
 Shot1() {
-	emit-sfx 1024 + 0 from flaref;
+	//emit-sfx 1024 + 0 from flaref;
 }
 //aa
 
