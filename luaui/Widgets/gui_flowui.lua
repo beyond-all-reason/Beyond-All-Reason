@@ -495,7 +495,14 @@ WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progre
 	gl.Translate(xcen, ycen, 0)
 	gl.Scale(-1, 1, 1)	-- flip direction horizontally
 	gl.Translate(-xcen, -ycen, 0)
-	gl.Shape(GL.TRIANGLE_FAN, list)
+	local triangles = {}
+	for i = 2, #list - 1 do
+		local n = #triangles
+		triangles[n + 1] = list[1]
+		triangles[n + 2] = list[i]
+		triangles[n + 3] = list[i + 1]
+	end
+	gl.Shape(GL.TRIANGLES, triangles)
 	gl.Color(1, 1, 1, 1)
 	gl.PopMatrix()
 end
