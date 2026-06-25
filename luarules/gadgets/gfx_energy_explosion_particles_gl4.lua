@@ -218,11 +218,11 @@ local GL_FRONT_AND_BACK      = GL.FRONT_AND_BACK
 local GL_FILL                = GL.FILL
 local GL_LEQUAL              = GL.LEQUAL
 
-local LuaShader           = gl.LuaShader
-local InstanceVBOTable    = gl.InstanceVBOTable
-local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-local uploadElementRange  = InstanceVBOTable.uploadElementRange
+local LuaShader              = gl.LuaShader
+local InstanceVBOTable       = gl.InstanceVBOTable
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local popElementInstance     = InstanceVBOTable.popElementInstance
+local uploadElementRange     = InstanceVBOTable.uploadElementRange
 
 local mathRandom = math.random
 local mathSqrt   = math.sqrt
@@ -698,6 +698,8 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
+local useGeometryShader = true
+
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
 local SHAPE_ID         = 0    -- 0 = cube, 1 = octahedron
@@ -731,11 +733,7 @@ local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
 
 local function initGL4()
-	if not LuaShader.isGeometryShaderSupported then
-		goodbye("geometry shader not supported")
-		return false
-	end
-	local shaderCache = {
+	local shaderCacheGS = {
 		vsSrc = vsSrc,
 		fsSrc = fsSrc,
 		gsSrc = gsSrc,
@@ -770,39 +768,156 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate  = true,
 	}
-	particleShader = LuaShader.CheckShaderUpdates(shaderCache)
+
+	local shaderCacheNoGS = {
+		vssrcpath = "LuaUI/Shaders/energy_explosion_particles_gl4_nogs.vert.glsl",
+		fsSrc = fsSrc,
+		shaderName = "UnitEnergyExplosionParticlesGL4_NoGS",
+		uniformInt   = { u_shape = SHAPE_ID },
+		uniformFloat = shaderCacheGS.uniformFloat,
+		shaderConfig = {},
+		forceupdate  = true,
+	}
+
+	-- Try the geometry-shader path first; only fall back if compile actually
+	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
+	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
+	useGeometryShader = true
+	particleShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
+	if not particleShader then
+		spEcho("Energy Explosion Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		useGeometryShader = false
+		particleShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
+	end
 	if not particleShader then
 		goodbye("Failed to compile shader")
 		return false
 	end
 
-	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"eepQuadVBO"
-	)
-	-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
-	-- GS doesn't get invoked twice per particle.
-	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	indexVBO:Define(3)
-	indexVBO:Upload({0, 1, 2})
+	if useGeometryShader then
+		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
+			-1, -1, 1, 1,
+			0, 0, 1, 1,
+			"eepQuadVBO"
+		)
+		-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
+		-- GS doesn't get invoked twice per particle.
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(3)
+		indexVBO:Upload({0, 1, 2})
 
-	local layout = {
-		{ id = 1, name = "spawnPosAndSize",  size = 4 },
-		{ id = 2, name = "velAndSpawnFrame", size = 4 },
-		{ id = 3, name = "instColor",        size = 4 },
-		{ id = 4, name = "rotData",          size = 4 },
-	}
-	particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
-	if not particleVBO then
-		goodbye("Failed to create instance VBO")
-		return false
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
+		if not particleVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+		particleVBO.numVertices = numVertices
+		particleVBO.vertexVBO   = quadVBO
+		particleVBO.indexVBO    = indexVBO
+		particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
+		particleVBO.primitiveType = GL.TRIANGLES
+	else
+		-- No-GS fallback: build a template indexed mesh with one vertex per
+		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
+		-- Octahedron: 8 tris * 3 verts = 24 verts.  Plus a 4-vert glow billboard
+		-- quad.  We use independent triangles, so each template vertex is emitted
+		-- exactly once and indexed in GL order.
+		local NUM_SHAPE_VERTS = 24
+		local NUM_GLOW_VERTS  = 4
+		local NUM_VERTS = NUM_SHAPE_VERTS + NUM_GLOW_VERTS
+		local isOcta = (SHAPE_ID == 1)
+
+		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		templateVBO:Define(NUM_VERTS, {{ id = 0, name = "vertexSlot", size = 1 }}) -- float slot, cast to int in VS
+		local vertexData = {}
+		for i = 0, NUM_VERTS - 1 do
+			vertexData[#vertexData + 1] = i
+		end
+		templateVBO:Upload(vertexData)
+
+		-- Build indices matching the order the no-GS VS emits the template:
+		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
+		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
+		local indexData = {}
+		if isOcta then
+			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
+				local base = shapeTri * 3
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+			end
+		else
+			for quad = 0, NUM_SHAPE_VERTS / 4 - 1 do
+				local base = quad * 4
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 3
+			end
+		end
+		local glowBase = NUM_SHAPE_VERTS
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 1
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 3
+
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(#indexData)
+		indexVBO:Upload(indexData)
+
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO_NoGS")
+		if not particleVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+
+		local realVAO = particleVBO:makeVAOandAttach(templateVBO, particleVBO.instanceVBO, indexVBO)
+		if not realVAO then
+			goodbye("Failed to create no-GS VAO")
+			return false
+		end
+
+		-- Anchor the template/index VBOs so Lua GC cannot collect them while
+		-- the VAO is alive (same GC fix as DrawPrimitiveAtUnit, commit 2b51f6e863).
+		particleVBO.nogsTemplateVBO = templateVBO
+		particleVBO.nogsIndexVBO    = indexVBO
+
+		local indexCount = #indexData
+		particleVBO.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+		particleVBO.primitiveType = GL.TRIANGLES
 	end
-	particleVBO.numVertices = numVertices
-	particleVBO.vertexVBO   = quadVBO
-	particleVBO.indexVBO    = indexVBO
-	particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
-	particleVBO.primitiveType = GL.TRIANGLES
 	return true
 end
 

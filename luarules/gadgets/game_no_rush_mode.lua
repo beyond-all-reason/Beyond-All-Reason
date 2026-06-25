@@ -3,20 +3,27 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "No Rush Mode",
-		desc    = "Stops players from getting out of their startbox for a set amount of time.",
-		author  = "Damgam",
-		date    = "2022",
+		desc    = "Stops players from executing commands out-of-their or within-an-enemy startbox for a set amount of time.",
+		author  = "Damgam, Chemdude8",
+		date    = "2026",
 		license = "GNU GPL, v2 or later",
 		layer   = -100,
 		enabled = Spring.GetModOptions().norushtimer > 0,
 	}
 end
 
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+
 -- Get Startbox Area of every player
 local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local norushtimer = Spring.GetModOptions().norushtimer * 1800 -- modoption is stating minutes, and we need frames. 60 seconds * 30 frames = 1800
+local norushtimer = Spring.GetModOptions().norushtimer * 60 * Game.gameSpeed -- modoption is in minutes
+local confinedToBase = not Spring.GetModOptions().norushmiddlefree
+local teamToAllyTeamTable = {}
 
-local CommandsToCatchMap = {                                -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
+
+local CommandsToCatchMap = { -- CMDTYPES: ICON_MAP, ICON_AREA, ICON_UNIT_OR_MAP, ICON_UNIT_OR_AREA, ICON_UNIT_FEATURE_OR_AREA, ICON_BUILDING
 	[CMD.MOVE] = true,
 	[CMD.PATROL] = true,
 	[CMD.FIGHT] = true,
@@ -59,6 +66,13 @@ local LuaAIsToExclude = {
 
 local TeamIDsToExclude = {} -- dynamically filled below
 
+local function RushStartboxCheck(posx, posy, posz, allyTeamID)
+	if confinedToBase then
+		return positionCheckLibrary.StartboxCheck(posx, posy, posz, allyTeamID)
+	end
+	return positionCheckLibrary.NotInEnemyStartboxCheck(posx, posy, posz, allyTeamID);
+end
+
 for _, teamID in ipairs(Spring.GetTeamList()) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and LuaAIsToExclude[teamLuaAI]) then
@@ -67,6 +81,7 @@ for _, teamID in ipairs(Spring.GetTeamList()) do
 end
 
 if gadgetHandler:IsSyncedCode() then
+	local rushTimerComplete = false;
 	function gadget:Initialize()
 		gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 
@@ -82,29 +97,41 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function isNoRushRestricted()
+		if rushTimerComplete then
+			return false
+		end
+		local frame = spGetGameFrame()
+		if frame < norushtimer then
+			return true
+		end
+
+		rushTimerComplete = true
+		return false
+	end
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 		local allowed = true
-		local frame = Spring.GetGameFrame()
 
-		if frame < norushtimer and (not TeamIDsToExclude[unitTeam]) then
+		if isNoRushRestricted() and (not TeamIDsToExclude[unitTeam]) then
 			local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(unitTeam, false)
 
 			if cmdID < 0 then
 				if cmdParams[1] and cmdParams[2] and cmdParams[3] then
-					if not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then
+					if not RushStartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then
 						allowed = false
 					end
 				end
 			elseif CommandsToCatchMap[cmdID] and #cmdParams >= 3 then
-				if not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then
+				if not RushStartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3], allyTeamID) then
 					allowed = false
 				end
 
 				if cmdParams[4] and not cmdParams[6] then -- might be map pos with radius, check radius range too
-					if not positionCheckLibrary.StartboxCheck(cmdParams[1] + cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1] - cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] + cmdParams[4], allyTeamID) or
-						not positionCheckLibrary.StartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] - cmdParams[4], allyTeamID) then
+					if not RushStartboxCheck(cmdParams[1] + cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
+						not RushStartboxCheck(cmdParams[1] - cmdParams[4], cmdParams[2], cmdParams[3], allyTeamID) or
+						not RushStartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] + cmdParams[4], allyTeamID) or
+						not RushStartboxCheck(cmdParams[1], cmdParams[2], cmdParams[3] - cmdParams[4], allyTeamID) then
 						allowed = false
 					end
 				end
@@ -112,12 +139,12 @@ if gadgetHandler:IsSyncedCode() then
 				local targetUnitID = cmdParams[1]
 				if Spring.GetUnitDefID(targetUnitID) then
 					local x, y, z = Spring.GetUnitPosition(targetUnitID)
-					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
+					if not RushStartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end
 				elseif Spring.GetFeatureDefID(targetUnitID - Game.maxUnits) and CommandsToCatchFeature[cmdID] then -- maybe it's a feature that we want to reclaim?
 					local x, y, z = Spring.GetFeaturePosition(targetUnitID - Game.maxUnits)
-					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
+					if not RushStartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end
 				end
@@ -125,7 +152,7 @@ if gadgetHandler:IsSyncedCode() then
 				local targetFeatureID = cmdParams[1]
 				if Spring.GetFeatureDefID(targetFeatureID - Game.maxUnits) then
 					local x, y, z = Spring.GetFeaturePosition(targetFeatureID - Game.maxUnits)
-					if not positionCheckLibrary.StartboxCheck(x, y, z, allyTeamID) then
+					if not RushStartboxCheck(x, y, z, allyTeamID) then
 						allowed = false
 					end
 				end
@@ -133,5 +160,23 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		return allowed
+	end
+	
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID,
+								   attackerDefID, attackerTeam)
+		if not isNoRushRestricted() then
+			return
+		end
+		-- compare (damaged) unit location to allyTeam startboxes and negate damage if they are in their box
+		local posx, posy, posz = spGetUnitPosition(unitID)
+		local unitAllyTeam = teamToAllyTeamTable[unitTeam]
+		if not unitAllyTeam then
+			unitAllyTeam = spGetUnitAllyTeam(unitID)
+			teamToAllyTeamTable[unitTeam] = unitAllyTeam
+		end
+
+		if positionCheckLibrary.StartboxCheck(posx, posy, posz, unitAllyTeam) then
+			return 0, 0
+		end
 	end
 end

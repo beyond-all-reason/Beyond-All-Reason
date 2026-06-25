@@ -12,32 +12,15 @@ function gadget:GetInfo()
 	}
 end
 
-local deleteMaxDistance = 30
-local targetListLengthMax = 128
-
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-
-function GG.GetUnitTarget(unitID)
-	local targetID = spGetUnitRulesParam(unitID, "targetID")
-	targetID = tonumber(targetID) and targetID >= 0 and targetID or nil
-	if not targetID then
-		targetID = {
-			spGetUnitRulesParam(unitID, "targetCoordX"),
-			spGetUnitRulesParam(unitID, "targetCoordY"),
-			spGetUnitRulesParam(unitID, "targetCoordZ"),
-		}
-		targetID = targetID[1] ~= -1 and targetID[3] ~= -1 and targetID or nil
-	end
-	return targetID
-end
-
-
 if gadgetHandler:IsSyncedCode() then
+
+	local deleteMaxDistance = 30
+	local targetListLengthMax = 128
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -49,7 +32,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
@@ -257,35 +239,36 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function inAttackCommand(unitID)
 		local inCommand = spGetUnitCurrentCommand(unitID)
-		if inCommand == CMD_WAIT then
-			inCommand = spGetUnitCurrentCommand(unitID, 2)
-		end
 		return inCommand and isAttackCommand[inCommand]
+	end
+
+	local function inAutoAttack(unitID, unitData)
+		for weaponNum, check in pairs(unitData.weapons) do
+			if check then
+				local _, isUserTarget = spGetUnitWeaponTarget(unitID, weaponNum)
+				if isUserTarget then
+					return false
+				end
+			end
+		end
+		return true
 	end
 
 	-- Target precedence goes before target priority and ideally after target visibility, in range, unblocked, etc.
 	-- Autotargeting "target priority" is then a weighted value, and Set Target priority uses the order of the list.
 	local function hasTargetPrecedence(unitID)
-		local index = 1
-		local inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID, index)
+		local inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_WAIT then
-			index = index + 1
-			inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID, index)
-		end
-
-		if not inCommand or not isAttackCommand[inCommand] then
+			return false
+		elseif not inCommand or not isAttackCommand[inCommand] then
 			return true
-		end
-
-		-- Only Attack commands against units are emplaced/internal.
-		if param2 or inCommand ~= CMD_ATTACK then
+		elseif param2 or inCommand ~= CMD_ATTACK then
 			return false
 		end
 
-		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, index + 1)
-
+		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
 		if not nextCommand then
-			return false
+			return inAutoAttack(unitID, unitData)
 		elseif nextCommand == CMD_FIGHT then
 			-- Set Target does not violate an active Fight command by prioritizing the user's target.
 			-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
@@ -308,18 +291,11 @@ if gadgetHandler:IsSyncedCode() then
 		unitData.currentIndex = targetIndex
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
-		local targetID, targetX, targetY, targetZ = -1, -1, -1, -1
 		if type(target) == "number" then
-			targetID = target
-			spSetUnitTarget(unitID, targetID, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target, false, targetData.userTarget)
 		else
-			targetX, targetY, targetZ = target[1], target[2], target[3]
-			spSetUnitTarget(unitID, targetX, targetY, targetZ, false, targetData.userTarget)
+			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     targetID)
-		spSetUnitRulesParam(unitID, "targetCoordX", targetX)
-		spSetUnitRulesParam(unitID, "targetCoordY", targetY)
-		spSetUnitRulesParam(unitID, "targetCoordZ", targetZ)
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
@@ -329,10 +305,6 @@ if gadgetHandler:IsSyncedCode() then
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-		spSetUnitRulesParam(unitID, "targetID",     nil)
-		spSetUnitRulesParam(unitID, "targetCoordX", nil)
-		spSetUnitRulesParam(unitID, "targetCoordY", nil)
-		spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
@@ -423,19 +395,16 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeUnit(unitID, keeptrack)
 		if activeTargets[unitID] then
 			activeTargets[unitID] = nil
-			spSetUnitRulesParam(unitID, "targetID", nil)
-			spSetUnitRulesParam(unitID, "targetCoordX", nil)
-			spSetUnitRulesParam(unitID, "targetCoordY", nil)
-			spSetUnitRulesParam(unitID, "targetCoordZ", nil)
 			if not inAttackCommand(unitID) then
 				spSetUnitTarget(unitID, nil)
 			end
 		elseif pausedTargets[unitID] then
 			pausedTargets[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0)
 		end
 		removeFromQueue(unitID)
-		if not keeptrack then
+		if keeptrack then
+			SendToUnsynced("targetIndex", unitID, 1, false)
+		else
 			setTargetData[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
 		end
@@ -444,23 +413,18 @@ if gadgetHandler:IsSyncedCode() then
 	local function refreshSendData(unitID, unitData, minIndex)
 		local targetList = unitData.targets
 		local n = #targetList
-		for i = (minIndex or 1), n do
-			targetList[i].sent = false -- TODO: There are no other unsent values; we could be sending these directly.
-		end
-		sendTargetsToUnsynced(unitID)
-		SendToUnsynced("targetList", unitID, n + 1) -- clear the last element in case the list shrank
-		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
-	end
-
-	local function updateTarget(unitID, unitData, index, active)
-		if active == nil then
-			local targetData = unitData.targets[index]
-			if targetData then
-				active = testTarget(unitID, unitData.teamID, unitData.weapons, targetData.target)
+		for index = (minIndex or 1), n do
+			local targetData = targetList[index]
+			targetData.sent = true
+			local target = targetData.target
+			if type(target) == "number" then
+				SendToUnsynced("targetList", unitID, index, targetData.userTarget, target)
+			else
+				SendToUnsynced("targetList", unitID, index, targetData.userTarget, target[1], target[2], target[3])
 			end
 		end
-		unitData.currentIndex = index
-		unitData.activeTarget = active
+		SendToUnsynced("targetList", unitID, n + 1) -- truncate the list
+		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
 	end
 
 	local function removeTarget(unitID, unitData, index)
@@ -484,15 +448,35 @@ if gadgetHandler:IsSyncedCode() then
 	local function removeWithStop(unitID)
 		local unitData = setTargetData[unitID]
 		local targetList = unitData.targets
+		local n = #targetList
+		-- It is highly likely that we remove the unit:
+		local canRemoveAll = true
+		for i = 1, n do
+			if targetList[i].ignoreStop then
+				canRemoveAll = false
+				break
+			end
+		end
+		if canRemoveAll then
+			removeUnit(unitID)
+			return
+		end
+		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
 		local currentIndex = unitData.currentIndex
 		local minIndex
-		local n = #targetList
-		for i = n, 1, -1 do
-			if not targetList[i].ignoreStop then
+		local moveToIndex = 0
+		for i = 1, n do
+			if targetList[i].ignoreStop then
+				moveToIndex = moveToIndex + 1
+				if moveToIndex ~= i then
+					targetList[moveToIndex] = i
+				end
+			else
 				currentTargets[targetList[i].target] = nil
-				tremove(targetList, i)
-				minIndex = i
+				if not minIndex then
+					minIndex = i
+				end
 				if i == currentIndex then
 					currentIndex = 0 -- invalid, see below
 				elseif currentIndex > i then
@@ -500,24 +484,30 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		if not targetList[1] then
-			removeUnit(unitID)
-		elseif minIndex then
-			if currentIndex ~= unitData.currentIndex then
-				if currentIndex == 0 then
-					currentIndex = 1
-				end
-				updateTarget(unitID, unitData, 1)
-			end
-			refreshSendData(unitID, unitData, minIndex)
+		if not minIndex then
+			return
 		end
+		for i = moveToIndex + 1, n do
+			targetList[i] = nil
+		end
+		if currentIndex ~= unitData.currentIndex then
+			unitData.currentIndex = currentIndex == 0 and 1 or currentIndex
+			unitData.activeTarget = false
+		end
+		refreshSendData(unitID, unitData, minIndex)
 	end
 
-	function GG.getUnitTargetList(unitID)
+	function GG.GetUnitTarget(unitID)
+		local unitData = activeTargets[unitID]
+		local targetData = unitData and unitData.targets[unitData.currentIndex]
+		return targetData and targetData.target
+	end
+
+	function GG.GetUnitTargetList(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].targets
 	end
 
-	function GG.getUnitTargetIndex(unitID)
+	function GG.GetUnitTargetIndex(unitID)
 		return activeTargets[unitID] and activeTargets[unitID].currentIndex
 	end
 
@@ -750,15 +740,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function pauseTargetting(unitID)
-		if activeTargets[unitID] and not pausedTargets[unitID] then
-			local data = activeTargets[unitID]
-			removeUnit(unitID, true)
-			pausedTargets[unitID] = data
-		end
+		pausedTargets[unitID] = activeTargets[unitID]
+		removeUnit(unitID, true)
 	end
 
 	local function unpauseTargetting(unitID)
-		addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		activeTargets[unitID] = pausedTargets[unitID]
+		pausedTargets[unitID] = nil
 	end
 
 	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
@@ -801,11 +789,11 @@ if gadgetHandler:IsSyncedCode() then
 			if not targets[1] then
 				removeUnit(unitID)
 			elseif activeTargets[unitID] then
-				if not hasTargetPrecedence(unitID) then
+				if not hasTargetPrecedence(unitID, unitData) then
 					pauseTargetting(unitID)
 				end
 			else
-				if hasTargetPrecedence(unitID) then
+				if hasTargetPrecedence(unitID, unitData) then
 					unpauseTargetting(unitID)
 				end
 			end

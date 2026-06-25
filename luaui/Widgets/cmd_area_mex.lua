@@ -149,7 +149,7 @@ end
 ---@param shift boolean Whether shift was held (appending to existing queue)
 local function calculateCmdOrder(cmds, spots, shift)
 	local builderPos = getAvgPositionOfValidBuilders(selectedUnits, mexConstructors, selectedMex, shift)
-	if not builderPos then return end
+	if not builderPos then return {} end
 	local orderedCommands = {}
 	local pos = {}
 	while #cmds > 0 do
@@ -173,6 +173,32 @@ local function calculateCmdOrder(cmds, spots, shift)
 	return orderedCommands
 end
 
+local function getSelectedBuilderIDs()
+	local builders = {}
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		if mexConstructors[unitID] then
+			builders[#builders + 1] = unitID
+		end
+	end
+	return builders
+end
+
+---@return BuildingInfo[]
+local function mapCommandsToBuildingInfos(cmds)
+	local buildings = {}
+	for i = 1, #cmds do
+		local cmd = cmds[i]
+		---@type BuildingInfo
+		local buildingInfo = {}
+		buildingInfo.unitDefID = cmd[1]
+		buildingInfo.position = { cmd[2], cmd[3], cmd[4] }
+		buildingInfo.facing = cmd[5]
+		buildings[#buildings + 1] = buildingInfo
+	end
+	return buildings
+end
+
 
 function widget:CommandNotify(id, params, options)
 	if id ~= CMD_AREA_MEX then
@@ -193,7 +219,13 @@ function widget:CommandNotify(id, params, options)
 	local cmds = getCmdsForValidSpots(spots, shift)
 	local sortedCmds = calculateCmdOrder(cmds, spots, shift)
 
-	WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	-- WG["build_split"] has to be guarded because it can be disabled in settings
+	local isBuildSplitActive = WG["build_split"] and WG["build_split"].isActive()
+	if options.shift and isBuildSplitActive and #sortedCmds > 0 then
+		WG["build_split"].splitBuildings(getSelectedBuilderIDs(), mapCommandsToBuildingInfos(sortedCmds), { "shift" })
+	else
+		WG['resource_spot_builder'].ApplyPreviewCmds(sortedCmds, mexConstructors, shift)
+	end
 
 	selectedMex = nil
 

@@ -42,6 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_STOP = CMD.STOP
 
 	local crashing = {}
+	GG.Crashing = crashing  -- read-only reference for other gadgets
 	local crashingCount = 0
 
 	local isAircon = {}

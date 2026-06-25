@@ -647,7 +647,7 @@ end
 -- Cached infoTex-is-LOS state. Spring.GetMapDrawMode() returns the active
 -- mini-map mode (""/"los"/"height"/"metal"/"path"); when not LOS, $info holds
 -- other map data and our LOS smoothstep would discard most of the map.
--- Polled on the same 1s GameFrame cadence as the speed throttle.
+-- Also refreshed in DrawWorld so mode toggles apply immediately.
 local cachedInfoIsLos = true
 local function refreshInfoIsLos()
 	local m = Spring.GetMapDrawMode()
@@ -1150,11 +1150,9 @@ local function goodbye(reason)
 end
 
 local function initGL4()
-	if not LuaShader.isGeometryShaderSupported then
-		goodbye("geometry shader not supported")
-		return false
-	end
-	local shaderCache = {
+	local useGeometryShader = true
+
+	local shaderCacheGS = {
 		vsSrc = vsSrcCube,
 		fsSrc = fsSrcCube,
 		gsSrc = gsSrcCube,
@@ -1172,41 +1170,161 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate = true,
 	}
-	nanoShader = LuaShader.CheckShaderUpdates(shaderCache)
+
+	local shaderCacheNoGS = {
+		vssrcpath = "LuaUI/Shaders/nano_particles_gl4_nogs.vert.glsl",
+		fsSrc = fsSrcCube,
+		shaderName = "NanoParticlesGL4_Shape_NoGS",
+		uniformInt = { infoTex = 1, u_shape = U.SHAPE_ID },
+		uniformFloat = shaderCacheGS.uniformFloat,
+		shaderConfig = {},
+		forceupdate = true,
+	}
+
+	-- Try the geometry-shader path first; only fall back if compile actually
+	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
+	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
+	useGeometryShader = true
+	nanoShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
+	if not nanoShader then
+		spEcho("Nano Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		useGeometryShader = false
+		nanoShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
+	end
 	if not nanoShader then
 		goodbye("Failed to compile shader")
 		return false
 	end
 
-	-- Quad: xy in [-1,1] (corner), uv in [0,1]
-	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"nanoQuadVBO"
-	)
-	-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
-	-- index buffer would invoke the GS twice per particle. A 3-index VBO
-	-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
-	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	indexVBO:Define(3)
-	indexVBO:Upload({0, 1, 2})
+	if useGeometryShader then
+		-- Quad: xy in [-1,1] (corner), uv in [0,1]
+		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
+			-1, -1, 1, 1,
+			0, 0, 1, 1,
+			"nanoQuadVBO"
+		)
+		-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
+		-- index buffer would invoke the GS twice per particle. A 3-index VBO
+		-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(3)
+		indexVBO:Upload({0, 1, 2})
 
-	local layout = {
-		{ id = 1, name = "spawnPosAndSize",  size = 4 },
-		{ id = 2, name = "velAndSpawnFrame", size = 4 },
-		{ id = 3, name = "instColor",        size = 4 },
-		{ id = 4, name = "rotData",          size = 4 },
-	}
-	nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO")
-	if not nanoVBO then
-		goodbye("Failed to create instance VBO")
-		return false
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO")
+		if not nanoVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+		nanoVBO.numVertices = numVertices
+		nanoVBO.vertexVBO   = quadVBO
+		nanoVBO.indexVBO    = indexVBO
+		nanoVBO.VAO         = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
+		nanoVBO.primitiveType = GL.TRIANGLES
+	else
+		-- No-GS fallback: build a template indexed mesh with one vertex per
+		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
+		-- Octahedron: 8 tris * 3 verts = 24 verts.  Plus a 4-vert glow billboard
+		-- quad.  We use independent triangles, so each template vertex is emitted
+		-- exactly once and indexed in GL order.
+		local NUM_SHAPE_VERTS = 24
+		local NUM_GLOW_VERTS  = 4
+		local NUM_VERTS = NUM_SHAPE_VERTS + NUM_GLOW_VERTS
+		local isOcta = (U.SHAPE_ID == 1)
+
+		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		templateVBO:Define(NUM_VERTS, {{ id = 0, name = "vertexSlot", size = 1 }}) -- float slot, cast to int in VS
+		local vertexData = {}
+		for i = 0, NUM_VERTS - 1 do
+			vertexData[#vertexData + 1] = i
+		end
+		templateVBO:Upload(vertexData)
+
+		-- Build indices matching the order the no-GS VS emits the template:
+		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
+		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
+		local indexData = {}
+		if isOcta then
+			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
+				local base = shapeTri * 3
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+			end
+		else
+			for quad = 0, NUM_SHAPE_VERTS / 4 - 1 do
+				local base = quad * 4
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 3
+			end
+		end
+		local glowBase = NUM_SHAPE_VERTS
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 1
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 3
+
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(#indexData)
+		indexVBO:Upload(indexData)
+
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO_NoGS")
+		if not nanoVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+
+		local realVAO = nanoVBO:makeVAOandAttach(templateVBO, nanoVBO.instanceVBO, indexVBO)
+		if not realVAO then
+			goodbye("Failed to create no-GS VAO")
+			return false
+		end
+
+		-- Anchor the template and index VBOs to the VBO table so the Lua GC
+		-- cannot collect them while the VAO is alive.  OpenGL owns the buffer
+		-- objects via the VAO, but Lua does not know that; without a strong Lua
+		-- reference the GC can finalize the userdata and delete the GL buffers
+		-- (fixed in commit 2b51f6e863 for DrawPrimitiveAtUnit).
+		nanoVBO.nogsTemplateVBO = templateVBO
+		nanoVBO.nogsIndexVBO    = indexVBO
+
+		local indexCount = #indexData
+		nanoVBO.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+		nanoVBO.primitiveType = GL.TRIANGLES
 	end
-	nanoVBO.numVertices = numVertices
-	nanoVBO.vertexVBO   = quadVBO
-	nanoVBO.indexVBO    = indexVBO
-	nanoVBO.VAO         = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
-	nanoVBO.primitiveType = GL.TRIANGLES
 
 	return true
 end
@@ -3000,8 +3118,9 @@ function gadget:GameFrame(n)
 				Spring.SetConfigInt("MaxNanoParticles", 0)
 			end
 		end
-		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed) and
-		-- the cached map-draw-mode (heightmap / metalmap / pathmap views).
+		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed).
+		-- Map-draw-mode is also refreshed in DrawWorld for immediate overlay
+		-- transitions.
 		refreshSpeedThrottle()
 		refreshInfoIsLos()
 		refreshMaxParticles()
@@ -3391,10 +3510,12 @@ function gadget:DrawWorld()
 	-- Shape shader has no nanoTex sampler -- skip the bind entirely.
 	glTexture(1, "$info")
 	nanoShader:Activate()
+	-- Keep map-draw-mode state fresh per render frame so toggling metal/height/
+	-- path overlays does not spend up to 1s using stale LOS sampling state.
+	refreshInfoIsLos()
 	-- losAlwaysVisible: bypass the LOS/infoTex sample either with full view
 	-- (spectator) or when $info isn't currently rendering LOS (heightmap /
-	-- metalmap / pathmap modes hold other map data). Refreshed on the 1s
-	-- GameFrame poll, not per render frame.
+	-- metalmap / pathmap modes hold other map data).
 	local losU = (cachedSpecFullView or not cachedInfoIsLos) and 1 or 0
 	if losU ~= lastLosUniform then
 		nanoShader:SetUniform("losAlwaysVisible", losU)

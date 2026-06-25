@@ -19,6 +19,7 @@ end
 local screenshotWidthLq = 360
 local screenshotWidth = 600
 local screenshotWidthHq = 900
+local screenshotRequestTimeoutMs = 60000
 
 --------------------------------------------------------------------------------
 
@@ -65,6 +66,8 @@ else
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, texture, player, filename, saved, saveQueued, posX, posY, quality
 	local totalTime = 0
 	local screenshotCompressedBytes = 0
+	local screenshotRequestInProgress = false
+	local screenshotRequestStartedAt = 0
 
 	-- Font
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -116,6 +119,10 @@ else
 
 	function gadget:Update(dt)
 		totalTime = totalTime + (dt * 1000)
+		if screenshotRequestInProgress and (totalTime - screenshotRequestStartedAt > screenshotRequestTimeoutMs) then
+			screenshotRequestInProgress = false
+			Spring.Echo("Screenshot request timed out after 60 seconds. You can try again.")
+		end
 	end
 
 	local function getPlayerIdFromName(targetPlayerName)
@@ -128,9 +135,22 @@ else
 		return nil
 	end
 
-	local function requestScreenshot(targetPlayerName, width)
+	local function requestScreenshot(targetPlayerName, width, callerID)
 		if not isAuthorized() then
 			return
+		end
+		-- Only the client whose playerID matches the caller should send the request.
+		-- AddChatAction fires on every client, so without this guard every authorized
+		-- client would send a duplicate screenshot request.
+		if callerID ~= myPlayerID then
+			return
+		end
+		if screenshotRequestInProgress then
+			if totalTime - screenshotRequestStartedAt <= screenshotRequestTimeoutMs then
+				Spring.Echo("Screenshot request already in progress. Ignoring new request.")
+				return
+			end
+			screenshotRequestInProgress = false
 		end
 		if not targetPlayerName then
 			return
@@ -143,18 +163,20 @@ else
 		-- Send message to synced code, which will forward to unsynced
 		-- Format: width;targetPlayerID (requestingPlayerID comes from RecvLuaMsg player param)
 		Spring.SendLuaRulesMsg("ss" .. validation .. width .. ";" .. targetPlayerID)
+		screenshotRequestInProgress = true
+		screenshotRequestStartedAt = totalTime
 	end
 
 	function GetScreenshot(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidth)
+		requestScreenshot(words[1], screenshotWidth, player)
 	end
 
 	function GetScreenshotLq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthLq)
+		requestScreenshot(words[1], screenshotWidthLq, player)
 	end
 
 	function GetScreenshotHq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthHq)
+		requestScreenshot(words[1], screenshotWidthHq, player)
 	end
 
 	-- Optimized encoding using base64 charset (6 bits per char)
@@ -612,6 +634,7 @@ else
 				screenshotVars.dataLast = totalTime
 
 				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+					screenshotRequestInProgress = false
 					screenshotVars.finished = true
 					local compressedKB = screenshotCompressedBytes / 1024
 					Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))

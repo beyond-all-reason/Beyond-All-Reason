@@ -300,7 +300,7 @@ function widget:GameFrame(frame)
 			sendHome(builderID, info)
 		else
 			local health, maxHealth = spGetUnitHealth(info.targetID)
-			if health and health >= maxHealth then
+			if health and maxHealth and health >= maxHealth then
 				-- Repair complete
 				sendHome(builderID, info)
 			else
@@ -332,7 +332,7 @@ function widget:GameFrame(frame)
 			-- Already assigned (shouldn't happen but guard against it)
 		elseif wantsCloak then
 			-- It's still idle but wantscloak, so don't assign a target
-		elseif spGetUnitCommandCount(builderID) > 0 then
+		elseif (spGetUnitCommandCount(builderID) or 0) > 0 then
 			-- No longer idle
 			idleBuilders[builderID] = nil
 		elseif not isUnitAlive(builderID) then

@@ -96,6 +96,7 @@ local TEAMID_IDX = (numMousePos + 1) * 2 + 3
 local PACKET_INTERVAL_IDX = (numMousePos + 1) * 2 + 4
 local PREV_X_KEY = "prevX"
 local PREV_Z_KEY = "prevZ"
+local INACTIVE_CURSOR_POS = -1
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
@@ -162,6 +163,10 @@ local function sanitizeCoord(value, fallback)
 		return fallback
 	end
 	return nil
+end
+
+local function isValidCursorPos(pos)
+	return pos and pos[1] >= 0 and pos[2] >= 0
 end
 
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
@@ -572,13 +577,19 @@ function widget:Update(dt)
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
 			local prevPos = lastCursorPos[playerID]
-			if wx and wz and prevPos and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
+			if wx and wz and isValidCursorPos(prevPos) and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
 				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
-				lastCursorPos[playerID] = nil
+				prevPos[1] = INACTIVE_CURSOR_POS
+				prevPos[2] = INACTIVE_CURSOR_POS
 			else
 				if wx and wz then
-					lastCursorPos[playerID] = { wx, wz }
+					if not prevPos then
+						prevPos = {}
+						lastCursorPos[playerID] = prevPos
+					end
+					prevPos[1] = wx
+					prevPos[2] = wz
 				end
 			end
 			if specList[playerID] and not showSpectatorName then

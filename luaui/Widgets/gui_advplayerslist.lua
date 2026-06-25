@@ -274,6 +274,7 @@ local lastFpsData = {}
 local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
+local lastLuaMemData = {}
 
 local activeDrawPlayers = {}  -- set of playerIDs with active point/pencil/eraser timers
 local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detection
@@ -781,6 +782,10 @@ function GpuMemEvent(playerID, percentage)
     lastGpuMemData[playerID] = percentage
 end
 
+function LuaMemEvent(playerID, um)
+    lastLuaMemData[playerID] = um
+end
+
 function FpsEvent(playerID, fps)
 	lastFpsData[playerID] = fps
 	WG.playerFPS = WG.playerFPS or {}
@@ -973,6 +978,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
 	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
 	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
+	widgetHandler:RegisterGlobal('LuaMemEvent', LuaMemEvent)
 	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
@@ -1108,6 +1114,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('FpsEvent')
 	widgetHandler:DeregisterGlobal('ApmEvent')
     widgetHandler:DeregisterGlobal('GpuMemEvent')
+    widgetHandler:DeregisterGlobal('LuaMemEvent')
     widgetHandler:DeregisterGlobal('SystemEvent')
     widgetHandler:DeregisterGlobal('RankingEvent')
     if ShareSlider then
@@ -2555,7 +2562,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
+                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastLuaMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
         end
     end
@@ -3334,7 +3341,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
     end
 end
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, luamem, system, name, teamID, spec, apm)
     if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
@@ -3355,6 +3362,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
 		tipText = tipText .. "    " .. Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
+        end
+        if luamem ~= nil then
+            tipText = tipText .. "    Lua: " .. luamem .. " MB"
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then

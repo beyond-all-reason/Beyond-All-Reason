@@ -74,8 +74,10 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 --------------------------------------------------------------------------------
 
 local damageTable = {}
-local unitParalyze = {}
-local unitDamage = {}
+local unitParalyzeDmg = {}
+local unitParalyzeTime = {}
+local unitDamageDmg = {}
+local unitDamageTime = {}
 local deadList = {}
 local lastTime = 0
 local paused = false
@@ -153,10 +155,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if not enabled then
 		return
 	end
-	if unitDamage[unitID] then
+	if unitDamageDmg[unitID] then
 		local ux, uy, uz = GetUnitViewPosition(unitID)
 		if ux ~= nil then
-			local damage = math_ceil(unitDamage[unitID].damage - 0.5)
+			local damage = math_ceil(unitDamageDmg[unitID] - 0.5)
 			deadList[1] = {
 				x = ux,
 				y = uy + unitHeight(unitDefID),
@@ -170,8 +172,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			}
 		end
 	end
-	unitDamage[unitID] = nil
-	unitParalyze[unitID] = nil
+	unitDamageDmg[unitID] = nil
+	unitDamageTime[unitID] = nil
+	unitParalyzeDmg[unitID] = nil
+	unitParalyzeTime[unitID] = nil
 	for i, v in pairs(damageTable) do
 		if v.unitID == unitID then
 			if not v.paralyze then
@@ -217,36 +221,36 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		return
 	end
 
-	if paralyzer and unitParalyze[unitID] then
-		unitParalyze[unitID].damage = unitParalyze[unitID].damage + damage
+	if paralyzer and unitParalyzeDmg[unitID] then
+		unitParalyzeDmg[unitID] = unitParalyzeDmg[unitID] + damage
 		return
-	elseif unitDamage[unitID] then
-		unitDamage[unitID].damage = unitDamage[unitID].damage + damage
+	elseif unitDamageDmg[unitID] then
+		unitDamageDmg[unitID] = unitDamageDmg[unitID] + damage
 		return
 	end
 
 	if paralyzer then
-		unitParalyze[unitID] = {}
-		unitParalyze[unitID].damage = damage
-		unitParalyze[unitID].time = lastTime + 0.1
+		unitParalyzeDmg[unitID] = damage
+		unitParalyzeTime[unitID] = lastTime + 0.1
 	else
-		unitDamage[unitID] = {}
-		unitDamage[unitID].damage = damage
-		unitDamage[unitID].time = lastTime + 0.1
+		unitDamageDmg[unitID] = damage
+		unitDamageTime[unitID] = lastTime + 0.1
 	end
 end
 
-local function calcDPS(inTable, paralyze, theTime)
-	for unitID, damageDef in pairs(inTable) do
-		if damageDef.time < theTime then
+local function calcDPS(dmgTable, timeTable, paralyze, theTime)
+	for unitID, t in pairs(timeTable) do
+		if t < theTime then
 			local unitDefID = GetUnitDefID(unitID)
-			if unitDefID and (damageDef.damage >= 1) then
-				displayDamage(unitID, unitDefID, damageDef.damage, paralyze)
-				damageDef.damage = 0
-				damageDef.time = (theTime + 1)
+			local dmg = dmgTable[unitID]
+			if unitDefID and dmg and (dmg >= 1) then
+				displayDamage(unitID, unitDefID, dmg, paralyze)
+				dmgTable[unitID] = 0
+				timeTable[unitID] = theTime + 1
 				changed = true
 			else
-				inTable[unitID] = nil
+				dmgTable[unitID] = nil
+				timeTable[unitID] = nil
 			end
 		end
 	end
@@ -371,11 +375,11 @@ function gadget:DrawWorld()
 
 	local theTime = GetGameSeconds()
 	if theTime ~= lastTime then
-		if next(unitDamage) then
-			calcDPS(unitDamage, false, theTime)
+		if next(unitDamageTime) then
+			calcDPS(unitDamageDmg, unitDamageTime, false, theTime)
 		end
-		if next(unitParalyze) then
-			calcDPS(unitParalyze, true, theTime)
+		if next(unitParalyzeTime) then
+			calcDPS(unitParalyzeDmg, unitParalyzeTime, true, theTime)
 		end
 		if changed then
 			table.sort(damageTable, damageSortFunc)
