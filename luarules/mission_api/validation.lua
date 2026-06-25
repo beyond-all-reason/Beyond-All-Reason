@@ -336,29 +336,13 @@ end
 
 --- String Validators:
 
-local derivedStagesCache = nil
-
-local function deriveStages(stagesOverride)
-	if not stagesOverride and derivedStagesCache then
-		return derivedStagesCache
-	end
-	local stages = {}
-	local stagesToUse = stagesOverride or GG['MissionAPI'].Stages or {}
-	for stageID, _ in pairs(stagesToUse) do
-		stages[stageID] = true
-	end
-	derivedStagesCache = stages
-	return stages
-end
-
-
 validators[Types.StageID] = function(stageID)
 	local luaTypeResult = validators[Types.String](stageID)
 	if luaTypeResult then
 		return luaTypeResult
 	end
 
-	if not deriveStages()[stageID] then
+	if not GG['MissionAPI'].Stages[stageID] then
 		return { { message = "Invalid stageID: " .. stageID } }
 	end
 end
@@ -562,9 +546,8 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 
 	-- Validate stages exist:
 	if trigger.settings.stages then
-		local stages = deriveStages()
 		for _, stage in pairs(trigger.settings.stages) do
-			if not stages[stage] then
+			if not GG['MissionAPI'].Stages[stage] then
 				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
 			end
 		end
@@ -572,9 +555,6 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 end
 
 local function validateObjectives(objectives)
-	-- GG['MissionAPI'].Objectives is not set yet at this point.
-	deriveStages()
-
 	local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 	for objectiveID, objective in pairs(objectives) do
@@ -623,7 +603,7 @@ local function validateObjectives(objectives)
 end
 
 local function validateInitialStage(initialStage)
-	local stages = deriveStages()
+	local stages = GG['MissionAPI'].Stages
 	local hasStages = next(stages)
 	if hasStages then
 		if not initialStage then
@@ -699,9 +679,6 @@ local function validateStagesReferences(stages, objectives)
 end
 
 local function validateStages(stages)
-	-- Seed the cache with these stages for use in ValidateInitialStage
-	deriveStages(stages)
-
 	if table.isEmpty(stages) then
 		return
 	end
@@ -734,12 +711,11 @@ local function validateStages(stages)
 end
 
 local function validateObjectiveNextStageReferences(objectives)
-	local stages = deriveStages()
 	for objectiveID, objective in pairs(objectives) do
 		if objective.nextStage ~= nil then
 			if type(objective.nextStage) ~= 'string' then
 				logError("Unexpected parameter type, expected string, got " .. type(objective.nextStage) .. ". Objective: " .. objectiveID .. ", Field: nextStage")
-			elseif not stages[objective.nextStage] then
+			elseif not GG['MissionAPI'].Stages[objective.nextStage] then
 				logError("Objective references non-existent nextStage. Objective: " .. objectiveID .. ", Stage: " .. objective.nextStage)
 			end
 		end

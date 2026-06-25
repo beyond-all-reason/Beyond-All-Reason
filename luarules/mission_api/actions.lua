@@ -26,18 +26,18 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
-local function updateObjective(objectiveID, completed, text, nextStage)
+local function updateObjective(objectiveID, completed, textKey, nextStage)
 	local objective = GG['MissionAPI'].Objectives[objectiveID]
 
 	if objective.completed then return end
 
-	if text then
-		objective.text = text
+	if textKey then
+		objective.textKey = textKey
 	end
 
 	if completed ~= nil then
 		objective.completed = completed
-	elseif text == nil then
+	elseif textKey == nil then
 		objective.progress = (objective.progress or 0) + 1
 		objective.completed = objective.amount == nil or objective.progress >= objective.amount
 	end
