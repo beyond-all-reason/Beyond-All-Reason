@@ -46,7 +46,6 @@ describe("mission_api.validation", function()
 			Triggers     = {},
 			Actions      = {},
 		}
-		validation.ResetStagesCache()
 	end)
 
 	after_each(function()

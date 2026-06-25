@@ -1112,11 +1112,6 @@ local function validateReferences()
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
--- Helper function for testing: reset the stages cache
-local function resetStagesCache()
-	derivedStagesCache = nil
-end
-
 return {
 	ValidateStages = validateStages,
 	ValidateObjectives = validateObjectives,
@@ -1125,5 +1120,4 @@ return {
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,
 	GetTypesWithParameterType = getTypesWithParameterType,
-	ResetStagesCache = resetStagesCache,
 }
