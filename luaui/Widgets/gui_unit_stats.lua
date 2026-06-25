@@ -689,6 +689,8 @@ local function computeContent(uDefID, uID, shiftBool)
 	------------------------------------------------------------------------------------
 	-- Weapons
 	------------------------------------------------------------------------------------
+	local hasSmartPriority = uDef.customParams.weapons_smart_select ~= nil
+
 	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
@@ -846,9 +848,13 @@ local function computeContent(uDefID, uID, shiftBool)
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
 					end
-					totaldps = totaldps + wepCount*dps
-					totalbDamages = totalbDamages + wepCount* burstDamage
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
+					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
+					if not hasSmartPriority or uWep.customParams.smart_priority or not (uWep.customParams.smart_weapon_backup or uWep.customParams.smart_trajectory_checker) then
+						totaldps = totaldps + wepCount*dps
+						totalbDamages = totalbDamages + wepCount* burstDamage
+					end
 				end
 				DrawText(texts.dmg..":", damageString)
 
