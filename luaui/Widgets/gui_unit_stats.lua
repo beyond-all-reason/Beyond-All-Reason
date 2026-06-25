@@ -213,9 +213,13 @@ local targetableTypes = {
 -- Others might be checked for abilities still, e.g. antinuke interceptors.
 local weaponGroupNumbers = table.new(#WeaponDefs, 1) -- defID [0] is hashed
 local isBogusWeapon = table.new(#WeaponDefs, 1)
+local isWeaponBackup = table.new(#WeaponDefs, 1)
 for weaponDefID = 0, #WeaponDefs do
-	weaponGroupNumbers[weaponDefID] = tonumber(WeaponDefs[weaponDefID].customParams.weapons_group or -1) or -1
-	isBogusWeapon[weaponDefID] = WeaponDefs[weaponDefID].customParams.bogus == "1"
+	local weaponDef = WeaponDefs[weaponDefID]
+	weaponGroupNumbers[weaponDefID] = tonumber(weaponDef.customParams.weapons_group or -1) or -1
+	isBogusWeapon[weaponDefID] = weaponDef.customParams.bogus == "1"
+	isWeaponBackup[weaponDefID] = weaponDef.customParams.smart_priority == nil
+		and (weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker)
 end
 
 ------------------------------------------------------------------------------------
@@ -855,7 +859,7 @@ local function computeContent(uDefID, uID, shiftBool)
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
 					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
 					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
-					if not hasSmartPriority or uWep.customParams.smart_priority or not (uWep.customParams.smart_weapon_backup or uWep.customParams.smart_trajectory_checker) then
+					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
 						totaldps = totaldps + wepCount*dps
 						totalbDamages = totalbDamages + wepCount* burstDamage
 					end
