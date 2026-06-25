@@ -121,7 +121,20 @@ AimFromWeapon1(pieceIndex)
 	pieceIndex = turret;
 }
 
+// transport stuff
+TransportPickup(unitid)
+{
+	set BUSY to 1;
+	attach-unit unitid to link;
+	set BUSY to 0;
+}
 
+TransportDrop(unitid, position)
+{
+	set BUSY to 1;
+	drop-unit unitid;
+	set BUSY to 0;
+}
 
 Killed(severity, corpsetype)
 {
