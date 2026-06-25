@@ -6032,61 +6032,82 @@ local function drawFragQuad()
 	glFunc.Vertex(-hs, hs, 0)
 end
 
--- Octagon vertex helper (untextured, for borders) — module-level to avoid per-frame re-definition
+-- Octagon vertex helper (untextured, for borders) — module-level to avoid per-frame re-definition.
+-- Emit explicit triangles instead of TRIANGLE_FAN to avoid fan corruption on the macOS Zink/MoltenVK path.
 local function drawOctagonVertices(cx, cy, s, c)
-	glFunc.Vertex(cx, cy, 0)
-	glFunc.Vertex(cx - s + c, cy - s, 0)
-	glFunc.Vertex(cx + s - c, cy - s, 0)
-	glFunc.Vertex(cx + s, cy - s + c, 0)
-	glFunc.Vertex(cx + s, cy + s - c, 0)
-	glFunc.Vertex(cx + s - c, cy + s, 0)
-	glFunc.Vertex(cx - s + c, cy + s, 0)
-	glFunc.Vertex(cx - s, cy + s - c, 0)
-	glFunc.Vertex(cx - s, cy - s + c, 0)
-	glFunc.Vertex(cx - s + c, cy - s, 0)
+	local x1, y1 = cx - s + c, cy - s
+	local x2, y2 = cx + s - c, cy - s
+	local x3, y3 = cx + s, cy - s + c
+	local x4, y4 = cx + s, cy + s - c
+	local x5, y5 = cx + s - c, cy + s
+	local x6, y6 = cx - s + c, cy + s
+	local x7, y7 = cx - s, cy + s - c
+	local x8, y8 = cx - s, cy - s + c
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x1, y1, 0); glFunc.Vertex(x2, y2, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x2, y2, 0); glFunc.Vertex(x3, y3, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x3, y3, 0); glFunc.Vertex(x4, y4, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x4, y4, 0); glFunc.Vertex(x5, y5, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x5, y5, 0); glFunc.Vertex(x6, y6, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x6, y6, 0); glFunc.Vertex(x7, y7, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x7, y7, 0); glFunc.Vertex(x8, y8, 0)
+	glFunc.Vertex(cx, cy, 0); glFunc.Vertex(x8, y8, 0); glFunc.Vertex(x1, y1, 0)
 end
 
--- Textured octagon vertex helper (for unitpic texture, Y-flipped) — module-level
+-- Textured octagon vertex helper (for unitpic texture, Y-flipped) — module-level.
+-- Emit explicit triangles instead of a textured TRIANGLE_FAN while preserving the same shape.
 local function drawTexturedOctagonVertices(cx, cy, s, c, texIn)
 	local t0, t1 = texIn, 1 - texIn
 	local tRange = t1 - t0
 	local tMid = (t0 + t1) * 0.5
 	local inv2s = 1 / (2 * s)
+	local x1, y1 = cx - s + c, cy - s
+	local x2, y2 = cx + s - c, cy - s
+	local x3, y3 = cx + s, cy - s + c
+	local x4, y4 = cx + s, cy + s - c
+	local x5, y5 = cx + s - c, cy + s
+	local x6, y6 = cx - s + c, cy + s
+	local x7, y7 = cx - s, cy + s - c
+	local x8, y8 = cx - s, cy - s + c
+	local u1 = t0 + tRange * c * inv2s
+	local u2 = t0 + tRange * (2 * s - c) * inv2s
+	local u3 = t1
+	local u4 = u2
+	local u5 = u1
+	local u6 = t0
+	local v1 = t1
+	local v2 = t1
+	local v3 = t1 - tRange * c * inv2s
+	local v4 = t1 - tRange * (2 * s - c) * inv2s
+	local v5 = t0
+	local v6 = t0
+	local v7 = v4
+	local v8 = v3
+
 	glFunc.TexCoord(tMid, tMid)
 	glFunc.Vertex(cx, cy, 0)
-	local tx, ty
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	ty = t1 - tRange * (-s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx - s + c, cy - s, 0)
-	tx = t0 + tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx + s - c, cy - s, 0)
-	tx = t0 + tRange * (s + s) * inv2s
-	ty = t1 - tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx + s, cy - s + c, 0)
-	ty = t1 - tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx + s, cy + s - c, 0)
-	tx = t0 + tRange * (s - c + s) * inv2s
-	ty = t1 - tRange * (s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx + s - c, cy + s, 0)
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx - s + c, cy + s, 0)
-	tx = t0 + tRange * (-s + s) * inv2s
-	ty = t1 - tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx - s, cy + s - c, 0)
-	ty = t1 - tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx - s, cy - s + c, 0)
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	ty = t1 - tRange * (-s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
-	glFunc.Vertex(cx - s + c, cy - s, 0)
+	glFunc.TexCoord(u1, v1); glFunc.Vertex(x1, y1, 0)
+	glFunc.TexCoord(u2, v2); glFunc.Vertex(x2, y2, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u2, v2); glFunc.Vertex(x2, y2, 0)
+	glFunc.TexCoord(u3, v3); glFunc.Vertex(x3, y3, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u3, v3); glFunc.Vertex(x3, y3, 0)
+	glFunc.TexCoord(u3, v4); glFunc.Vertex(x4, y4, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u3, v4); glFunc.Vertex(x4, y4, 0)
+	glFunc.TexCoord(u4, v5); glFunc.Vertex(x5, y5, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u4, v5); glFunc.Vertex(x5, y5, 0)
+	glFunc.TexCoord(u5, v6); glFunc.Vertex(x6, y6, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u5, v6); glFunc.Vertex(x6, y6, 0)
+	glFunc.TexCoord(u6, v7); glFunc.Vertex(x7, y7, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u6, v7); glFunc.Vertex(x7, y7, 0)
+	glFunc.TexCoord(u6, v8); glFunc.Vertex(x8, y8, 0)
+	glFunc.TexCoord(tMid, tMid); glFunc.Vertex(cx, cy, 0)
+	glFunc.TexCoord(u6, v8); glFunc.Vertex(x8, y8, 0)
+	glFunc.TexCoord(u1, v1); glFunc.Vertex(x1, y1, 0)
 end
 
 local function DrawIconShatters()
@@ -11453,7 +11474,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				-- Black border
 				glFunc.Texture(false)
 				glFunc.Color(0, 0, 0, 0.9)
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, bdrSize, crnrCutOuter)
+				glFunc.BeginEnd(glConst.TRIANGLES, drawOctagonVertices, 0, 0, bdrSize, crnrCutOuter)
 
 				-- Team color border
 				if isSelected then
@@ -11463,7 +11484,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					glFunc.Color(1, 1, 1, 1)
 				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
+				glFunc.BeginEnd(glConst.TRIANGLES, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
 				if unitpic then
@@ -11475,7 +11496,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCutInner, picTexInset)
+					glFunc.BeginEnd(glConst.TRIANGLES, drawTexturedOctagonVertices, 0, 0, iconSize, crnrCutInner, picTexInset)
 				end
 
 				-- Health bar (only for damaged units, inside the icon area)
@@ -11520,7 +11541,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				-- Black border
 				glFunc.Texture(false)
 				glFunc.Color(0, 0, 0, 0.9)
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, bdrSize, crnrCutOuter)
+				glFunc.BeginEnd(glConst.TRIANGLES, drawOctagonVertices, px, py, bdrSize, crnrCutOuter)
 
 				-- Team color border
 				if isSelected then
@@ -11530,7 +11551,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					glFunc.Color(1, 1, 1, 1)
 				end
-				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, teamBdrSize, crnrCutTeam)
+				glFunc.BeginEnd(glConst.TRIANGLES, drawOctagonVertices, px, py, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
 				if unitpic then
@@ -11542,7 +11563,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
-					glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawTexturedOctagonVertices, px, py, iconSize, crnrCutInner, picTexInset)
+					glFunc.BeginEnd(glConst.TRIANGLES, drawTexturedOctagonVertices, px, py, iconSize, crnrCutInner, picTexInset)
 				end
 
 				-- Health bar (only for damaged units, inside the icon area)
