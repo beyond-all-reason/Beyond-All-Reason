@@ -81,7 +81,7 @@ local config = {
 	excludedUnitTypes = "", -- comma-separated unit names the player has manually excluded from squad tracking.
 	visualizationMode = "convexHull", -- "convexHull" or "none"
 	-- Shared color group, can be reused by every visualization companion widget.
-	squadColorMode = "team", -- "team" (team color), "custom" (single custom RGB), "squad" (per-squad golden-ratio hue)
+	squadColorMode = "player", -- "player" (player color), "custom" (single custom RGB), "squad" (per-squad golden-ratio hue)
 	squadCustomColorR = 0, -- Red component of custom squad color (0–1)
 	squadCustomColorG = 0.3, -- Green component
 	squadCustomColorB = 0.7, -- Blue component

@@ -5203,8 +5203,8 @@ function init()
 				or 1,
 			description = Spring.I18N('ui.settings.option.squadSelection_squadColorMode_descr'),
 			onload = function(i)
-				local raw = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadColorMode ~= nil and WG['squadselection'].getSquadColorMode()) or "team"
-				local modes = { "team", "custom", "squad" }
+				local raw = (WG['squadselection'] ~= nil and WG['squadselection'].getSquadColorMode ~= nil and WG['squadselection'].getSquadColorMode()) or "player"
+				local modes = { "player", "custom", "squad" }
 				for idx, v in ipairs(modes) do
 					if v == raw then
 						options[i].value = idx
@@ -5213,8 +5213,8 @@ function init()
 				end
 			end,
 			onchange = function(_, value)
-				local modes = { "team", "custom", "squad" }
-				saveOptionValue("Squad Selection", "squadselection", "setSquadColorMode", { 'squadColorMode' }, modes[value] or "team")
+				local modes = { "player", "custom", "squad" }
+				saveOptionValue("Squad Selection", "squadselection", "setSquadColorMode", { 'squadColorMode' }, modes[value] or "player")
 			end,
 		},
 

@@ -1922,7 +1922,7 @@
 				"squadSelection_squadCreateMethod_opt2": "Right-click",
 				"squadSelection_squadCreateMethod_opt3": "Ctrl+right-click",
 				"squadSelection_squadCreateMethod_opt4": "Ctrl+right-click drag",
-				"squadSelection_rightClickMovesSquad": "Right-click moves the nearest squad",
+				"squadSelection_rightClickMovesSquad": "Right-click moves the nearest unselected squad",
 				"squadSelection_rightClickMovesSquad_descr": "With nothing selected, right-click-drag move-orders the squad nearest the press point to the release point. Hold Alt to do this even when you have a selection. With shift you lock the squad and append the order to its queue. With ctrl it moves in formation. Hold Space to also select the squad.",
 				"squadSelection_mergeIntoReserves": "Merge into reserves",
 				"squadSelection_mergeIntoReserves_descr": "When on, appending a reserve squad to selection and running `squad_create` merges your selection into it. When off, `squad_create` always creates a fresh manual squad.",
