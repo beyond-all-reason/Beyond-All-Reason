@@ -701,6 +701,7 @@ local function computeContent(uDefID, uID, shiftBool)
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
 	local weaponNums = {}
+	local weaponDefToNum = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
 		if isBogusWeapon[wDefID] then
@@ -713,10 +714,19 @@ local function computeContent(uDefID, uID, shiftBool)
 				wepCounts[wDefID] = 1
 				wepsCompact[#wepsCompact + 1] = wDefID
 				weaponNums[#wepsCompact] = i
+				weaponDefToNum[wDefID] = i
 			end
 		end
 	end
-	tableSortStable(wepsCompact, function(a, b) return weaponGroupNumbers[a] < weaponGroupNumbers[b] end)
+
+	tableSortStable(wepsCompact, function(a, b)
+		if weaponGroupNumbers[a] ~= weaponGroupNumbers[b] then
+			return weaponGroupNumbers[a] < weaponGroupNumbers[b]
+		end
+		if weaponDefToNum[a] ~= weaponDefToNum[b] then
+			return weaponDefToNum[a] < weaponDefToNum[b]
+		end
+	end)
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
