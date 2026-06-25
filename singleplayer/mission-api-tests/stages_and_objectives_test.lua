@@ -3,9 +3,15 @@ local actionTypes = GG['MissionAPI'].ActionTypes
 
 local initialStage = 'firstStage'
 local stages = {
-	firstStage = { objectives = { 'wait3secs' } },
-	secondStage = { objectives = { 'buildBots' } },
-	thirdStage = { objectives = { 'buildBots', 'destroyBots' } }
+	firstStage = {
+		objectives = { 'wait3secs' }
+	},
+	secondStage = {
+		objectives = { 'buildBots' }
+	},
+	thirdStage = {
+		objectives = { 'buildBots', 'destroyBots' }
+	}
 }
 
 local objectives = {

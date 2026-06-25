@@ -35,7 +35,6 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, init
 			table.insert(objectiveToStages[objectiveID], stageID)
 		end
 	end
-	GG['MissionAPI'].ObjectiveToStages = objectiveToStages
 
 	for objectiveID, objective in pairs(objectives) do
 		local objectiveStages = objectiveToStages[objectiveID] or {}
