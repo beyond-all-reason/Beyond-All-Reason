@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
-	local lsx1, lsz1, lsx2, lsz2
+	local lsx1, lsz1, lsx2, lsz2 = 0, 0, Game.mapSizeX, Game.mapSizeZ
 	local burrows = {}
 	local aliveEggsTable = {}
 	local squadsTable = {}
