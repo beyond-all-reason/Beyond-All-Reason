@@ -1915,6 +1915,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 local pendingRestore = nil  -- Holds saved decal data between SetConfigData and Initialize
+local gameOver = false
 
 function widget:Initialize()
 	--if makeAtlases() == false then
@@ -2094,7 +2095,17 @@ function widget:ShutDown()
 	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 
+function widget:GameOver()
+	gameOver = true
+end
+
 function widget:GetConfigData(_) -- Called by RemoveWidget
+	if gameOver then
+		return {
+			lifeTimeMult = lifeTimeMult,
+		}
+	end
+
 	-- Save the biggest active decals for restoration after luaui reload (cap at 1500)
 	-- Priority: biggest scars first, then biggest footprints if room remains
 	local maxSave = 1500
