@@ -57,7 +57,13 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spCreateUnit = Spring.CreateUnit
-local spGetUnitScriptEnv = Spring.UnitScript.GetScriptEnv
+local function spGetUnitScriptEnv(unitID)
+	local unitScript = Spring.UnitScript
+	if unitScript and unitScript.GetScriptEnv then
+		return unitScript.GetScriptEnv(unitID)
+	end
+	return nil
+end
 local spCallAsUnit = Spring.UnitScript.CallAsUnit
 local spGetCOBScriptID = Spring.GetCOBScriptID
 local spCallCOBScript = Spring.CallCOBScript
