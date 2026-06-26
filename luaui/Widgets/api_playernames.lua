@@ -144,20 +144,20 @@ local function unpackHistory(packed)
 
 	local historyTable = {}
 	for _, record in ipairs(splitByDelimiter(packed, ";")) do
-		local fields = splitByDelimiter(record, "|")
-		if #fields == 5 then
-			local accountID = tonumber(fields[1])
+		-- Parse fixed 5-field record while preserving empty alias field.
+		local accountIDStr, gamesStr, dateStr, aliasStr, packedNames = string.match(record, "^([^|]*)|([^|]*)|([^|]*)|([^|]*)|(.*)$")
+		if accountIDStr then
+			local accountID = tonumber(accountIDStr)
 			if accountID then
 				local entry = {
-					i = tonumber(fields[2]) or 1,
-					d = tonumber(fields[3]) or 0,
+					i = tonumber(gamesStr) or 1,
+					d = tonumber(dateStr) or 0,
 				}
-				local alias = unescapeField(fields[4])
+				local alias = unescapeField(aliasStr)
 				if alias ~= "" then
 					entry.alias = alias
 				end
 
-				local packedNames = fields[5]
 				if packedNames ~= "" then
 					local idx = 1
 					for _, packedName in ipairs(splitByDelimiter(packedNames, ",")) do
