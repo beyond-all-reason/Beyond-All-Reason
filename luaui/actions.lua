@@ -16,7 +16,9 @@ local actionHandler = {
   keyPressActions   = {},
   keyRepeatActions  = {},
   keyReleaseActions = {},
-  syncActions = {}
+  syncActions = {},
+  -- actions triggered by currently held physical key (keyed by scancode) captured at press time so their release can be dispatched reliably
+  pressedKeyActions = {},
 }
 
 --------------------------------------------------------------------------------
@@ -203,22 +205,43 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 end
 
 
-function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
-  if (not(actions and next(actions))) then return false end
-
-  local actionSet
+function actionHandler:KeyAction(press, _, _, isRepeat, scanCode, actions)
   if (press) then
-    actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
-  else
-    actionSet = self.keyReleaseActions
+    if (not(actions and next(actions))) then return false end
+
+    -- Remember which actions this physical key triggered, so their release can still be dispatched even when the modifier state no longer matches the bind at release time. 
+    if (scanCode and not isRepeat) then
+      self.pressedKeyActions[scanCode] = actions
+    end
+
+    local actionSet = isRepeat and self.keyRepeatActions or self.keyPressActions
+    for _, bAction in ipairs(actions) do
+      local cmd = bAction["command"]
+      local extra = bAction["extra"]
+      local words = string.split(extra)
+
+      if (TryAction(actionSet, cmd, extra, words, isRepeat, false, actions)) then
+        return true
+      end
+    end
+
+    return false
   end
 
-  for _, bAction in ipairs(actions) do
+  -- Release: prefer the action list captured at press time. 
+  local releaseActions = (scanCode and self.pressedKeyActions[scanCode]) or actions
+  if (scanCode) then
+    self.pressedKeyActions[scanCode] = nil
+  end
+
+  if (not(releaseActions and next(releaseActions))) then return false end
+
+  for _, bAction in ipairs(releaseActions) do
     local cmd = bAction["command"]
     local extra = bAction["extra"]
     local words = string.split(extra)
 
-    if (TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions)) then
+    if (TryAction(self.keyReleaseActions, cmd, extra, words, false, true, actions)) then
       return true
     end
   end
