@@ -58,6 +58,13 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetUnitHealth = Spring.GetUnitHealth
 local ALLY_UNITS = Spring.ALLY_UNITS
+local ENEMY_UNITS = Spring.ENEMY_UNITS
+
+-- cached unitDef lookups
+local isCommander = {}
+local unitPower = {}
+local unitDisplayName = {}
+local unitApproxRadius = {}
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -108,11 +115,6 @@ local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
 
--- cached unitDef lookups
-local isCommander = {}
-local unitPower = {}
-local unitDisplayName = {}
-local unitApproxRadius = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local customParams = unitDef.customParams
 	if customParams and customParams.iscommander then
@@ -160,12 +162,12 @@ local function GetPlayerName(playerID)
 end
 
 local function GetUnitDisplayName(unitDefID)
-	return unitDisplayName[unitDefID] or "unknown_unit"
+	return unitDefID and unitDisplayName[unitDefID] or "unknown_unit"
 end
 
 -- Used to determine whether DGun intersects a given unit
 local function GetApproxUnitRadius(unitDefID)
-	return unitApproxRadius[unitDefID] or 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
+	return unitDefID and unitApproxRadius[unitDefID] or 0 -- If unknown unit, then we pretend it is tiny. This is to avoid false positives
 end
 
 -- Removes old frontline contacts that are stale.
@@ -377,16 +379,14 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
 
-	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS)
+	-- TODO gaia check still needed?
+	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
-		local unitTeam = spGetUnitTeam(unitID)
-		if unitTeam and unitTeam ~= gaiaTeamID and GetAllyTeamID(unitTeam) ~= myAllyTeamID then
-			local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
-			if losState and (losState % 4) > 0 then
-				return true, "Enemies on radar/LOS within range"
-			end
+		local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
+		if losState and (losState % 4) > 0 then
+			return true, "Enemies on radar/LOS within range"
 		end
 	end
 
