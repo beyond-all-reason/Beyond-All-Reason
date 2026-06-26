@@ -49,6 +49,7 @@ local mapHasWater = (Spring.GetGroundExtremes() < 0)
 
 local selectShader = nil
 local unbuiltShader = nil
+local waterShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -57,7 +58,6 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
 
-local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 -- Localize for speedups:
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
@@ -232,9 +232,9 @@ end
 
 local function DrawSelections(selectionVBO, shader)
 	if selectionVBO.usedElements > -1 then
-		if hasBadCulling then
-			gl.Culling(false)
-		end
+		-- DrawWorld can inherit culling state from other render passes/widgets.
+		-- Force culling off so platter winding/order differences cannot hide them.
+		gl.Culling(false)
 
 		shader = shader or selectShader
 
@@ -278,7 +278,7 @@ end
 if mapHasWater then
 	function widget:DrawWorld()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
-		DrawSelections(selectionVBOWater)
+		DrawSelections(selectionVBOWater, waterShader)
 		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 else
@@ -525,10 +525,11 @@ local function init()
 	selectionVBOUnfinished, unbuiltShader = InitDrawPrimitiveAtUnit(unbuiltConfig, "selectedUnitsUnfinished")
 
 	if mapHasWater then
-		selectionVBOWater = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
+		selectionVBOWater, waterShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsWater")
 		selectionVBOAir = selectionVBOGround
 	else
 		selectionVBOWater = selectionVBOGround
+		waterShader = selectShader
 		selectionVBOAir = selectionVBOGround
 	end
 	ClearLastMouseOver()

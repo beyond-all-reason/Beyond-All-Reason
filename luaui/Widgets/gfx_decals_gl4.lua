@@ -19,6 +19,9 @@ local mathFloor = math.floor
 local mathMin = math.min
 local mathRandom = math.random
 local round = math.round
+local stringFormat = string.format
+local stringGmatch = string.gmatch
+local tableConcat = table.concat
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -1915,6 +1918,61 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 end
 
 local pendingRestore = nil  -- Holds saved decal data between SetConfigData and Initialize
+local gameOver = false
+
+local savedDecalsFormatVersion = 2
+local savedDecalFieldCount = 13
+
+local function PackSavedDecals(savedDecals)
+	if not savedDecals or #savedDecals == 0 then
+		return nil
+	end
+
+	local packed = {}
+	for i = 1, #savedDecals do
+		local entry = savedDecals[i]
+		if entry and #entry == savedDecalFieldCount then
+			packed[#packed + 1] = stringFormat(
+				"%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.6g,%d,%d,%d",
+				entry[1], entry[2], entry[3], entry[4],
+				entry[5], entry[6], entry[7], entry[8],
+				entry[9], entry[10], entry[11], entry[12], entry[13]
+			)
+		end
+	end
+
+	if #packed == 0 then
+		return nil
+	end
+
+	return tableConcat(packed, ";")
+end
+
+local function UnpackSavedDecals(packed)
+	if type(packed) ~= "string" or packed == "" then
+		return nil
+	end
+
+	local unpacked = {}
+	for packedEntry in stringGmatch(packed, "([^;]+)") do
+		local entry = {}
+		local count = 0
+		local valid = true
+		for field in stringGmatch(packedEntry, "([^,]+)") do
+			count = count + 1
+			entry[count] = tonumber(field)
+			if entry[count] == nil then
+				valid = false
+				break
+			end
+		end
+		if valid and count == savedDecalFieldCount then
+			unpacked[#unpacked + 1] = entry
+		end
+	end
+
+	return unpacked
+end
 
 function widget:Initialize()
 	--if makeAtlases() == false then
@@ -2094,7 +2152,17 @@ function widget:ShutDown()
 	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 
+function widget:GameOver()
+	gameOver = true
+end
+
 function widget:GetConfigData(_) -- Called by RemoveWidget
+	if gameOver then
+		return {
+			lifeTimeMult = lifeTimeMult,
+		}
+	end
+
 	-- Save the biggest active decals for restoration after luaui reload (cap at 1500)
 	-- Priority: biggest scars first, then biggest footprints if room remains
 	local maxSave = 1500
@@ -2166,7 +2234,8 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 
 	local savedTable = {
 		lifeTimeMult = lifeTimeMult,
-		savedDecals = savedDecals,
+		savedDecalsPacked = PackSavedDecals(savedDecals),
+		savedDecalsFormat = savedDecalsFormatVersion,
 		saveFrame = frame,
 	}
 	return savedTable
@@ -2176,9 +2245,19 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	if data.lifeTimeMult ~= nil then
 		lifeTimeMult = data.lifeTimeMult
 	end
-	if data.savedDecals and #data.savedDecals > 0 then
+
+	local savedDecals = nil
+	if data.savedDecalsPacked then
+		savedDecals = UnpackSavedDecals(data.savedDecalsPacked)
+	end
+	if (not savedDecals or #savedDecals == 0) and data.savedDecals and #data.savedDecals > 0 then
+		-- Backward compatibility with older plain-table saves.
+		savedDecals = data.savedDecals
+	end
+
+	if savedDecals and #savedDecals > 0 then
 		pendingRestore = {
-			decals = data.savedDecals,
+			decals = savedDecals,
 			saveFrame = data.saveFrame or 0,
 		}
 	end

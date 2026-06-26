@@ -3364,7 +3364,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, luamem, system, name, 
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
         if luamem ~= nil then
-            tipText = tipText .. "    Lua: " .. luamem .. " MB"
+            tipText = tipText .. "    Lua: " .. luamem .. "MB\n"
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then

@@ -247,14 +247,14 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "banisher",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				maindir = "-1 0 0",
 				maxangledif = 180,
 			},
 			[3] = {
 				badtargetcategory = "VTOL",
 				def = "banisher",
-				onlytargetcategory = "SURFACE",
+				onlytargetcategory = "NOTSUB",
 				maindir = "1 0 0",
 				maxangledif = 180,
 			},
