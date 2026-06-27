@@ -104,17 +104,21 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
+	local GetFeatureDefID = Spring.GetFeatureDefID
 	local GetFeatureDirection = Spring.GetFeatureDirection
 	local GetFeatureResources = Spring.GetFeatureResources
+	local GetAllFeatures = Spring.GetAllFeatures
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
 	local SetFeaturePosition = Spring.SetFeaturePosition
 	local SetFeatureHealth = Spring.SetFeatureHealth
+	local SetFeatureMaxHealth = Spring.SetFeatureMaxHealth
 	local CreateFeature = Spring.CreateFeature
 	local DestroyFeature = Spring.DestroyFeature
 	local GetGameFrame = Spring.GetGameFrame
 
 	local treesdying = {}
+	local postStartNormalized = false
 	local falltime = 55.0 -- in frames
 	-- Visual topple duration (frames). Kept independent of `strength` so that
 	-- fire-killed trees (which take tiny damage and thus have a huge strength /
@@ -212,7 +216,39 @@ if gadgetHandler:IsSyncedCode() then
 		return height, radius, canopyFrac
 	end
 
+	local IsLikelyTreeFeature
+	local function NormalizeZeroHealthTrees()
+		local allFeatures = GetAllFeatures()
+		local fixedCount = 0
+		for i = 1, #allFeatures do
+			local featureID = allFeatures[i]
+			local featureDefID = GetFeatureDefID(featureID)
+			if featureDefID and not geothermals[featureDefID] then
+				local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
+				if maxMetal == 0 and maxEnergy > 0 then
+					local health, maxHealth = GetFeatureHealth(featureID)
+					if health and maxHealth and maxHealth > 0 and health <= 0 then
+						-- Some maps place trees with health=0. Tree shader reads healthFraction
+						-- directly for charring, so those trees render fully burnt at game start.
+						-- Normalize only pathological zero-health trees back to max health.
+						-- This does NOT replace the feature, it only updates health values.
+						SetFeatureMaxHealth(featureID, maxHealth)
+						SetFeatureHealth(featureID, maxHealth, false)
+						fixedCount = fixedCount + 1
+					end
+				end
+			end
+		end
+		return fixedCount
+	end
 
+	IsLikelyTreeFeature = function(featureID, featureDefID)
+		if geothermals[featureDefID] then
+			return false
+		end
+		local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
+		return maxMetal == 0 and maxEnergy > 0
+	end
 
 	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
 
@@ -356,6 +392,27 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		-- At game start, just remove trees already submerged by lava (no fire animation)
 		checkLavaTreesDestroy()
+		NormalizeZeroHealthTrees()
+		if TREEFELLER_DEBUG then
+			dbg("startup normalization completed")
+		end
+	end
+
+	function gadget:GameStart()
+		local fixedCount = NormalizeZeroHealthTrees()
+		postStartNormalized = true
+	end
+
+	function gadget:FeatureCreated(featureID, allyTeam, sourceID)
+		local featureDefID = GetFeatureDefID(featureID)
+		if not featureDefID or not IsLikelyTreeFeature(featureID, featureDefID) then
+			return
+		end
+		local health, maxHealth = GetFeatureHealth(featureID)
+		if health and maxHealth and maxHealth > 0 and health <= 0 then
+			SetFeatureMaxHealth(featureID, maxHealth)
+			SetFeatureHealth(featureID, maxHealth, false)
+		end
 	end
 
 
@@ -502,6 +559,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(gf)
+		if not postStartNormalized and gf >= 1 then
+			NormalizeZeroHealthTrees()
+			postStartNormalized = true
+		end
+
 		-- Periodically check for lava rise and ignite newly submerged trees
 		if gf % lavaCheckInterval == 0 then
 			checkLavaTreesFire(gf)
