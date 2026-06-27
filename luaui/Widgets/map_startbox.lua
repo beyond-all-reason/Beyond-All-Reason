@@ -189,9 +189,60 @@ end
 
 local teamColorComponents = {}
 local cachedTeamList = {}
+local teamInfoCache = {}
+local totalTeams = 0
+local aiManualPlacementCache = {}
+
+local function getCachedManualPlacement(teamID)
+	local raw = spGetTeamRulesParam(teamID, "aiManualPlacement")
+	local cached = aiManualPlacementCache[teamID]
+	if cached and cached.raw == raw then
+		return cached.x, cached.z, raw
+	end
+
+	local x, z
+	if raw then
+		local sx, sz = string.match(raw, "([%d%.]+),([%d%.]+)")
+		if sx and sz then
+			x = tonumber(sx)
+			z = tonumber(sz)
+		end
+	end
+
+	aiManualPlacementCache[teamID] = {raw = raw, x = x, z = z}
+	return x, z, raw
+end
 
 local function updateTeamList()
 	cachedTeamList = spGetTeamList()
+	totalTeams = 0
+
+	for teamID in pairs(teamInfoCache) do
+		teamInfoCache[teamID] = nil
+	end
+
+	for _, teamID in ipairs(cachedTeamList) do
+		if teamID ~= gaiaTeamID then
+			totalTeams = totalTeams + 1
+		end
+
+		local _, playerID, _, isAI, _, allyTeamID = spGetTeamInfo(teamID, false)
+		local playerName, isPlayerSpec
+		if playerID then
+			playerName, _, isPlayerSpec = spGetPlayerInfo(playerID, false)
+			if WG.playernames and WG.playernames.getPlayername then
+				playerName = WG.playernames.getPlayername(playerID) or playerName
+			end
+		end
+
+		teamInfoCache[teamID] = {
+			playerID = playerID,
+			isAI = isAI,
+			allyTeamID = allyTeamID,
+			isPlayerSpec = isPlayerSpec,
+			playerName = playerName,
+		}
+	end
 end
 
 local function assignTeamColors()
@@ -350,8 +401,14 @@ local function shouldRenderTeam(teamID, excludeMyTeam)
 		return false
 	end
 
-	local _, playerID, _, isAI, _, teamAllyTeamID = spGetTeamInfo(teamID, false)
-	local _, _, spec = spGetPlayerInfo(playerID, false)
+	local teamInfo = teamInfoCache[teamID]
+	if not teamInfo then
+		return false
+	end
+
+	local isAI = teamInfo.isAI
+	local teamAllyTeamID = teamInfo.allyTeamID
+	local spec = teamInfo.isPlayerSpec
 
 	local x, y, z = getEffectiveStartPosition(teamID)
 
@@ -574,13 +631,55 @@ local function DrawStartCones(inminimap)
 	startConeShader:Deactivate()
 end
 
-local cacheTable = {}
-local circlesToDraw = {}
-local function getCircleEntry(index)
-	if not circlesToDraw[index] then
-		circlesToDraw[index] = {0, 0, 0}
-	end
-	return circlesToDraw[index]
+local iconEntries = {}
+local iconEntriesCount = 0
+local function compareIconEntryByTexture(a, b)
+	return a.texPath < b.texPath
+end
+
+local borderX1, borderY1, borderX2, borderY2, borderChamferShared
+local function drawBorderPolygon()
+	glVertex(borderX1 + borderChamferShared, borderY1)
+	glVertex(borderX2 - borderChamferShared, borderY1)
+	glVertex(borderX2, borderY1 + borderChamferShared)
+	glVertex(borderX2, borderY2 - borderChamferShared)
+	glVertex(borderX2 - borderChamferShared, borderY2)
+	glVertex(borderX1 + borderChamferShared, borderY2)
+	glVertex(borderX1, borderY2 - borderChamferShared)
+	glVertex(borderX1, borderY1 + borderChamferShared)
+end
+
+local fillX1, fillY1, fillX2, fillY2, fillChamferShared
+local function drawFillPolygon()
+	glVertex(fillX1 + fillChamferShared, fillY1)
+	glVertex(fillX2 - fillChamferShared, fillY1)
+	glVertex(fillX2, fillY1 + fillChamferShared)
+	glVertex(fillX2, fillY2 - fillChamferShared)
+	glVertex(fillX2 - fillChamferShared, fillY2)
+	glVertex(fillX1 + fillChamferShared, fillY2)
+	glVertex(fillX1, fillY2 - fillChamferShared)
+	glVertex(fillX1, fillY1 + fillChamferShared)
+end
+
+local iconX1, iconY1, iconX2, iconY2
+local iconChamferShared, texZoomShared, texChamferShared
+local function drawIconPolygon()
+	glTexCoord(texZoomShared + texChamferShared, 1 - texZoomShared)
+	glVertex(iconX1 + iconChamferShared, iconY1)
+	glTexCoord(1 - texZoomShared - texChamferShared, 1 - texZoomShared)
+	glVertex(iconX2 - iconChamferShared, iconY1)
+	glTexCoord(1 - texZoomShared, 1 - texZoomShared - texChamferShared)
+	glVertex(iconX2, iconY1 + iconChamferShared)
+	glTexCoord(1 - texZoomShared, texZoomShared + texChamferShared)
+	glVertex(iconX2, iconY2 - iconChamferShared)
+	glTexCoord(1 - texZoomShared - texChamferShared, texZoomShared)
+	glVertex(iconX2 - iconChamferShared, iconY2)
+	glTexCoord(texZoomShared + texChamferShared, texZoomShared)
+	glVertex(iconX1 + iconChamferShared, iconY2)
+	glTexCoord(texZoomShared, texZoomShared + texChamferShared)
+	glVertex(iconX1, iconY2 - iconChamferShared)
+	glTexCoord(texZoomShared, 1 - texZoomShared - texChamferShared)
+	glVertex(iconX1, iconY1 + iconChamferShared)
 end
 
 local teamsToRender = {}
@@ -591,6 +690,7 @@ local function updateTeamsToRender()
 	for _, teamID in ipairs(cachedTeamList) do
 		local shouldRender, x, y, z, isAI = shouldRenderTeam(teamID, false)
 		if shouldRender then
+			local teamInfo = teamInfoCache[teamID]
 			teamsToRenderCount = teamsToRenderCount + 1
 			local entry = teamsToRender[teamsToRenderCount]
 			if not entry then
@@ -602,6 +702,7 @@ local function updateTeamsToRender()
 			entry.y = y
 			entry.z = z
 			entry.isAI = isAI
+			entry.displayName = isAI and getAIName(teamID, true) or (teamInfo and teamInfo.playerName)
 		end
 	end
 end
@@ -623,7 +724,6 @@ local function getStartUnitTexture(teamID)
 	return 'unitpics/other/dice.dds'
 end
 
-local totalTeams = #Spring.GetTeamList()-1
 local function buildIconList(sx, sz)
 	-- Ensure teams data is populated (DrawInMiniMap may be called before DrawWorld)
 	if not teamsToRenderCount or teamsToRenderCount == 0 then
@@ -655,9 +755,9 @@ local function buildIconList(sx, sz)
 	local texChamfer = (iconChamfer / iconSize2) * (1 - 2 * texZoom)
 
 	-- Pre-compute all icon data and sort by texture to minimize state changes
-	local entries = {}
+	local entries = iconEntries
 	local entryCount = 0
-	for i = 1, (teamsToRenderCount or 0) do
+	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
 		local teamID = entry.teamID
 		local worldX, worldZ = entry.x, entry.z
@@ -684,12 +784,29 @@ local function buildIconList(sx, sz)
 			drawY = math.floor(drawY + 0.5)
 			local r, g, b = GetTeamColor(teamID)
 			entryCount = entryCount + 1
-			entries[entryCount] = { drawX = drawX, drawY = drawY, r = r, g = g, b = b, texPath = texPath }
+			local iconEntry = entries[entryCount]
+			if not iconEntry then
+				iconEntry = {}
+				entries[entryCount] = iconEntry
+			end
+			iconEntry.drawX = drawX
+			iconEntry.drawY = drawY
+			iconEntry.r = r
+			iconEntry.g = g
+			iconEntry.b = b
+			iconEntry.texPath = texPath
 		end
 	end
 
+	if iconEntriesCount > entryCount then
+		for i = entryCount + 1, iconEntriesCount do
+			entries[i] = nil
+		end
+	end
+	iconEntriesCount = entryCount
+
 	-- Sort by texture path to batch texture state changes
-	table.sort(entries, function(a, b) return a.texPath < b.texPath end)
+	table.sort(entries, compareIconEntryByTexture)
 
 	return gl.CreateList(function()
 		-- Draw all borders + team-color backgrounds first (no texture needed)
@@ -702,32 +819,21 @@ local function buildIconList(sx, sz)
 			local bx2, by2 = x2 + borderSize, y2 + borderSize
 
 			glColor(0, 0, 0, 0.25)
-			glBeginEnd(GL_POLYGON, function()
-				glVertex(bx1 + borderChamfer, by1)
-				glVertex(bx2 - borderChamfer, by1)
-				glVertex(bx2, by1 + borderChamfer)
-				glVertex(bx2, by2 - borderChamfer)
-				glVertex(bx2 - borderChamfer, by2)
-				glVertex(bx1 + borderChamfer, by2)
-				glVertex(bx1, by2 - borderChamfer)
-				glVertex(bx1, by1 + borderChamfer)
-			end)
+			borderX1, borderY1, borderX2, borderY2 = bx1, by1, bx2, by2
+			borderChamferShared = borderChamfer
+			glBeginEnd(GL_POLYGON, drawBorderPolygon)
 
 			glColor(e.r, e.g, e.b, 0.7)
-			glBeginEnd(GL_POLYGON, function()
-				glVertex(x1 + chamfer, y1)
-				glVertex(x2 - chamfer, y1)
-				glVertex(x2, y1 + chamfer)
-				glVertex(x2, y2 - chamfer)
-				glVertex(x2 - chamfer, y2)
-				glVertex(x1 + chamfer, y2)
-				glVertex(x1, y2 - chamfer)
-				glVertex(x1, y1 + chamfer)
-			end)
+			fillX1, fillY1, fillX2, fillY2 = x1, y1, x2, y2
+			fillChamferShared = chamfer
+			glBeginEnd(GL_POLYGON, drawFillPolygon)
 		end
 
 		-- Draw all textured icons (sorted by texture to minimize state changes)
 		glColor(1, 1, 1, 1)
+		iconChamferShared = iconChamfer
+		texZoomShared = texZoom
+		texChamferShared = texChamfer
 		local prevTex = nil
 		for i = 1, entryCount do
 			local e = entries[i]
@@ -735,26 +841,9 @@ local function buildIconList(sx, sz)
 				glTexture(e.texPath)
 				prevTex = e.texPath
 			end
-			local ix1, iy1 = e.drawX - iconHalf, e.drawY - iconHalf
-			local ix2, iy2 = e.drawX + iconHalf, e.drawY + iconHalf
-			glBeginEnd(GL_POLYGON, function()
-				glTexCoord(texZoom + texChamfer, 1 - texZoom)
-				glVertex(ix1 + iconChamfer, iy1)
-				glTexCoord(1 - texZoom - texChamfer, 1 - texZoom)
-				glVertex(ix2 - iconChamfer, iy1)
-				glTexCoord(1 - texZoom, 1 - texZoom - texChamfer)
-				glVertex(ix2, iy1 + iconChamfer)
-				glTexCoord(1 - texZoom, texZoom + texChamfer)
-				glVertex(ix2, iy2 - iconChamfer)
-				glTexCoord(1 - texZoom - texChamfer, texZoom)
-				glVertex(ix2 - iconChamfer, iy2)
-				glTexCoord(texZoom + texChamfer, texZoom)
-				glVertex(ix1 + iconChamfer, iy2)
-				glTexCoord(texZoom, texZoom + texChamfer)
-				glVertex(ix1, iy2 - iconChamfer)
-				glTexCoord(texZoom, 1 - texZoom - texChamfer)
-				glVertex(ix1, iy1 + iconChamfer)
-			end)
+			iconX1, iconY1 = e.drawX - iconHalf, e.drawY - iconHalf
+			iconX2, iconY2 = e.drawX + iconHalf, e.drawY + iconHalf
+			glBeginEnd(GL_POLYGON, drawIconPolygon)
 		end
 		glTexture(false)
 	end)
@@ -984,13 +1073,12 @@ function widget:Initialize()
 			local _, _, _, isAI, _, _ = spGetTeamInfo(teamID, false)
 			if isAI then
 				local startX, _, startZ = spGetTeamStartPosition(teamID)
-				local aiManualPlacement = spGetTeamRulesParam(teamID, "aiManualPlacement")
+				local mxNum, mzNum, aiManualPlacement = getCachedManualPlacement(teamID)
 
 				if (startX and startZ and startX > 0 and startZ > 0) or aiManualPlacement then
 					if aiManualPlacement then
-						local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-						if mx and mz then
-							startX, startZ = tonumber(mx), tonumber(mz)
+						if mxNum and mzNum then
+							startX, startZ = mxNum, mzNum
 						end
 					end
 
@@ -1045,27 +1133,28 @@ function widget:DrawWorldPreUnit()
 	DrawStartPolygons(false)
 end
 
-local cacheTable = {}
-local circlesToDraw = {}
-local function getCircleEntry(index)
-	if not circlesToDraw[index] then
-		circlesToDraw[index] = {0, 0, 0}
-	end
-	return circlesToDraw[index]
-end
+local drawStartCones = false
+local coneInstanceData = {}
 
 function widget:DrawWorld()
 	clearPosCache()
 	updateTeamsToRender() -- Calculate visibility once per frame
+	if teamsToRenderCount == 0 then
+		return
+	end
 
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Color(1.0, 0.0, 0.0, 0.3)
 
-	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
-	local alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
+	if drawStartCones then
+		InstanceVBOTable.clearInstanceTable(startConeVBOTable)
+	end
 
-	InstanceVBOTable.clearInstanceTable(startConeVBOTable)
-
-	local cCount = 0
+	local time, alpha
+	if drawStartCones then
+		time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
+		alpha = 0.5 + mathAbs(((time * 3) % 1) - 0.5)
+	end
 
 	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
@@ -1073,53 +1162,45 @@ function widget:DrawWorld()
 		local x, y, z = entry.x, entry.y, entry.z
 		local isAI = entry.isAI
 
-		local r, g, b = GetTeamColor(teamID)
+		if drawStartCones then
+			local color = teamColorComponents[teamID]
+			if color then
+				coneInstanceData[1], coneInstanceData[2], coneInstanceData[3], coneInstanceData[4] = x, y, z, 1
+				coneInstanceData[5], coneInstanceData[6], coneInstanceData[7], coneInstanceData[8] = color[1], color[2], color[3], alpha
+				pushElementInstance(startConeVBOTable, coneInstanceData, nil, nil, true)
+			end
+		end
 
-		cacheTable[1], cacheTable[2], cacheTable[3], cacheTable[4] = x, y, z, 1
-		cacheTable[5], cacheTable[6], cacheTable[7], cacheTable[8] = r, g, b, alpha
-		pushElementInstance(startConeVBOTable,
-			cacheTable,
-			nil, nil, true)
 		if teamID == myTeamID then
 			amPlaced = true
 		end
 
 		if teamID ~= myTeamID and (not isAI or aiPlacedPositions[teamID]) then
-			cCount = cCount + 1
-			local circleEntry = getCircleEntry(cCount)
-			circleEntry[1], circleEntry[2], circleEntry[3] = x, y, z
+			glDrawGroundCircle(x, y, z, tooCloseToSpawn, 32)
 		end
 	end
 
-	InstanceVBOTable.uploadAllElements(startConeVBOTable)
-
-	--DrawStartCones(false)
-
-	if cCount > 0 then
-		gl.Color(1.0, 0.0, 0.0, 0.3)
-		for i = 1, cCount do
-			local p = circlesToDraw[i]
-			glDrawGroundCircle(p[1], p[2], p[3], tooCloseToSpawn, 32)
-		end
+	if drawStartCones then
+		InstanceVBOTable.uploadAllElements(startConeVBOTable)
+		DrawStartCones(false)
 	end
 end
 
 function widget:DrawScreenEffects()
+	if teamsToRenderCount == 0 then
+		clearPosCache()
+		updateTeamsToRender()
+		if teamsToRenderCount == 0 then
+			return
+		end
+	end
+
 	-- show the names over the team start positions
 	for i = 1, teamsToRenderCount do
 		local entry = teamsToRender[i]
 		local teamID = entry.teamID
 		local x, y, z = entry.x, entry.y, entry.z
-		local isAI = entry.isAI
-
-		local _, playerID = spGetTeamInfo(teamID, false)
-		local name = spGetPlayerInfo(playerID, false)
-
-		if isAI then
-			name = getAIName(teamID, true)
-		else
-			name = WG.playernames and WG.playernames.getPlayername(playerID) or name
-		end
+		local name = entry.displayName
 
 		if name then
 			local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
@@ -1244,11 +1325,9 @@ function widget:Update(delta)
 							end
 							aiPlacementStatus[teamID] = true
 						else
-							local aiManualPlacement = spGetTeamRulesParam(teamID, "aiManualPlacement")
+							local mxNum, mzNum, aiManualPlacement = getCachedManualPlacement(teamID)
 							if aiManualPlacement then
-								local mx, mz = string.match(aiManualPlacement, "([%d%.]+),([%d%.]+)")
-								if mx and mz then
-									local mxNum, mzNum = tonumber(mx), tonumber(mz)
+								if mxNum and mzNum then
 									local existing = aiPlacedPositions[teamID]
 									if existing then
 										if existing.x ~= mxNum or existing.z ~= mzNum then
