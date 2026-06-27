@@ -24,20 +24,32 @@ local updateTimer = 0
 local simN,  simSum,  simPeak  = 0, 0, 0
 local drawN, drawSum, drawPeak = 0, 0, 0
 
+-- `total` (1st return) is a monotonic accumulator of time spent in the zone,
+-- the per-frame cost is the delta between two reads.
+local prevSimTotal, prevDrawTotal
+
 function gadget:GameFrame(_)
-	local _, simCurrent = GetProfilerTimeRecord("Sim", false)
-	simN   = simN + 1
-	simSum = simSum + simCurrent
-	if simCurrent > simPeak then simPeak = simCurrent end
+    local simTotal = GetProfilerTimeRecord("Sim", false)
+	if prevSimTotal then
+			local simFrame = simTotal - prevSimTotal
+			simN   = simN + 1
+			simSum = simSum + simFrame
+			if simFrame > simPeak then simPeak = simFrame end
+	end
+	prevSimTotal = simTotal
 end
 
 function gadget:Update()
 	updateTimer = updateTimer + GetLastUpdateSeconds()
 
-	local _, drawCurrent = GetProfilerTimeRecord("Draw", false)
-	drawN   = drawN + 1
-	drawSum = drawSum + drawCurrent
-	if drawCurrent > drawPeak then drawPeak = drawCurrent end
+	local drawTotal = GetProfilerTimeRecord("Draw", false)
+	if prevDrawTotal then
+		local drawFrame = drawTotal - prevDrawTotal
+		drawN   = drawN + 1
+		drawSum = drawSum + drawFrame
+		if drawFrame > drawPeak then drawPeak = drawFrame end
+	end
+	prevDrawTotal = drawTotal
 
 	if updateTimer > sendPacketEverySeconds then
 		local avgSim  = simN  > 0 and (simSum  / simN)  or 0
