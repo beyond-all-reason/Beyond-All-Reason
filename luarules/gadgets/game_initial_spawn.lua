@@ -722,8 +722,9 @@ if gadgetHandler:IsSyncedCode() then
                     if GG.SpawnEnvironmentalLightning then
                         GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
                     end
-					GG.ComSpawnDefoliate(x, y, z)
-
+                    if GG.ComSpawnDefoliate then
+						GG.ComSpawnDefoliate(x, y, z)
+					end
                 end
             end
             if n == spawnWarpInFrame then
