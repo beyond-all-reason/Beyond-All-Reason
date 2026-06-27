@@ -76,6 +76,7 @@ local GL_POINTS				= GL.POINTS
 local selUnits = {}
 local updateSelection = true
 local selectedUnits = spGetSelectedUnits()
+local drawCallinsEnabled = true
 
 local unitTeam = {}
 local unitUnitDefID = {}
@@ -101,6 +102,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 local unitBufferUniformCache = {0}
+local widgetDrawWorld = nil
+local widgetDrawWorldPreUnit = nil
+local UpdateDrawCallinsEnabled = nil
 
 local function getWaterLevel()
 	local lrs = WG.lavaRenderState
@@ -163,9 +167,6 @@ local function AddPrimitiveAtUnit(unitID)
 	if not buildingDims then
 		if Spring.GetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
 			useUnfinishedRenderPath = true
-			if not unitDoneFrame[unitID] then
-				unitDoneFrame[unitID] = 0
-			end
 			if not unitBuiltByFactory[unitID] then
 				useUnfinishedGeometry = true
 			end
@@ -276,20 +277,60 @@ local function DrawSelections(selectionVBO, shader)
 end
 
 if mapHasWater then
-	function widget:DrawWorld()
+	widgetDrawWorld = function()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
 		DrawSelections(selectionVBOWater, waterShader)
 		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 else
-	function widget:DrawWorld()
+	widgetDrawWorld = function()
 		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 end
 
-function widget:DrawWorldPreUnit()
+widgetDrawWorldPreUnit = function()
 	-- Keep ground platters in pre-unit so units always overlap/occlude them.
 	DrawSelections(selectionVBOGround, false)
+end
+
+function widget:DrawWorld()
+	widgetDrawWorld()
+end
+
+function widget:DrawWorldPreUnit()
+	widgetDrawWorldPreUnit()
+end
+
+local function RefreshWidgetCallIn(name)
+	if not widgetHandler then
+		return
+	end
+	if widgetHandler.UpdateWidgetCallInRaw then
+		widgetHandler:UpdateWidgetCallInRaw(name, widget)
+	elseif widgetHandler.UpdateWidgetCallIn then
+		widgetHandler:UpdateWidgetCallIn(name, widget)
+	elseif widgetHandler.UpdateCallIn then
+		widgetHandler:UpdateCallIn(name)
+	end
+end
+
+UpdateDrawCallinsEnabled = function()
+	local shouldEnable = next(selUnits) ~= nil
+	if shouldEnable == drawCallinsEnabled then
+		return
+	end
+	drawCallinsEnabled = shouldEnable
+
+	if shouldEnable then
+		widget.DrawWorld = widgetDrawWorld
+		widget.DrawWorldPreUnit = widgetDrawWorldPreUnit
+	else
+		widget.DrawWorld = nil
+		widget.DrawWorldPreUnit = nil
+	end
+
+	RefreshWidgetCallIn("DrawWorld")
+	RefreshWidgetCallIn("DrawWorldPreUnit")
 end
 
 local function removeFromVBO(unitID, selectionVBO)
@@ -318,6 +359,9 @@ local function RemovePrimitive(unitID)
 		removeFromVBO(unitID, selectionVBOAir)
 	end
 	unitWaterPass[unitID] = nil
+	if UpdateDrawCallinsEnabled then
+		UpdateDrawCallinsEnabled()
+	end
 end
 
 function widget:SelectionChanged(sel)
@@ -330,6 +374,10 @@ local lastMouseOverFeatureID = nil
 local cleanedForHiddenUI = false
 local mouseOverUnitUniform = {0}
 local mouseOverFeatureUniform = {0}
+local lastMouseX, lastMouseY = -1, -1
+local lastMouseP1, lastMouseMMB = false, false
+local nextMouseOverCheckFrame = 0
+local mouseOverIdleCheckInterval = 4
 
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
@@ -352,7 +400,6 @@ end
 
 function widget:Update(dt)
 	local guiHidden = spIsGUIHidden()
-	local gf = spGetGameFrame()
 	-- Handle UI visibility: clear selections when hidden, resync on show
 	if guiHidden then
 		if not cleanedForHiddenUI then
@@ -362,6 +409,7 @@ function widget:Update(dt)
 			end
 			-- Reset drawn selection state so we can rebuild when UI becomes visible
 			selUnits = {}
+			UpdateDrawCallinsEnabled()
 			cleanedForHiddenUI = true
 		end
 		-- Skip further processing while UI is hidden
@@ -390,25 +438,36 @@ function widget:Update(dt)
 		for unitID, _ in pairs(selUnits) do
 			if not newSelUnits[unitID] then
 				RemovePrimitive(unitID)
+				unitDoneFrame[unitID] = nil
 			end
 		end
 		selUnits = newSelUnits
+		UpdateDrawCallinsEnabled()
 	end
 
-	if mapHasWater and gf >= nextWaterPassCheckFrame then
-		nextWaterPassCheckFrame = gf + waterPassCheckInterval
-		local waterLevel = getWaterLevel()
-		-- Keep selected naval/submerged units in the post-water VBO as they move.
-		for unitID, _ in pairs(selUnits) do
-			local unitDefID = unitUnitDefID[unitID]
-			if unitDefID and not unitCanFly[unitDefID] then
-				local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
-				if desiredWaterPass ~= unitWaterPass[unitID] then
-					RemovePrimitive(unitID)
-					AddPrimitiveAtUnit(unitID)
+	local hasSelectedUnits = next(selUnits) ~= nil
+
+	if mapHasWater and hasSelectedUnits then
+		local gf = spGetGameFrame()
+		if gf >= nextWaterPassCheckFrame then
+			nextWaterPassCheckFrame = gf + waterPassCheckInterval
+			local waterLevel = getWaterLevel()
+			-- Keep selected naval/submerged units in the post-water VBO as they move.
+			for unitID, _ in pairs(selUnits) do
+				local unitDefID = unitUnitDefID[unitID]
+				if unitDefID and not unitCanFly[unitDefID] then
+					local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
+					if desiredWaterPass ~= unitWaterPass[unitID] then
+						RemovePrimitive(unitID)
+						AddPrimitiveAtUnit(unitID)
+					end
 				end
 			end
 		end
+	end
+
+	if not hasSelectedUnits and not mouseoverHighlight then
+		return
 	end
 
 	-- We move the check for mouseovered units here,
@@ -422,6 +481,23 @@ function widget:Update(dt)
 		if mouseOffScreen or cameraPanMode or mmb or p1 then
 			ClearLastMouseOver()
 		else
+			local shouldTraceMouse = true
+			if not hasSelectedUnits and not lastMouseOverUnitID and not lastMouseOverFeatureID then
+				local gf = spGetGameFrame()
+				if mx == lastMouseX and my == lastMouseY and p1 == lastMouseP1 and mmb == lastMouseMMB and gf < nextMouseOverCheckFrame then
+					shouldTraceMouse = false
+				else
+					nextMouseOverCheckFrame = gf + mouseOverIdleCheckInterval
+				end
+			end
+
+			lastMouseX, lastMouseY = mx, my
+			lastMouseP1, lastMouseMMB = p1, mmb
+
+			if not shouldTraceMouse then
+				return
+			end
+
 			local result, data = spTraceScreenRay(mx, my)
 			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
 			if result == 'unit' and not guiHidden then
@@ -449,11 +525,13 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(frame)
+	if next(unitDoneFrame) == nil then
+		return
+	end
+
 	local swapFrame = frame - leaveFactoryFrames
 	for unitID, doneFrame in pairs(unitDoneFrame) do
-		if doneFrame == 0 then
-			-- continue
-		elseif doneFrame <= swapFrame then
+		if doneFrame <= swapFrame then
 			unitDoneFrame[unitID] = nil
 			if selUnits[unitID] then
 				RemovePrimitive(unitID)
@@ -475,9 +553,6 @@ function widget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
 		end
 	end
 
-	if Spring.GetUnitIsBeingBuilt(unitID) and not unitBuiltByFactory[unitID] then
-		unitDoneFrame[unitID] = unitDoneFrame[unitID] or 0
-	end
 end
 
 function widget:UnitFinished(unitID)
@@ -502,18 +577,20 @@ function widget:UnitDestroyed(unitID)
 	unitDoneFrame[unitID] = nil
 	unitWaterPass[unitID] = nil
 	unitBuiltByFactory[unitID] = nil
+	UpdateDrawCallinsEnabled()
 end
 
 local function init()
 	updateSelection = true
 	selUnits = {}
+	drawCallinsEnabled = true
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.INITIALSIZE = 0.75
-	shaderConfig.GROWTHRATE = 3.5
+	shaderConfig.GROWTHRATE = 4		-- higher = slower
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
@@ -545,6 +622,7 @@ local function init()
 		widgetHandler:RemoveWidget()
 		return false
 	end
+	UpdateDrawCallinsEnabled()
 	return true
 end
 
