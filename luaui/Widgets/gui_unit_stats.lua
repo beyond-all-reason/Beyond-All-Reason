@@ -751,10 +751,10 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		if custom.spark_forkdamage then
 			-- Sparks are hardcoded to target the default armor type:
+			local spDamage = defaultArmorDamage
 			local spForkDamage = tonumber(custom.spark_forkdamage) or 0
-			local spDamage = spForkDamage * defaultArmorDamage
 			local spCount = tonumber(custom.spark_maxunits) or 0
-			baseArmorDamage = baseArmorDamage + spDamage * spCount
+			baseArmorDamage = baseArmorDamage + spDamage * spForkDamage * spCount
 
 		elseif custom.speceffect == "split" then
 			burst = burst * (custom.number or 1)
