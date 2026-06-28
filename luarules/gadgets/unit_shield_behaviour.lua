@@ -97,15 +97,22 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		registerScriptedShieldEntry(projectileTbl, callback)
 	end
 
+	local function getEmptyResultSet()
+		return {}, 0
+	end
+
 	function gadget:Initialize()
 		GG.Shields = {}
 		GG.Shields.AddShieldDamage = addEngineShieldDamage
 		GG.Shields.DamageToShields = originalShieldDamages
-		GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
-		GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
-		GG.Shields.GetUnitShieldState = spGetUnitShieldState
-		GG.Shields.IsInShield = function() end -- TODO: parts of the api are not usable (nor needed)
 		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
+		GG.Shields.GetUnitShieldState = spGetUnitShieldState
+		-- FIXME: The shields api does not have full coverage for engine/bounce shields.
+		GG.Shields.GetUnitShieldPosition = function() end
+		GG.Shields.GetShieldUnitsInSphere = getEmptyResultSet
+		GG.Shields.GetBlockingShieldUnits = getEmptyResultSet
+		GG.Shields.GetCoveringShieldUnits = getEmptyResultSet
+		GG.Shields.IsInShield = function() return false end -- unfortunate
 	end
 
 	return -- do not load custom shields gadget
