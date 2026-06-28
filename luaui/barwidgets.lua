@@ -254,6 +254,10 @@ local callInLists = {
 	'ProjectileCreatedReloadHB',
 	'UnitParalyzeDamageHealthbars',
 	'UnitParalyzeDamageEffect',
+	'SelectedUnitsClear',
+	'SelectedUnitsBatchUpdate',
+	'SelectedUnitsRemove',
+	'SelectedUnitsAdd',
 	'LavaRenderState',
 	'ClearMapMarks',
 
@@ -3061,6 +3065,42 @@ function widgetHandler:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
 	tracy.ZoneBeginN("W:UnitParalyzeDamageEffect")
 	for _, w in ipairs(self.UnitParalyzeDamageEffectList) do
 		w:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsClear(playerID)
+	tracy.ZoneBeginN("W:SelectedUnitsClear")
+	for _, w in ipairs(self.SelectedUnitsClearList) do
+		w:SelectedUnitsClear(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	tracy.ZoneBeginN("W:SelectedUnitsBatchUpdate")
+	for _, w in ipairs(self.SelectedUnitsBatchUpdateList) do
+		w:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsRemove(playerID, unitID)
+	tracy.ZoneBeginN("W:SelectedUnitsRemove")
+	for _, w in ipairs(self.SelectedUnitsRemoveList) do
+		w:SelectedUnitsRemove(playerID, unitID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsAdd(playerID, unitID)
+	tracy.ZoneBeginN("W:SelectedUnitsAdd")
+	for _, w in ipairs(self.SelectedUnitsAddList) do
+		w:SelectedUnitsAdd(playerID, unitID)
 	end
 	tracy.ZoneEnd()
 	return

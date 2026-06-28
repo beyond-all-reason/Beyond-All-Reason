@@ -18,11 +18,16 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationSys = validation
 
+	-- Cache prefix bytes: "$y$"(3) + validation(2) = 5 bytes
+	local sy1, sy2, sy3 = string.byte("$y$", 1, 3) -- 36, 121, 36
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
-			SendToUnsynced("systemBroadcast",playerID,msg:sub(6))
-			return true
-		end
+		if #msg < 5 then return end
+		local b1, b2, b3, b4, b5 = string.byte(msg, 1, 5)
+		if b1 ~= sy1 or b2 ~= sy2 or b3 ~= sy3 or b4 ~= vb1 or b5 ~= vb2 then return end
+		SendToUnsynced("systemBroadcast",playerID,msg:sub(6))
+		return true
 	end
 
 else

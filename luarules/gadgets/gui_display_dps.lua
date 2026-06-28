@@ -319,10 +319,11 @@ function gadget:PlayerChanged(playerID)
 	_, fullview = Spring.GetSpectatingState()
 end
 
+local LOA_B1 = string.byte('L') -- 76, first byte of 'LobbyOverlayActive'
+
 function gadget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
+	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= 'LobbyOverlayActive' then return end
+	chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 end
 
 function checkEnabled()

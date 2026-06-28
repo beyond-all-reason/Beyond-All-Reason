@@ -418,6 +418,22 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 	end
 end
 
+function widget:SelectedUnitsClear(playerID)
+	selectedUnitsClear(playerID)
+end
+
+function widget:SelectedUnitsAdd(playerID, unitID)
+	selectedUnitsAdd(playerID, unitID)
+end
+
+function widget:SelectedUnitsRemove(playerID, unitID)
+	selectedUnitsRemove(playerID, unitID)
+end
+
+function widget:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+end
+
 function widget:PlayerRemoved(playerID, reason)
 	local selectedByPlayer = playerSelectedUnits[playerID]
 	playerTeamID[playerID] = nil
@@ -589,11 +605,6 @@ function widget:Initialize()
 	end
 	widget:PlayerChanged(myPlayerID)
 
-	widgetHandler:RegisterGlobal('selectedUnitsRemove', selectedUnitsRemove)
-	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
-	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
-	widgetHandler:RegisterGlobal('selectedUnitsBatchUpdate', selectedUnitsBatchUpdate)
-
 	WG['allyselectedunits'] = {}
 	WG['allyselectedunits'].getSelectPlayerUnits = function()
 		return selectPlayerUnits
@@ -607,10 +618,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
-	widgetHandler:DeregisterGlobal('selectedUnitsClear')
-	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
-	widgetHandler:DeregisterGlobal('selectedUnitsBatchUpdate')
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end

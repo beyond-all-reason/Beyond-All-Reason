@@ -38,6 +38,7 @@ local usCallAsUnit = UnitScript.CallAsUnit
 
 local REQUEST_HEADER = "$dance$"
 local HEADER_LEN = #REQUEST_HEADER
+local RH_B1 = string.byte(REQUEST_HEADER, 1)
 local COOLDOWN_FRAMES = 60 -- ~2 seconds at 30fps
 
 local CMD_ATTACK = CMD.ATTACK
@@ -100,7 +101,7 @@ local function TriggerCommanderDance(unitID)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-    if strSub(msg, 1, HEADER_LEN) ~= REQUEST_HEADER then
+    if #msg < HEADER_LEN or string.byte(msg, 1) ~= RH_B1 or strSub(msg, 1, HEADER_LEN) ~= REQUEST_HEADER then
         return
     end
 

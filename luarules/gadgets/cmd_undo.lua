@@ -37,6 +37,10 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationUndo = validation
 
+	-- Cache prefix bytes: "un"(2) + validation(2) = 4 bytes
+	local un1, un2 = string.byte("un", 1, 2) -- 117, 110
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
 	local lastSelfdTeamID = 0
@@ -187,13 +191,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2) == 'un' and msg:sub(3,4) == validation then
-			local accountID = Spring.Utilities.GetAccountID(playerID)
-			if _G.permissions.undo[accountID] then
-				local params = string.split(msg, ':')
-				restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
-				return true
-			end
+		if #msg < 4 then return end
+		local b1, b2, b3, b4 = string.byte(msg, 1, 4)
+		if b1 ~= un1 or b2 ~= un2 or b3 ~= vb1 or b4 ~= vb2 then return end
+		local accountID = Spring.Utilities.GetAccountID(playerID)
+		if _G.permissions.undo[accountID] then
+			local params = string.split(msg, ':')
+			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
+			return true
 		end
 	end
 
