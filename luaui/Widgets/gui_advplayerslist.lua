@@ -627,6 +627,7 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
 end
 
 local teamRanking = {}
+local allyTeamRanking = nil
 local isPvE = Spring.Utilities.Gametype.IsPvE()
 
 ---------------------------------------------------------------------------------------------------
@@ -788,20 +789,16 @@ end
 
 local function FpsEvent(playerID, fps)
 	lastFpsData[playerID] = fps
-	WG.playerFPS = WG.playerFPS or {}
-	WG.playerFPS[playerID] = fps
 end
 
-local function RankingEvent(allyTeamRanking)
-	WG.allyTeamRanking = allyTeamRanking
+local function RankingEvent(ranking)
+    allyTeamRanking = ranking
 	SortList()
 	CreateLists()
 end
 
 local function ApmEvent(teamID, fps)
 	lastApmData[teamID] = fps
-	WG.teamAPM = WG.teamAPM or {}
-	WG.teamAPM[teamID] = fps
 end
 
 local function SystemEvent(playerID, system)
@@ -815,9 +812,6 @@ local function SystemEvent(playerID, system)
     end
     helper( system:gsub("(.-)\r?\n", helper) )
     lastSystemData[playerID] = system
-
-    WG.playerSystemData = WG.playerSystemData or {}
-    WG.playerSystemData[playerID] = system
 end
 
 local function ActivityEvent(playerID)
@@ -1642,14 +1636,14 @@ function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
     local allyTeamList = sp.GetAllyTeamList()
-	if WG.allyTeamRanking then
-		allyTeamList = WG.allyTeamRanking
+    if allyTeamRanking then
+        allyTeamList = allyTeamRanking
 	end
 
 	-- find own ally team
 	vOffset = 12 / 2.66
 	local ownAllyTeamDrawn = false
-	if not WG.allyTeamRanking or not enemyListShow then
+    if not allyTeamRanking or not enemyListShow then
 		local showOwnAlly = not mySpecStatus or (not hideDeadAllyTeams or (aliveAllyTeams[myAllyTeamID] and populatedAllyTeams[myAllyTeamID]))
 		if showOwnAlly then
 		ownAllyTeamDrawn = true
@@ -1671,7 +1665,7 @@ function SortAllyTeams(vOffset)
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
-		if not WG.allyTeamRanking or not enemyListShow then
+        if not allyTeamRanking or not enemyListShow then
 			if ownAllyTeamDrawn then
 				vOffset = vOffset + 13
 			end
@@ -1685,8 +1679,8 @@ function SortAllyTeams(vOffset)
 		-- add the others
 		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+            for _, allyTeamID in ipairs(allyTeamList) do
+                if (allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
 					if firstenemy then
 						firstenemy = false
 					else
@@ -2197,7 +2191,7 @@ function drawMainList()
                 if numberOfEnemies == 0 or enemyListShow then
                     enemyAmount = ""
                 end
-                if WG.allyTeamRanking and enemyListShow then
+                if allyTeamRanking and enemyListShow then
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else

@@ -89,6 +89,7 @@ local cfgTrackReclaim = true
 local teamData = {}
 local allyData = {}
 local allyIDdata = {}
+local allyTeamRanking = nil
 local reclaimerUnits = {}
 local textLists = {}
 local avgData = {}
@@ -319,8 +320,8 @@ local function updateDrawPos()
 	local drawpos = 0
 	aliveAllyTeams = 0
 	local currentMyAllyID = spGetMyAllyTeamID()
-	if WG.allyTeamRanking then
-		for _, allyID in pairs(WG.allyTeamRanking) do
+	if allyTeamRanking then
+		for _, allyID in pairs(allyTeamRanking) do
 			local dataID = allyIDdata[allyID]
 			if allyData[dataID] then
 				if isTeamReal(allyID) and (allyID == currentMyAllyID or inSpecMode) and allyData[dataID].isAlive then
@@ -1348,6 +1349,11 @@ function widget:GameOver()
 	UpdateAllTeams()
 end
 
+function widget:RankingEvent(ranking)
+	allyTeamRanking = ranking
+	updateDrawPos()
+end
+
 function widget:TeamDied(teamID)
 	eco.isTeamRealDirty = true
 	if teamData[teamID] then
@@ -1515,7 +1521,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 3 then
 		sec = 0
-		if WG.allyTeamRanking then
+		if allyTeamRanking then
 			updateDrawPos()
 		end
 		--refreshTeamCompositionList = true
