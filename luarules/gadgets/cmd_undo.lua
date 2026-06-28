@@ -2,9 +2,9 @@ if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
-if (#Spring.GetTeamList())-1 <= 64 then
-	return
-end
+-- if (#Spring.GetTeamList())-1 <= 64 then
+-- 	return
+-- end
 
 local gadget = gadget ---@type Gadget
 
