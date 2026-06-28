@@ -28,10 +28,13 @@ if gadgetHandler:IsSyncedCode() then
 	local expectedPrefix = PACKET_HEADER .. validation
 	local expectedPrefixLen = #expectedPrefix
 
+	-- Cache prefix bytes to avoid string allocations in the hot path
+	local ep1, ep2, ep3 = string.byte(expectedPrefix, 1, 3)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, expectedPrefixLen) ~= expectedPrefix then
-			return
-		end
+		if #msg < expectedPrefixLen then return end
+		local b1, b2, b3 = string.byte(msg, 1, 3)
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 then return end
 		SendToUnsynced("cameraBroadcast",playerID,msg)
 		return true
 	end

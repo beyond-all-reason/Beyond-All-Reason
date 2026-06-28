@@ -320,7 +320,7 @@ if gadgetHandler:IsSyncedCode() then
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
 
 		local startUnit = false
-		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
+		if #msg >= 14 and string.byte(msg, 1) == 99 and string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then -- 99='c'
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		if isUnitValid(startUnit, allyTeamID) then
@@ -370,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
 
-		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
+		if #msg >= 17 and string.byte(msg, 1) == 97 and string.sub(msg, 1, 17) == "aiPlacedPosition:" then -- 97='a'
 			local data = string.sub(msg, 18)
 			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
 			if teamID and x and z then

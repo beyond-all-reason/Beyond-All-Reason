@@ -42,10 +42,14 @@ if gadgetHandler:IsSyncedCode() then
 	local expectedPrefix = "£" .. validation
 	local EXPECTED_PREFIX_LEN = #expectedPrefix
 
+	-- Cache prefix bytes to avoid string allocations in the hot path
+	-- Note: "£" is 2 UTF-8 bytes (0xC2, 0xA3 = 194, 163)
+	local ep1, ep2, ep3, ep4 = string.byte(expectedPrefix, 1, 4)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, EXPECTED_PREFIX_LEN) ~= expectedPrefix then
-			return
-		end
+		if #msg < EXPECTED_PREFIX_LEN then return end
+		local b1, b2, b3, b4 = string.byte(msg, 1, 4)
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 or b4 ~= ep4 then return end
 		local xz = strSub(msg, EXPECTED_PREFIX_LEN + 2)
 		if #xz ~= numMousePos * 4 then
 			return
