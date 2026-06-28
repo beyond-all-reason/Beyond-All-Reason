@@ -843,7 +843,7 @@ end
 function widget:PlayerChanged(playerID)
     -- Capture name before doPlayerUpdate rebuilds the player table
     local p = player[playerID]
-    if p and p.team and p.name and p.name ~= absentName then
+    if p and p.team and p.name and p.name ~= absentName and not p.spec then
         local _, newActive, newSpec = sp.GetPlayerInfo(playerID, false)
         if newSpec or not newActive then
             lastKnownTeamNames[p.team] = p.name
@@ -877,7 +877,7 @@ function widget:TeamDied(teamID)
     if not lastKnownTeamNames[teamID] then
         for pID = 0, specOffset-1 do
             local p = player[pID]
-            if p and p.team == teamID and p.name and p.name ~= absentName then
+            if p and p.team == teamID and p.name and p.name ~= absentName and not p.spec then
                 lastKnownTeamNames[teamID] = p.name
                 break
             end
@@ -1187,7 +1187,7 @@ function GetAllPlayers()
             -- Try player entries still carrying this team (works right as player leaves)
             for pID = 0, specOffset - 1 do
                 local ep = player[pID]
-                if ep and ep.team == i and ep.name and ep.name ~= absentName then
+                if ep and ep.team == i and ep.name and ep.name ~= absentName and not ep.spec then
                     lastKnownTeamNames[i] = ep.name
                     break
                 end
