@@ -26,8 +26,11 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationLuaMem = validation
 
+	local pct_b = string.byte("%") -- 37
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="%" and msg:sub(2,3)==validation then
+		if #msg >= 3 and string.byte(msg,1)==pct_b and string.byte(msg,2)==vb1 and string.byte(msg,3)==vb2 then
 			local um = tonumber(msg:sub(4))
 			if um then
 				SendToUnsynced("luamemBroadcast", playerID, um)

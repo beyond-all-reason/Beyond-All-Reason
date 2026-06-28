@@ -451,7 +451,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 
 		-- detect when no players are ingame (thus only specs remain) and shutdown the game
-		if GetGameFrame() == 0 and string.sub(msg, 1, 2) == 'pc' then
+		if GetGameFrame() == 0 and string.byte(msg, 1) == 112 and string.byte(msg, 2) == 99 then -- 'p'=112, 'c'=99
 			local activeTeams = 0
 			local leaderPlayerID, isDead, isAiTeam, active, spec
 			for _, teamID in ipairs(teamList) do

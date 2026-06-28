@@ -27,11 +27,21 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationSelunits = validation
 
+	-- Cache all prefix bytes: validation(2) + header(4) = 6 bytes total
+	local vb1, vb2 = string.byte(validation, 1, 2)
+	-- HEADER_SEL_UNCOMPRESSED = "cosu", HEADER_SEL_COMPRESSED = "cosc"
+	-- First 3 chars shared: 'c'=99, 'o'=111, 's'=115; 4th differs: 'u'=117 vs 'c'=99
+	local h3, h4, h5 = string.byte(HEADER_SEL_UNCOMPRESSED, 1, 3) -- 99, 111, 115
+	local hu6 = string.byte(HEADER_SEL_UNCOMPRESSED, 4) -- 117 ('u')
+	local hc6 = string.byte(HEADER_SEL_COMPRESSED, 4)  -- 99 ('c')
+
 	function gadget:RecvLuaMsg(inMsg, playerID)
-		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGTH+2)==HEADER_SEL_COMPRESSED) then
-			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(7),inMsg:sub(6,6) == "c")
-			return true
-		end
+		if #inMsg < HEADER_LENGTH + 2 then return end
+		local b1, b2, b3, b4, b5, b6 = string.byte(inMsg, 1, 6)
+		if b1 ~= vb1 or b2 ~= vb2 or b3 ~= h3 or b4 ~= h4 or b5 ~= h5 then return end
+		if b6 ~= hu6 and b6 ~= hc6 then return end
+		SendToUnsynced("selectionUpdate", playerID, inMsg:sub(7), b6 == hc6)
+		return true
 	end
 else
 	local tConcat = table.concat

@@ -31,24 +31,31 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationPlayerData = validation
 
+	-- Cache validation bytes to avoid string allocations in the hot path
+	local vb1, vb2 = string.byte(validation, 1, 2)
+	-- 's' = 115, 'd' = 100, 's' = 115
+	local sb1, sb2_d, sb2_s = 115, 100, 115
+
 	function gadget:RecvLuaMsg(msg, player)
-		if msg:sub(3, 4) == validation then
-			if msg:sub(1, 2) == "sd" then
-				local name = Spring.GetPlayerInfo(player, false)
-				-- Extract requestingPlayerID from position 5 onwards until first semicolon
-				local semicolonPos = string.find(msg, ";", 5)
-				local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
-				-- Everything after first semicolon (includes "screenshot;" + compressed data)
-				local data = string.sub(msg, semicolonPos + 1)
-				SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
-				return true
-			elseif msg:sub(1, 2) == "ss" then
-				-- Screenshot request from synced
-				-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
-				local screenshotData = string.sub(msg, 5) .. ";" .. player
-				SendToUnsynced("StartScreenshot", screenshotData)
-				return true
-			end
+		-- Fast allocation-free checks: length guard + byte comparisons before any sub()
+		if #msg < 5 then return end
+		local b3, b4 = string.byte(msg, 3, 4)
+		if b3 ~= vb1 or b4 ~= vb2 then return end
+		local b1, b2 = string.byte(msg, 1, 2)
+		if b1 ~= sb1 then return end
+		if b2 == sb2_d then -- "sd"
+			local name = Spring.GetPlayerInfo(player, false)
+			local semicolonPos = string.find(msg, ";", 5)
+			local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
+			local data = string.sub(msg, semicolonPos + 1)
+			SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
+			return true
+		elseif b2 == sb2_s then -- "ss"
+			-- Screenshot request from synced
+			-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
+			local screenshotData = string.sub(msg, 5) .. ";" .. player
+			SendToUnsynced("StartScreenshot", screenshotData)
+			return true
 		end
 	end
 
