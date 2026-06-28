@@ -293,13 +293,16 @@ local function drawContent()
 	end
 end
 
+local function isWorkerUnitIdle(unitID, unitDefID)
+	return inIdleWorkerTask[unitID]
+		or (unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
+end
+
 local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
-	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
-		if queue == 0 then
+		if isWorkerUnitIdle(unitID, unitDefID) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
