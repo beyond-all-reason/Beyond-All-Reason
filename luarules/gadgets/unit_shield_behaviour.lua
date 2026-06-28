@@ -31,20 +31,15 @@ local SHIELDSTATE_ENABLED = 1
 local armorTypeShields = Game.armorTypes.shields
 
 local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
-local scriptedShieldDamages = {}
-local scriptedShieldEntries = {}
-local scriptedShieldEntryIndex = {}
+local scriptedShieldEntries = {} ---@type [table, function][]
 
 local function registerScriptedShieldEntry(projectileTbl, callback)
-	local index = scriptedShieldEntryIndex[projectileTbl]
+	local index = table.getKeyOf(scriptedShieldEntries, projectileTbl)
 	if index then
 		scriptedShieldEntries[index][2] = callback
 	else
 		scriptedShieldEntries[#scriptedShieldEntries + 1] = { projectileTbl, callback }
-		scriptedShieldEntryIndex[projectileTbl] = #scriptedShieldEntries
 	end
-
-	scriptedShieldDamages[projectileTbl] = callback
 end
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
