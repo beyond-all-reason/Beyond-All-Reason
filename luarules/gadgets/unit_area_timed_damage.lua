@@ -289,7 +289,7 @@ end
 
 local function getBlockingShieldUnits(x, y, z, radius, onlyAlive)
 	-- Replace function stub at time of first call:
-	if GG.Shields.GetCoveringShieldUnits and GG.Shields.GetCoveringShieldUnits then
+	if GG.Shields and GG.Shields.GetCoveringShieldUnits then
 		getBlockingShieldUnits = GG.Shields.GetCoveringShieldUnits
 		return getBlockingShieldUnits(x, y, z, radius, onlyAlive)
 	else
