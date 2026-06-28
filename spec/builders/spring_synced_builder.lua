@@ -141,7 +141,7 @@ end
 ---@return SpringSyncedBuilder
 function SB.new()
     return setmetatable({
-        modOptions = { game_economy = "1" },
+        modOptions = {},
         teamRulesParams = {}, -- teamID -> paramName -> value
         teams = {}, -- teamID -> TeamDataMock from team builders
         logMessages = {},
@@ -161,7 +161,6 @@ function SB:WithModOptions(options)
     for key, value in pairs(options or {}) do
         self.modOptions[key] = value
     end
-    self.modOptions.game_economy = "1"
     return self
 end
 
@@ -171,7 +170,6 @@ end
 ---@return SpringSyncedBuilder
 function SB:WithModOption(key, value)
     self.modOptions[key] = value
-    self.modOptions.game_economy = "1"
     return self
 end
 
@@ -531,15 +529,21 @@ function SB:BuildSpring()
         end,
 
         AddTeamResource = function(teamID, resourceType, amount)
-            local teamData = builtTeams[teamID]
-            if teamData then
-                if resourceType == "metal" then
-                    teamData.metal.current = teamData.metal.current + amount
-                elseif resourceType == "energy" then
-                    teamData.energy.current = teamData.energy.current + amount
-                end
-            end
+            amount = math.max(0, amount) -- engine clamps the amount to >= 0
+            local store = getResourceStore(teamID, resourceType)
+            store.current = store.current + amount
             return true, amount
+        end,
+
+        SetTeamResource = function(teamID, resourceType, value)
+            local store = getResourceStore(teamID, resourceType)
+            store.current = math.max(0, value)
+        end,
+
+        AddTeamResourceExcessStats = function(teamID, resourceType, excess)
+            -- engine records only excess now; sent/received are Lua-owned (ShareStats)
+            local store = getResourceStore(teamID, resourceType)
+            store.excess = math.max(0, excess or 0)
         end,
 
         ValidUnitID = function(unitID)
@@ -642,10 +646,6 @@ function SB:BuildSpring()
                     teamData.energy.shareSlider = level
                 end
             end
-        end,
-
-        GetAuditTimer = function()
-            return 0
         end,
 
         GetTeamAllyTeamID = function(teamID)
