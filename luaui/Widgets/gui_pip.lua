@@ -1440,6 +1440,53 @@ local pools = {
 local frameSel = nil      -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
 local frameSelCount = 0   -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
 
+-- Tracked-player selected-unit cache for PIP.
+-- Filled incrementally by selectedUnits call-ins; seeded once from WG allyselectedunits
+-- snapshot so toggling/reloading PIP does not miss already-selected units.
+local trackedPlayerSelections = {}
+local trackedPlayerSelectionSeeded = {}
+
+local function SeedTrackedPlayerSelectionsFromWG(playerID)
+	if not playerID or trackedPlayerSelectionSeeded[playerID] then
+		return
+	end
+
+	trackedPlayerSelectionSeeded[playerID] = true
+	local wgApi = WG['allyselectedunits']
+	local getPlayerSelectedUnits = wgApi and wgApi.getPlayerSelectedUnits
+	if not getPlayerSelectedUnits then
+		return
+	end
+
+	local snapshot = getPlayerSelectedUnits(playerID)
+	if not snapshot then
+		return
+	end
+
+	local selectedByPlayer = {}
+	for unitID in pairs(snapshot) do
+		selectedByPlayer[unitID] = true
+	end
+	trackedPlayerSelections[playerID] = selectedByPlayer
+end
+
+local function GetTrackedPlayerSelections(playerID)
+	if not playerID then
+		return pools.emptySelectionSet
+	end
+
+	local selectedByPlayer = trackedPlayerSelections[playerID]
+	if not selectedByPlayer then
+		SeedTrackedPlayerSelectionsFromWG(playerID)
+		selectedByPlayer = trackedPlayerSelections[playerID]
+		if not selectedByPlayer then
+			selectedByPlayer = {}
+			trackedPlayerSelections[playerID] = selectedByPlayer
+		end
+	end
+	return selectedByPlayer
+end
+
 -- Command queue waypoint cache: avoids calling GetUnitCommands every frame.
 -- GetUnitCommands allocates ~60 tables per unit per call (outer + cmd + params tables),
 -- which causes massive GC pressure. Caching and only refreshing every N frames eliminates this.
@@ -8682,7 +8729,62 @@ function widget:PlayerChanged(playerID)
 	-- Invalidate commander nametag cache (player names/teams may have changed)
 	comNametagCache.dirty = true
 
+	-- Prune tracked-player selection cache for players that no longer exist.
+	local activePlayers = {}
+	for _, pID in ipairs(Spring.GetPlayerList()) do
+		activePlayers[pID] = true
+	end
+	for pID in pairs(trackedPlayerSelections) do
+		if not activePlayers[pID] then
+			trackedPlayerSelections[pID] = nil
+			trackedPlayerSelectionSeeded[pID] = nil
+		end
+	end
+
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
+end
+
+function widget:SelectedUnitsClear(playerID)
+	trackedPlayerSelections[playerID] = {}
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsAdd(playerID, unitID)
+	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
+	selectedByPlayer[unitID] = true
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsRemove(playerID, unitID)
+	local selectedByPlayer = trackedPlayerSelections[playerID]
+	if selectedByPlayer then
+		selectedByPlayer[unitID] = nil
+	end
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
+
+	if remCount and remCount > 0 and remUnits then
+		for i = 1, remCount do
+			local unitID = remUnits[i]
+			if unitID then
+				selectedByPlayer[unitID] = nil
+			end
+		end
+	end
+
+	if addCount and addCount > 0 and addUnits then
+		for i = 1, addCount do
+			local unitID = addUnits[i]
+			if unitID then
+				selectedByPlayer[unitID] = true
+			end
+		end
+	end
+
+	trackedPlayerSelectionSeeded[playerID] = true
 end
 
 function widget:GameOver()
@@ -9416,13 +9518,10 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	else
 		-- Show only selected units (or tracked player's selected units)
 		if interactionState.trackingPlayerID then
-			-- Get tracked player's selected units — write directly into pool to avoid table alloc
-			local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-			if playerSelections then
-				for unitID, _ in pairs(playerSelections) do
-					unitCount = unitCount + 1
-					unitsToShow[unitCount] = unitID
-				end
+			local playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
+			for unitID in pairs(playerSelections) do
+				unitCount = unitCount + 1
+				unitsToShow[unitCount] = unitID
 			end
 		else
 			-- Use cached selected units to avoid redundant API call
@@ -9911,13 +10010,11 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	local selectedUnits
 	local selectedCount = 0
 	if interactionState.trackingPlayerID then
-		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-		if playerSelections then
-			selectedUnits = cachedSelectedUnits or {}
-			for unitID, _ in pairs(playerSelections) do
-				selectedCount = selectedCount + 1
-				selectedUnits[selectedCount] = unitID
-			end
+		local playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
+		selectedUnits = cachedSelectedUnits or {}
+		for unitID in pairs(playerSelections) do
+			selectedCount = selectedCount + 1
+			selectedUnits[selectedCount] = unitID
 		end
 	else
 		selectedUnits = cachedSelectedUnits
@@ -11684,8 +11781,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Pre-fetch player selections once (avoids per-unit WG lookup)
 	local playerSelections = nil
 	if interactionState.trackingPlayerID then
-		playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-		if not playerSelections then playerSelections = pools.emptySelectionSet end  -- empty table signals "use tracking mode" to DrawUnit
+		playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
 	end
 
 	-- Build tracking set for O(1) lookup (avoids O(N*M) linear scan per unit)
@@ -12021,7 +12117,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 	local selectedSet
 	if interactionState.trackingPlayerID then
-		selectedSet = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		selectedSet = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
 	else
 		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
 		local set = pools.selectedSet
