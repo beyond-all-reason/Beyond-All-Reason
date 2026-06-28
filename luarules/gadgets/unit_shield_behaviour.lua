@@ -36,8 +36,12 @@ local scriptedShieldEntries = {} ---@type [table, function][]
 local function registerScriptedShieldEntry(projectileTbl, callback)
 	local index = table.getKeyOf(scriptedShieldEntries, projectileTbl)
 	if index then
-		scriptedShieldEntries[index][2] = callback
-	else
+		if callback then
+			scriptedShieldEntries[index][2] = callback
+		else
+			table.remove(scriptedShieldEntries, index)
+		end
+	elseif callback then
 		scriptedShieldEntries[#scriptedShieldEntries + 1] = { projectileTbl, callback }
 	end
 end
@@ -88,7 +92,7 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 
 	---Add a scripted weapon type to be handled by the shield behaviour gadget.
 	---@param projectileTbl table [projectileID] := true
-	---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	---@param callback ShieldPreDamagedCallback? accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 	local function registerShieldPreDamaged(projectileTbl, callback)
 		if #scriptedShieldEntries == 0 then
 			gadget.ShieldPreDamaged = doShieldPreDamaged
@@ -898,7 +902,7 @@ end
 
 ---Add a scripted weapon type to be handled by the shield behaviour gadget.
 ---@param projectileTbl table [projectileID] := true
----@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+---@param callback ShieldPreDamagedCallback? accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 local function registerShieldPreDamaged(projectileTbl, callback)
 	registerScriptedShieldEntry(projectileTbl, callback)
 end
