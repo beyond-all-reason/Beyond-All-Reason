@@ -67,14 +67,20 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
 	local GetAIInfo = Spring.GetAIInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
+	local GetTeamUnits = Spring.GetTeamUnits
+	local GetUnitDefID = Spring.GetUnitDefID
 	local GameOver = Spring.GameOver
 	local AreTeamsAllied = Spring.AreTeamsAllied
 	local GetGameFrame = Spring.GetGameFrame
+	local EMPTY_TABLE = {}
 
 	local playerQuitIsDead = true	-- gets turned off for 1v1's
 	local oneTeamWasActive = false
 	local teamToAllyTeam = { [gaiaTeamID] = gaiaAllyTeamID }
 	local playerIDtoAIs = {}
+	local playerInfoCache = {}
+	local teamEvalFrame = {}
+	local allyTeamEvalFrame = {}
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
 	local isFFA = Spring.Utilities.Gametype.IsFFA()
@@ -83,6 +89,8 @@ if gadgetHandler:IsSyncedCode() then
 	local gameoverWinners
 	local gameoverAnimFrame
 	local gameoverAnimUnits
+	local singleWinnerScratch = {}
+	local sharedWinnerScratch = {}
 
 	local globalLosGranted = false
 
@@ -120,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
 			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
-					local teamUnits = Spring.GetTeamUnits(teamID)
+					local teamUnits = GetTeamUnits(teamID) or EMPTY_TABLE
 					for i=1, #teamUnits do
 						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
 					end
@@ -133,64 +141,93 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function CheckPlayer(playerID, gf)
-		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+		local cachedPlayerInfo = playerInfoCache[playerID]
+		local active = cachedPlayerInfo and cachedPlayerInfo.active
+		local spectator = cachedPlayerInfo and cachedPlayerInfo.spectator
+		local teamID = cachedPlayerInfo and cachedPlayerInfo.teamID
+		local allyTeamID = cachedPlayerInfo and cachedPlayerInfo.allyTeamID
+		if teamID == nil then
+			_, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+		end
 		local team = allyTeamInfos[allyTeamID].teams[teamID]
 
 		if not spectator and active then
 			team.players[playerID] = gf
 		end
-		team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
+		if teamEvalFrame[teamID] ~= gf then
+			teamEvalFrame[teamID] = gf
 
-		local allResigned = true
-		if not team.dead then
-			if team.isAI then
-				allResigned = false
-			else
-				local players = GetPlayerList(teamID)
-				for _, playerID in pairs(players) do
-					local _, active, spec = GetPlayerInfo(playerID, false)
-					allResigned = allResigned and spec
+			team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
+
+			local allResigned = true
+			if not team.dead then
+				if team.isAI then
+					allResigned = false
+				else
+					for trackedPlayerID in pairs(team.players) do
+						local trackedInfo = playerInfoCache[trackedPlayerID]
+						local spec = trackedInfo and trackedInfo.spectator
+						if spec == nil then
+							_, _, spec = GetPlayerInfo(trackedPlayerID, false)
+						end
+						allResigned = allResigned and (spec == true)
+						if not allResigned then
+							break
+						end
+					end
 				end
 			end
-		end
-		if not team.dead and allResigned then
-			killTeamQueue[teamID] = gf
-		else
-			if not team.hasLeader and not team.dead then
-				if not killTeamQueue[teamID] then
-					killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12))	-- add a grace period before killing the team
+			if not team.dead and allResigned then
+				killTeamQueue[teamID] = gf
+			else
+				if not team.hasLeader and not team.dead then
+					if not killTeamQueue[teamID] then
+						killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12))	-- add a grace period before killing the team
+					end
+				elseif killTeamQueue[teamID] then
+					killTeamQueue[teamID] = nil
 				end
-			elseif killTeamQueue[teamID] then
+			end
+			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
+				KillTeam(teamID)
 				killTeamQueue[teamID] = nil
 			end
-		end
-		if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
-			KillTeam(teamID)
-			killTeamQueue[teamID] = nil
-		end
 
-		-- if team isn't AI controlled, then we need to check if we have attached players
-		if not team.isAI then
-			team.isControlled = false
-			for _, isControlling in pairs(team.players) do
-				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
-					team.isControlled = true
-					break
+			-- if team isn't AI controlled, then we need to check if we have attached players
+			if not team.isAI then
+				team.isControlled = false
+				for _, isControlling in pairs(team.players) do
+					if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
+						team.isControlled = true
+						break
+					end
 				end
 			end
 		end
 
 		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
-		local AIHostList = playerIDtoAIs[playerID] or {}
-		for AITeam, AIAllyTeam in pairs(AIHostList) do
+		for AITeam, AIAllyTeam in pairs(playerIDtoAIs[playerID] or EMPTY_TABLE) do
 			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
 		end
 
-		UpdateAllyTeamIsDead(allyTeamID, gf)
+		if allyTeamEvalFrame[allyTeamID] ~= gf then
+			allyTeamEvalFrame[allyTeamID] = gf
+			UpdateAllyTeamIsDead(allyTeamID, gf)
+		end
 	end
 
 	local function CheckAllPlayers(gf)
 		playerList = GetPlayerList()
+		for i = 1, #playerList do
+			local playerID = playerList[i]
+			local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+			local info = playerInfoCache[playerID] or {}
+			info.active = active
+			info.spectator = spectator
+			info.teamID = teamID
+			info.allyTeamID = allyTeamID
+			playerInfoCache[playerID] = info
+		end
 		for i = 1, #playerList do
 			CheckPlayer(playerList[i], gf)
 		end
@@ -235,6 +272,10 @@ if gadgetHandler:IsSyncedCode() then
 						players = {},
 						hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0,
 					}
+					local teamPlayers = GetPlayerList(teamID) or EMPTY_TABLE
+					for p = 1, #teamPlayers do
+						teamInfo.players[teamPlayers[p]] = false
+					end
 					-- engine AI
 					teamInfo.isAI = select(4, GetTeamInfo(teamID, false))
 					if teamInfo.isAI then
@@ -252,9 +293,9 @@ if gadgetHandler:IsSyncedCode() then
 
 					teamInfo.unitCount = GetTeamUnitCount(teamID)
 					allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
-					local units = Spring.GetTeamUnits(teamID)
+					local units = GetTeamUnits(teamID) or EMPTY_TABLE
 					for u = 1, #units do
-						if unitDecoration[Spring.GetUnitDefID(units[u])] then
+						if unitDecoration[GetUnitDefID(units[u])] then
 							allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
 						end
 					end
@@ -281,23 +322,27 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
+		for i = #singleWinnerScratch, 1, -1 do
+			singleWinnerScratch[i] = nil
+		end
 		local winnerCount = 0
-		local candidateWinners = {}
 		for allyTeamID in pairs(allyTeamInfos) do
 			if not allyTeamInfos[allyTeamID].dead then
 				winnerCount = winnerCount + 1
-				candidateWinners[winnerCount] = allyTeamID
+				singleWinnerScratch[winnerCount] = allyTeamID
 			end
 		end
 		if winnerCount > 1 then
 			return false
 		end
-		return candidateWinners
+		return singleWinnerScratch
 	end
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
-		local candidateWinners = {}
+		for allyTeamID in pairs(sharedWinnerScratch) do
+			sharedWinnerScratch[allyTeamID] = nil
+		end
 		local winnerCountSquared = 0
 		local aliveCount = 0
 		for allyTeamA in pairs(allyTeamInfos) do
@@ -307,7 +352,7 @@ if gadgetHandler:IsSyncedCode() then
 					if not allyTeamInfos[allyTeamB].dead and AreAllyTeamsDoubleAllied(allyTeamA, allyTeamB) then
 						-- store both check directions
 						-- since we're gonna check if we're allied against ourself, only secondAllyTeamID needs to be stored
-						candidateWinners[allyTeamB] = true
+						sharedWinnerScratch[allyTeamB] = true
 						winnerCountSquared = winnerCountSquared + 1
 					end
 				end
@@ -321,7 +366,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
 		--local winnersCorrectFormat = {}
 		local winnersCorrectFormatCount = 0
-		for winner in pairs(candidateWinners) do
+		for winner in pairs(sharedWinnerScratch) do
 			winnersCorrectFormatCount = winnersCorrectFormatCount + 1
 			--winnersCorrectFormat[winnersCorrectFormatCount] = winner
 		end
