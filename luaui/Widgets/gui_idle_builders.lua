@@ -88,6 +88,7 @@ local clicks = {}
 local unitList = {}
 
 local idleList = {}
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 local guishaderWasActive = false
@@ -104,7 +105,7 @@ local function refreshUnitDefs()
 			end
 			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
 				unitConf[unitDefID] = unitDef.isFactory
-		end
+			end
 		end
 	end
 end
