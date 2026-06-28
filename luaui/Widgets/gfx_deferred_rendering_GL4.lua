@@ -1182,7 +1182,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('UnitScriptLight')
 	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
 
 	deferredLightShader:Delete()
@@ -1849,8 +1848,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
-
 	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
 	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
 	-- The gadget owns all tuning (see its lightning configs); this just forwards the
@@ -1874,6 +1871,10 @@ if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end
+end
+
+function widget:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	UnitScriptLight(unitID, unitDefID, lightIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 

@@ -36,6 +36,7 @@ local useHexagons = true
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
 local nextWaterPassCheckFrame = 0
 local waterPassCheckInterval = 6
+local lavaWaterLevel = nil
 
 ----------------------------------------------------------------------------
 
@@ -129,15 +130,18 @@ local instanceCache = {
 	}
 
 local function getWaterLevel()
-	local lrs = WG.lavaRenderState
-	if lrs and lrs.level then
-		return lrs.level
+	if lavaWaterLevel then
+		return lavaWaterLevel
 	end
 	local level = Spring.GetGameRulesParam("lavaLevel")
 	if level and level ~= -99999 then
 		return level
 	end
 	return 0
+end
+
+function widget:LavaRenderState(tideLevel)
+	lavaWaterLevel = tideLevel
 end
 
 local function shouldUseWaterPass(unitID, unitDefID)

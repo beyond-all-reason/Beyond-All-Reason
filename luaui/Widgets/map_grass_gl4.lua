@@ -1130,7 +1130,6 @@ function widget:Initialize()
 		lastLavaLevel = initLavaLevel
 		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
 	end
-	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 
 	processChanges = next(grassInstanceData) ~= nil
 
@@ -1142,8 +1141,13 @@ function widget:Initialize()
 	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
+function widget:GadgetRemoveGrass(posx, posz, radius)
+	if WG['grassgl4'] then
+		WG['grassgl4'].removeGrass(posx, posz, radius)
+	end
+end
+
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	if unitBendSSBO then unitBendSSBO = nil end
 
 	widgetHandler:RemoveAction("placegrass")
