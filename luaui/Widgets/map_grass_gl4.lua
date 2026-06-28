@@ -1301,21 +1301,16 @@ function widget:DrawWorldPreUnit()
   end
 end
 
-local lastSunChanged = -1
-function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
-	--spEcho("widget:SunChanged", df)
-	if df == lastSunChanged then return end
-	lastSunChanged = df
+local function NightFactorChanged(red, green, blue, shadow, altitude)
+	local altitudefactor = 1.0 --+ (1.0 - altitude) * 0.5
+	nightFactor[1] = red * altitudefactor
+	nightFactor[2] = green * altitudefactor
+	nightFactor[3] = blue * altitudefactor
+	nightFactor[4] = shadow
+end
 
-	-- Do the math:
-	if WG['NightFactor'] then
-		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-		nightFactor[1] = WG['NightFactor'].red * altitudefactor
-		nightFactor[2] = WG['NightFactor'].green * altitudefactor
-		nightFactor[3] = WG['NightFactor'].blue * altitudefactor
-		nightFactor[4] = WG['NightFactor'].shadow
-	end
+function widget:NightFactorChanged(red, green, blue, shadow, altitude)
+	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
 -- ahahahah you cant stop me:
