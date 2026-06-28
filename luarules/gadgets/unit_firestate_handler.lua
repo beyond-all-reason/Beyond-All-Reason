@@ -19,14 +19,10 @@ end
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 local Firestates = VFS.Include("modules/firestates.lua")
-local DEFENSIVE_FIRE_RANGE = 300
-local DEFENSIVE_FIRE_RANGE_SQ = DEFENSIVE_FIRE_RANGE * DEFENSIVE_FIRE_RANGE
 local INLOS = { inlos = true }
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitStates = Spring.GetUnitStates
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local settingEngineFirestate = false
 
@@ -67,38 +63,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
 end
 
-function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-	if spGetUnitRulesParam(attackerID, Firestates.RULES_PARAM) ~= Firestates.DEFENSIVE then
-		return true
-	end
-
-	local attackerX, _, attackerZ = spGetUnitPosition(attackerID)
-	local targetX, _, targetZ = spGetUnitPosition(targetID)
-	if not attackerX or not targetX then
-		return true
-	end
-
-	local distanceX = attackerX - targetX
-	local distanceZ = attackerZ - targetZ
-	if distanceX * distanceX + distanceZ * distanceZ > DEFENSIVE_FIRE_RANGE_SQ then
-		return false
-	end
-
-	return true
-end
-
 function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(CMD_USER_FIRESTATE)
 	gadgetHandler:RegisterAllowCommand(CMD_FIRE_STATE)
 	gadgetHandler:RegisterAllowCommand(CMD_USER_FIRESTATE)
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		local weapons = unitDef.weapons
-		for weaponNum = 1, #weapons do
-			local weaponDefID = weapons[weaponNum].weaponDef
-			local weaponDef = WeaponDefs[weaponDefID]
-			if not weaponDef.customParams.bogus then
-				Script.SetWatchAllowTarget(weaponDefID, true)
-			end
-		end
-	end
 end
