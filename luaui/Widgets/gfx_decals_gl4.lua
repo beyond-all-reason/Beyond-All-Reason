@@ -2022,7 +2022,6 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 
@@ -2139,6 +2138,10 @@ function widget:Initialize()
 
 end
 
+function widget:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+end
+
 function widget:SunChanged()
 	--local nmp = _G["NightModeParams"]
 	--spEcho("widget:SunChanged()",nmp)
@@ -2149,7 +2152,6 @@ function widget:ShutDown()
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
-	widgetHandler:DeregisterGlobal('UnitScriptDecal')
 end
 
 function widget:GameOver()

@@ -1058,8 +1058,6 @@ function widget:Initialize()
 
 	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
 
-	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
-
 	WG['map_startbox'] = {}
 	WG['map_startbox'].GetEffectiveStartPosition = getEffectiveStartPosition
 
@@ -1098,6 +1096,10 @@ function widget:Initialize()
 	InitStartPolygons()
 end
 
+function widget:GadgetCoopStartPoint(playerID, x, y, z)
+	CoopStartPoint(playerID, x, y, z)
+end
+
 local function removeTeamLists()
 	for _, teamID in ipairs(cachedTeamList) do
 		if commanderNameList[teamID] ~= nil then
@@ -1118,7 +1120,6 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
-	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 	WG['map_startbox'] = nil
 end
 
