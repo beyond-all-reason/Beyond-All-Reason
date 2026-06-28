@@ -224,6 +224,37 @@ local callInLists = {
 	'VisibleExplosion',
 	'Barrelfire',
 	'CrashingAircraft',
+	'SendStats',
+	'SendStats_GameMode',
+	'ActivityEvent',
+	'FpsEvent',
+	'ApmEvent',
+	'GpuMemEvent',
+	'LuaMemEvent',
+	'SystemEvent',
+	'RankingEvent',
+	'MouseCursorEvent',
+	'CameraBroadcastEvent',
+	'FeatureReclaimStartedETA',
+	'UnitBuildspeedDebuffHealthbars',
+	'UnitBuildspeedDebuffEndHealthbars',
+	'GadgetAddMessage',
+	'GadgetReceiveAwards',
+	'UnitScriptLight',
+	'UnitScriptDistortion',
+	'UnitScriptDecal',
+	'GadgetRemoveGrass',
+	'GadgetCoopStartPoint',
+	'NotificationEvent',
+	'NightFactorChanged',
+	'ScavEvent',
+	'RaptorEvent',
+	'FeatureReclaimStartedHealthbars',
+	'UnitCaptureStartedHealthbars',
+	'ProjectileCreatedReloadHB',
+	'UnitParalyzeDamageHealthbars',
+	'UnitParalyzeDamageEffect',
+	'LavaRenderState',
 	'ClearMapMarks',
 
 	-- these use mouseOwner instead of lists
@@ -736,7 +767,7 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 	}
 	setmetatable(widget.whInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation. Saves 0.5us per tracy call, (1 us -> 0.5us)
-	if tracy then 
+	if tracy then
 		widget._tracyUpdateName             = "W:Update:"             .. wi.name
 		widget._tracyViewResizeName         = "W:ViewResize:"         .. wi.name
 		widget._tracyDrawScreenName         = "W:DrawScreen:"         .. wi.name
@@ -2760,6 +2791,285 @@ function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:CrashingAircraft")
 	for _, w in ipairs(self.CrashingAircraftList) do
 		w:CrashingAircraft(unitID, unitDefID, unitTeam)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
+	tracy.ZoneBeginN("W:SendStats")
+	for _, w in ipairs(self.SendStatsList) do
+		w:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SendStats_GameMode(mode)
+	tracy.ZoneBeginN("W:SendStats_GameMode")
+	for _, w in ipairs(self.SendStats_GameModeList) do
+		w:SendStats_GameMode(mode)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:ActivityEvent(playerID)
+	tracy.ZoneBeginN("W:ActivityEvent")
+	for _, w in ipairs(self.ActivityEventList) do
+		w:ActivityEvent(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:FpsEvent(playerID, fps)
+	tracy.ZoneBeginN("W:FpsEvent")
+	for _, w in ipairs(self.FpsEventList) do
+		w:FpsEvent(playerID, fps)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:ApmEvent(teamID, apm)
+	tracy.ZoneBeginN("W:ApmEvent")
+	for _, w in ipairs(self.ApmEventList) do
+		w:ApmEvent(teamID, apm)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GpuMemEvent(playerID, mem)
+	tracy.ZoneBeginN("W:GpuMemEvent")
+	for _, w in ipairs(self.GpuMemEventList) do
+		w:GpuMemEvent(playerID, mem)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:LuaMemEvent(playerID, mem)
+	tracy.ZoneBeginN("W:LuaMemEvent")
+	for _, w in ipairs(self.LuaMemEventList) do
+		w:LuaMemEvent(playerID, mem)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SystemEvent(playerID, systemData)
+	tracy.ZoneBeginN("W:SystemEvent")
+	for _, w in ipairs(self.SystemEventList) do
+		w:SystemEvent(playerID, systemData)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:RankingEvent(ranking)
+	tracy.ZoneBeginN("W:RankingEvent")
+	for _, w in ipairs(self.RankingEventList) do
+		w:RankingEvent(ranking)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+	tracy.ZoneBeginN("W:MouseCursorEvent")
+	for _, w in ipairs(self.MouseCursorEventList) do
+		w:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:CameraBroadcastEvent(playerID, cameraState)
+	tracy.ZoneBeginN("W:CameraBroadcastEvent")
+	for _, w in ipairs(self.CameraBroadcastEventList) do
+		w:CameraBroadcastEvent(playerID, cameraState)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:FeatureReclaimStartedETA(featureID, step)
+	tracy.ZoneBeginN("W:FeatureReclaimStartedETA")
+	for _, w in ipairs(self.FeatureReclaimStartedETAList) do
+		w:FeatureReclaimStartedETA(featureID, step)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
+	tracy.ZoneBeginN("W:UnitBuildspeedDebuffHealthbars")
+	for _, w in ipairs(self.UnitBuildspeedDebuffHealthbarsList) do
+		w:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitBuildspeedDebuffEndHealthbars(unitID)
+	tracy.ZoneBeginN("W:UnitBuildspeedDebuffEndHealthbars")
+	for _, w in ipairs(self.UnitBuildspeedDebuffEndHealthbarsList) do
+		w:UnitBuildspeedDebuffEndHealthbars(unitID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GadgetAddMessage(msg)
+	tracy.ZoneBeginN("W:GadgetAddMessage")
+	for _, w in ipairs(self.GadgetAddMessageList) do
+		w:GadgetAddMessage(msg)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GadgetReceiveAwards(awards)
+	tracy.ZoneBeginN("W:GadgetReceiveAwards")
+	for _, w in ipairs(self.GadgetReceiveAwardsList) do
+		w:GadgetReceiveAwards(awards)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	tracy.ZoneBeginN("W:UnitScriptLight")
+	for _, w in ipairs(self.UnitScriptLightList) do
+		w:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
+	tracy.ZoneBeginN("W:UnitScriptDistortion")
+	for _, w in ipairs(self.UnitScriptDistortionList) do
+		w:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	tracy.ZoneBeginN("W:UnitScriptDecal")
+	for _, w in ipairs(self.UnitScriptDecalList) do
+		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
+	tracy.ZoneBeginN("W:GadgetRemoveGrass")
+	for _, w in ipairs(self.GadgetRemoveGrassList) do
+		w:GadgetRemoveGrass(posx, posz, radius)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:GadgetCoopStartPoint(playerID, x, y, z)
+	tracy.ZoneBeginN("W:GadgetCoopStartPoint")
+	for _, w in ipairs(self.GadgetCoopStartPointList) do
+		w:GadgetCoopStartPoint(playerID, x, y, z)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:NotificationEvent(msg)
+	tracy.ZoneBeginN("W:NotificationEvent")
+	for _, w in ipairs(self.NotificationEventList) do
+		w:NotificationEvent(msg)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:NightFactorChanged(red, green, blue, shadow, altitude)
+	tracy.ZoneBeginN("W:NightFactorChanged")
+	for _, w in ipairs(self.NightFactorChangedList) do
+		w:NightFactorChanged(red, green, blue, shadow, altitude)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:ScavEvent(args)
+	tracy.ZoneBeginN("W:ScavEvent")
+	for _, w in ipairs(self.ScavEventList) do
+		w:ScavEvent(args)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:RaptorEvent(args)
+	tracy.ZoneBeginN("W:RaptorEvent")
+	for _, w in ipairs(self.RaptorEventList) do
+		w:RaptorEvent(args)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:FeatureReclaimStartedHealthbars(featureID, step)
+	tracy.ZoneBeginN("W:FeatureReclaimStartedHealthbars")
+	for _, w in ipairs(self.FeatureReclaimStartedHealthbarsList) do
+		w:FeatureReclaimStartedHealthbars(featureID, step)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitCaptureStartedHealthbars(unitID, step)
+	tracy.ZoneBeginN("W:UnitCaptureStartedHealthbars")
+	for _, w in ipairs(self.UnitCaptureStartedHealthbarsList) do
+		w:UnitCaptureStartedHealthbars(unitID, step)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
+	tracy.ZoneBeginN("W:ProjectileCreatedReloadHB")
+	for _, w in ipairs(self.ProjectileCreatedReloadHBList) do
+		w:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+	tracy.ZoneBeginN("W:UnitParalyzeDamageHealthbars")
+	for _, w in ipairs(self.UnitParalyzeDamageHealthbarsList) do
+		w:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
+	tracy.ZoneBeginN("W:UnitParalyzeDamageEffect")
+	for _, w in ipairs(self.UnitParalyzeDamageEffectList) do
+		w:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
+	tracy.ZoneBeginN("W:LavaRenderState")
+	for _, w in ipairs(self.LavaRenderStateList) do
+		w:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
 	end
 	tracy.ZoneEnd()
 	return

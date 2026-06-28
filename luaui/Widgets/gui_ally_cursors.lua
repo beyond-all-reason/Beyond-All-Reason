@@ -284,9 +284,12 @@ function widget:ViewResize()
 	deleteDlists()
 end
 
+function widget:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+	MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+end
+
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
 
 	if showPlayerName then
 		usedCursorSize = drawNamesCursorSize
@@ -370,7 +373,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('MouseCursorEvent')
 	deleteDlists()
 	WG['allycursors'] = nil
 end

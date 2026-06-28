@@ -503,8 +503,6 @@ end
 function widget:Initialize()
 	widget:PlayerChanged()
 
-	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
-
 	WG['notifications'] = {}
 	for sound, params in pairs(notification) do
 		WG['notifications']['getNotification' .. sound] = function()
@@ -632,9 +630,12 @@ function widget:Initialize()
 	end
 end
 
+function widget:NotificationEvent(msg)
+	gadgetNotificationEvent(msg)
+end
+
 function widget:Shutdown()
 	WG['notifications'] = nil
-	widgetHandler:DeregisterGlobal('NotificationEvent')
 end
 
 function widget:GameFrame(gf)

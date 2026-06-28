@@ -46,6 +46,7 @@ local selectionVBOWater = nil
 local selectionVBOAir = nil
 
 local mapHasWater = (Spring.GetGroundExtremes() < 0)
+local lavaWaterLevel = nil
 
 local selectShader = nil
 local unbuiltShader = nil
@@ -107,15 +108,18 @@ local widgetDrawWorldPreUnit = nil
 local UpdateDrawCallinsEnabled = nil
 
 local function getWaterLevel()
-	local lrs = WG.lavaRenderState
-	if lrs and lrs.level then
-		return lrs.level
+	if lavaWaterLevel then
+		return lavaWaterLevel
 	end
 	local level = spGetGameRulesParam("lavaLevel")
 	if level and level ~= -99999 then
 		return level
 	end
 	return 0
+end
+
+function widget:LavaRenderState(tideLevel)
+	lavaWaterLevel = tideLevel
 end
 
 local function shouldUseWaterPass(unitID, unitDefID)

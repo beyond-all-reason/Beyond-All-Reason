@@ -19,6 +19,8 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGroundHeight = Spring.GetGroundHeight
 
 local showAsSpectator = true
 local selectPlayerUnits = true	-- when lockcamera player
@@ -31,6 +33,10 @@ local enablePlatter = true
 local platterOpacity = 0.1
 
 local useHexagons = true
+local mapHasWater = (Spring.GetGroundExtremes() < 0)
+local nextWaterPassCheckFrame = 0
+local waterPassCheckInterval = 6
+local lavaWaterLevel = nil
 
 ----------------------------------------------------------------------------
 
@@ -39,8 +45,10 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
 
-local selectionVBO = nil
+local selectionVBOGround = nil
+local selectionVBOWater = nil
 local selectShader = nil
+local waterShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local glStencilFunc         = gl.StencilFunc
@@ -88,6 +96,7 @@ local lockPlayerLastAppliedVersion = -1
 local unitAllyteam = {}
 local spGetUnitTeam = Spring.GetUnitTeam
 local teamAllyTeam = {}
+local unitWaterPass = {}
 
 local function bumpPlayerSelectionVersion(playerID)
 	playerSelectionVersion[playerID] = (playerSelectionVersion[playerID] or 0) + 1
@@ -120,6 +129,48 @@ local instanceCache = {
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 	}
 
+local function getWaterLevel()
+	if lavaWaterLevel then
+		return lavaWaterLevel
+	end
+	local level = Spring.GetGameRulesParam("lavaLevel")
+	if level and level ~= -99999 then
+		return level
+	end
+	return 0
+end
+
+function widget:LavaRenderState(tideLevel)
+	lavaWaterLevel = tideLevel
+end
+
+local function shouldUseWaterPass(unitID, unitDefID)
+	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	local x, y, z = spGetUnitPosition(unitID)
+	if not x or not y or not z then return false end
+	local waterLevel = getWaterLevel()
+	local groundY = spGetGroundHeight(x, z)
+	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
+end
+
+local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
+	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	local x, y, z = spGetUnitPosition(unitID)
+	if not x or not y or not z then return false end
+	local groundY = spGetGroundHeight(x, z)
+	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
+end
+
+local function getTargetVBO(unitID, unitDefID)
+	if unitCanFly[unitDefID] then
+		unitWaterPass[unitID] = false
+		return selectionVBOGround
+	end
+	local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
+	unitWaterPass[unitID] = useWaterPass
+	return (useWaterPass and selectionVBOWater) or selectionVBOGround
+end
+
 local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID == nil then return end -- these cant be selected
@@ -142,12 +193,16 @@ local function AddPrimitiveAtUnit(unitID)
 		width = radius
 		length = radius
 	end
+	local targetVBO = getTargetVBO(unitID, unitDefID)
+	if targetVBO == nil then
+		return
+	end
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = length, width, cornersize, additionalheight
 	instanceCache[5] = spGetUnitTeam(unitID)
 	instanceCache[7] = spGetGameFrame()
 
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		targetVBO, -- push into this Instance VBO Table
 		instanceCache,
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
@@ -157,9 +212,13 @@ local function AddPrimitiveAtUnit(unitID)
 end
 
 local function RemovePrimitive(unitID)
-	if selectionVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBO, unitID)
+	if selectionVBOGround and selectionVBOGround.instanceIDtoIndex[unitID] then
+		popElementInstance(selectionVBOGround, unitID)
 	end
+	if selectionVBOWater and selectionVBOWater.instanceIDtoIndex[unitID] then
+		popElementInstance(selectionVBOWater, unitID)
+	end
+	unitWaterPass[unitID] = nil
 end
 
 local function addUnit(unitID)
@@ -429,7 +488,12 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	InstanceVBOTable.clearInstanceTable(selectionVBO)
+	if selectionVBOGround then
+		InstanceVBOTable.clearInstanceTable(selectionVBOGround)
+	end
+	if selectionVBOWater then
+		InstanceVBOTable.clearInstanceTable(selectionVBOWater)
+	end
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
@@ -441,6 +505,26 @@ end
 local updateTime = 0
 local checkLockPlayerInterval = 1
 function widget:Update(dt)
+	if mapHasWater and next(selectedUnits) ~= nil then
+		local gf = spGetGameFrame()
+		if gf >= nextWaterPassCheckFrame then
+			nextWaterPassCheckFrame = gf + waterPassCheckInterval
+			local waterLevel = getWaterLevel()
+			for unitID, drawn in pairs(selectedUnits) do
+				if drawn then
+					local unitDefID = spGetUnitDefID(unitID)
+					if unitDefID and not unitCanFly[unitDefID] then
+						local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
+						if desiredWaterPass ~= unitWaterPass[unitID] then
+							RemovePrimitive(unitID)
+							AddPrimitiveAtUnit(unitID)
+						end
+					end
+				end
+			end
+		end
+	end
+
 	if WG.lockcamera then
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
@@ -476,10 +560,20 @@ local function init()
 	shaderConfig.LINETRANSPARANCY = lineOpacity
 	shaderConfig.ROTATE_CIRCLES = 0
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(g_color.rgb, TRANSPARENCY + step( 0.01, addRadius) * LINETRANSPARANCY);"
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnits")
-	if selectionVBO == nil then
+	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnitsGround")
+	if selectionVBOGround == nil then
 		widgetHandler:RemoveWidget()
 		return false
+	end
+	if mapHasWater then
+		selectionVBOWater, waterShader = InitDrawPrimitiveAtUnit(shaderConfig, "allySelectedUnitsWater")
+		if selectionVBOWater == nil then
+			widgetHandler:RemoveWidget()
+			return false
+		end
+	else
+		selectionVBOWater = nil
+		waterShader = selectShader
 	end
 	return true
 end
@@ -523,6 +617,54 @@ function widget:Shutdown()
 end
 
 local drawFrame = 0
+local function DrawSelections(selectionVBO, shader)
+	if not selectShader then
+		return
+	end
+	if selectionVBO and selectionVBO.usedElements > 0 then
+		shader = shader or selectShader
+		shader:Activate()
+		shader:SetUniform("iconDistance", 99999) -- pass
+		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+		glDepthTest(true)
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
+		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+
+		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
+		glStencilMask(1)
+
+		shader:SetUniform("addRadius", 0)
+		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+
+		glStencilFunc(GL_NOTEQUAL, 1, 1)
+		glStencilMask(0)
+		glDepthTest(true)
+
+		shader:SetUniform("addRadius", lineSize)
+		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+
+		glStencilMask(1)
+		glStencilFunc(GL_ALWAYS, 1, 1)
+		glDepthTest(true)
+
+		shader:Deactivate()
+	end
+end
+
+function widget:DrawWorld()
+	if spGetGameFrame() < hideBelowGameframe then return end
+
+	if Spring.IsGUIHidden() then return end
+
+	if enablePlatter then
+		if mapHasWater and selectionVBOWater and selectionVBOWater.usedElements > 0 then
+			DrawSelections(selectionVBOWater, waterShader)
+		elseif not mapHasWater and selectionVBOGround then
+			DrawSelections(selectionVBOGround)
+		end
+	end
+end
+
 function widget:DrawWorldPreUnit()
 	if spGetGameFrame() < hideBelowGameframe then return end
 
@@ -530,33 +672,7 @@ function widget:DrawWorldPreUnit()
 
 	if enablePlatter then
 		drawFrame = drawFrame + 1
-		if selectionVBO.usedElements > 0 then
-			selectShader:Activate()
-			selectShader:SetUniform("iconDistance", 99999) -- pass
-			glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-			glDepthTest(true)
-			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-			glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
-
-			glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
-			glStencilMask(1)
-
-			selectShader:SetUniform("addRadius", 0)
-			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
-
-			glStencilFunc(GL_NOTEQUAL, 1, 1)
-			glStencilMask(0)
-			glDepthTest(true)
-
-			selectShader:SetUniform("addRadius", lineSize)
-			selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
-
-			glStencilMask(1)
-			glStencilFunc(GL_ALWAYS, 1, 1)
-			glDepthTest(true)
-
-			selectShader:Deactivate()
-		end
+		DrawSelections(selectionVBOGround)
 	end
 end
 

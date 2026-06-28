@@ -47,15 +47,13 @@ local function IsAtMinimumZoom(zoom)
 end
 
 -- Forward declaration (defined after config and cameraState)
-local IsLeftClickPanActive
+-- (intentionally not local to reduce chunk local count)
 
 -- Forward declarations for all-units cache helpers (defined later)
-local RebuildAllUnitsCache
-local AddUnitToAllUnitsCache
-local RemoveUnitFromAllUnitsCache
+-- (intentionally not local to reduce chunk local count)
 
 -- Forward declaration for GL function alias table (defined later)
-local glFunc
+-- (intentionally not local to reduce chunk local count)
 
 function widget:GetInfo()
 	return {
@@ -2030,26 +2028,25 @@ if mapInfo.hasWater and not mapInfo.isLava then
 	mapInfo.waterDiffuseFactor = gl.GetWaterRendering("diffuseFactor") or 1.0
 end
 
--- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
--- If the gadget has been modified to push LavaRenderState, use those values.
--- Otherwise, compute tide level and heat distortion locally (same formulas as the gadget).
-if mapInfo.isLava and not WG.lavaRenderState then
-	WG.lavaRenderState = {
+-- Lava render state for this widget instance.
+if mapInfo.isLava then
+	mapInfo.lavaRenderState = {
 		level = nil,
 		heatDistortX = 0,
 		heatDistortZ = 0,
 		smoothFPS = 15,
-		gadgetPushed = false,  -- true once gadget pushes data (means gadget is modified)
+		gadgetPushed = false,  -- true once gadget pushes data
 	}
-	widgetHandler:RegisterGlobal("LavaRenderState", function(tideLevel, heatDistortX, heatDistortZ)
-		local lrs = WG.lavaRenderState
-		if lrs then
-			lrs.level = tideLevel
-			lrs.heatDistortX = heatDistortX or 0
-			lrs.heatDistortZ = heatDistortZ or 0
-			lrs.gadgetPushed = true
-		end
-	end)
+end
+
+function widget:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
+	local lrs = mapInfo.lavaRenderState
+	if lrs then
+		lrs.level = tideLevel
+		lrs.heatDistortX = heatDistortX or 0
+		lrs.heatDistortZ = heatDistortZ or 0
+		lrs.gadgetPushed = true
+	end
 end
 
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
@@ -8874,10 +8871,9 @@ function widget:Shutdown()
 		end
 	end
 
-	-- Clean up shared lava render state (only when last PIP shuts down)
-	if not anotherPipActive and WG.lavaRenderState then
-		widgetHandler:DeregisterGlobal("LavaRenderState")
-		WG.lavaRenderState = nil
+	-- Clean up per-widget lava render state
+	if not anotherPipActive and mapInfo.lavaRenderState then
+		mapInfo.lavaRenderState = nil
 	end
 
 	-- Clean up TV focus coordination
@@ -12712,7 +12708,7 @@ end
 -- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
 	-- Prefer tide-adjusted level from shared WG (whether from gadget push or local computation)
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if lrs and lrs.level then
 		return lrs.level
 	end
@@ -12733,7 +12729,7 @@ end
 
 -- Get heat distortion values from shared WG state
 local function GetLavaHeatDistort()
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if lrs then
 		return lrs.heatDistortX, lrs.heatDistortZ
 	end
@@ -12744,7 +12740,7 @@ end
 -- This ensures animation works even without the gadget modification.
 -- If the gadget IS modified and pushing data, those values take priority (gadgetPushed flag).
 local function UpdateLavaRenderState()
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if not lrs or lrs.gadgetPushed then return end  -- gadget is handling it
 
 	-- Compute tide-adjusted level (same formula as gadget's GameFrame)
@@ -17443,7 +17439,7 @@ function widget:Update(dt)
 		-- Force R2T content refresh on lava maps so the lava overlay animates
 		pipR2T.contentNeedsUpdate = true
 		-- Also sync dynamic water level from computed tide level
-		local lrs = WG.lavaRenderState
+		local lrs = mapInfo.lavaRenderState
 		if lrs and lrs.level then
 			mapInfo.dynamicWaterLevel = lrs.level
 		end

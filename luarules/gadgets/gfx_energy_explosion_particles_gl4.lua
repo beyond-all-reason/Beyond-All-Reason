@@ -698,7 +698,7 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
-local useGeometryShader = true
+local useGeometryShader = true	-- cant set it here, will be overwritten in initGL4()
 
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
@@ -724,9 +724,7 @@ local WOBBLE_FREQ_VAR  = 0.5
 local WOBBLE_RAMP_FRAMES = 7.0
 local WHITE_HOTSPOT          = 1.5
 local WHITE_HOTSPOT_THRESHOLD = 0.6
-local SIZE_VAR    = 0.3
 local ALPHA_VAR   = 2.5
-local NANO_ALPHA  = 50 / 255
 local ROT_VAL_BASE  = -180  local ROT_VAL_RANGE = 360
 local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 -- rotAcc in deg/sec² converted to deg/frame² (GAME_SPEED = 30)

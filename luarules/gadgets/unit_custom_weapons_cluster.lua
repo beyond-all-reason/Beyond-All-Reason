@@ -249,6 +249,16 @@ DirectionsUtil.ProvisionDirections(maxDataNum)
 local customShieldDeflect = table.contains({"unchanged", "absorbeverything"}, Spring.GetModOptions().experimentalshields)
 local projectileHitShield = {}
 
+-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
+-- This is likely cheaper than keeping a projectiles cache table around.
+local projectiles = setmetatable({
+	[-1] = false, -- beam weapons use projectileID -1
+}, {
+	__index = function(tbl, key)
+		return clusterWeaponDefs[spGetProjectileDefID(key)]
+	end
+})
+
 --------------------------------------------------------------------------------
 -- Functions -------------------------------------------------------------------
 
@@ -533,15 +543,11 @@ function gadget:Initialize()
 	getBlockingShieldUnits = GG.Shields.GetBlockingShieldUnits
 	isInShield = GG.Shields.IsInShield
 
-	-- Metatable for lookup on projectiles, rather than on our weaponDefIDs.
-	-- This is likely cheaper than keeping a projectiles cache table around.
-	local projectiles = setmetatable({
-		[-1] = false, -- beam weapons use projectileID -1
-	}, {
-		__index = function(tbl, key)
-			return clusterWeaponDefs[spGetProjectileDefID(key)]
-		end
-	})
-
 	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
+end
+
+function gadget:Shutdown()
+	if GG.Shields then
+		GG.Shields.RegisterShieldPreDamaged(projectiles, nil)
+	end
 end
