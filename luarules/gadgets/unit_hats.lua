@@ -43,28 +43,44 @@ function gadget:GameID(gameID)
 end
 
 PlayerCosmeticList = {
-	[439] = { "FightNightHat" },                                        	-- Goopy
-	[641] = { "LegionChampionRightShoulder" },                                    	-- ZLO
-	[694] = { "VikingHat" },                                            	-- Raghna
-	[915] = { "SilverMedalNecklace" },                                  	-- PRO_rANDY
-	[975] = { "FightNightHat" },                                        	-- StarDoM
-	[1172] = { "VikingHat" },                                           	-- PtaQ
-	[2377] = { "FightNightHat" },                                       	-- Therxyy
-	[3913] = { "VikingHat" },                                           	-- [teh]Teddy
-	[5467] = { "VikingHat" },                                           	-- HelsHound
-	[42178] = { "LegionChampionRightShoulder" },                                  	-- [pretor]
-	[50820] = { "VikingHat", "GoldMedalNecklace" },                     	-- Emre
-	[53682] = { "BronzeMedalNecklace" },                                	-- PROt_Fiddler112
-	[59916] = { "VikingHat" },                                          	-- Kuchy
-	[70311] = { "FightNightHat", "BronzeMedalNecklace" },               	-- PRO_BTCV
-	[82263] = { "FightNightHat", "KingCrownHat", "BronzeMedalNecklace" }, 	-- TM_autopilot
-	[119539] = { "LegionChampionRightShoulder" },                                 	-- [Stud]Lovish
-	[139738] = { "FightNightHat" },                                     	-- [DmE]FlyingDuck
-	[142011] = { "BronzeMedalNecklace" },                               	-- [BAC]OutlawElite
-	[144092] = { "LegionChampionRightShoulder" },                                 	-- [DmE]Wraxell
-	[151863] = { "VikingHat", "GoldMedalNecklace" },                    	-- Blodir
+	[439] = { "FightNightHat", "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                    -- Goopy
+	[641] = { "LegionChampionRightShoulder" },                                                                          -- ZLO
+	[694] = { "VikingHat" },                                                                                            -- Raghna
+	[915] = { "SilverMedalNecklace" },                                                                                  -- PRO_rANDY
+	[975] = { "FightNightHat" },                                                                                        -- StarDoM
+	[1172] = { "VikingHat" },                                                                                           -- PtaQ
+	[1830] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                    -- TM_Zow
+	[2377] = { "FightNightHat" },                                                                                       -- Therxyy
+	[3778] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                  -- PRO_che
+	[3913] = { "VikingHat" },                                                                                           -- [teh]Teddy
+	[5467] = { "VikingHat" },                                                                                           -- HelsHound
+	[8069] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                  -- BRRRRRRRRRRRRRRRRRRR
+	[42178] = { "LegionChampionRightShoulder" },                                                                        -- [pretor]
+	[50820] = { "VikingHat", "GoldMedalNecklace" },                                                                     -- Emre
+	[52043] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                 -- scag
+	[53682] = { "BronzeMedalNecklace" },                                                                                -- PROt_Fiddler112
+	[59340] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                   -- TM_MightySheep
+	[59916] = { "VikingHat" },                                                                                          -- Kuchy
+	[64215] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                 -- PRO_RevanXFL
+	[70311] = { "FightNightHat", "BronzeMedalNecklace" },                                                               -- PRO_BTCV
+	[82263] = { "FightNightHat", "KingCrownHat", "BronzeMedalNecklace" },                                               -- TM_autopilot
+	[82811] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                 -- TM_SlickLikeVik
+	[116414] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- [APM]random_variable
+	[119539] = { "LegionChampionRightShoulder", "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },   -- [Stud]Lovish, BM_LegionAbuse[Stud]
+	[134481] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- [APM]Blxssom
+	[139738] = { "FightNightHat" },                                                                                     -- [DmE]FlyingDuck
+	[139750] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- TM_Sashkorin
+	[142011] = { "BronzeMedalNecklace" },                                                                               -- [BAC]OutlawElite
+	[144092] = { "LegionChampionRightShoulder" },                                                                       -- [DmE]Wraxell
+	[151863] = { "VikingHat", "GoldMedalNecklace" },                                                                    -- Blodir
+	[168232] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- Leohvm
+	[252507] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                  -- BM_akumar6
+	[266170] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                  -- HuK
+	[390411] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- vixatry
+	[401928] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- RAM_Noctis
+	[495517] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- OKS[MADO]
 
-	[412] = { "FightNightHat", "VikingHat", "LegionChampionRightShoulder", "KingCrownHat", "GoldMedalNecklace", "SilverMedalNecklace", "BronzeMedalNecklace", "HalloweenHat"} -- Damgam
+	[9999999999] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder", "LegionChampionRightShoulder", } -- Debug
 }
 
 -- Cosmetic Defs
@@ -131,6 +147,54 @@ CosmeticDefinitions = {
 	------------------------------------------
 	-- Left Shoulder
 	------------------------------------------
+
+	ArmadaNationWarsGERLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_ger and UnitDefNames.arm_leftshoulder_nationwars_ger.id,
+		faction = {arm = true, cor = false, leg = false},
+		conflictsWith = {},
+	},
+
+	ArmadaNationWarsEECLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_eec and UnitDefNames.arm_leftshoulder_nationwars_eec.id,
+		faction = {arm = true, cor = false, leg = false},
+		conflictsWith = {},
+	},
+
+	ArmadaNationWarsUSLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.arm_leftshoulder_nationwars_us and UnitDefNames.arm_leftshoulder_nationwars_us.id,
+		faction = {arm = true, cor = false, leg = false},
+		conflictsWith = {},
+	},
+	
+	CortexNationWarsGERLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_ger and UnitDefNames.cor_leftshoulder_nationwars_ger.id,
+		faction = {arm = false, cor = true, leg = false},
+		conflictsWith = {},
+	},
+
+	CortexNationWarsEECLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_eec and UnitDefNames.cor_leftshoulder_nationwars_eec.id,
+		faction = {arm = false, cor = true, leg = false},
+		conflictsWith = {},
+	},
+
+	CortexNationWarsUSLeftShoulder = {
+		slot = "leftshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_us and UnitDefNames.cor_leftshoulder_nationwars_us.id,
+		faction = {arm = false, cor = true, leg = false},
+		conflictsWith = {},
+	},
 
 	------------------------------------------
 	-- Necklaces
@@ -279,6 +343,10 @@ function gadget:GameFrame(gf)
 			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = spGetPlayerInfo(playerID)
 			if accountInfo and accountInfo.accountid then
 				accountID = tonumber(accountInfo.accountid)
+			end
+
+			if DEBUG then
+				accountID = 9999999999
 			end
 			if not spec and PlayerCosmeticList[accountID] then
 				-- Process Player
@@ -442,7 +510,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					local pieceMap = Spring.GetUnitPieceMap(nearunitID)
 					local hatPoint = nil
 					for pieceName, pieceNum in pairs(pieceMap) do
-						if pieceName:find(CosmeticUnitDefIDToPiece[unitDefID], nil, true) then
+						if CosmeticUnitDefIDToPiece[unitDefID] and pieceName:find(CosmeticUnitDefIDToPiece[unitDefID], nil, true) then
 							hatPoint = pieceNum
 							break
 						end
@@ -453,7 +521,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					end
 
 					--Spring.MoveCtrl.Enable(unitID)
-					Spring.UnitAttach(nearunitID, hatID, hatPoint)
+					if hatPoint then
+						Spring.UnitAttach(nearunitID, hatID, hatPoint)
+					end
 					Spring.SetUnitNoDraw(hatID, false)
 					Spring.SetUnitNoSelect(hatID, true)
 					--Spring.MoveCtrl.Disable(unitID)
