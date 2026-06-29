@@ -78,7 +78,6 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 					type       = actionTypes.UpdateObjective,
 					parameters = {
 						objectiveID = objectiveID,
-						nextStage   = objective.nextStage,
 					},
 				}
 			end

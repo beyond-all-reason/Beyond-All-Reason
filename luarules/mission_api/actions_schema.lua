@@ -107,11 +107,6 @@ local parameters = {
 			required = false,
 			type = Types.String
 		},
-		[4] = {
-			name = 'nextStage',
-			required = false,
-			type = Types.StageID
-		},
 	},
 
 	-- Orders

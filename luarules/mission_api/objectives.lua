@@ -9,14 +9,19 @@ end
 
 --- Advance to nextStage if the objective is completed and every other objective
 --- in the current stage with the same nextStage is also complete.
-local function tryAdvanceStage(objective, nextStage)
+local function tryAdvanceStage(objective)
+	local nextStage = objective.nextStage
+
 	if not objective.completed then return end
 	if not nextStage then return end
 
 	local currentStageID = GG['MissionAPI'].CurrentStageID
-	local objectiveIDsInCurrentStage = GG['MissionAPI'].Stages[currentStageID].objectives
-	for _, objectiveID in pairs(objectiveIDsInCurrentStage) do
-		if not GG['MissionAPI'].Objectives[objectiveID].completed then
+	local currentStage = GG['MissionAPI'].Stages[currentStageID]
+	if not currentStage then return end
+
+	for _, otherObjectiveID in pairs(currentStage.objectives) do
+		local otherObjective = GG['MissionAPI'].Objectives[otherObjectiveID]
+		if otherObjective.nextStage == nextStage and not otherObjective.completed then
 			return
 		end
 	end
@@ -61,7 +66,7 @@ local function updateObjectiveProgress(objectiveID, eventTeamID, eventUnitDefNam
 	end
 
 	objective.completed = isComplete
-	tryAdvanceStage(objective, managedObjMetadata.nextStage)
+	tryAdvanceStage( managedObjMetadata.nextStage)
 
 	echoObjectiveUpdate(objectiveID, objective)
 end
