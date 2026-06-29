@@ -43,44 +43,148 @@ function gadget:GameID(gameID)
 end
 
 PlayerCosmeticList = {
-	[439] = { "FightNightHat", "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                    -- Goopy
-	[641] = { "LegionChampionRightShoulder" },                                                                          -- ZLO
-	[694] = { "VikingHat" },                                                                                            -- Raghna
-	[915] = { "SilverMedalNecklace" },                                                                                  -- PRO_rANDY
-	[975] = { "FightNightHat" },                                                                                        -- StarDoM
-	[1172] = { "VikingHat" },                                                                                           -- PtaQ
-	[1830] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                    -- TM_Zow
-	[2377] = { "FightNightHat" },                                                                                       -- Therxyy
-	[3778] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                  -- PRO_che
-	[3913] = { "VikingHat" },                                                                                           -- [teh]Teddy
-	[5467] = { "VikingHat" },                                                                                           -- HelsHound
-	[8069] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                  -- BRRRRRRRRRRRRRRRRRRR
-	[42178] = { "LegionChampionRightShoulder" },                                                                        -- [pretor]
-	[50820] = { "VikingHat", "GoldMedalNecklace" },                                                                     -- Emre
-	[52043] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                 -- scag
-	[53682] = { "BronzeMedalNecklace" },                                                                                -- PROt_Fiddler112
-	[59340] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                   -- TM_MightySheep
-	[59916] = { "VikingHat" },                                                                                          -- Kuchy
-	[64215] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                 -- PRO_RevanXFL
-	[70311] = { "FightNightHat", "BronzeMedalNecklace" },                                                               -- PRO_BTCV
-	[82263] = { "FightNightHat", "KingCrownHat", "BronzeMedalNecklace" },                                               -- TM_autopilot
-	[82811] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                 -- TM_SlickLikeVik
-	[116414] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- [APM]random_variable
-	[119539] = { "LegionChampionRightShoulder", "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },   -- [Stud]Lovish, BM_LegionAbuse[Stud]
-	[134481] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- [APM]Blxssom
-	[139738] = { "FightNightHat" },                                                                                     -- [DmE]FlyingDuck
-	[139750] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- TM_Sashkorin
-	[142011] = { "BronzeMedalNecklace" },                                                                               -- [BAC]OutlawElite
-	[144092] = { "LegionChampionRightShoulder" },                                                                       -- [DmE]Wraxell
-	[151863] = { "VikingHat", "GoldMedalNecklace" },                                                                    -- Blodir
-	[168232] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- Leohvm
-	[252507] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                  -- BM_akumar6
-	[266170] = { "ArmadaNationWarsUSLeftShoulder", "CortexNationWarsUSLeftShoulder" },                                  -- HuK
-	[390411] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- vixatry
-	[401928] = { "ArmadaNationWarsGERLeftShoulder", "CortexNationWarsGERLeftShoulder" },                                -- RAM_Noctis
-	[495517] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder" },                                -- OKS[MADO]
+	[439] = { -- Goopy
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[641] = { -- ZLO
+		"LegionChampionRightShoulder", -- Legion Fight Night winner
+	},
+	[694] = { -- Raghna
+		"VikingHat", -- Omega Series 4 Winner
+	},
+	[915] = { -- PRO_rANDY
+		"SilverMedalNecklace", -- Last Season Top2 Finisher
+	},
+	[975] = { -- StarDoM
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+	},
+	[1172] = { -- PtaQ
+		"VikingHat", -- Omega Series 4 Winner
+	},
+	[1332] = { -- Flash
+		"SilverMedalNecklace", -- Last Season Top2 Finisher
+	},
+	[1830] = { -- TM_Zow
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[2377] = { -- Therxyy
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+	},
+	[3778] = { -- PRO_che
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[3913] = { -- [teh]Teddy
+		"VikingHat", -- Omega Series 4 Winner
+	},
+	[5467] = { -- HelsHound
+		"VikingHat", -- Omega Series 4 Winner
+	},
+	[8069] = { -- BRRRRRRRRRRRRRRRRRRR
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
+	[42178] = { -- [pretor]
+		"LegionChampionRightShoulder", -- Legion Fight Night winner
+	},
+	[50820] = { -- Emre
+		"VikingHat", -- Omega Series 4 Winner
+		"GoldMedalNecklace", -- Last Season Top1 Finisher
+	},
+	[52043] = { -- scag
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
+	[53682] = { -- PROt_Fiddler112
+		"BronzeMedalNecklace", -- Last Season Top3 Finisher
+	},
+	[59340] = { -- TM_MightySheep
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[59916] = { -- Kuchy
+		"VikingHat", -- Omega Series 4 Winner
+	},
+	[64215] = { -- PRO_RevanXFL
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[70311] = { -- PRO_BTCV
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+		"BronzeMedalNecklace", -- Last Season Top3 Finisher
+	},
+	[82263] = { -- TM_autopilot
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+		"KingCrownHat",
+		"BronzeMedalNecklace", -- Last Season Top3 Finisher
+	},
+	[82811] = { -- TM_SlickLikeVik
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
+	[116414] = { -- [APM]random_variable
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[119539] = { -- [Stud]Lovish, BM_LegionAbuse[Stud]
+		"LegionChampionRightShoulder", -- Legion Fight Night winner
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[134481] = { -- [APM]Blxssom
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[139738] = { -- [DmE]FlyingDuck
+		"FightNightHat", -- Fight Night 1v1 and Master's League winner
+	},
+	[139750] = { -- TM_Sashkorin
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
+	[142011] = { -- [BAC]OutlawElite
+		"BronzeMedalNecklace" -- Last Season Top3 Finisher
+	},
+	[144092] = { -- [DmE]Wraxell
+		"LegionChampionRightShoulder" -- Legion Fight Night winner
+	},
+	[151863] = { -- Blodir
+		"VikingHat", -- Omega Series 4 Winner
+		"GoldMedalNecklace", -- Last Season Top1 Finisher
+	},
+	[168232] = { -- Leohvm
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[252507] = { -- BM_akumar6
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[266170] = { -- HuK
+		"ArmadaNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+		"CortexNationWarsUSLeftShoulder", -- Nation Wars 2026 1st Place
+	},
+	[390411] = { -- vixatry
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
+	[401928] = { -- RAM_Noctis
+		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
+	},
+	[495517] = { -- OKS[MADO]
+		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
+	},
 
-	[9999999999] = { "ArmadaNationWarsEECLeftShoulder", "CortexNationWarsEECLeftShoulder", "LegionChampionRightShoulder", } -- Debug
+	[9999999999] = { -- Debug
+		"ArmadaNationWarsEECLeftShoulder",
+		"CortexNationWarsEECLeftShoulder",
+		"LegionChampionRightShoulder",
+	}
 }
 
 -- Cosmetic Defs
