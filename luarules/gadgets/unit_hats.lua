@@ -17,6 +17,162 @@ function gadget:GetInfo()
 	}
 end
 
+function gadget:GameID(gameID) 
+	-- make sure gameID is a string because i'm not actually sure
+	cachedGameID = tostring(gameID)
+	-- Initialise this madness
+	local FakeRandomSeed = ""
+	-- because yes
+	for i = 1,1000 do
+		-- Check if the next character in the game ID is a number
+		if tonumber(string.sub(cachedGameID, i, i)) then 
+			-- Make sure the number we are creating doesn't grow beyond the 32bit integrer limits
+			if (not tonumber(FakeRandomSeed)) or i <= 8 or (i > 8 and tonumber(FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))) < 10) then
+				-- Add the next character that is for sure a number
+				FakeRandomSeed = FakeRandomSeed .. tonumber(string.sub(cachedGameID, i, i))
+			else
+				-- Oh so we're about to break the 32 bit integrer, let's end it here
+				break
+			end
+		end
+	end
+	-- Turn this abomination string into an actual number
+	FakeRandomSeed = tonumber(FakeRandomSeed)
+	-- Use this number as math.random seed
+	math.randomseed(FakeRandomSeed)
+end
+
+PlayerCosmeticList = {
+	[439] = { "FightNightHat" },                                        	-- Goopy
+	[641] = { "LegionChampionRightShoulder" },                                    	-- ZLO
+	[694] = { "VikingHat" },                                            	-- Raghna
+	[915] = { "SilverMedalNecklace" },                                  	-- PRO_rANDY
+	[975] = { "FightNightHat" },                                        	-- StarDoM
+	[1172] = { "VikingHat" },                                           	-- PtaQ
+	[2377] = { "FightNightHat" },                                       	-- Therxyy
+	[3913] = { "VikingHat" },                                           	-- [teh]Teddy
+	[5467] = { "VikingHat" },                                           	-- HelsHound
+	[42178] = { "LegionChampionRightShoulder" },                                  	-- [pretor]
+	[50820] = { "VikingHat", "GoldMedalNecklace" },                     	-- Emre
+	[53682] = { "BronzeMedalNecklace" },                                	-- PROt_Fiddler112
+	[59916] = { "VikingHat" },                                          	-- Kuchy
+	[70311] = { "FightNightHat", "BronzeMedalNecklace" },               	-- PRO_BTCV
+	[82263] = { "FightNightHat", "KingCrownHat", "BronzeMedalNecklace" }, 	-- TM_autopilot
+	[119539] = { "LegionChampionRightShoulder" },                                 	-- [Stud]Lovish
+	[139738] = { "FightNightHat" },                                     	-- [DmE]FlyingDuck
+	[142011] = { "BronzeMedalNecklace" },                               	-- [BAC]OutlawElite
+	[144092] = { "LegionChampionRightShoulder" },                                 	-- [DmE]Wraxell
+	[151863] = { "VikingHat", "GoldMedalNecklace" },                    	-- Blodir
+
+	[412] = { "FightNightHat", "VikingHat", "LegionChampionRightShoulder", "KingCrownHat", "GoldMedalNecklace", "SilverMedalNecklace", "BronzeMedalNecklace", "HalloweenHat"} -- Damgam
+}
+
+-- Cosmetic Defs
+
+--[[
+	slot = "hat", "rightshoulder", "leftshoulder", "necklace", "belt"
+	implementation = "unit", "baked" - unit uses separate unit attached, baked uses model parts baked into the model
+	unitDefID = UnitDefNames.unitdefname and UnitDefNames.unitdefname.id - only for unit implementation
+	scriptCall = "ShowCrown" - only for baked implementation
+	faction = {arm = true, cor = true, leg = true},
+	conflictsWith = {"HatName"}
+]]
+
+CosmeticDefinitions = {
+
+	------------------------------------------
+	-- Hats
+	------------------------------------------
+
+	HalloweenHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	FightNightHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	VikingHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	KingCrownHat = {
+		slot = "hat",
+		implementation = "baked",
+		scriptCall = "ShowCrown",
+		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		conflictsWith = {},
+	},
+
+	------------------------------------------
+	-- Right Shoulder
+	------------------------------------------
+
+	LegionChampionRightShoulder = {
+		slot = "rightshoulder",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	------------------------------------------
+	-- Left Shoulder
+	------------------------------------------
+
+	------------------------------------------
+	-- Necklaces
+	------------------------------------------
+
+	BronzeMedalNecklace = {
+		slot = "necklace",
+		implementation = "baked",
+		scriptCall = "ShowMedalBronze",
+		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		conflictsWith = {},
+	},
+
+	SilverMedalNecklace = {
+		slot = "necklace",
+		implementation = "baked",
+		scriptCall = "ShowMedalSilver",
+		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		conflictsWith = {},
+	},
+
+	GoldMedalNecklace = {
+		slot = "necklace",
+		implementation = "baked",
+		scriptCall = "ShowMedalGold",
+		faction = {arm = true, cor = true, leg = false}, -- we don't have this for Legion :/
+		conflictsWith = {},
+	},
+
+	------------------------------------------
+	-- Belts
+	------------------------------------------
+
+}
+
+CosmeticUnitDefIDToPiece = {}
+for _, def in pairs(CosmeticDefinitions) do
+	if def.implementation == "unit" then
+		CosmeticUnitDefIDToPiece[def.unitDefID] = def.slot .. "cosmeticpoint"
+	end
+end
+
 -- We need to keep track of all hats unitdefs, and watch what happens to them
 -- hats, can be equipped by capturing them -- or by being given one?
 --    if a commando captures a hat, it is destroyed
@@ -70,10 +226,17 @@ local spCallCOBScript = Spring.CallCOBScript
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local stringSub = string.sub
 
-local hatDefHalloween = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id
-local hatDefLegChamp = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id
-local hatDefFightNight = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id
-local hatDefViking = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id
+local unitDefCanWearHats = {
+	[UnitDefNames.corcom.id] = true,
+	[UnitDefNames.cordecom.id] = true,
+	[UnitDefNames.armcom.id] = true,
+	[UnitDefNames.armdecom.id] = true,
+}
+
+if Spring.GetModOptions().experimentallegionfaction then
+	unitDefCanWearHats[UnitDefNames.legcom.id] = true
+	unitDefCanWearHats[UnitDefNames.legdecom.id] = true
+end
 
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
@@ -83,78 +246,12 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local unitDefCanWearHats = {
-	[UnitDefNames.corcom.id] = true,
-	[UnitDefNames.cordecom.id] = true,
-	[UnitDefNames.armcom.id] = true,
-	[UnitDefNames.armdecom.id] = true,
-}
-
- if Spring.GetModOptions().experimentallegionfaction then
-	unitDefCanWearHats[UnitDefNames.legcom.id] = true
-	unitDefCanWearHats[UnitDefNames.legcomlvl2.id] = true
-	unitDefCanWearHats[UnitDefNames.legcomlvl3.id] = true
-	unitDefCanWearHats[UnitDefNames.legcomlvl4.id] = true
- end
- local halloween = {
- }
- local legchamps = { -- Legion Fight Night winner(s)
-	[144092] = true, -- [DmE]Wraxell
-	[42178] = true,  -- [pretor]
-	[119539] = true, -- [Stud]Lovish
-	[641] = true, -- ZLO
-}
-local champion = { --   Fight Night 1v1 and Master's League winners
-	[139738] = true, -- [DmE]FlyingDuck
-	[82263] = true, -- TM_autopilot
-	[975] = true, -- StarDoM
-	[2377] = true, -- Therxyy
-	[439] = true, -- Goopy
-	[70311] = true, -- PRO_BTCV
-}
- local vikings = { -- Omega Series 4: Winners
-	[59916] = true,	 -- Kuchy
-	[151863] = true,  -- Blodir
-	[3913] = true,	 -- [teh]Teddy
-	[1172] = true,	 -- PtaQ
-	[694] = true,	 -- Raghna
-	[5467] = true,  -- HelsHound
-	[50820] = true,   -- Emre
-}
-local kings = {
-	[82263] = true,  -- TM_autopilot
-}
-
-local goldMedals = { -- last season top1 finishers
-	[50820] = true,  -- Emre
-
-	-- BAR Pro League
-	[151863] = true,  -- Blodir
-}
-local silverMedals = { -- last season top2 finishers
-	[151863] = true,  -- Blodir
-	[1332] = true,  -- Flash
-	[915] = true,  -- PRO_rANDY
-
-	-- BAR Pro League
-	[915] = true,  -- PRO_rANDY
-}
-local bronzeMedals = { -- last season top3 finishers
-	[82263] = true, -- TM_autopilot
-	[70311] = true, -- PRO_BTCV
-	[142011] = true, -- [BAC]OutlawElite
-	[53682] = true, -- PROt_Fiddler112
-
-}
-local uniques = {--playername, hat ident, CaSe MaTtErS
-}
-
-local function MatchPlayer(awardees, name, accountID)
-	if awardees[name] or (accountID and awardees[accountID]) then
-		return true
-	end
-	return false
-end
+--local function MatchPlayer(awardees, name, accountID)
+--	if awardees[name] or (accountID and awardees[accountID]) then
+--		return true
+--	end
+--	return false
+--end
 
 local spawnWarpInFrame = Game.spawnWarpInFrame
 local spawnAwardsProcessed = false
@@ -175,7 +272,7 @@ local function CreateAndGiveHat(hatDefID, unitPosX, unitPosY, unitPosZ, teamID)
 end
 
 function gadget:GameFrame(gf)
-	if gf == spawnWarpInFrame then
+	if (gf == spawnWarpInFrame and not spawnAwardsProcessed) then
 		for _, playerID in ipairs(spGetPlayerList() or {}) do
 
 			local accountID = nil
@@ -183,80 +280,58 @@ function gadget:GameFrame(gf)
 			if accountInfo and accountInfo.accountid then
 				accountID = tonumber(accountInfo.accountid)
 			end
-
-			if not spec then
-				local shouldGiveHalloweenHat = (hatDefHalloween ~= nil) and MatchPlayer(halloween, playerName, accountID)
-				local shouldGiveLegHat = (hatDefLegChamp ~= nil) and MatchPlayer(legchamps, playerName, accountID)
-				local shouldGiveFightNightHat = (hatDefFightNight ~= nil) and MatchPlayer(champion, playerName, accountID)
-				local shouldGiveVikingHat = (hatDefViking ~= nil) and MatchPlayer(vikings, playerName, accountID)
-				local hasUniqueHat = (uniques[playerName] ~= nil) and (UnitDefNames['cor_hat_' .. uniques[playerName]] ~= nil)
-				local shouldShowCrown = MatchPlayer(kings, playerName, accountID)
-				local shouldShowGold = MatchPlayer(goldMedals, playerName, accountID)
-				local shouldShowSilver = MatchPlayer(silverMedals, playerName, accountID)
-				local shouldShowBronze = MatchPlayer(bronzeMedals, playerName, accountID)
-
-				if shouldGiveHalloweenHat or shouldGiveLegHat or shouldGiveFightNightHat or shouldGiveVikingHat or hasUniqueHat or shouldShowCrown or shouldShowGold or shouldShowSilver or shouldShowBronze then
+			if not spec and PlayerCosmeticList[accountID] then
+				-- Process Player
+				local playerCosmeticOptions = { hat = {}, rightshoulder = {}, leftshoulder = {}, necklace = {}, belt = {} }
+				local playerFaction = ""
+				if true then
 					local units = spGetTeamUnits(teamID) or {}
-					for k = 1, #units do
-						local unitID = units[k]
-						local unitDefID = spGetUnitDefID(unitID)
+					local unitDefID = spGetUnitDefID(units[1])
+					playerFaction = stringSub(UnitDefs[unitDefID].name, 1, 3)
+				end
 
-						if unitDefCanWearHats[unitDefID] then
-							local needHatSpawn = shouldGiveHalloweenHat or shouldGiveLegHat or shouldGiveFightNightHat or shouldGiveVikingHat or hasUniqueHat
-							local unitPosX, unitPosY, unitPosZ
-							if needHatSpawn then
-								unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
-							end
+				-- Collect all possible cosmetics for this player
+				for i = 1, #PlayerCosmeticList[accountID] do
+					local cosmetic = PlayerCosmeticList[accountID][i]
+					if CosmeticDefinitions[cosmetic] and CosmeticDefinitions[cosmetic].faction[playerFaction] then
+						playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot][#playerCosmeticOptions[CosmeticDefinitions[cosmetic].slot]+1] = CosmeticDefinitions[cosmetic]
+					end
+				end
 
-							if shouldGiveHalloweenHat then
-								CreateAndGiveHat(hatDefHalloween, unitPosX, unitPosY, unitPosZ, teamID)
-							end
+				-- Randomly pick the cosmetics from available options
+				for _, list in pairs(playerCosmeticOptions) do
+					if #list > 0 then
+						math.random()
+						math.random()
+						math.random()
+						local pick = math.random(1, #list)
 
-							if shouldGiveLegHat then
-								CreateAndGiveHat(hatDefLegChamp, unitPosX, unitPosY, unitPosZ, teamID)
-							end
-
-							if shouldGiveFightNightHat then
-								CreateAndGiveHat(hatDefFightNight, unitPosX, unitPosY, unitPosZ, teamID)
-							end
-
-							if shouldGiveVikingHat then
-								CreateAndGiveHat(hatDefViking, unitPosX, unitPosY, unitPosZ, teamID)
-							end
-
-							if hasUniqueHat then
-								local uniqueHatDefID = UnitDefNames['cor_hat_' .. uniques[playerName]].id
-								CreateAndGiveHat(uniqueHatDefID, unitPosX, unitPosY, unitPosZ, teamID)
-							end
-
-							if stringSub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
-								local scriptEnv = spGetUnitScriptEnv(unitID)
-								if scriptEnv then
-									if shouldShowCrown and scriptEnv['ShowCrown'] then
-										spCallAsUnit(unitID, scriptEnv['ShowCrown'], true)
-									end
-									if shouldShowGold and scriptEnv['ShowMedalGold'] then
-										spCallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
-									end
-									if shouldShowSilver and scriptEnv['ShowMedalSilver'] then
-										spCallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
-									end
-									if shouldShowBronze and scriptEnv['ShowMedalBronze'] then
-										spCallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
-									end
+						if list[pick].implementation == "unit" then
+							local units = spGetTeamUnits(teamID) or {}
+							for k = 1, #units do
+								if not unitDefHat[units[k]] then
+									local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(units[k])
+									CreateAndGiveHat(list[pick].unitDefID, unitPosX, unitPosY, unitPosZ, teamID)
 								end
-							else
-								if shouldShowCrown and spGetCOBScriptID(unitID, 'ShowCrown') then
-									spCallCOBScript(unitID, "ShowCrown", 0)
-								end
-								if shouldShowGold and spGetCOBScriptID(unitID, 'ShowMedalGold') then
-									spCallCOBScript(unitID, "ShowMedalGold", 0)
-								end
-								if shouldShowSilver and spGetCOBScriptID(unitID, 'ShowMedalSilver') then
-									spCallCOBScript(unitID, "ShowMedalSilver", 0)
-								end
-								if shouldShowBronze and spGetCOBScriptID(unitID, 'ShowMedalBronze') then
-									spCallCOBScript(unitID, "ShowMedalBronze", 0)
+							end
+						elseif list[pick].implementation == "baked" then
+							local units = spGetTeamUnits(teamID) or {}
+							for k = 1, #units do
+								local unitID = units[k]
+								if not unitDefHat[unitID] then
+									local unitDefID = spGetUnitDefID(unitID)
+									if stringSub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
+										local scriptEnv = spGetUnitScriptEnv(unitID)
+										if scriptEnv then
+											if scriptEnv[list[pick].scriptCall] then
+												spCallAsUnit(unitID, scriptEnv[list[pick].scriptCall], true)
+											end
+										end
+									else
+										if spGetCOBScriptID(unitID, list[pick].scriptCall) then
+											spCallCOBScript(unitID, list[pick].scriptCall, 0)
+										end
+									end
 								end
 							end
 						end
@@ -367,7 +442,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					local pieceMap = Spring.GetUnitPieceMap(nearunitID)
 					local hatPoint = nil
 					for pieceName, pieceNum in pairs(pieceMap) do
-						if pieceName:find("hatpoint", nil, true) then
+						if pieceName:find(CosmeticUnitDefIDToPiece[unitDefID], nil, true) then
 							hatPoint = pieceNum
 							break
 						end
