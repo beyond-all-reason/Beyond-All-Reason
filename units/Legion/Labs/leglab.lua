@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGLAB.DDS",
 		buildtime = 5000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "100 45 100",
 		collisionvolumetype = "CylY",
