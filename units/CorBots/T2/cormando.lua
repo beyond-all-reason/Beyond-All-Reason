@@ -110,7 +110,7 @@ return {
 				predictboost = 0.5,
 				proximitypriority = -1,
 				range = 300,
-				reloadtime = 0.5,
+				reloadtime = 0.4395,
 				rgbcolor = "0.85,0.3,0.2",
 				soundhit = "xplosml5",
 				soundhitwet = "sizzle",
