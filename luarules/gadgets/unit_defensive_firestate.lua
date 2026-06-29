@@ -30,6 +30,7 @@ local MULTI_WEAPON_DPS_PENALTY = 0.66
 local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
 local BEYOND_MAX_RANGE = -1
 local defThreatRanges = {}
+local neverHesitateAttackers = {}
 local defensiveWatchList = {}
 local cloakedWatchList = {}
 
@@ -195,6 +196,10 @@ function gadget:Initialize()
 			targetSpeeds[unitDefID] = (unitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
 		end
 
+		if unitDef.customParams.defensive_never_hesitate then
+			neverHesitateAttackers[unitDefID] = true
+		end
+
 		local weapons = unitDef.weapons
 		for weaponNum = 1, #weapons do
 			local weaponDefID = weapons[weaponNum].weaponDef
@@ -206,33 +211,39 @@ function gadget:Initialize()
 	end
 
 	for attackerUnitDefID, attackerDPS in pairs(unitDefsDPS) do
-		if attackerDPS > 0 then
-			local attackerSpeed = attackerSpeeds[attackerUnitDefID]
-			local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
+		if attackerDPS > 0 or neverHesitateAttackers[attackerUnitDefID] then
 			local rangesForAttacker = {}
-			for targetIndex = 1, #targetUnitDefIDs do
-				local targetUnitDefID = targetUnitDefIDs[targetIndex]
-				local targetThreatRange = unitThreatRanges[targetUnitDefID]
-				local targetSpeed = targetSpeeds[targetUnitDefID]
-				local targetHealth = targetHealths[targetUnitDefID]
-				local timeToKill = targetHealth / attackerDPS
-				local killBuffer
-				if attackerDPS > targetHealth then
-					killBuffer = attackerSpeed + targetSpeed
-				else
-					killBuffer = (attackerSpeed + targetSpeed) * timeToKill
+			if neverHesitateAttackers[attackerUnitDefID] then
+				for targetIndex = 1, #targetUnitDefIDs do
+					rangesForAttacker[targetUnitDefIDs[targetIndex]] = BEYOND_MAX_RANGE
 				end
-				local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
-				if threatRange > attackerMaxRange then
-					rangesForAttacker[targetUnitDefID] = BEYOND_MAX_RANGE
-				else
-					rangesForAttacker[targetUnitDefID] = threatRange * threatRange
-				end
-				local attackerName = UnitDefs[attackerUnitDefID].name
-				local targetName = UnitDefs[targetUnitDefID].name
-				if nameStartsWithCorOrArm(attackerName) and nameStartsWithCorOrArm(targetName) then
-					local storedRange = rangesForAttacker[targetUnitDefID]
-					spEcho(attackerName, targetName, storedRange == BEYOND_MAX_RANGE and storedRange or threatRange)
+			else
+				local attackerSpeed = attackerSpeeds[attackerUnitDefID]
+				local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
+				for targetIndex = 1, #targetUnitDefIDs do
+					local targetUnitDefID = targetUnitDefIDs[targetIndex]
+					local targetThreatRange = unitThreatRanges[targetUnitDefID]
+					local targetSpeed = targetSpeeds[targetUnitDefID]
+					local targetHealth = targetHealths[targetUnitDefID]
+					local timeToKill = targetHealth / attackerDPS
+					local killBuffer
+					if attackerDPS > targetHealth then
+						killBuffer = attackerSpeed + targetSpeed
+					else
+						killBuffer = (attackerSpeed + targetSpeed) * timeToKill
+					end
+					local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
+					if threatRange > attackerMaxRange then
+						rangesForAttacker[targetUnitDefID] = BEYOND_MAX_RANGE
+					else
+						rangesForAttacker[targetUnitDefID] = threatRange * threatRange
+					end
+					local attackerName = UnitDefs[attackerUnitDefID].name
+					local targetName = UnitDefs[targetUnitDefID].name
+					if nameStartsWithCorOrArm(attackerName) and nameStartsWithCorOrArm(targetName) then
+						local storedRange = rangesForAttacker[targetUnitDefID]
+						spEcho(attackerName, targetName, storedRange == BEYOND_MAX_RANGE and storedRange or threatRange)
+					end
 				end
 			end
 			defThreatRanges[attackerUnitDefID] = rangesForAttacker
