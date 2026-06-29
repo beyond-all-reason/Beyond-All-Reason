@@ -440,11 +440,6 @@ local function ApplyUnitStates()
 	end
 end
 
-function widget:KeyPress() -- tests
-	
-	--Spring.Echo(widgetHandler.configData["Auto Cloak Units"])
-end
-
 function widget:GameFrame(n)
 	if Spring.GetGameState then
 		local finishedLoading, loadedFromSave, locallyPaused, lagging = Spring.GetGameState()
