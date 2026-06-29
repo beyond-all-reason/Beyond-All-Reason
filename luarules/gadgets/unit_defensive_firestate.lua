@@ -12,6 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
+--[[
+todo:
+- taking damage needs to aggro radar enemies
+- need a customparam for long range units that makes them attack any hostile indescriminately
+]]
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -25,10 +31,12 @@ local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
 local BEYOND_MAX_RANGE = -1
 local defThreatRanges = {}
 local defensiveWatchList = {}
+local cloakedWatchList = {}
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetAllUnits = Spring.GetAllUnits
 local spEcho = Spring.Echo
 local mathDistance2dSquared = math.distance2dSquared
@@ -109,13 +117,26 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	updateDefensiveWatchFromRulesParam(unitID)
 end
 
+function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
+	cloakedWatchList[unitID] = true
+end
+
+function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
+	cloakedWatchList[unitID] = nil
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	defensiveWatchList[unitID] = nil
+	cloakedWatchList[unitID] = nil
 end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 	if not defensiveWatchList[attackerID] then
 		return true
+	end
+
+	if cloakedWatchList[attackerID] then
+		return false
 	end
 
 	local attackerUnitDefID = spGetUnitDefID(attackerID)
@@ -220,5 +241,8 @@ function gadget:Initialize()
 
 	for _, unitID in ipairs(spGetAllUnits()) do
 		updateDefensiveWatchFromRulesParam(unitID)
+		if spGetUnitIsCloaked(unitID) then
+			cloakedWatchList[unitID] = true
+		end
 	end
 end
