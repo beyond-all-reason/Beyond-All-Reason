@@ -349,7 +349,7 @@ local function getUserFirestateCommand(command, unitID)
 	if Firestates.isUserFacing(userFirestate) then
 		displayIndex = Firestates.userFacingDisplayIndex(userFirestate)
 		if userFirestate == Firestates.DEFENSIVE then
-			stateName = "Defensive"
+			stateName = "Defend"
 		elseif userFirestate == Firestates.PASSIVE then
 			stateName = "Hold fire"
 		else
