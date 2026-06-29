@@ -12,12 +12,6 @@ function gadget:GetInfo()
 	}
 end
 
---[[
-todo:
-- taking damage needs to aggro radar enemies
-- need a customparam for long range units that makes them attack any hostile indescriminately
-]]
-
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
@@ -28,17 +22,24 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local DPS_PENALTY = 0.99
 local MULTI_WEAPON_DPS_PENALTY = 0.66
 local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
-local BEYOND_MAX_RANGE = -1
+local ALWAYS_SHOOT = -1
+local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
 local defThreatRanges = {}
 local neverHesitateAttackers = {}
 local defensiveWatchList = {}
 local cloakedWatchList = {}
+local defensiveHPCheckCooldowns = {}
+local radarAggroWatchList = {}
+local gameFrame = 0
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitLosState = Spring.GetUnitLosState
 local spEcho = Spring.Echo
 local mathDistance2dSquared = math.distance2dSquared
 
@@ -90,17 +91,40 @@ local function getMaxWeaponRange(unitDef)
 	return longestRange
 end
 
-local function nameStartsWithCorOrArm(unitName)
-	local prefix = unitName:sub(1, 3)
-	return prefix == "cor" or prefix == "arm"
-end
-
 local function setDefensiveWatch(unitID, isDefensive)
 	if isDefensive then
-		defensiveWatchList[unitID] = true
+		defensiveWatchList[unitID] = spGetUnitHealth(unitID)
 	else
 		defensiveWatchList[unitID] = nil
+		radarAggroWatchList[unitID] = nil
+		defensiveHPCheckCooldowns[unitID] = nil
 	end
+end
+
+local function isRadarOnlyUnknownTarget(los)
+	return los and los.radar and not los.los and not los.typed
+end
+
+local function checkDefensiveUnitHealth(attackerID)
+	local nextCheckFrame = defensiveHPCheckCooldowns[attackerID]
+	if nextCheckFrame and gameFrame < nextCheckFrame then
+		return
+	end
+
+	local currentHealth = spGetUnitHealth(attackerID)
+	if not currentHealth then
+		return
+	end
+
+	local lastHealth = defensiveWatchList[attackerID]
+	if lastHealth and currentHealth < lastHealth then
+		radarAggroWatchList[attackerID] = true
+	elseif lastHealth and currentHealth > lastHealth then
+		radarAggroWatchList[attackerID] = nil
+	end
+
+	defensiveWatchList[attackerID] = currentHealth
+	defensiveHPCheckCooldowns[attackerID] = gameFrame + HP_CHECK_INTERVAL_FRAMES
 end
 
 local function updateDefensiveWatchFromRulesParam(unitID)
@@ -129,6 +153,12 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	defensiveWatchList[unitID] = nil
 	cloakedWatchList[unitID] = nil
+	radarAggroWatchList[unitID] = nil
+	defensiveHPCheckCooldowns[unitID] = nil
+end
+
+function gadget:GameFrame(frame)
+	gameFrame = frame
 end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
@@ -137,6 +167,19 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	end
 
 	if cloakedWatchList[attackerID] then
+		return false
+	end
+
+	checkDefensiveUnitHealth(attackerID)
+
+	local allyTeamID = spGetUnitAllyTeam(attackerID)
+	local los = spGetUnitLosState(targetID, allyTeamID, false)
+
+	if radarAggroWatchList[attackerID] and isRadarOnlyUnknownTarget(los) then
+		return true
+	end
+
+	if not los or not los.los then
 		return false
 	end
 
@@ -150,7 +193,7 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 		return false
 	end
 
-	if threatRangeSq == BEYOND_MAX_RANGE then
+	if threatRangeSq == ALWAYS_SHOOT then
 		return true
 	end
 
@@ -196,7 +239,7 @@ function gadget:Initialize()
 			targetSpeeds[unitDefID] = (unitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
 		end
 
-		if unitDef.customParams.defensive_never_hesitate then
+		if unitDef.customParams.defensive_never_hesitate or unitDef.canKamikaze then
 			neverHesitateAttackers[unitDefID] = true
 		end
 
@@ -215,7 +258,7 @@ function gadget:Initialize()
 			local rangesForAttacker = {}
 			if neverHesitateAttackers[attackerUnitDefID] then
 				for targetIndex = 1, #targetUnitDefIDs do
-					rangesForAttacker[targetUnitDefIDs[targetIndex]] = BEYOND_MAX_RANGE
+					rangesForAttacker[targetUnitDefIDs[targetIndex]] = ALWAYS_SHOOT
 				end
 			else
 				local attackerSpeed = attackerSpeeds[attackerUnitDefID]
@@ -234,16 +277,12 @@ function gadget:Initialize()
 					end
 					local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
 					if threatRange > attackerMaxRange then
-						rangesForAttacker[targetUnitDefID] = BEYOND_MAX_RANGE
+						rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
 					else
 						rangesForAttacker[targetUnitDefID] = threatRange * threatRange
 					end
 					local attackerName = UnitDefs[attackerUnitDefID].name
 					local targetName = UnitDefs[targetUnitDefID].name
-					if nameStartsWithCorOrArm(attackerName) and nameStartsWithCorOrArm(targetName) then
-						local storedRange = rangesForAttacker[targetUnitDefID]
-						spEcho(attackerName, targetName, storedRange == BEYOND_MAX_RANGE and storedRange or threatRange)
-					end
 				end
 			end
 			defThreatRanges[attackerUnitDefID] = rangesForAttacker
