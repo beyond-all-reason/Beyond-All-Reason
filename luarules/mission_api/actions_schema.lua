@@ -103,7 +103,7 @@ local parameters = {
 			type = Types.Boolean
 		},
 		[3] = {
-			name = 'text',
+			name = 'textKey',
 			required = false,
 			type = Types.String
 		},

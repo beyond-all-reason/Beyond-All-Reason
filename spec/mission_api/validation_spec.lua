@@ -3,7 +3,6 @@ require("spec_helper")
 local validation     = VFS.Include('luarules/mission_api/validation.lua')
 local triggerSchema  = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local actionSchema   = VFS.Include('luarules/mission_api/actions_schema.lua')
-local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 
 local triggerTypes  = triggerSchema.Types
 local actionTypes   = actionSchema.Types
@@ -281,40 +280,32 @@ describe("mission_api.validation", function()
 	-- ── ValidateInitialStage ──────────────────────────────────────────────────
 
 	describe("ValidateInitialStage", function()
-		-- ValidateInitialStage reads the stage cache seeded by ValidateStages,
-		-- so each test calls ValidateStages first to populate it.
-
 		it("passes when stages are defined and initialStage matches", function()
 			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
-			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageA')
 			assert.are.same({}, logged)
 		end)
 
 		it("passes when no stages are defined and no initialStage is set", function()
 			GG['MissionAPI'].Stages = {}
-			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage(nil)
 			assert.are.same({}, logged)
 		end)
 
 		it("logs an error when stages are defined but initialStage is not provided", function()
 			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
-			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage(nil)
 			assert.is_true(hasError("Stages are defined, but initialStage is not provided."))
 		end)
 
 		it("logs an error when initialStage does not exist in any stage", function()
 			GG['MissionAPI'].Stages = { stageA = { objectives = { 'obj' } } }
-			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageB')
 			assert.is_true(hasError("Initial stage does not exist in stages: stageB"))
 		end)
 
 		it("logs a warning when no stages are defined but initialStage is set", function()
 			GG['MissionAPI'].Stages = {}
-			validation.ValidateStages(GG['MissionAPI'].Stages)
 			validation.ValidateInitialStage('stageA')
 			assert.is_true(hasError("initialStage 'stageA' is set, but no stages are defined."))
 		end)
@@ -371,30 +362,6 @@ describe("mission_api.validation", function()
 				empty = { objectives = {} },
 			})
 			assert.is_true(hasError("Stage has empty 'objectives' table. Stage: empty"))
-		end)
-	end)
-
-	-- ── GetTypesWithParameterType ─────────────────────────────────────────────
-
-	describe("GetTypesWithParameterType", function()
-		it("returns all trigger types that have a Quantity parameter", function()
-			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, parameterTypes.Types.Quantity)
-			assert.is_true(result[triggerTypes.UnitsOwned])
-			assert.is_true(result[triggerTypes.TotalUnitsBuilt])
-			assert.is_true(result[triggerTypes.TotalUnitsLost])
-			assert.is_true(result[triggerTypes.TotalUnitsKilled])
-			assert.is_true(result[triggerTypes.TotalUnitsCaptured])
-		end)
-
-		it("does not include trigger types that lack a Quantity parameter", function()
-			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, parameterTypes.Types.Quantity)
-			assert.is_nil(result[triggerTypes.TimeElapsed])
-			assert.is_nil(result[triggerTypes.UnitKilled])
-		end)
-
-		it("returns an empty table when no types have the given parameter type", function()
-			local result = validation.GetTypesWithParameterType(triggerSchema.Parameters, 'NonExistentType')
-			assert.are.same({}, result)
 		end)
 	end)
 

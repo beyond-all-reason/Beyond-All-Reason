@@ -7,14 +7,7 @@
 ]]
 
 local function processRawStages(rawStages)
-	local stages = {}
-
-	if rawStages then
-		stages = table.copy(rawStages)
-	end
-
-
-	return stages
+	return rawStages or {}
 end
 
 return {

@@ -45,6 +45,8 @@ end
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
+local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
+local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 
 local validators = {}
 
@@ -478,21 +480,7 @@ local triggersSchemaSettings = triggersSchema.Settings
 local triggersSchemaParameters = triggersSchema.Parameters
 local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
 local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
-
-local function getTypesWithParameterType(schemaParameters, parameterType)
-	local typesWithParameter = {}
-
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
-		for _, parameter in ipairs(parameters) do
-			if parameter.type == parameterType then
-				typesWithParameter[actionOrTriggerType] = true
-				break
-			end
-		end
-	end
-
-	return typesWithParameter
-end
+local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
 	if not actionOrTriggerType then
@@ -501,6 +489,12 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
 		actionOrTriggerParameters = actionOrTriggerParameters or {}
+		local parametersTypeResult = validateLuaType(actionOrTriggerParameters, 'table')
+		if parametersTypeResult then
+			logError(parametersTypeResult .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: parameters")
+			actionOrTriggerParameters = {}
+		end
+
 		-- Check for requiresOneOf parameters:
 		local requiresOneOf = schemaParameters[actionOrTriggerType].requiresOneOf
 		if requiresOneOf and table.all(requiresOneOf, function(paramName) return actionOrTriggerParameters[paramName] == nil end) then
@@ -554,51 +548,76 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 	end
 end
 
+local function validateObjectiveSchemaFields(objective, objectiveIDText)
+	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
+		if fieldName ~= 'nextStage' and objective[fieldName] ~= nil then
+			local validator = validators[fieldType]
+			local results = validator(objective[fieldName]) or {}
+			if #results > 0 then
+				for _, result in ipairs(results) do
+					logError(result.message .. ". Objective: " .. objectiveIDText .. ", Field: " .. fieldName)
+				end
+			end
+		end
+	end
+end
+
+local function validateObjectiveInlineTrigger(objective, objectiveIDText)
+	if type(objective.trigger) ~= 'table' then
+		return
+	end
+
+	if objective.trigger.settings ~= nil then
+		logError("Objective trigger must not have a 'settings' field. Objective: " .. objectiveIDText)
+	end
+	if objective.trigger.actions ~= nil then
+		logError("Objective trigger must not have an 'actions' field. Objective: " .. objectiveIDText)
+	end
+
+	-- For statistics triggers, quantity is always forced to 1 by the loader.
+	-- Inject it here so the required-parameter check passes even if the user omitted it,
+	-- and warn if the user explicitly specified it (since it will be ignored).
+	local triggerParams = objective.trigger.parameters or {}
+	local triggerParamsTypeResult = validateLuaType(triggerParams, 'table')
+	if triggerParamsTypeResult then
+		logError(triggerParamsTypeResult .. ". Objective trigger: " .. objectiveIDText .. ", Parameter: parameters")
+		triggerParams = {}
+	end
+
+	if triggerTypesWithQuantity[objective.trigger.type] then
+		if triggerParams.quantity ~= nil then
+			logWarn("Objective trigger 'quantity' is not supported and will be ignored. Objective: " .. objectiveIDText)
+		end
+		triggerParams = table.copy(triggerParams or {})
+		triggerParams.quantity = 1
+	end
+	validate(triggersSchemaParameters, objective.trigger.type, triggerParams, 'Objective trigger', objectiveIDText)
+end
+
+local function validateObjective(objectiveID, objective)
+	local objectiveIDText = tostring(objectiveID)
+	if type(objectiveID) ~= 'string' then
+		logError("Objective ID must be a string, got " .. type(objectiveID))
+	end
+
+	if type(objective) ~= 'table' then
+		logError("Objective data must be a table, got " .. type(objective) .. ". Objective: " .. objectiveIDText)
+		return
+	end
+
+	if not objective.textKey then
+		logError("Objective missing textKey: " .. objectiveIDText)
+	elseif objective.textKey == '' then
+		logError("Objective has empty textKey: " .. objectiveIDText)
+	end
+
+	validateObjectiveSchemaFields(objective, objectiveIDText)
+	validateObjectiveInlineTrigger(objective, objectiveIDText)
+end
+
 local function validateObjectives(objectives)
-	local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
-
 	for objectiveID, objective in pairs(objectives) do
-		-- Validate text:
-		if not objective.textKey then
-			logError("Objective missing textKey: " .. objectiveID)
-		elseif objective.textKey == '' then
-			logError("Objective has empty textKey: " .. objectiveID)
-		end
-		-- Type-check all schema fields:
-		for fieldName, fieldType in pairs(objectivesSchemaSettings) do
-			if fieldName ~= 'nextStage' and objective[fieldName] ~= nil then
-				local validator = validators[fieldType]
-				local results = validator(objective[fieldName]) or {}
-				if #results > 0 then
-					for _, result in ipairs(results) do
-						logError(result.message .. ". Objective: " .. objectiveID .. ", Field: " .. fieldName)
-					end
-				end
-			end
-		end
-
-		-- Validate inline trigger:
-		if objective.trigger ~= nil then
-			if objective.trigger.settings ~= nil then
-				logError("Objective trigger must not have a 'settings' field. Objective: " .. objectiveID)
-			end
-			if objective.trigger.actions ~= nil then
-				logError("Objective trigger must not have an 'actions' field. Objective: " .. objectiveID)
-			end
-
-			-- For statistics triggers, quantity is always forced to 1 by the loader.
-			-- Inject it here so the required-parameter check passes even if the user omitted it,
-			-- and warn if the user explicitly specified it (since it will be ignored).
-			local triggerParams = objective.trigger.parameters or {}
-			if triggerTypesWithQuantity[objective.trigger.type] then
-				if triggerParams.quantity ~= nil then
-					logWarn("Objective trigger 'quantity' is not supported and will be ignored. Objective: " .. objectiveID)
-				end
-				triggerParams = table.copy(triggerParams or {})
-				triggerParams.quantity = 1
-			end
-			validate(triggersSchemaParameters, objective.trigger.type, triggerParams, 'Objective trigger', objectiveID)
-		end
+		validateObjective(objectiveID, objective)
 	end
 end
 
@@ -608,7 +627,7 @@ local function validateInitialStage(initialStage)
 	if hasStages then
 		if not initialStage then
 			logError("Stages are defined, but initialStage is not provided.")
-		elseif not stages[initialStage] then
+		elseif stages[initialStage] == nil then
 			logError("Initial stage does not exist in stages: " .. initialStage)
 		end
 	else
@@ -670,7 +689,7 @@ local function validateStagesReferences(stages, objectives)
 	for stageID, stageData in pairs(stages) do
 		if type(stageData) == 'table' and stageData.objectives then
 			for i, objectiveID in ipairs(stageData.objectives or {}) do
-				if type(objectiveID) == 'string' and not objectives[objectiveID] then
+				if type(objectiveID) == 'string' and objectives[objectiveID] == nil then
 					logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
 				end
 			end
@@ -712,11 +731,12 @@ end
 
 local function validateObjectiveNextStageReferences(objectives)
 	for objectiveID, objective in pairs(objectives) do
-		if objective.nextStage ~= nil then
+		if type(objective) == 'table' and objective.nextStage ~= nil then
+			local objectiveIDText = tostring(objectiveID)
 			if type(objective.nextStage) ~= 'string' then
-				logError("Unexpected parameter type, expected string, got " .. type(objective.nextStage) .. ". Objective: " .. objectiveID .. ", Field: nextStage")
-			elseif not GG['MissionAPI'].Stages[objective.nextStage] then
-				logError("Objective references non-existent nextStage. Objective: " .. objectiveID .. ", Stage: " .. objective.nextStage)
+				logError("Unexpected parameter type, expected string, got " .. type(objective.nextStage) .. ". Objective: " .. objectiveIDText .. ", Field: nextStage")
+			elseif GG['MissionAPI'].Stages[objective.nextStage] == nil then
+				logError("Objective references non-existent nextStage. Objective: " .. objectiveIDText .. ", Stage: " .. objective.nextStage)
 			end
 		end
 	end
@@ -901,7 +921,6 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		[actionTypes.UnnameUnits] = true,
 		[actionTypes.TransferUnits] = true,
 		[actionTypes.DespawnUnits] = true,
-		[actionTypes.UpdateObjective] = true,
 	}
 
 	local createdUnitNames = {}
@@ -1119,5 +1138,4 @@ return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,
-	GetTypesWithParameterType = getTypesWithParameterType,
 }

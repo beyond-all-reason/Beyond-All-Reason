@@ -504,7 +504,7 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	local unitDefName = UnitDefs[unitDefID].name
 	local unitNames = table.copy(trackedUnitNames[unitID] or {})
 
-	-- Set in spawnUnit() in loadout.loa
+	-- Set in spawnUnit() in loadout.lua
 	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
 	if nameOfUnitBeingSpawned then
 		unitNames[nameOfUnitBeingSpawned] = true
