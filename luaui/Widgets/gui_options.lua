@@ -9122,7 +9122,20 @@ function init()
 
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
-		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, widget = "BombersDefaultHoldFire", name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = GetWidgetToggleValue("BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr') },
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = WG['stateprefs'] and WG['stateprefs'].getPresetState("bombers_default_hold_fire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr'),
+			onchange = function(i, value)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("bombers_default_hold_fire", value)
+				end
+			end,
+			onload = function(i)
+				if WG['stateprefs'] then
+					if WG['stateprefs'].getPresetState("bombers_default_hold_fire") == nil then
+						WG['stateprefs'].setPresetState("bombers_default_hold_fire", not not GetWidgetToggleValue("BombersDefaultHoldFire")) --convert to bool
+					end
+				end
+			end
+		},
 
 		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },

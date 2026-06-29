@@ -49,6 +49,7 @@ local priorUserFirestateFunction = nil
 VFS.Include("luaui/Include/user_firestate_commands.lua")
 
 local CMD_WANT_CLOAK = CMD.WANT_CLOAK
+local CMD_FIRE_STATE = CMD.FIRE_STATE
 
 local uDefID2UnitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -71,7 +72,45 @@ local function pruneAllUnitPrefs(unitSetData)
 	end
 end
 
--- The config was previously using a separate file, but after a bug with this file
+-----------------------------------------------------------------------------------
+-- preset helpers
+
+local bombers = {}
+
+local function UnitDefIsBomber(unitDef) -- stolen from old bomber default hold fire widget
+	if not unitDef or not unitDef.weapons then
+		return false
+	end
+
+	for i = 1, #unitDef.weapons do
+		local wname = unitDef.weapons[i].weaponDef
+		local weaponDef = WeaponDefs[wname]
+		if weaponDef then
+			if weaponDef.type == "AircraftBomb" then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+for unitName, unitDef in pairs(UnitDefNames) do
+	if UnitDefIsBomber(unitDef) then
+		bombers[unitName] = true
+	end
+end
+
+local function toggleAllBombersHoldFire(state, force)
+	for unitName, _ in pairs(bombers) do
+		if force or not unitSet[unitName] or not unitSet[unitName][CMD_FIRE_STATE] then
+			unitSet[unitName] = unitSet[unitName] or {}
+			unitSet[unitName][CMD_FIRE_STATE] = state and 0 or 2
+		end
+	end
+end
+
+-- The config was previously using a seperate file, but after a bug with this file
 -- it was decided to simply use the widgetHandler shared config instead.
 local function migrateOldConfig()
 	local oldConfigPath = "LuaUI/config/StatesPrefs.lua"
@@ -91,9 +130,17 @@ local function migrateOldConfig()
 end
 
 function widget:GetConfigData()
-	unitSet = migrateOldConfig() or unitSet -- remove this line and the migration function once sufficient time has passed (implemented 2026-06-03)
-	pruneAllUnitPrefs()
-	return unitSet
+	local saveUnitSet = migrateOldConfig() or table.copy(unitSet) -- remove this line and the migration function once sufficient time has passed (implemented 2026-06-03)
+
+	--clean for unnecessary entries, like units not set to state not corresponding to preset
+	local bombers_hold_fire = unitSet.presets.bombers_default_hold_fire
+	for unitName, _ in pairs(bombers) do
+		if saveUnitSet[unitName] and saveUnitSet[unitName][CMD_FIRE_STATE] == (bombers_hold_fire and 0 or 2) then
+			saveUnitSet[unitName][CMD_FIRE_STATE] = nil
+		end
+	end
+	pruneAllUnitPrefs(saveUnitSet)
+	return saveUnitSet
 end
 
 function widget:SetConfigData(data)
@@ -108,6 +155,11 @@ function widget:SetConfigData(data)
 				unitSet[unitName][CMD_WANT_CLOAK] = cloak and 1 or 0
 			end
 		end
+	end
+
+	unitSet.presets = unitSet.presets or {} -- handle presets for groups of units like bombers defaulting on hold fire
+	if unitSet.presets.bombers_default_hold_fire ~= nil then
+		toggleAllBombersHoldFire(unitSet.presets.bombers_default_hold_fire, false)
 	end
 end
 
@@ -265,6 +317,18 @@ function widget:Initialize()
 		unitSet[unitName] = unitSet[unitName] or {}
 		unitSet[unitName][cmdID] = state
 	end
+	WG['stateprefs'].getPresetState = function(presetName)
+		if unitSet.presets then
+			return unitSet.presets[presetName]
+		end
+	end
+	WG['stateprefs'].setPresetState = function(presetName, state)
+		unitSet.presets = unitSet.presets or {}
+		unitSet.presets[presetName] = state
+		if presetName == "bombers_default_hold_fire" then
+			toggleAllBombersHoldFire(state, true)
+		end
+	end
 end
 
 function onRecordPress()
@@ -374,11 +438,6 @@ local function ApplyUnitStates()
 			widget:UnitCreated(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
 		end
 	end
-end
-
-function widget:KeyPress() -- tests
-	
-	--Spring.Echo(widgetHandler.configData["Auto Cloak Units"])
 end
 
 function widget:GameFrame(n)
