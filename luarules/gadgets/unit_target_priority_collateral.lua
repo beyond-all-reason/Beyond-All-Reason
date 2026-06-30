@@ -177,7 +177,7 @@ local function getExplosionRadiusEffective(weaponDef, subordinates)
 				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number)
 			end
 		elseif weaponDef.customParams.spark_range then
-			-- Allies are unaffected.
+			-- Allies are likely unaffected.
 		elseif weaponDef.customParams.speceffect == "split" then
 			radius = radius + 32 -- sure
 		elseif weaponDef.customParams.area_onhit_range then
