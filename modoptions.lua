@@ -1816,11 +1816,10 @@ local options = {
         linkwidth = 350,
     },
 
-    --DEFEND FIRESTATE REWORK: Remove modoption + link; make Defend behavior unconditional default
     {
         key     = "experimental_defend_firestate",
-        name    = "Defend Firestate",
-        desc    = "Replaces Return fire with Defend on the firestate order menu.\nDefend only engages nearby threats instead of retaliating at any range.",
+        name    = "Replace Return Fire with Defend fire state.",
+        desc    = "Replaces the fire state Return fire with Defend.\nUnits in Defend mode will shoot threats to themselves on a 1v1 basis.",
         type    = "bool",
         section = "options_experimental",
         def     = false,
