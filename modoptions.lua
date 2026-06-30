@@ -1816,6 +1816,29 @@ local options = {
         linkwidth = 350,
     },
 
+    --DEFEND FIRESTATE REWORK: Remove modoption + link; make Defend behavior unconditional default
+    {
+        key     = "experimental_defend_firestate",
+        name    = "Defend Firestate",
+        desc    = "Replaces Return fire with Defend on the firestate order menu.\nDefend only engages nearby threats instead of retaliating at any range.",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+    },
+
+    {
+        key     = "experimental_defend_firestate_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about the Defend firestate rework.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1520166826435280998",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
     {
         key 	= "air_rework",
         name 	= "Air Rework",

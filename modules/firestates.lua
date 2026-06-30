@@ -75,4 +75,9 @@ function firestates.logicalFromEngineFirestate(engineFirestate)
 	return stateByEngineFirestate[engineFirestate] or firestates.AGGRESSIVE
 end
 
+--DEFEND FIRESTATE REWORK: Remove isDefendFirestateEnabled(); assume Defend mode always on
+function firestates.isDefendFirestateEnabled()
+	return Spring.GetModOptions().experimental_defend_firestate
+end
+
 return firestates

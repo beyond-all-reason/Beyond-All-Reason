@@ -1,3 +1,8 @@
+--DEFEND FIRESTATE REWORK: Remove guard; widget always intercepts firestate clicks
+if not Spring.GetModOptions().experimental_defend_firestate then
+	return
+end
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()

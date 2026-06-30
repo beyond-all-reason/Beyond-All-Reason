@@ -341,6 +341,7 @@ local function computeWaitState()
 	end
 end
 
+--DEFEND FIRESTATE REWORK: Remove modoption guard; always patch firestate labels to Defend
 local function getUserFirestateCommand(command, unitID)
 	local userFirestate = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
 	local displayIndex
@@ -409,7 +410,7 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					local patchedCommand = command
-					if command.id == CMD_FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
+					if command.id == CMD_FIRE_STATE and Firestates.isDefendFirestateEnabled() and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
 						patchedCommand = getUserFirestateCommand(command, cachedFirstUnit)
 					end
 					stateCommandsCount = stateCommandsCount + 1
@@ -1336,7 +1337,7 @@ function widget:MousePress(x, y, button)
 							if playSounds then
 								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
-							if cmd.id == CMD_FIRE_STATE and cmd.userFacingFirestate and clickedCellDesiredState then
+							if cmd.id == CMD_FIRE_STATE and Firestates.isDefendFirestateEnabled() and cmd.userFacingFirestate and clickedCellDesiredState then
 								local nextFirestate = Firestates.userFacingStateFromDisplayIndex(clickedCellDesiredState)
 								spGiveOrderToUnitArray(spGetSelectedUnits(), CMD_USER_FIRESTATE, { nextFirestate }, 0)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then

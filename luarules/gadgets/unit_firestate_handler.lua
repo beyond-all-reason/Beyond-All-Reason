@@ -1,3 +1,8 @@
+--DEFEND FIRESTATE REWORK: Remove guard; handler is always required
+if not Spring.GetModOptions().experimental_defend_firestate then
+	return
+end
+
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
