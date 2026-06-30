@@ -21,9 +21,19 @@ local SpawnCEG = Spring.SpawnCEG
 local random = math.random
 
 local cegs = { "reclaimshards1", "reclaimshards2", "reclaimshards3" }
-local featureList = {}
-local cegList = {}
-local processedFeatures = {} -- Track features we've already processed to avoid redundant work
+local featureList = {} ---@type table<number, {minX:number, maxX:number, minZ:number, maxZ:number, y:number, rangeX:number, rangeZ:number}>
+local processedX = {}
+local processedY = {}
+local processedZ = {}
+
+-- Pending CEG queue indexed by featureID. A separate featureID list avoids per-step table allocations.
+local pendingFeatureIDs = {} ---@type integer[]
+local pendingCount = 0
+local pendingMarked = {} ---@type table<integer, boolean>
+local pendingCEG = {} ---@type table<number, string>
+local pendingX = {} ---@type table<integer, number>
+local pendingY = {} ---@type table<integer, number>
+local pendingZ = {} ---@type table<integer, number>
 
 for featureDefID, featureDef in pairs(FeatureDefs) do
 	if featureDef.customParams.fromunit and featureDef.model and featureDef.model.maxx then
@@ -46,53 +56,58 @@ for featureDefID, featureDef in pairs(FeatureDefs) do
 	end
 end
 
-local cegListTemp = {}
-
 function gadget:GameFrame(n)
-	if n % 2 == 0 and next(cegList) then
-		-- Swap out cegList so AllowFeatureBuildStep can safely add to a fresh table
-		local toProcess = cegList
-		cegList = cegListTemp
-		cegListTemp = toProcess
-		for featureID, v in pairs(toProcess) do
-			SpawnCEG(v.ceg, v.x, v.y, v.z, 0, 1.0, 0, 0, 0)
-			toProcess[featureID] = nil
+	if n % 2 == 0 and pendingCount > 0 then
+		for i = 1, pendingCount do
+			local featureID = pendingFeatureIDs[i]
+			if featureID then
+				SpawnCEG(pendingCEG[featureID], pendingX[featureID], pendingY[featureID], pendingZ[featureID], 0, 1.0, 0, 0, 0)
+				pendingMarked[featureID] = nil
+			end
+			pendingFeatureIDs[i] = nil
 		end
+		pendingCount = 0
 	end
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	local params = featureList[featureDefID]
-	if params then
-		-- Cache position on first call to avoid repeated GetFeaturePosition calls
-		if not processedFeatures[featureID] then
-			local x, y, z = GetFeaturePosition(featureID)
-			processedFeatures[featureID] = {
-				x = x,
-				y = y + params.y,
-				z = z,
-				params = params
-			}
-		end
-
-		-- Spawn CEG every step, but use cached position data
-		local cached = processedFeatures[featureID]
-		local x = cached.x + cached.params.minX + (cached.params.rangeX * random())
-		local z = cached.z + cached.params.minZ + (cached.params.rangeZ * random())
-		local entry = cegList[featureID]
-		if not entry then
-			entry = {}
-			cegList[featureID] = entry
-		end
-		entry.ceg = cegs[random(1, #cegs)]
-		entry.x = x
-		entry.y = cached.y
-		entry.z = z
+	if params == nil then
+		return true
 	end
+
+	-- Cache position on first call to avoid repeated GetFeaturePosition calls
+	if not processedX[featureID] then
+		local x, y, z = GetFeaturePosition(featureID)
+		if not x or not y or not z then
+			return true
+		end
+		processedX[featureID] = x
+		processedY[featureID] = y + params.y
+		processedZ[featureID] = z
+	end
+
+	-- Queue one CEG per feature per processing window using cached position data.
+	if not pendingMarked[featureID] then
+		pendingCount = pendingCount + 1
+		pendingFeatureIDs[pendingCount] = featureID
+		pendingMarked[featureID] = true
+	end
+
+	pendingCEG[featureID] = cegs[random(1, #cegs)]
+	pendingX[featureID] = processedX[featureID] + params.minX + (params.rangeX * random())
+	pendingY[featureID] = processedY[featureID]
+	pendingZ[featureID] = processedZ[featureID] + params.minZ + (params.rangeZ * random())
 	return true
 end
 
 function gadget:FeatureDestroyed(featureID)
-	processedFeatures[featureID] = nil
-	cegList[featureID] = nil
+	processedX[featureID] = nil
+	processedY[featureID] = nil
+	processedZ[featureID] = nil
+	pendingMarked[featureID] = nil
+	pendingCEG[featureID] = nil
+	pendingX[featureID] = nil
+	pendingY[featureID] = nil
+	pendingZ[featureID] = nil
 end
