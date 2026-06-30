@@ -1818,7 +1818,7 @@ local options = {
 
     {
         key     = "experimental_defend_firestate",
-        name    = "Replace Return Fire with Defend fire state.",
+        name    = "New Defend Firestate",
         desc    = "Replaces the fire state Return fire with Defend.\nUnits in Defend mode will shoot threats to themselves on a 1v1 basis.",
         type    = "bool",
         section = "options_experimental",
