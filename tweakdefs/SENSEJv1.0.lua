@@ -344,6 +344,7 @@ local function configureCorForge()
 	for _, field in ipairs(combatFields) do
 		forgeWeapon[field] = dragonMawWeapon[field]
 	end
+	forgeWeapon.range = 325
 	forgeWeapon.damage = {
 		commanders = 16.2,
 		default = 10.8,

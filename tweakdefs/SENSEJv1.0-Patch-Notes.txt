@@ -128,8 +128,9 @@ Affected: Cortex T2 vehicle plant (coravp), Cortex Forge (corforge)
 - Adds corforge to the Cortex T2 vehicle plant build list.
 - Explicitly loads corforge when it is not already available in standard games.
 - Replaces the Forge flamethrower's combat and visual behavior with Dragon's Maw values.
-- Uses Dragon's Maw burst, interval, range, reload, AoE, edge effectiveness, spray,
+- Uses Dragon's Maw burst, interval, reload, AoE, edge effectiveness, spray,
   velocity, flame colors, intensity, growth, texture, and effects.
+- Flamethrower range reduced from 410 to 325.
 - Damage per flame: 10.8 default, 16.2 commanders, 2.7 submarines.
 - Theoretical default DPS: approximately 157.1.
 
