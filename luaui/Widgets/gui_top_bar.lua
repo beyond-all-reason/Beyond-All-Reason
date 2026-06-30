@@ -1452,9 +1452,9 @@ local function drawResBars()
 	end
 	glPopMatrix()
 
-	-- START: draw numbers live (bypass uiTex cache so stale digits dont pile up)
+	-- START: call a function to draw resbar numbers live (bypass uiTex cache so stale digits dont pile up)
 	drawResbarNumbersLive()
-	-- END: draw numbers live
+	-- END: called a function to draw resbar numbers live
 end
 
 local function drawQuitScreen()
