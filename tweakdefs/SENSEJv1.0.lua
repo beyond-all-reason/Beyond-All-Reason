@@ -288,6 +288,27 @@ applyUnitChanges("armason", t2SonarTower)
 applyUnitChanges("corason", t2SonarTower)
 applyUnitChanges("leganavalsonarstation", t2SonarTower)
 
+-- T2 spy bots: Armada Ghost baseline, with Cortex health (380).
+local t2SpyBot = {
+	metalcost = 135,
+	energycost = 8800,
+	buildtime = 12000,
+	health = 380,
+	speed = 65.4,
+	sightdistance = 550,
+	cloakcost = 15,
+	cloakcostmoving = 40,
+	mincloakdistance = 75,
+	maxacc = 0.276,
+	maxdec = 0.69,
+	turnrate = 1581.25,
+	turninplacespeedlimit = 1.4388,
+}
+
+applyUnitChanges("armspy", t2SpyBot)
+applyUnitChanges("corspy", t2SpyBot)
+applyUnitChanges("legaspy", t2SpyBot)
+
 -- Cortex Forge combat engineer: load the existing extra unit when necessary,
 -- add it to the T2 vehicle plant, and give it Dragon's Maw weapon behavior.
 local function configureCorForge()

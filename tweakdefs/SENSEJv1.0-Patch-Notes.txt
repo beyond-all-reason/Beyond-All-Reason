@@ -122,6 +122,16 @@ Affected: Armada advanced sonar (armason), Cortex advanced sonar (corason), Legi
 - Sonar 1,600; sight 210; health 2,400
 - 3x3 footprint; minimum water depth 24
 
+T2 Spy Bots
+-----------
+Affected: Armada Ghost (armspy), Cortex Spectre (corspy), Legion Eidolon (legaspy)
+- Normalized to the Armada Ghost baseline, retaining Cortex health.
+- Cost: 135 metal / 8,800 energy; build time: 12,000
+- Health 380; speed 65.4; sight 550
+- Stationary cloak 15; moving cloak 40; minimum cloak distance 75
+- Acceleration 0.276; braking 0.69; turn rate 1,581.25
+- Turn-in-place speed limit 1.4388
+
 Cortex Forge
 ------------
 Affected: Cortex T2 vehicle plant (coravp), Cortex Forge (corforge)
