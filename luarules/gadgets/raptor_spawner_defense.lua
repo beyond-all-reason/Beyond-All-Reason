@@ -51,7 +51,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SetGameRulesParam = Spring.SetGameRulesParam
 	local GetGameRulesParam = Spring.GetGameRulesParam
 	local GetTeamUnitCount = Spring.GetTeamUnitCount
-	local GetGameFrame = Spring.GetGameFrame
+	local GetGameFrame = Spring.GetGameFrame()
 	local GetGameSeconds = Spring.GetGameSeconds()
 	local DestroyUnit = Spring.DestroyUnit
 	local GetTeamUnits = Spring.GetTeamUnits
@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
-	local lsx1, lsz1, lsx2, lsz2
+	local lsx1, lsz1, lsx2, lsz2 = 0, 0, Game.mapSizeX, Game.mapSizeZ
 	local burrows = {}
 	local aliveEggsTable = {}
 	local squadsTable = {}
@@ -484,9 +484,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- Spring.Echo("Life is 0, time to do some killing")
 				if SetCount(squadsTable[i].squadUnits) > 0 and SetCount(burrows) > 2 then
 					if squadsTable[i].squadBurrow and nSpawnedQueens == 0 then
-						if GetUnitTeam(squadsTable[i].squadBurrow) == raptorTeamID then
-							DestroyUnit(squadsTable[i].squadBurrow, true, false)
-						elseif GetUnitIsDead(squadsTable[i].squadBurrow) == false then
+						if GetUnitIsDead(squadsTable[i].squadBurrow) == false then
 							squadsTable[i].squadBurrow = nil
 						end
 					end
@@ -958,6 +956,18 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					queenStagger.currentlyStaggered = true
 					queenStagger.CurrentTimer = queenStagger.Time + 0
+					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
+						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,50 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000), 0,0,0)
+							end
+						end
+					end
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 				end
 			end
@@ -967,7 +977,16 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.CurrentTimer > 0 then
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
 						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,10 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+							end
+						end
 					end
 				else
 					queenStagger.currentlyStaggered = false
@@ -988,6 +1007,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
+		RaptorQueenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
 	end
 
 	function SpawnQueen()
@@ -1011,9 +1031,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if sx and sy and sz then
-			if bestBurrowID then
-				DestroyUnit(bestBurrowID, true, false)
-			end
+			--if bestBurrowID then
+			--	DestroyUnit(bestBurrowID, true, false)
+			--end
 			return CreateUnit(config.queenName, sx, sy, sz, mRandom(0,3), raptorTeamID), burrowID
 		end
 
@@ -1513,18 +1533,34 @@ if gadgetHandler:IsSyncedCode() then
 				if weaponID == -1 and damage > 1 then
 					damage = 1
 				end
+
+				if RaptorQueenHealthPercentage then
+					if RaptorQueenHealthPercentage > 50 then
+						damage = damage * 2
+					elseif RaptorQueenHealthPercentage > 25 then
+					elseif RaptorQueenHealthPercentage > 10 then
+						damage = damage * 0.75
+					elseif RaptorQueenHealthPercentage > 5 then
+						damage = damage * 0.5
+					elseif RaptorQueenHealthPercentage <= 5 then
+						damage = damage * 0.25
+					end
+				end
+
 				attackerDefID = tostring(attackerDefID)
+				local resistMult = config.queenResistanceMult
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
-						damage = damage * 5 * config.queenResistanceMult,
+						damage = damage * 5 * resistMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local qr = queenResistance[attackerDefID]
+				local resistPercent = math.min(qr.damage / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistance[attackerDefID].notify == 0 then
+					if qr.notify == 0 then
 						raptorEvent("queenResistance", tonumber(attackerDefID))
-						queenResistance[attackerDefID].notify = 1
+						qr.notify = 1
 					end
 
 				end
@@ -1536,26 +1572,45 @@ if gadgetHandler:IsSyncedCode() then
 
 				if queenStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
+					queenStagger.CurrentTimer = queenStagger.CurrentTimer - (damage*0.0001)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+					else
+						SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+					end
 				else
 					damage = damage - (damage * resistPercent)
 				end
-				
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 5 * config.queenResistanceMult)
-				queenResistance[attackerDefID].percent = resistPercent
-				
+
+				qr.damage = qr.damage + (damage * 5 * resistMult)
+				qr.percent = resistPercent
 
 			else
 				damage = 1
 			end
 			return damage
 		end
+		if attackerID and queenIDs[attackerID] then -- Boss Resistance
+			if ScavBossHealthPercentage then
+				if RaptorQueenHealthPercentage > 50 then
+					damage = damage * 0.25
+				elseif RaptorQueenHealthPercentage > 25 then
+					damage = damage * 0.5
+				elseif RaptorQueenHealthPercentage > 10 then
+					damage = damage * 0.75
+				elseif RaptorQueenHealthPercentage > 5 then
+				elseif RaptorQueenHealthPercentage <= 5 then
+					damage = damage * 2
+				end
+			end
+		end
 		return damage, 1
-	end	
+	end
 
 	UnitReactionsTimeout = {}
 	UnitLifetimeResetTimeout = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-		local gf = GetGameFrame()
 		if not UnitReactionsTimeout[unitID] then
 			UnitReactionsTimeout[unitID] = 0
 		end
@@ -1569,16 +1624,16 @@ if gadgetHandler:IsSyncedCode() then
 					local sinA, cosA = math.sin(angle), math.cos(angle)
 					local distance = mRandom(math.ceil(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*0.75), math.floor(config.raptorBehaviours.SKIRMISH[attackerDefID].distance*1.25))
 					local dx, dz = sinA * distance, cosA * distance
-					if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
+					if config.raptorBehaviours.SKIRMISH[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
 						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
 						SetUnitPosition(attackerID, x - dx, z - dz)
 						GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x - dx, y, z - dz)
-						unitTeleportCooldown[attackerID] = gf + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
+						unitTeleportCooldown[attackerID] = GetGameFrame + config.raptorBehaviours.SKIRMISH[attackerDefID].teleportcooldown*30
 					else
 						GiveOrderToUnit(attackerID, CMD.MOVE, { x - dx, y, z - dz}, {})
 					end
-					unitCowardCooldown[attackerID] = gf + 900
+					unitCowardCooldown[attackerID] = GetGameFrame + 900
 				end
 			elseif config.raptorBehaviours.COWARD[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.COWARD[unitDefID].chance) and unitTeam ~= attackerTeam then
 				UnitReactionsTimeout[unitID] = GetGameSeconds
@@ -1591,16 +1646,16 @@ if gadgetHandler:IsSyncedCode() then
 						local sinA, cosA = math.sin(angle), math.cos(angle)
 						local distance = mRandom(math.ceil(config.raptorBehaviours.COWARD[unitDefID].distance*0.75), math.floor(config.raptorBehaviours.COWARD[unitDefID].distance*1.25))
 						local dx, dz = sinA * distance, cosA * distance
-						if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) then
+						if config.raptorBehaviours.COWARD[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(x - dx, y, z - dz, 64, 30, false) and positionCheckLibrary.MapEdgeCheck(x - dx, y, z - dz, 64) and positionCheckLibrary.OccupancyCheck(x - dx, y, z - dz, 64) then
 							GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
 							SetUnitPosition(unitID, x - dx, z - dz)
 							GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 							GG.ScavengersSpawnEffectUnitDefID(unitDefID, x - dx, y, z - dz)
-							unitTeleportCooldown[unitID] = gf + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
+							unitTeleportCooldown[unitID] = GetGameFrame + config.raptorBehaviours.COWARD[unitDefID].teleportcooldown*30
 						else
 							GiveOrderToUnit(unitID, CMD.MOVE, { x - dx, y, z - dz}, {})
 						end
-						unitCowardCooldown[unitID] = gf + 900
+						unitCowardCooldown[unitID] = GetGameFrame + 900
 					end
 				end
 			elseif config.raptorBehaviours.BERSERK[unitDefID] and (unitTeam == raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[unitDefID].chance) and unitTeam ~= attackerTeam then
@@ -1609,18 +1664,18 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = GetUnitPosition(unitID)
 				local separation = GetUnitSeparation(unitID, attackerID)
 				if ax and separation < (config.raptorBehaviours.BERSERK[unitDefID].distance or 10000) then
-					if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					ax = ax + mRandom(-128,128)
+					az = az + mRandom(-128,128)
+					if config.raptorBehaviours.BERSERK[unitDefID].teleport and (unitTeleportCooldown[unitID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) and positionCheckLibrary.OccupancyCheck(ax, ay, az, 64) then
 						GG.ScavengersSpawnEffectUnitDefID(unitDefID, x, y, z)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
 						SetUnitPosition(unitID, ax, ay, az)
 						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, ax, ay, az)
-						unitTeleportCooldown[unitID] = gf + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
+						unitTeleportCooldown[unitID] = GetGameFrame + config.raptorBehaviours.BERSERK[unitDefID].teleportcooldown*30
 					else
-						GiveOrderToUnit(unitID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+						GiveOrderToUnit(unitID, CMD.MOVE, {ax, ay, az}, {})
 					end
-					unitCowardCooldown[unitID] = gf + 900
+					unitCowardCooldown[unitID] = GetGameFrame + 900
 				end
 			elseif config.raptorBehaviours.BERSERK[attackerDefID] and (unitTeam ~= raptorTeamID) and attackerID and (mRandom() < config.raptorBehaviours.BERSERK[attackerDefID].chance) and unitTeam ~= attackerTeam then
 				UnitReactionsTimeout[unitID] = GetGameSeconds
@@ -1628,18 +1683,18 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = GetUnitPosition(attackerID)
 				local separation = GetUnitSeparation(unitID, attackerID)
 				if ax and separation < (config.raptorBehaviours.BERSERK[attackerDefID].distance or 10000) then
-					if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < gf and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) then
+					ax = ax + mRandom(-128,128)
+					az = az + mRandom(-128,128)
+					if config.raptorBehaviours.BERSERK[attackerDefID].teleport and (unitTeleportCooldown[attackerID] or 1) < GetGameFrame and positionCheckLibrary.FlatAreaCheck(ax, ay, az, 128, 30, false) and positionCheckLibrary.MapEdgeCheck(ax, ay, az, 128) and positionCheckLibrary.OccupancyCheck(ax, ay, az, 64) then
 						GG.ScavengersSpawnEffectUnitDefID(attackerDefID, x, y, z)
-						ax = ax + mRandom(-64,64)
-						az = az + mRandom(-64,64)
 						SetUnitPosition(attackerID, ax, ay, az)
 						GiveOrderToUnit(attackerID, CMD.STOP, 0, 0)
 						GG.ScavengersSpawnEffectUnitDefID(unitDefID, ax, ay, az)
-						unitTeleportCooldown[attackerID] = gf + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
+						unitTeleportCooldown[attackerID] = GetGameFrame + config.raptorBehaviours.BERSERK[attackerDefID].teleportcooldown*30
 					else
-						GiveOrderToUnit(attackerID, CMD.MOVE, { ax+mRandom(-64,64), ay, az+mRandom(-64,64)}, {})
+						GiveOrderToUnit(attackerID, CMD.MOVE, {ax, ay, az}, {})
 					end
-					unitCowardCooldown[attackerID] = gf + 900
+					unitCowardCooldown[attackerID] = GetGameFrame + 900
 				end
 			end
 		end
@@ -1758,10 +1813,6 @@ if gadgetHandler:IsSyncedCode() then
 						squadCreationQueue.life = math.ceil(100*modOptions.raptor_spawntimemult)
 					end
 				end
-
-				GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
-				GiveOrderToUnit(unitID, CMD.MOVE, { x + mRandom(-128, 128), y, z + mRandom(-128, 128) }, { "shift" })
 
 				setRaptorXP(unitID)
 			end
@@ -1921,7 +1972,8 @@ if gadgetHandler:IsSyncedCode() then
 	local announcedFirstWave = false
 	function gadget:GameFrame(n)
 
-		GetGameSeconds = Spring.GetGameSeconds() + 0
+		GetGameSeconds = n/30
+		GetGameFrame = n
 
 		if announcedFirstWave == false and GetGameSeconds > config.gracePeriodInitial then
 			raptorEvent("firstWave")
@@ -2030,7 +2082,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n%((math.ceil(config.turretSpawnRate))*30) == 0 and n > 900 and raptorTeamUnitCount < raptorUnitCap then
 			spawnCreepStructuresWave()
 		end
-		local squadID = ((n % (#squadsTable*2))+1)/2 --*2 and /2 for lowering the rate of commands
+		local squadID = ((n % (#squadsTable*3))+1)/3 --*3 and /3 for lowering the rate of commands
 		if squadID and squadsTable[squadID] and squadsTable[squadID].squadRegroupEnabled then
 			local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
 			if targetx then
@@ -2047,28 +2099,26 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
-				if mRandom(1,60) == 1 then
-					if unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
+				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
+					unitCowardCooldown[unitID] = nil
+					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
+				if ((math.random(1,10) == 1 or queenIDs[unitID]) and GetUnitCommandCount(unitID) == 0) then
+					if unitCowardCooldown[unitID] then
 						unitCowardCooldown[unitID] = nil
-						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
 					end
-					if GetUnitCommandCount(unitID) == 0 then
-						if unitCowardCooldown[unitID] then
-							unitCowardCooldown[unitID] = nil
-						end
-						local squadID = unitSquadTable[unitID]
-						if squadID then
-							local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
-							if targetx then
-								squadsTable[squadID].squadNeedsRefresh = true
-								squadCommanderGiveOrders(squadID, targetx, targety, targetz)
-							else
-								refreshSquad(squadID)
-							end
+					local squadID = unitSquadTable[unitID]
+					if squadID then
+						local targetx, targety, targetz = squadsTable[squadID].target.x, squadsTable[squadID].target.y, squadsTable[squadID].target.z
+						if targetx then
+							squadsTable[squadID].squadNeedsRefresh = true
+							squadCommanderGiveOrders(squadID, targetx, targety, targetz)
 						else
-							local pos = getRandomEnemyPos()
-							GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
+							refreshSquad(squadID)
 						end
+					else
+						local pos = getRandomEnemyPos()
+						GiveOrderToUnit(unitID, CMD.FIGHT, {pos.x, pos.y, pos.z}, {})
 					end
 				end
 			end
@@ -2138,7 +2188,7 @@ if gadgetHandler:IsSyncedCode() then
 					SetGameRulesParam("raptorQueenHealth", 0)
 					SetGameRulesParam("raptorTechAnger", 0)
 				else
-					gameOver = GetGameFrame() + 200
+					gameOver = GetGameFrame + 200
 					SetGameRulesParam("raptorQueenAnger", 0)
 					SetGameRulesParam("raptorQueenHealth", 0)
 					SetGameRulesParam("raptorTechAnger", 0)
@@ -2231,7 +2281,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameOver()
 		-- don't end game in survival mode
 		if config.difficulty ~= config.difficulties.survival then
-			gameOver = GetGameFrame()
+			gameOver = GetGameFrame
 		end
 	end
 

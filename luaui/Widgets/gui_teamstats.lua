@@ -159,6 +159,7 @@ function isAbove(mousePos,guiData)
 end
 
 local teamData={}
+local teamAPM = {}
 local maxColumnTextSize = 0
 local columnSize = 0
 local prevNumLines = 0
@@ -309,6 +310,10 @@ function widget:PlayerChanged()
 	widget:GameFrame(GetGameFrame(),true)
 end
 
+function widget:ApmEvent(teamID, apm)
+	teamAPM[teamID] = apm
+end
+
 function widget:GameFrame(n,forceupdate)
 	if n > 0 and not gameStarted then
 		gameStarted = true
@@ -327,7 +332,6 @@ function widget:GameFrame(n,forceupdate)
 		local allyVec = {}
 		local allyTotal = {}
 		local teamInsertCount = 1
-		local teamAPM = WG.teamAPM or {}
 		for _,teamID in ipairs(GetTeamList(allyTeamID)) do
 			if teamID ~= GetGaiaTeamID() then
 				local range = GetTeamStatsHistory(teamID)

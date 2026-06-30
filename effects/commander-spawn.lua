@@ -511,24 +511,27 @@ return {
         --         alwaysvisible      = true,
         --     },
         -- },
-    electricstorm = {
-        air                = true,
-        class              = [[CExpGenSpawner]],
-        count              = 25,
-        ground             = true,
-        water              = true,
-        underwater         = true,
-        properties = {
-            delay              = [[6 r70]],
-            explosiongenerator = [[custom:lightning_stormbigalt]],
-            pos                = [[-120 r240, 30 r30, -120 r240]],
-            alwaysvisible      = false,
-        },
-    },    
+    -- Lightning is now rendered by the GL4 gadget "Environmental Lightning GL4"
+    -- via GG.SpawnEnvironmentalLightning("commanderspawn", ...), called from the
+    -- gadgets that spawn this CEG. The old electricstorm CEG below is disabled.
+    -- electricstorm = {
+    --     air                = true,
+    --     class              = [[CExpGenSpawner]],
+    --     count              = 25,
+    --     ground             = true,
+    --     water              = true,
+    --     underwater         = true,
+    --     properties = {
+    --         delay              = [[6 r70]],
+    --         explosiongenerator = [[custom:lightning_stormbigalt]],
+    --         pos                = [[-120 r240, 30 r30, -120 r240]],
+    --         alwaysvisible      = false,
+    --     },
+    -- },
   },
 
     ["commander-spawn"] = {
-        
+
         spawnbeacon = {
           air                = true,
           class              = [[CBitmapMuzzleFlame]],

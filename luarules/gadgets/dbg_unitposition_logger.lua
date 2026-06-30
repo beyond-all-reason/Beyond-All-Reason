@@ -252,13 +252,18 @@ else	-- SYNCED
 local validation = string.randomString(2)
 	_G.validationLogger = validation
 
+	-- Cache prefix bytes: "log"(3) + validation(2) = 5 bytes
+	local lg1, lg2, lg3 = string.byte("log", 1, 3) -- 108, 111, 103
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	-- Synced code here only listens to what has been received and thus logged in the demo, notifies unsynced so that can handle re-sending if necessary
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = string.split(msg:sub(6, 40), ';')
-			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
-			return true
-		end
+		if #msg < 5 then return end
+		local b1, b2, b3, b4, b5 = string.byte(msg, 1, 5)
+		if b1 ~= lg1 or b2 ~= lg2 or b3 ~= lg3 or b4 ~= vb1 or b5 ~= vb2 then return end
+		local params = string.split(msg:sub(6, 40), ';')
+		SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
+		return true
 	end
 
 end

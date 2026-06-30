@@ -52,6 +52,14 @@ local CONFIG = {
 	-- Defs whose total score is below this threshold get no burst.
 	minEnergyScore = 15,
 
+	-- Units whose energy score divided by metalcost is below this ratio are
+	-- treated as "incidental energy" (a combat unit with a passive generator)
+	-- and receive no burst. Units qualifying via energyconv_capacity or an
+	-- explicit overrides.particleCount entry are exempt from this check.
+	-- armbanth (score 24 / metal 13500 = 0.0018) → excluded.
+	-- armcarry  (score 48 / metal  1400 = 0.034)  → included.
+	minEnergyScoreRatio = 0.003,
+
 	-- Final particleCount = clamp(score ^ particleCountPower * particleCountMul, minPC, maxPC)
 	-- particleCountPower < 1 gives diminishing returns: doubling a unit's energy
 	-- output no longer doubles its particle burst. 0.7 is a mild curve (2× energy
@@ -87,7 +95,7 @@ local CONFIG = {
 	-- Spawn jitter around the unit center, as a fraction of unit radius.
 	-- Keep small so particles start near the center and expand visibly;
 	-- too large and they appear pre-spread with no expansion phase.
-	spawnJitterFrac = 0.4,
+	spawnJitterFrac = 0.35,
 	-- Compress vertical spawn jitter so particles don't spawn far below the
 	-- ground plane (1.0 = full sphere, 0.4 = flat oval).
 	spawnJitterYFrac = 0.66,
@@ -99,7 +107,7 @@ local CONFIG = {
 	-- more speed. Set useDeathExplosion=false to ignore the weapon entirely.
 	------------------------------------------------------------------
 	useDeathExplosion = true,
-	aoeJitterMul      = 0.1,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
+	aoeJitterMul      = 0.15,   -- spawn jitter += aoe * mul (elmos); keep tiny so AoE widens velocity range, not spawn origin
 	aoeSpeedMul       = 0.0035,  -- maxSpeed += aoe * mul
 	damageSpeedMul    = 0.0035,  -- maxSpeed += damage * mul
 	damageCountMul    = 0.022,  -- extra particles per damage point
@@ -111,7 +119,7 @@ local CONFIG = {
 	--   pos(t) = spawn + vel*t*(1 - 0.5*drag*t) + 0.5*gravity*t^2
 	-- t is in sim frames since spawn; vel/gravity in elmos/frame[^2].
 	------------------------------------------------------------------
-	drag     = 0.007,
+	drag     = 0.008,
 	gravityY = -0.003,
 
 	------------------------------------------------------------------
@@ -210,11 +218,11 @@ local GL_FRONT_AND_BACK      = GL.FRONT_AND_BACK
 local GL_FILL                = GL.FILL
 local GL_LEQUAL              = GL.LEQUAL
 
-local LuaShader           = gl.LuaShader
-local InstanceVBOTable    = gl.InstanceVBOTable
-local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
-local uploadElementRange  = InstanceVBOTable.uploadElementRange
+local LuaShader              = gl.LuaShader
+local InstanceVBOTable       = gl.InstanceVBOTable
+local pushElementInstance    = InstanceVBOTable.pushElementInstance
+local popElementInstance     = InstanceVBOTable.popElementInstance
+local uploadElementRange     = InstanceVBOTable.uploadElementRange
 
 local mathRandom = math.random
 local mathSqrt   = math.sqrt
@@ -225,6 +233,7 @@ local mathCos    = math.cos
 local mathMax    = math.max
 local mathMin    = math.min
 local mathHuge   = math.huge
+local stringFind = string.find
 
 -- Cube/GS path -- no texture sampled.
 
@@ -260,6 +269,9 @@ local qualifyingDefs = {}
 -- unitID set: populated by UnitFinished so UnitDestroyed can skip
 -- incomplete (under-construction) units. Cleared on UnitDestroyed.
 local finishedUnits = {}
+
+local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
+local killedByLuaWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.KilledByLua
 
 -- Cached view state (refreshed each GameFrame).
 local cachedAllyTeamID   = spGetMyAllyTeamID()
@@ -686,6 +698,8 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
+local useGeometryShader = true	-- cant set it here, will be overwritten in initGL4()
+
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
 local SHAPE_ID         = 0    -- 0 = cube, 1 = octahedron
@@ -710,20 +724,14 @@ local WOBBLE_FREQ_VAR  = 0.5
 local WOBBLE_RAMP_FRAMES = 7.0
 local WHITE_HOTSPOT          = 1.5
 local WHITE_HOTSPOT_THRESHOLD = 0.6
-local SIZE_VAR    = 0.3
 local ALPHA_VAR   = 2.5
-local NANO_ALPHA  = 50 / 255
 local ROT_VAL_BASE  = -180  local ROT_VAL_RANGE = 360
 local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 -- rotAcc in deg/sec² converted to deg/frame² (GAME_SPEED = 30)
 local ROT_ACC_BASE  = -40 / (30*30)   local ROT_ACC_RANGE = 80 / (30*30)
 
 local function initGL4()
-	if not LuaShader.isGeometryShaderSupported then
-		goodbye("geometry shader not supported")
-		return false
-	end
-	local shaderCache = {
+	local shaderCacheGS = {
 		vsSrc = vsSrc,
 		fsSrc = fsSrc,
 		gsSrc = gsSrc,
@@ -758,39 +766,156 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate  = true,
 	}
-	particleShader = LuaShader.CheckShaderUpdates(shaderCache)
+
+	local shaderCacheNoGS = {
+		vssrcpath = "LuaUI/Shaders/energy_explosion_particles_gl4_nogs.vert.glsl",
+		fsSrc = fsSrc,
+		shaderName = "UnitEnergyExplosionParticlesGL4_NoGS",
+		uniformInt   = { u_shape = SHAPE_ID },
+		uniformFloat = shaderCacheGS.uniformFloat,
+		shaderConfig = {},
+		forceupdate  = true,
+	}
+
+	-- Try the geometry-shader path first; only fall back if compile actually
+	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
+	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
+	useGeometryShader = true
+	particleShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
+	if not particleShader then
+		spEcho("Energy Explosion Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		useGeometryShader = false
+		particleShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
+	end
 	if not particleShader then
 		goodbye("Failed to compile shader")
 		return false
 	end
 
-	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"eepQuadVBO"
-	)
-	-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
-	-- GS doesn't get invoked twice per particle.
-	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	indexVBO:Define(3)
-	indexVBO:Upload({0, 1, 2})
+	if useGeometryShader then
+		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
+			-1, -1, 1, 1,
+			0, 0, 1, 1,
+			"eepQuadVBO"
+		)
+		-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
+		-- GS doesn't get invoked twice per particle.
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(3)
+		indexVBO:Upload({0, 1, 2})
 
-	local layout = {
-		{ id = 1, name = "spawnPosAndSize",  size = 4 },
-		{ id = 2, name = "velAndSpawnFrame", size = 4 },
-		{ id = 3, name = "instColor",        size = 4 },
-		{ id = 4, name = "rotData",          size = 4 },
-	}
-	particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
-	if not particleVBO then
-		goodbye("Failed to create instance VBO")
-		return false
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
+		if not particleVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+		particleVBO.numVertices = numVertices
+		particleVBO.vertexVBO   = quadVBO
+		particleVBO.indexVBO    = indexVBO
+		particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
+		particleVBO.primitiveType = GL.TRIANGLES
+	else
+		-- No-GS fallback: build a template indexed mesh with one vertex per
+		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
+		-- Octahedron: 8 tris * 3 verts = 24 verts.  Plus a 4-vert glow billboard
+		-- quad.  We use independent triangles, so each template vertex is emitted
+		-- exactly once and indexed in GL order.
+		local NUM_SHAPE_VERTS = 24
+		local NUM_GLOW_VERTS  = 4
+		local NUM_VERTS = NUM_SHAPE_VERTS + NUM_GLOW_VERTS
+		local isOcta = (SHAPE_ID == 1)
+
+		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		templateVBO:Define(NUM_VERTS, {{ id = 0, name = "vertexSlot", size = 1 }}) -- float slot, cast to int in VS
+		local vertexData = {}
+		for i = 0, NUM_VERTS - 1 do
+			vertexData[#vertexData + 1] = i
+		end
+		templateVBO:Upload(vertexData)
+
+		-- Build indices matching the order the no-GS VS emits the template:
+		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
+		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
+		local indexData = {}
+		if isOcta then
+			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
+				local base = shapeTri * 3
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+			end
+		else
+			for quad = 0, NUM_SHAPE_VERTS / 4 - 1 do
+				local base = quad * 4
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 3
+			end
+		end
+		local glowBase = NUM_SHAPE_VERTS
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 1
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 3
+
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(#indexData)
+		indexVBO:Upload(indexData)
+
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO_NoGS")
+		if not particleVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+
+		local realVAO = particleVBO:makeVAOandAttach(templateVBO, particleVBO.instanceVBO, indexVBO)
+		if not realVAO then
+			goodbye("Failed to create no-GS VAO")
+			return false
+		end
+
+		-- Anchor the template/index VBOs so Lua GC cannot collect them while
+		-- the VAO is alive (same GC fix as DrawPrimitiveAtUnit, commit 2b51f6e863).
+		particleVBO.nogsTemplateVBO = templateVBO
+		particleVBO.nogsIndexVBO    = indexVBO
+
+		local indexCount = #indexData
+		particleVBO.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+		particleVBO.primitiveType = GL.TRIANGLES
 	end
-	particleVBO.numVertices = numVertices
-	particleVBO.vertexVBO   = quadVBO
-	particleVBO.indexVBO    = indexVBO
-	particleVBO.VAO         = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
-	particleVBO.primitiveType = GL.TRIANGLES
 	return true
 end
 
@@ -829,14 +954,23 @@ end
 local function classifyDefs()
 	local n = 0
 	for defID, ud in pairs(UnitDefs) do
-		if not CONFIG.excludeUnitDefs[ud.name] then
+		local cp = ud.customParams
+		local isRaptor = (ud.category and stringFind(ud.category, "RAPTOR", 1, true))
+			or (cp and cp.subfolder == "other/raptors")
+
+		if not CONFIG.excludeUnitDefs[ud.name] and not isRaptor then
 			local score = computeScore(ud)
 			local ov    = CONFIG.overrides[ud.name]
 			-- Energy converters/metal-makers qualify via their energyconv_capacity
 			-- regardless of the energy score threshold.
-			local cp = ud.customParams
 			local hasConverter = cp and tonumber(cp.energyconv_capacity) and tonumber(cp.energyconv_capacity) > 0
-			if (ov and ov.particleCount) or score >= CONFIG.minEnergyScore or hasConverter then
+			-- A unit qualifies via energy score only if the score is also significant
+			-- relative to its build cost. This prevents combat units with a small
+			-- passive generator (e.g. armbanth) from triggering the effect.
+			local metalCost = ud.metalCost or 0
+			local scoreQualifies = score >= CONFIG.minEnergyScore
+				and (metalCost == 0 or score / metalCost >= CONFIG.minEnergyScoreRatio)
+			if (ov and ov.particleCount) or scoreQualifies or hasConverter then
 				-- Look up the unit's death-explosion weapon (if any) so we can
 				-- scale spread/speed/count by the weapon's AoE and damage.
 				local aoe, deathDmg = 0, 0
@@ -1134,8 +1268,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attacker
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil
 	if not wasFinished then return end
-	-- Skip reclaims: engine passes the reclaimer as attackerID with no weapon.
-	if attackerID and (not weaponDefID or weaponDefID < 0) then return end
+	if weaponDefID == reclaimedWeaponDefID then return end
+	-- Geo-upgrade reclaim cleanup currently arrives as KilledByLua with no attacker.
+	-- Treat that specific scripted geothermal removal as non-explosive.
+	if not attackerID and weaponDefID == killedByLuaWeaponDefID then
+		local ud = UnitDefs[unitDefID]
+		if ud and ud.customParams and ud.customParams.geothermal then return end
+	end
+	-- Legacy fallback used by other BAR visuals: builder attacker with no valid weapon.
+	if attackerID and attackerID ~= unitID and (not weaponDefID or weaponDefID < 0) then return end
 	local meta = qualifyingDefs[unitDefID]
 	if not meta then return end
 	local px, py, pz = spGetUnitPosition(unitID)

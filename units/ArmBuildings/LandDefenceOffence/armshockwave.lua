@@ -43,6 +43,7 @@ return {
 			buildinggrounddecalsizey = 7.4,
 			buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
 			cvbuildable = true,
+			firestateoncloak = 0,
 			metal_extractor = 4,
 			model_author = "Hornet",
 			normaltex = "unittextures/Arm_normal.dds",

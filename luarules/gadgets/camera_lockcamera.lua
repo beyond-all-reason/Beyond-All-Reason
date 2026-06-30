@@ -12,10 +12,10 @@ function gadget:GetInfo()
 	}
 end
 
-local broadcastPeriod = 0.12	-- will send packet in this interval (s)
+local broadcastPeriod = 0.1	-- will send packet in this interval (s) for non-spectators
+local spectatorBroadcastPeriod = 0.2	-- will send packet in this interval (s) for spectators
 
 local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = #PACKET_HEADER
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -28,10 +28,13 @@ if gadgetHandler:IsSyncedCode() then
 	local expectedPrefix = PACKET_HEADER .. validation
 	local expectedPrefixLen = #expectedPrefix
 
+	-- Cache prefix bytes to avoid string allocations in the hot path
+	local ep1, ep2, ep3 = string.byte(expectedPrefix, 1, 3)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, expectedPrefixLen) ~= expectedPrefix then
-			return
-		end
+		if #msg < expectedPrefixLen then return end
+		local b1, b2, b3 = string.byte(msg, 1, 3)
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 then return end
 		SendToUnsynced("cameraBroadcast",playerID,msg)
 		return true
 	end
@@ -288,10 +291,11 @@ else	-- UNSYNCED
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()
 		timeSinceBroadcast = timeSinceBroadcast + dt
-		if timeSinceBroadcast < broadcastPeriod then
+		local activeBroadcastPeriod = spec and spectatorBroadcastPeriod or broadcastPeriod
+		if timeSinceBroadcast < activeBroadcastPeriod then
 			return
 		end
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
+		timeSinceBroadcast = timeSinceBroadcast - activeBroadcastPeriod
 
 		local state = GetCameraState()
 		if not CameraStateChanged(state) then

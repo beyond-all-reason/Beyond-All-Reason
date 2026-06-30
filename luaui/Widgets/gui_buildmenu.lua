@@ -71,7 +71,7 @@ local maxPosY = 0.74
 
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
-local showPrice = false		-- false will still show hover
+local showPrice = true		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showBuildProgress = true

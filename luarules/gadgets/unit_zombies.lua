@@ -399,7 +399,11 @@ local function warningCEG(featureID, x, y, z)
 	local radius = spGetFeatureRadius(featureID)
 
 	local selectedEffect = warningEffects[random(#warningEffects)]
-	spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
+	if selectedEffect == "scavradiation-lightning" and GG.SpawnEnvironmentalLightning then
+		GG.SpawnEnvironmentalLightning("scavradiation", x, y, z)
+	else
+		spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
+	end
 	spSpawnCEG("scaspawn-trail", x, y, z, 0, 0, 0, radius)
 end
 

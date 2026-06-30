@@ -31,7 +31,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local spSpawnCEG = Spring.SpawnCEG
 	local spSpawnExplosion = Spring.SpawnExplosion
 	local spSetFeatureResources = Spring.SetFeatureResources
 	local spGetGroundHeight = Spring.GetGroundHeight
@@ -105,19 +104,22 @@ if gadgetHandler:IsSyncedCode() then
 
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
+	local GetFeatureDefID = Spring.GetFeatureDefID
 	local GetFeatureDirection = Spring.GetFeatureDirection
 	local GetFeatureResources = Spring.GetFeatureResources
+	local GetAllFeatures = Spring.GetAllFeatures
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
 	local SetFeaturePosition = Spring.SetFeaturePosition
 	local SetFeatureHealth = Spring.SetFeatureHealth
+	local SetFeatureMaxHealth = Spring.SetFeatureMaxHealth
 	local CreateFeature = Spring.CreateFeature
 	local DestroyFeature = Spring.DestroyFeature
 	local GetGameFrame = Spring.GetGameFrame
 
 	local treesdying = {}
+	local postStartNormalized = false
 	local falltime = 55.0 -- in frames
-	local fallspeed = 25.0
 	-- Visual topple duration (frames). Kept independent of `strength` so that
 	-- fire-killed trees (which take tiny damage and thus have a huge strength /
 	-- falltime) still visibly fall over in a consistent ~1.3s instead of creeping
@@ -126,19 +128,24 @@ if gadgetHandler:IsSyncedCode() then
 	-- Hard cap on the FALLING→FALLEN transition. Fire-killed trees have dmg=2 and
 	-- can get strength=150+, making thisfeaturefalltime=8250 frames (275s). Without
 	-- this cap the tree never reaches FALLEN state so destroyFrame is never checked.
-	local maxFallFrames = 80
+	local maxFallFrames = 120
 	-- Hard cap on total lifetime from death frame to removal. Prevents any tree
 	-- (fire or non-fire) from persisting on the ground for an unreasonably long time.
-	local maxLifetimeFrames = 320
+	local maxLifetimeFrames = 500
 	-- How long (frames) a burning tree takes to char from intact to (near) full
 	-- charcoal black. Drives the per-feature health fraction that the CUS GL4 tree
 	-- shader reads to darken the bark and add ember glow.
-	local charFrames = 120.0
+	local charFrames = 180.0
+	local treeFireFadeFrames = 100
+	local treeFireExtinguishFrames = 130
+	local postFireGroundFrames = 100
+	local treeSinkStartFrames = treeFireExtinguishFrames + postFireGroundFrames
+	local sinkSpeedMultBurning = 2 / 3
+	local sinkSpeedMultExtinguished = 2.5
 
 	local treeMass = {}
 	local treeScaleY = {}
 	local treeRadius = {}
-	local treeName = {}
 	local geothermals = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 
@@ -147,8 +154,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		--if featureDef.name:find('treetype') == nil then
-			treeName[featureDefID] = featureDef.name
-				treeMass[featureDefID] = math_max(1, featureDef.mass)
+			treeMass[featureDefID] = math_max(1, featureDef.mass)
 			if featureDef.collisionVolume then
 				treeScaleY[featureDefID] = featureDef.collisionVolume.scaleY
 				local sx = featureDef.collisionVolume.scaleX or 0
@@ -210,7 +216,39 @@ if gadgetHandler:IsSyncedCode() then
 		return height, radius, canopyFrac
 	end
 
+	local IsLikelyTreeFeature
+	local function NormalizeZeroHealthTrees()
+		local allFeatures = GetAllFeatures()
+		local fixedCount = 0
+		for i = 1, #allFeatures do
+			local featureID = allFeatures[i]
+			local featureDefID = GetFeatureDefID(featureID)
+			if featureDefID and not geothermals[featureDefID] then
+				local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
+				if maxMetal == 0 and maxEnergy > 0 then
+					local health, maxHealth = GetFeatureHealth(featureID)
+					if health and maxHealth and maxHealth > 0 and health <= 0 then
+						-- Some maps place trees with health=0. Tree shader reads healthFraction
+						-- directly for charring, so those trees render fully burnt at game start.
+						-- Normalize only pathological zero-health trees back to max health.
+						-- This does NOT replace the feature, it only updates health values.
+						SetFeatureMaxHealth(featureID, maxHealth)
+						SetFeatureHealth(featureID, maxHealth, false)
+						fixedCount = fixedCount + 1
+					end
+				end
+			end
+		end
+		return fixedCount
+	end
 
+	IsLikelyTreeFeature = function(featureID, featureDefID)
+		if geothermals[featureDefID] then
+			return false
+		end
+		local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
+		return maxMetal == 0 and maxEnergy > 0
+	end
 
 	local function ComSpawnDefoliate(spawnx,spawny,spawnz)
 
@@ -286,7 +324,7 @@ if gadgetHandler:IsSyncedCode() then
 			local featureID = allFeatures[i]
 			local featureDefID = Spring.GetFeatureDefID(featureID)
 			if treeMass[featureDefID] and not geothermals[featureDefID] then
-				local remainingMetal, maxMetal, remainingEnergy, maxEnergy = GetFeatureResources(featureID)
+				local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
 				if maxMetal == 0 and maxEnergy > 0 then
 					local fx, fy, fz = GetFeaturePosition(featureID)
 					if fx and fy <= lavaLevel then
@@ -309,7 +347,7 @@ if gadgetHandler:IsSyncedCode() then
 			if not treesdying[featureID] then
 				local featureDefID = Spring.GetFeatureDefID(featureID)
 				if treeMass[featureDefID] and not geothermals[featureDefID] then
-					local remainingMetal, maxMetal, remainingEnergy, maxEnergy = GetFeatureResources(featureID)
+					local _, maxMetal, _, maxEnergy = GetFeatureResources(featureID)
 					if maxMetal == 0 and maxEnergy > 0 then
 						local fx, fy, fz = GetFeaturePosition(featureID)
 						if fx and fy <= lavaLevel then
@@ -354,6 +392,27 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		-- At game start, just remove trees already submerged by lava (no fire animation)
 		checkLavaTreesDestroy()
+		NormalizeZeroHealthTrees()
+		if TREEFELLER_DEBUG then
+			dbg("startup normalization completed")
+		end
+	end
+
+	function gadget:GameStart()
+		local fixedCount = NormalizeZeroHealthTrees()
+		postStartNormalized = true
+	end
+
+	function gadget:FeatureCreated(featureID, allyTeam, sourceID)
+		local featureDefID = GetFeatureDefID(featureID)
+		if not featureDefID or not IsLikelyTreeFeature(featureID, featureDefID) then
+			return
+		end
+		local health, maxHealth = GetFeatureHealth(featureID)
+		if health and maxHealth and maxHealth > 0 and health <= 0 then
+			SetFeatureMaxHealth(featureID, maxHealth)
+			SetFeatureHealth(featureID, maxHealth, false)
+		end
 	end
 
 
@@ -382,7 +441,7 @@ if gadgetHandler:IsSyncedCode() then
 			local health, maxhealth, _ = GetFeatureHealth(featureID)
 			if dmg >= health then
 				local fire
-				local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft = GetFeatureResources(featureID)
+				local _, maxMetal, _, maxEnergy, reclaimLeft = GetFeatureResources(featureID)
 				local dissapearSpeed = 1.7
 				local size = 'medium'
 				if treeScaleY[featureDefID] then
@@ -395,10 +454,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					dissapearSpeed = 0.15 + Spring.GetFeatureHeight(featureID) / math_random(3700, 4700)
 				end
-				--local destroyFrame = GetGameFrame() + (falltime * (treeMass[featureDefID] / dmg)) + 150 + (dissapearSpeed*4000)
-					local destroyFrame = math_min(GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000), GetGameFrame() + maxLifetimeFrames)
-				--Spring.Echo("Destroyed feature at", Spring.GetGameFrame(), "destroyframe = " ,destroyFrame, "Seconds:", (destroyFrame - Spring.GetGameFrame())/30)
-				--Spring.Echo("falltime = ",falltime, "treeMass=", treeMass[featureDefID], " dmg =", dmg, "dissapearSpeed", dissapearSpeed)
+				local destroyFrame = math_min(GetGameFrame() + falltime + 150 + (dissapearSpeed * 4000), GetGameFrame() + maxLifetimeFrames)
 
 				-- DYING TREE
 				if health ~= nil and maxMetal == 0 and maxEnergy > 0 and (health <= dmg or weaponDefID == -7) then
@@ -503,6 +559,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(gf)
+		if not postStartNormalized and gf >= 1 then
+			NormalizeZeroHealthTrees()
+			postStartNormalized = true
+		end
+
 		-- Periodically check for lava rise and ignite newly submerged trees
 		if gf % lavaCheckInterval == 0 then
 			checkLavaTreesFire(gf)
@@ -554,10 +615,12 @@ if gadgetHandler:IsSyncedCode() then
 						"dir=(" .. string.format("%.2f,%.2f", featureinfo.falldirx, featureinfo.falldirz) .. ")",
 						"fromBlast=" .. tostring(d2 > 0.0001))
 				end
+				local thisfeaturefalltime = math_min(falltime * featureinfo.strength, maxFallFrames)
 				-- Hand the burning visual to the GL4 fire gadget: a flame column that
 				-- climbs the tree and topples into a line of fire as it falls.
 				if featureinfo.fire and not featureinfo.fireSent then
 					local height, radius, canopyFrac = getTreeFireProfile(featureID, featureinfo.fDefID)
+					local burnFrames = thisfeaturefalltime + treeFireExtinguishFrames
 					-- IMPORTANT: SetFeatureDirection sets the model FRONT, but the engine
 					-- derives the trunk (up vector) as leaning along the NEGATIVE of the
 					-- front's horizontal component. So the trunk actually topples toward
@@ -565,7 +628,7 @@ if gadgetHandler:IsSyncedCode() then
 					local fdx = -featureinfo.falldirx
 					local fdz = -featureinfo.falldirz
 					spSendToUnsynced("treefire_start", featureID, fx, fy, fz, height, radius, canopyFrac,
-						fdx, fdz, fallVisualFrames)
+						fdx, fdz, fallVisualFrames, burnFrames)
 					featureinfo.fireSent = true
 					dbg("FIRE_SEND fID=" .. tostring(featureID),
 						"h=" .. string.format("%.0f", height or -1),
@@ -588,7 +651,6 @@ if gadgetHandler:IsSyncedCode() then
 					if charT < 0 then charT = 0 elseif charT > 1 then charT = 1 end
 					SetFeatureHealth(featureID, featureinfo.maxhealth * (1 - 0.97 * charT), false)
 				end
-				local thisfeaturefalltime = math_min(falltime * featureinfo.strength, maxFallFrames)
 				local fireFrequency = 5
 				if featureinfo.fire then
 					fireFrequency = math_floor(2 + ((gf - featureinfo.frame) / 70))
@@ -640,7 +702,7 @@ if gadgetHandler:IsSyncedCode() then
 						if featureinfo.fire then
 							if gf % fireFrequency == math_floor(fireFrequency / 3) and math_random(1, 6) == 1 then
 								local firex, firey, firez = fx + math_random(-3, 3), fy + math_random(-3, 3), fz + math_random(-3, 3)
-							local pos = math_random(5, 9)
+								local pos = math_random(5, 9)
 								firex = firex - ((featureinfo.falldirx or featureinfo.dirx) * pos)
 								firez = firez - ((featureinfo.falldirz or featureinfo.dirz) * pos)
 								spSpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
@@ -654,31 +716,29 @@ if gadgetHandler:IsSyncedCode() then
 							featureinfo.fireSent = false
 						end
 						if not removeFeatures then removeFeatures = {} end
-						removeCount = removeCount + 1
-						removeFeatures[removeCount] = featureID
+							removeCount = removeCount + 1
+							removeFeatures[removeCount] = featureID
 							DestroyFeature(featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + 130 <= gf and featureinfo.fire then
+						elseif featureinfo.frame + thisfeaturefalltime + treeFireFadeFrames <= gf and featureinfo.fire and not featureinfo.fadeSent then
+							spSendToUnsynced("treefire_fade", featureID)
+							featureinfo.fadeSent = true
+						elseif featureinfo.frame + thisfeaturefalltime + treeFireExtinguishFrames <= gf and featureinfo.fire then
 							featureinfo.fire = false
 							if featureinfo.fireSent then
 								spSendToUnsynced("treefire_stop", featureID)
 								featureinfo.fireSent = false
 							end
-						elseif featureinfo.frame + thisfeaturefalltime + 100 <= gf then
-							-- Tell the fire gadget to start tapering flames/embers as the tree sinks.
-							if featureinfo.fire and not featureinfo.fadeSent then
-								spSendToUnsynced("treefire_fade", featureID)
-								featureinfo.fadeSent = true
-							end
+						elseif featureinfo.frame + thisfeaturefalltime + treeSinkStartFrames <= gf then
 							local dx, dy, dz = GetFeatureDirection(featureID)
 							if featureinfo.fire then
-								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed, fz, false)
+								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultBurning, fz, false)
 							else
-								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * 3, fz, false)
+								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultExtinguished, fz, false)
 							end
 
 							-- NOTE: this can create twitchy tree movement
-              -- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
-			  -- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
+							-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
+							-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
 							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end

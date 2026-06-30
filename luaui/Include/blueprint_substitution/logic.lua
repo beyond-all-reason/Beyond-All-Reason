@@ -20,13 +20,11 @@ BlueprintSubLogic.equivalentUnits = {}
 BlueprintSubLogic.MasterBuildingData = {}
 
 local unitNameToDefIDMap = {}
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Precomputing UnitDefs Name->ID map...")
 for defID, def in pairs(UnitDefs) do
     if def and def.name then
         unitNameToDefIDMap[def.name:lower()] = defID
     end
 end
-Spring.Log("BlueprintSubLogic", LOG.INFO, "Finished precomputing Name->ID map.")
 
 function BlueprintSubLogic.validateCategoryDefinitions()
     local categoryKeys = {}
@@ -236,22 +234,26 @@ Spring.Log("BlueprintSubLogic", LOG.INFO, "Internal data structures for substitu
 
 local function _getActualSubstitutedUnitName(originalUnitName, targetSide)
     if not originalUnitName or not targetSide then
-        return originalUnitName 
-    end
-    
-    local unitNameLower = originalUnitName:lower()
-    local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
-    if not buildingData then
-        Spring.Log("BlueprintSubLogic", LOG.INFO, string.format("_getActualSubstitutedUnitDefID: No building data for unit '%s'. Returning original.", unitNameLower))
         return originalUnitName
     end
-    
+
+    local unitNameLower = originalUnitName:lower()
+    local buildingData = BlueprintSubLogic.MasterBuildingData[unitNameLower]
+
+    if not buildingData then
+        return originalUnitName
+    end
+
+    if buildingData.side == targetSide then
+        return originalUnitName
+    end
+
     local equivalentUnitName = buildingData.equivalents[targetSide]
     if not equivalentUnitName or equivalentUnitName == "" then
         Spring.Log("BlueprintSubLogic", LOG.WARNING, string.format("_getActualSubstitutedUnitDefID: No mapping for unit '%s' to target side '%s'.", unitNameLower, targetSide))
         return originalUnitName
     end
-    
+
     return equivalentUnitName
 end
 

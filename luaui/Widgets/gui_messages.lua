@@ -161,11 +161,14 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal('GadgetAddMessage', addMessage)
 	WG['messages'] = {}
 	WG['messages'].addMessage = function(text)
 		addMessage(text)
 	end
+end
+
+function widget:GadgetAddMessage(text)
+	addMessage(text)
 end
 
 local buildmenuBottomPos = false
@@ -254,7 +257,6 @@ function widget:Shutdown()
 			messageLines[i].displaylist = nil
 		end
 	end
-	widgetHandler:DeregisterGlobal('GadgetAddMessage')
 end
 
 function widget:TextCommand(command)

@@ -87,6 +87,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

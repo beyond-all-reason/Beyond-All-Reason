@@ -218,6 +218,12 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames["raptor_queen_veryeasy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 60, },
+		[UnitDefNames["raptor_queen_easy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 50, },
+		[UnitDefNames["raptor_queen_normal"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 40, },
+		[UnitDefNames["raptor_queen_hard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 30, },
+		[UnitDefNames["raptor_queen_veryhard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 20, },
+		[UnitDefNames["raptor_queen_epic"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 10, },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { chance = 0.2, distance = 750 },
@@ -2948,6 +2954,8 @@ addNewSquad({
 	raptorsquadbehavior - string - explained below
 	raptorsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
 	raptorsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+	raptorsquadforceair - bool - Enforce this squad to be spawned through aircraft spawn pools, even if it's not an aircraft
+	raptorsquadforcesurface - bool - Enforce this squad to be spawned through surface (land or sea) spawn pools, even if it's an aircraft
 
 	Behavior Classes:
 
@@ -3044,13 +3052,13 @@ for name, unitDef in pairs(UnitDefNames) do
 
 			if not customSquadTable.type then
 				if unitDef.customParams.raptorsquadrarity and unitDef.customParams.raptorsquadrarity == "basic" then
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "basicAir"
 					else
 						customSquadTable.type = "basic"
 					end
 				else
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "specialAir"
 					else
 						customSquadTable.type = "special"

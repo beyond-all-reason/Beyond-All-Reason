@@ -84,17 +84,13 @@ return {
 			[23] = "legtl",
 			[24] = "legfrl",
 			[25] = "legfrad",
-			-- Experimental:
 			[26] = "leghp",
 			[27] = "legfhp",
-			--[28] = "armmg",
-			--[29] = "armclaw",
-			--[30] = "armferret",
-			--[31] = "legjam",
 		},
 		customparams = {
 			unitgroup = 'builder',
 			combatradius = 600,
+			firestateoncloak = 0,
 			maxrange = 300,
 			iscommander = true,
 			model_author = "Tharsis",

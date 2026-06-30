@@ -46,6 +46,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			firestateoncloak = 0,
 			model_author = "ZephyrSkies (model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0,
