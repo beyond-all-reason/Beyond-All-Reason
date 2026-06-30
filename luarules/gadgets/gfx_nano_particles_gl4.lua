@@ -1181,13 +1181,24 @@ local function initGL4()
 		forceupdate = true,
 	}
 
-	-- Try the geometry-shader path first; only fall back if compile actually
-	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
-	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
-	useGeometryShader = true
-	nanoShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
+	-- AMD GPUs have no native geometry-shader stage. Mesa emulates this GS by translating it
+	-- onto the hardware's real shader stages, emitting every vertex through memory buffers.
+	-- This is slow both to compile (a multi-second GS compile that stalls on the first draw,
+	-- and isn't kept in the disk cache so it recurs) and to run (those memory round-trips
+	-- cost bandwidth every frame). The no-GS path draws the same particles with none of that.
+	-- AMD-on-Linux is always Mesa.
+	local preferNoGS = (Platform ~= nil and Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux")
+
+	-- Try the geometry-shader path first (unless we already know to skip it); only
+	-- fall back if compile actually fails. LuaShader.isGeometryShaderSupported can
+	-- report false negatives on some drivers (e.g. AMD/Mesa), so we don't trust it
+	-- alone.
+	useGeometryShader = not preferNoGS
+	nanoShader = useGeometryShader and LuaShader.CheckShaderUpdates(shaderCacheGS) or nil
 	if not nanoShader then
-		spEcho("Nano Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		if useGeometryShader then
+			spEcho("Nano Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		end
 		useGeometryShader = false
 		nanoShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
 	end
@@ -3467,31 +3478,6 @@ function gadget:RenderUnitDestroyed(unitID)
 end
 
 function gadget:DrawWorld()
-	-- One-time shader warm-up. radeonsi/Mesa defers the (expensive, ~seconds)
-	-- LLVM backend compile of this shader to the first DRAW that uses it -- not
-	-- to link time -- and BAR's Mesa shader disk cache does not retain it, so the
-	-- stall is unavoidable and recurs every launch. Without this, it lands mid-
-	-- game on the first construction nano-spray (the "first building freeze").
-	-- Issue one invisible 1-instance draw on the first rendered frame so the
-	-- compile happens at a predictable, tolerable moment (game start) instead.
-	if nanoVBO and nanoShader and not nanoVBO.shaderWarmedUp then
-		nanoVBO.shaderWarmedUp = true
-		gl.ColorMask(false, false, false, false)   -- write nothing; compile still happens
-		glDepthMask(false)
-		nanoShader:Activate()
-		-- nanoVBO:Draw() early-returns at usedElements == 0, so temporarily claim
-		-- one instance to issue a real glDrawElementsInstanced through the exact
-		-- VAO/primitive (GS or no-GS) the live path uses, compiling the right
-		-- variant. Instance 0 is uninitialized garbage, but ColorMask hides it.
-		local savedUsed = nanoVBO.usedElements
-		nanoVBO.usedElements = 1
-		nanoVBO:Draw()
-		nanoVBO.usedElements = savedUsed
-		nanoShader:Deactivate()
-		gl.ColorMask(true, true, true, true)
-		glDepthMask(true)
-	end
-
 	if not nanoVBO or nanoVBO.usedElements == 0 then return end
 
 	local t0
