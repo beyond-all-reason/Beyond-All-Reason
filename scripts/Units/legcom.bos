@@ -4,7 +4,8 @@
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 26
 		
 piece	pelvis, torso, head, Pack, aaturret, aabarrel, packdecor, lshoulder, larm, lhand, barrelheatray, rshoulder, rarm, rhand, barreldgun, lthigh, lleg, lfoot, ltoes, rthigh, rleg, rfoot, rtoes,
-		aimxl, aimxr, aimy1, hatpoint, misflare, tankpivot, nano, flare, flaredgun, teleport;
+		aimxl, aimxr, aimy1, misflare, tankpivot, nano, flare, flaredgun, teleport,
+		hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint;
 
 static-var isAiming, isBuilding, isAimingDgun, buildHeading, buildPitch, leftArm, rightArm, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, torsoRot, isDancing, idleTime, shotcount, isCloaked;
 
@@ -488,7 +489,6 @@ Create(){
 	hide aimxr;
 	hide flaredgun;
 	hide aimxl;
-	hide hatpoint;
 	hide aimy1;
 	hide teleport;
 	
