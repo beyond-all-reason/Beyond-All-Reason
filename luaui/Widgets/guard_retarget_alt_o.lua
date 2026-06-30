@@ -43,13 +43,12 @@ local spGetUnitPosition         = Spring.GetUnitPosition
 local spGetUnitTeam             = Spring.GetUnitTeam
 local spGetUnitIsDead           = Spring.GetUnitIsDead
 local spValidUnitID             = Spring.ValidUnitID
+local spGiveOrder               = Spring.GiveOrder
 local spGiveOrderToUnit         = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray    = Spring.GiveOrderToUnitArray
 local spGetUnitsInSphere        = Spring.GetUnitsInSphere
 local spAreTeamsAllied          = Spring.AreTeamsAllied
 local spTraceScreenRay          = Spring.TraceScreenRay
 local spSendCommands            = Spring.SendCommands
-local spGetKeyBindings          = Spring.GetKeyBindings
 local spEcho                    = Spring.Echo
 local spGetMouseState           = Spring.GetMouseState
 local spGetViewGeometry         = Spring.GetViewGeometry
@@ -79,10 +78,6 @@ local KEY_O = (KEYSYMS and KEYSYMS.O) or string.byte("o")
 -- though action keybinds are processed before widget:KeyPress().
 local ACTION_NAME = "guardretarget"
 
--- BAR key presets commonly use the scancode form, while older/custom
--- configurations may use the symbolic form. Own both while enabled.
-local ALT_O_KEYSETS = {"Alt+o", "Alt+sc_o"}
-
 -- Drawn near the cursor while Alt+O special guard is armed.
 local ARMED_ICON_TEXTURE = "LuaUI/Images/allycursor.dds"
 local ARMED_ICON_SIZE = 34
@@ -105,10 +100,6 @@ local MAX_FROM_DEAD_TARGET = 600
 -- Every 15 frames we re-check who is still guarding.
 local UPDATE_FRAMES = 15
 
--- How much of a command queue we inspect when looking for a guard order.
--- This lets active guard survive Space-inserted move orders in front of it.
-local MAX_TRACKED_COMMANDS = 20
-
 
 ----------------------------------------------------------------
 -- 3) STATE VARIABLES
@@ -125,13 +116,6 @@ local gameStarted = false
 -- Press Alt+O -> this becomes true.
 -- Then the NEXT left click on an allied unit uses special guard.
 local awaitingSpecialGuard = false
-
--- Selection is captured when Alt+O is pressed. This prevents another widget
--- from changing the selection before the target click is handled.
-local armedGuardUnits = {}
-
--- Exact Alt+O bindings that existed before this widget took ownership.
-local previousAltOBindings = {}
 
 -- specialGuardUnits[unitID] = true
 -- Means:
@@ -151,17 +135,6 @@ local specialGuardUnits = {}
 -- We store targetDefID so that when the target dies,
 -- we can look for "another unit of the same type".
 local guardData = {}
-
--- pendingRetargets[guarderID] = {
---     targetDefID = ???,
---     deadTargetID = ???,
---     deadX = ???,
---     deadZ = ???
--- }
---
--- Used when a Space-inserted command is in front of the guard order.
--- We wait until the queue is safe to touch, then issue the replacement guard.
-local pendingRetargets = {}
 
 
 ----------------------------------------------------------------
@@ -199,62 +172,21 @@ local function MaybeRemoveSelf()
 end
 
 
-local function IsAltOKeyset(keyset)
-    local normalized = keyset and string.lower((keyset:gsub("%s+", "")))
-    return normalized == "alt+o" or normalized == "alt+sc_o"
-end
-
-
-local function SaveAltOBindings()
-    previousAltOBindings = {}
-
-    for _, binding in pairs(spGetKeyBindings() or {}) do
-        if IsAltOKeyset(binding.boundWith) then
-            previousAltOBindings[#previousAltOBindings + 1] = {
-                keyset = binding.boundWith,
-                command = binding.command,
-                extra = binding.extra,
-            }
-        end
-    end
-end
-
-
 local function RebindKeys()
-    SaveAltOBindings()
-
-    local commands = {}
-
-    for i = 1, #ALT_O_KEYSETS do
-        commands[#commands + 1] = "unbindkeyset " .. ALT_O_KEYSETS[i]
-    end
-    for i = 1, #ALT_O_KEYSETS do
-        commands[#commands + 1] = "bind " .. ALT_O_KEYSETS[i] .. " " .. ACTION_NAME
-    end
-
-    spSendCommands(commands)
+    -- While this widget is enabled, make Alt+O activate this widget.
+    spSendCommands({
+        "unbindkeyset Alt+o",
+        "bind Alt+o luaui " .. ACTION_NAME,
+    })
 end
 
 
 local function RestoreKeys()
-    local commands = {}
-
-    for i = 1, #ALT_O_KEYSETS do
-        commands[#commands + 1] = "unbindkeyset " .. ALT_O_KEYSETS[i]
-    end
-
-    for i = 1, #previousAltOBindings do
-        local binding = previousAltOBindings[i]
-        local command = "bind " .. binding.keyset .. " " .. binding.command
-
-        if binding.extra and binding.extra ~= "" then
-            command = command .. " " .. binding.extra
-        end
-
-        commands[#commands + 1] = command
-    end
-
-    spSendCommands(commands)
+    -- Put BAR camera flip back when the widget is disabled.
+    spSendCommands({
+        "unbindkeyset Alt+o",
+        "bind Alt+o cameraflip",
+    })
 end
 
 
@@ -309,10 +241,8 @@ local function ClearTrackingForUnit(unitID)
     -- We erase:
     -- 1) the "special unit" flag
     -- 2) the remembered target data
-    -- 3) any delayed retarget request
     specialGuardUnits[unitID] = nil
     guardData[unitID] = nil
-    pendingRetargets[unitID] = nil
 end
 
 
@@ -344,31 +274,13 @@ local function ArmSpecialGuard()
 
     if #usableUnits == 0 then
         awaitingSpecialGuard = false
-        armedGuardUnits = {}
         spEcho("[Guard Retarget] Select movable guard unit(s), then press Alt+O.")
-        return true
+        return false
     end
 
-    armedGuardUnits = usableUnits
     awaitingSpecialGuard = true
     spEcho("[Guard Retarget] Armed. Left-click an allied unit to guard-retarget.")
     return true
-end
-
-
-local function FindGuardCommandInQueue(cmds)
-    if not cmds then
-        return nil
-    end
-
-    for i = 1, #cmds do
-        local cmd = cmds[i]
-        if cmd and cmd.id == CMD_GUARD then
-            return cmd, i
-        end
-    end
-
-    return nil
 end
 
 
@@ -434,37 +346,40 @@ local function CanRetargetGuardNow(guarderID, oldTargetID)
         return false
     end
 
-    -- Ask Spring for enough commands to see past Space-inserted move orders.
-    local cmds = spGetUnitCommands(guarderID, MAX_TRACKED_COMMANDS)
+    -- Ask Spring for up to 2 commands from this unit's queue.
+    local cmds = spGetUnitCommands(guarderID, 2)
 
     -- No commands at all? Fine, we can retarget.
     if not cmds or #cmds == 0 then
         return true
     end
 
-    local guardCmd, guardIndex = FindGuardCommandInQueue(cmds)
+    -- More than one command? That means there is already a queue.
+    -- We do not want to mess with that.
+    if #cmds > 1 then
+        return false
+    end
 
-    -- Weird empty queue? Treat as safe.
-    if not guardCmd then
+    local cmd1 = cmds[1]
+
+    -- Weird empty first command? Treat as safe.
+    if not cmd1 then
         return true
     end
 
-    -- If another command is in front, do not interrupt it.
-    if guardIndex ~= 1 then
-        return false, "wait"
+    -- If the current command is NOT Guard,
+    -- then do not interfere.
+    if cmd1.id ~= CMD_GUARD then
+        return false
     end
 
-    -- guardCmd.params[1] is usually the target unit ID for GUARD
-    local guardedID = guardCmd.params and guardCmd.params[1]
+    -- cmd1.params[1] is usually the target unit ID for GUARD
+    local guardedID = cmd1.params and cmd1.params[1]
 
     -- Safe only if:
     --   - guard target is now empty
     --   - or it is still the old dead target
-    if guardedID == nil or guardedID == oldTargetID then
-        return true
-    end
-
-    return false, "clear"
+    return guardedID == nil or guardedID == oldTargetID
 end
 
 
@@ -556,54 +471,6 @@ local function FindReplacementTarget(guarderID, wantedDefID, deadTargetID, deadX
 end
 
 
-local function TryPendingRetarget(guarderID)
-    local pending = pendingRetargets[guarderID]
-
-    if not pending then
-        return false
-    end
-
-    if not IsValidAliveUnit(guarderID) then
-        ClearTrackingForUnit(guarderID)
-        return true
-    end
-
-    local cmds = spGetUnitCommands(guarderID, MAX_TRACKED_COMMANDS)
-    local guardCmd, guardIndex = FindGuardCommandInQueue(cmds)
-
-    -- Wait for Space-inserted commands in front of guard to finish.
-    if guardCmd and guardIndex ~= 1 then
-        return false
-    end
-
-    -- If the dead guard command was removed, wait until the inserted work is done.
-    if not guardCmd and cmds and #cmds > 0 then
-        return false
-    end
-
-    local newTargetID = FindReplacementTarget(
-        guarderID,
-        pending.targetDefID,
-        pending.deadTargetID,
-        pending.deadX,
-        pending.deadZ
-    )
-
-    if newTargetID then
-        spGiveOrderToUnit(guarderID, CMD_GUARD, {newTargetID}, {})
-        guardData[guarderID] = {
-            targetID = newTargetID,
-            targetDefID = pending.targetDefID,
-        }
-        pendingRetargets[guarderID] = nil
-    else
-        ClearTrackingForUnit(guarderID)
-    end
-
-    return true
-end
-
-
 local function RefreshGuardTracking()
     -- This re-checks all special guard units every UPDATE_FRAMES.
     -- It keeps guardData fresh and cleans up units that stopped guarding.
@@ -618,41 +485,33 @@ local function RefreshGuardTracking()
             -- Remember that this special unit still exists
             stillAlive[unitID] = true
 
-            if TryPendingRetarget(unitID) then
-                -- Pending retarget either succeeded or cleaned itself up.
-            elseif pendingRetargets[unitID] then
-                -- Still waiting for the inserted command in front of guard to finish.
+            -- Only look at the top command
+            local cmds = spGetUnitCommands(unitID, 1)
 
-            else
-                -- Look past Space-inserted commands so active guard stays tracked.
-                local cmds = spGetUnitCommands(unitID, MAX_TRACKED_COMMANDS)
-                local guardCmd = FindGuardCommandInQueue(cmds)
+            if cmds and cmds[1] and cmds[1].id == CMD_GUARD then
+                local targetID = cmds[1].params and cmds[1].params[1]
 
-                if guardCmd then
-                    local targetID = guardCmd.params and guardCmd.params[1]
+                if IsValidAliveUnit(targetID) then
+                    local targetDefID = spGetUnitDefID(targetID)
 
-                    if IsValidAliveUnit(targetID) then
-                        local targetDefID = spGetUnitDefID(targetID)
-
-                        if targetDefID then
-                            -- Save:
-                            -- who this unit is guarding now
-                            -- and what type that target is
-                            guardData[unitID] = {
-                                targetID = targetID,
-                                targetDefID = targetDefID,
-                            }
-                        else
-                            guardData[unitID] = nil
-                        end
+                    if targetDefID then
+                        -- Save:
+                        -- who this unit is guarding now
+                        -- and what type that target is
+                        guardData[unitID] = {
+                            targetID = targetID,
+                            targetDefID = targetDefID,
+                        }
                     else
                         guardData[unitID] = nil
                     end
                 else
-                    -- If this special unit is no longer actively guarding,
-                    -- stop tracking it.
-                    ClearTrackingForUnit(unitID)
+                    guardData[unitID] = nil
                 end
+            else
+                -- If this special unit is no longer actively guarding,
+                -- stop tracking it.
+                ClearTrackingForUnit(unitID)
             end
         end
     end
@@ -694,7 +553,8 @@ function widget:Initialize()
 
     widgetHandler:AddAction(ACTION_NAME, ArmSpecialGuard, nil, "p")
 
-    -- Reserve both BAR keyset forms for this widget while it is enabled.
+    -- Move Flip Camera away from Alt+O
+    -- so Alt+O is free for this widget
     RebindKeys()
 end
 
@@ -702,7 +562,7 @@ end
 function widget:Shutdown()
     widgetHandler:RemoveAction(ACTION_NAME)
 
-    -- Restore exactly what was bound before; do not invent camera flip.
+    -- Put Flip Camera back when widget turns off
     RestoreKeys()
 end
 
@@ -769,18 +629,15 @@ function widget:MousePress(x, y, button)
     if button ~= 1 then
         -- cancel armed state if player clicked something else
         awaitingSpecialGuard = false
-        armedGuardUnits = {}
         return false
     end
 
     -- One-shot mode: consume the armed state now
     awaitingSpecialGuard = false
 
-    local guardUnits = armedGuardUnits
-    armedGuardUnits = {}
-
-    if #guardUnits == 0 then
-        spEcho("[Guard Retarget] Canceled: no movable guard unit was armed.")
+    local selectedUnits = GetSelectedSpecialGuardUnits()
+    if #selectedUnits == 0 then
+        spEcho("[Guard Retarget] Canceled: no movable guard unit selected.")
         return false
     end
 
@@ -804,14 +661,20 @@ function widget:MousePress(x, y, button)
     end
 
     -- Mark all selected units as special guard units
-    for i = 1, #guardUnits do
-        local unitID = guardUnits[i]
+    for i = 1, #selectedUnits do
+        local unitID = selectedUnits[i]
         specialGuardUnits[unitID] = true
         guardData[unitID] = nil
     end
 
-    -- Issue Guard to the units captured when Alt+O was pressed.
-    spGiveOrderToUnitArray(guardUnits, CMD_GUARD, {targetID}, {})
+    -- Issue a NORMAL guard order to the clicked allied unit
+    --
+    -- spGiveOrder(commandID, params, options)
+    --
+    -- commandID = CMD_GUARD
+    -- params    = {targetID}
+    -- options   = {}
+    spGiveOrder(CMD_GUARD, {targetID}, {})
 
     -- true = we consumed this click
     return true
@@ -825,9 +688,20 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
     -- if selected units get some other command that is NOT Guard,
     -- then stop treating them as special guard units.
 
-    -- Do not clear here. Space-inserted commands arrive here as normal MOVE/FIGHT/etc
-    -- before CommandInsert turns them into CMD.INSERT. RefreshGuardTracking() removes
-    -- units only after their queue no longer contains any guard command.
+    if cmdID ~= CMD_GUARD then
+        local selectedUnits = spGetSelectedUnits()
+
+        if selectedUnits and #selectedUnits > 0 then
+            for i = 1, #selectedUnits do
+                local unitID = selectedUnits[i]
+
+                if specialGuardUnits[unitID] then
+                    ClearTrackingForUnit(unitID)
+                end
+            end
+        end
+    end
+
     return false
 end
 
@@ -851,9 +725,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
         -- If this guarder was guarding the dead unit...
         if data.targetID == unitID then
             -- Make sure it is still safe to retarget
-            local canRetarget, retargetReason = CanRetargetGuardNow(guarderID, unitID)
-
-            if specialGuardUnits[guarderID] and canRetarget then
+            if specialGuardUnits[guarderID] and CanRetargetGuardNow(guarderID, unitID) then
                 local newTargetID = FindReplacementTarget(
                     guarderID,        -- who needs a new target
                     data.targetDefID, -- must be same unit type as dead target
@@ -882,13 +754,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
                     -- No replacement found -> stop tracking
                     ClearTrackingForUnit(guarderID)
                 end
-            elseif specialGuardUnits[guarderID] and retargetReason == "wait" then
-                pendingRetargets[guarderID] = {
-                    targetDefID = data.targetDefID,
-                    deadTargetID = unitID,
-                    deadX = deadX,
-                    deadZ = deadZ,
-                }
             else
                 -- Not safe anymore -> stop tracking
                 ClearTrackingForUnit(guarderID)
