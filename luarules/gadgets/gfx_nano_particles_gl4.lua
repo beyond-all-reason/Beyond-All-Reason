@@ -3467,6 +3467,31 @@ function gadget:RenderUnitDestroyed(unitID)
 end
 
 function gadget:DrawWorld()
+	-- One-time shader warm-up. radeonsi/Mesa defers the (expensive, ~seconds)
+	-- LLVM backend compile of this shader to the first DRAW that uses it -- not
+	-- to link time -- and BAR's Mesa shader disk cache does not retain it, so the
+	-- stall is unavoidable and recurs every launch. Without this, it lands mid-
+	-- game on the first construction nano-spray (the "first building freeze").
+	-- Issue one invisible 1-instance draw on the first rendered frame so the
+	-- compile happens at a predictable, tolerable moment (game start) instead.
+	if nanoVBO and nanoShader and not nanoVBO.shaderWarmedUp then
+		nanoVBO.shaderWarmedUp = true
+		gl.ColorMask(false, false, false, false)   -- write nothing; compile still happens
+		glDepthMask(false)
+		nanoShader:Activate()
+		-- nanoVBO:Draw() early-returns at usedElements == 0, so temporarily claim
+		-- one instance to issue a real glDrawElementsInstanced through the exact
+		-- VAO/primitive (GS or no-GS) the live path uses, compiling the right
+		-- variant. Instance 0 is uninitialized garbage, but ColorMask hides it.
+		local savedUsed = nanoVBO.usedElements
+		nanoVBO.usedElements = 1
+		nanoVBO:Draw()
+		nanoVBO.usedElements = savedUsed
+		nanoShader:Deactivate()
+		gl.ColorMask(true, true, true, true)
+		glDepthMask(true)
+	end
+
 	if not nanoVBO or nanoVBO.usedElements == 0 then return end
 
 	local t0
