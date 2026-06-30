@@ -345,6 +345,19 @@
 			"title": "Keybinds",
 			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
 			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
+			"editor": {
+				"search": "Search...",
+				"resetToPreset": "Reset to preset",
+				"other": "Other",
+				"pressKey": "press a key...  (Esc to cancel)",
+				"unsaved": "unsaved changes",
+				"save": "Save",
+				"discard": "Discard",
+				"reset": "Reset",
+				"cancel": "Cancel",
+				"resetConfirm": "Reset ALL keybinds to %{preset}?",
+				"resetHint": "Takes effect when you Save."
+			},
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
