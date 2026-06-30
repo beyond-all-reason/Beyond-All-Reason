@@ -47,7 +47,6 @@ local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitLosState = Spring.GetUnitLosState
-local spEcho = Spring.Echo
 local mathDistance2dSquared = math.distance2dSquared
 
 local function getWeaponDefFromName(weaponName)
@@ -310,23 +309,17 @@ local function canUnitDefOneShotUnitDef(attackerUnitDef, targetUnitDef)
 	return false
 end
 
-local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefID, targetUnitDefID, attackerName, attackerDPS, attackerSpeed, attackerMaxRange)
+local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefID, targetUnitDefID, attackerDPS, attackerSpeed, attackerMaxRange)
 	local threatUnitDef = UnitDefs[targetUnitDefID]
 	local victimUnitDef = UnitDefs[attackerUnitDefID]
 
 	if not canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef) then
 		rangesForAttacker[targetUnitDefID] = NO_THREAT
-		if attackerName == "corban" then
-			spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", NO_THREAT, "(canThreaten=no)")
-		end
 		return
 	end
 
 	if neverHesitateAttackers[attackerUnitDefID] then
 		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-		if attackerName == "corban" then
-			spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", ALWAYS_SHOOT, "(neverHesitate=yes)")
-		end
 		return
 	end
 
@@ -342,79 +335,10 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 		killBuffer = (attackerSpeed + targetSpeed) * timeToKill
 	end
 	local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
-	local storedThreatRange
 	if threatRange > attackerMaxRange then
 		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-		storedThreatRange = ALWAYS_SHOOT
 	else
 		rangesForAttacker[targetUnitDefID] = threatRange * threatRange
-		storedThreatRange = threatRange
-	end
-	if attackerName == "corban" then
-		local killBufferBranch
-		if canOneShot then
-			killBufferBranch = "oneShot"
-		elseif attackerDPS > targetHealth then
-			killBufferBranch = "instantKill"
-		else
-			killBufferBranch = "timeToKill"
-		end
-		local targetThreatRangeSource = isKamikazeUnitDef(threatUnitDef) and "kamikazeExplosionRadius" or "weaponOrReclaimRange"
-		local weaponCount = countNonBogusWeapons(victimUnitDef)
-		local dpsPenaltyMultiplier = tonumber(victimUnitDef.customParams.dps_penalty_multiplier) or DPS_PENALTY
-		if weaponCount > 1 then
-			dpsPenaltyMultiplier = MULTI_WEAPON_DPS_PENALTY
-		end
-		spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", storedThreatRange)
-		spEcho("  logic: canThreaten=yes; neverHesitate=no")
-		spEcho("  formula: threatRange = sqrt(targetThreatRange^2 + attackerSpeed^2 + killBuffer^2)")
-		spEcho("  attackerDPS:", attackerDPS, "weaponCount:", weaponCount, "dpsPenalty:", dpsPenaltyMultiplier)
-		spEcho("  attackerSpeed:", attackerSpeed, "(victim speed", victimUnitDef.speed or 0, "*", THREAT_MOVEMENT_BUFFER_MULTIPLIER .. ")")
-		spEcho("  targetThreatRange:", targetThreatRange, "(" .. targetThreatRangeSource .. ")")
-		if isKamikazeUnitDef(threatUnitDef) then
-			spEcho("    kamikaze explosion radius:", targetThreatRange)
-		else
-			if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
-				spEcho("    reclaim buildDistance:", threatUnitDef.buildDistance or 0)
-			end
-			local weapons = threatUnitDef.weapons
-			for weaponNum = 1, #weapons do
-				local weapon = weapons[weaponNum]
-				local weaponDef = WeaponDefs[weapon.weaponDef]
-				if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
-					spEcho("    threatening weapon:", weaponDef.name, "range:", weaponDef.range or 0)
-				end
-			end
-		end
-		spEcho("  targetSpeed:", targetSpeed, "(threat speed", threatUnitDef.speed or 0, "*", THREAT_MOVEMENT_BUFFER_MULTIPLIER .. ")")
-		spEcho("  targetHealth:", targetHealth, "timeToKill:", timeToKill)
-		if canOneShot then
-			local attackerWeapons = victimUnitDef.weapons
-			for weaponNum = 1, #attackerWeapons do
-				local weapon = attackerWeapons[weaponNum]
-				local weaponDef = WeaponDefs[weapon.weaponDef]
-				if weaponDef then
-					local volleyDamage = getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, threatUnitDef)
-					if volleyDamage >= targetHealth then
-						spEcho("    oneShot weapon:", weaponDef.name, "volleyDamage:", volleyDamage)
-					end
-				end
-			end
-		end
-		spEcho("  killBuffer:", killBuffer, "(" .. killBufferBranch .. ")")
-		if killBufferBranch == "oneShot" then
-			spEcho("    killBuffer = (attackerSpeed + targetSpeed) *", INSTANT_KILL_MOVEMENT_SECONDS, "(armor-matched volley >= targetHealth)")
-		elseif killBufferBranch == "instantKill" then
-			spEcho("    killBuffer = (attackerSpeed + targetSpeed) *", INSTANT_KILL_MOVEMENT_SECONDS, "(attackerDPS > targetHealth)")
-		else
-			spEcho("    killBuffer = (attackerSpeed + targetSpeed) * timeToKill")
-		end
-		spEcho("  threatRange:", threatRange, "attackerMaxRange:", attackerMaxRange)
-		if threatRange > attackerMaxRange then
-			spEcho("  exceedsMaxRange: yes => stored ALWAYS_SHOOT (" .. ALWAYS_SHOOT .. ")")
-		else
-			spEcho("  exceedsMaxRange: no => stored linear:", storedThreatRange, "squared in table:", threatRange * threatRange)
-		end
 	end
 end
 
@@ -582,7 +506,6 @@ function gadget:Initialize()
 	for attackerUnitDefID, attackerDPS in pairs(unitDefsDPS) do
 		if attackerDPS > 0 or neverHesitateAttackers[attackerUnitDefID] then
 			local rangesForAttacker = {}
-			local attackerName = UnitDefs[attackerUnitDefID].name
 			local attackerSpeed = attackerSpeeds[attackerUnitDefID]
 			local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
 			for targetIndex = 1, #targetUnitDefIDs do
@@ -590,7 +513,6 @@ function gadget:Initialize()
 					rangesForAttacker,
 					attackerUnitDefID,
 					targetUnitDefIDs[targetIndex],
-					attackerName,
 					attackerDPS,
 					attackerSpeed,
 					attackerMaxRange
