@@ -1,0 +1,139 @@
+SENSEJv1.0 Patch Notes
+=======================
+
+Purpose
+-------
+Normalizes faction sensor, radar, sonar, and jammer units for competitive play.
+Also updates Juno costs and adds the Cortex Forge combat engineer.
+
+T1 Jammer Towers
+----------------
+Affected: Armada Jamtower (armjamt), Cortex Jamtower (corjamt), Legion Jammer (legjam)
+- Normalized to the Armada baseline.
+- Cost: 240 metal / 8,500 energy
+- Build time: 9,950
+- Jamming range: 500
+- Energy upkeep: 40
+
+T2 Radar Bots
+-------------
+Affected: Armada Marky (armmark), Cortex Voyeur (corvoyr), Legion radar bot (legaradk)
+- Normalized to the Cortex baseline.
+- Cost: 99 metal / 1,350 energy; build time: 5,000
+- Radar 2,200; sight 925; health 390; speed 45
+- Acceleration 0.05635; braking 0.2; turn rate 670.45001
+
+T2 Jammer Bots
+--------------
+Affected: Armada Eraser (armaser), Cortex Spectre (corspec), Legion jammer bot (legajamk)
+- Normalized to the Armada baseline, with speed reduced to 40.5.
+- Cost: 78 metal / 1,400 energy; build time: 6,000
+- Jamming range 450; upkeep 80; sight 380; health 340
+- Acceleration 0.138; braking 0.5175; turn rate 1,201.75
+
+T2 Radar Vehicles
+-----------------
+Affected: Armada Informer (armseer), Cortex Deceiver radar vehicle (corvrad), Legion radar vehicle (legavrad)
+- Normalized to the Armada baseline, using Cortex speed 48.
+- Cost: 125 metal / 2,000 energy; build time: 7,500
+- Radar 2,300; sight 900; health 980
+- Acceleration 0.04878; braking 0.1; turn rate 605
+
+T2 Jammer Vehicles
+------------------
+Affected: Armada jammer vehicle (armjam), Cortex Deleter (coreter), Legion jammer vehicle (legavjam)
+- Normalized to the Cortex baseline, with speed increased to 48.
+- Cost: 105 metal / 1,900 energy; build time: 7,500
+- Jamming range 450; upkeep 80; sight 330; health 580
+- Acceleration 0.03583; braking 0.1; turn rate 619.29999
+
+T1 Air Scouts
+-------------
+Affected: Armada Peep (armpeep), Cortex Fink (corfink)
+- Normalized to the Cortex Fink baseline.
+- Health increased/normalized to 126 so T1 anti-air towers do not destroy them in one hit.
+- Cost: 51 metal / 1,450 energy; build time: 2,400
+- Radar 1,120; sight 835; speed 360; cruise altitude 110
+- Cortex flight and handling values applied to both units.
+
+T2 Air Scouts
+-------------
+Affected: Armada Eagle (armawac), Cortex Condor (corawac)
+- Normalized to the Cortex Condor baseline.
+- Cost: 180 metal / 8,300 energy; build time: 16,000
+- Radar 2,400; sonar 1,200; sight 1,250
+- Speed 321; health 990; cruise altitude 110
+- Cortex flight and handling values applied to both units.
+
+T2 Naval Jammer Ships
+---------------------
+Affected: Armada Bermuda (armsjam), Cortex jammer ship (corsjam)
+- Normalized to the Armada Bermuda baseline.
+- Cost: 310 metal / 5,000 energy; build time: 20,000
+- Jamming range 980; upkeep 90; sight 390
+- Speed 45; health 1,350; acceleration/braking 0.04059; turn rate 405
+- Legion's hybrid radar/jammer ship is intentionally excluded.
+
+T1 Floating Radar/Sonar Towers
+------------------------------
+Affected: armfrad, corfrad, legfrad
+- Normalized to the Armada baseline.
+- Cost: 130 metal / 1,000 energy; build time: 1,800
+- Radar 2,100; sonar 900; sight 760; health 110
+
+T1 Sonar Towers
+---------------
+Affected: armsonar, corsonar
+- Normalized to the Armada baseline.
+- Cost: 20 metal / 450 energy; build time: 910
+- Sonar 1,200; sight 515; health 56
+
+T2 Radar Towers
+---------------
+Affected: armarad, corarad, legarad
+- Normalized to the Cortex baseline.
+- Cost: 400 metal / 14,000 energy; build time: 8,000
+- Radar 3,500; radar emit height 87; sight 1,000; health 500
+- Added manual cloak: 50 energy stationary or moving; minimum cloak distance 36
+
+T2 Jammer Towers
+----------------
+Affected: Armada Veil (armveil), Cortex Shroud (corshroud), Legion jammer tower (legajam)
+- Normalized to the Armada Veil baseline.
+- Normalized to a 2x2 footprint with yardmap "oooo".
+- Cost: 125 metal / 19,000 energy; build time: 9,100
+- Jamming range 760; upkeep 125; sight 155; health 830
+- Added manual cloak: 50 energy stationary or moving; minimum cloak distance 36
+
+Juno Structures and Missiles
+----------------------------
+Affected: armjuno, corjuno, legjuno
+- Structure cost: 500 metal / 12,000 energy
+- Structure build time: 20,000
+- Missile cost: 150 metal / 8,000 energy
+- Stockpile time: 75 seconds
+- Stockpile limit: 5 missiles
+
+T2 Advanced Sonar Towers
+------------------------
+Affected: Armada advanced sonar (armason), Cortex advanced sonar (corason), Legion advanced sonar (leganavalsonarstation)
+- Normalized to the Cortex baseline.
+- Cost: 160 metal / 2,400 energy; build time: 6,100
+- Sonar 1,600; sight 210; health 2,400
+- 3x3 footprint; minimum water depth 24
+
+Cortex Forge
+------------
+Affected: Cortex T2 vehicle plant (coravp), Cortex Forge (corforge)
+- Adds corforge to the Cortex T2 vehicle plant build list.
+- Explicitly loads corforge when it is not already available in standard games.
+- Replaces the Forge flamethrower's combat and visual behavior with Dragon's Maw values.
+- Uses Dragon's Maw burst, interval, range, reload, AoE, edge effectiveness, spray,
+  velocity, flame colors, intensity, growth, texture, and effects.
+- Damage per flame: 10.8 default, 16.2 commanders, 2.7 submarines.
+- Theoretical default DPS: approximately 157.1.
+
+Activation
+----------
+These repository files do not activate the tweak automatically. Load the contents of
+SENSEJv1.0.base64.txt through BAR's lobby TweakDefs option or a saved lobby preset.
