@@ -63,6 +63,10 @@ function gadget:GameFrame(n)
 			if featureID then
 				SpawnCEG(pendingCEG[featureID], pendingX[featureID], pendingY[featureID], pendingZ[featureID], 0, 1.0, 0, 0, 0)
 				pendingMarked[featureID] = nil
+				pendingCEG[featureID] = nil
+				pendingX[featureID] = nil
+				pendingY[featureID] = nil
+				pendingZ[featureID] = nil
 			end
 			pendingFeatureIDs[i] = nil
 		end
@@ -105,9 +109,6 @@ function gadget:FeatureDestroyed(featureID)
 	processedX[featureID] = nil
 	processedY[featureID] = nil
 	processedZ[featureID] = nil
-	pendingMarked[featureID] = nil
-	pendingCEG[featureID] = nil
-	pendingX[featureID] = nil
-	pendingY[featureID] = nil
-	pendingZ[featureID] = nil
+	-- Keep queued CEG payload until GameFrame drain to avoid nil SpawnCEG args.
+	-- The queue is short-lived (drained every other frame), so this is safe.
 end
