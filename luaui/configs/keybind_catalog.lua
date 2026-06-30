@@ -1,0 +1,129 @@
+-- Hand-curated catalog of commands for the in-game keybind editor, lifted from
+-- the original Keybind/Mouse Info "Keybindings" tab so categorisation + labels
+-- match what players already know.
+--
+-- Entry kinds:
+--   { action = "<bind command>", label = "<i18n key>" }  editable (chips + rebind)
+--   { label = "<i18n key>", keyLabel = "<i18n key>" }     informational, read-only
+--
+-- action strings are the bindable form (command + space-separated args), i.e.
+-- exactly what `/bind <keyset> <action>` expects and what Spring.GetKeyBindings
+-- reports as command(+extra). Anything bound but not listed here is shown by the
+-- editor under an "Other" section, so nothing is ever hidden.
+
+return {
+	{ category = "ui.keybinds.chat.title", items = {
+		{ action = "chat", label = "ui.keybinds.chat.send" },
+		{ label = "ui.keybinds.chat.allies", keyLabel = "ui.keybinds.chat.alliesKey" },
+		{ label = "ui.keybinds.chat.spectators", keyLabel = "ui.keybinds.chat.spectatorsKey" },
+		{ label = "ui.keybinds.chat.ignore", keyLabel = "ui.keybinds.chat.ignoreKey" },
+	} },
+
+	{ category = "ui.keybinds.menus.title", items = {
+		{ action = "options", label = "ui.keybinds.menus.settings" },
+		{ action = "sharedialog", label = "ui.keybinds.menus.share" },
+	} },
+
+	{ category = "ui.keybinds.camera.title", items = {
+		{ label = "ui.keybinds.camera.zoom", keyLabel = "ui.keybinds.camera.zoomKey" },
+		{ label = "ui.keybinds.camera.pan", keyLabel = "ui.keybinds.camera.panKey" },
+		{ label = "ui.keybinds.camera.tilt", keyLabel = "ui.keybinds.camera.tiltKey" },
+		{ label = "ui.keybinds.camera.drag", keyLabel = "ui.keybinds.camera.dragKey" },
+		{ action = "cameraflip", label = "ui.keybinds.camera.flip" },
+	} },
+
+	{ category = "ui.keybinds.cameraModes.title", items = {
+		{ action = "viewspring", label = "ui.keybinds.cameraModes.change" },
+		{ label = "ui.keybinds.cameraModes.fullscreen", keyLabel = "ui.keybinds.cameraModes.fullscreenKey" },
+		{ action = "toggleoverview", label = "ui.keybinds.cameraModes.overview" },
+		{ action = "togglelos", label = "ui.keybinds.cameraModes.los" },
+		{ action = "showelevation", label = "ui.keybinds.cameraModes.heightmap" },
+		{ action = "showpathtraversability", label = "ui.keybinds.cameraModes.traversability" },
+		{ action = "lastmsgpos", label = "ui.keybinds.cameraModes.mapmarks" },
+		{ action = "showmetalmap", label = "ui.keybinds.cameraModes.resourceSpots" },
+		{ action = "hideinterface", label = "ui.keybinds.cameraModes.interface" },
+	} },
+
+	{ category = "ui.keybinds.sound.title", items = {
+		{ label = "ui.keybinds.sound.volume", keyLabel = "ui.keybinds.sound.volumeKey" },
+		{ action = "mutesound", label = "ui.keybinds.sound.mute" },
+	} },
+
+	{ category = "ui.keybinds.selection.title", items = {
+		{ label = "ui.keybinds.selection.units", keyLabel = "ui.keybinds.selection.unitsKey" },
+	} },
+
+	{ category = "ui.keybinds.issueContextOrders.title", items = {
+		{ label = "ui.keybinds.issueContextOrders.order", keyLabel = "ui.keybinds.issueContextOrders.orderKey" },
+		{ label = "ui.keybinds.issueContextOrders.formationOrder", keyLabel = "ui.keybinds.issueContextOrders.formationOrderKey" },
+	} },
+
+	{ category = "ui.keybinds.orders.title", items = {
+		{ label = "ui.keybinds.orders.default", keyLabel = "ui.keybinds.orders.defaultKey" },
+		{ action = "move", label = "ui.keybinds.orders.move" },
+		{ action = "attack", label = "ui.keybinds.orders.attack" },
+		{ action = "settarget", label = "ui.keybinds.orders.setTarget" },
+		{ action = "repair", label = "ui.keybinds.orders.repair" },
+		{ action = "reclaim", label = "ui.keybinds.orders.reclaim" },
+		{ action = "resurrect", label = "ui.keybinds.orders.resurrect" },
+		{ action = "fight", label = "ui.keybinds.orders.fight" },
+		{ action = "patrol", label = "ui.keybinds.orders.patrol" },
+		{ action = "wantcloak", label = "ui.keybinds.orders.cloak" },
+		{ action = "stop", label = "ui.keybinds.orders.stop" },
+		{ action = "wait", label = "ui.keybinds.orders.wait" },
+		{ action = "canceltarget", label = "ui.keybinds.orders.cancelTarget" },
+		{ action = "manualfire", label = "ui.keybinds.orders.dGun" },
+		{ action = "selfd", label = "ui.keybinds.orders.selfDestruct" },
+	} },
+
+	{ category = "ui.keybinds.issueOrders.title", items = {
+		{ label = "ui.keybinds.issueOrders.order", keyLabel = "ui.keybinds.issueOrders.orderKey" },
+		{ label = "ui.keybinds.issueOrders.revert", keyLabel = "ui.keybinds.issueOrders.revertKey" },
+		{ label = "ui.keybinds.issueOrders.formation", keyLabel = "ui.keybinds.issueOrders.formationKey" },
+	} },
+
+	{ category = "ui.keybinds.queues.title", items = {
+		{ label = "ui.keybinds.queues.append", keyLabel = "ui.keybinds.queues.appendKey" },
+		{ action = "commandinsert", label = "ui.keybinds.queues.prepend" },
+	} },
+
+	{ category = "ui.keybinds.buildOrders.title", items = {
+		{ label = "ui.keybinds.buildOrders.selectTile", keyLabel = "ui.keybinds.buildOrders.selectTileKey" },
+		{ label = "ui.keybinds.buildOrders.metal", keyLabel = "ui.keybinds.buildOrders.metalKey" },
+		{ label = "ui.keybinds.buildOrders.energy", keyLabel = "ui.keybinds.buildOrders.energyKey" },
+		{ label = "ui.keybinds.buildOrders.intel", keyLabel = "ui.keybinds.buildOrders.intelKey" },
+		{ label = "ui.keybinds.buildOrders.factories", keyLabel = "ui.keybinds.buildOrders.factoriesKey" },
+		{ action = "buildfacing_inc", label = "ui.keybinds.buildOrders.rotate" },
+	} },
+
+	{ category = "ui.keybinds.issueBuildOrders.title", items = {
+		{ label = "ui.keybinds.issueBuildOrders.order", keyLabel = "ui.keybinds.issueBuildOrders.orderKey" },
+		{ label = "ui.keybinds.issueBuildOrders.deselect", keyLabel = "ui.keybinds.issueBuildOrders.deselect" },
+		{ label = "ui.keybinds.issueBuildOrders.line", keyLabel = "ui.keybinds.issueBuildOrders.lineKey" },
+		{ label = "ui.keybinds.issueBuildOrders.grid", keyLabel = "ui.keybinds.issueBuildOrders.gridKey" },
+		{ action = "buildspacing_inc", label = "ui.keybinds.issueBuildOrders.spacingUp" },
+		{ action = "buildspacing_dec", label = "ui.keybinds.issueBuildOrders.spacingDown" },
+	} },
+
+	{ category = "ui.keybinds.massSelect.title", items = {
+		{ action = "select AllMap++_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.all" },
+		{ action = "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+", label = "ui.keybinds.massSelect.builders" },
+		{ label = "ui.keybinds.massSelect.createGroup", keyLabel = "ui.keybinds.massSelect.createGroupKey" },
+		{ label = "ui.keybinds.massSelect.createAutoGroup", keyLabel = "ui.keybinds.massSelect.createAutoGroupKey" },
+		{ action = "remove_from_autogroup", label = "ui.keybinds.massSelect.removeAutoGroup" },
+		{ label = "ui.keybinds.massSelect.group", keyLabel = "ui.keybinds.massSelect.groupKey" },
+		{ action = "select AllMap+_InPrevSel+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.sameType" },
+		{ action = "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.damaged" },
+	} },
+
+	{ category = "ui.keybinds.drawing.title", items = {
+		{ label = "ui.keybinds.drawing.mapmark", keyLabel = "ui.keybinds.drawing.mapmarkKey" },
+		{ label = "ui.keybinds.drawing.draw", keyLabel = "ui.keybinds.drawing.drawKey" },
+		{ label = "ui.keybinds.drawing.erase", keyLabel = "ui.keybinds.drawing.eraseKey" },
+	} },
+
+	{ category = "ui.keybinds.console.title", items = {
+		{ label = "ui.keybinds.console.erase", keyLabel = "ui.keybinds.console.eraseKey" },
+		{ label = "ui.keybinds.console.pause", keyLabel = "ui.keybinds.console.pauseKey" },
+	} },
+}
