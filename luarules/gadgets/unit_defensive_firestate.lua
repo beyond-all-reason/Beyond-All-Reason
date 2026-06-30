@@ -23,6 +23,7 @@ local DPS_PENALTY = 0.99
 local MULTI_WEAPON_DPS_PENALTY = 0.66
 local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
 local ALWAYS_SHOOT = -1
+local NO_THREAT = -2
 local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
 local defThreatRanges = {}
 local neverHesitateAttackers = {}
@@ -43,17 +44,21 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spEcho = Spring.Echo
 local mathDistance2dSquared = math.distance2dSquared
 
-local function getWeaponExplosionRadius(weaponName)
+local function getWeaponDefFromName(weaponName)
 	if not weaponName or weaponName == "" then
-		return 0
+		return nil
 	end
 
 	local weaponDefName = WeaponDefNames[weaponName] or WeaponDefNames[string.lower(weaponName)]
 	if not weaponDefName then
-		return 0
+		return nil
 	end
 
-	local weaponDef = WeaponDefs[weaponDefName.id]
+	return WeaponDefs[weaponDefName.id]
+end
+
+local function getWeaponExplosionRadius(weaponName)
+	local weaponDef = getWeaponDefFromName(weaponName)
 	if not weaponDef then
 		return 0
 	end
@@ -122,31 +127,6 @@ local function getKamikazeExplosionRadius(unitDef)
 	return math.max(explosionRadius, getUnitDefKamikazeDistance(unitDef))
 end
 
-local function getLongestThreatRange(unitDef)
-	if isKamikazeUnitDef(unitDef) then
-		return getKamikazeExplosionRadius(unitDef)
-	end
-
-	local longestRange = 0
-	local weapons = unitDef.weapons
-	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
-		if weaponDef and not weaponDef.customParams.bogus then
-			local range = weaponDef.range or 0
-			if range > longestRange then
-				longestRange = range
-			end
-		end
-	end
-	if unitDef.canReclaim then
-		local buildDistance = unitDef.buildDistance or 0
-		if buildDistance > longestRange then
-			longestRange = buildDistance
-		end
-	end
-	return longestRange
-end
-
 local function getMaxWeaponRange(unitDef)
 	local longestRange = 0
 	local weapons = unitDef.weapons
@@ -160,6 +140,169 @@ local function getMaxWeaponRange(unitDef)
 		end
 	end
 	return longestRange
+end
+
+local function unitMatchesWeaponCategories(victimUnitDef, weapon)
+	local victimCategories = victimUnitDef.modCategories
+
+	if weapon.onlyTargets then
+		if not victimCategories then
+			return false
+		end
+		local matchesAny = false
+		for category, _ in pairs(weapon.onlyTargets) do
+			if victimCategories[category] then
+				matchesAny = true
+				break
+			end
+		end
+		if not matchesAny then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function isOffensiveWeapon(weaponDef)
+	if not weaponDef or weaponDef.customParams.bogus then
+		return false
+	end
+
+	if weaponDef.shieldRadius and weaponDef.shieldRadius > 0 then
+		return false
+	end
+
+	if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
+		return false
+	end
+
+	return true
+end
+
+local function weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef)
+	if not isOffensiveWeapon(weaponDef) then
+		return false
+	end
+
+	if not unitMatchesWeaponCategories(victimUnitDef, weapon) then
+		return false
+	end
+
+	if weaponDef.paralyzer then
+		local victimCategories = victimUnitDef.modCategories
+		if not victimCategories or not victimCategories.empable then
+			return false
+		end
+	end
+
+	local armorType = victimUnitDef.armorType or 0
+	local damage = weaponDef.damages and weaponDef.damages[armorType]
+	return damage and damage > 0
+end
+
+local function explosionThreatensUnitDef(weaponName, victimUnitDef)
+	local weaponDef = getWeaponDefFromName(weaponName)
+	if not weaponDef then
+		return false
+	end
+
+	local armorType = victimUnitDef.armorType or 0
+	local damage = weaponDef.damages and weaponDef.damages[armorType]
+	return damage and damage > 0
+end
+
+local function canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef)
+	if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
+		return true
+	end
+
+	local weapons = threatUnitDef.weapons
+	for weaponNum = 1, #weapons do
+		local weapon = weapons[weaponNum]
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
+			return true
+		end
+	end
+
+	if isKamikazeUnitDef(threatUnitDef) then
+		if explosionThreatensUnitDef(threatUnitDef.deathExplosion, victimUnitDef) then
+			return true
+		end
+
+		if explosionThreatensUnitDef(threatUnitDef.selfDExplosion, victimUnitDef) then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
+	if isKamikazeUnitDef(threatUnitDef) then
+		return getKamikazeExplosionRadius(threatUnitDef)
+	end
+
+	local longestRange = 0
+	if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
+		local buildDistance = threatUnitDef.buildDistance or 0
+		if buildDistance > longestRange then
+			longestRange = buildDistance
+		end
+	end
+
+	local weapons = threatUnitDef.weapons
+	for weaponNum = 1, #weapons do
+		local weapon = weapons[weaponNum]
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
+			local range = weaponDef.range or 0
+			if range > longestRange then
+				longestRange = range
+			end
+		end
+	end
+
+	return longestRange
+end
+
+local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefID, targetUnitDefID, attackerName, attackerDPS, attackerSpeed, attackerMaxRange)
+	local threatUnitDef = UnitDefs[targetUnitDefID]
+	local victimUnitDef = UnitDefs[attackerUnitDefID]
+
+	if not canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef) then
+		rangesForAttacker[targetUnitDefID] = NO_THREAT
+		spEcho("defThreatRange", attackerName, threatUnitDef.name, NO_THREAT)
+		return
+	end
+
+	if neverHesitateAttackers[attackerUnitDefID] then
+		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
+		spEcho("defThreatRange", attackerName, threatUnitDef.name, ALWAYS_SHOOT)
+		return
+	end
+
+	local targetThreatRange = getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
+	local targetSpeed = (threatUnitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
+	local targetHealth = threatUnitDef.health or 0
+	local timeToKill = targetHealth / attackerDPS
+	local killBuffer
+	if attackerDPS > targetHealth then
+		killBuffer = attackerSpeed + targetSpeed
+	else
+		killBuffer = (attackerSpeed + targetSpeed) * timeToKill
+	end
+	local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
+	local storedThreatRange
+	if threatRange > attackerMaxRange then
+		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
+		storedThreatRange = ALWAYS_SHOOT
+	else
+		rangesForAttacker[targetUnitDefID] = threatRange * threatRange
+		storedThreatRange = threatRange
+	end
+	spEcho("defThreatRange", attackerName, threatUnitDef.name, storedThreatRange)
 end
 
 local function setDefensiveWatch(unitID, isDefensive)
@@ -264,6 +407,10 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 		return false
 	end
 
+	if threatRangeSq == NO_THREAT then
+		return false
+	end
+
 	if threatRangeSq == ALWAYS_SHOOT then
 		return true
 	end
@@ -283,17 +430,13 @@ end
 
 function gadget:Initialize()
 	local allUnitDefDPS = UnitDefDPS.calculateAll()
-	local unitThreatRanges = {}
 	local unitDefsDPS = {}
 	local attackerSpeeds = {}
 	local attackerMaxRanges = {}
-	local targetHealths = {}
-	local targetSpeeds = {}
 	local targetUnitDefIDs = {}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weaponCount = countNonBogusWeapons(unitDef)
-		local threatRange = getLongestThreatRange(unitDef)
 
 		local dpsPenaltyMultiplier = tonumber(unitDef.customParams.dps_penalty_multiplier) or DPS_PENALTY
 		if weaponCount > 1 then
@@ -307,9 +450,6 @@ function gadget:Initialize()
 
 		if weaponCount > 0 or unitDef.canReclaim or isKamikaze then
 			targetUnitDefIDs[#targetUnitDefIDs + 1] = unitDefID
-			unitThreatRanges[unitDefID] = threatRange
-			targetHealths[unitDefID] = unitDef.health or 0
-			targetSpeeds[unitDefID] = (unitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
 		end
 
 		if unitDef.customParams.defensive_never_hesitate or isKamikaze then
@@ -330,38 +470,18 @@ function gadget:Initialize()
 		if attackerDPS > 0 or neverHesitateAttackers[attackerUnitDefID] then
 			local rangesForAttacker = {}
 			local attackerName = UnitDefs[attackerUnitDefID].name
-			if neverHesitateAttackers[attackerUnitDefID] then
-				for targetIndex = 1, #targetUnitDefIDs do
-					local targetUnitDefID = targetUnitDefIDs[targetIndex]
-					rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-					spEcho("defThreatRange", attackerName, UnitDefs[targetUnitDefID].name, ALWAYS_SHOOT)
-				end
-			else
-				local attackerSpeed = attackerSpeeds[attackerUnitDefID]
-				local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
-				for targetIndex = 1, #targetUnitDefIDs do
-					local targetUnitDefID = targetUnitDefIDs[targetIndex]
-					local targetThreatRange = unitThreatRanges[targetUnitDefID]
-					local targetSpeed = targetSpeeds[targetUnitDefID]
-					local targetHealth = targetHealths[targetUnitDefID]
-					local timeToKill = targetHealth / attackerDPS
-					local killBuffer
-					if attackerDPS > targetHealth then
-						killBuffer = attackerSpeed + targetSpeed
-					else
-						killBuffer = (attackerSpeed + targetSpeed) * timeToKill
-					end
-					local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
-					local storedThreatRange
-					if threatRange > attackerMaxRange then
-						rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-						storedThreatRange = ALWAYS_SHOOT
-					else
-						rangesForAttacker[targetUnitDefID] = threatRange * threatRange
-						storedThreatRange = threatRange
-					end
-					spEcho("defThreatRange", attackerName, UnitDefs[targetUnitDefID].name, storedThreatRange)
-				end
+			local attackerSpeed = attackerSpeeds[attackerUnitDefID]
+			local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
+			for targetIndex = 1, #targetUnitDefIDs do
+				populateDefThreatRangeForPair(
+					rangesForAttacker,
+					attackerUnitDefID,
+					targetUnitDefIDs[targetIndex],
+					attackerName,
+					attackerDPS,
+					attackerSpeed,
+					attackerMaxRange
+				)
 			end
 			defThreatRanges[attackerUnitDefID] = rangesForAttacker
 		end
