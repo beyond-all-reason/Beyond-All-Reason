@@ -201,7 +201,6 @@ local cache = {
 	lastStorageText = { metal = '', energy = '' },
 	lastWarning = { metal = nil, energy = nil },
 	lastValueWidth = { metal = -1, energy = -1 },
-	lastResbarValueWidth = { metal = 1, energy = 1 },
 	prevShowButtons = showButtons,
 }
 
@@ -209,8 +208,6 @@ local cache = {
 local resourceNames = { 'metal', 'energy' }
 local windTextScissor = { 0, 0, 0, 0 }
 local comCounterScissor = { 0, 0, 0, 0 }
-local storageScissors = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }
-local activeStorageScissors = { nil, nil }
 
 
 -- Smoothing
@@ -537,31 +534,6 @@ local function updateTidal()
 	end
 end
 
-local function drawResbarPullIncome(res)
-	font2:Begin(true)
-	font2:SetOutlineColor(0,0,0,1)
-	-- Text: pull
-	font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
-	-- Text: expense
-	--font2:Print("\255\240\180\145" .. "-" .. short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
-	-- income
-	font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-	font2:End()
-end
-
-local function drawResbarStorage(res)
-	if showingWarning[res] then return end
-	font2:Begin(true)
-	font2:SetOutlineColor(0,0,0,1)
-	if res == 'metal' then
-		font2:SetTextColor(0.55, 0.55, 0.55, 1)
-	else
-		font2:SetTextColor(0.57, 0.57, 0.45, 1)
-	end
-	font2:Print(cache.lastStorageText[res], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
-	font2:End()
-end
-
 local function updateResbarText(res, force)
 	if not showResourceBars then
 		return
@@ -705,20 +677,6 @@ local function updateResbarText(res, force)
 			showOverflowTooltip[res] = nil
 		end
 	end
-end
-
-local function drawResbarValue(res)
-	local value = short(smoothedResources[res][1])
-	cache.lastResbarValueWidth[res] = font2:GetTextWidth(value) * resbarDrawinfo[res].textCurrent[4]
-	font2:Begin(true)
-	if res == 'metal' then
-		font2:SetTextColor(0.95, 0.95, 0.95, 1)
-	else
-		font2:SetTextColor(1, 1, 0.74, 1)
-	end
-	font2:SetOutlineColor(0, 0, 0, 1)
-	font2:Print(value, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-	font2:End()
 end
 
 local function updateResbar(res)
@@ -1364,35 +1322,53 @@ function widget:Update(dt)
 	end
 end
 
--- --- OPTIMIZATION: Pre-defined function for RenderToTexture to avoid creating a closure.
-local function clearFn() end  -- no-op used for pre-clearing regions in uiTex
-local function renderResbarText()
-	glTranslate(-1, -1, 0)
-	glScale(2 / (topbarArea[3]-topbarArea[1]), 2 / (topbarArea[4]-topbarArea[2]),	0)
-	glTranslate(-topbarArea[1], -topbarArea[2], 0)
-
-	local res = 'metal'
-	drawResbarValue(res)
-	if updateRes[res][2] then
-		updateRes[res][2] = false
-		drawResbarPullIncome(res)
-	end
-	if updateRes[res][3] then
-		if not showingWarning[res] then updateRes[res][3] = false end
-		drawResbarStorage(res)
+-- START: I drew the resource numbers live instead of baking into uiTex
+-- (So the old "RenderToTexture" path with the fixed size clear rects with left stale digits
+-- The wide values or anchor shifts escaped the clear rects
+local function drawResbarNumbersLive()
+	if not showResourceBars then
+		return
 	end
 
-	res = 'energy'
-	drawResbarValue(res)
-	if updateRes[res][2] then
-		updateRes[res][2] = false
-		drawResbarPullIncome(res)
+	font2:Begin(true)
+	font2:SetOutlineColor(0,0,0,1)
+
+	for i = 1, 2 do
+		local res = resourceNames[i]
+		if resbarDrawinfo[res] and resbarDrawinfo[res].textCurrent then
+			local value = short(smoothedResources[res][1])
+			if res == 'metal' then
+				font2:SetTextColor(0.95, 0.95, 0.95, 1)
+			else
+				font2:SetTextColor(1, 1, 0.74, 1)
+			end
+			font2:Print(value, resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+
+
+			--START  The PULL Section  
+			font2:Print("\255\240\125\125" .. "-" .. short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+			--End The PULL Section
+
+			-- START INCOME Section
+			font2:Print("\255\120\235\120" .. "+" .. short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+			-- END INCOME Section
+
+			-- START STORAGE Section (hiding the overflow warning)
+			if not showingWarning[res] then
+				if res == 'metal' then
+					font2:SetTextColor(0.55, 0.55, 0.55, 1)
+				else
+					font2:SetTextColor(0.57, 0.57, 0.45, 1)
+				end
+				font2:Print(cache.lastStorageText[res], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			end
+			-- END STORAGE Section
+		end
 	end
-	if updateRes[res][3] then
-		if not showingWarning[res] then updateRes[res][3] = false end
-		drawResbarStorage(res)
-	end
+
+	font2:End()
 end
+-- END: The drew resource numbers live
 
 local function drawResBars()
 	if not showResourceBars then
@@ -1476,61 +1452,9 @@ local function drawResBars()
 	end
 	glPopMatrix()
 
-	if update then
-		local scissors = {}
-		res = 'metal'
-		if updateRes[res][1] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
-				(topbarArea[4]-topbarArea[2])*0.48,
-				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-		if updateRes[res][2] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-				0,
-				resbarDrawinfo[res].textPull[4]*3.5,
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-		if updateRes[res][3] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-				(topbarArea[4]-topbarArea[2])*0.48,
-				resbarDrawinfo[res].textStorage[4]*4.1,
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-		res = 'energy'
-		if updateRes[res][1] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textCurrent[2]-topbarArea[1])-(cache.lastResbarValueWidth[res]*0.75),
-				(topbarArea[4]-topbarArea[2])*0.48,
-				resbarDrawinfo[res].textCurrent[4]+cache.lastResbarValueWidth[res],
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-		if updateRes[res][2] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textPull[2]-topbarArea[1])-(resbarDrawinfo[res].textPull[4]*3.4),
-				0,
-				resbarDrawinfo[res].textPull[4]*3.5,
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-		if updateRes[res][3] then
-			scissors[#scissors+1] = {
-				(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-				(topbarArea[4]-topbarArea[2])*0.48,
-				resbarDrawinfo[res].textStorage[4]*4.1,
-				topbarArea[4]-topbarArea[2]
-			}
-		end
-
-		r2tHelper.RenderToTexture(uiTex, renderResbarText, true, scissors)
-	end
+	-- START: draw numbers live (bypass uiTex cache so stale digits dont pile up)
+	drawResbarNumbersLive()
+	-- END: draw numbers live
 end
 
 local function drawQuitScreen()
@@ -1868,31 +1792,6 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glTranslate(tidalSkewCX, mathSin(now/PI) * tidalWaveAnimationHeight + tidalarea[2] + (bgpadding/2) + ((tidalarea[4] - tidalarea[2]) / 2), 0)
 		glCallList(dlist.tidal2)
-	end
-
-	-- Pre-clear storage text from uiTex before rendering it to screen.
-	-- drawResBars() updates uiTex AFTER BlendTexRect each frame, so without this
-	-- the stale storage text is visible for up to ~50ms when the warning first activates.
-	if uiTex and (showingWarning.metal or showingWarning.energy) then
-		local scissorsCount = 0
-		for i = 1, 2 do
-			local res = resourceNames[i]
-			if showingWarning[res] and resbarDrawinfo[res] and resbarDrawinfo[res].textStorage then
-				scissorsCount = scissorsCount + 1
-				local scissor = storageScissors[scissorsCount]
-				scissor[1] = (resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4)
-				scissor[2] = topbarHeight * 0.48
-				scissor[3] = resbarDrawinfo[res].textStorage[4]*4.1
-				scissor[4] = topbarHeight
-			end
-		end
-		if scissorsCount > 0 then
-			for i = 1, scissorsCount do
-				activeStorageScissors[i] = storageScissors[i]
-			end
-			activeStorageScissors[scissorsCount + 1] = nil
-			r2tHelper.RenderToTexture(uiTex, clearFn, true, activeStorageScissors)
-		end
 	end
 
 	if uiTex then
