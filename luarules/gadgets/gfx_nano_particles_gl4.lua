@@ -499,7 +499,7 @@ local groundClampCursor = 1
 local groundClampParticles = {}
 local groundClampFree = {}
 
-local function registerGroundClampParticle(id, death, wp, fx, fy, fz)
+local function registerGroundClampParticle(id, death, wp, fx, fy, fz, targetID)
 	local nFree = #groundClampFree
 	local entry = groundClampFree[nFree]
 	if entry then
@@ -513,6 +513,7 @@ local function registerGroundClampParticle(id, death, wp, fx, fy, fz)
 	entry.fx = fx
 	entry.fy = fy
 	entry.fz = fz
+	entry.targetID = targetID
 	entry.next = wp or 0
 	groundClampParticles[#groundClampParticles + 1] = entry
 	if CLAMP_DEBUG then clampDbg.registered = clampDbg.registered + 1 end
@@ -1852,7 +1853,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			if pid and clampThisEmit then
 				if useWaypoint then
 					if wpFrame then
-						registerGroundClampParticle(pid, frame + lifetime, wpFrame, finalX, finalY, finalZ)
+						registerGroundClampParticle(pid, frame + lifetime, wpFrame, finalX, finalY, finalZ, targetUnitID)
 					end
 				else
 					registerGroundClampParticle(pid, frame + lifetime)
@@ -2529,6 +2530,13 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 			local base = (slot - 1) * step
 			local rem = entry.death - frame
 			if rem > 1 and entry.fx then
+				local fx, fy, fz = entry.fx, entry.fy, entry.fz
+				if entry.targetID then
+					local _, _, _, mx, my, mz = spGetUnitPosition(entry.targetID, true)
+					if mx then
+						fx, fy, fz = mx, my, mz
+					end
+				end
 				local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
 				local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
 				local spawnF = data[base + 8]
@@ -2540,9 +2548,9 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 				data[base + 1] = cpx
 				data[base + 2] = cpy
 				data[base + 3] = cpz
-				data[base + 5] = (entry.fx - cpx) * invR
-				data[base + 6] = (entry.fy - cpy) * invR
-				data[base + 7] = (entry.fz - cpz) * invR
+				data[base + 5] = (fx - cpx) * invR
+				data[base + 6] = (fy - cpy) * invR
+				data[base + 7] = (fz - cpz) * invR
 				data[base + 8] = frame
 				local s0 = slot - 1
 				if s0 < dirtyMin then dirtyMin = s0 end
