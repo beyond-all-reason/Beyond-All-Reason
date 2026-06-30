@@ -42,12 +42,15 @@ local enableInSinglePlayer = true
 --------------------------------------------------------------------------------
 
 local minChatCommandSeconds = 20 / framesPerSecond
-local minPauseCommandSeconds = 10 / framesPerSecond
-
-local maxPauseCommandsPerWindow = 4
-local pauseCommandWindowSeconds = 120 / framesPerSecond
+local maxPauseCommandsPerCycle = 3
 
 local safetyCooldownSeconds = 150 / framesPerSecond
+
+-- Allow Recoil time to apply our single re-pause command before deciding it
+-- failed. No additional pause command is sent while confirmation is pending.
+local rePauseConfirmTimeoutSeconds = 1
+local rePauseStableSeconds = 0.5
+local maxRePauseRetries = 1
 
 --------------------------------------------------------------------------------
 -- STATE
@@ -57,20 +60,22 @@ local countdownActive = false
 local currentStep = 1
 local stepTimer = 0
 
+local rePausePending = false
+local rePauseDeadline = 0
+local rePauseStableSince = nil
+local rePauseRetries = 0
+
 local armedForLocalUnpause = false
 local localPauseCommandTime = -99999
+local localUnpauseEventPending = false
 
 local allowNextRealUnpause = false
 local lastPausedState = true
 
 local ignoreTextCommandFrames = 0
-local passingThroughPauseAction = false
 
 local lastChatTime = -99999
-local lastPauseCommandTime = -99999
-
-local pauseCommandWindowStart = 0
-local pauseCommandsInWindow = 0
+local pauseCommandsThisCycle = 0
 local safetyCooldownUntilTime = 0
 
 -- Spring.GetGameFrame() does not reliably advance while paused. Recoil/Spring
@@ -125,6 +130,12 @@ local function CancelCountdown()
     countdownActive = false
     currentStep = 1
     stepTimer = 0
+    rePausePending = false
+    rePauseDeadline = 0
+    rePauseStableSince = nil
+    rePauseRetries = 0
+    pauseCommandsThisCycle = 0
+    localUnpauseEventPending = false
     allowNextRealUnpause = false
 end
 
@@ -169,27 +180,6 @@ local function ArmLocalUnpause(command)
     localPauseCommandTime = GetTime()
 end
 
-local function PauseAction(_, _, args)
-    if passingThroughPauseAction then
-        return
-    end
-
-    local command = "pause"
-
-    if args and args[1] then
-        command = command .. " " .. tostring(args[1])
-    end
-
-    ArmLocalUnpause(command)
-
-    -- Registering an action for "pause" can intercept the typed /pause command.
-    -- Pass it back to the engine explicitly so normal pause ownership/toggle
-    -- behavior still happens.
-    passingThroughPauseAction = true
-    Spring.SendCommands(command)
-    passingThroughPauseAction = false
-end
-
 local function SendCountdownChat(text)
     local time = GetTime()
 
@@ -203,11 +193,7 @@ local function SendCountdownChat(text)
 
     lastChatTime = time
 
-    if Spring.SendPublicChat then
-        Spring.SendPublicChat(text)
-    else
-        Spring.SendCommands("say " .. text)
-    end
+    Spring.SendCommands("say " .. text)
 
     return true
 end
@@ -219,29 +205,16 @@ local function PlayTick()
 end
 
 local function SendPauseCommand(command)
-    local time = GetTime()
-
     if SafetyCooldownActive() then
         return false
     end
 
-    if time - lastPauseCommandTime < minPauseCommandSeconds then
+    if pauseCommandsThisCycle >= maxPauseCommandsPerCycle then
+        TriggerSafetyCooldown("pause command limit reached")
         return false
     end
 
-    if time - pauseCommandWindowStart > pauseCommandWindowSeconds then
-        pauseCommandWindowStart = time
-        pauseCommandsInWindow = 0
-    end
-
-    pauseCommandsInWindow = pauseCommandsInWindow + 1
-
-    if pauseCommandsInWindow > maxPauseCommandsPerWindow then
-        TriggerSafetyCooldown("too many pause commands")
-        return false
-    end
-
-    lastPauseCommandTime = time
+    pauseCommandsThisCycle = pauseCommandsThisCycle + 1
     ignoreTextCommandFrames = selfCommandIgnoreFrames
 
     Spring.SendCommands(command)
@@ -275,12 +248,7 @@ end
 
 function widget:Initialize()
     lastPausedState = IsPaused()
-    widgetHandler:AddAction("pause", PauseAction, nil, "t")
-    Spring.Echo("[Courtesy Pause] Widget v2.0 loaded")
-end
-
-function widget:Shutdown()
-    widgetHandler:RemoveAction("pause")
+    Spring.Echo("[Courtesy Pause] Widget v3.0 loaded")
 end
 
 --------------------------------------------------------------------------------
@@ -305,19 +273,63 @@ function widget:Update(dt)
         return
     end
 
+    -- A pause command is not guaranteed to change the reported state before
+    -- the next Update call. Wait for confirmation instead of sending pause 1
+    -- repeatedly and tripping our own flood protection.
+    if rePausePending then
+        if paused then
+            if not rePauseStableSince then
+                rePauseStableSince = GetTime()
+            elseif GetTime() - rePauseStableSince >= rePauseStableSeconds then
+                rePausePending = false
+                rePauseDeadline = 0
+                rePauseStableSince = nil
+
+                if not StartCountdown() then
+                    TriggerSafetyCooldown("could not start countdown safely")
+                end
+            end
+        elseif GetTime() >= rePauseDeadline then
+            rePauseStableSince = nil
+
+            if rePauseRetries < maxRePauseRetries and SendPauseCommand("pause 1") then
+                rePauseRetries = rePauseRetries + 1
+                rePauseDeadline = GetTime() + rePauseConfirmTimeoutSeconds
+            else
+                rePausePending = false
+                rePauseDeadline = 0
+                TriggerSafetyCooldown("re-pause was not confirmed")
+            end
+        else
+            rePauseStableSince = nil
+        end
+
+        lastPausedState = paused
+        return
+    end
+
     if lastPausedState and not paused then
         if allowNextRealUnpause then
             -- This was the widget's own final unpause.
             allowNextRealUnpause = false
-        elseif (enableInSinglePlayer and IsOnlyHumanPlayer()) or LocalUnpauseArmIsFresh() then
+            pauseCommandsThisCycle = 0
+            localUnpauseEventPending = false
+        elseif localUnpauseEventPending
+            or (enableInSinglePlayer and IsOnlyHumanPlayer())
+            or LocalUnpauseArmIsFresh() then
             -- This client recently issued /pause, and that command really
             -- unpaused the game. In single player, the local user is the only
             -- possible unpause source, so the arm hook is not required.
             -- Re-pause once, then run the courtesy timer.
             ClearLocalUnpauseArm()
+            localUnpauseEventPending = false
+            pauseCommandsThisCycle = 0
+            rePauseRetries = 0
+            rePauseStableSince = nil
 
-            if SendPauseCommand("pause 1") and StartCountdown() then
-                paused = true
+            if SendPauseCommand("pause 1") then
+                rePausePending = true
+                rePauseDeadline = GetTime() + rePauseConfirmTimeoutSeconds
             else
                 TriggerSafetyCooldown("could not re-pause safely")
             end
@@ -374,5 +386,13 @@ end
 function widget:GotChatMsg(msg, playerID)
     if playerID == Spring.GetMyPlayerID() then
         ArmLocalUnpause(msg)
+    end
+end
+
+function widget:GamePaused(playerID, paused)
+    if not paused
+        and playerID == Spring.GetMyPlayerID()
+        and not allowNextRealUnpause then
+        localUnpauseEventPending = true
     end
 end
