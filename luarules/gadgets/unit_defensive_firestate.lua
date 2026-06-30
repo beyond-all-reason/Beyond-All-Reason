@@ -27,6 +27,7 @@ local CMD_FIRE_STATE = CMD.FIRE_STATE
 local DPS_PENALTY = 0.99
 local MULTI_WEAPON_DPS_PENALTY = 0.66
 local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
+local INSTANT_KILL_MOVEMENT_SECONDS = 1
 local ALWAYS_SHOOT = -1
 local NO_THREAT = -2
 local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
@@ -272,6 +273,43 @@ local function getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
 	return longestRange
 end
 
+local function getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, targetUnitDef)
+	if weaponDef.paralyzer then
+		return 0
+	end
+
+	if not weaponThreatensUnitDef(weapon, weaponDef, targetUnitDef) then
+		return 0
+	end
+
+	local armorType = targetUnitDef.armorType or 0
+	local damage = weaponDef.damages and weaponDef.damages[armorType] or 0
+	local salvoSize = weaponDef.salvoSize or 1
+	local projectiles = weaponDef.projectiles or 1
+	return damage * salvoSize * projectiles
+end
+
+local function canUnitDefOneShotUnitDef(attackerUnitDef, targetUnitDef)
+	local targetHealth = targetUnitDef.health or 0
+	if targetHealth <= 0 then
+		return false
+	end
+
+	local weapons = attackerUnitDef.weapons
+	for weaponNum = 1, #weapons do
+		local weapon = weapons[weaponNum]
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		if weaponDef then
+			local volleyDamage = getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, targetUnitDef)
+			if volleyDamage >= targetHealth then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
 local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefID, targetUnitDefID, attackerName, attackerDPS, attackerSpeed, attackerMaxRange)
 	local threatUnitDef = UnitDefs[targetUnitDefID]
 	local victimUnitDef = UnitDefs[attackerUnitDefID]
@@ -295,10 +333,11 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 	local targetThreatRange = getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
 	local targetSpeed = (threatUnitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
 	local targetHealth = threatUnitDef.health or 0
+	local canOneShot = canUnitDefOneShotUnitDef(victimUnitDef, threatUnitDef)
 	local timeToKill = targetHealth / attackerDPS
 	local killBuffer
-	if attackerDPS > targetHealth then
-		killBuffer = attackerSpeed + targetSpeed
+	if canOneShot or attackerDPS > targetHealth then
+		killBuffer = (attackerSpeed + targetSpeed) * INSTANT_KILL_MOVEMENT_SECONDS
 	else
 		killBuffer = (attackerSpeed + targetSpeed) * timeToKill
 	end
@@ -312,7 +351,14 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 		storedThreatRange = threatRange
 	end
 	if attackerName == "corban" then
-		local killBufferBranch = attackerDPS > targetHealth and "instantKill" or "timeToKill"
+		local killBufferBranch
+		if canOneShot then
+			killBufferBranch = "oneShot"
+		elseif attackerDPS > targetHealth then
+			killBufferBranch = "instantKill"
+		else
+			killBufferBranch = "timeToKill"
+		end
 		local targetThreatRangeSource = isKamikazeUnitDef(threatUnitDef) and "kamikazeExplosionRadius" or "weaponOrReclaimRange"
 		local weaponCount = countNonBogusWeapons(victimUnitDef)
 		local dpsPenaltyMultiplier = tonumber(victimUnitDef.customParams.dps_penalty_multiplier) or DPS_PENALTY
@@ -342,9 +388,24 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 		end
 		spEcho("  targetSpeed:", targetSpeed, "(threat speed", threatUnitDef.speed or 0, "*", THREAT_MOVEMENT_BUFFER_MULTIPLIER .. ")")
 		spEcho("  targetHealth:", targetHealth, "timeToKill:", timeToKill)
+		if canOneShot then
+			local attackerWeapons = victimUnitDef.weapons
+			for weaponNum = 1, #attackerWeapons do
+				local weapon = attackerWeapons[weaponNum]
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				if weaponDef then
+					local volleyDamage = getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, threatUnitDef)
+					if volleyDamage >= targetHealth then
+						spEcho("    oneShot weapon:", weaponDef.name, "volleyDamage:", volleyDamage)
+					end
+				end
+			end
+		end
 		spEcho("  killBuffer:", killBuffer, "(" .. killBufferBranch .. ")")
-		if killBufferBranch == "instantKill" then
-			spEcho("    killBuffer = attackerSpeed + targetSpeed (attackerDPS > targetHealth)")
+		if killBufferBranch == "oneShot" then
+			spEcho("    killBuffer = (attackerSpeed + targetSpeed) *", INSTANT_KILL_MOVEMENT_SECONDS, "(armor-matched volley >= targetHealth)")
+		elseif killBufferBranch == "instantKill" then
+			spEcho("    killBuffer = (attackerSpeed + targetSpeed) *", INSTANT_KILL_MOVEMENT_SECONDS, "(attackerDPS > targetHealth)")
 		else
 			spEcho("    killBuffer = (attackerSpeed + targetSpeed) * timeToKill")
 		end
