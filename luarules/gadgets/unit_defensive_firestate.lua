@@ -278,13 +278,17 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 
 	if not canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef) then
 		rangesForAttacker[targetUnitDefID] = NO_THREAT
-		spEcho("defThreatRange", attackerName, threatUnitDef.name, NO_THREAT)
+		if attackerName == "corban" then
+			spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", NO_THREAT, "(canThreaten=no)")
+		end
 		return
 	end
 
 	if neverHesitateAttackers[attackerUnitDefID] then
 		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-		spEcho("defThreatRange", attackerName, threatUnitDef.name, ALWAYS_SHOOT)
+		if attackerName == "corban" then
+			spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", ALWAYS_SHOOT, "(neverHesitate=yes)")
+		end
 		return
 	end
 
@@ -307,7 +311,50 @@ local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefI
 		rangesForAttacker[targetUnitDefID] = threatRange * threatRange
 		storedThreatRange = threatRange
 	end
-	spEcho("defThreatRange", attackerName, threatUnitDef.name, storedThreatRange)
+	if attackerName == "corban" then
+		local killBufferBranch = attackerDPS > targetHealth and "instantKill" or "timeToKill"
+		local targetThreatRangeSource = isKamikazeUnitDef(threatUnitDef) and "kamikazeExplosionRadius" or "weaponOrReclaimRange"
+		local weaponCount = countNonBogusWeapons(victimUnitDef)
+		local dpsPenaltyMultiplier = tonumber(victimUnitDef.customParams.dps_penalty_multiplier) or DPS_PENALTY
+		if weaponCount > 1 then
+			dpsPenaltyMultiplier = MULTI_WEAPON_DPS_PENALTY
+		end
+		spEcho("defThreatRange", attackerName, "vs", threatUnitDef.name, "=>", storedThreatRange)
+		spEcho("  logic: canThreaten=yes; neverHesitate=no")
+		spEcho("  formula: threatRange = sqrt(targetThreatRange^2 + attackerSpeed^2 + killBuffer^2)")
+		spEcho("  attackerDPS:", attackerDPS, "weaponCount:", weaponCount, "dpsPenalty:", dpsPenaltyMultiplier)
+		spEcho("  attackerSpeed:", attackerSpeed, "(victim speed", victimUnitDef.speed or 0, "*", THREAT_MOVEMENT_BUFFER_MULTIPLIER .. ")")
+		spEcho("  targetThreatRange:", targetThreatRange, "(" .. targetThreatRangeSource .. ")")
+		if isKamikazeUnitDef(threatUnitDef) then
+			spEcho("    kamikaze explosion radius:", targetThreatRange)
+		else
+			if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
+				spEcho("    reclaim buildDistance:", threatUnitDef.buildDistance or 0)
+			end
+			local weapons = threatUnitDef.weapons
+			for weaponNum = 1, #weapons do
+				local weapon = weapons[weaponNum]
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
+					spEcho("    threatening weapon:", weaponDef.name, "range:", weaponDef.range or 0)
+				end
+			end
+		end
+		spEcho("  targetSpeed:", targetSpeed, "(threat speed", threatUnitDef.speed or 0, "*", THREAT_MOVEMENT_BUFFER_MULTIPLIER .. ")")
+		spEcho("  targetHealth:", targetHealth, "timeToKill:", timeToKill)
+		spEcho("  killBuffer:", killBuffer, "(" .. killBufferBranch .. ")")
+		if killBufferBranch == "instantKill" then
+			spEcho("    killBuffer = attackerSpeed + targetSpeed (attackerDPS > targetHealth)")
+		else
+			spEcho("    killBuffer = (attackerSpeed + targetSpeed) * timeToKill")
+		end
+		spEcho("  threatRange:", threatRange, "attackerMaxRange:", attackerMaxRange)
+		if threatRange > attackerMaxRange then
+			spEcho("  exceedsMaxRange: yes => stored ALWAYS_SHOOT (" .. ALWAYS_SHOOT .. ")")
+		else
+			spEcho("  exceedsMaxRange: no => stored linear:", storedThreatRange, "squared in table:", threatRange * threatRange)
+		end
+	end
 end
 
 local function setDefensiveWatch(unitID, isDefensive)
