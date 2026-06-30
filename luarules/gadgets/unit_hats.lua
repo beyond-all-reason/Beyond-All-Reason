@@ -49,6 +49,32 @@ local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
 local Hats = {}  -- key of unitID of hat, value of wearer unitID
 
+local spGetUnitHealth = Spring.GetUnitHealth
+local spSetUnitArmored = Spring.SetUnitArmored
+local spGetPlayerList = Spring.GetPlayerList
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetTeamUnits = Spring.GetTeamUnits
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spCreateUnit = Spring.CreateUnit
+local function spGetUnitScriptEnv(unitID)
+	local unitScript = Spring.UnitScript
+	if unitScript and unitScript.GetScriptEnv then
+		return unitScript.GetScriptEnv(unitID)
+	end
+	return nil
+end
+local spCallAsUnit = Spring.UnitScript.CallAsUnit
+local spGetCOBScriptID = Spring.GetCOBScriptID
+local spCallCOBScript = Spring.CallCOBScript
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local stringSub = string.sub
+
+local hatDefHalloween = UnitDefNames.cor_hat_hw and UnitDefNames.cor_hat_hw.id
+local hatDefLegChamp = UnitDefNames.cor_hat_legfn and UnitDefNames.cor_hat_legfn.id
+local hatDefFightNight = UnitDefNames.cor_hat_fightnight and UnitDefNames.cor_hat_fightnight.id
+local hatDefViking = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id
+
 local unitDefHat = {}
 for udid, ud in pairs(UnitDefs) do
 	--almost all raptors have dying anims
@@ -131,103 +157,129 @@ local function MatchPlayer(awardees, name, accountID)
 end
 
 local spawnWarpInFrame = Game.spawnWarpInFrame
+local spawnAwardsProcessed = false
+
+local function UpdateGameFrameCallIn()
+	if spawnAwardsProcessed and next(unitsWearingHats) == nil then
+		gadgetHandler:RemoveCallIn("GameFrame")
+	else
+		gadgetHandler:UpdateCallIn("GameFrame")
+	end
+end
+
+local function CreateAndGiveHat(hatDefID, unitPosX, unitPosY, unitPosZ, teamID)
+	local createdHatID = spCreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
+	if createdHatID then
+		gadget:UnitGiven(createdHatID, hatDefID, teamID)
+	end
+end
 
 function gadget:GameFrame(gf)
 	if gf == spawnWarpInFrame then
-		for _, playerID in ipairs(Spring.GetPlayerList()) do
+		for _, playerID in ipairs(spGetPlayerList() or {}) do
 
-			local accountID = false
-			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
+			local accountID = nil
+			local playerName, _, spec, teamID, _, _, _, _, _, _, accountInfo = spGetPlayerInfo(playerID)
 			if accountInfo and accountInfo.accountid then
 				accountID = tonumber(accountInfo.accountid)
 			end
 
 			if not spec then
-				local units = Spring.GetTeamUnits(teamID)
-				for k = 1, #units do
-					local unitID = units[k]
-					local unitDefID = Spring.GetUnitDefID(unitID)
-					local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
+				local shouldGiveHalloweenHat = (hatDefHalloween ~= nil) and MatchPlayer(halloween, playerName, accountID)
+				local shouldGiveLegHat = (hatDefLegChamp ~= nil) and MatchPlayer(legchamps, playerName, accountID)
+				local shouldGiveFightNightHat = (hatDefFightNight ~= nil) and MatchPlayer(champion, playerName, accountID)
+				local shouldGiveVikingHat = (hatDefViking ~= nil) and MatchPlayer(vikings, playerName, accountID)
+				local hasUniqueHat = (uniques[playerName] ~= nil) and (UnitDefNames['cor_hat_' .. uniques[playerName]] ~= nil)
+				local shouldShowCrown = MatchPlayer(kings, playerName, accountID)
+				local shouldShowGold = MatchPlayer(goldMedals, playerName, accountID)
+				local shouldShowSilver = MatchPlayer(silverMedals, playerName, accountID)
+				local shouldShowBronze = MatchPlayer(bronzeMedals, playerName, accountID)
 
-					if unitDefCanWearHats[unitDefID] then
+				if shouldGiveHalloweenHat or shouldGiveLegHat or shouldGiveFightNightHat or shouldGiveVikingHat or hasUniqueHat or shouldShowCrown or shouldShowGold or shouldShowSilver or shouldShowBronze then
+					local units = spGetTeamUnits(teamID) or {}
+					for k = 1, #units do
+						local unitID = units[k]
+						local unitDefID = spGetUnitDefID(unitID)
 
-						if MatchPlayer(halloween, playerName, accountID) and UnitDefNames['cor_hat_hw'] then
-							local hatDefID = UnitDefNames['cor_hat_hw'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if MatchPlayer(legchamps, playerName, accountID) and UnitDefNames['cor_hat_legfn'] then
-							local hatDefID = UnitDefNames['cor_hat_legfn'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if MatchPlayer(champion, playerName, accountID) and UnitDefNames['cor_hat_fightnight'] then
-							local hatDefID = UnitDefNames['cor_hat_fightnight'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if MatchPlayer(vikings, playerName, accountID) and UnitDefNames['cor_hat_viking'] then
-							local hatDefID = UnitDefNames['cor_hat_viking'].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if (uniques[playerName]~=nil) and (UnitDefNames['cor_hat_' .. uniques[playerName]] ~= nil) then
-							local hatDefID = UnitDefNames['cor_hat_' .. uniques[playerName]].id
-							local unitID = Spring.CreateUnit(hatDefID, unitPosX, unitPosY, unitPosZ, 0, teamID)
-							gadget:UnitGiven(unitID, hatDefID, teamID)
-						end
-
-						if string.sub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
-							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
-							if scriptEnv then
-								if MatchPlayer(kings, playerName, accountID) and scriptEnv['ShowCrown'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowCrown'], true)
-								end
-								if MatchPlayer(goldMedals, playerName, accountID) and scriptEnv['ShowMedalGold'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
-								end
-								if MatchPlayer(silverMedals, playerName, accountID) and scriptEnv['ShowMedalSilver'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
-								end
-								if MatchPlayer(bronzeMedals, playerName, accountID) and scriptEnv['ShowMedalBronze'] then
-									Spring.UnitScript.CallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
-								end
+						if unitDefCanWearHats[unitDefID] then
+							local needHatSpawn = shouldGiveHalloweenHat or shouldGiveLegHat or shouldGiveFightNightHat or shouldGiveVikingHat or hasUniqueHat
+							local unitPosX, unitPosY, unitPosZ
+							if needHatSpawn then
+								unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 							end
-						else
-							if MatchPlayer(kings, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowCrown') then
-								Spring.CallCOBScript(unitID, "ShowCrown", 0)
+
+							if shouldGiveHalloweenHat then
+								CreateAndGiveHat(hatDefHalloween, unitPosX, unitPosY, unitPosZ, teamID)
 							end
-							if MatchPlayer(goldMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalGold') then
-								Spring.CallCOBScript(unitID, "ShowMedalGold", 0)
+
+							if shouldGiveLegHat then
+								CreateAndGiveHat(hatDefLegChamp, unitPosX, unitPosY, unitPosZ, teamID)
 							end
-							if MatchPlayer(silverMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalSilver') then
-								Spring.CallCOBScript(unitID, "ShowMedalSilver", 0)
+
+							if shouldGiveFightNightHat then
+								CreateAndGiveHat(hatDefFightNight, unitPosX, unitPosY, unitPosZ, teamID)
 							end
-							if MatchPlayer(bronzeMedals, playerName, accountID) and Spring.GetCOBScriptID(unitID, 'ShowMedalBronze') then
-								Spring.CallCOBScript(unitID, "ShowMedalBronze", 0)
+
+							if shouldGiveVikingHat then
+								CreateAndGiveHat(hatDefViking, unitPosX, unitPosY, unitPosZ, teamID)
+							end
+
+							if hasUniqueHat then
+								local uniqueHatDefID = UnitDefNames['cor_hat_' .. uniques[playerName]].id
+								CreateAndGiveHat(uniqueHatDefID, unitPosX, unitPosY, unitPosZ, teamID)
+							end
+
+							if stringSub(UnitDefs[unitDefID].name, 1, 3) == 'arm' then
+								local scriptEnv = spGetUnitScriptEnv(unitID)
+								if scriptEnv then
+									if shouldShowCrown and scriptEnv['ShowCrown'] then
+										spCallAsUnit(unitID, scriptEnv['ShowCrown'], true)
+									end
+									if shouldShowGold and scriptEnv['ShowMedalGold'] then
+										spCallAsUnit(unitID, scriptEnv['ShowMedalGold'], true)
+									end
+									if shouldShowSilver and scriptEnv['ShowMedalSilver'] then
+										spCallAsUnit(unitID, scriptEnv['ShowMedalSilver'], true)
+									end
+									if shouldShowBronze and scriptEnv['ShowMedalBronze'] then
+										spCallAsUnit(unitID, scriptEnv['ShowMedalBronze'], true)
+									end
+								end
+							else
+								if shouldShowCrown and spGetCOBScriptID(unitID, 'ShowCrown') then
+									spCallCOBScript(unitID, "ShowCrown", 0)
+								end
+								if shouldShowGold and spGetCOBScriptID(unitID, 'ShowMedalGold') then
+									spCallCOBScript(unitID, "ShowMedalGold", 0)
+								end
+								if shouldShowSilver and spGetCOBScriptID(unitID, 'ShowMedalSilver') then
+									spCallCOBScript(unitID, "ShowMedalSilver", 0)
+								end
+								if shouldShowBronze and spGetCOBScriptID(unitID, 'ShowMedalBronze') then
+									spCallCOBScript(unitID, "ShowMedalBronze", 0)
+								end
 							end
 						end
 					end
 				end
 			end
 		end
+		spawnAwardsProcessed = true
+		UpdateGameFrameCallIn()
 	end
 
 	-- periodically update hat health	(damage gets applied instantly at gadget:UnitDamaged anyway)
-	if gf % 61 == 1 then
+	if gf % 61 == 1 and next(unitsWearingHats) ~= nil then
 		for unitID, hatUnitID in pairs(unitsWearingHats) do
-			local health, maxHealth = Spring.GetUnitHealth(unitID)
-			local hatHealth, hatMaxHealth = Spring.GetUnitHealth(hatUnitID)
-			if hatMaxHealth then
+			local health, maxHealth = spGetUnitHealth(unitID)
+			local hatHealth, hatMaxHealth = spGetUnitHealth(hatUnitID)
+			if health and maxHealth and hatMaxHealth then
 				Spring.SetUnitHealth(hatUnitID, (health / maxHealth) * hatMaxHealth)
 			else
 				unitsWearingHats[unitID] = nil
 			end
 		end
+		UpdateGameFrameCallIn()
 	end
 end
 
@@ -248,6 +300,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		end
 		Hats[unitID] = -1
 		Spring.SetUnitNeutral(unitID, true)
+		spSetUnitArmored(unitID, true, 0)
 		Spring.SetUnitBlocking(unitID, false, false, false, false) -- non blocking while dying
 		Spring.SetUnitNoMinimap(unitID, true)
 	end
@@ -270,9 +323,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		unitsWearingHats[unitID] = nil
 		Hats[hatID] = -1
 		Spring.SetUnitNoSelect(hatID, false)
-		Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+		Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
 		local px, py, pz = Spring.GetUnitPosition(unitID)
-		Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		if px and pz then
+			Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		end
+		UpdateGameFrameCallIn()
 	end
 end
 
@@ -287,9 +343,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	if Hats[unitID] then
 
 		local hatID = unitID
-		if unitTeam == Spring.GetGaiaTeamID() then
+		if unitTeam == spGetGaiaTeamID() then
 			if DEBUG then
-				Spring.Echo("A hat was given back to gaia", hatID, unitDefID, unitTeam, Spring.GetGaiaTeamID())
+				Spring.Echo("A hat was given back to gaia", hatID, unitDefID, unitTeam, spGetGaiaTeamID())
 			end
 			return
 		end
@@ -329,6 +385,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 					--Spring.SetUnitLoadingTransport(unitID, nearunitID)
 					unitsWearingHats[nearunitID] = hatID
 					Hats[hatID] = nearunitID
+					UpdateGameFrameCallIn()
 					return
 				end
 			end
@@ -340,20 +397,12 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if Hats[unitID] then
-		return 0, 0
-	else
-		return damage,1
-	end
-end
-
 -- also damage the hat
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if unitsWearingHats[unitID] then
-		local health, maxHealth = Spring.GetUnitHealth(unitID)
-		local hatHealth, hatMaxHealth = Spring.GetUnitHealth(unitsWearingHats[unitID])
-		if hatHealth then
+		local health, maxHealth = spGetUnitHealth(unitID)
+		local hatHealth, hatMaxHealth = spGetUnitHealth(unitsWearingHats[unitID])
+		if hatHealth and health and maxHealth and hatMaxHealth then
 			Spring.SetUnitHealth(unitsWearingHats[unitID], (health / maxHealth) * hatMaxHealth)
 		end
 	end

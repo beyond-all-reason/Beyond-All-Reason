@@ -21,6 +21,7 @@ end
 
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
@@ -38,12 +39,16 @@ function isAuthorized(playerID, subPermission)
 	   (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
 		hasPermission = true
 	end
-	-- check specific sub-permission
+	-- check the devhelpers_<name> sub-permission OR a matching top-level permission
+	-- of the same name (e.g. modmarker), so roles without the devhelpers catch-all
+	-- (moderators/event managers) are authorized too
 	if not hasPermission and subPermission then
-		local permKey = "devhelpers_" .. subPermission
-		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
-		   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
-			hasPermission = true
+		for _, permKey in ipairs({ "devhelpers_" .. subPermission, subPermission }) do
+			if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
+			   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
+				hasPermission = true
+				break
+			end
 		end
 	end
 	if hasPermission then
@@ -432,7 +437,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
 
@@ -456,6 +461,8 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
+		elseif cmd == "modmarker" then
+			subPermission = "modmarker"
 		end
 
 		if not isAuthorized(playerID, subPermission) then
@@ -484,7 +491,7 @@ if gadgetHandler:IsSyncedCode() then
 		elseif cmd == "removenearbyunits" then
 			ExecuteSelUnits(words, playerID, 'removenearbyunits')
 		elseif cmd == "reclaimunits" then
-			ExecuteSelUnits(words, playerID)
+			ExecuteSelUnits(words, playerID, 'reclaim')
 		elseif cmd == "transferunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
@@ -511,6 +518,19 @@ if gadgetHandler:IsSyncedCode() then
 			playertoteam(words)
 		elseif cmd == "killteam" then
 			killteam(words)
+		elseif cmd == "modmarker" then
+			-- split on ':' so a multi-word label ("Rule Violation") keeps its spaces;
+			-- the gmatch words[] above would truncate it to the first token. After the
+			-- header strip msg is "$:modmarker:x:y:z:label", so parts =
+			-- {"$","modmarker",x,y,z,label}.
+			local parts = string.split(msg, ':')
+			local x = tonumber(parts[3])
+			local y = tonumber(parts[4])
+			local z = tonumber(parts[5])
+			local label = parts[6] or ""
+			if x and y and z then
+				SendToUnsynced("modmarker", x, y, z, label)
+			end
 		end
 	end
 
@@ -592,36 +612,42 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for n = 2, #words do
 			local unitID = tonumber(words[n])
-			local h, mh = Spring.GetUnitHealth(unitID)
-			if not action then
-				Spring.DestroyUnit(unitID)
-			elseif action == 'xp' and params then
-				--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
-				if type(tonumber(params)) == 'number' then
-					Spring.SetUnitExperience(unitID, tonumber(params))
-				end
-			elseif action == 'remove' then
-				Spring.DestroyUnit(unitID, false, true)
-			elseif action == 'removenearbyunits' then
-				Spring.DestroyUnit(unitID, false, true)
-			elseif action == 'transfer' then
-				if type(tonumber(params)) == 'number' then
-					Spring.TransferUnit(unitID, tonumber(params), true)
-				end
-			elseif action == 'reclaim' then
-				local teamID = Spring.GetUnitTeam(unitID)
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				Spring.DestroyUnit(unitID, false, true)		-- this doesnt give back resources in itself
-				Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
-				Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
-			elseif action == 'wreck' then
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				local x, y, z = Spring.GetUnitPosition(unitID)
-				local heading = Spring.GetUnitHeading(unitID)
-				local unitTeam = Spring.GetUnitTeam(unitID)
-				Spring.DestroyUnit(unitID, false, true)
-				if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
-					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+			if unitID and Spring.ValidUnitID(unitID) then
+				local h, mh = Spring.GetUnitHealth(unitID)
+				if not action then
+					Spring.DestroyUnit(unitID, false, false, unitID)
+				elseif action == 'xp' and params then
+					--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
+					if type(tonumber(params)) == 'number' then
+						Spring.SetUnitExperience(unitID, tonumber(params))
+					end
+				elseif action == 'remove' then
+					Spring.DestroyUnit(unitID, false, true)
+				elseif action == 'removenearbyunits' then
+					Spring.DestroyUnit(unitID, false, true)
+				elseif action == 'transfer' then
+					if type(tonumber(params)) == 'number' then
+						Spring.TransferUnit(unitID, tonumber(params), true)
+					end
+				elseif action == 'reclaim' then
+					local teamID = Spring.GetUnitTeam(unitID)
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					Spring.DestroyUnit(unitID, false, true)		-- this doesnt give back resources in itself
+					Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
+					Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
+				elseif action == 'wreck' then
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					local x, y, z = Spring.GetUnitPosition(unitID)
+					local heading = Spring.GetUnitHeading(unitID)
+					local unitTeam = Spring.GetUnitTeam(unitID)
+					Spring.DestroyUnit(unitID, false, true)
+					if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
+						local fDefID = FeatureDefNames[UnitDefs[unitDefID].corpse].id
+						local fID = Spring.CreateFeature(fDefID, x, y, z, heading, unitTeam)
+						if fID then
+							Spring.SetFeatureResurrect(fID, unitDefID, heading)
+						end
+					end
 				end
 			end
 		end
@@ -762,6 +788,12 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
 		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
 		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
+		gadgetHandler:AddChatAction('modmarker', modmarker, "") -- /luarules modmarker [label] -- places a broadcast marker at cursor visible to all players
+		-- Moderator broadcast ping: the synced modmarker handler relays here, and
+		-- every client draws it locally (localOnly=true) so ALL players see it.
+		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
+			Spring.MarkerAddPoint(x, y, z, label or "", true)
+		end)
 	end
 
 	function gadget:Shutdown()
@@ -784,6 +816,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
 		gadgetHandler:RemoveChatAction('desync')
+		gadgetHandler:RemoveChatAction('modmarker')
+		gadgetHandler:RemoveSyncAction("modmarker")
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -1301,8 +1335,27 @@ else	-- UNSYNCED
 		end
 	end
 
+	function modmarker(_, line, words, playerID)
+		-- /luarules modmarker          -- places broadcast marker at cursor with no label
+		-- /luarules modmarker My text  -- places broadcast marker at cursor with label
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		local mx, my = Spring.GetMouseState()
+		local t, pos = Spring.TraceScreenRay(mx, my, true)
+		if type(pos) == 'table' then
+			local x = math.floor(pos[1])
+			local y = math.floor(pos[2])
+			local z = math.floor(pos[3])
+			local label = words[1] and table.concat(words, " ", 1) or ""
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modmarker:' .. x .. ':' .. y .. ':' .. z .. ':' .. label)
+		end
+	end
+
 	function spawnunitexplosion(_, line, words, playerID)
-		--spawnunitexplosion usage:
 		--/luarules spawnunitexplosion armbull --spawns at cursor
 		if playerID ~= Spring.GetMyPlayerID() then
 			return

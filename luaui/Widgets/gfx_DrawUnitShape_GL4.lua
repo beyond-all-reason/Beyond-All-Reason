@@ -68,12 +68,14 @@ local unitShaderConfig = {
 	STATICMODEL = 0.0, -- do not touch!
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+	SCENEDEPTHCLIP = 0,
 }
 
 local unitShapeShaderConfig = {
 	STATICMODEL = 1.0, -- do not touch!
 	TRANSPARENCY = 0.5,
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+	SCENEDEPTHCLIP = 1,
 }
 
 local vsSrc = [[
@@ -196,6 +198,8 @@ local fsSrc = [[
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
+uniform sampler2D modelDepthTex;
+uniform sampler2D mapDepthTex;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -219,6 +223,12 @@ void main() {
 	if (v_parameters.w > 0){
 		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.w*fract(worldPos.y*0.03 + (timeInfo.x + timeInfo.w)*0.05));
 	}
+
+	#if SCENEDEPTHCLIP == 1
+		vec2 screenUV = gl_FragCoord.xy / viewGeometry.xy;
+		float sceneDepth = min(texture(modelDepthTex, screenUV).r, texture(mapDepthTex, screenUV).r);
+		if (gl_FragCoord.z > sceneDepth + 1e-5) discard;
+	#endif
 
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);
 }
@@ -547,6 +557,8 @@ function widget:Initialize()
 		uniformInt = {
 			tex1 = 0,
 			tex2 = 1,
+			modelDepthTex = 2,
+			mapDepthTex = 3,
 		},
 		uniformFloat = {
 			iconDistance = 1,
@@ -632,19 +644,11 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 		if unitShapeVBOTable.usedElements > 0 then
 
 			if not active then
-				-- Full depth write so multi-piece ghost models self-occlude
-				-- correctly. Without this, back faces of one piece bleed
-				-- through front faces of an adjacent piece (alpha-blend with
-				-- no z order).
-				--
-				-- The downside of writing depth is that anything transparent
-				-- drawn afterwards (nano particles, beams, jet trails, ...)
-				-- would normally be depth-rejected wherever a ghost overlaps.
-				-- We work around that by also marking each fragment we paint
-				-- with stencil bit GHOST_STENCIL_BIT; gadgets that want to
-				-- "shine through" ghosts (currently the nano particles
-				-- gadget) read this bit and disable depth-test on those
-				-- pixels.
+					-- Do not use the live depth buffer here. DrawWorldPreUnit happens
+					-- before the scene depth buffer is reliable for world clipping, so
+					-- we clip in the fragment shader against the gbuffer depth textures
+					-- instead. That keeps ghosts from showing through terrain/geometry
+					-- while still leaving the stencil mark for nano particles.
 				--
 				-- Clear our bit at the start of the pass so stale marks from
 				-- the previous frame don't leak. Cheap; hits stencil only.
@@ -663,9 +667,9 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
 
 				gl.Culling(GL.BACK)
-				gl.DepthMask(true)
-				gl.DepthTest(GL.LEQUAL)
-				gl.PolygonOffset(1, 1) -- so as not to clash with engine ghosts
+				gl.DepthMask(false)
+				gl.DepthTest(false)
+				gl.PolygonOffset(false)
 
 				gl.StencilTest(true)
 				gl.StencilMask(GHOST_STENCIL_BIT)
@@ -674,6 +678,8 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 
 				unitShapeShader:Activate()
 				unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200))
+				gl.Texture(2, "$model_gbuffer_zvaltex")
+				gl.Texture(3, "$map_gbuffer_zvaltex")
 				active = true
 			end
 
@@ -684,11 +690,14 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if active then
 		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
+		gl.Texture(2, false)
+		gl.Texture(3, false)
 		-- Restore stencil to "no test, full mask, no-op", widget defaults.
 		gl.StencilMask(0xFF)
 		gl.StencilFunc(GL.ALWAYS, 0, 0xFF)
 		gl.StencilOp(GL.KEEP, GL.KEEP, GL.KEEP)
 		gl.StencilTest(false)
+		gl.DepthTest(GL.LEQUAL)
 		gl.DepthMask(false)
 		gl.PolygonOffset(false)
 		gl.Culling(false)

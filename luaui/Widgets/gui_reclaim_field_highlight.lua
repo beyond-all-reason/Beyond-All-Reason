@@ -107,19 +107,14 @@ local animCfg = {
 	-- Cluster identity matching: required overlap fraction (intersection / max(old,new))
 	identityMinOverlap = 0.34,
 	-- Alpha delta beyond which we recreate the gradient display list
-	rebuildThreshold = 0.06,
+	rebuildThreshold = 0.0005,
 	-- Minimum relative change in cluster resource value to trigger a pulse
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
 	pulseMinRelativeChange = 0.12,
-	-- Per-frame budget for alpha-driven display-list rebuilds. When panning the
-	-- camera quickly, many clusters cross the distance-fade band at once and all
-	-- want to rebuild their baked-alpha gradient geometry the same frame. This
-	-- caps how many such rebuilds happen per frame; over-budget clusters reuse
-	-- their slightly-stale list and catch up over the next frame(s) (invisible
-	-- during motion). Geometry that doesn't exist yet is always built so a
-	-- cluster never fails to draw. Per-frame state lives in the *Budget fields.
-	maxRebuildsPerFrame = 12,
+	-- Per-frame budget for alpha-driven display-list rebuilds. The widget now
+	-- keeps this high enough that visible fades track camera motion closely.
+	maxRebuildsPerFrame = 64,
 	rebuildBudgetFrame = -1,
 	rebuildBudgetRemaining = 0,
 	-- High-quality font object (loaded in Initialize/ViewResize via WG['fonts'])
@@ -129,6 +124,7 @@ local animCfg = {
 local gameStarted = Spring.GetGameFrame() > 0
 local lastCheckFrame = Spring.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
+local lastClusterRebuildClock = os.clock() - 99
 local lastProcessedFrame = -1
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -374,6 +370,8 @@ local epsilonSq = epsilon*epsilon
 local checkFrequency = 30
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
+local featureReclaimScanCounter = 0 -- Rotating cursor for sampled feature-resource checks
+local knownFeatureIDs = {} -- Dense feature-ID list for bounded reclaim scans
 
 local featureCountMultiplier = 1 -- Multiplier based on feature count
 
@@ -388,6 +386,7 @@ local drawEnergyEnabled = false
 local actionActive = false
 local reclaimerSelected = false
 local resBotSelected = false
+local IsActiveReclaimCommand
 
 local canReclaim = {}
 local canResurrect = {}
@@ -1137,6 +1136,7 @@ end
 local cameraScale = 1
 local processCluster
 local recycleHull
+local FormatResourceText
 do
 	local function getReclaimTotal(cluster, points, resourceType)
 		local total = 0
@@ -1144,7 +1144,7 @@ do
 			total = total + points[j][resourceType]
 		end
 		cluster[resourceType] = total
-		cluster.text = string.formatSI(total)
+		cluster.text = FormatResourceText(total)
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -2039,6 +2039,8 @@ local function AddFeature(featureID)
 		feature.rd = reachDistSq
 	end
 	knownFeatures[featureID] = feature
+	knownFeatureIDs[#knownFeatureIDs + 1] = featureID
+	feature.scanIndex = #knownFeatureIDs
 	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
 end
 
@@ -2086,26 +2088,47 @@ local function RemoveFeature(featureID)
 	end
 	featureNeighborsMatrix[featureID] = nil
 	knownFeatures[featureID] = nil
+	local scanIndex = feature.scanIndex
+	if scanIndex then
+		local lastIndex = #knownFeatureIDs
+		local lastFeatureID = knownFeatureIDs[lastIndex]
+		knownFeatureIDs[scanIndex] = lastFeatureID
+		knownFeatureIDs[lastIndex] = nil
+		if lastFeatureID and lastFeatureID ~= featureID then
+			local lastFeature = knownFeatures[lastFeatureID]
+			if lastFeature then
+				lastFeature.scanIndex = scanIndex
+			end
+		end
+		feature.scanIndex = nil
+		if featureReclaimScanCounter > lastIndex then
+			featureReclaimScanCounter = 1
+		end
+	end
 	cachedKnownFeaturesCount = cachedKnownFeaturesCount - 1
 end
 
 local function UpdateFeatureReclaim()
-	-- Only check a subset of features per frame to reduce API calls
-	-- We rotate through features over multiple frames
+	-- Check a rotating subset of features each frame to bound the cost of
+	-- Spring.GetFeatureResources() on large maps.
 	local removed = false
 	local removeCount = 0
 	local dirtyCount = 0
 	local dirtyEnergyCount = 0
 
-	-- Sample rate: check ~10% of features per frame (or all if < 50 features)
-	-- Use cached count instead of iterating all features
 	local featureCount = cachedKnownFeaturesCount
+	local maxChecksPerFrame = 8
+	if featureCount > 2500 then
+		maxChecksPerFrame = 4
+	end
+	if actionActive or IsActiveReclaimCommand() then
+		maxChecksPerFrame = 48
+	end
+	if featureCount < maxChecksPerFrame then
+		maxChecksPerFrame = featureCount
+	end
 
-	-- ALWAYS check all features to ensure data consistency
-	-- This prevents stale values from causing incorrect cluster totals
-	local checkInterval = 1
-
-	local checkCounter = 0
+	local scanIndex = featureReclaimScanCounter
 	local featuresChecked = 0
 
 	-- Determine what needs updating based on visibility
@@ -2113,12 +2136,18 @@ local function UpdateFeatureReclaim()
 	local needMetalUpdates = drawEnabled
 	local needEnergyUpdates = drawEnergyEnabled
 
-	for fid, fInfo in pairs(knownFeatures) do
-		-- Check features based on interval
-		checkCounter = checkCounter + 1
-		if checkCounter % checkInterval == 0 or featureCount <= 500 then
+	for _ = 1, maxChecksPerFrame do
+		if featureCount == 0 then
+			break
+		end
+		scanIndex = scanIndex + 1
+		if scanIndex > featureCount then
+			scanIndex = 1
+		end
+		local fid = knownFeatureIDs[scanIndex]
+		local fInfo = fid and knownFeatures[fid]
+		if fInfo then
 			featuresChecked = featuresChecked + 1
-			-- Check this feature this frame
 			local metal, _, energy = spGetFeatureResources(fid)
 
 			-- Only remove feature when BOTH metal AND energy are below threshold
@@ -2168,6 +2197,7 @@ local function UpdateFeatureReclaim()
 			end
 		end
 	end
+	featureReclaimScanCounter = scanIndex
 
 	-- Remove in separate loop to avoid iterator issues
 	for i = 1, removeCount do
@@ -2189,7 +2219,7 @@ local function UpdateFeatureReclaim()
 			for cid in pairs(dirty.clusters) do
 				local cluster = featureClusters[cid]
 				if cluster then
-					cluster.text = string.formatSI(cluster.metal)
+					cluster.text = FormatResourceText(cluster.metal)
 				end
 			end
 		end
@@ -2199,7 +2229,7 @@ local function UpdateFeatureReclaim()
 			for energyCid in pairs(dirty.energyClusters) do
 				local energyCluster = energyFeatureClusters[energyCid]
 				if energyCluster then
-					energyCluster.text = string.formatSI(energyCluster.energy)
+					energyCluster.text = FormatResourceText(energyCluster.energy)
 				end
 			end
 		end
@@ -2276,6 +2306,76 @@ local function FindNonOverlappingPosition(baseX, baseZ, fontSize)
 		end
 	end
 	return baseX + fontSize * 2.5, baseZ
+end
+
+FormatResourceText = function(value)
+	local v = value or 0
+	if string.formatSI then
+		local ok, txt = pcall(string.formatSI, v, 0)
+		if ok and txt then return txt end
+		ok, txt = pcall(string.formatSI, v)
+		if ok and txt then return txt end
+	end
+	if v >= 1000000 then
+		return string.format("%.1fM", v / 1000000)
+	elseif v >= 1000 then
+		return string.format("%.1fK", v / 1000)
+	end
+	return string.format("%d", floor(v + 0.5))
+end
+
+local function EnsureClusterTextAnchors()
+	drawnTextPositionCount = 0
+	for cid = 1, #featureClusters do
+		local cluster = featureClusters[cid]
+		if cluster and cluster.center and cluster.font and cluster.font > 0 then
+			if not cluster.text then
+				cluster.text = FormatResourceText(cluster.metal or 0)
+			end
+			local fontSize = cluster.font
+			local textX, textZ = cluster.center.x, cluster.center.z
+			if WouldTextOverlap(textX, textZ, fontSize) then
+				textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+			end
+			cluster.textX = textX
+			cluster.textZ = textZ
+			drawnTextPositionCount = drawnTextPositionCount + 1
+			local posEntry = drawnTextPositions[drawnTextPositionCount]
+			if posEntry then
+				posEntry.x = textX
+				posEntry.z = textZ
+				posEntry.fontSize = fontSize
+			else
+				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+			end
+		end
+	end
+	if showEnergyFields then
+		for cid = 1, #energyFeatureClusters do
+			local cluster = energyFeatureClusters[cid]
+			if cluster and cluster.center and cluster.font and cluster.font > 0 then
+				if not cluster.text then
+					cluster.text = FormatResourceText(cluster.energy or 0)
+				end
+				local fontSize = cluster.font * energyTextSizeMultiplier
+				local textX, textZ = cluster.center.x, cluster.center.z
+				if WouldTextOverlap(textX, textZ, fontSize) then
+					textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+				end
+				cluster.textX = textX
+				cluster.textZ = textZ
+				drawnTextPositionCount = drawnTextPositionCount + 1
+				local posEntry = drawnTextPositions[drawnTextPositionCount]
+				if posEntry then
+					posEntry.x = textX
+					posEntry.z = textZ
+					posEntry.fontSize = fontSize
+				else
+					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+				end
+			end
+		end
+	end
 end
 
 local function ClusterizeFeatures()
@@ -2515,6 +2615,11 @@ local function disableHighlight()
 	actionActive = false
 end
 
+IsActiveReclaimCommand = function()
+	local _, _, _, cmdName = spGetActiveCommand()
+	return cmdName == 'Reclaim'
+end
+
 local UpdateDrawEnabled -- Uses the showOption setting to pick a function call.
 do
 	local function always()
@@ -2563,9 +2668,7 @@ do
 		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
-			dirty.needCluster = true
 			dirty.needRedraw = true
-			dirty.forceFullRedraw = true
 		end
 		-- Track the toggle fade target so the group fades smoothly in/out.
 		animState.toggleMetalTarget = drawEnabled and 1 or 0
@@ -2619,9 +2722,7 @@ do
 		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnergyEnabled and drawEnergyEnabled then
-			dirty.needCluster = true
 			dirty.needRedraw = true
-			dirty.forceFullRedraw = true
 		end
 		animState.toggleEnergyTarget = drawEnergyEnabled and 1 or 0
 		return drawEnergyEnabled
@@ -3178,6 +3279,8 @@ end
 
 local function UpdateReclaimFields()
 	local frame = spGetGameFrame()
+	local now = os.clock()
+	local activeReclaim = actionActive or IsActiveReclaimCommand()
 
 	-- Process deferred features periodically or when they come into view
 	if frame ~= lastProcessedFrame then
@@ -3189,16 +3292,20 @@ local function UpdateReclaimFields()
 	-- Refresh draw state before checking early return (avoid stale cached values)
 	UpdateDrawEnabled()
 	UpdateDrawEnergyEnabled()
+	local overlayVisible = drawEnabled or (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
 
-	if drawEnabled == false and (not showEnergyFields or not drawEnergyEnabled or allEnergyFieldsDrained) then
+	-- Keep background clustering alive even when overlay is hidden, so first
+	-- selection doesn't need to do all clustering/text prep in one stall.
+	if not overlayVisible and not dirty.needCluster and not dirty.forceFullRedraw then
 		return
 	end
 
-	if not dirty.needCluster and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
+	local clusterRebuildDue = dirty.needCluster and (activeReclaim or dirty.forceFullRedraw or (now - lastClusterRebuildClock) >= 0.75)
+	if not clusterRebuildDue and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and now - lastCheckFrameClock < (checkFrequency/30) then
 		return
 	end
 	lastCheckFrame = spGetGameFrame()
-	lastCheckFrameClock = os.clock()
+	lastCheckFrameClock = now
 
 	-- Adjust frequency based on feature count thresholds
 	local currentFeatureCount = cachedKnownFeaturesCount
@@ -3219,15 +3326,42 @@ local function UpdateReclaimFields()
 	-- Process flying features
 	local featuresAdded = ProcessFlyingFeatures(frame)
 
-	-- Always check for feature value updates so stored values are current
-	-- (needed even when clustering is pending, since cluster totals use stored values)
-	UpdateFeatureReclaim()
+	-- Only poll feature reclaim values while overlay is visible; hidden mode is
+	-- used for background clustering/prefetch and should stay cheap.
+	if overlayVisible then
+		UpdateFeatureReclaim()
+	end
 
-	if featuresAdded or dirty.needCluster then
+	if featuresAdded or clusterRebuildDue then
 		ValidateAndRemoveInvalidFeatures()
 		animState.CapturePreClusteringSnapshot()
 		ClusterizeFeatures()
 		animState.SyncClusterIdentitiesAfterClustering()
+		lastClusterRebuildClock = now
+	end
+
+	if overlayVisible then
+		local missingTextAnchors = false
+		for cid = 1, #featureClusters do
+			local cluster = featureClusters[cid]
+			if cluster and cluster.center and cluster.font and cluster.font > 0 and (cluster.textX == nil or cluster.text == nil) then
+				missingTextAnchors = true
+				break
+			end
+		end
+		if not missingTextAnchors and showEnergyFields and drawEnergyEnabled then
+			for cid = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[cid]
+				if cluster and cluster.center and cluster.font and cluster.font > 0 and (cluster.textX == nil or cluster.text == nil) then
+					missingTextAnchors = true
+					break
+				end
+			end
+		end
+		if missingTextAnchors then
+			EnsureClusterTextAnchors()
+			dirty.needRedraw = true
+		end
 	end
 
 	if dirty.needRedraw == true then
@@ -3369,12 +3503,14 @@ function widget:Initialize()
 	knownFeatures = {}
 	flyingFeatures = {}
 	featureNeighborsMatrix = {}
+	knownFeatureIDs = {}
 	featureClusters = {}
 	featureConvexHulls = {}
 	energyFeatureClusters = {}
 	energyFeatureConvexHulls = {}
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
+	featureReclaimScanCounter = 0
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
@@ -3579,7 +3715,7 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	end
 
 	local effAlpha, animScale = animState.GetClusterAnimAlphaAndScale(cluster.uid, isEnergy)
-	if effAlpha <= 0.005 then return 0 end
+	if effAlpha <= 0.001 then return 0 end
 
 	local clusterData
 	if isEnergy then
@@ -3654,7 +3790,7 @@ end
 
 local function DrawFadingCluster(uid, entry, drawGradient)
 	local alpha = entry.alpha or 0
-	if alpha <= 0.005 then return end
+	if alpha <= 0.001 then return end
 	local center = entry.center
 	if not center then return end
 	local inView = IsInCameraView(center.x, center.y, center.z, 600, drawCounter)
@@ -3738,9 +3874,10 @@ function widget:DrawWorld()
 				local cluster = featureClusters[clusterID]
 				if cluster and cluster.textX then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-					if effAlpha > 0.01 then
-						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * effAlpha)
-						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
+					if effAlpha > 0.001 then
+						local drawAlpha = max(effAlpha, 0.2)
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
 						local fs = cluster.font
 						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
@@ -3752,9 +3889,10 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
-					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * alpha)
-					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * alpha)
+				if alpha > 0.001 and entry.text then
+						local drawAlpha = max(alpha, 0.2)
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
 					local fs = entry.font or fontSizeMin
 					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
@@ -3770,9 +3908,10 @@ function widget:DrawWorld()
 				local cluster = energyFeatureClusters[clusterID]
 				if cluster and cluster.textX then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-					if effAlpha > 0.01 then
-						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * effAlpha)
-						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
+					if effAlpha > 0.001 then
+						local drawAlpha = max(effAlpha, 0.2)
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
 						local fs = cluster.font * energyTextSizeMultiplier
 						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
@@ -3784,9 +3923,10 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
-					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * alpha)
-					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * alpha)
+				if alpha > 0.001 and entry.text then
+						local drawAlpha = max(alpha, 0.2)
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
 					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
@@ -3873,7 +4013,7 @@ function widget:DrawWorld()
 						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * effAlpha)
+						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(effAlpha, 0.2))
 						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
@@ -3888,7 +4028,7 @@ function widget:DrawWorld()
 					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * alpha)
+					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(alpha, 0.2))
 					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end
@@ -3908,7 +4048,7 @@ function widget:DrawWorld()
 						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * effAlpha)
+						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(effAlpha, 0.2))
 						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
@@ -3923,7 +4063,7 @@ function widget:DrawWorld()
 					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * alpha)
+					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(alpha, 0.2))
 					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end

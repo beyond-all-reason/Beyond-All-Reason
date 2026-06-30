@@ -7,7 +7,7 @@ return {
 		energycost = 4080,
 		metalcost = 465,
 		buildpic = "LEGADVSOL.DDS",
-		buildtime = 13580,
+		buildtime = 12500,
 		canrepeat = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 44 60",

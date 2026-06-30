@@ -66,6 +66,7 @@ return {
 			[7] = "corcv",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			i18nfromunit = "corcom",
 			iscommander = true,
 			model_author = "Mr Bob",

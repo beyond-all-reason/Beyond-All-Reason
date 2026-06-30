@@ -25,6 +25,7 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetActiveCommand = Spring.GetActiveCommand
 
 local LineTypes = {
 	Console = -1,
@@ -894,6 +895,31 @@ end
 local function getColoredPlayerName(name, gameFrame, isSpectator)
 	local displayName = (playernames[name] and playernames[name][7]) or name
 	if isSpectator then
+		local formerTeamColor = playernames[name] and playernames[name][5]
+		local becameSpectatorFrame = playernames[name] and playernames[name][8]
+		local likelyFormerPlayer = false
+		if formerTeamColor and becameSpectatorFrame then
+			likelyFormerPlayer = true
+		elseif formerTeamColor and playernames[name] then
+			local teamID = playernames[name][3]
+			if teamID and teamID ~= Spring.GetGaiaTeamID() then
+				local _, leader = spGetTeamInfo(teamID, false)
+				if leader == playernames[name][4] then
+					likelyFormerPlayer = true
+				end
+			end
+		end
+		if likelyFormerPlayer then
+			local teamColor = colorSpecStr
+			if ColorString then
+				if not mySpec and anonymousMode ~= "disabled" then
+					teamColor = ColorString(anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]) or colorSpecStr
+				else
+					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
+				end
+			end
+			return teamColor .. '■ ' .. colorSpecStr .. '(s) ' .. displayName
+		end
 		return colorSpecStr .. '(s) ' .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
@@ -1439,7 +1465,8 @@ function widget:Update(dt)
 		setCurrentChatLine(#chatLines)
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if showHistoryWhenCtrlShift and ctrl and shift then
+		local _, actCmdID, _, _ = spGetActiveCommand()
+		if showHistoryWhenCtrlShift and ctrl and shift and not actCmdID then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
 			else
@@ -2627,15 +2654,23 @@ function widget:PlayerChanged(playerID)
 	if mySpec and inputMode == 'a:' then
 		inputMode = 's:'
 	end
-	local name, _, isSpec = spGetPlayerInfo(playerID, false)
+	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
 	if not playernames[name] then
 		widget:PlayerAdded(playerID)
 	else
-		if isSpec ~= playernames[name].isSpec then
+		playernames[name][1] = allyTeamID
+		playernames[name][3] = teamID
+		if not isSpec and teamID and teamID ~= Spring.GetGaiaTeamID() then
+			playernames[name][5] = { spGetTeamColor(teamID) }
+		end
+		if isSpec ~= playernames[name][2] then
 			playernames[name][2] = isSpec
 			if isSpec then
 				playernames[name][8] = Spring.GetGameFrame()	-- log frame of death
+				if (not playernames[name][5]) and teamID and teamID ~= Spring.GetGaiaTeamID() then
+					playernames[name][5] = { spGetTeamColor(teamID) }
+				end
 			end
 		end
 	end
@@ -2644,7 +2679,14 @@ end
 function widget:PlayerAdded(playerID)
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+	local teamColor = nil
+	if teamID and teamID ~= Spring.GetGaiaTeamID() then
+		local _, leader = spGetTeamInfo(teamID, false)
+		if (not isSpec) or leader == playerID then
+			teamColor = { spGetTeamColor(teamID) }
+		end
+	end
+	playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 	autocompletePlayernames[#autocompletePlayernames+1] = name
 	if historyName ~= name then
 		autocompletePlayernames[#autocompletePlayernames+1] = historyName
@@ -2836,7 +2878,14 @@ function widget:Initialize()
 	for _, playerID in ipairs(playersList) do
 		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 		local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		playernames[name] = { allyTeamID, isSpec, teamID, playerID, not isSpec and { spGetTeamColor(teamID) }, ColorIsDark(spGetTeamColor(teamID)), historyName }
+		local teamColor = nil
+		if teamID and teamID ~= Spring.GetGaiaTeamID() then
+			local _, leader = spGetTeamInfo(teamID, false)
+			if (not isSpec) or leader == playerID then
+				teamColor = { spGetTeamColor(teamID) }
+			end
+		end
+		playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
 		autocompletePlayernames[#autocompletePlayernames+1] = name
 		if historyName ~= name then
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName
@@ -2868,6 +2917,56 @@ function widget:GameOver()
 	gameOver = true
 end
 
+local function escapePackedField(str)
+	return (tostring(str):gsub("%%", "%%25"):gsub("|", "%%7C"):gsub(";", "%%3B"):gsub("\n", "%%0A"))
+end
+
+local function unescapePackedField(str)
+	if not str or str == "" then
+		return ""
+	end
+	return (str:gsub("%%(%x%x)", function(hex)
+		return string.char(tonumber(hex, 16))
+	end))
+end
+
+local function packOrgLines(lines)
+	if not lines or #lines == 0 then
+		return nil
+	end
+
+	local packed = {}
+	for i = 1, #lines do
+		local entry = lines[i]
+		if type(entry) == "table" and type(entry[1]) == "number" and type(entry[2]) == "string" then
+			packed[#packed + 1] = string.format("%d|%s", entry[1], escapePackedField(entry[2]))
+		end
+	end
+
+	if #packed == 0 then
+		return nil
+	end
+
+	return table.concat(packed, ";")
+end
+
+local function unpackOrgLines(packed)
+	if type(packed) ~= "string" or packed == "" then
+		return nil
+	end
+
+	local lines = {}
+	for record in string.gmatch(packed, "([^;]+)") do
+		local frameStr, packedText = string.match(record, "^([^|]+)|(.+)$")
+		local frame = tonumber(frameStr)
+		if frame and packedText then
+			lines[#lines + 1] = { frame, unescapePackedField(packedText) }
+		end
+	end
+
+	return lines
+end
+
 function widget:GetConfigData(data)
 	local inputHistoryLimited = {}
 	for k,v in ipairs(inputHistory) do
@@ -2888,7 +2987,8 @@ function widget:GetConfigData(data)
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
-		orgLines = gameOver and nil or orgLines,
+		orgLinesPacked = gameOver and nil or packOrgLines(orgLines),
+		orgLinesPackedFormat = 1,
 		inputHistory = inputHistoryLimited,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
@@ -2909,18 +3009,19 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.orgLines ~= nil then
+	local loadedOrgLines = unpackOrgLines(data.orgLinesPacked) or data.orgLines
+	if loadedOrgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
 			if data.playernames then
 				playernames = data.playernames
 			end
-			orgLines = data.orgLines
+			orgLines = loadedOrgLines
 			if data.soundErrors then
 				soundErrors = data.soundErrors
 			end
 		elseif data.gameID then
 			prevGameID = data.gameID
-			prevOrgLines = data.orgLines
+			prevOrgLines = loadedOrgLines
 		end
 	end
 	if data.inputHistory ~= nil then

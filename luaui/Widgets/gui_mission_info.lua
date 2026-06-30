@@ -345,7 +345,11 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then  -- ESC
-		show = false
+		if show then
+			showOnceMore = show
+			show = false
+			unpauseGame()
+		end
 	end
 end
 
@@ -455,9 +459,7 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	if show then
-		unpauseGame()
-	end
+	unpauseGame()
 	if textList then
 		glDeleteList(textList)
 		textList = nil

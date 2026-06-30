@@ -343,7 +343,7 @@ local function UpdateRules()
 	updatePanel = true
 end
 
-function RaptorEvent(raptorEventArgs)
+local function RaptorEvent(raptorEventArgs)
 	if raptorEventArgs.type == "firstWave" or (raptorEventArgs.type == "queen" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
@@ -383,7 +383,6 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = mathAbs(mathFloor(viewSizeX - 320))
@@ -395,6 +394,10 @@ function widget:Initialize()
 	end
 
 	updatePos(x, y)
+end
+
+function widget:RaptorEvent(raptorEventArgs)
+	RaptorEvent(raptorEventArgs)
 end
 
 function widget:Shutdown()
@@ -409,7 +412,6 @@ function widget:Shutdown()
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("RaptorEvent")
 end
 
 function widget:GameFrame(n)
