@@ -22,6 +22,7 @@ local mathMax = math.max
 local spGetViewGeometry = Spring.GetViewGeometry
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
 local currentLayout
 
 local keybindsText
@@ -158,13 +159,14 @@ local function drawWindow(activetab)
 	font2:End()
 
 
-	if activetab ~= "Keybindings" and keybindsimages[activetab] then
+	if keybindsimages[activetab] then
 		gl.Color(1,1,1,1)
 		gl.Texture(0, ":l:"..keybindsimages[activetab])
 		local zoom = 0.05
 		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
 		gl.Texture(0, false)
-	else
+	elseif activetab ~= "Keybindings" then
+		-- the "Keybindings" tab is the interactive editor, drawn live in DrawScreen
 
 		local entriesPerColumn = mathCeil(#keybindsText / 3)
 		local entries1 = {}
@@ -199,6 +201,8 @@ end
 local function refreshText()
 	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
+
+	keybindEditor.refresh()
 
 	keybindsText = {
 		{ type = lineType.title, text = Spring.I18N('ui.keybinds.chat.title') },
@@ -322,6 +326,11 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
+	keybindEditor.init()
+	local pad = mathFloor(8 * widgetScale)
+	local tabStripH = mathFloor(30 * widgetScale)
+	keybindEditor.setArea(screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - tabStripH, widgetScale)
+
 	if keybinds then
 		gl.DeleteList(keybinds)
 	end
@@ -360,6 +369,9 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		gl.Texture(false)	-- some other widget left it on
 		glCallList(keybinds)
+		if lasttab == "Keybindings" then
+			keybindEditor.draw()
+		end
 		if WG['guishader'] and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				-- background
@@ -389,11 +401,35 @@ function widget:DrawScreen()
 	end
 end
 
-function widget:KeyPress(key)
+function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+	if show and lasttab == "Keybindings" and keybindEditor.keyPress(key, scanCode) then
+		return true
+	end
+
 	if key == 27 then
 		-- ESC
 		show = false
+		keybindEditor.blur()
 	end
+end
+
+-- Some engine actions (cameraflip, volume, ...) execute on key-down without
+-- routing the press through LuaUI, so capture can't see the press. We still
+-- get the release, so fall back to capturing on release.
+function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
+	if show and lasttab == "Keybindings" then
+		return keybindEditor.keyRelease(key, scanCode)
+	end
+
+	return false
+end
+
+function widget:TextInput(utf8char)
+	if show and lasttab == "Keybindings" then
+		return keybindEditor.textInput(utf8char)
+	end
+
+	return false
 end
 
 local function mouseEvent(x, y, button, release)
@@ -404,6 +440,9 @@ local function mouseEvent(x, y, button, release)
 	if show then
 		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			if not release and lasttab == "Keybindings" then
+				keybindEditor.mousePress(x, y, button)
+			end
 			return true
 		else
 			for tab, tabrect in pairs(tabrects) do
@@ -411,7 +450,8 @@ local function mouseEvent(x, y, button, release)
 					if keybinds then
 						gl.DeleteList(keybinds)
 					end
-					lasstab = tab
+					lasttab = tab
+					keybindEditor.blur()
 					keybinds = gl.CreateList(drawWindow, tab)
 					if backgroundGuishader ~= nil then
 						if WG['guishader'] then
@@ -427,6 +467,7 @@ local function mouseEvent(x, y, button, release)
 			if release or not release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
+				keybindEditor.blur()
 			end
 		end
 	end
@@ -440,8 +481,45 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+function widget:MouseWheel(up, value)
+	if show and lasttab == "Keybindings" then
+		return keybindEditor.mouseWheel(up, value)
+	end
+
+	return false
+end
+
+function widget:Update()
+	local want = show and lasttab == "Keybindings" and keybindEditor.wantsTextOwner()
+	if want then
+		widgetHandler.textOwner = widget
+	elseif widgetHandler.textOwner == widget then
+		widgetHandler.textOwner = nil
+	end
+end
+
 function widget:Initialize()
 	refreshText()
+
+	widgetHandler:AddAction("keybindeditor", function()
+		lasttab = "Keybindings"
+		show = true
+		doUpdate = true
+		return true
+	end, nil, "t")
+
+	keybindEditor.setMenuToggle(function(label)
+		if not (widgetHandler.DisableWidget and widgetHandler.EnableWidget) then
+			return
+		end
+		if label == "Grid" then
+			widgetHandler:DisableWidget('Build menu')
+			widgetHandler:EnableWidget('Grid menu')
+		elseif label == "Legacy" then
+			widgetHandler:DisableWidget('Grid menu')
+			widgetHandler:EnableWidget('Build menu')
+		end
+	end)
 
 	WG['keybinds'] = {}
 	WG['keybinds'].toggle = function(state)
@@ -449,6 +527,9 @@ function widget:Initialize()
 			show = state
 		else
 			show = not show
+		end
+		if not show then
+			keybindEditor.blur()
 		end
 	end
 	WG['keybinds'].isvisible = function()
@@ -462,6 +543,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	keybindEditor.blur()
+	if widgetHandler.textOwner == widget then
+		widgetHandler.textOwner = nil
+	end
 	if keybinds then
 		glDeleteList(keybinds)
 		keybinds = nil
