@@ -10,6 +10,7 @@ local everything = {
 	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -20,6 +21,7 @@ local moderator = {
 	devhelpers = false,
 	playerdata = true,
 	waterlevel = false,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -32,6 +34,7 @@ local eventmanager = {
 	devhelpers_teams = true,	-- playertoteam, killteam
 	playerdata = false,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = false,
 	volcano = true,
 }
@@ -41,6 +44,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
+	modmarker = true,
 	playerdata = true,
 	sysinfo = false,
 	volcano = true,

@@ -102,7 +102,7 @@ out vec4 v_endcolor_alpha;
 
 void main() {
 	uint baseIndex = instData.x;
-	
+
 	#line 16000
 	#if USEQUATERNIONS == 0
 		mat4 modelMatrix = mat[baseIndex];
@@ -116,7 +116,7 @@ void main() {
 		v_modelPosOrig = localModelPos.xyz + (modelMatrix[3].xyz)*0.3;
 		vec4 modelPos = modelMatrix * localModelPos;
 
-	#else 
+	#else
 		Transform pieceModelTransform = GetPieceModelTransform(baseIndex, pieceIndex);
 		Transform modelWorldTransform = GetModelWorldTransform(baseIndex);
 
@@ -133,7 +133,7 @@ void main() {
 	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 
 	v_startcolorpower = startcolorpower;
-	
+
 	//v_endcolor_alpha.a = 0.99;
 	gl_Position = cameraViewProj * modelPos;
 }
@@ -146,7 +146,7 @@ local fsSrc = [[
 #line 20000
 
 // 4D NOISE:
-//	Simplex 4D Noise 
+//	Simplex 4D Noise
 //	by Ian McEwan, Ashima Arts
 //
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
@@ -161,7 +161,7 @@ vec4 grad4(float j, vec4 ip){
   p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;
   p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
   s = vec4(lessThan(p, vec4(0.0)));
-  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www; 
+  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www;
 
   return p;
 }
@@ -196,14 +196,14 @@ float snoise(vec4 v){
   vec4 i2 = clamp( i0-1.0, 0.0, 1.0 );
   vec4 i1 = clamp( i0-2.0, 0.0, 1.0 );
 
-  //  x0 = x0 - 0.0 + 0.0 * C 
+  //  x0 = x0 - 0.0 + 0.0 * C
   vec4 x1 = x0 - i1 + 1.0 * C.xxxx;
   vec4 x2 = x0 - i2 + 2.0 * C.xxxx;
   vec4 x3 = x0 - i3 + 3.0 * C.xxxx;
   vec4 x4 = x0 - 1.0 + 4.0 * C.xxxx;
 
 // Permutations
-  i = mod(i, 289.0); 
+  i = mod(i, 289.0);
   float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);
   vec4 j1 = permute( permute( permute( permute (
              i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))
@@ -253,8 +253,8 @@ in vec4 v_endcolor_alpha;
 out vec4 fragColor;
 #line 25000
 void main() {
-	float paralysis_level = v_endcolor_alpha.a; // values of 1 are fully paralyzed 
-	
+	float paralysis_level = v_endcolor_alpha.a; // values of 1 are fully paralyzed
+
 	float noisescale;
 	float persistance;
 	float lacunarity;
@@ -262,12 +262,12 @@ void main() {
 	vec3 maxlightningcolor;
 	vec4 wholeunitbasecolor;
 	float lightningalpha;
-	float lighting_sharpness; 
-	float lighting_width; 
+	float lighting_sharpness;
+	float lighting_width;
 	float lightning_speed;
-	
+
 	// ------------------ CONFIG START --------------------
-	
+
 	if (paralysis_level < 0.9999) { // not fully paralyzed
 		noisescale = 0.15;
 		persistance = 0.45;
@@ -276,7 +276,7 @@ void main() {
 		maxlightningcolor = vec3(0.9, 0.9, 0.9); //white
 		wholeunitbasecolor = vec4(0.0, 0.0, 0.0, 0.0); // none
 		lightningalpha = 1.4;
-		lighting_sharpness = 12.8; 
+		lighting_sharpness = 12.8;
 		lighting_width = 3.95;
 		lightning_speed = 0.14;
 	}
@@ -288,12 +288,12 @@ void main() {
 		maxlightningcolor = vec3(1.0, 1.0, 1.0); //white
 		wholeunitbasecolor = vec4(0.49, 0.43, 0.94, 0.35); // light blue base tone
 		lightningalpha = 1.2;
-		lighting_sharpness = 4.8; 
+		lighting_sharpness = 4.8;
 		lighting_width = 3.8;
 		lightning_speed = 0.95;
 	}
 	// ------------------ CONFIG END --------------------
-	
+
 	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
 	noise4 += pow(persistance, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
@@ -306,11 +306,11 @@ void main() {
 
 	vec3 lightningcolor;
 	float effectalpha;
-	if (paralysis_level < 0.9999) { 
+	if (paralysis_level < 0.9999) {
 		//empreworktagdonotremove
 		//empreworkherealsodonotremove
 		// Calculate the lightning color based on the amount of electricity
-		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity); 
+		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity);
 		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
 	}
 	else
@@ -318,9 +318,9 @@ void main() {
 		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity);
 		effectalpha = clamp(paralysis_level * lightningalpha, 0.0, 1.0);
 	}
-	
+
 	fragColor = vec4(lightningcolor, electricity*effectalpha);
-	fragColor = max(wholeunitbasecolor, fragColor); // apply whole unit base color	
+	fragColor = max(wholeunitbasecolor, fragColor); // apply whole unit base color
 }
 ]]
 
@@ -386,7 +386,7 @@ local function DrawParalyzedUnitGL4(unitID, unitDefID, red_start,  green_start, 
 	red_start = red_start or 1.0
 	green_start = green_start or 1.0
 	blue_start = blue_start or 1.0
-	power_start = power_start or 4.0 
+	power_start = power_start or 4.0
 	red_end = red_end or 0
 	green_end = green_end or 0
 	blue_end = blue_end or 1.0
@@ -483,7 +483,7 @@ local uniformcache = {0}
 local toremove = {}
 
 function widget:GameFrame(n)
-	if TESTMODE == false then 
+	if TESTMODE == false then
 		if n % 3 == 0 then
 			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
 				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
@@ -517,13 +517,15 @@ function widget:Initialize()
 	end
 	WG['DrawParalyzedUnitGL4'] = DrawParalyzedUnitGL4
 	WG['StopDrawParalyzedUnitGL4'] = StopDrawParalyzedUnitGL4
-	widgetHandler:RegisterGlobal("UnitParalyzeDamageEffect",UnitParalyzeDamageEffect )
+end
+
+function widget:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
+	UnitParalyzeDamageEffect(unitID, unitDefID, damage)
 end
 
 function widget:Shutdown()
 	WG['DrawParalyzedUnitGL4'] = nil
 	WG['StopDrawParalyzedUnitGL4'] = nil
-	widgetHandler:DeregisterGlobal("UnitParalyzeDamageEffect" )
 end
 
 function widget:DrawWorld()

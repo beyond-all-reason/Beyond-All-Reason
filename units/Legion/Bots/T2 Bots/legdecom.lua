@@ -28,7 +28,7 @@ return {
 		footprintz = 3,
 		hidedamage = true,
    		holdsteady = true,
-		mass = 4900,
+		mass = 2700, -- same as legcom's default mass (= metalcost)
 		health = 3700,
 		maxslope = 20,
 		speed = 37.5,

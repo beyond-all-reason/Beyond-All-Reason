@@ -84,8 +84,8 @@ function runDistanceTest(flightTime, shouldAlive)
 	local isAlive = Spring.ValidUnitID(unitNames["armsolar"])
 	local isAlive2 = Spring.ValidUnitID(unitNames["armpw"])
 
-	assert(isAlive == shouldAlive)
-	assert(isAlive2 == shouldAlive)
+	assertEqual(isAlive, shouldAlive)
+	assertEqual(isAlive2, shouldAlive)
 end
 
 function test()

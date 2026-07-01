@@ -25,14 +25,6 @@ return {
     desc = 'Infinite Games'
   },
   {
-    name = 'STAI',
-    desc = 'Medium  AI by @pandaro',
-  },
-  {
-    name = 'Shard',
-    desc = 'Shard - Basic Shard AI'
-  },
-  {
     name = 'RaptorsAI',
     desc = 'Raptor Defence'
   },

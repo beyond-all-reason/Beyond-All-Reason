@@ -452,11 +452,12 @@ local function refreshUnitInfo()
 					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 					local splitn = weaponDef.customParams.number or 1
 					addDPS(calculateWeaponDPS(weaponDef, splitd * splitn))
-				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+				elseif weaponDef.customParams.spark_forkdamage then -- Lightning
 					unitExempt = true
-					local forkd = weaponDef.customParams.spark_forkdamage
-					local forkn = weaponDef.customParams.spark_maxunits or 1
-					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn)))
+					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
+					-- Sparks cannot retarget the original unit they hit, so add them as secondary damages.
+					local forkDamageRate = weaponDef.customParams.spark_forkdamage
+					addSecondaryDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * forkDamageRate))
 					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
 						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
 						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
