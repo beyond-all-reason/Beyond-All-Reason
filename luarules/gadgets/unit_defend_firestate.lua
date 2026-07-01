@@ -1,4 +1,4 @@
---DEFEND FIRESTATE REWORK: Remove guard; defensive targeting is always required
+--DEFEND FIRESTATE REWORK: Remove guard; defend targeting is always required
 if not Spring.GetModOptions().experimental_defend_firestate then
 	return
 end
@@ -7,8 +7,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Firestate Defensive",
-		desc = "Limits defensive firestate to nearby targets",
+		name = "Firestate Defend",
+		desc = "Limits defend firestate to nearby targets",
 		author = "SethDGamre",
 		date = "2026.06.28",
 		license = "GNU GPL, v2 or later",
@@ -35,9 +35,9 @@ local NO_THREAT = -2
 local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
 local defThreatRanges = {}
 local neverHesitateAttackers = {}
-local defensiveWatchList = {}
+local defendWatchList = {}
 local cloakedWatchList = {}
-local defensiveHPCheckCooldowns = {}
+local defendHPCheckCooldowns = {}
 local radarAggroWatchList = {}
 local gameFrame = 0
 
@@ -292,13 +292,13 @@ local function populateWeaponThreatRange(rangesForWeapon, weaponDef, enemyUnitDe
 	end
 end
 
-local function setDefensiveWatch(unitID, isDefensive)
-	if isDefensive then
-		defensiveWatchList[unitID] = spGetUnitHealth(unitID)
+local function setDefendWatch(unitID, isDefend)
+	if isDefend then
+		defendWatchList[unitID] = spGetUnitHealth(unitID)
 	else
-		defensiveWatchList[unitID] = nil
+		defendWatchList[unitID] = nil
 		radarAggroWatchList[unitID] = nil
-		defensiveHPCheckCooldowns[unitID] = nil
+		defendHPCheckCooldowns[unitID] = nil
 	end
 end
 
@@ -306,8 +306,8 @@ local function isRadarOnlyUnknownTarget(los)
 	return los and los.radar and not los.los and not los.typed
 end
 
-local function checkDefensiveUnitHealth(attackerID)
-	local nextCheckFrame = defensiveHPCheckCooldowns[attackerID]
+local function checkDefendUnitHealth(attackerID)
+	local nextCheckFrame = defendHPCheckCooldowns[attackerID]
 	if nextCheckFrame and gameFrame < nextCheckFrame then
 		return
 	end
@@ -317,30 +317,30 @@ local function checkDefensiveUnitHealth(attackerID)
 		return
 	end
 
-	local lastHealth = defensiveWatchList[attackerID]
+	local lastHealth = defendWatchList[attackerID]
 	if lastHealth and currentHealth < lastHealth then
 		radarAggroWatchList[attackerID] = true
 	elseif lastHealth and currentHealth > lastHealth then
 		radarAggroWatchList[attackerID] = nil
 	end
 
-	defensiveWatchList[attackerID] = currentHealth
-	defensiveHPCheckCooldowns[attackerID] = gameFrame + HP_CHECK_INTERVAL_FRAMES
+	defendWatchList[attackerID] = currentHealth
+	defendHPCheckCooldowns[attackerID] = gameFrame + HP_CHECK_INTERVAL_FRAMES
 end
 
-local function updateDefensiveWatchFromRulesParam(unitID)
+local function updateDefendWatchFromRulesParam(unitID)
 	local state = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
-	setDefensiveWatch(unitID, state == Firestates.DEFENSIVE)
+	setDefendWatch(unitID, state == Firestates.DEFEND)
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_FIRE_STATE then
-		updateDefensiveWatchFromRulesParam(unitID)
+		updateDefendWatchFromRulesParam(unitID)
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	updateDefensiveWatchFromRulesParam(unitID)
+	updateDefendWatchFromRulesParam(unitID)
 end
 
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
@@ -352,10 +352,10 @@ function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	defensiveWatchList[unitID] = nil
+	defendWatchList[unitID] = nil
 	cloakedWatchList[unitID] = nil
 	radarAggroWatchList[unitID] = nil
-	defensiveHPCheckCooldowns[unitID] = nil
+	defendHPCheckCooldowns[unitID] = nil
 end
 
 function gadget:GameFrame(frame)
@@ -363,7 +363,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-	if not defensiveWatchList[attackerID] then
+	if not defendWatchList[attackerID] then
 		return true
 	end
 
@@ -371,7 +371,7 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 		return false
 	end
 
-	checkDefensiveUnitHealth(attackerID)
+	checkDefendUnitHealth(attackerID)
 
 	local allyTeamID = spGetUnitAllyTeam(attackerID)
 	local los = spGetUnitLosState(targetID, allyTeamID, false)
@@ -439,7 +439,7 @@ function gadget:Initialize()
 			}
 		end
 
-		if unitDef.customParams.defensive_never_hesitate or isKamikaze then
+		if unitDef.customParams.defend_never_hesitate or isKamikaze then
 			neverHesitateAttackers[unitDefID] = true
 		end
 
@@ -464,7 +464,7 @@ function gadget:Initialize()
 	end
 
 	for _, unitID in ipairs(spGetAllUnits()) do
-		updateDefensiveWatchFromRulesParam(unitID)
+		updateDefendWatchFromRulesParam(unitID)
 		if spGetUnitIsCloaked(unitID) then
 			cloakedWatchList[unitID] = true
 		end

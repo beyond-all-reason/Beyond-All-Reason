@@ -349,7 +349,7 @@ local function getUserFirestateCommand(command, unitID)
 	local filledStateCount
 	if Firestates.isUserFacing(userFirestate) then
 		displayIndex = Firestates.userFacingDisplayIndex(userFirestate)
-		if userFirestate == Firestates.DEFENSIVE then
+		if userFirestate == Firestates.DEFEND then
 			stateName = "Defend"
 		elseif userFirestate == Firestates.PASSIVE then
 			stateName = "Hold fire"
@@ -358,7 +358,7 @@ local function getUserFirestateCommand(command, unitID)
 		end
 	elseif userFirestate == Firestates.RETURN_FIRE then
 		displayIndex = 1
-		stateName = "Return fire"
+		stateName = "Defend"
 		filledStateCount = 2
 	elseif userFirestate == Firestates.FIRE_AT_ALL then
 		displayIndex = 2

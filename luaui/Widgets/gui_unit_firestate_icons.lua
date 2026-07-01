@@ -145,7 +145,7 @@ local function getDisplayFireState(unitID)
 	local userFirestate = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
 	if userFirestate == Firestates.PASSIVE then
 		return HOLD_FIRE
-	elseif userFirestate == Firestates.DEFENSIVE or userFirestate == Firestates.RETURN_FIRE then
+	elseif userFirestate == Firestates.DEFEND or userFirestate == Firestates.RETURN_FIRE then
 		return RETURN_FIRE
 	end
 end

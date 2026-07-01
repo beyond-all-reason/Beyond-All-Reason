@@ -2,7 +2,7 @@ local firestates = {
 	RULES_PARAM = "user_firestate",
 
 	PASSIVE = 0,
-	DEFENSIVE = 1,
+	DEFEND = 1,
 	RETURN_FIRE = 2,
 	AGGRESSIVE = 3,
 	FIRE_AT_ALL = 4,
@@ -15,19 +15,19 @@ local firestates = {
 
 local userFacingStateByDisplayIndex = {
 	[0] = firestates.PASSIVE,
-	[1] = firestates.DEFENSIVE,
+	[1] = firestates.DEFEND,
 	[2] = firestates.AGGRESSIVE,
 }
 
 local displayIndexByUserFacingState = {
 	[firestates.PASSIVE] = 0,
-	[firestates.DEFENSIVE] = 1,
+	[firestates.DEFEND] = 1,
 	[firestates.AGGRESSIVE] = 2,
 }
 
 local engineFirestateByState = {
 	[firestates.PASSIVE] = firestates.ENGINE_HOLD_FIRE,
-	[firestates.DEFENSIVE] = firestates.ENGINE_FIRE_AT_WILL,
+	[firestates.DEFEND] = firestates.ENGINE_FIRE_AT_WILL,
 	[firestates.RETURN_FIRE] = firestates.ENGINE_RETURN_FIRE,
 	[firestates.AGGRESSIVE] = firestates.ENGINE_FIRE_AT_WILL,
 	[firestates.FIRE_AT_ALL] = firestates.ENGINE_FIRE_AT_ALL,

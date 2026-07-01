@@ -25,7 +25,7 @@ local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 
 local userFirestateByEngineFirestate = {
 	[Firestates.ENGINE_HOLD_FIRE] = Firestates.PASSIVE,
-	[Firestates.ENGINE_RETURN_FIRE] = Firestates.DEFENSIVE,
+	[Firestates.ENGINE_RETURN_FIRE] = Firestates.DEFEND,
 	[Firestates.ENGINE_FIRE_AT_WILL] = Firestates.AGGRESSIVE,
 }
 
