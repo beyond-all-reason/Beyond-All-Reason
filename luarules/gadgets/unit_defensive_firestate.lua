@@ -21,13 +21,15 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+--increase safety margin buffer so a pawn can walk through a minefield that's exposed
+
 local Firestates = VFS.Include("modules/firestates.lua")
-local UnitDefDPS = VFS.Include("modules/unitdefdps.lua")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
-local DPS_PENALTY = 0.99
-local MULTI_WEAPON_DPS_PENALTY = 0.66
-local THREAT_MOVEMENT_BUFFER_MULTIPLIER = 2
-local INSTANT_KILL_MOVEMENT_SECONDS = 1
+local THREAT_RANGE_BUFFER_MULTIPLIER = 1.25
+local EXTRA_SECONDS_MOVEMENT_THREAT_BUFFER = 1.5
+local REFERENCE_RANGE_FRACTION = 0.75
+local REFERENCE_TARGET_HALF_EXTENT = Game.squareSize * Game.footprintScale
+local FALLOFF_WEAPON_TYPES = { BeamLaser = true, Flame = true, LaserCannon = true, LightningCannon = true }
 local ALWAYS_SHOOT = -1
 local NO_THREAT = -2
 local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
@@ -80,18 +82,6 @@ local function getUnitDefKamikazeDistance(unitDef)
 		or 0
 end
 
-local function countNonBogusWeapons(unitDef)
-	local count = 0
-	local weapons = unitDef.weapons
-	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
-		if weaponDef and not weaponDef.customParams.bogus then
-			count = count + 1
-		end
-	end
-	return count
-end
-
 local function hasKamikazeWeapon(unitDef)
 	local weapons = unitDef.weapons
 	for weaponNum = 1, #weapons do
@@ -132,43 +122,6 @@ local function getKamikazeExplosionRadius(unitDef)
 	return math.max(explosionRadius, getUnitDefKamikazeDistance(unitDef))
 end
 
-local function getMaxWeaponRange(unitDef)
-	local longestRange = 0
-	local weapons = unitDef.weapons
-	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
-		if weaponDef and not weaponDef.customParams.bogus then
-			local range = weaponDef.range or 0
-			if range > longestRange then
-				longestRange = range
-			end
-		end
-	end
-	return longestRange
-end
-
-local function unitMatchesWeaponCategories(victimUnitDef, weapon)
-	local victimCategories = victimUnitDef.modCategories
-
-	if weapon.onlyTargets then
-		if not victimCategories then
-			return false
-		end
-		local matchesAny = false
-		for category, _ in pairs(weapon.onlyTargets) do
-			if victimCategories[category] then
-				matchesAny = true
-				break
-			end
-		end
-		if not matchesAny then
-			return false
-		end
-	end
-
-	return true
-end
-
 local function isOffensiveWeapon(weaponDef)
 	if not weaponDef or weaponDef.customParams.bogus then
 		return false
@@ -185,58 +138,18 @@ local function isOffensiveWeapon(weaponDef)
 	return true
 end
 
-local function weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef)
-	if not isOffensiveWeapon(weaponDef) then
+local function weaponDealsDamage(weaponDef)
+	local damages = weaponDef.damages
+	if not damages then
 		return false
 	end
 
-	if not unitMatchesWeaponCategories(victimUnitDef, weapon) then
-		return false
-	end
-
-	if weaponDef.paralyzer then
-		local victimCategories = victimUnitDef.modCategories
-		if not victimCategories or not victimCategories.empable then
-			return false
-		end
-	end
-
-	local armorType = victimUnitDef.armorType or 0
-	local damage = weaponDef.damages and weaponDef.damages[armorType]
-	return damage and damage > 0
-end
-
-local function explosionThreatensUnitDef(weaponName, victimUnitDef)
-	local weaponDef = getWeaponDefFromName(weaponName)
-	if not weaponDef then
-		return false
-	end
-
-	local armorType = victimUnitDef.armorType or 0
-	local damage = weaponDef.damages and weaponDef.damages[armorType]
-	return damage and damage > 0
-end
-
-local function canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef)
-	if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
+	if (damages[0] or 0) > 0 then
 		return true
 	end
 
-	local weapons = threatUnitDef.weapons
-	for weaponNum = 1, #weapons do
-		local weapon = weapons[weaponNum]
-		local weaponDef = WeaponDefs[weapon.weaponDef]
-		if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
-			return true
-		end
-	end
-
-	if isKamikazeUnitDef(threatUnitDef) then
-		if explosionThreatensUnitDef(threatUnitDef.deathExplosion, victimUnitDef) then
-			return true
-		end
-
-		if explosionThreatensUnitDef(threatUnitDef.selfDExplosion, victimUnitDef) then
+	for index = 1, #damages do
+		if (damages[index] or 0) > 0 then
 			return true
 		end
 	end
@@ -244,25 +157,65 @@ local function canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef)
 	return false
 end
 
-local function getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
-	if isKamikazeUnitDef(threatUnitDef) then
-		return getKamikazeExplosionRadius(threatUnitDef)
+local function isCarrierWeapon(weaponDef)
+	local customParams = weaponDef.customParams
+	return customParams and customParams.carried_unit and customParams.carried_unit ~= ""
+end
+
+local function getCarrierWeaponCommandRange(weaponDef)
+	local customParams = weaponDef.customParams or {}
+	local engagementRange = tonumber(customParams.engagementrange)
+	if engagementRange and engagementRange > 0 then
+		return engagementRange
+	end
+	return weaponDef.range or 0
+end
+
+local function isThreateningUnitDef(enemyUnitDef)
+	if enemyUnitDef.canReclaim then
+		return true
+	end
+
+	if isKamikazeUnitDef(enemyUnitDef) then
+		return true
+	end
+
+	local weapons = enemyUnitDef.weapons
+	for weaponNum = 1, #weapons do
+		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
+		if weaponDef and isOffensiveWeapon(weaponDef) then
+			if isCarrierWeapon(weaponDef) or weaponDealsDamage(weaponDef) then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+local function getUnitDefMaxOffensiveRange(enemyUnitDef)
+	if isKamikazeUnitDef(enemyUnitDef) then
+		return getKamikazeExplosionRadius(enemyUnitDef)
 	end
 
 	local longestRange = 0
-	if threatUnitDef.canReclaim and victimUnitDef.reclaimable ~= false then
-		local buildDistance = threatUnitDef.buildDistance or 0
+	if enemyUnitDef.canReclaim then
+		local buildDistance = enemyUnitDef.buildDistance or 0
 		if buildDistance > longestRange then
 			longestRange = buildDistance
 		end
 	end
 
-	local weapons = threatUnitDef.weapons
+	local weapons = enemyUnitDef.weapons
 	for weaponNum = 1, #weapons do
-		local weapon = weapons[weaponNum]
-		local weaponDef = WeaponDefs[weapon.weaponDef]
-		if weaponDef and weaponThreatensUnitDef(weapon, weaponDef, victimUnitDef) then
-			local range = weaponDef.range or 0
+		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
+		if weaponDef and isOffensiveWeapon(weaponDef) then
+			local range = 0
+			if isCarrierWeapon(weaponDef) then
+				range = getCarrierWeaponCommandRange(weaponDef)
+			elseif weaponDealsDamage(weaponDef) then
+				range = weaponDef.range or 0
+			end
 			if range > longestRange then
 				longestRange = range
 			end
@@ -272,73 +225,70 @@ local function getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
 	return longestRange
 end
 
-local function getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, targetUnitDef)
-	if weaponDef.paralyzer then
-		return 0
-	end
-
-	if not weaponThreatensUnitDef(weapon, weaponDef, targetUnitDef) then
-		return 0
-	end
-
-	local armorType = targetUnitDef.armorType or 0
-	local damage = weaponDef.damages and weaponDef.damages[armorType] or 0
-	local salvoSize = weaponDef.salvoSize or 1
-	local projectiles = weaponDef.projectiles or 1
-	return damage * salvoSize * projectiles
-end
-
-local function canUnitDefOneShotUnitDef(attackerUnitDef, targetUnitDef)
-	local targetHealth = targetUnitDef.health or 0
-	if targetHealth <= 0 then
-		return false
-	end
-
-	local weapons = attackerUnitDef.weapons
-	for weaponNum = 1, #weapons do
-		local weapon = weapons[weaponNum]
-		local weaponDef = WeaponDefs[weapon.weaponDef]
-		if weaponDef then
-			local volleyDamage = getWeaponVolleyDamageAgainstUnitDef(weapon, weaponDef, targetUnitDef)
-			if volleyDamage >= targetHealth then
-				return true
-			end
+local function getWeaponFalloffMultiplier(weaponDef)
+	if FALLOFF_WEAPON_TYPES[weaponDef.type] then
+		local minIntensity = weaponDef.minIntensity
+		if minIntensity and minIntensity > 0 then
+			return minIntensity
 		end
 	end
 
-	return false
+	return 1
 end
 
-local function populateDefThreatRangeForPair(rangesForAttacker, attackerUnitDefID, targetUnitDefID, attackerDPS, attackerSpeed, attackerMaxRange)
-	local threatUnitDef = UnitDefs[targetUnitDefID]
-	local victimUnitDef = UnitDefs[attackerUnitDefID]
+local function getWeaponHitChance(weaponDef)
+	local spreadAngle = (weaponDef.accuracy or 0) + (weaponDef.sprayAngle or 0)
+	local spreadRadius = REFERENCE_RANGE_FRACTION * (weaponDef.range or 0) * spreadAngle
+	if spreadRadius <= REFERENCE_TARGET_HALF_EXTENT then
+		return 1
+	end
 
-	if not canUnitDefThreatenUnitDef(threatUnitDef, victimUnitDef) then
-		rangesForAttacker[targetUnitDefID] = NO_THREAT
+	local ratio = REFERENCE_TARGET_HALF_EXTENT / spreadRadius
+	return ratio * ratio
+end
+
+local function getWeaponEffectiveDamagePerCycle(weaponDef, armorType)
+	local damages = weaponDef.damages
+	local damage = damages and damages[armorType] or 0
+	if damage <= 0 then
+		return 0
+	end
+
+	local salvoSize = weaponDef.salvoSize or 1
+	local projectiles = weaponDef.projectiles or 1
+	local falloffMultiplier = getWeaponFalloffMultiplier(weaponDef)
+	local hitChance = getWeaponHitChance(weaponDef)
+	return damage * salvoSize * projectiles * falloffMultiplier * hitChance
+end
+
+local function getWeaponTimeToKill(weaponDef, enemyHealth, armorType)
+	local damagePerCycle = getWeaponEffectiveDamagePerCycle(weaponDef, armorType)
+	if damagePerCycle <= 0 then
+		return nil
+	end
+
+	local cycles = math.ceil(enemyHealth / damagePerCycle)
+	local reload = weaponDef.reload or 0
+	local salvoSize = weaponDef.salvoSize or 1
+	local salvoDelay = weaponDef.salvoDelay or 0
+	local intraSalvoTime = (salvoSize - 1) * salvoDelay
+	return math.max(0, cycles - 1) * reload + intraSalvoTime
+end
+
+local function populateWeaponThreatRange(rangesForWeapon, weaponDef, enemyUnitDefID, enemyProps)
+	local timeToKill = getWeaponTimeToKill(weaponDef, enemyProps.health, enemyProps.armorType)
+	if not timeToKill then
+		rangesForWeapon[enemyUnitDefID] = NO_THREAT
 		return
 	end
 
-	if neverHesitateAttackers[attackerUnitDefID] then
-		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-		return
-	end
-
-	local targetThreatRange = getThreatRangeAgainstUnitDef(threatUnitDef, victimUnitDef)
-	local targetSpeed = (threatUnitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
-	local targetHealth = threatUnitDef.health or 0
-	local canOneShot = canUnitDefOneShotUnitDef(victimUnitDef, threatUnitDef)
-	local timeToKill = targetHealth / attackerDPS
-	local killBuffer
-	if canOneShot or attackerDPS > targetHealth then
-		killBuffer = (attackerSpeed + targetSpeed) * INSTANT_KILL_MOVEMENT_SECONDS
+	local groundCovered = enemyProps.speed * (timeToKill + EXTRA_SECONDS_MOVEMENT_THREAT_BUFFER)
+	local threatRange = (enemyProps.reach + groundCovered) * THREAT_RANGE_BUFFER_MULTIPLIER
+	local weaponRange = weaponDef.range or 0
+	if threatRange >= weaponRange then
+		rangesForWeapon[enemyUnitDefID] = ALWAYS_SHOOT
 	else
-		killBuffer = (attackerSpeed + targetSpeed) * timeToKill
-	end
-	local threatRange = math.sqrt(targetThreatRange * targetThreatRange + attackerSpeed * attackerSpeed + killBuffer * killBuffer)
-	if threatRange > attackerMaxRange then
-		rangesForAttacker[targetUnitDefID] = ALWAYS_SHOOT
-	else
-		rangesForAttacker[targetUnitDefID] = threatRange * threatRange
+		rangesForWeapon[enemyUnitDefID] = threatRange * threatRange
 	end
 end
 
@@ -435,12 +385,18 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 	end
 
 	local attackerUnitDefID = spGetUnitDefID(attackerID)
+	if neverHesitateAttackers[attackerUnitDefID] then
+		return true
+	end
+
+	local rangesForWeapon = defThreatRanges[attackerWeaponDefID]
+	if not rangesForWeapon then
+		return true
+	end
+
 	local targetUnitDefID = spGetUnitDefID(targetID)
-	local threatRangeSq = defThreatRanges[attackerUnitDefID] and defThreatRanges[attackerUnitDefID][targetUnitDefID]
+	local threatRangeSq = rangesForWeapon[targetUnitDefID]
 	if not threatRangeSq then
-		if not defThreatRanges[attackerUnitDefID] then
-			return true
-		end
 		return false
 	end
 
@@ -466,27 +422,21 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 end
 
 function gadget:Initialize()
-	local allUnitDefDPS = UnitDefDPS.calculateAll()
-	local unitDefsDPS = {}
-	local attackerSpeeds = {}
-	local attackerMaxRanges = {}
 	local targetUnitDefIDs = {}
+	local enemyProps = {}
+	local offensiveWeaponDefs = {}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		local weaponCount = countNonBogusWeapons(unitDef)
-
-		local dpsPenaltyMultiplier = tonumber(unitDef.customParams.dps_penalty_multiplier) or DPS_PENALTY
-		if weaponCount > 1 then
-			dpsPenaltyMultiplier = MULTI_WEAPON_DPS_PENALTY
-		end
-		unitDefsDPS[unitDefID] = UnitDefDPS.getEffectiveDPS(unitDef, allUnitDefDPS[unitDefID]) * dpsPenaltyMultiplier
-		attackerSpeeds[unitDefID] = (unitDef.speed or 0) * THREAT_MOVEMENT_BUFFER_MULTIPLIER
-		attackerMaxRanges[unitDefID] = getMaxWeaponRange(unitDef)
-
 		local isKamikaze = isKamikazeUnitDef(unitDef)
 
-		if weaponCount > 0 or unitDef.canReclaim or isKamikaze then
+		if isThreateningUnitDef(unitDef) then
 			targetUnitDefIDs[#targetUnitDefIDs + 1] = unitDefID
+			enemyProps[unitDefID] = {
+				armorType = unitDef.armorType or 0,
+				health = unitDef.health or 0,
+				speed = unitDef.speed or 0,
+				reach = getUnitDefMaxOffensiveRange(unitDef),
+			}
 		end
 
 		if unitDef.customParams.defensive_never_hesitate or isKamikaze then
@@ -497,29 +447,20 @@ function gadget:Initialize()
 		for weaponNum = 1, #weapons do
 			local weaponDefID = weapons[weaponNum].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
-			if not weaponDef.customParams.bogus then
+			if weaponDef and not weaponDef.customParams.bogus and isOffensiveWeapon(weaponDef) then
+				offensiveWeaponDefs[weaponDefID] = weaponDef
 				Script.SetWatchAllowTarget(weaponDefID, true)
 			end
 		end
 	end
 
-	for attackerUnitDefID, attackerDPS in pairs(unitDefsDPS) do
-		if attackerDPS > 0 or neverHesitateAttackers[attackerUnitDefID] then
-			local rangesForAttacker = {}
-			local attackerSpeed = attackerSpeeds[attackerUnitDefID]
-			local attackerMaxRange = attackerMaxRanges[attackerUnitDefID]
-			for targetIndex = 1, #targetUnitDefIDs do
-				populateDefThreatRangeForPair(
-					rangesForAttacker,
-					attackerUnitDefID,
-					targetUnitDefIDs[targetIndex],
-					attackerDPS,
-					attackerSpeed,
-					attackerMaxRange
-				)
-			end
-			defThreatRanges[attackerUnitDefID] = rangesForAttacker
+	for weaponDefID, weaponDef in pairs(offensiveWeaponDefs) do
+		local rangesForWeapon = {}
+		for targetIndex = 1, #targetUnitDefIDs do
+			local enemyUnitDefID = targetUnitDefIDs[targetIndex]
+			populateWeaponThreatRange(rangesForWeapon, weaponDef, enemyUnitDefID, enemyProps[enemyUnitDefID])
 		end
+		defThreatRanges[weaponDefID] = rangesForWeapon
 	end
 
 	for _, unitID in ipairs(spGetAllUnits()) do
