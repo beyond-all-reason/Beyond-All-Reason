@@ -348,7 +348,7 @@ local function getUserFirestateCommand(command, unitID)
 	local stateName
 	local filledStateCount
 	if Firestates.isUserFacing(userFirestate) then
-		displayIndex = Firestates.userFacingDisplayIndex(userFirestate)
+		displayIndex = Firestates.displayIndex(userFirestate)
 		if userFirestate == Firestates.DEFEND then
 			stateName = "Defend"
 		elseif userFirestate == Firestates.PASSIVE then
@@ -1338,7 +1338,7 @@ function widget:MousePress(x, y, button)
 								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
 							if cmd.id == CMD_FIRE_STATE and Firestates.isDefendFirestateEnabled() and cmd.userFacingFirestate and clickedCellDesiredState then
-								local nextFirestate = Firestates.userFacingStateFromDisplayIndex(clickedCellDesiredState)
+								local nextFirestate = Firestates.stateFromDisplayIndex(clickedCellDesiredState)
 								spGiveOrderToUnitArray(spGetSelectedUnits(), CMD_USER_FIRESTATE, { nextFirestate }, 0)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())

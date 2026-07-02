@@ -32,7 +32,7 @@ local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local settingEngineFirestate = false
 
 local function setUserFirestate(unitID, state)
-	local engineFirestate = Firestates.engineFirestateFor(state)
+	local engineFirestate = Firestates.toEngineFirestate(state)
 	if not engineFirestate then
 		return
 	end
@@ -56,7 +56,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	end
 
 	if cmdID == CMD_FIRE_STATE then
-		local state = Firestates.logicalFromEngineFirestate(cmdParams[1])
+		local state = Firestates.fromEngineFirestate(cmdParams[1])
 		spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
 	end
 	return true
@@ -64,7 +64,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local firestate = spGetUnitStates(unitID, false)
-	local state = Firestates.logicalFromEngineFirestate(firestate)
+	local state = Firestates.fromEngineFirestate(firestate)
 	spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
 end
 

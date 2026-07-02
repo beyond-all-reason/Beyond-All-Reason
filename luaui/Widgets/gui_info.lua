@@ -30,7 +30,6 @@ local emptyInfo = false
 local showEngineTooltip = false		-- straight up display old engine delivered text
 
 local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local UnitDefDPS = VFS.Include("modules/unitdefdps.lua")
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -291,7 +290,53 @@ local function refreshUnitInfo()
 			unitDefInfo[unitDefID].mex = true
 		end
 		local weapons = unitDef.weapons
-		local dpsState = UnitDefDPS.newState()
+
+
+		-----------------------------------------------------
+		-- Utility functions for calculating weapon values --
+		-----------------------------------------------------
+
+		local function addPrimaryDPS(minDPS, maxDPS)
+			unitDefInfo[unitDefID].mindps = (unitDefInfo[unitDefID].mindps or 0) + minDPS
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + maxDPS
+		end
+
+		local function addSecondaryDPS(minDPS, maxDPS)
+			unitDefInfo[unitDefID].maxdps = (unitDefInfo[unitDefID].maxdps or 0) + maxDPS
+		end
+
+
+		local function calculateLaserDPS(def, damage)
+			local minIntensity = math.max(def.minIntensity, 0.5)
+			local mindps = minIntensity*(damage * def.salvoSize / def.reload)
+			local maxdps = damage * def.salvoSize / def.reload
+			return mindps, maxdps
+		end
+
+		local function calculateWeaponDPS(def, damage)
+			local reloadDPS = damage * (def.salvoSize * def.projectiles) / def.reload
+			local stockpileDPS = damage * (def.salvoSize * def.projectiles) / (def.stockpile and def.stockpileTime/30 or def.reload)
+			return math_min(reloadDPS, stockpileDPS), math_max(reloadDPS, stockpileDPS)
+		end
+
+		local function calculateClusterDPS(def, damage)
+			local munition = unitDef.name .. '_' .. def.customParams.cluster_def
+			local cmNumber = def.customParams.cluster_number
+			local cmDamage = WeaponDefNames[munition].damages[0]
+
+			local mainDps = (def.salvoSize * def.projectiles) / def.reload * (damage)
+			local cmunDps = (def.salvoSize * def.projectiles) / def.reload * (cmNumber * cmDamage)
+			return mainDps, mainDps + cmunDps
+		end
+
+		local function calculateAreaDPS(def, damage)
+			local burst = def.salvoSize * def.projectiles
+			local impactDps = damage * burst / def.reload
+			local areaDps = def.customParams.area_onhit_damage -- by definition
+			local damageMax = math_max(impactDps + areaDps, areaDps * burst * def.customParams.area_onhit_time / def.reload)
+			return impactDps, damageMax
+		end
+
 
 		local function setEnergyAndMetalCosts(def)
 			if def.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or def.energyCost > unitDefInfo[unitDefID].energyPerShot) then
@@ -302,12 +347,18 @@ local function refreshUnitInfo()
 			end
 		end
 
+		-----------------------------------------------------
+
+		local unitExempt = false
+
 		local function refreshUnitWeaponInfo(i, weaponDef, isPrimaryWeapon)
 			unitDefInfo[unitDefID].weapons[i] = weaponDef
 
 			if isPrimaryWeapon and weapons[i].onlyTargets['vtol'] then
-				unitDefInfo[unitDefID].isAaUnit = true
+				unitDefInfo[unitDefID].isAaUnit = true -- displays airLOS range
 			end
+
+			local addDPS = isPrimaryWeapon and addPrimaryDPS or addSecondaryDPS
 
 			if weaponDef.interceptor ~= 0 and weaponDef.coverageRange then
 				unitDefInfo[unitDefID].maxCoverage = math.max(unitDefInfo[unitDefID].maxCoverage or 1, weaponDef.coverageRange)
@@ -323,43 +374,81 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 
 			else
-				UnitDefDPS.processWeapon(dpsState, unitDef, weapons, i, weaponDef, isPrimaryWeapon)
+				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
+					unitExempt = true
+					if i==1 then                                --Calculating using first weapon only
+						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
+					end
 
-				if
-					unitDef.customParams.evocomlvl or
-					unitDef.name == 'armcom' or
-					unitDef.name == 'corcom' or
-					unitDef.name == 'legcom' or
-					unitDef.name == 'corkarg' or
-					unitDef.name == 'armguard' or
-					unitDef.name == 'corpun' or
-					unitDef.name == 'legcluster' or
-					unitDef.name == 'leglob' or
-					unitDef.name == 'legnavyfrigate' or
+				elseif
+					unitDef.customParams.evocomlvl  or -- use primary weapon for evolving commanders
+					unitDef.name == 'armcom'       or -- ignore underwater secondary
+					unitDef.name == 'corcom'       or
+					unitDef.name == 'legcom'       or
+					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
+					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
+					unitDef.name == 'corpun'       or
+					unitDef.name == 'legcluster'   or
+					unitDef.name == 'leglob'   or
+					unitDef.name == 'legnavyfrigate'   or
+					unitDef.name == 'armamb'       or
+					unitDef.name == 'cortoast'     or
 					unitDef.name == 'armvang'
 				then
-					if i == 1 then
+					unitExempt = true
+					if i == 1 then  									--Calculating using first weapon only
 						setEnergyAndMetalCosts(weaponDef)
-					end
-				elseif unitDef.name == 'corkorg' then
-					if i == 2 then
-						setEnergyAndMetalCosts(weaponDef)
-					end
-				end
 
-				if weaponDef.type == "BeamLaser" and not dpsState.unitExempt then
-					setEnergyAndMetalCosts(weaponDef)
-				end
-
-				if weaponDef.type ~= "BeamLaser" and weaponDef.paralyzer ~= true and not dpsState.unitExempt then
-					local defDmg
-					if weapons[1].onlyTargets['vtol'] ~= nil then
-						defDmg = weaponDef.damages[armorIndex.vtol]
-					else
-						defDmg = weaponDef.damages[0]
+						if weaponDef.type == "BeamLaser" then
+							addDPS(calculateLaserDPS(weaponDef, weaponDef.damages[0]))
+						elseif weaponDef.customParams.cluster then -- Bullets that shoot other, smaller bullets
+							addDPS(calculateClusterDPS(weaponDef, weaponDef.damages[0]))
+						elseif weapons[i].onlyTargets['vtol'] ~= nil then
+							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[armorIndex.vtol])) --Damage to air category
+						else
+							addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
+						end
 					end
-					if defDmg > 0 then
+
+				elseif unitDef.name == 'corkorg' then          --excluding korstomp from dps calcuation for juggernaut
+					unitExempt = true
+					if i==1 then
+						local defDmg
+						defDmg = weaponDef.damages[0]      		--Damage to default armor category
+						addDPS(calculateWeaponDPS(weaponDef, defDmg))
+					end
+
+					if i==2 then
 						setEnergyAndMetalCosts(weaponDef)
+						addDPS(calculateLaserDPS(weaponDef, weaponDef.damages[0]))
+					end
+
+					if i==3 then
+						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
+					end
+
+				elseif weaponDef.customParams.area_onhit_damage and weaponDef.customParams.area_onhit_time then
+					unitExempt = true
+					addDPS(calculateAreaDPS(weaponDef, weaponDef.damages[0]))
+				elseif weaponDef.customParams.cluster then -- Bullets that explode into other, smaller bullets
+					unitExempt = true
+					addDPS(calculateClusterDPS(weaponDef, weaponDef.damages[0]))
+				elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
+					unitExempt = true
+					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
+					local splitn = weaponDef.customParams.number or 1
+					addDPS(calculateWeaponDPS(weaponDef, splitd * splitn))
+				elseif weaponDef.customParams.spark_forkdamage then -- Lightning
+					unitExempt = true
+					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
+					-- Sparks cannot retarget the original unit they hit, so add them as secondary damages.
+					local forkDamageRate = weaponDef.customParams.spark_forkdamage
+					addSecondaryDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * forkDamageRate))
+					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
+						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
+						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
+						unitDefInfo[unitDefID].mindps = nil
+						unitDefInfo[unitDefID].maxdps = nil
 					end
 				end
 
@@ -368,52 +457,137 @@ local function refreshUnitInfo()
 					unitDefInfo[unitDefID].range = weaponDef.range
 					unitDefInfo[unitDefID].reloadTime = weaponDef.customParams.dronesuesestockpile
 						and weaponDef.stockpileTime
-						or weaponDef.reload
+						or  weaponDef.reload
 				end
-				if weaponDef.paralyzer == true and unitDef.name ~= 'armthor' then
+				if weaponDef.type == "BeamLaser" and not unitExempt then	-- BeamLaser dps calc
+
+					local defDmg
+
+					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+						defDmg = weaponDef.damages[armorIndex.vtol]
+					else
+						defDmg = weaponDef.damages[0]
+					end
+
+					setEnergyAndMetalCosts(weaponDef)
+
+					if weaponDef.paralyzer ~= true then
+
+
+						if weaponDef.customParams then
+
+							if weaponDef.customParams.sweepfire then
+								unitDefInfo[unitDefID].maxdps = (weaponDef.damages[0] * weaponDef.customParams.sweepfire) / math.max(weaponDef.minIntensity, 0.5)
+								unitDefInfo[unitDefID].mindps = weaponDef.damages[0] * weaponDef.customParams.sweepfire
+							else
+								addDPS(calculateLaserDPS(weaponDef, defDmg))
+							end
+						else
+							addDPS(calculateLaserDPS(weaponDef, defDmg))
+						end
+					else
+						-- calculate laser emp dmg
+						local minIntensity = math.max(weaponDef.minIntensity, 0.5)
+						local prevMinDps = unitDefInfo[unitDefID].minemp or 0
+						local prevMaxDps = unitDefInfo[unitDefID].maxemp or 0
+						local mindps = minIntensity*(weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload)
+						local maxdps = weaponDef.damages[0] * weaponDef.salvoSize / weaponDef.reload
+
+						unitDefInfo[unitDefID].minemp = mindps + prevMinDps
+						unitDefInfo[unitDefID].maxemp = maxdps + prevMaxDps
+					end
+				elseif weaponDef.paralyzer == true and unitDef.name ~= 'armthor' then -- exclude thor emp missile
+					local defDmg = weaponDef.damages[0]      		--Damage to default armor category
+					local emp = math_floor(defDmg * weaponDef.salvoSize / weaponDef.reload)
+					unitDefInfo[unitDefID].minemp = emp
+					unitDefInfo[unitDefID].maxemp = emp
 					unitDefInfo[unitDefID].range = weaponDef.range
 					unitDefInfo[unitDefID].reloadTime = weaponDef.reload
+				end
+				if weaponDef.type ~= "BeamLaser" and weaponDef.paralyzer ~= true and not unitExempt then
+
+					local defDmg
+
+					if weapons[1].onlyTargets['vtol'] ~= nil then	--if main weapon isn't dedicated aa, then all weapons calculate using default armor category
+						defDmg = weaponDef.damages[armorIndex.vtol]
+					else
+						defDmg = weaponDef.damages[0]
+					end
+
+					if(defDmg > 0) then
+						addDPS(calculateWeaponDPS(weaponDef, defDmg))
+						setEnergyAndMetalCosts(weaponDef)
+					end
 				end
 			end
 		end
 		for i = 1, #weapons do
 			if not unitDefInfo[unitDefID].weapons then
 				unitDefInfo[unitDefID].weapons = {}
-				dpsState.mindps = 0
-				dpsState.maxdps = 0
+				unitDefInfo[unitDefID].mindps = 0
+				unitDefInfo[unitDefID].maxdps = 0
 				unitDefInfo[unitDefID].range = 0
 				unitDefInfo[unitDefID].reloadTime = 0
 				unitDefInfo[unitDefID].mainWeapon = 0
 			end
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			-- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
+			-- Others might be checked for abilities still, e.g. antinuke interceptors.
 			if showWeaponGroups[weaponDef.customParams.weapons_group] and weaponDef.customParams.bogus ~= "1" then
 				refreshUnitWeaponInfo(i, weaponDef, weaponDef.customParams.weapons_role ~= "secondary")
 			end
 		end
 		if unitDefInfo[unitDefID].mainWeapon == 0 then
-			unitDefInfo[unitDefID].mainWeapon = 1
+			unitDefInfo[unitDefID].mainWeapon = 1 -- All the unit's weapons were fakes.
 		end
 
-		UnitDefDPS.applyDeathExplosion(dpsState, unitDef)
-		if dpsState.mindps then
-			unitDefInfo[unitDefID].mindps = dpsState.mindps
-		end
-		if dpsState.maxdps then
-			unitDefInfo[unitDefID].maxdps = dpsState.maxdps
-		end
-		if dpsState.minemp then
-			unitDefInfo[unitDefID].minemp = dpsState.minemp
-		end
-		if dpsState.maxemp then
-			unitDefInfo[unitDefID].maxemp = dpsState.maxemp
-		end
 		if unitDef.customParams.unitgroup and unitDef.customParams.unitgroup == 'explo' and unitDef.deathExplosion and WeaponDefNames[unitDef.deathExplosion] then
-			unitDefInfo[unitDefID].reloadTime = nil
+			local weapon = WeaponDefs[WeaponDefNames[unitDef.deathExplosion].id]
+			if weapon then
+				local dmg = weapon.damages[Game.armorTypes["default"]]
+				unitDefInfo[unitDefID].mindps = dmg
+				unitDefInfo[unitDefID].maxdps = dmg
+				unitDefInfo[unitDefID].reloadTime = nil
+			end
 		end
 	end
 
-	UnitDefDPS.applyCarriedUnits(unitDefInfo)
-	UnitDefDPS.floorValues(unitDefInfo)
+	-- Account for sub-unit damages, namely carriers and drones.
+	local mins = { "mindps", "minemp", }
+	local maxs = { "maxdps", "maxemp", }
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local unitInfo = unitDefInfo[unitDefID]
+		for index, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			if weaponDef.customParams.carried_unit and UnitDefNames[weaponDef.customParams.carried_unit] then
+				local droneCount = weaponDef.customParams.maxunits or 1
+				local droneDef = UnitDefNames[weaponDef.customParams.carried_unit]
+				local droneInfo = unitDefInfo[droneDef.id]
+
+				for _, key in ipairs(mins) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) -- times zero drones == zero
+					end
+				end
+
+				for _, key in ipairs(maxs) do
+					if droneInfo[key] then
+						unitInfo[key] = (unitInfo[key] or 0) + (droneInfo[key] * droneCount)
+					end
+				end
+			end
+		end
+	end
+
+	-- Convert aggregated values to display formats last to avoid rounding errors.
+	local summedKeys = { "mindps", "maxdps", "minemp", "maxemp", }
+	for unitDefID, unitInfo in pairs(unitDefInfo) do
+		for _, key in pairs(summedKeys) do
+			if type(unitInfo[key]) == "number" then
+				unitInfo[key] = math_floor(unitInfo[key])
+			end
+		end
+	end
 end
 
 local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize

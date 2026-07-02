@@ -13,13 +13,13 @@ local firestates = {
 	ENGINE_FIRE_AT_ALL = 3,
 }
 
-local userFacingStateByDisplayIndex = {
+local stateByDisplayIndex = {
 	[0] = firestates.PASSIVE,
 	[1] = firestates.DEFEND,
 	[2] = firestates.AGGRESSIVE,
 }
 
-local displayIndexByUserFacingState = {
+local displayIndexByState = {
 	[firestates.PASSIVE] = 0,
 	[firestates.DEFEND] = 1,
 	[firestates.AGGRESSIVE] = 2,
@@ -41,37 +41,22 @@ local stateByEngineFirestate = {
 }
 
 function firestates.isUserFacing(state)
-	return displayIndexByUserFacingState[state] ~= nil
+	return displayIndexByState[state] ~= nil
 end
 
-function firestates.userFacingDisplayIndex(state)
-	return displayIndexByUserFacingState[state]
+function firestates.displayIndex(state)
+	return displayIndexByState[state]
 end
 
-function firestates.userFacingStateFromDisplayIndex(displayIndex)
-	return userFacingStateByDisplayIndex[displayIndex]
+function firestates.stateFromDisplayIndex(displayIndex)
+	return stateByDisplayIndex[displayIndex]
 end
 
-function firestates.nextUserFacing(state, direction)
-	local displayIndex = displayIndexByUserFacingState[state]
-	if not displayIndex then
-		displayIndex = 0
-	end
-	direction = direction or 1
-	displayIndex = displayIndex + direction
-	if displayIndex > 2 then
-		displayIndex = 0
-	elseif displayIndex < 0 then
-		displayIndex = 2
-	end
-	return userFacingStateByDisplayIndex[displayIndex]
-end
-
-function firestates.engineFirestateFor(state)
+function firestates.toEngineFirestate(state)
 	return engineFirestateByState[state]
 end
 
-function firestates.logicalFromEngineFirestate(engineFirestate)
+function firestates.fromEngineFirestate(engineFirestate)
 	return stateByEngineFirestate[engineFirestate] or firestates.AGGRESSIVE
 end
 
