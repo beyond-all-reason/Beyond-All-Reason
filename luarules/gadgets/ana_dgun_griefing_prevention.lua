@@ -380,12 +380,17 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	PruneExpiredContacts(currentFrame)
 
 	-- TODO gaia check still needed?
+	Spring.Echo("ENEMY_UNITS consts is:", ENEMY_UNITS)
 	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
+	-- Spring.Echo(candidates)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
 		if losState and (losState % 4) > 0 then
+			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+			local unitTeam = spGetUnitTeam(unitID)
+			Spring.Echo("DGun contact:", GetUnitDisplayName(spGetUnitDefID(unitID)), unitX, unitY, unitZ, "allied =", unitTeam and GetAllyTeamID(unitTeam) == myAllyTeamID)
 			return true, "Enemies on radar/LOS within range"
 		end
 	end
