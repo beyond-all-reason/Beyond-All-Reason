@@ -19,11 +19,12 @@ local mathFloor = math.floor
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetModOptions = Spring.GetModOptions
 local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local spGiveOrder = Spring.GiveOrder
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local Firestates = VFS.Include("modules/firestates.lua")
@@ -410,7 +411,7 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					local patchedCommand = command
-					if command.id == CMD_FIRE_STATE and Firestates.isDefendFirestateEnabled() and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
+					if command.id == CMD_FIRE_STATE and spGetModOptions().experimental_defend_firestate and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
 						patchedCommand = getUserFirestateCommand(command, cachedFirstUnit)
 					end
 					stateCommandsCount = stateCommandsCount + 1
@@ -1337,9 +1338,9 @@ function widget:MousePress(x, y, button)
 							if playSounds then
 								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
-							if cmd.id == CMD_FIRE_STATE and Firestates.isDefendFirestateEnabled() and cmd.userFacingFirestate and clickedCellDesiredState then
+							if cmd.id == CMD_FIRE_STATE and spGetModOptions().experimental_defend_firestate and cmd.userFacingFirestate and clickedCellDesiredState then
 								local nextFirestate = Firestates.stateFromDisplayIndex(clickedCellDesiredState)
-								spGiveOrderToUnitArray(spGetSelectedUnits(), CMD_USER_FIRESTATE, { nextFirestate }, 0)
+								spGiveOrder(CMD_USER_FIRESTATE, { nextFirestate }, 0)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
 							end

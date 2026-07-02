@@ -139,7 +139,7 @@ end
 
 local function getDisplayFireState(unitID)
 	--DEFEND FIRESTATE REWORK: Remove engine fallback; always use user_firestate rules param
-	if not Firestates.isDefendFirestateEnabled() then
+	if not Spring.GetModOptions().experimental_defend_firestate then
 		return select(1, Spring.GetUnitStates(unitID, false))
 	end
 	local userFirestate = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)

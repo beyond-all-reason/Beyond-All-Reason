@@ -1683,7 +1683,7 @@
 				"unitidlebuildericons": "Unit idle builder icons",
 				"unitidlebuildericons_descr": "Shows a sleep icon above builder units that are idle.",
 				"unitfirestateicons": "Unit firing state icons",
-				"unitfirestateicons_descr": "Shows an icon above units that are set on Hold fire or Defend.",
+				"unitfirestateicons_descr": "Shows an icon above units that are either set on Hold fire or Defend.",
 				"resurrectionhalos": "Resurrected unit halos",
 				"resurrectionhalos_descr": "Adds halos above resurrected units.",
 				"nametags_rank": "Commander name tag rank icon",

@@ -20,8 +20,7 @@ end
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 local Firestates = VFS.Include("modules/firestates.lua")
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local spGiveOrder = Spring.GiveOrder
 
 local userFirestateByEngineFirestate = {
 	[Firestates.ENGINE_HOLD_FIRE] = Firestates.PASSIVE,
@@ -37,6 +36,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if userFirestate == nil then
 		return false
 	end
-	spGiveOrderToUnitArray(spGetSelectedUnits(), CMD_USER_FIRESTATE, { userFirestate }, 0)
+	spGiveOrder(CMD_USER_FIRESTATE, { userFirestate }, cmdOptions)
 	return true
 end
