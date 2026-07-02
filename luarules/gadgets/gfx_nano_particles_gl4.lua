@@ -1932,12 +1932,18 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 					list = {}
 					homingFwdByTarget[targetUnitID] = list
 				end
+				local maxRangeSq
+				local effectiveBD = info.targetMeta and info.targetMeta.effectiveBD
+				if effectiveBD then
+					local maxRange = effectiveBD * BUILD_RANGE_MAX_EXTENSION
+					maxRangeSq = maxRange * maxRange
+				end
 				local nL = #list
 				if nL >= HOMING_FWD_MAX_PER_TARGET then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
+					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
 				else
-					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
+					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
 				end
 			end
 		until true
@@ -2317,6 +2323,26 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 	local data       = nanoVBO.instanceData
 	local idtoIndex  = nanoVBO.instanceIDtoIndex
 	local step       = nanoVBO.instanceStep
+	local function fadeParticle(slot, p)
+		local remaining = p.death - frame
+		if remaining <= 0 then return false end
+		local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
+		if fadeFrames < 1 then fadeFrames = 1 end
+		if fadeFrames > remaining then fadeFrames = remaining end
+		local newDeath = frame + fadeFrames
+		local base = (slot - 1) * step
+		data[base+16] = newDeath
+		local packed = data[base+4]
+		local absPacked = packed < 0 and -packed or packed
+		local oldFade = mathFloor(absPacked / 1024)
+		local sizeBits = absPacked - oldFade * 1024
+		local newPacked = sizeBits + fadeFrames * 1024
+		data[base+4] = packed < 0 and -newPacked or newPacked
+		local s0 = slot - 1
+		if s0 < dirtyMin then dirtyMin = s0 end
+		if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+		return true
+	end
 
 	targetPosEpoch = targetPosEpoch + 1
 
@@ -2336,10 +2362,10 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				list._lastHealthCheck = frame
 				local h, maxH, _, _, bp = spGetUnitHealth(targetID)
 				if h and maxH and h >= maxH and (bp == nil or bp >= 1.0) then
-					fadeOutHomingFwd(targetID)
-					homingFwdByTarget[targetID] = nil
-					targetPosCache[targetID]    = nil
-					fadedOut = true
+					if not list._fadingOut then
+						fadeOutHomingFwd(targetID)
+						list._fadingOut = true
+					end
 				else
 					-- Crashing aircraft: treat as dead. The unit still exists
 					-- (UnitDestroyed hasn't fired) but is moving fast and
@@ -2363,6 +2389,13 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				end
 			end
 			if not fadedOut then
+			local isAir = list._isAir
+			if isAir == nil then
+				isAir = isAirUnitDef[spGetUnitDefID(targetID)] and true or false
+				list._isAir = isAir
+			end
+				local maxSpeed = NANO_SPEED * (isAir and 1.35 or 2.0)
+			local maxSpeedSq = maxSpeed * maxSpeed
 			-- Cache layout per target: { epoch, tx, ty, tz, lastTx, lastTy, lastTz, stationaryStreak }
 			-- stationaryStreak counts consecutive homing passes the target has
 			-- not moved. Once it crosses STATIONARY_SKIP_AFTER, we skip the
@@ -2428,11 +2461,49 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					end
 				else
 				local writeIdx = 0
+				local piecePosByKey = {}
 				for i = 1, #list do
 					local p = list[i]
 					local remaining = p.death - frame
 					local slot = (remaining >= 1) and idtoIndex[p.id] or nil
 					if slot then
+						local fadeParticleOut = false
+						local maxRangeSq = p.maxRangeSq
+						if maxRangeSq and p.builderID and p.pieceIdx then
+							local key = p.builderID * 256 + p.pieceIdx
+							local pos = piecePosByKey[key]
+							local bx, bz
+							if pos then
+								bx, bz = pos[1], pos[2]
+							else
+								local pent = piecePosCache[key]
+								if pent and pent[1] == piecePosEpoch then
+									bx, bz = pent[2], pent[4]
+								else
+									local px, py, pz = spGetUnitPiecePosDir(p.builderID, p.pieceIdx)
+									if px then
+										if pent then
+											pent[1] = piecePosEpoch
+											pent[2] = px; pent[3] = py; pent[4] = pz
+										else
+											piecePosCache[key] = { piecePosEpoch, px, py, pz }
+										end
+										bx, bz = px, pz
+									end
+								end
+								if bx then
+									piecePosByKey[key] = { bx, bz }
+								end
+							end
+							if bx then
+								local rdx = tx - bx
+								local rdz = tz - bz
+								if (rdx * rdx + rdz * rdz) > maxRangeSq then
+									fadeParticleOut = fadeParticle(slot, p)
+								end
+							end
+						end
+						if not fadeParticleOut then
 						local base = (slot - 1) * step
 						local sx, sy, sz   = data[base+1], data[base+2], data[base+3]
 						local vx, vy, vz   = data[base+5], data[base+6], data[base+7]
@@ -2448,17 +2519,28 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 						local aimX = tx + p.ox
 						local aimZ = tz + p.oz
 						local aimY = ty + p.oy
+						local dvx = aimX - cpx
+						local dvy = aimY - cpy
+						local dvz = aimZ - cpz
 						local invR = 1.0 / remaining
-						data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
-						data[base+5] = (aimX - cpx) * invR
-						data[base+6] = (aimY - cpy) * invR
-						data[base+7] = (aimZ - cpz) * invR
-						data[base+8] = frame
-						local s0 = slot - 1
-						if s0 < dirtyMin     then dirtyMin = s0     end
-						if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
-						writeIdx = writeIdx + 1
-						list[writeIdx] = p
+						local needSpeedSq = (dvx*dvx + dvy*dvy + dvz*dvz) * (invR * invR)
+						if needSpeedSq > maxSpeedSq then
+							fadeParticleOut = fadeParticle(slot, p)
+						else
+							data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
+							data[base+5] = dvx * invR
+							data[base+6] = dvy * invR
+							data[base+7] = dvz * invR
+							data[base+8] = frame
+							local s0 = slot - 1
+							if s0 < dirtyMin     then dirtyMin = s0     end
+							if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+						end
+						end
+						if not fadeParticleOut then
+							writeIdx = writeIdx + 1
+							list[writeIdx] = p
+						end
 					end
 				end
 				for j = #list, writeIdx + 1, -1 do list[j] = nil end
