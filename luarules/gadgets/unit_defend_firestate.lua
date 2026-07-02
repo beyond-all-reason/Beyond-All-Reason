@@ -34,30 +34,29 @@ local ALWAYS_SHOOT = -1
 local NO_THREAT = -2
 local HP_CHECK_INTERVAL_FRAMES = Game.gameSpeed * 3
 local MIN_RADAR_DEFPRIORITY = 10000000 -- this is the floor of what a radar covered unit will generate for defpriorirty. If below this, it's certainly in LOS. For performance
-local META_UNIT_DEF_ID = 1
-local META_ALLY_TEAM = 2
-local META_IS_DEFEND = 3
-local META_NEVER_HESITATE = 4
-local META_WEAPON_DEF_IDS = 5
-local META_LAST_HEALTH = 6
-local META_HP_CHECK_FRAME = 7
-local META_RADAR_AGGRO = 8
-local META_CLOAKED = 9
+local UNIT_DEF_ID = 1
+local IS_DEFEND = 2
+local NEVER_HESITATE = 3
+local WEAPON_DEF_IDS = 4
+local LAST_HEALTH = 5
+local HP_CHECK_FRAME = 6
+local RADAR_AGGRO = 7
+local CLOAKED = 8
+local ALWAYS_HARMLESS = 9
 local defThreatRanges = {}
 local neverHesitateAttackers = {}
+local alwaysHarmlessUnitDefs = {}
 local weaponWatchRefCount = {}
 local offensiveWeaponsByUnitDef = {}
 local metaData = {}
 local gameFrame = 0
 
-local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitHealth = Spring.GetUnitHealth
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local mathDistance2dSquared = math.distance2dSquared
+local spGetUnitSeparation = Spring.GetUnitSeparation
 
 local function getWeaponDefFromName(weaponName)
 	if not weaponName or weaponName == "" then
@@ -296,7 +295,7 @@ local function populateWeaponThreatRange(rangesForWeapon, weaponDef, enemyUnitDe
 	if threatRange >= weaponRange then
 		rangesForWeapon[enemyUnitDefID] = ALWAYS_SHOOT
 	else
-		rangesForWeapon[enemyUnitDefID] = threatRange * threatRange
+		rangesForWeapon[enemyUnitDefID] = threatRange
 	end
 end
 
@@ -331,35 +330,34 @@ local function setDefendWatch(unitID, isDefend)
 	end
 
 	if isDefend then
-		if meta[META_IS_DEFEND] then
-			meta[META_LAST_HEALTH] = spGetUnitHealth(unitID)
+		if meta[IS_DEFEND] then
+			meta[LAST_HEALTH] = spGetUnitHealth(unitID)
 			return
 		end
 
-		local unitDefID = meta[META_UNIT_DEF_ID]
+		local unitDefID = meta[UNIT_DEF_ID]
 		local weaponDefIDs = offensiveWeaponsByUnitDef[unitDefID]
-		meta[META_IS_DEFEND] = true
-		meta[META_ALLY_TEAM] = spGetUnitAllyTeam(unitID)
-		meta[META_NEVER_HESITATE] = neverHesitateAttackers[unitDefID] or false
-		meta[META_WEAPON_DEF_IDS] = weaponDefIDs
-		meta[META_LAST_HEALTH] = spGetUnitHealth(unitID)
+		meta[IS_DEFEND] = true
+		meta[NEVER_HESITATE] = neverHesitateAttackers[unitDefID] or false
+		meta[WEAPON_DEF_IDS] = weaponDefIDs
+		meta[LAST_HEALTH] = spGetUnitHealth(unitID)
 
 		if weaponDefIDs then
 			addWeaponWatches(weaponDefIDs)
 		end
-	elseif meta[META_IS_DEFEND] then
-		if meta[META_WEAPON_DEF_IDS] then
-			removeWeaponWatches(meta[META_WEAPON_DEF_IDS])
+	elseif meta[IS_DEFEND] then
+		if meta[WEAPON_DEF_IDS] then
+			removeWeaponWatches(meta[WEAPON_DEF_IDS])
 		end
-		meta[META_IS_DEFEND] = nil
-		meta[META_WEAPON_DEF_IDS] = nil
-		meta[META_RADAR_AGGRO] = nil
-		meta[META_HP_CHECK_FRAME] = nil
+		meta[IS_DEFEND] = nil
+		meta[WEAPON_DEF_IDS] = nil
+		meta[RADAR_AGGRO] = nil
+		meta[HP_CHECK_FRAME] = nil
 	end
 end
 
 local function checkDefendUnitHealth(attackerID, meta)
-	local nextCheckFrame = meta[META_HP_CHECK_FRAME]
+	local nextCheckFrame = meta[HP_CHECK_FRAME]
 	if nextCheckFrame and gameFrame < nextCheckFrame then
 		return
 	end
@@ -369,20 +367,28 @@ local function checkDefendUnitHealth(attackerID, meta)
 		return
 	end
 
-	local lastHealth = meta[META_LAST_HEALTH]
+	local lastHealth = meta[LAST_HEALTH]
 	if lastHealth and currentHealth < lastHealth then
-		meta[META_RADAR_AGGRO] = true
+		meta[RADAR_AGGRO] = true
 	elseif lastHealth and currentHealth > lastHealth then
-		meta[META_RADAR_AGGRO] = nil
+		meta[RADAR_AGGRO] = nil
 	end
 
-	meta[META_LAST_HEALTH] = currentHealth
-	meta[META_HP_CHECK_FRAME] = gameFrame + HP_CHECK_INTERVAL_FRAMES
+	meta[LAST_HEALTH] = currentHealth
+	meta[HP_CHECK_FRAME] = gameFrame + HP_CHECK_INTERVAL_FRAMES
 end
 
 local function updateDefendWatchFromRulesParam(unitID)
 	local state = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
 	setDefendWatch(unitID, state == Firestates.DEFEND)
+end
+
+local function createUnitMeta(unitDefID)
+	local meta = { [UNIT_DEF_ID] = unitDefID }
+	if alwaysHarmlessUnitDefs[unitDefID] then
+		meta[ALWAYS_HARMLESS] = true
+	end
+	return meta
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
@@ -392,7 +398,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmd
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	metaData[unitID] = { [META_UNIT_DEF_ID] = unitDefID }
+	metaData[unitID] = createUnitMeta(unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -402,28 +408,21 @@ end
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
 	local meta = metaData[unitID]
 	if meta then
-		meta[META_CLOAKED] = true
+		meta[CLOAKED] = true
 	end
 end
 
 function gadget:UnitDecloaked(unitID, unitDefID, unitTeam)
 	local meta = metaData[unitID]
 	if meta then
-		meta[META_CLOAKED] = nil
-	end
-end
-
-function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	local meta = metaData[unitID]
-	if meta and meta[META_IS_DEFEND] then
-		meta[META_ALLY_TEAM] = spGetUnitAllyTeam(unitID)
+		meta[CLOAKED] = nil
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	local meta = metaData[unitID]
-	if meta and meta[META_WEAPON_DEF_IDS] then
-		removeWeaponWatches(meta[META_WEAPON_DEF_IDS])
+	if meta and meta[WEAPON_DEF_IDS] then
+		removeWeaponWatches(meta[WEAPON_DEF_IDS])
 	end
 	metaData[unitID] = nil
 end
@@ -433,8 +432,19 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+	local targetMeta = metaData[targetID]
+	if not targetMeta then
+		return false
+	end
+
 	local attackerMeta = metaData[attackerID]
-	if not attackerMeta or not attackerMeta[META_IS_DEFEND] then
+	local isDefend = attackerMeta and attackerMeta[IS_DEFEND]
+
+	if targetMeta[ALWAYS_HARMLESS] then
+		return not isDefend
+	end
+
+	if not isDefend then
 		return true
 	end
 
@@ -443,49 +453,30 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 		return true
 	end
 
-	local targetMeta = metaData[targetID]
-	if not targetMeta then
+	local threatRange = rangesForWeapon[targetMeta[UNIT_DEF_ID]]
+	if not threatRange or threatRange == NO_THREAT then
 		return false
 	end
 
-	local threatRangeSq = rangesForWeapon[targetMeta[META_UNIT_DEF_ID]]
-	if not threatRangeSq or threatRangeSq == NO_THREAT then
+	if attackerMeta[CLOAKED] then
 		return false
 	end
 
-	if attackerMeta[META_CLOAKED] then
-		return false
-	end
-
-	if attackerMeta[META_NEVER_HESITATE] then
+	if attackerMeta[NEVER_HESITATE] then
 		return true
 	end
 
-	--checkDefendUnitHealth(attackerID, attackerMeta)
-
-	if defPriority and defPriority > MIN_RADAR_DEFPRIORITY then
-		return attackerMeta[META_RADAR_AGGRO] or false
+	if (defPriority or 0) > MIN_RADAR_DEFPRIORITY then
+		checkDefendUnitHealth(attackerID, attackerMeta)
+		return attackerMeta[RADAR_AGGRO] or false
 	end
 
-	if threatRangeSq == ALWAYS_SHOOT then
+	if threatRange == ALWAYS_SHOOT then
 		return true
 	end
 
-	local attackerX, _, attackerZ = spGetUnitPosition(attackerID)
-	if not attackerX then
-		return true
-	end
-
-	local targetX, _, targetZ = spGetUnitPosition(targetID)
-	if not targetX then
-		return true
-	end
-
-	if mathDistance2dSquared(attackerX, attackerZ, targetX, targetZ) > threatRangeSq then
-		return false
-	end
-
-	return true
+	local separation = spGetUnitSeparation(attackerID, targetID)
+	return not separation or separation <= threatRange
 end
 
 function gadget:Initialize()
@@ -504,6 +495,8 @@ function gadget:Initialize()
 				speed = unitDef.speed or 0,
 				reach = getUnitDefMaxOffensiveRange(unitDef),
 			}
+		else
+			alwaysHarmlessUnitDefs[unitDefID] = true
 		end
 
 		if unitDef.customParams.defend_never_hesitate or isKamikaze then
@@ -512,22 +505,17 @@ function gadget:Initialize()
 
 		local weapons = unitDef.weapons
 		local unitOffensiveWeapons
-		local seenWeapon
+		local seenWeapon = {}
 		for weaponNum = 1, #weapons do
 			local weaponDefID = weapons[weaponNum].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
-			if weaponDef and not weaponDef.customParams.bogus and isOffensiveWeapon(weaponDef) then
+			if weaponDef and isOffensiveWeapon(weaponDef) and not seenWeapon[weaponDefID] then
+				seenWeapon[weaponDefID] = true
 				offensiveWeaponDefs[weaponDefID] = weaponDef
-				if not seenWeapon then
-					seenWeapon = {}
+				if not unitOffensiveWeapons then
+					unitOffensiveWeapons = {}
 				end
-				if not seenWeapon[weaponDefID] then
-					seenWeapon[weaponDefID] = true
-					if not unitOffensiveWeapons then
-						unitOffensiveWeapons = {}
-					end
-					unitOffensiveWeapons[#unitOffensiveWeapons + 1] = weaponDefID
-				end
+				unitOffensiveWeapons[#unitOffensiveWeapons + 1] = weaponDefID
 			end
 		end
 		if unitOffensiveWeapons then
@@ -545,10 +533,12 @@ function gadget:Initialize()
 	end
 
 	for _, unitID in ipairs(spGetAllUnits()) do
-		metaData[unitID] = { [META_UNIT_DEF_ID] = spGetUnitDefID(unitID) }
+		local unitDefID = spGetUnitDefID(unitID)
+		local meta = createUnitMeta(unitDefID)
+		metaData[unitID] = meta
 		updateDefendWatchFromRulesParam(unitID)
 		if spGetUnitIsCloaked(unitID) then
-			metaData[unitID][META_CLOAKED] = true
+			meta[CLOAKED] = true
 		end
 	end
 end
