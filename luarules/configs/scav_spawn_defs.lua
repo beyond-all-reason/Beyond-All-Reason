@@ -427,7 +427,8 @@ local LandUnitsList = {
 			["corjugg_scav"] = 2,
 			["corkorg_scav"] = 2,
 			["corkarganetht4_scav"] = 2,
-			["corgolt4_scav"] = 2,
+			["corgolt4_scav"] = 1,
+			["corves_scav"] = 2,
 			--Legion
 			["leegmech_scav"] = 2,
 			["legeshotgunmech_scav"] = 3,

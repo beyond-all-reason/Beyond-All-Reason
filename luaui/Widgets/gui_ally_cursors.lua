@@ -20,8 +20,6 @@ local mathAtan2 = math.atan2
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
--- TODO: hide (enemy) cursor light when not specfullview
-
 local cursorSize = 11
 local drawNamesCursorSize = 8.5
 
@@ -96,6 +94,7 @@ local TEAMID_IDX = (numMousePos + 1) * 2 + 3
 local PACKET_INTERVAL_IDX = (numMousePos + 1) * 2 + 4
 local PREV_X_KEY = "prevX"
 local PREV_Z_KEY = "prevZ"
+local INACTIVE_CURSOR_POS = -1
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
@@ -162,6 +161,33 @@ local function sanitizeCoord(value, fallback)
 		return fallback
 	end
 	return nil
+end
+
+local function isValidCursorPos(pos)
+	return pos and pos[1] >= 0 and pos[2] >= 0
+end
+
+local function GetViewerState()
+	local spectating, currentFullview = spGetSpectatingState()
+	spectating = (spectating == true)
+	currentFullview = (currentFullview == true)
+	fullview = currentFullview
+	myTeamID = spGetMyTeamID()
+	return spectating, currentFullview, myTeamID
+end
+
+local function IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID)
+	local teamID = playerTeamIDs[playerID]
+	if not teamID or not viewedTeamID then
+		return false
+	end
+	if currentFullview then
+		return true
+	end
+	if spectating then
+		return teamID == viewedTeamID or spAreTeamsAllied(viewedTeamID, teamID)
+	end
+	return spAreTeamsAllied(viewedTeamID, teamID)
 end
 
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
@@ -258,9 +284,12 @@ function widget:ViewResize()
 	deleteDlists()
 end
 
+function widget:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+	MouseCursorEvent(playerID, x1, z1, x2, z2, click)
+end
+
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
 
 	if showPlayerName then
 		usedCursorSize = drawNamesCursorSize
@@ -322,7 +351,18 @@ function widget:Initialize()
 		if not playerID then
 			return nil
 		end
+		local spectating, currentFullview, viewedTeamID = GetViewerState()
+		if not IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID) then
+			return nil, nil
+		end
 		return cursors[playerID], notIdle[playerID]
+	end
+	WG['allycursors'].isCursorVisible = function(playerID)
+		if not playerID then
+			return false
+		end
+		local spectating, currentFullview, viewedTeamID = GetViewerState()
+		return IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID)
 	end
 
 	local now = clock() - (idleCursorTime * 0.95)
@@ -333,7 +373,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('MouseCursorEvent')
 	deleteDlists()
 	WG['allycursors'] = nil
 end
@@ -572,13 +611,19 @@ function widget:Update(dt)
 		else
 			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
 			local prevPos = lastCursorPos[playerID]
-			if wx and wz and prevPos and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
+			if wx and wz and isValidCursorPos(prevPos) and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
 				-- abs is needed because of floating point used in interpolation
 				notIdle[playerID] = true
-				lastCursorPos[playerID] = nil
+				prevPos[1] = INACTIVE_CURSOR_POS
+				prevPos[2] = INACTIVE_CURSOR_POS
 			else
 				if wx and wz then
-					lastCursorPos[playerID] = { wx, wz }
+					if not prevPos then
+						prevPos = {}
+						lastCursorPos[playerID] = prevPos
+					end
+					prevPos[1] = wx
+					prevPos[2] = wz
 				end
 			end
 			if specList[playerID] and not showSpectatorName then
@@ -593,13 +638,15 @@ function widget:DrawWorldPreUnit()
 		return
 	end
 
+	local spectating, currentFullview, viewedTeamID = GetViewerState()
+
 	glDepthTest(GL.ALWAYS)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	glPolygonOffset(-7, -10)
 
 	for playerID, cursor in pairs(cursors) do
 		if notIdle[playerID] then
-			if fullview or spAreTeamsAllied(myTeamID, playerTeamIDs[playerID]) then
+			if IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID) then
 				DrawCursor(playerID, cursor[1], cursor[2], cursor[3], cursor[4], cursor[5], cursor[6], cursor[7])
 			end
 		end

@@ -450,6 +450,7 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
+	if string.byte(msg, 1) ~= 137 then return end -- fast guard: first byte must be char(137)
 	local newLevel = tonumber(msg:match(alterLevelRegex))
 	if newLevel and newLevel >= 0 and newLevel <= 100 then
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)

@@ -36,9 +36,45 @@ local rejoinArea = {}
 local gameStarted = (spGetGameFrame() > 0)
 local isReplay = Spring.IsReplay()
 local RectRound, TexturedRectRound, UiElement, font2
-local dlistRejoin, dlistRejoinGuishader, serverFrame
+local dlistRejoinStatic, dlistRejoinGuishader, serverFrame
 local posY = 0.22
 local width, height
+local currentCatchup = 0
+local barHeight, barWidth, edgeWidth, addedSize, glowSize, fontsize, stripesTexScale
+
+-- Reused tables to avoid per-update allocations while rebuilding display lists.
+local barArea = { 0, 0, 0, 0 }
+local colorBlack03 = { 0, 0, 0, 0.03 }
+local colorDark20 = { 0.15, 0.15, 0.15, 0.2 }
+local colorLight16 = { 0.8, 0.8, 0.8, 0.16 }
+local colorWhite0 = { 1, 1, 1, 0 }
+local colorWhite007 = { 1, 1, 1, 0.07 }
+local colorWhite01 = { 1, 1, 1, 0.1 }
+local colorWhite013 = { 1, 1, 1, 0.13 }
+local colorZero0 = { 0, 0, 0, 0 }
+local colorGreenDark = { 0, 0.55, 0, 1 }
+local colorGreenBright = { 0, 1, 0, 1 }
+
+local catchingUpText = Spring.I18N('ui.rejoin.catchingUp')
+local lastGameTimeText = nil
+local cachedTitleText = nil
+
+local function deleteStaticDList()
+	if dlistRejoinStatic ~= nil then
+		gl.DeleteList(dlistRejoinStatic)
+		dlistRejoinStatic = nil
+	end
+end
+
+local function deleteGuiShaderDList()
+	if dlistRejoinGuishader ~= nil then
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('rejoinprogress')
+		end
+		gl.DeleteList(dlistRejoinGuishader)
+		dlistRejoinGuishader = nil
+	end
+end
 
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
@@ -54,94 +90,105 @@ local function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
-local function updateRejoin()
+local function buildStaticRejoin()
+	local area = rejoinArea
 
-	if showRejoinUI and serverFrame then
-		local area = rejoinArea
-		local catchup = spGetGameFrame() / serverFrame
-		if not dlistRejoinGuishader then
-			dlistRejoinGuishader = gl.CreateList(function()
-				RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
-			end)
-			if WG['guishader'] then
-				WG['guishader'].InsertDlist(dlistRejoinGuishader, 'rejoinprogress')
-			end
-		end
-
-		if dlistRejoin ~= nil then
-			gl.DeleteList(dlistRejoin)
-		end
-		dlistRejoin = gl.CreateList(function()
-			UiElement(area[1], area[2], area[3], area[4], 1, 1, 1, 1)
-
-			local barHeight = mathFloor((height * widgetScale / 7.5) + 0.5)
-			local barHeightPadding = 1+mathFloor(vsy*0.007)
-			local barLeftPadding = barHeightPadding
-			local barRightPadding = barHeightPadding
-			local barArea = { area[1] + barLeftPadding, area[2] + barHeightPadding, area[3] - barRightPadding, area[2] + barHeight + barHeightPadding }
-			local barWidth = barArea[3] - barArea[1]
-
-			-- Bar background
-			local edgeWidth = math.max(1, mathFloor(vsy / 1100))
-			local addedSize = mathFloor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
-			RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 0, 0, 0, 0.03 }, { 0, 0, 0, 0.03 })
-			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
-
-			gl.Texture(noiseBackgroundTexture)
-			gl.Color(1,1,1, 0.12)
-			TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
-			gl.Texture(false)
-
-			-- gloss
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
-			RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0.0 })
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-			-- Bar value
-			local valueWidth = catchup * barWidth
-			gl.Color(0, 1, 0, 1)
-			RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0.55, 0, 1 }, { 0, 1, 0, 1 })
-
-			gl.Texture(stripesTexture)
-			gl.Color(1,1,1, 0.16)
-			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, (barArea[3]-barArea[1]) * 0.22, - os.clock()*0.06)
-
-			gl.Texture(noiseBackgroundTexture)
-			gl.Color(1,1,1, 0.07)
-			TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
-			gl.Texture(false)
-
-			-- Bar value highlight
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(barArea[1], barArea[4] - ((barArea[4] - barArea[2]) / 1.5), barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0 }, { 1, 1, 1, 0.13 })
-			RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[2] + ((barArea[4] - barArea[2]) / 2), barHeight * 0.2, 1, 1, 1, 1, { 1, 1, 1, 0.13 }, { 0, 0, 0, 0 })
-
-			-- Bar value glow
-			local glowSize = barHeight * 6
-			gl.Color(0, 1, 0, 0.08)
-			gl.Texture(barGlowCenterTexture)
-			DrawRect(barArea[1], barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
-			gl.Texture(barGlowEdgeTexture)
-			DrawRect(barArea[1] - (glowSize * 2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize, 0.008)
-			DrawRect((barArea[1] + (catchup * barWidth)) + (glowSize * 2), barArea[2] - glowSize, barArea[1] + (catchup * barWidth), barArea[4] + glowSize, 0.008)
-			gl.Texture(false)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1,1,1,1)
-
-			local mins = mathFloor(serverFrame / 30 / 60)
-			local secs = mathFloor(((serverFrame / 30 / 60) - mins) * 60)
-			local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
-
-			-- Text
-			local fontsize = mathFloor(height*0.34)
-			font2:Begin()
-			font2:SetTextColor(0.92, 0.92, 0.92, 1)
-			font2:SetOutlineColor(0, 0, 0, 1)
-			font2:Print('\255\225\255\225' .. Spring.I18N('ui.rejoin.catchingUp') .. ' \255\166\166\166'..gametime, area[1] + ((area[3] - area[1]) / 2), area[2] + barHeight * 2 + (fontsize*0.89), fontsize, 'cor')
-			font2:End()
+	if not dlistRejoinGuishader then
+		dlistRejoinGuishader = gl.CreateList(function()
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0,0,1,1)
 		end)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'rejoinprogress')
+		end
 	end
+
+	deleteStaticDList()
+	dlistRejoinStatic = gl.CreateList(function()
+		UiElement(area[1], area[2], area[3], area[4], 1, 1, 1, 1)
+
+		RectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, colorBlack03, colorBlack03)
+		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, colorDark20, colorLight16)
+
+		gl.Texture(noiseBackgroundTexture)
+		gl.Color(1,1,1, 0.12)
+		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
+		gl.Texture(false)
+
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		RectRound(barArea[1] - addedSize, barArea[2] + addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 0, 0, colorWhite0, colorWhite007)
+		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[2] + addedSize + addedSize + addedSize, barHeight * 0.2, 0, 0, 1, 1, colorWhite01, colorWhite0)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Color(1,1,1,1)
+	end)
+end
+
+local function updateGeometry()
+	local area = rejoinArea
+	local barHeightPadding = 1 + mathFloor(vsy * 0.007)
+	barHeight = mathFloor((height * widgetScale / 7.5) + 0.5)
+	barArea[1] = area[1] + barHeightPadding
+	barArea[2] = area[2] + barHeightPadding
+	barArea[3] = area[3] - barHeightPadding
+	barArea[4] = area[2] + barHeight + barHeightPadding
+	barWidth = barArea[3] - barArea[1]
+	edgeWidth = math.max(1, mathFloor(vsy / 1100))
+	addedSize = mathFloor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
+	glowSize = barHeight * 6
+	fontsize = mathFloor(height * 0.34)
+	stripesTexScale = barWidth * 0.22
+end
+
+local function updateRejoinText()
+	local mins = mathFloor(serverFrame / 30 / 60)
+	local secs = mathFloor(((serverFrame / 30 / 60) - mins) * 60)
+	local gametime = mins .. ':' .. (secs < 10 and '0' .. secs or secs)
+	if gametime ~= lastGameTimeText then
+		lastGameTimeText = gametime
+		cachedTitleText = '\255\225\255\225' .. catchingUpText .. ' \255\166\166\166' .. gametime
+	end
+end
+
+local function updateRejoinState()
+	if showRejoinUI and serverFrame then
+		currentCatchup = spGetGameFrame() / serverFrame
+		updateRejoinText()
+	end
+end
+
+local function drawRejoinDynamic()
+	local valueWidth = currentCatchup * barWidth
+
+	gl.Color(0, 1, 0, 1)
+	RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, colorGreenDark, colorGreenBright)
+
+	gl.Texture(stripesTexture)
+	gl.Color(1,1,1, 0.16)
+	TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, stripesTexScale, - os.clock() * 0.06)
+
+	gl.Texture(noiseBackgroundTexture)
+	gl.Color(1,1,1, 0.07)
+	TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
+	gl.Texture(false)
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	RectRound(barArea[1], barArea[4] - ((barArea[4] - barArea[2]) / 1.5), barArea[1] + valueWidth, barArea[4], barHeight * 0.2, 1, 1, 1, 1, colorZero0, colorWhite013)
+	RectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[2] + ((barArea[4] - barArea[2]) / 2), barHeight * 0.2, 1, 1, 1, 1, colorWhite013, colorZero0)
+
+	gl.Color(0, 1, 0, 0.08)
+	gl.Texture(barGlowCenterTexture)
+	DrawRect(barArea[1], barArea[2] - glowSize, barArea[1] + valueWidth, barArea[4] + glowSize, 0.008)
+	gl.Texture(barGlowEdgeTexture)
+	DrawRect(barArea[1] - (glowSize * 2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize, 0.008)
+	DrawRect((barArea[1] + valueWidth) + (glowSize * 2), barArea[2] - glowSize, barArea[1] + valueWidth, barArea[4] + glowSize, 0.008)
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1,1,1,1)
+
+	font2:Begin()
+	font2:SetTextColor(0.92, 0.92, 0.92, 1)
+	font2:SetOutlineColor(0, 0, 0, 1)
+	font2:Print(cachedTitleText, rejoinArea[1] + ((rejoinArea[3] - rejoinArea[1]) / 2), rejoinArea[2] + barHeight * 2 + (fontsize*0.89), fontsize, 'cor')
+	font2:End()
 end
 
 function widget:Update(dt)
@@ -166,25 +213,24 @@ function widget:Update(dt)
 
 			local framesLeft = serverFrame - spGetGameFrame()
 			if framesLeft > CATCH_UP_THRESHOLD then
-				showRejoinUI = true
-				updateRejoin()
+				if not showRejoinUI then
+					showRejoinUI = true
+					buildStaticRejoin()
+				end
+				updateRejoinState()
 			elseif showRejoinUI then
 				showRejoinUI = false
-				if dlistRejoinGuishader ~= nil then
-					if WG['guishader'] then
-						WG['guishader'].RemoveDlist('rejoinprogress')
-					end
-					gl.DeleteList(dlistRejoinGuishader)
-					dlistRejoinGuishader = nil
-				end
+				deleteStaticDList()
+				deleteGuiShaderDList()
 			end
 		end
 	end
 end
 
 function widget:DrawScreen()
-	if dlistRejoin and showRejoinUI then
-		gl.CallList(dlistRejoin)
+	if dlistRejoinStatic and showRejoinUI then
+		gl.CallList(dlistRejoinStatic)
+		drawRejoinDynamic()
 	end
 end
 
@@ -202,16 +248,14 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(2)
 
 	rejoinArea = { mathFloor(0.5*vsx)-mathFloor(width*0.5), mathFloor(posY*vsy)-mathFloor(height*0.5), mathFloor(0.5*vsx) + mathFloor(width*0.5), mathFloor(posY*vsy)+mathFloor(height*0.5) }
+	updateGeometry()
+	deleteStaticDList()
+	deleteGuiShaderDList()
 
-	if dlistRejoinGuishader ~= nil then
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('rejoinprogress')
-		end
-		gl.DeleteList(dlistRejoinGuishader)
-		dlistRejoinGuishader = nil
+	if showRejoinUI and serverFrame then
+		buildStaticRejoin()
+		updateRejoinState()
 	end
-
-	updateRejoin()
 end
 
 -- used for rejoin progress functionality
@@ -242,11 +286,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if dlistRejoin ~= nil then
-		gl.DeleteList(dlistRejoin)
-	end
-	if dlistRejoinGuishader ~= nil and WG['guishader'] then
-		WG['guishader'].RemoveDlist('rejoinprogress')
-	end
+	deleteStaticDList()
+	deleteGuiShaderDList()
 	WG['rejoin'] = nil
 end

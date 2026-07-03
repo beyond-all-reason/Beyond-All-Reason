@@ -68,6 +68,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	local getValidRandom, isUnitValid
 
+	local function getEffectiveStartboxBounds(allyTeamID)
+		if GG.GetStartboxBounds then
+			local xmin, zmin, xmax, zmax = GG.GetStartboxBounds(allyTeamID)
+			if xmin then
+				return xmin, zmin, xmax, zmax
+			end
+		end
+		return spGetAllyTeamStartBox(allyTeamID)
+	end
+
 	local function updateAIManualPlacement(teamID, x, z)
 		if allowEnemyAIPlacement then
 			if x and z then
@@ -310,7 +320,7 @@ if gadgetHandler:IsSyncedCode() then
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
 
 		local startUnit = false
-		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
+		if #msg >= 14 and string.byte(msg, 1) == 99 and string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then -- 99='c'
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
 		end
 		if isUnitValid(startUnit, allyTeamID) then
@@ -360,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
 
-		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
+		if #msg >= 17 and string.byte(msg, 1) == 97 and string.sub(msg, 1, 17) == "aiPlacedPosition:" then -- 97='a'
 			local data = string.sub(msg, 18)
 			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
 			if teamID and x and z then
@@ -464,14 +474,22 @@ if gadgetHandler:IsSyncedCode() then
 		if allyTeamID == nil then
 			return false
 		end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin >= xmax or zmin >= zmax then
-			return true
-		else
-			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
-					(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
-			if isOutsideStartbox then
+
+		local polygonResult = GG.IsInsideStartbox and GG.IsInsideStartbox(x, z, allyTeamID)
+		if polygonResult ~= nil then
+			if not polygonResult then
 				return false
+			end
+		else
+			local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+			if xmin >= xmax or zmin >= zmax then
+				-- no startbox defined, allow placement anywhere
+			else
+				local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or
+						(z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+				if isOutsideStartbox then
+					return false
+				end
 			end
 		end
 
@@ -622,7 +640,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+		local xmin, zmin, xmax, zmax = getEffectiveStartboxBounds(allyTeamID)
 
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
@@ -655,7 +673,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				if needsPosition then
-					local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+					local xmin, zmin, xmax, zmax = getEffectiveStartboxBounds(allyTeamID)
 					local guessedX, guessedZ = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 					if guessedX and guessedZ then
 						local y = spGetGroundHeight(guessedX, guessedZ)
@@ -704,8 +722,9 @@ if gadgetHandler:IsSyncedCode() then
                     if GG.SpawnEnvironmentalLightning then
                         GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
                     end
-					GG.ComSpawnDefoliate(x, y, z)
-
+                    if GG.ComSpawnDefoliate then
+						GG.ComSpawnDefoliate(x, y, z)
+					end
                 end
             end
             if n == spawnWarpInFrame then

@@ -274,6 +274,7 @@ local lastFpsData = {}
 local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
+local lastLuaMemData = {}
 
 local activeDrawPlayers = {}  -- set of playerIDs with active point/pencil/eraser timers
 local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detection
@@ -626,6 +627,7 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
 end
 
 local teamRanking = {}
+local allyTeamRanking = nil
 local isPvE = Spring.Utilities.Gametype.IsPvE()
 
 ---------------------------------------------------------------------------------------------------
@@ -777,29 +779,29 @@ local function LockCamera(playerID)
     UpdateRecentBroadcasters()
 end
 
-function GpuMemEvent(playerID, percentage)
+local function GpuMemEvent(playerID, percentage)
     lastGpuMemData[playerID] = percentage
 end
 
-function FpsEvent(playerID, fps)
-	lastFpsData[playerID] = fps
-	WG.playerFPS = WG.playerFPS or {}
-	WG.playerFPS[playerID] = fps
+local function LuaMemEvent(playerID, um)
+    lastLuaMemData[playerID] = um
 end
 
-function RankingEvent(allyTeamRanking)
-	WG.allyTeamRanking = allyTeamRanking
+local function FpsEvent(playerID, fps)
+	lastFpsData[playerID] = fps
+end
+
+local function RankingEvent(ranking)
+    allyTeamRanking = ranking
 	SortList()
 	CreateLists()
 end
 
-function ApmEvent(teamID, fps)
+local function ApmEvent(teamID, fps)
 	lastApmData[teamID] = fps
-	WG.teamAPM = WG.teamAPM or {}
-	WG.teamAPM[teamID] = fps
 end
 
-function SystemEvent(playerID, system)
+local function SystemEvent(playerID, system)
     local lines, length = 0, 0
     local function helper(line)
         lines = lines + 1;
@@ -810,12 +812,9 @@ function SystemEvent(playerID, system)
     end
     helper( system:gsub("(.-)\r?\n", helper) )
     lastSystemData[playerID] = system
-
-    WG.playerSystemData = WG.playerSystemData or {}
-    WG.playerSystemData[playerID] = system
 end
 
-function ActivityEvent(playerID)
+local function ActivityEvent(playerID)
     lastActivity[playerID] = osClock()
 end
 
@@ -844,7 +843,7 @@ end
 function widget:PlayerChanged(playerID)
     -- Capture name before doPlayerUpdate rebuilds the player table
     local p = player[playerID]
-    if p and p.team and p.name and p.name ~= absentName then
+    if p and p.team and p.name and p.name ~= absentName and not p.spec then
         local _, newActive, newSpec = sp.GetPlayerInfo(playerID, false)
         if newSpec or not newActive then
             lastKnownTeamNames[p.team] = p.name
@@ -878,7 +877,7 @@ function widget:TeamDied(teamID)
     if not lastKnownTeamNames[teamID] then
         for pID = 0, specOffset-1 do
             local p = player[pID]
-            if p and p.team == teamID and p.name and p.name ~= absentName then
+            if p and p.team == teamID and p.name and p.name ~= absentName and not p.spec then
                 lastKnownTeamNames[teamID] = p.name
                 break
             end
@@ -966,15 +965,36 @@ local function speclistCmd(_, _, params)
 	CreateLists()
 end
 
+function widget:ActivityEvent(playerID)
+    ActivityEvent(playerID)
+end
+
+function widget:FpsEvent(playerID, fps)
+    FpsEvent(playerID, fps)
+end
+
+function widget:ApmEvent(teamID, apm)
+    ApmEvent(teamID, apm)
+end
+
+function widget:GpuMemEvent(playerID, mem)
+    GpuMemEvent(playerID, mem)
+end
+
+function widget:LuaMemEvent(playerID, mem)
+    LuaMemEvent(playerID, mem)
+end
+
+function widget:SystemEvent(playerID, systemData)
+    SystemEvent(playerID, systemData)
+end
+
+function widget:RankingEvent(ranking)
+    RankingEvent(ranking)
+end
+
 function widget:Initialize()
 	widget:ViewResize()
-
-	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
-	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
-	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
-	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
-	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = spGetSpectatingState()
@@ -1104,12 +1124,6 @@ function widget:Shutdown()
 		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
-    widgetHandler:DeregisterGlobal('ActivityEvent')
-	widgetHandler:DeregisterGlobal('FpsEvent')
-	widgetHandler:DeregisterGlobal('ApmEvent')
-    widgetHandler:DeregisterGlobal('GpuMemEvent')
-    widgetHandler:DeregisterGlobal('SystemEvent')
-    widgetHandler:DeregisterGlobal('RankingEvent')
     if ShareSlider then
         gl_DeleteList(ShareSlider)
     end
@@ -1173,7 +1187,7 @@ function GetAllPlayers()
             -- Try player entries still carrying this team (works right as player leaves)
             for pID = 0, specOffset - 1 do
                 local ep = player[pID]
-                if ep and ep.team == i and ep.name and ep.name ~= absentName then
+                if ep and ep.team == i and ep.name and ep.name ~= absentName and not ep.spec then
                     lastKnownTeamNames[i] = ep.name
                     break
                 end
@@ -1622,14 +1636,14 @@ function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
     local allyTeamList = sp.GetAllyTeamList()
-	if WG.allyTeamRanking then
-		allyTeamList = WG.allyTeamRanking
+    if allyTeamRanking then
+        allyTeamList = allyTeamRanking
 	end
 
 	-- find own ally team
 	vOffset = 12 / 2.66
 	local ownAllyTeamDrawn = false
-	if not WG.allyTeamRanking or not enemyListShow then
+    if not allyTeamRanking or not enemyListShow then
 		local showOwnAlly = not mySpecStatus or (not hideDeadAllyTeams or (aliveAllyTeams[myAllyTeamID] and populatedAllyTeams[myAllyTeamID]))
 		if showOwnAlly then
 		ownAllyTeamDrawn = true
@@ -1651,7 +1665,7 @@ function SortAllyTeams(vOffset)
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
-		if not WG.allyTeamRanking or not enemyListShow then
+        if not allyTeamRanking or not enemyListShow then
 			if ownAllyTeamDrawn then
 				vOffset = vOffset + 13
 			end
@@ -1665,8 +1679,8 @@ function SortAllyTeams(vOffset)
 		-- add the others
 		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+            for _, allyTeamID in ipairs(allyTeamList) do
+                if (allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
 					if firstenemy then
 						firstenemy = false
 					else
@@ -2177,7 +2191,7 @@ function drawMainList()
                 if numberOfEnemies == 0 or enemyListShow then
                     enemyAmount = ""
                 end
-                if WG.allyTeamRanking and enemyListShow then
+                if allyTeamRanking and enemyListShow then
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else
@@ -2555,7 +2569,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
+                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastLuaMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
         end
     end
@@ -3334,7 +3348,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
     end
 end
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, luamem, system, name, teamID, spec, apm)
     if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
@@ -3355,6 +3369,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
 		tipText = tipText .. "    " .. Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
+        end
+        if luamem ~= nil then
+            tipText = tipText .. "    Lua: " .. luamem .. "MB\n"
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then
@@ -3411,27 +3428,19 @@ function CreateShareSlider()
     end)
 end
 
--- Pre-extract thresholds for fast lookup (avoids table access in hot path)
-local cpuThresholds = {}
-local pingThresholds = {}
-for level, data in ipairs(pingLevelData) do
-    cpuThresholds[level] = data.cpuThreshold
-    pingThresholds[level] = data.pingThreshold
-end
-
 function GetCpuLvl(cpuUsage)
-    if cpuUsage < cpuThresholds[1] then return 1
-    elseif cpuUsage < cpuThresholds[2] then return 2
-    elseif cpuUsage < cpuThresholds[3] then return 3
-    elseif cpuUsage < cpuThresholds[4] then return 4
+    if cpuUsage < pingLevelData[1].cpuThreshold then return 1
+    elseif cpuUsage < pingLevelData[2].cpuThreshold then return 2
+    elseif cpuUsage < pingLevelData[3].cpuThreshold then return 3
+    elseif cpuUsage < pingLevelData[4].cpuThreshold then return 4
     else return 5 end
 end
 
 function GetPingLvl(ping)
-    if ping < pingThresholds[1] then return 1
-    elseif ping < pingThresholds[2] then return 2
-    elseif ping < pingThresholds[3] then return 3
-    elseif ping < pingThresholds[4] then return 4
+    if ping < pingLevelData[1].pingThreshold then return 1
+    elseif ping < pingLevelData[2].pingThreshold then return 2
+    elseif ping < pingLevelData[3].pingThreshold then return 3
+    elseif ping < pingLevelData[4].pingThreshold then return 4
     else return 5 end
 end
 

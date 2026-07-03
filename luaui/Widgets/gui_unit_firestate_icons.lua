@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 
 local showFireStateIcons = true
+local showAllHoldFireIcons = false	-- else only show for user triggered hold fire states
 
 --------------------------------------------------------------------------------
 -- Localized Spring API
@@ -21,6 +22,9 @@ local spGetGameFrame  = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
 local spValidUnitID   = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyTeamID   = Spring.GetMyTeamID
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -65,11 +69,15 @@ local visibleUnits    = {}
 local crashingUnits   = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
 local unitFireState   = {} -- [unitID] = cached fire state; avoids GetUnitStates every frame
+local manuallyHeldFire = {} -- [unitID] = true if this client explicitly ordered hold fire
 local unitToTeam        = {} -- [unitID] = teamID; needed to filter dead-allyteam units
 local deadAllyTeams     = {} -- [allyTeamID] = true when entire allyteam has been wiped out
 local teamToAllyTeam    = {} -- [teamID] = allyTeamID; built at Initialize
 local deadTeamCount     = {} -- [allyTeamID] = number of dead teams in that allyteam
 local allyTeamTeamCount = {} -- [allyTeamID] = total number of teams in that allyteam
+local myPlayerID      = spGetMyPlayerID()
+local myTeamID        = spGetMyTeamID()
+local manualHoldStore = nil
 
 -- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
 local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0, 0}
@@ -116,6 +124,15 @@ WG['unitfirestate'] = {}
 WG['unitfirestate'].setEnabled = function(value)
     showFireStateIcons = value
 end
+WG['unitfirestate'].setShowAllHoldFireIcons = function(value)
+	showAllHoldFireIcons = (value and true) or false
+	if widget and widget.VisibleUnitsChanged and visibleUnits then
+		widget:VisibleUnitsChanged(visibleUnits, nil)
+	end
+end
+WG['unitfirestate'].getShowAllHoldFireIcons = function()
+	return showAllHoldFireIcons
+end
 
 --------------------------------------------------------------------------------
 -- Helper: push a unit into a fire-state VBO
@@ -137,7 +154,11 @@ end
 --------------------------------------------------------------------------------
 local function applyFireState(unitID, unitDefID, fs, gf)
 	if fs == HOLD_FIRE then
-		pushToVBO(holdFireVBO, unitID, unitDefID, gf)
+		if showAllHoldFireIcons or manuallyHeldFire[unitID] then
+			pushToVBO(holdFireVBO, unitID, unitDefID, gf)
+		elseif holdFireVBO.instanceIDtoIndex[unitID] then
+			popElementInstance(holdFireVBO, unitID, true)
+		end
 		if returnFireVBO.instanceIDtoIndex[unitID] then
 			popElementInstance(returnFireVBO, unitID, true)
 		end
@@ -165,6 +186,11 @@ function widget:Initialize()
 		return
 	end
 	if not initGL4() then return end
+
+	-- Persist manual hold-fire flags across widget reloads within the same LuaUI session.
+	WG['unitfirestate_manualhold'] = WG['unitfirestate_manualhold'] or {}
+	manualHoldStore = WG['unitfirestate_manualhold']
+	manuallyHeldFire = manualHoldStore
 
 	-- Build team → allyteam mapping
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
@@ -239,6 +265,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	if teamID == gaiaTeamID then return end
 	crashingUnits[unitID] = true
 	unitFireState[unitID] = nil
+	manuallyHeldFire[unitID] = nil
 	if holdFireVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(holdFireVBO, unitID)
 	end
@@ -247,11 +274,29 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	end
 end
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts)
+function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
+	if cmdID ~= CMD.FIRE_STATE or not cmdParams then return false end
+	local fs = cmdParams[1]
+	local selectedUnits = spGetSelectedUnits()
+	for i = 1, #selectedUnits do
+		local unitID = selectedUnits[i]
+		if fs == HOLD_FIRE then
+			manuallyHeldFire[unitID] = true
+		else
+			manuallyHeldFire[unitID] = nil
+		end
+	end
+	return false
+end
+
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID == gaiaTeamID then return end
 	if cmdID ~= CMD.FIRE_STATE then return end
-	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
 	local fs = cmdParams[1]
+	if fs ~= HOLD_FIRE then
+		manuallyHeldFire[unitID] = nil
+	end
+	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
 	if unitFireState[unitID] == fs then return end
 	unitFireState[unitID] = fs
 	applyFireState(unitID, unitDefID, fs, spGetGameFrame())
@@ -272,6 +317,7 @@ function widget:TeamDied(teamID)
 	for unitID, tid in pairs(unitToTeam) do
 		if teamToAllyTeam[tid] == allyTeamID then
 			unitFireState[unitID] = nil
+			manuallyHeldFire[unitID] = nil
 			if holdFireVBO.instanceIDtoIndex[unitID] then
 				popElementInstance(holdFireVBO, unitID)
 			end
@@ -280,6 +326,32 @@ function widget:TeamDied(teamID)
 			end
 		end
 	end
+end
+
+function widget:PlayerChanged(playerID)
+	myPlayerID = spGetMyPlayerID()
+	myTeamID = spGetMyTeamID()
+	if myPlayerID == nil or myTeamID == nil then return end
+	for unitID, unitTeamID in pairs(unitToTeam) do
+		if unitTeamID == myTeamID and unitFireState[unitID] == HOLD_FIRE and not manuallyHeldFire[unitID] then
+			if holdFireVBO.instanceIDtoIndex[unitID] then
+				popElementInstance(holdFireVBO, unitID, true)
+			end
+		end
+	end
+	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
+end
+
+function widget:UnitDestroyed(unitID)
+	manuallyHeldFire[unitID] = nil
+end
+
+function widget:UnitGiven(unitID)
+	manuallyHeldFire[unitID] = nil
+end
+
+function widget:UnitTaken(unitID)
+	manuallyHeldFire[unitID] = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -326,4 +398,16 @@ function widget:DrawScreenEffects()
 
 	gl.DepthTest(false)
 	gl.DepthMask(true)
+end
+
+function widget:GetConfigData(data)
+	return {
+		showAllHoldFireIcons = showAllHoldFireIcons,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.showAllHoldFireIcons ~= nil then
+		showAllHoldFireIcons = data.showAllHoldFireIcons and true or false
+	end
 end

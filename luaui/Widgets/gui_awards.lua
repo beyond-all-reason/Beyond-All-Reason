@@ -406,7 +406,6 @@ function widget:Initialize()
 	Spring.SendCommands('endgraph 2')
 
 	widget:ViewResize(viewScreenX, viewScreenY)
-	widgetHandler:RegisterGlobal('GadgetReceiveAwards', ProcessAwards)
 
 	-- load a list of players for each team into playerListByTeam
 	local teamList = Spring.GetTeamList()
@@ -425,8 +424,11 @@ function widget:Initialize()
 	ProcessAwards(WG.awards)
 end
 
+function widget:GadgetReceiveAwards(awards)
+	ProcessAwards(awards)
+end
+
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GadgetReceiveAwards')
 	Spring.SendCommands('endgraph 2')
 	if Background then
 		gl.DeleteList(Background)

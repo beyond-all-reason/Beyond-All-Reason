@@ -15,23 +15,11 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				local numBuildoptions = #uDef.buildoptions
 				uDef.buildoptions[numBuildoptions + 1] = "cormine1"
 				uDef.buildoptions[numBuildoptions + 2] = "cormine3"
-				-- 80% EMP resist
-				uDef.customparams.paralyzemultiplier = 0.2
 				-- 2s self-destruct timer
 				uDef.selfdestructcountdown = 2
 				-- x2 autoheal (9 -> 18)
 				uDef.autoheal = 18
 				uDef.idleautoheal = 18
-
-				-- Allow attacking air
-				if uDef.weapons then
-					for _, weapon in ipairs(uDef.weapons) do
-						if weapon.def == "COMMANDO_BLASTER" then
-							weapon.badtargetcategory = "VTOL"
-							weapon.onlytargetcategory = "NOTSUB"
-						end
-					end
-				end
 
 				-- Weapon changes: Cannon -> Laser
 				if uDef.weapondefs then
@@ -69,10 +57,6 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 							weaponDef.turret = true
 							weaponDef.weapontype = "BeamLaser"
 							weaponDef.weaponvelocity = 1000
-							weaponDef.damage = {
-								default = 100,
-								vtol = 50,
-							}
 						end
 					end
 				end

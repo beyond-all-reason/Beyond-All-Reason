@@ -26,6 +26,7 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
@@ -115,13 +116,16 @@ function widget:Initialize()
 end
 
 
+local function isWorkerUnitIdle(unitID, unitDefID)
+	return inIdleWorkerTask[unitID]
+		or (unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
+end
+
 local function updateIcons()
 	local gf = spGetGameFrame()
-	local queue
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
-		if queue == 0 then
-			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+		if isWorkerUnitIdle(unitID, unitDefID) then
+			if not iconVBO.instanceIDtoIndex[unitID] then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 					if not idleUnitList[unitID] then
 						idleUnitList[unitID] = os.clock()

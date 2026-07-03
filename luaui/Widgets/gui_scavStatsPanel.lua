@@ -310,7 +310,7 @@ local function UpdateRules()
 	updatePanel = true
 end
 
-function ScavEvent(scavEventArgs)
+local function ScavEvent(scavEventArgs)
 	if scavEventArgs.type == "firstWave" or (scavEventArgs.type == "boss" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
@@ -350,7 +350,6 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("ScavEvent", ScavEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = mathAbs(mathFloor(viewSizeX - 320))
@@ -362,6 +361,10 @@ function widget:Initialize()
 	--end
 
 	updatePos(x, y)
+end
+
+function widget:ScavEvent(scavEventArgs)
+	ScavEvent(scavEventArgs)
 end
 
 function widget:Shutdown()
@@ -376,7 +379,6 @@ function widget:Shutdown()
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("ScavEvent")
 end
 
 function widget:GameFrame(n)

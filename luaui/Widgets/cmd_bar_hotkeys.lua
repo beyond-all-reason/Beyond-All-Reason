@@ -32,16 +32,6 @@ local function reloadWidgetsBindings()
 end
 
 
-local function replaceDefaultWithLegacy(file)
-	if file == 'luaui/configs/hotkeys/default_keys.txt' then
-		return 'luaui/configs/hotkeys/legacy_keys.txt'
-	end
-	if file == 'luaui/configs/hotkeys/default_keys_60pct.txt' then
-		return 'luaui/configs/hotkeys/legacy_keys_60pct.txt'
-	end
-end
-
-
 -- if keybinds are missing, load default hotkeys
 local function fallbackToDefault(currentKeys)
 	local default = keyConfig.keybindingLayoutFiles[1]
@@ -57,13 +47,6 @@ local function reloadBindings()
 
 	currentKeybindingsFile = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
 
-	-- detect if old "default" settings are present, replace with "legacy"
-	local usingOldPreset = string.find(currentKeybindingsFile, "default") and true or false
-	if usingOldPreset then
-		currentKeybindingsFile = replaceDefaultWithLegacy(currentKeybindingsFile)
-		spEcho("BAR Hotkeys: Found old default key config, replacing with legacy", currentKeybindingsFile)
-	end
-
 	if not VFS.FileExists(currentKeybindingsFile) then
 		currentKeybindingsFile = fallbackToDefault(currentKeybindingsFile)
 	end
@@ -71,10 +54,6 @@ local function reloadBindings()
 	if VFS.FileExists(currentKeybindingsFile) then
 		Spring.SendCommands("keyreload " .. currentKeybindingsFile)
 		spEcho("BAR Hotkeys: Loaded hotkeys from " .. currentKeybindingsFile)
-		if usingOldPreset then
-			-- resolve upgrading from old "default" to "legacy"
-			Spring.SetConfigString("KeybindingFile", currentKeybindingsFile)
-		end
 	else
 		spEcho("BAR Hotkeys: No hotkey file found")
 	end

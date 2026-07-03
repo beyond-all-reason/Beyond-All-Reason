@@ -82,7 +82,7 @@ local myTeam = spGetMyTeamID()
 local idleBuilders = {}
 
 -- [builderID] = { targetID, homeX, homeY, homeZ }
-local activeRepairs = {}
+local activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
 
 -- [unitID] = expiryFrame
 local reclaimBlacklist = {}
@@ -162,6 +162,8 @@ function widget:Initialize()
 		return
 	end
 
+	activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
+
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID) 
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -172,6 +174,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	for unitID in pairs(WG.InIdleWorkerTask) do
+		WG.InIdleWorkerTask[unitID] = nil
+	end
 	idleBuilders = {}
 	activeRepairs = {}
 	reclaimBlacklist = {}
@@ -300,7 +305,7 @@ function widget:GameFrame(frame)
 			sendHome(builderID, info)
 		else
 			local health, maxHealth = spGetUnitHealth(info.targetID)
-			if health and health >= maxHealth then
+			if health and maxHealth and health >= maxHealth then
 				-- Repair complete
 				sendHome(builderID, info)
 			else
@@ -332,7 +337,7 @@ function widget:GameFrame(frame)
 			-- Already assigned (shouldn't happen but guard against it)
 		elseif wantsCloak then
 			-- It's still idle but wantscloak, so don't assign a target
-		elseif spGetUnitCommandCount(builderID) > 0 then
+		elseif (spGetUnitCommandCount(builderID) or 0) > 0 then
 			-- No longer idle
 			idleBuilders[builderID] = nil
 		elseif not isUnitAlive(builderID) then

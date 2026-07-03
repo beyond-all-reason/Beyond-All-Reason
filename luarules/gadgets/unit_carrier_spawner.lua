@@ -91,8 +91,8 @@ local wantedList = {}
 
 local spawnCmd = {
 	id = CMD_CARRIER_SPAWN_ONOFF,
-	name = "csSpawning",
-	action = "csSpawning",
+	name = "csspawning",
+	action = "csspawning",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "Enable/Disable drone spawning",
 	params = { '1', 'Spawning Disabled', 'Spawning Enabled' }

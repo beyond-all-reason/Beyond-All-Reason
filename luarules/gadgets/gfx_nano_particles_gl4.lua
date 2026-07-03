@@ -499,7 +499,7 @@ local groundClampCursor = 1
 local groundClampParticles = {}
 local groundClampFree = {}
 
-local function registerGroundClampParticle(id, death, wp, fx, fy, fz)
+local function registerGroundClampParticle(id, death, wp, fx, fy, fz, targetID)
 	local nFree = #groundClampFree
 	local entry = groundClampFree[nFree]
 	if entry then
@@ -513,6 +513,7 @@ local function registerGroundClampParticle(id, death, wp, fx, fy, fz)
 	entry.fx = fx
 	entry.fy = fy
 	entry.fz = fz
+	entry.targetID = targetID
 	entry.next = wp or 0
 	groundClampParticles[#groundClampParticles + 1] = entry
 	if CLAMP_DEBUG then clampDbg.registered = clampDbg.registered + 1 end
@@ -647,7 +648,7 @@ end
 -- Cached infoTex-is-LOS state. Spring.GetMapDrawMode() returns the active
 -- mini-map mode (""/"los"/"height"/"metal"/"path"); when not LOS, $info holds
 -- other map data and our LOS smoothstep would discard most of the map.
--- Polled on the same 1s GameFrame cadence as the speed throttle.
+-- Also refreshed in DrawWorld so mode toggles apply immediately.
 local cachedInfoIsLos = true
 local function refreshInfoIsLos()
 	local m = Spring.GetMapDrawMode()
@@ -1150,11 +1151,9 @@ local function goodbye(reason)
 end
 
 local function initGL4()
-	if not LuaShader.isGeometryShaderSupported then
-		goodbye("geometry shader not supported")
-		return false
-	end
-	local shaderCache = {
+	local useGeometryShader = true
+
+	local shaderCacheGS = {
 		vsSrc = vsSrcCube,
 		fsSrc = fsSrcCube,
 		gsSrc = gsSrcCube,
@@ -1172,41 +1171,172 @@ local function initGL4()
 		shaderConfig = {},
 		forceupdate = true,
 	}
-	nanoShader = LuaShader.CheckShaderUpdates(shaderCache)
+
+	local shaderCacheNoGS = {
+		vssrcpath = "LuaUI/Shaders/nano_particles_gl4_nogs.vert.glsl",
+		fsSrc = fsSrcCube,
+		shaderName = "NanoParticlesGL4_Shape_NoGS",
+		uniformInt = { infoTex = 1, u_shape = U.SHAPE_ID },
+		uniformFloat = shaderCacheGS.uniformFloat,
+		shaderConfig = {},
+		forceupdate = true,
+	}
+
+	-- AMD GPUs have no native geometry-shader stage. Mesa emulates this GS by translating it
+	-- onto the hardware's real shader stages, emitting every vertex through memory buffers.
+	-- This is slow both to compile (a multi-second GS compile that stalls on the first draw,
+	-- and isn't kept in the disk cache so it recurs) and to run (those memory round-trips
+	-- cost bandwidth every frame). The no-GS path draws the same particles with none of that.
+	-- AMD-on-Linux is always Mesa.
+	local preferNoGS = (Platform ~= nil and Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux")
+
+	-- Try the geometry-shader path first (unless we already know to skip it); only
+	-- fall back if compile actually fails. LuaShader.isGeometryShaderSupported can
+	-- report false negatives on some drivers (e.g. AMD/Mesa), so we don't trust it
+	-- alone.
+	useGeometryShader = not preferNoGS
+	nanoShader = useGeometryShader and LuaShader.CheckShaderUpdates(shaderCacheGS) or nil
+	if not nanoShader then
+		if useGeometryShader then
+			spEcho("Nano Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		end
+		useGeometryShader = false
+		nanoShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
+	end
 	if not nanoShader then
 		goodbye("Failed to compile shader")
 		return false
 	end
 
-	-- Quad: xy in [-1,1] (corner), uv in [0,1]
-	local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
-		-1, -1, 1, 1,
-		0, 0, 1, 1,
-		"nanoQuadVBO"
-	)
-	-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
-	-- index buffer would invoke the GS twice per particle. A 3-index VBO
-	-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
-	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	indexVBO:Define(3)
-	indexVBO:Upload({0, 1, 2})
+	if useGeometryShader then
+		-- Quad: xy in [-1,1] (corner), uv in [0,1]
+		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(
+			-1, -1, 1, 1,
+			0, 0, 1, 1,
+			"nanoQuadVBO"
+		)
+		-- Shape GS only needs ONE triangle per instance; using the rect's 2-tri
+		-- index buffer would invoke the GS twice per particle. A 3-index VBO
+		-- (the rect's first triangle: bl,tl,tr) cuts GS work in half.
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(3)
+		indexVBO:Upload({0, 1, 2})
 
-	local layout = {
-		{ id = 1, name = "spawnPosAndSize",  size = 4 },
-		{ id = 2, name = "velAndSpawnFrame", size = 4 },
-		{ id = 3, name = "instColor",        size = 4 },
-		{ id = 4, name = "rotData",          size = 4 },
-	}
-	nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO")
-	if not nanoVBO then
-		goodbye("Failed to create instance VBO")
-		return false
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO")
+		if not nanoVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+		nanoVBO.numVertices = numVertices
+		nanoVBO.vertexVBO   = quadVBO
+		nanoVBO.indexVBO    = indexVBO
+		nanoVBO.VAO         = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
+		nanoVBO.primitiveType = GL.TRIANGLES
+	else
+		-- No-GS fallback: build a template indexed mesh with one vertex per
+		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
+		-- Octahedron: 8 tris * 3 verts = 24 verts.  Plus a 4-vert glow billboard
+		-- quad.  We use independent triangles, so each template vertex is emitted
+		-- exactly once and indexed in GL order.
+		local NUM_SHAPE_VERTS = 24
+		local NUM_GLOW_VERTS  = 4
+		local NUM_VERTS = NUM_SHAPE_VERTS + NUM_GLOW_VERTS
+		local isOcta = (U.SHAPE_ID == 1)
+
+		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		templateVBO:Define(NUM_VERTS, {{ id = 0, name = "vertexSlot", size = 1 }}) -- float slot, cast to int in VS
+		local vertexData = {}
+		for i = 0, NUM_VERTS - 1 do
+			vertexData[#vertexData + 1] = i
+		end
+		templateVBO:Upload(vertexData)
+
+		-- Build indices matching the order the no-GS VS emits the template:
+		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
+		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
+		local indexData = {}
+		if isOcta then
+			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
+				local base = shapeTri * 3
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+			end
+		else
+			for quad = 0, NUM_SHAPE_VERTS / 4 - 1 do
+				local base = quad * 4
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 1
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 0
+				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 3
+			end
+		end
+		local glowBase = NUM_SHAPE_VERTS
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 1
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 0
+		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 3
+
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(#indexData)
+		indexVBO:Upload(indexData)
+
+		local layout = {
+			{ id = 1, name = "spawnPosAndSize",  size = 4 },
+			{ id = 2, name = "velAndSpawnFrame", size = 4 },
+			{ id = 3, name = "instColor",        size = 4 },
+			{ id = 4, name = "rotData",          size = 4 },
+		}
+		nanoVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "nanoParticleVBO_NoGS")
+		if not nanoVBO then
+			goodbye("Failed to create instance VBO")
+			return false
+		end
+
+		local realVAO = nanoVBO:makeVAOandAttach(templateVBO, nanoVBO.instanceVBO, indexVBO)
+		if not realVAO then
+			goodbye("Failed to create no-GS VAO")
+			return false
+		end
+
+		-- Anchor the template and index VBOs to the VBO table so the Lua GC
+		-- cannot collect them while the VAO is alive.  OpenGL owns the buffer
+		-- objects via the VAO, but Lua does not know that; without a strong Lua
+		-- reference the GC can finalize the userdata and delete the GL buffers
+		-- (fixed in commit 2b51f6e863 for DrawPrimitiveAtUnit).
+		nanoVBO.nogsTemplateVBO = templateVBO
+		nanoVBO.nogsIndexVBO    = indexVBO
+
+		local indexCount = #indexData
+		nanoVBO.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+		nanoVBO.primitiveType = GL.TRIANGLES
 	end
-	nanoVBO.numVertices = numVertices
-	nanoVBO.vertexVBO   = quadVBO
-	nanoVBO.indexVBO    = indexVBO
-	nanoVBO.VAO         = nanoVBO:makeVAOandAttach(quadVBO, nanoVBO.instanceVBO, indexVBO)
-	nanoVBO.primitiveType = GL.TRIANGLES
 
 	return true
 end
@@ -1723,7 +1853,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			if pid and clampThisEmit then
 				if useWaypoint then
 					if wpFrame then
-						registerGroundClampParticle(pid, frame + lifetime, wpFrame, finalX, finalY, finalZ)
+						registerGroundClampParticle(pid, frame + lifetime, wpFrame, finalX, finalY, finalZ, targetUnitID)
 					end
 				else
 					registerGroundClampParticle(pid, frame + lifetime)
@@ -1802,12 +1932,18 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 					list = {}
 					homingFwdByTarget[targetUnitID] = list
 				end
+				local maxRangeSq
+				local effectiveBD = info.targetMeta and info.targetMeta.effectiveBD
+				if effectiveBD then
+					local maxRange = effectiveBD * BUILD_RANGE_MAX_EXTENSION
+					maxRangeSq = maxRange * maxRange
+				end
 				local nL = #list
 				if nL >= HOMING_FWD_MAX_PER_TARGET then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
+					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
 				else
-					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit }
+					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
 				end
 			end
 		until true
@@ -2187,6 +2323,26 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 	local data       = nanoVBO.instanceData
 	local idtoIndex  = nanoVBO.instanceIDtoIndex
 	local step       = nanoVBO.instanceStep
+	local function fadeParticle(slot, p)
+		local remaining = p.death - frame
+		if remaining <= 0 then return false end
+		local fadeFrames = mathFloor(FADE_FRAMES_DEATH * (0.4 + mathRandom()))
+		if fadeFrames < 1 then fadeFrames = 1 end
+		if fadeFrames > remaining then fadeFrames = remaining end
+		local newDeath = frame + fadeFrames
+		local base = (slot - 1) * step
+		data[base+16] = newDeath
+		local packed = data[base+4]
+		local absPacked = packed < 0 and -packed or packed
+		local oldFade = mathFloor(absPacked / 1024)
+		local sizeBits = absPacked - oldFade * 1024
+		local newPacked = sizeBits + fadeFrames * 1024
+		data[base+4] = packed < 0 and -newPacked or newPacked
+		local s0 = slot - 1
+		if s0 < dirtyMin then dirtyMin = s0 end
+		if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+		return true
+	end
 
 	targetPosEpoch = targetPosEpoch + 1
 
@@ -2206,10 +2362,10 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				list._lastHealthCheck = frame
 				local h, maxH, _, _, bp = spGetUnitHealth(targetID)
 				if h and maxH and h >= maxH and (bp == nil or bp >= 1.0) then
-					fadeOutHomingFwd(targetID)
-					homingFwdByTarget[targetID] = nil
-					targetPosCache[targetID]    = nil
-					fadedOut = true
+					if not list._fadingOut then
+						fadeOutHomingFwd(targetID)
+						list._fadingOut = true
+					end
 				else
 					-- Crashing aircraft: treat as dead. The unit still exists
 					-- (UnitDestroyed hasn't fired) but is moving fast and
@@ -2233,6 +2389,13 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				end
 			end
 			if not fadedOut then
+			local isAir = list._isAir
+			if isAir == nil then
+				isAir = isAirUnitDef[spGetUnitDefID(targetID)] and true or false
+				list._isAir = isAir
+			end
+				local maxSpeed = NANO_SPEED * (isAir and 1.35 or 2.0)
+			local maxSpeedSq = maxSpeed * maxSpeed
 			-- Cache layout per target: { epoch, tx, ty, tz, lastTx, lastTy, lastTz, stationaryStreak }
 			-- stationaryStreak counts consecutive homing passes the target has
 			-- not moved. Once it crosses STATIONARY_SKIP_AFTER, we skip the
@@ -2298,11 +2461,49 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					end
 				else
 				local writeIdx = 0
+				local piecePosByKey = {}
 				for i = 1, #list do
 					local p = list[i]
 					local remaining = p.death - frame
 					local slot = (remaining >= 1) and idtoIndex[p.id] or nil
 					if slot then
+						local fadeParticleOut = false
+						local maxRangeSq = p.maxRangeSq
+						if maxRangeSq and p.builderID and p.pieceIdx then
+							local key = p.builderID * 256 + p.pieceIdx
+							local pos = piecePosByKey[key]
+							local bx, bz
+							if pos then
+								bx, bz = pos[1], pos[2]
+							else
+								local pent = piecePosCache[key]
+								if pent and pent[1] == piecePosEpoch then
+									bx, bz = pent[2], pent[4]
+								else
+									local px, py, pz = spGetUnitPiecePosDir(p.builderID, p.pieceIdx)
+									if px then
+										if pent then
+											pent[1] = piecePosEpoch
+											pent[2] = px; pent[3] = py; pent[4] = pz
+										else
+											piecePosCache[key] = { piecePosEpoch, px, py, pz }
+										end
+										bx, bz = px, pz
+									end
+								end
+								if bx then
+									piecePosByKey[key] = { bx, bz }
+								end
+							end
+							if bx then
+								local rdx = tx - bx
+								local rdz = tz - bz
+								if (rdx * rdx + rdz * rdz) > maxRangeSq then
+									fadeParticleOut = fadeParticle(slot, p)
+								end
+							end
+						end
+						if not fadeParticleOut then
 						local base = (slot - 1) * step
 						local sx, sy, sz   = data[base+1], data[base+2], data[base+3]
 						local vx, vy, vz   = data[base+5], data[base+6], data[base+7]
@@ -2318,17 +2519,28 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 						local aimX = tx + p.ox
 						local aimZ = tz + p.oz
 						local aimY = ty + p.oy
+						local dvx = aimX - cpx
+						local dvy = aimY - cpy
+						local dvz = aimZ - cpz
 						local invR = 1.0 / remaining
-						data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
-						data[base+5] = (aimX - cpx) * invR
-						data[base+6] = (aimY - cpy) * invR
-						data[base+7] = (aimZ - cpz) * invR
-						data[base+8] = frame
-						local s0 = slot - 1
-						if s0 < dirtyMin     then dirtyMin = s0     end
-						if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
-						writeIdx = writeIdx + 1
-						list[writeIdx] = p
+						local needSpeedSq = (dvx*dvx + dvy*dvy + dvz*dvz) * (invR * invR)
+						if needSpeedSq > maxSpeedSq then
+							fadeParticleOut = fadeParticle(slot, p)
+						else
+							data[base+1] = cpx;            data[base+2] = cpy;            data[base+3] = cpz
+							data[base+5] = dvx * invR
+							data[base+6] = dvy * invR
+							data[base+7] = dvz * invR
+							data[base+8] = frame
+							local s0 = slot - 1
+							if s0 < dirtyMin     then dirtyMin = s0     end
+							if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+						end
+						end
+						if not fadeParticleOut then
+							writeIdx = writeIdx + 1
+							list[writeIdx] = p
+						end
 					end
 				end
 				for j = #list, writeIdx + 1, -1 do list[j] = nil end
@@ -2400,6 +2612,13 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 			local base = (slot - 1) * step
 			local rem = entry.death - frame
 			if rem > 1 and entry.fx then
+				local fx, fy, fz = entry.fx, entry.fy, entry.fz
+				if entry.targetID then
+					local _, _, _, mx, my, mz = spGetUnitPosition(entry.targetID, true)
+					if mx then
+						fx, fy, fz = mx, my, mz
+					end
+				end
 				local sx, sy, sz = data[base + 1], data[base + 2], data[base + 3]
 				local vx, vy, vz = data[base + 5], data[base + 6], data[base + 7]
 				local spawnF = data[base + 8]
@@ -2411,9 +2630,9 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 				data[base + 1] = cpx
 				data[base + 2] = cpy
 				data[base + 3] = cpz
-				data[base + 5] = (entry.fx - cpx) * invR
-				data[base + 6] = (entry.fy - cpy) * invR
-				data[base + 7] = (entry.fz - cpz) * invR
+				data[base + 5] = (fx - cpx) * invR
+				data[base + 6] = (fy - cpy) * invR
+				data[base + 7] = (fz - cpz) * invR
 				data[base + 8] = frame
 				local s0 = slot - 1
 				if s0 < dirtyMin then dirtyMin = s0 end
@@ -3000,8 +3219,9 @@ function gadget:GameFrame(n)
 				Spring.SetConfigInt("MaxNanoParticles", 0)
 			end
 		end
-		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed) and
-		-- the cached map-draw-mode (heightmap / metalmap / pathmap views).
+		-- Refresh high-gamespeed throttle (reconnect catchup, user /speed).
+		-- Map-draw-mode is also refreshed in DrawWorld for immediate overlay
+		-- transitions.
 		refreshSpeedThrottle()
 		refreshInfoIsLos()
 		refreshMaxParticles()
@@ -3391,10 +3611,12 @@ function gadget:DrawWorld()
 	-- Shape shader has no nanoTex sampler -- skip the bind entirely.
 	glTexture(1, "$info")
 	nanoShader:Activate()
+	-- Keep map-draw-mode state fresh per render frame so toggling metal/height/
+	-- path overlays does not spend up to 1s using stale LOS sampling state.
+	refreshInfoIsLos()
 	-- losAlwaysVisible: bypass the LOS/infoTex sample either with full view
 	-- (spectator) or when $info isn't currently rendering LOS (heightmap /
-	-- metalmap / pathmap modes hold other map data). Refreshed on the 1s
-	-- GameFrame poll, not per render frame.
+	-- metalmap / pathmap modes hold other map data).
 	local losU = (cachedSpecFullView or not cachedInfoIsLos) and 1 or 0
 	if losU ~= lastLosUniform then
 		nanoShader:SetUniform("losAlwaysVisible", losU)

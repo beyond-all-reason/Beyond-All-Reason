@@ -47,7 +47,13 @@ local function IsAtMinimumZoom(zoom)
 end
 
 -- Forward declaration (defined after config and cameraState)
-local IsLeftClickPanActive
+-- (intentionally not local to reduce chunk local count)
+
+-- Forward declarations for all-units cache helpers (defined later)
+-- (intentionally not local to reduce chunk local count)
+
+-- Forward declaration for GL function alias table (defined later)
+-- (intentionally not local to reduce chunk local count)
 
 function widget:GetInfo()
 	return {
@@ -332,6 +338,7 @@ local uiState = {
 -- Render-to-texture state (consolidated to reduce local variable count)
 local pipR2T = {
 	contentTex = nil,
+	contentInvalidInfoStreak = 0,  -- Consecutive invalid TextureInfo reads for contentTex
 	contentNeedsUpdate = true,
 	contentLastUpdateTime = 0,
 	contentCurrentUpdateRate = config.pipMinUpdateRate,
@@ -381,6 +388,7 @@ local pipR2T = {
 	playerNameLastName = nil,
 	-- Smooth camera: oversized units texture for camera-transition interpolation
 	unitsTex = nil,  -- Oversized FBO for expensive content (units, features, projectiles, etc.)
+	unitsInvalidInfoStreak = 0,  -- Consecutive invalid TextureInfo reads for unitsTex
 	unitsTexWidth = 0,  -- Actual texture width in pixels
 	unitsTexHeight = 0,  -- Actual texture height in pixels
 	unitsLastWidth = 0,  -- Last PIP width used to create unitsTex
@@ -482,6 +490,9 @@ local miscState = {
 	hasOpenedPIPThisGame = false,  -- Whether PIP has been opened/maximized at least once this game
 	pipUnits = {},
 	pipFeatures = {},
+	allUnitsCache = {},  -- Cached all-units list for tracking/spec mode (avoids per-update GetAllUnits alloc)
+	allUnitsIndex = {},  -- [unitID] = index in allUnitsCache for O(1) swap-remove updates
+	allUnitsDirty = true,
 	mapMarkers = {},  -- Table to store active map markers
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
@@ -509,6 +520,12 @@ local miscState = {
 	specGhostScanTime = 0,  -- Last time we ran the ghost scan (to throttle periodic rescans)
 	tvEnabled = false,  -- TV mode toggle state
 	transportedUnits = {},  -- Units currently inside a transport (pseudo-buildings become mobile while transported)
+	featureRectLastL = nil,  -- Last queried feature-rect left (world)
+	featureRectLastT = nil,  -- Last queried feature-rect top (world)
+	featureRectLastR = nil,  -- Last queried feature-rect right (world)
+	featureRectLastB = nil,  -- Last queried feature-rect bottom (world)
+	featureRectLastUpdate = 0,  -- os.clock() of last feature-rect query
+	featureRectNeedsUpdate = true,
 }
 
 ----------------------------------------------------------------------------------------------------
@@ -1394,12 +1411,81 @@ local pools = {
 	trackingTempSet = {}, -- Reused for tracking unit deduplication
 	activeTrails = {}, -- Reused for tracking active missile trails
 	visibleButtons = {}, -- Reused for button visibility computation
+	aliveTeammates = {}, -- Reused for GetAliveTeammates in per-frame UI paths
+	trackingOutlineColor = {1, 1, 1, 0.22}, -- Reused for DrawTrackingIndicators default outline color
+	trackingTeamColor = {1, 1, 1, 0.5}, -- Reused for DrawTrackingIndicators team outline color
+	unitsInRect = {}, -- Reused for tracked-spec filtering in DrawUnitsAndFeatures
+	emptySelectionSet = {}, -- Reused empty selected-set sentinel for tracking mode
+	comHealthBars = {}, -- Reused commander health bar entries
+	cursorArcRanges = {
+		{math.pi/2 - math.pi/8, math.pi/2 + math.pi/8},
+		{0 - math.pi/8, 0 + math.pi/8},
+		{3*math.pi/2 - math.pi/8, 3*math.pi/2 + math.pi/8},
+		{math.pi - math.pi/8, math.pi + math.pi/8},
+	}, -- Reused ally cursor arc definitions
+	liveSet = {}, -- Reused unit-membership set for ghost visibility checks
+	scratchQuad = {x1=0, y1=0, x2=0, y2=0}, -- Reused vertices for DrawScratchQuad
+	scratchArc = {cx=0, cy=0, radius=0, start=0, finish=0, segments=0}, -- Reused params for DrawScratchArc
+	scratchTexQuad = {l=0, b=0, r=0, t=0}, -- Reused bounds for textured quad callback
+	lineClamp = {x1=0, y1=0, x2=0, y2=0}, -- Reused line endpoints for BeginEnd line callback
+	minimapViewRect = {halfWidth=0, halfHeight=0, cx=0, cy=0}, -- Reused DrawInMiniMap chamfer params
+	cameraViewVerts = {}, -- Reused flat vertex buffer for DrawCameraViewBounds edge quads
+	cameraViewVertexCount = 0,
+	cameraViewCache = {valid=false, points={}}, -- Cached chamfer points and inputs for DrawCameraViewBounds
+	unitsR2T = {uW=0, uH=0, resScale=1, currentRotation=0, pregameIdleInterval=0.12}, -- Reused UpdateR2TUnits render context
 }
 
 -- Per-frame selected-units cache: avoids 5+ redundant Spring.GetSelectedUnits() calls per frame,
 -- each of which allocates a new Lua table with N entries (N = selected unit count).
 local frameSel = nil      -- Cached array from Spring.GetSelectedUnits() (lazy, set on first use)
 local frameSelCount = 0   -- Cached count from Spring.GetSelectedUnitsCount() (set at start of DrawScreen)
+
+-- Tracked-player selected-unit cache for PIP.
+-- Filled incrementally by selectedUnits call-ins; seeded once from WG allyselectedunits
+-- snapshot so toggling/reloading PIP does not miss already-selected units.
+local trackedPlayerSelections = {}
+local trackedPlayerSelectionSeeded = {}
+
+local function SeedTrackedPlayerSelectionsFromWG(playerID)
+	if not playerID or trackedPlayerSelectionSeeded[playerID] then
+		return
+	end
+
+	trackedPlayerSelectionSeeded[playerID] = true
+	local wgApi = WG['allyselectedunits']
+	local getPlayerSelectedUnits = wgApi and wgApi.getPlayerSelectedUnits
+	if not getPlayerSelectedUnits then
+		return
+	end
+
+	local snapshot = getPlayerSelectedUnits(playerID)
+	if not snapshot then
+		return
+	end
+
+	local selectedByPlayer = {}
+	for unitID in pairs(snapshot) do
+		selectedByPlayer[unitID] = true
+	end
+	trackedPlayerSelections[playerID] = selectedByPlayer
+end
+
+local function GetTrackedPlayerSelections(playerID)
+	if not playerID then
+		return pools.emptySelectionSet
+	end
+
+	local selectedByPlayer = trackedPlayerSelections[playerID]
+	if not selectedByPlayer then
+		SeedTrackedPlayerSelectionsFromWG(playerID)
+		selectedByPlayer = trackedPlayerSelections[playerID]
+		if not selectedByPlayer then
+			selectedByPlayer = {}
+			trackedPlayerSelections[playerID] = selectedByPlayer
+		end
+	end
+	return selectedByPlayer
+end
 
 -- Command queue waypoint cache: avoids calling GetUnitCommands every frame.
 -- GetUnitCommands allocates ~60 tables per unit per call (outer + cmd + params tables),
@@ -1416,6 +1502,85 @@ local cmdQueueCache = {
 local cmdSegDedup = {}         -- [combinedKey] = generation
 local cmdSegDedupGen = 0
 
+-- Reused scratch vars/callbacks for hot BeginEnd paths (avoids per-iteration closure allocs)
+local function DrawScratchQuad()
+	local sq = pools.scratchQuad
+	glFunc.Vertex(sq.x1, sq.y1)
+	glFunc.Vertex(sq.x2, sq.y1)
+	glFunc.Vertex(sq.x2, sq.y2)
+	glFunc.Vertex(sq.x1, sq.y2)
+end
+
+local function DrawScratchArc()
+	local sa = pools.scratchArc
+	for i = 0, sa.segments do
+		local t = i / sa.segments
+		local angle = sa.start + (sa.finish - sa.start) * t
+		local x = sa.cx + math.cos(angle) * sa.radius
+		local y = sa.cy + math.sin(angle) * sa.radius
+		glFunc.Vertex(x, y)
+	end
+end
+
+pools.DrawLineClamp = function()
+	local l = pools.lineClamp
+	glFunc.Vertex(l.x1, l.y1)
+	glFunc.Vertex(l.x2, l.y2)
+end
+
+pools.DrawMinimapViewRectLoop = function()
+	local s = pools.minimapViewRect
+	glFunc.Vertex(-s.halfWidth + s.cx, -s.halfHeight)
+	glFunc.Vertex(s.halfWidth - s.cx, -s.halfHeight)
+	glFunc.Vertex(s.halfWidth, -s.halfHeight + s.cy)
+	glFunc.Vertex(s.halfWidth, s.halfHeight - s.cy)
+	glFunc.Vertex(s.halfWidth - s.cx, s.halfHeight)
+	glFunc.Vertex(-s.halfWidth + s.cx, s.halfHeight)
+	glFunc.Vertex(-s.halfWidth, s.halfHeight - s.cy)
+	glFunc.Vertex(-s.halfWidth, -s.halfHeight + s.cy)
+end
+
+pools.CameraViewChamferPoints = function(x1, y1, x2, y2, cornerX, cornerY, chamfer)
+	local dx1, dy1 = x1 - cornerX, y1 - cornerY
+	local dx2, dy2 = x2 - cornerX, y2 - cornerY
+	local len1 = math.sqrt(dx1 * dx1 + dy1 * dy1)
+	local len2 = math.sqrt(dx2 * dx2 + dy2 * dy2)
+
+	if len1 < 0.001 or len2 < 0.001 then
+		return cornerX, cornerY, cornerX, cornerY
+	end
+
+	local c1x = math.floor(cornerX + (dx1 / len1) * chamfer) + 0.5
+	local c1y = math.floor(cornerY + (dy1 / len1) * chamfer) + 0.5
+	local c2x = math.floor(cornerX + (dx2 / len2) * chamfer) + 0.5
+	local c2y = math.floor(cornerY + (dy2 / len2) * chamfer) + 0.5
+
+	return c1x, c1y, c2x, c2y
+end
+
+pools.CameraViewAppendEdgeQuad = function(data, idx, x1, y1, x2, y2, halfW)
+	local dx, dy = x2 - x1, y2 - y1
+	local len = math.sqrt(dx * dx + dy * dy)
+	if len < 0.001 then
+		return idx
+	end
+
+	local nx, ny = (-dy / len) * halfW, (dx / len) * halfW
+	data[idx] = x1 - nx; data[idx + 1] = y1 - ny
+	data[idx + 2] = x1 + nx; data[idx + 3] = y1 + ny
+	data[idx + 4] = x2 + nx; data[idx + 5] = y2 + ny
+	data[idx + 6] = x2 - nx; data[idx + 7] = y2 - ny
+	return idx + 8
+end
+
+pools.DrawCameraViewEdgeQuads = function()
+	local data = pools.cameraViewVerts
+	local n = pools.cameraViewVertexCount
+	for i = 1, n, 2 do
+		glFunc.Vertex(data[i], data[i + 1])
+	end
+end
+
 -- Maximum number of units whose full waypoint chains are drawn.
 -- When 50 constructors share the same build targets, drawing more than ~6
 -- full chains is pure visual overlap with zero benefit.
@@ -1427,6 +1592,9 @@ local CMD_MAX_CHAIN_UNITS = 6
 -- GPU-driven icon rendering: replaces the CPU-heavy DrawUnit+DrawIcons pipeline with a single
 -- instanced draw call via a texture atlas + VBO + geometry shader.
 -- Benefits: eliminates per-icon texture switches, per-icon draw calls, and most per-unit API calls.
+-- Prefer GS when available, but each shader path still compile-probes and falls back.
+local pipUseGeometryShader = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) or false
+
 local gl4Icons = {
 	INSTANCE_STEP = 12,       -- floats per icon instance (3 x vec4)
 	MAX_INSTANCES = 16384,    -- pre-allocated capacity (covers 16k units without resize)
@@ -1441,6 +1609,7 @@ local gl4Icons = {
 	vbo = nil,                -- Raw GL VBO (no InstanceVBOTable overhead)
 	vao = nil,                -- VAO with VBO attached
 	shader = nil,             -- Compiled GLSL shader program
+	shaderUsesGS = true,      -- true when shader expects point->GS expansion
 	uniformLocs = {},         -- Cached uniform locations
 	unitDefCache = {},        -- [unitID] = unitDefID (lazy-populated, cleared on unit death/give)
 	unitTeamCache = {},       -- [unitID] = teamID (lazy-populated, cleared on unit give)
@@ -1475,6 +1644,7 @@ local gl4Icons = {
 	_slowVboValid = false,    -- Slow mobile VBO has current data (skip upload)
 	_slowVboUsedElements = 0, -- Elements in slow mobile VBO
 	_slowVboHadOverlay = false, -- Previous upload had overlays
+	quadVBO = nil,            -- Shared per-vertex quad template for NoGS instanced path
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1498,6 +1668,8 @@ local gl4Prim = {
 	QUAD_STEP = 12,           -- floats per instance: 3 x vec4
 	QUAD_MAX = 4096,          -- max quad instances
 	enabled = false,
+	useGeometryShader = true,
+	quadVBO = nil,
 	-- Circles (explosions, plasma, flame, lightning impacts)
 	circles = {
 		vbo = nil, vao = nil, shader = nil,
@@ -1770,7 +1942,7 @@ local glConst = {
 }
 
 -- GL function speedups
-local glFunc = {
+glFunc = {
 	Color = gl.Color,
 	TexCoord = gl.TexCoord,
 	Texture = gl.Texture,
@@ -1903,26 +2075,25 @@ if mapInfo.hasWater and not mapInfo.isLava then
 	mapInfo.waterDiffuseFactor = gl.GetWaterRendering("diffuseFactor") or 1.0
 end
 
--- Lava render state is shared across ALL PIP instances via WG.lavaRenderState.
--- If the gadget has been modified to push LavaRenderState, use those values.
--- Otherwise, compute tide level and heat distortion locally (same formulas as the gadget).
-if mapInfo.isLava and not WG.lavaRenderState then
-	WG.lavaRenderState = {
+-- Lava render state for this widget instance.
+if mapInfo.isLava then
+	mapInfo.lavaRenderState = {
 		level = nil,
 		heatDistortX = 0,
 		heatDistortZ = 0,
 		smoothFPS = 15,
-		gadgetPushed = false,  -- true once gadget pushes data (means gadget is modified)
+		gadgetPushed = false,  -- true once gadget pushes data
 	}
-	widgetHandler:RegisterGlobal("LavaRenderState", function(tideLevel, heatDistortX, heatDistortZ)
-		local lrs = WG.lavaRenderState
-		if lrs then
-			lrs.level = tideLevel
-			lrs.heatDistortX = heatDistortX or 0
-			lrs.heatDistortZ = heatDistortZ or 0
-			lrs.gadgetPushed = true
-		end
-	end)
+end
+
+function widget:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
+	local lrs = mapInfo.lavaRenderState
+	if lrs then
+		lrs.level = tideLevel
+		lrs.heatDistortX = heatDistortX or 0
+		lrs.heatDistortZ = heatDistortZ or 0
+		lrs.gadgetPushed = true
+	end
 end
 
 -- Eagerly read lava level if available (avoids wrong first R2T render on lava maps)
@@ -2525,6 +2696,64 @@ void main() {
 			atlasTex = 0,
 		},
 	},
+	decalCodeNoGS = {
+		vertex = [[
+#version 330
+layout(location = 0) in vec2 quadPos;
+layout(location = 1) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
+layout(location = 2) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
+layout(location = 3) in vec4 uvCoords;      // p, q, s, t
+layout(location = 4) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+
+uniform float gameFrame;
+uniform vec2 invMapSize;
+
+out vec2 f_texCoord;
+out float f_alpha;
+
+void main() {
+	float lifetonow = gameFrame - spawnParams.x;
+	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
+	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+	if (currentAlpha < 0.01) {
+		f_alpha = 0.0;
+		gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+		return;
+	}
+
+	f_alpha = currentAlpha;
+	vec2 centerNDC = posRot.xy * invMapSize - 1.0;
+
+	float ca = cos(posRot.z);
+	float sa = sin(posRot.z);
+	vec2 local = quadPos * sizeAlpha.xy;
+	vec2 rotatedWorld = vec2(local.x * ca - local.y * sa, local.x * sa + local.y * ca);
+	vec2 ndcOff = rotatedWorld * invMapSize;
+	gl_Position = vec4(centerNDC + ndcOff, 0.0, 1.0);
+
+	vec2 t = quadPos * 0.5 + 0.5;
+	f_texCoord = vec2(mix(uvCoords.x, uvCoords.y, t.x), mix(uvCoords.z, uvCoords.w, t.y));
+}
+		]],
+		fragment = [[
+#version 330
+uniform sampler2D atlasTex;
+in vec2 f_texCoord;
+in float f_alpha;
+out vec4 fragColor;
+
+void main() {
+	vec4 tex = texture(atlasTex, f_texCoord);
+	float a = tex.a * tex.a * 0.999 * f_alpha;
+	vec3 scarColor = mix(tex.rgb, vec3(0.5), 0.35);
+	vec3 result = mix(vec3(1.0), scarColor, a);
+	fragColor = vec4(result, 1.0);
+}
+		]],
+		uniformInt = {
+			atlasTex = 0,
+		},
+	},
 	-- Water overlay: renders water/lava tinting based on heightmap
 	water = nil,
 	waterCode = {
@@ -2998,6 +3227,122 @@ v_halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
 	},
 }
 
+-- NoGS icon shader: does point->quad expansion in VS using an instanced quad template.
+gl4Icons.shaderCodeNoGS = {
+	vertex = [[
+#version 330
+layout(location = 0) in vec2 quadPos;         // template quad corner: (-1,-1) .. (1,1)
+layout(location = 1) in vec4 worldPos_size;   // worldX, worldZ, iconSizeScale, flags (bitfield)
+layout(location = 2) in vec4 atlasUV;         // u0, v0, u1, v1
+layout(location = 3) in vec4 colorFlags;      // r, g, b, wobblePhase + flashFactor*100*7
+
+uniform vec2 wtp_scale;
+uniform vec2 wtp_offset;
+uniform vec2 ndcScale;
+uniform vec2 rotSC;
+uniform vec2 rotCenter;
+uniform float iconBaseSize;
+uniform float gameTime;
+uniform float wallClockTime;
+uniform float outlinePass;
+uniform float healthDarkenMax;
+
+out vec2 f_texCoord;
+out vec4 f_color;
+flat out float f_flash;
+
+void main() {
+	float flags = worldPos_size.w;
+	float bitFlags = mod(flags, 32.0);
+	float healthPct = floor(flags / 32.0);
+	float healthFrac = clamp(healthPct / 100.0, 0.0, 1.0);
+	float isRadar    = mod(floor(bitFlags      ), 2.0);
+	float isTakeable = mod(floor(bitFlags / 2.0 ), 2.0);
+	float isStunned  = mod(floor(bitFlags / 4.0 ), 2.0);
+	float isTracked  = mod(floor(bitFlags / 8.0 ), 2.0);
+	float isSelfD    = mod(floor(bitFlags / 16.0), 2.0);
+
+	float packedW = colorFlags.w;
+	float flashFactor = floor(packedW / 7.0) / 100.0;
+	float phase = mod(packedW, 7.0);
+
+	vec2 pipPos;
+	pipPos.x = wtp_offset.x + worldPos_size.x * wtp_scale.x;
+	pipPos.y = wtp_offset.y + worldPos_size.y * wtp_scale.y;
+
+	float wobbleAmp = iconBaseSize * sqrt(abs(wtp_scale.x)) * 0.03 * isRadar;
+	pipPos.x += sin(gameTime * 3.0 + phase) * wobbleAmp;
+	pipPos.y += cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp;
+
+	vec2 d = pipPos - rotCenter;
+	pipPos = rotCenter + vec2(
+		d.x * rotSC.y - d.y * rotSC.x,
+		d.x * rotSC.x + d.y * rotSC.y
+	);
+
+	vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+	vec3 col = colorFlags.rgb;
+	float alpha = 1.0 - 0.25 * isRadar;
+
+	float takeableBlink = step(0.0, sin(wallClockTime * 9.42));
+	alpha *= mix(1.0, mix(0.3, 1.0, takeableBlink), isTakeable);
+
+	float damage = 1.0 - healthFrac;
+	col = max(col - vec3(damage * healthDarkenMax), vec3(0.0));
+
+	float stunnedPulse = 0.5 + 0.5 * sin(wallClockTime * 12.57);
+	col = mix(col, vec3(0.82, 0.85, 1.0), 0.45 * stunnedPulse * isStunned);
+
+	float selfDPulse = 0.55 + 0.45 * sin(wallClockTime * 18.85);
+	col = mix(col, vec3(1.0, 0.25, 0.0), 0.7 * selfDPulse * isSelfD);
+
+	if (outlinePass > 0.5) {
+		float hasOutline = max(isTracked, isSelfD);
+		if (hasOutline < 0.5) {
+			alpha = 0.0;
+		} else if (isSelfD > 0.5) {
+			float selfDOutlinePulse = 0.5 + 0.5 * sin(wallClockTime * 18.85);
+			col = vec3(1.0, 0.3, 0.0);
+			alpha = 0.4 + 0.4 * selfDOutlinePulse;
+		} else {
+			col = vec3(1.0, 1.0, 1.0);
+			alpha = 0.5;
+		}
+	}
+
+	float hasOutline = max(isTracked, isSelfD);
+	float sizeExpand = 1.0 + 0.12 * outlinePass * hasOutline;
+	vec2 halfSizeNDC = vec2(iconBaseSize * worldPos_size.z * sizeExpand) * ndcScale;
+
+	gl_Position = vec4(centerNDC + quadPos * halfSizeNDC, 0.0, 1.0);
+	vec2 t = quadPos * 0.5 + 0.5;
+	f_texCoord = vec2(mix(atlasUV.x, atlasUV.z, t.x), mix(atlasUV.y, atlasUV.w, t.y));
+	f_color = vec4(col, alpha);
+	f_flash = flashFactor;
+}
+	]],
+	fragment = [[
+		#version 330
+		uniform sampler2D iconAtlas;
+		in vec2 f_texCoord;
+		in vec4 f_color;
+		flat in float f_flash;
+		out vec4 fragColor;
+
+		void main() {
+			vec4 texColor = texture(iconAtlas, f_texCoord);
+			vec4 result = texColor * f_color;
+			result.rgb += f_color.rgb * f_flash * (1.0 - texColor.rgb);
+			if (result.a < 0.01) discard;
+			fragColor = result;
+		}
+	]],
+	uniformInt = {
+		iconAtlas = 0,
+	},
+}
+
 ----------------------------------------------------------------------------------------------------
 -- GL4 Primitive Shaders (circles, quads, lines)
 ----------------------------------------------------------------------------------------------------
@@ -3088,6 +3433,44 @@ gl4Prim.circleShaderCode = {
 	]],
 }
 
+gl4Prim.circleShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 posRadius;
+		layout(location = 2) in vec4 coreColor;
+		layout(location = 3) in vec4 edgeColor;
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec2 f_localCoord;
+		out vec4 f_coreColor;
+		out vec4 f_edgeColor;
+		flat out float f_blendMode;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posRadius.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float radiusPIP = posRadius.z * abs(wtp_scale.x);
+			vec2 halfSizeNDC = vec2(radiusPIP) * ndcScale;
+
+			gl_Position = vec4(centerNDC + quadPos * halfSizeNDC, 0.0, 1.0);
+			f_localCoord = quadPos;
+			f_coreColor = vec4(coreColor.rgb, posRadius.w);
+			f_edgeColor = vec4(edgeColor.rgb, coreColor.w);
+			f_blendMode = edgeColor.w;
+		}
+	]],
+	fragment = gl4Prim.circleShaderCode.fragment,
+}
+
 -- Quad shader: point → rotated quad
 gl4Prim.quadShaderCode = {
 	vertex = [[
@@ -3171,6 +3554,48 @@ gl4Prim.quadShaderCode = {
 	]],
 }
 
+gl4Prim.quadShaderCodeNoGS = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 posSizeIn;
+		layout(location = 2) in vec4 colorIn;
+		layout(location = 3) in vec4 angleFlags;
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+
+		out vec4 f_color;
+
+		void main() {
+			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
+			vec2 d = pipPos - rotCenter;
+			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
+			vec2 centerNDC = pipPos * ndcScale - 1.0;
+
+			float scalePIP = abs(wtp_scale.x);
+			vec2 hs = vec2(posSizeIn.z * scalePIP, posSizeIn.w * scalePIP);
+			float a = radians(angleFlags.x);
+			float sa = sin(a), ca = cos(a);
+
+			float sT = sa * rotSC.y + ca * rotSC.x;
+			float cT = ca * rotSC.y - sa * rotSC.x;
+
+			vec2 localPx = quadPos * hs;
+			vec2 rotatedPx = vec2(
+				localPx.x * cT - localPx.y * sT,
+				localPx.x * sT + localPx.y * cT
+			);
+			gl_Position = vec4(centerNDC + rotatedPx * ndcScale, 0.0, 1.0);
+			f_color = colorIn;
+		}
+	]],
+	fragment = gl4Prim.quadShaderCode.fragment,
+}
+
 -- Line shader: simple world-space → NDC vertex transform with per-vertex color
 gl4Prim.lineShaderCode = {
 	vertex = [[
@@ -3251,14 +3676,41 @@ local function InitGL4Icons()
 
 	-- Create raw VBO directly (no InstanceVBOTable — avoids per-frame table allocations)
 	-- Layout: 12 floats per instance (3 vec4 attributes)
-	local vboLayout = {
-		{id = 0, name = 'worldPos_size', size = 4},   -- worldX, worldZ, sizeScale, isRadar
-		{id = 1, name = 'atlasUV',       size = 4},   -- u0, v0, u1, v1
-		{id = 2, name = 'colorFlags',    size = 4},   -- r, g, b, wobblePhase
-	}
+	local useGS = pipUseGeometryShader
+	local shader = nil
+	if useGS then
+		shader = gl.CreateShader(gl4Icons.shaderCode)
+		if not shader then
+			useGS = false
+		end
+	end
+	if not shader then
+		shader = gl.CreateShader(gl4Icons.shaderCodeNoGS)
+		useGS = false
+	end
+	if not shader then
+		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
+		gl4Icons.atlas = nil
+		return
+	end
+	local vboLayout
+	if useGS then
+		vboLayout = {
+			{id = 0, name = 'worldPos_size', size = 4},   -- worldX, worldZ, sizeScale, isRadar
+			{id = 1, name = 'atlasUV',       size = 4},   -- u0, v0, u1, v1
+			{id = 2, name = 'colorFlags',    size = 4},   -- r, g, b, wobblePhase
+		}
+	else
+		vboLayout = {
+			{id = 1, name = 'worldPos_size', size = 4},
+			{id = 2, name = 'atlasUV',       size = 4},
+			{id = 3, name = 'colorFlags',    size = 4},
+		}
+	end
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VBO")
+		gl.DeleteShader(shader)
 		gl4Icons.atlas = nil
 		return
 	end
@@ -3272,16 +3724,43 @@ local function InitGL4Icons()
 	gl4Icons.instanceData = instanceData
 	gl4Icons.vbo = vbo
 
-	-- Create VAO: attach VBO as vertex buffer (geometry shader expands points → quads)
+	-- Create VAO(s)
+	if not useGS then
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then
+			Spring.Echo("[PIP] GL4 icons: Failed to create NoGS quad VBO")
+			gl.DeleteShader(shader)
+			vbo:Delete()
+			gl4Icons.atlas = nil
+			gl4Icons.vbo = nil
+			return
+		end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		gl4Icons.quadVBO = quadVBO
+	end
+
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create VAO")
+		gl.DeleteShader(shader)
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if useGS then
+		vao:AttachVertexBuffer(vbo)
+	else
+		vao:AttachVertexBuffer(gl4Icons.quadVBO)
+		vao:AttachInstanceBuffer(vbo)
+	end
 	gl4Icons.vao = vao
 
 	-- Building VBO/VAO: separate buffer for building+ghost icons.
@@ -3289,6 +3768,7 @@ local function InitGL4Icons()
 	local bldgVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not bldgVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VBO")
+		gl.DeleteShader(shader)
 		vao:Delete()
 		vbo:Delete()
 		gl4Icons.atlas = nil
@@ -3300,15 +3780,22 @@ local function InitGL4Icons()
 	local bldgVao = gl.GetVAO()
 	if not bldgVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create building VAO")
+		gl.DeleteShader(shader)
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		gl4Icons.vao = nil
 		return
 	end
-	bldgVao:AttachVertexBuffer(bldgVbo)
+	if useGS then
+		bldgVao:AttachVertexBuffer(bldgVbo)
+	else
+		bldgVao:AttachVertexBuffer(gl4Icons.quadVBO)
+		bldgVao:AttachInstanceBuffer(bldgVbo)
+	end
 	gl4Icons.bldgVbo = bldgVbo
 	gl4Icons.bldgVao = bldgVao
 
@@ -3324,6 +3811,7 @@ local function InitGL4Icons()
 	local slowVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not slowVbo then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VBO")
+		gl.DeleteShader(shader)
 		bldgVao:Delete()
 		bldgVbo:Delete()
 		vao:Delete()
@@ -3339,11 +3827,13 @@ local function InitGL4Icons()
 	local slowVao = gl.GetVAO()
 	if not slowVao then
 		Spring.Echo("[PIP] GL4 icons: Failed to create slow mobile VAO")
+		gl.DeleteShader(shader)
 		slowVbo:Delete()
 		bldgVao:Delete()
 		bldgVbo:Delete()
 		vao:Delete()
 		vbo:Delete()
+		if gl4Icons.quadVBO then gl4Icons.quadVBO:Delete(); gl4Icons.quadVBO = nil end
 		gl4Icons.atlas = nil
 		gl4Icons.vbo = nil
 		gl4Icons.vao = nil
@@ -3351,7 +3841,12 @@ local function InitGL4Icons()
 		gl4Icons.bldgVao = nil
 		return
 	end
-	slowVao:AttachVertexBuffer(slowVbo)
+	if useGS then
+		slowVao:AttachVertexBuffer(slowVbo)
+	else
+		slowVao:AttachVertexBuffer(gl4Icons.quadVBO)
+		slowVao:AttachInstanceBuffer(slowVbo)
+	end
 	gl4Icons.slowVbo = slowVbo
 	gl4Icons.slowVao = slowVao
 
@@ -3362,18 +3857,9 @@ local function InitGL4Icons()
 	end
 	gl4Icons.slowInstanceData = slowInstanceData
 
-	-- Compile shader
-	local shader = gl.CreateShader(gl4Icons.shaderCode)
-	if not shader then
-		Spring.Echo("[PIP] GL4 icons: Shader compilation failed: " .. tostring(gl.GetShaderLog()))
-		vao:Delete()
-		vbo:Delete()
-		gl4Icons.atlas = nil
-		gl4Icons.vbo = nil
-		gl4Icons.vao = nil
-		return
-	end
+	-- Shader was already compiled before layout creation to avoid false-negative probe logic.
 	gl4Icons.shader = shader
+	gl4Icons.shaderUsesGS = useGS
 
 	-- Cache uniform locations for per-frame updates
 	gl4Icons.uniformLocs = {
@@ -3414,6 +3900,10 @@ local function DestroyGL4Icons()
 	if gl4Icons.slowVbo then
 		gl4Icons.slowVbo:Delete()
 		gl4Icons.slowVbo = nil
+	end
+	if gl4Icons.quadVBO then
+		gl4Icons.quadVBO:Delete()
+		gl4Icons.quadVBO = nil
 	end
 	if gl4Icons.vao then
 		gl4Icons.vao:Delete()
@@ -3457,19 +3947,69 @@ end
 
 local function InitGL4Primitives()
 	if not gl.GetVAO or not gl.GetVBO then return end
+	local useGS = pipUseGeometryShader
+	local cShader, qShader
+	if useGS then
+		cShader = gl.CreateShader(gl4Prim.circleShaderCode)
+		qShader = gl.CreateShader(gl4Prim.quadShaderCode)
+		if not cShader or not qShader then
+			if cShader then gl.DeleteShader(cShader) end
+			if qShader then gl.DeleteShader(qShader) end
+			cShader, qShader = nil, nil
+			useGS = false
+		end
+	end
+	if not cShader or not qShader then
+		cShader = gl.CreateShader(gl4Prim.circleShaderCodeNoGS)
+		qShader = gl.CreateShader(gl4Prim.quadShaderCodeNoGS)
+		if not cShader or not qShader then
+			if cShader then gl.DeleteShader(cShader) end
+			if qShader then gl.DeleteShader(qShader) end
+			Spring.Echo("[PIP] GL4 primitive shader fallback failed: " .. tostring(gl.GetShaderLog()))
+			return
+		end
+		useGS = false
+	end
+
+	if not useGS then
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		gl4Prim.quadVBO = quadVBO
+	end
 
 	-- Circle VBO/VAO
-	local circleLayout = {
-		{id = 0, name = 'posRadius',  size = 4},   -- worldX, worldZ, radius, alpha
-		{id = 1, name = 'coreColor',  size = 4},   -- coreR, coreG, coreB, edgeAlpha
-		{id = 2, name = 'edgeColor',  size = 4},   -- edgeR, edgeG, edgeB, blendMode
-	}
+	local circleLayout
+	if useGS then
+		circleLayout = {
+			{id = 0, name = 'posRadius',  size = 4},
+			{id = 1, name = 'coreColor',  size = 4},
+			{id = 2, name = 'edgeColor',  size = 4},
+		}
+	else
+		circleLayout = {
+			{id = 1, name = 'posRadius',  size = 4},
+			{id = 2, name = 'coreColor',  size = 4},
+			{id = 3, name = 'edgeColor',  size = 4},
+		}
+	end
 	local cVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not cVbo then return end
+	if not cVbo then gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	cVbo:Define(gl4Prim.CIRCLE_MAX, circleLayout)
 	local cVao = gl.GetVAO()
-	if not cVao then cVbo:Delete(); return end
-	cVao:AttachVertexBuffer(cVbo)
+	if not cVao then cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if useGS then
+		cVao:AttachVertexBuffer(cVbo)
+	else
+		cVao:AttachVertexBuffer(gl4Prim.quadVBO)
+		cVao:AttachInstanceBuffer(cVbo)
+	end
 	local cData = {}
 	for i = 1, gl4Prim.CIRCLE_MAX * gl4Prim.CIRCLE_STEP do cData[i] = 0 end
 	gl4Prim.circles.vbo = cVbo
@@ -3477,17 +4017,31 @@ local function InitGL4Primitives()
 	gl4Prim.circles.data = cData
 
 	-- Quad VBO/VAO
-	local quadLayout = {
-		{id = 0, name = 'posSizeIn',   size = 4},  -- worldX, worldZ, halfWidth, halfHeight
-		{id = 1, name = 'colorIn',     size = 4},  -- r, g, b, a
-		{id = 2, name = 'angleFlags',  size = 4},  -- angleDeg, 0, 0, 0
-	}
+	local quadLayout
+	if useGS then
+		quadLayout = {
+			{id = 0, name = 'posSizeIn',   size = 4},
+			{id = 1, name = 'colorIn',     size = 4},
+			{id = 2, name = 'angleFlags',  size = 4},
+		}
+	else
+		quadLayout = {
+			{id = 1, name = 'posSizeIn',   size = 4},
+			{id = 2, name = 'colorIn',     size = 4},
+			{id = 3, name = 'angleFlags',  size = 4},
+		}
+	end
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not qVbo then cVao:Delete(); cVbo:Delete(); return end
+	if not qVbo then cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	qVbo:Define(gl4Prim.QUAD_MAX, quadLayout)
 	local qVao = gl.GetVAO()
-	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
-	qVao:AttachVertexBuffer(qVbo)
+	if not qVao then qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
+	if useGS then
+		qVao:AttachVertexBuffer(qVbo)
+	else
+		qVao:AttachVertexBuffer(gl4Prim.quadVBO)
+		qVao:AttachInstanceBuffer(qVbo)
+	end
 	local qData = {}
 	for i = 1, gl4Prim.QUAD_MAX * gl4Prim.QUAD_STEP do qData[i] = 0 end
 	gl4Prim.quads.vbo = qVbo
@@ -3496,12 +4050,13 @@ local function InitGL4Primitives()
 
 	-- Line VBOs (3 categories share same shader)
 	local glVbo, glVao, glData = CreateLineVBOSet(gl4Prim.LINE_MAX)
-	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); return end
+	if not glVbo then qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete(); gl.DeleteShader(qShader); gl.DeleteShader(cShader); return end
 	gl4Prim.glowLines.vbo, gl4Prim.glowLines.vao, gl4Prim.glowLines.data = glVbo, glVao, glData
 
 	local clVbo, clVao, clData = CreateLineVBOSet(gl4Prim.LINE_MAX)
 	if not clVbo then
 		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
+		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.coreLines.vbo, gl4Prim.coreLines.vao, gl4Prim.coreLines.data = clVbo, clVao, clData
@@ -3510,31 +4065,14 @@ local function InitGL4Primitives()
 	if not nlVbo then
 		clVao:Delete(); clVbo:Delete(); glVao:Delete(); glVbo:Delete()
 		qVao:Delete(); qVbo:Delete(); cVao:Delete(); cVbo:Delete()
+		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
 		return
 	end
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
-	-- Compile shaders
-	local cShader = gl.CreateShader(gl4Prim.circleShaderCode)
-	if not cShader then
-		Spring.Echo("[PIP] GL4 circle shader failed: " .. tostring(gl.GetShaderLog()))
-		-- cleanup all
-		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
-		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
-		cVao:Delete(); cVbo:Delete()
-		return
-	end
+	-- Shader variants were compiled up-front via real GS-attempt/fallback logic.
 	gl4Prim.circles.shader = cShader
 
-	local qShader = gl.CreateShader(gl4Prim.quadShaderCode)
-	if not qShader then
-		Spring.Echo("[PIP] GL4 quad shader failed: " .. tostring(gl.GetShaderLog()))
-		gl.DeleteShader(cShader)
-		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
-		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
-		cVao:Delete(); cVbo:Delete()
-		return
-	end
 	gl4Prim.quads.shader = qShader
 
 	local lShader = gl.CreateShader(gl4Prim.lineShaderCode)
@@ -3561,6 +4099,7 @@ local function InitGL4Primitives()
 	gl4Prim.circles.uniformLocs = cacheUniforms(cShader)
 	gl4Prim.quads.uniformLocs = cacheUniforms(qShader)
 	gl4Prim.lineUniformLocs = cacheUniforms(lShader)
+	gl4Prim.useGeometryShader = useGS
 
 	gl4Prim.enabled = true
 	--Spring.Echo("[PIP] GL4 primitive rendering enabled (circles, quads, lines)")
@@ -3570,6 +4109,7 @@ local function DestroyGL4Primitives()
 	if gl4Prim.circles.shader then gl.DeleteShader(gl4Prim.circles.shader); gl4Prim.circles.shader = nil end
 	if gl4Prim.quads.shader   then gl.DeleteShader(gl4Prim.quads.shader);   gl4Prim.quads.shader = nil end
 	if gl4Prim.lineShader      then gl.DeleteShader(gl4Prim.lineShader);      gl4Prim.lineShader = nil end
+	if gl4Prim.quadVBO then gl4Prim.quadVBO:Delete(); gl4Prim.quadVBO = nil end
 
 	for _, sub in ipairs({gl4Prim.circles, gl4Prim.quads, gl4Prim.glowLines, gl4Prim.coreLines, gl4Prim.normLines}) do
 		if sub.vao then sub.vao:Delete(); sub.vao = nil end
@@ -3659,7 +4199,11 @@ local function GL4FlushEffects()
 		local c = gl4Prim.circles
 		c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 		GL4SetPrimUniforms(c.shader, c.uniformLocs)
-		c.vao:DrawArrays(GL.POINTS, c.count)
+		if gl4Prim.useGeometryShader then
+			c.vao:DrawArrays(GL.POINTS, c.count)
+		else
+			c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3668,7 +4212,11 @@ local function GL4FlushEffects()
 		local q = gl4Prim.quads
 		q.vbo:Upload(q.data, nil, 0, 1, q.count * gl4Prim.QUAD_STEP)
 		GL4SetPrimUniforms(q.shader, q.uniformLocs)
-		q.vao:DrawArrays(GL.POINTS, q.count)
+		if gl4Prim.useGeometryShader then
+			q.vao:DrawArrays(GL.POINTS, q.count)
+		else
+			q.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, q.count)
+		end
 		gl.UseShader(0)
 	end
 
@@ -3714,7 +4262,11 @@ local function GL4FlushCirclesOnly()
 	local c = gl4Prim.circles
 	c.vbo:Upload(c.data, nil, 0, 1, c.count * gl4Prim.CIRCLE_STEP)
 	GL4SetPrimUniforms(c.shader, c.uniformLocs)
-	c.vao:DrawArrays(GL.POINTS, c.count)
+	if gl4Prim.useGeometryShader then
+		c.vao:DrawArrays(GL.POINTS, c.count)
+	else
+		c.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, c.count)
+	end
 	gl.UseShader(0)
 end
 
@@ -4020,6 +4572,7 @@ local UpdateTracking  -- forward declaration (called in StartMaximizeAnimation, 
 local InitGL4Decals   -- forward declaration (called in Initialize, defined after decalGL4 table)
 local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
 local decalGL4        -- forward declaration (referenced in DrawDecalsOverlay, defined later)
+local DrawTexturedQuad -- forward declaration (used before helper definition)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -4225,14 +4778,18 @@ local function GetPlayerSkill(playerID)
 end
 
 -- Helper function to get alive teammates (excluding self and AI)
-local function GetAliveTeammates()
+local function GetAliveTeammates(out)
+	out = out or {}
+	for i = #out, 1, -1 do
+		out[i] = nil
+	end
+
 	local myPlayerID = Spring.GetMyPlayerID()
 	local _, _, _, myTeamID = spFunc.GetPlayerInfo(myPlayerID, false)
 	if not myTeamID then
-		return {}
+		return out
 	end
 
-	local teammates = {}
 	local playerList = Spring.GetPlayerList()
 
 	for _, playerID in ipairs(playerList) do
@@ -4242,13 +4799,13 @@ local function GetAliveTeammates()
 				-- Check if this team is controlled by AI
 				local _, _, isDead, isAI = spFunc.GetTeamInfo(playerTeamID, false)
 				if not isAI and not isDead then
-					table.insert(teammates, playerID)
+					out[#out + 1] = playerID
 				end
 			end
 		end
 	end
 
-	return teammates
+	return out
 end
 
 -- Helper function to find the next best player on the same team
@@ -5254,8 +5811,11 @@ local function DrawProjectile(pID)
 		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
 		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
-		local plasmaZoomReduction = mMax(0.15, mMin(1, 0.45 + 0.55 * (1 - cameraState.zoom)))
-		local radius = mMax(width, height) * plasmaZoomReduction
+		local plasmaZoomReduction = mMax(0.35, mMin(1, 0.55 + 0.45 * (1 - cameraState.zoom)))
+		local baseRadius = mMax(width, height) * plasmaZoomReduction
+		-- Use a soft visibility floor so tiny plasma shots stay readable without flattening
+		-- every weapon to the same apparent size.
+		local radius = mMax(baseRadius, 1.0 * resScale + baseRadius * 0.45) * 3.0
 		local coreWhiteness = 0.9
 		local coreR, coreG, coreB, outerR, outerG, outerB
 		if cache.weaponIsAA[pDefID] then
@@ -5271,7 +5831,9 @@ local function DrawProjectile(pID)
 			outerG = math.max(0, color[2] - orangeTint * 0.3)
 			outerB = math.max(0, color[3] - orangeTint * 0.5)
 		end
-		GL4AddCircle(px, pz, radius, color[4], coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
+		-- Use a two-layer body so the projectile stays visible even when zoom scaling is low.
+		GL4AddCircle(px, pz, radius * 1.35, color[4] * 0.55, coreR * 0.9, coreG * 0.9, coreB * 0.95, outerR, outerG, outerB, color[4] * 0.35, 0)
+		GL4AddCircle(px, pz, radius * 0.72, color[4] * 0.98, coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
 
 		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
 		-- Uses game frames instead of os.clock() so trails don't elongate during catchup
@@ -5326,9 +5888,9 @@ local function DrawProjectile(pID)
 				local resScale = render.contentScale or 1
 				-- Trail width = plasma ball's on-screen pixel diameter (via world-to-pixel scale)
 				-- wtp.scaleX converts world units to screen pixels; naturally shrinks when zoomed out
-				local baseWidth = mMin(radius * wtp.scaleX * 2, 14 * resScale)
-				if baseWidth < 1.5 * resScale then baseWidth = 1.5 * resScale end
-				local minSegW = 1.0 * resScale
+				local baseWidth = mMin(radius * wtp.scaleX * 2.8, 18 * resScale)
+				if baseWidth < 2.0 * resScale then baseWidth = 2.0 * resScale end
+				local minSegW = 1.35 * resScale
 				local segDecay = 1.0
 				_line.r, _line.g, _line.b = tR, tG, tB
 
@@ -6061,19 +6623,22 @@ local function DrawExplosions()
 						-- GL4 sparks as norm lines
 						for k = 1, #explosion.particles do
 							local particle = explosion.particles[k]
-							local particleAge = age
-							local particleProgress = particleAge / particle.life
-							if particleProgress < 1 then
-								particle.x = particle.x + particle.vx * (1/30)
-								particle.z = particle.z + particle.vz * (1/30)
-								local sparkAlpha = (1 - particleProgress) * 0.9
-								local sparkDirX = particle.vx * 0.3
-								local sparkDirZ = particle.vz * 0.3
-								-- Sparks use PIP-local Y coords (= -worldZ), so flip Z for GL4 world coords
-								GL4AddNormLine(
-									explosion.x + particle.x - sparkDirX, explosion.z - particle.z + sparkDirZ,
-									explosion.x + particle.x + sparkDirX, explosion.z - particle.z - sparkDirZ,
-									r, g, b, sparkAlpha)
+							local particleLife = particle.life or particle.lifetime
+							if particle.vx and particle.vz and particleLife and particleLife > 0 then
+								local particleAge = age
+								local particleProgress = particleAge / particleLife
+								if particleProgress < 1 then
+									particle.x = particle.x + particle.vx * (1/30)
+									particle.z = particle.z + particle.vz * (1/30)
+									local sparkAlpha = (1 - particleProgress) * 0.9
+									local sparkDirX = particle.vx * 0.3
+									local sparkDirZ = particle.vz * 0.3
+									-- Sparks use PIP-local Y coords (= -worldZ), so flip Z for GL4 world coords
+									GL4AddNormLine(
+										explosion.x + particle.x - sparkDirX, explosion.z - particle.z + sparkDirZ,
+										explosion.x + particle.x + sparkDirX, explosion.z - particle.z - sparkDirZ,
+										r, g, b, sparkAlpha)
+								end
 							end
 						end
 					end
@@ -7152,6 +7717,7 @@ local function RegisterMinimapWGAPI()
 end
 
 function widget:Initialize()
+	RebuildAllUnitsCache()
 
 	-- Create seismic ping display lists
 	CreateSeismicPingDlists()
@@ -7320,7 +7886,17 @@ function widget:Initialize()
 	end
 
 	-- Initialize decal overlay shader + GL4 VBO/VAO
-	shaders.decal = gl.CreateShader(shaders.decalCode)
+	if pipUseGeometryShader then
+		shaders.decal = gl.CreateShader(shaders.decalCode)
+		decalGL4.useGeometryShader = (shaders.decal ~= nil)
+		if not shaders.decal then
+			shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
+			decalGL4.useGeometryShader = false
+		end
+	else
+		decalGL4.useGeometryShader = false
+		shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
+	end
 	if not shaders.decal then
 		Spring.Echo("PIP: Failed to compile decal shader")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
@@ -8153,7 +8729,62 @@ function widget:PlayerChanged(playerID)
 	-- Invalidate commander nametag cache (player names/teams may have changed)
 	comNametagCache.dirty = true
 
+	-- Prune tracked-player selection cache for players that no longer exist.
+	local activePlayers = {}
+	for _, pID in ipairs(Spring.GetPlayerList()) do
+		activePlayers[pID] = true
+	end
+	for pID in pairs(trackedPlayerSelections) do
+		if not activePlayers[pID] then
+			trackedPlayerSelections[pID] = nil
+			trackedPlayerSelectionSeeded[pID] = nil
+		end
+	end
+
 	-- Keep tracking even if fullview is disabled - tracking will resume when fullview is re-enabled
+end
+
+function widget:SelectedUnitsClear(playerID)
+	trackedPlayerSelections[playerID] = {}
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsAdd(playerID, unitID)
+	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
+	selectedByPlayer[unitID] = true
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsRemove(playerID, unitID)
+	local selectedByPlayer = trackedPlayerSelections[playerID]
+	if selectedByPlayer then
+		selectedByPlayer[unitID] = nil
+	end
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
+
+	if remCount and remCount > 0 and remUnits then
+		for i = 1, remCount do
+			local unitID = remUnits[i]
+			if unitID then
+				selectedByPlayer[unitID] = nil
+			end
+		end
+	end
+
+	if addCount and addCount > 0 and addUnits then
+		for i = 1, addCount do
+			local unitID = addUnits[i]
+			if unitID then
+				selectedByPlayer[unitID] = true
+			end
+		end
+	end
+
+	trackedPlayerSelectionSeeded[playerID] = true
 end
 
 function widget:GameOver()
@@ -8342,10 +8973,9 @@ function widget:Shutdown()
 		end
 	end
 
-	-- Clean up shared lava render state (only when last PIP shuts down)
-	if not anotherPipActive and WG.lavaRenderState then
-		widgetHandler:DeregisterGlobal("LavaRenderState")
-		WG.lavaRenderState = nil
+	-- Clean up per-widget lava render state
+	if not anotherPipActive and mapInfo.lavaRenderState then
+		mapInfo.lavaRenderState = nil
 	end
 
 	-- Clean up TV focus coordination
@@ -8888,13 +9518,10 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	else
 		-- Show only selected units (or tracked player's selected units)
 		if interactionState.trackingPlayerID then
-			-- Get tracked player's selected units — write directly into pool to avoid table alloc
-			local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-			if playerSelections then
-				for unitID, _ in pairs(playerSelections) do
-					unitCount = unitCount + 1
-					unitsToShow[unitCount] = unitID
-				end
+			local playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
+			for unitID in pairs(playerSelections) do
+				unitCount = unitCount + 1
+				unitsToShow[unitCount] = unitID
 			end
 		else
 			-- Use cached selected units to avoid redundant API call
@@ -9383,13 +10010,11 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	local selectedUnits
 	local selectedCount = 0
 	if interactionState.trackingPlayerID then
-		local playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-		if playerSelections then
-			selectedUnits = cachedSelectedUnits or {}
-			for unitID, _ in pairs(playerSelections) do
-				selectedCount = selectedCount + 1
-				selectedUnits[selectedCount] = unitID
-			end
+		local playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
+		selectedUnits = cachedSelectedUnits or {}
+		for unitID in pairs(playerSelections) do
+			selectedCount = selectedCount + 1
+			selectedUnits[selectedCount] = unitID
 		end
 	else
 		selectedUnits = cachedSelectedUnits
@@ -9585,7 +10210,11 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
 	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
 	local useUnitpics = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
-	local unitpicEntries = {}
+	local unitpicEntries = gl4Icons.unitpicEntries
+	if not unitpicEntries then
+		unitpicEntries = {}
+		gl4Icons.unitpicEntries = unitpicEntries
+	end
 	local unitpicCount = 0
 
 	-- Write ghost+building data into building-specific array, mobile into main array.
@@ -9898,7 +10527,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- For non-LOS-view mode: build O(1) lookup of units returned by GetUnitsInRectangle
 		local liveSet
 		if not isLosViewMode then
-			liveSet = {}
+			liveSet = pools.liveSet
+			for unitID in pairs(liveSet) do
+				liveSet[unitID] = nil
+			end
 			local localPipUnits = miscState.pipUnits
 			for i = 1, #localPipUnits do
 				liveSet[localPipUnits[i]] = true
@@ -10795,30 +11427,54 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		if bldgUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+				else
+					gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.bldgVao:DrawArrays(GL.POINTS, bldgUsedElements)
+			else
+				gl4Icons.bldgVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, bldgUsedElements)
+			end
 		end
 
 		-- Slow mobile (ground units, above buildings)
 		if slowMobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+				else
+					gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.slowVao:DrawArrays(GL.POINTS, slowMobileUsedElements)
+			else
+				gl4Icons.slowVao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, slowMobileUsedElements)
+			end
 		end
 
 		-- Fast mobile (aircraft, commanders — always on top)
 		if mobileUsedElements > 0 then
 			if hasOutlines then
 				gl.UniformFloat(ul.outlinePass, 1.0)
-				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				if gl4Icons.shaderUsesGS then
+					gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+				else
+					gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+				end
 			end
 			gl.UniformFloat(ul.outlinePass, 0.0)
-			gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			if gl4Icons.shaderUsesGS then
+				gl4Icons.vao:DrawArrays(GL.POINTS, mobileUsedElements)
+			else
+				gl4Icons.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, mobileUsedElements)
+			end
 		end
 
 		glFunc.Texture(0, false)
@@ -11071,10 +11727,16 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- When spectating and tracking a player, get ALL units and we'll filter by visibility in DrawUnit
 	-- Otherwise, GetUnitsInRectangle returns units visible to our team
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
-		-- Spectating and tracking: get all units (pass -1 to get all units regardless of visibility)
-		miscState.pipUnits = Spring.GetAllUnits()
+		if miscState.allUnitsDirty then
+			RebuildAllUnitsCache()
+		end
+		-- Spectating and tracking: use cached all units and filter to current world rect
+		miscState.pipUnits = miscState.allUnitsCache
 		-- Filter to only units in the rectangle (do this manually since we got all units)
-		local unitsInRect = {}
+		local unitsInRect = pools.unitsInRect
+		for i = #unitsInRect, 1, -1 do
+			unitsInRect[i] = nil
+		end
 		for i = 1, #miscState.pipUnits do
 			local uID = miscState.pipUnits[i]
 			local ux, _, uz = spFunc.GetUnitBasePosition(uID)
@@ -11119,8 +11781,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Pre-fetch player selections once (avoids per-unit WG lookup)
 	local playerSelections = nil
 	if interactionState.trackingPlayerID then
-		playerSelections = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
-		if not playerSelections then playerSelections = {} end  -- empty table signals "use tracking mode" to DrawUnit
+		playerSelections = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
 	end
 
 	-- Build tracking set for O(1) lookup (avoids O(N*M) linear scan per unit)
@@ -11190,7 +11851,34 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	if perfTimers.itemCount > 1200 then featureFade = 0 end
 	local t0 = os.clock()
 	if featureFade > 0 then  -- Only draw features if zoom is above threshold
-		miscState.pipFeatures = spFunc.GetFeaturesInRectangle(render.world.l - margin, render.world.t - margin, render.world.r + margin, render.world.b + margin)
+		local featureL = render.world.l - margin
+		local featureT = render.world.t - margin
+		local featureR = render.world.r + margin
+		local featureB = render.world.b + margin
+
+		-- Cache feature query results between updates; features are mostly static and
+		-- this avoids per-update engine table allocations when camera rect is stable.
+		local featureQueryNeedsUpdate = miscState.featureRectNeedsUpdate
+		if not featureQueryNeedsUpdate then
+			local movedEnough = not miscState.featureRectLastL or
+				math.abs(featureL - miscState.featureRectLastL) > 64 or
+				math.abs(featureT - miscState.featureRectLastT) > 64 or
+				math.abs(featureR - miscState.featureRectLastR) > 64 or
+				math.abs(featureB - miscState.featureRectLastB) > 64
+			local stale = (t0 - miscState.featureRectLastUpdate) >= 0.20
+			featureQueryNeedsUpdate = movedEnough or stale
+		end
+
+		if featureQueryNeedsUpdate then
+			miscState.pipFeatures = spFunc.GetFeaturesInRectangle(featureL, featureT, featureR, featureB)
+			miscState.featureRectLastL = featureL
+			miscState.featureRectLastT = featureT
+			miscState.featureRectLastR = featureR
+			miscState.featureRectLastB = featureB
+			miscState.featureRectLastUpdate = t0
+			miscState.featureRectNeedsUpdate = false
+		end
+
 		local featureCount = #miscState.pipFeatures
 		if featureCount > 0 then
 			-- Premultiplied alpha: RGB = color * fade, A = fade
@@ -11234,7 +11922,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	perfTimers.features = perfTimers.features + PERF_SMOOTH * ((t1 - t0) - perfTimers.features)
 
 	-- Draw projectiles if enabled
-	if config.drawProjectiles then
+	if config.drawProjectiles and gameHasStarted then
 		glFunc.Texture(false)  -- Disable textures for colored projectiles
 		gl.Blending(true)
 		gl.DepthTest(false)
@@ -11429,7 +12117,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
 	local selectedSet
 	if interactionState.trackingPlayerID then
-		selectedSet = WG['allyselectedunits'] and WG['allyselectedunits'].getPlayerSelectedUnits(interactionState.trackingPlayerID)
+		selectedSet = GetTrackedPlayerSelections(interactionState.trackingPlayerID)
 	else
 		local selUnits2 = cachedSelectedUnits or Spring.GetSelectedUnits()
 		local set = pools.selectedSet
@@ -11550,7 +12238,10 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		local pipUnits = miscState.pipUnits
 		-- Collect commander positions, draw nametags, and gather health bar data
 		-- (health bars only when unitpics are NOT shown, since unitpics have their own)
-		local comHealthBars = (config.drawComHealthBars and not unitpicsActive) and {} or nil
+		local comHealthBars = nil
+		if config.drawComHealthBars and not unitpicsActive then
+			comHealthBars = pools.comHealthBars
+		end
 		local comHealthCount = 0
 		for i = 1, unitCount do
 			local uID = pipUnits[i]
@@ -11636,7 +12327,15 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 							local hpFrac = hp / maxHP
 							if hpFrac < 0.99 then
 								comHealthCount = comHealthCount + 1
-								comHealthBars[comHealthCount] = { cx = cx, cy = cy, half = iconHalf, frac = hpFrac }
+								local hb = comHealthBars[comHealthCount]
+								if not hb then
+									hb = {}
+									comHealthBars[comHealthCount] = hb
+								end
+								hb.cx = cx
+								hb.cy = cy
+								hb.half = iconHalf
+								hb.frac = hpFrac
 							end
 						end
 					end
@@ -11657,12 +12356,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				local outl = math.max(1, barH * 0.45)
 				-- Outline (black border)
 				glFunc.Color(0, 0, 0, 0.9 * nametagAlpha)
-				glFunc.BeginEnd(GL.QUADS, function()
-					glFunc.Vertex(hb.cx - barW - outl, barY - outl)
-					glFunc.Vertex(hb.cx + barW + outl, barY - outl)
-					glFunc.Vertex(hb.cx + barW + outl, barY + barH + outl)
-					glFunc.Vertex(hb.cx - barW - outl, barY + barH + outl)
-				end)
+				pools.scratchQuad.x1 = hb.cx - barW - outl
+				pools.scratchQuad.y1 = barY - outl
+				pools.scratchQuad.x2 = hb.cx + barW + outl
+				pools.scratchQuad.y2 = barY + barH + outl
+				glFunc.BeginEnd(GL.QUADS, DrawScratchQuad)
 				-- Background (dark gray, blinks red when health <= 30%)
 				local bgR, bgG, bgB = 0.25, 0.25, 0.25
 				if hb.frac <= 0.30 then
@@ -11672,25 +12370,28 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					bgR = 0.11 + urgency * blink
 				end
 				glFunc.Color(bgR, bgG, bgB, 0.8 * nametagAlpha)
-				glFunc.BeginEnd(GL.QUADS, function()
-					glFunc.Vertex(hb.cx - barW, barY)
-					glFunc.Vertex(hb.cx + barW, barY)
-					glFunc.Vertex(hb.cx + barW, barY + barH)
-					glFunc.Vertex(hb.cx - barW, barY + barH)
-				end)
+				pools.scratchQuad.x1 = hb.cx - barW
+				pools.scratchQuad.y1 = barY
+				pools.scratchQuad.x2 = hb.cx + barW
+				pools.scratchQuad.y2 = barY + barH
+				glFunc.BeginEnd(GL.QUADS, DrawScratchQuad)
 				-- Fill: green→yellow→red gradient
 				local hr = hb.frac < 0.5 and 1.0 or (1.0 - (hb.frac - 0.5) * 2)
 				local hg = hb.frac > 0.5 and 1.0 or (hb.frac * 2)
 				local fillW = barW * 2 * hb.frac - barW
 				glFunc.Color(hr, hg, 0, 0.9 * nametagAlpha)
-				glFunc.BeginEnd(GL.QUADS, function()
-					glFunc.Vertex(hb.cx - barW, barY)
-					glFunc.Vertex(hb.cx + fillW, barY)
-					glFunc.Vertex(hb.cx + fillW, barY + barH)
-					glFunc.Vertex(hb.cx - barW, barY + barH)
-				end)
+				pools.scratchQuad.x1 = hb.cx - barW
+				pools.scratchQuad.y1 = barY
+				pools.scratchQuad.x2 = hb.cx + fillW
+				pools.scratchQuad.y2 = barY + barH
+				glFunc.BeginEnd(GL.QUADS, DrawScratchQuad)
 			end
 			glFunc.Color(1, 1, 1, 1)
+		end
+		if comHealthBars then
+			for i = comHealthCount + 1, #comHealthBars do
+				comHealthBars[i] = nil
+			end
 		end
 
 		-- Re-push rotation matrix for subsequent drawing
@@ -11756,48 +12457,32 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				-- Each arc is 1/8 of circle, each gap is 1/8 of circle
 				-- Arcs centered at top (90°), right (0°), bottom (270°), left (180°)
 				local segments = 24
-				local pi = math.pi
-
-				-- Define 4 arcs: each arc is 45° (pi/4), centered at cardinal directions
-				local arcs = {
-					{pi/2 - pi/8, pi/2 + pi/8},      -- Top arc (centered at 90°)
-					{0 - pi/8, 0 + pi/8},             -- Right arc (centered at 0°)
-					{3*pi/2 - pi/8, 3*pi/2 + pi/8},  -- Bottom arc (centered at 270°)
-					{pi - pi/8, pi + pi/8}            -- Left arc (centered at 180°)
-				}
+				local arcs = pools.cursorArcRanges
 
 				-- Draw black outline first (thicker)
 				glFunc.Color(0, 0, 0, 0.66)
 				glFunc.LineWidth((render.vsy / 500 + 2) * resScale)
 				for _, arc in ipairs(arcs) do
-					glFunc.BeginEnd(GL.LINE_STRIP, function()
-						local startAngle, endAngle = arc[1], arc[2]
-						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
-						for i = 0, arcSegments do
-							local t = i / arcSegments
-							local angle = startAngle + (endAngle - startAngle) * t
-							local x = cx + math.cos(angle) * cursorSize
-							local y = cy + math.sin(angle) * cursorSize
-							glFunc.Vertex(x, y)
-						end
-					end)
+					pools.scratchArc.start = arc[1]
+					pools.scratchArc.finish = arc[2]
+					pools.scratchArc.segments = math.floor(segments / 8)
+					pools.scratchArc.cx = cx
+					pools.scratchArc.cy = cy
+					pools.scratchArc.radius = cursorSize
+					glFunc.BeginEnd(GL.LINE_STRIP, DrawScratchArc)
 				end
 
 				-- Draw colored arcs on top
 				glFunc.Color((r*1.3)+0.66, (g*1.3)+0.66, (b*1.3)+0.66, 1)
 				glFunc.LineWidth((render.vsy / 500) * resScale)
 				for _, arc in ipairs(arcs) do
-					glFunc.BeginEnd(GL.LINE_STRIP, function()
-						local startAngle, endAngle = arc[1], arc[2]
-						local arcSegments = math.floor(segments / 8) -- 1/8 of circle for each arc
-						for i = 0, arcSegments do
-							local t = i / arcSegments
-							local angle = startAngle + (endAngle - startAngle) * t
-							local x = cx + math.cos(angle) * cursorSize
-							local y = cy + math.sin(angle) * cursorSize
-							glFunc.Vertex(x, y)
-						end
-					end)
+					pools.scratchArc.start = arc[1]
+					pools.scratchArc.finish = arc[2]
+					pools.scratchArc.segments = math.floor(segments / 8)
+					pools.scratchArc.cx = cx
+					pools.scratchArc.cy = cy
+					pools.scratchArc.radius = cursorSize
+					glFunc.BeginEnd(GL.LINE_STRIP, DrawScratchArc)
 				end
 				glFunc.LineWidth(1.0)
 			end
@@ -12119,7 +12804,7 @@ end
 -- On lava maps, does a lazy read from the game rule if not yet known
 local function GetWaterLevel()
 	-- Prefer tide-adjusted level from shared WG (whether from gadget push or local computation)
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if lrs and lrs.level then
 		return lrs.level
 	end
@@ -12140,7 +12825,7 @@ end
 
 -- Get heat distortion values from shared WG state
 local function GetLavaHeatDistort()
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if lrs then
 		return lrs.heatDistortX, lrs.heatDistortZ
 	end
@@ -12151,7 +12836,7 @@ end
 -- This ensures animation works even without the gadget modification.
 -- If the gadget IS modified and pushing data, those values take priority (gadgetPushed flag).
 local function UpdateLavaRenderState()
-	local lrs = WG.lavaRenderState
+	local lrs = mapInfo.lavaRenderState
 	if not lrs or lrs.gadgetPushed then return end  -- gadget is handling it
 
 	-- Compute tide-adjusted level (same formula as gadget's GameFrame)
@@ -12647,16 +13332,7 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
 		end
 		glFunc.Texture(texture)
-		glFunc.BeginEnd(glConst.QUADS, function()
-			glFunc.TexCoord(0, 0)
-			glFunc.Vertex(-iconSize, -iconSize)
-			glFunc.TexCoord(1, 0)
-			glFunc.Vertex(iconSize, -iconSize)
-			glFunc.TexCoord(1, 1)
-			glFunc.Vertex(iconSize, iconSize)
-			glFunc.TexCoord(0, 1)
-			glFunc.Vertex(-iconSize, iconSize)
-		end)
+		glFunc.BeginEnd(glConst.QUADS, DrawTexturedQuad, -iconSize, -iconSize, iconSize, iconSize)
 		glFunc.Texture(false)
 		glFunc.PopMatrix()
 	end
@@ -12675,8 +13351,13 @@ local function DrawBuildCursorWithRotation()
 	local cellSize = 16
 
 	glFunc.Texture(false)
-	local gridColor = canBuild and {0.3, 1.0, 0.3, 0.3} or {1.0, 0.3, 0.3, 0.3}
-	glFunc.Color(gridColor[1], gridColor[2], gridColor[3], gridColor[4])
+	local gridR, gridG, gridB, gridA
+	if canBuild then
+		gridR, gridG, gridB, gridA = 0.3, 1.0, 0.3, 0.3
+	else
+		gridR, gridG, gridB, gridA = 1.0, 0.3, 0.3, 0.3
+	end
+	glFunc.Color(gridR, gridG, gridB, gridA)
 
 	-- Draw filled grid cells
 	for gx = gridLeft, gridRight - cellSize, cellSize do
@@ -12684,29 +13365,34 @@ local function DrawBuildCursorWithRotation()
 			local x1, y1 = WorldToPipCoords(gx, gz)
 			local x2, y2 = WorldToPipCoords(gx + cellSize, gz + cellSize)
 			if x2 >= render.dim.l and x1 <= render.dim.r and y2 >= render.dim.b and y1 <= render.dim.t then
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(x1, y1)
-					glFunc.Vertex(x2, y1)
-					glFunc.Vertex(x2, y2)
-					glFunc.Vertex(x1, y2)
-				end)
+				pools.scratchQuad.x1 = x1
+				pools.scratchQuad.y1 = y1
+				pools.scratchQuad.x2 = x2
+				pools.scratchQuad.y2 = y2
+				glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
 			end
 		end
 	end
 
 	-- Draw grid lines
-	local lineColor = canBuild and {0.5, 1.0, 0.5, 0.9} or {1.0, 0.5, 0.5, 0.9}
-	glFunc.Color(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	local lineR, lineG, lineB, lineA
+	if canBuild then
+		lineR, lineG, lineB, lineA = 0.5, 1.0, 0.5, 0.9
+	else
+		lineR, lineG, lineB, lineA = 1.0, 0.5, 0.5, 0.9
+	end
+	glFunc.Color(lineR, lineG, lineB, lineA)
 	glFunc.LineWidth(1.5)
 
 	for gx = gridLeft, gridRight, cellSize do
 		local x1, y1 = WorldToPipCoords(gx, gridTop)
 		local x2, y2 = WorldToPipCoords(gx, gridBottom)
 		if x1 >= render.dim.l and x1 <= render.dim.r then
-			glFunc.BeginEnd(GL.LINES, function()
-				glFunc.Vertex(x1, y1)
-				glFunc.Vertex(x2, y2)
-			end)
+			pools.lineClamp.x1 = x1
+			pools.lineClamp.y1 = y1
+			pools.lineClamp.x2 = x2
+			pools.lineClamp.y2 = y2
+			glFunc.BeginEnd(GL.LINES, pools.DrawLineClamp)
 		end
 	end
 
@@ -12714,10 +13400,11 @@ local function DrawBuildCursorWithRotation()
 		local x1, y1 = WorldToPipCoords(gridLeft, gz)
 		local x2, y2 = WorldToPipCoords(gridRight, gz)
 		if y1 >= render.dim.b and y1 <= render.dim.t then
-			glFunc.BeginEnd(GL.LINES, function()
-				glFunc.Vertex(x1, y1)
-				glFunc.Vertex(x2, y2)
-			end)
+			pools.lineClamp.x1 = x1
+			pools.lineClamp.y1 = y1
+			pools.lineClamp.x2 = x2
+			pools.lineClamp.y2 = y2
+			glFunc.BeginEnd(GL.LINES, pools.DrawLineClamp)
 		end
 	end
 
@@ -12738,38 +13425,64 @@ local function DrawCameraViewBounds()
 		return
 	end
 
-	-- Get screen dimensions
-	local vsx, vsy = Spring.GetViewGeometry()
-
-	-- Get camera position for ray origin
+	local vsx, vsy = render.vsx, render.vsy
+	local rotation = render.minimapRotation or 0
+	local cache = pools.cameraViewCache
+	local points = cache.points
+	local wcx, wcz, zoom = cameraState.wcx, cameraState.wcz, cameraState.zoom
 	local camX, camY, camZ = Spring.GetCameraPosition()
+	local dirX, dirY, dirZ = Spring.GetCameraDirection()
 
-	-- Trace screen center to find ground Y (matches engine's TraceRay::GuiTraceRay at screen center)
-	local groundY
-	local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
-	if centerPos then
-		groundY = centerPos[2]
-	else
-		-- Fallback: average ground height (matches engine's readMap->GetCurrAvgHeight())
-		groundY = (mapInfo.minGroundHeight + mapInfo.maxGroundHeight) / 2
-	end
+	local needRebuild = not cache.valid or
+		math.abs(wcx - (cache.wcx or wcx)) > 1 or
+		math.abs(wcz - (cache.wcz or wcz)) > 1 or
+		math.abs(zoom - (cache.zoom or zoom)) > 0.0005 or
+		math.abs(camX - (cache.camX or camX)) > 0.5 or
+		math.abs(camY - (cache.camY or camY)) > 0.5 or
+		math.abs(camZ - (cache.camZ or camZ)) > 0.5 or
+		math.abs(rotation - (cache.rotation or rotation)) > 0.0005 or
+		math.abs(dirX - (cache.dirX or dirX)) > 0.0005 or
+		math.abs(dirY - (cache.dirY or dirY)) > 0.0005 or
+		math.abs(dirZ - (cache.dirZ or dirZ)) > 0.0005 or
+		math.abs(render.world.l - (cache.worldL or render.world.l)) > 0.5 or
+		math.abs(render.world.r - (cache.worldR or render.world.r)) > 0.5 or
+		math.abs(render.world.b - (cache.worldB or render.world.b)) > 0.5 or
+		math.abs(render.world.t - (cache.worldT or render.world.t)) > 0.5 or
+		cache.vsx ~= vsx or cache.vsy ~= vsy or
+		cache.l ~= render.dim.l or cache.r ~= render.dim.r or cache.b ~= render.dim.b or cache.t ~= render.dim.t
 
-	-- Intersect screen corner rays with horizontal plane at groundY
-	-- Matches engine's MiniMap::DrawCameraFrustumAndMouseSelection() algorithm:
-	-- t = (groundY - camY) / dirY; if t < 0: t = 1 - t (behind-camera reflection)
-	local farDist = 50000  -- reference distance for behind-camera projection scaling
-	local negCount = 0
-	local function screenToGround(sx, sy)
-		local dirX, dirY, dirZ = Spring.GetPixelDir(sx, sy)
+	local bl_c1x, bl_c1y, bl_c2x, bl_c2y
+	local br_c1x, br_c1y, br_c2x, br_c2y
+	local tr_c1x, tr_c1y, tr_c2x, tr_c2y
+	local tl_c1x, tl_c1y, tl_c2x, tl_c2y
+
+	if needRebuild then
+		-- Trace screen center to find ground Y (matches engine's TraceRay::GuiTraceRay at screen center)
+		local groundY
+		local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
+		if centerPos then
+			groundY = centerPos[2]
+		else
+			-- Fallback: average ground height (matches engine's readMap->GetCurrAvgHeight())
+			groundY = (mapInfo.minGroundHeight + mapInfo.maxGroundHeight) / 2
+		end
+
+		-- Intersect screen corner rays with horizontal plane at groundY
+		-- Matches engine's MiniMap::DrawCameraFrustumAndMouseSelection() algorithm:
+		-- t = (groundY - camY) / dirY; if t < 0: t = 1 - t (behind-camera reflection)
+		local farDist = 50000  -- reference distance for behind-camera projection scaling
+		local negCount = 0
+		local function screenToGround(sx, sy)
+			local pxDirX, pxDirY, pxDirZ = Spring.GetPixelDir(sx, sy)
 
 		-- Compute intersection parameter with groundY plane
 		-- Use farDist-scaled direction so t=1 means the far reference point (like engine's frustum vert)
-		local scaledDirY = dirY * farDist
+			local scaledDirY = pxDirY * farDist
 		local t
 		if math.abs(scaledDirY) < 0.001 then
 			-- Near-horizontal ray: project to far distance
 			negCount = negCount + 1
-			return camX + dirX * farDist, camZ + dirZ * farDist
+			return camX + pxDirX * farDist, camZ + pxDirZ * farDist
 		end
 
 		t = (groundY - camY) / scaledDirY
@@ -12778,126 +13491,102 @@ local function DrawCameraViewBounds()
 			t = 1 - t  -- engine's behind-camera reflection: project past far reference point
 		end
 
-		return camX + dirX * farDist * t, camZ + dirZ * farDist * t
-	end
+			return camX + pxDirX * farDist * t, camZ + pxDirZ * farDist * t
+		end
 
-	-- Use inset from edges to avoid issues at exact corners
-	local inset = 1
+		-- Use inset from edges to avoid issues at exact corners
+		local inset = 1
 
-	-- Get world coordinates for all 4 screen corners
-	local bottomLeftX, bottomLeftZ = screenToGround(inset, inset)
-	local bottomRightX, bottomRightZ = screenToGround(vsx - inset, inset)
-	local topRightX, topRightZ = screenToGround(vsx - inset, vsy - inset)
-	local topLeftX, topLeftZ = screenToGround(inset, vsy - inset)
+		-- Get world coordinates for all 4 screen corners
+		local bottomLeftX, bottomLeftZ = screenToGround(inset, inset)
+		local bottomRightX, bottomRightZ = screenToGround(vsx - inset, inset)
+		local topRightX, topRightZ = screenToGround(vsx - inset, vsy - inset)
+		local topLeftX, topLeftZ = screenToGround(inset, vsy - inset)
 
-	-- All 4 corners behind camera: draw small box around camera XZ (matches engine fallback)
-	if negCount >= 4 then
-		local bias = 16  -- 16 elmos, matches engine's small box
-		bottomLeftX, bottomLeftZ = camX - bias, camZ - bias
-		bottomRightX, bottomRightZ = camX + bias, camZ - bias
-		topRightX, topRightZ = camX + bias, camZ + bias
-		topLeftX, topLeftZ = camX - bias, camZ + bias
-	end
+		-- All 4 corners behind camera: draw small box around camera XZ (matches engine fallback)
+		if negCount >= 4 then
+			local bias = 16  -- 16 elmos, matches engine's small box
+			bottomLeftX, bottomLeftZ = camX - bias, camZ - bias
+			bottomRightX, bottomRightZ = camX + bias, camZ - bias
+			topRightX, topRightZ = camX + bias, camZ + bias
+			topLeftX, topLeftZ = camX - bias, camZ + bias
+		end
 
-	-- Don't clamp to map bounds - let the view representation extend off the map
-	-- This fixes the "sticking to edges" issue
+		-- Don't clamp to map bounds - let the view representation extend off the map
+		-- This fixes the "sticking to edges" issue
 
-	-- Convert to pip coordinates (no clamping, preserve true perspective shape)
-	-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
-	local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
-	local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
-	local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
-	local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
+		-- Convert to pip coordinates (no clamping, preserve true perspective shape)
+		-- Note: World Z maps to pip Y inversely (high Z = low Y in pip view)
+		local bl_x, bl_y = WorldToPipCoords(bottomLeftX, bottomLeftZ)
+		local br_x, br_y = WorldToPipCoords(bottomRightX, bottomRightZ)
+		local tr_x, tr_y = WorldToPipCoords(topRightX, topRightZ)
+		local tl_x, tl_y = WorldToPipCoords(topLeftX, topLeftZ)
 
-	-- Apply minimap rotation manually (this function is drawn outside the GL rotation matrix)
-	local rotation = render.minimapRotation or 0
-	if rotation ~= 0 then
+		-- Apply minimap rotation manually (this function is drawn outside the GL rotation matrix)
+		if rotation ~= 0 then
 		local centerX = (render.dim.l + render.dim.r) / 2
 		local centerY = (render.dim.b + render.dim.t) / 2
 		local cosA = math.cos(rotation)
 		local sinA = math.sin(rotation)
-		local function rotPt(x, y)
-			local dx, dy = x - centerX, y - centerY
-			return centerX + dx * cosA - dy * sinA,
-			       centerY + dx * sinA + dy * cosA
+		local dx, dy
+		dx, dy = bl_x - centerX, bl_y - centerY
+		bl_x, bl_y = centerX + dx * cosA - dy * sinA, centerY + dx * sinA + dy * cosA
+		dx, dy = br_x - centerX, br_y - centerY
+		br_x, br_y = centerX + dx * cosA - dy * sinA, centerY + dx * sinA + dy * cosA
+		dx, dy = tr_x - centerX, tr_y - centerY
+		tr_x, tr_y = centerX + dx * cosA - dy * sinA, centerY + dx * sinA + dy * cosA
+		dx, dy = tl_x - centerX, tl_y - centerY
+		tl_x, tl_y = centerX + dx * cosA - dy * sinA, centerY + dx * sinA + dy * cosA
 		end
-		bl_x, bl_y = rotPt(bl_x, bl_y)
-		br_x, br_y = rotPt(br_x, br_y)
-		tr_x, tr_y = rotPt(tr_x, tr_y)
-		tl_x, tl_y = rotPt(tl_x, tl_y)
+
+		-- Round to pixel centers after rotation for crisp screen-space alignment
+		-- OpenGL lines render crisply at half-pixel positions (0.5, 1.5, 2.5, ...)
+		bl_x = math.floor(bl_x) + 0.5;  bl_y = math.floor(bl_y) + 0.5
+		br_x = math.floor(br_x) + 0.5;  br_y = math.floor(br_y) + 0.5
+		tr_x = math.floor(tr_x) + 0.5;  tr_y = math.floor(tr_y) + 0.5
+		tl_x = math.floor(tl_x) + 0.5;  tl_y = math.floor(tl_y) + 0.5
+
+		-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
+		local resScale = render.contentScale or 1
+		local chamfer = 2 * (render.vsy / 1080) * resScale
+
+		-- Clamp chamfer so it never exceeds 5% of any edge length
+		local edgeBL_BR = math.sqrt((br_x-bl_x)^2 + (br_y-bl_y)^2)
+		local edgeBR_TR = math.sqrt((tr_x-br_x)^2 + (tr_y-br_y)^2)
+		local edgeTR_TL = math.sqrt((tl_x-tr_x)^2 + (tl_y-tr_y)^2)
+		local edgeTL_BL = math.sqrt((bl_x-tl_x)^2 + (bl_y-tl_y)^2)
+		local minEdge = math.min(edgeBL_BR, edgeBR_TR, edgeTR_TL, edgeTL_BL)
+		chamfer = math.min(chamfer, minEdge * 0.05)
+
+		-- Get chamfered vertices for each corner (going clockwise from bottom-left)
+		bl_c1x, bl_c1y, bl_c2x, bl_c2y = pools.CameraViewChamferPoints(tl_x, tl_y, br_x, br_y, bl_x, bl_y, chamfer)
+		br_c1x, br_c1y, br_c2x, br_c2y = pools.CameraViewChamferPoints(bl_x, bl_y, tr_x, tr_y, br_x, br_y, chamfer)
+		tr_c1x, tr_c1y, tr_c2x, tr_c2y = pools.CameraViewChamferPoints(br_x, br_y, tl_x, tl_y, tr_x, tr_y, chamfer)
+		tl_c1x, tl_c1y, tl_c2x, tl_c2y = pools.CameraViewChamferPoints(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y, chamfer)
+
+		points[1], points[2], points[3], points[4] = bl_c1x, bl_c1y, bl_c2x, bl_c2y
+		points[5], points[6], points[7], points[8] = br_c1x, br_c1y, br_c2x, br_c2y
+		points[9], points[10], points[11], points[12] = tr_c1x, tr_c1y, tr_c2x, tr_c2y
+		points[13], points[14], points[15], points[16] = tl_c1x, tl_c1y, tl_c2x, tl_c2y
+
+		cache.valid = true
+		cache.wcx, cache.wcz, cache.zoom = wcx, wcz, zoom
+		cache.camX, cache.camY, cache.camZ = camX, camY, camZ
+		cache.worldL, cache.worldR, cache.worldB, cache.worldT = render.world.l, render.world.r, render.world.b, render.world.t
+		cache.rotation = rotation
+		cache.dirX, cache.dirY, cache.dirZ = dirX, dirY, dirZ
+		cache.vsx, cache.vsy = vsx, vsy
+		cache.l, cache.r, cache.b, cache.t = render.dim.l, render.dim.r, render.dim.b, render.dim.t
+	else
+		bl_c1x, bl_c1y, bl_c2x, bl_c2y = points[1], points[2], points[3], points[4]
+		br_c1x, br_c1y, br_c2x, br_c2y = points[5], points[6], points[7], points[8]
+		tr_c1x, tr_c1y, tr_c2x, tr_c2y = points[9], points[10], points[11], points[12]
+		tl_c1x, tl_c1y, tl_c2x, tl_c2y = points[13], points[14], points[15], points[16]
 	end
 
-	-- Round to pixel centers after rotation for crisp screen-space alignment
-	-- OpenGL lines render crisply at half-pixel positions (0.5, 1.5, 2.5, ...)
-	bl_x = math.floor(bl_x) + 0.5;  bl_y = math.floor(bl_y) + 0.5
-	br_x = math.floor(br_x) + 0.5;  br_y = math.floor(br_y) + 0.5
-	tr_x = math.floor(tr_x) + 0.5;  tr_y = math.floor(tr_y) + 0.5
-	tl_x = math.floor(tl_x) + 0.5;  tl_y = math.floor(tl_y) + 0.5
-
-	-- Calculate chamfer size (4 pixels at 1080p, scaled by resolution)
+	local cvVerts = pools.cameraViewVerts
+	local idx
 	local resScale = render.contentScale or 1
-	local chamfer = 2 * (render.vsy / 1080) * resScale
-
-	-- Clamp chamfer so it never exceeds 5% of any edge length
-	local edgeBL_BR = math.sqrt((br_x-bl_x)^2 + (br_y-bl_y)^2)
-	local edgeBR_TR = math.sqrt((tr_x-br_x)^2 + (tr_y-br_y)^2)
-	local edgeTR_TL = math.sqrt((tl_x-tr_x)^2 + (tl_y-tr_y)^2)
-	local edgeTL_BL = math.sqrt((bl_x-tl_x)^2 + (bl_y-tl_y)^2)
-	local minEdge = math.min(edgeBL_BR, edgeBR_TR, edgeTR_TL, edgeTL_BL)
-	chamfer = math.min(chamfer, minEdge * 0.05)
-
-	-- Calculate chamfer offsets for each corner
-	-- Always apply chamfers regardless of position
-	local function getChamferVertices(x1, y1, x2, y2, cornerX, cornerY)
-		-- Get direction vectors from corner to adjacent points
-		local dx1, dy1 = x1 - cornerX, y1 - cornerY
-		local dx2, dy2 = x2 - cornerX, y2 - cornerY
-
-		-- Normalize and scale by chamfer size
-		local len1 = math.sqrt(dx1*dx1 + dy1*dy1)
-		local len2 = math.sqrt(dx2*dx2 + dy2*dy2)
-
-		if len1 < 0.001 or len2 < 0.001 then
-			return cornerX, cornerY, cornerX, cornerY
-		end
-
-		-- Chamfer points along each edge from the corner (pixel-center aligned)
-		local c1x = math.floor(cornerX + (dx1 / len1) * chamfer) + 0.5
-		local c1y = math.floor(cornerY + (dy1 / len1) * chamfer) + 0.5
-		local c2x = math.floor(cornerX + (dx2 / len2) * chamfer) + 0.5
-		local c2y = math.floor(cornerY + (dy2 / len2) * chamfer) + 0.5
-
-		return c1x, c1y, c2x, c2y
-	end
-
-	-- Get chamfered vertices for each corner (going clockwise from bottom-left)
-	local bl_c1x, bl_c1y, bl_c2x, bl_c2y = getChamferVertices(tl_x, tl_y, br_x, br_y, bl_x, bl_y)
-	local br_c1x, br_c1y, br_c2x, br_c2y = getChamferVertices(bl_x, bl_y, tr_x, tr_y, br_x, br_y)
-	local tr_c1x, tr_c1y, tr_c2x, tr_c2y = getChamferVertices(br_x, br_y, tl_x, tl_y, tr_x, tr_y)
-	local tl_c1x, tl_c1y, tl_c2x, tl_c2y = getChamferVertices(tr_x, tr_y, bl_x, bl_y, tl_x, tl_y)
-
-	-- Build ordered vertex list for the chamfered shape (clockwise from bottom-left)
-	local verts = {
-		{bl_c1x, bl_c1y}, {bl_c2x, bl_c2y},  -- bottom-left chamfer
-		{br_c1x, br_c1y}, {br_c2x, br_c2y},  -- bottom-right chamfer
-		{tr_c1x, tr_c1y}, {tr_c2x, tr_c2y},  -- top-right chamfer
-		{tl_c1x, tl_c1y}, {tl_c2x, tl_c2y},  -- top-left chamfer
-	}
-	local nv = #verts
-
-	-- Helper: emit a quad-based line segment with uniform visual thickness
-	-- perpendicular to the edge direction, regardless of angle.
-	local function emitEdgeQuad(x1, y1, x2, y2, halfW)
-		local dx, dy = x2 - x1, y2 - y1
-		local len = math.sqrt(dx * dx + dy * dy)
-		if len < 0.001 then return end
-		-- Perpendicular normal (unit length, scaled by half-width)
-		local nx, ny = (-dy / len) * halfW, (dx / len) * halfW
-		glFunc.Vertex(x1 - nx, y1 - ny)
-		glFunc.Vertex(x1 + nx, y1 + ny)
-		glFunc.Vertex(x2 + nx, y2 + ny)
-		glFunc.Vertex(x2 - nx, y2 - ny)
-	end
 
 	-- Draw the view trapezoid with chamfered corners using quad-based outlines
 	-- This gives uniform visual thickness on all edges regardless of angle.
@@ -12905,23 +13594,33 @@ local function DrawCameraViewBounds()
 
 	-- Draw dark shadow outline first (thicker, behind the white line)
 	local shadowHalfW = math.max(0.5, 1.5 * ((vsx+1000) / 3000) * resScale)
+	idx = 1
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, bl_c1x, bl_c1y, bl_c2x, bl_c2y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, bl_c2x, bl_c2y, br_c1x, br_c1y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, br_c1x, br_c1y, br_c2x, br_c2y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, br_c2x, br_c2y, tr_c1x, tr_c1y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tr_c1x, tr_c1y, tr_c2x, tr_c2y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tr_c2x, tr_c2y, tl_c1x, tl_c1y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tl_c1x, tl_c1y, tl_c2x, tl_c2y, shadowHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tl_c2x, tl_c2y, bl_c1x, bl_c1y, shadowHalfW)
+	pools.cameraViewVertexCount = idx - 1
 	glFunc.Color(0, 0, 0, 0.35)
-	glFunc.BeginEnd(GL.QUADS, function()
-		for i = 1, nv do
-			local j = (i % nv) + 1
-			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], shadowHalfW)
-		end
-	end)
+	glFunc.BeginEnd(GL.QUADS, pools.DrawCameraViewEdgeQuads)
 
 	-- Draw white line on top
 	local whiteHalfW = math.max(0.5, 0.65 * ((vsx+1000) / 3000) * resScale)
+	idx = 1
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, bl_c1x, bl_c1y, bl_c2x, bl_c2y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, bl_c2x, bl_c2y, br_c1x, br_c1y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, br_c1x, br_c1y, br_c2x, br_c2y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, br_c2x, br_c2y, tr_c1x, tr_c1y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tr_c1x, tr_c1y, tr_c2x, tr_c2y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tr_c2x, tr_c2y, tl_c1x, tl_c1y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tl_c1x, tl_c1y, tl_c2x, tl_c2y, whiteHalfW)
+	idx = pools.CameraViewAppendEdgeQuad(cvVerts, idx, tl_c2x, tl_c2y, bl_c1x, bl_c1y, whiteHalfW)
+	pools.cameraViewVertexCount = idx - 1
 	glFunc.Color(1, 1, 1, 0.8)
-	glFunc.BeginEnd(GL.QUADS, function()
-		for i = 1, nv do
-			local j = (i % nv) + 1
-			emitEdgeQuad(verts[i][1], verts[i][2], verts[j][1], verts[j][2], whiteHalfW)
-		end
-	end)
+	glFunc.BeginEnd(GL.QUADS, pools.DrawCameraViewEdgeQuads)
 end
 
 
@@ -13181,7 +13880,22 @@ local function BlitMapRuler()
 end
 
 -- Helper for drawing a textured quad — passed as callback to gl.BeginEnd to avoid closure allocation
-local function DrawTexturedQuad(qL, qB, qR, qT)
+DrawTexturedQuad = function(qL, qB, qR, qT)
+	if qL == nil then
+		local tq = pools.scratchTexQuad
+		qL, qB, qR, qT = tq.l, tq.b, tq.r, tq.t
+		-- Scratch-path quads (tracked minimap overlays) use top-origin mapping.
+		glFunc.TexCoord(0, 0)
+		glFunc.Vertex(qL, qT)
+		glFunc.TexCoord(1, 0)
+		glFunc.Vertex(qR, qT)
+		glFunc.TexCoord(1, 1)
+		glFunc.Vertex(qR, qB)
+		glFunc.TexCoord(0, 1)
+		glFunc.Vertex(qL, qB)
+		return
+	end
+	-- Explicit-arg path (BlitShiftedTexture) keeps original bottom-origin mapping.
 	glFunc.TexCoord(0, 0)
 	glFunc.Vertex(qL, qB)
 	glFunc.TexCoord(1, 0)
@@ -13321,6 +14035,69 @@ local function RenderExpensiveLayers()
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
 	end
+end
+
+-- Pre-created R2T draw function for units texture (avoids per-update closure allocation)
+local function unitsR2TDraw()
+	local u = pools.unitsR2T
+	local uW, uH = u.uW, u.uH
+
+	-- Use the rotation captured by UpdateR2TUnits
+	render.minimapRotation = u.currentRotation
+
+	glFunc.Translate(-1, -1, 0)
+	glFunc.Scale(2 / uW, 2 / uH, 0)
+
+	-- Use separate blend for alpha: color blends normally, alpha accumulates
+	-- correctly for later premultiplied compositing (avoids alpha^2 darkening)
+	gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- Save current dimensions
+	pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t = render.dim.l, render.dim.r, render.dim.b, render.dim.t
+
+	-- Set oversized dimensions; contentScale = resScale so RecalcWorldCoords
+	-- keeps the margin expansion in world-space bounds.
+	render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, uW, uH
+	render.contentScale = u.resScale
+	RecalculateWorldCoordinates()
+
+	-- Store world bounds and camera state for the compositing blit
+	pipR2T.unitsWorld.l = render.world.l
+	pipR2T.unitsWorld.r = render.world.r
+	pipR2T.unitsWorld.b = render.world.b
+	pipR2T.unitsWorld.t = render.world.t
+	pipR2T.unitsZoom = cameraState.zoom
+	pipR2T.unitsRotation = render.minimapRotation
+	pipR2T.unitsWcx = cameraState.wcx
+	pipR2T.unitsWcz = cameraState.wcz
+
+	-- Use pcall so restore always runs even if rendering errors
+	local ok, err = pcall(RenderExpensiveLayers)
+	if not ok then
+		Spring.Echo("[PIP] Units render error: " .. tostring(err))
+		-- Emergency GL state cleanup: RenderExpensiveLayers may have left dirty state
+		gl.UseShader(0)
+		glFunc.Texture(0, false)
+		glFunc.Texture(1, false)
+		glFunc.Texture(false)
+		gl.Scissor(false)
+		gl.BlendEquation(GL.FUNC_ADD)
+		-- Best-effort matrix cleanup: if a nested draw path errored after one or more
+		-- PushMatrix calls, pop until stack is balanced (or until PopMatrix fails).
+		for _ = 1, 8 do
+			local okPop = pcall(glFunc.PopMatrix)
+			if not okPop then
+				break
+			end
+		end
+	end
+
+	-- Restore blending and original values
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	render.contentScale = 1
+	render.dim.l, render.dim.r, render.dim.b, render.dim.t = pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
+	RecalculateWorldCoordinates()
+	RecalculateGroundTextureCoordinates()
 end
 
 -- Full render for fallback when unitsTex is not available
@@ -13625,8 +14402,13 @@ local function DrawBuildCursor()
 
 	-- We can't test individual cells, so use the overall buildability for the entire grid
 	-- The grid shows if the building footprint as a whole can be placed
-	local gridColor = canBuild and {0.3, 1.0, 0.3, 0.3} or {1.0, 0.3, 0.3, 0.3}
-	glFunc.Color(gridColor[1], gridColor[2], gridColor[3], gridColor[4])
+	local gridR, gridG, gridB, gridA
+	if canBuild then
+		gridR, gridG, gridB, gridA = 0.3, 1.0, 0.3, 0.3
+	else
+		gridR, gridG, gridB, gridA = 1.0, 0.3, 0.3, 0.3
+	end
+	glFunc.Color(gridR, gridG, gridB, gridA)
 
 	-- Draw filled grid cells
 	for gx = gridLeft, gridRight - cellSize, cellSize do
@@ -13636,19 +14418,23 @@ local function DrawBuildCursor()
 
 			-- Only draw if within PIP bounds
 			if x2 >= render.dim.l and x1 <= render.dim.r and y2 >= render.dim.b and y1 <= render.dim.t then
-				glFunc.BeginEnd(glConst.QUADS, function()
-					glFunc.Vertex(x1, y1)
-					glFunc.Vertex(x2, y1)
-					glFunc.Vertex(x2, y2)
-					glFunc.Vertex(x1, y2)
-				end)
+				pools.scratchQuad.x1 = x1
+				pools.scratchQuad.y1 = y1
+				pools.scratchQuad.x2 = x2
+				pools.scratchQuad.y2 = y2
+				glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
 			end
 		end
 	end
 
 	-- Draw grid lines with color based on overall buildability
-	local lineColor = canBuild and {0.5, 1.0, 0.5, 0.9} or {1.0, 0.5, 0.5, 0.9}
-	glFunc.Color(lineColor[1], lineColor[2], lineColor[3], lineColor[4])
+	local lineR, lineG, lineB, lineA
+	if canBuild then
+		lineR, lineG, lineB, lineA = 0.5, 1.0, 0.5, 0.9
+	else
+		lineR, lineG, lineB, lineA = 1.0, 0.5, 0.5, 0.9
+	end
+	glFunc.Color(lineR, lineG, lineB, lineA)
 	glFunc.LineWidth(1.5)
 
 	-- Vertical lines
@@ -13656,10 +14442,11 @@ local function DrawBuildCursor()
 		local x1, y1 = WorldToPipCoords(gx, gridTop)
 		local x2, y2 = WorldToPipCoords(gx, gridBottom)
 		if x1 >= render.dim.l and x1 <= render.dim.r then
-			glFunc.BeginEnd(glConst.LINES, function()
-				glFunc.Vertex(x1, math.max(y1, render.dim.b))
-				glFunc.Vertex(x2, math.min(y2, render.dim.t))
-			end)
+			pools.lineClamp.x1 = x1
+			pools.lineClamp.y1 = math.max(y1, render.dim.b)
+			pools.lineClamp.x2 = x2
+			pools.lineClamp.y2 = math.min(y2, render.dim.t)
+			glFunc.BeginEnd(glConst.LINES, pools.DrawLineClamp)
 		end
 	end
 
@@ -13668,10 +14455,11 @@ local function DrawBuildCursor()
 		local x1, y1 = WorldToPipCoords(gridLeft, gz)
 		local x2, y2 = WorldToPipCoords(gridRight, gz)
 		if y1 >= render.dim.b and y1 <= render.dim.t then
-			glFunc.BeginEnd(glConst.LINES, function()
-				glFunc.Vertex(math.max(x1, render.dim.l), y1)
-				glFunc.Vertex(math.min(x2, render.dim.r), y2)
-			end)
+			pools.lineClamp.x1 = math.max(x1, render.dim.l)
+			pools.lineClamp.y1 = y1
+			pools.lineClamp.x2 = math.min(x2, render.dim.r)
+			pools.lineClamp.y2 = y2
+			glFunc.BeginEnd(glConst.LINES, pools.DrawLineClamp)
 		end
 	end
 
@@ -14189,23 +14977,21 @@ local function DrawTrackedPlayerMinimap()
 		gl.UseShader(shaders.minimapShading)
 		glFunc.Texture(0, '$minimap')
 		glFunc.Texture(1, '$shading')
-		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
-		end)
+		pools.scratchTexQuad.l = cLeft
+		pools.scratchTexQuad.b = cBottom
+		pools.scratchTexQuad.r = cRight
+		pools.scratchTexQuad.t = cTop
+		glFunc.BeginEnd(GL.QUADS, DrawTexturedQuad)
 		glFunc.Texture(0, false)
 		glFunc.Texture(1, false)
 		gl.UseShader(0)
 	else
 		glFunc.Texture('$minimap')
-		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
-		end)
+		pools.scratchTexQuad.l = cLeft
+		pools.scratchTexQuad.b = cBottom
+		pools.scratchTexQuad.r = cRight
+		pools.scratchTexQuad.t = cTop
+		glFunc.BeginEnd(GL.QUADS, DrawTexturedQuad)
 		glFunc.Texture(false)
 	end
 
@@ -14265,12 +15051,11 @@ local function DrawTrackedPlayerMinimap()
 			glFunc.Texture(2, mapInfo.lavaDistortionTex)
 		end
 		glFunc.Color(1, 1, 1, 1)
-		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
-		end)
+		pools.scratchTexQuad.l = cLeft
+		pools.scratchTexQuad.b = cBottom
+		pools.scratchTexQuad.r = cRight
+		pools.scratchTexQuad.t = cTop
+		glFunc.BeginEnd(GL.QUADS, DrawTexturedQuad)
 		glFunc.Texture(0, false)
 		if mapInfo.lavaDiffuseEmitTex then glFunc.Texture(1, false) end
 		if mapInfo.lavaDistortionTex then glFunc.Texture(2, false) end
@@ -14285,12 +15070,11 @@ local function DrawTrackedPlayerMinimap()
 		gl.BlendFuncSeparate(GL.ONE, GL.ONE, GL.ZERO, GL.ONE)
 		glFunc.Color(1, 1, 1, 0)
 		glFunc.Texture(pipR2T.losTex)
-		glFunc.BeginEnd(GL.QUADS, function()
-			glFunc.TexCoord(0, 0); glFunc.Vertex(cLeft, cTop)
-			glFunc.TexCoord(1, 0); glFunc.Vertex(cRight, cTop)
-			glFunc.TexCoord(1, 1); glFunc.Vertex(cRight, cBottom)
-			glFunc.TexCoord(0, 1); glFunc.Vertex(cLeft, cBottom)
-		end)
+		pools.scratchTexQuad.l = cLeft
+		pools.scratchTexQuad.b = cBottom
+		pools.scratchTexQuad.r = cRight
+		pools.scratchTexQuad.t = cTop
+		glFunc.BeginEnd(GL.QUADS, DrawTexturedQuad)
 		glFunc.Texture(false)
 		gl.BlendEquation(GL.FUNC_ADD)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -14310,30 +15094,27 @@ local function DrawTrackedPlayerMinimap()
 	-- Draw dark shadow outline behind view rectangle
 	glFunc.Color(0, 0, 0, 0.33)
 	glFunc.LineWidth(3)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(viewL, viewB)
-		glFunc.Vertex(viewR, viewB)
-		glFunc.Vertex(viewR, viewT)
-		glFunc.Vertex(viewL, viewT)
-	end)
+	pools.scratchQuad.x1 = viewL
+	pools.scratchQuad.y1 = viewB
+	pools.scratchQuad.x2 = viewR
+	pools.scratchQuad.y2 = viewT
+	glFunc.BeginEnd(GL.LINE_LOOP, DrawScratchQuad)
 
 	-- Draw white view rectangle on top
 	glFunc.Color(1, 1, 1, 0.9)
 	glFunc.LineWidth(1.5)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		glFunc.Vertex(viewL, viewB)
-		glFunc.Vertex(viewR, viewB)
-		glFunc.Vertex(viewR, viewT)
-		glFunc.Vertex(viewL, viewT)
-	end)
+	pools.scratchQuad.x1 = viewL
+	pools.scratchQuad.y1 = viewB
+	pools.scratchQuad.x2 = viewR
+	pools.scratchQuad.y2 = viewT
+	glFunc.BeginEnd(GL.LINE_LOOP, DrawScratchQuad)
 
 	glFunc.Color(1, 1, 1, 0.15)
-	glFunc.BeginEnd(GL.QUADS, function()
-		glFunc.Vertex(viewL, viewB)
-		glFunc.Vertex(viewR, viewB)
-		glFunc.Vertex(viewR, viewT)
-		glFunc.Vertex(viewL, viewT)
-	end)
+	pools.scratchQuad.x1 = viewL
+	pools.scratchQuad.y1 = viewB
+	pools.scratchQuad.x2 = viewR
+	pools.scratchQuad.y2 = viewT
+	glFunc.BeginEnd(GL.QUADS, DrawScratchQuad)
 
 	if render.minimapRotation ~= 0 then
 		glFunc.PopMatrix()
@@ -14522,11 +15303,29 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 	-- Zoom changes are handled by scaling the blit quad, so they don't force a re-render
 	-- During resize, sizeChanged defers to throttle instead of forcing immediate update —
 	-- this avoids texture alloc/dealloc/render on every frame of the drag
+	local effectiveUpdateInterval = pipUpdateInterval
+	-- In pregame, expensive-layer content is usually static. Keep updates responsive while
+	-- moving/zooming, but avoid high-frequency refreshes when view state is effectively idle.
+	if Spring.GetGameFrame and Spring.GetGameFrame() <= 0 and pipR2T.unitsTex and not pipR2T.unitsNeedsUpdate and not rotChanged and not sizeChanged and not driftForced then
+		local desiredZoom = cameraState.targetZoom or cameraState.zoom
+		local storedZoom = pipR2T.unitsZoom or desiredZoom
+		local baseZoom = (storedZoom ~= 0 and storedZoom) or desiredZoom
+		local zoomDelta = math.abs(desiredZoom - storedZoom) / math.max(baseZoom, 0.0001)
+		local cameraIdle = not interactionState.areIncreasingZoom and not interactionState.areDecreasingZoom and not interactionState.arePanning and not interactionState.areCentering
+		local wideZoom = desiredZoom <= config.pipZoomThresholdMin
+		if cameraIdle and wideZoom and zoomDelta < 0.01 then
+			local idleInterval = pools.unitsR2T.pregameIdleInterval
+			if effectiveUpdateInterval == 0 or effectiveUpdateInterval < idleInterval then
+				effectiveUpdateInterval = idleInterval
+			end
+		end
+	end
+
 	local timeSinceLastUpdate = currentTime - pipR2T.unitsLastUpdateTime
 	local shouldUpdate = pipR2T.unitsNeedsUpdate or rotChanged or driftForced or
 		(sizeChanged and not uiState.areResizing) or
-		pipUpdateInterval == 0 or
-		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
+		effectiveUpdateInterval == 0 or
+		(effectiveUpdateInterval > 0 and timeSinceLastUpdate >= effectiveUpdateInterval)
 
 	-- Force update during refresh grace period (graphics preset change, ViewResize)
 	if pipR2T.forceRefreshFrames > 0 then
@@ -14568,60 +15367,13 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 	end
 
 	if pipR2T.unitsTex then
-		-- Use the rotation we already fetched
-		render.minimapRotation = currentRotation
+		local uctx = pools.unitsR2T
+		uctx.uW = uW
+		uctx.uH = uH
+		uctx.resScale = resScale
+		uctx.currentRotation = currentRotation
 
-		gl.R2tHelper.RenderToTexture(pipR2T.unitsTex, function()
-			glFunc.Translate(-1, -1, 0)
-			glFunc.Scale(2 / uW, 2 / uH, 0)
-
-			-- Use separate blend for alpha: color blends normally, alpha accumulates
-			-- correctly for later premultiplied compositing (avoids alpha² darkening)
-			gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-
-			-- Save current dimensions
-			pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t = render.dim.l, render.dim.r, render.dim.b, render.dim.t
-
-			-- Set oversized dimensions — contentScale = resScale so RecalcWorldCoords
-			-- divides by resScale, leaving the (1 + 2*margin) factor to expand world bounds
-			render.dim.l, render.dim.b, render.dim.r, render.dim.t = 0, 0, uW, uH
-			render.contentScale = resScale
-			RecalculateWorldCoordinates()
-
-			-- Store world bounds and camera state for the compositing blit
-			pipR2T.unitsWorld.l = render.world.l
-			pipR2T.unitsWorld.r = render.world.r
-			pipR2T.unitsWorld.b = render.world.b
-			pipR2T.unitsWorld.t = render.world.t
-			pipR2T.unitsZoom = cameraState.zoom
-			pipR2T.unitsRotation = render.minimapRotation
-			pipR2T.unitsWcx = cameraState.wcx
-			pipR2T.unitsWcz = cameraState.wcz
-
-			-- Use pcall so restore always runs even if rendering errors
-			local ok, err = pcall(RenderExpensiveLayers)
-			if not ok then
-				Spring.Echo("[PIP] Units render error: " .. tostring(err))
-				-- Emergency GL state cleanup: RenderExpensiveLayers may have left dirty state
-				gl.UseShader(0)
-				glFunc.Texture(0, false)
-				glFunc.Texture(1, false)
-				glFunc.Texture(false)
-				gl.Scissor(false)
-				gl.BlendEquation(GL.FUNC_ADD)
-				-- Try to pop rotation matrix if it was pushed
-				if render.minimapRotation ~= 0 then
-					pcall(glFunc.PopMatrix)
-				end
-			end
-
-			-- Restore blending and original values
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			render.contentScale = 1
-			render.dim.l, render.dim.r, render.dim.b, render.dim.t = pools.savedDim.l, pools.savedDim.r, pools.savedDim.b, pools.savedDim.t
-			RecalculateWorldCoordinates()
-			RecalculateGroundTextureCoordinates()
-		end, true)
+		gl.R2tHelper.RenderToTexture(pipR2T.unitsTex, unitsR2TDraw, true)
 		pipR2T.unitsLastUpdateTime = currentTime
 		pipR2T.unitsNeedsUpdate = false
 	end
@@ -14779,9 +15531,13 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 				gl.BlendEquation(GL.FUNC_ADD)
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
-				-- Try to pop rotation matrix if it was pushed
-				if render.minimapRotation ~= 0 then
-					pcall(glFunc.PopMatrix)
+				-- Best-effort matrix cleanup: if a nested draw path errored after one or more
+				-- PushMatrix calls, pop until stack is balanced (or until PopMatrix fails).
+				for _ = 1, 8 do
+					local okPop = pcall(glFunc.PopMatrix)
+					if not okPop then
+						break
+					end
 				end
 			end
 
@@ -14817,32 +15573,64 @@ decalGL4 = {
 	logCount = 0,
 	uniformLocs = nil,    -- cached uniform locations
 	renderFrame = 0,      -- game frame for GPU alpha computation (set before R2T draw)
+	useGeometryShader = true,
+	quadVBO = nil,
 }
 
 -- Initialize GL4 decal resources (called during R2T setup)
 InitGL4Decals = function()
 	if not gl.GetVAO or not gl.GetVBO then return end
 	if not shaders.decal then return end
+	local useGS = decalGL4.useGeometryShader
 
 	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
 	if not vbo then
 		Spring.Echo("[PIP] GL4 decals: Failed to create VBO")
 		return
 	end
-	vbo:Define(decalGL4.MAX_INSTANCES, {
-		{id = 0, name = 'posRot',      size = 4},  -- worldX, worldZ, rotation, maxalpha
-		{id = 1, name = 'sizeAlpha',   size = 4},  -- halfLengthX, halfWidthZ, alphastart, alphadecay
-		{id = 2, name = 'uvCoords',    size = 4},  -- p, q, s, t
-		{id = 3, name = 'spawnParams', size = 4},  -- spawnframe, 0, 0, 0
-	})
+	if useGS then
+		vbo:Define(decalGL4.MAX_INSTANCES, {
+			{id = 0, name = 'posRot',      size = 4},
+			{id = 1, name = 'sizeAlpha',   size = 4},
+			{id = 2, name = 'uvCoords',    size = 4},
+			{id = 3, name = 'spawnParams', size = 4},
+		})
+	else
+		vbo:Define(decalGL4.MAX_INSTANCES, {
+			{id = 1, name = 'posRot',      size = 4},
+			{id = 2, name = 'sizeAlpha',   size = 4},
+			{id = 3, name = 'uvCoords',    size = 4},
+			{id = 4, name = 'spawnParams', size = 4},
+		})
+		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		if not quadVBO then
+			Spring.Echo("[PIP] GL4 decals: Failed to create NoGS quad VBO")
+			vbo:Delete()
+			return
+		end
+		quadVBO:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+		quadVBO:Upload({
+			-1.0, -1.0,
+			 1.0, -1.0,
+			-1.0,  1.0,
+			 1.0,  1.0,
+		})
+		decalGL4.quadVBO = quadVBO
+	end
 
 	local vao = gl.GetVAO()
 	if not vao then
 		Spring.Echo("[PIP] GL4 decals: Failed to create VAO")
 		vbo:Delete()
+		if decalGL4.quadVBO then decalGL4.quadVBO:Delete(); decalGL4.quadVBO = nil end
 		return
 	end
-	vao:AttachVertexBuffer(vbo)
+	if useGS then
+		vao:AttachVertexBuffer(vbo)
+	else
+		vao:AttachVertexBuffer(decalGL4.quadVBO)
+		vao:AttachInstanceBuffer(vbo)
+	end
 
 	-- Pre-allocate instance data array
 	local instanceData = {}
@@ -14867,6 +15655,7 @@ end
 DestroyGL4Decals = function()
 	if decalGL4.vao then decalGL4.vao:Delete(); decalGL4.vao = nil end
 	if decalGL4.vbo then decalGL4.vbo:Delete(); decalGL4.vbo = nil end
+	if decalGL4.quadVBO then decalGL4.quadVBO:Delete(); decalGL4.quadVBO = nil end
 	decalGL4.instanceData = nil
 	decalGL4.instanceCount = 0
 	decalGL4.version = -1
@@ -14956,7 +15745,11 @@ local function decalR2TDraw()
 			local ul = decalGL4.uniformLocs
 			gl.UniformFloat(ul.gameFrame, decalGL4.renderFrame)
 			gl.UniformFloat(ul.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
-			decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			if decalGL4.useGeometryShader then
+				decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
+			else
+				decalGL4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, decalGL4.instanceCount)
+			end
 			gl.UseShader(0)
 			glFunc.Texture(false)
 		end
@@ -15181,10 +15974,9 @@ end
 local function DrawTrackingIndicators()
 	if interactionState.areTracking and #interactionState.areTracking > 0 then
 		local lineWidth = math.ceil(2 * (render.vsx / 1920))
-		local pipWidth = render.dim.r - render.dim.l
-		local pipHeight = render.dim.t - render.dim.b
+		local outlineColor = pools.trackingOutlineColor
 		glFunc.Color(1, 1, 1, 0.22)
-		render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, {1, 1, 1, 0.22}, {1, 1, 1, 0.22})
+		render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, outlineColor, outlineColor)
 	end
 
 	if interactionState.trackingPlayerID then
@@ -15192,8 +15984,10 @@ local function DrawTrackingIndicators()
 		if teamID then
 			local r, g, b = Spring.GetTeamColor(teamID)
 			local lineWidth = math.ceil(3 * (render.vsx / 1920))
+			local teamColor = pools.trackingTeamColor
+			teamColor[1], teamColor[2], teamColor[3], teamColor[4] = r, g, b, 0.5
 			glFunc.Color(r, g, b, 0.5)
-			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, {r, g, b, 0.5}, {r, g, b, 0.5})
+			render.RectRoundOutline(render.dim.l, render.dim.b, render.dim.r, render.dim.t, render.elementCorner*0.5, lineWidth, 1, 1, 1, 1, teamColor, teamColor)
 		end
 	end
 end
@@ -15375,7 +16169,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				end
 			elseif btn.command == 'pip_trackplayer' then
 				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-				local aliveTeammates = GetAliveTeammates()
+				local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
 				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
@@ -15669,10 +16463,33 @@ function widget:DrawScreen()
 	local fallbackUnitThreshold = miscState.engineMinimapActive
 		and (config.engineMinimapFallbackThreshold * 0.95)
 		or config.engineMinimapFallbackThreshold
-	local useEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
+	local rawUseEngineMinimapFallback = isMinimapMode and config.engineMinimapFallback
 		and #miscState.pipUnits > fallbackUnitThreshold
 		and IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom)
 		and not interactionState.trackingPlayerID and not miscState.tvEnabled
+
+	local useEngineMinimapFallback
+
+	-- Time-based debounce on top of threshold hysteresis.
+	-- Prevents rapid frame-to-frame toggling between engine minimap and PIP when
+	-- unit count / zoom hovers around the fallback boundary.
+	do
+		local now = os.clock()
+		if miscState.engineFallbackRawWanted ~= rawUseEngineMinimapFallback then
+			miscState.engineFallbackRawWanted = rawUseEngineMinimapFallback
+			miscState.engineFallbackRawWantedSince = now
+		end
+
+		-- Exit fallback immediately when zooming in so PIP R2T content appears without lag.
+		-- Keep off-debounce for non-zoom transitions (e.g. unit count hovering near threshold).
+		local leavingBecauseZoom = not (IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom))
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingBecauseZoom and 0 or 0.75)
+		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
+			useEngineMinimapFallback = miscState.engineMinimapActive
+		else
+			useEngineMinimapFallback = rawUseEngineMinimapFallback
+		end
+	end
 
 	if useEngineMinimapFallback then
 		-- Transition: PIP → engine minimap
@@ -15750,6 +16567,9 @@ function widget:DrawScreen()
 			miscState.engineMinimapActive = false
 			pipR2T.contentNeedsUpdate = true
 			pipR2T.unitsNeedsUpdate = true
+			pipR2T.contentLastUpdateTime = 0
+			pipR2T.unitsLastUpdateTime = 0
+			pipR2T.forceRefreshFrames = math.max(pipR2T.forceRefreshFrames or 0, 6)
 			-- Invalidate GL4 icon caches — positions, VBO data, and mobile block
 			-- are stale after potentially many frames without PIP rendering.
 			gl4Icons._vboValid = false
@@ -15758,8 +16578,12 @@ function widget:DrawScreen()
 			gl4Icons._slowVboValid = false
 			gl4Icons._slowMobileBlock = nil
 			gl4Icons._slowMobileBlockAge = nil
-			gl4Icons.cachedPosX = {}
-			gl4Icons.cachedPosZ = {}
+			for unitID in pairs(gl4Icons.cachedPosX) do
+				gl4Icons.cachedPosX[unitID] = nil
+			end
+			for unitID in pairs(gl4Icons.cachedPosZ) do
+				gl4Icons.cachedPosZ[unitID] = nil
+			end
 		end
 	end
 
@@ -15879,17 +16703,29 @@ function widget:DrawScreen()
 			-- Validate texture is still usable (may have been invalidated by engine GL changes)
 			local texInfo = gl.TextureInfo(pipR2T.contentTex)
 			if not texInfo or texInfo.xsize <= 0 then
-				gl.DeleteTexture(pipR2T.contentTex)
-				pipR2T.contentTex = nil
-				pipR2T.contentNeedsUpdate = true
+				pipR2T.contentInvalidInfoStreak = (pipR2T.contentInvalidInfoStreak or 0) + 1
+				if pipR2T.contentInvalidInfoStreak >= 2 then
+					gl.DeleteTexture(pipR2T.contentTex)
+					pipR2T.contentTex = nil
+					pipR2T.contentNeedsUpdate = true
+					pipR2T.contentInvalidInfoStreak = 0
+				end
+			else
+				pipR2T.contentInvalidInfoStreak = 0
 			end
 		end
 		if pipR2T.unitsTex then
 			local texInfo = gl.TextureInfo(pipR2T.unitsTex)
 			if not texInfo or texInfo.xsize <= 0 then
-				gl.DeleteTexture(pipR2T.unitsTex)
-				pipR2T.unitsTex = nil
-				pipR2T.unitsNeedsUpdate = true
+				pipR2T.unitsInvalidInfoStreak = (pipR2T.unitsInvalidInfoStreak or 0) + 1
+				if pipR2T.unitsInvalidInfoStreak >= 2 then
+					gl.DeleteTexture(pipR2T.unitsTex)
+					pipR2T.unitsTex = nil
+					pipR2T.unitsNeedsUpdate = true
+					pipR2T.unitsInvalidInfoStreak = 0
+				end
+			else
+				pipR2T.unitsInvalidInfoStreak = 0
 			end
 		end
 		if pipR2T.contentTex then
@@ -16031,16 +16867,17 @@ function widget:DrawScreen()
 						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
 
 						-- Direct call instead of pcall closure to avoid per-widget per-frame allocations
-						-- Errors will propagate but that's acceptable for performance
+						-- Isolate external widget failures so matrix/scissor cleanup still runs.
 						local drawFunc = w.DrawInMiniMap
 						if drawFunc then
-							drawFunc(w, minimapWidth, minimapHeight)
+							pcall(drawFunc, w, minimapWidth, minimapHeight)
 						end
 
 						-- Restore viewport to full screen
 						gl.Viewport(0, 0, render.vsx, render.vsy)
 
 						-- Restore matrices
+						gl.MatrixMode(GL.MODELVIEW)
 						glFunc.PopMatrix()
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PopMatrix()
@@ -16395,28 +17232,15 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	local chamfer = 2.5 * (render.vsy / 1080)
 	local cx = chamfer
 	local cy = chamfer
+	pools.minimapViewRect.halfWidth = halfWidth
+	pools.minimapViewRect.halfHeight = halfHeight
+	pools.minimapViewRect.cx = cx
+	pools.minimapViewRect.cy = cy
 
 	-- draw dark outline
 	glFunc.Color(0, 0, 0, 0.4)
 	glFunc.LineWidth(outlinewidth)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		-- Bottom edge
-		glFunc.Vertex(-halfWidth + cx, -halfHeight)
-		glFunc.Vertex(halfWidth - cx, -halfHeight)
-		-- Bottom-right corner cut
-		glFunc.Vertex(halfWidth, -halfHeight + cy)
-		-- Right edge
-		glFunc.Vertex(halfWidth, halfHeight - cy)
-		-- Top-right corner cut
-		glFunc.Vertex(halfWidth - cx, halfHeight)
-		-- Top edge
-		glFunc.Vertex(-halfWidth + cx, halfHeight)
-		-- Top-left corner cut
-		glFunc.Vertex(-halfWidth, halfHeight - cy)
-		-- Left edge
-		glFunc.Vertex(-halfWidth, -halfHeight + cy)
-		-- Bottom-left corner cut closes the loop
-	end)
+	glFunc.BeginEnd(GL.LINE_LOOP, pools.DrawMinimapViewRectLoop)
 
 	-- Use team color if tracking a player, otherwise white
 	local r, g, b = 0.85, 0.85, 0.85
@@ -16430,24 +17254,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- draw bright line
 	glFunc.Color(r, g, b, 0.8)
 	glFunc.LineWidth(linewidth)
-	glFunc.BeginEnd(GL.LINE_LOOP, function()
-		-- Bottom edge
-		glFunc.Vertex(-halfWidth + cx, -halfHeight)
-		glFunc.Vertex(halfWidth - cx, -halfHeight)
-		-- Bottom-right corner cut
-		glFunc.Vertex(halfWidth, -halfHeight + cy)
-		-- Right edge
-		glFunc.Vertex(halfWidth, halfHeight - cy)
-		-- Top-right corner cut
-		glFunc.Vertex(halfWidth - cx, halfHeight)
-		-- Top edge
-		glFunc.Vertex(-halfWidth + cx, halfHeight)
-		-- Top-left corner cut
-		glFunc.Vertex(-halfWidth, halfHeight - cy)
-		-- Left edge
-		glFunc.Vertex(-halfWidth, -halfHeight + cy)
-		-- Bottom-left corner cut closes the loop
-	end)
+	glFunc.BeginEnd(GL.LINE_LOOP, pools.DrawMinimapViewRectLoop)
 
 	glFunc.LineWidth(1.0)
 	glFunc.Color(1, 1, 1, 1)
@@ -16474,7 +17281,7 @@ function widget:Update(dt)
 		-- Poll ConfigFloat for external changes (e.g. from gui_options)
 		if isMinimapMode then
 			local cfgMaxHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
-			if cfgMaxHeight ~= config.minimapModeMaxHeight then
+			if math.abs(cfgMaxHeight - config.minimapModeMaxHeight) > 0.0001 then
 				config.minimapModeMaxHeight = cfgMaxHeight
 				widget:ViewResize()
 			end
@@ -16728,7 +17535,7 @@ function widget:Update(dt)
 		-- Force R2T content refresh on lava maps so the lava overlay animates
 		pipR2T.contentNeedsUpdate = true
 		-- Also sync dynamic water level from computed tide level
-		local lrs = WG.lavaRenderState
+		local lrs = mapInfo.lavaRenderState
 		if lrs and lrs.level then
 			mapInfo.dynamicWaterLevel = lrs.level
 		end
@@ -17736,6 +18543,55 @@ end
 
 -- Helper function to create icon shatter effect for a unit
 -- unitVelX, unitVelZ are optional velocity components to add to fragments
+RebuildAllUnitsCache = function()
+	local allUnits = Spring.GetAllUnits()
+	local cacheList = miscState.allUnitsCache
+	local cacheIndex = miscState.allUnitsIndex
+
+	for i = #cacheList, 1, -1 do
+		cacheList[i] = nil
+	end
+	for unitID in pairs(cacheIndex) do
+		cacheIndex[unitID] = nil
+	end
+
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		cacheList[i] = unitID
+		cacheIndex[unitID] = i
+	end
+
+	miscState.allUnitsDirty = false
+end
+
+AddUnitToAllUnitsCache = function(unitID)
+	local cacheIndex = miscState.allUnitsIndex
+	if cacheIndex[unitID] then
+		return
+	end
+	local cacheList = miscState.allUnitsCache
+	cacheList[#cacheList + 1] = unitID
+	cacheIndex[unitID] = #cacheList
+end
+
+RemoveUnitFromAllUnitsCache = function(unitID)
+	local cacheIndex = miscState.allUnitsIndex
+	local idx = cacheIndex[unitID]
+	if not idx then
+		return
+	end
+
+	local cacheList = miscState.allUnitsCache
+	local last = #cacheList
+	if idx ~= last then
+		local movedID = cacheList[last]
+		cacheList[idx] = movedID
+		cacheIndex[movedID] = idx
+	end
+	cacheList[last] = nil
+	cacheIndex[unitID] = nil
+end
+
 local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ)
 	if uiState.inMinMode then return end
 	-- Performance: limit max simultaneous shatters
@@ -17886,6 +18742,8 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	RemoveUnitFromAllUnitsCache(unitID)
+
 	-- Note: We intentionally do NOT clear crashingUnits here because DrawScreen may run
 	-- after this callback in the same frame, and we need the entry to still exist so
 	-- the crashing unit icon doesn't flash for one frame when it dies.
@@ -17944,6 +18802,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	AddUnitToAllUnitsCache(unitID)
+
 	-- Clear GL4 cache so it picks up the new team color
 	gl4Icons.unitTeamCache[unitID] = nil
 	-- Invalidate VBO block caches — they bake team color into instance data,
@@ -17962,6 +18822,8 @@ function widget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	AddUnitToAllUnitsCache(unitID)
+
 	-- Same cache invalidation as UnitGiven (covers the old-team side of the transfer)
 	gl4Icons.unitTeamCache[unitID] = nil
 	gl4Icons._bldgBlockFrame = 0
@@ -17973,6 +18835,10 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if ghostBuildings[unitID] then
 		ghostBuildings[unitID].teamID = newTeamID
 	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	AddUnitToAllUnitsCache(unitID)
 end
 
 -- Handle buildings being picked up by transports — invalidate cached position
@@ -18330,7 +19196,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	end
 
 	-- Add particle debris for larger explosions (skip during engine minimap: only circle overlay is drawn)
-	if radius > 30 and not miscState.engineMinimapActive then
+	-- Lightning uses its own spark particles above; mixing debris (lifetime-only particles)
+	-- into the same table can break lightning-specific spark logic.
+	if radius > 30 and not miscState.engineMinimapActive and not isLightning then
 		local explosion = cache.explosions[#cache.explosions]
 		local particleCount = math.min(12, math.floor(radius / 10))
 

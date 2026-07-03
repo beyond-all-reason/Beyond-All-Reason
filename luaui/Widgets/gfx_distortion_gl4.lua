@@ -824,8 +824,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('AddDistortion')
 	widgetHandler:DeregisterGlobal('RemoveDistortion')
 
-	widgetHandler:DeregisterGlobal('UnitScriptDistortion')
-
 	deferredDistortionShader:Delete()
 	local ram = 0
 	for distortiontype, vbo in pairs(unitDistortionVBOMap) do ram = ram + vbo:Delete() end
@@ -1490,8 +1488,10 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDistortion', WG['distortionsgl4'].AddDistortion)
 	widgetHandler:RegisterGlobal('RemoveDistortion', WG['distortionsgl4'].RemoveDistortion)
 	widgetHandler:RegisterGlobal('GetDistortionVBO', WG['distortionsgl4'].GetDistortionVBO)
+end
 
-	widgetHandler:RegisterGlobal('UnitScriptDistortion', UnitScriptDistortion)
+function widget:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
+	UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 
