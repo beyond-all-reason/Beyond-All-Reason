@@ -19,12 +19,9 @@ local mathFloor = math.floor
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetModOptions = Spring.GetModOptions
 local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGiveOrder = Spring.GiveOrder
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local Firestates = VFS.Include("modules/firestates.lua")
@@ -161,7 +158,6 @@ local lastColorize = -1
 local printTextCache = {}
 
 local CANCEL_TARGET_CMD_ID = 34924 -- UNIT_CANCEL_TARGET
-local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 
 local hiddenCommands = {
@@ -342,45 +338,6 @@ local function computeWaitState()
 	end
 end
 
---DEFEND FIRESTATE REWORK: Remove modoption guard; always patch firestate labels to Defend
-local function getUserFirestateCommand(command, unitID)
-	local userFirestate = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
-	local displayIndex
-	local stateName
-	local filledStateCount
-	if Firestates.isUserFacing(userFirestate) then
-		displayIndex = Firestates.displayIndex(userFirestate)
-		if userFirestate == Firestates.DEFEND then
-			stateName = "Defend"
-		elseif userFirestate == Firestates.PASSIVE then
-			stateName = "Hold fire"
-		else
-			stateName = "Fire at will"
-		end
-	elseif userFirestate == Firestates.RETURN_FIRE then
-		displayIndex = 1
-		stateName = "Defend"
-		filledStateCount = 2
-	elseif userFirestate == Firestates.FIRE_AT_ALL then
-		displayIndex = 2
-		stateName = "Fire at all"
-		filledStateCount = 3
-	else
-		return command
-	end
-	local patchedCommand = table.copy(command)
-	patchedCommand.params = {
-		displayIndex,
-		"Hold fire",
-		stateName,
-		stateName,
-	}
-	patchedCommand.userFirestate = userFirestate
-	patchedCommand.userFacingFirestate = Firestates.isUserFacing(userFirestate)
-	patchedCommand.filledStateCount = filledStateCount
-	return patchedCommand
-end
-
 local function refreshCommands()
 	local waitCommand
 	-- Clear and reuse temp tables instead of creating new ones
@@ -410,12 +367,12 @@ local function refreshCommands()
 				if command.type == CMDTYPE_ICON_BUILDING or (string.find(command.action, 'buildunit_', 1, true) == 1) then
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
-					local patchedCommand = command
-					if command.id == CMD_FIRE_STATE and spGetModOptions().experimental_defend_firestate and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
-						patchedCommand = getUserFirestateCommand(command, cachedFirstUnit)
-					end
 					stateCommandsCount = stateCommandsCount + 1
-					stateCommandsTemp[stateCommandsCount] = patchedCommand
+					if command.id == CMD.FIRE_STATE and Spring.GetModOptions().experimental_defend_firestate and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
+						stateCommandsTemp[stateCommandsCount] = Firestates.orderMenuCmdDesc(command, Spring.GetUnitRulesParam(cachedFirstUnit, Firestates.RULES_PARAM)) or command
+					else
+						stateCommandsTemp[stateCommandsCount] = command
+					end
 				elseif command.id == CMD.WAIT then
 					waitCommandCount = 1
 					waitCommand = command
@@ -1013,9 +970,6 @@ local function drawCell(cell, zoom)
 			if isStateCommand[cmd.id] then
 				statecount = #cmd.params - 1 --number of states for the cmd
 				curstate = cmd.params[1] + 1
-				if cmd.filledStateCount then
-					curstate = cmd.filledStateCount
-				end
 			else
 				statecount = 2
 				curstate = cachedWaitState
@@ -1035,7 +989,7 @@ local function drawCell(cell, zoom)
 			local glowSize = math_floor(stateHeight * 8)
 			local r, g, b, a = 0, 0, 0, 0
 			for i = 1, statecount do
-				if i == curstate or i == desiredState or (cmd.filledStateCount and i <= cmd.filledStateCount) then
+				if i == curstate or i == desiredState then
 					if i == 1 then
 						r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
 					elseif i == 2 then
@@ -1338,9 +1292,8 @@ function widget:MousePress(x, y, button)
 							if playSounds then
 								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
-							if cmd.id == CMD_FIRE_STATE and spGetModOptions().experimental_defend_firestate and cmd.userFacingFirestate and clickedCellDesiredState then
-								local nextFirestate = Firestates.stateFromDisplayIndex(clickedCellDesiredState)
-								spGiveOrder(CMD_USER_FIRESTATE, { nextFirestate }, 0)
+							if cmd.id == CMD.FIRE_STATE and Spring.GetModOptions().experimental_defend_firestate and clickedCellDesiredState then
+								Spring.GiveOrder(CMD_USER_FIRESTATE, { Firestates.stateFromDisplayIndex(clickedCellDesiredState) }, 0)
 							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
 							end

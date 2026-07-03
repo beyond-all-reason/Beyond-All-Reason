@@ -60,4 +60,28 @@ function firestates.fromEngineFirestate(engineFirestate)
 	return stateByEngineFirestate[engineFirestate] or firestates.AGGRESSIVE
 end
 
+function firestates.orderMenuCmdDesc(command, userFirestate)
+	if userFirestate == nil then
+		return nil
+	end
+	local displayIndex = displayIndexByState[userFirestate]
+	if displayIndex == nil then
+		if userFirestate == firestates.RETURN_FIRE then
+			displayIndex = 1
+		elseif userFirestate == firestates.FIRE_AT_ALL then
+			displayIndex = 2
+		else
+			return nil
+		end
+	end
+	local cmdDesc = table.copy(command)
+	cmdDesc.params = {
+		displayIndex,
+		"Hold fire",
+		"Defend",
+		userFirestate == firestates.FIRE_AT_ALL and "Fire at all" or "Fire at will",
+	}
+	return cmdDesc
+end
+
 return firestates
