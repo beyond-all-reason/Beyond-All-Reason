@@ -5,6 +5,7 @@ return {
 		buildpic = "legsplab.DDS",
 		buildtime = 11800,
 		canmove = true,
+		canReclaim = false,
 		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5500,
