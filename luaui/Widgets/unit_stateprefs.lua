@@ -76,6 +76,7 @@ end
 -- preset helpers
 
 local bombers = {}
+local factories = {}
 
 local function UnitDefIsBomber(unitDef) -- stolen from old bomber default hold fire widget
 	if not unitDef or not unitDef.weapons then
@@ -99,13 +100,33 @@ for unitName, unitDef in pairs(UnitDefNames) do
 	if UnitDefIsBomber(unitDef) then
 		bombers[unitName] = true
 	end
+	if unitDef.isFactory then -- code stolen from old factory guard pref widget
+		local buildOptions = unitDef.buildOptions
+
+		for i = 1, #buildOptions do
+			local buildOptDefID = buildOptions[i]
+			local buildOpt = UnitDefs[buildOptDefID]
+
+			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
+				factories[unitName] = true  -- only factories that can build builders are included
+				break
+			end
+		end
+	end
 end
 
-local function toggleAllBombersHoldFire(state, force)
-	for unitName, _ in pairs(bombers) do
-		if force or not unitSet[unitName] or not unitSet[unitName][CMD_FIRE_STATE] then
+local presets = { -- CMD_ID, state_false, state_true, units
+	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
+	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, factories},
+}
+
+local function togglePreset(presetName, state, force)
+	unitSet.presets = unitSet.presets or {}
+	unitSet.presets[presetName] = state
+	for unitName, _ in pairs(presets[presetName][4]) do
+		if force or not unitSet[unitName] or not unitSet[unitName][presets[presetName][1]] then
 			unitSet[unitName] = unitSet[unitName] or {}
-			unitSet[unitName][CMD_FIRE_STATE] = state and 0 or 2
+			unitSet[unitName][presets[presetName][1]] = state and presets[presetName][3] or presets[presetName][2]
 		end
 	end
 end
@@ -132,11 +153,15 @@ end
 function widget:GetConfigData()
 	local saveUnitSet = migrateOldConfig() or table.copy(unitSet) -- remove this line and the migration function once sufficient time has passed (implemented 2026-06-03)
 
-	--clean for unnecessary entries, like units not set to state not corresponding to preset
-	local bombers_hold_fire = unitSet.presets.bombers_default_hold_fire
-	for unitName, _ in pairs(bombers) do
-		if saveUnitSet[unitName] and saveUnitSet[unitName][CMD_FIRE_STATE] == (bombers_hold_fire and 0 or 2) then
-			saveUnitSet[unitName][CMD_FIRE_STATE] = nil
+	--clean for units not set to state not corresponding to preset
+	for presetName, presetData in pairs(presets) do
+		local presetState = unitSet.presets and unitSet.presets[presetName]
+		if presetState ~= nil then
+			for unitName, _ in pairs(presetData[4]) do
+				if saveUnitSet[unitName] and saveUnitSet[unitName][presetData[1]] == (presetState and presetData[3] or presetData[2]) then
+					saveUnitSet[unitName][presetData[1]] = nil
+				end
+			end
 		end
 	end
 	pruneAllUnitPrefs(saveUnitSet)
@@ -147,7 +172,7 @@ function widget:SetConfigData(data)
 	unitSet = data
 	pruneAllUnitPrefs(unitSet)
 
-	-- handle porting of config from old auto cloak widget, can be removed after some time (implemented 2026-06)
+	-- handle porting of config from old auto cloak widget, can be removed after some time (implemented 2026-07)
 	if widgetHandler.configData["Auto Cloak Units"] and widgetHandler.configData["Auto Cloak Units"].unitdefConfig then
 		for unitName, cloak in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
 			if not unitSet[unitName] or not unitSet[unitName][CMD_WANT_CLOAK] then
@@ -158,8 +183,8 @@ function widget:SetConfigData(data)
 	end
 
 	unitSet.presets = unitSet.presets or {} -- handle presets for groups of units like bombers defaulting on hold fire
-	if unitSet.presets.bombers_default_hold_fire ~= nil then
-		toggleAllBombersHoldFire(unitSet.presets.bombers_default_hold_fire, false)
+	for presetName, state in pairs(unitSet.presets) do
+		togglePreset(presetName, state, false)
 	end
 end
 
@@ -325,9 +350,7 @@ function widget:Initialize()
 	WG['stateprefs'].setPresetState = function(presetName, state)
 		unitSet.presets = unitSet.presets or {}
 		unitSet.presets[presetName] = state
-		if presetName == "bombers_default_hold_fire" then
-			toggleAllBombersHoldFire(state, true)
-		end
+		togglePreset(presetName, state, true)
 	end
 end
 

@@ -9137,7 +9137,20 @@ function init()
 			end
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "Factory Guard Default On", name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = GetWidgetToggleValue("Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr') },
+		{ id = "factoryguard", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = WG['stateprefs'] and WG['stateprefs'].getPresetState("factoryguard"), description = Spring.I18N('ui.settings.option.factoryguard_descr'),
+			onchange = function(i, value)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("factoryguard", value)
+				end
+			end,
+			onload = function(i)
+				if WG['stateprefs'] then
+					if WG['stateprefs'].getPresetState("factoryguard") == nil then
+						WG['stateprefs'].setPresetState("factoryguard", not not GetWidgetToggleValue("Factory Guard Default On")) --convert to bool
+					end
+				end
+			end
+		},
 		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
