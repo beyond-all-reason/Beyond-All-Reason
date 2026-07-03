@@ -47,7 +47,7 @@ end
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 	if cmdID == CMD_USER_FIRESTATE then
 		local state = cmdParams[1]
-		if Firestates.isUserFacing(state) then
+		if Firestates.toEngineFirestate(state) ~= nil then
 			setUserFirestate(unitID, state)
 		end
 		return false
