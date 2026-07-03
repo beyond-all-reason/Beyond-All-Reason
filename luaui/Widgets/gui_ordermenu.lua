@@ -70,6 +70,14 @@ local commandInfo = {
 }
 local isStateCommand = {}
 
+local firestateDescrByState = {
+	["Hold fire"] = "firestate_hold_fire_descr",
+	["Return fire"] = "firestate_return_fire_descr",
+	["Defend"] = "firestate_defend_descr",
+	["Fire at will"] = "firestate_fire_at_will_descr",
+	["Fire at all"] = "firestate_fire_at_all_descr",
+}
+
 local disabledCommand = {}
 
 local vsx, vsy = spGetViewGeometry()
@@ -1063,13 +1071,35 @@ function widget:DrawScreen()
 							local tooltipKey = cmd.action .. '_tooltip'
 							local tooltip = getCachedTranslation('ui.orderMenu.' .. tooltipKey)
 
-							-- Cache hotkey lookup
 							if not hotkeyCache[cmd.action] then
 								hotkeyCache[cmd.action] = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
 							local hotkey = hotkeyCache[cmd.action]
+							local hotkeyApplied = false
 
-							if tooltip ~= '' and hotkey ~= '' then
+							if cmd.id == CMD.FIRE_STATE then
+								local currentStateIndex = cmd.params[1]
+								local stateOffset = 2
+								local commandState = cmd.params[currentStateIndex + stateOffset]
+								local modeDescrKey = commandState and firestateDescrByState[commandState]
+								if modeDescrKey then
+									local modeDescr = getCachedTranslation('ui.orderMenu.' .. modeDescrKey)
+									local generalDescr = tooltip
+									if generalDescr ~= '' and hotkey ~= '' then
+										generalDescr = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = generalDescr, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+										hotkeyApplied = true
+									end
+									if modeDescr ~= '' and generalDescr ~= '' then
+										tooltip = modeDescr .. "\n" .. generalDescr
+									elseif modeDescr ~= '' then
+										tooltip = modeDescr
+									elseif generalDescr ~= '' then
+										tooltip = generalDescr
+									end
+								end
+							end
+
+							if tooltip ~= '' and hotkey ~= '' and not hotkeyApplied then
 								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
