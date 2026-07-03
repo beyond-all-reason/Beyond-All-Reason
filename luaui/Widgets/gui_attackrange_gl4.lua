@@ -999,9 +999,9 @@ function widget:Initialize()
 		unitToggles[i] = v
 	end
 
-	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
-	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "p")
-	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "p")
+	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "pt")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "pt")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "pt")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	myTeamID = spGetMyTeamID()
