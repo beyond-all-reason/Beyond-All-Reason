@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMLAB.DDS",
 		buildtime = 5000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "84 22 84",
 		collisionvolumetype = "Box",
