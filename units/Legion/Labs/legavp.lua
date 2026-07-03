@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGAVP.DDS",
 		buildtime = 27750,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 5",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
