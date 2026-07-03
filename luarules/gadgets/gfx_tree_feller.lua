@@ -140,8 +140,26 @@ if gadgetHandler:IsSyncedCode() then
 	local treeFireExtinguishFrames = 130
 	local postFireGroundFrames = 100
 	local treeSinkStartFrames = treeFireExtinguishFrames + postFireGroundFrames
+	local treeFireLifeMultBase = 2.0
+	local treeFireLifeRandFrac = 0.4
+	local treeFireLargeLifeBonusMax = 0.4
+	local minSinkFramesBeforeDestroy = 90
 	local sinkSpeedMultBurning = 2 / 3
 	local sinkSpeedMultExtinguished = 2.5
+
+	local function getTreeFireDuration(baseFrames, featureinfo)
+		local mult = featureinfo.treeFireLifeMult
+		if not mult then
+			local jitter = (math_random() * 2 - 1) * treeFireLifeRandFrac
+			mult = treeFireLifeMultBase * (1 + jitter)
+			if featureinfo.size == 'large' then
+				mult = mult * (1 + math_random() * treeFireLargeLifeBonusMax)
+			end
+			if mult < 0.55 then mult = 0.55 end
+			featureinfo.treeFireLifeMult = mult
+		end
+		return math_max(1, math_floor(baseFrames * mult + 0.5))
+	end
 
 	local treeMass = {}
 	local treeScaleY = {}
@@ -616,11 +634,22 @@ if gadgetHandler:IsSyncedCode() then
 						"fromBlast=" .. tostring(d2 > 0.0001))
 				end
 				local thisfeaturefalltime = math_min(falltime * featureinfo.strength, maxFallFrames)
+				-- Keep per-tree timing cached so post-extinguish phases (like sinking)
+				-- still follow each tree's own randomized fire lifetime.
+				if featureinfo.fire and not featureinfo.fireTimingResolved then
+					featureinfo.fireFadeFrames = getTreeFireDuration(treeFireFadeFrames, featureinfo)
+					featureinfo.fireExtinguishFrames = getTreeFireDuration(treeFireExtinguishFrames, featureinfo)
+					featureinfo.fireSinkStartFrames = featureinfo.fireExtinguishFrames + postFireGroundFrames
+					featureinfo.fireTimingResolved = true
+				end
+				local fireFadeFrames = featureinfo.fireFadeFrames or treeFireFadeFrames
+				local fireExtinguishFrames = featureinfo.fireExtinguishFrames or treeFireExtinguishFrames
+				local fireSinkStartFrames = featureinfo.fireSinkStartFrames or treeSinkStartFrames
 				-- Hand the burning visual to the GL4 fire gadget: a flame column that
 				-- climbs the tree and topples into a line of fire as it falls.
 				if featureinfo.fire and not featureinfo.fireSent then
 					local height, radius, canopyFrac = getTreeFireProfile(featureID, featureinfo.fDefID)
-					local burnFrames = thisfeaturefalltime + treeFireExtinguishFrames
+					local burnFrames = thisfeaturefalltime + fireExtinguishFrames
 					-- IMPORTANT: SetFeatureDirection sets the model FRONT, but the engine
 					-- derives the trunk (up vector) as leaning along the NEGATIVE of the
 					-- front's horizontal component. So the trunk actually topples toward
@@ -709,38 +738,55 @@ if gadgetHandler:IsSyncedCode() then
 							end
 						end
 
-						local gh = spGetGroundHeight(fx, fz)
-						if featureinfo.destroyFrame <= gf or (gh > fy + 48) then
-						if featureinfo.fireSent then
-							spSendToUnsynced("treefire_stop", featureID)
-							featureinfo.fireSent = false
-						end
-						if not removeFeatures then removeFeatures = {} end
-							removeCount = removeCount + 1
-							removeFeatures[removeCount] = featureID
-							DestroyFeature(featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + treeFireFadeFrames <= gf and featureinfo.fire and not featureinfo.fadeSent then
-							spSendToUnsynced("treefire_fade", featureID)
-							featureinfo.fadeSent = true
-						elseif featureinfo.frame + thisfeaturefalltime + treeFireExtinguishFrames <= gf and featureinfo.fire then
-							featureinfo.fire = false
-							if featureinfo.fireSent then
-								spSendToUnsynced("treefire_stop", featureID)
-								featureinfo.fireSent = false
+							local fallenFrame = featureinfo.frame + thisfeaturefalltime
+							local fadeFrame = fallenFrame + fireFadeFrames
+							local extinguishFrame = fallenFrame + fireExtinguishFrames
+							local sinkStartFrame = fallenFrame + fireSinkStartFrames
+
+							if featureinfo.fire and (not featureinfo.fadeSent) and gf >= fadeFrame then
+								spSendToUnsynced("treefire_fade", featureID)
+								featureinfo.fadeSent = true
 							end
-						elseif featureinfo.frame + thisfeaturefalltime + treeSinkStartFrames <= gf then
-							local dx, dy, dz = GetFeatureDirection(featureID)
-							if featureinfo.fire then
-								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultBurning, fz, false)
-							else
-								SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultExtinguished, fz, false)
+							if featureinfo.fire and gf >= extinguishFrame then
+								featureinfo.fire = false
+								if featureinfo.fireSent then
+									spSendToUnsynced("treefire_stop", featureID)
+									featureinfo.fireSent = false
+								end
 							end
 
-							-- NOTE: this can create twitchy tree movement
-							-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
-							-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
-							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
-						end
+							if gf >= sinkStartFrame then
+								if not featureinfo.sinkStartedFrame then
+									featureinfo.sinkStartedFrame = gf
+								end
+								local dx, dy, dz = GetFeatureDirection(featureID)
+								if featureinfo.fire then
+									SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultBurning, fz, false)
+								else
+									SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultExtinguished, fz, false)
+								end
+
+								-- NOTE: this can create twitchy tree movement
+								-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
+								-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
+								SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+							end
+
+							local gh = spGetGroundHeight(fx, fz)
+							local sinkStartedFrame = featureinfo.sinkStartedFrame or sinkStartFrame
+							local sinkMature = gf >= (sinkStartedFrame + minSinkFramesBeforeDestroy)
+							local canDestroyByTime = (featureinfo.destroyFrame <= gf) and (not featureinfo.fire) and sinkMature
+							local canDestroyByTerrain = (gh > fy + 48) and (not featureinfo.fire) and sinkMature
+							if canDestroyByTime or canDestroyByTerrain then
+								if featureinfo.fireSent then
+									spSendToUnsynced("treefire_stop", featureID)
+									featureinfo.fireSent = false
+								end
+								if not removeFeatures then removeFeatures = {} end
+								removeCount = removeCount + 1
+								removeFeatures[removeCount] = featureID
+								DestroyFeature(featureID)
+							end
 					end
 				end
 			end
