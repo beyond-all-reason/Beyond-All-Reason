@@ -5,7 +5,6 @@ return {
 		buildpic = "CORAAP.DDS",
 		buildtime = 32000,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "142 64 142",
 		collisionvolumetype = "Box",

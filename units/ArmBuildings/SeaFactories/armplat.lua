@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
 		canmove = true,
-		canReclaim = false,
 		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5000,

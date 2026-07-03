@@ -4,7 +4,6 @@ return {
 		buildpic = "CORFHP.DDS",
 		buildtime = 8700,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "96 32 96",
 		collisionvolumetype = "Box",

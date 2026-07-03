@@ -4,7 +4,6 @@ return {
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 0 -6",
 		collisionvolumescales = "96 30 96",
 		collisionvolumetype = "Box",

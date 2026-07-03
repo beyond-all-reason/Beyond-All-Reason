@@ -5,7 +5,6 @@ return {
 		buildpic = "LEGALAB.DDS",
 		buildtime = 51000,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "144 56 144",
 		collisionvolumetype = "Box",

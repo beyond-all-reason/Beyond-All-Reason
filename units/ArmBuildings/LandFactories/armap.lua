@@ -5,7 +5,6 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 5450,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "134 49 82",
 		collisionvolumetype = "Box",

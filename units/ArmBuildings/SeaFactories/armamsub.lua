@@ -4,7 +4,6 @@ return {
 		buildpic = "ARMAMSUB.DDS",
 		buildtime = 11100,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 16 0",
 		collisionvolumescales = "96 42 96",
 		collisionvolumetype = "CylY",

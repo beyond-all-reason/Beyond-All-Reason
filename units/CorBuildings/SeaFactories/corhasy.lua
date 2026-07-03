@@ -4,7 +4,6 @@ return {
 		buildpic = "CORGANTUW.DDS",
 		buildtime = 92000,
 		canmove = true,
-		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "260 146 260",
 		collisionvolumetype = "Box",
