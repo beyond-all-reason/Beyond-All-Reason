@@ -27,7 +27,9 @@ local Firestates = VFS.Include("modules/firestates.lua")
 local INLOS = { inlos = true }
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local settingEngineFirestate = false
 
@@ -62,9 +64,16 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	return true
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	local firestate = spGetUnitStates(unitID, false)
-	local state = Firestates.fromEngineFirestate(firestate)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	local state
+	local builderDefID = builderID and spGetUnitDefID(builderID)
+	if builderDefID and UnitDefs[builderDefID].isFactory then
+		state = spGetUnitRulesParam(builderID, Firestates.RULES_PARAM)
+			or Firestates.fromEngineFirestate(spGetUnitStates(builderID, false))
+	end
+	if state == nil then
+		state = Firestates.fromEngineFirestate(spGetUnitStates(unitID, false))
+	end
 	spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
 end
 
