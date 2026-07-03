@@ -43,7 +43,7 @@ local defThreatRanges = {}
 local neverHesitateAttackers = {}
 local alwaysHarmlessUnitDefs = {}
 local weaponWatchRefCount = {}
-local offensiveWeaponsByUnitDef = {}
+local watchedWeaponsByUnitDef = {}
 local metaData = {}
 local gameFrame = 0
 
@@ -91,7 +91,7 @@ local function setDefendWatch(unitID, isDefend)
 		end
 
 		local unitDefID = meta[UNIT_DEF_ID]
-		local weaponDefIDs = offensiveWeaponsByUnitDef[unitDefID]
+		local weaponDefIDs = watchedWeaponsByUnitDef[unitDefID]
 		meta[IS_DEFEND] = true
 		meta[NEVER_HESITATE] = neverHesitateAttackers[unitDefID] or false
 		meta[WEAPON_DEF_IDS] = weaponDefIDs
@@ -235,57 +235,7 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 end
 
 function gadget:Initialize()
-	local targetUnitDefIDs = {}
-	local enemyProps = {}
-	local offensiveWeaponDefs = {}
-
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		local isKamikaze = WeaponThreat.isKamikazeUnitDef(unitDef)
-
-		if WeaponThreat.isThreateningUnitDef(unitDef) then
-			targetUnitDefIDs[#targetUnitDefIDs + 1] = unitDefID
-			enemyProps[unitDefID] = {
-				armorType = unitDef.armorType or 0,
-				health = unitDef.health or 0,
-				speed = unitDef.speed or 0,
-				reach = WeaponThreat.getUnitDefMaxOffensiveRange(unitDef),
-			}
-		else
-			alwaysHarmlessUnitDefs[unitDefID] = true
-		end
-
-		if unitDef.customParams.defend_never_hesitate or isKamikaze then
-			neverHesitateAttackers[unitDefID] = true
-		end
-
-		local weapons = unitDef.weapons
-		local unitOffensiveWeapons
-		local seenWeapon = {}
-		for weaponNum = 1, #weapons do
-			local weaponDefID = weapons[weaponNum].weaponDef
-			local weaponDef = WeaponDefs[weaponDefID]
-			if weaponDef and WeaponThreat.isOffensiveWeapon(weaponDef) and not seenWeapon[weaponDefID] then
-				seenWeapon[weaponDefID] = true
-				offensiveWeaponDefs[weaponDefID] = weaponDef
-				if not unitOffensiveWeapons then
-					unitOffensiveWeapons = {}
-				end
-				unitOffensiveWeapons[#unitOffensiveWeapons + 1] = weaponDefID
-			end
-		end
-		if unitOffensiveWeapons then
-			offensiveWeaponsByUnitDef[unitDefID] = unitOffensiveWeapons
-		end
-	end
-
-	for weaponDefID, weaponDef in pairs(offensiveWeaponDefs) do
-		local rangesForWeapon = {}
-		for targetIndex = 1, #targetUnitDefIDs do
-			local enemyUnitDefID = targetUnitDefIDs[targetIndex]
-			WeaponThreat.populateWeaponThreatRange(rangesForWeapon, weaponDef, enemyUnitDefID, enemyProps[enemyUnitDefID])
-		end
-		defThreatRanges[weaponDefID] = rangesForWeapon
-	end
+	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs = WeaponThreat.buildDefendData()
 
 	for _, unitID in ipairs(spGetAllUnits()) do
 		local unitDefID = spGetUnitDefID(unitID)

@@ -57,30 +57,61 @@ function firestates.toEngineFirestate(state)
 end
 
 function firestates.fromEngineFirestate(engineFirestate)
-	return stateByEngineFirestate[engineFirestate] or firestates.AGGRESSIVE
+	return stateByEngineFirestate[tonumber(engineFirestate)] or firestates.AGGRESSIVE
+end
+
+function firestates.resolveUserFirestate(unitID)
+	if not Spring.ValidUnitID(unitID) then
+		return nil
+	end
+	if Spring.GetModOptions().experimental_defend_firestate then
+		local rulesState = Spring.GetUnitRulesParam(unitID, firestates.RULES_PARAM)
+		if rulesState ~= nil then
+			return rulesState
+		end
+	end
+	return firestates.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+end
+
+function firestates.stateLabel(cmd)
+	local currentStateIndex = tonumber(cmd.params[1])
+	if currentStateIndex == nil then
+		return nil
+	end
+	return cmd.params[currentStateIndex + 2]
 end
 
 function firestates.orderMenuCmdDesc(command, userFirestate)
 	if userFirestate == nil then
 		return nil
 	end
-	local displayIndex = displayIndexByState[userFirestate]
-	if displayIndex == nil then
-		if userFirestate == firestates.RETURN_FIRE then
-			displayIndex = 1
-		elseif userFirestate == firestates.FIRE_AT_ALL then
-			displayIndex = 2
-		else
+	local cmdDesc = table.copy(command)
+	local middleLabel = Spring.GetModOptions().experimental_defend_firestate and "Defend" or "Return fire"
+	cmdDesc.params = {
+		0,
+		"Hold fire",
+		middleLabel,
+		"Fire at will",
+	}
+	cmdDesc.pipFillMin = nil
+	cmdDesc.pipFillMax = nil
+	if userFirestate == firestates.RETURN_FIRE then
+		cmdDesc.params[1] = 1
+		cmdDesc.params[3] = "Return fire"
+		cmdDesc.pipFillMin = 2
+		cmdDesc.pipFillMax = 3
+	elseif userFirestate == firestates.FIRE_AT_ALL then
+		cmdDesc.params[1] = 2
+		cmdDesc.params[4] = "Fire at all"
+		cmdDesc.pipFillMin = 1
+		cmdDesc.pipFillMax = 3
+	else
+		local displayIndex = displayIndexByState[userFirestate]
+		if displayIndex == nil then
 			return nil
 		end
+		cmdDesc.params[1] = displayIndex
 	end
-	local cmdDesc = table.copy(command)
-	cmdDesc.params = {
-		displayIndex,
-		"Hold fire",
-		"Defend",
-		userFirestate == firestates.FIRE_AT_ALL and "Fire at all" or "Fire at will",
-	}
 	return cmdDesc
 end
 
