@@ -44,9 +44,6 @@ if gadgetHandler:IsSyncedCode() then return end
 --------------------------------------------------------------------------------
 
 local spEcho                     = Spring.Echo
-local spGetMyAllyTeamID          = Spring.GetMyAllyTeamID
-local spGetSpectatingState       = Spring.GetSpectatingState
-local spIsPosInLos            = Spring.IsPosInLos
 local spGetAllUnits              = Spring.GetAllUnits
 local spGetUnitTeam              = Spring.GetUnitTeam
 local spGetUnitAllyTeam          = Spring.GetUnitAllyTeam
@@ -68,9 +65,6 @@ local spGetUnitWorkerTask        = Spring.GetUnitWorkerTask
 local spGetUnitHealth            = Spring.GetUnitHealth
 local spGetUnitMoveTypeData      = Spring.GetUnitMoveTypeData
 local spIsUnitVisible            = Spring.IsUnitVisible
-local spGetUnitLosState          = Spring.GetUnitLosState
-local spIsSphereInView           = Spring.IsSphereInView
-local spGetCameraPosition        = Spring.GetCameraPosition
 local spGetUnitCollisionVolumeData = Spring.GetUnitCollisionVolumeData
 local spGetGroundHeight          = Spring.GetGroundHeight
 
@@ -78,12 +72,6 @@ local spGetGroundHeight          = Spring.GetGroundHeight
 -- Used for CMD_RESURRECT (always) and CMD_RECLAIM of features. See engine
 -- LuaSyncedRead.cpp::GetBuilderWorkerTask.
 local MAX_UNITS = Game.maxUnits or 32000
-
-local glBlending  = gl.Blending
-local glTexture   = gl.Texture
-local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
-local glCulling   = gl.Culling
 
 local GL_ONE                 = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -100,8 +88,6 @@ local mathSqrt   = math.sqrt
 local mathFloor  = math.floor
 local mathCeil   = math.ceil
 local mathLog    = math.log
-local spGetTimer   = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
 
 local CMD_RECLAIM   = CMD.RECLAIM
 local CMD_RESURRECT = CMD.RESURRECT
@@ -592,7 +578,7 @@ local trackedBuildersList = {}  -- arrayIndex -> unitID
 local trackUnit
 
 -- Cached visibility state
-local cachedAllyTeamID   = spGetMyAllyTeamID()
+local cachedAllyTeamID   = Spring.GetMyAllyTeamID()
 local cachedSpecFullView = false
 
 -- Debug instrumentation: timers + per-30f Echo. Toggle to true to profile.
@@ -608,9 +594,9 @@ local _dbgTDraw    = 0  -- DrawWorld time (incl. cull)
 local _dbgDraws    = 0
 
 local function refreshSpec()
-	local spec, fullView = spGetSpectatingState()
+	local spec, fullView = Spring.GetSpectatingState()
 	cachedSpecFullView = spec and fullView
-	cachedAllyTeamID   = spGetMyAllyTeamID()
+	cachedAllyTeamID   = Spring.GetMyAllyTeamID()
 end
 
 -- High gamespeed throttle. When the engine runs faster than 1x (catchup after
@@ -1682,7 +1668,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			if spIsUnitVisible(builderID, cachedAllyTeamID) then
 				builderVisTier = 2
 			else
-				local losBits = spGetUnitLosState(builderID, cachedAllyTeamID, true) or 0
+				local losBits = Spring.GetUnitLosState(builderID, cachedAllyTeamID, true) or 0
 				-- INRADAR bitmask bit = 2 (bit 1). losBits % 4 >= 2 isolates bit 1
 				-- regardless of higher bits (PREVLOS = 4, CONTRADAR = 8).
 				builderVisTier = (losBits % 4 >= 2) and 1 or 0
@@ -1778,7 +1764,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				if losFrame and (frame - losFrame) < LOS_CACHE_FRAMES then
 					visible = info.losVisible
 				else
-					visible = spIsPosInLos(px, py, pz, cachedAllyTeamID) and true or false
+					visible = Spring.IsPosInLos(px, py, pz, cachedAllyTeamID) and true or false
 					info.losFrame   = frame
 					info.losVisible = visible
 				end
@@ -2743,7 +2729,7 @@ local function scanBuilders(frame)
   if not skipEmit then
 	-- Camera position for the per-emit distance throttle. One call per scan;
 	-- DISTANT_EMIT_* squared bands live at module scope.
-	local camX, camY, camZ = spGetCameraPosition()
+	local camX, camY, camZ = Spring.GetCameraPosition()
 
 	-- Dynamic stride: empty pool -> 1 (full fidelity), near full -> MAX_SCAN_STRIDE.
 	-- Per-builder elapsed-frames-based emit count compensates so total rate is constant.
@@ -2944,7 +2930,7 @@ local function scanBuilders(frame)
 								if meta and meta.visEpoch == piecePosEpoch then
 									visible = meta.visible
 								else
-									visible = spIsSphereInView(ex, ey, ez, 64) and true or false
+									visible = Spring.IsSphereInView(ex, ey, ez, 64) and true or false
 									if meta then
 										meta.visEpoch = piecePosEpoch
 										meta.visible  = visible
@@ -3348,7 +3334,7 @@ function gadget:GameFrame(n)
 	-- every 10 seconds is plenty for the safety net.
 	if n % 300 == 0 then
 		if DEBUG then
-			local t0 = spGetTimer()
+			local t0 = Spring.GetTimer()
 			local all = spGetAllUnits()
 			if all then
 				for i = 1, #all do
@@ -3358,7 +3344,7 @@ function gadget:GameFrame(n)
 					end
 				end
 			end
-			_dbgTRescan = _dbgTRescan + spDiffTimers(spGetTimer(), t0)
+			_dbgTRescan = _dbgTRescan + Spring.DiffTimers(Spring.GetTimer(), t0)
 		else
 			local all = spGetAllUnits()
 			if all then
@@ -3373,13 +3359,13 @@ function gadget:GameFrame(n)
 	end
 
 	if DEBUG then
-		local t0 = spGetTimer()
+		local t0 = Spring.GetTimer()
 		scanBuilders(n)
-		_dbgTScan = _dbgTScan + spDiffTimers(spGetTimer(), t0)
+		_dbgTScan = _dbgTScan + Spring.DiffTimers(Spring.GetTimer(), t0)
 
-		local tc0 = spGetTimer()
+		local tc0 = Spring.GetTimer()
 		cullDead(n)
-		_dbgTCull = _dbgTCull + spDiffTimers(spGetTimer(), tc0)
+		_dbgTCull = _dbgTCull + Spring.DiffTimers(Spring.GetTimer(), tc0)
 
 		_dbgFrame = _dbgFrame + 1
 		if _dbgFrame % 30 == 0 then
@@ -3663,7 +3649,7 @@ function gadget:DrawWorld()
 	if not nanoVBO or nanoVBO.usedElements == 0 then return end
 
 	local t0
-	if DEBUG then t0 = spGetTimer() end
+	if DEBUG then t0 = Spring.GetTimer() end
 
 	-- Defensive GL state setup. DrawWorld is a shared pass -- other widgets/
 	-- gadgets (placement preview, ghost overlays, range rings, command UI) can
@@ -3684,9 +3670,9 @@ function gadget:DrawWorld()
 	--   * StencilTest already enabled with a stale func that rejects
 	--     everywhere before we re-program it.
 	-- All cheap to enforce per-frame; cost is dwarfed by the VBO draw.
-	glDepthTest(GL.LEQUAL)
-	glDepthMask(false)
-	glCulling(false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(false)
+	gl.Culling(false)
 	gl.AlphaTest(false)
 	gl.Color(1, 1, 1, 1)
 	gl.ColorMask(true, true, true, true)
@@ -3698,10 +3684,10 @@ function gadget:DrawWorld()
 	-- we re-enable with the right state.
 	gl.StencilTest(false)
 	-- Engine premultiplied-alpha pass: BlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA).
-	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+	gl.Blending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 	-- Shape shader has no nanoTex sampler -- skip the bind entirely.
-	glTexture(1, "$info")
+	gl.Texture(1, "$info")
 	nanoShader:Activate()
 	-- Keep map-draw-mode state fresh per render frame so toggling metal/height/
 	-- path overlays does not spend up to 1s using stale LOS sampling state.
@@ -3732,22 +3718,22 @@ function gadget:DrawWorld()
 	nanoVBO:Draw()
 	-- Pass 2.
 	gl.StencilFunc(GL.EQUAL, GHOST_STENCIL_BIT, GHOST_STENCIL_BIT)
-	glDepthTest(false)
+	gl.DepthTest(false)
 	nanoVBO:Draw()
 	-- Restore.
-	glDepthTest(GL.LEQUAL)
+	gl.DepthTest(GL.LEQUAL)
 	gl.StencilFunc(GL.ALWAYS, 0, 0xFF)
 	gl.StencilMask(0xFF)
 	gl.StencilTest(false)
 
 	nanoShader:Deactivate()
-	glTexture(1, false)
+	gl.Texture(1, false)
 
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	glDepthMask(true)
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(true)
 
 	if DEBUG then
-		_dbgTDraw = _dbgTDraw + spDiffTimers(spGetTimer(), t0)
+		_dbgTDraw = _dbgTDraw + Spring.DiffTimers(Spring.GetTimer(), t0)
 		_dbgDraws = _dbgDraws + 1
 	end
 end
