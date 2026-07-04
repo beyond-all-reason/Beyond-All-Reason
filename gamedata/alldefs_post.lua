@@ -751,6 +751,28 @@ local function unitDef_Post(name, uDef)
 		end
 	end
 
+	-- Defend firestate: aircraft, long-range, starburst, and drone carrier units engage threats at any range in defend mode
+	-- regardless of calculated threat distance (see luarules/gadgets/unit_defend_firestate.lua).
+	--DEFEND FIRESTATE REWORK: Remove modoption guard; always set defend_never_hesitate for qualifying units
+	if modOptions.experimental_defend_firestate then
+		local DEFEND_NEVER_HESITATE_RANGE = 2000
+
+		if not customparams.defend_never_hesitate and next(weapondefs) then
+			for _, weaponDef in pairs(weapondefs) do
+				if not weaponDef.customparams.bogus then
+					if uDef.canfly
+						or weaponDef.weapontype == "StarburstLauncher"
+						or (weaponDef.range and weaponDef.range > DEFEND_NEVER_HESITATE_RANGE)
+						or (weaponDef.customparams.carried_unit and weaponDef.customparams.carried_unit ~= "")
+					then
+						customparams.defend_never_hesitate = true
+						break
+					end
+				end
+			end
+		end
+	end
+
 	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
 	if not uDef.sfxtypes then
 		uDef.sfxtypes = {}

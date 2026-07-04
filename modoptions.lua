@@ -1727,6 +1727,30 @@ local options = {
     },
 
     {
+
+    {
+        key     = "experimental_defend_firestate",
+        name    = "Defend Firestate",
+        desc    = "Replaces the fire state Return fire with Defend.\nUnits in Defend mode will shoot threats to themselves on a 1v1 basis.",
+        type    = "bool",
+        section = "options_experimental",
+        def     = false,
+    },
+
+    {
+        key     = "experimental_defend_firestate_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about the Defend firestate rework.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1520166826435280998",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "air_rework",
         name 	= "Air Rework",
         desc 	= "Prototype version with more maneuverable, slower air units and more differentiation between them.",
