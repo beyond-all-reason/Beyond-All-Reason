@@ -1220,6 +1220,8 @@
 				"losopacity": "opacity",
 				"fogdiaglines": "diagonal lines",
 				"fogdiaglines_blur": "diagonal lines blur",
+				"territorial_domination_height_opacity": "Territorial Domination Grid Fade In Height",
+				"territorial_domination_height_opacity_descr": "Adjusts when territorial domination overlays fade in by camera height. Lower shows opacity sooner; higher requires zooming out more. Center is default.",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",

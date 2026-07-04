@@ -31,6 +31,8 @@ local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMini
 
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
+local HEIGHT_OPACITY_CONFIG_KEY = "territorial_domination_height_opacity"
+local DEFAULT_CAMERA_HEIGHT_MULTIPLIER = 1.0
 local SQUARE_HEIGHT = 10
 local MAX_CAPTURE_CHANGE = 0.12
 local OWNERSHIP_THRESHOLD = 1 / math.sqrt(2)
@@ -47,6 +49,7 @@ local cachedMinimapFlipped = nil
 
 local cachedIsMinimapRendering = nil
 local cachedCameraHeights = { min = nil, max = nil }
+local cachedCameraHeightMultiplier = nil
 local cachedHeightmapTexture = nil
 local cameraHeightUpdateNeeded = false
 
@@ -166,6 +169,7 @@ local fragmentShaderSource = [[
 uniform float minCameraDrawHeight;
 uniform float maxCameraDrawHeight;
 uniform float updateFrameRateInterval;
+uniform float cameraHeightMultiplier;
 
 in VertexOutput {
 	vec4 color;
@@ -205,11 +209,13 @@ void main() {
 	
 	vec4 modifiedColor = color;
 	
+	float adjustedCameraHeight = cameraDistance / pow(cameraHeightMultiplier, 2.0);
+	
 	// Fade territory visibility based on camera height
 	float fillFadeAlpha = 1.0;
 	if (isInMinimap < 0.5) {
 		float fadeRange = maxCameraDrawHeight - minCameraDrawHeight;
-		fillFadeAlpha = clamp((cameraDistance - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
+		fillFadeAlpha = clamp((adjustedCameraHeight - minCameraDrawHeight) / fadeRange, 0.0, 1.0);
 		
 		// Add pulsing effect for recently captured territories
 		if (captureTimestamp > 0.0) {
@@ -234,7 +240,7 @@ void main() {
 	
 	// Complex border visibility: show full borders at high camera, only corners at low camera
 	if (isInMinimap < 0.5) {
-		float heightRatio = clamp((cameraDistance - minCameraDrawHeight) / (maxCameraDrawHeight - minCameraDrawHeight), 0.0, 1.0);
+		float heightRatio = clamp((adjustedCameraHeight - minCameraDrawHeight) / (maxCameraDrawHeight - minCameraDrawHeight), 0.0, 1.0);
 		
 		// At low camera: hide interior borders, only show corners
 		float innerFadeRadius = mix(1.41, 0.0, heightRatio);
@@ -323,6 +329,7 @@ local function createShader()
 			minCameraDrawHeight = minCameraHeight,
 			maxCameraDrawHeight = maxCameraHeight,
 			updateFrameInterval = UPDATE_FRAME_RATE_INTERVAL,
+			cameraHeightMultiplier = Spring.GetConfigFloat(HEIGHT_OPACITY_CONFIG_KEY, DEFAULT_CAMERA_HEIGHT_MULTIPLIER),
 		},
 	}, "territorySquareShader")
 
@@ -619,6 +626,16 @@ local function updateCameraHeightUniforms()
 	cameraHeightUpdateNeeded = false
 end
 
+local function updateCameraHeightMultiplierUniform()
+	if not squareShader then return end
+
+	local cameraHeightMultiplier = Spring.GetConfigFloat(HEIGHT_OPACITY_CONFIG_KEY, DEFAULT_CAMERA_HEIGHT_MULTIPLIER)
+	if cachedCameraHeightMultiplier ~= cameraHeightMultiplier then
+		cachedCameraHeightMultiplier = cameraHeightMultiplier
+		squareShader:SetUniformFloat("cameraHeightMultiplier", cameraHeightMultiplier)
+	end
+end
+
 local function updateHeightmapTextureUniform()
 	if not squareShader then return end
 	
@@ -647,6 +664,7 @@ function gadget:DrawWorldPreUnit()
 	squareShader:Activate()
 	updateIsMinimapRenderingUniform(0)
 	updateCameraHeightUniforms()
+	updateCameraHeightMultiplierUniform()
 	updateHeightmapTextureUniform()
 	updateMinimapFlipUniform()
 	instanceVBO.VAO:DrawElements(GL.TRIANGLES, instanceVBO.numVertices, 0, instanceVBO.usedElements)
@@ -664,6 +682,7 @@ function gadget:DrawInMiniMap()
 	squareShader:Activate()
 	updateIsMinimapRenderingUniform(1)
 	updateCameraHeightUniforms()
+	updateCameraHeightMultiplierUniform()
 	updateHeightmapTextureUniform()
 	updateMinimapFlipUniform()
 

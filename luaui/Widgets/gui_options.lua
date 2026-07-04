@@ -2959,6 +2959,12 @@ function init()
 		  end,
 		},
 
+		{ id = "territorial_domination_height_opacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.territorial_domination_height_opacity'), type = "slider", min = 0.5, max = 2.0, step = 0.05, value = Spring.GetConfigFloat("territorial_domination_height_opacity", 1.0), description = Spring.I18N('ui.settings.option.territorial_domination_height_opacity_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("territorial_domination_height_opacity", value)
+		  end,
+		},
+
 		{ id = "water", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.water'), type = "select", options = { Spring.I18N('ui.settings.option.select_low'), Spring.I18N('ui.settings.option.select_high') }, value = desiredWaterValue == 4 and 2 or 1,
 		  onload = function(i)
 		  end,
