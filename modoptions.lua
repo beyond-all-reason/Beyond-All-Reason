@@ -1730,8 +1730,8 @@ local options = {
 
     {
         key     = "experimental_defend_firestate",
-        name    = "Defend Firestate",
-        desc    = "Replaces the fire state Return fire with Defend.\nUnits in Defend mode will shoot threats to themselves on a 1v1 basis.",
+        name    = "Defend Combat Stance",
+        desc    = "Replaces Return Fire with the new Defend combat stance.\nDefending units will shoot threats to themselves when they become threats on a 1v1 basis.",
         type    = "bool",
         section = "options_experimental",
         def     = false,
@@ -1740,7 +1740,7 @@ local options = {
     {
         key     = "experimental_defend_firestate_link",
         name    = "Feedback thread",
-        desc    = "Discord discussion about the Defend firestate rework.",
+        desc    = "Discord discussion about the Defend Combat Stance rework.",
         section = "options_experimental",
         type    = "link",
         link    = "https://discord.com/channels/549281623154229250/1520166826435280998",
