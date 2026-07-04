@@ -497,6 +497,7 @@ weaponCustomParamKeys.split = {
 	vmult             = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
 	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
 	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
+	splitheight       = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
 }
 
 local function split(params, projectileID)
@@ -525,7 +526,7 @@ local function split(params, projectileID)
 
 		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
 		if spawnedID and targetType and params.scatter then
-			if targetType == targetedGround then
+			if targetType == targetedGround and target then
 				-- Assign a randomized landing target coordinate within the scatter radius
 				local angle = math_random() * 2 * math_pi
 				local dist = math_random() * params.scatter
@@ -533,7 +534,7 @@ local function split(params, projectileID)
 				local tz = target[3] + math_sin(angle) * dist
 				local ty = spGetGroundHeight(tx, tz)
 				spSetProjectileTarget(spawnedID, tx, ty, tz)
-			elseif targetType == targetedUnit then
+			elseif targetType == targetedUnit and target then
 				spSetProjectileTarget(spawnedID, target, targetedUnit)
 			end
 		end
@@ -543,12 +544,13 @@ end
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
 		if params.scatter then
-			-- New split: split when height above the ground is less than 1500 units during descent
+			-- New split: split when height above the ground is less than splitheight units during descent
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then
 				local groundHeight = spGetGroundHeight(px, pz)
 				local height = py - groundHeight
-				if height < 1500 then
+				local splitHeight = params.splitheight or 1500
+				if height < splitHeight then
 					split(params, projectileID)
 					return true
 				end
