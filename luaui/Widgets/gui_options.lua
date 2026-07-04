@@ -2294,6 +2294,7 @@ function init()
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
 			lighteffects_screenspaceshadows = 0,
+			lighteffects_nanoparticlelights = 0,
 			distortioneffects = false,
 			snow = false,
 			particles = 10000,
@@ -2318,6 +2319,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
 			lighteffects_screenspaceshadows = 1,
+			lighteffects_nanoparticlelights = 0,
 			distortioneffects = true,
 			snow = false,
 			particles = 15000,
@@ -2342,6 +2344,7 @@ function init()
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 2,
+			lighteffects_nanoparticlelights = 1,
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
@@ -2365,6 +2368,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 3,
+			lighteffects_nanoparticlelights = 1,
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
@@ -2388,6 +2392,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 4,
+			lighteffects_nanoparticlelights = 1,
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
@@ -2911,7 +2916,7 @@ function init()
 		  end,
 	  	},
 
-		{ id = "nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticleLights", 1) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
+		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticleLights", 1) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
 		  onchange = function(i, value)
 			Spring.SetConfigInt("NanoParticleLights", value and 1 or 0)
 		  end,
