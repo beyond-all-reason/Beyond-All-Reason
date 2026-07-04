@@ -228,7 +228,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
@@ -343,6 +342,7 @@ local projectileConeLightVBO = {} -- for rockets
 local projectileLightVBOMap -- a table of the above 3, keyed by light type
 
 local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+local predictivePointLightVBO = {} -- dedicated VBO for gadget-fed predictive nano lights
 
 local lightRemoveQueue = {} -- stores lights that have expired life {gameframe = {lightIDs ... }}
 
@@ -481,6 +481,7 @@ local function initGL4()
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
+	predictivePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Predictive Point Light VBO")
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
@@ -1183,6 +1184,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
 	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightSpawn')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightCorrect')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightRemove')
 
 	deferredLightShader:Delete()
 	local ram = 0
@@ -1190,6 +1194,7 @@ function widget:Shutdown()
 	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
 	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
 	ram = ram + cursorPointLightVBO:Delete()
+	ram = ram + predictivePointLightVBO:Delete()
 
 	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
 	--spEcho("featureDefLights", table.countMem(featureDefLights))
@@ -1464,7 +1469,10 @@ local function updateProjectileLights(newgameframe)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+				if debugproj then
+					local projectileName = spGetProjectileName and spGetProjectileName(projectileID) or "unknown_projectile"
+					spEcho("Adding projlight", projectileID, projectileName)
+				end
 				--trackedProjectiles[]
 				trackedProjectileTypes[projectileID] = lightType
 			end
@@ -1626,6 +1634,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	end
 
 	if pointLightVBO.usedElements > 0 or
+		predictivePointLightVBO.usedElements > 0 or
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
@@ -1698,6 +1707,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 
 		pointLightVBO:draw()
+		predictivePointLightVBO:draw()
 		projectilePointLightVBO:draw()
 
 
@@ -1865,6 +1875,64 @@ function widget:Initialize()
 			spawnframe, lifetime, sustain)                -- spawnframe, lifetime, sustain (auto-expire)
 	end
 	widgetHandler:RegisterGlobal('EnvLightningPointLight', WG['lightsgl4'].EnvLightningPointLight)
+
+	-- Gadget bridge: predictive nano point lights. Gadget sends one spawn event
+	-- per selected particle, plus sparse correction events when trajectory
+	-- changes (homing / terrain correction). Widget integrates in-between.
+	WG['lightsgl4'].EnvNanoBallisticLightSpawn = function(instanceID,
+			x, y, z, vx, vy, vz,
+			radius, r, g, b, a,
+			lifetime, sustain,
+			modelfactor, specular, scattering, lensflare,
+			spawnframe,
+			updateEvery,
+			correctionMinFrames)
+		if not instanceID or not lifetime or lifetime < 1 then
+			return false
+		end
+		local sf = spawnframe or gameFrame
+		local lightparams = {
+			x, y, z, radius,
+			vx, vy, vz, 1.0,
+			r, g, b, a,
+			modelfactor or 0.35, specular or 0.15, scattering or 0.25, lensflare or 0,
+			sf, lifetime, sustain or lifetime, 0,
+			r, g, b, 0,
+			0,
+			0, 0, 0, 0,
+		}
+		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		if instanceIndex then
+			instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+			local instData = predictivePointLightVBO.instanceData
+			instData[instanceIndex + 1] = x
+			instData[instanceIndex + 2] = y
+			instData[instanceIndex + 3] = z
+			instData[instanceIndex + 5] = vx
+			instData[instanceIndex + 6] = vy
+			instData[instanceIndex + 7] = vz
+			instData[instanceIndex + 8] = 1.0
+			instData[instanceIndex + spawnFramePos] = f
+			predictivePointLightVBO.dirty = true
+		end
+		uploadAllElements(predictivePointLightVBO)
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)
+		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
+			popElementInstance(predictivePointLightVBO, instanceID)
+		end
+		return true
+	end
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightSpawn', WG['lightsgl4'].EnvNanoBallisticLightSpawn)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightCorrect', WG['lightsgl4'].EnvNanoBallisticLightCorrect)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightRemove', WG['lightsgl4'].EnvNanoBallisticLightRemove)
 end
 
 if autoupdate then
