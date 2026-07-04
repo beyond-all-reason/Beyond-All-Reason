@@ -22,21 +22,6 @@
 	"anti_cap": 2.0  // probability 0.0~1.0 of AntiCapture action
 },
 
-//scaling of threat range based on enemy count on the field
-//helps compensate for the AI engaging in fights less and being more careful as more threat is on the battlefield
-//will scale down from 1.0 to end_scale_value between enemy_count_per_team_to_start_scaling and enemy_count_per_team_to_end_scaling
-//end_scale_value of 0.4 means that the enemies will be 60% closer to the enemy during combat considerations when there are 300+ enemies on the field per team
-//this includes mobile enemies on the field and when pathing around enemy bases
-//to disable, set end_scale_value to 1.0
-"adaptive_threat_range": {
-	//how many units it takes on the field per team to start scaling down our threat range
-	"enemy_count_per_team_to_start_scaling": 90,
-	//how many units it takes on the field per team to reach the max scaling of end_scale_value
-	"enemy_count_per_team_to_end_scaling": 550,
-	//how far down it scales the threat range once reaching enemy_count_per_team_to_end_scaling
-	"end_scale_value": 0.5  // 0.4
-},
-
 // If unit's health drops below specified percent it will retreat
 "retreat": {
 	"builder": [0.8, 0.89, 1.0],  // [<min default>, <max default>, <UnitDef modifier>] for all builders
