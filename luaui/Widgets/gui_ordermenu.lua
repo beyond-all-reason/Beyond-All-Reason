@@ -1008,7 +1008,7 @@ local function drawCell(cell, zoom)
 			local glowSize = math_floor(stateHeight * 8)
 			local r, g, b, a = 0, 0, 0, 0
 			for i = 1, statecount do
-				if (i >= fillMin and i <= fillMax) or i == desiredState then
+				if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
 					if i == 1 then
 						r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
 					elseif i == 2 then
@@ -1036,7 +1036,7 @@ local function drawCell(cell, zoom)
 					glRect(x1, y1, x2, y2)
 				end
 				-- fancy active state glow
-				if rows < 6 and i >= fillMin and i <= fillMax then
+				if rows < 6 and fillMin and fillMax and i >= fillMin and i <= fillMax then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					glColor(r, g, b, 0.09)
 					glTexture(barGlowCenterTexture)
