@@ -56,6 +56,9 @@ local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 local targetedGround = string.byte('g')
 local targetedUnit = string.byte('u')
 
+local bypassedNukes = {}
+local legsilo_legicbm_id
+
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
@@ -488,16 +491,18 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	number            = tonumber, -- count of projectiles to spawn
-	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
-	cegtag            = tostring, -- as `projectileParams.cegTag`
-	model             = tostring, -- as `projectileParams.model`
-	scatter           = tonumber, -- scatter radius around target
-	vmult             = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
-	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
-	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
-	splitheight       = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
+	speceffect_def            = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	speceffect_def_targetable = toWeaponDefID, -- optional targetable submunition weapondef
+	number_targetable         = tonumber, -- count of targetable submunitions to spawn
+	number                    = tonumber, -- count of projectiles to spawn
+	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
+	cegtag                    = tostring, -- as `projectileParams.cegTag`
+	model                     = tostring, -- as `projectileParams.model`
+	scatter                   = tonumber, -- scatter radius around target
+	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
+	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
+	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
+	splitheight               = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
 }
 
 local function split(params, projectileID)
@@ -519,12 +524,16 @@ local function split(params, projectileID)
 	local fanDiv = params.fanning_divisor or (params.scatter and 200 or 880)
 	local fanDivY = params.fanning_divisor_y or (params.scatter and 150 or 440)
 
-	for _ = 1, params.number do
+	local targetableWeaponDefID = params.speceffect_def_targetable
+	local numTargetable = params.number_targetable or 0
+
+	for i = 1, params.number do
 		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
 		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 
-		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
+		local currentWeaponDefID = (i <= numTargetable and targetableWeaponDefID) and targetableWeaponDefID or weaponDefID
+		local spawnedID = spSpawnProjectile(currentWeaponDefID, projectileParams)
 		if spawnedID and targetType and params.scatter then
 			if targetType == targetedGround and target then
 				-- Assign a randomized landing target coordinate within the scatter radius
@@ -660,6 +669,8 @@ end
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
+	legsilo_legicbm_id = WeaponDefNames.legsilo_legicbm and WeaponDefNames.legsilo_legicbm.id
+
 	local metatables = {}
 
 	for effectName, effectFunction in pairs(specialEffectFunction) do
@@ -707,10 +718,23 @@ function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 	if weaponDefEffect[weaponDefID] then
 		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
+	if weaponDefID == legsilo_legicbm_id then
+		if math_random() < 0.20 then
+			bypassedNukes[projectileID] = true
+			Spring.Echo("MIRV Nuke bypassed primary anti-nuke shield!")
+		end
+	end
 end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	bypassedNukes[projectileID] = nil
+end
+
+function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
+	if bypassedNukes[targetProjectileID] then
+		return false
+	end
 end
 
 function gadget:GameFrame(frame)
