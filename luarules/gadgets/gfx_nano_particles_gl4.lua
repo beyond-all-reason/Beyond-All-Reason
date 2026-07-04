@@ -151,6 +151,9 @@ local RENDER_MODE = "shape"
 local NanoParticleColorEqualize = 0.7   -- [0..1]
 -- Global unit particle rate/amount multiplier. 1.0 = unchanged. 0.5 = half particles per unit
 local NanoParticleRate        = 0.4   -- [0..1]
+-- Reclaiming units: tighten target-radius spawn spread so the cloud doesn't
+-- fill the whole unit footprint. 0.6 = 40% less spread.
+local RECLAIM_UNIT_JITTER_SCALE = 0.6
 -- Resurrect emits two legs (outbound + inbound). Scale the resurrect-specific
 -- spray here for BOTH legs: 1.0 = current BAR behaviour, 0.5 = half as many
 -- resurrect particles on both outbound and inbound legs
@@ -197,12 +200,6 @@ local MODE_SETTINGS = {
 		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
 		coreBoost      = 0.3,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
-
-		wobbleAmp      = 2.5,
-		wobbleVar      = 0.5,	-- 0...1 fraction of wobbleAmp
-		wobbleFreq     = 0.2,
-		wobbleFreqVar  = 0.5,	-- 0...1 fraction of wobbleFreq
-		wobbleRampFrames = 7.0,  -- frames to ramp up from 0 to full wobble amplitude (0 = instant)
 	},
 }
 
@@ -546,11 +543,6 @@ local function applyRenderMode(name)
 	U.GLOW_BREATH_FREQ_VAR = MODE.glowBreathFreqVar  or 0.0
 	U.SIZE_PULSE_AMP     = MODE.sizePulseAmp    or 0.0
 	U.SIZE_PULSE_FREQ    = MODE.sizePulseFreq   or 0.0
-	U.WOBBLE_AMP         = MODE.wobbleAmp       or 0.0
-	U.WOBBLE_FREQ        = MODE.wobbleFreq      or 0.0
-	U.WOBBLE_VAR         = MODE.wobbleVar       or 0.0
-	U.WOBBLE_FREQ_VAR    = MODE.wobbleFreqVar   or 0.0
-	U.WOBBLE_RAMP_FRAMES = MODE.wobbleRampFrames or 0.0
 	U.WHITE_HOTSPOT           = MODE.whiteHotspot          or 0.0
 	U.WHITE_HOTSPOT_THRESHOLD = MODE.whiteHotspotThreshold or 0.7
 	U.SHAPE_ID           = SHAPE_IDS[MODE.shape or "cube"] or 0
@@ -673,15 +665,9 @@ layout(location = 0) in vec4 vertexPosUV;
 layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
 layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity, w=spawnFrame
 layout(location = 3) in vec4 instColor;
-layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=wobbleStartFrame, w=deathFrame
+layout(location = 4) in vec4 rotData;           // x=rotVal0, y=rotVel0, z=reserved, w=deathFrame
 
 //__ENGINEUNIFORMBUFFERDEFS__
-
-uniform float wobbleAmp;      // peak vortex displacement perpendicular to vel (elmos)
-uniform float wobbleFreq;     // vortex rotation rate around vel (cycles/sim-second)
-uniform float wobbleVar;      // ± fractional per-particle amplitude variation (0..1)
-uniform float wobbleFreqVar;  // ± fractional per-particle frequency variation (0..1)
-uniform float wobbleRampFrames; // frames to linearly gate bell at spawn (0 = instant full wobble)
 
 out vec3 v_worldPos;
 out vec4 v_color;
@@ -712,67 +698,6 @@ void main() {
 
 	vec3 worldPos = spawnPosAndSize.xyz + velAndSpawnFrame.xyz * t;
 
-	// Vortex / swirl displacement perpendicular to vel. Use absolute time-based
-	// ramp for consistent wobble ramp speed regardless of distance/lifetime.
-	// Both forward and inverse use the same fixed ramp-up and ramp-down envelopes
-	// (12 frames each) so wobble intensity grows at the same visual speed whether
-	// particles travel far (long lifetime) or near (short).
-	// Compute wobble axis from spawn-time rotData, not homing-modified velocity.
-	// rotData.x and .y are spawn-time random (never rewritten by homing). Using
-	// these to generate a stable perpendicular basis ensures wobble doesn't flip
-	// or jitter when the particle is re-aimed during forward homing. For moving
-	// targets, velocity changes every 3 frames (HOMING_RUN_EVERY), which would
-	// cause the computed wobble axis to rotate/flip abruptly -- jittery/extreme.
-	// Deriving the basis from spawn-time values keeps it stable across updates.
-	if (wobbleAmp > 0.0001) {
-		// Lifetime-normalized sine bell: always peaks at 1.0 at midpoint regardless
-		// of travel distance. Short-range and long-range particles wobble equally.
-		// An optional linear ramp gate (wobbleRampFrames) slows the attack without
-		// affecting the natural sine fade-out.
-		float wobbleT   = max(currentFrame - rotData.z, 0.0);
-		float totalLife = max(deathFrame - rotData.z, 1.0);
-		float bell      = sin(3.14159265 * wobbleT / totalLife);
-		if (wobbleRampFrames > 0.5)
-			bell *= min(1.0, wobbleT / wobbleRampFrames);
-		vec3 vdir = velAndSpawnFrame.xyz;  // Use for secondary ref vector only
-		vec3 ref, axA, axB;
-		// Use rotData.x as seed for a stable reference direction
-		float refAngle = rotData.x * 0.01745329;  // ~1 degree per unit
-		// Generate two pseudo-random perpendicular vectors from the seed
-		float s1 = sin(refAngle), c1 = cos(refAngle);
-		float s2 = sin(refAngle * 2.19), c2 = cos(refAngle * 2.19);
-		// Choose reference based on vdir.y to avoid degenerate cross products
-		if (abs(vdir.y) < 0.95) {
-			ref = normalize(vec3(s1, c1, s2));
-		} else {
-			ref = normalize(vec3(c1, s2, c2));
-		}
-		// Generate wobble basis from spawn-time seed and ref, independent of velocity
-		float h1 = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float h2 = fract(sin(rotData.x * 23.1451 + rotData.y * 34.567) * 65432.0987);
-		axA = normalize(vec3(
-			sin(h1 * 6.28318),
-			sin(h2 * 6.28318),
-			cos(h1 * 3.14159 + h2 * 3.14159)
-		));
-		axB = cross(axA, ref);
-		if (dot(axB, axB) > 0.001) {
-			axB = normalize(axB);
-		} else {
-			// Degenerate case: fallback perpendicular
-			axB = cross(axA, (abs(axA.x) < 0.9) ? vec3(1, 0, 0) : vec3(0, 1, 0));
-			axB = normalize(axB);
-		}
-		float phaseOff = radians(rotData.x);
-		float hash     = fract(sin(rotData.x * 12.9898 + rotData.y * 78.233) * 43758.5453);
-		float freqScale = max(0.0, 1.0 + wobbleFreqVar * (2.0 * hash - 1.0));
-		float dirSign  = (fract(hash * 7.31) < 0.5) ? -1.0 : 1.0;
-		float hash2    = fract(hash * 113.7 + 0.317);
-		float ampScale = max(0.0, 1.0 + wobbleVar * (2.0 * hash2 - 1.0));
-		float ph = currentFrame * wobbleFreq * freqScale * dirSign * (6.2831853 / 30.0) + phaseOff;
-		worldPos += (axA * cos(ph) + axB * sin(ph)) * (wobbleAmp * ampScale * bell);
-	}
-
 	// Decode packed w: sizeMult in low 1024, fadeFrames * 1024 above. Sign
 	// is the inverse flag (handled above) -- abs here.
 	float packedW    = abs(spawnPosAndSize.w);
@@ -795,7 +720,6 @@ void main() {
 	v_sizeMult = sizeMult * (0.5 + 0.5 * fade);
 	// Stable per-particle seed for cube tumble phase. Homing rewrites spawnPos
 	// every frame, so derive the seed from spawn-time random rotData.x/.y only.
-	// rotData.z now tracks wobble time and must not feed the shape/noise hashes.
 	v_phaseSeed = vec3(rotData.x, rotData.y, rotData.x + rotData.y);
 	gl_Position = vec4(worldPos, 1.0);  // GS reads this
 }
@@ -1165,7 +1089,6 @@ local function initGL4()
 		                 hueJitter = U.HUE_JITTER, glowBreath = U.GLOW_BREATH, glowBreathFreq = U.GLOW_BREATH_FREQ,
 		                 glowBreathVar = U.GLOW_BREATH_VAR, glowBreathFreqVar = U.GLOW_BREATH_FREQ_VAR,
 		                 sizePulseAmp = U.SIZE_PULSE_AMP, sizePulseFreq = U.SIZE_PULSE_FREQ,
-		                 wobbleAmp = U.WOBBLE_AMP, wobbleFreq = U.WOBBLE_FREQ, wobbleVar = U.WOBBLE_VAR, wobbleFreqVar = U.WOBBLE_FREQ_VAR, wobbleRampFrames = U.WOBBLE_RAMP_FRAMES,
 		                 whiteHotspot = U.WHITE_HOTSPOT, whiteHotspotThreshold = U.WHITE_HOTSPOT_THRESHOLD },
 		shaderConfig = {},
 		forceupdate = true,
@@ -2169,6 +2092,9 @@ local function resolveTarget(info, cmdID, targetID)
 
 		local radius = isUnit and spGetUnitRadius(resolvedID) or spGetFeatureRadius(resolvedID)
 		local jitterRadius = (radius and radius > 0) and (radius * factor) or nil
+		if isReclaim and isUnit and jitterRadius then
+			jitterRadius = jitterRadius * RECLAIM_UNIT_JITTER_SCALE
+		end
 
 		meta = {
 			cmdID        = cmdID,
@@ -2501,7 +2427,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				targetPosCache[targetID]    = nil
 			else
 				-- Stationary detection: compare current pos to last-seen pos.
-				-- Threshold is generous (1 elmo) -- builders sub-elmo wobble doesn't
+				-- Threshold is generous (1 elmo) -- builders sub-elmo drift doesn't
 				-- count as movement. Streak resets on any movement.
 				local moved = true
 				if entry[5] then
