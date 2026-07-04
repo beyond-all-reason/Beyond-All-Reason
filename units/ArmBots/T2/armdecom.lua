@@ -26,6 +26,7 @@ return {
 		health = 3700,
 		hidedamage = true,
 		holdsteady = true,
+		mass = 2700, -- same as armcom's default mass (= metalcost)
 		maxacc = 0.18,
 		maxdec = 1.125,
 		maxslope = 20,

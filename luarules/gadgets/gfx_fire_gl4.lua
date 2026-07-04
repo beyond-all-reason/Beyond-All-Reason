@@ -65,6 +65,8 @@ local mathSin    = math.sin
 local mathCos    = math.cos
 local mathPi     = math.pi
 local TWO_PI     = mathPi * 2
+---@diagnostic disable-next-line: undefined-global
+local ScriptLuaUI = Script.LuaUI
 
 local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
 local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.SelfD
@@ -162,6 +164,21 @@ local CONFIG = {
 		smokeAlphaMult  = 0.67,
 		smokeSizeMult   = 1.206,
 		smokeTail       = 150,   -- smoke lingers this long after the fire stops
+		light = {
+			intervalMin   = 4,     -- minimum frames between deferred-light pulses
+			intervalJitter = 4,    -- extra randomized frame spacing (0..n)
+			lifeFrames    = 12,     -- per-pulse light lifetime in frames
+			lifeJitter    = 5,     -- random extra lifetime (0..n)
+			sustainFrac   = 0.2,   -- hold full intensity for this life fraction
+			radiusCanopyMult = 2.6,
+			radiusHeightMult = 0.35,
+			brightnessBase = 0.075,
+			secondaryBrightnessMult = 0.6,
+			modelFactor   = 0.45,
+			specular      = 0.8,
+			scattering    = 1.0,
+			lensflare     = 0.0,
+		},
 	},
 
 	-- Culling
@@ -769,6 +786,70 @@ local function emitTreeFire(e, n)
 				(mathRandom() - 0.5) * 0.15, svy, (mathRandom() - 0.5) * 0.15,
 				size, 1, life, SMOKE_TR * sv, SMOKE_TG * sv, SMOKE_TB * sv,
 				SMOKE_ALPHA * TREE_SMOKE_ALPHA_MULT * smokeDecayMult)
+		end
+	end
+
+	-- Deferred light pulses for burning trees (through LuaUI light bridge).
+	-- Keep this emitter-level and throttled; never tie this to per-particle work.
+	if n <= e.fireEnd then
+		if not e.nextLightFrame or n >= e.nextLightFrame then
+			if ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight") then
+				local lcfg = CONFIG.treeFire.light
+				e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
+
+				local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
+				if life < 1 then life = 1 end
+				local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
+
+				local scaleNorm = (e.scale - 0.16) / 0.84
+				if scaleNorm < 0 then scaleNorm = 0 elseif scaleNorm > 1 then scaleNorm = 1 end
+				local burnLifeMult = smokeFireDiminishMult
+				local flicker = 0.72 + mathRandom() * 0.56
+				local brightness = lcfg.brightnessBase * e.intensity * burnLifeMult * flicker * (0.7 + 0.5 * scaleNorm)
+
+				local radius = (e.canopyR * lcfg.radiusCanopyMult + curH * lcfg.radiusHeightMult) * (0.72 + 0.55 * burnLifeMult)
+				radius = radius * (0.9 + 0.3 * mathRandom())
+
+				if brightness > 0.001 and radius > 1 then
+					local trunkA = 0.34 + 0.20 * mathRandom()
+					local trunkAlong = curH * trunkA
+					local lx = e.x + dirx * trunkAlong * axisH
+					local ly = e.y + trunkAlong * axisUp
+					local lz = e.z + dirz * trunkAlong * axisH
+
+					local warm = 0.84 + 0.14 * mathRandom()
+					local lg = 0.36 + 0.22 * mathRandom()
+					ScriptLuaUI.EnvLightningPointLight(
+						lx, ly+40, lz, radius,
+						warm, lg, 0.10, brightness,
+						life, sustain,
+						lcfg.modelFactor,
+						lcfg.specular,
+						lcfg.scattering,
+						lcfg.lensflare,
+						n)
+
+					-- Secondary dimmer pulse near canopy / leading fire front.
+					if curH > 10 and burnLifeMult > 0.22 then
+						local canopyA = 0.68 + 0.18 * mathRandom()
+						local canopyAlong = curH * canopyA
+						local cx = e.x + dirx * canopyAlong * axisH
+						local cy = e.y + canopyAlong * axisUp
+						local cz = e.z + dirz * canopyAlong * axisH
+						local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.3 * mathRandom())
+						local cRadius = radius * (0.74 + 0.22 * mathRandom())
+						ScriptLuaUI.EnvLightningPointLight(
+							cx, cy+40, cz, cRadius,
+							1.0, 0.46, 0.12, cBright,
+							life, sustain,
+							lcfg.modelFactor,
+							lcfg.specular,
+							lcfg.scattering,
+							lcfg.lensflare,
+							n)
+					end
+				end
+			end
 		end
 	end
 end

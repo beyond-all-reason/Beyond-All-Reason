@@ -169,8 +169,6 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-
-
 local function handleSetCustomFilter(_, ruleDef)
 	customFilter = selectApi.getFilter(ruleDef)
 	customFilterDef = ruleDef
@@ -179,6 +177,12 @@ end
 local function handleClearCustomFilter(_, _, _)
 	customFilter = {}
 	customFilterDef = ""
+end
+
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
+
+local function isUnitIdle(unitID)
+	return inIdleWorkerTask[unitID] or spGetUnitCommandCount(unitID) == 0
 end
 
 
@@ -369,7 +373,7 @@ function widget:Update(dt)
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if spGetUnitCommandCount(uid) == 0 then
+			if isUnitIdle(unitID) then
 				included[#included + 1] = uid
 			end
 		end
@@ -597,7 +601,7 @@ function widget:Initialize()
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
-				if spGetUnitCommandCount(uid) == 0 then
+				if isUnitIdle(unitID) then
 					included[#included + 1] = uid
 				end
 			end

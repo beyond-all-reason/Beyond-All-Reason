@@ -20,12 +20,17 @@ if not Spring.GetModOptions().easytax then
 	return false
 end
 
+local spGetFeatureResources = Spring.GetFeatureResources
+local spSetFeatureResurrect = Spring.SetFeatureResurrect
+
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
-    if part < 0 then -- We are reclaiming some wreck
-		metal, defMetal, _, _, _, _ = Spring.GetFeatureResources(featureID)
-		if metal == defMetal then -- It's the first time we are touching this wreck/feature to reclaim it, i.e. we don't need to call SetFeatureResurrect every frame once we already set the wreck as non-resurrectable. Is this check actually faster than just always calling it?
-			Spring.SetFeatureResurrect(featureID, false) -- Set the wreck as non-resurrectable
-		end
+	if part >= 0 then
+		return true
+	end
+
+	local metal, defMetal = spGetFeatureResources(featureID)
+	if metal == defMetal then -- first reclaim touch on this wreck
+		spSetFeatureResurrect(featureID, false)
 	end
 	return true
 end
