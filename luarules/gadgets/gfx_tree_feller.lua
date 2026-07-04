@@ -21,6 +21,9 @@ if gadgetHandler:IsSyncedCode() then
 	local math_floor = math.floor
 	local math_abs = math.abs
 	local math_huge = math.huge
+	local function isFinite(v)
+		return v and v == v and v > -math_huge and v < math_huge
+	end
 
 	local spSendToUnsynced = SendToUnsynced
 
@@ -197,10 +200,23 @@ if gadgetHandler:IsSyncedCode() then
 	local GetFeaturePieceList = Spring.GetFeaturePieceList
 	local GetFeaturePieceInfo = Spring.GetFeaturePieceInfo
 	local GetFeatureHeight = Spring.GetFeatureHeight
+	local TREE_FIRE_MIN_HEIGHT = 4
+	local TREE_FIRE_DEFAULT_HEIGHT = 20
+	local TREE_FIRE_MAX_HEIGHT = 220
+	local TREE_FIRE_MAX_RADIUS = 80
+	local TREE_FIRE_RELATIVE_MAX_MULT = 3.5
 	local function getTreeFireProfile(featureID, featureDefID)
 		local height = GetFeatureHeight(featureID) or 0
 		local radius = treeRadius[featureDefID]
 		local canopyFrac = 0.6
+		local baseHeight = height
+		if not isFinite(baseHeight) or baseHeight <= 0 then
+			baseHeight = treeScaleY[featureDefID] or TREE_FIRE_DEFAULT_HEIGHT
+		end
+		local baseRadius = radius
+		if not isFinite(baseRadius) or baseRadius < 2 then
+			baseRadius = math_max(6, baseHeight * 0.2)
+		end
 		local pieces = GetFeaturePieceList(featureID)
 		if pieces and #pieces > 0 then
 			local minY, maxY = math_huge, -math_huge
@@ -222,15 +238,39 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if maxY > minY then
-				height = maxY - minY
-				if widestR > 1 then radius = widestR end
+				local meshHeight = maxY - minY
+				if isFinite(meshHeight) and meshHeight > TREE_FIRE_MIN_HEIGHT then
+					height = meshHeight
+				end
+				if isFinite(widestR) and widestR > 1 then
+					radius = widestR
+				end
 				if widestY then
-					canopyFrac = math_min(0.85, math_max(0.3, (widestY - minY) / height))
+					local denom = height
+					if not isFinite(denom) or denom <= TREE_FIRE_MIN_HEIGHT then
+						denom = baseHeight
+					end
+					local cf = (widestY - minY) / denom
+					if isFinite(cf) then
+						canopyFrac = math_min(0.85, math_max(0.3, cf))
+					end
 				end
 			end
 		end
-		if not radius or radius < 2 then radius = math_max(6, height * 0.2) end
-		if height < 4 then height = 20 end
+		if not isFinite(height) or height <= 0 then
+			height = baseHeight
+		end
+		if not isFinite(radius) or radius < 2 then
+			radius = baseRadius
+		end
+		local maxHeight = math_min(TREE_FIRE_MAX_HEIGHT, math_max(baseHeight * TREE_FIRE_RELATIVE_MAX_MULT, baseHeight + 24))
+		local maxRadius = math_min(TREE_FIRE_MAX_RADIUS, math_max(baseRadius * TREE_FIRE_RELATIVE_MAX_MULT, baseRadius + 10))
+		height = math_max(TREE_FIRE_MIN_HEIGHT, math_min(height, maxHeight))
+		radius = math_max(2, math_min(radius, maxRadius))
+		if not isFinite(canopyFrac) then
+			canopyFrac = 0.6
+		end
+		canopyFrac = math_min(0.85, math_max(0.3, canopyFrac))
 		return height, radius, canopyFrac
 	end
 
