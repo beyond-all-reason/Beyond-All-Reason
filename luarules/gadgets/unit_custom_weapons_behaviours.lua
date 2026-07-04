@@ -56,8 +56,6 @@ local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 local targetedGround = string.byte('g')
 local targetedUnit = string.byte('u')
 
-local metatables = {}
-
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
@@ -495,56 +493,13 @@ weaponCustomParamKeys.split = {
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag            = tostring, -- as `projectileParams.cegTag`
 	model             = tostring, -- as `projectileParams.model`
-	vmult             = tonumber, -- parent velocity multiplier (defaults to 1.0)
-	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 880)
-	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 440)
+	scatter           = tonumber, -- scatter radius around target
+	vmult             = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
+	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
+	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
 }
 
 local function split(params, projectileID)
-	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
-
-	spDeleteProjectile(projectileID)
-
-	local pos = projectileParams.pos
-	spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
-
-	projectileParams.gravity = gravityPerFrame
-
-	local speed = projectileParams.speed
-	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
-	local vMult = params.vmult or 1.0
-	local fanDiv = params.fanning_divisor or 880
-	local fanDivY = params.fanning_divisor_y or 440
-
-	for _ = 1, params.number do
-		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
-		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
-		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
-
-		spSpawnProjectile(weaponDefID, projectileParams)
-	end
-end
-
-specialEffectFunction.split = function(params, projectileID)
-	if isProjectileFalling(projectileID) then
-		split(params, projectileID)
-		return true
-	end
-end
-
-weaponCustomParamKeys.split_new = {
-	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	number            = tonumber, -- count of projectiles to spawn
-	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
-	cegtag            = tostring, -- as `projectileParams.cegTag`
-	model             = tostring, -- as `projectileParams.model`
-	scatter           = tonumber, -- scatter radius around target
-	vmult             = tonumber, -- parent velocity multiplier (defaults to 0.6)
-	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 200)
-	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 150)
-}
-
-local function split_new(params, projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
 	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
@@ -557,23 +512,23 @@ local function split_new(params, projectileID)
 
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
-	local scatter = params.scatter or 400
-	local vMult = params.vmult or 0.6
-	local fanDiv = params.fanning_divisor or 200
-	local fanDivY = params.fanning_divisor_y or 150
+
+	-- If scatter is defined, we default to the new damped fanning physics. Otherwise, use base game physics.
+	local vMult = params.vmult or (params.scatter and 0.6 or 1.0)
+	local fanDiv = params.fanning_divisor or (params.scatter and 200 or 880)
+	local fanDivY = params.fanning_divisor_y or (params.scatter and 150 or 440)
 
 	for _ = 1, params.number do
-		-- Damp inherited velocity to reduce forward overshoot, allowing wider fanning
 		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
 		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 
 		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
-		if spawnedID and targetType then
+		if spawnedID and targetType and params.scatter then
 			if targetType == targetedGround then
 				-- Assign a randomized landing target coordinate within the scatter radius
 				local angle = math_random() * 2 * math.pi
-				local dist = math_random() * scatter
+				local dist = math_random() * params.scatter
 				local tx = target[1] + math.cos(angle) * dist
 				local tz = target[3] + math.sin(angle) * dist
 				local ty = Spring.GetGroundHeight(tx, tz)
@@ -585,17 +540,23 @@ local function split_new(params, projectileID)
 	end
 end
 
-specialEffectFunction.split_new = function(params, projectileID)
+specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
-		local px, py, pz = spGetProjectilePosition(projectileID)
-		if px then
-			local groundHeight = spGetGroundHeight(px, pz)
-			local height = py - groundHeight
-			-- Split when height above the ground is less than 1500 units during descent
-			if height < 1500 then
-				split_new(params, projectileID)
-				return true
+		if params.scatter then
+			-- New split: split when height above the ground is less than 1500 units during descent
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			if px then
+				local groundHeight = spGetGroundHeight(px, pz)
+				local height = py - groundHeight
+				if height < 1500 then
+					split(params, projectileID)
+					return true
+				end
 			end
+		else
+			-- Original split: split immediately at apogee
+			split(params, projectileID)
+			return true
 		end
 	end
 end
@@ -697,7 +658,7 @@ end
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
-	metatables = {}
+	local metatables = {}
 
 	for effectName, effectFunction in pairs(specialEffectFunction) do
 		-- Add self-call syntax to weapondef special effects:
@@ -741,18 +702,8 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	local effect = weaponDefEffect[weaponDefID]
-	if effect then
-		local ownerID = spGetProjectileOwnerID(projectileID)
-		if ownerID and Spring.GetUnitRulesParam(ownerID, "use_new_split") == 1 then
-			if type(effect) == "table" then
-				projectiles[projectileID] = setmetatable(table.copy(effect), metatables.split_new)
-			else
-				projectiles[projectileID] = specialEffectFunction.split_new
-			end
-		else
-			projectiles[projectileID] = effect
-		end
+	if weaponDefEffect[weaponDefID] then
+		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
 end
 
