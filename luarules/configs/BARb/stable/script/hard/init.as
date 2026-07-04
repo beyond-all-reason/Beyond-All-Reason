@@ -8,9 +8,6 @@ SInitInfo AiInit()
 {
 	AiLog("hard AngelScript Rules!");
 
-	dictionary@ mo = aiSetupMgr.GetModOptions();
-	aiSetupMgr.SetWaterHarmful(string(mo["map_waterislava"]) == "1");
-
 	SInitInfo data;
 	data.armor = InitArmordef();
 	data.category = InitCategories();

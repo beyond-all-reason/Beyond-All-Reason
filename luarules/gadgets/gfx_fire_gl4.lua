@@ -64,6 +64,7 @@ local mathSqrt   = math.sqrt
 local mathSin    = math.sin
 local mathCos    = math.cos
 local mathPi     = math.pi
+local mathHuge   = math.huge
 local TWO_PI     = mathPi * 2
 ---@diagnostic disable-next-line: undefined-global
 local ScriptLuaUI = Script.LuaUI
@@ -74,6 +75,10 @@ local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Se
 local LuaShader = gl.LuaShader
 local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
 local popElementInstance  = gl.InstanceVBOTable.popElementInstance
+
+local function isFinite(v)
+	return v and v == v and v > -mathHuge and v < mathHuge
+end
 
 --------------------------------------------------------------------------------
 -- CONFIG
@@ -172,9 +177,9 @@ local CONFIG = {
 			sustainFrac   = 0.2,   -- hold full intensity for this life fraction
 			radiusCanopyMult = 2.6,
 			radiusHeightMult = 0.35,
-			brightnessBase = 0.075,
+			brightnessBase = 0.1,
 			secondaryBrightnessMult = 0.6,
-			heightOffset  = 50,
+			heightOffset  = 45,
 			modelFactor   = 0.45,
 			specular      = 0.8,
 			scattering    = 1.0,
@@ -1404,8 +1409,40 @@ end
 -- synced gfx_tree_feller gadget via RecvFromSynced. The column climbs the tree
 -- and tilts into a ground line as the tree falls. Geometry (height/radius/
 -- canopyFrac) is derived from the tree's model mesh on the synced side.
+local TREE_FIRE_MIN_HEIGHT = 4
+local TREE_FIRE_DEFAULT_HEIGHT = 20
+local TREE_FIRE_MAX_HEIGHT = 220
+local TREE_FIRE_MAX_RADIUS = 80
+local TREE_FIRE_RELATIVE_MAX_MULT = 3.5
+
 local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 	if not x or not featureID then return end
+	if not isFinite(x) or not isFinite(y) or not isFinite(z) then return end
+	local baseHeight = height
+	if not isFinite(baseHeight) or baseHeight <= 0 then
+		baseHeight = TREE_FIRE_DEFAULT_HEIGHT
+	end
+	local baseRadius = radius
+	if not isFinite(baseRadius) or baseRadius < 2 then
+		baseRadius = mathMax(6, baseHeight * 0.2)
+	end
+	if not isFinite(height) or height <= 0 then
+		height = baseHeight
+	end
+	if not isFinite(radius) or radius < 2 then
+		radius = baseRadius
+	end
+	local maxHeight = mathMin(TREE_FIRE_MAX_HEIGHT, mathMax(baseHeight * TREE_FIRE_RELATIVE_MAX_MULT, baseHeight + 24))
+	local maxRadius = mathMin(TREE_FIRE_MAX_RADIUS, mathMax(baseRadius * TREE_FIRE_RELATIVE_MAX_MULT, baseRadius + 10))
+	height = mathMax(TREE_FIRE_MIN_HEIGHT, mathMin(height, maxHeight))
+	radius = mathMax(2, mathMin(radius, maxRadius))
+	if not isFinite(canopyFrac) or canopyFrac <= 0 then
+		canopyFrac = CONFIG.treeFire.canopyFrac
+	end
+	canopyFrac = mathMax(0.3, mathMin(0.85, canopyFrac))
+	if not isFinite(dirx) or not isFinite(dirz) then
+		dirx, dirz = 1, 0
+	end
 	-- Force the engine to refresh this feature's UNSYNCED (draw) matrix every
 	-- frame. Spring.SetFeatureDirection on the synced side only updates the synced
 	-- transform; without this the falling tree's mesh stays visually upright even
@@ -1414,8 +1451,6 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 	if spSetFeatureAlwaysUpdateMatrix then
 		spSetFeatureAlwaysUpdateMatrix(featureID, true)
 	end
-	if not height or height < 4 then height = 20 end
-	if not radius or radius < 2 then radius = mathMax(6, height * 0.2) end
 	local now = cachedGameFrame
 	if not burnFrames or burnFrames < 1 then burnFrames = 210 end
 	local existing = treeFireEmitters[featureID]
