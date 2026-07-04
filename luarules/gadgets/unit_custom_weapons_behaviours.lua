@@ -719,7 +719,7 @@ function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
 	if weaponDefID == legsilo_legicbm_id then
-		if math_random() < 0.20 then
+		if math_random() < 0.05 then
 			bypassedNukes[projectileID] = true
 			Spring.Echo("MIRV Nuke bypassed primary anti-nuke shield!")
 		end
