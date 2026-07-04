@@ -1517,30 +1517,37 @@ local function updateProjectileLights(newgameframe)
 	--end
 end
 
-local configCache = {lastUpdate = Spring.GetTimer()}
+local AUTOUPDATE_CONFIG_POLL_INTERVAL = 1.5
+local AUTOUPDATE_SHADER_POLL_INTERVAL = 0.5
+
+local configCache = {lastUpdate = spGetTimer()}
+local shaderUpdateCache = {lastUpdate = spGetTimer()}
 local function checkConfigUpdates()
-	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
-		local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
-		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
-		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
-			LoadLightConfig()
-			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-			end
-			local allFeatures = spGetAllFeatures()
-			local allFeaturesLen = #allFeatures
-			for i = 1, allFeaturesLen do
-				widget:FeatureDestroyed(allFeatures[i], true)
-			end
-			for i = 1, allFeaturesLen do
-				widget:FeatureCreated(allFeatures[i], true)
-			end
-			if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
-			configCache.confa = newconfa
-			configCache.confb = newconfb
-		end
-		configCache.lastUpdate = spGetTimer()
+	local now = spGetTimer()
+	if spDiffTimers(now, configCache.lastUpdate) <= AUTOUPDATE_CONFIG_POLL_INTERVAL then
+		return
 	end
+
+	local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
+	local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
+		LoadLightConfig()
+		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		end
+		local allFeatures = spGetAllFeatures()
+		local allFeaturesLen = #allFeatures
+		for i = 1, allFeaturesLen do
+			widget:FeatureDestroyed(allFeatures[i], true)
+		end
+		for i = 1, allFeaturesLen do
+			widget:FeatureCreated(allFeatures[i], true)
+		end
+		if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
+		configCache.confa = newconfa
+		configCache.confb = newconfb
+	end
+	configCache.lastUpdate = now
 end
 
 local expavg = 0
@@ -1630,7 +1637,11 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--if true then return end
 	if skipdraw then return end
 	if autoupdate then
-		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+		local now = spGetTimer()
+		if spDiffTimers(now, shaderUpdateCache.lastUpdate) > AUTOUPDATE_SHADER_POLL_INTERVAL then
+			deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+			shaderUpdateCache.lastUpdate = now
+		end
 	end
 
 	if pointLightVBO.usedElements > 0 or
