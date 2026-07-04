@@ -1704,74 +1704,6 @@ local options = {
         linkwidth = 350,
     },
 
-    {
-        key		= "tech_blocking",
-        name   	= "Tech Blocking",
-        desc   	= "Enable tech level blocking system that prevents building units until sufficient tech points are accumulated",
-        type   	= "bool",
-        section	= "options_experimental",
-        def    	= false,
-        unlock  = {"t2_tech_threshold", "t3_tech_threshold", "unit_creation_reward_multiplier", "tech_blocking_per_team"},
-    },
-
-    {
-        key     = "tech_blocking_link",
-        name    = "Feedback thread",
-        desc    = "Discord discussion about Tech Blocking.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1447221656228728942/1447221656228728942",
-        width   = 215,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
-    {
-        key		= "t2_tech_threshold",
-        name   	= "Tech 2 Threshold",
-        desc   	= "Amount of tech points required to unlock Tech 2 units",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 720,
-        min    	= 1,
-        max    	= 100000,
-        step   	= 1,
-    },
-
-    {
-        key		= "t3_tech_threshold",
-        name   	= "Tech 3 Threshold",
-        desc   	= "Amount of tech points required to unlock Tech 3 units",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 4920,
-        min    	= 1,
-        max    	= 100000,
-        step   	= 1,
-    },
-
-    {
-        key		= "tech_blocking_per_team",
-        name   	= "Multiply Threshold by Player Count",
-        desc   	= "If enabled, tech thresholds are per player. If disabled thresholds are absolute for the whole team",
-        type   	= "bool",
-        section	= "options_experimental",
-        def    	= true,
-    },
-
-    {
-        key		= "unit_creation_reward_multiplier",
-        name   	= "Unit Creation Reward Multiplier",
-        desc   	= "Multiplier for tech points gained when creating units (0 = disabled, units give no bonus tech points)",
-        type   	= "number",
-        section	= "options_experimental",
-        def    	= 0,
-        min    	= 0,
-        max    	= 1.0,
-        step   	= 0.001,
-    },
-
     -- Hidden Tests
 
     {
@@ -1792,28 +1724,6 @@ local options = {
         hidden  = true,
         section = "options_experimental",
         def     = false,
-    },
-
-    {
-        key    	= "experimental_low_priority_pacifists",
-        name   	= "Low Priority Pacifists",
-        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key     = "experimental_low_priority_pacifists_link",
-        name    = "Feedback thread",
-        desc    = "Discord discussion about low priority pacifists.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://discord.com/channels/549281623154229250/1434671940223766679",
-        width   = 215,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
     },
 
     {
