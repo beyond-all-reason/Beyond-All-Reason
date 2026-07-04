@@ -527,11 +527,11 @@ local function split(params, projectileID)
 		if spawnedID and targetType and params.scatter then
 			if targetType == targetedGround then
 				-- Assign a randomized landing target coordinate within the scatter radius
-				local angle = math_random() * 2 * math.pi
+				local angle = math_random() * 2 * math_pi
 				local dist = math_random() * params.scatter
-				local tx = target[1] + math.cos(angle) * dist
-				local tz = target[3] + math.sin(angle) * dist
-				local ty = Spring.GetGroundHeight(tx, tz)
+				local tx = target[1] + math_cos(angle) * dist
+				local tz = target[3] + math_sin(angle) * dist
+				local ty = spGetGroundHeight(tx, tz)
 				spSetProjectileTarget(spawnedID, tx, ty, tz)
 			elseif targetType == targetedUnit then
 				spSetProjectileTarget(spawnedID, target, targetedUnit)
