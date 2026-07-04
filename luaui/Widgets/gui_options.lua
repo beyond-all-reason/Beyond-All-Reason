@@ -2911,6 +2911,12 @@ function init()
 		  end,
 	  	},
 
+		{ id = "nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticleLights", 1) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigInt("NanoParticleLights", value and 1 or 0)
+		  end,
+		},
+
 		{ id = "distortioneffects", group = "gfx", category = types.basic, widget = "Distortion GL4", name = Spring.I18N('ui.settings.option.distortioneffects'), type = "bool", value = GetWidgetToggleValue("Distortion GL4"), description = Spring.I18N('ui.settings.option.distortioneffects_descr') },
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.darkenmap'), min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = Spring.I18N('ui.settings.option.darkenmap_descr'),
