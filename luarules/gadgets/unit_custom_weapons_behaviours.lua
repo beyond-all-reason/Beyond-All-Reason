@@ -493,9 +493,11 @@ weaponCustomParamKeys.split = {
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag            = tostring, -- as `projectileParams.cegTag`
 	model             = tostring, -- as `projectileParams.model`
+	scatter           = tonumber, -- scatter radius around target
 }
 
 local function split(params, projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
 	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
@@ -507,13 +509,26 @@ local function split(params, projectileID)
 
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
+	local scatter = params.scatter or 400
 
 	for _ = 1, params.number do
-		speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / 880)
-		speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / 440)
-		speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / 880)
+		speed[1] = velocityX * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
+		speed[2] = velocityY * 0.6 + parentSpeed * (math_random(-100, 100) / 150)
+		speed[3] = velocityZ * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
 
-		spSpawnProjectile(weaponDefID, projectileParams)
+		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
+		if spawnedID and targetType then
+			if targetType == targetedGround then
+				local angle = math_random() * 2 * math.pi
+				local dist = math_random() * scatter
+				local tx = target[1] + math.cos(angle) * dist
+				local tz = target[3] + math.sin(angle) * dist
+				local ty = Spring.GetGroundHeight(tx, tz)
+				spSetProjectileTarget(spawnedID, tx, ty, tz)
+			elseif targetType == targetedUnit then
+				spSetProjectileTarget(spawnedID, target, targetedUnit)
+			end
+		end
 	end
 end
 
