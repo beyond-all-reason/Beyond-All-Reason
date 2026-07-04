@@ -538,7 +538,7 @@ specialEffectFunction.split = function(params, projectileID)
 		if px then
 			local groundHeight = spGetGroundHeight(px, pz)
 			local height = py - groundHeight
-			if height < 500 then
+			if height < 1000 then
 				split(params, projectileID)
 				return true
 			end
