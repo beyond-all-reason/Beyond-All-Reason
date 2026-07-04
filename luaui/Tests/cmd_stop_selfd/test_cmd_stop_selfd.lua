@@ -14,7 +14,7 @@ end
 
 function test()
 	widget = widgetHandler:FindWidget("Stop means Stop")
-	assert(widget)
+	assert(widget, "Stop means Stop widget not found via FindWidget")
 
 	local myTeamID = Spring.GetMyTeamID()
 
@@ -27,21 +27,21 @@ function test()
 	-- issue selfd and then issue stop
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
-	assert(Spring.GetUnitSelfDTime(unitID) > 0)
+	assert(Spring.GetUnitSelfDTime(unitID) > 0, string.format("Expected GetUnitSelfDTime > 0 after selfd, got %d", Spring.GetUnitSelfDTime(unitID)))
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
-	assert(Spring.GetUnitSelfDTime(unitID) == 0)
-	assert(Spring.GetUnitCommandCount(unitID) == 0)
+	assertEqual(Spring.GetUnitSelfDTime(unitID), 0, string.format("GetUnitSelfDTime after stop: expected 0, got %d", Spring.GetUnitSelfDTime(unitID)))
+	assertEqual(Spring.GetUnitCommandCount(unitID), 0, string.format("GetUnitCommandCount after stop: expected 0, got %d", Spring.GetUnitCommandCount(unitID)))
 
 	-- issue {move, selfd}, then issue stop
 	Spring.GiveOrderToUnit(unitID, CMD.MOVE, { 1, 1, 1 }, 0)
 	Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, { "shift" })
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.SELFD, nil, nil, nil })
-	assert(Spring.GetUnitSelfDTime(unitID) == 0)
+	assertEqual(Spring.GetUnitSelfDTime(unitID), 0, string.format("GetUnitSelfDTime for queued selfd: expected 0, got %d", Spring.GetUnitSelfDTime(unitID)))
 
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	Test.waitUntilCallinArgs("UnitCommand", { nil, nil, nil, CMD.STOP, nil, nil, nil })
-	assert(Spring.GetUnitSelfDTime(unitID) == 0)
-	assert(Spring.GetUnitCommandCount(unitID) == 0)
+	assertEqual(Spring.GetUnitSelfDTime(unitID), 0, string.format("GetUnitSelfDTime after stop of queued selfd: expected 0, got %d", Spring.GetUnitSelfDTime(unitID)))
+	assertEqual(Spring.GetUnitCommandCount(unitID), 0, string.format("GetUnitCommandCount after stop of queued selfd: expected 0, got %d", Spring.GetUnitCommandCount(unitID)))
 end

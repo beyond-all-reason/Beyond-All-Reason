@@ -25,6 +25,7 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetActiveCommand = Spring.GetActiveCommand
 
 local LineTypes = {
 	Console = -1,
@@ -1464,7 +1465,8 @@ function widget:Update(dt)
 		setCurrentChatLine(#chatLines)
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if showHistoryWhenCtrlShift and ctrl and shift then
+		local _, actCmdID, _, _ = spGetActiveCommand()
+		if showHistoryWhenCtrlShift and ctrl and shift and not actCmdID then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				historyMode = 'console'
 			else
@@ -2915,6 +2917,56 @@ function widget:GameOver()
 	gameOver = true
 end
 
+local function escapePackedField(str)
+	return (tostring(str):gsub("%%", "%%25"):gsub("|", "%%7C"):gsub(";", "%%3B"):gsub("\n", "%%0A"))
+end
+
+local function unescapePackedField(str)
+	if not str or str == "" then
+		return ""
+	end
+	return (str:gsub("%%(%x%x)", function(hex)
+		return string.char(tonumber(hex, 16))
+	end))
+end
+
+local function packOrgLines(lines)
+	if not lines or #lines == 0 then
+		return nil
+	end
+
+	local packed = {}
+	for i = 1, #lines do
+		local entry = lines[i]
+		if type(entry) == "table" and type(entry[1]) == "number" and type(entry[2]) == "string" then
+			packed[#packed + 1] = string.format("%d|%s", entry[1], escapePackedField(entry[2]))
+		end
+	end
+
+	if #packed == 0 then
+		return nil
+	end
+
+	return table.concat(packed, ";")
+end
+
+local function unpackOrgLines(packed)
+	if type(packed) ~= "string" or packed == "" then
+		return nil
+	end
+
+	local lines = {}
+	for record in string.gmatch(packed, "([^;]+)") do
+		local frameStr, packedText = string.match(record, "^([^|]+)|(.+)$")
+		local frame = tonumber(frameStr)
+		if frame and packedText then
+			lines[#lines + 1] = { frame, unescapePackedField(packedText) }
+		end
+	end
+
+	return lines
+end
+
 function widget:GetConfigData(data)
 	local inputHistoryLimited = {}
 	for k,v in ipairs(inputHistory) do
@@ -2935,7 +2987,8 @@ function widget:GetConfigData(data)
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		gameID = Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"),
-		orgLines = gameOver and nil or orgLines,
+		orgLinesPacked = gameOver and nil or packOrgLines(orgLines),
+		orgLinesPackedFormat = 1,
 		inputHistory = inputHistoryLimited,
 		maxLines = maxLines,
 		maxConsoleLines = maxConsoleLines,
@@ -2956,18 +3009,19 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.orgLines ~= nil then
+	local loadedOrgLines = unpackOrgLines(data.orgLinesPacked) or data.orgLines
+	if loadedOrgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
 			if data.playernames then
 				playernames = data.playernames
 			end
-			orgLines = data.orgLines
+			orgLines = loadedOrgLines
 			if data.soundErrors then
 				soundErrors = data.soundErrors
 			end
 		elseif data.gameID then
 			prevGameID = data.gameID
-			prevOrgLines = data.orgLines
+			prevOrgLines = loadedOrgLines
 		end
 	end
 	if data.inputHistory ~= nil then

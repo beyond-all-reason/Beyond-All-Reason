@@ -169,8 +169,6 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-
-
 local function handleSetCustomFilter(_, ruleDef)
 	customFilter = selectApi.getFilter(ruleDef)
 	customFilterDef = ruleDef
@@ -179,6 +177,12 @@ end
 local function handleClearCustomFilter(_, _, _)
 	customFilter = {}
 	customFilterDef = ""
+end
+
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
+
+local function isUnitIdle(unitID)
+	return inIdleWorkerTask[unitID] or spGetUnitCommandCount(unitID) == 0
 end
 
 
@@ -209,6 +213,17 @@ function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
 
+-- function mousePress is called after all widgets have had their chance with widget:MousePress. 
+-- If any of those widgets change the selection on mouse press, referenceSelection will not only become stale, it will be stale inconsistently because widget:SelectionChanged is deferred.
+-- So we make a snapshot of the selection before any widget has had a chance to change it (layer -999999), and use that as the reference for the selection box.
+-- This produces a consistent behavior for Ctrl+drag deselect, even if other widgets select on mouse press (e.g. Squad Selection on ctrl+left click).
+function widget:MousePress(x, y, button)
+	if button == 1 then
+		referenceSelection = spGetSelectedUnits()
+	end
+	return false
+end
+
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
 local function mousePress(x, y, button, hasMouseOwner)  --function widget:MousePress(x, y, button)
@@ -219,7 +234,6 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 
 	skipSel = false
 
-	referenceSelection = selectedUnits
 	referenceSelectionTypes = {}
 	for i = 1, #referenceSelection do
 		local udid = spGetUnitDefID(referenceSelection[i])
@@ -359,7 +373,7 @@ function widget:Update(dt)
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if spGetUnitCommandCount(uid) == 0 then
+			if isUnitIdle(unitID) then
 				included[#included + 1] = uid
 			end
 		end
@@ -587,7 +601,7 @@ function widget:Initialize()
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
-				if spGetUnitCommandCount(uid) == 0 then
+				if isUnitIdle(unitID) then
 					included[#included + 1] = uid
 				end
 			end

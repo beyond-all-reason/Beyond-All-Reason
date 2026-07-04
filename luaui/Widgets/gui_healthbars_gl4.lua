@@ -1058,18 +1058,26 @@ function widget:Initialize()
 	-- This is stuff like trees and map features, and scenario features
 	init()
 	initfeaturebars()
-	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars", FeatureReclaimStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars", UnitCaptureStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars", UnitParalyzeDamageHealthbars )
-	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB", ProjectileCreatedReloadHB )
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("FeatureReclaimStartedHealthbars" )
-	widgetHandler:DeregisterGlobal("UnitCaptureStartedHealthbars" )
-	widgetHandler:DeregisterGlobal("UnitParalyzeDamageHealthbars" )
-	widgetHandler:DeregisterGlobal("ProjectileCreatedReloadHB" )
 	spEcho("Healthbars GL4 unloaded hooks")
+end
+
+function widget:FeatureReclaimStartedHealthbars(featureID, step)
+	FeatureReclaimStartedHealthbars(featureID, step)
+end
+
+function widget:UnitCaptureStartedHealthbars(unitID, step)
+	UnitCaptureStartedHealthbars(unitID, step)
+end
+
+function widget:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+	UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+end
+
+function widget:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
+	ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

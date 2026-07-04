@@ -21,6 +21,7 @@ end
 
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
@@ -436,7 +437,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
 
@@ -614,7 +615,7 @@ if gadgetHandler:IsSyncedCode() then
 			if unitID and Spring.ValidUnitID(unitID) then
 				local h, mh = Spring.GetUnitHealth(unitID)
 				if not action then
-					Spring.DestroyUnit(unitID, false, true, nil, true)
+					Spring.DestroyUnit(unitID, false, false, unitID)
 				elseif action == 'xp' and params then
 					--Spring.SetUnitExperience(unitID, select(1, Spring.GetUnitExperience(unitID)) + tonumber(params))
 					if type(tonumber(params)) == 'number' then
@@ -641,7 +642,11 @@ if gadgetHandler:IsSyncedCode() then
 					local unitTeam = Spring.GetUnitTeam(unitID)
 					Spring.DestroyUnit(unitID, false, true)
 					if UnitDefs[unitDefID] and UnitDefs[unitDefID].corpse and FeatureDefNames[UnitDefs[unitDefID].corpse] then
-						Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].corpse].id, x, y, z, heading, unitTeam)
+						local fDefID = FeatureDefNames[UnitDefs[unitDefID].corpse].id
+						local fID = Spring.CreateFeature(fDefID, x, y, z, heading, unitTeam)
+						if fID then
+							Spring.SetFeatureResurrect(fID, unitDefID, heading)
+						end
 					end
 				end
 			end

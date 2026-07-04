@@ -127,7 +127,7 @@ void main() {
 ]]
 
 
--- NoGS vertex shader: expands points to quads using gl_VertexID modulo logic
+-- NoGS vertex shader: expands points to quads using explicit triangle lists
 local vsSrcNoGS = [[
 #version 330
 
@@ -157,8 +157,8 @@ out DataGS {
 	vec2 mirrorParams;
 };
 
-bool EmitQuadVertex(vec3 vertexOffset, bool testme) {
-	vec4 worldPos = vec4(0.0, 0.0, 0.0, 0.0);
+void EmitQuadVertex(vec3 basePos, vec3 vertexOffset, bool testme) {
+	vec4 worldPos = vec4(basePos + vertexOffset, 1.0);
 	uv = worldPos.xz / mapSize.xy;
 	mirrorParams = aMirrorParams.xy;
 	vec2 UVHM = heightmapUVatWorldPos(worldPos.xz);
@@ -197,20 +197,21 @@ bool EmitQuadVertex(vec3 vertexOffset, bool testme) {
 	alphaFog = vec2(alpha, fogFactor);
 	if (testme) {
 		bool invisible = isSphereVisibleXY(worldPos, 25.0*gridSize);
-		if ((invisible) || (alpha < 0.05)) return true;
+		if ((invisible) || (alpha < 0.05)) alphaFog.x = 0.0;
 	}
 	gl_Position = cameraViewProj * worldPos;
-	return false;
 }
 
 void main() {
-	// NoGS: Quad expansion done in vertex shader
-	// Each point becomes 4 vertices in TRIANGLE_STRIP order: TL, BL, TR, BR
-	// gl_VertexID mod 4 determines which corner
-	// gl_InstanceID selects which grid point
+	// NoGS: each quad is emitted as two triangles, so every point expands to 6 vertices.
+	// gl_VertexID / 6 selects the grid point; the remainder selects the triangle corner.
 
-	float pointID = float(gl_InstanceID);
-	int cornerID = gl_VertexID % 4;
+	float pointID = floor(float(gl_VertexID) / 6.0);
+	int cornerID = gl_VertexID % 6;
+	int quadCornerID = cornerID;
+	if (cornerID == 3) quadCornerID = 2;
+	else if (cornerID == 4) quadCornerID = 1;
+	else if (cornerID == 5) quadCornerID = 3;
 
 	float X = mapSize.x / gridSize;
 	float modX = mod(pointID, X);
@@ -222,22 +223,25 @@ void main() {
 	vec3 basePos = vec3(x, 0.0, z);
 	vec3 vertexOffset = vec3(0.0, 0.0, 0.0);
 
-	// Determine quad corner offset based on cornerID
+	// Determine quad corner offset.
+	// Keep GS-equivalent ordering for the double-flip corner to preserve diagonal direction.
+	// Use tolerant comparisons instead of exact float equality for robustness on some drivers.
 	if (all(equal(aMirrorParams, vec4(0.0)))) {
 		vertexOffset = vec3(0.0, 0.0, 0.0);
-	} else if (all(equal(aMirrorParams.xy, vec2(1.0)))) {
-		if (cornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
-		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
-		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+	} else if (aMirrorParams.x > 0.5 && aMirrorParams.y > 0.5) {
+		if (quadCornerID == 0) vertexOffset = vec3(gridSize, 0.0, 0.0);
+		else if (quadCornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (quadCornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
 		else vertexOffset = vec3(0.0, 0.0, gridSize);
 	} else {
-		if (cornerID == 0) vertexOffset = vec3(0.0, 0.0, gridSize);
-		else if (cornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
-		else if (cornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
+		if (quadCornerID == 0) vertexOffset = vec3(0.0, 0.0, gridSize);
+		else if (quadCornerID == 1) vertexOffset = vec3(0.0, 0.0, 0.0);
+		else if (quadCornerID == 2) vertexOffset = vec3(gridSize, 0.0, gridSize);
 		else vertexOffset = vec3(gridSize, 0.0, 0.0);
 	}
 
-	EmitQuadVertex(vertexOffset, cornerID == 0);
+	// NoGS cannot cull whole primitives from the vertex stage, so avoid per-corner test-based alpha changes.
+	EmitQuadVertex(basePos, vertexOffset, false);
 }
 ]]
 
@@ -727,50 +731,52 @@ function widget:Initialize()
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	vsSrcNoGS = vsSrcNoGS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
-	-- Compile-probe: test if geometry shader can compile
-	if (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) then
-		local probeShader = gl.CreateShader({
-			vertex = vsSrc,
-			geometry = gsSrc,
+	-- Robust fallback: use the exact same compile/init path for the probe and the real shader.
+	-- Some drivers can fail gl.CreateShader probes while succeeding LuaShader:Initialize().
+	local function InitForwardShader(useGeometry)
+		local shaderConfig = {
+			vertex = useGeometry and vsSrc or vsSrcNoGS,
 			fragment = fsSrc,
-		})
-		if probeShader then
-			gl.DeleteShader(probeShader)
-			mapEdgeUseGeometryShader = true
-		else
-			mapEdgeUseGeometryShader = false
+			uniformInt = {
+				colorTex = 0,
+				heightTex = 1,
+				mapNormalTex = 2,
+			},
+			uniformFloat = {
+				shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
+			},
+		}
+
+		if useGeometry then
+			shaderConfig.geometry = gsSrc
 		end
-	else
+
+		local shader = LuaShader(shaderConfig, "Map Extension Shader2")
+		local ok = shader:Initialize()
+		if ok then
+			return shader, true
+		end
+
+		if shader and shader.shaderObj ~= nil then
+			shader:Finalize()
+		end
+		return nil, false
+	end
+
+	local gsSupported = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported)
+	if gsSupported then
+		mapExtensionShader, mapEdgeUseGeometryShader = InitForwardShader(true)
+	end
+
+	if not mapExtensionShader then
+		mapExtensionShader, _ = InitForwardShader(false)
 		mapEdgeUseGeometryShader = false
 	end
 
-	-- Use appropriate shader based on GS availability
-	local vsSrcToUse = mapEdgeUseGeometryShader and vsSrc or vsSrcNoGS
-	local gsSrcToUse = mapEdgeUseGeometryShader and gsSrc or nil
-
-	local shaderConfig = {
-		vertex = vsSrcToUse,
-		fragment = fsSrc,
-		uniformInt = {
-			colorTex = 0,
-			heightTex = 1,
-			mapNormalTex = 2,
-		},
-		uniformFloat = {
-			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
-		},
-	}
-
-	if gsSrcToUse then
-		shaderConfig.geometry = gsSrcToUse
-	end
-
-	mapExtensionShader = LuaShader(shaderConfig, "Map Extension Shader2")
-	local shaderCompiled = mapExtensionShader:Initialize()
-
-	if not shaderCompiled then
+	if not mapExtensionShader then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 
@@ -791,8 +797,14 @@ function widget:Initialize()
 	local shaderCompiled = mapExtensionShaderDeferred:Initialize()
 
 	if not shaderCompiled then
+		mapExtensionShaderDeferred = nil
+		if mapExtensionShader and mapExtensionShader.shaderObj ~= nil then
+			mapExtensionShader:Finalize()
+		end
+		mapExtensionShader = nil
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
+		return
 	end
 
 	Spring.SendCommands("luaui disablewidget External VR Grid")
@@ -801,9 +813,15 @@ end
 function widget:Shutdown()
 	Spring.SendCommands('mapborder '..(restoreMapBorder and '1' or '0'))
 
-	if mapExtensionShader then
+	if mapExtensionShader and mapExtensionShader.shaderObj ~= nil then
 		mapExtensionShader:Finalize()
 	end
+	mapExtensionShader = nil
+
+	if mapExtensionShaderDeferred and mapExtensionShaderDeferred.shaderObj ~= nil then
+		mapExtensionShaderDeferred:Finalize()
+	end
+	mapExtensionShaderDeferred = nil
 
 	if terrainVAO then
 		--terrainVAO:Delete()
@@ -1025,8 +1043,9 @@ function widget:DrawWorldPreUnit()
 			-- GS mode: draw points, geometry shader expands to quads
 			terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 		else
-			-- NoGS mode: draw triangle strips (4 vertices per point)
-			terrainVAO:DrawArrays(GL.TRIANGLE_STRIP, numPoints * 4, 0, #mirrorParams / 4)
+			-- NoGS mode: draw explicit triangles (6 vertices per point)
+			-- Skip the synthetic zero-mirror seam instance here; it is handled by the GS path only.
+			terrainVAO:DrawArrays(GL.TRIANGLES, numPoints * 6, 0, math.max(0, (#mirrorParams / 4) - 1))
 		end
 	--end)
 	mapExtensionShader:Deactivate()
@@ -1040,16 +1059,12 @@ function widget:DrawWorldPreUnit()
 	gl.Culling(GL.BACK)
 end
 
-local lastSunChanged = -1
-function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
+local function NightFactorChanged(red, green, blue)
+	nightFactor = (red + green + blue) * 0.33
+end
 
-	if df == lastSunChanged then return end
-	lastSunChanged = df
-	-- Do the math:
-	if WG['NightFactor'] then
-		nightFactor = (WG['NightFactor'].red + WG['NightFactor'].green + WG['NightFactor'].blue) * 0.33
-	end
+function widget:NightFactorChanged(red, green, blue, shadow, altitude)
+	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
 function widget:GetConfigData(data)

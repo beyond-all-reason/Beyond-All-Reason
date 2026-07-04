@@ -382,30 +382,50 @@ end
 --  Position
 ---------------------------------------------------------------------------------------------------
 
-local parentPos = {}
+local parentPos = { 0, 0, 0, 0, 1 }
+local fallbackPos = { 0, 0, 0, 0, 1 }
 local positionChange = os.clock()
+local positionPollInterval = 0.2
+local positionPollTimer = 0
 
 function updatePosition(force)
-	local prevPos = parentPos
+	local p1, p2, p3, p4, p5
+	local pos
 	if WG['displayinfo'] ~= nil then
-		parentPos = WG['displayinfo'].GetPosition()
+		p1, p2, p3, p4, p5 = WG['displayinfo'].GetPosition()
 	elseif WG['unittotals'] ~= nil then
-		parentPos = WG['unittotals'].GetPosition()
+		p1, p2, p3, p4, p5 = WG['unittotals'].GetPosition()
 	elseif WG['music'] ~= nil then
-		parentPos = WG['music'].GetPosition()
+		p1, p2, p3, p4, p5 = WG['music'].GetPosition()
 	elseif WG['advplayerlist_api'] ~= nil then
-		parentPos = WG['advplayerlist_api'].GetPosition()
+		p1, p2, p3, p4, p5 = WG['advplayerlist_api'].GetPosition()
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
-		parentPos = {0, vsx-(220*scale), 0, vsx, scale}
+		fallbackPos[1] = 0
+		fallbackPos[2] = vsx - (220 * scale)
+		fallbackPos[3] = 0
+		fallbackPos[4] = vsx
+		fallbackPos[5] = scale
+		p1, p2, p3, p4, p5 = fallbackPos[1], fallbackPos[2], fallbackPos[3], fallbackPos[4], fallbackPos[5]
 	end
-	if parentPos[5] ~= nil then
-		usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
-		xPos = parentPos[2] + (usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
-		yPos = parentPos[1] + (usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
+
+	if type(p1) == 'table' then
+		pos = p1
+		p1, p2, p3, p4, p5 = pos[1], pos[2], pos[3], pos[4], pos[5]
+	end
+
+	if type(p1) == 'number' and type(p2) == 'number' and type(p5) == 'number' then
+		usedImgSize = OPTIONS[currentOption]['imageSize'] * p5
+		xPos = p2 + (usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * p5)
+		yPos = p1 + (usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * p5)
 		positionChange = os.clock()
 
-		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
+		if (parentPos[1] ~= p1 or parentPos[2] ~= p2 or parentPos[5] ~= p5) or force then
+			parentPos[1] = p1
+			parentPos[2] = p2
+			parentPos[3] = p3
+			parentPos[4] = p4
+			parentPos[5] = p5
 			createList(usedImgSize)
 		end
 	end
@@ -576,7 +596,11 @@ function widget:Update(dt)
 		end
 	end
 
-	updatePosition()
+	positionPollTimer = positionPollTimer + dt
+	if positionPollTimer >= positionPollInterval then
+		positionPollTimer = positionPollTimer - positionPollInterval
+		updatePosition()
+	end
 end
 
 function widget:DrawScreen()

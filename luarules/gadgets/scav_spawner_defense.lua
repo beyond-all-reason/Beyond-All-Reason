@@ -1105,6 +1105,18 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					bossStagger.currentlyStaggered = true
 					bossStagger.CurrentTimer = bossStagger.Time + 0
+					for bossID, _ in pairs(bossIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(bossID)
+						Spring.AddUnitDamage(bossID, 0, 1600000)
+						Spring.SetUnitHealth(bossID, {paralyze = 16000000})
+						for j = 1,50 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000), 0,0,0)
+							end
+						end
+					end
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
 				end
 			end
@@ -1114,7 +1126,16 @@ if gadgetHandler:IsSyncedCode() then
 				if bossStagger.CurrentTimer > 0 then
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
 					for bossID, _ in pairs(bossIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(bossID)
+						Spring.AddUnitDamage(bossID, 0, 1600000)
 						Spring.SetUnitHealth(bossID, {paralyze = 16000000})
+						for j = 1,10 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+							end
+						end
 					end
 				else
 					bossStagger.currentlyStaggered = false
@@ -1738,17 +1759,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				attackerDefID = tostring(attackerDefID)
+				local resistMult = config.bossResistanceMult
 				if not bossResistance[attackerDefID] then
 					bossResistance[attackerDefID] = {
-						damage = damage * 5 * config.bossResistanceMult,
+						damage = damage * 5 * resistMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((bossResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local br = bossResistance[attackerDefID]
+				local resistPercent = math.min(br.damage / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if bossResistance[attackerDefID].notify == 0 then
+					if br.notify == 0 then
 						scavEvent("bossResistance", tonumber(attackerDefID))
-						bossResistance[attackerDefID].notify = 1
+						br.notify = 1
 					end
 					damage = damage - (damage * resistPercent)
 				end
@@ -1762,12 +1785,18 @@ if gadgetHandler:IsSyncedCode() then
 				if bossStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
 					bossStagger.CurrentTimer = bossStagger.CurrentTimer - (damage*0.0001)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+					else
+						SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+					end
 				else
 					damage = damage - (damage * resistPercent)
 				end
 
-				bossResistance[attackerDefID].damage = bossResistance[attackerDefID].damage + (damage * 5 * config.bossResistanceMult)
-				bossResistance[attackerDefID].percent = resistPercent
+				br.damage = br.damage + (damage * 5 * resistMult)
+				br.percent = resistPercent
 			else
 				damage = 1
 			end
@@ -1794,6 +1823,9 @@ if gadgetHandler:IsSyncedCode() then
 	UnitReactionsTimeout = {}
 	UnitLifetimeResetTimeout = {}
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+		if not UnitReactionsTimeout[unitID] then
+			UnitReactionsTimeout[unitID] = 0
+		end
 		if UnitReactionsTimeout[unitID] and UnitReactionsTimeout[unitID] < GetGameSeconds-2 then
 			if config.scavBehaviours.SKIRMISH[attackerDefID] and (unitTeam ~= scavTeamID) and attackerID and (mRandom() < config.scavBehaviours.SKIRMISH[attackerDefID].chance) and unitTeam ~= attackerTeam then
 				UnitReactionsTimeout[unitID] = GetGameSeconds
@@ -2218,11 +2250,11 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(scavTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
+				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
+					unitCowardCooldown[unitID] = nil
+					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
 				if ((math.random(1,10) == 1 or bossIDs[unitID]) and GetUnitCommandCount(unitID) == 0) then
-					if unitCowardCooldown[unitID] and (GetGameFrame > unitCowardCooldown[unitID]) then
-						unitCowardCooldown[unitID] = nil
-						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					end
 					if unitCowardCooldown[unitID] then
 						unitCowardCooldown[unitID] = nil
 					end

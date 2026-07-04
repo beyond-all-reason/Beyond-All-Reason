@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
-	local lsx1, lsz1, lsx2, lsz2
+	local lsx1, lsz1, lsx2, lsz2 = 0, 0, Game.mapSizeX, Game.mapSizeZ
 	local burrows = {}
 	local aliveEggsTable = {}
 	local squadsTable = {}
@@ -956,6 +956,18 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					queenStagger.currentlyStaggered = true
 					queenStagger.CurrentTimer = queenStagger.Time + 0
+					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
+						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,50 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000), 0,0,0)
+							end
+						end
+					end
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 				end
 			end
@@ -965,7 +977,16 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.CurrentTimer > 0 then
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
 						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,10 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+							end
+						end
 					end
 				else
 					queenStagger.currentlyStaggered = false
@@ -1527,17 +1548,19 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				attackerDefID = tostring(attackerDefID)
+				local resistMult = config.queenResistanceMult
 				if not queenResistance[attackerDefID] then
 					queenResistance[attackerDefID] = {
-						damage = damage * 5 * config.queenResistanceMult,
+						damage = damage * 5 * resistMult,
 						notify = 0
 					}
 				end
-				local resistPercent = math.min((queenResistance[attackerDefID].damage) / aliveBossesMaxHealth, 0.95)
+				local qr = queenResistance[attackerDefID]
+				local resistPercent = math.min(qr.damage / aliveBossesMaxHealth, 0.95)
 				if resistPercent > 0.5 then
-					if queenResistance[attackerDefID].notify == 0 then
+					if qr.notify == 0 then
 						raptorEvent("queenResistance", tonumber(attackerDefID))
-						queenResistance[attackerDefID].notify = 1
+						qr.notify = 1
 					end
 
 				end
@@ -1550,13 +1573,19 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
 					queenStagger.CurrentTimer = queenStagger.CurrentTimer - (damage*0.0001)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+					else
+						SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+					end
 				else
 					damage = damage - (damage * resistPercent)
 				end
-				
-				queenResistance[attackerDefID].damage = queenResistance[attackerDefID].damage + (damage * 5 * config.queenResistanceMult)
-				queenResistance[attackerDefID].percent = resistPercent
-				
+
+				qr.damage = qr.damage + (damage * 5 * resistMult)
+				qr.percent = resistPercent
+
 			else
 				damage = 1
 			end
@@ -1577,7 +1606,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		return damage, 1
-	end	
+	end
 
 	UnitReactionsTimeout = {}
 	UnitLifetimeResetTimeout = {}
@@ -2070,11 +2099,11 @@ if gadgetHandler:IsSyncedCode() then
 				if defID and mRandom(1,math.ceil((33*math.max(1, GetTeamUnitDefCount(raptorTeamID, defID))))) == 1 and mRandom() < config.spawnChance then
 					SpawnMinions(unitID, defID)
 				end
+				if math.random(1,10) == 1 and unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
+					unitCowardCooldown[unitID] = nil
+					GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
 				if ((math.random(1,10) == 1 or queenIDs[unitID]) and GetUnitCommandCount(unitID) == 0) then
-					if unitCowardCooldown[unitID] and (n > unitCowardCooldown[unitID]) then
-						unitCowardCooldown[unitID] = nil
-						GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
-					end
 					if unitCowardCooldown[unitID] then
 						unitCowardCooldown[unitID] = nil
 					end

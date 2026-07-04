@@ -30,7 +30,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		sightemitheight = 40,
-		mass = 4999,
 		health = 3700,
 		maxslope = 20,
 		speed = 37.5,

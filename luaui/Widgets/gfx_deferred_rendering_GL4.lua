@@ -1182,7 +1182,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('UnitScriptLight')
 	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
 
 	deferredLightShader:Delete()
@@ -1558,9 +1557,11 @@ function widget:Update(dt)
 			cursorLights = {}
 		end
 		local cursors, notIdle = WG['allycursors'].getCursors()
+		local isCursorVisible = WG['allycursors'].isCursorVisible
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
-			if teamColor and not cursor[8] and notIdle[playerID] then
+			local visibleToViewer = (not isCursorVisible) or isCursorVisible(playerID)
+			if teamColor and not cursor[8] and notIdle[playerID] and visibleToViewer then
 				if not cursorLights[playerID] and not cursor[8] then
 					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
@@ -1577,6 +1578,9 @@ function widget:Update(dt)
 						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
 					end
 				end
+			elseif cursorLights[playerID] then
+				popElementInstance(cursorPointLightVBO, cursorLights[playerID])
+				cursorLights[playerID] = nil
 			end
 		end
 		uploadAllElements(cursorPointLightVBO)
@@ -1844,8 +1848,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
-
 	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
 	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
 	-- The gadget owns all tuning (see its lightning configs); this just forwards the
@@ -1869,6 +1871,10 @@ if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end
+end
+
+function widget:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	UnitScriptLight(unitID, unitDefID, lightIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 
