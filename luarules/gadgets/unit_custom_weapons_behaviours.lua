@@ -495,6 +495,9 @@ weaponCustomParamKeys.split = {
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag            = tostring, -- as `projectileParams.cegTag`
 	model             = tostring, -- as `projectileParams.model`
+	vmult             = tonumber, -- parent velocity multiplier (defaults to 1.0)
+	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 880)
+	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 440)
 }
 
 local function split(params, projectileID)
@@ -509,11 +512,14 @@ local function split(params, projectileID)
 
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
+	local vMult = params.vmult or 1.0
+	local fanDiv = params.fanning_divisor or 880
+	local fanDivY = params.fanning_divisor_y or 440
 
 	for _ = 1, params.number do
-		speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / 880)
-		speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / 440)
-		speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / 880)
+		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
+		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 
 		spSpawnProjectile(weaponDefID, projectileParams)
 	end
@@ -533,6 +539,9 @@ weaponCustomParamKeys.split_new = {
 	cegtag            = tostring, -- as `projectileParams.cegTag`
 	model             = tostring, -- as `projectileParams.model`
 	scatter           = tonumber, -- scatter radius around target
+	vmult             = tonumber, -- parent velocity multiplier (defaults to 0.6)
+	fanning_divisor   = tonumber, -- X/Z spread divisor (defaults to 200)
+	fanning_divisor_y = tonumber, -- Y spread divisor (defaults to 150)
 }
 
 local function split_new(params, projectileID)
@@ -549,12 +558,15 @@ local function split_new(params, projectileID)
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 	local scatter = params.scatter or 400
+	local vMult = params.vmult or 0.6
+	local fanDiv = params.fanning_divisor or 200
+	local fanDivY = params.fanning_divisor_y or 150
 
 	for _ = 1, params.number do
-		-- Damp inherited velocity by 40% to reduce forward overshoot, allowing wider fanning
-		speed[1] = velocityX * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
-		speed[2] = velocityY * 0.6 + parentSpeed * (math_random(-100, 100) / 150)
-		speed[3] = velocityZ * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
+		-- Damp inherited velocity to reduce forward overshoot, allowing wider fanning
+		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
+		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 
 		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
 		if spawnedID and targetType then
