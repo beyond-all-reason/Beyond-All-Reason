@@ -1425,11 +1425,27 @@ local function refreshTeamColors()
 			r, g, b = equalizeColor(r, g, b)
 			if r and (r ~= c[1] or g ~= c[2] or b ~= c[3]) then
 				c[1], c[2], c[3] = r, g, b
+				local lr, lg, lb = r, g, b
+				if r and g and b then
+					local luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+					if luma >= 0.001 then
+						local scale = 0.55 / luma
+						lr, lg, lb = r * scale, g * scale, b * scale
+						local m = lr
+						if lg > m then m = lg end
+						if lb > m then m = lb end
+						if m > 1.0 then
+							local k = 1.0 / m
+							lr, lg, lb = lr * k, lg * k, lb * k
+						end
+					end
+				end
 				local infos = builderCacheByTeam[team]
 				if infos then
 					for i = 1, #infos do
 						local info = infos[i]
 						info.r = r; info.g = g; info.b = b
+						info.lr = lr; info.lg = lg; info.lb = lb
 					end
 				end
 			end
@@ -1532,6 +1548,21 @@ local function getBuilderInfo(builderID)
 	if not team then return nil end -- transient (e.g. during creation), retry next frame
 
 	local r, g, b = getTeamColor(team)
+	local lr, lg, lb = r, g, b
+	if r and g and b then
+		local luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+		if luma >= 0.001 then
+			local scale = 0.55 / luma
+			lr, lg, lb = r * scale, g * scale, b * scale
+			local m = lr
+			if lg > m then m = lg end
+			if lb > m then m = lb end
+			if m > 1.0 then
+				local k = 1.0 / m
+				lr, lg, lb = lr * k, lg * k, lb * k
+			end
+		end
+	end
 	local ud = UnitDefs[udid]
 	-- buildDistance is used to gate emissions on fast-moving targets (planes
 	-- etc.) that fly out of the builder's reach mid-build. Factories do not
@@ -1544,6 +1575,7 @@ local function getBuilderInfo(builderID)
 		pieces        = pieces,
 		nPieces       = #pieces,
 		r = r, g = g, b = b,
+		lr = lr, lg = lg, lb = lb,
 		team          = team,
 		allyTeam      = spGetUnitAllyTeam(builderID),
 		isFactory     = ud and ud.isFactory or false,
@@ -1881,7 +1913,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 							px, py, pz,
 							vx, vy, vz,
 							nl.spawnRadius or 25,
-							r, g, b, nl.alpha,
+							info.lr or r, info.lg or g, info.lb or b, nl.alpha,
 							lightLifetime,
 							sustain,
 							0.35, 0.15, 0.20, 0.0,
@@ -3315,7 +3347,7 @@ function gadget:GameFrame(n)
 		nl.enabled = (Spring.GetConfigInt("NanoParticleLights", 1) == 1)
 		if nl.enabled then
 			nl.spawnRadius = 33
-			nl.alpha = 0.07
+			nl.alpha = 0.05
 			nl.correctEvery = 20
 			nl.lifeMult = 2.2
 			nl.minLifetime = 14
@@ -3509,6 +3541,10 @@ function gadget:UnitFinished(unitID, unitDefID)
 	homingFwdByTarget[unitID] = nil
 	fadeFwdByTarget[unitID]   = nil
 	targetPosCache[unitID]    = nil
+	-- Keep a completion timestamp so HOMING_SKIP_GRACE_FRAMES still applies
+	-- after UnitFinished; clearing this here made fresh emissions immediately
+	-- re-enter forward homing and chase units as they roll out of factories.
+	targetIncompleteCache[unitID] = { piecePosEpoch, false, Spring.GetGameFrame() }
 	-- Invalidate cached target state on any builder that was working on this
 	-- just-completed unit. info.targetMeta caches frustum visibility and the
 	-- resolved engine ID across visits keyed by targetID; the worker-task
