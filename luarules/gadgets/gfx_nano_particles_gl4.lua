@@ -44,7 +44,6 @@ if gadgetHandler:IsSyncedCode() then return end
 --------------------------------------------------------------------------------
 
 local spEcho                     = Spring.Echo
-local spGetGameFrame             = Spring.GetGameFrame
 local spGetMyAllyTeamID          = Spring.GetMyAllyTeamID
 local spGetSpectatingState       = Spring.GetSpectatingState
 local spIsPosInLos            = Spring.IsPosInLos
@@ -1358,9 +1357,13 @@ local nonBuilderDefs = {}
 -- that can actually be in the "crashing" aircraftState. Saves the engine call
 -- for every ground/sea repair target.
 local isAirUnitDef = {}
+local isMobileUnitDef = {}
 for udid, def in pairs(UnitDefs) do
 	if def.canFly then
 		isAirUnitDef[udid] = true
+	end
+	if ((def.maxVelocity or def.speed or 0) > 0) and (not def.isFactory) then
+		isMobileUnitDef[udid] = true
 	end
 end
 
@@ -1544,6 +1547,7 @@ local function getBuilderInfo(builderID)
 		team          = team,
 		allyTeam      = spGetUnitAllyTeam(builderID),
 		isFactory     = ud and ud.isFactory or false,
+		isMobile      = isMobileUnitDef[udid] and true or false,
 		buildDistance = buildDistance,
 		buildSpeed    = (ud and ud.buildSpeed) or 0,
 		emitAccum     = 0,
@@ -1859,6 +1863,35 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 					registerGroundClampParticle(pid, frame + lifetime)
 				end
 			end
+			if pid then
+				local nl = deathBuckets.__nanoLight
+				if nl and nl.enabled and nl.bridgeReady then
+					local lightLifetime = mathFloor(lifetime * (nl.lifeMult or 2.2) + 0.5)
+					local minLifetime = nl.minLifetime or 14
+					local maxLifetime = nl.maxLifetime or 96
+					if lightLifetime < minLifetime then lightLifetime = minLifetime end
+					if lightLifetime > maxLifetime then lightLifetime = maxLifetime end
+					if lightLifetime > 1 then
+						local sustain = mathFloor(lightLifetime * (nl.sustainFrac or 0.7) + 0.5)
+						if sustain < 1 then sustain = 1 end
+						if sustain > lightLifetime then sustain = lightLifetime end
+						local lightID = "NANOP_" .. pid
+						Script.LuaUI.EnvNanoBallisticLightSpawn(
+							lightID,
+							px, py, pz,
+							vx, vy, vz,
+							nl.spawnRadius or 25,
+							r, g, b, nl.alpha,
+							lightLifetime,
+							sustain,
+							0.35, 0.15, 0.20, 0.0,
+							frame
+						)
+						nl.active[pid] = frame
+						nl.activeCount = nl.activeCount + 1
+					end
+				end
+			end
 
 			-- Inverse particles converge on the builder. If the builder moves
 			-- before the particle dies, the original straight-line trajectory
@@ -1872,9 +1905,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				local nL = #list
 				if nL >= HOMING_MAX_PER_BUILDER then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit }
+					list[nL] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit, lc = info.isMobile }
 				else
-					list[nL + 1] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit }
+					list[nL + 1] = { id = pid, pieceIdx = pieceIdx, death = frame + lifetime, gc = clampThisEmit, lc = info.isMobile }
 				end
 			elseif (not inverse) and pid and targetUnitID then
 				-- Forward emission aimed at a moving unit (repair/capture).
@@ -1941,9 +1974,9 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				local nL = #list
 				if nL >= HOMING_FWD_MAX_PER_TARGET then
 					for i = 1, nL - 1 do list[i] = list[i + 1] end
-					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
+					list[nL] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq, lc = info.targetMeta and info.targetMeta.isMobileUnit }
 				else
-					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq }
+					list[nL + 1] = { id = pid, death = frame + lifetime, ox = offX, oy = offY, oz = offZ, gc = clampThisEmit, builderID = builderID, pieceIdx = pieceIdx, maxRangeSq = maxRangeSq, lc = info.targetMeta and info.targetMeta.isMobileUnit }
 				end
 			end
 		until true
@@ -2110,6 +2143,7 @@ local function resolveTarget(info, cmdID, targetID)
 			targetID     = targetID,    -- raw value from GetUnitWorkerTask (for cache key)
 			resolvedID   = resolvedID,  -- engine ID (with MaxUnits offset stripped)
 			isFeature    = isFeature or false,
+			isMobileUnit = isUnit and isMobileUnitDef[spGetUnitDefID(resolvedID)] and true or false,
 			jitterRadius = jitterRadius,
 			targetRadius = radius or 0, -- raw radius for build-range gate (engine reach is buildDistance + target radius)
 			effectiveBD  = info.buildDistance and (info.buildDistance + (radius or 0)) or nil,
@@ -2286,6 +2320,15 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 						data[base+6] = (aimY - cpy) * invR
 						data[base+7] = (nz - cpz) * invR
 						data[base+8] = frame
+						local nl = deathBuckets.__nanoLight
+						if p.lc and nl and nl.bridgeReady then
+							local lastFix = nl.active[p.id]
+							local minFrames = nl.correctEvery or 10
+							if lastFix and (frame - lastFix) >= minFrames then
+								nl.active[p.id] = frame
+								Script.LuaUI.EnvNanoBallisticLightCorrect("NANOP_" .. p.id, cpx, cpy, cpz, (nx - cpx) * invR, (aimY - cpy) * invR, (nz - cpz) * invR, frame)
+							end
+						end
 						local s0 = slot - 1
 						if s0 < dirtyMin     then dirtyMin = s0     end
 						if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
@@ -2532,6 +2575,15 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 							data[base+6] = dvy * invR
 							data[base+7] = dvz * invR
 							data[base+8] = frame
+							local nl = deathBuckets.__nanoLight
+							if p.lc and nl and nl.bridgeReady then
+								local lastFix = nl.active[p.id]
+								local minFrames = nl.correctEvery or 10
+								if lastFix and (frame - lastFix) >= minFrames then
+									nl.active[p.id] = frame
+									Script.LuaUI.EnvNanoBallisticLightCorrect("NANOP_" .. p.id, cpx, cpy, cpz, dvx * invR, dvy * invR, dvz * invR, frame)
+								end
+							end
 							local s0 = slot - 1
 							if s0 < dirtyMin     then dirtyMin = s0     end
 							if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
@@ -3112,8 +3164,22 @@ end
 local function cullDead(frame)
 	local bucket = deathBuckets[frame]
 	if not bucket then return end
+	local nl = deathBuckets.__nanoLight
+	local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
 	local nb = #bucket
 	if not nanoVBO then
+		if nl and nl.active then
+			for i = 1, nb do
+				local id = bucket[i]
+				if nl.active[id] then
+					nl.active[id] = nil
+					nl.activeCount = nl.activeCount - 1
+					if canRemove then
+						Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
+					end
+				end
+			end
+		end
 		liveCount = liveCount - nb
 		deathBuckets[frame] = nil
 		return
@@ -3123,7 +3189,15 @@ local function cullDead(frame)
 	-- scenes -- per-element marshalling cost in uploadElementRange dominates
 	-- the GL submit savings when slots are scattered.
 	for i = 1, nb do
-		popElementInstance(nanoVBO, bucket[i], false)
+		local id = bucket[i]
+		popElementInstance(nanoVBO, id, false)
+		if nl and nl.active and nl.active[id] then
+			nl.active[id] = nil
+			nl.activeCount = nl.activeCount - 1
+			if canRemove then
+				Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
+			end
+		end
 	end
 	liveCount = liveCount - nb
 	deathBuckets[frame] = nil
@@ -3140,6 +3214,17 @@ end
 local function applyParticleMode(newMode, force)
 	if (not force) and newMode == NANO_PARTICLE_MODE and nanoVBO ~= nil then return end
 	if (not force) and newMode == NANO_PARTICLE_MODE and newMode == 0 then return end
+	local nl = deathBuckets.__nanoLight
+	if nl and nl.active then
+		local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
+		for pid in pairs(nl.active) do
+			if canRemove then
+				Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. pid)
+			end
+			nl.active[pid] = nil
+		end
+		nl.activeCount = 0
+	end
 
 	NANO_PARTICLE_MODE = newMode
 
@@ -3190,6 +3275,17 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	local nl = deathBuckets.__nanoLight
+	if nl and nl.active then
+		local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
+		for pid in pairs(nl.active) do
+			if canRemove then
+				Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. pid)
+			end
+			nl.active[pid] = nil
+		end
+		nl.activeCount = 0
+	end
 	cleanupGL4()
 end
 
@@ -3200,6 +3296,7 @@ function gadget:PlayerChanged()
 	refreshTeamColors()
 end
 
+
 -- Emission once per gameframe (matches the engine's per-frame AddNanoParticle
 -- cadence for an active builder).
 function gadget:GameFrame(n)
@@ -3208,6 +3305,39 @@ function gadget:GameFrame(n)
 	-- Cheap (one GetConfigInt) and 1s latency on a settings-menu toggle is
 	-- imperceptible.
 	if n % 30 == 0 then
+		-- Optional deferred nano lights (off by default):
+		--  NanoParticleLights = 0/1 enables bridge to deferred lights widget.
+		local nl = deathBuckets.__nanoLight
+		if not nl then
+			nl = {activeCount = 0, active = {} }
+			deathBuckets.__nanoLight = nl
+		end
+		nl.enabled = (Spring.GetConfigInt("NanoParticleLights", 1) == 1)
+		if nl.enabled then
+			nl.spawnRadius = 33
+			nl.alpha = 0.07
+			nl.correctEvery = 20
+			nl.lifeMult = 2.2
+			nl.minLifetime = 14
+			nl.maxLifetime = 96
+			nl.sustainFrac = 0.7
+			nl.bridgeReady = Script.LuaUI("EnvNanoBallisticLightSpawn")
+				and Script.LuaUI("EnvNanoBallisticLightCorrect")
+				and Script.LuaUI("EnvNanoBallisticLightRemove")
+		else
+			if nl.activeCount > 0 then
+				local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
+				for pid in pairs(nl.active) do
+					if canRemove then
+						Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. pid)
+					end
+					nl.active[pid] = nil
+				end
+				nl.activeCount = 0
+			end
+			nl.bridgeReady = false
+		end
+
 		local mode = Spring.GetConfigInt("NanoParticleMode", 1)
 		if mode ~= NANO_PARTICLE_MODE then
 			applyParticleMode(mode, false)
@@ -3432,7 +3562,7 @@ local function fadeOutHomingInverse(builderID)
 	local data      = nanoVBO.instanceData
 	local idtoIndex = nanoVBO.instanceIDtoIndex
 	local step      = nanoVBO.instanceStep
-	local frame     = spGetGameFrame()
+	local frame     = Spring.GetGameFrame()
 	local dirtyMin, dirtyMax = math.huge, -1
 	for i = 1, #list do
 		local p = list[i]
@@ -3476,7 +3606,7 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 	local data      = nanoVBO.instanceData
 	local idtoIndex = nanoVBO.instanceIDtoIndex
 	local step      = nanoVBO.instanceStep
-	local frame     = spGetGameFrame()
+	local frame     = Spring.GetGameFrame()
 	-- Per-particle fade duration: FADE_FRAMES_DEATH * (0.4..1.6). Staggers the
 	-- dissolve so particles don't all wink out on the same frame.
 	local dirtyMin, dirtyMax = math.huge, -1
@@ -3534,7 +3664,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		-- spGetUnitIsBeingBuilt returns nil for dead units in unsynced context.
 		local bp = reclaimTargetBuildProgress[unitID] or 1.0
 		reclaimTargetBuildProgress[unitID] = nil
-		fireReclaimBurst(unitID, unitDefID, attackerTeam, bp, spGetGameFrame())
+		fireReclaimBurst(unitID, unitDefID, attackerTeam, bp, Spring.GetGameFrame())
 	else
 		reclaimedTargets[unitID] = nil
 		reclaimTargetBuildProgress[unitID] = nil
