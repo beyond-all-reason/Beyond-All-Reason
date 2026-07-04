@@ -974,9 +974,14 @@ local dntsSets = {}
 do
 	local chunk = VFS.LoadFile(DNTS_DIR .. "dnts_sets.lua", VFS.RAW)
 	if chunk then
+		-- Strip a leading UTF-8 BOM: the engine's stock Lua 5.1 lexer does NOT skip
+		-- it, so loadstring() errors on the 0xEF byte and the catalog silently loads
+		-- empty (picker shows "None", arrows do nothing). dnts_sets.lua ships with a BOM.
+		chunk = chunk:gsub("^\239\187\191", "")
 		local ok, list = pcall(function() return loadstring(chunk)() end)
 		if ok and type(list) == "table" then dntsSets = list end
 	end
+	Spring.Echo("[Terraform Brush] Splat sets loaded: " .. #dntsSets)
 end
 
 -- Resolve the currently-selected splat set (1-based, wraps), or nil if none loaded.
@@ -995,6 +1000,396 @@ local function _nmRefreshSplatLabel()
 	local s = _nmCurrentSplatSet()
 	local name = s and s.name or "None"
 	if d.newMapSplatStr ~= name then d.newMapSplatStr = name end
+end
+
+-- ---- Environment preset catalog (harvested from BAR maps) ----
+-- A small set of real-map "moods" (atmosphere + lighting + water), harvested
+-- offline by tools/mapgen/scan_environments.py into env_presets.lua (the SAME
+-- schema the environment editor's save/load uses). The New Map wizard lets the
+-- user pick one; the choice is persisted across the reload and applied to the
+-- fresh map at runtime via widgetState.applyEnvConfig — the same Spring.Set*
+-- calls onEnvLoad makes. These are attached to widgetState (not new top-level
+-- locals) to stay clear of the Lua 5.1 200-local chunk ceiling.
+-- The catalog is EMBEDDED (not just VFS-loaded) on purpose: Recoil directory
+-- archives (.sdd) snapshot their file list at mount, so a freshly-created sibling
+-- file like env_presets.lua is invisible to VFS until a full game restart — a mere
+-- widget reload re-reads existing files' contents but can't see new ones. Embedding
+-- here (an already-mounted file) makes the presets available immediately. Keep this
+-- block in sync with tools/mapgen/scan_environments.py / env_presets.lua.
+widgetState.newMapEnvPresets = {
+	{
+		name = "Clear Daylight",
+		source = "Altair_Crossing_V4.1",
+		sunDir = { 0.8000, 0.8000, -0.7000 },
+		groundShadowDensity = 0.7500,
+		modelShadowDensity = 0.7500,
+		groundAmbientColor = { 0.5000, 0.5000, 0.5000 },
+		groundDiffuseColor = { 0.9900, 0.9900, 0.9500 },
+		groundSpecularColor = { 0.7000, 0.7000, 0.7000 },
+		unitAmbientColor = { 0.5600, 0.5600, 0.6000 },
+		unitDiffuseColor = { 0.9500, 0.9553, 0.9000 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6000 },
+		fogStart = 0.8000,
+		fogEnd = 1.0000,
+		fogColor = { 0.8000, 0.8000, 0.5000, 1.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 0.9600, 0.9600, 0.9600 },
+		splatTexMults = { 1.2000, 0.7000, 0.5300, 0.5000 },
+		splatTexScales = { 0.0100, 0.0050, 0.0075, 0.0100 },
+		voidWater = false,
+		water = {
+			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
+			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
+			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.4, specularPower = 40.0,
+			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
+			perlinStartFreq = 15.0, perlinLacunarity = 1.35, perlinAmplitude = 0.8,
+			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+		},
+		waterColors_absorb = { 0.0500, 0.0050, 0.0010 },
+		waterColors_baseColor = { 0.3000, 0.5000, 0.5000 },
+		waterColors_minColor = { 0.0000, 0.3000, 0.3000 },
+		waterColors_surfaceColor = { 0.6700, 0.8000, 1.0000 },
+		waterColors_diffuseColor = { 0.0000, 0.0000, 0.0000 },
+		waterColors_specularColor = { 0.5000, 0.5000, 0.5000 },
+	},
+	{
+		name = "Golden Dusk",
+		source = "Rosetta",
+		sunDir = { -1.0000, 0.5800, -0.4800 },
+		groundShadowDensity = 0.9000,
+		modelShadowDensity = 0.9000,
+		groundAmbientColor = { 0.5000, 0.4900, 0.4900 },
+		groundDiffuseColor = { 1.0000, 1.0000, 1.0000 },
+		groundSpecularColor = { 0.3600, 0.3596, 0.3596 },
+		unitAmbientColor = { 0.5700, 0.5694, 0.5694 },
+		unitDiffuseColor = { 1.0000, 0.9853, 0.9200 },
+		unitSpecularColor = { 1.0000, 0.8000, 0.8000 },
+		fogStart = 1.0000,
+		fogEnd = 1.2000,
+		fogColor = { 0.0700, 0.0592, 0.0504, 1.0000 },
+		sunColor = { 1.0000, 0.9083, 0.7500 },
+		skyColor = { 0.6400, 0.5555, 0.4288 },
+		cloudColor = { 0.9000, 0.8334, 0.7830 },
+		splatTexMults = { 0.4000, 0.2100, 0.1100, 0.0750 },
+		splatTexScales = { 0.0100, 0.0050, 0.0030, 0.0078 },
+		voidWater = false,
+		water = {
+			shoreWaves = false, forceRendering = false,
+			repeatX = 0.0, repeatY = 0.0, surfaceAlpha = 0.55,
+			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.0, specularPower = 20.0,
+			fresnelMin = 0.2, fresnelMax = 0.8, fresnelPower = 4.0,
+			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.9,
+			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+		},
+		waterColors_absorb = { 1.5000, 1.5000, 1.5000 },
+		waterColors_baseColor = { 0.0100, 0.0100, 0.0100 },
+		waterColors_minColor = { 0.0100, 0.0100, 0.0100 },
+		waterColors_surfaceColor = { 0.7500, 0.8000, 0.8500 },
+		waterColors_diffuseColor = { 1.0000, 1.0000, 1.0000 },
+		waterColors_specularColor = { 0.5000, 0.5000, 0.5000 },
+	},
+	{
+		name = "Crimson Sunset",
+		source = "Silent Sea",
+		sunDir = { 0.4000, 0.5000, -0.5000 },
+		groundShadowDensity = 0.7500,
+		modelShadowDensity = 0.7500,
+		groundAmbientColor = { 0.7500, 0.6500, 0.8500 },
+		groundDiffuseColor = { 0.7500, 0.7000, 0.7000 },
+		unitAmbientColor = { 0.5500, 0.5500, 0.7000 },
+		unitDiffuseColor = { 0.7500, 0.7000, 0.7000 },
+		fogStart = 0.8000,
+		fogEnd = 1.0000,
+		fogColor = { 0.8000, 0.6000, 0.5000, 1.0000 },
+		sunColor = { 1.0000, 0.7000, 0.7000 },
+		skyColor = { 0.7000, 0.2500, 0.0500 },
+		cloudColor = { 0.9500, 0.8500, 0.7500 },
+		splatTexMults = { 0.9000, 0.7000, 0.9000, 0.2100 },
+		splatTexScales = { 0.0025, 0.0070, 0.0080, 0.0055 },
+		voidWater = false,
+		water = {
+			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
+			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
+			ambientFactor = 0.8, diffuseFactor = 1.3, specularFactor = 0.5, specularPower = 20.0,
+			fresnelMin = 0.1, fresnelMax = 0.5, fresnelPower = 3.0,
+			perlinStartFreq = 9.0, perlinLacunarity = 5.0, perlinAmplitude = 0.75, numTiles = 4.0,
+			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 0.5,
+		},
+		waterColors_absorb = { 0.0080, 0.0055, 0.0030 },
+		waterColors_baseColor = { 0.6700, 0.7300, 0.9500 },
+		waterColors_minColor = { 0.1000, 0.1000, 0.2000 },
+		waterColors_surfaceColor = { 0.8500, 0.7500, 1.0000 },
+		waterColors_specularColor = { 0.7000, 0.5000, 0.5000 },
+	},
+	{
+		name = "Blue Twilight",
+		source = "Titan",
+		sunDir = { 0.4000, 0.1950, -0.2000 },
+		groundShadowDensity = 0.9000,
+		modelShadowDensity = 0.9000,
+		groundAmbientColor = { 0.8000, 0.7000, 0.7000 },
+		groundDiffuseColor = { 1.1000, 1.0000, 1.0000 },
+		unitAmbientColor = { 0.8000, 0.6000, 0.6000 },
+		unitDiffuseColor = { 1.0000, 0.8000, 0.8000 },
+		fogStart = 1.0000,
+		fogEnd = 1.2000,
+		fogColor = { 0.8000, 0.8000, 0.5000, 1.0000 },
+		sunColor = { 1.0000, 0.7500, 0.7500 },
+		skyColor = { 0.0800, 0.1300, 0.7000 },
+		cloudColor = { 0.9000, 0.9000, 0.9000 },
+		splatTexMults = { 0.7000, 0.6000, 0.6500, 0.8000 },
+		splatTexScales = { 0.0040, 0.0050, 0.0060, 0.0080 },
+		voidWater = false,
+		waterColors_absorb = { 1.0000, 0.5000, 0.0000 },
+		waterColors_baseColor = { 0.4000, 0.7800, 0.3000 },
+		waterColors_minColor = { 0.3000, 0.5600, 0.4300 },
+		waterColors_surfaceColor = { 0.4500, 0.8000, 0.4500 },
+		waterColors_planeColor = { 0.0200, 0.0500, 0.0100 },
+	},
+	{
+		name = "Deep Ocean",
+		source = "World In Flames v1.8",
+		sunDir = { 0.8000, 1.0000, -0.7000 },
+		groundShadowDensity = 0.9000,
+		modelShadowDensity = 0.9000,
+		groundAmbientColor = { 0.5000, 0.5000, 0.5500 },
+		groundDiffuseColor = { 1.0000, 1.0000, 0.9500 },
+		groundSpecularColor = { 0.3900, 0.3900, 0.2900 },
+		unitAmbientColor = { 0.5000, 0.5000, 0.5500 },
+		unitDiffuseColor = { 0.9900, 0.9953, 0.9500 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6000 },
+		fogStart = 0.8000,
+		fogEnd = 1.0000,
+		fogColor = { 0.0500, 0.2200, 0.4300, 1.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 0.9000, 0.9000, 0.9000 },
+		splatTexMults = { 0.7500, 0.5000, 0.3700, 0.4000 },
+		splatTexScales = { 0.0100, 0.0050, 0.0075, 0.0030 },
+		voidWater = false,
+		water = {
+			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
+			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.02,
+			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.4, specularPower = 40.0,
+			fresnelMin = 0.08, fresnelMax = 0.5, fresnelPower = 8.0,
+			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.85, numTiles = 4.0,
+			blurBase = 2.1, blurExponent = 1.5, reflectionDistortion = 1.0,
+		},
+		waterColors_absorb = { 0.0500, 0.0050, 0.0010 },
+		waterColors_baseColor = { 0.3000, 0.5000, 0.5000 },
+		waterColors_minColor = { 0.0000, 0.3000, 0.3000 },
+		waterColors_surfaceColor = { 0.6700, 0.8000, 1.0000 },
+		waterColors_planeColor = { 0.0600, 0.2400, 0.4200 },
+		waterColors_diffuseColor = { 0.0000, 0.0000, 0.0000 },
+		waterColors_specularColor = { 0.5000, 0.5000, 0.5000 },
+	},
+	{
+		name = "Tropical Lagoon",
+		source = "Supreme Isthmus v2.1",
+		sunDir = { -0.6400, 0.6600, -0.5700 },
+		groundShadowDensity = 0.7000,
+		modelShadowDensity = 0.7000,
+		groundAmbientColor = { 0.3500, 0.3500, 0.3500 },
+		groundDiffuseColor = { 1.2000, 1.2000, 1.2000 },
+		groundSpecularColor = { 0.6000, 0.5000, 0.5000 },
+		unitAmbientColor = { 0.5700, 0.5694, 0.5694 },
+		unitDiffuseColor = { 1.0000, 0.9853, 0.9200 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6100 },
+		fogStart = 0.8000,
+		fogEnd = 1.0000,
+		fogColor = { 0.5000, 0.8500, 0.9900, 1.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 0.9000, 0.9000, 0.9000 },
+		splatTexMults = { 1.4000, 0.6000, 0.6000, 0.5000 },
+		splatTexScales = { 0.0160, 0.0160, 0.0040, 0.0060 },
+		voidWater = false,
+		water = {
+			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
+			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
+			ambientFactor = 0.28, diffuseFactor = 1.6, specularFactor = 0.8, specularPower = 90.0,
+			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
+			perlinStartFreq = 15.0, perlinLacunarity = 1.27, perlinAmplitude = 1.0, numTiles = 4.0,
+			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 0.5,
+		},
+		waterColors_absorb = { 0.0300, 0.0200, 0.0090 },
+		waterColors_baseColor = { 0.0500, 0.7000, 0.6000 },
+		waterColors_minColor = { 0.0000, 0.0100, 0.0100 },
+		waterColors_surfaceColor = { 0.6700, 0.8000, 1.0000 },
+		waterColors_planeColor = { 0.0000, 0.1500, 0.1500 },
+		waterColors_diffuseColor = { 0.0000, 0.0000, 0.0000 },
+		waterColors_specularColor = { 0.5000, 0.6000, 0.6000 },
+	},
+	{
+		name = "Volcanic",
+		source = "Red River Estuary v1.1",
+		sunDir = { -0.6400, 0.6600, -0.5700 },
+		groundShadowDensity = 0.7000,
+		modelShadowDensity = 0.7000,
+		groundAmbientColor = { 0.6500, 0.6500, 0.6500 },
+		groundDiffuseColor = { 1.0000, 1.0000, 1.0000 },
+		groundSpecularColor = { 0.6000, 0.5000, 0.5000 },
+		unitAmbientColor = { 0.4500, 0.4500, 0.4500 },
+		unitDiffuseColor = { 0.7500, 0.7500, 0.7000 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6000 },
+		fogStart = 0.2500,
+		fogEnd = 0.8500,
+		fogColor = { 0.5400, 0.2100, 0.1400, 1.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 0.9000, 0.9000, 0.9000 },
+		splatTexMults = { 0.2500, 1.5000, 0.7500, 0.1500 },
+		splatTexScales = { 0.0100, 0.0150, 0.0035, 0.0100 },
+		voidWater = false,
+		water = {
+			shoreWaves = true, forceRendering = false,
+			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
+			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 0.2, specularPower = 30.0,
+			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
+			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.85, numTiles = 4.0,
+			blurBase = 2.1, blurExponent = 1.5, reflectionDistortion = 1.0,
+		},
+		waterColors_absorb = { 0.0080, 0.1200, 0.0160 },
+		waterColors_baseColor = { 0.6600, 0.4500, 0.9200 },
+		waterColors_minColor = { 0.0120, 0.0100, 0.0310 },
+		waterColors_surfaceColor = { 0.2200, 0.1700, 0.4100 },
+		waterColors_diffuseColor = { 0.2200, 0.1700, 0.4100 },
+		waterColors_specularColor = { 0.2200, 0.1700, 0.4100 },
+	},
+	{
+		name = "Toxic Wastes",
+		source = "Zed Remake",
+		sunDir = { 0.4017, 0.6140, -0.6730 },
+		groundShadowDensity = 1.1000,
+		modelShadowDensity = 0.7000,
+		groundAmbientColor = { 0.4500, 0.3800, 0.4700 },
+		groundDiffuseColor = { 0.9000, 0.9000, 0.9700 },
+		groundSpecularColor = { 0.2500, 0.2500, 0.2500 },
+		unitAmbientColor = { 0.6600, 0.6600, 0.7000 },
+		unitDiffuseColor = { 0.9900, 0.9953, 0.9500 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6000 },
+		fogStart = 0.6000,
+		fogEnd = 1.1000,
+		fogColor = { 0.5000, 0.1700, 0.7700, 1.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 1.0000, 0.5000, 0.5000 },
+		splatTexMults = { 0.6700, 0.3000, 0.3000, 0.9000 },
+		splatTexScales = { 0.0033, 0.0030, 0.0030, 0.0072 },
+		voidWater = false,
+		water = {
+			shoreWaves = false, forceRendering = false,
+			repeatX = 0.0, repeatY = 0.0, surfaceAlpha = 0.3,
+			ambientFactor = 0.1, diffuseFactor = 0.8, specularFactor = 0.3, specularPower = 20.0,
+			fresnelMin = 0.2, fresnelMax = 0.8, fresnelPower = 4.0,
+			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.9,
+			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+		},
+		waterColors_absorb = { 0.0020, 0.0030, 0.0040 },
+		waterColors_baseColor = { 1.0000, 1.0000, 1.0000 },
+		waterColors_minColor = { 0.1500, 0.0100, 0.3000 },
+		waterColors_surfaceColor = { 1.0000, 0.8000, 0.1000 },
+		waterColors_diffuseColor = { 0.9000, 0.5000, 0.1000 },
+		waterColors_specularColor = { 0.9000, 0.5000, 0.1000 },
+	},
+}
+do
+	-- If a regenerated env_presets.lua is visible to VFS (only after a full game
+	-- restart, per the mount-snapshot note above), prefer it over the embedded copy
+	-- so the harvester workflow keeps working for future edits.
+	local raw = VFS.LoadFile("luaui/RmlWidgets/gui_terraform_brush/env_presets.lua")
+	if type(raw) == "string" and raw ~= "" then
+		raw = raw:gsub("^\239\187\191", "")  -- strip UTF-8 BOM (stock Lua 5.1 lexer chokes on it)
+		local fn = loadstring(raw)
+		if fn then
+			local okr, t = pcall(fn)
+			if okr and type(t) == "table" and #t > 0 then widgetState.newMapEnvPresets = t end
+		end
+	end
+	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
+end
+widgetState.newMapEnvIdx = 0  -- 0 = Default (keep engine defaults); 1..N = preset
+
+-- Push the selected environment name into the data-model label.
+widgetState._nmRefreshEnvLabel = function()
+	local d = widgetState.dmHandle
+	if not d then return end
+	local idx = widgetState.newMapEnvIdx or 0
+	local p = widgetState.newMapEnvPresets[idx]
+	local name = (idx > 0 and p) and (p.name or ("Preset " .. idx)) or "Default"
+	if d.newMapEnvStr ~= name then d.newMapEnvStr = name end
+end
+
+-- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
+-- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
+-- Map preset path drive the engine identically. Every field is optional.
+widgetState.applyEnvConfig = function(d)
+	if type(d) ~= "table" then return end
+	if d.sunDir then
+		local intensity = d.sunIntensity or 1.0
+		Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
+		widgetState.envSunIntensity = intensity
+	end
+	local shadowParams = {}
+	if d.groundShadowDensity then shadowParams.groundShadowDensity = d.groundShadowDensity end
+	if d.modelShadowDensity  then shadowParams.modelShadowDensity  = d.modelShadowDensity  end
+	if next(shadowParams) then Spring.SetSunLighting(shadowParams) end
+	local lightParams = {}
+	if d.groundAmbientColor  then lightParams.groundAmbientColor  = d.groundAmbientColor  end
+	if d.groundDiffuseColor  then lightParams.groundDiffuseColor  = d.groundDiffuseColor  end
+	if d.groundSpecularColor then lightParams.groundSpecularColor = d.groundSpecularColor end
+	if d.unitAmbientColor    then lightParams.unitAmbientColor    = d.unitAmbientColor    end
+	if d.unitDiffuseColor    then lightParams.unitDiffuseColor    = d.unitDiffuseColor    end
+	if d.unitSpecularColor   then lightParams.unitSpecularColor   = d.unitSpecularColor   end
+	if next(lightParams) then
+		Spring.SetSunLighting(lightParams)
+		Spring.SendCommands("luarules updatesun")
+	end
+	local atmosParams = {}
+	if d.fogStart      then atmosParams.fogStart      = d.fogStart      end
+	if d.fogEnd        then atmosParams.fogEnd        = d.fogEnd        end
+	if d.fogColor      then atmosParams.fogColor      = d.fogColor      end
+	if d.sunColor      then atmosParams.sunColor      = d.sunColor      end
+	if d.skyColor      then atmosParams.skyColor      = d.skyColor      end
+	if d.cloudColor    then atmosParams.cloudColor    = d.cloudColor    end
+	if d.skyAxisAngle  then atmosParams.skyAxisAngle  = d.skyAxisAngle  end
+	if next(atmosParams) then Spring.SetAtmosphere(atmosParams) end
+	local mrParams = {}
+	if d.splatDetailNormalDiffuseAlpha ~= nil then mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha end
+	if d.splatTexMults  then mrParams.splatTexMults  = d.splatTexMults  end
+	if d.splatTexScales then mrParams.splatTexScales = d.splatTexScales end
+	if d.voidWater  ~= nil then mrParams.voidWater  = d.voidWater  end
+	if d.voidGround ~= nil then mrParams.voidGround = d.voidGround end
+	if next(mrParams) then Spring.SetMapRenderingParams(mrParams) end
+	if type(d.water) == "table" then
+		Spring.SetWaterParams(d.water)
+		Spring.SendCommands("water 4")
+	end
+	local wcMap = {
+		waterColors_absorb        = "absorb",
+		waterColors_baseColor     = "baseColor",
+		waterColors_minColor      = "minColor",
+		waterColors_surfaceColor  = "surfaceColor",
+		waterColors_planeColor    = "planeColor",
+		waterColors_diffuseColor  = "diffuseColor",
+		waterColors_specularColor = "specularColor",
+	}
+	local wcParams = {}
+	for key, param in pairs(wcMap) do
+		if d[key] then wcParams[param] = d[key] end
+	end
+	if next(wcParams) then
+		Spring.SetWaterParams(wcParams)
+		Spring.SendCommands("water 4")
+	end
+end
+
+-- Resolve the env preset to apply after a New Map reload (nil = Default/none).
+widgetState._nmCurrentEnvPreset = function()
+	local idx = widgetState.newMapEnvIdx or 0
+	if idx <= 0 then return nil end
+	return widgetState.newMapEnvPresets[idx]
 end
 
 local function _nmClampEven(v, default)
@@ -1212,6 +1607,7 @@ local initialModel = {
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
+	newMapEnvStr = "Default",
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
 	newMapHilStr   = "50%",
 	newMapRoughStr = "50%",
@@ -3788,6 +4184,7 @@ local initialModel = {
 		uiState.updatingFromCode = false
 		_nmRefreshLabels()
 		_nmRefreshSplatLabel()
+		widgetState._nmRefreshEnvLabel()
 		_nmRefreshTerrain(true)
 	end,
 	onNewMapClose = function(_event)
@@ -3813,6 +4210,24 @@ local initialModel = {
 		widgetState.newMapSplatIdx = (widgetState.newMapSplatIdx or 1) + 1
 		if widgetState.newMapSplatIdx > #dntsSets then widgetState.newMapSplatIdx = 1 end
 		_nmRefreshSplatLabel()
+		playSound("click")
+	end,
+	-- Environment preset picker: cycles Default (0) + the harvested moods (1..N).
+	-- The choice is persisted on Create and applied to the fresh map after reload.
+	onNewMapEnvPrev = function(_event)
+		local n = #(widgetState.newMapEnvPresets or {})
+		if n == 0 then Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)") end
+		widgetState.newMapEnvIdx = (widgetState.newMapEnvIdx or 0) - 1
+		if widgetState.newMapEnvIdx < 0 then widgetState.newMapEnvIdx = n end
+		widgetState._nmRefreshEnvLabel()
+		playSound("click")
+	end,
+	onNewMapEnvNext = function(_event)
+		local n = #(widgetState.newMapEnvPresets or {})
+		if n == 0 then Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)") end
+		widgetState.newMapEnvIdx = (widgetState.newMapEnvIdx or 0) + 1
+		if widgetState.newMapEnvIdx > n then widgetState.newMapEnvIdx = 0 end
+		widgetState._nmRefreshEnvLabel()
 		playSound("click")
 	end,
 	onNewMapWidthChange = function(event)
@@ -3967,6 +4382,23 @@ local initialModel = {
 			Spring.Echo(string.format(
 				"[Terraform Brush] New Map %dx%d (%dx%d elmos), flat; reloading...",
 				w, h, w * 512, h * 512))
+		end
+		-- Persist the chosen environment preset (independently of the terrain recipe,
+		-- since the environment applies to flat maps too). The file holds just the
+		-- preset name; after the reload the UI widget looks it up in the catalog and
+		-- applies it via widgetState.applyEnvConfig. Always (re)written — blank for
+		-- Default — so a plain /reload never re-applies a stale preset.
+		Spring.CreateDir("Terraform Brush")
+		local envPreset = widgetState._nmCurrentEnvPreset()
+		local ef = io.open("Terraform Brush/pending_newmap_env.lua", "w")
+		if ef then
+			if envPreset and envPreset.name then
+				ef:write(string.format("return { preset = %q }\n", envPreset.name))
+				Spring.Echo("[Terraform Brush] New Map environment: " .. envPreset.name)
+			else
+				ef:write("")
+			end
+			ef:close()
 		end
 		playSound("exit")
 		Spring.Restart("", script)
@@ -4942,63 +5374,7 @@ local initialModel = {
 			Spring.Echo("[Environ] ERROR: Invalid data in " .. newest)
 			return
 		end
-		if d.sunDir then
-			local intensity = d.sunIntensity or 1.0
-			Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
-			widgetState.envSunIntensity = intensity
-		end
-		local shadowParams = {}
-		if d.groundShadowDensity then shadowParams.groundShadowDensity = d.groundShadowDensity end
-		if d.modelShadowDensity  then shadowParams.modelShadowDensity  = d.modelShadowDensity  end
-		if next(shadowParams) then Spring.SetSunLighting(shadowParams) end
-		local lightParams = {}
-		if d.groundAmbientColor  then lightParams.groundAmbientColor  = d.groundAmbientColor  end
-		if d.groundDiffuseColor  then lightParams.groundDiffuseColor  = d.groundDiffuseColor  end
-		if d.groundSpecularColor then lightParams.groundSpecularColor = d.groundSpecularColor end
-		if d.unitAmbientColor    then lightParams.unitAmbientColor    = d.unitAmbientColor    end
-		if d.unitDiffuseColor    then lightParams.unitDiffuseColor    = d.unitDiffuseColor    end
-		if d.unitSpecularColor   then lightParams.unitSpecularColor   = d.unitSpecularColor   end
-		if next(lightParams) then
-			Spring.SetSunLighting(lightParams)
-			Spring.SendCommands("luarules updatesun")
-		end
-		local atmosParams = {}
-		if d.fogStart      then atmosParams.fogStart      = d.fogStart      end
-		if d.fogEnd        then atmosParams.fogEnd        = d.fogEnd        end
-		if d.fogColor      then atmosParams.fogColor      = d.fogColor      end
-		if d.sunColor      then atmosParams.sunColor      = d.sunColor      end
-		if d.skyColor      then atmosParams.skyColor      = d.skyColor      end
-		if d.cloudColor    then atmosParams.cloudColor    = d.cloudColor    end
-		if d.skyAxisAngle  then atmosParams.skyAxisAngle  = d.skyAxisAngle  end
-		if next(atmosParams) then Spring.SetAtmosphere(atmosParams) end
-		local mrParams = {}
-		if d.splatDetailNormalDiffuseAlpha ~= nil then mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha end
-		if d.splatTexMults  then mrParams.splatTexMults  = d.splatTexMults  end
-		if d.splatTexScales then mrParams.splatTexScales = d.splatTexScales end
-		if d.voidWater  ~= nil then mrParams.voidWater  = d.voidWater  end
-		if d.voidGround ~= nil then mrParams.voidGround = d.voidGround end
-		if next(mrParams) then Spring.SetMapRenderingParams(mrParams) end
-		if type(d.water) == "table" then
-			Spring.SetWaterParams(d.water)
-			Spring.SendCommands("water 4")
-		end
-		local wcMap = {
-			waterColors_absorb        = "absorb",
-			waterColors_baseColor     = "baseColor",
-			waterColors_minColor      = "minColor",
-			waterColors_surfaceColor  = "surfaceColor",
-			waterColors_planeColor    = "planeColor",
-			waterColors_diffuseColor  = "diffuseColor",
-			waterColors_specularColor = "specularColor",
-		}
-		local wcParams = {}
-		for key, param in pairs(wcMap) do
-			if d[key] then wcParams[param] = d[key] end
-		end
-		if next(wcParams) then
-			Spring.SetWaterParams(wcParams)
-			Spring.SendCommands("water 4")
-		end
+		widgetState.applyEnvConfig(d)
 		playSound("save")
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
@@ -8263,6 +8639,31 @@ function widget:Initialize()
 
 	attachEventListeners()
 
+	-- New Map environment preset: if the last Create wrote a pending preset, resolve
+	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
+	-- the fresh map has fully settled. The file is blanked on read so a plain /reload
+	-- never re-applies. Default (no preset) leaves the engine's blank-map lighting.
+	do
+		local rf = io.open("Terraform Brush/pending_newmap_env.lua", "r")
+		if rf then
+			local raw = rf:read("*a"); rf:close()
+			local wf = io.open("Terraform Brush/pending_newmap_env.lua", "w")
+			if wf then wf:write(""); wf:close() end
+			if raw and raw ~= "" then
+				local ok, t = pcall(function() return loadstring(raw)() end)
+				if ok and type(t) == "table" and t.preset then
+					for _, p in ipairs(widgetState.newMapEnvPresets) do
+						if p.name == t.preset then
+							widgetState._pendingEnvApply = p
+							widgetState._pendingEnvCountdown = 15
+							break
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
 	if widgetState.rootElement then
 		widgetState.rootElement:AddEventListener("mouseover", function()
@@ -8346,6 +8747,19 @@ end
 local lastUpdateClock = Spring.GetTimer()
 
 function widget:DrawScreen()
+	-- New Map environment preset: apply once, a few frames after a fresh-map reload
+	-- (gives the water renderer time to come up). Frame-counted rather than gated on
+	-- a game frame so it works while the editor is paused.
+	if widgetState._pendingEnvApply then
+		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
+		if widgetState._pendingEnvCountdown <= 0 then
+			local p = widgetState._pendingEnvApply
+			widgetState._pendingEnvApply = nil
+			widgetState.applyEnvConfig(p)
+			Spring.Echo("[Terraform Brush] Applied environment preset: " .. (p.name or "?"))
+		end
+	end
+
 	-- One-shot: pre-load skybox DDS textures into GL named texture cache
 	-- so Spring.SetSkyBoxTexture() can find them. Must happen in a Draw call-in.
 	if widgetState.envLoadedTextures and not widgetState.envTexturesPreloaded then

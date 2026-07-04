@@ -73,23 +73,32 @@ end
 
 ----------------------------------------------------------------
 -- Thumbnail generation (render each diffuse texture to a small GL texture).
--- The source diffuse maps are 8k; loading all of them at once would blow the
--- VRAM budget, so we render one at a time into a THUMB_SIZE FBO and free the
--- full-resolution named texture immediately afterwards.
+-- The source diffuse maps are 8k; baking one is expensive (a full-res JPEG
+-- decode + GPU upload), so we NEVER bake the whole library up front -- doing so
+-- froze the game for seconds when switching to the diffuse tool. Instead we
+-- bake lazily: only tiles currently scrolled into view get a thumbnail, one per
+-- frame, rendered into a THUMB_SIZE FBO with the 8k source freed immediately.
+--
+-- Each fresh bake is also written to a small PNG in a write-dir cache. On every
+-- later open we bind that cached 128px file by name (decoded once, trivially)
+-- instead of touching the 8k source at all -- so the costly 8k JPEG decode is
+-- paid at most ONCE per material across all sessions, not once per session and
+-- not once per scroll. Tiles the user never scrolls to still cost nothing.
 ----------------------------------------------------------------
 local THUMB_SIZE       = 128
-local THUMBS_PER_FRAME = 2
+local THUMBS_PER_FRAME = 1     -- each bake decodes an 8k JPEG; one at a time
+local PREFETCH_MARGIN  = 192   -- px above/below the viewport to bake ahead
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
+local THUMB_CACHE_DIR  = "Terraform Brush/thumbs"  -- write-dir, alongside textures/
 
-local thumbTextures    = {}    -- { [matKey] = glTexture }
-local thumbQueue       = {}
-local thumbQueueIdx    = 0
-local thumbTotal       = 0
-local thumbDone        = 0
-local thumbGenerating  = false
-local thumbGenAttempted = false
-local needsListRefresh  = false
-local thumbRefreshTimer = 0
+local thumbTextures    = {}    -- { [matKey] = glTexture | cachePath } kept for session
+local thumbIsFile      = {}    -- { [matKey] = true } value above is a cache-file path
+local thumbFailed      = {}    -- { [matKey] = true } bake failed; don't retry it
+local thumbsPending    = 0     -- filtered tiles still awaiting a thumbnail
+
+local function thumbCachePath(matKey)
+	return THUMB_CACHE_DIR .. "/" .. matKey .. "_" .. THUMB_SIZE .. ".png"
+end
 
 local function getDpRatio()
 	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio
@@ -98,12 +107,15 @@ end
 
 local function cleanupThumbs()
 	for _, tex in pairs(thumbTextures) do
-		gl.DeleteTexture(tex)
+		gl.DeleteTexture(tex)  -- accepts both a GL texture id and a named-texture path
 	end
 	thumbTextures = {}
+	thumbIsFile = {}
 end
 
-local function renderOneThumb(matKey, path)
+-- Bake one 128px thumbnail from the full-res `path`, render it into an FBO, and
+-- write the result to `cachePath` so future sessions skip the 8k decode.
+local function renderOneThumb(matKey, path, cachePath)
 	if not path or path == "" then return false end
 
 	local colorTex = gl.CreateTexture(THUMB_SIZE, THUMB_SIZE, {
@@ -158,6 +170,15 @@ local function renderOneThumb(matKey, path)
 		gl.MatrixMode(GL.MODELVIEW)
 		gl.PopMatrix()
 
+		-- Persist the baked thumbnail so later sessions never re-decode the 8k.
+		-- yflip=true (default) writes an upright PNG; the overlay draw flips V
+		-- back for file-backed thumbs (see drawThumbnailOverlays). A save failure
+		-- only costs a re-bake next session, so it must not abort the bake.
+		if cachePath then
+			pcall(gl.SaveImage, 0, 0, THUMB_SIZE, THUMB_SIZE, cachePath,
+				{ alpha = false, readbuffer = GL_COLOR_ATTACHMENT0_EXT })
+		end
+
 		gl.Viewport(0, 0, vsx, vsy)
 	end)
 
@@ -173,45 +194,42 @@ local function renderOneThumb(matKey, path)
 	return true
 end
 
-local function startThumbGeneration()
-	if thumbGenAttempted then return end
-	if not (WG.DiffusePainter and WG.DiffusePainter.getMaterialLibrary) then return end
-	thumbGenAttempted = true
+-- Bake thumbnails for tiles currently within the scroll viewport (plus a small
+-- prefetch margin), at most THUMBS_PER_FRAME per frame. Self-correcting: as the
+-- user scrolls, newly-revealed tiles get baked on the frames they appear, and a
+-- filter/category rebuild just re-counts what is left in `thumbsPending`. Reads
+-- element layout and renders into an FBO, so it must run in a draw callback.
+local function bakeVisibleThumbs()
+	if thumbsPending <= 0 then return end
+	local doc = widgetState.document
+	if not doc then return end
+	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
 
-	local library = WG.DiffusePainter.getMaterialLibrary() or {}
-	thumbQueue = {}
-	thumbQueueIdx = 1
-	for i = 1, #library do
-		local mat = library[i]
-		if mat and mat.path and not thumbTextures[mat.key] then
-			thumbQueue[#thumbQueue + 1] = { key = mat.key, path = mat.path }
+	local listEl = doc:GetElementById("material-list")
+	if not listEl then return end
+	local viewH = listEl.client_height
+	if viewH <= 0 then return end          -- panel not laid out yet
+	local viewTop    = listEl.absolute_top
+	local viewBottom = viewTop + viewH
+
+	local baked = 0
+	for matKey, div in pairs(thumbDivs) do
+		if baked >= THUMBS_PER_FRAME then break end
+		if not thumbTextures[matKey] and not thumbFailed[matKey] then
+			local h = div.offset_height
+			if h > 0 then
+				local top = div.absolute_top
+				-- Vertically within the viewport (or its prefetch margin)?
+				if top < viewBottom + PREFETCH_MARGIN
+					and (top + h) > viewTop - PREFETCH_MARGIN then
+					if not renderOneThumb(matKey, thumbMatPath[matKey], thumbCachePath(matKey)) then
+						thumbFailed[matKey] = true
+					end
+					thumbsPending = thumbsPending - 1
+					baked = baked + 1
+				end
+			end
 		end
-	end
-
-	thumbTotal = #thumbQueue
-	thumbDone = 0
-	if thumbTotal == 0 then
-		needsListRefresh = true
-		return
-	end
-	thumbGenerating = true
-	Spring.Echo("[Diffuse Library UI] Generating " .. thumbTotal .. " material thumbnails...")
-end
-
-local function processThumbQueue()
-	if not thumbGenerating then return end
-	local processed = 0
-	while thumbQueueIdx <= #thumbQueue and processed < THUMBS_PER_FRAME do
-		local item = thumbQueue[thumbQueueIdx]
-		thumbQueueIdx = thumbQueueIdx + 1
-		renderOneThumb(item.key, item.path)
-		thumbDone = thumbDone + 1
-		processed = processed + 1
-	end
-	if thumbQueueIdx > #thumbQueue then
-		thumbGenerating = false
-		needsListRefresh = true
-		Spring.Echo("[Diffuse Library UI] Thumbnails complete (" .. thumbDone .. "/" .. thumbTotal .. ")")
 	end
 end
 
@@ -250,7 +268,13 @@ local function drawThumbnailOverlays()
 				local glY1 = vsy - y - h
 				gl.Color(1, 1, 1, 1)
 				gl.Texture(0, tex)
-				gl.TexRect(x, glY1, x + w, glY2, 0, 0, 1, 1)
+				-- FBO textures are bottom-left origin and draw upright with
+				-- straight coords; cache PNGs load top-left origin, so flip V.
+				if thumbIsFile[matKey] then
+					gl.TexRect(x, glY1, x + w, glY2, 0, 1, 1, 0)
+				else
+					gl.TexRect(x, glY1, x + w, glY2, 0, 0, 1, 1)
+				end
 			end
 		end
 	end
@@ -307,22 +331,8 @@ local function rebuildMaterialList(filter)
 	materialElements = {}
 	thumbDivs = {}
 	thumbMatPath = {}
-
-	-- Loading indicator during thumbnail generation.
-	if thumbGenerating and thumbTotal > 0 then
-		local loadEl = doc:CreateElement("div")
-		loadEl:SetClass("dml-loading-bar", true)
-		local pct = math.floor(thumbDone / thumbTotal * 100)
-		local fillEl = doc:CreateElement("div")
-		fillEl:SetClass("dml-loading-fill", true)
-		fillEl:SetAttribute("style", "width: " .. pct .. "%;")
-		loadEl:AppendChild(fillEl)
-		local labelEl = doc:CreateElement("span")
-		labelEl:SetClass("dml-loading-label", true)
-		labelEl.inner_rml = "Loading thumbnails " .. pct .. "%"
-		loadEl:AppendChild(labelEl)
-		listEl:AppendChild(loadEl)
-	end
+	-- Re-counted below: bakeVisibleThumbs() bakes lazily until this hits zero.
+	thumbsPending = 0
 
 	local library = WG.DiffusePainter.getMaterialLibrary() or {}
 	local lowerFilter = filter and filter:lower() or ""
@@ -346,6 +356,18 @@ local function rebuildMaterialList(filter)
 			thumbEl:SetClass("dml-thumb-" .. cat, true)
 			itemEl:AppendChild(thumbEl)
 			thumbDivs[mat.key] = thumbEl
+			if not thumbTextures[mat.key] and not thumbFailed[mat.key] then
+				-- Prefer a previously-baked cache file: binding the tiny PNG by
+				-- name is ~free, so resolve it now and skip the per-frame bake
+				-- queue entirely. Only never-baked materials cost an 8k decode.
+				local cp = thumbCachePath(mat.key)
+				if VFS.FileExists(cp, VFS.RAW_FIRST) then
+					thumbTextures[mat.key] = cp
+					thumbIsFile[mat.key] = true
+				else
+					thumbsPending = thumbsPending + 1
+				end
+			end
 
 			local resEl = doc:CreateElement("div")
 			resEl:SetClass("dml-material-res", true)
@@ -453,6 +475,10 @@ end
 -- Lifecycle
 ----------------------------------------------------------------
 function widget:Initialize()
+	-- Thumbnail cache lives in the write dir next to the texture library.
+	-- SaveImage won't create missing parents, so ensure it exists up front.
+	pcall(Spring.CreateDir, THUMB_CACHE_DIR)
+
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
 
@@ -520,21 +546,12 @@ function widget:Update()
 				mainPanel.left + (mainPanel.width or 0) + gap, mainPanel.top))
 	end
 
-	-- Lazy-start thumbnail generation once the painter library is populated.
-	if not thumbGenAttempted then
-		startThumbGeneration()
-	end
-
-	-- Rebuild on library size change (e.g. a rescan adds materials).
+	-- Rebuild on library size change (e.g. a rescan adds materials). The rebuild
+	-- re-counts thumbsPending, so any new materials get baked lazily on the
+	-- frames they scroll into view -- no eager whole-library pass.
 	local library = (API.getMaterialLibrary and API.getMaterialLibrary()) or {}
 	local librarySig = #library
 	if librarySig ~= lastLibrarySig then
-		-- Only force a fresh thumbnail pass when the set actually GROWS after a
-		-- completed first pass; the initial population is already handled by the
-		-- lazy startThumbGeneration above, so don't re-arm it here.
-		if lastLibrarySig ~= nil and librarySig > lastLibrarySig then
-			thumbGenAttempted = false
-		end
 		lastLibrarySig = librarySig
 		rebuildMaterialList(lastSearchFilter)
 	end
@@ -545,24 +562,12 @@ function widget:Update()
 			el:SetClass("selected", thumbMatPath[key] == activePath)
 		end
 	end
-
-	-- Periodic refresh while thumbnails are still baking; one final refresh after.
-	if thumbGenerating then
-		thumbRefreshTimer = thumbRefreshTimer + 1
-		if thumbRefreshTimer >= 30 then
-			thumbRefreshTimer = 0
-			rebuildMaterialList(lastSearchFilter)
-		end
-	elseif needsListRefresh then
-		needsListRefresh = false
-		rebuildMaterialList(lastSearchFilter)
-	end
+	-- Thumbnails are drawn as GL overlays over the (already-built) tile divs in
+	-- DrawScreenPost, so no DOM rebuild is needed as they bake in.
 end
 
 function widget:DrawScreen()
-	if thumbGenerating then
-		processThumbQueue()
-	end
+	bakeVisibleThumbs()
 end
 
 function widget:DrawScreenPost()
@@ -579,8 +584,8 @@ function widget:Shutdown()
 	end
 
 	cleanupThumbs()
-	thumbGenerating = false
-	thumbQueue = {}
+	thumbFailed = {}
+	thumbsPending = 0
 	if widgetState.document then
 		widgetState.document:Close()
 		widgetState.document = nil

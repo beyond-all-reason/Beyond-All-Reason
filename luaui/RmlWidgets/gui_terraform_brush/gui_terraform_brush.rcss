@@ -1217,7 +1217,104 @@ body {
 	color: #4ade80;
 }
 
-/* === Header Buttons (shared base) === */
+/* ═══════════════════════════════════════════════════════════════════════
+   HEADER — the crown jewel. Two tiers: a full-width wordmark on top (its
+   own line, so it never wraps), and a sleek full-width "control rail"
+   beneath it — FILE on the left, the icon cluster on the right. The icon
+   buttons stay flat until hovered/active so the rail reads as one polished
+   unit. The gold gem + accent word tie it to the tool's amber identity.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Two-tier header stack */
+.tf-header {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 5dp;
+}
+
+/* Top tier: wordmark (left, shrinks) + window controls (right, fixed) */
+.tf-header-top {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6dp;
+}
+
+/* Pause + close, parked top-right as window chrome */
+.tf-header-top-btns {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 2dp;
+	flex-shrink: 0;
+}
+
+/* === Wordmark (top tier, also the drag handle) === */
+.tf-title {
+	flex: 0 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 7dp;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+/* Faceted accent "gem" — vertical gold bar with a soft glow */
+.tf-title-gem {
+	width: 4dp;
+	height: 18dp;
+	flex-shrink: 0;
+	border-radius: 2dp;
+	decorator: vertical-gradient(#ffe2a0 #c8821e);
+	box-shadow: 0dp 0dp 7dp 0dp #e8b96b70, inset 0dp 1dp 0dp 0dp #ffffff80;
+}
+
+.tf-title-main {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 1.5dp;
+	color: #eef1f6;
+}
+
+.tf-title-accent {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 2dp;
+	color: #e8b96b;
+}
+
+/* === Control rail (bottom tier) — full-width inset capsule === */
+.tf-header-rail {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+	padding: 3dp 4dp;
+	border-radius: 8dp;
+	border: 1dp #ffffff0e;
+	background-color: #12121a;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000070, inset 0dp -1dp 0dp 0dp #ffffff08;
+}
+
+/* Flexible gap that pushes the icon cluster to the right edge of the rail */
+.tf-rail-spacer {
+	flex: 1;
+}
+
+/* Hairline divider between rail groups */
+.tf-rail-sep {
+	width: 1dp;
+	height: 16dp;
+	flex-shrink: 0;
+	background-color: #ffffff14;
+	margin: 0dp 2dp;
+}
+
+/* === Header Buttons (shared base) — flat until interacted with === */
 .tf-header-btn {
 	width: 22dp;
 	height: 22dp;
@@ -1225,21 +1322,16 @@ body {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	border-radius: 5dp;
-	border: 1dp #40404a60;
-	background-color: #2a2a34;
-	margin-right: 3dp;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	background-color: transparent;
 	flex-shrink: 0;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#3a3a46 #1e1e28);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+	transition: background-color 0.12s, border-color 0.12s;
 }
 
 .tf-header-btn:hover {
-	background-color: #3e3e4c;
-	border-color: #7878909a;
-	decorator: vertical-gradient(#4a4a5a #2c2c38);
-	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+	background-color: #ffffff16;
+	border-color: #ffffff22;
 }
 
 .tf-header-icon {
@@ -1251,38 +1343,6 @@ body {
 .tf-file-menu-wrap {
 	position: relative;
 	flex-shrink: 0;
-}
-
-.tf-header-menu-btn {
-	height: 22dp;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0dp 10dp;
-	cursor: pointer;
-	border-radius: 5dp;
-	border: 1dp #40404a60;
-	background-color: #2a2a34;
-	color: #c8ccd6;
-	font-size: 13dp;
-	font-weight: bold;
-	flex-shrink: 0;
-	transition: background-color 0.15s;
-	decorator: vertical-gradient(#3a3a46 #1e1e28);
-	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
-}
-
-.tf-header-menu-btn:hover {
-	background-color: #3e3e4c;
-	border-color: #7878909a;
-	color: #f0f0f0;
-	decorator: vertical-gradient(#4a4a5a #2c2c38);
-}
-
-.tf-header-menu-btn.active {
-	border-color: #fbbf24aa;
-	background-color: #2a2a0a;
-	color: #fbbf24;
 }
 
 .tf-file-menu {
@@ -1309,6 +1369,21 @@ body {
 .tf-file-menu-item:hover {
 	background-color: #3a3a48;
 	color: #ffffff;
+}
+
+/* FILE button (folder icon) — amber highlight while the menu is open */
+.tf-file-btn.active {
+	border-color: #fbbf24aa;
+	background-color: #2a2a0a;
+}
+
+.tf-file-btn.active:hover {
+	background-color: #3a3a1a;
+	border-color: #fbbf24;
+}
+
+.tf-file-btn.active img {
+	image-color: #fbbf24;
 }
 
 /* === New Map window (floating, FILE > New Map) === */
