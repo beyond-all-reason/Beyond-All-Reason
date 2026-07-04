@@ -455,7 +455,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
 			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
-			cmd == "wreckunits" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "devlegsilo" then
+			cmd == "wreckunits" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "devlegsilo" or cmd == "devnewship" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
 			subPermission = "teams"
@@ -483,6 +483,19 @@ if gadgetHandler:IsSyncedCode() then
 				local unitID = Spring.CreateUnit("legsilo", x, y, z, "n", teamID)
 				if unitID then
 					Spring.SetUnitStockpile(unitID, 1)
+				end
+			end
+		elseif cmd == "devnewship" then
+			local unitName = words[2]
+			local x = tonumber(words[3])
+			local y = tonumber(words[4])
+			local z = tonumber(words[5])
+			local teamID = tonumber(words[6])
+			if unitName and x and y and z and teamID then
+				local unitID = Spring.CreateUnit(unitName, x, y, z, "n", teamID)
+				if unitID then
+					Spring.SetUnitRulesParam(unitID, "use_new_split", 1)
+					Spring.Echo("Spawned [NEW SPLIT] " .. unitName .. " (Unit ID: " .. unitID .. ")")
 				end
 			end
 		elseif cmd == "givecat" then
@@ -777,6 +790,7 @@ else	-- UNSYNCED
 		-- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
 		gadgetHandler:AddChatAction('devlegsilo', spawnDevLegSilo, "")
+		gadgetHandler:AddChatAction('devnewship', spawnDevNewShip, "")
 		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
 		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
@@ -811,6 +825,7 @@ else	-- UNSYNCED
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('givecat')
 		gadgetHandler:RemoveChatAction('devlegsilo')
+		gadgetHandler:RemoveChatAction('devnewship')
 		gadgetHandler:RemoveChatAction('destroyunits')
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
@@ -1400,6 +1415,29 @@ else	-- UNSYNCED
 			local x, y, z = pos[1], pos[2], pos[3]
 			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			local msg = PACKET_HEADER .. ":devlegsilo " .. math.floor(x) .. " " .. math.floor(y) .. " " .. math.floor(z) .. " " .. teamID
+			Spring.SendLuaRulesMsg(msg)
+		end
+	end
+
+	function spawnDevNewShip(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not Spring.IsCheatingEnabled() then
+			Spring.Echo("Cheats must be enabled to spawn a test ship. Type /cheat first!")
+			return
+		end
+		local unitName = words[1] or "armmship"
+		if unitName ~= "armmship" and unitName ~= "cormship" then
+			Spring.Echo("Usage: /luarules devnewship [armmship | cormship]")
+			return
+		end
+		local mx, my = Spring.GetMouseState()
+		local t, pos = Spring.TraceScreenRay(mx, my, true)
+		if type(pos) == 'table' then
+			local x, y, z = pos[1], pos[2], pos[3]
+			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local msg = PACKET_HEADER .. ":devnewship " .. unitName .. " " .. math.floor(x) .. " " .. math.floor(y) .. " " .. math.floor(z) .. " " .. teamID
 			Spring.SendLuaRulesMsg(msg)
 		end
 	end

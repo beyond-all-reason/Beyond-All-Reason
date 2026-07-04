@@ -56,6 +56,8 @@ local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 local targetedGround = string.byte('g')
 local targetedUnit = string.byte('u')
 
+local metatables = {}
+
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
@@ -493,10 +495,47 @@ weaponCustomParamKeys.split = {
 	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag            = tostring, -- as `projectileParams.cegTag`
 	model             = tostring, -- as `projectileParams.model`
-	scatter           = tonumber, -- scatter radius around target
 }
 
 local function split(params, projectileID)
+	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
+
+	spDeleteProjectile(projectileID)
+
+	local pos = projectileParams.pos
+	spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
+
+	projectileParams.gravity = gravityPerFrame
+
+	local speed = projectileParams.speed
+	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
+
+	for _ = 1, params.number do
+		speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / 880)
+		speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / 440)
+		speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / 880)
+
+		spSpawnProjectile(weaponDefID, projectileParams)
+	end
+end
+
+specialEffectFunction.split = function(params, projectileID)
+	if isProjectileFalling(projectileID) then
+		split(params, projectileID)
+		return true
+	end
+end
+
+weaponCustomParamKeys.split_new = {
+	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	number            = tonumber, -- count of projectiles to spawn
+	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
+	cegtag            = tostring, -- as `projectileParams.cegTag`
+	model             = tostring, -- as `projectileParams.model`
+	scatter           = tonumber, -- scatter radius around target
+}
+
+local function split_new(params, projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
 	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
@@ -512,6 +551,7 @@ local function split(params, projectileID)
 	local scatter = params.scatter or 400
 
 	for _ = 1, params.number do
+		-- Damp inherited velocity by 40% to reduce forward overshoot, allowing wider fanning
 		speed[1] = velocityX * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
 		speed[2] = velocityY * 0.6 + parentSpeed * (math_random(-100, 100) / 150)
 		speed[3] = velocityZ * 0.6 + parentSpeed * (math_random(-100, 100) / 200)
@@ -519,6 +559,7 @@ local function split(params, projectileID)
 		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
 		if spawnedID and targetType then
 			if targetType == targetedGround then
+				-- Assign a randomized landing target coordinate within the scatter radius
 				local angle = math_random() * 2 * math.pi
 				local dist = math_random() * scatter
 				local tx = target[1] + math.cos(angle) * dist
@@ -532,14 +573,15 @@ local function split(params, projectileID)
 	end
 end
 
-specialEffectFunction.split = function(params, projectileID)
+specialEffectFunction.split_new = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
 		local px, py, pz = spGetProjectilePosition(projectileID)
 		if px then
 			local groundHeight = spGetGroundHeight(px, pz)
 			local height = py - groundHeight
+			-- Split when height above the ground is less than 1500 units during descent
 			if height < 1500 then
-				split(params, projectileID)
+				split_new(params, projectileID)
 				return true
 			end
 		end
@@ -643,7 +685,7 @@ end
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
-	local metatables = {}
+	metatables = {}
 
 	for effectName, effectFunction in pairs(specialEffectFunction) do
 		-- Add self-call syntax to weapondef special effects:
@@ -687,8 +729,18 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
+	local effect = weaponDefEffect[weaponDefID]
+	if effect then
+		local ownerID = spGetProjectileOwnerID(projectileID)
+		if ownerID and Spring.GetUnitRulesParam(ownerID, "use_new_split") == 1 then
+			if type(effect) == "table" then
+				projectiles[projectileID] = setmetatable(table.copy(effect), metatables.split_new)
+			else
+				projectiles[projectileID] = specialEffectFunction.split_new
+			end
+		else
+			projectiles[projectileID] = effect
+		end
 	end
 end
 
