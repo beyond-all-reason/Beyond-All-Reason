@@ -56,24 +56,6 @@ local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 local targetedGround = string.byte('g')
 local targetedUnit = string.byte('u')
 
-local initialDistances = {}
-
-local function getTargetPosition(projectileID)
-	local targetType, target = spGetProjectileTarget(projectileID)
-	if not targetType then
-		return nil
-	end
-	if targetType == targetedGround then
-		return target[1], target[2], target[3]
-	elseif targetType == targetedUnit then
-		local tx, ty, tz = spGetUnitPosition(target)
-		if tx then
-			return tx, ty, tz
-		end
-	end
-	return nil
-end
-
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
@@ -551,37 +533,15 @@ local function split(params, projectileID)
 end
 
 specialEffectFunction.split = function(params, projectileID)
-	local initialDist = initialDistances[projectileID]
-	if initialDist then
+	if isProjectileFalling(projectileID) then
 		local px, py, pz = spGetProjectilePosition(projectileID)
-		local tx, ty, tz = getTargetPosition(projectileID)
-		if px and tx then
-			local currentDist = math.sqrt((px - tx)^2 + (py - ty)^2 + (pz - tz)^2)
-			-- Split when 3/4 of the way to the target (remaining distance <= 25%)
-			if currentDist <= initialDist * 0.25 then
-				local vx, vy, vz = spGetProjectileVelocity(projectileID)
-				-- Fallback to split immediately if very close to the ground (within 350 height)
-				local groundHeight = spGetGroundHeight(px, pz)
-				local height = py - groundHeight
-				if height < 350 then
-					split(params, projectileID)
-					return true
-				end
-				-- Otherwise wait until it's mostly in a vertical descent (falling down at > 56 deg angle)
-				if vy and vy < 0 then
-					local horizSpeed = math.sqrt(vx^2 + vz^2)
-					if -vy > horizSpeed * 1.5 then
-						split(params, projectileID)
-						return true
-					end
-				end
+		if px then
+			local groundHeight = spGetGroundHeight(px, pz)
+			local height = py - groundHeight
+			if height < 500 then
+				split(params, projectileID)
+				return true
 			end
-		end
-	else
-		-- Fallback to original apogee behavior if initial distance was not recorded
-		if isProjectileFalling(projectileID) then
-			split(params, projectileID)
-			return true
 		end
 	end
 end
@@ -727,26 +687,13 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	local effect = weaponDefEffect[weaponDefID]
-	if effect then
-		projectiles[projectileID] = effect
-		-- If this is a split projectile, store its initial distance to target
-		local cp = WeaponDefs[weaponDefID] and WeaponDefs[weaponDefID].customParams
-		local effectName = cp and cp.speceffect
-		if effectName == "split" then
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			local tx, ty, tz = getTargetPosition(projectileID)
-			if px and tx then
-				local dist = math.sqrt((px - tx)^2 + (py - ty)^2 + (pz - tz)^2)
-				initialDistances[projectileID] = dist
-			end
-		end
+	if weaponDefEffect[weaponDefID] then
+		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
 end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	initialDistances[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
