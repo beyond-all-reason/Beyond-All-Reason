@@ -358,12 +358,12 @@ local function refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActual
 	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
 end
 
-local function applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, hadPending)
+local function applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, wasStagedByApi)
 	if userInitiated then
 		setUserSelectedFirestate(unitID, userState)
 	elseif userSelectedFirestate[unitID] == nil then
 		return
-	elseif not hadPending then
+	elseif not wasStagedByApi then
 		return
 	end
 	if teamID == gaiaTeamID then return end
@@ -469,9 +469,9 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	if teamID == gaiaTeamID then return end
 	if cmdID ~= CMD_USER_FIRESTATE and cmdID ~= CMD_FIRE_STATE then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
-	local userState, userInitiated, hadPending = FirestateApi.parseCommandMeta(cmdID, cmdParams, unitID)
+	local userState, userInitiated, wasStagedByApi = FirestateApi.parseFirestateCommandContext(cmdID, cmdParams, unitID)
 	if userState == nil then return end
-	applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, hadPending)
+	applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, wasStagedByApi)
 end
 
 function widget:TeamDied(teamID)

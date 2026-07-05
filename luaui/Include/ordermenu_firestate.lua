@@ -1,4 +1,4 @@
---DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables plus defendFirestateEnabled().
+--DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables plus customFirestateCommandEnabled().
 
 local Firestates = VFS.Include("modules/firestates.lua")
 local FirestateApi = VFS.Include("luaui/Include/firestate_api.lua")
@@ -71,26 +71,26 @@ local labelByVirtualIndexEnabled = {
 	[5] = "Fire at all",
 }
 
-local function defendFirestateEnabled()
+local function customFirestateCommandEnabled()
 	return Spring.GetModOptions().experimental_defend_firestate
 end
 
 local function virtualIndexByState()
-	if defendFirestateEnabled() then
+	if customFirestateCommandEnabled() then
 		return virtualIndexByStateEnabled
 	end
 	return virtualIndexByStateDisabled
 end
 
 local function stateByVirtualIndex()
-	if defendFirestateEnabled() then
+	if customFirestateCommandEnabled() then
 		return stateByVirtualIndexEnabled
 	end
 	return stateByVirtualIndexDisabled
 end
 
 local function labelByVirtualIndex()
-	if defendFirestateEnabled() then
+	if customFirestateCommandEnabled() then
 		return labelByVirtualIndexEnabled
 	end
 	return labelByVirtualIndexDisabled
@@ -149,11 +149,11 @@ local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
 	if opts.userInitiated == nil then
 		opts.userInitiated = true
 	end
-	if not defendFirestateEnabled() then
+	if not customFirestateCommandEnabled() then
 		remappingFirestate = true
 	end
-	FirestateApi.giveFirestate(state, spGetSelectedUnits(), opts)
-	if not defendFirestateEnabled() then
+	FirestateApi.giveFirestateToSelection(state, spGetSelectedUnits(), opts)
+	if not customFirestateCommandEnabled() then
 		remappingFirestate = false
 	end
 	if onOrderGiven then
@@ -215,17 +215,17 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	return false
 end
 
-local function hasMatchingPendingFirestate(engineParam)
-	local pendingCommandMeta = WG['firestate'] and WG['firestate'].pendingCommandMeta
-	if not pendingCommandMeta then
+local function hasMatchingStagedFirestate(engineParam)
+	local stagedFirestateByUnitId = WG['firestate'] and WG['firestate'].stagedFirestateByUnitId
+	if not stagedFirestateByUnitId then
 		return false
 	end
 	local selectedUnits = spGetSelectedUnits()
 	for index = 1, #selectedUnits do
-		local pendingMeta = pendingCommandMeta[selectedUnits[index]]
-		if pendingMeta then
-			local pendingEngineParam = Firestates.toEngineFirestate(pendingMeta.userState)
-			if pendingEngineParam == engineParam then
+		local stagedContext = stagedFirestateByUnitId[selectedUnits[index]]
+		if stagedContext then
+			local stagedEngineParam = Firestates.toEngineFirestate(stagedContext.userState)
+			if stagedEngineParam == engineParam then
 				return true
 			end
 		end
@@ -241,7 +241,7 @@ local function commandNotify(cmdID, cmdParams, cmdOptions)
 	if engineParam == nil or engineParam < 0 or engineParam > 2 then
 		return false
 	end
-	if hasMatchingPendingFirestate(engineParam) then
+	if hasMatchingStagedFirestate(engineParam) then
 		return false
 	end
 	return giveVirtualIndex(engineParam + 1, cmdOptions)

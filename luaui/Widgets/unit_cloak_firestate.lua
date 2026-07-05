@@ -67,12 +67,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			local cloaktargetstate = cloakFireState[unitDefID]
 			local cloakTargetUserState = Firestates.fromEngineFirestate(cloaktargetstate)
 			if Firestates.resolveUserFirestate(unitID) ~= cloakTargetUserState then
-				WG['firestate'].setState(cloakTargetUserState, { unitID }, { userInitiated = false })
+				WG['firestate'].setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
 			end
 		else -- decloak and restore previous fire state
 			local decloaktargetState = decloakFireState[unitID] or Firestates.HOLD_FIRE
 			if Firestates.resolveUserFirestate(unitID) ~= decloaktargetState then
-				WG['firestate'].setState(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
+				WG['firestate'].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
 			end
 			cloakActive[unitID] = nil
 			decloakFireState[unitID] = nil
