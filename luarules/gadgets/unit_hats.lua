@@ -17,6 +17,8 @@ function gadget:GetInfo()
 	}
 end
 
+local DEBUG = false
+
 function gadget:GameID(gameID) 
 	-- make sure gameID is a string because i'm not actually sure
 	cachedGameID = tostring(gameID)
@@ -125,6 +127,9 @@ PlayerCosmeticList = {
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
+	[88808] = { -- Shadowisper
+		"PirateHat", -- "give it to shadow he deserves it"
+	},
 	[116414] = { -- [APM]random_variable
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
@@ -181,9 +186,17 @@ PlayerCosmeticList = {
 	},
 
 	[9999999999] = { -- Debug
-		"ArmadaNationWarsEECLeftShoulder",
-		"CortexNationWarsEECLeftShoulder",
+		"HalloweenHat",
+		"FightNightHat",
 		"LegionChampionHat",
+		"VikingHat",
+		"KingCrownHat",
+		"ArmadaNationWarsGERLeftShoulder",
+		"ArmadaNationWarsEECLeftShoulder",
+		"ArmadaNationWarsUSLeftShoulder",
+		"CortexNationWarsGERLeftShoulder",
+		"CortexNationWarsEECLeftShoulder",
+		"CortexNationWarsUSLeftShoulder",
 	}
 }
 
@@ -232,6 +245,22 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	PirateHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_pirate and UnitDefNames.cor_hat_pirate.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	GnomeHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_gnome and UnitDefNames.cor_hat_gnome.id,
 		faction = {arm = true, cor = true, leg = true},
 		conflictsWith = {},
 	},
@@ -366,8 +395,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
-local DEBUG = false
 
 local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
