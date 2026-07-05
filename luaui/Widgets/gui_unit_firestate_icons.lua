@@ -88,6 +88,89 @@ local instanceData = {0, 0, 0, 0,  0,  4,  0, 0, 0.85, 0,  0, 1, 0, 1,  0, 0, 0,
 --------------------------------------------------------------------------------
 -- GL4 Initialization
 --------------------------------------------------------------------------------
+local function createFireIconVBO(shaderConfig, vboName, useGeometryShaderForThisShader)
+	local instanceLayout
+	local unitIDattribID
+	if useGeometryShaderForThisShader then
+		instanceLayout = {
+			{id = 0, name = 'lengthwidthcorner', size = 4},
+			{id = 1, name = 'teamID', size = 1, type = GL.UNSIGNED_INT},
+			{id = 2, name = 'numvertices', size = 1, type = GL.UNSIGNED_INT},
+			{id = 3, name = 'parameters', size = 4},
+			{id = 4, name = 'uvoffsets', size = 4},
+			{id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+		}
+		unitIDattribID = 5
+	else
+		instanceLayout = {
+			{id = 1, name = 'lengthwidthcorner', size = 4},
+			{id = 2, name = 'teamID', size = 1, type = GL.UNSIGNED_INT},
+			{id = 3, name = 'numvertices', size = 1, type = GL.UNSIGNED_INT},
+			{id = 4, name = 'parameters', size = 4},
+			{id = 5, name = 'uvoffsets', size = 4},
+			{id = 6, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+		}
+		unitIDattribID = 6
+	end
+
+	local vboTable = InstanceVBOTable.makeInstanceVBOTable(
+		instanceLayout,
+		64,
+		vboName,
+		unitIDattribID
+	)
+	if vboTable == nil then
+		return nil
+	end
+
+	if useGeometryShaderForThisShader then
+		local vao = gl.GetVAO()
+		vao:AttachVertexBuffer(vboTable.instanceVBO)
+		vboTable.VAO = vao
+	else
+		local numSlots = math.max(shaderConfig.MAXVERTICES or 64, 8)
+		local templateVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+		templateVBO:Define(numSlots, {{id = 0, name = 'vinfo', size = 1}})
+		local vertexData = {}
+		for slot = 0, numSlots - 1 do
+			vertexData[#vertexData + 1] = slot
+		end
+		templateVBO:Upload(vertexData)
+
+		local indexData = {}
+		for i = 1, numSlots - 2 do
+			indexData[#indexData + 1] = 0
+			indexData[#indexData + 1] = i
+			indexData[#indexData + 1] = i + 1
+		end
+		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+		indexVBO:Define(#indexData)
+		indexVBO:Upload(indexData)
+
+		local realVAO = InstanceVBOTable.makeVAOandAttach(templateVBO, vboTable.instanceVBO, indexVBO)
+		if realVAO == nil then
+			return nil
+		end
+
+		vboTable.nogsTemplateVBO = templateVBO
+		vboTable.nogsIndexVBO = indexVBO
+		local indexCount = #indexData
+		vboTable.VAO = {
+			realVAO = realVAO,
+			indexCount = indexCount,
+			DrawArrays = function(self, _primitiveType, instanceCount)
+				if instanceCount and instanceCount > 0 then
+					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
+				end
+			end,
+			Delete = function(self)
+				self.realVAO:Delete()
+			end,
+		}
+	end
+	return vboTable
+end
+
 local function initGL4()
 	local DrawPrimitiveAtUnit    = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
@@ -114,7 +197,8 @@ local function initGL4()
 	end
 
 	-- Second call reuses the same compiled shader but allocates a new VBO
-	returnFireVBO = select(1, InitDrawPrimitiveAtUnit(shaderConfig, "return fire icons"))
+	local useGeometryShaderForThisShader = holdFireVBO.VAO.realVAO == nil
+	returnFireVBO = createFireIconVBO(shaderConfig, "return fire icons", useGeometryShaderForThisShader)
 	if returnFireVBO == nil then
 		widgetHandler:RemoveWidget()
 		return false
@@ -137,16 +221,31 @@ WG['unitfirestate'].getShowAllHoldFireIcons = function()
 	return showAllHoldFireIcons
 end
 
+local function userStateToIconState(userState)
+	if userState == Firestates.PASSIVE then
+		return HOLD_FIRE
+	end
+	if userState == Firestates.DEFEND or userState == Firestates.RETURN_FIRE then
+		return RETURN_FIRE
+	end
+end
+
 local function getDisplayFireState(unitID)
 	--DEFEND FIRESTATE REWORK: Remove engine fallback; always use user_firestate rules param
-	if not Spring.GetModOptions().experimental_defend_firestate then
-		return select(1, Spring.GetUnitStates(unitID, false))
+	if not spValidUnitID(unitID) then return nil end
+	return userStateToIconState(Firestates.resolveUserFirestate(unitID))
+end
+
+local function resolveUserStateFromCommand(cmdID, cmdParams, unitID)
+	if not cmdParams then return nil end
+	if cmdID == CMD_USER_FIRESTATE then
+		return tonumber(cmdParams[1])
 	end
-	local userFirestate = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
-	if userFirestate == Firestates.PASSIVE then
-		return HOLD_FIRE
-	elseif userFirestate == Firestates.DEFEND or userFirestate == Firestates.RETURN_FIRE then
-		return RETURN_FIRE
+	if cmdID == CMD_FIRE_STATE then
+		if Spring.GetModOptions().experimental_defend_firestate then
+			return Firestates.resolveUserFirestate(unitID)
+		end
+		return Firestates.fromEngineFirestate(tonumber(cmdParams[1]))
 	end
 end
 
@@ -287,24 +386,42 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if (cmdID ~= CMD_FIRE_STATE and cmdID ~= CMD_USER_FIRESTATE) or not cmdParams then return false end
-	local fs = cmdParams[1]
 	local selectedUnits = spGetSelectedUnits()
 	for i = 1, #selectedUnits do
 		local unitID = selectedUnits[i]
-		if fs == HOLD_FIRE or fs == Firestates.PASSIVE then
+		local userState = resolveUserStateFromCommand(cmdID, cmdParams, unitID)
+		local fs = userStateToIconState(userState)
+		if userState == Firestates.PASSIVE then
 			manuallyHeldFire[unitID] = true
-		else
+		elseif userState ~= nil then
 			manuallyHeldFire[unitID] = nil
 		end
+		if userState ~= nil and visibleUnits[unitID] and not crashingUnits[unitID] then
+			local teamID = unitToTeam[unitID]
+			if teamID and not deadAllyTeams[teamToAllyTeam[teamID]] and unitFireState[unitID] ~= fs then
+				unitFireState[unitID] = fs
+				applyFireState(unitID, visibleUnits[unitID], fs, spGetGameFrame())
+			end
+		end
 	end
+	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
+	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
 	return false
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID == gaiaTeamID then return end
 	if cmdID ~= CMD_FIRE_STATE and cmdID ~= CMD_USER_FIRESTATE then return end
-	local fs = getDisplayFireState(unitID)
-	if fs ~= HOLD_FIRE then
+	local userState = resolveUserStateFromCommand(cmdID, cmdParams, unitID)
+	local fs
+	if userState ~= nil then
+		fs = userStateToIconState(userState)
+	else
+		fs = getDisplayFireState(unitID)
+	end
+	if userState == Firestates.PASSIVE then
+		manuallyHeldFire[unitID] = true
+	elseif userState ~= nil then
 		manuallyHeldFire[unitID] = nil
 	end
 	if not visibleUnits[unitID] or crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end

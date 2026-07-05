@@ -1346,6 +1346,9 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
+	WG["gridmenu"].getActiveBuilder = function()
+		return activeBuilder
+	end
 	WG["gridmenu"].getAlwaysReturn = function()
 		return alwaysReturn
 	end
