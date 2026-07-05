@@ -25,7 +25,23 @@
      Primary:        #e5e7eb  (text-light)  — headings, titles
      Secondary:      #d8dce4  (text-medium) — button labels, body
      Muted:          #9ca3af               — hints, keybinds
-     Keybind:        #a8c09a               — shortcut hints (on pill bg)
+     Keybind:        #d9c28a               — shortcut hints (on pill bg)
+
+   ACCENTS (BAR brand palette — beyondallreason.info)
+     Gold (primary):   #fdc04c  — SELECTION: active mode / shape / radio option
+       hover border:   #ffd47a
+       active bg:      #2b2113   active bg hover: #3b2d17
+       dim border:     #fdc04c66
+     Teal (toggles):   #40e0c0  — on/off TOGGLES & overlays (sampled from the
+       hover border:   #7cecd6    editions infographic teal, brightened)
+       active bg:      #0d2c24   active bg hover: #133a30
+       bright label:   #a2f2e2
+     Blue (secondary): #2ba5ea  — informational (badges, load, water, min-cap)
+       hover border:   #5cc0f4
+       active bg:      #0e2637   active bg hover: #14364d
+     Red (destructive):#ef4444  — remove / erase / confirm-delete ONLY
+       hover border:   #f87171
+       active bg:      #3a1616   active bg hover: #55201f
 
    BUTTON HIERARCHY (height / border-radius)
      Mode:           54dp / 8dp   — top-level mode buttons (Raise, Metal…)
@@ -51,16 +67,16 @@
      Standard:       0.15s
    ═══════════════════════════════════════════════════════════════════════ */
 
-.text-keybind { color: #a0b896; }
+.text-keybind { color: #d9c28a; }
 
 /* Stamp mode indicator badge */
 .tf-stamp-badge {
 	padding: 1dp 5dp;
-	background-color: #d97706cc;
+	background-color: #fdc04c;
 	border-radius: 3dp;
 	font-size: 0.9rem;
 	font-weight: bold;
-	color: #fff;
+	color: #1a1408;
 	margin-left: 6dp;
 }
 
@@ -68,17 +84,17 @@
 .tf-notice-banner {
 	padding: 4dp 8dp;
 	margin-bottom: 4dp;
-	background-color: #92400e99;
-	border: 1dp #d97706aa;
+	background-color: #6b4c1299;
+	border: 1dp #fdc04caa;
 	border-radius: 4dp;
 	font-size: 0.9rem;
-	color: #fbbf24;
+	color: #fdc04c;
 	text-align: center;
 }
 
 /* Highlighted text inside notice banners */
 .tf-notice-highlight {
-	color: #fcd34d;
+	color: #ffd88f;
 	font-weight: bold;
 }
 
@@ -95,9 +111,9 @@
 	left: 2dp;
 	font-size: 1.0rem;
 	font-weight: bold;
-	color: #a8c09a;
+	color: #d9c28a;
 	pointer-events: none;
-	background-color: #1a1e1adc;
+	background-color: #1e1a12dc;
 	padding: 0dp 3dp;
 	border-radius: 3dp;
 }
@@ -201,13 +217,13 @@ body {
 }
 
 .ll-preset-item:hover {
-	background-color: #2a2a1a;
-	border-color: #fbbf24;
+	background-color: #2b2113;
+	border-color: #fdc04c;
 }
 
 .ll-preset-item.selected {
-	background-color: #2a2a0a;
-	border-color: #fbbf24;
+	background-color: #2b2113;
+	border-color: #fdc04c;
 }
 
 .ll-preset-name {
@@ -279,8 +295,8 @@ body {
 }
 
 .tf-ll-tab-btn.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 /* === Drag Handle === */
@@ -371,29 +387,29 @@ body {
 
 /* Environment button */
 .tf-btn-environment.active {
-	border-color: #60a5fa;
-	background-color: #1a2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
-/* Light tool - amber/gold theme */
+/* Light tool */
 .tf-btn-lights.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-lt-btn.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-lp-mode-btn.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-lp-dist-btn.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .lp-color-preview {
@@ -540,7 +556,7 @@ body {
 }
 
 .lp-palette-swatch:hover {
-	border-color: #fbbf24;
+	border-color: #fdc04c;
 	border-width: 1dp;
 }
 
@@ -565,11 +581,11 @@ body {
 }
 
 .env-skybox-thumb:hover {
-	border-color: #60a5fa;
+	border-color: #fdc04c;
 }
 
 .env-skybox-thumb.active {
-	border-color: #60a5fa;
+	border-color: #fdc04c;
 	border-width: 2dp;
 }
 
@@ -587,20 +603,20 @@ body {
 	margin-top: 1dp;
 }
 
-/* Mode active states - semantic palette colors */
+/* Mode active states — standardized BAR gold; destructive modes use red */
 .tf-btn-raise.active {
-	border-color: #22c55e;
-	background-color: #1a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 /* Metal icon - big square M */
 .tf-metal-icon {
 	width: 22dp;
 	height: 22dp;
-	border: 2dp #14b8a6;
+	border: 2dp #fdc04c99;
 	border-radius: 3dp;
-	background-color: #0a2a2a;
-	color: #14b8a6;
+	background-color: #2b2113;
+	color: #fdc04c;
 	font-size: 16dp;
 	font-weight: bold;
 	text-align: center;
@@ -608,30 +624,30 @@ body {
 }
 
 .tf-btn-metal.active .tf-metal-icon {
-	border-color: #2dd4bf;
-	color: #2dd4bf;
-	background-color: #0d3535;
+	border-color: #ffd47a;
+	color: #ffd47a;
+	background-color: #3b2d17;
 }
 
-/* Metal mode - teal/cyan theme */
+/* Metal mode */
 .tf-btn-metal.active {
-	border-color: #14b8a6;
-	background-color: #0a2a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-mb-btn-paint.active {
-	border-color: #14b8a6;
-	background-color: #0a2a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-mb-btn-stamp.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-lower.active {
 	border-color: #ef4444;
-	background-color: #3a1a1a;
+	background-color: #3a1616;
 }
 
 .tf-btn-lower .tf-icon-md {
@@ -640,105 +656,105 @@ body {
 }
 
 .tf-btn-level.active {
-	border-color: #06b6d4;
-	background-color: #1a2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-ramp.active {
-	border-color: #fad400;
-	background-color: #3a3010;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-restore.active {
-	border-color: #a855f7;
-	background-color: #2a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-noise.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-erode.active {
-	border-color: #d97706;
-	background-color: #2e2210;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-noise-type-btn.active {
-	border-color: #fbbf24;
-	background-color: #2a2a0a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-features.active {
-	border-color: #34d399;
-	background-color: #0a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-splat.active {
-	border-color: #22c55e;
-	background-color: #1a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
-/* Diffuse painter - amber/gold theme (matches its #e8b96b summary color) */
+/* Diffuse painter */
 .tf-btn-diffuse.active {
-	border-color: #e8b96b;
-	background-color: #3a2e1a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-btn-decals.active {
-	border-color: #22c55e;
-	background-color: #1a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
-/* Grass tool - emerald green theme */
+/* Grass tool */
 .tf-btn-grass.active {
-	border-color: #10b981;
-	background-color: #052e1c;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-gb-btn-paint.active {
-	border-color: #10b981;
-	background-color: #052e1c;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-gb-btn-fill.active {
-	border-color: #34d399;
-	background-color: #0a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
-/* Start Positions tool - sky blue theme */
+/* Start Positions tool */
 .tf-btn-startpos.active {
-	border-color: #38bdf8;
-	background-color: #0c2a3e;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-sp-btn-express.active {
-	border-color: #38bdf8;
-	background-color: #0c2a3e;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-sp-btn-shape.active {
-	border-color: #22d3ee;
-	background-color: #0c2a3e;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-sp-btn-startbox.active {
-	border-color: #a78bfa;
-	background-color: #1a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 /* Startbox placement sub-picker (Box / Polygon / Free) */
 .tf-sp-btn-sbx-box.active,
 .tf-sp-btn-sbx-polygon.active,
 .tf-sp-btn-sbx-freedraw.active {
-	border-color: #a78bfa;
-	background-color: #1a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
-/* Clone tool - cyan theme */
+/* Clone tool */
 .tf-btn-clone.active {
-	border-color: #22d3ee;
-	background-color: #0c2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-cl-toggle {
@@ -748,9 +764,9 @@ body {
 }
 
 .tf-cl-toggle.active {
-	border-color: #22d3ee;
-	background-color: #0c2838;
-	box-shadow: 0dp 0dp 5dp 0dp #22d3ee25;
+	border-color: #40e0c0;
+	background-color: #0d2c24;
+	box-shadow: 0dp 0dp 5dp 0dp #40e0c025;
 }
 
 /* Clone tool — layer chip grid (legacy, retained for compatibility) */
@@ -781,12 +797,12 @@ body {
 	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-cl-chip.active {
-	background-color: #0c2838;
-	border-color: #22d3ee80;
+	background-color: #0d2c24;
+	border-color: #40e0c080;
 }
 .tf-cl-chip.active:hover {
-	background-color: #103848;
-	border-color: #22d3ee;
+	background-color: #133a30;
+	border-color: #40e0c0;
 }
 .tf-cl-chip-label {
 	font-size: 0.85rem;
@@ -847,9 +863,9 @@ body {
 }
 
 .tf-shape-btn.active {
-	border-color: #22c55e;
-	background-color: #142e22;
-	box-shadow: 0dp 0dp 6dp 1dp #22c55e28;
+	border-color: #fdc04c;
+	background-color: #2b2113;
+	box-shadow: 0dp 0dp 6dp 1dp #fdc04c28;
 }
 
 .tf-shape-btn.disabled {
@@ -885,25 +901,25 @@ body {
 }
 
 .tf-clay-btn.active {
-	border-color: #e89600;
-	background-color: #342618;
-	box-shadow: 0dp 0dp 6dp 1dp #e8960025;
+	border-color: #fdc04c;
+	background-color: #2b2113;
+	box-shadow: 0dp 0dp 6dp 1dp #fdc04c25;
 }
 
 .tf-clay-btn.active:hover {
-	background-color: #584830;
-	border-color: #ffa820;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-clay-label {
 	font-size: 0.9rem;
 	font-weight: bold;
-	color: #c8a870;
+	color: #d9bd85;
 	text-align: center;
 }
 
 .tf-clay-btn.active .tf-clay-label {
-	color: #e8c060;
+	color: #fdc04c;
 }
 
 .tf-clay-btn.unavailable {
@@ -923,23 +939,23 @@ body {
 /* === Full Restore Button (replaces clay btn in restore mode) === */
 .tf-full-restore-btn {
 	flex-direction: column;
-	background-color: #2a1238;
-	border-color: #7c3aed80;
-	decorator: vertical-gradient(#3c2450 #1c0626);
+	background-color: #2b2113;
+	border-color: #fdc04c66;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
 	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-full-restore-btn:hover {
-	background-color: #3b1a50;
-	border-color: #a855f7;
-	decorator: vertical-gradient(#4e2e66 #2a0c38);
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
 	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .tf-full-restore-label {
 	font-size: 0.9rem;
 	font-weight: bold;
-	color: #c084fc;
+	color: #fdc04c;
 	text-align: center;
 }
 
@@ -974,16 +990,16 @@ body {
 
 /* === Undo Button (in shape row) === */
 .tf-undo-btn {
-	background-color: #352618;
-	border-color: #e8960070;
-	decorator: vertical-gradient(#49382c #231410);
+	background-color: #2b2113;
+	border-color: #fdc04c70;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
 	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-undo-btn:hover {
-	background-color: #504020;
-	border-color: #ffa820;
-	decorator: vertical-gradient(#60503a #3c2e16);
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
 	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
@@ -995,20 +1011,20 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: #352a18;
+	background-color: #2b2113;
 	border-radius: 5dp;
-	border: 1dp #e8960050;
+	border: 1dp #fdc04c50;
 	cursor: pointer;
 	transition: background-color 0.15s;
-	decorator: vertical-gradient(#493c2c #231810);
+	decorator: vertical-gradient(#3b2d17 #1e1509);
 	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-history-btn:hover {
-	background-color: #504020;
-	border-color: #ffa820;
-	decorator: vertical-gradient(#60503a #3c2e16);
-	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #e8960030;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #fdc04c30;
 }
 
 /* === Undo Mode Toggle Buttons === */
@@ -1032,8 +1048,8 @@ body {
 }
 
 .tf-undo-mode-btn.active {
-	background-color: #3a2a1a;
-	border-color: #e89600cc;
+	background-color: #2b2113;
+	border-color: #fdc04ccc;
 	color: #e5e7eb;
 }
 
@@ -1049,8 +1065,8 @@ body {
 .tf-slider-history sliderbar {
 	width: 10dp;
 	height: 16dp;
-	background-color: #c87c00;
-	decorator: vertical-gradient(#ffaa30 #804c00);
+	background-color: #d99a28;
+	decorator: vertical-gradient(#ffd47a #8a5f10);
 	border-radius: 4dp;
 	border: 1dp #ffffff40;
 	margin-top: 1dp;
@@ -1059,8 +1075,8 @@ body {
 }
 
 .tf-slider-history sliderbar:hover {
-	background-color: #e8a020;
-	decorator: vertical-gradient(#ffc858 #a06000);
+	background-color: #fdc04c;
+	decorator: vertical-gradient(#ffe2a0 #a87614);
 	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
@@ -1104,14 +1120,14 @@ body {
 	color: #9ca3af;
 }
 .tf-transport-toggle.active {
-	background-color: #2a1a06;
-	border-color: #c26010a0;
-	color: #f59c40;
+	background-color: #0d2c24;
+	border-color: #40e0c0a0;
+	color: #40e0c0;
 }
 .tf-transport-toggle.active:hover {
-	background-color: #3a2008;
-	border-color: #f09030;
-	color: #fbbf5a;
+	background-color: #133a30;
+	border-color: #7cecd6;
+	color: #a2f2e2;
 }
 
 /* === Transport (auto-scroll) button group — shown/hidden by toggle pill === */
@@ -1136,7 +1152,7 @@ body {
 	min-width: 8dp;
 }
 
-/* === Transport (auto-scroll) buttons — icon pill-shaped, orange highlights === */
+/* === Transport (auto-scroll) buttons — icon pill-shaped, teal highlights === */
 .tf-transport-btn {
 	padding: 3dp 5dp;
 	border-radius: 4dp;
@@ -1160,8 +1176,8 @@ body {
 }
 
 .tf-transport-btn.active {
-	background-color: #2a1a06;
-	border-color: #c2601060;
+	background-color: #0d2c24;
+	border-color: #40e0c060;
 }
 
 /* === Wiggle level chips (Stroke settings tab) === */
@@ -1177,9 +1193,9 @@ body {
 }
 
 .tf-wiggle-chip.active {
-	background-color: #1a3a4a;
-	border-color: #40a0c0;
-	color: #80d0f0;
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	color: #a2f2e2;
 }
 
 .tf-wiggle-chip:hover {
@@ -1212,9 +1228,9 @@ body {
 }
 
 .tf-sample-btn.active {
-	background-color: #1e3a2a;
-	border-color: #4ade80cc;
-	color: #4ade80;
+	background-color: #0d2c24;
+	border-color: #40e0c0cc;
+	color: #40e0c0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1269,8 +1285,8 @@ body {
 	height: 18dp;
 	flex-shrink: 0;
 	border-radius: 2dp;
-	decorator: vertical-gradient(#ffe2a0 #c8821e);
-	box-shadow: 0dp 0dp 7dp 0dp #e8b96b70, inset 0dp 1dp 0dp 0dp #ffffff80;
+	decorator: vertical-gradient(#ffe2a0 #d99a28);
+	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
 }
 
 .tf-title-main {
@@ -1284,7 +1300,7 @@ body {
 	font-size: 15dp;
 	font-weight: bold;
 	letter-spacing: 2dp;
-	color: #e8b96b;
+	color: #fdc04c;
 }
 
 /* === Control rail (bottom tier) — full-width inset capsule === */
@@ -1371,19 +1387,19 @@ body {
 	color: #ffffff;
 }
 
-/* FILE button (folder icon) — amber highlight while the menu is open */
+/* FILE button (folder icon) — gold highlight while the menu is open */
 .tf-file-btn.active {
-	border-color: #fbbf24aa;
-	background-color: #2a2a0a;
+	border-color: #fdc04caa;
+	background-color: #2b2113;
 }
 
 .tf-file-btn.active:hover {
-	background-color: #3a3a1a;
-	border-color: #fbbf24;
+	background-color: #3b2d17;
+	border-color: #fdc04c;
 }
 
 .tf-file-btn.active img {
-	image-color: #fbbf24;
+	image-color: #fdc04c;
 }
 
 /* === New Map window (floating, FILE > New Map) === */
@@ -1399,7 +1415,7 @@ body {
 
 /* New Map: compact section divider label */
 .tf-newmap-section {
-	color: #8fb0c8;
+	color: #d9c28a;
 	font-size: 0.85rem;
 	font-weight: bold;
 	margin-top: 6dp;
@@ -1437,28 +1453,28 @@ body {
 }
 
 .tf-guide-btn.active {
-	background-color: #2a2a0a;
-	border-color: #fbbf24;
-	color: #fbbf24;
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	color: #40e0c0;
 }
 
 /* === Passthrough (Pause) Button === */
 .tf-passthrough-btn.active {
-	background-color: #2a1a0a;
-	border-color: #e87020;
+	background-color: #0d2c24;
+	border-color: #40e0c0;
 }
 
 .tf-passthrough-btn.active:hover {
-	background-color: #3a2a14;
-	border-color: #ff9040;
+	background-color: #133a30;
+	border-color: #7cecd6;
 }
 
 .tf-passthrough-btn.active img {
-	image-color: #e87020;
+	image-color: #40e0c0;
 }
 
 .tf-passthrough-btn.active:hover img {
-	image-color: #ff9040;
+	image-color: #7cecd6;
 }
 
 /* Dim the panel body when passthrough is active */
@@ -1471,11 +1487,11 @@ body {
 	position: absolute;
 	z-index: 1100;
 	width: 166dp;
-	background-color: #1c1510;
-	border: 1dp #fbbf24;
+	background-color: #0c1a16;
+	border: 1dp #40e0c0;
 	border-radius: 4dp;
 	padding: 5dp 8dp;
-	color: #d4a020;
+	color: #a2f2e2;
 	font-size: 1.15rem;
 	pointer-events: none;
 }
@@ -1490,8 +1506,8 @@ body {
 .tf-slider-cap-max sliderbar {
 	width: 10dp;
 	height: 16dp;
-	background-color: #d08020;
-	decorator: vertical-gradient(#ffae50 #804c10);
+	background-color: #d99a28;
+	decorator: vertical-gradient(#ffd47a #8a5f10);
 	border-radius: 4dp;
 	border: 1dp #ffffff40;
 	margin-top: 1dp;
@@ -1500,16 +1516,16 @@ body {
 }
 
 .tf-slider-cap-max sliderbar:hover {
-	background-color: #f09a38;
-	decorator: vertical-gradient(#ffc870 #a06018);
+	background-color: #fdc04c;
+	decorator: vertical-gradient(#ffe2a0 #a87614);
 	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
 .tf-slider-cap-min sliderbar {
 	width: 10dp;
 	height: 16dp;
-	background-color: #2080d0;
-	decorator: vertical-gradient(#50aef0 #104880);
+	background-color: #2ba5ea;
+	decorator: vertical-gradient(#5cc0f4 #14547e);
 	border-radius: 4dp;
 	border: 1dp #ffffff40;
 	margin-top: 1dp;
@@ -1518,8 +1534,8 @@ body {
 }
 
 .tf-slider-cap-min sliderbar:hover {
-	background-color: #38a0f0;
-	decorator: vertical-gradient(#70c8ff #1860a0);
+	background-color: #45b5f2;
+	decorator: vertical-gradient(#82d2fa #1a6a9e);
 	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
 }
 
@@ -1641,19 +1657,19 @@ body {
 	height: 20dp;
 	line-height: 20dp;
 	padding: 0 6dp;
-	background-color: #21241f;
-	border: 1dp #4e5c4840;
+	background-color: #26262e;
+	border: 1dp #4a4a5a40;
 	border-radius: 4dp;
 	font-size: 0.8rem;
-	color: #7a9a70;
+	color: #9ca3af;
 	cursor: pointer;
 	margin-left: 6dp;
 	text-align: center;
 }
 .tf-env-reset-btn:hover {
-	background-color: #2e3828;
-	border-color: #7aaa6080;
-	color: #a8cc9e;
+	background-color: #343440;
+	border-color: #8a8aa080;
+	color: #d8dce4;
 }
 
 .tf-slider-numbox:focus {
@@ -1729,16 +1745,16 @@ body {
 }
 
 .tf-preset-save {
-	background-color: #2a4050;
-	border-color: #4880b870;
-	decorator: vertical-gradient(#3a5264 #1e303e);
+	background-color: #2b2113;
+	border-color: #fdc04c70;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
 	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .tf-preset-save:hover {
-	background-color: #3c5e7a;
-	border-color: #68aadccc;
-	decorator: vertical-gradient(#4e7090 #2a4456);
+	background-color: #3b2d17;
+	border-color: #ffd47acc;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
 	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
@@ -1813,8 +1829,8 @@ body {
 }
 
 .tf-preset-row.selected {
-	background-color: #2a3a4a;
-	border: 1dp #508cc860;
+	background-color: #2b2113;
+	border: 1dp #fdc04c60;
 }
 
 /* Top row inside a preset entry: name + delete button */
@@ -1958,7 +1974,7 @@ body {
 }
 .tf-hm-row:hover {
 	background-color: #232a38;
-	border: 1dp #3b82f680;
+	border: 1dp #2ba5ea80;
 }
 .tf-hm-row:active {
 	background-color: #1d2433;
@@ -1979,19 +1995,19 @@ body {
 }
 
 .tf-hm-badge {
-	color: #93c5fd;
+	color: #7ecbf5;
 	font-size: 0.8rem;
 	line-height: 1.3;
-	background-color: #1e3a5fcc;
-	border: 1dp #3b82f680;
+	background-color: #10344ecc;
+	border: 1dp #2ba5ea80;
 	border-radius: 3dp;
 	padding: 1dp 6dp;
 }
 
 .tf-hm-row.legacy .tf-hm-badge {
-	color: #fbbf24;
-	background-color: #3a2a0fcc;
-	border: 1dp #f59e0b80;
+	color: #fdc04c;
+	background-color: #2b2113cc;
+	border: 1dp #fdc04c80;
 }
 
 .tf-hm-mapname {
@@ -2031,9 +2047,9 @@ body {
 }
 
 .tf-abs-toggle.active {
-	border-color: #fad400cc;
-	background-color: #3c3214dc;
-	color: #fad400;
+	border-color: #40e0c0cc;
+	background-color: #0d2c24dc;
+	color: #40e0c0;
 }
 
 /* === Action Buttons (Save/Load) === */
@@ -2073,8 +2089,8 @@ body {
 }
 
 .tf-wtype-active {
-	background-color: #3a5a6a;
-	border-color: #60a0c0cc;
+	background-color: #0e2637;
+	border-color: #2ba5eacc;
 }
 
 .tf-wtype-active .tf-wtype-btn-text {
@@ -2082,7 +2098,7 @@ body {
 }
 
 .tf-wtype-active:hover {
-	background-color: #4a6a7a;
+	background-color: #14364d;
 }
 
 .tf-action-btn {
@@ -2180,15 +2196,15 @@ body {
 }
 
 .tf-save-btn {
-	background-color: #2a4050;
-	border-color: #4880b880;
-	decorator: vertical-gradient(#3a5264 #1e303e);
+	background-color: #2b2113;
+	border-color: #fdc04c80;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
 }
 
 .tf-save-btn:hover {
-	background-color: #3c5e7a;
-	border-color: #68aadccc;
-	decorator: vertical-gradient(#4e7090 #2a4456);
+	background-color: #3b2d17;
+	border-color: #ffd47acc;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
 }
 
 .tf-save-btn:hover .text-medium,
@@ -2198,15 +2214,15 @@ body {
 }
 
 .tf-load-btn {
-	background-color: #3c2a50;
-	border-color: #9058c880;
-	decorator: vertical-gradient(#4e3c64 #2c1e3e);
+	background-color: #0e2637;
+	border-color: #2ba5ea80;
+	decorator: vertical-gradient(#17344a #091b28);
 }
 
 .tf-load-btn:hover {
-	background-color: #5a3e78;
-	border-color: #b070f0cc;
-	decorator: vertical-gradient(#6e528e #422c5c);
+	background-color: #14364d;
+	border-color: #5cc0f4cc;
+	decorator: vertical-gradient(#1e4460 #0e2637);
 }
 
 .tf-load-btn:hover .text-medium,
@@ -2290,41 +2306,41 @@ body {
 
 .tf-fp-btn-scatter.active,
 .tf-dc-btn-scatter.active {
-	border-color: #22c55e;
-	background-color: #1a3a2a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-fp-btn-point.active,
 .tf-dc-btn-point.active {
-	border-color: #38bdf8;
-	background-color: #1a2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-fp-btn-remove.active,
 .tf-dc-btn-remove.active,
 .tf-mb-btn-remove.active {
 	border-color: #ef4444;
-	background-color: #3a1a1a;
+	background-color: #3a1616;
 }
 
 .tf-sm-btn-smooth.active {
-	border-color: #a78bfa;
-	background-color: #2a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-sm-btn-level.active {
-	border-color: #38bdf8;
-	background-color: #1a2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-ramp-btn-straight.active {
-	border-color: #f59e0b;
-	background-color: #3a2a1a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-ramp-btn-spline.active {
-	border-color: #a78bfa;
-	background-color: #2a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 /* === Feature Placer Distribution Buttons === */
@@ -2354,8 +2370,8 @@ body {
 }
 
 .tf-fp-dist-btn.active {
-	border-color: #a78bfa;
-	background-color: #2a1a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-fp-dist-btn .tf-btn-text {
@@ -2369,24 +2385,24 @@ body {
 /* === Weather Brush Styles === */
 
 .tf-btn-weather.active {
-	border-color: #38bdf8;
-	background-color: #1a2535;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 /* === Weather sub-mode buttons === */
 .tf-wb-btn-scatter.active {
-	border-color: #38bdf8;
-	background-color: #1a2535;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-wb-btn-point.active {
-	border-color: #06b6d4;
-	background-color: #1a2a3a;
+	border-color: #fdc04c;
+	background-color: #2b2113;
 }
 
 .tf-wb-btn-remove.active {
 	border-color: #ef4444;
-	background-color: #3a1a1a;
+	background-color: #3a1616;
 }
 
 /* === Weather Persistence slider === */
@@ -2488,144 +2504,144 @@ body {
 
 /* === Active-state hover highlights === */
 .tf-btn-raise.active:hover {
-	background-color: #2a5e48;
-	border-color: #44e080;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-lower.active:hover {
-	background-color: #583030;
-	border-color: #ff6060;
+	background-color: #55201f;
+	border-color: #f87171;
 }
 
 .tf-btn-level.active:hover {
-	background-color: #2c4458;
-	border-color: #30d0f0;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-ramp.active:hover {
-	background-color: #584e28;
-	border-color: #ffe030;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-restore.active:hover {
-	background-color: #443058;
-	border-color: #c070ff;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-noise.active:hover {
-	background-color: #584628;
-	border-color: #ffb830;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-erode.active:hover {
-	background-color: #553e20;
-	border-color: #f59e0b;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-noise-type-btn.active:hover {
-	background-color: #584628;
-	border-color: #ffb830;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-features.active:hover {
-	background-color: #205840;
-	border-color: #50e8b0;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-shape-btn.active:hover {
-	background-color: #1e4838;
-	border-color: #44e080;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-fp-btn-scatter.active:hover {
-	background-color: #2a5e48;
-	border-color: #44e080;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-fp-btn-point.active:hover {
-	background-color: #2c4458;
-	border-color: #50d0f0;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-fp-btn-remove.active:hover,
 .tf-mb-btn-remove.active:hover {
-	background-color: #583030;
-	border-color: #ff6060;
+	background-color: #55201f;
+	border-color: #f87171;
 }
 
 .tf-fp-dist-btn.active:hover {
-	background-color: #443058;
-	border-color: #c098ff;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-weather.active:hover {
-	background-color: #2c4258;
-	border-color: #58d0ff;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-wb-btn-scatter.active:hover {
-	background-color: #2c4258;
-	border-color: #58d0ff;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-wb-btn-point.active:hover {
-	background-color: #2c4458;
-	border-color: #30d0f0;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-wb-btn-remove.active:hover {
-	background-color: #583030;
-	border-color: #ff6060;
+	background-color: #55201f;
+	border-color: #f87171;
 }
 
 .tf-undo-mode-btn.active:hover {
-	background-color: #584628;
-	border-color: #ffa820;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-abs-toggle.active:hover {
-	background-color: #5c5230dc;
-	border-color: #ffe020cc;
+	background-color: #133a30dc;
+	border-color: #7cecd6cc;
 }
 
 .tf-btn-splat.active:hover {
-	background-color: #2a5e48;
-	border-color: #44e080;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-diffuse.active:hover {
-	background-color: #54431f;
-	border-color: #f2cd8a;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-decals.active:hover {
-	background-color: #2a5e48;
-	border-color: #44e080;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-btn-grass.active:hover {
-	background-color: #154d38;
-	border-color: #34d399;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-gb-btn-paint.active:hover {
-	background-color: #154d38;
-	border-color: #34d399;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-gb-btn-fill.active:hover {
-	background-color: #205840;
-	border-color: #50e8b0;
+	background-color: #3b2d17;
+	border-color: #ffd47a;
 }
 
 .tf-gb-btn-erase.active {
-	border-color: #f97316;
-	background-color: #3b1a04;
+	border-color: #ef4444;
+	background-color: #3a1616;
 }
 
 .tf-gb-btn-erase.active:hover {
-	background-color: #5a2c0e;
-	border-color: #fb923c;
+	background-color: #55201f;
+	border-color: #f87171;
 }
 
 /* --- Grass Texture Filter Color Swatch --- */
@@ -2667,37 +2683,37 @@ body {
 	border-color: #7878909a;
 }
 .tf-gb-pipette-btn.active {
-	background-color: #1a3a2a;
-	border-color: #4ade8066;
-	color: #4ade80;
+	background-color: #0d2c24;
+	border-color: #40e0c066;
+	color: #40e0c0;
 }
 
 /* === Slider Wheel-Lock (double-click to lock) === */
-/* Locked — medium green tint fill + green outline (matches tf-header-btn active style) */
+/* Locked — teal tint fill + teal outline (toggle-state accent) */
 .slider-locked sliderbar {
-	background-color: #304838;
-	border: 2dp #4ade80bb;
+	background-color: #1a4438;
+	border: 2dp #40e0c0bb;
 	box-shadow: none;
 	transition: background-color 0.08s, border-color 0.08s;
 }
 .slider-locked sliderbar:hover {
-	background-color: #3a5842;
-	border-color: #4ade80ee;
+	background-color: #215446;
+	border-color: #40e0c0ee;
 }
 /* Pulse phase — border fades to dim; fill stays constant */
 .slider-locked.slider-pulse sliderbar {
-	background-color: #304838;
-	border: 2dp #4ade8040;
+	background-color: #1a4438;
+	border: 2dp #40e0c040;
 }
 .slider-locked.slider-pulse sliderbar:hover {
-	background-color: #3a5842;
-	border-color: #4ade8088;
+	background-color: #215446;
+	border-color: #40e0c088;
 }
 
-/* Keybind-scroll flash — brief green highlight that fades back via base transition */
+/* Keybind-scroll flash — brief teal highlight that fades back via base transition */
 .slider-flash sliderbar {
-	background-color: #22c55e;
-	border: 2dp #22ff66aa;
+	background-color: #40e0c0;
+	border: 2dp #7cecd6aa;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -2818,47 +2834,47 @@ body {
 	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
 }
 .tf-overlay-chip.active {
-	background-color: #0c2838;
-	border-color: #22d3ee;
-	decorator: vertical-gradient(#113347 #081d2a);
-	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #22d3ee30;
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	decorator: vertical-gradient(#133a30 #081e18);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #40e0c030;
 }
 .tf-overlay-chip.active:hover {
-	background-color: #113848;
-	border-color: #38e8ff;
-	decorator: vertical-gradient(#164060 #0a2438);
-	box-shadow: 0dp 2dp 5dp 0dp #00000080, inset 0dp 1dp 0dp 0dp #22d3ee50;
+	background-color: #133a30;
+	border-color: #7cecd6;
+	decorator: vertical-gradient(#18463a #0d2c24);
+	box-shadow: 0dp 2dp 5dp 0dp #00000080, inset 0dp 1dp 0dp 0dp #40e0c050;
 }
 .tf-overlay-chip-label {
 	font-size: 1.0rem;
 	color: #9ca3af;
 }
 .tf-overlay-chip.active .tf-overlay-chip-label {
-	color: #7ee8f8;
+	color: #a2f2e2;
 }
 
 /* === Controls section: muted active state (param chips are almost always on) === */
 #section-sliders .tf-overlay-chip.active {
-	background-color: #20263a;
-	border-color: #3a5a7060;
+	background-color: #12261f;
+	border-color: #40e0c050;
 }
 #section-sliders .tf-overlay-chip.active:hover {
-	background-color: #28304a;
-	border-color: #4a6a8080;
+	background-color: #17302a;
+	border-color: #40e0c080;
 }
 #section-sliders .tf-overlay-chip.active .tf-overlay-chip-label {
-	color: #b8c0cc;
+	color: #9fd2c4;
 }
 #section-fp-controls .tf-overlay-chip.active {
-	background-color: #20263a;
-	border-color: #3a5a7060;
+	background-color: #12261f;
+	border-color: #40e0c050;
 }
 #section-fp-controls .tf-overlay-chip.active:hover {
-	background-color: #28304a;
-	border-color: #4a6a8080;
+	background-color: #17302a;
+	border-color: #40e0c080;
 }
 #section-fp-controls .tf-overlay-chip.active .tf-overlay-chip-label {
-	color: #b8c0cc;
+	color: #9fd2c4;
 }
 
 /* === Inline Header Chip === */
@@ -2879,14 +2895,14 @@ body {
 	color: #9ca3af;
 }
 .tf-inline-chip.active {
-	background-color: #102030;
-	border-color: #22d3ee60;
-	color: #67e8f9;
+	background-color: #0d2c24;
+	border-color: #40e0c060;
+	color: #40e0c0;
 }
 .tf-inline-chip.active:hover {
-	background-color: #153040;
-	border-color: #22d3ee;
-	color: #a5f3fc;
+	background-color: #133a30;
+	border-color: #40e0c0;
+	color: #a2f2e2;
 }
 
 /* === DJ Mode Toggle Rows (Settings Panel) === */
@@ -2905,15 +2921,15 @@ body {
 }
 .tf-dj-activate-row:hover {
 	background-color: #262634;
-	border-color: #4a5a44;
+	border-color: #3e5a52;
 }
 .tf-dj-activate-row.active {
-	background-color: #0d1f10;
-	border-color: #22c55e60;
+	background-color: #0d2c24;
+	border-color: #40e0c060;
 }
 .tf-dj-activate-row.active:hover {
-	background-color: #122816;
-	border-color: #22c55e;
+	background-color: #133a30;
+	border-color: #40e0c0;
 }
 .tf-dj-activate-name {
 	font-size: 1.15rem;
@@ -2921,7 +2937,7 @@ body {
 	color: #e2e8f0;
 }
 .tf-dj-activate-row.active .tf-dj-activate-name {
-	color: #86efac;
+	color: #a2f2e2;
 }
 .tf-dj-activate-desc {
 	font-size: 0.9rem;
@@ -2933,9 +2949,9 @@ body {
 	text-align: center;
 }
 .tf-dj-activate-row.active .tf-dj-toggle-pill {
-	background-color: #14291a;
-	border-color: #22c55e80;
-	color: #86efac;
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	color: #a2f2e2;
 }
 .tf-dj-sub-settings {
 	transition: opacity 0.15s;
@@ -2962,12 +2978,12 @@ body {
 	border-color: #454558;
 }
 .tf-dj-toggle-row.active {
-	background-color: #0e1e2e;
-	border-color: #22d3ee50;
+	background-color: #0d2c24;
+	border-color: #40e0c050;
 }
 .tf-dj-toggle-row.active:hover {
-	background-color: #122838;
-	border-color: #22d3ee90;
+	background-color: #133a30;
+	border-color: #40e0c090;
 }
 .tf-dj-toggle-name {
 	font-size: 1.05rem;
@@ -2989,9 +3005,9 @@ body {
 	transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
 .tf-dj-toggle-row.active .tf-dj-toggle-pill {
-	background-color: #0c2838;
-	border-color: #22d3ee80;
-	color: #67e8f9;
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	color: #a2f2e2;
 }
 #settings-tab-dj .text-sm {
 	font-size: 0.95rem;
@@ -3019,9 +3035,7 @@ body {
 
 .tf-env-btn:active {
 	background-color: #24242c;
-}1e1e25;
-	decorator: vertical-gradient(#1e1e25 #2c2c35);
-	box-shadow: inset 0dp 2dp 4dp 0dp #00000080
+}
 
 .tf-sm-btn:active {
 	background-color: #2a2a32;
@@ -3064,13 +3078,13 @@ body {
 }
 
 .tf-settings-btn.active {
-	border-color: #fbbf24aa;
-	background-color: #2a2a0a;
+	border-color: #fdc04caa;
+	background-color: #2b2113;
 }
 
 .tf-settings-btn.active:hover {
-	background-color: #3a3a1a;
-	border-color: #fbbf24;
+	background-color: #3b2d17;
+	border-color: #fdc04c;
 }
 
 /* Settings tab bar */
@@ -3135,8 +3149,8 @@ body {
 	text-align: center;
 	font-size: 1.15rem;
 	font-weight: bold;
-	color: #a8c09a;
-	background-color: #1a1e1adc;
+	color: #d9c28a;
+	background-color: #1e1a12dc;
 	border: 1dp #55556040;
 	border-radius: 4dp;
 	cursor: pointer;
@@ -3144,18 +3158,18 @@ body {
 }
 
 .tf-keybind-key:hover {
-	background-color: #2a2e2a;
+	background-color: #2e2a20;
 	border-color: #7878909a;
 }
 
 .tf-keybind-key.capturing {
-	background-color: #2a2a0a;
-	border-color: #fbbf24;
-	color: #fbbf24;
+	background-color: #2b2113;
+	border-color: #fdc04c;
+	color: #fdc04c;
 }
 
 .tf-keybind-key.modified {
-	color: #fbbf24;
+	color: #fdc04c;
 }
 
 /* Fixed/non-rebindable system key badge (e.g. ESC to clear locked sliders) */
@@ -3165,8 +3179,8 @@ body {
 	text-align: center;
 	font-size: 1.15rem;
 	font-weight: bold;
-	color: #7ca882;
-	background-color: #1a1e1a77;
+	color: #a89a70;
+	background-color: #1e1a1277;
 	border: 1dp #44445040;
 	border-radius: 4dp;
 	cursor: default;
@@ -3268,8 +3282,8 @@ margin-top: 3dp;
 	width: 7dp;
 	height: 7dp;
 	border-radius: 4dp;
-	background-color: #22d3ee;
-	box-shadow: 0dp 0dp 5dp 0dp #22d3ee99;
+	background-color: #40e0c0;
+	box-shadow: 0dp 0dp 5dp 0dp #40e0c099;
 	animation: notify-dot-pulse 1.3s infinite;
 }
 
@@ -3277,9 +3291,9 @@ margin-top: 3dp;
 /* Plays once when a section is opened to draw attention to a chip inside */
 @keyframes chip-2pulse {
 	0%   { background-color: #2a2a34; border-color: #3e3e4a50; }
-	20%  { background-color: #0c3858; border-color: #22d3eeff; }
+	20%  { background-color: #133a30; border-color: #40e0c0ff; }
 	40%  { background-color: #2a2a34; border-color: #3e3e4a50; }
-	62%  { background-color: #0c3858; border-color: #22d3eeff; }
+	62%  { background-color: #133a30; border-color: #40e0c0ff; }
 	82%  { background-color: #2a2a34; border-color: #3e3e4a50; }
 	100% { background-color: #2a2a34; border-color: #3e3e4a50; }
 }
@@ -3352,8 +3366,8 @@ margin-top: 3dp;
 	width: 16dp;
 	height: 16dp;
 	border-radius: 8dp;
-	background-color: #fbbf24e0;
-	border: 1dp #ffe090;
+	background-color: #fdc04ce0;
+	border: 1dp #ffe2a0;
 	left: 47dp;
 	top: 47dp;
 	cursor: pointer;
@@ -3387,11 +3401,11 @@ margin-top: 3dp;
 }
 .lp-orient-hintbar {
 	font-size: 0.75rem;
-	color: #a0b896;
+	color: #d9c28a;
 	margin-bottom: 4dp;
 }
 .lp-orient-hint {
-	color: #a0b896;
+	color: #d9c28a;
 	font-size: 0.75rem;
 }
 

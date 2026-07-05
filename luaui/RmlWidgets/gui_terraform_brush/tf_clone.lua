@@ -122,7 +122,7 @@ function M.sync(doc, ctx, clState, setSummary)
 		do
 			local cs = clState and clState.state or "idle"
 			local stateLabels = { idle = "IDLE", selecting = "SELECTING", box_drawn = "BOX DRAWN", copied = "COPIED", paste_preview = "PASTE" }
-			setSummary("CLONE", "#22d3ee",
+			setSummary("CLONE", "#fdc04c",
 				"", stateLabels[cs] or cs:upper(),
 				"Rot ", tostring(math.floor(clState and clState.pasteRotation or 0)) .. "\194\176",
 				"Quality ", (clState and clState.terrainQuality or "full"):upper())

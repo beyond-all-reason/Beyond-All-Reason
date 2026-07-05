@@ -38,7 +38,7 @@ function M.sync(doc, ctx, setSummary)
 
 		local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 		if dpState then
-			setSummary("DECALS", "#e060e0",
+			setSummary("DECALS", "#fdc04c",
 				"", (dpState.mode or "idle"):upper(),
 				"R ", tostring(dpState.radius or 0),
 				"Sel ", tostring(#(dpState.selectedDecals or {})))
@@ -153,7 +153,7 @@ function M.sync(doc, ctx, setSummary)
 
 			uiState.updatingFromCode = false
 		else
-			setSummary("DECALS", "#e060e0", "", "LIBRARY", "", "", "", "")
+			setSummary("DECALS", "#fdc04c", "", "LIBRARY", "", "", "", "")
 		end
 
 end

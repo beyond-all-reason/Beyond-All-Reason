@@ -278,7 +278,7 @@ function M.sync(doc, ctx, dfpState, setSummary)
 	end
 
 	if setSummary then
-		setSummary("DIFFUSE", "#e8b96b",
+		setSummary("DIFFUSE", "#fdc04c",
 			"", shortName(activeLayer and activeLayer.name, 18),
 			"R ", tostring(dfpState.radius or 128),
 			"Str ", string.format("%d%%", math.floor((dfpState.strength or 0.6) * 100 + 0.5)),

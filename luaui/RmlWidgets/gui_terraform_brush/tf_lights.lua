@@ -478,7 +478,7 @@ function M.sync(doc, ctx, lpState, setSummary)
 			yawInp:SetAttribute("value", tostring(math.floor(lpState.yaw)))
 		end
 
-		setSummary("LIGHTS", "#fbbf24",
+		setSummary("LIGHTS", "#fdc04c",
 			"", (lpState.lightType or "point"):upper(),
 			"Bright ", string.format("%.1f", lpState.brightness or 1),
 			"Rad ", tostring(lpState.lightRadius or 200),

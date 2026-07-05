@@ -647,11 +647,23 @@ end
 
 -- Start a skybox fade transition (screen overlay fade-to-black)
 local function startSkyboxFade(newTexturePath)
-	if skyFade.active and skyFade.phase == "fadeout" then
+	if skyFade.active then
+		-- A fade is already in progress: update the destination skybox.
+		-- IMPORTANT: do NOT re-capture orig* here. If we are mid-fadein the
+		-- lighting is partially restored (dimmed), so re-capturing would record
+		-- those dim values as the "full brightness" target, making restore
+		-- permanently lock the scene dark.
 		skyFade.pendingTexture = newTexturePath
+		if skyFade.phase == "fadein" then
+			-- Reverse direction: jump back into fadeout symmetrically so the
+			-- screen dims to black before the new skybox appears. The already-
+			-- captured orig* values remain the correct full-brightness target.
+			skyFade.phase = "fadeout"
+			skyFade.progress = 1 - skyFade.progress
+		end
 		return
 	end
-	-- Capture current lighting so we can dim and restore it
+	-- Fresh start: capture current (full) lighting so we can dim and restore it.
 	skyFade.origUnitAmbient    = getSunColor("ambient", "unit")
 	skyFade.origUnitDiffuse    = getSunColor("diffuse", "unit")
 	skyFade.origUnitSpecular   = getSunColor("specular", "unit")
@@ -668,15 +680,17 @@ widgetState.startSkyboxFade = startSkyboxFade
 -- Apply a skybox change: uses fade if enabled, instant swap otherwise
 local function applySkybox(texturePath)
 	if not texturePath then return end
-	if texturePath ~= "" and not VFS.FileExists(texturePath) then
+	-- VFS.RAW_FIRST ensures raw-filesystem skyboxes (Terraform Brush/SkyBoxes/)
+	-- are found, not just archive-resident ones.
+	if texturePath ~= "" and not VFS.FileExists(texturePath, VFS.RAW_FIRST) then
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. texturePath)
 		return
 	end
-	if widgetState.envFadeEnabled then
-		startSkyboxFade(texturePath)
-	else
-		Spring.SetSkyBoxTexture(texturePath)
-	end
+	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
+	-- to be registered via gl.Texture first. gl.Texture can only be called from
+	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
+	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in DrawScreen.
+	widgetState._pendingSkyboxPath = texturePath
 end
 widgetState.applySkybox = applySkybox
 
@@ -8760,15 +8774,28 @@ function widget:DrawScreen()
 		end
 	end
 
-	-- One-shot: pre-load skybox DDS textures into GL named texture cache
-	-- so Spring.SetSkyBoxTexture() can find them. Must happen in a Draw call-in.
-	if widgetState.envLoadedTextures and not widgetState.envTexturesPreloaded then
-		for _, path in ipairs(widgetState.envLoadedTextures) do
-			gl.Texture(path)
+	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
+	-- done here in DrawScreen. Register the DDS in the GL named-texture cache so
+	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
+	if widgetState._pendingSkyboxPath then
+		local tex = widgetState._pendingSkyboxPath
+		widgetState._pendingSkyboxPath = nil
+		if tex ~= "" then
+			gl.Texture(tex)
 			gl.Texture(false)
 		end
-		widgetState.envTexturesPreloaded = true
+		if widgetState.envFadeEnabled then
+			startSkyboxFade(tex)
+		else
+			Spring.SetSkyBoxTexture(tex)
+		end
 	end
+
+	-- NOTE: DDS skybox preloading removed. Spring.SetSkyBoxTexture() loads the
+	-- DDS file directly via the engine; eagerly binding all cubemaps into GL
+	-- exhausted the TexMemPool (512 MB) when many large skyboxes were present,
+	-- causing a std::bad_alloc crash. Thumbnails use the separate jpg/png
+	-- preview images so no upfront GL texture load is needed.
 
 	-- Draw sun position indicator on screen when environment mode is active
 	if widgetState.envActive then
@@ -10381,8 +10408,8 @@ function widget:Update()
 			local sumEl = doc and getCachedEl(doc, "status-summary")
 			if sumEl then
 				local modeColors = {
-					raise = "#22c55e", lower = "#ef4444", level = "#06b6d4", smooth = "#06b6d4",
-					ramp = "#fad400", restore = "#a855f7", noise = "#fbbf24", erode = "#d97706",
+					raise = "#fdc04c", lower = "#ef4444", level = "#fdc04c", smooth = "#fdc04c",
+					ramp = "#fdc04c", restore = "#fdc04c", noise = "#fdc04c", erode = "#fdc04c",
 				}
 				local m = state.mode or "---"
 				local mc = modeColors[m] or "#9ca3af"
@@ -10403,7 +10430,7 @@ function widget:Update()
 				}
 				if state.velocityIntensity and state.dragVelocityFactor then
 					parts[#parts + 1] = sep
-					parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fbbf24;">' .. string.format("x%.1f", state.dragVelocityFactor) .. '</span>'
+					parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fdc04c;">' .. string.format("x%.1f", state.dragVelocityFactor) .. '</span>'
 				end
 				if state.mode == "restore" then
 					parts[#parts + 1] = sep
@@ -10509,7 +10536,7 @@ function widget:Update()
 				importRow:SetClass("hidden", false)
 				local pct = math.floor(state.importProgress / state.importTotal * 100)
 				local fill = getCachedEl(doc, "import-progress-fill")
-				if fill then fill:SetAttribute("style", "height: 6dp; width: " .. pct .. "%; background-color: #4a9eff; border-radius: 3dp;") end
+				if fill then fill:SetAttribute("style", "height: 6dp; width: " .. pct .. "%; background-color: #fdc04c; border-radius: 3dp;") end
 				_noDmLabel("tfImportPctStr", pct .. "%")
 			else
 				importRow:SetClass("hidden", true)
@@ -10571,7 +10598,7 @@ function widget:Update()
 		if sumEl2 then
 			local sep = '<span class="tf-ss-sep">|</span>'
 			setInnerRmlIfChanged(sumEl2, "status-summary",
-				'<span class="tf-ss-mode tf-ss-pulse" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fbbf24;">No grass data for this map</span>')
+				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass data for this map</span>')
 		end
 	end
 	-- Reactive refresh of section warn chips after state sync

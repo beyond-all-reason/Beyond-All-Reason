@@ -78,7 +78,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 		local rotSlider = doc and getCachedEl(doc, "slider-sp-rotation")
 		if rotSlider then rotSlider:SetAttribute("value", tostring(math.floor(stpState.shapeRotation))) end
 
-		setSummary("START POS", "#9ca3af",
+		setSummary("START POS", "#fdc04c",
 			"", (stpState.subMode or "express"):upper(),
 			"Players ", tostring(stpState.totalPlayers or (stpState.numAllyTeams or 2)) .. " (" .. tostring(stpState.numAllyTeams or 2) .. "x" .. tostring(stpState.numTeamsPerAlly or 1) .. ")")
 

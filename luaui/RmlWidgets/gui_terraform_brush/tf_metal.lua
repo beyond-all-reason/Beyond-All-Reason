@@ -164,7 +164,7 @@ if dm then
 	do
 		local tfSt2 = WG.TerraformBrush and WG.TerraformBrush.getState()
 		local sm = mbState.subMode or "paint"
-		setSummary("METAL", "#14b8a6",
+		setSummary("METAL", "#fdc04c",
 			"", sm:upper(),
 			"R ", tostring(tfSt2 and tfSt2.radius or "?"),
 			"Val ", string.format("%.1f", mbState.metalValue or 0),

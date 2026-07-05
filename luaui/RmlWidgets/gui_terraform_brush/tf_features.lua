@@ -322,7 +322,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 			}, not scatter)
 		end
 
-		setSummary("FEATURES", "#34d399",
+		setSummary("FEATURES", "#fdc04c",
 			"", (fpState.mode or "place"):upper(),
 			"", shapeNames[fpState.shape] or "Circle",
 			"R ", tostring(fpState.radius or 0),

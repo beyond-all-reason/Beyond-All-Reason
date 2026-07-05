@@ -104,28 +104,35 @@ body {
 	min-width: 62dp;
 	padding: 7dp 6dp;
 	font-size: 1.15rem;
-	color: #9ca3af;
-	background-color: #2a2a32;
-	border: 1dp #3a3a4a80;
-	border-radius: 4dp;
-	cursor: pointer;
-	transition: background-color 0.15s;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	gap: 4dp;
+        color: #d8dce4;
+        background-color: #393942;
+        border: 1dp #50505a50;
+        border-radius: 6dp;
+        cursor: pointer;
+        transition: background-color 0.15s;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 4dp;
+        decorator: vertical-gradient(#4e4e5a #2c2c34);
+        box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
 }
 
 .fp-cat-btn:hover {
-	background-color: #3a3a4a;
-	color: #d1d5db;
+        background-color: #4c4c58;
+        border-color: #7878909a;
+        color: #e5e7eb;
+        decorator: vertical-gradient(#626270 #3a3a46);
+        box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
 }
 
 .fp-cat-btn.active {
-	background-color: #1a3a2a;
-	color: #22c55e;
-	border-color: #22c55e40;
+	background-color: #2b2113;
+	color: #ffd88f;
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#3c3018 #1a1208);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff10;
 }
 
 /* === Category Icon Image === */

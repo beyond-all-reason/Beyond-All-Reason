@@ -2400,7 +2400,7 @@
 			<div class="text-lg text-light">Absolute</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-0-5">
-			<div class="text-lg" style="color: #f0a030;">Max: <span class="font-bold">{{heightCapMaxStr}}</span></div>
+			<div class="text-lg" style="color: #fdc04c;">Max: <span class="font-bold">{{heightCapMaxStr}}</span></div>
 			<div id="btn-sample-max" data-class-active="tfCapSampleMax" data-event-mousedown="onTfCapSampleMax()" class="tf-sample-btn">SAMPLE</div>
 			<div id="slider-cap-max-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="slider-cap-max-transport" class="tf-transport-group hidden">
@@ -2420,7 +2420,7 @@
 			<input type="text" id="slider-cap-max-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-0-5">
-			<div class="text-lg" style="color: #30a0f0;">Min: <span class="font-bold">{{heightCapMinStr}}</span></div>
+			<div class="text-lg" style="color: #2ba5ea;">Min: <span class="font-bold">{{heightCapMinStr}}</span></div>
 			<div id="btn-sample-min" data-class-active="tfCapSampleMin" data-event-mousedown="onTfCapSampleMin()" class="tf-sample-btn">SAMPLE</div>
 			<div id="slider-cap-min-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
 			<div id="slider-cap-min-transport" class="tf-transport-group hidden">
@@ -2499,7 +2499,7 @@
 		<div id="import-progress-row" class="hidden mb-1">
 			<div class="text-sm text-light" style="margin-bottom: 2dp;">Importing...</div>
 			<div id="import-progress-track" style="height: 6dp; background-color: #333333; border-radius: 3dp; overflow: hidden;">
-				<div id="import-progress-fill" style="height: 6dp; width: 0%; background-color: #4a9eff; border-radius: 3dp;"></div>
+				<div id="import-progress-fill" style="height: 6dp; width: 0%; background-color: #fdc04c; border-radius: 3dp;"></div>
 			</div>
 			<div class="text-sm text-medium" style="margin-top: 1dp;">{{tfImportPctStr}}</div>
 		</div>

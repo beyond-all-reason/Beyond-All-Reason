@@ -33,11 +33,17 @@ local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
 
 -- Prefix all terraform messages with $c$ when cheat is enabled.
--- This certification is recorded in demos, so during replay the prefix is
--- preserved and the gadget can trust it without needing live cheat state.
--- NOTE: Only enable $c$ wrapping when the gadget also supports it (after game restart).
+-- This certification is recorded in demos, so during replay the gadget can
+-- trust it without needing live cheat state (which is always false in replay).
+-- Guard against double-prefix: NewMap import pre-attaches $c$ to its messages,
+-- so skip wrapping if the message already starts with the signature.
+-- NOTE: no new chunk-level local for the prefix string (file is at 200-local limit).
 local function SendLuaRulesMsg(msg)
-	Spring.SendLuaRulesMsg(msg)
+	if Spring.IsCheatingEnabled() and msg:sub(1, 3) ~= "$c$" then
+		Spring.SendLuaRulesMsg("$c$" .. msg)
+	else
+		Spring.SendLuaRulesMsg(msg)
+	end
 end
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay

@@ -38,8 +38,9 @@ function M.attach(doc, ctx)
 
 	widgetState.envControlsEl = doc:GetElementById("tf-environment-controls")
 
-	-- Scan for skybox textures and build the thumbnail grid
-	local SKYBOX_DIR = "luaui/RmlWidgets/gui_terraform_brush/skyboxes/"
+	-- Scan for skybox textures and build the thumbnail grid.
+	-- User-facing location: <data>/Terraform Brush/SkyBoxes/  (writable data dir).
+	local SKYBOX_DIR = "Terraform Brush/SkyBoxes/"
 	local skyboxFiles = VFS.DirList(SKYBOX_DIR, "*", VFS.RAW_FIRST) or {}
 
 	-- Separate DDS skybox textures from preview images (jpg/png)
@@ -96,9 +97,20 @@ function M.attach(doc, ctx)
 			thumbDiv:SetAttribute("title", displayName)
 
 			if previewPath then
-				local img = doc:CreateElement("img")
-				img:SetAttribute("src", "/" .. previewPath)
-				thumbDiv:AppendChild(img)
+				-- Guard: RmlUi loads the FULL uncompressed bitmap into TexMemPool when
+				-- an <img> element becomes visible. A single 4096×4096 preview render
+				-- (even JPEG) decompresses to ~67 MB; 8 of them = ~536 MB > the 512 MB
+				-- TexMemPool, causing std::bad_alloc on library open.
+				-- Only add the img element for images that are likely small thumbnails
+				-- (< 512 KB on disk). Larger files are shown as name-only tiles.
+				local pf = io.open(previewPath, "rb")
+				local psize = pf and pf:seek("end")
+				if pf then pf:close() end
+				if psize and psize < 512 * 1024 then
+					local img = doc:CreateElement("img")
+					img:SetAttribute("src", "/" .. previewPath)
+					thumbDiv:AppendChild(img)
+				end
 			end
 
 			local label = doc:CreateElement("div")
@@ -123,8 +135,9 @@ function M.attach(doc, ctx)
 		if #ddsFiles == 0 then
 			gridEl.inner_rml = '<div class="text-sm text-keybind" style="padding: 16dp; text-align: center; font-size: 1rem; line-height: 1.5;">'
 				.. 'No skybox textures found.<br/>'
-				.. 'Get skyboxes from the Discord <span style="color: #fbbf24;">#mapping</span> channel pins and place them in:<br/>'
-				.. '<span style="color: #9ca3af;">luaui/RmlWidgets/gui_terraform_brush/skyboxes/</span>'
+				.. 'Get skyboxes from the Discord <span style="color: #fdc04c;">#mapping</span> channel pins<br/>'
+				.. 'and place .dds files in your BAR data folder:<br/>'
+				.. '<span style="color: #9ca3af;">Beyond-All-Reason/data/Terraform Brush/SkyBoxes/</span>'
 				.. '</div>'
 		end
 	end
@@ -1642,7 +1655,7 @@ function M.sync(doc, ctx, setSummary)
 		-- btn-environment active state driven by data-class-active="activeTool == 'env'" in RML.
 		if widgetState.dmHandle and widgetState.dmHandle.activeMode ~= "" then widgetState.dmHandle.activeMode = "" end
 
-		setSummary("ENVIRONMENT", "#9ca3af")
+		setSummary("ENVIRONMENT", "#fdc04c")
 
 end
 

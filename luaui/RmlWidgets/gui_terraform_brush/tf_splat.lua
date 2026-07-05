@@ -236,7 +236,7 @@ function M.sync(doc, ctx, spState, setSummary)
 
 		do
 			local toolLabel = "SPLAT"
-			setSummary(toolLabel, "#22c55e",
+			setSummary(toolLabel, "#fdc04c",
 				"CH ", tostring(spState.channel or "?"),
 				"", shapeNames[spState.shape] or "Circle",
 				"R ", tostring(spState.radius or 0),

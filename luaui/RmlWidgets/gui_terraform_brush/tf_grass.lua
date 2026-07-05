@@ -347,10 +347,10 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			if sumEl then
 				local sep = '<span class="tf-ss-sep">|</span>'
 				ctx.setInnerRmlIfChanged(sumEl, "status-summary",
-					'<span class="tf-ss-mode" style="color: #10b981;">GRASS</span>' .. sep .. '<span class="tf-ss-val" style="color: #fbbf24;">No grass data for this map</span>')
+					'<span class="tf-ss-mode" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val" style="color: #fdc04c;">No grass data for this map</span>')
 			end
 		else
-			setSummary("GRASS", "#10b981",
+			setSummary("GRASS", "#fdc04c",
 				"", (gbState.subMode or "paint"):upper(),
 				"", shapeNames[gbState.shape] or "Circle",
 				"R ", tostring(gbState.radius or 0),
