@@ -80,6 +80,8 @@ function M.attach(doc, ctx)
 
 	local gridEl = doc:GetElementById("env-skybox-grid")
 	if gridEl then
+		-- Store grid element for GL scissoring in drawSkyboxThumbnailPreviews
+		widgetState.envSkyboxGridEl = gridEl
 		-- Store DDS paths for deferred pre-loading in DrawScreen
 		-- (gl.Texture cannot be called in Initialize, only in Draw call-ins)
 		for _, dds in ipairs(ddsFiles) do
@@ -96,6 +98,7 @@ function M.attach(doc, ctx)
 			thumbDiv:SetClass("env-skybox-thumb", true)
 			thumbDiv:SetAttribute("title", displayName)
 
+			local addedPreviewImg = false
 			if previewPath then
 				-- Guard: RmlUi loads the FULL uncompressed bitmap into TexMemPool when
 				-- an <img> element becomes visible. A single 4096×4096 preview render
@@ -110,8 +113,11 @@ function M.attach(doc, ctx)
 					local img = doc:CreateElement("img")
 					img:SetAttribute("src", "/" .. previewPath)
 					thumbDiv:AppendChild(img)
+					addedPreviewImg = true
 				end
 			end
+			-- If no preview image was added, the tile will receive a GL-rendered
+			-- cubemap preview drawn in DrawScreenPost (see drawSkyboxThumbnailPreviews).
 
 			local label = doc:CreateElement("div")
 			label:SetClass("env-skybox-name", true)
@@ -129,7 +135,7 @@ function M.attach(doc, ctx)
 			end, false)
 
 			gridEl:AppendChild(thumbDiv)
-			widgetState.envSkyboxThumbs[#widgetState.envSkyboxThumbs + 1] = { element = thumbDiv, path = ddsPath }
+			widgetState.envSkyboxThumbs[#widgetState.envSkyboxThumbs + 1] = { element = thumbDiv, path = ddsPath, hasPreviewImg = addedPreviewImg }
 		end
 
 		if #ddsFiles == 0 then

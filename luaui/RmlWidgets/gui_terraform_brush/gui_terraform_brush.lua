@@ -253,9 +253,11 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envControlsEl = nil,
 	envActive = false,
 	envSkyboxThumbs = {},
+	envSkyboxGridEl = nil,   -- grid container element for GL scissor clipping
 	envCurrentSkybox = nil,
 	envDefaultSkybox = nil,
 	envLoadedTextures = {},  -- DDS paths pre-loaded into GL, freed on shutdown
+	skyPreviewShader = nil,  -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
 	-- Light placer section elements
 	lightControlsEl = nil,
 	lightActive = false,
@@ -8920,7 +8922,103 @@ function widget:DrawScreen()
 
 end
 
+-- Draw GL-rendered cubemap face previews over skybox thumbnail tiles that have no preview image.
+-- Called from DrawScreenPost when the skybox library window is open.
+-- Uses a simple GLSL shader to sample the -Z (front) face of the cubemap DDS.
+local function drawSkyboxThumbnailPreviews()
+	if widgetState.lobbyHidden then return end
+	if not widgetState.skyboxLibraryOpen then return end
+	local thumbs = widgetState.envSkyboxThumbs
+	if not thumbs or #thumbs == 0 then return end
+
+	-- Lazy-create cubemap preview shader
+	if widgetState.skyPreviewShader == nil and gl.CreateShader then
+		local sh = gl.CreateShader({
+			vertex = [[
+				#version 130
+				void main() {
+					gl_TexCoord[0] = gl_MultiTexCoord0;
+					gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+				}
+			]],
+			fragment = [[
+				#version 130
+				uniform samplerCube u_cube;
+				void main() {
+					vec2 uv = gl_TexCoord[0].st;
+					// Map UV (0..1, 0..1) to a direction on the front (-Z) face of the cubemap.
+					float fx =  uv.x * 2.0 - 1.0;
+					float fy = -(uv.y * 2.0 - 1.0);  // flip Y (RmlUI top=0, GL bottom=0)
+					vec3 dir = normalize(vec3(fx, fy, -1.0));
+					gl_FragColor = textureCube(u_cube, dir);
+				}
+			]],
+			uniformInt = { u_cube = 0 },
+		})
+		if not sh or sh == 0 then
+			local shLog = gl.GetShaderLog and gl.GetShaderLog() or "no log"
+			Spring.Echo("[TFBrush] Skybox preview shader FAILED: " .. shLog)
+			widgetState.skyPreviewShader = false  -- false = permanently failed, stop retrying
+		else
+			widgetState.skyPreviewShader = sh
+		end
+	end
+
+	local shader = widgetState.skyPreviewShader
+	if not shader or shader == false then return end
+
+	local vsx, vsy = Spring.GetViewGeometry()
+
+	-- Scissor to the grid element to clip scrolled-out thumbnails and prevent overdraw
+	-- outside the library window. Falls back to no scissor if element is unavailable.
+	local gridEl = widgetState.envSkyboxGridEl
+	local useScissor = false
+	if gridEl then
+		local gx = gridEl.absolute_left
+		local gy = gridEl.absolute_top
+		local gw = gridEl.offset_width
+		local gh = gridEl.offset_height
+		if gw > 0 and gh > 0 then
+			gl.Scissor(math.floor(gx), math.floor(vsy - gy - gh), math.ceil(gw), math.ceil(gh))
+			useScissor = true
+		end
+	end
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	gl.UseShader(shader)
+
+	for _, t in ipairs(thumbs) do
+		if not t.hasPreviewImg then
+			local el = t.element
+			if el then
+				local x = el.absolute_left
+				local y = el.absolute_top
+				local w = el.offset_width
+				local h = el.offset_height
+				if w > 4 and h > 4 then
+					local glY1 = vsy - y - h
+					local glY2 = vsy - y
+					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
+					if gl.Texture(0, t.path) then
+						gl.TexRect(x, glY1, x + w, glY2)
+						gl.Texture(0, false)
+					end
+				end
+			end
+		end
+	end
+
+	if useScissor then gl.Scissor(false) end
+	gl.UseShader(0)
+	gl.Color(1, 1, 1, 1)
+	gl.Blending(false)
+end
+
 function widget:DrawScreenPost()
+
+	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
+	drawSkyboxThumbnailPreviews()
 
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
@@ -10788,6 +10886,10 @@ function widget:Shutdown()
 		gl.DeleteShader(widgetState.spPreviewShader)
 		widgetState.spPreviewShader = nil
 	end
+	if widgetState.skyPreviewShader and widgetState.skyPreviewShader ~= false then
+		gl.DeleteShader(widgetState.skyPreviewShader)
+	end
+	widgetState.skyPreviewShader = nil
 	widgetState.dcControlsEl = nil
 	widgetState.dcSubmodesEl = nil
 	widgetState.dcDistButtons = {}
@@ -10805,6 +10907,7 @@ function widget:Shutdown()
 	widgetState.envControlsEl = nil
 	widgetState.envActive = false
 	widgetState.envSkyboxThumbs = {}
+	widgetState.envSkyboxGridEl = nil
 	widgetState.envCurrentSkybox = nil
 	widgetState.envDefaultSkybox = nil
 	widgetState.skyboxLibraryRootEl = nil
