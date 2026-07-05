@@ -338,12 +338,30 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
+	local function removeUnit(unitID, keeptrack)
+		if activeTargets[unitID] then
+			activeTargets[unitID] = nil
+			if not inAttackCommand(unitID) then
+				spSetUnitTarget(unitID, nil)
+			end
+		elseif pausedTargets[unitID] then
+			pausedTargets[unitID] = nil
+		end
+		removeFromQueue(unitID)
+		if keeptrack then
+			SendToUnsynced("targetIndex", unitID, 1, false)
+		else
+			setTargetPassive(unitID, setTargetData[unitID])
+			setTargetData[unitID] = nil
+			SendToUnsynced("targetList", unitID, 0)
+		end
+	end
+
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
-		--tracy.ZoneBeginN(string.format("addUnitTargets:%s %d %d", unitID, unitDefID))
 		if not spValidUnitID(unitID) then
-			--tracy.ZoneEnd()
 			return
 		end
+
 		local data = setTargetData[unitID]
 		if not data then
 			data = {
@@ -358,8 +376,8 @@ if gadgetHandler:IsSyncedCode() then
 		elseif not append then
 			data.targets = {}
 			data.currentTargets = {}
-			SendToUnsynced("targetList", unitID, 0)
 		end
+
 		local teamID = data.teamID
 		local targets, currentTargets = data.targets, data.currentTargets
 		local targetCount = #targets
@@ -380,36 +398,22 @@ if gadgetHandler:IsSyncedCode() then
 				targetData.sent = false
 			end
 		end
+
 		if targetCount == 0 then
-			--tracy.ZoneEnd()
+			if setTargetData[unitID] then
+				removeUnit(unitID)
+			end
 			return
 		end
+
 		setTargetData[unitID] = data
 		activeTargets[unitID] = data
 		pausedTargets[unitID] = nil
 		addToQueue(unitID)
 		sendTargetsToUnsynced(unitID)
+
 		if not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
-		end
-		--tracy.ZoneEnd()
-	end
-
-	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] then
-			activeTargets[unitID] = nil
-			if not inAttackCommand(unitID) then
-				spSetUnitTarget(unitID, nil)
-			end
-		elseif pausedTargets[unitID] then
-			pausedTargets[unitID] = nil
-		end
-		removeFromQueue(unitID)
-		if keeptrack then
-			SendToUnsynced("targetIndex", unitID, 1, false)
-		else
-			setTargetData[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0)
 		end
 	end
 
