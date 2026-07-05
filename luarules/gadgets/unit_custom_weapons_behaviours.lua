@@ -56,9 +56,6 @@ local gravityPerFrame = -Game.gravity / (Game.gameSpeed * Game.gameSpeed)
 local targetedGround = string.byte('g')
 local targetedUnit = string.byte('u')
 
-local bypassedNukes = {}
-local legsilo_legicbm_id
-
 --------------------------------------------------------------------------------
 -- Initialization --------------------------------------------------------------
 
@@ -669,8 +666,6 @@ end
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
-	legsilo_legicbm_id = WeaponDefNames.legsilo_legicbm and WeaponDefNames.legsilo_legicbm.id
-
 	local metatables = {}
 
 	for effectName, effectFunction in pairs(specialEffectFunction) do
@@ -718,23 +713,10 @@ function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
 	if weaponDefEffect[weaponDefID] then
 		projectiles[projectileID] = weaponDefEffect[weaponDefID]
 	end
-	if weaponDefID == legsilo_legicbm_id then
-		if math_random() < 0.05 then
-			bypassedNukes[projectileID] = true
-			Spring.Echo("MIRV Nuke bypassed primary anti-nuke shield!")
-		end
-	end
 end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	bypassedNukes[projectileID] = nil
-end
-
-function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
-	if bypassedNukes[targetProjectileID] then
-		return false
-	end
 end
 
 function gadget:GameFrame(frame)
