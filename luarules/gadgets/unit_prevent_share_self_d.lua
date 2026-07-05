@@ -21,31 +21,33 @@ local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if Spring.GetUnitSelfDTime(unitID) > 0 then
-		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
-	end
+	removeSelfDOrders(unitID)
 	return true
 end
 
-local function removeSelfdOrders(teamID)
-	-- check team is empty
-	--local team = Spring.GetPlayerList(teamID)
-	--if team then
-	--	for _,pID in pairs(team) do
-	--		local _,active,spec = Spring.GetPlayerInfo(pID,false)
-	--		if active and not spec then
-	--			return
-	--		end
-	--	end
-	--end
+local function removeSelfDOrders(unitID)
+	-- cancel any current self-D orders
+	if Spring.GetUnitSelfDTime(unitID) > 0 then
+		Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	end
 
-	-- cancel any self d orders
-	local units = Spring.GetTeamUnits(teamID)
-	for i=1,#units do
-		local unitID = units[i]
-		if Spring.GetUnitSelfDTime(unitID) > 0 then
-			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, 0)
+	-- for queued self-D orders, remove them from queue
+	local selfdTags = {}
+	for index = 1, Spring.GetUnitCommandCount(unitID) do
+		local cmd, _, tag = Spring.GetUnitCurrentCommand(unitID, index)
+		if cmd == CMD.SELFD then
+			selfdTags[#selfdTags + 1] = tag
 		end
+	end
+	if #selfdTags > 0 then
+		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, selfdTags, 0)
+	end
+end
+
+local function removeTeamSelfDOrders(teamID)
+	local units = Spring.GetTeamUnits(teamID)
+	for i = 1, #units do
+		removeSelfDOrders(units[i])
 	end
 end
 
@@ -68,11 +70,11 @@ function gadget:GameFrame(gameFrame)
 	for playerID, prevActive in pairs(monitorPlayers) do
 		_,active,spec,teamID = spGetPlayerInfo(playerID,false)
 		if spec then
-			removeSelfdOrders(teamID)
+			removeTeamSelfDOrders(teamID)
 			monitorPlayers[playerID] = nil
 		elseif active ~= prevActive then
 			if not active then
-				removeSelfdOrders(teamID)
+				removeTeamSelfDOrders(teamID)
 			end
 			monitorPlayers[playerID] = active	-- dont nil cause player could reconnect
 		end
