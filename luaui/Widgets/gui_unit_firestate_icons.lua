@@ -14,6 +14,7 @@ end
 
 local showFireStateIcons = true
 local showAllHoldFireIcons = false	-- else only show for user triggered hold fire states
+local shouldShowToSpectators = false
 
 --------------------------------------------------------------------------------
 -- Localized Spring API
@@ -218,6 +219,29 @@ WG['unitfirestate'].getShowAllHoldFireIcons = function()
 	return showAllHoldFireIcons
 end
 
+local function iconsEnabled()
+	if not showFireStateIcons then
+		return false
+	end
+	if shouldShowToSpectators then
+		return true
+	end
+	return not Spring.GetSpectatingState()
+end
+
+local function clearAllIcons()
+	if not holdFireVBO or not returnFireVBO then
+		return
+	end
+	InstanceVBOTable.clearInstanceTable(holdFireVBO)
+	InstanceVBOTable.clearInstanceTable(returnFireVBO)
+	for unitID in pairs(unitFireState) do
+		unitFireState[unitID] = nil
+	end
+	if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
+	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+end
+
 local function userStateToIconState(userState)
 	if userState == Firestates.HOLD_FIRE then
 		return HOLD_FIRE
@@ -302,6 +326,13 @@ local function applyFireStateDisplay(unitID, unitDefID, showHold, showReturn, gf
 end
 
 local function refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActualState)
+	if not iconsEnabled() then
+		unitFireState[unitID] = nil
+		applyFireStateDisplay(unitID, unitDefID, false, false, spGetGameFrame())
+		if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
+		if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+		return
+	end
 	if crashingUnits[unitID] or deadAllyTeams[teamToAllyTeam[teamID]] then return end
 	local actualState = commandActualState or resolveActualUserFirestate(unitID)
 	local selectedState = userSelectedFirestate[unitID]
@@ -376,6 +407,11 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	visibleUnits = {}
 	unitFireState = {}
 	unitToTeam = {}
+	if not iconsEnabled() then
+		if holdFireVBO.dirty then uploadAllElements(holdFireVBO) end
+		if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
+		return
+	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
 		local teamID = Spring.GetUnitTeam(unitID)
@@ -465,6 +501,10 @@ end
 function widget:PlayerChanged(playerID)
 	myPlayerID = spGetMyPlayerID()
 	myTeamID = spGetMyTeamID()
+	if not iconsEnabled() then
+		clearAllIcons()
+		return
+	end
 	if myPlayerID == nil or myTeamID == nil then return end
 	for unitID, unitTeamID in pairs(unitToTeam) do
 		if unitTeamID == myTeamID and visibleUnits[unitID] then
@@ -496,7 +536,7 @@ function widget:DrawScreenEffects()
 	-- the shader still uses engine cameraViewProj UBO and depth-tests terrain occlusion.
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
-	if not showFireStateIcons then return end
+	if not iconsEnabled() then return end
 
 	if holdFireVBO.usedElements == 0 and returnFireVBO.usedElements == 0 then
 		return
