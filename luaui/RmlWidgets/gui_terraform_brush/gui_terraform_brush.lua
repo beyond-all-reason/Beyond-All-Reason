@@ -323,6 +323,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Module-shared mutable state
 	noiseManuallyHidden = false,
 	lastNoiseActive = false,
+	noisePositioned = false, -- true once positioned relative to main window on open
 	skyboxLibraryOpen = false,
 	-- Guide mode shared state (used by tf_guide + updateFloatingTip in main)
 	soundMuted = false,
@@ -3396,6 +3397,7 @@ local initialModel = {
 					item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
 					item.inner_rml = fname
 					item:AddEventListener("click", function(ev)
+						playSound("apply")
 						if WG.FeaturePlacer then WG.FeaturePlacer.load(filepath) end
 						if widgetState.dmHandle then widgetState.dmHandle.fpSaveLoadOpen = false end
 						ev:StopPropagation()
@@ -4521,6 +4523,7 @@ local initialModel = {
 		end
 	end,
 	onGuideToggleSettings = function(_event)
+		playSound(widgetState.settingsOpen and "click" or "panelOpen")
 		widgetState.settingsOpen = not widgetState.settingsOpen
 		local d = widgetState.dmHandle; if d then d.settingsOpen = widgetState.settingsOpen end
 		if widgetState.settingsOpen then
@@ -4534,6 +4537,7 @@ local initialModel = {
 		end
 	end,
 	onGuideCloseSettings = function(_event)
+		playSound("click")
 		widgetState.settingsOpen = false
 		widgetState.settingsCapturing = nil
 		widgetState.settingsCaptureField = nil
@@ -4541,9 +4545,11 @@ local initialModel = {
 		local d = widgetState.dmHandle; if d then d.settingsOpen = false end
 	end,
 	onGuideTab = function(_event, name)
+		playSound("click")
 		local d = widgetState.dmHandle; if d then d.settingsTab = name end
 	end,
 	onGuideKbSave = function(_event)
+		playSound("save")
 		if WG.TerraformBrush and widgetState.settingsPendingBinds then
 			WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
 			WG.TerraformBrush.saveKeybinds()
@@ -4552,6 +4558,7 @@ local initialModel = {
 		end
 	end,
 	onGuideKbApply = function(_event)
+		playSound("apply")
 		if WG.TerraformBrush and widgetState.settingsPendingBinds then
 			WG.TerraformBrush.applyKeybinds(widgetState.settingsPendingBinds)
 			updateAllKeybindBadges()
@@ -4559,6 +4566,7 @@ local initialModel = {
 		end
 	end,
 	onGuideKbDefaults = function(_event)
+		playSound("reset")
 		if WG.TerraformBrush and WG.TerraformBrush.getDefaultKeybinds then
 			widgetState.settingsPendingBinds = WG.TerraformBrush.getDefaultKeybinds()
 			widgetState.settingsCapturing = nil
@@ -4568,6 +4576,7 @@ local initialModel = {
 		end
 	end,
 	onGuideKbCancel = function(_event)
+		playSound("click")
 		widgetState.settingsOpen = false
 		widgetState.settingsCapturing = nil
 		widgetState.settingsCaptureField = nil
@@ -4931,6 +4940,7 @@ local initialModel = {
 		end
 	end,
 	onLlSearchClear = function(_event)
+		playSound("click")
 		local doc2 = widgetState.document
 		local searchInput = doc2 and doc2:GetElementById("ll-search-input")
 		if searchInput then searchInput:SetAttribute("value", "") end
@@ -4980,6 +4990,7 @@ local initialModel = {
 	-- stored by tf_environment M.attach (cross-file bridge via widgetState).
 
 	onEnvResetSkybox = function(_event)
+		playSound("reset")
 		local resetPath = widgetState.envDefaultSkybox or ""
 		if widgetState.applySkybox then widgetState.applySkybox(resetPath) end
 		widgetState.envCurrentSkybox = nil
@@ -5406,6 +5417,7 @@ local initialModel = {
 		if WG.WeatherBrush  then WG.WeatherBrush.deactivate()  end
 		if WG.SplatPainter  then WG.SplatPainter.deactivate()  end
 		if WG.GrassBrush    then WG.GrassBrush.deactivate()    end
+		if WG.DiffusePainter then WG.DiffusePainter.deactivate() end
 		widgetState.envActive      = false
 		widgetState.lightActive    = false
 		if WG.LightPlacer   then WG.LightPlacer.deactivate()   end
@@ -7270,6 +7282,7 @@ populateKeybindList = function(doc)
 					if key1El then
 						widgetState.settingsKeybindEls[action] = key1El
 						key1El:AddEventListener("click", function(event)
+							playSound("click")
 							if widgetState.settingsCapturing and widgetState.settingsCaptureEl then
 								widgetState.settingsCaptureEl:SetClass("capturing", false)
 							end
@@ -7284,6 +7297,7 @@ populateKeybindList = function(doc)
 					if key2El then
 						widgetState.settingsKeybindEls[action .. ":key2"] = key2El
 						key2El:AddEventListener("click", function(event)
+							playSound("click")
 							if widgetState.settingsCapturing and widgetState.settingsCaptureEl then
 								widgetState.settingsCaptureEl:SetClass("capturing", false)
 							end
@@ -7314,6 +7328,7 @@ populateKeybindList = function(doc)
 				if keyEl then
 					widgetState.settingsKeybindEls[action] = keyEl
 					keyEl:AddEventListener("click", function(event)
+						playSound("click")
 						if widgetState.settingsCapturing and widgetState.settingsCaptureEl then
 							widgetState.settingsCaptureEl:SetClass("capturing", false)
 						end
@@ -8181,6 +8196,7 @@ local function attachEventListeners()
 				if row then
 					local capturedPath = entry.path
 					row:AddEventListener("click", function(event)
+						playSound("apply")
 						if WG.TerraformBrush and WG.TerraformBrush.loadHeightmap then
 							WG.TerraformBrush.loadHeightmap(capturedPath)
 						else
@@ -8197,6 +8213,7 @@ local function attachEventListeners()
 			local headerEl = doc:GetElementById("tf-hm-header")
 			if headerEl then
 				headerEl:AddEventListener("click", function(event)
+					playSound("click")
 					local nowCollapsed = not importDropdown:IsClassSet("collapsed")
 					importDropdown:SetClass("collapsed", nowCollapsed)
 					local chevEl = doc:GetElementById("tf-hm-chevron")
@@ -8216,8 +8233,10 @@ local function attachEventListeners()
 			end
 			local isOpen = not importDropdown:IsClassSet("hidden")
 			if isOpen then
+				playSound("click")
 				closeImportDropdown()
 			else
+				playSound("dropdown")
 				rebuildImportList()
 				importDropdown:SetClass("hidden", false)
 			end
@@ -9819,11 +9838,27 @@ function widget:Update()
 	local noiseActive = tfActive and tfState.mode == "noise"
 	if noiseActive and not widgetState.lastNoiseActive then
 		widgetState.noiseManuallyHidden = false
+		widgetState.noisePositioned = false  -- reposition on every fresh open
 	end
 	widgetState.lastNoiseActive = noiseActive
 	if widgetState.dmHandle then
 		local v = noiseActive and not widgetState.noiseManuallyHidden
 		if widgetState.dmHandle.noiseWindowVisible ~= v then widgetState.dmHandle.noiseWindowVisible = v end
+	end
+	-- Position noise window to the LEFT of the main panel on first open.
+	-- data-if creates the element asynchronously, so retry each frame until found + laid out.
+	if noiseActive and not widgetState.noiseManuallyHidden and not widgetState.noisePositioned then
+		local mainEl = widgetState.rootElement
+		local noiseDoc = widgetState.document
+		local noiseEl = noiseDoc and noiseDoc:GetElementById("tf-noise-root")
+		if noiseEl and mainEl and noiseEl.offset_width > 0 then
+			local gap = 6
+			local noiseLeft = math.max(0, mainEl.offset_left - noiseEl.offset_width - gap)
+			local noiseTop  = mainEl.offset_top
+			noiseEl:SetAttribute("style",
+				string.format("left: %dpx; top: %dpx;", math.floor(noiseLeft), math.floor(noiseTop)))
+			widgetState.noisePositioned = true
+		end
 	end
 
 	-- Disable ring shape when in feature, weather, splat, metal, or light mode

@@ -153,6 +153,7 @@ function M.attach(doc, ctx)
 			local item = doc:GetElementById("ll-builtin-" .. i)
 			if item then
 				item:AddEventListener("click", function(event)
+					playSound("click")
 					widgetState.lightLibrarySelectedPreset = preset
 					if WG.LightPlacer and WG.LightPlacer.setPendingPreset then
 						WG.LightPlacer.setPendingPreset(preset)
@@ -164,6 +165,7 @@ function M.attach(doc, ctx)
 					event:StopPropagation()
 				end, false)
 				item:AddEventListener("dblclick", function(event)
+					playSound("apply")
 					if WG.LightPlacer then
 						local mx, my = GetMouseState()
 						local _, coords = TraceScreenRay(mx, my, true)
@@ -209,6 +211,7 @@ function M.attach(doc, ctx)
 			local item = doc:GetElementById("ll-user-" .. i)
 			if item then
 				item:AddEventListener("click", function(event)
+					playSound("click")
 					local data = WG.LightPlacer.loadPresetFile(p.path)
 					if data then
 						widgetState.lightLibrarySelectedPreset = data
@@ -223,6 +226,7 @@ function M.attach(doc, ctx)
 					event:StopPropagation()
 				end, false)
 				item:AddEventListener("dblclick", function(event)
+					playSound("apply")
 					local data = WG.LightPlacer.loadPresetFile(p.path)
 					if data and WG.LightPlacer then
 						local mx, my = GetMouseState()

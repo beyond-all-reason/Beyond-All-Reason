@@ -1654,16 +1654,16 @@ body {
 
 /* === Env window inline reset button (small in section headers) === */
 .tf-env-reset-btn {
-	height: 20dp;
-	line-height: 20dp;
-	padding: 0 6dp;
+	height: 14dp;
+	line-height: 14dp;
+	padding: 0 5dp;
 	background-color: #26262e;
 	border: 1dp #4a4a5a40;
-	border-radius: 4dp;
-	font-size: 0.8rem;
+	border-radius: 3dp;
+	font-size: 0.75rem;
 	color: #9ca3af;
 	cursor: pointer;
-	margin-left: 6dp;
+	margin-left: 4dp;
 	text-align: center;
 }
 .tf-env-reset-btn:hover {

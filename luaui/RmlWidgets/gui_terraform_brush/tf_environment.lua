@@ -125,6 +125,7 @@ function M.attach(doc, ctx)
 			thumbDiv:AppendChild(label)
 
 			thumbDiv:AddEventListener("click", function(event)
+				playSound("click")
 				local normalized = ddsPath:gsub("\\", "/")
 				widgetState.applySkybox(normalized)
 				widgetState.envCurrentSkybox = normalized
@@ -819,6 +820,7 @@ function M.attach(doc, ctx)
 					local upBtn = doc:GetElementById("btn-env-" .. suffix .. "-up")
 					if downBtn then
 						downBtn:AddEventListener("click", function(event)
+							playSound("tick")
 							local val = tonumber(sl:GetAttribute("value")) or 0
 							sl:SetAttribute("value", tostring(math.max(mn, val - st)))
 							event:StopPropagation()
@@ -826,6 +828,7 @@ function M.attach(doc, ctx)
 					end
 					if upBtn then
 						upBtn:AddEventListener("click", function(event)
+							playSound("tick")
 							local val = tonumber(sl:GetAttribute("value")) or 0
 							sl:SetAttribute("value", tostring(math.min(mx, val + st)))
 							event:StopPropagation()
