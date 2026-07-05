@@ -175,8 +175,18 @@ local function nextCycledVirtualIndex(virtualIndex, reverse)
 	return virtualIndex + 1
 end
 
+local function shouldDeferToGridMenu()
+	if not WG.gridmenu or not WG.gridmenu.getActiveBuilder then
+		return false
+	end
+	return WG.gridmenu.getActiveBuilder() ~= nil
+end
+
 local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if release then
+		return false
+	end
+	if shouldDeferToGridMenu() then
 		return false
 	end
 	local selectedUnits = spGetSelectedUnits()
@@ -193,11 +203,13 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 		if targetIndex < 1 or targetIndex > DIRECT_BIND_MAX then
 			return false
 		end
-		return giveVirtualIndex(targetIndex, 0)
+		giveVirtualIndex(targetIndex, 0)
+		return false
 	end
 	local _, _, shift = spGetModKeyState()
 	local nextIndex = nextCycledVirtualIndex(virtualIndex, shift)
-	return giveVirtualIndex(nextIndex, 0)
+	giveVirtualIndex(nextIndex, 0)
+	return false
 end
 
 local function commandNotify(cmdID, cmdParams, cmdOptions)
