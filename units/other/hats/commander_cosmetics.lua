@@ -46,10 +46,10 @@ units["cor_hat_fightnight"] = table.copy(def)
 units["cor_hat_fightnight"].objectname = "hats/cor_hat_fightnight.s3o"
 units["cor_hat_fightnight"].customparams.normaltex = "unittextures/cor_normal.dds"
 
--- Hornet Hat - Pirate
-units["cor_hat_hornet"] = table.copy(def)
-units["cor_hat_hornet"].objectname = "hats/cor_hat_hornet.s3o"
-units["cor_hat_hornet"].customparams.normaltex = "unittextures/cor_normal.dds"
+-- Pirate
+units["cor_hat_pirate"] = table.copy(def)
+units["cor_hat_pirate"].objectname = "hats/cor_hat_pirate.s3o"
+units["cor_hat_pirate"].customparams.normaltex = "unittextures/cor_normal.dds"
 
 -- Halloween Hat - Pumpkin
 units["cor_hat_hw"] = table.copy(def)
@@ -62,9 +62,9 @@ units["cor_hat_legfn"].objectname = "hats/cor_hat_legfn.s3o"
 units["cor_hat_legfn"].customparams.normaltex = "unittextures/cor_normal.dds"
 
 -- PtaQ Hat - Gnome
-units["cor_hat_ptaq"] = table.copy(def)
-units["cor_hat_ptaq"].objectname = "hats/cor_hat_ptaq.s3o"
-units["cor_hat_ptaq"].customparams.normaltex = "unittextures/cor_normal.dds"
+units["cor_hat_gnome"] = table.copy(def)
+units["cor_hat_gnome"].objectname = "hats/cor_hat_gnome.s3o"
+units["cor_hat_gnome"].customparams.normaltex = "unittextures/cor_normal.dds"
 
 -- Viking Hat
 units["cor_hat_viking"] = table.copy(def)

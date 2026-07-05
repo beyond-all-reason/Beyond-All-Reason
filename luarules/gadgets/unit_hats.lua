@@ -127,6 +127,9 @@ PlayerCosmeticList = {
 		"ArmadaNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 		"CortexNationWarsEECLeftShoulder", -- Nation Wars 2026 2nd Place
 	},
+	[88808] = { -- Shadowisper
+		"PirateHat", -- "give it to shadow he deserves it"
+	},
 	[116414] = { -- [APM]random_variable
 		"ArmadaNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
 		"CortexNationWarsGERLeftShoulder", -- Nation Wars 2026 3rd Place
@@ -242,6 +245,22 @@ CosmeticDefinitions = {
 		slot = "hat",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_hat_viking and UnitDefNames.cor_hat_viking.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	PirateHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_pirate and UnitDefNames.cor_hat_pirate.id,
+		faction = {arm = true, cor = true, leg = true},
+		conflictsWith = {},
+	},
+
+	GnomeHat = {
+		slot = "hat",
+		implementation = "unit",
+		unitDefID = UnitDefNames.cor_hat_gnome and UnitDefNames.cor_hat_gnome.id,
 		faction = {arm = true, cor = true, leg = true},
 		conflictsWith = {},
 	},
