@@ -188,6 +188,11 @@ body {
 	border-radius: 0;
 }
 
+.fp-feature-thumb img {
+	width: 100%;
+	height: 100%;
+}
+
 /* === Feature Name Bar (bottom of tile) === */
 .fp-feature-name {
 	height: 22dp;

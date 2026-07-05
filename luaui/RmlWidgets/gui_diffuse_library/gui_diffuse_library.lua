@@ -91,10 +91,19 @@ local PREFETCH_MARGIN  = 192   -- px above/below the viewport to bake ahead
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local THUMB_CACHE_DIR  = "Terraform Brush/thumbs"  -- write-dir, alongside textures/
 
-local thumbTextures    = {}    -- { [matKey] = glTexture | cachePath } kept for session
-local thumbIsFile      = {}    -- { [matKey] = true } value above is a cache-file path
+local thumbTextures    = {}    -- { [matKey] = cachePath string } kept for session
+local thumbImgEls      = {}    -- { [matKey] = <img> RmlUi element }
 local thumbFailed      = {}    -- { [matKey] = true } bake failed; don't retry it
 local thumbsPending    = 0     -- filtered tiles still awaiting a thumbnail
+
+local function toRmlImageSrc(path)
+	if not path or path == "" then return nil end
+	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
+	if not VFS.FileExists(normalized, VFS.RAW_FIRST) then
+		return nil
+	end
+	return "/" .. normalized
+end
 
 local function thumbCachePath(matKey)
 	return THUMB_CACHE_DIR .. "/" .. matKey .. "_" .. THUMB_SIZE .. ".png"
@@ -106,11 +115,10 @@ local function getDpRatio()
 end
 
 local function cleanupThumbs()
-	for _, tex in pairs(thumbTextures) do
-		gl.DeleteTexture(tex)  -- accepts both a GL texture id and a named-texture path
-	end
 	thumbTextures = {}
-	thumbIsFile = {}
+	thumbImgEls = {}
+	thumbFailed = {}
+	thumbsPending = 0
 end
 
 -- Bake one 128px thumbnail from the full-res `path`, render it into an FBO, and
@@ -184,14 +192,17 @@ local function renderOneThumb(matKey, path, cachePath)
 
 	gl.Texture(0, false)
 	-- Free the 8k source now that the thumbnail is baked. DeleteTexture accepts
-	-- a named-texture string, but pcall in case an engine build disagrees —
+	-- a named-texture string, but pcall in case an engine build disagrees --
 	-- failing to free is a VRAM cost, not a crash.
 	pcall(gl.DeleteTexture, path)
 	gl.Blending(true)
+	gl.DeleteTexture(colorTex)   -- free the FBO color tex; thumbnail lives on disk
 	gl.DeleteFBO(fbo)
 
-	thumbTextures[matKey] = colorTex
-	return true
+	if cachePath then
+		thumbTextures[matKey] = cachePath
+	end
+	return cachePath ~= nil
 end
 
 -- Bake thumbnails for tiles currently within the scroll viewport (plus a small
@@ -222,7 +233,14 @@ local function bakeVisibleThumbs()
 				-- Vertically within the viewport (or its prefetch margin)?
 				if top < viewBottom + PREFETCH_MARGIN
 					and (top + h) > viewTop - PREFETCH_MARGIN then
-					if not renderOneThumb(matKey, thumbMatPath[matKey], thumbCachePath(matKey)) then
+					if renderOneThumb(matKey, thumbMatPath[matKey], thumbCachePath(matKey)) then
+						local imgEl = thumbImgEls[matKey]
+						local src = toRmlImageSrc(thumbTextures[matKey])
+						if imgEl and src then
+							imgEl:SetAttribute("src", src)
+							imgEl:SetAttribute("style", "display: block;")
+						end
+					else
 						thumbFailed[matKey] = true
 					end
 					thumbsPending = thumbsPending - 1
@@ -231,58 +249,6 @@ local function bakeVisibleThumbs()
 			end
 		end
 	end
-end
-
-----------------------------------------------------------------
--- Thumbnail overlay drawing (RmlUi can't host our in-memory GL textures, so
--- draw them over the tile divs, scissor-clipped to the scroll area).
-----------------------------------------------------------------
-local function drawThumbnailOverlays()
-	local doc = widgetState.document
-	if not doc then return end
-	if not next(thumbTextures) then return end
-	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
-
-	local listEl = doc:GetElementById("material-list")
-	if not listEl then return end
-
-	local _, vsy = Spring.GetViewGeometry()
-
-	local clipX = listEl.absolute_left
-	local clipH = listEl.client_height
-	local clipY = vsy - listEl.absolute_top - clipH
-	local clipW = listEl.client_width
-
-	gl.Scissor(clipX, clipY, clipW, clipH)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-	for matKey, div in pairs(thumbDivs) do
-		local tex = thumbTextures[matKey]
-		if tex then
-			local x = div.absolute_left
-			local y = div.absolute_top
-			local w = div.offset_width
-			local h = div.offset_height
-			if w > 0 and h > 0 then
-				local glY2 = vsy - y
-				local glY1 = vsy - y - h
-				gl.Color(1, 1, 1, 1)
-				gl.Texture(0, tex)
-				-- FBO textures are bottom-left origin and draw upright with
-				-- straight coords; cache PNGs load top-left origin, so flip V.
-				if thumbIsFile[matKey] then
-					gl.TexRect(x, glY1, x + w, glY2, 0, 1, 1, 0)
-				else
-					gl.TexRect(x, glY1, x + w, glY2, 0, 0, 1, 1)
-				end
-			end
-		end
-	end
-
-	gl.Texture(0, false)
-	gl.Scissor(false)
-	gl.Blending(true)
-	gl.Color(1, 1, 1, 1)
 end
 
 ----------------------------------------------------------------
@@ -330,6 +296,7 @@ local function rebuildMaterialList(filter)
 	listEl.inner_rml = ""
 	materialElements = {}
 	thumbDivs = {}
+	thumbImgEls = {}
 	thumbMatPath = {}
 	-- Re-counted below: bakeVisibleThumbs() bakes lazily until this hits zero.
 	thumbsPending = 0
@@ -356,16 +323,30 @@ local function rebuildMaterialList(filter)
 			thumbEl:SetClass("dml-thumb-" .. cat, true)
 			itemEl:AppendChild(thumbEl)
 			thumbDivs[mat.key] = thumbEl
+
+			local imgEl = doc:CreateElement("img")
+			imgEl:SetAttribute("style", "display: none;")
+			thumbEl:AppendChild(imgEl)
+			thumbImgEls[mat.key] = imgEl
+
 			if not thumbTextures[mat.key] and not thumbFailed[mat.key] then
-				-- Prefer a previously-baked cache file: binding the tiny PNG by
-				-- name is ~free, so resolve it now and skip the per-frame bake
-				-- queue entirely. Only never-baked materials cost an 8k decode.
+				-- Prefer a previously-baked cache file: load by path is cheap.
 				local cp = thumbCachePath(mat.key)
 				if VFS.FileExists(cp, VFS.RAW_FIRST) then
 					thumbTextures[mat.key] = cp
-					thumbIsFile[mat.key] = true
+					local src = toRmlImageSrc(cp)
+					if src then
+						imgEl:SetAttribute("src", src)
+						imgEl:SetAttribute("style", "display: block;")
+					end
 				else
 					thumbsPending = thumbsPending + 1
+				end
+			elseif thumbTextures[mat.key] then
+				local src = toRmlImageSrc(thumbTextures[mat.key])
+				if src then
+					imgEl:SetAttribute("src", src)
+					imgEl:SetAttribute("style", "display: block;")
 				end
 			end
 
@@ -562,18 +543,12 @@ function widget:Update()
 			el:SetClass("selected", thumbMatPath[key] == activePath)
 		end
 	end
-	-- Thumbnails are drawn as GL overlays over the (already-built) tile divs in
-	-- DrawScreenPost, so no DOM rebuild is needed as they bake in.
+	-- Thumbnails bake lazily; img.src is set on each tile when its bake
+	-- completes, so no DOM rebuild is needed as they bake in.
 end
 
 function widget:DrawScreen()
 	bakeVisibleThumbs()
-end
-
-function widget:DrawScreenPost()
-	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
-	if not next(thumbTextures) then return end
-	drawThumbnailOverlays()
 end
 
 function widget:Shutdown()
@@ -584,8 +559,6 @@ function widget:Shutdown()
 	end
 
 	cleanupThumbs()
-	thumbFailed = {}
-	thumbsPending = 0
 	if widgetState.document then
 		widgetState.document:Close()
 		widgetState.document = nil
@@ -597,6 +570,7 @@ function widget:Shutdown()
 	widgetState.rootElement = nil
 	materialElements = {}
 	thumbDivs = {}
+	thumbImgEls = {}
 	categoryButtons = {}
 	selectedCategories = { all = true }
 end

@@ -2196,21 +2196,23 @@ body {
 }
 
 .tf-save-btn {
-	background-color: #2b2113;
-	border-color: #fdc04c80;
-	decorator: vertical-gradient(#3b2d17 #1e1509);
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	decorator: vertical-gradient(#133a30 #081e18);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #40e0c030;
 }
 
 .tf-save-btn:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47acc;
-	decorator: vertical-gradient(#4c3a1e #2b2113);
+	background-color: #133a30;
+	border-color: #7cecd6cc;
+	decorator: vertical-gradient(#18463a #0d2c24);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #40e0c050;
 }
 
 .tf-save-btn:hover .text-medium,
 .tf-save-btn:hover .tf-action-btn-text,
 .tf-save-btn:hover .tf-env-btn-text {
-	color: #e5e7eb;
+	color: #a2f2e2;
 }
 
 .tf-load-btn {

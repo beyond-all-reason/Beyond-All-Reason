@@ -2185,6 +2185,21 @@ function widget:Initialize()
 			"[Terraform Brush] New Map recipe detected (%s, seed %s) — generating terrain after load...",
 			tostring(extraState._newmapPending.symmetry), tostring(extraState._newmapPending.seed)))
 	end
+	local uiRestoreFile = io.open("Terraform Brush/pending_newmap_ui.lua", "r")
+	if uiRestoreFile then
+		local raw = uiRestoreFile:read("*a")
+		uiRestoreFile:close()
+		local wipe = io.open("Terraform Brush/pending_newmap_ui.lua", "w")
+		if wipe then wipe:write(""); wipe:close() end
+		if raw and raw ~= "" then
+			local ok, state = pcall(function() return loadstring(raw)() end)
+			if ok and type(state) == "table" and state.openBrush then
+				local mode = state.mode or "raise"
+				local direction = tonumber(state.direction) or 1
+				activate(direction, mode)
+			end
+		end
+	end
 
 	WG.TerraformBrush = {
 		setMode = setMode,

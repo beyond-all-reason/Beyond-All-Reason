@@ -61,14 +61,16 @@ local lobbyHidden      = false  -- true while the lobby/menu overlay is up (Lobb
 
 
 ----------------------------------------------------------------
--- Thumbnail generation state (in-memory GL textures)
+-- Thumbnail generation state (file-backed PNG cache)
 ----------------------------------------------------------------
 local THUMB_SIZE = 128
 local THUMBS_PER_FRAME = 3
+local THUMB_CACHE_DIR = "Terraform Brush/FeatureThumbs/"
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
-local thumbTextures = {}   -- { [defName] = glTexture }
+local thumbTextures = {}   -- { [defName] = file path string }
+local thumbImgEls   = {}   -- { [defName] = <img> RmlUi element }
 local thumbQueue = {}
 local thumbQueueIdx = 0
 local thumbTotal = 0
@@ -78,6 +80,15 @@ local thumbGenAttempted = false
 local thumbRefreshTimer = 0
 local needsListRefresh = false
 local depthTex  -- shared depth buffer for rendering
+
+local function toRmlImageSrc(path)
+	if not path or path == "" then return nil end
+	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
+	if not VFS.FileExists(normalized, VFS.RAW_FIRST) then
+		return nil
+	end
+	return "/" .. normalized
+end
 
 local function buildRootStyle()
 	-- Width lives in RCSS (.fp-root); we only set position here.
@@ -159,10 +170,8 @@ local function initSharedDepth()
 end
 
 local function cleanupThumbs()
-	for _, tex in pairs(thumbTextures) do
-		gl.DeleteTexture(tex)
-	end
 	thumbTextures = {}
+	thumbImgEls = {}
 	if depthTex then gl.DeleteTexture(depthTex); depthTex = nil end
 	if thumbShader then gl.DeleteShader(thumbShader); thumbShader = nil end
 end
@@ -218,6 +227,7 @@ local function renderOneThumb(name, defID)
 	end
 
 	local vsx, vsy = Spring.GetViewGeometry()
+	local savedPath
 
 	gl.ActiveFBO(fbo, function()
 		gl.Viewport(0, 0, THUMB_SIZE, THUMB_SIZE)
@@ -275,13 +285,21 @@ local function renderOneThumb(name, defID)
 		gl.DepthMask(false)
 		gl.DepthTest(false)
 
+		-- Save while the FBO is still active (proven-required pattern).
+		local filePath = THUMB_CACHE_DIR .. name:gsub("[^%w_%-]", "_") .. ".png"
+		gl.SaveImage(0, 0, THUMB_SIZE, THUMB_SIZE, filePath, { alpha = false })
+		savedPath = filePath
+
 		gl.Viewport(0, 0, vsx, vsy)
 	end)
 
 	gl.Blending(true)
+	gl.DeleteTexture(colorTex)
 	gl.DeleteFBO(fbo)
-	thumbTextures[name] = colorTex
-	return true
+	if savedPath then
+		thumbTextures[name] = savedPath
+	end
+	return savedPath ~= nil
 end
 
 local function startThumbGeneration()
@@ -337,6 +355,14 @@ local function processThumbQueue()
 		local item = thumbQueue[thumbQueueIdx]
 		thumbQueueIdx = thumbQueueIdx + 1
 		renderOneThumb(item.name, item.defID)
+		local src = toRmlImageSrc(thumbTextures[item.name])
+		if src then
+			local imgEl = thumbImgEls[item.name]
+			if imgEl then
+				imgEl:SetAttribute("src", src)
+				imgEl:SetAttribute("style", "display: block;")
+			end
+		end
 		thumbDone = thumbDone + 1
 		processed = processed + 1
 	end
@@ -350,53 +376,6 @@ end
 
 local function invalidateThumbCache()
 	-- no-op; kept for call-site compatibility
-end
-
-local function drawThumbnailOverlays()
-	local doc = widgetState.document
-	if not doc then return end
-	if not next(thumbTextures) then return end
-
-	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
-
-	local listEl = doc:GetElementById("feature-list")
-	if not listEl then return end
-
-	local vsx, vsy = Spring.GetViewGeometry()
-
-	-- Scissor clip to the feature list scroll area
-	local clipX = listEl.absolute_left
-	local clipH = listEl.client_height
-	local clipY = vsy - listEl.absolute_top - clipH
-	local clipW = listEl.client_width
-
-	gl.Scissor(clipX, clipY, clipW, clipH)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-
-	-- thumbDivs now only contains visible items (virtualized), so iterate all
-	for name, div in pairs(thumbDivs) do
-		local tex = thumbTextures[name]
-		if tex then
-			local x = div.absolute_left
-			local y = div.absolute_top
-			local w = div.offset_width
-			local h = div.offset_height
-
-			if w > 0 and h > 0 then
-				local glY2 = vsy - y
-				local glY1 = vsy - y - h
-
-				gl.Color(1, 1, 1, 1)
-				gl.Texture(0, tex)
-				gl.TexRect(x, glY1, x + w, glY2, 0, 0, 1, 1)
-			end
-		end
-	end
-
-	gl.Texture(0, false)
-	gl.Scissor(false)
-	gl.Blending(true)
-	gl.Color(1, 1, 1, 1)
 end
 
 ----------------------------------------------------------------
@@ -488,6 +467,16 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	itemEl:AppendChild(thumbEl)
 	thumbDivs[name] = thumbEl
 
+	local imgEl = doc:CreateElement("img")
+	imgEl:SetAttribute("style", "display: none;")
+	thumbEl:AppendChild(imgEl)
+	thumbImgEls[name] = imgEl
+	local src = toRmlImageSrc(thumbTextures[name])
+	if src then
+		imgEl:SetAttribute("src", src)
+		imgEl:SetAttribute("style", "display: block;")
+	end
+
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
 	nameEl.inner_rml = name
@@ -520,6 +509,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	listEl.inner_rml = ""
 	featureElements = {}
 	thumbDivs = {}
+	thumbImgEls = {}
 	invalidateThumbCache()
 
 	local tileW = virtualTileW
@@ -611,6 +601,7 @@ local function rebuildFeatureList(filter)
 	listEl.inner_rml = ""
 	featureElements = {}
 	thumbDivs = {}
+	thumbImgEls = {}
 	invalidateThumbCache()
 	virtualItems = {}
 	virtualVisStart = 0
@@ -786,6 +777,8 @@ end
 -- Lifecycle
 ----------------------------------------------------------------
 function widget:Initialize()
+	Spring.CreateDir(THUMB_CACHE_DIR)
+
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
 
@@ -935,14 +928,6 @@ function widget:DrawScreen()
 	if thumbGenerating then
 		processThumbQueue()
 	end
-end
-
-function widget:DrawScreenPost()
-	-- Skip entirely when panel is hidden (feature placer inactive, manually closed, or lobby overlay up)
-	if lobbyHidden then return end
-	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
-	if not next(thumbTextures) then return end
-	drawThumbnailOverlays()
 end
 
 function widget:Shutdown()

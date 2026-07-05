@@ -1324,9 +1324,34 @@ do
 			if okr and type(t) == "table" and #t > 0 then widgetState.newMapEnvPresets = t end
 		end
 	end
+	for _, p in ipairs(widgetState.newMapEnvPresets) do
+		if p.disableVolumetricClouds == nil then
+			p.disableVolumetricClouds = false
+		end
+	end
+	table.insert(widgetState.newMapEnvPresets, 1, {
+		name = "Clear Sky",
+		source = "Terraform Brush default",
+		sunDir = { 0.8000, 0.8000, -0.7000 },
+		groundShadowDensity = 0.7500,
+		modelShadowDensity = 0.7500,
+		groundAmbientColor = { 0.5000, 0.5000, 0.5000 },
+		groundDiffuseColor = { 0.9900, 0.9900, 0.9500 },
+		groundSpecularColor = { 0.7000, 0.7000, 0.7000 },
+		unitAmbientColor = { 0.5600, 0.5600, 0.6000 },
+		unitDiffuseColor = { 0.9500, 0.9553, 0.9000 },
+		unitSpecularColor = { 0.8000, 0.6000, 0.6000 },
+		fogStart = 999990.0000,
+		fogEnd = 9999999.0000,
+		fogColor = { 0.0000, 0.0000, 0.0000, 0.0000 },
+		sunColor = { 1.0000, 0.9200, 0.7800 },
+		skyColor = { 0.4288, 0.5802, 0.6400 },
+		cloudColor = { 0.0000, 0.0000, 0.0000 },
+		disableVolumetricClouds = true,
+	})
 	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
 end
-widgetState.newMapEnvIdx = 0  -- 0 = Default (keep engine defaults); 1..N = preset
+widgetState.newMapEnvIdx = 1  -- 1 = Clear Sky default; 2..N = imported presets
 
 -- Push the selected environment name into the data-model label.
 widgetState._nmRefreshEnvLabel = function()
@@ -1372,6 +1397,13 @@ widgetState.applyEnvConfig = function(d)
 	if d.cloudColor    then atmosParams.cloudColor    = d.cloudColor    end
 	if d.skyAxisAngle  then atmosParams.skyAxisAngle  = d.skyAxisAngle  end
 	if next(atmosParams) then Spring.SetAtmosphere(atmosParams) end
+	if d.disableVolumetricClouds ~= nil and widgetHandler then
+		if d.disableVolumetricClouds then
+			widgetHandler:DisableWidget("Volumetric Clouds")
+		elseif widgetHandler.EnableWidget then
+			widgetHandler:EnableWidget("Volumetric Clouds")
+		end
+	end
 	local mrParams = {}
 	if d.splatDetailNormalDiffuseAlpha ~= nil then mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha end
 	if d.splatTexMults  then mrParams.splatTexMults  = d.splatTexMults  end
@@ -1624,7 +1656,7 @@ local initialModel = {
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
-	newMapEnvStr = "Default",
+	newMapEnvStr = "Clear Sky",
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
 	newMapHilStr   = "50%",
 	newMapRoughStr = "50%",
@@ -4417,6 +4449,16 @@ local initialModel = {
 				ef:write("")
 			end
 			ef:close()
+		end
+		local tfState = WG.TerraformBrush and WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
+		local uiFile = io.open("Terraform Brush/pending_newmap_ui.lua", "w")
+		if uiFile then
+			uiFile:write(string.format(
+				"return { openBrush = true, mode = %q, direction = %d }\n",
+				tostring(tfState and tfState.mode or "raise"),
+				number(tfState and tfState.direction or 1) or 1
+			))
+			uiFile:close()
 		end
 		playSound("exit")
 		Spring.Restart("", script)
