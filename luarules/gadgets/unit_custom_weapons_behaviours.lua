@@ -514,7 +514,7 @@ local function split(params, projectileID)
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 
-	-- If scatter is defined, we default to the new damped fanning physics. Otherwise, use base game physics.
+	-- Preserve base-game fanning values for non-scattered projectiles to prevent breaking existing units
 	local vMult = params.vmult or (params.scatter and 0.6 or 1.0)
 	local fanDiv = params.fanning_divisor or (params.scatter and 200 or 880)
 	local fanDivY = params.fanning_divisor_y or (params.scatter and 150 or 440)
@@ -527,7 +527,7 @@ local function split(params, projectileID)
 		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
 		if spawnedID and targetType and params.scatter then
 			if targetType == targetedGround and target then
-				-- Assign a randomized landing target coordinate within the scatter radius
+				-- Scattering the target coordinate prevents engine guidance from aggressively converging all submunitions back to a single point
 				local angle = math_random() * 2 * math_pi
 				local dist = math_random() * params.scatter
 				local tx = target[1] + math_cos(angle) * dist
@@ -544,7 +544,7 @@ end
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
 		if params.scatter then
-			-- New split: split when height above the ground is less than splitheight units during descent
+			-- Scattered projectiles require a terminal split height, otherwise they would fan out too early at apogee and miss the target completely
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then
 				local groundHeight = spGetGroundHeight(px, pz)
@@ -556,7 +556,6 @@ specialEffectFunction.split = function(params, projectileID)
 				end
 			end
 		else
-			-- Original split: split immediately at apogee
 			split(params, projectileID)
 			return true
 		end
