@@ -1555,6 +1555,9 @@ local sec = 1
 function widget:Update(dt)
 	if autoupdate then checkConfigUpdates() end
 	local tus = spGetTimerMicros()
+	if predictivePointLightVBO.dirty then
+		uploadAllElements(predictivePointLightVBO)
+	end
 
 	-- update/handle Cursor Lights!
 	if WG['allycursors'] and WG['allycursors'].getLights() then
@@ -1932,7 +1935,6 @@ function widget:Initialize()
 			instData[instanceIndex + spawnFramePos] = f
 			predictivePointLightVBO.dirty = true
 		end
-		uploadAllElements(predictivePointLightVBO)
 		return true
 	end
 	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)

@@ -1254,7 +1254,7 @@
 				"nanoparticletype_simple": "simple",
 				"nanoparticletype_smart": "smart",
 				"nanoparticletype_shapes": "shapes",
-				"nanoparticlelights": "Nano particle lights",
+				"nanoparticlelights": "nano particle lights",
 				"nanoparticlelights_descr": "Adds light sources to nano particles used for building and repairing.",
 				"lighteffects": "Lights",
 				"lighteffects_descr": "Adds lights to projectiles, lasers and explosions.",
