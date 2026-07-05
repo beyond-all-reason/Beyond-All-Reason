@@ -193,11 +193,13 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 		if targetIndex < 1 or targetIndex > DIRECT_BIND_MAX then
 			return false
 		end
-		return giveVirtualIndex(targetIndex, 0)
+		giveVirtualIndex(targetIndex, 0)
+		return false
 	end
 	local _, _, shift = spGetModKeyState()
 	local nextIndex = nextCycledVirtualIndex(virtualIndex, shift)
-	return giveVirtualIndex(nextIndex, 0)
+	giveVirtualIndex(nextIndex, 0)
+	return false
 end
 
 local function commandNotify(cmdID, cmdParams, cmdOptions)
