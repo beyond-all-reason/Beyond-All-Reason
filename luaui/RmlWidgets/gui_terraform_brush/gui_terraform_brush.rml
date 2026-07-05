@@ -1794,6 +1794,11 @@
 					<div class="tf-action-btn-text">CLEAN GRASS</div>
 				</div>
 			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-gb-grasscfg" class="tf-action-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">GRASS CONFIG</div>
+				</div>
+			</div>
 			</div><!-- /section-gb-save -->
 			</div><!-- /frame-gb-save -->
 		</div>
@@ -6486,6 +6491,53 @@
 				<div id="btn-env-splatscale-3-up" class="tf-sm-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 				<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
 			</div>
+		</div>
+	</div>
+
+	<!-- ============ GRASS CONFIG (separate floating window) ============ -->
+	<div id="tf-grasscfg-root" class="tf-env-float-window widget-shadow rounded-md bg-darkest p-2-5" data-if="grassCfgVisible" style="left: 38vw; top: 18vh;">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-grasscfg-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Grass Config</div>
+			<div id="btn-grasscfg-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">COLORIZATION</div>
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 120dp;">Map Color Factor</div>
+				<input type="range" id="slider-gb-mapcolorfactor" class="tf-slider" min="0" max="3000" step="1" value="600" style="flex:1;" />
+				<input type="text" id="lbl-gb-mapcolorfactor" class="tf-slider-numbox" value="0.600" readonly />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 120dp;">Map Color Base</div>
+				<input type="range" id="slider-gb-mapcolorbase" class="tf-slider" min="0" max="3000" step="1" value="1000" style="flex:1;" />
+				<input type="text" id="lbl-gb-mapcolorbase" class="tf-slider-numbox" value="1.000" readonly />
+			</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<div class="text-sm text-keybind" style="width: 120dp;">Grass Brightness</div>
+				<input type="range" id="slider-gb-grassbrightness" class="tf-slider" min="0" max="4000" step="1" value="1000" style="flex:1;" />
+				<input type="text" id="lbl-gb-grassbrightness" class="tf-slider-numbox" value="1.000" readonly />
+			</div>
+		</div>
+		<div class="tf-section-frame">
+			<div class="tf-section-title-row">
+				<div class="tf-collapsible-title">TEXTURES</div>
+			</div>
+			<div class="text-sm text-keybind mb-1">Blade Texture</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<input type="text" id="input-gb-blade-tex" class="ll-preset-input" style="flex:1;" value="" />
+				<div id="btn-gb-blade-tex-apply" class="tf-action-btn" style="width: 62dp;"><div class="tf-action-btn-text">APPLY</div></div>
+			</div>
+			<div class="text-sm text-keybind mb-1">Map Color Mod Texture</div>
+			<div class="flex flex-row gap-1 items-center mb-1">
+				<input type="text" id="input-gb-colormod-tex" class="ll-preset-input" style="flex:1;" value="$grass" />
+				<div id="btn-gb-colormod-tex-apply" class="tf-action-btn" style="width: 62dp;"><div class="tf-action-btn-text">APPLY</div></div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 mt-1">
+			<div id="btn-gb-grasscfg-refresh" class="tf-action-btn" style="flex: 1;"><div class="tf-action-btn-text">REFRESH</div></div>
+			<div id="btn-gb-grasscfg-save" class="tf-action-btn tf-save-btn" style="flex: 1;"><div class="tf-action-btn-text">EXPORT CONFIG</div></div>
 		</div>
 	</div>
 

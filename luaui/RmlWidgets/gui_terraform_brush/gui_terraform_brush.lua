@@ -278,6 +278,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envWaterRootEl = nil,
 	envDimensionsRootEl = nil,
 	splatTexRootEl = nil,
+	grassCfgRootEl = nil,
 	envSunOpen = false,
 	envFogOpen = false,
 	envGroundLightingOpen = false,
@@ -286,6 +287,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envWaterOpen = false,
 	envDimensionsOpen = false,
 	splatTexOpen = false,
+	grassCfgOpen = false,
 	-- Map defaults captured at init for resets
 	envDefaults = nil,
 	-- Slider wheel-lock state
@@ -1510,9 +1512,9 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet)
 		if t[1] then
 			opt[#opt + 1] = "blank_map_splatdetailtex=" .. DNTS_DIR .. t[1] .. ";"
 		end
-		-- Give the runtime fallback an explicit distr key; if the file does not
-		-- exist, mapinfo_template.lua intentionally falls back to generated blank.
-		opt[#opt + 1] = "blank_map_splatdistr=blank_generated_splatdistr.png;"
+		-- Do not force blank_map_splatdistr here. New engine builds can synthesize
+		-- an empty distribution when absent; forcing a missing filename causes load
+		-- warnings and can interfere with splat activation.
 		opt[#opt + 1] = "blank_map_splatdetailnormaldiffusealpha=" .. (dntsSet.diffuseAlpha == 1 and 1 or 0) .. ";"
 	end
 
@@ -1852,6 +1854,7 @@ local initialModel = {
 	splatAltMinStr = "0",
 	splatAltMaxStr = "200",
 	splatExportFmtStr = "PNG",
+	grassCfgVisible = false,
 	dcHeatExpStr = "0",
 	-- Phase 2 step 4: metal brush label interpolation strings
 	mbValueStr = "2.0",
@@ -5721,8 +5724,6 @@ local initialModel = {
 		if clayBtn then clayBtn:SetClass("unavailable", true) end
 	end,
 	onTfSwitchGrass = function(_event)
-		local gApi = WG['grassgl4']
-		if not (gApi and gApi.hasGrass and gApi.hasGrass()) then return end
 		playSound("toolSwitch")
 		clearPassthrough()
 		if not WG.GrassBrush then return end
@@ -8616,6 +8617,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-env-water-handle", widgetState.envWaterRootEl)
 		makeWindowDraggable("tf-env-dimensions-handle", widgetState.envDimensionsRootEl)
 		makeWindowDraggable("tf-splattex-handle", widgetState.splatTexRootEl)
+		makeWindowDraggable("tf-grasscfg-handle", widgetState.grassCfgRootEl)
 		makeWindowDraggable("tf-light-library-handle", widgetState.lightLibraryRootEl)
 		makeWindowDraggable("tf-settings-handle", widgetState.settingsRootEl)
 		makeWindowDraggable("tf-newmap-handle", getCachedEl(doc, "tf-newmap-root"))
@@ -9791,12 +9793,14 @@ function widget:Update()
 		end
 	end
 	if not spActive then widgetState.splatTexOpen = false end
+	if not gbActive then widgetState.grassCfgOpen = false end
 	if not envActive then widgetState.skyboxLibraryOpen = false end
 	do
 		local dm = widgetState.dmHandle
 		if dm then
 			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
 			setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
+			setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
 			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
 			setDm("clonePasteTransformsVisible", showTransforms and true or false)
 			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
@@ -9971,16 +9975,14 @@ function widget:Update()
 			end
 		end
 
-		-- Preemptively gray out the grass button on maps with no grass data.
-		-- The actual status-summary override runs at the end of this function
-		-- so all other per-tool updates still get to run.
+		-- Track whether this map currently has any grass data. Keep this
+		-- informational-only: generated blank maps start with zero grass and the
+		-- Grass tool should still be usable so users can paint the first patches.
 		do
 			local gApi = WG['grassgl4']
 			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 			local grassBtnEl = getCachedEl(doc, "btn-grass")
-			if grassBtnEl then
-				grassBtnEl:SetClass("disabled", not hasGrass)
-			end
+			if grassBtnEl then grassBtnEl:SetClass("disabled", false) end
 			widgetState.grassNoDataThisMap = not hasGrass
 		end
 
@@ -10739,8 +10741,8 @@ function widget:Update()
 		local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 		if sumEl2 then
 			local sep = '<span class="tf-ss-sep">|</span>'
-			setInnerRmlIfChanged(sumEl2, "status-summary",
-				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass data for this map</span>')
+			setInnerRmlIfChanged(sumEl2, "status-summary", 
+				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass yet - click Grass tool to paint</span>')
 		end
 	end
 	-- Reactive refresh of section warn chips after state sync

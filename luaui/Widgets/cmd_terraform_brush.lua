@@ -1648,10 +1648,9 @@ extraState._newmapTryApplyDNTS = function()
 	end
 
 	local distr = mapOpts.blank_map_splatdistr
-	if type(distr) ~= "string" or distr == "" then
-		distr = "blank_generated_splatdistr.png"
+	if type(distr) == "string" and distr ~= "" then
+		Spring.SetMapShadingTexture("$ssmf_splat_distr", registerTexName(distr) or distr)
 	end
-	Spring.SetMapShadingTexture("$ssmf_splat_distr", registerTexName(distr) or distr)
 
 	local detail = mapOpts.blank_map_splatdetailtex
 	if type(detail) ~= "string" or detail == "" then

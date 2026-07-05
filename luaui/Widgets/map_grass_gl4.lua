@@ -757,7 +757,80 @@ function widget:MousePress(x,y,button)
 end
 
 local firstUpdate = true
+local shaderRebuildPending = false
+local makeShaderVAO
+
+local function clampNum(v, lo, hi)
+	v = tonumber(v)
+	if not v then return nil end
+	if v < lo then return lo end
+	if v > hi then return hi end
+	return v
+end
+
+local function getGrassVisualConfig()
+	local sp = grassConfig.grassShaderParams or {}
+	return {
+		mapColorFactor = tonumber(sp.MAPCOLORFACTOR) or 0.6,
+		mapColorBase = tonumber(sp.MAPCOLORBASE) or 1.0,
+		grassBrightness = tonumber(sp.GRASSBRIGHTNESS) or 1.0,
+		grassBladeColorTex = grassConfig.grassBladeColorTex,
+		mapGrassColorModTex = grassConfig.mapGrassColorModTex,
+		grassWindPerturbTex = grassConfig.grassWindPerturbTex,
+	}
+end
+
+local function setGrassVisualConfig(cfg)
+	if type(cfg) ~= "table" then return false end
+	local changed = false
+	local sp = grassConfig.grassShaderParams or {}
+
+	local mapColorFactor = clampNum(cfg.mapColorFactor, 0.0, 3.0)
+	if mapColorFactor and sp.MAPCOLORFACTOR ~= mapColorFactor then
+		sp.MAPCOLORFACTOR = mapColorFactor
+		changed = true
+	end
+
+	local mapColorBase = clampNum(cfg.mapColorBase, 0.0, 3.0)
+	if mapColorBase and sp.MAPCOLORBASE ~= mapColorBase then
+		sp.MAPCOLORBASE = mapColorBase
+		changed = true
+	end
+
+	local grassBrightness = clampNum(cfg.grassBrightness, 0.0, 4.0)
+	if grassBrightness and sp.GRASSBRIGHTNESS ~= grassBrightness then
+		sp.GRASSBRIGHTNESS = grassBrightness
+		changed = true
+	end
+
+	if type(cfg.grassBladeColorTex) == "string" and cfg.grassBladeColorTex ~= "" and grassConfig.grassBladeColorTex ~= cfg.grassBladeColorTex then
+		grassConfig.grassBladeColorTex = cfg.grassBladeColorTex
+		changed = true
+	end
+
+	if type(cfg.mapGrassColorModTex) == "string" and cfg.mapGrassColorModTex ~= "" and grassConfig.mapGrassColorModTex ~= cfg.mapGrassColorModTex then
+		grassConfig.mapGrassColorModTex = cfg.mapGrassColorModTex
+		changed = true
+	end
+
+	if type(cfg.grassWindPerturbTex) == "string" and cfg.grassWindPerturbTex ~= "" and grassConfig.grassWindPerturbTex ~= cfg.grassWindPerturbTex then
+		grassConfig.grassWindPerturbTex = cfg.grassWindPerturbTex
+		changed = true
+	end
+
+	if changed then
+		grassConfig.grassShaderParams = sp
+		shaderRebuildPending = true
+	end
+	return changed
+end
+
 function widget:Update(dt)
+	if shaderRebuildPending then
+		makeShaderVAO()
+		shaderRebuildPending = false
+	end
+
 	if not processChanges then
 		return
 	end
@@ -948,7 +1021,7 @@ local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 
-local function makeShaderVAO()
+makeShaderVAO = function()
 	local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
 		fssrcpath = fsSrcPath,
@@ -1031,6 +1104,86 @@ local function savegrassCmd(_, _, params)
 	-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
 	local saveError = Spring.Utilities.SaveTGA(texture, filename)
 	if saveError then spEcho("Saving grass map image failed", filename, saveError) end
+end
+
+local function exportGrassConfig(filename)
+	local function fmtVal(v)
+		local t = type(v)
+		if t == "number" then
+			if v == mathFloor(v) then return tostring(v) end
+			return string.format("%.4f", v)
+		elseif t == "boolean" then
+			return v and "true" or "false"
+		end
+		return string.format("%q", tostring(v))
+	end
+
+	local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
+	if not filename or #filename < 2 then
+		local ts = os.date("%Y%m%d_%H%M%S")
+		local dir = "Terraform Brush/GrassConfig/"
+		Spring.CreateDir(dir)
+		filename = dir .. mapSafe .. "_grassconfig_" .. ts .. ".lua"
+	end
+
+	local shader = grassConfig.grassShaderParams or {}
+	local shaderKeys = {}
+	for k, _ in pairs(shader) do
+		shaderKeys[#shaderKeys + 1] = k
+	end
+	table.sort(shaderKeys)
+
+	local out = {
+		"-- Grass config export from Map Grass GL4",
+		"-- Map: " .. (Game.mapName or "unknown"),
+		"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
+		"-- Paste mapinfo.custom = mapinfo.custom or {} and then mapinfo.custom.grassConfig = (this file table).custom.grassConfig",
+		"return {",
+		"\tcustom = {",
+		"\t\tgrassConfig = {",
+		"\t\t\t-- Density/placement",
+		"\t\t\tpatchResolution = " .. fmtVal(grassConfig.patchResolution) .. ",",
+		"\t\t\tpatchPlacementJitter = " .. fmtVal(grassConfig.patchPlacementJitter) .. ",",
+		"\t\t\tpatchSize = " .. fmtVal(grassConfig.patchSize) .. ",",
+		"\t\t\tgrassMinSize = " .. fmtVal(grassConfig.grassMinSize) .. ",",
+		"\t\t\tgrassMaxSize = " .. fmtVal(grassConfig.grassMaxSize) .. ",",
+		"",
+		"\t\t\t-- Color/look",
+		"\t\t\tgrassBladeColorTex = " .. fmtVal(grassConfig.grassBladeColorTex) .. ",",
+		"\t\t\tmapGrassColorModTex = " .. fmtVal(grassConfig.mapGrassColorModTex) .. ",",
+		"\t\t\tgrassWindPerturbTex = " .. fmtVal(grassConfig.grassWindPerturbTex) .. ",",
+		"\t\t\tgrassWindMult = " .. fmtVal(grassConfig.grassWindMult) .. ",",
+		"\t\t\tmaxWindSpeed = " .. fmtVal(grassConfig.maxWindSpeed) .. ",",
+		"\t\t\tgrassDistTGA = " .. fmtVal(grassConfig.grassDistTGA) .. ",",
+		"",
+		"\t\t\tgrassShaderParams = {",
+	}
+
+	for i = 1, #shaderKeys do
+		local k = shaderKeys[i]
+		out[#out + 1] = "\t\t\t\t" .. k .. " = " .. fmtVal(shader[k]) .. ","
+	end
+
+	out[#out + 1] = "\t\t\t},"
+	out[#out + 1] = "\t\t},"
+	out[#out + 1] = "\t},"
+	out[#out + 1] = "}"
+	out[#out + 1] = ""
+
+	local f = io.open(filename, "w")
+	if not f then
+		spEcho("[Grass] ERROR: Could not write grass config to " .. tostring(filename))
+		return false, filename
+	end
+	f:write(table.concat(out, "\n"))
+	f:close()
+	spEcho("[Grass] Saved grass config: " .. filename)
+	return true, filename
+end
+
+local function savegrassconfigCmd(_, _, params)
+	local filename = params and params[1]
+	exportGrassConfig(filename)
 end
 
 local function loadgrassCmd(_, _, params)
@@ -1280,6 +1433,16 @@ function widget:Initialize()
 		spEcho("[Grass] Saved grass map: " .. filename)
 		return true
 	end
+	WG['grassgl4'].saveGrassConfig = function(filename)
+		local ok = exportGrassConfig(filename)
+		return ok
+	end
+	WG['grassgl4'].getVisualConfig = function()
+		return getGrassVisualConfig()
+	end
+	WG['grassgl4'].setVisualConfig = function(cfg)
+		return setGrassVisualConfig(cfg)
+	end
 	WG['grassgl4'].loadGrass = function(filename)
 		if not filename or #filename < 2 then
 			filename = Game.mapName .. "_grassDist.tga"
@@ -1303,6 +1466,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("loadgrass", loadgrassCmd, nil, 't')
 	widgetHandler:AddAction("editgrass", editgrassCmd, nil, 't')
 	widgetHandler:AddAction("cleargrass", cleargrassCmd, nil, 't')
+	widgetHandler:AddAction("savegrassconfig", savegrassconfigCmd, nil, 't')
 	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
@@ -1315,6 +1479,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("loadgrass")
 	widgetHandler:RemoveAction("editgrass")
 	widgetHandler:RemoveAction("cleargrass")
+	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
 end
 

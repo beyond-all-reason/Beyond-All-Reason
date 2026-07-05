@@ -323,43 +323,41 @@ if (Spring) then
 	-- Blank-map (InitBlank) DNTS splat support
 	--
 	-- CBlankMapGenerator injects the chosen splat set as blank_map_splat* map
-	-- options (the engine lowercases option keys). Mirror them into the SSMF
-	-- resources/splats tables so the standard map-load path loads the detail-normal
-	-- array and compiles the DNTS shader variant, exactly like an archived map that
-	-- declares them in mapinfo. SMFReadMap additionally gates DNTS on a non-empty
-	-- splatDistrTex; when none is supplied we set a placeholder name so the engine
-	-- synthesizes the blank (255,0,0,0) distribution that runtime map editors read
-	-- and paint into. Inert on maps that don't carry these options.
-	-- Keys are written lowercase to match the post-lowerkeys() table; the engine's
-	-- LuaTable lookups are case-insensitive.
+	-- options (mapoption keys are lowercased by the engine). Mirror them into the
+	-- SSMF resources/splats tables so the standard map-load path loads the
+	-- detail-normal array and compiles the DNTS shader variant, exactly like an
+	-- archived map that declares them in mapinfo.
+	-- NOTE: mapinfo table keys are case-sensitive; use canonical CamelCase fields.
 	local mapOpts = Spring.GetMapOptions()
 	if mapOpts and mapOpts["blank_map_splatdetailnormaltex1"] then
 		local res, spl = mapinfo.resources, mapinfo.splats
-		local scales = spl.texscales or {0.02, 0.02, 0.02, 0.02}
-		local mults  = spl.texmults  or {1.0, 1.0, 1.0, 1.0}
+		local scales = spl.texScales or {0.02, 0.02, 0.02, 0.02}
+		local mults  = spl.texMults  or {1.0, 1.0, 1.0, 1.0}
 		for ch = 1, 4 do
 			local tex = mapOpts["blank_map_splatdetailnormaltex" .. ch]
 			if tex and tex ~= "" then
-				res["splatdetailnormaltex" .. ch] = tex
+				res["splatDetailNormalTex" .. ch] = tex
 			end
 			scales[ch] = tonumber(mapOpts["blank_map_splattexscale" .. ch]) or scales[ch]
 			mults[ch]  = tonumber(mapOpts["blank_map_splattexmult"  .. ch]) or mults[ch]
 		end
-		spl.texscales = scales
-		spl.texmults  = mults
-		res.splatdetailnormaldiffusealpha = tobool(mapOpts["blank_map_splatdetailnormaldiffusealpha"])
+		spl.texScales = scales
+		spl.texMults  = mults
+		res.splatDetailNormalDiffuseAlpha = tobool(mapOpts["blank_map_splatdetailnormaldiffusealpha"])
 		-- Compatibility gate: some engine paths still key splat activation on
 		-- splatDetailTex being non-empty even when DNTS normals are provided.
 		local legacyDetail = mapOpts["blank_map_splatdetailtex"]
 		if legacyDetail and legacyDetail ~= "" then
-			res.splatdetailtex = legacyDetail
+			res.splatDetailTex = legacyDetail
 		elseif mapOpts["blank_map_splatdetailnormaltex1"] then
-			res.splatdetailtex = mapOpts["blank_map_splatdetailnormaltex1"]
+			res.splatDetailTex = mapOpts["blank_map_splatdetailnormaltex1"]
 		end
-		-- A non-empty distr name flips the DNTS gate. A real path loads; a missing
-		-- one falls back to the blank (255,0,0,0) distribution editors paint on.
+		-- Only mirror explicit splat distribution value from map options.
+		-- Fixed engines can synthesize an empty distribution internally when absent.
 		local distr = mapOpts["blank_map_splatdistr"]
-		res.splatdistrtex = (distr and distr ~= "" and distr) or "blank_generated_splatdistr.png"
+		if distr and distr ~= "" then
+			res.splatDistrTex = distr
+		end
 	end
 end
 

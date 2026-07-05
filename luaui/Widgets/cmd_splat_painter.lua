@@ -516,8 +516,22 @@ local function initSplatTexture()
 		return false
 	end
 
-	splatTexWidth = texInfo.xsize
-	splatTexHeight = texInfo.ysize
+	local sourceW = texInfo.xsize
+	local sourceH = texInfo.ysize
+	splatTexWidth = sourceW
+	splatTexHeight = sourceH
+
+	-- New blank-map startup can expose a 1x1 fallback splat distribution.
+	-- Painting over a 1x1 texture looks like "whole-map fill" and appears broken.
+	-- Promote tiny fallback textures to a practical map-sized edit target.
+	if sourceW <= 1 or sourceH <= 1 then
+		splatTexWidth = max(64, floor((Game.mapSizeX or 0) / 8))
+		splatTexHeight = max(64, floor((Game.mapSizeZ or 0) / 8))
+		Echo(string.format(
+			"[Splat Painter] Detected tiny splat distribution (%dx%d); promoting to editable %dx%d.",
+			sourceW, sourceH, splatTexWidth, splatTexHeight
+		))
+	end
 
 	Echo("[Splat Painter] Splat texture size: " .. splatTexWidth .. "x" .. splatTexHeight)
 

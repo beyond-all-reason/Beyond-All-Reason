@@ -212,6 +212,7 @@ function M.attach(doc, ctx)
 		widgetState.envWaterRootEl = doc:GetElementById("tf-env-water-root")
 		widgetState.envDimensionsRootEl = doc:GetElementById("tf-env-dimensions-root")
 		widgetState.splatTexRootEl = doc:GetElementById("tf-splattex-root")
+		widgetState.grassCfgRootEl = doc:GetElementById("tf-grasscfg-root")
 
 		-- Helper: wire a slider that maps integer range to float values
 		local function envSlider(sliderId, labelId, toFloat, fromFloat, onChange)
@@ -347,6 +348,7 @@ function M.attach(doc, ctx)
 		envWindowToggle("btn-env-water",              "btn-env-water-close",            widgetState.envWaterRootEl,           "envWaterOpen",          "envWaterVisible")
 		envWindowToggle("btn-env-dimensions",         "btn-env-dimensions-close",       widgetState.envDimensionsRootEl,      "envDimensionsOpen",     "envDimensionsVisible")
 		envWindowToggle("btn-sp-splattex",            "btn-splattex-close",             widgetState.splatTexRootEl,           "splatTexOpen",          "splatTexVisible")
+		envWindowToggle("btn-gb-grasscfg",            "btn-grasscfg-close",             widgetState.grassCfgRootEl,           "grassCfgOpen",          "grassCfgVisible")
 
 		-- Helper: wire a collapsible section toggle (click header row to expand/collapse)
 		-- Returns a ctrl table with an expand() method for programmatic expansion.
@@ -1228,6 +1230,100 @@ function M.attach(doc, ctx)
 				end, false)
 			end
 		end
+
+		-- ---- Grass config popup controls ----
+		local function grassCfgPull()
+			local api = WG['grassgl4']
+			if not (api and api.getVisualConfig) then return end
+			local cfg = api.getVisualConfig() or {}
+			local function setS(slId, lbId, val, scale)
+				local sl = doc:GetElementById(slId)
+				local lb = doc:GetElementById(lbId)
+				local raw = math.floor((tonumber(val) or 0) * scale + 0.5)
+				if sl then sl:SetAttribute("value", tostring(raw)) end
+				if lb then lb:SetAttribute("value", string.format("%.3f", (tonumber(val) or 0))) end
+			end
+			setS("slider-gb-mapcolorfactor", "lbl-gb-mapcolorfactor", cfg.mapColorFactor, 1000)
+			setS("slider-gb-mapcolorbase", "lbl-gb-mapcolorbase", cfg.mapColorBase, 1000)
+			setS("slider-gb-grassbrightness", "lbl-gb-grassbrightness", cfg.grassBrightness, 1000)
+			local blade = doc:GetElementById("input-gb-blade-tex")
+			if blade then blade:SetAttribute("value", tostring(cfg.grassBladeColorTex or "")) end
+			local mod = doc:GetElementById("input-gb-colormod-tex")
+			if mod then mod:SetAttribute("value", tostring(cfg.mapGrassColorModTex or "$grass")) end
+		end
+
+		local function grassCfgPush(tbl)
+			local api = WG['grassgl4']
+			if api and api.setVisualConfig then
+				api.setVisualConfig(tbl)
+			end
+		end
+
+		local function grassCfgWireSlider(slId, lbId, key, scale)
+			local sl = doc:GetElementById(slId)
+			local lb = doc:GetElementById(lbId)
+			if not sl then return end
+			trackSliderDrag(sl, slId)
+			sl:AddEventListener("change", function(event)
+				if uiState.updatingFromCode then return end
+				local raw = tonumber(sl:GetAttribute("value")) or 0
+				local val = raw / scale
+				if lb then lb:SetAttribute("value", string.format("%.3f", val)) end
+				grassCfgPush({ [key] = val })
+				event:StopPropagation()
+			end, false)
+		end
+
+		grassCfgWireSlider("slider-gb-mapcolorfactor", "lbl-gb-mapcolorfactor", "mapColorFactor", 1000)
+		grassCfgWireSlider("slider-gb-mapcolorbase", "lbl-gb-mapcolorbase", "mapColorBase", 1000)
+		grassCfgWireSlider("slider-gb-grassbrightness", "lbl-gb-grassbrightness", "grassBrightness", 1000)
+
+		local bladeApply = doc:GetElementById("btn-gb-blade-tex-apply")
+		if bladeApply then
+			bladeApply:AddEventListener("mousedown", function(event)
+				local blade = doc:GetElementById("input-gb-blade-tex")
+				local path = blade and blade:GetAttribute("value") or ""
+				if path and path ~= "" then grassCfgPush({ grassBladeColorTex = path }) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local modApply = doc:GetElementById("btn-gb-colormod-tex-apply")
+		if modApply then
+			modApply:AddEventListener("mousedown", function(event)
+				local mod = doc:GetElementById("input-gb-colormod-tex")
+				local path = mod and mod:GetAttribute("value") or ""
+				if path and path ~= "" then grassCfgPush({ mapGrassColorModTex = path }) end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local cfgSave = doc:GetElementById("btn-gb-grasscfg-save")
+		if cfgSave then
+			cfgSave:AddEventListener("mousedown", function(event)
+				local api = WG['grassgl4']
+				if api and api.saveGrassConfig then api.saveGrassConfig() end
+				event:StopPropagation()
+			end, false)
+		end
+
+		local cfgRefresh = doc:GetElementById("btn-gb-grasscfg-refresh")
+		if cfgRefresh then
+			cfgRefresh:AddEventListener("mousedown", function(event)
+				grassCfgPull()
+				event:StopPropagation()
+			end, false)
+		end
+
+		local cfgOpen = doc:GetElementById("btn-gb-grasscfg")
+		if cfgOpen then
+			cfgOpen:AddEventListener("mousedown", function(event)
+				grassCfgPull()
+				event:StopPropagation()
+			end, false)
+		end
+
+		grassCfgPull()
 
 		-- ---- Skybox rotation sliders ----
 		envSlider("slider-env-skyangle", "lbl-env-skyangle",
