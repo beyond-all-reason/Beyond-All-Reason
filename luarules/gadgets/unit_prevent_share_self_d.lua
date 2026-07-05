@@ -20,11 +20,6 @@ end
 local monitorPlayers = {}
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	removeSelfDOrders(unitID)
-	return true
-end
-
 local function removeSelfDOrders(unitID)
 	-- cancel any current self-D orders
 	if Spring.GetUnitSelfDTime(unitID) > 0 then
@@ -42,6 +37,11 @@ local function removeSelfDOrders(unitID)
 	if #selfdTags > 0 then
 		Spring.GiveOrderToUnit(unitID, CMD.REMOVE, selfdTags, 0)
 	end
+end
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	removeSelfDOrders(unitID)
+	return true
 end
 
 local function removeTeamSelfDOrders(teamID)
