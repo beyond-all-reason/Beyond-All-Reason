@@ -41,14 +41,15 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetPlayerInfo = Spring.GetPlayerInfo
+	local spGetUnitStates = Spring.GetUnitStates
 
 	local tremove = table.remove
 	local ensureTable = table.ensureTable
-
 	local max = math.max
 	local min = math.min
 	local clamp = math.clamp
 	local diag = math.diag
+	local bit_and = math.bit_and
 	local pairsNext = next
 	local type = type
 
@@ -57,6 +58,8 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
+	local OPT_INTERNAL = CMD.OPT_INTERNAL
+	local FIRESTATE_RETURNFIRE = CMD.FIRESTATE_RETURNFIRE
 
 	local isAttackCommand = {
 		[CMD_ATTACK]      = true,
@@ -242,22 +245,33 @@ if gadgetHandler:IsSyncedCode() then
 		return inCommand and isAttackCommand[inCommand]
 	end
 
-	local function inAutoAttack(unitID, unitData)
+	local function inReturnFire(unitID)
+		return spGetUnitStates(unitID, false) == FIRESTATE_RETURNFIRE
+	end
+
+	local function inRetaliationAttack(aggressorID, protectID)
+		local _, isUserTarget, target = spGetUnitWeaponTarget(aggressorID, 1)
+		return not isUserTarget and target == protectID
+	end
+
+	local function hasAutoTarget(cmdOptions)
+		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
+	end
+
+	local function hasUserTarget(unitID, unitData)
 		for weaponNum, check in pairs(unitData.weapons) do
 			if check then
 				local _, isUserTarget = spGetUnitWeaponTarget(unitID, weaponNum)
 				if isUserTarget then
-					return false
+					return true
 				end
 			end
 		end
-		return true
+		return false
 	end
 
-	-- Target precedence goes before target priority and ideally after target visibility, in range, unblocked, etc.
-	-- Autotargeting "target priority" is then a weighted value, and Set Target priority uses the order of the list.
 	local function hasTargetPrecedence(unitID, unitData)
-		local inCommand, _, _, param1, param2 = spGetUnitCurrentCommand(unitID)
+		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_WAIT then
 			return false
 		elseif not inCommand or not isAttackCommand[inCommand] then
@@ -267,26 +281,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
-		if not nextCommand then
-			if not unitData then
-				return true
-			end
-			return inAutoAttack(unitID, unitData)
-		elseif nextCommand == CMD_FIGHT then
-			-- Set Target does not violate an active Fight command by prioritizing the user's target.
-			-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
+		-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
+		if nextCommand == CMD_FIGHT then
 			return true
-		elseif nextCommand == CMD_GUARD then
-			-- Guard and Return Fire have an automatic retaliation behavior that precedes Set Target.
-			-- The user intent is to protect either the guardee unit or the unit itself from damages.
-			if spValidUnitID(param1) then
-				local _, _, target = spGetUnitWeaponTarget(param1, 1)
-				if target ~= nextParam1 then -- flimsy
-					return true
-				end
-			end
 		end
-		return false
+		-- Retaliation behaviors take priority to protect the guardee despite being automatic.
+		if nextCommand == CMD_GUARD and inRetaliationAttack(param1, nextParam1) then
+			return false
+		elseif inReturnFire(unitID) and inRetaliationAttack(param1, unitID) then
+			return false
+		end
+
+		return hasAutoTarget(options) or not hasUserTarget(unitID, unitData)
 	end
 
 	local function setTargetActive(unitID, unitData, targetIndex)
@@ -350,7 +356,7 @@ if gadgetHandler:IsSyncedCode() then
 		removeFromQueue(unitID)
 		if keeptrack then
 			SendToUnsynced("targetIndex", unitID, 1, false)
-		else
+		elseif setTargetData[unitID] then
 			setTargetPassive(unitID, setTargetData[unitID])
 			setTargetData[unitID] = nil
 			SendToUnsynced("targetList", unitID, 0)
@@ -754,6 +760,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function unpauseTargetting(unitID)
 		activeTargets[unitID] = pausedTargets[unitID]
 		pausedTargets[unitID] = nil
+		addToQueue(unitID)
 	end
 
 	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
