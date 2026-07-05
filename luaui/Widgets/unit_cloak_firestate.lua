@@ -18,13 +18,13 @@ end
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
-local Firestates = VFS.Include("modules/firestates.lua")
-VFS.Include("luaui/Include/firestate_api.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 -- Speedups
+local GiveOrderToUnit   = Spring.GiveOrderToUnit
+local GetUnitStates     = Spring.GetUnitStates
 local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
 local FIRESTATE_HOLDFIRE = CMD.FIRESTATE_HOLDFIRE
 
@@ -40,41 +40,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
-local cloakActive = {}
-
-local function onUserFirestateWhileCloaked(unitID, userState)
-	if not cloakActive[unitID] then
-		return
-	end
-	if not cloakFireState[Spring.GetUnitDefID(unitID)] then
-		return
-	end
-	if userState == Firestates.HOLD_FIRE then
-		return
-	end
-	decloakFireState[unitID] = userState
-end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if teamID ~= myTeam then return end
 
 	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
-		if not cloakFireState[unitDefID] then return end
+		if not cloakFireState[unitDefID] then return end 
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
-			cloakActive[unitID] = true
-			decloakFireState[unitID] = Firestates.resolveUserFirestate(unitID) --store last state
+			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
 			local cloaktargetstate = cloakFireState[unitDefID]
-			local cloakTargetUserState = Firestates.fromEngineFirestate(cloaktargetstate)
-			if Firestates.resolveUserFirestate(unitID) ~= cloakTargetUserState then
-				WG['firestate'].setState(cloakTargetUserState, { unitID }, { userInitiated = false })
+			if decloakFireState[unitID] ~= cloaktargetstate then
+				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { cloaktargetstate }, 0)
 			end
 		else -- decloak and restore previous fire state
-			local decloaktargetState = decloakFireState[unitID] or Firestates.HOLD_FIRE
-			if Firestates.resolveUserFirestate(unitID) ~= decloaktargetState then
-				WG['firestate'].setState(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
+			local decloaktargetState = decloakFireState[unitID] or FIRESTATE_HOLDFIRE
+			if select(1, GetUnitStates(unitID, false)) ~= decloaktargetState then
+				GiveOrderToUnit(unitID, CMD.FIRE_STATE, { decloaktargetState }, 0) --revert to last state
 			end
-			cloakActive[unitID] = nil
 			decloakFireState[unitID] = nil
 		end
 	end
@@ -82,10 +65,9 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam then
-		decloakFireState[unitID] = Firestates.resolveUserFirestate(unitID)	-- 1=firestate
+		decloakFireState[unitID] = select(1, GetUnitStates(unitID, false))	-- 1=firestate
 	else
 		decloakFireState[unitID] = nil
-		cloakActive[unitID] = nil
 	end
 end
 
@@ -97,7 +79,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if decloakFireState[unitID] then
 		decloakFireState[unitID] = nil
 	end
-	cloakActive[unitID] = nil
 end
 
 ------------------------------------------------------------------------------------------------
@@ -113,15 +94,8 @@ end
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
-	local previousOnUserFirestate = WG['firestate'].onUserFirestate
-	WG['firestate'].onUserFirestate = function(unitID, userState)
-		onUserFirestateWhileCloaked(unitID, userState)
-		if previousOnUserFirestate then
-			previousOnUserFirestate(unitID, userState)
-		end
-	end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		widget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
 end
 

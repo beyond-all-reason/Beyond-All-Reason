@@ -29,6 +29,23 @@ local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
 local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
 
+local function notifyUserFirestateOrder(virtualIndex)
+	local userState
+	if OrderMenuFirestate.userStateForVirtualIndex then
+		userState = OrderMenuFirestate.userStateForVirtualIndex(virtualIndex)
+	else
+		local stateByIndex = {
+			[1] = Firestates.PASSIVE,
+			[2] = Firestates.RETURN_FIRE,
+			[3] = Firestates.AGGRESSIVE,
+		}
+		userState = stateByIndex[virtualIndex]
+	end
+	if userState and WG['unitfirestate'] and WG['unitfirestate'].markUserFirestate then
+		WG['unitfirestate'].markUserFirestate(userState, spGetSelectedUnits())
+	end
+end
+
 local function resolveHotkeyTargetVirtualIndex(optWords)
 	local selectedUnits = spGetSelectedUnits()
 	if #selectedUnits == 0 then
@@ -47,6 +64,11 @@ local function resolveHotkeyTargetVirtualIndex(optWords)
 end
 
 local function installFirestateNotifyHooks()
+	local originalGiveVirtualIndex = OrderMenuFirestate.giveVirtualIndex
+	OrderMenuFirestate.giveVirtualIndex = function(virtualIndex, cmdOptions)
+		notifyUserFirestateOrder(virtualIndex)
+		return originalGiveVirtualIndex(virtualIndex, cmdOptions)
+	end
 	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
 	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
 		if not release then

@@ -1,8 +1,7 @@
 local firestates = {
 	RULES_PARAM = "user_firestate",
-	PARAM_USER_INITIATED = 2,
 
-	HOLD_FIRE = 0,
+	PASSIVE = 0,
 	DEFEND = 1,
 	RETURN_FIRE = 2,
 	AGGRESSIVE = 3,
@@ -15,19 +14,19 @@ local firestates = {
 }
 
 local stateByDisplayIndex = {
-	[0] = firestates.HOLD_FIRE,
+	[0] = firestates.PASSIVE,
 	[1] = firestates.DEFEND,
 	[2] = firestates.AGGRESSIVE,
 }
 
 local displayIndexByState = {
-	[firestates.HOLD_FIRE] = 0,
+	[firestates.PASSIVE] = 0,
 	[firestates.DEFEND] = 1,
 	[firestates.AGGRESSIVE] = 2,
 }
 
 local engineFirestateByState = {
-	[firestates.HOLD_FIRE] = firestates.ENGINE_HOLD_FIRE,
+	[firestates.PASSIVE] = firestates.ENGINE_HOLD_FIRE,
 	[firestates.DEFEND] = firestates.ENGINE_FIRE_AT_WILL,
 	[firestates.RETURN_FIRE] = firestates.ENGINE_RETURN_FIRE,
 	[firestates.AGGRESSIVE] = firestates.ENGINE_FIRE_AT_WILL,
@@ -35,7 +34,7 @@ local engineFirestateByState = {
 }
 
 local stateByEngineFirestate = {
-	[firestates.ENGINE_HOLD_FIRE] = firestates.HOLD_FIRE,
+	[firestates.ENGINE_HOLD_FIRE] = firestates.PASSIVE,
 	[firestates.ENGINE_RETURN_FIRE] = firestates.RETURN_FIRE,
 	[firestates.ENGINE_FIRE_AT_WILL] = firestates.AGGRESSIVE,
 	[firestates.ENGINE_FIRE_AT_ALL] = firestates.FIRE_AT_ALL,
@@ -59,26 +58,6 @@ end
 
 function firestates.fromEngineFirestate(engineFirestate)
 	return stateByEngineFirestate[tonumber(engineFirestate)] or firestates.AGGRESSIVE
-end
-
-function firestates.buildUserFirestateParams(userState, userInitiated)
-	return { userState, userInitiated and 1 or 0 }
-end
-
-function firestates.parseUserFirestateParams(cmdParams)
-	if not cmdParams then
-		return nil, false
-	end
-	local userState = tonumber(cmdParams[1])
-	if userState == nil then
-		return nil, false
-	end
-	local userInitiatedParam = cmdParams[firestates.PARAM_USER_INITIATED]
-	local userInitiated = true
-	if userInitiatedParam ~= nil then
-		userInitiated = tonumber(userInitiatedParam) ~= 0
-	end
-	return userState, userInitiated
 end
 
 function firestates.resolveUserFirestate(unitID)
