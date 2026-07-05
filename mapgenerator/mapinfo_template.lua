@@ -348,6 +348,14 @@ if (Spring) then
 		spl.texscales = scales
 		spl.texmults  = mults
 		res.splatdetailnormaldiffusealpha = tobool(mapOpts["blank_map_splatdetailnormaldiffusealpha"])
+		-- Compatibility gate: some engine paths still key splat activation on
+		-- splatDetailTex being non-empty even when DNTS normals are provided.
+		local legacyDetail = mapOpts["blank_map_splatdetailtex"]
+		if legacyDetail and legacyDetail ~= "" then
+			res.splatdetailtex = legacyDetail
+		elseif mapOpts["blank_map_splatdetailnormaltex1"] then
+			res.splatdetailtex = mapOpts["blank_map_splatdetailnormaltex1"]
+		end
 		-- A non-empty distr name flips the DNTS gate. A real path loads; a missing
 		-- one falls back to the blank (255,0,0,0) distribution editors paint on.
 		local distr = mapOpts["blank_map_splatdistr"]

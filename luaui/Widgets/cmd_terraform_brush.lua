@@ -1608,6 +1608,90 @@ extraState._newmapConsumeRecipe = function()
 	return nil
 end
 
+-- Consumer-side DNTS fallback for InitBlank maps.
+-- If engine blank-map generation ignores blank_map_splat* options, force-bind
+-- splat textures from map options after reload. Retries for a short window
+-- because map GL resources can appear a few frames after widget init.
+extraState._newmapTryApplyDNTS = function()
+	if extraState._newmapDNTSApplied then return end
+	local mapOpts = Spring.GetMapOptions()
+	if type(mapOpts) ~= "table" then return end
+
+	local function registerTexName(path)
+		if type(path) ~= "string" or path == "" then return nil end
+		for _, name in ipairs({path, ":l:" .. path, ":r:" .. path, ":l:maps/" .. path, ":r:maps/" .. path, "maps/" .. path}) do
+			if gl.Texture(name) then
+				gl.Texture(false)
+				return name
+			end
+		end
+		return nil
+	end
+
+	local tex1 = mapOpts.blank_map_splatdetailnormaltex1
+	if type(tex1) ~= "string" or tex1 == "" then
+		extraState._newmapDNTSApplied = true
+		return
+	end
+
+	extraState._newmapDNTSTries = (extraState._newmapDNTSTries or 0) + 1
+
+	local boundAny = false
+	for ch = 1, 4 do
+		local tex = mapOpts["blank_map_splatdetailnormaltex" .. ch]
+		if type(tex) == "string" and tex ~= "" then
+			local reg = registerTexName(tex) or tex
+			if Spring.SetMapShadingTexture("$ssmf_splat_normals", reg, ch - 1) then
+				boundAny = true
+			end
+		end
+	end
+
+	local distr = mapOpts.blank_map_splatdistr
+	if type(distr) ~= "string" or distr == "" then
+		distr = "blank_generated_splatdistr.png"
+	end
+	Spring.SetMapShadingTexture("$ssmf_splat_distr", registerTexName(distr) or distr)
+
+	local detail = mapOpts.blank_map_splatdetailtex
+	if type(detail) ~= "string" or detail == "" then
+		detail = tex1
+	end
+	if type(detail) == "string" and detail ~= "" then
+		Spring.SetMapShadingTexture("$ssmf_splat_detail", registerTexName(detail) or detail)
+	end
+
+	local scales = {
+		tonumber(mapOpts.blank_map_splattexscale1) or 0.01,
+		tonumber(mapOpts.blank_map_splattexscale2) or 0.01,
+		tonumber(mapOpts.blank_map_splattexscale3) or 0.01,
+		tonumber(mapOpts.blank_map_splattexscale4) or 0.01,
+	}
+	local mults = {
+		tonumber(mapOpts.blank_map_splattexmult1) or 1.0,
+		tonumber(mapOpts.blank_map_splattexmult2) or 1.0,
+		tonumber(mapOpts.blank_map_splattexmult3) or 1.0,
+		tonumber(mapOpts.blank_map_splattexmult4) or 1.0,
+	}
+	Spring.SetMapRenderingParams({
+		splatTexScales = scales,
+		splatTexMults = mults,
+		splatDetailNormalDiffuseAlpha = ((tonumber(mapOpts.blank_map_splatdetailnormaldiffusealpha) or 0) ~= 0),
+	})
+
+	local info = gl.TextureInfo("$ssmf_splat_normals:0")
+	if info and info.xsize and info.xsize > 0 then
+		extraState._newmapDNTSApplied = true
+		Echo(string.format("[Terraform Brush] New Map DNTS fallback bound (%s).", boundAny and "runtime" or "engine-preloaded"))
+		return
+	end
+
+	if extraState._newmapDNTSTries >= 180 then
+		extraState._newmapDNTSApplied = true
+		Echo("[Terraform Brush] New Map DNTS fallback could not verify splat normals; engine-side fix likely required.")
+	end
+end
+
 -- Driver: runs each frame while a New Map is pending. Phase 1 generates and
 -- starts streaming the heightmap; phase 2 places symmetric spawns once the
 -- stream has finished and heights have settled.
@@ -2184,21 +2268,6 @@ function widget:Initialize()
 		Echo(string.format(
 			"[Terraform Brush] New Map recipe detected (%s, seed %s) — generating terrain after load...",
 			tostring(extraState._newmapPending.symmetry), tostring(extraState._newmapPending.seed)))
-	end
-	local uiRestoreFile = io.open("Terraform Brush/pending_newmap_ui.lua", "r")
-	if uiRestoreFile then
-		local raw = uiRestoreFile:read("*a")
-		uiRestoreFile:close()
-		local wipe = io.open("Terraform Brush/pending_newmap_ui.lua", "w")
-		if wipe then wipe:write(""); wipe:close() end
-		if raw and raw ~= "" then
-			local ok, state = pcall(function() return loadstring(raw)() end)
-			if ok and type(state) == "table" and state.openBrush then
-				local mode = state.mode or "raise"
-				local direction = tonumber(state.direction) or 1
-				activate(direction, mode)
-			end
-		end
 	end
 
 	WG.TerraformBrush = {
@@ -5584,6 +5653,9 @@ function extraState.measureFindNearEndpoint(sx, sy)
 end
 
 function widget:DrawScreen()
+	if not extraState._newmapDNTSApplied then
+		extraState._newmapTryApplyDNTS()
+	end
 	-- New Map procedural terrain: generate + stream + place spawns post-reload.
 	if extraState._newmapPending or extraState._newmapInfo then
 		extraState._newmapDrive()
