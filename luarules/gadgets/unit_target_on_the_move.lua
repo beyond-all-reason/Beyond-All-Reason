@@ -756,7 +756,7 @@ if gadgetHandler:IsSyncedCode() then
 		pausedTargets[unitID] = nil
 	end
 
-	function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
+	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		if cmdID == CMD_STOP and setTargetData[unitID] then
 			removeWithStop(unitID)
 		end
