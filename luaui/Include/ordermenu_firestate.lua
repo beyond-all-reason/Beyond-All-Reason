@@ -1,4 +1,4 @@
---DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables plus customFirestateCommandEnabled().
+--DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables.
 
 local Firestates = VFS.Include("modules/firestates.lua")
 local FirestateApi = VFS.Include("luaui/Include/firestate_api.lua")
@@ -71,37 +71,13 @@ local labelByVirtualIndexEnabled = {
 	[5] = "Fire at all",
 }
 
-local function customFirestateCommandEnabled()
-	return Spring.GetModOptions().experimental_defend_firestate
-end
-
-local function virtualIndexByState()
-	if customFirestateCommandEnabled() then
-		return virtualIndexByStateEnabled
-	end
-	return virtualIndexByStateDisabled
-end
-
-local function stateByVirtualIndex()
-	if customFirestateCommandEnabled() then
-		return stateByVirtualIndexEnabled
-	end
-	return stateByVirtualIndexDisabled
-end
-
-local function labelByVirtualIndex()
-	if customFirestateCommandEnabled() then
-		return labelByVirtualIndexEnabled
-	end
-	return labelByVirtualIndexDisabled
-end
-
 local function resolveVirtualIndex(unitID)
 	local userFirestate = Firestates.resolveUserFirestate(unitID)
 	if userFirestate == nil then
 		return nil
 	end
-	return virtualIndexByState()[userFirestate]
+	local virtualIndexByState = Spring.GetModOptions().experimental_defend_firestate and virtualIndexByStateEnabled or virtualIndexByStateDisabled
+	return virtualIndexByState[userFirestate]
 end
 
 local function pipFill(virtualIndex)
@@ -121,7 +97,7 @@ end
 
 local function buildCmdDesc(command, virtualIndex)
 	local cmdDesc = table.copy(command)
-	local labels = labelByVirtualIndex()
+	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
 	cmdDesc.params = {
 		virtualIndex - 1,
 		labels[1],
@@ -135,13 +111,16 @@ end
 
 local function stateLabel(cmd)
 	if cmd.virtualIndex then
-		return labelByVirtualIndex()[cmd.virtualIndex]
+		local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
+		return labels[cmd.virtualIndex]
 	end
 	return nil
 end
 
 local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
-	local state = stateByVirtualIndex()[virtualIndex]
+	local defendFirestateEnabled = Spring.GetModOptions().experimental_defend_firestate
+	local stateByVirtualIndex = defendFirestateEnabled and stateByVirtualIndexEnabled or stateByVirtualIndexDisabled
+	local state = stateByVirtualIndex[virtualIndex]
 	if state == nil then
 		return false
 	end
@@ -149,11 +128,11 @@ local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
 	if opts.userInitiated == nil then
 		opts.userInitiated = true
 	end
-	if not customFirestateCommandEnabled() then
+	if not defendFirestateEnabled then
 		remappingFirestate = true
 	end
 	FirestateApi.giveFirestateToSelection(state, spGetSelectedUnits(), opts)
-	if not customFirestateCommandEnabled() then
+	if not defendFirestateEnabled then
 		remappingFirestate = false
 	end
 	if onOrderGiven then
@@ -178,18 +157,11 @@ local function nextCycledVirtualIndex(virtualIndex, reverse)
 	return virtualIndex + 1
 end
 
-local function shouldDeferToGridMenu()
-	if not WG.gridmenu or not WG.gridmenu.getActiveBuilder then
-		return false
-	end
-	return WG.gridmenu.getActiveBuilder() ~= nil
-end
-
 local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if release then
 		return false
 	end
-	if shouldDeferToGridMenu() then
+	if WG.gridmenu and WG.gridmenu.getActiveBuilder and WG.gridmenu.getActiveBuilder() ~= nil then
 		return false
 	end
 	local selectedUnits = spGetSelectedUnits()
@@ -247,10 +219,6 @@ local function commandNotify(cmdID, cmdParams, cmdOptions)
 	return giveVirtualIndex(engineParam + 1, cmdOptions)
 end
 
-local function userStateForVirtualIndex(virtualIndex)
-	return stateByVirtualIndex()[virtualIndex]
-end
-
 return {
 	CYCLE_COUNT = CYCLE_COUNT,
 	PIP_COUNT = PIP_COUNT,
@@ -266,5 +234,4 @@ return {
 	giveVirtualIndex = giveVirtualIndex,
 	hotkeyHandler = hotkeyHandler,
 	commandNotify = commandNotify,
-	userStateForVirtualIndex = userStateForVirtualIndex,
 }
