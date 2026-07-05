@@ -309,7 +309,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_ger and UnitDefNames.cor_leftshoulder_nationwars_ger.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = {arm = false, cor = true, leg = true},
 		conflictsWith = {},
 	},
 
@@ -317,7 +317,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_eec and UnitDefNames.cor_leftshoulder_nationwars_eec.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = {arm = false, cor = true, leg = true},
 		conflictsWith = {},
 	},
 
@@ -325,7 +325,7 @@ CosmeticDefinitions = {
 		slot = "leftshoulder",
 		implementation = "unit",
 		unitDefID = UnitDefNames.cor_leftshoulder_nationwars_us and UnitDefNames.cor_leftshoulder_nationwars_us.id,
-		faction = {arm = false, cor = true, leg = false},
+		faction = {arm = false, cor = true, leg = true},
 		conflictsWith = {},
 	},
 
