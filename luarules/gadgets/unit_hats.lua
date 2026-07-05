@@ -17,6 +17,8 @@ function gadget:GetInfo()
 	}
 end
 
+local DEBUG = false
+
 function gadget:GameID(gameID) 
 	-- make sure gameID is a string because i'm not actually sure
 	cachedGameID = tostring(gameID)
@@ -181,9 +183,17 @@ PlayerCosmeticList = {
 	},
 
 	[9999999999] = { -- Debug
-		"ArmadaNationWarsEECLeftShoulder",
-		"CortexNationWarsEECLeftShoulder",
+		"HalloweenHat",
+		"FightNightHat",
 		"LegionChampionHat",
+		"VikingHat",
+		"KingCrownHat",
+		"ArmadaNationWarsGERLeftShoulder",
+		"ArmadaNationWarsEECLeftShoulder",
+		"ArmadaNationWarsUSLeftShoulder",
+		"CortexNationWarsGERLeftShoulder",
+		"CortexNationWarsEECLeftShoulder",
+		"CortexNationWarsUSLeftShoulder",
 	}
 }
 
@@ -366,8 +376,6 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
-
-local DEBUG = false
 
 local unitsWearingHats = {} -- key unitID of wearer, value unitID of hat
 
