@@ -504,20 +504,27 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
+	-- 1. Trigger Phase
+	splitheight               = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
+	splitrange                = tonumber, -- distance to target to trigger split
+	airburst_height_offset    = tonumber, -- artificially offset the target height (useful for direct-fire MIRVs)
+	
+	-- 2. Payload Phase
 	speceffect_def            = parseSpecEffectList, -- name of spawned weapondef (legacy) or list of weapondefs
 	number                    = tonumber, -- count of projectiles to spawn
 	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag                    = tostring, -- as `projectileParams.cegTag`
 	model                     = tostring, -- as `projectileParams.model`
-	scatter                   = tonumber, -- scatter radius around target
+	
+	-- 3. Expansion Phase
+	pattern                   = tostring, -- determines the spread shape ("radial", etc). defaults to random scatter.
 	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
 	submunition_y_vel_abs     = tonumber, -- absolute upward velocity (if defined, ignores Y-axis vmult)
-	pattern                   = tostring, -- determines the spread shape ("radial", etc). defaults to random scatter.
 	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
 	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
-	splitheight               = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
-	splitrange                = tonumber, -- distance to target to trigger split
-	airburst_height_offset    = tonumber, -- artificially offset the target height (useful for direct-fire MIRVs)
+	
+	-- 4. Impact Phase
+	scatter                   = tonumber, -- scatter radius around target
 }
 
 local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ, index, totalNumber)
