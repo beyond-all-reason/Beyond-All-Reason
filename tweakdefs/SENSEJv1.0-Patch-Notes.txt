@@ -114,6 +114,23 @@ Affected: armjuno, corjuno, legjuno
 - Stockpile time: 75 seconds
 - Stockpile limit: 5 missiles
 
+Juno Economic Comparison
+------------------------
+Stat                 Original       SENSEJv1.0    Change
+Structure metal      640-660        500            22-24% cheaper
+Structure energy     16,000-17,000  12,000         25-29% cheaper
+Build time           21,800-27,700  20,000         8-28% lower
+Missile metal        200            150            25% cheaper
+Missile energy       12,000         8,000          33% cheaper
+Stockpile time       75 sec         75 sec         Unchanged
+Stockpile limit      20             5              75% lower
+
+Cost to field the structure with its first missile:
+- Armada: approximately 23% less metal and 31% less energy.
+- Cortex/Legion: approximately 24% less metal and 29% less energy.
+- Overall economic buff: approximately 25-30%, balanced by reducing stored
+  missiles from 20 to 5.
+
 T2 Advanced Sonar Towers
 ------------------------
 Affected: Armada advanced sonar (armason), Cortex advanced sonar (corason), Legion advanced sonar (leganavalsonarstation)
