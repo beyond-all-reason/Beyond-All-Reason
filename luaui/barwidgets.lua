@@ -166,6 +166,7 @@ local flexCallIns = {
 	'DrawScreenEffects',
 	'DrawScreenPost',
 	'DrawInMiniMap',
+ 	'DrawBuildSquare',
 	'DrawOpaqueUnitsLua',
 	'DrawOpaqueFeaturesLua',
 	'DrawAlphaUnitsLua',
@@ -1823,6 +1824,13 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  for _,w in ripairs(self.DrawBuildSquareList) do
+    w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  end
+  return
 end
 
 function widgetHandler:SunChanged()
