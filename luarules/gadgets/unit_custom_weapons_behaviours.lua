@@ -118,22 +118,6 @@ local function toWeaponDefID(value)
 	return spawnDef and spawnDef.id or nil
 end
 
-local function parseSpecEffectList(value)
-	local list = {}
-	for part in string.gmatch(value, '([^,]+)') do
-		local name, count = string.match(part, "^%s*([%w_]+)%s*:?%s*(%d*)%s*$")
-		if name then
-			local def = WeaponDefNames[name]
-			if def then
-				table.insert(list, { id = def.id, count = tonumber(count) or 1 })
-			else
-				Spring.Log("CustomWeapons", LOG.ERROR, "Unknown weapondef in speceffect_list: " .. tostring(name))
-			end
-		end
-	end
-	return #list > 0 and list or nil
-end
-
 local function toPositiveNumber(value)
 	value = tonumber(value)
 	return value and math_max(0, value) or nil
@@ -508,7 +492,7 @@ weaponCustomParamKeys.split = {
 	splitheight               = tonumber, -- altitude above ground to trigger split
 	
 	-- 2. Payload Phase
-	speceffect_def            = parseSpecEffectList, -- name of spawned weapondef (legacy) or list of weapondefs
+	speceffect_def            = toWeaponDefID, -- name of spawned weapondef
 	number                    = tonumber, -- count of projectiles to spawn
 	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag                    = tostring, -- as `projectileParams.cegTag`
@@ -532,8 +516,7 @@ end
 
 local function split(params, projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
-	local specList, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
-	specList = type(specList) == "table" and specList or {}
+	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
 
@@ -547,22 +530,12 @@ local function split(params, projectileID)
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 
-	local sequence = {}
-	for _, entry in ipairs(specList) do
-		for i = 1, entry.count do
-			table.insert(sequence, entry.id)
-		end
-	end
-
-	local totalNumber = params.number or #sequence
+	local totalNumber = params.number or 1
 	
-	if #sequence > 0 and totalNumber > 0 then
-		for currentIndex = 1, totalNumber do
-			local seqIndex = ((currentIndex - 1) % #sequence) + 1
-			local spawnedDefID = sequence[seqIndex]
-
+	if weaponDefID and totalNumber > 0 then
+		for _ = 1, totalNumber do
 			calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
-			spSpawnProjectile(spawnedDefID, projectileParams)
+			spSpawnProjectile(weaponDefID, projectileParams)
 		end
 	end
 end

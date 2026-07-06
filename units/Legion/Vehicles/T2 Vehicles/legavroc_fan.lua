@@ -144,7 +144,7 @@ return {
 					speceffect = "split",
 					airburst_height_offset = "300",
 					splitrange = "30",
-					speceffect_def = "legavroc_fan_boreas_submunition:1",
+					speceffect_def = "legavroc_fan_boreas_submunition",
 					pattern = "radial",
 					fanning_divisor = "120",
 					scatter = "0",
