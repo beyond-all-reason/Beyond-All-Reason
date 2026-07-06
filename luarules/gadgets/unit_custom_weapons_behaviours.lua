@@ -65,7 +65,7 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectilesData = {}
+local projectileTargets = {}
 
 local gameFrame = 0
 
@@ -116,6 +116,22 @@ end
 local function toWeaponDefID(value)
 	local spawnDef = WeaponDefNames[value]
 	return spawnDef and spawnDef.id or nil
+end
+
+local function parseSpecEffectList(value)
+	local list = {}
+	for part in string.gmatch(value, '([^,]+)') do
+		local name, count = string.match(part, "^%s*([%w_]+)%s*:?%s*(%d*)%s*$")
+		if name then
+			local def = WeaponDefNames[name]
+			if def then
+				table.insert(list, { id = def.id, count = tonumber(count) or 1 })
+			else
+				Spring.Log("CustomWeapons", LOG.ERROR, "Unknown weapondef in speceffect_list: " .. tostring(name))
+			end
+		end
+	end
+	return #list > 0 and list or nil
 end
 
 local function toPositiveNumber(value)
@@ -488,74 +504,153 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def            = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
+	speceffect_def            = parseSpecEffectList, -- name of spawned weapondef (legacy) or list of weapondefs
 	number                    = tonumber, -- count of projectiles to spawn
 	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag                    = tostring, -- as `projectileParams.cegTag`
 	model                     = tostring, -- as `projectileParams.model`
 	scatter                   = tonumber, -- scatter radius around target
 	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
+	submunition_y_vel_abs     = tonumber, -- absolute upward velocity (if defined, ignores Y-axis vmult)
+	pattern                   = tostring, -- determines the spread shape ("radial", etc). defaults to random scatter.
 	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
 	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
 	splitheight               = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
+	splitrange                = tonumber, -- distance to target to trigger split
+	airburst_height_offset    = tonumber, -- artificially offset the target height (useful for direct-fire MIRVs)
 }
+
+local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ, index, totalNumber)
+	-- Preserve base-game fanning values for non-scattered projectiles to prevent breaking existing units
+	local vMult = params.vmult or 1.0
+	local fanDiv = params.fanning_divisor or 880
+	local fanDivY = params.fanning_divisor_y or 440
+	local yVelAbs = params.submunition_y_vel_abs
+	local pattern = params.pattern
+	totalNumber = totalNumber or params.number or 1
+
+	if pattern == "radial" then
+		local angle = (index / totalNumber) * 2 * math_pi
+		speed[1] = velocityX * vMult + parentSpeed * math_cos(angle) * (100 / fanDiv)
+		speed[2] = yVelAbs or (velocityY * vMult)
+		speed[3] = velocityZ * vMult + parentSpeed * math_sin(angle) * (100 / fanDiv)
+	else
+		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+		if yVelAbs then
+			speed[2] = yVelAbs + parentSpeed * (math_random(-100, 100) / fanDivY)
+		else
+			speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
+		end
+		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+	end
+end
+
+local function assignScatteredTarget(spawnedID, targetType, target, scatterRadius)
+	if targetType == targetedGround and target then
+		-- Scattering the target coordinate prevents engine guidance from aggressively converging all submunitions back to a single point
+		local angle = math_random() * 2 * math_pi
+		local dist = math_random() * scatterRadius
+		local tx = target[1] + math_cos(angle) * dist
+		local tz = target[3] + math_sin(angle) * dist
+		local ty = spGetGroundHeight(tx, tz)
+		spSetProjectileTarget(spawnedID, tx, ty, tz)
+	elseif targetType == targetedUnit and target then
+		spSetProjectileTarget(spawnedID, target, targetedUnit)
+	end
+end
 
 local function split(params, projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
-	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
+	local specList, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
+	specList = type(specList) == "table" and specList or {}
 
 	spDeleteProjectile(projectileID)
 
 	local pos = projectileParams.pos
-	spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
+	if params.splitexplosionceg then
+		spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
+	end
 
 	projectileParams.gravity = gravityPerFrame
 
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 
-	-- Preserve base-game fanning values for non-scattered projectiles to prevent breaking existing units
-	local vMult = params.vmult or (params.scatter and 0.6 or 1.0)
-	local fanDiv = params.fanning_divisor or (params.scatter and 200 or 880)
-	local fanDivY = params.fanning_divisor_y or (params.scatter and 150 or 440)
+	local sequence = {}
+	for _, entry in ipairs(specList) do
+		for i = 1, entry.count do
+			table.insert(sequence, entry.id)
+		end
+	end
 
-	for _ = 1, params.number do
-		speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
-		speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
-		speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+	local totalNumber = params.number or #sequence
+	
+	if #sequence > 0 and totalNumber > 0 then
+		for currentIndex = 1, totalNumber do
+			local seqIndex = ((currentIndex - 1) % #sequence) + 1
+			local spawnedDefID = sequence[seqIndex]
 
-		local spawnedID = spSpawnProjectile(weaponDefID, projectileParams)
-		if spawnedID and targetType and params.scatter then
-			if targetType == targetedGround and target then
-				-- Scattering the target coordinate prevents engine guidance from aggressively converging all submunitions back to a single point
-				local angle = math_random() * 2 * math_pi
-				local dist = math_random() * params.scatter
-				local tx = target[1] + math_cos(angle) * dist
-				local tz = target[3] + math_sin(angle) * dist
-				local ty = spGetGroundHeight(tx, tz)
-				spSetProjectileTarget(spawnedID, tx, ty, tz)
-			elseif targetType == targetedUnit and target then
-				spSetProjectileTarget(spawnedID, target, targetedUnit)
+			calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ, currentIndex, totalNumber)
+
+			local spawnedID = spSpawnProjectile(spawnedDefID, projectileParams)
+			if spawnedID and targetType and params.scatter then
+				assignScatteredTarget(spawnedID, targetType, target, params.scatter)
 			end
 		end
 	end
 end
 
+local function handleSplitTargeting(params, projectileID)
+	local origTarget = projectileTargets[projectileID]
+	if not origTarget or not origTarget.type then
+		local targetType, target = spGetProjectileTarget(projectileID)
+		if targetType then
+			origTarget = { type = targetType, target = target }
+			projectileTargets[projectileID] = origTarget
+		end
+	end
+
+	if not origTarget or not origTarget.type then return false end
+
+	local tx, ty, tz
+	if origTarget.type == targetedGround then
+		tx, ty, tz = origTarget.target[1], origTarget.target[2], origTarget.target[3]
+	elseif origTarget.type == targetedUnit then
+		tx, ty, tz = spGetUnitPosition(origTarget.target)
+	end
+
+	if not tx then return false end
+
+	local targetY = ty + (params.airburst_height_offset or 0)
+	
+	if params.airburst_height_offset then
+		spSetProjectileTarget(projectileID, tx, targetY, tz)
+	end
+
+	if params.splitrange then
+		local px, py, pz = spGetProjectilePosition(projectileID)
+		if px and distance3dSquared(px, py, pz, tx, targetY, tz) <= params.splitrange * params.splitrange then
+			return true
+		end
+	end
+
+	return false
+end
+
 specialEffectFunction.split = function(params, projectileID)
+	if (params.splitrange or params.airburst_height_offset) and handleSplitTargeting(params, projectileID) then
+		split(params, projectileID)
+		return true
+	end
+
 	if isProjectileFalling(projectileID) then
-		if params.scatter then
-			-- Scattered projectiles require a terminal split height, otherwise they would fan out too early at apogee and miss the target completely
+		if params.splitheight then
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then
-				local groundHeight = spGetGroundHeight(px, pz)
-				local height = py - groundHeight
-				local splitHeight = params.splitheight or 1500
-				if height < splitHeight then
-					split(params, projectileID)
-					return true
-				end
+			if px and (py - spGetGroundHeight(px, pz)) < params.splitheight then
+				split(params, projectileID)
+				return true
 			end
-		else
+		elseif not params.splitrange then
 			split(params, projectileID)
 			return true
 		end
@@ -710,6 +805,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	projectileTargets[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
