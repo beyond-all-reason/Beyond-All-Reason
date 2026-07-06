@@ -4688,15 +4688,11 @@ local colors = {
     centerflare = false, --{properties={texture=[[blueexplo]]}},
     explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0.5 0.51 0.53 0.010   0.30 0.31 0.33 0.008   0 0 0 0.01]]}},
     explosion2 = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0.5 0.51 0.53 0.010   0.30 0.31 0.33 0.008   0 0 0 0.01]]}},
-    dustparticles = {ground=false, water=true, air=false, underwater=true, properties={colormap=[[0.5 0.51 0.53 0.020   0.30 0.31 0.33 0.016   0 0 0 0]], particlelife=14, particlelifespread=20, pos=[[0, 8, 0]]}},
+    dustparticles = {ground=false, water=true, air=false, underwater=true, properties={colormap=[[0.5 0.51 0.53 0.020   0.30 0.31 0.33 0.016   0 0 0 0.01]]}},
     dirt = false,
     dirt2 = false,
     sparks = false,
     watersparks = {count=1},
-<<<<<<< Updated upstream
-    groundflash_quick = {properties={colormap=[[1 0.93 0.75 0.2   0 0 0 0]], pos=[[0, 8, 0]], ttl=10}},
-    waterring = {count=1, properties={colormap=[[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]], dir=[[0, 1, 0]], pos=[[0, 8, 0]], ttl=56}},
-=======
     -- Keep the expanding underwater impact ring above the seafloor so it does not clip into terrain.
     waterring = {count=1, properties={
       colormap=[[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]],
@@ -4704,7 +4700,6 @@ local colors = {
       pos=[[0, 8, 0]],
       ttl=56,
     }},
->>>>>>> Stashed changes
   },
   bomb = {
     explosion = {properties={colormap=[[0 0 0 0   1 0.62 0.38 0.09   0.7 0.27 0.1 0.066   0.5 0.15 0.025 0.033   0 0 0 0]]}},
