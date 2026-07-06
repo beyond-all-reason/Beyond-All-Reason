@@ -519,6 +519,9 @@ weaponCustomParamKeys.split = {
 	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0)
 	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880)
 	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440)
+	
+	-- 4. Impact Phase
+	scatter                   = tonumber, -- scatter radius around target
 }
 
 local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
@@ -529,6 +532,20 @@ local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocity
 	speed[1] = velocityX * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
 	speed[2] = velocityY * vMult + parentSpeed * (math_random(-100, 100) / fanDivY)
 	speed[3] = velocityZ * vMult + parentSpeed * (math_random(-100, 100) / fanDiv)
+end
+
+local function assignScatteredTarget(spawnedID, targetType, target, scatterRadius)
+	if targetType == targetedGround and target then
+		-- Scattering the target coordinate prevents engine guidance from aggressively converging all submunitions back to a single point
+		local angle = math_random() * 2 * math_pi
+		local dist = math_random() * scatterRadius
+		local tx = target[1] + math_cos(angle) * dist
+		local tz = target[3] + math_sin(angle) * dist
+		local ty = spGetGroundHeight(tx, tz)
+		spSetProjectileTarget(spawnedID, tx, ty, tz)
+	elseif targetType == targetedUnit and target then
+		spSetProjectileTarget(spawnedID, target, targetedUnit)
+	end
 end
 
 local function split(params, projectileID)
@@ -563,7 +580,10 @@ local function split(params, projectileID)
 			local spawnedDefID = sequence[seqIndex]
 
 			calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
-			spSpawnProjectile(spawnedDefID, projectileParams)
+			local spawnedID = spSpawnProjectile(spawnedDefID, projectileParams)
+			if spawnedID and targetType and params.scatter then
+				assignScatteredTarget(spawnedID, targetType, target, params.scatter)
+			end
 		end
 	end
 end
