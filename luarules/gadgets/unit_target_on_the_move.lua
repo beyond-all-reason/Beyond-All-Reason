@@ -1121,7 +1121,7 @@ else	-- UNSYNCED
 		repeat
 			weaponNum = weaponNum + 1
 			local _, _, currentTarget = spGetUnitWeaponTarget(unitID, weaponNum)
-			if currentTarget then
+			if type(currentTarget) == "table" then
 				result = currentTarget[1] == x
 					and currentTarget[2] == y
 					and currentTarget[3] == z
