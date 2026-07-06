@@ -505,7 +505,7 @@ end
 
 weaponCustomParamKeys.split = {
 	-- 1. Trigger Phase
-	splitheight               = tonumber, -- altitude above ground to trigger split (defaults to 1500 if scatter is set)
+	splitheight               = tonumber, -- altitude above ground to trigger split
 	splitrange                = tonumber, -- distance to target to trigger split
 	airburst_height_offset    = tonumber, -- artificially offset the target height (useful for direct-fire MIRVs)
 	
@@ -518,10 +518,10 @@ weaponCustomParamKeys.split = {
 	
 	-- 3. Expansion Phase
 	pattern                   = tostring, -- determines the spread shape ("radial", etc). defaults to random scatter.
-	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0, or 0.6 if scatter is set)
+	vmult                     = tonumber, -- parent velocity multiplier (defaults to 1.0)
 	submunition_y_vel_abs     = tonumber, -- absolute upward velocity (if defined, ignores Y-axis vmult)
-	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880, or 200 if scatter is set)
-	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440, or 150 if scatter is set)
+	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880)
+	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440)
 	
 	-- 4. Impact Phase
 	scatter                   = tonumber, -- scatter radius around target
