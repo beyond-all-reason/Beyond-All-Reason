@@ -506,7 +506,6 @@ end
 weaponCustomParamKeys.split = {
 	-- 1. Trigger Phase
 	splitheight               = tonumber, -- altitude above ground to trigger split
-	splitrange                = tonumber, -- distance to target to trigger split
 	
 	-- 2. Payload Phase
 	speceffect_def            = parseSpecEffectList, -- name of spawned weapondef (legacy) or list of weapondefs
@@ -568,45 +567,7 @@ local function split(params, projectileID)
 	end
 end
 
-local function handleSplitTargeting(params, projectileID)
-	local origTarget = projectileTargets[projectileID]
-	if not origTarget or not origTarget.type then
-		local targetType, target = spGetProjectileTarget(projectileID)
-		if targetType then
-			origTarget = { type = targetType, target = target }
-			projectileTargets[projectileID] = origTarget
-		end
-	end
-
-	if not origTarget or not origTarget.type then return false end
-
-	local tx, ty, tz
-	if origTarget.type == targetedGround then
-		tx, ty, tz = origTarget.target[1], origTarget.target[2], origTarget.target[3]
-	elseif origTarget.type == targetedUnit then
-		tx, ty, tz = spGetUnitPosition(origTarget.target)
-	end
-
-	if not tx then return false end
-
-	local targetY = ty
-
-	if params.splitrange then
-		local px, py, pz = spGetProjectilePosition(projectileID)
-		if px and distance3dSquared(px, py, pz, tx, targetY, tz) <= params.splitrange * params.splitrange then
-			return true
-		end
-	end
-
-	return false
-end
-
 specialEffectFunction.split = function(params, projectileID)
-	if params.splitrange and handleSplitTargeting(params, projectileID) then
-		split(params, projectileID)
-		return true
-	end
-
 	if isProjectileFalling(projectileID) then
 		if params.splitheight then
 			local px, py, pz = spGetProjectilePosition(projectileID)
@@ -614,7 +575,7 @@ specialEffectFunction.split = function(params, projectileID)
 				split(params, projectileID)
 				return true
 			end
-		elseif not params.splitrange then
+		else
 			split(params, projectileID)
 			return true
 		end
