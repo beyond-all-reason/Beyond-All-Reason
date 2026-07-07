@@ -56,17 +56,14 @@ end
 local readAs = { read = -1 }
 
 local unitPower = { [-1] = unknownPower }
-local unitRadius = { [-1] = 0.0 }
+local unitRadius = { [-1] = 10.0 }
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitPower[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70
 	unitDefRadiusAverage = unitDefRadiusAverage + unitDef.radius
 end
-
-if #UnitDefs > 0 then
-	unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
-end
+unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
