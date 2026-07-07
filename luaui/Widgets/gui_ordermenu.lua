@@ -46,7 +46,6 @@ local function resolveHotkeyTargetVirtualIndex(optWords)
 	return OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, shift)
 end
 
---zzz need to check and make sure that this doesn't interfere with gridmenu keybind interception
 local function installFirestateNotifyHooks()
 	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
 	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
