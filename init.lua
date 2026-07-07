@@ -2,6 +2,7 @@
 
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
+BAR = BAR or {} -- detached module namespace; must precede any BAR.X consumer
 VFS.Include("common/numberfunctions.lua")
 VFS.Include("common/stringFunctions.lua")
 VFS.Include("common/tablefunctions.lua")
