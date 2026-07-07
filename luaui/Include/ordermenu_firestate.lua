@@ -194,9 +194,9 @@ local function hasMatchingStagedFirestate(engineParam)
 	end
 	local selectedUnits = spGetSelectedUnits()
 	for index = 1, #selectedUnits do
-		local stagedContext = stagedFirestateByUnitId[selectedUnits[index]]
-		if stagedContext then
-			local stagedEngineParam = CustomFirestateDefs.toEngineFirestate(stagedContext.userState)
+		local stagedFirestate = stagedFirestateByUnitId[selectedUnits[index]]
+		if stagedFirestate then
+			local stagedEngineParam = CustomFirestateDefs.toEngineFirestate(stagedFirestate.userState)
 			if stagedEngineParam == engineParam then
 				return true
 			end

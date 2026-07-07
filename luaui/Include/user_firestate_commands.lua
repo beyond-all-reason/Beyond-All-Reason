@@ -9,7 +9,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 WG['firestate'] = WG['firestate'] or {}
 WG['firestate'].stagedFirestateByUnitId = WG['firestate'].stagedFirestateByUnitId or {}
 
-local function stageFirestateContext(unitIDs, userState, userInitiated)
+local function stageFirestate(unitIDs, userState, userInitiated)
 	for index = 1, #unitIDs do
 		WG['firestate'].stagedFirestateByUnitId[unitIDs[index]] = {
 			userState = userState,
@@ -18,10 +18,10 @@ local function stageFirestateContext(unitIDs, userState, userInitiated)
 	end
 end
 
-local function consumeStagedFirestateContext(unitID)
-	local stagedContext = WG['firestate'].stagedFirestateByUnitId[unitID]
+local function consumeStagedFirestate(unitID)
+	local stagedFirestate = WG['firestate'].stagedFirestateByUnitId[unitID]
 	WG['firestate'].stagedFirestateByUnitId[unitID] = nil
-	return stagedContext
+	return stagedFirestate
 end
 
 local function issueToUnit(unitID, userState, userInitiated)
@@ -56,7 +56,7 @@ local function giveFirestateToSelection(userState, unitIDs, opts)
 	end
 	opts = opts or {}
 	local userInitiated = opts.userInitiated and true or false
-	stageFirestateContext(unitIDs, userState, userInitiated)
+	stageFirestate(unitIDs, userState, userInitiated)
 	notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	if Spring.GetModOptions().experimental_defend_firestate then
 		spGiveOrder(CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
@@ -76,7 +76,7 @@ local function setFirestateForUnits(userState, unitIDs, opts)
 	end
 	opts = opts or {}
 	local userInitiated = opts.userInitiated and true or false
-	stageFirestateContext(unitIDs, userState, userInitiated)
+	stageFirestate(unitIDs, userState, userInitiated)
 	notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	for index = 1, #unitIDs do
 		issueToUnit(unitIDs[index], userState, userInitiated)
@@ -90,10 +90,10 @@ local function decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 		return userState, userInitiated, true
 	end
 	if cmdID == CMD_FIRE_STATE then
-		local stagedContext = consumeStagedFirestateContext(unitID)
-		local wasStagedByApi = stagedContext ~= nil
-		local userInitiated = stagedContext and stagedContext.userInitiated == true
-		local userState = stagedContext and stagedContext.userState
+		local stagedFirestate = consumeStagedFirestate(unitID)
+		local wasStagedByApi = stagedFirestate ~= nil
+		local userInitiated = stagedFirestate and stagedFirestate.userInitiated == true
+		local userState = stagedFirestate and stagedFirestate.userState
 		if userState == nil then
 			userState = CustomFirestateDefs.fromEngineFirestate(cmdParams and cmdParams[1])
 		end
