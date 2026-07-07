@@ -1,0 +1,17 @@
+local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+
+local function eraseMarker(name)
+	local position = GG['MissionAPI'].markerNames[name]
+	GG['MissionAPI'].markerNames[name] = nil
+	if not position then return end
+
+	Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, nil, true)
+end
+
+return {
+	name = 'EraseMarker',
+	parameters = {
+		{ name = 'name', required = true, type = Types.String },
+	},
+	execute = eraseMarker,
+}
