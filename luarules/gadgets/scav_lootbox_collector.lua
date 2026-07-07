@@ -170,16 +170,11 @@ function gadget:GameFrame(frame)
 																)
 															end
 															if i == 100 then
-																Spring.GiveOrderToUnit(
-																	transportID,
-																	CMD.MOVE,
-																	{
-																		randomX + math.random(-256, 256),
-																		randomY,
-																		randomZ + math.random(-256, 256),
-																	},
-																	{ "shift" }
-																)
+																Spring.GiveOrderToUnit(transportID, CMD.MOVE, {
+																	randomX + math.random(-256, 256),
+																	randomY,
+																	randomZ + math.random(-256, 256),
+																}, { "shift" })
 															end
 														end
 													end

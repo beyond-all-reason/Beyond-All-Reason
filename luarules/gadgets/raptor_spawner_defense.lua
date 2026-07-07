@@ -818,15 +818,12 @@ if gadgetHandler:IsSyncedCode() then
 						for j = 1, unitNumber, 1 do
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
-								table.insert(
-									spawnQueue,
-									{
-										burrow = burrowID,
-										unitName = raptorName,
-										team = raptorTeamID,
-										squadID = squadCounter,
-									}
-								)
+								table.insert(spawnQueue, {
+									burrow = burrowID,
+									unitName = raptorName,
+									team = raptorTeamID,
+									squadID = squadCounter,
+								})
 							end
 						end
 					elseif not UnitDefNames[raptorName] then
@@ -1453,15 +1450,12 @@ if gadgetHandler:IsSyncedCode() then
 								for j = 1, unitNumber, 1 do
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
-										table.insert(
-											spawnQueue,
-											{
-												burrow = burrowID,
-												unitName = raptorName,
-												team = raptorTeamID,
-												squadID = squadCounter,
-											}
-										)
+										table.insert(spawnQueue, {
+											burrow = burrowID,
+											unitName = raptorName,
+											team = raptorTeamID,
+											squadID = squadCounter,
+										})
 										cCount = cCount + 1
 									end
 								end
@@ -1490,15 +1484,12 @@ if gadgetHandler:IsSyncedCode() then
 									for j = 1, unitNumber, 1 do
 										if mRandom() <= config.spawnChance or j == 1 then
 											squadCounter = squadCounter + 1
-											table.insert(
-												spawnQueue,
-												{
-													burrow = burrowID,
-													unitName = raptorName,
-													team = raptorTeamID,
-													squadID = squadCounter,
-												}
-											)
+											table.insert(spawnQueue, {
+												burrow = burrowID,
+												unitName = raptorName,
+												team = raptorTeamID,
+												squadID = squadCounter,
+											})
 											cCount = cCount + 1
 										end
 									end
@@ -1681,16 +1672,11 @@ if gadgetHandler:IsSyncedCode() then
 										if turretUnitID then
 											currentCountOfTurretDef = currentCountOfTurretDef + 1
 											setRaptorXP(turretUnitID)
-											GiveOrderToUnit(
-												turretUnitID,
-												CMD.PATROL,
-												{
-													spawnPosX + mRandom(-128, 128),
-													spawnPosY,
-													spawnPosZ + mRandom(-128, 128),
-												},
-												{ "meta" }
-											)
+											GiveOrderToUnit(turretUnitID, CMD.PATROL, {
+												spawnPosX + mRandom(-128, 128),
+												spawnPosY,
+												spawnPosZ + mRandom(-128, 128),
+											}, { "meta" })
 										end
 									until turretUnitID or attempts > 10
 								end

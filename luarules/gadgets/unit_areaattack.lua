@@ -100,8 +100,8 @@ if gadgetHandler:IsSyncedCode() then
 			if dist <= range[ud] - param[4] then
 				attackList[#attackList + 1] = { unit = u, x = param[1], y = param[2], z = param[3], radius = param[4] }
 			else
-				closeList[#closeList + 1] = { unit = u, x = param[1], y = param[2], z = param[3], radius = range[ud]
-					- param[4] }
+				closeList[#closeList + 1] =
+					{ unit = u, x = param[1], y = param[2], z = param[3], radius = range[ud] - param[4] }
 			end
 			return true, false
 		end

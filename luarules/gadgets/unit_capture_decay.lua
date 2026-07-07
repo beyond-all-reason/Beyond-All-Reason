@@ -36,15 +36,12 @@ function gadget:GameFrame(frame)
 				end
 				unitsWithCaptureProgress[unitID].previousCaptureProgress = captureLevel
 				if unitsWithCaptureProgress[unitID].ticksFromLastCapture >= 10 then -- with how things are set up, that will be about 10 seconds
-					Spring.SetUnitHealth(
-						unitID,
-						{
-							capture = math.max(
-								captureLevel - ((unitsWithCaptureProgress[unitID].ticksFromLastCapture - 10) * 0.001),
-								0
-							),
-						}
-					)
+					Spring.SetUnitHealth(unitID, {
+						capture = math.max(
+							captureLevel - ((unitsWithCaptureProgress[unitID].ticksFromLastCapture - 10) * 0.001),
+							0
+						),
+					})
 				end
 			else
 				unitsWithCaptureProgress[unitID] = nil

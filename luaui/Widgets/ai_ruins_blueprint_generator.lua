@@ -109,37 +109,31 @@ local function generateCode(type)
 
 		local unitDef = UnitDefNames[unitName]
 		if unitOverrides[unitName] then
-			tableInsert(
-				buildings,
-				{
-					buildTime = unitDef.buildTime,
-					blueprintText = "\t\t\t{ unitDefID = "
-						.. unitOverrides[unitName]
-						.. ", xOffset = "
-						.. xOffset
-						.. ", zOffset = "
-						.. zOffset
-						.. ", direction = "
-						.. unitDirection
-						.. "},\n",
-				}
-			)
+			tableInsert(buildings, {
+				buildTime = unitDef.buildTime,
+				blueprintText = "\t\t\t{ unitDefID = "
+					.. unitOverrides[unitName]
+					.. ", xOffset = "
+					.. xOffset
+					.. ", zOffset = "
+					.. zOffset
+					.. ", direction = "
+					.. unitDirection
+					.. "},\n",
+			})
 		else
-			tableInsert(
-				buildings,
-				{
-					buildTime = unitDef.buildTime,
-					blueprintText = "\t\t\t{ unitDefID = UnitDefNames."
-						.. unitName
-						.. ".id, xOffset = "
-						.. xOffset
-						.. ", zOffset = "
-						.. zOffset
-						.. ", direction = "
-						.. unitDirection
-						.. "},\n",
-				}
-			)
+			tableInsert(buildings, {
+				buildTime = unitDef.buildTime,
+				blueprintText = "\t\t\t{ unitDefID = UnitDefNames."
+					.. unitName
+					.. ".id, xOffset = "
+					.. xOffset
+					.. ", zOffset = "
+					.. zOffset
+					.. ", direction = "
+					.. unitDirection
+					.. "},\n",
+			})
 		end
 	end
 

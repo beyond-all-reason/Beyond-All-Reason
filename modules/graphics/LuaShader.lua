@@ -1067,7 +1067,8 @@ function LuaShader:Deactivate()
 		-- Do NAN checks on bufferData array and replace with -666 if NAN:
 		for i = 1, #self.printf.bufferData do
 			if
-				type(self.printf.bufferData[i]) == "number" and (self.printf.bufferData[i] ~= self.printf.bufferData[i])
+				type(self.printf.bufferData[i]) == "number"
+				and (self.printf.bufferData[i] ~= self.printf.bufferData[i])
 			then -- check for NAN
 				self.printf.bufferData[i] = -666
 			end

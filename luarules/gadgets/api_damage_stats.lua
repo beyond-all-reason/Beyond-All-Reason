@@ -77,7 +77,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	local tsMu = customtable and customtable.skill or ""
 	local mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
 
-	info[unitDefID] = info[unitDefID] or { dmg_dealt = 0, dmg_rec = 0, kills = 0, killed_cost = 0, n = 0, ts = 0, minutes = 0 }
+	info[unitDefID] = info[unitDefID]
+		or { dmg_dealt = 0, dmg_rec = 0, kills = 0, killed_cost = 0, n = 0, ts = 0, minutes = 0 }
 
 	info[unitDefID].n = info[unitDefID].n + 1
 	info[unitDefID].ts = info[unitDefID].ts + mu
