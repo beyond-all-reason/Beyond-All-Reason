@@ -68,12 +68,12 @@ local function notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	if not userInitiated then
 		return
 	end
-	local onUserFirestate = WG['firestate'].onUserFirestate
-	if not onUserFirestate then
+	local userFirestateChanged = WG['firestate'].userFirestateChanged
+	if not userFirestateChanged then
 		return
 	end
 	for index = 1, #unitIDs do
-		onUserFirestate(unitIDs[index], userState)
+		userFirestateChanged(unitIDs[index], userState)
 	end
 end
 

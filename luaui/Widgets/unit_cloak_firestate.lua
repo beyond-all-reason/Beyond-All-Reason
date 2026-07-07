@@ -42,7 +42,7 @@ end
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
 local cloakActive = {}
 
-local function onUserFirestateWhileCloaked(unitID, userState)
+local function userFirestateChangedWhileCloaked(unitID, userState)
 	if not cloakActive[unitID] then
 		return
 	end
@@ -113,11 +113,11 @@ end
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
-	local previousOnUserFirestate = WG['firestate'].onUserFirestate
-	WG['firestate'].onUserFirestate = function(unitID, userState)
-		onUserFirestateWhileCloaked(unitID, userState)
-		if previousOnUserFirestate then
-			previousOnUserFirestate(unitID, userState)
+	local priorUserFirestateFunction = WG['firestate'].userFirestateChanged
+	WG['firestate'].userFirestateChanged = function(unitID, userState)
+		userFirestateChangedWhileCloaked(unitID, userState)
+		if priorUserFirestateFunction then
+			priorUserFirestateFunction(unitID, userState)
 		end
 	end
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
