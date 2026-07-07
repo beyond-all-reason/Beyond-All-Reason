@@ -5,7 +5,7 @@ local customFirestateDefs = {
 	HOLD_FIRE = 0,
 	DEFEND = 1,
 	RETURN_FIRE = 2,
-	AGGRESSIVE = 3,
+	FIRE_AT_WILL = 3,
 	FIRE_AT_ALL = 4,
 
 	ENGINE_HOLD_FIRE = 0,
@@ -17,27 +17,27 @@ local customFirestateDefs = {
 local stateByDisplayIndex = {
 	[0] = customFirestateDefs.HOLD_FIRE,
 	[1] = customFirestateDefs.DEFEND,
-	[2] = customFirestateDefs.AGGRESSIVE,
+	[2] = customFirestateDefs.FIRE_AT_WILL,
 }
 
 local displayIndexByState = {
 	[customFirestateDefs.HOLD_FIRE] = 0,
 	[customFirestateDefs.DEFEND] = 1,
-	[customFirestateDefs.AGGRESSIVE] = 2,
+	[customFirestateDefs.FIRE_AT_WILL] = 2,
 }
 
 local engineFirestateByState = {
 	[customFirestateDefs.HOLD_FIRE] = customFirestateDefs.ENGINE_HOLD_FIRE,
 	[customFirestateDefs.DEFEND] = customFirestateDefs.ENGINE_FIRE_AT_WILL,
 	[customFirestateDefs.RETURN_FIRE] = customFirestateDefs.ENGINE_RETURN_FIRE,
-	[customFirestateDefs.AGGRESSIVE] = customFirestateDefs.ENGINE_FIRE_AT_WILL,
+	[customFirestateDefs.FIRE_AT_WILL] = customFirestateDefs.ENGINE_FIRE_AT_WILL,
 	[customFirestateDefs.FIRE_AT_ALL] = customFirestateDefs.ENGINE_FIRE_AT_ALL,
 }
 
 local stateByEngineFirestate = {
 	[customFirestateDefs.ENGINE_HOLD_FIRE] = customFirestateDefs.HOLD_FIRE,
 	[customFirestateDefs.ENGINE_RETURN_FIRE] = customFirestateDefs.RETURN_FIRE,
-	[customFirestateDefs.ENGINE_FIRE_AT_WILL] = customFirestateDefs.AGGRESSIVE,
+	[customFirestateDefs.ENGINE_FIRE_AT_WILL] = customFirestateDefs.FIRE_AT_WILL,
 	[customFirestateDefs.ENGINE_FIRE_AT_ALL] = customFirestateDefs.FIRE_AT_ALL,
 }
 
@@ -58,7 +58,7 @@ function customFirestateDefs.toEngineFirestate(state)
 end
 
 function customFirestateDefs.fromEngineFirestate(engineFirestate)
-	return stateByEngineFirestate[tonumber(engineFirestate)] or customFirestateDefs.AGGRESSIVE
+	return stateByEngineFirestate[tonumber(engineFirestate)] or customFirestateDefs.FIRE_AT_WILL
 end
 
 function customFirestateDefs.buildUserFirestateParams(userState, userInitiated)
