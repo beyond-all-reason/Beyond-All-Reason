@@ -277,14 +277,11 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 			for _, building in ipairs(buildings) do
 				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupData.side)
 				if substitutedUnitDefID then
-					table.insert(
-						orders,
-						{
-							-substitutedUnitDefID,
-							{ building.position[1], building.position[2], building.position[3], building.facing },
-							queuedOpts,
-						}
-					)
+					table.insert(orders, {
+						-substitutedUnitDefID,
+						{ building.position[1], building.position[2], building.position[3], building.facing },
+						queuedOpts,
+					})
 				end
 			end
 			if #orders > 0 then

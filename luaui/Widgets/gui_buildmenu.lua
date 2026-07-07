@@ -1574,14 +1574,11 @@ function widget:DrawScreen()
 							local text
 							local textColor = "\255\215\255\215"
 							if units.unitRestricted[uDefID] then
-								text = Spring.I18N(
-									"ui.buildMenu.disabled",
-									{
-										unit = unitTranslatedHumanName[uDefID],
-										textColor = textColor,
-										warnColor = "\255\166\166\166",
-									}
-								)
+								text = Spring.I18N("ui.buildMenu.disabled", {
+									unit = unitTranslatedHumanName[uDefID],
+									textColor = textColor,
+									warnColor = "\255\166\166\166",
+								})
 							else
 								text = UnitDefs[uDefID].translatedHumanName
 							end

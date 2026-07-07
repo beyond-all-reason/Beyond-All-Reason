@@ -953,7 +953,12 @@ if gadgetHandler:IsSyncedCode() then
 								squadCounter = squadCounter + 1
 								table.insert(
 									spawnQueue,
-									{ burrow = burrowID, unitName = scavName, team = scavTeamID, squadID = squadCounter }
+									{
+										burrow = burrowID,
+										unitName = scavName,
+										team = scavTeamID,
+										squadID = squadCounter,
+									}
 								)
 							end
 						end
@@ -992,15 +997,12 @@ if gadgetHandler:IsSyncedCode() then
 							for j = 1, unitNumber, 1 do
 								if mRandom() <= config.spawnChance or j == 1 then
 									squadCounter = squadCounter + 1
-									table.insert(
-										spawnQueue,
-										{
-											burrow = burrowID,
-											unitName = scavName,
-											team = scavTeamID,
-											squadID = squadCounter,
-										}
-									)
+									table.insert(spawnQueue, {
+										burrow = burrowID,
+										unitName = scavName,
+										team = scavTeamID,
+										squadID = squadCounter,
+									})
 								end
 							end
 						elseif not UnitDefNames[scavName] then
@@ -1732,7 +1734,8 @@ if gadgetHandler:IsSyncedCode() then
 									or (
 										specialRandom <= 1
 										and math.max(10, potentialSquad.minAnger - 30) <= waveParameters.waveTechAnger
-										and math.max(40, potentialSquad.maxAnger - 30) >= waveParameters.waveTechAnger
+										and math.max(40, potentialSquad.maxAnger - 30)
+											>= waveParameters.waveTechAnger
 									)
 								then -- Super Squad
 									squad = potentialSquad
@@ -1803,15 +1806,12 @@ if gadgetHandler:IsSyncedCode() then
 								for j = 1, unitNumber, 1 do
 									if mRandom() <= config.spawnChance or j == 1 then
 										squadCounter = squadCounter + 1
-										table.insert(
-											spawnQueue,
-											{
-												burrow = burrowID,
-												unitName = scavName,
-												team = scavTeamID,
-												squadID = squadCounter,
-											}
-										)
+										table.insert(spawnQueue, {
+											burrow = burrowID,
+											unitName = scavName,
+											team = scavTeamID,
+											squadID = squadCounter,
+										})
 										cCount = cCount + 1
 									end
 								end
@@ -1850,15 +1850,12 @@ if gadgetHandler:IsSyncedCode() then
 									for j = 1, unitNumber, 1 do
 										if mRandom() <= config.spawnChance or j == 1 then
 											squadCounter = squadCounter + 1
-											table.insert(
-												spawnQueue,
-												{
-													burrow = burrowID,
-													unitName = scavName,
-													team = scavTeamID,
-													squadID = squadCounter,
-												}
-											)
+											table.insert(spawnQueue, {
+												burrow = burrowID,
+												unitName = scavName,
+												team = scavTeamID,
+												squadID = squadCounter,
+											})
 											cCount = cCount + 1
 										end
 									end
@@ -2097,14 +2094,22 @@ if gadgetHandler:IsSyncedCode() then
 										Spring.GiveOrderToUnit(
 											turretUnitID,
 											CMD.FIGHT,
-											{ spawnPosX + mRandom(-256, 256), spawnPosY, spawnPosZ + mRandom(-256, 256) },
+											{
+												spawnPosX + mRandom(-256, 256),
+												spawnPosY,
+												spawnPosZ + mRandom(-256, 256),
+											},
 											{ "meta" }
 										)
 									else
 										Spring.GiveOrderToUnit(
 											turretUnitID,
 											CMD.PATROL,
-											{ spawnPosX + mRandom(-128, 128), spawnPosY, spawnPosZ + mRandom(-128, 128) },
+											{
+												spawnPosX + mRandom(-128, 128),
+												spawnPosY,
+												spawnPosZ + mRandom(-128, 128),
+											},
 											{ "meta" }
 										)
 									end
