@@ -50,22 +50,22 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 
 	-- convert the weapon names
 	local weapons = unitDef.weapons
-		for _, weapon in pairs(weapons) do
-			local fullName = prefix .. weapon.def:lower()
-			local weaponDef = WeaponDefs[fullName]
+	for _, weapon in pairs(weapons) do
+		local fullName = prefix .. weapon.def:lower()
+		local weaponDef = WeaponDefs[fullName]
 
-			if weaponDef then
-				weapon.name = fullName
-			end
-
-			weapon.def = nil
+		if weaponDef then
+			weapon.name = fullName
 		end
+
+		weapon.def = nil
+	end
 
 	-- convert the death explosions
 	if unitDef.explodeas then
 		local fullName = prefix .. unitDef.explodeas
 
-		if (WeaponDefs[fullName]) then
+		if WeaponDefs[fullName] then
 			unitDef.explodeas = fullName
 		end
 	end
@@ -73,7 +73,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 	if unitDef.selfdestructas then
 		local fullName = prefix .. unitDef.selfdestructas
 
-		if (WeaponDefs[fullName]) then
+		if WeaponDefs[fullName] then
 			unitDef.selfdestructas = fullName
 		end
 	end

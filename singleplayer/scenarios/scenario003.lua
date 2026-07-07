@@ -1,13 +1,13 @@
 local scenariodata = {
-	index			= 2, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "threebarbscomet", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "Catch those rare Comets", -- can be anything
-	author			= "Beherith", -- your name here
-	imagepath		= "scenario003.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "", -- This text will be drawn over image
-    summary         = [[Destroy three Barbarian AI's on large, metal rich flat map.]],
-	briefing 		= [[This scenario is a true test of a players skill, only the very few top players can handle three Barbarian AI players on such a metal-rich map. If you win this scenario on at least Normal difficulty, dont forget to post your replay on our Discord server for bragging rights.
+	index = 2, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "threebarbscomet", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "Catch those rare Comets", -- can be anything
+	author = "Beherith", -- your name here
+	imagepath = "scenario003.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "", -- This text will be drawn over image
+	summary = [[Destroy three Barbarian AI's on large, metal rich flat map.]],
+	briefing = [[This scenario is a true test of a players skill, only the very few top players can handle three Barbarian AI players on such a metal-rich map. If you win this scenario on at least Normal difficulty, dont forget to post your replay on our Discord server for bragging rights.
 
 Tips:
 - One of the three AI's will likely start with an Aircraft plant
@@ -19,37 +19,37 @@ Tips:
 Good luck, you will need all your skill here!
     ]],
 
-	mapfilename		= "Comet Catcher Remake 1.8", -- the name of the map to be displayed here
-	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "40%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1800, -- par time in seconds
-	parresources	= 1000000, -- par resource amount
-	difficulty		= 10, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-    -- handicap values range [-100 - +100], with 0 being regular resources
-        {name = "Beginner", playerhandicap = 50, enemyhandicap=0},
-        {name = "Novice"  , playerhandicap = 25, enemyhandicap=0},
-        {name = "Normal"  , playerhandicap = 0, enemyhandicap=0},
-        {name = "Hard"    , playerhandicap = 0,  enemyhandicap=25},
-        {name = "Brutal" , playerhandicap = 0,  enemyhandicap=50},
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Death of your Commander",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-        -- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
-        -- armavp = 0, -- disables arm advanced vehicle plant
-        -- coravp = 0,
-    } ,
+	mapfilename = "Comet Catcher Remake 1.8", -- the name of the map to be displayed here
+	playerstartx = "10%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "40%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1800, -- par time in seconds
+	parresources = 1000000, -- par resource amount
+	difficulty = 10, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		-- handicap values range [-100 - +100], with 0 being regular resources
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = 0 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = 0 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 25 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 50 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Death of your Commander", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put the disabled stuff here so we can show it in scenario window!
+		-- armavp = 0, -- disables arm advanced vehicle plant
+		-- coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "threebarbscomet",
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "threebarbscomet",
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 [Game]
 {
 	[allyTeam0]

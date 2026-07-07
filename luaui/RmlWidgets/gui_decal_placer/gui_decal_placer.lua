@@ -6,12 +6,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Decal Placer UI",
-		desc    = "RmlUI library panel for the decal placer (terraform brush companion)",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Decal Placer UI",
+		desc = "RmlUI library panel for the decal placer (terraform brush companion)",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000002,
+		layer = 1000002,
 		enabled = false,
 	}
 end
@@ -23,7 +23,7 @@ local WG = WG
 local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
-local INITIAL_TOP_VH  = 10
+local INITIAL_TOP_VH = 10
 
 ----------------------------------------------------------------
 -- Type definitions (Lua LS only — strip at compile time, no runtime cost)
@@ -56,16 +56,16 @@ local INITIAL_TOP_VH  = 10
 
 ---@type WidgetState
 local widgetState = {
-	rmlContext  = nil,
-	document    = nil,
-	dmHandle   = nil,
+	rmlContext = nil,
+	document = nil,
+	dmHandle = nil,
 	rootElement = nil,
 }
 
 -- Hoisted above initialModel so model-resident handlers can capture them
 -- as upvalues. Reassignments work because Lua closures bind to the local
 -- slot, not the value at definition time.
-local syncDecals          -- forward decl, assigned further down
+local syncDecals -- forward decl, assigned further down
 local lastSearchFilter = ""
 
 -- Set of currently-selected category keys. Plain click selects exactly one;
@@ -75,13 +75,21 @@ local lastSearchFilter = ""
 local selectedDecalCats = { all = true }
 local DECAL_CAT_KEYS = { "all", "scars", "explosions", "tracks", "builds", "footprints", "scorch", "groundplates", "other" }
 local DECAL_CAT_FLAG = {
-	all = "dcCatAll", scars = "dcCatScars", explosions = "dcCatExplosions",
-	tracks = "dcCatTracks", builds = "dcCatBuilds", footprints = "dcCatFootprints",
-	scorch = "dcCatScorch", groundplates = "dcCatGroundplates", other = "dcCatOther",
+	all = "dcCatAll",
+	scars = "dcCatScars",
+	explosions = "dcCatExplosions",
+	tracks = "dcCatTracks",
+	builds = "dcCatBuilds",
+	footprints = "dcCatFootprints",
+	scorch = "dcCatScorch",
+	groundplates = "dcCatGroundplates",
+	other = "dcCatOther",
 }
 local function applyDecalCatFlags()
 	local dm = widgetState.dmHandle
-	if not dm then return end
+	if not dm then
+		return
+	end
 	for _, key in ipairs(DECAL_CAT_KEYS) do
 		dm[DECAL_CAT_FLAG[key]] = selectedDecalCats[key] == true
 	end
@@ -104,7 +112,9 @@ local initialModel = {
 
 	onCategorySelect = function(_event, key)
 		local dm = widgetState.dmHandle
-		if not dm then return end
+		if not dm then
+			return
+		end
 		local _, _, _, shift = Spring.GetModKeyState()
 		if not shift or key == "all" then
 			-- Plain click (or "All"): select exactly this category.
@@ -142,14 +152,18 @@ local initialModel = {
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("dp-search")
 		local val = el and el:GetAttribute("value") or ""
-		if val == lastSearchFilter then return end
+		if val == lastSearchFilter then
+			return
+		end
 		lastSearchFilter = val
 		syncDecals()
 	end,
 
 	onSearchClear = function(_event)
 		local dm = widgetState.dmHandle
-		if not dm then return end
+		if not dm then
+			return
+		end
 		dm.search = ""
 		lastSearchFilter = ""
 		syncDecals()
@@ -158,7 +172,7 @@ local initialModel = {
 
 -- Tracks document:Show/Hide state so we don't issue redundant calls every frame.
 -- See setVisible() below.
-local documentVisible  = false
+local documentVisible = false
 
 -- One-shot guard for the lazy first sync. WG.DecalPlacer may not be ready in
 -- widget:Initialize (engine resources still loading), so widget:Update retries
@@ -175,11 +189,19 @@ local userDragged = false
 -- toggling, which keeps the document live).
 ----------------------------------------------------------------
 local function setVisible(visible)
-	if visible == documentVisible then return end
+	if visible == documentVisible then
+		return
+	end
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	documentVisible = visible
-	if visible then doc:Show() else doc:Hide() end
+	if visible then
+		doc:Show()
+	else
+		doc:Hide()
+	end
 end
 
 -- Polls WG.DecalPlacer.state.active once per Update tick. The X button
@@ -196,18 +218,18 @@ local function syncVisibilityFromTool()
 	return toolActive
 end
 
-
-
 ----------------------------------------------------------------
 -- Decal preview texture lookup
 ----------------------------------------------------------------
-local previewPaths = {}     -- { [decalName] = filePath or false }
+local previewPaths = {} -- { [decalName] = filePath or false }
 local previewIndexBuilt = false
-local fileIndex = {}        -- { [basename_lower] = fullPath }
+local fileIndex = {} -- { [basename_lower] = fullPath }
 
 local function indexDir(path)
 	local files = VFS.DirList(path, "*", VFS.RAW_FIRST)
-	if not files then return end
+	if not files then
+		return
+	end
 	for _, f in ipairs(files) do
 		local base = f:match("([^/\\]+)$") or f
 		local stem = base:match("^(.+)%.[^%.]+$") or base
@@ -216,7 +238,9 @@ local function indexDir(path)
 end
 
 local function buildFileIndex()
-	if previewIndexBuilt then return end
+	if previewIndexBuilt then
+		return
+	end
 	previewIndexBuilt = true
 	indexDir("bitmaps/decals/")
 	indexDir("bitmaps/scars/")
@@ -226,7 +250,9 @@ local function buildFileIndex()
 end
 
 local function findPreviewPath(decalName)
-	if previewPaths[decalName] ~= nil then return previewPaths[decalName] end
+	if previewPaths[decalName] ~= nil then
+		return previewPaths[decalName]
+	end
 	buildFileIndex()
 	local stem = (decalName:match("([^/\\]+)$") or decalName)
 	stem = (stem:match("^(.+)%.[^%.]+$") or stem):lower()
@@ -249,8 +275,7 @@ local PREVIEW_CACHE_DIR = "Terraform Brush/DecalPreviews/"
 ----------------------------------------------------------------
 local function buildRootStyle()
 	-- Width lives in RCSS (.dp-root); we only set position here.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 ----------------------------------------------------------------
@@ -268,17 +293,27 @@ local tileElements = {}
 ----------------------------------------------------------------
 syncDecals = function()
 	local dm = widgetState.dmHandle
-	if not WG.DecalPlacer then return end
-	if not dm then return end
+	if not WG.DecalPlacer then
+		return
+	end
+	if not dm then
+		return
+	end
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	local listEl = doc:GetElementById("dp-tile-list")
-	if not listEl then return end
+	if not listEl then
+		return
+	end
 
 	local categories = WG.DecalPlacer.getDecalCategories()
 	local order = WG.DecalPlacer.getCategoryOrder()
-	if not categories or not order then return end
+	if not categories or not order then
+		return
+	end
 
 	local state = WG.DecalPlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
@@ -290,79 +325,81 @@ syncDecals = function()
 	tileElements = {}
 
 	for _, catName in ipairs(order) do
-	  if showAll or selectedDecalCats[catName] then
-		local items = categories[catName]
-		if items then
-			for _, entry in ipairs(items) do
-				local name = entry.name
-				local labelName = entry.displayName or name
-				if lowerFilter == "" or labelName:lower():find(lowerFilter, 1, true) then
-					local displayName = (#labelName > 22) and (labelName:sub(1, 20) .. "..") or labelName
+		if showAll or selectedDecalCats[catName] then
+			local items = categories[catName]
+			if items then
+				for _, entry in ipairs(items) do
+					local name = entry.name
+					local labelName = entry.displayName or name
+					if lowerFilter == "" or labelName:lower():find(lowerFilter, 1, true) then
+						local displayName = (#labelName > 22) and (labelName:sub(1, 20) .. "..") or labelName
 
-					-- Tile container
-					local itemEl = doc:CreateElement("div")
-					itemEl:SetClass("fp-feature-item", true)
-					if selectedSet[name] then
-						itemEl:SetClass("selected", true)
-					end
-
-					-- Thumbnail
-					local thumbEl = doc:CreateElement("div")
-					thumbEl:SetClass("fp-feature-thumb", true)
-					thumbEl:SetClass("dp-thumb-" .. (entry.category or "other"), true)
-
-					local fname = entry.filename
-					if not fname or fname == "" then
-						fname = findPreviewPath(name)
-					end
-					local resolved = nil
-					if fname and fname ~= "" then
-						local sourcePath = fname:gsub("\\", "/"):gsub("^/+", "")
-						resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
-					end
-					if resolved then
-						local imgEl = doc:CreateElement("img")
-						imgEl:SetAttribute("src", resolved)
-						thumbEl:AppendChild(imgEl)
-					end
-					itemEl:AppendChild(thumbEl)
-
-					-- Name label
-					local nameEl = doc:CreateElement("div")
-					nameEl:SetClass("fp-feature-name", true)
-					nameEl.inner_rml = displayName
-					itemEl:AppendChild(nameEl)
-
-					-- Click: select or toggle
-					local capName = name
-					itemEl:AddEventListener("click", function(event)
-						if not WG.DecalPlacer then return end
-						local _, _, _, shift = Spring.GetModKeyState()
-						if shift then
-							WG.DecalPlacer.toggleDecal(capName)
-						else
-							WG.DecalPlacer.selectDecal(capName)
+						-- Tile container
+						local itemEl = doc:CreateElement("div")
+						itemEl:SetClass("fp-feature-item", true)
+						if selectedSet[name] then
+							itemEl:SetClass("selected", true)
 						end
-						-- Update visuals without full DOM rebuild
-						local newState = WG.DecalPlacer.getState()
-						local ss = newState and newState.selectedSet or {}
-						for n, el in pairs(tileElements) do
-							el:SetClass("selected", ss[n] or false)
-						end
-						dm.selectedCount = #(newState and newState.selectedDecals or {})
-						event:StopPropagation()
-					end, false)
 
-					tileElements[name] = itemEl
-					-- Wrap in dp-tile-host so RCSS 84dp×84dp sizing applies
-					local hostEl = doc:CreateElement("div")
-					hostEl:SetClass("dp-tile-host", true)
-					hostEl:AppendChild(itemEl)
-					listEl:AppendChild(hostEl)
+						-- Thumbnail
+						local thumbEl = doc:CreateElement("div")
+						thumbEl:SetClass("fp-feature-thumb", true)
+						thumbEl:SetClass("dp-thumb-" .. (entry.category or "other"), true)
+
+						local fname = entry.filename
+						if not fname or fname == "" then
+							fname = findPreviewPath(name)
+						end
+						local resolved = nil
+						if fname and fname ~= "" then
+							local sourcePath = fname:gsub("\\", "/"):gsub("^/+", "")
+							resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
+						end
+						if resolved then
+							local imgEl = doc:CreateElement("img")
+							imgEl:SetAttribute("src", resolved)
+							thumbEl:AppendChild(imgEl)
+						end
+						itemEl:AppendChild(thumbEl)
+
+						-- Name label
+						local nameEl = doc:CreateElement("div")
+						nameEl:SetClass("fp-feature-name", true)
+						nameEl.inner_rml = displayName
+						itemEl:AppendChild(nameEl)
+
+						-- Click: select or toggle
+						local capName = name
+						itemEl:AddEventListener("click", function(event)
+							if not WG.DecalPlacer then
+								return
+							end
+							local _, _, _, shift = Spring.GetModKeyState()
+							if shift then
+								WG.DecalPlacer.toggleDecal(capName)
+							else
+								WG.DecalPlacer.selectDecal(capName)
+							end
+							-- Update visuals without full DOM rebuild
+							local newState = WG.DecalPlacer.getState()
+							local ss = newState and newState.selectedSet or {}
+							for n, el in pairs(tileElements) do
+								el:SetClass("selected", ss[n] or false)
+							end
+							dm.selectedCount = #(newState and newState.selectedDecals or {})
+							event:StopPropagation()
+						end, false)
+
+						tileElements[name] = itemEl
+						-- Wrap in dp-tile-host so RCSS 84dp×84dp sizing applies
+						local hostEl = doc:CreateElement("div")
+						hostEl:SetClass("dp-tile-host", true)
+						hostEl:AppendChild(itemEl)
+						listEl:AppendChild(hostEl)
+					end
 				end
 			end
 		end
-	  end
 	end
 
 	dm.selectedCount = #(state and state.selectedDecals or {})
@@ -388,11 +425,12 @@ function widget:OnQuit()
 end
 
 function widget:OnClearSelection()
-	if not WG.DecalPlacer then return end
+	if not WG.DecalPlacer then
+		return
+	end
 	WG.DecalPlacer.clearSelectedDecals()
 	syncDecals()
 end
-
 
 ----------------------------------------------------------------
 -- Drag handle wiring (the only imperative event listener left — everything
@@ -401,12 +439,15 @@ end
 local function wireDragHandle()
 	local doc = widgetState.document
 	local rootEl = widgetState.rootElement
-	if not doc or not rootEl then return end
+	if not doc or not rootEl then
+		return
+	end
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "dp-handle", rootEl,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "dp-handle", rootEl, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -417,10 +458,14 @@ function widget:Initialize()
 	Spring.CreateDir(PREVIEW_CACHE_DIR)
 	Bake.init(PREVIEW_CACHE_DIR)
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then return false end
+	if not widgetState.rmlContext then
+		return false
+	end
 
 	widgetState.dmHandle = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not widgetState.dmHandle then return false end
+	if not widgetState.dmHandle then
+		return false
+	end
 
 	widgetState.document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not widgetState.document then
@@ -460,23 +505,26 @@ end
 function widget:Update()
 	-- After a batch of bakes completes, re-push the model so newly-cached
 	-- srcPaths land on their tiles.
-	if Bake.consumeResync() then syncDecals() end
+	if Bake.consumeResync() then
+		syncDecals()
+	end
 
 	-- Window drag
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
-	if not syncVisibilityFromTool() then return end
+	if not syncVisibilityFromTool() then
+		return
+	end
 
 	-- Auto-position next to terraform main panel until user drags
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
-		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
-			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;",
-					mainPanel.left - myWidth - gap, mainPanel.top))
+			widgetState.rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
@@ -486,7 +534,9 @@ function widget:Update()
 	-- from this Update tick.
 	if not firstSyncDone then
 		local cats = WG.DecalPlacer.getDecalCategories()
-		if cats and next(cats) then syncDecals() end
+		if cats and next(cats) then
+			syncDecals()
+		end
 	end
 end
 
@@ -511,4 +561,3 @@ function widget:Shutdown()
 
 	Bake.shutdown()
 end
-

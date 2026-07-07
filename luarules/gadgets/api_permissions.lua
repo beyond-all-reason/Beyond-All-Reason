@@ -1,18 +1,16 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Permissions",
-		desc	= 'provides a list of user permissions to other gadgets',
-		author	= 'Floris',
-		date	= 'February 2021',
-		license	= 'GNU GPL, v2 or later',
-		layer	= -999000,
-		enabled	= true
+		name = "Permissions",
+		desc = "provides a list of user permissions to other gadgets",
+		author = "Floris",
+		date = "February 2021",
+		license = "GNU GPL, v2 or later",
+		layer = -999000,
+		enabled = true,
 	}
 end
-
 
 local powerusers = include("LuaRules/configs/powerusers.lua")
 local singleplayerPermissions = powerusers[-1]
@@ -89,7 +87,9 @@ end
 
 local function ResolveTrustedName(playerID)
 	local name = Spring.GetPlayerInfo(playerID)
-	if not name or not trustedNames[name] then return false end
+	if not name or not trustedNames[name] then
+		return false
+	end
 	local accountID = originalGetAccountID(playerID)
 	if accountID == -1 then
 		-- Late joiner: assign/reuse a synthetic accountID for synced gadget compatibility
@@ -122,9 +122,13 @@ end
 local resolvedAccountIDs = {}
 
 function gadget:PlayerChanged(playerID)
-	if not trustedNames then return end
+	if not trustedNames then
+		return
+	end
 	local name = Spring.GetPlayerInfo(playerID)
-	if not name or not trustedNames[name] then return end
+	if not name or not trustedNames[name] then
+		return
+	end
 	local currentAccountID = originalGetAccountID(playerID)
 	local prevAccountID = resolvedAccountIDs[playerID]
 	-- Re-resolve if never seen, or if a real accountID became available (was <0, now >=0)
@@ -137,8 +141,12 @@ end
 
 function gadget:GameFrame(frame)
 	-- Poll periodically in case PlayerChanged did not fire for a late joiner.
-	if not trustedNames then return end
-	if frame % 150 ~= 0 then return end
+	if not trustedNames then
+		return
+	end
+	if frame % 150 ~= 0 then
+		return
+	end
 	for _, playerID in ipairs(Spring.GetPlayerList()) do
 		local name = Spring.GetPlayerInfo(playerID)
 		if name and trustedNames[name] then

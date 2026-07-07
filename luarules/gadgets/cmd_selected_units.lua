@@ -1,22 +1,21 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
 		name = "Ally Selected Units",
 		desc = "sends your selected units to others",
-		author    = "very_bad_soldier",
-		date      = "August 1, 2008",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled = true
+		author = "very_bad_soldier",
+		date = "August 1, 2008",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
 
 local SelectionProtocol = assert(VFS.Include("common/selected_units_protocol.lua"))
 
-local baseUpdateDelay = 0.1	-- start with 4 players
-local maxUpdateDelay = 0.4	-- (0.4 currently reached when 128 players)
+local baseUpdateDelay = 0.1 -- start with 4 players
+local maxUpdateDelay = 0.4 -- (0.4 currently reached when 128 players)
 local updateDelayScalingStart = 4
 local updateDelayPlayerScale = -math.log(0.6) / 12
 local updateDelay = baseUpdateDelay
@@ -25,7 +24,7 @@ local semanticSelectionMinChanges = 16
 local semanticConfirmationDelay = 1
 local maxSelectionPayloadSize = 2048
 local fullSelectionUpdateInt = 0 -- refresh full selection info once in n seconds, 0 = disabled
-local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
+local minZlibSize = 130 --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
 local sendSpectatorSelections = false
 local spectatorUpdateDelay = 1
 local spectatorSelectionLimit = 400
@@ -33,7 +32,6 @@ local spectatorSelectionLimit = 400
 local HEADER_SEL_UNCOMPRESSED = "cos2"
 local HEADER_SEL_COMPRESSED = "cosz"
 local HEADER_LENGTH = string.len(HEADER_SEL_UNCOMPRESSED)
-
 
 if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
@@ -46,9 +44,13 @@ if gadgetHandler:IsSyncedCode() then
 	local strSub = string.sub
 
 	function gadget:RecvLuaMsg(inMsg, playerID)
-		if #inMsg < HEADER_LENGTH + 2 or #inMsg > maxSelectionPayloadSize + HEADER_LENGTH + 2 then return end
+		if #inMsg < HEADER_LENGTH + 2 or #inMsg > maxSelectionPayloadSize + HEADER_LENGTH + 2 then
+			return
+		end
 		local b1, b2, b3, b4, b5, b6 = string.byte(inMsg, 1, 6)
-		if b1 ~= vb1 or b2 ~= vb2 or b3 ~= h3 or b4 ~= h4 or b5 ~= h5 then return end
+		if b1 ~= vb1 or b2 ~= vb2 or b3 ~= h3 or b4 ~= h4 or b5 ~= h5 then
+			return
+		end
 
 		local compressed
 		if b6 == uncompressedHeaderByte or b6 == compressedHeaderByte then
@@ -62,9 +64,7 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("selectionUpdate", playerID, payload, compressed)
 		return true
 	end
-
 else
-
 	local ZlibCompress = Spring.ZlibCompress
 	local ZlibDeCompress = Spring.ZlibDeCompress
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
@@ -168,8 +168,7 @@ else
 		end
 
 		local excessPlayers = humanPlayerCount - updateDelayScalingStart
-		updateDelay = baseUpdateDelay
-			+ (maxUpdateDelay - baseUpdateDelay) * (1 - math.exp(-updateDelayPlayerScale * excessPlayers))
+		updateDelay = baseUpdateDelay + (maxUpdateDelay - baseUpdateDelay) * (1 - math.exp(-updateDelayPlayerScale * excessPlayers))
 	end
 
 	function gadget:Initialize()
@@ -207,9 +206,13 @@ else
 		end
 
 		if compressed then
-			if not ZlibDeCompress then return end
+			if not ZlibDeCompress then
+				return
+			end
 			local success, decompressed = pcall(ZlibDeCompress, msg)
-			if not success then return end
+			if not success then
+				return
+			end
 			msg = decompressed
 		end
 		if type(msg) ~= "string" or #msg > maxSelectionPayloadSize then
@@ -227,7 +230,7 @@ else
 		end
 	end
 
-	function gadget:CommandsChanged( id, params, options )
+	function gadget:CommandsChanged(id, params, options)
 		selectionUpdatePending = true
 		nextSelectionUpdateAt = timeSeconds + updateDelay
 		sendSelectedUnits()
@@ -235,7 +238,7 @@ else
 
 	function gadget:Update()
 		local deltaTime = GetLastUpdateSeconds() or 0
-		if time+deltaTime == time then
+		if time + deltaTime == time then
 			time = 0 --prevent floating point errors
 		end
 		time = time + deltaTime
@@ -300,7 +303,9 @@ else
 				end
 			end
 		end
-		if not changed and not forceSnapshot then return true end
+		if not changed and not forceSnapshot then
+			return true
+		end
 
 		if unitCount == 0 then
 			sendUnitsMsg(CLEAR_ALL_MSG, false)
@@ -336,7 +341,7 @@ else
 			return true
 		end
 
-		for i=1,unitCount do
+		for i = 1, unitCount do
 			selectedNowMap[units[i]] = true
 		end
 
@@ -398,10 +403,7 @@ else
 		if not snapshotPlan and (forceSnapshot or totalChanges >= semanticSelectionMinChanges or semanticConfirmationPending) then
 			local teamUnitsByDef = GetTeamUnitsSorted(myTeamID) or {}
 			local semanticPlan = SelectionProtocol.BuildSnapshotPlan(units, unitCount, teamUnitsByDef)
-			if semanticPlan.byteLength <= maxSelectionPayloadSize
-				and (forceSnapshot or semanticConfirmationPending or semanticPlan.byteLength < fullDeltaLength)
-				and (not snapshotPlan or semanticPlan.byteLength < snapshotPlan.byteLength)
-			then
+			if semanticPlan.byteLength <= maxSelectionPayloadSize and (forceSnapshot or semanticConfirmationPending or semanticPlan.byteLength < fullDeltaLength) and (not snapshotPlan or semanticPlan.byteLength < snapshotPlan.byteLength) then
 				snapshotPlan = semanticPlan
 			end
 		end

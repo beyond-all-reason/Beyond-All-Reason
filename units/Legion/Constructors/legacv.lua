@@ -70,7 +70,7 @@ return {
 			"legavp",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Constructors",

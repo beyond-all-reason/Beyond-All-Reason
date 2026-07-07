@@ -1,17 +1,16 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name      = "Volumetric Clouds",
-    version   = 6,
-    desc      = "Fog/Dust clouds that scroll with wind along the map's surface. Requires GLSL, expensive even with.",
-    author    = "Anarchid, consulted and optimized by jK",
-    date      = "november 2014",
-    license   = "GNU GPL, v2 or later",
-    layer     = -1,
-    enabled   = false
-  }
+	return {
+		name = "Volumetric Clouds",
+		version = 6,
+		desc = "Fog/Dust clouds that scroll with wind along the map's surface. Requires GLSL, expensive even with.",
+		author = "Anarchid, consulted and optimized by jK",
+		date = "november 2014",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = false,
+	}
 end
 
 local enabled = true
@@ -28,10 +27,10 @@ local noiseTex3D = "LuaUI/Images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds
 local CloudDefs = {
 	speed = 0.5, -- multiplier for speed of scrolling with wind
 	--color    = {0.46, 0.32, 0.2}, -- diffuse color of the fog
-	color    = {0.6,0.7,0.8}, -- diffuse color of the fog
+	color = { 0.6, 0.7, 0.8 }, -- diffuse color of the fog
 
 	-- all altitude values can be either absolute, in percent, or "auto"
-	height   = 4800, -- opacity of fog above and at this altitude will be zero
+	height = 4800, -- opacity of fog above and at this altitude will be zero
 	bottom = 1200, -- no fog below this altitude
 	fade_alt = 2500, -- fog will linearly fade away between this and "height", should be between height and bottom
 	scale = 700, -- how large will the clouds be
@@ -42,7 +41,7 @@ local CloudDefs = {
 
 local mapcfg = VFS.Include("mapinfo.lua")
 if mapcfg and mapcfg.custom and mapcfg.custom.clouds then
-	for k,v in pairs(mapcfg.custom.clouds) do
+	for k, v in pairs(mapcfg.custom.clouds) do
 		CloudDefs[k] = v
 	end
 else
@@ -63,22 +62,22 @@ local function convertAltitude(input, default)
 	return result
 end
 
-CloudDefs.height = convertAltitude(CloudDefs.height, gnd_max*0.9)
+CloudDefs.height = convertAltitude(CloudDefs.height, gnd_max * 0.9)
 CloudDefs.bottom = convertAltitude(CloudDefs.bottom, 0)
-CloudDefs.fade_alt = convertAltitude(CloudDefs.fade_alt, gnd_max*0.8)
+CloudDefs.fade_alt = convertAltitude(CloudDefs.fade_alt, gnd_max * 0.8)
 
-local cloudsHeight    = CloudDefs.height
-local cloudsBottom    = CloudDefs.bottom or gnd_min
-local cloudsColor     = CloudDefs.color
-local cloudsScale     = CloudDefs.scale
-local cloudsClamp     = CloudDefs.clamp_to_map or false
-local speed    		  = CloudDefs.speed
-local opacity    	  = CloudDefs.opacity or 0.3
-local sunPenetration  = CloudDefs.sun_penetration or (-40.0)
-local fade_alt    	  = CloudDefs.fade_alt
-local fr,fg,fb        = unpack(cloudsColor)
-local sunDir = {0,0,0}
-local sunCol = {1,0,0}
+local cloudsHeight = CloudDefs.height
+local cloudsBottom = CloudDefs.bottom or gnd_min
+local cloudsColor = CloudDefs.color
+local cloudsScale = CloudDefs.scale
+local cloudsClamp = CloudDefs.clamp_to_map or false
+local speed = CloudDefs.speed
+local opacity = CloudDefs.opacity or 0.3
+local sunPenetration = CloudDefs.sun_penetration or -40.0
+local fade_alt = CloudDefs.fade_alt
+local fr, fg, fb = unpack(cloudsColor)
+local sunDir = { 0, 0, 0 }
+local sunCol = { 1, 0, 0 }
 
 assert(type(sunPenetration) == "number")
 assert(type(cloudsClamp) == "boolean")
@@ -92,24 +91,23 @@ assert(type(fade_alt) == "number")
 assert(type(cloudsScale) == "number")
 assert(type(speed) == "number")
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Automatically generated local definitions
 
-local GL_NEAREST             = GL.NEAREST
+local GL_NEAREST = GL.NEAREST
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_SRC_ALPHA           = GL.SRC_ALPHA
-local glBlending             = gl.Blending
-local glCopyToTexture        = gl.CopyToTexture
-local glCreateShader         = gl.CreateShader
-local glCreateTexture        = gl.CreateTexture
-local glDeleteTexture        = gl.DeleteTexture
-local glTexture              = gl.Texture
-local LuaShader 			 = gl.LuaShader
-local spGetCameraPosition    = Spring.GetCameraPosition
-local spGetWind              = Spring.GetWind
-local spEcho				 = Spring.Echo
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local glBlending = gl.Blending
+local glCopyToTexture = gl.CopyToTexture
+local glCreateShader = gl.CreateShader
+local glCreateTexture = gl.CreateTexture
+local glDeleteTexture = gl.DeleteTexture
+local glTexture = gl.Texture
+local LuaShader = gl.LuaShader
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetWind = Spring.GetWind
+local spEcho = Spring.Echo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -122,8 +120,12 @@ local GL_DEPTH_COMPONENT24 = 0x81A6
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (gnd_min < 0) then gnd_min = 0 end
-if (gnd_max < 0) then gnd_max = 0 end
+if gnd_min < 0 then
+	gnd_min = 0
+end
+if gnd_max < 0 then
+	gnd_max = 0
+end
 local vsx, vsy, vpx, vpy
 
 local depthShader
@@ -169,7 +171,6 @@ function widget:ViewResize()
 		fbo = true,
 	})
 
-
 	if depthTexture == nil or fogTexture == nil then
 		spEcho("<Volumetric Clouds> Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
@@ -177,7 +178,6 @@ function widget:ViewResize()
 end
 
 widget:ViewResize()
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -515,7 +515,7 @@ void main()
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData()
-	return {opacityMult = opacityMult}
+	return { opacityMult = opacityMult }
 end
 
 function widget:SetConfigData(data)
@@ -524,19 +524,12 @@ function widget:SetConfigData(data)
 	end
 end
 
-
 local function init()
-
 	if depthShader then
 		depthShader:Finalize()
 	end
 
-	fragSrc = fragSrc:format(
-		cloudsScale, cloudsHeight, cloudsBottom,
-		cloudsColor[1], cloudsColor[2], cloudsColor[3],
-		Game.mapSizeX, Game.mapSizeZ,
-		fade_alt, opacity*opacityMult, sunPenetration
-	)
+	fragSrc = fragSrc:format(cloudsScale, cloudsHeight, cloudsBottom, cloudsColor[1], cloudsColor[2], cloudsColor[3], Game.mapSizeX, Game.mapSizeZ, fade_alt, opacity * opacityMult, sunPenetration)
 
 	fragSrc = fragSrc:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
 	fragSrc = fragSrc:gsub("###CLAMP_TO_MAP###", tostring((cloudsClamp and 1) or 0))
@@ -551,12 +544,12 @@ local function init()
 				tex2 = 2,
 			},
 			uniformFloat = {
-				eyePos = {0,0,0},
-				viewProjectionInv = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1}, -- will be set later;
-				offset = {0,0,0}, -- will be set later;
-				sundir = {0,0,0}, -- will be set later;
-				suncolor = {0,0,0}, -- will be set later;
-				time = 0
+				eyePos = { 0, 0, 0 },
+				viewProjectionInv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }, -- will be set later;
+				offset = { 0, 0, 0 }, -- will be set later;
+				sundir = { 0, 0, 0 }, -- will be set later;
+				suncolor = { 0, 0, 0 }, -- will be set later;
+				time = 0,
 			},
 		}, "Volumetric Clouds Depth Shader")
 
@@ -567,14 +560,12 @@ local function init()
 	end
 end
 
-
 function widget:Initialize()
-
-	WG['clouds'] = {}
-	WG['clouds'].getOpacity = function()
+	WG["clouds"] = {}
+	WG["clouds"].getOpacity = function()
 		return opacityMult
 	end
-	WG['clouds'].setOpacity = function(value)
+	WG["clouds"].setOpacity = function(value)
 		opacityMult = value
 		init()
 	end
@@ -596,7 +587,6 @@ function widget:Initialize()
 	end
 end
 
-
 function widget:Shutdown()
 	glDeleteTexture(depthTexture)
 	glDeleteTexture(fogTexture)
@@ -607,7 +597,6 @@ function widget:Shutdown()
 	glDeleteTexture(noiseTex)
 	glDeleteTexture(noiseTex3D)
 end
-
 
 local function renderToTextureFunc()
 	-- render a full screen quad
@@ -628,39 +617,38 @@ local function DrawFogNew()
 	-- setup the shader and its uniform values
 	depthShader:Activate()
 
-		-- set uniforms
-		depthShader:SetUniform("eyePos", spGetCameraPosition())
-		depthShader:SetUniform("offset", offsetX, offsetY, offsetZ)
+	-- set uniforms
+	depthShader:SetUniform("eyePos", spGetCameraPosition())
+	depthShader:SetUniform("offset", offsetX, offsetY, offsetZ)
 
-		depthShader:SetUniform("sundir", sunDir[1], sunDir[2], sunDir[3])
-		depthShader:SetUniform("suncolor", sunCol[1], sunCol[2], sunCol[3])
+	depthShader:SetUniform("sundir", sunDir[1], sunDir[2], sunDir[3])
+	depthShader:SetUniform("suncolor", sunCol[1], sunCol[2], sunCol[3])
 
-		depthShader:SetUniform("time", Spring.GetGameSeconds() * speed)
+	depthShader:SetUniform("time", Spring.GetGameSeconds() * speed)
 
-		depthShader:SetUniformMatrix("viewProjectionInv", "viewprojectioninverse")
+	depthShader:SetUniformMatrix("viewProjectionInv", "viewprojectioninverse")
 
-		--glUniformMatrix(uniformViewPrjInv,  "viewprojectioninverse")
+	--glUniformMatrix(uniformViewPrjInv,  "viewprojectioninverse")
 
-		-- TODO: completely reset the texture before applying shader
-		-- TODO: figure out why it disappears in some places
-		-- maybe add a switch to make it high-res direct-render
-		gl.RenderToTexture(fogTexture, renderToTextureFunc)
+	-- TODO: completely reset the texture before applying shader
+	-- TODO: figure out why it disappears in some places
+	-- maybe add a switch to make it high-res direct-render
+	gl.RenderToTexture(fogTexture, renderToTextureFunc)
 
 	depthShader:Deactivate()
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:GameFrame()
-	local dx,dy,dz = spGetWind()
-	offsetX = offsetX-dx*speed
-	offsetY = offsetY-0.25-dy*0.25*speed
-	offsetZ = offsetZ-dz*speed
+	local dx, dy, dz = spGetWind()
+	offsetX = offsetX - dx * speed
+	offsetY = offsetY - 0.25 - dy * 0.25 * speed
+	offsetZ = offsetZ - dz * speed
 
-	sunDir = {gl.GetSun('pos')}
-	sunCol = {gl.GetSun('specular')}
+	sunDir = { gl.GetSun("pos") }
+	sunCol = { gl.GetSun("specular") }
 end
 
 local function DrawClouds()
@@ -669,16 +657,16 @@ local function DrawClouds()
 	gl.PushMatrix()
 	gl.LoadIdentity()
 
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PushMatrix()
-		gl.LoadIdentity()
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PushMatrix()
+	gl.LoadIdentity()
 
-			glTexture(fogTexture)
-			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
-			glTexture(false)
+	glTexture(fogTexture)
+	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+	glTexture(false)
 
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PopMatrix()
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PopMatrix()
 
 	gl.MatrixMode(GL.MODELVIEW)
 	gl.PopMatrix()
@@ -691,7 +679,8 @@ function widget:DrawScreen()
 	gl.TexRect(0,0,vsx,vsy,0,0,1,1)
 	glTexture(false)
 end
-]]--
+]]
+--
 
 function widget:DrawWorld()
 	DrawClouds()

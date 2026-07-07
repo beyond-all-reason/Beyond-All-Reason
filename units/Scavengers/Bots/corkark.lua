@@ -33,7 +33,7 @@ return {
 		turnrate = 885.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "Scavengers/Bots",

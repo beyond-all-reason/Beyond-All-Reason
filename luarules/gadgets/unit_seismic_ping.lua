@@ -1,21 +1,19 @@
 function gadget:GetInfo()
-    return {
-        name      = "Seismic Ping",
-        desc      = "Draw seismic pings effect",
-        author    = "Floris",
-        date      = "2026",
-        license   = "GNU GPL, v2 or later",
-        version   = 1,
-        layer     = 5,
-        enabled   = true
-    }
+	return {
+		name = "Seismic Ping",
+		desc = "Draw seismic pings effect",
+		author = "Floris",
+		date = "2026",
+		license = "GNU GPL, v2 or later",
+		version = 1,
+		layer = 5,
+		enabled = true,
+	}
 end
-
 
 if gadgetHandler:IsSyncedCode() then
 	return
 end
-
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -154,17 +152,17 @@ local function DrawPing(ping, currentTime, cameraDistance)
 	local rotation1 = currentTime * 70
 	local outerProgress = min(1, progress * 1.3)
 	local outerAlpha = max(0, (1 - outerProgress) * 0.7)
-	local outerRadius = radius*1.15-(radius*progress*0.25)
+	local outerRadius = radius * 1.15 - (radius * progress * 0.25)
 
 	local rotation2 = -currentTime * 150
 	local middleProgress = max(0, min(1, (progress - 0.1) / 0.9))
 	local middleAlpha = max(0, (1 - middleProgress) * 0.85)
-	local middleRadius = radius+(radius*progress*0.4)
+	local middleRadius = radius + (radius * progress * 0.4)
 
 	local rotation3 = currentTime * 90
 	local innerProgress = max(0, min(1, (progress - 0.15) / 0.85))
 	local innerAlpha = max(0, (1 - innerProgress))
-	local innerRadius = radius-(radius*progress*0.45)
+	local innerRadius = radius - (radius * progress * 0.45)
 
 	-- PASS 1: Draw all dark outlines with normal blending (skip when camera is far away for performance)
 	if cameraDistance < 3000 then
@@ -235,14 +233,11 @@ end
 --------------------------------------------------------------------------------
 -- callins
 --------------------------------------------------------------------------------
-function gadget:Initialize()
-end
+function gadget:Initialize() end
 
-function gadget:ViewResize(vsx, vsy)
-end
+function gadget:ViewResize(vsx, vsy) end
 
-function gadget:Shutdown()
-end
+function gadget:Shutdown() end
 
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local spec, fullview = spGetSpectatingState()
@@ -251,7 +246,9 @@ function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		if spec and not fullview then
-			if allyTeam ~= myAllyTeam then return end
+			if allyTeam ~= myAllyTeam then
+				return
+			end
 		end
 		if onlyCloakedUnits and not spGetUnitIsCloaked(unitID) then
 			return

@@ -31,7 +31,7 @@ return {
 		turninplacespeedlimit = 350,
 		turnrate = 650,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
@@ -106,7 +106,7 @@ return {
 				firestarter = 70,
 				flighttime = 4,
 				impulsefactor = 0.123,
-				model = "catapultmissile.s3o",	--catapultmissile.s3o
+				model = "catapultmissile.s3o", --catapultmissile.s3o
 				movingaccuracy = 450,
 				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,

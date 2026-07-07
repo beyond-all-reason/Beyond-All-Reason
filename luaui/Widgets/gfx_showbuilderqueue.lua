@@ -121,7 +121,7 @@ function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
 	else
-		widget:Shutdown()    -- to clear first
+		widget:Shutdown() -- to clear first
 	end
 
 	if not WG.BuilderQueueApi then

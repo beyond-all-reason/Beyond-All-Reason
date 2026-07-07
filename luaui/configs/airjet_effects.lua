@@ -1,4 +1,3 @@
-
 return {
 
 	-- land vechs
@@ -49,7 +48,7 @@ return {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
 	},
 	["legfig"] = {
-		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 15, piece = "thrust", light = 1},
+		{ color = { 0.2, 0.4, 0.2 }, width = 2, length = 15, piece = "thrust", light = 1 },
 	},
 	["legafigdef"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 37, piece = "rightAirjet", light = 1 },
@@ -248,7 +247,6 @@ return {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
 
-
 	-- bladewing
 	["corbw"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 1.8, length = 7.5, piece = "thrusta" },
@@ -419,7 +417,6 @@ return {
 	["leganavybattlesub"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 20, piece = "thrusttrail", emitVector = { 0, 0, -1 }, xzVelocity = 1.5, light = 1 },
 	},
-
 
 	-- flying ships
 	["armfepocht4"] = {

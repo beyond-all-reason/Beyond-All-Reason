@@ -2,17 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Geothermalspots",
-		desc    = "Displays rotating circles around geothermal spots",
-		author  = "Floris, Beherith GL4",
-		date    = "August 2021",
+		name = "Geothermalspots",
+		desc = "Displays rotating circles around geothermal spots",
+		author = "Floris, Beherith GL4",
+		date = "August 2021",
 		license = "GNU GPL v2",
-		layer   = 2,
+		layer = 2,
 		enabled = true,
 	}
 end
-
-
 
 -- Localized functions for performance
 local mathSin = math.sin
@@ -22,21 +20,21 @@ local mathCos = math.cos
 local spGetGameFrame = Spring.GetGameFrame
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local showValue			= false
-local metalViewOnly		= false
+local showValue = false
+local metalViewOnly = false
 
-local circleSpaceUsage	= 0.82
-local circleInnerOffset	= 0
-local opacity			= 0.5
+local circleSpaceUsage = 0.82
+local circleInnerOffset = 0
+local opacity = 0.5
 
-local innersize			= 3.0		-- outersize-innersize = circle width
-local outersize			= 3.32		-- outersize-innersize = circle width
+local innersize = 3.0 -- outersize-innersize = circle width
+local outersize = 3.32 -- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMapDrawMode  = Spring.GetMapDrawMode
+local spGetMapDrawMode = Spring.GetMapDrawMode
 
 local spots = {}
 local numSpots = 0
@@ -83,7 +81,7 @@ local function checkGeothermalFeatures()
 			showGeothermalUnits = true
 			local x, y, z = spGetFeaturePosition(features[i])
 			spotCount = spotCount + 1
-			spots[spotCount] = {x, y, z}
+			spots[spotCount] = { x, y, z }
 		end
 	end
 	numSpots = spotCount
@@ -95,8 +93,8 @@ end
 -- 1. Could a prerendered texture be better at conveying metal spot value?
 -- 2. VertexVBO contains: x, y pos, rotdir and radians in angle?
 -- 3. InstanceVBO contains:
-	--x,y,z offsets, radius,
-	-- visibility, and gameframe num of the last change teamid of occupier?
+--x,y,z offsets, radius,
+-- visibility, and gameframe num of the last change teamid of occupier?
 -- 4. the way the updates are handled are far from ideal, the construction and destruction of any mex will trigger a full update
 --
 
@@ -107,13 +105,11 @@ local spotShader = nil
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local pushElementInstance    = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO        = InstanceVBOTable.drawInstanceVBO
+local pushElementInstance = InstanceVBOTable.pushElementInstance
+local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
 
-
-local vsSrc =
-[[
+local vsSrc = [[
 #version 420
 #line 10000
 uniform float timer;
@@ -157,8 +153,7 @@ void main()
 }
 ]]
 
-local fsSrc =
-[[
+local fsSrc = [[
 #version 420
 #line 20000
 
@@ -180,89 +175,131 @@ void main(void)
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Geothermalspots GL4 widget exiting with reason: "..reason)
+	Spring.Echo("Geothermalspots GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
 local function makeSpotVBO()
-	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
-	if spotVBO == nil then goodbye("Failed to create spotVBO") end
-	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
+	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if spotVBO == nil then
+		goodbye("Failed to create spotVBO")
+	end
+	local VBOLayout = { { id = 0, name = "localpos_dir_angle", size = 4 } }
 	local VBOData = {}
-	local n = 0  -- flat array write index
+	local n = 0 -- flat array write index
 
 	local width = circleSpaceUsage
 	local pieces = 3
-	local detail = 13	-- per piece
+	local detail = 13 -- per piece
 	local radstep = (2.0 * math.pi) / pieces
 	local widthPerDetail = width / detail
-	for _,dir in ipairs({-1,1}) do
+	for _, dir in ipairs({ -1, 1 }) do
 		local dirOffset = dir + 1
 		for i = 1, pieces do -- pieces
 			for d = 1, detail do -- detail
 				local detailPartWidth = (widthPerDetail * d) + dirOffset
-				local a1 = ((i+detailPartWidth - widthPerDetail) * radstep)
-				local a2 = ((i+detailPartWidth) * radstep) - (widthPerDetail*1.2)
-				local a3 = ((i+circleInnerOffset+detailPartWidth - widthPerDetail) * radstep) - (widthPerDetail*0.6)
-				local a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - (widthPerDetail*0.6)
+				local a1 = ((i + detailPartWidth - widthPerDetail) * radstep)
+				local a2 = ((i + detailPartWidth) * radstep) - (widthPerDetail * 1.2)
+				local a3 = ((i + circleInnerOffset + detailPartWidth - widthPerDetail) * radstep) - (widthPerDetail * 0.6)
+				local a4 = ((i + circleInnerOffset + detailPartWidth) * radstep) - (widthPerDetail * 0.6)
 
 				-- Tri 1 vertex 1
-				n=n+1; VBOData[n] = mathSin(a3)*innersize
-				n=n+1; VBOData[n] = mathCos(a3)*innersize
-				n=n+1; VBOData[n] = dir
-				n=n+1; VBOData[n] = a3
+				n = n + 1
+				VBOData[n] = mathSin(a3) * innersize
+				n = n + 1
+				VBOData[n] = mathCos(a3) * innersize
+				n = n + 1
+				VBOData[n] = dir
+				n = n + 1
+				VBOData[n] = a3
 				-- Tri 1 vertices 2,3 (winding order depends on dir)
 				if dir == 1 then
-					n=n+1; VBOData[n] = mathSin(a4)*innersize
-					n=n+1; VBOData[n] = mathCos(a4)*innersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a4
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a1
+					n = n + 1
+					VBOData[n] = mathSin(a4) * innersize
+					n = n + 1
+					VBOData[n] = mathCos(a4) * innersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a4
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a1
 				else
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a1
-					n=n+1; VBOData[n] = mathSin(a4)*innersize
-					n=n+1; VBOData[n] = mathCos(a4)*innersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a4
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a1
+					n = n + 1
+					VBOData[n] = mathSin(a4) * innersize
+					n = n + 1
+					VBOData[n] = mathCos(a4) * innersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a4
 				end
 				-- Tri 2 vertices 1,2 (winding order depends on dir)
 				if dir == -1 then
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a1
-					n=n+1; VBOData[n] = mathSin(a2)*outersize
-					n=n+1; VBOData[n] = mathCos(a2)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a2
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a1
+					n = n + 1
+					VBOData[n] = mathSin(a2) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a2) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a2
 				else
-					n=n+1; VBOData[n] = mathSin(a2)*outersize
-					n=n+1; VBOData[n] = mathCos(a2)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a2
-					n=n+1; VBOData[n] = mathSin(a1)*outersize
-					n=n+1; VBOData[n] = mathCos(a1)*outersize
-					n=n+1; VBOData[n] = dir
-					n=n+1; VBOData[n] = a1
+					n = n + 1
+					VBOData[n] = mathSin(a2) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a2) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a2
+					n = n + 1
+					VBOData[n] = mathSin(a1) * outersize
+					n = n + 1
+					VBOData[n] = mathCos(a1) * outersize
+					n = n + 1
+					VBOData[n] = dir
+					n = n + 1
+					VBOData[n] = a1
 				end
 				-- Tri 2 vertex 3
-				n=n+1; VBOData[n] = mathSin(a4)*innersize
-				n=n+1; VBOData[n] = mathCos(a4)*innersize
-				n=n+1; VBOData[n] = dir
-				n=n+1; VBOData[n] = a4
+				n = n + 1
+				VBOData[n] = mathSin(a4) * innersize
+				n = n + 1
+				VBOData[n] = mathCos(a4) * innersize
+				n = n + 1
+				VBOData[n] = dir
+				n = n + 1
+				VBOData[n] = a4
 			end
 		end
 	end
 
-	spotVBO:Define(n/4, VBOLayout)
+	spotVBO:Define(n / 4, VBOLayout)
 	spotVBO:Upload(VBOData)
-	return spotVBO, n/4
+	return spotVBO, n / 4
 end
 
 local function cleanupGL4()
@@ -271,8 +308,12 @@ local function cleanupGL4()
 		spotShader = nil
 	end
 	if spotInstanceVBO then
-		if spotInstanceVBO.VAO then spotInstanceVBO.VAO:Delete() end
-		if spotInstanceVBO.instanceVBO then spotInstanceVBO.instanceVBO:Delete() end
+		if spotInstanceVBO.VAO then
+			spotInstanceVBO.VAO:Delete()
+		end
+		if spotInstanceVBO.instanceVBO then
+			spotInstanceVBO.instanceVBO:Delete()
+		end
 		spotInstanceVBO = nil
 	end
 	if spotVBO then
@@ -286,19 +327,18 @@ local function initGL4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	spotShader =  LuaShader(
-		{
-			vertex = vsSrc,
-			fragment = fsSrc,
-		},
-		"geoSpotShader GL4"
-	)
+	spotShader = LuaShader({
+		vertex = vsSrc,
+		fragment = fsSrc,
+	}, "geoSpotShader GL4")
 	shaderCompiled = spotShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile spotShader GL4 ") end
-	local spotVBO,numVertices = makeSpotVBO()
+	if not shaderCompiled then
+		goodbye("Failed to compile spotShader GL4 ")
+	end
+	local spotVBO, numVertices = makeSpotVBO()
 	local spotInstanceVBOLayout = {
-		{id = 1, name = 'worldpos_radius', size = 4},
-		{id = 2, name = 'visibility', size = 4},
+		{ id = 1, name = "worldpos_radius", size = 4 },
+		{ id = 2, name = "visibility", size = 4 },
 	}
 	spotInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(spotInstanceVBOLayout, 8, "geoSpotInstanceVBO")
 	spotInstanceVBO.numVertices = numVertices
@@ -307,12 +347,11 @@ local function initGL4()
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
 end
 
-
 local function checkGeothermalspots()
 	local geoHeightChange = false
-	local now  -- lazily initialized only if occupation changes
+	local now -- lazily initialized only if occupation changes
 	local gf = spGetGameFrame()
-	for i=1, numSpots do
+	for i = 1, numSpots do
 		local spot = spots[i]
 		local sx, sy, sz = spot[1], spot[2], spot[3]
 		local newHeight = spGetGroundHeight(sx, sz)
@@ -324,7 +363,7 @@ local function checkGeothermalspots()
 		local scale = spot[5] or 1
 		local units = spGetUnitsInSphere(sx, sy, sz, 110 * scale)
 		local occupied = false
-		for j=1, #units do
+		for j = 1, #units do
 			if extractors[spGetUnitDefID(units[j])] then
 				occupied = true
 				break
@@ -332,7 +371,9 @@ local function checkGeothermalspots()
 		end
 		local prevOccupied = spot[6] or false
 		if occupied ~= prevOccupied then
-			if not now then now = os.clock() end
+			if not now then
+				now = os.clock()
+			end
 			spot[7] = now
 			spot[6] = occupied
 			local curSpotkey = spotKey(sx, sz)
@@ -352,7 +393,7 @@ end
 
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 	if old_vsx ~= vsx or old_vsy ~= vsy then
 		widget:Initialize()
 	end
@@ -393,34 +434,32 @@ function widget:Initialize()
 
 	local currentClock = os.clock()
 	local scale = 1
-	for i=1, numSpots do
+	for i = 1, numSpots do
 		local spot = spots[i]
 		local sx, sz = spot[1], spot[3]
 
-		local units = spGetUnitsInSphere(sx, spot[2], sz, 115*scale)
+		local units = spGetUnitsInSphere(sx, spot[2], sz, 115 * scale)
 		local occupied = false
-		for j=1, #units do
+		for j = 1, #units do
 			if extractors[spGetUnitDefID(units[j])] then
 				occupied = true
 				break
 			end
 		end
 		local y = spGetGroundHeight(sx, sz)
-		spots[i] = {sx, y, sz, 1, scale, occupied, currentClock}
-		pushElementInstance(spotInstanceVBO, {sx, y, sz, scale, occupied and 0 or 1, -1000,0,0}, spotKey(sx, sz))
+		spots[i] = { sx, y, sz, 1, scale, occupied, currentClock }
+		pushElementInstance(spotInstanceVBO, { sx, y, sz, scale, occupied and 0 or 1, -1000, 0, 0 }, spotKey(sx, sz))
 	end
 end
-
 
 function widget:Shutdown()
 	cleanupGL4()
 	WG.geothermalspots = nil
 end
 
-
 function widget:RecvLuaMsg(msg, playerID)
-	if string.find(msg, 'LobbyOverlayActive', 1, true) == 1 then
-		chobbyInterface = (string.byte(msg, 19) == 49)  -- '1'
+	if string.find(msg, "LobbyOverlayActive", 1, true) == 1 then
+		chobbyInterface = (string.byte(msg, 19) == 49) -- '1'
 	end
 end
 
@@ -442,7 +481,7 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if extractors[unitDefID] then
-		sceduledCheckedSpotsFrame = spGetGameFrame() + 3	-- delay needed, i don't know why
+		sceduledCheckedSpotsFrame = spGetGameFrame() + 3 -- delay needed, i don't know why
 	end
 end
 
@@ -452,13 +491,20 @@ function widget:GameFrame(gf)
 	end
 end
 
-
 function widget:DrawWorld()
 	-- Draw after water so underwater spots are not distorted by the water shader.
-	if numSpots == 0 then return end
-	if chobbyInterface then return end
-	if spIsGUIHidden() then return end
-	if metalViewOnly and spGetMapDrawMode() ~= 'metal' then return end
+	if numSpots == 0 then
+		return
+	end
+	if chobbyInterface then
+		return
+	end
+	if spIsGUIHidden() then
+		return
+	end
+	if metalViewOnly and spGetMapDrawMode() ~= "metal" then
+		return
+	end
 
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(false)
@@ -476,7 +522,7 @@ function widget:GetConfigData(data)
 	return {
 		showValue = showValue,
 		opacity = opacity,
-		metalViewOnly = metalViewOnly
+		metalViewOnly = metalViewOnly,
 	}
 end
 

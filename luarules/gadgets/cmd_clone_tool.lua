@@ -92,7 +92,9 @@ local function heightMapApplyFn()
 end
 
 local function applyHeightChangesFlat(flatData, vertexCount)
-	if vertexCount == 0 then return end
+	if vertexCount == 0 then
+		return
+	end
 	pendingFlatData = flatData
 	local offset = 0
 	while offset < vertexCount do
@@ -169,7 +171,9 @@ local function parseParts(payload)
 		idx = idx + 1
 		scratchParts[idx] = word
 	end
-	for i = idx + 1, #scratchParts do scratchParts[i] = nil end
+	for i = idx + 1, #scratchParts do
+		scratchParts[i] = nil
+	end
 	return scratchParts, idx
 end
 
@@ -179,7 +183,9 @@ end
 local function handleCloneTerrain(payload)
 	local parts, count = parseParts(payload)
 	local vertexCount = tonumber(parts[1]) or 0
-	if vertexCount == 0 then return end
+	if vertexCount == 0 then
+		return
+	end
 
 	-- Build flat buffer
 	local flatData = {}
@@ -207,7 +213,9 @@ end
 local function handleCloneMetal(payload)
 	local parts, count = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
-	if entryCount == 0 then return end
+	if entryCount == 0 then
+		return
+	end
 
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 3 + 1
@@ -245,7 +253,9 @@ local function handleCloneFeatures(payload)
 	local parts, count = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
 	spEcho("[Clone Gadget] Features recv: " .. entryCount)
-	if entryCount == 0 then return end
+	if entryCount == 0 then
+		return
+	end
 
 	local created = 0
 	for i = 1, entryCount do
@@ -275,13 +285,15 @@ local function handleTerrainBegin(payload)
 	pendingPaste = nil
 
 	local parts = parseParts(payload)
-	local gx0     = tonumber(parts[1]) or 0
-	local gz0     = tonumber(parts[2]) or 0
+	local gx0 = tonumber(parts[1]) or 0
+	local gz0 = tonumber(parts[2]) or 0
 	local srcStep = tonumber(parts[3]) or 8
 	local dstStep = tonumber(parts[4]) or 8
 	local srcCols = tonumber(parts[5]) or 0
 	local srcRows = tonumber(parts[6]) or 0
-	if srcCols == 0 or srcRows == 0 then return end
+	if srcCols == 0 or srcRows == 0 then
+		return
+	end
 
 	-- Compute full output area at dstStep resolution
 	local ratio = srcStep / dstStep
@@ -305,16 +317,21 @@ local function handleTerrainBegin(payload)
 	snapshot.vertexCount = vc
 
 	pendingPaste = {
-		gx0 = gx0, gz0 = gz0,
-		srcStep = srcStep, dstStep = dstStep,
-		srcCols = srcCols, srcRows = srcRows,
+		gx0 = gx0,
+		gz0 = gz0,
+		srcStep = srcStep,
+		dstStep = dstStep,
+		srcCols = srcCols,
+		srcRows = srcRows,
 		grid = {},
 		beforeSnapshot = snapshot,
 	}
 end
 
 local function handleTerrainGrid(payload)
-	if not pendingPaste then return end
+	if not pendingPaste then
+		return
+	end
 	local parts, cnt = parseParts(payload)
 	local rowStart = tonumber(parts[1]) or 0
 	local rowCount = tonumber(parts[2]) or 0
@@ -344,7 +361,9 @@ local function handleTerrainGrid(payload)
 end
 
 local function handleTerrainEnd()
-	if not pendingPaste then return end
+	if not pendingPaste then
+		return
+	end
 	local p = pendingPaste
 
 	-- If srcStep > dstStep, fill intermediate vertices via bilinear interpolation
@@ -365,15 +384,27 @@ local function handleTerrainEnd()
 					local sc = oc / ratio
 					local sr = or_ / ratio
 					local c0 = floor(sc)
-					if c0 < 0 then c0 = 0 end
-					if c0 > srcCols - 1 then c0 = srcCols - 1 end
+					if c0 < 0 then
+						c0 = 0
+					end
+					if c0 > srcCols - 1 then
+						c0 = srcCols - 1
+					end
 					local r0 = floor(sr)
-					if r0 < 0 then r0 = 0 end
-					if r0 > srcRows - 1 then r0 = srcRows - 1 end
+					if r0 < 0 then
+						r0 = 0
+					end
+					if r0 > srcRows - 1 then
+						r0 = srcRows - 1
+					end
 					local c1 = c0 + 1
-					if c1 > srcCols - 1 then c1 = srcCols - 1 end
+					if c1 > srcCols - 1 then
+						c1 = srcCols - 1
+					end
 					local r1 = r0 + 1
-					if r1 > srcRows - 1 then r1 = srcRows - 1 end
+					if r1 > srcRows - 1 then
+						r1 = srcRows - 1
+					end
 					local fc = sc - c0
 					local fr = sr - r0
 
@@ -384,10 +415,7 @@ local function handleTerrainEnd()
 						local h10 = row0[c1 + 1] or 0
 						local h01 = row1[c0 + 1] or 0
 						local h11 = row1[c1 + 1] or 0
-						local h = h00 * (1 - fc) * (1 - fr)
-							+ h10 * fc * (1 - fr)
-							+ h01 * (1 - fc) * fr
-							+ h11 * fc * fr
+						local h = h00 * (1 - fc) * (1 - fr) + h10 * fc * (1 - fr) + h01 * (1 - fc) * fr + h11 * fc * fr
 
 						local base = fillCount * 3
 						fillData[base + 1] = p.gx0 + oc * p.dstStep
@@ -413,7 +441,9 @@ end
 -- Undo / Redo handlers (height-only for now)
 -- ---------------------------------------------------------------------------
 local function handleUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 
 	local snapshot = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
@@ -432,7 +462,9 @@ local function handleUndo()
 end
 
 local function handleRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 
 	local snapshot = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
@@ -458,63 +490,81 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Terrain
 	if msg:sub(1, CLONE_TERRAIN_HEADER_LEN) == CLONE_TERRAIN_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneTerrain(msg:sub(CLONE_TERRAIN_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Metal
 	if msg:sub(1, CLONE_METAL_HEADER_LEN) == CLONE_METAL_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneMetal(msg:sub(CLONE_METAL_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Features clear
 	if msg:sub(1, CLONE_FEATURES_CLEAR_HEADER_LEN) == CLONE_FEATURES_CLEAR_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleFeaturesClear(msg:sub(CLONE_FEATURES_CLEAR_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Features
 	if msg:sub(1, CLONE_FEATURES_HEADER_LEN) == CLONE_FEATURES_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneFeatures(msg:sub(CLONE_FEATURES_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Undo
 	if msg == CLONE_UNDO_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleUndo()
 		return true
 	end
 
 	-- Redo
 	if msg == CLONE_REDO_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleRedo()
 		return true
 	end
 
 	-- Terrain grid begin
 	if msg:sub(1, CLONE_TBEGIN_HEADER_LEN) == CLONE_TBEGIN_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainBegin(msg:sub(CLONE_TBEGIN_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Terrain grid chunk
 	if msg:sub(1, CLONE_TGRID_HEADER_LEN) == CLONE_TGRID_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainGrid(msg:sub(CLONE_TGRID_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Terrain grid end
 	if msg == CLONE_TEND_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainEnd()
 		return true
 	end

@@ -6,12 +6,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Feature Placer UI",
-		desc    = "RmlUI asset library panel for feature placer",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer UI",
+		desc = "RmlUI asset library panel for feature placer",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000002,
+		layer = 1000002,
 		enabled = false,
 	}
 end
@@ -22,17 +22,17 @@ local MODEL_NAME = "feature_placer_model"
 local WG = WG
 local GetViewGeometry = Spring.GetViewGeometry
 
-local INITIAL_LEFT_VW   = 60
-local INITIAL_TOP_VH    = 10
-local BASE_WIDTH_DP     = 220
-local TILE_COLUMNS      = 3
-local TILE_GAP_DP       = 2
+local INITIAL_LEFT_VW = 60
+local INITIAL_TOP_VH = 10
+local BASE_WIDTH_DP = 220
+local TILE_COLUMNS = 3
+local TILE_GAP_DP = 2
 
 local widgetState = {
-	rmlContext   = nil,
-	document     = nil,
-	dmHandle     = nil,
-	rootElement  = nil,
+	rmlContext = nil,
+	document = nil,
+	dmHandle = nil,
+	rootElement = nil,
 	-- Logical (dp) width used for tile layout math. Rendered width lives
 	-- in RCSS (.fp-root) via dp + min-width.
 	panelWidthDp = BASE_WIDTH_DP,
@@ -50,15 +50,13 @@ local lastSearchFilter = ""
 -- Shift+click toggles a category in/out of the set. The special "all" key is
 -- mutually exclusive with the specific categories.
 local selectedCategories = { all = true }
-local categoryButtons  = {} -- { [catKey] = element }
-local featureElements  = {} -- { [defName] = element }
-local thumbDivs        = {} -- { [defName] = div element }
-local manuallyHidden   = false
-local lastActive       = false
-local userDragged      = false  -- once user drags, stop auto-positioning
-local lobbyHidden      = false  -- true while the lobby/menu overlay is up (LobbyOverlayActive)
-
-
+local categoryButtons = {} -- { [catKey] = element }
+local featureElements = {} -- { [defName] = element }
+local thumbDivs = {} -- { [defName] = div element }
+local manuallyHidden = false
+local lastActive = false
+local userDragged = false -- once user drags, stop auto-positioning
+local lobbyHidden = false -- true while the lobby/menu overlay is up (LobbyOverlayActive)
 
 ----------------------------------------------------------------
 -- Thumbnail generation state (file-backed PNG cache)
@@ -69,8 +67,8 @@ local THUMB_CACHE_DIR = "Terraform Brush/FeatureThumbs/"
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
-local thumbTextures = {}   -- { [defName] = file path string }
-local thumbImgEls   = {}   -- { [defName] = <img> RmlUi element }
+local thumbTextures = {} -- { [defName] = file path string }
+local thumbImgEls = {} -- { [defName] = <img> RmlUi element }
 local thumbQueue = {}
 local thumbQueueIdx = 0
 local thumbTotal = 0
@@ -79,10 +77,12 @@ local thumbGenerating = false
 local thumbGenAttempted = false
 local thumbRefreshTimer = 0
 local needsListRefresh = false
-local depthTex  -- shared depth buffer for rendering
+local depthTex -- shared depth buffer for rendering
 
 local function toRmlImageSrc(path)
-	if not path or path == "" then return nil end
+	if not path or path == "" then
+		return nil
+	end
 	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
 	if not VFS.FileExists(normalized, VFS.RAW_FIRST) then
 		return nil
@@ -92,13 +92,11 @@ end
 
 local function buildRootStyle()
 	-- Width lives in RCSS (.fp-root); we only set position here.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local function getDpRatio()
-	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio
-		and WG.TerraformerShared.getDpRatio()) or 1.0
+	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio and WG.TerraformerShared.getDpRatio()) or 1.0
 end
 
 ----------------------------------------------------------------
@@ -107,7 +105,9 @@ end
 local thumbShader
 
 local function initThumbShader()
-	if thumbShader then return true end
+	if thumbShader then
+		return true
+	end
 	-- Model transform goes through TextureMatrix[0]; no UV-packed AO (rocks don't use that convention)
 	thumbShader = gl.CreateShader({
 		vertex = [[
@@ -153,7 +153,9 @@ local function initThumbShader()
 	return true
 end
 local function initSharedDepth()
-	if depthTex then return true end
+	if depthTex then
+		return true
+	end
 	depthTex = gl.CreateTexture(THUMB_SIZE, THUMB_SIZE, {
 		border = false,
 		format = GL_DEPTH_COMPONENT24,
@@ -172,15 +174,25 @@ end
 local function cleanupThumbs()
 	thumbTextures = {}
 	thumbImgEls = {}
-	if depthTex then gl.DeleteTexture(depthTex); depthTex = nil end
-	if thumbShader then gl.DeleteShader(thumbShader); thumbShader = nil end
+	if depthTex then
+		gl.DeleteTexture(depthTex)
+		depthTex = nil
+	end
+	if thumbShader then
+		gl.DeleteShader(thumbShader)
+		thumbShader = nil
+	end
 end
 
 local function renderOneThumb(name, defID)
 	local def = FeatureDefs[defID]
-	if not def then return false end
+	if not def then
+		return false
+	end
 	-- Check if this feature has a 3D model (runtime field is .modelpath)
-	if (def.modelpath or "") == "" then return false end
+	if (def.modelpath or "") == "" then
+		return false
+	end
 
 	-- Ensure the model geometry is loaded into GPU memory
 	Spring.PreloadFeatureDefModel(defID)
@@ -213,16 +225,20 @@ local function renderOneThumb(name, defID)
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 	})
-	if not colorTex then return false end
+	if not colorTex then
+		return false
+	end
 
 	local fbo = gl.CreateFBO({
 		color0 = colorTex,
-		depth  = depthTex,
+		depth = depthTex,
 		drawbuffers = { GL_COLOR_ATTACHMENT0_EXT },
 	})
 	if not fbo or not gl.IsValidFBO(fbo) then
 		gl.DeleteTexture(colorTex)
-		if fbo then gl.DeleteFBO(fbo) end
+		if fbo then
+			gl.DeleteFBO(fbo)
+		end
 		return false
 	end
 
@@ -303,13 +319,19 @@ local function renderOneThumb(name, defID)
 end
 
 local function startThumbGeneration()
-	if thumbGenAttempted then return end
-	if not WG.FeaturePlacer then return end
+	if thumbGenAttempted then
+		return
+	end
+	if not WG.FeaturePlacer then
+		return
+	end
 	thumbGenAttempted = true
 
 	local categories = WG.FeaturePlacer.getFeatureCategories()
 	local order = WG.FeaturePlacer.getCategoryOrder()
-	if not categories or not order then return end
+	if not categories or not order then
+		return
+	end
 
 	thumbQueue = {}
 	thumbQueueIdx = 1
@@ -338,7 +360,9 @@ local function startThumbGeneration()
 end
 
 local function processThumbQueue()
-	if not thumbGenerating then return end
+	if not thumbGenerating then
+		return
+	end
 	if not initThumbShader() then
 		thumbGenerating = false
 		return
@@ -383,7 +407,9 @@ end
 ----------------------------------------------------------------
 local function updateSelectedCount()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	-- Cached element + last-written string: runs every Update tick, so avoid
 	-- the repeated GetElementById and the inner_rml re-parse on unchanged counts.
 	local el = widgetState.selectedCountEl
@@ -407,27 +433,31 @@ end
 -- The full filtered data lives in virtualItems; DOM is rebuilt
 -- on scroll / filter / category change for the visible window.
 ----------------------------------------------------------------
-local virtualItems = {}       -- flat array of { name=..., id=..., category=... }
-local virtualTileW = 32       -- computed tile width (dp)
-local virtualTileH = 32       -- computed tile height (includes name bar)
-local virtualRowH  = 0        -- tile height + gap in px (computed after first layout)
-local virtualScrollTop = -1   -- last known scroll_top
-local virtualTopSpacer = nil  -- spacer div for items above viewport
-local virtualBotSpacer = nil  -- spacer div for items below viewport
-local virtualVisStart = 0     -- first visible index (0-based)
-local virtualVisEnd   = 0     -- last visible index (exclusive)
+local virtualItems = {} -- flat array of { name=..., id=..., category=... }
+local virtualTileW = 32 -- computed tile width (dp)
+local virtualTileH = 32 -- computed tile height (includes name bar)
+local virtualRowH = 0 -- tile height + gap in px (computed after first layout)
+local virtualScrollTop = -1 -- last known scroll_top
+local virtualTopSpacer = nil -- spacer div for items above viewport
+local virtualBotSpacer = nil -- spacer div for items below viewport
+local virtualVisStart = 0 -- first visible index (0-based)
+local virtualVisEnd = 0 -- last visible index (exclusive)
 local measuredRowHeightPx = 0 -- actual rendered tile row height in px (measured after first render)
-local lastBuildInnerPx = 0    -- client_width of feature-list at last rebuild, for resize detection
+local lastBuildInnerPx = 0 -- client_width of feature-list at last rebuild, for resize detection
 
 local function getListInnerPx()
 	local listEl = widgetState.document and widgetState.document:GetElementById("feature-list")
 	if listEl then
 		local cw = listEl.client_width or 0
-		if cw > 0 then return cw, listEl end
+		if cw > 0 then
+			return cw, listEl
+		end
 	end
 	local dpRatio = getDpRatio()
 	local pwPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or 0
-	if pwPx <= 0 then pwPx = widgetState.panelWidthDp * dpRatio end
+	if pwPx <= 0 then
+		pwPx = widgetState.panelWidthDp * dpRatio
+	end
 	-- list has padding: 4dp each side + border: 1dp each side + ~12px scrollbar
 	return pwPx - (4 + 4 + 1 + 1) * dpRatio - 12, listEl
 end
@@ -445,10 +475,12 @@ local function computeTileWidth()
 	-- and the scrollbar pops in.
 	innerPx = innerPx - 8 * dpRatio
 	local gapPx = TILE_GAP_DP * dpRatio
-	local tileBorderPx = 4 * dpRatio  -- per-tile border: 2dp each side
-	local safetyPx = 6 * dpRatio       -- fudge against sub-pixel rounding
+	local tileBorderPx = 4 * dpRatio -- per-tile border: 2dp each side
+	local safetyPx = 6 * dpRatio -- fudge against sub-pixel rounding
 	local tileW = math.floor((innerPx - (TILE_COLUMNS - 1) * gapPx - TILE_COLUMNS * tileBorderPx - safetyPx) / TILE_COLUMNS)
-	if tileW < 24 then tileW = 24 end
+	if tileW < 24 then
+		tileW = 24
+	end
 	return tileW
 end
 
@@ -483,7 +515,9 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local _, _, _, shift = Spring.GetModKeyState()
 		if shift then
 			WG.FeaturePlacer.toggleFeature(name)
@@ -527,8 +561,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	-- Top spacer: accounts for all rows above startIdx (sized in px for exact match to real tile row height)
 	local topRows = math.floor(startIdx / TILE_COLUMNS)
 	virtualTopSpacer = doc:CreateElement("div")
-	virtualTopSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(topRows * rowHeightPx + 0.5)))
+	virtualTopSpacer:SetAttribute("style", string.format("width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(topRows * rowHeightPx + 0.5)))
 	listEl:AppendChild(virtualTopSpacer)
 
 	-- Create visible tiles
@@ -537,15 +570,16 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 		local entry = virtualItems[i]
 		local itemEl = createTileElement(doc, entry, tileW, selectedSet)
 		listEl:AppendChild(itemEl)
-		if not firstItemEl then firstItemEl = itemEl end
+		if not firstItemEl then
+			firstItemEl = itemEl
+		end
 	end
 
 	-- Bottom spacer: accounts for all rows below endIdx
 	local bottomItems = math.max(0, totalItems - endIdx)
 	local bottomRows = math.ceil(bottomItems / TILE_COLUMNS)
 	virtualBotSpacer = doc:CreateElement("div")
-	virtualBotSpacer:SetAttribute("style", string.format(
-		"width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(bottomRows * rowHeightPx + 0.5)))
+	virtualBotSpacer:SetAttribute("style", string.format("width: 100%%; height: %dpx; flex-shrink: 0;", math.floor(bottomRows * rowHeightPx + 0.5)))
 	listEl:AppendChild(virtualBotSpacer)
 
 	virtualVisStart = startIdx
@@ -565,7 +599,9 @@ end
 local function updateVirtualWindow()
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("feature-list")
-	if not listEl or #virtualItems == 0 then return end
+	if not listEl or #virtualItems == 0 then
+		return
+	end
 
 	local scrollTop = listEl.scroll_top or 0
 	local viewH = listEl.client_height or 500
@@ -578,15 +614,19 @@ local function updateVirtualWindow()
 		rowHeightPx = tileW + TILE_GAP_DP * dpRatio
 	end
 
-	if rowHeightPx < 1 then rowHeightPx = 40 end
+	if rowHeightPx < 1 then
+		rowHeightPx = 40
+	end
 
-	local firstVisRow = math.max(0, math.floor(scrollTop / rowHeightPx) - 2)  -- 2 row buffer
-	local visibleRows = math.ceil(viewH / rowHeightPx) + 4  -- 4 row buffer total
+	local firstVisRow = math.max(0, math.floor(scrollTop / rowHeightPx) - 2) -- 2 row buffer
+	local visibleRows = math.ceil(viewH / rowHeightPx) + 4 -- 4 row buffer total
 	local startIdx = firstVisRow * TILE_COLUMNS
 	local endIdx = math.min(#virtualItems, (firstVisRow + visibleRows) * TILE_COLUMNS)
 
 	-- Only rebuild DOM if the visible window actually changed
-	if startIdx == virtualVisStart and endIdx == virtualVisEnd then return end
+	if startIdx == virtualVisStart and endIdx == virtualVisEnd then
+		return
+	end
 
 	local state = WG.FeaturePlacer and WG.FeaturePlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
@@ -596,7 +636,9 @@ end
 local function rebuildFeatureList(filter)
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("feature-list")
-	if not listEl or not WG.FeaturePlacer then return end
+	if not listEl or not WG.FeaturePlacer then
+		return
+	end
 
 	listEl.inner_rml = ""
 	featureElements = {}
@@ -626,7 +668,9 @@ local function rebuildFeatureList(filter)
 
 	local categories = WG.FeaturePlacer.getFeatureCategories()
 	local order = WG.FeaturePlacer.getCategoryOrder()
-	if not categories or not order then return end
+	if not categories or not order then
+		return
+	end
 
 	local state = WG.FeaturePlacer.getState()
 	local selectedSet = state and state.selectedSet or {}
@@ -660,7 +704,9 @@ local function rebuildFeatureList(filter)
 	local viewH = listEl.client_height or 500
 	local dpRatio = getDpRatio()
 	local rowHeightPx = (virtualTileW + TILE_GAP_DP * dpRatio)
-	if rowHeightPx < 1 then rowHeightPx = 40 end
+	if rowHeightPx < 1 then
+		rowHeightPx = 40
+	end
 	local visibleRows = math.ceil(viewH / rowHeightPx) + 4
 	local endIdx = math.min(#virtualItems, visibleRows * TILE_COLUMNS)
 
@@ -696,9 +742,13 @@ function widget:OnSearchChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("feature-search")
 	local val = el and el:GetAttribute("value") or ""
-	if val == lastSearchFilter then return end
+	if val == lastSearchFilter then
+		return
+	end
 	lastSearchFilter = val
-	if widgetState.dmHandle then widgetState.dmHandle.search = val end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = val
+	end
 	rebuildFeatureList(val)
 end
 
@@ -726,7 +776,9 @@ end
 ----------------------------------------------------------------
 local function attachEventListeners()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	-- Category buttons
 	local catKeys = { "all", "rocks", "trees", "foliage", "crystals", "christmas", "raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other" }
@@ -766,10 +818,11 @@ local function attachEventListeners()
 
 	-- Drag handle
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "fp-handle", widgetState.rootElement,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "fp-handle", widgetState.rootElement, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -780,10 +833,14 @@ function widget:Initialize()
 	Spring.CreateDir(THUMB_CACHE_DIR)
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then return false end
+	if not widgetState.rmlContext then
+		return false
+	end
 
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not dm then return false end
+	if not dm then
+		return false
+	end
 	widgetState.dmHandle = dm
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
@@ -808,7 +865,9 @@ function widget:Initialize()
 end
 
 function widget:Update()
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
 	local function setHidden(v)
 		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
@@ -834,7 +893,9 @@ function widget:Update()
 	lastActive = isActive
 	setHidden((not isActive) or manuallyHidden or lobbyHidden)
 
-	if not isActive or lobbyHidden then return end
+	if not isActive or lobbyHidden then
+		return
+	end
 
 	-- Sync two-way-bound search filter back to internal state
 	if widgetState.dmHandle then
@@ -846,15 +907,12 @@ function widget:Update()
 	end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
-		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
-			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;",
-					mainPanel.left - myWidth - gap, mainPanel.top))
+			widgetState.rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
@@ -913,18 +971,22 @@ end
 -- lobbyHidden flag keeps Update() from re-showing it until the overlay closes.
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
-	if not document then return end
-	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+	if not document then
+		return
+	end
+	if message:sub(1, 19) == "LobbyOverlayActive0" then
 		lobbyHidden = false
 		document:Show()
-	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+	elseif message:sub(1, 19) == "LobbyOverlayActive1" then
 		lobbyHidden = true
 		document:Hide()
 	end
 end
 
 function widget:DrawScreen()
-	if lobbyHidden then return end
+	if lobbyHidden then
+		return
+	end
 	if thumbGenerating then
 		processThumbQueue()
 	end

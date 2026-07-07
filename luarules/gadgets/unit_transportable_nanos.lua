@@ -1,19 +1,19 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Unit transportable nanos",
-        desc      = "Prevent loading of ally nanos, prevent unloading onto cliffs and underwater",
-        author    = "Beherith, Chronographer",
-        date      = "Jul 2012",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Unit transportable nanos",
+		desc = "Prevent loading of ally nanos, prevent unloading onto cliffs and underwater",
+		author = "Beherith, Chronographer",
+		date = "Jul 2012",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -35,12 +35,12 @@ if Spring.GetModOptions().experimentallegionfaction then
 	Nanos[UnitDefNames.legnanotc.id] = true
 end
 for udid, ud in pairs(UnitDefs) do
-    for id in pairs(Nanos) do
-        if stringFind(ud.name, UnitDefs[id].name, 1, true) then
-            Nanos[udid] = true
-            break
-        end
-    end
+	for id in pairs(Nanos) do
+		if stringFind(ud.name, UnitDefs[id].name, 1, true) then
+			Nanos[udid] = true
+			break
+		end
+	end
 end
 
 function gadget:Initialize()
@@ -52,7 +52,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if not UnitDefs[unitDefID].isTransport then
 		return false
 	end
-	
+
 	if cmdID == CMD_LOAD_UNITS then
 		if #cmdParams == 1 then -- if unit is target
 			local targetId = cmdParams[1]
@@ -63,17 +63,17 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 				return false
 			end
 		end
-	else	 -- CMD_UNLOAD_UNITS
+	else -- CMD_UNLOAD_UNITS
 		if cmdParams[1] and cmdParams[3] and spGetUnitIsTransporting(unitID) then
 			local intrans = spGetUnitIsTransporting(unitID)
 			if #intrans >= 1 then
 				-- no unloading underwater
-				local _,y,_ = spGetGroundNormal(cmdParams[1], cmdParams[3])
+				local _, y, _ = spGetGroundNormal(cmdParams[1], cmdParams[3])
 				if Nanos[spGetUnitDefID(intrans[1])] and (cmdParams[2] < 0 or y < 0.9) then
 					return false
 				end
 			end
 		end
 	end
-    return true
+	return true
 end

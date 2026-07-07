@@ -6,12 +6,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Diffuse Library UI",
-		desc    = "RmlUI material library panel for the Diffuse Painter (thumbnail grid)",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Diffuse Library UI",
+		desc = "RmlUI material library panel for the Diffuse Painter (thumbnail grid)",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000002,
+		layer = 1000002,
 		enabled = false,
 	}
 end
@@ -22,9 +22,9 @@ local MODEL_NAME = "diffuse_library_model"
 local WG = WG
 
 local widgetState = {
-	rmlContext  = nil,
-	document    = nil,
-	dmHandle    = nil,
+	rmlContext = nil,
+	document = nil,
+	dmHandle = nil,
 	rootElement = nil,
 }
 
@@ -40,15 +40,15 @@ local lastSearchFilter = ""
 -- Shift+click toggles a category in/out of the set. "all" is mutually
 -- exclusive with the specific categories.
 local selectedCategories = { all = true }
-local categoryButtons    = {}  -- { [catKey] = element }
-local materialElements   = {}  -- { [matKey] = tile element }
-local thumbDivs          = {}  -- { [matKey] = thumb div element }
-local thumbMatPath       = {}  -- { [matKey] = texture path } for selection re-derive
-local manuallyHidden     = false
-local lastActive         = false
-local userDragged        = false
-local lastLibrarySig     = nil   -- detect material-library changes
-local lastActivePath     = nil   -- detect active-layer texture changes (re-highlight)
+local categoryButtons = {} -- { [catKey] = element }
+local materialElements = {} -- { [matKey] = tile element }
+local thumbDivs = {} -- { [matKey] = thumb div element }
+local thumbMatPath = {} -- { [matKey] = texture path } for selection re-derive
+local manuallyHidden = false
+local lastActive = false
+local userDragged = false
+local lastLibrarySig = nil -- detect material-library changes
+local lastActivePath = nil -- detect active-layer texture changes (re-highlight)
 
 -- Categories, in display order. Derived from the material key by keyword.
 local CATEGORY_ORDER = { "all", "rock", "sand", "grass", "mud", "snow", "moon", "other" }
@@ -57,17 +57,30 @@ local function categorize(key)
 	local k = (key or ""):lower()
 	local function has(...)
 		for _, p in ipairs({ ... }) do
-			if k:find(p, 1, true) then return true end
+			if k:find(p, 1, true) then
+				return true
+			end
 		end
 		return false
 	end
-	if has("snow", "ice")                                          then return "snow" end
-	if has("moon")                                                 then return "moon" end
-	if has("sand", "coast", "beach", "dune")                       then return "sand" end
-	if has("mud", "riverbed", "dirt", "clay")                      then return "mud" end
-	if has("grass", "forest", "floor", "moss", "leaves", "path")   then return "grass" end
-	if has("rock", "cliff", "gravel", "stone", "marble",
-	       "terrain", "ground", "concrete", "coral")               then return "rock" end
+	if has("snow", "ice") then
+		return "snow"
+	end
+	if has("moon") then
+		return "moon"
+	end
+	if has("sand", "coast", "beach", "dune") then
+		return "sand"
+	end
+	if has("mud", "riverbed", "dirt", "clay") then
+		return "mud"
+	end
+	if has("grass", "forest", "floor", "moss", "leaves", "path") then
+		return "grass"
+	end
+	if has("rock", "cliff", "gravel", "stone", "marble", "terrain", "ground", "concrete", "coral") then
+		return "rock"
+	end
 	return "other"
 end
 
@@ -85,19 +98,21 @@ end
 -- paid at most ONCE per material across all sessions, not once per session and
 -- not once per scroll. Tiles the user never scrolls to still cost nothing.
 ----------------------------------------------------------------
-local THUMB_SIZE       = 128
-local THUMBS_PER_FRAME = 1     -- each bake decodes an 8k JPEG; one at a time
-local PREFETCH_MARGIN  = 192   -- px above/below the viewport to bake ahead
+local THUMB_SIZE = 128
+local THUMBS_PER_FRAME = 1 -- each bake decodes an 8k JPEG; one at a time
+local PREFETCH_MARGIN = 192 -- px above/below the viewport to bake ahead
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
-local THUMB_CACHE_DIR  = "Terraform Brush/thumbs"  -- write-dir, alongside textures/
+local THUMB_CACHE_DIR = "Terraform Brush/thumbs" -- write-dir, alongside textures/
 
-local thumbTextures    = {}    -- { [matKey] = cachePath string } kept for session
-local thumbImgEls      = {}    -- { [matKey] = <img> RmlUi element }
-local thumbFailed      = {}    -- { [matKey] = true } bake failed; don't retry it
-local thumbsPending    = 0     -- filtered tiles still awaiting a thumbnail
+local thumbTextures = {} -- { [matKey] = cachePath string } kept for session
+local thumbImgEls = {} -- { [matKey] = <img> RmlUi element }
+local thumbFailed = {} -- { [matKey] = true } bake failed; don't retry it
+local thumbsPending = 0 -- filtered tiles still awaiting a thumbnail
 
 local function toRmlImageSrc(path)
-	if not path or path == "" then return nil end
+	if not path or path == "" then
+		return nil
+	end
 	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
 	if not VFS.FileExists(normalized, VFS.RAW_FIRST) then
 		return nil
@@ -110,8 +125,7 @@ local function thumbCachePath(matKey)
 end
 
 local function getDpRatio()
-	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio
-		and WG.TerraformerShared.getDpRatio()) or 1.0
+	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio and WG.TerraformerShared.getDpRatio()) or 1.0
 end
 
 local function cleanupThumbs()
@@ -124,7 +138,9 @@ end
 -- Bake one 128px thumbnail from the full-res `path`, render it into an FBO, and
 -- write the result to `cachePath` so future sessions skip the 8k decode.
 local function renderOneThumb(matKey, path, cachePath)
-	if not path or path == "" then return false end
+	if not path or path == "" then
+		return false
+	end
 
 	local colorTex = gl.CreateTexture(THUMB_SIZE, THUMB_SIZE, {
 		border = false,
@@ -134,7 +150,9 @@ local function renderOneThumb(matKey, path, cachePath)
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 	})
-	if not colorTex then return false end
+	if not colorTex then
+		return false
+	end
 
 	local fbo = gl.CreateFBO({
 		color0 = colorTex,
@@ -142,7 +160,9 @@ local function renderOneThumb(matKey, path, cachePath)
 	})
 	if not fbo or not gl.IsValidFBO(fbo) then
 		gl.DeleteTexture(colorTex)
-		if fbo then gl.DeleteFBO(fbo) end
+		if fbo then
+			gl.DeleteFBO(fbo)
+		end
 		return false
 	end
 
@@ -183,8 +203,7 @@ local function renderOneThumb(matKey, path, cachePath)
 		-- back for file-backed thumbs (see drawThumbnailOverlays). A save failure
 		-- only costs a re-bake next session, so it must not abort the bake.
 		if cachePath then
-			pcall(gl.SaveImage, 0, 0, THUMB_SIZE, THUMB_SIZE, cachePath,
-				{ alpha = false, readbuffer = GL_COLOR_ATTACHMENT0_EXT })
+			pcall(gl.SaveImage, 0, 0, THUMB_SIZE, THUMB_SIZE, cachePath, { alpha = false, readbuffer = GL_COLOR_ATTACHMENT0_EXT })
 		end
 
 		gl.Viewport(0, 0, vsx, vsy)
@@ -196,7 +215,7 @@ local function renderOneThumb(matKey, path, cachePath)
 	-- failing to free is a VRAM cost, not a crash.
 	pcall(gl.DeleteTexture, path)
 	gl.Blending(true)
-	gl.DeleteTexture(colorTex)   -- free the FBO color tex; thumbnail lives on disk
+	gl.DeleteTexture(colorTex) -- free the FBO color tex; thumbnail lives on disk
 	gl.DeleteFBO(fbo)
 
 	if cachePath then
@@ -211,28 +230,39 @@ end
 -- filter/category rebuild just re-counts what is left in `thumbsPending`. Reads
 -- element layout and renders into an FBO, so it must run in a draw callback.
 local function bakeVisibleThumbs()
-	if thumbsPending <= 0 then return end
+	if thumbsPending <= 0 then
+		return
+	end
 	local doc = widgetState.document
-	if not doc then return end
-	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then return end
+	if not doc then
+		return
+	end
+	if widgetState.rootElement and widgetState.rootElement:IsClassSet("hidden") then
+		return
+	end
 
 	local listEl = doc:GetElementById("material-list")
-	if not listEl then return end
+	if not listEl then
+		return
+	end
 	local viewH = listEl.client_height
-	if viewH <= 0 then return end          -- panel not laid out yet
-	local viewTop    = listEl.absolute_top
+	if viewH <= 0 then
+		return
+	end -- panel not laid out yet
+	local viewTop = listEl.absolute_top
 	local viewBottom = viewTop + viewH
 
 	local baked = 0
 	for matKey, div in pairs(thumbDivs) do
-		if baked >= THUMBS_PER_FRAME then break end
+		if baked >= THUMBS_PER_FRAME then
+			break
+		end
 		if not thumbTextures[matKey] and not thumbFailed[matKey] then
 			local h = div.offset_height
 			if h > 0 then
 				local top = div.absolute_top
 				-- Vertically within the viewport (or its prefetch margin)?
-				if top < viewBottom + PREFETCH_MARGIN
-					and (top + h) > viewTop - PREFETCH_MARGIN then
+				if top < viewBottom + PREFETCH_MARGIN and (top + h) > viewTop - PREFETCH_MARGIN then
 					if renderOneThumb(matKey, thumbMatPath[matKey], thumbCachePath(matKey)) then
 						local imgEl = thumbImgEls[matKey]
 						local src = toRmlImageSrc(thumbTextures[matKey])
@@ -256,34 +286,49 @@ end
 ----------------------------------------------------------------
 local function getActiveLayerPath()
 	local API = WG.DiffusePainter
-	if not API then return nil end
+	if not API then
+		return nil
+	end
 	local id = API.getActiveLayerId and API.getActiveLayerId()
-	if not id then return nil end
+	if not id then
+		return nil
+	end
 	local layers = API.getLayers and API.getLayers() or {}
 	for i = 1, #layers do
-		if layers[i].id == id then return layers[i].texturePath end
+		if layers[i].id == id then
+			return layers[i].texturePath
+		end
 	end
 	return nil
 end
 
 local function onMaterialClick(mat)
 	local API = WG.DiffusePainter
-	if not API then return end
+	if not API then
+		return
+	end
 	local id = API.getActiveLayerId and API.getActiveLayerId()
 	local layers = API.getLayers and API.getLayers() or {}
 	local activeLayer
 	if id then
 		for j = 1, #layers do
-			if layers[j].id == id then activeLayer = layers[j]; break end
+			if layers[j].id == id then
+				activeLayer = layers[j]
+				break
+			end
 		end
 	end
 	-- Smart routing (matches tf_diffuse.lua): if the active layer has no
 	-- material yet, assign this one to it; otherwise spawn a new layer so any
 	-- existing painted strokes are preserved.
 	if activeLayer and (not activeLayer.texturePath or activeLayer.texturePath == "") then
-		if API.setLayerTexture then API.setLayerTexture(id, mat.path, nil, mat.name) end
+		if API.setLayerTexture then
+			API.setLayerTexture(id, mat.path, nil, mat.name)
+		end
 	else
-		if API.addLayerFromMaterial then API.addLayerFromMaterial(mat.path, mat.name) end
+		if API.addLayerFromMaterial then
+			API.addLayerFromMaterial(mat.path, mat.name)
+		end
 	end
 	lastActivePath = nil -- force highlight refresh on next sync
 end
@@ -291,7 +336,9 @@ end
 local function rebuildMaterialList(filter)
 	local doc = widgetState.document
 	local listEl = doc and doc:GetElementById("material-list")
-	if not listEl or not WG.DiffusePainter then return end
+	if not listEl or not WG.DiffusePainter then
+		return
+	end
 
 	listEl.inner_rml = ""
 	materialElements = {}
@@ -316,7 +363,9 @@ local function rebuildMaterialList(filter)
 
 			local itemEl = doc:CreateElement("div")
 			itemEl:SetClass("dml-material-item", true)
-			if mat.path == activePath then itemEl:SetClass("selected", true) end
+			if mat.path == activePath then
+				itemEl:SetClass("selected", true)
+			end
 
 			local thumbEl = doc:CreateElement("div")
 			thumbEl:SetClass("dml-material-thumb", true)
@@ -378,7 +427,9 @@ end
 ----------------------------------------------------------------
 function widget:OnQuit()
 	manuallyHidden = true
-	if widgetState.dmHandle then widgetState.dmHandle.hidden = true end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.hidden = true
+	end
 end
 
 function widget:OnSearchFocus()
@@ -395,14 +446,20 @@ function widget:OnSearchChange()
 	local doc = widgetState.document
 	local el = doc and doc:GetElementById("material-search")
 	local val = el and el:GetAttribute("value") or ""
-	if val == lastSearchFilter then return end
+	if val == lastSearchFilter then
+		return
+	end
 	lastSearchFilter = val
-	if widgetState.dmHandle then widgetState.dmHandle.search = val end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = val
+	end
 	rebuildMaterialList(val)
 end
 
 function widget:OnSearchClear()
-	if widgetState.dmHandle then widgetState.dmHandle.search = "" end
+	if widgetState.dmHandle then
+		widgetState.dmHandle.search = ""
+	end
 	lastSearchFilter = ""
 	rebuildMaterialList("")
 end
@@ -412,7 +469,9 @@ end
 ----------------------------------------------------------------
 local function attachEventListeners()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	for _, key in ipairs(CATEGORY_ORDER) do
 		local btn = doc:GetElementById("btn-dmlcat-" .. key)
@@ -445,10 +504,11 @@ local function attachEventListeners()
 	rebuildMaterialList("")
 
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "dml-handle", widgetState.rootElement,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "dml-handle", widgetState.rootElement, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -461,10 +521,14 @@ function widget:Initialize()
 	pcall(Spring.CreateDir, THUMB_CACHE_DIR)
 
 	widgetState.rmlContext = RmlUi.GetContext("shared")
-	if not widgetState.rmlContext then return false end
+	if not widgetState.rmlContext then
+		return false
+	end
 
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
-	if not dm then return false end
+	if not dm then
+		return false
+	end
 	widgetState.dmHandle = dm
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
@@ -486,7 +550,9 @@ function widget:Initialize()
 end
 
 function widget:Update()
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
 	local function setHidden(v)
 		if widgetState.dmHandle and widgetState.dmHandle.hidden ~= v then
@@ -506,7 +572,9 @@ function widget:Update()
 	end
 	lastActive = isActive
 	setHidden((not isActive) or manuallyHidden)
-	if not isActive then return end
+	if not isActive then
+		return
+	end
 
 	-- Sync two-way-bound search filter back to internal state.
 	if widgetState.dmHandle then
@@ -518,13 +586,10 @@ function widget:Update()
 	end
 
 	-- Position to the right of the main terraform panel (until user drags).
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
-		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local gap = 8
-		widgetState.rootElement:SetAttribute("style",
-			string.format("left: %dpx; top: %dpx;",
-				mainPanel.left + (mainPanel.width or 0) + gap, mainPanel.top))
+		widgetState.rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", mainPanel.left + (mainPanel.width or 0) + gap, mainPanel.top))
 	end
 
 	-- Rebuild on library size change (e.g. a rescan adds materials). The rebuild

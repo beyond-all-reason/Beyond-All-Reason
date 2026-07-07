@@ -27,7 +27,7 @@ return {
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -179,12 +179,12 @@ return {
 				--engine bug?
 				burstControlWhenOutOfArc = 1,
 				maindir = "0 0 1",
-               --maxangledif = 10,
+				--maxangledif = 10,
 			},
 			[2] = {
 				def = "energycharger",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

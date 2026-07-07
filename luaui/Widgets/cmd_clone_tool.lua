@@ -13,55 +13,55 @@ end
 -- ---------------------------------------------------------------------------
 -- Spring API aliases
 -- ---------------------------------------------------------------------------
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spGetMetalAmount        = Spring.GetMetalAmount
-local spGetMetalMapSize       = Spring.GetMetalMapSize
-local spTraceScreenRay        = Spring.TraceScreenRay
-local spGetMouseState         = Spring.GetMouseState
-local spGetModKeyState        = Spring.GetModKeyState
-local spSendLuaRulesMsg       = Spring.SendLuaRulesMsg
-local spIsCheatingEnabled     = Spring.IsCheatingEnabled
-local spGetAllFeatures        = Spring.GetAllFeatures
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetMetalAmount = Spring.GetMetalAmount
+local spGetMetalMapSize = Spring.GetMetalMapSize
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetMouseState = Spring.GetMouseState
+local spGetModKeyState = Spring.GetModKeyState
+local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
+local spIsCheatingEnabled = Spring.IsCheatingEnabled
+local spGetAllFeatures = Spring.GetAllFeatures
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local spGetFeatureDefID       = Spring.GetFeatureDefID
-local spGetFeaturePosition    = Spring.GetFeaturePosition
-local spGetFeatureHeading     = Spring.GetFeatureHeading
-local spGetFeatureRotation    = Spring.GetFeatureRotation
-local spGetGroundNormal       = Spring.GetGroundNormal
-local spEcho                  = Spring.Echo
-local spGetGameFrame          = Spring.GetGameFrame
+local spGetFeatureDefID = Spring.GetFeatureDefID
+local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetFeatureHeading = Spring.GetFeatureHeading
+local spGetFeatureRotation = Spring.GetFeatureRotation
+local spGetGroundNormal = Spring.GetGroundNormal
+local spEcho = Spring.Echo
+local spGetGameFrame = Spring.GetGameFrame
 
-local glColor            = gl.Color
-local glLineWidth        = gl.LineWidth
-local glDepthTest        = gl.DepthTest
-local glBeginEnd         = gl.BeginEnd
-local glVertex           = gl.Vertex
-local glPolygonOffset    = gl.PolygonOffset
-local glBlending         = gl.Blending
-local glTexture          = gl.Texture
-local glTexRect          = gl.TexRect
-local glCreateTexture    = gl.CreateTexture
-local glDeleteTexture    = gl.DeleteTexture
-local glRenderToTexture  = gl.RenderToTexture
-local glReadPixels       = gl.ReadPixels
+local glColor = gl.Color
+local glLineWidth = gl.LineWidth
+local glDepthTest = gl.DepthTest
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
+local glPolygonOffset = gl.PolygonOffset
+local glBlending = gl.Blending
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
+local glCreateTexture = gl.CreateTexture
+local glDeleteTexture = gl.DeleteTexture
+local glRenderToTexture = gl.RenderToTexture
+local glReadPixels = gl.ReadPixels
 
-local GL_LINE_LOOP       = GL.LINE_LOOP
-local GL_LINES           = GL.LINES
-local GL_QUADS           = GL.QUADS
-local GL_TRIANGLE_FAN    = GL.TRIANGLE_FAN
-local GL_SRC_ALPHA       = GL.SRC_ALPHA
+local GL_LINE_LOOP = GL.LINE_LOOP
+local GL_LINES = GL.LINES
+local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local floor = math.floor
-local ceil  = math.ceil
-local min   = math.min
-local max   = math.max
-local cos   = math.cos
-local sin   = math.sin
-local rad   = math.rad
-local abs   = math.abs
-local huge  = math.huge
-local pi    = math.pi
+local ceil = math.ceil
+local min = math.min
+local max = math.max
+local cos = math.cos
+local sin = math.sin
+local rad = math.rad
+local abs = math.abs
+local huge = math.huge
+local pi = math.pi
 
 local Game = Game
 local mapSizeX = Game.mapSizeX
@@ -72,17 +72,17 @@ local metalSquareSize = 16
 -- ---------------------------------------------------------------------------
 -- Message headers (must match gadget)
 -- ---------------------------------------------------------------------------
-local MSG_TERRAIN         = "$clone_terrain$"
-local MSG_METAL           = "$clone_metal$"
-local MSG_FEATURES        = "$clone_features$"
-local MSG_FEATURES_CLEAR  = "$clone_features_clear$"
-local MSG_UNDO            = "$clone_undo$"
-local MSG_REDO            = "$clone_redo$"
-local MSG_TBEGIN          = "$clone_tbegin$"
-local MSG_TGRID           = "$clone_tgrid$"
-local MSG_TEND            = "$clone_tend$"
+local MSG_TERRAIN = "$clone_terrain$"
+local MSG_METAL = "$clone_metal$"
+local MSG_FEATURES = "$clone_features$"
+local MSG_FEATURES_CLEAR = "$clone_features_clear$"
+local MSG_UNDO = "$clone_undo$"
+local MSG_REDO = "$clone_redo$"
+local MSG_TBEGIN = "$clone_tbegin$"
+local MSG_TGRID = "$clone_tgrid$"
+local MSG_TEND = "$clone_tend$"
 
-local TERRAIN_CHUNK_SIZE  = 400 -- vertices per message (legacy triplet format)
+local TERRAIN_CHUNK_SIZE = 400 -- vertices per message (legacy triplet format)
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
@@ -100,20 +100,21 @@ local selBox = { x1 = 0, z1 = 0, x2 = 0, z2 = 0 }
 local boxDrag = {
 	active = false,
 	handle = nil, -- "tl","tr","bl","br","top","bot","left","right","center"
-	anchorX = 0, anchorZ = 0,
+	anchorX = 0,
+	anchorZ = 0,
 	origBox = nil,
 }
 
 -- Layer toggles
 local layers = {
-	terrain  = true,
-	metal    = true,
+	terrain = true,
+	metal = true,
 	features = true,
-	splats   = true,
-	grass    = true,
-	decals   = false,
-	weather  = false,
-	lights   = false,
+	splats = true,
+	grass = true,
+	decals = false,
+	weather = false,
+	lights = false,
 }
 
 -- Clone buffer
@@ -130,7 +131,7 @@ local pasteMirrorZ = false
 -- Rebuilt only when the paste transform changes or the terrain is modified
 -- (invalidated via UnsyncedHeightMapUpdate). pasteHeightOffset is applied at
 -- draw time, so offset changes don't invalidate the cache.
-local ppCells = {}            -- flat array: wx, wz, groundH, gridH (4 per cell)
+local ppCells = {} -- flat array: wx, wz, groundH, gridH (4 per cell)
 local ppCellCount = 0
 local ppKey = { valid = false }
 
@@ -151,8 +152,8 @@ local splatCaptureFBO = nil
 local splatCaptureW = 0
 local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
-local pendingSplatCapture = nil  -- deferred GL capture (GL calls need Draw context)
-local pendingSplatPaste = nil    -- deferred GL paste (GL calls need Draw context)
+local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
+local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
 
 -- ---------------------------------------------------------------------------
 -- Helpers
@@ -184,8 +185,12 @@ end
 
 -- Transform a local point for paste (mirror, rotate, translate)
 local function transformPoint(lx, lz, sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
-	if mirX then lx = sizeX - lx end
-	if mirZ then lz = sizeZ - lz end
+	if mirX then
+		lx = sizeX - lx
+	end
+	if mirZ then
+		lz = sizeZ - lz
+	end
 	local cx, cz = sizeX * 0.5, sizeZ * 0.5
 	local dx, dz = lx - cx, lz - cz
 	local cosR = cos(rot)
@@ -303,7 +308,9 @@ local function doCopy()
 				wx = min(wx, mapSizeX)
 				wz = min(wz, mapSizeZ)
 				local h = spGetGroundHeight(wx, wz)
-				if h < minH then minH = h end
+				if h < minH then
+					minH = h
+				end
 				rowData[c + 1] = h
 			end
 			grid[r + 1] = rowData
@@ -383,15 +390,19 @@ local function doCopy()
 			local pw = max(1, floor((u1 - u0) * tw))
 			local ph = max(1, floor((v1 - v0) * th))
 			pendingSplatCapture = {
-				u0 = u0, v0 = v0, u1 = u1, v1 = v1,
-				pw = pw, ph = ph,
+				u0 = u0,
+				v0 = v0,
+				u1 = u1,
+				v1 = v1,
+				pw = pw,
+				ph = ph,
 			}
 		end
 	end
 
 	-- Grass
 	if layers.grass then
-		local grassApi = WG['grassgl4']
+		local grassApi = WG["grassgl4"]
 		if grassApi and grassApi.getDensityAt then
 			local grassData = {}
 			local gStep = 32 -- grass patch resolution
@@ -429,7 +440,8 @@ local function doCopy()
 					decalData[#decalData + 1] = {
 						lx = dx - box.x1,
 						lz = dz - box.z1,
-						sizeX = sx, sizeZ = sz,
+						sizeX = sx,
+						sizeZ = sz,
 						rotation = dRot,
 						alpha = dAlpha,
 						tex = texName,
@@ -459,8 +471,7 @@ local function doCopy()
 			if ls and ls.placedLights then
 				local lightData = {}
 				for _, light in ipairs(ls.placedLights) do
-					if light.x and light.x >= box.x1 and light.x <= box.x2
-						and light.z and light.z >= box.z1 and light.z <= box.z2 then
+					if light.x and light.x >= box.x1 and light.x <= box.x2 and light.z and light.z >= box.z1 and light.z <= box.z2 then
 						lightData[#lightData + 1] = {
 							lx = light.x - box.x1,
 							ly = light.y or 0,
@@ -503,7 +514,9 @@ local function startPaste()
 end
 
 local function applyPaste(targetX, targetZ)
-	if not cloneBuffer then return end
+	if not cloneBuffer then
+		return
+	end
 	if not spIsCheatingEnabled() then
 		spEcho("[Clone Tool] WARNING: Cheats are not enabled - paste will be blocked by gadget! Enable cheats first.")
 		return
@@ -513,7 +526,9 @@ local function applyPaste(targetX, targetZ)
 
 	-- Helper to build grid-based terrain messages with quality control
 	local function applyTerrain()
-		if not buf.terrain then return end
+		if not buf.terrain then
+			return
+		end
 		local t = buf.terrain
 		local sX, sZ = buf.sizeX, buf.sizeZ
 		local cx, cz = sX * 0.5, sZ * 0.5
@@ -524,31 +539,52 @@ local function applyPaste(targetX, targetZ)
 		local pasteStep = squareSize
 		local formatHeight
 		if terrainQuality == "full" then
-			formatHeight = function(h) return string.format("%.2f", h) end
+			formatHeight = function(h)
+				return string.format("%.2f", h)
+			end
 		elseif terrainQuality == "fast" then
-			pasteStep = squareSize * 3  -- 24: 9x fewer source vertices
-			formatHeight = function(h) return tostring(floor(h + 0.5)) end
+			pasteStep = squareSize * 3 -- 24: 9x fewer source vertices
+			formatHeight = function(h)
+				return tostring(floor(h + 0.5))
+			end
 		else -- "balanced"
-			formatHeight = function(h) return tostring(floor(h + 0.5)) end
+			formatHeight = function(h)
+				return tostring(floor(h + 0.5))
+			end
 		end
 
 		-- Compute rotated AABB in world space
 		local corners = {
-			{0, 0}, {sX, 0}, {sX, sZ}, {0, sZ}
+			{ 0, 0 },
+			{ sX, 0 },
+			{ sX, sZ },
+			{ 0, sZ },
 		}
 		local wMinX, wMinZ = huge, huge
 		local wMaxX, wMaxZ = -huge, -huge
 		for i = 1, 4 do
 			local lx, lz = corners[i][1], corners[i][2]
-			if pasteMirrorX then lx = sX - lx end
-			if pasteMirrorZ then lz = sZ - lz end
+			if pasteMirrorX then
+				lx = sX - lx
+			end
+			if pasteMirrorZ then
+				lz = sZ - lz
+			end
 			local dx, dz = lx - cx, lz - cz
 			local wx = dx * cosR - dz * sinR + targetX
 			local wz = dx * sinR + dz * cosR + targetZ
-			if wx < wMinX then wMinX = wx end
-			if wx > wMaxX then wMaxX = wx end
-			if wz < wMinZ then wMinZ = wz end
-			if wz > wMaxZ then wMaxZ = wz end
+			if wx < wMinX then
+				wMinX = wx
+			end
+			if wx > wMaxX then
+				wMaxX = wx
+			end
+			if wz < wMinZ then
+				wMinZ = wz
+			end
+			if wz > wMaxZ then
+				wMaxZ = wz
+			end
 		end
 
 		-- Snap to paste grid and clamp to map
@@ -560,7 +596,9 @@ local function applyPaste(targetX, targetZ)
 		-- Grid dimensions
 		local cols = floor((gx1 - gx0) / pasteStep) + 1
 		local rows = floor((gz1 - gz0) / pasteStep) + 1
-		if cols <= 0 or rows <= 0 then return end
+		if cols <= 0 or rows <= 0 then
+			return
+		end
 
 		-- Inverse rotation matrix
 		local icosR = cosR
@@ -585,8 +623,12 @@ local function applyPaste(targetX, targetZ)
 				local dx, dz = wx - targetX, wz - targetZ
 				local lx = dx * icosR - dz * isinR + cx
 				local lz = dx * isinR + dz * icosR + cz
-				if pasteMirrorX then lx = sX - lx end
-				if pasteMirrorZ then lz = sZ - lz end
+				if pasteMirrorX then
+					lx = sX - lx
+				end
+				if pasteMirrorZ then
+					lz = sZ - lz
+				end
 
 				-- Check if inside source bounds
 				if lx >= -0.5 and lx <= sX + 0.5 and lz >= -0.5 and lz <= sZ + 0.5 then
@@ -606,10 +648,7 @@ local function applyPaste(targetX, targetZ)
 					local h10 = t.grid[r0 + 1][c1 + 1]
 					local h01 = t.grid[r1 + 1][c0 + 1]
 					local h11 = t.grid[r1 + 1][c1 + 1]
-					h = h00 * (1 - fc) * (1 - fr)
-						+ h10 * fc * (1 - fr)
-						+ h01 * (1 - fc) * fr
-						+ h11 * fc * fr
+					h = h00 * (1 - fc) * (1 - fr) + h10 * fc * (1 - fr) + h01 * (1 - fc) * fr + h11 * fc * fr
 					h = h + pasteHeightOffset
 				else
 					-- Outside source: keep current ground height
@@ -622,8 +661,7 @@ local function applyPaste(targetX, targetZ)
 		end
 
 		-- Send begin message (tells gadget the full grid extent)
-		sendMsg(MSG_TBEGIN .. gx0 .. " " .. gz0 .. " " .. pasteStep .. " "
-			.. squareSize .. " " .. cols .. " " .. rows)
+		sendMsg(MSG_TBEGIN .. gx0 .. " " .. gz0 .. " " .. pasteStep .. " " .. squareSize .. " " .. cols .. " " .. rows)
 
 		-- Send grid chunks (by rows)
 		local rowsPerChunk = max(1, floor(GRID_HEIGHTS_PER_CHUNK / cols))
@@ -646,11 +684,12 @@ local function applyPaste(targetX, targetZ)
 
 	-- Metal
 	local function applyMetal()
-		if not buf.metal then return end
+		if not buf.metal then
+			return
+		end
 		local entries = {}
 		for _, m in ipairs(buf.metal) do
-			local wx, wz = transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
 			local mx = floor(wx / metalSquareSize)
 			local mz = floor(wz / metalSquareSize)
@@ -687,14 +726,10 @@ local function applyPaste(targetX, targetZ)
 		local clearSizeX = buf.sizeX
 		local clearSizeZ = buf.sizeZ
 		-- Calculate rotated bounding box for clearing
-		local cx1, cz1 = transformPoint(0, 0, clearSizeX, clearSizeZ,
-			rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-		local cx2, cz2 = transformPoint(clearSizeX, clearSizeZ, clearSizeX, clearSizeZ,
-			rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-		local cx3, cz3 = transformPoint(clearSizeX, 0, clearSizeX, clearSizeZ,
-			rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-		local cx4, cz4 = transformPoint(0, clearSizeZ, clearSizeX, clearSizeZ,
-			rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+		local cx1, cz1 = transformPoint(0, 0, clearSizeX, clearSizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+		local cx2, cz2 = transformPoint(clearSizeX, clearSizeZ, clearSizeX, clearSizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+		local cx3, cz3 = transformPoint(clearSizeX, 0, clearSizeX, clearSizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+		local cx4, cz4 = transformPoint(0, clearSizeZ, clearSizeX, clearSizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 		local clearX1 = min(cx1, cx2, cx3, cx4)
 		local clearZ1 = min(cz1, cz2, cz3, cz4)
 		local clearX2 = max(cx1, cx2, cx3, cx4)
@@ -710,8 +745,7 @@ local function applyPaste(targetX, targetZ)
 			local parts = { tostring(chunkSize) }
 			for i = 1, chunkSize do
 				local f = buf.features[offset + i]
-				local wx, wz = transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ,
-					rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+				local wx, wz = transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 				wx, wz = clampToMap(wx, wz)
 				local wy = spGetGroundHeight(wx, wz)
 				local newHeading = f.heading
@@ -738,9 +772,13 @@ local function applyPaste(targetX, targetZ)
 
 	-- Splats: defer GL operations to next DrawWorld
 	local function applySplats()
-		if not buf.splats or not buf.splats.pixels then return end
+		if not buf.splats or not buf.splats.pixels then
+			return
+		end
 		local splatTexInfo = gl.TextureInfo(SPLAT_TEX_NAME)
-		if not splatTexInfo then return end
+		if not splatTexInfo then
+			return
+		end
 		pendingSplatPaste = {
 			tw = splatTexInfo.xsize,
 			th = splatTexInfo.ysize,
@@ -754,9 +792,13 @@ local function applyPaste(targetX, targetZ)
 
 	-- Grass
 	local function applyGrass()
-		if not buf.grass then return end
-		local grassApi = WG['grassgl4']
-		if not grassApi or not grassApi.setDensityAt then return end
+		if not buf.grass then
+			return
+		end
+		local grassApi = WG["grassgl4"]
+		if not grassApi or not grassApi.setDensityAt then
+			return
+		end
 		if grassApi.enableEditMode then
 			grassApi.enableEditMode()
 		end
@@ -767,8 +809,7 @@ local function applyPaste(targetX, targetZ)
 			grassApi.setExternalBrush(true)
 		end
 		for _, g in ipairs(buf.grass) do
-			local wx, wz = transformPoint(g.lx, g.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(g.lx, g.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
 			grassApi.setDensityAt(wx, wz, g.density)
 		end
@@ -784,36 +825,46 @@ local function applyPaste(targetX, targetZ)
 
 	-- Decals
 	local function applyDecals()
-		if not buf.decals or not Spring.CreateGroundDecal then return end
+		if not buf.decals or not Spring.CreateGroundDecal then
+			return
+		end
 		for _, d in ipairs(buf.decals) do
-			local wx, wz = transformPoint(d.lx, d.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(d.lx, d.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
 			local newRot = (d.rotation or 0) + rotRad
 			-- CreateGroundDecal takes no arguments and returns a bare decal id;
 			-- all properties go through the setters (same flow as cmd_decal_placer).
 			local id = Spring.CreateGroundDecal()
 			if id then
-				if d.tex then Spring.SetGroundDecalTexture(id, d.tex, true) end
-				if d.normTex then Spring.SetGroundDecalTexture(id, d.normTex, false) end
+				if d.tex then
+					Spring.SetGroundDecalTexture(id, d.tex, true)
+				end
+				if d.normTex then
+					Spring.SetGroundDecalTexture(id, d.normTex, false)
+				end
 				Spring.SetGroundDecalPosAndDims(id, wx, wz, d.sizeX, d.sizeZ)
 				Spring.SetGroundDecalRotation(id, newRot)
-				if Spring.SetGroundDecalAlpha then Spring.SetGroundDecalAlpha(id, d.alpha or 1, 0) end
+				if Spring.SetGroundDecalAlpha then
+					Spring.SetGroundDecalAlpha(id, d.alpha or 1, 0)
+				end
 			end
 		end
 	end
 
 	-- Lights
 	local function applyLights()
-		if not buf.lights then return end
+		if not buf.lights then
+			return
+		end
 		for _, l in ipairs(buf.lights) do
-			local wx, wz = transformPoint(l.lx, l.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(l.lx, l.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
 			local wy = l.ly + pasteHeightOffset
 			if l.params then
 				local p = {}
-				for k, v in pairs(l.params) do p[k] = v end
+				for k, v in pairs(l.params) do
+					p[k] = v
+				end
 				p.position = { wx, wy, wz }
 				Spring.AddMapLight(p)
 			end
@@ -889,10 +940,10 @@ local function drawGroundRect(box, r, g, b, a, fillA)
 				for x = x1, x2 - gridStep, gridStep do
 					local nx = min(x + gridStep, x2)
 					local nz = min(z + gridStep, z2)
-					glVertex(x,  spGetGroundHeight(x,  z)  + y_offset, z)
-					glVertex(nx, spGetGroundHeight(nx, z)  + y_offset, z)
+					glVertex(x, spGetGroundHeight(x, z) + y_offset, z)
+					glVertex(nx, spGetGroundHeight(nx, z) + y_offset, z)
 					glVertex(nx, spGetGroundHeight(nx, nz) + y_offset, nz)
-					glVertex(x,  spGetGroundHeight(x,  nz) + y_offset, nz)
+					glVertex(x, spGetGroundHeight(x, nz) + y_offset, nz)
 				end
 			end)
 		end
@@ -926,9 +977,13 @@ end
 
 -- Draw feature markers inside box
 local function drawFeatureMarkers(box)
-	if not layers.features then return end
+	if not layers.features then
+		return
+	end
 	local feats = spGetFeaturesInRectangle(box.x1, box.z1, box.x2, box.z2)
-	if not feats or #feats == 0 then return end
+	if not feats or #feats == 0 then
+		return
+	end
 	glColor(0.2, 1.0, 0.3, 0.8)
 	local markerSize = 8
 	for _, fid in ipairs(feats) do
@@ -947,7 +1002,9 @@ end
 
 -- Draw metal markers inside box
 local function drawMetalMarkers(box)
-	if not layers.metal then return end
+	if not layers.metal then
+		return
+	end
 	local mSizeX, mSizeZ = spGetMetalMapSize()
 	local startMX = max(0, floor(box.x1 / metalSquareSize))
 	local startMZ = max(0, floor(box.z1 / metalSquareSize))
@@ -976,7 +1033,9 @@ end
 
 -- Draw paste preview ghost
 local function drawPastePreview(targetX, targetZ)
-	if not cloneBuffer then return end
+	if not cloneBuffer then
+		return
+	end
 	local buf = cloneBuffer
 	local rotRad = rad(pasteRotation)
 
@@ -1017,8 +1076,7 @@ local function drawPastePreview(targetX, targetZ)
 		glColor(0.2, 1.0, 0.3, 0.5)
 		local ms = 10
 		for _, f in ipairs(buf.features) do
-			local wx, wz = transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			local wy = spGetGroundHeight(wx, wz) + yoff
 			glBeginEnd(GL_QUADS, function()
 				glVertex(wx - ms, wy, wz - ms)
@@ -1034,8 +1092,7 @@ local function drawPastePreview(targetX, targetZ)
 		glColor(0.8, 0.6, 0.1, 0.5)
 		local ms = 6
 		for _, m in ipairs(buf.metal) do
-			local wx, wz = transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ,
-				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+			local wx, wz = transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			local wy = spGetGroundHeight(wx, wz) + yoff
 			glBeginEnd(GL_QUADS, function()
 				glVertex(wx - ms, wy, wz - ms)
@@ -1053,16 +1110,13 @@ local function drawPastePreview(targetX, targetZ)
 		local previewStep = max(1, floor(t.cols / 50)) -- limit density for perf
 		-- Rebuild the sampled cell cache only when the paste transform or the
 		-- terrain changed; otherwise replay the cached samples.
-		if not (ppKey.valid and ppKey.x == targetX and ppKey.z == targetZ
-			and ppKey.rot == pasteRotation and ppKey.mirX == pasteMirrorX
-			and ppKey.mirZ == pasteMirrorZ and ppKey.buf == buf) then
+		if not (ppKey.valid and ppKey.x == targetX and ppKey.z == targetZ and ppKey.rot == pasteRotation and ppKey.mirX == pasteMirrorX and ppKey.mirZ == pasteMirrorZ and ppKey.buf == buf) then
 			local n = 0
 			for r = 0, t.rows - 1, previewStep do
 				for c = 0, t.cols - 1, previewStep do
 					local lx = c * t.stepX
 					local lz = r * t.stepZ
-					local wx, wz = transformPoint(lx, lz, buf.sizeX, buf.sizeZ,
-						rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
+					local wx, wz = transformPoint(lx, lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 					ppCells[n + 1] = wx
 					ppCells[n + 2] = wz
 					ppCells[n + 3] = spGetGroundHeight(wx, wz)
@@ -1115,19 +1169,37 @@ local function getBoxHandle(wx, wz, box)
 	local ht = HANDLE_THRESHOLD
 
 	-- Corners
-	if abs(wx - x1) < ht and abs(wz - z1) < ht then return "tl" end
-	if abs(wx - x2) < ht and abs(wz - z1) < ht then return "tr" end
-	if abs(wx - x1) < ht and abs(wz - z2) < ht then return "bl" end
-	if abs(wx - x2) < ht and abs(wz - z2) < ht then return "br" end
+	if abs(wx - x1) < ht and abs(wz - z1) < ht then
+		return "tl"
+	end
+	if abs(wx - x2) < ht and abs(wz - z1) < ht then
+		return "tr"
+	end
+	if abs(wx - x1) < ht and abs(wz - z2) < ht then
+		return "bl"
+	end
+	if abs(wx - x2) < ht and abs(wz - z2) < ht then
+		return "br"
+	end
 
 	-- Edges
-	if abs(wz - z1) < ht and wx > x1 and wx < x2 then return "top" end
-	if abs(wz - z2) < ht and wx > x1 and wx < x2 then return "bot" end
-	if abs(wx - x1) < ht and wz > z1 and wz < z2 then return "left" end
-	if abs(wx - x2) < ht and wz > z1 and wz < z2 then return "right" end
+	if abs(wz - z1) < ht and wx > x1 and wx < x2 then
+		return "top"
+	end
+	if abs(wz - z2) < ht and wx > x1 and wx < x2 then
+		return "bot"
+	end
+	if abs(wx - x1) < ht and wz > z1 and wz < z2 then
+		return "left"
+	end
+	if abs(wx - x2) < ht and wz > z1 and wz < z2 then
+		return "right"
+	end
 
 	-- Inside
-	if wx >= x1 and wx <= x2 and wz >= z1 and wz <= z2 then return "center" end
+	if wx >= x1 and wx <= x2 and wz >= z1 and wz <= z2 then
+		return "center"
+	end
 
 	return nil
 end
@@ -1136,7 +1208,9 @@ end
 -- Widget callins
 -- ---------------------------------------------------------------------------
 function widget:DrawWorld()
-	if not active then return end
+	if not active then
+		return
+	end
 
 	-- Complete deferred splat capture (GL calls require Draw context)
 	if pendingSplatCapture and cloneBuffer then
@@ -1168,7 +1242,10 @@ function widget:DrawWorld()
 				fboHandle = splatCaptureFBO,
 				pixelW = sc.pw,
 				pixelH = sc.ph,
-				u0 = sc.u0, v0 = sc.v0, u1 = sc.u1, v1 = sc.v1,
+				u0 = sc.u0,
+				v0 = sc.v0,
+				u1 = sc.u1,
+				v1 = sc.v1,
 				pixels = pixelData,
 			}
 		end
@@ -1220,7 +1297,9 @@ function widget:DrawWorld()
 	elseif state == "box_drawn" or state == "copied" then
 		local isGreen = (state == "copied")
 		local cr, cg, cb = 1.0, 0.8, 0.0
-		if isGreen then cr, cg, cb = 0.3, 1.0, 0.5 end
+		if isGreen then
+			cr, cg, cb = 0.3, 1.0, 0.5
+		end
 		drawGroundRect(box, cr, cg, cb, 0.9, 0.06)
 		drawHandles(box)
 		drawFeatureMarkers(box)
@@ -1241,18 +1320,24 @@ function widget:DrawWorld()
 end
 
 function widget:MousePress(mx, my, button)
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	-- Defer to measure tool when active
 	do
 		local tb = WG.TerraformBrush
 		local stb = tb and tb.getState and tb.getState() or nil
-		if stb and stb.measureActive then return false end
+		if stb and stb.measureActive then
+			return false
+		end
 	end
 
 	if button == 1 then -- LMB
 		local wx, wz = getWorldMousePosition()
-		if not wx then return false end
+		if not wx then
+			return false
+		end
 
 		if state == "idle" then
 			-- Start selection
@@ -1293,7 +1378,9 @@ function widget:MousePress(mx, my, button)
 			if stb and stb.symmetryActive and tb.getSymmetricPositions then
 				local positions2 = tb.getSymmetricPositions(px, pz, pasteRotation)
 				if positions2 and #positions2 > 0 then
-					for _, p in ipairs(positions2) do applyPaste(p.x, p.z) end
+					for _, p in ipairs(positions2) do
+						applyPaste(p.x, p.z)
+					end
 				else
 					applyPaste(px, pz)
 				end
@@ -1314,10 +1401,14 @@ function widget:MousePress(mx, my, button)
 end
 
 function widget:MouseMove(mx, my, dmx, dmy, button)
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	local wx, wz = getWorldMousePosition()
-	if not wx then return false end
+	if not wx then
+		return false
+	end
 
 	if state == "selecting" then
 		selBox.x2 = wx
@@ -1379,7 +1470,9 @@ function widget:MouseMove(mx, my, dmx, dmy, button)
 end
 
 function widget:MouseRelease(mx, my, button)
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	if button == 1 then
 		if state == "selecting" then
@@ -1405,7 +1498,9 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if not active then return false end
+	if not active then
+		return false
+	end
 
 	-- Ctrl+C → Copy
 	if key == 99 and mods.ctrl then -- 'c'
@@ -1461,7 +1556,9 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MouseWheel(up, value)
-	if not active or state ~= "paste_preview" then return false end
+	if not active or state ~= "paste_preview" then
+		return false
+	end
 
 	local altHeld, _, _, shiftHeld = spGetModKeyState()
 
@@ -1507,20 +1604,20 @@ end
 function widget:Initialize()
 	-- Expose API
 	WG.CloneTool = {
-		activate     = activate,
-		deactivate   = deactivate,
-		getState     = getState,
-		setLayer     = setLayer,
+		activate = activate,
+		deactivate = deactivate,
+		getState = getState,
+		setLayer = setLayer,
 		setTerrainQuality = setTerrainQuality,
-		setRotation  = setRotation,
+		setRotation = setRotation,
 		setHeightOffset = setHeightOffset,
-		setMirrorX   = setMirrorX,
-		setMirrorZ   = setMirrorZ,
-		doCopy       = doCopy,
-		startPaste   = startPaste,
+		setMirrorX = setMirrorX,
+		setMirrorZ = setMirrorZ,
+		doCopy = doCopy,
+		startPaste = startPaste,
 		cancelOperation = cancelOperation,
-		undo         = doUndo,
-		redo         = doRedo,
+		undo = doUndo,
+		redo = doRedo,
 	}
 
 	widgetHandler:RegisterGlobal("CloneToolStackUpdate", function(undoCount, redoCount)
