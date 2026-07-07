@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local customPresetOptions -- forward-decl: read in options export
+
 function widget:GetInfo()
 	return {
 		name = "Options",

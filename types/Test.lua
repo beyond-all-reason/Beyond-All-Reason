@@ -157,6 +157,13 @@ function assertThrows(fn, errorMsg, depthOffset) end
 ---@param depthOffset? integer
 function assertThrowsMessage(fn, testMsg, errorMsg, depthOffset) end
 
+--- Assert `actual == expected`. `errorMsg` overrides the generated
+--- "expected X, actual Y" message.
+---@param actual any
+---@param expected any
+---@param errorMsg? string
+function assertEqual(actual, expected, errorMsg) end
+
 --- Lua-5.1 compatible `table.pack` reimplementation exposed to tests as a
 --- bare global. Returns a table with args by index + an `n` field holding
 --- the count (including embedded nils).

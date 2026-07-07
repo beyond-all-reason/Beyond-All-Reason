@@ -2,6 +2,9 @@ local devUI = BAR.Utilities.ShowDevUI()
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
 
+local GetAliveTeammates -- forward-decl: called at ~2435, defined later
+local hideEnergyOnlyFeatures = false -- forward-decl: read below
+
 pipNumber = pipNumber or 1
 
 -- Special mode flags
@@ -5029,7 +5032,7 @@ local function GetPlayerSkill(playerID)
 end
 
 -- Helper function to get alive teammates (excluding self and AI)
-local function GetAliveTeammates(out)
+function GetAliveTeammates(out)
 	out = out or {}
 	for i = #out, 1, -1 do
 		out[i] = nil

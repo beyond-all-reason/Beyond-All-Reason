@@ -59,6 +59,7 @@ function run_nano_commands(nturrets, ntargets, turretDef, targetDef)
 		targetDef = locals.targetDef
 		nturrets = locals.nturrets
 	end
+	local opts = {} -- no-shift options; first target is immediate, rest shift-queued
 	local shiftOpts = { "shift" }
 	local currOpt
 	local CMD_RECLAIM = CMD.RECLAIM
