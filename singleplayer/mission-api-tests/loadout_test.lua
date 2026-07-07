@@ -3,9 +3,9 @@
 ---
 
 local triggerTypes   = GG['MissionAPI'].TriggerTypes
-local actionTypes    = GG['MissionAPI'].ActionTypes
+local actionTypes    = GG['MissionAPI'].ActionDefinitions.Types
 
-local triggers       = {
+local triggers = {
 
 	intro = {
 		type = triggerTypes.TimeElapsed,

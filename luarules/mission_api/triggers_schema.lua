@@ -1,4 +1,4 @@
-local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
+local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local triggerTypes = {
 	-- Time

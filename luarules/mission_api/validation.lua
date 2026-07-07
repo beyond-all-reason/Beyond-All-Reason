@@ -42,7 +42,7 @@ local function validateField(value, fieldName, expectedType)
 	end
 end
 
-local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+local parameterTypes = GG['MissionAPI'].Modules.ParameterTypes
 local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 
@@ -443,7 +443,8 @@ end
 local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local triggersSchemaSettings = triggersSchema.Settings
 local triggersSchemaParameters = triggersSchema.Parameters
-local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionsSchemaParameters = actionDefinitions.Parameters
 
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
 	if not actionOrTriggerType then
@@ -465,7 +466,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 					logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
 				end
 			else
-				local validationResults = validators[parameter.type](value) or {}
+				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
 				for _, validationResult in pairs(validationResults) do
 					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
 				end
@@ -907,7 +908,7 @@ end
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local triggerTypes = GG['MissionAPI'].TriggerTypes
-	local actionTypes = GG['MissionAPI'].ActionTypes
+	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 	local triggers = GG['MissionAPI'].Triggers
 	local actions = GG['MissionAPI'].Actions
 	local unitLoadout = GG['MissionAPI'].UnitLoadout

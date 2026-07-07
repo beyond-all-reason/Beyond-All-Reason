@@ -464,7 +464,7 @@ function gadget:Initialize()
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
-	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
+	local tracking          = GG['MissionAPI'].Modules.Tracking
 	doesUnitHaveName        = tracking.DoesUnitHaveName
 	untrackUnitID           = tracking.UntrackUnitID
 	doesFeatureHaveName     = tracking.DoesFeatureHaveName

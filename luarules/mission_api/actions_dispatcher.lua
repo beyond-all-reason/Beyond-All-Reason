@@ -1,6 +1,6 @@
-local actionsSchema = VFS.Include('luarules/mission_api/actions_schema.lua')
-local actionFunctions = VFS.Include('luarules/mission_api/actions.lua')
-local parameterSchema = actionsSchema.Parameters
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionFunctions = actionDefinitions.Functions
+local parameterSchema = actionDefinitions.Parameters
 local actions = GG['MissionAPI'].Actions
 
 

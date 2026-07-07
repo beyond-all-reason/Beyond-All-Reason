@@ -1,11 +1,17 @@
 require("spec_helper")
 
+-- mirror eager module loading in api_missions.lua
+GG['MissionAPI'] = GG['MissionAPI'] or {}
+GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
+GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
+
 local validation    = VFS.Include('luarules/mission_api/validation.lua')
 local triggerSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local actionSchema  = VFS.Include('luarules/mission_api/actions_schema.lua')
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 
 local triggerTypes  = triggerSchema.Types
-local actionTypes   = actionSchema.Types
+local actionTypes   = actionDefinitions.Types
 
 -- Mirrors the normalisation done by triggers_loader before calling ValidateTriggers.
 local function normalizeTrigger(raw)
@@ -38,10 +44,11 @@ describe("mission_api.validation", function()
 		_G.FeatureDefNames       = {}
 		_G.WeaponDefNames        = {}
 		GG['MissionAPI']         = {
-			TriggerTypes = triggerTypes,
-			ActionTypes  = actionTypes,
-			Triggers     = {},
-			Actions      = {},
+			TriggerTypes       = triggerTypes,
+			Modules            = {},
+			ActionDefinitions  = actionDefinitions,
+			Triggers           = {},
+			Actions            = {},
 		}
 	end)
 
@@ -221,35 +228,35 @@ describe("mission_api.validation", function()
 			it("rejects wrong type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 123, teamID = 0, position = { x = 0, z = 0 } },
+					parameters = { unitLoadout = { { unitDefName = 123, team = 0, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: unitDefName"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Unexpected parameter type, expected string, got number"))
 			end)
 
 			it("rejects unknown unit def name", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'noSuch', teamID = 0, position = { x = 0, z = 0 } },
+					parameters = { unitLoadout = { { unitDefName = 'noSuch', team = 0, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Invalid unitDefName: noSuch. Action: a, Parameter: unitDefName"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Invalid unitDefName: noSuch"))
 			end)
 		end)
 
 		describe("FeatureDefName", function()
 			it("rejects wrong type", function()
 				actionErrors({
-					type       = actionTypes.CreateFeature,
-					parameters = { featureDefName = 123, position = { x = 0, z = 0 } },
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 123, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: featureDefName"))
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1, field 'featureDefName': Unexpected parameter type, expected string, got number"))
 			end)
 
 			it("rejects unknown feature def name", function()
 				actionErrors({
-					type       = actionTypes.CreateFeature,
-					parameters = { featureDefName = 'noSuch', position = { x = 0, z = 0 } },
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 'noSuch', x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Invalid featureDefName: noSuch. Action: a, Parameter: featureDefName"))
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1, field 'featureDefName': Invalid featureDefName: noSuch"))
 			end)
 		end)
 
@@ -275,17 +282,17 @@ describe("mission_api.validation", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 0, position = { x = 0, z = 0 }, facing = {} },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = {} } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string or number, got table. Action: a, Parameter: facing"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
 			end)
 
 			it("rejects invalid facing value", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 0, position = { x = 0, z = 0 }, facing = 'diagonal' },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = 'diagonal' } } },
 				})
-				assert.is_true(hasError("Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'.. Action: a, Parameter: facing"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
 			end)
 		end)
 
@@ -317,8 +324,8 @@ describe("mission_api.validation", function()
 		describe("TeamID", function()
 			it("rejects wrong type", function()
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 'bad', position = { x = 0, z = 0 } },
+					type       = actionTypes.AddResources,
+					parameters = { teamID = 'bad' },
 				})
 				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"))
 			end)
@@ -326,8 +333,8 @@ describe("mission_api.validation", function()
 			it("rejects invalid team ID", function()
 				Spring.GetTeamAllyTeamID = function() return nil end
 				actionErrors({
-					type       = actionTypes.SpawnUnits,
-					parameters = { unitDefName = 'armwar', teamID = 99, position = { x = 0, z = 0 } },
+					type       = actionTypes.AddResources,
+					parameters = { teamID = 99 },
 				})
 				assert.is_true(hasError("Invalid teamID: 99. Action: a, Parameter: teamID"))
 			end)
@@ -553,9 +560,9 @@ describe("mission_api.validation", function()
 				},
 			}
 			GG['MissionAPI'].Actions = {
-				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitName = 'bot' } },
-				create = { type = actionTypes.CreateFeature, parameters = { featureName = 'rock' } },
-				delete = { type = actionTypes.DestroyFeature, parameters = { featureName = 'rock' } },
+				spawn  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitName = 'bot' } } } },
+				create = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureName = 'rock' } } } },
+				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'rock' } },
 				add    = { type = actionTypes.AddMarker, parameters = { name = 'flag' } },
 				erase  = { type = actionTypes.EraseMarker, parameters = { name = 'flag' } },
 			}
@@ -568,19 +575,19 @@ describe("mission_api.validation", function()
 		it("logs errors for unit, feature, and marker names that are created-but-not-referenced or referenced-but-not-created",
 			function()
 			GG['MissionAPI'].Actions = {
-				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitName = 'unusedUnit' } },
+				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitName = 'unusedUnit' } } } },
 				useUnknown   = { type = actionTypes.DespawnUnits, parameters = { unitName = 'unknownUnit' } },
-				createUnused = { type = actionTypes.CreateFeature, parameters = { featureName = 'unusedRock' } },
-				deleteUnknown = { type = actionTypes.DestroyFeature, parameters = { featureName = 'unknownRock' } },
+				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureName = 'unusedRock' } } } },
+				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },
 				addUnused    = { type = actionTypes.AddMarker, parameters = { name = 'unusedFlag' } },
 				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = 'unknownFlag' } },
 			}
 
 			validation.ValidateReferences()
 
-			assert.is_true(hasError("Unit name 'unusedUnit' created, but not referenced by any trigger or action. Created in: action spawnUnused"))
+			assert.is_true(hasError("Unit name 'unusedUnit' created, but not referenced by any trigger or action. Created in: action spawnUnused, unitLoadout entry #1"))
 			assert.is_true(hasError("Unit name 'unknownUnit' not created in any trigger or action. Referenced in: action useUnknown"))
-			assert.is_true(hasError("Feature name 'unusedRock' created, but not referenced by any trigger or action. Created in: action createUnused"))
+			assert.is_true(hasError("Feature name 'unusedRock' created, but not referenced by any trigger or action. Created in: action createUnused, featureLoadout entry #1"))
 			assert.is_true(hasError("Feature name 'unknownRock' not created in any trigger or action. Referenced in: action deleteUnknown"))
 			assert.is_true(hasError("Marker name 'unusedFlag' is not referenced by any action. Referenced in: addUnused"))
 			assert.is_true(hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: eraseUnknown"))
