@@ -1,4 +1,4 @@
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
@@ -25,12 +25,12 @@ local function consumeStagedFirestateContext(unitID)
 end
 
 local function issueToUnit(unitID, userState, userInitiated)
-	local engineFirestate = Firestates.toEngineFirestate(userState)
+	local engineFirestate = CustomFirestateDefs.toEngineFirestate(userState)
 	if engineFirestate == nil then
 		return false
 	end
 	if Spring.GetModOptions().experimental_defend_firestate then
-		spGiveOrderToUnit(unitID, CMD_USER_FIRESTATE, Firestates.buildUserFirestateParams(userState, userInitiated), 0)
+		spGiveOrderToUnit(unitID, CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
 	else
 		spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { engineFirestate }, 0)
 	end
@@ -59,9 +59,9 @@ local function giveFirestateToSelection(userState, unitIDs, opts)
 	stageFirestateContext(unitIDs, userState, userInitiated)
 	notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	if Spring.GetModOptions().experimental_defend_firestate then
-		spGiveOrder(CMD_USER_FIRESTATE, Firestates.buildUserFirestateParams(userState, userInitiated), 0)
+		spGiveOrder(CMD_USER_FIRESTATE, CustomFirestateDefs.buildUserFirestateParams(userState, userInitiated), 0)
 	else
-		local engineFirestate = Firestates.toEngineFirestate(userState)
+		local engineFirestate = CustomFirestateDefs.toEngineFirestate(userState)
 		if engineFirestate == nil then
 			return false
 		end
@@ -84,9 +84,9 @@ local function setFirestateForUnits(userState, unitIDs, opts)
 	return true
 end
 
-local function parseFirestateCommandContext(cmdID, cmdParams, unitID)
+local function decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 	if cmdID == CMD_USER_FIRESTATE then
-		local userState, userInitiated = Firestates.parseUserFirestateParams(cmdParams)
+		local userState, userInitiated = CustomFirestateDefs.parseUserFirestateParams(cmdParams)
 		return userState, userInitiated, true
 	end
 	if cmdID == CMD_FIRE_STATE then
@@ -95,7 +95,7 @@ local function parseFirestateCommandContext(cmdID, cmdParams, unitID)
 		local userInitiated = stagedContext and stagedContext.userInitiated == true
 		local userState = stagedContext and stagedContext.userState
 		if userState == nil then
-			userState = Firestates.fromEngineFirestate(cmdParams and cmdParams[1])
+			userState = CustomFirestateDefs.fromEngineFirestate(cmdParams and cmdParams[1])
 		end
 		return userState, userInitiated, wasStagedByApi
 	end
@@ -104,6 +104,6 @@ end
 
 WG['firestate'].giveFirestateToSelection = giveFirestateToSelection
 WG['firestate'].setFirestateForUnits = setFirestateForUnits
-WG['firestate'].parseFirestateCommandContext = parseFirestateCommandContext
+WG['firestate'].decodeFirestateUnitCommand = decodeFirestateUnitCommand
 
 return WG['firestate']

@@ -24,7 +24,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
 local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
@@ -46,6 +46,7 @@ local function resolveHotkeyTargetVirtualIndex(optWords)
 	return OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, shift)
 end
 
+--zzz need to check and make sure that this doesn't interfere with gridmenu keybind interception
 local function installFirestateNotifyHooks()
 	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
 	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
@@ -435,7 +436,7 @@ local function refreshCommands()
 	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
 		if isStateCommand[cmd.id] then
-			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or Firestates.stateLabel(cmd)
+			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
 			if commandState then
 				if not commandTextCache[commandState] then
 					commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
@@ -1146,7 +1147,7 @@ function widget:DrawScreen()
 							if tooltip ~= '' then
 								local title
 								if isStateCommand[cmd.id] then
-									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or Firestates.stateLabel(cmd)
+									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
 									if commandState then
 										title = getCachedTranslation('ui.orderMenu.' .. commandState)
 									end

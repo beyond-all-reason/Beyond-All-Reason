@@ -31,8 +31,8 @@ local HOLD_FIRE   = 0
 local RETURN_FIRE = 1
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local Firestates = VFS.Include("modules/firestates.lua")
-local FirestateApi = VFS.Include("luaui/Include/firestate_api.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
 
 -- Textures to display (replace with dedicated icons if available)
 local holdFireTexture   = "LuaUI/Images/holdfire.png"
@@ -243,10 +243,10 @@ local function clearAllIcons()
 end
 
 local function userStateToIconState(userState)
-	if userState == Firestates.HOLD_FIRE then
+	if userState == CustomFirestateDefs.HOLD_FIRE then
 		return HOLD_FIRE
 	end
-	if userState == Firestates.DEFEND or userState == Firestates.RETURN_FIRE then
+	if userState == CustomFirestateDefs.DEFEND or userState == CustomFirestateDefs.RETURN_FIRE then
 		return RETURN_FIRE
 	end
 end
@@ -254,9 +254,9 @@ end
 local function resolveActualUserFirestate(unitID)
 	if not spValidUnitID(unitID) then return nil end
 	if Spring.GetModOptions().experimental_defend_firestate then
-		return Firestates.resolveUserFirestate(unitID)
+		return CustomFirestateDefs.getUnitUserFirestate(unitID)
 	end
-	return Firestates.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+	return CustomFirestateDefs.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
 end
 
 local function migrateUserSelectedFirestateStore()
@@ -266,18 +266,18 @@ local function migrateUserSelectedFirestateStore()
 	local oldReturn = WG['unitfirestate_manualreturn'] or {}
 	for unitID, value in pairs(oldHold) do
 		if value and userSelectedFirestate[unitID] == nil then
-			userSelectedFirestate[unitID] = Firestates.HOLD_FIRE
+			userSelectedFirestate[unitID] = CustomFirestateDefs.HOLD_FIRE
 		end
 	end
 	for unitID, value in pairs(oldReturn) do
 		if value and userSelectedFirestate[unitID] == nil then
-			userSelectedFirestate[unitID] = Firestates.RETURN_FIRE
+			userSelectedFirestate[unitID] = CustomFirestateDefs.RETURN_FIRE
 		end
 	end
 end
 
 local function setUserSelectedFirestate(unitID, userState)
-	if userState == Firestates.HOLD_FIRE or userState == Firestates.DEFEND or userState == Firestates.RETURN_FIRE then
+	if userState == CustomFirestateDefs.HOLD_FIRE or userState == CustomFirestateDefs.DEFEND or userState == CustomFirestateDefs.RETURN_FIRE then
 		userSelectedFirestate[unitID] = userState
 	else
 		userSelectedFirestate[unitID] = nil
@@ -338,7 +338,7 @@ local function refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActual
 	local selectedState = userSelectedFirestate[unitID]
 	local showHold = false
 	local showReturn = false
-	if showAllHoldFireIcons and actualState == Firestates.HOLD_FIRE then
+	if showAllHoldFireIcons and actualState == CustomFirestateDefs.HOLD_FIRE then
 		showHold = true
 	elseif selectedState ~= nil and selectedState == actualState then
 		local iconState = userStateToIconState(actualState)
@@ -469,7 +469,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 	if teamID == gaiaTeamID then return end
 	if cmdID ~= CMD_USER_FIRESTATE and cmdID ~= CMD_FIRE_STATE then return end
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then return end
-	local userState, userInitiated, wasStagedByApi = FirestateApi.parseFirestateCommandContext(cmdID, cmdParams, unitID)
+	local userState, userInitiated, wasStagedByApi = UserFirestateCommands.decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 	if userState == nil then return end
 	applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, wasStagedByApi)
 end

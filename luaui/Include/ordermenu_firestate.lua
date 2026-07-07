@@ -1,7 +1,7 @@
 --DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables.
 
-local Firestates = VFS.Include("modules/firestates.lua")
-local FirestateApi = VFS.Include("luaui/Include/firestate_api.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 
@@ -24,35 +24,35 @@ local descrByState = {
 }
 
 local virtualIndexByStateDisabled = {
-	[Firestates.HOLD_FIRE] = 1,
-	[Firestates.RETURN_FIRE] = 2,
-	[Firestates.AGGRESSIVE] = 3,
-	[Firestates.DEFEND] = 4,
-	[Firestates.FIRE_AT_ALL] = 5,
+	[CustomFirestateDefs.HOLD_FIRE] = 1,
+	[CustomFirestateDefs.RETURN_FIRE] = 2,
+	[CustomFirestateDefs.AGGRESSIVE] = 3,
+	[CustomFirestateDefs.DEFEND] = 4,
+	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
 
 local virtualIndexByStateEnabled = {
-	[Firestates.HOLD_FIRE] = 1,
-	[Firestates.DEFEND] = 2,
-	[Firestates.AGGRESSIVE] = 3,
-	[Firestates.RETURN_FIRE] = 4,
-	[Firestates.FIRE_AT_ALL] = 5,
+	[CustomFirestateDefs.HOLD_FIRE] = 1,
+	[CustomFirestateDefs.DEFEND] = 2,
+	[CustomFirestateDefs.AGGRESSIVE] = 3,
+	[CustomFirestateDefs.RETURN_FIRE] = 4,
+	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
 
 local stateByVirtualIndexDisabled = {
-	[1] = Firestates.HOLD_FIRE,
-	[2] = Firestates.RETURN_FIRE,
-	[3] = Firestates.AGGRESSIVE,
-	[4] = Firestates.DEFEND,
-	[5] = Firestates.FIRE_AT_ALL,
+	[1] = CustomFirestateDefs.HOLD_FIRE,
+	[2] = CustomFirestateDefs.RETURN_FIRE,
+	[3] = CustomFirestateDefs.AGGRESSIVE,
+	[4] = CustomFirestateDefs.DEFEND,
+	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
 
 local stateByVirtualIndexEnabled = {
-	[1] = Firestates.HOLD_FIRE,
-	[2] = Firestates.DEFEND,
-	[3] = Firestates.AGGRESSIVE,
-	[4] = Firestates.RETURN_FIRE,
-	[5] = Firestates.FIRE_AT_ALL,
+	[1] = CustomFirestateDefs.HOLD_FIRE,
+	[2] = CustomFirestateDefs.DEFEND,
+	[3] = CustomFirestateDefs.AGGRESSIVE,
+	[4] = CustomFirestateDefs.RETURN_FIRE,
+	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
 
 local labelByVirtualIndexDisabled = {
@@ -72,7 +72,7 @@ local labelByVirtualIndexEnabled = {
 }
 
 local function resolveVirtualIndex(unitID)
-	local userFirestate = Firestates.resolveUserFirestate(unitID)
+	local userFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
 	if userFirestate == nil then
 		return nil
 	end
@@ -131,7 +131,7 @@ local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
 	if not defendFirestateEnabled then
 		remappingFirestate = true
 	end
-	FirestateApi.giveFirestateToSelection(state, spGetSelectedUnits(), opts)
+	UserFirestateCommands.giveFirestateToSelection(state, spGetSelectedUnits(), opts)
 	if not defendFirestateEnabled then
 		remappingFirestate = false
 	end
@@ -196,7 +196,7 @@ local function hasMatchingStagedFirestate(engineParam)
 	for index = 1, #selectedUnits do
 		local stagedContext = stagedFirestateByUnitId[selectedUnits[index]]
 		if stagedContext then
-			local stagedEngineParam = Firestates.toEngineFirestate(stagedContext.userState)
+			local stagedEngineParam = CustomFirestateDefs.toEngineFirestate(stagedContext.userState)
 			if stagedEngineParam == engineParam then
 				return true
 			end
