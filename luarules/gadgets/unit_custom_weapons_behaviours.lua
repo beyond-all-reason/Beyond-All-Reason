@@ -65,7 +65,6 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectileTargets = {}
 
 local gameFrame = 0
 
@@ -703,7 +702,6 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
-	projectileTargets[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
