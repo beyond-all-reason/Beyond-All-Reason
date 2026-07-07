@@ -1,3 +1,30 @@
+--[[
+How to issue a firestate change from your widget:
+
+  1. Include these at the top of your widget file:
+       VFS.Include("luaui/Include/user_firestate_commands.lua")
+       local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+
+  2. Pick a state from CustomFirestateDefs:
+       HOLD_FIRE, DEFEND, RETURN_FIRE, FIRE_AT_WILL, FIRE_AT_ALL
+       DEFEND is the new mode (hold fire unless a nearby enemy threatens you).
+
+  3. Call one of these:
+       WG['firestate'].giveFirestateToSelection(state, Spring.GetSelectedUnits(), opts)
+         -- changes firestate for the player's current selection
+       WG['firestate'].setFirestateForUnits(state, { unitID }, opts)
+         -- changes firestate for specific units (e.g. in UnitCreated)
+
+  4. Pass opts when the player clicked something yourself:
+       { userInitiated = true }
+       Omit opts or use { userInitiated = false } for automatic/scripted changes.
+
+How to read a unit's current firestate:
+
+  local state = CustomFirestateDefs.getUnitUserFirestate(unitID)
+  -- returns a CustomFirestateDefs value (e.g. DEFEND), or nil if invalid
+]]
+
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
