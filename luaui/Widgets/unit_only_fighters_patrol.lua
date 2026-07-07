@@ -12,21 +12,19 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name	= "OnlyFightersPatrol",
-		desc	= "Only fighters go on factory's patrol route after leaving airlab. Reduces lag.",
-		author	= "dizekat",
-		date	= "2008-04-22",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
-		enabled	= false,
+		name = "OnlyFightersPatrol",
+		desc = "Only fighters go on factory's patrol route after leaving airlab. Reduces lag.",
+		author = "dizekat",
+		date = "2008-04-22",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -44,8 +42,8 @@ local isBuilder = {}
 local checkMustStop = {}
 
 local function UnitHasPatrolOrder(unitID)
-	local queue=GetUnitCommands(unitID,20)
-	for i=1,#queue do
+	local queue = GetUnitCommands(unitID, 20)
+	for i = 1, #queue do
 		local cmd = queue[i]
 		if cmd.id == CMD.PATROL then
 			return true
@@ -61,7 +59,7 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.isBuilder then
 		isBuilder[udid] = true
 	end
-	if ud.canFly and (ud.weaponCount==0 or not ud.isFighterAirUnit or string.find(ud.name,"liche") or ud.noAutoFire) then      -- liche is classified as one somehow
+	if ud.canFly and (ud.weaponCount == 0 or not ud.isFighterAirUnit or string.find(ud.name, "liche") or ud.noAutoFire) then -- liche is classified as one somehow
 		checkMustStop[udid] = true
 	end
 end
@@ -79,35 +77,35 @@ end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	if unitTeam ~= myTeamID then
 		return
-	elseif (userOrders) then
+	elseif userOrders then
 		return
 	end
 	if not isFactory[factDefID] then
 		return
 	end
 	if MustStop(unitID, unitDefID) then
-		Spring.GiveOrderToUnit(unitID,CMD.STOP,{},0)
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	end
 end
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = spGetMyTeamID()
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 end

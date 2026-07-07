@@ -2,19 +2,17 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name		= "Feature ETA Widget Forwarding",
-		desc		= "Notifies widgets that a feature reclaim or resurrect action has begun",
-		author		= "Saul Goodman, copied from Beherith", -- ty Sprung
-		date		= "March 2026",
-		license	 	= "GNU GPL, v2 or later",
-		layer		= -1,
-		enabled		= true
+		name = "Feature ETA Widget Forwarding",
+		desc = "Notifies widgets that a feature reclaim or resurrect action has begun",
+		author = "Saul Goodman, copied from Beherith", -- ty Sprung
+		date = "March 2026",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = true,
 	}
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	local SendToUnsynced = SendToUnsynced
 	local spGetGameFrame = Spring.GetGameFrame
 	local fps = Game.gameSpeed
@@ -22,33 +20,32 @@ if gadgetHandler:IsSyncedCode() then
 	local noProgressTimeout = 5 * fps -- ETAs will disappear after this many frames without progress
 	-- Cached teamID to its allyTeamID
 	local teamToAllyTeam = {}
-	
+
 	-- Map of featureID to map of allyTeamID to frame of last build step
 	local forwardedFeatures = {} -- so we only forward the start event once
 	-- Map of featureID to most recent build step frame for any ally team
 	local featureLastStepTime = {} -- used to remove ETA's for ally teams that are no longer working on a feature
-	
+
 	function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, step)
-		
 		local currentDayFrames, days = spGetGameFrame()
 		local currentFrame = currentDayFrames + (days * dayFrames)
 		local builderAllyTeamID = teamToAllyTeam[builderTeamID]
-		
+
 		local lastStepFrames = forwardedFeatures[featureID]
 		if lastStepFrames == nil then
 			lastStepFrames = {}
 			forwardedFeatures[featureID] = lastStepFrames
 		end
-		
+
 		if lastStepFrames[builderAllyTeamID] == nil then
 			SendToUnsynced("etaFeatureReclaimStartFrame", featureID, builderAllyTeamID, step)
 		end
 		lastStepFrames[builderAllyTeamID] = currentFrame
 		featureLastStepTime[featureID] = currentFrame
-		
+
 		return true
 	end
-	
+
 	local updateInterval = 6
 	local updateCounter = updateInterval
 	function gadget:GameFrame(frame)
@@ -57,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		updateCounter = updateInterval
-		
+
 		--Check if there are any ally teams that are no longer reclaiming or resurrecting a feature and
 		--send a stop signal
 		--There may be two ally teams reclaiming the same feature and we want to remove the ETA when an
@@ -72,7 +69,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		
 	end
 
 	function gadget:FeatureDestroyed(featureID, allyTeamID)
@@ -86,13 +82,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
-	
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
-	
+
 	--Map of allyTeamID to set of featureIDs. Used to resend ETAs when player changes ally team
 	local featureETATeamCache = {}
 
@@ -100,7 +94,7 @@ else
 		if playerID == myPlayerID then
 			myAllyTeamID = Spring.GetMyAllyTeamID()
 			_, fullview = Spring.GetSpectatingState()
-			
+
 			--Resend feature ETAs when team changes so that we can see active ETAs of new team and stop seeing ETAs of old team
 			local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
 			for _, featureIDs in pairs(featureETATeamCache) do

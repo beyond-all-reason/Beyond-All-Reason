@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Restrict unit resurrection',
-		desc    = 'Disable resurrecting partly reclaimed wrecks when modoption enabled.',
-		author  = 'RebelNode',
-		date    = 'January 2026',
-		license = 'GNU GPL, v2 or later',
-		layer   = 0,
-		enabled = false -- disabled for now and replaced with tax in game_tax_resource_sharing.lua, delete this gadget if decision not reverted later
+		name = "Restrict unit resurrection",
+		desc = "Disable resurrecting partly reclaimed wrecks when modoption enabled.",
+		author = "RebelNode",
+		date = "January 2026",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = false, -- disabled for now and replaced with tax in game_tax_resource_sharing.lua, delete this gadget if decision not reverted later
 	}
 end
 

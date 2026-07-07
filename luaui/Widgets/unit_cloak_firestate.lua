@@ -5,16 +5,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Cloak Fire State",
-		desc      = "Sets units to Hold Fire when cloaked, reverts to original state when decloaked",
-		author    = "KingRaptor (L.J. Lim)",
-		date      = "Feb 14, 2010",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1,
-		enabled   = true
+		name = "Cloak Fire State",
+		desc = "Sets units to Hold Fire when cloaked, reverts to original state when decloaked",
+		author = "KingRaptor (L.J. Lim)",
+		date = "Feb 14, 2010",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -25,7 +24,7 @@ VFS.Include("luaui/Include/user_firestate_commands.lua")
 --------------------------------------------------------------------------------
 
 -- Speedups
-local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
+local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local FIRESTATE_HOLDFIRE = CMD.FIRESTATE_HOLDFIRE
 
 --------------------------------------------------------------------------------
@@ -56,10 +55,14 @@ local function userFirestateChangedWhileCloaked(unitID, userState)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if teamID ~= myTeam then return end
+	if teamID ~= myTeam then
+		return
+	end
 
 	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
-		if not cloakFireState[unitDefID] then return end
+		if not cloakFireState[unitDefID] then
+			return
+		end
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			cloakActive[unitID] = true
@@ -67,12 +70,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			local cloaktargetstate = cloakFireState[unitDefID]
 			local cloakTargetUserState = CustomFirestateDefs.fromEngineFirestate(cloaktargetstate)
 			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= cloakTargetUserState then
-				WG['firestate'].setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
+				WG["firestate"].setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
 			end
 		else -- decloak and restore previous fire state
 			local decloaktargetState = decloakFireState[unitID] or CustomFirestateDefs.HOLD_FIRE
 			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= decloaktargetState then
-				WG['firestate'].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
+				WG["firestate"].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
 			end
 			cloakActive[unitID] = nil
 			decloakFireState[unitID] = nil
@@ -82,7 +85,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam then
-		decloakFireState[unitID] = CustomFirestateDefs.getUnitUserFirestate(unitID)	-- 1=firestate
+		decloakFireState[unitID] = CustomFirestateDefs.getUnitUserFirestate(unitID) -- 1=firestate
 	else
 		decloakFireState[unitID] = nil
 		cloakActive[unitID] = nil
@@ -113,8 +116,8 @@ end
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
-	local priorUserFirestateFunction = WG['firestate'].userFirestateChanged
-	WG['firestate'].userFirestateChanged = function(unitID, userState)
+	local priorUserFirestateFunction = WG["firestate"].userFirestateChanged
+	WG["firestate"].userFirestateChanged = function(unitID, userState)
 		userFirestateChangedWhileCloaked(unitID, userState)
 		if priorUserFirestateFunction then
 			priorUserFirestateFunction(unitID, userState)

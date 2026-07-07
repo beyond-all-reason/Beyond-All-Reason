@@ -17,7 +17,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
@@ -56,7 +55,7 @@ local function CheckForChanges(widgetName, fileName)
 		widgetContents[widgetName] = newContents
 		local chunk, err = loadstring(newContents, fileName)
 		if not mouseOffscreen and chunk == nil then
-			spEcho('Failed to load: ' .. fileName .. '  (' .. err .. ')')
+			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
 			return nil
 		end
 		ReloadWidget(widgetName)
@@ -89,7 +88,7 @@ function widget:Update()
 		end
 	end
 
-	if Spring.DiffTimers(Spring.GetTimer() , lastUpdate) < 1 then
+	if Spring.DiffTimers(Spring.GetTimer(), lastUpdate) < 1 then
 		return
 	end
 	lastUpdate = Spring.GetTimer()

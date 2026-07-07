@@ -1,4 +1,3 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -6,15 +5,15 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-  return {
-    name      = "Factory Unblocking",
-    desc      = "This prevents exiting units get stuck on the newly initiated (big) unit",
-    author    = "Floris",
-    date      = "September 2020",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name = "Factory Unblocking",
+		desc = "This prevents exiting units get stuck on the newly initiated (big) unit",
+		author = "Floris",
+		date = "September 2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 local setBlockingOnFinished = {}

@@ -129,8 +129,8 @@ return {
 			},
 		},
 	},
-		["LootboxLightGold"] = {
-			light = {
+	["LootboxLightGold"] = {
+		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
 			class = [[CHeatCloudProjectile]],

@@ -7,26 +7,25 @@ local function pointsApproxEqual(a, b, eps)
 end
 
 describe("lib_spline", function()
-
 	describe("TessellateRing on plain polygons (no strengths)", function()
 		it("returns the anchor points unchanged when no strengths are provided", function()
-			local anchors = { {0, 0}, {100, 0}, {100, 100}, {0, 100} }
+			local anchors = { { 0, 0 }, { 100, 0 }, { 100, 100 }, { 0, 100 } }
 			local poly = SplineLib.TessellateRing(anchors)
 			assert.are.equal(4, #poly)
-			assert.is_true(pointsApproxEqual(poly[1], {0, 0}))
-			assert.is_true(pointsApproxEqual(poly[2], {100, 0}))
-			assert.is_true(pointsApproxEqual(poly[3], {100, 100}))
-			assert.is_true(pointsApproxEqual(poly[4], {0, 100}))
+			assert.is_true(pointsApproxEqual(poly[1], { 0, 0 }))
+			assert.is_true(pointsApproxEqual(poly[2], { 100, 0 }))
+			assert.is_true(pointsApproxEqual(poly[3], { 100, 100 }))
+			assert.is_true(pointsApproxEqual(poly[4], { 0, 100 }))
 		end)
 
 		it("returns the anchor points unchanged when all strengths are zero", function()
-			local anchors = { {0, 0, 0}, {100, 0, 0}, {100, 100, 0}, {0, 100, 0} }
+			local anchors = { { 0, 0, 0 }, { 100, 0, 0 }, { 100, 100, 0 }, { 0, 100, 0 } }
 			local poly = SplineLib.TessellateRing(anchors)
 			assert.are.equal(4, #poly)
-			assert.is_true(pointsApproxEqual(poly[1], {0, 0}))
-			assert.is_true(pointsApproxEqual(poly[2], {100, 0}))
-			assert.is_true(pointsApproxEqual(poly[3], {100, 100}))
-			assert.is_true(pointsApproxEqual(poly[4], {0, 100}))
+			assert.is_true(pointsApproxEqual(poly[1], { 0, 0 }))
+			assert.is_true(pointsApproxEqual(poly[2], { 100, 0 }))
+			assert.is_true(pointsApproxEqual(poly[3], { 100, 100 }))
+			assert.is_true(pointsApproxEqual(poly[4], { 0, 100 }))
 		end)
 
 		it("anchor without strength next to anchor with strength stays a sharp corner", function()
@@ -35,7 +34,7 @@ describe("lib_spline", function()
 			-- edge 1->2 tension = (0 + 1)/2 = 0.5 (curved)
 			-- edge 4->1 tension = (1 + 0)/2 = 0.5 (curved)
 			-- edges 2->3 and 3->4: anchors 3,4 missing → 0 → linear
-			local anchors = { {0, 0}, {100, 0, 1}, {100, 100, 1}, {0, 100} }
+			local anchors = { { 0, 0 }, { 100, 0, 1 }, { 100, 100, 1 }, { 0, 100 } }
 			local poly = SplineLib.TessellateRing(anchors, { segments = 4 })
 			-- linear edges contribute 1 vertex; curved edges contribute 4
 			-- edge 1->2 curved (4), 2->3 curved (4), 3->4 linear (1), 4->1 curved (4)
@@ -51,30 +50,30 @@ describe("lib_spline", function()
 
 	describe("TessellateRing with positive strength", function()
 		it("subdivides curved edges into `segments` samples", function()
-			local anchors = { {0, 0, 1}, {100, 0, 1}, {100, 100, 1}, {0, 100, 1} }
+			local anchors = { { 0, 0, 1 }, { 100, 0, 1 }, { 100, 100, 1 }, { 0, 100, 1 } }
 			local poly = SplineLib.TessellateRing(anchors, { segments = 8 })
 			-- 4 anchors * 8 samples per edge = 32 vertices when fully splined
 			assert.are.equal(32, #poly)
 		end)
 
 		it("anchor positions are preserved on the tessellated curve", function()
-			local anchors = { {0, 0, 1}, {100, 0, 1}, {100, 100, 1}, {0, 100, 1} }
+			local anchors = { { 0, 0, 1 }, { 100, 0, 1 }, { 100, 100, 1 }, { 0, 100, 1 } }
 			local poly = SplineLib.TessellateRing(anchors, { segments = 5 })
 			-- the first vertex emitted in each per-edge group is the anchor itself
-			assert.is_true(pointsApproxEqual(poly[1], {0, 0}))
-			assert.is_true(pointsApproxEqual(poly[1 + 5], {100, 0}))
-			assert.is_true(pointsApproxEqual(poly[1 + 10], {100, 100}))
-			assert.is_true(pointsApproxEqual(poly[1 + 15], {0, 100}))
+			assert.is_true(pointsApproxEqual(poly[1], { 0, 0 }))
+			assert.is_true(pointsApproxEqual(poly[1 + 5], { 100, 0 }))
+			assert.is_true(pointsApproxEqual(poly[1 + 10], { 100, 100 }))
+			assert.is_true(pointsApproxEqual(poly[1 + 15], { 0, 100 }))
 		end)
 
 		it("mixed strength only subdivides edges whose endpoints have any strength", function()
 			-- two adjacent anchors with strength 0 produce a linear edge between them.
 			-- adjacency ordering: 1->2, 2->3, 3->4, 4->1
 			local anchors = {
-				{0, 0, 0},
-				{100, 0, 0},
-				{100, 100, 1},
-				{0, 100, 1},
+				{ 0, 0, 0 },
+				{ 100, 0, 0 },
+				{ 100, 100, 1 },
+				{ 0, 100, 1 },
 			}
 			local poly = SplineLib.TessellateRing(anchors, { segments = 6 })
 			-- edges with tensions: (0+0)/2=0, (0+1)/2=0.5, (1+1)/2=1, (1+0)/2=0.5
@@ -86,7 +85,7 @@ describe("lib_spline", function()
 
 	describe("integration with PolygonLib", function()
 		it("tessellated spline polygon is valid input for PointInPolygon", function()
-			local anchors = { {0, 0, 1}, {100, 0, 1}, {100, 100, 1}, {0, 100, 1} }
+			local anchors = { { 0, 0, 1 }, { 100, 0, 1 }, { 100, 100, 1 }, { 0, 100, 1 } }
 			local poly = SplineLib.TessellateRing(anchors)
 			-- center of the anchor square should still be inside the spline polygon
 			assert.is_true(PolygonLib.PointInPolygon(50, 50, poly))
@@ -94,16 +93,13 @@ describe("lib_spline", function()
 		end)
 
 		it("zero-strength tessellation is point-equivalent to the input polygon", function()
-			local anchors = { {0, 0, 0}, {100, 0, 0}, {100, 100, 0}, {0, 100, 0} }
+			local anchors = { { 0, 0, 0 }, { 100, 0, 0 }, { 100, 100, 0 }, { 0, 100, 0 } }
 			local splineOut = SplineLib.TessellateRing(anchors)
-			local plain = { {0, 0}, {100, 0}, {100, 100}, {0, 100} }
+			local plain = { { 0, 0 }, { 100, 0 }, { 100, 100 }, { 0, 100 } }
 			-- both should agree on a sample of test points (containment-equivalent)
-			local samples = { {50, 50}, {-1, -1}, {101, 50}, {25, 25}, {99, 99}, {50, 200} }
+			local samples = { { 50, 50 }, { -1, -1 }, { 101, 50 }, { 25, 25 }, { 99, 99 }, { 50, 200 } }
 			for _, s in ipairs(samples) do
-				assert.are.equal(
-					PolygonLib.PointInPolygon(s[1], s[2], splineOut),
-					PolygonLib.PointInPolygon(s[1], s[2], plain)
-				)
+				assert.are.equal(PolygonLib.PointInPolygon(s[1], s[2], splineOut), PolygonLib.PointInPolygon(s[1], s[2], plain))
 			end
 		end)
 	end)
@@ -115,14 +111,14 @@ describe("lib_spline", function()
 		end)
 
 		it("passes through 1- and 2-anchor inputs without curving", function()
-			local one = SplineLib.TessellateRing({ {5, 7, 1} })
+			local one = SplineLib.TessellateRing({ { 5, 7, 1 } })
 			assert.are.equal(1, #one)
-			local two = SplineLib.TessellateRing({ {0, 0, 1}, {10, 10, 1} })
+			local two = SplineLib.TessellateRing({ { 0, 0, 1 }, { 10, 10, 1 } })
 			assert.are.equal(2, #two)
 		end)
 
 		it("clamps out-of-range strength values", function()
-			local anchors = { {0, 0, -5}, {100, 0, 99}, {100, 100, 0.5}, {0, 100, 0.5} }
+			local anchors = { { 0, 0, -5 }, { 100, 0, 99 }, { 100, 100, 0.5 }, { 0, 100, 0.5 } }
 			-- should not error; values get clamped to [0, 1]
 			local poly = SplineLib.TessellateRing(anchors, { segments = 4 })
 			assert.is_true(#poly >= 4)

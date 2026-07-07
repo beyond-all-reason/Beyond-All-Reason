@@ -70,7 +70,7 @@ return {
 			[34] = "legelrpcmech",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/constructors",

@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -189,12 +189,12 @@ return {
 				--engine bug?
 				burstControlWhenOutOfArc = 1,
 				maindir = "0 0 1",
-               --maxangledif = 10,
+				--maxangledif = 10,
 			},
 			[2] = {
 				def = "energycharger",
 				onlytargetcategory = "SURFACE",
-			}
+			},
 		},
 	},
 }

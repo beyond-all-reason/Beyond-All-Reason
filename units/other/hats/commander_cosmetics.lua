@@ -1,6 +1,6 @@
 local units = {}
 local def = {
-    maxacc = 0,
+	maxacc = 0,
 	blocking = false,
 	maxdec = 0,
 	energycost = 10000,

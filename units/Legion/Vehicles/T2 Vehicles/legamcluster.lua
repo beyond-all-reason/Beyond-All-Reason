@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 1.15,
 		turnrate = 180,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			canareaattack = 1,
 			firingceg = "barrelshot-medium",
@@ -130,7 +130,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 345,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {
