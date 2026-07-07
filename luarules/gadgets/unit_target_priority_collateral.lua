@@ -24,7 +24,7 @@ local allowBadSpamTarget = false
 
 local friendPowerRatio = 1.5
 local spamPowerMax = 50
-local unknownPower = 50
+local unknownPower = spamPowerMax * 2
 
 local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
