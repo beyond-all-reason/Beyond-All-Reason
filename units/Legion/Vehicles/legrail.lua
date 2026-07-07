@@ -2,7 +2,7 @@ return {
 	legrail = {
 		maxacc = 0.0236,
 		airsightdistance = 900,
-		maxdec = 0.08,
+		maxdec = 0.1,
 		energycost = 3800,
 		metalcost = 240,
 		buildpic = "LEGRAIL.DDS",

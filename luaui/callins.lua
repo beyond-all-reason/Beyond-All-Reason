@@ -97,6 +97,8 @@ CallInsList = {
 	"DrawScreen",
 	"DrawInMiniMap",
 
+	"DrawBuildSquare",
+
 	"DrawOpaqueUnitsLua",
 	"DrawOpaqueFeaturesLua",
 	"DrawAlphaUnitsLua",

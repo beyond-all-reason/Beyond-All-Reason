@@ -218,6 +218,12 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_matriarch_healer"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_basic"].id] = { distance = 500, chance = 0.001 },
 		[UnitDefNames["raptor_matriarch_fire"].id] = { distance = 500, chance = 0.001 },
+		[UnitDefNames["raptor_queen_veryeasy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 60, },
+		[UnitDefNames["raptor_queen_easy"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 50, },
+		[UnitDefNames["raptor_queen_normal"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 40, },
+		[UnitDefNames["raptor_queen_hard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 30, },
+		[UnitDefNames["raptor_queen_veryhard"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 20, },
+		[UnitDefNames["raptor_queen_epic"].id] = { distance = 750, chance = 0.001, teleport = true, teleportcooldown = 10, },
 	},
 	BERSERK = { -- Run towards target after getting hit by enemy or after hitting the target
 		[UnitDefNames["raptor_land_spiker_basic_t4_v1"].id] = { chance = 0.2, distance = 750 },
@@ -316,6 +322,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_veryeasy',
 		queenResistanceMult       = 0.5 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_veryeasy"].health*0.33),
+			time = 40,
+		},
 	},
 
 	[difficulties.easy] = {
@@ -336,6 +346,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_easy',
 		queenResistanceMult       = 0.75 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_easy"].health*0.33),
+			time = 35,
+		},
 	},
 	[difficulties.normal] = {
 		gracePeriod               = 7 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -355,6 +369,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_normal',
 		queenResistanceMult       = 1 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_normal"].health*0.33),
+			time = 30,
+		},
 	},
 	[difficulties.hard] = {
 		gracePeriod               = 6 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -374,6 +392,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_hard',
 		queenResistanceMult       = 1.33 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_hard"].health*0.33),
+			time = 30,
+		},
 	},
 	[difficulties.veryhard] = {
 		gracePeriod               = 5 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -393,6 +415,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_veryhard',
 		queenResistanceMult       = 1.67 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_veryhard"].health*0.33),
+			time = 30,
+		},
 	},
 	[difficulties.epic] = {
 		gracePeriod               = 4 * Spring.GetModOptions().raptor_graceperiodmult * 60,
@@ -412,6 +438,10 @@ local optionValues = {
 		raptorPerPlayerMultiplier = 0.25,
 		queenName                 = 'raptor_queen_epic',
 		queenResistanceMult       = 2 * economyScale,
+		queenStagger			  = {
+			health = math.ceil(UnitDefNames["raptor_queen_epic"].health*0.33),
+			time = 30,
+		},
 	},
 
 	-- [difficulties.survival] = {
@@ -2924,6 +2954,8 @@ addNewSquad({
 	raptorsquadbehavior - string - explained below
 	raptorsquadbehaviordistance - number, integrer - Distance at which the behaviors operate. Usually means the fleeing distance, except berserks and kamikazes, where it defines reaction range.
 	raptorsquadbehaviorchance - number, float between 0 and 1 - How sensitive the unit is to the behavior triggers.
+	raptorsquadforceair - bool - Enforce this squad to be spawned through aircraft spawn pools, even if it's not an aircraft
+	raptorsquadforcesurface - bool - Enforce this squad to be spawned through surface (land or sea) spawn pools, even if it's an aircraft
 
 	Behavior Classes:
 
@@ -3020,13 +3052,13 @@ for name, unitDef in pairs(UnitDefNames) do
 
 			if not customSquadTable.type then
 				if unitDef.customParams.raptorsquadrarity and unitDef.customParams.raptorsquadrarity == "basic" then
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "basicAir"
 					else
 						customSquadTable.type = "basic"
 					end
 				else
-					if unitDef.canFly then
+					if (unitDef.canFly or unitDef.customParams.raptorsquadforceair) and not unitDef.customParams.raptorsquadforcesurface then
 						customSquadTable.type = "specialAir"
 					else
 						customSquadTable.type = "special"

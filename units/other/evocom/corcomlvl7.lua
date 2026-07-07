@@ -124,6 +124,7 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			effigy = "comeffigylvl4",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
@@ -334,8 +335,8 @@ return {
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
             corcomeyelaser = {

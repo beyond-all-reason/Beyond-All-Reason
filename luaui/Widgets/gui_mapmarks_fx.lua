@@ -121,6 +121,29 @@ local eraserTexture = imageDir .. 'eraser.dds'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function IsIgnoredPlayer(playerID)
+	local ignoredAccounts = WG.ignoredAccounts
+	if not ignoredAccounts or not playerID then
+		return false
+	end
+
+	local name, _, _, _, _, _, _, _, _, _, playerInfo = spGetPlayerInfo(playerID, false)
+	local accountID = (playerInfo and playerInfo.accountid) and tonumber(playerInfo.accountid) or nil
+	if accountID and ignoredAccounts[accountID] then
+		return true
+	end
+	if name and name ~= '' and ignoredAccounts[name] then
+		return true
+	end
+
+	local aliasName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)
+	if aliasName and aliasName ~= '' and ignoredAccounts[aliasName] then
+		return true
+	end
+
+	return false
+end
+
 local function DrawBatchedQuads(data, count)
 	for j = 1, count, 8 do
 		local x, y, z, s = data[j], data[j+1], data[j+2], data[j+3]
@@ -174,6 +197,10 @@ function widget:Shutdown()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
+	if IsIgnoredPlayer(playerID) then
+		return
+	end
+
 	local currentTime = osClock()
 	if cmdType == 'point' then
 		AddEffect('map_mark', x, y, z, currentTime, false, playerID)

@@ -54,12 +54,24 @@ local converterUse
 local formatOptions = { showSign = true }
 
 local function updateUI()
+	local localSkewTan = 0
+	local useSkew = false
 	if WG['topbar'] then
 		local freeArea = WG['topbar'].GetFreeArea()
 		widgetScale = freeArea[5]
+		local topbarH = freeArea[4] - freeArea[2]
+		local smallVPad = 0
+		if WG['topbar'].GetSkewConfig then
+			local skewCfg = WG['topbar'].GetSkewConfig()
+			useSkew = skewCfg.useSkew
+			localSkewTan = skewCfg.skewTan
+			if useSkew then
+				smallVPad = floor(topbarH * (1 - skewCfg.smallElementHeightFraction))
+			end
+		end
 		area[1] = freeArea[1]
-		area[2] = freeArea[2]
-		area[3] = freeArea[1] + floor(90 * widgetScale)
+		area[2] = freeArea[2] + smallVPad
+		area[3] = freeArea[1] + floor(72 * widgetScale)
 		if area[3] > freeArea[3] then
 			area[3] = freeArea[3]
 		end
@@ -72,7 +84,18 @@ local function updateUI()
 		glDeleteList(dlistGuishader)
 	end
 	dlistGuishader = glCreateList(function()
-		RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		if useSkew then
+			local H = area[4] - area[2]
+			local skewOffset = H * localSkewTan
+			gl.BeginEnd(GL.QUADS, function()
+				gl.Vertex(area[1] - skewOffset, area[2])
+				gl.Vertex(area[3] - skewOffset, area[2])
+				gl.Vertex(area[3], area[4])
+				gl.Vertex(area[1], area[4])
+			end)
+		else
+			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
+		end
 	end)
 
     local fontSize = (area[4] - area[2]) * 0.4
@@ -84,7 +107,9 @@ local function updateUI()
         glDeleteList(dlistCU)
     end
 	dlistCU = glCreateList(function()
-		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1)
+		local H = area[4] - area[2]
+		local skew = useSkew and {blx = -(H * localSkewTan), brx = -(H * localSkewTan)} or nil
+		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, skew)
 
 		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistGuishader, 'converter_usage')
@@ -111,11 +136,15 @@ local function updateUI()
 
         fontSize = fontSize * 0.75
 
-        -- energy used
-		font2:Print("\255\255\255\000" .. string.formatSI(-eConverted, formatOptions), area[3] - (fontSize * 0.42), area[2] + 3.2 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+        -- energy used (right-anchored to skew-adjusted edge at text y)
+        local energyY = area[2] + 3.2 * (H / 4) - (fontSize / 5)
+        local energyX = area[3] - (useSkew and (H - (energyY - area[2])) * localSkewTan or 0) - (fontSize * 0.35)
+		font2:Print("\255\255\255\000" .. string.formatSI(-eConverted, formatOptions), energyX, energyY, fontSize, 'or')
 
-        -- metal produced
-		font2:Print("\255\240\255\240" .. string.formatSI(mConverted, formatOptions), area[3]  -(fontSize * 0.42), area[2] + 0.8 * ((area[4] - area[2]) / 4) - (fontSize / 5), fontSize, 'or')
+        -- metal produced (right-anchored to skew-adjusted edge at text y)
+        local metalY = area[2] + 0.8 * (H / 4) - (fontSize / 5)
+        local metalX = area[3] - (useSkew and (H - (metalY - area[2])) * localSkewTan or 0) - (fontSize * 0.35)
+		font2:Print("\255\240\255\240" .. string.formatSI(mConverted, formatOptions), metalX, metalY, fontSize, 'or')
 		font2:End()
 
         if WG['tooltip'] ~= nil then

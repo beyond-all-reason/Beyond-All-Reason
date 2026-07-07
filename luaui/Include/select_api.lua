@@ -95,8 +95,10 @@ local function checkCmd(uid, cmdId, indexTemp)
 	return false
 end
 
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
+
 local function isIdle(udef, _udefid, uid)
-	return spGetUnitCommandCount(uid) == 0
+	return spGetUnitCommandCount(uid) == 0 or inIdleWorkerTask[uid]
 end
 
 local function stringContains(mainString, searchString)

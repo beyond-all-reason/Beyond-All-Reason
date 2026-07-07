@@ -278,7 +278,10 @@ local function setAllyTeamRanks()
 	end
 	for allyID, scoreData in pairs(allyData) do
 		local securedScore = scoreData.score
-		local projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		local projectedPoints = 0
+		if currentRound <= MAX_ROUNDS then
+			projectedPoints = projectedAllyTeamPoints[allyID] or 0
+		end
 		local rankingScore = securedScore + projectedPoints
 		local territoryCount = 0
 		for gridID, data in pairs(captureGrid) do
@@ -404,6 +407,9 @@ local function defeatAlly(allyID)
 
 			local x, y, z = spGetUnitPosition(unitID)
 			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+			if GG.SpawnEnvironmentalLightning then
+				GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+			end
 			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
 			GG.ComSpawnDefoliate(x, y, z)
 
@@ -415,7 +421,7 @@ local function defeatAlly(allyID)
 			end
 		end
 	end
-	
+
 	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 end
 
@@ -524,7 +530,7 @@ local function processDecay(gridID)
 		else
 			progressChange = -DECAY_PROGRESS_INCREMENT
 		end
-		
+
 		if data.progress > OWNERSHIP_THRESHOLD then
 			addProgress(gridID, progressChange, data.allyOwnerID, false)
 		else
@@ -579,11 +585,11 @@ local function updateProjectedPoints()
 			end
 		end
 
-		projectedAllyTeamPoints[allyID] = projectedScore
-
-		if not gameOver and (currentRound <= MAX_ROUNDS) then
+		if currentRound <= MAX_ROUNDS then
+			projectedAllyTeamPoints[allyID] = projectedScore
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", projectedScore)
 		else
+			projectedAllyTeamPoints[allyID] = 0
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedPoints", 0)
 		end
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", territoryCount)
@@ -637,7 +643,7 @@ function gadget:GameFrame(frame)
 						refreshLivingTeams = true
 					end
 				end
-				
+
 				if refreshLivingTeams then
 					processLivingTeams()
 				end
@@ -655,7 +661,7 @@ function gadget:GameFrame(frame)
 		Spring.SetGameRulesParam("territorialDominationRoundEndTimestamp", currentRound > MAX_ROUNDS and 0 or roundTimestamp)
 		Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 		Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
-		
+
 		for allyID, scoreData in pairs(allyData) do
 			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
 		end
@@ -693,12 +699,12 @@ function gadget:Initialize()
 	end
 
 	allTeams = Spring.GetTeamList()
-	
+
 	updateProjectedPoints()
-	
+
 	Spring.SetGameRulesParam("territorialDominationCurrentRound", currentRound)
 	Spring.SetGameRulesParam("territorialDominationMaxRounds", MAX_ROUNDS)
-	
+
 	for allyID in pairs(allyTeamsWatch) do
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", 0)
 		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)

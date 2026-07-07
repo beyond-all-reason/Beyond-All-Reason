@@ -26,8 +26,11 @@ if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
 	_G.validationActivity = validation
 
+	local hat_b = string.byte("^") -- 94
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="^" and msg:sub(2,3)==validation then
+		if #msg >= 3 and string.byte(msg,1)==hat_b and string.byte(msg,2)==vb1 and string.byte(msg,3)==vb2 then
 			SendToUnsynced("activityBroadcast",playerID)
 			return true
 		end

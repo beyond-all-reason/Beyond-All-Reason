@@ -8,6 +8,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 70 110",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		energycost = 150000,
 		explodeas = "explosiont3",

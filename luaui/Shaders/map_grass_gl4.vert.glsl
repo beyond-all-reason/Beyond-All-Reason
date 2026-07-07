@@ -79,7 +79,14 @@ void main() {
 
   vec4 worldPos = vec4(instancePosRotSize.x, 0.0, instancePosRotSize.z, 1.0);
   vec4 clipPos = cameraViewProj * vec4(worldPos.xyz, 1.0);
-  if (abs(clipPos.x / clipPos.w) > 1.1) {
+  float absW = abs(clipPos.w);
+  if (absW < 0.00001) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull unstable near-plane results
+    return;
+  }
+
+  vec2 ndcXY = clipPos.xy / absW;
+  if (clipPos.z < -absW || clipPos.z > absW) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0); // Cull by moving out of clip space
     return;
   }
@@ -112,7 +119,7 @@ void main() {
   //--- SHADOWS ---
   float shadow = 1.0;
 
-  #ifdef HASSHADOWS
+  #if HASSHADOWS == 1
     #define SHADOWOFFSET 4.0
     vec4 shadowVertexPos;
     shadowVertexPos = shadowView * vec4(grassVertWorldPos+ vec3(SHADOWOFFSET, 0.0, SHADOWOFFSET),1.0);

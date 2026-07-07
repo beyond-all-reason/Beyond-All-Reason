@@ -9,7 +9,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
     return {
         name	= "Self-Destruct Resign",
-        desc	= "Converts a self-destruct to resign",
+        desc	= "Cancel the order and resign players which try to self-destruct all their units",
         author	= "Floris",
         date	= "October 2021",
         license	= "GNU GPL, v2 or later",
@@ -18,19 +18,61 @@ function gadget:GetInfo()
     }
 end
 
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetTeamList = Spring.GetTeamList
+local spGetAllyTeamList = Spring.GetAllyTeamList
+local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaAllyTeamID = spGetTeamAllyTeamID(gaiaTeamID)
+
+local function isLastAliveNonGaiaAllyTeam(teamID)
+	local teamAllyTeamID = spGetTeamAllyTeamID(teamID)
+	if not teamAllyTeamID then
+		return false
+	end
+
+	local aliveNonGaiaAllyTeams = 0
+	for _, allyTeamID in ipairs(spGetAllyTeamList()) do
+		if allyTeamID ~= gaiaAllyTeamID then
+			local teams = spGetTeamList(allyTeamID) or {}
+			for _, tID in ipairs(teams) do
+				if not select(4, spGetTeamInfo(tID, false)) then -- skip AIs
+					aliveNonGaiaAllyTeams = aliveNonGaiaAllyTeams + 1
+					break
+				end
+			end
+			if aliveNonGaiaAllyTeams > 1 then
+				return false
+			end
+		end
+	end
+
+	return aliveNonGaiaAllyTeams == 1 and teamAllyTeamID ~= gaiaAllyTeamID
+end
+
+local function hasActiveHumanTeammate(teamID)
+	local allyTeamID = spGetTeamAllyTeamID(teamID)
+	for _, tID in ipairs(spGetTeamList(allyTeamID) or {}) do
+		local luaAI = Spring.GetTeamLuaAI(tID)
+		if tID ~= teamID and not select(4, spGetTeamInfo(tID, false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+			return true
+		end
+	end
+	return false
+end
+
 if gadgetHandler:IsSyncedCode() then
 
 	local thresholdPercentage = 0.95
+	local allowedStrikes = 3
 
 	local CMD_SELFD = CMD.SELFD
 	local selfdCheckTeamUnits = {}
+	local forceResignStrikesByTeamID = {}
 	local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
 	local spGetTeamUnits = Spring.GetTeamUnits
-	local gaiaTeamID = Spring.GetGaiaTeamID()
 
-	local function forceResignTeam(teamID)
-
-		-- cancel self-d orders
+	local function cancelSelfDestructOrders(teamID)
 		local units = spGetTeamUnits(teamID)
 		for i=1, #units do
 			local unitID = units[i]
@@ -38,16 +80,30 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
 			end
 		end
+	end
 
-		Spring.KillTeam(teamID)
-
-		-- notify players in this team
+	local function notifyTeamPlayers(teamID, message)
 		local players = Spring.GetPlayerList()
 		for _, playerID in pairs(players) do
 			if teamID == select(4, Spring.GetPlayerInfo(playerID, false)) then
-				SendToUnsynced('forceResignMessage', playerID)
+				SendToUnsynced(message, playerID)
 			end
 		end
+	end
+
+	local function forceResignTeam(teamID)
+		cancelSelfDestructOrders(teamID)
+
+		local strikes = (forceResignStrikesByTeamID[teamID] or 0) + 1
+		forceResignStrikesByTeamID[teamID] = strikes
+
+		if strikes < allowedStrikes then
+			notifyTeamPlayers(teamID, 'forceResignWarn')
+			return
+		end
+
+		notifyTeamPlayers(teamID, 'forceResignMessage')
+		Spring.KillTeam(teamID)
 	end
 
 	function gadget:Initialize()
@@ -57,20 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if n % 15 == 1 then
 			for teamID, _ in pairs(selfdCheckTeamUnits) do
-
-				-- check first if player has team players... that could possibly take
-				--local numActiveTeamPlayers = 0
-				--local allyTeamID = select(6, Spring.GetTeamInfo(teamID,false))
-				--local teamList = Spring.GetTeamList(allyTeamID)
-				--for _,tID in ipairs(teamList) do
-				--	local luaAI = Spring.GetTeamLuaAI(tID)
-				--	if tID ~= teamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
-				--		numActiveTeamPlayers = numActiveTeamPlayers + 1
-				--	end
-				--end
-
-				-- players has teammates
-				--if numActiveTeamPlayers > 1 then
+				if not isLastAliveNonGaiaAllyTeam(teamID) then
 					local units = spGetTeamUnits(teamID)
 					local unitCount = #units
 					local triggerResignAmount = math.ceil(unitCount * thresholdPercentage)
@@ -84,7 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 						else
 							skippedUnitCount = skippedUnitCount + 1
 						end
-						if skippedUnitCount >= skipResignAmount then
+						if skippedUnitCount > skipResignAmount then
 							break
 						elseif selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
@@ -94,14 +137,14 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						end
 					end
-				--end
+				end
 			end
 			selfdCheckTeamUnits = {}
 		end
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if teamID ~= gaiaTeamID then
+		if teamID ~= gaiaTeamID and not isLastAliveNonGaiaAllyTeam(teamID) then
 			selfdCheckTeamUnits[teamID] = true
 		end
 		return true
@@ -114,31 +157,34 @@ else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myTeamID = Spring.GetMyTeamID()
 
-	local function forceResignMessage(_, playerID)
-		if playerID == myPlayerID then
-		if not Spring.GetSpectatingState() then
-			-- check first if player has team players
-			local numActiveTeamPlayers = 0
-			local allyID = select(6, Spring.GetTeamInfo(myTeamID, false))
-			local teamList = Spring.GetTeamList(allyID)
-			for _,tID in ipairs(teamList) do
-					local luaAI = Spring.GetTeamLuaAI(tID)
-					if tID ~= myTeamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
-						numActiveTeamPlayers = numActiveTeamPlayers + 1
-					end
-				end
-				if numActiveTeamPlayers > 0 and Script.LuaUI('GadgetMessageProxy') then
-					Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.forceResignMessage'))
-				end
-			end
+	local function showForceResignNotification(playerID, messageKey)
+		if playerID ~= myPlayerID or Spring.GetSpectatingState() then
+			return
+		end
+		if isLastAliveNonGaiaAllyTeam(myTeamID) then
+			return
+		end
+
+		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI('GadgetMessageProxy') then
+			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy(messageKey))
 		end
 	end
 
+	local function forceResignWarn(_, playerID)
+		showForceResignNotification(playerID, 'ui.forceResignWarn')
+	end
+
+	local function forceResignMessage(_, playerID)
+		showForceResignNotification(playerID, 'ui.forceResignMessage')
+	end
+
 	function gadget:Initialize()
+		gadgetHandler:AddSyncAction('forceResignWarn', forceResignWarn)
 		gadgetHandler:AddSyncAction('forceResignMessage', forceResignMessage)
 	end
 
 	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction('forceResignWarn')
 		gadgetHandler:RemoveSyncAction('forceResignMessage')
 	end
 end

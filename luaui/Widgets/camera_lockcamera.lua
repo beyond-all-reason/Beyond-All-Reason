@@ -150,7 +150,7 @@ local function LockCamera(playerID)
 end
 
 
-function CameraBroadcastEvent(playerID, cameraState)
+local function CameraBroadcastEvent(playerID, cameraState)
 	-- if cameraState is empty then transmission has stopped
 	if not cameraState then
 		if lastBroadcasts[playerID] then
@@ -290,16 +290,17 @@ function widget:Initialize()
 		return nil
 	end
 
-	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
-
 	UpdateRecentBroadcasters()
 
 	widget:PlayerChanged(spGetMyPlayerID())
 end
 
+function widget:CameraBroadcastEvent(playerID, cameraState)
+	CameraBroadcastEvent(playerID, cameraState)
+end
+
 function widget:Shutdown()
 	WG.lockcamera = nil
-	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 end
 
 function widget:GameOver()

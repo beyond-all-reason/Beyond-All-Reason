@@ -43,6 +43,18 @@ local function AllButAllyTeamID(allyTeamID)
 	return players
 end
 
+local function AlliedPlayersExceptTeamID(allyTeamID, excludedTeamID)
+	local players = Spring.GetPlayerList()
+	local _,_,spec,teamID,allyTeam
+	for ct, id in pairs(players) do
+		_,_,spec,teamID,allyTeam = spGetPlayerInfo(id,false)
+		if not spec and (allyTeam ~= allyTeamID or teamID == excludedTeamID) then
+			players[ct] = nil
+		end
+	end
+	return players
+end
+
 if gadgetHandler:IsSyncedCode() then
 
 	local isT2Mex = {}
@@ -86,14 +98,20 @@ if gadgetHandler:IsSyncedCode() then
 	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
-			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
+			local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
+			if not ownerTeamID then
+				return
+			end
+			local ownerAllyTeamID = GetAllyTeamID(ownerTeamID)
+
+			local players = AllButAllyTeamID(ownerAllyTeamID)
 			for ct, player in pairs (players) do
 				if tostring(player) then
 					GG["notifications"].queueNotification("NukeLaunched", "playerID", tostring(player))
 				end
 			end
 
-			local players = PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
+			local players = AlliedPlayersExceptTeamID(ownerAllyTeamID, ownerTeamID)
 			for ct, player in pairs (players) do
 				if tostring(player) then
 					GG["notifications"].queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
@@ -197,6 +215,10 @@ else
 	local commanderLastDamaged = {}
 
 	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		-- suppress under-attack notifications for trivial damage (Juno's 1 dmg pulse)
+		if damage < 5 then
+			return
+		end
 		if unitTeam == myTeamID and isLrpc[attackerDefID] and attackerTeam and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
 			GG["notifications"].queueNotification('LrpcTargetUnits', "playerID", tostring(myPlayerID))
 		end

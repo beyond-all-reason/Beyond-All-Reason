@@ -503,8 +503,6 @@ end
 function widget:Initialize()
 	widget:PlayerChanged()
 
-	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
-
 	WG['notifications'] = {}
 	for sound, params in pairs(notification) do
 		WG['notifications']['getNotification' .. sound] = function()
@@ -632,9 +630,12 @@ function widget:Initialize()
 	end
 end
 
+function widget:NotificationEvent(msg)
+	gadgetNotificationEvent(msg)
+end
+
 function widget:Shutdown()
 	WG['notifications'] = nil
-	widgetHandler:DeregisterGlobal('NotificationEvent')
 end
 
 function widget:GameFrame(gf)
@@ -716,11 +717,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if isT2mobile[unitDefID] then
-			queueNotification('Tech2UnitReady')
+			queueNotification('UnitReady/Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3UnitReady')
+			queueNotification('UnitReady/Tech3UnitReady')
 		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4UnitReady')
+			queueNotification('UnitReady/Tech4UnitReady')
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content

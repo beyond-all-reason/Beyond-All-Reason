@@ -77,7 +77,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
-				[2] = "custom:flamestream",
 			},
 		},
 		sounds = {

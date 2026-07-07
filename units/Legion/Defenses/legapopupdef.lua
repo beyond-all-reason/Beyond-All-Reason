@@ -10,6 +10,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 35 35",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		explodeas = "smallBuildingExplosionGeneric",

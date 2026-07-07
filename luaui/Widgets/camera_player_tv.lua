@@ -711,7 +711,9 @@ local function togglePlayerView(state)
 		if not fullview then
 			Spring.SendCommands("specfullview")
 		end
-		if Spring.GetMapDrawMode() == "los" then
+		if WG.lockcamera and WG.lockcamera.SetLosMode then
+			WG.lockcamera.SetLosMode('normal')
+		elseif Spring.GetMapDrawMode() == "los" then
 			Spring.SendCommands("togglelos")
 		end
 	else
@@ -720,7 +722,9 @@ local function togglePlayerView(state)
 			scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
 			Spring.SendCommands("specfullview")
 		end
-		if Spring.GetMapDrawMode() ~= "los" then
+		if WG.lockcamera and WG.lockcamera.SetLosMode then
+			WG.lockcamera.SetLosMode('los')
+		elseif Spring.GetMapDrawMode() ~= "los" then
 			desiredLosmode = 'los'
 			desiredLosmodeChanged = os.clock()
 		end

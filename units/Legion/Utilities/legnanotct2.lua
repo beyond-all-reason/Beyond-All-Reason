@@ -17,7 +17,7 @@ return {
 		canstop = true,
 		cantbetransported = false,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "46 80 46",
+		collisionvolumescales = "46 64 46",
 		collisionvolumetype = "CylY",
 		explodeas = "nanoboom",
 		footprintx = 4,
@@ -47,6 +47,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandUtil",
+			techlevel = 2,
 		},
 		sounds = {
 			build = "nanlath1",

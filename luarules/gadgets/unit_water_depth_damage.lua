@@ -111,7 +111,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				if damage >= health then
 					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
 				else
-					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
 				end
 			end
 		else
@@ -170,7 +170,7 @@ function gadget:GameFrame(frame)
 					if math.random(1, 6) == 1 then
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
-					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, data.drowningDamage, 0, nil, waterDamageDefID)
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit

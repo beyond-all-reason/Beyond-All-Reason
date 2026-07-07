@@ -52,6 +52,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetViewGeometry = Spring.GetViewGeometry
+local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -122,6 +123,8 @@ local Config = {
 Config.Animation.fadeDuration = 1 - Config.Animation.waveDuration
 local g = Game.gravity
 local gravityPerFrame = g / pow(Config.General.gameSpeed, 2)
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 
 -- Screen-based line width scale (1.0 at 1080p, ~2.3 at 2160p)
 -- Uses linear interpolation: scale = 1 + (screenHeight - 1080) * (2.3 - 1) / (2160 - 1080)
@@ -204,7 +207,8 @@ local State = {
 	unitDiskList = 0,
 	nuclearTrefoilList = 0,
 
-	aimData = defaultAimData
+	aimData = defaultAimData,
+	isOverMinimap = false,
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -265,6 +269,7 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
 	local targetType, target = spTraceScreenRay(mx, my)
+
 
 	if not targetType or not target then
 		return nil
@@ -1758,6 +1763,8 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorldPreUnit()
+	State.isOverMinimap = false
+
 	local weaponInfos, aimingUnitID = GetActiveUnitInfo()
 	if not weaponInfos then
 		ResetPulseAnimation()
@@ -1821,6 +1828,13 @@ function widget:DrawWorldPreUnit()
 		CopyColor(baseColor, aimData.colors.base)
 		CopyColor(baseFillColor, aimData.colors.fill)
 		CopyColor(scatterColor, aimData.colors.scatter)
+	end
+
+	-- Skip world draw when hovering over the minimap; DrawInMiniMap handles it
+	local mx, my = spGetMouseState()
+	if spIsAboveMiniMap(mx, my) then
+		State.isOverMinimap = true
+		return
 	end
 
 	local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe

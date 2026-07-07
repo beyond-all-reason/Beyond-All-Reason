@@ -148,6 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
 	local SpValidUnitID = Spring.ValidUnitID
+	local SpAddUnitExperience = Spring.AddUnitExperience
 	local Mmin = math.min
 
 
@@ -165,6 +166,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	junoWeaponsNames = nil
 
+	local experienceMod = 0.3
+
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
@@ -173,6 +176,12 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 				if aID and SpValidUnitID(aID) then
+					local health, healthMax = Spring.GetUnitHealth(uID)
+					local attackerPower = UnitDefs[aDefID].power
+					local defenderPower = UnitDefs[uDefID].power
+					local scaledExpMod = 0.1 * experienceMod * (defenderPower / attackerPower)
+					local scaledDamage = math.max(health / healthMax, 0)
+					SpAddUnitExperience(aID, scaledExpMod * scaledDamage)
 					SpDestroyUnit(uID, false, false, aID)
 				else
 					SpDestroyUnit(uID, false, false) -- leavewreck, makeselfdexplosion

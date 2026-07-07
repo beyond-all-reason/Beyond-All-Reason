@@ -25,7 +25,7 @@ return {
 		script = "Units/LEGHRK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 370.5,
+		sightdistance = 380,
 		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
