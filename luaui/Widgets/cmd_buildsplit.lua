@@ -13,7 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -88,8 +87,10 @@ function widget:Initialize()
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
 
-	WG['build_split'] = {
-		isActive = function() return activeModifier end,
+	WG["build_split"] = {
+		isActive = function()
+			return activeModifier
+		end,
 		splitBuildings = splitBuildings,
 	}
 end
@@ -157,5 +158,5 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG['build_split'] = nil
+	WG["build_split"] = nil
 end

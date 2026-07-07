@@ -33,7 +33,7 @@ return {
 		turnrate = 280,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			customrange = 700,
 			model_author = "Phill-Art (Concept Art), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",
@@ -161,7 +161,7 @@ return {
 				noselfdamage = true,
 				metalpershot = 15,
 				energypershot = 500,
-				range = 700,--1000,
+				range = 700, --1000,
 				reloadtime = 2.5,
 				size = 0,
 				soundhit = "",
@@ -176,24 +176,24 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "legdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "legdrone", --Name of the unit spawned by this carrier unit.
 					engagementrange = 1000,
-					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 20, 				--Spawnrate roughly in seconds.
-					maxunits = 2,				--Will spawn units until this amount has been reached.
+					spawns_surface = "SEA", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 20, --Spawnrate roughly in seconds.
+					maxunits = 2, --Will spawn units until this amount has been reached.
 					startingdronecount = 1,
-					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 500, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 15, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 900, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 20,
 					docktohealthreshold = 75,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "7 9",
-					dockingradius = 80,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 80, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 2,
 					stockpilemetal = 15,
 					stockpileenergy = 500,
@@ -203,10 +203,8 @@ return {
 					dronedocktime = 3,
 					droneairtime = 60,
 					droneammo = 12,
-				}
+				},
 			},
-
-
 		},
 		weapons = {
 			[1] = {
@@ -216,13 +214,12 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 			},
-		
+
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "drone_control_matrix",
 				onlytargetcategory = "SURFACE",
 			},
-
 		},
 	},
 }

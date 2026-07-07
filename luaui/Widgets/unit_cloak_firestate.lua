@@ -5,16 +5,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Cloak Fire State",
-		desc      = "Sets units to Hold Fire when cloaked, reverts to original state when decloaked",
-		author    = "KingRaptor (L.J. Lim)",
-		date      = "Feb 14, 2010",
-		license   = "GNU GPL, v2 or later",
-		layer     = -1,
-		enabled   = true
+		name = "Cloak Fire State",
+		desc = "Sets units to Hold Fire when cloaked, reverts to original state when decloaked",
+		author = "KingRaptor (L.J. Lim)",
+		date = "Feb 14, 2010",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -23,9 +22,9 @@ local spGetMyTeamID = Spring.GetMyTeamID
 --------------------------------------------------------------------------------
 
 -- Speedups
-local GiveOrderToUnit   = Spring.GiveOrderToUnit
-local GetUnitStates     = Spring.GetUnitStates
-local CMD_WANT_CLOAK    = GameCMD.WANT_CLOAK
+local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetUnitStates = Spring.GetUnitStates
+local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 local FIRESTATE_HOLDFIRE = CMD.FIRESTATE_HOLDFIRE
 
 --------------------------------------------------------------------------------
@@ -42,10 +41,14 @@ end
 local decloakFireState = {} --stores the desired fire state when decloaked of each unitID
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if teamID ~= myTeam then return end
+	if teamID ~= myTeam then
+		return
+	end
 
 	if cmdID == CMD_WANT_CLOAK and cmdParams[1] ~= nil then -- is cloak command
-		if not cloakFireState[unitDefID] then return end 
+		if not cloakFireState[unitDefID] then
+			return
+		end
 
 		if cmdParams[1] == 1 then -- store current fire state and cloak
 			decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) --store last state
@@ -65,7 +68,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam == myTeam then
-		decloakFireState[unitID] = select(1, GetUnitStates(unitID, false))	-- 1=firestate
+		decloakFireState[unitID] = select(1, GetUnitStates(unitID, false)) -- 1=firestate
 	else
 		decloakFireState[unitID] = nil
 	end

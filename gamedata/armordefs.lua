@@ -280,7 +280,7 @@ local armorDefs = {
 		"armbeamer",
 		"armart",
 		"corban",
-    	"armbeaver",
+		"armbeaver",
 		"armcroc",
 		"armpincer",
 		"coramph",
@@ -291,30 +291,30 @@ local armorDefs = {
 		"corsala",
 		"armmar",
 		"corshiva",
-        "cormadsam",
+		"cormadsam",
 		"armferret",
-        "armwar",
+		"armwar",
 		"corexp",
 		"corlevlr",
 		"cormexp",
-        "armspy",
+		"armspy",
 		"cormando",
 		"corspy",
 		"legaspy",
-        "armdl",
+		"armdl",
 		"cordl",
 		"legctl",
-        "armfflak",
+		"armfflak",
 		"armflak",
 		"armyork",
 		"corenaa",
 		"corflak",
 		"corsent",
-        "armmlv",
+		"armmlv",
 		"cormlv",
 		"legmlv",
 		"corpyro",
-        "armarad",
+		"armarad",
 		"armaser",
 		"armason",
 		"armeyes",
@@ -469,7 +469,6 @@ local armorDefs = {
 		"armanavaldefturret",
 		"coranavaldefturret",
 		"leganavaldefturret",
-
 	},
 	mines = {
 		"armfmine3",
@@ -509,17 +508,17 @@ local armorDefs = {
 		"corcsa",
 		"corfink",
 		"corseap",
-        "armawac",
+		"armawac",
 		"armsehak",
 		"corawac",
 		"corhunt",
-        "armatlas",
+		"armatlas",
 		"corvalk",
-        "armbrawl",
+		"armbrawl",
 		"armkam",
 		"armkam2",
 		"armsaber",
-        "armblade",
+		"armblade",
 		"corbw",
 		"corape",
 		"corcrw",
@@ -670,14 +669,14 @@ local armorDefs = {
 		"corsub",
 		"legnavysub",
 		"legstingray",
-        "armsubk",
+		"armsubk",
 		"corshark",
 		"leganavybattlesub",
-        "corssub",
+		"corssub",
 		"armserp",
 		"leganavyheavysub",
 		"armacsub",
-        "coracsub",
+		"coracsub",
 		"leganavyconsub",
 		"armrecl",
 		"correcl",
@@ -688,8 +687,7 @@ local armorDefs = {
 		"armseadragon",
 	},
 
-	raptor =
-	{
+	raptor = {
 		"raptor_land_swarmer_basic_t2_v1",
 		"raptor_land_swarmer_basic_t2_v2",
 		"raptor_land_swarmer_basic_t2_v3",
@@ -740,8 +738,7 @@ local armorDefs = {
 		"raptor_hive",
 		"raptor_antinuke",
 	},
-	raptorqueen =
-	{
+	raptorqueen = {
 		"raptor_queen_veryeasy",
 		"raptor_queen_easy",
 		"raptor_queen_normal",
@@ -761,7 +758,7 @@ for category, names in pairs(armorDefs) do
 		end
 
 		nameCount = nameCount + 1
-		scavArmorDefs[category][nameCount] = name .. '_scav'
+		scavArmorDefs[category][nameCount] = name .. "_scav"
 	end
 end
 
@@ -776,15 +773,15 @@ local function clearArmorDef(unitDefName)
 end
 
 -- expose armor defs to custom params
-for unitName, unitDef in pairs (DEFS.unitDefs) do
+for unitName, unitDef in pairs(DEFS.unitDefs) do
 	if unitDef.customparams and unitDef.customparams.armordef then
 		local lowerCaseArmorDef = unitDef.customparams.armordef:lower()
 		clearArmorDef(unitName)
 		local defCategory = armorDefs[lowerCaseArmorDef]
 		if defCategory then
-			defCategory[#defCategory+1] = unitName
+			defCategory[#defCategory + 1] = unitName
 		else
-			armorDefs[lowerCaseArmorDef] = {unitName}
+			armorDefs[lowerCaseArmorDef] = { unitName }
 		end
 	end
 end

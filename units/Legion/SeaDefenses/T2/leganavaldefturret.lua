@@ -28,7 +28,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwww wwwwww wwwwww wwwwww wwwwww wwwwww",
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -153,7 +153,7 @@ return {
 				sprayangle = 1500,
 				thickness = 1,
 				tolerance = 6000,
-                firetolerance = 6000,
+				firetolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,

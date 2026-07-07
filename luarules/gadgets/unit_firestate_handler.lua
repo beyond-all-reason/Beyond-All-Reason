@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "2026.06.28",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -68,8 +68,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local state
 	local builderDefID = builderID and spGetUnitDefID(builderID)
 	if builderDefID and UnitDefs[builderDefID].isFactory then
-		state = spGetUnitRulesParam(builderID, Firestates.RULES_PARAM)
-			or Firestates.fromEngineFirestate(spGetUnitStates(builderID, false))
+		state = spGetUnitRulesParam(builderID, Firestates.RULES_PARAM) or Firestates.fromEngineFirestate(spGetUnitStates(builderID, false))
 	end
 	if state == nil then
 		state = Firestates.fromEngineFirestate(spGetUnitStates(unitID, false))

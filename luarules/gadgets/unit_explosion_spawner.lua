@@ -1,5 +1,4 @@
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
@@ -13,7 +12,7 @@ function gadget:GetInfo()
 		date = "2007-11-18",
 		license = "None",
 		layer = 50,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -25,33 +24,32 @@ end
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
 -- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
 
+local spCreateFeature = Spring.CreateFeature
+local spCreateUnit = Spring.CreateUnit
+local spDestroyUnit = Spring.DestroyUnit
+local spGetGameFrame = Spring.GetGameFrame
+local spGetProjectileDefID = Spring.GetProjectileDefID
+local spGetProjectileTeamID = Spring.GetProjectileTeamID
+local spGetUnitShieldState = Spring.GetUnitShieldState
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spSetFeatureDirection = Spring.SetFeatureDirection
+local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spSpawnCEG = Spring.SpawnCEG
+local spGetUnitHealth = Spring.GetUnitHealth
+local spSetUnitHealth = Spring.SetUnitHealth
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetGroundHeight = Spring.GetGroundHeight
+local spGetUnitTeam = Spring.GetUnitTeam
+local spSetUnitDirection = Spring.SetUnitDirection
+local spAddUnitImpulse = Spring.AddUnitImpulse
+local spEcho = Spring.Echo
 
-local spCreateFeature         = Spring.CreateFeature
-local spCreateUnit            = Spring.CreateUnit
-local spDestroyUnit           = Spring.DestroyUnit
-local spGetGameFrame          = Spring.GetGameFrame
-local spGetProjectileDefID    = Spring.GetProjectileDefID
-local spGetProjectileTeamID   = Spring.GetProjectileTeamID
-local spGetUnitShieldState    = Spring.GetUnitShieldState
-local spGiveOrderToUnit       = Spring.GiveOrderToUnit
-local spSetFeatureDirection   = Spring.SetFeatureDirection
-local spSetUnitRulesParam     = Spring.SetUnitRulesParam
-local spSpawnCEG 			  = Spring.SpawnCEG
-local spGetUnitHealth 		  = Spring.GetUnitHealth
-local spSetUnitHealth		  = Spring.SetUnitHealth
-local spGetUnitPosition       = Spring.GetUnitPosition
-local spGetGroundHeight       = Spring.GetGroundHeight
-local spGetUnitTeam           = Spring.GetUnitTeam
-local spSetUnitDirection      = Spring.SetUnitDirection
-local spAddUnitImpulse        = Spring.AddUnitImpulse
-local spEcho                  = Spring.Echo
-
-local mapsizeX 				  = Game.mapSizeX
-local mapsizeZ 				  = Game.mapSizeZ
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
 
 local random = math.random
-local sin    = math.sin
-local cos    = math.cos
+local sin = math.sin
+local cos = math.cos
 local mathMax = math.max
 local mathSqrt = math.sqrt
 local stringFind = string.find
@@ -105,7 +103,7 @@ local scavengerAITeamID = 999
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == "ScavengersAI" then
 		scavengerAITeamID = i - 1
 		break
 	end
@@ -138,7 +136,7 @@ local function SpawnUnit(spawnData)
 
 			if not spawnDef.surface then
 				validSurface = true
-			elseif spawnData.y < mathMax(y+32, 32) then
+			elseif spawnData.y < mathMax(y + 32, 32) then
 				local surface = spawnDef.surface
 				if stringFind(surface, "LAND", 1, true) and y > minWaterDepth then
 					validSurface = true
@@ -182,7 +180,7 @@ local function SpawnUnit(spawnData)
 			end
 
 			if not spawnUnitName or not UnitDefNames[spawnUnitName] then
-				spEcho('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
+				spEcho("INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER", spawnUnitName)
 				return
 			end
 
@@ -192,13 +190,13 @@ local function SpawnUnit(spawnData)
 			end
 
 			if spawnDef.ceg then
-				spSpawnCEG(spawnDef.ceg, x, spawnData.y, z, 0,0,0)
+				spSpawnCEG(spawnDef.ceg, x, spawnData.y, z, 0, 0, 0)
 			end
 
 			if spawnDef.stun then
 				local maxHealth = select(2, spGetUnitHealth(unitID))
-				local paralyzeTime = maxHealth + ((maxHealth/30)*spawnDef.stun)
-				spSetUnitHealth(unitID, {paralyze = paralyzeTime })
+				local paralyzeTime = maxHealth + ((maxHealth / 30) * spawnDef.stun)
+				spSetUnitHealth(unitID, { paralyze = paralyzeTime })
 			end
 
 			if ownerID then
@@ -208,10 +206,10 @@ local function SpawnUnit(spawnData)
 				if ownx then
 					local dx = (x - ownx)
 					local dz = (z - ownz)
-					local l = mathSqrt((dx*dx) + (dz*dz))
+					local l = mathSqrt((dx * dx) + (dz * dz))
 					if l > 0 then
-						dx = dx/l
-						dz = dz/l
+						dx = dx / l
+						dz = dz / l
 						spSetUnitDirection(unitID, dx, 0, dz)
 						spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
 					end
@@ -233,8 +231,6 @@ local function SpawnUnit(spawnData)
 			-- Force a slowupdate to make the unit act immediately
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
-
-
 		end
 	end
 end
@@ -252,7 +248,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			end
 		end
 	end
-
 end
 
 function gadget:Initialize()
@@ -311,7 +306,6 @@ function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shie
 	noCreate = true -- not a per-projectile map because Explosion() is guaranteed to follow
 end
 
-
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	local unitDef = UnitDefs[unitDefID]
 	local weaponList = unitDef.weapons
@@ -321,33 +315,30 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local weapon = weaponList[i]
 		local weaponDefID = weapon.weaponDef
 		if weaponDefID and spawnDefs[weaponDefID] then
-
 			local spawnDef = spawnDefs[weaponDefID]
 			if not spawnNames[unitID] then
-			    spawnNames[unitID] = {
-			        weapon = {}
-			    }
+				spawnNames[unitID] = {
+					weapon = {},
+				}
 			end
 			if spawnNames[unitID] then
-    			-- Use pre-split unitNames from spawnDef instead of splitting on every unit creation
-    			spawnNames[unitID].weapon[weaponDefID] = {
-    			    names = spawnDef.unitNames,
-    			    unitSequence = 1,
-    			}
-    			if spawnDef.mode == "random_locked" then
-    			    spawnNames[unitID].weapon[weaponDefID].unitSequence = random(#spawnNames[unitID].weapon[weaponDefID].names)
-    			end
-		    end
-
+				-- Use pre-split unitNames from spawnDef instead of splitting on every unit creation
+				spawnNames[unitID].weapon[weaponDefID] = {
+					names = spawnDef.unitNames,
+					unitSequence = 1,
+				}
+				if spawnDef.mode == "random_locked" then
+					spawnNames[unitID].weapon[weaponDefID].unitSequence = random(#spawnNames[unitID].weapon[weaponDefID].names)
+				end
+			end
 		end
 	end
 end
 
-
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	-- Clean up spawn names
 	if spawnNames[unitID] then
-	    spawnNames[unitID] = nil
+		spawnNames[unitID] = nil
 	end
 
 	-- Clean up expire tracking

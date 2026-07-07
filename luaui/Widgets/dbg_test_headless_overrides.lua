@@ -19,4 +19,3 @@ end
 -- is placed inside a display list, this can cause problems.
 gl.PushMatrix = function() end
 gl.PopMatrix = function() end
-

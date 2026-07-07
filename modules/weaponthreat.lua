@@ -34,11 +34,7 @@ end
 
 local function getUnitDefKamikazeDistance(unitDef)
 	local customParams = unitDef.customParams or {}
-	return unitDef.kamikazeDistance
-		or unitDef.kamikazeDist
-		or unitDef.kamikazedistance
-		or tonumber(customParams.kamikazedistance)
-		or 0
+	return unitDef.kamikazeDistance or unitDef.kamikazeDist or unitDef.kamikazedistance or tonumber(customParams.kamikazedistance) or 0
 end
 
 local function hasKamikazeWeapon(unitDef)
@@ -55,19 +51,11 @@ end
 
 function WeaponThreat.isKamikazeUnitDef(unitDef)
 	local customParams = unitDef.customParams or {}
-	return unitDef.canKamikaze
-		or customParams.instantselfd
-		or customParams.unitgroup == "explo"
-		or customParams.mine
-		or customParams.detonaterange
-		or hasKamikazeWeapon(unitDef)
+	return unitDef.canKamikaze or customParams.instantselfd or customParams.unitgroup == "explo" or customParams.mine or customParams.detonaterange or hasKamikazeWeapon(unitDef)
 end
 
 local function getKamikazeExplosionRadius(unitDef)
-	local explosionRadius = math.max(
-		getWeaponExplosionRadius(unitDef.deathExplosion),
-		getWeaponExplosionRadius(unitDef.selfDExplosion)
-	)
+	local explosionRadius = math.max(getWeaponExplosionRadius(unitDef.deathExplosion), getWeaponExplosionRadius(unitDef.selfDExplosion))
 	local weapons = unitDef.weapons
 	for weaponNum = 1, #weapons do
 		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
@@ -98,9 +86,7 @@ function WeaponThreat.isOffensiveWeapon(weaponDef)
 end
 
 function WeaponThreat.isWatchableWeapon(weaponDef)
-	return weaponDef
-		and not (weaponDef.shieldRadius and weaponDef.shieldRadius > 0)
-		and not (weaponDef.interceptor ~= 0 and weaponDef.coverageRange)
+	return weaponDef and not (weaponDef.shieldRadius and weaponDef.shieldRadius > 0) and not (weaponDef.interceptor ~= 0 and weaponDef.coverageRange)
 end
 
 local function weaponDealsDamage(weaponDef)

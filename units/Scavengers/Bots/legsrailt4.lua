@@ -32,7 +32,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 100,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/gantry",
@@ -134,8 +134,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				customparams = {
-				overpenetrate = true,
-				stockpilelimit = 3,
+					overpenetrate = true,
+					stockpilelimit = 3,
 				},
 				damage = {
 					commanders = 1000,

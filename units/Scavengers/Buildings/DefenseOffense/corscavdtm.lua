@@ -36,7 +36,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "corscavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",

@@ -1,6 +1,6 @@
 -- Spring Unsynced (Widget) Builder
 -- Builds a sandboxed widget execution environment for unsynced/LuaUI tests.
--- Mirrors SpringSyncedBuilder but for widgets that consume widget context globals
+-- Mirrors EngineSyncedBuilder but for widgets that consume widget context globals
 -- (widget, widgetHandler, WG, GL, gl, Platform, UnitDefs) and Spring unsynced
 -- functions like GiveOrderToUnit / TestBuildOrder.
 
@@ -12,7 +12,7 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field captureArrayOrders fun(): table[]  installs spy on Spring.GiveOrderArrayToUnitArray, returns recorded calls
 ---@field captureUnitOrders fun(): table[]   installs spy on Spring.GiveOrderToUnit, returns recorded calls
 
----@class SpringUnsyncedBuilder
+---@class EngineUnsyncedBuilder
 ---@field unitDefs UnitDefsBuilder
 ---@field springOverrides table<string, function|table>
 ---@field vfsIncludeOverrides table<string, any|fun(path:string, ...):any>
@@ -30,10 +30,10 @@ function SUB.new()
 end
 
 ---Register a unit definition. Delegates to the underlying UnitDefsBuilder.
----@overload fun(self: SpringUnsyncedBuilder, udb: UnitDefBuilder): SpringUnsyncedBuilder
+---@overload fun(self: EngineUnsyncedBuilder, udb: UnitDefBuilder): EngineUnsyncedBuilder
 ---@param defID number
 ---@param def table
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithUnitDef(defID, def)
 	self.unitDefs:WithUnitDef(defID, def)
 	return self
@@ -42,14 +42,14 @@ end
 ---Place a live unit instance on the map. Errors if the def is not registered.
 ---@param unitID number
 ---@param defIDOrName number|string
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithUnit(unitID, defIDOrName)
 	self.unitDefs:WithUnit(unitID, defIDOrName)
 	return self
 end
 
 ---Load real BAR UnitDefs from gamedata into the registry.
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithRealUnitDefs()
 	self.unitDefs:WithRealUnitDefs()
 	return self
@@ -57,7 +57,7 @@ end
 
 ---@param name string
 ---@param fn function|table
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithSpringFn(name, fn)
 	self.springOverrides[name] = fn
 	return self
@@ -67,14 +67,14 @@ end
 ---value may be a literal table or a function called with the original args.
 ---@param path string
 ---@param value any
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithVFSInclude(path, value)
 	self.vfsIncludeOverrides[path] = value
 	return self
 end
 
 ---@param headless boolean|nil  defaults to true
----@return SpringUnsyncedBuilder
+---@return EngineUnsyncedBuilder
 function SUB:WithHeadless(headless)
 	self.headless = headless ~= false
 	return self
@@ -145,6 +145,9 @@ local function makeEnv(self)
 		springTable[k] = v
 	end
 	env.Spring = setmetatable(springTable, { __index = _G.Spring })
+	-- spring-split: widgets call Engine.{Synced,Unsynced,Shared}.X; point all
+	-- buckets at the same mock table so they resolve to the per-test overrides.
+	env.Engine = { Synced = env.Spring, Unsynced = env.Spring, Shared = env.Spring }
 
 	local realInclude = _G.VFS and _G.VFS.Include
 	local includeOverrides = self.vfsIncludeOverrides
@@ -184,7 +187,7 @@ function SUB:LoadWidget(widgetPath)
 
 	function mock.captureArrayOrders()
 		local calls = {}
-		env.Spring.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
+		env.Engine.Shared.GiveOrderArrayToUnitArray = function(unitIDs, orders, _)
 			table.insert(calls, { unitIDs = unitIDs, orders = orders })
 		end
 		return calls
@@ -192,7 +195,7 @@ function SUB:LoadWidget(widgetPath)
 
 	function mock.captureUnitOrders()
 		local calls = {}
-		env.Spring.GiveOrderToUnit = function(unitID, cmdID, params, _)
+		env.Engine.Shared.GiveOrderToUnit = function(unitID, cmdID, params, _)
 			table.insert(calls, { unitID = unitID, cmdID = cmdID, params = params })
 		end
 		return calls

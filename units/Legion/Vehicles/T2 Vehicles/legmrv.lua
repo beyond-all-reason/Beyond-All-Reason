@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 600,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -141,7 +141,6 @@ return {
 				def = "QUICKSHOT_CANNON",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
-
 			},
 		},
 	},

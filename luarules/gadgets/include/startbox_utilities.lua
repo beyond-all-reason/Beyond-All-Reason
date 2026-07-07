@@ -14,26 +14,26 @@ local SplineLib = VFS.Include("common/lib_spline.lua")
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
 local function GetStartboxName(midX, midZ)
-	if (midX < 0.33) then
-		if (midZ < 0.33) then
+	if midX < 0.33 then
+		if midZ < 0.33 then
 			return "North-West", "NW"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South-West", "SW"
 		else
 			return "West", "W"
 		end
-	elseif (midX > 0.66) then
-		if (midZ < 0.33) then
+	elseif midX > 0.66 then
+		if midZ < 0.33 then
 			return "North-East", "NE"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South-East", "SE"
 		else
 			return "East", "E"
 		end
 	else
-		if (midZ < 0.33) then
+		if midZ < 0.33 then
 			return "North", "N"
-		elseif (midZ > 0.66) then
+		elseif midZ > 0.66 then
 			return "South", "S"
 		else
 			return "Center", "Center"
@@ -90,13 +90,17 @@ local function matchOverride(override, numTeams)
 end
 
 local function matchSetExact(set, numTeams)
-	if not set then return nil end
+	if not set then
+		return nil
+	end
 
 	return set[tostring(numTeams)]
 end
 
 local function matchSetLarger(set, numTeams)
-	if not set then return nil end
+	if not set then
+		return nil
+	end
 
 	local bestKey, bestNum
 	for k in pairs(set) do
@@ -111,7 +115,9 @@ local function matchSetLarger(set, numTeams)
 end
 
 local function matchSetSmaller(set, numTeams)
-	if not set then return nil end
+	if not set then
+		return nil
+	end
 
 	local bestKey, bestNum
 	for k in pairs(set) do
@@ -127,16 +133,24 @@ end
 
 local function resolveArrangement(override, set, numTeams)
 	local match = matchOverride(override, numTeams)
-	if match then return match, "modoption_override" end
+	if match then
+		return match, "modoption_override"
+	end
 
 	match = matchSetExact(set, numTeams)
-	if match then return match, "modoption_set" end
+	if match then
+		return match, "modoption_set"
+	end
 
 	match = matchSetLarger(set, numTeams)
-	if match then return match, "modoption_set" end
+	if match then
+		return match, "modoption_set"
+	end
 
 	match = matchSetSmaller(set, numTeams)
-	if match then return match, "modoption_set" end
+	if match then
+		return match, "modoption_set"
+	end
 
 	-- No modoption arrangement applies; defer to the engine startrect.
 	return nil, nil
@@ -217,24 +231,24 @@ local function buildFallback()
 	if mapSizeZ > mapSizeX then
 		return {
 			[0] = {
-				boxes = {{
-					{0, 0},
-					{0, mapSizeZ * 0.2},
-					{mapSizeX, mapSizeZ * 0.2},
-					{mapSizeX, 0},
-				}},
-				startpoints = {{ mapSizeX * 0.5, mapSizeZ * 0.1 }},
+				boxes = { {
+					{ 0, 0 },
+					{ 0, mapSizeZ * 0.2 },
+					{ mapSizeX, mapSizeZ * 0.2 },
+					{ mapSizeX, 0 },
+				} },
+				startpoints = { { mapSizeX * 0.5, mapSizeZ * 0.1 } },
 				nameLong = "North",
 				nameShort = "N",
 			},
 			[1] = {
-				boxes = {{
-					{0, mapSizeZ * 0.8},
-					{0, mapSizeZ},
-					{mapSizeX, mapSizeZ},
-					{mapSizeX, mapSizeZ * 0.8},
-				}},
-				startpoints = {{ mapSizeX * 0.5, mapSizeZ * 0.9 }},
+				boxes = { {
+					{ 0, mapSizeZ * 0.8 },
+					{ 0, mapSizeZ },
+					{ mapSizeX, mapSizeZ },
+					{ mapSizeX, mapSizeZ * 0.8 },
+				} },
+				startpoints = { { mapSizeX * 0.5, mapSizeZ * 0.9 } },
 				nameLong = "South",
 				nameShort = "S",
 			},
@@ -243,24 +257,24 @@ local function buildFallback()
 
 	return {
 		[0] = {
-			boxes = {{
-				{0, 0},
-				{0, mapSizeZ},
-				{mapSizeX * 0.2, mapSizeZ},
-				{mapSizeX * 0.2, 0},
-			}},
-			startpoints = {{ mapSizeX * 0.1, mapSizeZ * 0.5 }},
+			boxes = { {
+				{ 0, 0 },
+				{ 0, mapSizeZ },
+				{ mapSizeX * 0.2, mapSizeZ },
+				{ mapSizeX * 0.2, 0 },
+			} },
+			startpoints = { { mapSizeX * 0.1, mapSizeZ * 0.5 } },
 			nameLong = "West",
 			nameShort = "W",
 		},
 		[1] = {
-			boxes = {{
-				{mapSizeX * 0.8, 0},
-				{mapSizeX * 0.8, mapSizeZ - 1},
-				{mapSizeX, mapSizeZ - 1},
-				{mapSizeX, 0},
-			}},
-			startpoints = {{ mapSizeX * 0.9, mapSizeZ * 0.5 }},
+			boxes = { {
+				{ mapSizeX * 0.8, 0 },
+				{ mapSizeX * 0.8, mapSizeZ - 1 },
+				{ mapSizeX, mapSizeZ - 1 },
+				{ mapSizeX, 0 },
+			} },
+			startpoints = { { mapSizeX * 0.9, mapSizeZ * 0.5 } },
 			nameLong = "East",
 			nameShort = "E",
 		},

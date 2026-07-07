@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "June 2023",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -38,7 +37,9 @@ local function BuildSoundIndex()
 				local basename = file:match("([^/\\]+)%.[^.]+$")
 				if basename then
 					local key = basename:lower()
-					if not index[key] then index[key] = file end
+					if not index[key] then
+						index[key] = file
+					end
 				end
 			end
 		end
@@ -60,25 +61,35 @@ end
 
 local function BuildIconTypeIndex()
 	local ok, result = pcall(VFS.Include, "gamedata/icontypes.lua")
-	if ok and type(result) == "table" then return result end
+	if ok and type(result) == "table" then
+		return result
+	end
 	return {}
 end
 
 local function ResolveSoundPath(soundIndex, name)
-	if type(name) ~= "string" or name == "" then return nil end
+	if type(name) ~= "string" or name == "" then
+		return nil
+	end
 	return soundIndex[name:lower()]
 end
 
 local function ResolveBuildPicPath(buildPic)
-	if type(buildPic) ~= "string" or buildPic == "" then return nil end
+	if type(buildPic) ~= "string" or buildPic == "" then
+		return nil
+	end
 	for _, candidate in ipairs({ "unitpics/" .. buildPic, "unitpics/" .. buildPic:lower() }) do
-		if VFS.FileExists(candidate) then return candidate end
+		if VFS.FileExists(candidate) then
+			return candidate
+		end
 	end
 	return nil
 end
 
 local function AnnotateSoundArray(soundArray, soundIndex)
-	if type(soundArray) ~= "table" then return end
+	if type(soundArray) ~= "table" then
+		return
+	end
 	for _, entry in ipairs(soundArray) do
 		if type(entry) == "table" then
 			entry.path = ResolveSoundPath(soundIndex, entry.name)
@@ -144,7 +155,9 @@ local function FlattenUnitDef(unitDef)
 		for _, weapon in pairs(tbl.weapons) do
 			if type(weapon) == "table" then
 				local wd = type(weapon.weaponDef) == "number" and WeaponDefs[weapon.weaponDef] or nil
-				if wd then weapon.weaponDefName = wd.name end
+				if wd then
+					weapon.weaponDefName = wd.name
+				end
 			end
 		end
 	end
@@ -192,8 +205,3 @@ function widget:TextCommand(command)
 		ExportDefs()
 	end
 end
-
-
-
-
-
