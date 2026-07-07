@@ -259,13 +259,15 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority * PRIORITY_ANTI_COLLATERAL
 	end
 
+	-- We've done the above work to avoid this more expensive spatial search against the target.
 	readAs.read = spGetUnitTeam(unitID)
-
 	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
 
-	local allow = true
+	local allowed = true
 
 	if enemyPower >= friendPower * friendPowerRatio then
+		-- The preferred target radius grows since it represents the net region
+		-- of incoming attacks that will be (probably) directed at that unit.
 		if not preferRadius or preferRadius < searchRadius then
 			preferUnit[allyTeam][targetID] = searchRadius
 		end
@@ -273,11 +275,13 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 			priority = priority * PRIORITY_CLEAN_SHOT
 		end
 	else
+		-- The avoid radius shrinks because a smaller attack region can eliminate
+		-- specific targets trivially without causing any friendly-fire damages.
 		if not avoidRadius or avoidRadius > searchRadius then
 			avoidUnit[allyTeam][targetID] = searchRadius
 		end
 		if enemyPower <= spamPowerMax then
-			allow = false
+			allowed = false
 			priority = priority * PRIORITY_ANTI_SPAM -- Not needed?
 		else
 			priority = priority * PRIORITY_ANTI_COLLATERAL
@@ -286,7 +290,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 
 	-- local x, y, z = Spring.GetUnitPosition(targetID)
 	-- Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allow), priority))
-	return allow, priority
+	return allowed, priority
 end
 
 local index = 0
