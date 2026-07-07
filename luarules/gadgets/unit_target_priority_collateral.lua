@@ -18,7 +18,7 @@ function gadget:GetInfo()
 end
 
 local PRIORITY_CLEAN_SHOT = 0.875
-local PRIORITY_COLLATERAL = 5.0
+local PRIORITY_ANTI_COLLATERAL = 5.0
 local PRIORITY_ANTI_SPAM = 20.0
 
 local friendPowerRatio = 1.5
@@ -41,14 +41,12 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 
 -- Initialization --------------------------------------------------------------
 
-local searchWeaponRadius = {}
+local weaponSearchRadius = {}
 
-local allyTeams = {}
 local avoidUnit, preferUnit = {}, {}
 do
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeamList) do
-		allyTeams[allyTeam] = true
 		avoidUnit[allyTeam] = {}
 		preferUnit[allyTeam] = {}
 	end
@@ -89,40 +87,38 @@ local function ignoreWeaponDef(weaponDef)
 		or getWeaponDamage(weaponDef) <= 10
 end
 
+local function getWeaponTargetingParent(weapons, weaponNum)
+	local parent = weapons[weaponNum]
+	while weapons[parent.slavedTo] do
+		weaponNum = parent.slavedTo
+		parent = weapons[weaponNum]
+	end
+	return weaponNum, parent
+end
+
 -- - We want to aggregate weapons together into piles of stats and modify priority once.
 -- - Keep multiple copies of the same weaponDef and check against `testDamageMin` later.
 -- - An "ignored" weapon may be used for targeting a non-ignored weapon, e.g. "aimhull".
 local function getWeaponGroups(unitDef)
+	local groups = {} -- TODO: We are not supporting alternate weapon sets fully, then.
+
 	local weapons = unitDef.weapons
-	local primary = {}
-	local groups = { [0] = primary }
-
-	for i, weapon in ipairs(weapons) do
-		local parent = weapon.slavedTo
-		local cycles = #weapons
-
-		while weapons[parent] and cycles > 0 do
-			parent = weapons[parent].slavedTo
-			cycles = cycles - 1
-		end
-
-		local group = table.ensureTable(groups, parent)
-		group[#group + 1] = {
+	for weaponNum, weapon in ipairs(weapons) do
+		local parentNum = getWeaponTargetingParent(weapons, weaponNum)
+		local parentGroup = table.ensureTable(groups, parentNum)
+		parentGroup[#parentGroup + 1] = {
 			weaponDef = weapon.weaponDef,
-			weaponNum = i,
+			weaponNum = weaponNum,
 		}
-	end
 
-	for _, weaponEntry in ipairs(primary) do
-		-- This adds collateral tests per-def, not per-spawned-unit, but what can you do.
-		local weaponDef = WeaponDefs[weaponEntry.weaponDef]
-		local droneNames = tostring(weaponDef.customParams.carried_unit)
-
-		for _, droneName in ipairs(droneNames:split()) do
-			local droneDef = UnitDefNames[droneName]
-			if droneDef and droneDef ~= unitDef then
-				for _, entry in ipairs(getWeaponGroups(droneDef)[0]) do
-					primary[#primary + 1] = entry
+		-- This skips drone counts for now, so our `testDamageMin` case needs validating.
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		for _, droneName in ipairs((weaponDef.customParams.carried_unit or ""):split()) do
+			if UnitDefNames[droneName] then
+				for _, entries in ipairs(getWeaponGroups(UnitDefNames[droneName])) do
+					for _, entry in ipairs(entries) do
+						parentGroup[#parentGroup + 1] = entry
+					end
 				end
 			end
 		end
@@ -140,9 +136,10 @@ local weaponTypesExplosion = {
 	TorpedoLauncher   = true,
 	StarburstLauncher = true,
 	AircraftBomb      = true,
+	-- TODO: Melee?
 }
 
-local function getExplosionRadiusEffective(weaponDef, subordinates)
+local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	local radius, damage = 0.0, 0.0
 
 	if not weaponTypesExplosion[weaponDef.type] then
@@ -185,10 +182,11 @@ local function getExplosionRadiusEffective(weaponDef, subordinates)
 		end
 	end
 
-	if subordinates then
+	local subordinates = table.map(groups[weaponNum] or {}, function(w, i) return w.weaponNum ~= weaponNum and w or nil, i end)
+	if next(subordinates) then
 		for _, subEntry in pairs(subordinates) do
 			local subWeaponDef = WeaponDefs[subEntry.weaponDef]
-			local subRadius, subDamage = getExplosionRadiusEffective(subWeaponDef)
+			local subRadius, subDamage = getExplosionRadiusEffective(groups, subEntry.weaponNum, subWeaponDef)
 			radius = math.max(radius, subRadius)
 			damage = damage + subDamage
 		end
@@ -199,21 +197,20 @@ end
 
 local function addWeaponCollateral(unitDef)
 	local groups = getWeaponGroups(unitDef)
-	local primary = groups[0]
+	for weaponNum in pairs(groups) do
+		local weapon = unitDef.weapons[weaponNum]
+		local weaponDefID = weapon.weaponDef
+		local weaponDef = WeaponDefs[weaponDefID]
 
-	for j = 1, #primary do
-		local weaponEntry = primary[j]
-		local weaponDefID = weaponEntry.weaponDef
-		local weaponNum = weaponEntry.weaponNum
-
-		local radius, damage = getExplosionRadiusEffective(WeaponDefs[weaponDefID], groups[weaponNum])
+		local radius, damage = getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 
 		if radius >= searchRadiusMin and damage >= searchDamageMin then
-			if not searchWeaponRadius[weaponDefID] then
+			if not weaponSearchRadius[weaponDefID] then
 				Script.SetWatchAllowTarget(weaponDefID, true)
-				searchWeaponRadius[weaponDefID] = radius
+				weaponSearchRadius[weaponDefID] = radius
 			else
-				searchWeaponRadius[weaponDefID] = math.max(searchWeaponRadius[weaponDefID], radius)
+				-- Games that use weaponDefs as shared components likely need to add handling here.
+				weaponSearchRadius[weaponDefID] = math.max(weaponSearchRadius[weaponDefID], radius)
 			end
 		end
 	end
@@ -243,7 +240,7 @@ end
 -- Engine callins --------------------------------------------------------------
 
 function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, priority)
-	local searchRadius = searchWeaponRadius[weaponDefID]
+	local searchRadius = weaponSearchRadius[weaponDefID]
 	if not searchRadius then
 		return true, priority
 	end
@@ -259,18 +256,19 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	-- Avoids are less important and use the reverse logic in comparison.
 	local avoidRadius = avoidUnit[allyTeam][targetID]
 	if avoidRadius and avoidRadius - 10 <= searchRadius then
-		return true, priority * PRIORITY_COLLATERAL
+		return true, priority * PRIORITY_ANTI_COLLATERAL
 	end
 
 	readAs.read = spGetUnitTeam(unitID)
 
 	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
 
+	local allow = true
+
 	if enemyPower >= friendPower * friendPowerRatio then
 		if not preferRadius or preferRadius < searchRadius then
 			preferUnit[allyTeam][targetID] = searchRadius
 		end
-
 		if friendPower <= spamPowerMax then
 			priority = priority * PRIORITY_CLEAN_SHOT
 		end
@@ -278,15 +276,17 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		if not avoidRadius or avoidRadius > searchRadius then
 			avoidUnit[allyTeam][targetID] = searchRadius
 		end
-
 		if enemyPower <= spamPowerMax then
-			priority = priority * PRIORITY_ANTI_SPAM
+			allow = false
+			priority = priority * PRIORITY_ANTI_SPAM -- Not needed?
 		else
-			priority = priority * PRIORITY_COLLATERAL
+			priority = priority * PRIORITY_ANTI_COLLATERAL
 		end
 	end
 
-	return true, priority
+	-- local x, y, z = Spring.GetUnitPosition(targetID)
+	-- Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allow), priority))
+	return allow, priority
 end
 
 local index = 0
@@ -308,7 +308,7 @@ function gadget:Initialize()
 		addWeaponCollateral(unitDef)
 	end
 
-	if not next(searchWeaponRadius) then
+	if not next(weaponSearchRadius) then
 		gadgetHandler:RemoveGadget()
 		return
 	end
