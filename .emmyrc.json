@@ -8,6 +8,13 @@
       "duplicate-set-field"
     ],
     "globals": [
+      "BAR",
+      "Utilities",
+      "Debug",
+      "Lava",
+      "GetModOptionsCopy",
+      "I18N",
+      "I18N_PATH",
       "Turn",
       "Move",
       "Spin",
@@ -38,6 +45,7 @@
       "LUAUI_DIRNAME",
       "socket",
       "pairsByKeys",
+      "ipairs_reverse",
       "SendToUnsynced",
       "CallAsTeam",
       "handler",
@@ -77,6 +85,7 @@
   },
   "workspace": {
     "ignoreDir": [
+      "modules/i18n/i18nlib/spec",
       ".vscode",
       ".lux"
     ],
