@@ -10,7 +10,7 @@ How to issue a firestate change from your widget:
        DEFEND is the new mode (hold fire unless a nearby enemy threatens you).
 
   3. Call one of these:
-       WG['firestate'].giveFirestateToSelection(state, Spring.GetSelectedUnits(), opts)
+       WG['firestate'].setSelectionFirestate(state, Spring.GetSelectedUnits(), opts)
          -- changes firestate for the player's current selection
        WG['firestate'].setFirestateForUnits(state, { unitID }, opts)
          -- changes firestate for specific units (e.g. in UnitCreated)
@@ -77,7 +77,7 @@ local function notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	end
 end
 
-local function giveFirestateToSelection(userState, unitIDs, opts)
+local function setSelectionFirestate(userState, unitIDs, opts)
 	if userState == nil or not unitIDs or #unitIDs == 0 then
 		return false
 	end
@@ -129,7 +129,7 @@ local function decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 	return nil, false, false
 end
 
-WG['firestate'].giveFirestateToSelection = giveFirestateToSelection
+WG['firestate'].setSelectionFirestate = setSelectionFirestate
 WG['firestate'].setFirestateForUnits = setFirestateForUnits
 WG['firestate'].decodeFirestateUnitCommand = decodeFirestateUnitCommand
 
