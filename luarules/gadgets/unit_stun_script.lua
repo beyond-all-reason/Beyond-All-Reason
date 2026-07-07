@@ -1,16 +1,15 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Stun Script",
-        desc      = "makes unit stun status known to unit scripts",
-        author    = "Floris",
-        date      = "April 2020",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Stun Script",
+		desc = "makes unit stun status known to unit scripts",
+		author = "Floris",
+		date = "April 2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -21,9 +20,9 @@ local stunnedUnits = {}
 
 local hasSetStunned = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.customParams.paralyzemultiplier == 0 then
-        hasSetStunned[udid] = false
-    end
+	if ud.customParams.paralyzemultiplier == 0 then
+		hasSetStunned[udid] = false
+	end
 end
 
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
@@ -33,60 +32,58 @@ local spGetScriptEnv = Spring.UnitScript.GetScriptEnv
 
 local spGetCOBScriptID = Spring.GetCOBScriptID
 
--- because spCallCOBScript expects the 3rd arg to be number returnArgs 
+-- because spCallCOBScript expects the 3rd arg to be number returnArgs
 -- we always pass "number returnArgs" to hasSetStunned[unitDefID]() even if unused by the LUS alternative
 -- this way, hasSetStunned[unitDefID] always takes the same args, regardless of what environment it maps to
-local GetScriptFunc = function (unitID, functionName)
+local GetScriptFunc = function(unitID, functionName)
 	if spGetCOBScriptID(unitID, functionName) then
 		return spCallCOBScript
 	end
 	local env = spGetScriptEnv(unitID)
 	if env and env[functionName] then
-		return (
-			function(uid, functionName, returnArgs, isStunned) 
-				local scriptEnv = spGetScriptEnv(uid)
-				spCallAsUnit(uid, scriptEnv[functionName], isStunned) -- we don't need it to be passed to the LUS function itself though
-			end
-		)
+		return function(uid, functionName, returnArgs, isStunned)
+			local scriptEnv = spGetScriptEnv(uid)
+			spCallAsUnit(uid, scriptEnv[functionName], isStunned) -- we don't need it to be passed to the LUS function itself though
+		end
 	end
 	return false
 end
 
 function gadget:GameFrame(n)
-    -- check if stunned units have become deparalyzed
-    if n % 10 == 3 then
-        for unitID, _ in pairs(stunnedUnits) do
-            if not select(2, spGetUnitIsStunned(unitID)) then
-				stunnedUnits[unitID](unitID, 'SetStunned', 0, false)
-                stunnedUnits[unitID] = nil
-            end
-        end
-    end
+	-- check if stunned units have become deparalyzed
+	if n % 10 == 3 then
+		for unitID, _ in pairs(stunnedUnits) do
+			if not select(2, spGetUnitIsStunned(unitID)) then
+				stunnedUnits[unitID](unitID, "SetStunned", 0, false)
+				stunnedUnits[unitID] = nil
+			end
+		end
+	end
 end
 
 function gadget:Initialize()
-    for i, unitID in pairs(Spring.GetAllUnits()) do
-        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
-    end
+	for i, unitID in pairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if hasSetStunned[unitDefID] == nil then
-        hasSetStunned[unitDefID] = GetScriptFunc(unitID, 'SetStunned')
-    end
+	if hasSetStunned[unitDefID] == nil then
+		hasSetStunned[unitDefID] = GetScriptFunc(unitID, "SetStunned")
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	if hasSetStunned[unitDefID] then
-        stunnedUnits[unitID] = nil
+		stunnedUnits[unitID] = nil
 	end
 end
 
-function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDefID,projectileID,attackerID,attackerDefID,attackerTeam)
-    if paralyzer and hasSetStunned[unitDefID] then -- hasSetStunned can't be nil, it's either bool false or a function
-        if select(2, spGetUnitIsStunned(unitID)) then
-            stunnedUnits[unitID] = hasSetStunned[unitDefID] -- at this point hasSetStunned can only be a function
-            stunnedUnits[unitID](unitID, 'SetStunned', 0, true)
-        end
-    end
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if paralyzer and hasSetStunned[unitDefID] then -- hasSetStunned can't be nil, it's either bool false or a function
+		if select(2, spGetUnitIsStunned(unitID)) then
+			stunnedUnits[unitID] = hasSetStunned[unitDefID] -- at this point hasSetStunned can only be a function
+			stunnedUnits[unitID](unitID, "SetStunned", 0, true)
+		end
+	end
 end

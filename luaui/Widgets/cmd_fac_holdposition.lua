@@ -1,18 +1,16 @@
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Factory hold position",
-		desc    = "Sets new factories, and all units they build, to hold position automatically (except aircraft)",
-		author  = "Hobo Joe (original by Masta Ali)",
-		date    = "April 2024",
+		name = "Factory hold position",
+		desc = "Sets new factories, and all units they build, to hold position automatically (except aircraft)",
+		author = "Hobo Joe (original by Masta Ali)",
+		date = "April 2024",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
-		enabled = true
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -28,16 +26,15 @@ end
 
 -- Units inherit the movestate of the lab that produced them, so we only need to set the factory movestate
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-  if unitTeam == myTeamID then
-    if landFactories[unitDefID] then
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-    end
-  end
+	if unitTeam == myTeamID then
+		if landFactories[unitDefID] then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+		end
+	end
 end
 
 ----------------------------------------------
 ----------------------------------------------
-
 
 local function maybeRemoveSelf()
 	if Spring.IsReplay() or Spring.GetSpectatingState() then
@@ -57,5 +54,3 @@ end
 function widget:GameStart()
 	widget:PlayerChanged()
 end
-
-

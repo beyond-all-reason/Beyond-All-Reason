@@ -12,10 +12,9 @@ function widget:GetInfo()
 		license = "GNU GPL v2",
 		layer = -99999990,
 		enabled = true,
-		depends = {'gl4'},
+		depends = { "gl4" },
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -68,63 +67,63 @@ local spGetTeamList = Spring.GetTeamList
 
 -------------------------------- Notes, TODO ----------------------------------
 do
--- GL4 notes:
--- A spot light is a sphere?
--- A cone light is a cone
--- A beam light is a box
--- all prims should be back-face only rendered!
+	-- GL4 notes:
+	-- A spot light is a sphere?
+	-- A cone light is a cone
+	-- A beam light is a box
+	-- all prims should be back-face only rendered!
 
--- Full documentation:
--- https://docs.google.com/document/d/16mvYJX8WJ8cNjGe_3zhrymTOzPoSkFprr78i_vpH7yA/edit#
+	-- Full documentation:
+	-- https://docs.google.com/document/d/16mvYJX8WJ8cNjGe_3zhrymTOzPoSkFprr78i_vpH7yA/edit#
 
--- Separate VBO's for spheres, cones, beams
--- no geometry shader for now, its kinda pointless, might change my mind later
+	-- Separate VBO's for spheres, cones, beams
+	-- no geometry shader for now, its kinda pointless, might change my mind later
 
--- Sources of light
--- Projectiles
+	-- Sources of light
+	-- Projectiles
 	-- beamlasers
-		-- might get away with not updating their pos each frame?
-		-- probably not, due to continuous lasers like beamer turret (though that one may be spawned every frame...)
-		-- TODO: beamttl needs to be fixes, as we are way over spamming these, with up to 3 lights per beam
+	-- might get away with not updating their pos each frame?
+	-- probably not, due to continuous lasers like beamer turret (though that one may be spawned every frame...)
+	-- TODO: beamttl needs to be fixes, as we are way over spamming these, with up to 3 lights per beam
 	-- lightning
-		-- TODO: see if the multi-spawn
+	-- TODO: see if the multi-spawn
 	-- plasma balls
-		-- these are actually easy to sim, but might not be worth it, not simmed
+	-- these are actually easy to sim, but might not be worth it, not simmed
 	-- missiles
-		-- unsimable, must be queried
+	-- unsimable, must be queried
 	-- rockets
-		-- hard to sim
+	-- hard to sim
 	-- gibs
-		-- hard to sim
--- Explosions
+	-- hard to sim
+	-- Explosions
 	-- actually spawn once, reasonably easy (separate vbotable for them?)
 	-- always spherical, should be able to override a param with them
 	--
--- mapdefined lights
+	-- mapdefined lights
 	-- animating them might be a challenge
--- headlights
+	-- headlights
 	-- would rock, needs their own vbo for position maybe?
 	-- or just extend
--- piecelights
+	-- piecelights
 	-- for thrusters, would be truly epic!
 	-- fusion lights
 
--- Notes on self-point lights:
+	-- Notes on self-point lights:
 	-- these are probably best billboarded, then depth tested!
 
--- would be nice to have:
+	-- would be nice to have:
 	-- full map-level dense atmosphere
 	-- explosions should kick up dust
 	-- simulate wind and other movements
 	-- at a rez of 32 elmos, dsd would need:
 	-- 256*256*16 voxels (1 million?) yeesh
 
--- Features are not light-attachable at the moment, and shouldnt be as they are immobile, use global lights
+	-- Features are not light-attachable at the moment, and shouldnt be as they are immobile, use global lights
 
--- preliminary perf:
+	-- preliminary perf:
 	-- yeah raymarch is expensive!
 
---TODO:
+	--TODO:
 	-- XX Reload config
 	-- XX Fix initialize
 	-- XX convert config to dicts
@@ -132,39 +131,51 @@ do
 	-- XX noupload pass
 	-- reload shaderconfig
 	-- cursorlight
-		-- ally and own, click sensitive!
+	-- ally and own, click sensitive!
 	-- XX light types should know their vbo?
-		-- this one is much harder than expected
+	-- this one is much harder than expected
 	-- XX initialize config dicts -- DONE
 	-- XX rework dicts -- DONE
 	-- XX unitdefidpiecemapcache -- DONE
 	-- Draw pre-water?
 	-- optimizations:
-		-- XX only upload dirty VBOs
-		-- Smaller, single channel noise texture
+	-- XX only upload dirty VBOs
+	-- Smaller, single channel noise texture
 	-- XX Beam lights double length for projectiles!
 	-- Some falloff issues result in a bit of overdraw
 	-- allow for customizable attenuation
 	-- XX list type configs for events
 	-- Handle playerchanged -- hasnt crashed yet :P
-		-- clear every goddamned unit light and buffer
+	-- clear every goddamned unit light and buffer
 	-- FIX SSAO widget for day-night cycle changes - done!
-
 end
-
 
 local cursorLights
 local cursorLightHeight = 35
 local cursorLightParams = {
-	lightType = 'point', -- or cone or beam
+	lightType = "point", -- or cone or beam
 	pieceName = nil, -- optional
 	lightConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 350,	-- (radius is set elsewhere)
-		r = 1, g = 1, b = 1, a = 0.1,	-- (alpha is set elsewhere)
-		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
-		modelfactor = 0.3, specular = 0.7, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 0
-	}
+		posx = 0,
+		posy = 0,
+		posz = 0,
+		radius = 350, -- (radius is set elsewhere)
+		r = 1,
+		g = 1,
+		b = 1,
+		a = 0.1, -- (alpha is set elsewhere)
+		color2r = 0,
+		color2g = 0,
+		color2b = 0,
+		colortime = 0, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 0.3,
+		specular = 0.7,
+		scattering = 0,
+		lensflare = 0,
+		lifetime = 0,
+		sustain = 0,
+		selfshadowing = 0,
+	},
 }
 
 local cursorLightAlpha = 0.5
@@ -177,17 +188,30 @@ local showPlayerCursorLight = false
 local playerCursorLightRadius = 1
 local playerCursorLightBrightness = 1
 local playerCursorLightParams = {
-	lightType = 'point', -- or cone or beam
+	lightType = "point", -- or cone or beam
 	pieceName = nil, -- optional
 	lightConfig = {
-		posx = 0, posy = 0, posz = 0, radius = 250,
-		r = 1, g = 0.8, b = 0.6, a = 0.1,	-- (alpha is set elsewhere)
-		color2r = 0, color2g = 0, color2b = 0, colortime = 0, -- point lights only, colortime in seconds for unit-attache
-		modelfactor = 0.3, specular = 0.4, scattering = 0, lensflare = 0,
-		lifetime = 0, sustain = 0, selfshadowing = 8
-	}
+		posx = 0,
+		posy = 0,
+		posz = 0,
+		radius = 250,
+		r = 1,
+		g = 0.8,
+		b = 0.6,
+		a = 0.1, -- (alpha is set elsewhere)
+		color2r = 0,
+		color2g = 0,
+		color2b = 0,
+		colortime = 0, -- point lights only, colortime in seconds for unit-attache
+		modelfactor = 0.3,
+		specular = 0.4,
+		scattering = 0,
+		lensflare = 0,
+		lifetime = 0,
+		sustain = 0,
+		selfshadowing = 8,
+	},
 }
-
 
 local teamColors = {}
 local function loadTeamColors()
@@ -197,7 +221,7 @@ local function loadTeamColors()
 		local playerID = playerList[i]
 		local teamID = select(4, spGetPlayerInfo(playerID, false))
 		local r, g, b = spGetTeamColor(teamID)
-		teamColors[playerID] = {r, g, b}
+		teamColors[playerID] = { r, g, b }
 	end
 end
 loadTeamColors()
@@ -223,18 +247,16 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-
 -- Strong:
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileType = Spring.GetProjectileType
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spIsSphereInView  = Spring.IsSphereInView
-local spGetUnitPosition  = Spring.GetUnitPosition
+local spIsSphereInView = Spring.IsSphereInView
+local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
-
 
 -- Weak:
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -252,15 +274,15 @@ end
 
 ------------------------------ Light and Shader configurations ------------------
 
-local enableProjectileLightFlares = false  -- set to true to show lens flare textures on projectile lights
+local enableProjectileLightFlares = false -- set to true to show lens flare textures on projectile lights
 
 local unitDefLights
 local featureDefLights
 local unitEventLights -- Table of lights per unitDefID
-local muzzleFlashLights  -- one light per weaponDefID
-local projectileDefLights  -- one light per weaponDefID
-local explosionLights  -- one light per weaponDefID
-local gibLight  -- one light for all pieceprojectiles
+local muzzleFlashLights -- one light per weaponDefID
+local projectileDefLights -- one light per weaponDefID
+local explosionLights -- one light per weaponDefID
+local gibLight -- one light for all pieceprojectiles
 
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
@@ -281,7 +303,7 @@ local screenSpaceShadows = 2
 
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+if Platform ~= nil and Platform.gpuVendor == "Intel" then
 	isPotatoGpu = true
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
@@ -294,8 +316,8 @@ elseif gpuMem and gpuMem > 0 and gpuMem < 5000 then
 end
 
 -- the 3d noise texture used for this shader
-local noisetex3dcube =  "LuaUI/images/noisetextures/noise64_cube_3.dds"
-local blueNoise2D =  "LuaUI/images/noisetextures/blue_noise_64.tga"
+local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
+local blueNoise2D = "LuaUI/images/noisetextures/blue_noise_64.tga"
 
 --[[
 local examplePointLight = {
@@ -310,7 +332,8 @@ local examplePointLight = {
 	modelfactor = 1, specular = 1, scattering = 1, lensflare = 1,
 	lifetime = 0, sustain = 1, 	selfshadowing = 0
 }
-]]--
+]]
+--
 
 ------------------------------ Debug switches ------------------------------
 local autoupdate = false
@@ -332,12 +355,12 @@ local unitBeamLightVBO = {} -- an instanceVBOTable
 local unitLightVBOMap -- a table of the above 3, keyed by light type,  {point = unitPointLightVBO, ...}
 
 local unitAttachedLights = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
-	--{unitID = { instanceID = targetVBO, ... }}
+--{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptlights to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointLightVBO = {}  -- for plasma balls
-local projectileBeamLightVBO = {}  -- for lasers
+local projectilePointLightVBO = {} -- for plasma balls
+local projectileBeamLightVBO = {} -- for lasers
 local projectileConeLightVBO = {} -- for rockets
 local projectileLightVBOMap -- a table of the above 3, keyed by light type
 
@@ -350,7 +373,9 @@ local unitDefPeiceMapCache = {} -- maps unitDefID to piecemap
 
 local lightParamTableSize = 29
 local lightCacheTable = {} -- this is a reusable table cache for saving memory later on
-for i = 1, lightParamTableSize do lightCacheTable[i] = 0 end
+for i = 1, lightParamTableSize do
+	lightCacheTable[i] = 0
+end
 local pieceIndexPos = 25
 local spawnFramePos = 17
 lightCacheTable[13] = 1 --modelfactor_specular_scattering_lensflare
@@ -359,19 +384,37 @@ lightCacheTable[15] = 1
 lightCacheTable[16] = 1
 
 local lightParamKeyOrder = { -- This table is a 'quick-ish' way of building the lua array from human-readable light parameters
-	posx = 1, posy = 2, posz = 3, radius = 4,
-	r = 9, g = 10, b = 11, a = 12,
-	dirx = 5, diry = 6, dirz = 7, theta = 8,  -- specify direction and half-angle in radians
-	pos2x = 5, pos2y = 6, pos2z = 7, -- beam lights only, specifies the endpoint of the beam
-	modelfactor = 13, specular = 14, scattering = 15, lensflare = 16,
-	lifetime = 18, sustain = 19, selfshadowing = 20, -- selfshadowing unused
+	posx = 1,
+	posy = 2,
+	posz = 3,
+	radius = 4,
+	r = 9,
+	g = 10,
+	b = 11,
+	a = 12,
+	dirx = 5,
+	diry = 6,
+	dirz = 7,
+	theta = 8, -- specify direction and half-angle in radians
+	pos2x = 5,
+	pos2y = 6,
+	pos2z = 7, -- beam lights only, specifies the endpoint of the beam
+	modelfactor = 13,
+	specular = 14,
+	scattering = 15,
+	lensflare = 16,
+	lifetime = 18,
+	sustain = 19,
+	selfshadowing = 20, -- selfshadowing unused
 
 	-- NOTE THERE ARE 4 MORE UNUSED SLOTS HERE RESERVED FOR FUTURE USE! -- Nope, beherith ate these like a greedy boy
-	color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point lights only, colortime in seconds for unit-attached
+	color2r = 21,
+	color2g = 22,
+	color2b = 23,
+	colortime = 24, -- point lights only, colortime in seconds for unit-attached
 }
 
 local autoLightInstanceID = 128000 -- as MAX_PROJECTILES = 128000, so they get unique ones
-
 
 local gameFrame = 0
 
@@ -389,7 +432,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local deferredLightShader = nil
 
 local shaderSourceCache = {
-	shaderName = 'Deferred Lights GL4',
+	shaderName = "Deferred Lights GL4",
 	vssrcpath = "LuaUI/Shaders/deferred_lights_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/deferred_lights_gl4.frag.glsl",
 	shaderConfig = shaderConfig,
@@ -407,7 +450,7 @@ local shaderSourceCache = {
 		--heightmapTex = 9,
 		--mapnormalsTex = 10,
 		screenSpaceShadows = 16,
-		},
+	},
 	uniformFloat = {
 		pointbeamcone = 0,
 		--fadeDistance = 3000,
@@ -417,33 +460,55 @@ local shaderSourceCache = {
 		windZ = 0.0,
 		radiusMultiplier = 1.0,
 		intensityMultiplier = 1.0,
-	  },
+	},
 }
-local testprojlighttable = {0,16,0,200, --pos + radius
-								0.25, 0.25,0.125, 5, -- color2, colortime
-								1.0,1.0,0.5,0.5, -- RGBA
-								0.1,1,0.25,1, -- modelfactor_specular_scattering_lensflare
-								0,0,200,0, -- spawnframe, lifetime (frames), sustain (frames), selfshadowing
-								0,0,0,0, -- color2
-								0, -- pieceIndex
-								0,0,0,0 -- instData always 0!
-								}
+local testprojlighttable = {
+	0,
+	16,
+	0,
+	200, --pos + radius
+	0.25,
+	0.25,
+	0.125,
+	5, -- color2, colortime
+	1.0,
+	1.0,
+	0.5,
+	0.5, -- RGBA
+	0.1,
+	1,
+	0.25,
+	1, -- modelfactor_specular_scattering_lensflare
+	0,
+	0,
+	200,
+	0, -- spawnframe, lifetime (frames), sustain (frames), selfshadowing
+	0,
+	0,
+	0,
+	0, -- color2
+	0, -- pieceIndex
+	0,
+	0,
+	0,
+	0, -- instData always 0!
+}
 local numAddLights = 0 -- how many times AddLight was called
 
 local spec = spGetSpectatingState()
 
 ---------------------- INITIALIZATION FUNCTIONS ----------------------------------
 
-
-
 local function goodbye(reason)
-	spEcho('Deferred Lights GL4 exiting:', reason)
+	spEcho("Deferred Lights GL4 exiting:", reason)
 	widgetHandler:RemoveWidget()
 end
 
 local function createLightInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
-	local targetLightVBO = InstanceVBOTable.makeInstanceVBOTable( vboLayout, 16, VBOname, unitIDattribID)
-	if vertexVBO == nil or targetLightVBO == nil then goodbye("Failed to make "..VBOname) end
+	local targetLightVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
+	if vertexVBO == nil or targetLightVBO == nil then
+		goodbye("Failed to make " .. VBOname)
+	end
 	targetLightVBO.vertexVBO = vertexVBO
 	targetLightVBO.numVertices = numVertices
 	targetLightVBO.indexVBO = indexVBO
@@ -459,65 +524,68 @@ local function initGL4()
 	end
 	-- init the VBO
 	local vboLayout = {
-			{id = 3, name = 'worldposrad', size = 4},
-				-- for spot, this is center.xyz and radius
-				-- for cone, this is center.xyz and height
-				-- for beam this is center.xyz and radiusleft
-			{id = 4, name = 'worldposrad2', size = 4},
-				-- for spot, this is direction.xyz for unitattached, or world anim params
-				-- for cone, this is direction.xyz and angle in radians
-				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'lightcolor', size = 4},
-				-- this is light color rgba for all
-			{id = 6, name = 'modelfactor_specular_scattering_lensflare', size = 4},
-			{id = 7, name = 'otherparams', size = 4},
-				-- Otherparams must be spawnframe, dieframe
-			{id = 8, name = 'color2', size = 4},
-			{id = 9, name = 'pieceIndex', size = 1, type = GL.UNSIGNED_INT},
-			{id = 10, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
+		{ id = 3, name = "worldposrad", size = 4 },
+		-- for spot, this is center.xyz and radius
+		-- for cone, this is center.xyz and height
+		-- for beam this is center.xyz and radiusleft
+		{ id = 4, name = "worldposrad2", size = 4 },
+		-- for spot, this is direction.xyz for unitattached, or world anim params
+		-- for cone, this is direction.xyz and angle in radians
+		-- for beam this is end.xyz and radiusright
+		{ id = 5, name = "lightcolor", size = 4 },
+		-- this is light color rgba for all
+		{ id = 6, name = "modelfactor_specular_scattering_lensflare", size = 4 },
+		{ id = 7, name = "otherparams", size = 4 },
+		-- Otherparams must be spawnframe, dieframe
+		{ id = 8, name = "color2", size = 4 },
+		{ id = 9, name = "pieceIndex", size = 1, type = GL.UNSIGNED_INT },
+		{ id = 10, name = "instData", size = 4, type = GL.UNSIGNED_INT },
 	}
 
 	local pointVBO, _, pointIndexVBO, _ = InstanceVBOTable.makeSphereVBO(8, 4, 1)
-	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
-	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
-	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
+	pointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
+	unitPointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
+	cursorPointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
 	predictivePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Predictive Point Light VBO")
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
-	coneLightVBO 			= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
-	unitConeLightVBO 		= createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
-	projectileConeLightVBO  = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Light VBO")
+	coneLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
+	unitConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
+	projectileConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Light VBO")
 
 	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
-	beamLightVBO 			= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
-	unitBeamLightVBO 		= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
-	projectileBeamLightVBO 	= createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
+	beamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
+	unitBeamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
+	projectileBeamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
 
-	projectileLightVBOMap = { point = projectilePointLightVBO,  beam = projectileBeamLightVBO,  cone = projectileConeLightVBO, }
-	unitLightVBOMap = { point = unitPointLightVBO,  beam = unitBeamLightVBO,  cone = unitConeLightVBO, }
-	lightVBOMap = { point = pointLightVBO,  beam = beamLightVBO,  cone = coneLightVBO, }
+	projectileLightVBOMap = { point = projectilePointLightVBO, beam = projectileBeamLightVBO, cone = projectileConeLightVBO }
+	unitLightVBOMap = { point = unitPointLightVBO, beam = unitBeamLightVBO, cone = unitConeLightVBO }
+	lightVBOMap = { point = pointLightVBO, beam = beamLightVBO, cone = coneLightVBO }
 	return pointLightVBO and unitPointLightVBO and coneLightVBO and beamLightVBO
 end
-
 
 ---InitializeLight(lightTable, unitID)
 ---Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
 ---@param unitID number
 local function InitializeLight(lightTable, unitID)
-	if not lightTable.initComplete then  -- late init
+	if not lightTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesnt exist yet
 		if not lightTable.lightParamTable then -- perform correct init
 			local lightparams = {}
-			for i = 1, lightParamTableSize do lightparams[i] = 0 end
-			if lightTable.lightConfig == nil then Spring.Debug.TraceFullEcho() end
+			for i = 1, lightParamTableSize do
+				lightparams[i] = 0
+			end
+			if lightTable.lightConfig == nil then
+				Spring.Debug.TraceFullEcho()
+			end
 			for paramname, tablepos in pairs(lightParamKeyOrder) do
 				lightparams[tablepos] = lightTable.lightConfig[paramname] or lightparams[tablepos]
 			end
 			lightparams[lightParamKeyOrder.radius] = lightparams[lightParamKeyOrder.radius]
-			lightparams[lightParamKeyOrder.a] =  lightparams[lightParamKeyOrder.a]
-			lightparams[lightParamKeyOrder.lifetime] = mathFloor( lightparams[lightParamKeyOrder.lifetime] )
+			lightparams[lightParamKeyOrder.a] = lightparams[lightParamKeyOrder.a]
+			lightparams[lightParamKeyOrder.lifetime] = mathFloor(lightparams[lightParamKeyOrder.lifetime])
 			lightTable.lightParamTable = lightparams
 			lightTable.lightConfig = nil -- never used again after initialization
 		end
@@ -538,7 +606,7 @@ local function InitializeLight(lightTable, unitID)
 				lightTable.pieceIndex = pieceMap[lightTable.pieceName]
 				lightTable.lightParamTable[pieceIndexPos] = lightTable.pieceIndex
 			end
-				--spEcho(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
+			--spEcho(lightname, lightParams.pieceName, pieceMap[lightParams.pieceName])
 		end
 
 		lightTable.initComplete = true
@@ -596,7 +664,7 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	end
 	if unitID then
 		if unitAttachedLights[unitID] == nil then
-			unitAttachedLights[unitID] = {[instanceID] = targetVBO}
+			unitAttachedLights[unitID] = { [instanceID] = targetVBO }
 		else
 			unitAttachedLights[unitID][instanceID] = targetVBO
 		end
@@ -633,9 +701,7 @@ end
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
 ---@param selfshadowing int what further type of animation will be used (0 is default 1 is for screen space shadow)
 ---@return instanceID for future reuse
-local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, r2,g2,b2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
-
+local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r, g, b, a, r2, g2, b2, colortime, modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
@@ -678,45 +744,50 @@ local function AddPointLight(instanceID, unitID, pieceIndex, targetVBO, px_or_ta
 		lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table passed by reference!
 		noUpload = py
 	end
-	if targetVBO == nil then targetVBO = pointLightVBO end
-	if unitID then targetVBO = unitPointLightVBO end
+	if targetVBO == nil then
+		targetVBO = pointLightVBO
+	end
+	if unitID then
+		targetVBO = unitPointLightVBO
+	end
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
 	calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	return instanceID
 end
 
 local function AddRandomDecayingPointLight()
-	AddPointLight(nil,nil,nil, nil,
-		Game.mapSizeX * 0.5 + mathRandom()*2000,
-		spGetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
-		Game.mapSizeZ * 0.5,
-		250,
-		1,0,0,1,
-		0,1,0,60,
-		1,1,1,1,
-		gameFrame, 100, 20, 1)
+	AddPointLight(nil, nil, nil, nil, Game.mapSizeX * 0.5 + mathRandom() * 2000, spGetGroundHeight(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5) + 50, Game.mapSizeZ * 0.5, 250, 1, 0, 0, 1, 0, 1, 0, 60, 1, 1, 1, 1, gameFrame, 100, 20, 1)
 	--spEcho("AddRandomDecayingPointLight", instanceID)
 
-	AddPointLight(nil,nil,nil,nil,
-		Game.mapSizeX * 0.5 + mathRandom()*2000,
-		spGetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
-		Game.mapSizeZ * 0.5 + 400,
-		250,
-		1,1,1,1,
-		1,0.5,0.2,5,
-		1,1,1,1,
-		gameFrame, 30, 0.2, 1)
+	AddPointLight(nil, nil, nil, nil, Game.mapSizeX * 0.5 + mathRandom() * 2000, spGetGroundHeight(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5) + 50, Game.mapSizeZ * 0.5 + 400, 250, 1, 1, 1, 1, 1, 0.5, 0.2, 5, 1, 1, 1, 1, gameFrame, 30, 0.2, 1)
 	--spEcho("AddRandomExplosionPointLight", instanceID)
 
-	AddPointLight(nil,nil,nil,nil,
-		Game.mapSizeX * 0.5 + mathRandom()*2000,
-		spGetGroundHeight(Game.mapSizeX * 0.5,Game.mapSizeZ * 0.5) + 50,
+	AddPointLight(
+		nil,
+		nil,
+		nil,
+		nil,
+		Game.mapSizeX * 0.5 + mathRandom() * 2000,
+		spGetGroundHeight(Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5) + 50,
 		Game.mapSizeZ * 0.5 + 800,
 		250,
-		0,0,0,1, -- start from black
-		1,0.5,0.25,3, -- go to yellow in 3 frames
-		1,1,1,1,
-		gameFrame, 100, 20, 1) -- Sustain peak brightness for 20 frames, and go down to 0 brightness by 100 frames.
+		0,
+		0,
+		0,
+		1, -- start from black
+		1,
+		0.5,
+		0.25,
+		3, -- go to yellow in 3 frames
+		1,
+		1,
+		1,
+		1,
+		gameFrame,
+		100,
+		20,
+		1
+	) -- Sustain peak brightness for 20 frames, and go down to 0 brightness by 100 frames.
 	--spEcho("AddRandomDecayingPointLight", instanceID)
 end
 
@@ -748,9 +819,7 @@ end
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
 ---@param selfshadowing int what further type of animation will be used
 ---@return instanceID for future reuse
-local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, sx, sy, sz, r2, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
-
+local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r, g, b, a, sx, sy, sz, r2, colortime, modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
@@ -794,8 +863,12 @@ local function AddBeamLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 		noUpload = py
 	end
 
-	if targetVBO == nil then targetVBO = beamLightVBO end
-	if unitID then targetVBO = unitBeamLightVBO end
+	if targetVBO == nil then
+		targetVBO = beamLightVBO
+	end
+	if unitID then
+		targetVBO = unitBeamLightVBO
+	end
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
 	calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	return instanceID
@@ -829,9 +902,7 @@ end
 ---@param sustain float how much sustain time the light will have at its original brightness (in game frames)
 ---@param selfshadowing int what further type of animation will be used
 ---@return instanceID for future reuse
-local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r,g,b,a, dx,dy,dz,theta, colortime,
-	modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
-
+local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_table, py, pz, radius, r, g, b, a, dx, dy, dz, theta, colortime, modelfactor, specular, scattering, lensflare, spawnframe, lifetime, sustain, selfshadowing)
 	if instanceID == nil then
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
@@ -874,8 +945,12 @@ local function AddConeLight(instanceID, unitID, pieceIndex, targetVBO, px_or_tab
 		noUpload = py
 	end
 
-	if targetVBO == nil then targetVBO = coneLightVBO end
-	if unitID then targetVBO = unitConeLightVBO end
+	if targetVBO == nil then
+		targetVBO = coneLightVBO
+	end
+	if unitID then
+		targetVBO = unitConeLightVBO
+	end
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
 	calcLightExpiry(targetVBO, lightparams, instanceID) -- This will add lights that have >0 lifetime to the removal queue
 	return instanceID
@@ -886,22 +961,28 @@ end
 ---Only use if you know the consequences of updating a VBO in-place!
 local function updateLightPosition(lightVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
 	local instanceIndex = lightVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then return nil end
-	instanceIndex = (instanceIndex - 1 ) * lightVBO.instanceStep
+	if instanceIndex == nil then
+		return nil
+	end
+	instanceIndex = (instanceIndex - 1) * lightVBO.instanceStep
 	local instData = lightVBO.instanceData
 	if posx then
 		instData[instanceIndex + 1] = posx
 		instData[instanceIndex + 2] = posy
 		instData[instanceIndex + 3] = posz
 	end
-	if radius then instData[instanceIndex + 4] = radius end
+	if radius then
+		instData[instanceIndex + 4] = radius
+	end
 
 	if p2x then
 		instData[instanceIndex + 5] = p2x
 		instData[instanceIndex + 6] = p2y
 		instData[instanceIndex + 7] = p2z
 	end
-	if theta then instData[instanceIndex + 8] = theta end
+	if theta then
+		instData[instanceIndex + 8] = theta
+	end
 	lightVBO.dirty = true
 	return instanceIndex
 end
@@ -910,20 +991,26 @@ end
 
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
-		if spGetUnitIsBeingBuilt(unitID) then return end
+		if spGetUnitIsBeingBuilt(unitID) then
+			return
+		end
 		local unitDefLight = unitDefLights[unitDefID]
-		if unitDefLight.initComplete ~= true then  -- late init
+		if unitDefLight.initComplete ~= true then -- late init
 			for lightname, lightParams in pairs(unitDefLight) do
-				if not InitializeLight(lightParams, unitID) then return end
+				if not InitializeLight(lightParams, unitID) then
+					return
+				end
 			end
 			unitDefLight.initComplete = true
 		end
 		for lightname, lightParams in pairs(unitDefLight) do
-			if lightname ~= 'initComplete' then
+			if lightname ~= "initComplete" then
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
 
-				if (not spec) and lightParams.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
-				AddLight(tostring(unitID) ..  lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
+				if (not spec) and lightParams.alliedOnly == true and spIsUnitAllied(unitID) == false then
+					return
+				end
+				AddLight(tostring(unitID) .. lightname, unitID, lightParams.pieceIndex, targetVBO, lightParams.lightParamTable, noUpload)
 			end
 		end
 	end
@@ -938,14 +1025,14 @@ local function RemoveUnitAttachedLights(unitID, instanceID)
 	local numremoved = 0
 	if unitAttachedLights[unitID] then
 		if instanceID and unitAttachedLights[unitID][instanceID] then
-			popElementInstance(unitAttachedLights[unitID][instanceID],instanceID)
+			popElementInstance(unitAttachedLights[unitID][instanceID], instanceID)
 			numremoved = numremoved + 1
 			unitAttachedLights[unitID][instanceID] = nil
 		else
 			for instanceID, targetVBO in pairs(unitAttachedLights[unitID]) do
 				if targetVBO.instanceIDtoIndex[instanceID] then
 					numremoved = numremoved + 1
-					popElementInstance(targetVBO,instanceID)
+					popElementInstance(targetVBO, instanceID)
 				else
 					--spEcho("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
@@ -990,7 +1077,6 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 	return nil
 end
 
-
 function AddRandomLight(which)
 	local gf = gameFrame
 	local radius = mathRandom() * 150 + 50
@@ -998,7 +1084,7 @@ function AddRandomLight(which)
 	local posz = Game.mapSizeZ * mathRandom() * 1.0
 	local posy = spGetGroundHeight(posx, posz) + mathRandom() * 0.5 * radius
 	-- randomize color
-	local r  = mathRandom() + 0.1 --r
+	local r = mathRandom() + 0.1 --r
 	local g = mathRandom() + 0.1 --g
 	local b = mathRandom() + 0.1 --b
 	local a = mathRandom() * 1.0 + 0.5 -- intensity or alpha
@@ -1008,28 +1094,25 @@ function AddRandomLight(which)
 	lightCacheTable[15] = 1 -- rayleigh-mie
 	lightCacheTable[16] = 1 -- lensflare
 
-
 	if which < 0.33 then -- point
-		AddPointLight(nil, nil, nil, nil, posx, posy, posz, radius, r,g,b,a)
+		AddPointLight(nil, nil, nil, nil, posx, posy, posz, radius, r, g, b, a)
 	elseif which < 0.66 then -- beam
-		local s =  (mathRandom() - 0.5) * 500
-		local t =  (mathRandom() + 0.5) * 100
-		local u =  (mathRandom() - 0.5) * 500
-		AddBeamLight(nil,nil,nil,nil, posx, posy , posz, radius, r,g,b,a, posx + s, posy + t, posz + u)
+		local s = (mathRandom() - 0.5) * 500
+		local t = (mathRandom() + 0.5) * 100
+		local u = (mathRandom() - 0.5) * 500
+		AddBeamLight(nil, nil, nil, nil, posx, posy, posz, radius, r, g, b, a, posx + s, posy + t, posz + u)
 	else -- cone
-		local s =  (mathRandom() - 0.5) * 2
-		local t =  (mathRandom() + 0.0) * -1
-		local u =  (mathRandom() - 0.5) * 2
-		local lenstu = 1.0 / mathSqrt(s*s + t*t + u*u)
+		local s = (mathRandom() - 0.5) * 2
+		local t = (mathRandom() + 0.0) * -1
+		local u = (mathRandom() - 0.5) * 2
+		local lenstu = 1.0 / mathSqrt(s * s + t * t + u * u)
 		local theta = mathRandom() * 0.9
-		AddConeLight(nil,nil,nil,nil, posx, posy + radius, posz, 3* radius, r,g,b,a,s * lenstu, t * lenstu, u * lenstu, theta)
+		AddConeLight(nil, nil, nil, nil, posx, posy + radius, posz, 3 * radius, r, g, b, a, s * lenstu, t * lenstu, u * lenstu, theta)
 	end
-
 end
 
-
 local function LoadLightConfig()
-	local success, result =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4config.lua')
+	local success, result = pcall(VFS.Include, "luaui/configs/DeferredLightsGL4config.lua")
 	--spEcho("Loading GL4 light config", success, result)
 	if success then
 		--spEcho("Loaded GL4 light config")
@@ -1037,12 +1120,11 @@ local function LoadLightConfig()
 		unitEventLights = result.unitEventLights
 		featureDefLights = result.featureDefLights
 		--projectileDefLights = result.projectileDefLights
-
 	else
 		spEcho("Failed to load GL4 Unit light config", success, result)
 	end
 
-	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	local success2, result2 = pcall(VFS.Include, "luaui/configs/DeferredLightsGL4WeaponsConfig.lua")
 	--spEcho("Loading GL4 weapon light config", success2, result2)
 	if success2 then
 		gibLight = result2.gibLight
@@ -1062,7 +1144,7 @@ local function LoadLightConfig()
 		for weaponID, lightTable in pairs(projectileDefLights) do
 			InitializeLight(lightTable)
 			if not enableProjectileLightFlares and lightTable.lightParamTable then
-				lightTable.lightParamTable[16] = 0  -- lensflare
+				lightTable.lightParamTable[16] = 0 -- lensflare
 			end
 		end
 	else
@@ -1073,8 +1155,7 @@ end
 
 local nightFactor = 1 --0.33
 local unitNightFactor = 1 -- applied above nightFactor default 1.2
-local adjustfornight = {'unitAmbientColor', 'unitDiffuseColor', 'unitSpecularColor','groundAmbientColor', 'groundDiffuseColor', 'groundSpecularColor' }
-
+local adjustfornight = { "unitAmbientColor", "unitDiffuseColor", "unitSpecularColor", "groundAmbientColor", "groundDiffuseColor", "groundSpecularColor" }
 
 local targetable = {}
 for wdid, wd in pairs(WeaponDefs) do
@@ -1084,13 +1165,13 @@ for wdid, wd in pairs(WeaponDefs) do
 end
 
 function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py-300 > Spring.GetGroundHeight(px, pz) then	-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
 		return
 	end
 	if explosionLights[weaponID] then
 		local lightParamTable = explosionLights[weaponID].lightParamTable
-		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px,pz) or 1
+		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+			local groundHeight = spGetGroundHeight(px, pz) or 1
 			py = math_max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
 			lightParamTable[1] = px
 			lightParamTable[2] = py
@@ -1103,7 +1184,7 @@ end
 function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 	if muzzleFlashLights[weaponID] then
 		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
-		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px,py,pz, lightParamTable[4]) then
+		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
 			lightParamTable[1] = px
 			lightParamTable[2] = py
 			lightParamTable[3] = pz
@@ -1116,18 +1197,26 @@ local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventLights.UnitScriptLights[unitDefID] and unitEventLights.UnitScriptLights[unitDefID][lightIndex] then
 		local lightTable = unitEventLights.UnitScriptLights[unitDefID][lightIndex]
 		if not lightTable.alwaysVisible then
-			local px,py,pz = spGetUnitPosition(unitID)
-			if px == nil or spIsSphereInView(px,py,pz, lightTable[4]) == false then return end
+			local px, py, pz = spGetUnitPosition(unitID)
+			if px == nil or spIsSphereInView(px, py, pz, lightTable[4]) == false then
+				return
+			end
 		end
-		if (not spec) and lightTable.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
-		if lightTable.initComplete == nil then InitializeLight(lightTable, unitID) end
+		if (not spec) and lightTable.alliedOnly == true and spIsUnitAllied(unitID) == false then
+			return
+		end
+		if lightTable.initComplete == nil then
+			InitializeLight(lightTable, unitID)
+		end
 		local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptLight" .. tostring(lightIndex) .. "_" .. tostring(param)
 		AddLight(instanceID, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightTable.lightParamTable)
 	end
 end
 
 local function GetLightVBO(vboName)
-	if vboName == 'cursorPointLightVBO' then return cursorPointLightVBO end
+	if vboName == "cursorPointLightVBO" then
+		return cursorPointLightVBO
+	end
 	return nil
 end
 
@@ -1146,7 +1235,6 @@ function widget:PlayerChanged(playerID)
 		cursorLights[playerID] = nil
 	end
 end
-
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	visibleUnits[unitID] = unitDefID
@@ -1177,25 +1265,31 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("dlgl4stats", "t")
 	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
-	WG['lightsgl4'] = nil
-	widgetHandler:DeregisterGlobal('AddPointLight')
-	widgetHandler:DeregisterGlobal('AddBeamLight')
-	widgetHandler:DeregisterGlobal('AddConeLight')
-	widgetHandler:DeregisterGlobal('AddLight')
-	widgetHandler:DeregisterGlobal('RemoveLight')
-	widgetHandler:DeregisterGlobal('GetLightVBO')
+	WG["lightsgl4"] = nil
+	widgetHandler:DeregisterGlobal("AddPointLight")
+	widgetHandler:DeregisterGlobal("AddBeamLight")
+	widgetHandler:DeregisterGlobal("AddConeLight")
+	widgetHandler:DeregisterGlobal("AddLight")
+	widgetHandler:DeregisterGlobal("RemoveLight")
+	widgetHandler:DeregisterGlobal("GetLightVBO")
 
-	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
-	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightSpawn')
-	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightCorrect')
-	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightFade')
-	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightRemove')
+	widgetHandler:DeregisterGlobal("EnvLightningPointLight")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightSpawn")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightCorrect")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightFade")
+	widgetHandler:DeregisterGlobal("EnvNanoBallisticLightRemove")
 
 	deferredLightShader:Delete()
 	local ram = 0
-	for lighttype, vbo in pairs(unitLightVBOMap) do ram = ram + vbo:Delete() end
-	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
-	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
+	for lighttype, vbo in pairs(unitLightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for lighttype, vbo in pairs(projectileLightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
+	for lighttype, vbo in pairs(lightVBOMap) do
+		ram = ram + vbo:Delete()
+	end
 	ram = ram + cursorPointLightVBO:Delete()
 	ram = ram + predictivePointLightVBO:Delete()
 
@@ -1213,12 +1307,11 @@ function widget:Shutdown()
 	unitEventLights = nil
 	muzzleFlashLights = nil
 	projectileDefLights = nil
-	explosionLights  = nil
+	explosionLights = nil
 	gibLight = nil
 
 	--collectgarbage("collect")
 	--collectgarbage("collect")
-
 end
 
 local windX = 0
@@ -1252,13 +1345,15 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventLights[eventName] then
 		if unitEventLights[eventName] then
 			-- get the default event if it is defined
-			local lightList =  unitEventLights[eventName][unitDefID] or unitEventLights[eventName]['default']
+			local lightList = unitEventLights[eventName][unitDefID] or unitEventLights[eventName]["default"]
 			if lightList then
 				for lightname, lightTable in pairs(lightList) do
 					local visible = lightTable.alwaysVisible
-					local px,py,pz = spGetUnitPosition(unitID)
+					local px, py, pz = spGetUnitPosition(unitID)
 					if not visible then
-						if px and spIsSphereInView(px,py,pz, lightTable[4]) then visible = true end
+						if px and spIsSphereInView(px, py, pz, lightTable[4]) then
+							visible = true
+						end
 					end
 
 					-- bail if only for allies
@@ -1284,26 +1379,29 @@ local function eventLightSpawner(eventName, unitID, unitDefID, teamID)
 						if lightTable.pieceName then
 							if lightTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
 								-- this is done via a quick copy of the table
-								for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
+								for i = 1, lightParamTableSize do
+									lightCacheTable[i] = lightParamTable[i]
+								end
 								local unitHeight = spGetUnitHeight(unitID)
 								if unitHeight == nil then
 									local losstate = spGetUnitLosState(unitID)
-									spEcho("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, 'losstate', losstate and losstate.los)
+									spEcho("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, lightname, "losstate", losstate and losstate.los)
 								end
 
 								lightCacheTable[2] = lightCacheTable[2] + lightTable.aboveUnit + (unitHeight or 0)
 								lightParamTable = lightCacheTable
 							end
-							AddLight(eventName .. tostring(unitID) ..  lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
+							AddLight(eventName .. tostring(unitID) .. lightname, unitID, lightTable.pieceIndex, unitLightVBOMap[lightTable.lightType], lightParamTable)
 						else
-							for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
+							for i = 1, lightParamTableSize do
+								lightCacheTable[i] = lightParamTable[i]
+							end
 							lightCacheTable[1] = lightCacheTable[1] + px
 							lightCacheTable[2] = lightParamTable[2] + py + ((lightTable.aboveUnit and spGetUnitHeight(unitID)) or 0)
 							lightCacheTable[3] = lightCacheTable[3] + pz
-							AddLight(eventName .. tostring(unitID) ..  lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
+							AddLight(eventName .. tostring(unitID) .. lightname, nil, lightTable.pieceIndex, lightVBOMap[lightTable.lightType], lightCacheTable)
 						end
 					end
-
 				end
 			end
 		end
@@ -1321,7 +1419,7 @@ function widget:UnitCreated(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitCreated", unitID, unitDefID, teamID)
 end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID)  -- i have no idea of the differences here
+	eventLightSpawner("UnitFromFactory", unitID, unitDefID, teamID) -- i have no idea of the differences here
 	eventLightSpawner("UnitFromFactoryBuilder", factID, factDefID, teamID)
 end
 function widget:UnitDestroyed(unitID, unitDefID, teamID) -- dont do piece-attached lights here!
@@ -1333,7 +1431,7 @@ end
 
 -- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
-	--eventLightSpawner("UnitTaken", unitID, unitDefID, teamID)
+--eventLightSpawner("UnitTaken", unitID, unitDefID, teamID)
 --end
 function widget:UnitGiven(unitID, unitDefID, teamID)
 	eventLightSpawner("UnitGiven", unitID, unitDefID, teamID)
@@ -1355,33 +1453,40 @@ function widget:StockpileChanged(unitID, unitDefID, teamID, weaponNum, oldCount,
 end
 
 function widget:FeatureCreated(featureID, noUpload)
-	if type(noUpload) ~= 'boolean' then noUpload = nil end
+	if type(noUpload) ~= "boolean" then
+		noUpload = nil
+	end
 	-- TODO: Allow team-colored feature lights by getting teamcolor and putting it into lightCacheTable
 	local featureDefID = spGetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
-			if not lightTable.initComplete then InitializeLight(lightTable) end
+			if not lightTable.initComplete then
+				InitializeLight(lightTable)
+			end
 			local px, py, pz = spGetFeaturePosition(featureID)
-			if px and featureID%(lightTable.fraction or 1 ) == 0 then
-
+			if px and featureID % (lightTable.fraction or 1) == 0 then
 				local lightParamTable = lightTable.lightParamTable
-				for i=1, lightParamTableSize do lightCacheTable[i] = lightParamTable[i] end
+				for i = 1, lightParamTableSize do
+					lightCacheTable[i] = lightParamTable[i]
+				end
 				lightCacheTable[1] = lightParamTable[1] + px
 				lightCacheTable[2] = lightParamTable[2] + py
 				lightCacheTable[3] = lightParamTable[3] + pz
-				AddLight(tostring(featureID) ..  lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable, noUpload)
+				AddLight(tostring(featureID) .. lightname, nil, nil, lightVBOMap[lightTable.lightType], lightCacheTable, noUpload)
 			end
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID, noUpload)
-	if type(noUpload) ~= 'boolean' then noUpload = nil end
+	if type(noUpload) ~= "boolean" then
+		noUpload = nil
+	end
 	local featureDefID = spGetFeatureDefID(featureID)
 	if featureDefLights[featureDefID] then
 		for lightname, lightTable in pairs(featureDefLights[featureDefID]) do
-			if featureID % (lightTable.fraction or 1 ) == 0 then
-				RemoveLight(lightTable.lightType, tostring(featureID) ..  lightname, nil, noUpload)
+			if featureID % (lightTable.fraction or 1) == 0 then
+				RemoveLight(lightTable.lightType, tostring(featureID) .. lightname, nil, noUpload)
 			end
 		end
 	end
@@ -1392,16 +1497,17 @@ end
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
-	local weaponDefID = weapon and Spring.GetProjectileDefID ( projectileID )
+	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
-
 
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = spGetGameFrame()
 	local newgameframe = true
-	if gameFrame == lastGameFrame then newgameframe = false end
+	if gameFrame == lastGameFrame then
+		newgameframe = false
+	end
 	--spEcho(gameFrame, lastGameFrame, newgameframe)
 	lastGameFrame = gameFrame
 	-- turn off uploading vbo
@@ -1409,22 +1515,22 @@ local function updateProjectileLights(newgameframe)
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
 	local numadded = 0
 	local noUpload = true
-	for i= 1, #nowprojectiles do
+	for i = 1, #nowprojectiles do
 		local projectileID = nowprojectiles[i]
 		local px, py, pz = spGetProjectilePosition(projectileID)
 		if px then -- we are somehow getting projectiles with no position?
-			local lightType = 'point' -- default
+			local lightType = "point" -- default
 			if trackedProjectiles[projectileID] then
 				if newgameframe then
 					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
-					if lightType ~= 'beam' then
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType],
-							projectileID, px,py,pz, nil, dx,dy,dz)
-						if debugproj then spEcho("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+					if lightType ~= "beam" then
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
+						local instanceIndex = updateLightPosition(projectileLightVBOMap[lightType], projectileID, px, py, pz, nil, dx, dy, dz)
+						if debugproj then
+							spEcho("Updated", instanceIndex, projectileID, px, py, pz, dx, dy, dz)
+						end
 					end
-
 				end
 			else
 				-- add projectile
@@ -1436,20 +1542,21 @@ local function updateProjectileLights(newgameframe)
 					gib[3] = pz
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
+					local weaponDefID = spGetProjectileDefID(projectileID)
+					if projectileDefLights[weaponDefID] and (projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0) then
 						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
 						lightType = projectileDefLights[weaponDefID].lightType
-
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						if debugproj then
+							spEcho(lightType, projectileDefLights[weaponDefID].lightClassName)
+						end
 
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
-						if lightType == 'beam' then
+						if lightType == "beam" then
 							lightParamTable[5] = px + dx
 							lightParamTable[6] = py + dy
 							lightParamTable[7] = pz + dz
@@ -1459,9 +1566,11 @@ local function updateProjectileLights(newgameframe)
 							lightParamTable[6] = dy
 							lightParamTable[7] = dz
 						end
-						if debugproj then spEcho(lightType, px,py,pz, dx, dy,dz) end
+						if debugproj then
+							spEcho(lightType, px, py, pz, dx, dy, dz)
+						end
 
-						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable,noUpload)
+						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable, noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else
 						--spEcho("No projectile light defined for", projectileID, weaponDefID, px, pz)
@@ -1491,10 +1600,9 @@ local function updateProjectileLights(newgameframe)
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then -- this means that this projectile
 				local lightType = trackedProjectileTypes[projectileID]
-				if newgameframe and lightType ~= 'beam' then
-					local dx,dy,dz = spGetProjectileVelocity(projectileID)
-					updateLightPosition(projectileLightVBOMap[lightType],
-						projectileID, px,py,pz, nil, dx,dy,dz )
+				if newgameframe and lightType ~= "beam" then
+					local dx, dy, dz = spGetProjectileVelocity(projectileID)
+					updateLightPosition(projectileLightVBOMap[lightType], projectileID, px, py, pz, nil, dx, dy, dz)
 				end
 			else
 				numremoved = numremoved + 1
@@ -1503,7 +1611,9 @@ local function updateProjectileLights(newgameframe)
 				--RemoveLight('point', projectileID, nil)
 				if projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID] then -- god the indirections here ...
 					local success = popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload)
-					if success == nil then PrintProjectileInfo(projectileID) end
+					if success == nil then
+						PrintProjectileInfo(projectileID)
+					end
 				end
 				trackedProjectileTypes[projectileID] = nil
 			end
@@ -1523,20 +1633,20 @@ end
 local AUTOUPDATE_CONFIG_POLL_INTERVAL = 1.5
 local AUTOUPDATE_SHADER_POLL_INTERVAL = 0.5
 
-local configCache = {lastUpdate = spGetTimer()}
-local shaderUpdateCache = {lastUpdate = spGetTimer()}
+local configCache = { lastUpdate = spGetTimer() }
+local shaderUpdateCache = { lastUpdate = spGetTimer() }
 local function checkConfigUpdates()
 	local now = spGetTimer()
 	if spDiffTimers(now, configCache.lastUpdate) <= AUTOUPDATE_CONFIG_POLL_INTERVAL then
 		return
 	end
 
-	local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
-	local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	local newconfa = VFS.LoadFile("luaui/configs/DeferredLightsGL4config.lua")
+	local newconfb = VFS.LoadFile("luaui/configs/DeferredLightsGL4WeaponsConfig.lua")
 	if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 		LoadLightConfig()
-		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
+			widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
 		end
 		local allFeatures = spGetAllFeatures()
 		local allFeaturesLen = #allFeatures
@@ -1546,7 +1656,9 @@ local function checkConfigUpdates()
 		for i = 1, allFeaturesLen do
 			widget:FeatureCreated(allFeatures[i], true)
 		end
-		if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
+		if pointLightVBO.dirty then
+			uploadAllElements(pointLightVBO)
+		end
 		configCache.confa = newconfa
 		configCache.confb = newconfb
 	end
@@ -1556,20 +1668,22 @@ end
 local expavg = 0
 local sec = 1
 function widget:Update(dt)
-	if autoupdate then checkConfigUpdates() end
+	if autoupdate then
+		checkConfigUpdates()
+	end
 	local tus = spGetTimerMicros()
 	if predictivePointLightVBO.dirty then
 		uploadAllElements(predictivePointLightVBO)
 	end
 
 	-- update/handle Cursor Lights!
-	if WG['allycursors'] and WG['allycursors'].getLights() then
+	if WG["allycursors"] and WG["allycursors"].getLights() then
 		sec = sec + dt
 		if sec >= 0.25 then
-			if cursorLightAlpha ~= WG['allycursors'].getLightStrength() or cursorLightRadius ~= WG['allycursors'].getLightRadius() or cursorLightSelfShadowing ~= WG['allycursors'].getLightSelfShadowing() then
-				cursorLightAlpha = WG['allycursors'].getLightStrength()
-				cursorLightRadius = WG['allycursors'].getLightRadius()
-				cursorLightSelfShadowing = WG['allycursors'].getLightSelfShadowing()
+			if cursorLightAlpha ~= WG["allycursors"].getLightStrength() or cursorLightRadius ~= WG["allycursors"].getLightRadius() or cursorLightSelfShadowing ~= WG["allycursors"].getLightSelfShadowing() then
+				cursorLightAlpha = WG["allycursors"].getLightStrength()
+				cursorLightRadius = WG["allycursors"].getLightRadius()
+				cursorLightSelfShadowing = WG["allycursors"].getLightSelfShadowing()
 				InstanceVBOTable.clearInstanceTable(cursorPointLightVBO)
 				cursorLights = nil
 			end
@@ -1577,26 +1691,26 @@ function widget:Update(dt)
 		if not cursorLights then
 			cursorLights = {}
 		end
-		local cursors, notIdle = WG['allycursors'].getCursors()
-		local isCursorVisible = WG['allycursors'].isCursorVisible
+		local cursors, notIdle = WG["allycursors"].getCursors()
+		local isCursorVisible = WG["allycursors"].isCursorVisible
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
 			local visibleToViewer = (not isCursorVisible) or isCursorVisible(playerID)
 			if teamColor and not cursor[8] and notIdle[playerID] and visibleToViewer then
 				if not cursorLights[playerID] and not cursor[8] then
-					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
+					local params = cursorLightParams.lightParamTable -- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
 					params[4] = cursorLightRadius * 250
 					params[9], params[10], params[11] = teamColor[1], teamColor[2], teamColor[3]
 					params[12] = cursorLightAlpha * 0.2
 					params[20] = cursorLightSelfShadowing and 8 or 0
-					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params)	--pointLightVBO
+					cursorLights[playerID] = AddLight(nil, nil, nil, cursorPointLightVBO, params) --pointLightVBO
 				else
 					if cursor[8] or cursor[7] < 0.01 then
 						popElementInstance(cursorPointLightVBO, cursorLights[playerID])
 						cursorLights[playerID] = nil
 					else
-						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
+						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2] + cursorLightHeight, cursor[3])
 					end
 				end
 			elseif cursorLights[playerID] then
@@ -1614,11 +1728,11 @@ function widget:Update(dt)
 
 	-- This is the player cursor!
 	if showPlayerCursorLight then
-		local mx,my,m1,m2,m3, _ , camPanning = spGetMouseState()
+		local mx, my, m1, m2, m3, _, camPanning = spGetMouseState()
 		local traceType, tracedScreenRay = spTraceScreenRay(mx, my, true)
 		if not camPanning and tracedScreenRay ~= nil then
 			local params = playerCursorLightParams.lightParamTable
-			params[1], params[2], params[3] = tracedScreenRay[1],tracedScreenRay[2] + cursorLightHeight,tracedScreenRay[3]
+			params[1], params[2], params[3] = tracedScreenRay[1], tracedScreenRay[2] + cursorLightHeight, tracedScreenRay[3]
 			params[4] = playerCursorLightRadius * 250
 			params[12] = playerCursorLightBrightness * 0.1
 			AddLight("PLAYERCURSOR", nil, nil, cursorPointLightVBO, params)
@@ -1630,18 +1744,19 @@ function widget:Update(dt)
 	end
 
 	updateProjectileLights()
-	expavg = expavg * 0.98 + 0.02 * spDiffTimers(spGetTimerMicros(),tus)
+	expavg = expavg * 0.98 + 0.02 * spDiffTimers(spGetTimerMicros(), tus)
 	--if spGetGameFrame() % 120 ==0 then spEcho("Update is on average", expavg,'ms') end
 end
 
 ------------------------------- Drawing all the lights ---------------------------------
 
-
 -- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--local t0 = Spring.GetTimerMicros()
 	--if true then return end
-	if skipdraw then return end
+	if skipdraw then
+		return
+	end
 	if autoupdate then
 		local now = spGetTimer()
 		if spDiffTimers(now, shaderUpdateCache.lastUpdate) > AUTOUPDATE_SHADER_POLL_INTERVAL then
@@ -1650,36 +1765,28 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 	end
 
-	if pointLightVBO.usedElements > 0 or
-		predictivePointLightVBO.usedElements > 0 or
-		unitPointLightVBO.usedElements > 0 or
-		beamLightVBO.usedElements > 0 or
-		unitConeLightVBO.usedElements > 0 or
-		coneLightVBO.usedElements > 0 or
-		cursorPointLightVBO.usedElements > 0
-		then
-
+	if pointLightVBO.usedElements > 0 or predictivePointLightVBO.usedElements > 0 or unitPointLightVBO.usedElements > 0 or beamLightVBO.usedElements > 0 or unitConeLightVBO.usedElements > 0 or coneLightVBO.usedElements > 0 or cursorPointLightVBO.usedElements > 0 then
 		local alt, ctrl = spGetModKeyState()
-		local devui = (spGetConfigInt('DevUI', 0) == 1)
+		local devui = (spGetConfigInt("DevUI", 0) == 1)
 
 		if autoupdate and alt and ctrl and (isSinglePlayer or spec) and devui then
 			-- draw a full-screen black quad first!
 			local camX, camY, camZ = spGetCameraPosition()
-			local camDirX,camDirY,camDirZ = spGetCameraDirection()
+			local camDirX, camDirY, camDirZ = spGetCameraDirection()
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			glCulling(GL_BACK)
 			glDepthTest(false)
 			glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-			glColor(0,0,0,1)
+			glColor(0, 0, 0, 1)
 			glPushMatrix()
-			glColor(0,0,0,1.0)
-			glTranslate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+			glColor(0, 0, 0, 1.0)
+			glTranslate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
 			glBillboard()
 			glRect(-5000, -5000, 5000, 5000)
 			glPopMatrix()
 		end
 
-		if autoupdate and ctrl and (not alt) and (isSinglePlayer or spec) and devui then
+		if autoupdate and ctrl and not alt and (isSinglePlayer or spec) and devui then
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1709,11 +1816,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
 		local screenSpaceShadowSampleCount = 0
 		if screenSpaceShadows > 0 then
-			screenSpaceShadowSampleCount = mathMin(64, mathFloor( mathPow(2, screenSpaceShadows) * 4) )
+			screenSpaceShadowSampleCount = mathMin(64, mathFloor(mathPow(2, screenSpaceShadows) * 4))
 		end
-		deferredLightShader:SetUniformInt("screenSpaceShadows",  screenSpaceShadowSampleCount)
+		deferredLightShader:SetUniformInt("screenSpaceShadows", screenSpaceShadowSampleCount)
 		--spEcho(windX, windZ)
-
 
 		-- Fixed worldpos lights, cursors, projectiles, world lights
 		deferredLightShader:SetUniformFloat("attachedtounitID", 0) -- worldpos stuff
@@ -1726,7 +1832,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		pointLightVBO:draw()
 		predictivePointLightVBO:draw()
 		projectilePointLightVBO:draw()
-
 
 		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
 		beamLightVBO:draw()
@@ -1750,7 +1855,9 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 
 		deferredLightShader:Deactivate()
 
-		for i = 0, 8 do glTexture(i, false) end
+		for i = 0, 8 do
+			glTexture(i, false)
+		end
 		glCulling(GL_BACK)
 		glDepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
@@ -1765,12 +1872,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 end
 
 local function dlgl4statsCmd(_, line)
-	spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
-			numAddLights,
-			pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
-			unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
-			projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
-			cursorPointLightVBO.usedElements))
+	spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d", numAddLights, pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements, unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements, projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements, cursorPointLightVBO.usedElements))
 	return true
 end
 
@@ -1785,8 +1887,8 @@ function widget:Initialize()
 	widgetHandler:AddAction("dlgl4skipdraw", dlgl4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
-	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
-		spEcho('Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
+	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
+		spEcho("Deferred Rendering (gfx_deferred_rendering.lua) requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -1795,18 +1897,20 @@ function widget:Initialize()
 		return
 	end
 
-	if initGL4() == false then return end
+	if initGL4() == false then
+		return
+	end
 
-	local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 
 	if nightFactor ~= 1 then
 		local nightLightingParams = {}
-		for _,v in ipairs(adjustfornight) do
+		for _, v in ipairs(adjustfornight) do
 			nightLightingParams[v] = mapinfo.lighting[stringLower(v)]
 			if nightLightingParams[v] ~= nil then
 				for k2, v2 in pairs(nightLightingParams[v]) do
 					if tonumber(v2) then
-						if stringFind(v, 'unit', nil, true) then
+						if stringFind(v, "unit", nil, true) then
 							nightLightingParams[v][k2] = v2 * nightFactor * unitNightFactor
 						else
 							nightLightingParams[v][k2] = v2 * nightFactor
@@ -1814,7 +1918,7 @@ function widget:Initialize()
 					end
 				end
 			else
-				spEcho("Deferred Lights GL4: Warning: This map does not specify ",v, "in mapinfo.lua!")
+				spEcho("Deferred Lights GL4: Warning: This map does not specify ", v, "in mapinfo.lua!")
 			end
 		end
 		spSetSunLighting(nightLightingParams)
@@ -1822,11 +1926,13 @@ function widget:Initialize()
 
 	if addrandomlights then
 		math.randomseed(1)
-		for i=1, 1 do AddRandomLight(	mathRandom()) end
+		for i = 1, 1 do
+			AddRandomLight(mathRandom())
+		end
 	end
 
-	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
+		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
 	end
 
 	local allFeatures = spGetAllFeatures()
@@ -1835,44 +1941,44 @@ function widget:Initialize()
 		widget:FeatureCreated(allFeatures[i])
 	end
 
-	WG['lightsgl4'] = {}
-	WG['lightsgl4'].AddPointLight = AddPointLight
-	WG['lightsgl4'].AddBeamLight  = AddBeamLight
-	WG['lightsgl4'].AddConeLight  = AddConeLight
-	WG['lightsgl4'].AddLight  = AddLight
-	WG['lightsgl4'].RemoveLight  = RemoveLight
-	WG['lightsgl4'].GetLightVBO  = GetLightVBO
+	WG["lightsgl4"] = {}
+	WG["lightsgl4"].AddPointLight = AddPointLight
+	WG["lightsgl4"].AddBeamLight = AddBeamLight
+	WG["lightsgl4"].AddConeLight = AddConeLight
+	WG["lightsgl4"].AddLight = AddLight
+	WG["lightsgl4"].RemoveLight = RemoveLight
+	WG["lightsgl4"].GetLightVBO = GetLightVBO
 
-	WG['lightsgl4'].IntensityMultiplier = function(value)
+	WG["lightsgl4"].IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG['lightsgl4'].RadiusMultiplier = function(value)
+	WG["lightsgl4"].RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
-	WG['lightsgl4'].ScreenSpaceShadows = function(value)
+	WG["lightsgl4"].ScreenSpaceShadows = function(value)
 		screenSpaceShadows = value
 	end
 
-	WG['lightsgl4'].ShowPlayerCursorLight = function(value)
+	WG["lightsgl4"].ShowPlayerCursorLight = function(value)
 		showPlayerCursorLight = value
 		-- Remove the player's cursor light on disabling this feature
 		if not showPlayerCursorLight and cursorPointLightVBO.instanceIDtoIndex["PLAYERCURSOR"] then
 			popElementInstance(cursorPointLightVBO, "PLAYERCURSOR")
 		end
 	end
-	WG['lightsgl4'].PlayerCursorLightRadius = function(value)
+	WG["lightsgl4"].PlayerCursorLightRadius = function(value)
 		playerCursorLightRadius = value
 	end
-	WG['lightsgl4'].PlayerCursorLightBrightness = function(value)
+	WG["lightsgl4"].PlayerCursorLightBrightness = function(value)
 		playerCursorLightBrightness = value
 	end
 
-	widgetHandler:RegisterGlobal('AddPointLight', WG['lightsgl4'].AddPointLight)
-	widgetHandler:RegisterGlobal('AddBeamLight', WG['lightsgl4'].AddBeamLight)
-	widgetHandler:RegisterGlobal('AddConeLight', WG['lightsgl4'].AddConeLight)
-	widgetHandler:RegisterGlobal('AddLight', WG['lightsgl4'].AddLight)
-	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
-	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
+	widgetHandler:RegisterGlobal("AddPointLight", WG["lightsgl4"].AddPointLight)
+	widgetHandler:RegisterGlobal("AddBeamLight", WG["lightsgl4"].AddBeamLight)
+	widgetHandler:RegisterGlobal("AddConeLight", WG["lightsgl4"].AddConeLight)
+	widgetHandler:RegisterGlobal("AddLight", WG["lightsgl4"].AddLight)
+	widgetHandler:RegisterGlobal("RemoveLight", WG["lightsgl4"].RemoveLight)
+	widgetHandler:RegisterGlobal("GetLightVBO", WG["lightsgl4"].GetLightVBO)
 
 	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
 	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
@@ -1881,49 +1987,83 @@ function widget:Initialize()
 	-- does not animate toward black; sustain holds full brightness before the fade.
 	-- Args: x,y,z, radius, r,g,b,a, lifetime, sustain, modelfactor, specular,
 	--       scattering, lensflare, spawnframe.
-	WG['lightsgl4'].EnvLightningPointLight = function(x, y, z, radius, r, g, b, a,
-			lifetime, sustain, modelfactor, specular, scattering, lensflare, spawnframe)
-		AddPointLight(nil, nil, nil, pointLightVBO,
-			x, y, z, radius,
-			r, g, b, a,                                   -- color + brightness
-			r, g, b, 0,                                   -- r2,g2,b2 = same color, colortime 0
-			modelfactor, specular, scattering, lensflare, -- light surface response
-			spawnframe, lifetime, sustain)                -- spawnframe, lifetime, sustain (auto-expire)
+	WG["lightsgl4"].EnvLightningPointLight = function(x, y, z, radius, r, g, b, a, lifetime, sustain, modelfactor, specular, scattering, lensflare, spawnframe)
+		AddPointLight(
+			nil,
+			nil,
+			nil,
+			pointLightVBO,
+			x,
+			y,
+			z,
+			radius,
+			r,
+			g,
+			b,
+			a, -- color + brightness
+			r,
+			g,
+			b,
+			0, -- r2,g2,b2 = same color, colortime 0
+			modelfactor,
+			specular,
+			scattering,
+			lensflare, -- light surface response
+			spawnframe,
+			lifetime,
+			sustain
+		) -- spawnframe, lifetime, sustain (auto-expire)
 	end
-	widgetHandler:RegisterGlobal('EnvLightningPointLight', WG['lightsgl4'].EnvLightningPointLight)
+	widgetHandler:RegisterGlobal("EnvLightningPointLight", WG["lightsgl4"].EnvLightningPointLight)
 
 	-- Gadget bridge: predictive nano point lights. Gadget sends one spawn event
 	-- per selected particle, plus sparse correction events when trajectory
 	-- changes (homing / terrain correction). Widget integrates in-between.
-	WG['lightsgl4'].EnvNanoBallisticLightSpawn = function(instanceID,
-			x, y, z, vx, vy, vz,
-			radius, r, g, b, a,
-			lifetime, sustain,
-			modelfactor, specular, scattering, lensflare,
-			spawnframe,
-			updateEvery,
-			correctionMinFrames)
+	WG["lightsgl4"].EnvNanoBallisticLightSpawn = function(instanceID, x, y, z, vx, vy, vz, radius, r, g, b, a, lifetime, sustain, modelfactor, specular, scattering, lensflare, spawnframe, updateEvery, correctionMinFrames)
 		if not instanceID or not lifetime or lifetime < 1 then
 			return false
 		end
 		local sf = spawnframe or gameFrame
 		local lightparams = {
-			x, y, z, radius,
-			vx, vy, vz, 1.0,
-			r, g, b, a,
-			modelfactor or 0.35, specular or 0.15, scattering or 0.25, lensflare or 0,
-			sf, lifetime, sustain or lifetime, 0,
-			r, g, b, 0,
+			x,
+			y,
+			z,
+			radius,
+			vx,
+			vy,
+			vz,
+			1.0,
+			r,
+			g,
+			b,
+			a,
+			modelfactor or 0.35,
+			specular or 0.15,
+			scattering or 0.25,
+			lensflare or 0,
+			sf,
+			lifetime,
+			sustain or lifetime,
 			0,
-			0, 0, 0, 0,
+			r,
+			g,
+			b,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
 		}
 		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
 		return true
 	end
-	WG['lightsgl4'].EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
+	WG["lightsgl4"].EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
 		local f = frame or gameFrame
 		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
-		if not instanceIndex then return false end
+		if not instanceIndex then
+			return false
+		end
 		if instanceIndex then
 			instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
 			local instData = predictivePointLightVBO.instanceData
@@ -1939,12 +2079,16 @@ function widget:Initialize()
 		end
 		return true
 	end
-	WG['lightsgl4'].EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
+	WG["lightsgl4"].EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
 		local f = frame or gameFrame
 		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
-		if not instanceIndex then return false end
+		if not instanceIndex then
+			return false
+		end
 		local ff = mathFloor(fadeFrames or 1)
-		if ff < 1 then ff = 1 end
+		if ff < 1 then
+			ff = 1
+		end
 		instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
 		local instData = predictivePointLightVBO.instanceData
 		instData[instanceIndex + spawnFramePos] = f
@@ -1958,21 +2102,23 @@ function widget:Initialize()
 		predictivePointLightVBO.dirty = true
 		return true
 	end
-	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)
+	WG["lightsgl4"].EnvNanoBallisticLightRemove = function(instanceID)
 		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
 			popElementInstance(predictivePointLightVBO, instanceID)
 		end
 		return true
 	end
-	widgetHandler:RegisterGlobal('EnvNanoBallisticLightSpawn', WG['lightsgl4'].EnvNanoBallisticLightSpawn)
-	widgetHandler:RegisterGlobal('EnvNanoBallisticLightCorrect', WG['lightsgl4'].EnvNanoBallisticLightCorrect)
-	widgetHandler:RegisterGlobal('EnvNanoBallisticLightFade', WG['lightsgl4'].EnvNanoBallisticLightFade)
-	widgetHandler:RegisterGlobal('EnvNanoBallisticLightRemove', WG['lightsgl4'].EnvNanoBallisticLightRemove)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightSpawn", WG["lightsgl4"].EnvNanoBallisticLightSpawn)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrect", WG["lightsgl4"].EnvNanoBallisticLightCorrect)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightFade", WG["lightsgl4"].EnvNanoBallisticLightFade)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemove", WG["lightsgl4"].EnvNanoBallisticLightRemove)
 end
 
 if autoupdate then
 	function widget:DrawScreen()
-		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
+		if deferredLightShader.DrawPrintf then
+			deferredLightShader.DrawPrintf()
+		end
 	end
 end
 

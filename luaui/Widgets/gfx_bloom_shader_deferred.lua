@@ -1,6 +1,6 @@
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
-if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+if Platform ~= nil and Platform.gpuVendor == "Intel" then
 	isPotatoGpu = true
 end
 if gpuMem and gpuMem > 0 and gpuMem < 1800 then
@@ -11,16 +11,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Bloom Shader Deferred", --(v0.5)
-		desc      = "Applies bloom to units only",
-		author    = "Kloot, Beherith",
-		date      = "2018-05-13",
-		license   = "GNU GPL, v2 or later",
-		layer     = 99999,
-		enabled   = not isPotatoGpu,
+		name = "Bloom Shader Deferred", --(v0.5)
+		desc = "Applies bloom to units only",
+		author = "Kloot, Beherith",
+		date = "2018-05-13",
+		license = "GNU GPL, v2 or later",
+		layer = 99999,
+		enabled = not isPotatoGpu,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -31,15 +30,15 @@ local spEcho = Spring.Echo
 
 local version = 2.1
 
-local dbgDraw = 0              -- draw only the bloom-mask? [0 | 1]
+local dbgDraw = 0 -- draw only the bloom-mask? [0 | 1]
 
-local glowAmplifier = 1.0            -- intensity multiplier on glow source fragments (HDR pipeline -- much lower than the old 8-bit pipeline needed)
-local maxBrightContribution = 0.91     -- per-pixel cap on the bright pass output to prevent fireflies / overwhelming bloom on intense emissive blink frames
-local illumThreshold = 0.1            -- soft-knee threshold for the bright pass (computed from sun lighting)
-local kneeWidth = 5               -- width of the soft knee around illumThreshold
-local upsampleRadius = 1.0          -- 3x3 tent filter radius in texels (for mip chain upsample)
-local temporalBlend = 0.55          -- 0 = no smoothing (current frame only), 1 = freeze. ~0.5 kills sub-pixel shimmer of small emissives
-local useScreenBlend = true         -- true: dst + bloom*(1-dst)  ("screen"-like, soft cap). false: pure additive (old behaviour)
+local glowAmplifier = 1.0 -- intensity multiplier on glow source fragments (HDR pipeline -- much lower than the old 8-bit pipeline needed)
+local maxBrightContribution = 0.91 -- per-pixel cap on the bright pass output to prevent fireflies / overwhelming bloom on intense emissive blink frames
+local illumThreshold = 0.1 -- soft-knee threshold for the bright pass (computed from sun lighting)
+local kneeWidth = 5 -- width of the soft knee around illumThreshold
+local upsampleRadius = 1.0 -- 3x3 tent filter radius in texels (for mip chain upsample)
+local temporalBlend = 0.55 -- 0 = no smoothing (current frame only), 1 = freeze. ~0.5 kills sub-pixel shimmer of small emissives
+local useScreenBlend = true -- true: dst + bloom*(1-dst)  ("screen"-like, soft cap). false: pure additive (old behaviour)
 
 local glowAmplifierMult = 1.25
 
@@ -57,9 +56,9 @@ local presets = {
 local GL_RGBA16F_ARB = 0x881A
 
 -- non-editables
-local vsx = 1                        -- current viewport width
-local vsy = 1                        -- current viewport height
-local qvsx,qvsy                      -- size of bloom mip 1 (top of chain)
+local vsx = 1 -- current viewport width
+local vsy = 1 -- current viewport height
+local qvsx, qvsy -- size of bloom mip 1 (top of chain)
 local iqvsx, iqvsy
 
 local debugBrightShader = false
@@ -72,7 +71,7 @@ local blendShader = nil
 local combineShader = nil
 
 local bloomMips = {} -- array of { tex, w, h, ix, iy }
-local historyTex = nil   -- last-frame final bloom (mip[1] resolution), used for temporal smoothing
+local historyTex = nil -- last-frame final bloom (mip[1] resolution), used for temporal smoothing
 local historyValid = false
 
 local rectVAO = nil
@@ -91,18 +90,17 @@ local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local glDeleteShader = gl.DeleteShader
 
-
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
-	local rd, gd, bd = glGetSun("diffuse","unit")
+	local rd, gd, bd = glGetSun("diffuse", "unit")
 	local rs, gs, bs = glGetSun("specular")
 
 	-- Rec.709 luminance weights (proper)
-	local ambientIntensity  = ra * 0.2126 + ga * 0.7152 + ba * 0.0722
-	local diffuseIntensity  = rd * 0.2126 + gd * 0.7152 + bd * 0.0722
+	local ambientIntensity = ra * 0.2126 + ga * 0.7152 + ba * 0.0722
+	local diffuseIntensity = rd * 0.2126 + gd * 0.7152 + bd * 0.0722
 	local specularIntensity = rs * 0.2126 + gs * 0.7152 + bs * 0.0722
 
-	illumThreshold = illumThreshold*(0.7 * ambientIntensity) + (0.4 * diffuseIntensity) + (0.1 * specularIntensity)
+	illumThreshold = illumThreshold * (0.7 * ambientIntensity) + (0.4 * diffuseIntensity) + (0.1 * specularIntensity)
 	illumThreshold = math.min(illumThreshold, 0.8)
 
 	illumThreshold = (0.4 + illumThreshold) / 2.1
@@ -116,10 +114,15 @@ end
 
 local function FreeMips()
 	for i = 1, #bloomMips do
-		if bloomMips[i].tex then glDeleteTexture(bloomMips[i].tex) end
+		if bloomMips[i].tex then
+			glDeleteTexture(bloomMips[i].tex)
+		end
 	end
 	bloomMips = {}
-	if historyTex then glDeleteTexture(historyTex); historyTex = nil end
+	if historyTex then
+		glDeleteTexture(historyTex)
+		historyTex = nil
+	end
 	historyValid = false
 end
 
@@ -128,15 +131,14 @@ local function MakeBloomShaders()
 	local downscale = presets[preset].downscale
 	local mipCount = presets[preset].mipCount
 	--spEcho("New bloom init preset:", preset)
-	vsx = mathMax(4,viewSizeX)
-	vsy = mathMax(4,viewSizeY)
-	qvsx,qvsy = mathCeil(vsx/downscale), mathCeil(vsy/downscale) -- we ceil to ensure perfect upscaling
+	vsx = mathMax(4, viewSizeX)
+	vsy = mathMax(4, viewSizeY)
+	qvsx, qvsy = mathCeil(vsx / downscale), mathCeil(vsy / downscale) -- we ceil to ensure perfect upscaling
 	iqvsx, iqvsy = 1.0 / qvsx, 1.0 / qvsy
 
 	local padx, pady = downscale * qvsx - vsx, downscale * qvsy - vsy
 
-
-	local shaderConfig  = {
+	local shaderConfig = {
 		VSX = vsx,
 		VSY = vsy,
 		HSX = qvsx,
@@ -162,15 +164,17 @@ local function MakeBloomShaders()
 		local tex = glCreateTexture(tw, th, {
 			fbo = true,
 			format = GL_RGBA16F_ARB,
-			min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-			wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+			min_filter = GL.LINEAR,
+			mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE,
+			wrap_t = GL.CLAMP_TO_EDGE,
 		})
 		if tex == nil then
-			spEcho('bloomMip['..i..'] == nil ('..tw..'x'..th..')')
+			spEcho("bloomMip[" .. i .. "] == nil (" .. tw .. "x" .. th .. ")")
 			RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
 			return
 		end
-		bloomMips[i] = { tex = tex, w = tw, h = th, ix = 1.0/tw, iy = 1.0/th }
+		bloomMips[i] = { tex = tex, w = tw, h = th, ix = 1.0 / tw, iy = 1.0 / th }
 		mw = mathCeil(mw * 0.5)
 		mh = mathCeil(mh * 0.5)
 	end
@@ -179,23 +183,33 @@ local function MakeBloomShaders()
 	historyTex = glCreateTexture(mathMax(1, qvsx), mathMax(1, qvsy), {
 		fbo = true,
 		format = GL_RGBA16F_ARB,
-		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
 	})
 	historyValid = false
 
-
 	if glDeleteShader then
-		if brightShader     then brightShader:Finalize()     end
-		if downsampleShader then downsampleShader:Finalize() end
-		if upsampleShader   then upsampleShader:Finalize()   end
-		if blendShader      then blendShader:Finalize()      end
-		if combineShader    then combineShader:Finalize()    end
+		if brightShader then
+			brightShader:Finalize()
+		end
+		if downsampleShader then
+			downsampleShader:Finalize()
+		end
+		if upsampleShader then
+			upsampleShader:Finalize()
+		end
+		if blendShader then
+			blendShader:Finalize()
+		end
+		if combineShader then
+			combineShader:Finalize()
+		end
 	end
 
-
 	combineShader = LuaShader({
-			fragment = "#version 150 compatibility\n" .. definesString  ..  [[
+		fragment = "#version 150 compatibility\n" .. definesString .. [[
 				uniform sampler2D texture0;
 				uniform int debugDraw;
 				uniform float bloomNorm;
@@ -209,8 +223,7 @@ local function MakeBloomShaders()
 					gl_FragColor = a;
 				}
 			]],
-			vertex =
-				"#version 150 compatibility\n" .. definesString ..[[
+		vertex = "#version 150 compatibility\n" .. definesString .. [[
 				void main(void)	{
 					gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 					#if DOWNSCALE >= 2
@@ -219,20 +232,20 @@ local function MakeBloomShaders()
 					#endif
 					gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 			]],
-			uniformInt = {
-				texture0 = 0,
-				debugDraw = 0,
-			},
-			uniformFloat = {
-				bloomNorm = 1.0,
-			},
+		uniformInt = {
+			texture0 = 0,
+			debugDraw = 0,
 		},
-		"Bloom Combine Shader")
+		uniformFloat = {
+			bloomNorm = 1.0,
+		},
+	}, "Bloom Combine Shader")
 
 	if not combineShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] combineShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
-
 
 	-- Downsample shader: 13-tap Jimenez "next gen post processing in CoD:AW" filter.
 	-- On the very first downsample (firstPass==1) we apply a Karis luminance average to
@@ -302,14 +315,15 @@ local function MakeBloomShaders()
 			firstPass = 0,
 		},
 		uniformFloat = {
-			sourceTexelSize = {1.0, 1.0},
+			sourceTexelSize = { 1.0, 1.0 },
 		},
 	}, "Bloom Downsample Shader")
 
 	if not downsampleShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] downsampleShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] downsampleShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
-
 
 	-- Upsample shader: 3x3 tent filter, blended additively into the next-larger mip.
 	upsampleShader = LuaShader({
@@ -350,15 +364,16 @@ local function MakeBloomShaders()
 			source = 0,
 		},
 		uniformFloat = {
-			sourceTexelSize = {1.0, 1.0},
+			sourceTexelSize = { 1.0, 1.0 },
 			filterRadius = 1.0,
 		},
 	}, "Bloom Upsample Shader")
 
 	if not upsampleShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] upsampleShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] upsampleShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
-
 
 	-- Temporal blend shader: mix history and current frame to suppress sub-pixel
 	-- shimmer of small/thin emissives (no reprojection - fine for low-frequency bloom).
@@ -391,9 +406,10 @@ local function MakeBloomShaders()
 	}, "Bloom Temporal Blend Shader")
 
 	if not blendShader:Initialize() then
-		RemoveMe("[BloomShader::Initialize] blendShader compilation failed"); spEcho(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] blendShader compilation failed")
+		spEcho(glGetShaderLog())
+		return
 	end
-
 
 	brightShader = LuaShader({
 		vertex = [[
@@ -402,8 +418,7 @@ local function MakeBloomShaders()
 				gl_TexCoord[0] = vec4(gl_Vertex.zwzw);
 				gl_Position    = vec4(gl_Vertex.xy, 0, 1);	}
 		]],
-		fragment =
-			"#version 150 compatibility \n" .. definesString  .. [[
+		fragment = "#version 150 compatibility \n" .. definesString .. [[
 
 			uniform sampler2D modelDiffuseTex;
 			uniform sampler2D modelEmitTex;
@@ -495,14 +510,14 @@ local function MakeBloomShaders()
 			kneeWidth = 0.5,
 			fragGlowAmplifier = 1.0,
 			maxBrightContribution = 1.5,
-		}
+		},
 	}, "Bloom Bright Shader")
 
 	if not brightShader:Initialize() then
-		spEcho(glGetShaderLog());
-		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); return
+		spEcho(glGetShaderLog())
+		RemoveMe("[BloomShader::Initialize] brightShader compilation failed")
+		return
 	end
-
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -510,51 +525,60 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:Initialize()
-
 	if glCreateShader == nil then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
 
-	local hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
+	local hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering") == "1")
 	if hasdeferredmodelrendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
 	end
-	local hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
+	local hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering") == "1")
 	if hasdeferredmaprendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end
 
-	WG['bloomdeferred'] = {}
-	WG['bloomdeferred'].getBrightness = function()
+	WG["bloomdeferred"] = {}
+	WG["bloomdeferred"].getBrightness = function()
 		return glowAmplifier
 	end
-	WG['bloomdeferred'].setBrightness = function(value)
+	WG["bloomdeferred"].setBrightness = function(value)
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
-	WG['bloomdeferred'].getPreset = function()
+	WG["bloomdeferred"].getPreset = function()
 		return preset
 	end
-	WG['bloomdeferred'].setPreset = function(value)
+	WG["bloomdeferred"].setPreset = function(value)
 		preset = value
 		MakeBloomShaders()
 	end
 
 	MakeBloomShaders()
-	rectVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
+	rectVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5)
 end
 
 function widget:Shutdown()
 	FreeMips()
 	if glDeleteShader then
-		if brightShader     then brightShader:Finalize()     end
-		if downsampleShader then downsampleShader:Finalize() end
-		if upsampleShader   then upsampleShader:Finalize()   end
-		if blendShader      then blendShader:Finalize()      end
-		if combineShader    then combineShader:Finalize()    end
+		if brightShader then
+			brightShader:Finalize()
+		end
+		if downsampleShader then
+			downsampleShader:Finalize()
+		end
+		if upsampleShader then
+			upsampleShader:Finalize()
+		end
+		if blendShader then
+			blendShader:Finalize()
+		end
+		if combineShader then
+			combineShader:Finalize()
+		end
 	end
-	WG['bloomdeferred'] = nil
+	WG["bloomdeferred"] = nil
 end
 
 local function FullScreenQuad()
@@ -562,7 +586,9 @@ local function FullScreenQuad()
 end
 
 local function Bloom()
-	if #bloomMips == 0 then return end
+	if #bloomMips == 0 then
+		return
+	end
 
 	gl.DepthMask(false)
 	gl.Color(1, 1, 1, 1)
@@ -571,22 +597,22 @@ local function Bloom()
 	-- 1) Bright pass: write into mip[1] (top of chain).
 	gl.Blending(false)
 	brightShader:Activate()
-		brightShader:SetUniform("illuminationThreshold", illumThreshold)
-		brightShader:SetUniform("kneeWidth", kneeWidth)
-		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier*glowAmplifierMult)
-		brightShader:SetUniform("maxBrightContribution", maxBrightContribution)
+	brightShader:SetUniform("illuminationThreshold", illumThreshold)
+	brightShader:SetUniform("kneeWidth", kneeWidth)
+	brightShader:SetUniform("fragGlowAmplifier", glowAmplifier * glowAmplifierMult)
+	brightShader:SetUniform("maxBrightContribution", maxBrightContribution)
 
-		glTexture(0, "$model_gbuffer_difftex")
-		glTexture(1, "$model_gbuffer_emittex")
-		glTexture(2, "$model_gbuffer_zvaltex")
-		glTexture(3, "$map_gbuffer_zvaltex")
+	glTexture(0, "$model_gbuffer_difftex")
+	glTexture(1, "$model_gbuffer_emittex")
+	glTexture(2, "$model_gbuffer_zvaltex")
+	glTexture(3, "$map_gbuffer_zvaltex")
 
-		glRenderToTexture(bloomMips[1].tex, FullScreenQuad)
+	glRenderToTexture(bloomMips[1].tex, FullScreenQuad)
 
-		glTexture(0, false)
-		glTexture(1, false)
-		glTexture(2, false)
-		glTexture(3, false)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
 	brightShader:Deactivate()
 
 	if not debugBrightShader then
@@ -630,24 +656,24 @@ local function Bloom()
 		if historyValid then
 			gl.Blending(false)
 			blendShader:Activate()
-				blendShader:SetUniform("historyMix", temporalBlend)
-				glTexture(0, bloomMips[1].tex)
-				glTexture(1, historyTex)
-				glRenderToTexture(historyTex, FullScreenQuad)
-				glTexture(0, false)
-				glTexture(1, false)
+			blendShader:SetUniform("historyMix", temporalBlend)
+			glTexture(0, bloomMips[1].tex)
+			glTexture(1, historyTex)
+			glRenderToTexture(historyTex, FullScreenQuad)
+			glTexture(0, false)
+			glTexture(1, false)
 			blendShader:Deactivate()
 			finalSrc = historyTex
 		else
 			-- First frame: prime history from current bloom.
 			gl.Blending(false)
 			blendShader:Activate()
-				blendShader:SetUniform("historyMix", 0.0)
-				glTexture(0, bloomMips[1].tex)
-				glTexture(1, bloomMips[1].tex)
-				glRenderToTexture(historyTex, FullScreenQuad)
-				glTexture(0, false)
-				glTexture(1, false)
+			blendShader:SetUniform("historyMix", 0.0)
+			glTexture(0, bloomMips[1].tex)
+			glTexture(1, bloomMips[1].tex)
+			glRenderToTexture(historyTex, FullScreenQuad)
+			glTexture(0, false)
+			glTexture(1, false)
 			blendShader:Deactivate()
 			historyValid = true
 			finalSrc = historyTex
@@ -667,20 +693,22 @@ local function Bloom()
 		gl.Blending(GL.ONE, GL.ZERO)
 	end
 	combineShader:Activate()
-		combineShader:SetUniformInt("debugDraw", dbgDraw)
-		-- Each upsample additively contributed once, but smaller mips contribute less
-		-- perceived brightness than larger ones, so a linear 1/(N-1) normalization
-		-- over-attenuates higher presets. Use a sqrt-based divisor anchored at the
-		-- low preset (4 mips => 1/3) so medium/high presets stay closer in intensity
-		-- to low while still keeping their wider/softer halo.
-		local norm = 1.0 / math.sqrt(3 * math.max(1, #bloomMips - 1))
-		-- Small extra boost for the highest preset, whose extra wide mips
-		-- spread the energy further and thus look dimmer than medium.
-		if #bloomMips >= 6 then norm = norm * 1.05 end
-		combineShader:SetUniform("bloomNorm", norm)
-		glTexture(0, finalSrc)
-		rectVAO:DrawArrays(GL.TRIANGLES)
-		glTexture(0, false)
+	combineShader:SetUniformInt("debugDraw", dbgDraw)
+	-- Each upsample additively contributed once, but smaller mips contribute less
+	-- perceived brightness than larger ones, so a linear 1/(N-1) normalization
+	-- over-attenuates higher presets. Use a sqrt-based divisor anchored at the
+	-- low preset (4 mips => 1/3) so medium/high presets stay closer in intensity
+	-- to low while still keeping their wider/softer halo.
+	local norm = 1.0 / math.sqrt(3 * math.max(1, #bloomMips - 1))
+	-- Small extra boost for the highest preset, whose extra wide mips
+	-- spread the energy further and thus look dimmer than medium.
+	if #bloomMips >= 6 then
+		norm = norm * 1.05
+	end
+	combineShader:SetUniform("bloomNorm", norm)
+	glTexture(0, finalSrc)
+	rectVAO:DrawArrays(GL.TRIANGLES)
+	glTexture(0, false)
 	combineShader:Deactivate()
 
 	gl.Blending("reset")

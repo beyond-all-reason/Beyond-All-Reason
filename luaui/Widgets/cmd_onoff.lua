@@ -23,7 +23,9 @@ end
 
 local function onoff(_, _, args)
 	local state = args[1]
-	if state ~= nil and (state ~= "0" and state ~= "1") then return end
+	if state ~= nil and (state ~= "0" and state ~= "1") then
+		return
+	end
 
 	-- Should return { [number unitDefID] = { [1] = [number unitID], etc... }, ... }
 	local selectedUnitsSorted = spGetSelectedUnitsSorted()
@@ -35,7 +37,11 @@ local function onoff(_, _, args)
 
 			if state == nil then
 				local isActive = spGetUnitStates(units[1])["active"]
-				if isActive then state = 0 else state = 1 end
+				if isActive then
+					state = 0
+				else
+					state = 1
+				end
 			end
 
 			for _, unit in pairs(units) do
@@ -43,7 +49,7 @@ local function onoff(_, _, args)
 			end
 		end
 	end
-	return anyOnOffable		-- we only halt the chain when at least one unit responds to this action
+	return anyOnOffable -- we only halt the chain when at least one unit responds to this action
 end
 
 function widget:Initialize()

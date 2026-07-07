@@ -1,7 +1,6 @@
 -- disabled it... cause not all missile weapons have flighttime defined,
 -- but can run out of fuel when they dont traight fly to maxrange
 
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -29,55 +28,97 @@ local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
-	if weaponDef.type == 'StarburstLauncher' then
-		if weaponDef.cegTag == 'missiletrailsmall-starburst' then
+	if weaponDef.type == "StarburstLauncher" then
+		if weaponDef.cegTag == "missiletrailsmall-starburst" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrailsmall-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundsmall-liftoff', 60, 90,
-				'missilegroundsmall-liftoff-fire', 25, 45
+				"missiletrailsmall-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundsmall-liftoff",
+				60,
+				90,
+				"missilegroundsmall-liftoff-fire",
+				25,
+				45,
 			}
-		elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
+		elseif weaponDef.cegTag == "missiletrailmedium-starburst" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrailmedium-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundmedium-liftoff', 40, 60,
-				'missilegroundmedium-liftoff-fire', 30, 40
+				"missiletrailmedium-starburst-vertical",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundmedium-liftoff",
+				40,
+				60,
+				"missilegroundmedium-liftoff-fire",
+				30,
+				40,
 			}
-		elseif weaponDef.cegTag == 'missiletrail-juno' then
+		elseif weaponDef.cegTag == "missiletrail-juno" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'missiletrail-juno-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"missiletrail-juno-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'antimissiletrail' then
+		elseif weaponDef.cegTag == "antimissiletrail" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'antimissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 80, 120,
-				'missilegroundlarge-liftoff-fire', 40, 80
+				"antimissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				80,
+				120,
+				"missilegroundlarge-liftoff-fire",
+				40,
+				80,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-emp" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
+		elseif weaponDef.cegTag == "cruisemissiletrail-tacnuke" then
 			missileWeapons[weaponDef.id] = {
 				15,
-				'cruisemissiletrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundlarge-liftoff', 90, 166,
-				'missilegroundlarge-liftoff-fire', 55, 120
+				"cruisemissiletrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundlarge-liftoff",
+				90,
+				166,
+				"missilegroundlarge-liftoff-fire",
+				55,
+				120,
 			}
-		elseif weaponDef.cegTag == 'NUKETRAIL' then
+		elseif weaponDef.cegTag == "NUKETRAIL" then
 			missileWeapons[weaponDef.id] = {
 				0,
-				'nuketrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundhuge-liftoff', 120, 180,
-				'missilegroundhuge-liftoff-fire', 60, 150
+				"nuketrail-starburst",
+				((weaponDef.uptime + 0.1) * 30),
+				((weaponDef.uptime + 0.6) * 30),
+				"missilegroundhuge-liftoff",
+				120,
+				180,
+				"missilegroundhuge-liftoff-fire",
+				60,
+				150,
 			}
 		end
 	end
@@ -142,12 +183,16 @@ function gadget:GameFrame(gf)
 				end
 			else
 				removeCount = removeCount + 1
-				if not removeList then removeList = {} end
+				if not removeList then
+					removeList = {}
+				end
 				removeList[removeCount] = proID
 			end
 		else
 			removeCount = removeCount + 1
-			if not removeList then removeList = {} end
+			if not removeList then
+				removeList = {}
+			end
 			removeList[removeCount] = proID
 		end
 	end
@@ -155,5 +200,3 @@ function gadget:GameFrame(gf)
 		missiles[removeList[i]] = nil
 	end
 end
-
-

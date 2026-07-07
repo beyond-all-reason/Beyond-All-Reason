@@ -1,17 +1,16 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-  return {
-    name      = "Snow",
-    desc      = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
-    author    = "Floris (original: trepan, Argh)",
-    date      = "29 may 2015",
-    license   = "GNU GPL, v2 or later",
-    layer     = -24,
-    enabled   = true
-  }
+	return {
+		name = "Snow",
+		desc = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
+		author = "Floris (original: trepan, Argh)",
+		date = "29 may 2015",
+		license = "GNU GPL, v2 or later",
+		layer = -24,
+		enabled = true,
+	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -29,19 +28,19 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 -- local vsx,vsy = spGetViewGeometry()
 
-local minFps					= 22		-- stops snowing at
-local maxFps					= 55		-- max particles at
-local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
-local particleMultiplier		= 0.005		-- amount of particles
-local customParticleMultiplier  = 1
-local windMultiplier			= 4.5
-local maxWindSpeed				= 25		-- to keep it real
-local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
+local minFps = 22 -- stops snowing at
+local maxFps = 55 -- max particles at
+local particleSteps = 14 -- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
+local particleMultiplier = 0.005 -- amount of particles
+local customParticleMultiplier = 1
+local windMultiplier = 4.5
+local maxWindSpeed = 25 -- to keep it real
+local gameFrameCountdown = 120 -- on launch: wait this many frames before adjusting the average fps calc
 
 -- pregame info message
 local autoReduce = true
 
-local fpsDifference = (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
+local fpsDifference = (maxFps - minFps) / particleSteps -- fps difference need before changing the dlist to one with fewer particles
 
 local snowTexture = "LuaUI/Images/snow.dds"
 
@@ -60,28 +59,28 @@ snowMaps['thecoldplace'] = false
 
 local particleTypes = {}
 tableInsert(particleTypes, {
-		gravity = 50,
-		scale = 5500
+	gravity = 50,
+	scale = 5500,
 })
 tableInsert(particleTypes, {
-		gravity = 44,
-		scale = 5500
+	gravity = 44,
+	scale = 5500,
 })
 tableInsert(particleTypes, {
-		gravity = 58,
-		scale = 5500
+	gravity = 58,
+	scale = 5500,
 })
 tableInsert(particleTypes, {
-		gravity = 62,
-		scale = 6600
+	gravity = 62,
+	scale = 6600,
 })
 tableInsert(particleTypes, {
-		gravity = 47,
-		scale = 6600
+	gravity = 47,
+	scale = 6600,
 })
 tableInsert(particleTypes, {
-		gravity = 54,
-		scale = 6600
+	gravity = 54,
+	scale = 6600,
 })
 
 local widgetDisabledSnow = false
@@ -91,21 +90,23 @@ local shader
 local startTimer = Spring.GetTimer()
 local diffTime = 0
 
-local spGetFPS					= Spring.GetFPS
-local averageFps				= 60
+local spGetFPS = Spring.GetFPS
+local averageFps = 60
 
-local camX,camY,camZ
-local vsx, vsy					= gl.GetViewSizes()
-local particleScale	= 1
+local camX, camY, camZ
+local vsx, vsy = gl.GetViewSizes()
+local particleScale = 1
 
 local offsetX = 0
 local offsetZ = 0
 local prevOsClock = os.clock()
 
 local enabled = false
-local previousFps				= (maxFps + minFps) / 1.75
-local particleStep				= mathFloor(particleSteps / 1.33)
-if particleStep < 1 then particleStep = 1 end
+local previousFps = (maxFps + minFps) / 1.75
+local particleStep = mathFloor(particleSteps / 1.33)
+if particleStep < 1 then
+	particleStep = 1
+end
 local currentMapname = Game.mapName:lower()
 local particleLists = {}
 local particleDensityMax = 0
@@ -115,18 +116,18 @@ local previousParticleAmount = particleDensity
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetWind            = Spring.GetWind
+local spGetWind = Spring.GetWind
 
-local glBlending           = gl.Blending
-local glCallList           = gl.CallList
-local glDepthTest          = gl.DepthTest
-local glDeleteList         = gl.DeleteList
-local glTexture            = gl.Texture
-local glGetShaderLog       = gl.GetShaderLog
-local glCreateShader       = gl.CreateShader
-local LuaShader            = gl.LuaShader
-local glDeleteShader       = gl.DeleteShader
-local glResetState         = gl.ResetState
+local glBlending = gl.Blending
+local glCallList = gl.CallList
+local glDepthTest = gl.DepthTest
+local glDeleteList = gl.DeleteList
+local glTexture = gl.Texture
+local glGetShaderLog = gl.GetShaderLog
+local glCreateShader = gl.CreateShader
+local LuaShader = gl.LuaShader
+local glDeleteShader = gl.DeleteShader
+local glResetState = gl.ResetState
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -136,8 +137,8 @@ local startOsClock = os.clock()
 
 local function removeParticleLists()
 	if particleLists[1] ~= nil then
-		for layer=1, 3 do
-			for step=1, particleSteps do
+		for layer = 1, 3 do
+			for step = 1, particleSteps do
 				glDeleteList(particleLists[layer][step])
 			end
 		end
@@ -155,30 +156,30 @@ end
 
 function widget:Shutdown()
 	removeSnow()
-	WG['snow'] = nil
+	WG["snow"] = nil
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
 local function CreateParticleLists()
 	removeParticleLists()
-	particleDensityMax	= mathFloor(((vsx * vsy) * (particleMultiplier*customParticleMultiplier)) / #particleTypes)
-	particleDensity		= particleDensityMax * ((averageFps-minFps) / maxFps)
+	particleDensityMax = mathFloor(((vsx * vsy) * (particleMultiplier * customParticleMultiplier)) / #particleTypes)
+	particleDensity = particleDensityMax * ((averageFps - minFps) / maxFps)
 	for particleType, pt in pairs(particleTypes) do
 		particleLists[particleType] = {}
-		for step=1, particleSteps do
+		for step = 1, particleSteps do
 			--local density = (particleDensityMax/particleSteps) * step
-			local particles = mathFloor(((particleDensityMax/particleSteps) * step) / (((particleSteps+(particleSteps/2)) - step) / (particleSteps/2)))
+			local particles = mathFloor(((particleDensityMax / particleSteps) * step) / (((particleSteps + (particleSteps / 2)) - step) / (particleSteps / 2)))
 			particleLists[particleType][step] = gl.CreateList(function()
 				local tmpRand = mathRandom()
 				math.randomseed(particleType)
 				gl.BeginEnd(GL.POINTS, function()
-				  for i = 1, particles do
-					local x = mathRandom()
-					local y = mathRandom()
-					local z = mathRandom()
-					local w = 1
-					gl.Vertex(x, y, z, w)
-				  end
+					for i = 1, particles do
+						local x = mathRandom()
+						local y = mathRandom()
+						local z = mathRandom()
+						local w = 1
+						gl.Vertex(x, y, z, w)
+					end
 				end)
 				mathRandom(1e9 * tmpRand)
 			end)
@@ -189,10 +190,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
 local function init()
 	-- abort if not enabled
-	if enabled == false then return end
+	if enabled == false then
+		return
+	end
 
 	if glCreateShader == nil then
 		spEcho("[Snow widget:Initialize] no shader support")
@@ -252,10 +254,10 @@ local function init()
 			}
 		]],
 		uniformFloat = {
-			time   = diffTime,
-			scale  = 0,
-			speed  = {0,0,0},
-			camPos = {0,0,0},
+			time = diffTime,
+			scale = 0,
+			speed = { 0, 0, 0 },
+			camPos = { 0, 0, 0 },
 		},
 	}, "Snow Shader")
 
@@ -285,10 +287,10 @@ local function getWindSpeed()
 end
 
 local function snowCmd(_, _, params)
-	if (params[1] and params[1] == '1') or (not params[1] and (snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false)) then
+	if (params[1] and params[1] == "1") or (not params[1] and (snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false)) then
 		snowMaps[currentMapname] = true
 		enabled = true
-		spEcho("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
+		spEcho("Snow widget: snow enabled for this map. (Snow wont show when average fps is below " .. minFps .. ".)")
 		init()
 	else
 		snowMaps[currentMapname] = false
@@ -298,25 +300,24 @@ local function snowCmd(_, _, params)
 	end
 end
 
-
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG['snow'] = {}
-	WG['snow'].getSnowMap = function()
+	WG["snow"] = {}
+	WG["snow"].getSnowMap = function()
 		if enabled or widgetDisabledSnow then
 			return true
 		else
 			return false
 		end
 	end
-	WG['snow'].setMultiplier = function(value)
+	WG["snow"].setMultiplier = function(value)
 		customParticleMultiplier = value
-		if enabled or widgetDisabledSnow  then
+		if enabled or widgetDisabledSnow then
 			CreateParticleLists()
 		end
 	end
-	WG['snow'].setAutoReduce = function(value)
+	WG["snow"].setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
 			enabled = true
@@ -326,7 +327,7 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
-	WG['snow'].setSnowMap = function(value)
+	WG["snow"].setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
 		if value then
@@ -339,7 +340,7 @@ function widget:Initialize()
 	startOsClock = os.clock()
 	-- check for keywords
 	local keywordFound = false
-	for _,keyword in pairs(snowKeywords) do
+	for _, keyword in pairs(snowKeywords) do
 		if string.find(currentMapname, keyword, nil, true) then
 			enabled = true
 			keywordFound = true
@@ -362,40 +363,48 @@ function widget:Initialize()
 	getWindSpeed()
 	init()
 
-	widgetHandler:AddAction("snow", snowCmd, nil, 't')
+	widgetHandler:AddAction("snow", snowCmd, nil, "t")
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:GameFrame(gameFrame)
-	if not enabled and not widgetDisabledSnow then return end
+	if not enabled and not widgetDisabledSnow then
+		return
+	end
 
 	if gameFrameCountdown <= 0 then
-		if gameFrame%31==0 then
+		if gameFrame % 31 == 0 then
 			getWindSpeed()
 		end
-		if gameFrame%44==0 then
+		if gameFrame % 44 == 0 then
 			averageFps = ((averageFps * 19) + spGetFPS()) / 20
-			if averageFps < 1 then averageFps = 1 end
+			if averageFps < 1 then
+				averageFps = 1
+			end
 		end
-		if gameFrame%88==0 and autoReduce then
-			if averageFps >= previousFps+fpsDifference or averageFps <= previousFps-fpsDifference then
-				local particleAmount = (averageFps-minFps) / (maxFps-minFps)
+		if gameFrame % 88 == 0 and autoReduce then
+			if averageFps >= previousFps + fpsDifference or averageFps <= previousFps - fpsDifference then
+				local particleAmount = (averageFps - minFps) / (maxFps - minFps)
 				if particleAmount > 1 then
 					particleAmount = 1
 				end
 				if previousParticleAmount ~= particleAmount then
 					previousParticleAmount = particleAmount
 					previousFps = averageFps
-					if particleAmount <= 1/particleSteps then
+					if particleAmount <= 1 / particleSteps then
 						enabled = false
 						widgetDisabledSnow = true
 					else
 						particleDensity = mathFloor(particleDensityMax * particleAmount)
-						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
+						if particleDensity > particleDensityMax then
+							particleDensity = particleDensityMax
+						end
 						particleStep = mathFloor(particleDensity / (particleDensityMax / particleSteps))
-						if particleStep < 1 then particleStep = 1 end
+						if particleStep < 1 then
+							particleStep = 1
+						end
 						enabled = true
 						widgetDisabledSnow = false
 					end
@@ -410,24 +419,28 @@ end
 function widget:Shutdown()
 	enabled = false
 	widgetHandler:RemoveAction("snow")
-	if shader then shader:Finalize() end
+	if shader then
+		shader:Finalize()
+	end
 end
 
 local pausedTime = 0
 local lastFrametime = Spring.GetTimer()
 
 function widget:DrawWorld()
-	if not enabled then return end
+	if not enabled then
+		return
+	end
 
 	local _, _, isPaused = Spring.GetGameSpeed()
 	if isPaused then
 		pausedTime = pausedTime + Spring.DiffTimers(Spring.GetTimer(), lastFrametime)
 	end
 	lastFrametime = Spring.GetTimer()
-	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
+	if os.clock() - startOsClock > 0.5 then -- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			shader:Activate()
-			camX,camY,camZ = Spring.GetCameraPosition()
+			camX, camY, camZ = Spring.GetCameraPosition()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
@@ -466,8 +479,7 @@ function widget:DrawWorld()
 end
 
 function widget:ViewResize()
-	vsx,vsy = spGetViewGeometry()
-
+	vsx, vsy = spGetViewGeometry()
 
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
@@ -479,28 +491,38 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-    return {
+	return {
 		snowMaps = snowMaps,
 		averageFps = mathFloor(averageFps),
 		articleStep = particleStep,
 		gameframe = spGetGameFrame(),
 		customParticleMultiplier = customParticleMultiplier,
-		autoReduce = autoReduce
+		autoReduce = autoReduce,
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.snowMaps ~= nil 	then  snowMaps = data.snowMaps end
-	if data.customParticleMultiplier ~= nil 	then  customParticleMultiplier = data.customParticleMultiplier end
-	if data.autoReduce ~= nil 	then  autoReduce = data.autoReduce end
-	if data.gameframe ~= nil and data.gameframe > 0	then
-		if data.averageFps ~= nil 	then
+	if data.snowMaps ~= nil then
+		snowMaps = data.snowMaps
+	end
+	if data.customParticleMultiplier ~= nil then
+		customParticleMultiplier = data.customParticleMultiplier
+	end
+	if data.autoReduce ~= nil then
+		autoReduce = data.autoReduce
+	end
+	if data.gameframe ~= nil and data.gameframe > 0 then
+		if data.averageFps ~= nil then
 			averageFps = data.averageFps
 		end
 		if data.particleStep ~= nil and data.gameframe ~= nil and spGetGameFrame() > 0 then
 			particleStep = data.particleStep
-			if particleStep < 1 then particleStep = 1 end
-			if particleStep > particleSteps then particleStep = particleSteps end
+			if particleStep < 1 then
+				particleStep = 1
+			end
+			if particleStep > particleSteps then
+				particleStep = particleSteps
+			end
 		end
 	end
 end

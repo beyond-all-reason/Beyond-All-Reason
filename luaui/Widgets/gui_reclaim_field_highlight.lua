@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Reclaim Field Highlight",
-		desc      = "Highlights clusters of reclaimable material",
-		author    = "ivand, refactored by esainane, edited for BAR by Lexon, efrec and Floris",
-		date      = "2024",
-		license   = "public",
-		layer     = 1270000,
-		enabled   = true
+		name = "Reclaim Field Highlight",
+		desc = "Highlights clusters of reclaimable material",
+		author = "ivand, refactored by esainane, edited for BAR by Lexon, efrec and Floris",
+		date = "2024",
+		license = "public",
+		layer = 1270000,
+		enabled = true,
 	}
 end
 
@@ -37,23 +37,23 @@ local showEnergyOption = 3 -- Same options as showOption, but for energy fields
 local showEnergyFields = true -- Show energy reclaim fields separately
 
 --Metal value font
-local numberColor = {0.9, 0.9, 0.9, 1}
-local energyNumberColor = {1.0, 0.9, 0.1, 1}
+local numberColor = { 0.9, 0.9, 0.9, 1 }
+local energyNumberColor = { 1.0, 0.9, 0.1, 1 }
 
 -- Resource icons (shown in front of each metal/energy value label)
 local showResourceIcons = false -- Enabled at runtime only in scenario games
-local iconSizeRatio = 1.0    -- Icon size relative to text font size
-local iconGapRatio  = 0.0     -- Gap between icon and text relative to font size
+local iconSizeRatio = 1.0 -- Icon size relative to text font size
+local iconGapRatio = 0.0 -- Gap between icon and text relative to font size
 local fontSizeMin = 25
 local fontSizeMax = 75
 
 --Field color
-local reclaimColor = {0, 0, 0, 0.16}
-local reclaimEdgeColor = {1, 1, 1, 0.18}
+local reclaimColor = { 0, 0, 0, 0.16 }
+local reclaimEdgeColor = { 1, 1, 1, 0.18 }
 
 --Energy field color (yellowish tint)
-local energyReclaimColor = {0.8, 0.8, 0, 0.16}
-local energyReclaimEdgeColor = {1, 0.9, 0, 0.18}
+local energyReclaimColor = { 0.8, 0.8, 0, 0.16 }
+local energyReclaimEdgeColor = { 1, 0.9, 0, 0.18 }
 
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
@@ -185,7 +185,10 @@ local spGetGameFrame = Spring.GetGameFrame
 local debugTiming = false
 local osClock = os.clock
 local timingAccum = {
-	updateReclaim = 0, drawWorldText = 0, drawPreUnit = 0, updateFunc = 0,
+	updateReclaim = 0,
+	drawWorldText = 0,
+	drawPreUnit = 0,
+	updateFunc = 0,
 }
 local timingCount = 0
 local timingInterval = 120 -- echo every N draw calls
@@ -216,7 +219,7 @@ local function IsInCameraView(x, y, z, radius, currentDrawCount)
 		local dx = newCamX - cachedCameraX
 		local dy = newCamY - cachedCameraY
 		local dz = newCamZ - cachedCameraZ
-		local moved = (dx*dx + dy*dy + dz*dz) > cameraMovementThreshold * cameraMovementThreshold
+		local moved = (dx * dx + dy * dy + dz * dz) > cameraMovementThreshold * cameraMovementThreshold
 
 		-- Check if camera has rotated significantly (dot product change)
 		local oldDot = cachedCamFwdX * newCamForward[1] + cachedCamFwdY * newCamForward[2] + cachedCamFwdZ * newCamForward[3]
@@ -244,7 +247,7 @@ local function IsInCameraView(x, y, z, radius, currentDrawCount)
 	local dx = x - cachedCameraX
 	local dy = y - cachedCameraY
 	local dz = z - cachedCameraZ
-	local distSq = dx*dx + dy*dy + dz*dz
+	local distSq = dx * dx + dy * dy + dz * dz
 	local dist = sqrt(distSq)
 
 	-- Skip if too far away (beyond fade distance + radius) - early out
@@ -253,7 +256,9 @@ local function IsInCameraView(x, y, z, radius, currentDrawCount)
 	end
 
 	-- Normalize direction vector
-	if dist < 0.01 then return true, dist end -- Camera is at the point
+	if dist < 0.01 then
+		return true, dist
+	end -- Camera is at the point
 	local invDist = 1.0 / dist
 	dx, dy, dz = dx * invDist, dy * invDist, dz * invDist
 
@@ -328,29 +333,29 @@ local dirty = {
 	needCluster = false,
 	needRedraw = false,
 	forceFullRedraw = false,
-	regions = {},          -- Track which regions need reclustering
-	clusters = {},         -- Track which specific clusters need redrawing
-	energyClusters = {},   -- Track which specific energy clusters need redrawing
-	useRegional = true,    -- Enable regional optimization
+	regions = {}, -- Track which regions need reclustering
+	clusters = {}, -- Track which specific clusters need redrawing
+	energyClusters = {}, -- Track which specific energy clusters need redrawing
+	useRegional = true, -- Enable regional optimization
 }
 
 -- Batch queues and deferred update state (consolidated)
 local batch = {
-	toRemove = {},              -- Reusable table for batching feature removals
-	pendDestructions = {},      -- Queue for batching FeatureDestroyed calls
-	pendDestrCount = 0,         -- Count of pending destructions
-	pendCreations = {},         -- Queue for batching FeatureCreated calls
-	pendCreateCount = 0,        -- Count of pending creations
-	affectedFeatures = {},      -- Reusable table for regional clustering
-	affectedClusters = {},      -- Reusable table for regional clustering
-	deferCreations = {},        -- Features created outside view
-	deferDestructions = {},     -- Features destroyed outside view
+	toRemove = {}, -- Reusable table for batching feature removals
+	pendDestructions = {}, -- Queue for batching FeatureDestroyed calls
+	pendDestrCount = 0, -- Count of pending destructions
+	pendCreations = {}, -- Queue for batching FeatureCreated calls
+	pendCreateCount = 0, -- Count of pending creations
+	affectedFeatures = {}, -- Reusable table for regional clustering
+	affectedClusters = {}, -- Reusable table for regional clustering
+	deferCreations = {}, -- Features created outside view
+	deferDestructions = {}, -- Features destroyed outside view
 	deferCreateCount = 0,
 	deferDestrCount = 0,
-	deferOutOfView = true,      -- Config: defer processing features outside view
-	outOfViewMargin = 350,      -- Elmos margin beyond fade distance to still process immediately
+	deferOutOfView = true, -- Config: defer processing features outside view
+	outOfViewMargin = 350, -- Elmos margin beyond fade distance to still process immediately
 	lastDeferFrame = 0,
-	deferInterval = 60,         -- Process deferred updates every 60 frames (~2 seconds)
+	deferInterval = 60, -- Process deferred updates every 60 frames (~2 seconds)
 }
 
 -- Cache to avoid redundant Spring API calls
@@ -366,7 +371,7 @@ local energyClusterVisibilityCache = {} -- {[energyCid] = {frame, inView, dist, 
 -- Forward declare this early since it's used in draw functions
 local GetClusterVisibility
 
-local epsilonSq = epsilon*epsilon
+local epsilonSq = epsilon * epsilon
 local checkFrequency = 30
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
@@ -431,17 +436,17 @@ local animState = {
 	nextUID = 1,
 
 	-- Per-uid live anim state: {alpha, scale, animType, animT0, animDur}
-	clusterAnims = {},        -- metal, [uid] = state
-	energyClusterAnims = {},  -- energy, [uid] = state
+	clusterAnims = {}, -- metal, [uid] = state
+	energyClusterAnims = {}, -- energy, [uid] = state
 
 	-- Snapshot of clusters from the previous clustering pass (for identity match)
-	prevSnapshot = {},        -- metal, [uid] = {fids, fidCount}
-	prevEnergySnapshot = {},  -- energy
+	prevSnapshot = {}, -- metal, [uid] = {fids, fidCount}
+	prevEnergySnapshot = {}, -- energy
 
 	-- Clusters that disappeared and are currently fading out. They own their
 	-- own hull copies and display lists.
-	fading = {},              -- metal, [uid] = entry
-	fadingEnergy = {},        -- energy
+	fading = {}, -- metal, [uid] = entry
+	fadingEnergy = {}, -- energy
 
 	-- Group toggle fade (fields turning on/off as a whole). 0..1
 	toggleMetal = 0,
@@ -453,8 +458,8 @@ local animState = {
 
 	-- Pre-clustering snapshot of hulls (deep-copied) so we can render fadeout
 	-- for clusters that disappear after the next clustering pass.
-	preHullCopies = {},        -- metal, [uid] = {hull, center, text, font, textX, textZ, alpha, isEnergy}
-	preEnergyHullCopies = {},  -- energy
+	preHullCopies = {}, -- metal, [uid] = {hull, center, text, font, textX, textZ, alpha, isEnergy}
+	preEnergyHullCopies = {}, -- energy
 
 	-- Forward-declared functions (filled in below). Stored on the table to
 	-- avoid creating extra upvalues in the chunk.
@@ -468,7 +473,9 @@ local animState = {
 
 -- Helper function to compute a simple hash/signature of cluster state
 local function ComputeClusterStateHash(cluster, hull)
-	if not cluster or not hull then return 0 end
+	if not cluster or not hull then
+		return 0
+	end
 	-- Hash based on: member count, total value, center position, hull vertex count
 	-- This is a simple hash - not cryptographic, just for change detection
 	local memberCount = cluster.members and #cluster.members or 0
@@ -488,14 +495,20 @@ end
 
 -- Smoothstep ease for animation curves
 local function easeInOut(t)
-	if t <= 0 then return 0 end
-	if t >= 1 then return 1 end
+	if t <= 0 then
+		return 0
+	end
+	if t >= 1 then
+		return 1
+	end
 	return t * t * (3 - 2 * t)
 end
 
 -- Pulse curve: 0 -> 1 -> 0 over [0,1] (peak at 0.5). Smooth.
 local function pulseCurve(t)
-	if t <= 0 or t >= 1 then return 0 end
+	if t <= 0 or t >= 1 then
+		return 0
+	end
 	-- sin(pi * t) gives a nice 0->1->0 hump
 	return sin(t * 3.14159265)
 end
@@ -609,7 +622,9 @@ local function syncSide(isEnergy)
 			-- iterations to avoid one tally allocation per cluster).
 			local bestOldUid, bestOverlap = nil, 0
 			local tally = sharedTally
-			for k in pairs(tally) do tally[k] = nil end
+			for k in pairs(tally) do
+				tally[k] = nil
+			end
 			for fid in pairs(fids) do
 				local oldUid = fidToOldUid[fid]
 				if oldUid and not matchedOldUids[oldUid] then
@@ -624,12 +639,14 @@ local function syncSide(isEnergy)
 			end
 
 			local uid
-			local pulseDir = 0  -- -1 shrink, +1 expand, 0 no pulse
+			local pulseDir = 0 -- -1 shrink, +1 expand, 0 no pulse
 			if bestOldUid then
 				local oldSnap = snapshot[bestOldUid]
 				local oldCount = oldSnap.fidCount
 				local maxCount = oldCount
-				if count > maxCount then maxCount = count end
+				if count > maxCount then
+					maxCount = count
+				end
 				if maxCount > 0 and (bestOverlap / maxCount) >= animCfg.identityMinOverlap then
 					uid = bestOldUid
 					matchedOldUids[bestOldUid] = true
@@ -638,7 +655,9 @@ local function syncSide(isEnergy)
 					local newValue = (isEnergy and cluster.energy or cluster.metal) or 0
 					local oldValue = oldSnap.value or 0
 					local denom = oldValue
-					if newValue > denom then denom = newValue end
+					if newValue > denom then
+						denom = newValue
+					end
 					if denom > 0 then
 						local rel = (newValue - oldValue) / denom
 						if rel >= animCfg.pulseMinRelativeChange then
@@ -744,7 +763,9 @@ animState.SyncClusterIdentitiesAfterClustering = function()
 		end
 		for uid, entry in pairs(animState.fadingEnergy) do
 			-- Force quick fadeout when energy has been disabled
-			if entry.t0 then entry.t0 = entry.t0 - entry.duration end
+			if entry.t0 then
+				entry.t0 = entry.t0 - entry.duration
+			end
 		end
 	end
 end
@@ -753,11 +774,19 @@ end
 animState.DeleteFadingCluster = function(uid, isEnergy)
 	local fading = isEnergy and animState.fadingEnergy or animState.fading
 	local entry = fading[uid]
-	if not entry then return end
+	if not entry then
+		return
+	end
 	if entry.displayLists then
-		if entry.displayLists.gradient then glDeleteList(entry.displayLists.gradient) end
-		if entry.displayLists.edge then glDeleteList(entry.displayLists.edge) end
-		if entry.displayLists.text then glDeleteList(entry.displayLists.text) end
+		if entry.displayLists.gradient then
+			glDeleteList(entry.displayLists.gradient)
+		end
+		if entry.displayLists.edge then
+			glDeleteList(entry.displayLists.edge)
+		end
+		if entry.displayLists.text then
+			glDeleteList(entry.displayLists.text)
+		end
 		entry.displayLists = nil
 	end
 	fading[uid] = nil
@@ -818,8 +847,12 @@ local function _tickAnimsApply(anims)
 				a.scale = 1 - pulseShrinkDelta * pulseCurve(p)
 			end
 		else
-			if not a.alpha or a.alpha < 1 then a.alpha = 1 end
-			if not a.scale or a.scale ~= 1 then a.scale = 1 end
+			if not a.alpha or a.alpha < 1 then
+				a.alpha = 1
+			end
+			if not a.scale or a.scale ~= 1 then
+				a.scale = 1
+			end
 		end
 
 		-- Smoothed visibility (handles distance fade + frustum pop-in/out).
@@ -834,10 +867,14 @@ local function _tickAnimsApply(anims)
 		if vis ~= target then
 			if vis < target then
 				vis = vis + visInStep
-				if vis > target then vis = target end
+				if vis > target then
+					vis = target
+				end
 			else
 				vis = vis - visOutStep
-				if vis < target then vis = target end
+				if vis < target then
+					vis = target
+				end
 			end
 			a.vis = vis
 		end
@@ -847,7 +884,9 @@ end
 -- Tick all animations. Called once per draw.
 animState.TickClusterAnimations = function(now)
 	local dt = now - animState.lastTickClock
-	if dt <= 0 then return end
+	if dt <= 0 then
+		return
+	end
 	animState.lastTickClock = now
 	local toggleStep = dt / animCfg.toggleFadeDuration
 
@@ -855,19 +894,27 @@ animState.TickClusterAnimations = function(now)
 	if animState.toggleMetal ~= animState.toggleMetalTarget then
 		if animState.toggleMetal < animState.toggleMetalTarget then
 			animState.toggleMetal = animState.toggleMetal + toggleStep
-			if animState.toggleMetal > animState.toggleMetalTarget then animState.toggleMetal = animState.toggleMetalTarget end
+			if animState.toggleMetal > animState.toggleMetalTarget then
+				animState.toggleMetal = animState.toggleMetalTarget
+			end
 		else
 			animState.toggleMetal = animState.toggleMetal - toggleStep
-			if animState.toggleMetal < animState.toggleMetalTarget then animState.toggleMetal = animState.toggleMetalTarget end
+			if animState.toggleMetal < animState.toggleMetalTarget then
+				animState.toggleMetal = animState.toggleMetalTarget
+			end
 		end
 	end
 	if animState.toggleEnergy ~= animState.toggleEnergyTarget then
 		if animState.toggleEnergy < animState.toggleEnergyTarget then
 			animState.toggleEnergy = animState.toggleEnergy + toggleStep
-			if animState.toggleEnergy > animState.toggleEnergyTarget then animState.toggleEnergy = animState.toggleEnergyTarget end
+			if animState.toggleEnergy > animState.toggleEnergyTarget then
+				animState.toggleEnergy = animState.toggleEnergyTarget
+			end
 		else
 			animState.toggleEnergy = animState.toggleEnergy - toggleStep
-			if animState.toggleEnergy < animState.toggleEnergyTarget then animState.toggleEnergy = animState.toggleEnergyTarget end
+			if animState.toggleEnergy < animState.toggleEnergyTarget then
+				animState.toggleEnergy = animState.toggleEnergyTarget
+			end
 		end
 	end
 
@@ -924,7 +971,9 @@ do
 
 	local function pop(self)
 		local size = self.size
-		if size == 0 then return nil end
+		if size == 0 then
+			return nil
+		end
 		local pris = self.priorities
 		local vals = self.values
 		local value = vals[1]
@@ -969,8 +1018,8 @@ do
 
 	local pqMeta = {
 		__index = {
-			push  = push,
-			pop   = pop,
+			push = push,
+			pop = pop,
 			clear = clear,
 		},
 	}
@@ -1054,7 +1103,7 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 	if not cluster.radius then
 		local cdx = cluster.dx or 0
 		local cdz = cluster.dz or 0
-		cluster.radius = sqrt(cdx*cdx + cdz*cdz) * 0.5
+		cluster.radius = sqrt(cdx * cdx + cdz * cdz) * 0.5
 	end
 
 	-- For metal fields with alwaysShowFields enabled, bypass distance culling if above threshold
@@ -1065,7 +1114,7 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 		local dx = center.x - cachedCameraX
 		local dy = center.y - cachedCameraY
 		local dz = center.z - cachedCameraZ
-		dist = sqrt(dx*dx + dy*dy + dz*dz)
+		dist = sqrt(dx * dx + dy * dy + dz * dz)
 		inView = true
 	else
 		inView, dist = IsInCameraView(center.x, center.y, center.z, cluster.radius, currentDrawCount)
@@ -1098,7 +1147,7 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 			generation = cameraGeneration,
 			inView = inView,
 			dist = dist,
-			fadeMult = fadeMult
+			fadeMult = fadeMult,
 		}
 	end
 
@@ -1203,14 +1252,14 @@ do
 		local x, z = points[1].x, points[1].z
 
 		-- (1) Cover all points by expanding a quadrilateral to follow these rules:
-		local ax,  az,  a_xzs_max  =  x,  z,  x - z  -- Choose point A to maximize x - z.
-		local bx,  bz,  b_xza_max  =  x,  z,  x + z  -- Choose point B to maximize x + z.
-		local cx,  cz,  c_xzs_min  =  x,  z,  x - z  -- Choose point C to minimize x - z.
-		local dx,  dz,  d_xza_min  =  x,  z,  x + z  -- Choose point D to minimize x + z.
+		local ax, az, a_xzs_max = x, z, x - z -- Choose point A to maximize x - z.
+		local bx, bz, b_xza_max = x, z, x + z -- Choose point B to maximize x + z.
+		local cx, cz, c_xzs_min = x, z, x - z -- Choose point C to minimize x - z.
+		local dx, dz, d_xza_min = x, z, x + z -- Choose point D to minimize x + z.
 
 		-- (2) Find the XZ-aligned rectangle inscribed in that quadrilateral:
-		local rxmin, rxmax = x, x  -- Rx_min = max(Cx, Dx); Rx_max = min(Ax, Bx).
-		local rzmin, rzmax = z, z  -- Rz_min = max(Az, Dz); Rz_max = min(Bz, Cz).
+		local rxmin, rxmax = x, x -- Rx_min = max(Cx, Dx); Rx_max = min(Ax, Bx).
+		local rzmin, rzmax = z, z -- Rz_min = max(Az, Dz); Rz_max = min(Bz, Cz).
 
 		-- (3) The algorithm performs two passes, with the first covering the full set.
 		for ii = 2, #points do
@@ -1218,7 +1267,7 @@ do
 			local x, z = point.x, point.z
 			if x <= rxmin or x >= rxmax or z <= rzmin or z >= rzmax then
 				-- Keep points that fall outside the inscribed rectangle.
-				remaining[#remaining+1] = point
+				remaining[#remaining + 1] = point
 
 				-- Update points A, B, C, D and the inner rectangle bounds.
 				local xzs = x - z
@@ -1287,19 +1336,20 @@ do
 	local MonotoneChain
 	do
 		local function cross(p, q, r)
-			return (q.z - p.z) * (r.x - q.x) -
-			       (q.x - p.x) * (r.z - q.z)
+			return (q.z - p.z) * (r.x - q.x) - (q.x - p.x) * (r.z - q.z)
 		end
 
-		MonotoneChain = function (points)
+		MonotoneChain = function(points)
 			local numPoints = #points
-			if numPoints < 3 then return end
+			if numPoints < 3 then
+				return
+			end
 			-- tableSort(points, sortMonotonic) -- Moved to previous, shared step.
 
 			local lower = {}
 			for i = 1, numPoints do
 				local point = points[i]
-				while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], point) <= 0) do
+				while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], point) <= 0 do
 					remove(lower)
 				end
 				insert(lower, point)
@@ -1308,7 +1358,7 @@ do
 			local upper = {}
 			for i = numPoints, 1, -1 do
 				local point = points[i]
-				while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], point) <= 0) do
+				while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], point) <= 0 do
 					remove(upper)
 				end
 				insert(upper, point)
@@ -1334,11 +1384,13 @@ do
 			pt.x, pt.y, pt.z = x, y, z
 			return pt
 		end
-		return {x = x, y = y, z = z}
+		return { x = x, y = y, z = z }
 	end
 
 	recycleHull = function(hull)
-		if not hull then return end
+		if not hull then
+			return
+		end
 		for i = 1, #hull do
 			local pt = hull[i]
 			if pt and not pt.fid then
@@ -1374,11 +1426,7 @@ do
 				local angle = (i / segments) * math.pi * 2
 				local x = cx + math.cos(angle) * radius
 				local z = cz + math.sin(angle) * radius
-				convexHull[i + 1] = acquirePoint(
-					x,
-					max(0, spGetGroundHeight(x, z)),
-					z
-				)
+				convexHull[i + 1] = acquirePoint(x, max(0, spGetGroundHeight(x, z)), z)
 			end
 		elseif #points == 2 then
 			-- Two wrecks: create elongated shape oriented along the line between them
@@ -1412,7 +1460,7 @@ do
 					acquirePoint(x1, max(0, spGetGroundHeight(x1, z1)), z1),
 					acquirePoint(x2, max(0, spGetGroundHeight(x2, z2)), z2),
 					acquirePoint(x3, max(0, spGetGroundHeight(x3, z3)), z3),
-					acquirePoint(x4, max(0, spGetGroundHeight(x4, z4)), z4)
+					acquirePoint(x4, max(0, spGetGroundHeight(x4, z4)), z4),
 				}
 			else
 				-- Fall back to simple box if points are too close
@@ -1426,7 +1474,7 @@ do
 					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmin)), zmin),
 					acquirePoint(xmax, max(0, spGetGroundHeight(xmax, zmin)), zmin),
 					acquirePoint(xmax, max(0, spGetGroundHeight(xmax, zmax)), zmax),
-					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmax)), zmax)
+					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmax)), zmax),
 				}
 			end
 		end
@@ -1437,10 +1485,12 @@ do
 	end
 
 	local function polygonArea(points)
-		if #points < 3 then return 0 end
+		if #points < 3 then
+			return 0
+		end
 		local totalArea = 0
 		for ii = 1, #points - 1 do
-			totalArea = totalArea + points[ii].x * points[ii+1].z - points[ii].z * points[ii+1].x
+			totalArea = totalArea + points[ii].x * points[ii + 1].z - points[ii].z * points[ii + 1].x
 		end
 		return 0.5 * abs(totalArea + points[#points].x * points[1].z - points[#points].z * points[1].x)
 	end
@@ -1452,7 +1502,9 @@ do
 
 	-- Subdivide long edges in hull to ensure smooth expansion
 	local function subdivideHull(hull, maxEdgeLength)
-		if not hull or #hull < 3 then return hull end
+		if not hull or #hull < 3 then
+			return hull
+		end
 
 		local count = 0
 		local n = #hull
@@ -1469,7 +1521,7 @@ do
 				entry.y = curr.y
 				entry.z = curr.z
 			else
-				subdividedBuf[count] = {x = curr.x, y = curr.y, z = curr.z}
+				subdividedBuf[count] = { x = curr.x, y = curr.y, z = curr.z }
 			end
 
 			-- Calculate edge length
@@ -1494,7 +1546,7 @@ do
 						subdividedBuf[count] = {
 							x = interpX,
 							y = max(0, spGetGroundHeight(interpX, interpZ)),
-							z = interpZ
+							z = interpZ,
 						}
 					end
 				end
@@ -1512,11 +1564,13 @@ do
 
 	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
 	local function expandAndSmoothHull(hull, expandDist)
-		if not hull or #hull < 3 then return hull end
+		if not hull or #hull < 3 then
+			return hull
+		end
 
 		-- Subdivide long edges first to ensure smooth, even expansion
 		-- Use expandDist as guide for max edge length (want multiple points per expansion distance)
-		local maxEdgeLength = max(expandDist * 1.5, 80)  -- At least one subdivision per ~expansion distance
+		local maxEdgeLength = max(expandDist * 1.5, 80) -- At least one subdivision per ~expansion distance
 		hull = subdivideHull(hull, maxEdgeLength)
 
 		local n = #hull
@@ -1539,11 +1593,15 @@ do
 			-- Calculate edge vectors
 			local dx1, dz1 = curr.x - prev.x, curr.z - prev.z
 			local len1 = sqrt(dx1 * dx1 + dz1 * dz1)
-			if len1 > 0 then dx1, dz1 = dx1 / len1, dz1 / len1 end
+			if len1 > 0 then
+				dx1, dz1 = dx1 / len1, dz1 / len1
+			end
 
 			local dx2, dz2 = next.x - curr.x, next.z - curr.z
 			local len2 = sqrt(dx2 * dx2 + dz2 * dz2)
-			if len2 > 0 then dx2, dz2 = dx2 / len2, dz2 / len2 end
+			if len2 > 0 then
+				dx2, dz2 = dx2 / len2, dz2 / len2
+			end
 
 			-- Calculate outward normals
 			local nx1, nz1 = -dz1, dx1
@@ -1567,7 +1625,7 @@ do
 
 			-- Blend normal and radial directions for smoother, more circular expansion
 			-- Higher weight on radial = more circular/blob-like
-			local blendWeight = 0.7  -- 70% radial, 30% normal-based
+			local blendWeight = 0.7 -- 70% radial, 30% normal-based
 			local finalNx = nx * (1 - blendWeight) + rx * blendWeight
 			local finalNz = nz * (1 - blendWeight) + rz * blendWeight
 			local finalLen = sqrt(finalNx * finalNx + finalNz * finalNz)
@@ -1581,7 +1639,7 @@ do
 			local sinHalfAngle = math.sin(angle * 0.5)
 			-- Reduced the influence of corner sharpness for more uniform expansion
 			local expandFactor = sinHalfAngle > 0.4 and (1.0 / sinHalfAngle) or 2.5
-			expandFactor = clamp(expandFactor, 1.0, 2.0)  -- Tighter range for more uniformity
+			expandFactor = clamp(expandFactor, 1.0, 2.0) -- Tighter range for more uniformity
 
 			local newX = curr.x + finalNx * expandDist * expandFactor
 			local newZ = curr.z + finalNz * expandDist * expandFactor
@@ -1595,7 +1653,7 @@ do
 				expandedBuf[i] = {
 					x = newX,
 					y = max(0, spGetGroundHeight(newX, newZ)),
-					z = newZ
+					z = newZ,
 				}
 			end
 		end
@@ -1688,7 +1746,7 @@ do
 		return subClusters
 	end
 
-	processCluster = function (cluster, clusterID, points, resourceType, targetHulls, targetClusters, nextClusterId)
+	processCluster = function(cluster, clusterID, points, resourceType, targetHulls, targetClusters, nextClusterId)
 		getReclaimTotal(cluster, points, resourceType or "metal")
 
 		local convexHull, hullArea
@@ -1762,7 +1820,7 @@ do
 					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmin)), zmin),
 					acquirePoint(xmax, max(0, spGetGroundHeight(xmax, zmin)), zmin),
 					acquirePoint(xmax, max(0, spGetGroundHeight(xmax, zmax)), zmax),
-					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmax)), zmax)
+					acquirePoint(xmin, max(0, spGetGroundHeight(xmin, zmax)), zmax),
 				}
 				hullArea = (xmax - xmin) * (zmax - zmin)
 				usedBoundingBox = true
@@ -1777,11 +1835,11 @@ do
 			-- Increased expansion values for more encompassing, uniform fields
 			local expansion
 			if #points == 1 then
-				expansion = (maxRadius * 1.5 + 35) * expansionMultiplier  -- Expansion for single wrecks
+				expansion = (maxRadius * 1.5 + 35) * expansionMultiplier -- Expansion for single wrecks
 			elseif usedBoundingBox then
-				expansion = (maxRadius * 1.5 + 40) * expansionMultiplier  -- Expansion for two wrecks
+				expansion = (maxRadius * 1.5 + 40) * expansionMultiplier -- Expansion for two wrecks
 			else
-				expansion = (maxRadius * 1.8 + 65) * expansionMultiplier  -- Expansion for clusters
+				expansion = (maxRadius * 1.8 + 65) * expansionMultiplier -- Expansion for clusters
 			end
 
 			-- Always use the standard expand+smooth method which follows the hull shape
@@ -1878,7 +1936,7 @@ do
 			-- Spread through next-neighbors by moving to the nearest point.
 			local pt = seedsPQ:pop()
 			while pt do
-				members[#members+1] = pt
+				members[#members + 1] = pt
 				pt[cidField] = clusterID
 
 				local nextNeighbors = featureNeighborsMatrix[pt.fid]
@@ -1919,8 +1977,8 @@ do
 				Run = Run,
 				SetResourceType = function(self, resourceType)
 					currentResourceType = resourceType
-				end
-			}
+				end,
+			},
 		})
 		return object
 	end
@@ -1932,7 +1990,9 @@ end
 
 local function MarkRegionDirty(x, z, radius)
 	-- Mark a spatial region as needing reclustering
-	if not dirty.useRegional then return end
+	if not dirty.useRegional then
+		return
+	end
 
 	local newRadius = radius or epsilon * 2
 	local merged = false
@@ -1959,12 +2019,14 @@ local function MarkRegionDirty(x, z, radius)
 
 	-- Add as new region if not merged
 	if not merged then
-		dirty.regions[#dirty.regions + 1] = {x = x, z = z, radius = newRadius}
+		dirty.regions[#dirty.regions + 1] = { x = x, z = z, radius = newRadius }
 	end
 end
 
 local function IsInDirtyRegion(x, z)
-	if not dirty.useRegional or #dirty.regions == 0 then return true end
+	if not dirty.useRegional or #dirty.regions == 0 then
+		return true
+	end
 	for i = 1, #dirty.regions do
 		local region = dirty.regions[i]
 		local dx, dz = x - region.x, z - region.z
@@ -1986,19 +2048,21 @@ local function AddFeature(featureID)
 	end
 
 	local x, y, z = spGetFeaturePosition(featureID)
-	if not x then return end
+	if not x then
+		return
+	end
 
 	-- Mark region as dirty for regional reclustering
 	MarkRegionDirty(x, z)
 
 	local radius = spGetFeatureRadius(featureID) or 0
 	local feature = {
-		fid   = featureID,
+		fid = featureID,
 		metal = metal or 0,
 		energy = energy or 0,
-		x     = x,
-		y     = max(0, y),
-		z     = z,
+		x = x,
+		y = max(0, y),
+		z = z,
 		radius = radius,
 	}
 
@@ -2046,7 +2110,9 @@ end
 
 local function RemoveFeature(featureID)
 	local feature = knownFeatures[featureID]
-	if not feature then return end
+	if not feature then
+		return
+	end
 
 	-- Mark region as dirty for regional reclustering
 	MarkRegionDirty(feature.x, feature.z)
@@ -2269,7 +2335,9 @@ local function CheckAllEnergyDrained()
 
 	-- Clear energy data structures
 	energyFeatureClusters = {}
-	for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+	for _, hull in pairs(energyFeatureConvexHulls) do
+		recycleHull(hull)
+	end
 	energyFeatureConvexHulls = {}
 end
 
@@ -2292,8 +2360,14 @@ end
 
 -- Pre-computed offset multipliers (avoid table allocation per call)
 local overlapOffsetMults = {
-	{0, 1.5}, {0, -1.5}, {1.5, 0}, {-1.5, 0},
-	{1.2, 1.2}, {-1.2, 1.2}, {1.2, -1.2}, {-1.2, -1.2},
+	{ 0, 1.5 },
+	{ 0, -1.5 },
+	{ 1.5, 0 },
+	{ -1.5, 0 },
+	{ 1.2, 1.2 },
+	{ -1.2, 1.2 },
+	{ 1.2, -1.2 },
+	{ -1.2, -1.2 },
 }
 
 local function FindNonOverlappingPosition(baseX, baseZ, fontSize)
@@ -2312,9 +2386,13 @@ FormatResourceText = function(value)
 	local v = value or 0
 	if string.formatSI then
 		local ok, txt = pcall(string.formatSI, v, 0)
-		if ok and txt then return txt end
+		if ok and txt then
+			return txt
+		end
 		ok, txt = pcall(string.formatSI, v)
-		if ok and txt then return txt end
+		if ok and txt then
+			return txt
+		end
 	end
 	if v >= 1000000 then
 		return string.format("%.1fM", v / 1000000)
@@ -2346,7 +2424,7 @@ local function EnsureClusterTextAnchors()
 				posEntry.z = textZ
 				posEntry.fontSize = fontSize
 			else
-				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+				drawnTextPositions[drawnTextPositionCount] = { x = textX, z = textZ, fontSize = fontSize }
 			end
 		end
 	end
@@ -2371,7 +2449,7 @@ local function EnsureClusterTextAnchors()
 					posEntry.z = textZ
 					posEntry.fontSize = fontSize
 				else
-					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+					drawnTextPositions[drawnTextPositionCount] = { x = textX, z = textZ, fontSize = fontSize }
 				end
 			end
 		end
@@ -2423,7 +2501,9 @@ local function ClusterizeFeatures()
 
 			-- Cluster metal
 			featureClusters = {}
-			for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
+			for _, hull in pairs(featureConvexHulls) do
+				recycleHull(hull)
+			end
 			featureConvexHulls = {}
 			opticsObject:SetResourceType("metal")
 			opticsObject:Run()
@@ -2431,7 +2511,9 @@ local function ClusterizeFeatures()
 			-- Always cluster energy fields when clustering is needed
 			if showEnergyFields then
 				energyFeatureClusters = {}
-				for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+				for _, hull in pairs(energyFeatureConvexHulls) do
+					recycleHull(hull)
+				end
 				energyFeatureConvexHulls = {}
 				opticsObject:SetResourceType("energy")
 				opticsObject:Run()
@@ -2482,7 +2564,9 @@ local function ClusterizeFeatures()
 
 		-- Re-run clustering (it will create new cluster IDs)
 		featureClusters = {}
-		for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
+		for _, hull in pairs(featureConvexHulls) do
+			recycleHull(hull)
+		end
 		featureConvexHulls = {}
 		opticsObject:SetResourceType("metal")
 		opticsObject:Run()
@@ -2490,7 +2574,9 @@ local function ClusterizeFeatures()
 		-- Always cluster energy fields when clustering is needed
 		if showEnergyFields then
 			energyFeatureClusters = {}
-			for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+			for _, hull in pairs(energyFeatureConvexHulls) do
+				recycleHull(hull)
+			end
 			energyFeatureConvexHulls = {}
 			opticsObject:SetResourceType("energy")
 			opticsObject:Run()
@@ -2510,7 +2596,9 @@ local function ClusterizeFeatures()
 	else
 		-- Full reclustering
 		featureClusters = {}
-		for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
+		for _, hull in pairs(featureConvexHulls) do
+			recycleHull(hull)
+		end
 		featureConvexHulls = {}
 		opticsObject:SetResourceType("metal")
 		opticsObject:Run()
@@ -2518,7 +2606,9 @@ local function ClusterizeFeatures()
 		-- Always cluster energy fields when clustering is needed
 		if showEnergyFields then
 			energyFeatureClusters = {}
-			for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+			for _, hull in pairs(energyFeatureConvexHulls) do
+				recycleHull(hull)
+			end
 			energyFeatureConvexHulls = {}
 			opticsObject:SetResourceType("energy")
 			opticsObject:Run()
@@ -2574,7 +2664,7 @@ local function ClusterizeFeatures()
 				posEntry.z = textZ
 				posEntry.fontSize = fontSize
 			else
-				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+				drawnTextPositions[drawnTextPositionCount] = { x = textX, z = textZ, fontSize = fontSize }
 			end
 		end
 	end
@@ -2596,7 +2686,7 @@ local function ClusterizeFeatures()
 					posEntry.z = textZ
 					posEntry.fontSize = fontSize
 				else
-					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+					drawnTextPositions[drawnTextPositionCount] = { x = textX, z = textZ, fontSize = fontSize }
 				end
 			end
 		end
@@ -2617,7 +2707,7 @@ end
 
 IsActiveReclaimCommand = function()
 	local _, _, _, cmdName = spGetActiveCommand()
-	return cmdName == 'Reclaim'
+	return cmdName == "Reclaim"
 end
 
 local UpdateDrawEnabled -- Uses the showOption setting to pick a function call.
@@ -2629,7 +2719,7 @@ do
 	local function onMapDrawMode()
 		-- todo: would be nice to set only when it changes
 		-- todo: eg widget:MapDrawModeChanged(newMode, oldMode)
-		return actionActive == true or spGetMapDrawMode() == 'metal'
+		return actionActive == true or spGetMapDrawMode() == "metal"
 	end
 
 	local function onSelectReclaimer()
@@ -2645,20 +2735,26 @@ do
 			return true
 		else
 			local _, _, _, cmdName = spGetActiveCommand()
-			return (cmdName and cmdName == 'Reclaim')
+			return (cmdName and cmdName == "Reclaim")
 		end
 	end
 
 	local showOptionFunctions = {
-		--[[1]] always,
-		--[[2]] onMapDrawMode,
-		--[[3]] onSelectReclaimer,
-		--[[4]] onSelectResurrector,
-		--[[5]] onActiveCommand,
-		--[[6]] widgetHandler.RemoveWidget,
+		--[[1]]
+		always,
+		--[[2]]
+		onMapDrawMode,
+		--[[3]]
+		onSelectReclaimer,
+		--[[4]]
+		onSelectResurrector,
+		--[[5]]
+		onActiveCommand,
+		--[[6]]
+		widgetHandler.RemoveWidget,
 	}
 
-	UpdateDrawEnabled = function ()
+	UpdateDrawEnabled = function()
 		local previousDrawEnabled = drawEnabled
 		-- Before game starts, always enable drawing regardless of user settings
 		if not gameStarted then
@@ -2683,7 +2779,7 @@ do
 	end
 
 	local function onMapDrawMode()
-		return actionActive == true or spGetMapDrawMode() == 'metal'
+		return actionActive == true or spGetMapDrawMode() == "metal"
 	end
 
 	local function onSelectReclaimer()
@@ -2699,20 +2795,28 @@ do
 			return true
 		else
 			local _, _, _, cmdName = spGetActiveCommand()
-			return (cmdName and cmdName == 'Reclaim')
+			return (cmdName and cmdName == "Reclaim")
 		end
 	end
 
 	local showEnergyOptionFunctions = {
-		--[[1]] always,
-		--[[2]] onMapDrawMode,
-		--[[3]] onSelectReclaimer,
-		--[[4]] onSelectResurrector,
-		--[[5]] onActiveCommand,
-		--[[6]] function() return false end, -- disabled
+		--[[1]]
+		always,
+		--[[2]]
+		onMapDrawMode,
+		--[[3]]
+		onSelectReclaimer,
+		--[[4]]
+		onSelectResurrector,
+		--[[5]]
+		onActiveCommand,
+		--[[6]]
+		function()
+			return false
+		end, -- disabled
 	}
 
-	UpdateDrawEnergyEnabled = function ()
+	UpdateDrawEnergyEnabled = function()
 		local previousDrawEnergyEnabled = drawEnergyEnabled
 		if not showEnergyFields then
 			drawEnergyEnabled = false
@@ -2755,7 +2859,9 @@ local innerPointsBuf = {}
 -- Also fills the inner area with fillAlpha
 local function DrawHullVerticesGradient(hull, center, colors)
 	local hullCount = #hull
-	if hullCount < 3 then return end
+	if hullCount < 3 then
+		return
+	end
 
 	-- Use provided colors or default to metal colors
 	local reclaimCol = colors and colors.fill or reclaimColor
@@ -2781,7 +2887,7 @@ local function DrawHullVerticesGradient(hull, center, colors)
 			innerPointsBuf[i] = {
 				x = cx + dx * innerRadius,
 				y = hullPoint.y,
-				z = cz + dz * innerRadius
+				z = cz + dz * innerRadius,
 			}
 		end
 	end
@@ -2873,8 +2979,12 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	end
 
 	alphaMult = alphaMult or 1.0
-	if alphaMult < 0 then alphaMult = 0 end
-	if alphaMult > 1 then alphaMult = 1 end
+	if alphaMult < 0 then
+		alphaMult = 0
+	end
+	if alphaMult > 1 then
+		alphaMult = 1
+	end
 
 	-- Compute geometry hash (alpha-independent) plus a full hash with quantized
 	-- alpha, so the gradient rebuilds on fade while the edge list can be reused.
@@ -2940,7 +3050,9 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	-- Create the edge display list only when the geometry actually changed; its
 	-- opacity is applied via glColor at draw time, so alpha-only fades reuse it.
 	if not clusterData.edge or clusterData.geomHash ~= geomHash then
-		if clusterData.edge then glDeleteList(clusterData.edge) end
+		if clusterData.edge then
+			glDeleteList(clusterData.edge)
+		end
 		clusterData.edge = glCreateList(function()
 			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
 		end)
@@ -2962,14 +3074,22 @@ end
 local function CreateFadingClusterDisplayList(uid, isEnergy)
 	local fading = isEnergy and animState.fadingEnergy or animState.fading
 	local entry = fading[uid]
-	if not entry then return end
+	if not entry then
+		return
+	end
 	local hull = entry.hullCopy
 	local center = entry.center
-	if not hull or #hull < 3 or not center then return end
+	if not hull or #hull < 3 or not center then
+		return
+	end
 
 	local alphaMult = entry.alpha or entry.startAlpha or 1
-	if alphaMult < 0 then alphaMult = 0 end
-	if alphaMult > 1 then alphaMult = 1 end
+	if alphaMult < 0 then
+		alphaMult = 0
+	end
+	if alphaMult > 1 then
+		alphaMult = 1
+	end
 
 	-- Reuse table if present; otherwise allocate
 	local dl = entry.displayLists
@@ -2977,7 +3097,10 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 		dl = {}
 		entry.displayLists = dl
 	end
-	if dl.gradient then glDeleteList(dl.gradient); dl.gradient = nil end
+	if dl.gradient then
+		glDeleteList(dl.gradient)
+		dl.gradient = nil
+	end
 
 	local listColors
 	if isEnergy then
@@ -3011,8 +3134,7 @@ local cachedCameraFacing = 0
 
 -- Process deferred features that may have come into view
 local function ProcessDeferredFeatures(frame)
-	if (batch.deferCreateCount == 0 and batch.deferDestrCount == 0) or
-	   (frame - batch.lastDeferFrame < batch.deferInterval and frame % 10 ~= 0) then
+	if (batch.deferCreateCount == 0 and batch.deferDestrCount == 0) or (frame - batch.lastDeferFrame < batch.deferInterval and frame % 10 ~= 0) then
 		return
 	end
 
@@ -3106,7 +3228,7 @@ local function ProcessFlyingFeatures(frame)
 	for featureID, fInfo in pairs(flyingFeatures) do
 		-- Quick validation before API call
 		if spValidFeatureID(featureID) then
-			local _,_,_, vw = spGetFeatureVelocity(featureID)
+			local _, _, _, vw = spGetFeatureVelocity(featureID)
 			if vw then
 				-- Feature still exists and has velocity data
 				if vw <= 1e-3 then
@@ -3301,7 +3423,7 @@ local function UpdateReclaimFields()
 	end
 
 	local clusterRebuildDue = dirty.needCluster and (activeReclaim or dirty.forceFullRedraw or (now - lastClusterRebuildClock) >= 0.75)
-	if not clusterRebuildDue and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and now - lastCheckFrameClock < (checkFrequency/30) then
+	if not clusterRebuildDue and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and now - lastCheckFrameClock < (checkFrequency / 30) then
 		return
 	end
 	lastCheckFrame = spGetGameFrame()
@@ -3389,15 +3511,17 @@ function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
-	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
 	animCfg.font = f
-	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text)
+		return f:GetTextWidth(text)
+	end or gl.GetTextWidth
 
 	-- Initialize camera scale early to avoid thick lines on first draw
 	local cx, cy, cz = spGetCameraPosition()
 	local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 	if desc ~= nil then
-		local cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+		local cameraDist = min(64000000, (cx - w[1]) ^ 2 + (cy - w[2]) ^ 2 + (cz - w[3]) ^ 2)
 		cameraScale = sqrt(sqrt(cameraDist) / 600)
 	else
 		cameraScale = 1.0
@@ -3406,96 +3530,96 @@ function widget:Initialize()
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
 
-	WG['reclaimfieldhighlight'] = {}
-	WG['reclaimfieldhighlight'].getShowOption = function()
+	WG["reclaimfieldhighlight"] = {}
+	WG["reclaimfieldhighlight"].getShowOption = function()
 		return showOption
 	end
-	WG['reclaimfieldhighlight'].setShowOption = function(value)
+	WG["reclaimfieldhighlight"].setShowOption = function(value)
 		showOption = value
 	end
-	WG['reclaimfieldhighlight'].getSmoothingSegments = function()
+	WG["reclaimfieldhighlight"].getSmoothingSegments = function()
 		return smoothingSegments
 	end
-	WG['reclaimfieldhighlight'].setSmoothingSegments = function(value)
+	WG["reclaimfieldhighlight"].setSmoothingSegments = function(value)
 		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG['reclaimfieldhighlight'].getShowEnergyFields = function()
+	WG["reclaimfieldhighlight"].getShowEnergyFields = function()
 		return showEnergyFields
 	end
-	WG['reclaimfieldhighlight'].setShowEnergyFields = function(value)
+	WG["reclaimfieldhighlight"].setShowEnergyFields = function(value)
 		showEnergyFields = value
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG['reclaimfieldhighlight'].getShowEnergyOption = function()
+	WG["reclaimfieldhighlight"].getShowEnergyOption = function()
 		return showEnergyOption
 	end
-	WG['reclaimfieldhighlight'].setShowEnergyOption = function(value)
+	WG["reclaimfieldhighlight"].setShowEnergyOption = function(value)
 		showEnergyOption = value
 	end
-	WG['reclaimfieldhighlight'].getFadeStartDistance = function()
+	WG["reclaimfieldhighlight"].getFadeStartDistance = function()
 		return fadeStartDistance
 	end
-	WG['reclaimfieldhighlight'].setFadeStartDistance = function(value)
+	WG["reclaimfieldhighlight"].setFadeStartDistance = function(value)
 		fadeStartDistance = max(100, value)
 		-- Ensure start < end
 		if fadeStartDistance >= fadeEndDistance then
 			fadeEndDistance = fadeStartDistance + 1000
 		end
 	end
-	WG['reclaimfieldhighlight'].getFadeEndDistance = function()
+	WG["reclaimfieldhighlight"].getFadeEndDistance = function()
 		return fadeEndDistance
 	end
-	WG['reclaimfieldhighlight'].setFadeEndDistance = function(value)
+	WG["reclaimfieldhighlight"].setFadeEndDistance = function(value)
 		fadeEndDistance = max(fadeStartDistance + 100, value)
 	end
 
-	WG['reclaimfieldhighlight'].getAlwaysShowFields = function()
+	WG["reclaimfieldhighlight"].getAlwaysShowFields = function()
 		return alwaysShowFields
 	end
-	WG['reclaimfieldhighlight'].setAlwaysShowFields = function(value)
+	WG["reclaimfieldhighlight"].setAlwaysShowFields = function(value)
 		alwaysShowFields = value
 	end
 
-	WG['reclaimfieldhighlight'].getAlwaysShowFieldsThreshold = function()
+	WG["reclaimfieldhighlight"].getAlwaysShowFieldsThreshold = function()
 		return alwaysShowFieldsThreshold
 	end
-	WG['reclaimfieldhighlight'].setAlwaysShowFieldsThreshold = function(value)
+	WG["reclaimfieldhighlight"].setAlwaysShowFieldsThreshold = function(value)
 		-- Deprecated - threshold is now auto-calculated
 		-- This function kept for backwards compatibility
 	end
 
-	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMinThreshold = function()
+	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMinThreshold = function()
 		return alwaysShowFieldsMinThreshold
 	end
-	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMinThreshold = function(value)
+	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMinThreshold = function(value)
 		alwaysShowFieldsMinThreshold = max(0, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG['reclaimfieldhighlight'].getAlwaysShowFieldsMaxThreshold = function()
+	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMaxThreshold = function()
 		return alwaysShowFieldsMaxThreshold
 	end
-	WG['reclaimfieldhighlight'].setAlwaysShowFieldsMaxThreshold = function(value)
+	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMaxThreshold = function(value)
 		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG['reclaimfieldhighlight'].getTotalMapMetal = function()
+	WG["reclaimfieldhighlight"].getTotalMapMetal = function()
 		return totalMapMetal
 	end
 
 	-- Deferred update settings
-	WG['reclaimfieldhighlight'].getDeferOutOfViewUpdates = function()
+	WG["reclaimfieldhighlight"].getDeferOutOfViewUpdates = function()
 		return batch.deferOutOfView
 	end
-	WG['reclaimfieldhighlight'].setDeferOutOfViewUpdates = function(value)
+	WG["reclaimfieldhighlight"].setDeferOutOfViewUpdates = function(value)
 		batch.deferOutOfView = value
 	end
-	WG['reclaimfieldhighlight'].getOutOfViewMargin = function()
+	WG["reclaimfieldhighlight"].getOutOfViewMargin = function()
 		return batch.outOfViewMargin
 	end
-	WG['reclaimfieldhighlight'].setOutOfViewMargin = function(value)
+	WG["reclaimfieldhighlight"].setOutOfViewMargin = function(value)
 		batch.outOfViewMargin = max(0, value)
 	end
 
@@ -3525,7 +3649,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("reclaim_highlight", "p")
 	widgetHandler:RemoveAction("reclaim_highlight", "r")
 
-	WG['reclaimfieldhighlight'] = nil -- todo: register/deregister, right?
+	WG["reclaimfieldhighlight"] = nil -- todo: register/deregister, right?
 
 	-- Clean up per-cluster display lists
 	for cid in pairs(clusterDisplayLists) do
@@ -3556,7 +3680,7 @@ function widget:Shutdown()
 end
 
 function widget:GetConfigData(data)
-    return {
+	return {
 		showOption = showOption,
 		showEnergyOption = showEnergyOption,
 		smoothingSegments = smoothingSegments,
@@ -3565,7 +3689,7 @@ function widget:GetConfigData(data)
 		fadeEndDistance = fadeEndDistance,
 		alwaysShowFields = alwaysShowFields,
 		alwaysShowFieldsMinThreshold = alwaysShowFieldsMinThreshold,
-		alwaysShowFieldsMaxThreshold = alwaysShowFieldsMaxThreshold
+		alwaysShowFieldsMaxThreshold = alwaysShowFieldsMaxThreshold,
 	}
 end
 
@@ -3624,11 +3748,11 @@ function widget:Update(dt)
 		local cx, cy, cz = spGetCameraPosition()
 		-- Only recompute cameraScale if camera actually moved
 		local dx, dy, dz = cx - cachedCameraX, cy - cachedCameraY, cz - cachedCameraZ
-		if dx*dx + dy*dy + dz*dz > 1 then
+		if dx * dx + dy * dy + dz * dz > 1 then
 			local desc, w = spTraceScreenRay(screenx / 2, screeny / 2, true)
 			local cameraDist = 35000000
 			if desc ~= nil then
-				cameraDist = min(64000000, (cx-w[1])^2 + (cy-w[2])^2 + (cz-w[3])^2)
+				cameraDist = min(64000000, (cx - w[1]) ^ 2 + (cy - w[2]) ^ 2 + (cz - w[3]) ^ 2)
 			end
 			cameraScale = sqrt(sqrt(cameraDist) / 600)
 		end
@@ -3693,9 +3817,11 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
-	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
 	animCfg.font = f
-	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text)
+		return f:GetTextWidth(text)
+	end or gl.GetTextWidth
 end
 
 --------------------------------------------------------------------------------
@@ -3706,7 +3832,9 @@ end
 local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	local clusters = isEnergy and energyFeatureClusters or featureClusters
 	local cluster = clusters[cid]
-	if not cluster then return 0 end
+	if not cluster then
+		return 0
+	end
 
 	-- Drive the smoothed visibility tween: query GetClusterVisibility on the
 	-- gradient pass each frame so the anim entry's visTarget stays current.
@@ -3715,7 +3843,9 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	end
 
 	local effAlpha, animScale = animState.GetClusterAnimAlphaAndScale(cluster.uid, isEnergy)
-	if effAlpha <= 0.001 then return 0 end
+	if effAlpha <= 0.001 then
+		return 0
+	end
 
 	local clusterData
 	if isEnergy then
@@ -3744,7 +3874,11 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 				if not mustRebuild then
 					animCfg.rebuildBudgetRemaining = animCfg.rebuildBudgetRemaining - 1
 				end
-				if isEnergy then energyClusterStateHashes[cid] = nil else clusterStateHashes[cid] = nil end
+				if isEnergy then
+					energyClusterStateHashes[cid] = nil
+				else
+					clusterStateHashes[cid] = nil
+				end
 				CreateClusterDisplayList(cid, isEnergy, effAlpha)
 				clusterData = isEnergy and energyClusterDisplayLists[cid] or clusterDisplayLists[cid]
 			end
@@ -3790,17 +3924,22 @@ end
 
 local function DrawFadingCluster(uid, entry, drawGradient)
 	local alpha = entry.alpha or 0
-	if alpha <= 0.001 then return end
+	if alpha <= 0.001 then
+		return
+	end
 	local center = entry.center
-	if not center then return end
+	if not center then
+		return
+	end
 	local inView = IsInCameraView(center.x, center.y, center.z, 600, drawCounter)
-	if not inView then return end
+	if not inView then
+		return
+	end
 
 	if drawGradient then
 		local dl = entry.displayLists
 		local mustRebuild = not dl or not dl.gradient
-		local wantRebuild = mustRebuild
-			or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold
+		local wantRebuild = mustRebuild or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold
 		if wantRebuild then
 			if animCfg.rebuildBudgetFrame ~= drawCounter then
 				animCfg.rebuildBudgetFrame = drawCounter
@@ -3832,15 +3971,17 @@ local function DrawFadingCluster(uid, entry, drawGradient)
 end
 
 function widget:DrawWorld()
-	if spIsGUIHidden() == true then return end
+	if spIsGUIHidden() == true then
+		return
+	end
 
 	local hasFadingMetal = next(animState.fading) ~= nil
 	local hasFadingEnergy = next(animState.fadingEnergy) ~= nil
 	local showMetal = drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal
-	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
-		or (showEnergyFields and animState.toggleEnergy > 0.005)
-		or hasFadingEnergy
-	if not showMetal and not showEnergy then return end
+	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained) or (showEnergyFields and animState.toggleEnergy > 0.005) or hasFadingEnergy
+	if not showMetal and not showEnergy then
+		return
+	end
 
 	local t0 = debugTiming and osClock() or 0
 
@@ -3890,7 +4031,7 @@ function widget:DrawWorld()
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
 				if alpha > 0.001 and entry.text then
-						local drawAlpha = max(alpha, 0.2)
+					local drawAlpha = max(alpha, 0.2)
 					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
 					local fs = entry.font or fontSizeMin
@@ -3924,7 +4065,7 @@ function widget:DrawWorld()
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
 				if alpha > 0.001 and entry.text then
-						local drawAlpha = max(alpha, 0.2)
+					local drawAlpha = max(alpha, 0.2)
 					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
@@ -4100,9 +4241,7 @@ function widget:DrawWorldPreUnit()
 	local hasFadingMetal = next(animState.fading) ~= nil
 	local hasFadingEnergy = next(animState.fadingEnergy) ~= nil
 	local showMetal = drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal
-	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
-		or (showEnergyFields and animState.toggleEnergy > 0.005)
-		or hasFadingEnergy
+	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained) or (showEnergyFields and animState.toggleEnergy > 0.005) or hasFadingEnergy
 
 	if not showMetal and not showEnergy then
 		return
@@ -4169,16 +4308,10 @@ function widget:DrawWorldPreUnit()
 	timingCount = timingCount + 1
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
-		Spring.Echo(string.format(
-			"[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d",
-			timingAccum.updateReclaim / div * 1000,
-			timingAccum.drawWorldText / div * 1000,
-			timingAccum.drawPreUnit / div * 1000,
-			timingAccum.updateFunc / div * 1000,
-			#featureClusters,
-			cachedKnownFeaturesCount
-		))
-		for k in pairs(timingAccum) do timingAccum[k] = 0 end
+		Spring.Echo(string.format("[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d", timingAccum.updateReclaim / div * 1000, timingAccum.drawWorldText / div * 1000, timingAccum.drawPreUnit / div * 1000, timingAccum.updateFunc / div * 1000, #featureClusters, cachedKnownFeaturesCount))
+		for k in pairs(timingAccum) do
+			timingAccum[k] = 0
+		end
 		timingCount = 0
 	end
 end

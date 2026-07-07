@@ -107,7 +107,6 @@ local wordList = {
 	"^zbatbybvqf?$",
 	"^cnxvf?$",
 
-
 	--DE
 	"^nefputrfvpugr?e?$",
 	"^nssranefpusvpxre$",
@@ -144,8 +143,8 @@ local wordList = {
 	"^sbgmratrfvpugr?e?$",
 	"^tnffrauhera?$",
 	"^unpxserffra?$",
-	"^uhe?raf[^\s]*ar?a?$",
-	"^uhaqrf[^\s]*ar?a?$",
+	"^uhe?raf[^s]*ar?a?$",
+	"^uhaqrf[^s]*ar?a?$",
 	"^uheraxvaqr?e?$",
 	"^uheraonfgneqr?$",
 	"^uherasvpxre$",
@@ -178,13 +177,13 @@ local wordList = {
 	"^jvpufre$",
 	"^jvpuftrohegr?a?$",
 	"^jvpufynccra$",
-	}
+}
 
 local from = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-local to =   "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm"
+local to = "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm"
 
 for index, w in ipairs(wordList) do
-	local dword = string.gsub(w, '%a', function(c)
+	local dword = string.gsub(w, "%a", function(c)
 		local decodeIndex = from:find(c, 1, true)
 		return decodeIndex and string.sub(to, decodeIndex, decodeIndex)
 	end)

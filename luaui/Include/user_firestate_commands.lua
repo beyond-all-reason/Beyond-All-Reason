@@ -33,12 +33,12 @@ local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 local spGiveOrder = Spring.GiveOrder
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-WG['firestate'] = WG['firestate'] or {}
-WG['firestate'].stagedFirestateByUnitId = WG['firestate'].stagedFirestateByUnitId or {}
+WG["firestate"] = WG["firestate"] or {}
+WG["firestate"].stagedFirestateByUnitId = WG["firestate"].stagedFirestateByUnitId or {}
 
 local function stageFirestate(unitIDs, userState, userInitiated)
 	for index = 1, #unitIDs do
-		WG['firestate'].stagedFirestateByUnitId[unitIDs[index]] = {
+		WG["firestate"].stagedFirestateByUnitId[unitIDs[index]] = {
 			userState = userState,
 			userInitiated = userInitiated,
 		}
@@ -46,8 +46,8 @@ local function stageFirestate(unitIDs, userState, userInitiated)
 end
 
 local function consumeStagedFirestate(unitID)
-	local stagedFirestate = WG['firestate'].stagedFirestateByUnitId[unitID]
-	WG['firestate'].stagedFirestateByUnitId[unitID] = nil
+	local stagedFirestate = WG["firestate"].stagedFirestateByUnitId[unitID]
+	WG["firestate"].stagedFirestateByUnitId[unitID] = nil
 	return stagedFirestate
 end
 
@@ -68,7 +68,7 @@ local function notifyUserInitiatedFirestate(unitIDs, userState, userInitiated)
 	if not userInitiated then
 		return
 	end
-	local userFirestateChanged = WG['firestate'].userFirestateChanged
+	local userFirestateChanged = WG["firestate"].userFirestateChanged
 	if not userFirestateChanged then
 		return
 	end
@@ -129,8 +129,8 @@ local function decodeFirestateUnitCommand(cmdID, cmdParams, unitID)
 	return nil, false, false
 end
 
-WG['firestate'].setSelectionFirestate = setSelectionFirestate
-WG['firestate'].setFirestateForUnits = setFirestateForUnits
-WG['firestate'].decodeFirestateUnitCommand = decodeFirestateUnitCommand
+WG["firestate"].setSelectionFirestate = setSelectionFirestate
+WG["firestate"].setFirestateForUnits = setFirestateForUnits
+WG["firestate"].decodeFirestateUnitCommand = decodeFirestateUnitCommand
 
-return WG['firestate']
+return WG["firestate"]

@@ -18,20 +18,20 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = 'Builder Priority', 	-- this once was named: Passive Builders v3
-        desc      = 'Builders marked as low priority only use resources after others builder have taken their share',
-        author    = 'BrainDamage, Bluestone',
-		version   = '1.01',
-        date      = '2024',
-        license   = 'GNU GPL, v2 or later',
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name = "Builder Priority", -- this once was named: Passive Builders v3
+		desc = "Builders marked as low priority only use resources after others builder have taken their share",
+		author = "BrainDamage, Bluestone",
+		version = "1.01",
+		date = "2024",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return
+	return
 end
 
 -- These values are supposedly engine-backed:
@@ -53,12 +53,12 @@ local costID = {} -- costID[unitID] (contains all non-finished units)
 local ruleName = "builderPriority"
 local CMD_PRIORITY = GameCMD.PRIORITY
 local cmdPassiveDesc = {
-      id      = CMD_PRIORITY,
-      name    = 'priority',
-      action  = 'priority',
-      type    = CMDTYPE.ICON_MODE,
-      tooltip = 'Builder Mode: Low Priority restricts build when stalling on resources',
-      params  = {1, 'Low Prio', 'High Prio'}
+	id = CMD_PRIORITY,
+	name = "priority",
+	action = "priority",
+	type = CMDTYPE.ICON_MODE,
+	tooltip = "Builder Mode: Low Priority restricts build when stalling on resources",
+	params = { 1, "Low Prio", "High Prio" },
 }
 
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -103,12 +103,12 @@ end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
-    if unitDef.buildSpeed > 0 then
-        unitBuildSpeed[unitDefID] = unitDef.buildSpeed
-    end
-    -- Units that can only repair, ressurrect, or capture don't have a passive mode (in this gadget)
+	if unitDef.buildSpeed > 0 then
+		unitBuildSpeed[unitDefID] = unitDef.buildSpeed
+	end
+	-- Units that can only repair, ressurrect, or capture don't have a passive mode (in this gadget)
 	local prioritizes = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
-    canPassive[unitDefID] = prioritizes and true or nil
+	canPassive[unitDefID] = prioritizes and true or nil
 	-- Minor speedup for determining total resource drain per frame/interval
 	cost[unitDefID] = { unitDef.metalCost, unitDef.energyCost, unitDef.buildTime }
 end
@@ -139,18 +139,18 @@ function gadget:Initialize()
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
-        gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 		if currentBuildSpeed[unitID] then
 			spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- needed for luarules reloads
 		end
-    end
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	-- Units use their full build speed, by default.
-    if unitBuildSpeed[unitDefID] then
-        canBuild[teamID][unitID] = true
-        realBuildSpeed[unitID] = unitBuildSpeed[unitDefID] or 0
+	if unitBuildSpeed[unitDefID] then
+		canBuild[teamID][unitID] = true
+		realBuildSpeed[unitID] = unitBuildSpeed[unitDefID] or 0
 
 		-- Only units that can build other units can use passive build priority.
 		if canPassive[unitDefID] then
@@ -162,9 +162,9 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 			end
 			currentBuildSpeed[unitID] = realBuildSpeed[unitID]
 		end
-    end
+	end
 
-    costID[unitID] = cost[unitDefID]
+	costID[unitID] = cost[unitDefID]
 end
 
 function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
@@ -172,48 +172,47 @@ function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-    if passiveCons[oldTeamID] and passiveCons[oldTeamID][unitID] then
-        passiveCons[newTeamID][unitID] = passiveCons[oldTeamID][unitID]
-        passiveCons[oldTeamID][unitID] = nil
+	if passiveCons[oldTeamID] and passiveCons[oldTeamID][unitID] then
+		passiveCons[newTeamID][unitID] = passiveCons[oldTeamID][unitID]
+		passiveCons[oldTeamID][unitID] = nil
 		passiveConsCount[oldTeamID] = (passiveConsCount[oldTeamID] or 1) - 1
 		passiveConsCount[newTeamID] = (passiveConsCount[newTeamID] or 0) + 1
-    end
+	end
 
-    if canBuild[oldTeamID] and canBuild[oldTeamID][unitID] then
-        canBuild[newTeamID][unitID] = true
-        canBuild[oldTeamID][unitID] = nil
-    end
+	if canBuild[oldTeamID] and canBuild[oldTeamID][unitID] then
+		canBuild[newTeamID][unitID] = true
+		canBuild[oldTeamID][unitID] = nil
+	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-    gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-    canBuild[teamID][unitID] = nil
+	canBuild[teamID][unitID] = nil
 
-    if passiveCons[teamID][unitID] then
+	if passiveCons[teamID][unitID] then
 		passiveCons[teamID][unitID] = nil
 		passiveConsCount[teamID] = passiveConsCount[teamID] - 1
 	end
-    realBuildSpeed[unitID] = nil
-    currentBuildSpeed[unitID] = nil
+	realBuildSpeed[unitID] = nil
+	currentBuildSpeed[unitID] = nil
 
-    costID[unitID] = nil
+	costID[unitID] = nil
 end
 
-
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-    -- accepts CMD_PRIORITY
-    -- track which cons are set to passive
-    if canPassive[unitDefID] then
-        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
-        local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority") or 0
-        if cmdIdx and suspend == 0 then
-            local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-            cmdDesc.params[1] = cmdParams[1]
-            spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-            spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
+	-- accepts CMD_PRIORITY
+	-- track which cons are set to passive
+	if canPassive[unitDefID] then
+		local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PRIORITY)
+		local suspend = spGetTeamRulesParam(teamID, "suspendbuilderpriority") or 0
+		if cmdIdx and suspend == 0 then
+			local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+			cmdDesc.params[1] = cmdParams[1]
+			spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+			spSetUnitRulesParam(unitID, ruleName, cmdParams[1])
 			if cmdParams[1] == 0 then
 				if not passiveCons[teamID][unitID] then
 					passiveCons[teamID][unitID] = true
@@ -227,10 +226,10 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 					passiveConsCount[teamID] = passiveConsCount[teamID] - 1
 				end
 			end
-        end
-        return false -- Allowing command causes command queue to be lost if command is unshifted
-    end
-    return true
+		end
+		return false -- Allowing command causes command queue to be lost if command is unshifted
+	end
+	return true
 end
 
 local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare, mSent, mRec, eCur, eStor, eInc, eShare, eSent, eRec)
@@ -315,10 +314,10 @@ local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
-	local teamStallingMetal = mCur - mathMax(mInc*stallMarginInc, mStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseMetal+mInc+mRec-mSent)/simSpeed
+	local teamStallingMetal = mCur - mathMax(mInc * stallMarginInc, mStorEff * stallMarginSto) - 1 + interval * (nonPassiveConsTotalExpenseMetal + mInc + mRec - mSent) / simSpeed
 
 	local eStorEff = eStor * eShare
-	local teamStallingEnergy = eCur - mathMax(eInc*stallMarginInc, eStorEff*stallMarginSto) - 1 + (interval)*(nonPassiveConsTotalExpenseEnergy+eInc+eRec-eSent)/simSpeed
+	local teamStallingEnergy = eCur - mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto) - 1 + interval * (nonPassiveConsTotalExpenseEnergy + eInc + eRec - eSent) / simSpeed
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -329,8 +328,7 @@ local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare
 			local passivePullMetal = pMetal * intervalOverSpeed
 			local passivePullEnergy = _passiveEnergy[builderID] * intervalOverSpeed
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
-				if (teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0) or
-				   (teamStallingEnergy - passivePullEnergy <= 0 and passivePullEnergy > 0) then
+				if (teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0) or (teamStallingEnergy - passivePullEnergy <= 0 and passivePullEnergy > 0) then
 					wouldStall = true
 				else
 					teamStallingMetal = teamStallingMetal - passivePullMetal
@@ -354,7 +352,6 @@ local function UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare
 		end
 	end
 end
-
 
 function gadget:GameFrame(n)
 	-- Process buildTargetOwners — restore speeds from previous frame's 0.001 override
@@ -392,13 +389,19 @@ function gadget:GameFrame(n)
 					local interval = 1
 					if mInc > 0 then
 						local mi = mathFloor(mStor * simSpeed / mInc) + 1
-						if mi > interval then interval = mi end
+						if mi > interval then
+							interval = mi
+						end
 					end
 					if interval < 6 and eInc > 0 then
 						local ei = mathFloor(eStor * simSpeed / eInc) + 1
-						if ei > interval then interval = ei end
+						if ei > interval then
+							interval = ei
+						end
 					end
-					if interval > 6 then interval = 6 end
+					if interval > 6 then
+						interval = 6
+					end
 					UpdatePassiveBuilders(teamID, interval, mCur, mStor, mInc, mShare, mSent, mRec, eCur, eStor, eInc, eShare, eSent, eRec)
 					updateFrame[teamID] = n + interval
 				end

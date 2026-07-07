@@ -2,14 +2,14 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Chat",
-		desc      = "chat/console (do /clearconsole to wipe history)",
-		author    = "Floris",
-		date      = "May 2021",
-		license   = "GNU GPL, v2 or later",
-		layer     = -95000,
-		enabled   = true,
-		handler   = true,
+		name = "Chat",
+		desc = "chat/console (do /clearconsole to wipe history)",
+		author = "Floris",
+		date = "May 2021",
+		license = "GNU GPL, v2 or later",
+		layer = -95000,
+		enabled = true,
+		handler = true,
 	}
 end
 
@@ -33,12 +33,12 @@ local LineTypes = {
 	Spectator = 2,
 	Mapmark = 3,
 	Battleroom = 4,
-	System = 5
+	System = 5,
 }
 
-local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
-local badWords = VFS.Include('luaui/configs/badwords.lua')
-local ChatEmoji = VFS.Include('luaui/Include/chat_emoji.lua')
+local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local badWords = VFS.Include("luaui/configs/badwords.lua")
+local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
@@ -52,7 +52,7 @@ local config = {
 	posY = 0.81,
 	posX = 0.3,
 	posX2 = 0.74,
-	charSize = 21 - (3.5 * ((vsx/vsy) - 1.78)),
+	charSize = 21 - (3.5 * ((vsx / vsy) - 1.78)),
 	consoleFontSizeMult = 0.85,
 	maxLines = 5,
 	maxConsoleLines = 2,
@@ -78,10 +78,10 @@ local config = {
 	fontsizeMult = 1,
 	scrollingPosY = 0.66,
 	consolePosY = 0.9,
-	hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1),
-	hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1),
+	hideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1),
+	hideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1),
 	playSound = true,
-	sndChatFile = 'beep4',
+	sndChatFile = "beep4",
 	sndChatFileVolume = 0.55,
 }
 
@@ -97,15 +97,15 @@ local showHistoryWhenCtrlShift = config.showHistoryWhenCtrlShift
 local enableShortcutClick = config.enableShortcutClick
 
 -- Access config/state/colors/layout via tables to stay under 200 locals
-local usedFontSize = config.charSize*config.widgetScale*config.fontsizeMult
-local usedConsoleFontSize = usedFontSize*config.consoleFontSizeMult
+local usedFontSize = config.charSize * config.widgetScale * config.fontsizeMult
+local usedConsoleFontSize = usedFontSize * config.consoleFontSizeMult
 
 -- Essential config aliases (most frequently accessed)
 local posY, posX, maxLines = config.posY, config.posX, config.maxLines
 local lineHeightMult, hideSpecChat, hideSpecChatPlayer = config.lineHeightMult, config.hideSpecChat, config.hideSpecChatPlayer
 local consoleFontSizeMult, posX2 = config.consoleFontSizeMult, config.posX2
-local ui_scale, ui_opacity, lineHeight = config.ui_scale, config.ui_opacity, mathFloor(usedFontSize*config.lineHeightMult)
-local consoleLineHeight = mathFloor(usedConsoleFontSize*config.lineHeightMult)
+local ui_scale, ui_opacity, lineHeight = config.ui_scale, config.ui_opacity, mathFloor(usedFontSize * config.lineHeightMult)
+local consoleLineHeight = mathFloor(usedConsoleFontSize * config.lineHeightMult)
 local orgLineCleanupTarget, maxTextInputChars = config.orgLineCleanupTarget, config.maxTextInputChars
 local allowMultiAutocomplete, allowMultiAutocompleteMax, maxLinesScrollFull = config.allowMultiAutocomplete, config.allowMultiAutocompleteMax, config.maxLinesScrollFull
 local lineTTL, consoleLineCleanupTarget, soundErrorsLimit = config.lineTTL, config.consoleLineCleanupTarget, config.soundErrorsLimit
@@ -113,17 +113,17 @@ local maxLinesScrollChatInput = config.maxLinesScrollChatInput
 local maxLinesScroll = config.maxLinesScroll
 
 -- Color configuration (keep local for performance)
-local colorOther, colorAlly, colorSpec, colorSpecName = {1,1,1}, {0,1,0}, {1,1,0}, {1,1,1}
-local colorOtherAlly, colorGame, colorConsole = {1,0.7,0.45}, {0.4,1,1}, {0.85,0.85,0.85}
-local msgColor, msgHighlightColor = '\255\180\180\180', '\255\215\215\215'
-local metalColor, metalValueColor = '\255\233\233\233', '\255\255\255\255'
-local energyColor, energyValueColor = '\255\255\255\180', '\255\255\255\140'
-local chatSeparator, pointSeparator = '\255\210\210\210:', '\255\255\255\255*'
-local colorSpecStr, colorAllyStr, colorOtherAllyStr, colorGameStr, colorConsoleStr = '', '', '', '', ''
+local colorOther, colorAlly, colorSpec, colorSpecName = { 1, 1, 1 }, { 0, 1, 0 }, { 1, 1, 0 }, { 1, 1, 1 }
+local colorOtherAlly, colorGame, colorConsole = { 1, 0.7, 0.45 }, { 0.4, 1, 1 }, { 0.85, 0.85, 0.85 }
+local msgColor, msgHighlightColor = "\255\180\180\180", "\255\215\215\215"
+local metalColor, metalValueColor = "\255\233\233\233", "\255\255\255\255"
+local energyColor, energyValueColor = "\255\255\255\180", "\255\255\255\140"
+local chatSeparator, pointSeparator = "\255\210\210\210:", "\255\255\255\255*"
+local colorSpecStr, colorAllyStr, colorOtherAllyStr, colorGameStr, colorConsoleStr = "", "", "", "", ""
 
 -- Layout (keep local for performance)
-local maxPlayernameWidth, lineSpaceWidth, backgroundPadding = 50, 24*config.widgetScale, usedFontSize
-local longestPlayername = '(s) [xx]playername'
+local maxPlayernameWidth, lineSpaceWidth, backgroundPadding = 50, 24 * config.widgetScale, usedFontSize
+local longestPlayername = "(s) [xx]playername"
 
 -- State tables to reduce local variable count
 local state = {
@@ -132,8 +132,8 @@ local state = {
 	chatLines = {},
 	consoleLines = {},
 	ignoredAccounts = {},
-	activationArea = {0,0,0,0},
-	consoleActivationArea = {0,0,0,0},
+	activationArea = { 0, 0, 0, 0 },
+	consoleActivationArea = { 0, 0, 0, 0 },
 	currentChatLine = 0,
 	currentConsoleLine = 0,
 	historyMode = false,
@@ -168,7 +168,7 @@ local state = {
 	updateTextInputDlist = true,
 	textCursorRect = nil,
 	showTextInput = false,
-	inputText = '',
+	inputText = "",
 	inputTextPosition = 0,
 	inputSelectionStart = nil,
 	cursorBlinkTimer = 0,
@@ -188,7 +188,7 @@ local state = {
 -- Essential state aliases (heavily accessed - keep as locals)
 local I18N, orgLines, chatLines, consoleLines = state.I18N, state.orgLines, state.chatLines, state.consoleLines
 local activationArea, font = state.activationArea, state.font
-local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, '', 0, 1
+local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, "", 0, 1
 local inputSelectionStart = nil
 local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil, {}, {}, nil
 local scrolling, playSound, sndChatFile, sndChatFileVolume = false, config.playSound, config.sndChatFile, config.sndChatFileVolume
@@ -204,11 +204,10 @@ local ignoredAccounts = state.ignoredAccounts
 local emojiAutocompleteAliases = ChatEmoji.GetAutocompleteAliases()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
+local anonymousTeamColor = { Spring.GetConfigInt("anonymousColorR", 255) / 255, Spring.GetConfigInt("anonymousColorG", 0) / 255, Spring.GetConfigInt("anonymousColorB", 0) / 255 }
 
 -- Keep only essential locals for GL/Spring/strings (heavily used in loops)
-local glPopMatrix, glPushMatrix, glDeleteList, glCreateList, glCallList, glTranslate, glColor =
-	gl.PopMatrix, gl.PushMatrix, gl.DeleteList, gl.CreateList, gl.CallList, gl.Translate, gl.Color
+local glPopMatrix, glPushMatrix, glDeleteList, glCreateList, glCallList, glTranslate, glColor = gl.PopMatrix, gl.PushMatrix, gl.DeleteList, gl.CreateList, gl.CallList, gl.Translate, gl.Color
 local string_lines, schar, slen, ssub, sfind = string.lines, string.char, string.len, string.sub, string.find
 local math_isInRect, floor, clock = math.isInRect, mathFloor, os.clock
 local spGetTeamColor, spGetPlayerInfo, spPlaySoundFile = Spring.GetTeamColor, Spring.GetPlayerInfo, Spring.PlaySoundFile
@@ -226,18 +225,18 @@ local function stripColorCodes(text)
 	-- Remove color codes and control characters according to Spring's TextWrap.h:
 	-- ColorCodeIndicator (0xFF / \255) - followed by 3 bytes RGB
 	result = result:gsub("\255...", "")
-	result = result:gsub("\255", "")  -- ÿ
-	result = result:gsub("ÿ", "")  -- ÿ
+	result = result:gsub("\255", "") -- ÿ
+	result = result:gsub("ÿ", "") -- ÿ
 	-- ColorCodeIndicatorEx (0xFE / \254) - followed by 8 bytes RGBA + outline RGBA
 	result = result:gsub("\254........", "")
-	result = result:gsub("\254", "")  -- þ
-	result = result:gsub("þ", "")  -- þ
+	result = result:gsub("\254", "") -- þ
+	result = result:gsub("þ", "") -- þ
 	-- ColorResetIndicator (0x08 / \008) - reset to default color
 	result = result:gsub("\008", "")
 	-- SetColorIndicator (0x01 / \001) - followed by 3 bytes RGB (legacy)
 	result = result:gsub("\001...", "")
 	-- Also strip any remaining standalone control characters that might affect rendering
-	result = result:gsub("\001", "")  -- SOH
+	result = result:gsub("\001", "") -- SOH
 	return result
 end
 
@@ -245,7 +244,7 @@ end
 local function cleanupLineTable(prevTable, maxLines)
 	local newTable = {}
 	local start = #prevTable - maxLines
-	for i=1, maxLines do
+	for i = 1, maxLines do
 		newTable[i] = prevTable[start + i]
 	end
 	return newTable
@@ -263,15 +262,15 @@ local autocompleteCommandSources = {
 local autocompleteGivecatFilters = { descriptions = {} }
 
 local function formatAutocompleteCommand(source, cmd)
-	if source == 'synced' or source == 'unsynced' then
-		return 'luarules ' .. cmd
+	if source == "synced" or source == "unsynced" then
+		return "luarules " .. cmd
 	end
 	return cmd
 end
 
 local function addAutocompleteCommand(source, cmd)
 	local sourceCommands = autocompleteCommandSources[source]
-	if not sourceCommands or sourceCommands[cmd] or type(cmd) ~= 'string' or cmd == '' then
+	if not sourceCommands or sourceCommands[cmd] or type(cmd) ~= "string" or cmd == "" then
 		return
 	end
 	sourceCommands[cmd] = true
@@ -315,23 +314,23 @@ local function clearAutocompleteSource(source)
 end
 
 local function refreshWidgetAutocompleteCommands()
-	clearAutocompleteSource('widget')
+	clearAutocompleteSource("widget")
 	for textAction in pairs(widgetHandler.actionHandler.textActions) do
-		if type(textAction) == 'string' then
-			addAutocompleteCommand('widget', textAction)
+		if type(textAction) == "string" then
+			addAutocompleteCommand("widget", textAction)
 		end
 	end
 end
 
 local function requestGadgetAutocompleteCommands()
 	if Spring.SendLuaRulesMsg then
-		Spring.SendLuaRulesMsg('gui_chat:requestChatActions')
+		Spring.SendLuaRulesMsg("gui_chat:requestChatActions")
 	end
 end
 
 local function getGivecatAutocompletePrefix(text)
 	local body = text
-	if ssub(body, 1, 1) == '/' then
+	if ssub(body, 1, 1) == "/" then
 		body = ssub(body, 2)
 	end
 
@@ -340,39 +339,39 @@ local function getGivecatAutocompletePrefix(text)
 		words[#words + 1] = word
 	end
 
-	if words[1] ~= 'luarules' or words[2] ~= 'givecat' then
+	if words[1] ~= "luarules" or words[2] ~= "givecat" then
 		return nil
 	end
 
-	if ssub(text, -1) == ' ' then
-		return ''
+	if ssub(text, -1) == " " then
+		return ""
 	end
 
-	return words[#words] or ''
+	return words[#words] or ""
 end
 
 local function refreshGivecatAutocompleteFilters()
 	autocompleteGivecatFilters = { descriptions = {}, cmdTree = nil }
 
-	local language = Spring.GetConfigString('language', 'en')
-	local interfaceFile = VFS.LoadFile('language/' .. language .. '/interface.json') or VFS.LoadFile('language/en/interface.json')
-	clearAutocompleteSource('engine')
+	local language = Spring.GetConfigString("language", "en")
+	local interfaceFile = VFS.LoadFile("language/" .. language .. "/interface.json") or VFS.LoadFile("language/en/interface.json")
+	clearAutocompleteSource("engine")
 	if not interfaceFile then
 		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
 			local cmd = keybinding and keybinding.command
-			if type(cmd) == 'string' and cmd ~= '' then
-				addAutocompleteCommand('engine', cmd)
+			if type(cmd) == "string" and cmd ~= "" then
+				addAutocompleteCommand("engine", cmd)
 			end
 		end
 		return
 	end
 
 	local ok, interfaceData = pcall(Json.decode, interfaceFile)
-	if not ok or type(interfaceData) ~= 'table' then
+	if not ok or type(interfaceData) ~= "table" then
 		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
 			local cmd = keybinding and keybinding.command
-			if type(cmd) == 'string' and cmd ~= '' then
-				addAutocompleteCommand('engine', cmd)
+			if type(cmd) == "string" and cmd ~= "" then
+				addAutocompleteCommand("engine", cmd)
 			end
 		end
 		return
@@ -384,48 +383,48 @@ local function refreshGivecatAutocompleteFilters()
 	-- with widget enable state. We still keep cmdTree for descriptions/help text.
 	for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
 		local cmd = keybinding and keybinding.command
-		if type(cmd) == 'string' and cmd ~= '' then
-			addAutocompleteCommand('engine', cmd)
+		if type(cmd) == "string" and cmd ~= "" then
+			addAutocompleteCommand("engine", cmd)
 		end
 	end
 
-	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
+	if type(autocompleteGivecatFilters.cmdTree) == "table" then
 		local luauiNode = autocompleteGivecatFilters.cmdTree.luaui
-		if type(luauiNode) == 'table' then
+		if type(luauiNode) == "table" then
 			for subcmd, subvalue in pairs(luauiNode) do
-				if subcmd ~= '_description' and (type(subvalue) == 'string' or type(subvalue) == 'table') then
-					addAutocompleteCommand('engine', 'luaui ' .. subcmd)
+				if subcmd ~= "_description" and (type(subvalue) == "string" or type(subvalue) == "table") then
+					addAutocompleteCommand("engine", "luaui " .. subcmd)
 				end
 			end
 		end
 	end
-	addAutocompleteCommand('engine', 'lr')
+	addAutocompleteCommand("engine", "lr")
 
 	local givecatFilters
-	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
+	if type(autocompleteGivecatFilters.cmdTree) == "table" then
 		local luarulesNode = autocompleteGivecatFilters.cmdTree.luarules
-		if type(luarulesNode) == 'table' then
-			if type(luarulesNode.givecat) == 'table' then
+		if type(luarulesNode) == "table" then
+			if type(luarulesNode.givecat) == "table" then
 				givecatFilters = luarulesNode.givecat
 			else
 				givecatFilters = luarulesNode.givecat_filters
 			end
 		end
 	end
-	if type(givecatFilters) ~= 'table' then
-		if type(autocompleteGivecatFilters.cmdTree) == 'table' and type(autocompleteGivecatFilters.cmdTree.givecat) == 'table' then
+	if type(givecatFilters) ~= "table" then
+		if type(autocompleteGivecatFilters.cmdTree) == "table" and type(autocompleteGivecatFilters.cmdTree.givecat) == "table" then
 			givecatFilters = autocompleteGivecatFilters.cmdTree.givecat
 		else
 			givecatFilters = interfaceData.cmd and interfaceData.cmd.givecat_filters
 		end
 	end
-	if type(givecatFilters) ~= 'table' then
+	if type(givecatFilters) ~= "table" then
 		return
 	end
 
 	local filterNames = {}
 	for filterName, filterDescription in pairs(givecatFilters) do
-		if filterName ~= '_description' and type(filterDescription) == 'string' then
+		if filterName ~= "_description" and type(filterDescription) == "string" then
 			filterNames[#filterNames + 1] = filterName
 			autocompleteGivecatFilters.descriptions[filterName] = filterDescription
 		end
@@ -454,60 +453,60 @@ local function refreshUnitDefs()
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if not uniqueHumanNames[unitDef.translatedHumanName] then
 			uniqueHumanNames[unitDef.translatedHumanName] = true
-			autocompleteUnitNames[#autocompleteUnitNames+1] = unitDef.translatedHumanName
+			autocompleteUnitNames[#autocompleteUnitNames + 1] = unitDef.translatedHumanName
 		end
 		if not string.find(unitDef.name, "_scav", nil, true) then
-			autocompleteUnitCodename[#autocompleteUnitCodename+1] = unitDef.name:lower()
+			autocompleteUnitCodename[#autocompleteUnitCodename + 1] = unitDef.name:lower()
 		end
 		unitTranslatedHumanName[unitDefID] = unitDef.translatedHumanName
 	end
 	uniqueHumanNames = nil
 	for featureDefID, featureDef in pairs(FeatureDefs) do
-		autocompleteUnitCodename[#autocompleteUnitCodename+1] = featureDef.name:lower()
+		autocompleteUnitCodename[#autocompleteUnitCodename + 1] = featureDef.name:lower()
 	end
 end
 
 function widget:LanguageChanged()
 	I18N = {
-		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
-		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
-		everyone = Spring.I18N('ui.chat.everyone'),
-		allies = Spring.I18N('ui.chat.allies'),
-		spectators = Spring.I18N('ui.chat.spectators'),
-		cmd = Spring.I18N('ui.chat.cmd'),
-		shortcut = Spring.I18N('ui.chat.shortcut'),
-		nohistory = Spring.I18N('ui.chat.nohistory'),
-		scroll = Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
+		energy = Spring.I18N("ui.topbar.resources.energy"):lower(),
+		metal = Spring.I18N("ui.topbar.resources.metal"):lower(),
+		everyone = Spring.I18N("ui.chat.everyone"),
+		allies = Spring.I18N("ui.chat.allies"),
+		spectators = Spring.I18N("ui.chat.spectators"),
+		cmd = Spring.I18N("ui.chat.cmd"),
+		shortcut = Spring.I18N("ui.chat.shortcut"),
+		nohistory = Spring.I18N("ui.chat.nohistory"),
+		scroll = Spring.I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshGivecatAutocompleteFilters()
 	refreshUnitDefs()
 	-- Cache color strings after language change (optimization)
 	if ColorString then
-		colorSpecStr = ColorString(colorSpec[1], colorSpec[2], colorSpec[3]) or ''
-		colorAllyStr = ColorString(colorAlly[1], colorAlly[2], colorAlly[3]) or ''
-		colorOtherAllyStr = ColorString(colorOtherAlly[1], colorOtherAlly[2], colorOtherAlly[3]) or ''
-		colorGameStr = ColorString(colorGame[1], colorGame[2], colorGame[3]) or ''
-		colorConsoleStr = ColorString(colorConsole[1], colorConsole[2], colorConsole[3]) or ''
+		colorSpecStr = ColorString(colorSpec[1], colorSpec[2], colorSpec[3]) or ""
+		colorAllyStr = ColorString(colorAlly[1], colorAlly[2], colorAlly[3]) or ""
+		colorOtherAllyStr = ColorString(colorOtherAlly[1], colorOtherAlly[2], colorOtherAlly[3]) or ""
+		colorGameStr = ColorString(colorGame[1], colorGame[2], colorGame[3]) or ""
+		colorConsoleStr = ColorString(colorConsole[1], colorConsole[2], colorConsole[3]) or ""
 	else
-		colorSpecStr = ''
-		colorAllyStr = ''
-		colorOtherAllyStr = ''
-		colorGameStr = ''
-		colorConsoleStr = ''
+		colorSpecStr = ""
+		colorAllyStr = ""
+		colorOtherAllyStr = ""
+		colorGameStr = ""
+		colorConsoleStr = ""
 	end
 end
 widget:LanguageChanged()
 
 local function getAIName(teamID)
 	local _, _, _, name, _, options = Spring.GetAIInfo(teamID)
-	local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
+	local niceName = Spring.GetGameRulesParam("ainame_" .. teamID)
 	if niceName then
 		name = niceName
 		if Spring.Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
-	return Spring.I18N('ui.playersList.aiName', { name = name })
+	return Spring.I18N("ui.playersList.aiName", { name = name })
 end
 
 local lastMessage
@@ -524,9 +523,11 @@ local function findBadWords(str)
 end
 
 local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineID)
-	if not text or text == '' then return end
+	if not text or text == "" then
+		return
+	end
 
-	consoleLineID = consoleLineID and consoleLineID or #consoleLines+1
+	consoleLineID = consoleLineID and consoleLineID or #consoleLines + 1
 
 	-- convert /n into lines
 	local textLines = string_lines(text)
@@ -540,14 +541,14 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, consoleLineMaxWidth, font, usedConsoleFontSize)
 	end
 
-	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
+	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
 	local startTime = clock()
 	for i, line in ipairs(wordwrappedText) do
 		consoleLines[consoleLineID] = {
 			startTime = startTime,
 			gameFrame = i == 1 and gameFrame,
 			lineType = lineType,
-			text = (i > 1 and lineColor or '')..line,
+			text = (i > 1 and lineColor or "") .. line,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			--lineDisplayList = glCreateList(function() end),
@@ -556,14 +557,14 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 		consoleLineID = consoleLineID + 1
 	end
 
-	if historyMode ~= 'console' then
+	if historyMode ~= "console" then
 		currentConsoleLine = consoleLineID
 	end
 end
 
 local function getPlayerColorString(playername, gameFrame)
 	if not ColorString then
-		return ''
+		return ""
 	end
 	local color
 	if playernames[playername] then
@@ -579,7 +580,7 @@ local function getPlayerColorString(playername, gameFrame)
 	else
 		color = ColorString(0.7, 0.7, 0.7)
 	end
-	return color or ''
+	return color or ""
 end
 
 local function setCurrentChatLine(line)
@@ -598,12 +599,16 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 
 	if not noProcessors then
 		for _, processor in pairs(chatProcessors) do
-			if text == nil then break end
+			if text == nil then
+				break
+			end
 			text = processor(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
 		end
 	end
 
-	if not text or text == '' then return end
+	if not text or text == "" then
+		return
+	end
 
 	-- determine text typing start time
 	local startTime = clock()
@@ -611,43 +616,45 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	local text_orig = text
 
 	-- metal/energy given
-	if lineType == LineTypes.Player and ssub(text, 5, 6) == '> ' then
+	if lineType == LineTypes.Player and ssub(text, 5, 6) == "> " then
 		text = ssub(text, 7)
 		lineType = LineTypes.System
-		local params = string.split(text, ':')
+		local params = string.split(text, ":")
 		local t = {}
 		if params[1] then
-			for k,v in pairs(params) do
+			for k, v in pairs(params) do
 				if k > 1 then
-					local pair = string.split(v, '=')
+					local pair = string.split(v, "=")
 					if pair[2] then
 						if playernames[pair[2]] then
-							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..playernames[pair[2]][7]..msgColor
-						elseif params[1]:lower():find('energy', nil, true) then
-							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
-						elseif params[1]:lower():find('metal', nil, true) then
-							t[ pair[1] ] = metalValueColor..pair[2]..msgColor
+							t[pair[1]] = getPlayerColorString(pair[2], gameFrame) .. playernames[pair[2]][7] .. msgColor
+						elseif params[1]:lower():find("energy", nil, true) then
+							t[pair[1]] = energyValueColor .. pair[2] .. msgColor
+						elseif params[1]:lower():find("metal", nil, true) then
+							t[pair[1]] = metalValueColor .. pair[2] .. msgColor
 						else
-							t[ pair[1] ] = pair[2]
+							t[pair[1]] = pair[2]
 						end
 					end
 				end
 			end
 			text = Spring.I18N(params[1], t)
 			-- Fix a widget crash that could occur with message "> ."
-			if type(text) ~= "string" then text = text_orig end
+			if type(text) ~= "string" then
+				text = text_orig
+			end
 			if text:lower():find(I18N.energy, nil, true) then
 				local pos = text:lower():find(I18N.energy, nil, true)
 				local len = slen(I18N.energy)
-				text = ssub(text, 1, pos-1)..energyColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+				text = ssub(text, 1, pos - 1) .. energyColor .. ssub(text, pos, pos + len - 1) .. msgColor .. ssub(text, pos + len)
 			end
 			if text:lower():find(I18N.metal, nil, true) then
 				local pos = text:lower():find(I18N.metal, nil, true)
 				local len = slen(I18N.metal)
-				text = ssub(text, 1, pos-1)..metalColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
+				text = ssub(text, 1, pos - 1) .. metalColor .. ssub(text, pos, pos + len - 1) .. msgColor .. ssub(text, pos + len)
 			end
 		end
-		text = msgColor..text
+		text = msgColor .. text
 	end
 
 	-- convert /n into lines
@@ -662,7 +669,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize)
 	end
 
-	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
+	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
 	for i, line in ipairs(wordwrappedText) do
 		chatLines[chatLineID] = {
 			startTime = startTime,
@@ -671,7 +678,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			playerName = name,
 			playerNameText = nameText,
 			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
-			text = (i > 1 and lineColor or '')..line,
+			text = (i > 1 and lineColor or "") .. line,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
@@ -692,13 +699,13 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 		chatLineID = chatLineID + 1
 	end
 
-	if historyMode ~= 'chat' and not ignore then
+	if historyMode ~= "chat" and not ignore then
 		setCurrentChatLine(#chatLines)
 	end
 
 	-- play sound for new player/spectator chat
 	if not ignore and #orgLines == orgLineID and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and playSound and not Spring.IsGUIHidden() then
-		spPlaySoundFile( sndChatFile, sndChatFileVolume, nil, "ui" )
+		spPlaySoundFile(sndChatFile, sndChatFileVolume, nil, "ui")
 	end
 end
 
@@ -708,7 +715,7 @@ local function cancelChatInput()
 		historyMode = false
 		setCurrentChatLine(#chatLines)
 	end
-	inputText = ''
+	inputText = ""
 	inputTextPosition = 0
 	inputSelectionStart = nil
 	inputTextInsertActive = false
@@ -717,30 +724,30 @@ local function cancelChatInput()
 	state.autocompleteInfoText = nil
 	state.autocompleteDisplayPrefix = nil
 	autocompleteWords = {}
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chatinput')
-		WG['guishader'].RemoveRect('chatinputautocomplete')
-		WG['guishader'].RemoveRect('chatinputinfo')
+	if WG["guishader"] then
+		WG["guishader"].RemoveRect("chatinput")
+		WG["guishader"].RemoveRect("chatinputautocomplete")
+		WG["guishader"].RemoveRect("chatinputinfo")
 	end
 	Spring.SDLStopTextInput()
-	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
+	widgetHandler.textOwner = nil -- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
 end
 
 local function ensureInputHistoryDraft()
-	if #inputHistory == 0 or inputHistory[#inputHistory] ~= '' then
-		inputHistory[#inputHistory + 1] = ''
+	if #inputHistory == 0 or inputHistory[#inputHistory] ~= "" then
+		inputHistory[#inputHistory + 1] = ""
 	end
 	inputHistoryCurrent = #inputHistory
 end
 
 local function commitInputHistory(text)
-	if not text or text == '' then
+	if not text or text == "" then
 		ensureInputHistoryDraft()
 		return
 	end
 
-	if #inputHistory > 0 and inputHistory[#inputHistory] == '' then
+	if #inputHistory > 0 and inputHistory[#inputHistory] == "" then
 		table.remove(inputHistory, #inputHistory)
 	end
 
@@ -752,7 +759,7 @@ local function commitInputHistory(text)
 	end
 
 	inputHistory[#inputHistory + 1] = text
-	inputHistory[#inputHistory + 1] = ''
+	inputHistory[#inputHistory + 1] = ""
 	inputHistoryCurrent = #inputHistory
 end
 
@@ -796,7 +803,7 @@ end
 -- Helper function to clean user text input
 local function cleanUserText(text)
 	-- Filter occasional starting space
-	if ssub(text, 1, 1) == ' ' then
+	if ssub(text, 1, 1) == " " then
 		text = ssub(text, 2)
 	end
 	-- Filter color codes from user input
@@ -806,19 +813,19 @@ end
 -- Helper function to check if spectator messages should be hidden
 local function shouldHideSpecMessage()
 	-- Check config values directly to ensure we have the latest settings
-	local currentHideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
-	local currentHideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
+	local currentHideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1)
+	local currentHideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1)
 	return currentHideSpecChat and (not currentHideSpecChatPlayer or not mySpec)
 end
 
 -- Helper function to extract channel prefix and apply color
 local function extractChannelPrefix(text)
-	if sfind(text, 'Allies: ', nil, true) == 1 then
-		return ssub(text, 9), 'allies'
-	elseif sfind(text, 'Spectators: ', nil, true) == 1 then
-		return ssub(text, 13), 'spectators'
+	if sfind(text, "Allies: ", nil, true) == 1 then
+		return ssub(text, 9), "allies"
+	elseif sfind(text, "Spectators: ", nil, true) == 1 then
+		return ssub(text, 13), "spectators"
 	end
-	return text, 'all'
+	return text, "all"
 end
 
 -- Helper function to get colored player name
@@ -848,9 +855,9 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
 				end
 			end
-			return teamColor .. '■ ' .. colorSpecStr .. '(s) ' .. displayName
+			return teamColor .. "■ " .. colorSpecStr .. "(s) " .. displayName
 		end
-		return colorSpecStr .. '(s) ' .. displayName
+		return colorSpecStr .. "(s) " .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
 end
@@ -866,27 +873,27 @@ end
 
 local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local orgLine = line
-	local name = ''
-	local nameText = ''
-	local text = ''
+	local name = ""
+	local nameText = ""
+	local text = ""
 	local lineType = 0
 	local bypassThisMessage = false
 	local skipThisMessage = false
 	local textcolor, c
 
 	-- player message
-	if playernames[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
+	if playernames[ssub(line, 2, (sfind(line, "> ", nil, true) or 1) - 1)] ~= nil then
 		lineType = LineTypes.Player
-		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
-		text = ssub(line,slen(name)+4)
+		name = ssub(line, 2, sfind(line, "> ", nil, true) - 1)
+		text = ssub(line, slen(name) + 4)
 
 		local channel
 		text, channel = extractChannelPrefix(text)
 		text = cleanUserText(text)
 
-		if channel == 'allies' then
+		if channel == "allies" then
 			c = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
-		elseif channel == 'spectators' then
+		elseif channel == "spectators" then
 			c = colorSpecStr
 		else
 			c = ColorString(colorOther[1], colorOther[2], colorOther[3])
@@ -896,14 +903,14 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		line = c .. text
 
 	-- spectator message
-	elseif playernames[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil  or  playernames[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
+	elseif playernames[ssub(line, 2, (sfind(line, "] ", nil, true) or 1) - 1)] ~= nil or playernames[ssub(line, 2, (sfind(line, " (replay)] ", nil, true) or 1) - 1)] ~= nil then
 		lineType = LineTypes.Spectator
-		if playernames[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
-			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
-			text = ssub(line,slen(name)+4)
+		if playernames[ssub(line, 2, (sfind(line, "] ", nil, true) or 1) - 1)] ~= nil then
+			name = ssub(line, 2, sfind(line, "] ", nil, true) - 1)
+			text = ssub(line, slen(name) + 4)
 		else
-			name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
-			text = ssub(line,slen(name)+13)
+			name = ssub(line, 2, sfind(line, " (replay)] ", nil, true) - 1)
+			text = ssub(line, slen(name) + 13)
 		end
 
 		skipThisMessage = shouldHideSpecMessage()
@@ -911,20 +918,20 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local channel
 		text, channel = extractChannelPrefix(text)
 		text = cleanUserText(text)
-		c = (channel ~= 'all') and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
+		c = (channel ~= "all") and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
 
 		nameText = getColoredPlayerName(name, gameFrame, true)
 		line = c .. text
 
 	-- point
-	elseif playernames[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
+	elseif playernames[ssub(line, 1, (sfind(line, " added point: ", nil, true) or 1) - 1)] ~= nil then
 		lineType = LineTypes.Mapmark
-		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
-		text = ssub(line,slen(name.." added point: ")+1)
+		name = ssub(line, 1, sfind(line, " added point: ", nil, true) - 1)
+		text = ssub(line, slen(name .. " added point: ") + 1)
 		text = cleanUserText(text)
 
-		if text == '' then
-			text = 'Look here!'
+		if text == "" then
+			text = "Look here!"
 		end
 
 		local spectator = playernames[name] and playernames[name][2] or false
@@ -939,14 +946,14 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		line = textcolor .. text
 
 	-- battleroom message
-	elseif ssub(line,1,1) == ">" then
+	elseif ssub(line, 1, 1) == ">" then
 		lineType = LineTypes.Spectator
-		text = ssub(line,3)
-		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
-			local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
+		text = ssub(line, 3)
+		if ssub(line, 1, 3) == "> <" then -- player speaking in battleroom
+			local i = sfind(ssub(line, 4, slen(line)), ">", nil, true)
 			if i then
-				name = ssub(line,4,i+2)
-				text = ssub(line,i+5)
+				name = ssub(line, 4, i + 2)
+				text = ssub(line, i + 5)
 			else
 				name = "unknown "
 			end
@@ -958,11 +965,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		skipThisMessage = hideSpecChat and (not playernames[name] or spectator) and (not hideSpecChatPlayer or not mySpec)
 		text = cleanUserText(text)
 
-		nameText = colorGameStr .. '<' .. (playernames[name] and playernames[name][7] or name) .. '>'
+		nameText = colorGameStr .. "<" .. (playernames[name] and playernames[name][7] or name) .. ">"
 		line = colorGameStr .. text
 
 		-- units given
-	elseif playernames[ssub(line,1,(sfind(line," shared units to ", nil, true) or 1)-1)] ~= nil then
+	elseif playernames[ssub(line, 1, (sfind(line, " shared units to ", nil, true) or 1) - 1)] ~= nil then
 		lineType = LineTypes.System
 
 		-- Player1 shared units to Player2: 5 Wind Turbine
@@ -970,11 +977,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local oldTeamName, newTeamName, shareDesc = string.match(line, format)
 
 		-- shared 5 Wind Turbine to Player2
-		if newTeamName and newTeamName ~= '' and shareDesc and shareDesc ~= '' then
+		if newTeamName and newTeamName ~= "" and shareDesc and shareDesc ~= "" then
 			local displayName = (playernames[newTeamName] and playernames[newTeamName][7]) or newTeamName
-			text = msgColor .. Spring.I18N('ui.unitShare.shared', {
+			text = msgColor .. Spring.I18N("ui.unitShare.shared", {
 				units = msgHighlightColor .. shareDesc .. msgColor,
-				name = getPlayerColorString(newTeamName, gameFrame) .. displayName
+				name = getPlayerColorString(newTeamName, gameFrame) .. displayName,
 			})
 		end
 
@@ -984,7 +991,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	-- console chat
 	else
 		lineType = LineTypes.Console
-		local lineColor = ''
+		local lineColor = ""
 
 		-- Define bypass patterns to avoid repetitive checks
 		local bypassPatterns = {
@@ -1003,7 +1010,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			"-> Version",
 			"ClientReadNet",
 			"Address",
-			'self%-destruct in ',
+			"self%-destruct in ",
 		}
 
 		-- Check bypass patterns
@@ -1015,78 +1022,78 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		if not bypassThisMessage then
-			if sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then
+			if sfind(line, "server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line, "client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then
 				bypassThisMessage = true
-			elseif sfind(line,"could not load sound", nil, true) then
+			elseif sfind(line, "could not load sound", nil, true) then
 				if soundErrors[line] or #soundErrors > soundErrorsLimit then
 					bypassThisMessage = true
 				else
 					soundErrors[line] = true
 				end
-			elseif gameOver and sfind(line,'left the game', nil, true) then
+			elseif gameOver and sfind(line, "left the game", nil, true) then
 				bypassThisMessage = true
-			elseif ssub(line,1,6) == "[i18n]" or ssub(line,1,6) == "[Font]" then
+			elseif ssub(line, 1, 6) == "[i18n]" or ssub(line, 1, 6) == "[Font]" then
 				lineColor = msgColor
-			elseif sfind(line,"Wrong network version", nil, true) then
-				local n = sfind(line,"Message", nil, true)
+			elseif sfind(line, "Wrong network version", nil, true) then
+				local n = sfind(line, "Message", nil, true)
 				if n then
-					line = ssub(line,1,n-3)
+					line = ssub(line, 1, n - 3)
 				end
-			elseif sfind(line,' paused the game', nil, true) then
-				lineColor = '\255\225\225\255'
-				local playername = ssub(line, 1, sfind(line, ' paused the game', nil, true)-1)
-				line = formatSystemMessage('ui.chat.pausedthegame', playername, gameFrame, lineColor)
-			elseif sfind(line,' unpaused the game', nil, true) then
-				lineColor = '\255\225\255\225'
-				local playername = ssub(line, 1, sfind(line, ' unpaused the game', nil, true)-1)
-				line = formatSystemMessage('ui.chat.unpausedthegame', playername, gameFrame, lineColor)
-			elseif sfind(line,'Sync error for', nil, true) then
-				local playername = ssub(line, 16, sfind(line, ' in frame', nil, true)-1)
-				lineColor = (playernames[playername] and not playernames[playername][2]) and '\255\255\133\133' or '\255\255\200\200'
-				line = formatSystemMessage('ui.chat.syncerrorfor', playername, gameFrame, lineColor)
-			elseif sfind(line,' is lagging behind', nil, true) then
-				local playername = ssub(line, 1, sfind(line, ' is lagging behind', nil, true)-1)
-				lineColor = (playernames[playername] and not playernames[playername][2]) and '\255\255\133\133' or '\255\255\200\200'
-				line = formatSystemMessage('ui.chat.laggingbehind', playername, gameFrame, lineColor)
-			elseif sfind(line,'Connection attempt from ', nil, true) then
+			elseif sfind(line, " paused the game", nil, true) then
+				lineColor = "\255\225\225\255"
+				local playername = ssub(line, 1, sfind(line, " paused the game", nil, true) - 1)
+				line = formatSystemMessage("ui.chat.pausedthegame", playername, gameFrame, lineColor)
+			elseif sfind(line, " unpaused the game", nil, true) then
+				lineColor = "\255\225\255\225"
+				local playername = ssub(line, 1, sfind(line, " unpaused the game", nil, true) - 1)
+				line = formatSystemMessage("ui.chat.unpausedthegame", playername, gameFrame, lineColor)
+			elseif sfind(line, "Sync error for", nil, true) then
+				local playername = ssub(line, 16, sfind(line, " in frame", nil, true) - 1)
+				lineColor = (playernames[playername] and not playernames[playername][2]) and "\255\255\133\133" or "\255\255\200\200"
+				line = formatSystemMessage("ui.chat.syncerrorfor", playername, gameFrame, lineColor)
+			elseif sfind(line, " is lagging behind", nil, true) then
+				local playername = ssub(line, 1, sfind(line, " is lagging behind", nil, true) - 1)
+				lineColor = (playernames[playername] and not playernames[playername][2]) and "\255\255\133\133" or "\255\255\200\200"
+				line = formatSystemMessage("ui.chat.laggingbehind", playername, gameFrame, lineColor)
+			elseif sfind(line, "Connection attempt from ", nil, true) then
 				lineColor = msgHighlightColor
-				local startPos, endPos = sfind(line, 'Connection attempt from ', nil, true)
+				local startPos, endPos = sfind(line, "Connection attempt from ", nil, true)
 				local playername = ssub(line, endPos + 1)
-				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
+				local spectator = (playernames[playername] and playernames[playername][2]) and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
 				-- Format message and append spectator suffix if needed
 				local params = { textColor = lineColor, textColor2 = msgColor }
 				params.name = getPlayerColorString(playername, gameFrame) .. playername .. spectator
-				line = Spring.I18N('ui.chat.connectionattemptfrom', params)
-			elseif sfind(line,'left the game:  normal quit', nil, true) then
-				local isSpec = sfind(line,'Spectator', nil, true)
-				local playername = ssub(line, isSpec and 11 or 8, sfind(line, ' left the game', nil, true)-1)
-				lineColor = isSpec and msgHighlightColor or '\255\255\133\133'
-				local spectator = isSpec and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
-				line = formatSystemMessage('ui.chat.leftthegamenormal', playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
-				if spectator ~= '' then
+				line = Spring.I18N("ui.chat.connectionattemptfrom", params)
+			elseif sfind(line, "left the game:  normal quit", nil, true) then
+				local isSpec = sfind(line, "Spectator", nil, true)
+				local playername = ssub(line, isSpec and 11 or 8, sfind(line, " left the game", nil, true) - 1)
+				lineColor = isSpec and msgHighlightColor or "\255\255\133\133"
+				local spectator = isSpec and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
+				line = formatSystemMessage("ui.chat.leftthegamenormal", playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
+				if spectator ~= "" then
 					-- Append spectator suffix
-					line = line .. spectator:gsub(getPlayerColorString(playername, gameFrame) .. playername, '')
+					line = line .. spectator:gsub(getPlayerColorString(playername, gameFrame) .. playername, "")
 				end
-			elseif sfind(line,'left the game:  timeout', nil, true) then
-				local isSpec = sfind(line,'Spectator', nil, true)
-				local playername = ssub(line, isSpec and 11 or 8, sfind(line, ' left the game', nil, true)-1)
-				lineColor = isSpec and msgHighlightColor or '\255\255\133\133'
-				local spectator = isSpec and msgColor..' ('..Spring.I18N('ui.chat.spectator')..')' or ''
-				line = formatSystemMessage('ui.chat.leftthegametimeout', playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
-				if spectator ~= '' then
+			elseif sfind(line, "left the game:  timeout", nil, true) then
+				local isSpec = sfind(line, "Spectator", nil, true)
+				local playername = ssub(line, isSpec and 11 or 8, sfind(line, " left the game", nil, true) - 1)
+				lineColor = isSpec and msgHighlightColor or "\255\255\133\133"
+				local spectator = isSpec and msgColor .. " (" .. Spring.I18N("ui.chat.spectator") .. ")" or ""
+				line = formatSystemMessage("ui.chat.leftthegametimeout", playername, gameFrame, lineColor, { textColor2 = isSpec and msgColor or lineColor })
+				if spectator ~= "" then
 					-- Append spectator suffix
-					line = line .. spectator:gsub(getPlayerColorString(playername, gameFrame) .. playername, '')
+					line = line .. spectator:gsub(getPlayerColorString(playername, gameFrame) .. playername, "")
 				end
-			elseif sfind(line,'Error', nil, true) then
-				lineColor = '\255\255\133\133'
-			elseif sfind(line,'Warning', nil, true) then
-				lineColor = '\255\255\190\170'
-			elseif sfind(line,'Failed to load', nil, true) then
-				lineColor = '\255\200\200\255'
-			elseif sfind(line,'Loaded ', nil, true) or sfind(ssub(line, 1, 25),'Loading ', nil, true) or sfind(ssub(line, 1, 25),'Loading: ', nil, true) then
-				lineColor = '\255\200\255\200'
-			elseif sfind(line,'Removed: ', nil, true) or sfind(line,'Removed widget: ', nil, true) then
-				lineColor = '\255\255\230\200'
+			elseif sfind(line, "Error", nil, true) then
+				lineColor = "\255\255\133\133"
+			elseif sfind(line, "Warning", nil, true) then
+				lineColor = "\255\255\190\170"
+			elseif sfind(line, "Failed to load", nil, true) then
+				lineColor = "\255\200\200\255"
+			elseif sfind(line, "Loaded ", nil, true) or sfind(ssub(line, 1, 25), "Loading ", nil, true) or sfind(ssub(line, 1, 25), "Loading: ", nil, true) then
+				lineColor = "\255\200\255\200"
+			elseif sfind(line, "Removed: ", nil, true) or sfind(line, "Removed widget: ", nil, true) then
+				lineColor = "\255\255\230\200"
 			end
 		end
 
@@ -1095,17 +1102,17 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 
 	if not bypassThisMessage then
 		-- bot command or player ID message
-		if (ssub(text,1,1) == '!' and ssub(text, 1,2) ~= '!!') or sfind(line, 'My player ID is', nil, true) then
+		if (ssub(text, 1, 1) == "!" and ssub(text, 1, 2) ~= "!!") or sfind(line, "My player ID is", nil, true) then
 			bypassThisMessage = true
 		end
 
-		if not bypassThisMessage and line ~= '' then
-			if name ~= '' and ignoredAccounts[name] then
+		if not bypassThisMessage and line ~= "" then
+			if name ~= "" and ignoredAccounts[name] then
 				skipThisMessage = true
 			end
 			if not orgLineID then
-				orgLineID = #orgLines+1
-				orgLines[orgLineID] = {gameFrame, orgLine}
+				orgLineID = #orgLines + 1
+				orgLines[orgLineID] = { gameFrame, orgLine }
 				-- if your name has been mentioned, pass it on
 				if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then
 					WG.logo.mention()
@@ -1130,11 +1137,11 @@ local function addLastUnitShareMessage()
 		if oldTeamName and newTeamName then
 			local shareDescription = commonUnitName(unitShare.unitIDs)
 			if #unitShare.unitIDs > 1 then
-				shareDescription = #unitShare.unitIDs .. ' ' .. shareDescription
+				shareDescription = #unitShare.unitIDs .. " " .. shareDescription
 			end
 			-- Player1 shared units to Player2: 5 Wind Turbine
 			lastLineUnitShare = unitShare
-			local line = oldTeamName .. ' shared units to ' .. newTeamName .. ': ' .. shareDescription
+			local line = oldTeamName .. " shared units to " .. newTeamName .. ": " .. shareDescription
 			spEcho(line)
 		end
 	end
@@ -1159,13 +1166,13 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 	end
 
 	-- I think it's possible for multiple teams to share in the same frame?
-	local key = oldTeamID .. 'to' .. newTeamID
+	local key = oldTeamID .. "to" .. newTeamID
 
 	if not lastUnitShare[key] then
 		lastUnitShare[key] = {
 			oldTeamID = oldTeamID,
 			newTeamID = newTeamID,
-			unitIDs = {}
+			unitIDs = {},
 		}
 	end
 	lastUnitShare[key].unitIDs[#lastUnitShare[key].unitIDs + 1] = unitID
@@ -1173,29 +1180,29 @@ end
 
 drawGameTime = function(gameFrame)
 	local minutes = floor((gameFrame / 30 / 60))
-	local seconds = floor((gameFrame - ((minutes*60)*30)) / 30)
+	local seconds = floor((gameFrame - ((minutes * 60) * 30)) / 30)
 	if seconds == 0 then
-		seconds = '00'
+		seconds = "00"
 	elseif seconds < 10 then
-		seconds = '0'..seconds
+		seconds = "0" .. seconds
 	end
 	local offset = 0
 	if minutes >= 100 then
-		offset = (usedFontSize*0.2*widgetScale)
+		offset = (usedFontSize * 0.2 * widgetScale)
 	end
 	font3:Begin(true)
-	font3:SetOutlineColor(0,0,0,1)
-	font3:Print('\255\200\200\200'..minutes..':'..seconds, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
+	font3:SetOutlineColor(0, 0, 0, 1)
+	font3:Print("\255\200\200\200" .. minutes .. ":" .. seconds, maxTimeWidth + offset, usedFontSize * 0.3, usedFontSize * 0.82, "ro")
 	font3:End()
 end
 
 drawConsoleLine = function(i)
 	if consoleLines[i].richText then
-		ChatEmoji.DrawRichText(font, consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o", {0, 0, 0, 1})
+		ChatEmoji.DrawRichText(font, consoleLines[i].text, 0, usedFontSize * 0.3, usedConsoleFontSize, "o", { 0, 0, 0, 1 })
 	else
 		font:Begin(true)
 		font:SetOutlineColor(0, 0, 0, 1)
-		font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
+		font:Print(consoleLines[i].text, 0, usedFontSize * 0.3, usedConsoleFontSize, "o")
 		font:End()
 	end
 end
@@ -1217,61 +1224,61 @@ local function processConsoleLineGL(i)
 end
 
 drawChatLine = function(i)
-	local fontHeightOffset = usedFontSize*0.3
+	local fontHeightOffset = usedFontSize * 0.3
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin(true)
 			if chatLines[i].textOutline then
-				font2:SetOutlineColor(1,1,1,1)
+				font2:SetOutlineColor(1, 1, 1, 1)
 			else
-				font2:SetOutlineColor(0,0,0,1)
+				font2:SetOutlineColor(0, 0, 0, 1)
 			end
-			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
+			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset * 1.06, usedFontSize * 1.03, "or")
 			font2:End()
 			font:Begin(true)
-			font:SetOutlineColor(0,0,0,1)
-			font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
+			font:SetOutlineColor(0, 0, 0, 1)
+			font:Print(pointSeparator, maxPlayernameWidth + (lineSpaceWidth / 2), fontHeightOffset * 0.07, usedFontSize, "oc")
 			font:End()
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 			font3:Begin(true)
 			if chatLines[i].textOutline then
-				font3:SetOutlineColor(1,1,1,1)
+				font3:SetOutlineColor(1, 1, 1, 1)
 			else
-				font3:SetOutlineColor(0,0,0,1)
+				font3:SetOutlineColor(0, 0, 0, 1)
 			end
-			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.2, usedFontSize*0.9, "or")
+			font3:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset * 1.2, usedFontSize * 0.9, "or")
 			font3:End()
 		else
 			font2:Begin(true)
 			if chatLines[i].textOutline then
-				font2:SetOutlineColor(1,1,1,1)
+				font2:SetOutlineColor(1, 1, 1, 1)
 			else
-				font2:SetOutlineColor(0,0,0,1)
+				font2:SetOutlineColor(0, 0, 0, 1)
 			end
-			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
+			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset * 1.06, usedFontSize * 1.03, "or")
 			font2:End()
 			font:Begin(true)
-			font:SetOutlineColor(0,0,0,1)
-			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
+			font:SetOutlineColor(0, 0, 0, 1)
+			font:Print(chatSeparator, maxPlayernameWidth + (lineSpaceWidth / 3.75), fontHeightOffset, usedFontSize, "oc")
 			font:End()
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o", {0, 0, 0, 1})
+			ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth + lineSpaceWidth - (usedFontSize * 0.5), fontHeightOffset * 1.2, usedFontSize * 0.88, "o", { 0, 0, 0, 1 })
 		else
 			font3:Begin(true)
 			font3:SetOutlineColor(0, 0, 0, 1)
-			font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
+			font3:Print(chatLines[i].text, maxPlayernameWidth + lineSpaceWidth - (usedFontSize * 0.5), fontHeightOffset * 1.2, usedFontSize * 0.88, "o")
 			font3:End()
 		end
 	else
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
+			ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth + lineSpaceWidth, fontHeightOffset, usedFontSize, "o", { 0, 0, 0, 1 })
 		else
 			font:Begin(true)
 			font:SetOutlineColor(0, 0, 0, 1)
-			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			font:Print(chatLines[i].text, maxPlayernameWidth + lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
 	end
@@ -1298,7 +1305,9 @@ function widget:Update(dt)
 	addLastUnitShareMessage()
 
 	cursorBlinkTimer = cursorBlinkTimer + dt
-	if cursorBlinkTimer > cursorBlinkDuration then cursorBlinkTimer = 0 end
+	if cursorBlinkTimer > cursorBlinkDuration then
+		cursorBlinkTimer = 0
+	end
 
 	uiSec = uiSec + dt
 	if uiSec > 1 then
@@ -1326,8 +1335,8 @@ function widget:Update(dt)
 		local teams = Spring.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
-			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
+				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
@@ -1340,7 +1349,7 @@ function widget:Update(dt)
 			-- unhide chats from players that used to be ignored
 			for accountID_or_name, _ in pairs(ignoredAccounts) do
 				if not WG.ignoredAccounts[accountID_or_name] then
-					for i=1, #chatLines do
+					for i = 1, #chatLines do
 						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = nil
 							updateDrawUi = true
@@ -1351,7 +1360,7 @@ function widget:Update(dt)
 			-- hide chats from players that are now ignored
 			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
 				if not ignoredAccounts[accountID_or_name] then
-					for i=1, #chatLines do
+					for i = 1, #chatLines do
 						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = true
 							updateDrawUi = true
@@ -1363,21 +1372,21 @@ function widget:Update(dt)
 		end
 
 		-- add settings option commands
-		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
-			local optionsList = WG['options'].getOptionsList()
+		if not addedOptionsList and WG["options"] and WG["options"].getOptionsList then
+			local optionsList = WG["options"].getOptionsList()
 			if optionsList and #optionsList > 0 then
 				addedOptionsList = true
 				for i, option in ipairs(optionsList) do
-					autocompleteCommands[#autocompleteCommands+1] = 'option '..option
+					autocompleteCommands[#autocompleteCommands + 1] = "option " .. option
 				end
 			end
 		end
 
 		-- detect spectator filter change
-		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1) then
-			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
-			hideSpecChatPlayer = (Spring.GetConfigInt('HideSpecChatPlayer', 1) == 1)
-			for i=1, #chatLines do
+		if hideSpecChat ~= (Spring.GetConfigInt("HideSpecChat", 0) == 1) or hideSpecChatPlayer ~= (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1) then
+			hideSpecChat = (Spring.GetConfigInt("HideSpecChat", 0) == 1)
+			hideSpecChatPlayer = (Spring.GetConfigInt("HideSpecChatPlayer", 1) == 1)
+			for i = 1, #chatLines do
 				if chatLines[i].lineType == LineTypes.Spectator then
 					if shouldHideSpecMessage() then
 						chatLines[i].ignore = true
@@ -1399,14 +1408,14 @@ function widget:Update(dt)
 		end
 	end
 
-	local x,y,_ = spGetMouseState()
+	local x, y, _ = spGetMouseState()
 
 	if topbarArea then
-		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
+		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight * maxLinesScroll)) / vsy
 	end
 
-	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
+	if WG["topbar"] and WG["topbar"].showingQuit() then
 		historyMode = false
 		setCurrentChatLine(#chatLines)
 	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
@@ -1414,13 +1423,13 @@ function widget:Update(dt)
 		local _, actCmdID, _, _ = spGetActiveCommand()
 		if showHistoryWhenCtrlShift and ctrl and shift and not actCmdID then
 			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
-				historyMode = 'console'
+				historyMode = "console"
 			else
-				historyMode = 'chat'
+				historyMode = "chat"
 			end
 			maxLinesScroll = maxLinesScrollFull
 		end
-	elseif historyMode and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]) then
+	elseif historyMode and math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[2]) then
 		-- do nothing
 	else
 		if not showHistoryWhenChatInput or not showTextInput then
@@ -1431,19 +1440,19 @@ function widget:Update(dt)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		if not chobbyInterface then
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
-	elseif msg:sub(1,20) == 'gui_chat:chataction:' then
-		local source, mode, cmd = msg:match('^gui_chat:chataction:([^:]+):([^:]+):?(.*)$')
+	elseif msg:sub(1, 20) == "gui_chat:chataction:" then
+		local source, mode, cmd = msg:match("^gui_chat:chataction:([^:]+):([^:]+):?(.*)$")
 		if source and mode then
-			if mode == 'clear' then
+			if mode == "clear" then
 				clearAutocompleteSource(source)
-			elseif mode == 'add' and cmd ~= '' then
+			elseif mode == "add" and cmd ~= "" then
 				addAutocompleteCommand(source, cmd)
-			elseif mode == 'remove' and cmd ~= '' then
+			elseif mode == "remove" and cmd ~= "" then
 				removeAutocompleteCommand(source, cmd)
 			end
 		end
@@ -1453,36 +1462,36 @@ end
 drawChatInputCursor = function()
 	if textCursorRect then
 		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
-		glColor(0.7,0.7,0.7,a)
+		glColor(0.7, 0.7, 0.7, a)
 		gl.Rect(textCursorRect[1], textCursorRect[2], textCursorRect[3], textCursorRect[4])
-		glColor(1,1,1,1)
+		glColor(1, 1, 1, 1)
 	end
 end
 
 drawChatInput = function()
 	if showTextInput then
 		if topbarArea then
-			scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
+			scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight * maxLinesScroll)) / vsy
 		end
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
-			local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+			local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
 			local inputFontSize = floor(usedFontSize * 1.03)
 			local inputHeight = floor(inputFontSize * 2.3)
-			local leftOffset = floor(lineHeight*0.7)
-			local distance =  (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
-			local isCmd = ssub(inputText, 1, 1) == '/'
+			local leftOffset = floor(lineHeight * 0.7)
+			local distance = (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
+			local isCmd = ssub(inputText, 1, 1) == "/"
 			local usedFont = isCmd and font3 or font
 			local modeText = I18N.everyone
 			if isCmd then
 				modeText = I18N.cmd
-			elseif inputMode == 'a:' then
+			elseif inputMode == "a:" then
 				modeText = I18N.allies
-			elseif inputMode == 's:' then
+			elseif inputMode == "s:" then
 				modeText = I18N.spectators
 			end
-			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+			local modeTextPosX = floor(activationArea[1] + elementPadding + elementPadding + leftOffset)
 			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
 			local textCursorWidth = 1 + mathFloor(inputFontSize / 14)
 			if inputTextInsertActive then
@@ -1491,57 +1500,57 @@ drawChatInput = function()
 			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
-			local r,g,b,a
-			local inputAlpha = mathMin(0.36, ui_opacity*0.66)
-			local hintText = autocompleteText or ''
-			local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText .. hintText) * inputFontSize) + floor(inputFontSize * 6), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
+			local r, g, b, a
+			local inputAlpha = mathMin(0.36, ui_opacity * 0.66)
+			local hintText = autocompleteText or ""
+			local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText .. hintText) * inputFontSize) + floor(inputFontSize * 6), floor(activationArea[1] + ((activationArea[3] - activationArea[1]) / 3)))
+			UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, nil, nil, nil, nil, nil, nil, nil, nil, inputAlpha)
+			if WG["guishader"] then
+				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "chatinput")
 			end
 
 			-- button background
-			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
+			inputButtonRect = { activationArea[1] + elementPadding, activationArea[2] + chatlogHeightDiff - distance - inputHeight + elementPadding, textPosX - inputFontSize, activationArea[2] + chatlogHeightDiff - distance - elementPadding }
 			if isCmd then
 				r, g, b = 0, 0, 0
-			elseif inputMode == 'a:' then
+			elseif inputMode == "a:" then
 				r, g, b = 0, 0.1, 0
-			elseif inputMode == 's:' then
+			elseif inputMode == "s:" then
 				r, g, b = 0.1, 0.094, 0
 			else
 				r, g, b = 0, 0, 0
 			end
 			glColor(r, g, b, 0.3)
-			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
-			glColor(1,1,1,0.033)
-			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner * 0.6, 1, 0, 0, 1)
+			glColor(1, 1, 1, 0.033)
+			gl.Rect(inputButtonRect[3] - 1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
 
 			-- button text
 			usedFont:Begin(true)
 			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if isCmd then
 				r, g, b = 0.65, 0.65, 0.65
-			elseif inputMode == 'a:' then
+			elseif inputMode == "a:" then
 				r, g, b = 0.55, 0.72, 0.55
-			elseif inputMode == 's:' then
+			elseif inputMode == "s:" then
 				r, g, b = 0.73, 0.73, 0.54
 			else
 				r, g, b = 0.7, 0.7, 0.7
 			end
 			usedFont:SetTextColor(r, g, b, 1)
-			usedFont:Print(modeText, modeTextPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			usedFont:Print(modeText, modeTextPosX, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61), inputFontSize, "o")
 
 			-- colon
 			if not isCmd then
-				if inputMode == 'a:' then
+				if inputMode == "a:" then
 					r, g, b = 0.53, 0.66, 0.53
-				elseif inputMode == 's:' then
+				elseif inputMode == "s:" then
 					r, g, b = 0.66, 0.66, 0.5
 				else
 					r, g, b = 0.55, 0.55, 0.55
 				end
 				usedFont:SetTextColor(r, g, b, 1)
-				usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
+				usedFont:Print(":", inputButtonRect[3] - 0.5, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61), inputFontSize, "co")
 			end
 
 			-- text selection highlight
@@ -1551,12 +1560,12 @@ drawChatInput = function()
 				local selStartPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selStart)) * inputFontSize)
 				local selEndPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selEnd)) * inputFontSize)
 				glColor(0.55, 0.55, 0.55, 0.5)
-				gl.Rect(textPosX + selStartPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + selEndPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
-				glColor(1,1,1,1)
+				gl.Rect(textPosX + selStartPos, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) - (inputFontSize * 0.6), textPosX + selEndPos, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) + (inputFontSize * 0.64))
+				glColor(1, 1, 1, 1)
 			end
 
 			-- text cursor
-			textCursorRect = { textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64) }
+			textCursorRect = { textPosX + textCursorPos, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) - (inputFontSize * 0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.5) + (inputFontSize * 0.64) }
 			--a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
 			--glColor(0.7,0.7,0.7,a)
 			--gl.Rect(textPosX + textCursorPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + textCursorPos + textCursorWidth, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
@@ -1565,18 +1574,18 @@ drawChatInput = function()
 			-- text message
 			if isCmd then
 				r, g, b = 0.85, 0.85, 0.85
-			elseif inputMode == 'a:' then
+			elseif inputMode == "a:" then
 				r, g, b = 0.2, 1, 0.2
-			elseif inputMode == 's:' then
+			elseif inputMode == "s:" then
 				r, g, b = 1, 1, 0.2
 			else
 				r, g, b = 0.95, 0.95, 0.95
 			end
-			usedFont:SetTextColor(r,g,b, 1)
-			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			usedFont:SetTextColor(r, g, b, 1)
+			usedFont:Print(inputText, textPosX, activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61), inputFontSize, "o")
 			if autocompleteText and autocompleteWords[1] then
-				usedFont:SetTextColor(r,g,b, 0.35)
-				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
+				usedFont:SetTextColor(r, g, b, 0.35)
+				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2] + chatlogHeightDiff - distance - (inputHeight * 0.61), inputFontSize, "")
 			end
 
 			-- autocomplete multi-suggestions
@@ -1594,12 +1603,12 @@ drawChatInput = function()
 					letters = getGivecatAutocompletePrefix(inputText)
 				end
 				if letters == nil then
-					letters = ''
+					letters = ""
 					for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
 						letters = word
 					end
-					if ssub(inputText, #inputText) == ' ' then
-						letters = letters..' '
+					if ssub(inputText, #inputText) == " " then
+						letters = letters .. " "
 					elseif prevAutocompleteLetters then
 						letters = prevAutocompleteLetters .. letters
 					end
@@ -1609,35 +1618,35 @@ drawChatInput = function()
 				local autocLineHeight = floor(inputFontSize * scale * 1.3)
 				local lettersWidth = floor(usedFont:GetTextWidth(letters) * inputFontSize * scale)
 				local xPos = floor(textPosX + textCursorPos - lettersWidth)
-				local yPos =  activationArea[2]+chatlogHeightDiff-distance-inputHeight
-				local height = (autocLineHeight * mathMin(allowMultiAutocompleteMax, #autocompleteWords-1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
-				glColor(0,0,0,inputAlpha)
-				RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
-				if WG['guishader'] then
-					WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
+				local yPos = activationArea[2] + chatlogHeightDiff - distance - inputHeight
+				local height = (autocLineHeight * mathMin(allowMultiAutocompleteMax, #autocompleteWords - 1) + leftOffset) + (#autocompleteWords > allowMultiAutocompleteMax + 1 and autocLineHeight or 0)
+				glColor(0, 0, 0, inputAlpha)
+				RectRound(xPos - leftOffset, yPos - height, x2 - elementMargin, yPos, elementCorner * 0.6, 0, 0, 1, 1)
+				if WG["guishader"] then
+					WG["guishader"].InsertRect(xPos - leftOffset, yPos - height, x2 - elementPadding, yPos, "chatinputautocomplete")
 				end
-				local addHeight = floor((inputFontSize*scale) * 1.35) - autocLineHeight
+				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
 				for i, word in ipairs(autocompleteWords) do
 					if i > 1 then
 						addHeight = addHeight + autocLineHeight
-						usedFont:SetTextColor(r,g,b, 0.8)
-						usedFont:Print(letters, xPos, yPos-addHeight, inputFontSize*scale, "")
-						usedFont:SetTextColor(r,g,b, 0.35)
-						if i <= allowMultiAutocompleteMax+1 then
-							usedFont:Print(ssub(word, letterCount+1), xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+						usedFont:SetTextColor(r, g, b, 0.8)
+						usedFont:Print(letters, xPos, yPos - addHeight, inputFontSize * scale, "")
+						usedFont:SetTextColor(r, g, b, 0.35)
+						if i <= allowMultiAutocompleteMax + 1 then
+							usedFont:Print(ssub(word, letterCount + 1), xPos + lettersWidth, yPos - addHeight, inputFontSize * scale, "")
 						else
-							local text = ''
-							for i=1, #word do
-								text = text .. '.'
+							local text = ""
+							for i = 1, #word do
+								text = text .. "."
 							end
-							usedFont:Print(text, xPos + lettersWidth, yPos-addHeight, inputFontSize*scale, "")
+							usedFont:Print(text, xPos + lettersWidth, yPos - addHeight, inputFontSize * scale, "")
 							break
 						end
 					end
 				end
 			else
-				if WG['guishader'] then
-					WG['guishader'].RemoveRect('chatinputautocomplete')
+				if WG["guishader"] then
+					WG["guishader"].RemoveRect("chatinputautocomplete")
 				end
 			end
 
@@ -1649,16 +1658,16 @@ drawChatInput = function()
 				local infoTextX = infoLeft + leftOffset
 				local infoTextWidth = floor(usedFont:GetTextWidth(state.autocompleteInfoText) * (inputFontSize * 0.92))
 				local infoRight = infoTextX + infoTextWidth + leftOffset
-				glColor(0,0,0,inputAlpha * 0.9)
-				RectRound(infoLeft, infoBottom, infoRight, infoTop, elementCorner*0.45, 0,1,1,1)
-				usedFont:SetTextColor(r,g,b, 0.62)
+				glColor(0, 0, 0, inputAlpha * 0.9)
+				RectRound(infoLeft, infoBottom, infoRight, infoTop, elementCorner * 0.45, 0, 1, 1, 1)
+				usedFont:SetTextColor(r, g, b, 0.62)
 				usedFont:Print(state.autocompleteInfoText, infoTextX, infoBottom + floor(infoHeight * 0.34), inputFontSize * 0.92, "o")
-				if WG['guishader'] then
-					WG['guishader'].InsertRect(infoLeft, infoBottom, infoRight, infoTop, 'chatinputinfo')
+				if WG["guishader"] then
+					WG["guishader"].InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo")
 				end
 			else
-				if WG['guishader'] then
-					WG['guishader'].RemoveRect('chatinputinfo')
+				if WG["guishader"] then
+					WG["guishader"].RemoveRect("chatinputinfo")
 				end
 			end
 
@@ -1676,19 +1685,18 @@ end
 drawUi = function()
 	local now = clock()
 	if not historyMode then
-
 		-- draw background
 		if backgroundOpacity > 0 and displayedChatLines > 0 then
-			glColor(1,1,1,0.1*backgroundOpacity)
+			glColor(1, 1, 1, 0.1 * backgroundOpacity)
 			local borderSize = 1
-			RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
+			RectRound(activationArea[1] - borderSize, activationArea[2] - borderSize, activationArea[3] + borderSize, activationArea[2] + borderSize + ((displayedChatLines + 1) * lineHeight) + (displayedChatLines == maxLines and 0 or elementPadding), elementCorner * 1.2)
 
-			glColor(0,0,0,backgroundOpacity)
-			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
+			glColor(0, 0, 0, backgroundOpacity)
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2] + ((displayedChatLines + 1) * lineHeight) + (displayedChatLines == maxLines and 0 or elementPadding), elementCorner)
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
 				font:Begin(true)
-				font:SetTextColor(0.1,0.1,0.1,0.66)
-				font:Print(I18N.shortcut, activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
+				font:SetTextColor(0.1, 0.1, 0.1, 0.66)
+				font:Print(I18N.shortcut, activationArea[3] - elementPadding - elementPadding, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize, "r")
 				font:End()
 			end
 		end
@@ -1696,7 +1704,7 @@ drawUi = function()
 		-- draw console lines
 		if consoleLines[1] then
 			glPushMatrix()
-			glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
+			glTranslate((vsx * posX) + backgroundPadding, (consolePosY * vsy) + (usedConsoleFontSize * 0.24), 0)
 			local checkedLines = 0
 			local i = #consoleLines
 			while i > 0 do
@@ -1717,12 +1725,12 @@ drawUi = function()
 				glTranslate(0, consoleLineHeight, 0)
 				i = i - 1
 			end
-			if i - 1 > consoleLineCleanupTarget*1.15 then
+			if i - 1 > consoleLineCleanupTarget * 1.15 then
 				consoleLines = cleanupLineTable(consoleLines, consoleLineCleanupTarget)
 			end
 			glPopMatrix()
 
-			if #orgLines > orgLineCleanupTarget*1.15 then
+			if #orgLines > orgLineCleanupTarget * 1.15 then
 				orgLines = cleanupLineTable(orgLines, orgLineCleanupTarget)
 			end
 		end
@@ -1730,10 +1738,10 @@ drawUi = function()
 
 	-- draw chat lines or chat/console history ui panel
 	if historyMode or chatLines[currentChatLine] then
-		if #chatLines == 0 and historyMode == 'chat' then
+		if #chatLines == 0 and historyMode == "chat" then
 			font:Begin(true)
-			font:SetTextColor(0.35,0.35,0.35,0.66)
-			font:Print(I18N.nohistory, activationArea[1]+(activationArea[3]-activationArea[1])/2, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
+			font:SetTextColor(0.35, 0.35, 0.35, 0.66)
+			font:Print(I18N.nohistory, activationArea[1] + (activationArea[3] - activationArea[1]) / 2, activationArea[2] + elementPadding + elementPadding, usedConsoleFontSize * 1.1, "c")
 			font:End()
 		end
 		local checkedLines = 0
@@ -1744,16 +1752,16 @@ drawUi = function()
 		local translatedX = (vsx * posX) + backgroundPadding
 		local translatedY = vsy * (historyMode and scrollingPosY or posY) + backgroundPadding
 		glTranslate(translatedX, translatedY, 0)
-		local i = historyMode == 'console' and currentConsoleLine or currentChatLine
+		local i = historyMode == "console" and currentConsoleLine or currentChatLine
 		local usedMaxLines = maxLines
 		if historyMode then
 			usedMaxLines = maxLinesScroll
 		end
-		local width = floor(maxTimeWidth+(lineHeight*0.75))
+		local width = floor(maxTimeWidth + (lineHeight * 0.75))
 		while i > 0 do
-			if (historyMode and historyMode == 'console') or (chatLines[i] and not chatLines[i].ignore) then
+			if (historyMode and historyMode == "console") or (chatLines[i] and not chatLines[i].ignore) then
 				if historyMode or now - chatLines[i].startTime < lineTTL then
-					if historyMode == 'console' then
+					if historyMode == "console" then
 						-- R2T mode: no processConsoleLineGL needed
 					else
 						if chatLines[i].reprocess then
@@ -1761,8 +1769,8 @@ drawUi = function()
 							local orgLineID = chatLines[i].orgLineID
 							if orgLines[orgLineID] then
 								local firstWordrappedChatLine = i
-								for c=1, 6 do
-									if not chatLines[firstWordrappedChatLine-c] or chatLines[firstWordrappedChatLine-c].orgLineID ~= orgLineID then
+								for c = 1, 6 do
+									if not chatLines[firstWordrappedChatLine - c] or chatLines[firstWordrappedChatLine - c].orgLineID ~= orgLineID then
 										break
 									else
 										firstWordrappedChatLine = firstWordrappedChatLine - c
@@ -1773,7 +1781,7 @@ drawUi = function()
 						end
 					end
 					if historyMode then
-						if historyMode == 'console' then
+						if historyMode == "console" then
 							if consoleLines[i] then
 								processConsoleLineGL(i)
 								if consoleLines[i].gameFrame then
@@ -1800,7 +1808,7 @@ drawUi = function()
 							glTranslate(width, 0, 0)
 						end
 					end
-					if historyMode == 'console' then
+					if historyMode == "console" then
 						if consoleLines[i] then
 							processConsoleLineGL(i)
 							if consoleLines[i].lineDisplayList then
@@ -1852,7 +1860,7 @@ drawUi = function()
 			if chatLines[lastUnignoredChatLineID] and not chatLines[lastUnignoredChatLineID].ignore then
 				if currentChatLine < lastUnignoredChatLineID and now - chatLines[lastUnignoredChatLineID].startTime < lineTTL then
 					glPushMatrix()
-					glTranslate(vsx * posX, vsy * (scrollingPosY-0.02)-backgroundPadding, 0)
+					glTranslate(vsx * posX, vsy * (scrollingPosY - 0.02) - backgroundPadding, 0)
 					processChatLineGL(lastUnignoredChatLineID)
 					if chatLines[lastUnignoredChatLineID].lineDisplayList then
 						glCallList(chatLines[lastUnignoredChatLineID].lineDisplayList)
@@ -1875,30 +1883,34 @@ drawTextInput = function()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
-			local x,y,b = spGetMouseState()
+			local x, y, b = spGetMouseState()
 			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-				Spring.SetMouseCursor('cursornormal')
-				glColor(1,1,1,0.075)
-				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+				Spring.SetMouseCursor("cursornormal")
+				glColor(1, 1, 1, 0.075)
+				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner * 0.6, 1, 0, 0, 1)
 			end
-		elseif WG['guishader'] then
-			WG['guishader'].RemoveRect('chatinput')
-			WG['guishader'].RemoveRect('chatinputautocomplete')
+		elseif WG["guishader"] then
+			WG["guishader"].RemoveRect("chatinput")
+			WG["guishader"].RemoveRect("chatinputautocomplete")
 			textInputDlist = glDeleteList(textInputDlist)
 		end
 	end
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then return end
-	if not chatLines[1] and not consoleLines[1] then return end
+	if chobbyInterface then
+		return
+	end
+	if not chatLines[1] and not consoleLines[1] then
+		return
+	end
 
 	local now = clock()
 	local _, ctrl, _, _ = Spring.GetModKeyState()
-	local x,y,b = spGetMouseState()
-	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if hovering and WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
+	local x, y, b = spGetMouseState()
+	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
+	if hovering and WG["guishader"] then
+		WG["guishader"].RemoveRect("chat")
 	end
 
 	-- draw chat input
@@ -1908,28 +1920,28 @@ function widget:DrawScreen()
 		return
 	end
 
-	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[2]))  then
+	if (showHistoryWhenChatInput and showTextInput) or math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4]) or (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[2])) then
 		hovering = true
 		if historyMode then
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4])
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff, activationArea[3], activationArea[4], 'chat')
+			UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4])
+			if WG["guishader"] then
+				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4], "chat")
 			end
 
 			-- player name background
-			if historyMode == 'chat' then
-				local gametimeEnd = floor(backgroundPadding+maxTimeWidth+(backgroundPadding*0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth/1.8)
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, elementCorner*0.66, 0,0,0,0)
+			if historyMode == "chat" then
+				local gametimeEnd = floor(backgroundPadding + maxTimeWidth + (backgroundPadding * 0.75))
+				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth / 1.8)
+				glColor(1, 1, 1, 0.045)
+				RectRound(activationArea[1] + gametimeEnd, activationArea[2] + elementPadding + chatlogHeightDiff, activationArea[1] + playernameEnd, activationArea[4] - elementPadding, elementCorner * 0.66, 0, 0, 0, 0)
 				-- vertical line at start and end
-				glColor(1,1,1,0.045)
-				RectRound(activationArea[1]+playernameEnd-1, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+playernameEnd, activationArea[4]-elementPadding, 0, 0,0,0,0)
-				RectRound(activationArea[1]+gametimeEnd, activationArea[2]+elementPadding+chatlogHeightDiff, activationArea[1]+gametimeEnd+1, activationArea[4]-elementPadding, 0, 0,0,0,0)
+				glColor(1, 1, 1, 0.045)
+				RectRound(activationArea[1] + playernameEnd - 1, activationArea[2] + elementPadding + chatlogHeightDiff, activationArea[1] + playernameEnd, activationArea[4] - elementPadding, 0, 0, 0, 0, 0)
+				RectRound(activationArea[1] + gametimeEnd, activationArea[2] + elementPadding + chatlogHeightDiff, activationArea[1] + gametimeEnd + 1, activationArea[4] - elementPadding, 0, 0, 0, 0, 0)
 			end
 
 			local totalUnignoredChatLines = 0
-			for i=1, #chatLines do
+			for i = 1, #chatLines do
 				if not chatLines[i].ignore then
 					totalUnignoredChatLines = totalUnignoredChatLines + 1
 				end
@@ -1937,14 +1949,7 @@ function widget:DrawScreen()
 
 			local scrollbarMargin = floor(16 * widgetScale)
 			local scrollbarWidth = floor(11 * widgetScale)
-			UiScroller(
-				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
-				floor(activationArea[2]+chatlogHeightDiff+scrollbarMargin),
-				floor(activationArea[3]-scrollbarMargin),
-				floor(activationArea[4]-scrollbarMargin),
-				historyMode == 'console' and #consoleLines*lineHeight or totalUnignoredChatLines*lineHeight,
-				historyMode == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
-			)
+			UiScroller(floor(activationArea[3] - scrollbarMargin - scrollbarWidth), floor(activationArea[2] + chatlogHeightDiff + scrollbarMargin), floor(activationArea[3] - scrollbarMargin), floor(activationArea[4] - scrollbarMargin), historyMode == "console" and #consoleLines * lineHeight or totalUnignoredChatLines * lineHeight, historyMode == "console" and (currentConsoleLine - maxLinesScroll) * lineHeight or (currentChatLine - maxLinesScroll) * lineHeight)
 		end
 	else
 		if not showHistoryWhenChatInput or not showTextInput then
@@ -1958,8 +1963,8 @@ function widget:DrawScreen()
 		updateDrawUi = true
 	end
 
-	local ctrlHover = enableShortcutClick and ctrl and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4])
-	if ctrlHover or (historyMode and historyMode == 'chat') then
+	local ctrlHover = enableShortcutClick and ctrl and math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4])
+	if ctrlHover or (historyMode and historyMode == "chat") then
 		--updateDrawUi = true
 
 		glPushMatrix()
@@ -1971,7 +1976,7 @@ function widget:DrawScreen()
 		if historyMode then
 			usedMaxLines = maxLinesScroll
 		end
-		local width = floor(maxTimeWidth+(lineHeight*0.75))
+		local width = floor(maxTimeWidth + (lineHeight * 0.75))
 		local checkedLines = 0
 		while i > 0 do
 			if chatLines[i] and not chatLines[i].ignore then
@@ -1980,16 +1985,16 @@ function widget:DrawScreen()
 					if isClickableLine then
 						local lineArea = {
 							translatedX + width,
-							translatedY + (lineHeight*checkedLines),
-							floor(translatedX + width + (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth - (38 * widgetScale)),
-							translatedY + (lineHeight*checkedLines) + lineHeight
+							translatedY + (lineHeight * checkedLines),
+							floor(translatedX + width + (activationArea[3] - activationArea[1]) - backgroundPadding - backgroundPadding - maxTimeWidth - (38 * widgetScale)),
+							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
 						if math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
-							UiSelectHighlight(lineArea[1]-translatedX, lineArea[2]-translatedY-(lineHeight*checkedLines), lineArea[3]-translatedX, lineArea[4]-translatedY-(lineHeight*checkedLines), nil, historyMode and (b and 0.4 or 0.3) or (b and 0.52 or 0.42))
+							UiSelectHighlight(lineArea[1] - translatedX, lineArea[2] - translatedY - (lineHeight * checkedLines), lineArea[3] - translatedX, lineArea[4] - translatedY - (lineHeight * checkedLines), nil, historyMode and (b and 0.4 or 0.3) or (b and 0.52 or 0.42))
 							if b then
 								-- mapmark highlight
 								if chatLines[i].coords then
-									Spring.SetCameraTarget( chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3] )
+									Spring.SetCameraTarget(chatLines[i].coords[1], chatLines[i].coords[2], chatLines[i].coords[3])
 								end
 								-- unit share
 								if chatLines[i].selectUnits then
@@ -2035,10 +2040,10 @@ local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
 	autocompleteWords = {}
 	local charCount = slen(searchStr)
 	for i, word in ipairs(wordsSet) do
-		if slen(word) > charCount  and (searchStr == ssub(word, 1, charCount) or (lower and searchStr:lower() == ssub(word:lower(), 1, charCount)))  then
-			autocompleteWords[#autocompleteWords+1] = word
+		if slen(word) > charCount and (searchStr == ssub(word, 1, charCount) or (lower and searchStr:lower() == ssub(word:lower(), 1, charCount))) then
+			autocompleteWords[#autocompleteWords + 1] = word
 			if not autocompleteText then
-				autocompleteText = ssub(word, charCount+1)
+				autocompleteText = ssub(word, charCount + 1)
 				if not multi then
 					return true
 				end
@@ -2062,23 +2067,23 @@ local function autocomplete(text, fresh)
 	if fresh then
 		autocompleteWords = {}
 	end
-	if text == '' then
+	if text == "" then
 		return
 	end
-	local letters = ''
-	local isCmd = ssub(text, 1, 1) == '/'
-	local trailingSpace = ssub(text, -1) == ' '
+	local letters = ""
+	local isCmd = ssub(text, 1, 1) == "/"
+	local trailingSpace = ssub(text, -1) == " "
 	local rawWords = {}
 	local words = {}
 	for word in (ssub(text, isCmd and 2 or 1)):gmatch("%S+") do
 		rawWords[#rawWords + 1] = word
-		words[#words+1] = word
+		words[#words + 1] = word
 		letters = word
 	end
 	local givecatLetters = getGivecatAutocompletePrefix(text)
 	-- if there are still suggestions then try to continue before starting fresh with a new word
-	if ssub(inputText, #text) == ' ' then
-		letters = letters..' '
+	if ssub(inputText, #text) == " " then
+		letters = letters .. " "
 		if autocompleteWords[1] then
 			prevAutocompleteLetters = letters
 		end
@@ -2086,7 +2091,7 @@ local function autocomplete(text, fresh)
 		if prevAutocompleteLetters and autocompleteWords[1] then
 			letters = prevAutocompleteLetters .. letters
 			if isCmd then
-				words = {[1] = letters}
+				words = { [1] = letters }
 			end
 		else
 			prevAutocompleteLetters = nil
@@ -2114,11 +2119,11 @@ local function autocomplete(text, fresh)
 			local commandNode
 			if isCmd then
 				local cmdTree = autocompleteGivecatFilters.cmdTree
-				local typedFromLuarulesNode = rawWords[1] == 'luarules' and rawWords[2] ~= nil
-				if type(cmdTree) == 'table' then
+				local typedFromLuarulesNode = rawWords[1] == "luarules" and rawWords[2] ~= nil
+				if type(cmdTree) == "table" then
 					if typedFromLuarulesNode then
 						local luarulesNode = cmdTree.luarules
-						if type(luarulesNode) == 'table' then
+						if type(luarulesNode) == "table" then
 							commandNode = luarulesNode[rawWords[2]]
 						end
 					elseif rawWords[1] then
@@ -2126,20 +2131,20 @@ local function autocomplete(text, fresh)
 					end
 				end
 
-				if type(commandNode) == 'table' then
+				if type(commandNode) == "table" then
 					local paramNode = commandNode
 					local paramStart = typedFromLuarulesNode and 3 or 2
 					local paramEnd = trailingSpace and #rawWords or (#rawWords - 1)
 					for i = paramStart, paramEnd do
-						if type(paramNode) ~= 'table' then
+						if type(paramNode) ~= "table" then
 							break
 						end
 						local token = rawWords[i]
-						if not token or token == '' then
+						if not token or token == "" then
 							break
 						end
 						local nextNode = paramNode[token]
-						if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
+						if nextNode == nil and ssub(token, 1, 2) == "no" and #token > 2 then
 							nextNode = paramNode[ssub(token, 3)]
 						end
 						if nextNode == nil then
@@ -2149,10 +2154,10 @@ local function autocomplete(text, fresh)
 					end
 
 					local paramAutocompleteSet
-					if type(paramNode) == 'table' then
+					if type(paramNode) == "table" then
 						local children = {}
 						for key, value in pairs(paramNode) do
-							if key ~= '_description' and (type(value) == 'string' or type(value) == 'table') then
+							if key ~= "_description" and (type(value) == "string" or type(value) == "table") then
 								children[#children + 1] = key
 							end
 						end
@@ -2161,8 +2166,8 @@ local function autocomplete(text, fresh)
 							paramAutocompleteSet = children
 						end
 					end
-					local paramLetters = trailingSpace and '' or letters
-					if paramAutocompleteSet and (trailingSpace or paramLetters ~= '') then
+					local paramLetters = trailingSpace and "" or letters
+					if paramAutocompleteSet and (trailingSpace or paramLetters ~= "") then
 						state.autocompleteDisplayPrefix = paramLetters
 						runAutocompleteSet(paramAutocompleteSet, paramLetters, allowMultiAutocomplete, true)
 					end
@@ -2170,10 +2175,10 @@ local function autocomplete(text, fresh)
 			end
 
 			if isCmd then
-				if not autocompleteWords[1] and words[1] == 'luarules' and (#words == 1 or (#words == 2 and not trailingSpace)) then
-					local luarulesSearch = trailingSpace and 'luarules ' or 'luarules'
+				if not autocompleteWords[1] and words[1] == "luarules" and (#words == 1 or (#words == 2 and not trailingSpace)) then
+					local luarulesSearch = trailingSpace and "luarules " or "luarules"
 					if #words == 2 and not trailingSpace then
-						luarulesSearch = 'luarules ' .. words[2]
+						luarulesSearch = "luarules " .. words[2]
 					end
 					state.autocompleteDisplayPrefix = luarulesSearch
 					runAutocompleteSet(autocompleteCommands, luarulesSearch, allowMultiAutocomplete)
@@ -2185,7 +2190,7 @@ local function autocomplete(text, fresh)
 					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
 				end
 			else
-				if ssub(letters, 1, 1) == ':' and #letters >= 2 then
+				if ssub(letters, 1, 1) == ":" and #letters >= 2 then
 					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(emojiAutocompleteAliases, letters, allowMultiAutocomplete)
 				elseif #letters >= 2 then
@@ -2197,7 +2202,7 @@ local function autocomplete(text, fresh)
 	end
 
 	-- if prev autocomplete words didnt result in suggestions, redo it freshly
-	if prevAutocompleteLetters and not autocompleteWords[1] and ssub(inputText, #text) ~= ' ' then
+	if prevAutocompleteLetters and not autocompleteWords[1] and ssub(inputText, #text) ~= " " then
 		prevAutocompleteLetters = nil
 		autocomplete(text, true)
 	elseif isCmd and not autocompleteWords[2] then
@@ -2205,10 +2210,10 @@ local function autocomplete(text, fresh)
 		local hasExactTypedCommand = false
 		local typedFromLuarules = false
 		if rawWords[1] then
-			if rawWords[1] == 'luarules' and rawWords[2] then
+			if rawWords[1] == "luarules" and rawWords[2] then
 				commandName = rawWords[2]
 				typedFromLuarules = true
-				local exactLuarules = 'luarules ' .. commandName
+				local exactLuarules = "luarules " .. commandName
 				for i = 1, #autocompleteCommands do
 					if autocompleteCommands[i] == exactLuarules then
 						hasExactTypedCommand = true
@@ -2227,51 +2232,51 @@ local function autocomplete(text, fresh)
 		end
 
 		if not hasExactTypedCommand and autocompleteWords[1] then
-			if ssub(autocompleteWords[1], 1, 9) == 'luarules ' then
+			if ssub(autocompleteWords[1], 1, 9) == "luarules " then
 				commandName = ssub(autocompleteWords[1], 10)
 				typedFromLuarules = true
 			else
-				commandName = autocompleteWords[1]:match('^(%S+)')
+				commandName = autocompleteWords[1]:match("^(%S+)")
 			end
 		end
 
 		if commandName then
 			local cmdTree = autocompleteGivecatFilters.cmdTree
 			local node
-			if type(cmdTree) == 'table' then
+			if type(cmdTree) == "table" then
 				if typedFromLuarules then
 					local luarulesNode = cmdTree.luarules
-					if type(luarulesNode) == 'table' then
+					if type(luarulesNode) == "table" then
 						node = luarulesNode[commandName]
 					end
 				else
 					node = cmdTree[commandName]
 				end
 			end
-			if type(node) == 'string' then
+			if type(node) == "string" then
 				state.autocompleteInfoText = node
-			elseif type(node) == 'table' then
-				if type(node._description) == 'string' then
+			elseif type(node) == "table" then
+				if type(node._description) == "string" then
 					state.autocompleteInfoText = node._description
 				end
 				local paramStart = typedFromLuarules and 3 or 2
 				for i = paramStart, #rawWords do
 					local token = rawWords[i]
-					if not token or token == '' then
+					if not token or token == "" then
 						break
 					end
 					local nextNode = node[token]
-					if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
+					if nextNode == nil and ssub(token, 1, 2) == "no" and #token > 2 then
 						nextNode = node[ssub(token, 3)]
 					end
 					if nextNode == nil then
 						break
 					end
-					if type(nextNode) == 'string' then
+					if type(nextNode) == "string" then
 						state.autocompleteInfoText = nextNode
 						break
-					elseif type(nextNode) == 'table' then
-						if type(nextNode._description) == 'string' then
+					elseif type(nextNode) == "table" then
+						if type(nextNode._description) == "string" then
 							state.autocompleteInfoText = nextNode._description
 						end
 						node = nextNode
@@ -2284,26 +2289,26 @@ local function autocomplete(text, fresh)
 			if not state.autocompleteInfoText then
 				local isGadgetChatAction = autocompleteCommandSources.synced[commandName] or autocompleteCommandSources.unsynced[commandName]
 				if typedFromLuarules and isGadgetChatAction then
-					local rulesDescriptionKey = 'cmd.luarules.' .. commandName .. '._description'
+					local rulesDescriptionKey = "cmd.luarules." .. commandName .. "._description"
 					local rulesDescriptionValue = Spring.I18N(rulesDescriptionKey)
-					if type(rulesDescriptionValue) == 'string' and rulesDescriptionValue ~= rulesDescriptionKey then
+					if type(rulesDescriptionValue) == "string" and rulesDescriptionValue ~= rulesDescriptionKey then
 						state.autocompleteInfoText = rulesDescriptionValue
 					else
-						local rulesKey = 'cmd.luarules.' .. commandName
+						local rulesKey = "cmd.luarules." .. commandName
 						local rulesValue = Spring.I18N(rulesKey)
-						if type(rulesValue) == 'string' and rulesValue ~= rulesKey then
+						if type(rulesValue) == "string" and rulesValue ~= rulesKey then
 							state.autocompleteInfoText = rulesValue
 						end
 					end
 				else
-					local cmdDescriptionKey = 'cmd.' .. commandName .. '._description'
+					local cmdDescriptionKey = "cmd." .. commandName .. "._description"
 					local cmdDescriptionValue = Spring.I18N(cmdDescriptionKey)
-					if type(cmdDescriptionValue) == 'string' and cmdDescriptionValue ~= cmdDescriptionKey then
+					if type(cmdDescriptionValue) == "string" and cmdDescriptionValue ~= cmdDescriptionKey then
 						state.autocompleteInfoText = cmdDescriptionValue
 					else
-						local cmdKey = 'cmd.' .. commandName
+						local cmdKey = "cmd." .. commandName
 						local cmdValue = Spring.I18N(cmdKey)
-						if type(cmdValue) == 'string' and cmdValue ~= cmdKey then
+						if type(cmdValue) == "string" and cmdValue ~= cmdKey then
 							state.autocompleteInfoText = cmdValue
 						end
 					end
@@ -2313,8 +2318,7 @@ local function autocomplete(text, fresh)
 	end
 end
 
-
-function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+function widget:TextInput(char) -- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		-- If there's a selection, delete it first
 		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
@@ -2325,12 +2329,12 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			inputSelectionStart = nil
 		end
 		if inputTextInsertActive then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)
 			if inputTextPosition <= utf8.len(inputText) then
 				inputTextPosition = inputTextPosition + 1
 			end
 		else
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
+			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 1)
 			inputTextPosition = inputTextPosition + 1
 		end
 		if string.len(inputText) > maxTextInputChars then
@@ -2343,8 +2347,8 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 		cursorBlinkTimer = 0
 		autocomplete(inputText)
 		updateTextInputDlist = true
-		if WG['limitidlefps'] and WG['limitidlefps'].update then
-			WG['limitidlefps'].update()
+		if WG["limitidlefps"] and WG["limitidlefps"].update then
+			WG["limitidlefps"].update()
 		end
 		return true
 	end
@@ -2367,29 +2371,28 @@ function widget:KeyPress(key)
 			if ctrl or alt or shift then
 				-- switch mode
 				if ctrl then
-					inputMode = ''
+					inputMode = ""
 				elseif alt and not mySpec then
-					inputMode = (inputMode == 'a:' and '' or 'a:')
+					inputMode = (inputMode == "a:" and "" or "a:")
 				else
-					inputMode = (inputMode == 's:' and '' or 's:')
+					inputMode = (inputMode == "s:" and "" or "s:")
 				end
 			else
 				-- send chat/cmd
-				if inputText ~= '' then
+				if inputText ~= "" then
 					local executedInput = inputText
-					if ssub(inputText, 1, 1) == '/' then
+					if ssub(inputText, 1, 1) == "/" then
 						local command = ssub(inputText, 2)
-						if command == 'lr' then
-							command = 'luaui reload'
+						if command == "lr" then
+							command = "luaui reload"
 						end
 						Spring.SendCommands(command)
 					else
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
-							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
-								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
+							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N("ui.chat.moderation.prefix"), Spring.I18N("ui.chat.moderation.blocked", { badWord = badWord }))
 						else
-							Spring.SendCommands("say "..inputMode..inputText)
+							Spring.SendCommands("say " .. inputMode .. inputText)
 						end
 						lastMessage = inputText
 					end
@@ -2403,23 +2406,23 @@ function widget:KeyPress(key)
 			cancelChatInput()
 			showTextInput = true
 			if showHistoryWhenChatInput then
-				historyMode = 'chat'
+				historyMode = "chat"
 				maxLinesScroll = maxLinesScrollChatInput
 			end
-			widgetHandler.textOwner = self	-- non handler = true: widgetHandler:OwnText()
+			widgetHandler.textOwner = self -- non handler = true: widgetHandler:OwnText()
 			ensureInputHistoryDraft()
 			if ctrl then
-				inputMode = ''
+				inputMode = ""
 			elseif alt then
-				inputMode = mySpec and 's:' or 'a:'
+				inputMode = mySpec and "s:" or "a:"
 			elseif shift then
-				inputMode = 's:'
+				inputMode = "s:"
 			elseif inputMode == nil then
 				-- First time opening chat - default to allies/spectators
-				inputMode = mySpec and 's:' or 'a:'
+				inputMode = mySpec and "s:" or "a:"
 			end
 			-- again just to be safe, had report locking could still happen
-			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 
 		updateTextInputDlist = true
@@ -2440,7 +2443,7 @@ function widget:KeyPress(key)
 			inputSelectionStart = nil
 		end
 		local clipboardText = Spring.GetClipboard()
-		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition+1)
+		inputText = utf8.sub(inputText, 1, inputTextPosition) .. clipboardText .. utf8.sub(inputText, inputTextPosition + 1)
 		inputTextPosition = inputTextPosition + utf8.len(clipboardText)
 		if string.len(inputText) > maxTextInputChars then
 			inputText = string.sub(inputText, 1, maxTextInputChars)
@@ -2451,7 +2454,6 @@ function widget:KeyPress(key)
 		inputHistory[#inputHistory] = inputText
 		cursorBlinkTimer = 0
 		autocomplete(inputText, true)
-
 	elseif ctrl and key == 99 then -- CTRL + C
 		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 			local selStart = math.min(inputSelectionStart, inputTextPosition)
@@ -2459,7 +2461,6 @@ function widget:KeyPress(key)
 			local selectedText = utf8.sub(inputText, selStart + 1, selEnd)
 			Spring.SetClipboard(selectedText)
 		end
-
 	elseif ctrl and key == 120 then -- CTRL + X
 		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 			local selStart = math.min(inputSelectionStart, inputTextPosition)
@@ -2473,12 +2474,10 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			autocomplete(inputText, true)
 		end
-
 	elseif ctrl and key == 97 then -- CTRL + A
 		inputSelectionStart = 0
 		inputTextPosition = utf8.len(inputText)
 		cursorBlinkTimer = 0
-
 	elseif ctrl and key == 276 then -- CTRL + LEFT (word jump)
 		if shift then
 			if not inputSelectionStart then
@@ -2499,7 +2498,6 @@ function widget:KeyPress(key)
 		end
 		inputTextPosition = pos
 		cursorBlinkTimer = 0
-
 	elseif ctrl and key == 275 then -- CTRL + RIGHT (word jump)
 		if shift then
 			if not inputSelectionStart then
@@ -2521,7 +2519,6 @@ function widget:KeyPress(key)
 		end
 		inputTextPosition = pos
 		cursorBlinkTimer = 0
-
 	elseif not alt and not ctrl then
 		if key == 27 then -- ESC
 			cancelChatInput()
@@ -2536,7 +2533,7 @@ function widget:KeyPress(key)
 				inputHistory[#inputHistory] = inputText
 				prevAutocompleteLetters = nil
 			elseif inputTextPosition > 0 then
-				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+				inputText = utf8.sub(inputText, 1, inputTextPosition - 1) .. utf8.sub(inputText, inputTextPosition + 1)
 				inputTextPosition = inputTextPosition - 1
 				inputHistory[#inputHistory] = inputText
 				prevAutocompleteLetters = nil
@@ -2553,7 +2550,7 @@ function widget:KeyPress(key)
 				inputSelectionStart = nil
 				inputHistory[#inputHistory] = inputText
 			elseif inputTextPosition < utf8.len(inputText) then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition + 2)
 				inputHistory[#inputHistory] = inputText
 			end
 			cursorBlinkTimer = 0
@@ -2637,7 +2634,7 @@ function widget:KeyPress(key)
 		elseif key == 9 then -- TAB
 			inputSelectionStart = nil
 			if autocompleteText and autocompleteWords[1] then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
+				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition + 1)
 				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
 				inputHistory[#inputHistory] = inputText
 				autocompleteText = nil
@@ -2654,12 +2651,12 @@ end
 
 function widget:MousePress(x, y, button)
 	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not Spring.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
-		if inputMode == 'a:' then
-			inputMode = ''
-		elseif inputMode == 's:' then
-			inputMode = mySpec and '' or 'a:'
+		if inputMode == "a:" then
+			inputMode = ""
+		elseif inputMode == "s:" then
+			inputMode = mySpec and "" or "a:"
 		else
-			inputMode = 's:'
+			inputMode = "s:"
 		end
 		updateTextInputDlist = true
 		return true
@@ -2669,7 +2666,7 @@ end
 function widget:MouseWheel(up, value)
 	if historyMode and not Spring.IsGUIHidden() then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if historyMode == 'chat' then
+		if historyMode == "chat" then
 			local scrollCount = 0
 			local scrollAmount = (shift and maxLinesScroll or (ctrl and 3 or 1))
 			local i = currentChatLine
@@ -2723,30 +2720,32 @@ function widget:MouseWheel(up, value)
 	end
 end
 
-function widget:WorldTooltip(ttType,data1,data2,data3)
-	local x,y,_ = spGetMouseState()
-	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+chatlogHeightDiff,activationArea[3],activationArea[4]) then
+function widget:WorldTooltip(ttType, data1, data2, data3)
+	local x, y, _ = spGetMouseState()
+	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
+	if #chatLines > 0 and math_isInRect(x, y, activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4]) then
 		return I18N.scroll
 	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	if cmdType == 'point' then
-		lastMapmarkCoords = {x,y,z}
+	if cmdType == "point" then
+		lastMapmarkCoords = { x, y, z }
 	end
 end
 
 function widget:AddConsoleLine(lines, priority)
-	if priority and priority == L_DEPRECATED and not isDevSingle then return end
-	lines = lines:match('^%[f=[0-9]+%] (.*)$') or lines
+	if priority and priority == L_DEPRECATED and not isDevSingle then
+		return
+	end
+	lines = lines:match("^%[f=[0-9]+%] (.*)$") or lines
 	for line in lines:gmatch("[^\n]+") do
 		processAddConsoleLine(spGetGameFrame(), line)
 	end
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
 
 	widgetScale = vsy * 0.00075 * ui_scale
 
@@ -2757,19 +2756,19 @@ function widget:ViewResize()
 	elementPadding = WG.FlowUI.elementPadding
 	elementMargin = WG.FlowUI.elementMargin
 	RectRound = WG.FlowUI.Draw.RectRound
-	charSize = 21 * math.clamp(1+((1-(vsy/1200))*0.5), 1, 1.2)	-- increase for small resolutions
-	usedFontSize = charSize*widgetScale*fontsizeMult
-	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
+	charSize = 21 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.5), 1, 1.2) -- increase for small resolutions
+	usedFontSize = charSize * widgetScale * fontsizeMult
+	usedConsoleFontSize = usedFontSize * consoleFontSizeMult
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 1.2, 0.13, 20)
-	font3 = WG['fonts'].getFont(3)
+	font = WG["fonts"].getFont()
+	font2 = WG["fonts"].getFont(2, 1.2, 0.13, 20)
+	font3 = WG["fonts"].getFont(3)
 
 	-- get longest player name and calc its width
 	if not font or not longestPlayername then
 		return
 	end
-	local namePrefix = '(s)'
+	local namePrefix = "(s)"
 	local namePrefixWidth = font:GetTextWidth(namePrefix)
 	maxPlayernameWidth = (namePrefixWidth + font:GetTextWidth(longestPlayername)) * usedFontSize
 	for _, playerID in ipairs(playersList) do
@@ -2783,21 +2782,21 @@ function widget:ViewResize()
 			end
 		end
 	end
-	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
-	lineSpaceWidth = 24*widgetScale
-	lineHeight = floor(usedFontSize*lineHeightMult)
-	consoleLineHeight = mathFloor(usedConsoleFontSize*lineHeightMult)
-	backgroundPadding = elementPadding + floor(lineHeight*0.5)
+	maxTimeWidth = font3:GetTextWidth("00:00") * usedFontSize
+	lineSpaceWidth = 24 * widgetScale
+	lineHeight = floor(usedFontSize * lineHeightMult)
+	consoleLineHeight = mathFloor(usedConsoleFontSize * lineHeightMult)
+	backgroundPadding = elementPadding + floor(lineHeight * 0.5)
 
 	local posY2 = 0.94
-	if WG['topbar'] ~= nil then
-		topbarArea = WG['topbar'].GetPosition()
-		posY2 = floor(topbarArea[2] - elementMargin)/vsy
-		posX = topbarArea[1]/vsx
-		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
+	if WG["topbar"] ~= nil then
+		topbarArea = WG["topbar"].GetPosition()
+		posY2 = floor(topbarArea[2] - elementMargin) / vsy
+		posX = topbarArea[1] / vsx
+		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight * maxLinesScroll)) / vsy
 	end
 	consolePosY = floor((vsy * posY2) - backgroundPadding - (maxConsoleLines * consoleLineHeight)) / vsy
-	posY = floor((consolePosY*vsy) - (backgroundPadding*1.5) - ((lineHeight*maxLines))) / vsy
+	posY = floor((consolePosY * vsy) - (backgroundPadding * 1.5) - (lineHeight * maxLines)) / vsy
 
 	activationArea = {
 		floor(vsx * posX),
@@ -2826,8 +2825,8 @@ function widget:PlayerChanged(playerID)
 	mySpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	if mySpec and inputMode == 'a:' then
-		inputMode = 's:'
+	if mySpec and inputMode == "a:" then
+		inputMode = "s:"
 	end
 	local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
 	--local historyName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
@@ -2842,7 +2841,7 @@ function widget:PlayerChanged(playerID)
 		if isSpec ~= playernames[name][2] then
 			playernames[name][2] = isSpec
 			if isSpec then
-				playernames[name][8] = Spring.GetGameFrame()	-- log frame of death
+				playernames[name][8] = Spring.GetGameFrame() -- log frame of death
 				if (not playernames[name][5]) and teamID and teamID ~= Spring.GetGaiaTeamID() then
 					playernames[name][5] = { spGetTeamColor(teamID) }
 				end
@@ -2862,9 +2861,9 @@ function widget:PlayerAdded(playerID)
 		end
 	end
 	playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
-	autocompletePlayernames[#autocompletePlayernames+1] = name
+	autocompletePlayernames[#autocompletePlayernames + 1] = name
 	if historyName ~= name then
-		autocompletePlayernames[#autocompletePlayernames+1] = historyName
+		autocompletePlayernames[#autocompletePlayernames + 1] = historyName
 	end
 end
 
@@ -2881,11 +2880,11 @@ end
 
 local function hidespecchatCmd(_, _, params)
 	if params[1] then
-		hideSpecChat = (params[1] == '1')
+		hideSpecChat = (params[1] == "1")
 	else
 		hideSpecChat = not hideSpecChat
 	end
-	Spring.SetConfigInt('HideSpecChat', hideSpecChat and 1 or 0)
+	Spring.SetConfigInt("HideSpecChat", hideSpecChat and 1 or 0)
 	if hideSpecChat then
 		spEcho("Hiding all spectator chat")
 	else
@@ -2895,11 +2894,11 @@ end
 
 local function hidespecchatplayerCmd(_, _, params)
 	if params[1] then
-		hideSpecChatPlayer = (params[1] == '1')
+		hideSpecChatPlayer = (params[1] == "1")
 	else
 		hideSpecChatPlayer = not hideSpecChatPlayer
 	end
-	Spring.SetConfigInt('HideSpecChatPlayer', hideSpecChatPlayer and 1 or 0)
+	Spring.SetConfigInt("HideSpecChatPlayer", hideSpecChatPlayer and 1 or 0)
 	if hideSpecChat then
 		spEcho("Hiding all spectator chat when player")
 	else
@@ -2918,7 +2917,7 @@ local function preventhistorymodeCmd(_, _, params)
 end
 
 function widget:Initialize()
-	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 
 	-- Ensure ColorString and ColorIsDark are initialized
 	if not ColorString and Spring.Utilities and Spring.Utilities.Color then
@@ -2937,7 +2936,7 @@ function widget:Initialize()
 		local teamID = teams[i]
 		local r, g, b = spGetTeamColor(teamID)
 		local _, playerID, _, isAiTeam, _, allyTeamID = spGetTeamInfo(teamID, false)
-		teamColorKeys[teamID] = r..'_'..g..'_'..b
+		teamColorKeys[teamID] = r .. "_" .. g .. "_" .. b
 		local aiName
 		if isAiTeam then
 			aiName = getAIName(teamID)
@@ -2963,80 +2962,80 @@ function widget:Initialize()
 
 	Spring.SendCommands("console 0")
 
-	WG['chat'] = {}
-	WG['chat'].isInputActive = function()
+	WG["chat"] = {}
+	WG["chat"].isInputActive = function()
 		return showTextInput
 	end
-	WG['chat'].getInputButton = function()
+	WG["chat"].getInputButton = function()
 		return inputButton
 	end
-	WG['chat'].setHide = function(value)
+	WG["chat"].setHide = function(value)
 		hide = value
 	end
-	WG['chat'].getHide = function()
+	WG["chat"].getHide = function()
 		return hide
 	end
-	WG['chat'].setChatInputHistory = function(value)
+	WG["chat"].setChatInputHistory = function(value)
 		showHistoryWhenChatInput = value
 	end
-	WG['chat'].getChatInputHistory = function()
+	WG["chat"].getChatInputHistory = function()
 		return showHistoryWhenChatInput
 	end
-	WG['chat'].setInputButton = function(value)
+	WG["chat"].setInputButton = function(value)
 		inputButton = value
 	end
-	WG['chat'].getHandleInput = function()
+	WG["chat"].getHandleInput = function()
 		return handleTextInput
 	end
-	WG['chat'].setHandleInput = function(value)
+	WG["chat"].setHandleInput = function(value)
 		handleTextInput = value
 		if not handleTextInput then
 			cancelChatInput()
 		end
-		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
-	WG['chat'].getChatVolume = function()
+	WG["chat"].getChatVolume = function()
 		return sndChatFileVolume
 	end
-	WG['chat'].setChatVolume = function(value)
+	WG["chat"].setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
-	WG['chat'].getBackgroundOpacity = function()
+	WG["chat"].getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
-	WG['chat'].setBackgroundOpacity = function(value)
+	WG["chat"].setBackgroundOpacity = function(value)
 		backgroundOpacity = value
 	end
-	WG['chat'].getMaxLines = function()
+	WG["chat"].getMaxLines = function()
 		return maxLines
 	end
-	WG['chat'].setMaxLines = function(value)
+	WG["chat"].setMaxLines = function(value)
 		maxLines = value
 		widget:ViewResize()
 	end
-	WG['chat'].getMaxConsoleLines = function()
+	WG["chat"].getMaxConsoleLines = function()
 		return maxLines
 	end
-	WG['chat'].setMaxConsoleLines = function(value)
+	WG["chat"].setMaxConsoleLines = function(value)
 		maxConsoleLines = value
 		widget:ViewResize()
 	end
-	WG['chat'].getFontsize = function()
+	WG["chat"].getFontsize = function()
 		return fontsizeMult
 	end
-	WG['chat'].setFontsize = function(value)
+	WG["chat"].setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
 	end
-	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
+	WG["chat"].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
 		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true)
 	end
-	WG['chat'].addChatProcessor = function(id, func)
-		if type(func) == 'function' then
+	WG["chat"].addChatProcessor = function(id, func)
+		if type(func) == "function" then
 			chatProcessors[id] = func
 		end
 	end
-	WG['chat'].removeChatProcessor = function(id)
+	WG["chat"].removeChatProcessor = function(id)
 		chatProcessors[id] = nil
 	end
 
@@ -3044,10 +3043,10 @@ function widget:Initialize()
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
 
-	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
-	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, 't')
+	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "preventhistorymode", preventhistorymodeCmd, nil, "t")
 
 	for _, playerID in ipairs(playersList) do
 		local name, _, isSpec, teamID, allyTeamID = spGetPlayerInfo(playerID, false)
@@ -3060,23 +3059,23 @@ function widget:Initialize()
 			end
 		end
 		playernames[name] = { allyTeamID, isSpec, teamID, playerID, teamColor, teamColor and ColorIsDark(teamColor[1], teamColor[2], teamColor[3]) or false, historyName }
-		autocompletePlayernames[#autocompletePlayernames+1] = name
+		autocompletePlayernames[#autocompletePlayernames + 1] = name
 		if historyName ~= name then
-			autocompletePlayernames[#autocompletePlayernames+1] = historyName
+			autocompletePlayernames[#autocompletePlayernames + 1] = historyName
 		end
 	end
 	requestGadgetAutocompleteCommands()
 end
 
 function widget:Shutdown()
-	clearDisplayLists()	-- console/chat displaylists
+	clearDisplayLists() -- console/chat displaylists
 	glDeleteList(textInputDlist)
-	WG['chat'] = nil
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
-		WG['guishader'].RemoveRect('chatinput')
-		WG['guishader'].RemoveRect('chatinputautocomplete')
-		WG['guishader'].RemoveRect('chatinputinfo')
+	WG["chat"] = nil
+	if WG["guishader"] then
+		WG["guishader"].RemoveRect("chat")
+		WG["guishader"].RemoveRect("chatinput")
+		WG["guishader"].RemoveRect("chatinputautocomplete")
+		WG["guishader"].RemoveRect("chatinputinfo")
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)
@@ -3145,17 +3144,17 @@ end
 
 function widget:GetConfigData(data)
 	local inputHistoryLimited = {}
-	for k,v in ipairs(inputHistory) do
+	for k, v in ipairs(inputHistory) do
 		if k >= (#inputHistory - 50) then
-			inputHistoryLimited[#inputHistoryLimited+1] = v
+			inputHistoryLimited[#inputHistoryLimited + 1] = v
 		end
 	end
 
 	local maxOrgLines = orgLineCleanupTarget
 	if #orgLines > maxOrgLines then
 		local prunedOrgLines = {}
-		for i=1, maxOrgLines do
-			prunedOrgLines[i] = orgLines[(#orgLines-maxOrgLines)+i]
+		for i = 1, maxOrgLines do
+			prunedOrgLines[i] = orgLines[(#orgLines - maxOrgLines) + i]
 		end
 		orgLines = prunedOrgLines
 	end

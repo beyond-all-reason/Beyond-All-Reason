@@ -38,7 +38,7 @@ return {
 		usepiececollisionvolumes = 1,
 		customparams = {
 			maxrange = 625,
-			unitgroup = 'weaponaa',
+			unitgroup = "weaponaa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "ArmVehicles",

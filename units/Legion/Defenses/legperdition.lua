@@ -34,7 +34,7 @@ return {
 			selectionscalemult = 1,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			restrictions_inclusion = "_notacnukes_",
 			usebuildinggrounddecal = true,
 		},

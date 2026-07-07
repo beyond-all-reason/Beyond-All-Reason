@@ -32,7 +32,7 @@ return {
 		upright = true,
 		workertime = 400,
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,

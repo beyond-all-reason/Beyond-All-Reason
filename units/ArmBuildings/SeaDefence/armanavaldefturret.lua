@@ -29,7 +29,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwww wwwwww wwwwww wwwwww wwwwww wwwwww",
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/arm_normal.dds",
 			removewait = true,

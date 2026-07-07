@@ -13,10 +13,9 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -99900,
 		handler = true,
-		enabled = false
+		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -66,13 +65,13 @@ local title_colour = "\255\160\255\160"
 local totals_colour = "\255\200\200\255"
 
 local prefixColor = {
-	gui = '\255\100\222\100',
-	gfx = '\255\222\160\100',
-	game = '\255\166\166\255',
-	cmd = '\255\166\255\255',
-	unit = '\255\255\166\255',
-	map = '\255\255\255\080',
-	dbg = '\255\120\120\120',
+	gui = "\255\100\222\100",
+	gfx = "\255\222\160\100",
+	game = "\255\166\166\255",
+	cmd = "\255\166\255\255",
+	unit = "\255\255\166\255",
+	map = "\255\255\255\080",
+	dbg = "\255\120\120\120",
 }
 
 local s
@@ -88,7 +87,7 @@ local oldUpdateWidgetCallIn
 local oldInsertWidget
 
 local listOfHooks = {}
-setmetatable(listOfHooks, { __mode = 'k' })
+setmetatable(listOfHooks, { __mode = "k" })
 local inHook = false
 
 local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
@@ -102,9 +101,9 @@ local sortedList = {}
 
 -- Per-callin drill-down state (only populated for the currently selected widget)
 local callinLoadAverages = {} -- [wname] = { [cname] = { tLoad, sLoad } }
-local selectedWidget = nil    -- wname (prefixed plainname) currently drilled into, or nil
-local clickableRows = {}      -- reused each frame: { {x1, y1, x2, y2, plainname}, ... }
-local clickableRowCount = 0   -- how many entries of clickableRows are valid this frame
+local selectedWidget = nil -- wname (prefixed plainname) currently drilled into, or nil
+local clickableRows = {} -- reused each frame: { {x1, y1, x2, y2, plainname}, ... }
+local clickableRowCount = 0 -- how many entries of clickableRows are valid this frame
 local detailColour = "\255\255\255\255"
 
 local deltaTime
@@ -112,7 +111,7 @@ local redStrength = {}
 
 local ColorString = Spring.Utilities.Color.ToString
 
-if Spring.GetTimerMicros and  Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
+if Spring.GetTimerMicros and Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
 	spGetTimer = Spring.GetTimerMicros
 	highres = true
 end
@@ -120,8 +119,8 @@ end
 spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
-local widgetNameColors = {}  -- Store RGB values for background tinting
-local function ConstructPrefixedName (ghInfo)
+local widgetNameColors = {} -- Store RGB values for background tinting
+local function ConstructPrefixedName(ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
 	local _pos = stringFind(baseName, "_", 1, true)
@@ -146,7 +145,7 @@ local function ConstructPrefixedName (ghInfo)
 			b = mathRandom(180, 255)
 		end
 	end
-	widgetNameColors[gadgetName] = {r / 255, g / 255, b / 255}  -- Store normalized RGB
+	widgetNameColors[gadgetName] = { r / 255, g / 255, b / 255 } -- Store normalized RGB
 	prefixedWnames[gadgetName] = prefix .. stringChar(255, r, g, b) .. gadgetName .. "   "
 	return prefixedWnames[gadgetName]
 end
@@ -201,7 +200,7 @@ function widget:Initialize()
 	end
 
 	for name, wData in pairs(widgetHandler.knownWidgets) do
-		userWidgets[name] = (not wData.fromZip)
+		userWidgets[name] = not wData.fromZip
 	end
 end
 
@@ -247,7 +246,7 @@ local function Hook(w, name)
 	local t
 
 	local helper_func = function(...)
-		local dt = spDiffTimers(spGetTimer(), t, nil ,highres)
+		local dt = spDiffTimers(spGetTimer(), t, nil, highres)
 		local _, _, new_s, _ = spGetLuaMemUsage()
 		local ds = new_s - s
 		c[1] = c[1] + dt
@@ -302,11 +301,11 @@ local function StartHook()
 	--// hook the UpdateCallin function
 	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
 	wh.UpdateWidgetCallInRaw = function(self, name, w)
-		local listName = name .. 'List'
+		local listName = name .. "List"
 		local ciList = self[listName]
 		if ciList then
 			local func = w[name]
-			if type(func) == 'function' then
+			if type(func) == "function" then
 				if not IsHook(func) then
 					w[name] = Hook(w, name)
 				end
@@ -316,7 +315,7 @@ local function StartHook()
 			end
 			self:UpdateCallIn(name)
 		else
-			print('UpdateWidgetCallIn: bad name: ' .. name)
+			print("UpdateWidgetCallIn: bad name: " .. name)
 		end
 	end
 
@@ -334,7 +333,7 @@ local function StartHook()
 		for i = 1, #CallInsList do
 			local callin = CallInsList[i]
 			local func = widget[callin]
-			if type(func) == 'function' then
+			if type(func) == "function" then
 				widget[callin] = Hook(widget, callin)
 			end
 		end
@@ -440,7 +439,7 @@ function GetRedColourStrings(v)
 
 	-- time
 	local new_r = (tTime - minPerc) / percRange
-	local timeKey = name .. '_time'
+	local timeKey = name .. "_time"
 	redStrength[timeKey] = redStrength[timeKey] or 0
 	redStrength[timeKey] = u * redStrength[timeKey] + oneMinusU * new_r
 	local timeRedStrength = redStrength[timeKey]
@@ -454,7 +453,7 @@ function GetRedColourStrings(v)
 	elseif new_r < 0 then
 		new_r = 0
 	end
-	local spaceKey = name .. '_space'
+	local spaceKey = name .. "_space"
 	redStrength[spaceKey] = redStrength[spaceKey] or 0
 	redStrength[spaceKey] = u * redStrength[spaceKey] + oneMinusU * new_r
 	local spaceColorFactor = 1 - redStrength[spaceKey] * colorScaleFactor
@@ -463,13 +462,13 @@ end
 
 -- Helper function to render percentage with dimmed leading zeros
 local function DrawPercentWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces)
-	local formatStr = '%.' .. (decimalPlaces or 3) .. 'f%%'
+	local formatStr = "%." .. (decimalPlaces or 3) .. "f%%"
 	local formatted = stringFormat(formatStr, value)
-	local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+	local leadingPart, significantPart = stringMatch(formatted, "^(0%.0*)(.+)$")
 
 	if leadingPart then
 		-- Has leading zeros - render them dimmed
-		glText(colorString .. '\255\140\140\140' .. leadingPart, x, y, fontSize, "no")
+		glText(colorString .. "\255\140\140\140" .. leadingPart, x, y, fontSize, "no")
 		local leadingWidth = glGetTextWidth(leadingPart) * fontSize
 		glText(colorString .. significantPart, x + leadingWidth, y, fontSize, "no")
 	else
@@ -480,18 +479,18 @@ end
 
 -- Helper function to render memory allocation with dimmed leading zeros
 local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces, suffix)
-	local formatStr = '%.' .. (decimalPlaces or 1) .. 'f'
+	local formatStr = "%." .. (decimalPlaces or 1) .. "f"
 	local formatted = stringFormat(formatStr, value)
 
 	-- Check if value is 0.0 (all zeros)
 	if tonumber(formatted) == 0 then
 		-- Render entire "0.0" dimmed
-		glText(colorString .. '\255\150\150\150' .. formatted .. suffix, x, y, fontSize, "no")
+		glText(colorString .. "\255\150\150\150" .. formatted .. suffix, x, y, fontSize, "no")
 	else
-		local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+		local leadingPart, significantPart = stringMatch(formatted, "^(0%.0*)(.+)$")
 		if leadingPart then
 			-- Has leading zeros - render them dimmed
-			glText(colorString .. '\255\150\150\150' .. leadingPart, x, y, fontSize, "no")
+			glText(colorString .. "\255\150\150\150" .. leadingPart, x, y, fontSize, "no")
 			local leadingWidth = glGetTextWidth(leadingPart) * fontSize
 			glText(colorString .. significantPart .. suffix, x + leadingWidth, y, fontSize, "no")
 		else
@@ -510,8 +509,8 @@ end
 function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth, firstColX, reserve)
 	reserve = reserve or 0
 	if j >= maxLines - 5 then
-		x = nextColumn(x, colWidth, firstColX, reserve);
-		j = 0;
+		x = nextColumn(x, colWidth, firstColX, reserve)
+		j = 0
 	end
 	j = j + 1
 	glText(title_colour .. name .. " WIDGETS", x + 152, y - lineSpace * j, fontSize, "no")
@@ -520,8 +519,8 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 	local listLen = #list
 	for i = 1, listLen do
 		if j >= maxLines then
-			x = nextColumn(x, colWidth, firstColX, reserve);
-			j = 0;
+			x = nextColumn(x, colWidth, firstColX, reserve)
+			j = 0
 		end
 		local v = list[i]
 		local textY = y - lineSpace * j
@@ -537,7 +536,7 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 			glColor(color[1], color[2], color[3], 0.25)
 			glRect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
 
-			glColor(1, 1, 1, 1)  -- Reset color
+			glColor(1, 1, 1, 1) -- Reset color
 		end
 
 		-- Highlight the row that is currently drilled into
@@ -558,13 +557,13 @@ function DrawWidgetList(list, name, x, y, j, fontSize, lineSpace, maxLines, colW
 		r[1], r[2], r[3], r[4], r[5] = x - 12, textY - 3, x + colWidth - 15, textY + fontSize - 3, v.plainname
 
 		DrawPercentWithDimmedZeros(v.timeColourString, v.tLoad, x, textY, fontSize)
-		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, textY, fontSize, 1, 'kB/s')
+		DrawMemoryWithDimmedZeros(v.spaceColourString, v.sLoad, x + dataColWidth, textY, fontSize, 1, "kB/s")
 		glText(v.fullname, x + dataColWidth * 2, textY, fontSize, "no")
 		j = j + 1
 	end
 
 	DrawPercentWithDimmedZeros(totals_colour, list.allOverTime, x, y - lineSpace * j, fontSize, 2)
-	DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace, x + dataColWidth, y - lineSpace * j, fontSize, 0, 'kB/s')
+	DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace, x + dataColWidth, y - lineSpace * j, fontSize, 0, "kB/s")
 	glText(totals_colour .. "totals (" .. stringLower(name) .. ")", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
 	j = j + 1
 
@@ -581,7 +580,7 @@ local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
 	-- Hide a callin only when BOTH its cpu and alloc rate are negligible; hidden
 	-- callins still count towards the total so it stays accurate.
 	local minCallinPerc = 0.003 -- % of running time
-	local minCallinKB = 0.1     -- kB/s allocated
+	local minCallinKB = 0.1 -- kB/s allocated
 
 	local list = {}
 	local hidden = 0
@@ -595,7 +594,9 @@ local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
 			hidden = hidden + 1
 		end
 	end
-	tableSort(list, function(a, b) return a.tLoad > b.tLoad end)
+	tableSort(list, function(a, b)
+		return a.tLoad > b.tLoad
+	end)
 
 	local colW = fontSize * 8 -- one column width, wide enough for "9999.9 kB/s"
 	local timeColX = x
@@ -630,17 +631,17 @@ local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
 		local v = list[i]
 		local ry = line()
 		DrawPercentWithDimmedZeros(detailColour, v.tLoad, timeColX, ry, fontSize)
-		DrawMemoryWithDimmedZeros(detailColour, v.sLoad, allocsColX, ry, fontSize, 1, 'kB/s')
+		DrawMemoryWithDimmedZeros(detailColour, v.sLoad, allocsColX, ry, fontSize, 1, "kB/s")
 		glText(detailColour .. v.name, callinColX, ry, fontSize, "no")
 	end
 
 	local ty = line()
 	DrawPercentWithDimmedZeros(totals_colour, total_t, timeColX, ty, fontSize, 2)
-	DrawMemoryWithDimmedZeros(totals_colour, total_s, allocsColX, ty, fontSize, 0, 'kB/s')
+	DrawMemoryWithDimmedZeros(totals_colour, total_s, allocsColX, ty, fontSize, 0, "kB/s")
 	glText(totals_colour .. "total", callinColX, ty, fontSize, "no")
 
 	if hidden > 0 then
-		glText(totals_colour .. '\255\140\140\140' .. stringFormat("(%d negligible callins hidden)", hidden), x, line(), fontSize, "no")
+		glText(totals_colour .. "\255\140\140\140" .. stringFormat("(%d negligible callins hidden)", hidden), x, line(), fontSize, "no")
 	end
 
 	line() -- blank separator before the close hint
@@ -657,7 +658,6 @@ function widget:DrawScreen()
 	-- sort & count timing
 	deltaTime = spDiffTimers(spGetTimer(), startTimer, nil, highres)
 	if deltaTime >= tick then
-
 		startTimer = spGetTimer()
 		sortedList = {}
 
@@ -734,16 +734,20 @@ function widget:DrawScreen()
 			avgTLoad[wname] = ((avgTLoad[wname] * framesMinusOne) + tLoad) / frames
 			local sLoad = spaceLoadAverages[wname]
 			if not sortByLoad or avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
-				sortedList[n] = { name = wname2name[wname], plainname = wname, fullname = wname .. ' \255\166\166\166(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
+				sortedList[n] = { name = wname2name[wname], plainname = wname, fullname = wname .. " \255\166\166\166(" .. cmaxname_t .. "," .. cmaxname_space .. ")", tLoad = tLoad, sLoad = sLoad, tTime = t / deltaTime, avgTLoad = avgTLoad[wname] }
 				n = n + 1
 			end
 			allOverTime = allOverTime + tLoad
 			allOverSpace = allOverSpace + sLoad
 		end
 		if sortByLoad then
-			tableSort(sortedList, function(a, b) return a.avgTLoad > b.avgTLoad end)
+			tableSort(sortedList, function(a, b)
+				return a.avgTLoad > b.avgTLoad
+			end)
 		else
-			tableSort(sortedList, function(a, b) return a.name < b.name end)
+			tableSort(sortedList, function(a, b)
+				return a.name < b.name
+			end)
 		end
 
 		local sortedLen = #sortedList
@@ -812,8 +816,8 @@ function widget:DrawScreen()
 	x, j = DrawWidgetList(userList, "USER", x, y, j, fontSize, lineSpace, maxLines, colWidth, dataColWidth, firstColX, reserve)
 
 	if j >= maxLines - 15 then
-		x = nextColumn(x, colWidth, firstColX, reserve);
-		j = -1;
+		x = nextColumn(x, colWidth, firstColX, reserve)
+		j = -1
 	end
 
 	if selectedWidget then
@@ -826,10 +830,10 @@ function widget:DrawScreen()
 
 	j = j + 1
 	glText(totals_colour .. "total percentage of running time spent in luaui callins", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. stringFormat('%.1f%%', allOverTime), x + dataColWidth, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. stringFormat("%.1f%%", allOverTime), x + dataColWidth, y - lineSpace * j, fontSize, "no")
 	j = j + 1
 	glText(totals_colour .. "total rate of mem allocation by luaui callins", x + dataColWidth * 2, y - lineSpace * j, fontSize, "no")
-	glText(totals_colour .. stringFormat('%.0f', allOverSpace) .. 'kB/s', x + dataColWidth, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. stringFormat("%.0f", allOverSpace) .. "kB/s", x + dataColWidth, y - lineSpace * j, fontSize, "no")
 
 	-- Cache memory calculations
 	local gmMB = gm / 1000
@@ -838,13 +842,13 @@ function widget:DrawScreen()
 	local smPercent = 100 * sm / gm
 
 	j = j + 2
-	glText(totals_colour .. 'total lua memory usage is ' .. stringFormat('%.0f', gmMB) .. 'MB, of which:', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. "total lua memory usage is " .. stringFormat("%.0f", gmMB) .. "MB, of which:", x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. stringFormat('%.0f', lmPercent) .. '% is from luaui', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. "  " .. stringFormat("%.0f", lmPercent) .. "% is from luaui", x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. stringFormat('%.0f', umPercent) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. "  " .. stringFormat("%.0f", umPercent) .. "% is from unsynced states (luarules+luagaia+luaui)", x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(totals_colour .. '  ' .. stringFormat('%.0f', smPercent) .. '% is from synced states (luarules+luagaia)', x, y - lineSpace * j, fontSize, "no")
+	glText(totals_colour .. "  " .. stringFormat("%.0f", smPercent) .. "% is from synced states (luarules+luagaia)", x, y - lineSpace * j, fontSize, "no")
 
 	j = j + 2
 	glText(title_colour .. "All data excludes load from garbage collection & executing GL calls", x, y - lineSpace * j, fontSize, "no")

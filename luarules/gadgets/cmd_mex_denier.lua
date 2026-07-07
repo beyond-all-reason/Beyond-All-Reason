@@ -50,7 +50,7 @@ local function mexExists(spot, allyTeamID, cmdX, cmdZ)
 	for _, unit in ipairs(units) do
 		if isMex[spGetUnitDefID(unit)] then
 			local ux, _, uz = spGetUnitPosition(unit)
-			if not(ux == cmdX and uz == cmdZ) and spGetUnitAllyTeam(unit) == allyTeamID then -- exclude upgrading mexes
+			if not (ux == cmdX and uz == cmdZ) and spGetUnitAllyTeam(unit) == allyTeamID then -- exclude upgrading mexes
 				return true
 			end
 		end
@@ -87,6 +87,6 @@ function gadget:AllowUnitCreation(unitDefID, _, teamID, x, _, z)
 	if not closestSpot then
 		return false
 	end
-	
+
 	return not mexExists(closestSpot, spGetTeamAllyTeamID(teamID), x, z)
 end

@@ -1,5 +1,3 @@
-
-
 if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -7,15 +5,15 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name	= "Self-Destruct Resign",
-        desc	= "Cancel the order and resign players which try to self-destruct all their units",
-        author	= "Floris",
-        date	= "October 2021",
-        license	= "GNU GPL, v2 or later",
-        layer	= 0,
-        enabled	= true,
-    }
+	return {
+		name = "Self-Destruct Resign",
+		desc = "Cancel the order and resign players which try to self-destruct all their units",
+		author = "Floris",
+		date = "October 2021",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -62,7 +60,6 @@ local function hasActiveHumanTeammate(teamID)
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local thresholdPercentage = 0.95
 	local allowedStrikes = 3
 
@@ -74,7 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function cancelSelfDestructOrders(teamID)
 		local units = spGetTeamUnits(teamID)
-		for i=1, #units do
+		for i = 1, #units do
 			local unitID = units[i]
 			if spGetUnitSelfDTime(unitID) > 0 then
 				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
@@ -98,11 +95,11 @@ if gadgetHandler:IsSyncedCode() then
 		forceResignStrikesByTeamID[teamID] = strikes
 
 		if strikes < allowedStrikes then
-			notifyTeamPlayers(teamID, 'forceResignWarn')
+			notifyTeamPlayers(teamID, "forceResignWarn")
 			return
 		end
 
-		notifyTeamPlayers(teamID, 'forceResignMessage')
+		notifyTeamPlayers(teamID, "forceResignMessage")
 		Spring.KillTeam(teamID)
 	end
 
@@ -120,7 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 					local skipResignAmount = unitCount - triggerResignAmount
 					local selfdUnitCount = 0
 					local skippedUnitCount = 0
-					for i=1, unitCount do
+					for i = 1, unitCount do
 						local unitID = units[i]
 						if spGetUnitSelfDTime(unitID) > 0 then
 							selfdUnitCount = selfdUnitCount + 1
@@ -131,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						elseif selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
-							if not LuaAI or not ( string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors") ) then
+							if not LuaAI or not (string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors")) then
 								forceResignTeam(teamID)
 							end
 							break
@@ -149,11 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-
-
 else -- UNSYNCED
-
-
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myTeamID = Spring.GetMyTeamID()
 
@@ -165,26 +158,26 @@ else -- UNSYNCED
 			return
 		end
 
-		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI('GadgetMessageProxy') then
+		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI("GadgetMessageProxy") then
 			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy(messageKey))
 		end
 	end
 
 	local function forceResignWarn(_, playerID)
-		showForceResignNotification(playerID, 'ui.forceResignWarn')
+		showForceResignNotification(playerID, "ui.forceResignWarn")
 	end
 
 	local function forceResignMessage(_, playerID)
-		showForceResignNotification(playerID, 'ui.forceResignMessage')
+		showForceResignNotification(playerID, "ui.forceResignMessage")
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction('forceResignWarn', forceResignWarn)
-		gadgetHandler:AddSyncAction('forceResignMessage', forceResignMessage)
+		gadgetHandler:AddSyncAction("forceResignWarn", forceResignWarn)
+		gadgetHandler:AddSyncAction("forceResignMessage", forceResignMessage)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction('forceResignWarn')
-		gadgetHandler:RemoveSyncAction('forceResignMessage')
+		gadgetHandler:RemoveSyncAction("forceResignWarn")
+		gadgetHandler:RemoveSyncAction("forceResignMessage")
 	end
 end

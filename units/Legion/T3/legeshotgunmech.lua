@@ -33,7 +33,7 @@ return {
 		turnrate = 600,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			maxrange = "315",
 			model_author = "Ghoulish & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -130,7 +130,7 @@ return {
 				damage = {
 					default = 0,
 				},
-            },
+			},
 			shotgun = {
 				accuracy = 7,
 				areaofeffect = 16,
@@ -161,7 +161,7 @@ return {
 				sprayangle = 1400,
 				thickness = 0.6,
 				tolerance = 6000,
-                firetolerance = 6000,
+				firetolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 969,
@@ -190,7 +190,7 @@ return {
 				model = "legsmallrocket.s3o",
 				name = "Parabolic Trajectory Multi-Rocket Launcher",
 				noselfdamage = true,
-                proximitypriority = -1,
+				proximitypriority = -1,
 				range = 700,
 				reloadtime = 6,
 				smokecolor = 0.5,
@@ -231,7 +231,7 @@ return {
 			leg_t2_microflak_mobile = {
 				accuracy = 1000,
 				areaofeffect = 35,
-                burst = 3,
+				burst = 3,
 				burstrate = 0.02,
 				avoidfeature = false,
 				burnblow = true,
@@ -284,13 +284,13 @@ return {
 				badtargetcategory = "VTOL",
 				def = "SHOTGUN",
 				onlytargetcategory = "SURFACE",
-				slaveto = 1;
+				slaveto = 1,
 			},
 			[3] = {
 				badtargetcategory = "VTOL",
 				def = "adv_rocket",
 				onlytargetcategory = "SURFACE",
-                slaveto = 1;
+				slaveto = 1,
 			},
 			[4] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
