@@ -494,7 +494,8 @@ local function DrawTeamPlacement()
 			not startPointChosen
 			and next_playerID > -1
 			and (
-				(amIunlocked and current_playerID == myPlayerID) or (not amIunlocked and current_playerID ~= myPlayerID)
+				(amIunlocked and current_playerID == myPlayerID)
+				or (not amIunlocked and current_playerID ~= myPlayerID)
 			)
 		then
 			font:Print(DMWarnColor .. tmsg, vsx * 0.5, vsy * 0.256, 22.0 * uiScale, "co")
@@ -895,7 +896,12 @@ local function drawButton()
 					1,
 					1,
 					nil,
-					{ readyButtonColor[1] * 0.55 * mult, readyButtonColor[2] * 0.55 * mult, readyButtonColor[3] * 0.55 * mult, 1 },
+					{
+						readyButtonColor[1] * 0.55 * mult,
+						readyButtonColor[2] * 0.55 * mult,
+						readyButtonColor[3] * 0.55 * mult,
+						1,
+					},
 					{ readyButtonColor[1] * mult, readyButtonColor[2] * mult, readyButtonColor[3] * mult, 1 }
 				)
 			end

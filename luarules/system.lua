@@ -97,6 +97,9 @@ if System == nil then
 		--
 		Json = Json,
 
+		-- BAR module namespace (created by init.lua; detached from Spring table)
+		BAR = BAR,
+
 		--
 		--  Standard functions and variables
 		--

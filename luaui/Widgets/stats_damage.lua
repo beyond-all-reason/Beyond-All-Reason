@@ -79,7 +79,17 @@ function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_co
 
 	local cost = unitMetalCost[uDID] + unitEnergyCost[uDID] / 60
 	info[name] = info[name]
-		or { dmg_dealt = 0, dmg_rec = 0, n = 0, ts = 0, name = unitHumanName[uDID], minutes = 0, kills = 0, killed_cost = 0, cost = cost }
+		or {
+			dmg_dealt = 0,
+			dmg_rec = 0,
+			n = 0,
+			ts = 0,
+			name = unitHumanName[uDID],
+			minutes = 0,
+			kills = 0,
+			killed_cost = 0,
+			cost = cost,
+		}
 
 	local old_n = info[name].n
 	info[name].ts = ((info[name].ts or 0) * old_n + ts) / (old_n + n)

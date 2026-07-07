@@ -473,79 +473,44 @@ local function drawContent()
 				end
 				if showStack then
 					if udefID_5 then
-						drawIcon(
-							udefID_5,
-							{
-								groupRect[1] + iconMargin + (offset * 4),
-								groupRect[4] - iconMargin - (offset * 4) - iconSize,
-								groupRect[1] + iconMargin + (offset * 4) + iconSize,
-								groupRect[4] - iconMargin - (offset * 4),
-							},
-							0.33,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(udefID_5, {
+							groupRect[1] + iconMargin + (offset * 4),
+							groupRect[4] - iconMargin - (offset * 4) - iconSize,
+							groupRect[1] + iconMargin + (offset * 4) + iconSize,
+							groupRect[4] - iconMargin - (offset * 4),
+						}, 0.33, zoom, texSize, highlightOpacity)
 					end
 					if udefID_4 then
-						drawIcon(
-							udefID_4,
-							{
-								groupRect[1] + iconMargin + (offset * 3),
-								groupRect[4] - iconMargin - (offset * 3) - iconSize,
-								groupRect[1] + iconMargin + (offset * 3) + iconSize,
-								groupRect[4] - iconMargin - (offset * 3),
-							},
-							0.45,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(udefID_4, {
+							groupRect[1] + iconMargin + (offset * 3),
+							groupRect[4] - iconMargin - (offset * 3) - iconSize,
+							groupRect[1] + iconMargin + (offset * 3) + iconSize,
+							groupRect[4] - iconMargin - (offset * 3),
+						}, 0.45, zoom, texSize, highlightOpacity)
 					end
 					if udefID_3 then
-						drawIcon(
-							udefID_3,
-							{
-								groupRect[1] + iconMargin + (offset * 2),
-								groupRect[4] - iconMargin - (offset * 2) - iconSize,
-								groupRect[1] + iconMargin + (offset * 2) + iconSize,
-								groupRect[4] - iconMargin - (offset * 2),
-							},
-							0.55,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(udefID_3, {
+							groupRect[1] + iconMargin + (offset * 2),
+							groupRect[4] - iconMargin - (offset * 2) - iconSize,
+							groupRect[1] + iconMargin + (offset * 2) + iconSize,
+							groupRect[4] - iconMargin - (offset * 2),
+						}, 0.55, zoom, texSize, highlightOpacity)
 					end
 					if udefID_2 then
-						drawIcon(
-							udefID_2,
-							{
-								groupRect[1] + iconMargin + offset,
-								groupRect[4] - iconMargin - offset - iconSize,
-								groupRect[1] + iconMargin + offset + iconSize,
-								groupRect[4] - iconMargin - offset,
-							},
-							0.7,
-							zoom,
-							texSize,
-							highlightOpacity
-						)
+						drawIcon(udefID_2, {
+							groupRect[1] + iconMargin + offset,
+							groupRect[4] - iconMargin - offset - iconSize,
+							groupRect[1] + iconMargin + offset + iconSize,
+							groupRect[4] - iconMargin - offset,
+						}, 0.7, zoom, texSize, highlightOpacity)
 					end
 				end
-				drawIcon(
-					udefID_1,
-					{
-						groupRect[1] + iconMargin,
-						groupRect[4] - iconMargin - iconSize,
-						groupRect[1] + iconMargin + iconSize,
-						groupRect[4] - iconMargin,
-					},
-					1,
-					zoom,
-					texSize,
-					highlightOpacity
-				)
+				drawIcon(udefID_1, {
+					groupRect[1] + iconMargin,
+					groupRect[4] - iconMargin - iconSize,
+					groupRect[1] + iconMargin + iconSize,
+					groupRect[4] - iconMargin,
+				}, 1, zoom, texSize, highlightOpacity)
 
 				local fontSize = height * vsy * 0.4
 				font2:Begin(true)
