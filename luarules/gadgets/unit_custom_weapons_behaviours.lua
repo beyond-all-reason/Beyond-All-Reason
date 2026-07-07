@@ -513,7 +513,6 @@ local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocity
 end
 
 local function split(params, projectileID)
-	local targetType, target = spGetProjectileTarget(projectileID)
 	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
 
 	spDeleteProjectile(projectileID)
