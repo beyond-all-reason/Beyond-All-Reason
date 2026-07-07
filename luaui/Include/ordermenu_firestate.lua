@@ -26,7 +26,7 @@ local descrByState = {
 local virtualIndexByStateDisabled = {
 	[CustomFirestateDefs.HOLD_FIRE] = 1,
 	[CustomFirestateDefs.RETURN_FIRE] = 2,
-	[CustomFirestateDefs.AGGRESSIVE] = 3,
+	[CustomFirestateDefs.FIRE_AT_WILL] = 3,
 	[CustomFirestateDefs.DEFEND] = 4,
 	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
@@ -34,7 +34,7 @@ local virtualIndexByStateDisabled = {
 local virtualIndexByStateEnabled = {
 	[CustomFirestateDefs.HOLD_FIRE] = 1,
 	[CustomFirestateDefs.DEFEND] = 2,
-	[CustomFirestateDefs.AGGRESSIVE] = 3,
+	[CustomFirestateDefs.FIRE_AT_WILL] = 3,
 	[CustomFirestateDefs.RETURN_FIRE] = 4,
 	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
@@ -42,7 +42,7 @@ local virtualIndexByStateEnabled = {
 local stateByVirtualIndexDisabled = {
 	[1] = CustomFirestateDefs.HOLD_FIRE,
 	[2] = CustomFirestateDefs.RETURN_FIRE,
-	[3] = CustomFirestateDefs.AGGRESSIVE,
+	[3] = CustomFirestateDefs.FIRE_AT_WILL,
 	[4] = CustomFirestateDefs.DEFEND,
 	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
@@ -50,7 +50,7 @@ local stateByVirtualIndexDisabled = {
 local stateByVirtualIndexEnabled = {
 	[1] = CustomFirestateDefs.HOLD_FIRE,
 	[2] = CustomFirestateDefs.DEFEND,
-	[3] = CustomFirestateDefs.AGGRESSIVE,
+	[3] = CustomFirestateDefs.FIRE_AT_WILL,
 	[4] = CustomFirestateDefs.RETURN_FIRE,
 	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
@@ -131,7 +131,7 @@ local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
 	if not defendFirestateEnabled then
 		remappingFirestate = true
 	end
-	UserFirestateCommands.giveFirestateToSelection(state, spGetSelectedUnits(), opts)
+	UserFirestateCommands.setSelectionFirestate(state, spGetSelectedUnits(), opts)
 	if not defendFirestateEnabled then
 		remappingFirestate = false
 	end
