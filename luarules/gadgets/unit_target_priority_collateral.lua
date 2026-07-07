@@ -20,6 +20,7 @@ end
 local PRIORITY_CLEAN_SHOT = 0.875
 local PRIORITY_ANTI_COLLATERAL = 5.0
 local PRIORITY_ANTI_SPAM = 20.0
+local allowBadSpamTarget = false
 
 local friendPowerRatio = 1.5
 local spamPowerMax = 50
@@ -281,8 +282,8 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 			avoidUnit[allyTeam][targetID] = searchRadius
 		end
 		if enemyPower <= spamPowerMax then
-			allowed = false
-			priority = priority * PRIORITY_ANTI_SPAM -- Not needed?
+			allowed = allowBadSpamTarget
+			priority = priority * PRIORITY_ANTI_SPAM
 		else
 			priority = priority * PRIORITY_ANTI_COLLATERAL
 		end
