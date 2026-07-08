@@ -12,9 +12,6 @@ function gadget:GetInfo()
 	}
 end
 
-local CMD_ATTACK = CMD.ATTACK
-local CMD_MOVE = CMD.MOVE
-
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetUnitDefID = Spring.GetUnitDefID
 local spIsUnitAllied = Spring.IsUnitAllied
@@ -45,11 +42,11 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
+		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 	end
 
+
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		-- accepts: CMD.ATTACK
 		if empUnits[unitDefID]
 			and cmdParams[2] == nil
 			and type(cmdParams[1]) == 'number'
@@ -71,6 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
+	-- EMP restriction for the hovering icons
 	local function CanSelectionAttackTarget(targetDefID)
 		local targetIsEmpImmune = unEmpableUnits[targetDefID]
 		for unitDefID in pairs(spGetSelectedUnitsCounts()) do
@@ -83,13 +81,13 @@ else
 	end
 
 	function gadget:DefaultCommand(type, id, cmd)
-		if type ~= "unit" or cmd ~= CMD_ATTACK or not id or spIsUnitAllied(id) then
+		if type ~= "unit" or cmd ~= CMD.ATTACK or not id or spIsUnitAllied(id) then
 			return
 		end
 
 		local targetDefID = spGetUnitDefID(id)
 		if targetDefID and unEmpableUnits[targetDefID] and not CanSelectionAttackTarget(targetDefID) then
-			return CMD_MOVE
+			return CMD.MOVE --shows move instead of attack on the immune targets. potentially changed later
 		end
 	end
 end
