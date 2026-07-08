@@ -526,7 +526,15 @@ local miscState = {
 	featureRectLastB = nil,  -- Last queried feature-rect bottom (world)
 	featureRectLastUpdate = 0,  -- os.clock() of last feature-rect query
 	featureRectNeedsUpdate = true,
+	apiTransitionEndTime = 0,  -- os.clock() when externally requested camera transition ends
+	apiTransitionCenterSmoothness = nil,
+	apiTransitionZoomSmoothness = nil,
+	apiDebugSequence = nil,  -- Active timed debug sequence (if any)
+	apiInteractionLocked = false,
 }
+
+-- Registered Script.LuaUI globals for this PIP instance (cleaned up on shutdown)
+miscState.registeredPipGlobals = {}
 
 ----------------------------------------------------------------------------------------------------
 -- TV Mode: Automatic spectator camera that tracks areas of interest
@@ -7741,6 +7749,320 @@ local function RegisterMinimapWGAPI()
 	end
 end
 
+function ResolveApiTransitionTime(transitionTime)
+	if type(transitionTime) == "number" and transitionTime >= 0 then
+		return transitionTime
+	end
+	return config.switchTransitionTime or 0
+end
+
+function StartApiTransition(transitionTime)
+	local duration = ResolveApiTransitionTime(transitionTime)
+	if duration <= 0 then
+		miscState.apiTransitionEndTime = 0
+		miscState.apiTransitionCenterSmoothness = nil
+		miscState.apiTransitionZoomSmoothness = nil
+		return 0
+	end
+
+	-- Set smoothness so we reach ~95% of the target within the requested duration.
+	local smoothness = 2.995732273553991 / duration
+	miscState.apiTransitionEndTime = os.clock() + duration + 0.05
+	miscState.apiTransitionCenterSmoothness = smoothness
+	miscState.apiTransitionZoomSmoothness = smoothness
+	return duration
+end
+
+function DisableAutoCameraModes()
+	if miscState.tvEnabled then
+		miscState.tvEnabled = false
+	end
+	pipTV.camera.active = false
+	miscState.activityFocusActive = false
+	if WG.pipTVFocus then
+		WG.pipTVFocus[pipNumber] = nil
+		if not next(WG.pipTVFocus) then WG.pipTVFocus = nil end
+	end
+end
+
+function ApplyApiCameraTarget(targetWcx, targetWcz, targetZoom, transitionTime, clearTracking)
+	local hasPos = (type(targetWcx) == "number") or (type(targetWcz) == "number")
+	local hasZoom = (type(targetZoom) == "number")
+	if not hasPos and not hasZoom then
+		return false
+	end
+
+	if clearTracking then
+		interactionState.areTracking = nil
+		interactionState.trackingPlayerID = nil
+	end
+
+	DisableAutoCameraModes()
+
+	if hasZoom then
+		cameraState.targetZoom = math.max(GetEffectiveZoomMin(), math.min(GetEffectiveZoomMax(), targetZoom))
+	end
+
+	if hasPos then
+		local desiredWcx = (type(targetWcx) == "number") and targetWcx or cameraState.targetWcx
+		local desiredWcz = (type(targetWcz) == "number") and targetWcz or cameraState.targetWcz
+		local pipWidth, pipHeight = GetEffectivePipDimensions()
+		local visibleWorldWidth = pipWidth / cameraState.targetZoom
+		local visibleWorldHeight = pipHeight / cameraState.targetZoom
+
+		if IsAtMinimumZoom(cameraState.targetZoom) then
+			cameraState.targetWcx = mapInfo.mapSizeX / 2
+			cameraState.targetWcz = mapInfo.mapSizeZ / 2
+		else
+			cameraState.targetWcx = ClampCameraAxis(desiredWcx, visibleWorldWidth, mapInfo.mapSizeX, config.mapEdgeMargin)
+			cameraState.targetWcz = ClampCameraAxis(desiredWcz, visibleWorldHeight, mapInfo.mapSizeZ, config.mapEdgeMargin)
+		end
+	end
+
+	local duration = StartApiTransition(transitionTime)
+	if duration <= 0 then
+		cameraState.wcx = cameraState.targetWcx
+		cameraState.wcz = cameraState.targetWcz
+		cameraState.zoom = cameraState.targetZoom
+		RecalculateWorldCoordinates()
+		RecalculateGroundTextureCoordinates()
+	end
+
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
+	pipR2T.unitsNeedsUpdate = true
+	return true
+end
+
+function BuildTrackUnitArray(unitsOrUnitID)
+	local trackingUnits = {}
+	if type(unitsOrUnitID) == "number" then
+		trackingUnits[1] = unitsOrUnitID
+	elseif type(unitsOrUnitID) == "table" then
+		for _, unitID in pairs(unitsOrUnitID) do
+			if type(unitID) == "number" then
+				trackingUnits[#trackingUnits + 1] = unitID
+			end
+		end
+	end
+
+	if #trackingUnits == 0 then
+		return nil
+	end
+
+	return trackingUnits
+end
+
+function TrackUnitsApi(unitsOrUnitID, transitionTime)
+	local trackingUnits = BuildTrackUnitArray(unitsOrUnitID)
+	if not trackingUnits then
+		return false
+	end
+
+	DisableAutoCameraModes()
+	interactionState.trackingPlayerID = nil
+	interactionState.areTracking = trackingUnits
+	cameraState.zoomToCursorActive = false
+	UpdateTracking()
+
+	local duration = StartApiTransition(transitionTime)
+	if duration <= 0 then
+		cameraState.wcx = cameraState.targetWcx
+		cameraState.wcz = cameraState.targetWcz
+		RecalculateWorldCoordinates()
+		RecalculateGroundTextureCoordinates()
+	end
+
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
+	pipR2T.unitsNeedsUpdate = true
+	pipR2T.losNeedsUpdate = true
+	return true
+end
+
+function TrackPlayerApi(playerID, transitionTime)
+	if type(playerID) ~= "number" then
+		return false
+	end
+
+	local myPlayerID = Spring.GetMyPlayerID()
+	if playerID == myPlayerID then
+		return false
+	end
+
+	local name, _, isSpec = spFunc.GetPlayerInfo(playerID, false)
+	if not name or isSpec then
+		return false
+	end
+
+	DisableAutoCameraModes()
+	interactionState.trackingPlayerID = playerID
+	interactionState.areTracking = nil
+	cameraState.zoomToCursorActive = false
+	StartApiTransition(transitionTime)
+
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.contentNeedsUpdate = true
+	pipR2T.unitsNeedsUpdate = true
+	pipR2T.losNeedsUpdate = true
+	return true
+end
+
+function ClearTrackingApi()
+	local hadTracking = interactionState.trackingPlayerID or interactionState.areTracking
+	interactionState.trackingPlayerID = nil
+	interactionState.areTracking = nil
+	cameraState.zoomToCursorActive = false
+	pipR2T.frameNeedsUpdate = true
+	pipR2T.losNeedsUpdate = true
+	return hadTracking and true or false
+end
+
+function SetInteractionLockedApi(locked)
+	miscState.apiInteractionLocked = (locked and true) or false
+
+	if miscState.apiInteractionLocked then
+		-- Cancel current input state to avoid sticky drag/pan modes while locked.
+		interactionState.areDragging = false
+		interactionState.arePanning = false
+		interactionState.areCentering = false
+		interactionState.areIncreasingZoom = false
+		interactionState.areDecreasingZoom = false
+		interactionState.areBoxSelecting = false
+		interactionState.areBoxDeselecting = false
+		interactionState.areFormationDragging = false
+		interactionState.areBuildDragging = false
+		interactionState.areAreaDragging = false
+		interactionState.leftMousePressed = false
+		interactionState.rightMousePressed = false
+		interactionState.middleMousePressed = false
+		interactionState.middleMouseMoved = false
+		interactionState.pipMinimapDragging = false
+		interactionState.worldCameraDragging = false
+		interactionState.minimizeButtonDragging = false
+		interactionState.minimizeButtonClickStartX = 0
+		interactionState.minimizeButtonClickStartY = 0
+		interactionState.isMouseOverPip = false
+	end
+
+	pipR2T.frameNeedsUpdate = true
+	return miscState.apiInteractionLocked
+end
+
+function SetStateApi(stateData, transitionTime)
+	if type(stateData) ~= "table" then
+		return false
+	end
+
+	local stateTrackingPlayerID = stateData.trackingPlayerID
+	local stateTrackedUnits = stateData.trackedUnits
+	local stateWcx = stateData.targetWcx or stateData.wcx
+	local stateWcz = stateData.targetWcz or stateData.wcz
+	local stateZoom = stateData.targetZoom or stateData.zoom
+
+	if type(stateTrackingPlayerID) == "number" then
+		local ok = TrackPlayerApi(stateTrackingPlayerID, transitionTime)
+		if not ok then
+			return false
+		end
+		if type(stateWcx) == "number" or type(stateWcz) == "number" or type(stateZoom) == "number" then
+			ApplyApiCameraTarget(stateWcx, stateWcz, stateZoom, transitionTime, false)
+		end
+		return true
+	end
+
+	if type(stateTrackedUnits) == "table" and next(stateTrackedUnits) ~= nil then
+		local ok = TrackUnitsApi(stateTrackedUnits, transitionTime)
+		if not ok then
+			return false
+		end
+		if type(stateZoom) == "number" then
+			ApplyApiCameraTarget(nil, nil, stateZoom, transitionTime, false)
+		end
+		return true
+	end
+
+	return ApplyApiCameraTarget(stateWcx, stateWcz, stateZoom, transitionTime, true)
+end
+
+function ZoomOutFullApi(transitionTime)
+	-- Match minimap-style overview: center camera and use effective minimum zoom.
+	local zoomMin = GetEffectiveZoomMin()
+	local centerX = mapInfo.mapSizeX / 2
+	local centerZ = mapInfo.mapSizeZ / 2
+	return ApplyApiCameraTarget(centerX, centerZ, zoomMin, transitionTime, true)
+end
+
+function StartDebugCameraSequenceApi()
+	SetInteractionLockedApi(true)
+	miscState.apiDebugSequence = {
+		startFrame = Spring.GetGameFrame(),
+		startTime = os.clock(),
+		stage = 0,
+		stageTime = os.clock(),
+	}
+	return miscState.apiDebugSequence.startFrame
+end
+
+function UpdateDebugCameraSequenceApi(now)
+	local seq = miscState.apiDebugSequence
+	if not seq then
+		return
+	end
+
+	if seq.stage == 0 then
+		if now - seq.startTime >= 2 then
+			local commanderID = FindMyCommander and FindMyCommander() or nil
+			if commanderID then
+				TrackUnitsApi(commanderID, 0.35)
+				ApplyApiCameraTarget(nil, nil, 0.35, 0.35, false)
+			else
+				ApplyApiCameraTarget(mapInfo.mapSizeX / 2, mapInfo.mapSizeZ / 2, 0.35, 2.0, true)
+			end
+			seq.stage = 1
+			seq.stageTime = now
+		end
+	elseif seq.stage == 1 then
+		if now - seq.stageTime >= 4 then
+			ClearTrackingApi()
+			ApplyApiCameraTarget(mapInfo.mapSizeX / 2, mapInfo.mapSizeZ / 2, nil, 2.0, true)
+			seq.stage = 2
+			seq.stageTime = now
+		end
+	elseif seq.stage == 2 then
+		if now - seq.stageTime >= 2 then
+			ZoomOutFullApi(0.35)
+			seq.stage = 3
+			seq.stageTime = now
+		end
+	else
+		if now - seq.stageTime >= 0.5 then
+			SetInteractionLockedApi(false)
+			miscState.apiDebugSequence = nil
+		end
+	end
+end
+
+function RegisterPipGlobal(name, func)
+	widgetHandler:RegisterGlobal(name, func)
+	local globals = miscState.registeredPipGlobals
+	globals[#globals + 1] = name
+end
+
+function RegisterPipGlobalApis(pipApi)
+	RegisterPipGlobal('PIPSetCamera' .. pipNumber, pipApi.SetCamera)
+	RegisterPipGlobal('PIPSetState' .. pipNumber, pipApi.SetState)
+	RegisterPipGlobal('PIPZoomOutFull' .. pipNumber, pipApi.ZoomOutFull)
+	RegisterPipGlobal('PIPSetInteractionLocked' .. pipNumber, pipApi.SetInteractionLocked)
+	RegisterPipGlobal('PIPDebugCameraSequence' .. pipNumber, pipApi.DebugCameraSequence)
+	RegisterPipGlobal('PIPSetPosition' .. pipNumber, pipApi.SetPosition)
+	RegisterPipGlobal('PIPSetZoom' .. pipNumber, pipApi.SetZoom)
+	RegisterPipGlobal('PIPTrackUnits' .. pipNumber, pipApi.TrackUnits)
+	RegisterPipGlobal('PIPTrackPlayer' .. pipNumber, pipApi.TrackPlayer)
+	RegisterPipGlobal('PIPClearTracking' .. pipNumber, pipApi.ClearTracking)
+	RegisterPipGlobal('PIPGetState' .. pipNumber, pipApi.GetState)
+end
+
 function widget:Initialize()
 	RebuildAllUnitsCache()
 
@@ -8267,99 +8589,133 @@ end
 
 	-- Create API for other widgets
 	WG['pip'..pipNumber] = {}
-	WG['pip'..pipNumber].IsAbove = function(mx, my)
+	local pipApi = WG['pip'..pipNumber]
+	pipApi.IsAbove = function(mx, my)
 		return widget:IsAbove(mx, my)
 	end
-	WG['pip'..pipNumber].ForceUpdate = function()
+	pipApi.ForceUpdate = function()
 		pipR2T.contentNeedsUpdate = true
 	end
-	WG['pip'..pipNumber].SetUpdateRate = function(fps)
+	pipApi.SetUpdateRate = function(fps)
 		pipUpdateRate = fps
 		pipUpdateInterval = pipUpdateRate > 0 and (1 / pipUpdateRate) or 0
 	end
-	WG['pip'..pipNumber].GetUpdateRate = function()
+	pipApi.GetUpdateRate = function()
 		return pipUpdateRate
 	end
-	WG['pip'..pipNumber].SetMapRuler = function(enabled)
+	pipApi.SetMapRuler = function(enabled)
 		config.showMapRuler = enabled
 	end
-	WG['pip'..pipNumber].GetMapRuler = function()
+	pipApi.GetMapRuler = function()
 		return config.showMapRuler
 	end
-	WG['pip'..pipNumber].TrackPlayer = function(playerID)
-		if playerID and type(playerID) == "number" then
-			-- Prevent tracking yourself
-			local myPlayerID = Spring.GetMyPlayerID()
-			if playerID == myPlayerID then
-				return false
-			end
-
-			local name, _, isSpec = spFunc.GetPlayerInfo(playerID, false)
-			if name and not isSpec then
-				interactionState.trackingPlayerID = playerID
-				interactionState.areTracking = nil  -- Clear unit tracking
-				pipR2T.frameNeedsUpdate = true
-				pipR2T.contentNeedsUpdate = true
-				pipR2T.losNeedsUpdate = true  -- Update LOS for new tracked player
-				return true
-			end
-		end
-		return false
+	pipApi.GetDefaultTransitionTime = function()
+		return config.switchTransitionTime
 	end
-	WG['pip'..pipNumber].UntrackPlayer = function()
+	pipApi.SetCamera = function(wcx, wcz, zoom, transitionTime)
+		return ApplyApiCameraTarget(wcx, wcz, zoom, transitionTime, true)
+	end
+	pipApi.SetState = function(stateData, transitionTime)
+		return SetStateApi(stateData, transitionTime)
+	end
+	pipApi.ZoomOutFull = function(transitionTime)
+		return ZoomOutFullApi(transitionTime)
+	end
+	pipApi.SetInteractionLocked = function(locked)
+		return SetInteractionLockedApi(locked)
+	end
+	pipApi.GetInteractionLocked = function()
+		return miscState.apiInteractionLocked
+	end
+	pipApi.DebugCameraSequence = function()
+		return StartDebugCameraSequenceApi()
+	end
+	pipApi.SetPosition = function(wcx, wcz, transitionTime)
+		return ApplyApiCameraTarget(wcx, wcz, nil, transitionTime, true)
+	end
+	pipApi.SetZoom = function(zoom, transitionTime)
+		return ApplyApiCameraTarget(nil, nil, zoom, transitionTime, false)
+	end
+	pipApi.TrackUnits = function(unitsOrUnitID, transitionTime)
+		return TrackUnitsApi(unitsOrUnitID, transitionTime)
+	end
+	pipApi.TrackPlayer = function(playerID, transitionTime)
+		return TrackPlayerApi(playerID, transitionTime)
+	end
+	pipApi.ClearTracking = function()
+		return ClearTrackingApi()
+	end
+	pipApi.UntrackPlayer = function()
 		if interactionState.trackingPlayerID then
 			interactionState.trackingPlayerID = nil
 			pipR2T.frameNeedsUpdate = true
-			pipR2T.losNeedsUpdate = true  -- Update LOS when untracking
+			pipR2T.losNeedsUpdate = true
 			return true
 		end
 		return false
 	end
-	WG['pip'..pipNumber].GetTrackedPlayer = function()
+	pipApi.GetTrackedPlayer = function()
 		return interactionState.trackingPlayerID
 	end
+	pipApi.GetTrackedUnits = function()
+		return interactionState.areTracking
+	end
+	pipApi.GetState = function()
+		return {
+			wcx = cameraState.wcx,
+			wcz = cameraState.wcz,
+			targetWcx = cameraState.targetWcx,
+			targetWcz = cameraState.targetWcz,
+			zoom = cameraState.zoom,
+			targetZoom = cameraState.targetZoom,
+			trackingPlayerID = interactionState.trackingPlayerID,
+			trackedUnits = interactionState.areTracking,
+		}
+	end
 	-- API for minimap mode: get visible world area
-	WG['pip'..pipNumber].IsMinimapMode = function()
+	pipApi.IsMinimapMode = function()
 		return isMinimapMode
 	end
-	WG['pip'..pipNumber].GetVisibleWorldArea = function()
+	pipApi.GetVisibleWorldArea = function()
 		-- Returns the visible world coordinates: left, right, bottom, top
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
-	WG['pip'..pipNumber].GetScreenBounds = function()
+	pipApi.GetScreenBounds = function()
 		-- Returns the screen coordinates of the PIP
 		return render.dim.l, render.dim.r, render.dim.b, render.dim.t
 	end
-	WG['pip'..pipNumber].IsMinimized = function()
+	pipApi.IsMinimized = function()
 		return uiState.inMinMode or (isMinimapMode and miscState.minimapMinimized)
 	end
-	WG['pip'..pipNumber].GetZoom = function()
+	pipApi.GetZoom = function()
 		return cameraState.zoom
 	end
-	WG['pip'..pipNumber].GetCameraCenter = function()
+	pipApi.GetCameraCenter = function()
 		return cameraState.wcx, cameraState.wcz
 	end
 	-- Expose ghost building cache so sibling PIPs can share data on reload
-	WG['pip'..pipNumber].GetGhostBuildings = function()
+	pipApi.GetGhostBuildings = function()
 		return ghostBuildings
 	end
-	WG['pip'..pipNumber].getDrawCommandFX = function()
+	pipApi.getDrawCommandFX = function()
 		return config.drawCommandFX
 	end
-	WG['pip'..pipNumber].setDrawCommandFX = function(value)
+	pipApi.setDrawCommandFX = function(value)
 		config.drawCommandFX = value
 		pipR2T.unitsNeedsUpdate = true
 	end
-	WG['pip'..pipNumber].getAltKeyRequiredForZoom = function()
+	pipApi.getAltKeyRequiredForZoom = function()
 		return config.altKeyRequiredForZoom
 	end
-	WG['pip'..pipNumber].setAltKeyRequiredForZoom = function(value)
+	pipApi.setAltKeyRequiredForZoom = function(value)
 		config.altKeyRequiredForZoom = value
 	end
 
+	RegisterPipGlobalApis(pipApi)
+
 	-- In minimap mode, also register as WG.pip_minimap for compatibility
 	if isMinimapMode then
-		WG.pip_minimap = WG['pip'..pipNumber]
+		WG.pip_minimap = pipApi
 		-- Also expose getHeight like the original minimap widget for topbar compatibility
 		WG.pip_minimap.getHeight = function()
 			if miscState.minimapMinimized then return 0 end
@@ -9027,6 +9383,11 @@ function widget:Shutdown()
 	end
 
 	-- Clean up API (must happen AFTER the anotherPipActive check above)
+	local globals = miscState.registeredPipGlobals
+	for i = 1, #globals do
+		widgetHandler:DeregisterGlobal(globals[i])
+		globals[i] = nil
+	end
 	WG['pip'..pipNumber] = nil
 	if isMinimapMode then
 		WG.pip_minimap = nil
@@ -17309,6 +17670,12 @@ cache.guishaderWasActive = WG['guishader'] ~= nil
 cache.guishaderCheckTimer = 0
 
 function widget:Update(dt)
+
+	-- if WG['pip'..pipNumber] and WG['pip'..pipNumber].DebugCameraSequence and not onlyonce then
+	-- 	WG['pip'..pipNumber].DebugCameraSequence()
+	-- 	onlyonce = true
+	-- end
+
 	-- Detect guishader toggle: force refresh when it comes back on
 	-- (must run even when minimized so the minimize-button blur is restored)
 	cache.guishaderCheckTimer = cache.guishaderCheckTimer + dt
@@ -17353,6 +17720,9 @@ function widget:Update(dt)
 		pipR2T.frameNeedsUpdate = true
 		pipR2T.forceRefreshFrames = 5
 	end
+
+	-- Run optional API debug sequence regardless of minimization state.
+	UpdateDebugCameraSequenceApi(os.clock())
 
 	-- Skip ALL heavy processing when minimized and not animating.
 	-- DrawScreen/DrawWorld already return early when minimized, so ghost cleanup,
@@ -18063,6 +18433,12 @@ function widget:Update(dt)
 	-- Smooth zoom and camera center interpolation
 	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
+	local apiTransitionActive = miscState.apiTransitionEndTime and miscState.apiTransitionEndTime > os.clock()
+	if not apiTransitionActive then
+		miscState.apiTransitionEndTime = 0
+		miscState.apiTransitionCenterSmoothness = nil
+		miscState.apiTransitionZoomSmoothness = nil
+	end
 
 	-- GameOver zoom-out animation: keep updating content until complete
 	if miscState.gameOverZoomingOut then
@@ -18118,6 +18494,9 @@ function widget:Update(dt)
 
 		if zoomNeedsUpdate then
 			local zoomSmooth = gameOverSlow or (interactionState.trackingPlayerID and config.playerTrackingSmoothness or config.zoomSmoothness)
+			if not gameOverSlow and apiTransitionActive and miscState.apiTransitionZoomSmoothness then
+				zoomSmooth = miscState.apiTransitionZoomSmoothness
+			end
 			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * zoomSmooth, 1)
 			-- Snap to target when close enough to avoid the asymptotic interpolation
 			-- never reaching exact fitZoom (which would leave a sliver of void)
@@ -18200,17 +18579,21 @@ function widget:Update(dt)
 			local smoothnessToUse = config.centerSmoothness -- Default for zoom-to-cursor and panning
 			if gameOverSlow then
 				smoothnessToUse = gameOverSlow  -- Slow dramatic pan to center during game-over
-			elseif miscState.isSwitchingViews then
-				smoothnessToUse = config.switchSmoothness -- Fast transition for view switching
-			elseif interactionState.trackingPlayerID then
-				smoothnessToUse = config.playerTrackingSmoothness -- Slower, smoother tracking for player camera
-			elseif interactionState.areTracking then
-				-- When tracking units and also zooming, use zoom smoothness for the center animation
-				-- so that both animations stay in sync (otherwise panning lags behind zooming near edges)
-				if zoomNeedsUpdate then
-					smoothnessToUse = config.zoomSmoothness
-				else
-					smoothnessToUse = config.trackingSmoothness -- Smoother animation for unit tracking mode
+			elseif apiTransitionActive and miscState.apiTransitionCenterSmoothness then
+				smoothnessToUse = miscState.apiTransitionCenterSmoothness
+			else
+				if miscState.isSwitchingViews then
+					smoothnessToUse = config.switchSmoothness -- Fast transition for view switching
+				elseif interactionState.trackingPlayerID then
+					smoothnessToUse = config.playerTrackingSmoothness -- Slower, smoother tracking for player camera
+				elseif interactionState.areTracking then
+					-- When tracking units and also zooming, use zoom smoothness for the center animation
+					-- so that both animations stay in sync (otherwise panning lags behind zooming near edges)
+					if zoomNeedsUpdate then
+						smoothnessToUse = config.zoomSmoothness
+					else
+						smoothnessToUse = config.trackingSmoothness -- Smoother animation for unit tracking mode
+					end
 				end
 			end
 
@@ -19526,6 +19909,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 end
 
 function widget:IsAbove(mx, my)
+	if miscState.apiInteractionLocked then return false end
 	-- Don't claim mouse when GUI is hidden
 	if Spring.IsGUIHidden() then return false end
 	-- Guard against uninitialized render dimensions
@@ -19567,6 +19951,7 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MouseWheel(up, value)
+	if miscState.apiInteractionLocked then return end
 	if Spring.IsGUIHidden() then return end
 	if isMinimapMode and miscState.minimapMinimized then return end
 	if not uiState.inMinMode then
@@ -19667,6 +20052,7 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MousePress(mx, my, mButton)
+	if miscState.apiInteractionLocked then return end
 	-- Don't process input when GUI is hidden
 	if Spring.IsGUIHidden() then return end
 	-- Guard against uninitialized render dimensions
@@ -20377,6 +20763,7 @@ function widget:MousePress(mx, my, mButton)
 end
 
 function widget:MouseMove(mx, my, dx, dy, mButton)
+	if miscState.apiInteractionLocked then return end
 	if Spring.IsGUIHidden() then return end
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -20835,6 +21222,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 end
 
 function widget:KeyRelease(key)
+	if miscState.apiInteractionLocked then return end
 	-- When shift is released after issuing a command with shift held,
 	-- clear the active command (matches engine behavior in the world view)
 	if (key == 304 or key == 303) and interactionState.commandIssuedWithShift then
@@ -20864,6 +21252,7 @@ function widget:KeyRelease(key)
 end
 
 function widget:MouseRelease(mx, my, mButton)
+	if miscState.apiInteractionLocked then return end
 	if Spring.IsGUIHidden() then return end
 	-- Handle world camera drag release (leftButtonPansCamera mode)
 	if mButton == 1 and interactionState.worldCameraDragging then
