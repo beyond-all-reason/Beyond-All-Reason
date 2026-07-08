@@ -348,6 +348,9 @@ widgetState = {  -- forward-declared above playSound so mute check works
 		seenLightsTypeHint = false,
 		seenCloneLayersHint = false,
 		seenSceneSkyboxHint = false,
+		heightmapExportRangeMode = "auto",
+		heightmapExportCustomMin = 0,
+		heightmapExportCustomMax = 1,
 	},
 	-- ========================================================================
 	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
@@ -440,12 +443,21 @@ function loadUiPrefs()
 	if type(data.seenSceneSkyboxHint) == "boolean" then
 		widgetState.uiPrefs.seenSceneSkyboxHint = data.seenSceneSkyboxHint
 	end
+	if data.heightmapExportRangeMode == "auto" or data.heightmapExportRangeMode == "initial" or data.heightmapExportRangeMode == "custom" then
+		widgetState.uiPrefs.heightmapExportRangeMode = data.heightmapExportRangeMode
+	end
+	if type(data.heightmapExportCustomMin) == "number" then
+		widgetState.uiPrefs.heightmapExportCustomMin = data.heightmapExportCustomMin
+	end
+	if type(data.heightmapExportCustomMax) == "number" then
+		widgetState.uiPrefs.heightmapExportCustomMax = data.heightmapExportCustomMax
+	end
 end
 
 function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
 	local f = io.open(UI_PREFS_FILE, "w")
 	if not f then return end
-	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n}\n",
+	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n}\n",
 		tostring(widgetState.uiPrefs.disableTips and true or false),
 		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
@@ -458,7 +470,10 @@ function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
 		tostring(widgetState.uiPrefs.seenWeatherPersistHint and true or false),
 		tostring(widgetState.uiPrefs.seenLightsTypeHint and true or false),
 		tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
-		tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false)))
+		tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false),
+		widgetState.uiPrefs.heightmapExportRangeMode or "auto",
+		tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
+		tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1))
 	f:close()
 end
 
@@ -1993,6 +2008,9 @@ local initialModel = {
 	tfPenIntStr = "0%",
 	tfPenSizeStr = "0%",
 	tfImportPctStr = "0%",
+	tfExportRangeModeStr = "AUTO",
+	tfExportRangeDescStr = "Current terrain min/max",
+	tfExportCustomVisible = false,
 	tfRestoreLabel1Str = "FULL",
 	tfRestoreLabel2Str = "RESTORE",
 	tfRestoreConfirming = false,
@@ -6068,7 +6086,47 @@ local initialModel = {
 		playSound(capAbsolute and "toggleOn" or "toggleOff")
 	end,
 	onTfExport = function(_event)
+		if WG.TerraformBrush then
+			local doc = widgetState.document
+			local minEl = doc and doc:GetElementById("input-tf-export-min")
+			local maxEl = doc and doc:GetElementById("input-tf-export-max")
+			local minVal = minEl and tonumber(minEl:GetAttribute("value"))
+			local maxVal = maxEl and tonumber(maxEl:GetAttribute("value"))
+			if minVal then WG.TerraformBrush.setHeightmapExportCustomMin(minVal) end
+			if maxVal then WG.TerraformBrush.setHeightmapExportCustomMax(maxVal) end
+		end
 		Spring.SendCommands("terraformexport")
+	end,
+	onTfExportRangeCycle = function(_event)
+		if not WG.TerraformBrush then return end
+		WG.TerraformBrush.cycleHeightmapExportRangeMode()
+		local state = WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
+		local mode = state and state.exportRangeMode or "auto"
+		widgetState.uiPrefs.heightmapExportRangeMode = mode
+		if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		playSound("click")
+	end,
+	onTfExportCustomMinChange = function(_event)
+		if not WG.TerraformBrush then return end
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("input-tf-export-min")
+		local val = el and tonumber(el:GetAttribute("value"))
+		if val then
+			WG.TerraformBrush.setHeightmapExportCustomMin(val)
+			widgetState.uiPrefs.heightmapExportCustomMin = val
+			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
+	end,
+	onTfExportCustomMaxChange = function(_event)
+		if not WG.TerraformBrush then return end
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("input-tf-export-max")
+		local val = el and tonumber(el:GetAttribute("value"))
+		if val then
+			WG.TerraformBrush.setHeightmapExportCustomMax(val)
+			widgetState.uiPrefs.heightmapExportCustomMax = val
+			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
 	end,
 
 	onTbSnapSizeChange = function(_event, P)
@@ -7624,6 +7682,31 @@ local function attachSliderInputBoxes(doc)
 	end
 end
 
+local function wireExportRangeInput(inputEl, commitFn)
+	if not inputEl then return end
+	inputEl:AddEventListener("focus", function(event)
+		Spring.SDLStartTextInput()
+		widgetState.focusedRmlInput = inputEl
+		event:StopPropagation()
+	end, false)
+	inputEl:AddEventListener("blur", function(event)
+		commitFn()
+		Spring.SDLStopTextInput()
+		widgetState.focusedRmlInput = nil
+		event:StopPropagation()
+	end, false)
+	inputEl:AddEventListener("keydown", function(event)
+		if not KEY_RETURN then
+			pcall(function() KEY_RETURN = RmlUi.key_identifier.RETURN end)
+		end
+		local p = event.parameters
+		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
+			commitFn()
+			inputEl:Blur()
+		end
+	end, false)
+end
+
 -- attachStartPosListeners moved to tf_startpos.lua
 
 
@@ -8626,6 +8709,27 @@ local function attachEventListeners()
 
 	attachSliderInputBoxes(doc)
 
+	local exportMinInput = getCachedEl(doc, "input-tf-export-min")
+	local exportMaxInput = getCachedEl(doc, "input-tf-export-max")
+	wireExportRangeInput(exportMinInput, function()
+		local el = getCachedEl(doc, "input-tf-export-min")
+		local val = el and tonumber(el:GetAttribute("value"))
+		if val and WG.TerraformBrush then
+			WG.TerraformBrush.setHeightmapExportCustomMin(val)
+			widgetState.uiPrefs.heightmapExportCustomMin = val
+			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
+	end)
+	wireExportRangeInput(exportMaxInput, function()
+		local el = getCachedEl(doc, "input-tf-export-max")
+		local val = el and tonumber(el:GetAttribute("value"))
+		if val and WG.TerraformBrush then
+			WG.TerraformBrush.setHeightmapExportCustomMax(val)
+			widgetState.uiPrefs.heightmapExportCustomMax = val
+			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
+	end)
+
 	-- ============ Window dragging with edge snapping ============
 	do
 		local ds = windowDragState
@@ -8744,6 +8848,19 @@ function widget:Initialize()
 
 	-- Load persisted UI prefs (disableTips, etc.)
 	if loadUiPrefs then loadUiPrefs() end
+	if WG.TerraformBrush then
+		local up = widgetState.uiPrefs
+		local state = WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
+		if state then
+			if up.heightmapExportRangeMode == "initial" or up.heightmapExportRangeMode == "custom" then
+				WG.TerraformBrush.setHeightmapExportRangeMode(up.heightmapExportRangeMode)
+			else
+				WG.TerraformBrush.setHeightmapExportRangeMode("auto")
+			end
+			WG.TerraformBrush.setHeightmapExportCustomMin((type(up.heightmapExportCustomMin) == "number" and up.heightmapExportCustomMin) or state.exportInitMin or 0)
+			WG.TerraformBrush.setHeightmapExportCustomMax((type(up.heightmapExportCustomMax) == "number" and up.heightmapExportCustomMax) or state.exportInitMax or 1)
+		end
+	end
 
 	widgetState.rootElement = getCachedEl(document, "tf-root")
 	widgetState.rootElement:SetClass("hidden", true)
@@ -10800,6 +10917,33 @@ function widget:Update()
 			else
 				importRow:SetClass("hidden", true)
 			end
+		end
+
+		local dm = widgetState.dmHandle
+		if dm then
+			local mode = state.exportRangeMode or "auto"
+			local modeLabel = (mode == "initial" and "INITIAL") or (mode == "custom" and "CUSTOM") or "AUTO"
+			if dm.tfExportRangeModeStr ~= modeLabel then dm.tfExportRangeModeStr = modeLabel end
+			if dm.tfExportCustomVisible ~= (mode == "custom") then dm.tfExportCustomVisible = (mode == "custom") end
+			local desc
+			if mode == "initial" then
+				desc = string.format("Initial %.2f..%.2f", state.exportInitMin or 0, state.exportInitMax or 0)
+			elseif mode == "custom" then
+				desc = string.format("Custom %.2f..%.2f", state.exportCustomMin or 0, state.exportCustomMax or 0)
+			else
+				desc = string.format("Auto live %.2f..%.2f", state.exportCurrMin or 0, state.exportCurrMax or 0)
+			end
+			if dm.tfExportRangeDescStr ~= desc then dm.tfExportRangeDescStr = desc end
+		end
+		local exportMinInput = doc and getCachedEl(doc, "input-tf-export-min")
+		if exportMinInput and widgetState.focusedRmlInput ~= exportMinInput then
+			local minStr = string.format("%.2f", state.exportCustomMin or 0)
+			exportMinInput:SetAttribute("value", minStr)
+		end
+		local exportMaxInput = doc and getCachedEl(doc, "input-tf-export-max")
+		if exportMaxInput and widgetState.focusedRmlInput ~= exportMaxInput then
+			local maxStr = string.format("%.2f", state.exportCustomMax or 0)
+			exportMaxInput:SetAttribute("value", maxStr)
 		end
 	end
 	-- Slider wheel-lock pulse animation

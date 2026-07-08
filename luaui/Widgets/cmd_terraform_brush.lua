@@ -466,6 +466,9 @@ local extraState = {
 	gridDL = nil,
 	gridDirty = true,
 	terrainVersion = 0,         -- bumped on every UnsyncedHeightMapUpdate; keys height-sample caches
+	heightmapExportRangeMode = "auto", -- auto | initial | custom
+	heightmapExportCustomMin = 0,
+	heightmapExportCustomMax = 0,
 	-- Height sampling mode: pick a terrain height from the colormap to set as a height cap
 	heightSamplingMode = nil,   -- nil, "max", or "min" – which cap to populate
 	colormapHoverContour = nil, -- height of the topo contour line currently under cursor (or nil)
@@ -1783,6 +1786,13 @@ extraState._newmapDrive = function()
 end
 
 local function getState()
+	local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
+	local customMin = extraState.heightmapExportCustomMin
+	local customMax = extraState.heightmapExportCustomMax
+	if not customMin or not customMax or customMax <= customMin then
+		customMin = initMinH or currMinH or 0
+		customMax = initMaxH or currMaxH or (customMin + 1)
+	end
 	return {
 		active = activeMode ~= nil,
 		mode = activeMode,
@@ -1839,6 +1849,13 @@ local function getState()
 		ringInnerRatio = ringInnerRatio,
 		importProgress = importHeightRows and importRowIndex or nil,
 		importTotal = importHeightRows and #importHeightRows or nil,
+		exportRangeMode = extraState.heightmapExportRangeMode,
+		exportInitMin = initMinH,
+		exportInitMax = initMaxH,
+		exportCurrMin = currMinH,
+		exportCurrMax = currMaxH,
+		exportCustomMin = customMin,
+		exportCustomMax = customMax,
 		symmetryActive = extraState.symmetryActive,
 		symmetryOriginX = extraState.symmetryOriginX,
 		symmetryOriginZ = extraState.symmetryOriginZ,
@@ -1952,14 +1969,40 @@ local function doExportHeightmap()
 		end
 	end
 
+	local liveMinH, liveMaxH = minH, maxH
+	local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
+	local exportMode = extraState.heightmapExportRangeMode or "auto"
+	if exportMode == "initial" then
+		minH = initMinH or currMinH or liveMinH
+		maxH = initMaxH or currMaxH or liveMaxH
+	elseif exportMode == "custom" then
+		local customMin = extraState.heightmapExportCustomMin
+		local customMax = extraState.heightmapExportCustomMax
+		if customMin and customMax and customMax > customMin then
+			minH = customMin
+			maxH = customMax
+		else
+			minH = initMinH or currMinH or liveMinH
+			maxH = initMaxH or currMaxH or liveMaxH
+			exportMode = "initial"
+		end
+	end
+
 	local heightRange = maxH - minH
 	if heightRange < 1 then heightRange = 1 end
 
 	-- Normalise to 16-bit greyscale: black (0) = min height, white (65535) = max height.
 	local samples = {}
+	local clippedCount = 0
 	for i = 1, idx do
 		local norm = (heights[i] - minH) / heightRange
-		if norm < 0 then norm = 0 elseif norm > 1 then norm = 1 end
+		if norm < 0 then
+			norm = 0
+			clippedCount = clippedCount + 1
+		elseif norm > 1 then
+			norm = 1
+			clippedCount = clippedCount + 1
+		end
 		samples[i] = floor(norm * 65535 + 0.5)
 	end
 
@@ -1993,7 +2036,10 @@ local function doExportHeightmap()
 		metaFile:close()
 	end
 
-	Echo("[Terraform Brush] Exported to: " .. filename .. " (" .. w .. "x" .. h .. ", 16-bit, range: " .. floor(minH) .. " to " .. floor(maxH) .. ")")
+	if clippedCount > 0 then
+		Echo(string.format("[Terraform Brush] Heightmap export clipped %d samples outside %.2f..%.2f (%s mode, live terrain %.2f..%.2f)", clippedCount, minH, maxH, exportMode, liveMinH, liveMaxH))
+	end
+	Echo("[Terraform Brush] Exported to: " .. filename .. " (" .. w .. "x" .. h .. ", 16-bit, mode: " .. exportMode .. ", range: " .. floor(minH) .. " to " .. floor(maxH) .. ")")
 end
 
 local pendingImportFile = nil
@@ -2241,6 +2287,11 @@ extraState._noiseSetters = {
 }
 
 function widget:Initialize()
+	if extraState.heightmapExportCustomMax <= extraState.heightmapExportCustomMin then
+		local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
+		extraState.heightmapExportCustomMin = initMinH or currMinH or 0
+		extraState.heightmapExportCustomMax = initMaxH or currMaxH or 1
+	end
 	widgetHandler:AddAction("terraformbrush", function(_, _, args)
 		if activeMode then
 			return deactivateTerraform()
@@ -2287,6 +2338,35 @@ function widget:Initialize()
 		setGridOverlay = setGridOverlay,
 		setGridSnap = function(value)
 			extraState.gridSnap = value and true or false
+		end,
+		setHeightmapExportRangeMode = function(value)
+			if value == "initial" or value == "custom" then
+				extraState.heightmapExportRangeMode = value
+			else
+				extraState.heightmapExportRangeMode = "auto"
+			end
+		end,
+		cycleHeightmapExportRangeMode = function()
+			local mode = extraState.heightmapExportRangeMode
+			if mode == "auto" then
+				extraState.heightmapExportRangeMode = "initial"
+			elseif mode == "initial" then
+				extraState.heightmapExportRangeMode = "custom"
+			else
+				extraState.heightmapExportRangeMode = "auto"
+			end
+		end,
+		setHeightmapExportCustomMin = function(value)
+			local num = tonumber(value)
+			if num then
+				extraState.heightmapExportCustomMin = num
+			end
+		end,
+		setHeightmapExportCustomMax = function(value)
+			local num = tonumber(value)
+			if num then
+				extraState.heightmapExportCustomMax = num
+			end
 		end,
 		setGridSnapSize = function(value)
 			extraState.gridSnapSize = max(16, min(128, tonumber(value) or 48))

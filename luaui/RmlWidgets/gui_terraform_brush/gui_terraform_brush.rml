@@ -2497,8 +2497,21 @@
 			</div>
 		<div id="section-heightmap">
 		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-export-range-mode" class="tf-action-btn" style="flex: 0 0 auto; min-width: 68dp;" data-event-click="onTfExportRangeCycle()"><div class="tf-action-btn-text">{{tfExportRangeModeStr}}</div></div>
 			<div id="btn-export" class="tf-action-btn tf-save-btn tf-action-btn-sm" style="flex: 1;" data-event-click="onTfExport()"><div class="tf-action-btn-text">Save Heightmap</div></div>
 			<div id="btn-import" class="tf-action-btn tf-load-btn tf-action-btn-sm" style="flex: 1;"><div class="tf-action-btn-text">Load Heightmap</div></div>
+		</div>
+		<div class="text-lg text-light font-bold mb-1" style="padding: 0 0 0 2dp;">{{tfExportRangeDescStr}}</div>
+		<div class="flex flex-row gap-1 mb-1" data-if="tfExportCustomVisible" style="align-items: center;">
+			<div style="flex: 0 0 auto; width: 104dp; display: flex; align-items: center; gap: 5dp;">
+				<div class="text-lg text-light" style="flex: 0 0 32dp; margin-left: 1dp; opacity: 0.96; text-align: right; letter-spacing: 0.2dp;">MIN</div>
+				<input type="text" id="input-tf-export-min" class="tf-slider-numbox" value="0" style="flex: 0 0 64dp; width: 64dp;" data-event-change="onTfExportCustomMinChange()" />
+			</div>
+			<div class="text-sm text-medium" style="flex: 0 0 28dp; opacity: 0.85; margin: 0 2dp; display: flex; align-items: center; justify-content: center; white-space: nowrap;">to</div>
+			<div style="flex: 0 0 auto; width: 104dp; display: flex; align-items: center; gap: 5dp;">
+				<div class="text-lg text-light" style="flex: 0 0 32dp; margin-left: 1dp; opacity: 0.96; text-align: right; letter-spacing: 0.2dp;">MAX</div>
+				<input type="text" id="input-tf-export-max" class="tf-slider-numbox" value="1" style="flex: 0 0 64dp; width: 64dp;" data-event-change="onTfExportCustomMaxChange()" />
+			</div>
 		</div>
 		<div id="import-dropdown" class="tf-hm-browser hidden"></div>
 		<div id="import-progress-row" class="hidden mb-1">
