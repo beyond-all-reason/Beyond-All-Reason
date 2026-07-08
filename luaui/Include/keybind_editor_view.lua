@@ -9,8 +9,8 @@
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = VFS.Include("luaui/configs/keybind_catalog.lua")
-local Editbox = VFS.Include("luaui/Include/ui_editbox.lua")
-local Dropdown = VFS.Include("luaui/Include/ui_dropdown.lua")
+local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
+local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
 
 local view = {}
 
