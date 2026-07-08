@@ -172,7 +172,7 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number)
 			end
 		elseif weaponDef.customParams.spark_range then
-			-- Allies are likely unaffected.
+			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range), 0)
 		elseif weaponDef.customParams.speceffect == "split" then
 			radius = radius + 32 -- sure
 		elseif weaponDef.customParams.area_onhit_range then
@@ -286,8 +286,8 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		end
 	end
 
-	-- local x, y, z = Spring.GetUnitPosition(targetID)
-	-- Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allow), priority))
+	local x, y, z = Spring.GetUnitPosition(targetID)
+	Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allowed), priority))
 	return allowed, priority
 end
 
