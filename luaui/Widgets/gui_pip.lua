@@ -13332,7 +13332,7 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Rotate(-render.minimapRotation * 180 / math.pi, 0, 0, 1)
 		end
 		glFunc.Texture(texture)
-		glFunc.BeginEnd(glConst.QUADS, DrawTexturedQuad, -iconSize, -iconSize, iconSize, iconSize)
+		glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
 		glFunc.Texture(false)
 		glFunc.PopMatrix()
 	end
