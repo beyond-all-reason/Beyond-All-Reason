@@ -6970,7 +6970,11 @@ function init()
 
 		local composers = {}
 		for _, composer in pairs(composerMap) do
-			composers[#composers + 1] = composer
+			-- Avoid filling the menu with one-off remix/cover credits. Track paths
+			-- are deduplicated above, so this threshold counts distinct songs.
+			if #composer.tracks >= 3 then
+				composers[#composers + 1] = composer
+			end
 		end
 		table.sort(composers, function(a, b)
 			return string.lower(a.name) < string.lower(b.name)
@@ -7061,7 +7065,13 @@ function init()
 				value = not disabledComposers[composer.key],
 				onchange = function(_, value)
 					local currentDisabledComposers = musicTrackFilters.GetDisabledComposers()
-					currentDisabledComposers[composer.key] = value and nil or true
+					-- Use an explicit branch because Lua's `value and nil or true`
+					-- always resolves to true and would make composers impossible to re-enable.
+					if value then
+						currentDisabledComposers[composer.key] = nil
+					else
+						currentDisabledComposers[composer.key] = true
+					end
 					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_COMPOSERS, musicTrackFilters.SerializeSet(currentDisabledComposers))
 					if WG['music'] and WG['music'].RefreshTrackList then
 						-- Composer exclusions affect every matching credit, so rebuild once.
