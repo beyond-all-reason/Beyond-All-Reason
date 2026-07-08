@@ -85,5 +85,5 @@ local function chainHandler(_, extra, bOpts, _, isRepeat, isRelease)
 end
 
 function widget:Initialize()
-	widgetHandler.actionHandler:AddAction(self, "chain", chainHandler, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "chain", chainHandler, nil, "p")
 end
