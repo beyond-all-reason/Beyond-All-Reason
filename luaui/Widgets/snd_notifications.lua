@@ -19,7 +19,7 @@ local tableSort = table.sort
 
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -271,8 +271,8 @@ local lastMouseX, lastMouseY = spGetMouseState()
 local isSpec = spGetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetLocalPlayerID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -474,8 +474,8 @@ end
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myPlayerID = Spring.GetLocalPlayerID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -490,7 +490,7 @@ local function gadgetNotificationEvent(msg)
 	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetLocalPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
 			queueNotification(event, forceplay)
 		end
 	end

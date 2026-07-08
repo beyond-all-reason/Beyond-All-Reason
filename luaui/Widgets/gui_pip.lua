@@ -2359,7 +2359,7 @@ local buttons = {
 			state.losViewEnabled = not state.losViewEnabled
 			if state.losViewEnabled then
 				-- Store the current allyteam when enabling LOS view
-				state.losViewAllyTeam = Spring.GetMyAllyTeamID()
+				state.losViewAllyTeam = Spring.GetLocalAllyTeamID()
 				-- Immediately scan enemy buildings the viewed allyteam knows about
 				-- Only include buildings the allyteam has seen (LOS_INLOS or LOS_PREVLOS)
 				if cameraState.mySpecState then
@@ -2413,11 +2413,11 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 
 				if isSpec then
 					-- Spectator: Track team leader (keep existing behavior)
-					local myTeamID = Spring.GetMyTeamID()
+					local myTeamID = Spring.GetLocalTeamID()
 					local targetPlayerID = nil
 
 					-- Get the team leader's player ID from team info
@@ -2425,7 +2425,7 @@ local buttons = {
 
 					-- Verify this player is active and not self
 					if leaderPlayerID then
-						local myPlayerID = Spring.GetMyPlayerID()
+						local myPlayerID = Spring.GetLocalPlayerID()
 						if leaderPlayerID ~= myPlayerID then
 							local name, active = spFunc.GetPlayerInfo(leaderPlayerID, false)
 							if name and active then
@@ -2459,7 +2459,7 @@ local buttons = {
 						local targetPlayerID = teammates[currentIndex]
 
 						-- Double-check we're not tracking ourselves
-						if targetPlayerID ~= Spring.GetMyPlayerID() then
+						if targetPlayerID ~= Spring.GetLocalPlayerID() then
 							interactionState.trackingPlayerID = targetPlayerID
 							interactionState.lastTrackedTeammate = targetPlayerID
 							-- Clear unit tracking when starting player tracking
@@ -5035,7 +5035,7 @@ local function GetAliveTeammates(out)
 		out[i] = nil
 	end
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local _, _, _, myTeamID = spFunc.GetPlayerInfo(myPlayerID, false)
 	if not myTeamID then
 		return out
@@ -7402,7 +7402,7 @@ end
 
 local function FindMyCommander()
 	-- Find the player's starting commander unit
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	if not myTeamID then
 		return nil
 	end
@@ -8201,7 +8201,7 @@ function TrackPlayerApi(playerID, transitionTime)
 		return false
 	end
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	if playerID == myPlayerID then
 		return false
 	end
@@ -8747,7 +8747,7 @@ function widget:Initialize()
 	end
 
 	gameHasStarted = (Spring.GetGameFrame() > 0)
-	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
 
 	-- Initialize GL4 instanced icon rendering (after cache is built so unitIcon data is available)
 	InitGL4Icons()
@@ -8792,12 +8792,12 @@ function widget:Initialize()
 		local initScanAllyTeam = nil
 		local initScanIsSpec, initScanFullview = Spring.GetSpectatingState()
 		if not initScanIsSpec then
-			initScanAllyTeam = Spring.GetMyAllyTeamID()
+			initScanAllyTeam = Spring.GetLocalAllyTeamID()
 		elseif state.losViewEnabled and state.losViewAllyTeam then
 			initScanAllyTeam = state.losViewAllyTeam
 		elseif initScanIsSpec and not initScanFullview then
 			-- Spectator without fullview: scan ghosts from their allyteam's perspective
-			initScanAllyTeam = Spring.GetMyAllyTeamID()
+			initScanAllyTeam = Spring.GetLocalAllyTeamID()
 		end
 		if initScanAllyTeam then
 			local allUnits = Spring.GetAllUnits()
@@ -10187,7 +10187,7 @@ local function DrawCommandFXOverlay()
 	elseif not cameraState.mySpecState then
 		useCommandColors = true -- player viewing own ally commands
 	end
-	local myTeamID = not useCommandColors and Spring.GetMyTeamID() or nil
+	local myTeamID = not useCommandColors and Spring.GetLocalTeamID() or nil
 
 	if useGL4 then
 		gl4Prim.normLines.count = 0
@@ -12542,7 +12542,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Draw start unit icon before game starts (when commander is not yet placed)
 	if not gameHasStarted and not isMinimapMode and miscState.startX and miscState.startX >= 0 then
-		local myTeamID = Spring.GetMyTeamID()
+		local myTeamID = Spring.GetLocalTeamID()
 		local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 		if startDefID and cacheUnitIcon[startDefID] then
 			local iconData = cacheUnitIcon[startDefID]
@@ -12623,7 +12623,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Pre-compute per-frame visibility context (avoids redundant API calls per unit)
 	local checkAllyTeamID = nil
 	local _, fullview = Spring.GetSpectatingState()
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
 		local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
@@ -12637,7 +12637,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		checkAllyTeamID = state.losViewAllyTeam
 	elseif not cameraState.mySpecState then
-		local myTeamID = Spring.GetMyTeamID()
+		local myTeamID = Spring.GetLocalTeamID()
 		checkAllyTeamID = teamAllyTeamCache[myTeamID] or Spring.GetTeamAllyTeamID(myTeamID)
 	elseif cameraState.mySpecState then
 		if not fullview then
@@ -13670,7 +13670,7 @@ end
 -- Helper function to render PIP contents (units, features, ground, command queues)
 -- Helper function to determine if LOS overlay should be shown and which allyteam to use
 local function ShouldShowLOS()
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 
 	-- If tracking a player's camera, use their allyteam (priority over LOS view)
@@ -15076,7 +15076,7 @@ local function RenderPipContents()
 	-- Blit map ruler AFTER rotation pop so marks stay at screen edges
 	-- The ruler texture already maps world coordinates for the current rotation angle
 	if uiState.drawingGround and config.showMapRuler then
-		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 		if not spec then
 			BlitMapRuler()
 		end
@@ -15690,7 +15690,7 @@ local function DrawTrackedPlayerMinimap()
 		playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 	else
 		-- Use local player's team
-		teamID = Spring.GetMyTeamID()
+		teamID = Spring.GetLocalTeamID()
 	end
 	if not teamID then
 		interactionState.pipMinimapBounds = nil
@@ -16755,7 +16755,7 @@ local function UpdateLOSTexture(currentTime)
 		return
 	end
 
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	-- Can only use engine LOS if:
 	-- 1. Same allyteam as us
 	-- 2. If tracking a player, must have fullview enabled (engine LOS requires fullview for enemy teams)
@@ -17131,13 +17131,13 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_trackplayer" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
 				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_view" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
@@ -17703,7 +17703,7 @@ function widget:DrawScreen()
 
 			-- Blit map ruler directly to screen (not in oversized texture — rulers are edge-fixed)
 			if uiState.drawingGround and config.showMapRuler then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				if not spec then
 					UpdateMapRulerTexture()
 					if pipR2T.rulerTex then
@@ -18311,7 +18311,7 @@ function widget:Update(dt)
 	--      my base, no enemies in victory screen").
 	local cleanupAllyTeam
 	if not cameraState.mySpecState then
-		cleanupAllyTeam = Spring.GetMyAllyTeamID()
+		cleanupAllyTeam = Spring.GetLocalAllyTeamID()
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		cleanupAllyTeam = state.losViewAllyTeam
 	end
@@ -18638,7 +18638,7 @@ function widget:Update(dt)
 		if now - miscState.specGhostScanTime >= 2.0 then
 			miscState.specGhostScanTime = now
 			-- Use losViewAllyTeam when LOS view is active, otherwise GetMyAllyTeamID()
-			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetLocalAllyTeamID()
 			-- Mark all existing ghosts for sweep
 			local stale = {}
 			for gID in pairs(ghostBuildings) do
@@ -19414,7 +19414,7 @@ function widget:Update(dt)
 		-- Don't do this in minimap mode - the minimap should show the full map
 		local isSpec = Spring.GetSpectatingState()
 		if not isSpec and not interactionState.trackingPlayerID then
-			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
 			if newX ~= miscState.startX then
 				miscState.startX, miscState.startZ = newX, newZ
 				-- Apply map margin limits to start position
@@ -19501,7 +19501,7 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		return
 	end
 
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local spec, fullview = Spring.GetSpectatingState()
 	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID) or allyTeam
 
@@ -19920,14 +19920,14 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		else
 			local _, fullview = Spring.GetSpectatingState()
 			if not fullview then
-				viewAllyTeam = Spring.GetMyAllyTeamID()
+				viewAllyTeam = Spring.GetLocalAllyTeamID()
 			end
 		end
 		if viewAllyTeam and unitAllyTeam ~= viewAllyTeam then
 			return
 		end
 	else
-		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local myAllyTeam = Spring.GetLocalAllyTeamID()
 		if unitAllyTeam ~= myAllyTeam then
 			return
 		end
@@ -20035,7 +20035,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- Catches buildings built outside the PIP viewport while fullview is ON
 	-- Only ghost buildings the viewed allyteam has actually seen (PREVLOS or INLOS)
 	if cameraState.mySpecState and cache.isBuilding[unitDefID] then
-		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local myAllyTeam = Spring.GetLocalAllyTeamID()
 		local uAllyTeam = Spring.GetTeamAllyTeamID(unitTeam)
 		if uAllyTeam ~= myAllyTeam then
 			local losBits = Spring.GetUnitLosState(unitID, myAllyTeam, true)
@@ -20375,7 +20375,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			if triggerFocus and config.activityFocusHideForSpectators and cameraState.mySpecState then
 				triggerFocus = false
 			end
-			if triggerFocus and playerID == Spring.GetMyPlayerID() then
+			if triggerFocus and playerID == Spring.GetLocalPlayerID() then
 				triggerFocus = false
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
@@ -20465,7 +20465,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	end
 
 	-- Only process our own mapmarks for placement logic (not from other players)
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	if playerID ~= myPlayerID then
 		return false
 	end
@@ -21090,7 +21090,7 @@ function widget:MousePress(mx, my, mButton)
 				-- Show player tracking button when tracking, when spectating, or when having alive teammates
 				local showPlayerTrackButton = isTrackingPlayer
 				if not showPlayerTrackButton then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 					local aliveTeammates = GetAliveTeammates()
 					showPlayerTrackButton = spec or (#aliveTeammates > 0)
 				end
@@ -21130,7 +21130,7 @@ function widget:MousePress(mx, my, mButton)
 							end
 						-- Show pip_view button only for spectators
 						elseif btn.command == "pip_view" then
-							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 							if spec then
 								visibleButtons[#visibleButtons + 1] = btn
 							end

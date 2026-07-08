@@ -23,8 +23,8 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 

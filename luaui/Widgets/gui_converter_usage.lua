@@ -24,7 +24,7 @@ local RectRound, UiElement
 local dlistGuishader, dlistCU
 local area = { 0, 0, 0, 0 }
 
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 
 local glCreateList = gl.CreateList

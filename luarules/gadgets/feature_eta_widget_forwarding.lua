@@ -83,8 +83,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 
 	--Map of allyTeamID to set of featureIDs. Used to resend ETAs when player changes ally team
@@ -92,7 +92,7 @@ else
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetMyAllyTeamID()
+			myAllyTeamID = Spring.GetLocalAllyTeamID()
 			_, fullview = Spring.GetSpectatingState()
 
 			--Resend feature ETAs when team changes so that we can see active ETAs of new team and stop seeing ETAs of old team

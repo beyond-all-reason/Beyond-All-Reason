@@ -389,7 +389,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spIsAABBInView = Spring.IsAABBInView
 local spGetCameraPosition = Spring.GetCameraPosition
 local spIsPosInLos = Spring.IsPosInLos
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local glBlending = gl.Blending

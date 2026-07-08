@@ -37,7 +37,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitRadius = Spring.GetUnitRadius
@@ -171,7 +171,7 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = Spring.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()
