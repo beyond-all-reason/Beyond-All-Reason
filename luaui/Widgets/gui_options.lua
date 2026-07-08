@@ -7085,6 +7085,15 @@ function init()
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
 				count = count + 1
+				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
+				count = count + 1
+				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
+				for composerIndex, composer in ipairs(composers) do
+					count = count + 1
+					newOptions[count] = makeComposerOption("music_composer_" .. composerIndex, composer)
+				end
+
+				count = count + 1
 				newOptions[count] = makeTrackSearchOption()
 
 				local lowerSearch = string.lower(musicTrackOptionsState.search)
@@ -7128,15 +7137,6 @@ function init()
 						count = count + 1
 						newOptions[count] = makeTrackOption("music_track_" .. count, track)
 					end
-				end
-
-				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
-				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
-				for composerIndex, composer in ipairs(composers) do
-					count = count + 1
-					newOptions[count] = makeComposerOption("music_composer_" .. composerIndex, composer)
 				end
 			end
 		end
