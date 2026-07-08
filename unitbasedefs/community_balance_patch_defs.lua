@@ -50,13 +50,14 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					local weaponDef = uDef.weapondefs.emg
 					weaponDef.burst = nil
 					weaponDef.burstrate = nil
-					weaponDef.areaofeffect = 32
+					weaponDef.areaofeffect = 64
 					weaponDef.edgeeffectiveness = 0.25
 					weaponDef.explosiongenerator = "custom:genericshellexplosion-small-bomb"
 					weaponDef.impulsefactor = 2.5
 					weaponDef.range = 425
 					weaponDef.reloadtime = 3.0
 					weaponDef.soundstart = "mavgun4"
+					weaponDef.tolerance = 2000
 					weaponDef.weaponvelocity = 900
 					weaponDef.damage = {
 						default = 116,
