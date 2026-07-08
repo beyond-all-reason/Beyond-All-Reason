@@ -43,6 +43,7 @@ function musicTrackFilters.GetEnabledOverrides()
 	return musicTrackFilters.ParseSet(Spring.GetConfigString(musicTrackFilters.CONFIG_ENABLED_OVERRIDES, ""))
 end
 
+-- Infer the user-facing soundtrack pack from its stable VFS path.
 function musicTrackFilters.GetTrackPack(trackPath)
 	local path = musicTrackFilters.NormalizePath(trackPath)
 	if string.find(path, "^music/custom/") then
@@ -87,6 +88,7 @@ function musicTrackFilters.IsPackEnabled(pack)
 		return Spring.Utilities.Gametype.IsScavengers() or Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1
 	end
 
+	-- Seasonal settings express user intent; date-based eligibility remains in playlist assembly.
 	if pack == "aprilfools" then
 		return Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1
 			or Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1
@@ -103,6 +105,7 @@ end
 
 function musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides)
 	local normalizedTrack = musicTrackFilters.NormalizePath(trackPath)
+	-- Explicit disable wins, followed by explicit enable, then the parent pack default.
 	if disabledTracks and disabledTracks[normalizedTrack] then
 		return false
 	end
@@ -124,6 +127,7 @@ function musicTrackFilters.FilterPlaylist(playlist, disabledTracks, enabledOverr
 end
 
 function musicTrackFilters.ClearPackEntries(set, pack)
+	-- A pack toggle is authoritative and resets every per-track exception beneath it.
 	for trackPath in pairs(set) do
 		if musicTrackFilters.IsTrackInPack(trackPath, pack) then
 			set[trackPath] = nil

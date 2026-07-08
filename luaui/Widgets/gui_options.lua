@@ -441,6 +441,7 @@ function FocusMusicTrackSearch()
 end
 
 function ResetMusicTrackOverridesForPack(pack)
+	-- Pack switches reset both kinds of exception so stale choices cannot reappear later.
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
 	musicTrackFilters.ClearPackEntries(disabledTracks, pack)
@@ -1588,6 +1589,7 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
+			-- Track Search reuses the stock text-input plumbing but renders inside the Playlist row.
 			if showTextInput and inputMode ~= 'Track Search' then
 				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
 					prevInputText = inputText
@@ -6953,6 +6955,7 @@ function init()
 					local currentDisabledTracks = musicTrackFilters.GetDisabledTracks()
 					local currentEnabledOverrides = musicTrackFilters.GetEnabledOverrides()
 					local packEnabled = musicTrackFilters.IsPackEnabled(musicTrackFilters.GetTrackPack(trackPath))
+					-- Enabled packs write exclusions; disabled packs write explicit inclusions.
 					if value then
 						currentDisabledTracks[trackPath] = nil
 						if packEnabled then

@@ -118,6 +118,7 @@ function addon.Initialize()
 	-- Apply the same per-track choices used by the in-game music player.
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
+	-- Loading overrides must be inserted because a disabled pack was never added above.
 	for trackPath in pairs(enabledOverrides) do
 		if not disabledTracks[trackPath] and string.find(trackPath, "/loading/[^/]+$") then
 			local alreadyAdded = false
