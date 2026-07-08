@@ -1234,9 +1234,11 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 local showToggledOff = false
+local isClientPaused = false
 local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
-	local _, _, isClientPaused, _ = Spring.GetGameState()
+	local _, _, currentIsClientPaused, _ = Spring.GetGameState()
+	isClientPaused = currentIsClientPaused
 	if not isClientPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
@@ -10652,7 +10654,7 @@ function widget:GetConfigData()
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
-		customPresets = customPresets,
+		customPresets = customPresetOptions,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 

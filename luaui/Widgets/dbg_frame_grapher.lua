@@ -5,6 +5,7 @@
 
 local widget = widget ---@type Widget
 
+local lastframeduration = 0 -- forward-decl: read into prevframems
 local lastframems -- forward-decl: read into prevframems
 
 local alpha = 0 -- forward-decl: read at file scope in a shader-params table

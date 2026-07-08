@@ -135,7 +135,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 		-- gather as much info as possible about this unitID
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeam = spGetUnitTeam(unitID)
-		local ux, uy, uz = spGetUnitPosition(unitID)
+		local px, py, pz = spGetUnitPosition(unitID)
 		spEcho("API Unit Tracker error unitID", unitID, unitDefID and UnitDefs[unitDefID].name or "nil", unitTeam, px, pz)
 	end
 	if lastknownunitpos[unitID] then

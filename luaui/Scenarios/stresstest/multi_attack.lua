@@ -106,7 +106,7 @@ function run_commands(nattackers, ntargets, attackerDef, targetDef)
 	local arr = {}
 	for _, unitID in pairs(attackers) do
 		for idx, targetID in pairs(targets) do
-			currOpt = (idx == 1) and opts or shiftOpts
+			local currOpt = (idx == 1) and {} or shiftOpts
 			arr[1] = targetID
 			spGiveOrderToUnit(unitID, CMD_ATTACK, arr, currOpt)
 		end

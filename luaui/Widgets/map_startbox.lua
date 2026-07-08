@@ -31,6 +31,7 @@ local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
 local glDrawGroundCircle = gl.DrawGroundCircle
+local goodbye = spEcho
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA

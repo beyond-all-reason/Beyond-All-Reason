@@ -2026,7 +2026,7 @@ function CreateBackground()
 	if absRight > vsx + margin then -- lazy bugfix needed when playerScale < 1 is in effect
 		absRight = vsx + margin
 	end
-	apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, false }
+	apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, absRight, false }
 
 	local paddingBottom = bgpadding
 	local paddingRight = bgpadding
@@ -2844,6 +2844,7 @@ function DrawState(playerID, posX, posY)
 	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
 	local hasStartPoint = (playerReadyState[playerID] == 4)
+	local ai = player[playerID] and player[playerID].ai
 	if ai then
 		gl_Color(0.1, 0.1, 0.97, 1)
 	else

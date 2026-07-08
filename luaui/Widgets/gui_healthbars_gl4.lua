@@ -671,7 +671,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then
-			BAR.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
+			BAR.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitDefID, barname)
 		end
 		return nil
 	end
