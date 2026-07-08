@@ -343,8 +343,8 @@ local function ReloadMusicPlaylists()
 	end
 
 	-- Build Options from every pack, independent of pack state, so disabled-pack tracks
-	-- remain available for explicit per-track overrides. Seasonal and map tracks stay
-	-- under their playback category instead of being hidden behind an event-only bucket.
+	-- remain available for explicit per-track overrides. Seasonal packs are grouped
+	-- like Raptors/Scavengers, except menu tracks also stay in the Menu category.
 	musicTrackCatalog = {
 		{ i18n = 'ui.music.menu', tracks = collectCatalogDirs({
 			musicDirNew..'/menu', musicDirCustom..'/menu',
@@ -352,27 +352,37 @@ local function ReloadMusicPlaylists()
 		}) },
 		{ i18n = 'ui.music.loading', tracks = collectCatalogDirs({
 			musicDirNew..'/loading', musicDirCustom..'/loading', 'music/map/loading',
-			musicDirNew..'/events/aprilfools/loading', musicDirNew..'/events/halloween/loading', musicDirNew..'/events/xmas/loading',
 		}) },
 		{ i18n = 'ui.music.peace', tracks = collectCatalogDirs({
 			musicDirNew..'/peace', musicDirCustom..'/peace', 'music/map/peace',
-			musicDirNew..'/events/aprilfools/peace', musicDirNew..'/events/halloween/peace', musicDirNew..'/events/xmas/peace',
 		}) },
 		{ i18n = 'ui.music.warlow', tracks = collectCatalogDirs({
 			musicDirNew..'/warlow', musicDirCustom..'/warlow', musicDirCustom..'/war', 'music/map/warlow',
-			musicDirNew..'/events/aprilfools/warlow', musicDirNew..'/events/aprilfools/war',
-			musicDirNew..'/events/halloween/warlow', musicDirNew..'/events/halloween/war',
-			musicDirNew..'/events/xmas/warlow', musicDirNew..'/events/xmas/war',
 		}) },
 		{ i18n = 'ui.music.warhigh', tracks = collectCatalogDirs({
 			musicDirNew..'/warhigh', musicDirCustom..'/warhigh', musicDirCustom..'/war', 'music/map/warhigh',
-			musicDirNew..'/events/aprilfools/warhigh', musicDirNew..'/events/aprilfools/war',
-			musicDirNew..'/events/halloween/warhigh', musicDirNew..'/events/halloween/war',
-			musicDirNew..'/events/xmas/warhigh', musicDirNew..'/events/xmas/war',
 		}) },
 		{ i18n = 'ui.music.interludes', tracks = collectCatalogDirs({
 			musicDirNew..'/interludes', musicDirCustom..'/interludes', 'music/map/interludes',
-			musicDirNew..'/events/aprilfools/interludes', musicDirNew..'/events/halloween/interludes', musicDirNew..'/events/xmas/interludes',
+		}) },
+		{ i18n = 'ui.music.bossfight', tracks = collectCatalogDirs({ musicDirCustom..'/bossfight' }) },
+		{ i18n = 'ui.music.aprilfools', tracks = collectCatalogDirs({
+			musicDirNew..'/events/aprilfools/menu', musicDirNew..'/events/aprilfools/loading',
+			musicDirNew..'/events/aprilfools/peace', musicDirNew..'/events/aprilfools/warlow',
+			musicDirNew..'/events/aprilfools/war', musicDirNew..'/events/aprilfools/warhigh',
+			musicDirNew..'/events/aprilfools/interludes',
+		}) },
+		{ i18n = 'ui.music.halloween', tracks = collectCatalogDirs({
+			musicDirNew..'/events/halloween/menu', musicDirNew..'/events/halloween/loading',
+			musicDirNew..'/events/halloween/peace', musicDirNew..'/events/halloween/warlow',
+			musicDirNew..'/events/halloween/war', musicDirNew..'/events/halloween/warhigh',
+			musicDirNew..'/events/halloween/interludes',
+		}) },
+		{ i18n = 'ui.music.xmas', tracks = collectCatalogDirs({
+			musicDirNew..'/events/xmas/menu', musicDirNew..'/events/xmas/loading',
+			musicDirNew..'/events/xmas/peace', musicDirNew..'/events/xmas/warlow',
+			musicDirNew..'/events/xmas/war', musicDirNew..'/events/xmas/warhigh',
+			musicDirNew..'/events/xmas/interludes',
 		}) },
 		{ i18n = 'ui.music.raptors', tracks = collectCatalogDirs({
 			musicDirNew..'/events/raptors/loading', musicDirNew..'/events/raptors/peace',
@@ -391,7 +401,6 @@ local function ReloadMusicPlaylists()
 
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
-	local disabledComposers = musicTrackFilters.GetDisabledComposers()
 
 	local function appendUnique(playlist, trackPath)
 		for i = 1, #playlist do
@@ -433,22 +442,22 @@ local function ReloadMusicPlaylists()
 		end
 	end
 
-	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks, enabledOverrides, disabledComposers)
-	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks, enabledOverrides, disabledComposers)
-	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks, enabledOverrides, disabledComposers)
-	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks, enabledOverrides, disabledComposers)
-	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks, enabledOverrides, disabledComposers)
-	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks, enabledOverrides, disabledComposers)
-	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks, enabledOverrides, disabledComposers)
-	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks, enabledOverrides, disabledComposers)
-	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks, enabledOverrides, disabledComposers)
-	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks, enabledOverrides, disabledComposers)
-	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks, enabledOverrides, disabledComposers)
-	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks, enabledOverrides, disabledComposers)
-	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks, enabledOverrides, disabledComposers)
-	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks, enabledOverrides, disabledComposers)
-	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks, enabledOverrides, disabledComposers)
-	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks, enabledOverrides, disabledComposers)
+	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks, enabledOverrides)
+	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks, enabledOverrides)
+	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks, enabledOverrides)
+	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks, enabledOverrides)
+	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks, enabledOverrides)
+	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks, enabledOverrides)
+	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks, enabledOverrides)
+	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks, enabledOverrides)
+	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks, enabledOverrides)
+	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks, enabledOverrides)
+	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks, enabledOverrides)
+	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks, enabledOverrides)
+	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks, enabledOverrides)
+	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks, enabledOverrides)
+	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks, enabledOverrides)
+	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks, enabledOverrides)
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks
@@ -971,6 +980,7 @@ function widget:Initialize()
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
+		local sectionsConfig = {}
 
 		local function sortPlaylist(playlist)
 			table.sort(playlist, function(a, b)
@@ -989,6 +999,7 @@ function widget:Initialize()
 
 		for i = 1, #musicTrackCatalog do
 			local section = musicTrackCatalog[i]
+			sectionsConfig[#sectionsConfig + 1] = { Spring.I18N(section.i18n), section.i18n }
 			local sortedTracks = table.copy(section.tracks)
 			sortPlaylist(sortedTracks)
 			for _, trackPath in ipairs(sortedTracks) do
@@ -998,7 +1009,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		return tracksConfig
+		return tracksConfig, sectionsConfig
 	end
 	WG['music'].playTrack = function(track)
 		currentTrack = track

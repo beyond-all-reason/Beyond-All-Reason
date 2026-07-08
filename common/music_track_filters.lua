@@ -4,7 +4,6 @@ local musicTrackFilters = {}
 -- Values are normalized track paths serialized as a pipe-delimited set.
 musicTrackFilters.CONFIG_DISABLED_TRACKS = "MusicDisabledTracks"
 musicTrackFilters.CONFIG_ENABLED_OVERRIDES = "MusicEnabledTrackOverrides"
-musicTrackFilters.CONFIG_DISABLED_COMPOSERS = "MusicDisabledComposers"
 
 local separator = "|"
 
@@ -42,83 +41,6 @@ end
 
 function musicTrackFilters.GetEnabledOverrides()
 	return musicTrackFilters.ParseSet(Spring.GetConfigString(musicTrackFilters.CONFIG_ENABLED_OVERRIDES, ""))
-end
-
-function musicTrackFilters.GetDisabledComposers()
-	return musicTrackFilters.ParseSet(Spring.GetConfigString(musicTrackFilters.CONFIG_DISABLED_COMPOSERS, ""))
-end
-
-local composerAliases = {
-	["russel lucas-nutt"] = "Russell Lucas-Nutt",
-}
-
-local coverStyleSuffixes = {
-	metal = true,
-	christmas = true,
-	polka = true,
-}
-
-local function trim(value)
-	value = string.gsub(value or "", "^%s+", "")
-	value = string.gsub(value, "%s+$", "")
-	return string.gsub(value, "%s+", " ")
-end
-
-function musicTrackFilters.NormalizeComposer(composer)
-	composer = trim(composer)
-	local displayName = composerAliases[string.lower(composer)] or composer
-	return string.lower(displayName), displayName
-end
-
-function musicTrackFilters.GetTrackComposers(trackPath)
-	local filename = string.gsub(trackPath or "", "\\", "/")
-	filename = string.match(filename, "([^/]+)$") or filename
-	filename = string.gsub(filename, "%.%w+$", "")
-
-	local composers = {}
-	local seen = {}
-	local function addComposer(name)
-		local key, displayName = musicTrackFilters.NormalizeComposer(name)
-		if key ~= "" and not seen[key] then
-			seen[key] = true
-			composers[#composers + 1] = { key = key, name = displayName }
-		end
-	end
-
-	local primaryComposer = string.match(filename, "^(.-)%s+%-%s+")
-	addComposer(primaryComposer or "Other Artists")
-
-	-- Remix and cover credits are additional artists, not replacements for the
-	-- original composer. Quoted subtitles and common style words are not names.
-	for credit in string.gmatch(filename, "%(([^()]*)%)") do
-		credit = trim(credit)
-		local lowerCredit = string.lower(credit)
-		if string.find(lowerCredit, "%sremix$") or string.find(lowerCredit, "%scover$") then
-			local creditedArtist = trim(string.gsub(credit, "%s+[^%s]+%s*$", ""))
-			local beforeSubtitle = string.match(creditedArtist, "^(.-)%s+['\"]")
-			if beforeSubtitle then
-				creditedArtist = trim(beforeSubtitle)
-			end
-			local nameWithoutStyle, finalWord = string.match(creditedArtist, "^(.*)%s+(%S+)$")
-			if finalWord and coverStyleSuffixes[string.lower(finalWord)] then
-				creditedArtist = trim(nameWithoutStyle)
-			end
-			if string.lower(creditedArtist) ~= "techno" then
-				addComposer(creditedArtist)
-			end
-		end
-	end
-
-	return composers
-end
-
-function musicTrackFilters.IsTrackDisabledByComposer(trackPath, disabledComposers)
-	for _, composer in ipairs(musicTrackFilters.GetTrackComposers(trackPath)) do
-		if disabledComposers[composer.key] then
-			return true
-		end
-	end
-	return false
 end
 
 -- Infer the user-facing soundtrack pack from its stable VFS path.
@@ -191,10 +113,10 @@ function musicTrackFilters.IsPackEnabled(pack)
 	return true
 end
 
-function musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides, disabledComposers)
+function musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides)
 	local normalizedTrack = musicTrackFilters.NormalizePath(trackPath)
 	-- An explicit track inclusion is the highest-priority user choice and may
-	-- intentionally bypass both its pack and any disabled credited composer.
+	-- intentionally bypass its pack state.
 	if enabledOverrides and enabledOverrides[normalizedTrack] then
 		return true
 	end
@@ -202,20 +124,13 @@ function musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOver
 		return false
 	end
 
-	-- Composer exclusions combine as a union: a shared track remains off while
-	-- any credited composer is disabled, regardless of other composer toggles.
-	disabledComposers = disabledComposers or musicTrackFilters.GetDisabledComposers()
-	if musicTrackFilters.IsTrackDisabledByComposer(normalizedTrack, disabledComposers) then
-		return false
-	end
 	return musicTrackFilters.IsPackEnabled(musicTrackFilters.GetTrackPack(normalizedTrack))
 end
 
-function musicTrackFilters.FilterPlaylist(playlist, disabledTracks, enabledOverrides, disabledComposers)
+function musicTrackFilters.FilterPlaylist(playlist, disabledTracks, enabledOverrides)
 	local filtered = {}
-	disabledComposers = disabledComposers or musicTrackFilters.GetDisabledComposers()
 	for i = 1, #playlist do
-		if musicTrackFilters.IsTrackEnabled(playlist[i], disabledTracks, enabledOverrides, disabledComposers) then
+		if musicTrackFilters.IsTrackEnabled(playlist[i], disabledTracks, enabledOverrides) then
 			filtered[#filtered + 1] = playlist[i]
 		end
 	end

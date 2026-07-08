@@ -6942,43 +6942,13 @@ function init()
 
 	-- Add track controls dynamically because enabled soundtrack packs determine the catalog.
 	local trackList
+	local trackSections
 	if WG['music'] ~= nil then
-		trackList = WG['music'].getTracksConfig()
+		trackList, trackSections = WG['music'].getTracksConfig()
 	end
 	if type(trackList) == 'table' then
 		local disabledTracks = musicTrackFilters.GetDisabledTracks()
 		local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
-		local disabledComposers = musicTrackFilters.GetDisabledComposers()
-
-		local composerMap = {}
-		for _, track in ipairs(trackList) do
-			local trackPath = musicTrackFilters.NormalizePath(track[3])
-			for _, composer in ipairs(musicTrackFilters.GetTrackComposers(track[2] or track[3])) do
-				local composerEntry = composerMap[composer.key]
-				if not composerEntry then
-					composerEntry = { key = composer.key, name = composer.name, tracks = {}, trackPaths = {} }
-					composerMap[composer.key] = composerEntry
-				end
-				-- War tracks can appear in multiple playback categories; each composer
-				-- should still reference a physical track only once.
-				if not composerEntry.trackPaths[trackPath] then
-					composerEntry.trackPaths[trackPath] = true
-					composerEntry.tracks[#composerEntry.tracks + 1] = { path = trackPath }
-				end
-			end
-		end
-
-		local composers = {}
-		for _, composer in pairs(composerMap) do
-			-- Avoid filling the menu with one-off remix/cover credits. Track paths
-			-- are deduplicated above, so this threshold counts distinct songs.
-			if #composer.tracks >= 3 then
-				composers[#composers + 1] = composer
-			end
-		end
-		table.sort(composers, function(a, b)
-			return string.lower(a.name) < string.lower(b.name)
-		end)
 
 		local function makeCategoryOption(id, label)
 			return {
@@ -7021,17 +6991,15 @@ function init()
 				basic = true,
 				name = widgetOptionColor .. "   " .. displayName,
 				type = "bool",
-				value = musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides, disabledComposers),
+				value = musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides),
 				onchange = function(_, value)
 					local currentDisabledTracks = musicTrackFilters.GetDisabledTracks()
 					local currentEnabledOverrides = musicTrackFilters.GetEnabledOverrides()
-					local currentDisabledComposers = musicTrackFilters.GetDisabledComposers()
 					local packEnabled = musicTrackFilters.IsPackEnabled(musicTrackFilters.GetTrackPack(trackPath))
-					local composerDisabled = musicTrackFilters.IsTrackDisabledByComposer(trackPath, currentDisabledComposers)
-					-- A track inclusion must be explicit when either its pack or composer is disabled.
+					-- A track inclusion must be explicit when its pack is disabled.
 					if value then
 						currentDisabledTracks[trackPath] = nil
-						if packEnabled and not composerDisabled then
+						if packEnabled then
 							currentEnabledOverrides[trackPath] = nil
 						else
 							currentEnabledOverrides[trackPath] = true
@@ -7055,48 +7023,12 @@ function init()
 			}
 		end
 
-		local function makeComposerOption(id, composer)
-			return {
-				id = id,
-				group = "sound",
-				basic = true,
-				name = widgetOptionColor .. "   " .. composer.name,
-				type = "bool",
-				value = not disabledComposers[composer.key],
-				onchange = function(_, value)
-					local currentDisabledComposers = musicTrackFilters.GetDisabledComposers()
-					-- Use an explicit branch because Lua's `value and nil or true`
-					-- always resolves to true and would make composers impossible to re-enable.
-					if value then
-						currentDisabledComposers[composer.key] = nil
-					else
-						currentDisabledComposers[composer.key] = true
-					end
-					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_COMPOSERS, musicTrackFilters.SerializeSet(currentDisabledComposers))
-					if WG['music'] and WG['music'].RefreshTrackList then
-						-- Composer exclusions affect every matching credit, so rebuild once.
-						WG['music'].RefreshTrackList()
-					end
-					init()
-				end,
-			}
-		end
-
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
 			if option.id == 'soundtrackFades' then
-				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
-				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
-				for composerIndex, composer in ipairs(composers) do
-					count = count + 1
-					newOptions[count] = makeComposerOption("music_composer_" .. composerIndex, composer)
-				end
-
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
 				count = count + 1
@@ -7133,18 +7065,31 @@ function init()
 				end
 
 				count = count + 1
-				newOptions[count] = makeCategoryOption("music_category_all_tracks", "All Tracks")
+				newOptions[count] = makeCategoryOption("music_category_all_tracks", "Show All Tracks")
 				if musicTrackOptionsState.expanded then
-					local prevCategoryKey = ''
+					local tracksByCategory = {}
+					local hasTrackSections = type(trackSections) == 'table' and #trackSections > 0
+					local sections = hasTrackSections and trackSections or {}
 					for _, track in ipairs(trackList) do
 						local categoryKey = musicTrackFilters.NormalizePath(track[4] or track[1])
-						if prevCategoryKey ~= categoryKey then
-							prevCategoryKey = categoryKey
-							count = count + 1
-							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text" }
+						tracksByCategory[categoryKey] = tracksByCategory[categoryKey] or {}
+						tracksByCategory[categoryKey][#tracksByCategory[categoryKey] + 1] = track
+						if not hasTrackSections and (#sections == 0 or musicTrackFilters.NormalizePath(sections[#sections][2] or sections[#sections][1]) ~= categoryKey) then
+							sections[#sections + 1] = { track[1], track[4] or track[1] }
 						end
-						count = count + 1
-						newOptions[count] = makeTrackOption("music_track_" .. count, track)
+					end
+					for _, section in ipairs(sections) do
+						local categoryLabel = section[1]
+						local categoryKey = musicTrackFilters.NormalizePath(section[2] or section[1])
+						local tracks = tracksByCategory[categoryKey] or {}
+						if #tracks > 0 then
+							count = count + 1
+							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = categoryLabel, type = "text" }
+							for _, track in ipairs(tracks) do
+								count = count + 1
+								newOptions[count] = makeTrackOption("music_track_" .. count, track)
+							end
+						end
 					end
 				end
 			end
