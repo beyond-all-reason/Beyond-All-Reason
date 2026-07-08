@@ -1,6 +1,6 @@
 local gadget = gadget ---@type Gadget
 
-if not Spring.Utilities.Gametype.IsSinglePlayer() then
+if not BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 

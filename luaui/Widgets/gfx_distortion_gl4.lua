@@ -121,7 +121,7 @@ local projectileDefDistortions -- one distortion per weaponDefID
 local explosionDistortions -- one distortion per weaponDefID
 local gibDistortion -- one distortion for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
@@ -440,7 +440,7 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionparams[i] = 0
 			end
 			if distortionTable.distortionConfig == nil then
-				Spring.Debug.TraceFullEcho()
+				BAR.Debug.TraceFullEcho()
 			end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
 				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == "string" then
@@ -1070,7 +1070,7 @@ local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
-	Spring.Debug.TraceFullEcho()
+	BAR.Debug.TraceFullEcho()
 end
 
 -- Cache for the view ground rectangle, used to limit spGetProjectilesInRectangle
@@ -1531,7 +1531,7 @@ function widget:TextCommand(command)
 end
 
 function widget:Initialize()
-	Spring.Debug.TraceEcho("Initialize distortionGL4")
+	BAR.Debug.TraceEcho("Initialize distortionGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
 		spEcho("Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()

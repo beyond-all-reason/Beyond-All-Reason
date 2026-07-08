@@ -2,7 +2,7 @@ local widget = widget ---@type Widget
 
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
-local ENABLE_REPORTS = Spring.Utilities.IsDevMode()
+local ENABLE_REPORTS = BAR.Utilities.IsDevMode()
 
 local reportFunctions = nil
 

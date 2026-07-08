@@ -751,7 +751,7 @@ function SB:WithGlobalsDefined(fn, persist)
 		end
 	end
 	_G.BAR = _G.BAR or {}
-	_G.Spring.Utilities = _G.Spring.Utilities or { Gametype = {
+	_G.BAR.Utilities = _G.BAR.Utilities or { Gametype = {
 		IsScavengers = function()
 			return false
 		end,

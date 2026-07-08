@@ -27,7 +27,7 @@ local modOptions = Spring.GetModOptions()
 if modOptions.deathmode ~= "territorial_domination" then
 	return false
 end
-if Spring.Utilities.Gametype.IsRaptors() or Spring.Utilities.Gametype.IsScavengers() then
+if BAR.Utilities.Gametype.IsRaptors() or BAR.Utilities.Gametype.IsScavengers() then
 	return false
 end
 
@@ -40,12 +40,12 @@ local spGetAllyTeamList = Spring.GetAllyTeamList
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamColor = Spring.GetTeamColor
 local spGetSpectatingState = Spring.GetSpectatingState
-local spI18N = Spring.I18N
+local spI18N = BAR.I18N
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetAIInfo = Spring.GetAIInfo
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
 
 local DEFAULT_MAX_ROUNDS = 7
 local DEFAULT_POINTS_CAP = 100
@@ -160,12 +160,12 @@ local function getAIName(teamID)
 	if niceName then
 		name = niceName
 
-		if Spring.Utilities.ShowDevUI() and options.profile then
+		if BAR.Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
 
-	return Spring.I18N("ui.playersList.aiName", { name = name })
+	return BAR.I18N("ui.playersList.aiName", { name = name })
 end
 
 local function fetchAllyTeamPlayerNames(allyTeamID)

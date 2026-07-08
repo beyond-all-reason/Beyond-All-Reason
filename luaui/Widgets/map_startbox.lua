@@ -99,7 +99,7 @@ local infotextList
 
 local GetTeamColor = Spring.GetTeamColor
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 
 local glTranslate = gl.Translate
 local glCallList = gl.CallList
@@ -165,7 +165,7 @@ local function getAIName(teamID, includeLock)
 				aiName = niceName
 			end
 			aiNameI18NTable.name = aiName
-			baseName = Spring.I18N("ui.playersList.aiName", aiNameI18NTable)
+			baseName = BAR.I18N("ui.playersList.aiName", aiNameI18NTable)
 		else
 			local name = spGetPlayerInfo(playerID, false)
 			baseName = WG.playernames and WG.playernames.getPlayername(playerID) or name
@@ -319,8 +319,8 @@ local function drawName(x, y, name, teamID)
 end
 
 local function createInfotextList()
-	local infotext = Spring.I18N("ui.startSpot.anywhere")
-	local infotextBoxes = Spring.I18N("ui.startSpot.startbox")
+	local infotext = BAR.I18N("ui.startSpot.anywhere")
+	local infotextBoxes = BAR.I18N("ui.startSpot.startbox")
 
 	if infotextList then
 		gl.DeleteList(infotextList)
@@ -490,8 +490,8 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+local scavengerAIAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -1483,14 +1483,14 @@ function widget:RecvLuaMsg(msg)
 				invalidatePosCacheEntry(teamID)
 				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
 			else
 				aiPlacedPositions[teamID] = { x = x, z = z }
 				aiPlacementStatus[teamID] = true
 				invalidatePosCacheEntry(teamID)
 				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
 			end
 
 			invalidateMinimapIcons()

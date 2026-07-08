@@ -19,7 +19,7 @@ end
 -- fix stencil testing
 
 if gadgetHandler:IsSyncedCode() then
-	local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+	local pveTeamID = BAR.Utilities.GetScavTeamID() or BAR.Utilities.GetRaptorTeamID()
 
 	local scumSpawnerIDs = {}
 
@@ -320,7 +320,7 @@ if gadgetHandler:IsSyncedCode() then
 			scumRemoveQueue[n] = nil
 		end
 	end
-elseif not Spring.Utilities.Gametype.IsScavengers() then -- UNSYNCED
+elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 	local textureresolution = "low" -- low or high
 	local textures = {
 		low = {
