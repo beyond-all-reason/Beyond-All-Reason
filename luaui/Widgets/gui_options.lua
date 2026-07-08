@@ -820,19 +820,25 @@ function DrawWindow()
 	local drawColumnPos = 1
 
 	maxColumnRows = math.ceil((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
-	local numOptions = #options
 
 	local dontFilterGroup = false
 	if inputText and inputText ~= '' and inputMode == '' then
 		dontFilterGroup = true
 	end
-	if currentGroupTab ~= nil and not dontFilterGroup then
-		numOptions = 0
-		for i, option in pairs(options) do
-			if option.group == currentGroupTab and showOption(option) then
-				numOptions = numOptions + 1
-			end
+
+	local function getKeepWithNext(option)
+		if option.keepWithNext ~= nil then
+			return option.keepWithNext
 		end
+		if option.name and option.type == nil then
+			-- Large orange section titles normally have a spacer followed by their
+			-- first control, so keep both rows in the same column as the title.
+			return 2
+		elseif option.name and option.type == 'text' then
+			-- Smaller subsection labels only need their first result/control.
+			return 1
+		end
+		return 0
 	end
 
 	-- Keep section titles attached to their controls: without this reservation, a
@@ -842,7 +848,8 @@ function DrawWindow()
 	for _, option in pairs(options) do
 		if showOption(option) and (currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup) then
 			local rowInColumn = layoutRows % maxColumnRows
-			if option.keepWithNext and rowInColumn > 0 and maxColumnRows - rowInColumn <= option.keepWithNext then
+			local keepWithNext = getKeepWithNext(option)
+			if keepWithNext > 0 and rowInColumn > 0 and maxColumnRows - rowInColumn <= keepWithNext then
 				layoutRows = layoutRows + (maxColumnRows - rowInColumn)
 			end
 			layoutRows = layoutRows + 1
@@ -904,7 +911,8 @@ function DrawWindow()
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
-				if option.keepWithNext and i > 0 and maxColumnRows - i <= option.keepWithNext then
+				local keepWithNext = getKeepWithNext(option)
+				if keepWithNext > 0 and i > 0 and maxColumnRows - i <= keepWithNext then
 					-- Move a near-boundary title through the normal overflow path so it
 					-- begins beside the first controls that give the title context.
 					i = maxColumnRows
@@ -7098,7 +7106,7 @@ function init()
 			newOptions[count] = option
 			if option.id == 'soundtrackFades' then
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic, keepWithNext = 2 }
+				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
 				for composerIndex, composer in ipairs(composers) do
@@ -7107,7 +7115,7 @@ function init()
 				end
 
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic, keepWithNext = 2 }
+				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
@@ -7133,7 +7141,7 @@ function init()
 
 					if #searchResults > 0 then
 						count = count + 1
-						newOptions[count] = { id = "music_search_results", group = "sound", basic = true, name = "Search Results", type = "text", keepWithNext = 1 }
+						newOptions[count] = { id = "music_search_results", group = "sound", basic = true, name = "Search Results", type = "text" }
 						for _, track in ipairs(searchResults) do
 							count = count + 1
 							newOptions[count] = makeTrackOption("music_search_track_" .. count, track)
@@ -7150,7 +7158,7 @@ function init()
 						if prevCategoryKey ~= categoryKey then
 							prevCategoryKey = categoryKey
 							count = count + 1
-							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text", keepWithNext = 1 }
+							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text" }
 						end
 						count = count + 1
 						newOptions[count] = makeTrackOption("music_track_" .. count, track)
