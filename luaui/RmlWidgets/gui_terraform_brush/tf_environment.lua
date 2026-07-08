@@ -91,7 +91,7 @@ function M.attach(doc, ctx)
 
 		for _, dds in ipairs(ddsFiles) do
 			local previewPath = findPreview(dds.baseLower)
-			local ddsPath = dds.path
+			local ddsPath = dds.path:gsub("\\", "/")
 			local displayName = dds.path:match("([^/\\]+)%.%w+$") or dds.path
 
 			local thumbDiv = doc:CreateElement("div")
@@ -126,9 +126,8 @@ function M.attach(doc, ctx)
 
 			thumbDiv:AddEventListener("click", function(event)
 				playSound("click")
-				local normalized = ddsPath:gsub("\\", "/")
-				widgetState.applySkybox(normalized)
-				widgetState.envCurrentSkybox = normalized
+				widgetState.applySkybox(ddsPath)
+				widgetState.envCurrentSkybox = ddsPath
 				for _, t in ipairs(widgetState.envSkyboxThumbs) do
 					t.element:SetClass("active", t.path == ddsPath)
 				end

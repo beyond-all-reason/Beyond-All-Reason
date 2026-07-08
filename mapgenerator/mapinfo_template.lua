@@ -359,6 +359,17 @@ if (Spring) then
 			res.splatDistrTex = distr
 		end
 	end
+
+	-- Blank-map skybox: a non-empty atmosphere.skyBox makes the engine build a
+	-- cubemap sky (CSkyBox) instead of the procedural cloud dome (CAdvSky). Without
+	-- this the runtime Spring.SetSkyBoxTexture only swaps the dome's texture and a
+	-- real skybox never appears on generated maps (it stays a cloudy dome).
+	-- NOTE: like the DNTS splat block above, this template is not executed by the
+	-- engine's CBlankMapGenerator path; kept for forward compatibility if a future
+	-- engine build parses the game mapinfo template for InitBlank maps.
+	if mapOpts and mapOpts["blank_map_skybox"] and mapOpts["blank_map_skybox"] ~= "" then
+		mapinfo.atmosphere.skyBox = mapOpts["blank_map_skybox"]
+	end
 end
 
 --------------------------------------------------------------------------------

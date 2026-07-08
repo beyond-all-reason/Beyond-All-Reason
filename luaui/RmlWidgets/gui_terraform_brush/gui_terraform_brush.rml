@@ -108,7 +108,7 @@
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_grass.png" />
 				<div class="tf-btn-text">GRASS</div>
 			</div>
-			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" data-event-mousedown="onTfSwitchSplat()">
+			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" data-class-disabled="spToolDisabled" data-event-mousedown="onTfSwitchSplat()">
 				<div class="tf-keybind-badge">P</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
 				<div class="tf-btn-text">SPLAT</div>
@@ -1301,6 +1301,11 @@
 					<div class="tf-btn-text">Remove</div>
 				</div>
 			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-gb-grasscfg" class="tf-action-btn" style="flex: 1;">
+					<div class="tf-action-btn-text">GRASS CONFIG</div>
+				</div>
+			</div>
 			</div><!-- /section-gb-mode -->
 			</div><!-- /frame-gb-mode -->
 		</div>
@@ -1792,11 +1797,6 @@
 				</div>
 				<div id="btn-grass-clean" data-event-click="onGbClean()" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;">
 					<div class="tf-action-btn-text">CLEAN GRASS</div>
-				</div>
-			</div>
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-gb-grasscfg" class="tf-action-btn" style="flex: 1;">
-					<div class="tf-action-btn-text">GRASS CONFIG</div>
 				</div>
 			</div>
 			</div><!-- /section-gb-save -->
@@ -3309,6 +3309,10 @@
 
 		<!-- ============ SPLAT PAINTER CONTROLS ============ -->
 		<div id="tf-splat-controls" data-if="activeTool == 'sp'">
+		<div class="tf-section-frame mb-1" data-if="newMapEngineSplatNotice">
+			<div class="text-sm text-keybind">New Map splat painting is waiting on queued Recoil engine changes already in flight. Existing maps still support the Splat Painter.</div>
+			<div class="text-xs text-light mt-1" data-if="newMapSplatNeedsDnts">No DNTS pack was found in Terraform Brush/textures/dnts/, so this tool stays disabled on blank maps for now.</div>
+		</div>
 
 		<div class="tf-section-frame" id="frame-spl-channel">
 			<div id="btn-toggle-spl-channel" class="tf-section-title-row" style="cursor: pointer;">
@@ -4490,6 +4494,9 @@
 				<div class="tf-env-btn-text">DIMENSIONS</div>
 			</div>
 		</div>
+		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
+			<div class="text-sm text-keybind">On New Map, skybox swapping is still waiting on queued Recoil engine changes. Existing maps still swap skyboxes at runtime.</div>
+		</div>
 		</div><!-- /section-env-buttons -->
 		</div><!-- /frame-env-buttons -->
 
@@ -5055,6 +5062,9 @@
 		</div>
 
 		<div class="text-sm text-keybind mb-1">Click a thumbnail to change the skybox at runtime.</div>
+		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
+			<div class="text-sm text-keybind">Editor Flat skyboxes on New Map are still blocked on queued Recoil engine support. This library continues to work on existing maps.</div>
+		</div>
 
 		<div id="env-skybox-grid" class="env-skybox-grid">
 			<!-- Populated dynamically from skyboxes/ folder -->

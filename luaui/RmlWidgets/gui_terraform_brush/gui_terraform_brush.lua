@@ -650,8 +650,20 @@ local function setSunColorScaled(key, base, scale)
 	Spring.SetSunLighting({ [key] = { base[1]*scale, base[2]*scale, base[3]*scale } })
 end
 
+-- Apply skybox using the successfully GL-bound texture name.
+local function applySkyboxNow(boundTexName, rawPath)
+	-- Prefer the name that gl.Texture successfully bound (registered in
+	-- CNamedTextures so SetSkyBoxTexture can find it). Only fall back to the raw
+	-- path if no bound name is available. Calling SetSkyBoxTexture with an
+	-- unregistered name clears the skybox, so we apply exactly ONE name.
+	local name = boundTexName
+	if not name or name == "" then name = rawPath end
+	if not name or name == "" then return end
+	Spring.SetSkyBoxTexture(name)
+end
+
 -- Start a skybox fade transition (screen overlay fade-to-black)
-local function startSkyboxFade(newTexturePath)
+local function startSkyboxFade(newTexturePath, rawTexturePath)
 	if skyFade.active then
 		-- A fade is already in progress: update the destination skybox.
 		-- IMPORTANT: do NOT re-capture orig* here. If we are mid-fadein the
@@ -659,6 +671,7 @@ local function startSkyboxFade(newTexturePath)
 		-- those dim values as the "full brightness" target, making restore
 		-- permanently lock the scene dark.
 		skyFade.pendingTexture = newTexturePath
+		skyFade.pendingTextureRaw = rawTexturePath or newTexturePath
 		if skyFade.phase == "fadein" then
 			-- Reverse direction: jump back into fadeout symmetrically so the
 			-- screen dims to black before the new skybox appears. The already-
@@ -676,6 +689,7 @@ local function startSkyboxFade(newTexturePath)
 	skyFade.origGroundDiffuse  = getSunColor("diffuse")
 	skyFade.origGroundSpecular = getSunColor("specular")
 	skyFade.pendingTexture = newTexturePath
+	skyFade.pendingTextureRaw = rawTexturePath or newTexturePath
 	skyFade.phase = "fadeout"
 	skyFade.progress = 0
 	skyFade.active = true
@@ -685,17 +699,18 @@ widgetState.startSkyboxFade = startSkyboxFade
 -- Apply a skybox change: uses fade if enabled, instant swap otherwise
 local function applySkybox(texturePath)
 	if not texturePath then return end
+	local normalized = texturePath:gsub("\\", "/")
 	-- VFS.RAW_FIRST ensures raw-filesystem skyboxes (Terraform Brush/SkyBoxes/)
 	-- are found, not just archive-resident ones.
-	if texturePath ~= "" and not VFS.FileExists(texturePath, VFS.RAW_FIRST) then
-		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. texturePath)
+	if normalized ~= "" and not VFS.FileExists(normalized, VFS.RAW_FIRST) then
+		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
 	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in DrawScreen.
-	widgetState._pendingSkyboxPath = texturePath
+	widgetState._pendingSkyboxPath = normalized
 end
 widgetState.applySkybox = applySkybox
 
@@ -715,7 +730,7 @@ local function tickSkyboxFade(dt)
 		setSunColorScaled("groundSpecularColor", skyFade.origGroundSpecular, s)
 		if skyFade.progress >= 1 then
 			if skyFade.pendingTexture then
-				Spring.SetSkyBoxTexture(skyFade.pendingTexture)
+				applySkyboxNow(skyFade.pendingTexture, skyFade.pendingTextureRaw)
 			end
 			skyFade.phase = "fadein"
 			skyFade.progress = 0
@@ -1019,6 +1034,40 @@ local function _nmRefreshSplatLabel()
 	local s = _nmCurrentSplatSet()
 	local name = s and s.name or "None"
 	if d.newMapSplatStr ~= name then d.newMapSplatStr = name end
+end
+
+local function _isGeneratedBlankMap()
+	local mapName = Game.mapName or ""
+	if mapName:find("^Editor Flat %d+x%d+$") then return true end
+	local mapOpts = Spring.GetMapOptions()
+	if type(mapOpts) ~= "table" then return false end
+	return (tonumber(mapOpts.blank_map_x) or 0) > 0 or (tonumber(mapOpts.blank_map_y) or 0) > 0
+end
+
+local function _newMapSplatNeedsDnts()
+	return _isGeneratedBlankMap() and #dntsSets == 0
+end
+
+local function _newMapSplatEnginePathMissing()
+	if not _isGeneratedBlankMap() then return false end
+	local mapOpts = Spring.GetMapOptions()
+	if type(mapOpts) ~= "table" then return true end
+	local tex1 = mapOpts.blank_map_splatdetailnormaltex1
+	return type(tex1) ~= "string" or tex1 == ""
+end
+
+local function _newMapSplatUnavailable()
+	return _newMapSplatNeedsDnts() or _newMapSplatEnginePathMissing()
+end
+
+local function _mapHasUsableSplatTexture()
+	local texInfo = gl.TextureInfo("$ssmf_splat_distr")
+	return texInfo and texInfo.xsize and texInfo.ysize and texInfo.xsize > 1 and texInfo.ysize > 1
+end
+
+local function _splatToolUnavailable()
+	if _newMapSplatUnavailable() then return true end
+	return not _mapHasUsableSplatTexture()
 end
 
 -- ---- Environment preset catalog (harvested from BAR maps) ----
@@ -1460,7 +1509,7 @@ end
 -- current session's _script.txt (preserving players/teams/modoptions) and
 -- injecting the engine blank-map-generator keys. Returns (scriptText) or
 -- (nil, errorMessage).
-local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet)
+local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath)
 	local base = VFS.LoadFile("_script.txt")
 	if not base or base == "" then
 		return nil, "no _script.txt available (not in a game?)"
@@ -1493,6 +1542,14 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet)
 		"blank_map_color_g=" .. NEWMAP_COLOR[2] .. ";",
 		"blank_map_color_b=" .. NEWMAP_COLOR[3] .. ";",
 	}
+
+	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
+	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
+	-- of the procedural cloud dome; runtime skybox swapping only works once the sky
+	-- is a CSkyBox. Read back in mapgenerator/mapinfo_template.lua.
+	if skyboxPath and skyboxPath ~= "" then
+		opt[#opt + 1] = "blank_map_skybox=" .. skyboxPath .. ";"
+	end
 
 	-- Inject the chosen DNTS splat set so the generated map loads with splat detail
 	-- normal textures (distribution channels R,G,B,A). Paths are game-VFS relative;
@@ -1636,6 +1693,9 @@ local initialModel = {
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
 	newMapEnvStr = "Default",
+	newMapEngineSkyboxNotice = false,
+	newMapEngineSplatNotice = false,
+	newMapSplatNeedsDnts = false,
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
 	newMapHilStr   = "50%",
 	newMapRoughStr = "50%",
@@ -1684,6 +1744,7 @@ local initialModel = {
 	spAltMinEnable = false,
 	spAltMaxEnable = false,
 	spAvoidWater = false,
+	spToolDisabled = false,
 	-- splat instruments
 	spGridSnap = false,
 	spAngleSnap = false,
@@ -4384,7 +4445,15 @@ local initialModel = {
 	onNewMapCreate = function(_event)
 		local w = _nmClampEven(widgetState.newMapW or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
 		local h = _nmClampEven(widgetState.newMapH or NEWMAP_DEFAULT_UNIT, NEWMAP_DEFAULT_UNIT)
-		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet())
+		-- Bake a skybox into the generated map so it loads as a real cubemap sky
+		-- (CSkyBox) rather than the procedural cloud dome. Prefer the currently
+		-- selected skybox, else the first library skybox.
+		local skyboxPath = widgetState.envCurrentSkybox
+		if not skyboxPath or skyboxPath == "" then
+			local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
+			skyboxPath = first and first.path or nil
+		end
+		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath)
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
@@ -5693,6 +5762,16 @@ local initialModel = {
 		playSound("toolSwitch")
 		clearPassthrough()
 		if not WG.SplatPainter then return end
+		if _splatToolUnavailable() then
+			if _newMapSplatNeedsDnts() then
+				Spring.Echo("[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. No DNTS splat-set pack is installed, so the tool stays unavailable on blank maps for now.")
+			elseif _newMapSplatEnginePathMissing() then
+				Spring.Echo("[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. The generated blank map has no blank-map DNTS path from the engine yet, so the tool stays disabled for now.")
+			else
+				Spring.Echo("[Terraform Brush] This map has no SSMF splat textures, so the Splat Painter stays disabled here.")
+			end
+			return
+		end
 		_deactivateAllTools()
 		WG.SplatPainter.activate()
 		local doc = widgetState.document
@@ -8706,6 +8785,15 @@ function widget:Initialize()
 						end
 					end
 				end
+			else
+				-- New Map with Default environment selected: blank maps often have no
+				-- map-defined skybox, so apply the first available library skybox.
+				local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
+				if first and first.path then
+					widgetState._pendingSkyboxPath = first.path
+					widgetState.envCurrentSkybox = first.path
+					Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+				end
 			end
 		end
 	end
@@ -8810,16 +8898,36 @@ function widget:DrawScreen()
 	-- done here in DrawScreen. Register the DDS in the GL named-texture cache so
 	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
 	if widgetState._pendingSkyboxPath then
-		local tex = widgetState._pendingSkyboxPath
+		local rawTex = widgetState._pendingSkyboxPath
+		local tex = rawTex
 		widgetState._pendingSkyboxPath = nil
 		if tex ~= "" then
-			gl.Texture(tex)
-			gl.Texture(false)
+			local bound = nil
+			local candidates = {
+				tex,
+				":r:" .. tex,
+				":l:" .. tex,
+				"maps/" .. tex,
+				":r:maps/" .. tex,
+				":l:maps/" .. tex,
+			}
+			for _, name in ipairs(candidates) do
+				if gl.Texture(name) then
+					gl.Texture(false)
+					bound = name
+					break
+				end
+			end
+			if not bound then
+				Spring.Echo("[Terraform Brush] Skybox bind failed: " .. tex)
+			else
+				tex = bound
+			end
 		end
 		if widgetState.envFadeEnabled then
-			startSkyboxFade(tex)
+			startSkyboxFade(tex, rawTex)
 		else
-			Spring.SetSkyBoxTexture(tex)
+			applySkyboxNow(tex, rawTex)
 		end
 	end
 
@@ -9799,8 +9907,13 @@ function widget:Update()
 		local dm = widgetState.dmHandle
 		if dm then
 			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
+				local generatedBlankMap = _isGeneratedBlankMap()
 			setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 			setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
+				setDm("newMapEngineSkyboxNotice", generatedBlankMap)
+				setDm("newMapEngineSplatNotice", generatedBlankMap)
+					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
+					setDm("spToolDisabled", _splatToolUnavailable())
 			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
 			setDm("clonePasteTransformsVisible", showTransforms and true or false)
 			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
@@ -9983,6 +10096,8 @@ function widget:Update()
 			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 			local grassBtnEl = getCachedEl(doc, "btn-grass")
 			if grassBtnEl then grassBtnEl:SetClass("disabled", false) end
+			local splatBtnEl = getCachedEl(doc, "btn-splat")
+				if splatBtnEl then splatBtnEl:SetClass("disabled", _splatToolUnavailable()) end
 			widgetState.grassNoDataThisMap = not hasGrass
 		end
 
