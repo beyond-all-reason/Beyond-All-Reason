@@ -1985,11 +1985,11 @@ local function doExportHeightmap()
 	pngFile:write(png)
 	pngFile:close()
 
-	-- Write metadata. "<minH> <maxH> grey16" — the trailing token marks the 16-bit
-	-- greyscale PNG format so the loader decodes it at full depth (see doImportHeightmapRead).
+	-- Write metadata. "<minH> <maxH> grey16" — keep extra decimals so external
+	-- compile/import tools can reconstruct the same world-height range as closely as possible.
 	local metaFile = io.open(baseName .. ".txt", "w")
 	if metaFile then
-		metaFile:write(string.format("%.2f %.2f grey16\n", minH, maxH))
+		metaFile:write(string.format("%.6f %.6f grey16\n", minH, maxH))
 		metaFile:close()
 	end
 
@@ -2202,7 +2202,7 @@ local function doImportHeightmapSend()
 
 		local parts = {}
 		for j = 1, #heights do
-			parts[j] = string.format("%.0f", heights[j])
+			parts[j] = string.format("%.6f", heights[j])
 		end
 
 		-- New Map generation certifies its messages ($c$ prefix) so the gadget
