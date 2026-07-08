@@ -6922,6 +6922,40 @@ function init()
 	if type(trackList) == 'table' then
 		local disabledTracks = musicTrackFilters.GetDisabledTracks()
 		local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
+		local composerAliases = {
+			["russel lucas-nutt"] = "Russell Lucas-Nutt",
+		}
+
+		local function getTrackComposer(track)
+			local composer = string.match(track[2] or "", "^(.-)%s+%-%s+") or "Other Artists"
+			return composerAliases[string.lower(composer)] or composer
+		end
+
+		local composerMap = {}
+		for _, track in ipairs(trackList) do
+			local composer = getTrackComposer(track)
+			local composerKey = string.lower(composer)
+			local composerEntry = composerMap[composerKey]
+			if not composerEntry then
+				composerEntry = { name = composer, tracks = {}, trackPaths = {} }
+				composerMap[composerKey] = composerEntry
+			end
+			local trackPath = musicTrackFilters.NormalizePath(track[3])
+			-- War tracks can appear in multiple playback categories; each composer
+			-- operation should still update a physical track only once.
+			if not composerEntry.trackPaths[trackPath] then
+				composerEntry.trackPaths[trackPath] = true
+				composerEntry.tracks[#composerEntry.tracks + 1] = { path = trackPath }
+			end
+		end
+
+		local composers = {}
+		for _, composer in pairs(composerMap) do
+			composers[#composers + 1] = composer
+		end
+		table.sort(composers, function(a, b)
+			return string.lower(a.name) < string.lower(b.name)
+		end)
 
 		local function makeCategoryOption(id, label)
 			return {
@@ -6996,6 +7030,49 @@ function init()
 			}
 		end
 
+		local function makeComposerOption(id, composer)
+			local allTracksEnabled = #composer.tracks > 0
+			for _, track in ipairs(composer.tracks) do
+				if not musicTrackFilters.IsTrackEnabled(track.path, disabledTracks, enabledOverrides) then
+					allTracksEnabled = false
+					break
+				end
+			end
+			return {
+				id = id,
+				group = "sound",
+				basic = true,
+				name = widgetOptionColor .. "   " .. composer.name,
+				type = "bool",
+				value = allTracksEnabled,
+				onchange = function(_, value)
+					local currentDisabledTracks = musicTrackFilters.GetDisabledTracks()
+					local currentEnabledOverrides = musicTrackFilters.GetEnabledOverrides()
+					for _, track in ipairs(composer.tracks) do
+						local packEnabled = musicTrackFilters.IsPackEnabled(musicTrackFilters.GetTrackPack(track.path))
+						if value then
+							currentDisabledTracks[track.path] = nil
+							if packEnabled then
+								currentEnabledOverrides[track.path] = nil
+							else
+								currentEnabledOverrides[track.path] = true
+							end
+						else
+							currentEnabledOverrides[track.path] = nil
+							currentDisabledTracks[track.path] = packEnabled and true or nil
+						end
+					end
+					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, musicTrackFilters.SerializeSet(currentDisabledTracks))
+					Spring.SetConfigString(musicTrackFilters.CONFIG_ENABLED_OVERRIDES, musicTrackFilters.SerializeSet(currentEnabledOverrides))
+					if WG['music'] and WG['music'].RefreshTrackList then
+						-- A composer changes multiple tracks, so resume with normal random selection.
+						WG['music'].RefreshTrackList()
+					end
+					init()
+				end,
+			}
+		end
+
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
@@ -7051,6 +7128,15 @@ function init()
 						count = count + 1
 						newOptions[count] = makeTrackOption("music_track_" .. count, track)
 					end
+				end
+
+				count = count + 1
+				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
+				count = count + 1
+				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
+				for composerIndex, composer in ipairs(composers) do
+					count = count + 1
+					newOptions[count] = makeComposerOption("music_composer_" .. composerIndex, composer)
 				end
 			end
 		end
