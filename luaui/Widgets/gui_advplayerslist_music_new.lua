@@ -366,6 +366,19 @@ local function ReloadMusicPlaylists()
 			musicDirNew..'/interludes', musicDirCustom..'/interludes', 'music/map/interludes',
 		}) },
 		{ i18n = 'ui.music.bossfight', tracks = collectCatalogDirs({ musicDirCustom..'/bossfight' }) },
+		{ i18n = 'ui.music.victory', tracks = collectCatalogDirs({ musicDirNew..'/victory', musicDirCustom..'/victory' }) },
+		{ i18n = 'ui.music.defeat', tracks = collectCatalogDirs({ musicDirNew..'/defeat', musicDirCustom..'/defeat' }) },
+		{ i18n = 'ui.music.gameover', tracks = collectCatalogDirs({ musicDirNew..'/gameover', musicDirCustom..'/gameover' }) },
+		{ i18n = 'ui.music.raptors', tracks = collectCatalogDirs({
+			musicDirNew..'/events/raptors/loading', musicDirNew..'/events/raptors/peace',
+			musicDirNew..'/events/raptors/warlow', musicDirNew..'/events/raptors/warhigh',
+			musicDirNew..'/events/raptors/interludes', musicDirNew..'/events/raptors/bossfight',
+		}) },
+		{ i18n = 'ui.music.scavengers', tracks = collectCatalogDirs({
+			musicDirNew..'/events/scavengers/loading', musicDirNew..'/events/scavengers/peace',
+			musicDirNew..'/events/scavengers/warlow', musicDirNew..'/events/scavengers/warhigh',
+			musicDirNew..'/events/scavengers/interludes', musicDirNew..'/events/scavengers/bossfight',
+		}) },
 		{ i18n = 'ui.music.aprilfools', tracks = collectCatalogDirs({
 			musicDirNew..'/events/aprilfools/menu', musicDirNew..'/events/aprilfools/loading',
 			musicDirNew..'/events/aprilfools/peace', musicDirNew..'/events/aprilfools/warlow',
@@ -384,19 +397,6 @@ local function ReloadMusicPlaylists()
 			musicDirNew..'/events/xmas/war', musicDirNew..'/events/xmas/warhigh',
 			musicDirNew..'/events/xmas/interludes',
 		}) },
-		{ i18n = 'ui.music.raptors', tracks = collectCatalogDirs({
-			musicDirNew..'/events/raptors/loading', musicDirNew..'/events/raptors/peace',
-			musicDirNew..'/events/raptors/warlow', musicDirNew..'/events/raptors/warhigh',
-			musicDirNew..'/events/raptors/interludes', musicDirNew..'/events/raptors/bossfight',
-		}) },
-		{ i18n = 'ui.music.scavengers', tracks = collectCatalogDirs({
-			musicDirNew..'/events/scavengers/loading', musicDirNew..'/events/scavengers/peace',
-			musicDirNew..'/events/scavengers/warlow', musicDirNew..'/events/scavengers/warhigh',
-			musicDirNew..'/events/scavengers/interludes', musicDirNew..'/events/scavengers/bossfight',
-		}) },
-		{ i18n = 'ui.music.victory', tracks = collectCatalogDirs({ musicDirNew..'/victory', musicDirCustom..'/victory' }) },
-		{ i18n = 'ui.music.defeat', tracks = collectCatalogDirs({ musicDirNew..'/defeat', musicDirCustom..'/defeat' }) },
-		{ i18n = 'ui.music.gameover', tracks = collectCatalogDirs({ musicDirNew..'/gameover', musicDirCustom..'/gameover' }) },
 	}
 
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
