@@ -1636,7 +1636,7 @@ local options = {
     {
         key     = "community_balance_armkam",
         name    = "(CBP) Banshee",
-        desc    = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 425 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 116 single shot (from 9 x 3 burst)\nArea of effect: 32 (from 40)\nEdge effectiveness: 0.25 (from 0.5)\nProjectile velocity: 900 (from 1000)\nImpulse factor: 2.5 (from 0.123)\nWeapon visual: genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)",
+        desc    = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 425 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 116 single shot (from 9 x 3 burst)\nArea of effect: 64 (from 40)\nEdge effectiveness: 0.25 (from 0.5)\nProjectile velocity: 900 (from 1000)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.5 (from 0.123)\nWeapon visual: genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
