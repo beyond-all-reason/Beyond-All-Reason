@@ -1,6 +1,5 @@
--- Reusable select/dropdown control styled with FlowUI's Selector visuals to
--- match the Settings menu. Instance-based: Dropdown.new{...}. Options drop
--- below the button; onSelect(option) fires on choice.
+-- Select control for the keybind editor's reset-to-preset picker.
+-- Uses FlowUI's Selector visuals to match the Settings look.
 
 local Dropdown = {}
 Dropdown.__index = Dropdown
