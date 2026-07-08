@@ -29,6 +29,7 @@ function addon.Initialize()
 	--if Spring.GetConfigInt('music', 1) == 0 then
 	--	return
 	--end
+	local musicTrackFilters = VFS.Include("common/music_track_filters.lua")
 	local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 	local allowedExtensions = "{*.ogg,*.mp3}"
@@ -113,6 +114,11 @@ function addon.Initialize()
 			table.append(musicPlaylist, VFS.DirList(musicDirCustom..'/peace', allowedExtensions))
 		end
 	end
+
+	local disabledPacks = musicTrackFilters.GetDisabledPacks()
+	local disabledTracks = musicTrackFilters.GetDisabledTracks()
+	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledPacks, disabledTracks)
+	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledPacks, disabledTracks)
 
 	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 	if #musicPlaylistEvent > 0 then

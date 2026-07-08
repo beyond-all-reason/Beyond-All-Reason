@@ -1,4 +1,5 @@
 local widget = widget ---@type Widget
+local musicTrackFilters = VFS.Include("common/music_track_filters.lua")
 
 function widget:GetInfo()
 	return {
@@ -321,6 +322,26 @@ local function ReloadMusicPlaylists()
 		table.append(loadingTracks, loadingTracksCustom)
 		table.append(interludeTracks, interludeTracksCustom)
 	end
+
+	local disabledPacks = musicTrackFilters.GetDisabledPacks()
+	local disabledTracks = musicTrackFilters.GetDisabledTracks()
+
+	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledPacks, disabledTracks)
+	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledPacks, disabledTracks)
+	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledPacks, disabledTracks)
+	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledPacks, disabledTracks)
+	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledPacks, disabledTracks)
+	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledPacks, disabledTracks)
+	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledPacks, disabledTracks)
+	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledPacks, disabledTracks)
+	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledPacks, disabledTracks)
+	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledPacks, disabledTracks)
+	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledPacks, disabledTracks)
+	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledPacks, disabledTracks)
+	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledPacks, disabledTracks)
+	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledPacks, disabledTracks)
+	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledPacks, disabledTracks)
+	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledPacks, disabledTracks)
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks

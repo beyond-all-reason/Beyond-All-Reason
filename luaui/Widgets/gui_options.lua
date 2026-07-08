@@ -3373,6 +3373,13 @@ function init()
 				end
 			end
 		},
+		{ id = "soundtrackFilters", group = "sound", category = types.basic, name = widgetOptionColor .. "   Music Filters", type = "click",
+			onclick = function()
+				if WG['musicFilters'] and WG['musicFilters'].Toggle then
+					WG['musicFilters'].Toggle(true)
+				end
+			end
+		},
 
 		--{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
 		--  onchange = function(i, value)
