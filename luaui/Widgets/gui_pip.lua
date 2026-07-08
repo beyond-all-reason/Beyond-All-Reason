@@ -1727,6 +1727,8 @@ local cache = {
 	unitCost = {},
 	-- Combat properties
 	canAttack = {},
+	empOnlyAttacker = {},
+	unEmpableUnit = {},
 	isAirAttacker = {},   -- Air units with ground/sea attack weapons (bombers, gunships)
 	isExpensiveEco = {},  -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
 	maxIconShatters = 20,
@@ -7362,6 +7364,29 @@ local function CanTransportLoadUnit(transportUnitID, targetUnitID)
 	return true
 end
 
+local function CanSelectedUnitsAttackTarget(selectedUnits, targetUnitID)
+	if not selectedUnits or not targetUnitID then
+		return false
+	end
+
+	local targetDefID = spFunc.GetUnitDefID(targetUnitID)
+	if not targetDefID then
+		return false
+	end
+
+	local targetIsEmpImmune = cache.unEmpableUnit[targetDefID]
+	for i = 1, #selectedUnits do
+		local unitDefID = spFunc.GetUnitDefID(selectedUnits[i])
+		if unitDefID and cache.canAttack[unitDefID] then
+			if not targetIsEmpImmune or not cache.empOnlyAttacker[unitDefID] then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
 local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -7809,6 +7834,23 @@ function widget:Initialize()
 
 		-- Cache combat properties
 		local hasGroundAttack = false
+		local isEmpOnlyAttacker = false
+		if uDef.weapons and #uDef.weapons > 0 then
+			isEmpOnlyAttacker = true
+			for _, weapon in ipairs(uDef.weapons) do
+				local weaponDef = WeaponDefs[weapon.weaponDef]
+				if not (weaponDef and weaponDef.paralyzer) then
+					isEmpOnlyAttacker = false
+					break
+				end
+			end
+		end
+		if isEmpOnlyAttacker then
+			cache.empOnlyAttacker[uDefID] = true
+		end
+		if not (uDef.modCategories and uDef.modCategories.empable) then
+			cache.unEmpableUnit[uDefID] = true
+		end
 		if uDef.weapons and #uDef.weapons > 0 then
 			-- Check if unit has any non-shield weapons
 			for _, weapon in ipairs(uDef.weapons) do
@@ -16075,13 +16117,9 @@ local function HandleHoverAndCursor(mx, my)
 						local isVisibleOrRadar = losState and (losState.los or losState.radar)
 
 						if not isNeutral and isVisibleOrRadar then
-							-- Check if any selected unit can attack
-							for i = 1, #selectedUnits do
-								local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
-								if uDefID and cache.canAttack[uDefID] then
-									Spring.SetMouseCursor('Attack')
-									return
-								end
+							if CanSelectedUnitsAttackTarget(selectedUnits, lastHoveredUnitID) then
+								Spring.SetMouseCursor('Attack')
+								return
 							end
 						end
 					end
@@ -16109,8 +16147,11 @@ local function HandleHoverAndCursor(mx, my)
 				end
 			elseif defaultCmd == CMD.ATTACK and lastHoveredUnitID and not Spring.IsUnitAllied(lastHoveredUnitID) then
 				-- Hovering over enemy unit with units that can attack
-				Spring.SetMouseCursor('Attack')
-				return
+				if not frameSel then frameSel = Spring.GetSelectedUnits() end
+				if CanSelectedUnitsAttackTarget(frameSel, lastHoveredUnitID) then
+					Spring.SetMouseCursor('Attack')
+					return
+				end
 			end
 		else
 			local cursorName = cmdCursors[activeCmdID]
@@ -17807,13 +17848,7 @@ function widget:Update(dt)
 				local isVisibleOrRadar = losState and (losState.los or losState.radar)
 
 				if not isNeutral and isVisibleOrRadar then
-					for i = 1, #selectedUnits do
-						local uDefID = spFunc.GetUnitDefID(selectedUnits[i])
-						if uDefID and cache.canAttack[uDefID] then
-							shouldHighlight = true
-							break
-						end
-					end
+					shouldHighlight = CanSelectedUnitsAttackTarget(selectedUnits, unitID)
 				end
 			end
 
@@ -19247,7 +19282,10 @@ function widget:DefaultCommand()
 			if Spring.IsUnitAllied(uID) then
 				return CMD.GUARD
 			else
-				return CMD.ATTACK
+				if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+					return CMD.ATTACK
+				end
+				return CMD.MOVE
 			end
 		end
 		local fID = GetFeatureAtPoint(wx, wz)
@@ -20282,8 +20320,12 @@ function widget:MousePress(mx, my, mButton)
 								overrideTarget = uID
 							end
 						else
-							cmdID = CMD.ATTACK
-							overrideTarget = uID
+							if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+								cmdID = CMD.ATTACK
+								overrideTarget = uID
+							else
+								cmdID = CMD.MOVE
+							end
 						end
 					else
 						local fID = GetFeatureAtPoint(wx, wz)
@@ -21227,7 +21269,11 @@ function widget:MouseRelease(mx, my, mButton)
 						cmdID = CMD.GUARD
 					end
 				else
-					cmdID = CMD.ATTACK
+					if CanSelectedUnitsAttackTarget(Spring.GetSelectedUnits(), uID) then
+						cmdID = CMD.ATTACK
+					else
+						cmdID = CMD.MOVE
+					end
 				end
 			else
 				local fID = GetFeatureAtPoint(wx, wz)
