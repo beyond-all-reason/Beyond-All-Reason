@@ -835,7 +835,20 @@ function DrawWindow()
 		end
 	end
 
-	totalColumns = math.ceil(numOptions / maxColumnRows)
+	-- Keep section titles attached to their controls: without this reservation, a
+	-- title can occupy the final row while its first option spills into the next
+	-- column or page. Count the intentionally unused slots in pagination as well.
+	local layoutRows = 0
+	for _, option in pairs(options) do
+		if showOption(option) and (currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup) then
+			local rowInColumn = layoutRows % maxColumnRows
+			if option.keepWithNext and rowInColumn > 0 and maxColumnRows - rowInColumn <= option.keepWithNext then
+				layoutRows = layoutRows + (maxColumnRows - rowInColumn)
+			end
+			layoutRows = layoutRows + 1
+		end
+	end
+	totalColumns = math.ceil(layoutRows / maxColumnRows)
 
 	optionButtons = {}
 	optionHover = {}
@@ -891,6 +904,11 @@ function DrawWindow()
 	for oid, option in pairs(options) do
 		if showOption(option) then
 			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
+				if option.keepWithNext and i > 0 and maxColumnRows - i <= option.keepWithNext then
+					-- Move a near-boundary title through the normal overflow path so it
+					-- begins beside the first controls that give the title context.
+					i = maxColumnRows
+				end
 				yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
 				if yPos - oHeight < yPosMax then
 					i = 0
@@ -7080,7 +7098,7 @@ function init()
 			newOptions[count] = option
 			if option.id == 'soundtrackFades' then
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic }
+				newOptions[count] = { id = "label_sound_music_composers", group = "sound", name = "Composers", category = types.basic, keepWithNext = 2 }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_composers_spacer", group = "sound", category = types.basic }
 				for composerIndex, composer in ipairs(composers) do
@@ -7089,7 +7107,7 @@ function init()
 				end
 
 				count = count + 1
-				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic }
+				newOptions[count] = { id = "label_sound_music", group = "sound", name = Spring.I18N('ui.settings.option.label_playlist'), category = types.basic, keepWithNext = 2 }
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
@@ -7115,7 +7133,7 @@ function init()
 
 					if #searchResults > 0 then
 						count = count + 1
-						newOptions[count] = { id = "music_search_results", group = "sound", basic = true, name = "Search Results", type = "text" }
+						newOptions[count] = { id = "music_search_results", group = "sound", basic = true, name = "Search Results", type = "text", keepWithNext = 1 }
 						for _, track in ipairs(searchResults) do
 							count = count + 1
 							newOptions[count] = makeTrackOption("music_search_track_" .. count, track)
@@ -7132,7 +7150,7 @@ function init()
 						if prevCategoryKey ~= categoryKey then
 							prevCategoryKey = categoryKey
 							count = count + 1
-							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text" }
+							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text", keepWithNext = 1 }
 						end
 						count = count + 1
 						newOptions[count] = makeTrackOption("music_track_" .. count, track)
