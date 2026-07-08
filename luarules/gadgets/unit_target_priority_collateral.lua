@@ -30,6 +30,9 @@ local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
 local effectTarget = 0.20
 
+-- Each update passes through half the target cache and clears it.
+local updateInterval = math.round(Game.gameSpeed * 0.5)
+
 -- Lua env globals -------------------------------------------------------------
 
 local CallAsTeam = CallAsTeam
@@ -42,18 +45,73 @@ local spGetUnitsInSphere = Spring.GetUnitsInSphere
 
 -- Initialization --------------------------------------------------------------
 
-local weaponSearchRadius = {}
+---We need predictable and aggressive shrinkage of the avoid/prefer tables and we are not
+---especially sensitive to the order or accuracy of eviction. We are memory-constrained as
+---well as time-constrained, plus we need a rolling set of keys as units die or disappear.
+local function generateClearHalfTableFunc(hashTable)
+	local keyLists = { {}, {} }
+	local keyListIndex = 1
+
+	return function()
+		local list = keyLists[keyListIndex]
+		local listCount = #list
+
+		-- Remove half the keys immediately and save the other half for later.
+		for index = 1, listCount do
+			hashTable[list[index]] = nil
+			list[index] = nil
+		end
+
+		keyListIndex = (keyListIndex % 2) + 1
+
+		-- At the next "halving", then, we remove a "half" from a previous pass.
+		-- to guarantee that the table is empty of current keys after two passes.
+		local nextList = keyLists[keyListIndex]
+		local nextCount = #nextList
+
+		local add = true
+		local nextIndex = 0
+		for key in pairs(hashTable) do
+			if add then
+				nextIndex = nextIndex + 1
+				nextList[nextIndex] = key
+			end
+			add = not add
+		end
+
+		for index = nextIndex + 1, nextCount do
+			nextList[index] = nil
+		end
+	end
+end
+
+local function newClearHalfTable()
+	local tbl = {}
+	local clear = generateClearHalfTableFunc(tbl)
+	setmetatable(tbl, { __call = clear }) -- TODO: dislike this immensely
+	return tbl
+end
 
 local avoidUnit, preferUnit = {}, {}
 do
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _, allyTeam in pairs(allyTeamList) do
-		avoidUnit[allyTeam] = {}
-		preferUnit[allyTeam] = {}
+		avoidUnit[allyTeam] = newClearHalfTable()
+		preferUnit[allyTeam] = newClearHalfTable()
 	end
 end
 
-local readAs = { read = -1 }
+local updateAllyTeams = table.new(updateInterval, 0)
+local frameReset = updateInterval
+local frameIndex = frameReset
+do
+	local allyTeamList = Spring.GetAllyTeamList()
+	for _, allyTeam in pairs(allyTeamList) do
+		local index = ((allyTeam + 1) % frameReset) + 1
+		local group = table.ensureTable(updateAllyTeams, index)
+		group[#group + 1] = allyTeam
+	end
+end
 
 local unitPower = { [-1] = unknownPower }
 local unitRadius = { [-1] = 10.0 }
@@ -70,6 +128,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 end
 
 local unitAllyTeam = {}
+
+local readAs = { read = -1 }
 
 local function getWeaponDamage(weaponDef)
 	local damage = weaponDef.damages[0] -- TODO: other armor type targets
@@ -195,6 +255,8 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	return radius, damage
 end
 
+local weaponSearchRadius = {}
+
 local function addWeaponCollateral(unitDef)
 	local groups = getWeaponGroups(unitDef)
 	for weaponNum in pairs(groups) do
@@ -240,6 +302,13 @@ end
 -- Engine callins --------------------------------------------------------------
 
 function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, priority)
+	if not priority then
+		if allowBadSpamTarget then
+			return true
+		end
+		priority = 1.0 -- This value does absolutely nothing. Set it to avoid errors.
+	end
+
 	local searchRadius = weaponSearchRadius[weaponDefID]
 	if not searchRadius then
 		return true, priority
@@ -292,30 +361,24 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		end
 	end
 
-	-- local x, y, z = Spring.GetUnitPosition(targetID)
-	-- Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allowed), priority))
 	return allowed, priority
 end
 
-local index = 0
-local reset = Game.gameSpeed
-
 function gadget:GameFramePost(frame)
-	if index == reset then
-		for i in pairs(avoidUnit) do
-			avoidUnit[i] = {}
-			preferUnit[i] = {}
+	frameIndex = frameIndex == 1 and frameReset or frameIndex - 1
+	if updateAllyTeams[frameIndex] then
+		for _, allyTeam in next, updateAllyTeams[frameIndex] do
+			avoidUnit[allyTeam]()
+			preferUnit[allyTeam]()
 		end
-		index = 0
 	end
-	index = index + 1
 end
 
-local function callinSetUnitAllyTeam(self, unitID)
+local function callinGetUnitAllyTeam(self, unitID)
 	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 end
-gadget.UnitCreated = callinSetUnitAllyTeam
-gadget.UnitTaken = callinSetUnitAllyTeam
+gadget.UnitCreated = callinGetUnitAllyTeam
+gadget.UnitTaken = callinGetUnitAllyTeam
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	unitAllyTeam[unitID] = nil
@@ -329,5 +392,9 @@ function gadget:Initialize()
 	if not next(weaponSearchRadius) then
 		gadgetHandler:RemoveGadget()
 		return
+	end
+
+	for _, unitID in pairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID)
 	end
 end
