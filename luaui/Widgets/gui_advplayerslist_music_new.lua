@@ -381,6 +381,7 @@ local function ReloadMusicPlaylists()
 
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
+	local disabledComposers = musicTrackFilters.GetDisabledComposers()
 
 	local function appendUnique(playlist, trackPath)
 		for i = 1, #playlist do
@@ -422,22 +423,22 @@ local function ReloadMusicPlaylists()
 		end
 	end
 
-	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks, enabledOverrides)
-	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks, enabledOverrides)
-	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks, enabledOverrides)
-	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks, enabledOverrides)
-	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks, enabledOverrides)
-	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks, enabledOverrides)
-	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks, enabledOverrides)
-	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks, enabledOverrides)
-	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks, enabledOverrides)
-	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks, enabledOverrides)
-	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks, enabledOverrides)
-	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks, enabledOverrides)
-	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks, enabledOverrides)
-	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks, enabledOverrides)
-	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks, enabledOverrides)
-	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks, enabledOverrides)
+	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks, enabledOverrides, disabledComposers)
+	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks, enabledOverrides, disabledComposers)
+	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks, enabledOverrides, disabledComposers)
+	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks, enabledOverrides, disabledComposers)
+	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks, enabledOverrides, disabledComposers)
+	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks, enabledOverrides, disabledComposers)
+	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks, enabledOverrides, disabledComposers)
+	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks, enabledOverrides, disabledComposers)
+	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks, enabledOverrides, disabledComposers)
+	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks, enabledOverrides, disabledComposers)
+	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks, enabledOverrides, disabledComposers)
+	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks, enabledOverrides, disabledComposers)
+	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks, enabledOverrides, disabledComposers)
+	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks, enabledOverrides, disabledComposers)
+	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks, enabledOverrides, disabledComposers)
+	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks, enabledOverrides, disabledComposers)
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks
