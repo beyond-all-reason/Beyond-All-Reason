@@ -286,8 +286,8 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		end
 	end
 
-	local x, y, z = Spring.GetUnitPosition(targetID)
-	Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allowed), priority))
+	-- local x, y, z = Spring.GetUnitPosition(targetID)
+	-- Spring.MarkerAddPoint(x, y, z, ("allow:%s prio:%.3f"):format(tostring(allowed), priority))
 	return allowed, priority
 end
 
