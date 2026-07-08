@@ -1,6 +1,5 @@
 local musicTrackFilters = {}
 
-musicTrackFilters.CONFIG_DISABLED_PACKS = "MusicDisabledPacks"
 musicTrackFilters.CONFIG_DISABLED_TRACKS = "MusicDisabledTracks"
 
 local separator = "|"
@@ -9,10 +8,6 @@ function musicTrackFilters.NormalizePath(path)
 	path = string.gsub(path or "", "\\", "/")
 	path = string.gsub(path, "/$", "")
 	return string.lower(path)
-end
-
-function musicTrackFilters.GetPackPath(trackPath)
-	return musicTrackFilters.NormalizePath(string.match(trackPath or "", "(.+)/[^/]+$") or "")
 end
 
 function musicTrackFilters.ParseSet(raw)
@@ -37,32 +32,23 @@ function musicTrackFilters.SerializeSet(set)
 	return table.concat(values, separator)
 end
 
-function musicTrackFilters.GetDisabledPacks()
-	return musicTrackFilters.ParseSet(Spring.GetConfigString(musicTrackFilters.CONFIG_DISABLED_PACKS, ""))
-end
-
 function musicTrackFilters.GetDisabledTracks()
 	return musicTrackFilters.ParseSet(Spring.GetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, ""))
 end
 
-function musicTrackFilters.IsTrackEnabled(trackPath, disabledPacks, disabledTracks)
+function musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks)
 	local normalizedTrack = musicTrackFilters.NormalizePath(trackPath)
 	if disabledTracks and disabledTracks[normalizedTrack] then
-		return false
-	end
-
-	local packPath = musicTrackFilters.GetPackPath(trackPath)
-	if disabledPacks and disabledPacks[packPath] then
 		return false
 	end
 
 	return true
 end
 
-function musicTrackFilters.FilterPlaylist(playlist, disabledPacks, disabledTracks)
+function musicTrackFilters.FilterPlaylist(playlist, disabledTracks)
 	local filtered = {}
 	for i = 1, #playlist do
-		if musicTrackFilters.IsTrackEnabled(playlist[i], disabledPacks, disabledTracks) then
+		if musicTrackFilters.IsTrackEnabled(playlist[i], disabledTracks) then
 			filtered[#filtered + 1] = playlist[i]
 		end
 	end

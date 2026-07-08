@@ -115,10 +115,9 @@ function addon.Initialize()
 		end
 	end
 
-	local disabledPacks = musicTrackFilters.GetDisabledPacks()
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
-	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledPacks, disabledTracks)
-	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledPacks, disabledTracks)
+	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledTracks)
+	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledTracks)
 
 	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 	if #musicPlaylistEvent > 0 then

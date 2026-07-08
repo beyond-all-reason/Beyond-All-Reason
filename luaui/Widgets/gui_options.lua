@@ -27,6 +27,7 @@ local version = 1.5	-- used to toggle previously default enabled/disabled widget
 local newerVersion = false	-- configdata will set this true if it's a newer version
 
 local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local musicTrackFilters = VFS.Include("common/music_track_filters.lua")
 
 local languageCodes = { 'en', 'fr', 'ru', 'es' }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
@@ -407,6 +408,35 @@ local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputTextInsertActive = false
 local floor = math.floor
 local inputMode = ''
+musicTrackOptionsState = { search = '', expanded = false }
+
+local function updateMusicTrackSearch()
+	if inputMode == 'Track Search' then
+		musicTrackOptionsState.search = inputText
+		init()
+		return true
+	end
+	return false
+end
+
+function SetMusicTracksExpanded(value)
+	musicTrackOptionsState.expanded = value
+	if not value and inputMode == 'Track Search' then
+		inputMode = ''
+		inputText = ''
+		inputTextPosition = 0
+	end
+	init()
+end
+
+function FocusMusicTrackSearch()
+	inputMode = 'Track Search'
+	inputText = musicTrackOptionsState.search
+	inputTextPosition = utf8.len(inputText)
+	Spring.SDLStartTextInput()
+	widgetHandler.textOwner = widget
+	updateTextInputDlist = true
+end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
@@ -431,7 +461,9 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 			WG['limitidlefps'].update()
 		end
 
-		applyFilter()
+		if not updateMusicTrackSearch() then
+			applyFilter()
+		end
 		return true
 	end
 end
@@ -447,6 +479,11 @@ end
 
 -- only called when show = false
 local function cancelChatInput()
+	if inputMode == 'Track Search' then
+		inputMode = ''
+		inputText = ''
+		inputTextPosition = 0
+	end
 	local doReinit = inputText ~= ''
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG['guishader'] then
@@ -820,6 +857,9 @@ function DrawWindow()
 
 				if column >= startColumn then
 					rows = rows + 1
+					if option.type == 'input' then
+						UiElement(math.floor(xPos + 2), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax - 2), math.floor(yPos + oPadding), 0, 0, nil, nil, 0, nil, nil, nil, WG.FlowUI.clampedOpacity)
+					end
 					if option.name then
 						color = '\255\225\225\225'
 
@@ -875,6 +915,8 @@ function DrawWindow()
 						if option.type == 'click' then
 							optionButtons[oid] = {}
 							optionButtons[oid] = { math.floor(xPos + rightPadding), math.floor(yPos - oHeight), math.floor(xPosMax - rightPadding), math.floor(yPos) }
+						elseif option.type == 'input' then
+							optionButtons[oid] = { math.floor(xPos + 2), math.floor(yPos - oHeight - oPadding), math.floor(xPosMax - 2), math.floor(yPos + oPadding) }
 
 						elseif option.type == 'bool' then
 							optionButtons[oid] = {}
@@ -1607,6 +1649,15 @@ function widget:KeyPress(key)
 	if not show then
 		return false
 	end
+	if key == 27 and inputMode == 'Track Search' then
+		inputMode = ''
+		inputText = ''
+		inputTextPosition = 0
+		musicTrackOptionsState.search = ''
+		updateTextInputDlist = true
+		init()
+		return true
+	end
 	if key == 27 then	-- ESC
 		if showTextInput and inputText ~= '' then
 			clearChatInput()
@@ -2113,6 +2164,9 @@ end
 -- When a sub-option (name starts with widgetOptionColor) is matched, its parent option
 -- and the group label above it are also included for context.
 function applyFilter()
+	if updateMusicTrackSearch() then
+		return
+	end
 	if inputText and inputText ~= '' and inputMode == '' then
 		local lowerInput = string.lower(inputText)
 
@@ -3373,14 +3427,6 @@ function init()
 				end
 			end
 		},
-		{ id = "soundtrackFilters", group = "sound", category = types.basic, name = widgetOptionColor .. "   Music Filters", type = "click",
-			onclick = function()
-				if WG['musicFilters'] and WG['musicFilters'].Toggle then
-					WG['musicFilters'].Toggle(true)
-				end
-			end
-		},
-
 		--{ id = "loadscreen_music", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.loadscreen_music'), type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = Spring.I18N('ui.settings.option.loadscreen_music_descr'),
 		--  onchange = function(i, value)
 		--	  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
@@ -6832,10 +6878,64 @@ function init()
 		trackList = WG['music'].getTracksConfig()
 	end
 	if type(trackList) == 'table' then
+		local disabledTracks = musicTrackFilters.GetDisabledTracks()
+
+		local function makeCategoryOption(id, label)
+			return {
+				id = id,
+				group = "sound",
+				basic = true,
+				name = label,
+				type = "bool",
+				value = musicTrackOptionsState.expanded,
+				onchange = function(_, value)
+					SetMusicTracksExpanded(value)
+				end,
+			}
+		end
+
+		local function makeTrackSearchOption()
+			local label = musicTrackOptionsState.search == '' and "Search tracks..." or "Search tracks: " .. musicTrackOptionsState.search
+			return {
+				id = "music_track_search",
+				group = "sound",
+				basic = true,
+				name = label,
+				type = "input",
+				onclick = function()
+					FocusMusicTrackSearch()
+				end,
+			}
+		end
+
+		local function makeTrackOption(id, track)
+			local trackPath = musicTrackFilters.NormalizePath(track[3])
+			local displayName = string.match(track[2], "^.-%s+%-%s+(.+)$") or track[2]
+			return {
+				id = id,
+				group = "sound",
+				basic = true,
+				name = widgetOptionColor .. "   " .. displayName,
+				type = "bool",
+				value = not disabledTracks[trackPath],
+				onchange = function(_, value)
+					local currentDisabledTracks = musicTrackFilters.GetDisabledTracks()
+					if value then
+						currentDisabledTracks[trackPath] = nil
+					else
+						currentDisabledTracks[trackPath] = true
+					end
+					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, musicTrackFilters.SerializeSet(currentDisabledTracks))
+					if WG['music'] and WG['music'].RefreshTrackList then
+						WG['music'].RefreshTrackList()
+					end
+					init()
+				end,
+			}
+		end
 
 		local newOptions = {}
 		local count = 0
-		local prevCategory = ''
 		for i, option in pairs(options) do
 			count = count + 1
 			newOptions[count] = option
@@ -6845,20 +6945,49 @@ function init()
 				count = count + 1
 				newOptions[count] = { id = "label_sound_music_spacer", group = "sound", category = types.basic }
 
-				for k, v in pairs(trackList) do
-					if prevCategory ~= v[1] then
-						prevCategory = v[1]
-						count = count + 1
-						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[1], type="text"}
+				count = count + 1
+				newOptions[count] = makeTrackSearchOption()
+
+				local lowerSearch = string.lower(musicTrackOptionsState.search)
+				if lowerSearch ~= '' then
+					local searchResults = {}
+					local seenSearchResults = {}
+					for _, track in ipairs(trackList) do
+						local trackPath = musicTrackFilters.NormalizePath(track[3])
+						local searchableText = string.lower(track[2] .. " " .. track[3])
+						if not seenSearchResults[trackPath] and string.find(searchableText, lowerSearch, 1, true) then
+							seenSearchResults[trackPath] = true
+							searchResults[#searchResults + 1] = track
+						end
 					end
-					count = count + 1
-					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="click",--..'\n'..v[4],
-						  onclick = function()
-							  if WG['music'] ~= nil and WG['music'].playTrack then
-								  WG['music'].playTrack(v[3])
-							  end
-						  end,
-					}
+					table.sort(searchResults, function(a, b)
+						return string.lower(a[2]) < string.lower(b[2])
+					end)
+
+					if #searchResults > 0 then
+						count = count + 1
+						newOptions[count] = { id = "music_search_results", group = "sound", basic = true, name = "Search Results", type = "text" }
+						for _, track in ipairs(searchResults) do
+							count = count + 1
+							newOptions[count] = makeTrackOption("music_search_track_" .. count, track)
+						end
+					end
+				end
+
+				count = count + 1
+				newOptions[count] = makeCategoryOption("music_category_all_tracks", "All Tracks")
+				if musicTrackOptionsState.expanded then
+					local prevCategoryKey = ''
+					for _, track in ipairs(trackList) do
+						local categoryKey = musicTrackFilters.NormalizePath(track[4] or track[1])
+						if prevCategoryKey ~= categoryKey then
+							prevCategoryKey = categoryKey
+							count = count + 1
+							newOptions[count] = { id = "music_category_" .. count, group = "sound", basic = true, name = track[1], type = "text" }
+						end
+						count = count + 1
+						newOptions[count] = makeTrackOption("music_track_" .. count, track)
+					end
 				end
 			end
 		end

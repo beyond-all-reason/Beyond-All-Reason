@@ -86,6 +86,7 @@ local eventWarHighTracks = {}
 
 local menuTracks = {}
 local loadingTracks = {}
+local musicTrackCatalog = {}
 
 local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, victoryTracksPlayCounter, defeatTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
@@ -323,25 +324,39 @@ local function ReloadMusicPlaylists()
 		table.append(interludeTracks, interludeTracksCustom)
 	end
 
-	local disabledPacks = musicTrackFilters.GetDisabledPacks()
+	musicTrackCatalog = {
+		{ i18n = 'ui.music.menu', tracks = table.copy(menuTracks), excludeEvents = true },
+		{ i18n = 'ui.music.loading', tracks = table.copy(loadingTracks), excludeEvents = true },
+		{ i18n = 'ui.music.peace', tracks = table.copy(peaceTracks), excludeEvents = true },
+		{ i18n = 'ui.music.warlow', tracks = table.copy(warlowTracks), excludeEvents = true },
+		{ i18n = 'ui.music.warhigh', tracks = table.copy(warhighTracks), excludeEvents = true },
+		{ i18n = 'ui.music.interludes', tracks = table.copy(interludeTracks), excludeEvents = true },
+		{ i18n = 'ui.music.raptors', tracks = table.copy(raptorTracks) },
+		{ i18n = 'ui.music.scavengers', tracks = table.copy(scavTracks) },
+		{ i18n = 'ui.music.victory', tracks = table.copy(victoryTracks) },
+		{ i18n = 'ui.music.defeat', tracks = table.copy(defeatTracks) },
+		{ i18n = 'ui.music.gameover', tracks = table.copy(gameoverTracks) },
+		{ i18n = 'ui.music.bonus', tracks = table.copy(bonusTracks) },
+	}
+
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 
-	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledPacks, disabledTracks)
-	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledPacks, disabledTracks)
-	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledPacks, disabledTracks)
-	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledPacks, disabledTracks)
-	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledPacks, disabledTracks)
-	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledPacks, disabledTracks)
-	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledPacks, disabledTracks)
-	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledPacks, disabledTracks)
-	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledPacks, disabledTracks)
-	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledPacks, disabledTracks)
-	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledPacks, disabledTracks)
-	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledPacks, disabledTracks)
-	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledPacks, disabledTracks)
-	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledPacks, disabledTracks)
-	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledPacks, disabledTracks)
-	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledPacks, disabledTracks)
+	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks)
+	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks)
+	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks)
+	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks)
+	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks)
+	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks)
+	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks)
+	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks)
+	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks)
+	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks)
+	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks)
+	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks)
+	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks)
+	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks)
+	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks)
+	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks)
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks
@@ -873,88 +888,15 @@ function widget:Initialize()
 			end)
 		end
 
-		local menuTracksSorted = table.copy(menuTracks)
-		sortPlaylist(menuTracksSorted)
-		for k,v in pairs(menuTracksSorted) do
-			if menuTracksSorted[k] and not string.find(menuTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.menu'), processTrackname(v), v}
+		for i = 1, #musicTrackCatalog do
+			local section = musicTrackCatalog[i]
+			local sortedTracks = table.copy(section.tracks)
+			sortPlaylist(sortedTracks)
+			for _, trackPath in ipairs(sortedTracks) do
+				if not section.excludeEvents or not string.find(trackPath, "/events/") then
+					tracksConfig[#tracksConfig + 1] = { Spring.I18N(section.i18n), processTrackname(trackPath), trackPath, section.i18n }
+				end
 			end
-		end
-
-		local loadingTracksSorted = table.copy(loadingTracks)
-		sortPlaylist(loadingTracksSorted)
-		for k,v in pairs(loadingTracksSorted) do
-			if loadingTracksSorted[k] and not string.find(loadingTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.loading'), processTrackname(v), v}
-			end
-		end
-
-		local peaceTracksSorted = table.copy(peaceTracks)
-		sortPlaylist(peaceTracksSorted)
-		for k,v in pairs(peaceTracksSorted) do
-			if peaceTracksSorted[k] and not string.find(peaceTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.peace'), processTrackname(v), v}
-			end
-		end
-
-		local warlowTracksSorted = table.copy(warlowTracks)
-		sortPlaylist(warlowTracksSorted)
-		for k,v in pairs(warlowTracksSorted) do
-			if warlowTracksSorted[k] and not string.find(warlowTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warlow'), processTrackname(v), v}
-			end
-		end
-
-		local warhighTracksSorted = table.copy(warhighTracks)
-		sortPlaylist(warhighTracksSorted)
-		for k,v in pairs(warhighTracksSorted) do
-			if warhighTracksSorted[k] and not string.find(warhighTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.warhigh'), processTrackname(v), v}
-			end
-		end
-
-		local interludeTracksSorted = table.copy(interludeTracks)
-		sortPlaylist(interludeTracksSorted)
-		for k,v in pairs(interludeTracksSorted) do
-			if interludeTracksSorted[k] and not string.find(interludeTracksSorted[k], "/events/") then
-				tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.interludes'), processTrackname(v), v}
-			end
-		end
-
-		local raptorTracksSorted = table.copy(raptorTracks)
-		sortPlaylist(raptorTracksSorted)
-		for k,v in pairs(raptorTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.raptors'), processTrackname(v), v}
-		end
-
-		local scavTracksSorted = table.copy(scavTracks)
-		sortPlaylist(scavTracksSorted)
-		for k,v in pairs(scavTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.scavengers'), processTrackname(v), v}
-		end
-
-		local victoryTracksSorted = table.copy(victoryTracks)
-		sortPlaylist(victoryTracksSorted)
-		for k,v in pairs(victoryTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.victory'), processTrackname(v), v}
-		end
-
-		local defeatTracksSorted = table.copy(defeatTracks)
-		sortPlaylist(defeatTracksSorted)
-		for k,v in pairs(defeatTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.defeat'), processTrackname(v), v}
-		end
-
-		local gameoverTracksSorted = table.copy(gameoverTracks)
-		sortPlaylist(gameoverTracksSorted)
-		for k,v in pairs(gameoverTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.gameover'), processTrackname(v), v}
-		end
-
-		local bonusTracksSorted = table.copy(bonusTracks)
-		sortPlaylist(bonusTracksSorted)
-		for k,v in pairs(bonusTracksSorted) do
-			tracksConfig[#tracksConfig+1] = {Spring.I18N('ui.music.bonus'), processTrackname(v), v}
 		end
 		return tracksConfig
 	end
