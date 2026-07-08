@@ -115,6 +115,7 @@ function addon.Initialize()
 		end
 	end
 
+	-- Apply the same per-track choices used by the in-game music player.
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
 	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledTracks)
 	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledTracks)

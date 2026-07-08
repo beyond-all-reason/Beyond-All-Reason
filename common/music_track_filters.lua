@@ -1,5 +1,7 @@
 local musicTrackFilters = {}
 
+-- Shared engine config so LuaUI, LuaIntro, and other music consumers use one source of truth.
+-- Values are normalized track paths serialized as a pipe-delimited set.
 musicTrackFilters.CONFIG_DISABLED_TRACKS = "MusicDisabledTracks"
 
 local separator = "|"

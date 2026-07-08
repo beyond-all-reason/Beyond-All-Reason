@@ -324,6 +324,8 @@ local function ReloadMusicPlaylists()
 		table.append(interludeTracks, interludeTracksCustom)
 	end
 
+	-- Preserve an unfiltered catalog for Options. Building it before filtering keeps disabled
+	-- tracks visible in the UI so users can turn them back on.
 	musicTrackCatalog = {
 		{ i18n = 'ui.music.menu', tracks = table.copy(menuTracks), excludeEvents = true },
 		{ i18n = 'ui.music.loading', tracks = table.copy(loadingTracks), excludeEvents = true },
@@ -894,6 +896,7 @@ function widget:Initialize()
 			sortPlaylist(sortedTracks)
 			for _, trackPath in ipairs(sortedTracks) do
 				if not section.excludeEvents or not string.find(trackPath, "/events/") then
+					-- The i18n key is a stable category ID; the localized label may change with language.
 					tracksConfig[#tracksConfig + 1] = { Spring.I18N(section.i18n), processTrackname(trackPath), trackPath, section.i18n }
 				end
 			end
@@ -918,11 +921,16 @@ function widget:Initialize()
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	end
-	WG['music'].RefreshTrackList = function()
+	WG['music'].RefreshTrackList = function(trackToPlay)
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()
 		playInterlude = false
-		PlayNewTrack()
+		-- Enabling a track previews it immediately; other refreshes retain random selection.
+		if trackToPlay then
+			WG['music'].playTrack(trackToPlay)
+		else
+			PlayNewTrack()
+		end
 	end
 end
 

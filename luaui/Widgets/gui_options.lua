@@ -408,6 +408,8 @@ local maxTextInputChars = 127	-- tested 127 as being the true max
 local inputTextInsertActive = false
 local floor = math.floor
 local inputMode = ''
+-- Kept outside init's local captures because that function is at Lua 5.1's 60-upvalue limit.
+-- This UI-only state intentionally resets whenever LuaUI reloads.
 musicTrackOptionsState = { search = '', expanded = false }
 
 local function updateMusicTrackSearch()
@@ -6872,7 +6874,7 @@ function init()
 		options[getOptionByID('snddevice')] = nil
 	end
 
-	-- add music tracks options
+	-- Add track controls dynamically because enabled soundtrack packs determine the catalog.
 	local trackList
 	if WG['music'] ~= nil then
 		trackList = WG['music'].getTracksConfig()
@@ -6910,6 +6912,7 @@ function init()
 
 		local function makeTrackOption(id, track)
 			local trackPath = musicTrackFilters.NormalizePath(track[3])
+			local playableTrackPath = track[3]
 			local displayName = string.match(track[2], "^.-%s+%-%s+(.+)$") or track[2]
 			return {
 				id = id,
@@ -6927,7 +6930,8 @@ function init()
 					end
 					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, musicTrackFilters.SerializeSet(currentDisabledTracks))
 					if WG['music'] and WG['music'].RefreshTrackList then
-						WG['music'].RefreshTrackList()
+						-- A newly enabled track is passed through for immediate playback.
+						WG['music'].RefreshTrackList(value and playableTrackPath or nil)
 					end
 					init()
 				end,
@@ -6950,6 +6954,7 @@ function init()
 
 				local lowerSearch = string.lower(musicTrackOptionsState.search)
 				if lowerSearch ~= '' then
+					-- A track can belong to multiple playback categories; search results show it once.
 					local searchResults = {}
 					local seenSearchResults = {}
 					for _, track in ipairs(trackList) do
