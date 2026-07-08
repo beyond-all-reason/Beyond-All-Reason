@@ -260,11 +260,12 @@ function view.setMenuToggle(fn)
 	menuToggle = fn
 end
 
--- True while the editor needs first crack at keypresses (search focus / key
--- capture), so the host can claim widgetHandler.textOwner and stop keys from
--- leaking to bound actions.
+-- True while the editor needs first crack at keypresses (search focus, key
+-- capture, or an open modal/dropdown that should eat input), so the host can
+-- claim widgetHandler.textOwner and stop keys from leaking to bound actions.
 function view.wantsTextOwner()
 	return (searchBox and searchBox:isFocused()) or capturing ~= nil
+		or confirmPreset ~= nil or (resetDropdown and resetDropdown:isOpen())
 end
 
 -- Edits update the working copy (for display) and record the bind/unbind delta.
@@ -599,6 +600,12 @@ function view.mousePress(x, y, button)
 		return false
 	end
 
+	-- Only the left button edits; right/middle over the panel would otherwise
+	-- rebind/remove on whatever chip the cursor happens to be over.
+	if button ~= 1 then
+		return true
+	end
+
 	if confirmPreset then
 		if inRect(rModalOk, x, y) then
 			stageReset(confirmPreset)
@@ -676,8 +683,8 @@ function view.keyPress(key, scanCode)
 		return true
 	end
 
-	if resetDropdown and resetDropdown:isOpen() and key == 27 then
-		resetDropdown:close()
+	if resetDropdown and resetDropdown:isOpen() then
+		if key == 27 then resetDropdown:close() end
 		return true
 	end
 
