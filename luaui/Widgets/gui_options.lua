@@ -440,6 +440,35 @@ function FocusMusicTrackSearch()
 	updateTextInputDlist = true
 end
 
+local function ClearMusicTrackSearch()
+	if inputMode ~= 'Track Search' and musicTrackOptionsState.search == '' then
+		return false
+	end
+	inputMode = ''
+	inputText = ''
+	inputTextPosition = 0
+	musicTrackOptionsState.search = ''
+	updateTextInputDlist = true
+	init()
+	return true
+end
+
+local function IsMusicTrackSearchClick(x, y)
+	if chatInputArea and math_isInRect(x, y, chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4]) then
+		return true
+	end
+	for index, area in pairs(optionHover) do
+		local option = options[index]
+		local id = option and option.id
+		if id and math_isInRect(x, y, area[1], area[2], area[3], area[4]) then
+			return id == 'music_track_search'
+				or id == 'music_search_results'
+				or string.find(id, '^music_search_track_') ~= nil
+		end
+	end
+	return false
+end
+
 function ResetMusicTrackOverridesForPack(pack)
 	-- Pack switches reset both kinds of exception so stale choices cannot reappear later.
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
@@ -1601,8 +1630,9 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-			-- Track Search reuses the stock text-input plumbing but renders inside the Playlist row.
-			if showTextInput and inputMode ~= 'Track Search' then
+			-- Track Search shares this input state with the Playlist row. Keep the stock
+			-- input visible as persistent feedback while the embedded search has focus.
+			if showTextInput then
 				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
 					prevInputText = inputText
 					updateInputDlist()
@@ -1614,11 +1644,6 @@ function widget:DrawScreen()
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
 				end
-			elseif inputMode == 'Track Search' and textInputDlist then
-				if WG['guishader'] then
-					WG['guishader'].RemoveRect('optionsinput')
-				end
-				textInputDlist = glDeleteList(textInputDlist)
 			end
 		else
 			if WG['guishader'] then
@@ -1837,7 +1862,14 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	return mouseEvent(x, y, button, true)
+	local clearTrackSearch = button == 1 and inputMode == 'Track Search' and not IsMusicTrackSearchClick(x, y)
+	local handled = mouseEvent(x, y, button, true)
+	-- Clear after dispatch so collapsing search results cannot shift a different
+	-- option under the pointer before the intended click has been processed.
+	if clearTrackSearch then
+		ClearMusicTrackSearch()
+	end
+	return handled
 end
 
 function mouseEvent(mx, my, button, release)
