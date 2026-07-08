@@ -324,41 +324,106 @@ local function ReloadMusicPlaylists()
 		table.append(interludeTracks, interludeTracksCustom)
 	end
 
-	-- Preserve an unfiltered catalog for Options. Building it before filtering keeps disabled
-	-- tracks visible in the UI so users can turn them back on.
+	local function collectCatalogDirs(dirs)
+		local tracks = {}
+		for i = 1, #dirs do
+			table.append(tracks, VFS.DirList(dirs[i], allowedExtensions))
+		end
+		return tracks
+	end
+
+	-- Build Options from every pack, independent of pack state, so disabled-pack tracks
+	-- remain available for explicit per-track overrides.
 	musicTrackCatalog = {
-		{ i18n = 'ui.music.menu', tracks = table.copy(menuTracks), excludeEvents = true },
-		{ i18n = 'ui.music.loading', tracks = table.copy(loadingTracks), excludeEvents = true },
-		{ i18n = 'ui.music.peace', tracks = table.copy(peaceTracks), excludeEvents = true },
-		{ i18n = 'ui.music.warlow', tracks = table.copy(warlowTracks), excludeEvents = true },
-		{ i18n = 'ui.music.warhigh', tracks = table.copy(warhighTracks), excludeEvents = true },
-		{ i18n = 'ui.music.interludes', tracks = table.copy(interludeTracks), excludeEvents = true },
-		{ i18n = 'ui.music.raptors', tracks = table.copy(raptorTracks) },
-		{ i18n = 'ui.music.scavengers', tracks = table.copy(scavTracks) },
-		{ i18n = 'ui.music.victory', tracks = table.copy(victoryTracks) },
-		{ i18n = 'ui.music.defeat', tracks = table.copy(defeatTracks) },
-		{ i18n = 'ui.music.gameover', tracks = table.copy(gameoverTracks) },
-		{ i18n = 'ui.music.bonus', tracks = table.copy(bonusTracks) },
+		{ i18n = 'ui.music.menu', tracks = collectCatalogDirs({ musicDirNew..'/menu', musicDirCustom..'/menu' }) },
+		{ i18n = 'ui.music.loading', tracks = collectCatalogDirs({ musicDirNew..'/loading', musicDirCustom..'/loading' }) },
+		{ i18n = 'ui.music.peace', tracks = collectCatalogDirs({ musicDirNew..'/peace', musicDirCustom..'/peace' }) },
+		{ i18n = 'ui.music.warlow', tracks = collectCatalogDirs({ musicDirNew..'/warlow', musicDirCustom..'/warlow', musicDirCustom..'/war' }) },
+		{ i18n = 'ui.music.warhigh', tracks = collectCatalogDirs({ musicDirNew..'/warhigh', musicDirCustom..'/warhigh', musicDirCustom..'/war' }) },
+		{ i18n = 'ui.music.interludes', tracks = collectCatalogDirs({ musicDirNew..'/interludes', musicDirCustom..'/interludes' }) },
+		{ i18n = 'ui.music.raptors', tracks = collectCatalogDirs({
+			musicDirNew..'/events/raptors/loading', musicDirNew..'/events/raptors/peace',
+			musicDirNew..'/events/raptors/warlow', musicDirNew..'/events/raptors/warhigh',
+			musicDirNew..'/events/raptors/interludes', musicDirNew..'/events/raptors/bossfight',
+		}) },
+		{ i18n = 'ui.music.scavengers', tracks = collectCatalogDirs({
+			musicDirNew..'/events/scavengers/loading', musicDirNew..'/events/scavengers/peace',
+			musicDirNew..'/events/scavengers/warlow', musicDirNew..'/events/scavengers/warhigh',
+			musicDirNew..'/events/scavengers/interludes', musicDirNew..'/events/scavengers/bossfight',
+		}) },
+		{ i18n = 'ui.music.victory', tracks = collectCatalogDirs({ musicDirNew..'/victory', musicDirCustom..'/victory' }) },
+		{ i18n = 'ui.music.defeat', tracks = collectCatalogDirs({ musicDirNew..'/defeat', musicDirCustom..'/defeat' }) },
+		{ i18n = 'ui.music.gameover', tracks = collectCatalogDirs({ musicDirNew..'/gameover', musicDirCustom..'/gameover' }) },
+		{ i18n = 'ui.music.bonus', tracks = collectCatalogDirs({
+			musicDirNew..'/events/aprilfools/menu', musicDirNew..'/events/aprilfools/loading', musicDirNew..'/events/aprilfools/peace',
+			musicDirNew..'/events/aprilfools/war', musicDirNew..'/events/aprilfools/warlow', musicDirNew..'/events/aprilfools/warhigh', musicDirNew..'/events/aprilfools/interludes',
+			musicDirNew..'/events/halloween/menu', musicDirNew..'/events/halloween/loading', musicDirNew..'/events/halloween/peace',
+			musicDirNew..'/events/halloween/war', musicDirNew..'/events/halloween/warlow', musicDirNew..'/events/halloween/warhigh', musicDirNew..'/events/halloween/interludes',
+			musicDirNew..'/events/xmas/menu', musicDirNew..'/events/xmas/loading', musicDirNew..'/events/xmas/peace',
+			musicDirNew..'/events/xmas/war', musicDirNew..'/events/xmas/warlow', musicDirNew..'/events/xmas/warhigh', musicDirNew..'/events/xmas/interludes',
+			'music/map/loading', 'music/map/peace', 'music/map/warlow', 'music/map/warhigh', 'music/map/interludes',
+		}) },
 	}
 
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
+	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
 
-	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks)
-	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks)
-	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks)
-	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks)
-	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks)
-	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks)
-	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks)
-	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks)
-	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks)
-	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks)
-	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks)
-	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks)
-	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks)
-	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks)
-	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks)
-	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks)
+	local function appendUnique(playlist, trackPath)
+		for i = 1, #playlist do
+			if musicTrackFilters.NormalizePath(playlist[i]) == trackPath then
+				return
+			end
+		end
+		playlist[#playlist + 1] = trackPath
+	end
+
+	-- Explicitly enabled tracks bypass pack assembly and re-enter the playlist implied by their folder.
+	for trackPath in pairs(enabledOverrides) do
+		if not disabledTracks[trackPath] then
+			local category = string.match(trackPath, "/([^/]+)/[^/]+$")
+			if category == "menu" then
+				appendUnique(menuTracks, trackPath)
+			elseif category == "loading" then
+				appendUnique(loadingTracks, trackPath)
+			elseif category == "peace" then
+				appendUnique(peaceTracks, trackPath)
+			elseif category == "warlow" then
+				appendUnique(warlowTracks, trackPath)
+			elseif category == "warhigh" then
+				appendUnique(warhighTracks, trackPath)
+			elseif category == "war" then
+				appendUnique(warlowTracks, trackPath)
+				appendUnique(warhighTracks, trackPath)
+			elseif category == "interludes" then
+				appendUnique(interludeTracks, trackPath)
+			elseif category == "bossfight" then
+				appendUnique(bossFightTracks, trackPath)
+			elseif category == "victory" then
+				appendUnique(victoryTracks, trackPath)
+			elseif category == "defeat" then
+				appendUnique(defeatTracks, trackPath)
+			elseif category == "gameover" then
+				appendUnique(gameoverTracks, trackPath)
+			end
+		end
+	end
+
+	peaceTracks        = musicTrackFilters.FilterPlaylist(peaceTracks, disabledTracks, enabledOverrides)
+	warhighTracks      = musicTrackFilters.FilterPlaylist(warhighTracks, disabledTracks, enabledOverrides)
+	warlowTracks       = musicTrackFilters.FilterPlaylist(warlowTracks, disabledTracks, enabledOverrides)
+	interludeTracks    = musicTrackFilters.FilterPlaylist(interludeTracks, disabledTracks, enabledOverrides)
+	victoryTracks      = musicTrackFilters.FilterPlaylist(victoryTracks, disabledTracks, enabledOverrides)
+	defeatTracks       = musicTrackFilters.FilterPlaylist(defeatTracks, disabledTracks, enabledOverrides)
+	gameoverTracks     = musicTrackFilters.FilterPlaylist(gameoverTracks, disabledTracks, enabledOverrides)
+	bossFightTracks    = musicTrackFilters.FilterPlaylist(bossFightTracks, disabledTracks, enabledOverrides)
+	menuTracks         = musicTrackFilters.FilterPlaylist(menuTracks, disabledTracks, enabledOverrides)
+	loadingTracks      = musicTrackFilters.FilterPlaylist(loadingTracks, disabledTracks, enabledOverrides)
+	bonusTracks        = musicTrackFilters.FilterPlaylist(bonusTracks, disabledTracks, enabledOverrides)
+	eventPeaceTracks   = musicTrackFilters.FilterPlaylist(eventPeaceTracks, disabledTracks, enabledOverrides)
+	eventWarLowTracks  = musicTrackFilters.FilterPlaylist(eventWarLowTracks, disabledTracks, enabledOverrides)
+	eventWarHighTracks = musicTrackFilters.FilterPlaylist(eventWarHighTracks, disabledTracks, enabledOverrides)
+	raptorTracks       = musicTrackFilters.FilterPlaylist(raptorTracks, disabledTracks, enabledOverrides)
+	scavTracks         = musicTrackFilters.FilterPlaylist(scavTracks, disabledTracks, enabledOverrides)
 
 	if #bossFightTracks == 0 then
 		bossFightTracks = warhighTracks

@@ -117,8 +117,23 @@ function addon.Initialize()
 
 	-- Apply the same per-track choices used by the in-game music player.
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
-	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledTracks)
-	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledTracks)
+	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
+	for trackPath in pairs(enabledOverrides) do
+		if not disabledTracks[trackPath] and string.find(trackPath, "/loading/[^/]+$") then
+			local alreadyAdded = false
+			for i = 1, #musicPlaylist do
+				if musicTrackFilters.NormalizePath(musicPlaylist[i]) == trackPath then
+					alreadyAdded = true
+					break
+				end
+			end
+			if not alreadyAdded then
+				musicPlaylist[#musicPlaylist + 1] = trackPath
+			end
+		end
+	end
+	musicPlaylistEvent = musicTrackFilters.FilterPlaylist(musicPlaylistEvent, disabledTracks, enabledOverrides)
+	musicPlaylist = musicTrackFilters.FilterPlaylist(musicPlaylist, disabledTracks, enabledOverrides)
 
 	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 	if #musicPlaylistEvent > 0 then

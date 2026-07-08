@@ -440,6 +440,15 @@ function FocusMusicTrackSearch()
 	updateTextInputDlist = true
 end
 
+function ResetMusicTrackOverridesForPack(pack)
+	local disabledTracks = musicTrackFilters.GetDisabledTracks()
+	local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
+	musicTrackFilters.ClearPackEntries(disabledTracks, pack)
+	musicTrackFilters.ClearPackEntries(enabledOverrides, pack)
+	Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, musicTrackFilters.SerializeSet(disabledTracks))
+	Spring.SetConfigString(musicTrackFilters.CONFIG_ENABLED_OVERRIDES, musicTrackFilters.SerializeSet(enabledOverrides))
+end
+
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
 		if inputTextInsertActive then
@@ -3325,6 +3334,7 @@ function init()
 
 		{ id = "soundtrackNew", group = "sound", category = types.basic, name = Spring.I18N('ui.settings.option.soundtracknew'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = Spring.I18N('ui.settings.option.soundtracknew_descr'),
 			onchange = function(i, value)
+				ResetMusicTrackOverridesForPack("original")
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
@@ -3334,6 +3344,7 @@ function init()
 		},
 		{ id = "soundtrackRaptors", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackraptors'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackraptors_descr'),
 		onchange = function(i, value)
+			ResetMusicTrackOverridesForPack("raptors")
 			Spring.SetConfigInt('UseSoundtrackRaptors', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
@@ -3343,6 +3354,7 @@ function init()
 		},
 		{ id = "soundtrackScavengers", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackscavengers'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackscavengers_descr'),
 		onchange = function(i, value)
+			ResetMusicTrackOverridesForPack("scavengers")
 			Spring.SetConfigInt('UseSoundtrackScavengers', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
@@ -3352,6 +3364,7 @@ function init()
 		},
 		{ id = "soundtrackAprilFools", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackaprilfools'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfools_descr'),
 			onchange = function(i, value)
+				ResetMusicTrackOverridesForPack("aprilfools")
 				Spring.SetConfigInt('UseSoundtrackAprilFools', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
@@ -3361,6 +3374,7 @@ function init()
 		},
 		{ id = "soundtrackAprilFoolsPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackaprilfoolspostevent_descr'),
 		onchange = function(i, value)
+			ResetMusicTrackOverridesForPack("aprilfools")
 			Spring.SetConfigInt('UseSoundtrackAprilFoolsPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
@@ -3370,6 +3384,7 @@ function init()
 		},
 		{ id = "soundtrackHalloween", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackhalloween'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloween_descr'),
 			onchange = function(i, value)
+				ResetMusicTrackOverridesForPack("halloween")
 				Spring.SetConfigInt('UseSoundtrackHalloween', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
@@ -3379,6 +3394,7 @@ function init()
 		},
 		{ id = "soundtrackHalloweenPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackhalloweenpostevent_descr'),
 		onchange = function(i, value)
+			ResetMusicTrackOverridesForPack("halloween")
 			Spring.SetConfigInt('UseSoundtrackHalloweenPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
@@ -3388,6 +3404,7 @@ function init()
 		},
 		{ id = "soundtrackXmas", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackxmas'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmas_descr'),
 			onchange = function(i, value)
+				ResetMusicTrackOverridesForPack("xmas")
 				Spring.SetConfigInt('UseSoundtrackXmas', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
@@ -3397,6 +3414,7 @@ function init()
 		},
 		{ id = "soundtrackXmasPostEvent", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.soundtrackxmaspostevent'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1, description = Spring.I18N('ui.settings.option.soundtrackxmaspostevent_descr'),
 		onchange = function(i, value)
+			ResetMusicTrackOverridesForPack("xmas")
 			Spring.SetConfigInt('UseSoundtrackXmasPostEvent', value and 1 or 0)
 			if WG['music'] and WG['music'].RefreshTrackList then
 				WG['music'].RefreshTrackList()
@@ -3406,6 +3424,7 @@ function init()
 		},
 		{ id = "soundtrackCustom", group = "sound", category = types.advanced, name = Spring.I18N('ui.settings.option.soundtrackcustom'), type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1, description = Spring.I18N('ui.settings.option.soundtrackcustom_descr'),
 			onchange = function(i, value)
+				ResetMusicTrackOverridesForPack("custom")
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 				if WG['music'] and WG['music'].RefreshTrackList then
 					WG['music'].RefreshTrackList()
@@ -6881,6 +6900,7 @@ function init()
 	end
 	if type(trackList) == 'table' then
 		local disabledTracks = musicTrackFilters.GetDisabledTracks()
+		local enabledOverrides = musicTrackFilters.GetEnabledOverrides()
 
 		local function makeCategoryOption(id, label)
 			return {
@@ -6920,15 +6940,28 @@ function init()
 				basic = true,
 				name = widgetOptionColor .. "   " .. displayName,
 				type = "bool",
-				value = not disabledTracks[trackPath],
+				value = musicTrackFilters.IsTrackEnabled(trackPath, disabledTracks, enabledOverrides),
 				onchange = function(_, value)
 					local currentDisabledTracks = musicTrackFilters.GetDisabledTracks()
+					local currentEnabledOverrides = musicTrackFilters.GetEnabledOverrides()
+					local packEnabled = musicTrackFilters.IsPackEnabled(musicTrackFilters.GetTrackPack(trackPath))
 					if value then
 						currentDisabledTracks[trackPath] = nil
+						if packEnabled then
+							currentEnabledOverrides[trackPath] = nil
+						else
+							currentEnabledOverrides[trackPath] = true
+						end
 					else
-						currentDisabledTracks[trackPath] = true
+						currentEnabledOverrides[trackPath] = nil
+						if packEnabled then
+							currentDisabledTracks[trackPath] = true
+						else
+							currentDisabledTracks[trackPath] = nil
+						end
 					end
 					Spring.SetConfigString(musicTrackFilters.CONFIG_DISABLED_TRACKS, musicTrackFilters.SerializeSet(currentDisabledTracks))
+					Spring.SetConfigString(musicTrackFilters.CONFIG_ENABLED_OVERRIDES, musicTrackFilters.SerializeSet(currentEnabledOverrides))
 					if WG['music'] and WG['music'].RefreshTrackList then
 						-- A newly enabled track is passed through for immediate playback.
 						WG['music'].RefreshTrackList(value and playableTrackPath or nil)
