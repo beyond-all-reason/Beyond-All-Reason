@@ -69,6 +69,8 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
 end
 
+local unitAllyTeam = {}
+
 local function getWeaponDamage(weaponDef)
 	local damage = weaponDef.damages[0] -- TODO: other armor type targets
 	local salvo = weaponDef.salvoSize * weaponDef.projectiles
@@ -243,7 +245,11 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority
 	end
 
-	local allyTeam = spGetUnitAllyTeam(unitID)
+	-- :Destroyed can occur while unit is alive. But does that unit reach this point in targeting logic?
+	local allyTeam = unitAllyTeam[unitID]
+	if not allyTeam then
+		return true, priority
+	end
 
 	-- Check preferred targets first. If it's getting bombarded anyway...
 	local preferRadius = preferUnit[allyTeam][targetID]
@@ -303,6 +309,16 @@ function gadget:GameFramePost(frame)
 		index = 0
 	end
 	index = index + 1
+end
+
+local function callinSetUnitAllyTeam(self, unitID)
+	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
+end
+gadget.UnitCreated = callinSetUnitAllyTeam
+gadget.UnitTaken = callinSetUnitAllyTeam
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	unitAllyTeam[unitID] = nil
 end
 
 function gadget:Initialize()
