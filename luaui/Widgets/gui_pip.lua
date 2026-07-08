@@ -211,6 +211,10 @@ config = {
 	switchTransitionTime = 0.15,
 	showMapRuler = false,
 	cancelPlayerTrackingOnPan = true,  -- Cancel player camera tracking when trying to pan or ALT+drag
+	showTrackedPlayerCursor = true,  -- Show tracked player's ally cursor overlay while tracking player camera
+	playerCursorScale = 1.0,  -- Scale multiplier for tracked player cursor size
+	trackedPlayerCursorGroundGlow = true,  -- Draw tracked cursor as a simple radial ground glow under units
+	showTrackedPlayerAllyTeamCursors = false,  -- Also draw ally cursors in the tracked player's allyteam
 	pipMinimapCorner = 3,  -- Corner for pip minimap: 1=bottom-left, 2=bottom-right, 3=top-left, 4=top-right
 	minimapHeightPercent = 0.12,  -- Minimap height as percent of PIP height (maintains aspect ratio)
 	minimapHoverHeightPercent = 0.15,  -- Minimap height when hovering over PIP
@@ -9443,6 +9447,7 @@ function widget:GetConfigData()
 		drawComHealthBars=config.drawComHealthBars,
 		activityFocusEnabled=miscState.activityFocusEnabled,
 		activityFocusIgnoreSpectators=config.activityFocusIgnoreSpectators,
+		--showTrackedPlayerCursor=config.showTrackedPlayerCursor,
 		tvEnabled=miscState.tvEnabled,
 		hideAICommands=config.hideAICommands,
 		gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
@@ -9604,6 +9609,7 @@ function widget:SetConfigData(data)
 	if data.drawComHealthBars ~= nil then config.drawComHealthBars = data.drawComHealthBars end
 	if data.activityFocusEnabled ~= nil then miscState.activityFocusEnabled = data.activityFocusEnabled end
 	if data.activityFocusIgnoreSpectators ~= nil then config.activityFocusIgnoreSpectators = data.activityFocusIgnoreSpectators end
+	--if data.showTrackedPlayerCursor ~= nil then config.showTrackedPlayerCursor = data.showTrackedPlayerCursor end
 	if data.engineMinimapFallback ~= nil then config.engineMinimapFallback = data.engineMinimapFallback end
 	if data.engineMinimapExplosionOverlay ~= nil then config.engineMinimapExplosionOverlay = data.engineMinimapExplosionOverlay end
 	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
@@ -12515,6 +12521,63 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Command queue drawing is handled by DrawCommandQueuesOverlay (called after this function)
 	-- which uses cached waypoints and batched rendering (GL4 or single BeginEnd calls).
 
+	-- Simple ground-glow cursor pass (drawn BEFORE icons so units render above it).
+	if config.showTrackedPlayerCursor and config.trackedPlayerCursorGroundGlow and interactionState.trackingPlayerID and WG['allycursors'] then
+		local allyCursors = WG['allycursors']
+		local trackedPlayerID = interactionState.trackingPlayerID
+		local trackedName, _, trackedSpec, trackedTeamID = spFunc.GetPlayerInfo(trackedPlayerID, false)
+		if trackedName and (not trackedSpec) and trackedTeamID then
+			local trackedAllyTeamID = spFunc.GetTeamAllyTeamID(trackedTeamID)
+			local resScale = config.contentResolutionScale or 1
+			local glowHalfSize = render.vsy * 0.022 * resScale * config.playerCursorScale
+			local allyGlowHalfSize = glowHalfSize * 0.6
+			local glowTex = "LuaUI/Images/formationDot.dds"
+
+			glFunc.Texture(glowTex)
+			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+			if config.showTrackedPlayerAllyTeamCursors and allyCursors.getCursors then
+				local cursors, notIdle = allyCursors.getCursors()
+				if cursors and notIdle then
+					for playerID, cursor in pairs(cursors) do
+						if notIdle[playerID] and cursor then
+							local pName, _, pSpec, pTeamID = spFunc.GetPlayerInfo(playerID, false)
+							if pName and (not pSpec) and pTeamID and spFunc.GetTeamAllyTeamID(pTeamID) == trackedAllyTeamID then
+								local wx, wz = cursor[1], cursor[3]
+								if wx and wz then
+									local cx, cy = WorldToPipCoords(wx, wz)
+									local r, g, b = Spring.GetTeamColor(pTeamID)
+									local cursorHalfSize = (playerID == trackedPlayerID) and glowHalfSize or allyGlowHalfSize
+									local opacity = (cursor[7] or 1) * 0.44
+									glFunc.Color(r, g, b, opacity)
+									glFunc.TexRect(cx - cursorHalfSize, cy - cursorHalfSize, cx + cursorHalfSize, cy + cursorHalfSize)
+									if playerID == trackedPlayerID then
+										glFunc.Color(r, g, b, (cursor[7] or 1) * 0.7)
+										glFunc.TexRect(cx - glowHalfSize, cy - glowHalfSize, cx + glowHalfSize, cy + glowHalfSize)
+									end
+								end
+							end
+						end
+					end
+				end
+			elseif allyCursors.getCursor then
+				local cursor, isNotIdle = allyCursors.getCursor(trackedPlayerID)
+				if cursor and isNotIdle then
+					local wx, wz = cursor[1], cursor[3]
+					if wx and wz then
+						local cx, cy = WorldToPipCoords(wx, wz)
+						local r, g, b = Spring.GetTeamColor(trackedTeamID)
+						glFunc.Color(r, g, b, (cursor[7] or 1) * 0.75)
+						glFunc.TexRect(cx - glowHalfSize, cy - glowHalfSize, cx + glowHalfSize, cy + glowHalfSize)
+					end
+				end
+			end
+
+			glFunc.Color(1, 1, 1, 1)
+			glFunc.Texture(false)
+		end
+	end
+
 	-- Draw icons (GL4 instanced path)
 	local iconRadiusZoomDistMult
 	-- Build selection set for GL4 icon rendering (reuse pool table to avoid per-frame allocation)
@@ -12823,8 +12886,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		end
 	end
 
-	-- Draw ally cursors
-	if WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
+	-- Draw ally cursors (legacy ring style, above units/icons)
+	if config.showTrackedPlayerCursor and (not config.trackedPlayerCursorGroundGlow) and WG['allycursors'] and WG['allycursors'].getCursor and interactionState.trackingPlayerID then
 		local cursor, isNotIdle = WG['allycursors'].getCursor(interactionState.trackingPlayerID)
 		if cursor and isNotIdle then
 			local wx, wz = cursor[1], cursor[3]
@@ -12837,7 +12900,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				local r, g, b = Spring.GetTeamColor(teamID)
 				-- Scale cursor size: larger at low zoom, stays reasonable at high zoom
 				local resScale = config.contentResolutionScale or 1
-				local cursorSize = render.vsy * 0.0073 * resScale
+				local cursorSize = render.vsy * 0.0065 * resScale * config.playerCursorScale
 				-- Draw crosshair lines to PIP boundaries (stop at cursor edge)
 				--glFunc.Color(r*1.5+0.5, g*1.5+0.5, b*1.5+0.5, 0.08)
 				--glFunc.LineWidth(render.vsy / 600)
