@@ -39,8 +39,6 @@ return {
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -139,6 +137,10 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 964,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 12,
 				},

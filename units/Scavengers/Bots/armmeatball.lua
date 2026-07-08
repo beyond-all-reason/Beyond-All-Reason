@@ -37,8 +37,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 3,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -199,6 +197,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 200,
 				},

@@ -749,6 +749,18 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local custom = uWep.customParams
 
+		if uWep.type == "BeamLaser" then
+			if custom.sweepfire_firetime then
+				burst = tonumber(custom.sweepfire_firetime) * uWep.projectiles * simSpeed
+				if not uWep.beamBurst then
+					burst = burst / (simSpeed * uWep.beamtime)
+				end
+			end
+			if custom.sweepfire_reloadtime then
+				reload = tonumber(custom.sweepfire_reloadtime)
+			end
+		end
+
 		if custom.spark_forkdamage then
 			-- Sparks are hardcoded to target the default armor type:
 			local spDamage = defaultArmorDamage

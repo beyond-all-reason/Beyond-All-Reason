@@ -136,7 +136,7 @@ return {
 					vtol = 5,
 				},
 				customparams = {
-					sweepfire=7, --multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
+					sweepfire_firetime = 2.1667,
 				}
 			},
 			legphtarg = {--targetting only

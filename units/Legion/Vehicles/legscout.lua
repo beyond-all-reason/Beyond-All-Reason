@@ -45,8 +45,6 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion",
-			--weapon1turretx = 300,
-			--weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {

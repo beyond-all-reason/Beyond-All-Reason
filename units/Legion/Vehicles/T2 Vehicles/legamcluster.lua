@@ -46,8 +46,6 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Vehicles",
 			techlevel = 2,
-			weapon1turretx = 35,
-			weapon1turrety = 35,
 		},
 		featuredefs = {
 			dead = {
@@ -132,6 +130,8 @@ return {
 				customparams = {
 					cluster_def = 'cluster_munition',
 					cluster_number = 5,
+					turretspeedx = 35,
+					turretspeedy = 35,
 				},
 				damage = {
 					default = 300,

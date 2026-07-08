@@ -145,7 +145,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				customparams = {
-					sweepfire = 4.5,
+					sweepfire_firetime = 1.0,
+					sweepfire_reloadtime = 3.0,
 				},
 				damage = {
 					default = 33,

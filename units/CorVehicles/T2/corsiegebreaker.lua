@@ -166,9 +166,6 @@ return {
 					commanders = 1500,
 					default = 4000,--76
 				},
-				--customparams = {
-					--sweepfire=3.25,--multiplier for displayed dps during the 'bonus' sweepfire stage, needed for DPS calcs
-				--}
 			},
 
 
