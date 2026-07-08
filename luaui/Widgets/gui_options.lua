@@ -1588,7 +1588,7 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-			if showTextInput then
+			if showTextInput and inputMode ~= 'Track Search' then
 				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
 					prevInputText = inputText
 					updateInputDlist()
@@ -1600,6 +1600,11 @@ function widget:DrawScreen()
 					WG['guishader'].RemoveRect('optionsinput')
 					textInputDlist = glDeleteList(textInputDlist)
 				end
+			elseif inputMode == 'Track Search' and textInputDlist then
+				if WG['guishader'] then
+					WG['guishader'].RemoveRect('optionsinput')
+				end
+				textInputDlist = glDeleteList(textInputDlist)
 			end
 		else
 			if WG['guishader'] then
@@ -6918,6 +6923,9 @@ function init()
 
 		local function makeTrackSearchOption()
 			local label = musicTrackOptionsState.search == '' and "Search tracks..." or "Search tracks: " .. musicTrackOptionsState.search
+			if inputMode == 'Track Search' then
+				label = label .. " |"
+			end
 			return {
 				id = "music_track_search",
 				group = "sound",
