@@ -90,16 +90,24 @@ function musicTrackFilters.IsPackEnabled(pack)
 		return Spring.Utilities.Gametype.IsScavengers() or Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1
 	end
 
-	-- Seasonal settings express user intent; date-based eligibility remains in playlist assembly.
+	-- Only one seasonal toggle is relevant at a time: the event toggle during its
+	-- holiday window, or the post-event toggle during the rest of the year.
+	local holidays = Spring.Utilities.Gametype.GetCurrentHolidays()
 	if pack == "aprilfools" then
-		return Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1
-			or Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1
+		if holidays["aprilfools"] then
+			return Spring.GetConfigInt('UseSoundtrackAprilFools', 1) == 1
+		end
+		return Spring.GetConfigInt('UseSoundtrackAprilFoolsPostEvent', 0) == 1
 	elseif pack == "halloween" then
-		return Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1
-			or Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1
+		if holidays["halloween"] then
+			return Spring.GetConfigInt('UseSoundtrackHalloween', 1) == 1
+		end
+		return Spring.GetConfigInt('UseSoundtrackHalloweenPostEvent', 0) == 1
 	elseif pack == "xmas" then
-		return Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1
-			or Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1
+		if holidays["xmas"] then
+			return Spring.GetConfigInt('UseSoundtrackXmas', 1) == 1
+		end
+		return Spring.GetConfigInt('UseSoundtrackXmasPostEvent', 0) == 1
 	end
 
 	return true

@@ -333,14 +333,37 @@ local function ReloadMusicPlaylists()
 	end
 
 	-- Build Options from every pack, independent of pack state, so disabled-pack tracks
-	-- remain available for explicit per-track overrides.
+	-- remain available for explicit per-track overrides. Seasonal and map tracks stay
+	-- under their playback category instead of being hidden behind an event-only bucket.
 	musicTrackCatalog = {
-		{ i18n = 'ui.music.menu', tracks = collectCatalogDirs({ musicDirNew..'/menu', musicDirCustom..'/menu' }) },
-		{ i18n = 'ui.music.loading', tracks = collectCatalogDirs({ musicDirNew..'/loading', musicDirCustom..'/loading' }) },
-		{ i18n = 'ui.music.peace', tracks = collectCatalogDirs({ musicDirNew..'/peace', musicDirCustom..'/peace' }) },
-		{ i18n = 'ui.music.warlow', tracks = collectCatalogDirs({ musicDirNew..'/warlow', musicDirCustom..'/warlow', musicDirCustom..'/war' }) },
-		{ i18n = 'ui.music.warhigh', tracks = collectCatalogDirs({ musicDirNew..'/warhigh', musicDirCustom..'/warhigh', musicDirCustom..'/war' }) },
-		{ i18n = 'ui.music.interludes', tracks = collectCatalogDirs({ musicDirNew..'/interludes', musicDirCustom..'/interludes' }) },
+		{ i18n = 'ui.music.menu', tracks = collectCatalogDirs({
+			musicDirNew..'/menu', musicDirCustom..'/menu',
+			musicDirNew..'/events/aprilfools/menu', musicDirNew..'/events/halloween/menu', musicDirNew..'/events/xmas/menu',
+		}) },
+		{ i18n = 'ui.music.loading', tracks = collectCatalogDirs({
+			musicDirNew..'/loading', musicDirCustom..'/loading', 'music/map/loading',
+			musicDirNew..'/events/aprilfools/loading', musicDirNew..'/events/halloween/loading', musicDirNew..'/events/xmas/loading',
+		}) },
+		{ i18n = 'ui.music.peace', tracks = collectCatalogDirs({
+			musicDirNew..'/peace', musicDirCustom..'/peace', 'music/map/peace',
+			musicDirNew..'/events/aprilfools/peace', musicDirNew..'/events/halloween/peace', musicDirNew..'/events/xmas/peace',
+		}) },
+		{ i18n = 'ui.music.warlow', tracks = collectCatalogDirs({
+			musicDirNew..'/warlow', musicDirCustom..'/warlow', musicDirCustom..'/war', 'music/map/warlow',
+			musicDirNew..'/events/aprilfools/warlow', musicDirNew..'/events/aprilfools/war',
+			musicDirNew..'/events/halloween/warlow', musicDirNew..'/events/halloween/war',
+			musicDirNew..'/events/xmas/warlow', musicDirNew..'/events/xmas/war',
+		}) },
+		{ i18n = 'ui.music.warhigh', tracks = collectCatalogDirs({
+			musicDirNew..'/warhigh', musicDirCustom..'/warhigh', musicDirCustom..'/war', 'music/map/warhigh',
+			musicDirNew..'/events/aprilfools/warhigh', musicDirNew..'/events/aprilfools/war',
+			musicDirNew..'/events/halloween/warhigh', musicDirNew..'/events/halloween/war',
+			musicDirNew..'/events/xmas/warhigh', musicDirNew..'/events/xmas/war',
+		}) },
+		{ i18n = 'ui.music.interludes', tracks = collectCatalogDirs({
+			musicDirNew..'/interludes', musicDirCustom..'/interludes', 'music/map/interludes',
+			musicDirNew..'/events/aprilfools/interludes', musicDirNew..'/events/halloween/interludes', musicDirNew..'/events/xmas/interludes',
+		}) },
 		{ i18n = 'ui.music.raptors', tracks = collectCatalogDirs({
 			musicDirNew..'/events/raptors/loading', musicDirNew..'/events/raptors/peace',
 			musicDirNew..'/events/raptors/warlow', musicDirNew..'/events/raptors/warhigh',
@@ -354,15 +377,6 @@ local function ReloadMusicPlaylists()
 		{ i18n = 'ui.music.victory', tracks = collectCatalogDirs({ musicDirNew..'/victory', musicDirCustom..'/victory' }) },
 		{ i18n = 'ui.music.defeat', tracks = collectCatalogDirs({ musicDirNew..'/defeat', musicDirCustom..'/defeat' }) },
 		{ i18n = 'ui.music.gameover', tracks = collectCatalogDirs({ musicDirNew..'/gameover', musicDirCustom..'/gameover' }) },
-		{ i18n = 'ui.music.bonus', tracks = collectCatalogDirs({
-			musicDirNew..'/events/aprilfools/menu', musicDirNew..'/events/aprilfools/loading', musicDirNew..'/events/aprilfools/peace',
-			musicDirNew..'/events/aprilfools/war', musicDirNew..'/events/aprilfools/warlow', musicDirNew..'/events/aprilfools/warhigh', musicDirNew..'/events/aprilfools/interludes',
-			musicDirNew..'/events/halloween/menu', musicDirNew..'/events/halloween/loading', musicDirNew..'/events/halloween/peace',
-			musicDirNew..'/events/halloween/war', musicDirNew..'/events/halloween/warlow', musicDirNew..'/events/halloween/warhigh', musicDirNew..'/events/halloween/interludes',
-			musicDirNew..'/events/xmas/menu', musicDirNew..'/events/xmas/loading', musicDirNew..'/events/xmas/peace',
-			musicDirNew..'/events/xmas/war', musicDirNew..'/events/xmas/warlow', musicDirNew..'/events/xmas/warhigh', musicDirNew..'/events/xmas/interludes',
-			'music/map/loading', 'music/map/peace', 'music/map/warlow', 'music/map/warhigh', 'music/map/interludes',
-		}) },
 	}
 
 	local disabledTracks = musicTrackFilters.GetDisabledTracks()
@@ -949,9 +963,16 @@ function widget:Initialize()
 
 		local function sortPlaylist(playlist)
 			table.sort(playlist, function(a, b)
-				local nameA = processTrackname(a) or ""
-				local nameB = processTrackname(b) or ""
-				return string.lower(nameA) < string.lower(nameB)
+				local fullNameA = processTrackname(a) or ""
+				local fullNameB = processTrackname(b) or ""
+				local titleA = string.match(fullNameA, "^.-%s+%-%s+(.+)$") or fullNameA
+				local titleB = string.match(fullNameB, "^.-%s+%-%s+(.+)$") or fullNameB
+				titleA = string.lower(titleA)
+				titleB = string.lower(titleB)
+				if titleA == titleB then
+					return string.lower(fullNameA) < string.lower(fullNameB)
+				end
+				return titleA < titleB
 			end)
 		end
 
