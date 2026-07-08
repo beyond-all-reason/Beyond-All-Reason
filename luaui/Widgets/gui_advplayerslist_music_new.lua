@@ -986,6 +986,24 @@ function widget:Initialize()
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
 	end
+	WG['music'].GetPackIntroTrack = function(pack)
+		local packLoadingDirs = {
+			original = 'music/original/loading',
+			custom = 'music/custom/loading',
+			raptors = 'music/original/events/raptors/loading',
+			scavengers = 'music/original/events/scavengers/loading',
+			aprilfools = 'music/original/events/aprilfools/loading',
+			halloween = 'music/original/events/halloween/loading',
+			xmas = 'music/original/events/xmas/loading',
+		}
+		local loadingDir = packLoadingDirs[pack]
+		if loadingDir then
+			local tracks = VFS.DirList(loadingDir, "{*.ogg,*.mp3}")
+			if #tracks > 0 then
+				return tracks[mathRandom(#tracks)]
+			end
+		end
+	end
 	WG['music'].RefreshTrackList = function(trackToPlay)
 		Spring.StopSoundStream()
 		ReloadMusicPlaylists()

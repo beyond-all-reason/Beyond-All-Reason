@@ -83,6 +83,8 @@ function musicTrackFilters.IsPackEnabled(pack)
 	if Spring.GetConfigInt('UseSoundtrackNew', 1) ~= 1 then
 		return false
 	elseif pack == "raptors" then
+		-- The scenario owns its event soundtrack. Outside that scenario, the regular-game
+		-- opt-in remains off by default unless the user enables the pack or a track override.
 		return Spring.Utilities.Gametype.IsRaptors() or Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1
 	elseif pack == "scavengers" then
 		return Spring.Utilities.Gametype.IsScavengers() or Spring.GetConfigInt('UseSoundtrackScavengers', 0) == 1
