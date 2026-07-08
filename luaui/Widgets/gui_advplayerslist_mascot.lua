@@ -293,7 +293,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+if Spring.Utilities.Gametype.GetCurrentHolidays().xmas then
 	drawSantahat = true
 end
 
@@ -349,10 +349,10 @@ end
 local function headQuad(w, h, size, texturePath, opt)
 	gl.Color(1, 1, 1, 1)
 	gl.Texture(texturePath)
-	glTranslate(opt["head_xOffset"] * size, opt["head_yOffset"] * size, 0)
+	glTranslate(opt.head_xOffset * size, opt.head_yOffset * size, 0)
 	DrawRect(-(w / 2), -(h / 2) + (size / 14), (w / 2), (h / 2) + (size / 14))
-	if drawSantahat and opt["santahat"] then
-		gl.Texture(opt["santahat"])
+	if drawSantahat and opt.santahat then
+		gl.Texture(opt.santahat)
 		DrawRect(-(w / 2), -(h / 2) + (size / 14), (w / 2), (h / 2) + (size / 14))
 	end
 	gl.Texture(false)
@@ -367,10 +367,10 @@ local function createList(size)
 	if drawlist[1] then
 		glDeleteList(drawlist[1])
 	end
-	local bw, bh = fitQuad(opt["body"], size)
+	local bw, bh = fitQuad(opt.body, size)
 	drawlist[1] = glCreateList(function()
-		if opt["body"] then
-			gl.Texture(opt["body"])
+		if opt.body then
+			gl.Texture(opt.body)
 			gl.Color(1, 1, 1, 1)
 			DrawRect(-(bw / 2), -(bh / 2), (bw / 2), (bh / 2))
 			gl.Texture(false)
@@ -381,18 +381,18 @@ local function createList(size)
 	if drawlist[2] then
 		glDeleteList(drawlist[2])
 	end
-	local hw, hh = fitQuad(opt["head"], size)
+	local hw, hh = fitQuad(opt.head, size)
 	drawlist[2] = glCreateList(function()
-		headQuad(hw, hh, size, opt["head"], opt)
+		headQuad(hw, hh, size, opt.head, opt)
 	end)
 
 	-- drawlist[3]: blink head
 	if drawlist[3] then
 		glDeleteList(drawlist[3])
 	end
-	local bkw, bkh = fitQuad(opt["headblink"], size)
+	local bkw, bkh = fitQuad(opt.headblink, size)
 	drawlist[3] = glCreateList(function()
-		headQuad(bkw, bkh, size, opt["headblink"], opt)
+		headQuad(bkw, bkh, size, opt.headblink, opt)
 	end)
 
 	-- drawlist[4] belongs to the active emote; clear it whenever the base lists are rebuilt
@@ -433,14 +433,14 @@ local positionPollTimer = 0
 function updatePosition(force)
 	local p1, p2, p3, p4, p5
 	local pos
-	if WG["displayinfo"] ~= nil then
-		p1, p2, p3, p4, p5 = WG["displayinfo"].GetPosition()
-	elseif WG["unittotals"] ~= nil then
-		p1, p2, p3, p4, p5 = WG["unittotals"].GetPosition()
-	elseif WG["music"] ~= nil then
-		p1, p2, p3, p4, p5 = WG["music"].GetPosition()
-	elseif WG["advplayerlist_api"] ~= nil then
-		p1, p2, p3, p4, p5 = WG["advplayerlist_api"].GetPosition()
+	if WG.displayinfo ~= nil then
+		p1, p2, p3, p4, p5 = WG.displayinfo.GetPosition()
+	elseif WG.unittotals ~= nil then
+		p1, p2, p3, p4, p5 = WG.unittotals.GetPosition()
+	elseif WG.music ~= nil then
+		p1, p2, p3, p4, p5 = WG.music.GetPosition()
+	elseif WG.advplayerlist_api ~= nil then
+		p1, p2, p3, p4, p5 = WG.advplayerlist_api.GetPosition()
 	else
 		local scale = (vsy / 880) * (1 + (Spring.GetConfigFloat("ui_scale", 1) - 1) / 1.25)
 		fallbackPos[1] = 0
@@ -457,9 +457,9 @@ function updatePosition(force)
 	end
 
 	if type(p1) == "number" and type(p2) == "number" and type(p5) == "number" then
-		usedImgSize = OPTIONS[currentOption]["imageSize"] * p5
-		xPos = p2 + (usedImgSize / 2) + (OPTIONS[currentOption]["xOffset"] * p5)
-		yPos = p1 + (usedImgSize / 2) + (OPTIONS[currentOption]["yOffset"] * p5)
+		usedImgSize = OPTIONS[currentOption].imageSize * p5
+		xPos = p2 + (usedImgSize / 2) + (OPTIONS[currentOption].xOffset * p5)
+		yPos = p1 + (usedImgSize / 2) + (OPTIONS[currentOption].yOffset * p5)
 		positionChange = os.clock()
 
 		if (parentPos[1] ~= p1 or parentPos[2] ~= p2 or parentPos[5] ~= p5) or force then
@@ -529,7 +529,7 @@ local function triggerRandomEmote()
 	emoteActive = true
 	emoteElapsed = 0
 	-- Play the per-emote sound if one exists; otherwise fall back to the ambient mascot sound.
-	tryPlaySound(currentEmote.sound or OPTIONS[currentOption]["sound"])
+	tryPlaySound(currentEmote.sound or OPTIONS[currentOption].sound)
 end
 
 local function toggleOptions(option)
@@ -608,7 +608,7 @@ function widget:Update(dt)
 	if emoteList and #emoteList > 0 then
 		if emoteActive then
 			emoteElapsed = emoteElapsed + dt
-			if emoteElapsed >= opt["emoteDuration"] then
+			if emoteElapsed >= opt.emoteDuration then
 				-- Emote finished; tear down and return to normal
 				emoteActive = false
 				emoteElapsed = 0
@@ -622,7 +622,7 @@ function widget:Update(dt)
 			end
 		else
 			emoteTimer = emoteTimer + dt
-			if emoteTimer >= opt["emoteInterval"] then
+			if emoteTimer >= opt.emoteInterval then
 				emoteTimer = 0
 				triggerRandomEmote()
 			end
@@ -631,10 +631,10 @@ function widget:Update(dt)
 
 	-- ── Blink state machine (suspended while an emote is active) ─────────────
 	if not emoteActive then
-		if sec > opt["blinkTimeout"] then
+		if sec > opt.blinkTimeout then
 			activeDrawSlot = DRAW_BLINK
 		end
-		if sec > (opt["blinkTimeout"] + opt["blinkDuration"]) then
+		if sec > (opt.blinkTimeout + opt.blinkDuration) then
 			sec = 0
 			activeDrawSlot = DRAW_NORMAL
 		end
@@ -646,11 +646,11 @@ function widget:Update(dt)
 	end
 
 	-- ── Ambient mascot sound ──────────────────────────────────────────────────
-	if opt["sound"] then
+	if opt.sound then
 		soundTimer = soundTimer + dt
-		if soundTimer >= opt["soundInterval"] then
+		if soundTimer >= opt.soundInterval then
 			soundTimer = 0
-			tryPlaySound(opt["sound"])
+			tryPlaySound(opt.sound)
 		end
 	end
 

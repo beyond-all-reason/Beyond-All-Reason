@@ -173,7 +173,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	-- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-	local my_command = { ["id"] = id, ["params"] = params, ["options"] = options }
+	local my_command = { id = id, params = params, options = options }
 	local cx, cy, cz = GetCommandPos(my_command)
 	if cx < -1 then
 		return false

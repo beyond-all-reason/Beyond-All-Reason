@@ -315,8 +315,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -329,8 +329,8 @@ function widget:ViewResize()
 	keybinds = gl.CreateList(drawWindow)
 
 	if backgroundGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("keybindinfo")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		else
 			glDeleteList(backgroundGuishader)
 		end
@@ -358,7 +358,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		gl.Texture(false) -- some other widget left it on
 		glCallList(keybinds)
-		if WG["guishader"] and backgroundGuishader == nil then
+		if WG.guishader and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
@@ -367,7 +367,7 @@ function widget:DrawScreen()
 					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
 				end
 			end)
-			WG["guishader"].InsertDlist(backgroundGuishader, "keybindinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo")
 		end
 		showOnceMore = false
 
@@ -377,8 +377,8 @@ function widget:DrawScreen()
 		end
 	else
 		if backgroundGuishader ~= nil then
-			if WG["guishader"] then
-				WG["guishader"].DeleteDlist("keybindinfo")
+			if WG.guishader then
+				WG.guishader.DeleteDlist("keybindinfo")
 			else
 				glDeleteList(backgroundGuishader)
 			end
@@ -412,8 +412,8 @@ local function mouseEvent(x, y, button, release)
 					lasstab = tab
 					keybinds = gl.CreateList(drawWindow, tab)
 					if backgroundGuishader ~= nil then
-						if WG["guishader"] then
-							WG["guishader"].DeleteDlist("keybindinfo")
+						if WG.guishader then
+							WG.guishader.DeleteDlist("keybindinfo")
 						else
 							glDeleteList(backgroundGuishader)
 						end
@@ -441,18 +441,18 @@ end
 function widget:Initialize()
 	refreshText()
 
-	WG["keybinds"] = {}
-	WG["keybinds"].toggle = function(state)
+	WG.keybinds = {}
+	WG.keybinds.toggle = function(state)
 		if state ~= nil then
 			show = state
 		else
 			show = not show
 		end
 	end
-	WG["keybinds"].isvisible = function()
+	WG.keybinds.isvisible = function()
 		return show
 	end
-	WG["keybinds"].reloadBindings = function()
+	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true
 	end
@@ -465,8 +465,8 @@ function widget:Shutdown()
 		keybinds = nil
 	end
 	if backgroundGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("keybindinfo")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
 		else
 			glDeleteList(backgroundGuishader)
 		end

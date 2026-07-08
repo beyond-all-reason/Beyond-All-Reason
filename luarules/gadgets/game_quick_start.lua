@@ -949,8 +949,8 @@ function gadget:Initialize()
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
 	end
 	isGoodWind = windFunctions.isGoodWind()
-	isMetalMap = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].isMetalMap
-	metalSpotsList = GG and GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList
+	isMetalMap = GG and GG.resource_spot_finder and GG.resource_spot_finder.isMetalMap
+	metalSpotsList = GG and GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList
 
 	local frame = Spring.GetGameFrame()
 	Spring.SetGameRulesParam("quickStartBudgetBase", BUDGET)

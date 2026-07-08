@@ -200,8 +200,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * 0.5) - (screenWidth / 2))
 	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -320,7 +320,7 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		-- draw the panel
 		glCallList(mainDList)
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader then
 				backgroundGuishader = glDeleteList(backgroundGuishader)
 			end
@@ -330,7 +330,7 @@ function widget:DrawScreen()
 				-- title
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
-			WG["guishader"].InsertDlist(backgroundGuishader, "gameinfo")
+			WG.guishader.InsertDlist(backgroundGuishader, "gameinfo")
 		end
 		showOnceMore = false
 
@@ -340,8 +340,8 @@ function widget:DrawScreen()
 		end
 	else
 		if backgroundGuishader then
-			if WG["guishader"] then
-				WG["guishader"].RemoveDlist("gameinfo")
+			if WG.guishader then
+				WG.guishader.RemoveDlist("gameinfo")
 			end
 			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
@@ -396,8 +396,8 @@ end
 
 function toggle()
 	local newShow = not show
-	if newShow and WG["topbar"] then
-		WG["topbar"].hideWindows()
+	if newShow and WG.topbar then
+		WG.topbar.hideWindows()
 	end
 	show = newShow
 
@@ -490,18 +490,18 @@ function widget:Initialize()
 	widgetHandler:AddAction("customgameinfo", toggle, nil, "p")
 	widgetHandler:AddAction("customgameinfo_close", closeInfoHandler, nil, "p")
 
-	WG["gameinfo"] = {}
-	WG["gameinfo"].toggle = function(state)
+	WG.gameinfo = {}
+	WG.gameinfo.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG["topbar"] then
-			WG["topbar"].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 	end
-	WG["gameinfo"].isvisible = function()
+	WG.gameinfo.isvisible = function()
 		return show
 	end
 
@@ -516,8 +516,8 @@ function widget:Shutdown()
 		glDeleteList(mainDList)
 		mainDList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("gameinfo")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("gameinfo")
 	end
 	if backgroundGuishader then
 		glDeleteList(backgroundGuishader)

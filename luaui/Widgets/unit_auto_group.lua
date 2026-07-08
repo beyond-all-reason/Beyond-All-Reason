@@ -181,7 +181,7 @@ end
 
 local function changeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args and args[1]
-	local removeAll = data and data["removeAll"]
+	local removeAll = data and data.removeAll
 
 	changeUnitTypeAutogroup(gr, removeAll)
 end
@@ -253,33 +253,33 @@ function widget:Initialize()
 	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
 	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
 
-	WG["autogroup"] = {}
-	WG["autogroup"].getImmediate = function()
+	WG.autogroup = {}
+	WG.autogroup.getImmediate = function()
 		return immediate
 	end
-	WG["autogroup"].setImmediate = function(value)
+	WG.autogroup.setImmediate = function(value)
 		immediate = value
 	end
 
-	WG["autogroup"].getPersist = function()
+	WG.autogroup.getPersist = function()
 		return persist
 	end
-	WG["autogroup"].setPersist = function(value)
+	WG.autogroup.setPersist = function(value)
 		persist = value
 	end
-	WG["autogroup"].getGroups = function()
+	WG.autogroup.getGroups = function()
 		return unit2group
 	end
-	WG["autogroup"].addCurrentSelectionToAutogroup = function(groupNumber)
+	WG.autogroup.addCurrentSelectionToAutogroup = function(groupNumber)
 		changeUnitTypeAutogroup(groupNumber)
 	end
-	WG["autogroup"].removeCurrentSelectionFromAutogroup = function()
+	WG.autogroup.removeCurrentSelectionFromAutogroup = function()
 		changeUnitTypeAutogroup(nil, true)
 	end
-	WG["autogroup"].removeOneUnitFromGroup = function()
+	WG.autogroup.removeOneUnitFromGroup = function()
 		removeOneUnitFromGroupHandler()
 	end
-	WG["autogroup"].loadAutogroupPreset = function(newPreset)
+	WG.autogroup.loadAutogroupPreset = function(newPreset)
 		loadAutogroupPreset(newPreset)
 	end
 	if GetGameFrame() > 0 then
@@ -288,7 +288,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["autogroup"] = nil
+	WG.autogroup = nil
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)

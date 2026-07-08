@@ -167,27 +167,27 @@ local mapoverrides = {
 			MAPCOLORFACTOR = 0.6,
 		},
 	},
-	["DeltaSiegeDry"] = {
+	DeltaSiegeDry = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.6,
 			SHADOWFACTOR = 0.001,
 		},
 	},
-	["Pentos_V1"] = {
+	Pentos_V1 = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.6,
 		},
 	},
-	["Taldarim_V3"] = {
+	Taldarim_V3 = {
 		patchResolution = 32,
 		grassShaderParams = {
 			MAPCOLORFACTOR = 0.5,
 		},
 		grassDistTGA = "LuaUI/Images/luagrass/Taldarim_V3_grassDist.tga",
 	},
-	["Altair_Crossing_V4"] = {
+	Altair_Crossing_V4 = {
 		patchResolution = 32,
 		grassMinSize = 0.5, --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
 		grassMaxSize = 2.0, -- Size for grassmap value of 254
@@ -657,8 +657,8 @@ local function clearAllUnitGrass()
 end
 
 local function clearGeothermalGrass()
-	if WG["resource_spot_finder"] then
-		local spots = WG["resource_spot_finder"].geoSpotsList
+	if WG.resource_spot_finder then
+		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
 			local maxValue = 15
 			for i = 1, #spots do
@@ -671,8 +671,8 @@ end
 
 -- because not all maps have done this for us
 local function clearMetalspotGrass()
-	if WG["resource_spot_finder"] then
-		local spots = WG["resource_spot_finder"].metalSpotsList
+	if WG.resource_spot_finder then
+		local spots = WG.resource_spot_finder.metalSpotsList
 		if spots then
 			local maxValue = 15
 			for i = 1, #spots do
@@ -754,8 +754,8 @@ function widget:GameFrame(gf)
 		local lavaLevel = Spring.GetGameRulesParam("lavaLevel")
 		if lavaLevel and lavaLevel ~= -99999 and (not lastLavaLevel or lavaLevel > lastLavaLevel) then
 			lastLavaLevel = lavaLevel
-			if WG["grassgl4"] and WG["grassgl4"].removeGrassBelowHeight then
-				WG["grassgl4"].removeGrassBelowHeight(lavaLevel)
+			if WG.grassgl4 and WG.grassgl4.removeGrassBelowHeight then
+				WG.grassgl4.removeGrassBelowHeight(lavaLevel)
 			end
 		end
 	end
@@ -1093,17 +1093,17 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["grassgl4"] = {}
-	WG["grassgl4"].getDistanceMult = function()
+	WG.grassgl4 = {}
+	WG.grassgl4.getDistanceMult = function()
 		return distanceMult
 	end
-	WG["grassgl4"].setDistanceMult = function(value)
+	WG.grassgl4.setDistanceMult = function(value)
 		distanceMult = value
 	end
-	WG["grassgl4"].getUnitBendEnabled = function()
+	WG.grassgl4.getUnitBendEnabled = function()
 		return unitBendSSBO ~= nil
 	end
-	WG["grassgl4"].removeGrass = function(wx, wz, radius)
+	WG.grassgl4.removeGrass = function(wx, wz, radius)
 		radius = radius or grassConfig.patchResolution
 		for x = wx - radius, wx + radius, grassConfig.patchResolution do
 			for z = wz - radius, wz + radius, grassConfig.patchResolution do
@@ -1115,7 +1115,7 @@ function widget:Initialize()
 			end
 		end
 	end
-	WG["grassgl4"].removeGrassBelowHeight = function(height)
+	WG.grassgl4.removeGrassBelowHeight = function(height)
 		if #grassInstanceData == 0 then
 			return nil
 		end
@@ -1157,13 +1157,13 @@ function widget:Initialize()
 	clearAllUnitGrass()
 	clearMetalspotGrass()
 	if Game.waterDamage > 0 then
-		WG["grassgl4"].removeGrassBelowHeight(20)
+		WG.grassgl4.removeGrassBelowHeight(20)
 	end
 	-- initial lava check
 	local initLavaLevel = Spring.GetGameRulesParam("lavaLevel")
 	if initLavaLevel and initLavaLevel ~= -99999 then
 		lastLavaLevel = initLavaLevel
-		WG["grassgl4"].removeGrassBelowHeight(initLavaLevel)
+		WG.grassgl4.removeGrassBelowHeight(initLavaLevel)
 	end
 
 	processChanges = next(grassInstanceData) ~= nil
@@ -1177,8 +1177,8 @@ function widget:Initialize()
 end
 
 function widget:GadgetRemoveGrass(posx, posz, radius)
-	if WG["grassgl4"] then
-		WG["grassgl4"].removeGrass(posx, posz, radius)
+	if WG.grassgl4 then
+		WG.grassgl4.removeGrass(posx, posz, radius)
 	end
 end
 

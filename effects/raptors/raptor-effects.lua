@@ -1,6 +1,6 @@
 -- Effects for Raptors (before known as Raptors)
 local definitions = {
-	["blob_trail_blue"] = {
+	blob_trail_blue = {
 		usedefaultexplosions = false,
 
 		splashes = {
@@ -139,7 +139,7 @@ local definitions = {
 		},
 	},
 
-	["blob_trail_red"] = {
+	blob_trail_red = {
 		usedefaultexplosions = false,
 
 		splashes = {
@@ -278,7 +278,7 @@ local definitions = {
 		},
 	},
 
-	["blob_trail_green"] = {
+	blob_trail_green = {
 		usedefaultexplosions = false,
 
 		splashes = {
@@ -1434,7 +1434,7 @@ local definitions = {
 		},
 	},
 
-	["blood_explode_xl"] = {
+	blood_explode_xl = {
 		usedefaultexplosions = false,
 		centersplatsh = {
 			air = true,
@@ -1664,7 +1664,7 @@ local definitions = {
 		},
 	},
 
-	["blood_explode"] = {
+	blood_explode = {
 		usedefaultexplosions = false,
 		centersplatsh = {
 			air = true,
@@ -1797,7 +1797,7 @@ local definitions = {
 		},
 	},
 
-	["blood_explode_small"] = {
+	blood_explode_small = {
 		usedefaultexplosions = false,
 		centersplatsh = {
 			air = true,
@@ -1929,7 +1929,7 @@ local definitions = {
 		},
 	},
 
-	["blood_explode_blue"] = {
+	blood_explode_blue = {
 		usedefaultexplosions = false,
 		centersplatsh = {
 			air = true,
@@ -2060,7 +2060,7 @@ local definitions = {
 		},
 	},
 
-	["blood_trail_xl"] = {
+	blood_trail_xl = {
 		usedefaultexplosions = false,
 		splash = {
 			air = true,
@@ -2117,7 +2117,7 @@ local definitions = {
 		},
 	},
 
-	["blood_spray"] = {
+	blood_spray = {
 		usedefaultexplosions = false,
 		splash = {
 			air = true,
@@ -2173,7 +2173,7 @@ local definitions = {
 		},
 	},
 
-	["blood_spray_small"] = {
+	blood_spray_small = {
 		usedefaultexplosions = false,
 		splash = {
 			air = true,
@@ -2229,7 +2229,7 @@ local definitions = {
 		},
 	},
 
-	["blood_hit"] = {
+	blood_hit = {
 		usedefaultexplosions = false,
 		splash = {
 			air = true,
@@ -2285,7 +2285,7 @@ local definitions = {
 			},
 		},
 	},
-	["blood_hit_small"] = {
+	blood_hit_small = {
 		usedefaultexplosions = false,
 		splash = {
 			air = true,

@@ -144,9 +144,9 @@ local function FlattenUnitDef(unitDef)
 
 	-- wDefs is a parallel array of weapondef names indexed by mount slot
 	-- (matches unit.weapons[i]); full weapondef data lives in weaponDefs/<name>.json
-	tbl["wDefs"] = {}
+	tbl.wDefs = {}
 	for i, weaponDef in pairs(unitDef.wDefs) do
-		tbl["wDefs"][i] = weaponDef.name
+		tbl.wDefs[i] = weaponDef.name
 	end
 
 	-- annotate each weapons[] mount entry with its weapondef name so consumers

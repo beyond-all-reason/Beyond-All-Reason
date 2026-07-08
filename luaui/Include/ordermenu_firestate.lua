@@ -19,7 +19,7 @@ local onOrderGiven
 local descrByState = {
 	["Hold fire"] = "firestate_hold_fire_descr",
 	["Return fire"] = "firestate_return_fire_descr",
-	["Defend"] = "firestate_defend_descr",
+	Defend = "firestate_defend_descr",
 	["Fire at will"] = "firestate_fire_at_will_descr",
 	["Fire at all"] = "firestate_fire_at_all_descr",
 }

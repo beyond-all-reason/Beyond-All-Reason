@@ -202,17 +202,17 @@ local function initGL4()
 	return true
 end
 
-WG["unitfirestate"] = {}
-WG["unitfirestate"].setEnabled = function(value)
+WG.unitfirestate = {}
+WG.unitfirestate.setEnabled = function(value)
 	showFireStateIcons = value
 end
-WG["unitfirestate"].setShowAllHoldFireIcons = function(value)
+WG.unitfirestate.setShowAllHoldFireIcons = function(value)
 	showAllHoldFireIcons = (value and true) or false
 	if widget and widget.VisibleUnitsChanged and visibleUnits then
 		widget:VisibleUnitsChanged(visibleUnits, nil)
 	end
 end
-WG["unitfirestate"].getShowAllHoldFireIcons = function()
+WG.unitfirestate.getShowAllHoldFireIcons = function()
 	return showAllHoldFireIcons
 end
 
@@ -310,8 +310,8 @@ function widget:Initialize()
 	end
 
 	-- Persist manual hold-fire flags across widget reloads within the same LuaUI session.
-	WG["unitfirestate_manualhold"] = WG["unitfirestate_manualhold"] or {}
-	manualHoldStore = WG["unitfirestate_manualhold"]
+	WG.unitfirestate_manualhold = WG.unitfirestate_manualhold or {}
+	manualHoldStore = WG.unitfirestate_manualhold
 	manuallyHeldFire = manualHoldStore
 
 	-- Build team → allyteam mapping
@@ -324,8 +324,8 @@ function widget:Initialize()
 		end
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 

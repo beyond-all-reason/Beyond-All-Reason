@@ -84,7 +84,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not WG["infolosapi"] then
+	if not WG.infolosapi then
 		spEcho("Los View GL4: Missing InfoLOS API")
 		widgetHandler:RemoveWidget()
 		return
@@ -113,7 +113,7 @@ function widget:DrawPreDecals()
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, "$model_gbuffer_zvaltex")
 	gl.Texture(2, ScreenCopyTexture)
-	gl.Texture(3, WG["infolosapi"].GetInfoLOSTexture(currentAllyTeam))
+	gl.Texture(3, WG.infolosapi.GetInfoLOSTexture(currentAllyTeam))
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	gl.Culling(false) -- ffs
 	gl.DepthTest(false)

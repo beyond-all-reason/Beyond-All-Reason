@@ -651,18 +651,18 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
-	WG["mapedgeextension"] = {}
-	WG["mapedgeextension"].getBrightness = function()
+	WG.mapedgeextension = {}
+	WG.mapedgeextension.getBrightness = function()
 		return brightness
 	end
-	WG["mapedgeextension"].setBrightness = function(value)
+	WG.mapedgeextension.setBrightness = function(value)
 		brightness = value
 		--UpdateShader()
 	end
-	WG["mapedgeextension"].getCurvature = function()
+	WG.mapedgeextension.getCurvature = function()
 		return curvature
 	end
-	WG["mapedgeextension"].setCurvature = function(value)
+	WG.mapedgeextension.setCurvature = function(value)
 		curvature = value
 		--UpdateShader()
 	end

@@ -783,8 +783,8 @@ end
 
 local function validateCEG(cegTable, cegName)
 	for spawnername, spawnerTable in pairs(cegTable) do
-		if type(spawnerTable) == "table" and spawnerTable["class"] then
-			local class = spawnerTable["class"]
+		if type(spawnerTable) == "table" and spawnerTable.class then
+			local class = spawnerTable.class
 			if not spawnerDefs[class] then
 				local msg = string.format('Error: CEG {%s = {%s = {%s = "%s" ,...}}} : %s', tostring(cegName), tostring(spawnername), "class", class, "class does not exist")
 				return false, msg
