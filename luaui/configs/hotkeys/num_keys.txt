@@ -119,3 +119,26 @@ bind meta+8 factory_preset load 8
 bind meta+9 factory_preset load 9
 
 bind any+sc_space factory_preset_show
+
+bind Shift+Meta+0 squad_select_group 0 append_domain
+bind Shift+Meta+1 squad_select_group 1 append_domain
+bind Shift+Meta+2 squad_select_group 2 append_domain
+bind Shift+Meta+3 squad_select_group 3 append_domain
+bind Shift+Meta+4 squad_select_group 4 append_domain
+bind Shift+Meta+5 squad_select_group 5 append_domain
+bind Shift+Meta+6 squad_select_group 6 append_domain
+bind Shift+Meta+7 squad_select_group 7 append_domain
+bind Shift+Meta+8 squad_select_group 8 append_domain
+bind Shift+Meta+9 squad_select_group 9 append_domain
+
+bind Meta+0 squad_select_group 0
+bind Meta+1 squad_select_group 1
+//bind Meta+1 squad_select_portion_group 1 1 0.5 //Disables cycling on second tap, selects half the squad instead
+bind Meta+2 squad_select_group 2
+bind Meta+3 squad_select_group 3
+bind Meta+4 squad_select_group 4
+bind Meta+5 squad_select_group 5
+bind Meta+6 squad_select_group 6
+bind Meta+7 squad_select_group 7
+bind Meta+8 squad_select_group 8
+bind Meta+9 squad_select_group 9
