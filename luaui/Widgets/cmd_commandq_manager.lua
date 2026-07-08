@@ -14,8 +14,8 @@ end
 
 -- Handlers
 function widget:Initialize()
-	widgetHandler:AddAction("command_skip_current", SkipCurrentCommand, nil, "p")
-	widgetHandler:AddAction("command_cancel_last", CancelLastCommand, nil, "p")
+	widgetHandler:AddAction("command_skip_current", SkipCurrentCommand, nil, "pt")
+	widgetHandler:AddAction("command_cancel_last", CancelLastCommand, nil, "pt")
 end
 
 -- Locals

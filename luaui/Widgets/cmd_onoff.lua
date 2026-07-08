@@ -47,5 +47,5 @@ local function onoff(_, _, args)
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("onoff", onoff, nil, "p")
+	widgetHandler:AddAction("onoff", onoff, nil, "pt")
 end

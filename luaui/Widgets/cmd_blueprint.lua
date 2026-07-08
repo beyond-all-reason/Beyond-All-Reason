@@ -1202,12 +1202,12 @@ function widget:Initialize()
 	loadBlueprintsFromFile()
 	loadedBlueprints = true
 
-	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleBlueprintCreateAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "blueprint_prev", handleBlueprintPrevAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "blueprint_create", handleBlueprintCreateAction, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "blueprint_next", handleBlueprintNextAction, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "blueprint_prev", handleBlueprintPrevAction, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "blueprint_delete", handleBlueprintDeleteAction, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", handleFacingAction, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "buildspacing", handleSpacingAction, nil, "pt")
 
 	widget:SelectionChanged(spGetSelectedUnits())
 end

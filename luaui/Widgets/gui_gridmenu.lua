@@ -1313,9 +1313,9 @@ function widget:Initialize()
 
 
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_key", gridmenuKeyHandler, nil, "pR")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "p")
-	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "p")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_category", gridmenuCategoryHandler, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "pt")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_cycle_builder", cycleBuilder, nil, "pt")
 
 	reloadBindings()
 
