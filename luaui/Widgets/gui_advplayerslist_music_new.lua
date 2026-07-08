@@ -105,12 +105,22 @@ local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
+	local originalSoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
+	-- Original Soundtrack is one pack now, not the master switch for every
+	-- built-in event pack. Keep building the catalog when another pack is enabled.
+	local builtinSoundtrackEnabled	= originalSoundtrackEnabled
+		or musicTrackFilters.IsPackEnabled("raptors")
+		or musicTrackFilters.IsPackEnabled("scavengers")
+		or musicTrackFilters.IsPackEnabled("aprilfools")
+		or musicTrackFilters.IsPackEnabled("halloween")
+		or musicTrackFilters.IsPackEnabled("xmas")
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
 	if Spring.GetConfigInt('UseSoundtrackNew', 1) == 0 and Spring.GetConfigInt('UseSoundtrackOld', 0) == 1 then
 		Spring.SetConfigInt('UseSoundtrackNew', 1)
 		Spring.SetConfigInt('UseSoundtrackOld', 0)
+		originalSoundtrackEnabled = true
+		builtinSoundtrackEnabled = true
 	end
 
 	deviceLostSafetyCheck = 0
@@ -119,15 +129,15 @@ local function ReloadMusicPlaylists()
 	local allowedExtensions = "{*.ogg,*.mp3}"
 	-- New Soundtrack List
 	local musicDirNew 			= 'music/original'
-	local peaceTracksNew 			= VFS.DirList(musicDirNew..'/peace', allowedExtensions)
-	local warhighTracksNew 			= VFS.DirList(musicDirNew..'/warhigh', allowedExtensions)
-	local warlowTracksNew 			= VFS.DirList(musicDirNew..'/warlow', allowedExtensions)
-	local interludeTracksNew 		= VFS.DirList(musicDirNew..'/interludes', allowedExtensions)
-	local victoryTracksNew 			= VFS.DirList(musicDirNew..'/victory', allowedExtensions)
-	local defeatTracksNew 			= VFS.DirList(musicDirNew..'/defeat', allowedExtensions)
-	local gameoverTracksNew 		= VFS.DirList(musicDirNew..'/gameover', allowedExtensions)
-	local menuTracksNew 			= VFS.DirList(musicDirNew..'/menu', allowedExtensions)
-	local loadingTracksNew   		= VFS.DirList(musicDirNew..'/loading', allowedExtensions)
+	local peaceTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/peace', allowedExtensions) or {}
+	local warhighTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/warhigh', allowedExtensions) or {}
+	local warlowTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/warlow', allowedExtensions) or {}
+	local interludeTracksNew 		= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/interludes', allowedExtensions) or {}
+	local victoryTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/victory', allowedExtensions) or {}
+	local defeatTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/defeat', allowedExtensions) or {}
+	local gameoverTracksNew 		= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/gameover', allowedExtensions) or {}
+	local menuTracksNew 			= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/menu', allowedExtensions) or {}
+	local loadingTracksNew   		= originalSoundtrackEnabled and VFS.DirList(musicDirNew..'/loading', allowedExtensions) or {}
 	local bossFightTracksNew		= {}
 		  bonusTracks				= {}
 	      scavTracks				= {}
@@ -163,7 +173,7 @@ local function ReloadMusicPlaylists()
 	loadingTracks = {}
 	interludeTracks = {}
 
-	if newSoundtrackEnabled then
+	if builtinSoundtrackEnabled then
 
 		-- Raptors --------------------------------------------------------------------------------------------------------------------
 		if Spring.Utilities.Gametype.IsRaptors() then
@@ -294,7 +304,7 @@ local function ReloadMusicPlaylists()
 
 	-------------------------------CREATE PLAYLISTS-----------------------------------
 
-	if newSoundtrackEnabled then
+	if builtinSoundtrackEnabled then
 		table.append(peaceTracks, peaceTracksNew)
 		table.append(warhighTracks, warhighTracksNew)
 		table.append(warlowTracks, warlowTracksNew)

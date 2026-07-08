@@ -158,9 +158,9 @@ function musicTrackFilters.IsPackEnabled(pack)
 		return Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	end
 
-	if Spring.GetConfigInt('UseSoundtrackNew', 1) ~= 1 then
-		return false
-	elseif pack == "raptors" then
+	-- Event packs are independently selectable; UseSoundtrackNew only controls
+	-- the regular original pack so disabling it does not silence every add-on pack.
+	if pack == "raptors" then
 		-- The scenario owns its event soundtrack. Outside that scenario, the regular-game
 		-- opt-in remains off by default unless the user enables the pack or a track override.
 		return Spring.Utilities.Gametype.IsRaptors() or Spring.GetConfigInt('UseSoundtrackRaptors', 0) == 1
