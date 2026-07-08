@@ -41,6 +41,8 @@ if gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local CallAsTeam = CallAsTeam
+
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -65,6 +67,25 @@ local isCommander = {}
 local unitPower = {}
 local unitDisplayName = {}
 local unitApproxRadius = {}
+
+for unitDefID, unitDef in ipairs(UnitDefs) do
+	local customParams = unitDef.customParams
+	if customParams and customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+
+	unitPower[unitDefID] = unitDef.power or 0
+	unitDisplayName[unitDefID] = unitDef.name or ("unit #" .. tostring(unitDefID))
+
+	local radius = unitDef.radius
+	if radius and radius > 0 then
+		unitApproxRadius[unitDefID] = radius
+	else
+		local footprintX = unitDef.xsize or 0
+		local footprintZ = unitDef.zsize or 0
+		unitApproxRadius[unitDefID] = math.min(footprintX, footprintZ) * 4
+	end
+end
 
 local CMD_DGUN = CMD.DGUN
 local DGUN_RANGE = 280
@@ -114,25 +135,6 @@ local nextContactPruneFrame = CACHE_PRUNE_INTERVAL
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
 local allyTeamIDCache = {}
-
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	local customParams = unitDef.customParams
-	if customParams and customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-
-	unitPower[unitDefID] = unitDef.power or 0
-	unitDisplayName[unitDefID] = unitDef.name or ("unit #" .. tostring(unitDefID))
-
-	local radius = unitDef.radius
-	if radius and radius > 0 then
-		unitApproxRadius[unitDefID] = radius
-	else
-		local footprintX = unitDef.xsize or 0
-		local footprintZ = unitDef.zsize or 0
-		unitApproxRadius[unitDefID] = math.min(footprintX, footprintZ) * 4
-	end
-end
 
 
 -- Called if player becomes spec (or god forbid, player changes teams or ally-teams somehow? Shouldn't be possible in real game?)
@@ -333,7 +335,7 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 	local maxz = math.max(startZ, endZ) + DGUN_SAFETY_WIDTH
 
 	-- Filter for only allied units (not including self-owned units)
-	local candidates = spGetUnitsInBox(minx, miny, minz, maxx, maxy, maxz, ALLY_UNITS)
+	local candidates = CallAsTeam(myTeamID, spGetUnitsInBox, minx, miny, minz, maxx, maxy, maxz, ALLY_UNITS)
 	local threatenedAllyPower = 0
 	local mostPowerfulThreatenedPower = 0
 	local mostPowerfulThreatenedUnitName = nil
@@ -341,8 +343,11 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 		local unitID = candidates[i]
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitRadius = GetApproxUnitRadius(unitDefID)
+		local unitTeam = spGetUnitTeam(unitID)
+
+		-- Exclude self-owned units (should always be allowed to shoot those)
 		-- Exclude allied comms (you can't DGun grief an allied comm)
-		if not isCommander[unitDefID] then
+		if unitTeam ~= myTeamID and not isCommander[unitDefID] then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
 			if unitX then
 				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
@@ -379,18 +384,14 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 	local currentFrame = spGetGameFrame()
 	PruneExpiredContacts(currentFrame)
 
-	-- TODO gaia check still needed?
-	Spring.Echo("ENEMY_UNITS consts is:", ENEMY_UNITS)
-	local candidates = spGetUnitsInSphere(targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
-	-- Spring.Echo(candidates)
+	local candidates = CallAsTeam(myTeamID, spGetUnitsInSphere, targetX, targetY, targetZ, FRONTLINE_SCAN_RADIUS, ENEMY_UNITS)
 
 	for i = 1, #candidates do
 		local unitID = candidates[i]
 		local losState = spGetUnitLosState(unitID, myAllyTeamID, true)
-		if losState and (losState % 4) > 0 then
-			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			local unitTeam = spGetUnitTeam(unitID)
-			Spring.Echo("DGun contact:", GetUnitDisplayName(spGetUnitDefID(unitID)), unitX, unitY, unitZ, "allied =", unitTeam and GetAllyTeamID(unitTeam) == myAllyTeamID)
+		local unitTeam = spGetUnitTeam(unitID)
+		-- Turns out seagulls and such are counted. So need to gaia check
+		if unitTeam ~= gaiaTeamID and losState and (losState % 4) > 0 then
 			return true, "Enemies on radar/LOS within range"
 		end
 	end
