@@ -289,7 +289,7 @@ local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 	for _, foundID in next, units do
 		if foundID == unitID then
 			--
-		elseif spGetUnitAllyTeam(foundID) == allyTeam then
+		elseif unitAllyTeam[foundID] == allyTeam then
 			friendPower = friendPower + unitPower[spGetUnitDefID(foundID)]
 		else
 			enemyPower = enemyPower + unitPower[spGetUnitDefID(foundID) or -1]
