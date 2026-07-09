@@ -36,6 +36,7 @@ local scroll = 0
 local dragging = false
 local editable = false -- true only while the active preset is Custom (uikeys.txt)
 local capturing -- { action, oldRaw }
+local edited = false -- Custom edits applied live but not yet written to uikeys.txt
 local lastClickTime, lastClickId
 
 local font
@@ -204,16 +205,39 @@ local function seedWorkingFromEngine()
 	end
 end
 
+-- Re-read the live bindings into this view (no disk write, no reload, no console
+-- output) - used after each live edit.
+local function reseed()
+	seedWorkingFromEngine()
+	rebuildRows()
+end
+
+-- Write pending Custom edits to uikeys.txt once; returns whether anything was written.
+local function persistEdits()
+	if not edited then
+		return false
+	end
+	edited = false
+	spSendCommands("keysave uikeys.txt")
+	return true
+end
+
 switchPreset = function(opt)
 	-- Mirror Settings: a non-destructive KeybindingFile switch. The first time
 	-- Custom is chosen we seed uikeys.txt from the current binds (keysave), same
 	-- as the Settings picker. reloadBindings re-reads the file into the engine
 	-- and refreshes this view plus the other keybind-aware widgets.
+	persistEdits() -- flush any live Custom edits before leaving
+
+	local fromLabel = presetOptions[currentPresetIndex()].label
 	local file = opt.file
 	if file == "uikeys.txt" and not VFS.FileExists(file) then
 		spSendCommands("keysave " .. file)
 	end
 	Spring.SetConfigString("KeybindingFile", file)
+	if fromLabel ~= opt.label then
+		Spring.Echo("Keybind preset: " .. fromLabel .. " -> " .. opt.label)
+	end
 	if menuToggle then
 		menuToggle(opt.label)
 	end
@@ -276,6 +300,11 @@ function view.setArea(x1, y1, x2, y2, s)
 end
 
 function view.blur()
+	-- Persist accumulated edits and refresh the other keybind-aware widgets once,
+	-- on the way out, instead of per keystroke.
+	if persistEdits() and WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
+		WG['bar_hotkeys'].reloadBindings()
+	end
 	if searchBox then searchBox:blur() end
 	if presetDropdown then presetDropdown:close() end
 	capturing = nil
@@ -297,32 +326,26 @@ function view.wantsTextOwner()
 		or (presetDropdown and presetDropdown:isOpen())
 end
 
--- Each edit applies to the engine and persists to uikeys.txt immediately, then
--- reloadBindings re-seeds this view and the other keybind-aware widgets. Only
--- reachable while on Custom.
-local function commitEdit()
-	spSendCommands("keysave uikeys.txt")
-	if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-		WG['bar_hotkeys'].reloadBindings()
-	else
-		view.refresh()
-	end
-end
-
+-- Edits apply to the engine live (bind/unbind); the write to uikeys.txt and the
+-- widget reload are deferred to persistEdits (panel close / preset switch), since
+-- doing them per keystroke floods the console with keysave/keyreload output.
 local function rebindKeyset(action, oldRaw, newKeyset)
 	spSendCommands("unbind " .. oldRaw .. " " .. action)
 	spSendCommands("bind " .. newKeyset .. " " .. action)
-	commitEdit()
+	edited = true
+	reseed()
 end
 
 local function addKeyset(action, newKeyset)
 	spSendCommands("bind " .. newKeyset .. " " .. action)
-	commitEdit()
+	edited = true
+	reseed()
 end
 
 local function removeKeyset(action, raw)
 	spSendCommands("unbind " .. raw .. " " .. action)
-	commitEdit()
+	edited = true
+	reseed()
 end
 
 -- The engine allows one key to drive several actions (BAR relies on it for
