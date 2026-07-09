@@ -5,6 +5,8 @@
 -- Entry kinds:
 --   { action = "<bind command>", label = "<i18n key>" }  editable (chips + rebind)
 --   { label = "<i18n key>", keyLabel = "<i18n key>" }     informational, read-only
+--   { prefix = "<action prefix>" }                        groups every bound action whose
+--                                                          id starts with prefix, by raw id
 --
 -- action strings are the bindable form (command + space-separated args), i.e.
 -- exactly what `/bind <keyset> <action>` expects and what Spring.GetKeyBindings
@@ -47,6 +49,8 @@ return {
 	{ category = "ui.keybinds.sound.title", items = {
 		{ label = "ui.keybinds.sound.volume", keyLabel = "ui.keybinds.sound.volumeKey" },
 		{ action = "mutesound", label = "ui.keybinds.sound.mute" },
+		{ action = "snd_volume_increase", label = "ui.keybinds.sound.volumeUp" },
+		{ action = "snd_volume_decrease", label = "ui.keybinds.sound.volumeDown" },
 	} },
 
 	{ category = "ui.keybinds.selection.title", items = {
@@ -84,7 +88,7 @@ return {
 
 	{ category = "ui.keybinds.queues.title", items = {
 		{ label = "ui.keybinds.queues.append", keyLabel = "ui.keybinds.queues.appendKey" },
-		{ action = "commandinsert", label = "ui.keybinds.queues.prepend" },
+		{ action = "commandinsert prepend_between", label = "ui.keybinds.queues.prepend" },
 	} },
 
 	{ category = "ui.keybinds.buildOrders.title", items = {
@@ -93,7 +97,8 @@ return {
 		{ label = "ui.keybinds.buildOrders.energy", keyLabel = "ui.keybinds.buildOrders.energyKey" },
 		{ label = "ui.keybinds.buildOrders.intel", keyLabel = "ui.keybinds.buildOrders.intelKey" },
 		{ label = "ui.keybinds.buildOrders.factories", keyLabel = "ui.keybinds.buildOrders.factoriesKey" },
-		{ action = "buildfacing_inc", label = "ui.keybinds.buildOrders.rotate" },
+		{ action = "buildfacing inc", label = "ui.keybinds.buildOrders.rotate" },
+		{ action = "buildfacing dec", label = "ui.keybinds.buildOrders.rotateBack" },
 	} },
 
 	{ category = "ui.keybinds.issueBuildOrders.title", items = {
@@ -101,8 +106,8 @@ return {
 		{ label = "ui.keybinds.issueBuildOrders.deselect", keyLabel = "ui.keybinds.issueBuildOrders.deselect" },
 		{ label = "ui.keybinds.issueBuildOrders.line", keyLabel = "ui.keybinds.issueBuildOrders.lineKey" },
 		{ label = "ui.keybinds.issueBuildOrders.grid", keyLabel = "ui.keybinds.issueBuildOrders.gridKey" },
-		{ action = "buildspacing_inc", label = "ui.keybinds.issueBuildOrders.spacingUp" },
-		{ action = "buildspacing_dec", label = "ui.keybinds.issueBuildOrders.spacingDown" },
+		{ action = "buildspacing inc", label = "ui.keybinds.issueBuildOrders.spacingUp" },
+		{ action = "buildspacing dec", label = "ui.keybinds.issueBuildOrders.spacingDown" },
 	} },
 
 	{ category = "ui.keybinds.massSelect.title", items = {
@@ -120,10 +125,65 @@ return {
 		{ label = "ui.keybinds.drawing.mapmark", keyLabel = "ui.keybinds.drawing.mapmarkKey" },
 		{ label = "ui.keybinds.drawing.draw", keyLabel = "ui.keybinds.drawing.drawKey" },
 		{ label = "ui.keybinds.drawing.erase", keyLabel = "ui.keybinds.drawing.eraseKey" },
+		{ action = "drawinmap", label = "ui.keybinds.drawing.drawInMap" },
+		{ action = "drawlabel", label = "ui.keybinds.drawing.drawLabel" },
 	} },
 
 	{ category = "ui.keybinds.console.title", items = {
 		{ label = "ui.keybinds.console.erase", keyLabel = "ui.keybinds.console.eraseKey" },
 		{ label = "ui.keybinds.console.pause", keyLabel = "ui.keybinds.console.pauseKey" },
+	} },
+
+	{ category = "ui.keybinds.moreOrders.title", items = {
+		{ prefix = "areaattack" },
+		{ prefix = "guard" },
+		{ prefix = "capture" },
+		{ prefix = "restore" },
+		{ prefix = "settargetnoground" },
+		{ prefix = "loadunits" },
+		{ prefix = "unloadunits" },
+		{ prefix = "gatherwait" },
+		{ prefix = "manuallaunch" },
+		{ prefix = "stopproduction" },
+		{ prefix = "command_skip_current" },
+		{ prefix = "command_cancel_last" },
+	} },
+
+	{ category = "ui.keybinds.unitStates.title", items = {
+		{ prefix = "firestate " },
+		{ prefix = "movestate " },
+		{ prefix = "onoff " },
+		{ prefix = "repeat " },
+		{ prefix = "trajectory_toggle " },
+		{ prefix = "factoryguard " },
+	} },
+
+	{ category = "ui.keybinds.controlGroups.title", items = {
+		{ prefix = "group " },
+		{ prefix = "add_to_autogroup " },
+		{ prefix = "load_autogroup_preset " },
+	} },
+
+	{ category = "ui.keybinds.factory.title", items = {
+		{ prefix = "factory_preset" },
+		{ prefix = "factoryqueuemode" },
+	} },
+
+	{ category = "ui.keybinds.gridMenu.title", items = {
+		{ prefix = "gridmenu_" },
+	} },
+
+	{ category = "ui.keybinds.spectating.title", items = {
+		{ prefix = "specteam " },
+		{ prefix = "chatswitch" },
+	} },
+
+	{ category = "ui.keybinds.blueprints.title", items = {
+		{ prefix = "blueprint_" },
+	} },
+
+	{ category = "ui.keybinds.gameSpeed.title", items = {
+		{ prefix = "increasespeed" },
+		{ prefix = "decreasespeed" },
 	} },
 }

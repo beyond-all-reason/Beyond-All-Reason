@@ -403,7 +403,9 @@
 				"title": "Sound",
 				"volumeKey": "-/+",
 				"volume": "Change volume",
-				"mute": "Toggle mute"
+				"mute": "Toggle mute",
+				"volumeUp": "Increase volume",
+				"volumeDown": "Decrease volume"
 			},
 			"selection": {
 				"title": "Selecting units",
@@ -463,7 +465,8 @@
 				"intel": "Cycle through radar/defence/etc",
 				"factoriesKey": "v",
 				"factories": "Cycle through factories",
-				"rotate": "Change facing of buildings"
+				"rotate": "Rotate building placement",
+				"rotateBack": "Rotate building placement (reverse)"
 			},
 			"issueBuildOrders": {
 				"title": "Giving build orders",
@@ -500,7 +503,9 @@
 				"drawKey": "` + drag left mouse",
 				"draw": "Draw on map",
 				"eraseKey": "` + drag right mouse",
-				"erase": "Erase drawings and markers"
+				"erase": "Erase drawings and markers",
+				"drawInMap": "Draw",
+				"drawLabel": "Place label"
 			},
 			"console": {
 				"title": "Console commands",
@@ -508,6 +513,30 @@
 				"erase": "Erase all drawings and markers",
 				"pauseKey": "/pause",
 				"pause": "Pause"
+			},
+			"moreOrders": {
+				"title": "More unit orders"
+			},
+			"unitStates": {
+				"title": "Unit states"
+			},
+			"controlGroups": {
+				"title": "Control groups"
+			},
+			"factory": {
+				"title": "Factory"
+			},
+			"gridMenu": {
+				"title": "Grid menu"
+			},
+			"spectating": {
+				"title": "Spectator"
+			},
+			"blueprints": {
+				"title": "Blueprints"
+			},
+			"gameSpeed": {
+				"title": "Game speed"
 			}
 		},
 		"blueprint": {
