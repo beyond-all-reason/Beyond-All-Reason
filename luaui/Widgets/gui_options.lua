@@ -1506,7 +1506,7 @@ function widget:DrawScreen()
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
 					local i = 0
-					local vi = 0 -- visible index in the current scrollbar  
+					local vi = 0 -- visible index in the current scrollbar
 					for k, option in pairs(options[showSelectOptions].options) do
 						i = i + 1
 						if i > selectScrollOffset and vi < maxVisible then
@@ -3919,6 +3919,30 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "rml_theme", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. "RML Theme", type = "select", options = { "Base", "Armada", "Cortex", "Legion" }, description = "Choose the color theme for RML widgets",
+			onload = function(i)
+				local currentTheme = Spring.GetConfigString("rml_theme", "base")
+				local themeValues = { "base", "armada", "cortex", "legion" }
+				for k, value in pairs(themeValues) do
+					if value == currentTheme then
+						options[i].value = k
+						break
+					end
+				end
+			end,
+			onchange = function(i, value)
+				local themeValues = { "base", "armada", "cortex", "legion" }
+				local selectedTheme = themeValues[value]
+				Spring.SetConfigString("rml_theme", selectedTheme)
+
+				-- Apply theme to all RML widgets that have the theme API
+				if WG.rml_theme_changed then
+					WG.rml_theme_changed(selectedTheme)
+				end
+
+				Spring.Echo("RML Theme changed to: " .. selectedTheme)
+			end,
+		},
 		{ id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.guiopacity'), type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.7), description = '',
 		  onload = function(i)
 		  end,
@@ -5105,6 +5129,14 @@ function init()
 			  devUI = value
 			  Spring.SetConfigInt("DevUI", value and 1 or 0)
 			  Spring.SendCommands("luaui reload")
+		  end,
+		},
+
+		{ id = "rml_debugger", group = "dev", category = types.dev, name = "RmlUi Debugger", type = "bool", value = false, description = "Toggle the RmlUi debugger overlay (developer tool).",
+		  onchange = function(_, value)
+			  if RmlUi then
+				  RmlUi.SetDebugContext(value and 'shared' or nil)
+			  end
 		  end,
 		},
 
