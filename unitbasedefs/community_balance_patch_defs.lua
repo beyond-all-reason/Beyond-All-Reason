@@ -60,7 +60,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					weaponDef.tolerance = 2000
 					weaponDef.weaponvelocity = 900
 					weaponDef.damage = {
-						default = 116,
+						default = 141,
 						vtol = 3,
 					}
 				end
@@ -71,16 +71,18 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			if name == "armblade" then
 				uDef.maxacc = 0.28
 				uDef.maxdec = 0.55
+				uDef.health = 3650
 				uDef.speed = 165
 				uDef.turninplaceanglelimit = 120
 				uDef.turnrate = 420
 				uDef.sightdistance = 720
 				uDef.weapondefs.vtol_sabot = {
-					areaofeffect = 24,
+					areaofeffect = 96,
 					avoidfeature = false,
 					burst = 2,
 					burstrate = 0.15,
 					cegtag = "impulse-trail",
+					collidefriendly = false,
 					craterareaofeffect = 0,
 					craterboost = 0,
 					cratermult = 0,
@@ -93,7 +95,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					name = "Medium-range precision gauss rifle",
 					noselfdamage = true,
 					range = 1100,
-					reloadtime = 5.5,
+					reloadtime = 4.0,
 					soundhit = "xplomed2",
 					soundhitwet = "splshbig",
 					soundstart = "mavgun5",
@@ -104,7 +106,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 						noattackrangearc = 1,
 					},
 					damage = {
-						default = 410,
+						default = 610,
 					},
 				}
 				uDef.weapons[1].maindir = "0 0 1"
