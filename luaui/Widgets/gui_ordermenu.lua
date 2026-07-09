@@ -24,10 +24,41 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
 local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
+
+local function resolveHotkeyTargetVirtualIndex(optWords)
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 then
+		return nil
+	end
+	local param = optWords[1] and tonumber(optWords[1])
+	if param ~= nil then
+		return param + 1
+	end
+	local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(selectedUnits[1])
+	if virtualIndex == nil then
+		return nil
+	end
+	local _, _, shift = Spring.GetModKeyState()
+	return OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, shift)
+end
+
+local function installFirestateNotifyHooks()
+	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
+	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
+		if not release then
+			local targetIndex = resolveHotkeyTargetVirtualIndex(optWords)
+			if targetIndex then
+				OrderMenuFirestate.giveVirtualIndex(targetIndex, 0)
+				return false
+			end
+		end
+		return originalHotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
+	end
+end
 
 local cellZoom = 1
 local cellClickedZoom = 1.05
@@ -404,7 +435,7 @@ local function refreshCommands()
 	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
 		if isStateCommand[cmd.id] then
-			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or Firestates.stateLabel(cmd)
+			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
 			if commandState then
 				if not commandTextCache[commandState] then
 					commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
@@ -576,6 +607,7 @@ function widget:Initialize()
 			doUpdate = true
 		end,
 	})
+	installFirestateNotifyHooks()
 	reloadBindings()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
@@ -1114,7 +1146,7 @@ function widget:DrawScreen()
 							if tooltip ~= '' then
 								local title
 								if isStateCommand[cmd.id] then
-									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or Firestates.stateLabel(cmd)
+									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
 									if commandState then
 										title = getCachedTranslation('ui.orderMenu.' .. commandState)
 									end

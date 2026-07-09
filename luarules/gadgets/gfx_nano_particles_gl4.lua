@@ -53,6 +53,7 @@ local spGetUnitPosition          = Spring.GetUnitPosition
 local spGetUnitRadius            = Spring.GetUnitRadius
 local spGetUnitDefID             = Spring.GetUnitDefID
 local spGetUnitIsBeingBuilt      = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding        = Spring.GetUnitIsBuilding
 local spGetFeaturePosition       = Spring.GetFeaturePosition
 local spGetFeatureRadius         = Spring.GetFeatureRadius
 local spGetFeatureHealth         = Spring.GetFeatureHealth
@@ -1397,6 +1398,14 @@ local piecePosEpoch = 0
 -- by GetUnitWorkerTask (so feature IDs naturally don't collide with units).
 local emitTargetPosCache = {}
 
+-- Reverse lookup for factory-assisted builds: when a mobile builder assists a
+-- factory, GetUnitWorkerTask typically resolves to the buildee unit. For nano
+-- visuals we want those particles to keep converging on the factory pad, not
+-- start chasing the finished unit as it rolls out. Cache one scan-frame worth
+-- of buildee -> factory anchor resolution so assist groups share the lookup.
+local factoryBuildTargetCache = {}
+local recentFactoryBuildTargetCache = {}
+
 -- Reclaim/homing particles: in-flight inverse particles (those travelling back
 -- toward a builder) re-aim each frame to follow the builder's CURRENT piece
 -- position. Particle position formula is `pos = spawn + vel * (frame - spawnFrame)`,
@@ -1438,6 +1447,49 @@ local reclaimTargetBuildProgress = {}
 -- also fade so trailing spray dissolves cleanly).
 local fadeFwdByTarget = {}
 local FADE_FWD_MAX_PER_TARGET = HOMING_FWD_MAX_PER_TARGET
+
+local function getFactoryBuildAnchor(targetUnitID)
+	local cached = factoryBuildTargetCache[targetUnitID]
+	if cached and cached[1] == piecePosEpoch then
+		if cached[2] then
+			return cached[2], cached[3], cached[4], cached[5], cached[6]
+		end
+		return nil
+	end
+
+	local list = trackedBuildersList
+	for i = 1, #list do
+		local factoryID = list[i]
+		local finfo = builderCache[factoryID]
+		local isFactory = finfo and finfo.isFactory
+		if isFactory == nil then
+			local factoryDefID = spGetUnitDefID(factoryID)
+			isFactory = factoryDefID and UnitDefs[factoryDefID] and UnitDefs[factoryDefID].isFactory or false
+		end
+		if isFactory and spGetUnitIsBuilding(factoryID) == targetUnitID then
+			local _, _, _, mx, my, mz = spGetUnitPosition(factoryID, true)
+			if mx then
+				local radius = spGetUnitRadius(factoryID) or 0
+				factoryBuildTargetCache[targetUnitID] = { piecePosEpoch, factoryID, mx, my, mz, radius }
+				return factoryID, mx, my, mz, radius
+			end
+			break
+		end
+	end
+
+	local recent = recentFactoryBuildTargetCache[targetUnitID]
+	if recent then
+		local recentFrame = recent[1]
+		if recentFrame and (Spring.GetGameFrame() - recentFrame) < HOMING_SKIP_GRACE_FRAMES then
+			factoryBuildTargetCache[targetUnitID] = { piecePosEpoch, recent[2], recent[3], recent[4], recent[5], recent[6] }
+			return recent[2], recent[3], recent[4], recent[5], recent[6]
+		end
+		recentFactoryBuildTargetCache[targetUnitID] = nil
+	end
+
+	factoryBuildTargetCache[targetUnitID] = { piecePosEpoch, false }
+	return nil
+end
 
 local function getBuilderInfo(builderID)
 	local cached = builderCache[builderID]
@@ -2094,27 +2146,43 @@ local function resolveTarget(info, cmdID, targetID)
 			isReclaim    = isReclaim,
 			isResurrect  = isResurrect,
 		}
+		if isUnit and (not info.isFactory) and spGetUnitIsBeingBuilt(resolvedID) then
+			local factoryID, fx, fy, fz, factoryRadius = getFactoryBuildAnchor(resolvedID)
+			if factoryID and fx then
+				meta.assistFactoryID = factoryID
+				meta.anchorX = fx
+				meta.anchorY = fy
+				meta.anchorZ = fz
+				meta.jitterRadius = (factoryRadius and factoryRadius > 0) and (factoryRadius * factor) or nil
+				meta.targetRadius = factoryRadius or 0
+				meta.effectiveBD = info.buildDistance and (info.buildDistance + (factoryRadius or 0)) or nil
+			end
+		end
 		info.targetMeta = meta
 	end
 
 	local px, py, pz
-	local cached = emitTargetPosCache[meta.targetID]
-	if cached and cached[1] == piecePosEpoch then
-		px, py, pz = cached[2], cached[3], cached[4]
+	if meta.assistFactoryID then
+		px, py, pz = meta.anchorX, meta.anchorY, meta.anchorZ
 	else
-		if meta.isFeature then
-			px, py, pz = spGetFeaturePosition(meta.resolvedID)
+		local cached = emitTargetPosCache[meta.targetID]
+		if cached and cached[1] == piecePosEpoch then
+			px, py, pz = cached[2], cached[3], cached[4]
 		else
-			-- spGetUnitPosition(uid, true) returns 6 values: base + mid. We want mid.
-			local _, _, _, mx, my, mz = spGetUnitPosition(meta.resolvedID, true)
-			px, py, pz = mx, my, mz
-		end
-		if px then
-			if cached then
-				cached[1] = piecePosEpoch
-				cached[2] = px; cached[3] = py; cached[4] = pz
+			if meta.isFeature then
+				px, py, pz = spGetFeaturePosition(meta.resolvedID)
 			else
-				emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz }
+				-- spGetUnitPosition(uid, true) returns 6 values: base + mid. We want mid.
+				local _, _, _, mx, my, mz = spGetUnitPosition(meta.resolvedID, true)
+				px, py, pz = mx, my, mz
+			end
+			if px then
+				if cached then
+					cached[1] = piecePosEpoch
+					cached[2] = px; cached[3] = py; cached[4] = pz
+				else
+					emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz }
+				end
 			end
 		end
 	end
@@ -2134,7 +2202,7 @@ local function resolveTarget(info, cmdID, targetID)
 	else
 		inverse = false
 	end
-	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and meta.resolvedID or nil
+	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and (not meta.assistFactoryID) and meta.resolvedID or nil
 end
 
 --------------------------------------------------------------------------------
@@ -2609,7 +2677,7 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 			local rem = entry.death - frame
 			if rem > 1 and entry.fx then
 				local fx, fy, fz = entry.fx, entry.fy, entry.fz
-				if entry.targetID then
+				if entry.targetID and not recentFactoryBuildTargetCache[entry.targetID] then
 					local _, _, _, mx, my, mz = spGetUnitPosition(entry.targetID, true)
 					if mx then
 						fx, fy, fz = mx, my, mz
@@ -3453,6 +3521,7 @@ function gadget:UnitFinished(unitID, unitDefID)
 	homingFwdByTarget[unitID] = nil
 	fadeFwdByTarget[unitID]   = nil
 	targetPosCache[unitID]    = nil
+	local completionFactoryID, completionX, completionY, completionZ, completionRadius
 	-- Keep a completion timestamp so HOMING_SKIP_GRACE_FRAMES still applies
 	-- after UnitFinished; clearing this here made fresh emissions immediately
 	-- re-enter forward homing and chase units as they roll out of factories.
@@ -3466,10 +3535,30 @@ function gadget:UnitFinished(unitID, unitDefID)
 		local bid = trackedBuildersList[i]
 		local info = builderCache[bid]
 		if info and info.targetID == unitID then
+			if info.isFactory and not completionFactoryID then
+				local _, _, _, mx, my, mz = spGetUnitPosition(bid, true)
+				if mx then
+					completionFactoryID = bid
+					completionX, completionY, completionZ = mx, my, mz
+					completionRadius = spGetUnitRadius(bid) or 0
+				end
+			end
 			info.cmdID      = nil
 			info.targetID   = nil
 			info.targetMeta = nil
 		end
+	end
+	if completionFactoryID then
+		local frame = Spring.GetGameFrame()
+		recentFactoryBuildTargetCache[unitID] = {
+			frame,
+			completionFactoryID,
+			completionX,
+			completionY,
+			completionZ,
+			completionRadius,
+		}
+		factoryBuildTargetCache[unitID] = { piecePosEpoch, completionFactoryID, completionX, completionY, completionZ, completionRadius }
 	end
 	trackUnit(unitID, unitDefID)
 end
