@@ -95,14 +95,18 @@ local function buildResolvedCatalog()
 		local title = Spring.I18N(group.category)
 		local g = { title = title, titleLower = title:lower(), items = {} }
 		for _, item in ipairs(group.items) do
-			local label = Spring.I18N(item.label)
-			g.items[#g.items + 1] = {
-				action = item.action,
-				actionLower = item.action and item.action:lower(),
-				label = label,
-				labelLower = label:lower(),
-				keyText = item.keyLabel and Spring.I18N(item.keyLabel) or "",
-			}
+			if item.prefix then
+				g.items[#g.items + 1] = { prefix = item.prefix }
+			else
+				local label = Spring.I18N(item.label)
+				g.items[#g.items + 1] = {
+					action = item.action,
+					actionLower = item.action and item.action:lower(),
+					label = label,
+					labelLower = label:lower(),
+					keyText = item.keyLabel and Spring.I18N(item.keyLabel) or "",
+				}
+			end
 		end
 		resolvedCatalog[#resolvedCatalog + 1] = g
 	end
@@ -130,23 +134,42 @@ local function rebuildRows()
 		local categoryMatch = q ~= "" and group.titleLower:find(q, 1, true)
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
-			if item.action then
-				catalogActions[item.action] = true
-			end
-			if q == "" or categoryMatch or item.labelLower:find(q, 1, true)
-				or (item.actionLower and item.actionLower:find(q, 1, true)) then
-				groupRows[#groupRows + 1] = item
+			if item.prefix then
+				-- Claim every bound action under this prefix (numbered families like
+				-- "group set N") and list it by raw id, so they need no catalog entry
+				-- per number.
+				local matched = {}
+				for action in pairs(working.byAction) do
+					if action:sub(1, #item.prefix) == item.prefix then
+						catalogActions[action] = true
+						if q == "" or categoryMatch or action:lower():find(q, 1, true) then
+							matched[#matched + 1] = action
+						end
+					end
+				end
+				table.sort(matched)
+				for i = 1, #matched do
+					groupRows[#groupRows + 1] = { type = "editable", action = matched[i], label = matched[i] }
+				end
+			else
+				if item.action then
+					catalogActions[item.action] = true
+				end
+				if q == "" or categoryMatch or item.labelLower:find(q, 1, true)
+					or (item.actionLower and item.actionLower:find(q, 1, true)) then
+					if item.action then
+						groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
+					else
+						groupRows[#groupRows + 1] = { type = "info", label = item.label, keyText = item.keyText }
+					end
+				end
 			end
 		end
 
 		if #groupRows > 0 then
 			rows[#rows + 1] = { type = "header", text = group.title }
-			for _, item in ipairs(groupRows) do
-				if item.action then
-					rows[#rows + 1] = { type = "editable", action = item.action, label = item.label }
-				else
-					rows[#rows + 1] = { type = "info", label = item.label, keyText = item.keyText }
-				end
+			for i = 1, #groupRows do
+				rows[#rows + 1] = groupRows[i]
 			end
 		end
 	end
