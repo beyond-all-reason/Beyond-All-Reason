@@ -402,14 +402,15 @@ function widget:DrawScreen()
 end
 
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
-	if show and lasttab == "Keybindings" and keybindEditor.keyPress(key, scanCode) then
-		return true
-	end
-
+	-- ESC closes the panel before the editor can swallow it (search focus / capture).
 	if key == 27 then
-		-- ESC
 		show = false
 		keybindEditor.blur()
+		return
+	end
+
+	if show and lasttab == "Keybindings" and keybindEditor.keyPress(key, scanCode) then
+		return true
 	end
 end
 
