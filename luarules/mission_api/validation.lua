@@ -1,5 +1,5 @@
 ---
---- Validators for Mission API actions and triggers loaded from missions.
+--- Validators for Mission API objects loaded from missions.
 ---
 
 VFS.Include('common/wav.lua')
@@ -45,6 +45,8 @@ end
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
+local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
+local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 
 local validators = {}
 
@@ -336,6 +338,28 @@ end
 
 --- String Validators:
 
+validators[Types.StageID] = function(stageID)
+	local luaTypeResult = validators[Types.String](stageID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Stages[stageID] then
+		return { { message = "Invalid stageID: " .. stageID } }
+	end
+end
+
+validators[Types.ObjectiveID] = function(objectiveID)
+	local luaTypeResult = validators[Types.String](objectiveID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG['MissionAPI'].Objectives[objectiveID] then
+		return { { message = "Invalid objectiveID: " .. objectiveID } }
+	end
+end
+
 validators[Types.TriggerID] = function(triggerID)
 		local luaTypeResult = validators[Types.String](triggerID)
 		if luaTypeResult then
@@ -413,6 +437,17 @@ end
 
 --- Number Validators:
 
+validators[Types.Quantity] = function(quantity)
+	local luaTypeResult = validators[Types.Number](quantity)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if quantity < 0 then
+		return { { message = "Quantity must be >= 0, got " .. quantity } }
+	end
+end
+
 validators[Types.TeamID] = function(teamID)
 		local luaTypeResult = validators[Types.Number](teamID)
 		if luaTypeResult then
@@ -444,6 +479,8 @@ local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local triggersSchemaSettings = triggersSchema.Settings
 local triggersSchemaParameters = triggersSchema.Parameters
 local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
+local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerParameters, actionOrTrigger, actionOrTriggerID)
 	if not actionOrTriggerType then
@@ -452,6 +489,12 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 		logError(actionOrTrigger .. " has invalid type. " .. actionOrTrigger .. ": " .. actionOrTriggerID)
 	else
 		actionOrTriggerParameters = actionOrTriggerParameters or {}
+		local parametersTypeResult = validateLuaType(actionOrTriggerParameters, 'table')
+		if parametersTypeResult then
+			logError(parametersTypeResult .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: parameters")
+			actionOrTriggerParameters = {}
+		end
+
 		-- Check for requiresOneOf parameters:
 		local requiresOneOf = schemaParameters[actionOrTriggerType].requiresOneOf
 		if requiresOneOf and table.all(requiresOneOf, function(paramName) return actionOrTriggerParameters[paramName] == nil end) then
@@ -475,7 +518,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 end
 
 local function validateTriggerSettings(trigger, triggerID, triggers)
-	-- Validate types of settings:
+	-- Validate Lua types of settings:
 	for schemaSetting, schemaType in pairs(triggersSchemaSettings) do
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
 		if luaTypeResult then
@@ -483,10 +526,113 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 		end
 	end
 
+	-- Validate maxRepeats is only set if repeating is true:
+	if trigger.settings.maxRepeats and not trigger.settings.repeating then
+		logError("Trigger has maxRepeats setting but is not set to repeating. Trigger: " .. triggerID)
+	end
+
 	-- Validate prerequisites triggerIDs exist:
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID] then
 			logError("Trigger prerequisite does not exist. Trigger: " .. triggerID .. ", Prerequisite triggerID: " .. prerequisiteTriggerID)
+		end
+	end
+
+	-- Validate stages exist:
+	if trigger.settings.stages then
+		for _, stage in pairs(trigger.settings.stages) do
+			if not GG['MissionAPI'].Stages[stage] then
+				logError("Trigger refers to non-existent stage. Trigger: " .. triggerID .. ", Stage: " .. stage)
+			end
+		end
+	end
+end
+
+local function validateObjectiveSchemaFields(objective, objectiveIDText)
+	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
+		if fieldName ~= 'nextStage' and objective[fieldName] ~= nil then
+			local validator = validators[fieldType]
+			local results = validator(objective[fieldName]) or {}
+			if #results > 0 then
+				for _, result in ipairs(results) do
+					logError(result.message .. ". Objective: " .. objectiveIDText .. ", Field: " .. fieldName)
+				end
+			end
+		end
+	end
+end
+
+local function validateObjectiveInlineTrigger(objective, objectiveIDText)
+	if type(objective.trigger) ~= 'table' then
+		return
+	end
+
+	if objective.trigger.settings ~= nil then
+		logError("Objective trigger must not have a 'settings' field. Objective: " .. objectiveIDText)
+	end
+	if objective.trigger.actions ~= nil then
+		logError("Objective trigger must not have an 'actions' field. Objective: " .. objectiveIDText)
+	end
+
+	-- For statistics triggers, quantity is always forced to 1 by the loader.
+	-- Inject it here so the required-parameter check passes even if the user omitted it,
+	-- and warn if the user explicitly specified it (since it will be ignored).
+	local triggerParams = objective.trigger.parameters or {}
+	local triggerParamsTypeResult = validateLuaType(triggerParams, 'table')
+	if triggerParamsTypeResult then
+		logError(triggerParamsTypeResult .. ". Objective trigger: " .. objectiveIDText .. ", Parameter: parameters")
+		triggerParams = {}
+	end
+
+	if triggerTypesWithQuantity[objective.trigger.type] then
+		if triggerParams.quantity ~= nil then
+			logWarn("Objective trigger 'quantity' is not supported and will be ignored. Objective: " .. objectiveIDText)
+		end
+		triggerParams = table.copy(triggerParams or {})
+		triggerParams.quantity = 1
+	end
+	validate(triggersSchemaParameters, objective.trigger.type, triggerParams, 'Objective trigger', objectiveIDText)
+end
+
+local function validateObjective(objectiveID, objective)
+	local objectiveIDText = tostring(objectiveID)
+	if type(objectiveID) ~= 'string' then
+		logError("Objective ID must be a string, got " .. type(objectiveID))
+	end
+
+	if type(objective) ~= 'table' then
+		logError("Objective data must be a table, got " .. type(objective) .. ". Objective: " .. objectiveIDText)
+		return
+	end
+
+	if not objective.textKey then
+		logError("Objective missing textKey: " .. objectiveIDText)
+	elseif objective.textKey == '' then
+		logError("Objective has empty textKey: " .. objectiveIDText)
+	end
+
+	validateObjectiveSchemaFields(objective, objectiveIDText)
+	validateObjectiveInlineTrigger(objective, objectiveIDText)
+end
+
+local function validateObjectives(objectives)
+	for objectiveID, objective in pairs(objectives) do
+		validateObjective(objectiveID, objective)
+	end
+end
+
+local function validateInitialStage(initialStage)
+	local stages = GG['MissionAPI'].Stages
+	local hasStages = next(stages)
+	if hasStages then
+		if not initialStage then
+			logError("Stages are defined, but initialStage is not provided.")
+		elseif stages[initialStage] == nil then
+			logError("Initial stage does not exist in stages: " .. initialStage)
+		end
+	else
+		if initialStage then
+			logWarn("initialStage '" .. initialStage .. "' is set, but no stages are defined.")
 		end
 	end
 end
@@ -512,10 +658,8 @@ end
 local function getAllActionIDsReferencedByTriggers()
 	local allActionIDsReferencedByTriggers = {}
 	for _, trigger in pairs(GG['MissionAPI'].Triggers) do
-		if not table.isNilOrEmpty(trigger.actions) then
-			for _, actionID in pairs(trigger.actions) do
-				allActionIDsReferencedByTriggers[actionID] = true
-			end
+		for _, actionID in pairs(trigger.actions or {}) do
+			allActionIDsReferencedByTriggers[actionID] = true
 		end
 	end
 	return allActionIDsReferencedByTriggers
@@ -532,7 +676,69 @@ local function validateActions(actions)
 		validate(actionsSchemaParameters, action.type, action.parameters, 'Action', actionID)
 	end
 	if not table.isEmpty(unreferencedActionIDs) then
+		table.sort(unreferencedActionIDs)
 		logError("Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", "))
+	end
+end
+
+local function validateStagesReferences(stages, objectives)
+	if table.isEmpty(stages) then
+		return
+	end
+
+	for stageID, stageData in pairs(stages) do
+		if type(stageData) == 'table' and stageData.objectives then
+			for i, objectiveID in ipairs(stageData.objectives or {}) do
+				if type(objectiveID) == 'string' and objectives[objectiveID] == nil then
+					logError("Stage refers to non-existent objective. Stage: " .. stageID .. ", Objective: " .. objectiveID)
+				end
+			end
+		end
+	end
+end
+
+local function validateStages(stages)
+	if table.isEmpty(stages) then
+		return
+	end
+
+	for stageID, stageData in pairs(stages) do
+		if type(stageID) ~= 'string' then
+			logError("Stage ID must be a string, got " .. type(stageID))
+		end
+
+		if type(stageData) ~= 'table' then
+			logError("Stage data must be a table, got " .. type(stageData) .. ". Stage: " .. stageID)
+		else
+			local objectives_list = stageData.objectives
+			if objectives_list == nil then
+				logError("Stage missing 'objectives' field. Stage: " .. stageID)
+			elseif type(objectives_list) ~= 'table' then
+				logError("Stage 'objectives' field must be a table, got " .. type(objectives_list) .. ". Stage: " .. stageID)
+			else
+				for i, objectiveID in ipairs(objectives_list) do
+					if type(objectiveID) ~= 'string' then
+						logError("Stage 'objectives' entry #" .. i .. " must be a string, got " .. type(objectiveID) .. ". Stage: " .. stageID)
+					end
+				end
+				if #objectives_list == 0 then
+					logWarn("Stage has empty 'objectives' table. Stage: " .. stageID)
+				end
+			end
+		end
+	end
+end
+
+local function validateObjectiveNextStageReferences(objectives)
+	for objectiveID, objective in pairs(objectives) do
+		if type(objective) == 'table' and objective.nextStage ~= nil then
+			local objectiveIDText = tostring(objectiveID)
+			if type(objective.nextStage) ~= 'string' then
+				logError("Unexpected parameter type, expected string, got " .. type(objective.nextStage) .. ". Objective: " .. objectiveIDText .. ", Field: nextStage")
+			elseif GG['MissionAPI'].Stages[objective.nextStage] == nil then
+				logError("Objective references non-existent nextStage. Objective: " .. objectiveIDText .. ", Stage: " .. objective.nextStage)
+			end
+		end
 	end
 end
 
@@ -703,22 +909,8 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 	end
 end
 
-local function getTypesWithParameterType(schemaParameters, parameterType)
-	local typesWithParameter = {}
 
-	for actionOrTriggerType, parameters in pairs(schemaParameters) do
-		for _, parameter in ipairs(parameters) do
-			if parameter.type == parameterType then
-				typesWithParameter[actionOrTriggerType] = true
-				break
-			end
-		end
-	end
-
-	return typesWithParameter
-end
-
-local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
+local function validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
 	local actionTypesNamingUnits = {
 		[actionTypes.SpawnUnits] = true,
@@ -729,7 +921,6 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		[actionTypes.UnnameUnits] = true,
 		[actionTypes.TransferUnits] = true,
 		[actionTypes.DespawnUnits] = true,
-		[actionTypes.TransferUnits] = true,
 	}
 
 	local createdUnitNames = {}
@@ -737,7 +928,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 
 	-- Loadout entries with a unitName count as creating that name.
 	for i, entry in ipairs(unitLoadout or {}) do
-		if type(entry) == 'table' and entry.unitName then
+		if type(entry) == 'table' and type(entry.unitName) == 'string' then
 			createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
 			createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "UnitLoadout entry #" .. i
 		end
@@ -747,7 +938,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.SpawnUnits and action.parameters and action.parameters.unitLoadout then
 			for i, entry in ipairs(action.parameters.unitLoadout) do
-				if type(entry) == 'table' and entry.unitName then
+				if type(entry) == 'table' and type(entry.unitName) == 'string' then
 					createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
 					createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action " .. actionID .. ", unitLoadout entry #" .. i
 				end
@@ -760,7 +951,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		if action.type == actionTypes.IssueOrders then
 			for _, order in ipairs(action.parameters.orders) do
 				local params = order[2]
-				if type(params) == 'table' and params.unitName then
+				if type(params) == 'table' and type(params.unitName) == 'string' then
 					local refsToUnitName = table.ensureTable(referencedUnitNames, params.unitName)
 					refsToUnitName[#refsToUnitName + 1] = "action " .. actionID .. " (orders)"
 				end
@@ -768,10 +959,19 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 		end
 	end
 
+	-- Objective inline triggers can also refer to unit names.
+	for objectiveID, objective in pairs(objectives or {}) do
+		local unitName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.unitName
+		if type(unitName) == 'string' then
+			referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+			referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = "objective " .. objectiveID .. " (trigger)"
+		end
+	end
+
 	local function recordUnitNameCreationsAndReferences(typesNamingUnits, typesReferencingUnitNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local unitName = (actionOrTrigger.parameters or {}).unitName
-			if unitName then
+			if type(unitName) == 'string' then
 				if typesNamingUnits[actionOrTrigger.type] then
 					local creatorsOfUnitName = table.ensureTable(createdUnitNames, unitName)
 					creatorsOfUnitName[#creatorsOfUnitName + 1] = label .. actionOrTriggerID
@@ -798,7 +998,7 @@ local function validateUnitNameReferences(triggerTypes, actionTypes, triggers, a
 	end
 end
 
-local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
+local function validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	local triggerTypesReferencingFeatureNames = getTypesWithParameterType(triggersSchemaParameters, Types.FeatureName)
 	local actionTypesNamingFeatures = {
 		[actionTypes.CreateFeatures] = true,
@@ -812,7 +1012,7 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 
 	-- Loadout entries with a featureName count as creating that name.
 	for i, entry in ipairs(featureLoadout or {}) do
-		if type(entry) == 'table' and entry.featureName then
+		if type(entry) == 'table' and type(entry.featureName) == 'string' then
 			createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
 			createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "FeatureLoadout entry #" .. i
 		end
@@ -822,7 +1022,7 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.CreateFeatures and action.parameters and action.parameters.featureLoadout then
 			for i, entry in ipairs(action.parameters.featureLoadout) do
-				if type(entry) == 'table' and entry.featureName then
+				if type(entry) == 'table' and type(entry.featureName) == 'string' then
 					createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
 					createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action " .. actionID .. ", featureLoadout entry #" .. i
 				end
@@ -835,7 +1035,7 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 		if action.type == actionTypes.IssueOrders then
 			for _, order in ipairs(action.parameters.orders) do
 				local params = order[2]
-				if type(params) == 'table' and params.featureName then
+				if type(params) == 'table' and type(params.featureName) == 'string' then
 					local refsToFeatureName = table.ensureTable(referencedFeatureNames, params.featureName)
 					refsToFeatureName[#refsToFeatureName + 1] = "action " .. actionID .. " (orders)"
 				end
@@ -843,10 +1043,19 @@ local function validateFeatureNameReferences(triggerTypes, actionTypes, triggers
 		end
 	end
 
+	-- Objective inline triggers can also refer to feature names.
+	for objectiveID, objective in pairs(objectives or {}) do
+		local featureName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.featureName
+		if type(featureName) == 'string' then
+			local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
+			refsToFeatureName[#refsToFeatureName + 1] = "objective " .. objectiveID .. " (trigger)"
+		end
+	end
+
 	local function recordFeatureNameCreationsAndReferences(typesNamingFeatures, typesReferencingFeatureNames, actionsOrTriggers, label)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
 			local featureName = (actionOrTrigger.parameters or {}).featureName
-			if featureName then
+			if type(featureName) == 'string' then
 				if typesNamingFeatures[actionOrTrigger.type] then
 					local creatorsOfFeatureName = table.ensureTable(createdFeatureNames, featureName)
 					creatorsOfFeatureName[#creatorsOfFeatureName + 1] = label .. actionOrTriggerID
@@ -906,19 +1115,26 @@ end
 
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
-	local triggerTypes = GG['MissionAPI'].TriggerTypes
 	local actionTypes = GG['MissionAPI'].ActionTypes
+	local objectives = GG['MissionAPI'].Objectives
+	local stages = GG['MissionAPI'].Stages
 	local triggers = GG['MissionAPI'].Triggers
 	local actions = GG['MissionAPI'].Actions
 	local unitLoadout = GG['MissionAPI'].UnitLoadout
 	local featureLoadout = GG['MissionAPI'].FeatureLoadout
-	validateUnitNameReferences(triggerTypes, actionTypes, triggers, actions, unitLoadout)
-	validateFeatureNameReferences(triggerTypes, actionTypes, triggers, actions, featureLoadout)
+
+	validateStagesReferences(stages, objectives)
+	validateObjectiveNextStageReferences(objectives)
+	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
+	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
 return {
+	ValidateStages = validateStages,
+	ValidateObjectives = validateObjectives,
+	ValidateInitialStage = validateInitialStage,
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,

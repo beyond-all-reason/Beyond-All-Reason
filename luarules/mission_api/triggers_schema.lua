@@ -52,6 +52,7 @@ local settings = {
 	difficulties = Types.Table,
 	coop = Types.Boolean,
 	active = Types.Boolean,
+	stages = Types.Table,
 }
 
 --============================================================--
@@ -82,11 +83,6 @@ local parameters = {
 			name = 'teamID',
 			required = false,
 			type = Types.TeamID,
-		},
-		[3] = {
-			name = 'quantity',
-			required = false,
-			type = Types.Number,
 		},
 	},
 	[triggerTypes.UnitNotExists] = {
@@ -324,6 +320,7 @@ local parameters = {
 			required = false,
 			type = Types.TeamID
 		},
+		requiresOneOf = { 'unitName', 'unitDefName' }
 	 },
 
 	-- Features
@@ -460,7 +457,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -482,7 +479,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitDefName',
@@ -499,7 +496,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -521,7 +518,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
@@ -543,7 +540,7 @@ local parameters = {
 		[2] = {
 			name = 'quantity',
 			required = true,
-			type = Types.Number,
+			type = Types.Quantity,
 		},
 		[3] = {
 			name = 'unitName',
