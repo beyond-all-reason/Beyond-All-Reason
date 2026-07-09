@@ -65,7 +65,7 @@ function Dropdown:draw()
 	Selector(x1, y1, x2, y2)
 
 	font:Begin()
-	font:Print(colorText .. self.label, (x1 + x2) * 0.5, (y1 + y2) * 0.5, self.fontSize, "cov")
+	font:Print(colorText .. self.label, x1 + floor((y2 - y1) * 0.3), (y1 + y2) * 0.5, self.fontSize, "ov")
 	font:End()
 
 	if self.open and #self.optRects > 0 then
