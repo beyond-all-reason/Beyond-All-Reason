@@ -138,8 +138,8 @@ end
 
 local unitTeam = {}
 local unitAllyTeam = {}
-local unitPower = setmetatable({}, { __index = function (self, unitID) return unknownPower end})
-local unitRadius = setmetatable({}, { __index = function (self, unitID) return unknownRadius end})
+local unitPower = setmetatable({}, { __index = function(self, unitID) return unknownPower end})
+local unitRadius = setmetatable({}, { __index = function(self, unitID) return unknownRadius end})
 
 local readAs = { read = -1 }
 
