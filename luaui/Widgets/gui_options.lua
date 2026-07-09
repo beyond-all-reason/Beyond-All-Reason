@@ -6918,12 +6918,16 @@ function init()
 						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[1], type="text"}
 					end
 					count = count + 1
-					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="click",--..'\n'..v[4],
-						  onclick = function()
-							  if WG['music'] ~= nil and WG['music'].playTrack then
-								  WG['music'].playTrack(v[3])
-							  end
-						  end,
+					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="bool", value=Spring.GetConfigInt("MusicSwitch " .. v[2], 1) == 1, --..'\n'..v[4],
+						onclick = function()
+						  	if WG['music'] ~= nil and WG['music'].playTrack then
+								WG['music'].playTrack(v[3])
+						  	end
+						end,
+						onchange = function(_, value)
+			  				Spring.SetConfigInt("MusicSwitch " .. v[2], value and 1 or 0)
+							--Spring.Echo(value, v[1], v[2], v[3], Spring.GetConfigInt("MusicSwitch " .. v[2], 1))
+		  				end,
 					}
 				end
 			end
