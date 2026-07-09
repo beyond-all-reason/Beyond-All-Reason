@@ -1,14 +1,14 @@
 <rml>
 <head>
-    <title>CEG Browser Testing</title>
+    <title>CEG Browser</title>
     <link rel="stylesheet" href="gui_ceg_browser.rcss" type="text/rcss" />
 </head>
 
-<body id="ceg-browser-test-widget">
+<body id="ceg-browser-widget">
 <div id="widget-container" data-model="ceg_browser_model" class="panel">
 
     <!-- CEG INFO panel: absolutely positioned to the left of the widget -->
-    <div class="info-panel" data-class-hidden="infoOpen == 0">
+    <div class="info-panel" data-if="infoOpen == 1">
         <div class="floating-panel-header">
             <span class="info-title">CEG Info: {{infoName}}</span>
             <button class="floating-panel-close" data-event-click="toggleInfo()">X</button>
@@ -113,7 +113,7 @@
 
         <!-- Ground Tuning Panel: visible when GROUND is armed -->
         <!-- Note: RmlUi intercepts Ctrl+drag on range sliders; use the text inputs for fine adjustment -->
-        <div class="tuning-panel" data-class-hidden="groundArmed == 0">
+        <div class="tuning-panel" data-if="groundArmed == 1">
             <div class="tuning-header">CEG Tuning</div>
             <div class="tuning-row">
                 <span class="tuning-label">Pattern</span>
@@ -166,7 +166,7 @@
 
         <!-- Projectile Tuning Panel: visible when PROJECTILE is armed -->
         <!-- Note: RmlUi intercepts Ctrl+drag on range sliders; use the text inputs for fine adjustment -->
-        <div class="tuning-panel" data-class-hidden="fireArmed == 0">
+        <div class="tuning-panel" data-if="fireArmed == 1">
             <div class="tuning-header">Projectile Tuning</div>
             <div class="tuning-row">
                 <div class="tuning-slider-col">
@@ -261,26 +261,28 @@
                 </div>
                 <div class="tuning-slider-col">
                     <span class="tuning-label">Airburst</span>
-                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-class-hidden="projAirburst == 1"
+                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-if="projAirburst == 0"
                             data-event-click="toggleAirburst()">Airburst: OFF</button>
-                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-class-hidden="projAirburst == 0"
+                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-if="projAirburst == 1"
                             data-event-click="toggleAirburst()">Airburst: ON</button>
                 </div>
             </div>
         </div>
 
         <!-- Legend: changes based on armed mode -->
-        <div class="legend-row" data-class-hidden="fireArmed == 1">
+        <div class="legend-row" data-if="fireArmed == 0">
             <div class="legend-box"></div>
             <span class="legend-text">Selected CEG (LMB) + CTRL = Multi-Select</span>
         </div>
-        <div class="legend-row legend-row-proj" data-class-hidden="fireArmed == 0">
+        <div class="legend-row legend-row-proj" data-if="fireArmed == 1">
             <div class="legend-box legend-box-trail"></div>
             <span class="legend-text">Trail (LMB)</span>
             <div class="legend-box legend-box-muzzle"></div>
             <span class="legend-text">Muzzle (MMB)</span>
             <div class="legend-box legend-box-impact"></div>
             <span class="legend-text">Impact (RMB)</span>
+        </div>
+        <div class="legend-row legend-row-compact" data-if="fireArmed == 1">
             <span class="legend-text legend-text-dim">+ CTRL = Multi-Select</span>
         </div>
 
@@ -310,7 +312,7 @@
     </div>
 
     <!-- SOUNDS panel: floats to the left of the widget, toggled by SOUNDS button -->
-    <div id="sounds-panel" class="sounds-panel" data-class-hidden="soundsOpen == 0">
+    <div id="sounds-panel" class="sounds-panel" data-if="soundsOpen == 1">
 
         <!-- Header: title left, X right -->
         <div class="floating-panel-header">
@@ -330,7 +332,6 @@
                     <button class="letter-button" data-event-click="soundGotoLetter('E')" data-class-selected="soundLetterFilter == 'e'">E</button>
                     <button class="letter-button" data-event-click="soundGotoLetter('F')" data-class-selected="soundLetterFilter == 'f'">F</button>
                     <button class="letter-button" data-event-click="soundGotoLetter('G')" data-class-selected="soundLetterFilter == 'g'">G</button>
-                    <button class="sound-reset-btn" data-event-click="resetSounds()">RESET</button>
                 </div>
                 <div class="alphabet-row">
                     <button class="letter-button" data-event-click="soundGotoLetter('H')" data-class-selected="soundLetterFilter == 'h'">H</button>
@@ -376,6 +377,9 @@
                 <div class="sound-cat-row">
                     <button class="sound-cat-btn sound-cat-full" data-class-active="catFunctions == 1" data-event-click="toggleSoundCat('functions')">FUNCTIONS</button>
                 </div>
+                <div class="sound-cat-row">
+                    <button class="sound-reset-btn sound-cat-full" data-event-click="resetSounds()">RESET</button>
+                </div>
             </div>
         </div>
 
@@ -385,6 +389,7 @@
             <button class="sound-play-btn" data-event-click="playImpactSound()">Play Impact Sound</button>
         </div>
 
+        <!-- Spacer between play buttons and search row -->
         <div class="sound-alphabet-search-gap"></div>
 
         <!-- Search row -->

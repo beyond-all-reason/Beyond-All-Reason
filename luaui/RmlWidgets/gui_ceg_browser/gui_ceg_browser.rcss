@@ -7,7 +7,7 @@ body, div, p, span, input, button {
     display: block;
 }
 
-#ceg-browser-test-widget {
+#ceg-browser-widget {
     width: 100vw;
     height: 100vh;
     position: absolute;
@@ -17,20 +17,9 @@ body, div, p, span, input, button {
 }
 
 #widget-container {
-    width: 420dp;
+    width: 310dp;
     position: absolute;
     pointer-events: auto;
-}
-
-/* Tooltip also needs pointer-events: none so it doesn't block map clicks */
-.alt-tooltip-float {
-    position: fixed;
-    background-color: rgba(0, 0, 0, 220);
-    border: 1dp #446;
-    border-radius: 3dp;
-    padding: 3dp 10dp;
-    white-space: nowrap;
-    pointer-events: none;
 }
 
 /* ── Panel ── */
@@ -69,7 +58,7 @@ body, div, p, span, input, button {
 }
 
 .title {
-    font-size: 18dp;
+    font-size: 13dp;
     font-weight: bold;
     color: white;
     white-space: nowrap;
@@ -133,9 +122,9 @@ body, div, p, span, input, button {
 
 /* Utility buttons in navbar-right get larger sizing */
 .navbar-right button {
-    min-width: 80dp;
-    padding: 3dp 6dp;
-    font-size: 12dp;
+    min-width: 60dp;
+    padding: 2dp 4dp;
+    font-size: 10dp;
     text-align: center;
 }
 
@@ -176,23 +165,22 @@ body, div, p, span, input, button {
 
 .tuning-header {
     color: #ccc;
-    font-size: 12dp;
+    font-size: 10dp;
     margin-bottom: 2dp;
 }
-
 
 .tuning-row {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 6dp;
-    margin: 2dp 0dp;
+    gap: 4dp;
+    margin: 1dp 0dp;
 }
 
 .tuning-label {
-    width: 100dp;
+    width: 80dp;
     color: #ddd;
-    font-size: 12dp;
+    font-size: 10dp;
     white-space: nowrap;
     margin-bottom: 2dp;
 }
@@ -218,9 +206,9 @@ body, div, p, span, input, button {
 }
 
 .tuning-val-input {
-    height: 16dp;
-    padding: 0dp 3dp;
-    font-size: 10dp;
+    height: 14dp;
+    padding: 0dp 2dp;
+    font-size: 9dp;
     background-color: #1a1a1a;
     border: 1dp #555;
     border-radius: 3dp;
@@ -229,21 +217,22 @@ body, div, p, span, input, button {
     flex-shrink: 0;
 }
 
-.tuning-val-3 { width: 28dp; }
-.tuning-val-4 { width: 36dp; }
-.tuning-val-5 { width: 44dp; }
+.tuning-val-3 { width: 22dp; }
+.tuning-val-4 { width: 28dp; }
+.tuning-val-5 { width: 34dp; }
 
 /* ── Pattern buttons ── */
 .pattern-btn {
-    height: 22dp;
-    padding: 0dp 8dp;
-    line-height: 22dp;
+    display: block;
+    height: 18dp;
+    padding: 0dp 6dp;
+    line-height: 18dp;
     border: 1dp #444;
     border-radius: 4dp;
     background-color: #222;
     color: white;
     cursor: pointer;
-    font-size: 12dp;
+    font-size: 10dp;
 }
 
 .pattern-btn:hover  { background-color: #333; }
@@ -292,6 +281,11 @@ body, div, p, span, input, button {
     padding: 4dp 0dp;
 }
 
+.legend-row-compact {
+    margin-top: -4dp;
+    padding-top: 0dp;
+}
+
 .legend-row.hidden { display: none; }
 
 .legend-box {
@@ -306,17 +300,6 @@ body, div, p, span, input, button {
 .legend-box-impact { background-color: #f43f3f; }
 .legend-box-fire   { background-color: #e6c800; }
 
-.legend-text {
-    font-size: 11dp;
-    color: #ffffff;
-    white-space: nowrap;
-}
-
-.legend-text-dim {
-    color: #aaaaaa;
-    margin-left: 4dp;
-}
-
 
 .search-wrapper {
     flex: 1;
@@ -325,9 +308,9 @@ body, div, p, span, input, button {
 
 .search-input {
     width: 100%;
-    height: 20dp;
-    padding: 1dp 6dp;
-    font-size: 11dp;
+    height: 16dp;
+    padding: 1dp 4dp;
+    font-size: 10dp;
     background-color: #222;
     border: 1dp #444;
     border-radius: 4dp;
@@ -336,9 +319,9 @@ body, div, p, span, input, button {
 
 .search-placeholder {
     position: absolute;
-    left: 7dp;
-    top: 3dp;
-    font-size: 11dp;
+    left: 5dp;
+    top: 2dp;
+    font-size: 10dp;
     color: #555;
     pointer-events: none;
 }
@@ -346,10 +329,10 @@ body, div, p, span, input, button {
 .search-placeholder.hidden { display: none; }
 
 .clear-btn {
-    height: 20dp;
-    padding: 0dp 6dp;
-    line-height: 20dp;
-    font-size: 11dp;
+    height: 16dp;
+    padding: 0dp 4dp;
+    line-height: 16dp;
+    font-size: 10dp;
     background-color: #222;
     border: 1dp #444;
     border-radius: 4dp;
@@ -360,7 +343,7 @@ body, div, p, span, input, button {
 .clear-btn:hover { background-color: #333; }
 
 .status-count {
-    font-size: 11dp;
+    font-size: 10dp;
     color: #9ca3af;
     white-space: nowrap;
 }
@@ -376,10 +359,10 @@ body, div, p, span, input, button {
 }
 
 .pager button {
-    height: 18dp;
-    padding: 0dp 8dp;
-    line-height: 18dp;
-    font-size: 12dp;
+    height: 14dp;
+    padding: 0dp 6dp;
+    line-height: 14dp;
+    font-size: 10dp;
     font-weight: bold;
     background-color: #222;
     border: 1dp #444;
@@ -391,9 +374,27 @@ body, div, p, span, input, button {
 .pager button:hover { background-color: #333; }
 
 .pager-label {
-    font-size: 12dp;
-    line-height: 18dp;
+    font-size: 10dp;
+    line-height: 14dp;
     color: #ccc;
+}
+
+.legend-text {
+    font-size: 10dp;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.legend-text-dim {
+    color: #aaaaaa;
+    margin-left: 4dp;
+}
+
+.alt-hint {
+    font-size: 10dp;
+    color: #ffffff;
+    text-align: center;
+    margin: 2dp 10dp;
 }
 
 /* ── CEG grid ── */
@@ -406,11 +407,11 @@ body, div, p, span, input, button {
 }
 
 .ceg-entry {
-    width: 195dp;
-    height: 16dp;
-    padding: 0dp 6dp;
-    line-height: 16dp;
-    font-size: 12dp;
+    width: 142dp;
+    height: 14dp;
+    padding: 0dp 4dp;
+    line-height: 14dp;
+    font-size: 10dp;
     background-color: #181818;
     border: 1dp #444;
     border-radius: 3dp;
@@ -425,15 +426,18 @@ body, div, p, span, input, button {
 .ceg-entry.impact-sel { background-color: #3a1515; border-color: #f43f3f; color: #f43f3f; }
 .ceg-entry.muzzle-sel { background-color: #3a2010; border-color: #ff8c26; color: #ff8c26; }
 
-.tuning-panel.hidden { display: none; }
-button.hidden { display: none; }
+
 
 /* ── ALT hint and floating tooltip ── */
-.alt-hint {
-    font-size: 11dp;
-    color: #ffffff;
-    text-align: center;
-    margin: 2dp 10dp;
+/* rml-dom-escape: tooltip position follows mouse each frame via SetAttribute style */
+.alt-tooltip-float {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 220);
+    border: 1dp #446;
+    border-radius: 3dp;
+    padding: 3dp 10dp;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .alt-tooltip-hidden { display: none; }
@@ -456,19 +460,20 @@ button.hidden { display: none; }
 
 /* ── CEG INFO panel: absolutely positioned to the left of the widget ── */
 .info-panel {
+    display: block;
     position: absolute;
-    right: 430dp;
+    right: 316dp;
     top: 0dp;
-    width: 420dp;
-    height: 620dp;
+    width: 310dp;
+    height: 558dp;
     background-color: rgba(8, 8, 12, 255);
     border: 1dp #446;
     border-radius: 6dp;
-    padding: 8dp;
+    padding: 6dp;
     overflow: hidden;
 }
 
-.info-panel.hidden { display: none; }
+
 
 /* Shared header for floating panels (CEG INFO and Sound Browser) */
 .floating-panel-header {
@@ -495,22 +500,23 @@ button.hidden { display: none; }
    Sounds panel
 ---------------------------------------------------------------- */
 .sounds-panel {
+    display: block;
     position: absolute;
-    right: 430dp;
+    right: 316dp;
     top: 0dp;
-    width: 420dp;
-    height: 620dp;
+    width: 310dp;
+    height: 558dp;
     background-color: rgba(8, 8, 12, 255);
     border: 1dp #446;
     border-radius: 6dp;
-    padding: 8dp;
+    padding: 6dp;
     overflow: hidden;
 }
 
-.sounds-panel.hidden { display: none; }
+
 
 .sounds-title {
-    font-size: 12dp;
+    font-size: 10dp;
     font-weight: bold;
     color: #7ec8e3;
 }
@@ -520,7 +526,7 @@ button.hidden { display: none; }
     flex-direction: row;
     align-items: center;
     gap: 4dp;
-    margin: 6dp 0dp 6dp 0dp;
+    margin: 4dp 0dp 4dp 0dp;
 }
 
 .sound-list {
@@ -530,15 +536,15 @@ button.hidden { display: none; }
     align-content: flex-start;
     position: absolute;
     top: 200dp;
-    bottom: 30dp;
-    left: 8dp;
-    right: 8dp;
+    bottom: 24dp;
+    left: 6dp;
+    right: 6dp;
     overflow: hidden;
 }
 
 .sound-pager {
     position: absolute;
-    bottom: 8dp;
+    bottom: 6dp;
     left: 0dp;
     right: 0dp;
     display: flex;
@@ -549,10 +555,10 @@ button.hidden { display: none; }
 }
 
 .sound-pager button {
-    height: 18dp;
-    padding: 0dp 8dp;
-    line-height: 18dp;
-    font-size: 12dp;
+    height: 14dp;
+    padding: 0dp 6dp;
+    line-height: 14dp;
+    font-size: 10dp;
     font-weight: bold;
     background-color: #222;
     border: 1dp #444;
@@ -566,12 +572,12 @@ button.hidden { display: none; }
 .sound-entry {
     display: inline-block;
     width: 50%;
-    font-size: 11dp;
+    font-size: 10dp;
     color: #c8d6e0;
     background-color: #141414;
     border: 1dp #222;
     border-radius: 0dp;
-    padding: 3dp 6dp;
+    padding: 2dp 4dp;
     margin-bottom: 1dp;
     text-align: left;
     white-space: nowrap;
@@ -584,14 +590,13 @@ button.hidden { display: none; }
 .sound-entry.impact-sel { background-color: #3a1515; border-color: #f43f3f; color: #f43f3f; }
 
 .sound-reset-btn {
-    margin-left: auto;
-    min-width: 80dp;
-    padding: 3dp 6dp;
+    flex: 1;
+    padding: 2dp 4dp;
     border: 1dp #444;
     border-radius: 4dp;
     background-color: #222;
     color: white;
-    font-size: 12dp;
+    font-size: 9dp;
     text-align: center;
     white-space: nowrap;
 }
@@ -625,7 +630,7 @@ button.hidden { display: none; }
     border-radius: 4dp;
     background-color: #222;
     color: white;
-    font-size: 10dp;
+    font-size: 9dp;
     text-align: center;
     white-space: nowrap;
 }
@@ -644,17 +649,17 @@ button.hidden { display: none; }
     display: flex;
     flex-direction: row;
     gap: 4dp;
-    margin: 4dp 0dp 0dp 0dp;
+    margin: 3dp 0dp 0dp 0dp;
 }
 
 .sound-play-btn {
     flex: 1;
-    padding: 3dp 6dp;
+    padding: 2dp 4dp;
     border: 1dp #446;
     border-radius: 4dp;
     background-color: #1a2a3a;
     color: #7ec8e3;
-    font-size: 11dp;
+    font-size: 9dp;
     text-align: center;
     white-space: nowrap;
 }
@@ -668,7 +673,7 @@ button.hidden { display: none; }
 }
 
 .info-title {
-    font-size: 12dp;
+    font-size: 10dp;
     font-weight: bold;
     color: #7ec8e3;
     white-space: nowrap;
@@ -676,24 +681,24 @@ button.hidden { display: none; }
 }
 
 .info-source {
-    font-size: 10dp;
+    font-size: 9dp;
     color: #6b7280;
-    margin-bottom: 4dp;
+    margin-bottom: 3dp;
     white-space: nowrap;
     overflow: hidden;
 }
 
 .info-scroll {
-    height: 550dp;
+    height: 498dp;
     overflow: hidden auto;
 }
 
 .info-line {
     display: block;
-    font-size: 10dp;
+    font-size: 9dp;
     color: #c8d6e0;
     white-space: pre;
-    line-height: 13dp;
+    line-height: 11dp;
 }
 
 scrollbarvertical { width: 0dp; }

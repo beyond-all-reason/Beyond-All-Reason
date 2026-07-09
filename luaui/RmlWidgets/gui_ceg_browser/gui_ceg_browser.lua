@@ -22,8 +22,10 @@ end
 function widget:GetInfo()
     return {
         name    = "CEG Browser",
-        desc    = "RmlUi CEG Browser -- browse, filter and preview Core Effect Generators in-game",
+        desc    = "RmlUi CEG Browser -- browse, filter and preview Core Effect Generators and sounds in-game",
         author  = "Steel",
+        date    = "2026",
+        license = "GNU GPL, v2 or later",
         layer   = 0,
         enabled = true,
     }
@@ -31,14 +33,12 @@ end
 
 local spEcho            = Spring.Echo
 local spSendCommands    = Spring.SendCommands
-local spTraceScreenRay      = Spring.TraceScreenRay
-local spSendLuaRulesMsg     = Spring.SendLuaRulesMsg
-local spGetViewGeom         = Spring.GetViewGeometry
-local spGetConfigInt        = Spring.GetConfigInt
-local spSetConfigInt        = Spring.SetConfigInt
-local spIsCheatingEnabled   = Spring.IsCheatingEnabled
-
-local pi, cos, sin, sqrt, random = math.pi, math.cos, math.sin, math.sqrt, math.random
+local spTraceScreenRay  = Spring.TraceScreenRay
+local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
+local spGetViewGeom     = Spring.GetViewGeometry
+local spGetConfigInt    = Spring.GetConfigInt
+local spSetConfigInt    = Spring.SetConfigInt
+local spIsCheatingEnabled = Spring.IsCheatingEnabled
 
 local MODEL_NAME = "ceg_browser_model"
 local RML_PATH   = "LuaUI/RmlWidgets/gui_ceg_browser/gui_ceg_browser.rml"
@@ -51,7 +51,7 @@ local selectedCEG        = ""   -- last trail selected, for spawn and info panel
 local document      = nil
 local dm_handle     = nil
 
-local pageSize      = 50
+local pageSize      = 48
 local pageIndex     = 0
 local currentFilter = ""
 local letterFilter  = ""
@@ -64,6 +64,8 @@ local pattern      = "line"
 
 local infoOpen      = false
 local soundsOpen    = false
+local preCollapseInfoOpen   = false
+local preCollapseSoundsOpen = false
 local groundArmed   = true
 local fireArmed     = false
 
@@ -970,6 +972,19 @@ local init_model = {
 
     toggleCollapse = function(ev)
         dm_handle.isCollapsed = not dm_handle.isCollapsed
+        if dm_handle.isCollapsed then
+            preCollapseInfoOpen   = infoOpen
+            preCollapseSoundsOpen = soundsOpen
+            infoOpen   = false
+            soundsOpen = false
+            dm_handle.infoOpen   = 0
+            dm_handle.soundsOpen = 0
+        else
+            infoOpen   = preCollapseInfoOpen
+            soundsOpen = preCollapseSoundsOpen
+            dm_handle.infoOpen   = infoOpen   and 1 or 0
+            dm_handle.soundsOpen = soundsOpen and 1 or 0
+        end
     end,
 
     sendCheat = function(ev)
@@ -1128,8 +1143,6 @@ local init_model = {
 }
 
 ----------------------------------------------------------------
--- Drag / tooltip state
-----------------------------------------------------------------
 local tooltipEl     = nil
 local lastHovered   = ""
 
@@ -1159,7 +1172,7 @@ function widget:Update()
     -- Drive window drag (titlebar mousedown -> Update moves container)
     if dragState.active and dragState.rootEl then
         local mx, my = Spring.GetMouseState()
-        local vsx, vsy = Spring.GetViewGeometry()
+        local vsx, vsy = spGetViewGeom()
         local rmlY = vsy - my
         local newX = math.floor(mx - dragState.offsetX)
         local newY = math.floor(rmlY - dragState.offsetY)
@@ -1175,7 +1188,9 @@ function widget:Update()
         end
     end
 
-    -- Lazy-fetch tooltip element once
+    -- ALT hover tooltip (managed via DOM in widget:Update, not data model)
+    -- rml-dom-escape: floating tooltip position must follow mouse each frame;
+    --                 rml_tooltip_layer API uses Spring world coords, not screen coords
     if not tooltipEl then
         tooltipEl = document:GetElementById("ceg-alt-tooltip")
     end
@@ -1203,13 +1218,13 @@ function widget:Update()
         else
             rml = '<span class="tooltip-prefix">' .. hoveredCEG .. '</span>'
         end
+        -- rml-dom-escape: inner_rml needed to inject styled spans into tooltip
         tooltipEl.inner_rml = rml
     end
 
-    -- Position near mouse cursor using vw/vh (confirmed working pattern)
-    -- rml-dom-escape: style writes deferred to Update
+    -- rml-dom-escape: style writes deferred to Update for per-frame mouse following
     local mx, my = Spring.GetMouseState()
-    local vsx, vsy = Spring.GetViewGeometry()
+    local vsx, vsy = spGetViewGeom()
     local leftPx = mx + 16
     local topPx  = (vsy - my) + 8
     if leftPx + 260 > vsx then leftPx = mx - 270 end
@@ -1235,10 +1250,10 @@ function widget:Initialize()
     local ctx = RmlUi.GetContext("shared")
     if not ctx then return end
 
-    dm_handle = ctx:OpenDataModel(MODEL_NAME, init_model)
+    dm_handle = ctx:OpenDataModel(MODEL_NAME, init_model, widget)
     if not dm_handle then return end
 
-    document = ctx:LoadDocument(RML_PATH, widget)
+    document = ctx:LoadDocument(RML_PATH)
     if not document then return end
 
     document:Show()
@@ -1254,7 +1269,7 @@ function widget:Initialize()
             local p = ev and ev.parameters
             if p and p.button and p.button ~= 0 then return end
             local mx, my = Spring.GetMouseState()
-            local vsy = select(2, Spring.GetViewGeometry())
+            local vsy = select(2, spGetViewGeom())
             dragState.active  = true
             dragState.offsetX = mx - containerEl.offset_left
             dragState.offsetY = (vsy - my) - containerEl.offset_top
