@@ -888,7 +888,7 @@ function gadget:DrawWorld()
 		return
 	end
 
-	if tracy then tracy.ZoneBeginN("Shield:EndDraw") end
+	tracy.ZoneBeginN("Shield:EndDraw")
 
 	gl.Blending("alpha")
 	gl.DepthTest(GL.LEQUAL)
@@ -1023,7 +1023,7 @@ function gadget:DrawWorld()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 
-	if tracy then tracy.ZoneEnd() end
+	tracy.ZoneEnd()
 end
 
 --------------------------------------------------------------------------------
