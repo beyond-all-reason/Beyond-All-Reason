@@ -17,20 +17,31 @@ function gadget:GetInfo()
 	}
 end
 
+---Anti-collateral weighting should not quash more meaningful power, damage, and positioning.
+---We are trying to add a crutch to high-area weapons, not to give them player-intelligence.
+local PRIORITY_ANTI_COLLATERAL = 6.5
+
+---Discourage targeting spam mixed with allied units using high-area weapons more strongly.
+local PRIORITY_ANTICOLLAT_SPAM = PRIORITY_ANTI_COLLATERAL * 3.0
+
+---The purpose of this gadget is to avoid friendly-fire but not quite to select clean hits.
+---I used a weak modifier (close to 1.0) to avoid over-targeting and easy baiting, instead.
 local PRIORITY_CLEAN_SHOT = 0.875
-local PRIORITY_ANTI_COLLATERAL = 5.0
-local PRIORITY_ANTICOLLAT_SPAM = 20.0
+
+---Give friendly units the advantage in power comparisons to spread out target avoidance.
+local friendPowerRatio = 1.15
+
+local spamPowerMax = 50.0
 local allowBadSpamTarget = false
 
-local friendPowerRatio = 1.5
-local spamPowerMax = 50
-local unknownPower = spamPowerMax * 2
+local unknownPower = spamPowerMax * 2.0 -- TODO: We incorrectly add power for crashing/dead, decoration, critter units.
+local unknownRadius = 20.0
 
 local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
 local effectTarget = 0.20
 
--- Each update passes through half the target cache and clears it.
+-- Each update clears half of the unit targeting cache.
 local updateInterval = math.round(Game.gameSpeed * 0.5)
 
 -- Lua env globals -------------------------------------------------------------
@@ -38,9 +49,7 @@ local updateInterval = math.round(Game.gameSpeed * 0.5)
 local CallAsTeam = CallAsTeam
 
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 
 -- Initialization --------------------------------------------------------------
@@ -127,9 +136,10 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitDefRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
 end
 
+local unitTeam = {}
 local unitAllyTeam = {}
-local unitPower = {}
-local unitRadius = {}
+local unitPower = setmetatable({}, { __index = function (self, unitID) return unknownPower end})
+local unitRadius = setmetatable({}, { __index = function (self, unitID) return unknownRadius end})
 
 local readAs = { read = -1 }
 
@@ -294,7 +304,7 @@ local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 		elseif unitAllyTeam[foundID] == allyTeam then
 			friendPower = friendPower + unitPower[foundID]
 		else
-			enemyPower = enemyPower + unitPower[foundID] -- TODO: test for +nil, may be possible in other cases here also
+			enemyPower = enemyPower + unitPower[foundID]
 		end
 	end
 
@@ -308,7 +318,9 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		if allowBadSpamTarget then
 			return true
 		end
-		priority = 1.0 -- This value does absolutely nothing. Set it to avoid errors.
+		-- When priority is nil, the value is useless, but we still try to block attacks
+		-- against spam units that would cause considerable collateral damage to allies.
+		priority = 0.0
 	end
 
 	local searchRadius = weaponSearchRadius[weaponDefID]
@@ -331,7 +343,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	end
 
 	-- This search was not cached yet to within our search radius +/- 10.
-	readAs.read = spGetUnitTeam(unitID)
+	readAs.read = unitTeam[unitID]
 	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
 
 	local allowed = true
@@ -372,19 +384,23 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-local function callinCacheUnitStats(self, unitID, unitDefID)
+local function callinCacheUnitStats(self, unitID, unitDefID, unitTeamID)
+	unitTeam[unitID] = unitTeamID
 	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 	unitPower[unitID] = unitDefPower[unitDefID]
 	unitRadius[unitID] = unitDefRadius[unitDefID]
 end
-gadget.UnitCreated = callinCacheUnitStats
-gadget.UnitTaken = callinCacheUnitStats
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+local function callinRemoveUnitStats(self, unitID)
+	unitTeam[unitID] = nil
 	unitAllyTeam[unitID] = nil
 	unitPower[unitID] = nil
 	unitRadius[unitID] = nil
 end
+
+gadget.UnitCreated = callinCacheUnitStats
+gadget.UnitTaken = callinCacheUnitStats
+gadget.UnitDestroyed = callinRemoveUnitStats
 
 function gadget:Initialize()
 	for unitDefID, unitDef in ipairs(UnitDefs) do
@@ -397,6 +413,6 @@ function gadget:Initialize()
 	end
 
 	for _, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID)
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
 end
