@@ -432,11 +432,18 @@ local function initializeOpenGL4()
 	return createShader()
 end
 
+local HandleInitializeGridSquare
+local HandleInitializeConfigs
+local HandleUpdateGridSquare
+
 function gadget:Initialize()
 	if initializeOpenGL4() == false then
 		gadgetHandler:RemoveGadget()
 		return
 	end
+	gadgetHandler:AddSyncAction("InitializeGridSquare", HandleInitializeGridSquare)
+	gadgetHandler:AddSyncAction("InitializeConfigs", HandleInitializeConfigs)
+	gadgetHandler:AddSyncAction("UpdateGridSquare", HandleUpdateGridSquare)
 
 	amSpectating = Spring.GetSpectatingState()
 	myAllyID = Spring.GetMyAllyTeamID()
@@ -520,59 +527,61 @@ local function updateGridSquareVisuals()
 	uploadAllElements(instanceVBO)
 end
 
-function gadget:RecvFromSynced(messageName, ...)
-	if messageName == "InitializeGridSquare" then
-		local gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray = ...
-		local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
-		captureGrid[gridID] = {
-			visibilityArray = visibilityArray,
-			allyOwnerID = allyOwnerID,
-			oldProgress = progress,
-			newProgress = progress,
-			captureChange = 0,
-			gridMidpointX = gridMidpointX,
-			gridMidpointZ = gridMidpointZ,
-			isVisible = isVisible,
-			currentColor = blankColor,
-			showSquareTimestamp = 0
-		}
-	elseif messageName == "InitializeConfigs" then
-		SQUARE_SIZE, UPDATE_FRAME_RATE_INTERVAL = ...
-	elseif messageName == "UpdateGridSquare" then
-		local gridID, allyOwnerID, progress, visibilityArray = ...
-		local gridData = captureGrid[gridID]
-		if gridData then
-			local ignoredProgress = 0.01
-			local oldAllyOwnerID = gridData.allyOwnerID
-			gridData.visibilityArray = visibilityArray
-			gridData.allyOwnerID = allyOwnerID
+HandleInitializeGridSquare = function(_, gridID, allyOwnerID, progress, gridMidpointX, gridMidpointZ, visibilityArray)
+	local isVisible = getSquareVisibility(allyOwnerID, allyOwnerID, visibilityArray)
+	captureGrid[gridID] = {
+		visibilityArray = visibilityArray,
+		allyOwnerID = allyOwnerID,
+		oldProgress = progress,
+		newProgress = progress,
+		captureChange = 0,
+		gridMidpointX = gridMidpointX,
+		gridMidpointZ = gridMidpointZ,
+		isVisible = isVisible,
+		currentColor = blankColor,
+		showSquareTimestamp = 0
+	}
+end
 
-			gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
-			if progress < ignoredProgress and oldAllyOwnerID == myAllyID then
-				gridData.newProgress = 0
-				gridData.allyOwnerID = gaiaAllyTeamID --hidden
-			elseif not gridData.isVisible then
-				gridData.newProgress = gridData.oldProgress
-				gridData.captureChange = 0
-			else
-				gridData.oldProgress = gridData.newProgress
-				gridData.captureChange = progress - gridData.oldProgress
+HandleInitializeConfigs = function(_, squareSize, updateFrameRateInterval)
+	SQUARE_SIZE = squareSize
+	UPDATE_FRAME_RATE_INTERVAL = updateFrameRateInterval
+end
 
-				if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then
-					gridData.oldProgress = progress -- Snap progress if change is too large
-					gridData.captureChange = 0 -- No smooth animation needed if snapping
-				end
-				gridData.newProgress = progress
+HandleUpdateGridSquare = function(_, gridID, allyOwnerID, progress, visibilityArray)
+	local gridData = captureGrid[gridID]
+	if not gridData then
+		return
+	end
+	local ignoredProgress = 0.01
+	local oldAllyOwnerID = gridData.allyOwnerID
+	gridData.visibilityArray = visibilityArray
+	gridData.allyOwnerID = allyOwnerID
 
-				if notifyCapture(gridID) then
-					gridData.playedCapturedSound = true
-					doCaptureEffects(gridID)
-				end
-			end
-			if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
-				gridData.playedCapturedSound = false
-			end
+	gridData.isVisible = getSquareVisibility(allyOwnerID, oldAllyOwnerID, visibilityArray)
+	if progress < ignoredProgress and oldAllyOwnerID == myAllyID then
+		gridData.newProgress = 0
+		gridData.allyOwnerID = gaiaAllyTeamID --hidden
+	elseif not gridData.isVisible then
+		gridData.newProgress = gridData.oldProgress
+		gridData.captureChange = 0
+	else
+		gridData.oldProgress = gridData.newProgress
+		gridData.captureChange = progress - gridData.oldProgress
+
+		if math.abs(gridData.captureChange) > MAX_CAPTURE_CHANGE then
+			gridData.oldProgress = progress -- Snap progress if change is too large
+			gridData.captureChange = 0 -- No smooth animation needed if snapping
 		end
+		gridData.newProgress = progress
+
+		if notifyCapture(gridID) then
+			gridData.playedCapturedSound = true
+			doCaptureEffects(gridID)
+		end
+	end
+	if gridData.newProgress < CAPTURE_SOUND_RESET_THRESHOLD then
+		gridData.playedCapturedSound = false
 	end
 end
 
@@ -692,6 +701,9 @@ function gadget:DrawInMiniMap()
 end
 
 function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("InitializeGridSquare")
+	gadgetHandler:RemoveSyncAction("InitializeConfigs")
+	gadgetHandler:RemoveSyncAction("UpdateGridSquare")
 	if squareVBO then
 		squareVBO:Delete()
 	end

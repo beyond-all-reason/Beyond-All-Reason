@@ -1666,12 +1666,23 @@ end
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
+local syncFireSpawn
+local syncFireWreck
+local syncTreeFireStart
+local syncTreeFireStop
+local syncTreeFireFade
+
 function gadget:Initialize()
 	if not gl.CreateShader then
 		goodbye("OpenGL shaders not supported")
 		return
 	end
 	if not initGL4() then return end
+	gadgetHandler:AddSyncAction("fire_spawn", syncFireSpawn)
+	gadgetHandler:AddSyncAction("fire_wreck", syncFireWreck)
+	gadgetHandler:AddSyncAction("treefire_start", syncTreeFireStart)
+	gadgetHandler:AddSyncAction("treefire_stop", syncTreeFireStop)
+	gadgetHandler:AddSyncAction("treefire_fade", syncTreeFireFade)
 
 	GG.Fire = {
 		-- SpawnFire(x, y, z, opts) -> handle. See spawnFire above for opts.
@@ -1700,6 +1711,11 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("fire_spawn")
+	gadgetHandler:RemoveSyncAction("fire_wreck")
+	gadgetHandler:RemoveSyncAction("treefire_start")
+	gadgetHandler:RemoveSyncAction("treefire_stop")
+	gadgetHandler:RemoveSyncAction("treefire_fade")
 	cleanupGL4()
 	GG.Fire = nil
 end
@@ -1876,18 +1892,24 @@ end
 --   SendToUnsynced("treefire_start", featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 --   SendToUnsynced("treefire_stop", featureID)
 --   SendToUnsynced("treefire_fade", featureID)
-function gadget:RecvFromSynced(name, a, b, c, d, e, f, g, h, i, j, k)
-	if name == "fire_spawn" then
-		spawnFire(a, b, c, { scale = d, duration = e })
-	elseif name == "fire_wreck" then
-		spawnWreckageFire(a, b, c, d)
-	elseif name == "treefire_start" then
-		spawnTreeFire(a, b, c, d, e, f, g, h, i, j, k)
-	elseif name == "treefire_stop" then
-		stopTreeFire(a)
-	elseif name == "treefire_fade" then
-		fadeTreeFire(a)
-	end
+syncFireSpawn = function(_, x, y, z, scale, duration)
+	spawnFire(x, y, z, { scale = scale, duration = duration })
+end
+
+syncFireWreck = function(_, x, y, z, scale)
+	spawnWreckageFire(x, y, z, scale)
+end
+
+syncTreeFireStart = function(_, featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
+	spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
+end
+
+syncTreeFireStop = function(_, featureID)
+	stopTreeFire(featureID)
+end
+
+syncTreeFireFade = function(_, featureID)
+	fadeTreeFire(featureID)
 end
 
 local fpsUpdateInterval = 1
