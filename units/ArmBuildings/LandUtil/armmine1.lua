@@ -35,6 +35,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
+			cannot_capture_territory = true,
 			detonaterange = "64",
 			instantselfd = true,
 			mine = true,
