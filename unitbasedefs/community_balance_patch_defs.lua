@@ -77,7 +77,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				uDef.turnrate = 420
 				uDef.sightdistance = 720
 				uDef.weapondefs.vtol_sabot = {
-					areaofeffect = 96,
+					areaofeffect = 64,
 					avoidfeature = false,
 					burst = 2,
 					burstrate = 0.15,
@@ -87,7 +87,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					craterboost = 0,
 					cratermult = 0,
 					cylindertargeting = 1,
-					edgeeffectiveness = 0.25,
+					edgeeffectiveness = 0.40,
 					explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 					firestarter = 70,
 					gravityaffected = "true",
