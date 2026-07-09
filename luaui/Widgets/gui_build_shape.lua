@@ -15,11 +15,11 @@ function widget:GetBuildShape(unitDefID, facing, startX, startY, startZ, endX, e
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if alt and ctrl then
-		return "surround"
+		return "hollowbox"
 	end
 
 	if ctrl then 
-		return "hollowbox"
+		return "surround"
 	end
 
 	if alt then
