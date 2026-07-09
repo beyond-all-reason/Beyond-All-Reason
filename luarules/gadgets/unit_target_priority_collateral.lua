@@ -7,7 +7,7 @@ end
 function gadget:GetInfo()
 	return {
 		name    = "Collateral Target Priority",
-		desc    = "Modifies the target priority based on nearby units.",
+		desc    = "Target priority for large-area weapons based on nearby units.",
 		author  = "efrec",
 		version = "0.0",
 		date    = "2026",
@@ -64,7 +64,7 @@ local function generateClearHalfTableFunc(hashTable)
 
 		keyListIndex = (keyListIndex % 2) + 1
 
-		-- At the next "halving", then, we remove a "half" from a previous pass.
+		-- At the next "halving", then, we remove a "half" from a previous pass,
 		-- to guarantee that the table is empty of current keys after two passes.
 		local nextList = keyLists[keyListIndex]
 		local nextCount = #nextList
@@ -113,21 +113,23 @@ do
 	end
 end
 
-local unitPower = { [-1] = unknownPower }
-local unitRadius = { [-1] = 10.0 }
+local unitDefPower = { [-1] = unknownPower }
+local unitDefRadius = { [-1] = 10.0 }
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	unitPower[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70
+	unitDefPower[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70
 	unitDefRadiusAverage = unitDefRadiusAverage + unitDef.radius
 end
 unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
-	unitRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
+	unitDefRadius[unitDefID] = math.max(unitDef.radius - unitDefRadiusAverage * 0.5, 0)
 end
 
 local unitAllyTeam = {}
+local unitPower = {}
+local unitRadius = {}
 
 local readAs = { read = -1 }
 
@@ -284,15 +286,15 @@ local function getUnitCollateral(unitID, allyTeam, radius, targetID)
 	local friendPower, enemyPower = 0.0, 0.0
 
 	local _, _, _, tx, ty, tz = spGetUnitPosition(targetID, true)
-	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[spGetUnitDefID(targetID) or -1])
+	local units = spGetUnitsInSphere(tx, ty, tz, radius + unitRadius[targetID])
 
 	for _, foundID in next, units do
 		if foundID == unitID then
 			--
 		elseif unitAllyTeam[foundID] == allyTeam then
-			friendPower = friendPower + unitPower[spGetUnitDefID(foundID)]
+			friendPower = friendPower + unitPower[foundID]
 		else
-			enemyPower = enemyPower + unitPower[spGetUnitDefID(foundID) or -1]
+			enemyPower = enemyPower + unitPower[foundID] -- TODO: test for +nil, may be possible in other cases here also
 		end
 	end
 
@@ -314,40 +316,27 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		return true, priority
 	end
 
-	-- :Destroyed can occur while unit is alive. But does that unit reach this point in targeting logic?
 	local allyTeam = unitAllyTeam[unitID]
-	if not allyTeam then
-		return true, priority
-	end
 
-	-- Check preferred targets first. If it's getting bombarded anyway...
-	local preferRadius = preferUnit[allyTeam][targetID]
-	if preferRadius and preferRadius + 10 >= searchRadius then
-		return true, priority
-	end
-
-	-- Avoids are less important and use the reverse logic in comparison.
+	-- Avoid collaterals of a similar scale to our own explosion radius.
 	local avoidRadius = avoidUnit[allyTeam][targetID]
-	if avoidRadius and avoidRadius - 10 <= searchRadius then
+	if avoidRadius and avoidRadius <= searchRadius + 10 then
 		return true, priority * PRIORITY_ANTI_COLLATERAL
 	end
 
-	-- We've done the above work to avoid this more expensive spatial search against the target.
+	-- Prefer targets that are clean hits or are being bombarded anyway.
+	local preferRadius = preferUnit[allyTeam][targetID]
+	if preferRadius and preferRadius >= searchRadius - 10 then
+		return true, priority
+	end
+
+	-- This search was not cached yet to within our search radius +/- 10.
 	readAs.read = spGetUnitTeam(unitID)
 	local friendPower, enemyPower = CallAsTeam(readAs, getUnitCollateral, unitID, allyTeam, searchRadius, targetID)
 
 	local allowed = true
 
-	if enemyPower >= friendPower * friendPowerRatio then
-		-- The preferred target radius grows since it represents the net region
-		-- of incoming attacks that will be (probably) directed at that unit.
-		if not preferRadius or preferRadius < searchRadius then
-			preferUnit[allyTeam][targetID] = searchRadius
-		end
-		if friendPower <= spamPowerMax then
-			priority = priority * PRIORITY_CLEAN_SHOT
-		end
-	else
+	if enemyPower <= friendPower * friendPowerRatio then
 		-- The avoid radius shrinks because a smaller attack region can eliminate
 		-- specific targets trivially without causing any friendly-fire damages.
 		if not avoidRadius or avoidRadius > searchRadius then
@@ -358,6 +347,15 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 			priority = priority * PRIORITY_ANTICOLLAT_SPAM
 		else
 			priority = priority * PRIORITY_ANTI_COLLATERAL
+		end
+	else
+		-- The preferred target radius grows since it represents the net region
+		-- of incoming attacks that will be (probably) directed at that unit.
+		if not preferRadius or preferRadius < searchRadius then
+			preferUnit[allyTeam][targetID] = searchRadius
+		end
+		if friendPower <= spamPowerMax then
+			priority = priority * PRIORITY_CLEAN_SHOT
 		end
 	end
 
@@ -374,14 +372,18 @@ function gadget:GameFramePost(frame)
 	end
 end
 
-local function callinGetUnitAllyTeam(self, unitID)
+local function callinCacheUnitStats(self, unitID, unitDefID)
 	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
+	unitPower[unitID] = unitDefPower[unitDefID]
+	unitRadius[unitID] = unitDefRadius[unitDefID]
 end
-gadget.UnitCreated = callinGetUnitAllyTeam
-gadget.UnitTaken = callinGetUnitAllyTeam
+gadget.UnitCreated = callinCacheUnitStats
+gadget.UnitTaken = callinCacheUnitStats
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	unitAllyTeam[unitID] = nil
+	unitPower[unitID] = nil
+	unitRadius[unitID] = nil
 end
 
 function gadget:Initialize()
