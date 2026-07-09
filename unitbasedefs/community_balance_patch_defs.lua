@@ -51,6 +51,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					weaponDef.burst = nil
 					weaponDef.burstrate = nil
 					weaponDef.areaofeffect = 64
+					weaponDef.cegtag = "impulse-trail"
 					weaponDef.edgeeffectiveness = 0.25
 					weaponDef.explosiongenerator = "custom:genericshellexplosion-small-bomb"
 					weaponDef.impulsefactor = 2.5
@@ -58,12 +59,18 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					weaponDef.reloadtime = 3.0
 					weaponDef.soundstart = "mavgun4"
 					weaponDef.tolerance = 2000
+					weaponDef.turret = true
 					weaponDef.weaponvelocity = 900
+					weaponDef.customparams = {
+						noattackrangearc = 1,
+					}
 					weaponDef.damage = {
 						default = 141,
 						vtol = 3,
 					}
 				end
+				uDef.weapons[1].maindir = "0 0 1"
+				uDef.weapons[1].maxangledif = 45
 			end
 		end
 
@@ -91,7 +98,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 					firestarter = 70,
 					gravityaffected = "true",
-					impulsefactor = 2.33,
+					impulsefactor = 1.5,
 					name = "Medium-range precision gauss rifle",
 					noselfdamage = true,
 					range = 1100,

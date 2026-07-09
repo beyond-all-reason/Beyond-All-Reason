@@ -1636,7 +1636,7 @@ local options = {
     {
         key     = "community_balance_armkam",
         name    = "(CBP) Banshee",
-        desc    = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 425 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 141 single shot (from 9 x 3 burst)\nArea of effect: 64 (from 40)\nEdge effectiveness: 0.25 (from 0.5)\nProjectile velocity: 900 (from 1000)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.5 (from 0.123)\nWeapon visual: genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)",
+        desc    = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 425 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 141 single shot (from 9 x 3 burst)\nArea of effect: 64 (from 40)\nEdge effectiveness: 0.25 (from 0.5)\nProjectile velocity: 900 (from 1000)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.5 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)\nTurret: true (from false)\nFiring arc: 45° forward, hidden attack range arc (from unrestricted/fixed)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
@@ -1645,7 +1645,7 @@ local options = {
     {
         key     = "community_balance_armblade",
         name    = "(CBP) Hornet",
-        desc    = "(New)\nMax acceleration: 0.28 (from 0.6)\nMax deceleration: 0.55 (from 0.35)\nHealth: 3650 (from 3000)\nSpeed: 165 (from 204)\nTurn angle limit: 120 (from 360)\nTurn rate: 420 (from 720)\nSight distance: 720 (from 624)\nWeapon range: 1100 (from 420)\nWeapon reload: 4.0 (from 2.26667)\nWeapon damage: 610 x 2 burst (from 190 x 2 burst)\nBurst rate: 0.15 (from 0.23333)\nArea of effect: 64 (from 32)\nEdge effectiveness: 0.40 (from 0.15)\nProjectile type: Cannon (from MissileLauncher)\nProjectile velocity: 1090 (from 1000)\nImpulse factor: 2.33 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-medium-bomb (from missiletrailsmall-simple / genericshellexplosion-medium)\nWeapon sound: mavgun5 / xplomed2 (from SabotFire / SabotHit)\nTurret: true (from false)\nFiring arc: 45° forward (from unrestricted)",
+        desc    = "(New)\nMax acceleration: 0.28 (from 0.6)\nMax deceleration: 0.55 (from 0.35)\nHealth: 3650 (from 3000)\nSpeed: 165 (from 204)\nTurn angle limit: 120 (from 360)\nTurn rate: 420 (from 720)\nSight distance: 720 (from 624)\nWeapon range: 1100 (from 420)\nWeapon reload: 4.0 (from 2.26667)\nWeapon damage: 610 x 2 burst (from 190 x 2 burst)\nBurst rate: 0.15 (from 0.23333)\nArea of effect: 64 (from 32)\nEdge effectiveness: 0.40 (from 0.15)\nProjectile type: Cannon (from MissileLauncher)\nProjectile velocity: 1090 (from 1000)\nImpulse factor: 1.5 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-medium-bomb (from missiletrailsmall-simple / genericshellexplosion-medium)\nWeapon sound: mavgun5 / xplomed2 (from SabotFire / SabotHit)\nTurret: true (from false)\nFiring arc: 45° forward (from unrestricted)",
         type    = "bool",
         def     = false,
         section = "options_experimental",
