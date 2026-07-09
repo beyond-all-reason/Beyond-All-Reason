@@ -402,7 +402,12 @@ function widget:DrawScreen()
 end
 
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
-	-- ESC closes the panel before the editor can swallow it (search focus / capture).
+	-- While capturing a key, the editor gets everything - its prompt says Esc cancels.
+	if show and lasttab == "Keybindings" and keybindEditor.isCapturing() then
+		return keybindEditor.keyPress(key, scanCode)
+	end
+
+	-- Otherwise Escape closes the panel, like every other panel.
 	if key == 27 then
 		show = false
 		keybindEditor.blur()
@@ -513,10 +518,13 @@ function widget:Initialize()
 		if not (widgetHandler.DisableWidget and widgetHandler.EnableWidget) then
 			return
 		end
-		if label == "Grid" then
+		if label == "Custom" then
+			return
+		end
+		if label:lower():find("grid", 1, true) then
 			widgetHandler:DisableWidget('Build menu')
 			widgetHandler:EnableWidget('Grid menu')
-		elseif label == "Legacy" then
+		else
 			widgetHandler:DisableWidget('Grid menu')
 			widgetHandler:EnableWidget('Build menu')
 		end

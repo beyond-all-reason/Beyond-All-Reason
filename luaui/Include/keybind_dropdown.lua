@@ -1,5 +1,6 @@
--- Select control for the keybind editor's reset-to-preset picker.
--- Uses FlowUI's Selector visuals to match the Settings look.
+-- Select control for the keybind editor's preset picker.
+-- Uses FlowUI's Selector visuals to match the Settings look. Shows the current
+-- selection; onSelect(option, index) fires when a choice is picked.
 
 local Dropdown = {}
 Dropdown.__index = Dropdown
@@ -12,13 +13,21 @@ local function getFont()
 	return WG['fonts'].getFont()
 end
 
+local function optionLabel(opt)
+	if type(opt) == "table" then
+		return opt.label or tostring(opt.value)
+	end
+
+	return tostring(opt)
+end
+
 function Dropdown.new(opts)
 	opts = opts or {}
 
 	local self = setmetatable({}, Dropdown)
-	self.label = opts.label or ""
 	self.options = opts.options or {}
 	self.onSelect = opts.onSelect
+	self.selected = opts.selected or 1
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}
@@ -38,20 +47,18 @@ function Dropdown:setRect(x1, y1, x2, y2, fontSize)
 	end
 end
 
+function Dropdown:setSelected(i)
+	if i and self.options[i] then
+		self.selected = i
+	end
+end
+
 function Dropdown:isOpen()
 	return self.open
 end
 
 function Dropdown:close()
 	self.open = false
-end
-
-local function optionLabel(opt)
-	if type(opt) == "table" then
-		return opt.label or tostring(opt.value)
-	end
-
-	return tostring(opt)
 end
 
 function Dropdown:draw()
@@ -61,11 +68,13 @@ function Dropdown:draw()
 	local R = WG.FlowUI.Draw.RectRound
 	local mx, my = Spring.GetMouseState()
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
+	local inset = floor((y2 - y1) * 0.3)
 
 	Selector(x1, y1, x2, y2)
 
 	font:Begin()
-	font:Print(colorText .. self.label, x1 + floor((y2 - y1) * 0.3), (y1 + y2) * 0.5, self.fontSize, "ov")
+	local current = self.options[self.selected]
+	font:Print(colorText .. (current and optionLabel(current) or ""), x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
 	font:End()
 
 	if self.open and #self.optRects > 0 then
@@ -80,7 +89,7 @@ function Dropdown:draw()
 			if mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2 then
 				Highlight(r.x1, r.y1, r.x2, r.y2, cs, 1, { 1, 1, 1 })
 			end
-			font:Print(colorText .. optionLabel(opt), r.x1 + floor((y2 - y1) * 0.3), (r.y1 + r.y2) * 0.5, self.fontSize, "ov")
+			font:Print(colorText .. optionLabel(opt), r.x1 + inset, (r.y1 + r.y2) * 0.5, self.fontSize, "ov")
 		end
 		font:End()
 	end
@@ -92,8 +101,9 @@ function Dropdown:mousePress(x, y)
 		for i, r in ipairs(self.optRects) do
 			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then
 				self.open = false
+				self.selected = i
 				if self.onSelect then
-					self.onSelect(self.options[i])
+					self.onSelect(self.options[i], i)
 				end
 
 				return true
