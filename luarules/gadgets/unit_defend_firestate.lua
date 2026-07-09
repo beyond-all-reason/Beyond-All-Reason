@@ -23,7 +23,7 @@ end
 
 --increase safety margin buffer so a pawn can walk through a minefield that's exposed
 
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local WeaponThreat = VFS.Include("modules/weaponthreat.lua")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ALWAYS_SHOOT = WeaponThreat.ALWAYS_SHOOT
@@ -134,8 +134,8 @@ local function checkDefendUnitHealth(attackerID, meta)
 end
 
 local function updateDefendWatchFromRulesParam(unitID)
-	local state = spGetUnitRulesParam(unitID, Firestates.RULES_PARAM)
-	setDefendWatch(unitID, state == Firestates.DEFEND)
+	local state = spGetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM)
+	setDefendWatch(unitID, state == CustomFirestateDefs.DEFEND)
 end
 
 local function createUnitMeta(unitDefID)

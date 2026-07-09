@@ -86,14 +86,30 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function HalfHealth()
+	function HalfHealth(words)
 		if not Spring.IsCheatingEnabled() then
 			return
 		end
 
-		-- reduce all units health to 1/2 of its current value
+		if #words > 1 then
+			for n = 2, #words do
+				local unitID = tonumber(words[n])
+				if unitID and Spring.ValidUnitID(unitID) then
+					local health = Spring.GetUnitHealth(unitID)
+					if health then
+						Spring.SetUnitHealth(unitID, health / 2)
+					end
+				end
+			end
+			return
+		end
+
+		-- No selected units were passed, so keep original behavior.
 		for _, unitID in pairs(Spring.GetAllUnits()) do
-			Spring.SetUnitHealth(unitID, Spring.GetUnitHealth(unitID) / 2)
+			local health = Spring.GetUnitHealth(unitID)
+			if health then
+				Spring.SetUnitHealth(unitID, health / 2)
+			end
 		end
 	end
 
@@ -432,7 +448,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		checkStartPlayers()
 		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
-		gadgetHandler:AddChatAction('halfhealth', HalfHealth, "")
+
 
 	end
 
@@ -455,7 +471,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
 			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
-			cmd == "wreckunits" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
+			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
 			subPermission = "teams"
@@ -502,6 +518,16 @@ if gadgetHandler:IsSyncedCode() then
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
 		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
+		elseif cmd == "halfhealth" then
+			HalfHealth(words)
+		elseif cmd == "sethealth" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'sethealth', parts[3])
 		elseif cmd == "spawnceg" then
 			spawnceg(words)
 		elseif cmd == "spawnunitexplosion" then
@@ -536,7 +562,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('loadmissiles')
-		gadgetHandler:RemoveChatAction('halfhealth')
+
 	end
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
@@ -628,6 +654,13 @@ if gadgetHandler:IsSyncedCode() then
 				elseif action == 'transfer' then
 					if type(tonumber(params)) == 'number' then
 						Spring.TransferUnit(unitID, tonumber(params), true)
+					end
+				elseif action == 'sethealth' and params then
+					if type(tonumber(params)) == 'number' then
+						local healthPercent = math.max(0, math.min(100, tonumber(params)))
+						if mh then
+							Spring.SetUnitHealth(unitID, mh * healthPercent * 0.01)
+						end
 					end
 				elseif action == 'reclaim' then
 					local teamID = Spring.GetUnitTeam(unitID)
@@ -771,6 +804,8 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
+		gadgetHandler:AddChatAction('halfhealth', halfHealth, "")  -- halves selected units health, or all units if nothing is selected
+		gadgetHandler:AddChatAction('sethealth', setHealth, "")  -- sets selected units health to a percentage, /luarules sethealth [0-100]
 
 		gadgetHandler:AddChatAction('xp', xpUnits, "")	-- gives the selected units experience, /luarules xp [int]
 
@@ -803,6 +838,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('transferunits')
+		gadgetHandler:RemoveChatAction('halfhealth')
+		gadgetHandler:RemoveChatAction('sethealth')
 		gadgetHandler:RemoveChatAction('xp')
 		gadgetHandler:RemoveChatAction('spawnceg')
 		gadgetHandler:RemoveChatAction('spawnunitexplosion')
@@ -840,6 +877,16 @@ else	-- UNSYNCED
 	end
 	function transferUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'transferunits')
+	end
+	function halfHealth(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'halfhealth')
+	end
+	function setHealth(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' then
+			Spring.Echo("Usage: /luarules sethealth [0-100]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'sethealth')
 	end
 
 	function removeUnitDef(_, line, words, playerID)

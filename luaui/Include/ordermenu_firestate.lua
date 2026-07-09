@@ -1,12 +1,11 @@
---DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables plus defendFirestateEnabled().
+--DEFEND FIRESTATE REWORK: Remove modoption branching; always use the enabled virtual-index tables, always issue CMD_USER_FIRESTATE, and delete the disabled-variant tables.
 
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
-local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrder = Spring.GiveOrder
 local spGetModKeyState = Spring.GetModKeyState
 
 local CYCLE_COUNT = 3
@@ -25,35 +24,35 @@ local descrByState = {
 }
 
 local virtualIndexByStateDisabled = {
-	[Firestates.PASSIVE] = 1,
-	[Firestates.RETURN_FIRE] = 2,
-	[Firestates.AGGRESSIVE] = 3,
-	[Firestates.DEFEND] = 4,
-	[Firestates.FIRE_AT_ALL] = 5,
+	[CustomFirestateDefs.HOLD_FIRE] = 1,
+	[CustomFirestateDefs.RETURN_FIRE] = 2,
+	[CustomFirestateDefs.FIRE_AT_WILL] = 3,
+	[CustomFirestateDefs.DEFEND] = 4,
+	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
 
 local virtualIndexByStateEnabled = {
-	[Firestates.PASSIVE] = 1,
-	[Firestates.DEFEND] = 2,
-	[Firestates.AGGRESSIVE] = 3,
-	[Firestates.RETURN_FIRE] = 4,
-	[Firestates.FIRE_AT_ALL] = 5,
+	[CustomFirestateDefs.HOLD_FIRE] = 1,
+	[CustomFirestateDefs.DEFEND] = 2,
+	[CustomFirestateDefs.FIRE_AT_WILL] = 3,
+	[CustomFirestateDefs.RETURN_FIRE] = 4,
+	[CustomFirestateDefs.FIRE_AT_ALL] = 5,
 }
 
 local stateByVirtualIndexDisabled = {
-	[1] = Firestates.PASSIVE,
-	[2] = Firestates.RETURN_FIRE,
-	[3] = Firestates.AGGRESSIVE,
-	[4] = Firestates.DEFEND,
-	[5] = Firestates.FIRE_AT_ALL,
+	[1] = CustomFirestateDefs.HOLD_FIRE,
+	[2] = CustomFirestateDefs.RETURN_FIRE,
+	[3] = CustomFirestateDefs.FIRE_AT_WILL,
+	[4] = CustomFirestateDefs.DEFEND,
+	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
 
 local stateByVirtualIndexEnabled = {
-	[1] = Firestates.PASSIVE,
-	[2] = Firestates.DEFEND,
-	[3] = Firestates.AGGRESSIVE,
-	[4] = Firestates.RETURN_FIRE,
-	[5] = Firestates.FIRE_AT_ALL,
+	[1] = CustomFirestateDefs.HOLD_FIRE,
+	[2] = CustomFirestateDefs.DEFEND,
+	[3] = CustomFirestateDefs.FIRE_AT_WILL,
+	[4] = CustomFirestateDefs.RETURN_FIRE,
+	[5] = CustomFirestateDefs.FIRE_AT_ALL,
 }
 
 local labelByVirtualIndexDisabled = {
@@ -72,37 +71,13 @@ local labelByVirtualIndexEnabled = {
 	[5] = "Fire at all",
 }
 
-local function defendFirestateEnabled()
-	return Spring.GetModOptions().experimental_defend_firestate
-end
-
-local function virtualIndexByState()
-	if defendFirestateEnabled() then
-		return virtualIndexByStateEnabled
-	end
-	return virtualIndexByStateDisabled
-end
-
-local function stateByVirtualIndex()
-	if defendFirestateEnabled() then
-		return stateByVirtualIndexEnabled
-	end
-	return stateByVirtualIndexDisabled
-end
-
-local function labelByVirtualIndex()
-	if defendFirestateEnabled() then
-		return labelByVirtualIndexEnabled
-	end
-	return labelByVirtualIndexDisabled
-end
-
 local function resolveVirtualIndex(unitID)
-	local userFirestate = Firestates.resolveUserFirestate(unitID)
+	local userFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
 	if userFirestate == nil then
 		return nil
 	end
-	return virtualIndexByState()[userFirestate]
+	local virtualIndexByState = Spring.GetModOptions().experimental_defend_firestate and virtualIndexByStateEnabled or virtualIndexByStateDisabled
+	return virtualIndexByState[userFirestate]
 end
 
 local function pipFill(virtualIndex)
@@ -122,7 +97,7 @@ end
 
 local function buildCmdDesc(command, virtualIndex)
 	local cmdDesc = table.copy(command)
-	local labels = labelByVirtualIndex()
+	local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
 	cmdDesc.params = {
 		virtualIndex - 1,
 		labels[1],
@@ -136,21 +111,28 @@ end
 
 local function stateLabel(cmd)
 	if cmd.virtualIndex then
-		return labelByVirtualIndex()[cmd.virtualIndex]
+		local labels = Spring.GetModOptions().experimental_defend_firestate and labelByVirtualIndexEnabled or labelByVirtualIndexDisabled
+		return labels[cmd.virtualIndex]
 	end
 	return nil
 end
 
-local function giveVirtualIndex(virtualIndex, cmdOptions)
-	local state = stateByVirtualIndex()[virtualIndex]
+local function giveVirtualIndex(virtualIndex, cmdOptions, opts)
+	local defendFirestateEnabled = Spring.GetModOptions().experimental_defend_firestate
+	local stateByVirtualIndex = defendFirestateEnabled and stateByVirtualIndexEnabled or stateByVirtualIndexDisabled
+	local state = stateByVirtualIndex[virtualIndex]
 	if state == nil then
 		return false
 	end
-	if defendFirestateEnabled() then
-		spGiveOrder(CMD_USER_FIRESTATE, { state }, cmdOptions or 0)
-	else
+	opts = opts or {}
+	if opts.userInitiated == nil then
+		opts.userInitiated = true
+	end
+	if not defendFirestateEnabled then
 		remappingFirestate = true
-		spGiveOrder(CMD_FIRE_STATE, { Firestates.toEngineFirestate(state) }, cmdOptions or 0)
+	end
+	UserFirestateCommands.setSelectionFirestate(state, spGetSelectedUnits(), opts)
+	if not defendFirestateEnabled then
 		remappingFirestate = false
 	end
 	if onOrderGiven then
@@ -175,18 +157,11 @@ local function nextCycledVirtualIndex(virtualIndex, reverse)
 	return virtualIndex + 1
 end
 
-local function shouldDeferToGridMenu()
-	if not WG.gridmenu or not WG.gridmenu.getActiveBuilder then
-		return false
-	end
-	return WG.gridmenu.getActiveBuilder() ~= nil
-end
-
 local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	if release then
 		return false
 	end
-	if shouldDeferToGridMenu() then
+	if WG.gridmenu and WG.gridmenu.getActiveBuilder and WG.gridmenu.getActiveBuilder() ~= nil then
 		return false
 	end
 	local selectedUnits = spGetSelectedUnits()
@@ -212,12 +187,33 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 	return false
 end
 
+local function hasMatchingStagedFirestate(engineParam)
+	local stagedFirestateByUnitId = WG['firestate'] and WG['firestate'].stagedFirestateByUnitId
+	if not stagedFirestateByUnitId then
+		return false
+	end
+	local selectedUnits = spGetSelectedUnits()
+	for index = 1, #selectedUnits do
+		local stagedFirestate = stagedFirestateByUnitId[selectedUnits[index]]
+		if stagedFirestate then
+			local stagedEngineParam = CustomFirestateDefs.toEngineFirestate(stagedFirestate.userState)
+			if stagedEngineParam == engineParam then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 local function commandNotify(cmdID, cmdParams, cmdOptions)
 	if remappingFirestate or cmdID ~= CMD_FIRE_STATE or not cmdParams then
 		return false
 	end
 	local engineParam = tonumber(cmdParams[1])
 	if engineParam == nil or engineParam < 0 or engineParam > 2 then
+		return false
+	end
+	if hasMatchingStagedFirestate(engineParam) then
 		return false
 	end
 	return giveVirtualIndex(engineParam + 1, cmdOptions)
