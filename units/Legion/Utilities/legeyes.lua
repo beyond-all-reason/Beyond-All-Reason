@@ -31,6 +31,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			cannot_capture_territory = true,
 			unitgroup = 'util',
 			model_author = "NebuchadnezzarII",
 			normaltex = "unittextures/leg_normal.dds",
