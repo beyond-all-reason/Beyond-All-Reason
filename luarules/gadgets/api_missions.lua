@@ -14,20 +14,31 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local triggersController, actionsController
+local objectivesController, stagesController, triggersController, actionsController
 
 local function loadMission(scriptPath)
 	local mission = VFS.Include("singleplayer/" .. scriptPath)
-	local rawTriggers = mission.Triggers
-	local rawActions = mission.Actions
+	local initialStage = mission.InitialStage
+	local stages = mission.Stages or {}
+	local rawObjectives = mission.Objectives or {}
+	local rawTriggers = mission.Triggers or {}
+	local rawActions = mission.Actions or {}
 
-	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
+	GG['MissionAPI'].CurrentStageID = initialStage
+	GG['MissionAPI'].Stages = stagesController.ProcessRawStages(stages)
+	GG['MissionAPI'].Objectives = objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
+	GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
 	GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 	GG['MissionAPI'].UnitLoadout = mission.UnitLoadout
 	GG['MissionAPI'].FeatureLoadout = mission.FeatureLoadout
 
-	local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
-	validateReferences()
+	local validation = VFS.Include('luarules/mission_api/validation.lua')
+	validation.ValidateStages(GG['MissionAPI'].Stages)
+	validation.ValidateObjectives(GG['MissionAPI'].Objectives)
+	validation.ValidateInitialStage(initialStage)
+	validation.ValidateTriggers(GG['MissionAPI'].Triggers, rawActions)
+	validation.ValidateActions(GG['MissionAPI'].Actions)
+	validation.ValidateReferences()
 
 	if GG['MissionAPI'].HasValidationErrors then
 		GG['MissionAPI'] = nil -- stops gadget api_missions_triggers from loading
@@ -51,7 +62,8 @@ function gadget:Initialize()
 	--local scriptPath = 'mission-api-tests/feature_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/statistics_triggers_test.lua'
 	--local scriptPath = 'mission-api-tests/resource_test.lua'
-	local scriptPath = 'mission-api-tests/loadout_test.lua'
+	--local scriptPath = 'mission-api-tests/loadout_test.lua'
+	local scriptPath = 'mission-api-tests/stages_and_objectives_test.lua'
 
 	if not scriptPath then
 		gadgetHandler:RemoveGadget()
@@ -67,12 +79,15 @@ function gadget:Initialize()
 	GG['MissionAPI'].markerNames            = {}
 	GG['MissionAPI'].soundFiles             = {}
 	GG['MissionAPI'].soundQueue             = {}
+	GG['MissionAPI'].ManagedObjectives      = {}
 	GG['MissionAPI'].Modules                = {}
 	GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 	GG['MissionAPI'].Modules.Tracking       = VFS.Include('luarules/mission_api/tracking.lua')
 	GG['MissionAPI'].Modules.Loadout        = VFS.Include('luarules/mission_api/loadout.lua')
 	GG['MissionAPI'].Modules.Sounds         = VFS.Include('luarules/mission_api/sounds.lua')
 
+	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
+	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 	GG['MissionAPI'].ActionDefinitions = actionsController.LoadActionDefinitions()
 
@@ -87,6 +102,10 @@ function gadget:GamePreload()
 	local loadoutModule = GG['MissionAPI'].Modules.Loadout
 	loadoutModule.SpawnUnitLoadout(GG['MissionAPI'].UnitLoadout)
 	loadoutModule.SpawnFeatureLoadout(GG['MissionAPI'].FeatureLoadout)
+
+	if GG['MissionAPI'].CurrentStageID then
+		Spring.Echo("Stage set to: " .. GG['MissionAPI'].CurrentStageID)
+	end
 end
 
 function gadget:GameFrame(frameNumber)

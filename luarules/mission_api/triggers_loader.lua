@@ -1,5 +1,3 @@
-local validateTriggers = VFS.Include('luarules/mission_api/validation.lua').ValidateTriggers
-
 -- Example trigger
 --[[
 	myTriggerName = {
@@ -31,6 +29,7 @@ local function processRawTriggers(rawTriggers, rawActions)
 		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
 		settings.active = settings.active or true
+		settings.stages = settings.stages or {}
 
 		rawTrigger.settings = settings
 		rawTrigger.triggered = false
@@ -39,7 +38,6 @@ local function processRawTriggers(rawTriggers, rawActions)
 		triggers[triggerID] = table.copy(rawTrigger)
 	end
 
-	validateTriggers(triggers, rawActions)
 	return triggers
 end
 
