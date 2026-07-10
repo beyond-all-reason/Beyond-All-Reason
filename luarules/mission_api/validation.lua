@@ -35,10 +35,10 @@ end
 
 local function validateField(value, fieldName, expectedType)
 	if not value then
-		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName }
+		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName, fieldName = fieldName, missing = true }
 	end
 	if type(value) ~= expectedType then
-		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName }
+		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName, fieldName = fieldName }
 	end
 end
 
@@ -767,7 +767,11 @@ local function validateUnitLoadoutEntry(entry, index, context)
 
 	local positionResult = validators[Types.Position](entry)
 	for _, positionError in ipairs(positionResult or {}) do
-		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+		if positionError.missing then
+			logError(prefix .. ": missing required field '" .. positionError.fieldName .. "'")
+		else
+			logError(prefix .. ", field '" .. positionError.fieldName .. "': " .. positionError.message)
+		end
 	end
 
 	if entry.team == nil then
@@ -852,7 +856,11 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 
 	local positionResult = validators[Types.Position](entry)
 	for _, positionError in ipairs(positionResult or {}) do
-		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+		if positionError.missing then
+			logError(prefix .. ": missing required field '" .. positionError.fieldName .. "'")
+		else
+			logError(prefix .. ", field '" .. positionError.fieldName .. "': " .. positionError.message)
+		end
 	end
 
 	-- Optional fields

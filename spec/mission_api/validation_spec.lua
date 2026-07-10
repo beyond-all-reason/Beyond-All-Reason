@@ -475,6 +475,32 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("loadout entry required fields", function()
+			it("reports a missing position coordinate in a unitLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0 } } }, -- missing z
+				})
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'z'"))
+			end)
+
+			it("reports a missing required field in a unitLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0 } } }, -- missing team
+				})
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'team'"))
+			end)
+
+			it("reports a missing position coordinate in a featureLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 'rockdef', z = 0 } } }, -- missing x
+				})
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1: missing required field 'x'"))
+			end)
+		end)
+
 		describe("WeaponDefName", function()
 			it("rejects wrong type", function()
 				actionErrors({
