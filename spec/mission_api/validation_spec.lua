@@ -499,7 +499,7 @@ describe("mission_api.validation", function()
 					type       = actionTypes.SpawnUnits,
 					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = {} } } },
 				})
-				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
 			end)
 
 			it("rejects invalid facing value", function()
@@ -507,7 +507,7 @@ describe("mission_api.validation", function()
 					type       = actionTypes.SpawnUnits,
 					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = 'diagonal' } } },
 				})
-				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
 			end)
 		end)
 
@@ -542,7 +542,7 @@ describe("mission_api.validation", function()
 					type       = actionTypes.AddResources,
 					parameters = { teamID = 'bad' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: teamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"))
 			end)
 
 			it("rejects invalid team ID", function()
@@ -551,7 +551,7 @@ describe("mission_api.validation", function()
 					type       = actionTypes.AddResources,
 					parameters = { teamID = 99 },
 				})
-				assert.is_true(hasError("Invalid teamID: 99. Trigger: t, Parameter: teamID"))
+				assert.is_true(hasError("Invalid teamID: 99. Action: a, Parameter: teamID"))
 			end)
 		end)
 

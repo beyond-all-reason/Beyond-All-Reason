@@ -66,7 +66,7 @@ local function updateObjectiveProgress(objectiveID, eventTeamID, eventUnitDefNam
 	end
 
 	objective.completed = isComplete
-	tryAdvanceStage( managedObjMetadata.nextStage)
+	tryAdvanceStage(objective)
 
 	echoObjectiveUpdate(objectiveID, objective)
 end
