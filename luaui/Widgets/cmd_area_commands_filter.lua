@@ -9,7 +9,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter",
-		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets.",
+		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets. Double-click enemy with Attack or Set Target to order all visible enemies of that type.",
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
@@ -42,6 +42,12 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
+local spGetVisibleUnits = Spring.GetVisibleUnits
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetActiveCommand = Spring.GetActiveCommand
+local spSetActiveCommand = Spring.SetActiveCommand
+local spGetModKeyState = Spring.GetModKeyState
+local spGetCmdDescIndex = Spring.GetCmdDescIndex
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -50,8 +56,15 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local commandLimit = 2000
+local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 
 local myAllyTeamID
+local pendingTargetUnitID
+local pendingExpireTime = 0
+local pendingCmdID
+local pendingCmdDescIndex
+local reactivateCommand = false
+local heldCommandDescIndex
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
@@ -288,8 +301,62 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
-	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
+local function isQueuing(options)
+	if options.shift then
+		return true
+	end
+	local _, _, _, shift = spGetModKeyState()
+	return shift
+end
+
+local function restoreActiveCommand(cmdDescIndex)
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	spSetActiveCommand(cmdDescIndex, 1, true, false, alt, ctrl, meta, shift)
+end
+
+local function updateShiftCommandKeep()
+	local _, _, _, shift = spGetModKeyState()
+	if shift and heldCommandDescIndex then
+		local _, activeCmdID = spGetActiveCommand()
+		if not activeCmdID then
+			restoreActiveCommand(heldCommandDescIndex)
+		end
+	elseif not shift then
+		heldCommandDescIndex = nil
+	end
+end
+
+local function clearDoubleClickPending()
+	pendingTargetUnitID = nil
+	pendingExpireTime = 0
+	pendingCmdID = nil
+	pendingCmdDescIndex = nil
+	reactivateCommand = false
+end
+
+local function getVisibleEnemiesOfType(unitDefID)
+	local filteredTargets = {}
+	local visibleUnits = spGetVisibleUnits()
+	if not visibleUnits then
+		return filteredTargets
+	end
+	for i = 1, #visibleUnits do
+		local unitID = visibleUnits[i]
+		if spGetUnitAllyTeam(unitID) ~= myAllyTeamID and spGetUnitDefID(unitID) == unitDefID then
+			tableInsert(filteredTargets, unitID)
+		end
+	end
+	return filteredTargets
+end
+
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, refUnitID)
+	local refPosition
+	if refUnitID then
+		local refX, refY, refZ = spGetUnitPosition(refUnitID)
+		refPosition = toPositionTable(refX, refY, refZ)
+	else
+		refPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
+	end
 	tableSort(filteredTargets, function(targetIdA, targetIdB)
 		local positionA, positionB
 
@@ -303,23 +370,24 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 		end
 
 		if closestFirst then
-			return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
+			return distanceSq(refPosition, positionA) < distanceSq(refPosition, positionB)
 		else
-			return distanceSq(avgPosition, positionA) > distanceSq(avgPosition, positionB)
+			return distanceSq(refPosition, positionA) > distanceSq(refPosition, positionB)
 		end
 	end)
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
 	maxCommands = maxCommands or commandLimit
+	local queuing = isQueuing(options)
 	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
 	for i, targetId in ipairs(filteredTargets) do
 		local cmdOpts = {}
-		if not firstTarget or options.shift then
+		if not firstTarget or queuing then
 			tableInsert(cmdOpts, "shift")
 		end
-		if options.meta and not options.shift then
+		if options.meta and not queuing then
 			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
 		else
 			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
@@ -419,6 +487,66 @@ local allowedCommands = {
 	[CMD.RESURRECT] = commandConfig({ FEATURE }),
 }
 
+local doubleClickCommands = {
+	[CMD.ATTACK] = true,
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
+local function handleDoubleClickUnitTarget(cmdId, params, options)
+	local targetUnitID = params[1]
+	if spGetUnitAllyTeam(targetUnitID) == myAllyTeamID then
+		return false
+	end
+
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 then
+		return false
+	end
+
+	local gameTime = spGetGameSeconds()
+	local queuing = isQueuing(options)
+	local pendingActive = pendingTargetUnitID and pendingCmdID and gameTime < pendingExpireTime
+	local isDoubleClick = pendingActive and pendingTargetUnitID == targetUnitID and doubleClickCommands[pendingCmdID]
+
+	if isDoubleClick then
+		local issueCmdId = pendingCmdID
+		local savedCmdDescIndex = pendingCmdDescIndex or spGetCmdDescIndex(issueCmdId)
+		clearDoubleClickPending()
+		local unitDefID = spGetUnitDefID(targetUnitID)
+		if unitDefID then
+			local filteredTargets = getVisibleEnemiesOfType(unitDefID)
+			if #filteredTargets > 0 then
+				local closestFirst = not options.meta
+				sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, targetUnitID)
+				giveOrders(issueCmdId, selectedUnits, filteredTargets, options)
+			end
+		end
+		if queuing then
+			heldCommandDescIndex = savedCmdDescIndex
+			restoreActiveCommand(savedCmdDescIndex)
+		else
+			heldCommandDescIndex = nil
+			spSetActiveCommand(0)
+		end
+		return true
+	end
+
+	if not doubleClickCommands[cmdId] then
+		return false
+	end
+
+	pendingTargetUnitID = targetUnitID
+	pendingExpireTime = gameTime + doubleClickTime
+	pendingCmdID = cmdId
+	pendingCmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(cmdId)
+	reactivateCommand = not queuing
+	if queuing then
+		heldCommandDescIndex = pendingCmdDescIndex
+	end
+	return false
+end
+
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
 	local alt = options.alt
 	local ctrl = options.ctrl
@@ -509,6 +637,10 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 end
 
 function widget:CommandNotify(cmdId, params, options)
+	if #params == 1 and not options.alt and not options.ctrl then
+		return handleDoubleClickUnitTarget(cmdId, params, options)
+	end
+
 	if not (options.alt or options.ctrl) then
 		return false
 	end
@@ -569,4 +701,30 @@ end
 
 function widget:Initialize()
 	initialize()
+end
+
+function widget:Update()
+	if pendingTargetUnitID and spGetGameSeconds() >= pendingExpireTime then
+		clearDoubleClickPending()
+	end
+	if reactivateCommand and pendingCmdDescIndex then
+		restoreActiveCommand(pendingCmdDescIndex)
+		reactivateCommand = false
+	end
+	if pendingCmdDescIndex and pendingTargetUnitID and spGetGameSeconds() < pendingExpireTime then
+		local _, _, _, shift = spGetModKeyState()
+		if shift then
+			heldCommandDescIndex = pendingCmdDescIndex
+		end
+	end
+	updateShiftCommandKeep()
+end
+
+function widget:ActiveCommandChanged(cmdid)
+	if not cmdid and not reactivateCommand then
+		if pendingTargetUnitID and spGetGameSeconds() < pendingExpireTime then
+			return
+		end
+		clearDoubleClickPending()
+	end
 end
