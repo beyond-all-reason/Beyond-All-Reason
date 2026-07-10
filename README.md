@@ -14,6 +14,16 @@ https://www.beyondallreason.info/guides
 
 ## Development Quick Start
 
+> **Fastest path — [BAR-Devtools](https://github.com/beyond-all-reason/BAR-Devtools):** one command sets up the engine, game repos, type checker, formatter, tests, and a local server in an isolated container.
+>
+> ```bash
+> git clone https://github.com/beyond-all-reason/BAR-Devtools.git
+> cd BAR-Devtools
+> just setup::init
+> ```
+>
+> Prefer to wire it up by hand? The manual steps below still work.
+
 Beyond All Reason (BAR), consists of 2 primary components, the lobby (Chobby - https://github.com/beyond-all-reason/BYAR-Chobby) and the game code itself (this repository).
 
 The game runs on top of the Recoil engine https://github.com/beyond-all-reason/spring.
