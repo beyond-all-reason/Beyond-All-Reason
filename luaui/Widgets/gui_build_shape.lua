@@ -15,16 +15,17 @@ function widget:GetBuildShape(unitDefID, facing, startX, startY, startZ, endX, e
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if alt and ctrl then
-		return "hollowbox"
-	end
-
-	if ctrl then 
+		-- Surrounds a target under cursor or without it makes cardinal directions (straight lines)
 		return "surround"
 	end
 
-	if alt then
-		return "diagonal"
+	if ctrl then 
+		return "hollowbox"
 	end
 
-	return "flood"
+	if alt then
+		return "flood"
+	end
+
+	return "diagonal"
 end
