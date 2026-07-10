@@ -180,7 +180,7 @@
 
 		"require_energy": false,
 
-		"income_tier": [20, 40, 100],
+		"income_tier": [10, 25, 35],
 
 		"unit":      ["armca", "armfig", "armpeep", "armthund", "armkam"],
 
