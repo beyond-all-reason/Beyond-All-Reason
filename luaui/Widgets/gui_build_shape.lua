@@ -19,7 +19,7 @@ function widget:GetBuildShape(unitDefID, facing, startX, startY, startZ, endX, e
 		return "surround"
 	end
 
-	if ctrl then 
+	if ctrl then
 		return "hollowbox"
 	end
 
@@ -27,5 +27,5 @@ function widget:GetBuildShape(unitDefID, facing, startX, startY, startZ, endX, e
 		return "flood"
 	end
 
-	return "diagonal"
+	return "freeangleline"
 end
