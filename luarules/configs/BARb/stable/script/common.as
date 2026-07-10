@@ -143,7 +143,7 @@ void EnableDynamicWallDefs()
 			continue;
 
 		string n = def.GetName();
-		n.toLower();
+		n = n.toLower();
 		const bool looksLikeWall = (n.findFirst("drag") >= 0)
 			|| (n.findFirst("fort") >= 0)
 			|| (n.findFirst("wall") >= 0);
@@ -192,8 +192,27 @@ void EnableGlobalWallPressure()
 	}
 }
 
+bool IsRuinsEnabled()
+{
+	string ruins = string(aiSetupMgr.GetModOptions()["ruins"]);
+	ruins = ruins.toLower();
+	return (ruins == "enabled") || (ruins == "1") || (ruins == "true");
+}
+
 void EnableWallTargets()
 {
+	string ruins = string(aiSetupMgr.GetModOptions()["ruins"]);
+	string ruinsNormalized = ruins.toLower();
+	const bool ruinsEnabled = (ruinsNormalized == "enabled") || (ruinsNormalized == "1") || (ruinsNormalized == "true");
+
+	AiLog("[WallTargets] ruins modoption raw='" + ruins + "' normalized='" + ruinsNormalized + "'");
+	if (ruinsEnabled) {
+		AiLog("[WallTargets] skipped: ruins modoption is enabled (wall pressure disabled)");
+		return;
+	} else {
+		AiLog("[WallTargets] enabled: ruins modoption is disabled (wall pressure enabled)");
+	}
+
 	int explicitWallsFound = 0;
 	int explicitWallsMissing = 0;
 
@@ -227,6 +246,14 @@ void EnableWallTargets()
 	EnableDefenceFireState();
 	EnableGlobalWallPressure();
 	EnableStaticWallPressure();
+}
+
+void EnforceRuinsNoWallShooting()
+{
+	// Kept as an update hook for hard/main.as. Wall tuning is already gated in EnableWallTargets().
+	if (!IsRuinsEnabled()) {
+		return;
+	}
 }
 
 void EnableWallBreakingFireState()
