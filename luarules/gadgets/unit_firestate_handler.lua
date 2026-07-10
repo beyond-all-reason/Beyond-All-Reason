@@ -23,7 +23,7 @@ end
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local Firestates = VFS.Include("modules/firestates.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 local INLOS = { inlos = true }
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
@@ -34,11 +34,11 @@ local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local settingEngineFirestate = false
 
 local function setUserFirestate(unitID, state)
-	local engineFirestate = Firestates.toEngineFirestate(state)
+	local engineFirestate = CustomFirestateDefs.toEngineFirestate(state)
 	if not engineFirestate then
 		return
 	end
-	spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
+	spSetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM, state, INLOS)
 	settingEngineFirestate = true
 	spGiveOrderToUnit(unitID, CMD_FIRE_STATE, engineFirestate, 0)
 	settingEngineFirestate = false
@@ -47,7 +47,7 @@ end
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 	if cmdID == CMD_USER_FIRESTATE then
 		local state = cmdParams[1]
-		if Firestates.toEngineFirestate(state) ~= nil then
+		if CustomFirestateDefs.toEngineFirestate(state) ~= nil then
 			setUserFirestate(unitID, state)
 		end
 		return false
@@ -58,8 +58,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	end
 
 	if cmdID == CMD_FIRE_STATE then
-		local state = Firestates.fromEngineFirestate(cmdParams[1])
-		spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
+		local state = CustomFirestateDefs.fromEngineFirestate(cmdParams[1])
+		spSetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM, state, INLOS)
 	end
 	return true
 end
@@ -68,13 +68,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local state
 	local builderDefID = builderID and spGetUnitDefID(builderID)
 	if builderDefID and UnitDefs[builderDefID].isFactory then
-		state = spGetUnitRulesParam(builderID, Firestates.RULES_PARAM)
-			or Firestates.fromEngineFirestate(spGetUnitStates(builderID, false))
+		state = spGetUnitRulesParam(builderID, CustomFirestateDefs.RULES_PARAM)
+			or CustomFirestateDefs.fromEngineFirestate(spGetUnitStates(builderID, false))
 	end
 	if state == nil then
-		state = Firestates.fromEngineFirestate(spGetUnitStates(unitID, false))
+		state = CustomFirestateDefs.fromEngineFirestate(spGetUnitStates(unitID, false))
 	end
-	spSetUnitRulesParam(unitID, Firestates.RULES_PARAM, state, INLOS)
+	spSetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM, state, INLOS)
 end
 
 function gadget:Initialize()

@@ -764,7 +764,7 @@ local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
 
 local weaponConfig = {}
-for weaponDefID=1, #WeaponDefs do
+for weaponDefID=0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
 	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then

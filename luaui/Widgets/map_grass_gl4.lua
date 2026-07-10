@@ -951,7 +951,7 @@ local function makeShaderVAO()
 end
 
 local weaponConf = {}
-for i=1, #WeaponDefs do
+for i=0, #WeaponDefs do
 	local radius = WeaponDefs[i].damageAreaOfEffect * 1.2
 	local edgeEffectiveness = WeaponDefs[i].edgeEffectiveness * 1.75
 	if WeaponDefs[i].type == 'DGun' then

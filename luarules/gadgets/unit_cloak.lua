@@ -81,7 +81,7 @@ GG.PokeDecloakUnit = PokeDecloakUnit
 
 if decloakWhenDamaged then
 	local noFFWeaponDefs = {}
-	for i = 1, #WeaponDefs do
+	for i = 0, #WeaponDefs do
 		local wd = WeaponDefs[i]
 		if wd.customParams and wd.customParams.nofriendlyfire then
 			noFFWeaponDefs[i] = true
