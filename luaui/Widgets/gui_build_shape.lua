@@ -15,11 +15,11 @@ function widget:GetBuildShape(unitDefID, facing, startX, startY, startZ, endX, e
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
 	if alt and ctrl then
-		-- Surrounds a target under cursor or without it makes cardinal directions (straight lines)
-		return "surround"
+		return "cardinalline"
 	end
 
 	if ctrl then
+		-- Create a hollow box shape, or surrounds a structure if pointed at one.
 		return "hollowbox"
 	end
 
