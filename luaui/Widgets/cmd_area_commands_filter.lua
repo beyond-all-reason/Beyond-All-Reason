@@ -37,6 +37,7 @@ local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -48,7 +49,6 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spSetActiveCommand = Spring.SetActiveCommand
 local spGetModKeyState = Spring.GetModKeyState
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
-local spGetGameFrame = Spring.GetGameFrame
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -56,23 +56,28 @@ local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
 
-local commandLimit = 2000
+local COMMAND_LIMIT = 2000
 local MAX_DOUBLECLICK_UNITS = 100
 local DOUBLECLICK_START_RADIUS = 2000
 local DOUBLECLICK_RADIUS_STEP = 500
 local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
+local MIN_DOUBLE_CLICK_GAP = 0.03
+local MIN_PENDING_DOUBLE_CLICK_TIME = 0.4
 local osClock = os.clock
 
 local myAllyTeamID
-local pendingTargetId
-local pendingTargetIsFeature = false
-local pendingExpireTime = 0
-local pendingCmdID
-local pendingCmdDescIndex
-local pendingAlt = false
-local pendingCtrl = false
+local myTeamID
+local pendingDoubleClick = {
+	targetId = nil,
+	isFeature = false,
+	expireTime = 0,
+	cmdId = nil,
+	cmdDescIndex = nil,
+	alt = false,
+	ctrl = false,
+	firstClickTime = 0,
+}
 local heldCommandDescIndex
-local lastFirstClickFrame = -1
 local deferClearActiveCommand = false
 
 ---------------------------------------------------------------------------------------
@@ -336,13 +341,20 @@ local function updateShiftCommandKeep()
 end
 
 local function clearDoubleClickPending()
-	pendingTargetId = nil
-	pendingTargetIsFeature = false
-	pendingExpireTime = 0
-	pendingCmdID = nil
-	pendingCmdDescIndex = nil
-	pendingAlt = false
-	pendingCtrl = false
+	pendingDoubleClick.targetId = nil
+	pendingDoubleClick.isFeature = false
+	pendingDoubleClick.expireTime = 0
+	pendingDoubleClick.cmdId = nil
+	pendingDoubleClick.cmdDescIndex = nil
+	pendingDoubleClick.alt = false
+	pendingDoubleClick.ctrl = false
+	pendingDoubleClick.firstClickTime = 0
+end
+
+local function isPendingDoubleClickActive()
+	return pendingDoubleClick.targetId ~= nil
+		and pendingDoubleClick.cmdId ~= nil
+		and osClock() < pendingDoubleClick.expireTime
 end
 
 local function isFeatureTargetId(targetId)
@@ -365,21 +377,33 @@ end
 
 local function getTargetPosition(targetId)
 	if isFeatureTargetId(targetId) then
-		return toPositionTable(spGetFeaturePosition(getRawFeatureId(targetId)))
+		local x, y, z = spGetFeaturePosition(getRawFeatureId(targetId))
+		if x then
+			return toPositionTable(x, y, z)
+		end
+	else
+		local x, y, z = spGetUnitPosition(targetId)
+		if x then
+			return toPositionTable(x, y, z)
+		end
 	end
-	return toPositionTable(spGetUnitPosition(targetId))
+	return nil
 end
 
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, refUnitID)
 	local refPosition
 	if refUnitID then
 		refPosition = getTargetPosition(refUnitID)
-	else
+	end
+	if not refPosition then
 		refPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
 	end
 	tableSort(filteredTargets, function(targetIdA, targetIdB)
 		local positionA = getTargetPosition(targetIdA)
 		local positionB = getTargetPosition(targetIdB)
+		if not positionA or not positionB then
+			return positionA ~= nil
+		end
 
 		if closestFirst then
 			return distanceSq(refPosition, positionA) < distanceSq(refPosition, positionB)
@@ -389,11 +413,19 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
-local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
+local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
 	if #filteredTargets <= MAX_DOUBLECLICK_UNITS then
 		return filteredTargets
 	end
 	local refPosition = getTargetPosition(refTargetId)
+	if not refPosition then
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		local cappedTargets = {}
+		for i = 1, MAX_DOUBLECLICK_UNITS do
+			cappedTargets[i] = filteredTargets[i]
+		end
+		return cappedTargets
+	end
 	sortTargetsByDistance({ refTargetId }, filteredTargets, true, refTargetId)
 	local radius = DOUBLECLICK_START_RADIUS
 	while radius >= 0 do
@@ -402,7 +434,7 @@ local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
 		for i = 1, #filteredTargets do
 			local targetId = filteredTargets[i]
 			local targetPosition = getTargetPosition(targetId)
-			if distanceSq(refPosition, targetPosition) <= radiusSq then
+			if targetPosition and distanceSq(refPosition, targetPosition) <= radiusSq then
 				tableInsert(limitedTargets, targetId)
 			end
 		end
@@ -419,7 +451,7 @@ local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
-	maxCommands = maxCommands or commandLimit
+	maxCommands = maxCommands or COMMAND_LIMIT
 	local queuing = isQueuing(options)
 	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
@@ -482,7 +514,7 @@ end
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
-	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
+	local maxAllowedTargetsPerUnit = mathMax(mathFloor(COMMAND_LIMIT / selectedUnitsLen), 1)
 
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
@@ -565,6 +597,25 @@ local doubleClickCommands = {
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
 }
 
+local function unitMatchesAllegiance(unitID, targetAllegiance)
+	local isEnemy = spGetUnitAllyTeam(unitID) ~= myAllyTeamID
+	if targetAllegiance == ENEMY_UNITS and not isEnemy then
+		return false
+	end
+	if targetAllegiance == ALLY_UNITS and isEnemy then
+		return false
+	end
+	return true
+end
+
+local function shouldIncludeVisibleFeature(featureId, cmdId)
+	if cmdId ~= CMD.RESURRECT then
+		return true
+	end
+	local unitDefName = spGetFeatureResurrect(featureId)
+	return unitDefName ~= nil and unitDefName ~= ""
+end
+
 local function getVisibleUnitsOfType(unitDefID, targetAllegiance)
 	local filteredTargets = {}
 	local visibleUnits = spGetVisibleUnits()
@@ -573,35 +624,8 @@ local function getVisibleUnitsOfType(unitDefID, targetAllegiance)
 	end
 	for i = 1, #visibleUnits do
 		local unitID = visibleUnits[i]
-		if spGetUnitDefID(unitID) == unitDefID then
-			local isEnemy = spGetUnitAllyTeam(unitID) ~= myAllyTeamID
-			if targetAllegiance == ENEMY_UNITS and not isEnemy then
-			elseif targetAllegiance == ALLY_UNITS and isEnemy then
-			else
-				tableInsert(filteredTargets, unitID)
-			end
-		end
-	end
-	return filteredTargets
-end
-
-local function getVisibleFeaturesOfType(featureDefID, cmdId)
-	local filteredTargets = {}
-	local visibleFeatures = spGetVisibleFeatures(-1)
-	if not visibleFeatures then
-		return filteredTargets
-	end
-	for i = 1, #visibleFeatures do
-		local featureId = visibleFeatures[i]
-		if spGetFeatureDefID(featureId) == featureDefID then
-			if cmdId == CMD.RESURRECT then
-				local unitDefName = spGetFeatureResurrect(featureId)
-				if unitDefName and unitDefName ~= "" then
-					tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
-				end
-			else
-				tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
-			end
+		if spGetUnitDefID(unitID) == unitDefID and unitMatchesAllegiance(unitID, targetAllegiance) then
+			tableInsert(filteredTargets, unitID)
 		end
 	end
 	return filteredTargets
@@ -615,17 +639,44 @@ local function getVisibleUnitsByAllegiance(targetAllegiance)
 	end
 	for i = 1, #visibleUnits do
 		local unitID = visibleUnits[i]
-		local isEnemy = spGetUnitAllyTeam(unitID) ~= myAllyTeamID
-		if targetAllegiance == ENEMY_UNITS and not isEnemy then
-		elseif targetAllegiance == ALLY_UNITS and isEnemy then
-		else
+		if unitMatchesAllegiance(unitID, targetAllegiance) then
 			tableInsert(filteredTargets, unitID)
 		end
 	end
 	return filteredTargets
 end
 
-local function getAllVisibleFeatures(cmdId)
+local function getVisibleUnitsOfOwnTeam()
+	local filteredTargets = {}
+	local visibleUnits = spGetVisibleUnits()
+	if not visibleUnits then
+		return filteredTargets
+	end
+	for i = 1, #visibleUnits do
+		local unitID = visibleUnits[i]
+		if spGetUnitTeam(unitID) == myTeamID then
+			tableInsert(filteredTargets, unitID)
+		end
+	end
+	return filteredTargets
+end
+
+local function getVisibleUnitsOfOwnTeamType(unitDefID)
+	local filteredTargets = {}
+	local visibleUnits = spGetVisibleUnits()
+	if not visibleUnits then
+		return filteredTargets
+	end
+	for i = 1, #visibleUnits do
+		local unitID = visibleUnits[i]
+		if spGetUnitDefID(unitID) == unitDefID and spGetUnitTeam(unitID) == myTeamID then
+			tableInsert(filteredTargets, unitID)
+		end
+	end
+	return filteredTargets
+end
+
+local function collectVisibleFeatures(cmdId, featureDefID)
 	local filteredTargets = {}
 	local visibleFeatures = spGetVisibleFeatures(-1)
 	if not visibleFeatures then
@@ -633,12 +684,9 @@ local function getAllVisibleFeatures(cmdId)
 	end
 	for i = 1, #visibleFeatures do
 		local featureId = visibleFeatures[i]
-		if cmdId == CMD.RESURRECT then
-			local unitDefName = spGetFeatureResurrect(featureId)
-			if unitDefName and unitDefName ~= "" then
-				tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
-			end
-		else
+		if (not featureDefID or spGetFeatureDefID(featureId) == featureDefID)
+			and shouldIncludeVisibleFeature(featureId, cmdId)
+		then
 			tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
 		end
 	end
@@ -673,15 +721,21 @@ local function isValidDoubleClickTarget(cmdId, targetId, isFeature)
 	if not isEnemy and allegiance == ENEMY_UNITS then
 		return false
 	end
+	if cmdId == CMD.RECLAIM and not isEnemy and spGetUnitTeam(targetId) ~= myTeamID then
+		return false
+	end
 	return true
 end
 
 local function collectDoubleClickTargets(cmdId, targetId, isFeature, altMode)
 	if altMode then
 		if isFeature then
-			return getAllVisibleFeatures(cmdId)
+			return collectVisibleFeatures(cmdId)
 		end
 		local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
+		if cmdId == CMD.RECLAIM and not isEnemy then
+			return getVisibleUnitsOfOwnTeam()
+		end
 		local targetAllegiance = isEnemy and ENEMY_UNITS or ALLY_UNITS
 		return getVisibleUnitsByAllegiance(targetAllegiance)
 	end
@@ -690,11 +744,18 @@ local function collectDoubleClickTargets(cmdId, targetId, isFeature, altMode)
 		if not featureDefID then
 			return {}
 		end
-		return getVisibleFeaturesOfType(featureDefID, cmdId)
+		return collectVisibleFeatures(cmdId, featureDefID)
 	end
 	local unitDefID = spGetUnitDefID(targetId)
 	if not unitDefID then
 		return {}
+	end
+	if cmdId == CMD.RECLAIM then
+		local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
+		if isEnemy then
+			return getVisibleUnitsOfType(unitDefID, ENEMY_UNITS)
+		end
+		return getVisibleUnitsOfOwnTeamType(unitDefID)
 	end
 	local config = allowedCommands[cmdId]
 	return getVisibleUnitsOfType(unitDefID, config.targetAllegiance)
@@ -702,17 +763,17 @@ end
 
 local function issuePendingDoubleClickMassOrders(options)
 	local selectedUnits = spGetSelectedUnits()
-	if #selectedUnits == 0 or not pendingCmdID or not pendingTargetId then
+	if #selectedUnits == 0 or not isPendingDoubleClickActive() then
 		return false
 	end
-	local issueCmdId = pendingCmdID
-	local refTargetId = pendingTargetId
-	local refTargetIsFeature = pendingTargetIsFeature
-	local savedCmdDescIndex = pendingCmdDescIndex or spGetCmdDescIndex(issueCmdId)
+	local issueCmdId = pendingDoubleClick.cmdId
+	local refTargetId = pendingDoubleClick.targetId
+	local refTargetIsFeature = pendingDoubleClick.isFeature
+	local savedCmdDescIndex = pendingDoubleClick.cmdDescIndex or spGetCmdDescIndex(issueCmdId)
 	local queuing = isQueuing(options)
 	clearDoubleClickPending()
 	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options.alt)
-	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
+	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
 	issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	if queuing then
 		heldCommandDescIndex = savedCmdDescIndex
@@ -733,22 +794,34 @@ local function resolveDoubleClickCmdId(cmdId)
 end
 
 local function tryCompletePendingDoubleClick(options, effectiveCmdId)
-	local realTime = osClock()
+	local now = osClock()
 	local clickAlt = options.alt or false
 	local clickCtrl = options.ctrl or false
-	if pendingTargetId
-		and pendingCmdID
-		and realTime < pendingExpireTime
-		and pendingCmdID == effectiveCmdId
-		and doubleClickCommands[pendingCmdID]
-		and pendingAlt == clickAlt
-		and pendingCtrl == clickCtrl
-		and spGetGameFrame() ~= lastFirstClickFrame
+	if isPendingDoubleClickActive()
+		and pendingDoubleClick.cmdId == effectiveCmdId
+		and doubleClickCommands[pendingDoubleClick.cmdId]
+		and pendingDoubleClick.alt == clickAlt
+		and pendingDoubleClick.ctrl == clickCtrl
+		and now >= pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP
 	then
-		issuePendingDoubleClickMassOrders(options)
-		return true
+		return issuePendingDoubleClickMassOrders(options)
 	end
 	return false
+end
+
+local function getPendingExpireTime(realTime)
+	return realTime + math.max(doubleClickTime, MIN_PENDING_DOUBLE_CLICK_TIME)
+end
+
+local function consumePendingDoubleClickClick(options, effectiveCmdId)
+	if not isPendingDoubleClickActive() then
+		return false
+	end
+	if effectiveCmdId and pendingDoubleClick.cmdId ~= effectiveCmdId then
+		return false
+	end
+	tryCompletePendingDoubleClick(options, pendingDoubleClick.cmdId)
+	return true
 end
 
 local function handleDoubleClickSingleTarget(cmdId, params, options)
@@ -756,7 +829,7 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	local isFeature = isFeatureTargetId(targetId)
 	local effectiveCmdId = resolveDoubleClickCmdId(cmdId)
 
-	if tryCompletePendingDoubleClick(options, effectiveCmdId) then
+	if consumePendingDoubleClickClick(options, effectiveCmdId) then
 		return true
 	end
 
@@ -780,33 +853,27 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 
 	giveOrders(effectiveCmdId, selectedUnits, { targetId }, options)
 
-	pendingTargetId = targetId
-	pendingTargetIsFeature = isFeature
-	pendingExpireTime = realTime + doubleClickTime
-	pendingCmdID = effectiveCmdId
-	pendingAlt = clickAlt
-	pendingCtrl = clickCtrl
-	pendingCmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
-	lastFirstClickFrame = spGetGameFrame()
+	pendingDoubleClick.targetId = targetId
+	pendingDoubleClick.isFeature = isFeature
+	pendingDoubleClick.expireTime = getPendingExpireTime(realTime)
+	pendingDoubleClick.cmdId = effectiveCmdId
+	pendingDoubleClick.alt = clickAlt
+	pendingDoubleClick.ctrl = clickCtrl
+	pendingDoubleClick.cmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
+	pendingDoubleClick.firstClickTime = realTime
 	if queuing then
-		heldCommandDescIndex = pendingCmdDescIndex
+		heldCommandDescIndex = pendingDoubleClick.cmdDescIndex
 	end
 	return true
 end
 
-function widget:MousePress(mouseX, mouseY, button)
+function widget:MousePress(_mouseX, _mouseY, button)
 	if button ~= 1 then
-		return false
-	end
-	if not pendingTargetId or not pendingCmdID or osClock() >= pendingExpireTime then
-		return false
-	end
-	if spGetGameFrame() == lastFirstClickFrame then
 		return false
 	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	local options = { alt = alt, ctrl = ctrl, meta = meta, shift = shift }
-	return tryCompletePendingDoubleClick(options, pendingCmdID)
+	return consumePendingDoubleClickClick(options, pendingDoubleClick.cmdId)
 end
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
@@ -899,7 +966,8 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 end
 
 function widget:CommandNotify(cmdId, params, options)
-	if tryCompletePendingDoubleClick(options, resolveDoubleClickCmdId(cmdId)) then
+	local effectiveCmdId = resolveDoubleClickCmdId(cmdId)
+	if #params ~= 4 and consumePendingDoubleClickClick(options, effectiveCmdId) then
 		return true
 	end
 	if #params == 1 then
@@ -937,10 +1005,14 @@ function widget:CommandNotify(cmdId, params, options)
 	if targetType == UNIT then
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
-		local unitDefName = spGetFeatureResurrect(targetId)
-		-- filter only wrecks which can be resurrected
-		if unitDefName == nil or unitDefName == "" then
-			return false
+		local unitDefName
+		if cmdId == CMD.RESURRECT then
+			unitDefName = spGetFeatureResurrect(targetId)
+			if unitDefName == nil or unitDefName == "" then
+				return false
+			end
+		elseif options.ctrl then
+			unitDefName = spGetFeatureResurrect(targetId)
 		end
 		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, unitDefName)
 	end
@@ -958,6 +1030,7 @@ local function initialize()
 		widgetHandler:RemoveWidget()
 	end
 	myAllyTeamID = spGetMyAllyTeamID()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:PlayerChanged()
@@ -973,7 +1046,7 @@ function widget:Update()
 		deferClearActiveCommand = false
 		spSetActiveCommand(0)
 	end
-	if pendingTargetId and osClock() >= pendingExpireTime then
+	if pendingDoubleClick.targetId and osClock() >= pendingDoubleClick.expireTime then
 		clearDoubleClickPending()
 	end
 	updateShiftCommandKeep()
@@ -981,12 +1054,12 @@ end
 
 function widget:ActiveCommandChanged(cmdid)
 	if cmdid then
-		if pendingCmdID and pendingCmdID ~= cmdid then
+		if pendingDoubleClick.cmdId and pendingDoubleClick.cmdId ~= cmdid then
 			clearDoubleClickPending()
 		end
 		return
 	end
-	if pendingTargetId and osClock() < pendingExpireTime then
+	if isPendingDoubleClickActive() then
 		return
 	end
 	if heldCommandDescIndex then
