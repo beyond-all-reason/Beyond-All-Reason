@@ -9,7 +9,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter",
-		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets. Double-click a unit or feature with Attack, Set Target, Capture, Guard, Repair, Reclaim, or Resurrect to order all visible targets of that type. Alt+double-click orders all applicable targets on screen (enemies, allies, or features by context). Ctrl+double-click queues all same-type targets per unit sorted by self-distance. Alt+Ctrl+double-click does the same with all on-screen targets.",
+		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets. Double-click: same-type visible targets, each unit queues closest-to-self first. Space+double-click prepends. Ctrl+double-click broadens collection (all enemies, allied teamID, or same featureDefID; reclaim ally = own team). Alt+double-click evenly chunks targets among units or unit squads among targets by proximity. Modifiers stack.",
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
@@ -75,6 +75,9 @@ local pendingDoubleClick = {
 	cmdDescIndex = nil,
 	alt = false,
 	ctrl = false,
+	meta = false,
+	shift = false,
+	right = false,
 	firstClickTime = 0,
 }
 local heldCommandDescIndex
@@ -348,6 +351,9 @@ local function clearDoubleClickPending()
 	pendingDoubleClick.cmdDescIndex = nil
 	pendingDoubleClick.alt = false
 	pendingDoubleClick.ctrl = false
+	pendingDoubleClick.meta = false
+	pendingDoubleClick.shift = false
+	pendingDoubleClick.right = false
 	pendingDoubleClick.firstClickTime = 0
 end
 
@@ -472,6 +478,37 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	end
 end
 
+local function divideWithRemainder(total, groupCount)
+	local baseCount = mathFloor(total / groupCount)
+	local extraCount = total % groupCount
+	return baseCount, extraCount
+end
+
+local function pickClosestUnassigned(refId, candidates, unassigned, count)
+	local available = {}
+	for i = 1, #candidates do
+		local candidateId = candidates[i]
+		if unassigned[candidateId] then
+			tableInsert(available, candidateId)
+		end
+	end
+	if count <= 0 or #available == 0 then
+		return {}
+	end
+	sortTargetsByDistance({ refId }, available, true, refId)
+	local picked = {}
+	local pickCount = count
+	if pickCount > #available then
+		pickCount = #available
+	end
+	for i = 1, pickCount do
+		local pickedId = available[i]
+		picked[i] = pickedId
+		unassigned[pickedId] = nil
+	end
+	return picked
+end
+
 local function giveOrdersPerUnitSortedFromSelf(cmdId, selectedUnits, filteredTargets, options)
 	local closestFirst = not options.meta
 	for i = 1, #selectedUnits do
@@ -485,16 +522,63 @@ local function giveOrdersPerUnitSortedFromSelf(cmdId, selectedUnits, filteredTar
 	end
 end
 
-local function issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refUnitID)
+local function giveAltDistributedOrders(cmdId, selectedUnits, filteredTargets, options, refTargetId)
+	local closestFirst = not options.meta
+	if #filteredTargets >= #selectedUnits then
+		local baseCount, extraCount = divideWithRemainder(#filteredTargets, #selectedUnits)
+		local unassigned = {}
+		for i = 1, #filteredTargets do
+			unassigned[filteredTargets[i]] = true
+		end
+		for i = 1, #selectedUnits do
+			local selectedUnitId = selectedUnits[i]
+			local count = baseCount
+			if i <= extraCount then
+				count = count + 1
+			end
+			if count > 0 then
+				local assignedTargets = pickClosestUnassigned(selectedUnitId, filteredTargets, unassigned, count)
+				if #assignedTargets > 0 then
+					sortTargetsByDistance({ selectedUnitId }, assignedTargets, closestFirst, selectedUnitId)
+					giveOrders(cmdId, { selectedUnitId }, assignedTargets, options)
+				end
+			end
+		end
+	else
+		local baseCount, extraCount = divideWithRemainder(#selectedUnits, #filteredTargets)
+		local unassigned = {}
+		for i = 1, #selectedUnits do
+			unassigned[selectedUnits[i]] = true
+		end
+		local sortedTargets = {}
+		for i = 1, #filteredTargets do
+			sortedTargets[i] = filteredTargets[i]
+		end
+		sortTargetsByDistance(selectedUnits, sortedTargets, true, refTargetId)
+		for i = 1, #sortedTargets do
+			local targetId = sortedTargets[i]
+			local count = baseCount
+			if i <= extraCount then
+				count = count + 1
+			end
+			if count > 0 then
+				local squad = pickClosestUnassigned(targetId, selectedUnits, unassigned, count)
+				if #squad > 0 then
+					giveOrders(cmdId, squad, { targetId }, options)
+				end
+			end
+		end
+	end
+end
+
+local function issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	if #filteredTargets == 0 then
 		return
 	end
-	if options.ctrl then
-		giveOrdersPerUnitSortedFromSelf(issueCmdId, selectedUnits, filteredTargets, options)
+	if options.alt then
+		giveAltDistributedOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	else
-		local closestFirst = not options.meta
-		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, refUnitID)
-		giveOrders(issueCmdId, selectedUnits, filteredTargets, options)
+		giveOrdersPerUnitSortedFromSelf(issueCmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -676,6 +760,21 @@ local function getVisibleUnitsOfOwnTeamType(unitDefID)
 	return filteredTargets
 end
 
+local function getVisibleUnitsOfTeam(teamID)
+	local filteredTargets = {}
+	local visibleUnits = spGetVisibleUnits()
+	if not visibleUnits then
+		return filteredTargets
+	end
+	for i = 1, #visibleUnits do
+		local unitID = visibleUnits[i]
+		if spGetUnitTeam(unitID) == teamID then
+			tableInsert(filteredTargets, unitID)
+		end
+	end
+	return filteredTargets
+end
+
 local function collectVisibleFeatures(cmdId, featureDefID)
 	local filteredTargets = {}
 	local visibleFeatures = spGetVisibleFeatures(-1)
@@ -727,24 +826,23 @@ local function isValidDoubleClickTarget(cmdId, targetId, isFeature)
 	return true
 end
 
-local function collectDoubleClickTargets(cmdId, targetId, isFeature, altMode)
-	if altMode then
-		if isFeature then
-			return collectVisibleFeatures(cmdId)
-		end
-		local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
-		if cmdId == CMD.RECLAIM and not isEnemy then
-			return getVisibleUnitsOfOwnTeam()
-		end
-		local targetAllegiance = isEnemy and ENEMY_UNITS or ALLY_UNITS
-		return getVisibleUnitsByAllegiance(targetAllegiance)
-	end
+local function collectDoubleClickTargets(cmdId, targetId, isFeature, options)
 	if isFeature then
 		local featureDefID = spGetFeatureDefID(getRawFeatureId(targetId))
 		if not featureDefID then
 			return {}
 		end
 		return collectVisibleFeatures(cmdId, featureDefID)
+	end
+	if options.ctrl then
+		local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
+		if isEnemy then
+			return getVisibleUnitsByAllegiance(ENEMY_UNITS)
+		end
+		if cmdId == CMD.RECLAIM then
+			return getVisibleUnitsOfOwnTeam()
+		end
+		return getVisibleUnitsOfTeam(spGetUnitTeam(targetId))
 	end
 	local unitDefID = spGetUnitDefID(targetId)
 	if not unitDefID then
@@ -772,7 +870,7 @@ local function issuePendingDoubleClickMassOrders(options)
 	local savedCmdDescIndex = pendingDoubleClick.cmdDescIndex or spGetCmdDescIndex(issueCmdId)
 	local queuing = isQueuing(options)
 	clearDoubleClickPending()
-	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options.alt)
+	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options)
 	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
 	issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	if queuing then
@@ -797,11 +895,17 @@ local function tryCompletePendingDoubleClick(options, effectiveCmdId)
 	local now = osClock()
 	local clickAlt = options.alt or false
 	local clickCtrl = options.ctrl or false
+	local clickMeta = options.meta or false
+	local clickShift = options.shift or false
+	local clickRight = options.right or false
 	if isPendingDoubleClickActive()
 		and pendingDoubleClick.cmdId == effectiveCmdId
 		and doubleClickCommands[pendingDoubleClick.cmdId]
 		and pendingDoubleClick.alt == clickAlt
 		and pendingDoubleClick.ctrl == clickCtrl
+		and pendingDoubleClick.meta == clickMeta
+		and pendingDoubleClick.shift == clickShift
+		and pendingDoubleClick.right == clickRight
 		and now >= pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP
 	then
 		return issuePendingDoubleClickMassOrders(options)
@@ -818,6 +922,10 @@ local function consumePendingDoubleClickClick(options, effectiveCmdId)
 		return false
 	end
 	if effectiveCmdId and pendingDoubleClick.cmdId ~= effectiveCmdId then
+		return false
+	end
+	local clickRight = options.right or false
+	if pendingDoubleClick.right ~= clickRight then
 		return false
 	end
 	tryCompletePendingDoubleClick(options, pendingDoubleClick.cmdId)
@@ -846,6 +954,9 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	local queuing = isQueuing(options)
 	local clickAlt = options.alt or false
 	local clickCtrl = options.ctrl or false
+	local clickMeta = options.meta or false
+	local clickShift = options.shift or false
+	local clickRight = options.right or false
 
 	if not doubleClickCommands[effectiveCmdId] then
 		return false
@@ -859,6 +970,9 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	pendingDoubleClick.cmdId = effectiveCmdId
 	pendingDoubleClick.alt = clickAlt
 	pendingDoubleClick.ctrl = clickCtrl
+	pendingDoubleClick.meta = clickMeta
+	pendingDoubleClick.shift = clickShift
+	pendingDoubleClick.right = clickRight
 	pendingDoubleClick.cmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
 	pendingDoubleClick.firstClickTime = realTime
 	if queuing then
@@ -868,11 +982,11 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 end
 
 function widget:MousePress(_mouseX, _mouseY, button)
-	if button ~= 1 then
+	if button ~= 1 and button ~= 3 then
 		return false
 	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	local options = { alt = alt, ctrl = ctrl, meta = meta, shift = shift }
+	local options = { alt = alt, ctrl = ctrl, meta = meta, shift = shift, right = (button == 3) }
 	return consumePendingDoubleClickClick(options, pendingDoubleClick.cmdId)
 end
 
