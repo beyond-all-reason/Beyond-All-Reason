@@ -57,6 +57,9 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local commandLimit = 2000
+local MAX_DOUBLECLICK_UNITS = 100
+local DOUBLECLICK_START_RADIUS = 2000
+local DOUBLECLICK_RADIUS_STEP = 500
 local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local osClock = os.clock
 
@@ -386,6 +389,35 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
+local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
+	if #filteredTargets <= MAX_DOUBLECLICK_UNITS then
+		return filteredTargets
+	end
+	local refPosition = getTargetPosition(refTargetId)
+	sortTargetsByDistance({ refTargetId }, filteredTargets, true, refTargetId)
+	local radius = DOUBLECLICK_START_RADIUS
+	while radius >= 0 do
+		local radiusSq = radius * radius
+		local limitedTargets = {}
+		for i = 1, #filteredTargets do
+			local targetId = filteredTargets[i]
+			local targetPosition = getTargetPosition(targetId)
+			if distanceSq(refPosition, targetPosition) <= radiusSq then
+				tableInsert(limitedTargets, targetId)
+			end
+		end
+		if #limitedTargets <= MAX_DOUBLECLICK_UNITS then
+			return limitedTargets
+		end
+		radius = radius - DOUBLECLICK_RADIUS_STEP
+	end
+	local cappedTargets = {}
+	for i = 1, MAX_DOUBLECLICK_UNITS do
+		cappedTargets[i] = filteredTargets[i]
+	end
+	return cappedTargets
+end
+
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
 	maxCommands = maxCommands or commandLimit
 	local queuing = isQueuing(options)
@@ -680,6 +712,7 @@ local function issuePendingDoubleClickMassOrders(options)
 	local queuing = isQueuing(options)
 	clearDoubleClickPending()
 	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options.alt)
+	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId)
 	issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	if queuing then
 		heldCommandDescIndex = savedCmdDescIndex
@@ -699,10 +732,33 @@ local function resolveDoubleClickCmdId(cmdId)
 	return cmdId
 end
 
+local function tryCompletePendingDoubleClick(options, effectiveCmdId)
+	local realTime = osClock()
+	local clickAlt = options.alt or false
+	local clickCtrl = options.ctrl or false
+	if pendingTargetId
+		and pendingCmdID
+		and realTime < pendingExpireTime
+		and pendingCmdID == effectiveCmdId
+		and doubleClickCommands[pendingCmdID]
+		and pendingAlt == clickAlt
+		and pendingCtrl == clickCtrl
+		and spGetGameFrame() ~= lastFirstClickFrame
+	then
+		issuePendingDoubleClickMassOrders(options)
+		return true
+	end
+	return false
+end
+
 local function handleDoubleClickSingleTarget(cmdId, params, options)
 	local targetId = params[1]
 	local isFeature = isFeatureTargetId(targetId)
 	local effectiveCmdId = resolveDoubleClickCmdId(cmdId)
+
+	if tryCompletePendingDoubleClick(options, effectiveCmdId) then
+		return true
+	end
 
 	if not isValidDoubleClickTarget(effectiveCmdId, targetId, isFeature) then
 		return false
@@ -717,19 +773,6 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	local queuing = isQueuing(options)
 	local clickAlt = options.alt or false
 	local clickCtrl = options.ctrl or false
-	local pendingActive = pendingTargetId and pendingCmdID and realTime < pendingExpireTime
-	local isDoubleClick = pendingActive
-		and pendingTargetId == targetId
-		and pendingTargetIsFeature == isFeature
-		and pendingCmdID == effectiveCmdId
-		and doubleClickCommands[pendingCmdID]
-		and pendingAlt == clickAlt
-		and pendingCtrl == clickCtrl
-
-	if isDoubleClick then
-		issuePendingDoubleClickMassOrders(options)
-		return true
-	end
 
 	if not doubleClickCommands[effectiveCmdId] then
 		return false
@@ -755,35 +798,15 @@ function widget:MousePress(mouseX, mouseY, button)
 	if button ~= 1 then
 		return false
 	end
-	local realTime = osClock()
-	if not pendingTargetId or not pendingCmdID or realTime >= pendingExpireTime then
+	if not pendingTargetId or not pendingCmdID or osClock() >= pendingExpireTime then
 		return false
 	end
 	if spGetGameFrame() == lastFirstClickFrame then
 		return false
 	end
-	local _, activeCmdID = spGetActiveCommand()
-	if activeCmdID and doubleClickCommands[activeCmdID] then
-		return false
-	end
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
-	local isFeature = false
-	if targetType == FEATURE then
-		isFeature = true
-		targetId = normalizeFeatureTargetId(targetId)
-	elseif targetType ~= UNIT then
-		return false
-	end
-	if targetId ~= pendingTargetId or isFeature ~= pendingTargetIsFeature then
-		return false
-	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if pendingAlt ~= alt or pendingCtrl ~= ctrl then
-		return false
-	end
 	local options = { alt = alt, ctrl = ctrl, meta = meta, shift = shift }
-	issuePendingDoubleClickMassOrders(options)
-	return true
+	return tryCompletePendingDoubleClick(options, pendingCmdID)
 end
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
@@ -876,6 +899,9 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 end
 
 function widget:CommandNotify(cmdId, params, options)
+	if tryCompletePendingDoubleClick(options, resolveDoubleClickCmdId(cmdId)) then
+		return true
+	end
 	if #params == 1 then
 		return handleDoubleClickSingleTarget(cmdId, params, options)
 	end
