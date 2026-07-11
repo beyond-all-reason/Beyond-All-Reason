@@ -25,6 +25,9 @@
     <div id="ceg-titlebar" class="titlebar">
         <span class="title">CEG Browser</span>
         <div class="titlebar-btns">
+            <button class="winbtn scale-btn" data-class-disabled="scaleAtMin == 1" data-event-click="scaleDown()">-</button>
+            <span class="scale-label">{{scaleLabel}}</span>
+            <button class="winbtn scale-btn" data-class-disabled="scaleAtMax == 1" data-event-click="scaleUp()">+</button>
             <button class="winbtn minimize" data-event-click="toggleCollapse()">_</button>
             <button class="winbtn danger"   data-event-click="closeWidget()">X</button>
         </div>

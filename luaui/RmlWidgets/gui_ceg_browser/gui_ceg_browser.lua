@@ -105,6 +105,13 @@ local cegDefs       = {}   -- name -> def table, populated during LoadAllCEGs
 local altHeld       = false
 local hoveredCEG    = ""
 
+-- UI scale: 5 presets, default index 3 (1.0)
+local SCALE_PRESETS = { 0.75, 0.875, 1.0, 1.125, 1.25 }
+local scaleIndex    = Spring.GetConfigInt("ceg_browser_scale_index", 3)
+scaleIndex          = math.max(1, math.min(#SCALE_PRESETS, scaleIndex))
+local uiScale       = SCALE_PRESETS[scaleIndex]
+local scaleNeedsApply = true  -- apply on first Update
+
 ----------------------------------------------------------------
 -- CEG name loading
 ----------------------------------------------------------------
@@ -318,6 +325,33 @@ local function RebuildSoundList()
     dm_handle.soundLetterFilter = soundLetterFilter
     dm_handle.soundPageDisplay = (soundPageIndex + 1) .. " / " .. pageCount
     dm_handle.soundTotalCount  = total .. " sounds"
+end
+
+----------------------------------------------------------------
+-- UI Scale
+----------------------------------------------------------------
+local function UpdateScaleModel()
+    if not dm_handle then return end
+    local pct = math.floor(SCALE_PRESETS[scaleIndex] * 100 + 0.5)
+    dm_handle.scaleLabel = pct .. "%"
+    dm_handle.scaleAtMin = (scaleIndex <= 1) and 1 or 0
+    dm_handle.scaleAtMax = (scaleIndex >= #SCALE_PRESETS) and 1 or 0
+end
+
+local function ApplyScale(container)
+    -- rml-dom-escape: dp_ratio must be set on the context directly, no data-binding equivalent
+    -- Use dp_ratio scaling instead of CSS transform to avoid sub-pixel blur
+    local ctx = RmlUi.GetContext("shared")
+    if not ctx then return end
+    local vsx, vsy = spGetViewGeom()
+    local userScale = Spring.GetConfigFloat("ui_scale", 1.0)
+    local baseWidth, baseHeight = 1920, 1080
+    local resFactor = math.min(vsx / baseWidth, vsy / baseHeight)
+    local baseDp = math.floor(resFactor * userScale * 100) / 100
+    local scaledDp = math.floor(baseDp * SCALE_PRESETS[scaleIndex] * 100) / 100
+    ctx.dp_ratio = scaledDp
+    Spring.SetConfigInt("ceg_browser_scale_index", scaleIndex)
+    scaleNeedsApply = false
 end
 
 ----------------------------------------------------------------
@@ -657,6 +691,11 @@ local init_model = {
     pageDisplay  = "1 / 1",
     totalCount   = "",
     isCollapsed  = true,
+
+    -- UI scale
+    scaleLabel   = "100%",
+    scaleAtMin   = 0,
+    scaleAtMax   = 0,
 
     cheatOn     = 0,
     globallosOn = 0,
@@ -1038,6 +1077,24 @@ local init_model = {
         widgetHandler:RemoveWidget(widget)
     end,
 
+    scaleDown = function(ev)
+        if scaleIndex > 1 then
+            scaleIndex = scaleIndex - 1
+            uiScale = SCALE_PRESETS[scaleIndex]
+            scaleNeedsApply = true
+            UpdateScaleModel()
+        end
+    end,
+
+    scaleUp = function(ev)
+        if scaleIndex < #SCALE_PRESETS then
+            scaleIndex = scaleIndex + 1
+            uiScale = SCALE_PRESETS[scaleIndex]
+            scaleNeedsApply = true
+            UpdateScaleModel()
+        end
+    end,
+
     -- Sound panel functions
     soundApplyFilter = function(ev)
         soundFilter = (ev and ev.parameters and ev.parameters.value) or ""
@@ -1169,6 +1226,11 @@ function widget:Update()
         end
     end
 
+    -- Apply scale when changed
+    if scaleNeedsApply then
+        ApplyScale()
+    end
+
     -- Drive window drag (titlebar mousedown -> Update moves container)
     if dragState.active and dragState.rootEl then
         local mx, my = Spring.GetMouseState()
@@ -1259,6 +1321,8 @@ function widget:Initialize()
     document:Show()
     LoadPosition()
     RebuildSoundList()
+    UpdateScaleModel()
+    scaleNeedsApply = true
 
     -- Wire up titlebar drag
     local titlebarEl  = document:GetElementById("ceg-titlebar")
@@ -1325,9 +1389,17 @@ end
 
 function widget:Shutdown()
     Spring.SDLStopTextInput()
-    if document then document:Close() end
+    -- Restore dp_ratio to base value so other widgets are unaffected
     local ctx = RmlUi.GetContext("shared")
-    if ctx and dm_handle then ctx:RemoveDataModel(MODEL_NAME) end
+    if ctx then
+        local vsx, vsy = spGetViewGeom()
+        local userScale = Spring.GetConfigFloat("ui_scale", 1.0)
+        local resFactor = math.min(vsx / 1920, vsy / 1080)
+        ctx.dp_ratio = math.floor(resFactor * userScale * 100) / 100
+    end
+    if document then document:Close() end
+    local ctx2 = RmlUi.GetContext("shared")
+    if ctx2 and dm_handle then ctx2:RemoveDataModel(MODEL_NAME) end
     document  = nil
     dm_handle = nil
 end

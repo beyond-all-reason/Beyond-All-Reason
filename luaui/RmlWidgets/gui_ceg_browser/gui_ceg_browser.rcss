@@ -47,6 +47,29 @@ body, div, p, span, input, button {
     gap: 4dp;
 }
 
+.scale-btn {
+    background-color: #222;
+    border-color: #444;
+    color: #aaa;
+}
+
+.scale-btn:hover { background-color: #333; color: white; }
+
+.scale-btn.disabled {
+    color: #444;
+    border-color: #333;
+    pointer-events: none;
+}
+
+.scale-label {
+    font-size: 10dp;
+    color: #aaa;
+    white-space: nowrap;
+    min-width: 28dp;
+    text-align: center;
+    line-height: 18dp;
+}
+
 /* ── Navbar ── */
 .navbar {
     display: flex;
@@ -62,6 +85,7 @@ body, div, p, span, input, button {
     font-weight: bold;
     color: white;
     white-space: nowrap;
+    flex: 1;
 }
 
 /* ── Alphabet filter ── */

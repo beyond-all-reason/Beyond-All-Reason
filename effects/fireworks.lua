@@ -252,7 +252,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[1 0.85 0.3 0.05   1 0.7 0.2 0.45   0 0 0 0.01]],
+                colormap            = [[1 0.85 0.3 0.05   1 0.7 0.2 0.45   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -275,7 +275,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -299,11 +299,10 @@ local definitions = {
             properties = {
                 airdrag       = 0.995,
                 alwaysVisible = 1,
-                colormap      = [[1 1 1 0.8   0 0 0 0.01]],
+                colormap      = [[1 1 1 0.8   1 1 1 0]],
                 directional   = 1,
                 emitRot       = 0,
                 emitRotSpread = 5,
-                emitRotY      = 0,
                 emitVector    = [[0,1,0]],
                 gravity       = [[0,-0.04,0]],
                 numparticles  = 8,
@@ -324,11 +323,10 @@ local definitions = {
             properties = {
                 airdrag       = 0.995,
                 alwaysVisible = 1,
-                colormap      = [[1 1 1 0.8   0 0 0 0.01]],
+                colormap      = [[1 1 1 0.8   1 1 1 0]],
                 directional   = 1,
                 emitRot       = 60,
                 emitRotSpread = 5,
-                emitRotY      = 0,
                 emitVector    = [[0,1,0]],
                 gravity       = [[0,-0.04,0]],
                 numparticles  = 8,
@@ -349,11 +347,10 @@ local definitions = {
             properties = {
                 airdrag       = 0.995,
                 alwaysVisible = 1,
-                colormap      = [[1 1 1 0.8   0 0 0 0.01]],
+                colormap      = [[1 1 1 0.8   1 1 1 0]],
                 directional   = 1,
                 emitRot       = 120,
                 emitRotSpread = 5,
-                emitRotY      = 0,
                 emitVector    = [[0,1,0]],
                 gravity       = [[0,-0.04,0]],
                 numparticles  = 8,
@@ -411,7 +408,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[0.2 0.4 1.0 0.18   0.2 0.4 1.0 0.10   0 0 0 0.01]],
+                colormap            = [[0.2 0.4 1.0 0.18   0.2 0.4 1.0 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -437,7 +434,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.94,
                 alwaysVisible       = 1,
-                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   0 0 0 0.005]],
+                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   1 1 1 0]],
                 directional         = true,
                 emitrot             = 5,
                 emitrotspread       = 180,
@@ -515,7 +512,7 @@ local definitions = {
 				0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 				0.12 0.11 0.13 0.09
-			        0 0 0 0.01
+			        1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -548,7 +545,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[1 0.2 0.2 0.05   0.9 0.15 0.15 0.45   0 0 0 0.01]],
+                colormap            = [[1 0.2 0.2 0.05   0.9 0.15 0.15 0.45   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -571,7 +568,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -631,7 +628,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[0.3 1.0 0.4 0.18   0.3 1.0 0.4 0.10   0 0 0 0.01]],
+                colormap            = [[0.3 1.0 0.4 0.18   0.3 1.0 0.4 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -657,7 +654,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.94,
                 alwaysVisible       = 1,
-                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   0 0 0 0.005]],
+                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   1 1 1 0]],
                 directional         = true,
                 emitrot             = 5,
                 emitrotspread       = 180,
@@ -735,7 +732,7 @@ local definitions = {
    				0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 				0.12 0.11 0.13 0.09     
-				0 0 0 0.01
+				1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -768,7 +765,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[0.3 0.5 1.0 0.04   0.2 0.4 0.9 0.40   0 0 0 0.01]],
+                colormap            = [[0.3 0.5 1.0 0.04   0.2 0.4 0.9 0.40   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -791,7 +788,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -853,7 +850,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[1.0 0.8 0.3 0.18   1.0 0.7 0.2 0.10   0 0 0 0.01]],
+                colormap            = [[1.0 0.8 0.3 0.18   1.0 0.7 0.2 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -879,7 +876,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.94,
                 alwaysVisible       = 1,
-                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   0 0 0 0.005]],
+                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   1 1 1 0]],
                 directional         = true,
                 emitrot             = 5,
                 emitrotspread       = 180,
@@ -957,7 +954,7 @@ local definitions = {
 				0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 				0.12 0.11 0.13 0.09
-			        0 0 0 0.01
+			        1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -990,7 +987,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[0.3 1.0 0.4 0.05   0.2 0.8 0.3 0.45   0 0 0 0.01]],
+                colormap            = [[0.3 1.0 0.4 0.05   0.2 0.8 0.3 0.45   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -1013,7 +1010,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -1075,7 +1072,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[1.0 0.3 0.9 0.18   0.9 0.2 0.8 0.10   0 0 0 0.01]],
+                colormap            = [[1.0 0.3 0.9 0.18   0.9 0.2 0.8 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -1101,7 +1098,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.94,
                 alwaysVisible       = 1,
-                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   0 0 0 0.005]],
+                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   1 1 1 0]],
                 directional         = true,
                 emitrot             = 5,
                 emitrotspread       = 180,
@@ -1180,7 +1177,7 @@ local definitions = {
 				0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 				0.12 0.11 0.13 0.09
-				0 0 0 0.01
+				1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -1213,7 +1210,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[0.8 0.4 1.0 0.05   0.6 0.3 0.9 0.45   0 0 0 0.01]],
+                colormap            = [[0.8 0.4 1.0 0.05   0.6 0.3 0.9 0.45   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -1236,7 +1233,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -1296,7 +1293,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[0.3 0.9 1.0 0.18   0.2 0.8 0.9 0.10   0 0 0 0.01]],
+                colormap            = [[0.3 0.9 1.0 0.18   0.2 0.8 0.9 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -1410,7 +1407,7 @@ local definitions = {
 				0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 				0.12 0.11 0.13 0.09
-				0 0 0 0.01
+				1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -1443,7 +1440,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.98,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.04   0.8 0.8 0.8 0.40   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.04   0.8 0.8 0.8 0.40   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.05,0]],
@@ -1466,7 +1463,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.92,
                 alwaysVisible       = 1,
-                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   0 0 0 0.01]],
+                colormap            = [[1 1 1 0.08   1 0.8 0.3 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.4,0]],
@@ -1527,7 +1524,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.985,
                 alwaysVisible       = 1,
-                colormap            = [[1.0 0.3 0.3 0.18   0.9 0.2 0.2 0.10   0 0 0 0.01]],
+                colormap            = [[1.0 0.3 0.3 0.18   0.9 0.2 0.2 0.10   1 1 1 0]],
                 emitRotSpread       = 180,
                 emitVector          = [[0,1,0]],
                 gravity             = [[0,-0.06,0]],
@@ -1608,7 +1605,7 @@ local definitions = {
 			        0.16 0.15 0.17 0.18
 				0.16 0.15 0.17 0.13
 			        0.12 0.11 0.13 0.09
-			        0 0 0 0.01
+			        1 1 1 0
 				]],
                 directional         = false,
                 emitrot             = 5,
@@ -1643,7 +1640,7 @@ local definitions = {
             properties = {
                 airdrag             = 0.94,
                 alwaysVisible       = 1,
-                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   0 0 0 0.005]],
+                colormap            = [[0.44 0.44 0.48 0.015   0.3 0.31 0.35 0.01   1 1 1 0]],
                 directional         = true,
                 emitrot             = 5,
                 emitrotspread       = 180,
