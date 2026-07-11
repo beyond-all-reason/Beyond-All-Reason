@@ -78,7 +78,7 @@
 		"caretaker": 6
 	},
 	"leggant": {
-		"importance": [0.0, 3.0],
+		"importance": [0.0, 1.0],
 		"require_energy": true,
 		"income_tier": [100, 150, 200, 250, 300],
 //Metal Cost		   	1200		2500		11000			2600		8000			7000				23500				20000		950
