@@ -9,7 +9,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter",
-		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets. Double-click: same-type visible targets, each unit queues closest-to-self first. Space+double-click prepends. Ctrl+double-click broadens collection (all enemies, allied teamID, or same featureDefID; reclaim ally = own team). Alt+double-click evenly chunks targets among units or unit squads among targets by proximity. Modifiers stack.",
+		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets. Double-click: same-type visible targets, each unit queues closest-to-self first; click selected unit to mass-order only selection, click external unit to exclude selection. Space+double-click prepends. Ctrl+double-click broadens collection (all enemies, allied teamID, or same featureDefID; reclaim ally = own team). Alt+double-click evenly chunks targets among units or unit squads among targets by proximity. Modifiers stack.",
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
@@ -78,6 +78,7 @@ local pendingDoubleClick = {
 	meta = false,
 	shift = false,
 	right = false,
+	targetInSelection = false,
 	firstClickTime = 0,
 }
 local heldCommandDescIndex
@@ -354,6 +355,7 @@ local function clearDoubleClickPending()
 	pendingDoubleClick.meta = false
 	pendingDoubleClick.shift = false
 	pendingDoubleClick.right = false
+	pendingDoubleClick.targetInSelection = false
 	pendingDoubleClick.firstClickTime = 0
 end
 
@@ -826,6 +828,34 @@ local function isValidDoubleClickTarget(cmdId, targetId, isFeature)
 	return true
 end
 
+local function buildSelectionSet(selectedUnits)
+	local selectionSet = {}
+	for i = 1, #selectedUnits do
+		selectionSet[selectedUnits[i]] = true
+	end
+	return selectionSet
+end
+
+local function isUnitInSelection(unitId, selectionSet)
+	return selectionSet[unitId] or false
+end
+
+local function filterTargetsBySelectionMembership(targets, selectedUnits, targetInSelection)
+	local selectionSet = buildSelectionSet(selectedUnits)
+	local filtered = {}
+	for i = 1, #targets do
+		local targetId = targets[i]
+		if isFeatureTargetId(targetId) then
+			tableInsert(filtered, targetId)
+		elseif targetInSelection and isUnitInSelection(targetId, selectionSet) then
+			tableInsert(filtered, targetId)
+		elseif not targetInSelection and not isUnitInSelection(targetId, selectionSet) then
+			tableInsert(filtered, targetId)
+		end
+	end
+	return filtered
+end
+
 local function collectDoubleClickTargets(cmdId, targetId, isFeature, options)
 	if isFeature then
 		local featureDefID = spGetFeatureDefID(getRawFeatureId(targetId))
@@ -868,9 +898,11 @@ local function issuePendingDoubleClickMassOrders(options)
 	local refTargetId = pendingDoubleClick.targetId
 	local refTargetIsFeature = pendingDoubleClick.isFeature
 	local savedCmdDescIndex = pendingDoubleClick.cmdDescIndex or spGetCmdDescIndex(issueCmdId)
+	local targetInSelection = pendingDoubleClick.targetInSelection
 	local queuing = isQueuing(options)
 	clearDoubleClickPending()
 	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options)
+	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectedUnits, targetInSelection)
 	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
 	issueDoubleClickMassOrders(issueCmdId, selectedUnits, filteredTargets, options, refTargetId)
 	if queuing then
@@ -964,6 +996,8 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 
 	giveOrders(effectiveCmdId, selectedUnits, { targetId }, options)
 
+	local selectionSet = buildSelectionSet(selectedUnits)
+	pendingDoubleClick.targetInSelection = not isFeature and isUnitInSelection(targetId, selectionSet)
 	pendingDoubleClick.targetId = targetId
 	pendingDoubleClick.isFeature = isFeature
 	pendingDoubleClick.expireTime = getPendingExpireTime(realTime)
