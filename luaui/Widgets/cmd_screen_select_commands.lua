@@ -3,7 +3,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Screen Select Commands",
-		desc = "Double-click mass unit-target commands on visible screen targets. Supports Attack, Set Target, Capture, Guard, Repair, Reclaim, and Resurrect. First click issues a normal order and keeps the command active; second click on the same target within DoubleClickTime expands to all visible matches of that type. Hold screen_select_hold to mass-expand on a single click (see widget header for bind setup). Each unit orders targets closest-to-itself first. Click a selected unit to mass-order only within the selection; click an external unit to exclude the selection. Shift queues, Space prepends, Ctrl broadens targets (all visible enemies, allied team, or same feature type; reclaim on allies is own team only), and Alt evenly distributes targets among units or unit squads among targets.",
+		desc = "Mass-issue unit-target commands to all visible on-screen matches. Double-click the same target, or hold screen_select_hold for single-click mass orders.",
 		author = "SethDGamre",
 		date = "July 11, 2026",
 		license = "GNU GPL, v2 or later",
