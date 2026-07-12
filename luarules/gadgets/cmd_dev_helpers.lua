@@ -470,7 +470,7 @@ if gadgetHandler:IsSyncedCode() then
 		if cmd == "desync" then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
-			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
+			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or
 			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
@@ -516,6 +516,19 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
+		elseif cmd == "select" then
+			local requestID = words[2]
+			local foundUnits = false
+			for n = 3, #words do
+				local unitID = tonumber(words[n])
+				if unitID and Spring.ValidUnitID(unitID) then
+					Spring.SetUnitNoSelect(unitID, false)
+					foundUnits = true
+				end
+			end
+			if foundUnits and requestID then
+				SendToUnsynced("devhelper_selectunits", playerID, requestID)
+			end
 		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif cmd == "halfhealth" then
@@ -793,6 +806,13 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
+	local pendingSelectRequests = {}
+	local selectRequestSeq = 0
+	local lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2
+	local lastSelectionBoxFrame = -1
+	local HOVER_PICK_SCREEN_RADIUS = 18
+	local HOVER_PICK_WORLD_RADIUS = 120
+
 
 
 	function gadget:Initialize()
@@ -804,6 +824,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
+		gadgetHandler:AddChatAction('select', selectHoveredUnit, "")  -- selects hovered unit, or all units in current selection bounds, including noselect units /luarules select
 		gadgetHandler:AddChatAction('halfhealth', halfHealth, "")  -- halves selected units health, or all units if nothing is selected
 		gadgetHandler:AddChatAction('sethealth', setHealth, "")  -- sets selected units health to a percentage, /luarules sethealth [0-100]
 
@@ -829,6 +850,17 @@ else	-- UNSYNCED
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
 			Spring.MarkerAddPoint(x, y, z, label or "", true)
 		end)
+		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
+			if requestPlayerID ~= Spring.GetMyPlayerID() then
+				return
+			end
+			local requestKey = tostring(requestID)
+			local units = pendingSelectRequests[requestKey]
+			if units and #units > 0 then
+				Spring.SelectUnitArray(units, false)
+			end
+			pendingSelectRequests[requestKey] = nil
+		end)
 	end
 
 	function gadget:Shutdown()
@@ -838,6 +870,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('transferunits')
+		gadgetHandler:RemoveChatAction('select')
 		gadgetHandler:RemoveChatAction('halfhealth')
 		gadgetHandler:RemoveChatAction('sethealth')
 		gadgetHandler:RemoveChatAction('xp')
@@ -855,6 +888,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
 		gadgetHandler:RemoveSyncAction("modmarker")
+		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -877,6 +911,110 @@ else	-- UNSYNCED
 	end
 	function transferUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'transferunits')
+	end
+	function selectHoveredUnit(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		local targetUnits = {}
+		local boxX1, boxY1, boxX2, boxY2 = Spring.GetSelectionBox()
+		if not boxX1 and lastSelectionBoxFrame >= 0 and (Spring.GetGameFrame() - lastSelectionBoxFrame) <= 16 then
+			boxX1, boxY1, boxX2, boxY2 = lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2
+		end
+
+		if boxX1 then
+			targetUnits = Spring.GetUnitsInScreenRectangle(boxX1, boxY1, boxX2, boxY2) or {}
+		else
+			local selectedUnits = Spring.GetSelectedUnits()
+			if selectedUnits and #selectedUnits > 0 then
+			local minX, minZ, maxX, maxZ
+			for i = 1, #selectedUnits do
+				local sx, _, sz = Spring.GetUnitPosition(selectedUnits[i])
+				if sx and sz then
+					if not minX then
+						minX, minZ, maxX, maxZ = sx, sz, sx, sz
+					else
+						if sx < minX then minX = sx end
+						if sx > maxX then maxX = sx end
+						if sz < minZ then minZ = sz end
+						if sz > maxZ then maxZ = sz end
+					end
+				end
+			end
+			if minX then
+				targetUnits = Spring.GetUnitsInRectangle(minX, minZ, maxX, maxZ) or {}
+			end
+			else
+				local mx, my = Spring.GetMouseState()
+				Script.LuaUI.RestoreSelectionVolume() -- keep raycast behavior consistent with existing gadget usage
+				local targetType, unitID = Spring.TraceScreenRay(mx, my)
+				Script.LuaUI.RemoveSelectionVolume()
+				if targetType == 'unit' and unitID and Spring.ValidUnitID(unitID) then
+					targetUnits[1] = unitID
+				else
+					targetUnits = Spring.GetUnitsInScreenRectangle(mx - HOVER_PICK_SCREEN_RADIUS, my - HOVER_PICK_SCREEN_RADIUS, mx + HOVER_PICK_SCREEN_RADIUS, my + HOVER_PICK_SCREEN_RADIUS) or {}
+					if #targetUnits == 0 then
+						local _, pos = Spring.TraceScreenRay(mx, my, true)
+						if type(pos) == 'table' then
+							local nearbyUnits = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], HOVER_PICK_WORLD_RADIUS) or {}
+							local bestUnitID, bestDistSq
+							for i = 1, #nearbyUnits do
+								local candidateID = nearbyUnits[i]
+								if candidateID and Spring.ValidUnitID(candidateID) then
+									local ux, _, uz = Spring.GetUnitPosition(candidateID)
+									if ux and uz then
+										local dx = ux - pos[1]
+										local dz = uz - pos[3]
+										local distSq = dx * dx + dz * dz
+										if not bestDistSq or distSq < bestDistSq then
+											bestDistSq = distSq
+											bestUnitID = candidateID
+										end
+									end
+								end
+							end
+							if bestUnitID then
+								targetUnits[1] = bestUnitID
+							end
+						end
+					end
+				end
+			end
+		end
+
+		if #targetUnits == 0 then
+			return
+		end
+
+		local uniqueUnits = {}
+		local uniqueCount = 0
+		local seen = {}
+		for i = 1, #targetUnits do
+			local unitID = targetUnits[i]
+			if unitID and Spring.ValidUnitID(unitID) and not seen[unitID] then
+				seen[unitID] = true
+				uniqueCount = uniqueCount + 1
+				uniqueUnits[uniqueCount] = unitID
+			end
+		end
+
+		if uniqueCount == 0 then
+			return
+		end
+
+		selectRequestSeq = selectRequestSeq + 1
+		local requestID = tostring(selectRequestSeq)
+		pendingSelectRequests[requestID] = uniqueUnits
+
+		local msg = PACKET_HEADER .. ':select:' .. requestID
+		for i = 1, uniqueCount do
+			msg = msg .. ':' .. uniqueUnits[i]
+		end
+		Spring.SendLuaRulesMsg(msg)
 	end
 	function halfHealth(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'halfhealth')
@@ -1097,6 +1235,12 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Update() -- START OF UPDATE
+		local sx1, sy1, sx2, sy2 = Spring.GetSelectionBox()
+		if sx1 then
+			lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2 = sx1, sy1, sx2, sy2
+			lastSelectionBoxFrame = Spring.GetGameFrame()
+		end
+
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
@@ -1549,6 +1693,25 @@ else	-- UNSYNCED
 			end
 		end
 
+		local includeUnitDefIDs = {}
+		local excludeUnitDefIDs = {}
+		for i = 1, #words do
+			local token = words[i] and string.lower(words[i])
+			if token == "unitdef" or token == "nounitdef" then
+				local nextToken = words[i + 1]
+				if nextToken then
+					local parsed = tonumber((string.gsub(nextToken, "^#", "")))
+					if parsed and UnitDefs[parsed] then
+						if token == "unitdef" then
+							includeUnitDefIDs[parsed] = true
+						else
+							excludeUnitDefIDs[parsed] = true
+						end
+					end
+				end
+			end
+		end
+
 		local function addFilter(tokens, condition)
 			if type(tokens) == "string" then
 				tokens = {tokens}
@@ -1683,9 +1846,19 @@ else	-- UNSYNCED
 		addFilter("cloak", function(ud)
 			return ud.canCloak
 		end)
+		addFilter("hoverattack", function(ud)
+			return ud.hoverAttack
+		end)
+		addFilter("stealth", function(ud)
+			return ud.stealth or ud.sonarStealth
+		end)
 		addFilter("commander", function(ud)
 			local cp = ud.customParams
 			return cp and (cp.iscommander or cp.isscavcommander)
+		end)
+		addFilter("decoy", function(ud)
+			local cp = ud.customParams
+			return cp and (cp.decoyfor or cp.isdecoycommander)
 		end)
 		addFilter("resurrect", function(ud)
 			return ud.canResurrect
@@ -1695,11 +1868,36 @@ else	-- UNSYNCED
 			local isObjectCategory = ud.modCategories and ud.modCategories["object"]
 			return isObjectCategory or (cp and cp.objectify)
 		end)
+		addFilter("collide", function(ud)
+			return ud.collide ~= false
+		end)
+		addFilter("utility", function(ud)
+			local cp = ud.customParams
+			return cp and cp.unitgroup == "util"
+		end)
 		addFilter("startunit", function(ud)
 			if ud.name == "armcom" or ud.name == "corcom" or ud.name == "legcom" then
 				return true
 			end
 			return false
+		end)
+		addFilter("capture", function(ud)
+			return ud.canCapture
+		end)
+		addFilter("seismic", function(ud)
+			return (ud.seismicDistance or ud.seismicdistance or 0) > 0
+		end)
+		addFilter("seismicsignature", function(ud)
+			return (ud.seismicSignature or ud.seismicsignature or 0) > 0
+		end)
+		addFilter("radar", function(ud)
+			return (ud.radarDistance or ud.radarradius or 0) > 1400
+		end)
+		addFilter("jammer", function(ud)
+			return (ud.radarDistanceJam or ud.jammerRadius or ud.jammerradius or 0) > 1
+		end)
+		addFilter("sonar", function(ud)
+			return (ud.sonarDistance or ud.sonarRadius or ud.sonarradius or 0) > 700
 		end)
 		addFilter("stockpile", function(ud)
 			return ud.canStockpile
@@ -1707,6 +1905,17 @@ else	-- UNSYNCED
 		addFilter("all", function()
 			return true
 		end)
+
+		if next(includeUnitDefIDs) then
+			Accept[#Accept + 1] = function(ud)
+				return includeUnitDefIDs[ud.id]
+			end
+		end
+		if next(excludeUnitDefIDs) then
+			Accept[#Accept + 1] = function(ud)
+				return not excludeUnitDefIDs[ud.id]
+			end
+		end
 
 		if #Accept == 0 then
 			Spring.Echo("givecat: no valid filters given")
