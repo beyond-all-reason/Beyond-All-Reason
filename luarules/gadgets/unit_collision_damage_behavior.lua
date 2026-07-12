@@ -46,6 +46,7 @@ local minImpulseToDamageRatio = 0.2
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -150,6 +151,10 @@ end
 local function preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
 	damage = damage * healthRatioMultiplier
 	if damage >= health then
+		if spGetUnitRulesParam(unitID, "unit_effigy") then
+			-- Let the normal damage path run so respawn gadgets can intercept lethal damage.
+			return damage
+		end
 		fallingKillQueue[unitID] = true --done in GameFrame to take it out of unitPreDamaged
 		return 0
 	else
