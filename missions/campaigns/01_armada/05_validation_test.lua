@@ -40,6 +40,76 @@ local startScript = {
 	},
 }
 
+local stages = {
+	validStage = {
+		objectives = {
+			'objectiveWithEmptyText',
+			'objectiveWithInvalidSchemaTypes',
+			'objectiveWithTriggerHavingSettings',
+			'objectiveWithInvalidTriggerType',
+			'objectiveWithMissingTriggerType',
+			'objectiveWithInvalidNextStage',
+			'objectiveWithTriggerHavingActions',
+		}
+	},
+	-- error: objectives entries must be strings
+	stageWithInvalidObjectiveEntry = {
+		objectives = { 'objectiveWithEmptyText', 123 },
+	},
+}
+
+local objectives = {
+
+	objectiveWithEmptyText = {
+		textKey = "",
+	},
+
+	objectiveWithInvalidSchemaTypes = {
+		textKey = "schema_type_check",
+		amount = 'notANumber',   -- error: amount must be a number
+		coop = 'notABoolean',    -- error: coop must be a boolean
+	},
+
+	objectiveWithTriggerHavingSettings = {
+		textKey = "trigger_must_not_have_settings",
+		trigger = {
+			settings = { repeating = true },  -- error: trigger must not have a settings field
+			type = triggerTypes.TimeElapsed,
+			parameters = { gameFrame = 100000000 },
+		},
+	},
+
+	objectiveWithInvalidTriggerType = {
+		textKey = "trigger_with_invalid_type",
+		trigger = {
+			type = 'invalidType',  -- error: invalid trigger type
+		},
+	},
+
+	objectiveWithMissingTriggerType = {
+		textKey = "trigger_with_missing_type",
+		trigger = {
+			parameters = { gameFrame = 100000000 },  -- error: missing trigger type
+		},
+	},
+
+	objectiveWithInvalidNextStage = {
+		textKey = "invalid_next_stage",
+		nextStage = 'nonExistentStage',  -- error: nonExistentStage is not defined in Stages
+	},
+
+	objectiveWithTriggerHavingActions = {
+		textKey = "trigger_must_not_have_actions",
+		trigger = {
+			type = triggerTypes.TimeElapsed,
+			parameters = { gameFrame = 100000000 },
+			actions = { 'someAction' },  -- error: objective trigger must not have actions
+		},
+	},
+}
+
+local initialStage = 'invalidStage' -- error: initialStage must exist in Stages
+
 local triggers = {
 
 	triggerMissingTypeAndActions = {},
@@ -334,6 +404,21 @@ local actions = {
 		},
 	},
 
+	actionWithInvalidStageID = {
+		type = actionTypes.ChangeStage,
+		parameters = {
+			stageID = 'invalidStageID',
+		},
+	},
+
+	actionWithInvalidObjectiveID = {
+		type = actionTypes.UpdateObjective,
+		parameters = {
+			objectiveID = 'invalidObjectiveID',
+			completed = true,
+		},
+	},
+
 	-- Valid SpawnUnits - 'spawnedCom' is referenced in actionReferencingSpawnedUnitName.
 	actionSpawnUnitsValid = {
 		type = actionTypes.SpawnUnits,
@@ -466,6 +551,9 @@ local featureLoadout = {
 return {
 	LobbyData      = lobbyData,
 	StartScript    = startScript,
+	Objectives     = objectives,
+	Stages         = stages,
+	InitialStage   = initialStage,
 	Triggers       = triggers,
 	Actions        = actions,
 	UnitLoadout    = unitLoadout,

@@ -17,6 +17,8 @@ local types = {
 
 	-- String Validators:
 	String = 'String',
+	StageID = 'StageID',
+	ObjectiveID = 'ObjectiveID',
 	TriggerID = 'TriggerID',
 	UnitName = 'UnitName',
 	FeatureName = 'FeatureName',
@@ -30,6 +32,7 @@ local types = {
 
 	-- Number Validators:
 	Number = 'Number',
+	Quantity = 'Quantity',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

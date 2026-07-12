@@ -3,6 +3,7 @@ local types = actionsSchema.Types
 local loadout = VFS.Include('luarules/mission_api/loadout.lua')
 local sounds = VFS.Include('luarules/mission_api/sounds.lua')
 local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+local objectiveUtils = VFS.Include('luarules/mission_api/objectives.lua')
 local trackUnit = tracking.TrackUnit
 local isUnitNameUntracked = tracking.IsUnitNameUntracked
 local untrackUnitName = tracking.UntrackUnitName
@@ -25,6 +26,26 @@ local function disableTrigger(triggerID)
 	triggers[triggerID].settings.active = false
 end
 
+local function updateObjective(objectiveID, completed, textKey)
+	local objective = GG['MissionAPI'].Objectives[objectiveID]
+
+	if objective.completed then return end
+
+	if textKey then
+		objective.textKey = textKey
+	end
+
+	if completed ~= nil then
+		objective.completed = completed
+	elseif textKey == nil then
+		objective.progress = (objective.progress or 0) + 1
+		objective.completed = objective.amount == nil or objective.progress >= objective.amount
+	end
+
+	objectiveUtils.TryAdvanceStage(objective)
+
+	objectiveUtils.EchoObjectiveUpdate(objectiveID, objective)
+end
 local function issueOrders(unitName, orders)
 	if isUnitNameUntracked(unitName) then return end
 
@@ -225,6 +246,10 @@ return {
 	-- Triggers
 	[types.EnableTrigger]   = enableTrigger,
 	[types.DisableTrigger]  = disableTrigger,
+
+	-- Stages & Objectives
+	[types.ChangeStage]     = objectiveUtils.ChangeStage,
+	[types.UpdateObjective] = updateObjective,
 
 	-- Orders
 	[types.IssueOrders]     = issueOrders,

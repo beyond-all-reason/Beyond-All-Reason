@@ -1,5 +1,3 @@
-local validateActions = VFS.Include('luarules/mission_api/validation.lua').ValidateActions
-
 --[[
 	actionID = {
 		type = actionTypes.EnableTrigger,
@@ -11,7 +9,6 @@ local validateActions = VFS.Include('luarules/mission_api/validation.lua').Valid
 
 local function processRawActions(rawActions)
 	local actions = table.map(rawActions, table.copy)
-	validateActions(actions)
 	return actions
 end
 

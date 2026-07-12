@@ -22,6 +22,7 @@ end
 local actionsDispatcher
 local types, triggers
 local trackedUnitNames, trackedUnitIDs
+local objectiveUtils
 local statisticsTriggerCounts = {}
 
 
@@ -43,15 +44,12 @@ local function isTriggerValid(trigger)
 	for _, prerequisiteTriggerID in pairs(trigger.settings.prerequisites) do
 		if not triggers[prerequisiteTriggerID].triggered then return false end
 	end
-	if trigger.triggered and not trigger.settings.repeating then
-		return false
-	end
-	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then
-		return false
-	end
-	if trigger.settings.difficulties ~= nil and not table.contains(trigger.settings.difficulties, GG['MissionAPI'].Difficulty) then
-		return false
-	end
+
+	if next(trigger.settings.stages) and not table.contains(trigger.settings.stages, GG['MissionAPI'].CurrentStageID) then return false end
+
+	if trigger.triggered and not trigger.settings.repeating then return false end
+	if trigger.settings.repeating and trigger.settings.maxRepeats ~= nil and trigger.repeatCount > trigger.settings.maxRepeats then return false end
+	if trigger.settings.difficulties ~= nil and not trigger.settings.difficulties[GG['MissionAPI'].Difficulty] then return false end
 
 	--[[
 	--TODO: co-op check
@@ -104,33 +102,13 @@ local function checkTimeElapsed(trigger, gameframe)
 	end
 end
 
-local function checkUnitExists(trigger, unitDefID, teamID)
-	if trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+local function checkUnitExists(trigger, unitDefID, unitTeam)
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
-
-	local requiredTeamID = GG['MissionAPI'].Teams[trigger.parameters.teamName]
-	local requiredQuantity = trigger.parameters.quantity
-	if requiredTeamID then
-		if requiredTeamID ~= teamID then
-			return
-		elseif Spring.GetTeamUnitDefCount(requiredTeamID, unitDefID) < (requiredQuantity or 1) then
-			return
-		end
+	if trigger.parameters.teamName and unitTeam ~= GG['MissionAPI'].Teams[trigger.parameters.teamName] then
+		return
 	end
-
-	if requiredQuantity then
-		local count = 0
-		for _, allyTeamID in pairs(Spring.GetAllyTeamList()) do
-			for _, teamIDForAllyTeam in pairs(Spring.GetTeamList(allyTeamID)) do
-				count = count + Spring.GetTeamUnitDefCount(teamIDForAllyTeam, unitDefID)
-			end
-		end
-		if count < requiredQuantity then
-			return
-		end
-	end
-
 	activateTrigger(trigger)
 end
 
@@ -263,14 +241,14 @@ local function checkUnitEnteredOrLeftLos(trigger, unitID, unitTeam, losAllyTeamI
 	if trigger.parameters.unitName and not doesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return
 	end
+	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+		return
+	end
 	if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
 		return
 	end
 	if trigger.parameters.spottingAllyTeamName
 		and losAllyTeamID ~= GG['MissionAPI'].AllyTeams[trigger.parameters.spottingAllyTeamName] then
-		return
-	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return
 	end
 	activateTrigger(trigger)
@@ -370,11 +348,20 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
 		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
-		local nextThreshold = (trigger.repeatCount + 1) * trigger.parameters.quantity
+		-- quantity = 0 is a special case: fire once when the count reaches 0.
+		local quantity = trigger.parameters.quantity
+		local nextThreshold = quantity > 0 and (trigger.repeatCount + 1) * quantity or 0
 		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
+			activateTrigger(trigger)
+		elseif quantity == 0 and statisticsTriggerCounts[triggerID] == 0 then
 			activateTrigger(trigger)
 		end
 	end)
+
+	-- Update managed objectives:
+	for _, managedObjective in ipairs(GG['MissionAPI'].ManagedObjectives[triggerType] or {}) do
+		objectiveUtils.UpdateObjectiveProgress(managedObjective.objectiveID, teamID, unitDefName, unitNames, direction, managedObjective)
+	end
 end
 local function incrementUnitStatistics(triggerType, teamID, unitDefName, unitNames)
 	updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, 1)
@@ -476,6 +463,7 @@ function gadget:Initialize()
 	trackedUnitIDs          = GG['MissionAPI'].trackedUnitIDs
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+	objectiveUtils          = VFS.Include('luarules/mission_api/objectives.lua')
 
 	local tracking          = VFS.Include('luarules/mission_api/tracking.lua')
 	doesUnitHaveName        = tracking.DoesUnitHaveName
@@ -522,7 +510,13 @@ function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end)
 
 	local unitDefName = UnitDefs[unitDefID].name
-	local unitNames = trackedUnitNames[unitID] or {}
+	local unitNames = table.copy(trackedUnitNames[unitID] or {})
+
+	-- Set in spawnUnit() in loadout.lua
+	local nameOfUnitBeingSpawned = GG['MissionAPI'].nameOfUnitBeingSpawned
+	if nameOfUnitBeingSpawned then
+		unitNames[nameOfUnitBeingSpawned] = true
+	end
 	incrementUnitStatistics(types.UnitsOwned, unitTeam, unitDefName, unitNames)
 end
 
