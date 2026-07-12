@@ -3684,6 +3684,14 @@ function init()
 		  end,
 		},
 
+		{ id = "screen_select_command_limit", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.screen_select_command_limit'), type = "slider", min = 100, max = 10000, step = 100, value = (WG['screenSelectCommands'] ~= nil and WG['screenSelectCommands'].getCommandLimit()) or 4000, description = Spring.I18N('ui.settings.option.screen_select_command_limit_descr'),
+		  onchange = function(i, value)
+			if WG['screenSelectCommands'] and WG['screenSelectCommands'].setCommandLimit then
+				WG['screenSelectCommands'].setCommandLimit(value)
+			end
+		  end,
+		},
+
 		{ id = "dragthreshold", group = "control", category = types.advanced, restart = false, name = Spring.I18N('ui.settings.option.dragthreshold'), type = "slider", min = 4, max = 50, step = 1, value = Spring.GetConfigInt("MouseDragSelectionThreshold", 4), description = Spring.I18N('ui.settings.option.dragthreshold_descr'),
 		  onload = function(i)
 		  end,
