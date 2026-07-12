@@ -19,9 +19,17 @@ How To Use:
 
 Click modifiers:
   Shift -> add to end of queue
-  Space -> prepend to the queue; with Shift, insert into the nearest queued path segment
+  Space -> prepend to the queue
+  Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy team; allies: any ally team). For reclaim features, broaden by yield (metal vs energy-only).
   Alt -> distribute evenly among selected units
+
+  Command-Specific behavior:
+  Capture -> only finished, capturable targets; only capturers issue
+  Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team
+  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match wreck category (corpse/heap/metal/energy-only); Ctrl broadens feature matches by yield
+  Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks
+  Set Target -> Alt isn't used here, it's left for another widget that handles persistent target type setting as of 7/12/26
 
   There's a filter also. If you screen-command selected units, it will include selected units only.
   If you screen-command an external unit, it will exclude the selected units.
