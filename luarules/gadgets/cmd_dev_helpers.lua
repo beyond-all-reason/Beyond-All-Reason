@@ -471,7 +471,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
 			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or
-			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
+			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "removeobjects" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
 			subPermission = "teams"
@@ -547,6 +547,8 @@ if gadgetHandler:IsSyncedCode() then
 			spawnunitexplosion(words, playerID)
 		elseif cmd == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
+		elseif cmd == "removeobjects" then
+			RemoveObjects()
 		elseif cmd == "clearwrecks" then
 			ClearWrecks()
 		elseif cmd == "reducewrecks" then
@@ -661,6 +663,7 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.SetUnitExperience(unitID, tonumber(params))
 					end
 				elseif action == 'remove' then
+					Spring.SetUnitRulesParam(unitID, "skip_tombstone", 1)
 					Spring.DestroyUnit(unitID, false, true)
 				elseif action == 'removenearbyunits' then
 					Spring.DestroyUnit(unitID, false, true)
@@ -771,6 +774,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function RemoveObjects()
+		local allUnits = Spring.GetAllUnits()
+		local removed = 0
+		for i = 1, #allUnits do
+			local unitID = allUnits[i]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local ud = UnitDefs[unitDefID]
+			if ud then
+				local cp = ud.customParams
+				if (ud.modCategories and ud.modCategories["object"]) or (cp and cp.objectify) then
+					Spring.DestroyUnit(unitID, false, true)
+					removed = removed + 1
+				end
+			end
+		end
+		Spring.Echo(string.format("Removed %i object units", removed))
+	end
+
 	function ClearWrecks()
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks = 0
@@ -837,6 +858,7 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
 		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, "") -- /luarules dumploadout dumps all units and features in loadout.lua format
 		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
+		gadgetHandler:AddChatAction('removeobjects', removeObjects, "") -- /luarules removeobjects removes all object units
 		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
 		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
 
@@ -880,6 +902,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpunits')
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
+		gadgetHandler:RemoveChatAction('removeobjects')
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('reducewrecks')
 		gadgetHandler:RemoveChatAction('globallos')
@@ -1041,6 +1064,16 @@ else	-- UNSYNCED
 		if words[1] and UnitDefNames[words[1]] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeunitdef '.. words[1])
 		end
+	end
+
+	function removeObjects(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeobjects')
 	end
 
 	function clearWrecks(_, line, words, playerID)
