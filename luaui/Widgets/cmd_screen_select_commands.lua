@@ -89,7 +89,7 @@ local COMMAND_CAPABILITY_FIELDS = {
 	[CMD.CAPTURE] = { "canCapture", "captureSpeed" },
 }
 
-local COMMAND_LIMIT = 2000
+local COMMAND_LIMIT = 1000
 local MAX_QUEUE_COMMANDS = 100
 local DEFAULT_MAX_DOUBLE_CLICK_UNITS = 150
 local DOUBLE_CLICK_START_RADIUS = 2000
@@ -118,6 +118,8 @@ local pendingDoubleClick = {
 local heldCommandDescriptionIndex
 local deferClearActiveCommand = false
 local screenSelectHeld = false
+local pendingOrders = {}
+local pendingOrderIndex = 1
 
 local function enrichCommandOptions(options)
 	options = options or {}
@@ -575,6 +577,58 @@ local function getCommandOptionBits(options, includeShift)
 	return optionBits
 end
 
+local function clearPendingOrders()
+	pendingOrders = {}
+	pendingOrderIndex = 1
+end
+
+local function enqueueGiveOrder(unitArray, commandId, params, optionBits)
+	local units = {}
+	for unitIndex = 1, #unitArray do
+		units[unitIndex] = unitArray[unitIndex]
+	end
+	local orderParams = {}
+	for paramIndex = 1, #params do
+		orderParams[paramIndex] = params[paramIndex]
+	end
+	tableInsert(pendingOrders, {
+		units = units,
+		commandId = commandId,
+		params = orderParams,
+		optionBits = optionBits,
+	})
+end
+
+local function processPendingOrders()
+	local remainingBudget = COMMAND_LIMIT
+	while pendingOrderIndex <= #pendingOrders and remainingBudget > 0 do
+		local order = pendingOrders[pendingOrderIndex]
+		local unitCount = #order.units
+		if unitCount == 0 then
+			pendingOrderIndex = pendingOrderIndex + 1
+		elseif unitCount <= remainingBudget then
+			spGiveOrderToUnitArray(order.units, order.commandId, order.params, order.optionBits)
+			pendingOrderIndex = pendingOrderIndex + 1
+			remainingBudget = remainingBudget - unitCount
+		else
+			local batchUnits = {}
+			for unitIndex = 1, remainingBudget do
+				batchUnits[unitIndex] = order.units[unitIndex]
+			end
+			spGiveOrderToUnitArray(batchUnits, order.commandId, order.params, order.optionBits)
+			local remainingUnits = {}
+			for unitIndex = remainingBudget + 1, unitCount do
+				remainingUnits[#remainingUnits + 1] = order.units[unitIndex]
+			end
+			order.units = remainingUnits
+			remainingBudget = 0
+		end
+	end
+	if pendingOrderIndex > #pendingOrders then
+		clearPendingOrders()
+	end
+end
+
 local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTargets, options)
 	local positionCache = {}
 	local targetCentroid = getTargetCentroid(filteredTargets, positionCache)
@@ -588,12 +642,12 @@ local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTa
 		if insertionPosition == nil then
 			for targetIndex = 1, #filteredTargets do
 				local targetId = filteredTargets[targetIndex]
-				spGiveOrderToUnitArray(singleUnit, commandId, { toFeatureOrderParamId(targetId) }, queuedOptionBits)
+				enqueueGiveOrder(singleUnit, commandId, { toFeatureOrderParamId(targetId) }, queuedOptionBits)
 			end
 		else
 			for targetIndex = #filteredTargets, 1, -1 do
 				local targetId = filteredTargets[targetIndex]
-				spGiveOrderToUnitArray(
+				enqueueGiveOrder(
 					singleUnit,
 					CMD.INSERT,
 					{ insertionPosition, commandId, innerOptionBits, toFeatureOrderParamId(targetId) },
@@ -615,7 +669,7 @@ local function giveOrders(commandId, selectedUnits, filteredTargets, options)
 	for targetIndex = 1, #filteredTargets do
 		local targetId = filteredTargets[targetIndex]
 		if options.meta then
-			spGiveOrderToUnitArray(
+			enqueueGiveOrder(
 				selectedUnits,
 				CMD.INSERT,
 				{ 0, commandId, baseOptionBits, toFeatureOrderParamId(targetId) },
@@ -623,7 +677,7 @@ local function giveOrders(commandId, selectedUnits, filteredTargets, options)
 			)
 		else
 			local includeShift = targetIndex > 1 or queuing
-			spGiveOrderToUnitArray(
+			enqueueGiveOrder(
 				selectedUnits,
 				commandId,
 				{ toFeatureOrderParamId(targetId) },
@@ -977,21 +1031,6 @@ local function filterTargetsBySelectionMembership(targets, selectionSet, targetI
 	return filteredTargets
 end
 
-local function capTargetsByCommandLimit(targets, selectedUnitCount)
-	local maximumTargetCount = mathFloor(COMMAND_LIMIT / selectedUnitCount)
-	if maximumTargetCount <= 0 then
-		return {}
-	end
-	if #targets <= maximumTargetCount then
-		return targets
-	end
-	local cappedTargets = {}
-	for targetIndex = 1, maximumTargetCount do
-		cappedTargets[targetIndex] = targets[targetIndex]
-	end
-	return cappedTargets
-end
-
 local function collectDoubleClickTargets(commandId, targetId, isFeature, options)
 	if isFeature then
 		local rawFeatureId = getRawFeatureId(targetId)
@@ -1075,7 +1114,6 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	local filteredTargets = collectDoubleClickTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits)
-	filteredTargets = capTargetsByCommandLimit(filteredTargets, #selectedUnits)
 	if not issueDoubleClickMassOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId) then
 		return false
 	end
@@ -1317,6 +1355,7 @@ end
 
 function widget:PlayerChanged()
 	clearDoubleClickPending()
+	clearPendingOrders()
 	heldCommandDescriptionIndex = nil
 	initialize()
 end
@@ -1336,9 +1375,11 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("screen_select_hold", "r")
 	WG['screenSelectCommands'] = nil
 	screenSelectHeld = false
+	clearPendingOrders()
 end
 
 function widget:Update()
+	processPendingOrders()
 	if deferClearActiveCommand then
 		deferClearActiveCommand = false
 		spSetActiveCommand(0)
