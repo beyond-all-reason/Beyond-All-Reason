@@ -3676,7 +3676,7 @@ function init()
 		  end,
 		},
 
-		{ id = "screen_select_max_targets", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.screen_select_max_targets'), type = "slider", min = 1, max = 500, step = 1, value = (WG['screenSelectCommands'] ~= nil and WG['screenSelectCommands'].getMaxDoubleClickUnits()) or 100, description = Spring.I18N('ui.settings.option.screen_select_max_targets_descr'),
+		{ id = "screen_select_max_targets", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.screen_select_max_targets'), type = "slider", min = 1, max = 500, step = 1, value = (WG['screenSelectCommands'] ~= nil and WG['screenSelectCommands'].getMaxDoubleClickUnits()) or 150, description = Spring.I18N('ui.settings.option.screen_select_max_targets_descr'),
 		  onchange = function(i, value)
 			if WG['screenSelectCommands'] and WG['screenSelectCommands'].setMaxDoubleClickUnits then
 				WG['screenSelectCommands'].setMaxDoubleClickUnits(value)
