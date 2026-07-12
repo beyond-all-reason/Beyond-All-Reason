@@ -471,6 +471,8 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
 			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or
+			cmd == "neutralize" or cmd == "maxhealth" or cmd == "setsensors" or
+			cmd == "setblocking" or cmd == "relocate" or cmd == "setradius" or cmd == "setheight" or
 			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "removeobjects" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
@@ -516,6 +518,56 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
+		elseif cmd == "neutralize" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'neutralize', parts[3])
+		elseif cmd == "maxhealth" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'maxhealth', parts[3])
+		elseif cmd == "setsensors" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setsensors', parts[3])
+		elseif cmd == "setblocking" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setblocking', parts[3])
+		elseif cmd == "relocate" then
+			RelocateUnits(words)
+		elseif cmd == "setradius" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setradius', parts[3])
+		elseif cmd == "setheight" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setheight', parts[3])
 		elseif cmd == "select" then
 			local requestID = words[2]
 			local foundUnits = false
@@ -671,6 +723,62 @@ if gadgetHandler:IsSyncedCode() then
 					if type(tonumber(params)) == 'number' then
 						Spring.TransferUnit(unitID, tonumber(params), true)
 					end
+				elseif action == 'neutralize' then
+					Spring.SetUnitNeutral(unitID, params ~= '0')
+				elseif action == 'maxhealth' and params then
+					local newMaxHealth = tonumber(params)
+					if newMaxHealth and newMaxHealth > 0 then
+						local health, maxHealth = Spring.GetUnitHealth(unitID)
+						Spring.SetUnitMaxHealth(unitID, newMaxHealth)
+						if maxHealth and maxHealth > 0 then
+							local healthPercent = (health or maxHealth) / maxHealth
+							Spring.SetUnitHealth(unitID, newMaxHealth * healthPercent)
+						else
+							Spring.SetUnitHealth(unitID, newMaxHealth)
+						end
+					end
+				elseif action == 'setsensors' then
+					if params == '0' then
+						Spring.SetUnitSensorRadius(unitID, 'los', 0)
+						Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+						Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+						Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+						Spring.SetUnitSensorRadius(unitID, 'seismic', 0)
+						Spring.SetUnitSensorRadius(unitID, 'radarJammer', 0)
+						Spring.SetUnitSensorRadius(unitID, 'sonarJammer', 0)
+					else
+						local unitDefID = Spring.GetUnitDefID(unitID)
+						local ud = unitDefID and UnitDefs[unitDefID]
+						if ud then
+							Spring.SetUnitSensorRadius(unitID, 'los', ud.losRadius or 0)
+							Spring.SetUnitSensorRadius(unitID, 'airLos', ud.airLosRadius or ud.losRadius or 0)
+							Spring.SetUnitSensorRadius(unitID, 'radar', ud.radarDistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'sonar', ud.sonarDistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'seismic', ud.seismicDistance or ud.seismicdistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'radarJammer', ud.radarDistanceJam or 0)
+							Spring.SetUnitSensorRadius(unitID, 'sonarJammer', ud.sonarDistanceJam or 0)
+						end
+					end
+				elseif action == 'setblocking' then
+					Spring.SetUnitBlocking(unitID, params ~= '0')
+				elseif action == 'setradius' and params then
+					local delta = tonumber(params)
+					if delta then
+						local currentRadius = Spring.GetUnitRadius(unitID) or 0
+						local currentHeight = Spring.GetUnitHeight(unitID) or 0
+						local newRadius = math.max(1, currentRadius + delta)
+						Spring.SetUnitRadiusAndHeight(unitID, newRadius, currentHeight)
+						Spring.Echo(string.format("unit %d radius: %.2f", unitID, newRadius))
+					end
+				elseif action == 'setheight' and params then
+					local delta = tonumber(params)
+					if delta then
+						local currentRadius = Spring.GetUnitRadius(unitID) or 0
+						local currentHeight = Spring.GetUnitHeight(unitID) or 0
+						local newHeight = math.max(1, currentHeight + delta)
+						Spring.SetUnitRadiusAndHeight(unitID, currentRadius, newHeight)
+						Spring.Echo(string.format("unit %d height: %.2f", unitID, newHeight))
+					end
 				elseif action == 'sethealth' and params then
 					if type(tonumber(params)) == 'number' then
 						local healthPercent = math.max(0, math.min(100, tonumber(params)))
@@ -699,6 +807,47 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+		end
+	end
+
+	function RelocateUnits(words)
+		if #words < 5 then
+			return
+		end
+
+		local targetX = tonumber(words[2])
+		local targetZ = tonumber(words[3])
+		if not targetX or not targetZ then
+			return
+		end
+
+		local unitData = {}
+		local sumX, sumZ = 0, 0
+		for n = 4, #words do
+			local unitID = tonumber(words[n])
+			if unitID and Spring.ValidUnitID(unitID) then
+				local x, _, z = Spring.GetUnitPosition(unitID)
+				if x and z then
+					sumX = sumX + x
+					sumZ = sumZ + z
+					unitData[#unitData + 1] = { id = unitID, x = x, z = z }
+				end
+			end
+		end
+
+		local count = #unitData
+		if count == 0 then
+			return
+		end
+
+		local centerX = sumX / count
+		local centerZ = sumZ / count
+		for i = 1, count do
+			local u = unitData[i]
+			local newX = targetX + (u.x - centerX)
+			local newZ = targetZ + (u.z - centerZ)
+			local newY = Spring.GetGroundHeight(newX, newZ)
+			Spring.SetUnitPosition(u.id, newX, newY, newZ)
 		end
 	end
 
@@ -845,6 +994,13 @@ else	-- UNSYNCED
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
 		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
 		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
+		gadgetHandler:AddChatAction('neutralize', neutralizeUnits, "")  -- sets selected units neutral state /luarules neutralize [1|0]
+		gadgetHandler:AddChatAction('maxhealth', maxHealthUnits, "")  -- sets selected units max health and preserves health percentage /luarules maxhealth [number]
+		gadgetHandler:AddChatAction('setsensors', setSensors, "")  -- sets selected units sensors to 0 or restores defaults /luarules setsensors [0|1]
+		gadgetHandler:AddChatAction('setblocking', setBlocking, "")  -- sets selected units blocking state, /luarules setblocking [1|0]
+		gadgetHandler:AddChatAction('relocate', relocateUnits, "")  -- relocates selected units to cursor while preserving relative offsets /luarules relocate
+		gadgetHandler:AddChatAction('setradius', setRadiusUnits, "")  -- increments selected units radius and prints resulting value /luarules setradius [value]
+		gadgetHandler:AddChatAction('setheight', setHeightUnits, "")  -- increments selected units height and prints resulting value /luarules setheight [value]
 		gadgetHandler:AddChatAction('select', selectHoveredUnit, "")  -- selects hovered unit, or all units in current selection bounds, including noselect units /luarules select
 		gadgetHandler:AddChatAction('halfhealth', halfHealth, "")  -- halves selected units health, or all units if nothing is selected
 		gadgetHandler:AddChatAction('sethealth', setHealth, "")  -- sets selected units health to a percentage, /luarules sethealth [0-100]
@@ -892,6 +1048,13 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('transferunits')
+		gadgetHandler:RemoveChatAction('neutralize')
+		gadgetHandler:RemoveChatAction('maxhealth')
+		gadgetHandler:RemoveChatAction('setsensors')
+		gadgetHandler:RemoveChatAction('setblocking')
+		gadgetHandler:RemoveChatAction('relocate')
+		gadgetHandler:RemoveChatAction('setradius')
+		gadgetHandler:RemoveChatAction('setheight')
 		gadgetHandler:RemoveChatAction('select')
 		gadgetHandler:RemoveChatAction('halfhealth')
 		gadgetHandler:RemoveChatAction('sethealth')
@@ -934,6 +1097,73 @@ else	-- UNSYNCED
 	end
 	function transferUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'transferunits')
+	end
+	function neutralizeUnits(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules neutralize [1|0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'neutralize')
+	end
+	function maxHealthUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' or tonumber(words[1]) <= 0 then
+			Spring.Echo("Usage: /luarules maxhealth [number > 0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'maxhealth')
+	end
+	function setSensors(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules setsensors [0|1]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setsensors')
+	end
+	function setBlocking(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules setblocking [1|0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setblocking')
+	end
+	function relocateUnits(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		local units = Spring.GetSelectedUnits()
+		if not units or #units == 0 then
+			return
+		end
+
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
+		if type(pos) ~= 'table' then
+			return
+		end
+
+		local msg = string.format("relocate %d %d", math.floor(pos[1]), math.floor(pos[3]))
+		for i = 1, #units do
+			msg = msg .. " " .. units[i]
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+	end
+	function setRadiusUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' then
+			Spring.Echo("Usage: /luarules setradius [value]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setradius')
+	end
+	function setHeightUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' then
+			Spring.Echo("Usage: /luarules setheight [value]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setheight')
 	end
 	function selectHoveredUnit(_, line, words, playerID)
 		if playerID ~= Spring.GetMyPlayerID() then
