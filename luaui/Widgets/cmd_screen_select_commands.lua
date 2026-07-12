@@ -23,7 +23,7 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy team; allies: any ally team). For reclaim features, broaden by yield (metal vs energy-only).
   Alt -> distribute evenly among selected units
-  If units × targets would exceed COMMAND_LIMIT, auto-partition and shrink per-unit assignments to fit the budget. maxDoubleClickUnits is the max targets each unit may receive.
+  If units × targets would exceed COMMAND_LIMIT, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
 
   Command-Specific behavior:
   Capture -> only finished, capturable targets; only capturers issue
@@ -93,17 +93,16 @@ local COMMAND_CAPABILITY_FIELDS = {
 	[CMD.CAPTURE] = { "canCapture", "captureSpeed" },
 }
 
-local DEFAULT_COMMAND_LIMIT = 4000
 local MAX_QUEUE_COMMANDS = 100
-local DEFAULT_MAX_DOUBLE_CLICK_UNITS = 150
+local MASS_ORDER_START_RADIUS = 2000
+local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local MIN_DOUBLE_CLICK_GAP = 0.03
-local DEFAULT_DOUBLE_CLICK_ENABLED = true
 local osClock = os.clock
 
-local doubleClickEnabled = DEFAULT_DOUBLE_CLICK_ENABLED
-local maxDoubleClickUnits = DEFAULT_MAX_DOUBLE_CLICK_UNITS
-local commandLimit = DEFAULT_COMMAND_LIMIT
+local doubleClickEnabled = true
+local maxMassOrderTargets = 150
+local commandLimit = 4000
 
 local myAllyTeamId
 local myTeamId
@@ -147,10 +146,6 @@ local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
 end
 
-local function isQueuing(options)
-	return options.shift
-end
-
 local function restoreActiveCommand(commandDescriptionIndex)
 	local modifierAlt, modifierControl, modifierMeta, modifierShift = spGetModKeyState()
 	spSetActiveCommand(commandDescriptionIndex, 1, true, false, modifierAlt, modifierControl, modifierMeta, modifierShift)
@@ -187,7 +182,10 @@ local function isPendingDoubleClickActive()
 end
 
 local function isFeatureTargetId(targetId)
-	if targetId > Game.maxUnits then
+	if Engine.FeatureSupport.noOffsetForFeatureID then
+		return spValidFeatureId(targetId) and not spValidUnitId(targetId)
+	end
+	if targetId >= Game.maxUnits then
 		return spValidFeatureId(targetId - Game.maxUnits)
 	end
 	if spValidFeatureId(targetId) and not spValidUnitId(targetId) then
@@ -197,7 +195,10 @@ local function isFeatureTargetId(targetId)
 end
 
 local function getRawFeatureId(targetId)
-	if targetId > Game.maxUnits then
+	if Engine.FeatureSupport.noOffsetForFeatureID then
+		return targetId
+	end
+	if targetId >= Game.maxUnits then
 		return targetId - Game.maxUnits
 	end
 	return targetId
@@ -205,12 +206,6 @@ end
 
 local function normalizeFeatureTargetId(featureId)
 	if Engine.FeatureSupport.noOffsetForFeatureID then
-		if featureId > Game.maxUnits then
-			return featureId - Game.maxUnits
-		end
-		return featureId
-	end
-	if featureId > Game.maxUnits then
 		return featureId
 	end
 	return featureId + Game.maxUnits
@@ -223,7 +218,7 @@ local function toFeatureOrderParamId(targetId)
 	if Engine.FeatureSupport.noOffsetForFeatureID then
 		return getRawFeatureId(targetId)
 	end
-	if targetId > Game.maxUnits then
+	if targetId >= Game.maxUnits then
 		return targetId
 	end
 	return targetId + Game.maxUnits
@@ -272,22 +267,11 @@ local function isRepairableTargetUnit(unitId)
 	return health < maxHealth
 end
 
-local function filterCaptureTargets(targets)
+local function filterTargetsByPredicate(targets, predicate)
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
 		local unitId = targets[targetIndex]
-		if isCapturableTargetUnit(unitId) then
-			tableInsert(filteredTargets, unitId)
-		end
-	end
-	return filteredTargets
-end
-
-local function filterRepairTargets(targets)
-	local filteredTargets = {}
-	for targetIndex = 1, #targets do
-		local unitId = targets[targetIndex]
-		if isRepairableTargetUnit(unitId) then
+		if predicate(unitId) then
 			tableInsert(filteredTargets, unitId)
 		end
 	end
@@ -296,10 +280,10 @@ end
 
 local function finalizeUnitTargets(commandId, targets)
 	if commandId == CMD.CAPTURE then
-		return filterCaptureTargets(targets)
+		return filterTargetsByPredicate(targets, isCapturableTargetUnit)
 	end
 	if commandId == CMD.REPAIR then
-		return filterRepairTargets(targets)
+		return filterTargetsByPredicate(targets, isRepairableTargetUnit)
 	end
 	return targets
 end
@@ -428,34 +412,22 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 	return route
 end
 
-local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, positionCache, routeCache)
+local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, positionCache)
 	local referencePosition = getTargetPosition(referenceUnitId, positionCache)
 	if not referencePosition then
 		return
 	end
-	local nearestTargetId
-	local nearestDistance
+	local hasTargetPosition = false
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		local targetPosition = getTargetPosition(targetId, positionCache)
-		if targetPosition then
-			local targetDistance = distanceSq(referencePosition, targetPosition)
-			if nearestDistance == nil or targetDistance < nearestDistance then
-				nearestTargetId = targetId
-				nearestDistance = targetDistance
-			end
+		if getTargetPosition(targets[targetIndex], positionCache) then
+			hasTargetPosition = true
+			break
 		end
 	end
-	if not nearestTargetId then
+	if not hasTargetPosition then
 		return
 	end
-	local route = routeCache and routeCache[nearestTargetId]
-	if not route then
-		route = buildNearestNeighborRoute(referencePosition, targets, positionCache)
-		if routeCache then
-			routeCache[nearestTargetId] = route
-		end
-	end
+	local route = buildNearestNeighborRoute(referencePosition, targets, positionCache)
 	if closestFirst then
 		for targetIndex = 1, #route do
 			targets[targetIndex] = route[targetIndex]
@@ -468,19 +440,7 @@ local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, 
 	end
 end
 
-local function takeClosestTargets(filteredTargets, maximumTargetCount)
-	local cappedCount = maximumTargetCount
-	if cappedCount > #filteredTargets then
-		cappedCount = #filteredTargets
-	end
-	local cappedTargets = {}
-	for targetIndex = 1, cappedCount do
-		cappedTargets[targetIndex] = filteredTargets[targetIndex]
-	end
-	return cappedTargets
-end
-
-local function limitDoubleClickTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, maximumTargetCount)
+local function limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, maximumTargetCount)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
@@ -491,13 +451,49 @@ local function limitDoubleClickTargetsByRadius(filteredTargets, referenceTargetI
 	local referencePosition = getTargetPosition(referenceTargetId, positionCache)
 	if not referencePosition then
 		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
-	else
-		sortTargetsByDistance({ referenceTargetId }, filteredTargets, true, referenceTargetId, positionCache)
+		local cappedTargets = {}
+		local cappedCount = maximumTargetCount
+		if cappedCount > #filteredTargets then
+			cappedCount = #filteredTargets
+		end
+		for targetIndex = 1, cappedCount do
+			cappedTargets[targetIndex] = filteredTargets[targetIndex]
+		end
+		return cappedTargets
 	end
-	if #filteredTargets <= maximumTargetCount then
-		return filteredTargets
+	sortTargetsByDistance({ referenceTargetId }, filteredTargets, true, referenceTargetId, positionCache)
+	local radius
+	while true do
+		local limitedTargets = {}
+		if radius == nil then
+			for targetIndex = 1, #filteredTargets do
+				limitedTargets[targetIndex] = filteredTargets[targetIndex]
+			end
+		else
+			local radiusSq = radius * radius
+			for targetIndex = 1, #filteredTargets do
+				local targetId = filteredTargets[targetIndex]
+				local targetPosition = getTargetPosition(targetId, positionCache)
+				if targetPosition and distanceSq(referencePosition, targetPosition) <= radiusSq then
+					tableInsert(limitedTargets, targetId)
+				end
+			end
+		end
+		if #limitedTargets <= maximumTargetCount then
+			return limitedTargets
+		end
+		if radius == nil then
+			radius = MASS_ORDER_START_RADIUS
+		elseif radius > 0 then
+			radius = radius - MASS_ORDER_RADIUS_STEP
+		else
+			break
+		end
 	end
-	local cappedTargets = takeClosestTargets(filteredTargets, maximumTargetCount)
+	local cappedTargets = {}
+	for targetIndex = 1, maximumTargetCount do
+		cappedTargets[targetIndex] = filteredTargets[targetIndex]
+	end
 	return cappedTargets
 end
 
@@ -576,23 +572,23 @@ end
 local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTargets, options)
 	local positionCache = {}
 	local targetCentroid = getTargetCentroid(filteredTargets, positionCache)
-	local singleUnit = {}
+	local singleUnitArray = {}
 	local queuedOptionBits = getCommandOptionBits(options, true)
 	local innerOptionBits = getCommandOptionBits(options, false)
 	for unitIndex = 1, #selectedUnits do
 		local unitId = selectedUnits[unitIndex]
-		singleUnit[1] = unitId
+		singleUnitArray[1] = unitId
 		local insertionPosition = findQueueInsertionPosition(unitId, targetCentroid, positionCache)
 		if insertionPosition == nil then
 			for targetIndex = 1, #filteredTargets do
 				local targetId = filteredTargets[targetIndex]
-				spGiveOrderToUnitArray(singleUnit, commandId, { toFeatureOrderParamId(targetId) }, queuedOptionBits)
+				spGiveOrderToUnitArray(singleUnitArray, commandId, { toFeatureOrderParamId(targetId) }, queuedOptionBits)
 			end
 		else
 			for targetIndex = #filteredTargets, 1, -1 do
 				local targetId = filteredTargets[targetIndex]
 				spGiveOrderToUnitArray(
-					singleUnit,
+					singleUnitArray,
 					CMD.INSERT,
 					{ insertionPosition, commandId, innerOptionBits, toFeatureOrderParamId(targetId) },
 					CMD.OPT_ALT
@@ -603,8 +599,7 @@ local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTa
 end
 
 local function giveOrders(commandId, selectedUnits, filteredTargets, options)
-	local queuing = isQueuing(options)
-	if options.meta and queuing then
+	if options.meta and options.shift then
 		insertOrdersByQueueProximity(commandId, selectedUnits, filteredTargets, options)
 		return
 	end
@@ -620,7 +615,7 @@ local function giveOrders(commandId, selectedUnits, filteredTargets, options)
 				CMD.OPT_ALT
 			)
 		else
-			local includeShift = targetIndex > 1 or queuing
+			local includeShift = targetIndex > 1 or options.shift
 			spGiveOrderToUnitArray(
 				selectedUnits,
 				commandId,
@@ -645,28 +640,14 @@ local function pickClosestUnassigned(referenceId, candidates, unassigned, count,
 			tableInsert(available, candidateId)
 		end
 	end
-	if count <= 0 or #available == 0 then
-		return {}
-	end
 	sortTargetsByDistance({ referenceId }, available, true, referenceId, positionCache)
 	local picked = {}
-	local selectedCount = count
-	if selectedCount > #available then
-		selectedCount = #available
-	end
-	for pickedIndex = 1, selectedCount do
+	for pickedIndex = 1, count do
 		local pickedId = available[pickedIndex]
 		picked[pickedIndex] = pickedId
 		unassigned[pickedId] = nil
 	end
 	return picked
-end
-
-local function getAngleAround(center, position)
-	if not center or not position then
-		return nil
-	end
-	return mathAtan2(position.z - center.z, position.x - center.x)
 end
 
 local function sortIdsByAngle(ids, center, positionCache)
@@ -675,7 +656,9 @@ local function sortIdsByAngle(ids, center, positionCache)
 	for idIndex = 1, #ids do
 		local id = ids[idIndex]
 		local position = getTargetPosition(id, positionCache)
-		angles[id] = getAngleAround(center, position)
+		if position then
+			angles[id] = mathAtan2(position.z - center.z, position.x - center.x)
+		end
 		originalIndices[id] = idIndex
 	end
 	tableSort(ids, function(idA, idB)
@@ -694,11 +677,8 @@ local function sortIdsByAngle(ids, center, positionCache)
 	end)
 end
 
-local function buildContiguousChunks(sortedIds, chunkCount, maxPerChunk)
+local function buildContiguousChunks(sortedIds, chunkCount)
 	local chunks = {}
-	if chunkCount <= 0 or #sortedIds == 0 then
-		return chunks
-	end
 	local minimumCount, remainderCount = divideWithRemainder(#sortedIds, chunkCount)
 	local nextIndex = 1
 	for chunkIndex = 1, chunkCount do
@@ -706,14 +686,8 @@ local function buildContiguousChunks(sortedIds, chunkCount, maxPerChunk)
 		if chunkIndex <= remainderCount then
 			count = count + 1
 		end
-		if count > maxPerChunk then
-			count = maxPerChunk
-		end
 		local chunk = {}
 		for itemIndex = 1, count do
-			if nextIndex > #sortedIds then
-				break
-			end
 			chunk[itemIndex] = sortedIds[nextIndex]
 			nextIndex = nextIndex + 1
 		end
@@ -735,59 +709,43 @@ local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceT
 end
 
 local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, forcePartition)
-	if selectedUnitCount <= 0 then
-		return false, 0, 0
-	end
-	local desiredPerUnit = maxDoubleClickUnits
+	local desiredPerUnit = maxMassOrderTargets
 	local targetsPerUnit = mathMin(availableTargetCount, desiredPerUnit)
 	local fullQueueCost = selectedUnitCount * targetsPerUnit
 	local partition = forcePartition or fullQueueCost > commandLimit
 	local perUnitLimit = desiredPerUnit
 	if partition and fullQueueCost > commandLimit then
 		perUnitLimit = mathFloor(commandLimit / selectedUnitCount)
-		if perUnitLimit > desiredPerUnit then
-			perUnitLimit = desiredPerUnit
-		end
-	end
-	if perUnitLimit < 0 then
-		perUnitLimit = 0
 	end
 	local targetPoolLimit
 	if partition then
 		targetPoolLimit = mathMin(availableTargetCount, selectedUnitCount * perUnitLimit)
-		if targetPoolLimit > commandLimit then
-			targetPoolLimit = commandLimit
-		end
 	else
 		targetPoolLimit = targetsPerUnit
 	end
 	return partition, perUnitLimit, targetPoolLimit
 end
 
-local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
+local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filteredTargets, options)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
-	local singleUnit = {}
+	local singleUnitArray = {}
 	local targets = {}
 	for unitIndex = 1, #selectedUnits do
 		local selectedUnitId = selectedUnits[unitIndex]
-		singleUnit[1] = selectedUnitId
+		singleUnitArray[1] = selectedUnitId
 		for targetIndex = 1, #filteredTargets do
 			targets[targetIndex] = filteredTargets[targetIndex]
 		end
 		for targetIndex = #filteredTargets + 1, #targets do
 			targets[targetIndex] = nil
 		end
-		if referenceTargetId then
-			sortTargetsByDistance({ referenceTargetId }, targets, closestFirst, referenceTargetId, positionCache)
-		else
-			sortTargetsByDistance({ selectedUnitId }, targets, closestFirst, selectedUnitId, positionCache)
-		end
-		giveOrders(commandId, singleUnit, targets, options)
+		sortTargetsByDistance({ selectedUnitId }, targets, closestFirst, selectedUnitId, positionCache)
+		giveOrders(commandId, singleUnitArray, targets, options)
 	end
 end
 
-local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, options, referenceTargetId, maxTargetsPerUnit)
+local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
 	if #filteredTargets >= #selectedUnits then
@@ -804,16 +762,14 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 			sortIdsByAngle(sortedTargets, center, positionCache)
 			sortIdsByAngle(sortedUnits, center, positionCache)
 		end
-		local chunks = buildContiguousChunks(sortedTargets, #sortedUnits, maxTargetsPerUnit)
-		local singleUnit = {}
+		local chunks = buildContiguousChunks(sortedTargets, #sortedUnits)
+		local singleUnitArray = {}
 		for unitIndex = 1, #sortedUnits do
 			local assignedTargets = chunks[unitIndex]
-			if assignedTargets and #assignedTargets > 0 then
-				local selectedUnitId = sortedUnits[unitIndex]
-				singleUnit[1] = selectedUnitId
-				sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
-				giveOrders(commandId, singleUnit, assignedTargets, options)
-			end
+			local selectedUnitId = sortedUnits[unitIndex]
+			singleUnitArray[1] = selectedUnitId
+			sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
+			giveOrders(commandId, singleUnitArray, assignedTargets, options)
 		end
 	else
 		local minimumCount, remainderCount = divideWithRemainder(#selectedUnits, #filteredTargets)
@@ -832,26 +788,10 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 			if targetIndex <= remainderCount then
 				count = count + 1
 			end
-			if count > 0 then
-				local squad = pickClosestUnassigned(targetId, selectedUnits, unassigned, count, positionCache)
-				if #squad > 0 then
-					giveOrders(commandId, squad, { targetId }, options)
-				end
-			end
+			local squad = pickClosestUnassigned(targetId, selectedUnits, unassigned, count, positionCache)
+			giveOrders(commandId, squad, { targetId }, options)
 		end
 	end
-end
-
-local function issueDoubleClickMassOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId, partition, perUnitLimit)
-	if #filteredTargets == 0 or perUnitLimit <= 0 then
-		return false
-	end
-	if partition then
-		givePartitionedOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId, perUnitLimit)
-	else
-		giveOrdersPerUnitSortedFromSelf(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
-	end
-	return true
 end
 
 local function commandRule(targetTypes, targetAllegiance)
@@ -931,6 +871,16 @@ local function featureMatchesReclaimReference(featureMetadata, referenceMetadata
 	return false
 end
 
+local function featureMatchesReclaimYield(featureMetadata, referenceMetadata)
+	if referenceMetadata.hasMetal then
+		return featureMetadata.hasMetal
+	end
+	if referenceMetadata.isEnergyOnly then
+		return featureMetadata.isEnergyOnly
+	end
+	return false
+end
+
 local function shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
 	if commandId == CMD.RESURRECT then
 		local unitDefName = spGetFeatureResurrect(featureId)
@@ -946,7 +896,7 @@ local function shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
 		end
 		return featureMetadata.reclaimable == true
 	end
-	return true
+	return false
 end
 
 local function collectVisibleUnits(unitDefId, targetAllegiance, teamId)
@@ -967,30 +917,6 @@ local function collectVisibleUnits(unitDefId, targetAllegiance, teamId)
 	return filteredTargets
 end
 
-local function getVisibleUnitsOfType(unitDefId, targetAllegiance)
-	return collectVisibleUnits(unitDefId, targetAllegiance, nil)
-end
-
-local function getVisibleUnitsByAllegiance(targetAllegiance)
-	return collectVisibleUnits(nil, targetAllegiance, nil)
-end
-
-local function getVisibleUnitsOfOwnTeam()
-	return collectVisibleUnits(nil, nil, myTeamId)
-end
-
-local function getVisibleUnitsOfOwnTeamType(unitDefId)
-	return collectVisibleUnits(unitDefId, nil, myTeamId)
-end
-
-local function getVisibleUnitsOfTeam(teamId)
-	return collectVisibleUnits(nil, ALLY_UNITS, teamId)
-end
-
-local function getVisibleUnitsOfTeamType(unitDefId, teamId)
-	return collectVisibleUnits(unitDefId, ALLY_UNITS, teamId)
-end
-
 local function collectVisibleFeatures(commandId, featureDefId)
 	local filteredTargets = {}
 	local visibleFeatures = spGetVisibleFeatures(-1)
@@ -1009,7 +935,7 @@ local function collectVisibleFeatures(commandId, featureDefId)
 	return filteredTargets
 end
 
-local function collectVisibleReclaimFeatures(referenceRawFeatureId)
+local function collectVisibleReclaimFeatures(referenceRawFeatureId, broadenByYield)
 	local filteredTargets = {}
 	local visibleFeatures = spGetVisibleFeatures(-1)
 	if not visibleFeatures then
@@ -1020,8 +946,14 @@ local function collectVisibleReclaimFeatures(referenceRawFeatureId)
 	for featureIndex = 1, #visibleFeatures do
 		local featureId = visibleFeatures[featureIndex]
 		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
+		local matchesReference
+		if broadenByYield then
+			matchesReference = featureMatchesReclaimYield(featureMetadata, referenceMetadata)
+		else
+			matchesReference = featureMatchesReclaimReference(featureMetadata, referenceMetadata)
+		end
 		if shouldIncludeVisibleFeature(featureId, CMD.RECLAIM, metadataCache)
-			and featureMatchesReclaimReference(featureMetadata, referenceMetadata)
+			and matchesReference
 		then
 			tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
 		end
@@ -1029,7 +961,7 @@ local function collectVisibleReclaimFeatures(referenceRawFeatureId)
 	return filteredTargets
 end
 
-local function isValidDoubleClickTarget(commandId, targetId, isFeature)
+local function isValidMassOrderTarget(commandId, targetId, isFeature)
 	local commandConfig = ALLOWED_COMMANDS[commandId]
 	if not commandConfig then
 		return false
@@ -1063,13 +995,7 @@ local function isValidDoubleClickTarget(commandId, targetId, isFeature)
 	return true
 end
 
-local function resolveCursorTargetId(mouseX, mouseY, explicitTargetId)
-	if explicitTargetId then
-		return explicitTargetId
-	end
-	if mouseX == nil or mouseY == nil then
-		return nil
-	end
+local function resolveCursorTargetId(mouseX, mouseY)
 	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
 	if targetType == UNIT then
 		return targetId
@@ -1080,12 +1006,11 @@ local function resolveCursorTargetId(mouseX, mouseY, explicitTargetId)
 	return nil
 end
 
-local function resolveMassOrderReferenceTarget(commandId, firstClickTargetId, secondClickTargetId, mouseX, mouseY)
-	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY, secondClickTargetId)
-	if cursorTargetId then
-		local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
-		if isValidDoubleClickTarget(commandId, cursorTargetId, cursorTargetIsFeature) then
-			return cursorTargetId, cursorTargetIsFeature
+local function resolveMassOrderReferenceTarget(commandId, firstClickTargetId, secondClickTargetId)
+	if secondClickTargetId then
+		local secondClickTargetIsFeature = isFeatureTargetId(secondClickTargetId)
+		if isValidMassOrderTarget(commandId, secondClickTargetId, secondClickTargetIsFeature) then
+			return secondClickTargetId, secondClickTargetIsFeature
 		end
 	end
 	return firstClickTargetId, isFeatureTargetId(firstClickTargetId)
@@ -1114,14 +1039,11 @@ local function filterTargetsBySelectionMembership(targets, selectionSet, targetI
 	return filteredTargets
 end
 
-local function collectDoubleClickTargets(commandId, targetId, isFeature, options)
+local function collectMassOrderTargets(commandId, targetId, isFeature, options)
 	if isFeature then
 		local rawFeatureId = getRawFeatureId(targetId)
 		if commandId == CMD.RECLAIM then
-			if options.ctrl then
-				return collectVisibleFeatures(CMD.RECLAIM, nil)
-			end
-			return collectVisibleReclaimFeatures(rawFeatureId)
+			return collectVisibleReclaimFeatures(rawFeatureId, options.ctrl)
 		end
 		local featureDefId = spGetFeatureDefId(rawFeatureId)
 		if not featureDefId then
@@ -1137,13 +1059,13 @@ local function collectDoubleClickTargets(commandId, targetId, isFeature, options
 	local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamId
 	if commandConfig.targetAllegiance == ENEMY_UNITS or (commandId == CMD.RECLAIM and isEnemy) then
 		if options.ctrl then
-			return finalizeUnitTargets(commandId, getVisibleUnitsByAllegiance(ENEMY_UNITS))
+			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ENEMY_UNITS, nil))
 		end
 		local unitDefId = spGetUnitDefId(targetId)
 		if not unitDefId then
 			return {}
 		end
-		return finalizeUnitTargets(commandId, getVisibleUnitsOfType(unitDefId, ENEMY_UNITS))
+		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, ENEMY_UNITS, nil))
 	end
 	if commandId == CMD.REPAIR and not isEnemy then
 		local targetTeamId = spGetUnitTeam(targetId)
@@ -1151,13 +1073,13 @@ local function collectDoubleClickTargets(commandId, targetId, isFeature, options
 			return {}
 		end
 		if options.ctrl then
-			return finalizeUnitTargets(commandId, getVisibleUnitsOfTeam(targetTeamId))
+			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ALLY_UNITS, targetTeamId))
 		end
 		local unitDefId = spGetUnitDefId(targetId)
 		if not unitDefId then
 			return {}
 		end
-		return finalizeUnitTargets(commandId, getVisibleUnitsOfTeamType(unitDefId, targetTeamId))
+		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, ALLY_UNITS, targetTeamId))
 	end
 	if commandId == CMD.RECLAIM and not isEnemy then
 		local targetTeamId = spGetUnitTeam(targetId)
@@ -1168,42 +1090,45 @@ local function collectDoubleClickTargets(commandId, targetId, isFeature, options
 			return { targetId }
 		end
 		if options.ctrl then
-			return getVisibleUnitsOfOwnTeam()
+			return collectVisibleUnits(nil, nil, myTeamId)
 		end
 		local unitDefId = spGetUnitDefId(targetId)
 		if not unitDefId then
 			return {}
 		end
-		return getVisibleUnitsOfOwnTeamType(unitDefId)
+		return collectVisibleUnits(unitDefId, nil, myTeamId)
 	end
 	if options.ctrl then
-		return finalizeUnitTargets(commandId, getVisibleUnitsByAllegiance(ALLY_UNITS))
+		return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ALLY_UNITS, nil))
 	end
 	local unitDefId = spGetUnitDefId(targetId)
 	if not unitDefId then
 		return {}
 	end
-	return finalizeUnitTargets(commandId, getVisibleUnitsOfType(unitDefId, commandConfig.targetAllegiance))
+	return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, commandConfig.targetAllegiance, nil))
 end
 
 local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, referenceTargetIsFeature, selectedUnits, options)
-	options = enrichCommandOptions(options)
+	local selectionSet = buildSelectionSet(selectedUnits)
+	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetId] == true
 	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandId)
 	if #selectedUnits == 0 then
 		return false
 	end
-	local selectionSet = buildSelectionSet(selectedUnits)
-	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetId] == true
-	local filteredTargets = collectDoubleClickTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
+	local filteredTargets = collectMassOrderTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	local partition, perUnitLimit, targetPoolLimit = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, targetPoolLimit)
-	if not issueDoubleClickMassOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId, partition, perUnitLimit) then
+	filteredTargets = limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, targetPoolLimit)
+	if #filteredTargets == 0 or perUnitLimit <= 0 then
 		return false
 	end
+	if partition then
+		givePartitionedOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
+	else
+		giveOrdersPerUnitSortedFromSelf(issueCommandId, selectedUnits, filteredTargets, options)
+	end
 	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
-	local queuing = isQueuing(options)
-	if queuing then
+	if options.shift then
 		heldCommandDescriptionIndex = savedCommandDescriptionIndex
 		restoreActiveCommand(savedCommandDescriptionIndex)
 	else
@@ -1213,7 +1138,7 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	return true
 end
 
-local function issuePendingDoubleClickMassOrders(options, secondClickTargetId, mouseX, mouseY)
+local function issuePendingDoubleClickMassOrders(options, secondClickTargetId)
 	if not isPendingDoubleClickActive() then
 		return false
 	end
@@ -1222,17 +1147,15 @@ local function issuePendingDoubleClickMassOrders(options, secondClickTargetId, m
 	local referenceTargetId, referenceTargetIsFeature = resolveMassOrderReferenceTarget(
 		issueCommandId,
 		firstClickTargetId,
-		secondClickTargetId,
-		mouseX,
-		mouseY
+		secondClickTargetId
 	)
-	local massCommandOptions = enrichCommandOptions({
+	local massCommandOptions = {
 		alt = options.alt or pendingDoubleClick.alt,
 		ctrl = options.ctrl or pendingDoubleClick.ctrl,
 		meta = options.meta or pendingDoubleClick.meta,
 		shift = options.shift or pendingDoubleClick.shift,
-		right = options.right ~= nil and options.right or pendingDoubleClick.right,
-	})
+		right = options.right,
+	}
 	clearDoubleClickPending()
 	local selectedUnits = spGetSelectedUnits()
 	local massIssued = false
@@ -1247,71 +1170,54 @@ local function issuePendingDoubleClickMassOrders(options, secondClickTargetId, m
 	if not skipMassReissue and #selectedUnits > 0 then
 		massIssued = issueMassOrdersFromTarget(issueCommandId, referenceTargetId, referenceTargetIsFeature, selectedUnits, massCommandOptions)
 	end
-	if not massIssued and not isQueuing(massCommandOptions) then
+	if not massIssued and not massCommandOptions.shift then
 		heldCommandDescriptionIndex = nil
 		deferClearActiveCommand = true
 	end
 	return true
 end
 
-local function resolveDoubleClickCommandId(commandId)
+local function resolveScreenSelectCommandId(commandId)
+	if commandId ~= nil then
+		return commandId
+	end
 	local _, activeCommandId = spGetActiveCommand()
 	if activeCommandId and ALLOWED_COMMANDS[activeCommandId] then
 		return activeCommandId
 	end
-	return commandId
+	return nil
 end
 
-local function tryCompletePendingDoubleClick(options, effectiveCommandId, secondClickTargetId, mouseX, mouseY)
-	local currentTime = osClock()
-	local clickRight = options.right or false
-	if not isPendingDoubleClickActive()
-		or pendingDoubleClick.commandId ~= effectiveCommandId
-		or not ALLOWED_COMMANDS[pendingDoubleClick.commandId]
-		or pendingDoubleClick.right ~= clickRight
-	then
-		return false
-	end
-	if currentTime < pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP then
-		clearDoubleClickPending()
-		if not isQueuing(options) then
-			heldCommandDescriptionIndex = nil
-			deferClearActiveCommand = true
-		end
-		return true
-	end
-	return issuePendingDoubleClickMassOrders(options, secondClickTargetId, mouseX, mouseY)
-end
-
-local function getPendingExpireTime(currentTime)
-	return currentTime + DOUBLE_CLICK_TIME
-end
-
-local function consumePendingDoubleClickClick(options, effectiveCommandId, secondClickTargetId, mouseX, mouseY)
+local function consumePendingDoubleClickClick(options, effectiveCommandId, secondClickTargetId)
 	if not doubleClickEnabled or not isPendingDoubleClickActive() then
 		return false
 	end
 	if effectiveCommandId and pendingDoubleClick.commandId ~= effectiveCommandId then
 		return false
 	end
-	local clickRight = options.right or false
-	if pendingDoubleClick.right ~= clickRight then
+	if pendingDoubleClick.right ~= options.right then
 		return false
 	end
-	return tryCompletePendingDoubleClick(options, pendingDoubleClick.commandId, secondClickTargetId, mouseX, mouseY)
+	if osClock() < pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP then
+		clearDoubleClickPending()
+		if not options.shift then
+			heldCommandDescriptionIndex = nil
+			deferClearActiveCommand = true
+		end
+		return true
+	end
+	return issuePendingDoubleClickMassOrders(options, secondClickTargetId)
 end
 
-local function handleDoubleClickSingleTarget(commandId, parameters, options)
-	options = enrichCommandOptions(options)
+local function handleScreenSelectCommand(effectiveCommandId, parameters, options)
 	local targetId = parameters[1]
 	local isFeature = isFeatureTargetId(targetId)
-	local effectiveCommandId = resolveDoubleClickCommandId(commandId)
 
 	if not screenSelectHeld and consumePendingDoubleClickClick(options, effectiveCommandId, targetId) then
 		return true
 	end
 
-	if not isValidDoubleClickTarget(effectiveCommandId, targetId, isFeature) then
+	if not isValidMassOrderTarget(effectiveCommandId, targetId, isFeature) then
 		return false
 	end
 
@@ -1319,23 +1225,18 @@ local function handleDoubleClickSingleTarget(commandId, parameters, options)
 	if #selectedUnits == 0 then
 		return false
 	end
+	if screenSelectHeld then
+		return issueMassOrdersFromTarget(effectiveCommandId, targetId, isFeature, selectedUnits, options)
+	end
+
 	selectedUnits = filterUnitsForCommand(selectedUnits, effectiveCommandId)
 	if #selectedUnits == 0 then
 		return false
 	end
 
-	if not ALLOWED_COMMANDS[effectiveCommandId] then
-		return false
-	end
-
-	if screenSelectHeld then
-		return issueMassOrdersFromTarget(effectiveCommandId, targetId, isFeature, selectedUnits, options)
-	end
-
 	if not doubleClickEnabled then
 		giveOrders(effectiveCommandId, selectedUnits, { targetId }, options)
-		local queuing = isQueuing(options)
-		if queuing then
+		if options.shift then
 			heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(effectiveCommandId)
 		else
 			heldCommandDescriptionIndex = nil
@@ -1345,28 +1246,26 @@ local function handleDoubleClickSingleTarget(commandId, parameters, options)
 	end
 
 	local currentTime = osClock()
-	local queuing = isQueuing(options)
-	local clickAlt = options.alt or false
-	local clickControl = options.ctrl or false
-	local clickMeta = options.meta or false
-	local clickShift = options.shift or false
-	local clickRight = options.right or false
 
 	giveOrders(effectiveCommandId, selectedUnits, { targetId }, options)
 
 	pendingDoubleClick.targetId = targetId
-	pendingDoubleClick.expireTime = getPendingExpireTime(currentTime)
+	pendingDoubleClick.expireTime = currentTime + DOUBLE_CLICK_TIME
 	pendingDoubleClick.commandId = effectiveCommandId
-	pendingDoubleClick.alt = clickAlt
-	pendingDoubleClick.ctrl = clickControl
-	pendingDoubleClick.meta = clickMeta
-	pendingDoubleClick.shift = clickShift
-	pendingDoubleClick.right = clickRight
+	pendingDoubleClick.alt = options.alt
+	pendingDoubleClick.ctrl = options.ctrl
+	pendingDoubleClick.meta = options.meta
+	pendingDoubleClick.shift = options.shift
+	pendingDoubleClick.right = options.right
 	pendingDoubleClick.firstClickTime = currentTime
-	if queuing then
+	if options.shift then
 		heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(effectiveCommandId)
 	end
 	return true
+end
+
+local function isSetTargetCommand(commandId)
+	return commandId == GameCMD.UNIT_SET_TARGET or commandId == GameCMD.UNIT_SET_TARGET_NO_GROUND
 end
 
 function widget:MousePress(mouseX, mouseY, button)
@@ -1374,36 +1273,30 @@ function widget:MousePress(mouseX, mouseY, button)
 		return false
 	end
 	local options = enrichCommandOptions({ right = (button == 3) })
-	local effectiveCommandId = resolveDoubleClickCommandId(nil)
-	if effectiveCommandId == GameCMD.UNIT_SET_TARGET and options.alt then
+	local effectiveCommandId = resolveScreenSelectCommandId(nil)
+	if isSetTargetCommand(effectiveCommandId) and options.alt then
 		clearDoubleClickPending()
 		return false
 	end
 	if not doubleClickEnabled or not isPendingDoubleClickActive() then
 		return false
 	end
-	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY, nil)
+	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
 	if not cursorTargetId then
 		return false
 	end
-	return consumePendingDoubleClickClick(options, effectiveCommandId, cursorTargetId, mouseX, mouseY)
+	return consumePendingDoubleClickClick(options, effectiveCommandId, cursorTargetId)
 end
 
 function widget:CommandNotify(commandId, parameters, options)
 	options = enrichCommandOptions(options)
-	local effectiveCommandId = resolveDoubleClickCommandId(commandId)
-	if effectiveCommandId == GameCMD.UNIT_SET_TARGET and options.alt then
+	local effectiveCommandId = resolveScreenSelectCommandId(commandId)
+	if isSetTargetCommand(effectiveCommandId) and options.alt then
 		clearDoubleClickPending()
 		return false
 	end
-	if #parameters ~= 4 then
-		local secondClickTargetId = #parameters == 1 and parameters[1] or nil
-		if consumePendingDoubleClickClick(options, effectiveCommandId, secondClickTargetId) then
-			return true
-		end
-	end
 	if #parameters == 1 then
-		return handleDoubleClickSingleTarget(commandId, parameters, options)
+		return handleScreenSelectCommand(effectiveCommandId, parameters, options)
 	end
 	return false
 end
@@ -1423,12 +1316,12 @@ local function setDoubleClickEnabled(value)
 	end
 end
 
-local function setMaxDoubleClickUnits(value)
+local function setMaxMassOrderTargets(value)
 	local numericValue = tonumber(value)
 	if not numericValue then
 		return
 	end
-	maxDoubleClickUnits = mathMax(1, mathFloor(numericValue))
+	maxMassOrderTargets = mathMax(1, mathFloor(numericValue))
 end
 
 local function setCommandLimit(value)
@@ -1440,15 +1333,15 @@ local function setCommandLimit(value)
 end
 
 local function registerScreenSelectCommandsApi()
-	WG['screenSelectCommands'] = {
+	WG["screenSelectCommands"] = {
 		getDoubleClickEnabled = function()
 			return doubleClickEnabled
 		end,
 		setDoubleClickEnabled = setDoubleClickEnabled,
-		getMaxDoubleClickUnits = function()
-			return maxDoubleClickUnits
+		getMaxMassOrderTargets = function()
+			return maxMassOrderTargets
 		end,
-		setMaxDoubleClickUnits = setMaxDoubleClickUnits,
+		setMaxMassOrderTargets = setMaxMassOrderTargets,
 		getCommandLimit = function()
 			return commandLimit
 		end,
@@ -1484,7 +1377,7 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("screen_select_hold", "p")
 	widgetHandler:RemoveAction("screen_select_hold", "r")
-	WG['screenSelectCommands'] = nil
+	WG["screenSelectCommands"] = nil
 	screenSelectHeld = false
 end
 
@@ -1518,7 +1411,7 @@ end
 function widget:GetConfigData()
 	return {
 		doubleClickEnabled = doubleClickEnabled,
-		maxDoubleClickUnits = maxDoubleClickUnits,
+		maxMassOrderTargets = maxMassOrderTargets,
 		commandLimit = commandLimit,
 	}
 end
@@ -1527,8 +1420,10 @@ function widget:SetConfigData(data)
 	if data.doubleClickEnabled ~= nil then
 		setDoubleClickEnabled(data.doubleClickEnabled)
 	end
-	if data.maxDoubleClickUnits ~= nil then
-		setMaxDoubleClickUnits(data.maxDoubleClickUnits)
+	if data.maxMassOrderTargets ~= nil then
+		setMaxMassOrderTargets(data.maxMassOrderTargets)
+	elseif data.maxDoubleClickUnits ~= nil then
+		setMaxMassOrderTargets(data.maxDoubleClickUnits)
 	end
 	if data.commandLimit ~= nil then
 		setCommandLimit(data.commandLimit)
