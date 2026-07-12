@@ -20,7 +20,7 @@ How To Use:
 Click modifiers:
   Shift -> add to end of queue
   Space -> prepend to beginning of queue
-  Ctrl -> expand scope - apply to all visible targets of the same allignment. Own TeamID, Ally's teamID, all enemy TeamID's, or all features.
+  Ctrl -> expand scope - apply to all visible targets of the same allignment. Own TeamID, Ally's teamID, all enemy TeamID's. For reclaim features, broaden by yield (metal vs energy-only).
   Alt -> distribute evenly among selected units
 
   There's a filter also. If you screen-command selected units, it will include selected units only.
@@ -56,6 +56,10 @@ local spSetActiveCommand = Spring.SetActiveCommand
 local spGetModKeyState = Spring.GetModKeyState
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
 local spGetKeyState = Spring.GetKeyState
+local spValidFeatureID = Spring.ValidFeatureID
+local spValidUnitID = Spring.ValidUnitID
+local spGetFeatureResources = Spring.GetFeatureResources
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -163,7 +167,13 @@ local function isPendingDoubleClickActive()
 end
 
 local function isFeatureTargetId(targetId)
-	return targetId > Game.maxUnits
+	if targetId > Game.maxUnits then
+		return spValidFeatureID(targetId - Game.maxUnits)
+	end
+	if spValidFeatureID(targetId) and not spValidUnitID(targetId) then
+		return true
+	end
+	return false
 end
 
 local function getRawFeatureId(targetId)
@@ -174,10 +184,86 @@ local function getRawFeatureId(targetId)
 end
 
 local function normalizeFeatureTargetId(featureId)
-	if Engine.FeatureSupport.noOffsetForFeatureID or featureId > Game.maxUnits then
+	if Engine.FeatureSupport.noOffsetForFeatureID then
+		if featureId > Game.maxUnits then
+			return featureId - Game.maxUnits
+		end
+		return featureId
+	end
+	if featureId > Game.maxUnits then
 		return featureId
 	end
 	return featureId + Game.maxUnits
+end
+
+local function toFeatureOrderParamId(targetId)
+	if not isFeatureTargetId(targetId) then
+		return targetId
+	end
+	if Engine.FeatureSupport.noOffsetForFeatureID then
+		return getRawFeatureId(targetId)
+	end
+	if targetId > Game.maxUnits then
+		return targetId
+	end
+	return targetId + Game.maxUnits
+end
+
+local function filterUnitsForCommand(selectedUnits, cmdId)
+	if cmdId ~= CMD.RECLAIM and cmdId ~= CMD.RESURRECT and cmdId ~= CMD.REPAIR and cmdId ~= CMD.CAPTURE then
+		return selectedUnits
+	end
+	local filteredUnits = {}
+	for i = 1, #selectedUnits do
+		local unitId = selectedUnits[i]
+		local unitDefId = spGetUnitDefID(unitId)
+		local unitDef = unitDefId and UnitDefs[unitDefId]
+		if unitDef then
+			if cmdId == CMD.RECLAIM and unitDef.canReclaim and unitDef.reclaimSpeed > 0 then
+				tableInsert(filteredUnits, unitId)
+			elseif cmdId == CMD.RESURRECT and unitDef.canResurrect and unitDef.resurrectSpeed > 0 then
+				tableInsert(filteredUnits, unitId)
+			elseif cmdId == CMD.REPAIR and unitDef.canRepair and unitDef.repairSpeed > 0 then
+				tableInsert(filteredUnits, unitId)
+			elseif cmdId == CMD.CAPTURE and unitDef.canCapture and unitDef.captureSpeed > 0 then
+				tableInsert(filteredUnits, unitId)
+			end
+		end
+	end
+	return filteredUnits
+end
+
+local function isCapturableTargetUnit(unitId)
+	local unitDefId = spGetUnitDefID(unitId)
+	if not unitDefId then
+		return false
+	end
+	local unitDef = UnitDefs[unitDefId]
+	if not unitDef or not unitDef.capturable then
+		return false
+	end
+	if spGetUnitIsBeingBuilt(unitId) then
+		return false
+	end
+	return true
+end
+
+local function filterCaptureTargets(targets)
+	local filteredTargets = {}
+	for i = 1, #targets do
+		local unitId = targets[i]
+		if isCapturableTargetUnit(unitId) then
+			tableInsert(filteredTargets, unitId)
+		end
+	end
+	return filteredTargets
+end
+
+local function finalizeUnitTargets(cmdId, targets)
+	if cmdId == CMD.CAPTURE then
+		return filterCaptureTargets(targets)
+	end
+	return targets
 end
 
 local function getTargetPosition(targetId)
@@ -264,9 +350,9 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 			tableInsert(cmdOpts, "shift")
 		end
 		if options.meta and not queuing then
-			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
+			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, toFeatureOrderParamId(targetId) }, CMD.OPT_ALT)
 		else
-			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
+			spGiveOrderToUnitArray(selectedUnits, cmdId, { toFeatureOrderParamId(targetId) }, cmdOpts)
 		end
 		firstTarget = false
 		if i * selectedUnitsLen > maxCommands then
@@ -423,12 +509,109 @@ local function unitMatchesAllegiance(unitID, targetAllegiance)
 	return true
 end
 
-local function shouldIncludeVisibleFeature(featureId, cmdId)
-	if cmdId ~= CMD.RESURRECT then
-		return true
+local function getReclaimFeatureCategory(rawFeatureId)
+	local featureDefId = spGetFeatureDefID(rawFeatureId)
+	if not featureDefId then
+		return nil
 	end
-	local unitDefName = spGetFeatureResurrect(featureId)
-	return unitDefName ~= nil and unitDefName ~= ""
+	local featureDef = FeatureDefs[featureDefId]
+	if not featureDef or not featureDef.customParams then
+		return nil
+	end
+	return featureDef.customParams.category
+end
+
+local function isReclaimCorpse(rawFeatureId)
+	return getReclaimFeatureCategory(rawFeatureId) == "corpses"
+end
+
+local function isReclaimHeap(rawFeatureId)
+	return getReclaimFeatureCategory(rawFeatureId) == "heaps"
+end
+
+local function featureHasMetalYield(rawFeatureId)
+	local featureDefId = spGetFeatureDefID(rawFeatureId)
+	if featureDefId then
+		local featureDef = FeatureDefs[featureDefId]
+		if featureDef and featureDef.metal and featureDef.metal > 0 then
+			return true
+		end
+	end
+	local metal = select(1, spGetFeatureResources(rawFeatureId))
+	return metal and metal > 0
+end
+
+local function featureIsEnergyOnlyYield(rawFeatureId)
+	if featureHasMetalYield(rawFeatureId) then
+		return false
+	end
+	local featureDefId = spGetFeatureDefID(rawFeatureId)
+	if featureDefId then
+		local featureDef = FeatureDefs[featureDefId]
+		if featureDef and featureDef.energy and featureDef.energy > 0 then
+			return true
+		end
+	end
+	local _, _, energy = spGetFeatureResources(rawFeatureId)
+	return energy and energy > 0
+end
+
+local function getReclaimCtrlYieldClass(rawFeatureId)
+	if featureHasMetalYield(rawFeatureId) then
+		return "metal"
+	end
+	if featureIsEnergyOnlyYield(rawFeatureId) then
+		return "energyOnly"
+	end
+	return nil
+end
+
+local function featureMatchesReclaimReference(rawFeatureId, refRawFeatureId, useCtrl)
+	if useCtrl then
+		local refYieldClass = getReclaimCtrlYieldClass(refRawFeatureId)
+		if not refYieldClass then
+			return false
+		end
+		return getReclaimCtrlYieldClass(rawFeatureId) == refYieldClass
+	end
+	if isReclaimCorpse(refRawFeatureId) then
+		return isReclaimCorpse(rawFeatureId)
+			and spGetFeatureDefID(rawFeatureId) == spGetFeatureDefID(refRawFeatureId)
+	end
+	if isReclaimHeap(refRawFeatureId) then
+		return isReclaimHeap(rawFeatureId)
+	end
+	if featureIsEnergyOnlyYield(refRawFeatureId) then
+		return featureIsEnergyOnlyYield(rawFeatureId)
+	end
+	if featureHasMetalYield(refRawFeatureId) then
+		return featureHasMetalYield(rawFeatureId)
+			and spGetFeatureDefID(rawFeatureId) == spGetFeatureDefID(refRawFeatureId)
+	end
+	return false
+end
+
+local function shouldIncludeVisibleFeature(featureId, cmdId)
+	if cmdId == CMD.RESURRECT then
+		local unitDefName = spGetFeatureResurrect(featureId)
+		return unitDefName ~= nil and unitDefName ~= ""
+	end
+	if cmdId == CMD.RECLAIM then
+		local featureDefId = spGetFeatureDefID(featureId)
+		if not featureDefId then
+			return false
+		end
+		local featureDef = FeatureDefs[featureDefId]
+		if featureDef and featureDef.reclaimable == false then
+			return false
+		end
+		local metal, _, energy = spGetFeatureResources(featureId)
+		if (metal and metal > 0) or (energy and energy > 0) then
+			return true
+		end
+		return featureDef and featureDef.reclaimable == true
+	end
+	return true
 end
 
 local function getVisibleUnitsOfType(unitDefID, targetAllegiance)
@@ -523,6 +706,23 @@ local function collectVisibleFeatures(cmdId, featureDefID)
 	return filteredTargets
 end
 
+local function collectVisibleReclaimFeatures(refRawFeatureId, useCtrl)
+	local filteredTargets = {}
+	local visibleFeatures = spGetVisibleFeatures(-1)
+	if not visibleFeatures then
+		return filteredTargets
+	end
+	for i = 1, #visibleFeatures do
+		local featureId = visibleFeatures[i]
+		if shouldIncludeVisibleFeature(featureId, CMD.RECLAIM)
+			and featureMatchesReclaimReference(featureId, refRawFeatureId, useCtrl)
+		then
+			tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
+		end
+	end
+	return filteredTargets
+end
+
 local function isValidDoubleClickTarget(cmdId, targetId, isFeature)
 	local config = allowedCommands[cmdId]
 	if not config then
@@ -552,6 +752,9 @@ local function isValidDoubleClickTarget(cmdId, targetId, isFeature)
 		return false
 	end
 	if cmdId == CMD.RECLAIM and not isEnemy and spGetUnitTeam(targetId) ~= myTeamID then
+		return false
+	end
+	if cmdId == CMD.CAPTURE and not isCapturableTargetUnit(targetId) then
 		return false
 	end
 	return true
@@ -587,21 +790,29 @@ end
 
 local function collectDoubleClickTargets(cmdId, targetId, isFeature, options)
 	if isFeature then
-		local featureDefID = spGetFeatureDefID(getRawFeatureId(targetId))
+		local rawFeatureId = getRawFeatureId(targetId)
+		if cmdId == CMD.RECLAIM then
+			return collectVisibleReclaimFeatures(rawFeatureId, options.ctrl)
+		end
+		local featureDefID = spGetFeatureDefID(rawFeatureId)
 		if not featureDefID then
 			return {}
 		end
-		return collectVisibleFeatures(cmdId, featureDefID)
+		local typeFilter = featureDefID
+		if options.ctrl then
+			typeFilter = nil
+		end
+		return collectVisibleFeatures(cmdId, typeFilter)
 	end
 	if options.ctrl then
 		local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
 		if isEnemy then
-			return getVisibleUnitsByAllegiance(ENEMY_UNITS)
+			return finalizeUnitTargets(cmdId, getVisibleUnitsByAllegiance(ENEMY_UNITS))
 		end
 		if cmdId == CMD.RECLAIM then
 			return getVisibleUnitsOfOwnTeam()
 		end
-		return getVisibleUnitsOfTeam(spGetUnitTeam(targetId))
+		return finalizeUnitTargets(cmdId, getVisibleUnitsOfTeam(spGetUnitTeam(targetId)))
 	end
 	local unitDefID = spGetUnitDefID(targetId)
 	if not unitDefID then
@@ -615,10 +826,16 @@ local function collectDoubleClickTargets(cmdId, targetId, isFeature, options)
 		return getVisibleUnitsOfOwnTeamType(unitDefID)
 	end
 	local config = allowedCommands[cmdId]
-	return getVisibleUnitsOfType(unitDefID, config.targetAllegiance)
+	return finalizeUnitTargets(cmdId, getVisibleUnitsOfType(unitDefID, config.targetAllegiance))
 end
 
 local function issueMassOrdersFromTarget(issueCmdId, refTargetId, refTargetIsFeature, selectedUnits, options)
+	options = enrichCommandOptions(options)
+	refTargetIsFeature = isFeatureTargetId(refTargetId)
+	selectedUnits = filterUnitsForCommand(selectedUnits, issueCmdId)
+	if #selectedUnits == 0 then
+		return false
+	end
 	local selectionSet = buildSelectionSet(selectedUnits)
 	local targetInSelection = not refTargetIsFeature and isUnitInSelection(refTargetId, selectionSet)
 	local savedCmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(issueCmdId)
@@ -644,9 +861,16 @@ local function issuePendingDoubleClickMassOrders(options)
 	end
 	local issueCmdId = pendingDoubleClick.cmdId
 	local refTargetId = pendingDoubleClick.targetId
-	local refTargetIsFeature = pendingDoubleClick.isFeature
+	local refTargetIsFeature = isFeatureTargetId(refTargetId)
+	local massOptions = enrichCommandOptions({
+		alt = options.alt or pendingDoubleClick.alt,
+		ctrl = options.ctrl or pendingDoubleClick.ctrl,
+		meta = options.meta or pendingDoubleClick.meta,
+		shift = options.shift or pendingDoubleClick.shift,
+		right = options.right ~= nil and options.right or pendingDoubleClick.right,
+	})
 	clearDoubleClickPending()
-	return issueMassOrdersFromTarget(issueCmdId, refTargetId, refTargetIsFeature, selectedUnits, options)
+	return issueMassOrdersFromTarget(issueCmdId, refTargetId, refTargetIsFeature, selectedUnits, massOptions)
 end
 
 local function resolveDoubleClickCmdId(cmdId)
@@ -659,18 +883,10 @@ end
 
 local function tryCompletePendingDoubleClick(options, effectiveCmdId)
 	local now = osClock()
-	local clickAlt = options.alt or false
-	local clickCtrl = options.ctrl or false
-	local clickMeta = options.meta or false
-	local clickShift = options.shift or false
 	local clickRight = options.right or false
 	if isPendingDoubleClickActive()
 		and pendingDoubleClick.cmdId == effectiveCmdId
 		and doubleClickCommands[pendingDoubleClick.cmdId]
-		and pendingDoubleClick.alt == clickAlt
-		and pendingDoubleClick.ctrl == clickCtrl
-		and pendingDoubleClick.meta == clickMeta
-		and pendingDoubleClick.shift == clickShift
 		and pendingDoubleClick.right == clickRight
 		and now >= pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP
 	then
@@ -713,6 +929,10 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	end
 
 	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 then
+		return false
+	end
+	selectedUnits = filterUnitsForCommand(selectedUnits, effectiveCmdId)
 	if #selectedUnits == 0 then
 		return false
 	end
