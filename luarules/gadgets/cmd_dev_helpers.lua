@@ -1522,106 +1522,195 @@ else	-- UNSYNCED
 
 		local Accept = {} -- table of conditions that must be satisfied for the unitDef to be given
 
-		-- factions
-		if string.find(line, "arm") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "arm" and not string.find(ud.name, '_scav')
+		local function unitHasWeaponMatching(ud, predicate)
+			if not ud.weapons then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "cor") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+			for i = 1, #ud.weapons do
+				local weapon = ud.weapons[i]
+				local wDef = weapon and WeaponDefs[weapon.weaponDef]
+				if wDef and predicate(wDef, weapon) then
+					return true
+				end
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "leg") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "scav") then
-			local Condition = function(ud)
-				return string.find(ud.name, '_scav')
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "raptor") then
-			local Condition = function(ud)
-				return string.find(ud.name, 'raptor')
-			end
-			Accept[#Accept + 1] = Condition
+			return false
 		end
 
-		-- unit types
-		for t, suffix in pairs(facSuffix) do
-			if string.find(line, t) then
-				local Condition = function(ud)
-					return unitTypes[t][ud.id]
-				end
-				Accept[#Accept + 1] = Condition
+		local function unitHasWeaponType(ud, wantedType)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == wantedType
+			end)
+		end
+
+		local filterWords = {}
+		for i = 1, #words do
+			if words[i] then
+				filterWords[string.lower(words[i])] = true
 			end
+		end
+
+		local function addFilter(tokens, condition)
+			if type(tokens) == "string" then
+				tokens = {tokens}
+			end
+
+			local include = false
+			local exclude = false
+			for i = 1, #tokens do
+				local token = tokens[i]
+				if filterWords[token] then
+					include = true
+				end
+				if filterWords["no" .. token] then
+					exclude = true
+				end
+			end
+
+			if include then
+				Accept[#Accept + 1] = condition
+			end
+			if exclude then
+				Accept[#Accept + 1] = function(ud)
+					return not condition(ud)
+				end
+			end
+		end
+
+		-- factions
+		addFilter("arm", function(ud)
+			return ud.name:sub(1, 3) == "arm" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("cor", function(ud)
+			return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("leg", function(ud)
+			return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("scav", function(ud)
+			return string.find(ud.name, '_scav')
+		end)
+		addFilter("raptor", function(ud)
+			return string.find(ud.name, 'raptor')
+		end)
+
+		-- unit types
+		for t, _ in pairs(facSuffix) do
+			local tKey = t
+			addFilter(tKey, function(ud)
+				return unitTypes[tKey][ud.id]
+			end)
 		end
 
 		-- tech levels
-		for t, suffix in pairs(techSuffix) do
-			if string.find(line, t) then
-				local Condition = function(ud)
-					return techLevels[t][ud.id]
-				end
-				Accept[#Accept + 1] = Condition
-			end
+		for t, _ in pairs(techSuffix) do
+			local tKey = t
+			addFilter(tKey, function(ud)
+				return techLevels[tKey][ud.id]
+			end)
 		end
 
 		-- other cats
-		if string.find(line, "con") then
-			local Condition = function(ud)
-				return ud.isBuilder
+		addFilter({"con", "builder"}, function(ud)
+			return ud.isBuilder
+		end)
+		addFilter("mex", function(ud)
+			return ud.isExtractor
+		end)
+		addFilter({"trans", "transport"}, function(ud)
+			return ud.isTransport
+		end)
+		addFilter("fac", function(ud)
+			return ud.isFactory
+		end)
+		addFilter("building", function(ud)
+			return ud.isBuilding
+		end)
+		addFilter("air", function(ud)
+			return ud.canFly
+		end)
+		addFilter("mobile", function(ud)
+			return not ud.isBuilding
+		end)
+		addFilter("weapon", function(ud)
+			return unitHasWeaponMatching(ud, function()
+				return true
+			end)
+		end)
+		addFilter("laser", function(ud)
+			return unitHasWeaponType(ud, "LaserCannon") or unitHasWeaponType(ud, "BeamLaser")
+		end)
+		addFilter("plasma", function(ud)
+			return unitHasWeaponType(ud, "Cannon")
+		end)
+		addFilter("missile", function(ud)
+			return unitHasWeaponType(ud, "MissileLauncher")
+		end)
+		addFilter("depthcharge", function(ud)
+			return unitHasWeaponType(ud, "TorpedoLauncher")
+		end)
+		addFilter("starburst", function(ud)
+			return unitHasWeaponType(ud, "StarburstLauncher")
+		end)
+		addFilter("flame", function(ud)
+			return unitHasWeaponType(ud, "Flame")
+		end)
+		addFilter("lightning", function(ud)
+			return unitHasWeaponType(ud, "LightningCannon")
+		end)
+		addFilter("paralyzer", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.paralyzer
+			end)
+		end)
+		addFilter("interceptor", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.interceptor and wDef.interceptor > 0
+			end)
+		end)
+		addFilter("aa", function(ud)
+			return unitHasWeaponMatching(ud, function(_, weapon)
+				return weapon.onlyTargets and weapon.onlyTargets.vtol
+			end)
+		end)
+		addFilter("bomber", function(ud)
+			if not ud.canFly or ud.hoverAttack then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "mex") then
-			local Condition = function(ud)
-				return ud.isExtractor
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "trans") then
-			local Condition = function(ud)
-				return ud.isTransport
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "fac") then
-			local Condition = function(ud)
-				return ud.isFactory
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "building") then
-			local Condition = function(ud)
-				return ud.isBuilding
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "air") then
-			local Condition = function(ud)
-				return ud.canFly
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "mobile") then
-			local Condition = function(ud)
-				return not ud.isBuilding
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "all") then
-			local Condition = function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end)
+		end)
+		addFilter("cloak", function(ud)
+			return ud.canCloak
+		end)
+		addFilter("commander", function(ud)
+			local cp = ud.customParams
+			return cp and (cp.iscommander or cp.isscavcommander)
+		end)
+		addFilter("resurrect", function(ud)
+			return ud.canResurrect
+		end)
+		addFilter("object", function(ud)
+			local cp = ud.customParams
+			local isObjectCategory = ud.modCategories and ud.modCategories["object"]
+			return isObjectCategory or (cp and cp.objectify)
+		end)
+		addFilter("startunit", function(ud)
+			if ud.name == "armcom" or ud.name == "corcom" or ud.name == "legcom" then
 				return true
 			end
-			Accept[#Accept + 1] = Condition
+			return false
+		end)
+		addFilter("stockpile", function(ud)
+			return ud.canStockpile
+		end)
+		addFilter("all", function()
+			return true
+		end)
+
+		if #Accept == 0 then
+			Spring.Echo("givecat: no valid filters given")
+			return
 		end
 
 		-- team
