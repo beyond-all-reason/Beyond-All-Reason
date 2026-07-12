@@ -3,7 +3,7 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Screen Select Commands",
-		desc = "Double-click mass unit-target commands on visible screen targets. Supports Attack, Set Target, Capture, Guard, Repair, Reclaim, and Resurrect. First click issues a normal order and keeps the command active; second click on the same target within DoubleClickTime expands to all visible matches of that type. Each unit orders targets closest-to-itself first. Click a selected unit to mass-order only within the selection; click an external unit to exclude the selection. Shift queues, Space prepends, Ctrl broadens targets (all visible enemies, allied team, or same feature type; reclaim on allies is own team only), and Alt evenly distributes targets among units or unit squads among targets.",
+		desc = "Double-click mass unit-target commands on visible screen targets. Supports Attack, Set Target, Capture, Guard, Repair, Reclaim, and Resurrect. First click issues a normal order and keeps the command active; second click on the same target within DoubleClickTime expands to all visible matches of that type. Hold screen_select_hold to mass-expand on a single click (see widget header for bind setup). Each unit orders targets closest-to-itself first. Click a selected unit to mass-order only within the selection; click an external unit to exclude the selection. Shift queues, Space prepends, Ctrl broadens targets (all visible enemies, allied team, or same feature type; reclaim on allies is own team only), and Alt evenly distributes targets among units or unit squads among targets.",
 		author = "SethDGamre",
 		date = "July 11, 2026",
 		license = "GNU GPL, v2 or later",
@@ -11,6 +11,26 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
+
+--[[------------------------------------------------------------------------------
+How To Use:
+  First click issues a normal order. Second click the same target mass-orders all on-screen matches.
+  Optionally, keybind and hold down screen_select_hold to mass-order on the first click instead.
+
+Click modifiers:
+  Shift -> add to end of queue
+  Space -> prepend to beginning of queue
+  Ctrl -> expand scope - apply to all visible targets of the same allignment. Own TeamID, Ally's teamID, all enemy TeamID's, or all features.
+  Alt -> distribute evenly among selected units
+
+  There's a filter also. If you screen-command selected units, it will include selected units only.
+  If you screen-command an external unit, it will exclude the selected units.
+
+Keybind (uikeys.txt or luaui/configs/hotkeys/grid_keys.txt):
+  bind sc_v screen_select_hold
+--]]------------------------------------------------------------------------------
+
+include("keysym.h.lua")
 
 local tableInsert = table.insert
 local tableSort = table.sort
@@ -35,6 +55,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spSetActiveCommand = Spring.SetActiveCommand
 local spGetModKeyState = Spring.GetModKeyState
 local spGetCmdDescIndex = Spring.GetCmdDescIndex
+local spGetKeyState = Spring.GetKeyState
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -43,13 +64,16 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local COMMAND_LIMIT = 2000
-local MAX_DOUBLECLICK_UNITS = 100
+local DEFAULT_MAX_DOUBLECLICK_UNITS = 100
 local DOUBLECLICK_START_RADIUS = 2000
 local DOUBLECLICK_RADIUS_STEP = 500
 local doubleClickTime = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local MIN_DOUBLE_CLICK_GAP = 0.03
-local MIN_PENDING_DOUBLE_CLICK_TIME = 0.4 -- seconds
+local DEFAULT_DOUBLE_CLICK_ENABLED = true
 local osClock = os.clock
+
+local doubleClickEnabled = DEFAULT_DOUBLE_CLICK_ENABLED
+local maxDoubleClickUnits = DEFAULT_MAX_DOUBLECLICK_UNITS
 
 local myAllyTeamID
 local myTeamID
@@ -58,17 +82,35 @@ local pendingDoubleClick = {
 	isFeature = false,
 	expireTime = 0,
 	cmdId = nil,
-	cmdDescIndex = nil,
 	alt = false,
 	ctrl = false,
 	meta = false,
 	shift = false,
 	right = false,
-	targetInSelection = false,
 	firstClickTime = 0,
 }
 local heldCommandDescIndex
 local deferClearActiveCommand = false
+local screenSelectHeld = false
+local screenSelectHoldActionHeld = false
+
+local function enrichCommandOptions(options)
+	options = options or {}
+	local modAlt, modCtrl, modMeta, modShift = spGetModKeyState()
+	return {
+		alt = options.alt or modAlt,
+		ctrl = options.ctrl or modCtrl,
+		meta = options.meta or modMeta,
+		shift = options.shift or modShift,
+		right = options.right or false,
+	}
+end
+
+local function refreshScreenSelectHeld()
+	screenSelectHeld = spGetKeyState(KEYSYMS.V)
+		or spGetKeyState(KEYSYMS.O)
+		or screenSelectHoldActionHeld
+end
 
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
@@ -81,11 +123,7 @@ local function toPositionTable(x, y, z)
 end
 
 local function isQueuing(options)
-	if options.shift then
-		return true
-	end
-	local _, _, _, shift = spGetModKeyState()
-	return shift
+	return options.shift
 end
 
 local function restoreActiveCommand(cmdDescIndex)
@@ -110,13 +148,11 @@ local function clearDoubleClickPending()
 	pendingDoubleClick.isFeature = false
 	pendingDoubleClick.expireTime = 0
 	pendingDoubleClick.cmdId = nil
-	pendingDoubleClick.cmdDescIndex = nil
 	pendingDoubleClick.alt = false
 	pendingDoubleClick.ctrl = false
 	pendingDoubleClick.meta = false
 	pendingDoubleClick.shift = false
 	pendingDoubleClick.right = false
-	pendingDoubleClick.targetInSelection = false
 	pendingDoubleClick.firstClickTime = 0
 end
 
@@ -181,14 +217,14 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 end
 
 local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
-	if #filteredTargets <= MAX_DOUBLECLICK_UNITS then
+	if #filteredTargets <= maxDoubleClickUnits then
 		return filteredTargets
 	end
 	local refPosition = getTargetPosition(refTargetId)
 	if not refPosition then
 		sortTargetsByDistance(selectedUnits, filteredTargets, true)
 		local cappedTargets = {}
-		for i = 1, MAX_DOUBLECLICK_UNITS do
+		for i = 1, maxDoubleClickUnits do
 			cappedTargets[i] = filteredTargets[i]
 		end
 		return cappedTargets
@@ -205,13 +241,13 @@ local function limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, sel
 				tableInsert(limitedTargets, targetId)
 			end
 		end
-		if #limitedTargets <= MAX_DOUBLECLICK_UNITS then
+		if #limitedTargets <= maxDoubleClickUnits then
 			return limitedTargets
 		end
 		radius = radius - DOUBLECLICK_RADIUS_STEP
 	end
 	local cappedTargets = {}
-	for i = 1, MAX_DOUBLECLICK_UNITS do
+	for i = 1, maxDoubleClickUnits do
 		cappedTargets[i] = filteredTargets[i]
 	end
 	return cappedTargets
@@ -582,18 +618,11 @@ local function collectDoubleClickTargets(cmdId, targetId, isFeature, options)
 	return getVisibleUnitsOfType(unitDefID, config.targetAllegiance)
 end
 
-local function issuePendingDoubleClickMassOrders(options)
-	local selectedUnits = spGetSelectedUnits()
-	if #selectedUnits == 0 or not isPendingDoubleClickActive() then
-		return false
-	end
-	local issueCmdId = pendingDoubleClick.cmdId
-	local refTargetId = pendingDoubleClick.targetId
-	local refTargetIsFeature = pendingDoubleClick.isFeature
-	local savedCmdDescIndex = pendingDoubleClick.cmdDescIndex or spGetCmdDescIndex(issueCmdId)
-	local targetInSelection = pendingDoubleClick.targetInSelection
+local function issueMassOrdersFromTarget(issueCmdId, refTargetId, refTargetIsFeature, selectedUnits, options)
+	local selectionSet = buildSelectionSet(selectedUnits)
+	local targetInSelection = not refTargetIsFeature and isUnitInSelection(refTargetId, selectionSet)
+	local savedCmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(issueCmdId)
 	local queuing = isQueuing(options)
-	clearDoubleClickPending()
 	local filteredTargets = collectDoubleClickTargets(issueCmdId, refTargetId, refTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectedUnits, targetInSelection)
 	filteredTargets = limitDoubleClickTargetsByRadius(filteredTargets, refTargetId, selectedUnits)
@@ -606,6 +635,18 @@ local function issuePendingDoubleClickMassOrders(options)
 		deferClearActiveCommand = true
 	end
 	return true
+end
+
+local function issuePendingDoubleClickMassOrders(options)
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 or not isPendingDoubleClickActive() then
+		return false
+	end
+	local issueCmdId = pendingDoubleClick.cmdId
+	local refTargetId = pendingDoubleClick.targetId
+	local refTargetIsFeature = pendingDoubleClick.isFeature
+	clearDoubleClickPending()
+	return issueMassOrdersFromTarget(issueCmdId, refTargetId, refTargetIsFeature, selectedUnits, options)
 end
 
 local function resolveDoubleClickCmdId(cmdId)
@@ -639,11 +680,11 @@ local function tryCompletePendingDoubleClick(options, effectiveCmdId)
 end
 
 local function getPendingExpireTime(realTime)
-	return realTime + math.max(doubleClickTime, MIN_PENDING_DOUBLE_CLICK_TIME)
+	return realTime + doubleClickTime
 end
 
 local function consumePendingDoubleClickClick(options, effectiveCmdId)
-	if not isPendingDoubleClickActive() then
+	if not doubleClickEnabled or not isPendingDoubleClickActive() then
 		return false
 	end
 	if effectiveCmdId and pendingDoubleClick.cmdId ~= effectiveCmdId then
@@ -658,11 +699,12 @@ local function consumePendingDoubleClickClick(options, effectiveCmdId)
 end
 
 local function handleDoubleClickSingleTarget(cmdId, params, options)
+	options = enrichCommandOptions(options)
 	local targetId = params[1]
 	local isFeature = isFeatureTargetId(targetId)
 	local effectiveCmdId = resolveDoubleClickCmdId(cmdId)
 
-	if consumePendingDoubleClickClick(options, effectiveCmdId) then
+	if not screenSelectHeld and consumePendingDoubleClickClick(options, effectiveCmdId) then
 		return true
 	end
 
@@ -675,6 +717,26 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 		return false
 	end
 
+	if not doubleClickCommands[effectiveCmdId] then
+		return false
+	end
+
+	if screenSelectHeld then
+		return issueMassOrdersFromTarget(effectiveCmdId, targetId, isFeature, selectedUnits, options)
+	end
+
+	if not doubleClickEnabled then
+		giveOrders(effectiveCmdId, selectedUnits, { targetId }, options)
+		local queuingDisabled = isQueuing(options)
+		if queuingDisabled then
+			heldCommandDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
+		else
+			heldCommandDescIndex = nil
+			deferClearActiveCommand = true
+		end
+		return true
+	end
+
 	local realTime = osClock()
 	local queuing = isQueuing(options)
 	local clickAlt = options.alt or false
@@ -683,14 +745,8 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	local clickShift = options.shift or false
 	local clickRight = options.right or false
 
-	if not doubleClickCommands[effectiveCmdId] then
-		return false
-	end
-
 	giveOrders(effectiveCmdId, selectedUnits, { targetId }, options)
 
-	local selectionSet = buildSelectionSet(selectedUnits)
-	pendingDoubleClick.targetInSelection = not isFeature and isUnitInSelection(targetId, selectionSet)
 	pendingDoubleClick.targetId = targetId
 	pendingDoubleClick.isFeature = isFeature
 	pendingDoubleClick.expireTime = getPendingExpireTime(realTime)
@@ -700,24 +756,23 @@ local function handleDoubleClickSingleTarget(cmdId, params, options)
 	pendingDoubleClick.meta = clickMeta
 	pendingDoubleClick.shift = clickShift
 	pendingDoubleClick.right = clickRight
-	pendingDoubleClick.cmdDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
 	pendingDoubleClick.firstClickTime = realTime
 	if queuing then
-		heldCommandDescIndex = pendingDoubleClick.cmdDescIndex
+		heldCommandDescIndex = select(4, spGetActiveCommand()) or spGetCmdDescIndex(effectiveCmdId)
 	end
 	return true
 end
 
-function widget:MousePress(mouseX, mouseY, button)
+function widget:MousePress(_mouseX, _mouseY, button)
 	if button ~= 1 and button ~= 3 then
 		return false
 	end
-	local alt, ctrl, meta, shift = spGetModKeyState()
-	local options = { alt = alt, ctrl = ctrl, meta = meta, shift = shift, right = (button == 3) }
+	local options = enrichCommandOptions({ right = (button == 3) })
 	return consumePendingDoubleClickClick(options, pendingDoubleClick.cmdId)
 end
 
 function widget:CommandNotify(cmdId, params, options)
+	options = enrichCommandOptions(options)
 	local effectiveCmdId = resolveDoubleClickCmdId(cmdId)
 	if #params ~= 4 and consumePendingDoubleClickClick(options, effectiveCmdId) then
 		return true
@@ -726,6 +781,36 @@ function widget:CommandNotify(cmdId, params, options)
 		return handleDoubleClickSingleTarget(cmdId, params, options)
 	end
 	return false
+end
+
+local function onScreenSelectHoldPress()
+	screenSelectHoldActionHeld = true
+end
+
+local function onScreenSelectHoldRelease()
+	screenSelectHoldActionHeld = false
+end
+
+local function setDoubleClickEnabled(value)
+	doubleClickEnabled = value
+	if not value then
+		clearDoubleClickPending()
+	end
+end
+
+local function registerScreenSelectCommandsApi()
+	WG['screenSelectCommands'] = {
+		getDoubleClickEnabled = function()
+			return doubleClickEnabled
+		end,
+		setDoubleClickEnabled = setDoubleClickEnabled,
+		getMaxDoubleClickUnits = function()
+			return maxDoubleClickUnits
+		end,
+		setMaxDoubleClickUnits = function(value)
+			maxDoubleClickUnits = mathFloor(value)
+		end,
+	}
 end
 
 local function initialize()
@@ -743,9 +828,24 @@ end
 
 function widget:Initialize()
 	initialize()
+	if spGetSpectatingState() then
+		return
+	end
+	widgetHandler:AddAction("screen_select_hold", onScreenSelectHoldPress, nil, "p")
+	widgetHandler:AddAction("screen_select_hold", onScreenSelectHoldRelease, nil, "r")
+	registerScreenSelectCommandsApi()
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("screen_select_hold", "p")
+	widgetHandler:RemoveAction("screen_select_hold", "r")
+	WG['screenSelectCommands'] = nil
+	screenSelectHoldActionHeld = false
+	screenSelectHeld = false
 end
 
 function widget:Update()
+	refreshScreenSelectHeld()
 	if deferClearActiveCommand then
 		deferClearActiveCommand = false
 		spSetActiveCommand(0)
@@ -770,4 +870,20 @@ function widget:ActiveCommandChanged(cmdid)
 		return
 	end
 	clearDoubleClickPending()
+end
+
+function widget:GetConfigData()
+	return {
+		doubleClickEnabled = doubleClickEnabled,
+		maxDoubleClickUnits = maxDoubleClickUnits,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.doubleClickEnabled ~= nil then
+		doubleClickEnabled = data.doubleClickEnabled
+	end
+	if data.maxDoubleClickUnits ~= nil then
+		maxDoubleClickUnits = mathFloor(data.maxDoubleClickUnits)
+	end
 end
