@@ -3,8 +3,8 @@ local widget = widget ---@type RulesUnsyncedCallins
 function widget:GetInfo()
 	return {
 		name = "Screen Select Commands",
-		desc = "Mass-issue unit-target commands to all visible on-screen matches. Double-click the same target, or hold screen_select_hold for single-click mass orders.",
-		author = "SethDGamre",
+		desc = "Mass-issue unit-target commands to all visible on-screen matches. Double-click the same target, or keybind + click for mass orders.",
+		author = "SethDGamre, advised by Chronographer",
 		date = "July 11, 2026",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
