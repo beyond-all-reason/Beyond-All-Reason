@@ -374,6 +374,89 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
+local function buildNearestNeighborRoute(referencePosition, targets, positionCache)
+	local targetPositions = {}
+	local remainingTargets = {}
+	local route = {}
+	for targetIndex = 1, #targets do
+		local targetId = targets[targetIndex]
+		local targetPosition = getTargetPosition(targetId, positionCache)
+		targetPositions[targetId] = targetPosition or false
+		remainingTargets[targetIndex] = targetId
+	end
+	local currentPosition = referencePosition
+	local routeCount = 0
+	while #remainingTargets > 0 do
+		local nearestIndex
+		local nearestDistance
+		for targetIndex = 1, #remainingTargets do
+			local targetId = remainingTargets[targetIndex]
+			local targetPosition = targetPositions[targetId]
+			if targetPosition then
+				local targetDistance = distanceSq(currentPosition, targetPosition)
+				if nearestDistance == nil or targetDistance < nearestDistance then
+					nearestIndex = targetIndex
+					nearestDistance = targetDistance
+				end
+			end
+		end
+		if not nearestIndex then
+			for targetIndex = 1, #remainingTargets do
+				routeCount = routeCount + 1
+				route[routeCount] = remainingTargets[targetIndex]
+			end
+			break
+		end
+		local nearestTargetId = remainingTargets[nearestIndex]
+		routeCount = routeCount + 1
+		route[routeCount] = nearestTargetId
+		currentPosition = targetPositions[nearestTargetId]
+		remainingTargets[nearestIndex] = remainingTargets[#remainingTargets]
+		remainingTargets[#remainingTargets] = nil
+	end
+	return route
+end
+
+local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, positionCache, routeCache)
+	local referencePosition = getTargetPosition(referenceUnitId, positionCache)
+	if not referencePosition then
+		return
+	end
+	local nearestTargetId
+	local nearestDistance
+	for targetIndex = 1, #targets do
+		local targetId = targets[targetIndex]
+		local targetPosition = getTargetPosition(targetId, positionCache)
+		if targetPosition then
+			local targetDistance = distanceSq(referencePosition, targetPosition)
+			if nearestDistance == nil or targetDistance < nearestDistance then
+				nearestTargetId = targetId
+				nearestDistance = targetDistance
+			end
+		end
+	end
+	if not nearestTargetId then
+		return
+	end
+	local route = routeCache and routeCache[nearestTargetId]
+	if not route then
+		route = buildNearestNeighborRoute(referencePosition, targets, positionCache)
+		if routeCache then
+			routeCache[nearestTargetId] = route
+		end
+	end
+	if closestFirst then
+		for targetIndex = 1, #route do
+			targets[targetIndex] = route[targetIndex]
+		end
+	else
+		local targetCount = #route
+		for targetIndex = 1, targetCount do
+			targets[targetIndex] = route[targetCount - targetIndex + 1]
+		end
+	end
+end
+
 local function limitDoubleClickTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits)
 	if #filteredTargets <= maxDoubleClickUnits then
 		return filteredTargets
@@ -576,6 +659,7 @@ end
 local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filteredTargets, options)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
+	local routeCache = {}
 	local singleUnit = {}
 	local targets = {}
 	for unitIndex = 1, #selectedUnits do
@@ -584,7 +668,7 @@ local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filtere
 		for targetIndex = 1, #filteredTargets do
 			targets[targetIndex] = filteredTargets[targetIndex]
 		end
-		sortTargetsByDistance(singleUnit, targets, closestFirst, selectedUnitId, positionCache)
+		sortTargetsByTravelRoute(selectedUnitId, targets, closestFirst, positionCache, routeCache)
 		giveOrders(commandId, singleUnit, targets, options)
 	end
 end
@@ -609,7 +693,7 @@ local function giveAltDistributedOrders(commandId, selectedUnits, filteredTarget
 			if count > 0 then
 				local assignedTargets = pickClosestUnassigned(selectedUnitId, filteredTargets, unassigned, count, positionCache)
 				if #assignedTargets > 0 then
-					sortTargetsByDistance(singleUnit, assignedTargets, closestFirst, selectedUnitId, positionCache)
+					sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
 					giveOrders(commandId, singleUnit, assignedTargets, options)
 				end
 			end
