@@ -145,6 +145,10 @@ local RECLAIM_UNIT_JITTER_SCALE = 0.6
 -- spray here for BOTH legs: 1.0 = current BAR behaviour, 0.5 = half as many
 -- resurrect particles on both outbound and inbound legs
 local NanoParticleResurrectExtraRate = 0.5
+-- During the metal-refill phase of resurrect, GetUnitCurrentBuildPower can
+-- report 0 even while work is progressing. Use a conservative synthetic
+-- buildpower so this phase remains visibly active.
+local RESURRECT_REFILL_FALLBACK_BP = 2
 
 local function takeScaledEmitCount(info, accumKey, emits, scale)
 	if emits <= 0 or not scale or scale <= 0 then return 0 end
@@ -292,8 +296,8 @@ local STATIONARY_SKIP_AFTER      = 4
 -- is cached for OFFSCREEN_VIS_CACHE_FRAMES (camera moves slowly vs emit rate).
 -- Keep-fraction scales with pool saturation: MAX at/below SAT_PIVOT, ramping
 -- linearly to MIN at full saturation.
-local OFFSCREEN_EMIT_KEEP_MAX       = 0.4
-local OFFSCREEN_EMIT_KEEP_MIN       = 0.20
+local OFFSCREEN_EMIT_KEEP_MAX       = 0.45
+local OFFSCREEN_EMIT_KEEP_MIN       = 0.25
 local OFFSCREEN_EMIT_KEEP_SAT_PIVOT = 0.25
 local OFFSCREEN_EMIT_KEEP_BAND_INV  = 1.0 / (1.0 - OFFSCREEN_EMIT_KEEP_SAT_PIVOT)
 local OFFSCREEN_VIS_CACHE_FRAMES = 6
@@ -301,7 +305,7 @@ local OFFSCREEN_VIS_CACHE_FRAMES = 6
 -- DISTANT_EMIT_NEAR_RANGE down to DISTANT_EMIT_KEEP at DISTANT_EMIT_RANGE.
 -- Composes with the offscreen gate. Two squared-distance compares + lerp per
 -- emission; camera position sampled once per scan frame.
-local DISTANT_EMIT_KEEP          = 0.25
+local DISTANT_EMIT_KEEP          = 0.35
 local DISTANT_EMIT_NEAR_RANGE    = 2500    -- elmos: full emission inside this
 local DISTANT_EMIT_RANGE         = 9000    -- elmos: floor reached at this
 -- Precomputed at file load (DISTANT_EMIT_* are constants).
@@ -1422,7 +1426,7 @@ local HOMING_MAX_PER_BUILDER = 96   -- safety cap; oldest entries drop off
 local homingFwdByTarget = {}
 local targetPosCache    = {}    -- unitID -> [epoch, x, y, z]
 local targetIncompleteCache = {} -- unitID -> [epoch, isBeingBuilt]
-local HOMING_FWD_MAX_PER_TARGET = 192   -- safety cap per repaired/captured unit
+local HOMING_FWD_MAX_PER_TARGET = 384   -- safety cap per repaired/captured unit
 
 -- Reclaim-completion burst tracking. While a tracked unit is being reclaimed
 -- by one or more of our builders, we record the builder set so that on
@@ -2370,6 +2374,13 @@ end
 -- HP, but the implementation lives further down with the other death handlers.
 local fadeOutHomingFwd
 
+local function fadeNanoDeferredLight(pid, frame, fadeFrames)
+	local nl = deathBuckets.__nanoLight
+	if not (nl and nl.enabled and nl.fadeReady and nl.active and nl.active[pid]) then return end
+	nl.active[pid] = frame
+	Script.LuaUI.EnvNanoBallisticLightFade("NANOP_" .. pid, frame, fadeFrames)
+end
+
 local targetPosEpoch = 0
 
 local function applyForwardHoming(frame, dirtyMin, dirtyMax)
@@ -2396,6 +2407,7 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 		local s0 = slot - 1
 		if s0 < dirtyMin then dirtyMin = s0 end
 		if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+		fadeNanoDeferredLight(p.id, frame, fadeFrames)
 		return true
 	end
 
@@ -2881,15 +2893,17 @@ local function scanBuilders(frame)
 							local isRefilling = featureMetal and featureMaxMetal and featureMaxMetal > 0 and featureMetal < featureMaxMetal
 							local isResurrecting = resurrectProgress and resurrectProgress > 0 and resurrectProgress < 1
 							if isRefilling or isResurrecting then
-								bp = 1
+								bp = RESURRECT_REFILL_FALLBACK_BP
 								bpRefetched = true
 								info.cmdID = fallbackCmdID
 								info.targetID = fallbackTargetID
+								info.resurrectRefillFallbackActive = isRefilling and true or false
 							end
 						end
 					end
 				end
 				if not (bp and bp > 0) then
+					info.resurrectRefillFallbackActive = nil
 					-- Idle visit: clear lastVisitFrame so the next bp>0 visit
 					-- doesn't credit the idle gap as build time and dump a burst.
 					info.lastVisitFrame = nil
@@ -3060,11 +3074,13 @@ local function scanBuilders(frame)
 							-- player sees that work is happening. Debit the forced
 							-- emit from the accumulator (allowed to go negative) so
 							-- the long-run rate stays proportional to bp.
+							local feedbackForced = false
 							if emits == 0 and bp > 0 then
 								local lastEmit = info.lastEmitFrame or 0
 								if frame - lastEmit >= FEEDBACK_EMIT_MIN_GAP then
 									emits = 1
 									info.emitAccum = info.emitAccum - 1
+									feedbackForced = true
 								end
 							end
 							if emits > 0 then
@@ -3082,7 +3098,17 @@ local function scanBuilders(frame)
 							-- Count compensation still uses full `elapsed`, so total
 							-- emission rate is preserved.
 							local spreadWindow = math.min(MAX_SPREAD_AHEAD_FRAMES, elapsed)
-							local resurrectEmits = isResurrect and takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate) or emits
+							local resurrectEmits
+							if isResurrect then
+								resurrectEmits = takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate)
+								-- Preserve the visibility-feedback floor even when resurrect
+								-- scaling would quantize this frame down to zero.
+								if info.resurrectRefillFallbackActive and feedbackForced and resurrectEmits < 1 then
+									resurrectEmits = 1
+								end
+							else
+								resurrectEmits = emits
+							end
 							if resurrectEmits > 0 then
 								local n = info.nPieces
 								if n == 1 then
@@ -3328,7 +3354,7 @@ function gadget:GameFrame(n)
 		if nl.enabled then
 			nl.spawnRadius = 33
 			nl.alpha = 0.05
-			nl.correctEvery = 20
+			nl.correctEvery = 5
 			nl.lifeMult = 2.2
 			nl.minLifetime = 14
 			nl.maxLifetime = 96
@@ -3336,6 +3362,7 @@ function gadget:GameFrame(n)
 			nl.bridgeReady = Script.LuaUI("EnvNanoBallisticLightSpawn")
 				and Script.LuaUI("EnvNanoBallisticLightCorrect")
 				and Script.LuaUI("EnvNanoBallisticLightRemove")
+			nl.fadeReady = Script.LuaUI("EnvNanoBallisticLightFade")
 		else
 			if nl.activeCount > 0 then
 				local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
@@ -3348,6 +3375,7 @@ function gadget:GameFrame(n)
 				nl.activeCount = 0
 			end
 			nl.bridgeReady = false
+			nl.fadeReady = false
 		end
 
 		local mode = Spring.GetConfigInt("NanoParticleMode", 1)
@@ -3622,6 +3650,7 @@ local function fadeOutHomingInverse(builderID)
 				local s0 = slot - 1
 				if s0 < dirtyMin     then dirtyMin = s0     end
 				if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+				fadeNanoDeferredLight(p.id, frame, fadeFrames)
 			end
 		end
 	end
@@ -3677,6 +3706,7 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 					local s0 = slot - 1
 					if s0 < dirtyMin     then dirtyMin = s0     end
 					if s0 + 1 > dirtyMax then dirtyMax = s0 + 1 end
+					fadeNanoDeferredLight(p.id, frame, fadeFrames)
 				end
 			end
 		end

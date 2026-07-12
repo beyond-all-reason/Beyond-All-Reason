@@ -459,7 +459,7 @@ function widget:Update(dt)
 			-- Keep selected naval/submerged units in the post-water VBO as they move.
 			for unitID, _ in pairs(selUnits) do
 				local unitDefID = unitUnitDefID[unitID]
-				if unitDefID and not unitCanFly[unitDefID] then
+				if unitDefID and not unitCanFly[unitDefID] and not Spring.GetUnitIsBeingBuilt(unitID) and unitDoneFrame[unitID] == nil then
 					local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
 					if desiredWaterPass ~= unitWaterPass[unitID] then
 						RemovePrimitive(unitID)
