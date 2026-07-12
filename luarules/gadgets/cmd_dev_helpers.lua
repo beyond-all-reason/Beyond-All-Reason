@@ -1932,6 +1932,9 @@ else	-- UNSYNCED
 		addFilter("sonar", function(ud)
 			return (ud.sonarDistance or ud.sonarRadius or ud.sonarradius or 0) > 700
 		end)
+		addFilter("onoffable", function(ud)
+			return ud.onOffable
+		end)
 		addFilter("stockpile", function(ud)
 			return ud.canStockpile
 		end)
