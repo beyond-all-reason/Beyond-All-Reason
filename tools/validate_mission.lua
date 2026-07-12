@@ -298,15 +298,18 @@ local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local actionsSchema  = VFS.Include('luarules/mission_api/actions_schema.lua')
 
 _G.GG['MissionAPI'] = {
-	TriggerTypes = triggersSchema.Types,
-	ActionTypes  = actionsSchema.Types,
-	Triggers     = {},
-	Actions      = {},
-	AllyTeams    = {},
-	Teams        = {},
-	AIs          = {},
-	Players      = {},
-	Difficulty   = 0,
+	TriggerTypes      = triggersSchema.Types,
+	ActionTypes       = actionsSchema.Types,
+	Triggers          = {},
+	Actions           = {},
+	Stages            = {},
+	Objectives        = {},
+	ManagedObjectives = {},
+	AllyTeams         = {},
+	Teams             = {},
+	AIs               = {},
+	Players           = {},
+	Difficulty        = 0,
 }
 
 local missionChunk, loadErr = loadfile(missionPath)
@@ -326,16 +329,29 @@ if type(mission) ~= "table" then
 	os.exit(EXIT_ERROR)
 end
 
-local rawTriggers = mission.Triggers
-local rawActions  = mission.Actions
-local startScript = mission.StartScript or {}
+local initialStage   = mission.InitialStage
+local rawStages      = mission.Stages or {}
+local rawObjectives  = mission.Objectives or {}
+local rawTriggers    = mission.Triggers or {}
+local rawActions     = mission.Actions or {}
+local startScript    = mission.StartScript or {}
+local unitLoadout    = mission.UnitLoadout
+local featureLoadout = mission.FeatureLoadout
 
-if not rawTriggers or type(rawTriggers) ~= "table" then
-	eprint("ERROR: Mission file is missing a 'Triggers' table.")
+if type(rawTriggers) ~= "table" then
+	eprint("ERROR: Mission file 'Triggers' must be a table, got " .. type(rawTriggers) .. ".")
 	os.exit(EXIT_ERROR)
 end
-if not rawActions or type(rawActions) ~= "table" then
-	eprint("ERROR: Mission file is missing an 'Actions' table.")
+if type(rawActions) ~= "table" then
+	eprint("ERROR: Mission file 'Actions' must be a table, got " .. type(rawActions) .. ".")
+	os.exit(EXIT_ERROR)
+end
+if type(rawStages) ~= "table" then
+	eprint("ERROR: Mission file 'Stages' must be a table, got " .. type(rawStages) .. ".")
+	os.exit(EXIT_ERROR)
+end
+if type(rawObjectives) ~= "table" then
+	eprint("ERROR: Mission file 'Objectives' must be a table, got " .. type(rawObjectives) .. ".")
 	os.exit(EXIT_ERROR)
 end
 
@@ -381,35 +397,49 @@ end
 -- Run the validation pipeline (mirrors api_missions.lua:loadMission)
 --------------------------------------------------------------------------------
 
-local triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
-local actionsController  = VFS.Include('luarules/mission_api/actions_loader.lua')
+local stagesController     = VFS.Include('luarules/mission_api/stages_loader.lua')
+local objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
+local triggersController   = VFS.Include('luarules/mission_api/triggers_loader.lua')
+local actionsController    = VFS.Include('luarules/mission_api/actions_loader.lua')
+local validation           = VFS.Include('luarules/mission_api/validation.lua')
 
-
-local processOk, processErr
-
-processOk, processErr = pcall(function()
-	_G.GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers, rawActions)
-end)
-if not processOk then
-	eprint("ERROR: ProcessRawTriggers failed: " .. tostring(processErr))
-	os.exit(EXIT_ERROR)
+-- Run a single pipeline step, aborting with a clear message if it errors.
+local function runStep(label, fn)
+	local ok, err = pcall(fn)
+	if not ok then
+		eprint("ERROR: " .. label .. " failed: " .. tostring(err))
+		os.exit(EXIT_ERROR)
+	end
 end
 
-processOk, processErr = pcall(function()
+-- Processing order mirrors api_missions.lua:loadMission. ProcessRawObjectives
+-- mutates rawTriggers/rawActions (it synthesizes a trigger and action for each
+-- non-managed objective), so it must run before the trigger/action processors.
+_G.GG['MissionAPI'].CurrentStageID = initialStage
+
+runStep("ProcessRawStages", function()
+	_G.GG['MissionAPI'].Stages = stagesController.ProcessRawStages(rawStages)
+end)
+runStep("ProcessRawObjectives", function()
+	_G.GG['MissionAPI'].Objectives =
+		objectivesController.ProcessRawObjectives(rawObjectives, rawTriggers, rawActions, rawStages)
+end)
+runStep("ProcessRawTriggers", function()
+	_G.GG['MissionAPI'].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
+end)
+runStep("ProcessRawActions", function()
 	_G.GG['MissionAPI'].Actions = actionsController.ProcessRawActions(rawActions)
 end)
-if not processOk then
-	eprint("ERROR: ProcessRawActions failed: " .. tostring(processErr))
-	os.exit(EXIT_ERROR)
-end
+_G.GG['MissionAPI'].UnitLoadout    = unitLoadout
+_G.GG['MissionAPI'].FeatureLoadout = featureLoadout
 
-local validateReferences = VFS.Include('luarules/mission_api/validation.lua').ValidateReferences
-
-processOk, processErr = pcall(validateReferences)
-if not processOk then
-	eprint("ERROR: ValidateReferences failed: " .. tostring(processErr))
-	os.exit(EXIT_ERROR)
-end
+-- Run the full validation suite (mirrors api_missions.lua:loadMission).
+runStep("ValidateStages",       function() validation.ValidateStages(_G.GG['MissionAPI'].Stages) end)
+runStep("ValidateObjectives",   function() validation.ValidateObjectives(_G.GG['MissionAPI'].Objectives) end)
+runStep("ValidateInitialStage", function() validation.ValidateInitialStage(initialStage) end)
+runStep("ValidateTriggers",     function() validation.ValidateTriggers(_G.GG['MissionAPI'].Triggers, rawActions) end)
+runStep("ValidateActions",      function() validation.ValidateActions(_G.GG['MissionAPI'].Actions) end)
+runStep("ValidateReferences",   function() validation.ValidateReferences() end)
 
 --------------------------------------------------------------------------------
 -- Output
