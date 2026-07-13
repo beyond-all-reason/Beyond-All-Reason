@@ -726,7 +726,7 @@ local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, f
 	return partition, perUnitLimit, targetPoolLimit
 end
 
-local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filteredTargets, options)
+local function giveOrdersPerUnitByTravelRoute(commandId, selectedUnits, filteredTargets, options)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
 	local singleUnitArray = {}
@@ -740,7 +740,7 @@ local function giveOrdersPerUnitSortedFromSelf(commandId, selectedUnits, filtere
 		for targetIndex = #filteredTargets + 1, #targets do
 			targets[targetIndex] = nil
 		end
-		sortTargetsByDistance({ selectedUnitId }, targets, closestFirst, selectedUnitId, positionCache)
+		sortTargetsByTravelRoute(selectedUnitId, targets, closestFirst, positionCache)
 		giveOrders(commandId, singleUnitArray, targets, options)
 	end
 end
@@ -1125,7 +1125,7 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	if partition then
 		givePartitionedOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	else
-		giveOrdersPerUnitSortedFromSelf(issueCommandId, selectedUnits, filteredTargets, options)
+		giveOrdersPerUnitByTravelRoute(issueCommandId, selectedUnits, filteredTargets, options)
 	end
 	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
 	if options.shift then
