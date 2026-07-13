@@ -33,7 +33,10 @@ local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
 
 local function isAllowed(certified)
-	return Spring.IsCheatingEnabled() or certified
+	-- $c$ is self-asserted by the sender: trust it only during replay (where
+	-- live cheat is always false). Outside replay require live cheat, else any
+	-- modified client could forge the prefix to place metal in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
 end
 
 local METAL_SQ = Game.metalMapSquareSize or 16
@@ -53,6 +56,10 @@ local cos = math.cos
 local sin = math.sin
 local pi = math.pi
 local sqrt = math.sqrt
+
+-- Shared falloff curve (also used by the brush widgets) so the metal apply and
+-- the previewed ring stay in lockstep. See common/brush_shapes.lua.
+local computeFalloff = VFS.Include("common/brush_shapes.lua").computeFalloff
 
 local spGetMetalAmount = Spring.GetMetalAmount
 local spSetMetalAmount = Spring.SetMetalAmount
@@ -168,14 +175,6 @@ isInsideShape = function(dx, dz, radius, shape, angleDeg)
 		return d <= radius, d / radius
 	end
 	return false, 1
-end
-
-local function computeFalloff(normDist, curve)
-	if normDist >= 1 then return 0 end
-	if normDist <= 0 then return 1 end
-	local t = 1 - normDist
-	if curve == 1.0 then return t end
-	return t ^ curve
 end
 
 -- ============================================================

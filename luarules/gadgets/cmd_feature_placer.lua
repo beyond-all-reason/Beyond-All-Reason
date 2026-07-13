@@ -13,20 +13,20 @@ end
 if not gadgetHandler:IsSyncedCode() then
 	function gadget:RecvFromSynced(name, a, b)
 		if name == "FeaturePlacerHistory" then
-			if Script.LuaUI("feature_placer_history") then
-				Script.LuaUI.feature_placer_history(a, b)
+			if Script.LuaUI("terraform_feature_history") then
+				Script.LuaUI.terraform_feature_history(a, b)
 			end
 		elseif name == "feature_save_begin" then
-			if Script.LuaUI("feature_save_begin") then
-				Script.LuaUI.feature_save_begin(a)
+			if Script.LuaUI("terraform_feature_save_begin") then
+				Script.LuaUI.terraform_feature_save_begin(a)
 			end
 		elseif name == "feature_save_data" then
-			if Script.LuaUI("feature_save_data") then
-				Script.LuaUI.feature_save_data(a)
+			if Script.LuaUI("terraform_feature_save_data") then
+				Script.LuaUI.terraform_feature_save_data(a)
 			end
 		elseif name == "feature_save_end" then
-			if Script.LuaUI("feature_save_end") then
-				Script.LuaUI.feature_save_end(a)
+			if Script.LuaUI("terraform_feature_save_end") then
+				Script.LuaUI.terraform_feature_save_end(a)
 			end
 		end
 	end

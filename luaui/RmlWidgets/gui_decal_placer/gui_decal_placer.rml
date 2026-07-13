@@ -1,8 +1,8 @@
 <rml>
 <head>
-	<link type="text/rcss" href="../styles.rcss" />
-	<link type="text/rcss" href="../rml-utility-classes.rcss" />
-	<link type="text/rcss" href="../palette-standard-global.rcss" />
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
 	<link type="text/rcss" href="../gui_feature_placer/gui_feature_placer.rcss" />
 	<link type="text/rcss" href="gui_decal_placer.rcss" />
 </head>

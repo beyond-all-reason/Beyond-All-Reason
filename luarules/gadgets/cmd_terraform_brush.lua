@@ -36,7 +36,13 @@ local function isTerraformAllowed(certified)
 		Spring.Echo("[Terraform Brush] Map deformation is disabled (disablemapdamage modoption or notDeformable map). Terraform cannot work.")
 		return false
 	end
-	return Spring.IsCheatingEnabled() or certified
+	-- The $c$ certification is self-asserted by the sender, so honor it only
+	-- during replay (where live cheat is always false but the recorded prefix
+	-- is trustworthy). Outside replay, require live cheat — otherwise any
+	-- modified client could prefix $c$ and deform terrain in a no-cheat match.
+	-- The New Map flow re-enables cheat locally before importing, so it passes
+	-- the live-cheat branch and does not depend on this certification.
+	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
 end
 
 local PACKET_HEADER = "$terraform_brush$"

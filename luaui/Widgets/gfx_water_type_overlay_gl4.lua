@@ -24,6 +24,18 @@ if not LuaShader or not InstanceVBOTable then
 	return
 end
 
+-- Certify outgoing messages with the $c$ prefix while cheat is enabled, so the
+-- synced gadget accepts them and demos of an editor session still replay (live
+-- cheat is always false in replay). The gadget rejects an uncertified message
+-- outside cheat, so a modified client cannot forge overlay activation.
+local function sendOverlayMsg(msg)
+	if Spring.IsCheatingEnabled() then
+		Spring.SendLuaRulesMsg("$c$" .. msg)
+	else
+		Spring.SendLuaRulesMsg(msg)
+	end
+end
+
 -- State
 local active = false
 local activeType = nil  -- "lava" or "acid"
@@ -212,7 +224,7 @@ local function activateOverlay(typeName)
 		engineWaterHidden = true
 	end
 	active = true
-	Spring.SendLuaRulesMsg("wateroverlay:activate:" .. typeName)
+	sendOverlayMsg("wateroverlay:activate:" .. typeName)
 end
 
 local function deactivateOverlay()
@@ -224,7 +236,7 @@ local function deactivateOverlay()
 	activeType = nil
 	lavaShader = nil
 	foglightShader = nil
-	Spring.SendLuaRulesMsg("wateroverlay:deactivate")
+	sendOverlayMsg("wateroverlay:deactivate")
 end
 
 -- Expose API via WG
@@ -240,7 +252,7 @@ function widget:Initialize()
 		setLevel = function(level)
 			Spring.Echo("[WaterOverlay] setLevel: " .. tostring(level) .. " baseWL=" .. tostring(baseWaterLevel) .. " active=" .. tostring(active))
 			targetLevel = level
-			Spring.SendLuaRulesMsg("wateroverlay:level:" .. string.format("%.1f", level))
+			sendOverlayMsg("wateroverlay:level:" .. string.format("%.1f", level))
 		end,
 		getLevel = function() return currentLevel end,
 		getTargetLevel = function() return targetLevel end,

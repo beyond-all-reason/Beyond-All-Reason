@@ -1353,10 +1353,18 @@ function widget:Initialize()
 		deactivate          = deactivate,
 	}
 
-	widgetHandler:RegisterGlobal("feature_placer_history", handleHistoryUpdate)
-	widgetHandler:RegisterGlobal("feature_save_begin", handleSaveBegin)
-	widgetHandler:RegisterGlobal("feature_save_data", handleSaveData)
-	widgetHandler:RegisterGlobal("feature_save_end", handleSaveEnd)
+	-- These names live in the shared widget global namespace; RegisterGlobal
+	-- silently returns false on a name clash, so namespace them and warn if a
+	-- collision ever happens rather than failing invisibly.
+	local function registerGlobalChecked(name, fn)
+		if not widgetHandler:RegisterGlobal(name, fn) then
+			Spring.Echo("[Feature Placer] RegisterGlobal name collision, callback inactive: " .. name)
+		end
+	end
+	registerGlobalChecked("terraform_feature_history", handleHistoryUpdate)
+	registerGlobalChecked("terraform_feature_save_begin", handleSaveBegin)
+	registerGlobalChecked("terraform_feature_save_data", handleSaveData)
+	registerGlobalChecked("terraform_feature_save_end", handleSaveEnd)
 end
 
 function widget:Shutdown()
@@ -1366,10 +1374,10 @@ function widget:Shutdown()
 		gridDL = nil
 	end
 	WG.FeaturePlacer = nil
-	widgetHandler:DeregisterGlobal("feature_placer_history")
-	widgetHandler:DeregisterGlobal("feature_save_begin")
-	widgetHandler:DeregisterGlobal("feature_save_data")
-	widgetHandler:DeregisterGlobal("feature_save_end")
+	widgetHandler:DeregisterGlobal("terraform_feature_history")
+	widgetHandler:DeregisterGlobal("terraform_feature_save_begin")
+	widgetHandler:DeregisterGlobal("terraform_feature_save_data")
+	widgetHandler:DeregisterGlobal("terraform_feature_save_end")
 	widgetHandler:RemoveAction("featureplacer")
 	widgetHandler:RemoveAction("featureplacerscatter")
 	widgetHandler:RemoveAction("featureplacerpoint")

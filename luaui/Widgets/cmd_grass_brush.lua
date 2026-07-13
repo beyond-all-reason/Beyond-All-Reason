@@ -211,14 +211,7 @@ local pipetteExcludePending = nil   -- { wx, wz } queued for exclude sample
 -- Signature: isInsideShape(dx, dz, radius, shape, angleDeg, lengthScale)
 --   -> inside (boolean), normDist (number)
 local isInsideShape = BrushShapes.isInside
-
-local function computeFalloff(normDist, curve)
-	if normDist >= 1 then return 0 end
-	if normDist <= 0 then return 1 end
-	local t = 1 - normDist
-	if curve == 1.0 then return t end
-	return t ^ curve
-end
+local computeFalloff = BrushShapes.computeFalloff
 
 -- ============================================================
 -- Smart Filter

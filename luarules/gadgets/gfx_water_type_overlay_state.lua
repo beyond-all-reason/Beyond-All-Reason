@@ -76,29 +76,39 @@ local spSpawnCEG          = Spring.SpawnCEG
 local clamp               = math.clamp
 
 ------------------------------------------------------------------------
--- Unit def caches (built once at load)
+-- Unit/feature def caches (built lazily on first activation)
+-- The overlay only ever activates from the editor, so a normal match must
+-- not pay this full-def-table scan (one GetUnitDefDimensions call per unit
+-- def) at load. buildDefCaches() runs once, the first time the overlay is
+-- activated.
 ------------------------------------------------------------------------
 local canFly     = {}
 local speedDefs  = {}
 local turnDefs   = {}
 local accDefs    = {}
 local unitHeight = {}
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canFly then
-		canFly[unitDefID] = true
-	else
-		speedDefs[unitDefID]  = unitDef.speed
-		turnDefs[unitDefID]   = unitDef.turnRate
-		accDefs[unitDefID]    = unitDef.maxAcc
-	end
-	unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
-end
-
 local geoThermal = {}
-for featureDefID, featureDef in pairs(FeatureDefs) do
-	if featureDef.geoThermal then
-		geoThermal[featureDefID] = true
+local defCachesBuilt = false
+
+local function buildDefCaches()
+	if defCachesBuilt then return end
+	defCachesBuilt = true
+
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.canFly then
+			canFly[unitDefID] = true
+		else
+			speedDefs[unitDefID]  = unitDef.speed
+			turnDefs[unitDefID]   = unitDef.turnRate
+			accDefs[unitDefID]    = unitDef.maxAcc
+		end
+		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
+	end
+
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		if featureDef.geoThermal then
+			geoThermal[featureDefID] = true
+		end
 	end
 end
 
@@ -216,6 +226,7 @@ function gadget:Initialize()
 		end,
 		activate = function(typeName)
 			if typeName ~= "lava" and typeName ~= "acid" then return false end
+			buildDefCaches()
 			baseWaterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 			currentLevel = baseWaterLevel + targetLevel
 			active = true
@@ -268,8 +279,30 @@ end
 ------------------------------------------------------------------------
 -- Message from widget
 ------------------------------------------------------------------------
+-- Prefix embedded in messages when cheat was active at send time. During
+-- replay the recorded prefix survives while live cheat is always false, so it
+-- is the only trust signal available there.
+local CHEAT_SIG = "$c$"
+
 function gadget:RecvLuaMsg(msg, playerID)
-	local cleanMsg = msg:match("^%$c%$(.+)") or msg
+	if type(msg) ~= "string" then return end
+
+	local certified = msg:sub(1, #CHEAT_SIG) == CHEAT_SIG
+	local cleanMsg = certified and msg:sub(#CHEAT_SIG + 1) or msg
+
+	-- Only react to water-overlay commands; ignore all other LuaRules traffic
+	-- so the auth check below never runs on unrelated messages.
+	if cleanMsg:sub(1, 13) ~= "wateroverlay:" then
+		return
+	end
+
+	-- Auth gate: require live cheat, or a $c$-certified message during replay
+	-- only. Without this any modified client could send this message in a live
+	-- no-cheat match and flip the map into lava/acid mode, applying map-wide
+	-- Gaia damage to every unit and feature.
+	if not (Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())) then
+		return
+	end
 
 	if cleanMsg == "wateroverlay:deactivate" then
 		GG.WaterTypeOverlay.deactivate()

@@ -71,7 +71,19 @@ local function isInside(dx, dz, radius, shape, angleDeg, lengthScale)
 	return false, 1
 end
 
+-- Falloff weight for a normalised distance (as returned by isInside). Returns 1
+-- at the centre, 0 at/outside the edge. `curve` shapes the ramp: 1.0 is linear,
+-- higher values keep the brush stronger toward the centre.
+local function computeFalloff(normDist, curve)
+	if normDist >= 1 then return 0 end
+	if normDist <= 0 then return 1 end
+	local t = 1 - normDist
+	if curve == 1.0 then return t end
+	return t ^ curve
+end
+
 return {
 	isInside = isInside,
 	rotateInv = rotateInv,
+	computeFalloff = computeFalloff,
 }

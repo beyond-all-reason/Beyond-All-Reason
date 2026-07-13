@@ -42,8 +42,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function clampMapHeight(limit, clampMin)
+		local sq = Game.squareSize
+
+		-- Clamp the live heightmap.
 		Spring.SetHeightMapFunc(function()
-			local sq = Game.squareSize
 			for x = 0, Game.mapSizeX, sq do
 				for z = 0, Game.mapSizeZ, sq do
 					local h = Spring.GetGroundHeight(x, z)
@@ -59,6 +61,31 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end)
+
+		-- Clamp the original heightmap too, otherwise a later terrain restore
+		-- reverts to the pre-clamp baseline (mirrors adjustWaterlevel's
+		-- AdjustOriginalHeightMap step).
+		Spring.SetOriginalHeightMapFunc(function()
+			for x = 0, Game.mapSizeX, sq do
+				for z = 0, Game.mapSizeZ, sq do
+					local oh = Spring.GetGroundOrigHeight(x, z)
+					if clampMin then
+						if oh < limit then
+							Spring.SetOriginalHeightMap(x, z, limit)
+						end
+					else
+						if oh > limit then
+							Spring.SetOriginalHeightMap(x, z, limit)
+						end
+					end
+				end
+			end
+		end)
+
+		-- Regenerate the smooth mesh from the new heightmap. Aircraft fly
+		-- relative to it, so without this they path into the clamped terrain.
+		Spring.RebuildSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ)
+
 		adjustFeatureHeight()
 	end
 
@@ -109,6 +136,7 @@ if gadgetHandler:IsSyncedCode() then
 		local command = params[2]
 		local value = tonumber(params[3])
 		if not value then
+			Spring.Echo("[Map Waterlevel] Ignoring '" .. tostring(command) .. "': missing or non-numeric value")
 			return
 		end
 

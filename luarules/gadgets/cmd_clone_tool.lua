@@ -152,7 +152,10 @@ end
 -- Auth check
 -- ---------------------------------------------------------------------------
 local function isAllowed(certified)
-	return Spring.IsCheatingEnabled() or certified
+	-- $c$ is self-asserted by the sender: trust it only during replay (where
+	-- live cheat is always false). Outside replay require live cheat, else any
+	-- modified client could forge the prefix to clone terrain in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
 end
 
 -- ---------------------------------------------------------------------------

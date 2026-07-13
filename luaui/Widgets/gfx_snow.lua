@@ -479,7 +479,12 @@ function widget:DrawWorld()
 			shader:Activate()
 			camX,camY,camZ = Spring.GetCameraPosition()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
-			shader:SetUniform("time", diffTime * speedMultiplier)
+			-- time stays unscaled; speedMultiplier is applied once, on the
+			-- gravity term of the speed uniform below. Scaling both here and
+			-- there made fall speed scale ~quadratically (the shader multiplies
+			-- time by speed.x), and scaling cumulative time made flakes jump
+			-- when the multiplier changed mid-session.
+			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
 			shader:SetUniform("snowColor", snowColorR, snowColorG, snowColorB, snowOpacity)
 			shader:SetUniform("sizeMult", sizeMultiplier)
@@ -502,7 +507,11 @@ function widget:DrawWorld()
 
 			glTexture(snowTexture)
 			for particleType, pt in pairs(particleTypes) do
-				shader:SetUniform("scale", pt.scale * particleScale * sizeMultiplier)
+				-- scale sets the particle wrap-volume (density/spacing), so it
+				-- must NOT include sizeMultiplier. sizeMultiplier is applied once,
+				-- to gl_PointSize via the sizeMult uniform, so it changes flake
+				-- size only rather than also thinning out the field.
+				shader:SetUniform("scale", pt.scale * particleScale)
 				shader:SetUniform("speed", pt.gravity * speedMultiplier, offsetX, offsetZ)
 				glCallList(particleLists[particleType][particleStep])
 			end
@@ -538,13 +547,12 @@ function widget:GetConfigData(data)
 		gameframe = spGetGameFrame(),
 		customParticleMultiplier = customParticleMultiplier,
 		autoReduce = autoReduce,
-		snowColorR = snowColorR,
-		snowColorG = snowColorG,
-		snowColorB = snowColorB,
-		snowOpacity = snowOpacity,
-		speedMultiplier = speedMultiplier,
-		sizeMultiplier = sizeMultiplier,
-		windMultiplier = windMultiplier,
+		-- Snow look params (color/opacity/speed/size/wind) are deliberately NOT
+		-- persisted: they are live editor-session tweaks driven by the terraform
+		-- Environment tab via the WG['snow'] API. Persisting them here leaked a
+		-- one-off map-editing tweak into every later snow-map match, with no
+		-- reset path outside the terraformer UI. They reset to their defaults
+		-- each load; a map that wants a custom look applies it at runtime.
 	}
 end
 
@@ -552,13 +560,6 @@ function widget:SetConfigData(data)
 	if data.snowMaps ~= nil 	then  snowMaps = data.snowMaps end
 	if data.customParticleMultiplier ~= nil 	then  customParticleMultiplier = data.customParticleMultiplier end
 	if data.autoReduce ~= nil 	then  autoReduce = data.autoReduce end
-	if data.snowColorR ~= nil then snowColorR = data.snowColorR end
-	if data.snowColorG ~= nil then snowColorG = data.snowColorG end
-	if data.snowColorB ~= nil then snowColorB = data.snowColorB end
-	if data.snowOpacity ~= nil then snowOpacity = data.snowOpacity end
-	if data.speedMultiplier ~= nil then speedMultiplier = data.speedMultiplier end
-	if data.sizeMultiplier ~= nil then sizeMultiplier = data.sizeMultiplier end
-	if data.windMultiplier ~= nil then windMultiplier = data.windMultiplier end
 	if data.gameframe ~= nil and data.gameframe > 0	then
 		if data.averageFps ~= nil 	then
 			averageFps = data.averageFps
