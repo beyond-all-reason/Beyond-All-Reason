@@ -92,7 +92,7 @@ return {
 				alphaDecay = 0.18,
 				stages = 8,
 				proximitypriority = -1,
-				range = 5000,
+				range = 72000,
 				reloadtime = 240,
 				rgbcolor = "0.8 0.99 0.11",
 				soundhit = "bloodsplash3",
