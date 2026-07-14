@@ -32,10 +32,12 @@ Click modifiers:
   Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team; skips targets the unit cannot move onto
   Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto; neutral targets follow the neutral team category above
   Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks; skips targets the unit cannot move onto
+  Guard -> builders only guard the clicked target; non-builders use normal mass targeting
   Set Target -> Alt isn't used here, it's left for another widget that handles persistent target type setting as of 7/12/26
 
   There's a filter also. If you screen-command selected units, it will include selected units only.
   If you screen-command an external unit, it will exclude the selected units.
+  Builders (non-factory repair builders) always mass-order only the clicked target; other units keep full mass expansion.
 --]]------------------------------------------------------------------------------
 
 local tableInsert = table.insert
@@ -257,6 +259,37 @@ local function filterUnitsForCommand(selectedUnits, commandId)
 		end
 	end
 	return filteredUnits
+end
+
+local function isScreenSelectBuilder(unitId)
+	local unitDefId = spGetUnitDefId(unitId)
+	local unitDef = unitDefId and UnitDefs[unitDefId]
+	return unitDef and unitDef.isBuilder and unitDef.canRepair and not unitDef.isFactory
+end
+
+local function splitBuilderUnits(selectedUnits)
+	local builderUnits = {}
+	local nonBuilderUnits = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitId = selectedUnits[unitIndex]
+		if isScreenSelectBuilder(unitId) then
+			tableInsert(builderUnits, unitId)
+		else
+			tableInsert(nonBuilderUnits, unitId)
+		end
+	end
+	return builderUnits, nonBuilderUnits
+end
+
+local function finishMassOrderCommandState(issueCommandId, options)
+	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
+	if options.shift then
+		heldCommandDescriptionIndex = savedCommandDescriptionIndex
+		restoreActiveCommand(savedCommandDescriptionIndex)
+	else
+		heldCommandDescriptionIndex = nil
+		deferClearActiveCommand = true
+	end
 end
 
 local function isCapturableTargetUnit(unitId)
@@ -1411,12 +1444,21 @@ local function collectMassOrderTargets(commandId, targetId, isFeature, options)
 end
 
 local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, referenceTargetIsFeature, selectedUnits, options)
-	local selectionSet = buildSelectionSet(selectedUnits)
-	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetId] == true
 	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandId)
 	if #selectedUnits == 0 then
 		return false
 	end
+	local builderUnits, nonBuilderUnits = splitBuilderUnits(selectedUnits)
+	if #builderUnits > 0 then
+		giveOrders(issueCommandId, builderUnits, { referenceTargetId }, options)
+	end
+	if #nonBuilderUnits == 0 then
+		finishMassOrderCommandState(issueCommandId, options)
+		return true
+	end
+	selectedUnits = nonBuilderUnits
+	local selectionSet = buildSelectionSet(selectedUnits)
+	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetId] == true
 	local filteredTargets = collectMassOrderTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	local positionCache = {}
@@ -1443,6 +1485,10 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	)
 	prioritizeTargetId(filteredTargets, referenceTargetId)
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
+		if #builderUnits > 0 then
+			finishMassOrderCommandState(issueCommandId, options)
+			return true
+		end
 		return false
 	end
 	if usePartitionedDispatch then
@@ -1466,14 +1512,7 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 			reachabilityCache
 		)
 	end
-	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
-	if options.shift then
-		heldCommandDescriptionIndex = savedCommandDescriptionIndex
-		restoreActiveCommand(savedCommandDescriptionIndex)
-	else
-		heldCommandDescriptionIndex = nil
-		deferClearActiveCommand = true
-	end
+	finishMassOrderCommandState(issueCommandId, options)
 	return true
 end
 
