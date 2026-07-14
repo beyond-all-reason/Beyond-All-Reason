@@ -176,12 +176,45 @@ if gadgetHandler:IsSyncedCode() then
 		local transporter = Spring.GetUnitTransporter(unitID)
 
 		local toUnitNameSkipped, delayedSeconds = skipEvolutions(evolution)
-		if not UnitDefNames[toUnitNameSkipped] then
+		local targetUnitDef = UnitDefNames[toUnitNameSkipped]
+
+		if not targetUnitDef then
 			return
 		end
 
-		local newUnitID = spCreateUnit(toUnitNameSkipped, x, y, z , face, team)
+		local replacementAuthorized = false
+		local restrictionsAPI = GG.UnitRestrictionsPlus
+
+		if restrictionsAPI and restrictionsAPI.AuthorizeReplacement then
+			replacementAuthorized = restrictionsAPI.AuthorizeReplacement(
+				unitID,
+				targetUnitDef.id,
+				team
+			)
+		end
+
+		local newUnitID = spCreateUnit(
+			toUnitNameSkipped,
+			x,
+			y,
+			z,
+			face,
+			team
+		)
+
 		if not newUnitID then
+			if replacementAuthorized
+			and restrictionsAPI
+			and restrictionsAPI.CancelReplacement
+			then
+				restrictionsAPI.CancelReplacement(
+					unitID,
+					targetUnitDef.id,
+					team
+				)
+			end
+
+			evolutionMetaList[unitID] = evolution
 			return
 		end
 
