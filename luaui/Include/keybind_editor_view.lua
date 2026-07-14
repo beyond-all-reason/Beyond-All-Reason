@@ -410,7 +410,7 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	font:Print(colorAction .. fitText(row.label, keyAreaX1 - (area.x1 + pad) - pad, fs), area.x1 + pad, cyc, fs, "ov")
 
 	if row.type == "info" then
-		font:Print(colorDim .. row.keyText, listRight - pad, cyc, fs, "ovr")
+		font:Print(colorDim .. row.keyText, keyAreaX1, cyc, fs, "ov")
 		return
 	end
 
