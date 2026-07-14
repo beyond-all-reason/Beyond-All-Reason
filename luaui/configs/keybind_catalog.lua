@@ -16,9 +16,8 @@
 return {
 	{ category = "ui.keybinds.chat.title", items = {
 		{ action = "chat", label = "ui.keybinds.chat.send" },
-		{ label = "ui.keybinds.chat.allies", keyLabel = "ui.keybinds.chat.alliesKey" },
-		{ label = "ui.keybinds.chat.spectators", keyLabel = "ui.keybinds.chat.spectatorsKey" },
 		{ label = "ui.keybinds.chat.ignore", keyLabel = "ui.keybinds.chat.ignoreKey" },
+		{ prefix = "chatswitch" },
 	} },
 
 	{ category = "ui.keybinds.menus.title", items = {
@@ -36,18 +35,32 @@ return {
 
 	{ category = "ui.keybinds.cameraModes.title", items = {
 		{ action = "viewspring", label = "ui.keybinds.cameraModes.change" },
-		{ label = "ui.keybinds.cameraModes.fullscreen", keyLabel = "ui.keybinds.cameraModes.fullscreenKey" },
 		{ action = "toggleoverview", label = "ui.keybinds.cameraModes.overview" },
+	} },
+
+	{ category = "ui.keybinds.mapViews.title", items = {
 		{ action = "togglelos", label = "ui.keybinds.cameraModes.los" },
 		{ action = "showelevation", label = "ui.keybinds.cameraModes.heightmap" },
 		{ action = "showpathtraversability", label = "ui.keybinds.cameraModes.traversability" },
-		{ action = "lastmsgpos", label = "ui.keybinds.cameraModes.mapmarks" },
 		{ action = "showmetalmap", label = "ui.keybinds.cameraModes.resourceSpots" },
+	} },
+
+	{ category = "ui.keybinds.drawing.title", items = {
+		{ label = "ui.keybinds.drawing.mapmark", keyLabel = "ui.keybinds.drawing.mapmarkKey" },
+		{ label = "ui.keybinds.drawing.draw", keyLabel = "ui.keybinds.drawing.drawKey" },
+		{ label = "ui.keybinds.drawing.erase", keyLabel = "ui.keybinds.drawing.eraseKey" },
+		{ action = "drawinmap", label = "ui.keybinds.drawing.drawInMap" },
+		{ action = "drawlabel", label = "ui.keybinds.drawing.drawLabel" },
+		{ action = "clearmapmarks", label = "ui.keybinds.console.erase" },
+		{ action = "lastmsgpos", label = "ui.keybinds.cameraModes.mapmarks" },
+	} },
+
+	{ category = "ui.keybinds.interfaceDisplay.title", items = {
 		{ action = "hideinterface", label = "ui.keybinds.cameraModes.interface" },
+		{ action = "fullscreen", label = "ui.keybinds.cameraModes.fullscreen" },
 	} },
 
 	{ category = "ui.keybinds.sound.title", items = {
-		{ label = "ui.keybinds.sound.volume", keyLabel = "ui.keybinds.sound.volumeKey" },
 		{ action = "mutesound", label = "ui.keybinds.sound.mute" },
 		{ action = "snd_volume_increase", label = "ui.keybinds.sound.volumeUp" },
 		{ action = "snd_volume_decrease", label = "ui.keybinds.sound.volumeDown" },
@@ -57,13 +70,37 @@ return {
 		{ label = "ui.keybinds.selection.units", keyLabel = "ui.keybinds.selection.unitsKey" },
 	} },
 
+	{ category = "ui.keybinds.massSelect.title", items = {
+		{ action = "select AllMap++_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.all" },
+		{ action = "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+", label = "ui.keybinds.massSelect.builders" },
+		{ action = "select AllMap+_InPrevSel+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.sameType" },
+		{ action = "select Visible+_InPrevSel+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.sameTypeVisible" },
+		{ action = "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.damaged" },
+		{ action = "select PrevSelection++_ClearSelection_SelectPart_50+", label = "ui.keybinds.massSelect.half" },
+		{ action = "select AllMap+_Transport_Idle+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.idleTransports" },
+		{ action = "select Visible+_Waiting+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.waitingVisible" },
+		{ action = "select AllMap++_ClearSelection_SelectNum_0+", label = "ui.keybinds.massSelect.deselectAll" },
+	} },
+
+	{ category = "ui.keybinds.controlGroups.title", items = {
+		{ prefix = "group " },
+		{ prefix = "add_to_autogroup " },
+		{ action = "remove_from_autogroup", label = "ui.keybinds.massSelect.removeAutoGroup" },
+		{ prefix = "load_autogroup_preset " },
+	} },
+
 	{ category = "ui.keybinds.issueContextOrders.title", items = {
 		{ label = "ui.keybinds.issueContextOrders.order", keyLabel = "ui.keybinds.issueContextOrders.orderKey" },
 		{ label = "ui.keybinds.issueContextOrders.formationOrder", keyLabel = "ui.keybinds.issueContextOrders.formationOrderKey" },
 	} },
 
+	{ category = "ui.keybinds.issueOrders.title", items = {
+		{ label = "ui.keybinds.issueOrders.order", keyLabel = "ui.keybinds.issueOrders.orderKey" },
+		{ label = "ui.keybinds.issueOrders.revert", keyLabel = "ui.keybinds.issueOrders.revertKey" },
+		{ label = "ui.keybinds.issueOrders.formation", keyLabel = "ui.keybinds.issueOrders.formationKey" },
+	} },
+
 	{ category = "ui.keybinds.orders.title", items = {
-		{ label = "ui.keybinds.orders.default", keyLabel = "ui.keybinds.orders.defaultKey" },
 		{ action = "move", label = "ui.keybinds.orders.move" },
 		{ action = "attack", label = "ui.keybinds.orders.attack" },
 		{ action = "settarget", label = "ui.keybinds.orders.setTarget" },
@@ -80,23 +117,36 @@ return {
 		{ action = "selfd", label = "ui.keybinds.orders.selfDestruct" },
 	} },
 
-	{ category = "ui.keybinds.issueOrders.title", items = {
-		{ label = "ui.keybinds.issueOrders.order", keyLabel = "ui.keybinds.issueOrders.orderKey" },
-		{ label = "ui.keybinds.issueOrders.revert", keyLabel = "ui.keybinds.issueOrders.revertKey" },
-		{ label = "ui.keybinds.issueOrders.formation", keyLabel = "ui.keybinds.issueOrders.formationKey" },
+	{ category = "ui.keybinds.moreOrders.title", items = {
+		{ prefix = "areaattack" },
+		{ prefix = "guard" },
+		{ prefix = "capture" },
+		{ prefix = "restore" },
+		{ prefix = "settargetnoground" },
+		{ prefix = "loadunits" },
+		{ prefix = "unloadunits" },
+		{ prefix = "gatherwait" },
+		{ prefix = "manuallaunch" },
+		{ prefix = "stopproduction" },
 	} },
 
 	{ category = "ui.keybinds.queues.title", items = {
 		{ label = "ui.keybinds.queues.append", keyLabel = "ui.keybinds.queues.appendKey" },
 		{ action = "commandinsert prepend_between", label = "ui.keybinds.queues.prepend" },
+		{ prefix = "command_skip_current" },
+		{ prefix = "command_cancel_last" },
+	} },
+
+	{ category = "ui.keybinds.unitStates.title", items = {
+		{ prefix = "firestate " },
+		{ prefix = "movestate " },
+		{ prefix = "onoff " },
+		{ prefix = "repeat " },
+		{ prefix = "trajectory_toggle " },
 	} },
 
 	{ category = "ui.keybinds.buildOrders.title", items = {
 		{ label = "ui.keybinds.buildOrders.selectTile", keyLabel = "ui.keybinds.buildOrders.selectTileKey" },
-		{ label = "ui.keybinds.buildOrders.metal", keyLabel = "ui.keybinds.buildOrders.metalKey" },
-		{ label = "ui.keybinds.buildOrders.energy", keyLabel = "ui.keybinds.buildOrders.energyKey" },
-		{ label = "ui.keybinds.buildOrders.intel", keyLabel = "ui.keybinds.buildOrders.intelKey" },
-		{ label = "ui.keybinds.buildOrders.factories", keyLabel = "ui.keybinds.buildOrders.factoriesKey" },
 		{ action = "buildfacing inc", label = "ui.keybinds.buildOrders.rotate" },
 		{ action = "buildfacing dec", label = "ui.keybinds.buildOrders.rotateBack" },
 	} },
@@ -110,80 +160,33 @@ return {
 		{ action = "buildspacing dec", label = "ui.keybinds.issueBuildOrders.spacingDown" },
 	} },
 
-	{ category = "ui.keybinds.massSelect.title", items = {
-		{ action = "select AllMap++_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.all" },
-		{ action = "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+", label = "ui.keybinds.massSelect.builders" },
-		{ label = "ui.keybinds.massSelect.createGroup", keyLabel = "ui.keybinds.massSelect.createGroupKey" },
-		{ label = "ui.keybinds.massSelect.createAutoGroup", keyLabel = "ui.keybinds.massSelect.createAutoGroupKey" },
-		{ action = "remove_from_autogroup", label = "ui.keybinds.massSelect.removeAutoGroup" },
-		{ label = "ui.keybinds.massSelect.group", keyLabel = "ui.keybinds.massSelect.groupKey" },
-		{ action = "select AllMap+_InPrevSel+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.sameType" },
-		{ action = "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+", label = "ui.keybinds.massSelect.damaged" },
-	} },
-
-	{ category = "ui.keybinds.drawing.title", items = {
-		{ label = "ui.keybinds.drawing.mapmark", keyLabel = "ui.keybinds.drawing.mapmarkKey" },
-		{ label = "ui.keybinds.drawing.draw", keyLabel = "ui.keybinds.drawing.drawKey" },
-		{ label = "ui.keybinds.drawing.erase", keyLabel = "ui.keybinds.drawing.eraseKey" },
-		{ action = "drawinmap", label = "ui.keybinds.drawing.drawInMap" },
-		{ action = "drawlabel", label = "ui.keybinds.drawing.drawLabel" },
-	} },
-
-	{ category = "ui.keybinds.console.title", items = {
-		{ label = "ui.keybinds.console.erase", keyLabel = "ui.keybinds.console.eraseKey" },
-		{ label = "ui.keybinds.console.pause", keyLabel = "ui.keybinds.console.pauseKey" },
-	} },
-
-	{ category = "ui.keybinds.moreOrders.title", items = {
-		{ prefix = "areaattack" },
-		{ prefix = "guard" },
-		{ prefix = "capture" },
-		{ prefix = "restore" },
-		{ prefix = "settargetnoground" },
-		{ prefix = "loadunits" },
-		{ prefix = "unloadunits" },
-		{ prefix = "gatherwait" },
-		{ prefix = "manuallaunch" },
-		{ prefix = "stopproduction" },
-		{ prefix = "command_skip_current" },
-		{ prefix = "command_cancel_last" },
-	} },
-
-	{ category = "ui.keybinds.unitStates.title", items = {
-		{ prefix = "firestate " },
-		{ prefix = "movestate " },
-		{ prefix = "onoff " },
-		{ prefix = "repeat " },
-		{ prefix = "trajectory_toggle " },
-		{ prefix = "factoryguard " },
-	} },
-
-	{ category = "ui.keybinds.controlGroups.title", items = {
-		{ prefix = "group " },
-		{ prefix = "add_to_autogroup " },
-		{ prefix = "load_autogroup_preset " },
+	{ category = "ui.keybinds.gridMenu.title", items = {
+		{ action = "gridmenu_category 1", label = "ui.buildMenu.category_econ" },
+		{ action = "gridmenu_category 2", label = "ui.buildMenu.category_combat" },
+		{ action = "gridmenu_category 3", label = "ui.buildMenu.category_utility" },
+		{ action = "gridmenu_category 4", label = "ui.buildMenu.category_production" },
+		{ prefix = "gridmenu_key" },
+		{ prefix = "gridmenu_next_page" },
+		{ prefix = "gridmenu_cycle_builder" },
 	} },
 
 	{ category = "ui.keybinds.factory.title", items = {
 		{ prefix = "factory_preset" },
 		{ prefix = "factoryqueuemode" },
+		{ prefix = "factoryguard " },
 	} },
 
-	{ category = "ui.keybinds.gridMenu.title", items = {
-		{ prefix = "gridmenu_" },
+	{ category = "ui.keybinds.gameControl.title", items = {
+		{ prefix = "increasespeed" },
+		{ prefix = "decreasespeed" },
+		{ action = "pause", label = "ui.keybinds.console.pause" },
 	} },
 
 	{ category = "ui.keybinds.spectating.title", items = {
 		{ prefix = "specteam " },
-		{ prefix = "chatswitch" },
 	} },
 
 	{ category = "ui.keybinds.blueprints.title", items = {
 		{ prefix = "blueprint_" },
-	} },
-
-	{ category = "ui.keybinds.gameSpeed.title", items = {
-		{ prefix = "increasespeed" },
-		{ prefix = "decreasespeed" },
 	} },
 }

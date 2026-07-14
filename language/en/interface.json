@@ -392,6 +392,12 @@
 				"resourceSpots": "Show metal map",
 				"interface": "Hide GUI"
 			},
+			"mapViews": {
+				"title": "Map views"
+			},
+			"interfaceDisplay": {
+				"title": "Interface & display"
+			},
 			"sound": {
 				"title": "Sound",
 				"volumeKey": "-/+",
@@ -487,7 +493,12 @@
 				"groupKey": "(num)",
 				"group": "Select all units assigned to group (num)",
 				"sameType": "Select all units of same type as selected",
-				"damaged": "Select damaged units"
+				"damaged": "Select damaged units",
+				"sameTypeVisible": "Select same type as current, on screen",
+				"half": "Select half of current selection",
+				"idleTransports": "Select all idle transports",
+				"waitingVisible": "Select waiting units, on screen",
+				"deselectAll": "Deselect all"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -530,6 +541,9 @@
 			},
 			"gameSpeed": {
 				"title": "Game speed"
+			},
+			"gameControl": {
+				"title": "Game control"
 			}
 		},
 		"blueprint": {
