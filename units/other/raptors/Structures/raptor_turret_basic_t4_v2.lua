@@ -1,5 +1,5 @@
 return {
-	raptor_turret_basic_t4_v1 = {
+	raptor_turret_basic_t4_v2 = {
 		maxacc = 0.0115,
 		activatewhenbuilt = true,
 		autoheal = 1,
@@ -68,20 +68,21 @@ return {
 		},
 		weapondefs = {
 			weapon = {
-				accuracy = 2048,
 				areaofeffect = 256,
 				collidefriendly = 0,
 				collidefeature = 0,
 				avoidfeature = 0,
 				avoidfriendly = 0,
-				burst = 16,
+				burst = 32,
 				burstrate = 0.001,
 				cegtag = "blob_trail_red",
 				craterareaofeffect = 256,
 				craterboost = 0.2,
 				cratermult = 0.2,
+				commandfire = true,
 				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:genericshellexplosion-huge",
+				hightrajectory = 1,
 				impulsefactor = 0.4,
 				intensity = 0.7,
 				interceptedbyshieldtype = 1,
@@ -95,22 +96,25 @@ return {
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
-				sprayangle = 2048,
+				sprayangle = 256,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",
 				weapontimer = 0.2,
-				weaponvelocity = 800,
+				weaponvelocity = 1500,
 				damage = {
 					default = 1280,
 					shields = 320,
+				},
+				customparams = {
+					pvenukecontroller = true,
 				},
 			},
 		},
 		weapons = {
 			[1] = {
 				def = "WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NONE",
 			},
 		},
 	},
