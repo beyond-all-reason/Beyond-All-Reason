@@ -97,7 +97,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "smallraptorattack",
 				soundstart = "bugarty",
-				sprayangle = 2048,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
