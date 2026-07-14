@@ -44,6 +44,78 @@ VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
+local CHAT_ACTION_PREFIX = 'gui_chat:chataction:'
+local CHAT_ACTION_REQUEST = 'gui_chat:requestChatActions'
+
+local chatActionRegistry = {
+	synced = {},
+	unsynced = {},
+}
+
+local function GetChatActionSource()
+	return (SendToUnsynced ~= nil) and 'synced' or 'unsynced'
+end
+
+local function RegisterChatAction(source, cmd)
+	local sourceRegistry = chatActionRegistry[source]
+	if not sourceRegistry then
+		return
+	end
+	sourceRegistry[cmd] = true
+	if Spring.SendLuaUIMsg then
+		Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':add:' .. cmd)
+	end
+end
+
+local function UnregisterChatAction(source, cmd)
+	local sourceRegistry = chatActionRegistry[source]
+	if not sourceRegistry then
+		return
+	end
+	if sourceRegistry[cmd] then
+		sourceRegistry[cmd] = nil
+		if Spring.SendLuaUIMsg then
+			Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':remove:' .. cmd)
+		end
+	end
+end
+
+local rawAddChatAction = actionHandler.AddChatAction
+local rawRemoveChatAction = actionHandler.RemoveChatAction
+
+actionHandler.AddChatAction = function(widget, cmd, func, help)
+	local textSuccess = rawAddChatAction(widget, cmd, func, help)
+	if textSuccess then
+		RegisterChatAction(GetChatActionSource(), cmd)
+	end
+	return textSuccess
+end
+
+actionHandler.RemoveChatAction = function(widget, cmd)
+	local textSuccess = rawRemoveChatAction(widget, cmd)
+	if textSuccess then
+		UnregisterChatAction(GetChatActionSource(), cmd)
+	end
+	return textSuccess
+end
+
+local function BroadcastChatActionUpdate(source, mode, cmd)
+	if not Spring.SendLuaUIMsg then
+		return
+	end
+	Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd)
+end
+
+local function BroadcastChatActionSnapshot(source, actionMap)
+	if not Spring.SendLuaUIMsg then
+		return
+	end
+	Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':clear')
+	for cmd in pairs(actionMap or chatActionRegistry[source] or {}) do
+		Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':add:' .. cmd)
+	end
+end
+
 -- Utility call
 local isSyncedCode = (SendToUnsynced ~= nil)
 local function IsSyncedCode()
@@ -585,7 +657,7 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 	}
 	setmetatable(gadget.ghInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation
-	if tracy then 
+	if tracy then
 		gadget._tracyGameFrameName          = "G:GameFrame:"          .. gi.name
 		gadget._tracyGameFramePostName      = "G:GameFramePost:"      .. gi.name
 		gadget._tracyViewResizeName         = "G:ViewResize:"         .. gi.name
@@ -1179,6 +1251,10 @@ end
 
 function gadgetHandler:RecvFromSynced(...)
 	local arg1, arg2 = ...
+	if arg1 == CHAT_ACTION_REQUEST then
+		BroadcastChatActionSnapshot('unsynced', self.actionHandler.textActions)
+		return true
+	end
   if (type(arg1) == 'string') then
 		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
 	else
@@ -1234,6 +1310,13 @@ function gadgetHandler:GotChatMsg(msg, player)
 end
 
 function gadgetHandler:RecvLuaMsg(msg, player)
+	if msg == CHAT_ACTION_REQUEST then
+		BroadcastChatActionSnapshot('synced', self.actionHandler.textActions)
+		if SendToUnsynced then
+			SendToUnsynced(CHAT_ACTION_REQUEST)
+		end
+		return true
+	end
 	tracy.ZoneBeginN("G:RecvLuaMsg")
 	for _, g in ipairs(self.RecvLuaMsgList) do
 		if g:RecvLuaMsg(msg, player) then
