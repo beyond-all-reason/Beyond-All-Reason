@@ -251,225 +251,11 @@ local function cleanupLineTable(prevTable, maxLines)
 	return newTable
 end
 
-local autocompleteCommands = {
-	-- engine
-	'advmapshading',
-	'aicontrol',
-	'aikill',
-	'ailist',
-	'aireload',
-	'airmesh',
-	'allmapmarks',
-	'ally',
-	'atm',
-	'buffertext',
-	'chat',
-	'chatall',
-	'chatally',
-	'chatspec',
-	'cheat',
-	'clearmapmarks',
-	--'clock',
-	'cmdcolors',
-	'commandhelp',
-	'commandlist',
-	'console',
-	'controlunit',
-	'crash',
-	'createvideo',
-	'cross',
-	'ctrlpanel',
-	'debug',
-	'debugcolvol',
-	'debugdrawai',
-	'debuggl',
-	'debugglerrors',
-	'debuginfo',
-	'debugpath',
-	'debugtraceray',
-	'decguiopacity',
-	'decreaseviewradius',
-	'deselect',
-	'destroy',
-	'devlua',
-	'distdraw',
-	'disticon',
-	'divbyzero',
-	'drawinmap',
-	'drawlabel',
-	'drawtrees',
-	'dumpstate',
-	'dynamicsky',
-	'echo',
-	'editdefs',
-	'endgraph',
-	'exception',
-	'font',
-	'fps',
-	'fpshud',
-	'fullscreen',
-	'gameinfo',
-	'gathermode',
-	'give',
-	'globallos',
-	'godmode',
-	'grabinput',
-	'grounddecals',
-	'grounddetail',
-	'group',
-	'group0',
-	'group1',
-	'group2',
-	'group3',
-	'group4',
-	'group5',
-	'group6',
-	'group7',
-	'group8',
-	'group9',
-	'hardwarecursor',
-	'hideinterface',
-	'incguiopacity',
-	'increaseviewradius',
-	'info',
-	'inputtextgeo',
-	'keyreload',
-	'lastmsgpos',
-	'lessclouds',
-	'lesstrees',
-	'lodscale',
-	'luagaia',
-	'luarules',
-	'luasave',
-	'luaui',
-	'mapborder',
-	'mapmarks',
-	'mapmeshdrawer',
-	'mapshadowpolyoffset',
-	'maxnanoparticles',
-	'maxparticles',
-	'minimap',
-	'moreclouds',
-	'moretrees',
-	'mouse1',
-	'mouse2',
-	'mouse3',
-	'mouse4',
-	'mouse5',
-	'moveback',
-	'movedown',
-	'movefast',
-	'moveforward',
-	'moveleft',
-	'moveright',
-	'moveslow',
-	'moveup',
-	'mutesound',
-	'nocost',
-	'nohelp',
-	'noluadraw',
-	'nospecdraw',
-	'nospectatorchat',
-	'pastetext',
-	'pause',
-	'quitforce',
-	'quitmenu',
-	'quitmessage',
-	'reloadcegs',
-	'reloadcob',
-	'reloadforce',
-	'reloadgame',
-	'reloadshaders',
-	'reloadtextures',
-	'resbar',
-	'resync',
-	'safegl',
-	'save',
-	'say',
-	'screenshot',
-	'select',
-	'selectcycle',
-	'selectunits',
-	'send',
-	'set',
-	'shadows',
-	'sharedialog',
-	'showelevation',
-	'showmetalmap',
-	'showpathcost',
-	'showpathflow',
-	'showpathheat',
-	'showpathtraversability',
-	'showpathtype',
-	'showstandard',
-	'skip',
-	'slowdown',
-	'soundchannelenablec',
-	'sounddevice',
-	'specfullview',
-	'spectator',
-	'specteam',
-	--'speed',
-	'speedcontrol',
-	'speedup',
-	'take',
-	'team',
-	'teamhighlight',
-	'toggleinfo',
-	'togglelos',
-	'tooltip',
-	'track',
-	'trackmode',
-	'trackoff',
-	'tset',
-	'viewselection',
-	'vsync',
-	'water',
-	'wbynum',
-	'wiremap',
-	'wiremodel',
-	'wiresky',
-	'wiretree',
-	'wirewater',
-	'widgetselector',
-
-	-- -- zombie commands
-	-- 'luarules zombiesetallgaia',
-	-- 'luarules zombiequeueallcorpses',
-	-- 'luarules zombieautospawn 0',
-	-- 'luarules zombieclearspawns',
-	-- 'luarules zombiepacify 0',
-	-- 'luarules zombiesuspendorders 0',
-	-- 'luarules zombieaggroteam 0',
-	-- 'luarules zombieaggroally 0',
-	-- 'luarules zombiekillall',
-	-- 'luarules zombieclearallorders',
-	-- 'luarules zombiedebug 0',
-	-- 'luarules zombiemode normal',
-
-	-- -- build blocking commands
-	-- 'luarules buildblock all default_reason',
-	-- 'luarules buildunblock all default_reason',
-
-	-- widgets
-	'luaui reload',
-	'luaui disable',
-	'luaui enable',
-	'addmessage',
-	'radarpulse',
-	'ecostatstext',
-	'defrange ally air',
-	'defrange ally nuke',
-	'defrange ally ground',
-	'defrange enemy air',
-	'defrange enemy nuke',
-	'defrange enemy ground',
-	'set_camera_anchor',
-	'focus_camera_anchor',
-}
+local autocompleteCommands = {}
 
 local autocompleteCommandRefs = {}
 local autocompleteCommandSources = {
+	engine = {},
 	widget = {},
 	synced = {},
 	unsynced = {},
@@ -477,24 +263,24 @@ local autocompleteCommandSources = {
 local autocompleteGivecatFilters = { descriptions = {} }
 
 local function formatAutocompleteCommand(source, cmd)
-	if source == 'widget' then
-		return cmd
+	if source == 'synced' or source == 'unsynced' then
+		return 'luarules ' .. cmd
 	end
-	return 'luarules ' .. cmd
+	return cmd
 end
 
 local function addAutocompleteCommand(source, cmd)
 	local sourceCommands = autocompleteCommandSources[source]
-	if not sourceCommands or sourceCommands[cmd] then
+	if not sourceCommands or sourceCommands[cmd] or type(cmd) ~= 'string' or cmd == '' then
 		return
 	end
 	sourceCommands[cmd] = true
 	local displayCmd = formatAutocompleteCommand(source, cmd)
-	local refCount = autocompleteCommandRefs[cmd] or 0
+	local refCount = autocompleteCommandRefs[displayCmd] or 0
 	if refCount == 0 then
 		autocompleteCommands[#autocompleteCommands + 1] = displayCmd
 	end
-	autocompleteCommandRefs[cmd] = refCount + 1
+	autocompleteCommandRefs[displayCmd] = refCount + 1
 end
 
 local function removeAutocompleteCommand(source, cmd)
@@ -504,12 +290,12 @@ local function removeAutocompleteCommand(source, cmd)
 	end
 	sourceCommands[cmd] = nil
 	local displayCmd = formatAutocompleteCommand(source, cmd)
-	local refCount = (autocompleteCommandRefs[cmd] or 0) - 1
+	local refCount = (autocompleteCommandRefs[displayCmd] or 0) - 1
 	if refCount > 0 then
-		autocompleteCommandRefs[cmd] = refCount
+		autocompleteCommandRefs[displayCmd] = refCount
 		return
 	end
-	autocompleteCommandRefs[cmd] = nil
+	autocompleteCommandRefs[displayCmd] = nil
 	for i = 1, #autocompleteCommands do
 		if autocompleteCommands[i] == displayCmd then
 			table.remove(autocompleteCommands, i)
@@ -529,6 +315,7 @@ local function clearAutocompleteSource(source)
 end
 
 local function refreshWidgetAutocompleteCommands()
+	clearAutocompleteSource('widget')
 	for textAction in pairs(widgetHandler.actionHandler.textActions) do
 		if type(textAction) == 'string' then
 			addAutocompleteCommand('widget', textAction)
@@ -569,15 +356,42 @@ local function refreshGivecatAutocompleteFilters()
 
 	local language = Spring.GetConfigString('language', 'en')
 	local interfaceFile = VFS.LoadFile('language/' .. language .. '/interface.json') or VFS.LoadFile('language/en/interface.json')
+	clearAutocompleteSource('engine')
 	if not interfaceFile then
+		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+			local cmd = keybinding and keybinding.command
+			if type(cmd) == 'string' and cmd ~= '' then
+				addAutocompleteCommand('engine', cmd)
+			end
+		end
 		return
 	end
 
 	local ok, interfaceData = pcall(Json.decode, interfaceFile)
 	if not ok or type(interfaceData) ~= 'table' then
+		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+			local cmd = keybinding and keybinding.command
+			if type(cmd) == 'string' and cmd ~= '' then
+				addAutocompleteCommand('engine', cmd)
+			end
+		end
 		return
 	end
 	autocompleteGivecatFilters.cmdTree = interfaceData.cmd
+
+	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
+		for cmd, value in pairs(autocompleteGivecatFilters.cmdTree) do
+			if cmd ~= '_description' and (type(value) == 'string' or type(value) == 'table') then
+				addAutocompleteCommand('engine', cmd)
+			end
+		end
+	end
+	for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+		local cmd = keybinding and keybinding.command
+		if type(cmd) == 'string' and cmd ~= '' then
+			addAutocompleteCommand('engine', cmd)
+		end
+	end
 
 	local givecatFilters
 	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
@@ -2161,9 +1975,9 @@ local loadedAutocompleteCommands = false
 local function autocomplete(text, fresh)
 	if not loadedAutocompleteCommands then
 		loadedAutocompleteCommands = true
-		refreshWidgetAutocompleteCommands()
 		requestGadgetAutocompleteCommands()
 	end
+	refreshWidgetAutocompleteCommands()
 
 	autocompleteText = nil
 	state.autocompleteInfoText = nil
