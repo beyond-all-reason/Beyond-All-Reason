@@ -37,7 +37,10 @@ end
 -- Localized engine functions
 --------------------------------------------------------------------------------
 local spEcho              = Spring.Echo
+local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitPosition   = Spring.GetUnitPosition
+local spIsPosInAirLos     = Spring.IsPosInAirLos
 local spIsSphereInView    = Spring.IsSphereInView
 local spGetWind           = Spring.GetWind
 local spGetFPS            = Spring.GetFPS
@@ -430,6 +433,8 @@ local particleRemoveQueue = {}  -- [deathFrame] = { n = count, id, id, ... }
 local lastRemovedFrame    = 0
 
 local cachedGameFrame = 0
+local cachedAllyTeamID = spGetMyAllyTeamID()
+local cachedFullView = select(2, spGetSpectatingState()) or false
 local windX, windZ = 0, 0
 
 local MAX_PARTICLES = CONFIG.maxParticles
@@ -1405,6 +1410,15 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 	})
 end
 
+local function canShowWreckageFire(x, y, z)
+	return cachedFullView or spIsPosInAirLos(x, y, z, cachedAllyTeamID)
+end
+
+local function spawnVisibleWreckageFire(x, y, z, scale, opts)
+	if not canShowWreckageFire(x, y, z) then return end
+	return spawnWreckageFire(x, y, z, scale, opts)
+end
+
 -- Start (or refresh) a growing tree fire keyed by featureID. Driven by the
 -- synced gfx_tree_feller gadget via RecvFromSynced. The column climbs the tree
 -- and tilts into a ground line as the tree falls. Geometry (height/radius/
@@ -1703,11 +1717,17 @@ function gadget:Initialize()
 			if udid then return addUnitFire(unitID, udid, durationFrames) end
 		end,
 		-- SpawnWreck(x, y, z[, scale]): short fire + long smoke at a position.
-		SpawnWreck = function(x, y, z, scale) return spawnWreckageFire(x, y, z, scale) end,
+		SpawnWreck = function(x, y, z, scale) return spawnVisibleWreckageFire(x, y, z, scale) end,
 		GetParticleCount = function() return particleVBO and particleVBO.usedElements or 0 end,
 		GetMaxParticles  = function() return MAX_PARTICLES end,
 		GetConfig        = function() return CONFIG end,
 	}
+end
+
+function gadget:PlayerChanged(playerID)
+	if playerID ~= Spring.GetMyPlayerID() then return end
+	cachedAllyTeamID = spGetMyAllyTeamID()
+	cachedFullView = select(2, spGetSpectatingState()) or false
 end
 
 function gadget:Shutdown()
@@ -1759,6 +1779,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			x, y, z = e.x, e.y, e.z
 		end
 		if x and y and y >= -4 then  -- no wreck fire underwater
+			if not canShowWreckageFire(x, y, z) then
+				pendingWreckFire[unitID] = nil
+				if e then
+					e.unitID = nil
+					unitFireEmitter[unitID] = nil
+					e.mappedUnit = nil
+					e.fireEnd  = mathMin(e.fireEnd, cachedGameFrame)
+					e.emberEnd = mathMin(e.emberEnd, cachedGameFrame)
+				end
+				return
+			end
 			local p    = unitFireParams[unitDefID]
 			local wreckScale = (p and p.wreckScale) or (p and p.scale) or 1.0
 			local wreckLifeScale = (p and p.wreckLifeScale) or wreckScale
@@ -1897,7 +1928,7 @@ syncFireSpawn = function(_, x, y, z, scale, duration)
 end
 
 syncFireWreck = function(_, x, y, z, scale)
-	spawnWreckageFire(x, y, z, scale)
+	spawnVisibleWreckageFire(x, y, z, scale)
 end
 
 syncTreeFireStart = function(_, featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
@@ -1919,6 +1950,8 @@ function gadget:GameFrame(n)
 	if not particleVBO then return end
 
 	cachedGameFrame = n
+	cachedAllyTeamID = spGetMyAllyTeamID()
+	cachedFullView = select(2, spGetSpectatingState()) or false
 
 	if n % 10 == 0 then
 		local _, _, _, _, wx, _, wz = spGetWind()
