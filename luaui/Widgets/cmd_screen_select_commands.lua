@@ -21,14 +21,16 @@ Click modifiers:
   Shift -> add to end of queue
   Space -> prepend to the queue
   Shift + Space -> insert into the nearest queued path segment
-  Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy team; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
+  Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> distribute evenly among selected units
   If units × targets would exceed COMMAND_LIMIT, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
 
+  Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
+  Attack / Capture / Set Target -> neutrals are their own team category, separate from other enemies
   Capture -> only finished, capturable targets; only capturers issue; skips targets the unit cannot move onto
   Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team; skips targets the unit cannot move onto
-  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto
+  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto; neutral targets follow the neutral team category above
   Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks; skips targets the unit cannot move onto
   Set Target -> Alt isn't used here, it's left for another widget that handles persistent target type setting as of 7/12/26
 
@@ -48,6 +50,7 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefId = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetFeatureDefId = Spring.GetFeatureDefID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyAllyTeamId = Spring.GetMyAllyTeamID
@@ -76,6 +79,7 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
+local NEUTRAL_UNITS = "neutral_units"
 local FEATURE = "feature"
 local UNIT = "unit"
 local POSITIONAL_TARGET_COMMANDS = {
@@ -154,7 +158,7 @@ local function toPositionTable(x, y, z)
 	if not x then
 		return nil
 	end
-	return { x = x, y = y, z = z }
+	return { x = x, y = y, z = z } 
 end
 
 local function restoreActiveCommand(commandDescriptionIndex)
@@ -1022,6 +1026,13 @@ local ALLOWED_COMMANDS = {
 }
 
 local function unitMatchesAllegiance(unitId, targetAllegiance)
+	local isNeutral = spGetUnitNeutral(unitId)
+	if targetAllegiance == NEUTRAL_UNITS then
+		return isNeutral
+	end
+	if isNeutral then
+		return false
+	end
 	local isEnemy = spGetUnitAllyTeam(unitId) ~= myAllyTeamId
 	if targetAllegiance == ENEMY_UNITS and not isEnemy then
 		return false
@@ -1336,7 +1347,18 @@ local function collectMassOrderTargets(commandId, targetId, isFeature, options)
 		return collectVisibleFeatures(commandId, featureDefIdFilter)
 	end
 	local commandConfig = ALLOWED_COMMANDS[commandId]
+	local isNeutral = spGetUnitNeutral(targetId)
 	local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamId
+	if isNeutral and (commandConfig.targetAllegiance == ENEMY_UNITS or commandId == CMD.RECLAIM) then
+		if options.ctrl then
+			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, NEUTRAL_UNITS, nil))
+		end
+		local unitDefId = spGetUnitDefId(targetId)
+		if not unitDefId then
+			return {}
+		end
+		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, NEUTRAL_UNITS, nil))
+	end
 	if commandConfig.targetAllegiance == ENEMY_UNITS or (commandId == CMD.RECLAIM and isEnemy) then
 		if options.ctrl then
 			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ENEMY_UNITS, nil))
@@ -1370,13 +1392,13 @@ local function collectMassOrderTargets(commandId, targetId, isFeature, options)
 			return { targetId }
 		end
 		if options.ctrl then
-			return collectVisibleUnits(nil, nil, myTeamId)
+			return collectVisibleUnits(nil, ALLY_UNITS, myTeamId)
 		end
 		local unitDefId = spGetUnitDefId(targetId)
 		if not unitDefId then
 			return {}
 		end
-		return collectVisibleUnits(unitDefId, nil, myTeamId)
+		return collectVisibleUnits(unitDefId, ALLY_UNITS, myTeamId)
 	end
 	if options.ctrl then
 		return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ALLY_UNITS, nil))
