@@ -21,15 +21,15 @@ Click modifiers:
   Shift -> add to end of queue
   Space -> prepend to the queue
   Shift + Space -> insert into the nearest queued path segment
-  Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy team; allies: any ally team). For reclaim features, broaden by yield (metal vs energy-only).
+  Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy team; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> distribute evenly among selected units
   If units × targets would exceed COMMAND_LIMIT, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
 
   Command-Specific behavior:
-  Capture -> only finished, capturable targets; only capturers issue
-  Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team
-  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match wreck category (corpse/heap/metal/energy-only); Ctrl broadens feature matches by yield
-  Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks
+  Capture -> only finished, capturable targets; only capturers issue; skips targets the unit cannot move onto
+  Repair -> only damaged targets; scopes to clicked unit's team (not all allies); Ctrl = any damaged unit on that team; skips targets the unit cannot move onto
+  Reclaim -> enemies, allies, and features; reclaiming another ally's unit is single-target only (no mass spread); features match by category (same corpse featureDefID; all non-corpse metal including heaps/rocks/ferns; all energy-only); Ctrl = all reclaimable features; commander corpses are never mass-ordered (individual reclaim only); skips targets the unit cannot move onto
+  Resurrect -> Corpses only, must be resurrectable; Ctrl = all visible resurrectable wrecks; skips targets the unit cannot move onto
   Set Target -> Alt isn't used here, it's left for another widget that handles persistent target type setting as of 7/12/26
 
   There's a filter also. If you screen-command selected units, it will include selected units only.
@@ -69,6 +69,9 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitHealth = Spring.GetUnitHealth
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
+local spTestMoveOrder = Spring.TestMoveOrder
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -92,12 +95,19 @@ local COMMAND_CAPABILITY_FIELDS = {
 	[CMD.REPAIR] = { "canRepair", "repairSpeed" },
 	[CMD.CAPTURE] = { "canCapture", "captureSpeed" },
 }
+local REACHABILITY_COMMANDS = {
+	[CMD.RECLAIM] = true,
+	[CMD.RESURRECT] = true,
+	[CMD.CAPTURE] = true,
+	[CMD.REPAIR] = true,
+}
 
 local MAX_QUEUE_COMMANDS = 100
 local MASS_ORDER_START_RADIUS = 2000
 local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local MIN_DOUBLE_CLICK_GAP = 0.03
+local DOUBLE_CLICK_SNAP_RADIUS = 50
 local osClock = os.clock
 
 local doubleClickEnabled = true
@@ -106,6 +116,7 @@ local commandLimit = 4000
 
 local myAllyTeamId
 local myTeamId
+local commanderCorpseFeatureDefIds = {}
 local pendingDoubleClick = {
 	targetId = nil,
 	expireTime = 0,
@@ -308,6 +319,70 @@ local function getTargetPosition(targetId, positionCache)
 		positionCache[targetId] = position or false
 	end
 	return position
+end
+
+local function canUnitDefReachPosition(unitDefId, targetId, position, reachabilityCache)
+	if not unitDefId or not position then
+		return false
+	end
+	local unitDef = UnitDefs[unitDefId]
+	if unitDef and unitDef.canFly then
+		return true
+	end
+	local unitDefCache = reachabilityCache[unitDefId]
+	if not unitDefCache then
+		unitDefCache = {}
+		reachabilityCache[unitDefId] = unitDefCache
+	end
+	local cachedResult = unitDefCache[targetId]
+	if cachedResult ~= nil then
+		return cachedResult
+	end
+	local canReach = spTestMoveOrder(unitDefId, position.x, position.y, position.z, nil, nil, nil, true, false)
+	unitDefCache[targetId] = canReach
+	return canReach
+end
+
+local function filterTargetsReachableByUnitDef(unitDefId, targets, positionCache, reachabilityCache)
+	local filteredTargets = {}
+	for targetIndex = 1, #targets do
+		local targetId = targets[targetIndex]
+		local position = getTargetPosition(targetId, positionCache)
+		if position and canUnitDefReachPosition(unitDefId, targetId, position, reachabilityCache) then
+			tableInsert(filteredTargets, targetId)
+		end
+	end
+	return filteredTargets
+end
+
+local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionCache)
+	local reachabilityCache = {}
+	local unitDefIds = {}
+	local seenUnitDefIds = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitDefId = spGetUnitDefId(selectedUnits[unitIndex])
+		if unitDefId and not seenUnitDefIds[unitDefId] then
+			seenUnitDefIds[unitDefId] = true
+			tableInsert(unitDefIds, unitDefId)
+		end
+	end
+	if #unitDefIds == 0 then
+		return {}
+	end
+	local filteredTargets = {}
+	for targetIndex = 1, #targets do
+		local targetId = targets[targetIndex]
+		local position = getTargetPosition(targetId, positionCache)
+		if position then
+			for unitDefIndex = 1, #unitDefIds do
+				if canUnitDefReachPosition(unitDefIds[unitDefIndex], targetId, position, reachabilityCache) then
+					tableInsert(filteredTargets, targetId)
+					break
+				end
+			end
+		end
+	end
+	return filteredTargets
 end
 
 local function getUnitCentroid(selectedUnits)
@@ -632,17 +707,30 @@ local function divideWithRemainder(total, groupCount)
 	return minimumCount, remainderCount
 end
 
-local function pickClosestUnassigned(referenceId, candidates, unassigned, count, positionCache)
+local function pickClosestUnassigned(referenceId, candidates, unassigned, count, positionCache, reachabilityCache)
 	local available = {}
+	local referencePosition = reachabilityCache and getTargetPosition(referenceId, positionCache)
 	for candidateIndex = 1, #candidates do
 		local candidateId = candidates[candidateIndex]
 		if unassigned[candidateId] then
-			tableInsert(available, candidateId)
+			local canReach = true
+			if reachabilityCache then
+				if not referencePosition then
+					canReach = false
+				else
+					local unitDefId = spGetUnitDefId(candidateId)
+					canReach = unitDefId and canUnitDefReachPosition(unitDefId, referenceId, referencePosition, reachabilityCache)
+				end
+			end
+			if canReach then
+				tableInsert(available, candidateId)
+			end
 		end
 	end
 	sortTargetsByDistance({ referenceId }, available, true, referenceId, positionCache)
 	local picked = {}
-	for pickedIndex = 1, count do
+	local pickCount = mathMin(count, #available)
+	for pickedIndex = 1, pickCount do
 		local pickedId = available[pickedIndex]
 		picked[pickedIndex] = pickedId
 		unassigned[pickedId] = nil
@@ -726,28 +814,68 @@ local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, f
 	return partition, perUnitLimit, targetPoolLimit
 end
 
-local function giveOrdersPerUnitByTravelRoute(commandId, selectedUnits, filteredTargets, options)
+local function prioritizeTargetId(targets, targetId)
+	if not targetId or #targets == 0 then
+		return
+	end
+	local foundIndex
+	for targetIndex = 1, #targets do
+		if targets[targetIndex] == targetId then
+			foundIndex = targetIndex
+			break
+		end
+	end
+	if not foundIndex then
+		for shiftIndex = #targets, 1, -1 do
+			targets[shiftIndex + 1] = targets[shiftIndex]
+		end
+		targets[1] = targetId
+		return
+	end
+	if foundIndex == 1 then
+		return
+	end
+	local prioritizedTargetId = targets[foundIndex]
+	for shiftIndex = foundIndex, 2, -1 do
+		targets[shiftIndex] = targets[shiftIndex - 1]
+	end
+	targets[1] = prioritizedTargetId
+end
+
+local function giveOrdersPerUnitByTravelRoute(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
+	local reachabilityCache = {}
+	local needsReachability = REACHABILITY_COMMANDS[commandId]
 	local singleUnitArray = {}
 	local targets = {}
 	for unitIndex = 1, #selectedUnits do
 		local selectedUnitId = selectedUnits[unitIndex]
 		singleUnitArray[1] = selectedUnitId
-		for targetIndex = 1, #filteredTargets do
-			targets[targetIndex] = filteredTargets[targetIndex]
+		local unitTargets = filteredTargets
+		if needsReachability then
+			local unitDefId = spGetUnitDefId(selectedUnitId)
+			unitTargets = filterTargetsReachableByUnitDef(unitDefId, filteredTargets, positionCache, reachabilityCache)
 		end
-		for targetIndex = #filteredTargets + 1, #targets do
-			targets[targetIndex] = nil
+		if #unitTargets > 0 then
+			for targetIndex = 1, #unitTargets do
+				targets[targetIndex] = unitTargets[targetIndex]
+			end
+			for targetIndex = #unitTargets + 1, #targets do
+				targets[targetIndex] = nil
+			end
+			sortTargetsByTravelRoute(selectedUnitId, targets, closestFirst, positionCache)
+			prioritizeTargetId(targets, referenceTargetId)
+			giveOrders(commandId, singleUnitArray, targets, options)
 		end
-		sortTargetsByTravelRoute(selectedUnitId, targets, closestFirst, positionCache)
-		giveOrders(commandId, singleUnitArray, targets, options)
 	end
 end
 
 local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	local closestFirst = not options.meta or options.shift
 	local positionCache = {}
+	local reachabilityCache = {}
+	local needsReachability = REACHABILITY_COMMANDS[commandId]
 	if #filteredTargets >= #selectedUnits then
 		local center = resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetId, positionCache)
 		local sortedTargets = {}
@@ -767,9 +895,16 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 		for unitIndex = 1, #sortedUnits do
 			local assignedTargets = chunks[unitIndex]
 			local selectedUnitId = sortedUnits[unitIndex]
-			singleUnitArray[1] = selectedUnitId
-			sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
-			giveOrders(commandId, singleUnitArray, assignedTargets, options)
+			if needsReachability then
+				local unitDefId = spGetUnitDefId(selectedUnitId)
+				assignedTargets = filterTargetsReachableByUnitDef(unitDefId, assignedTargets, positionCache, reachabilityCache)
+			end
+			if #assignedTargets > 0 then
+				singleUnitArray[1] = selectedUnitId
+				sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
+				prioritizeTargetId(assignedTargets, referenceTargetId)
+				giveOrders(commandId, singleUnitArray, assignedTargets, options)
+			end
 		end
 	else
 		local minimumCount, remainderCount = divideWithRemainder(#selectedUnits, #filteredTargets)
@@ -782,14 +917,24 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 			sortedTargets[targetIndex] = filteredTargets[targetIndex]
 		end
 		sortTargetsByDistance(selectedUnits, sortedTargets, true, referenceTargetId, positionCache)
+		prioritizeTargetId(sortedTargets, referenceTargetId)
 		for targetIndex = 1, #sortedTargets do
 			local targetId = sortedTargets[targetIndex]
 			local count = minimumCount
 			if targetIndex <= remainderCount then
 				count = count + 1
 			end
-			local squad = pickClosestUnassigned(targetId, selectedUnits, unassigned, count, positionCache)
-			giveOrders(commandId, squad, { targetId }, options)
+			local squad = pickClosestUnassigned(
+				targetId,
+				selectedUnits,
+				unassigned,
+				count,
+				positionCache,
+				needsReachability and reachabilityCache or nil
+			)
+			if #squad > 0 then
+				giveOrders(commandId, squad, { targetId }, options)
+			end
 		end
 	end
 end
@@ -827,6 +972,19 @@ local function unitMatchesAllegiance(unitId, targetAllegiance)
 	return true
 end
 
+local function buildCommanderCorpseFeatureDefIds()
+	commanderCorpseFeatureDefIds = {}
+	for _, unitDef in pairs(UnitDefs) do
+		local customParams = unitDef.customParams
+		if customParams and (customParams.iscommander or customParams.isscavcommander) and unitDef.corpse then
+			local corpseDef = FeatureDefNames[unitDef.corpse]
+			if corpseDef and corpseDef.customParams and corpseDef.customParams.category == "corpses" then
+				commanderCorpseFeatureDefIds[corpseDef.id] = true
+			end
+		end
+	end
+end
+
 local function getFeatureMetadata(rawFeatureId, metadataCache)
 	local cachedMetadata = metadataCache[rawFeatureId]
 	if cachedMetadata then
@@ -841,42 +999,34 @@ local function getFeatureMetadata(rawFeatureId, metadataCache)
 	local hasEnergy = (featureDef and featureDef.energy and featureDef.energy > 0)
 		or (energy and energy > 0)
 		or false
+	local category = featureDef and featureDef.customParams and featureDef.customParams.category
 	local metadata = {
 		featureDefId = featureDefId,
-		category = featureDef and featureDef.customParams and featureDef.customParams.category,
+		category = category,
 		hasMetal = hasMetal,
 		isEnergyOnly = not hasMetal and hasEnergy,
 		reclaimable = featureDef and featureDef.reclaimable,
 		hasCurrentYield = (metal and metal > 0) or (energy and energy > 0) or false,
+		isCommanderCorpse = featureDefId and commanderCorpseFeatureDefIds[featureDefId] or false,
 	}
 	metadataCache[rawFeatureId] = metadata
 	return metadata
 end
 
 local function featureMatchesReclaimReference(featureMetadata, referenceMetadata)
+	if referenceMetadata.isCommanderCorpse or featureMetadata.isCommanderCorpse then
+		return false
+	end
 	if referenceMetadata.category == "corpses" then
 		return featureMetadata.category == "corpses"
 			and featureMetadata.featureDefId == referenceMetadata.featureDefId
 	end
-	if referenceMetadata.category == "heaps" then
-		return featureMetadata.category == "heaps"
-	end
 	if referenceMetadata.isEnergyOnly then
 		return featureMetadata.isEnergyOnly
 	end
 	if referenceMetadata.hasMetal then
 		return featureMetadata.hasMetal
-			and featureMetadata.featureDefId == referenceMetadata.featureDefId
-	end
-	return false
-end
-
-local function featureMatchesReclaimYield(featureMetadata, referenceMetadata)
-	if referenceMetadata.hasMetal then
-		return featureMetadata.hasMetal
-	end
-	if referenceMetadata.isEnergyOnly then
-		return featureMetadata.isEnergyOnly
+			and featureMetadata.category ~= "corpses"
 	end
 	return false
 end
@@ -935,7 +1085,7 @@ local function collectVisibleFeatures(commandId, featureDefId)
 	return filteredTargets
 end
 
-local function collectVisibleReclaimFeatures(referenceRawFeatureId, broadenByYield)
+local function collectVisibleReclaimFeatures(referenceRawFeatureId, matchAllFeatures)
 	local filteredTargets = {}
 	local visibleFeatures = spGetVisibleFeatures(-1)
 	if not visibleFeatures then
@@ -943,19 +1093,20 @@ local function collectVisibleReclaimFeatures(referenceRawFeatureId, broadenByYie
 	end
 	local metadataCache = {}
 	local referenceMetadata = getFeatureMetadata(referenceRawFeatureId, metadataCache)
+	if referenceMetadata.isCommanderCorpse then
+		return filteredTargets
+	end
 	for featureIndex = 1, #visibleFeatures do
 		local featureId = visibleFeatures[featureIndex]
 		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
-		local matchesReference
-		if broadenByYield then
-			matchesReference = featureMatchesReclaimYield(featureMetadata, referenceMetadata)
-		else
-			matchesReference = featureMatchesReclaimReference(featureMetadata, referenceMetadata)
-		end
-		if shouldIncludeVisibleFeature(featureId, CMD.RECLAIM, metadataCache)
-			and matchesReference
-		then
-			tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
+		if not featureMetadata.isCommanderCorpse then
+			local matchesReference = matchAllFeatures
+				or featureMatchesReclaimReference(featureMetadata, referenceMetadata)
+			if shouldIncludeVisibleFeature(featureId, CMD.RECLAIM, metadataCache)
+				and matchesReference
+			then
+				tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
+			end
 		end
 	end
 	return filteredTargets
@@ -1006,12 +1157,74 @@ local function resolveCursorTargetId(mouseX, mouseY)
 	return nil
 end
 
+local function resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
+	local commandConfig = ALLOWED_COMMANDS[commandId]
+	if not commandConfig then
+		return nil
+	end
+	local allowsUnits = commandConfig.allowedTargetTypes[UNIT] == true
+	local allowsFeatures = commandConfig.allowedTargetTypes[FEATURE] == true
+	if not allowsUnits and not allowsFeatures then
+		return nil
+	end
+	local _, worldPosition = spTraceScreenRay(mouseX, mouseY, true)
+	if not worldPosition then
+		return nil
+	end
+	local cursorX = worldPosition[1]
+	local cursorZ = worldPosition[3]
+	local nearestTargetId
+	local nearestDistanceSq
+	if allowsUnits then
+		local candidateUnits = spGetUnitsInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		if candidateUnits then
+			for unitIndex = 1, #candidateUnits do
+				local unitId = candidateUnits[unitIndex]
+				if isValidMassOrderTarget(commandId, unitId, false) then
+					local unitX, _, unitZ = spGetUnitPosition(unitId)
+					if unitX then
+						local deltaX = unitX - cursorX
+						local deltaZ = unitZ - cursorZ
+						local candidateDistanceSq = deltaX * deltaX + deltaZ * deltaZ
+						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
+							nearestTargetId = unitId
+							nearestDistanceSq = candidateDistanceSq
+						end
+					end
+				end
+			end
+		end
+	end
+	if allowsFeatures then
+		local candidateFeatures = spGetFeaturesInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		if candidateFeatures then
+			for featureIndex = 1, #candidateFeatures do
+				local featureTargetId = normalizeFeatureTargetId(candidateFeatures[featureIndex])
+				if isValidMassOrderTarget(commandId, featureTargetId, true) then
+					local featureX, _, featureZ = spGetFeaturePosition(candidateFeatures[featureIndex])
+					if featureX then
+						local deltaX = featureX - cursorX
+						local deltaZ = featureZ - cursorZ
+						local candidateDistanceSq = deltaX * deltaX + deltaZ * deltaZ
+						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
+							nearestTargetId = featureTargetId
+							nearestDistanceSq = candidateDistanceSq
+						end
+					end
+				end
+			end
+		end
+	end
+	return nearestTargetId
+end
+
 local function resolveMassOrderReferenceTarget(commandId, firstClickTargetId, secondClickTargetId)
 	if secondClickTargetId then
 		local secondClickTargetIsFeature = isFeatureTargetId(secondClickTargetId)
 		if isValidMassOrderTarget(commandId, secondClickTargetId, secondClickTargetIsFeature) then
 			return secondClickTargetId, secondClickTargetIsFeature
 		end
+		return nil, false
 	end
 	return firstClickTargetId, isFeatureTargetId(firstClickTargetId)
 end
@@ -1117,15 +1330,19 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	end
 	local filteredTargets = collectMassOrderTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
+	if REACHABILITY_COMMANDS[issueCommandId] then
+		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, {})
+	end
 	local partition, perUnitLimit, targetPoolLimit = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
 	filteredTargets = limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, targetPoolLimit)
+	prioritizeTargetId(filteredTargets, referenceTargetId)
 	if #filteredTargets == 0 or perUnitLimit <= 0 then
 		return false
 	end
 	if partition then
 		givePartitionedOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	else
-		giveOrdersPerUnitByTravelRoute(issueCommandId, selectedUnits, filteredTargets, options)
+		giveOrdersPerUnitByTravelRoute(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
 	end
 	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
 	if options.shift then
@@ -1149,6 +1366,9 @@ local function issuePendingDoubleClickMassOrders(options, secondClickTargetId)
 		firstClickTargetId,
 		secondClickTargetId
 	)
+	if not referenceTargetId then
+		return false
+	end
 	local massCommandOptions = {
 		alt = options.alt or pendingDoubleClick.alt,
 		ctrl = options.ctrl or pendingDoubleClick.ctrl,
@@ -1209,6 +1429,22 @@ local function consumePendingDoubleClickClick(options, effectiveCommandId, secon
 	return issuePendingDoubleClickMassOrders(options, secondClickTargetId)
 end
 
+local function armPendingDoubleClick(commandId, targetId, options)
+	local currentTime = osClock()
+	pendingDoubleClick.targetId = targetId
+	pendingDoubleClick.expireTime = currentTime + DOUBLE_CLICK_TIME
+	pendingDoubleClick.commandId = commandId
+	pendingDoubleClick.alt = options.alt
+	pendingDoubleClick.ctrl = options.ctrl
+	pendingDoubleClick.meta = options.meta
+	pendingDoubleClick.shift = options.shift
+	pendingDoubleClick.right = options.right
+	pendingDoubleClick.firstClickTime = currentTime
+	if options.shift then
+		heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(commandId)
+	end
+end
+
 local function handleScreenSelectCommand(effectiveCommandId, parameters, options)
 	local targetId = parameters[1]
 	local isFeature = isFeatureTargetId(targetId)
@@ -1245,22 +1481,8 @@ local function handleScreenSelectCommand(effectiveCommandId, parameters, options
 		return true
 	end
 
-	local currentTime = osClock()
-
 	giveOrders(effectiveCommandId, selectedUnits, { targetId }, options)
-
-	pendingDoubleClick.targetId = targetId
-	pendingDoubleClick.expireTime = currentTime + DOUBLE_CLICK_TIME
-	pendingDoubleClick.commandId = effectiveCommandId
-	pendingDoubleClick.alt = options.alt
-	pendingDoubleClick.ctrl = options.ctrl
-	pendingDoubleClick.meta = options.meta
-	pendingDoubleClick.shift = options.shift
-	pendingDoubleClick.right = options.right
-	pendingDoubleClick.firstClickTime = currentTime
-	if options.shift then
-		heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(effectiveCommandId)
-	end
+	armPendingDoubleClick(effectiveCommandId, targetId, options)
 	return true
 end
 
@@ -1274,18 +1496,61 @@ function widget:MousePress(mouseX, mouseY, button)
 	end
 	local options = enrichCommandOptions({ right = (button == 3) })
 	local effectiveCommandId = resolveScreenSelectCommandId(nil)
+	local pendingActive = isPendingDoubleClickActive()
 	if isSetTargetCommand(effectiveCommandId) and options.alt then
 		clearDoubleClickPending()
 		return false
 	end
-	if not doubleClickEnabled or not isPendingDoubleClickActive() then
+	if not doubleClickEnabled then
+		return false
+	end
+	if not pendingActive then
+		if not effectiveCommandId or not ALLOWED_COMMANDS[effectiveCommandId] then
+			return false
+		end
+		local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
+		if cursorTargetId then
+			local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
+			if isValidMassOrderTarget(effectiveCommandId, cursorTargetId, cursorTargetIsFeature) then
+				return false
+			end
+		end
+		local snappedTargetId = resolveNearestValidTargetNearCursor(effectiveCommandId, mouseX, mouseY)
+		if not snappedTargetId then
+			return false
+		end
+		if screenSelectHeld then
+			local selectedUnits = spGetSelectedUnits()
+			if #selectedUnits == 0 then
+				return false
+			end
+			return issueMassOrdersFromTarget(
+				effectiveCommandId,
+				snappedTargetId,
+				isFeatureTargetId(snappedTargetId),
+				selectedUnits,
+				options
+			)
+		end
+		armPendingDoubleClick(effectiveCommandId, snappedTargetId, options)
+		return false
+	end
+	local pendingCommandId = pendingDoubleClick.commandId
+	if effectiveCommandId and effectiveCommandId ~= pendingCommandId then
 		return false
 	end
 	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
-	if not cursorTargetId then
-		return false
+	if cursorTargetId then
+		local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
+		if isValidMassOrderTarget(pendingCommandId, cursorTargetId, cursorTargetIsFeature) then
+			return consumePendingDoubleClickClick(options, effectiveCommandId, cursorTargetId)
+		end
 	end
-	return consumePendingDoubleClickClick(options, effectiveCommandId, cursorTargetId)
+	local snappedTargetId = resolveNearestValidTargetNearCursor(pendingCommandId, mouseX, mouseY)
+	if snappedTargetId then
+		return consumePendingDoubleClickClick(options, effectiveCommandId, snappedTargetId)
+	end
+	return false
 end
 
 function widget:CommandNotify(commandId, parameters, options)
@@ -1356,6 +1621,7 @@ local function initialize()
 	end
 	myAllyTeamId = spGetMyAllyTeamId()
 	myTeamId = spGetMyTeamId()
+	buildCommanderCorpseFeatureDefIds()
 end
 
 function widget:PlayerChanged()
