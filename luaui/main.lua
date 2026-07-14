@@ -20,21 +20,7 @@ spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
 VFS.Include("init.lua", nil, VFS.ZIP)
 
 VFS.Include(LUAUI_DIRNAME .. "rml_setup.lua",  nil, VFS.ZIP)
-local language = Spring.GetConfigString('language', 'en')
-Spring.I18N.setLanguage(language)
-Spring.I18N.loadWidgetLanguage(language)
-
-local asianFont = 'fallbacks/SourceHanSans-Regular.ttc'
-local currentFont = Spring.GetConfigString('bar_font')
-if language == 'zh' and currentFont ~= asianFont then
-	Spring.SetConfigString("bar_font", asianFont)
-	Spring.SetConfigString("bar_font2", asianFont)
-	Spring.SendCommands("luarules reloadluaui")
-elseif language ~= 'zh' and currentFont == asianFont then
-	Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
-	Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	Spring.SendCommands("luarules reloadluaui")
-end
+Spring.I18N.setLanguage( Spring.GetConfigString('language', 'en') )
 
 VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)

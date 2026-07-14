@@ -314,7 +314,6 @@ local callInLists = {
 	'DrawShadowFeaturesLua',
 
 	'FontsChanged',
-	'LanguageChanged',
 
 	"RecvFromSynced",
 
@@ -2591,20 +2590,6 @@ function gadgetHandler:FontsChanged()
 	for i = #list, 1, -1 do
 		local g = list[i]
 		g:FontsChanged()
-	end
-	tracy.ZoneEnd()
-	return
-end
-
-function gadgetHandler:LanguageChanged()
-	tracy.ZoneBeginN("G:LanguageChanged")
-	if Spring.I18N then
-		Spring.I18N.setLanguage(Spring.GetConfigString('language', 'en'))
-	end
-	local list = self.LanguageChangedList
-	for i = #list, 1, -1 do
-		local g = list[i]
-		g:LanguageChanged()
 	end
 	tracy.ZoneEnd()
 	return
