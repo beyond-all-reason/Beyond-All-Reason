@@ -60,7 +60,7 @@ local function getPositionAndRadius(id)
 		r = spGetUnitBuildeeRadius(id)
 	else
 		x, y, z = spGetFeaturePosition(id)
-		r = spGetFeaturePosition(id)
+		r = spGetFeatureRadius(id)
 	end
 	return x, y, z, r
 end
@@ -75,7 +75,7 @@ function widget:CommandNotify(id, params, options)
 
 	if not hasNano(selectedUnits) then return false end
 
-	local targetX, targetY, targetZ, targetRadius = getPositionAndRadius(params[1])
+	local targetX, _, targetZ, targetRadius = getPositionAndRadius(params[1])
 
 	-- targetX is nil if target died before the command was processed
 	if not targetX then return false end
