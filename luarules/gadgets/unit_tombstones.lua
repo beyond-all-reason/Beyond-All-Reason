@@ -32,7 +32,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if isCommander[unitDefID] then
-		if Spring.GetUnitRulesParam(unitID, "skip_tombstone") == 1 then
+		if Spring.GetUnitRulesParam(unitID, "remove_decorations") == 1 then
 			return
 		end
 		local px,py,pz = Spring.GetUnitPosition(unitID)
