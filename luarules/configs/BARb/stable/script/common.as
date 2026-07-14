@@ -215,14 +215,6 @@ void EnableWallTargets()
 	EnableStaticWallPressure();
 }
 
-void EnforceRuinsNoWallShooting()
-{
-	// Kept as an update hook for hard/main.as. Wall tuning is already gated in EnableWallTargets().
-	if (!IsRuinsEnabled()) {
-		return;
-	}
-}
-
 void EnableWallBreakingFireState()
 {
 	array<string> units = {
