@@ -2263,6 +2263,7 @@
 			"xp": "[value] Give experience to selected units",
 			"spawnceg": "[name] Spawn a CEG effect at cursor",
 			"spawnunitexplosion": "[name] Spawn a unit explosion effect at cursor",
+			"desync": "Trigger a desync",
 			"dumpunits": "Dump all units to infolog",
 			"dumpfeatures": "Dump all features to infolog",
 			"dumploadout": "Dump units and features in loadout format",
