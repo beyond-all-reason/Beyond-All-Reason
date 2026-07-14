@@ -163,8 +163,11 @@ local function restoreActiveCommand(commandDescriptionIndex)
 end
 
 local function updateShiftCommandKeep()
+	if not heldCommandDescriptionIndex then
+		return
+	end
 	local _, _, _, modifierShift = spGetModKeyState()
-	if modifierShift and heldCommandDescriptionIndex then
+	if modifierShift then
 		local _, activeCommandId = spGetActiveCommand()
 		if not activeCommandId then
 			restoreActiveCommand(heldCommandDescriptionIndex)
@@ -281,9 +284,9 @@ end
 local function filterTargetsByPredicate(targets, predicate)
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
-		local unitId = targets[targetIndex]
-		if predicate(unitId) then
-			tableInsert(filteredTargets, unitId)
+		local targetId = targets[targetIndex]
+		if predicate(targetId) then
+			tableInsert(filteredTargets, targetId)
 		end
 	end
 	return filteredTargets
@@ -355,8 +358,7 @@ local function filterTargetsReachableByUnitDef(unitDefId, targets, positionCache
 	return filteredTargets
 end
 
-local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionCache)
-	local reachabilityCache = {}
+local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionCache, reachabilityCache)
 	local unitDefIds = {}
 	local seenUnitDefIds = {}
 	for unitIndex = 1, #selectedUnits do
@@ -415,7 +417,7 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	local referencePosition = referenceUnitId and getTargetPosition(referenceUnitId, positionCache)
 		or getUnitCentroid(selectedUnits)
 	if not referencePosition then
-		return
+		return nil
 	end
 	local targetDistances = {}
 	local originalIndices = {}
@@ -442,17 +444,25 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 		end
 		return distanceA > distanceB
 	end)
+	return targetDistances
 end
 
 local function buildNearestNeighborRoute(referencePosition, targets, positionCache)
 	local targetPositions = {}
 	local remainingTargets = {}
 	local route = {}
+	local hasTargetPosition = false
 	for targetIndex = 1, #targets do
 		local targetId = targets[targetIndex]
 		local targetPosition = getTargetPosition(targetId, positionCache)
 		targetPositions[targetId] = targetPosition or false
 		remainingTargets[targetIndex] = targetId
+		if targetPosition then
+			hasTargetPosition = true
+		end
+	end
+	if not hasTargetPosition then
+		return route, false
 	end
 	local currentPosition = referencePosition
 	local routeCount = 0
@@ -484,7 +494,7 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 		remainingTargets[nearestIndex] = remainingTargets[#remainingTargets]
 		remainingTargets[#remainingTargets] = nil
 	end
-	return route
+	return route, hasTargetPosition
 end
 
 local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, positionCache)
@@ -492,17 +502,10 @@ local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, 
 	if not referencePosition then
 		return
 	end
-	local hasTargetPosition = false
-	for targetIndex = 1, #targets do
-		if getTargetPosition(targets[targetIndex], positionCache) then
-			hasTargetPosition = true
-			break
-		end
-	end
+	local route, hasTargetPosition = buildNearestNeighborRoute(referencePosition, targets, positionCache)
 	if not hasTargetPosition then
 		return
 	end
-	local route = buildNearestNeighborRoute(referencePosition, targets, positionCache)
 	if closestFirst then
 		for targetIndex = 1, #route do
 			targets[targetIndex] = route[targetIndex]
@@ -515,14 +518,13 @@ local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, 
 	end
 end
 
-local function limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, maximumTargetCount)
+local function limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, maximumTargetCount, positionCache)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
 	if #filteredTargets == 0 then
 		return filteredTargets
 	end
-	local positionCache = {}
 	local referencePosition = getTargetPosition(referenceTargetId, positionCache)
 	if not referencePosition then
 		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
@@ -536,7 +538,13 @@ local function limitTargetsByRadius(filteredTargets, referenceTargetId, selected
 		end
 		return cappedTargets
 	end
-	sortTargetsByDistance({ referenceTargetId }, filteredTargets, true, referenceTargetId, positionCache)
+	local targetDistances = sortTargetsByDistance(
+		{ referenceTargetId },
+		filteredTargets,
+		true,
+		referenceTargetId,
+		positionCache
+	)
 	local radius
 	while true do
 		local limitedTargets = {}
@@ -548,8 +556,8 @@ local function limitTargetsByRadius(filteredTargets, referenceTargetId, selected
 			local radiusSq = radius * radius
 			for targetIndex = 1, #filteredTargets do
 				local targetId = filteredTargets[targetIndex]
-				local targetPosition = getTargetPosition(targetId, positionCache)
-				if targetPosition and distanceSq(referencePosition, targetPosition) <= radiusSq then
+				local targetDistance = targetDistances and targetDistances[targetId]
+				if targetDistance and targetDistance <= radiusSq then
 					tableInsert(limitedTargets, targetId)
 				end
 			end
@@ -648,8 +656,11 @@ local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTa
 	local positionCache = {}
 	local targetCentroid = getTargetCentroid(filteredTargets, positionCache)
 	local singleUnitArray = {}
+	local orderParameters = { 0 }
+	local insertParameters = { 0, commandId, 0, 0 }
 	local queuedOptionBits = getCommandOptionBits(options, true)
 	local innerOptionBits = getCommandOptionBits(options, false)
+	insertParameters[3] = innerOptionBits
 	for unitIndex = 1, #selectedUnits do
 		local unitId = selectedUnits[unitIndex]
 		singleUnitArray[1] = unitId
@@ -657,15 +668,18 @@ local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTa
 		if insertionPosition == nil then
 			for targetIndex = 1, #filteredTargets do
 				local targetId = filteredTargets[targetIndex]
-				spGiveOrderToUnitArray(singleUnitArray, commandId, { toFeatureOrderParamId(targetId) }, queuedOptionBits)
+				orderParameters[1] = toFeatureOrderParamId(targetId)
+				spGiveOrderToUnitArray(singleUnitArray, commandId, orderParameters, queuedOptionBits)
 			end
 		else
+			insertParameters[1] = insertionPosition
 			for targetIndex = #filteredTargets, 1, -1 do
 				local targetId = filteredTargets[targetIndex]
+				insertParameters[4] = toFeatureOrderParamId(targetId)
 				spGiveOrderToUnitArray(
 					singleUnitArray,
 					CMD.INSERT,
-					{ insertionPosition, commandId, innerOptionBits, toFeatureOrderParamId(targetId) },
+					insertParameters,
 					CMD.OPT_ALT
 				)
 			end
@@ -680,21 +694,26 @@ local function giveOrders(commandId, selectedUnits, filteredTargets, options)
 	end
 	local baseOptionBits = getCommandOptionBits(options, false)
 	local queuedOptionBits = getCommandOptionBits(options, true)
+	local orderParameters = { 0 }
+	local insertParameters = { 0, commandId, baseOptionBits, 0 }
 	for targetIndex = 1, #filteredTargets do
 		local targetId = filteredTargets[targetIndex]
+		local orderTargetId = toFeatureOrderParamId(targetId)
 		if options.meta then
+			insertParameters[4] = orderTargetId
 			spGiveOrderToUnitArray(
 				selectedUnits,
 				CMD.INSERT,
-				{ 0, commandId, baseOptionBits, toFeatureOrderParamId(targetId) },
+				insertParameters,
 				CMD.OPT_ALT
 			)
 		else
 			local includeShift = targetIndex > 1 or options.shift
+			orderParameters[1] = orderTargetId
 			spGiveOrderToUnitArray(
 				selectedUnits,
 				commandId,
-				{ toFeatureOrderParamId(targetId) },
+				orderParameters,
 				includeShift and queuedOptionBits or baseOptionBits
 			)
 		end
@@ -707,33 +726,41 @@ local function divideWithRemainder(total, groupCount)
 	return minimumCount, remainderCount
 end
 
-local function pickClosestUnassigned(referenceId, candidates, unassigned, count, positionCache, reachabilityCache)
+local function pickClosestUnitsForTarget(
+	targetId,
+	selectedUnits,
+	unassignedUnits,
+	requestedCount,
+	positionCache,
+	reachabilityCache
+)
 	local available = {}
-	local referencePosition = reachabilityCache and getTargetPosition(referenceId, positionCache)
-	for candidateIndex = 1, #candidates do
-		local candidateId = candidates[candidateIndex]
-		if unassigned[candidateId] then
+	local targetPosition = reachabilityCache and getTargetPosition(targetId, positionCache)
+	for unitIndex = 1, #selectedUnits do
+		local unitId = selectedUnits[unitIndex]
+		if unassignedUnits[unitId] then
 			local canReach = true
 			if reachabilityCache then
-				if not referencePosition then
+				if not targetPosition then
 					canReach = false
 				else
-					local unitDefId = spGetUnitDefId(candidateId)
-					canReach = unitDefId and canUnitDefReachPosition(unitDefId, referenceId, referencePosition, reachabilityCache)
+					local unitDefId = spGetUnitDefId(unitId)
+					canReach = unitDefId
+						and canUnitDefReachPosition(unitDefId, targetId, targetPosition, reachabilityCache)
 				end
 			end
 			if canReach then
-				tableInsert(available, candidateId)
+				tableInsert(available, unitId)
 			end
 		end
 	end
-	sortTargetsByDistance({ referenceId }, available, true, referenceId, positionCache)
+	sortTargetsByDistance({ targetId }, available, true, targetId, positionCache)
 	local picked = {}
-	local pickCount = mathMin(count, #available)
+	local pickCount = mathMin(requestedCount, #available)
 	for pickedIndex = 1, pickCount do
-		local pickedId = available[pickedIndex]
-		picked[pickedIndex] = pickedId
-		unassigned[pickedId] = nil
+		local unitId = available[pickedIndex]
+		picked[pickedIndex] = unitId
+		unassignedUnits[unitId] = nil
 	end
 	return picked
 end
@@ -800,18 +827,18 @@ local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, f
 	local desiredPerUnit = maxMassOrderTargets
 	local targetsPerUnit = mathMin(availableTargetCount, desiredPerUnit)
 	local fullQueueCost = selectedUnitCount * targetsPerUnit
-	local partition = forcePartition or fullQueueCost > commandLimit
-	local perUnitLimit = desiredPerUnit
-	if partition and fullQueueCost > commandLimit then
-		perUnitLimit = mathFloor(commandLimit / selectedUnitCount)
+	local usePartitionedDispatch = forcePartition or fullQueueCost > commandLimit
+	local maxTargetsPerUnit = desiredPerUnit
+	if usePartitionedDispatch and fullQueueCost > commandLimit then
+		maxTargetsPerUnit = mathFloor(commandLimit / selectedUnitCount)
 	end
-	local targetPoolLimit
-	if partition then
-		targetPoolLimit = mathMin(availableTargetCount, selectedUnitCount * perUnitLimit)
+	local maxTargetsToCollect
+	if usePartitionedDispatch then
+		maxTargetsToCollect = mathMin(availableTargetCount, selectedUnitCount * maxTargetsPerUnit)
 	else
-		targetPoolLimit = targetsPerUnit
+		maxTargetsToCollect = targetsPerUnit
 	end
-	return partition, perUnitLimit, targetPoolLimit
+	return usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect
 end
 
 local function prioritizeTargetId(targets, targetId)
@@ -842,39 +869,72 @@ local function prioritizeTargetId(targets, targetId)
 	targets[1] = prioritizedTargetId
 end
 
-local function giveOrdersPerUnitByTravelRoute(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
-	local closestFirst = not options.meta or options.shift
-	local positionCache = {}
-	local reachabilityCache = {}
-	local needsReachability = REACHABILITY_COMMANDS[commandId]
+local function giveUnitTravelRouteOrders(
+	commandId,
+	unitId,
+	sourceTargets,
+	options,
+	referenceTargetId,
+	positionCache,
+	reachabilityCache,
+	targets,
+	singleUnitArray
+)
+	local unitTargets = sourceTargets
+	if reachabilityCache then
+		local unitDefId = spGetUnitDefId(unitId)
+		unitTargets = filterTargetsReachableByUnitDef(unitDefId, sourceTargets, positionCache, reachabilityCache)
+	end
+	if #unitTargets == 0 then
+		return
+	end
+	for targetIndex = 1, #unitTargets do
+		targets[targetIndex] = unitTargets[targetIndex]
+	end
+	for targetIndex = #unitTargets + 1, #targets do
+		targets[targetIndex] = nil
+	end
+	sortTargetsByTravelRoute(unitId, targets, not options.meta or options.shift, positionCache)
+	prioritizeTargetId(targets, referenceTargetId)
+	singleUnitArray[1] = unitId
+	giveOrders(commandId, singleUnitArray, targets, options)
+end
+
+local function giveOrdersPerUnitByTravelRoute(
+	commandId,
+	selectedUnits,
+	filteredTargets,
+	options,
+	referenceTargetId,
+	positionCache,
+	reachabilityCache
+)
 	local singleUnitArray = {}
 	local targets = {}
 	for unitIndex = 1, #selectedUnits do
-		local selectedUnitId = selectedUnits[unitIndex]
-		singleUnitArray[1] = selectedUnitId
-		local unitTargets = filteredTargets
-		if needsReachability then
-			local unitDefId = spGetUnitDefId(selectedUnitId)
-			unitTargets = filterTargetsReachableByUnitDef(unitDefId, filteredTargets, positionCache, reachabilityCache)
-		end
-		if #unitTargets > 0 then
-			for targetIndex = 1, #unitTargets do
-				targets[targetIndex] = unitTargets[targetIndex]
-			end
-			for targetIndex = #unitTargets + 1, #targets do
-				targets[targetIndex] = nil
-			end
-			sortTargetsByTravelRoute(selectedUnitId, targets, closestFirst, positionCache)
-			prioritizeTargetId(targets, referenceTargetId)
-			giveOrders(commandId, singleUnitArray, targets, options)
-		end
+		giveUnitTravelRouteOrders(
+			commandId,
+			selectedUnits[unitIndex],
+			filteredTargets,
+			options,
+			referenceTargetId,
+			positionCache,
+			REACHABILITY_COMMANDS[commandId] and reachabilityCache or nil,
+			targets,
+			singleUnitArray
+		)
 	end
 end
 
-local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, options, referenceTargetId)
-	local closestFirst = not options.meta or options.shift
-	local positionCache = {}
-	local reachabilityCache = {}
+local function givePartitionedOrders(
+	commandId,
+	selectedUnits,
+	filteredTargets,
+	options,
+	referenceTargetId,
+	positionCache,
+	reachabilityCache
+)
 	local needsReachability = REACHABILITY_COMMANDS[commandId]
 	if #filteredTargets >= #selectedUnits then
 		local center = resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetId, positionCache)
@@ -892,25 +952,25 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 		end
 		local chunks = buildContiguousChunks(sortedTargets, #sortedUnits)
 		local singleUnitArray = {}
+		local targets = {}
 		for unitIndex = 1, #sortedUnits do
-			local assignedTargets = chunks[unitIndex]
-			local selectedUnitId = sortedUnits[unitIndex]
-			if needsReachability then
-				local unitDefId = spGetUnitDefId(selectedUnitId)
-				assignedTargets = filterTargetsReachableByUnitDef(unitDefId, assignedTargets, positionCache, reachabilityCache)
-			end
-			if #assignedTargets > 0 then
-				singleUnitArray[1] = selectedUnitId
-				sortTargetsByTravelRoute(selectedUnitId, assignedTargets, closestFirst, positionCache)
-				prioritizeTargetId(assignedTargets, referenceTargetId)
-				giveOrders(commandId, singleUnitArray, assignedTargets, options)
-			end
+			giveUnitTravelRouteOrders(
+				commandId,
+				sortedUnits[unitIndex],
+				chunks[unitIndex],
+				options,
+				referenceTargetId,
+				positionCache,
+				needsReachability and reachabilityCache or nil,
+				targets,
+				singleUnitArray
+			)
 		end
 	else
 		local minimumCount, remainderCount = divideWithRemainder(#selectedUnits, #filteredTargets)
-		local unassigned = {}
+		local unassignedUnits = {}
 		for unitIndex = 1, #selectedUnits do
-			unassigned[selectedUnits[unitIndex]] = true
+			unassignedUnits[selectedUnits[unitIndex]] = true
 		end
 		local sortedTargets = {}
 		for targetIndex = 1, #filteredTargets do
@@ -924,16 +984,16 @@ local function givePartitionedOrders(commandId, selectedUnits, filteredTargets, 
 			if targetIndex <= remainderCount then
 				count = count + 1
 			end
-			local squad = pickClosestUnassigned(
+			local assignedUnits = pickClosestUnitsForTarget(
 				targetId,
 				selectedUnits,
-				unassigned,
+				unassignedUnits,
 				count,
 				positionCache,
 				needsReachability and reachabilityCache or nil
 			)
-			if #squad > 0 then
-				giveOrders(commandId, squad, { targetId }, options)
+			if #assignedUnits > 0 then
+				giveOrders(commandId, assignedUnits, { targetId }, options)
 			end
 		end
 	end
@@ -1033,8 +1093,12 @@ end
 
 local function shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
 	if commandId == CMD.RESURRECT then
-		local unitDefName = spGetFeatureResurrect(featureId)
-		return unitDefName ~= nil and unitDefName ~= ""
+		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
+		if featureMetadata.resurrectable == nil then
+			local unitDefName = spGetFeatureResurrect(featureId)
+			featureMetadata.resurrectable = unitDefName ~= nil and unitDefName ~= ""
+		end
+		return featureMetadata.resurrectable
 	end
 	if commandId == CMD.RECLAIM then
 		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
@@ -1057,10 +1121,10 @@ local function collectVisibleUnits(unitDefId, targetAllegiance, teamId)
 	end
 	for unitIndex = 1, #visibleUnits do
 		local unitId = visibleUnits[unitIndex]
-		local matchesUnitDef = not unitDefId or spGetUnitDefId(unitId) == unitDefId
-		local matchesAllegiance = not targetAllegiance or unitMatchesAllegiance(unitId, targetAllegiance)
-		local matchesTeam = not teamId or spGetUnitTeam(unitId) == teamId
-		if matchesUnitDef and matchesAllegiance and matchesTeam then
+		if (not unitDefId or spGetUnitDefId(unitId) == unitDefId)
+			and (not targetAllegiance or unitMatchesAllegiance(unitId, targetAllegiance))
+			and (not teamId or spGetUnitTeam(unitId) == teamId)
+		then
 			tableInsert(filteredTargets, unitId)
 		end
 	end
@@ -1175,6 +1239,7 @@ local function resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
 	local cursorZ = worldPosition[3]
 	local nearestTargetId
 	local nearestDistanceSq
+	local nearestTargetIsFeature
 	if allowsUnits then
 		local candidateUnits = spGetUnitsInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
 		if candidateUnits then
@@ -1189,6 +1254,7 @@ local function resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
 						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
 							nearestTargetId = unitId
 							nearestDistanceSq = candidateDistanceSq
+							nearestTargetIsFeature = false
 						end
 					end
 				end
@@ -1209,13 +1275,14 @@ local function resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
 						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
 							nearestTargetId = featureTargetId
 							nearestDistanceSq = candidateDistanceSq
+							nearestTargetIsFeature = true
 						end
 					end
 				end
 			end
 		end
 	end
-	return nearestTargetId
+	return nearestTargetId, nearestTargetIsFeature
 end
 
 local function resolveMassOrderReferenceTarget(commandId, firstClickTargetId, secondClickTargetId)
@@ -1262,11 +1329,11 @@ local function collectMassOrderTargets(commandId, targetId, isFeature, options)
 		if not featureDefId then
 			return {}
 		end
-		local typeFilter = featureDefId
+		local featureDefIdFilter = featureDefId
 		if options.ctrl then
-			typeFilter = nil
+			featureDefIdFilter = nil
 		end
-		return collectVisibleFeatures(commandId, typeFilter)
+		return collectVisibleFeatures(commandId, featureDefIdFilter)
 	end
 	local commandConfig = ALLOWED_COMMANDS[commandId]
 	local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamId
@@ -1330,19 +1397,52 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 	end
 	local filteredTargets = collectMassOrderTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
+	local positionCache = {}
+	local reachabilityCache = {}
 	if REACHABILITY_COMMANDS[issueCommandId] then
-		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, {})
+		filteredTargets = filterTargetsReachableByAnyUnit(
+			selectedUnits,
+			filteredTargets,
+			positionCache,
+			reachabilityCache
+		)
 	end
-	local partition, perUnitLimit, targetPoolLimit = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	filteredTargets = limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, targetPoolLimit)
+	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(
+		#selectedUnits,
+		#filteredTargets,
+		options.alt
+	)
+	filteredTargets = limitTargetsByRadius(
+		filteredTargets,
+		referenceTargetId,
+		selectedUnits,
+		maxTargetsToCollect,
+		positionCache
+	)
 	prioritizeTargetId(filteredTargets, referenceTargetId)
-	if #filteredTargets == 0 or perUnitLimit <= 0 then
+	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		return false
 	end
-	if partition then
-		givePartitionedOrders(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
+	if usePartitionedDispatch then
+		givePartitionedOrders(
+			issueCommandId,
+			selectedUnits,
+			filteredTargets,
+			options,
+			referenceTargetId,
+			positionCache,
+			reachabilityCache
+		)
 	else
-		giveOrdersPerUnitByTravelRoute(issueCommandId, selectedUnits, filteredTargets, options, referenceTargetId)
+		giveOrdersPerUnitByTravelRoute(
+			issueCommandId,
+			selectedUnits,
+			filteredTargets,
+			options,
+			referenceTargetId,
+			positionCache,
+			reachabilityCache
+		)
 	end
 	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
 	if options.shift then
@@ -1490,13 +1590,25 @@ local function isSetTargetCommand(commandId)
 	return commandId == GameCMD.UNIT_SET_TARGET or commandId == GameCMD.UNIT_SET_TARGET_NO_GROUND
 end
 
+local function resolveMouseMassOrderTarget(commandId, mouseX, mouseY)
+	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
+	if cursorTargetId then
+		local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
+		if isValidMassOrderTarget(commandId, cursorTargetId, cursorTargetIsFeature) then
+			return cursorTargetId, cursorTargetIsFeature, true
+		end
+	end
+	local snappedTargetId, snappedTargetIsFeature = resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
+	return snappedTargetId, snappedTargetIsFeature, false
+end
+
 function widget:MousePress(mouseX, mouseY, button)
 	if button ~= 1 and button ~= 3 then
 		return false
 	end
 	local options = enrichCommandOptions({ right = (button == 3) })
 	local effectiveCommandId = resolveScreenSelectCommandId(nil)
-	local pendingActive = isPendingDoubleClickActive()
+	local pendingClickActive = isPendingDoubleClickActive()
 	if isSetTargetCommand(effectiveCommandId) and options.alt then
 		clearDoubleClickPending()
 		return false
@@ -1504,19 +1616,16 @@ function widget:MousePress(mouseX, mouseY, button)
 	if not doubleClickEnabled then
 		return false
 	end
-	if not pendingActive then
+	if not pendingClickActive then
 		if not effectiveCommandId or not ALLOWED_COMMANDS[effectiveCommandId] then
 			return false
 		end
-		local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
-		if cursorTargetId then
-			local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
-			if isValidMassOrderTarget(effectiveCommandId, cursorTargetId, cursorTargetIsFeature) then
-				return false
-			end
-		end
-		local snappedTargetId = resolveNearestValidTargetNearCursor(effectiveCommandId, mouseX, mouseY)
-		if not snappedTargetId then
+		local targetId, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(
+			effectiveCommandId,
+			mouseX,
+			mouseY
+		)
+		if isDirectTarget or not targetId then
 			return false
 		end
 		if screenSelectHeld then
@@ -1526,36 +1635,32 @@ function widget:MousePress(mouseX, mouseY, button)
 			end
 			return issueMassOrdersFromTarget(
 				effectiveCommandId,
-				snappedTargetId,
-				isFeatureTargetId(snappedTargetId),
+				targetId,
+				targetIsFeature,
 				selectedUnits,
 				options
 			)
 		end
-		armPendingDoubleClick(effectiveCommandId, snappedTargetId, options)
+		armPendingDoubleClick(effectiveCommandId, targetId, options)
 		return false
 	end
 	local pendingCommandId = pendingDoubleClick.commandId
 	if effectiveCommandId and effectiveCommandId ~= pendingCommandId then
 		return false
 	end
-	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
-	if cursorTargetId then
-		local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
-		if isValidMassOrderTarget(pendingCommandId, cursorTargetId, cursorTargetIsFeature) then
-			return consumePendingDoubleClickClick(options, effectiveCommandId, cursorTargetId)
-		end
-	end
-	local snappedTargetId = resolveNearestValidTargetNearCursor(pendingCommandId, mouseX, mouseY)
-	if snappedTargetId then
-		return consumePendingDoubleClickClick(options, effectiveCommandId, snappedTargetId)
+	local targetId = resolveMouseMassOrderTarget(pendingCommandId, mouseX, mouseY)
+	if targetId then
+		return consumePendingDoubleClickClick(options, effectiveCommandId, targetId)
 	end
 	return false
 end
 
 function widget:CommandNotify(commandId, parameters, options)
-	options = enrichCommandOptions(options)
 	local effectiveCommandId = resolveScreenSelectCommandId(commandId)
+	if #parameters ~= 1 and not isSetTargetCommand(effectiveCommandId) then
+		return false
+	end
+	options = enrichCommandOptions(options)
 	if isSetTargetCommand(effectiveCommandId) and options.alt then
 		clearDoubleClickPending()
 		return false
