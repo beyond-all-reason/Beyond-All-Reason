@@ -379,13 +379,9 @@ local function refreshGivecatAutocompleteFilters()
 	end
 	autocompleteGivecatFilters.cmdTree = interfaceData.cmd
 
-	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
-		for cmd, value in pairs(autocompleteGivecatFilters.cmdTree) do
-			if cmd ~= '_description' and (type(value) == 'string' or type(value) == 'table') then
-				addAutocompleteCommand('engine', cmd)
-			end
-		end
-	end
+	-- Do not add top-level interface.json cmd keys as static suggestions.
+	-- They include many LuaUI widget chat-actions that must appear/disappear live
+	-- with widget enable state. We still keep cmdTree for descriptions/help text.
 	for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
 		local cmd = keybinding and keybinding.command
 		if type(cmd) == 'string' and cmd ~= '' then

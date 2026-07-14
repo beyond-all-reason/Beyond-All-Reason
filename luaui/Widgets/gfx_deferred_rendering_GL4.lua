@@ -1175,6 +1175,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("dlgl4stats", "t")
+	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
@@ -1762,26 +1764,25 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--end
 end
 
--- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command)
-	if stringFind(command, "dlgl4stats", nil, true) then
-		spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
-				numAddLights,
-				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
-				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
-				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
-				cursorPointLightVBO.usedElements))
-		return true
-	end
-	if stringFind(command, "dlgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function dlgl4statsCmd(_, line)
+	spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
+			numAddLights,
+			pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
+			unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
+			projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
+			cursorPointLightVBO.usedElements))
+	return true
+end
+
+local function dlgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("dlgl4stats", dlgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("dlgl4skipdraw", dlgl4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then

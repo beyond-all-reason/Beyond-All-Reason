@@ -74,18 +74,18 @@ mat4 contrastMatrix( float contrast )
 mat4 saturationMatrix( float saturation )
 {
     vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
-    
+
     float oneMinusSat = 1.0 - saturation;
-    
+
     vec3 red = vec3( luminance.x * oneMinusSat );
     red+= vec3( saturation, 0, 0 );
-    
+
     vec3 green = vec3( luminance.y * oneMinusSat );
     green += vec3( 0, saturation, 0 );
-    
+
     vec3 blue = vec3( luminance.z * oneMinusSat );
     blue += vec3( 0, 0, saturation );
-    
+
     return mat4( red,     0,
                  green,   0,
                  blue,    0,
@@ -104,8 +104,8 @@ void main()
 {
     vec4 color = texelFetch(screenCopyTex,ivec2(gl_FragCoord.xy + viewPos),0);
 	fragColor.rgb = pow(color.rgb, vec3(params.x + 0.5));
-    
-	fragColor =	contrastMatrix( params.z + 0.5 ) * 
+
+	fragColor =	contrastMatrix( params.z + 0.5 ) *
         		saturationMatrix( params.y + 0.5 ) *
         		fragColor;
 	fragColor.rgb = mix(fragColor.rgb, (sepiaMatrix() * fragColor).rgb, params.w);
@@ -134,6 +134,8 @@ local function UpdateShader()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("sepiatone", sepiatoneCmd, nil, "t")
+
 	if gl.CreateShader == nil then
 		spEcho("Sepia: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
@@ -223,6 +225,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("sepiatone", "t")
 	gl.DeleteTexture(screenCopyTex)
 	screenCopyTex = nil
 	if sepiaShader then
@@ -240,13 +243,13 @@ end
 
 local function DoSepia()
 	local alldefault = true
-	for k,v in pairs(defaultParams) do 
-		if math.abs(params[k] - v) > 0.001 then 
+	for k,v in pairs(defaultParams) do
+		if math.abs(params[k] - v) > 0.001 then
 			alldefault = false
 		end
 	end
 	if alldefault then return end
-	
+
 	gl.CopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 	if screenCopyTex == nil then return end
 	gl.Texture(0, screenCopyTex)
@@ -261,26 +264,25 @@ end
 
 
 function widget:DrawScreenEffects()
-	if params.shadeUI == false then DoSepia() end 
+	if params.shadeUI == false then DoSepia() end
 end
 
 function widget:DrawScreenPost()
-	if params.shadeUI == true then DoSepia() end 
+	if params.shadeUI == true then DoSepia() end
 end
 
-function widget:TextCommand(command)
-	if string.find(command,"sepiatone", nil, true ) == 1 then
-		local s = string.split(command, ' ') 
-		spEcho("/luaui sepiatone gamma saturation contrast sepia shadeUI")
-		spEcho(command) 
-		params.gamma = tonumber(s[2]) or params.gamma
-		params.saturation = tonumber(s[3]) or params.saturation
-		params.contrast = tonumber(s[4]) or params.contrast
-		params.sepia = tonumber(s[5]) or params.sepia
-		if s[6] ~= nil then 
-			params.shadeUI = s[6]  == 'true'
-		end
+function sepiatoneCmd(_, line)
+	local s = string.split(line or "", ' ')
+	spEcho("/luaui sepiatone gamma saturation contrast sepia shadeUI")
+	spEcho("sepiatone " .. (line or ""))
+	params.gamma = tonumber(s[1]) or params.gamma
+	params.saturation = tonumber(s[2]) or params.saturation
+	params.contrast = tonumber(s[3]) or params.contrast
+	params.sepia = tonumber(s[4]) or params.sepia
+	if s[5] ~= nil then
+		params.shadeUI = s[5] == 'true'
 	end
+	return true
 end
 
 function widget:GetConfigData()

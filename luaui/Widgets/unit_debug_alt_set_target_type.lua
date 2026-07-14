@@ -175,14 +175,18 @@ end
 
 function widget:Initialize()
     printf("CAT6: Init widget")
+	widgetHandler:AddAction("astt_toggleLog", asttToggleLogCmd, nil, "t")
+
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
 end
 
-function widget:TextCommand(command)
-    if string.find(command, "astt_toggleLog", nil, true) == 1 then
-        shouldLog = not shouldLog
-    end
+function asttToggleLogCmd(_, line)
+	shouldLog = not shouldLog
+	return true
+end
 
+function widget:Shutdown()
+	widgetHandler:RemoveAction("astt_toggleLog", "t")
 end

@@ -147,14 +147,18 @@ local function generateCode(type)
 	Spring.Echo(blueprintName .. " written to " .. outputFile)
 end
 
-function widget:TextCommand(command)
-	if command == "ruinblueprint" then
-		generateCode(types.blueprint)
-	end
+local function ruinblueprintCmd(_, line)
+	generateCode(types.blueprint)
+	return true
 end
 
 function widget:Initialize()
 	-- Clear file to avoid junk buildup
 	local file = io.open(outputFile, "w")
 	file:close()
+	widgetHandler:AddAction("ruinblueprint", ruinblueprintCmd, nil, "t")
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("ruinblueprint", "t")
 end

@@ -179,23 +179,23 @@ local function ArrayRemove(t, g)
 	end
 end
 
-function widget:TextCommand(s)
+local function widgetprofilertickrateCmd(_, line)
 	local token = {}
 	local n = 0
-	for w in stringGmatch(s, "%S+") do
+	for w in stringGmatch(line or "", "%S+") do
 		n = n + 1
 		token[n] = w
 	end
-	if token[1] == "widgetprofilertickrate" then
-		if token[2] then
-			tick = tonumber(token[2]) or tick
-		end
-		spEcho("Setting widget profiler to tick=", tick)
+	if token[1] then
+		tick = tonumber(token[1]) or tick
 	end
-
+	spEcho("Setting widget profiler to tick=", tick)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("widgetprofilertickrate", widgetprofilertickrateCmd, nil, "t")
+
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = (not wData.fromZip)
 	end
@@ -377,6 +377,7 @@ function widget:Update()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("widgetprofilertickrate", "t")
 	StopHook()
 end
 

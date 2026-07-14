@@ -643,22 +643,20 @@ local function DrawDecals()
 	end
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "decalsgl4stats", nil, true) then
-		local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
-		spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
-			decalVBO.usedElements,
-			decalLargeVBO.usedElements,
-			decalExtraLargeVBO.usedElements,
-			tricount))
-		return true
-	end
-	if string.find(command, "decalsgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Decals GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function decalsgl4statsCmd(_, line)
+	local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
+	spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
+		decalVBO.usedElements,
+		decalLargeVBO.usedElements,
+		decalExtraLargeVBO.usedElements,
+		tricount))
+	return true
+end
+
+local function decalsgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Decals GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 if Script.IsEngineMinVersion(105, 0, 1422) then
@@ -1975,6 +1973,9 @@ local function UnpackSavedDecals(packed)
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("decalsgl4stats", decalsgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("decalsgl4skipdraw", decalsgl4skipdrawCmd, nil, "t")
+
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
 	--	return
@@ -2148,6 +2149,8 @@ function widget:SunChanged()
 end
 
 function widget:ShutDown()
+	widgetHandler:RemoveAction("decalsgl4stats", "t")
+	widgetHandler:RemoveAction("decalsgl4skipdraw", "t")
 
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')

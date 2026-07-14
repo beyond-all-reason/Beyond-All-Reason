@@ -52,6 +52,8 @@ local chatActionRegistry = {
 	unsynced = {},
 }
 
+local BroadcastChatActionUpdate
+
 local function GetChatActionSource()
 	return (SendToUnsynced ~= nil) and 'synced' or 'unsynced'
 end
@@ -62,9 +64,7 @@ local function RegisterChatAction(source, cmd)
 		return
 	end
 	sourceRegistry[cmd] = true
-	if Spring.SendLuaUIMsg then
-		Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':add:' .. cmd)
-	end
+	BroadcastChatActionUpdate(source, 'add', cmd)
 end
 
 local function UnregisterChatAction(source, cmd)
@@ -74,9 +74,7 @@ local function UnregisterChatAction(source, cmd)
 	end
 	if sourceRegistry[cmd] then
 		sourceRegistry[cmd] = nil
-		if Spring.SendLuaUIMsg then
-			Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':remove:' .. cmd)
-		end
+		BroadcastChatActionUpdate(source, 'remove', cmd)
 	end
 end
 
@@ -99,11 +97,13 @@ actionHandler.RemoveChatAction = function(widget, cmd)
 	return textSuccess
 end
 
-local function BroadcastChatActionUpdate(source, mode, cmd)
-	if not Spring.SendLuaUIMsg then
-		return
+BroadcastChatActionUpdate = function(source, mode, cmd)
+	local msg = CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd
+	if Spring.SendLuaUIMsg then
+		Spring.SendLuaUIMsg(msg)
+	elseif SendToUnsynced then
+		SendToUnsynced(msg)
 	end
-	Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd)
 end
 
 local function BroadcastChatActionSnapshot(source, actionMap)
@@ -1252,6 +1252,12 @@ function gadgetHandler:RecvFromSynced(...)
 	local arg1, arg2 = ...
 	if arg1 == CHAT_ACTION_REQUEST then
 		BroadcastChatActionSnapshot('unsynced', self.actionHandler.textActions)
+		return true
+	end
+	if type(arg1) == 'string' and string.sub(arg1, 1, #CHAT_ACTION_PREFIX) == CHAT_ACTION_PREFIX then
+		if Spring.SendLuaUIMsg then
+			Spring.SendLuaUIMsg(arg1)
+		end
 		return true
 	end
   if (type(arg1) == 'string') then
