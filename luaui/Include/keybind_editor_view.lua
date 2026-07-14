@@ -329,14 +329,38 @@ end
 -- Edits apply to the engine live (bind/unbind); the write to uikeys.txt and the
 -- widget reload are deferred to persistEdits (panel close / preset switch), since
 -- doing them per keystroke floods the console with keysave/keyreload output.
+
+-- Whether the action already carries this keyset, compared by displayed key
+-- rather than raw - so a scancode capture of a key already bound in keysym form
+-- (pressing Enter when "return" is bound) dedupes instead of adding a twin.
+-- exceptRaw skips one keyset, the one being rebound.
+local function actionHasKeyset(action, newKeyset, exceptRaw)
+	local ks = working.byAction[action]
+	if not ks then
+		return false
+	end
+	local d = keybindModel.displayKeyset(newKeyset, working.layout)
+	for _, k in ipairs(ks) do
+		if k.raw ~= exceptRaw and k.display == d then
+			return true
+		end
+	end
+	return false
+end
+
 local function rebindKeyset(action, oldRaw, newKeyset)
 	spSendCommands("unbind " .. oldRaw .. " " .. action)
-	spSendCommands("bind " .. newKeyset .. " " .. action)
+	if not actionHasKeyset(action, newKeyset, oldRaw) then
+		spSendCommands("bind " .. newKeyset .. " " .. action)
+	end
 	edited = true
 	reseed()
 end
 
 local function addKeyset(action, newKeyset)
+	if actionHasKeyset(action, newKeyset) then
+		return
+	end
 	spSendCommands("bind " .. newKeyset .. " " .. action)
 	edited = true
 	reseed()
@@ -428,19 +452,21 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 
 	for _, ks in ipairs(working.byAction[row.action] or {}) do
 		local tw = font:GetTextWidth(ks.display) * fs
-		local removeZone = editable and (pad + glyphW) or 0
-		local chipW = pad + tw + removeZone
+		-- Editable chips reserve the "x" remove zone on the right; read-only chips
+		-- reserve matching padding so the background isn't flush against the text.
+		local rightGap = editable and (pad + glyphW) or pad
+		local chipW = pad + tw + rightGap
 		if cx + chipW > chipLimit then
 			break
 		end
 
 		if editable then
-			local removeX1 = cx + chipW - removeZone
+			local removeX1 = cx + chipW - rightGap
 			local overRemove = mx >= removeX1 and mx <= cx + chipW and my >= c1 and my <= c2
 			local overBody = mx >= cx and mx < removeX1 and my >= c1 and my <= c2
 			RectRound(cx, c1, cx + chipW, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, overBody and 0.5 or 0.35 })
 			font:Print(colorKey .. ks.display, cx + pad, cyc, fs, "ov")
-			font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", removeX1 + removeZone * 0.5, cyc, fs, "cov")
+			font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", removeX1 + rightGap * 0.5, cyc, fs, "cov")
 		else
 			RectRound(cx, c1, cx + chipW, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, 0.25 })
 			font:Print(colorKey .. ks.display, cx + pad, cyc, fs, "ov")
