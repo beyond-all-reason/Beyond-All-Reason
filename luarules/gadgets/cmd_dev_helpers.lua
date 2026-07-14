@@ -1,4 +1,4 @@
---[[
+	--[[
 local msg = 'luar_uels ihatelua -100 200'
 for word in msg:gmatch("[%-_%w]+") do
   print (word)
@@ -715,7 +715,7 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.SetUnitExperience(unitID, tonumber(params))
 					end
 				elseif action == 'remove' then
-					Spring.SetUnitRulesParam(unitID, "skip_tombstone", 1)
+					Spring.SetUnitRulesParam(unitID, "remove_decorations", 1)
 					Spring.DestroyUnit(unitID, false, true)
 				elseif action == 'removenearbyunits' then
 					Spring.DestroyUnit(unitID, false, true)
@@ -1949,6 +1949,64 @@ else	-- UNSYNCED
 			end)
 		end
 
+		local function isDepthchargeWeapon(wDef)
+			if not wDef or wDef.type ~= "TorpedoLauncher" then
+				return false
+			end
+			local weaponName = string.lower(wDef.name or "")
+			local description = string.lower(wDef.description or "")
+			local modelName = string.lower((wDef.visuals and wDef.visuals.modelName) or "")
+			return string.find(weaponName, "depth", 1, true)
+				or string.find(description, "depth", 1, true)
+				or string.find(modelName, "depth", 1, true)
+		end
+
+		local function isTorpedoWeapon(wDef)
+			return wDef and wDef.type == "TorpedoLauncher" and not isDepthchargeWeapon(wDef)
+		end
+
+		local function hasRoleTag(ud, role)
+			local cp = ud.customParams
+			if not cp then
+				return false
+			end
+			local unitgroup = cp.unitgroup and string.lower(cp.unitgroup) or ""
+			local unittype = cp.unittype and string.lower(cp.unittype) or ""
+			local subfolder = cp.subfolder and string.lower(cp.subfolder) or ""
+			return unitgroup == role or unittype == role or string.find(subfolder, role, 1, true)
+		end
+
+		local function isNavalUnit(ud)
+			if ud.canFly or ud.isBuilding then
+				return false
+			end
+			local cp = ud.customParams
+			local subfolder = cp and cp.subfolder and string.lower(cp.subfolder) or ""
+			return ud.floatOnWater or (ud.minWaterDepth and ud.minWaterDepth > 0) or string.find(subfolder, "ships", 1, true)
+		end
+
+		local function isSubmarineUnit(ud)
+			if not isNavalUnit(ud) then
+				return false
+			end
+			return ud.canSubmerge
+				or ud.sonarStealth
+				or string.find(ud.name, "sub", 1, true)
+				or hasRoleTag(ud, "sub")
+		end
+
+		local function hasWeaponRangeAtLeast(ud, minRange)
+			return unitHasWeaponMatching(ud, function(wDef, weapon)
+				if (wDef.range or 0) < minRange then
+					return false
+				end
+				if weapon.onlyTargets and weapon.onlyTargets.vtol and not weapon.onlyTargets.ground then
+					return false
+				end
+				return true
+			end)
+		end
+
 		local filterWords = {}
 		for i = 1, #words do
 			if words[i] then
@@ -2054,8 +2112,90 @@ else	-- UNSYNCED
 		addFilter("air", function(ud)
 			return ud.canFly
 		end)
+		addFilter("gunship", function(ud)
+			return ud.canFly and ud.hoverAttack
+		end)
+		addFilter("airtransport", function(ud)
+			return ud.canFly and ud.isTransport
+		end)
+		addFilter("amphib", function(ud)
+			if ud.canFly or ud.isBuilding or isNavalUnit(ud) then
+				return false
+			end
+			return (ud.maxWaterDepth or 0) > 0 or hasRoleTag(ud, "amph")
+		end)
+		addFilter("submarine", function(ud)
+			return isSubmarineUnit(ud)
+		end)
+		addFilter("watersurface", function(ud)
+			return isNavalUnit(ud) and not isSubmarineUnit(ud)
+		end)
+		addFilter("water", function(ud)
+			return isNavalUnit(ud)
+		end)
 		addFilter("mobile", function(ud)
 			return not ud.isBuilding
+		end)
+		addFilter("scout", function(ud)
+			return hasRoleTag(ud, "scout") or (not ud.isBuilding and ((ud.losRadius or 0) >= 700 or (ud.radarDistance or 0) >= 1800))
+		end)
+		addFilter({"artillery", "arty"}, function(ud)
+			-- Strategic nukes are handled by the dedicated nuke filter, not artillery.
+			if unitHasWeaponMatching(ud, function(wDef)
+				return wDef.targetable == 1
+			end) then
+				return false
+			end
+
+			-- Exclude bomber-class aircraft from artillery.
+			if ud.canFly and not ud.hoverAttack and unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end) then
+				return false
+			end
+
+			-- Exclude drone carriers and units that spawn carried drones.
+			local cp = ud.customParams
+			if (cp and cp.flyingcarrier) or string.find(ud.name, "dronecarry", 1, true) then
+				return false
+			end
+			if unitHasWeaponMatching(ud, function(wDef)
+				local wcp = wDef.customParams
+				return wcp and wcp.carried_unit
+			end) then
+				return false
+			end
+
+			return hasRoleTag(ud, "arty") or hasRoleTag(ud, "artillery") or hasWeaponRangeAtLeast(ud, 900)
+		end)
+		addFilter("riot", function(ud)
+			if hasRoleTag(ud, "riot") then
+				return true
+			end
+			if ud.isBuilding or ud.isBuilder then
+				return false
+			end
+			return unitHasWeaponMatching(ud, function(wDef, weapon)
+				if weapon.onlyTargets and weapon.onlyTargets.vtol and not weapon.onlyTargets.ground then
+					return false
+				end
+				if (wDef.range or 0) > 520 then
+					return false
+				end
+				return (wDef.damageAreaOfEffect or 0) >= 72
+			end)
+		end)
+		addFilter("skirmish", function(ud)
+			return hasRoleTag(ud, "skirm") or hasRoleTag(ud, "skirmish")
+		end)
+		addFilter("assault", function(ud)
+			if hasRoleTag(ud, "assault") then
+				return not ud.isBuilder
+			end
+			return not ud.isBuilding and not ud.canFly and not ud.isBuilder and (ud.health or 0) >= 2500
+		end)
+		addFilter("tank", function(ud)
+			return not ud.isBuilding and (ud.health or 0) >= 3500
 		end)
 		addFilter("weapon", function(ud)
 			return unitHasWeaponMatching(ud, function()
@@ -2072,7 +2212,14 @@ else	-- UNSYNCED
 			return unitHasWeaponType(ud, "MissileLauncher")
 		end)
 		addFilter("depthcharge", function(ud)
-			return unitHasWeaponType(ud, "TorpedoLauncher")
+			return unitHasWeaponMatching(ud, function(wDef)
+				return isDepthchargeWeapon(wDef)
+			end)
+		end)
+		addFilter("torpedo", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return isTorpedoWeapon(wDef)
+			end)
 		end)
 		addFilter("starburst", function(ud)
 			return unitHasWeaponType(ud, "StarburstLauncher")
@@ -2088,12 +2235,36 @@ else	-- UNSYNCED
 				return wDef.paralyzer
 			end)
 		end)
+		addFilter("emp", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.paralyzer
+			end)
+		end)
 		addFilter("interceptor", function(ud)
 			return unitHasWeaponMatching(ud, function(wDef)
 				return wDef.interceptor and wDef.interceptor > 0
 			end)
 		end)
+		addFilter("shield", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.isShield or (wDef.shieldRadius and wDef.shieldRadius > 0)
+			end)
+		end)
+		addFilter("antinuke", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.interceptor == 1
+			end)
+		end)
+		addFilter("nuke", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.targetable == 1
+			end)
+		end)
 		addFilter("aa", function(ud)
+			local cp = ud.customParams
+			return cp and cp.unitgroup == "aa"
+		end)
+		addFilter("aa-all", function(ud)
 			return unitHasWeaponMatching(ud, function(_, weapon)
 				return weapon.onlyTargets and weapon.onlyTargets.vtol
 			end)
@@ -2104,6 +2275,19 @@ else	-- UNSYNCED
 			end
 			return unitHasWeaponMatching(ud, function(wDef)
 				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end)
+		end)
+		addFilter("fighter", function(ud)
+			if not ud.canFly or ud.hoverAttack or ud.isTransport or ud.isBuilder then
+				return false
+			end
+			if unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end) then
+				return false
+			end
+			return unitHasWeaponMatching(ud, function(_, weapon)
+				return weapon.onlyTargets and weapon.onlyTargets.vtol
 			end)
 		end)
 		addFilter("cloak", function(ud)
@@ -2167,6 +2351,31 @@ else	-- UNSYNCED
 		end)
 		addFilter("stockpile", function(ud)
 			return ud.canStockpile
+		end)
+		addFilter("energy", function(ud)
+			local cp = ud.customParams
+			local name = string.lower(ud.name or "")
+			return (ud.energyMake or 0) > 0
+				or (ud.windGenerator or 0) > 0
+				or (ud.tidalGenerator or 0) > 0
+				or (cp and cp.unitgroup == "energy")
+				or string.find(name, "solar", 1, true)
+				or string.find(name, "wind", 1, true)
+				or string.find(name, "fusion", 1, true)
+				or string.find(name, "geo", 1, true)
+		end)
+		addFilter("energyconvert", function(ud)
+			local cp = ud.customParams
+			return cp
+				and (tonumber(cp.energyconv_capacity) or 0) > 0
+				and (tonumber(cp.energyconv_efficiency) or 0) > 0
+		end)
+		addFilter("metal", function(ud)
+			local cp = ud.customParams
+			return ud.isExtractor
+				or (ud.extractsMetal or 0) > 0
+				or (ud.metalMake or 0) > 0
+				or (cp and cp.unitgroup == "metal")
 		end)
 		addFilter("all", function()
 			return true
