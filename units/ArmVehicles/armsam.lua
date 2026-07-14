@@ -41,6 +41,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "weaponaa",
+			veterancy_health = "default",
+			veterancy_scripted_reload = "default",
 		},
 		featuredefs = {
 			dead = {

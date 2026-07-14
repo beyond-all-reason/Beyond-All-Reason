@@ -3,7 +3,7 @@
 
 piece  flare1, flare2, base, gun, turret, exhaust;
 
-static-var  gun_1, restore_delay, fired, aiming;
+static-var  gun_1, reload_time_max, reload_time_1, reload_time_2, fired, aiming;
 
 // Signal definitions
 #define SIGNAL_MOVE 1
@@ -36,22 +36,50 @@ Create()
 	call-script TB_Init();
 }
 
-ResetFire()
+SetMaxReloadTime(reloadMS)
+{
+	reload_time_max = reloadMS;
+}
+
+SetReloadTime1(reloadMS)
+{
+	reload_time_1 = reloadMS;
+}
+
+SetReloadTime2(reloadMS)
+{
+	reload_time_2 = reloadMS;
+}
+
+ScriptReload(weapon)
 {
 	signal SIGNAL_SHOOT1;
 	set-signal-mask SIGNAL_SHOOT1;
 	fired = 1;
-	sleep 2000;
+	if (weapon == 1)
+	{
+		sleep reload_time_1;
+	}
+	else if (weapon == 2)
+	{
+		sleep reload_time_2;
+	}
 	fired = 0;
 }
 
-
-ResetAiming()
+ResetAiming(weapon)
 {
 	signal SIGNAL_IDLE;
 	set-signal-mask SIGNAL_IDLE;
 	aiming = 1;
-	sleep 500;
+		if (weapon == 1)
+	{
+		sleep reload_time_1 / 3;
+	}
+	else if (weapon == 2)
+	{
+		sleep reload_time_2 / 3;
+	}
 	aiming = 0;
 }
 
@@ -76,11 +104,6 @@ Deactivate()
 {
 }
 
-SetMaxReloadTime(reloadMS)
-{
-	restore_delay = reloadMS * 2;
-}
-
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
@@ -101,7 +124,7 @@ SetStunned(State)
 }
 RestoreAfterDelay()
 {
-	sleep restore_delay;
+	sleep reload_time_max * 2;
 	start-script ExecuteRestoreAfterDelay();
 }
 
@@ -124,7 +147,7 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
-	start-script ResetFire();
+	start-script ScriptReload();
 	emit-sfx 1024 + 0 from exhaust;
 	gun_1 = !gun_1;
 }
@@ -162,12 +185,8 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-	start-script ResetFire();
+	start-script ScriptReload();
 	emit-sfx 1024 + 0 from exhaust;
-}
-
-EndBurst2()
-{
 	gun_1 = !gun_1;
 }
 

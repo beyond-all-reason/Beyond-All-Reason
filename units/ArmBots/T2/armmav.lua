@@ -34,10 +34,12 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
-			rangexpscale = 0.6,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			veterancy_health = "default",
+			veterancy_range = 0.6,
+			veterancy_reload = "default",
 		},
 		featuredefs = {
 			dead = {
