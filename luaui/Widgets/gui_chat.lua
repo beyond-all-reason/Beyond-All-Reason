@@ -38,6 +38,7 @@ local LineTypes = {
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 local badWords = VFS.Include('luaui/configs/badwords.lua')
+local ChatEmoji = VFS.Include('luaui/Include/chat_emoji.lua')
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (Spring.Utilities.IsDevMode() and Spring.Utilities.Gametype.IsSinglePlayer())
@@ -198,6 +199,7 @@ local prevCurrentChatLine, prevCurrentConsoleLine, prevHistoryMode = state.prevC
 local gameOver = state.gameOver
 local prevGameID, prevOrgLines = state.prevGameID, state.prevOrgLines
 local ignoredAccounts = state.ignoredAccounts
+local emojiAutocompleteAliases = ChatEmoji.GetAutocompleteAliases()
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -593,33 +595,6 @@ local function findBadWords(str)
 	end
 end
 
-local function wordWrap(text, maxWidth, fontSize)
-	local lines = {}
-	local lineCount = 0
-	for _, line in ipairs(text) do
-		local words = {}
-		local wordsCount = 0
-		local linebuffer = ''
-		for w in line:gmatch("%S+") do
-			wordsCount = wordsCount + 1
-			words[wordsCount] = w
-		end
-		for _, word in ipairs(words) do
-			if font and font:GetTextWidth(linebuffer..' '..word)*fontSize > maxWidth then
-				lineCount = lineCount + 1
-				lines[lineCount] = linebuffer
-				linebuffer = ''
-			end
-			linebuffer = (linebuffer ~= '' and linebuffer..' '..word or word)
-		end
-		if linebuffer ~= '' then
-			lineCount = lineCount + 1
-			lines[lineCount] = linebuffer
-		end
-	end
-	return lines
-end
-
 local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineID)
 	if not text or text == '' then return end
 
@@ -629,9 +604,9 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 	local textLines = string_lines(text)
 
 	-- word wrap text into lines
-	local wordwrappedText = wordWrap(textLines, consoleLineMaxWidth, usedConsoleFontSize)
+	local wordwrappedText = ChatEmoji.WordWrapRichText(textLines, consoleLineMaxWidth, usedConsoleFontSize, font)
 
-	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
+	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
 	local startTime = clock()
 	for i, line in ipairs(wordwrappedText) do
 		consoleLines[consoleLineID] = {
@@ -744,9 +719,9 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 	local textLines = string_lines(text)
 
 	-- word wrap text into lines
-	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
+	local wordwrappedText = ChatEmoji.WordWrapRichText(textLines, lineMaxWidth, usedFontSize, font)
 
-	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
+	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
 	for i, line in ipairs(wordwrappedText) do
 		chatLines[chatLineID] = {
 			startTime = startTime,
@@ -1270,10 +1245,7 @@ drawGameTime = function(gameFrame)
 end
 
 drawConsoleLine = function(i)
-	font:Begin(true)
-	font:SetOutlineColor(0,0,0,1)
-	font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
-	font:End()
+	ChatEmoji.DrawRichText(font, consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o", {0, 0, 0, 1})
 end
 
 local function processConsoleLineGL(i)
@@ -1294,7 +1266,6 @@ end
 
 drawChatLine = function(i)
 	local fontHeightOffset = usedFontSize*0.3
-	font:Begin(true)
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin(true)
@@ -1305,8 +1276,10 @@ drawChatLine = function(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
-			font2:SetOutlineColor(0,0,0,1)
-			font2:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
+			font:Begin(true)
+			font:SetOutlineColor(0,0,0,1)
+			font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), fontHeightOffset*0.07, usedFontSize, "oc")
+			font:End()
 		elseif chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 			font3:Begin(true)
 			if chatLines[i].textOutline then
@@ -1325,20 +1298,17 @@ drawChatLine = function(i)
 			end
 			font2:Print(chatLines[i].playerNameText, maxPlayernameWidth, fontHeightOffset*1.06, usedFontSize*1.03, "or")
 			font2:End()
+			font:Begin(true)
 			font:SetOutlineColor(0,0,0,1)
 			font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.75), fontHeightOffset, usedFontSize, "oc")
+			font:End()
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		font3:Begin(true)
-		font3:SetOutlineColor(0,0,0,1)
-		font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
-		font3:End()
+		ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o", {0, 0, 0, 1})
 	else
-		font:SetOutlineColor(0,0,0,1)
-		font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+		ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
 	end
-	font:End()
 end
 
 local function processChatLineGL(i)
@@ -2017,44 +1987,9 @@ function widget:DrawScreen()
 			gl.DeleteTexture(uiTex)
 			uiTex = nil
 		end
-		-- Always use maxLinesScrollFull for texture sizing so the texture is large enough
-		-- regardless of whether maxLinesScroll is currently reduced (e.g. chat input mode = 9 lines)
-		local rttScrollPosY = scrollingPosY
-		if topbarArea then
-			rttScrollPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScrollFull)) / vsy
-		end
-		-- Extra space below for the "show new chat" notification in history mode
-		-- (drawn at scrollingPosY - 0.02 - backgroundPadding, plus the line itself)
-		local notifExtra = floor(0.02 * vsy) + backgroundPadding + lineHeight
-		rttArea = {consoleActivationArea[1], activationArea[2]+floor(vsy*(rttScrollPosY-posY)) - notifExtra, consoleActivationArea[3], consoleActivationArea[4]}
-		local texWidth = mathFloor(rttArea[3]-rttArea[1])
-		local texHeight = mathFloor(rttArea[4]-rttArea[2])
-		if texWidth > 0 and texHeight > 0 then
-			uiTex = gl.CreateTexture(texWidth, texHeight, {
-				target = GL.TEXTURE_2D,
-				format = GL.ALPHA,
-				fbo = true,
-			})
-		end
 	end
-	if uiTex then
-		if lastDrawUiUpdate+2 < clock() then	-- this is to make sure stuff times out/clears respecting lineTTL
-			updateDrawUi = true
-		end
-		if updateDrawUi ~= nil then
-			lastDrawUiUpdate = clock()
-			gl.R2tHelper.RenderInRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], drawUi, true)
 
-			-- drawUi() needs to run twice to fix some alignment issues so lets scedule one more update as workaround for now
-			if updateDrawUi == false then
-				updateDrawUi = nil
-			elseif updateDrawUi then
-				updateDrawUi = false	-- update once more after this
-			end
-		end
-
-		gl.R2tHelper.BlendTexRect(uiTex, rttArea[1], rttArea[2], rttArea[3], rttArea[4], true)
-	end
+	drawUi()
 end
 
 local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
@@ -2141,7 +2076,9 @@ local function autocomplete(text, fresh)
 					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
 				end
 			else
-				if #letters >= 2 then
+				if ssub(letters, 1, 1) == ':' and #letters >= 2 then
+					runAutocompleteSet(emojiAutocompleteAliases, letters, allowMultiAutocomplete)
+				elseif #letters >= 2 then
 					runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete, true)
 				end
 			end

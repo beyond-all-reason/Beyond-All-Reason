@@ -21,6 +21,11 @@ if (System == nil) then
 		tracy.ZoneName = function () return end 
 		tracy.ZoneText = function () return end 
 	end
+
+	if SendToUnsynced == nil then
+		Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
+		Spring.I18N.setLanguage(Spring.GetConfigString('language', 'en'))
+	end
 	
 	System = {
 		--
