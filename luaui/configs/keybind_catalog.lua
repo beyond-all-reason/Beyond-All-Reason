@@ -16,6 +16,8 @@
 return {
 	{ category = "ui.keybinds.chat.title", items = {
 		{ action = "chat", label = "ui.keybinds.chat.send" },
+		{ label = "ui.keybinds.chat.allies", keyLabel = "ui.keybinds.chat.alliesKey" },
+		{ label = "ui.keybinds.chat.spectators", keyLabel = "ui.keybinds.chat.spectatorsKey" },
 		{ label = "ui.keybinds.chat.ignore", keyLabel = "ui.keybinds.chat.ignoreKey" },
 		{ prefix = "chatswitch" },
 	} },
