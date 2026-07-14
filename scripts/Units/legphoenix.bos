@@ -51,8 +51,11 @@ FakeUprightTurn() {
 	var angle_x, angle_z, dy_x, dy_z;
 	dy_x = GET PIECE_Y(x) - GET PIECE_Y(base);
 	dy_z = GET PIECE_Y(z) - GET PIECE_Y(base);
-	angle_x = GET ATAN(dy_x, GET POW(65536 - GET POW(dy_x, 131072), 32768));
-	angle_z = GET ATAN(dy_z, GET POW(65536 - GET POW(dy_z, 131072), 32768));
+	angle_x = 65536 * GET ATAN(dy_x, GET POW(1 - GET POW(dy_x, 2), 0.5));
+	angle_z = 65536 * GET ATAN(dy_z, GET POW(1 - GET POW(dy_z, 2), 0.5));
+	//angle_x = GET ATAN(dy_x, GET POW(65536 - GET POW(dy_x, 131072), 32768));
+	//angle_z = GET ATAN(dy_z, GET POW(65536 - GET POW(dy_z, 131072), 32768));
+	turn triparent to y-axis <180> now;
 	turn triparent to x-axis angle_x now;
 	turn triparent to z-axis angle_z now;
 }
