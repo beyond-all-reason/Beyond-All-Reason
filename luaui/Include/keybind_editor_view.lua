@@ -386,6 +386,16 @@ local function commitCapture(keyset)
 	end
 end
 
+local function modPrefix()
+	local alt, ctrl, _, shift = spGetModKeyState()
+	local prefix = ""
+	if alt then prefix = prefix .. "Alt+" end
+	if ctrl then prefix = prefix .. "Ctrl+" end
+	if shift then prefix = prefix .. "Shift+" end
+
+	return prefix
+end
+
 local function keysetFromPress(scanCode)
 	local sym = scanCode and Spring.GetScanSymbol and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
@@ -395,13 +405,14 @@ local function keysetFromPress(scanCode)
 		return nil
 	end
 
-	local alt, ctrl, _, shift = spGetModKeyState()
-	local prefix = ""
-	if alt then prefix = prefix .. "Alt+" end
-	if ctrl then prefix = prefix .. "Ctrl+" end
-	if shift then prefix = prefix .. "Shift+" end
+	return modPrefix() .. sym
+end
 
-	return prefix .. sym
+-- Side mouse buttons bind as ordinary keysets (mouseN). mouse1 (left) is engine-
+-- rejected and mouse2/mouse3 (middle/right) are reserved for core UX; those are
+-- filtered out at the capture site, so this only ever sees button >= 4.
+local function mouseKeysetFromButton(button)
+	return modPrefix() .. "mouse" .. button
 end
 
 local function fitText(text, maxWidth, size)
@@ -586,6 +597,19 @@ end
 function view.mousePress(x, y, button)
 	if not (x >= area.x1 and x <= area.x2 and y >= area.y1 and y <= area.y2) then
 		return false
+	end
+
+	-- While capturing, only side buttons (mouse4+) are bindable: mouse1 (left) the
+	-- engine rejects, and mouse2/mouse3 (middle/right) are reserved for core camera
+	-- and order UX that binding would break. Left click cancels; middle/right are
+	-- ignored (swallowed, capture stays open).
+	if capturing then
+		if button >= 4 then
+			commitCapture(mouseKeysetFromButton(button))
+		elseif button == 1 then
+			capturing = nil
+		end
+		return true
 	end
 
 	-- Only the left button interacts; right/middle over the panel do nothing.
