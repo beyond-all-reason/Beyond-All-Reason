@@ -43,8 +43,9 @@ for unitDefID, def in ipairs(UnitDefs) do
 	if def.weapons then
 		for i = 1, #def.weapons do
 			local wDef = WeaponDefs[def.weapons[i].weaponDef]
-			if wDef.targetable == 1 then
-				nukeDefs[unitDefID] = true
+			if wDef.targetable == 1 or wDef.customParams.pvenukecontroller then
+				nukeDefs[unitDefID] = wDef.reload
+                --nukeDefs[unitDefID] = true
 				break
 			end
 		end
@@ -182,7 +183,7 @@ function gadget:GameFrame(frame)
                         attackCmdParams[2] = y
                         attackCmdParams[3] = z
                         GiveOrderToUnit(nukeID, CMD.ATTACK, attackCmdParams, 0)
-                        aliveNukeLaunchers[nukeID] = now + math.random(10,90)
+                        aliveNukeLaunchers[nukeID] = now + (nukeDefs[Spring.GetUnitDefID(nukeID)]*0.75)
                     end
                 end
             end

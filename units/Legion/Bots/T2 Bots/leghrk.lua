@@ -118,7 +118,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 1200,
-				reloadtime = 9,
+				reloadtime = 8,
 				smokecolor = 0.5,
 				smokeperiod = 5,
 				smokesize = 7,

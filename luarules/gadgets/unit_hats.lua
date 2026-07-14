@@ -408,6 +408,7 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spCreateUnit = Spring.CreateUnit
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local function spGetUnitScriptEnv(unitID)
 	local unitScript = Spring.UnitScript
 	if unitScript and unitScript.GetScriptEnv then
@@ -592,15 +593,19 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		if DEBUG then
 			Spring.Echo("A hat wearing unit was destroyed, freeing hat", unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		end
-		Spring.UnitDetachFromAir(hatID)
-		Spring.UnitDetach(hatID)
 		unitsWearingHats[unitID] = nil
-		Hats[hatID] = -1
-		Spring.SetUnitNoSelect(hatID, false)
-		Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
-		local px, py, pz = Spring.GetUnitPosition(unitID)
-		if px and pz then
-			Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+		if spGetUnitRulesParam(unitID, "remove_decorations") == 1 then
+			Spring.DestroyUnit(hatID)
+		else
+			Spring.UnitDetachFromAir(hatID)
+			Spring.UnitDetach(hatID)
+			Hats[hatID] = -1
+			Spring.SetUnitNoSelect(hatID, false)
+			Spring.TransferUnit(hatID, spGetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured
+			local px, py, pz = Spring.GetUnitPosition(unitID)
+			if px and pz then
+				Spring.SetUnitPosition(hatID, px + 32, pz + 32)
+			end
 		end
 		UpdateGameFrameCallIn()
 	end
