@@ -95,7 +95,7 @@ return {
 				sizedecay = 0.09,
 				soundhit = "bombsmed2",
 				soundstart = "bugarty",
-				sprayangle = 2048,
+				sprayangle = 1024,
 				tolerance = 5000,
 				turret = true,
 				weapontype = "Cannon",
