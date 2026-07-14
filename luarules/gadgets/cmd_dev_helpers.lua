@@ -447,7 +447,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		end
 		checkStartPlayers()
-		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 
 
 	end
@@ -469,7 +468,7 @@ if gadgetHandler:IsSyncedCode() then
 		local subPermission
 		if cmd == "desync" then
 			subPermission = "test"
-		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
+		elseif cmd == "givecat" or cmd == "loadmissiles" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
 			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or
 			cmd == "neutralize" or cmd == "maxhealth" or cmd == "setsensors" or
 			cmd == "setblocking" or cmd == "relocate" or cmd == "setradius" or cmd == "setheight" or
@@ -494,6 +493,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if cmd == "givecat" then
 			GiveCat(words)
+		elseif cmd == "loadmissiles" then
+			LoadMissiles()
 		elseif cmd == "xpunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
@@ -628,8 +629,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('loadmissiles')
-
 	end
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
@@ -987,42 +986,43 @@ else	-- UNSYNCED
 
 	function gadget:Initialize()
 		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
-		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
-		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
-		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
-		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
-		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
-		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
-		gadgetHandler:AddChatAction('neutralize', neutralizeUnits, "")  -- sets selected units neutral state /luarules neutralize [1|0]
-		gadgetHandler:AddChatAction('maxhealth', maxHealthUnits, "")  -- sets selected units max health and preserves health percentage /luarules maxhealth [number]
-		gadgetHandler:AddChatAction('setsensors', setSensors, "")  -- sets selected units sensors to 0 or restores defaults /luarules setsensors [0|1]
-		gadgetHandler:AddChatAction('setblocking', setBlocking, "")  -- sets selected units blocking state, /luarules setblocking [1|0]
-		gadgetHandler:AddChatAction('relocate', relocateUnits, "")  -- relocates selected units to cursor while preserving relative offsets /luarules relocate
-		gadgetHandler:AddChatAction('setradius', setRadiusUnits, "")  -- increments selected units radius and prints resulting value /luarules setradius [value]
-		gadgetHandler:AddChatAction('setheight', setHeightUnits, "")  -- increments selected units height and prints resulting value /luarules setheight [value]
-		gadgetHandler:AddChatAction('select', selectHoveredUnit, "")  -- selects hovered unit, or all units in current selection bounds, including noselect units /luarules select
-		gadgetHandler:AddChatAction('halfhealth', halfHealth, "")  -- halves selected units health, or all units if nothing is selected
-		gadgetHandler:AddChatAction('sethealth', setHealth, "")  -- sets selected units health to a percentage, /luarules sethealth [0-100]
+		gadgetHandler:AddChatAction('loadmissiles', loadMissiles, Spring.I18N('cmd.loadmissiles'))
+		gadgetHandler:AddChatAction('givecat', GiveCat, Spring.I18N('cmd.givecat'))   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
+		gadgetHandler:AddChatAction('destroyunits', destroyUnits, Spring.I18N('cmd.destroyunits'))  -- self-destrucs the selected units /luarules destroyunits
+		gadgetHandler:AddChatAction('wreckunits', wreckUnits, Spring.I18N('cmd.wreckunits'))  -- turns the selected units into wrecks /luarules wreckunits
+		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, Spring.I18N('cmd.reclaimunits'))  -- reclaims and refunds the selected units /luarules reclaimUnits
+		gadgetHandler:AddChatAction('removeunits', removeUnits, Spring.I18N('cmd.removeunits'))  -- removes the selected units /luarules removeunits
+		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, Spring.I18N('cmd.removenearbyunits'))  -- removes the selected units /luarules removenearbyunits radius #teamid
+		gadgetHandler:AddChatAction('transferunits', transferUnits, Spring.I18N('cmd.transferunits'))  -- transfers the selected units /luarules transferunits
+		gadgetHandler:AddChatAction('neutralize', neutralizeUnits, Spring.I18N('cmd.neutralize'))  -- sets selected units neutral state /luarules neutralize [1|0]
+		gadgetHandler:AddChatAction('maxhealth', maxHealthUnits, Spring.I18N('cmd.maxhealth'))  -- sets selected units max health and preserves health percentage /luarules maxhealth [number]
+		gadgetHandler:AddChatAction('setsensors', setSensors, Spring.I18N('cmd.setsensors'))  -- sets selected units sensors to 0 or restores defaults /luarules setsensors [0|1]
+		gadgetHandler:AddChatAction('setblocking', setBlocking, Spring.I18N('cmd.setblocking'))  -- sets selected units blocking state, /luarules setblocking [1|0]
+		gadgetHandler:AddChatAction('relocate', relocateUnits, Spring.I18N('cmd.relocate'))  -- relocates selected units to cursor while preserving relative offsets /luarules relocate
+		gadgetHandler:AddChatAction('setradius', setRadiusUnits, Spring.I18N('cmd.setradius'))  -- increments selected units radius and prints resulting value /luarules setradius [value]
+		gadgetHandler:AddChatAction('setheight', setHeightUnits, Spring.I18N('cmd.setheight'))  -- increments selected units height and prints resulting value /luarules setheight [value]
+		gadgetHandler:AddChatAction('select', selectHoveredUnit, Spring.I18N('cmd.select'))  -- selects hovered unit, or all units in current selection bounds, including noselect units /luarules select
+		gadgetHandler:AddChatAction('halfhealth', halfHealth, Spring.I18N('cmd.halfhealth'))  -- halves selected units health, or all units if nothing is selected
+		gadgetHandler:AddChatAction('sethealth', setHealth, Spring.I18N('cmd.sethealth'))  -- sets selected units health to a percentage, /luarules sethealth [0-100]
 
-		gadgetHandler:AddChatAction('xp', xpUnits, "")	-- gives the selected units experience, /luarules xp [int]
+		gadgetHandler:AddChatAction('xp', xpUnits, Spring.I18N('cmd.xp'))	-- gives the selected units experience, /luarules xp [int]
 
-		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
+		gadgetHandler:AddChatAction('spawnceg', spawnceg, Spring.I18N('cmd.spawnceg')) -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
+		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, Spring.I18N('cmd.spawnunitexplosion')) -- --/luarules spawnunitexplosion armbull
 
-		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
-		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
-		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, "") -- /luarules dumploadout dumps all units and features in loadout.lua format
-		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
-		gadgetHandler:AddChatAction('removeobjects', removeObjects, "") -- /luarules removeobjects removes all object units
-		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
-		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
+		gadgetHandler:AddChatAction('dumpunits', dumpUnits, Spring.I18N('cmd.dumpunits')) -- /luarules dumpunits dumps all units on may into infolog.txt
+		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, Spring.I18N('cmd.dumpfeatures')) -- /luarules dumpfeatures dumps all features into infolog.txt
+		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, Spring.I18N('cmd.dumploadout')) -- /luarules dumploadout dumps all units and features in loadout.lua format
+		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, Spring.I18N('cmd.removeunitdef')) -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
+		gadgetHandler:AddChatAction('removeobjects', removeObjects, Spring.I18N('cmd.removeobjects')) -- /luarules removeobjects removes all object units
+		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, Spring.I18N('cmd.clearwrecks')) -- /luarules clearwrecks removes all wrecks and heaps from the map
+		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, Spring.I18N('cmd.reducewrecks')) -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
 
-		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
-		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
-		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
-		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
-		gadgetHandler:AddChatAction('modmarker', modmarker, "") -- /luarules modmarker [label] -- places a broadcast marker at cursor visible to all players
+		gadgetHandler:AddChatAction('globallos', globallos, Spring.I18N('cmd.globallos')) -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
+		gadgetHandler:AddChatAction('playertoteam', playertoteam, Spring.I18N('cmd.playertoteam')) -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
+		gadgetHandler:AddChatAction('killteam', killteam, Spring.I18N('cmd.killteam')) -- /luarules killteam [teamID] -- kills the team
+		gadgetHandler:AddChatAction('desync', desync, Spring.I18N('cmd.desync')) -- /luarules desync
+		gadgetHandler:AddChatAction('modmarker', modmarker, Spring.I18N('cmd.modmarker')) -- /luarules modmarker [label] -- places a broadcast marker at cursor visible to all players
 		-- Moderator broadcast ping: the synced modmarker handler relays here, and
 		-- every client draws it locally (localOnly=true) so ALL players see it.
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
@@ -1042,6 +1042,7 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('givecat')
 		gadgetHandler:RemoveChatAction('destroyunits')
 		gadgetHandler:RemoveChatAction('reclaimunits')
@@ -1075,6 +1076,15 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('modmarker')
 		gadgetHandler:RemoveSyncAction("modmarker")
 		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
+	end
+	function loadMissiles(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':loadmissiles')
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -2194,9 +2204,6 @@ else	-- UNSYNCED
 			end
 			return not ud.isBuilding and not ud.canFly and not ud.isBuilder and (ud.health or 0) >= 2500
 		end)
-		addFilter("tank", function(ud)
-			return not ud.isBuilding and (ud.health or 0) >= 3500
-		end)
 		addFilter("weapon", function(ud)
 			return unitHasWeaponMatching(ud, function()
 				return true
@@ -2314,6 +2321,10 @@ else	-- UNSYNCED
 			local cp = ud.customParams
 			local isObjectCategory = ud.modCategories and ud.modCategories["object"]
 			return isObjectCategory or (cp and cp.objectify)
+		end)
+		addFilter("objectify", function(ud)
+			local cp = ud.customParams
+			return cp and cp.objectify
 		end)
 		addFilter("collide", function(ud)
 			return ud.collide ~= false
