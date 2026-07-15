@@ -269,6 +269,7 @@ function actionHandler:RecvFromSynced(...)
 	if type(arg1) == "number" then
 		-- a proxied chat msg
 		if type(arg2) == "string" then
+			---@diagnostic disable-next-line: undefined-global
 			return GotChatMsg(arg2, arg1)
 		end
 		return false

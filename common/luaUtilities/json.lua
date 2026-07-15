@@ -46,13 +46,6 @@ local base = _G
 -- Public functions
 
 -- Private functions
-local decode_scanArray
-local decode_scanComment
-local decode_scanConstant
-local decode_scanNumber
-local decode_scanObject
-local decode_scanString
-local decode_scanWhitespace
 local encodeString
 local isArray
 local isEncodable
@@ -60,6 +53,12 @@ local isEncodable
 -----------------------------------------------------------------------------
 -- PUBLIC FUNCTIONS
 -----------------------------------------------------------------------------
+--- The null function allows one to specify a null value in an associative array (which is otherwise
+-- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
+local function null()
+  return null -- so json.null() will also return null ;-)
+end
+
 --- Encodes an arbitrary Lua object / variable.
 -- @param v The Lua object / variable to be JSON encoded.
 -- @return String containing the JSON encoding in internal Lua string format (i.e. not unicode)
@@ -120,12 +119,6 @@ local function decode(s)
 	-- Function is re-defined below after token and other items are created.
 	-- Just defined here for code neatness.
 	return null
-end
-
---- The null function allows one to specify a null value in an associative array (which is otherwise
--- discarded if you set the value with 'nil' in Lua. Simply set t = { first=json.null }
-local function null()
-  return null -- so json.null() will also return null ;-)
 end
 
 -----------------------------------------------------------------------------

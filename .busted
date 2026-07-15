@@ -12,7 +12,8 @@ return {
       "luarules/?.lua", "luarules/?/init.lua",
       "luaui/?.lua", "luaui/?/init.lua",
       "spec/?.lua", "spec/?/init.lua",
-    }, ";")
+    }, ";"),
+    helper = "spec/spec_helper.lua",
   },
   -- Default configuration
   verbose = true,

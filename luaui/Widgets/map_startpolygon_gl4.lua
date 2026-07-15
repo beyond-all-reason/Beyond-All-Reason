@@ -37,6 +37,8 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
+local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
+
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
