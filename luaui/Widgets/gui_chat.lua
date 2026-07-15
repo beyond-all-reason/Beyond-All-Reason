@@ -67,7 +67,7 @@ local config = {
 	maxTextInputChars = 127,
 	inputButton = true,
 	allowMultiAutocomplete = true,
-	allowMultiAutocompleteMax = 10,
+	allowMultiAutocompleteMax = Spring.Utilities.IsDevMode() and 18 or 12,
 	soundErrorsLimit = Spring.Utilities.IsDevMode() and 999 or 10,
 	ui_scale = Spring.GetConfigFloat("ui_scale", 1),
 	ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7),
@@ -179,6 +179,8 @@ local state = {
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
 	autocompleteWords = {},
+	autocompleteInfoText = nil,
+	autocompleteDisplayPrefix = nil,
 	prevAutocompleteLetters = nil,
 	scrolling = false,
 }
@@ -249,266 +251,179 @@ local function cleanupLineTable(prevTable, maxLines)
 	return newTable
 end
 
-local autocompleteCommands = {
-	-- engine
-	'advmapshading',
-	'aicontrol',
-	'aikill',
-	'ailist',
-	'aireload',
-	'airmesh',
-	'allmapmarks',
-	'ally',
-	'atm',
-	'buffertext',
-	'chat',
-	'chatall',
-	'chatally',
-	'chatspec',
-	'cheat',
-	'clearmapmarks',
-	--'clock',
-	'cmdcolors',
-	'commandhelp',
-	'commandlist',
-	'console',
-	'controlunit',
-	'crash',
-	'createvideo',
-	'cross',
-	'ctrlpanel',
-	'debug',
-	'debugcolvol',
-	'debugdrawai',
-	'debuggl',
-	'debugglerrors',
-	'debuginfo',
-	'debugpath',
-	'debugtraceray',
-	'decguiopacity',
-	'decreaseviewradius',
-	'deselect',
-	'destroy',
-	'devlua',
-	'distdraw',
-	'disticon',
-	'divbyzero',
-	'drawinmap',
-	'drawlabel',
-	'drawtrees',
-	'dumpstate',
-	'dynamicsky',
-	'echo',
-	'editdefs',
-	'endgraph',
-	'exception',
-	'font',
-	'fps',
-	'fpshud',
-	'fullscreen',
-	'gameinfo',
-	'gathermode',
-	'give',
-	'globallos',
-	'godmode',
-	'grabinput',
-	'grounddecals',
-	'grounddetail',
-	'group',
-	'group0',
-	'group1',
-	'group2',
-	'group3',
-	'group4',
-	'group5',
-	'group6',
-	'group7',
-	'group8',
-	'group9',
-	'hardwarecursor',
-	'hideinterface',
-	'incguiopacity',
-	'increaseviewradius',
-	'info',
-	'inputtextgeo',
-	'keyreload',
-	'lastmsgpos',
-	'lessclouds',
-	'lesstrees',
-	'lodscale',
-	'luagaia',
-	'luarules',
-	'luasave',
-	'luaui',
-	'mapborder',
-	'mapmarks',
-	'mapmeshdrawer',
-	'mapshadowpolyoffset',
-	'maxnanoparticles',
-	'maxparticles',
-	'minimap',
-	'moreclouds',
-	'moretrees',
-	'mouse1',
-	'mouse2',
-	'mouse3',
-	'mouse4',
-	'mouse5',
-	'moveback',
-	'movedown',
-	'movefast',
-	'moveforward',
-	'moveleft',
-	'moveright',
-	'moveslow',
-	'moveup',
-	'mutesound',
-	'nocost',
-	'nohelp',
-	'noluadraw',
-	'nospecdraw',
-	'nospectatorchat',
-	'pastetext',
-	'pause',
-	'quitforce',
-	'quitmenu',
-	'quitmessage',
-	'reloadcegs',
-	'reloadcob',
-	'reloadforce',
-	'reloadgame',
-	'reloadshaders',
-	'reloadtextures',
-	'resbar',
-	'resync',
-	'safegl',
-	'save',
-	'say',
-	'screenshot',
-	'select',
-	'selectcycle',
-	'selectunits',
-	'send',
-	'set',
-	'shadows',
-	'sharedialog',
-	'showelevation',
-	'showmetalmap',
-	'showpathcost',
-	'showpathflow',
-	'showpathheat',
-	'showpathtraversability',
-	'showpathtype',
-	'showstandard',
-	'skip',
-	'slowdown',
-	'soundchannelenablec',
-	'sounddevice',
-	'specfullview',
-	'spectator',
-	'specteam',
-	--'speed',
-	'speedcontrol',
-	'speedup',
-	'take',
-	'team',
-	'teamhighlight',
-	'toggleinfo',
-	'togglelos',
-	'tooltip',
-	'track',
-	'trackmode',
-	'trackoff',
-	'tset',
-	'viewselection',
-	'vsync',
-	'water',
-	'wbynum',
-	'wiremap',
-	'wiremodel',
-	'wiresky',
-	'wiretree',
-	'wirewater',
-	'widgetselector',
+local autocompleteCommands = {}
 
-	-- gadgets
-	'luarules battleroyaledebug',
-	'luarules buildicon',
-	'luarules cmd',
-	'luarules clearwrecks',
-	'luarules reducewrecks',
-	'luarules destroyunits',
-	'luarules disablecusgl4',
-	'luarules benchmark',
-	'luarules give',
-	'luarules givecat',
-	'luarules halfhealth',
-	'luarules sethealth',
-	'luarules kill_profiler',
-	'luarules loadmissiles',
-	'luarules profile',
-	'luarules reclaimunits',
-	'luarules reloadcus',
-	'luarules reloadcusgl4',
-	'luarules relocate',
-	'luarules removeunits',
-	'luarules removeobjects',
-	'luarules removeunitdef',
-	'luarules removenearbyunits',
-	'luarules setsensors',
-	'luarules neutralize',
-	'luarules maxhealth',
-	'luarules setblocking',
-	'luarules setradius',
-	'luarules setheight',
-	'luarules select',
-	'luarules spawnceg',
-	'luarules spawnunitexplosion',
-	'luarules undo',
-	'luarules unitcallinsgadget',
-	'luarules updatesun',
-	'luarules waterlevel',
-	'luarules wreckunits',
-	'luarules xp',
-	'luarules transferunits',
-	'luarules playertoteam',
-	'luarules killteam',
-	'luarules globallos',
-
-	-- zombie commands
-	'luarules zombiesetallgaia',
-	'luarules zombiequeueallcorpses',
-	'luarules zombieautospawn 0',
-	'luarules zombieclearspawns',
-	'luarules zombiepacify 0',
-	'luarules zombiesuspendorders 0',
-	'luarules zombieaggroteam 0',
-	'luarules zombieaggroally 0',
-	'luarules zombiekillall',
-	'luarules zombieclearallorders',
-	'luarules zombiedebug 0',
-	'luarules zombiemode normal',
-
-	-- build blocking commands
-	'luarules buildblock all default_reason',
-	'luarules buildunblock all default_reason',
-
-	-- widgets
-	'luaui reload',
-	'luaui disable',
-	'luaui enable',
-	'addmessage',
-	'radarpulse',
-	'ecostatstext',
-	'defrange ally air',
-	'defrange ally nuke',
-	'defrange ally ground',
-	'defrange enemy air',
-	'defrange enemy nuke',
-	'defrange enemy ground',
-	'set_camera_anchor',
-	'focus_camera_anchor',
+local autocompleteCommandRefs = {}
+local autocompleteCommandSources = {
+	engine = {},
+	widget = {},
+	synced = {},
+	unsynced = {},
 }
+local autocompleteGivecatFilters = { descriptions = {} }
+
+local function formatAutocompleteCommand(source, cmd)
+	if source == 'synced' or source == 'unsynced' then
+		return 'luarules ' .. cmd
+	end
+	return cmd
+end
+
+local function addAutocompleteCommand(source, cmd)
+	local sourceCommands = autocompleteCommandSources[source]
+	if not sourceCommands or sourceCommands[cmd] or type(cmd) ~= 'string' or cmd == '' then
+		return
+	end
+	sourceCommands[cmd] = true
+	local displayCmd = formatAutocompleteCommand(source, cmd)
+	local refCount = autocompleteCommandRefs[displayCmd] or 0
+	if refCount == 0 then
+		autocompleteCommands[#autocompleteCommands + 1] = displayCmd
+	end
+	autocompleteCommandRefs[displayCmd] = refCount + 1
+end
+
+local function removeAutocompleteCommand(source, cmd)
+	local sourceCommands = autocompleteCommandSources[source]
+	if not sourceCommands or not sourceCommands[cmd] then
+		return
+	end
+	sourceCommands[cmd] = nil
+	local displayCmd = formatAutocompleteCommand(source, cmd)
+	local refCount = (autocompleteCommandRefs[displayCmd] or 0) - 1
+	if refCount > 0 then
+		autocompleteCommandRefs[displayCmd] = refCount
+		return
+	end
+	autocompleteCommandRefs[displayCmd] = nil
+	for i = 1, #autocompleteCommands do
+		if autocompleteCommands[i] == displayCmd then
+			table.remove(autocompleteCommands, i)
+			break
+		end
+	end
+end
+
+local function clearAutocompleteSource(source)
+	local sourceCommands = autocompleteCommandSources[source]
+	if not sourceCommands then
+		return
+	end
+	for cmd in pairs(sourceCommands) do
+		removeAutocompleteCommand(source, cmd)
+	end
+end
+
+local function refreshWidgetAutocompleteCommands()
+	clearAutocompleteSource('widget')
+	for textAction in pairs(widgetHandler.actionHandler.textActions) do
+		if type(textAction) == 'string' then
+			addAutocompleteCommand('widget', textAction)
+		end
+	end
+end
+
+local function requestGadgetAutocompleteCommands()
+	if Spring.SendLuaRulesMsg then
+		Spring.SendLuaRulesMsg('gui_chat:requestChatActions')
+	end
+end
+
+local function getGivecatAutocompletePrefix(text)
+	local body = text
+	if ssub(body, 1, 1) == '/' then
+		body = ssub(body, 2)
+	end
+
+	local words = {}
+	for word in body:gmatch("%S+") do
+		words[#words + 1] = word
+	end
+
+	if words[1] ~= 'luarules' or words[2] ~= 'givecat' then
+		return nil
+	end
+
+	if ssub(text, -1) == ' ' then
+		return ''
+	end
+
+	return words[#words] or ''
+end
+
+local function refreshGivecatAutocompleteFilters()
+	autocompleteGivecatFilters = { descriptions = {}, cmdTree = nil }
+
+	local language = Spring.GetConfigString('language', 'en')
+	local interfaceFile = VFS.LoadFile('language/' .. language .. '/interface.json') or VFS.LoadFile('language/en/interface.json')
+	clearAutocompleteSource('engine')
+	if not interfaceFile then
+		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+			local cmd = keybinding and keybinding.command
+			if type(cmd) == 'string' and cmd ~= '' then
+				addAutocompleteCommand('engine', cmd)
+			end
+		end
+		return
+	end
+
+	local ok, interfaceData = pcall(Json.decode, interfaceFile)
+	if not ok or type(interfaceData) ~= 'table' then
+		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+			local cmd = keybinding and keybinding.command
+			if type(cmd) == 'string' and cmd ~= '' then
+				addAutocompleteCommand('engine', cmd)
+			end
+		end
+		return
+	end
+	autocompleteGivecatFilters.cmdTree = interfaceData.cmd
+
+	-- Do not add top-level interface.json cmd keys as static suggestions.
+	-- They include many LuaUI widget chat-actions that must appear/disappear live
+	-- with widget enable state. We still keep cmdTree for descriptions/help text.
+	for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
+		local cmd = keybinding and keybinding.command
+		if type(cmd) == 'string' and cmd ~= '' then
+			addAutocompleteCommand('engine', cmd)
+		end
+	end
+
+	local givecatFilters
+	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
+		local luarulesNode = autocompleteGivecatFilters.cmdTree.luarules
+		if type(luarulesNode) == 'table' then
+			if type(luarulesNode.givecat) == 'table' then
+				givecatFilters = luarulesNode.givecat
+			else
+				givecatFilters = luarulesNode.givecat_filters
+			end
+		end
+	end
+	if type(givecatFilters) ~= 'table' then
+		if type(autocompleteGivecatFilters.cmdTree) == 'table' and type(autocompleteGivecatFilters.cmdTree.givecat) == 'table' then
+			givecatFilters = autocompleteGivecatFilters.cmdTree.givecat
+		else
+			givecatFilters = interfaceData.cmd and interfaceData.cmd.givecat_filters
+		end
+	end
+	if type(givecatFilters) ~= 'table' then
+		return
+	end
+
+	local filterNames = {}
+	for filterName, filterDescription in pairs(givecatFilters) do
+		if filterName ~= '_description' and type(filterDescription) == 'string' then
+			filterNames[#filterNames + 1] = filterName
+			autocompleteGivecatFilters.descriptions[filterName] = filterDescription
+		end
+	end
+	table.sort(filterNames)
+
+	for i = 1, #filterNames do
+		autocompleteGivecatFilters[#autocompleteGivecatFilters + 1] = filterNames[i]
+	end
+end
 
 local playernames = {}
 local playersList = Spring.GetPlayerList()
@@ -552,6 +467,7 @@ function widget:LanguageChanged()
 		nohistory = Spring.I18N('ui.chat.nohistory'),
 		scroll = Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
+	refreshGivecatAutocompleteFilters()
 	refreshUnitDefs()
 	-- Cache color strings after language change (optimization)
 	if ColorString then
@@ -772,10 +688,13 @@ local function cancelChatInput()
 	inputTextInsertActive = false
 	inputHistoryCurrent = #inputHistory
 	autocompleteText = nil
+	state.autocompleteInfoText = nil
+	state.autocompleteDisplayPrefix = nil
 	autocompleteWords = {}
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
+		WG['guishader'].RemoveRect('chatinputinfo')
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
@@ -1470,6 +1389,17 @@ function widget:RecvLuaMsg(msg, playerID)
 		if not chobbyInterface then
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
+	elseif msg:sub(1,20) == 'gui_chat:chataction:' then
+		local source, mode, cmd = msg:match('^gui_chat:chataction:([^:]+):([^:]+):?(.*)$')
+		if source and mode then
+			if mode == 'clear' then
+				clearAutocompleteSource(source)
+			elseif mode == 'add' and cmd ~= '' then
+				addAutocompleteCommand(source, cmd)
+			elseif mode == 'remove' and cmd ~= '' then
+				removeAutocompleteCommand(source, cmd)
+			end
+		end
 	end
 end
 
@@ -1516,7 +1446,8 @@ drawChatInput = function()
 			-- background
 			local r,g,b,a
 			local inputAlpha = mathMin(0.36, ui_opacity*0.66)
-			local x2 = math.max(textPosX+lineHeight+floor(usedFont:GetTextWidth(inputText..(autocompleteText and autocompleteText or '')) * inputFontSize), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
+			local hintText = autocompleteText or ''
+			local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText .. hintText) * inputFontSize) + floor(inputFontSize * 6), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
 			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
@@ -1596,7 +1527,7 @@ drawChatInput = function()
 			end
 			usedFont:SetTextColor(r,g,b, 1)
 			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
-			if autocompleteText then
+			if autocompleteText and autocompleteWords[1] then
 				usedFont:SetTextColor(r,g,b, 0.35)
 				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
 			end
@@ -1611,14 +1542,20 @@ drawChatInput = function()
 				--	letters = word
 				--end
 
-				local letters = ''
-				for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
-					letters = word
+				local letters = state.autocompleteDisplayPrefix
+				if not letters then
+					letters = getGivecatAutocompletePrefix(inputText)
 				end
-				if ssub(inputText, #inputText) == ' ' then
-					letters = letters..' '
-				elseif prevAutocompleteLetters then
-					letters = prevAutocompleteLetters .. letters
+				if letters == nil then
+					letters = ''
+					for word in (isCmd and ssub(inputText, 2) or inputText):gmatch("%S+") do
+						letters = word
+					end
+					if ssub(inputText, #inputText) == ' ' then
+						letters = letters..' '
+					elseif prevAutocompleteLetters then
+						letters = prevAutocompleteLetters .. letters
+					end
 				end
 				local letterCount = #letters
 				local scale = 0.8
@@ -1654,6 +1591,27 @@ drawChatInput = function()
 			else
 				if WG['guishader'] then
 					WG['guishader'].RemoveRect('chatinputautocomplete')
+				end
+			end
+
+			if state.autocompleteInfoText then
+				local infoTop = activationArea[2] + chatlogHeightDiff - distance - inputHeight
+				local infoHeight = floor(inputFontSize * 1.6)
+				local infoBottom = infoTop - infoHeight
+				local infoLeft = activationArea[1] + (elementPadding * 10)
+				local infoTextX = infoLeft + leftOffset
+				local infoTextWidth = floor(usedFont:GetTextWidth(state.autocompleteInfoText) * (inputFontSize * 0.92))
+				local infoRight = infoTextX + infoTextWidth + leftOffset
+				glColor(0,0,0,inputAlpha * 0.9)
+				RectRound(infoLeft, infoBottom, infoRight, infoTop, elementCorner*0.45, 0,1,1,1)
+				usedFont:SetTextColor(r,g,b, 0.62)
+				usedFont:Print(state.autocompleteInfoText, infoTextX, infoBottom + floor(infoHeight * 0.34), inputFontSize * 0.92, "o")
+				if WG['guishader'] then
+					WG['guishader'].InsertRect(infoLeft, infoBottom, infoRight, infoTop, 'chatinputinfo')
+				end
+			else
+				if WG['guishader'] then
+					WG['guishader'].RemoveRect('chatinputinfo')
 				end
 			end
 
@@ -2013,24 +1971,13 @@ local loadedAutocompleteCommands = false
 local function autocomplete(text, fresh)
 	if not loadedAutocompleteCommands then
 		loadedAutocompleteCommands = true
-		for textAction, v in pairs(widgetHandler.actionHandler.textActions) do
-			if type(textAction) == 'string' then
-				local found = false
-				for k, cmd in ipairs(autocompleteCommands) do
-					if cmd == textAction then
-						found = true
-						break
-					end
-				end
-				if not found then
-					--spEcho('"'..textAction..'"')
-					autocompleteCommands[#autocompleteCommands+1] = textAction
-				end
-			end
-		end
+		requestGadgetAutocompleteCommands()
 	end
+	refreshWidgetAutocompleteCommands()
 
 	autocompleteText = nil
+	state.autocompleteInfoText = nil
+	state.autocompleteDisplayPrefix = nil
 	if fresh then
 		autocompleteWords = {}
 	end
@@ -2039,11 +1986,15 @@ local function autocomplete(text, fresh)
 	end
 	local letters = ''
 	local isCmd = ssub(text, 1, 1) == '/'
+	local trailingSpace = ssub(text, -1) == ' '
+	local rawWords = {}
 	local words = {}
 	for word in (ssub(text, isCmd and 2 or 1)):gmatch("%S+") do
+		rawWords[#rawWords + 1] = word
 		words[#words+1] = word
 		letters = word
 	end
+	local givecatLetters = getGivecatAutocompletePrefix(text)
 	-- if there are still suggestions then try to continue before starting fresh with a new word
 	if ssub(inputText, #text) == ' ' then
 		letters = letters..' '
@@ -2062,23 +2013,102 @@ local function autocomplete(text, fresh)
 	end
 
 	-- find autocompleteWords
-	if autocompleteWords[2] then
-		runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete, true)
+	local usedCachedAutocompleteSet = false
+	if givecatLetters ~= nil then
+		state.autocompleteDisplayPrefix = givecatLetters
+		runAutocompleteSet(autocompleteGivecatFilters, givecatLetters, allowMultiAutocomplete, true)
+	elseif autocompleteWords[2] then
+		state.autocompleteDisplayPrefix = letters
+		usedCachedAutocompleteSet = runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete, true)
 	else
+		usedCachedAutocompleteSet = false
+	end
+
+	if not usedCachedAutocompleteSet and givecatLetters == nil then
 		if #letters >= 2 then
+			state.autocompleteDisplayPrefix = letters
 			runAutocompleteSet(autocompletePlayernames, letters)
 		end
 		if not autocompleteWords[1] then
+			local commandNode
 			if isCmd then
-				if #words <= 1 then
+				local cmdTree = autocompleteGivecatFilters.cmdTree
+				local typedFromLuarulesNode = rawWords[1] == 'luarules' and rawWords[2] ~= nil
+				if type(cmdTree) == 'table' then
+					if typedFromLuarulesNode then
+						local luarulesNode = cmdTree.luarules
+						if type(luarulesNode) == 'table' then
+							commandNode = luarulesNode[rawWords[2]]
+						end
+					elseif rawWords[1] then
+						commandNode = cmdTree[rawWords[1]]
+					end
+				end
+
+				if type(commandNode) == 'table' then
+					local paramNode = commandNode
+					local paramStart = typedFromLuarulesNode and 3 or 2
+					local paramEnd = trailingSpace and #rawWords or (#rawWords - 1)
+					for i = paramStart, paramEnd do
+						if type(paramNode) ~= 'table' then
+							break
+						end
+						local token = rawWords[i]
+						if not token or token == '' then
+							break
+						end
+						local nextNode = paramNode[token]
+						if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
+							nextNode = paramNode[ssub(token, 3)]
+						end
+						if nextNode == nil then
+							break
+						end
+						paramNode = nextNode
+					end
+
+					local paramAutocompleteSet
+					if type(paramNode) == 'table' then
+						local children = {}
+						for key, value in pairs(paramNode) do
+							if key ~= '_description' and (type(value) == 'string' or type(value) == 'table') then
+								children[#children + 1] = key
+							end
+						end
+						if #children > 0 then
+							table.sort(children)
+							paramAutocompleteSet = children
+						end
+					end
+					local paramLetters = trailingSpace and '' or letters
+					if paramAutocompleteSet and (trailingSpace or paramLetters ~= '') then
+						state.autocompleteDisplayPrefix = paramLetters
+						runAutocompleteSet(paramAutocompleteSet, paramLetters, allowMultiAutocomplete, true)
+					end
+				end
+			end
+
+			if isCmd then
+				if not autocompleteWords[1] and words[1] == 'luarules' and (#words == 1 or (#words == 2 and not trailingSpace)) then
+					local luarulesSearch = trailingSpace and 'luarules ' or 'luarules'
+					if #words == 2 and not trailingSpace then
+						luarulesSearch = 'luarules ' .. words[2]
+					end
+					state.autocompleteDisplayPrefix = luarulesSearch
+					runAutocompleteSet(autocompleteCommands, luarulesSearch, allowMultiAutocomplete)
+				elseif not autocompleteWords[1] and #words <= 1 then
+					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete)
-				else
+				elseif not autocompleteWords[1] then
+					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
 				end
 			else
 				if ssub(letters, 1, 1) == ':' and #letters >= 2 then
+					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(emojiAutocompleteAliases, letters, allowMultiAutocomplete)
 				elseif #letters >= 2 then
+					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(autocompleteUnitNames, letters, allowMultiAutocomplete, true)
 				end
 			end
@@ -2086,9 +2116,119 @@ local function autocomplete(text, fresh)
 	end
 
 	-- if prev autocomplete words didnt result in suggestions, redo it freshly
-	if prevAutocompleteLetters and not autocompleteWords[1] and not ssub(inputText, #text) == ' ' then
+	if prevAutocompleteLetters and not autocompleteWords[1] and ssub(inputText, #text) ~= ' ' then
 		prevAutocompleteLetters = nil
 		autocomplete(text, true)
+	elseif isCmd and not autocompleteWords[2] then
+		local commandName
+		local hasExactTypedCommand = false
+		local typedFromLuarules = false
+		if rawWords[1] then
+			if rawWords[1] == 'luarules' and rawWords[2] then
+				commandName = rawWords[2]
+				typedFromLuarules = true
+				local exactLuarules = 'luarules ' .. commandName
+				for i = 1, #autocompleteCommands do
+					if autocompleteCommands[i] == exactLuarules then
+						hasExactTypedCommand = true
+						break
+					end
+				end
+			else
+				commandName = rawWords[1]
+				for i = 1, #autocompleteCommands do
+					if autocompleteCommands[i] == commandName then
+						hasExactTypedCommand = true
+						break
+					end
+				end
+			end
+		end
+
+		if not hasExactTypedCommand and autocompleteWords[1] then
+			if ssub(autocompleteWords[1], 1, 9) == 'luarules ' then
+				commandName = ssub(autocompleteWords[1], 10)
+				typedFromLuarules = true
+			else
+				commandName = autocompleteWords[1]:match('^(%S+)')
+			end
+		end
+
+		if commandName then
+			local cmdTree = autocompleteGivecatFilters.cmdTree
+			local node
+			if type(cmdTree) == 'table' then
+				if typedFromLuarules then
+					local luarulesNode = cmdTree.luarules
+					if type(luarulesNode) == 'table' then
+						node = luarulesNode[commandName]
+					end
+				else
+					node = cmdTree[commandName]
+				end
+			end
+			if type(node) == 'string' then
+				state.autocompleteInfoText = node
+			elseif type(node) == 'table' then
+				if type(node._description) == 'string' then
+					state.autocompleteInfoText = node._description
+				end
+				local paramStart = typedFromLuarules and 3 or 2
+				for i = paramStart, #rawWords do
+					local token = rawWords[i]
+					if not token or token == '' then
+						break
+					end
+					local nextNode = node[token]
+					if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
+						nextNode = node[ssub(token, 3)]
+					end
+					if nextNode == nil then
+						break
+					end
+					if type(nextNode) == 'string' then
+						state.autocompleteInfoText = nextNode
+						break
+					elseif type(nextNode) == 'table' then
+						if type(nextNode._description) == 'string' then
+							state.autocompleteInfoText = nextNode._description
+						end
+						node = nextNode
+					else
+						break
+					end
+				end
+			end
+
+			if not state.autocompleteInfoText then
+				local isGadgetChatAction = autocompleteCommandSources.synced[commandName] or autocompleteCommandSources.unsynced[commandName]
+				if typedFromLuarules and isGadgetChatAction then
+					local rulesDescriptionKey = 'cmd.luarules.' .. commandName .. '._description'
+					local rulesDescriptionValue = Spring.I18N(rulesDescriptionKey)
+					if type(rulesDescriptionValue) == 'string' and rulesDescriptionValue ~= rulesDescriptionKey then
+						state.autocompleteInfoText = rulesDescriptionValue
+					else
+						local rulesKey = 'cmd.luarules.' .. commandName
+						local rulesValue = Spring.I18N(rulesKey)
+						if type(rulesValue) == 'string' and rulesValue ~= rulesKey then
+							state.autocompleteInfoText = rulesValue
+						end
+					end
+				else
+					local cmdDescriptionKey = 'cmd.' .. commandName .. '._description'
+					local cmdDescriptionValue = Spring.I18N(cmdDescriptionKey)
+					if type(cmdDescriptionValue) == 'string' and cmdDescriptionValue ~= cmdDescriptionKey then
+						state.autocompleteInfoText = cmdDescriptionValue
+					else
+						local cmdKey = 'cmd.' .. commandName
+						local cmdValue = Spring.I18N(cmdKey)
+						if type(cmdValue) == 'string' and cmdValue ~= cmdKey then
+							state.autocompleteInfoText = cmdValue
+						end
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -2314,12 +2454,10 @@ function widget:KeyPress(key)
 				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
 				inputTextPosition = inputTextPosition - 1
 				inputHistory[#inputHistory] = inputText
-				if not (prevAutocompleteLetters and inputTextPosition == #inputText and ssub(inputText, #inputText) ~= ' ') then
-					prevAutocompleteLetters = nil
-				end
+				prevAutocompleteLetters = nil
 			end
 			cursorBlinkTimer = 0
-			autocomplete(inputText, not prevAutocompleteLetters)
+			autocomplete(inputText, true)
 		elseif key == 127 then -- DELETE
 			if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 				-- Delete selection
@@ -2398,6 +2536,7 @@ function widget:KeyPress(key)
 			end
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0
+			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 274 then -- DOWN
 			inputSelectionStart = nil
@@ -2408,10 +2547,11 @@ function widget:KeyPress(key)
 			inputText = inputHistory[inputHistoryCurrent]
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0
+			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 then -- TAB
 			inputSelectionStart = nil
-			if autocompleteText then
+			if autocompleteText and autocompleteWords[1] then
 				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
 				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
 				inputHistory[#inputHistory] = inputText
@@ -2838,6 +2978,7 @@ function widget:Initialize()
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName
 		end
 	end
+	requestGadgetAutocompleteCommands()
 end
 
 function widget:Shutdown()
@@ -2848,6 +2989,7 @@ function widget:Shutdown()
 		WG['guishader'].RemoveRect('chat')
 		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
+		WG['guishader'].RemoveRect('chatinputinfo')
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)

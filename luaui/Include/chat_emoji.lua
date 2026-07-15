@@ -1,11 +1,13 @@
 local ChatEmoji = {}
 
 local IMAGE_DIR = ":n:LuaUI/Images/emojis/twemoji/"
+local CUSTOM_IMAGE_DIR = ":n:LuaUI/Images/emojis/custom/"
 
 local aliases = {
 	angry = "angry.png",
 	clap = "clap.png",
 	confused = "confused.png",
+	cookie = { image = "cookie.png", custom = true },
 	cool = "cool.png",
 	cry = "cry.png",
 	fire = "fire.png",
@@ -18,6 +20,7 @@ local aliases = {
 	ok_hand = "ok_hand.png",
 	party = "party.png",
 	pleading = "pleading.png",
+	pray = "praying.png",
 	rofl = "rofl.png",
 	sad = "sad.png",
 	salute = "salute.png",
@@ -26,6 +29,7 @@ local aliases = {
 	smile = "smile.png",
 	smiley = "smiley.png",
 	sob = "sob.png",
+	skull = "skull.png",
 	tada = "tada.png",
 	thinking = "thinking.png",
 	thumbsdown = "thumbsdown.png",
@@ -38,6 +42,7 @@ local unicode = {
 	angry = "\240\159\152\160",
 	clap = "\240\159\145\143",
 	confused = "\240\159\152\149",
+	cookie = "\240\159\141\170",
 	cool = "\240\159\152\142",
 	cry = "\240\159\152\162",
 	fire = "\240\159\148\165",
@@ -50,6 +55,7 @@ local unicode = {
 	ok_hand = "\240\159\145\140",
 	party = "\240\159\165\179",
 	pleading = "\240\159\165\186",
+	pray = "\240\159\153\143",
 	rofl = "\240\159\164\163",
 	sad = "\240\159\152\162",
 	salute = "\240\159\171\161",
@@ -58,6 +64,7 @@ local unicode = {
 	smile = "\240\159\152\132",
 	smiley = "\240\159\152\131",
 	sob = "\240\159\152\173",
+	skull = "\240\159\146\128",
 	tada = "\240\159\142\137",
 	thinking = "\240\159\164\148",
 	thumbsdown = "\240\159\145\142",
@@ -80,6 +87,17 @@ local ssub = string.sub
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
+
+local function getImagePath(alias)
+	local data = aliases[alias]
+	if not data then
+		return
+	end
+	if type(data) == "table" then
+		return (data.custom and CUSTOM_IMAGE_DIR or IMAGE_DIR) .. data.image
+	end
+	return IMAGE_DIR .. data
+end
 
 local function emojiSize(fontSize)
 	return max(12, floor(fontSize * 1.05))
@@ -233,7 +251,7 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 		elseif emojiAlias then
 			endText()
 			glColor(1, 1, 1, 1)
-			glTexture(IMAGE_DIR .. aliases[emojiAlias])
+			glTexture(getImagePath(emojiAlias))
 			glTexRect(drawX, y + emojiYOffset, drawX + size, y + emojiYOffset + size)
 			glTexture(false)
 			drawX = drawX + size + 2
