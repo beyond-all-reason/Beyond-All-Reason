@@ -2150,43 +2150,30 @@ local function resolveTarget(info, cmdID, targetID)
 			isReclaim    = isReclaim,
 			isResurrect  = isResurrect,
 		}
-		if isUnit and (not info.isFactory) and spGetUnitIsBeingBuilt(resolvedID) then
-			local factoryID, fx, fy, fz, factoryRadius = getFactoryBuildAnchor(resolvedID)
-			if factoryID and fx then
-				meta.assistFactoryID = factoryID
-				meta.anchorX = fx
-				meta.anchorY = fy
-				meta.anchorZ = fz
-				meta.jitterRadius = (factoryRadius and factoryRadius > 0) and (factoryRadius * factor) or nil
-				meta.targetRadius = factoryRadius or 0
-				meta.effectiveBD = info.buildDistance and (info.buildDistance + (factoryRadius or 0)) or nil
-			end
-		end
+		-- Keep assistant builders aimed at the actual unit being built.
+		-- HOMING_SKIP_INCOMPLETE already prevents odd forward-homing while the
+		-- buildee is still incomplete, so no factory-center anchor override needed.
 		info.targetMeta = meta
 	end
 
 	local px, py, pz
-	if meta.assistFactoryID then
-		px, py, pz = meta.anchorX, meta.anchorY, meta.anchorZ
+	local cached = emitTargetPosCache[meta.targetID]
+	if cached and cached[1] == piecePosEpoch then
+		px, py, pz = cached[2], cached[3], cached[4]
 	else
-		local cached = emitTargetPosCache[meta.targetID]
-		if cached and cached[1] == piecePosEpoch then
-			px, py, pz = cached[2], cached[3], cached[4]
+		if meta.isFeature then
+			px, py, pz = spGetFeaturePosition(meta.resolvedID)
 		else
-			if meta.isFeature then
-				px, py, pz = spGetFeaturePosition(meta.resolvedID)
+			-- spGetUnitPosition(uid, true) returns 6 values: base + mid. We want mid.
+			local _, _, _, mx, my, mz = spGetUnitPosition(meta.resolvedID, true)
+			px, py, pz = mx, my, mz
+		end
+		if px then
+			if cached then
+				cached[1] = piecePosEpoch
+				cached[2] = px; cached[3] = py; cached[4] = pz
 			else
-				-- spGetUnitPosition(uid, true) returns 6 values: base + mid. We want mid.
-				local _, _, _, mx, my, mz = spGetUnitPosition(meta.resolvedID, true)
-				px, py, pz = mx, my, mz
-			end
-			if px then
-				if cached then
-					cached[1] = piecePosEpoch
-					cached[2] = px; cached[3] = py; cached[4] = pz
-				else
-					emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz }
-				end
+				emitTargetPosCache[meta.targetID] = { piecePosEpoch, px, py, pz }
 			end
 		end
 	end
@@ -2206,7 +2193,7 @@ local function resolveTarget(info, cmdID, targetID)
 	else
 		inverse = false
 	end
-	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and (not meta.assistFactoryID) and meta.resolvedID or nil
+	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and meta.resolvedID or nil
 end
 
 --------------------------------------------------------------------------------

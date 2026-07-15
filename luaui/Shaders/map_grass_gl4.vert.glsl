@@ -38,6 +38,7 @@
 
 uniform vec4 grassuniforms; //windx, windz, 0, globalalpha
 uniform float distanceMult; //yes this is the additional distance multiplier
+uniform float grassBladeScale;
 
 uniform sampler2D grassBladeColorTex;
 
@@ -97,7 +98,8 @@ void main() {
     return;
   }
 
-  vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
+  float bladeScale = instancePosRotSize.w * grassBladeScale;
+  vec3 grassVertWorldPos = vertexPos * bladeScale; // scale it
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
 
   grassVertWorldPos.xz = (rotY * grassVertWorldPos).xz + instancePosRotSize.xz; // rotate Y and move to world pos
@@ -108,7 +110,7 @@ void main() {
   //--- Heightmap sampling
   vec2 uvHM = vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0)) / mapSize.xy;
   float groundHeight = textureLod(heightmapTex, uvHM, 0.0).x;
-  grassVertWorldPos.y = (vertexPos.y + 0.5) * instancePosRotSize.w + groundHeight;
+  grassVertWorldPos.y = (vertexPos.y + 0.5) * bladeScale + groundHeight;
 
   //--- LOS tex
   vec4 losTexSample = texture(losTex, vec2(grassVertWorldPos.x / mapSize.z, grassVertWorldPos.z / mapSize.w)); // lostex is PO2
@@ -157,7 +159,7 @@ void main() {
 
   instanceParamsVS.w = mix(vec3(0.0,1.0,0.0),vec3(0.0,shadeamount,0.0), texcoords0.y).y;
 
-  grassVertWorldPos = grassVertWorldPos.xyz +  grassNoise.rgb * vertexPos.y * instancePosRotSize.w * WINDSTRENGTH * grassuniforms.z; // wind is a factor of
+  grassVertWorldPos = grassVertWorldPos.xyz +  grassNoise.rgb * vertexPos.y * bladeScale * WINDSTRENGTH * grassuniforms.z; // wind is a factor of
 
 
   //--- UNIT BENDING ---
@@ -190,7 +192,7 @@ void main() {
       vec2 bendDir = totalBend / bendLen;
       // Convert to rotation angle (0 to ~80 degrees) to preserve blade length
       float bendAngle = clampedBend * UNITBENDSTRENGTH * 0.175;
-      float heightFromBase = max(0.0, vertexPos.y + 0.5) * instancePosRotSize.w;
+      float heightFromBase = max(0.0, vertexPos.y + 0.5) * bladeScale;
       // Rotate blade outward: sin for horizontal displacement, 1-cos for height reduction
       grassVertWorldPos.xz += bendDir * sin(bendAngle) * heightFromBase;
       grassVertWorldPos.y -= heightFromBase * (1.0 - cos(bendAngle));
