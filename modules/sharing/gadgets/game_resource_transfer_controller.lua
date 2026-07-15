@@ -51,7 +51,7 @@ end
 
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local ResourceFactorCache = VFS.Include("modules/sharing/resource/factor_cache.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 -- auto-registered effectful layer (modules/sharing/actions/)
 local SharingActions = ModuleHandler.LoadActions("sharing")
@@ -133,8 +133,8 @@ local function InitializeNewTeam(teamId)
 	-- per-team factor; GetCachedPolicyResult pairs it against other teams on read
 	contextFactory.clearResourceCache()
 	local ctx = contextFactory.policy(teamId, teamId)
-	ResourceTransfer.CacheTeamFactor(Spring, teamId, ResourceTypes.METAL, ctx)
-	ResourceTransfer.CacheTeamFactor(Spring, teamId, ResourceTypes.ENERGY, ctx)
+	ResourceFactorCache.CacheTeamFactor(Spring, teamId, ResourceTypes.METAL, ctx)
+	ResourceFactorCache.CacheTeamFactor(Spring, teamId, ResourceTypes.ENERGY, ctx)
 end
 
 function gadget:PlayerAdded(playerID)
@@ -225,7 +225,7 @@ local function ProcessEconomy(frame)
 	end
 
 	-- policy factor refresh on same tick, reading post-redistribution currents (updateRate 0 = always)
-	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, 0, contextFactory)
+	lastPolicyUpdate = ResourceFactorCache.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, 0, contextFactory)
 
 	if tracyAvailable then
 		tracy.ZoneEnd()

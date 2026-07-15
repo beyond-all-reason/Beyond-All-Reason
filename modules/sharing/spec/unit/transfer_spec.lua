@@ -2,7 +2,9 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
-local UnitTransfer = VFS.Include("modules/sharing/unit/synced.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local UnitTransferShared = VFS.Include("modules/sharing/unit/shared.lua")
+local UnitTransferAction = VFS.Include("modules/sharing/actions/unit_transfer.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 
 local Units = {
@@ -123,7 +125,7 @@ describe(ModeEnums.ModOptions.UnitSharingMode .. " #policy", function()
 				---@diagnostic disable-next-line: global-in-non-module
 				_G.UnitDefs = defsByKey
 				local ctx = ContextFactoryModule.create(api).policy(sender.id, receiver.id)
-				result = UnitTransfer.GetPolicy(ctx)
+				result = PolicyEvaluation.GetUnitPolicy(ctx)
 			end)
 
 			after_each(function()
@@ -139,7 +141,7 @@ describe(ModeEnums.ModOptions.UnitSharingMode .. " #policy", function()
 				it("should " .. (shouldAllow and "allow" or "not allow") .. " validating transfer of " .. unitDefName, function()
 					local unitId = unitIds[unitDefName]
 					assert.is_not_nil(unitId)
-					local validation = UnitTransfer.ValidateUnits(result, { unitId }, api, _G.UnitDefs)
+					local validation = UnitTransferShared.ValidateUnits(result, { unitId }, api, _G.UnitDefs)
 					if not config.canShareUnits then
 						-- Disabled mode short-circuits validation
 						assert.equal(0, validation.validUnitCount)
@@ -220,7 +222,7 @@ describe("UnitTransfer #action", function()
 			}
 
 			local transferSpy = spy.on(spring, "TransferUnit")
-			result = UnitTransfer.UnitTransfer(ctx)
+			result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.Success, result.outcome)
 			assert.equal(#unitIds, result.validationResult.validUnitCount)
@@ -268,7 +270,7 @@ describe("UnitTransfer #action", function()
 				},
 			}
 
-			result = UnitTransfer.UnitTransfer(ctx)
+			result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.PartialSuccess, result.outcome)
 			assert.equal(2, result.validationResult.validUnitCount)
@@ -313,7 +315,7 @@ describe("UnitTransfer #action", function()
 				},
 			}
 
-			result = UnitTransfer.UnitTransfer(ctx)
+			result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.Success, result.outcome)
 			assert.equal(1, result.validationResult.validUnitCount)
@@ -376,7 +378,7 @@ describe("UnitTransfer #action", function()
 				},
 			}
 
-			result = UnitTransfer.UnitTransfer(ctx)
+			result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.Success, result.validationResult.status)
 			assert.equal(TransferEnums.UnitValidationOutcome.Failure, result.outcome)
@@ -422,7 +424,7 @@ describe("UnitTransfer #action", function()
 				policyResult = policyResult,
 			}
 
-			result = UnitTransfer.UnitTransfer(ctx)
+			result = UnitTransferAction.execute(ctx)
 
 			assert.equal(policyResult, result.policyResult)
 		end)
@@ -466,7 +468,7 @@ describe("UnitTransfer #action", function()
 				},
 			}
 
-			local result = UnitTransfer.UnitTransfer(ctx)
+			local result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.Failure, result.outcome)
 			assert.equal(0, result.validationResult.validUnitCount)
@@ -510,7 +512,7 @@ describe("UnitTransfer #action", function()
 				},
 			}
 
-			local result = UnitTransfer.UnitTransfer(ctx)
+			local result = UnitTransferAction.execute(ctx)
 
 			assert.equal(TransferEnums.UnitValidationOutcome.Failure, result.outcome)
 			assert.equal(0, result.validationResult.validUnitCount)
@@ -554,7 +556,7 @@ describe("Easy Tax stun mechanics #stun", function()
 			end
 
 			local ctx = ContextFactoryModule.create(api).policy(sender.id, receiver.id)
-			local policy = UnitTransfer.GetPolicy(ctx)
+			local policy = PolicyEvaluation.GetUnitPolicy(ctx)
 
 			assert.equal(30, policy.stunSeconds)
 			assert.equal(ModeEnums.UnitFilterCategory.Resource, policy.stunCategory)
@@ -568,7 +570,7 @@ describe("Easy Tax stun mechanics #stun", function()
 			end
 
 			local ctx = ContextFactoryModule.create(api).policy(sender.id, receiver.id)
-			local policy = UnitTransfer.GetPolicy(ctx)
+			local policy = PolicyEvaluation.GetUnitPolicy(ctx)
 
 			assert.equal(0, policy.stunSeconds)
 			assert.equal(0, policy.buildDelaySeconds)
@@ -589,7 +591,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
 			assert.equal(0, result.validUnitCount)
 			assert.equal(1, result.invalidUnitCount)
 		end)
@@ -607,7 +609,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
 			assert.equal(1, result.validUnitCount)
 			assert.equal(0, result.invalidUnitCount)
 		end)
@@ -625,7 +627,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { completedId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { completedId }, api, mockDefs)
 			assert.equal(1, result.validUnitCount)
 			assert.equal(0, result.invalidUnitCount)
 		end)
@@ -643,7 +645,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { combatNanoId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { combatNanoId }, api, mockDefs)
 			assert.equal(1, result.validUnitCount)
 			assert.equal(0, result.invalidUnitCount)
 		end)
@@ -661,7 +663,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { nanoframeId }, api, mockDefs)
 			assert.equal(1, result.validUnitCount)
 			assert.equal(0, result.invalidUnitCount)
 		end)
@@ -681,7 +683,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { nanoId, completedId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { nanoId, completedId }, api, mockDefs)
 			assert.equal(1, result.validUnitCount)
 			assert.equal(1, result.invalidUnitCount)
 			assert.equal(TransferEnums.UnitValidationOutcome.PartialSuccess, result.status)
@@ -700,7 +702,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Combat,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { combatNanoId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { combatNanoId }, api, mockDefs)
 			assert.equal(0, result.validUnitCount)
 			assert.equal(1, result.invalidUnitCount)
 		end)
@@ -720,7 +722,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunSeconds = 0,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { builderId, fusionId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { builderId, fusionId }, api, mockDefs)
 			assert.equal(2, result.validUnitCount)
 			assert.equal(1, result.buildDelayedUnitCount)
 		end)
@@ -737,7 +739,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunSeconds = 0,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { fusionId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { fusionId }, api, mockDefs)
 			assert.equal(0, result.buildDelayedUnitCount)
 		end)
 	end)
@@ -757,7 +759,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { fusionId, builderId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { fusionId, builderId }, api, mockDefs)
 			assert.equal(2, result.validUnitCount)
 			assert.equal(1, result.stunnedUnitCount)
 		end)
@@ -775,7 +777,7 @@ describe("Easy Tax stun mechanics #stun", function()
 				stunCategory = ModeEnums.UnitFilterCategory.Resource,
 			}
 
-			local result = UnitTransfer.ValidateUnits(policy, { builderId }, api, mockDefs)
+			local result = UnitTransferShared.ValidateUnits(policy, { builderId }, api, mockDefs)
 			assert.equal(0, result.stunnedUnitCount)
 		end)
 	end)

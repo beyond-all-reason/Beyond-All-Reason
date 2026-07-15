@@ -3,7 +3,8 @@ local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local ResourceTransferAction = VFS.Include("modules/sharing/actions/resource_transfer.lua")
 local ResourceShared = VFS.Include("modules/sharing/resource/shared.lua")
 local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
 
@@ -19,7 +20,7 @@ local function buildResourceResult(spring, taxRate, sender, receiver, resourceTy
 	end
 	SharedConfig.resetCache()
 	local ctx = ContextFactoryModule.create(springApi).policy(sender.id, receiver.id)
-	return ResourceTransfer.CalcResourcePolicy(ctx, resourceType)
+	return PolicyEvaluation.CalcResourcePolicy(ctx, resourceType)
 end
 
 local spring = Builders
@@ -268,7 +269,7 @@ describe("ResourceTransfer #action", function()
 				},
 			}
 
-			local result = ResourceTransfer.ResourceTransfer(ctx)
+			local result = ResourceTransferAction.execute(ctx)
 
 			assert.is_true(result.success)
 			assert.equal(100, result.sent)
@@ -311,7 +312,7 @@ describe("ResourceTransfer #action", function()
 				},
 			}
 
-			local result = ResourceTransfer.ResourceTransfer(ctx)
+			local result = ResourceTransferAction.execute(ctx)
 
 			assert.is_true(result.success)
 			assert.equal(100, result.sent)
@@ -352,7 +353,7 @@ describe("ResourceTransfer #action", function()
 				},
 			}
 
-			local result = ResourceTransfer.ResourceTransfer(ctx)
+			local result = ResourceTransferAction.execute(ctx)
 
 			assert.is_true(result.success)
 			-- sent = 200/0.7 = 285.71
@@ -392,7 +393,7 @@ describe("ResourceTransfer #action", function()
 				},
 			}
 
-			local result = ResourceTransfer.ResourceTransfer(ctx)
+			local result = ResourceTransferAction.execute(ctx)
 
 			assert.is_true(result.success)
 			-- nothing is sendable at 100% tax (infinite cost)
@@ -432,7 +433,7 @@ describe("ResourceTransfer #action", function()
 				},
 			}
 
-			local result = ResourceTransfer.ResourceTransfer(ctx)
+			local result = ResourceTransferAction.execute(ctx)
 
 			assert.is_true(result.success)
 			-- sent = 300/0.8 = 375

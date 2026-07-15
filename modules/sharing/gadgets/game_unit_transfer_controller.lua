@@ -24,7 +24,7 @@ end
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local Shared = VFS.Include("modules/sharing/unit/shared.lua")
-local UnitTransfer = VFS.Include("modules/sharing/unit/synced.lua")
+local UnitFactorCache = VFS.Include("modules/sharing/unit/factor_cache.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 -- auto-registered effectful layer (modules/sharing/actions/)
 local SharingActions = ModuleHandler.LoadActions("sharing")
@@ -101,7 +101,7 @@ local UnitTransferController = {}
 ---@param teamId integer
 local function InitializeNewTeam(teamId)
 	local ctx = contextFactory.policy(teamId, teamId)
-	UnitTransfer.CacheTeamFactor(springRepo, teamId, ctx)
+	UnitFactorCache.CacheTeamFactor(springRepo, teamId, ctx)
 end
 
 local function UpdatePolicyCache(frame)

@@ -27,7 +27,7 @@ local Builders = {
 	UnitDefs = UnitDefsBuilder,
 }
 
--- Mode helpers pull in the policy pipeline (context_factory / resource_transfer_synced),
+-- Mode helpers pull in the policy pipeline (context_factory / policy_evaluation),
 -- so load them lazily: specs that never touch Builders.Mode don't drag the pipeline into
 -- their layer, which keeps the lower stacked PRs (library, modes/economy) self-contained.
 return setmetatable(Builders, {
