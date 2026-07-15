@@ -122,6 +122,8 @@ local function IsSyncedCode()
 	return isSyncedCode
 end
 
+local isHeadless = (Platform and Platform.isHeadless) or false
+
 if IsSyncedCode() then
 	local devModeEnabled = string.find(string.upper(Game.gameVersion), "$VERSION", 1, true)
 	Spring.SetGameRulesParam('isDevMode', devModeEnabled)
@@ -347,6 +349,58 @@ local callInLists = {
 	"UnsyncedHeightMapUpdate"
 }
 
+local headlessDisabledCallIns = {
+	DrawUnit = true,
+	DrawFeature = true,
+	DrawShield = true,
+	DrawProjectile = true,
+	ViewResize = true,
+	DrawGenesis = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawScreen = true,
+	DrawInMiniMap = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	FontsChanged = true,
+}
+
+local headlessDisabledGadgetPrefixes = {
+	"gfx_",
+	"gui_",
+	"snd_",
+}
+
+local function ShouldSkipHeadlessUnsyncedGadget(gadget, basename)
+	if not isHeadless or IsSyncedCode() then
+		return false
+	end
+
+	for i = 1, #headlessDisabledGadgetPrefixes do
+		local prefix = headlessDisabledGadgetPrefixes[i]
+		if string.sub(basename, 1, #prefix) == prefix then
+			return true
+		end
+	end
+
+	for _, ciName in ipairs(callInLists) do
+		if type(gadget[ciName]) == 'function' and not headlessDisabledCallIns[ciName] then
+			return false
+		end
+	end
+
+	return true
+end
+
 
 -- initialize the call-in lists
 do
@@ -489,6 +543,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	err = self:ValidateGadget(gadget)
 	if err then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
+		return nil
+	end
+
+	if ShouldSkipHeadlessUnsyncedGadget(gadget, basename) then
+		Spring.Log(LOG_SECTION, LOG.INFO, 'Headless: skipped unsynced gadget: ' .. basename)
 		return nil
 	end
 
@@ -878,6 +937,11 @@ function gadgetHandler:UpdateCallIn(name)
 	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
 
 	_G[name] = nil
+
+	if isHeadless and headlessDisabledCallIns[name] then
+		Script.UpdateCallIn(name)
+		return
+	end
 
 	if forceUpdate or #self[listName] > 0 then
 		local selffunc = self[name]

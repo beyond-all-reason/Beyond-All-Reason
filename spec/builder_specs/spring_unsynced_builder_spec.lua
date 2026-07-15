@@ -11,7 +11,7 @@ local function GetInfo() return { name = "tmp_unsynced" } end
 local seen = {
     unitDefs    = UnitDefs,
     platformGl  = Platform and Platform.gl,
-    isHeadless  = not (Platform and Platform.gl),
+    isHeadless  = Platform and Platform.isHeadless,
 }
 
 function widget:Initialize()
