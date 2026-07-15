@@ -340,4 +340,34 @@ function Shared.IsShareableDef(unitDefId, categories, unitDefs)
 	return false
 end
 
+---Effective sharing modes for a context (tech enrichment first, then modoption).
+---@param ctx PolicyContext
+---@param modOptions table
+---@return string[]
+function Shared.ResolveSharingModes(ctx, modOptions)
+	return ctx.unitSharingModes or { modOptions.unit_sharing_mode or ModeEnums.UnitFilterCategory.None }
+end
+
+---Assemble a UnitPolicyResult from context + mod options; denials carry the
+---same shape as allowed results so downstream consumers read one type.
+---@param ctx PolicyContext
+---@param modOptions table
+---@param canShare boolean
+---@return UnitPolicyResult
+function Shared.BuildUnitPolicyResult(ctx, modOptions, canShare)
+	local stunSeconds = tonumber(modOptions[ModeEnums.ModOptions.UnitShareStunSeconds]) or 0
+	local stunCategory = modOptions[ModeEnums.ModOptions.UnitStunCategory] or ModeEnums.UnitFilterCategory.Resource
+	local buildDelaySeconds = tonumber(modOptions[ModeEnums.ModOptions.ConstructorBuildDelay]) or 0
+	return {
+		canShare = canShare,
+		senderTeamId = ctx.senderTeamId,
+		receiverTeamId = ctx.receiverTeamId,
+		sharingModes = Shared.ResolveSharingModes(ctx, modOptions),
+		stunSeconds = stunSeconds,
+		stunCategory = stunCategory,
+		buildDelaySeconds = buildDelaySeconds,
+		techBlocking = ctx.ext and ctx.ext.techBlocking or nil,
+	}
+end
+
 return Shared

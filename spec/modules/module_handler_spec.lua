@@ -1,0 +1,87 @@
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+
+describe("ModuleHandler", function()
+	describe("Discover", function()
+		local manifests = ModuleHandler.Discover()
+
+		it("finds the sharing module with its manifest", function()
+			local sharing = manifests.sharing
+			assert.is_table(sharing)
+			assert.are.equal("sharing", sharing.name)
+			assert.are.equal("modules/sharing/", sharing.dir)
+			assert.are.equal("modules/sharing/api.lua", sharing.provides)
+		end)
+
+		it("does not mistake plain shared-lib directories for modules", function()
+			assert.is_nil(manifests.i18n)
+			assert.is_nil(manifests.graphics)
+			assert.is_nil(manifests.types)
+		end)
+	end)
+
+	describe("LoadActions", function()
+		local actions = ModuleHandler.LoadActions("sharing")
+
+		it("auto-registers one action per file in actions/", function()
+			assert.is_table(actions.byName.ResourceTransfer)
+			assert.is_table(actions.byName.UnitTransfer)
+			assert.are.equal("function", type(actions.byName.ResourceTransfer.execute))
+		end)
+
+		it("registers the action files themselves (include-once)", function()
+			local Action = ModuleHandler.Include("modules/sharing/actions/resource_transfer.lua")
+			assert.are.equal(Action.execute, actions.byName.ResourceTransfer.execute)
+		end)
+
+		it("returns an empty registry for unknown modules", function()
+			local unknown = ModuleHandler.LoadActions("nope")
+			assert.are.same({}, unknown.byName)
+			assert.are.same({}, unknown.list)
+		end)
+	end)
+
+	describe("ValidateActionArgs", function()
+		local action = ModuleHandler.LoadActions("sharing").byName.ResourceTransfer
+
+		it("accepts args matching the declared schema", function()
+			assert.is_true(ModuleHandler.ValidateActionArgs(action, { ctx = {} }))
+		end)
+
+		it("rejects missing required parameters and type mismatches", function()
+			assert.is_false(ModuleHandler.ValidateActionArgs(action, {}))
+			assert.is_false(ModuleHandler.ValidateActionArgs(action, { ctx = "not a table" }))
+		end)
+	end)
+
+	describe("LoadPolicies", function()
+		local policies = ModuleHandler.LoadPolicies("sharing")
+
+		it("loads categories from policies/ subdirectories", function()
+			assert.is_table(policies.resource)
+			assert.is_table(policies.unit)
+		end)
+
+		it("orders policies by filename with the compute terminal last", function()
+			local names = {}
+			for _, policy in ipairs(policies.resource) do
+				names[#names + 1] = policy.name
+			end
+			assert.are.same({ "SharingEnabled", "AlliedOrNonPlayerSender", "ReceiverActive", "ComputeResourceTransfer" }, names)
+			assert.are.equal("ComputeUnitPolicy", policies.unit[#policies.unit].name)
+		end)
+
+		it("stamps the category from the subdirectory name", function()
+			assert.are.equal("resource", policies.resource[1].category)
+			assert.are.equal("unit", policies.unit[1].category)
+		end)
+	end)
+
+	describe("Get", function()
+		it("resolves the sharing contract lazily", function()
+			local Sharing = ModuleHandler.Get("sharing")
+			assert.is_table(Sharing)
+			assert.is_table(Sharing.TransferEnums)
+			assert.is_table(Sharing.ShareStats)
+		end)
+	end)
+end)

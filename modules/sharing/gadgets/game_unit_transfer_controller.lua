@@ -25,6 +25,9 @@ local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local Shared = VFS.Include("modules/sharing/unit/shared.lua")
 local UnitTransfer = VFS.Include("modules/sharing/unit/synced.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+-- auto-registered effectful layer (modules/sharing/actions/)
+local SharingActions = ModuleHandler.LoadActions("sharing")
 local UnitSharingCategories = VFS.Include("modules/sharing/unit/categories.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
 local PolicyEvents = VFS.Include("modules/sharing/policy_events.lua")
@@ -156,7 +159,7 @@ function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
 	end
 
 	local transferCtx = contextFactory.unitTransfer(senderTeamID, targetTeamID, unitIDs, true, policyResult, validation)
-	local result = UnitTransfer.UnitTransfer(transferCtx)
+	local result = SharingActions.byName.UnitTransfer.execute(transferCtx)
 
 	local outcome = result.outcome
 	if outcome == TransferEnums.UnitValidationOutcome.Success or outcome == TransferEnums.UnitValidationOutcome.PartialSuccess then

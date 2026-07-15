@@ -52,6 +52,9 @@ end
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+-- auto-registered effectful layer (modules/sharing/actions/)
+local SharingActions = ModuleHandler.LoadActions("sharing")
 local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 local Comms = VFS.Include("modules/sharing/resource/comms.lua")
 local TechBlockingShared = VFS.Include("modules/sharing/tech/blocking.lua")
@@ -99,7 +102,7 @@ local CADENCE = 30
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
 	local policyResult = Shared.GetCachedPolicyResult(teamID, targetTeamID, resource, springRepo)
 	local ctx = contextFactory.resourceTransfer(teamID, targetTeamID, resource, amount, policyResult)
-	local transferResult = ResourceTransfer.ResourceTransfer(ctx)
+	local transferResult = SharingActions.byName.ResourceTransfer.execute(ctx)
 
 	local policyResult = transferResult.policyResult
 	if transferResult.success and policyResult then
