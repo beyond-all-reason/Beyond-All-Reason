@@ -389,6 +389,18 @@ local function refreshGivecatAutocompleteFilters()
 		end
 	end
 
+	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
+		local luauiNode = autocompleteGivecatFilters.cmdTree.luaui
+		if type(luauiNode) == 'table' then
+			for subcmd, subvalue in pairs(luauiNode) do
+				if subcmd ~= '_description' and (type(subvalue) == 'string' or type(subvalue) == 'table') then
+					addAutocompleteCommand('engine', 'luaui ' .. subcmd)
+				end
+			end
+		end
+	end
+	addAutocompleteCommand('engine', 'lr')
+
 	local givecatFilters
 	if type(autocompleteGivecatFilters.cmdTree) == 'table' then
 		local luarulesNode = autocompleteGivecatFilters.cmdTree.luarules
@@ -2297,7 +2309,11 @@ function widget:KeyPress(key)
 				if inputText ~= '' then
 					local executedInput = inputText
 					if ssub(inputText, 1, 1) == '/' then
-						Spring.SendCommands(ssub(inputText, 2))
+						local command = ssub(inputText, 2)
+						if command == 'lr' then
+							command = 'luaui reload'
+						end
+						Spring.SendCommands(command)
 					else
 						local badWord = findBadWords(inputText)
 						if badWord ~= nil and inputText ~= lastMessage then
