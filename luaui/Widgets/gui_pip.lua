@@ -2,6 +2,9 @@ local devUI = BAR.Utilities.ShowDevUI()
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
 
+local GetAliveTeammates -- forward-decl: called at ~2435, defined later
+local hideEnergyOnlyFeatures = false -- forward-decl: read below
+
 pipNumber = pipNumber or 1
 
 -- Special mode flags
@@ -1016,6 +1019,8 @@ function pipTV.DirectorTick(dt)
 	-- Rebuild hotspots from recent events (pass cached clock to avoid redundant syscall)
 	pipTV.BuildHotspots(now)
 
+	local gameFrame = Spring.GetGameFrame()
+
 	-- Before game start, stay on overview — pre-game map markers shouldn't move the camera
 	-- Note: can't use gameHasStarted (declared later in file), so check gameFrame directly
 	if gameFrame == 0 then
@@ -1028,7 +1033,6 @@ function pipTV.DirectorTick(dt)
 	-- Time factor: 0→1 over first 2 minutes (baseline)
 	-- Activity factor: 0→1 as peak hotspot weight reaches combat levels (~10+)
 	-- Use whichever is higher — so early fights on small maps instantly ramp up
-	local gameFrame = Spring.GetGameFrame()
 	local timeFactor = math.min(1, gameFrame / (30 * 60 * 2)) -- 0→1 over 2 minutes
 
 	-- Track peak activity across all current hotspots
@@ -4946,7 +4950,7 @@ local UpdateTracking -- forward declaration (called in StartMaximizeAnimation, d
 local InitGL4Decals -- forward declaration (called in Initialize, defined after decalGL4 table)
 local DestroyGL4Decals -- forward declaration (called in Shutdown, defined after decalGL4 table)
 local decalGL4 -- forward declaration (referenced in DrawDecalsOverlay, defined later)
-local DrawTexturedQuad -- forward declaration (used before helper definition)
+local UpdateGuishaderBlur -- forward declaration (called in StartMaximizeAnimation, defined later)
 
 local function StartMaximizeAnimation()
 	local buttonSize = math.floor(render.usedButtonSize * config.maximizeSizemult)
@@ -5035,7 +5039,7 @@ local function RecoverInvalidAnimationState()
 	UpdateGuishaderBlur()
 end
 
-local function UpdateGuishaderBlur()
+function UpdateGuishaderBlur()
 	if WG.guishader then
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT
@@ -5152,7 +5156,7 @@ local function GetPlayerSkill(playerID)
 end
 
 -- Helper function to get alive teammates (excluding self and AI)
-local function GetAliveTeammates(out)
+function GetAliveTeammates(out)
 	out = out or {}
 	for i = #out, 1, -1 do
 		out[i] = nil

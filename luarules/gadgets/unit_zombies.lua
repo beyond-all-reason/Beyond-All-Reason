@@ -365,7 +365,8 @@ local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 		return nil
 	end
 
-	local gaiaUnits = CallAsTeam(readAsGaia, spGetUnitsInCylinder, x, z, range, ALLIES)
+	local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
+	local gaiaUnits = CallAsTeam(readAsGaia, spGetUnitsInCylinder, x, z, range, Spring.ALLY_UNITS)
 
 	for i = 1, #gaiaUnits do
 		local allyID = gaiaUnits[i]

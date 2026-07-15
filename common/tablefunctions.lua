@@ -136,6 +136,21 @@ if not table.toString then
 
 	local tableConcat = table.concat
 
+	---Recursively turns a table into a string, suitable for printing.
+	---
+	---All types of keys and values are valid. How some special types are handled:
+	--- * `function` types are turned into "<function>"
+	--- * `userdata` types are turned into "<userdata>", unless they have a `tostring` metamethod, which is used instead
+	--- * cyclic or recursive references are turned into "<recursive_reference>"
+	--- * keys that are not strings or numbers (tables, functions, etc) are first run through table.toString
+	---
+	---In order to keep the output deterministic, keys are sorted.
+	---@param tbl table
+	---@param options table Optional parameters
+	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
+	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
+	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
+	---@return string
 	tableToString = function(tbl, options, _seen, _depth)
 		_seen = _seen or {}
 		_depth = _depth or 0
@@ -226,21 +241,6 @@ if not table.toString then
 		return tableConcat(parts)
 	end
 
-	---Recursively turns a table into a string, suitable for printing.
-	---
-	---All types of keys and values are valid. How some special types are handled:
-	--- * `function` types are turned into "<function>"
-	--- * `userdata` types are turned into "<userdata>", unless they have a `tostring` metamethod, which is used instead
-	--- * cyclic or recursive references are turned into "<recursive_reference>"
-	--- * keys that are not strings or numbers (tables, functions, etc) are first run through table.toString
-	---
-	---In order to keep the output deterministic, keys are sorted.
-	---@param tbl table
-	---@param options table Optional parameters
-	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
-	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
-	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
-	---@return string
 	table.toString = tableToString
 end
 

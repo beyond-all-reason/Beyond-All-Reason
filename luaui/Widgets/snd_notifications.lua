@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local customNotificationTimers -- forward-decl: read in GetConfigData export
+
 function widget:GetInfo()
 	return {
 		name = "Notifications",
