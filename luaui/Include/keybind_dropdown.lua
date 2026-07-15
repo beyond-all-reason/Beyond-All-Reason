@@ -28,7 +28,7 @@ function Dropdown.new(opts)
 	self.options = opts.options or {}
 	self.onSelect = opts.onSelect
 	self.selected = opts.selected or 1
-	self.placeholder = opts.placeholder -- when set, always shown instead of the selection (action-menu style)
+	self.placeholder = opts.placeholder -- when set, shown instead of the selection
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}

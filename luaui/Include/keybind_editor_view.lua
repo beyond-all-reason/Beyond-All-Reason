@@ -28,16 +28,16 @@ local barX1 = 0
 local listRight = 0
 local keyAreaX1 = 0
 
-local working -- display copy of the bindings, reseeded from the engine after every edit
-local resolvedCatalog -- catalog with i18n labels resolved once (rebuilt on language change)
-local L = {} -- editor UI strings, resolved once alongside the catalog
-local rows = {} -- flat display list: { type=header|editable|info, ... }
+local working
+local resolvedCatalog
+local L = {}
+local rows = {}
 local scroll = 0
 local dragging = false
-local editable = false -- true only while the active preset is Custom (uikeys.txt)
-local capturing -- { action, oldRaw }
-local pendingReset -- preset opt awaiting reset confirmation (modal)
-local edited = false -- Custom edits applied live but not yet written to uikeys.txt
+local editable = false -- true only on Custom (uikeys.txt)
+local capturing
+local pendingReset
+local edited = false
 local lastClickTime, lastClickId
 
 local font
@@ -65,7 +65,6 @@ for i = 1, #keyConfig.keybindingLayouts do
 	}
 end
 
--- Reset sources: every shipped preset (everything except Custom itself).
 local resetOptions = {}
 for i = 1, #presetOptions do
 	if presetOptions[i].file ~= "uikeys.txt" then
@@ -100,9 +99,7 @@ local function clampScroll()
 	if scroll > maxScroll() then scroll = maxScroll() end
 end
 
--- Resolve the catalog's i18n labels (and their lowercased search forms) once, so
--- searching - which rebuilds rows on every keystroke - never re-runs Spring.I18N.
--- Rebuilt via view.refresh(), which the host's LanguageChanged callin already calls.
+-- Resolve i18n labels once (search rebuilds rows per keystroke); redone on refresh.
 local function buildResolvedCatalog()
 	resolvedCatalog = {}
 	for _, group in ipairs(catalog) do
@@ -144,9 +141,7 @@ local function rebuildRows()
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
 			if item.prefix then
-				-- Claim every bound action under this prefix (numbered families like
-				-- "group set N") and list it by raw id, so they need no catalog entry
-				-- per number.
+				-- Claim every bound action under this prefix, listed by raw id.
 				local matched = {}
 				for action in pairs(working.byAction) do
 					if action:sub(1, #item.prefix) == item.prefix then
@@ -214,14 +209,11 @@ local function seedWorkingFromEngine()
 	end
 end
 
--- Re-read the live bindings into this view (no disk write, no reload, no console
--- output) - used after each live edit.
 local function reseed()
 	seedWorkingFromEngine()
 	rebuildRows()
 end
 
--- Write pending Custom edits to uikeys.txt once; returns whether anything was written.
 local function persistEdits()
 	if not edited then
 		return false
@@ -232,11 +224,8 @@ local function persistEdits()
 end
 
 switchPreset = function(opt)
-	-- Mirror Settings: a non-destructive KeybindingFile switch. The first time
-	-- Custom is chosen we seed uikeys.txt from the current binds (keysave), same
-	-- as the Settings picker. reloadBindings re-reads the file into the engine
-	-- and refreshes this view plus the other keybind-aware widgets.
-	persistEdits() -- flush any live Custom edits before leaving
+	-- Non-destructive KeybindingFile switch; first pick of Custom seeds uikeys.txt.
+	persistEdits()
 
 	local fromLabel = presetOptions[currentPresetIndex()].label
 	local file = opt.file
@@ -281,12 +270,9 @@ local function ensureControls()
 
 	searchBox = Editbox.new({ placeholder = Spring.I18N('ui.keybinds.editor.search'), onChange = rebuildRows })
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchPreset })
-	-- Picking a preset arms the confirm modal rather than resetting immediately.
 	resetDropdown = Dropdown.new({ options = resetOptions, placeholder = Spring.I18N('ui.keybinds.editor.reset'), onSelect = function(opt) pendingReset = opt end })
 end
 
--- Header controls: preset picker (always) on the right; on Custom a reset picker
--- sits to its left and the search box narrows to make room, otherwise search fills up.
 local function layoutHeader()
 	if not presetDropdown then
 		return
@@ -310,8 +296,7 @@ local function layoutHeader()
 	searchBox:setRect(area.x1, rowBottom, searchRight, rowTop, btnFs)
 end
 
--- Centered confirm-modal box + Reset/Cancel button rects, derived from the panel
--- area so draw and mousePress agree without storing per-frame rects.
+-- Confirm-modal box + button rects, recomputed so draw and mousePress agree.
 local function confirmGeometry()
 	local w = floor(360 * scale)
 	local h = floor(104 * scale)
@@ -341,7 +326,7 @@ end
 function view.refresh()
 	ensureControls()
 	seedWorkingFromEngine()
-	resolvedCatalog = nil -- re-resolve labels (covers language change via the host's LanguageChanged)
+	resolvedCatalog = nil
 	editable = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1]) == "uikeys.txt"
 	presetDropdown:setSelected(currentPresetIndex())
 	if not editable then
@@ -372,8 +357,7 @@ function view.setArea(x1, y1, x2, y2, s)
 end
 
 function view.blur()
-	-- Persist accumulated edits and refresh the other keybind-aware widgets once,
-	-- on the way out, instead of per keystroke.
+	-- Flush edits and reload once on the way out, not per keystroke.
 	if persistEdits() and WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 		WG['bar_hotkeys'].reloadBindings()
 	end
@@ -392,9 +376,8 @@ function view.isCapturing()
 	return capturing ~= nil
 end
 
--- True while the editor needs first crack at keypresses (search focus, key
--- capture, or an open dropdown), so the host can claim widgetHandler.textOwner
--- and stop keys from leaking to bound actions.
+-- True while the editor needs keys first (search, capture, open dropdown), so the
+-- host claims textOwner and keys don't leak to bound actions.
 function view.wantsTextOwner()
 	return (searchBox and searchBox:isFocused()) or capturing ~= nil
 		or (presetDropdown and presetDropdown:isOpen())
@@ -402,14 +385,11 @@ function view.wantsTextOwner()
 		or pendingReset ~= nil
 end
 
--- Edits apply to the engine live (bind/unbind); the write to uikeys.txt and the
--- widget reload are deferred to persistEdits (panel close / preset switch), since
--- doing them per keystroke floods the console with keysave/keyreload output.
+-- Edits apply live (bind/unbind); the uikeys.txt write + reload defer to persistEdits
+-- (panel close / preset switch) to avoid per-keystroke console spam.
 
--- Whether the action already carries this keyset, compared by displayed key
--- rather than raw - so a scancode capture of a key already bound in keysym form
--- (pressing Enter when "return" is bound) dedupes instead of adding a twin.
--- exceptRaw skips one keyset, the one being rebound.
+-- Compared by displayed key, not raw, so a scancode capture of a key already bound
+-- in keysym form (Enter vs "return") dedupes. exceptRaw skips the keyset being rebound.
 local function actionHasKeyset(action, newKeyset, exceptRaw)
 	local ks = working.byAction[action]
 	if not ks then
@@ -448,9 +428,8 @@ local function removeKeyset(action, raw)
 	reseed()
 end
 
--- The engine allows one key to drive several actions (BAR relies on it for
--- context-dependent stacks, e.g. backspace = mutesound + edit_backspace), so a
--- new binding is added without disturbing other actions on the same keyset.
+-- One key can drive several actions (e.g. backspace = mutesound + edit_backspace),
+-- so add the binding without disturbing others on the same keyset.
 local function commitCapture(keyset)
 	local c = capturing
 	capturing = nil
@@ -484,9 +463,7 @@ local function keysetFromPress(scanCode)
 	return modPrefix() .. sym
 end
 
--- Side mouse buttons bind as ordinary keysets (mouseN). mouse1 (left) is engine-
--- rejected and mouse2/mouse3 (middle/right) are reserved for core UX; those are
--- filtered out at the capture site, so this only ever sees button >= 4.
+-- Side buttons bind as ordinary "mouseN" keysets; only button >= 4 reaches here.
 local function mouseKeysetFromButton(button)
 	return modPrefix() .. "mouse" .. button
 end
@@ -539,8 +516,7 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 
 	for _, ks in ipairs(working.byAction[row.action] or {}) do
 		local tw = font:GetTextWidth(ks.display) * fs
-		-- Editable chips reserve the "x" remove zone on the right; read-only chips
-		-- reserve matching padding so the background isn't flush against the text.
+		-- Read-only chips reserve matching padding so the bg isn't flush against text.
 		local rightGap = editable and (pad + glyphW) or pad
 		local chipW = pad + tw + rightGap
 		if cx + chipW > chipLimit then
@@ -610,7 +586,7 @@ function view.draw()
 		local bx1, by1, bx2, by2, ok, cancel = confirmGeometry()
 		local cs = floor(6 * scale)
 
-		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 }) -- dim scrim
+		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
 		UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 		UiButton(cancel[1], cancel[2], cancel[3], cancel[4])
 		UiButton(ok[1], ok[2], ok[3], ok[4])
@@ -651,9 +627,7 @@ function view.mouseWheel(up, value)
 	return true
 end
 
--- Resolve which zone of an editable row a click hit. Mirrors drawRow's chip
--- layout (kept in sync) so we hit-test on demand instead of storing per-frame
--- rects. Returns kind ("rebind"/"remove"/"add") and the keyset, or nil.
+-- Which zone of an editable row a click hit; mirrors drawRow's chip layout.
 local function hitTestRow(rowAction, x)
 	local pad = floor(6 * scale)
 	local fs = rowHeight * 0.55
@@ -719,10 +693,8 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	-- While capturing, only side buttons (mouse4+) are bindable: mouse1 (left) the
-	-- engine rejects, and mouse2/mouse3 (middle/right) are reserved for core camera
-	-- and order UX that binding would break. Left click cancels; middle/right are
-	-- ignored (swallowed, capture stays open).
+	-- While capturing, only side buttons (mouse4+) bind: mouse1 is engine-rejected,
+	-- mouse2/mouse3 are reserved for camera/order UX. Left click cancels.
 	if capturing then
 		if button >= 4 then
 			commitCapture(mouseKeysetFromButton(button))
@@ -732,7 +704,6 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	-- Only the left button interacts; right/middle over the panel do nothing.
 	if button ~= 1 then
 		return true
 	end
@@ -773,7 +744,6 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	-- Rows are editable only while on Custom; otherwise they are a read-only view.
 	if editable and x >= area.x1 and x <= listRight and y >= listBottom() and y <= listTop then
 		local r = floor((listTop - y) / rowHeight) + 1
 		local row = rows[scroll + r]
@@ -837,11 +807,8 @@ function view.keyPress(key, scanCode)
 	return false
 end
 
--- Fallback for engine keys whose press never reaches LuaUI (cameraflip, volume,
--- unit commands): capture on release. Only fires while still capturing - a normal
--- key already captured on its press. Modifiers are read at release time, so this
--- path records the combo only if the modifier is still held when the key is
--- released; that ambiguity is inherent (we never saw the press).
+-- Fallback for engine keys whose press never reaches LuaUI (cameraflip, volume):
+-- capture on release. Modifiers are read at release, so a held combo is ambiguous.
 function view.keyRelease(key, scanCode)
 	if not capturing then
 		return false
