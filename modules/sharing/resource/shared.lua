@@ -1,7 +1,7 @@
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local PolicyShared = VFS.Include("modules/sharing/serialization.lua")
 local Comms = VFS.Include("modules/sharing/resource/comms.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 local Shared = Comms
 

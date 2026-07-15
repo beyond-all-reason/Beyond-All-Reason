@@ -6,7 +6,7 @@ local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 local ResourceFactorCache = VFS.Include("modules/sharing/resource/factor_cache.lua")
 local ResourceShared = VFS.Include("modules/sharing/resource/shared.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 local METAL = TransferEnums.ResourceType.METAL
 

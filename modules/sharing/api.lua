@@ -19,8 +19,6 @@ local exports = {
 	UnitTransferUnsynced = "modules/sharing/unit/unsynced.lua",
 	UnitTransferShared = "modules/sharing/unit/shared.lua",
 	TakeComms = "modules/sharing/take/comms.lua",
-	-- economy boundary
-	ShareStats = "modules/sharing/economy/share_stats.lua",
 	-- advplayerslist sharing-tab extensions
 	PolicyViewsHelpers = "modules/sharing/policy_views/helpers.lua",
 	PolicyViewsApiExtensions = "modules/sharing/policy_views/api_extensions.lua",
@@ -33,7 +31,7 @@ return setmetatable({}, {
 			return nil
 		end
 		local value = ModuleHandler.Include(path)
-		rawset(api, key, value)
+		api[key] = value
 		return value
 	end,
 })

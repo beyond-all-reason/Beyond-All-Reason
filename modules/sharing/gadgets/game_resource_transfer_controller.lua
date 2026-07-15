@@ -24,7 +24,10 @@ end
 GG = GG or {}
 
 local TeamResourceData = VFS.Include("modules/sharing/team_resource_data.lua")
-local ShareStats = VFS.Include("modules/sharing/economy/share_stats.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local Economy = ModuleHandler.Get("economy")
+local SharingConfig = VFS.Include("modules/sharing/config.lua")
+local ShareStats = Economy.ShareStats
 
 -- single place the GG economy boundary applies Lua-owned sent/received (engine no longer tracks them)
 local function overlaySharing(teamID, resource, sent, received)
@@ -52,16 +55,15 @@ end
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local ResourceFactorCache = VFS.Include("modules/sharing/resource/factor_cache.lua")
-local ModuleHandler = VFS.Include("modules/module_handler.lua")
 -- auto-registered effectful layer (modules/sharing/actions/)
 local SharingActions = ModuleHandler.LoadActions("sharing")
 local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 local Comms = VFS.Include("modules/sharing/resource/comms.lua")
 local TechBlockingShared = VFS.Include("modules/sharing/tech/blocking.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
-local ManualShareLedger = VFS.Include("modules/sharing/economy/manual_share_ledger.lua")
+local ManualShareLedger = Economy.ManualShareLedger
 
-local WaterfillSolver = VFS.Include("modules/sharing/economy/waterfill_solver.lua")
+local WaterfillSolver = Economy.WaterfillSolver
 
 -- cast: the library meta declares tracy unconditionally, but profiler-less engine builds lack it
 local tracyAvailable = (tracy and tracy.ZoneBeginN and tracy.ZoneEnd) ~= nil --[[@as boolean]]
@@ -203,7 +205,7 @@ local function ProcessEconomy(frame)
 	end
 
 	local teams = buildSnapshot()
-	local results = ManualShareLedger.FoldInto(WaterfillSolver.SolveToResults(springRepo, teams))
+	local results = ManualShareLedger.FoldInto(WaterfillSolver.SolveToResults(springRepo, teams, SharingConfig.getTeamTaxRate))
 
 	-- SetTeamResource moves the pools; AddTeamResourceExcessStats records excess only; sent/received tracked Lua-side via ShareStats
 	for i = 1, #results do

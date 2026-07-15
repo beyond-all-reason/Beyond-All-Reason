@@ -1,4 +1,4 @@
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 
 --- Resource sharing disabled by mod option: deny everything, even when cheating.

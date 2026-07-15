@@ -1,4 +1,4 @@
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 --- Pure helpers shared by policy files (modules/sharing/policies/) and the
 --- synced factor caches. No engine mutation.

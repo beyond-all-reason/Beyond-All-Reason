@@ -43,7 +43,8 @@ local sp = {
 
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
 local SharingUnsynced = Sharing.TeamTransferUnsynced
-local ShareStats = Sharing.ShareStats
+local Economy = VFS.Include("modules/module_handler.lua").Get("economy")
+local ShareStats = Economy.ShareStats
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1 -- much faster than drawing via DisplayLists only
 

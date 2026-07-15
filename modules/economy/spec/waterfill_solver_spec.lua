@@ -1,8 +1,8 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
-local BarEconomy = VFS.Include("modules/sharing/economy/waterfill_solver.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local BarEconomy = VFS.Include("modules/economy/waterfill_solver.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 local function normalizeAllies(teams, allyTeamId)
 	for i = 1, #teams do
@@ -76,7 +76,7 @@ describe("Bar economy waterfill", function()
 		}, { teamA, teamB, teamC })
 
 		local teamsList = buildTeams({ teamA, teamB, teamC })
-		local _, flows = BarEconomy.Solve(spring, teamsList)
+		local _, flows = BarEconomy.Solve(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		local a = teamsList[teamA.id].metal
 		local b = teamsList[teamB.id].metal
@@ -113,7 +113,7 @@ describe("Bar economy waterfill", function()
 		}, { teamA, teamB })
 
 		local teamsList = buildTeams({ teamA, teamB })
-		local _, flows = BarEconomy.Solve(spring, teamsList)
+		local _, flows = BarEconomy.Solve(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		local a = teamsList[teamA.id].metal
 		local b = teamsList[teamB.id].metal
@@ -145,7 +145,7 @@ describe("Bar economy waterfill", function()
 		}, { teamA, teamB })
 
 		local teamsList = buildTeams({ teamA, teamB })
-		local _, flows = BarEconomy.Solve(spring, teamsList)
+		local _, flows = BarEconomy.Solve(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		local a = teamsList[teamA.id].metal
 		local b = teamsList[teamB.id].metal
