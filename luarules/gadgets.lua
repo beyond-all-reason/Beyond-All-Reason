@@ -374,6 +374,33 @@ local headlessDisabledCallIns = {
 	FontsChanged = true,
 }
 
+local headlessDisabledGadgetPrefixes = {
+	"gfx_",
+	"gui_",
+	"snd_",
+}
+
+local function ShouldSkipHeadlessUnsyncedGadget(gadget, basename)
+	if not isHeadless or IsSyncedCode() then
+		return false
+	end
+
+	for i = 1, #headlessDisabledGadgetPrefixes do
+		local prefix = headlessDisabledGadgetPrefixes[i]
+		if string.sub(basename, 1, #prefix) == prefix then
+			return true
+		end
+	end
+
+	for _, ciName in ipairs(callInLists) do
+		if type(gadget[ciName]) == 'function' and not headlessDisabledCallIns[ciName] then
+			return false
+		end
+	end
+
+	return true
+end
+
 
 -- initialize the call-in lists
 do
@@ -516,6 +543,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	err = self:ValidateGadget(gadget)
 	if err then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
+		return nil
+	end
+
+	if ShouldSkipHeadlessUnsyncedGadget(gadget, basename) then
+		Spring.Log(LOG_SECTION, LOG.INFO, 'Headless: skipped unsynced gadget: ' .. basename)
 		return nil
 	end
 
