@@ -28,6 +28,7 @@ function Dropdown.new(opts)
 	self.options = opts.options or {}
 	self.onSelect = opts.onSelect
 	self.selected = opts.selected or 1
+	self.placeholder = opts.placeholder -- when set, always shown instead of the selection (action-menu style)
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}
@@ -74,7 +75,8 @@ function Dropdown:draw()
 
 	font:Begin()
 	local current = self.options[self.selected]
-	font:Print(colorText .. (current and optionLabel(current) or ""), x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
+	local label = self.placeholder or (current and optionLabel(current) or "")
+	font:Print(colorText .. label, x1 + inset, (y1 + y2) * 0.5, self.fontSize, "ov")
 	font:End()
 
 	if self.open and #self.optRects > 0 then

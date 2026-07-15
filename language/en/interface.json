@@ -349,7 +349,8 @@
 				"search": "Search...",
 				"other": "Other",
 				"pressKey": "press a key or mouse button...  (Esc to cancel)",
-				"customOnly": "Switch the preset to Custom to edit keybinds"
+				"customOnly": "Switch the preset to Custom to edit keybinds",
+				"reset": "Reset to..."
 			},
 			"chat": {
 				"title": "Chat",
