@@ -14,29 +14,13 @@ end
 
 
 -- Localized functions for performance
-local mathCeil = math.ceil
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
-
-local tabs = {"Keybindings", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys", "Legacy Keys", "Legacy CTRL Keys", "Legacy ALT Keys",}
-
-local keybindsimages = {
-	["Grid Keys"]        = "luaui/images/keybinds/grid_keys.png",
-	['Grid CTRL Keys']   = "luaui/images/keybinds/grid_keys_CTRL.png",
-	['Grid ALT Keys']    = "luaui/images/keybinds/grid_keys_ALT.png",
-	['Legacy Keys']      = "luaui/images/keybinds/legacy_keys.png",
-	['Legacy CTRL Keys'] = "luaui/images/keybinds/legacy_keys_CTRL.png",
-	['Legacy ALT Keys']  = "luaui/images/keybinds/legacy_keys_ALT.png",
-}
-
-local tabrects = {}
-local lasttab = "Keybindings"
 
 local doUpdate
 
@@ -55,9 +39,6 @@ local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
 
 local showOnceMore = false
 
-local keybindColor = "\255\235\185\070"
-local titleColor = "\255\254\254\254"
-local descriptionColor = "\255\192\190\180"
 
 local widgetScale = (vsy / 1080)
 local centerPosX = 0.5
@@ -66,53 +47,10 @@ local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
-local font, font2, titleRect, keybinds, backgroundGuishader, show
+local keybinds, backgroundGuishader, show
 
-local function drawWindow(activetab)
-	local activetab = activetab or lasttab
-	if activetab == nil then activetab = 'Keybindings' end
-
-	-- background
+local function drawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
-
-	local titleFontSize = 18 * widgetScale
-
-	local tabx = 0
-	for i,tab in ipairs(tabs) do
-		local tabwidth = font2:GetTextWidth(tab)
-		tabrects[tab] = {
-			mathFloor(screenX + tabx),
-			screenY,
-			mathFloor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
-			mathFloor(screenY + (titleFontSize*1.7)),
-			tabx
-		}
-		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
-		gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
-		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
-	end
-
-	-- title
-	font2:Begin()
-	font2:SetTextColor(1, 1, 1, 1)
-	font2:SetOutlineColor(0, 0, 0, 0.4)
-	for i,tab in ipairs(tabs) do
-		local tabcolor = keybindColor
-		if tab ~= activetab then
-			tabcolor = titleColor
-		end
-		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8*widgetScale), titleFontSize, "on")
-	end
-	font2:End()
-
-
-	if keybindsimages[activetab] then
-		gl.Color(1,1,1,1)
-		gl.Texture(0, ":l:"..keybindsimages[activetab])
-		local zoom = 0.05
-		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
-		gl.Texture(0, false)
-	end
 end
 
 local function refreshText()
@@ -128,9 +66,6 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
-
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -138,8 +73,7 @@ function widget:ViewResize()
 
 	keybindEditor.init()
 	local pad = mathFloor(8 * widgetScale)
-	local tabStripH = mathFloor(30 * widgetScale)
-	keybindEditor.setArea(screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - tabStripH, widgetScale)
+	keybindEditor.setArea(screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - pad, widgetScale)
 
 	if keybinds then
 		gl.DeleteList(keybinds)
@@ -179,17 +113,10 @@ function widget:DrawScreen()
 	if show or showOnceMore then
 		gl.Texture(false)	-- some other widget left it on
 		glCallList(keybinds)
-		if lasttab == "Keybindings" then
-			keybindEditor.draw()
-		end
+		keybindEditor.draw()
 		if WG['guishader'] and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
-				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
-				-- title
-				for k, tabrect in pairs(tabrects) do
-					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
-				end
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
 		end
@@ -213,7 +140,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	-- While capturing a key, the editor gets everything - its prompt says Esc cancels.
-	if show and lasttab == "Keybindings" and keybindEditor.isCapturing() then
+	if show and keybindEditor.isCapturing() then
 		return keybindEditor.keyPress(key, scanCode)
 	end
 
@@ -224,7 +151,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 		return
 	end
 
-	if show and lasttab == "Keybindings" and keybindEditor.keyPress(key, scanCode) then
+	if show and keybindEditor.keyPress(key, scanCode) then
 		return true
 	end
 end
@@ -233,7 +160,7 @@ end
 -- routing the press through LuaUI, so capture can't see the press. We still
 -- get the release, so fall back to capturing on release.
 function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
-	if show and lasttab == "Keybindings" then
+	if show then
 		return keybindEditor.keyRelease(key, scanCode)
 	end
 
@@ -241,7 +168,7 @@ function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 end
 
 function widget:TextInput(utf8char)
-	if show and lasttab == "Keybindings" then
+	if show then
 		return keybindEditor.textInput(utf8char)
 	end
 
@@ -254,37 +181,15 @@ local function mouseEvent(x, y, button, release)
 	end
 
 	if show then
-		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-			if not release and lasttab == "Keybindings" then
+			if not release then
 				keybindEditor.mousePress(x, y, button)
 			end
 			return true
 		else
-			for tab, tabrect in pairs(tabrects) do
-				if math_isInRect(x, y, tabrect[1], tabrect[2], tabrect[3], tabrect[4]) then
-					if keybinds then
-						gl.DeleteList(keybinds)
-					end
-					lasttab = tab
-					keybindEditor.blur()
-					keybinds = gl.CreateList(drawWindow, tab)
-					if backgroundGuishader ~= nil then
-						if WG['guishader'] then
-							WG['guishader'].DeleteDlist('keybindinfo')
-						else
-							glDeleteList(backgroundGuishader)
-						end
-						backgroundGuishader = nil
-					end
-					return true
-				end
-			end
-			if release or not release then
-				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-				keybindEditor.blur()
-			end
+			showOnceMore = show -- show once more because the guishader lags behind
+			show = false
+			keybindEditor.blur()
 		end
 	end
 end
@@ -298,7 +203,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:MouseWheel(up, value)
-	if show and lasttab == "Keybindings" then
+	if show then
 		return keybindEditor.mouseWheel(up, value)
 	end
 
@@ -306,7 +211,7 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:Update()
-	local want = show and lasttab == "Keybindings" and keybindEditor.wantsTextOwner()
+	local want = show and keybindEditor.wantsTextOwner()
 	if want then
 		widgetHandler.textOwner = widget
 	elseif widgetHandler.textOwner == widget then
@@ -318,7 +223,6 @@ function widget:Initialize()
 	refreshText()
 
 	widgetHandler:AddAction("keybindeditor", function()
-		lasttab = "Keybindings"
 		show = true
 		doUpdate = true
 		return true
