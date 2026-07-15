@@ -132,38 +132,6 @@ void EnableStaticWallPressure()
 	AiLog("[WallTargets] static pressure tuned defs=" + staticDefsTuned);
 }
 
-void EnableDynamicWallDefs()
-{
-	int byName = 0;
-	int byFenceAttr = 0;
-
-	for (Id defId = 1, count = ai.GetDefCount(); defId <= count; ++defId) {
-		CCircuitDef@ def = ai.GetCircuitDef(defId);
-		if (def is null)
-			continue;
-
-		string n = def.GetName();
-		n.toLower();
-		const bool looksLikeWall = (n.findFirst("drag") >= 0)
-			|| (n.findFirst("fort") >= 0)
-			|| (n.findFirst("wall") >= 0);
-		const bool hasFenceAttr = def.IsAttrAny(Unit::Attr::FENCE.mask);
-		if (!looksLikeWall && !hasFenceAttr)
-			continue;
-
-		def.SetIgnore(false);
-		def.SetThreatKernel(WALL_THREAT_KERNEL);
-		if (looksLikeWall) {
-			++byName;
-		}
-		if (hasFenceAttr) {
-			++byFenceAttr;
-		}
-	}
-
-	AiLog("[WallTargets] dynamic wall scan: byName=" + byName + " byFenceAttr=" + byFenceAttr);
-}
-
 void EnableGlobalWallPressure()
 {
 	const uint pressureRolesMask = Unit::Role::RAIDER.mask
@@ -192,8 +160,27 @@ void EnableGlobalWallPressure()
 	}
 }
 
+bool IsRuinsEnabled()
+{
+	string ruins = string(aiSetupMgr.GetModOptions()["ruins"]);
+	ruins = ruins.toLower();
+	return (ruins == "enabled") || (ruins == "1") || (ruins == "true");
+}
+
 void EnableWallTargets()
 {
+	string ruins = string(aiSetupMgr.GetModOptions()["ruins"]);
+	string ruinsNormalized = ruins.toLower();
+	const bool ruinsEnabled = (ruinsNormalized == "enabled") || (ruinsNormalized == "1") || (ruinsNormalized == "true");
+
+	AiLog("[WallTargets] ruins modoption raw='" + ruins + "' normalized='" + ruinsNormalized + "'");
+	if (ruinsEnabled) {
+		AiLog("[WallTargets] skipped: ruins modoption is enabled (wall pressure disabled)");
+		return;
+	} else {
+		AiLog("[WallTargets] enabled: ruins modoption is disabled (wall pressure enabled)");
+	}
+
 	int explicitWallsFound = 0;
 	int explicitWallsMissing = 0;
 
@@ -221,7 +208,6 @@ void EnableWallTargets()
 	}
 
 	AiLog("[WallTargets] explicit wall defs: found=" + explicitWallsFound + " missing=" + explicitWallsMissing);
-	EnableDynamicWallDefs();
 	
 	EnableWallBreakingFireState();
 	EnableDefenceFireState();
