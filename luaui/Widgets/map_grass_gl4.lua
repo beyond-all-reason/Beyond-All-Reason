@@ -88,8 +88,9 @@ local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
   patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
   patchSize = 4, -- 1 or 4 clusters of blades, 4 recommended
-  grassMinSize = 0.3; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
-  grassMaxSize = 1.7; -- Size for grassmap value of 254
+  grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
+  grassMinSize = 0.55; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
+  grassMaxSize = 1.5; -- Size for grassmap value of 254
   grassShaderParams = { -- allcaps because thats how i know
     MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
     MAPCOLORBASE = 1.0,     --how much more to blend the bottom of the grass patches into map color
@@ -935,6 +936,7 @@ local function makeShaderVAO()
 		uniformFloat = {
 			grassuniforms = {1,1,1,1},
 			distanceMult = distanceMult,
+			grassBladeScale = grassConfig.grassBladeScale,
 			nightFactor = {1,1,1,1},
 		  },
 		shaderConfig = grassConfig.grassShaderParams,
