@@ -76,6 +76,19 @@ describe("ModuleHandler", function()
 		end)
 	end)
 
+	describe("ModeDirs", function()
+		it("surfaces module surrogate-mode directories", function()
+			local dirs = ModuleHandler.ModeDirs()
+			local found = false
+			for _, dir in ipairs(dirs) do
+				if dir:find("modules/sharing/modes/", 1, true) then
+					found = true
+				end
+			end
+			assert.is_true(found)
+		end)
+	end)
+
 	describe("ModOptions", function()
 		it("merges module modoption fragments (sharing section + options)", function()
 			local options = ModuleHandler.ModOptions()

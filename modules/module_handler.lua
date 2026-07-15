@@ -203,6 +203,15 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs("gadgets/", vfsMode)
 end
 
+---Mode-preset directories contributed by modules ("surrogate modes": presets
+---travel with the module that owns the modoptions they lock; the root modes/
+---system aggregates them).
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ModeDirs(vfsMode)
+	return moduleSubdirs("modes/", vfsMode)
+end
+
 --------------------------------------------------------------------------------
 -- Actions: one file per action, declarative descriptor (shape shared with
 -- luarules/mission_api/actions_loader.lua and PR #8226)
