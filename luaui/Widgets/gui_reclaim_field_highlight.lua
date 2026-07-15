@@ -3658,25 +3658,6 @@ function widget:Shutdown()
 	for cid in pairs(energyClusterDisplayLists) do
 		DeleteClusterDisplayList(cid, true)
 	end
-
-	-- Clean up fading-out cluster display lists
-	for uid in pairs(animState.fading) do
-		animState.DeleteFadingCluster(uid, false)
-	end
-	for uid in pairs(animState.fadingEnergy) do
-		animState.DeleteFadingCluster(uid, true)
-	end
-
-	-- Clean up old monolithic display lists (for compatibility)
-	if drawFeatureConvexHullGradientList ~= nil then
-		glDeleteList(drawFeatureConvexHullGradientList)
-	end
-	if drawFeatureConvexHullEdgeList ~= nil then
-		glDeleteList(drawFeatureConvexHullEdgeList)
-	end
-	if drawEnergyConvexHullEdgeList ~= nil then
-		glDeleteList(drawEnergyConvexHullEdgeList)
-	end
 end
 
 function widget:GetConfigData(data)

@@ -1,5 +1,10 @@
 -- This file includes common functionality that should be available globally
 
+-- shim for engines without RecoilEngine LuaSpringContext::SetupAliases
+SpringShared = SpringShared or Spring
+SpringSynced = SpringSynced or Spring
+SpringUnsynced = SpringUnsynced or Spring
+
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
 BAR = BAR or {} -- detached module namespace; must precede any BAR.X consumer

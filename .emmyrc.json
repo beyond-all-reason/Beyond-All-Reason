@@ -42,6 +42,7 @@
       "widgetHandler",
       "actionHandler",
       "gadgetHandler",
+      "CALLIN_MAP",
       "fontHandler",
       "LUAUI_DIRNAME",
       "socket",

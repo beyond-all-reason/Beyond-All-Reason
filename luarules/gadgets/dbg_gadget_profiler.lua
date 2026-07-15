@@ -1,5 +1,7 @@
 local gadget = gadget ---@type Gadget
 
+local running = false -- set by the unsynced half below, read by StartHook/DrawScreen above it
+
 function gadget:GetInfo()
 	return {
 		name = "Gadget Profiler",
@@ -376,7 +378,7 @@ else
 	-- Unsynced Setup
 	--------------------------------------------------------------------------------
 
-	local running = false
+	running = false
 
 	-- Per-callin drill-down state (only populated for the gadget currently drilled into).
 	-- Declared here, above Start/Kill, so every function captures the same upvalues.

@@ -24,6 +24,8 @@ local SAVE_DIR_LENGTH = string.len(SAVE_DIR) + 2
 local LOAD_GAME_STRING = "loadFilename "
 local SAVE_TYPE = "save "
 
+local saveFilenameEdit = nil -- never created; legacy UI stub the guards below check
+
 local function WriteDate(dateTable)
 	return string.format("%02d/%02d/%04d", dateTable.day, dateTable.month, dateTable.year) .. " " .. string.format("%02d:%02d:%02d", dateTable.hour, dateTable.min, dateTable.sec)
 end

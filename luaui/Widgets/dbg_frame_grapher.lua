@@ -5,6 +5,10 @@
 
 local widget = widget ---@type Widget
 
+local lastframems -- forward-decl: read into prevframems
+
+local alpha = 0 -- forward-decl: read at file scope in a shader-params table
+
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher",

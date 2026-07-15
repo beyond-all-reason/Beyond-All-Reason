@@ -1842,6 +1842,7 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+	---@diagnostic disable-next-line: undefined-global
 	for _, w in ripairs(self.DrawBuildSquareList) do
 		w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
