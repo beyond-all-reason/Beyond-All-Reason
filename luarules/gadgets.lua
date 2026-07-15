@@ -122,6 +122,8 @@ local function IsSyncedCode()
 	return isSyncedCode
 end
 
+local isHeadless = (Platform and Platform.isHeadless) or false
+
 if IsSyncedCode() then
 	local devModeEnabled = string.find(string.upper(Game.gameVersion), "$VERSION", 1, true)
 	Spring.SetGameRulesParam('isDevMode', devModeEnabled)
@@ -345,6 +347,31 @@ local callInLists = {
 	"UnitLeftAir",
 
 	"UnsyncedHeightMapUpdate"
+}
+
+local headlessDisabledCallIns = {
+	DrawUnit = true,
+	DrawFeature = true,
+	DrawShield = true,
+	DrawProjectile = true,
+	ViewResize = true,
+	DrawGenesis = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawScreen = true,
+	DrawInMiniMap = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	FontsChanged = true,
 }
 
 
@@ -878,6 +905,11 @@ function gadgetHandler:UpdateCallIn(name)
 	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
 
 	_G[name] = nil
+
+	if isHeadless and headlessDisabledCallIns[name] then
+		Script.UpdateCallIn(name)
+		return
+	end
 
 	if forceUpdate or #self[listName] > 0 then
 		local selffunc = self[name]
