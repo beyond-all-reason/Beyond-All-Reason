@@ -76,6 +76,30 @@ describe("ModuleHandler", function()
 		end)
 	end)
 
+	describe("ModOptions", function()
+		it("merges module modoption fragments (sharing section + options)", function()
+			local options = ModuleHandler.ModOptions()
+			local byKey = {}
+			for _, option in ipairs(options) do
+				byKey[option.key] = option
+			end
+			assert.is_table(byKey["sharing"])
+			assert.are.equal("section", byKey["sharing"].type)
+			assert.is_table(byKey["sharing_mode"])
+		end)
+
+		it("is pulled in by the game's modoptions.lua", function()
+			local all = VFS.Include("modoptions.lua")
+			local found = false
+			for _, option in ipairs(all) do
+				if option.key == "sharing_mode" then
+					found = true
+				end
+			end
+			assert.is_true(found)
+		end)
+	end)
+
 	describe("Get", function()
 		it("resolves the sharing contract lazily", function()
 			local Sharing = ModuleHandler.Get("sharing")

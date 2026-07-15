@@ -28,6 +28,17 @@ local MODULE_MARKERS = { "widgets", "rml_widgets", "gadgets", "actions", "polici
 
 local ModuleHandler = {}
 
+---Log an error via Spring when available; modoptions.lua pulls this file into
+---lobby/unitsync LuaParser contexts where the Spring global does not exist.
+---@param message string
+local function logError(message)
+	if Spring and Spring.Log then
+		Spring.Log(LOG_TAG, LOG and LOG.ERROR or "error", message)
+	else
+		print("[" .. LOG_TAG .. "] ERROR: " .. message)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Include-once cache
 --------------------------------------------------------------------------------
@@ -92,11 +103,11 @@ local function loadManifest(moduleDir, vfsMode)
 	if VFS.FileExists(manifestPath, vfsMode) then
 		manifest = VFS.Include(manifestPath, nil, vfsMode)
 		if type(manifest) ~= "table" or type(manifest.name) ~= "string" then
-			Spring.Log(LOG_TAG, LOG.ERROR, "Invalid module manifest (missing name): " .. manifestPath)
+			logError("Invalid module manifest (missing name): " .. manifestPath)
 			return nil
 		end
 		if manifest.name ~= name then
-			Spring.Log(LOG_TAG, LOG.ERROR, string.format("Module manifest name %q does not match directory %q", manifest.name, name))
+			logError(string.format("Module manifest name %q does not match directory %q", manifest.name, name))
 			return nil
 		end
 	elseif hasModuleMarker(moduleDir, vfsMode) then
@@ -129,7 +140,7 @@ function ModuleHandler.Discover(vfsMode)
 	for name, manifest in pairs(manifests) do
 		for _, required in ipairs(manifest.requires) do
 			if not manifests[required] then
-				Spring.Log(LOG_TAG, LOG.ERROR, string.format("Module %q requires missing module %q", name, required))
+				logError(string.format("Module %q requires missing module %q", name, required))
 			end
 		end
 	end
@@ -144,12 +155,12 @@ end
 function ModuleHandler.Get(name, vfsMode)
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	if not manifest then
-		Spring.Log(LOG_TAG, LOG.ERROR, "Unknown module: " .. tostring(name))
+		logError("Unknown module: " .. tostring(name))
 		return nil
 	end
 	local providesPath = manifest.provides or (manifest.dir .. "api.lua")
 	if not VFS.FileExists(providesPath, vfsMode) then
-		Spring.Log(LOG_TAG, LOG.ERROR, string.format("Module %q provides nothing (%s not found)", name, providesPath))
+		logError(string.format("Module %q provides nothing (%s not found)", name, providesPath))
 		return nil
 	end
 	return ModuleHandler.Include(providesPath, vfsMode)
@@ -202,12 +213,12 @@ end
 ---@return ActionDescriptor|nil
 local function validateAction(descriptor, filePath)
 	if type(descriptor) ~= "table" or type(descriptor.name) ~= "string" or type(descriptor.execute) ~= "function" then
-		Spring.Log(LOG_TAG, LOG.ERROR, "Invalid action descriptor (need name + execute): " .. filePath)
+		logError("Invalid action descriptor (need name + execute): " .. filePath)
 		return nil
 	end
 	for _, parameter in ipairs(descriptor.parameters or {}) do
 		if type(parameter.name) ~= "string" or type(parameter.type) ~= "string" then
-			Spring.Log(LOG_TAG, LOG.ERROR, string.format("Invalid parameter schema in action %q: %s", descriptor.name, filePath))
+			logError(string.format("Invalid parameter schema in action %q: %s", descriptor.name, filePath))
 			return nil
 		end
 	end
@@ -222,7 +233,7 @@ function ModuleHandler.LoadActions(name, vfsMode)
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	local registry = { byName = {}, list = {} }
 	if not manifest then
-		Spring.Log(LOG_TAG, LOG.ERROR, "LoadActions: unknown module " .. tostring(name))
+		logError("LoadActions: unknown module " .. tostring(name))
 		return registry
 	end
 	local files = VFS.DirList(manifest.dir .. "actions/", "*.lua", vfsMode)
@@ -231,7 +242,7 @@ function ModuleHandler.LoadActions(name, vfsMode)
 		local descriptor = validateAction(ModuleHandler.Include(filePath, vfsMode), filePath)
 		if descriptor then
 			if registry.byName[descriptor.name] then
-				Spring.Log(LOG_TAG, LOG.ERROR, string.format("Duplicate action %q in module %q: %s", descriptor.name, name, filePath))
+				logError(string.format("Duplicate action %q in module %q: %s", descriptor.name, name, filePath))
 			else
 				registry.byName[descriptor.name] = descriptor
 				registry.list[#registry.list + 1] = descriptor
@@ -250,11 +261,11 @@ function ModuleHandler.ValidateActionArgs(action, args)
 	for _, parameter in ipairs(action.parameters or {}) do
 		local value = args[parameter.name]
 		if value == nil and parameter.required then
-			Spring.Log(LOG_TAG, LOG.ERROR, string.format("Action %q missing required parameter %q", action.name, parameter.name))
+			logError(string.format("Action %q missing required parameter %q", action.name, parameter.name))
 			ok = false
 		end
 		if value ~= nil and parameter.type ~= "any" and type(value) ~= parameter.type then
-			Spring.Log(LOG_TAG, LOG.ERROR, string.format("Action %q parameter %q: expected %s, got %s", action.name, parameter.name, parameter.type, type(value)))
+			logError(string.format("Action %q parameter %q: expected %s, got %s", action.name, parameter.name, parameter.type, type(value)))
 			ok = false
 		end
 	end
@@ -272,7 +283,7 @@ end
 ---@return PolicyDescriptor|nil
 local function validatePolicy(descriptor, filePath, category)
 	if type(descriptor) ~= "table" or type(descriptor.name) ~= "string" or type(descriptor.evaluate) ~= "function" then
-		Spring.Log(LOG_TAG, LOG.ERROR, "Invalid policy descriptor (need name + evaluate): " .. filePath)
+		logError("Invalid policy descriptor (need name + evaluate): " .. filePath)
 		return nil
 	end
 	descriptor.category = descriptor.category or category
@@ -287,7 +298,7 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	local byCategory = {}
 	if not manifest then
-		Spring.Log(LOG_TAG, LOG.ERROR, "LoadPolicies: unknown module " .. tostring(name))
+		logError("LoadPolicies: unknown module " .. tostring(name))
 		return byCategory
 	end
 	for _, categoryDir in ipairs(VFS.SubDirs(manifest.dir .. "policies/", "*", vfsMode)) do
@@ -320,6 +331,39 @@ function ModuleHandler.Evaluate(policies, ...)
 		end
 	end
 	return nil
+end
+
+--------------------------------------------------------------------------------
+-- Mod options: modules ship their own modoptions.lua fragment, merged into the
+-- game's modoptions.lua (same entry format; append order = module-name order)
+--------------------------------------------------------------------------------
+
+---Collect module-contributed modoption entries.
+---@param vfsMode string?
+---@return table[] options
+function ModuleHandler.ModOptions(vfsMode)
+	local names = {}
+	for name in pairs(ModuleHandler.Discover(vfsMode)) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+
+	local options = {}
+	for _, name in ipairs(names) do
+		local manifest = ModuleHandler.Discover(vfsMode)[name]
+		local fragmentPath = manifest.dir .. "modoptions.lua"
+		if VFS.FileExists(fragmentPath, vfsMode) then
+			local fragment = VFS.Include(fragmentPath, nil, vfsMode)
+			if type(fragment) ~= "table" then
+				logError("Module modoptions fragment must return a list: " .. fragmentPath)
+			else
+				for _, option in ipairs(fragment) do
+					options[#options + 1] = option
+				end
+			end
+		end
+	end
+	return options
 end
 
 --------------------------------------------------------------------------------
