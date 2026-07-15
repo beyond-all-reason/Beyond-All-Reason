@@ -634,7 +634,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
+		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
