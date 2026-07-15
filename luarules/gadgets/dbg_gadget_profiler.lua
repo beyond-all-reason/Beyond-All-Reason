@@ -108,7 +108,7 @@ local spGetTimer = Spring.GetTimer
 
 local spDiffTimers = Spring.DiffTimers
 local spGetLuaMemUsage = Spring.GetLuaMemUsage or function() return 0, 0, 0, 0, 0, 0, 0, 0 end
-local profilerEchoEnabled = Spring.GetConfigInt("profiler_echoes", 0) == 1
+local profilerEchoEnabled = false
 
 local function ProfilerEcho(...)
 	if profilerEchoEnabled then

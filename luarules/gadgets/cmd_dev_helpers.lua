@@ -476,13 +476,16 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
 			subPermission = "teams"
+		elseif cmd == "godmode" or cmd == "godmodeally" then
+			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
 		elseif cmd == "modmarker" then
 			subPermission = "modmarker"
 		end
 
-		if not isAuthorized(playerID, subPermission) then
+		local bypassSyncedAuthorization = cmd == "godmode" or cmd == "godmodeally"
+		if not bypassSyncedAuthorization and not isAuthorized(playerID, subPermission) then
 			return
 		end
 
@@ -608,6 +611,10 @@ if gadgetHandler:IsSyncedCode() then
 			ReduceWrecksAndHeaps()
 		elseif cmd == "globallos" then
 			globallos(words)
+		elseif cmd == "godmode" then
+			godmode(words)
+		elseif cmd == "godmodeally" then
+			godmodeally(words)
 		elseif cmd == "playertoteam" then
 			playertoteam(words)
 		elseif cmd == "killteam" then
@@ -637,6 +644,28 @@ if gadgetHandler:IsSyncedCode() then
 			if not words[3] or allyTeamID == tonumber(words[3]) then
 				Spring.SetGlobalLos(allyTeamID, words[2] == '1')
 			end
+		end
+	end
+
+	function godmode(words)
+		local wasCheatingEnabled = Spring.IsCheatingEnabled()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(true)
+		end
+		Spring.SetGodMode(nil, words[2] == '1')
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(false)
+		end
+	end
+
+	function godmodeally(words)
+		local wasCheatingEnabled = Spring.IsCheatingEnabled()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(true)
+		end
+		Spring.SetGodMode(words[2] == '1', nil)
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(false)
 		end
 	end
 
@@ -981,6 +1010,15 @@ else	-- UNSYNCED
 	local lastSelectionBoxFrame = -1
 	local HOVER_PICK_SCREEN_RADIUS = 18
 	local HOVER_PICK_WORLD_RADIUS = 120
+	local godModeControlAllies, godModeControlEnemies
+
+	local function initializeGodModeState()
+		if godModeControlAllies == nil or godModeControlEnemies == nil then
+			local enabled = Spring.IsGodModeEnabled()
+			godModeControlAllies = enabled
+			godModeControlEnemies = enabled
+		end
+	end
 
 
 
@@ -1025,6 +1063,8 @@ else	-- UNSYNCED
 
 		addAuthorizedChatAction('teams', 'playertoteam', playertoteam)
 		addAuthorizedChatAction('teams', 'killteam', killteam)
+		addAuthorizedChatAction('teams', 'godmode', godmode)
+		addAuthorizedChatAction('teams', 'godmodeally', godmodeally)
 
 		addAuthorizedChatAction('test', 'desync', desync)
 		addAuthorizedChatAction('modmarker', 'modmarker', modmarker)
@@ -1077,6 +1117,8 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
+		gadgetHandler:RemoveChatAction('godmode')
+		gadgetHandler:RemoveChatAction('godmodeally')
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
 		gadgetHandler:RemoveSyncAction("modmarker")
@@ -1723,6 +1765,32 @@ else	-- UNSYNCED
 		local globallos = (not words[1] or words[1] ~= '0') or false
 		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0')..(words[2] and ':'..words[2] or ''))
+	end
+
+	function godmode(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
+			return
+		end
+		initializeGodModeState()
+		godModeControlEnemies = not godModeControlEnemies
+		Spring.Echo("Enemy godmode: " .. (godModeControlEnemies and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':godmode:' .. (godModeControlEnemies and '1' or '0'))
+	end
+
+	function godmodeally(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
+			return
+		end
+		initializeGodModeState()
+		godModeControlAllies = not godModeControlAllies
+		Spring.Echo("Ally godmode: " .. (godModeControlAllies and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':godmodeally:' .. (godModeControlAllies and '1' or '0'))
 	end
 
 	function playertoteam(_, line, words, playerID, action)

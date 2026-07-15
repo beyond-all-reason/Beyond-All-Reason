@@ -373,7 +373,7 @@ function widget:Update(dt)
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if isUnitIdle(unitID) then
+			if isUnitIdle(uid) then
 				included[#included + 1] = uid
 			end
 		end
@@ -601,7 +601,7 @@ function widget:Initialize()
 			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
-				if isUnitIdle(unitID) then
+				if isUnitIdle(uid) then
 					included[#included + 1] = uid
 				end
 			end

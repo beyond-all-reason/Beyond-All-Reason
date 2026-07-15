@@ -126,11 +126,16 @@ for ii = 1, #Game.armorTypes do
 end
 
 local function round(value, numDecimalPlaces)
-	if value then
-		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
-	else
-		return 0
+	if type(numDecimalPlaces) ~= "number" then
+		numDecimalPlaces = 0
 	end
+	if type(value) == "number" and value == value and value > -math.huge and value < math.huge then
+		local rounded = math.round(value, numDecimalPlaces)
+		if rounded == rounded and rounded > -math.huge and rounded < math.huge then
+			return string.format("%0." .. numDecimalPlaces .. "f", rounded)
+		end
+	end
+	return 0
 end
 
 local unitDefInfo = {}
