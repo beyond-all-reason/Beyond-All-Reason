@@ -343,8 +343,6 @@
 		},
 		"keybinds": {
 			"title": "Keybinds",
-			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
 			"editor": {
 				"search": "Search...",
 				"other": "Other",
@@ -383,7 +381,6 @@
 				"title": "Camera modes",
 				"changeKey": "ctrl + f1,2,3,4,5",
 				"change": "Change camera type",
-				"fullscreenKey": "alt + backspace",
 				"fullscreen": "Toggle fullscreen",
 				"overview": "Toggle overview camera",
 				"los": "Toggle LOS view",
@@ -401,8 +398,6 @@
 			},
 			"sound": {
 				"title": "Sound",
-				"volumeKey": "-/+",
-				"volume": "Change volume",
 				"mute": "Toggle mute",
 				"volumeUp": "Increase volume",
 				"volumeDown": "Decrease volume"
@@ -421,8 +416,6 @@
 			},
 			"orders": {
 				"title": "Selecting orders",
-				"defaultKey": "(none)",
-				"default": "default order (usually move)",
 				"move": "move",
 				"attack": "attack",
 				"stop": "stop (clears order queue)",
@@ -457,14 +450,6 @@
 				"title": "Selecting build orders",
 				"selectTileKey": "(mouse)",
 				"selectTile": "Select from units build-menu",
-				"metalKey": "z",
-				"metal": "Cycle through mexes",
-				"energyKey": "x",
-				"energy": "Cycle through energy production",
-				"intelKey": "c",
-				"intel": "Cycle through radar/defence/etc",
-				"factoriesKey": "v",
-				"factories": "Cycle through factories",
 				"rotate": "Rotate building placement",
 				"rotateBack": "Rotate building placement (reverse)"
 			},
@@ -485,14 +470,8 @@
 				"title": "Group selection",
 				"all": "Select all units",
 				"builders": "Select all constructors",
-				"createGroupKey": "ctrl + (num)",
-				"createGroup": "Add units to group (num=1,2,..)",
-				"createAutoGroupKey": "alt + (num)",
-				"createAutoGroup": "Add unit type to autogroup (num=1,2,..)",
 				"removeAutoGroupKey": "alt + `",
 				"removeAutoGroup": "Remove unit type from autogroup",
-				"groupKey": "(num)",
-				"group": "Select all units assigned to group (num)",
 				"sameType": "Select all units of same type as selected",
 				"damaged": "Select damaged units",
 				"sameTypeVisible": "Select same type as current, on screen",
@@ -513,10 +492,7 @@
 				"drawLabel": "Place label"
 			},
 			"console": {
-				"title": "Console commands",
-				"eraseKey": "/clearmapmarks",
 				"erase": "Erase all drawings and markers",
-				"pauseKey": "/pause",
 				"pause": "Pause"
 			},
 			"moreOrders": {
