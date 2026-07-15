@@ -124,7 +124,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "",
-				soundstartvolume = 0,
 				soundtrigger = 0,
 				thickness = 4.5,
 				turret = true,

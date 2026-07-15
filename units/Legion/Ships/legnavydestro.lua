@@ -131,7 +131,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 28,
 				soundtrigger = 1,
 				thickness = 3.5,
 				turret = true,

@@ -106,7 +106,6 @@ return {
 				reloadtime = 4.5,
 				rgbcolor = "0.5 0.5 1",
 				soundstart = "alien_electric_xl",
-				soundstartvolume = 65,
 				soundtrigger = true,
 				targetmoveerror = 0.15,
 				thickness = 1.5,

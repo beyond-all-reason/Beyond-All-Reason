@@ -233,7 +233,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,

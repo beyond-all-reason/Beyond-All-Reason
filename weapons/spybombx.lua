@@ -19,7 +19,6 @@ return {
 		reloadtime = 0.3,
 		soundhit = "EMGPULS1",
 		soundstart = "arm-bot-medium-stealth-sel",
-		soundstartvolume = 50,
 		tolerance = 7000,
 		turret = 1,
 		damage = {

@@ -111,7 +111,6 @@ return {
 				--soundhit = "xplomed3",
 				--soundhitwet = "sizzle",
 				soundstart = "alien_electric_xl",
-				soundstartvolume = 65,
 				soundtrigger = true,
 				targetmoveerror = 0.15,
 				thickness = 1.5,

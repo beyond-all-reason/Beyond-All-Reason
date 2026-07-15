@@ -126,7 +126,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 3,
 				sprayangle = 1900,
 				thickness = 0.6,
 				tolerance = 6000,

@@ -81,7 +81,6 @@ return {
 				range = 64,
 				reloadtime = 1,
 				soundhitwet = "",
-				soundhitwetvolume = 0,
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
