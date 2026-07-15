@@ -172,7 +172,21 @@ local mousex,mousey = 0,0
 local sortVar = "damageDealt"
 local sortAscending = false
 local numColums = #header
+local playerColumnWidthWeight = 2
 
+local function getColumnBounds(column)
+	local left = guiData.mainPanel.absSizes.x.min + (columnSize / 2)
+	if column > 1 then
+		left = left + ((playerColumnWidthWeight + column - 2) * columnSize)
+	end
+	local width = (column == 1 and playerColumnWidthWeight or 1) * columnSize
+	return left, left + width
+end
+
+local function getColumnCenter(column)
+	local left, right = getColumnBounds(column)
+	return (left + right) / 2
+end
 
 function widget:SetConfigData(data)
 	--guiData = data.guiData or guiData -- buggy positioning, so disabled this
@@ -499,15 +513,21 @@ function getLineAndColumn(x,y)
 	local relativex = x - guiData.mainPanel.absSizes.x.min - columnSize/2
 	local relativey = guiData.mainPanel.absSizes.y.max - y
 	local line = floor(relativey/lineHeight) +1
-	local column = floor(relativex/columnSize) +1
+	local column
+	if relativex >= 0 then
+		if relativex < (playerColumnWidthWeight * columnSize) then
+			column = 1
+		else
+			column = floor((relativex - (playerColumnWidthWeight * columnSize)) / columnSize) + 2
+		end
+	end
 	return line,column
 end
 
 
 function updateFontSize()
-	columnSize = guiData.mainPanel.absSizes.x.length / numColums
-	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
-	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
+	columnSize = guiData.mainPanel.absSizes.x.length / (numColums - 1 + playerColumnWidthWeight)
+	fontSize = 11*widgetScale + floor(columnSize/maxColumnTextSize)
 	fontSize = fontSize * playerScale
 	lineHeight = fontSize
 	fontSize = fontSize + mathMin(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
@@ -618,7 +638,8 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(mathFloor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
+		local x1, x2 = getColumnBounds(selectedColumn)
+		RectRound(mathFloor(x1), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(x2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -627,7 +648,8 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(mathFloor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
+			local x1, x2 = getColumnBounds(selectedIndex)
+			RectRound(mathFloor(x1), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(x2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end
@@ -636,27 +658,25 @@ end
 function ReGenerateTextDisplayList()
 	local lineCount = 1
 	local boxSizes = guiData.mainPanel.absSizes
-	local baseXSize = boxSizes.x.min + columnSize
 	local baseYSize = boxSizes.y.max - (0.002*vsy) -- small align adjustment so text is in the middle of a row
 
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 		--print the header
-		local colCount = 0
 		local heightCorrection = lineHeight*((1-fontSizePercentage)/2)
 
-		for _, headerName in ipairs(header) do
-			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
-			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
-			colCount = colCount + 1
+		for column, headerName in ipairs(header) do
+			local columnX = getColumnCenter(column)
+			font:Print(headerRemap[headerName][1], columnX, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][2], columnX, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
 		end
 		lineCount = lineCount + 3
 
 		for _, allyTeamData in ipairs(teamData) do
 			for _, teamData in ipairs(allyTeamData) do
-				local colCount = 0
 				for i, varName in ipairs(header) do
+					local columnX = getColumnCenter(i)
 					local value = teamData[varName]
 					if value == huge or value == -huge then
 						value = "-"
@@ -680,12 +700,11 @@ function ReGenerateTextDisplayList()
 					end
 					if i == 1 then
 						font2:Begin()
-						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+						font2:Print(color..value, columnX, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 						font2:End()
 					else
-						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+						font:Print(color..value, columnX, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 					end
-					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
 			end
