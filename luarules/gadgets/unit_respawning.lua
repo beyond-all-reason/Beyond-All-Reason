@@ -27,7 +27,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetUnitHealth = Spring.SetUnitHealth
 	local spGetGameSeconds = Spring.GetGameSeconds
 	local spGetGameFrame = Spring.GetGameFrame
-	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+	local spGetClosestEnemyUnit = Spring.GetClosestEnemyUnit
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local spGetUnitDefID = Spring.GetUnitDefID
 
 
@@ -47,7 +48,9 @@ if gadgetHandler:IsSyncedCode() then
 	local function HasNearbyEnemyCached(unitID, gameFrame)
 		if enemyNearbyCacheFrame[unitID] ~= gameFrame then
 			enemyNearbyCacheFrame[unitID] = gameFrame
-			enemyNearbyCacheValue[unitID] = spGetUnitNearestEnemy(unitID, ENEMY_NEARBY_RADIUS) ~= nil
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			local allyTeamID = spGetUnitAllyTeam(unitID)
+			enemyNearbyCacheValue[unitID] = ux and allyTeamID and spGetClosestEnemyUnit(ux, uy, uz, ENEMY_NEARBY_RADIUS, allyTeamID, true, false, false) ~= nil or false
 		end
 		return enemyNearbyCacheValue[unitID]
 	end

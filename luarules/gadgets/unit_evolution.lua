@@ -35,7 +35,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spSetUnitStockpile = Spring.SetUnitStockpile
 	local spSetUnitDirection = Spring.SetUnitDirection
 	local spGetGameSeconds = Spring.GetGameSeconds
-	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+	local spGetClosestEnemyUnit = Spring.GetClosestEnemyUnit
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
 	local GAME_SPEED = Game.gameSpeed
 	local PRIVATE = { private = true }
@@ -369,7 +370,9 @@ if gadgetHandler:IsSyncedCode() then
 		if evolution.combatTimer and (currentTime - evolution.combatTimer) <= inCombatTimeoutSeconds then
 			return true
 		end
-		if spGetUnitNearestEnemy(unitID, evolution.combatRadius) then
+		local ux, uy, uz = spGetUnitPosition(unitID)
+		local allyTeamID = spGetUnitAllyTeam(unitID)
+		if ux and allyTeamID and spGetClosestEnemyUnit(ux, uy, uz, evolution.combatRadius, allyTeamID, true, false, false) then
 			evolution.combatTimer = currentTime
 			return true
 		end

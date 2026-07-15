@@ -20,11 +20,11 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
+local spGetClosestEnemyUnit  = Spring.GetClosestEnemyUnit
 local spAreTeamsAllied       = Spring.AreTeamsAllied
 local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
-local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetActiveCommand 	 = Spring.GetActiveCommand
 local spGetMouseState    	 = Spring.GetMouseState
 local spTraceScreenRay   	 = Spring.TraceScreenRay
@@ -90,16 +90,6 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
     return unitsInRange
 end
 
-local function distance(point1, point2)
-	if not point1 or not point2 then
-		return -1
-	end
-	
-	return math.diag(point1[1] - point2[1],
-	                 point1[2] - point2[2],
-	                 point1[3] - point2[3])
-end
-
 local function clear()
     cursorPos = nil
     snappedPos = nil
@@ -110,29 +100,8 @@ local function MakeLine(x1, y1, z1, x2, y2, z2)
     gl.Vertex(x2, y2, z2)
 end
 
-local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
-	local candidateUnits = spGetUnitsInCylinder(x, z, radius)
-
-	local closestUnit = nil
-	local closestDistance = math.huge
-
-	for _, candidateID in ipairs(candidateUnits) do
-		local targetTeam = spGetUnitTeam(candidateID)
-
-		if targetTeam and not spAreTeamsAllied(myTeam, targetTeam) then
-			local ux, uy, uz = spGetUnitPosition(candidateID)
-			if ux then
-				local distSq = distance({x, y, z}, {ux, uy, uz})
-
-				if distSq < closestDistance then
-					closestUnit = candidateID
-					closestDistance = distSq
-				end
-			end
-		end
-	end
-
-	return closestUnit
+local function FindNearestEnemyUnit(x, y, z, radius)
+	return spGetClosestEnemyUnit(x, y, z, radius)
 end
 
 function widget:DrawWorld()
@@ -162,11 +131,9 @@ local function handleSelectionLine()
     end
 
 	if worldPos and worldPos[1] then
-		local myTeam = spGetMyTeamID()
 		local targetID = FindNearestEnemyUnit(
 			worldPos[1], worldPos[2], worldPos[3],
-			SNAP_RADIUS,
-			myTeam
+			SNAP_RADIUS
 		)
 		if targetID then
 			local ux, uy, uz = spGetUnitPosition(targetID)
@@ -229,13 +196,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local _, worldPos = spTraceScreenRay(mx, my, true)
 		
 		if worldPos and worldPos[1] then
-			local myTeam = spGetMyTeamID()
-			-- Blocked on https://github.com/beyond-all-reason/RecoilEngine/issues/2793
-			-- targetID = Spring.GetClosestEnemyUnit(worldPos[1], worldPos[2], worldPos[3], SNAP_RADIUS, myTeam)
 			targetID = FindNearestEnemyUnit(
 				worldPos[1], worldPos[2], worldPos[3],
-				SNAP_RADIUS,
-				myTeam
+				SNAP_RADIUS
 			)
 			-- If there's no enemy to snap the command to, clean up the targeting
 			if targetID == nil then

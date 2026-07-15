@@ -20,10 +20,13 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
+local spGetClosestEnemyUnit  = Spring.GetClosestEnemyUnit
 local spAreTeamsAllied       = Spring.AreTeamsAllied
 local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
+local spGetMouseState        = Spring.GetMouseState
+local spTraceScreenRay       = Spring.TraceScreenRay
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -35,6 +38,8 @@ local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 -- Set target on units that aren't in range yet but may come in range soon
 local UNIT_RANGE_MULTIPLIER = 1.5
+-- Radius in elmos to search for nearby enemy units when click misses
+local SNAP_RADIUS = 100
 
 local shouldLog = true
 local function printf(arg)
@@ -44,6 +49,10 @@ local function printf(arg)
 end
 
 local gameStarted
+
+local function FindNearestEnemyUnit(x, y, z, radius)
+	return spGetClosestEnemyUnit(x, y, z, radius)
+end
 
 for udid, ud in pairs(UnitDefs) do
 	local maxRange = 0
@@ -119,6 +128,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
     printf("CAT3: Hitting CommandNotify. cmdID: " .. cmdID .. " params: " .. cmdParams)
 	local shouldCleanupTargeting = false
 	local selectedUnits = spGetSelectedUnits()
+	local targetId = nil
 	if cmdID == CMD_UNIT_CANCEL_TARGET or cmdID == CMD_STOP then
         printf("CAT4: Hitting CancelTarget or Stop command")
 		shouldCleanupTargeting = true
@@ -129,9 +139,24 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		shouldCleanupTargeting = true
 	end
 
-	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 then
+	if cmdID == CMD_SET_TARGET and #cmdParams ~= 1 and #cmdParams ~= 4 then
         printf("CAT4: Hitting set target with >1 args")
 		shouldCleanupTargeting = true
+	end
+
+	if cmdID == CMD_SET_TARGET and #cmdParams == 4 and not shouldCleanupTargeting then
+		local mx, my = spGetMouseState()
+		local _, worldPos = spTraceScreenRay(mx, my, true)
+
+		if worldPos and worldPos[1] then
+			targetId = FindNearestEnemyUnit(
+				worldPos[1], worldPos[2], worldPos[3],
+				SNAP_RADIUS
+			)
+			if targetId == nil then
+				shouldCleanupTargeting = true
+			end
+		end
 	end
 
 	if shouldCleanupTargeting then
@@ -140,12 +165,19 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 
-	if cmdID ~= CMD_SET_TARGET or not cmdOpts.alt or #cmdParams ~= 1 then
+	if cmdID ~= CMD_SET_TARGET or not cmdOpts.alt or (#cmdParams ~= 1 and #cmdParams ~= 4) then
         printf("CAT4: Bad args, not proceeding with alt set target")
 		return
 	end
 
-	local targetId = cmdParams[1]
+	if #cmdParams == 1 then
+		targetId = cmdParams[1]
+	end
+
+	if not targetId then
+		return
+	end
+
 	local targetUnitDefID = spGetUnitDefID(targetId)
 
 	for _, unitID in ipairs(selectedUnits) do

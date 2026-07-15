@@ -29,7 +29,8 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+local spGetClosestEnemyUnit = Spring.GetClosestEnemyUnit
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitHealth = Spring.SetUnitHealth
 local spSpawnCEG = Spring.SpawnCEG
@@ -112,7 +113,8 @@ function gadget:GameFrame(frame)
                         local oldHP, maxHP, _, _, oldBuild= spGetUnitHealth(surroundingUnitID)
                         if oldHP < maxHP then
                             local x2, y2, z2 = spGetUnitPosition(surroundingUnitID)
-							if not spGetUnitNearestEnemy(surroundingUnitID, mathCeil(statsTable.healingrange)) then
+                            local surroundingAllyTeam = spGetUnitAllyTeam(surroundingUnitID)
+							if x2 and surroundingAllyTeam and not spGetClosestEnemyUnit(x2, y2, z2, mathCeil(statsTable.healingrange), surroundingAllyTeam, true, false, false) then
                                 local healedUnitBuildTime = unitBuildtime[spGetUnitDefID(surroundingUnitID)]
                                 local healValue = (maxHP/healedUnitBuildTime)*statsTable.healingpower
                                 local buildValue = (statsTable.healingpower/healedUnitBuildTime)*2

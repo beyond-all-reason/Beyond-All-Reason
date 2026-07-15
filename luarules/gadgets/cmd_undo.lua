@@ -46,13 +46,19 @@ if gadgetHandler:IsSyncedCode() then
 	local selfdBlastUnits = {}
 	local sceduledRestoreHeightmap = {}
 	local CMD_SELFD = CMD.SELFD
+	local spGetUnitPosition = Spring.GetUnitPosition
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+	local spGetClosestEnemyUnit = Spring.GetClosestEnemyUnit
 	local enemyNearbyCacheFrame = {}
 	local enemyNearbyCacheValue = {}
 
 	local function HasNoNearbyEnemyCached(unitID, gameFrame)
 		if enemyNearbyCacheFrame[unitID] ~= gameFrame then
 			enemyNearbyCacheFrame[unitID] = gameFrame
-			enemyNearbyCacheValue[unitID] = Spring.GetUnitNearestEnemy(unitID, 1000) == nil
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			local allyTeamID = spGetUnitAllyTeam(unitID)
+			local closestEnemy = ux and allyTeamID and spGetClosestEnemyUnit(ux, uy, uz, 1000, allyTeamID, true, false, false)
+			enemyNearbyCacheValue[unitID] = closestEnemy == nil
 		end
 		return enemyNearbyCacheValue[unitID]
 	end
