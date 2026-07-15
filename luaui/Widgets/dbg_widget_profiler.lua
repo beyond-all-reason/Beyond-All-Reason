@@ -194,7 +194,11 @@ local function widgetprofilertickrateCmd(_, line)
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("widgetprofilertickrate", widgetprofilertickrateCmd, nil, "t")
+	if widgetHandler.AddAction then
+		widgetHandler:AddAction("widgetprofilertickrate", widgetprofilertickrateCmd, nil, "t")
+	elseif widgetHandler.actionHandler and widgetHandler.actionHandler.AddAction then
+		widgetHandler.actionHandler:AddAction(self, "widgetprofilertickrate", widgetprofilertickrateCmd, nil, "t")
+	end
 
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = (not wData.fromZip)
@@ -377,7 +381,11 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	widgetHandler:RemoveAction("widgetprofilertickrate", "t")
+	if widgetHandler.RemoveAction then
+		widgetHandler:RemoveAction("widgetprofilertickrate", "t")
+	elseif widgetHandler.actionHandler and widgetHandler.actionHandler.RemoveAction then
+		widgetHandler.actionHandler:RemoveAction(self, "widgetprofilertickrate", "t")
+	end
 	StopHook()
 end
 
