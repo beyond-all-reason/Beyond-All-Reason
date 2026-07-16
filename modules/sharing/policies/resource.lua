@@ -19,7 +19,7 @@ end
 
 local policyResultPool = {} ---@type table<ResourceName, ResourcePolicyResult>
 
-return Policies.Pipeline("resource")
+return Policies.Pipeline()
 	-- Sharing disabled by mod option denies everything, even when cheating.
 	:Gate("SharingEnabled", function(ctx, resourceType)
 		if not Config.isResourceSharingEnabled(ctx.springRepo) then

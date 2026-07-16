@@ -10,6 +10,13 @@ M.PolicyType = {
 
 M.ResourceType = ResourceTypes
 
+-- Policy pipeline categories; values ARE the policies/<value>.lua filenames
+-- (ModuleHandler.LoadPolicies keys pipelines by filename).
+M.PolicyCategory = {
+	Resource = "resource",
+	Unit = "unit",
+}
+
 M.ResourceCommunicationCase = {
 	OnSelf = 1,
 	OnTaxFree = 2,

@@ -6,7 +6,7 @@ local Policies = VFS.Include("modules/policy_builder.lua")
 --- Unit transfer policy: one gate, then the terminal compute. Denials still
 --- carry the full UnitPolicyResult shape so downstream consumers read one type.
 
-return Policies.Pipeline("unit")
+return Policies.Pipeline()
 	-- Sender and receiver must be allied, the effective sharing modes must
 	-- allow something, and (unless cheating) the receiver must have players.
 	:Gate("UnitCanShareGate", function(ctx)

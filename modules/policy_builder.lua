@@ -108,9 +108,11 @@ PolicyPipeline.__index = PolicyPipeline
 ---framework evaluates stages top to bottom, first result wins.
 ---@param category string
 ---@return PolicyPipeline
-function PolicyBuilder.Pipeline(category)
+---Category is NOT an argument: the pipeline's identity is its filename
+---(policies/<category>.lua) and ModuleHandler.LoadPolicies stamps it — one
+---source of truth, no magic strings to drift.
+function PolicyBuilder.Pipeline()
 	return setmetatable({
-		category = category,
 		stages = {},
 		computed = false,
 	}, PolicyPipeline)
@@ -124,7 +126,6 @@ function PolicyPipeline:Gate(name, evaluate)
 	assert(not self.computed, "PolicyPipeline: Gate() after Compute() — the terminal must be last")
 	self.stages[#self.stages + 1] = {
 		name = name,
-		category = self.category,
 		evaluate = evaluate,
 	}
 	return self
@@ -139,7 +140,6 @@ function PolicyPipeline:Compute(name, evaluate)
 	self.computed = true
 	self.stages[#self.stages + 1] = {
 		name = name,
-		category = self.category,
 		evaluate = evaluate,
 	}
 	return self
