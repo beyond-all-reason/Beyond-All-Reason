@@ -21,6 +21,8 @@
 
 local LOG_TAG = "module_handler.lua"
 
+local PolicyBuilder = VFS.Include("modules/policy_builder.lua")
+
 local MODULES_DIR = "modules/"
 
 -- Subdirectories that mark a directory as a module even without a manifest.
@@ -263,32 +265,58 @@ function ModuleHandler.ModeDirs(vfsMode)
 end
 
 --------------------------------------------------------------------------------
--- Actions: one file per action, declarative descriptor (shape shared with
--- luarules/mission_api/actions_loader.lua and PR #8226)
+-- Actions: registration-style, one file per action, identity = filename.
+-- The loader injects `Actions` into each file's environment (the widget-handler
+-- idiom: an explicit named Register call on an explicit local — NOT anonymous
+-- setfenv globals, which is the fragility dbg_test_runner migrated away from).
+-- Files register and return nothing; the runtime descriptor is assembled here,
+-- never hand-authored. Runtime parameter schemas return, derived from the
+-- LuaCATS annotations (single-sourced), if/when a data-driven dispatcher
+-- (mission_api, CampaignAPI) creates a boundary the type checker cannot see.
 --------------------------------------------------------------------------------
 
----@param descriptor any
 ---@param filePath string
----@return ActionDescriptor|nil
-local function validateAction(descriptor, filePath)
-	if type(descriptor) ~= "table" or type(descriptor.name) ~= "string" or type(descriptor.execute) ~= "function" then
-		logError("Invalid action descriptor (need name + execute): " .. filePath)
-		return nil
-	end
-	for _, parameter in ipairs(descriptor.parameters or {}) do
-		if type(parameter.name) ~= "string" or type(parameter.type) ~= "string" then
-			logError(string.format("Invalid parameter schema in action %q: %s", descriptor.name, filePath))
-			return nil
-		end
-	end
-	return descriptor
+---@return string
+local function nameFromFile(filePath)
+	return filePath:match("([^/]+)%.lua$")
 end
 
----Load and register a module's actions/ directory.
+-- Base environment for registration files: this chunk's own environment, so
+-- injected files see exactly what this file sees (VFS, Spring, ...). The
+-- synced state defines _G; unsynced widget sandboxes may not, so fall back
+-- to getfenv (kept in unsynced). Discovered via headless smoke: __index = _G
+-- alone left action files without VFS in the widget path.
+local CHUNK_ENV = _G
+if CHUNK_ENV == nil or CHUNK_ENV.VFS == nil then
+	local ok, env = pcall(getfenv, 1)
+	if ok and env ~= nil then
+		CHUNK_ENV = env
+	end
+end
+
+---Include a registration file with names injected into its environment.
+---Deliberately UNCACHED: registration must re-fire per include. The engine's
+---VFS.Include is uncached by nature; the busted shim only caches truthy
+---returns, and registration files return nothing.
+---@param filePath string
+---@param injected table
+---@param vfsMode string?
+---@return any returned whatever the file returned (must be nil)
+local function includeRegistrationFile(filePath, injected, vfsMode)
+	local env = setmetatable(injected, { __index = CHUNK_ENV })
+	return VFS.Include(filePath, env, vfsMode)
+end
+
+local actionsCache = {}
+
+---Load a module's actions/ directory: bracketed registration per file.
 ---@param name string module name
 ---@param vfsMode string?
 ---@return {byName: table<string, ActionDescriptor>, list: ActionDescriptor[]}
 function ModuleHandler.LoadActions(name, vfsMode)
+	if actionsCache[name] then
+		return actionsCache[name]
+	end
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	local registry = { byName = {}, list = {} }
 	if not manifest then
@@ -298,64 +326,65 @@ function ModuleHandler.LoadActions(name, vfsMode)
 	local files = VFS.DirList(manifest.dir .. "actions/", "*.lua", vfsMode)
 	table.sort(files)
 	for _, filePath in ipairs(files) do
-		local descriptor = validateAction(ModuleHandler.Include(filePath, vfsMode), filePath)
-		if descriptor then
-			if registry.byName[descriptor.name] then
-				logError(string.format("Duplicate action %q in module %q: %s", descriptor.name, name, filePath))
-			else
-				registry.byName[descriptor.name] = descriptor
-				registry.list[#registry.list + 1] = descriptor
-			end
+		local actionName = nameFromFile(filePath)
+		---@type ActionDescriptor
+		local entry = { name = actionName }
+		local registrar = {
+			---@param fn function pure precondition; must precede RegisterExecute
+			RegisterValidate = function(fn)
+				if type(fn) ~= "function" then
+					error(filePath .. ": Actions.RegisterValidate expects a function")
+				end
+				if entry.execute ~= nil then
+					error(filePath .. ": RegisterValidate must precede RegisterExecute")
+				end
+				if entry.validate ~= nil then
+					error(filePath .. ": duplicate RegisterValidate")
+				end
+				entry.validate = fn
+			end,
+			---@param fn function the only effectful code; exactly one per file
+			RegisterExecute = function(fn)
+				if type(fn) ~= "function" then
+					error(filePath .. ": Actions.RegisterExecute expects a function")
+				end
+				if entry.execute ~= nil then
+					error(filePath .. ": duplicate RegisterExecute — exactly one per action file")
+				end
+				entry.execute = fn
+			end,
+		}
+		local returned = includeRegistrationFile(filePath, { Actions = registrar }, vfsMode)
+		if returned ~= nil then
+			error(filePath .. ": action files register, they do not return (old descriptor style?)")
 		end
+		if entry.execute == nil then
+			error(filePath .. ": no Actions.RegisterExecute — every action must register execute")
+		end
+		registry.byName[actionName] = entry
+		registry.list[#registry.list + 1] = entry
 	end
+	actionsCache[name] = registry
 	return registry
 end
 
----Prevalidate call arguments against an action's declared parameter schema.
----@param action ActionDescriptor
----@param args table<string, any>
----@return boolean ok
-function ModuleHandler.ValidateActionArgs(action, args)
-	local ok = true
-	for _, parameter in ipairs(action.parameters or {}) do
-		local value = args[parameter.name]
-		if value == nil and parameter.required then
-			logError(string.format("Action %q missing required parameter %q", action.name, parameter.name))
-			ok = false
-		end
-		if value ~= nil and parameter.type ~= "any" and type(value) ~= parameter.type then
-			logError(string.format("Action %q parameter %q: expected %s, got %s", action.name, parameter.name, parameter.type, type(value)))
-			ok = false
-		end
-	end
-	return ok
-end
-
 --------------------------------------------------------------------------------
--- Policies: one file per policy under policies/<category>/, pure functions in
--- a declarative descriptor, evaluated in filename order
+-- Policies: registration-style, one pipeline per category, identity = filename.
+-- The loader injects `Policies` (a Pipeline facade bound to this file's sink);
+-- files end with :Register() and return nothing. Stage order is declaration
+-- order; the first non-nil result wins; the Compute terminal always returns.
 --------------------------------------------------------------------------------
 
----@param descriptor any
----@param filePath string
----@param category string
----@return PolicyDescriptor|nil
-local function validatePolicy(descriptor, filePath, category)
-	if type(descriptor) ~= "table" or type(descriptor.name) ~= "string" or type(descriptor.evaluate) ~= "function" then
-		logError("Invalid policy descriptor (need name + evaluate): " .. filePath)
-		return nil
-	end
-	descriptor.category = descriptor.category or category
-	return descriptor
-end
+local policiesCache = {}
 
----Load a module's policy pipelines: policies/<category>.lua returns an
----ordered PolicyDescriptor[] (write it by hand or with PolicyBuilder.Pipeline).
----Order is declaration order — no filename numbering.
+---Load a module's policies/ directory into per-category ordered stage lists.
 ---@param name string module name
 ---@param vfsMode string?
----@return table<string, PolicyDescriptor[]> policies keyed by category, in evaluation order
+---@return table<string, PolicyDescriptor[]> pipelines keyed by category (filename)
 function ModuleHandler.LoadPolicies(name, vfsMode)
+	if policiesCache[name] then
+		return policiesCache[name]
+	end
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	local byCategory = {}
 	if not manifest then
@@ -365,21 +394,33 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 	local files = VFS.DirList(manifest.dir .. "policies/", "*.lua", vfsMode)
 	table.sort(files)
 	for _, filePath in ipairs(files) do
-		local category = filePath:match("([^/\\]+)%.[Ll][Uu][Aa]$")
-		local pipeline = ModuleHandler.Include(filePath, vfsMode)
-		if type(pipeline) ~= "table" or #pipeline == 0 then
-			logError("Invalid policy pipeline (expected ordered PolicyDescriptor[]): " .. filePath)
-		else
-			local policies = {}
-			for _, descriptor in ipairs(pipeline) do
-				local validated = validatePolicy(descriptor, filePath, category)
-				if validated then
-					policies[#policies + 1] = validated
+		local category = nameFromFile(filePath)
+		local registered = nil
+		local facade = {
+			Pipeline = function()
+				local builder = PolicyBuilder.Pipeline()
+				builder._sink = function(stages)
+					if registered ~= nil then
+						error(filePath .. ": duplicate pipeline registration")
+					end
+					for _, stage in ipairs(stages) do
+						stage.category = stage.category or category
+					end
+					registered = stages
 				end
-			end
-			byCategory[category] = policies
+				return builder
+			end,
+		}
+		local returned = includeRegistrationFile(filePath, { Policies = facade }, vfsMode)
+		if returned ~= nil then
+			error(filePath .. ": policy files register, they do not return (end with :Register())")
 		end
+		if registered == nil then
+			error(filePath .. ": no pipeline registered — end with :Register()")
+		end
+		byCategory[category] = registered
 	end
+	policiesCache[name] = byCategory
 	return byCategory
 end
 
@@ -439,6 +480,8 @@ function ModuleHandler.ResetCaches()
 	includeCache = {}
 	manifestsCache = nil
 	apiCache = {}
+	actionsCache = {}
+	policiesCache = {}
 end
 
 return ModuleHandler

@@ -1,5 +1,6 @@
 local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
-local UnitTransferAction = VFS.Include("modules/sharing/actions/unit_transfer.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local UnitTransferAction = ModuleHandler.LoadActions("sharing").byName.unit_transfer
 
 local API = {}
 

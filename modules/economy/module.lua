@@ -1,4 +1,4 @@
----@type ModuleManifest
+---@type ModuleManifestFile
 return {
 	name = "economy",
 	version = "0.1.0",

@@ -1,4 +1,4 @@
----@type ModuleManifest
+---@type ModuleManifestFile
 return {
 	name = "sharing",
 	version = "0.1.0",

@@ -1,11 +1,11 @@
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local Helpers = VFS.Include("modules/sharing/helpers.lua")
-local Policies = VFS.Include("modules/policy_builder.lua")
+local Policies = Policies ---@type PoliciesRegistrar injected by the loader (widget idiom)
 
 --- Unit transfer policy: one gate, then the terminal compute. Denials still
 --- carry the full UnitPolicyResult shape so downstream consumers read one type.
 
-return Policies.Pipeline()
+Policies.Pipeline()
 	-- Sender and receiver must be allied, the effective sharing modes must
 	-- allow something, and (unless cheating) the receiver must have players.
 	:Gate("UnitCanShareGate", function(ctx)
@@ -24,4 +24,4 @@ return Policies.Pipeline()
 	:Compute("ComputeUnitPolicy", function(ctx)
 		return Helpers.BuildUnitPolicyResult(ctx, ctx.springRepo.GetModOptions(), true)
 	end)
-	:Build()
+	:Register()

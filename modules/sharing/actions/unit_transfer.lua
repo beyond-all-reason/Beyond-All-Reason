@@ -1,3 +1,4 @@
+local Actions = Actions ---@type ActionRegistrar injected by the loader (widget idiom)
 local Enums = VFS.Include("modules/sharing/enums.lua")
 local UnitShared = VFS.Include("modules/sharing/unit/shared.lua")
 local Categories = VFS.Include("modules/sharing/unit/categories.lua")
@@ -122,11 +123,6 @@ local function validateUnits(policyResult, unitIds, springApi, unitDefs, out)
 	return out
 end
 
----rebuild (sender,receiver) unit policy from cached factors + live gates (mirrors Synced.GetPolicy); missing factors fall back to global unit_sharing_mode
----@param senderTeamId integer
----@param receiverTeamId integer
----@param springApi EngineSynced?
----@return UnitPolicyResult
 ---@param ctx UnitTransferContext
 ---@return UnitTransferResult
 local function executeUnitTransfer(ctx)
@@ -160,12 +156,5 @@ local function executeUnitTransfer(ctx)
 	}
 end
 
----@type ActionDescriptor
-return {
-	name = "UnitTransfer",
-	parameters = {
-		{ name = "ctx", required = true, type = "table" },
-	},
-	validate = validateUnits,
-	execute = executeUnitTransfer,
-}
+Actions.RegisterValidate(validateUnits)
+Actions.RegisterExecute(executeUnitTransfer)

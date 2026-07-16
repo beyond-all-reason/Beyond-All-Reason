@@ -6,7 +6,7 @@ local Shared = Comms
 
 local FieldTypes = PolicyShared.FieldTypes
 
--- Schema for the GUI's flattened per-player policy packing (gui_advplayerlist/policy.lua).
+-- Schema for the GUI's flattened per-player policy packing (policy_views/policy.lua).
 Shared.ResourcePolicyFields = {
 	resourceType = FieldTypes.string,
 	canShare = FieldTypes.boolean,

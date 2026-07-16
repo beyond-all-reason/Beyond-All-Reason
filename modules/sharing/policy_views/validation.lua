@@ -1,7 +1,8 @@
 --- Unit validation helpers for advplayerslist.lua
 --- partition depends only on the sender's modes, so memoise once per selection, not per player
 local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
-local UnitTransferAction = VFS.Include("modules/sharing/actions/unit_transfer.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local UnitTransferAction = ModuleHandler.LoadActions("sharing").byName.unit_transfer
 
 local UnitValidationHelpers = {}
 

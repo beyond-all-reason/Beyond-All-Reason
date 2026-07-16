@@ -4,7 +4,8 @@ local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 local UnitTransferShared = VFS.Include("modules/sharing/unit/shared.lua")
-local UnitTransferAction = VFS.Include("modules/sharing/actions/unit_transfer.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local UnitTransferAction = ModuleHandler.LoadActions("sharing").byName.unit_transfer
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 
 local Units = {

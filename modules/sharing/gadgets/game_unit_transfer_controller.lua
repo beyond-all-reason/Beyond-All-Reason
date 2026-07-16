@@ -145,7 +145,7 @@ end
 ---@return UnitTransferResult
 function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
 	local policyResult = PolicyEvaluation.GetUnitPolicyCached(senderTeamID, targetTeamID, springRepo)
-	local validation = SharingActions.byName.UnitTransfer.validate(policyResult, unitIDs, springRepo, nil, shareValidationScratch)
+	local validation = SharingActions.byName.unit_transfer.validate(policyResult, unitIDs, springRepo, nil, shareValidationScratch)
 
 	if validation.status == TransferEnums.UnitValidationOutcome.Failure then
 		---@type UnitTransferResult
@@ -160,7 +160,7 @@ function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
 	end
 
 	local transferCtx = contextFactory.unitTransfer(senderTeamID, targetTeamID, unitIDs, true, policyResult, validation)
-	local result = SharingActions.byName.UnitTransfer.execute(transferCtx)
+	local result = SharingActions.byName.unit_transfer.execute(transferCtx)
 
 	local outcome = result.outcome
 	if outcome == TransferEnums.UnitValidationOutcome.Success or outcome == TransferEnums.UnitValidationOutcome.PartialSuccess then
@@ -193,7 +193,7 @@ function UnitTransferController.AllowUnitTransfer(unitID, unitDefID, fromTeamID,
 	local policyResult = PolicyEvaluation.GetUnitPolicyCached(fromTeamID, toTeamID, springRepo)
 
 	allowUnitScratch[1] = unitID
-	local validation = SharingActions.byName.UnitTransfer.validate(policyResult, allowUnitScratch, springRepo, nil, allowValidationScratch)
+	local validation = SharingActions.byName.unit_transfer.validate(policyResult, allowUnitScratch, springRepo, nil, allowValidationScratch)
 
 	return validation.status ~= TransferEnums.UnitValidationOutcome.Failure
 end

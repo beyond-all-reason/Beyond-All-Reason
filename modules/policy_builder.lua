@@ -151,4 +151,14 @@ function PolicyPipeline:Build()
 	return self.stages
 end
 
+---Terminal for policies/<category>.lua files: hand the built stage list to
+---the loader's sink (injected by ModuleHandler.LoadPolicies). Registration
+---style, one idiom framework-wide: files register, they do not return.
+function PolicyPipeline:Register()
+	if self._sink == nil then
+		error("PolicyPipeline:Register() outside a policies/ loader bracket — use :Build() for programmatic pipelines")
+	end
+	self._sink(self:Build())
+end
+
 return PolicyBuilder

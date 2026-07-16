@@ -1,7 +1,7 @@
 local Enums = VFS.Include("modules/sharing/enums.lua")
 local Config = VFS.Include("modules/sharing/config.lua")
 local Helpers = VFS.Include("modules/sharing/helpers.lua")
-local Policies = VFS.Include("modules/policy_builder.lua")
+local Policies = Policies ---@type PoliciesRegistrar injected by the loader (widget idiom)
 
 --- Resource transfer policy: deny gates in reading order, then the terminal
 --- compute builds the pair's ResourcePolicyResult. Pure functions only — the
@@ -18,7 +18,7 @@ end
 
 local policyResultPool = {} ---@type table<ResourceName, ResourcePolicyResult>
 
-return Policies.Pipeline()
+Policies.Pipeline()
 	-- Sharing disabled by mod option denies everything, even when cheating.
 	:Gate("SharingEnabled", function(ctx, resourceType)
 		if not Config.isResourceSharingEnabled(ctx.springRepo) then
@@ -74,4 +74,4 @@ return Policies.Pipeline()
 
 		return result
 	end)
-	:Build()
+	:Register()

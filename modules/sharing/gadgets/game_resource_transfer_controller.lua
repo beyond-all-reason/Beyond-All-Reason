@@ -105,7 +105,7 @@ local CADENCE = 30
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
 	local policyResult = PolicyEvaluation.CalcResourcePolicyCached(teamID, targetTeamID, resource, springRepo)
 	local ctx = contextFactory.resourceTransfer(teamID, targetTeamID, resource, amount, policyResult)
-	local transferResult = SharingActions.byName.ResourceTransfer.execute(ctx)
+	local transferResult = SharingActions.byName.resource_transfer.execute(ctx)
 
 	local policyResult = transferResult.policyResult
 	if transferResult.success and policyResult then

@@ -1,3 +1,4 @@
+local Actions = Actions ---@type ActionRegistrar injected by the loader (widget idiom)
 local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 
 --- The only place resource amounts move between teams at runtime. Executes a
@@ -43,11 +44,4 @@ local function executeResourceTransfer(ctx)
 	return result
 end
 
----@type ActionDescriptor
-return {
-	name = "ResourceTransfer",
-	parameters = {
-		{ name = "ctx", required = true, type = "table" },
-	},
-	execute = executeResourceTransfer,
-}
+Actions.RegisterExecute(executeResourceTransfer)

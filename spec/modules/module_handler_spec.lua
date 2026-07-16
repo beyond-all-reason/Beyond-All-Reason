@@ -30,34 +30,25 @@ describe("ModuleHandler", function()
 	describe("LoadActions", function()
 		local actions = ModuleHandler.LoadActions("sharing")
 
-		it("auto-registers one action per file in actions/", function()
-			assert.is_table(actions.byName.ResourceTransfer)
-			assert.is_table(actions.byName.UnitTransfer)
-			assert.are.equal("function", type(actions.byName.ResourceTransfer.execute))
+		it("registers one action per file, identity from the filename", function()
+			assert.is_table(actions.byName.resource_transfer)
+			assert.is_table(actions.byName.unit_transfer)
+			assert.are.equal("function", type(actions.byName.resource_transfer.execute))
 		end)
 
-		it("registers the action files themselves (include-once)", function()
-			local Action = ModuleHandler.Include("modules/sharing/actions/resource_transfer.lua")
-			assert.are.equal(Action.execute, actions.byName.ResourceTransfer.execute)
+		it("collects the optional validate precondition (before execute)", function()
+			assert.are.equal("function", type(actions.byName.unit_transfer.validate))
+			assert.is_nil(actions.byName.resource_transfer.validate)
+		end)
+
+		it("memoizes the registry per handler instance", function()
+			assert.are.equal(actions, ModuleHandler.LoadActions("sharing"))
 		end)
 
 		it("returns an empty registry for unknown modules", function()
 			local unknown = ModuleHandler.LoadActions("nope")
 			assert.are.same({}, unknown.byName)
 			assert.are.same({}, unknown.list)
-		end)
-	end)
-
-	describe("ValidateActionArgs", function()
-		local action = ModuleHandler.LoadActions("sharing").byName.ResourceTransfer
-
-		it("accepts args matching the declared schema", function()
-			assert.is_true(ModuleHandler.ValidateActionArgs(action, { ctx = {} }))
-		end)
-
-		it("rejects missing required parameters and type mismatches", function()
-			assert.is_false(ModuleHandler.ValidateActionArgs(action, {}))
-			assert.is_false(ModuleHandler.ValidateActionArgs(action, { ctx = "not a table" }))
 		end)
 	end)
 
