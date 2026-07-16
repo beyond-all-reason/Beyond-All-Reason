@@ -7,7 +7,7 @@ local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 
 ---@param ctx ResourceTransferContext
 ---@return ResourceTransferResult
-local function executeResourceTransfer(ctx)
+Actions.RegisterExecute(function(ctx)
 	local policyResult = ctx.policyResult
 	local desiredAmount = ctx.desiredAmount
 	if (not policyResult or not policyResult.canShare) or (not desiredAmount or desiredAmount <= 0) then
@@ -42,6 +42,4 @@ local function executeResourceTransfer(ctx)
 	}
 
 	return result
-end
-
-Actions.RegisterExecute(executeResourceTransfer)
+end)

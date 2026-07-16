@@ -33,7 +33,7 @@ end
 ---@param unitDefs table?
 ---@param out UnitValidationResult? optional pre-allocated result to fill in place (table lifting)
 ---@return UnitValidationResult
-local function validateUnits(policyResult, unitIds, springApi, unitDefs, out)
+Actions.RegisterValidate(function(policyResult, unitIds, springApi, unitDefs, out)
 	local spring = springApi or Spring
 	local defs = unitDefs or UnitDefs or (spring.GetUnitDefs and spring.GetUnitDefs()) or {}
 
@@ -121,11 +121,11 @@ local function validateUnits(policyResult, unitIds, springApi, unitDefs, out)
 	end
 
 	return out
-end
+end)
 
 ---@param ctx UnitTransferContext
 ---@return UnitTransferResult
-local function executeUnitTransfer(ctx)
+Actions.RegisterExecute(function(ctx)
 	local policyResult = ctx.policyResult
 
 	if not policyResult.canShare then
@@ -154,7 +154,4 @@ local function executeUnitTransfer(ctx)
 		validationResult = ctx.validationResult,
 		policyResult = ctx.policyResult,
 	}
-end
-
-Actions.RegisterValidate(validateUnits)
-Actions.RegisterExecute(executeUnitTransfer)
+end)
