@@ -60,4 +60,48 @@ describe("PolicyBuilder", function()
 		local allowed = ModuleHandler.Evaluate({ built, compute }, alliedCtx)
 		assert.is_true(allowed.canShare)
 	end)
+	describe("Pipeline", function()
+		local function denyAll(ctx)
+			return { canShare = false }
+		end
+		local function computeOk(ctx)
+			return { canShare = true }
+		end
+
+		it("emits descriptors in declaration order with the category stamped", function()
+			local stages = PolicyBuilder.Pipeline("resource")
+				:Gate("First", denyAll)
+				:Gate("Second", denyAll)
+				:Compute("Last", computeOk)
+				:Build()
+			assert.are.same({ "First", "Second", "Last" }, { stages[1].name, stages[2].name, stages[3].name })
+			assert.are.equal("resource", stages[2].category)
+		end)
+
+		it("composes with ModuleHandler.Evaluate (gate pass vs stop)", function()
+			local stages = PolicyBuilder.Pipeline("resource")
+				:Gate("MaybeDeny", function(ctx)
+					if ctx.blocked then
+						return { canShare = false }
+					end
+					return nil
+				end)
+				:Compute("Compute", computeOk)
+				:Build()
+			assert.is_false(ModuleHandler.Evaluate(stages, { blocked = true }).canShare)
+			assert.is_true(ModuleHandler.Evaluate(stages, { blocked = false }).canShare)
+		end)
+
+		it("enforces exactly one terminal Compute, last", function()
+			assert.has_error(function()
+				PolicyBuilder.Pipeline("x"):Gate("g", denyAll):Build()
+			end)
+			assert.has_error(function()
+				PolicyBuilder.Pipeline("x"):Compute("c", computeOk):Gate("g", denyAll)
+			end)
+			assert.has_error(function()
+				PolicyBuilder.Pipeline("x"):Compute("c", computeOk):Compute("c2", computeOk)
+			end)
+		end)
+	end)
 end)

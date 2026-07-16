@@ -1,16 +1,18 @@
---- Fluent builder for PolicyDescriptors — the modder-facing sugar layer.
+--- Fluent builders that emit PolicyDescriptors — no runtime of their own.
 ---
---- The canonical policy format is the descriptor file (see modules/types/modules.lua):
---- a pure typed evaluate function in its own file. This builder only *emits* that
---- format; it adds no runtime of its own and BAR's built-in policies don't use it.
+--- The canonical policy format is the category file (see modules/types/modules.lua):
+--- modules/<name>/policies/<category>.lua returns an ordered PolicyDescriptor[].
+--- Pipeline() is how those files read — gates in declaration order, one terminal
+--- compute — and what it Build()s is a plain descriptor list, byte-for-byte
+--- equivalent to writing the tables by hand:
 ---
----   return PolicyBuilder.new("NoEnemyMetal")
----       :Category("metal_transfer")
----       :Enemy()
----       :Returns(function(ctx) return MyDenyResult(ctx) end)
+---   return Policies.Pipeline("resource")
+---       :Gate("SharingEnabled", function(ctx, resourceType) ... end)
+---       :Compute("ComputeResourceTransfer", function(ctx, resourceType) ... end)
 ---       :Build()
 ---
---- is byte-for-byte equivalent (as a descriptor) to writing the table by hand.
+--- PolicyBuilder.new() is single-descriptor sugar for modders composing one
+--- policy at a time (predicates + terminal).
 
 ---@class PolicyBuilder
 ---@field name string
@@ -93,6 +95,60 @@ function PolicyBuilder:Build()
 			return handler(...)
 		end,
 	}
+end
+
+---@class PolicyPipeline
+---@field category string
+---@field stages PolicyDescriptor[]
+---@field computed boolean
+local PolicyPipeline = {}
+PolicyPipeline.__index = PolicyPipeline
+
+---One ordered pipeline per category file. Order is declaration order — the
+---framework evaluates stages top to bottom, first result wins.
+---@param category string
+---@return PolicyPipeline
+function PolicyBuilder.Pipeline(category)
+	return setmetatable({
+		category = category,
+		stages = {},
+		computed = false,
+	}, PolicyPipeline)
+end
+
+---A gate: return a result to end evaluation (usually a deny), nil to pass.
+---@param name string
+---@param evaluate fun(...): any
+---@return PolicyPipeline
+function PolicyPipeline:Gate(name, evaluate)
+	assert(not self.computed, "PolicyPipeline: Gate() after Compute() — the terminal must be last")
+	self.stages[#self.stages + 1] = {
+		name = name,
+		category = self.category,
+		evaluate = evaluate,
+	}
+	return self
+end
+
+---The terminal: always returns a result. Exactly one, and last.
+---@param name string
+---@param evaluate fun(...): any
+---@return PolicyPipeline
+function PolicyPipeline:Compute(name, evaluate)
+	assert(not self.computed, "PolicyPipeline: only one Compute() per pipeline")
+	self.computed = true
+	self.stages[#self.stages + 1] = {
+		name = name,
+		category = self.category,
+		evaluate = evaluate,
+	}
+	return self
+end
+
+---@return PolicyDescriptor[]
+function PolicyPipeline:Build()
+	assert(self.computed, "PolicyPipeline: a pipeline needs a terminal Compute()")
+	return self.stages
 end
 
 return PolicyBuilder

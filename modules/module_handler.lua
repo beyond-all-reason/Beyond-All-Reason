@@ -299,7 +299,9 @@ local function validatePolicy(descriptor, filePath, category)
 	return descriptor
 end
 
----Load a module's policies/ directory into per-category ordered lists.
+---Load a module's policy pipelines: policies/<category>.lua returns an
+---ordered PolicyDescriptor[] (write it by hand or with PolicyBuilder.Pipeline).
+---Order is declaration order — no filename numbering.
 ---@param name string module name
 ---@param vfsMode string?
 ---@return table<string, PolicyDescriptor[]> policies keyed by category, in evaluation order
@@ -310,18 +312,23 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 		logError("LoadPolicies: unknown module " .. tostring(name))
 		return byCategory
 	end
-	for _, categoryDir in ipairs(VFS.SubDirs(manifest.dir .. "policies/", "*", vfsMode)) do
-		local category = dirBasename(categoryDir)
-		local files = VFS.DirList(ensureSlash(categoryDir), "*.lua", vfsMode)
-		table.sort(files)
-		local policies = {}
-		for _, filePath in ipairs(files) do
-			local descriptor = validatePolicy(ModuleHandler.Include(filePath, vfsMode), filePath, category)
-			if descriptor then
-				policies[#policies + 1] = descriptor
+	local files = VFS.DirList(manifest.dir .. "policies/", "*.lua", vfsMode)
+	table.sort(files)
+	for _, filePath in ipairs(files) do
+		local category = filePath:match("([^/\\]+)%.[Ll][Uu][Aa]$")
+		local pipeline = ModuleHandler.Include(filePath, vfsMode)
+		if type(pipeline) ~= "table" or #pipeline == 0 then
+			logError("Invalid policy pipeline (expected ordered PolicyDescriptor[]): " .. filePath)
+		else
+			local policies = {}
+			for _, descriptor in ipairs(pipeline) do
+				local validated = validatePolicy(descriptor, filePath, category)
+				if validated then
+					policies[#policies + 1] = validated
+				end
 			end
+			byCategory[category] = policies
 		end
-		byCategory[category] = policies
 	end
 	return byCategory
 end

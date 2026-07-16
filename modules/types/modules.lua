@@ -18,12 +18,13 @@
 ---@field parameters ActionParameter[]|nil Declared call schema, prevalidated by ModuleHandler.ValidateActionArgs
 ---@field execute function Performs the action
 
---- One file per policy under modules/<name>/policies/<category>/. Pure function
---- constrained by types: no engine mutation inside evaluate. Files evaluate in
---- filename order (numeric prefixes); returning nil passes to the next policy,
---- returning a result ends evaluation (first result wins). By convention the
---- final 1xx_compute_* policy always returns.
+--- One pipeline per category: modules/<name>/policies/<category>.lua returns an
+--- ordered PolicyDescriptor[] — write it by hand or with PolicyBuilder.Pipeline
+--- (Gate/Compute). Pure functions constrained by types: no engine mutation in
+--- evaluate. Stages run in declaration order; returning nil passes to the next
+--- stage, returning a result ends evaluation (first result wins). The terminal
+--- Compute stage always returns.
 ---@class PolicyDescriptor
 ---@field name string
----@field category string|nil Defaults to the policies/ subdirectory name
+---@field category string|nil Defaults to the policies/<category>.lua filename
 ---@field evaluate function fun(...): result|nil

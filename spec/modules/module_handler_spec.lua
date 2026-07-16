@@ -68,7 +68,7 @@ describe("ModuleHandler", function()
 			assert.is_table(policies.unit)
 		end)
 
-		it("orders policies by filename with the compute terminal last", function()
+		it("keeps pipeline declaration order with the compute terminal last", function()
 			local names = {}
 			for _, policy in ipairs(policies.resource) do
 				names[#names + 1] = policy.name
@@ -77,7 +77,7 @@ describe("ModuleHandler", function()
 			assert.are.equal("ComputeUnitPolicy", policies.unit[#policies.unit].name)
 		end)
 
-		it("stamps the category from the subdirectory name", function()
+		it("stamps the category from the pipeline filename", function()
 			assert.are.equal("resource", policies.resource[1].category)
 			assert.are.equal("unit", policies.unit[1].category)
 		end)
