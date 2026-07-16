@@ -5,11 +5,9 @@
 --- Everything not exported by a contract is module-internal; include paths
 --- under modules/sharing/ from outside are a boundary violation.
 
-local ModuleHandler = VFS.Include("modules/module_handler.lua")
-
 return {
-	Enums = ModuleHandler.Include("modules/sharing/enums.lua"),
+	Enums = VFS.Include("modules/sharing/enums.lua"),
 	-- unit surface safe in both states: validation, mode unit types, cached pair policy
-	Units = ModuleHandler.Include("modules/sharing/unit/shared.lua"),
-	Take = ModuleHandler.Include("modules/sharing/take/comms.lua"),
+	Units = VFS.Include("modules/sharing/unit/shared.lua"),
+	Take = VFS.Include("modules/sharing/take/comms.lua"),
 }

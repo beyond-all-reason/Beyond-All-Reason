@@ -18,6 +18,10 @@
 ---
 --- Game-side loading is the shim for engine-native module loading (Recoil RFC);
 --- the layout is the contract, this file is the reference implementation.
+--- There is deliberately NO game-side include cache: VFS.Include is uncached in
+--- the engine, and a per-handler cache would only pretend otherwise (this file
+--- is itself re-included per consumer). Registries and contracts are memoized
+--- per handler; true load-once-per-state is the engine RFC's require().
 
 local LOG_TAG = "module_handler.lua"
 
@@ -39,26 +43,6 @@ local function logError(message)
 	else
 		print("[" .. LOG_TAG .. "] ERROR: " .. message)
 	end
-end
-
---------------------------------------------------------------------------------
--- Include-once cache
---------------------------------------------------------------------------------
-
-local includeCache = {}
-
----Include a file exactly once per Lua state, caching its return value.
----Synced and unsynced are separate Lua states, so isolation is preserved.
----@param path string
----@param vfsMode string?
----@return any
-function ModuleHandler.Include(path, vfsMode)
-	local cached = includeCache[path]
-	if cached == nil then
-		cached = VFS.Include(path, nil, vfsMode)
-		includeCache[path] = cached
-	end
-	return cached
 end
 
 --------------------------------------------------------------------------------
@@ -196,7 +180,7 @@ function ModuleHandler.Get(name, vfsMode)
 	local resolved = 0
 	for _, path in ipairs(parts) do
 		if VFS.FileExists(path, vfsMode) then
-			local part = ModuleHandler.Include(path, vfsMode)
+			local part = VFS.Include(path, nil, vfsMode)
 			if type(part) ~= "table" then
 				logError(string.format("Module %q contract must return a table: %s", name, path))
 			else
@@ -477,7 +461,6 @@ end
 
 ---Testing hook: reset discovery + include caches.
 function ModuleHandler.ResetCaches()
-	includeCache = {}
 	manifestsCache = nil
 	apiCache = {}
 	actionsCache = {}
