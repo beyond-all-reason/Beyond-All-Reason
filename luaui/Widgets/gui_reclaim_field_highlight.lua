@@ -106,8 +106,12 @@ local animCfg = {
 	toggleFadeDuration = 0.18,
 	-- Cluster identity matching: required overlap fraction (intersection / max(old,new))
 	identityMinOverlap = 0.34,
-	-- Alpha delta beyond which we recreate the gradient display list
-	rebuildThreshold = 0.0005,
+	-- Alpha delta beyond which we recreate the gradient display list. Kept in
+	-- step with the alpha quantization used in CreateClusterDisplayList (~32
+	-- buckets), so slowly-fading fields (e.g. distance fade while panning) don't
+	-- recompute a state hash and rebuild a display list almost every frame. The
+	-- fill/gradient alphas are tiny (~0.05-0.13) so ~32 steps stays smooth.
+	rebuildThreshold = 0.03,
 	-- Minimum relative change in cluster resource value to trigger a pulse
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
@@ -339,8 +343,10 @@ local batch = {
 	toRemove = {},              -- Reusable table for batching feature removals
 	pendDestructions = {},      -- Queue for batching FeatureDestroyed calls
 	pendDestrCount = 0,         -- Count of pending destructions
+	pendDestrHead = 0,          -- Cursor into the destruction queue (budgeted drain)
 	pendCreations = {},         -- Queue for batching FeatureCreated calls
 	pendCreateCount = 0,        -- Count of pending creations
+	pendCreateHead = 0,         -- Cursor into the creation queue (budgeted drain)
 	affectedFeatures = {},      -- Reusable table for regional clustering
 	affectedClusters = {},      -- Reusable table for regional clustering
 	deferCreations = {},        -- Features created outside view
@@ -372,6 +378,55 @@ local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
 local featureReclaimScanCounter = 0 -- Rotating cursor for sampled feature-resource checks
 local knownFeatureIDs = {} -- Dense feature-ID list for bounded reclaim scans
+
+-- Spatial hash grid for O(k) neighbour queries.
+--
+-- Previously, adding a feature scanned *every* known feature to find neighbours
+-- within `epsilon` (O(n) per add => O(n^2) when a burst of wrecks/eggs spawns,
+-- e.g. during game load, big battles or area-reclaim). That O(n^2) burst is the
+-- primary source of the reported freezes. The grid buckets features into cells
+-- of size `epsilon` so a neighbour lookup only has to visit the 3x3 block of
+-- cells around a point (provably exhaustive when cell size == search radius).
+--
+-- Everything is packed onto one `grid` table (cells + helpers) to keep the main
+-- chunk under Lua's 200 local/upvalue limit (see the batch/anim tables above).
+-- `grid.buildNeighbors` is assigned later, once `featureNeighborsMatrix` exists.
+local grid = {
+	cells = {}, -- [cellKey] = { [fid] = feature }
+}
+
+do
+	local GRID_OFFSET = 8192  -- keeps cell indices non-negative
+	local GRID_STRIDE = 32768 -- > 2*GRID_OFFSET so keys never collide
+	local cellSize = epsilon
+	local cells = grid.cells
+
+	grid.insert = function(featureID, feature)
+		local cx = floor(feature.x / cellSize) + GRID_OFFSET
+		local cz = floor(feature.z / cellSize) + GRID_OFFSET
+		local key = cx * GRID_STRIDE + cz
+		local cell = cells[key]
+		if not cell then
+			cell = {}
+			cells[key] = cell
+		end
+		cell[featureID] = feature
+		feature.gridKey = key
+	end
+
+	grid.remove = function(featureID, feature)
+		local key = feature.gridKey
+		if key == nil then return end
+		local cell = cells[key]
+		if cell then
+			cell[featureID] = nil
+			if next(cell) == nil then
+				cells[key] = nil
+			end
+		end
+		feature.gridKey = nil
+	end
+end
 
 local featureCountMultiplier = 1 -- Multiplier based on feature count
 
@@ -406,6 +461,53 @@ local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
 local opticsObject
+
+-- Populate `featureNeighborsMatrix` for a newly-added feature by visiting only
+-- the 3x3 block of grid cells around it. Mirrors the previous full-scan logic
+-- (updates both directions of the matrix and each neighbour's reachability),
+-- but at O(k) instead of O(n). Returns the smallest neighbour distance squared.
+-- Assigned here (rather than next to grid.insert/remove) so it captures the
+-- `featureNeighborsMatrix` module local instead of a global.
+do
+	local GRID_OFFSET = 8192
+	local GRID_STRIDE = 32768
+	local cellSize = epsilon
+	local cells = grid.cells
+
+	grid.buildNeighbors = function(featureID, x, z, M_newFeature)
+		local M = featureNeighborsMatrix
+		local reachDistSq = mathHuge
+		local cx = floor(x / cellSize) + GRID_OFFSET
+		local cz = floor(z / cellSize) + GRID_OFFSET
+		for gx = cx - 1, cx + 1 do
+			local base = gx * GRID_STRIDE
+			for gz = cz - 1, cz + 1 do
+				local cell = cells[base + gz]
+				if cell then
+					for fid2, feat2 in pairs(cell) do
+						local dx = x - feat2.x
+						local dz = z - feat2.z
+						local distSq = dx * dx + dz * dz
+						if distSq <= epsilonSq then
+							local row = M[fid2]
+							if row then
+								row[featureID] = distSq
+								M_newFeature[fid2] = distSq
+								if distSq < reachDistSq then
+									reachDistSq = distSq
+								end
+								if feat2.rd == nil or distSq < feat2.rd then
+									feat2.rd = distSq
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		return reachDistSq
+	end
+end
 
 -- Energy field tables (separate clustering)
 local energyFeatureClusters
@@ -2017,28 +2119,14 @@ local function AddFeature(featureID)
 	end
 
 	-- Assuming the feature's motion is highly likely negligible:
-	local M = featureNeighborsMatrix
 	local M_newFeature = {}
-	local reachDistSq, epsilonSq = mathHuge, epsilonSq
-	for fid2, feat2 in pairs(knownFeatures) do
-		local dx, dz = x - feat2.x, z - feat2.z
-		local distSq = dx * dx + dz * dz
-		if distSq <= epsilonSq then
-			M[fid2][featureID] = distSq
-			M_newFeature[fid2] = distSq
-			if distSq < reachDistSq then
-				reachDistSq = distSq
-			end
-			if feat2.rd == nil or distSq < feat2.rd then
-				feat2.rd = distSq
-			end
-		end
-	end
+	local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
 	featureNeighborsMatrix[featureID] = M_newFeature
 	if reachDistSq < epsilonSq then
 		feature.rd = reachDistSq
 	end
 	knownFeatures[featureID] = feature
+	grid.insert(featureID, feature)
 	knownFeatureIDs[#knownFeatureIDs + 1] = featureID
 	feature.scanIndex = #knownFeatureIDs
 	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
@@ -2087,6 +2175,7 @@ local function RemoveFeature(featureID)
 		end
 	end
 	featureNeighborsMatrix[featureID] = nil
+	grid.remove(featureID, feature)
 	knownFeatures[featureID] = nil
 	local scanIndex = feature.scanIndex
 	if scanIndex then
@@ -2741,13 +2830,6 @@ local function DrawHullVertices(hull)
 	end
 end
 
--- Pre-allocated energy colors table to avoid per-DL-creation allocation
-local energyGradientColors = {
-	fill = energyReclaimColor,
-	fillAlpha = fillAlpha * energyOpacityMultiplier,
-	gradientAlpha = gradientAlpha * energyOpacityMultiplier,
-}
-
 -- Reusable buffer for DrawHullVerticesGradient inner points
 local innerPointsBuf = {}
 
@@ -2828,6 +2910,27 @@ local function DrawHullVerticesGradient(hull, center, colors)
 	end
 end
 
+-- Allocation-free display-list recording scratch.
+--
+-- gl.CreateList() records its callback immediately, so the geometry/colours it
+-- reads only need to be valid *during* that call. Previously each rebuild
+-- allocated a fresh colours table plus a fresh closure per list; during fades
+-- (up to maxRebuildsPerFrame per frame) that was a steady stream of garbage.
+-- We now stash the transient inputs on one reusable `dlScratch` table and hand
+-- gl.CreateList a pair of persistent recorder functions instead. Packed onto a
+-- single table to respect the file's 200 local/upvalue budget.
+local dlScratch = {
+	hull = nil,
+	center = nil,
+	colors = { fill = nil, fillAlpha = 0, gradientAlpha = 0 },
+}
+dlScratch.emitGradient = function()
+	glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, dlScratch.hull, dlScratch.center, dlScratch.colors)
+end
+dlScratch.emitEdge = function()
+	glBeginEnd(GL.LINE_LOOP, DrawHullVertices, dlScratch.hull)
+end
+
 -- Helper functions for per-cluster display list management
 DeleteClusterDisplayList = function(cid, isEnergy, keepText)
 	-- keepText (optional) when true will preserve the text display list to avoid
@@ -2879,8 +2982,8 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	-- Compute geometry hash (alpha-independent) plus a full hash with quantized
 	-- alpha, so the gradient rebuilds on fade while the edge list can be reused.
 	local geomHash = ComputeClusterStateHash(cluster, hull)
-	-- Quantize alpha to ~16 buckets so we don't rebuild every tiny change
-	local newHash = geomHash + floor(alphaMult * 16 + 0.5) * 0.0001
+	-- Quantize alpha to ~32 buckets so we don't rebuild every tiny change
+	local newHash = geomHash + floor(alphaMult * 32 + 0.5) * 0.0001
 	local oldHash = stateHashes[cid]
 
 	-- Only recreate if state actually changed
@@ -2903,47 +3006,30 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 		end
 	end
 
-	-- Build a colors table with alpha baked in
-	local colorsTbl
+	-- Fill the reusable scratch colours table (alpha baked in). Safe to reuse
+	-- because gl.CreateList records DrawHullVerticesGradient immediately below.
+	local scratchColors = dlScratch.colors
 	if isEnergy then
-		colorsTbl = {
-			fill = energyReclaimColor,
-			fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult,
-			gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult,
-		}
+		scratchColors.fill = energyReclaimColor
+		scratchColors.fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult
 	else
-		colorsTbl = {
-			fill = reclaimColor,
-			fillAlpha = fillAlpha * alphaMult,
-			gradientAlpha = gradientAlpha * alphaMult,
-		}
+		scratchColors.fill = reclaimColor
+		scratchColors.fillAlpha = fillAlpha * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * alphaMult
 	end
+	dlScratch.hull = hull
+	dlScratch.center = cluster.center
 
-	-- Capture immutable values into locals so the display list closure doesn't
-	-- pick up later mutations of the shared colorsTbl.
-	local capturedFillAlpha = colorsTbl.fillAlpha
-	local capturedGradientAlpha = colorsTbl.gradientAlpha
-	local capturedFill = colorsTbl.fill
-	-- We allocate a per-list colors table to avoid the shared table being
-	-- mutated before the list is actually executed.
-	local listColors = {
-		fill = capturedFill,
-		fillAlpha = capturedFillAlpha,
-		gradientAlpha = capturedGradientAlpha,
-	}
-
-	-- Create gradient fill display list (alpha baked in)
-	clusterData.gradient = glCreateList(function()
-		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, listColors)
-	end)
+	-- Create gradient fill display list (alpha baked in) using the shared,
+	-- non-allocating recorder function.
+	clusterData.gradient = glCreateList(dlScratch.emitGradient)
 
 	-- Create the edge display list only when the geometry actually changed; its
 	-- opacity is applied via glColor at draw time, so alpha-only fades reuse it.
 	if not clusterData.edge or clusterData.geomHash ~= geomHash then
 		if clusterData.edge then glDeleteList(clusterData.edge) end
-		clusterData.edge = glCreateList(function()
-			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-		end)
+		clusterData.edge = glCreateList(dlScratch.emitEdge)
 		clusterData.geomHash = geomHash
 	end
 
@@ -2979,30 +3065,26 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 	end
 	if dl.gradient then glDeleteList(dl.gradient); dl.gradient = nil end
 
-	local listColors
+	-- Fill the shared scratch colours (see dlScratch): gl.CreateList records
+	-- immediately, so reusing the table across calls is safe and allocation-free.
+	local scratchColors = dlScratch.colors
 	if isEnergy then
-		listColors = {
-			fill = energyReclaimColor,
-			fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult,
-			gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult,
-		}
+		scratchColors.fill = energyReclaimColor
+		scratchColors.fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult
 	else
-		listColors = {
-			fill = reclaimColor,
-			fillAlpha = fillAlpha * alphaMult,
-			gradientAlpha = gradientAlpha * alphaMult,
-		}
+		scratchColors.fill = reclaimColor
+		scratchColors.fillAlpha = fillAlpha * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * alphaMult
 	end
+	dlScratch.hull = hull
+	dlScratch.center = center
 
-	dl.gradient = glCreateList(function()
-		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, center, listColors)
-	end)
+	dl.gradient = glCreateList(dlScratch.emitGradient)
 	-- Edge geometry is fixed for the life of the fade; build it once and reuse
 	-- it across every alpha tick (opacity comes from glColor at draw time).
 	if not dl.edge then
-		dl.edge = glCreateList(function()
-			glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-		end)
+		dl.edge = glCreateList(dlScratch.emitEdge)
 	end
 	entry.lastBakedAlpha = alphaMult
 end
@@ -3068,28 +3150,67 @@ local function ProcessDeferredFeatures(frame)
 end
 
 -- Helper: Process pending feature changes
+--
+-- Feature creations/destructions are batched (see FeatureCreated/Destroyed) and
+-- drained here once per game frame. A large burst (game load, big battle,
+-- area-reclaim, mass spawns) can queue thousands of items at once; processing
+-- the whole queue in a single frame is the classic freeze. We therefore drain a
+-- bounded number per call and keep the rest for subsequent frames. The overlay
+-- catches up within a fraction of a second instead of stalling the game.
+--
+-- Pre-gamestart we intentionally drain everything at once (during the load /
+-- placement phase, where a one-off spike is invisible) so all metal fields are
+-- discovered immediately, preserving the prior behaviour.
 local function ProcessPendingFeatureChanges()
+	-- Bounded drain per frame in-game; unbounded pre-gamestart (see above).
+	-- Removals can be O(k^2) in dense clusters (reachability re-scan), so their
+	-- budget is kept a touch lower than creations.
+	local createBudget = gameStarted and 128 or mathHuge
+	local destroyBudget = gameStarted and 128 or mathHuge
+
 	-- Process batched feature creations first
-	if batch.pendCreateCount > 0 then
-		for i = 1, batch.pendCreateCount do
-			local featureID = batch.pendCreations[i]
-			AddFeature(featureID)
-			batch.pendCreations[i] = nil
+	if batch.pendCreateCount > batch.pendCreateHead then
+		local head = batch.pendCreateHead
+		local tail = batch.pendCreateCount
+		local limit = head + createBudget
+		if limit > tail then limit = tail end
+		local creations = batch.pendCreations
+		for i = head + 1, limit do
+			local featureID = creations[i]
+			creations[i] = nil
+			if featureID then
+				AddFeature(featureID)
+			end
 		end
-		batch.pendCreateCount = 0
+		if limit >= tail then
+			batch.pendCreateHead = 0
+			batch.pendCreateCount = 0
+		else
+			batch.pendCreateHead = limit
+		end
 		dirty.needCluster = true
 	end
 
 	-- Process batched feature destructions
-	if batch.pendDestrCount > 0 then
-		for i = 1, batch.pendDestrCount do
-			local featureID = batch.pendDestructions[i]
-			if knownFeatures[featureID] then
+	if batch.pendDestrCount > batch.pendDestrHead then
+		local head = batch.pendDestrHead
+		local tail = batch.pendDestrCount
+		local limit = head + destroyBudget
+		if limit > tail then limit = tail end
+		local destructions = batch.pendDestructions
+		for i = head + 1, limit do
+			local featureID = destructions[i]
+			destructions[i] = nil
+			if featureID and knownFeatures[featureID] then
 				RemoveFeature(featureID)
 			end
-			batch.pendDestructions[i] = nil
 		end
-		batch.pendDestrCount = 0
+		if limit >= tail then
+			batch.pendDestrHead = 0
+			batch.pendDestrCount = 0
+		else
+			batch.pendDestrHead = limit
+		end
 		dirty.needCluster = true
 	end
 end
@@ -3118,28 +3239,14 @@ local function ProcessFlyingFeatures(frame)
 						-- Mark region as dirty for regional reclustering
 						MarkRegionDirty(x, z)
 
-						local M = featureNeighborsMatrix
 						local M_newFeature = {}
-						local reachDistSq, epsilonSq = mathHuge, epsilonSq
-						for fid2, feat2 in pairs(knownFeatures) do
-							local dx, dz = x - feat2.x, z - feat2.z
-							local distSq = dx * dx + dz * dz
-							if distSq <= epsilonSq then
-								M[fid2][featureID] = distSq
-								M_newFeature[fid2] = distSq
-								if distSq < reachDistSq then
-									reachDistSq = distSq
-								end
-								if feat2.rd == nil or distSq < feat2.rd then
-									feat2.rd = distSq
-								end
-							end
-						end
+						local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
 						featureNeighborsMatrix[featureID] = M_newFeature
 						if reachDistSq < epsilonSq then
 							fInfo.rd = reachDistSq
 						end
 						knownFeatures[featureID] = fInfo
+						grid.insert(featureID, fInfo)
 						cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
 						featuresAdded = true
 					else
@@ -3280,7 +3387,6 @@ end
 local function UpdateReclaimFields()
 	local frame = spGetGameFrame()
 	local now = os.clock()
-	local activeReclaim = actionActive or IsActiveReclaimCommand()
 
 	-- Process deferred features periodically or when they come into view
 	if frame ~= lastProcessedFrame then
@@ -3299,6 +3405,10 @@ local function UpdateReclaimFields()
 	if not overlayVisible and not dirty.needCluster and not dirty.forceFullRedraw then
 		return
 	end
+
+	-- Deferred until after the early-return: this hits spGetActiveCommand every
+	-- frame, so we skip it entirely while the overlay is hidden (background mode).
+	local activeReclaim = actionActive or IsActiveReclaimCommand()
 
 	local clusterRebuildDue = dirty.needCluster and (activeReclaim or dirty.forceFullRedraw or (now - lastClusterRebuildClock) >= 0.75)
 	if not clusterRebuildDue and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and now - lastCheckFrameClock < (checkFrequency/30) then
@@ -3511,6 +3621,16 @@ function widget:Initialize()
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
 	featureReclaimScanCounter = 0
+
+	-- Reset the spatial grid and the batched-change queues so a widget reload
+	-- doesn't leave stale cells/cursors behind.
+	for k in pairs(grid.cells) do grid.cells[k] = nil end
+	batch.pendCreateCount = 0
+	batch.pendCreateHead = 0
+	batch.pendDestrCount = 0
+	batch.pendDestrHead = 0
+	batch.deferCreateCount = 0
+	batch.deferDestrCount = 0
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
