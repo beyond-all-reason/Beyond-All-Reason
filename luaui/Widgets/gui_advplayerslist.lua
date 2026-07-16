@@ -79,11 +79,11 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 --
 
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local TransferEnums = Sharing.TransferEnums
-local SharingUnsynced = Sharing.TeamTransferUnsynced
+local TransferEnums = Sharing.Enums
+local SharingUnsynced = Sharing.Unsynced
 local ResourceTransfer = SharingUnsynced.Resources
-local ApiExtensions = Sharing.PolicyViewsApiExtensions
-local Helpers = Sharing.PolicyViewsHelpers
+local ApiExtensions = Sharing.PolicyViews.ApiExtensions
+local Helpers = Sharing.PolicyViews.Helpers
 
 --------------------------------------------------------------------------------
 -- Config

@@ -42,7 +42,7 @@ local sp = {
 }
 
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local SharingUnsynced = Sharing.TeamTransferUnsynced
+local SharingUnsynced = Sharing.Unsynced
 local Economy = VFS.Include("modules/module_handler.lua").Get("economy")
 local ShareStats = Economy.ShareStats
 

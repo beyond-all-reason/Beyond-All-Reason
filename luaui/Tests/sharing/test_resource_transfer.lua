@@ -2,7 +2,7 @@
 
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local TransferEnums = Sharing.TransferEnums
+local TransferEnums = Sharing.Enums
 
 local function GetAlliedTargetTeamID(myTeamID)
 	local teamList = Spring.GetTeamList()

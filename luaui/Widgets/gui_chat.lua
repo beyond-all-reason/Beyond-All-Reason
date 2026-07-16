@@ -38,7 +38,7 @@ local LineTypes = {
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local SharingUnsynced = Sharing.TeamTransferUnsynced
+local SharingUnsynced = Sharing.Unsynced
 local badWords = VFS.Include("luaui/configs/badwords.lua")
 local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
 
