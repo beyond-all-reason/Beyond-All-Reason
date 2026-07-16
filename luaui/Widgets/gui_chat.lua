@@ -178,6 +178,12 @@ local state = {
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
+	emojiButtonRect = nil,
+	emojiPickerRect = nil,
+	emojiPickerOpen = false,
+	emojiPickerItemSize = 0,
+	emojiPickerColumns = 0,
+	emojiPickerPadding = 0,
 	autocompleteWords = {},
 	autocompleteInfoText = nil,
 	autocompleteDisplayPrefix = nil,
@@ -202,6 +208,7 @@ local gameOver = state.gameOver
 local prevGameID, prevOrgLines = state.prevGameID, state.prevOrgLines
 local ignoredAccounts = state.ignoredAccounts
 local emojiAutocompleteAliases = ChatEmoji.GetAutocompleteAliases()
+state.emojiButtonTexture = ChatEmoji.GetImagePath('slight_smile')
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -698,6 +705,9 @@ end
 
 local function cancelChatInput()
 	showTextInput = false
+	state.emojiPickerOpen = false
+	state.emojiButtonRect = nil
+	state.emojiPickerRect = nil
 	if showHistoryWhenChatInput then
 		historyMode = false
 		setCurrentChatLine(#chatLines)
@@ -711,10 +721,11 @@ local function cancelChatInput()
 	state.autocompleteInfoText = nil
 	state.autocompleteDisplayPrefix = nil
 	autocompleteWords = {}
+	state.clearChatInputGuishader()
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 		WG['guishader'].RemoveRect('chatinputinfo')
+		WG['guishader'].RemoveRect('chatinputemojipicker')
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
@@ -748,6 +759,163 @@ local function commitInputHistory(text)
 	inputHistory[#inputHistory + 1] = text
 	inputHistory[#inputHistory + 1] = ''
 	inputHistoryCurrent = #inputHistory
+end
+
+function state.getInputTextWidth(text, fontSize, usedFont, isCmd)
+	if isCmd then
+		return usedFont:GetTextWidth(text) * fontSize
+	end
+	return ChatEmoji.GetRichTextWidth(text, fontSize, usedFont)
+end
+
+function state.closeEmojiPicker()
+	state.emojiPickerOpen = false
+	state.emojiPickerRect = nil
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('chatinputemojipicker')
+	end
+end
+
+function state.clearChatInputGuishader()
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('chatinput')
+	end
+	if state.chatInputGuishaderDlist then
+		state.chatInputGuishaderDlist = glDeleteList(state.chatInputGuishaderDlist)
+	end
+end
+
+function state.updateChatInputGuishader(left, bottom, right, top)
+	if not WG['guishader'] then
+		if state.chatInputGuishaderDlist then
+			state.chatInputGuishaderDlist = glDeleteList(state.chatInputGuishaderDlist)
+		end
+		return
+	end
+	state.chatInputGuishaderDlist = glDeleteList(state.chatInputGuishaderDlist)
+	state.chatInputGuishaderDlist = glCreateList(function()
+		RectRound(left, bottom, right, top, elementCorner)
+	end)
+	WG['guishader'].RemoveDlist('chatinput')
+	WG['guishader'].InsertDlist(state.chatInputGuishaderDlist, 'chatinput')
+end
+
+function state.drawEmojiPickerButton(rect, iconSize)
+	if not rect then
+		return
+	end
+	glColor(0, 0, 0, state.emojiPickerOpen and 0.42 or 0.26)
+	RectRound(rect[1], rect[2], rect[3], rect[4], elementCorner*0.6, 0,1,1,0)
+	glColor(1, 1, 1, 0.05)
+	gl.Rect(rect[3]-1, rect[2], rect[3], rect[4])
+	if state.emojiButtonTexture then
+		local inset = floor(iconSize * 0.18)
+		glColor(1, 1, 1, 1)
+		gl.Texture(state.emojiButtonTexture)
+		gl.TexRect(rect[1] + inset, rect[2] + inset, rect[3] - inset, rect[4] - inset)
+		gl.Texture(false)
+	end
+end
+
+function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
+	if not state.emojiPickerOpen or not state.emojiButtonRect then
+		state.emojiPickerRect = nil
+		if WG['guishader'] then
+			WG['guishader'].RemoveRect('chatinputemojipicker')
+		end
+		return
+	end
+
+	local pickerColumns = mathMin(8, #emojiAutocompleteAliases)
+	local pickerPadding = floor(elementPadding * 1.1)
+	local pickerItemSize = floor(inputFontSize * 1.7)
+	local pickerRows = math.ceil(#emojiAutocompleteAliases / pickerColumns)
+	local pickerWidth = (pickerColumns * pickerItemSize) + ((pickerColumns + 1) * pickerPadding)
+	local pickerHeight = (pickerRows * pickerItemSize) + ((pickerRows + 1) * pickerPadding)
+	local pickerRight = state.emojiButtonRect[3]
+	local pickerLeft = pickerRight - pickerWidth
+	local pickerTop = state.emojiButtonRect[2] - pickerPadding
+	local pickerBottom = pickerTop - pickerHeight
+	local iconInset = floor(pickerItemSize * 0.14)
+
+	state.emojiPickerRect = {pickerLeft, pickerBottom, pickerRight, pickerTop}
+	state.emojiPickerItemSize = pickerItemSize
+	state.emojiPickerColumns = pickerColumns
+	state.emojiPickerPadding = pickerPadding
+	glColor(0, 0, 0, inputAlpha * 1.12)
+	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner*0.7, 0,0,1,1)
+	if WG['guishader'] then
+		WG['guishader'].InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, 'chatinputemojipicker')
+	end
+	for i = 1, #emojiAutocompleteAliases do
+		local col = (i - 1) % pickerColumns
+		local row = math.floor((i - 1) / pickerColumns)
+		local iconLeft = pickerLeft + pickerPadding + (col * (pickerItemSize + pickerPadding))
+		local iconBottom = pickerTop - pickerPadding - pickerItemSize - (row * (pickerItemSize + pickerPadding))
+		local iconRight = iconLeft + pickerItemSize
+		local iconTop = iconBottom + pickerItemSize
+		local texturePath = ChatEmoji.GetImagePath(emojiAutocompleteAliases[i])
+		if texturePath then
+			gl.Texture(false)
+			glColor(1, 1, 1, 0.08)
+			RectRound(iconLeft, iconBottom, iconRight, iconTop, elementCorner*0.35, 1,1,1,1)
+			glColor(1, 1, 1, 1)
+			gl.Texture(texturePath)
+			gl.TexRect(iconLeft + iconInset, iconBottom + iconInset, iconRight - iconInset, iconTop - iconInset)
+			gl.Texture(false)
+		end
+	end
+	gl.Texture(false)
+end
+
+function state.getEmojiPickerHoverRect(x, y)
+	if not state.emojiPickerOpen or not state.emojiPickerRect then
+		return nil
+	end
+	if not math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4]) then
+		return nil
+	end
+	local localX = x - state.emojiPickerRect[1] - state.emojiPickerPadding
+	local localY = state.emojiPickerRect[4] - y - state.emojiPickerPadding
+	local stride = state.emojiPickerItemSize + state.emojiPickerPadding
+	local col = math.floor(localX / stride)
+	local row = math.floor(localY / stride)
+	if col < 0 or col >= state.emojiPickerColumns or row < 0 then
+		return nil
+	end
+	if (localX % stride) >= state.emojiPickerItemSize or (localY % stride) >= state.emojiPickerItemSize then
+		return nil
+	end
+	local index = (row * state.emojiPickerColumns) + col + 1
+	if not emojiAutocompleteAliases[index] then
+		return nil
+	end
+	local iconLeft = state.emojiPickerRect[1] + state.emojiPickerPadding + (col * stride)
+	local iconBottom = state.emojiPickerRect[4] - state.emojiPickerPadding - state.emojiPickerItemSize - (row * stride)
+	return index, iconLeft, iconBottom, iconLeft + state.emojiPickerItemSize, iconBottom + state.emojiPickerItemSize
+end
+
+function state.getEmojiAliasDeleteLength(cursorPos, backwards)
+	if backwards then
+		if cursorPos <= 0 then
+			return 0
+		end
+		local leftText = utf8.sub(inputText, 1, cursorPos)
+		local aliasToken = leftText:match('(:[%w_]+:)$')
+		if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
+			return #aliasToken
+		end
+		return 0
+	end
+	if cursorPos >= utf8.len(inputText) then
+		return 0
+	end
+	local rightText = utf8.sub(inputText, cursorPos + 1)
+	local aliasToken = rightText:match('^(:[%w_]+:)')
+	if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
+		return #aliasToken
+	end
+	return 0
 end
 
 local function commonUnitName(unitIDs)
@@ -1458,44 +1626,60 @@ drawChatInput = function()
 		if topbarArea then
 			scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
 		end
+		local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
+		local inputFontSize = floor(usedFontSize * 1.03)
+		local inputHeight = floor(inputFontSize * 2.3)
+		local leftOffset = floor(lineHeight*0.7)
+		local distance =  (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
+		local isCmd = ssub(inputText, 1, 1) == '/'
+		local usedFont = isCmd and font3 or font
+		local inputBottom = activationArea[2]+chatlogHeightDiff-distance-inputHeight
+		local inputTop = activationArea[2]+chatlogHeightDiff-distance
+		local modeText = I18N.everyone
+		if isCmd then
+			modeText = I18N.cmd
+		elseif inputMode == 'a:' then
+			modeText = I18N.allies
+		elseif inputMode == 's:' then
+			modeText = I18N.spectators
+		end
+		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
+		local baseTextPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+		local showEmojiButton = not isCmd
+		local emojiButtonSize = (inputTop - elementPadding) - (inputBottom + elementPadding)
+		local emojiButtonSpacing = floor(elementPadding * 1.4)
+		local buttonReserve = showEmojiButton and (emojiButtonSize + emojiButtonSpacing + elementPadding) or 0
+		local x2 = math.max(baseTextPosX + lineHeight + floor(state.getInputTextWidth(inputText .. (autocompleteText or ''), inputFontSize, usedFont, isCmd)) + floor(inputFontSize * 4) + buttonReserve, floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
+		state.updateChatInputGuishader(activationArea[1], inputBottom, x2, inputTop)
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
-			local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-			local inputFontSize = floor(usedFontSize * 1.03)
-			local inputHeight = floor(inputFontSize * 2.3)
-			local leftOffset = floor(lineHeight*0.7)
-			local distance =  (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
-			local isCmd = ssub(inputText, 1, 1) == '/'
-			local usedFont = isCmd and font3 or font
-			local modeText = I18N.everyone
-			if isCmd then
-				modeText = I18N.cmd
-			elseif inputMode == 'a:' then
-				modeText = I18N.allies
-			elseif inputMode == 's:' then
-				modeText = I18N.spectators
-			end
 			local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
-			local textPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+			local baseTextPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
+			local textPosX = baseTextPosX
+			local emojiButtonY1 = inputBottom + elementPadding
+			local emojiButtonY2 = inputTop - elementPadding
 			local textCursorWidth = 1 + mathFloor(inputFontSize / 14)
 			if inputTextInsertActive then
 				textCursorWidth = mathFloor(textCursorWidth * 5)
 			end
-			local textCursorPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * inputFontSize)
 
 			-- background
 			local r,g,b,a
 			local inputAlpha = mathMin(0.36, ui_opacity*0.66)
 			local hintText = autocompleteText or ''
-			local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText .. hintText) * inputFontSize) + floor(inputFontSize * 6), floor(activationArea[1]+((activationArea[3]-activationArea[1])/3)))
-			UiElement(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+chatlogHeightDiff-distance-inputHeight, x2, activationArea[2]+chatlogHeightDiff-distance, 'chatinput')
+			if showEmojiButton then
+				state.emojiButtonRect = {x2 - elementPadding - emojiButtonSize, emojiButtonY1, x2 - elementPadding, emojiButtonY2}
+			else
+				state.emojiButtonRect = nil
+				state.emojiPickerOpen = false
+				state.emojiPickerRect = nil
 			end
+			local textCursorPos = floor(state.getInputTextWidth(utf8.sub(inputText, 1, inputTextPosition), inputFontSize, usedFont, isCmd))
+			UiElement(activationArea[1], inputBottom, x2, inputTop, nil,nil,nil,nil, nil,nil,nil,nil, inputAlpha)
 
 			-- button background
-			inputButtonRect = {activationArea[1]+elementPadding, activationArea[2]+chatlogHeightDiff-distance-inputHeight+elementPadding, textPosX-inputFontSize, activationArea[2]+chatlogHeightDiff-distance-elementPadding}
+			state.inputButtonRect = {activationArea[1]+elementPadding, inputBottom+elementPadding, baseTextPosX-inputFontSize, inputTop-elementPadding}
 			if isCmd then
 				r, g, b = 0, 0, 0
 			elseif inputMode == 'a:' then
@@ -1506,9 +1690,13 @@ drawChatInput = function()
 				r, g, b = 0, 0, 0
 			end
 			glColor(r, g, b, 0.3)
-			RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			RectRound(state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
 			glColor(1,1,1,0.033)
-			gl.Rect(inputButtonRect[3]-1, inputButtonRect[2], inputButtonRect[3], inputButtonRect[4])
+			gl.Rect(state.inputButtonRect[3]-1, state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4])
+
+			if showEmojiButton then
+				state.drawEmojiPickerButton(state.emojiButtonRect, emojiButtonSize)
+			end
 
 			-- button text
 			usedFont:Begin(true)
@@ -1535,15 +1723,15 @@ drawChatInput = function()
 					r, g, b = 0.55, 0.55, 0.55
 				end
 				usedFont:SetTextColor(r, g, b, 1)
-				usedFont:Print(':', inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
+				usedFont:Print(':', state.inputButtonRect[3]-0.5, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "co")
 			end
 
 			-- text selection highlight
 			if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
 				local selStart = math.min(inputSelectionStart, inputTextPosition)
 				local selEnd = math.max(inputSelectionStart, inputTextPosition)
-				local selStartPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selStart)) * inputFontSize)
-				local selEndPos = floor(usedFont:GetTextWidth(utf8.sub(inputText, 1, selEnd)) * inputFontSize)
+				local selStartPos = floor(state.getInputTextWidth(utf8.sub(inputText, 1, selStart), inputFontSize, usedFont, isCmd))
+				local selEndPos = floor(state.getInputTextWidth(utf8.sub(inputText, 1, selEnd), inputFontSize, usedFont, isCmd))
 				glColor(0.55, 0.55, 0.55, 0.5)
 				gl.Rect(textPosX + selStartPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)-(inputFontSize*0.6), textPosX + selEndPos, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.5)+(inputFontSize*0.64))
 				glColor(1,1,1,1)
@@ -1566,12 +1754,25 @@ drawChatInput = function()
 			else
 				r, g, b = 0.95, 0.95, 0.95
 			end
-			usedFont:SetTextColor(r,g,b, 1)
-			usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+			usedFont:End()
+			if isCmd then
+				usedFont:Begin(true)
+				usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
+				usedFont:SetTextColor(r,g,b, 1)
+				usedFont:Print(inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o")
+				usedFont:End()
+			else
+				local inputColorPrefix = ColorString and ColorString(r, g, b) or ''
+				ChatEmoji.DrawRichText(usedFont, inputColorPrefix .. inputText, textPosX, activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "o", {0.22, 0.22, 0.22, 1})
+			end
+			usedFont:Begin(true)
+			usedFont:SetOutlineColor(0.22, 0.22, 0.22, 1)
 			if autocompleteText and autocompleteWords[1] then
 				usedFont:SetTextColor(r,g,b, 0.35)
-				usedFont:Print(autocompleteText, textPosX + floor(usedFont:GetTextWidth(inputText) * inputFontSize), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
+				usedFont:Print(autocompleteText, textPosX + floor(state.getInputTextWidth(inputText, inputFontSize, usedFont, isCmd)), activationArea[2]+chatlogHeightDiff-distance-(inputHeight*0.61), inputFontSize, "")
 			end
+
+			state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 
 			-- autocomplete multi-suggestions
 			if autocompleteText and autocompleteWords[2] then
@@ -1870,14 +2071,29 @@ drawTextInput = function()
 			drawChatInputCursor()
 			-- button hover
 			local x,y,b = spGetMouseState()
-			if inputButtonRect[1] and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+			local hoveredEmojiIndex, hoverLeft, hoverBottom, hoverRight, hoverTop = state.getEmojiPickerHoverRect(x, y)
+			if hoveredEmojiIndex then
+				Spring.SetMouseCursor('cursornormal')
+				glColor(1,1,1,0.14)
+				RectRound(hoverLeft, hoverBottom, hoverRight, hoverTop, elementCorner*0.35, 1,1,1,1)
+			end
+			if state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
-				RectRound(inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+				RectRound(state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4], elementCorner*0.6, 1,1,1,1)
 			end
-		elseif WG['guishader'] then
-			WG['guishader'].RemoveRect('chatinput')
+			if state.inputButtonRect and state.inputButtonRect[1] and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
+				Spring.SetMouseCursor('cursornormal')
+				glColor(1,1,1,0.075)
+				RectRound(state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
+			end
+		else
+			state.clearChatInputGuishader()
+			if WG['guishader'] then
 			WG['guishader'].RemoveRect('chatinputautocomplete')
+				WG['guishader'].RemoveRect('chatinputinfo')
+				WG['guishader'].RemoveRect('chatinputemojipicker')
+			end
 			textInputDlist = glDeleteList(textInputDlist)
 		end
 	end
@@ -1895,10 +2111,8 @@ function widget:DrawScreen()
 		WG['guishader'].RemoveRect('chat')
 	end
 
-	-- draw chat input
-	drawTextInput()
-
 	if hide and not historyMode then
+		drawTextInput()
 		return
 	end
 
@@ -2023,6 +2237,7 @@ function widget:DrawScreen()
 	end
 
 	drawUi()
+	drawTextInput()
 end
 
 local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
@@ -2043,7 +2258,7 @@ local function runAutocompleteSet(wordsSet, searchStr, multi, lower)
 end
 
 local loadedAutocompleteCommands = false
-local function autocomplete(text, fresh)
+autocomplete = function(text, fresh)
 	if not loadedAutocompleteCommands then
 		loadedAutocompleteCommands = true
 		requestGadgetAutocompleteCommands()
@@ -2307,39 +2522,43 @@ local function autocomplete(text, fresh)
 	end
 end
 
+function state.insertInputTextAtCursor(text)
+	if not text or text == '' then
+		return
+	end
+	if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
+		local selStart = math.min(inputSelectionStart, inputTextPosition)
+		local selEnd = math.max(inputSelectionStart, inputTextPosition)
+		inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
+		inputTextPosition = selStart
+		inputSelectionStart = nil
+	end
+	local replaceCharCount = inputTextInsertActive and 1 or 0
+	if inputTextInsertActive then
+		inputText = utf8.sub(inputText, 1, inputTextPosition) .. text .. utf8.sub(inputText, inputTextPosition + 1 + replaceCharCount)
+	else
+		inputText = utf8.sub(inputText, 1, inputTextPosition) .. text .. utf8.sub(inputText, inputTextPosition + 1)
+	end
+	inputTextPosition = inputTextPosition + utf8.len(text)
+	if string.len(inputText) > maxTextInputChars then
+		inputText = string.sub(inputText, 1, maxTextInputChars)
+		if inputTextPosition > maxTextInputChars then
+			inputTextPosition = maxTextInputChars
+		end
+	end
+	inputHistory[#inputHistory] = inputText
+	cursorBlinkTimer = 0
+	autocomplete(inputText)
+	updateTextInputDlist = true
+	if WG['limitidlefps'] and WG['limitidlefps'].update then
+		WG['limitidlefps'].update()
+	end
+end
+
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
-		-- If there's a selection, delete it first
-		if inputSelectionStart and inputSelectionStart ~= inputTextPosition then
-			local selStart = math.min(inputSelectionStart, inputTextPosition)
-			local selEnd = math.max(inputSelectionStart, inputTextPosition)
-			inputText = utf8.sub(inputText, 1, selStart) .. utf8.sub(inputText, selEnd + 1)
-			inputTextPosition = selStart
-			inputSelectionStart = nil
-		end
-		if inputTextInsertActive then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
-			if inputTextPosition <= utf8.len(inputText) then
-				inputTextPosition = inputTextPosition + 1
-			end
-		else
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+1)
-			inputTextPosition = inputTextPosition + 1
-		end
-		if string.len(inputText) > maxTextInputChars then
-			inputText = string.sub(inputText, 1, maxTextInputChars)
-			if inputTextPosition > maxTextInputChars then
-				inputTextPosition = maxTextInputChars
-			end
-		end
-		inputHistory[#inputHistory] = inputText
-		cursorBlinkTimer = 0
-		autocomplete(inputText)
-		updateTextInputDlist = true
-		if WG['limitidlefps'] and WG['limitidlefps'].update then
-			WG['limitidlefps'].update()
-		end
+		state.insertInputTextAtCursor(char)
 		return true
 	end
 end
@@ -2530,8 +2749,14 @@ function widget:KeyPress(key)
 				inputHistory[#inputHistory] = inputText
 				prevAutocompleteLetters = nil
 			elseif inputTextPosition > 0 then
-				inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
-				inputTextPosition = inputTextPosition - 1
+				local deleteLen = state.getEmojiAliasDeleteLength(inputTextPosition, true)
+				if deleteLen > 0 then
+					inputText = utf8.sub(inputText, 1, inputTextPosition-deleteLen) .. utf8.sub(inputText, inputTextPosition+1)
+					inputTextPosition = inputTextPosition - deleteLen
+				else
+					inputText = utf8.sub(inputText, 1, inputTextPosition-1) .. utf8.sub(inputText, inputTextPosition+1)
+					inputTextPosition = inputTextPosition - 1
+				end
 				inputHistory[#inputHistory] = inputText
 				prevAutocompleteLetters = nil
 			end
@@ -2547,7 +2772,12 @@ function widget:KeyPress(key)
 				inputSelectionStart = nil
 				inputHistory[#inputHistory] = inputText
 			elseif inputTextPosition < utf8.len(inputText) then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+				local deleteLen = state.getEmojiAliasDeleteLength(inputTextPosition, false)
+				if deleteLen > 0 then
+					inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition + deleteLen + 1)
+				else
+					inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition+2)
+				end
 				inputHistory[#inputHistory] = inputText
 			end
 			cursorBlinkTimer = 0
@@ -2647,7 +2877,39 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
-	if button == 1 and handleTextInput and showTextInput and inputButton and inputButtonRect and not Spring.IsGUIHidden() and math_isInRect(x, y, inputButtonRect[1], inputButtonRect[2], inputButtonRect[3], inputButtonRect[4]) then
+	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
+		return false
+	end
+
+	if state.emojiPickerOpen and state.emojiPickerRect and math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4]) then
+		local localX = x - state.emojiPickerRect[1] - state.emojiPickerPadding
+		local localY = state.emojiPickerRect[4] - y - state.emojiPickerPadding
+		local stride = state.emojiPickerItemSize + state.emojiPickerPadding
+		local col = math.floor(localX / stride)
+		local row = math.floor(localY / stride)
+		if col >= 0 and col < state.emojiPickerColumns and row >= 0 and (localX % stride) < state.emojiPickerItemSize and (localY % stride) < state.emojiPickerItemSize then
+			local index = (row * state.emojiPickerColumns) + col + 1
+			local alias = emojiAutocompleteAliases[index]
+			if alias then
+				state.insertInputTextAtCursor(alias)
+				state.closeEmojiPicker()
+				return true
+			end
+		end
+	end
+
+	if inputButton and state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4]) then
+		state.emojiPickerOpen = not state.emojiPickerOpen
+		updateTextInputDlist = true
+		return true
+	end
+
+	if state.emojiPickerOpen then
+		state.closeEmojiPicker()
+		updateTextInputDlist = true
+	end
+
+	if inputButton and state.inputButtonRect and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
 		if inputMode == 'a:' then
 			inputMode = ''
 		elseif inputMode == 's:' then
@@ -2658,6 +2920,8 @@ function widget:MousePress(x, y, button)
 		updateTextInputDlist = true
 		return true
 	end
+
+	return false
 end
 
 function widget:MouseWheel(up, value)
@@ -3066,9 +3330,9 @@ function widget:Shutdown()
 	clearDisplayLists()	-- console/chat displaylists
 	glDeleteList(textInputDlist)
 	WG['chat'] = nil
+	state.clearChatInputGuishader()
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
-		WG['guishader'].RemoveRect('chatinput')
 		WG['guishader'].RemoveRect('chatinputautocomplete')
 		WG['guishader'].RemoveRect('chatinputinfo')
 	end

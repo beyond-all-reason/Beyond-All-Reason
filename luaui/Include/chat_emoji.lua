@@ -151,6 +151,14 @@ local function emojiSize(fontSize)
 	return max(12, floor(fontSize * 1.05))
 end
 
+local function emojiInlinePadding(fontSize)
+	return max(2, floor(fontSize * 0.16))
+end
+
+local function emojiVerticalOffset(fontSize, size)
+	return -max(3, floor(fontSize * 0.18))
+end
+
 function ChatEmoji.HasEmojiCandidate(text)
 	if not text then
 		return false
@@ -337,7 +345,8 @@ local function emojiTextWidth(text, fontSize, usedFont)
 	end
 
 	local width = 0.0
-	local size = emojiSize(fontSize) + 2
+	local size = emojiSize(fontSize)
+	local padding = emojiInlinePadding(fontSize)
 	local segments = parsed.segments
 	for i = 1, #segments, 2 do
 		local kind = segments[i]
@@ -345,7 +354,7 @@ local function emojiTextWidth(text, fontSize, usedFont)
 		if kind == SEGMENT_TEXT then
 			width = width + (usedFont:GetTextWidth(value) * fontSize)
 		elseif kind == SEGMENT_EMOJI then
-			width = width + size
+			width = width + size + (padding * 2)
 		end
 	end
 
@@ -355,6 +364,25 @@ end
 
 function ChatEmoji.GetAutocompleteAliases()
 	return autocompleteAliases
+end
+
+function ChatEmoji.GetAliases()
+	return autocompleteAliases
+end
+
+function ChatEmoji.GetImagePath(aliasTokenOrAlias)
+	if not aliasTokenOrAlias then
+		return nil
+	end
+	local alias = aliasTokenOrAlias
+	if ssub(aliasTokenOrAlias, 1, 1) == ':' and ssub(aliasTokenOrAlias, -1) == ':' then
+		alias = ssub(aliasTokenOrAlias, 2, -2)
+	end
+	return aliasImagePaths[alias]
+end
+
+function ChatEmoji.GetRichTextWidth(text, fontSize, usedFont)
+	return emojiTextWidth(text, fontSize, usedFont)
 end
 
 function ChatEmoji.GetLeadingColorPrefix(text)
@@ -436,7 +464,8 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 	local textureBound = false
 	local lastTexturePath = nil
 	local size = emojiSize(fontSize)
-	local emojiYOffset = max(0, floor((fontSize - size) * 0.35))
+	local emojiPadding = emojiInlinePadding(fontSize)
+	local emojiYOffset = emojiVerticalOffset(fontSize, size)
 
 	local function beginText()
 		if not textActive then
@@ -480,8 +509,8 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 				lastTexturePath = texturePath
 				textureBound = true
 			end
-			glTexRect(drawX, y + emojiYOffset, drawX + size, y + emojiYOffset + size)
-			drawX = drawX + size + 2
+			glTexRect(drawX + emojiPadding, y + emojiYOffset, drawX + emojiPadding + size, y + emojiYOffset + size)
+			drawX = drawX + size + (emojiPadding * 2)
 		end
 	end
 	if textureBound then
