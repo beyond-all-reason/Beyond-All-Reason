@@ -50,17 +50,21 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					local weaponDef = uDef.weapondefs.emg
 					weaponDef.burst = nil
 					weaponDef.burstrate = nil
-					weaponDef.areaofeffect = 64
+					weaponDef.areaofeffect = 32
+					weaponDef.accuracy = 0
 					weaponDef.cegtag = "impulse-trail"
-					weaponDef.edgeeffectiveness = 0.25
+					weaponDef.cylindertargeting = 0
+					weaponDef.edgeeffectiveness = 0.40
 					weaponDef.explosiongenerator = "custom:genericshellexplosion-small-bomb"
-					weaponDef.impulsefactor = 2.5
-					weaponDef.range = 425
+					weaponDef.impulsefactor = 2.14
+					weaponDef.range = 400
 					weaponDef.reloadtime = 3.0
 					weaponDef.soundstart = "mavgun4"
+					weaponDef.sprayangle = nil
 					weaponDef.tolerance = 2000
 					weaponDef.turret = true
-					weaponDef.weaponvelocity = 900
+					weaponDef.weapontimer = 0
+					weaponDef.weaponvelocity = 1090
 					weaponDef.customparams = {
 						noattackrangearc = 1,
 					}
@@ -78,7 +82,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 			if name == "armblade" then
 				uDef.maxacc = 0.28
 				uDef.maxdec = 0.55
-				uDef.health = 3650
+				uDef.health = 3350
 				uDef.speed = 165
 				uDef.turninplaceanglelimit = 120
 				uDef.turnrate = 420
@@ -113,7 +117,8 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 						noattackrangearc = 1,
 					},
 					damage = {
-						default = 610,
+						commanders = 200,
+						default = 480,
 					},
 				}
 				uDef.weapons[1].maindir = "0 0 1"
