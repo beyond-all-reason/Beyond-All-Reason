@@ -805,40 +805,42 @@ local weaponTypeSoundMultiplier = {
 local function ProcessSoundDefaults(wd)
 
 	local defaultDamage = 10
+	local burstMultiplier = 1
 	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
 		for i = 1, #wd.damage do
 			defaultDamage = math.max(defaultDamage, wd.damage[i])
 			if wd.burst and wd.burst > 1 then
-				defaultDamage = defaultDamage*wd.burst
+				burstMultiplier = burstMultiplier*wd.burst
 			end
 			if wd.projectiles and wd.projectiles > 1 then
-				defaultDamage = defaultDamage*wd.projectiles
+				burstMultiplier = burstMultiplier*wd.projectiles
 			end
 		end
 	end
+	burstMultiplier = math.sqrt(burstMultiplier)
 
-	local soundVolume = math.sqrt(defaultDamage * 0.5)
 	local volumeMultiplier = 1
+	
 	if wd.customparams.soundVolumeMultiplier then
 		volumeMultiplier = tonumber(wd.customparams.soundVolumeMultiplier)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume then
-		wd.soundstartvolume = soundVolume * weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume
+		wd.soundstartvolume = math.sqrt(defaultDamage * burstMultiplier * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume
 	else
-		wd.soundstartvolume = soundVolume
+		wd.soundstartvolume = math.sqrt(defaultDamage * burstMultiplier * 0.5)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume then
-		wd.soundhitvolume = soundVolume * weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume
+		wd.soundhitvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume
 	else
-		wd.soundhitvolume = soundVolume
+		wd.soundhitvolume = math.sqrt(defaultDamage * 0.5)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume then
-		wd.soundhitwetvolume = soundVolume * weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume
+		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume
 	else
-		wd.soundhitwetvolume = soundVolume
+		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5)
 	end
 
 	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier
