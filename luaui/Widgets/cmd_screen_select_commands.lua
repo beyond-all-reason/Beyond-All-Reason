@@ -115,66 +115,6 @@ local MIN_DOUBLE_CLICK_GAP = 0.01
 local DOUBLE_CLICK_SNAP_RADIUS = 50
 local osClock = os.clock
 
--- #region agent log
-local AGENT_DEBUG_LOG_PATH = "games/.cursor/debug-a904da.log"
-local function agentDebugLog(hypothesisId, location, message, data)
-	local logFile = io.open(AGENT_DEBUG_LOG_PATH, "a")
-	if not logFile then
-		logFile = io.open("LuaUI/debug-a904da.log", "a")
-	end
-	if not logFile then
-		return
-	end
-	local parts = {
-		'{"sessionId":"a904da"',
-		',"runId":"post-fix"',
-		',"hypothesisId":"', hypothesisId, '"',
-		',"location":"', location, '"',
-		',"message":"', message, '"',
-		',"timestamp":', tostring(mathFloor(osClock() * 1000)),
-		',"data":{',
-	}
-	local first = true
-	for key, value in pairs(data or {}) do
-		if not first then
-			parts[#parts + 1] = ","
-		end
-		first = false
-		parts[#parts + 1] = '"'
-		parts[#parts + 1] = key
-		parts[#parts + 1] = '":'
-		local valueType = type(value)
-		if valueType == "number" or valueType == "boolean" then
-			parts[#parts + 1] = tostring(value)
-		elseif valueType == "table" then
-			parts[#parts + 1] = "["
-			for index = 1, #value do
-				if index > 1 then
-					parts[#parts + 1] = ","
-				end
-				parts[#parts + 1] = tostring(value[index])
-			end
-			parts[#parts + 1] = "]"
-		else
-			parts[#parts + 1] = '"'
-			parts[#parts + 1] = tostring(value)
-			parts[#parts + 1] = '"'
-		end
-	end
-	parts[#parts + 1] = "}}\n"
-	logFile:write(table.concat(parts))
-	logFile:close()
-end
-local function agentTargetHead(targets, count)
-	local head = {}
-	local limit = mathMin(count or 5, #targets)
-	for index = 1, limit do
-		head[index] = targets[index]
-	end
-	return head
-end
--- #endregion
-
 local doubleClickEnabled = true
 local maxMassOrderTargets = 150
 local commandLimit = 4000
@@ -937,34 +877,11 @@ local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, f
 	return usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect
 end
 
-local function prioritizeTargetId(targets, targetId)
-	if not targetId or #targets == 0 then
-		return false
-	end
-	local foundIndex
-	for targetIndex = 1, #targets do
-		if targets[targetIndex] == targetId then
-			foundIndex = targetIndex
-			break
-		end
-	end
-	if not foundIndex or foundIndex == 1 then
-		return false
-	end
-	local prioritizedTargetId = targets[foundIndex]
-	for shiftIndex = foundIndex, 2, -1 do
-		targets[shiftIndex] = targets[shiftIndex - 1]
-	end
-	targets[1] = prioritizedTargetId
-	return true
-end
-
 local function giveUnitTravelRouteOrders(
 	commandId,
 	unitId,
 	sourceTargets,
 	options,
-	referenceTargetId,
 	positionCache,
 	reachabilityCache,
 	targets,
@@ -985,16 +902,6 @@ local function giveUnitTravelRouteOrders(
 		targets[targetIndex] = nil
 	end
 	sortTargetsByTravelRoute(unitId, targets, not options.meta or options.shift, positionCache)
-	-- #region agent log
-	agentDebugLog("A", "giveUnitTravelRouteOrders", "travelRoute without prioritize", {
-		unitId = unitId,
-		referenceTargetId = referenceTargetId or 0,
-		alt = options.alt == true,
-		targetCount = #targets,
-		finalHead = agentTargetHead(targets, 5),
-		finalFirstIsReference = targets[1] == referenceTargetId,
-	})
-	-- #endregion
 	singleUnitArray[1] = unitId
 	giveOrders(commandId, singleUnitArray, targets, options)
 end
@@ -1004,7 +911,6 @@ local function giveOrdersPerUnitByTravelRoute(
 	selectedUnits,
 	filteredTargets,
 	options,
-	referenceTargetId,
 	positionCache,
 	reachabilityCache
 )
@@ -1016,7 +922,6 @@ local function giveOrdersPerUnitByTravelRoute(
 			selectedUnits[unitIndex],
 			filteredTargets,
 			options,
-			referenceTargetId,
 			positionCache,
 			REACHABILITY_COMMANDS[commandId] and reachabilityCache or nil,
 			targets,
@@ -1058,7 +963,6 @@ local function givePartitionedOrders(
 				sortedUnits[unitIndex],
 				chunks[unitIndex],
 				options,
-				referenceTargetId,
 				positionCache,
 				needsReachability and reachabilityCache or nil,
 				targets,
@@ -1076,14 +980,6 @@ local function givePartitionedOrders(
 			sortedTargets[targetIndex] = filteredTargets[targetIndex]
 		end
 		sortTargetsByDistance(selectedUnits, sortedTargets, true, referenceTargetId, positionCache)
-		-- #region agent log
-		agentDebugLog("C", "givePartitionedOrders:fewTargets", "distance sort without prioritize", {
-			referenceTargetId = referenceTargetId or 0,
-			targetCount = #sortedTargets,
-			afterHead = agentTargetHead(sortedTargets, 5),
-			finalFirstIsReference = sortedTargets[1] == referenceTargetId,
-		})
-		-- #endregion
 		for targetIndex = 1, #sortedTargets do
 			local targetId = sortedTargets[targetIndex]
 			local count = minimumCount
@@ -1556,20 +1452,6 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 		maxTargetsToCollect,
 		positionCache
 	)
-	-- #region agent log
-	agentDebugLog("B", "issueMassOrdersFromTarget", "after limitTargetsByRadius without prioritize", {
-		issueCommandId = issueCommandId,
-		referenceTargetId = referenceTargetId or 0,
-		targetCount = #filteredTargets,
-		unitCount = #selectedUnits,
-		usePartitionedDispatch = usePartitionedDispatch,
-		alt = options.alt == true,
-		meta = options.meta == true,
-		afterHead = agentTargetHead(filteredTargets, 5),
-		finalFirstIsReference = filteredTargets[1] == referenceTargetId,
-		builderCount = #builderUnits,
-	})
-	-- #endregion
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
 			finishMassOrderCommandState(issueCommandId, options)
@@ -1593,7 +1475,6 @@ local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, refe
 			selectedUnits,
 			filteredTargets,
 			options,
-			referenceTargetId,
 			positionCache,
 			reachabilityCache
 		)
