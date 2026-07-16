@@ -16,6 +16,7 @@
 ---@class ActionDescriptor
 ---@field name string
 ---@field parameters ActionParameter[]|nil Declared call schema, prevalidated by ModuleHandler.ValidateActionArgs
+---@field validate function|nil Pure precondition check over the action's inputs (no mutation)
 ---@field execute function Performs the action
 
 --- One pipeline per category: modules/<name>/policies/<category>.lua returns an

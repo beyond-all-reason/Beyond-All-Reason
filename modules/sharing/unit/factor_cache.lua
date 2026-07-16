@@ -14,7 +14,7 @@ local M = {}
 ---@param teamId integer
 ---@param ctx PolicyContext self-context (sender==receiver==teamId) so the enricher resolves the team's modes
 function M.CacheTeamFactor(springRepo, teamId, ctx)
-	local modes = Shared.ResolveSharingModes(ctx, springRepo.GetModOptions())
+	local modes = Helpers.ResolveSharingModes(ctx, springRepo.GetModOptions())
 	local serialized = Shared.SerializeUnitFactor({
 		sharingModes = modes,
 		active = Helpers.TeamActive(springRepo, teamId),

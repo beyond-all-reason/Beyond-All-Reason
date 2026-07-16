@@ -1,5 +1,6 @@
 --- Policy helpers that keep gui_advplayerslist.lua under the Lua local closure cap
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 local UnitShared = VFS.Include("modules/sharing/unit/shared.lua")
 local ResourceShared = VFS.Include("modules/sharing/resource/shared.lua")
 
@@ -111,7 +112,7 @@ end
 ---@param myTeamID number
 ---@param player table
 function PolicyHelpers.PackMetalPolicyResult(team, myTeamID, player)
-	local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, TransferEnums.ResourceType.METAL)
+	local policyResult = PolicyEvaluation.CalcResourcePolicyCached(myTeamID, team, TransferEnums.ResourceType.METAL)
 	PolicyHelpers.PackPolicyResult(TransferEnums.PolicyType.MetalTransfer, policyResult, player)
 end
 
@@ -119,7 +120,7 @@ end
 ---@param myTeamID number
 ---@param player table
 function PolicyHelpers.PackEnergyPolicyResult(team, myTeamID, player)
-	local policyResult = ResourceShared.GetCachedPolicyResult(myTeamID, team, TransferEnums.ResourceType.ENERGY)
+	local policyResult = PolicyEvaluation.CalcResourcePolicyCached(myTeamID, team, TransferEnums.ResourceType.ENERGY)
 	PolicyHelpers.PackPolicyResult(TransferEnums.PolicyType.EnergyTransfer, policyResult, player)
 end
 
@@ -127,7 +128,7 @@ end
 ---@param myTeamID number
 ---@param player table
 function PolicyHelpers.PackUnitPolicyResult(team, myTeamID, player)
-	local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, team, Spring)
+	local policyResult = PolicyEvaluation.GetUnitPolicyCached(myTeamID, team, Spring)
 	PolicyHelpers.PackPolicyResult(TransferEnums.PolicyType.UnitTransfer, policyResult, player)
 end
 

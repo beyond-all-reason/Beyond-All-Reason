@@ -25,6 +25,7 @@ GG = GG or {}
 
 local TeamResourceData = VFS.Include("modules/sharing/team_resource_data.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 local Economy = ModuleHandler.Get("economy")
 local SharingConfig = VFS.Include("modules/sharing/config.lua")
 local ShareStats = Economy.ShareStats
@@ -102,7 +103,7 @@ local CADENCE = 30
 ---@param amount number Desired amount to transfer
 ---@return ResourceTransferResult
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
-	local policyResult = Shared.GetCachedPolicyResult(teamID, targetTeamID, resource, springRepo)
+	local policyResult = PolicyEvaluation.CalcResourcePolicyCached(teamID, targetTeamID, resource, springRepo)
 	local ctx = contextFactory.resourceTransfer(teamID, targetTeamID, resource, amount, policyResult)
 	local transferResult = SharingActions.byName.ResourceTransfer.execute(ctx)
 
@@ -132,7 +133,7 @@ function GG.GetTeamShareLevel(teamID, resource)
 end
 
 local function InitializeNewTeam(teamId)
-	-- per-team factor; GetCachedPolicyResult pairs it against other teams on read
+	-- per-team factor; PolicyEvaluation.CalcResourcePolicyCached pairs it against other teams on read
 	contextFactory.clearResourceCache()
 	local ctx = contextFactory.policy(teamId, teamId)
 	ResourceFactorCache.CacheTeamFactor(Spring, teamId, ResourceTypes.METAL, ctx)

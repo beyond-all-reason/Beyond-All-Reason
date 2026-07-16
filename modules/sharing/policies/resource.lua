@@ -1,6 +1,5 @@
 local Enums = VFS.Include("modules/sharing/enums.lua")
 local Config = VFS.Include("modules/sharing/config.lua")
-local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 local Helpers = VFS.Include("modules/sharing/helpers.lua")
 local Policies = VFS.Include("modules/policy_builder.lua")
 
@@ -14,7 +13,7 @@ local METAL = Enums.ResourceType.METAL
 ---@param resourceType ResourceName
 ---@return ResourcePolicyResult
 local function deny(ctx, resourceType)
-	return Shared.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
+	return Helpers.CreateDenyPolicy(ctx.senderTeamId, ctx.receiverTeamId, resourceType, ctx.springRepo)
 end
 
 local policyResultPool = {} ---@type table<ResourceName, ResourcePolicyResult>
@@ -70,7 +69,7 @@ return Policies.Pipeline()
 			policyResultPool[resourceType] = result
 		end
 
-		Shared.CombineResourcePolicy(taxedSendable, effectiveRate, capacity, ctx.senderTeamId, ctx.receiverTeamId, resourceType, result)
+		Helpers.CombineResourcePolicy(taxedSendable, effectiveRate, capacity, ctx.senderTeamId, ctx.receiverTeamId, resourceType, result)
 		result.techBlocking = ctx.ext and ctx.ext.techBlocking or nil
 
 		return result

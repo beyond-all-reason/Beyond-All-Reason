@@ -5,12 +5,18 @@
 
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 
+local PolicyEvaluation = ModuleHandler.Include("modules/sharing/policy_evaluation.lua")
+
+local Resources = ModuleHandler.Include("modules/sharing/resource/shared.lua")
+Resources.GetCachedPolicyResult = PolicyEvaluation.CalcResourcePolicyCached
+
 local Units = ModuleHandler.Include("modules/sharing/unit/shared.lua")
+Units.GetCachedPolicyResult = PolicyEvaluation.GetUnitPolicyCached
 -- widget-side verb grafted onto the unit surface (selection -> synced controller)
 Units.ShareUnits = ModuleHandler.Include("modules/sharing/unit/unsynced.lua").ShareUnits
 
 return {
-	Resources = ModuleHandler.Include("modules/sharing/resource/shared.lua"),
+	Resources = Resources,
 	Units = Units,
 	PolicyViews = {
 		Helpers = ModuleHandler.Include("modules/sharing/policy_views/helpers.lua"),

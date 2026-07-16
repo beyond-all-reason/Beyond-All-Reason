@@ -26,6 +26,7 @@ local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
 local Shared = VFS.Include("modules/sharing/unit/shared.lua")
 local UnitFactorCache = VFS.Include("modules/sharing/unit/factor_cache.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 -- auto-registered effectful layer (modules/sharing/actions/)
 local SharingActions = ModuleHandler.LoadActions("sharing")
 local UnitSharingCategories = VFS.Include("modules/sharing/unit/categories.lua")
@@ -97,7 +98,7 @@ GG = GG or {}
 
 local UnitTransferController = {}
 
--- per-team factor; GetCachedPolicyResult pairs it against other teams on read
+-- per-team factor; PolicyEvaluation.GetUnitPolicyCached pairs it against other teams on read
 ---@param teamId integer
 local function InitializeNewTeam(teamId)
 	local ctx = contextFactory.policy(teamId, teamId)
@@ -143,8 +144,8 @@ end
 ---@param unitIDs integer[]
 ---@return UnitTransferResult
 function GG.ShareUnits(senderTeamID, targetTeamID, unitIDs)
-	local policyResult = Shared.GetCachedPolicyResult(senderTeamID, targetTeamID, springRepo)
-	local validation = Shared.ValidateUnits(policyResult, unitIDs, springRepo, nil, shareValidationScratch)
+	local policyResult = PolicyEvaluation.GetUnitPolicyCached(senderTeamID, targetTeamID, springRepo)
+	local validation = SharingActions.byName.UnitTransfer.validate(policyResult, unitIDs, springRepo, nil, shareValidationScratch)
 
 	if validation.status == TransferEnums.UnitValidationOutcome.Failure then
 		---@type UnitTransferResult
@@ -189,10 +190,10 @@ function UnitTransferController.AllowUnitTransfer(unitID, unitDefID, fromTeamID,
 		return true
 	end
 
-	local policyResult = Shared.GetCachedPolicyResult(fromTeamID, toTeamID, springRepo)
+	local policyResult = PolicyEvaluation.GetUnitPolicyCached(fromTeamID, toTeamID, springRepo)
 
 	allowUnitScratch[1] = unitID
-	local validation = Shared.ValidateUnits(policyResult, allowUnitScratch, springRepo, nil, allowValidationScratch)
+	local validation = SharingActions.byName.UnitTransfer.validate(policyResult, allowUnitScratch, springRepo, nil, allowValidationScratch)
 
 	return validation.status ~= TransferEnums.UnitValidationOutcome.Failure
 end
