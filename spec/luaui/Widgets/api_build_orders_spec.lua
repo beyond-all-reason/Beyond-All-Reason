@@ -351,7 +351,7 @@ describe("api_build_orders", function()
 			}, {}) -- shift not held
 
 			assert.equals(1, #calls)
-			local orders = calls[1].orders
+			local orders = assert(calls[1]).orders
 			assert.equals(3, #orders)
 			assert.is_falsy(orders[1][3].shift, "first order should not force shift")
 			for i = 2, #orders do
@@ -518,7 +518,7 @@ describe("api_build_orders", function()
 
 			-- instead of idling, armrcon (3) is told to guard the working builder
 			assert.equals(1, #unitCalls, "exactly one guard order should be issued")
-			local guard = unitCalls[1]
+			local guard = assert(unitCalls[1])
 			assert.equals(3, guard.unitID, "armrcon (3) should be the one guarding")
 			assert.equals(widget.env.CMD.GUARD, guard.cmdID, "the order should be a guard")
 			assert.equals(1, guard.params[1], "armrcon should guard the working builder armcon (1)")
