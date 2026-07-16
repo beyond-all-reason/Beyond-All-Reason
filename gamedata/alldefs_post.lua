@@ -805,19 +805,11 @@ local weaponTypeSoundMultiplier = {
 local function ProcessSoundDefaults(wd)
 
 	local defaultDamage = 10
-	local burstMultiplier = 1
 	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
 		for _, damage in pairs(wd.damage) do
 			defaultDamage = math.max(defaultDamage, damage)
-			--if wd.burst and wd.burst > 1 then
-			--	burstMultiplier = burstMultiplier*wd.burst
-			--end
-			--if wd.projectiles and wd.projectiles > 1 then
-			--	burstMultiplier = burstMultiplier*wd.projectiles
-			--end
 		end
 	end
-	--burstMultiplier = math.sqrt(math.sqrt(burstMultiplier))
 
 	local volumeMultiplier
 	if wd.customparams.sound_volume_multiplier then
@@ -848,9 +840,9 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume then
-		wd.soundstartvolume = math.sqrt(defaultDamage * burstMultiplier * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume
+		wd.soundstartvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume
 	else
-		wd.soundstartvolume = math.sqrt(defaultDamage * burstMultiplier * 0.5)
+		wd.soundstartvolume = math.sqrt(defaultDamage * 0.5)
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume then
