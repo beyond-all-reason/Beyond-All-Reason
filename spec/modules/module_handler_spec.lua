@@ -9,7 +9,8 @@ describe("ModuleHandler", function()
 			assert.is_table(sharing)
 			assert.are.equal("sharing", sharing.name)
 			assert.are.equal("modules/sharing/", sharing.dir)
-			assert.are.equal("modules/sharing/api.lua", sharing.provides)
+			assert.are.equal("modules/sharing/api.lua", sharing.provides.shared)
+			assert.are.equal("modules/sharing/api_unsynced.lua", sharing.provides.unsynced)
 		end)
 
 		it("finds the economy module and validates sharing's dependency on it", function()
@@ -121,10 +122,28 @@ describe("ModuleHandler", function()
 	end)
 
 	describe("Get", function()
-		it("resolves the sharing contract lazily", function()
+		it("merges shared + unsynced contracts (busted runs unsynced)", function()
 			local Sharing = ModuleHandler.Get("sharing")
-			assert.is_table(Sharing)
+			assert.is_table(Sharing.Enums) -- shared
+			assert.is_table(Sharing.Take)
+			assert.is_table(Sharing.Resources) -- unsynced overlay
+			assert.are.equal("function", type(Sharing.Units.ShareUnits))
+			assert.is_table(Sharing.PolicyViews.Helpers)
+		end)
+
+		it("omits unsynced keys from the synced view", function()
+			_G.SendToUnsynced = function() end
+			ModuleHandler.ResetCaches()
+			local Sharing = ModuleHandler.Get("sharing")
 			assert.is_table(Sharing.Enums)
+			assert.is_table(Sharing.Units)
+			assert.is_nil(Sharing.Resources)
+			assert.is_nil(Sharing.PolicyViews)
+			_G.SendToUnsynced = nil
+			ModuleHandler.ResetCaches()
+		end)
+
+		it("keeps plain-path provides state-agnostic (economy)", function()
 			local Economy = ModuleHandler.Get("economy")
 			assert.is_table(Economy.ShareStats)
 			assert.is_table(Economy.WaterfillSolver)

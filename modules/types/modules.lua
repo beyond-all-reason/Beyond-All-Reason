@@ -4,7 +4,7 @@
 ---@field version string|nil Semver-ish version string
 ---@field description string|nil One-line description
 ---@field requires string[]|nil Names of modules this module depends on
----@field provides string|nil Path to the module's public contract (default: <dir>/api.lua)
+---@field provides string|table|nil Public contract: a path (state-agnostic, default <dir>/api.lua) or an explicit partition { shared = path, synced = path, unsynced = path }; ModuleHandler.Get merges shared + current state into one flat api
 
 ---@class ActionParameter
 ---@field name string

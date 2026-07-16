@@ -148,22 +148,72 @@ function ModuleHandler.Discover(vfsMode)
 	return manifests
 end
 
----Resolve a module's public contract (its provides file, default api.lua).
+---The current Lua state. Only the synced LuaRules/LuaGaia VM has SendToUnsynced;
+---LuaUI/LuaMenu and the unsynced gadget state resolve as "unsynced".
+---@return "synced"|"unsynced"
+local function currentState()
+	return (SendToUnsynced ~= nil) and "synced" or "unsynced"
+end
+
+local apiCache = {}
+
+---Resolve a module's public contract for the current Lua state.
+---
+---The manifest declares the partition explicitly — provides as a plain path
+---(state-agnostic) or { shared = path, synced = path, unsynced = path } —
+---and resolution merges implicitly: consumers hold one flat api holding
+---exactly the surface that exists where they stand (state keys win over
+---shared on collision). A widget never sees synced-only keys, and vice
+---versa; wrong-state access is nil at the first index, not a crash later.
 ---@param name string
 ---@param vfsMode string?
 ---@return table|nil api
 function ModuleHandler.Get(name, vfsMode)
+	local state = currentState()
+	local cacheKey = name .. "|" .. state
+	if apiCache[cacheKey] then
+		return apiCache[cacheKey]
+	end
+
 	local manifest = ModuleHandler.Discover(vfsMode)[name]
 	if not manifest then
 		logError("Unknown module: " .. tostring(name))
 		return nil
 	end
-	local providesPath = manifest.provides or (manifest.dir .. "api.lua")
-	if not VFS.FileExists(providesPath, vfsMode) then
-		logError(string.format("Module %q provides nothing (%s not found)", name, providesPath))
+
+	local provides = manifest.provides
+	local parts = {}
+	if type(provides) == "table" then
+		parts[#parts + 1] = provides.shared
+		parts[#parts + 1] = provides[state]
+	else
+		parts[1] = provides or (manifest.dir .. "api.lua")
+	end
+
+	local api = {}
+	local resolved = 0
+	for _, path in ipairs(parts) do
+		if VFS.FileExists(path, vfsMode) then
+			local part = ModuleHandler.Include(path, vfsMode)
+			if type(part) ~= "table" then
+				logError(string.format("Module %q contract must return a table: %s", name, path))
+			else
+				for key, value in pairs(part) do
+					api[key] = value
+				end
+				resolved = resolved + 1
+			end
+		else
+			logError(string.format("Module %q contract file not found: %s", name, path))
+		end
+	end
+	if resolved == 0 then
+		logError(string.format("Module %q provides nothing in %s state", name, state))
 		return nil
 	end
-	return ModuleHandler.Include(providesPath, vfsMode)
+
+	apiCache[cacheKey] = api
+	return api
 end
 
 --------------------------------------------------------------------------------
@@ -388,6 +438,7 @@ end
 function ModuleHandler.ResetCaches()
 	includeCache = {}
 	manifestsCache = nil
+	apiCache = {}
 end
 
 return ModuleHandler

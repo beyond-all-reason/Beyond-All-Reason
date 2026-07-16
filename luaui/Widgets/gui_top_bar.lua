@@ -41,8 +41,7 @@ local sp = {
 	GetGameSpeed = Spring.GetGameSpeed,
 }
 
-local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local SharingUnsynced = Sharing.Unsynced
+local SharingUnsynced = VFS.Include("modules/module_handler.lua").Get("sharing")
 local Economy = VFS.Include("modules/module_handler.lua").Get("economy")
 local ShareStats = Economy.ShareStats
 

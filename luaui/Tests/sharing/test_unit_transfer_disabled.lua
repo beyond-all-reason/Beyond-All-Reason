@@ -1,7 +1,7 @@
 ---@diagnostic disable: lowercase-global, undefined-field, duplicate-set-field
 
 local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
-local UnitTransferUnsynced = Sharing.Unsynced.Units
+local UnitTransferUnsynced = Sharing.Units
 
 local function GetAlliedTargetTeamID(myTeamID)
 	local teamList = Spring.GetTeamList()
