@@ -37,6 +37,7 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local SharingUnsynced = VFS.Include("common/luaUtilities/sharing/unsynced.lua")
 local badWords = VFS.Include("luaui/configs/badwords.lua")
 local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
 
@@ -111,6 +112,7 @@ local allowMultiAutocomplete, allowMultiAutocompleteMax, maxLinesScrollFull = co
 local lineTTL, consoleLineCleanupTarget, soundErrorsLimit = config.lineTTL, config.consoleLineCleanupTarget, config.soundErrorsLimit
 local maxLinesScrollChatInput = config.maxLinesScrollChatInput
 local maxLinesScroll = config.maxLinesScroll
+local scrollingPosY = config.scrollingPosY
 
 -- Color configuration (keep local for performance)
 local colorOther, colorAlly, colorSpec, colorSpecName = { 1, 1, 1 }, { 0, 1, 0 }, { 1, 1, 0 }, { 1, 1, 1 }
@@ -468,15 +470,15 @@ end
 
 function widget:LanguageChanged()
 	i18nStrings = {
-		energy = I18N("ui.topbar.resources.energy"):lower(),
-		metal = I18N("ui.topbar.resources.metal"):lower(),
-		everyone = I18N("ui.chat.everyone"),
-		allies = I18N("ui.chat.allies"),
-		spectators = I18N("ui.chat.spectators"),
-		cmd = I18N("ui.chat.cmd"),
-		shortcut = I18N("ui.chat.shortcut"),
-		nohistory = I18N("ui.chat.nohistory"),
-		scroll = I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
+		energy = BAR.I18N("ui.topbar.resources.energy"):lower(),
+		metal = BAR.I18N("ui.topbar.resources.metal"):lower(),
+		everyone = BAR.I18N("ui.chat.everyone"),
+		allies = BAR.I18N("ui.chat.allies"),
+		spectators = BAR.I18N("ui.chat.spectators"),
+		cmd = BAR.I18N("ui.chat.cmd"),
+		shortcut = BAR.I18N("ui.chat.shortcut"),
+		nohistory = BAR.I18N("ui.chat.nohistory"),
+		scroll = BAR.I18N("ui.chat.scroll", { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" }),
 	}
 	refreshGivecatAutocompleteFilters()
 	refreshUnitDefs()
@@ -622,18 +624,48 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 		local params = string.split(text, ":")
 		local t = {}
 		if params[1] then
-			for k, v in pairs(params) do
-				if k > 1 then
-					local pair = string.split(v, "=")
-					if pair[2] then
-						if playernames[pair[2]] then
-							t[pair[1]] = getPlayerColorString(pair[2], gameFrame) .. playernames[pair[2]][7] .. msgColor
-						elseif params[1]:lower():find("energy", nil, true) then
-							t[pair[1]] = energyValueColor .. pair[2] .. msgColor
-						elseif params[1]:lower():find("metal", nil, true) then
-							t[pair[1]] = metalValueColor .. pair[2] .. msgColor
+			local resourceType = nil
+			if params[1]:lower():find("energy", nil, true) then
+				resourceType = "energy"
+			elseif params[1]:lower():find("metal", nil, true) then
+				resourceType = "metal"
+			end
+			-- Check for explicit resourceType parameter (overrides key-based detection)
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key == "resourceType" and value then
+					resourceType = value
+					break
+				end
+			end
+
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key and value then
+					if key == "resourceType" then
+						-- Skip the resourceType parameter itself
+					elseif playernames[value] then
+						t[key] = getPlayerColorString(value, gameFrame) .. playernames[value][7] .. msgColor
+					else
+						local shouldHighlight = false
+						if key:lower():find("energy", nil, true) or key:lower():find("metal", nil, true) then
+							shouldHighlight = true
 						else
-							t[pair[1]] = pair[2]
+							shouldHighlight = SharingUnsynced.Resources.SendTransferChatMessageProtocolHighlights[key] == true
+						end
+
+						if shouldHighlight then
+							if resourceType == "energy" then
+								t[key] = energyValueColor .. value .. msgColor
+							elseif resourceType == "metal" then
+								t[key] = metalValueColor .. value .. msgColor
+							else
+								t[key] = value
+							end
+						else
+							t[key] = value
 						end
 					end
 				end
@@ -1149,6 +1181,10 @@ local function addLastUnitShareMessage()
 end
 
 function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
+	if Spring.GetGameRulesParam("isTakeInProgress") == 1 then
+		return
+	end
+
 	local oldAllyTeamID = select(6, spGetTeamInfo(oldTeamID))
 	local newAllyTeamID = select(6, spGetTeamInfo(newTeamID))
 
@@ -1339,9 +1375,26 @@ function widget:Update(dt)
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
-					local name = spGetPlayerInfo(playerID, false)
-					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-					changedPlayers[name] = true
+					local rawName, _, isSpec, pTeamID = spGetPlayerInfo(playerID, false)
+					if rawName then
+						-- refresh cached team color so messages don't use a stale (mirror-team) color
+						if playernames[rawName] and not isSpec and pTeamID and pTeamID ~= Spring.GetGaiaTeamID() then
+							playernames[rawName][5] = { r, g, b }
+							playernames[rawName][6] = ColorIsDark(r, g, b)
+						end
+						changedPlayers[rawName] = true
+						local aliasName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or rawName
+						changedPlayers[aliasName] = true
+					end
+				end
+			end
+		end
+		if changeDetected then
+			-- re-color already-displayed lines from players whose color just changed
+			for i = 1, #chatLines do
+				if chatLines[i].playerName and changedPlayers[chatLines[i].playerName] then
+					chatLines[i].reprocess = true
+					updateDrawUi = true
 				end
 			end
 		end
