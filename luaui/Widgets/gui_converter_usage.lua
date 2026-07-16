@@ -55,13 +55,13 @@ local formatOptions = { showSign = true }
 local function updateUI()
 	local localSkewTan = 0
 	local useSkew = false
-	if WG["topbar"] then
-		local freeArea = WG["topbar"].GetFreeArea()
+	if WG.topbar then
+		local freeArea = WG.topbar.GetFreeArea()
 		widgetScale = freeArea[5]
 		local topbarH = freeArea[4] - freeArea[2]
 		local smallVPad = 0
-		if WG["topbar"].GetSkewConfig then
-			local skewCfg = WG["topbar"].GetSkewConfig()
+		if WG.topbar.GetSkewConfig then
+			local skewCfg = WG.topbar.GetSkewConfig()
 			useSkew = skewCfg.useSkew
 			localSkewTan = skewCfg.skewTan
 			if useSkew then
@@ -77,8 +77,8 @@ local function updateUI()
 		area[4] = freeArea[4]
 	end
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 	end
@@ -110,8 +110,8 @@ local function updateUI()
 		local skew = useSkew and { blx = -(H * localSkewTan), brx = -(H * localSkewTan) } or nil
 		UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, skew)
 
-		if WG["guishader"] then
-			WG["guishader"].InsertDlist(dlistGuishader, "converter_usage")
+		if WG.guishader then
+			WG.guishader.InsertDlist(dlistGuishader, "converter_usage")
 		end
 
 		--Some coloring and tooltip text
@@ -146,8 +146,8 @@ local function updateUI()
 		font2:Print("\255\240\255\240" .. string.formatSI(mConverted, formatOptions), metalX, metalY, fontSize, "or")
 		font2:End()
 
-		if WG["tooltip"] ~= nil then
-			WG["tooltip"].AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
+		if WG.tooltip ~= nil then
+			WG.tooltip.AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
 		end
 	end)
 end
@@ -176,15 +176,15 @@ end
 
 function widget:Shutdown()
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 	end
 	if dlistCU ~= nil then
 		glDeleteList(dlistCU)
 	end
-	WG["converter_usage"] = nil
+	WG.converter_usage = nil
 end
 
 function widget:ViewResize()
@@ -193,14 +193,14 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 end
 
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG["converter_usage"] = {}
-	WG["converter_usage"].GetPosition = function()
+	WG.converter_usage = {}
+	WG.converter_usage.GetPosition = function()
 		return area
 	end
 end
@@ -250,8 +250,8 @@ function widget:Update(dt)
 
 	-- Dont draw if there are no converters
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		dlistGuishader = glDeleteList(dlistGuishader)
 	end

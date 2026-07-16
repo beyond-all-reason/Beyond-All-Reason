@@ -962,7 +962,7 @@ if gadgetHandler:IsSyncedCode() then
 			local ud = UnitDefs[unitDefID]
 			if ud then
 				local cp = ud.customParams
-				if (ud.modCategories and ud.modCategories["object"]) or (cp and cp.objectify) then
+				if (ud.modCategories and ud.modCategories.object) or (cp and cp.objectify) then
 					Spring.DestroyUnit(unitID, false, true)
 					removed = removed + 1
 				end
@@ -1513,16 +1513,16 @@ else -- UNSYNCED
 			local mapcz = Game.mapSizeZ / 2
 			local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
 
-			camState["px"] = mapcx
-			camState["py"] = mapcy
-			camState["pz"] = mapcz
-			camState["dy"] = -1
-			camState["dz"] = -1
-			camState["dx"] = 0
-			camState["rx"] = 2.75
-			camState["height"] = mapcy + 2000
-			camState["dist"] = mapcy + 2000
-			camState["name"] = "spring"
+			camState.px = mapcx
+			camState.py = mapcy
+			camState.pz = mapcz
+			camState.dy = -1
+			camState.dz = -1
+			camState.dx = 0
+			camState.rx = 2.75
+			camState.height = mapcy + 2000
+			camState.dist = mapcy + 2000
+			camState.name = "spring"
 
 			Spring.SetCameraState(camState, 0.75)
 		end
@@ -1969,14 +1969,14 @@ else -- UNSYNCED
 		local techLevels = {}
 
 		local facSuffix = { --ignore t3
-			["veh"] = "vp",
-			["bot"] = "lab",
-			["ship"] = "sy",
-			["hover"] = "hp", --hover are special case, no t2 fac
+			veh = "vp",
+			bot = "lab",
+			ship = "sy",
+			hover = "hp", --hover are special case, no t2 fac
 		}
 		local techSuffix = {
-			["t1"] = "",
-			["t2"] = "a", --t3 added later
+			t1 = "",
+			t2 = "a", --t3 added later
 		}
 		for t, suffix in pairs(facSuffix) do
 			local acceptableUDIDs = {}
@@ -2012,14 +2012,14 @@ else -- UNSYNCED
 			techLevels[t] = acceptableUDIDs
 		end
 		local t3Units = {}
-		for _, uDID in ipairs(UnitDefNames["corgant"].buildOptions) do
+		for _, uDID in ipairs(UnitDefNames.corgant.buildOptions) do
 			t3Units[uDID] = true
 		end
-		for _, uDID in ipairs(UnitDefNames["armshltx"].buildOptions) do
+		for _, uDID in ipairs(UnitDefNames.armshltx.buildOptions) do
 			t3Units[uDID] = true
 		end
-		techLevels["t3"] = t3Units
-		techSuffix["t3"] = "t3"
+		techLevels.t3 = t3Units
+		techSuffix.t3 = "t3"
 
 		local Accept = {} -- table of conditions that must be satisfied for the unitDef to be given
 
@@ -2398,7 +2398,7 @@ else -- UNSYNCED
 		end)
 		addFilter("object", function(ud)
 			local cp = ud.customParams
-			local isObjectCategory = ud.modCategories and ud.modCategories["object"]
+			local isObjectCategory = ud.modCategories and ud.modCategories.object
 			return isObjectCategory or (cp and cp.objectify)
 		end)
 		addFilter("objectify", function(ud)

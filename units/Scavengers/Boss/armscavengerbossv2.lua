@@ -1,5 +1,5 @@
 local difficultyParams = {
-	["veryeasy"] = {
+	veryeasy = {
 		health = 400000,
 		autoHeal = 0,
 		dgunStockpile = 60,
@@ -7,7 +7,7 @@ local difficultyParams = {
 		minigunDamage = 100,
 		topTurretsDamage = 3300,
 	},
-	["easy"] = {
+	easy = {
 		health = 600000,
 		autoHeal = 5,
 		dgunStockpile = 50,
@@ -15,7 +15,7 @@ local difficultyParams = {
 		minigunDamage = 150,
 		topTurretsDamage = 4400,
 	},
-	["normal"] = {
+	normal = {
 		health = 800000,
 		autoHeal = 10,
 		dgunStockpile = 40,
@@ -23,7 +23,7 @@ local difficultyParams = {
 		minigunDamage = 200,
 		topTurretsDamage = 5500,
 	},
-	["hard"] = {
+	hard = {
 		health = 1000000,
 		autoHeal = 15,
 		dgunStockpile = 30,
@@ -31,7 +31,7 @@ local difficultyParams = {
 		minigunDamage = 250,
 		topTurretsDamage = 6600,
 	},
-	["veryhard"] = {
+	veryhard = {
 		health = 1500000,
 		autoHeal = 20,
 		dgunStockpile = 20,
@@ -39,7 +39,7 @@ local difficultyParams = {
 		minigunDamage = 350,
 		topTurretsDamage = 8000,
 	},
-	["epic"] = {
+	epic = {
 		health = 2000000,
 		autoHeal = 25,
 		dgunStockpile = 10,

@@ -120,7 +120,7 @@ end
 ---          QUEUE HANDLING            ---
 ------------------------------------------
 local function handleBuildMenu(shift)
-	local grid = WG["gridmenu"]
+	local grid = WG.gridmenu
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
 		return
 	end
@@ -140,12 +140,12 @@ local function setPreGamestartDefID(uDefID)
 		WG["pregame-unit-selected"] = uDefID or -1
 	end
 
-	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
-		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
+	if WG.buildinggrid ~= nil and WG.buildinggrid.setForceShow ~= nil then
+		WG.buildinggrid.setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
-	if WG["easyfacing"] ~= nil and WG["easyfacing"].setForceShow ~= nil then
-		WG["easyfacing"].setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
+	if WG.easyfacing ~= nil and WG.easyfacing.setForceShow ~= nil then
+		WG.easyfacing.setForceShow(FORCE_SHOW_REASON, uDefID ~= nil, uDefID)
 	end
 
 	local isMex = UnitDefs[uDefID] and UnitDefs[uDefID].extractsMetal > 0
@@ -260,7 +260,7 @@ function widget:Initialize()
 		end
 	end
 
-	isMetalMap = WG["resource_spot_finder"].isMetalMap
+	isMetalMap = WG.resource_spot_finder.isMetalMap
 
 	WG["pregame-build"] = {}
 	WG["pregame-build"].getPreGameDefID = function()
@@ -698,9 +698,9 @@ function widget:Update(dt)
 				if not hasConflicts then
 					local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 					if isMex and not isMetalMap then
-						local spot = WG["resource_spot_finder"].GetClosestMexSpot(posX, posZ)
-						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, posX, posZ) or false
-						local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+						local spot = WG.resource_spot_finder.GetClosestMexSpot(posX, posZ)
+						local validPos = spot and WG.resource_spot_finder.IsMexPositionValid(spot, posX, posZ) or false
+						local spotIsTaken = spot and WG.resource_spot_builder.SpotHasExtractorQueued(spot) or false
 						if not validPos or spotIsTaken then
 							hasConflicts = true
 						end
@@ -764,7 +764,7 @@ function widget:MousePress(mx, my, button)
 		return
 	end
 
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 
@@ -858,9 +858,9 @@ function widget:MousePress(mx, my, button)
 
 					local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 					if not hasConflicts and isMex and not isMetalMap then
-						local spot = WG["resource_spot_finder"].GetClosestMexSpot(posX, posZ)
-						local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, posX, posZ) or false
-						local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+						local spot = WG.resource_spot_finder.GetClosestMexSpot(posX, posZ)
+						local validPos = spot and WG.resource_spot_finder.IsMexPositionValid(spot, posX, posZ) or false
+						local spotIsTaken = spot and WG.resource_spot_builder.SpotHasExtractorQueued(spot) or false
 						if not validPos or spotIsTaken then
 							hasConflicts = true
 						end
@@ -943,9 +943,9 @@ function widget:MousePress(mx, my, button)
 			end
 
 			if not hasConflicts and isMex and not isMetalMap then
-				local spot = WG["resource_spot_finder"].GetClosestMexSpot(bx, bz)
-				local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid(spot, bx, bz) or false
-				local spotIsTaken = spot and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+				local spot = WG.resource_spot_finder.GetClosestMexSpot(bx, bz)
+				local validPos = spot and WG.resource_spot_finder.IsMexPositionValid(spot, bx, bz) or false
+				local spotIsTaken = spot and WG.resource_spot_builder.SpotHasExtractorQueued(spot) or false
 				if not validPos or spotIsTaken then
 					hasConflicts = true
 				end
@@ -1112,7 +1112,7 @@ function widget:DrawWorld()
 	if not alphaResults or cacheExpired then
 		alphaResults = { queueAlphas = {}, selectedAlpha = ALPHA_DEFAULT }
 
-		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		local getBuildQueueSpawnStatus = WG.getBuildQueueSpawnStatus
 		if getBuildQueueSpawnStatus then
 			local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
 
@@ -1185,9 +1185,9 @@ function widget:DrawWorld()
 		if not isMex or isMetalMap then
 			return true
 		end
-		local spot = WG["resource_spot_finder"] and WG["resource_spot_finder"].GetClosestMexSpot and WG["resource_spot_finder"].GetClosestMexSpot(posX, posZ)
-		local validPos = spot and WG["resource_spot_finder"].IsMexPositionValid and WG["resource_spot_finder"].IsMexPositionValid(spot, posX, posZ) or false
-		local spotIsTaken = spot and WG["resource_spot_builder"] and WG["resource_spot_builder"].SpotHasExtractorQueued and WG["resource_spot_builder"].SpotHasExtractorQueued(spot) or false
+		local spot = WG.resource_spot_finder and WG.resource_spot_finder.GetClosestMexSpot and WG.resource_spot_finder.GetClosestMexSpot(posX, posZ)
+		local validPos = spot and WG.resource_spot_finder.IsMexPositionValid and WG.resource_spot_finder.IsMexPositionValid(spot, posX, posZ) or false
+		local spotIsTaken = spot and WG.resource_spot_builder and WG.resource_spot_builder.SpotHasExtractorQueued and WG.resource_spot_builder.SpotHasExtractorQueued(spot) or false
 		return validPos and not spotIsTaken
 	end
 
@@ -1226,7 +1226,7 @@ function widget:DrawWorld()
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 
 		local previewSpawnStatus = {}
-		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		local getBuildQueueSpawnStatus = WG.getBuildQueueSpawnStatus
 		if getBuildQueueSpawnStatus then
 			local tempQueue = {}
 			for _, b in ipairs(buildQueue) do
@@ -1346,7 +1346,7 @@ function widget:DrawWorld()
 
 		local isSelectedSpawned = false
 		local selectedAlpha = ALPHA_DEFAULT
-		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
+		local getBuildQueueSpawnStatus = WG.getBuildQueueSpawnStatus
 		if getBuildQueueSpawnStatus and testOrder then
 			local spawnStatus = getBuildQueueSpawnStatus(buildQueue, selBuildData)
 			isSelectedSpawned = spawnStatus.selectedSpawned or false
@@ -1484,12 +1484,12 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("GetBuildQueue")
 
 	WG["pregame-build"] = nil
-	if WG["buildinggrid"] ~= nil and WG["buildinggrid"].setForceShow ~= nil then
-		WG["buildinggrid"].setForceShow(FORCE_SHOW_REASON, false)
+	if WG.buildinggrid ~= nil and WG.buildinggrid.setForceShow ~= nil then
+		WG.buildinggrid.setForceShow(FORCE_SHOW_REASON, false)
 	end
 
-	if WG["easyfacing"] ~= nil and WG["easyfacing"].setForceShow ~= nil then
-		WG["easyfacing"].setForceShow(FORCE_SHOW_REASON, false)
+	if WG.easyfacing ~= nil and WG.easyfacing.setForceShow ~= nil then
+		WG.easyfacing.setForceShow(FORCE_SHOW_REASON, false)
 	end
 end
 

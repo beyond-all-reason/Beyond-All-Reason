@@ -208,8 +208,8 @@ local function init()
 		return false
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 	return true
 end
@@ -218,25 +218,25 @@ function widget:Initialize()
 	if not init() then
 		return
 	end
-	WG["teamplatter"] = {}
-	WG["teamplatter"].getOpacity = function()
+	WG.teamplatter = {}
+	WG.teamplatter.getOpacity = function()
 		return opacity
 	end
-	WG["teamplatter"].setOpacity = function(value)
+	WG.teamplatter.setOpacity = function(value)
 		opacity = value
 		init()
 	end
-	WG["teamplatter"].getSkipOwnTeam = function()
+	WG.teamplatter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
-	WG["teamplatter"].setSkipOwnTeam = function(value)
+	WG.teamplatter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
 		init()
 	end
 end
 
 function widget:Shutdown()
-	WG["teamplatter"] = nil
+	WG.teamplatter = nil
 end
 
 function widget:GetConfigData(data)

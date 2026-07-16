@@ -561,11 +561,11 @@ local function init()
 end
 
 function widget:Initialize()
-	WG["clouds"] = {}
-	WG["clouds"].getOpacity = function()
+	WG.clouds = {}
+	WG.clouds.getOpacity = function()
 		return opacityMult
 	end
-	WG["clouds"].setOpacity = function(value)
+	WG.clouds.setOpacity = function(value)
 		opacityMult = value
 		init()
 	end

@@ -224,13 +224,13 @@ local function DrawState(playerID, posX, posY)
 			end
 		end
 	end
-	gl_Texture(pics["readyTexture"])
+	gl_Texture(pics.readyTexture)
 	DrawRect(posX, posY - (1 * playerScale), posX + (16 * playerScale), posY + (16 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
 
 local function DrawHourglass(posX, posY)
-	gl_Texture(pics["hourglass"])
+	gl_Texture(pics.hourglass)
 	DrawRect(posX, posY - (1 * playerScale), posX + (16 * playerScale), posY + (16 * playerScale))
 	gl_Color(1, 1, 1, 1)
 end
@@ -250,21 +250,21 @@ end
 
 local function DrawRank(rank, posX, posY)
 	if rank == 0 then
-		DrawRankImage(pics["rank0"], posX, posY)
+		DrawRankImage(pics.rank0, posX, posY)
 	elseif rank == 1 then
-		DrawRankImage(pics["rank1"], posX, posY)
+		DrawRankImage(pics.rank1, posX, posY)
 	elseif rank == 2 then
-		DrawRankImage(pics["rank2"], posX, posY)
+		DrawRankImage(pics.rank2, posX, posY)
 	elseif rank == 3 then
-		DrawRankImage(pics["rank3"], posX, posY)
+		DrawRankImage(pics.rank3, posX, posY)
 	elseif rank == 4 then
-		DrawRankImage(pics["rank4"], posX, posY)
+		DrawRankImage(pics.rank4, posX, posY)
 	elseif rank == 5 then
-		DrawRankImage(pics["rank5"], posX, posY)
+		DrawRankImage(pics.rank5, posX, posY)
 	elseif rank == 6 then
-		DrawRankImage(pics["rank6"], posX, posY)
+		DrawRankImage(pics.rank6, posX, posY)
 	elseif rank == 7 then
-		DrawRankImage(pics["rank7"], posX, posY)
+		DrawRankImage(pics.rank7, posX, posY)
 	else
 	end
 end
@@ -433,8 +433,8 @@ local function buttonTextRefresh()
 end
 
 local function PlayChooseStartLocSound()
-	if not mySpec and not startPointChosen and WG["notifications"] then
-		WG["notifications"].addEvent("ChooseStartLoc", true)
+	if not mySpec and not startPointChosen and WG.notifications then
+		WG.notifications.addEvent("ChooseStartLoc", true)
 	end
 end
 
@@ -722,8 +722,8 @@ local function drawButton()
 	-- Render the button (this happens every frame but uses cached display lists)
 	if showLockButton and buttonList and buttonHoverList then
 		-- Add GUI shader rect
-		if WG["guishader"] then
-			WG["guishader"].InsertRect(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], "pregameui_draft")
+		if WG.guishader then
+			WG.guishader.InsertRect(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], "pregameui_draft")
 		end
 
 		-- Check mouse hover and render appropriate display list
@@ -733,8 +733,8 @@ local function drawButton()
 			glCallList(buttonHoverList)
 			colorString = "\255\210\210\210"
 
-			if isReadyBlocked and WG["tooltip"] then
-				WG["tooltip"].ShowTooltip("pregameui", cachedTooltipText)
+			if isReadyBlocked and WG.tooltip then
+				WG.tooltip.ShowTooltip("pregameui", cachedTooltipText)
 			end
 		else
 			glCallList(buttonList)
@@ -1004,20 +1004,20 @@ function widget:Initialize()
 		reloadedDraftMode = os.clock() + 2 -- in case you luaui reload
 	end
 
-	WG["pregameui_draft"] = {}
-	WG["pregameui_draft"].addReadyCondition = function(conditionKey, description)
+	WG.pregameui_draft = {}
+	WG.pregameui_draft.addReadyCondition = function(conditionKey, description)
 		if conditionKey and description then
 			readyBlockedConditions[conditionKey] = description
 			updateTooltip()
 		end
 	end
-	WG["pregameui_draft"].removeReadyCondition = function(conditionKey)
+	WG.pregameui_draft.removeReadyCondition = function(conditionKey)
 		if conditionKey and readyBlockedConditions[conditionKey] then
 			readyBlockedConditions[conditionKey] = nil
 			updateTooltip()
 		end
 	end
-	WG["pregameui_draft"].clearAllReadyConditions = function()
+	WG.pregameui_draft.clearAllReadyConditions = function()
 		readyBlockedConditions = {}
 		updateTooltip()
 	end
@@ -1082,8 +1082,8 @@ function widget:DrawScreen()
 		end
 	end
 	if not showingTeamplacementUI then
-		if WG["guishader"] then
-			WG["guishader"].RemoveRect("pregameui_draft")
+		if WG.guishader then
+			WG.guishader.RemoveRect("pregameui_draft")
 		end
 	end
 
@@ -1157,8 +1157,8 @@ function widget:DrawWorld()
 	for i = 1, #teamList do
 		local teamID = teamList[i]
 		local tsx, tsy, tsz
-		if WG["map_startbox"] and WG["map_startbox"].GetEffectiveStartPosition then
-			tsx, tsy, tsz = WG["map_startbox"].GetEffectiveStartPosition(teamID)
+		if WG.map_startbox and WG.map_startbox.GetEffectiveStartPosition then
+			tsx, tsy, tsz = WG.map_startbox.GetEffectiveStartPosition(teamID)
 		else
 			tsx, tsy, tsz = Spring.GetTeamStartPosition(teamID)
 		end
@@ -1296,13 +1296,13 @@ function widget:Shutdown()
 	glDeleteList(buttonHoverList)
 	glDeleteList(TeamPlacementUI)
 	gl.DeleteFont(font)
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("pregameui_draft")
+	if WG.guishader then
+		WG.guishader.RemoveRect("pregameui_draft")
 	end
 	if WG.StopDrawUnitShapeGL4 then
 		for id, _ in pairs(unitshapes) do
 			removeUnitShape(id)
 		end
 	end
-	WG["pregameui_draft"] = nil
+	WG.pregameui_draft = nil
 end

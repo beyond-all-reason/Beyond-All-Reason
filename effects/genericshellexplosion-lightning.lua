@@ -1541,7 +1541,7 @@ local definitions = {
 		-- },
 	},
 
-	["juno_stormbolt"] = {
+	juno_stormbolt = {
 		groundflash = {
 			circlealpha = 1,
 			circlegrowth = 0,

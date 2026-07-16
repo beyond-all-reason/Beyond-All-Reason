@@ -737,14 +737,14 @@ local function InitializeShader()
 
 	-- Cache uniform locations for performance
 	local uniformLocations = shieldShader.uniformLocations
-	uTranslationScale = uniformLocations["translationScale"]
-	uRotMargin = uniformLocations["rotMargin"]
-	uEffects = uniformLocations["effects"]
-	uColor1 = uniformLocations["color1"]
-	uColor2 = uniformLocations["color2"]
+	uTranslationScale = uniformLocations.translationScale
+	uRotMargin = uniformLocations.rotMargin
+	uEffects = uniformLocations.effects
+	uColor1 = uniformLocations.color1
+	uColor2 = uniformLocations.color2
 	uImpactCount = uniformLocations["impactInfo.count"]
-	uShieldFade = uniformLocations["shieldFade"]
-	uOverlapScale = uniformLocations["overlapScale"]
+	uShieldFade = uniformLocations.shieldFade
+	uOverlapScale = uniformLocations.overlapScale
 
 	-- Cache impact info uniform locations
 	for i = 1, MAX_POINTS do
