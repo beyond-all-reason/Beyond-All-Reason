@@ -7,7 +7,7 @@ local Categories = VFS.Include("modules/sharing/unit/categories.lua")
 --- pre-validated units within the bounds of the pair's UnitPolicyResult
 --- (policies stay pure; actions do the mutation).
 
----@param unitDefID integer
+---@param unitDefID integer|number
 ---@param stunCategory string?
 ---@param defs table
 ---@return boolean
@@ -136,7 +136,7 @@ Actions.RegisterExecute(function(ctx)
 			senderTeamId = ctx.senderTeamId,
 			receiverTeamId = ctx.receiverTeamId,
 			validationResult = ctx.validationResult,
-			policyResult = ctx.policyResult,
+			policyResult = policyResult,
 		}
 	end
 
@@ -152,6 +152,6 @@ Actions.RegisterExecute(function(ctx)
 		senderTeamId = ctx.senderTeamId,
 		receiverTeamId = ctx.receiverTeamId,
 		validationResult = ctx.validationResult,
-		policyResult = ctx.policyResult,
+		policyResult = policyResult,
 	}
 end)

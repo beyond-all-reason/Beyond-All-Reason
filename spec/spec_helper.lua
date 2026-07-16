@@ -56,7 +56,7 @@ _G.unpack = _G.unpack or table.unpack or unpackFallback
 _G.VFS = _G.VFS or {}
 _G.VFS._cache = _G.VFS._cache or {}
 
-_G.VFS.FileExists = function(path)
+_G.VFS.FileExists = function(path, _mode)
 	-- First try the exact path provided
 	local file = io.open(path, "r")
 	if file then
@@ -148,7 +148,7 @@ end
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `VFS.Include("common/tablefunctions.lua")` is called
 VFS.Include("common/tablefunctions.lua")
 
-_G.VFS.SubDirs = function(path)
+_G.VFS.SubDirs = function(path, _pattern, _mode, _recursive)
 	-- Check case-insensitive cache for correct directory path
 	if not _G.VFS._ci_file_cache then
 		-- Force cache population

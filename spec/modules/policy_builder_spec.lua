@@ -3,10 +3,10 @@ local ModuleHandler = VFS.Include("modules/module_handler.lua")
 
 describe("PolicyBuilder", function()
 	describe("Pipeline", function()
-		local function denyAll(ctx)
+		local function denyAll(_ctx)
 			return { canShare = false }
 		end
-		local function computeOk(ctx)
+		local function computeOk(_ctx)
 			return { canShare = true }
 		end
 

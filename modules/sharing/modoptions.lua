@@ -3,7 +3,6 @@ local ModOptionHelpers = VFS.Include("modes/sharing_mode_helpers.lua")
 
 local unitSharingModeItems = ModOptionHelpers.unitSharingModeItems
 local unitSharingCategoriesWithAll = ModOptionHelpers.unitSharingCategoriesWithAll
-local unitSharingCategoriesWithNone = ModOptionHelpers.unitSharingCategoriesWithNone
 local unitSharingCategoriesWithNoneAndAll = ModOptionHelpers.unitSharingCategoriesWithNoneAndAll
 
 --- Mod options owned by the sharing module, merged into the game's

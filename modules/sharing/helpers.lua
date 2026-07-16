@@ -44,9 +44,9 @@ end
 ---@param senderTeamId integer
 ---@param receiverTeamId integer
 ---@param resourceType ResourceName
----@param springApi EngineSynced?
+---@param _springApi EngineSynced? unused; kept for call-site symmetry with the cached path
 ---@return ResourcePolicyResult
-function M.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType, springApi)
+function M.CreateDenyPolicy(senderTeamId, receiverTeamId, resourceType, _springApi)
 	---@type ResourcePolicyResult
 	local result = {
 		senderTeamId = senderTeamId,

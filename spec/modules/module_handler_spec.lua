@@ -123,6 +123,7 @@ describe("ModuleHandler", function()
 		end)
 
 		it("omits unsynced keys from the synced view", function()
+			---@diagnostic disable-next-line: global-in-non-module -- simulating the synced state
 			_G.SendToUnsynced = function() end
 			ModuleHandler.ResetCaches()
 			local Sharing = ModuleHandler.Get("sharing")

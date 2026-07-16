@@ -38,6 +38,7 @@ local ModuleHandler = {}
 ---lobby/unitsync LuaParser contexts where the Spring global does not exist.
 ---@param message string
 local function logError(message)
+	---@diagnostic disable-next-line: unnecessary-if -- Spring IS nil in lobby LuaParser; the analyzer can't know
 	if Spring and Spring.Log then
 		Spring.Log(LOG_TAG, LOG and LOG.ERROR or "error", message)
 	else
@@ -52,7 +53,7 @@ end
 ---@param dir string directory with trailing slash
 ---@return string name
 local function dirBasename(dir)
-	return dir:gsub("/+$", ""):match("([^/]+)$")
+	return dir:gsub("/+$", ""):match("([^/]+)$") --[[@as string]]
 end
 
 ---Native VFS.SubDirs returns entries with a trailing slash; keep any source normalized.
@@ -84,7 +85,7 @@ end
 local function loadManifest(moduleDir, vfsMode)
 	local name = dirBasename(moduleDir)
 	local manifestPath = moduleDir .. "module.lua"
-	---@type ModuleManifest
+	---@type ModuleManifestFile
 	local manifest
 	if VFS.FileExists(manifestPath, vfsMode) then
 		manifest = VFS.Include(manifestPath, nil, vfsMode)
@@ -102,6 +103,7 @@ local function loadManifest(moduleDir, vfsMode)
 	else
 		return nil
 	end
+	---@cast manifest ModuleManifest
 	manifest.dir = moduleDir
 	manifest.requires = manifest.requires or {}
 	return manifest
@@ -262,7 +264,7 @@ end
 ---@param filePath string
 ---@return string
 local function nameFromFile(filePath)
-	return filePath:match("([^/]+)%.lua$")
+	return filePath:match("([^/]+)%.lua$") --[[@as string]]
 end
 
 -- Base environment for registration files: this chunk's own environment, so
@@ -270,6 +272,7 @@ end
 -- synced state defines _G; unsynced widget sandboxes may not, so fall back
 -- to getfenv (kept in unsynced). Discovered via headless smoke: __index = _G
 -- alone left action files without VFS in the widget path.
+---@type table
 local CHUNK_ENV = _G
 if CHUNK_ENV == nil or CHUNK_ENV.VFS == nil then
 	local ok, env = pcall(getfenv, 1)
@@ -311,8 +314,8 @@ function ModuleHandler.LoadActions(name, vfsMode)
 	table.sort(files)
 	for _, filePath in ipairs(files) do
 		local actionName = nameFromFile(filePath)
-		---@type ActionDescriptor
 		local entry = { name = actionName }
+		---@cast entry ActionDescriptor -- execute arrives via RegisterExecute; enforced below
 		local registrar = {
 			---@param fn function pure precondition; must precede RegisterExecute
 			RegisterValidate = function(fn)
