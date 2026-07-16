@@ -1109,7 +1109,7 @@
 				"audio": "Audio",
 				"notifications": "Notifications",
 				"accessibility": "Accessibility",
-				"custom": "Mods",
+				"custom": "Plugins",
 				"dev": "Dev"
 			},
 			"filter": "filter",
