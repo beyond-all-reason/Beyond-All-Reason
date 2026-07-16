@@ -44,7 +44,7 @@ local shaderSourceCache = {
 	shaderName = "Norush Timer GL4",
 	shaderConfig = {
 		ALPHA = 0.5,
-		NUM_BOXES = NUM_BOXES,
+		NUM_BOXES = 0,
 		MINY = minY,
 		MAXY = maxY,
 	},

@@ -116,8 +116,8 @@ end
 
 function StandStance()
 	Sleep(200)
-	Move(cod, y_axis, 0, now)
-	Turn(base, z_axis, 0, now)
+	Move(cod, y_axis, 0, 0)
+	Turn(base, z_axis, 0, 0)
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 
@@ -164,8 +164,8 @@ end
 
 function SquatStance()
 	Sleep(200)
-	Move(cod, y_axis, -1.5, now)
-	Turn(base, z_axis, 0, now)
+	Move(cod, y_axis, -1.5, 0)
+	Turn(base, z_axis, 0, 0)
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)
 

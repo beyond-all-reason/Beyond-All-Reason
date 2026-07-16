@@ -136,7 +136,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 		local unitDefID = spGetUnitDefID(unitID)
 		local unitTeam = spGetUnitTeam(unitID)
 		local ux, uy, uz = spGetUnitPosition(unitID)
-		spEcho("API Unit Tracker error unitID", unitID, unitDefID and UnitDefs[unitDefID].name or "nil", unitTeam, px, pz)
+		spEcho("API Unit Tracker error unitID", unitID, unitDefID and UnitDefs[unitDefID].name or "nil", unitTeam, ux, uz)
 	end
 	if lastknownunitpos[unitID] then
 		Spring.MarkerAddPoint(lastknownunitpos[unitID][1], lastknownunitpos[unitID][2], lastknownunitpos[unitID][3], lastknownunitpos[unitID][4], true)

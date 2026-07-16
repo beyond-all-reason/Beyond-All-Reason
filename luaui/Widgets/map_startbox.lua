@@ -1035,7 +1035,7 @@ local function InitStartPolygons()
 	)
 	startConeVBOTable.numVertices = numConeVertices
 	if startConeVBOTable == nil then
-		goodbye("Failed to create StartConeVBO")
+		spEcho("Failed to create StartConeVBO")
 		widgetHandler:RemoveWidget()
 		return
 	end

@@ -31,7 +31,7 @@ end
 local stompableDefs = {}
 for udid, ud in pairs(UnitDefs) do
 	if stompable[ud.name] then
-		stompableDefs[udid] = v
+		stompableDefs[udid] = true
 	end
 end
 

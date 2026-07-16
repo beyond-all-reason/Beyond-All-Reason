@@ -1265,6 +1265,7 @@ local function checkQuitscreen()
 	end
 	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
 	if prevQuitscreen ~= quitscreen then
+		local _, _, isClientPaused, _ = Spring.GetGameState()
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
@@ -10657,6 +10658,7 @@ function widget:GetConfigData()
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
+		---@diagnostic disable-next-line: undefined-global
 		customPresets = customPresets,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,

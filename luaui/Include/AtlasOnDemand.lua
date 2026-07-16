@@ -529,7 +529,7 @@ local function MakeAtlasOnDemand(config)
 		if id then
 			self.uvcoords[id] = nil
 		end
-		local drawblanktask = { id = self.blankimg, w = xmax - xmin * self.xresolution, h = ymax - ymin * yresolution, x = xmin * self.xresolution, y = ymin * self.yresolution }
+		local drawblanktask = { id = self.blankimg, w = xmax - xmin * self.xresolution, h = ymax - ymin * self.yresolution, x = xmin * self.xresolution, y = ymin * self.yresolution }
 		self.renderImageTaskList[#self.renderImageTaskList + 1] = drawblanktask
 		self.hastasks = true
 	end

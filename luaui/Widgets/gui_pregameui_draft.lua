@@ -213,6 +213,7 @@ local function DrawState(playerID, posX, posY)
 	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
 	local hasStartPoint = (playerReadyState[playerID] == 4)
+	local _, _, _, _, _, _, _, ai = Spring.GetPlayerInfo(playerID, false)
 	if ai then
 		gl_Color(0.1, 0.1, 0.97, 1)
 	else
@@ -995,7 +996,7 @@ function widget:Initialize()
 	end
 
 	local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(myAllyTeamID)
-	if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
+	if xn and (xn ~= 0 or zn ~= 0 or xp ~= Game.mapSizeX or zp ~= Game.mapSizeZ) then
 		hasStartbox = true
 	end
 

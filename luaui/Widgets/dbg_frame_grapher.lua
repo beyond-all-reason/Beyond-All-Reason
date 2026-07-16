@@ -330,6 +330,6 @@ function widget:DrawScreen()
 	drawInstanceVBO(rectInstanceTable)
 	rectShader:Deactivate()
 	wasgameframe = 0
-	prevframems = lastframeduration
+	prevframems = eventBuffer[#eventBuffer] and eventBuffer[#eventBuffer][3] or 0
 	gameFrameHappened = false
 end
