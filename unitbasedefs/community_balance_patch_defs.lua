@@ -83,7 +83,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 				uDef.maxacc = 0.28
 				uDef.maxdec = 0.55
 				uDef.health = 3350
-				uDef.speed = 165
+				uDef.speed = 125
 				uDef.turninplaceanglelimit = 120
 				uDef.turnrate = 420
 				uDef.sightdistance = 720
@@ -118,7 +118,7 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					},
 					damage = {
 						commanders = 200,
-						default = 480,
+						default = 425,
 					},
 				}
 				uDef.weapons[1].maindir = "0 0 1"
