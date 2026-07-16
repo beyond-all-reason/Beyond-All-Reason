@@ -807,8 +807,8 @@ local function ProcessSoundDefaults(wd)
 	local defaultDamage = 10
 	local burstMultiplier = 1
 	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
-		for i = 1, #wd.damage do
-			defaultDamage = math.max(defaultDamage, wd.damage[i])
+		for _, damage in pairs(wd.damage) do
+			defaultDamage = math.max(defaultDamage, damage)
 			if wd.burst and wd.burst > 1 then
 				burstMultiplier = burstMultiplier*wd.burst
 			end
@@ -817,7 +817,7 @@ local function ProcessSoundDefaults(wd)
 			end
 		end
 	end
-	burstMultiplier = math.sqrt(burstMultiplier)
+	burstMultiplier = math.sqrt(math.sqrt(burstMultiplier))
 
 	local volumeMultiplier = 1
 	
@@ -846,7 +846,7 @@ local function ProcessSoundDefaults(wd)
 	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier
 	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))*4*volumeMultiplier
 	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))*4*volumeMultiplier
-	--Spring.Echo("WeaponVolumes", wd.weapontype, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
+	--Spring.Echo("WeaponVolumes", wd.weapontype, defaultDamage, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
 end
 
 -- process weapondef
