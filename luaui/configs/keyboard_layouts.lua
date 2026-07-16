@@ -351,29 +351,22 @@ local function sanitizeKey(key, layout)
 	return key
 end
 
-local keybindingLayouts = {
-	'Grid', -- the first element will be the default value if a fallback is ever needed
-	'Grid (60% Keyboard)',
-	'Legacy',
-	'Legacy (60% Keyboard)',
-	'Custom'
-}
+-- Preset registry from the shared cross-surface contract (also consumed by Chobby
+-- / the lobby); the first entry is the default fallback.
+-- Source of truth: common/configs/keybind_presets.json
+local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local presetList = Json.decode(VFS.LoadFile('common/configs/keybind_presets.json')).presets
 
-local keybindingPresets = {
-	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
-	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
-	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
-	[keybindingLayouts[5]] = 'uikeys.txt',
-}
-
+local keybindingLayouts = {}
+local keybindingPresets = {}
 local keybindingLayoutFiles = {}
 local presetKeybindings = {}
 
-for i, v in ipairs(keybindingLayouts) do
-	local file = keybindingPresets[v]
-	keybindingLayoutFiles[i] = file
-	presetKeybindings[file] = v
+for i, preset in ipairs(presetList) do
+	keybindingLayouts[i] = preset.name
+	keybindingPresets[preset.name] = preset.file
+	keybindingLayoutFiles[i] = preset.file
+	presetKeybindings[preset.file] = preset.name
 end
 
 return {
