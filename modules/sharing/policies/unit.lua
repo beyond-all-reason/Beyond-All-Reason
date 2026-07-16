@@ -5,6 +5,28 @@ local Policies = Policies ---@type PoliciesRegistrar injected by the loader (wid
 --- Unit transfer policy: one gate, then the terminal compute. Denials still
 --- carry the full UnitPolicyResult shape so downstream consumers read one type.
 
+---Assemble a UnitPolicyResult from context + mod options; denials carry the
+---same shape as allowed results so downstream consumers read one type.
+---@param ctx PolicyContext
+---@param modOptions table
+---@param canShare boolean
+---@return UnitPolicyResult
+local function buildUnitPolicyResult(ctx, modOptions, canShare)
+	local stunSeconds = tonumber(modOptions[ModeEnums.ModOptions.UnitShareStunSeconds]) or 0
+	local stunCategory = modOptions[ModeEnums.ModOptions.UnitStunCategory] or ModeEnums.UnitFilterCategory.Resource
+	local buildDelaySeconds = tonumber(modOptions[ModeEnums.ModOptions.ConstructorBuildDelay]) or 0
+	return {
+		canShare = canShare,
+		senderTeamId = ctx.senderTeamId,
+		receiverTeamId = ctx.receiverTeamId,
+		sharingModes = Helpers.ResolveSharingModes(ctx, modOptions),
+		stunSeconds = stunSeconds,
+		stunCategory = stunCategory,
+		buildDelaySeconds = buildDelaySeconds,
+		techBlocking = ctx.ext and ctx.ext.techBlocking or nil,
+	}
+end
+
 Policies.Pipeline()
 	-- Sender and receiver must be allied, the effective sharing modes must
 	-- allow something, and (unless cheating) the receiver must have players.
@@ -18,10 +40,10 @@ Policies.Pipeline()
 		if canShare then
 			return nil
 		end
-		return Helpers.BuildUnitPolicyResult(ctx, modOptions, false)
+		return buildUnitPolicyResult(ctx, modOptions, false)
 	end)
 	-- The gate passed: build the pair's allowed UnitPolicyResult.
 	:Compute("ComputeUnitPolicy", function(ctx)
-		return Helpers.BuildUnitPolicyResult(ctx, ctx.springRepo.GetModOptions(), true)
+		return buildUnitPolicyResult(ctx, ctx.springRepo.GetModOptions(), true)
 	end)
 	:Register()
