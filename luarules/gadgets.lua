@@ -178,6 +178,8 @@ local callInLists = {
 	"GameOver",
 	"GameID",
 	"TeamDied",
+	"TeamShare",
+	"ResourceExcess",
 
 	"PlayerAdded",
 	"PlayerChanged",
@@ -908,6 +910,7 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], gadget)
 	end
+
 	self:DeregisterAllowCommands(gadget)
 
 	for id, g in pairs(self.CMDIDs) do
@@ -1438,6 +1441,26 @@ function gadgetHandler:TeamDied(teamID)
 		g:TeamDied(teamID)
 	end
 	return
+end
+
+function gadgetHandler:TeamShare(teamID, targetTeamID, metalShare, energyShare)
+	for _, g in ipairs(self.TeamShareList) do
+		g:TeamShare(teamID, targetTeamID, metalShare, energyShare)
+	end
+	return
+end
+
+-- Engine fires this every frame (CSyncedLuaHandle::ResourceExcess); returning true from any
+-- gadget tells the engine that overflow was handled, so it skips native buffering. Single
+-- owner is a game-side convention.
+function gadgetHandler:ResourceExcess(excesses)
+	local handled = false
+	for _, g in ipairs(self.ResourceExcessList) do
+		if g:ResourceExcess(excesses) then
+			handled = true
+		end
+	end
+	return handled
 end
 
 function gadgetHandler:TeamChanged(teamID)
