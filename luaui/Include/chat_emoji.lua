@@ -61,7 +61,7 @@ local unicode = {
 	salute = "\240\159\171\161",
 	shrug = "\240\159\164\183",
 	slight_smile = "\240\159\153\130",
-	smile = "\240\159\152\132",
+	smile = "\240\159\152\138",
 	smiley = "\240\159\152\131",
 	sob = "\240\159\152\173",
 	skull = "\240\159\146\128",
@@ -83,10 +83,30 @@ local floor = math.floor
 local max = math.max
 local sfind = string.find
 local ssub = string.sub
+local sbyte = string.byte
+local sort = table.sort
 
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
+
+local SEGMENT_TEXT = 1
+local SEGMENT_COLOR = 2
+local SEGMENT_EMOJI = 3
+
+local MAX_PARSE_CACHE_SIZE = 2048
+local parseCache = {}
+local parseCacheCount = 0
+local MAX_ELIGIBILITY_CACHE_SIZE = 4096
+local eligibilityCache = {}
+local eligibilityCacheCount = 0
+local EMPTY_TABLE = {}
+
+local aliasTokens = {}
+local maxAliasTokenLength = 0
+local unicodeStartByteLookup = {}
+local unicodeStartChars = {}
+local aliasImagePaths = {}
 
 local function getImagePath(alias)
 	local data = aliases[alias]
@@ -99,58 +119,237 @@ local function getImagePath(alias)
 	return IMAGE_DIR .. data
 end
 
+for alias in pairs(aliases) do
+	local aliasToken = ":" .. alias .. ":"
+	aliasTokens[aliasToken] = alias
+	if #aliasToken > maxAliasTokenLength then
+		maxAliasTokenLength = #aliasToken
+	end
+	aliasImagePaths[alias] = getImagePath(alias)
+end
+
+for alias, token in pairs(unicode) do
+	local startByte = sbyte(token, 1)
+	if not unicodeStartByteLookup[startByte] then
+		unicodeStartByteLookup[startByte] = {}
+		unicodeStartChars[#unicodeStartChars + 1] = string.char(startByte)
+	end
+	unicodeStartByteLookup[startByte][#unicodeStartByteLookup[startByte] + 1] = {
+		token = token,
+		alias = alias,
+		len = #token,
+	}
+end
+
+for _, candidates in pairs(unicodeStartByteLookup) do
+	sort(candidates, function(a, b)
+		return a.len > b.len
+	end)
+end
+
 local function emojiSize(fontSize)
 	return max(12, floor(fontSize * 1.05))
 end
 
-local function findNextEmoji(text, pos)
-	local foundStart, foundEnd, foundAlias
-	for alias in pairs(aliases) do
-		local aliasToken = ":" .. alias .. ":"
-		local aliasStart, aliasEnd = sfind(text, aliasToken, pos, true)
-		if aliasStart and (not foundStart or aliasStart < foundStart) then
-			foundStart, foundEnd, foundAlias = aliasStart, aliasEnd, alias
-		end
-
-		local unicodeToken = unicode[alias]
-		if unicodeToken then
-			local unicodeStart, unicodeEnd = sfind(text, unicodeToken, pos, true)
-			if unicodeStart and (not foundStart or unicodeStart < foundStart) then
-				foundStart, foundEnd, foundAlias = unicodeStart, unicodeEnd, alias
-			end
+function ChatEmoji.HasEmojiCandidate(text)
+	if not text then
+		return false
+	end
+	local firstColon = sfind(text, ':', 1, true)
+	if firstColon and sfind(text, ':', firstColon + 1, true) then
+		return true
+	end
+	for i = 1, #unicodeStartChars do
+		if sfind(text, unicodeStartChars[i], nil, true) then
+			return true
 		end
 	end
-	return foundStart, foundEnd, foundAlias
+	return false
+end
+
+local function likelyContainsEmoji(text)
+	local cached = eligibilityCache[text]
+	if cached ~= nil then
+		return cached
+	end
+
+	local hasEmoji = ChatEmoji.HasEmojiCandidate(text)
+
+	if eligibilityCache[text] == nil then
+		eligibilityCacheCount = eligibilityCacheCount + 1
+		if eligibilityCacheCount > MAX_ELIGIBILITY_CACHE_SIZE then
+			eligibilityCache = {}
+			eligibilityCacheCount = 1
+		end
+	end
+	eligibilityCache[text] = hasEmoji
+
+	return hasEmoji
+end
+
+function ChatEmoji.HasEmojiAliasCandidate(text)
+	if not text then
+		return false
+	end
+	local firstColon = sfind(text, ':', 1, true)
+	if not firstColon then
+		return false
+	end
+	return sfind(text, ':', firstColon + 1, true) ~= nil
+end
+
+function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
+	local lines = {}
+	local lineCount = 0
+	for _, line in ipairs(textLines) do
+		local linebuffer = ''
+		for word in line:gmatch("%S+") do
+			if linebuffer ~= '' and (usedFont:GetTextWidth(linebuffer .. ' ' .. word) * fontSize) > maxWidth then
+				lineCount = lineCount + 1
+				lines[lineCount] = linebuffer
+				linebuffer = ''
+			end
+			linebuffer = (linebuffer ~= '' and (linebuffer .. ' ' .. word) or word)
+		end
+		if linebuffer ~= '' then
+			lineCount = lineCount + 1
+			lines[lineCount] = linebuffer
+		end
+	end
+	return lines
+end
+
+local function parseRichText(text)
+	local cached = parseCache[text]
+	if cached ~= nil then
+		return cached
+	end
+
+	local textLen = #text
+	local segments = {}
+	local segmentCount = 0
+	local hasEmoji = false
+	local pos = 1
+	local chunkStart = 1
+
+	while pos <= textLen do
+		local c = sbyte(text, pos)
+		local matchedLen = 0
+		local matchedAlias
+		local consumedColor = false
+
+		if c == 255 and pos + 3 <= textLen then
+			if chunkStart < pos then
+				segmentCount = segmentCount + 2
+				segments[segmentCount - 1] = SEGMENT_TEXT
+				segments[segmentCount] = ssub(text, chunkStart, pos - 1)
+			end
+			segmentCount = segmentCount + 2
+			segments[segmentCount - 1] = SEGMENT_COLOR
+			segments[segmentCount] = ssub(text, pos, pos + 3)
+			pos = pos + 4
+			chunkStart = pos
+			consumedColor = true
+		elseif c == 58 then
+			local aliasEnd = sfind(text, ":", pos + 1, true)
+			if aliasEnd and aliasEnd <= pos + maxAliasTokenLength - 1 then
+				local aliasToken = ssub(text, pos, aliasEnd)
+				local aliasMatch = aliasTokens[aliasToken]
+				if aliasMatch ~= nil then
+					matchedAlias = aliasMatch
+					matchedLen = aliasEnd - pos + 1
+				end
+			end
+		end
+
+		if not consumedColor and matchedAlias == nil then
+			local unicodeCandidates = unicodeStartByteLookup[c] or EMPTY_TABLE
+			for i = 1, #unicodeCandidates do
+				local candidate = unicodeCandidates[i]
+				if pos + candidate.len - 1 <= textLen and ssub(text, pos, pos + candidate.len - 1) == candidate.token then
+					matchedAlias = candidate.alias
+					matchedLen = candidate.len
+					break
+				end
+			end
+		end
+
+		if consumedColor then
+			-- color code already consumed and cursor advanced
+		elseif matchedAlias ~= nil and matchedLen > 0 then
+			if chunkStart < pos then
+				segmentCount = segmentCount + 2
+				segments[segmentCount - 1] = SEGMENT_TEXT
+				segments[segmentCount] = ssub(text, chunkStart, pos - 1)
+			end
+			segmentCount = segmentCount + 2
+			segments[segmentCount - 1] = SEGMENT_EMOJI
+			segments[segmentCount] = matchedAlias
+			hasEmoji = true
+			pos = pos + matchedLen
+			chunkStart = pos
+		else
+			pos = pos + 1
+		end
+	end
+
+	if chunkStart <= textLen then
+		segmentCount = segmentCount + 2
+		segments[segmentCount - 1] = SEGMENT_TEXT
+		segments[segmentCount] = ssub(text, chunkStart, textLen)
+	end
+
+	local parsed = {
+		segments = segments,
+		hasEmoji = hasEmoji,
+		widthCache = {},
+	}
+
+	if not parseCache[text] then
+		parseCacheCount = parseCacheCount + 1
+		if parseCacheCount > MAX_PARSE_CACHE_SIZE then
+			parseCache = {}
+			parseCacheCount = 1
+		end
+	end
+	parseCache[text] = parsed
+
+	return parsed
 end
 
 local function emojiTextWidth(text, fontSize, usedFont)
 	if not text or text == '' then
 		return 0
 	end
+	if not likelyContainsEmoji(text) then
+		return usedFont:GetTextWidth(text) * fontSize
+	end
 
-	local width = 0
-	local pos = 1
-	while pos <= #text do
-		local colorStart = sfind(text, "\255", pos, true)
-		local emojiStart, emojiEnd, emojiAlias = findNextEmoji(text, pos)
-		local nextSpecial = emojiStart
-		if colorStart and (not nextSpecial or colorStart < nextSpecial) then
-			nextSpecial = colorStart
-		end
-		if not nextSpecial then
-			width = width + (usedFont:GetTextWidth(ssub(text, pos)) * fontSize)
-			break
-		end
-		if nextSpecial > pos then
-			width = width + (usedFont:GetTextWidth(ssub(text, pos, nextSpecial - 1)) * fontSize)
-		end
-		if colorStart == nextSpecial then
-			pos = math.min(#text + 1, colorStart + 4)
-		elseif emojiAlias then
-			width = width + emojiSize(fontSize) + 2
-			pos = emojiEnd + 1
+	local parsed = parseRichText(text)
+	local fontWidths = parsed.widthCache[usedFont]
+	if not fontWidths then
+		fontWidths = {}
+		parsed.widthCache[usedFont] = fontWidths
+	end
+	local cachedWidth = fontWidths[fontSize]
+	if cachedWidth then
+		return cachedWidth
+	end
+
+	local width = 0.0
+	local size = emojiSize(fontSize) + 2
+	local segments = parsed.segments
+	for i = 1, #segments, 2 do
+		local kind = segments[i]
+		local value = segments[i + 1]
+		if kind == SEGMENT_TEXT then
+			width = width + (usedFont:GetTextWidth(value) * fontSize)
+		elseif kind == SEGMENT_EMOJI then
+			width = width + size
 		end
 	end
+
+	fontWidths[fontSize] = width
 	return width
 end
 
@@ -165,27 +364,47 @@ end
 function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 	local lines = {}
 	local lineCount = 0
+	local spaceWidth = usedFont:GetTextWidth(' ') * fontSize
 	for _, line in ipairs(text) do
-		local words = {}
-		local wordsCount = 0
 		local linebuffer = ''
-		for w in line:gmatch("%S+") do
-			wordsCount = wordsCount + 1
-			words[wordsCount] = w
-		end
-		for _, word in ipairs(words) do
-			local candidate = linebuffer ~= '' and (linebuffer .. ' ' .. word) or word
-			if linebuffer ~= '' and emojiTextWidth(candidate, fontSize, usedFont) > maxWidth then
+		local linebufferWidth = 0.0
+		local lineHasEmoji = likelyContainsEmoji(line)
+
+		if not lineHasEmoji then
+			for word in line:gmatch("%S+") do
+				if linebuffer ~= '' and (usedFont:GetTextWidth(linebuffer .. ' ' .. word) * fontSize) > maxWidth then
+					lineCount = lineCount + 1
+					lines[lineCount] = linebuffer
+					linebuffer = ''
+				end
+				linebuffer = (linebuffer ~= '' and (linebuffer .. ' ' .. word) or word)
+			end
+			if linebuffer ~= '' then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
-				linebuffer = word
-			else
-				linebuffer = candidate
 			end
-		end
-		if linebuffer ~= '' then
-			lineCount = lineCount + 1
-			lines[lineCount] = linebuffer
+		else
+			for word in line:gmatch("%S+") do
+				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
+				if linebuffer ~= '' and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
+					lineCount = lineCount + 1
+					lines[lineCount] = linebuffer
+					linebuffer = word
+					linebufferWidth = wordWidth
+				else
+					if linebuffer == '' then
+						linebuffer = word
+						linebufferWidth = wordWidth
+					else
+						linebuffer = linebuffer .. ' ' .. word
+						linebufferWidth = linebufferWidth + spaceWidth + wordWidth
+					end
+				end
+			end
+			if linebuffer ~= '' then
+				lineCount = lineCount + 1
+				lines[lineCount] = linebuffer
+			end
 		end
 	end
 	return lines
@@ -195,7 +414,15 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 	if not text or text == '' then
 		return
 	end
-	if not sfind(text, ":", nil, true) and not findNextEmoji(text, 1) then
+	if not likelyContainsEmoji(text) then
+		usedFont:Begin(true)
+		usedFont:SetOutlineColor(outlineColor[1], outlineColor[2], outlineColor[3], outlineColor[4])
+		usedFont:Print(text, x, y, fontSize, options)
+		usedFont:End()
+		return
+	end
+	local parsed = parseRichText(text)
+	if not parsed.hasEmoji then
 		usedFont:Begin(true)
 		usedFont:SetOutlineColor(outlineColor[1], outlineColor[2], outlineColor[3], outlineColor[4])
 		usedFont:Print(text, x, y, fontSize, options)
@@ -203,10 +430,11 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 		return
 	end
 
-	local pos = 1
 	local drawX = x
 	local activeColor = ''
 	local textActive = false
+	local textureBound = false
+	local lastTexturePath = nil
 	local size = emojiSize(fontSize)
 	local emojiYOffset = max(0, floor((fontSize - size) * 0.35))
 
@@ -230,35 +458,34 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 			beginText()
 			usedFont:Print(activeColor .. chunk, drawX, y, fontSize, options)
 			drawX = drawX + (usedFont:GetTextWidth(chunk) * fontSize)
+			-- Font rendering may bind its own atlas texture, so force emoji texture rebind next time.
+			lastTexturePath = nil
 		end
 	end
 
-	while pos <= #text do
-		local colorStart = sfind(text, "\255", pos, true)
-		local emojiStart, emojiEnd, emojiAlias = findNextEmoji(text, pos)
-		local nextSpecial = emojiStart
-		if colorStart and (not nextSpecial or colorStart < nextSpecial) then
-			nextSpecial = colorStart
-		end
-		if not nextSpecial then
-			drawTextChunk(ssub(text, pos))
-			break
-		end
-		drawTextChunk(ssub(text, pos, nextSpecial - 1))
-		if colorStart == nextSpecial and colorStart + 3 <= #text then
-			activeColor = ssub(text, colorStart, colorStart + 3)
-			pos = colorStart + 4
-		elseif emojiAlias then
+	local segments = parsed.segments
+	for i = 1, #segments, 2 do
+		local kind = segments[i]
+		local value = segments[i + 1]
+		if kind == SEGMENT_TEXT then
+			drawTextChunk(value)
+		elseif kind == SEGMENT_COLOR then
+			activeColor = value
+		elseif kind == SEGMENT_EMOJI then
 			endText()
 			glColor(1, 1, 1, 1)
-			glTexture(getImagePath(emojiAlias))
+			local texturePath = aliasImagePaths[value]
+			if lastTexturePath ~= texturePath then
+				glTexture(texturePath)
+				lastTexturePath = texturePath
+				textureBound = true
+			end
 			glTexRect(drawX, y + emojiYOffset, drawX + size, y + emojiYOffset + size)
-			glTexture(false)
 			drawX = drawX + size + 2
-			pos = emojiEnd + 1
-		else
-			break
 		end
+	end
+	if textureBound then
+		glTexture(false)
 	end
 	endText()
 end

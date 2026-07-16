@@ -530,9 +530,15 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 
 	-- convert /n into lines
 	local textLines = string_lines(text)
+	local hasEmoji = ChatEmoji.HasEmojiCandidate(text)
 
 	-- word wrap text into lines
-	local wordwrappedText = ChatEmoji.WordWrapRichText(textLines, consoleLineMaxWidth, usedConsoleFontSize, font)
+	local wordwrappedText
+	if hasEmoji then
+		wordwrappedText = ChatEmoji.WordWrapRichText(textLines, consoleLineMaxWidth, usedConsoleFontSize, font)
+	else
+		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, consoleLineMaxWidth, font, usedConsoleFontSize)
+	end
 
 	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
 	local startTime = clock()
@@ -542,6 +548,7 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 			gameFrame = i == 1 and gameFrame,
 			lineType = lineType,
 			text = (i > 1 and lineColor or '')..line,
+			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
@@ -645,9 +652,15 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 
 	-- convert /n into lines
 	local textLines = string_lines(text)
+	local hasEmoji = ChatEmoji.HasEmojiCandidate(text)
 
 	-- word wrap text into lines
-	local wordwrappedText = ChatEmoji.WordWrapRichText(textLines, lineMaxWidth, usedFontSize, font)
+	local wordwrappedText
+	if hasEmoji then
+		wordwrappedText = ChatEmoji.WordWrapRichText(textLines, lineMaxWidth, usedFontSize, font)
+	else
+		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize)
+	end
 
 	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
 	for i, line in ipairs(wordwrappedText) do
@@ -659,6 +672,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			playerNameText = nameText,
 			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
+			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
 			--lineDisplayList = glCreateList(function() end),
@@ -1176,7 +1190,14 @@ drawGameTime = function(gameFrame)
 end
 
 drawConsoleLine = function(i)
-	ChatEmoji.DrawRichText(font, consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o", {0, 0, 0, 1})
+	if consoleLines[i].richText then
+		ChatEmoji.DrawRichText(font, consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o", {0, 0, 0, 1})
+	else
+		font:Begin(true)
+		font:SetOutlineColor(0, 0, 0, 1)
+		font:Print(consoleLines[i].text, 0, usedFontSize*0.3, usedConsoleFontSize, "o")
+		font:End()
+	end
 end
 
 local function processConsoleLineGL(i)
@@ -1236,9 +1257,23 @@ drawChatLine = function(i)
 		end
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
-		ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o", {0, 0, 0, 1})
+		if chatLines[i].richText then
+			ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o", {0, 0, 0, 1})
+		else
+			font3:Begin(true)
+			font3:SetOutlineColor(0, 0, 0, 1)
+			font3:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o")
+			font3:End()
+		end
 	else
-		ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
+		if chatLines[i].richText then
+			ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
+		else
+			font:Begin(true)
+			font:SetOutlineColor(0, 0, 0, 1)
+			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			font:End()
+		end
 	end
 end
 
@@ -1639,6 +1674,7 @@ function widget:FontsChanged()
 end
 
 drawUi = function()
+	local now = clock()
 	if not historyMode then
 
 		-- draw background
@@ -1664,8 +1700,13 @@ drawUi = function()
 			local checkedLines = 0
 			local i = #consoleLines
 			while i > 0 do
-				if clock() - consoleLines[i].startTime < lineTTL then
-					drawConsoleLine(i)
+				if now - consoleLines[i].startTime < lineTTL then
+					processConsoleLineGL(i)
+					if consoleLines[i].lineDisplayList then
+						glCallList(consoleLines[i].lineDisplayList)
+					else
+						drawConsoleLine(i)
+					end
 				else
 					break
 				end
@@ -1711,7 +1752,7 @@ drawUi = function()
 		local width = floor(maxTimeWidth+(lineHeight*0.75))
 		while i > 0 do
 			if (historyMode and historyMode == 'console') or (chatLines[i] and not chatLines[i].ignore) then
-				if historyMode or clock() - chatLines[i].startTime < lineTTL then
+				if historyMode or now - chatLines[i].startTime < lineTTL then
 					if historyMode == 'console' then
 						-- R2T mode: no processConsoleLineGL needed
 					else
@@ -1734,14 +1775,24 @@ drawUi = function()
 					if historyMode then
 						if historyMode == 'console' then
 							if consoleLines[i] then
+								processConsoleLineGL(i)
 								if consoleLines[i].gameFrame then
-									drawGameTime(consoleLines[i].gameFrame)
+									if consoleLines[i].timeDisplayList then
+										glCallList(consoleLines[i].timeDisplayList)
+									else
+										drawGameTime(consoleLines[i].gameFrame)
+									end
 								end
 							end
 						else
 							if historyMode and chatLines[i] then
+								processChatLineGL(i)
 								if chatLines[i].gameFrame then
-									drawGameTime(chatLines[i].gameFrame)
+									if chatLines[i].timeDisplayList then
+										glCallList(chatLines[i].timeDisplayList)
+									else
+										drawGameTime(chatLines[i].gameFrame)
+									end
 								end
 							end
 						end
@@ -1751,11 +1802,21 @@ drawUi = function()
 					end
 					if historyMode == 'console' then
 						if consoleLines[i] then
-							drawConsoleLine(i)
+							processConsoleLineGL(i)
+							if consoleLines[i].lineDisplayList then
+								glCallList(consoleLines[i].lineDisplayList)
+							else
+								drawConsoleLine(i)
+							end
 						end
 					else
 						if chatLines[i] then
-							drawChatLine(i)
+							processChatLineGL(i)
+							if chatLines[i].lineDisplayList then
+								glCallList(chatLines[i].lineDisplayList)
+							else
+								drawChatLine(i)
+							end
 						end
 					end
 					if historyMode then
@@ -1777,22 +1838,29 @@ drawUi = function()
 		end
 		glPopMatrix()
 
-		-- show new chat when in historyMode mode
-		local lastUnignoredChatLineID = #chatLines
-		local i = #chatLines
-		while i > 0 do
-			if not chatLines[i].ignore then
-				lastUnignoredChatLineID = i
-				break
+		-- show newest chat line while browsing history
+		if historyMode then
+			local lastUnignoredChatLineID = #chatLines
+			local i = #chatLines
+			while i > 0 do
+				if not chatLines[i].ignore then
+					lastUnignoredChatLineID = i
+					break
+				end
+				i = i - 1
 			end
-			 i = i - 1
-		end
-		if chatLines[lastUnignoredChatLineID] and not chatLines[lastUnignoredChatLineID].ignore then
-			if historyMode and currentChatLine < lastUnignoredChatLineID and clock() - chatLines[lastUnignoredChatLineID].startTime < lineTTL then
-				glPushMatrix()
-				glTranslate(vsx * posX, vsy * ((historyMode and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
-				drawChatLine(lastUnignoredChatLineID)
-				glPopMatrix()
+			if chatLines[lastUnignoredChatLineID] and not chatLines[lastUnignoredChatLineID].ignore then
+				if currentChatLine < lastUnignoredChatLineID and now - chatLines[lastUnignoredChatLineID].startTime < lineTTL then
+					glPushMatrix()
+					glTranslate(vsx * posX, vsy * (scrollingPosY-0.02)-backgroundPadding, 0)
+					processChatLineGL(lastUnignoredChatLineID)
+					if chatLines[lastUnignoredChatLineID].lineDisplayList then
+						glCallList(chatLines[lastUnignoredChatLineID].lineDisplayList)
+					else
+						drawChatLine(lastUnignoredChatLineID)
+					end
+					glPopMatrix()
+				end
 			end
 		end
 	end
@@ -1825,6 +1893,7 @@ function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not chatLines[1] and not consoleLines[1] then return end
 
+	local now = clock()
 	local _, ctrl, _, _ = Spring.GetModKeyState()
 	local x,y,b = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy*(scrollingPosY-posY)) or 0
@@ -1906,7 +1975,7 @@ function widget:DrawScreen()
 		local checkedLines = 0
 		while i > 0 do
 			if chatLines[i] and not chatLines[i].ignore then
-				if historyMode or clock() - chatLines[i].startTime < lineTTL or ctrlHover then
+				if historyMode or now - chatLines[i].startTime < lineTTL or ctrlHover then
 					local isClickableLine = chatLines[i].coords or chatLines[i].selectUnits
 					if isClickableLine then
 						local lineArea = {
@@ -2743,7 +2812,10 @@ function widget:ViewResize()
 		floor(vsy * posY2),
 	}
 
-	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
+	local chatPanelWidth = activationArea[3] - activationArea[1]
+	local chatTextStartOffset = maxTimeWidth + maxPlayernameWidth + lineSpaceWidth
+	local chatTextEndMargin = floor(38 * widgetScale)
+	lineMaxWidth = floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
 	clearDisplayLists()
@@ -2844,7 +2916,6 @@ local function preventhistorymodeCmd(_, _, params)
 		spEcho("Enabled toggling historymode via CTRL+SHIFT")
 	end
 end
-
 
 function widget:Initialize()
 	Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
