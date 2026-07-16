@@ -1,6 +1,6 @@
-local ContextFactoryModule = VFS.Include("common/luaUtilities/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("common/luaUtilities/sharing/resource_transfer_synced.lua")
-local SharedConfig = VFS.Include("common/luaUtilities/economy/shared_config.lua")
+local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
+local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
 
 local M = {}
 

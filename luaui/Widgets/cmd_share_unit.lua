@@ -14,7 +14,7 @@ function widget:GetInfo()
 	}
 end
 
-local SharingUnsynced = VFS.Include("common/luaUtilities/sharing/unsynced.lua")
+local SharingUnsynced = VFS.Include("modules/sharing/unsynced.lua")
 
 --------------------------------------------------------------------------------
 --vars
