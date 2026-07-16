@@ -530,15 +530,9 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 
 	-- convert /n into lines
 	local textLines = string_lines(text)
-	local hasEmoji = ChatEmoji.HasEmojiCandidate(text)
 
-	-- word wrap text into lines
-	local wordwrappedText
-	if hasEmoji then
-		wordwrappedText = ChatEmoji.WordWrapRichText(textLines, consoleLineMaxWidth, usedConsoleFontSize, font)
-	else
-		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, consoleLineMaxWidth, font, usedConsoleFontSize)
-	end
+	-- Console lines are always plain text for performance.
+	local wordwrappedText = ChatEmoji.WordWrapPlain(textLines, consoleLineMaxWidth, font, usedConsoleFontSize)
 
 	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ''
 	local startTime = clock()
@@ -548,7 +542,7 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 			gameFrame = i == 1 and gameFrame,
 			lineType = lineType,
 			text = (i > 1 and lineColor or '')..line,
-			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
+			richText = false,
 			orgLineID = orgLineID,
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
@@ -652,7 +646,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 
 	-- convert /n into lines
 	local textLines = string_lines(text)
-	local hasEmoji = ChatEmoji.HasEmojiCandidate(text)
+	local hasEmoji = (lineType == LineTypes.Player or lineType == LineTypes.Spectator) and ChatEmoji.HasEmojiCandidate(text)
 
 	-- word wrap text into lines
 	local wordwrappedText
