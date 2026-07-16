@@ -809,20 +809,42 @@ local function ProcessSoundDefaults(wd)
 	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
 		for _, damage in pairs(wd.damage) do
 			defaultDamage = math.max(defaultDamage, damage)
-			if wd.burst and wd.burst > 1 then
-				burstMultiplier = burstMultiplier*wd.burst
-			end
-			if wd.projectiles and wd.projectiles > 1 then
-				burstMultiplier = burstMultiplier*wd.projectiles
-			end
+			--if wd.burst and wd.burst > 1 then
+			--	burstMultiplier = burstMultiplier*wd.burst
+			--end
+			--if wd.projectiles and wd.projectiles > 1 then
+			--	burstMultiplier = burstMultiplier*wd.projectiles
+			--end
 		end
 	end
-	burstMultiplier = math.sqrt(math.sqrt(burstMultiplier))
+	--burstMultiplier = math.sqrt(math.sqrt(burstMultiplier))
 
-	local volumeMultiplier = 1
-	
-	if wd.customparams.soundVolumeMultiplier then
-		volumeMultiplier = tonumber(wd.customparams.soundVolumeMultiplier)
+	local volumeMultiplier
+	if wd.customparams.sound_volume_multiplier then
+		volumeMultiplier = tonumber(wd.customparams.sound_volume_multiplier)
+	else
+		volumeMultiplier = 1
+	end
+
+	local startVolumeMultiplier
+	if wd.customparams.soundstart_volume_multiplier then
+		startVolumeMultiplier = tonumber(wd.customparams.soundstart_volume_multiplier)
+	else
+		startVolumeMultiplier = 1
+	end
+
+	local hitVolumeMultiplier
+	if wd.customparams.soundhit_volume_multiplier then
+		hitVolumeMultiplier = tonumber(wd.customparams.soundhit_volume_multiplier)
+	else
+		hitVolumeMultiplier = 1
+	end
+
+	local hitwetVolumeMultiplier
+	if wd.customparams.soundhitwet_volume_multiplier then
+		hitwetVolumeMultiplier = tonumber(wd.customparams.soundhitwet_volume_multiplier)
+	else
+		hitwetVolumeMultiplier = 1
 	end
 
 	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume then
@@ -843,10 +865,12 @@ local function ProcessSoundDefaults(wd)
 		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5)
 	end
 
-	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier
-	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))*4*volumeMultiplier
-	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))*4*volumeMultiplier
-	--Spring.Echo("WeaponVolumes", wd.weapontype, defaultDamage, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
+	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier*startVolumeMultiplier
+	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))*4*volumeMultiplier*hitVolumeMultiplier
+	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))*4*volumeMultiplier*hitwetVolumeMultiplier
+	if volumeMultiplier ~= 1 then
+		Spring.Echo("WeaponVolumes", wd.weapontype, defaultDamage, volumeMultiplier, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
+	end
 end
 
 -- process weapondef
