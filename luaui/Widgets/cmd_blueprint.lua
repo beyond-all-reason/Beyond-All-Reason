@@ -640,15 +640,15 @@ local function buildHotkeyText()
 
 	local hotkeys = {
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_next"),
+			name = BAR.I18N("ui.blueprint.hotkey_next"),
 			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_next, currentLayout),
 		},
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_prev"),
+			name = BAR.I18N("ui.blueprint.hotkey_prev"),
 			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_prev, currentLayout),
 		},
 		{
-			name = Spring.I18N("ui.blueprint.hotkey_delete"),
+			name = BAR.I18N("ui.blueprint.hotkey_delete"),
 			key = keyConfig.sanitizeKey(actionHotkeys.blueprint_delete, currentLayout),
 		},
 	}
@@ -657,7 +657,7 @@ local function buildHotkeyText()
 	for _, hk in ipairs(hotkeys) do
 		local name, key = hk.name, hk.key
 		if not key or string.len(key) == 0 then
-			key = Spring.I18N("ui.blueprint.hotkey_none")
+			key = BAR.I18N("ui.blueprint.hotkey_none")
 		end
 		hotkeyText = hotkeyText .. string.format("\255\255\215\100%s\255\240\240\240 - %s\n", key, name)
 	end
@@ -669,9 +669,9 @@ end
 local function drawCursorTextImpl(index)
 	local text
 	if index then
-		text = "\255\220\220\240" .. Spring.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
+		text = "\255\220\220\240" .. BAR.I18N("ui.blueprint.cursor_active", { index = tostring(index) })
 	else
-		text = "\255\240\220\220" .. Spring.I18N("ui.blueprint.cursor_none")
+		text = "\255\240\220\220" .. BAR.I18N("ui.blueprint.cursor_none")
 	end
 
 	local scale = cursorTextScale
