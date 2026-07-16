@@ -1109,7 +1109,7 @@
 				"audio": "Audio",
 				"notifications": "Notifications",
 				"accessibility": "Accessibility",
-				"custom": "Custom",
+				"custom": "Mods",
 				"dev": "Dev"
 			},
 			"filter": "filter",
@@ -2328,6 +2328,7 @@
 			"setradius": "[value] Adjust selected unit radius value",
 			"setheight": "[value] Adjust selected unit height value",
 			"select": "Select nearby unit or units in current selection bounds (makes unselectable units selectable)",
+			"unselect": "Make nearby unit or units in current selection bounds unselectable",
 			"halfhealth": "Halve health of all or only the selected units",
 			"sethealth": "[0-100] Set selected unit health percentage",
 			"xp": "[value] Give experience to selected units",
