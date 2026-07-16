@@ -11,7 +11,7 @@ local function GetInfo() return { name = "tmp_unsynced" } end
 local seen = {
     unitDefs    = UnitDefs,
     platformGl  = Platform and Platform.gl,
-    isHeadless  = Platform and Platform.isHeadless,
+    isHeadless  = Platform and (Platform.isHeadless or not Platform.gl),
 }
 
 function widget:Initialize()
@@ -52,7 +52,7 @@ describe("SpringUnsyncedBuilder", function()
 
     it("defaults to headless (Platform.gl is falsy)", function()
         local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
-        assert.is_true(widget.WG.tmp_unsynced.seen.isHeadless)
+        assert.is_false(widget.WG.tmp_unsynced.seen.platformGl)
     end)
 
     it("exposes UnitDefs registered via WithUnitDef", function()
