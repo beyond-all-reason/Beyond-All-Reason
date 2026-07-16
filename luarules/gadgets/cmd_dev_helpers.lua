@@ -469,7 +469,7 @@ if gadgetHandler:IsSyncedCode() then
 		if cmd == "desync" then
 			subPermission = "test"
 		elseif cmd == "givecat" or cmd == "loadmissiles" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
-			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or
+			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or cmd == "unselect" or
 			cmd == "neutralize" or cmd == "maxhealth" or cmd == "setsensors" or
 			cmd == "setblocking" or cmd == "relocate" or cmd == "setradius" or cmd == "setheight" or
 			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "removeobjects" then
@@ -584,6 +584,13 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if foundUnits and requestID then
 				SendToUnsynced("devhelper_selectunits", playerID, requestID)
+			end
+		elseif cmd == "unselect" then
+			for n = 2, #words do
+				local unitID = tonumber(words[n])
+				if unitID and Spring.ValidUnitID(unitID) then
+					Spring.SetUnitNoSelect(unitID, true)
+				end
 			end
 		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
@@ -1046,6 +1053,7 @@ else	-- UNSYNCED
 		addAuthorizedChatAction('units', 'setradius', setRadiusUnits)
 		addAuthorizedChatAction('units', 'setheight', setHeightUnits)
 		addAuthorizedChatAction('units', 'select', selectHoveredUnit)
+		addAuthorizedChatAction('units', 'unselect', unselectHoveredUnit)
 		addAuthorizedChatAction('units', 'halfhealth', halfHealth)
 		addAuthorizedChatAction('units', 'sethealth', setHealth)
 		addAuthorizedChatAction('units', 'xp', xpUnits)
@@ -1102,6 +1110,7 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('setradius')
 		gadgetHandler:RemoveChatAction('setheight')
 		gadgetHandler:RemoveChatAction('select')
+		gadgetHandler:RemoveChatAction('unselect')
 		gadgetHandler:RemoveChatAction('halfhealth')
 		gadgetHandler:RemoveChatAction('sethealth')
 		gadgetHandler:RemoveChatAction('xp')
@@ -1222,13 +1231,15 @@ else	-- UNSYNCED
 		end
 		processUnits(_, line, words, playerID, 'setheight')
 	end
-	function selectHoveredUnit(_, line, words, playerID)
+	function selectHoveredUnit(_, line, words, playerID, action)
 		if playerID ~= Spring.GetMyPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
 			return
 		end
+
+		action = action or 'select'
 
 		local targetUnits = {}
 		local boxX1, boxY1, boxX2, boxY2 = Spring.GetSelectionBox()
@@ -1316,15 +1327,23 @@ else	-- UNSYNCED
 			return
 		end
 
-		selectRequestSeq = selectRequestSeq + 1
-		local requestID = tostring(selectRequestSeq)
-		pendingSelectRequests[requestID] = uniqueUnits
-
-		local msg = PACKET_HEADER .. ':select:' .. requestID
+		local msg
+		if action == 'select' then
+			selectRequestSeq = selectRequestSeq + 1
+			local requestID = tostring(selectRequestSeq)
+			pendingSelectRequests[requestID] = uniqueUnits
+			msg = PACKET_HEADER .. ':select:' .. requestID
+		else
+			msg = PACKET_HEADER .. ':unselect'
+		end
 		for i = 1, uniqueCount do
 			msg = msg .. ':' .. uniqueUnits[i]
 		end
 		Spring.SendLuaRulesMsg(msg)
+	end
+
+	function unselectHoveredUnit(_, line, words, playerID)
+		selectHoveredUnit(_, line, words, playerID, 'unselect')
 	end
 	function halfHealth(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'halfhealth')
