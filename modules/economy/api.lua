@@ -10,6 +10,7 @@
 
 return {
 	WaterfillSolver = VFS.Include("modules/economy/waterfill_solver.lua"),
+	TeamResourceData = VFS.Include("modules/economy/team_resource_data.lua"),
 	ShareStats = VFS.Include("modules/economy/share_stats.lua"),
 	ManualShareLedger = VFS.Include("modules/economy/manual_share_ledger.lua"),
 }

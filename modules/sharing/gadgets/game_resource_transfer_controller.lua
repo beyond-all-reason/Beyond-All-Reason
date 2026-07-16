@@ -23,10 +23,10 @@ end
 
 GG = GG or {}
 
-local TeamResourceData = VFS.Include("modules/sharing/team_resource_data.lua")
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
 local Economy = ModuleHandler.Get("economy")
+local TeamResourceData = Economy.TeamResourceData
 local SharingConfig = VFS.Include("modules/sharing/config.lua")
 local ShareStats = Economy.ShareStats
 
