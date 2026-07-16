@@ -1019,7 +1019,7 @@ else -- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		local myPlayerID = Spring.GetMyPlayerID()
+		local myPlayerID = Spring.GetLocalPlayerID()
 		local function addAuthorizedChatAction(permission, action, handler)
 			if isAuthorized(myPlayerID, permission) then
 				gadgetHandler:AddChatAction(action, handler)
@@ -1070,7 +1070,7 @@ else -- UNSYNCED
 			Spring.MarkerAddPoint(x, y, z, label or "", true)
 		end)
 		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
-			if requestPlayerID ~= Spring.GetMyPlayerID() then
+			if requestPlayerID ~= Spring.GetLocalPlayerID() then
 				return
 			end
 			local requestKey = tostring(requestID)
@@ -1121,7 +1121,7 @@ else -- UNSYNCED
 		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
 	end
 	function loadMissiles(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1180,7 +1180,7 @@ else -- UNSYNCED
 		processUnits(_, line, words, playerID, "setblocking")
 	end
 	function relocateUnits(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1219,7 +1219,7 @@ else -- UNSYNCED
 		processUnits(_, line, words, playerID, "setheight")
 	end
 	function selectHoveredUnit(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1342,7 +1342,7 @@ else -- UNSYNCED
 	end
 
 	function removeUnitDef(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1358,7 +1358,7 @@ else -- UNSYNCED
 	end
 
 	function removeObjects(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1368,7 +1368,7 @@ else -- UNSYNCED
 	end
 
 	function clearWrecks(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1378,7 +1378,7 @@ else -- UNSYNCED
 	end
 
 	function reduceWrecks(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1388,7 +1388,7 @@ else -- UNSYNCED
 	end
 
 	function processUnits(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1424,7 +1424,7 @@ else -- UNSYNCED
 	end
 
 	function dumpFeatures(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1447,7 +1447,7 @@ else -- UNSYNCED
 	end
 
 	function dumpUnits(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1468,7 +1468,7 @@ else -- UNSYNCED
 	--- Dumps all units and features in the loadout.lua format used by UnitLoadout / FeatureLoadout in missions.
 	--- Usage: /luarules dumploadout
 	function dumpLoadout(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1643,7 +1643,7 @@ else -- UNSYNCED
 	end
 
 	function fightertest(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		Spring.Echo("Fightertest", line, words, playerID, action)
@@ -1759,7 +1759,7 @@ else -- UNSYNCED
 	end
 
 	function globallos(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "terrain") then
@@ -1773,7 +1773,7 @@ else -- UNSYNCED
 	end
 
 	function godmode(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1786,7 +1786,7 @@ else -- UNSYNCED
 	end
 
 	function godmodeally(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1799,7 +1799,7 @@ else -- UNSYNCED
 	end
 
 	function playertoteam(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1819,7 +1819,7 @@ else -- UNSYNCED
 		end
 		if not words[2] then
 			words[2] = words[1]
-			words[1] = Spring.GetMyPlayerID()
+			words[1] = Spring.GetLocalPlayerID()
 		end
 		if tonumber(words[2]) < (#Spring.GetTeamList()) - 1 then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ":playertoteam:" .. words[1] .. ":" .. words[2])
@@ -1827,7 +1827,7 @@ else -- UNSYNCED
 	end
 
 	function killteam(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "teams") then
@@ -1840,7 +1840,7 @@ else -- UNSYNCED
 	end
 
 	function desync(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "test") then
@@ -1854,7 +1854,7 @@ else -- UNSYNCED
 		--spawnceg usage:
 		--/luarules spawnceg newnuke --spawns at cursor
 		--/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1880,7 +1880,7 @@ else -- UNSYNCED
 	function modmarker(_, line, words, playerID)
 		-- /luarules modmarker          -- places broadcast marker at cursor with no label
 		-- /luarules modmarker My text  -- places broadcast marker at cursor with label
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "modmarker") then
@@ -1899,7 +1899,7 @@ else -- UNSYNCED
 
 	function spawnunitexplosion(_, line, words, playerID)
 		--/luarules spawnunitexplosion armbull --spawns at cursor
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1916,7 +1916,7 @@ else -- UNSYNCED
 	end
 
 	function GiveCat(_, line, words, playerID)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		if not isAuthorized(playerID, "units") then
@@ -1948,7 +1948,7 @@ else -- UNSYNCED
 			if #result == 0 then
 				return
 			end
-			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+			local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 			if words[2] and tonumber(words[2]) then
 				teamID = tonumber(words[2])
 			end
@@ -2476,7 +2476,7 @@ else -- UNSYNCED
 		end
 
 		-- team
-		local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		local _, _, _, teamID = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 		if string.match(line, " ([0-9].*)") then
 			teamID = string.match(line, " ([0-9].*)")
 		end

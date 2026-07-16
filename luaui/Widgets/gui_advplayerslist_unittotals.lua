@@ -16,7 +16,7 @@ end
 local mathFloor = math.floor
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 
 local displayFeatureCount = false

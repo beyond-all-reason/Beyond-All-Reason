@@ -61,7 +61,7 @@ else
 	local LuaUICallIn = Script.LuaUI
 	local LuaUI = Script.LuaUI
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 	local PACK_FFFF = PackU16(0xffff)
 	local CLEAR_ALL_MSG = PACK_FFFF .. PACK_FFFF

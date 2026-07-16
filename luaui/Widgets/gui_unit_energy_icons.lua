@@ -141,7 +141,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		fullview = select(2, spGetSpectatingState())
 	end
 	if not fullview then
-		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+		teamList = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
 	else
 		teamList = Spring.GetTeamList()
 	end

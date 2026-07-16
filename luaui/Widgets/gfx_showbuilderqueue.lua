@@ -33,7 +33,7 @@ local maxUnitShapes = 4096
 -- v8 Floris - GL4 unit shape rendering
 -- v9 SuperKitowiec - Extract builder queue related code to api_builder_queue.lua.
 
-local myPlayerId = Spring.GetMyPlayerID()
+local myPlayerId = Spring.GetLocalPlayerID()
 local _, fullView, _ = spGetSpectatingState()
 
 local spGetGroundHeight = Spring.GetGroundHeight
