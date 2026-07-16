@@ -1,0 +1,57 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://raw.githubusercontent.com/beyond-all-reason/Beyond-All-Reason/master/common/configs/keybind_catalog.schema.json",
+	"title": "Keybind catalog",
+	"description": "Ordered, cross-surface catalog of keybindable commands grouped into categories. Shared by the in-game editor and external lobbies. Holds i18n keys and bind-action ids, not resolved strings or actual key bindings.",
+	"type": "array",
+	"items": {
+		"type": "object",
+		"required": ["category", "items"],
+		"additionalProperties": false,
+		"properties": {
+			"category": {
+				"type": "string",
+				"description": "i18n key for the category title."
+			},
+			"items": {
+				"type": "array",
+				"items": { "$ref": "#/definitions/item" }
+			}
+		}
+	},
+	"definitions": {
+		"item": {
+			"oneOf": [
+				{
+					"type": "object",
+					"description": "Editable binding the user can rebind.",
+					"required": ["action", "label"],
+					"additionalProperties": false,
+					"properties": {
+						"action": { "type": "string", "description": "Bind command (command + space-separated args), exactly as passed to /bind and reported by GetKeyBindings." },
+						"label": { "type": "string", "description": "i18n key for the display label." }
+					}
+				},
+				{
+					"type": "object",
+					"description": "Informational row: shown read-only with a fixed key hint.",
+					"required": ["label", "keyLabel"],
+					"additionalProperties": false,
+					"properties": {
+						"label": { "type": "string", "description": "i18n key for the display label." },
+						"keyLabel": { "type": "string", "description": "i18n key for the non-editable key hint." }
+					}
+				},
+				{
+					"type": "object",
+					"description": "Prefix group: claims every bound action whose id starts with this prefix, listed by raw id.",
+					"required": ["prefix"],
+					"additionalProperties": false,
+					"properties": {
+						"prefix": { "type": "string", "description": "Action id prefix." }
+					}
+				}
+			]
+		}
+	}
+}
