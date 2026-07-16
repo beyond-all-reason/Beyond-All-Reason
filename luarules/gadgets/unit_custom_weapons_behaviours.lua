@@ -499,17 +499,17 @@ weaponCustomParamKeys.split = {
 	model                     = tostring, -- as `projectileParams.model`
 	
 	-- 3. Expansion Phase
-	fanning_divisor           = tonumber, -- X/Z spread divisor (defaults to 880)
-	fanning_divisor_y         = tonumber, -- Y spread divisor (defaults to 440)
+	spread_divisor            = tonumber, -- X/Z spread divisor (defaults to 880)
+	spread_divisor_y          = tonumber, -- Y spread divisor (defaults to 440)
 }
 
 local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
-	local fanDiv = params.fanning_divisor or 880
-	local fanDivY = params.fanning_divisor_y or 440
+	local spreadDiv = params.spread_divisor or 880
+	local spreadDivY = params.spread_divisor_y or 440
 
-	speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / fanDiv)
-	speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / fanDivY)
-	speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / fanDiv)
+	speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / spreadDiv)
+	speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / spreadDivY)
+	speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / spreadDiv)
 end
 
 local function split(params, projectileID)
