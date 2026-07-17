@@ -3145,57 +3145,32 @@ function widget:GameOver()
 	gameOver = true
 end
 
-local function escapePackedField(str)
-	return (tostring(str):gsub("%%", "%%25"):gsub("|", "%%7C"):gsub(";", "%%3B"):gsub("\n", "%%0A"))
-end
-
-local function unescapePackedField(str)
-	if not str or str == "" then
-		return ""
-	end
-	return (str:gsub("%%(%x%x)", function(hex)
-		return string.char(tonumber(hex, 16))
-	end))
-end
-
-local function packOrgLines(lines)
-	if not lines or #lines == 0 then
-		return nil
-	end
-
-	local packed = {}
-	for i = 1, #lines do
-		local entry = lines[i]
-		if type(entry) == "table" and type(entry[1]) == "number" and type(entry[2]) == "string" then
-			packed[#packed + 1] = string.format("%d|%s", entry[1], escapePackedField(entry[2]))
-		end
-	end
-
-	if #packed == 0 then
-		return nil
-	end
-
-	return table.concat(packed, ";")
-end
-
-local function unpackOrgLines(packed)
-	if type(packed) ~= "string" or packed == "" then
-		return nil
-	end
-
-	local lines = {}
-	for record in string.gmatch(packed, "([^;]+)") do
-		local frameStr, packedText = string.match(record, "^([^|]+)|(.+)$")
-		local frame = tonumber(frameStr)
-		if frame and packedText then
-			lines[#lines + 1] = { frame, unescapePackedField(packedText) }
-		end
-	end
-
-	return lines
-end
-
 function widget:GetConfigData(data)
+	-- Nested, not top-level: the main chunk sits at Lua's 200-local ceiling.
+	local function escapePackedField(str)
+		return (tostring(str):gsub("%%", "%%25"):gsub("|", "%%7C"):gsub(";", "%%3B"):gsub("\n", "%%0A"))
+	end
+
+	local function packOrgLines(lines)
+		if not lines or #lines == 0 then
+			return nil
+		end
+
+		local packed = {}
+		for i = 1, #lines do
+			local entry = lines[i]
+			if type(entry) == "table" and type(entry[1]) == "number" and type(entry[2]) == "string" then
+				packed[#packed + 1] = string.format("%d|%s", entry[1], escapePackedField(entry[2]))
+			end
+		end
+
+		if #packed == 0 then
+			return nil
+		end
+
+		return table.concat(packed, ";")
+	end
+
 	local inputHistoryLimited = {}
 	for k, v in ipairs(inputHistory) do
 		if k >= (#inputHistory - 50) then
@@ -3237,6 +3212,33 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+	-- Nested, not top-level: the main chunk sits at Lua's 200-local ceiling.
+	local function unescapePackedField(str)
+		if not str or str == "" then
+			return ""
+		end
+		return (str:gsub("%%(%x%x)", function(hex)
+			return string.char(tonumber(hex, 16))
+		end))
+	end
+
+	local function unpackOrgLines(packed)
+		if type(packed) ~= "string" or packed == "" then
+			return nil
+		end
+
+		local lines = {}
+		for record in string.gmatch(packed, "([^;]+)") do
+			local frameStr, packedText = string.match(record, "^([^|]+)|(.+)$")
+			local frame = tonumber(frameStr)
+			if frame and packedText then
+				lines[#lines + 1] = { frame, unescapePackedField(packedText) }
+			end
+		end
+
+		return lines
+	end
+
 	local loadedOrgLines = unpackOrgLines(data.orgLinesPacked) or data.orgLines
 	if loadedOrgLines ~= nil then
 		if Spring.GetGameFrame() > 0 or (data.gameID and data.gameID == (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID"))) then
