@@ -351,7 +351,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	-- Prefer targets that are clean hits or are being bombarded anyway.
 	local preferRadius = preferUnit[allyTeam][targetID]
 	if preferRadius and preferRadius >= searchRadius - 10 then
-		return true, priority
+		return true, priority -- Use base priority to focus on deprioritizing bad targets.
 	end
 
 	-- This search was not cached yet to within our search radius +/- 10.
