@@ -22,8 +22,12 @@ Click modifiers:
   Space -> prepend to the queue
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
-  Alt -> distribute evenly among selected units
-  If units × targets would exceed COMMAND_LIMIT, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
+  Alt -> partition targets among selected units (see Order assignment below)
+  If units × targets would exceed commandLimit, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
+
+  Order assignment:
+  Normal mass-order -> every selected unit gets the same targets; each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route).
+  Alt (or auto-partition when over commandLimit) -> when targets >= units, units and targets are sorted by angle around the selection centroid and targets are split into contiguous wedges so each unit works a nearby cluster (then nearest-neighbor route within its share). When targets < units, units are divided evenly across targets, assigning the closest free units to each.
 
   Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
@@ -45,44 +49,34 @@ local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
 local mathAtan2 = math.atan2
+local mathDistance2dSquared = math.distance2dSquared
+local osClock = os.clock
+
+local spring = Spring
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitDefId = Spring.GetUnitDefID
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitNeutral = Spring.GetUnitNeutral
-local spGetFeatureDefId = Spring.GetFeatureDefID
-local spGetSpectatingState = Spring.GetSpectatingState
-local spGetMyAllyTeamId = Spring.GetMyAllyTeamID
-local spGetMyTeamId = Spring.GetMyTeamID
+local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
-local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetVisibleFeatures = Spring.GetVisibleFeatures
-local spGetActiveCommand = Spring.GetActiveCommand
-local spSetActiveCommand = Spring.SetActiveCommand
-local spGetModKeyState = Spring.GetModKeyState
-local spGetCommandDescriptionIndex = Spring.GetCmdDescIndex
-local spValidFeatureId = Spring.ValidFeatureID
-local spValidUnitId = Spring.ValidUnitID
 local spGetFeatureResources = Spring.GetFeatureResources
+local spValidFeatureID = Spring.ValidFeatureID
+local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitHealth = Spring.GetUnitHealth
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spTestMoveOrder = Spring.TestMoveOrder
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local NEUTRAL_UNITS = "neutral_units"
-local FEATURE = "feature"
-local UNIT = "unit"
+local LEFT_MOUSE_BUTTON = 1
+local RIGHT_MOUSE_BUTTON = 3
 local POSITIONAL_TARGET_COMMANDS = {
 	[CMD.ATTACK] = true,
 	[CMD.CAPTURE] = true,
@@ -94,52 +88,50 @@ local POSITIONAL_TARGET_COMMANDS = {
 	[GameCMD.UNIT_SET_TARGET] = true,
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
 }
-local COMMAND_CAPABILITY_FIELDS = {
-	[CMD.RECLAIM] = { "canReclaim", "reclaimSpeed" },
-	[CMD.RESURRECT] = { "canResurrect", "resurrectSpeed" },
-	[CMD.REPAIR] = { "canRepair", "repairSpeed" },
-	[CMD.CAPTURE] = { "canCapture", "captureSpeed" },
-}
-local REACHABILITY_COMMANDS = {
+local COMMANDS_REQUIRING_CAPABILITY = {
 	[CMD.RECLAIM] = true,
 	[CMD.RESURRECT] = true,
-	[CMD.CAPTURE] = true,
 	[CMD.REPAIR] = true,
+	[CMD.CAPTURE] = true,
 }
 
 local MAX_QUEUE_COMMANDS = 100
 local MASS_ORDER_START_RADIUS = 2000
 local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
-local MIN_DOUBLE_CLICK_GAP = 0.01
+local CLICK_DEBOUNCE_GAP = 0.03
 local DOUBLE_CLICK_SNAP_RADIUS = 50
-local osClock = os.clock
 
 local doubleClickEnabled = true
 local maxMassOrderTargets = 150
 local commandLimit = 4000
 
-local myAllyTeamId
-local myTeamId
-local commanderCorpseFeatureDefIds = {}
-local pendingDoubleClick = {
-	targetId = nil,
-	expireTime = 0,
-	commandId = nil,
-	alt = false,
-	ctrl = false,
-	meta = false,
-	shift = false,
-	right = false,
-	firstClickTime = 0,
-}
+local myAllyTeamID
+local myTeamID
+local unitDefMetadataByID = {}
+local commanderCorpseFeatureDefIDs = {}
+local pendingDoubleClick = {}
 local heldCommandDescriptionIndex
 local deferClearActiveCommand = false
-local screenSelectHeld = false
+local screenSelectKeyHeld = false
 
-local function enrichCommandOptions(options)
+local function clearDoubleClickPending()
+	pendingDoubleClick = {
+		targetID = nil,
+		expireTime = 0,
+		commandID = nil,
+		alt = false,
+		ctrl = false,
+		meta = false,
+		shift = false,
+		right = false,
+		firstClickTime = 0,
+	}
+end
+
+local function fillCommandOptionModifiers(options)
 	options = options or {}
-	local modifierAlt, modifierControl, modifierMeta, modifierShift = spGetModKeyState()
+	local modifierAlt, modifierControl, modifierMeta, modifierShift = spring.GetModKeyState()
 	return {
 		alt = options.alt or modifierAlt,
 		ctrl = options.ctrl or modifierControl,
@@ -149,168 +141,139 @@ local function enrichCommandOptions(options)
 	}
 end
 
-local function distanceSq(position1, position2)
-	local deltaX = position1.x - position2.x
-	local deltaZ = position1.z - position2.z
-	return deltaX * deltaX + deltaZ * deltaZ
-end
-
 local function toPositionTable(x, y, z)
 	if not x then
 		return nil
 	end
-	return { x = x, y = y, z = z } 
-end
-
-local function restoreActiveCommand(commandDescriptionIndex)
-	local modifierAlt, modifierControl, modifierMeta, modifierShift = spGetModKeyState()
-	spSetActiveCommand(commandDescriptionIndex, 1, true, false, modifierAlt, modifierControl, modifierMeta, modifierShift)
+	return { x = x, y = y, z = z }
 end
 
 local function updateShiftCommandKeep()
 	if not heldCommandDescriptionIndex then
 		return
 	end
-	local _, _, _, modifierShift = spGetModKeyState()
+	local modifierAlt, modifierControl, modifierMeta, modifierShift = spring.GetModKeyState()
 	if modifierShift then
-		local _, activeCommandId = spGetActiveCommand()
-		if not activeCommandId then
-			restoreActiveCommand(heldCommandDescriptionIndex)
+		local _, activeCommandID = spring.GetActiveCommand()
+		if not activeCommandID then
+			spring.SetActiveCommand(heldCommandDescriptionIndex, 1, true, false, modifierAlt, modifierControl, modifierMeta, modifierShift)
 		end
-	elseif not modifierShift then
+	else
 		heldCommandDescriptionIndex = nil
 	end
 end
 
-local function clearDoubleClickPending()
-	pendingDoubleClick.targetId = nil
-	pendingDoubleClick.expireTime = 0
-	pendingDoubleClick.commandId = nil
-	pendingDoubleClick.alt = false
-	pendingDoubleClick.ctrl = false
-	pendingDoubleClick.meta = false
-	pendingDoubleClick.shift = false
-	pendingDoubleClick.right = false
-	pendingDoubleClick.firstClickTime = 0
-end
-
 local function isPendingDoubleClickActive()
-	return pendingDoubleClick.targetId ~= nil
-		and pendingDoubleClick.commandId ~= nil
+	return pendingDoubleClick.targetID ~= nil
+		and pendingDoubleClick.commandID ~= nil
 		and osClock() < pendingDoubleClick.expireTime
 end
 
-local function isFeatureTargetId(targetId)
-	if Engine.FeatureSupport.noOffsetForFeatureID then
-		return spValidFeatureId(targetId) and not spValidUnitId(targetId)
+local function isFeatureTargetID(targetID)
+	-- Anything in the feature range is a feature; verify against the de-offset ID.
+	if targetID >= Game.maxUnits then
+		return spValidFeatureID(targetID - Game.maxUnits)
 	end
-	if targetId >= Game.maxUnits then
-		return spValidFeatureId(targetId - Game.maxUnits)
-	end
-	if spValidFeatureId(targetId) and not spValidUnitId(targetId) then
+	-- Below the range it could still be a feature, so check explicitly.
+	if spValidFeatureID(targetID) and not spValidUnitID(targetID) then
 		return true
 	end
 	return false
 end
 
-local function getRawFeatureId(targetId)
-	if Engine.FeatureSupport.noOffsetForFeatureID then
-		return targetId
+local function getRawFeatureID(targetID)
+	-- Strip Game.maxUnits to recover the ID feature APIs expect.
+	if targetID >= Game.maxUnits then
+		return targetID - Game.maxUnits
 	end
-	if targetId >= Game.maxUnits then
-		return targetId - Game.maxUnits
-	end
-	return targetId
+	return targetID
 end
 
-local function normalizeFeatureTargetId(featureId)
-	if Engine.FeatureSupport.noOffsetForFeatureID then
-		return featureId
-	end
-	return featureId + Game.maxUnits
+local function normalizeFeatureTargetID(featureID)
+	-- Inverse of getRawFeatureID: re-apply the offset so the ID is valid as a command parameter.
+	return featureID + Game.maxUnits
 end
 
-local function toFeatureOrderParamId(targetId)
-	if not isFeatureTargetId(targetId) then
-		return targetId
+local function toFeatureOrderParamID(targetID)
+	-- Unit targets pass through untouched; feature targets always carry the offset ID.
+	if not isFeatureTargetID(targetID) then
+		return targetID
 	end
-	if Engine.FeatureSupport.noOffsetForFeatureID then
-		return getRawFeatureId(targetId)
-	end
-	if targetId >= Game.maxUnits then
-		return targetId
-	end
-	return targetId + Game.maxUnits
+	return getRawFeatureID(targetID) + Game.maxUnits
 end
 
-local function filterUnitsForCommand(selectedUnits, commandId)
-	local capabilityFields = COMMAND_CAPABILITY_FIELDS[commandId]
-	if not capabilityFields then
+local function filterUnitsForCommand(selectedUnits, commandID)
+	if not COMMANDS_REQUIRING_CAPABILITY[commandID] then
 		return selectedUnits
 	end
 	local filteredUnits = {}
 	for unitIndex = 1, #selectedUnits do
-		local unitId = selectedUnits[unitIndex]
-		local unitDefId = spGetUnitDefId(unitId)
-		local unitDef = unitDefId and UnitDefs[unitDefId]
-		if unitDef and unitDef[capabilityFields[1]] and unitDef[capabilityFields[2]] > 0 then
-			tableInsert(filteredUnits, unitId)
+		local unitID = selectedUnits[unitIndex]
+		local unitDefID = spGetUnitDefID(unitID)
+		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+		if metadata and metadata.commandCapabilities[commandID] then
+			tableInsert(filteredUnits, unitID)
 		end
 	end
 	return filteredUnits
-end
-
-local function isScreenSelectBuilder(unitId)
-	local unitDefId = spGetUnitDefId(unitId)
-	local unitDef = unitDefId and UnitDefs[unitDefId]
-	return unitDef and unitDef.isBuilder and unitDef.canRepair and not unitDef.isFactory
 end
 
 local function splitBuilderUnits(selectedUnits)
 	local builderUnits = {}
 	local nonBuilderUnits = {}
 	for unitIndex = 1, #selectedUnits do
-		local unitId = selectedUnits[unitIndex]
-		if isScreenSelectBuilder(unitId) then
-			tableInsert(builderUnits, unitId)
+		local unitID = selectedUnits[unitIndex]
+		local unitDefID = spGetUnitDefID(unitID)
+		local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+		if metadata and metadata.isScreenSelectBuilder then
+			tableInsert(builderUnits, unitID)
 		else
-			tableInsert(nonBuilderUnits, unitId)
+			tableInsert(nonBuilderUnits, unitID)
 		end
 	end
 	return builderUnits, nonBuilderUnits
 end
 
-local function finishMassOrderCommandState(issueCommandId, options)
-	local savedCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(issueCommandId)
+local function captureHeldCommandDescriptionIndex(commandID)
+	return select(1, spring.GetActiveCommand()) or spring.GetCmdDescIndex(commandID)
+end
+
+local function clearActiveCommandUnlessShift(options)
+	if options.shift then
+		return
+	end
+	heldCommandDescriptionIndex = nil
+	deferClearActiveCommand = true
+end
+
+local function finishMassOrderCommandState(issueCommandID, options)
+	local savedCommandDescriptionIndex = captureHeldCommandDescriptionIndex(issueCommandID)
 	if options.shift then
 		heldCommandDescriptionIndex = savedCommandDescriptionIndex
-		restoreActiveCommand(savedCommandDescriptionIndex)
+		local modifierAlt, modifierControl, modifierMeta, modifierShift = spring.GetModKeyState()
+		spring.SetActiveCommand(savedCommandDescriptionIndex, 1, true, false, modifierAlt, modifierControl, modifierMeta, modifierShift)
 	else
-		heldCommandDescriptionIndex = nil
-		deferClearActiveCommand = true
+		clearActiveCommandUnlessShift(options)
 	end
 end
 
-local function isCapturableTargetUnit(unitId)
-	local unitDefId = spGetUnitDefId(unitId)
-	if not unitDefId then
+local function isCapturableTargetUnit(unitID)
+	local unitDefID = spGetUnitDefID(unitID)
+	local metadata = unitDefID and unitDefMetadataByID[unitDefID]
+	if not metadata or not metadata.capturable then
 		return false
 	end
-	local unitDef = UnitDefs[unitDefId]
-	if not unitDef or not unitDef.capturable then
-		return false
-	end
-	if spGetUnitIsBeingBuilt(unitId) then
+	if spGetUnitIsBeingBuilt(unitID) then
 		return false
 	end
 	return true
 end
 
-local function isRepairableTargetUnit(unitId)
-	if spGetUnitIsBeingBuilt(unitId) then
+local function isRepairableTargetUnit(unitID)
+	if spGetUnitIsBeingBuilt(unitID) then
 		return false
 	end
-	local health, maxHealth = spGetUnitHealth(unitId)
+	local health, maxHealth = spGetUnitHealth(unitID)
 	if not health or not maxHealth then
 		return false
 	end
@@ -320,112 +283,107 @@ end
 local function filterTargetsByPredicate(targets, predicate)
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		if predicate(targetId) then
-			tableInsert(filteredTargets, targetId)
+		local targetID = targets[targetIndex]
+		if predicate(targetID) then
+			tableInsert(filteredTargets, targetID)
 		end
 	end
 	return filteredTargets
 end
 
-local function finalizeUnitTargets(commandId, targets)
-	if commandId == CMD.CAPTURE then
+local function finalizeUnitTargets(commandID, targets)
+	if commandID == CMD.CAPTURE then
 		return filterTargetsByPredicate(targets, isCapturableTargetUnit)
 	end
-	if commandId == CMD.REPAIR then
+	if commandID == CMD.REPAIR then
 		return filterTargetsByPredicate(targets, isRepairableTargetUnit)
 	end
 	return targets
 end
 
-local function getTargetPosition(targetId, positionCache)
-	if positionCache and positionCache[targetId] ~= nil then
-		return positionCache[targetId] or nil
+local function getTargetPosition(targetID, positionCache)
+	if positionCache and positionCache[targetID] ~= nil then
+		return positionCache[targetID] or nil
 	end
 	local position
-	if isFeatureTargetId(targetId) then
-		local x, y, z = spGetFeaturePosition(getRawFeatureId(targetId))
+	if isFeatureTargetID(targetID) then
+		local x, y, z = spGetFeaturePosition(getRawFeatureID(targetID))
 		if x then
 			position = toPositionTable(x, y, z)
 		end
 	else
-		local x, y, z = spGetUnitPosition(targetId)
+		local x, y, z = spGetUnitPosition(targetID)
 		if x then
 			position = toPositionTable(x, y, z)
 		end
 	end
 	if positionCache then
-		positionCache[targetId] = position or false
+		positionCache[targetID] = position or false
 	end
 	return position
 end
 
-local function canUnitDefReachPosition(unitDefId, targetId, position, reachabilityCache)
-	if not unitDefId or not position then
+local function canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache)
+	if not unitDefID or not position then
 		return false
 	end
-	local unitDef = UnitDefs[unitDefId]
-	if unitDef and unitDef.canFly then
+	local metadata = unitDefMetadataByID[unitDefID]
+	if metadata and metadata.canFly then
 		return true
 	end
-	local unitDefCache = reachabilityCache[unitDefId]
+	local unitDefCache = reachabilityCache[unitDefID]
 	if not unitDefCache then
 		unitDefCache = {}
-		reachabilityCache[unitDefId] = unitDefCache
+		reachabilityCache[unitDefID] = unitDefCache
 	end
-	local cachedResult = unitDefCache[targetId]
+	local cachedResult = unitDefCache[targetID]
 	if cachedResult ~= nil then
 		return cachedResult
 	end
-	local canReach = spTestMoveOrder(unitDefId, position.x, position.y, position.z, nil, nil, nil, true, false)
-	unitDefCache[targetId] = canReach
+	local canReach = spTestMoveOrder(unitDefID, position.x, position.y, position.z, nil, nil, nil, true, false)
+	unitDefCache[targetID] = canReach
 	return canReach
 end
 
-local function filterTargetsReachableByUnitDef(unitDefId, targets, positionCache, reachabilityCache)
+local function filterTargetsReachableByUnitDef(unitDefID, targets, positionCache, reachabilityCache)
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		local position = getTargetPosition(targetId, positionCache)
-		if position and canUnitDefReachPosition(unitDefId, targetId, position, reachabilityCache) then
-			tableInsert(filteredTargets, targetId)
+		local targetID = targets[targetIndex]
+		local position = getTargetPosition(targetID, positionCache)
+		if position and canUnitDefReachPosition(unitDefID, targetID, position, reachabilityCache) then
+			tableInsert(filteredTargets, targetID)
 		end
 	end
 	return filteredTargets
 end
 
 local function filterTargetsReachableByAnyUnit(selectedUnits, targets, positionCache, reachabilityCache)
-	local unitDefIds = {}
-	local seenUnitDefIds = {}
+	local unitDefIDs = {}
+	local seenUnitDefIDs = {}
 	for unitIndex = 1, #selectedUnits do
-		local unitDefId = spGetUnitDefId(selectedUnits[unitIndex])
-		if unitDefId and not seenUnitDefIds[unitDefId] then
-			seenUnitDefIds[unitDefId] = true
-			tableInsert(unitDefIds, unitDefId)
+		local unitDefID = spGetUnitDefID(selectedUnits[unitIndex])
+		if unitDefID and not seenUnitDefIDs[unitDefID] then
+			seenUnitDefIDs[unitDefID] = true
+			tableInsert(unitDefIDs, unitDefID)
 		end
 	end
-	if #unitDefIds == 0 then
+	if #unitDefIDs == 0 then
 		return {}
 	end
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		local position = getTargetPosition(targetId, positionCache)
+		local targetID = targets[targetIndex]
+		local position = getTargetPosition(targetID, positionCache)
 		if position then
-			for unitDefIndex = 1, #unitDefIds do
-				if canUnitDefReachPosition(unitDefIds[unitDefIndex], targetId, position, reachabilityCache) then
-					tableInsert(filteredTargets, targetId)
+			for unitDefIndex = 1, #unitDefIDs do
+				if canUnitDefReachPosition(unitDefIDs[unitDefIndex], targetID, position, reachabilityCache) then
+					tableInsert(filteredTargets, targetID)
 					break
 				end
 			end
 		end
 	end
 	return filteredTargets
-end
-
-local function getUnitCentroid(selectedUnits)
-	local x, y, z = spGetUnitArrayCentroid(selectedUnits)
-	return toPositionTable(x, y, z)
 end
 
 local function getTargetCentroid(targets, positionCache)
@@ -448,37 +406,43 @@ local function getTargetCentroid(targets, positionCache)
 	return toPositionTable(totalX / positionCount, totalY / positionCount, totalZ / positionCount)
 end
 
-local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitId, positionCache)
+local function compareNullablePrimary(primaryA, primaryB, indexA, indexB, primaryLess)
+	local missingA = primaryA == nil or primaryA == false
+	local missingB = primaryB == nil or primaryB == false
+	if missingA or missingB then
+		if missingA == missingB then
+			return indexA < indexB
+		end
+		return not missingA
+	end
+	if primaryA == primaryB then
+		return indexA < indexB
+	end
+	return primaryLess(primaryA, primaryB)
+end
+
+local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache)
 	positionCache = positionCache or {}
-	local referencePosition = referenceUnitId and getTargetPosition(referenceUnitId, positionCache)
-		or getUnitCentroid(selectedUnits)
+	local referencePosition = referenceUnitID and getTargetPosition(referenceUnitID, positionCache)
+		or toPositionTable(spring.GetUnitArrayCentroid(selectedUnits))
 	if not referencePosition then
 		return nil
 	end
 	local targetDistances = {}
 	local originalIndices = {}
 	for targetIndex = 1, #filteredTargets do
-		local targetId = filteredTargets[targetIndex]
-		local targetPosition = getTargetPosition(targetId, positionCache)
-		targetDistances[targetId] = targetPosition and distanceSq(referencePosition, targetPosition) or false
-		originalIndices[targetId] = targetIndex
+		local targetID = filteredTargets[targetIndex]
+		local targetPosition = getTargetPosition(targetID, positionCache)
+		targetDistances[targetID] = targetPosition and mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z) or false
+		originalIndices[targetID] = targetIndex
 	end
-	tableSort(filteredTargets, function(targetIdA, targetIdB)
-		local distanceA = targetDistances[targetIdA]
-		local distanceB = targetDistances[targetIdB]
-		if distanceA == false or distanceB == false then
-			if distanceA == distanceB then
-				return originalIndices[targetIdA] < originalIndices[targetIdB]
-			end
-			return distanceA ~= false
-		end
-		if distanceA == distanceB then
-			return originalIndices[targetIdA] < originalIndices[targetIdB]
-		end
-		if closestFirst then
-			return distanceA < distanceB
-		end
+	local primaryLess = closestFirst and function(distanceA, distanceB)
+		return distanceA < distanceB
+	end or function(distanceA, distanceB)
 		return distanceA > distanceB
+	end
+	tableSort(filteredTargets, function(targetIDA, targetIDB)
+		return compareNullablePrimary(targetDistances[targetIDA], targetDistances[targetIDB], originalIndices[targetIDA], originalIndices[targetIDB], primaryLess)
 	end)
 	return targetDistances
 end
@@ -489,10 +453,10 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 	local route = {}
 	local hasTargetPosition = false
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		local targetPosition = getTargetPosition(targetId, positionCache)
-		targetPositions[targetId] = targetPosition or false
-		remainingTargets[targetIndex] = targetId
+		local targetID = targets[targetIndex]
+		local targetPosition = getTargetPosition(targetID, positionCache)
+		targetPositions[targetID] = targetPosition or false
+		remainingTargets[targetIndex] = targetID
 		if targetPosition then
 			hasTargetPosition = true
 		end
@@ -506,10 +470,10 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 		local nearestIndex
 		local nearestDistance
 		for targetIndex = 1, #remainingTargets do
-			local targetId = remainingTargets[targetIndex]
-			local targetPosition = targetPositions[targetId]
+			local targetID = remainingTargets[targetIndex]
+			local targetPosition = targetPositions[targetID]
 			if targetPosition then
-				local targetDistance = distanceSq(currentPosition, targetPosition)
+				local targetDistance = mathDistance2dSquared(currentPosition.x, currentPosition.z, targetPosition.x, targetPosition.z)
 				if nearestDistance == nil or targetDistance < nearestDistance then
 					nearestIndex = targetIndex
 					nearestDistance = targetDistance
@@ -523,18 +487,18 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 			end
 			break
 		end
-		local nearestTargetId = remainingTargets[nearestIndex]
+		local nearestTargetID = remainingTargets[nearestIndex]
 		routeCount = routeCount + 1
-		route[routeCount] = nearestTargetId
-		currentPosition = targetPositions[nearestTargetId]
+		route[routeCount] = nearestTargetID
+		currentPosition = targetPositions[nearestTargetID]
 		remainingTargets[nearestIndex] = remainingTargets[#remainingTargets]
 		remainingTargets[#remainingTargets] = nil
 	end
 	return route, hasTargetPosition
 end
 
-local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, positionCache)
-	local referencePosition = getTargetPosition(referenceUnitId, positionCache)
+local function sortTargetsByTravelRoute(referenceUnitID, targets, closestFirst, positionCache)
+	local referencePosition = getTargetPosition(referenceUnitID, positionCache)
 	if not referencePosition then
 		return
 	end
@@ -554,47 +518,44 @@ local function sortTargetsByTravelRoute(referenceUnitId, targets, closestFirst, 
 	end
 end
 
-local function limitTargetsByRadius(filteredTargets, referenceTargetId, selectedUnits, maximumTargetCount, positionCache)
+local function copyArray(source, maxCount)
+	local result = {}
+	local count = maxCount or #source
+	if count > #source then
+		count = #source
+	end
+	for index = 1, count do
+		result[index] = source[index]
+	end
+	return result
+end
+
+local function limitTargetsByRadius(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
 	if #filteredTargets == 0 then
 		return filteredTargets
 	end
-	local referencePosition = getTargetPosition(referenceTargetId, positionCache)
+	local referencePosition = getTargetPosition(referenceTargetID, positionCache)
 	if not referencePosition then
 		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
-		local cappedTargets = {}
-		local cappedCount = maximumTargetCount
-		if cappedCount > #filteredTargets then
-			cappedCount = #filteredTargets
-		end
-		for targetIndex = 1, cappedCount do
-			cappedTargets[targetIndex] = filteredTargets[targetIndex]
-		end
-		return cappedTargets
+		return copyArray(filteredTargets, maximumTargetCount)
 	end
-	local targetDistances = sortTargetsByDistance(
-		{ referenceTargetId },
-		filteredTargets,
-		true,
-		referenceTargetId,
-		positionCache
-	)
+	local targetDistances = sortTargetsByDistance({ referenceTargetID }, filteredTargets, true, referenceTargetID, positionCache)
 	local radius
 	while true do
-		local limitedTargets = {}
+		local limitedTargets
 		if radius == nil then
-			for targetIndex = 1, #filteredTargets do
-				limitedTargets[targetIndex] = filteredTargets[targetIndex]
-			end
+			limitedTargets = copyArray(filteredTargets)
 		else
+			limitedTargets = {}
 			local radiusSq = radius * radius
 			for targetIndex = 1, #filteredTargets do
-				local targetId = filteredTargets[targetIndex]
-				local targetDistance = targetDistances and targetDistances[targetId]
+				local targetID = filteredTargets[targetIndex]
+				local targetDistance = targetDistances and targetDistances[targetID]
 				if targetDistance and targetDistance <= radiusSq then
-					tableInsert(limitedTargets, targetId)
+					tableInsert(limitedTargets, targetID)
 				end
 			end
 		end
@@ -609,11 +570,7 @@ local function limitTargetsByRadius(filteredTargets, referenceTargetId, selected
 			break
 		end
 	end
-	local cappedTargets = {}
-	for targetIndex = 1, maximumTargetCount do
-		cappedTargets[targetIndex] = filteredTargets[targetIndex]
-	end
-	return cappedTargets
+	return copyArray(filteredTargets, maximumTargetCount)
 end
 
 local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
@@ -621,7 +578,7 @@ local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
 	local segmentZ = segmentEnd.z - segmentStart.z
 	local segmentLengthSq = segmentX * segmentX + segmentZ * segmentZ
 	if segmentLengthSq == 0 then
-		return distanceSq(point, segmentStart)
+		return mathDistance2dSquared(point.x, point.z, segmentStart.x, segmentStart.z)
 	end
 	local projection = ((point.x - segmentStart.x) * segmentX + (point.z - segmentStart.z) * segmentZ) / segmentLengthSq
 	if projection < 0 then
@@ -631,9 +588,7 @@ local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
 	end
 	local nearestX = segmentStart.x + projection * segmentX
 	local nearestZ = segmentStart.z + projection * segmentZ
-	local deltaX = point.x - nearestX
-	local deltaZ = point.z - nearestZ
-	return deltaX * deltaX + deltaZ * deltaZ
+	return mathDistance2dSquared(point.x, point.z, nearestX, nearestZ)
 end
 
 local function getQueuedCommandPosition(command, positionCache)
@@ -654,12 +609,12 @@ local function getQueuedCommandPosition(command, positionCache)
 	return nil
 end
 
-local function findQueueInsertionPosition(unitId, targetCentroid, positionCache)
-	local unitPosition = getTargetPosition(unitId, positionCache)
+local function findQueueInsertionPosition(unitID, targetCentroid, positionCache)
+	local unitPosition = getTargetPosition(unitID, positionCache)
 	if not unitPosition or not targetCentroid then
 		return nil
 	end
-	local commandQueue = spGetUnitCommands(unitId, MAX_QUEUE_COMMANDS)
+	local commandQueue = spGetUnitCommands(unitID, MAX_QUEUE_COMMANDS)
 	if not commandQueue or #commandQueue == 0 then
 		return nil
 	end
@@ -688,120 +643,92 @@ local function getCommandOptionBits(options, includeShift)
 	return optionBits
 end
 
-local function insertOrdersByQueueProximity(commandId, selectedUnits, filteredTargets, options)
+local function insertOrdersByQueueProximity(commandID, selectedUnits, filteredTargets, options)
 	local positionCache = {}
 	local targetCentroid = getTargetCentroid(filteredTargets, positionCache)
 	local singleUnitArray = {}
 	local orderParameters = { 0 }
-	local insertParameters = { 0, commandId, 0, 0 }
+	local insertParameters = { 0, commandID, 0, 0 }
 	local queuedOptionBits = getCommandOptionBits(options, true)
 	local innerOptionBits = getCommandOptionBits(options, false)
 	insertParameters[3] = innerOptionBits
 	for unitIndex = 1, #selectedUnits do
-		local unitId = selectedUnits[unitIndex]
-		singleUnitArray[1] = unitId
-		local insertionPosition = findQueueInsertionPosition(unitId, targetCentroid, positionCache)
+		local unitID = selectedUnits[unitIndex]
+		singleUnitArray[1] = unitID
+		local insertionPosition = findQueueInsertionPosition(unitID, targetCentroid, positionCache)
 		if insertionPosition == nil then
 			for targetIndex = 1, #filteredTargets do
-				local targetId = filteredTargets[targetIndex]
-				orderParameters[1] = toFeatureOrderParamId(targetId)
-				spGiveOrderToUnitArray(singleUnitArray, commandId, orderParameters, queuedOptionBits)
+				local targetID = filteredTargets[targetIndex]
+				orderParameters[1] = toFeatureOrderParamID(targetID)
+				spGiveOrderToUnitArray(singleUnitArray, commandID, orderParameters, queuedOptionBits)
 			end
 		else
 			insertParameters[1] = insertionPosition
 			for targetIndex = #filteredTargets, 1, -1 do
-				local targetId = filteredTargets[targetIndex]
-				insertParameters[4] = toFeatureOrderParamId(targetId)
-				spGiveOrderToUnitArray(
-					singleUnitArray,
-					CMD.INSERT,
-					insertParameters,
-					CMD.OPT_ALT
-				)
+				local targetID = filteredTargets[targetIndex]
+				insertParameters[4] = toFeatureOrderParamID(targetID)
+				spGiveOrderToUnitArray(singleUnitArray, CMD.INSERT, insertParameters, CMD.OPT_ALT)
 			end
 		end
 	end
 end
 
-local function giveOrders(commandId, selectedUnits, filteredTargets, options)
+local function giveOrders(commandID, selectedUnits, filteredTargets, options)
 	if options.meta and options.shift then
-		insertOrdersByQueueProximity(commandId, selectedUnits, filteredTargets, options)
+		insertOrdersByQueueProximity(commandID, selectedUnits, filteredTargets, options)
 		return
 	end
 	local baseOptionBits = getCommandOptionBits(options, false)
 	local queuedOptionBits = getCommandOptionBits(options, true)
 	local orderParameters = { 0 }
-	local insertParameters = { 0, commandId, baseOptionBits, 0 }
+	local insertParameters = { 0, commandID, baseOptionBits, 0 }
 	for targetIndex = 1, #filteredTargets do
-		local targetId = filteredTargets[targetIndex]
-		local orderTargetId = toFeatureOrderParamId(targetId)
+		local targetID = filteredTargets[targetIndex]
+		local orderTargetID = toFeatureOrderParamID(targetID)
 		if options.meta then
-			insertParameters[4] = orderTargetId
-			spGiveOrderToUnitArray(
-				selectedUnits,
-				CMD.INSERT,
-				insertParameters,
-				CMD.OPT_ALT
-			)
+			insertParameters[4] = orderTargetID
+			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, insertParameters, CMD.OPT_ALT)
 		else
 			local includeShift = targetIndex > 1 or options.shift
-			orderParameters[1] = orderTargetId
-			spGiveOrderToUnitArray(
-				selectedUnits,
-				commandId,
-				orderParameters,
-				includeShift and queuedOptionBits or baseOptionBits
-			)
+			orderParameters[1] = orderTargetID
+			spGiveOrderToUnitArray(selectedUnits, commandID, orderParameters, includeShift and queuedOptionBits or baseOptionBits)
 		end
 	end
 end
 
-local function divideWithRemainder(total, groupCount)
-	local minimumCount = mathFloor(total / groupCount)
-	local remainderCount = total % groupCount
-	return minimumCount, remainderCount
-end
-
-local function pickClosestUnitsForTarget(
-	targetId,
-	selectedUnits,
-	unassignedUnits,
-	requestedCount,
-	positionCache,
-	reachabilityCache
-)
+local function pickClosestUnitsForTarget(targetID, selectedUnits, unassignedUnits, requestedCount, positionCache, reachabilityCache)
 	local available = {}
-	local targetPosition = reachabilityCache and getTargetPosition(targetId, positionCache)
+	local targetPosition = reachabilityCache and getTargetPosition(targetID, positionCache)
 	for unitIndex = 1, #selectedUnits do
-		local unitId = selectedUnits[unitIndex]
-		if unassignedUnits[unitId] then
+		local unitID = selectedUnits[unitIndex]
+		if unassignedUnits[unitID] then
 			local canReach = true
 			if reachabilityCache then
 				if not targetPosition then
 					canReach = false
 				else
-					local unitDefId = spGetUnitDefId(unitId)
-					canReach = unitDefId
-						and canUnitDefReachPosition(unitDefId, targetId, targetPosition, reachabilityCache)
+					local unitDefID = spGetUnitDefID(unitID)
+					canReach = unitDefID
+						and canUnitDefReachPosition(unitDefID, targetID, targetPosition, reachabilityCache)
 				end
 			end
 			if canReach then
-				tableInsert(available, unitId)
+				tableInsert(available, unitID)
 			end
 		end
 	end
-	sortTargetsByDistance({ targetId }, available, true, targetId, positionCache)
+	sortTargetsByDistance({ targetID }, available, true, targetID, positionCache)
 	local picked = {}
 	local pickCount = mathMin(requestedCount, #available)
 	for pickedIndex = 1, pickCount do
-		local unitId = available[pickedIndex]
-		picked[pickedIndex] = unitId
-		unassignedUnits[unitId] = nil
+		local unitID = available[pickedIndex]
+		picked[pickedIndex] = unitID
+		unassignedUnits[unitID] = nil
 	end
 	return picked
 end
 
-local function sortIdsByAngle(ids, center, positionCache)
+local function sortIDsByAngle(ids, center, positionCache)
 	local angles = {}
 	local originalIndices = {}
 	for idIndex = 1, #ids do
@@ -812,25 +739,18 @@ local function sortIdsByAngle(ids, center, positionCache)
 		end
 		originalIndices[id] = idIndex
 	end
-	tableSort(ids, function(idA, idB)
-		local angleA = angles[idA]
-		local angleB = angles[idB]
-		if angleA == nil or angleB == nil then
-			if angleA == angleB then
-				return originalIndices[idA] < originalIndices[idB]
-			end
-			return angleA ~= nil
-		end
-		if angleA == angleB then
-			return originalIndices[idA] < originalIndices[idB]
-		end
+	local primaryLess = function(angleA, angleB)
 		return angleA < angleB
+	end
+	tableSort(ids, function(idA, idB)
+		return compareNullablePrimary(angles[idA], angles[idB], originalIndices[idA], originalIndices[idB], primaryLess)
 	end)
 end
 
-local function buildContiguousChunks(sortedIds, chunkCount)
+local function buildContiguousChunks(sortedIDs, chunkCount)
 	local chunks = {}
-	local minimumCount, remainderCount = divideWithRemainder(#sortedIds, chunkCount)
+	local minimumCount = mathFloor(#sortedIDs / chunkCount)
+	local remainderCount = #sortedIDs % chunkCount
 	local nextIndex = 1
 	for chunkIndex = 1, chunkCount do
 		local count = minimumCount
@@ -839,7 +759,7 @@ local function buildContiguousChunks(sortedIds, chunkCount)
 		end
 		local chunk = {}
 		for itemIndex = 1, count do
-			chunk[itemIndex] = sortedIds[nextIndex]
+			chunk[itemIndex] = sortedIDs[nextIndex]
 			nextIndex = nextIndex + 1
 		end
 		chunks[chunkIndex] = chunk
@@ -847,12 +767,12 @@ local function buildContiguousChunks(sortedIds, chunkCount)
 	return chunks
 end
 
-local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetId, positionCache)
-	local center = getUnitCentroid(selectedUnits)
+local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetID, positionCache)
+	local center = toPositionTable(spring.GetUnitArrayCentroid(selectedUnits))
 	if center then
 		return center
 	end
-	center = getTargetPosition(referenceTargetId, positionCache)
+	center = getTargetPosition(referenceTargetID, positionCache)
 	if center then
 		return center
 	end
@@ -877,20 +797,11 @@ local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, f
 	return usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect
 end
 
-local function giveUnitTravelRouteOrders(
-	commandId,
-	unitId,
-	sourceTargets,
-	options,
-	positionCache,
-	reachabilityCache,
-	targets,
-	singleUnitArray
-)
+local function giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, options, positionCache, reachabilityCache, targets, singleUnitArray)
 	local unitTargets = sourceTargets
 	if reachabilityCache then
-		local unitDefId = spGetUnitDefId(unitId)
-		unitTargets = filterTargetsReachableByUnitDef(unitDefId, sourceTargets, positionCache, reachabilityCache)
+		local unitDefID = spGetUnitDefID(unitID)
+		unitTargets = filterTargetsReachableByUnitDef(unitDefID, sourceTargets, positionCache, reachabilityCache)
 	end
 	if #unitTargets == 0 then
 		return
@@ -901,101 +812,53 @@ local function giveUnitTravelRouteOrders(
 	for targetIndex = #unitTargets + 1, #targets do
 		targets[targetIndex] = nil
 	end
-	sortTargetsByTravelRoute(unitId, targets, not options.meta or options.shift, positionCache)
-	singleUnitArray[1] = unitId
-	giveOrders(commandId, singleUnitArray, targets, options)
+	sortTargetsByTravelRoute(unitID, targets, not options.meta or options.shift, positionCache)
+	singleUnitArray[1] = unitID
+	giveOrders(commandID, singleUnitArray, targets, options)
 end
 
-local function giveOrdersPerUnitByTravelRoute(
-	commandId,
-	selectedUnits,
-	filteredTargets,
-	options,
-	positionCache,
-	reachabilityCache
-)
+local function giveOrdersPerUnitByTravelRoute(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache)
 	local singleUnitArray = {}
 	local targets = {}
 	for unitIndex = 1, #selectedUnits do
-		giveUnitTravelRouteOrders(
-			commandId,
-			selectedUnits[unitIndex],
-			filteredTargets,
-			options,
-			positionCache,
-			REACHABILITY_COMMANDS[commandId] and reachabilityCache or nil,
-			targets,
-			singleUnitArray
-		)
+		giveUnitTravelRouteOrders(commandID, selectedUnits[unitIndex], filteredTargets, options, positionCache, COMMANDS_REQUIRING_CAPABILITY[commandID] and reachabilityCache or nil, targets, singleUnitArray)
 	end
 end
 
-local function givePartitionedOrders(
-	commandId,
-	selectedUnits,
-	filteredTargets,
-	options,
-	referenceTargetId,
-	positionCache,
-	reachabilityCache
-)
-	local needsReachability = REACHABILITY_COMMANDS[commandId]
+local function givePartitionedOrders(commandID, selectedUnits, filteredTargets, options, referenceTargetID, positionCache, reachabilityCache)
+	local needsReachability = COMMANDS_REQUIRING_CAPABILITY[commandID]
 	if #filteredTargets >= #selectedUnits then
-		local center = resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetId, positionCache)
-		local sortedTargets = {}
-		for targetIndex = 1, #filteredTargets do
-			sortedTargets[targetIndex] = filteredTargets[targetIndex]
-		end
-		local sortedUnits = {}
-		for unitIndex = 1, #selectedUnits do
-			sortedUnits[unitIndex] = selectedUnits[unitIndex]
-		end
+		local center = resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetID, positionCache)
+		local sortedTargets = copyArray(filteredTargets)
+		local sortedUnits = copyArray(selectedUnits)
 		if center then
-			sortIdsByAngle(sortedTargets, center, positionCache)
-			sortIdsByAngle(sortedUnits, center, positionCache)
+			sortIDsByAngle(sortedTargets, center, positionCache)
+			sortIDsByAngle(sortedUnits, center, positionCache)
 		end
 		local chunks = buildContiguousChunks(sortedTargets, #sortedUnits)
 		local singleUnitArray = {}
 		local targets = {}
 		for unitIndex = 1, #sortedUnits do
-			giveUnitTravelRouteOrders(
-				commandId,
-				sortedUnits[unitIndex],
-				chunks[unitIndex],
-				options,
-				positionCache,
-				needsReachability and reachabilityCache or nil,
-				targets,
-				singleUnitArray
-			)
+			giveUnitTravelRouteOrders(commandID, sortedUnits[unitIndex], chunks[unitIndex], options, positionCache, needsReachability and reachabilityCache or nil, targets, singleUnitArray)
 		end
 	else
-		local minimumCount, remainderCount = divideWithRemainder(#selectedUnits, #filteredTargets)
+		local minimumCount = mathFloor(#selectedUnits / #filteredTargets)
+		local remainderCount = #selectedUnits % #filteredTargets
 		local unassignedUnits = {}
 		for unitIndex = 1, #selectedUnits do
 			unassignedUnits[selectedUnits[unitIndex]] = true
 		end
-		local sortedTargets = {}
-		for targetIndex = 1, #filteredTargets do
-			sortedTargets[targetIndex] = filteredTargets[targetIndex]
-		end
-		sortTargetsByDistance(selectedUnits, sortedTargets, true, referenceTargetId, positionCache)
+		local sortedTargets = copyArray(filteredTargets)
+		sortTargetsByDistance(selectedUnits, sortedTargets, true, referenceTargetID, positionCache)
 		for targetIndex = 1, #sortedTargets do
-			local targetId = sortedTargets[targetIndex]
+			local targetID = sortedTargets[targetIndex]
 			local count = minimumCount
 			if targetIndex <= remainderCount then
 				count = count + 1
 			end
-			local assignedUnits = pickClosestUnitsForTarget(
-				targetId,
-				selectedUnits,
-				unassignedUnits,
-				count,
-				positionCache,
-				needsReachability and reachabilityCache or nil
-			)
+			local assignedUnits = pickClosestUnitsForTarget(targetID, selectedUnits, unassignedUnits, count, positionCache, needsReachability and reachabilityCache or nil)
 			if #assignedUnits > 0 then
-				giveOrders(commandId, assignedUnits, { targetId }, options)
+				giveOrders(commandID, assignedUnits, { targetID }, options)
 			end
 		end
 	end
@@ -1013,25 +876,25 @@ local function commandRule(targetTypes, targetAllegiance)
 end
 
 local ALLOWED_COMMANDS = {
-	[CMD.ATTACK] = commandRule({ UNIT }, ENEMY_UNITS),
-	[CMD.CAPTURE] = commandRule({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandRule({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandRule({ UNIT }, ENEMY_UNITS),
-	[CMD.GUARD] = commandRule({ UNIT }, ALLY_UNITS),
-	[CMD.REPAIR] = commandRule({ UNIT }, ALLY_UNITS),
-	[CMD.RECLAIM] = commandRule({ UNIT, FEATURE }, ALL_UNITS),
-	[CMD.RESURRECT] = commandRule({ FEATURE }),
+	[CMD.ATTACK] = commandRule({ "unit" }, ENEMY_UNITS),
+	[CMD.CAPTURE] = commandRule({ "unit" }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandRule({ "unit" }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandRule({ "unit" }, ENEMY_UNITS),
+	[CMD.GUARD] = commandRule({ "unit" }, ALLY_UNITS),
+	[CMD.REPAIR] = commandRule({ "unit" }, ALLY_UNITS),
+	[CMD.RECLAIM] = commandRule({ "unit", "feature" }, ALL_UNITS),
+	[CMD.RESURRECT] = commandRule({ "feature" }),
 }
 
-local function unitMatchesAllegiance(unitId, targetAllegiance)
-	local isNeutral = spGetUnitNeutral(unitId)
+local function unitMatchesAllegiance(unitID, targetAllegiance)
+	local isNeutral = spGetUnitNeutral(unitID)
 	if targetAllegiance == NEUTRAL_UNITS then
 		return isNeutral
 	end
 	if isNeutral then
 		return false
 	end
-	local isEnemy = spGetUnitAllyTeam(unitId) ~= myAllyTeamId
+	local isEnemy = spGetUnitAllyTeam(unitID) ~= myAllyTeamID
 	if targetAllegiance == ENEMY_UNITS and not isEnemy then
 		return false
 	end
@@ -1041,27 +904,39 @@ local function unitMatchesAllegiance(unitId, targetAllegiance)
 	return true
 end
 
-local function buildCommanderCorpseFeatureDefIds()
-	commanderCorpseFeatureDefIds = {}
-	for _, unitDef in pairs(UnitDefs) do
+local function buildUnitDefMetadata()
+	unitDefMetadataByID = {}
+	commanderCorpseFeatureDefIDs = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local commandCapabilities = {}
+		commandCapabilities[CMD.RECLAIM] = unitDef.canReclaim and unitDef.reclaimSpeed > 0 or nil
+		commandCapabilities[CMD.RESURRECT] = unitDef.canResurrect and unitDef.resurrectSpeed > 0 or nil
+		commandCapabilities[CMD.REPAIR] = unitDef.canRepair and unitDef.repairSpeed > 0 or nil
+		commandCapabilities[CMD.CAPTURE] = unitDef.canCapture and unitDef.captureSpeed > 0 or nil
+		unitDefMetadataByID[unitDefID] = {
+			commandCapabilities = commandCapabilities,
+			canFly = unitDef.canFly == true,
+			capturable = unitDef.capturable == true,
+			isScreenSelectBuilder = unitDef.isBuilder and unitDef.canRepair and not unitDef.isFactory,
+		}
 		local customParams = unitDef.customParams
 		if customParams and (customParams.iscommander or customParams.isscavcommander) and unitDef.corpse then
 			local corpseDef = FeatureDefNames[unitDef.corpse]
 			if corpseDef and corpseDef.customParams and corpseDef.customParams.category == "corpses" then
-				commanderCorpseFeatureDefIds[corpseDef.id] = true
+				commanderCorpseFeatureDefIDs[corpseDef.id] = true
 			end
 		end
 	end
 end
 
-local function getFeatureMetadata(rawFeatureId, metadataCache)
-	local cachedMetadata = metadataCache[rawFeatureId]
+local function getFeatureMetadata(rawFeatureID, metadataCache)
+	local cachedMetadata = metadataCache[rawFeatureID]
 	if cachedMetadata then
 		return cachedMetadata
 	end
-	local featureDefId = spGetFeatureDefId(rawFeatureId)
-	local featureDef = featureDefId and FeatureDefs[featureDefId]
-	local metal, _, energy = spGetFeatureResources(rawFeatureId)
+	local featureDefID = spGetFeatureDefID(rawFeatureID)
+	local featureDef = featureDefID and FeatureDefs[featureDefID]
+	local metal, _, energy = spGetFeatureResources(rawFeatureID)
 	local hasMetal = (featureDef and featureDef.metal and featureDef.metal > 0)
 		or (metal and metal > 0)
 		or false
@@ -1070,15 +945,15 @@ local function getFeatureMetadata(rawFeatureId, metadataCache)
 		or false
 	local category = featureDef and featureDef.customParams and featureDef.customParams.category
 	local metadata = {
-		featureDefId = featureDefId,
+		featureDefID = featureDefID,
 		category = category,
 		hasMetal = hasMetal,
 		isEnergyOnly = not hasMetal and hasEnergy,
 		reclaimable = featureDef and featureDef.reclaimable,
 		hasCurrentYield = (metal and metal > 0) or (energy and energy > 0) or false,
-		isCommanderCorpse = featureDefId and commanderCorpseFeatureDefIds[featureDefId] or false,
+		isCommanderCorpse = featureDefID and commanderCorpseFeatureDefIDs[featureDefID] or false,
 	}
-	metadataCache[rawFeatureId] = metadata
+	metadataCache[rawFeatureID] = metadata
 	return metadata
 end
 
@@ -1088,7 +963,7 @@ local function featureMatchesReclaimReference(featureMetadata, referenceMetadata
 	end
 	if referenceMetadata.category == "corpses" then
 		return featureMetadata.category == "corpses"
-			and featureMetadata.featureDefId == referenceMetadata.featureDefId
+			and featureMetadata.featureDefID == referenceMetadata.featureDefID
 	end
 	if referenceMetadata.isEnergyOnly then
 		return featureMetadata.isEnergyOnly
@@ -1100,18 +975,18 @@ local function featureMatchesReclaimReference(featureMetadata, referenceMetadata
 	return false
 end
 
-local function shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
-	if commandId == CMD.RESURRECT then
-		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
+local function shouldIncludeVisibleFeature(featureID, commandID, metadataCache)
+	if commandID == CMD.RESURRECT then
+		local featureMetadata = getFeatureMetadata(featureID, metadataCache)
 		if featureMetadata.resurrectable == nil then
-			local unitDefName = spGetFeatureResurrect(featureId)
+			local unitDefName = spGetFeatureResurrect(featureID)
 			featureMetadata.resurrectable = unitDefName ~= nil and unitDefName ~= ""
 		end
 		return featureMetadata.resurrectable
 	end
-	if commandId == CMD.RECLAIM then
-		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
-		if not featureMetadata.featureDefId or featureMetadata.reclaimable == false then
+	if commandID == CMD.RECLAIM then
+		local featureMetadata = getFeatureMetadata(featureID, metadataCache)
+		if not featureMetadata.featureDefID or featureMetadata.reclaimable == false then
 			return false
 		end
 		if featureMetadata.hasCurrentYield then
@@ -1122,90 +997,86 @@ local function shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
 	return false
 end
 
-local function collectVisibleUnits(unitDefId, targetAllegiance, teamId)
+local function collectVisibleUnits(unitDefID, targetAllegiance, teamID)
 	local filteredTargets = {}
-	local visibleUnits = spGetVisibleUnits()
+	local visibleUnits = spring.GetVisibleUnits()
 	if not visibleUnits then
 		return filteredTargets
 	end
 	for unitIndex = 1, #visibleUnits do
-		local unitId = visibleUnits[unitIndex]
-		if (not unitDefId or spGetUnitDefId(unitId) == unitDefId)
-			and (not targetAllegiance or unitMatchesAllegiance(unitId, targetAllegiance))
-			and (not teamId or spGetUnitTeam(unitId) == teamId)
+		local unitID = visibleUnits[unitIndex]
+		if (not unitDefID or spGetUnitDefID(unitID) == unitDefID)
+			and (not targetAllegiance or unitMatchesAllegiance(unitID, targetAllegiance))
+			and (not teamID or spGetUnitTeam(unitID) == teamID)
 		then
-			tableInsert(filteredTargets, unitId)
+			tableInsert(filteredTargets, unitID)
 		end
 	end
 	return filteredTargets
 end
 
-local function collectVisibleFeatures(commandId, featureDefId)
+local function collectVisibleFeaturesByPredicate(shouldIncludeFeature)
 	local filteredTargets = {}
-	local visibleFeatures = spGetVisibleFeatures(-1)
-	local metadataCache = {}
+	local visibleFeatures = spring.GetVisibleFeatures(-1)
 	if not visibleFeatures then
 		return filteredTargets
 	end
 	for featureIndex = 1, #visibleFeatures do
-		local featureId = visibleFeatures[featureIndex]
-		if (not featureDefId or spGetFeatureDefId(featureId) == featureDefId)
-			and shouldIncludeVisibleFeature(featureId, commandId, metadataCache)
-		then
-			tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
+		local featureID = visibleFeatures[featureIndex]
+		if shouldIncludeFeature(featureID) then
+			tableInsert(filteredTargets, normalizeFeatureTargetID(featureID))
 		end
 	end
 	return filteredTargets
 end
 
-local function collectVisibleReclaimFeatures(referenceRawFeatureId, matchAllFeatures)
-	local filteredTargets = {}
-	local visibleFeatures = spGetVisibleFeatures(-1)
-	if not visibleFeatures then
-		return filteredTargets
-	end
+local function collectVisibleFeatures(commandID, featureDefID)
 	local metadataCache = {}
-	local referenceMetadata = getFeatureMetadata(referenceRawFeatureId, metadataCache)
+	return collectVisibleFeaturesByPredicate(function(featureID)
+		return (not featureDefID or spGetFeatureDefID(featureID) == featureDefID)
+			and shouldIncludeVisibleFeature(featureID, commandID, metadataCache)
+	end)
+end
+
+local function collectVisibleReclaimFeatures(referenceRawFeatureID, matchAllFeatures)
+	local metadataCache = {}
+	local referenceMetadata = getFeatureMetadata(referenceRawFeatureID, metadataCache)
 	if referenceMetadata.isCommanderCorpse then
-		return filteredTargets
+		return {}
 	end
-	for featureIndex = 1, #visibleFeatures do
-		local featureId = visibleFeatures[featureIndex]
-		local featureMetadata = getFeatureMetadata(featureId, metadataCache)
-		if not featureMetadata.isCommanderCorpse then
-			local matchesReference = matchAllFeatures
-				or featureMatchesReclaimReference(featureMetadata, referenceMetadata)
-			if shouldIncludeVisibleFeature(featureId, CMD.RECLAIM, metadataCache)
-				and matchesReference
-			then
-				tableInsert(filteredTargets, normalizeFeatureTargetId(featureId))
-			end
+	return collectVisibleFeaturesByPredicate(function(featureID)
+		local featureMetadata = getFeatureMetadata(featureID, metadataCache)
+		if featureMetadata.isCommanderCorpse then
+			return false
 		end
-	end
-	return filteredTargets
+		local matchesReference = matchAllFeatures
+			or featureMatchesReclaimReference(featureMetadata, referenceMetadata)
+		return shouldIncludeVisibleFeature(featureID, CMD.RECLAIM, metadataCache)
+			and matchesReference
+	end)
 end
 
-local function isValidMassOrderTarget(commandId, targetId, isFeature)
-	local commandConfig = ALLOWED_COMMANDS[commandId]
+local function isValidMassOrderTarget(commandID, targetID, isFeature)
+	local commandConfig = ALLOWED_COMMANDS[commandID]
 	if not commandConfig then
 		return false
 	end
 	if isFeature then
-		if not commandConfig.allowedTargetTypes[FEATURE] then
+		if not commandConfig.allowedTargetTypes["feature"] then
 			return false
 		end
-		if commandId == CMD.RESURRECT then
-			local unitDefName = spGetFeatureResurrect(getRawFeatureId(targetId))
+		if commandID == CMD.RESURRECT then
+			local unitDefName = spGetFeatureResurrect(getRawFeatureID(targetID))
 			if unitDefName == nil or unitDefName == "" then
 				return false
 			end
 		end
 		return true
 	end
-	if not commandConfig.allowedTargetTypes[UNIT] then
+	if not commandConfig.allowedTargetTypes["unit"] then
 		return false
 	end
-	local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamId
+	local isEnemy = spGetUnitAllyTeam(targetID) ~= myAllyTeamID
 	local allegiance = commandConfig.targetAllegiance
 	if isEnemy and allegiance ~= ALL_UNITS and allegiance ~= ENEMY_UNITS then
 		return false
@@ -1213,288 +1084,222 @@ local function isValidMassOrderTarget(commandId, targetId, isFeature)
 	if not isEnemy and allegiance == ENEMY_UNITS then
 		return false
 	end
-	if commandId == CMD.CAPTURE and not isCapturableTargetUnit(targetId) then
+	if commandID == CMD.CAPTURE and not isCapturableTargetUnit(targetID) then
 		return false
 	end
 	return true
 end
 
-local function resolveCursorTargetId(mouseX, mouseY)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
-	if targetType == UNIT then
-		return targetId
+local function resolveCursorTargetID(mouseX, mouseY)
+	local targetType, targetID = spring.TraceScreenRay(mouseX, mouseY)
+	if targetType == "unit" then
+		return targetID
 	end
-	if targetType == FEATURE then
-		return normalizeFeatureTargetId(targetId)
+	if targetType == "feature" then
+		return normalizeFeatureTargetID(targetID)
 	end
 	return nil
 end
 
-local function resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
-	local commandConfig = ALLOWED_COMMANDS[commandId]
+local function considerNearestCandidate(candidateID, isFeature, commandID, cursorX, cursorZ, getWorldXZ, nearestState)
+	if not isValidMassOrderTarget(commandID, candidateID, isFeature) then
+		return
+	end
+	local worldX, worldZ = getWorldXZ(candidateID)
+	if not worldX then
+		return
+	end
+	local candidateDistanceSq = mathDistance2dSquared(worldX, worldZ, cursorX, cursorZ)
+	if nearestState.distanceSq == nil or candidateDistanceSq < nearestState.distanceSq then
+		nearestState.targetID = candidateID
+		nearestState.distanceSq = candidateDistanceSq
+		nearestState.isFeature = isFeature
+	end
+end
+
+local function resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
+	local commandConfig = ALLOWED_COMMANDS[commandID]
 	if not commandConfig then
 		return nil
 	end
-	local allowsUnits = commandConfig.allowedTargetTypes[UNIT] == true
-	local allowsFeatures = commandConfig.allowedTargetTypes[FEATURE] == true
+	local allowsUnits = commandConfig.allowedTargetTypes["unit"] == true
+	local allowsFeatures = commandConfig.allowedTargetTypes["feature"] == true
 	if not allowsUnits and not allowsFeatures then
 		return nil
 	end
-	local _, worldPosition = spTraceScreenRay(mouseX, mouseY, true)
+	local _, worldPosition = spring.TraceScreenRay(mouseX, mouseY, true)
 	if not worldPosition then
 		return nil
 	end
 	local cursorX = worldPosition[1]
 	local cursorZ = worldPosition[3]
-	local nearestTargetId
-	local nearestDistanceSq
-	local nearestTargetIsFeature
+	local nearestState = {}
+	local getUnitWorldXZ = function(unitID)
+		local unitX, _, unitZ = spGetUnitPosition(unitID)
+		return unitX, unitZ
+	end
+	local getFeatureWorldXZ = function(featureTargetID)
+		local featureX, _, featureZ = spGetFeaturePosition(getRawFeatureID(featureTargetID))
+		return featureX, featureZ
+	end
 	if allowsUnits then
-		local candidateUnits = spGetUnitsInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		local candidateUnits = spring.GetUnitsInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
 		if candidateUnits then
 			for unitIndex = 1, #candidateUnits do
-				local unitId = candidateUnits[unitIndex]
-				if isValidMassOrderTarget(commandId, unitId, false) then
-					local unitX, _, unitZ = spGetUnitPosition(unitId)
-					if unitX then
-						local deltaX = unitX - cursorX
-						local deltaZ = unitZ - cursorZ
-						local candidateDistanceSq = deltaX * deltaX + deltaZ * deltaZ
-						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
-							nearestTargetId = unitId
-							nearestDistanceSq = candidateDistanceSq
-							nearestTargetIsFeature = false
-						end
-					end
-				end
+				considerNearestCandidate(candidateUnits[unitIndex], false, commandID, cursorX, cursorZ, getUnitWorldXZ, nearestState)
 			end
 		end
 	end
 	if allowsFeatures then
-		local candidateFeatures = spGetFeaturesInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		local candidateFeatures = spring.GetFeaturesInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
 		if candidateFeatures then
 			for featureIndex = 1, #candidateFeatures do
-				local featureTargetId = normalizeFeatureTargetId(candidateFeatures[featureIndex])
-				if isValidMassOrderTarget(commandId, featureTargetId, true) then
-					local featureX, _, featureZ = spGetFeaturePosition(candidateFeatures[featureIndex])
-					if featureX then
-						local deltaX = featureX - cursorX
-						local deltaZ = featureZ - cursorZ
-						local candidateDistanceSq = deltaX * deltaX + deltaZ * deltaZ
-						if nearestDistanceSq == nil or candidateDistanceSq < nearestDistanceSq then
-							nearestTargetId = featureTargetId
-							nearestDistanceSq = candidateDistanceSq
-							nearestTargetIsFeature = true
-						end
-					end
-				end
+				considerNearestCandidate(normalizeFeatureTargetID(candidateFeatures[featureIndex]), true, commandID, cursorX, cursorZ, getFeatureWorldXZ, nearestState)
 			end
 		end
 	end
-	return nearestTargetId, nearestTargetIsFeature
+	return nearestState.targetID, nearestState.isFeature
 end
 
-local function resolveMassOrderReferenceTarget(commandId, firstClickTargetId, secondClickTargetId)
-	if secondClickTargetId then
-		local secondClickTargetIsFeature = isFeatureTargetId(secondClickTargetId)
-		if isValidMassOrderTarget(commandId, secondClickTargetId, secondClickTargetIsFeature) then
-			return secondClickTargetId, secondClickTargetIsFeature
+local function resolveMassOrderReferenceTarget(commandID, firstClickTargetID, secondClickTargetID)
+	if secondClickTargetID then
+		local secondClickTargetIsFeature = isFeatureTargetID(secondClickTargetID)
+		if isValidMassOrderTarget(commandID, secondClickTargetID, secondClickTargetIsFeature) then
+			return secondClickTargetID, secondClickTargetIsFeature
 		end
 		return nil, false
 	end
-	return firstClickTargetId, isFeatureTargetId(firstClickTargetId)
-end
-
-local function buildSelectionSet(selectedUnits)
-	local selectionSet = {}
-	for unitIndex = 1, #selectedUnits do
-		selectionSet[selectedUnits[unitIndex]] = true
-	end
-	return selectionSet
+	return firstClickTargetID, isFeatureTargetID(firstClickTargetID)
 end
 
 local function filterTargetsBySelectionMembership(targets, selectionSet, targetInSelection)
 	local filteredTargets = {}
 	for targetIndex = 1, #targets do
-		local targetId = targets[targetIndex]
-		if isFeatureTargetId(targetId) then
-			tableInsert(filteredTargets, targetId)
-		elseif targetInSelection and selectionSet[targetId] then
-			tableInsert(filteredTargets, targetId)
-		elseif not targetInSelection and not selectionSet[targetId] then
-			tableInsert(filteredTargets, targetId)
+		local targetID = targets[targetIndex]
+		if isFeatureTargetID(targetID) then
+			tableInsert(filteredTargets, targetID)
+		elseif targetInSelection and selectionSet[targetID] then
+			tableInsert(filteredTargets, targetID)
+		elseif not targetInSelection and not selectionSet[targetID] then
+			tableInsert(filteredTargets, targetID)
 		end
 	end
 	return filteredTargets
 end
 
-local function collectMassOrderTargets(commandId, targetId, isFeature, options)
-	if isFeature then
-		local rawFeatureId = getRawFeatureId(targetId)
-		if commandId == CMD.RECLAIM then
-			return collectVisibleReclaimFeatures(rawFeatureId, options.ctrl)
-		end
-		local featureDefId = spGetFeatureDefId(rawFeatureId)
-		if not featureDefId then
+local function collectScopedUnitTargets(commandID, targetID, targetAllegiance, teamID, options, applyFinalize)
+	local unitDefIDFilter = nil
+	if not options.ctrl then
+		unitDefIDFilter = spGetUnitDefID(targetID)
+		if not unitDefIDFilter then
 			return {}
 		end
-		local featureDefIdFilter = featureDefId
-		if options.ctrl then
-			featureDefIdFilter = nil
-		end
-		return collectVisibleFeatures(commandId, featureDefIdFilter)
 	end
-	local commandConfig = ALLOWED_COMMANDS[commandId]
-	local isNeutral = spGetUnitNeutral(targetId)
-	local isEnemy = spGetUnitAllyTeam(targetId) ~= myAllyTeamId
-	if isNeutral and (commandConfig.targetAllegiance == ENEMY_UNITS or commandId == CMD.RECLAIM) then
-		if options.ctrl then
-			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, NEUTRAL_UNITS, nil))
-		end
-		local unitDefId = spGetUnitDefId(targetId)
-		if not unitDefId then
-			return {}
-		end
-		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, NEUTRAL_UNITS, nil))
+	local targets = collectVisibleUnits(unitDefIDFilter, targetAllegiance, teamID)
+	if applyFinalize then
+		return finalizeUnitTargets(commandID, targets)
 	end
-	if commandConfig.targetAllegiance == ENEMY_UNITS or (commandId == CMD.RECLAIM and isEnemy) then
-		if options.ctrl then
-			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ENEMY_UNITS, nil))
-		end
-		local unitDefId = spGetUnitDefId(targetId)
-		if not unitDefId then
-			return {}
-		end
-		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, ENEMY_UNITS, nil))
-	end
-	if commandId == CMD.REPAIR and not isEnemy then
-		local targetTeamId = spGetUnitTeam(targetId)
-		if not targetTeamId then
-			return {}
-		end
-		if options.ctrl then
-			return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ALLY_UNITS, targetTeamId))
-		end
-		local unitDefId = spGetUnitDefId(targetId)
-		if not unitDefId then
-			return {}
-		end
-		return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, ALLY_UNITS, targetTeamId))
-	end
-	if commandId == CMD.RECLAIM and not isEnemy then
-		local targetTeamId = spGetUnitTeam(targetId)
-		if not targetTeamId then
-			return {}
-		end
-		if targetTeamId ~= myTeamId then
-			return { targetId }
-		end
-		if options.ctrl then
-			return collectVisibleUnits(nil, ALLY_UNITS, myTeamId)
-		end
-		local unitDefId = spGetUnitDefId(targetId)
-		if not unitDefId then
-			return {}
-		end
-		return collectVisibleUnits(unitDefId, ALLY_UNITS, myTeamId)
-	end
-	if options.ctrl then
-		return finalizeUnitTargets(commandId, collectVisibleUnits(nil, ALLY_UNITS, nil))
-	end
-	local unitDefId = spGetUnitDefId(targetId)
-	if not unitDefId then
-		return {}
-	end
-	return finalizeUnitTargets(commandId, collectVisibleUnits(unitDefId, commandConfig.targetAllegiance, nil))
+	return targets
 end
 
-local function issueMassOrdersFromTarget(issueCommandId, referenceTargetId, referenceTargetIsFeature, selectedUnits, options)
-	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandId)
+local function collectMassOrderTargets(commandID, targetID, isFeature, options)
+	if isFeature then
+		local rawFeatureID = getRawFeatureID(targetID)
+		if commandID == CMD.RECLAIM then
+			return collectVisibleReclaimFeatures(rawFeatureID, options.ctrl)
+		end
+		local featureDefID = spGetFeatureDefID(rawFeatureID)
+		if not featureDefID then
+			return {}
+		end
+		local featureDefIDFilter = featureDefID
+		if options.ctrl then
+			featureDefIDFilter = nil
+		end
+		return collectVisibleFeatures(commandID, featureDefIDFilter)
+	end
+	local commandConfig = ALLOWED_COMMANDS[commandID]
+	local isNeutral = spGetUnitNeutral(targetID)
+	local isEnemy = spGetUnitAllyTeam(targetID) ~= myAllyTeamID
+	if isNeutral and (commandConfig.targetAllegiance == ENEMY_UNITS or commandID == CMD.RECLAIM) then
+		return collectScopedUnitTargets(commandID, targetID, NEUTRAL_UNITS, nil, options, true)
+	end
+	if commandConfig.targetAllegiance == ENEMY_UNITS or (commandID == CMD.RECLAIM and isEnemy) then
+		return collectScopedUnitTargets(commandID, targetID, ENEMY_UNITS, nil, options, true)
+	end
+	if not isEnemy and (commandID == CMD.REPAIR or commandID == CMD.RECLAIM) then
+		local targetTeamID = spGetUnitTeam(targetID)
+		if not targetTeamID then
+			return {}
+		end
+		if commandID == CMD.REPAIR then
+			return collectScopedUnitTargets(commandID, targetID, ALLY_UNITS, targetTeamID, options, true)
+		end
+		if targetTeamID ~= myTeamID then
+			return { targetID }
+		end
+		return collectScopedUnitTargets(commandID, targetID, ALLY_UNITS, myTeamID, options, false)
+	end
+	local fallbackAllegiance = options.ctrl and ALLY_UNITS or commandConfig.targetAllegiance
+	return collectScopedUnitTargets(commandID, targetID, fallbackAllegiance, nil, options, true)
+end
+
+local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options)
+	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandID)
 	if #selectedUnits == 0 then
 		return false
 	end
 	local builderUnits = {}
-	if issueCommandId == CMD.GUARD then
+	if issueCommandID == CMD.GUARD then
 		local nonBuilderUnits
 		builderUnits, nonBuilderUnits = splitBuilderUnits(selectedUnits)
 		if #builderUnits > 0 then
-			giveOrders(issueCommandId, builderUnits, { referenceTargetId }, options)
+			giveOrders(issueCommandID, builderUnits, { referenceTargetID }, options)
 		end
 		if #nonBuilderUnits == 0 then
-			finishMassOrderCommandState(issueCommandId, options)
+			finishMassOrderCommandState(issueCommandID, options)
 			return true
 		end
 		selectedUnits = nonBuilderUnits
 	end
-	local selectionSet = buildSelectionSet(selectedUnits)
-	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetId] == true
-	local filteredTargets = collectMassOrderTargets(issueCommandId, referenceTargetId, referenceTargetIsFeature, options)
+	local selectionSet = {}
+	for unitIndex = 1, #selectedUnits do
+		selectionSet[selectedUnits[unitIndex]] = true
+	end
+	local targetInSelection = not referenceTargetIsFeature and selectionSet[referenceTargetID] == true
+	local filteredTargets = collectMassOrderTargets(issueCommandID, referenceTargetID, referenceTargetIsFeature, options)
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	local positionCache = {}
 	local reachabilityCache = {}
-	if REACHABILITY_COMMANDS[issueCommandId] then
-		filteredTargets = filterTargetsReachableByAnyUnit(
-			selectedUnits,
-			filteredTargets,
-			positionCache,
-			reachabilityCache
-		)
+	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
+		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
-	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(
-		#selectedUnits,
-		#filteredTargets,
-		options.alt
-	)
-	filteredTargets = limitTargetsByRadius(
-		filteredTargets,
-		referenceTargetId,
-		selectedUnits,
-		maxTargetsToCollect,
-		positionCache
-	)
+	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
+	filteredTargets = limitTargetsByRadius(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache)
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
-			finishMassOrderCommandState(issueCommandId, options)
+			finishMassOrderCommandState(issueCommandID, options)
 			return true
 		end
 		return false
 	end
 	if usePartitionedDispatch then
-		givePartitionedOrders(
-			issueCommandId,
-			selectedUnits,
-			filteredTargets,
-			options,
-			referenceTargetId,
-			positionCache,
-			reachabilityCache
-		)
+		givePartitionedOrders(issueCommandID, selectedUnits, filteredTargets, options, referenceTargetID, positionCache, reachabilityCache)
 	else
-		giveOrdersPerUnitByTravelRoute(
-			issueCommandId,
-			selectedUnits,
-			filteredTargets,
-			options,
-			positionCache,
-			reachabilityCache
-		)
+		giveOrdersPerUnitByTravelRoute(issueCommandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache)
 	end
-	finishMassOrderCommandState(issueCommandId, options)
+	finishMassOrderCommandState(issueCommandID, options)
 	return true
 end
 
-local function issuePendingDoubleClickMassOrders(options, secondClickTargetId)
+local function issuePendingDoubleClickMassOrders(options, secondClickTargetID)
 	if not isPendingDoubleClickActive() then
 		return false
 	end
-	local issueCommandId = pendingDoubleClick.commandId
-	local firstClickTargetId = pendingDoubleClick.targetId
-	local referenceTargetId, referenceTargetIsFeature = resolveMassOrderReferenceTarget(
-		issueCommandId,
-		firstClickTargetId,
-		secondClickTargetId
-	)
-	if not referenceTargetId then
+	local issueCommandID = pendingDoubleClick.commandID
+	local firstClickTargetID = pendingDoubleClick.targetID
+	local referenceTargetID, referenceTargetIsFeature = resolveMassOrderReferenceTarget(issueCommandID, firstClickTargetID, secondClickTargetID)
+	if not referenceTargetID then
 		return false
 	end
 	local massCommandOptions = {
@@ -1505,63 +1310,59 @@ local function issuePendingDoubleClickMassOrders(options, secondClickTargetId)
 		right = options.right,
 	}
 	clearDoubleClickPending()
-	local selectedUnits = spGetSelectedUnits()
+	local selectedUnits = spring.GetSelectedUnits()
 	local massIssued = false
 	local skipMassReissue = false
-	if issueCommandId == CMD.RECLAIM and not referenceTargetIsFeature then
-		local isEnemy = spGetUnitAllyTeam(referenceTargetId) ~= myAllyTeamId
-		local targetTeamId = spGetUnitTeam(referenceTargetId)
-		if not isEnemy and targetTeamId and targetTeamId ~= myTeamId then
+	if issueCommandID == CMD.RECLAIM and not referenceTargetIsFeature then
+		local isEnemy = spGetUnitAllyTeam(referenceTargetID) ~= myAllyTeamID
+		local targetTeamID = spGetUnitTeam(referenceTargetID)
+		if not isEnemy and targetTeamID and targetTeamID ~= myTeamID then
 			skipMassReissue = true
 		end
 	end
 	if not skipMassReissue and #selectedUnits > 0 then
-		massIssued = issueMassOrdersFromTarget(issueCommandId, referenceTargetId, referenceTargetIsFeature, selectedUnits, massCommandOptions)
+		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, massCommandOptions)
 	end
-	if not massIssued and not massCommandOptions.shift then
-		heldCommandDescriptionIndex = nil
-		deferClearActiveCommand = true
+	if not massIssued then
+		clearActiveCommandUnlessShift(massCommandOptions)
 	end
 	return true
 end
 
-local function resolveScreenSelectCommandId(commandId)
-	if commandId ~= nil then
-		return commandId
+local function resolveScreenSelectCommandID(commandID)
+	if commandID ~= nil then
+		return commandID
 	end
-	local _, activeCommandId = spGetActiveCommand()
-	if activeCommandId and ALLOWED_COMMANDS[activeCommandId] then
-		return activeCommandId
+	local _, activeCommandID = spring.GetActiveCommand()
+	if activeCommandID and ALLOWED_COMMANDS[activeCommandID] then
+		return activeCommandID
 	end
 	return nil
 end
 
-local function consumePendingDoubleClickClick(options, effectiveCommandId, secondClickTargetId)
+local function consumePendingDoubleClickClick(options, effectiveCommandID, secondClickTargetID)
 	if not doubleClickEnabled or not isPendingDoubleClickActive() then
 		return false
 	end
-	if effectiveCommandId and pendingDoubleClick.commandId ~= effectiveCommandId then
+	if effectiveCommandID and pendingDoubleClick.commandID ~= effectiveCommandID then
 		return false
 	end
 	if pendingDoubleClick.right ~= options.right then
 		return false
 	end
-	if osClock() < pendingDoubleClick.firstClickTime + MIN_DOUBLE_CLICK_GAP then
+	if osClock() < pendingDoubleClick.firstClickTime + CLICK_DEBOUNCE_GAP then
 		clearDoubleClickPending()
-		if not options.shift then
-			heldCommandDescriptionIndex = nil
-			deferClearActiveCommand = true
-		end
+		clearActiveCommandUnlessShift(options)
 		return true
 	end
-	return issuePendingDoubleClickMassOrders(options, secondClickTargetId)
+	return issuePendingDoubleClickMassOrders(options, secondClickTargetID)
 end
 
-local function armPendingDoubleClick(commandId, targetId, options)
+local function armPendingDoubleClick(commandID, targetID, options)
 	local currentTime = osClock()
-	pendingDoubleClick.targetId = targetId
+	pendingDoubleClick.targetID = targetID
 	pendingDoubleClick.expireTime = currentTime + DOUBLE_CLICK_TIME
-	pendingDoubleClick.commandId = commandId
+	pendingDoubleClick.commandID = commandID
 	pendingDoubleClick.alt = options.alt
 	pendingDoubleClick.ctrl = options.ctrl
 	pendingDoubleClick.meta = options.meta
@@ -1569,75 +1370,74 @@ local function armPendingDoubleClick(commandId, targetId, options)
 	pendingDoubleClick.right = options.right
 	pendingDoubleClick.firstClickTime = currentTime
 	if options.shift then
-		heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(commandId)
+		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(commandID)
 	end
 end
 
-local function handleScreenSelectCommand(effectiveCommandId, parameters, options)
-	local targetId = parameters[1]
-	local isFeature = isFeatureTargetId(targetId)
+local function handleScreenSelectCommand(effectiveCommandID, parameters, options)
+	local targetID = parameters[1]
+	local isFeature = isFeatureTargetID(targetID)
 
-	if not screenSelectHeld and consumePendingDoubleClickClick(options, effectiveCommandId, targetId) then
+	if not screenSelectKeyHeld and consumePendingDoubleClickClick(options, effectiveCommandID, targetID) then
 		return true
 	end
 
-	if not isValidMassOrderTarget(effectiveCommandId, targetId, isFeature) then
+	if not isValidMassOrderTarget(effectiveCommandID, targetID, isFeature) then
 		return false
 	end
 
-	local selectedUnits = spGetSelectedUnits()
+	local selectedUnits = spring.GetSelectedUnits()
 	if #selectedUnits == 0 then
 		return false
 	end
-	if screenSelectHeld then
-		return issueMassOrdersFromTarget(effectiveCommandId, targetId, isFeature, selectedUnits, options)
+	if screenSelectKeyHeld then
+		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options)
 	end
 
-	selectedUnits = filterUnitsForCommand(selectedUnits, effectiveCommandId)
+	selectedUnits = filterUnitsForCommand(selectedUnits, effectiveCommandID)
 	if #selectedUnits == 0 then
 		return false
 	end
 
 	if not doubleClickEnabled then
-		giveOrders(effectiveCommandId, selectedUnits, { targetId }, options)
+		giveOrders(effectiveCommandID, selectedUnits, { targetID }, options)
 		if options.shift then
-			heldCommandDescriptionIndex = select(1, spGetActiveCommand()) or spGetCommandDescriptionIndex(effectiveCommandId)
+			heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(effectiveCommandID)
 		else
-			heldCommandDescriptionIndex = nil
-			deferClearActiveCommand = true
+			clearActiveCommandUnlessShift(options)
 		end
 		return true
 	end
 
-	giveOrders(effectiveCommandId, selectedUnits, { targetId }, options)
-	armPendingDoubleClick(effectiveCommandId, targetId, options)
+	giveOrders(effectiveCommandID, selectedUnits, { targetID }, options)
+	armPendingDoubleClick(effectiveCommandID, targetID, options)
 	return true
 end
 
-local function isSetTargetCommand(commandId)
-	return commandId == GameCMD.UNIT_SET_TARGET or commandId == GameCMD.UNIT_SET_TARGET_NO_GROUND
+local function isSetTargetCommand(commandID)
+	return commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
 end
 
-local function resolveMouseMassOrderTarget(commandId, mouseX, mouseY)
-	local cursorTargetId = resolveCursorTargetId(mouseX, mouseY)
-	if cursorTargetId then
-		local cursorTargetIsFeature = isFeatureTargetId(cursorTargetId)
-		if isValidMassOrderTarget(commandId, cursorTargetId, cursorTargetIsFeature) then
-			return cursorTargetId, cursorTargetIsFeature, true
+local function resolveMouseMassOrderTarget(commandID, mouseX, mouseY)
+	local cursorTargetID = resolveCursorTargetID(mouseX, mouseY)
+	if cursorTargetID then
+		local cursorTargetIsFeature = isFeatureTargetID(cursorTargetID)
+		if isValidMassOrderTarget(commandID, cursorTargetID, cursorTargetIsFeature) then
+			return cursorTargetID, cursorTargetIsFeature, true
 		end
 	end
-	local snappedTargetId, snappedTargetIsFeature = resolveNearestValidTargetNearCursor(commandId, mouseX, mouseY)
-	return snappedTargetId, snappedTargetIsFeature, false
+	local snappedTargetID, snappedTargetIsFeature = resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
+	return snappedTargetID, snappedTargetIsFeature, false
 end
 
 function widget:MousePress(mouseX, mouseY, button)
-	if button ~= 1 and button ~= 3 then
+	if button ~= LEFT_MOUSE_BUTTON and button ~= RIGHT_MOUSE_BUTTON then
 		return false
 	end
-	local options = enrichCommandOptions({ right = (button == 3) })
-	local effectiveCommandId = resolveScreenSelectCommandId(nil)
+	local options = fillCommandOptionModifiers({ right = (button == RIGHT_MOUSE_BUTTON) })
+	local effectiveCommandID = resolveScreenSelectCommandID(nil)
 	local pendingClickActive = isPendingDoubleClickActive()
-	if isSetTargetCommand(effectiveCommandId) and options.alt then
+	if isSetTargetCommand(effectiveCommandID) and options.alt then
 		clearDoubleClickPending()
 		return false
 	end
@@ -1645,66 +1445,56 @@ function widget:MousePress(mouseX, mouseY, button)
 		return false
 	end
 	if not pendingClickActive then
-		if not effectiveCommandId or not ALLOWED_COMMANDS[effectiveCommandId] then
+		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
-		local targetId, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(
-			effectiveCommandId,
-			mouseX,
-			mouseY
-		)
-		if isDirectTarget or not targetId then
+		local targetID, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(effectiveCommandID, mouseX, mouseY)
+		if isDirectTarget or not targetID then
 			return false
 		end
-		if screenSelectHeld then
-			local selectedUnits = spGetSelectedUnits()
+		if screenSelectKeyHeld then
+			local selectedUnits = spring.GetSelectedUnits()
 			if #selectedUnits == 0 then
 				return false
 			end
-			return issueMassOrdersFromTarget(
-				effectiveCommandId,
-				targetId,
-				targetIsFeature,
-				selectedUnits,
-				options
-			)
+			return issueMassOrdersFromTarget(effectiveCommandID, targetID, targetIsFeature, selectedUnits, options)
 		end
-		armPendingDoubleClick(effectiveCommandId, targetId, options)
+		armPendingDoubleClick(effectiveCommandID, targetID, options)
 		return false
 	end
-	local pendingCommandId = pendingDoubleClick.commandId
-	if effectiveCommandId and effectiveCommandId ~= pendingCommandId then
+	local pendingCommandID = pendingDoubleClick.commandID
+	if effectiveCommandID and effectiveCommandID ~= pendingCommandID then
 		return false
 	end
-	local targetId = resolveMouseMassOrderTarget(pendingCommandId, mouseX, mouseY)
-	if targetId then
-		return consumePendingDoubleClickClick(options, effectiveCommandId, targetId)
+	local targetID = resolveMouseMassOrderTarget(pendingCommandID, mouseX, mouseY)
+	if targetID then
+		return consumePendingDoubleClickClick(options, effectiveCommandID, targetID)
 	end
 	return false
 end
 
-function widget:CommandNotify(commandId, parameters, options)
-	local effectiveCommandId = resolveScreenSelectCommandId(commandId)
-	if #parameters ~= 1 and not isSetTargetCommand(effectiveCommandId) then
+function widget:CommandNotify(commandID, parameters, options)
+	local effectiveCommandID = resolveScreenSelectCommandID(commandID)
+	if #parameters ~= 1 and not isSetTargetCommand(effectiveCommandID) then
 		return false
 	end
-	options = enrichCommandOptions(options)
-	if isSetTargetCommand(effectiveCommandId) and options.alt then
+	options = fillCommandOptionModifiers(options)
+	if isSetTargetCommand(effectiveCommandID) and options.alt then
 		clearDoubleClickPending()
 		return false
 	end
 	if #parameters == 1 then
-		return handleScreenSelectCommand(effectiveCommandId, parameters, options)
+		return handleScreenSelectCommand(effectiveCommandID, parameters, options)
 	end
 	return false
 end
 
 local function onScreenSelectHoldPress()
-	screenSelectHeld = true
+	screenSelectKeyHeld = true
 end
 
 local function onScreenSelectHoldRelease()
-	screenSelectHeld = false
+	screenSelectKeyHeld = false
 end
 
 local function setDoubleClickEnabled(value)
@@ -1714,20 +1504,26 @@ local function setDoubleClickEnabled(value)
 	end
 end
 
-local function setMaxMassOrderTargets(value)
+local function coercePositiveInt(value)
 	local numericValue = tonumber(value)
 	if not numericValue then
-		return
+		return nil
 	end
-	maxMassOrderTargets = mathMax(1, mathFloor(numericValue))
+	return mathMax(1, mathFloor(numericValue))
+end
+
+local function setMaxMassOrderTargets(value)
+	local numericValue = coercePositiveInt(value)
+	if numericValue then
+		maxMassOrderTargets = numericValue
+	end
 end
 
 local function setCommandLimit(value)
-	local numericValue = tonumber(value)
-	if not numericValue then
-		return
+	local numericValue = coercePositiveInt(value)
+	if numericValue then
+		commandLimit = numericValue
 	end
-	commandLimit = mathMax(1, mathFloor(numericValue))
 end
 
 local function registerScreenSelectCommandsApi()
@@ -1748,24 +1544,24 @@ local function registerScreenSelectCommandsApi()
 end
 
 local function initialize()
-	if spGetSpectatingState() then
+	clearDoubleClickPending()
+	if spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
-	myAllyTeamId = spGetMyAllyTeamId()
-	myTeamId = spGetMyTeamId()
-	buildCommanderCorpseFeatureDefIds()
+	myAllyTeamID = spring.GetMyAllyTeamID()
+	myTeamID = spring.GetMyTeamID()
+	buildUnitDefMetadata()
 end
 
 function widget:PlayerChanged()
-	clearDoubleClickPending()
 	heldCommandDescriptionIndex = nil
 	initialize()
 end
 
 function widget:Initialize()
 	initialize()
-	if spGetSpectatingState() then
+	if spring.GetSpectatingState() then
 		return
 	end
 	widgetHandler:AddAction("screen_select_hold", onScreenSelectHoldPress, nil, "p")
@@ -1777,23 +1573,23 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("screen_select_hold", "p")
 	widgetHandler:RemoveAction("screen_select_hold", "r")
 	WG["screenSelectCommands"] = nil
-	screenSelectHeld = false
+	screenSelectKeyHeld = false
 end
 
 function widget:Update()
 	if deferClearActiveCommand then
 		deferClearActiveCommand = false
-		spSetActiveCommand(0)
+		spring.SetActiveCommand(0)
 	end
-	if pendingDoubleClick.targetId and osClock() >= pendingDoubleClick.expireTime then
+	if pendingDoubleClick.targetID and osClock() >= pendingDoubleClick.expireTime then
 		clearDoubleClickPending()
 	end
 	updateShiftCommandKeep()
 end
 
-function widget:ActiveCommandChanged(commandId)
-	if commandId then
-		if pendingDoubleClick.commandId and pendingDoubleClick.commandId ~= commandId then
+function widget:ActiveCommandChanged(commandID)
+	if commandID then
+		if pendingDoubleClick.commandID and pendingDoubleClick.commandID ~= commandID then
 			clearDoubleClickPending()
 		end
 		return
