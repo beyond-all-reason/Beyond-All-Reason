@@ -49,6 +49,7 @@ local spValidUnitID           = Spring.ValidUnitID
 local spGetWind               = Spring.GetWind
 local spGetConfigInt          = Spring.GetConfigInt
 local spGetGameSpeed          = Spring.GetGameSpeed
+local spIsPosInAirLos   	  = Spring.IsPosInAirLos
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -609,6 +610,10 @@ local cachedPreset = QUALITY_PRESETS[currentPreset]
 local cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 local cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
 local fastForward = false  -- true when gamespeed > 1.5 or catching up (rejoining)
+local visibilityState = {
+	allyTeamID = Spring.GetMyAllyTeamID(),
+	fullView = select(2, Spring.GetSpectatingState()) or false,
+}
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -623,6 +628,10 @@ for i = 1, #QUALITY_PRESETS do
 end
 
 local maxSamples = mathCeil(15 / 4)  -- AVG_WINDOW_FRAMES / AVG_SAMPLE_INTERVAL
+
+local function isEffectVisible(x, y, z)
+	return visibilityState.fullView or spIsPosInAirLos(x, y, z, visibilityState.allyTeamID)
+end
 
 local function updateQualityPreset(gameFrame)
 	if not particleVBO then return end
@@ -909,6 +918,7 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	emitter.spawnTimer = 0
 
 	local px, py, pz = emitter.x, emitter.y, emitter.z
+	if not isEffectVisible(px, py, pz) then return true end
 
 	-- View frustum culling
 	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then return true end
@@ -1101,6 +1111,16 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		aboveGround = py > groundY + 1
 	end
 	if not aboveGround then debugPiece.skipGround = debugPiece.skipGround + 1 return end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			pools.releaseBuffer(tracked.offscreenBuffer)
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		tracked.offscreenSkip = nil
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
@@ -1378,6 +1398,14 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 
 	local px, py, pz = spGetUnitPosition(unitID)
 	if not px then return end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
@@ -1661,6 +1689,12 @@ function gadget:Initialize()
 	}
 end
 
+function gadget:PlayerChanged(playerID)
+	if playerID ~= Spring.GetMyPlayerID() then return end
+	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+end
+
 function gadget:Shutdown()
 	cleanupGL4()
 	GG.FireSmoke = nil
@@ -1694,6 +1728,8 @@ function gadget:GameFrame(n)
 	end
 
 	cachedGameFrame = n
+	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
 	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
@@ -1852,7 +1888,7 @@ function gadget:DrawWorld()
 			for unitID, tracked in pairs(trackedCrashingAircraft) do
 				if tracked.offscreenBuffer then
 					local px, py, pz = spGetUnitPosition(unitID)
-					if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
 						replayCrashBuffer(tracked, cachedGameFrame)
 					end
 				end
@@ -1862,7 +1898,7 @@ function gadget:DrawWorld()
 		for proID, tracked in pairs(trackedPieceProjectiles) do
 			if tracked.offscreenBuffer then
 				local px, py, pz = spGetProjectilePosition(proID)
-				if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+				if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
 					replayPieceBuffer(tracked, cachedGameFrame)
 				end
 			end

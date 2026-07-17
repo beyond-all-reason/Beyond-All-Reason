@@ -20,7 +20,7 @@ return {
 		maxbank = 0.6,
 		health = 2000,
 		maxelevator = 0.00898,
-		maxpitch = 0.625,
+		maxpitch = 0.3125,
 		maxrudder = 0.01,
 		maxslope = 10,
 		speed = 270,

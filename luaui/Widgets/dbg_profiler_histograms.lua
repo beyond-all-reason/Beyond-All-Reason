@@ -119,26 +119,26 @@ local function createhistogram(name)
 		linewidth = 2,
 		color = {mathRandom(),mathRandom(),mathRandom(),1},
 	}
-	for i=1,bincount do 
+	for i=1,bincount do
 		newhist.data[i] = 0
 	end
-	
+
 	local histVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	local VBOData = {}
 
-	for i = 1, bincount  do 
+	for i = 1, bincount  do
 		VBOData[#VBOData+1] = i/bincount-- X
 		VBOData[#VBOData+1] = i/bincount-- Y
-	end	
-	
+	end
+
 	histVBO:Define(
-		bincount, 
+		bincount,
 		{{id = 0, name = "coords", size = 2}}
 	)
 	histVBO:Upload(VBOData)
 	histVAO = gl.GetVAO()
 	histVAO:AttachVertexBuffer(histVBO)
-	
+
 	newhist.VBO = histVBO
 	newhist.VAO = histVAO
 	newhist.VBOData = VBOData
@@ -149,8 +149,8 @@ local function updatehist(h,newvalue, counter)
 	local total, current = spGetProfilerTimeRecord(h.name, false)
 	if not current then return end
 	counter = current
-	if counter then 
-		if counter < h.last then 
+	if counter then
+		if counter < h.last then
 			newvalue = counter
 		else
 			newvalue = counter - h.last
@@ -159,24 +159,24 @@ local function updatehist(h,newvalue, counter)
 	else
 		h.last = newvalue
 	end
-	
-	if newvalue < h.binrez then 
+
+	if newvalue < h.binrez then
 		h.numzeros = h.numzeros + 1
-		return 0,0,0 
-	end 
-	
-	
-	local binid = math.floor(math.min((newvalue/h.binrez), h.bincount -1)) + 1
-	if binid == h.bincount then 
-		h.numtoobig = h.numtoobig + 1 
+		return 0,0,0
 	end
-	
+
+
+	local binid = math.floor(math.min((newvalue/h.binrez), h.bincount -1)) + 1
+	if binid == h.bincount then
+		h.numtoobig = h.numtoobig + 1
+	end
+
 	local oldratio = h.mean * h.numsamples
 	h.numsamples = h.numsamples + 1
 	h.mean = (oldratio + newvalue) / h.numsamples
-	
+
 	local newcount = h.data[binid] + 1
-	if newcount > h.maxcount then 
+	if newcount > h.maxcount then
 		h.maxcount = newcount
 	end
 	h.data[binid] = newcount
@@ -186,7 +186,7 @@ end
 local function updateVBO(h)
 	if h == nil then return end
 	local vboData = h.VBOData
-	for i, count  in ipairs(h.data) do 
+	for i, count  in ipairs(h.data) do
 		vboData[2*i - 1] =     i / bincount
 		vboData[2*i    ] = count / h.maxcount
 	end
@@ -196,33 +196,35 @@ end
 ------------------- WIDGET STUFF --------------------------------------
 
 function widget:Initialize()
+	widgetHandler:AddAction("histogram", histogramCmd, nil, "t")
+
 	lineVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 
 	local VBOData = {}
 
-	for i = 1, bincount  do 
+	for i = 1, bincount  do
 		VBOData[#VBOData+1] = i-- X
 		VBOData[#VBOData+1] = i-- Y
-	end	
+	end
 
 	lineVBO:Define(
-		bincount, 
+		bincount,
 		{{id = 0, name = "coords", size = 2}}
 	)
 	lineVBO:Upload(VBOData)
-	--if true then return nil end 
+	--if true then return nil end
 	lineVAO = gl.GetVAO()
 	lineVAO:AttachVertexBuffer(lineVBO)
-	
+
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	histShader = LuaShader({
 		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs) ,
 		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
 		uniformInt = {}, --	usually textures go here
-		uniformFloat = {	
+		uniformFloat = {
 			boundingbox = {0, 0, vsx, vsy},
 			color = {1, 1, 1, 1},
-			
+
 			} -- left, bottom,right,top
 		})
 
@@ -233,8 +235,8 @@ function widget:Initialize()
 	end
 	timerstart = Spring.GetTimer()
 	timerold = Spring.GetTimer()
-	
-	for k,v in pairs(Spring.GetProfilerRecordNames()) do 
+
+	for k,v in pairs(Spring.GetProfilerRecordNames()) do
 		--spEcho(k,v)
 		profilerecords[k] = v
 		histograms[v] = createhistogram(v)
@@ -248,9 +250,9 @@ local function PrintRecord(name)
 	-- maxdt is the peak value
 	-- time is lag?
 	-- peak is unknown?
-	
-	-- so last frame dt === 
-	
+
+	-- so last frame dt ===
+
 	local gf = spGetGameFrame()
 	spEcho(gf, 'P:', name, total, current, maxdt, time, peak)
 end
@@ -261,8 +263,9 @@ local function GetRecordCurrent(name)
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("histogram", "t")
 	if histShader then histShader:Finalize() end
-	for name,hist in pairs(histograms) do 
+	for name,hist in pairs(histograms) do
 		if hist.VBO then hist.VBO:Delete() end
 		if hist.VAO then hist.VAO:Delete() end
 	end
@@ -270,7 +273,7 @@ end
 
 function widget:GameFrame(n)
 	for name, hist in pairs(actives) do
-		if histograms[name] then 
+		if histograms[name] then
 			updatehist(histograms[name])
 		end
 	end
@@ -280,9 +283,9 @@ function widget:DrawScreen()
 
 	histShader:Activate()
 	histShader:SetUniform("boundingbox", boundingbox[1],boundingbox[2],boundingbox[3],boundingbox[4])
-	for name, _ in pairs(actives) do 
+	for name, _ in pairs(actives) do
 		local hist = histograms[name]
-		if hist then 
+		if hist then
 			if spGetGameFrame()%30 == 0 then
 				updateVBO(hist)
 			end
@@ -298,21 +301,20 @@ function widget:DbgTimingInfo(eventname, starttime, endtime)
 	--spEcho("DbgTimingInfo",eventname, starttime, endtime)
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "histogram", nil, true) then
-		local name = string.sub(command, string.len("histogram") +2)
-		if histograms[name] then 
-			if actives[name] then 
-				spEcho("Disabling histogram for",name)
-				actives[name] = nil 
-			else
-				spEcho("Enabling histogram for",name)
-				actives[name] = true 		
-			end
+function histogramCmd(_, line)
+	local name = line or ""
+	if histograms[name] then
+		if actives[name] then
+			spEcho("Disabling histogram for", name)
+			actives[name] = nil
 		else
-			spEcho("Unknown histogram name:",name)
+			spEcho("Enabling histogram for", name)
+			actives[name] = true
 		end
+	else
+		spEcho("Unknown histogram name:", name)
 	end
+	return true
 end
 
 -------------------- AVAILABLE SUBSYSTEMS ----------------------
@@ -387,5 +389,5 @@ end
  67, Update::ReadMap::UHM
  68, Update::WorldDrawer
  69, Update::WorldDrawer::{Sky,Water}
- 
+
  ]]--

@@ -23,26 +23,35 @@ if gadgetHandler:IsSyncedCode() then
 
 	Spring.SetGameRulesParam(ENABLED_RULES_PARAM, true)
 
-	local function SetTestEndConditionsCmd(cmd, line, words, playerID)
-		if not Spring.IsCheatingEnabled() then
-			return
+	local function WithTemporaryCheats(func)
+		local wasCheatingEnabled = Spring.IsCheatingEnabled()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(true)
 		end
-		for _, gadgetName in pairs(removeGadgets) do
-			local g = gadgetHandler:FindGadget(gadgetName)
-			gadgetHandler:RemoveGadget(g)
+		func()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(false)
 		end
+	end
 
-		Spring.SetGameRulesParam("testEndConditionsOverride", true)
+	local function SetTestEndConditionsCmd(cmd, line, words, playerID)
+		WithTemporaryCheats(function()
+			for _, gadgetName in pairs(removeGadgets) do
+				local g = gadgetHandler:FindGadget(gadgetName)
+				gadgetHandler:RemoveGadget(g)
+			end
+
+			Spring.SetGameRulesParam("testEndConditionsOverride", true)
+		end)
 	end
 
 	local function SetTestReadyPlayersCmd(cmd, line, words, playerID)
-		if not Spring.IsCheatingEnabled() then
-			return
-		end
-		local playerList = Spring.GetPlayerList()
-		for _, playerID in pairs(playerList) do
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
-		end
+		WithTemporaryCheats(function()
+			local playerList = Spring.GetPlayerList()
+			for _, playerID in pairs(playerList) do
+				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
+			end
+		end)
 	end
 
 	function gadget:Initialize()

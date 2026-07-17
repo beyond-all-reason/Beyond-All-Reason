@@ -1175,6 +1175,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("dlgl4stats", "t")
+	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
@@ -1186,6 +1188,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
 	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightSpawn')
 	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightCorrect')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightFade')
 	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightRemove')
 
 	deferredLightShader:Delete()
@@ -1761,26 +1764,25 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--end
 end
 
--- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command)
-	if stringFind(command, "dlgl4stats", nil, true) then
-		spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
-				numAddLights,
-				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
-				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
-				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
-				cursorPointLightVBO.usedElements))
-		return true
-	end
-	if stringFind(command, "dlgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function dlgl4statsCmd(_, line)
+	spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
+			numAddLights,
+			pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
+			unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
+			projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
+			cursorPointLightVBO.usedElements))
+	return true
+end
+
+local function dlgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("dlgl4stats", dlgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("dlgl4skipdraw", dlgl4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
@@ -1937,6 +1939,25 @@ function widget:Initialize()
 		end
 		return true
 	end
+	WG['lightsgl4'].EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		local ff = mathFloor(fadeFrames or 1)
+		if ff < 1 then ff = 1 end
+		instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+		local instData = predictivePointLightVBO.instanceData
+		instData[instanceIndex + spawnFramePos] = f
+		instData[instanceIndex + 18] = ff
+		instData[instanceIndex + 19] = 0
+		local deathtime = math_ceil(f + ff)
+		if lightRemoveQueue[deathtime] == nil then
+			lightRemoveQueue[deathtime] = {}
+		end
+		lightRemoveQueue[deathtime][instanceID] = predictivePointLightVBO
+		predictivePointLightVBO.dirty = true
+		return true
+	end
 	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)
 		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
 			popElementInstance(predictivePointLightVBO, instanceID)
@@ -1945,6 +1966,7 @@ function widget:Initialize()
 	end
 	widgetHandler:RegisterGlobal('EnvNanoBallisticLightSpawn', WG['lightsgl4'].EnvNanoBallisticLightSpawn)
 	widgetHandler:RegisterGlobal('EnvNanoBallisticLightCorrect', WG['lightsgl4'].EnvNanoBallisticLightCorrect)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightFade', WG['lightsgl4'].EnvNanoBallisticLightFade)
 	widgetHandler:RegisterGlobal('EnvNanoBallisticLightRemove', WG['lightsgl4'].EnvNanoBallisticLightRemove)
 end
 

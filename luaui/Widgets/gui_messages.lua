@@ -165,6 +165,7 @@ function widget:Initialize()
 	WG['messages'].addMessage = function(text)
 		addMessage(text)
 	end
+	widgetHandler:AddAction("addmessage", addmessageCmd, nil, "t")
 end
 
 function widget:GadgetAddMessage(text)
@@ -250,6 +251,7 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("addmessage", "t")
 	WG['messages'] = nil
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i].displaylist then
@@ -259,10 +261,11 @@ function widget:Shutdown()
 	end
 end
 
-function widget:TextCommand(command)
-	if string.sub(command,1, 11) == "addmessage " then
-		addMessage(string.sub(command, 11))
+function addmessageCmd(_, line)
+	if line and line ~= "" then
+		addMessage(line)
 	end
+	return true
 end
 
 function widget:GetConfigData(data)

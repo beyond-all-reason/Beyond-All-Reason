@@ -1853,15 +1853,31 @@ local commandFX = {
 	MAX = 300,       -- max simultaneous FX entries
 }
 
-local seismicPingDlists = {
-	outerArcs = {},
-	middleArcs = {},
-	innerArcs = {},
-	centerCircle = nil,
-	outerOutlines = {},
-	middleOutlines = {},
-	innerOutlines = {},
+seismicPingAtlasTexture = "LuaRules/Images/seismic_ping/seismic_atlas.png"
+seismicPingAtlasSprites = {
+	outerRing = { 0 / 7, 0, 1 / 7, 1 },
+	outerOutline = { 1 / 7, 0, 2 / 7, 1 },
+	middleRing = { 2 / 7, 0, 3 / 7, 1 },
+	middleOutline = { 3 / 7, 0, 4 / 7, 1 },
+	innerRing = { 4 / 7, 0, 5 / 7, 1 },
+	innerOutline = { 5 / 7, 0, 6 / 7, 1 },
+	centerDot = { 6 / 7, 0, 7 / 7, 1 },
 }
+seismicOuterQuadScale = 1.17
+seismicMiddleQuadScale = 1.18
+seismicInnerQuadScale = 1.24
+seismicCenterQuadScale = 2.2
+
+function DrawSeismicTexturedQuad(sprite, scale, rotation)
+	local s1, t1, s2, t2 = sprite[1], sprite[2], sprite[3], sprite[4]
+	glFunc.PushMatrix()
+	if rotation then
+		glFunc.Rotate(rotation, 0, 0, 1)
+	end
+	glFunc.Scale(scale, scale, 1)
+	glFunc.TexRect(-1, -1, 1, 1, s1, t1, s2, t2)
+	glFunc.PopMatrix()
+end
 local gameHasStarted
 local gaiaTeamID = Spring.GetGaiaTeamID()
 cache.gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
@@ -6375,40 +6391,29 @@ local function DrawSeismicPings()
 				local innerAlpha = math.max(0, (1 - innerProgress))
 				local innerRadius = radius - (radius * progress * 0.45)
 
-				gl.Scale(2.3,2.3,0)	-- scale up so it is visible in pip
+				glFunc.Scale(2.3, 2.3, 1)	-- scale up so it is visible in pip
+				glFunc.Texture(seismicPingAtlasTexture)
 
 				-- PASS 1: Draw all dark outlines with normal blending
 				if cameraState.zoom > 0.5 then
 					gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 					-- Outer outlines
-					glFunc.Color(0.09, 0, 0, outerAlpha * 0.25)
-					for j = 0, 3 do
-						glFunc.PushMatrix()
-						glFunc.Rotate(rotation1, 0, 0, 1)
-						glFunc.Scale(outerRadius, outerRadius, 1)
-						glFunc.CallList(seismicPingDlists.outerOutlines[j])
-						glFunc.PopMatrix()
+					if outerAlpha > 0.001 then
+						glFunc.Color(0.09, 0, 0, outerAlpha * 0.25)
+						DrawSeismicTexturedQuad(seismicPingAtlasSprites.outerOutline, outerRadius * seismicOuterQuadScale, rotation1)
 					end
 
 					-- Middle outlines
-					glFunc.Color(0.09, 0, 0, middleAlpha * 0.25)
-					for j = 0, 2 do
-						glFunc.PushMatrix()
-						glFunc.Rotate(rotation2, 0, 0, 1)
-						glFunc.Scale(middleRadius, middleRadius, 1)
-						glFunc.CallList(seismicPingDlists.middleOutlines[j])
-						glFunc.PopMatrix()
+					if middleAlpha > 0.001 then
+						glFunc.Color(0.09, 0, 0, middleAlpha * 0.25)
+						DrawSeismicTexturedQuad(seismicPingAtlasSprites.middleOutline, middleRadius * seismicMiddleQuadScale, rotation2)
 					end
 
 					-- Inner outlines
-					glFunc.Color(0.07, 0, 0, innerAlpha * 0.25)
-					for j = 0, 1 do
-						glFunc.PushMatrix()
-						glFunc.Rotate(rotation3, 0, 0, 1)
-						glFunc.Scale(innerRadius, innerRadius, 1)
-						glFunc.CallList(seismicPingDlists.innerOutlines[j])
-						glFunc.PopMatrix()
+					if innerAlpha > 0.001 then
+						glFunc.Color(0.07, 0, 0, innerAlpha * 0.25)
+						DrawSeismicTexturedQuad(seismicPingAtlasSprites.innerOutline, innerRadius * seismicInnerQuadScale, rotation3)
 					end
 				end
 
@@ -6416,33 +6421,21 @@ local function DrawSeismicPings()
 				gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 				-- Outer ring - 4 arcs rotating clockwise
-				glFunc.Color(1, 0.1, 0.09, outerAlpha)
-				for j = 0, 3 do
-					glFunc.PushMatrix()
-					glFunc.Rotate(rotation1, 0, 0, 1)
-					glFunc.Scale(outerRadius, outerRadius, 1)
-					glFunc.CallList(seismicPingDlists.outerArcs[j])
-					glFunc.PopMatrix()
+				if outerAlpha > 0.001 then
+					glFunc.Color(1, 0.1, 0.09, outerAlpha)
+					DrawSeismicTexturedQuad(seismicPingAtlasSprites.outerRing, outerRadius * seismicOuterQuadScale, rotation1)
 				end
 
 				-- Middle ring - 3 arcs rotating counter-clockwise
-				glFunc.Color(1, 0.22, 0.2, middleAlpha)
-				for j = 0, 2 do
-					glFunc.PushMatrix()
-					glFunc.Rotate(rotation2, 0, 0, 1)
-					glFunc.Scale(middleRadius, middleRadius, 1)
-					glFunc.CallList(seismicPingDlists.middleArcs[j])
-					glFunc.PopMatrix()
+				if middleAlpha > 0.001 then
+					glFunc.Color(1, 0.22, 0.2, middleAlpha)
+					DrawSeismicTexturedQuad(seismicPingAtlasSprites.middleRing, middleRadius * seismicMiddleQuadScale, rotation2)
 				end
 
 				-- Inner ring - 2 arcs rotating clockwise
-				glFunc.Color(1, 0.37, 0.33, innerAlpha)
-				for j = 0, 1 do
-					glFunc.PushMatrix()
-					glFunc.Rotate(rotation3, 0, 0, 1)
-					glFunc.Scale(innerRadius, innerRadius, 1)
-					glFunc.CallList(seismicPingDlists.innerArcs[j])
-					glFunc.PopMatrix()
+				if innerAlpha > 0.001 then
+					glFunc.Color(1, 0.37, 0.33, innerAlpha)
+					DrawSeismicTexturedQuad(seismicPingAtlasSprites.innerRing, innerRadius * seismicInnerQuadScale, rotation3)
 				end
 
 				-- Center dot (shrinks from large to small with fade in/out)
@@ -6457,12 +6450,10 @@ local function DrawSeismicPings()
 					end
 					local centerAlpha = math.max(0, centerAlphaMultiplier * 0.6)
 					glFunc.Color(1, 0.25, 0.23, centerAlpha)
-					glFunc.PushMatrix()
-					glFunc.Scale(centerScale, centerScale, 1)
-					glFunc.CallList(seismicPingDlists.centerCircle)
-					glFunc.PopMatrix()
+					DrawSeismicTexturedQuad(seismicPingAtlasSprites.centerDot, centerScale * seismicCenterQuadScale)
 				end
 
+				glFunc.Texture(false)
 				gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 				glFunc.PopMatrix()
 				i = i + 1
@@ -7555,110 +7546,6 @@ end
 -- Callins
 ----------------------------------------------------------------------------------------------------
 
--- Helper: Draw a thick arc as geometry (for display list creation)
-local function DrawThickArcVertices(innerRadius, outerRadius, startAngle, endAngle, segments)
-	local angleStep = (endAngle - startAngle) / segments
-	local cos, sin = math.cos, math.sin
-	for i = 0, segments - 1 do
-		local angle1 = startAngle + i * angleStep
-		local angle2 = startAngle + (i + 1) * angleStep
-		local cos1, sin1 = cos(angle1), sin(angle1)
-		local cos2, sin2 = cos(angle2), sin(angle2)
-		glFunc.Vertex(cos1 * innerRadius, sin1 * innerRadius, 0)
-		glFunc.Vertex(cos1 * outerRadius, sin1 * outerRadius, 0)
-		glFunc.Vertex(cos2 * outerRadius, sin2 * outerRadius, 0)
-		glFunc.Vertex(cos2 * innerRadius, sin2 * innerRadius, 0)
-	end
-end
-
--- Create display lists for seismic ping rotating arcs
-local function CreateSeismicPingDlists()
-	local pi = math.pi
-	local pi2 = pi * 2
-	local baseRadius = 16
-	local baseThickness = 2.4
-
-	-- Proportional thicknesses (relative to unit radius 1.0)
-	local outerThicknessRatio = baseThickness * 1.05 / baseRadius
-	local middleThicknessRatio = baseThickness * 0.8 / baseRadius
-	local innerThicknessRatio = baseThickness * 1 / baseRadius
-	local centerThicknessRatio = baseThickness * 1.8 / baseRadius
-	local outlineExtra = 0.02
-
-	-- Outer arcs: 4 arcs, 60 degrees each
-	local outerInner = 1.08 - outerThicknessRatio / 2
-	local outerOuter = 1.08 + outerThicknessRatio / 2
-	for i = 0, 3 do
-		local startAngle = (i * 90) * pi / 180
-		local arcLength = 60 * pi / 180
-		-- Outline
-		seismicPingDlists.outerOutlines[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner - outlineExtra, outerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
-		end)
-		-- Main arc
-		seismicPingDlists.outerArcs[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, outerInner, outerOuter, startAngle, startAngle + arcLength, 12)
-		end)
-	end
-
-	-- Middle arcs: 3 arcs, 80 degrees each, at 0.85 of unit radius
-	local middleRadiusRatio = 0.85
-	local middleInner = middleRadiusRatio - middleThicknessRatio / 2
-	local middleOuter = middleRadiusRatio + middleThicknessRatio / 2
-	for i = 0, 2 do
-		local startAngle = (i * 120) * pi / 180
-		local arcLength = 80 * pi / 180
-		-- Outline
-		seismicPingDlists.middleOutlines[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner - outlineExtra, middleOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
-		end)
-		-- Main arc
-		seismicPingDlists.middleArcs[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, middleInner, middleOuter, startAngle, startAngle + arcLength, 12)
-		end)
-	end
-
-	-- Inner arcs: 2 arcs, 120 degrees each, at 0.66 of unit radius
-	local innerRadiusRatio = 0.66
-	local innerInner = innerRadiusRatio - innerThicknessRatio / 2
-	local innerOuter = innerRadiusRatio + innerThicknessRatio / 2
-	for i = 0, 1 do
-		local startAngle = (i * 180) * pi / 180
-		local arcLength = 120 * pi / 180
-		-- Outline
-		seismicPingDlists.innerOutlines[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner - outlineExtra, innerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 16)
-		end)
-		-- Main arc
-		seismicPingDlists.innerArcs[i] = gl.CreateList(function()
-			glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, innerInner, innerOuter, startAngle, startAngle + arcLength, 16)
-		end)
-	end
-
-	-- Center circle: full circle
-	local centerInner = 1 - centerThicknessRatio / 1.3
-	local centerOuter = 1.25 + centerThicknessRatio / 1.3
-	seismicPingDlists.centerCircle = gl.CreateList(function()
-		glFunc.BeginEnd(glConst.QUADS, DrawThickArcVertices, centerInner, centerOuter, 0, pi2, 20)
-	end)
-end
-
--- Delete seismic ping display lists
-local function DeleteSeismicPingDlists()
-	for i = 0, 3 do
-		if seismicPingDlists.outerArcs[i] then gl.DeleteList(seismicPingDlists.outerArcs[i]) end
-		if seismicPingDlists.outerOutlines[i] then gl.DeleteList(seismicPingDlists.outerOutlines[i]) end
-	end
-	for i = 0, 2 do
-		if seismicPingDlists.middleArcs[i] then gl.DeleteList(seismicPingDlists.middleArcs[i]) end
-		if seismicPingDlists.middleOutlines[i] then gl.DeleteList(seismicPingDlists.middleOutlines[i]) end
-	end
-	for i = 0, 1 do
-		if seismicPingDlists.innerArcs[i] then gl.DeleteList(seismicPingDlists.innerArcs[i]) end
-		if seismicPingDlists.innerOutlines[i] then gl.DeleteList(seismicPingDlists.innerOutlines[i]) end
-	end
-	if seismicPingDlists.centerCircle then gl.DeleteList(seismicPingDlists.centerCircle) end
-end
 
 -- Register (or re-register) WG['minimap'] API for full compatibility with widgets
 -- expecting the original minimap API. Called from Initialize and again from DrawScreen
@@ -8069,9 +7956,6 @@ end
 
 function widget:Initialize()
 	RebuildAllUnitsCache()
-
-	-- Create seismic ping display lists
-	CreateSeismicPingDlists()
 
 	drawData.unitOutlineList = gl.CreateList(function()
 		glFunc.BeginEnd(GL.LINE_LOOP, function()
@@ -9247,8 +9131,6 @@ function widget:Shutdown()
 
 		gl.DeleteList(drawData.unitOutlineList)
 		gl.DeleteList(drawData.radarDotList)
-		DeleteSeismicPingDlists()
-
 		if shaders.los then
 			gl.DeleteShader(shaders.los)
 			shaders.los = nil
@@ -18996,9 +18878,13 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 
 	local myAllyTeam = Spring.GetMyAllyTeamID()
 	local spec, fullview = Spring.GetSpectatingState()
-	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID) or allyTeam
+	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID)
 
-	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
+	if (spec or allyTeam == myAllyTeam) and ((not unitAllyTeam) or unitAllyTeam ~= allyTeam) then
+		if spec and not fullview then
+			if allyTeam ~= myAllyTeam then return end
+		end
+
 		-- Calculate ping radius based on strength (strength is typically 1-10)
 		-- Use larger base radius for visibility
 		local maxRadius = 100 + math.min(strength, 20) * 15

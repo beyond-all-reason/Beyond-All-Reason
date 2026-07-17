@@ -98,7 +98,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		end
 		gadgetHandler:AddSyncAction("execCmd", execCmd)
 	end
 	function gadget:Shutdown()

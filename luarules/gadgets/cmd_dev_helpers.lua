@@ -1,4 +1,4 @@
---[[
+	--[[
 local msg = 'luar_uels ihatelua -100 200'
 for word in msg:gmatch("[%-_%w]+") do
   print (word)
@@ -447,7 +447,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		end
 		checkStartPlayers()
-		gadgetHandler:AddChatAction('loadmissiles', LoadMissiles, "")
 
 
 	end
@@ -469,11 +468,15 @@ if gadgetHandler:IsSyncedCode() then
 		local subPermission
 		if cmd == "desync" then
 			subPermission = "test"
-		elseif cmd == "givecat" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
-			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or
-			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" then
+		elseif cmd == "givecat" or cmd == "loadmissiles" or cmd == "xpunits" or cmd == "destroyunits" or cmd == "removeunits" or
+			cmd == "removenearbyunits" or cmd == "reclaimunits" or cmd == "transferunits" or cmd == "select" or cmd == "unselect" or
+			cmd == "neutralize" or cmd == "maxhealth" or cmd == "setsensors" or
+			cmd == "setblocking" or cmd == "relocate" or cmd == "setradius" or cmd == "setheight" or
+			cmd == "wreckunits" or cmd == "halfhealth" or cmd == "sethealth" or cmd == "spawnceg" or cmd == "spawnunitexplosion" or cmd == "removeunitdef" or cmd == "removeobjects" then
 			subPermission = "units"
 		elseif cmd == "playertoteam" or cmd == "killteam" then
+			subPermission = "teams"
+		elseif cmd == "godmode" or cmd == "godmodeally" then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
@@ -481,7 +484,8 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "modmarker"
 		end
 
-		if not isAuthorized(playerID, subPermission) then
+		local bypassSyncedAuthorization = cmd == "godmode" or cmd == "godmodeally"
+		if not bypassSyncedAuthorization and not isAuthorized(playerID, subPermission) then
 			return
 		end
 
@@ -492,6 +496,8 @@ if gadgetHandler:IsSyncedCode() then
 
 		if cmd == "givecat" then
 			GiveCat(words)
+		elseif cmd == "loadmissiles" then
+			LoadMissiles()
 		elseif cmd == "xpunits" then
 			local parts = string.split(msg, ':')
 			local words = {}
@@ -516,6 +522,76 @@ if gadgetHandler:IsSyncedCode() then
 				table.insert(words, word)
 			end
 			ExecuteSelUnits(words, playerID, 'transfer', parts[3])
+		elseif cmd == "neutralize" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'neutralize', parts[3])
+		elseif cmd == "maxhealth" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'maxhealth', parts[3])
+		elseif cmd == "setsensors" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setsensors', parts[3])
+		elseif cmd == "setblocking" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setblocking', parts[3])
+		elseif cmd == "relocate" then
+			RelocateUnits(words)
+		elseif cmd == "setradius" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setradius', parts[3])
+		elseif cmd == "setheight" then
+			local parts = string.split(msg, ':')
+			local words = {}
+			msg = parts[1]..':'..parts[2]
+			for word in msg:gmatch("[%-_%w]+") do
+				table.insert(words, word)
+			end
+			ExecuteSelUnits(words, playerID, 'setheight', parts[3])
+		elseif cmd == "select" then
+			local requestID = words[2]
+			local foundUnits = false
+			for n = 3, #words do
+				local unitID = tonumber(words[n])
+				if unitID and Spring.ValidUnitID(unitID) then
+					Spring.SetUnitNoSelect(unitID, false)
+					foundUnits = true
+				end
+			end
+			if foundUnits and requestID then
+				SendToUnsynced("devhelper_selectunits", playerID, requestID)
+			end
+		elseif cmd == "unselect" then
+			for n = 2, #words do
+				local unitID = tonumber(words[n])
+				if unitID and Spring.ValidUnitID(unitID) then
+					Spring.SetUnitNoSelect(unitID, true)
+				end
+			end
 		elseif cmd == "wreckunits" then
 			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif cmd == "halfhealth" then
@@ -534,12 +610,18 @@ if gadgetHandler:IsSyncedCode() then
 			spawnunitexplosion(words, playerID)
 		elseif cmd == "removeunitdef" then
 			ExecuteRemoveUnitDefName(words[2])
+		elseif cmd == "removeobjects" then
+			RemoveObjects()
 		elseif cmd == "clearwrecks" then
 			ClearWrecks()
 		elseif cmd == "reducewrecks" then
 			ReduceWrecksAndHeaps()
 		elseif cmd == "globallos" then
 			globallos(words)
+		elseif cmd == "godmode" then
+			godmode(words)
+		elseif cmd == "godmodeally" then
+			godmodeally(words)
 		elseif cmd == "playertoteam" then
 			playertoteam(words)
 		elseif cmd == "killteam" then
@@ -561,8 +643,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('loadmissiles')
-
 	end
 	function globallos(words)
 		local allyteams = Spring.GetAllyTeamList()
@@ -571,6 +651,28 @@ if gadgetHandler:IsSyncedCode() then
 			if not words[3] or allyTeamID == tonumber(words[3]) then
 				Spring.SetGlobalLos(allyTeamID, words[2] == '1')
 			end
+		end
+	end
+
+	function godmode(words)
+		local wasCheatingEnabled = Spring.IsCheatingEnabled()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(true)
+		end
+		Spring.SetGodMode(nil, words[2] == '1')
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(false)
+		end
+	end
+
+	function godmodeally(words)
+		local wasCheatingEnabled = Spring.IsCheatingEnabled()
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(true)
+		end
+		Spring.SetGodMode(words[2] == '1', nil)
+		if not wasCheatingEnabled then
+			Spring.SetCheatingEnabled(false)
 		end
 	end
 
@@ -648,12 +750,69 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.SetUnitExperience(unitID, tonumber(params))
 					end
 				elseif action == 'remove' then
+					Spring.SetUnitRulesParam(unitID, "remove_decorations", 1)
 					Spring.DestroyUnit(unitID, false, true)
 				elseif action == 'removenearbyunits' then
 					Spring.DestroyUnit(unitID, false, true)
 				elseif action == 'transfer' then
 					if type(tonumber(params)) == 'number' then
 						Spring.TransferUnit(unitID, tonumber(params), true)
+					end
+				elseif action == 'neutralize' then
+					Spring.SetUnitNeutral(unitID, params ~= '0')
+				elseif action == 'maxhealth' and params then
+					local newMaxHealth = tonumber(params)
+					if newMaxHealth and newMaxHealth > 0 then
+						local health, maxHealth = Spring.GetUnitHealth(unitID)
+						Spring.SetUnitMaxHealth(unitID, newMaxHealth)
+						if maxHealth and maxHealth > 0 then
+							local healthPercent = (health or maxHealth) / maxHealth
+							Spring.SetUnitHealth(unitID, newMaxHealth * healthPercent)
+						else
+							Spring.SetUnitHealth(unitID, newMaxHealth)
+						end
+					end
+				elseif action == 'setsensors' then
+					if params == '0' then
+						Spring.SetUnitSensorRadius(unitID, 'los', 0)
+						Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+						Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+						Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+						Spring.SetUnitSensorRadius(unitID, 'seismic', 0)
+						Spring.SetUnitSensorRadius(unitID, 'radarJammer', 0)
+						Spring.SetUnitSensorRadius(unitID, 'sonarJammer', 0)
+					else
+						local unitDefID = Spring.GetUnitDefID(unitID)
+						local ud = unitDefID and UnitDefs[unitDefID]
+						if ud then
+							Spring.SetUnitSensorRadius(unitID, 'los', ud.losRadius or 0)
+							Spring.SetUnitSensorRadius(unitID, 'airLos', ud.airLosRadius or ud.losRadius or 0)
+							Spring.SetUnitSensorRadius(unitID, 'radar', ud.radarDistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'sonar', ud.sonarDistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'seismic', ud.seismicDistance or ud.seismicdistance or 0)
+							Spring.SetUnitSensorRadius(unitID, 'radarJammer', ud.radarDistanceJam or 0)
+							Spring.SetUnitSensorRadius(unitID, 'sonarJammer', ud.sonarDistanceJam or 0)
+						end
+					end
+				elseif action == 'setblocking' then
+					Spring.SetUnitBlocking(unitID, params ~= '0')
+				elseif action == 'setradius' and params then
+					local delta = tonumber(params)
+					if delta then
+						local currentRadius = Spring.GetUnitRadius(unitID) or 0
+						local currentHeight = Spring.GetUnitHeight(unitID) or 0
+						local newRadius = math.max(1, currentRadius + delta)
+						Spring.SetUnitRadiusAndHeight(unitID, newRadius, currentHeight)
+						Spring.Echo(string.format("unit %d radius: %.2f", unitID, newRadius))
+					end
+				elseif action == 'setheight' and params then
+					local delta = tonumber(params)
+					if delta then
+						local currentRadius = Spring.GetUnitRadius(unitID) or 0
+						local currentHeight = Spring.GetUnitHeight(unitID) or 0
+						local newHeight = math.max(1, currentHeight + delta)
+						Spring.SetUnitRadiusAndHeight(unitID, currentRadius, newHeight)
+						Spring.Echo(string.format("unit %d height: %.2f", unitID, newHeight))
 					end
 				elseif action == 'sethealth' and params then
 					if type(tonumber(params)) == 'number' then
@@ -683,6 +842,47 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
+		end
+	end
+
+	function RelocateUnits(words)
+		if #words < 5 then
+			return
+		end
+
+		local targetX = tonumber(words[2])
+		local targetZ = tonumber(words[3])
+		if not targetX or not targetZ then
+			return
+		end
+
+		local unitData = {}
+		local sumX, sumZ = 0, 0
+		for n = 4, #words do
+			local unitID = tonumber(words[n])
+			if unitID and Spring.ValidUnitID(unitID) then
+				local x, _, z = Spring.GetUnitPosition(unitID)
+				if x and z then
+					sumX = sumX + x
+					sumZ = sumZ + z
+					unitData[#unitData + 1] = { id = unitID, x = x, z = z }
+				end
+			end
+		end
+
+		local count = #unitData
+		if count == 0 then
+			return
+		end
+
+		local centerX = sumX / count
+		local centerZ = sumZ / count
+		for i = 1, count do
+			local u = unitData[i]
+			local newX = targetX + (u.x - centerX)
+			local newZ = targetZ + (u.z - centerZ)
+			local newY = Spring.GetGroundHeight(newX, newZ)
+			Spring.SetUnitPosition(u.id, newX, newY, newZ)
 		end
 	end
 
@@ -758,6 +958,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function RemoveObjects()
+		local allUnits = Spring.GetAllUnits()
+		local removed = 0
+		for i = 1, #allUnits do
+			local unitID = allUnits[i]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local ud = UnitDefs[unitDefID]
+			if ud then
+				local cp = ud.customParams
+				if (ud.modCategories and ud.modCategories["object"]) or (cp and cp.objectify) then
+					Spring.DestroyUnit(unitID, false, true)
+					removed = removed + 1
+				end
+			end
+		end
+		Spring.Echo(string.format("Removed %i object units", removed))
+	end
+
 	function ClearWrecks()
 		local allfeatures = Spring.GetAllFeatures()
 		local removedwrecks = 0
@@ -793,51 +1011,106 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
+	local pendingSelectRequests = {}
+	local selectRequestSeq = 0
+	local lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2
+	local lastSelectionBoxFrame = -1
+	local HOVER_PICK_SCREEN_RADIUS = 18
+	local HOVER_PICK_WORLD_RADIUS = 120
+	local godModeControlAllies, godModeControlEnemies
+
+	local function initializeGodModeState()
+		if godModeControlAllies == nil or godModeControlEnemies == nil then
+			local enabled = Spring.IsGodModeEnabled()
+			godModeControlAllies = enabled
+			godModeControlEnemies = enabled
+		end
+	end
+
 
 
 	function gadget:Initialize()
-		-- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- Give a category of units, options /luarules givecat [cor|arm|scav|raptor] or /luarules givecat unitname [teamid]
-		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- self-destrucs the selected units /luarules destroyunits
-		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- turns the selected units into wrecks /luarules wreckunits
-		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- reclaims and refunds the selected units /luarules reclaimUnits
-		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- removes the selected units /luarules removeunits
-		gadgetHandler:AddChatAction('removenearbyunits', removeNearbyUnits, "")  -- removes the selected units /luarules removenearbyunits radius #teamid
-		gadgetHandler:AddChatAction('transferunits', transferUnits, "")  -- transfers the selected units /luarules transferunits
-		gadgetHandler:AddChatAction('halfhealth', halfHealth, "")  -- halves selected units health, or all units if nothing is selected
-		gadgetHandler:AddChatAction('sethealth', setHealth, "")  -- sets selected units health to a percentage, /luarules sethealth [0-100]
+		local myPlayerID = Spring.GetMyPlayerID()
+		local function addAuthorizedChatAction(permission, action, handler)
+			if isAuthorized(myPlayerID, permission) then
+				gadgetHandler:AddChatAction(action, handler)
+			end
+		end
 
-		gadgetHandler:AddChatAction('xp', xpUnits, "")	-- gives the selected units experience, /luarules xp [int]
+		addAuthorizedChatAction('units', 'loadmissiles', loadMissiles)
+		addAuthorizedChatAction('units', 'givecat', GiveCat)
+		addAuthorizedChatAction('units', 'destroyunits', destroyUnits)
+		addAuthorizedChatAction('units', 'wreckunits', wreckUnits)
+		addAuthorizedChatAction('units', 'reclaimunits', reclaimUnits)
+		addAuthorizedChatAction('units', 'removeunits', removeUnits)
+		addAuthorizedChatAction('units', 'removenearbyunits', removeNearbyUnits)
+		addAuthorizedChatAction('units', 'transferunits', transferUnits)
+		addAuthorizedChatAction('units', 'neutralize', neutralizeUnits)
+		addAuthorizedChatAction('units', 'maxhealth', maxHealthUnits)
+		addAuthorizedChatAction('units', 'setsensors', setSensors)
+		addAuthorizedChatAction('units', 'setblocking', setBlocking)
+		addAuthorizedChatAction('units', 'relocate', relocateUnits)
+		addAuthorizedChatAction('units', 'setradius', setRadiusUnits)
+		addAuthorizedChatAction('units', 'setheight', setHeightUnits)
+		addAuthorizedChatAction('units', 'select', selectHoveredUnit)
+		addAuthorizedChatAction('units', 'unselect', unselectHoveredUnit)
+		addAuthorizedChatAction('units', 'halfhealth', halfHealth)
+		addAuthorizedChatAction('units', 'sethealth', setHealth)
+		addAuthorizedChatAction('units', 'xp', xpUnits)
+		addAuthorizedChatAction('units', 'spawnceg', spawnceg)
+		addAuthorizedChatAction('units', 'spawnunitexplosion', spawnunitexplosion)
+		addAuthorizedChatAction('units', 'dumpunits', dumpUnits)
+		addAuthorizedChatAction('units', 'dumpfeatures', dumpFeatures)
+		addAuthorizedChatAction('units', 'dumploadout', dumpLoadout)
+		addAuthorizedChatAction('units', 'removeunitdef', removeUnitDef)
+		addAuthorizedChatAction('units', 'removeobjects', removeObjects)
 
-		gadgetHandler:AddChatAction('spawnceg', spawnceg, "") -- --/luarules spawnceg newnuke [int] -- spawns at cursor at height
-		gadgetHandler:AddChatAction('spawnunitexplosion', spawnunitexplosion, "") -- --/luarules spawnunitexplosion armbull
+		addAuthorizedChatAction('terrain', 'clearwrecks', clearWrecks)
+		addAuthorizedChatAction('terrain', 'reducewrecks', reduceWrecks)
+		addAuthorizedChatAction('terrain', 'globallos', globallos)
 
-		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "") -- /luarules dumpunits dumps all units on may into infolog.txt
-		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "") -- /luarules dumpfeatures dumps all features into infolog.txt
-		gadgetHandler:AddChatAction('dumploadout', dumpLoadout, "") -- /luarules dumploadout dumps all units and features in loadout.lua format
-		gadgetHandler:AddChatAction('removeunitdef', removeUnitDef, "") -- /luarules removeunitdef armflash removes all units, their wrecks and heaps too
-		gadgetHandler:AddChatAction('clearwrecks', clearWrecks, "") -- /luarules clearwrecks removes all wrecks and heaps from the map
-		gadgetHandler:AddChatAction('reducewrecks', reduceWrecks, "") -- /luarules reducewrecks applies damage to reduce wrecks to heaps and to destroy heaps
+		addAuthorizedChatAction('teams', 'playertoteam', playertoteam)
+		addAuthorizedChatAction('teams', 'killteam', killteam)
+		addAuthorizedChatAction('teams', 'godmode', godmode)
+		addAuthorizedChatAction('teams', 'godmodeally', godmodeally)
 
-		gadgetHandler:AddChatAction('globallos', globallos, "") -- /luarules globallos [1|0] [allyteam] -- sets global los for all teams, 1 = on, 0 = off  (allyteam is optional)
-		gadgetHandler:AddChatAction('playertoteam', playertoteam, "") -- /luarules playertoteam [playerID] [teamID] -- playerID+teamID are optional, no playerID given = your own playerID, no teamID = selected unit team or hovered unit team
-		gadgetHandler:AddChatAction('killteam', killteam, "") -- /luarules killteam [teamID] -- kills the team
-		gadgetHandler:AddChatAction('desync', desync) -- /luarules desync
-		gadgetHandler:AddChatAction('modmarker', modmarker, "") -- /luarules modmarker [label] -- places a broadcast marker at cursor visible to all players
+		addAuthorizedChatAction('test', 'desync', desync)
+		addAuthorizedChatAction('modmarker', 'modmarker', modmarker)
 		-- Moderator broadcast ping: the synced modmarker handler relays here, and
 		-- every client draws it locally (localOnly=true) so ALL players see it.
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
 			Spring.MarkerAddPoint(x, y, z, label or "", true)
 		end)
+		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
+			if requestPlayerID ~= Spring.GetMyPlayerID() then
+				return
+			end
+			local requestKey = tostring(requestID)
+			local units = pendingSelectRequests[requestKey]
+			if units and #units > 0 then
+				Spring.SelectUnitArray(units, false)
+			end
+			pendingSelectRequests[requestKey] = nil
+		end)
 	end
 
 	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction('loadmissiles')
 		gadgetHandler:RemoveChatAction('givecat')
 		gadgetHandler:RemoveChatAction('destroyunits')
 		gadgetHandler:RemoveChatAction('reclaimunits')
 		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('removenearbyunits')
 		gadgetHandler:RemoveChatAction('transferunits')
+		gadgetHandler:RemoveChatAction('neutralize')
+		gadgetHandler:RemoveChatAction('maxhealth')
+		gadgetHandler:RemoveChatAction('setsensors')
+		gadgetHandler:RemoveChatAction('setblocking')
+		gadgetHandler:RemoveChatAction('relocate')
+		gadgetHandler:RemoveChatAction('setradius')
+		gadgetHandler:RemoveChatAction('setheight')
+		gadgetHandler:RemoveChatAction('select')
+		gadgetHandler:RemoveChatAction('unselect')
 		gadgetHandler:RemoveChatAction('halfhealth')
 		gadgetHandler:RemoveChatAction('sethealth')
 		gadgetHandler:RemoveChatAction('xp')
@@ -847,14 +1120,27 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('dumpunits')
 		gadgetHandler:RemoveChatAction('dumpfeatures')
 		gadgetHandler:RemoveChatAction('removeunitdefs')
+		gadgetHandler:RemoveChatAction('removeobjects')
 		gadgetHandler:RemoveChatAction('clearwrecks')
 		gadgetHandler:RemoveChatAction('reducewrecks')
 		gadgetHandler:RemoveChatAction('globallos')
 		gadgetHandler:RemoveChatAction('playertoteam')
 		gadgetHandler:RemoveChatAction('killteam')
+		gadgetHandler:RemoveChatAction('godmode')
+		gadgetHandler:RemoveChatAction('godmodeally')
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
 		gadgetHandler:RemoveSyncAction("modmarker")
+		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
+	end
+	function loadMissiles(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':loadmissiles')
 	end
 
 	function xpUnits(_, line, words, playerID)
@@ -877,6 +1163,187 @@ else	-- UNSYNCED
 	end
 	function transferUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'transferunits')
+	end
+	function neutralizeUnits(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules neutralize [1|0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'neutralize')
+	end
+	function maxHealthUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' or tonumber(words[1]) <= 0 then
+			Spring.Echo("Usage: /luarules maxhealth [number > 0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'maxhealth')
+	end
+	function setSensors(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules setsensors [0|1]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setsensors')
+	end
+	function setBlocking(_, line, words, playerID)
+		if words[1] and words[1] ~= '0' and words[1] ~= '1' then
+			Spring.Echo("Usage: /luarules setblocking [1|0]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setblocking')
+	end
+	function relocateUnits(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		local units = Spring.GetSelectedUnits()
+		if not units or #units == 0 then
+			return
+		end
+
+		local mx, my = Spring.GetMouseState()
+		local _, pos = Spring.TraceScreenRay(mx, my, true)
+		if type(pos) ~= 'table' then
+			return
+		end
+
+		local msg = string.format("relocate %d %d", math.floor(pos[1]), math.floor(pos[3]))
+		for i = 1, #units do
+			msg = msg .. " " .. units[i]
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+	end
+	function setRadiusUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' then
+			Spring.Echo("Usage: /luarules setradius [value]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setradius')
+	end
+	function setHeightUnits(_, line, words, playerID)
+		if not words[1] or type(tonumber(words[1])) ~= 'number' then
+			Spring.Echo("Usage: /luarules setheight [value]")
+			return
+		end
+		processUnits(_, line, words, playerID, 'setheight')
+	end
+	function selectHoveredUnit(_, line, words, playerID, action)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+
+		action = action or 'select'
+
+		local targetUnits = {}
+		local boxX1, boxY1, boxX2, boxY2 = Spring.GetSelectionBox()
+		if not boxX1 and lastSelectionBoxFrame >= 0 and (Spring.GetGameFrame() - lastSelectionBoxFrame) <= 16 then
+			boxX1, boxY1, boxX2, boxY2 = lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2
+		end
+
+		if boxX1 then
+			targetUnits = Spring.GetUnitsInScreenRectangle(boxX1, boxY1, boxX2, boxY2) or {}
+		else
+			local selectedUnits = Spring.GetSelectedUnits()
+			if selectedUnits and #selectedUnits > 0 then
+			local minX, minZ, maxX, maxZ
+			for i = 1, #selectedUnits do
+				local sx, _, sz = Spring.GetUnitPosition(selectedUnits[i])
+				if sx and sz then
+					if not minX then
+						minX, minZ, maxX, maxZ = sx, sz, sx, sz
+					else
+						if sx < minX then minX = sx end
+						if sx > maxX then maxX = sx end
+						if sz < minZ then minZ = sz end
+						if sz > maxZ then maxZ = sz end
+					end
+				end
+			end
+			if minX then
+				targetUnits = Spring.GetUnitsInRectangle(minX, minZ, maxX, maxZ) or {}
+			end
+			else
+				local mx, my = Spring.GetMouseState()
+				Script.LuaUI.RestoreSelectionVolume() -- keep raycast behavior consistent with existing gadget usage
+				local targetType, unitID = Spring.TraceScreenRay(mx, my)
+				Script.LuaUI.RemoveSelectionVolume()
+				if targetType == 'unit' and unitID and Spring.ValidUnitID(unitID) then
+					targetUnits[1] = unitID
+				else
+					targetUnits = Spring.GetUnitsInScreenRectangle(mx - HOVER_PICK_SCREEN_RADIUS, my - HOVER_PICK_SCREEN_RADIUS, mx + HOVER_PICK_SCREEN_RADIUS, my + HOVER_PICK_SCREEN_RADIUS) or {}
+					if #targetUnits == 0 then
+						local _, pos = Spring.TraceScreenRay(mx, my, true)
+						if type(pos) == 'table' then
+							local nearbyUnits = Spring.GetUnitsInSphere(pos[1], pos[2], pos[3], HOVER_PICK_WORLD_RADIUS) or {}
+							local bestUnitID, bestDistSq
+							for i = 1, #nearbyUnits do
+								local candidateID = nearbyUnits[i]
+								if candidateID and Spring.ValidUnitID(candidateID) then
+									local ux, _, uz = Spring.GetUnitPosition(candidateID)
+									if ux and uz then
+										local dx = ux - pos[1]
+										local dz = uz - pos[3]
+										local distSq = dx * dx + dz * dz
+										if not bestDistSq or distSq < bestDistSq then
+											bestDistSq = distSq
+											bestUnitID = candidateID
+										end
+									end
+								end
+							end
+							if bestUnitID then
+								targetUnits[1] = bestUnitID
+							end
+						end
+					end
+				end
+			end
+		end
+
+		if #targetUnits == 0 then
+			return
+		end
+
+		local uniqueUnits = {}
+		local uniqueCount = 0
+		local seen = {}
+		for i = 1, #targetUnits do
+			local unitID = targetUnits[i]
+			if unitID and Spring.ValidUnitID(unitID) and not seen[unitID] then
+				seen[unitID] = true
+				uniqueCount = uniqueCount + 1
+				uniqueUnits[uniqueCount] = unitID
+			end
+		end
+
+		if uniqueCount == 0 then
+			return
+		end
+
+		local msg
+		if action == 'select' then
+			selectRequestSeq = selectRequestSeq + 1
+			local requestID = tostring(selectRequestSeq)
+			pendingSelectRequests[requestID] = uniqueUnits
+			msg = PACKET_HEADER .. ':select:' .. requestID
+		else
+			msg = PACKET_HEADER .. ':unselect'
+		end
+		for i = 1, uniqueCount do
+			msg = msg .. ':' .. uniqueUnits[i]
+		end
+		Spring.SendLuaRulesMsg(msg)
+	end
+
+	function unselectHoveredUnit(_, line, words, playerID)
+		selectHoveredUnit(_, line, words, playerID, 'unselect')
 	end
 	function halfHealth(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'halfhealth')
@@ -903,6 +1370,16 @@ else	-- UNSYNCED
 		if words[1] and UnitDefNames[words[1]] then
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeunitdef '.. words[1])
 		end
+	end
+
+	function removeObjects(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "units") then
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':removeobjects')
 	end
 
 	function clearWrecks(_, line, words, playerID)
@@ -1097,6 +1574,12 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Update() -- START OF UPDATE
+		local sx1, sy1, sx2, sy2 = Spring.GetSelectionBox()
+		if sx1 then
+			lastSelectionBoxX1, lastSelectionBoxY1, lastSelectionBoxX2, lastSelectionBoxY2 = sx1, sy1, sx2, sy2
+			lastSelectionBoxFrame = Spring.GetGameFrame()
+		end
+
 		if fightertestactive then
 			local now = Spring.GetTimerMicros()
 			if lastFrameType == 'draw' then
@@ -1301,6 +1784,32 @@ else	-- UNSYNCED
 		local globallos = (not words[1] or words[1] ~= '0') or false
 		Spring.Echo("Globallos: " .. (globallos and 'enabled' or 'disabled'))
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':globallos:' .. (globallos and ' 1' or ' 0')..(words[2] and ':'..words[2] or ''))
+	end
+
+	function godmode(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
+			return
+		end
+		initializeGodModeState()
+		godModeControlEnemies = not godModeControlEnemies
+		Spring.Echo("Enemy godmode: " .. (godModeControlEnemies and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':godmode:' .. (godModeControlEnemies and '1' or '0'))
+	end
+
+	function godmodeally(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "teams") then
+			return
+		end
+		initializeGodModeState()
+		godModeControlAllies = not godModeControlAllies
+		Spring.Echo("Ally godmode: " .. (godModeControlAllies and 'enabled' or 'disabled'))
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':godmodeally:' .. (godModeControlAllies and '1' or '0'))
 	end
 
 	function playertoteam(_, line, words, playerID, action)
@@ -1522,106 +2031,473 @@ else	-- UNSYNCED
 
 		local Accept = {} -- table of conditions that must be satisfied for the unitDef to be given
 
-		-- factions
-		if string.find(line, "arm") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "arm" and not string.find(ud.name, '_scav')
+		local function unitHasWeaponMatching(ud, predicate)
+			if not ud.weapons then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "cor") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+			for i = 1, #ud.weapons do
+				local weapon = ud.weapons[i]
+				local wDef = weapon and WeaponDefs[weapon.weaponDef]
+				if wDef and predicate(wDef, weapon) then
+					return true
+				end
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "leg") then
-			local Condition = function(ud)
-				return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "scav") then
-			local Condition = function(ud)
-				return string.find(ud.name, '_scav')
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "raptor") then
-			local Condition = function(ud)
-				return string.find(ud.name, 'raptor')
-			end
-			Accept[#Accept + 1] = Condition
+			return false
 		end
 
-		-- unit types
-		for t, suffix in pairs(facSuffix) do
-			if string.find(line, t) then
-				local Condition = function(ud)
-					return unitTypes[t][ud.id]
-				end
-				Accept[#Accept + 1] = Condition
+		local function unitHasWeaponType(ud, wantedType)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == wantedType
+			end)
+		end
+
+		local function isDepthchargeWeapon(wDef)
+			if not wDef or wDef.type ~= "TorpedoLauncher" then
+				return false
 			end
+			local weaponName = string.lower(wDef.name or "")
+			local description = string.lower(wDef.description or "")
+			local modelName = string.lower((wDef.visuals and wDef.visuals.modelName) or "")
+			return string.find(weaponName, "depth", 1, true)
+				or string.find(description, "depth", 1, true)
+				or string.find(modelName, "depth", 1, true)
+		end
+
+		local function isTorpedoWeapon(wDef)
+			return wDef and wDef.type == "TorpedoLauncher" and not isDepthchargeWeapon(wDef)
+		end
+
+		local function hasRoleTag(ud, role)
+			local cp = ud.customParams
+			if not cp then
+				return false
+			end
+			local unitgroup = cp.unitgroup and string.lower(cp.unitgroup) or ""
+			local unittype = cp.unittype and string.lower(cp.unittype) or ""
+			local subfolder = cp.subfolder and string.lower(cp.subfolder) or ""
+			return unitgroup == role or unittype == role or string.find(subfolder, role, 1, true)
+		end
+
+		local function isNavalUnit(ud)
+			if ud.canFly or ud.isBuilding then
+				return false
+			end
+			local cp = ud.customParams
+			local subfolder = cp and cp.subfolder and string.lower(cp.subfolder) or ""
+			return ud.floatOnWater or (ud.minWaterDepth and ud.minWaterDepth > 0) or string.find(subfolder, "ships", 1, true)
+		end
+
+		local function isSubmarineUnit(ud)
+			if not isNavalUnit(ud) then
+				return false
+			end
+			return ud.canSubmerge
+				or ud.sonarStealth
+				or string.find(ud.name, "sub", 1, true)
+				or hasRoleTag(ud, "sub")
+		end
+
+		local function hasWeaponRangeAtLeast(ud, minRange)
+			return unitHasWeaponMatching(ud, function(wDef, weapon)
+				if (wDef.range or 0) < minRange then
+					return false
+				end
+				if weapon.onlyTargets and weapon.onlyTargets.vtol and not weapon.onlyTargets.ground then
+					return false
+				end
+				return true
+			end)
+		end
+
+		local filterWords = {}
+		for i = 1, #words do
+			if words[i] then
+				filterWords[string.lower(words[i])] = true
+			end
+		end
+
+		local includeUnitDefIDs = {}
+		local excludeUnitDefIDs = {}
+		for i = 1, #words do
+			local token = words[i] and string.lower(words[i])
+			if token == "unitdef" or token == "nounitdef" then
+				local nextToken = words[i + 1]
+				if nextToken then
+					local parsed = tonumber((string.gsub(nextToken, "^#", "")))
+					if parsed and UnitDefs[parsed] then
+						if token == "unitdef" then
+							includeUnitDefIDs[parsed] = true
+						else
+							excludeUnitDefIDs[parsed] = true
+						end
+					end
+				end
+			end
+		end
+
+		local function addFilter(tokens, condition)
+			if type(tokens) == "string" then
+				tokens = {tokens}
+			end
+
+			local include = false
+			local exclude = false
+			for i = 1, #tokens do
+				local token = tokens[i]
+				if filterWords[token] then
+					include = true
+				end
+				if filterWords["no" .. token] then
+					exclude = true
+				end
+			end
+
+			if include then
+				Accept[#Accept + 1] = condition
+			end
+			if exclude then
+				Accept[#Accept + 1] = function(ud)
+					return not condition(ud)
+				end
+			end
+		end
+
+		-- factions
+		addFilter("arm", function(ud)
+			return ud.name:sub(1, 3) == "arm" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("cor", function(ud)
+			return ud.name:sub(1, 3) == "cor" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("leg", function(ud)
+			return ud.name:sub(1, 3) == "leg" and not string.find(ud.name, '_scav')
+		end)
+		addFilter("scav", function(ud)
+			return string.find(ud.name, '_scav')
+		end)
+		addFilter("raptor", function(ud)
+			return string.find(ud.name, 'raptor')
+		end)
+
+		-- unit types
+		for t, _ in pairs(facSuffix) do
+			local tKey = t
+			addFilter(tKey, function(ud)
+				return unitTypes[tKey][ud.id]
+			end)
 		end
 
 		-- tech levels
-		for t, suffix in pairs(techSuffix) do
-			if string.find(line, t) then
-				local Condition = function(ud)
-					return techLevels[t][ud.id]
-				end
-				Accept[#Accept + 1] = Condition
-			end
+		for t, _ in pairs(techSuffix) do
+			local tKey = t
+			addFilter(tKey, function(ud)
+				return techLevels[tKey][ud.id]
+			end)
 		end
 
 		-- other cats
-		if string.find(line, "con") then
-			local Condition = function(ud)
-				return ud.isBuilder
+		addFilter({"con", "builder"}, function(ud)
+			return ud.isBuilder
+		end)
+		addFilter("mex", function(ud)
+			return ud.isExtractor
+		end)
+		addFilter({"trans", "transport"}, function(ud)
+			return ud.isTransport
+		end)
+		addFilter("fac", function(ud)
+			return ud.isFactory
+		end)
+		addFilter("building", function(ud)
+			return ud.isBuilding
+		end)
+		addFilter("air", function(ud)
+			return ud.canFly
+		end)
+		addFilter("gunship", function(ud)
+			return ud.canFly and ud.hoverAttack
+		end)
+		addFilter("airtransport", function(ud)
+			return ud.canFly and ud.isTransport
+		end)
+		addFilter("amphib", function(ud)
+			if ud.canFly or ud.isBuilding or isNavalUnit(ud) then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "mex") then
-			local Condition = function(ud)
-				return ud.isExtractor
+			return (ud.maxWaterDepth or 0) > 0 or hasRoleTag(ud, "amph")
+		end)
+		addFilter("submarine", function(ud)
+			return isSubmarineUnit(ud)
+		end)
+		addFilter("watersurface", function(ud)
+			return isNavalUnit(ud) and not isSubmarineUnit(ud)
+		end)
+		addFilter("water", function(ud)
+			return isNavalUnit(ud)
+		end)
+		addFilter("mobile", function(ud)
+			return not ud.isBuilding
+		end)
+		addFilter("scout", function(ud)
+			return hasRoleTag(ud, "scout") or (not ud.isBuilding and ((ud.losRadius or 0) >= 700 or (ud.radarDistance or 0) >= 1800))
+		end)
+		addFilter({"artillery", "arty"}, function(ud)
+			-- Strategic nukes are handled by the dedicated nuke filter, not artillery.
+			if unitHasWeaponMatching(ud, function(wDef)
+				return wDef.targetable == 1
+			end) then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "trans") then
-			local Condition = function(ud)
-				return ud.isTransport
+
+			-- Exclude bomber-class aircraft from artillery.
+			if ud.canFly and not ud.hoverAttack and unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end) then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "fac") then
-			local Condition = function(ud)
-				return ud.isFactory
+
+			-- Exclude drone carriers and units that spawn carried drones.
+			local cp = ud.customParams
+			if (cp and cp.flyingcarrier) or string.find(ud.name, "dronecarry", 1, true) then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "building") then
-			local Condition = function(ud)
-				return ud.isBuilding
+			if unitHasWeaponMatching(ud, function(wDef)
+				local wcp = wDef.customParams
+				return wcp and wcp.carried_unit
+			end) then
+				return false
 			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "air") then
-			local Condition = function(ud)
-				return ud.canFly
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "mobile") then
-			local Condition = function(ud)
-				return not ud.isBuilding
-			end
-			Accept[#Accept + 1] = Condition
-		end
-		if string.find(line, "all") then
-			local Condition = function(ud)
+
+			return hasRoleTag(ud, "arty") or hasRoleTag(ud, "artillery") or hasWeaponRangeAtLeast(ud, 900)
+		end)
+		addFilter("riot", function(ud)
+			if hasRoleTag(ud, "riot") then
 				return true
 			end
-			Accept[#Accept + 1] = Condition
+			if ud.isBuilding or ud.isBuilder then
+				return false
+			end
+			return unitHasWeaponMatching(ud, function(wDef, weapon)
+				if weapon.onlyTargets and weapon.onlyTargets.vtol and not weapon.onlyTargets.ground then
+					return false
+				end
+				if (wDef.range or 0) > 520 then
+					return false
+				end
+				return (wDef.damageAreaOfEffect or 0) >= 72
+			end)
+		end)
+		addFilter("skirmish", function(ud)
+			return hasRoleTag(ud, "skirm") or hasRoleTag(ud, "skirmish")
+		end)
+		addFilter("assault", function(ud)
+			if hasRoleTag(ud, "assault") then
+				return not ud.isBuilder
+			end
+			return not ud.isBuilding and not ud.canFly and not ud.isBuilder and (ud.health or 0) >= 2500
+		end)
+		addFilter("weapon", function(ud)
+			return unitHasWeaponMatching(ud, function()
+				return true
+			end)
+		end)
+		addFilter("laser", function(ud)
+			return unitHasWeaponType(ud, "LaserCannon") or unitHasWeaponType(ud, "BeamLaser")
+		end)
+		addFilter("plasma", function(ud)
+			return unitHasWeaponType(ud, "Cannon")
+		end)
+		addFilter("missile", function(ud)
+			return unitHasWeaponType(ud, "MissileLauncher")
+		end)
+		addFilter("depthcharge", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return isDepthchargeWeapon(wDef)
+			end)
+		end)
+		addFilter("torpedo", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return isTorpedoWeapon(wDef)
+			end)
+		end)
+		addFilter("starburst", function(ud)
+			return unitHasWeaponType(ud, "StarburstLauncher")
+		end)
+		addFilter("flame", function(ud)
+			return unitHasWeaponType(ud, "Flame")
+		end)
+		addFilter("lightning", function(ud)
+			return unitHasWeaponType(ud, "LightningCannon")
+		end)
+		addFilter("paralyzer", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.paralyzer
+			end)
+		end)
+		addFilter("emp", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.paralyzer
+			end)
+		end)
+		addFilter("interceptor", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.interceptor and wDef.interceptor > 0
+			end)
+		end)
+		addFilter("shield", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.isShield or (wDef.shieldRadius and wDef.shieldRadius > 0)
+			end)
+		end)
+		addFilter("antinuke", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.interceptor == 1
+			end)
+		end)
+		addFilter("nuke", function(ud)
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.targetable == 1
+			end)
+		end)
+		addFilter("aa", function(ud)
+			local cp = ud.customParams
+			return cp and cp.unitgroup == "aa"
+		end)
+		addFilter("aa-all", function(ud)
+			return unitHasWeaponMatching(ud, function(_, weapon)
+				return weapon.onlyTargets and weapon.onlyTargets.vtol
+			end)
+		end)
+		addFilter("bomber", function(ud)
+			if not ud.canFly or ud.hoverAttack then
+				return false
+			end
+			return unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end)
+		end)
+		addFilter("fighter", function(ud)
+			if not ud.canFly or ud.hoverAttack or ud.isTransport or ud.isBuilder then
+				return false
+			end
+			if unitHasWeaponMatching(ud, function(wDef)
+				return wDef.type == "AircraftBomb" or wDef.type == "TorpedoLauncher"
+			end) then
+				return false
+			end
+			return unitHasWeaponMatching(ud, function(_, weapon)
+				return weapon.onlyTargets and weapon.onlyTargets.vtol
+			end)
+		end)
+		addFilter("cloak", function(ud)
+			return ud.canCloak
+		end)
+		addFilter("hoverattack", function(ud)
+			return ud.hoverAttack
+		end)
+		addFilter("stealth", function(ud)
+			return ud.stealth or ud.sonarStealth
+		end)
+		addFilter("commander", function(ud)
+			local cp = ud.customParams
+			return cp and (cp.iscommander or cp.isscavcommander)
+		end)
+		addFilter("decoy", function(ud)
+			local cp = ud.customParams
+			return cp and (cp.decoyfor or cp.isdecoycommander)
+		end)
+		addFilter("resurrect", function(ud)
+			return ud.canResurrect
+		end)
+		addFilter("object", function(ud)
+			local cp = ud.customParams
+			local isObjectCategory = ud.modCategories and ud.modCategories["object"]
+			return isObjectCategory or (cp and cp.objectify)
+		end)
+		addFilter("objectify", function(ud)
+			local cp = ud.customParams
+			return cp and cp.objectify
+		end)
+		addFilter("collide", function(ud)
+			return ud.collide ~= false
+		end)
+		addFilter("utility", function(ud)
+			local cp = ud.customParams
+			return cp and cp.unitgroup == "util"
+		end)
+		addFilter("startunit", function(ud)
+			if ud.name == "armcom" or ud.name == "corcom" or ud.name == "legcom" then
+				return true
+			end
+			return false
+		end)
+		addFilter("capture", function(ud)
+			return ud.canCapture
+		end)
+		addFilter("seismic", function(ud)
+			return (ud.seismicDistance or ud.seismicdistance or 0) > 0
+		end)
+		addFilter("seismicsignature", function(ud)
+			return (ud.seismicSignature or ud.seismicsignature or 0) > 0
+		end)
+		addFilter("radar", function(ud)
+			return (ud.radarDistance or ud.radarradius or 0) > 1400
+		end)
+		addFilter("jammer", function(ud)
+			return (ud.radarDistanceJam or ud.jammerRadius or ud.jammerradius or 0) > 1
+		end)
+		addFilter("sonar", function(ud)
+			return (ud.sonarDistance or ud.sonarRadius or ud.sonarradius or 0) > 700
+		end)
+		addFilter("onoffable", function(ud)
+			return ud.onOffable
+		end)
+		addFilter("stockpile", function(ud)
+			return ud.canStockpile
+		end)
+		addFilter("energy", function(ud)
+			local cp = ud.customParams
+			local name = string.lower(ud.name or "")
+			return (ud.energyMake or 0) > 0
+				or (ud.windGenerator or 0) > 0
+				or (ud.tidalGenerator or 0) > 0
+				or (cp and cp.unitgroup == "energy")
+				or string.find(name, "solar", 1, true)
+				or string.find(name, "wind", 1, true)
+				or string.find(name, "fusion", 1, true)
+				or string.find(name, "geo", 1, true)
+		end)
+		addFilter("energyconvert", function(ud)
+			local cp = ud.customParams
+			return cp
+				and (tonumber(cp.energyconv_capacity) or 0) > 0
+				and (tonumber(cp.energyconv_efficiency) or 0) > 0
+		end)
+		addFilter("metal", function(ud)
+			local cp = ud.customParams
+			return ud.isExtractor
+				or (ud.extractsMetal or 0) > 0
+				or (ud.metalMake or 0) > 0
+				or (cp and cp.unitgroup == "metal")
+		end)
+		addFilter("all", function()
+			return true
+		end)
+
+		if next(includeUnitDefIDs) then
+			Accept[#Accept + 1] = function(ud)
+				return includeUnitDefIDs[ud.id]
+			end
+		end
+		if next(excludeUnitDefIDs) then
+			Accept[#Accept + 1] = function(ud)
+				return not excludeUnitDefIDs[ud.id]
+			end
+		end
+
+		if #Accept == 0 then
+			Spring.Echo("givecat: no valid filters given")
+			return
 		end
 
 		-- team
