@@ -1,3 +1,14 @@
+# July
+• [Legion changes]
+	- Phobos health increased 800 -> 840, turnrate increased 720 -> 800
+	- Karkinos cost reduced 330m2600E -> 310m2400E, heatray reloadtime reduced 2 -> 1.8s, shotgun range increased 240 -> 250
+	- Dragon's Jaw no longer gains range with elevation
+	- Arquebus reloadtime increased 6 -> 7s, damage increased 750 -> 850
+	- Thanatos reloadtime reduced 9 -> 8s
+	- Quickshot turret turn speed and weapon velocity increased
+	- Blindfold health reduced 890 -> 600, juno bomb aoe reduced 700 -> 500
+	- Phoenix bugfix, it should no longer fire up into space
+	
 # June
 • [General] Hold ALT when upgrading metal extractors to ignore allied extractors.
 • [All Builders] Idle mobile builders now auto-repair units within a range that depends on the movement state.

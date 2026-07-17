@@ -378,22 +378,6 @@ local function unitDef_Post(name, uDef)
 		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
 	end
 
-	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
-	if modOptions.tech_blocking then
-		local techLevel = customparams.techlevel or 1
-		if #buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
-			if techLevel == 1 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 1
-			elseif techLevel == 2 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 6
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 2
-			elseif techLevel == 3 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 9
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 3
-			end
-		end
-	end
-
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.experimentalextraunits then
 		extraUnitsTweaks(name, uDef)
@@ -573,14 +557,6 @@ local function unitDef_Post(name, uDef)
 
 	if modOptions.techsplit_balance == true then
 		uDef = techsplit_balanceTweaks(name, uDef)
-	end
-
-	-- Experimental Low Priority Pacifists
-	if modOptions.experimental_low_priority_pacifists then
-		if uDef.energycost and uDef.metalcost and not next(weapons) and uDef.speed and uDef.speed > 0 and
-		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
-			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
-		end
 	end
 
 	-- Multipliers Modoptions
@@ -772,6 +748,28 @@ local function unitDef_Post(name, uDef)
 				groupNumber = -1
 			end
 			weaponDef.customparams.weapons_group = groupNumber
+		end
+	end
+
+	-- Defend firestate: aircraft, long-range, starburst, and drone carrier units engage threats at any range in defend mode
+	-- regardless of calculated threat distance (see luarules/gadgets/unit_defend_firestate.lua).
+	--DEFEND FIRESTATE REWORK: Remove modoption guard; always set defend_never_hesitate for qualifying units
+	if modOptions.experimental_defend_firestate then
+		local DEFEND_NEVER_HESITATE_RANGE = 2000
+
+		if not customparams.defend_never_hesitate and next(weapondefs) then
+			for _, weaponDef in pairs(weapondefs) do
+				if not weaponDef.customparams.bogus then
+					if uDef.canfly
+						or weaponDef.weapontype == "StarburstLauncher"
+						or (weaponDef.range and weaponDef.range > DEFEND_NEVER_HESITATE_RANGE)
+						or (weaponDef.customparams.carried_unit and weaponDef.customparams.carried_unit ~= "")
+					then
+						customparams.defend_never_hesitate = true
+						break
+					end
+				end
+			end
 		end
 	end
 

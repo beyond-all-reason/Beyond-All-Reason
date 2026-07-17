@@ -46,7 +46,7 @@ for udefID,def in ipairs(UnitDefs) do
         isObject[udefID] = true
     end
     if def.customParams.decoration then
-        isDecoration[udefID] = true
+        isDecoration[udefID] = tonumber(def.customParams.decoration)
     end
 	if def.isBuilder then
 		isBuilder[udefID] = true
@@ -171,7 +171,7 @@ if gadgetHandler:IsSyncedCode() then
 					local udefid = math.abs(cmdID)
 					local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
 					for i=1, #units do
-						if isDecoration[spGetUnitDefID(units[i])] then
+						if isDecoration[spGetUnitDefID(units[i])] == 1 then
 							if Spring.GetUnitIsDead(units[i]) == false then
 								Spring.DestroyUnit(units[i], false, true)
 							end

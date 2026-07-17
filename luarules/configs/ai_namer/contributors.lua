@@ -136,6 +136,7 @@ local ContributorAINames = {
     "Teddy",
     "TeeeeVeeeeOn",
     "Teifion",
+    "Tenebos",
     "Teppic",
     "Tharsy",
     "Thule",

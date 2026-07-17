@@ -642,6 +642,9 @@ local function setReclaimerUnits()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("ecostatstext", ecostatstextCmd, nil, "t")
+	widgetHandler:AddAction("ecostatsreclaim", ecostatsreclaimCmd, nil, "t")
+
 	if not (spGetSpectatingState() or isReplay) then
 		inSpecMode = false
 	else
@@ -711,6 +714,8 @@ local function removeGuiShaderRects()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("ecostatstext", "t")
+	widgetHandler:RemoveAction("ecostatsreclaim", "t")
 	removeGuiShaderRects()
 	if uiBgTex then
 		glDeleteTexture(uiBgTex)
@@ -878,15 +883,16 @@ function widget:SetConfigData(data)
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 end
 
-function widget:TextCommand(command)
-	if stringSub(command, 1, 13) == "ecostatstext" then
-		cfgResText = not cfgResText
-		spEcho('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
-	end
-	if stringSub(command, 1, 16) == "ecostatsreclaim" then
-		cfgTrackReclaim = not cfgTrackReclaim
-		spEcho('ecostats: reclaim: '..(cfgTrackReclaim and 'enabled' or 'disabled'))
-	end
+function ecostatstextCmd(_, line)
+	cfgResText = not cfgResText
+	spEcho('ecostats: text: ' .. (cfgResText and 'enabled' or 'disabled'))
+	return true
+end
+
+function ecostatsreclaimCmd(_, line)
+	cfgTrackReclaim = not cfgTrackReclaim
+	spEcho('ecostats: reclaim: ' .. (cfgTrackReclaim and 'enabled' or 'disabled'))
+	return true
 end
 
 local function DrawEText(numberE, vOffset)

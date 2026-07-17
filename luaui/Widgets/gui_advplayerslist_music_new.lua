@@ -1144,6 +1144,10 @@ function widget:Update(dt)
 			updateDrawing = true
 		end
 	end
+
+	if currentTrack and playedTime < 2 and Spring.GetConfigInt("MusicSwitch " .. processTrackname(currentTrack), 1) == 0 then
+		PlayNewTrack()
+	end
 end
 
 local prevShowTrackname = false

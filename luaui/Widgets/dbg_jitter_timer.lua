@@ -52,6 +52,8 @@ function widget:Initialize()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	--simtime = spGetGameFrame()/30
 	camX, camY, camZ = spGetCameraPosition()
+	widgetHandler:AddAction("gameframeload", gameframeloadCmd, nil, "t")
+	widgetHandler:AddAction("drawframeload", drawframeloadCmd, nil, "t")
 end
 
 local gameframeload = 0
@@ -75,24 +77,26 @@ local function Loadms(millisecs, spread)
 	--spEcho("Load millisecs = ", Spring.DiffTimers(nowtimer,starttimer)*1000)
 end
 
-function widget:TextCommand(command)
-	words = {}
-	for substring in command:gmatch("%S+") do
+function gameframeloadCmd(_, line)
+	local words = {}
+	for substring in (line or ""):gmatch("%S+") do
 		table.insert(words, substring)
 	end
+	gameframeload = tonumber(words[1]) or 0
+	gameframespread = tonumber(words[2]) or 0
+	spEcho("Setting gameframeload to ", gameframeload, "spread", gameframespread)
+	return true
+end
 
-	if words and words[1] == "gameframeload" then
-		gameframeload = tonumber(words[2]) or 0
-		gameframespread = tonumber(words[3]) or 0
-		spEcho("Setting gameframeload to ", gameframeload, "spread", gameframespread)
+function drawframeloadCmd(_, line)
+	local words = {}
+	for substring in (line or ""):gmatch("%S+") do
+		table.insert(words, substring)
 	end
-
-	if words and words[1] == "drawframeload" then
-		drawframeload = tonumber(words[2]) or 0
-		drawframespread = tonumber(words[3]) or 0
-		spEcho("Setting drawframeload to ", drawframeload, "spread", drawframespread)
-	end
-
+	drawframeload = tonumber(words[1]) or 0
+	drawframespread = tonumber(words[2]) or 0
+	spEcho("Setting drawframeload to ", drawframeload, "spread", drawframespread)
+	return true
 end
 
 function widget:ViewResize(vsx, vsy)
@@ -100,6 +104,8 @@ function widget:ViewResize(vsx, vsy)
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("gameframeload", "t")
+	widgetHandler:RemoveAction("drawframeload", "t")
 end
 
 local wasgameframe = 0
@@ -169,8 +175,8 @@ function widget:DrawScreen()
 	gl.Color(0.0, 0.0, 0.0, 1.0)
 	--background rect
 	gl.Rect(viewSizeX - timerwidth,viewSizeY - timerYoffset-96,viewSizeX,viewSizeY - timerYoffset + timerheight);
-	
-	
+
+
 	gl.Color(1.0, 0.0, 1.0, 1.0)
 	gl.Rect(viewSizeX - (timerwidth*0.5),viewSizeY - timerYoffset + timerheight /2 ,viewSizeX + timerwidth * 0.5 - (timerwidth * (1.0 - deltajitter*30)),viewSizeY - timerYoffset + timerheight );
 
@@ -182,12 +188,12 @@ function widget:DrawScreen()
 	text = text .. string.format("DrawFrame FTODelta = %.3f  FTO = %.3f\n", currCTOdelta, fto)
 	local drawhisttotal = mathMax(1,(
 	(drawcounthist[1] or 0 ) + (drawcounthist[2] or 0 ) + (drawcounthist[3] or 0) + (drawcounthist[4] or 0 ) ) )
-	text = text .. string.format("dshist [1:%d, 2:%d, 3:%d, 4:%d, 5:%d, 6:%d] \n", 
-		(drawcounthist[1] or 0) , 
-		(drawcounthist[2] or 0) , 
-		(drawcounthist[3] or 0) , 
-		(drawcounthist[4] or 0) , 
-		(drawcounthist[5] or 0) , 
+	text = text .. string.format("dshist [1:%d, 2:%d, 3:%d, 4:%d, 5:%d, 6:%d] \n",
+		(drawcounthist[1] or 0) ,
+		(drawcounthist[2] or 0) ,
+		(drawcounthist[3] or 0) ,
+		(drawcounthist[4] or 0) ,
+		(drawcounthist[5] or 0) ,
 		(drawcounthist[6] or 0) )
 	text = text .. string.format("deltajitter = %.3f  d/s = %d\n", deltajitter * 30, actualdrawspergameframe)
 	text = text .. string.format("mean jitter = %.3f  \n", avgjitter* 30)
@@ -209,8 +215,8 @@ function widget:DrawScreen()
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 
 	gl.PopMatrix()
-	
-	
+
+
 	-- Frame Drop Indicator!!
 	local df = Spring.GetDrawFrame()
 	local offset =  32 * (df%8)

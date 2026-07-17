@@ -41,6 +41,7 @@ Spring.SendCommands({
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
@@ -166,6 +167,7 @@ local flexCallIns = {
 	'DrawScreenEffects',
 	'DrawScreenPost',
 	'DrawInMiniMap',
+ 	'DrawBuildSquare',
 	'DrawOpaqueUnitsLua',
 	'DrawOpaqueFeaturesLua',
 	'DrawAlphaUnitsLua',
@@ -264,6 +266,34 @@ local callInLists = {
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
 	--  'MouseRelease',
+}
+
+local headlessDisabledCallIns = {
+	FontsChanged = true,
+	ViewResize = true,
+	DrawScreen = true,
+	DrawGenesis = true,
+	DrawGroundDeferred = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawPreDecals = true,
+	DrawWorldPreParticles = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawUnitsPostDeferred = true,
+	DrawFeaturesPostDeferred = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawInMiniMap = true,
+	DrawBuildSquare = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	SunChanged = true,
 }
 
 -- append the flex call-ins
@@ -604,7 +634,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
+		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -1073,6 +1103,11 @@ end
 
 function widgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
+	if isHeadless and headlessDisabledCallIns[name] then
+		_G[name] = nil
+		Script.UpdateCallIn(name)
+		return
+	end
 	if name == 'Update' or	name == 'DrawScreen' then
 		return
 	end
@@ -1823,6 +1858,13 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  for _,w in ripairs(self.DrawBuildSquareList) do
+    w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  end
+  return
 end
 
 function widgetHandler:SunChanged()

@@ -95,9 +95,11 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("ReceiveScreenshot", ReceiveScreenshot)
 		gadgetHandler:AddSyncAction("StartScreenshot", StartScreenshot)
-		gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
-		gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
-		gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
+		if isAuthorized() then
+			gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
+			gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
+			gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
+		end
 		gadget:ViewResize()
 	end
 
