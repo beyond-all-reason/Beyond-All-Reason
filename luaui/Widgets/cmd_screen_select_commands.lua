@@ -18,7 +18,7 @@ How To Use:
   Optionally, bind and hold screen_select_hold to mass-order on the first click instead.
 
 Click modifiers:
-  Shift -> add to end of queue
+  Shift -> add to end of queue (always additive; never toggles/removes an existing matching order)
   Space -> prepend to the queue
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
@@ -100,7 +100,7 @@ local MASS_ORDER_START_RADIUS = 2000
 local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local CLICK_DEBOUNCE_GAP = 0.03
-local DOUBLE_CLICK_SNAP_RADIUS = 50
+local DOUBLE_CLICK_SNAP_RADIUS = 75
 
 local doubleClickEnabled = true
 local maxMassOrderTargets = 150
@@ -164,8 +164,7 @@ local function updateShiftCommandKeep()
 end
 
 local function isPendingDoubleClickActive()
-	return pendingDoubleClick.targetID ~= nil
-		and pendingDoubleClick.commandID ~= nil
+	return pendingDoubleClick.commandID ~= nil
 		and osClock() < pendingDoubleClick.expireTime
 end
 
@@ -647,9 +646,7 @@ local function insertOrdersByQueueProximity(commandID, selectedUnits, filteredTa
 	local positionCache = {}
 	local targetCentroid = getTargetCentroid(filteredTargets, positionCache)
 	local singleUnitArray = {}
-	local orderParameters = { 0 }
 	local insertParameters = { 0, commandID, 0, 0 }
-	local queuedOptionBits = getCommandOptionBits(options, true)
 	local innerOptionBits = getCommandOptionBits(options, false)
 	insertParameters[3] = innerOptionBits
 	for unitIndex = 1, #selectedUnits do
@@ -659,8 +656,9 @@ local function insertOrdersByQueueProximity(commandID, selectedUnits, filteredTa
 		if insertionPosition == nil then
 			for targetIndex = 1, #filteredTargets do
 				local targetID = filteredTargets[targetIndex]
-				orderParameters[1] = toFeatureOrderParamID(targetID)
-				spGiveOrderToUnitArray(singleUnitArray, commandID, orderParameters, queuedOptionBits)
+				insertParameters[1] = -1
+				insertParameters[4] = toFeatureOrderParamID(targetID)
+				spGiveOrderToUnitArray(singleUnitArray, CMD.INSERT, insertParameters, CMD.OPT_ALT)
 			end
 		else
 			insertParameters[1] = insertionPosition
@@ -679,19 +677,25 @@ local function giveOrders(commandID, selectedUnits, filteredTargets, options)
 		return
 	end
 	local baseOptionBits = getCommandOptionBits(options, false)
-	local queuedOptionBits = getCommandOptionBits(options, true)
 	local orderParameters = { 0 }
 	local insertParameters = { 0, commandID, baseOptionBits, 0 }
 	for targetIndex = 1, #filteredTargets do
 		local targetID = filteredTargets[targetIndex]
 		local orderTargetID = toFeatureOrderParamID(targetID)
 		if options.meta then
+			insertParameters[1] = 0
 			insertParameters[4] = orderTargetID
 			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, insertParameters, CMD.OPT_ALT)
 		else
 			local includeShift = targetIndex > 1 or options.shift
-			orderParameters[1] = orderTargetID
-			spGiveOrderToUnitArray(selectedUnits, commandID, orderParameters, includeShift and queuedOptionBits or baseOptionBits)
+			if includeShift then
+				insertParameters[1] = -1
+				insertParameters[4] = orderTargetID
+				spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, insertParameters, CMD.OPT_ALT)
+			else
+				orderParameters[1] = orderTargetID
+				spGiveOrderToUnitArray(selectedUnits, commandID, orderParameters, baseOptionBits)
+			end
 		end
 	end
 end
@@ -1355,6 +1359,14 @@ local function consumePendingDoubleClickClick(options, effectiveCommandID, secon
 		clearActiveCommandUnlessShift(options)
 		return true
 	end
+	-- Ground double-clicks arm with no targetID; swallow the second click so selection is not cleared after the active command ends.
+	if not pendingDoubleClick.targetID then
+		clearDoubleClickPending()
+		return true
+	end
+	if secondClickTargetID and secondClickTargetID ~= pendingDoubleClick.targetID then
+		return false
+	end
 	return issuePendingDoubleClickMassOrders(options, secondClickTargetID)
 end
 
@@ -1449,7 +1461,11 @@ function widget:MousePress(mouseX, mouseY, button)
 			return false
 		end
 		local targetID, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(effectiveCommandID, mouseX, mouseY)
-		if isDirectTarget or not targetID then
+		if isDirectTarget then
+			return false
+		end
+		if not targetID then
+			armPendingDoubleClick(effectiveCommandID, nil, options)
 			return false
 		end
 		if screenSelectKeyHeld then
@@ -1467,10 +1483,7 @@ function widget:MousePress(mouseX, mouseY, button)
 		return false
 	end
 	local targetID = resolveMouseMassOrderTarget(pendingCommandID, mouseX, mouseY)
-	if targetID then
-		return consumePendingDoubleClickClick(options, effectiveCommandID, targetID)
-	end
-	return false
+	return consumePendingDoubleClickClick(options, effectiveCommandID, targetID)
 end
 
 function widget:CommandNotify(commandID, parameters, options)
