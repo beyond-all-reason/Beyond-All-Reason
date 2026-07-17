@@ -159,6 +159,10 @@ local function emojiVerticalOffset(fontSize, size)
 	return -max(3, floor(fontSize * 0.18))
 end
 
+local function emojiTexcoordInset()
+	return 0.01
+end
+
 function ChatEmoji.HasEmojiCandidate(text)
 	if not text then
 		return false
@@ -385,6 +389,10 @@ function ChatEmoji.GetRichTextWidth(text, fontSize, usedFont)
 	return emojiTextWidth(text, fontSize, usedFont)
 end
 
+function ChatEmoji.GetTexcoordInset()
+	return emojiTexcoordInset()
+end
+
 function ChatEmoji.GetLeadingColorPrefix(text)
 	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ''
 end
@@ -504,12 +512,13 @@ function ChatEmoji.DrawRichText(usedFont, text, x, y, fontSize, options, outline
 			endText()
 			glColor(1, 1, 1, 1)
 			local texturePath = aliasImagePaths[value]
+			local uvInset = emojiTexcoordInset()
 			if lastTexturePath ~= texturePath then
 				glTexture(texturePath)
 				lastTexturePath = texturePath
 				textureBound = true
 			end
-			glTexRect(drawX + emojiPadding, y + emojiYOffset, drawX + emojiPadding + size, y + emojiYOffset + size)
+			glTexRect(drawX + emojiPadding, y + emojiYOffset, drawX + emojiPadding + size, y + emojiYOffset + size, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
 			drawX = drawX + size + (emojiPadding * 2)
 		end
 	end
