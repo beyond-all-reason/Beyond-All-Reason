@@ -538,50 +538,47 @@ local function split(params, projectileID)
 	end
 end
 
+local function shouldSplitAtHeight(projectileID, px, py, pz, splitHeight)
+	local vx, vy, vz = spGetProjectileVelocity(projectileID)
+	local frameDistance = math.sqrt(vx*vx + vy*vy + vz*vz)
+	local stepSize = 8 -- Grid size of Spring heightmap
+
+	if frameDistance > 0 then
+		local steps = math.floor(frameDistance / stepSize)
+		local testX, testY, testZ = px, py, pz
+		if steps > 0 then
+			local stepX = (vx / frameDistance) * stepSize
+			local stepY = (vy / frameDistance) * stepSize
+			local stepZ = (vz / frameDistance) * stepSize
+
+			for _ = 1, steps do
+				if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
+					return true
+				end
+				testX = testX + stepX
+				testY = testY + stepY
+				testZ = testZ + stepZ
+			end
+		else
+			if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
+				return true
+			end
+		end
+	else
+		if (py - spGetGroundHeight(px, pz)) < splitHeight then
+			return true
+		end
+	end
+	return false
+end
+
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
 		-- Fallback to -1 if splitheight is omitted entirely (since parseCustomParams skips missing keys)
 		local splitHeight = params.splitheight or -1
 		if splitHeight ~= -1 then -- -1 ignores split height (splits immediately at apogee)
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if not px then
-				return false
-			end
-
-			local vx, vy, vz = spGetProjectileVelocity(projectileID)
-			local frameDistance = math.sqrt(vx*vx + vy*vy + vz*vz)
-			local stepSize = 8 -- Grid size of Spring heightmap
-
-			local shouldSplit = false
-			if frameDistance > 0 then
-				local steps = math.floor(frameDistance / stepSize)
-				local testX, testY, testZ = px, py, pz
-				if steps > 0 then
-					local stepX = (vx / frameDistance) * stepSize
-					local stepY = (vy / frameDistance) * stepSize
-					local stepZ = (vz / frameDistance) * stepSize
-
-					for _ = 1, steps do
-						if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
-							shouldSplit = true
-							break
-						end
-						testX = testX + stepX
-						testY = testY + stepY
-						testZ = testZ + stepZ
-					end
-				else
-					if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
-						shouldSplit = true
-					end
-				end
-			else
-				if (py - spGetGroundHeight(px, pz)) < splitHeight then
-					shouldSplit = true
-				end
-			end
-
-			if not shouldSplit then
+			if not px or not shouldSplitAtHeight(projectileID, px, py, pz, splitHeight) then
 				return false
 			end
 		end
