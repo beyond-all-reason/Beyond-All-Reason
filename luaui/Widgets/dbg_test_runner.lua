@@ -1016,6 +1016,7 @@ local function initializeTestEnvironment()
 		select = select,
 		setmetatable = setmetatable,
 		getmetatable = getmetatable,
+		getfenv = getfenv,
 		Scenario = scenarioConfig,
 
 		Json = Json,
