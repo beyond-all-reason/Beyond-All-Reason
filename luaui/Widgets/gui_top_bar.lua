@@ -41,6 +41,11 @@ local sp = {
 	GetGameSpeed = Spring.GetGameSpeed,
 }
 
+local SharingUnsynced = VFS.Include("common/luaUtilities/sharing/unsynced.lua")
+local ShareStats = VFS.Include("common/luaUtilities/economy/share_stats.lua")
+
+local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1 -- much faster than drawing via DisplayLists only
+
 -- Configuration (consolidated into table to save local slots)
 local cfg = {
 	relXpos = 0.3,
@@ -74,6 +79,8 @@ local _modOpts = Spring.GetModOptions()
 local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
 local isSingle = false
+local metalSharingEnabled = SharingUnsynced.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "metal").canShare
+local energySharingEnabled = SharingUnsynced.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "energy").canShare
 local gameStarted = (sp.GetGameFrame() > 0)
 local gameFrame = sp.GetGameFrame()
 local gameIsOver = false
@@ -81,15 +88,18 @@ local graphsWindowVisible = false
 
 -- Resources
 local r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
-local energyOverflowLevel, metalOverflowLevel
-local allyteamOverflowingMetal = false
-local allyteamOverflowingEnergy = false
-local overflowingMetal = false
-local overflowingEnergy = false
-local showOverflowTooltip = {}
+local overflow = {
+	metalLevel = nil,
+	energyLevel = nil,
+	allyMetal = false,
+	allyEnergy = false,
+	metal = false,
+	energy = false,
+	tooltipTime = {},
+	supressNotifs = false,
+	isMetalmap = false,
+}
 local showingWarning = { metal = false, energy = false }
-local supressOverflowNotifs = false
-local isMetalmap = false
 
 -- Wind + tide
 local avgWindValue, riskWindValue
@@ -636,19 +646,19 @@ local function updateResbarText(res, force)
 
 	if not spec and gameFrame > cfg.spawnWarpInFrame then
 		-- display overflow notification
-		if (res == "metal" and (allyteamOverflowingMetal or overflowingMetal)) or (res == "energy" and (allyteamOverflowingEnergy or overflowingEnergy)) then
-			if not showOverflowTooltip[res] then
-				showOverflowTooltip[res] = now + 1.1
+		if (res == "metal" and (overflow.allyMetal or overflow.metal)) or (res == "energy" and (overflow.allyEnergy or overflow.energy)) then
+			if not overflow.tooltipTime[res] then
+				overflow.tooltipTime[res] = now + 1.1
 			end
 
-			if showOverflowTooltip[res] < now then
+			if overflow.tooltipTime[res] < now then
 				local bgpadding2 = 2.2 * widgetScale
 				local text = ""
 
 				if res == "metal" then
-					text = (allyteamOverflowingMetal and "   " .. BAR.I18N("ui.topbar.resources.wastingMetal") .. "   " or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   ")
-					if not supressOverflowNotifs and WG.notifications and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame + 60 < gameFrame) then
-						if allyteamOverflowingMetal then
+					text = (overflow.allyMetal and "   " .. BAR.I18N("ui.topbar.resources.wastingMetal") .. "   " or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   ")
+					if not overflow.supressNotifs and WG.notifications and not overflow.isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame + 60 < gameFrame) then
+						if overflow.allyMetal then
 							if numTeamsInAllyTeam > 1 then
 								WG.notifications.queueNotification("WholeTeamWastingMetal")
 							else
@@ -659,9 +669,9 @@ local function updateResbarText(res, force)
 						end
 					end
 				else
-					text = (allyteamOverflowingEnergy and "   " .. BAR.I18N("ui.topbar.resources.wastingEnergy") .. "   " or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   ")
-					if not supressOverflowNotifs and WG.notifications and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame + 60 < gameFrame) then
-						if allyteamOverflowingEnergy then
+					text = (overflow.allyEnergy and "   " .. BAR.I18N("ui.topbar.resources.wastingEnergy") .. "   " or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   ")
+					if not overflow.supressNotifs and WG.notifications and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame + 60 < gameFrame) then
+						if overflow.allyEnergy then
 							if numTeamsInAllyTeam > 1 then
 								WG.notifications.queueNotification("WholeTeamWastingEnergy")
 							else
@@ -689,7 +699,7 @@ local function updateResbarText(res, force)
 						-- background
 						local color1, color2, color3, color4
 						if res == "metal" then
-							if allyteamOverflowingMetal then
+							if overflow.allyMetal then
 								color1 = { 0.35, 0.1, 0.1, 1 }
 								color2 = { 0.25, 0.05, 0.05, 1 }
 								color3 = { 1, 0.3, 0.3, 0.25 }
@@ -701,7 +711,7 @@ local function updateResbarText(res, force)
 								color4 = { 1, 1, 1, 0.44 }
 							end
 						else
-							if allyteamOverflowingEnergy then
+							if overflow.allyEnergy then
 								color1 = { 0.35, 0.1, 0.1, 1 }
 								color2 = { 0.25, 0.05, 0.05, 1 }
 								color3 = { 1, 0.3, 0.3, 0.25 }
@@ -745,7 +755,7 @@ local function updateResbarText(res, force)
 				updateRes[res][3] = true
 			end
 
-			showOverflowTooltip[res] = nil
+			overflow.tooltipTime[res] = nil
 		end
 	end
 end
@@ -905,11 +915,12 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if not isSingle then
+		local sharingEnabled = res == "energy" and energySharingEnabled or metalSharingEnabled
+		if not isSingle and sharingEnabled then
 			if res == "energy" then
-				energyOverflowLevel = r[res][6]
+				overflow.energyLevel = r[res][6]
 			else
-				metalOverflowLevel = r[res][6]
+				overflow.metalLevel = r[res][6]
 			end
 
 			local value = r[res][6]
@@ -1189,10 +1200,10 @@ function widget:GameFrame(n)
 end
 
 local function updateAllyTeamOverflowing()
-	allyteamOverflowingMetal = false
-	allyteamOverflowingEnergy = false
-	overflowingMetal = false
-	overflowingEnergy = false
+	overflow.allyMetal = false
+	overflow.allyEnergy = false
+	overflow.metal = false
+	overflow.energy = false
 	local totalEnergy = 0
 	local totalEnergyStorage = 0
 	local totalMetal = 0
@@ -1210,20 +1221,23 @@ local function updateAllyTeamOverflowing()
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		if teamID == myTeamID then
+			-- sent is Lua-owned now (engine keeps only excess); fall back to engine resSent (vanilla)
+			energySent = ShareStats.Read(sp, teamID, "energy").sentRecent or energySent
+			metalSent = ShareStats.Read(sp, teamID, "metal").sentRecent or metalSent
 			energyPercentile = energySent / totalEnergyStorage
 			metalPercentile = metalSent / totalMetalStorage
 
 			if energyPercentile > 0.0001 then
-				overflowingEnergy = energyPercentile * 40 -- (1 / 0.025) = 40
-				if overflowingEnergy > 1 then
-					overflowingEnergy = 1
+				overflow.energy = energyPercentile * 40 -- (1 / 0.025) = 40
+				if overflow.energy > 1 then
+					overflow.energy = 1
 				end
 			end
 
 			if metalPercentile > 0.0001 then
-				overflowingMetal = metalPercentile * 40 -- (1 / 0.025) = 40
-				if overflowingMetal > 1 then
-					overflowingMetal = 1
+				overflow.metal = metalPercentile * 40 -- (1 / 0.025) = 40
+				if overflow.metal > 1 then
+					overflow.metal = 1
 				end
 			end
 		end
@@ -1233,16 +1247,16 @@ local function updateAllyTeamOverflowing()
 	metalPercentile = totalMetal / totalMetalStorage
 
 	if energyPercentile > 0.975 then
-		allyteamOverflowingEnergy = (energyPercentile - 0.975) * 40 -- (1 / 0.025) = 40
-		if allyteamOverflowingEnergy > 1 then
-			allyteamOverflowingEnergy = 1
+		overflow.allyEnergy = (energyPercentile - 0.975) * 40 -- (1 / 0.025) = 40
+		if overflow.allyEnergy > 1 then
+			overflow.allyEnergy = 1
 		end
 	end
 
 	if metalPercentile > 0.975 then
-		allyteamOverflowingMetal = (metalPercentile - 0.975) * 40 -- (1 / 0.025) = 40
-		if allyteamOverflowingMetal > 1 then
-			allyteamOverflowingMetal = 1
+		overflow.allyMetal = (metalPercentile - 0.975) * 40 -- (1 / 0.025) = 40
+		if overflow.allyMetal > 1 then
+			overflow.allyMetal = 1
 		end
 	end
 end
@@ -1358,11 +1372,11 @@ function widget:Update(dt)
 				-- make sure conversion/overflow sliders are adjusted
 				if mmLevel then
 					local currentMmLevel = sp.GetTeamRulesParam(myTeamID, "mmLevel")
-					if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r.energy[6] then
+					if mmLevel ~= currentMmLevel or overflow.energyLevel ~= r.energy[6] then
 						mmLevel = currentMmLevel
 						updateResbar("energy")
 					end
-					if metalOverflowLevel ~= r.metal[6] then
+					if overflow.metalLevel ~= r.metal[6] then
 						updateResbar("metal")
 					end
 				end
@@ -1371,11 +1385,11 @@ function widget:Update(dt)
 			-- make sure conversion/overflow sliders are adjusted
 			if mmLevel then
 				local currentMmLevel = sp.GetTeamRulesParam(myTeamID, "mmLevel")
-				if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r.energy[6] then
+				if mmLevel ~= currentMmLevel or overflow.energyLevel ~= r.energy[6] then
 					mmLevel = currentMmLevel
 					updateResbar("energy")
 				end
-				if metalOverflowLevel ~= r.metal[6] then
+				if overflow.metalLevel ~= r.metal[6] then
 					updateResbar("metal")
 				end
 			end
@@ -1407,6 +1421,18 @@ function widget:Update(dt)
 		updateAllyTeamOverflowing()
 		updateResbarText("metal")
 		updateResbarText("energy")
+
+		-- sharing policy can change mid-game (e.g. tech_core on tech-up)
+		local newMetalSharing = SharingUnsynced.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "metal").canShare
+		local newEnergySharing = SharingUnsynced.Resources.GetCachedPolicyResult(myTeamID, myTeamID, "energy").canShare
+		if newMetalSharing ~= metalSharingEnabled then
+			metalSharingEnabled = newMetalSharing
+			updateResbar("metal")
+		end
+		if newEnergySharing ~= energySharingEnabled then
+			energySharingEnabled = newEnergySharing
+			updateResbar("energy")
+		end
 
 		-- wind
 		currentWind = stringFormat("%.1f", select(4, sp.GetWind()))
@@ -1471,11 +1497,11 @@ local function drawResBars()
 	if dlist.resbar[res][1] and dlist.resbar[res][2] then
 		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
-			if allyteamOverflowingMetal then
-				glColor(1, 0, 0, 0.1 * allyteamOverflowingMetal * blinkProgress)
+			if overflow.allyMetal then
+				glColor(1, 0, 0, 0.1 * overflow.allyMetal * blinkProgress)
 				glCallList(dlist.resbar[res][4]) -- flash bar
-			elseif overflowingMetal then
-				glColor(1, 1, 1, 0.04 * overflowingMetal * (0.6 + (blinkProgress * 0.4)))
+			elseif overflow.metal then
+				glColor(1, 1, 1, 0.04 * overflow.metal * (0.6 + (blinkProgress * 0.4)))
 				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 1000 then
 				local process = (r[res][1] / r[res][2]) * 13
@@ -1496,7 +1522,18 @@ local function drawResBars()
 			glCallList(dlist.resbar[res][2]) -- sliders
 		end
 
-		if showOverflowTooltip[res] and dlist.resbar[res][7] then
+		if not useRenderToTexture then
+			if dlist.resValuesBar[res] then
+				glCallList(dlist.resValuesBar[res]) -- res bar value
+			end
+			if dlist.resbar[res][6] then
+				glCallList(dlist.resbar[res][6]) -- storage
+			end
+			if dlist.resbar[res][3] then
+				glCallList(dlist.resbar[res][3]) -- pull, expense, income
+			end
+		end
+		if overflow.tooltipTime[res] and dlist.resbar[res][7] then
 			glCallList(dlist.resbar[res][7])
 		end -- overflow warning
 	end
@@ -1505,11 +1542,11 @@ local function drawResBars()
 	if dlist.resbar[res][1] and dlist.resbar[res][2] then
 		if not spec and gameFrame > cfg.spawnWarpInFrame and dlist.resbar[res][4] then
 			glBlending(GL.SRC_ALPHA, GL.ONE)
-			if allyteamOverflowingEnergy then
-				glColor(1, 0, 0, 0.1 * allyteamOverflowingEnergy * blinkProgress)
+			if overflow.allyEnergy then
+				glColor(1, 0, 0, 0.1 * overflow.allyEnergy * blinkProgress)
 				glCallList(dlist.resbar[res][4]) -- flash bar
-			elseif overflowingEnergy then
-				glColor(1, 1, 0, 0.04 * overflowingEnergy * (0.6 + (blinkProgress * 0.4)))
+			elseif overflow.energy then
+				glColor(1, 1, 0, 0.04 * overflow.energy * (0.6 + (blinkProgress * 0.4)))
 				glCallList(dlist.resbar[res][4]) -- flash bar
 			elseif r[res][1] < 2000 then
 				local process = (r[res][1] / r[res][2]) * 13
@@ -1533,7 +1570,18 @@ local function drawResBars()
 			glCallList(dlist.resbar[res][2]) -- sliders
 		end
 
-		if showOverflowTooltip[res] and dlist.resbar[res][7] then
+		if not useRenderToTexture then
+			if dlist.resValuesBar[res] then
+				glCallList(dlist.resValuesBar[res]) -- res bar value
+			end
+			if dlist.resbar[res][6] then
+				glCallList(dlist.resbar[res][6]) -- storage
+			end
+			if dlist.resbar[res][3] then
+				glCallList(dlist.resbar[res][3]) -- pull, expense, income
+			end
+		end
+		if overflow.tooltipTime[res] and dlist.resbar[res][7] then
 			glCallList(dlist.resbar[res][7])
 		end -- overflow warning
 	end
@@ -2273,17 +2321,17 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if not isSingle then
-				if mathIsInRect(x, y, shareIndicatorArea.metal[1], shareIndicatorArea.metal[2], shareIndicatorArea.metal[3], shareIndicatorArea.metal[4]) then
+			if not isSingle and metalSharingEnabled then
+				if shareIndicatorArea.metal[1] and mathIsInRect(x, y, shareIndicatorArea.metal[1], shareIndicatorArea.metal[2], shareIndicatorArea.metal[3], shareIndicatorArea.metal[4]) then
 					draggingShareIndicator = "metal"
 				end
 
-				if mathIsInRect(x, y, shareIndicatorArea.energy[1], shareIndicatorArea.energy[2], shareIndicatorArea.energy[3], shareIndicatorArea.energy[4]) then
+				if shareIndicatorArea.energy[1] and mathIsInRect(x, y, shareIndicatorArea.energy[1], shareIndicatorArea.energy[2], shareIndicatorArea.energy[3], shareIndicatorArea.energy[4]) then
 					draggingShareIndicator = "energy"
 				end
 			end
 
-			if not draggingShareIndicator and mathIsInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if not draggingShareIndicator and conversionIndicatorArea and mathIsInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
 
@@ -2397,7 +2445,7 @@ function widget:Initialize()
 		if select(4, Spring.GetTeamInfo(teamID, false)) then -- is AI?
 			local luaAI = Spring.GetTeamLuaAI(teamID)
 			if luaAI and luaAI ~= "" and (string.find(luaAI, "Scavengers") or string.find(luaAI, "Raptors")) then
-				supressOverflowNotifs = true
+				overflow.supressNotifs = true
 				break
 			end
 		end
@@ -2488,7 +2536,7 @@ function widget:Initialize()
 	end
 
 	if WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList and #WG.resource_spot_finder.metalSpotsList > 0 and #WG.resource_spot_finder.metalSpotsList <= 2 then -- probably speedmetal kind of map
-		isMetalmap = true
+		overflow.isMetalmap = true
 	end
 end
 

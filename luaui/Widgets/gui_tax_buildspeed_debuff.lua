@@ -12,7 +12,8 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.GetModOptions().easytax then
+local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
+if (tonumber(Spring.GetModOptions()[ModeEnums.ModOptions.ConstructorBuildDelay]) or 0) <= 0 then
 	return false
 end
 

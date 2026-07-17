@@ -119,6 +119,8 @@
 			"tech2TeamReached": "Your Team Reached Tech 2",
 			"tech3TeamReached": "Your Team Reached Tech 3",
 			"tech4TeamReached": "Your Team Reached Tech 4",
+			"tech2TeamLost": "Your Team Lost Tech 2",
+			"tech3TeamLost": "Your Team Lost Tech 3",
 			"welcome": "Welcome, Commander. I'm your personal voice assistant. I will provide you with battlefield analysis and resource management insights during battles. Let's get to work and good luck!",
 			"welcomeShort": "Welcome, Commander.",
 			"buildMetal": "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.",
