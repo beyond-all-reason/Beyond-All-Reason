@@ -1,6 +1,7 @@
 local widget = widget ---@type Widget
 
 local isAI = false -- forward-decl: read in DrawState
+local msx, msz = Game.mapSizeX, Game.mapSizeZ
 
 function widget:GetInfo()
 	return {
@@ -213,7 +214,7 @@ local function DrawState(playerID, posX, posY)
 	-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 	local ready = (playerReadyState[playerID] == 1) or (playerReadyState[playerID] == 2) or (playerReadyState[playerID] == -1)
 	local hasStartPoint = (playerReadyState[playerID] == 4)
-	if ai then
+	if isAI then
 		gl_Color(0.1, 0.1, 0.97, 1)
 	else
 		if ready then

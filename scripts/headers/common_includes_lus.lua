@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-global
+
 common = {
 
 	CustomEmitter = function(pieceName, effectName)

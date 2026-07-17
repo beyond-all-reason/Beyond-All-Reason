@@ -431,6 +431,6 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 
 	wasgameframe = 0
-	prevframems = lastframeduration
+	prevframems = Spring.GetLastUpdateSeconds() * 1000
 	gameFrameHappened = false
 end

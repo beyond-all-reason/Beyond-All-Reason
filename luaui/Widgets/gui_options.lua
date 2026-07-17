@@ -1,6 +1,7 @@
 local widget = widget ---@type Widget
 
 local customPresetOptions -- forward-decl: read in options export
+local isClientPaused = false -- forward-decl: read in DrawScreen, checkQuitscreen
 
 function widget:GetInfo()
 	return {
@@ -10657,6 +10658,7 @@ function widget:GetConfigData()
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
+		---@diagnostic disable-next-line: undefined-global
 		customPresets = customPresets,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,

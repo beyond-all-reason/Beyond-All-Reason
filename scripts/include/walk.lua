@@ -3,6 +3,8 @@
 -- Author:	Nemo, Smoth
 -- Date:	3/18/2011
 -------------------------------------------------------
+---@diagnostic disable: undefined-global
+
 local inStance = false
 local gravFactor = Game.gravity / 120
 

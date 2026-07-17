@@ -68,7 +68,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		local newVAO = nil
 		newVAO = gl.GetVAO()
 		if newVAO == nil then
-			goodbye("Failed to create newVAO")
+			error("Failed to create newVAO")
 		end
 		self.VAO = newVAO
 		if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
@@ -226,7 +226,7 @@ local function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a ve
 	local newVAO = nil
 	newVAO = gl.GetVAO()
 	if newVAO == nil then
-		goodbye("Failed to create newVAO")
+		error("Failed to create newVAO")
 	end
 	if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
 		newVAO:AttachVertexBuffer(instanceVBO)
