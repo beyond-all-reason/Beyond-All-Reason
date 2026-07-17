@@ -539,9 +539,11 @@ end
 
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
-		if params.splitheight ~= -1 then -- todo: some value to ignore split height
+		-- Fallback to -1 if splitheight is omitted entirely (since parseCustomParams skips missing keys)
+		local splitHeight = params.splitheight or -1
+		if splitHeight ~= -1 then -- -1 ignores split height (splits immediately at apogee)
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if not px or (py - spGetGroundHeight(px, pz)) > params.splitheight then
+			if not px or (py - spGetGroundHeight(px, pz)) > splitHeight then
 				return false
 			end
 		end
