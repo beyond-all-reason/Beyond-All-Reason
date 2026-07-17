@@ -1377,6 +1377,11 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 	end
 
 	if doubleClickEnabled then
+		if not isPendingDoubleClickActive() then
+			armPendingDoubleClick(effectiveCommandID, targetID, options)
+		elseif not pendingDoubleClick.targetID then
+			pendingDoubleClick.targetID = targetID
+		end
 		return false
 	end
 
