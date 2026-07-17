@@ -389,6 +389,7 @@ end
 function gadget:GameFramePost(frame)
 	frameIndex = frameIndex == 1 and frameReset or frameIndex - 1
 	if updateAllyTeams[frameIndex] then
+		-- Evicts half the allyTeam targeting cache per update:
 		for _, allyTeam in next, updateAllyTeams[frameIndex] do
 			avoidUnit[allyTeam]()
 			preferUnit[allyTeam]()
