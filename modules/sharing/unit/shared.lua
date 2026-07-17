@@ -119,7 +119,10 @@ local function EvaluateUnitForSharing(unitDef, category)
 	return UnitTypeMatchesCategory(unitDef, category)
 end
 
-local allowedByCategory = setmetatable({}, { __mode = "k" })
+-- Keyed by the defs table (UnitDefs in practice, so at most a few entries).
+-- Plain table, not weak-keyed: restricted include environments (the test
+-- runner sandbox, synced chunks) don't expose setmetatable.
+local allowedByCategory = {}
 
 local function BuildAllowedCacheForCategory(category, unitDefs)
 	local defs = unitDefs or UnitDefs
