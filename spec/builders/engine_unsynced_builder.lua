@@ -31,7 +31,7 @@ end
 
 ---Register a unit definition. Delegates to the underlying UnitDefsBuilder.
 ---@overload fun(self: EngineUnsyncedBuilder, udb: UnitDefBuilder): EngineUnsyncedBuilder
----@param defID number
+---@param defID integer
 ---@param def table
 ---@return EngineUnsyncedBuilder
 function SUB:WithUnitDef(defID, def)
@@ -40,8 +40,8 @@ function SUB:WithUnitDef(defID, def)
 end
 
 ---Place a live unit instance on the map. Errors if the def is not registered.
----@param unitID number
----@param defIDOrName number|string
+---@param unitID integer
+---@param defIDOrName integer|string
 ---@return EngineUnsyncedBuilder
 function SUB:WithUnit(unitID, defIDOrName)
 	self.unitDefs:WithUnit(unitID, defIDOrName)
@@ -149,7 +149,7 @@ local function makeEnv(self)
 	-- buckets at the same mock table so they resolve to the per-test overrides.
 	env.Engine = { Synced = env.Spring, Unsynced = env.Spring, Shared = env.Spring }
 
-	local realInclude = _G.VFS and _G.VFS.Include
+	local realInclude = (_G.VFS and _G.VFS.Include) --[[@as function?]]
 	local includeOverrides = self.vfsIncludeOverrides
 	env.VFS = setmetatable({
 		Include = function(path, ...)

@@ -9,15 +9,33 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field Team TeamBuilder
 ---@field EngineSynced EngineSyncedBuilder
 ---@field EngineUnsynced EngineUnsyncedBuilder
+---@field Spring EngineSyncedBuilder
+---@field SpringUnsynced EngineUnsyncedBuilder
+---@field ResourceData ResourceDataBuilder
 ---@field UnitDef UnitDefBuilder
 ---@field UnitDefs UnitDefsBuilder
+---@field Mode table
 local Builders = {
 	Team = TeamBuilder,
 	EngineSynced = EngineSyncedBuilder,
 	EngineUnsynced = EngineUnsyncedBuilder,
+	-- Aliases from before the Spring -> Engine builder rename; existing specs use them.
+	Spring = EngineSyncedBuilder,
+	SpringUnsynced = EngineUnsyncedBuilder,
 	ResourceData = ResourceDataBuilder,
 	UnitDef = UnitDefBuilder,
 	UnitDefs = UnitDefsBuilder,
 }
 
-return Builders
+-- Mode helpers pull in the policy pipeline (context_factory / resource_transfer_synced),
+-- so load them lazily: specs that never touch Builders.Mode don't drag the pipeline into
+-- their layer, which keeps the lower stacked PRs (library, modes/economy) self-contained.
+return setmetatable(Builders, {
+	__index = function(t, k)
+		if k == "Mode" then
+			local mod = VFS.Include("spec/builders/mode_test_helpers.lua")
+			rawset(t, "Mode", mod)
+			return mod
+		end
+	end,
+})

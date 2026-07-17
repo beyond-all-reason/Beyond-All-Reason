@@ -146,10 +146,12 @@ if not table.toString then
 	---
 	---In order to keep the output deterministic, keys are sorted.
 	---@param tbl table
-	---@param options table Optional parameters
+	---@param options table? Optional parameters
 	---@param options.pretty boolean Whether to add newlines and indentation (default: false)
 	---@param options.indent number If pretty=true, the number of spaces to indent by at each indent step (default: 2)
 	---@param options.keyCmp function Custom comparison function for sorting keys. If provided, this function will be used instead of the default comparison based on `table.toString(key)`.
+	---@param _seen table? internal recursion guard
+	---@param _depth integer? internal indent depth
 	---@return string
 	tableToString = function(tbl, options, _seen, _depth)
 		_seen = _seen or {}

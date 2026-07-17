@@ -7,14 +7,17 @@
 local M = {}
 
 -- private counter store (prefix -> next integer)
-local _counters = {}
+local _counters = {} ---@type table<string, integer>
 
 ---@class SequenceOptions
 ---@field start integer|nil   -- first number to emit (default 1)
 ---@field step integer|nil    -- increment step (default 1)
----@field format fun(prefix:string, n:integer):string|nil -- optional formatter
+---@field format (fun(prefix:string, n:integer): string|integer)|nil -- optional formatter
 
 ---Get current counter for prefix (or defaultStart - 1 if unset)
+---@param prefix string
+---@param defaultStart integer?
+---@return integer
 local function current(prefix, defaultStart)
 	local n = _counters[prefix]
 	if n == nil then
@@ -26,9 +29,9 @@ end
 ---Create a generator function tied to a prefix (& cached counter)
 ---@param prefix string
 ---@param opts SequenceOptions|nil
----@return fun():string
+---@return fun(): string|integer
 function M.sequence(prefix, opts)
-	opts = opts or {}
+	opts = opts or ({} --[[@as SequenceOptions]])
 	local start = opts.start or 1
 	local step = opts.step or 1
 	local fmt = opts.format or function(p, n)
@@ -41,7 +44,7 @@ function M.sequence(prefix, opts)
 	end
 
 	return function()
-		local n = _counters[prefix]
+		local n = _counters[prefix] --[[@as integer]] -- initialized above
 		_counters[prefix] = n + step
 		local str = fmt(prefix, n)
 		if str == nil then
