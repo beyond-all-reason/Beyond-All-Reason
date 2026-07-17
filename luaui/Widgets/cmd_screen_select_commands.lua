@@ -61,6 +61,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureResurrect = Spring.GetFeatureResurrect
 local spGetFeatureResources = Spring.GetFeatureResources
@@ -70,6 +71,7 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitHealth = Spring.GetUnitHealth
 local spTestMoveOrder = Spring.TestMoveOrder
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
@@ -99,8 +101,7 @@ local MAX_QUEUE_COMMANDS = 100
 local MASS_ORDER_START_RADIUS = 2000
 local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
-local CLICK_DEBOUNCE_GAP = 0.03
-local DOUBLE_CLICK_SNAP_RADIUS = 75
+local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 64 / 1080
 
 local doubleClickEnabled = true
 local maxMassOrderTargets = 150
@@ -114,19 +115,22 @@ local pendingDoubleClick = {}
 local heldCommandDescriptionIndex
 local deferClearActiveCommand = false
 local screenSelectKeyHeld = false
-local firstClickPressTime = 0
+local vsy = select(2, spring.GetViewGeometry())
+local doubleClickSnapRadius = vsy * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
+local doubleClickSnapRadiusSq = doubleClickSnapRadius * doubleClickSnapRadius
+
+local function updateDoubleClickSnapRadius()
+	vsy = select(2, spring.GetViewGeometry())
+	doubleClickSnapRadius = vsy * DOUBLE_CLICK_SNAP_HEIGHT_FRACTION
+	doubleClickSnapRadiusSq = doubleClickSnapRadius * doubleClickSnapRadius
+end
 
 local function clearDoubleClickPending()
 	pendingDoubleClick = {
 		targetID = nil,
 		expireTime = 0,
 		commandID = nil,
-		alt = false,
-		ctrl = false,
-		meta = false,
-		shift = false,
 		right = false,
-		firstClickTime = 0,
 	}
 end
 
@@ -1108,26 +1112,18 @@ local function isValidMassOrderTarget(commandID, targetID, isFeature)
 	return true
 end
 
-local function resolveCursorTargetID(mouseX, mouseY)
-	local targetType, targetID = spring.TraceScreenRay(mouseX, mouseY)
-	if targetType == "unit" then
-		return targetID
-	end
-	if targetType == "feature" then
-		return normalizeFeatureTargetID(targetID)
-	end
-	return nil
-end
-
-local function considerNearestCandidate(candidateID, isFeature, commandID, cursorX, cursorZ, getWorldXZ, nearestState)
+local function considerNearestCandidate(candidateID, isFeature, commandID, mouseX, mouseY, getScreenXY, nearestState)
 	if not isValidMassOrderTarget(commandID, candidateID, isFeature) then
 		return
 	end
-	local worldX, worldZ = getWorldXZ(candidateID)
-	if not worldX then
+	local screenX, screenY = getScreenXY(candidateID)
+	if not screenX then
 		return
 	end
-	local candidateDistanceSq = mathDistance2dSquared(worldX, worldZ, cursorX, cursorZ)
+	local candidateDistanceSq = mathDistance2dSquared(screenX, screenY, mouseX, mouseY)
+	if candidateDistanceSq > doubleClickSnapRadiusSq then
+		return
+	end
 	if nearestState.distanceSq == nil or candidateDistanceSq < nearestState.distanceSq then
 		nearestState.targetID = candidateID
 		nearestState.distanceSq = candidateDistanceSq
@@ -1145,49 +1141,38 @@ local function resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
 	if not allowsUnits and not allowsFeatures then
 		return nil
 	end
-	local _, worldPosition = spring.TraceScreenRay(mouseX, mouseY, true)
-	if not worldPosition then
-		return nil
-	end
-	local cursorX = worldPosition[1]
-	local cursorZ = worldPosition[3]
 	local nearestState = {}
-	local getUnitWorldXZ = function(unitID)
-		local unitX, _, unitZ = spGetUnitPosition(unitID)
-		return unitX, unitZ
+	local getUnitScreenXY = function(unitID)
+		local unitX, unitY, unitZ = spGetUnitViewPosition(unitID, true)
+		if not unitX then
+			return nil
+		end
+		return spWorldToScreenCoords(unitX, unitY, unitZ)
 	end
-	local getFeatureWorldXZ = function(featureTargetID)
-		local featureX, _, featureZ = spGetFeaturePosition(getRawFeatureID(featureTargetID))
-		return featureX, featureZ
+	local getFeatureScreenXY = function(featureTargetID)
+		local featureX, featureY, featureZ = spGetFeaturePosition(getRawFeatureID(featureTargetID))
+		if not featureX then
+			return nil
+		end
+		return spWorldToScreenCoords(featureX, featureY, featureZ)
 	end
 	if allowsUnits then
-		local candidateUnits = spring.GetUnitsInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		local candidateUnits = spring.GetVisibleUnits()
 		if candidateUnits then
 			for unitIndex = 1, #candidateUnits do
-				considerNearestCandidate(candidateUnits[unitIndex], false, commandID, cursorX, cursorZ, getUnitWorldXZ, nearestState)
+				considerNearestCandidate(candidateUnits[unitIndex], false, commandID, mouseX, mouseY, getUnitScreenXY, nearestState)
 			end
 		end
 	end
 	if allowsFeatures then
-		local candidateFeatures = spring.GetFeaturesInCylinder(cursorX, cursorZ, DOUBLE_CLICK_SNAP_RADIUS)
+		local candidateFeatures = spring.GetVisibleFeatures(-1)
 		if candidateFeatures then
 			for featureIndex = 1, #candidateFeatures do
-				considerNearestCandidate(normalizeFeatureTargetID(candidateFeatures[featureIndex]), true, commandID, cursorX, cursorZ, getFeatureWorldXZ, nearestState)
+				considerNearestCandidate(normalizeFeatureTargetID(candidateFeatures[featureIndex]), true, commandID, mouseX, mouseY, getFeatureScreenXY, nearestState)
 			end
 		end
 	end
 	return nearestState.targetID, nearestState.isFeature
-end
-
-local function resolveMassOrderReferenceTarget(commandID, firstClickTargetID, secondClickTargetID)
-	if secondClickTargetID then
-		local secondClickTargetIsFeature = isFeatureTargetID(secondClickTargetID)
-		if isValidMassOrderTarget(commandID, secondClickTargetID, secondClickTargetIsFeature) then
-			return secondClickTargetID, secondClickTargetIsFeature
-		end
-		return nil, false
-	end
-	return firstClickTargetID, isFeatureTargetID(firstClickTargetID)
 end
 
 local function filterTargetsBySelectionMembership(targets, selectionSet, targetInSelection)
@@ -1310,23 +1295,13 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	return true
 end
 
-local function issuePendingDoubleClickMassOrders(options, secondClickTargetID)
-	if not isPendingDoubleClickActive() then
-		return false
-	end
+local function issuePendingDoubleClickMassOrders(options)
 	local issueCommandID = pendingDoubleClick.commandID
-	local firstClickTargetID = pendingDoubleClick.targetID
-	local referenceTargetID, referenceTargetIsFeature = resolveMassOrderReferenceTarget(issueCommandID, firstClickTargetID, secondClickTargetID)
+	local referenceTargetID = pendingDoubleClick.targetID
 	if not referenceTargetID then
 		return false
 	end
-	local massCommandOptions = {
-		alt = options.alt or pendingDoubleClick.alt,
-		ctrl = options.ctrl or pendingDoubleClick.ctrl,
-		meta = options.meta or pendingDoubleClick.meta,
-		shift = options.shift or pendingDoubleClick.shift,
-		right = options.right,
-	}
+	local referenceTargetIsFeature = isFeatureTargetID(referenceTargetID)
 	clearDoubleClickPending()
 	local selectedUnits = spring.GetSelectedUnits()
 	local massIssued = false
@@ -1339,10 +1314,10 @@ local function issuePendingDoubleClickMassOrders(options, secondClickTargetID)
 		end
 	end
 	if not skipMassReissue and #selectedUnits > 0 then
-		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, massCommandOptions)
+		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options)
 	end
 	if not massIssued then
-		clearActiveCommandUnlessShift(massCommandOptions)
+		clearActiveCommandUnlessShift(options)
 	end
 	return true
 end
@@ -1358,47 +1333,28 @@ local function resolveScreenSelectCommandID(commandID)
 	return nil
 end
 
-local function consumePendingDoubleClickClick(options, effectiveCommandID, secondClickTargetID)
+local function consumePendingDoubleClickClick(options, effectiveCommandID)
 	if not doubleClickEnabled or not isPendingDoubleClickActive() then
-		return false
-	end
-	if effectiveCommandID and pendingDoubleClick.commandID ~= effectiveCommandID then
 		return false
 	end
 	if pendingDoubleClick.right ~= options.right then
 		return false
 	end
-	if osClock() < pendingDoubleClick.firstClickTime + CLICK_DEBOUNCE_GAP then
-		clearDoubleClickPending()
-		clearActiveCommandUnlessShift(options)
-		return true
+	if effectiveCommandID and pendingDoubleClick.commandID ~= effectiveCommandID then
+		return false
 	end
-	-- Ground double-clicks arm with no targetID; swallow the second click so selection is not cleared after the active command ends.
 	if not pendingDoubleClick.targetID then
 		clearDoubleClickPending()
 		return true
 	end
-	if secondClickTargetID and secondClickTargetID ~= pendingDoubleClick.targetID then
-		return false
-	end
-	return issuePendingDoubleClickMassOrders(options, secondClickTargetID)
+	return issuePendingDoubleClickMassOrders(options)
 end
 
 local function armPendingDoubleClick(commandID, targetID, options)
-	local currentTime = osClock()
 	pendingDoubleClick.targetID = targetID
-	pendingDoubleClick.expireTime = currentTime + DOUBLE_CLICK_TIME
+	pendingDoubleClick.expireTime = osClock() + DOUBLE_CLICK_TIME
 	pendingDoubleClick.commandID = commandID
-	pendingDoubleClick.alt = options.alt
-	pendingDoubleClick.ctrl = options.ctrl
-	pendingDoubleClick.meta = options.meta
-	pendingDoubleClick.shift = options.shift
 	pendingDoubleClick.right = options.right
-	local firstClickTime = currentTime
-	if firstClickPressTime > 0 and currentTime - firstClickPressTime <= DOUBLE_CLICK_TIME then
-		firstClickTime = firstClickPressTime
-	end
-	pendingDoubleClick.firstClickTime = firstClickTime
 	if options.shift then
 		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(commandID)
 	end
@@ -1407,10 +1363,6 @@ end
 local function handleScreenSelectCommand(effectiveCommandID, parameters, options)
 	local targetID = parameters[1]
 	local isFeature = isFeatureTargetID(targetID)
-
-	if not screenSelectKeyHeld and consumePendingDoubleClickClick(options, effectiveCommandID, targetID) then
-		return true
-	end
 
 	if not isValidMassOrderTarget(effectiveCommandID, targetID, isFeature) then
 		return false
@@ -1424,40 +1376,25 @@ local function handleScreenSelectCommand(effectiveCommandID, parameters, options
 		return issueMassOrdersFromTarget(effectiveCommandID, targetID, isFeature, selectedUnits, options)
 	end
 
+	if doubleClickEnabled then
+		return false
+	end
+
 	selectedUnits = filterUnitsForCommand(selectedUnits, effectiveCommandID)
 	if #selectedUnits == 0 then
 		return false
 	end
-
-	if not doubleClickEnabled then
-		giveOrders(effectiveCommandID, selectedUnits, { targetID }, options)
-		if options.shift then
-			heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(effectiveCommandID)
-		else
-			clearActiveCommandUnlessShift(options)
-		end
-		return true
-	end
-
 	giveOrders(effectiveCommandID, selectedUnits, { targetID }, options)
-	armPendingDoubleClick(effectiveCommandID, targetID, options)
+	if options.shift then
+		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(effectiveCommandID)
+	else
+		clearActiveCommandUnlessShift(options)
+	end
 	return true
 end
 
 local function isSetTargetCommand(commandID)
 	return commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
-end
-
-local function resolveMouseMassOrderTarget(commandID, mouseX, mouseY)
-	local cursorTargetID = resolveCursorTargetID(mouseX, mouseY)
-	if cursorTargetID then
-		local cursorTargetIsFeature = isFeatureTargetID(cursorTargetID)
-		if isValidMassOrderTarget(commandID, cursorTargetID, cursorTargetIsFeature) then
-			return cursorTargetID, cursorTargetIsFeature, true
-		end
-	end
-	local snappedTargetID, snappedTargetIsFeature = resolveNearestValidTargetNearCursor(commandID, mouseX, mouseY)
-	return snappedTargetID, snappedTargetIsFeature, false
 end
 
 function widget:MousePress(mouseX, mouseY, button)
@@ -1478,16 +1415,11 @@ function widget:MousePress(mouseX, mouseY, button)
 		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
-		firstClickPressTime = osClock()
-		local targetID, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(effectiveCommandID, mouseX, mouseY)
-		if isDirectTarget then
-			return false
-		end
-		if not targetID then
-			armPendingDoubleClick(effectiveCommandID, nil, options)
-			return false
-		end
+		local targetID, targetIsFeature = resolveNearestValidTargetNearCursor(effectiveCommandID, mouseX, mouseY)
 		if screenSelectKeyHeld then
+			if not targetID then
+				return false
+			end
 			local selectedUnits = spring.GetSelectedUnits()
 			if #selectedUnits == 0 then
 				return false
@@ -1497,12 +1429,15 @@ function widget:MousePress(mouseX, mouseY, button)
 		armPendingDoubleClick(effectiveCommandID, targetID, options)
 		return false
 	end
-	local pendingCommandID = pendingDoubleClick.commandID
-	if effectiveCommandID and effectiveCommandID ~= pendingCommandID then
-		return false
+	local consumed = consumePendingDoubleClickClick(options, effectiveCommandID)
+	if consumed then
+		return true
 	end
-	local targetID = resolveMouseMassOrderTarget(pendingCommandID, mouseX, mouseY)
-	return consumePendingDoubleClickClick(options, effectiveCommandID, targetID)
+	if not effectiveCommandID then
+		clearDoubleClickPending()
+		return true
+	end
+	return false
 end
 
 function widget:CommandNotify(commandID, parameters, options)
@@ -1583,7 +1518,12 @@ function widget:PlayerChanged()
 	initialize()
 end
 
+function widget:ViewResize()
+	updateDoubleClickSnapRadius()
+end
+
 function widget:Initialize()
+	updateDoubleClickSnapRadius()
 	initialize()
 	if spring.GetSpectatingState() then
 		return
