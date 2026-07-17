@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "SethDGamre, advised by Chronographer",
 		date = "July 11, 2026",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = 0,
 		enabled = true
 	}
 end
