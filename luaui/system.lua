@@ -14,23 +14,24 @@
 if System == nil then
 	if tracy == nil then
 		Spring.Echo("Tracy: No support detected, replacing tracy.* with function stubs.")
+		-- stub signatures mirror the real tracy API so the type checker sees one arity
 		tracy = {}
-		tracy.ZoneBeginN = function()
+		tracy.ZoneBeginN = function(_name)
 			return
 		end
-		tracy.ZoneBegin = function()
+		tracy.ZoneBegin = function(_name)
 			return
 		end
 		tracy.ZoneEnd = function()
 			return
 		end --Spring.Echo("No Tracy") return end
-		tracy.Message = function()
+		tracy.Message = function(_msg)
 			return
 		end
-		tracy.ZoneName = function()
+		tracy.ZoneName = function(_name)
 			return
 		end
-		tracy.ZoneText = function()
+		tracy.ZoneText = function(_text)
 			return
 		end
 	end
@@ -50,7 +51,7 @@ if System == nil then
 		Script = Script,
 		Spring = Spring,
 		SpringShared = SpringShared,
-		SpringSynced = SpringSynced,
+		EngineSynced = EngineSynced,
 		SpringUnsynced = SpringUnsynced,
 		Engine = Engine,
 		Platform = Platform,

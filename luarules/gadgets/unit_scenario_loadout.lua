@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+
 local nanoturretunitIDs = {}
 
 local loadoutcomplete = false
@@ -125,8 +127,8 @@ function gadget:GameFrame(n)
 		end
 		if next(additionalStorage) then
 			for teamID, additionalstorage in pairs(additionalStorage) do
-				local m, mstore = Spring.GetTeamResources(teamID, "metal")
-				local e, estore = Spring.GetTeamResources(teamID, "energy")
+				local m, mstore = GG.GetTeamResources(teamID, "metal")
+				local e, estore = GG.GetTeamResources(teamID, "energy")
 				Spring.SetTeamResource(teamID, "ms", mstore + additionalstorage.metal)
 				Spring.SetTeamResource(teamID, "es", estore + additionalstorage.energy)
 			end
