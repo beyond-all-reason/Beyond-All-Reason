@@ -101,7 +101,7 @@ local MAX_QUEUE_COMMANDS = 100
 local MASS_ORDER_START_RADIUS = 2000
 local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
-local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 64 / 1080
+local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 32 / 1080
 
 local doubleClickEnabled = true
 local maxMassOrderTargets = 150
