@@ -1014,6 +1014,8 @@ local function initializeTestEnvironment()
 		type = type,
 		unpack = unpack,
 		select = select,
+		setmetatable = setmetatable,
+		getmetatable = getmetatable,
 		Scenario = scenarioConfig,
 
 		Json = Json,
