@@ -36,7 +36,7 @@ local GL_POINTS = GL.POINTS
 
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}
@@ -175,7 +175,7 @@ local function init()
 end
 
 function widget:PlayerChanged(playerID)
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 	widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 end

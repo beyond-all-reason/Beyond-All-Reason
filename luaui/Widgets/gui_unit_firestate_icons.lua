@@ -22,8 +22,8 @@ local shouldShowToSpectators = false
 local spGetGameFrame = Spring.GetGameFrame
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 

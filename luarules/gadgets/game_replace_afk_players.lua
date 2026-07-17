@@ -241,7 +241,7 @@ else
 	-- UNSYNCED
 	-----------------------------
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
 	local ColorString = Spring.Utilities.Color.ToString
