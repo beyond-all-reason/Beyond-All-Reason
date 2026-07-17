@@ -137,7 +137,7 @@ local RENDER_MODE = "shape"
 -- Color brightness equalization, in [0..1]:
 local NanoParticleColorEqualize = 0.7   -- [0..1]
 -- Global unit particle rate/amount multiplier. 1.0 = unchanged. 0.5 = half particles per unit
-local NanoParticleRate        = 0.4   -- [0..1]
+local NanoParticleRate        = 0.35   -- [0..1]
 -- Reclaiming units: tighten target-radius spawn spread so the cloud doesn't
 -- fill the whole unit footprint. 0.6 = 40% less spread.
 local RECLAIM_UNIT_JITTER_SCALE = 0.6
@@ -181,14 +181,14 @@ local MODE_SETTINGS = {
 		rotValBase  = -180, rotValRange = 360,
 		rotVelBase  = -40,  rotVelRange = 80,
 		rotAccBase  = -40,  rotAccRange = 80,
-		glowIntensity = 0.15,
+		glowIntensity = 0.35,
 		glowFalloff = 9.5,
 		glowScale = 11.0,
-		glowBreath     = 4.0,
-		glowBreathFreq = 2.0,
-		glowBreathVar     = 0.5,  -- ± per-particle amplitude variation (0..1 fraction)
-		glowBreathFreqVar = 0.5,  -- ± per-particle frequency variation (0..1 fraction)
-		-- Energy enhancement (sizePulse not wired through GS; halo+jitter+breath suffice).
+		-- NOTE: the halo brightness "breath" pulse was removed. A pulsing
+		-- brightness on the bright additive halo gets smeared by the engine's
+		-- temporal filtering into moving bands that track the camera (the
+		-- reported "glitchy horizontal lines"); a steady halo has none of that.
+		-- Energy enhancement (sizePulse not wired through GS; halo+jitter suffice).
 		coreBoost      = 0.3,    -- multiplies face shading; modest so dark faces still read
 		hueJitter      = 0.1,
 	},
@@ -528,10 +528,6 @@ local function applyRenderMode(name)
 	U.GLOW_FALLOFF       = MODE.glowFalloff     or 2.0
 	U.CORE_BOOST         = MODE.coreBoost       or 1.0
 	U.HUE_JITTER         = MODE.hueJitter       or 0.0
-	U.GLOW_BREATH        = MODE.glowBreath      or 0.0
-	U.GLOW_BREATH_FREQ   = MODE.glowBreathFreq  or 0.0
-	U.GLOW_BREATH_VAR      = MODE.glowBreathVar      or 0.0
-	U.GLOW_BREATH_FREQ_VAR = MODE.glowBreathFreqVar  or 0.0
 	U.SIZE_PULSE_AMP     = MODE.sizePulseAmp    or 0.0
 	U.SIZE_PULSE_FREQ    = MODE.sizePulseFreq   or 0.0
 	U.WHITE_HOTSPOT           = MODE.whiteHotspot          or 0.0
@@ -904,10 +900,6 @@ uniform float glowIntensity;    // peak alpha of the halo (0 = halo verts emit n
 uniform float glowFalloff;      // halo radial falloff exponent
 uniform float coreBoost;        // brightness multiplier for the lit faces (>=1.0)
 uniform float hueJitter;        // \u00b1 per-channel modulation amplitude (0 = off)
-uniform float glowBreath;       // halo intensity oscillation amplitude (0..1)
-uniform float glowBreathFreq;   // halo oscillation frequency (cycles/sim-second)
-uniform float glowBreathVar;    // ± per-particle amplitude variation (0..1 fraction of glowBreath)
-uniform float glowBreathFreqVar;// ± per-particle frequency variation (0..1 fraction of glowBreathFreq)
 uniform float whiteHotspot;          // peak strength of noise->white mix on faces (0 = off)
 uniform float whiteHotspotThreshold; // noise value where hotspot ramp starts (0..1)
 
@@ -979,15 +971,6 @@ void main() {
 		if (rd > 1.0) discard;
 		float t = 1.0 - rd;
 		float gI = glowIntensity;
-		if (glowBreath > 0.0001) {
-			// See billboard FS for rationale; two independent sin-hashes.
-			float hAmp  = fract(sin(g_seed * 91.7253 + 17.31) * 43758.5453);
-			float hFreq = fract(sin(g_seed * 33.1117 + 43.93) * 27183.4500);
-			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
-			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
-			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + g_seed;
-			gI *= 1.0 + glowBreath * ampScale * sin(ph);
-		}
 		float glow = pow(clamp(t, 0.0, 1.0), max(glowFalloff, 0.01)) * gI;
 		// Saturation-preserving brightness equalization -- see billboard FS.
 		vec3  glowTint = g_color.rgb / max(max(g_color.r, max(g_color.g, g_color.b)), 0.001);
@@ -1077,8 +1060,7 @@ local function initGL4()
 		                 cubeNoise = U.CUBE_NOISE, cubeNoiseSpeed = U.CUBE_NOISE_SPEED, cubeNoiseScale = U.CUBE_NOISE_SCALE,
 		                 glowScale = U.GLOW_SCALE, glowIntensity = U.GLOW_INTENSITY, glowFalloff = U.GLOW_FALLOFF,
 		                 coreBoost = U.CORE_BOOST,
-		                 hueJitter = U.HUE_JITTER, glowBreath = U.GLOW_BREATH, glowBreathFreq = U.GLOW_BREATH_FREQ,
-		                 glowBreathVar = U.GLOW_BREATH_VAR, glowBreathFreqVar = U.GLOW_BREATH_FREQ_VAR,
+		                 hueJitter = U.HUE_JITTER,
 		                 sizePulseAmp = U.SIZE_PULSE_AMP, sizePulseFreq = U.SIZE_PULSE_FREQ,
 		                 whiteHotspot = U.WHITE_HOTSPOT, whiteHotspotThreshold = U.WHITE_HOTSPOT_THRESHOLD },
 		shaderConfig = {},
