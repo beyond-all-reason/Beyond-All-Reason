@@ -215,7 +215,9 @@ local function ProcessEconomy(frame)
 		local resData = team and team[r.resourceType]
 		if resData then
 			spSetTeamResource(r.teamId, r.resourceType, resData.current)
-			spAddTeamResourceExcessStats(r.teamId, r.resourceType, r.excess)
+			if spAddTeamResourceExcessStats then
+				spAddTeamResourceExcessStats(r.teamId, r.resourceType, r.excess)
+			end
 		end
 	end
 
@@ -257,6 +259,18 @@ function gadget:ResourceExcess(excesses)
 	end
 
 	return true
+end
+
+if not springRepo.AddTeamResourceExcessStats then
+	-- Engine without the resource-excess port (RecoilEngine#2642): the
+	-- ResourceExcess callin never fires, so drive the cadence tick — and the
+	-- policy factor refresh manual sharing depends on — from GameFrame.
+	-- Overflow accumulation is unavailable; only slider excess redistributes.
+	function gadget:GameFrame(frame)
+		if frame % CADENCE == 0 then
+			ProcessEconomy(frame)
+		end
+	end
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
