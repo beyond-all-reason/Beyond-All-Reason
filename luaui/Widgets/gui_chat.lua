@@ -184,6 +184,8 @@ local state = {
 	emojiPickerItemSize = 0,
 	emojiPickerColumns = 0,
 	emojiPickerPadding = 0,
+	emojiPickerPressFromButton = false,
+	emojiPickerOpenBeforePress = false,
 	autocompleteWords = {},
 	autocompleteInfoText = nil,
 	autocompleteDisplayPrefix = nil,
@@ -771,6 +773,8 @@ end
 function state.closeEmojiPicker()
 	state.emojiPickerOpen = false
 	state.emojiPickerRect = nil
+	state.emojiPickerPressFromButton = false
+	state.emojiPickerOpenBeforePress = false
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chatinputemojipicker')
 	end
@@ -804,6 +808,7 @@ function state.drawEmojiPickerButton(rect, iconSize)
 	if not rect then
 		return
 	end
+	local uvInset = ChatEmoji.GetTexcoordInset()
 	glColor(0, 0, 0, state.emojiPickerOpen and 0.42 or 0.26)
 	RectRound(rect[1], rect[2], rect[3], rect[4], elementCorner*0.6, 0,1,1,0)
 	glColor(1, 1, 1, 0.05)
@@ -812,7 +817,7 @@ function state.drawEmojiPickerButton(rect, iconSize)
 		local inset = floor(iconSize * 0.18)
 		glColor(1, 1, 1, 1)
 		gl.Texture(state.emojiButtonTexture)
-		gl.TexRect(rect[1] + inset, rect[2] + inset, rect[3] - inset, rect[4] - inset)
+		gl.TexRect(rect[1] + inset, rect[2] + inset, rect[3] - inset, rect[4] - inset, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
 		gl.Texture(false)
 	end
 end
@@ -837,6 +842,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	local pickerTop = state.emojiButtonRect[2] - pickerPadding
 	local pickerBottom = pickerTop - pickerHeight
 	local iconInset = floor(pickerItemSize * 0.14)
+	local uvInset = ChatEmoji.GetTexcoordInset()
 
 	state.emojiPickerRect = {pickerLeft, pickerBottom, pickerRight, pickerTop}
 	state.emojiPickerItemSize = pickerItemSize
@@ -861,7 +867,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 			RectRound(iconLeft, iconBottom, iconRight, iconTop, elementCorner*0.35, 1,1,1,1)
 			glColor(1, 1, 1, 1)
 			gl.Texture(texturePath)
-			gl.TexRect(iconLeft + iconInset, iconBottom + iconInset, iconRight - iconInset, iconTop - iconInset)
+			gl.TexRect(iconLeft + iconInset, iconBottom + iconInset, iconRight - iconInset, iconTop - iconInset, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
 			gl.Texture(false)
 		end
 	end
@@ -2880,6 +2886,7 @@ function widget:MousePress(x, y, button)
 	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
 		return false
 	end
+	state.emojiPickerPressFromButton = false
 
 	if state.emojiPickerOpen and state.emojiPickerRect and math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4]) then
 		local localX = x - state.emojiPickerRect[1] - state.emojiPickerPadding
@@ -2899,7 +2906,9 @@ function widget:MousePress(x, y, button)
 	end
 
 	if inputButton and state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4]) then
-		state.emojiPickerOpen = not state.emojiPickerOpen
+		state.emojiPickerOpenBeforePress = state.emojiPickerOpen
+		state.emojiPickerOpen = true
+		state.emojiPickerPressFromButton = true
 		updateTextInputDlist = true
 		return true
 	end
@@ -2922,6 +2931,48 @@ function widget:MousePress(x, y, button)
 	end
 
 	return false
+end
+
+function widget:MouseRelease(x, y, button)
+	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
+		return false
+	end
+
+	if not state.emojiPickerPressFromButton then
+		return false
+	end
+
+	state.emojiPickerPressFromButton = false
+
+	local hoveredEmojiIndex = state.getEmojiPickerHoverRect(x, y)
+	if hoveredEmojiIndex then
+		local alias = emojiAutocompleteAliases[hoveredEmojiIndex]
+		if alias then
+			state.insertInputTextAtCursor(alias)
+		end
+		state.closeEmojiPicker()
+		updateTextInputDlist = true
+		return true
+	end
+
+	local releasedOnEmojiButton = inputButton and state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4])
+	local releasedInsidePicker = state.emojiPickerRect and math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4])
+
+	if releasedOnEmojiButton and not state.emojiPickerOpenBeforePress then
+		state.emojiPickerOpenBeforePress = false
+		updateTextInputDlist = true
+		return true
+	end
+
+	if releasedInsidePicker then
+		state.emojiPickerOpenBeforePress = false
+		updateTextInputDlist = true
+		return true
+	end
+
+	state.closeEmojiPicker()
+	updateTextInputDlist = true
+	return true
 end
 
 function widget:MouseWheel(up, value)
