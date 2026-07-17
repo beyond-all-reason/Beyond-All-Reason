@@ -488,18 +488,12 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	-- 1. Trigger Phase
-	splitheight               = tonumber, -- altitude above ground to trigger split
-	-- if no splitheight is provided(or a splitheight of -1), the weapon will split at apogee
-	
-	-- 2. Payload Phase
+	splitheight               = tonumber, -- altitude above ground to trigger split (optional, splits at apogee if omitted or -1)
 	speceffect_def            = toWeaponDefID, -- name of spawned weapondef
 	number                    = tonumber, -- count of projectiles to spawn
 	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
 	cegtag                    = tostring, -- as `projectileParams.cegTag`
 	model                     = tostring, -- as `projectileParams.model`
-	
-	-- 3. Expansion Phase
 	spread_divisor            = function(v) return tonumber(v) or 880 end, -- XZ spread divisor
 	spread_divisor_y          = function(v) return tonumber(v) or 440 end, -- Y spread divisor
 }
