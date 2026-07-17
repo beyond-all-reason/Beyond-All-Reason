@@ -36,6 +36,7 @@ local allowBadSpamTarget = false
 
 local unknownPower = spamPowerMax * 2.0 -- TODO: We incorrectly add power for crashing/dead, decoration, critter units.
 local unknownRadius = 20.0
+local unknownSpeed = 54
 
 local searchRadiusMin = 64.0
 local searchDamageMin = 100.0
@@ -219,6 +220,19 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	end
 
 	if not ignoreWeaponDef(weaponDef) then
+		-- Start with stats that are based on firing: aiming, accuracy, burst size, etc.
+		local scatter = weaponDef.range * (math.max(weaponDef.accuracy, weaponDef.movingAccuracy * 0.5) + weaponDef.sprayAngle + 0.25 * weaponDef.targetMoveError)
+
+		-- `split` fully replaces the intended payload:
+		local damageScale = 1
+		if weaponDef.customParams.speceffect == "split" then
+			if WeaponDefNames[weaponDef.customParams.speceffect_def] then
+				scatter = scatter + 32 -- there is no good formula
+				damageScale = weaponDef.projectiles * weaponDef.salvoSize
+				weaponDef = WeaponDefNames[weaponDef.customParams.speceffect_def].damageAreaOfEffect
+			end
+		end
+
 		local aoe = weaponDef.damageAreaOfEffect
 
 		-- expMod = (expRadius + 0.001f - expDist) / (expRadius + 0.001f - expDist * expEdgeEffect)
@@ -228,29 +242,27 @@ local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 			aoe = aoe * (1 - effectTarget) / (1 - effectAtEdge * effectTarget)
 		end
 
-		local scatter = weaponDef.range * (math.max(weaponDef.accuracy, weaponDef.movingAccuracy * 0.5) + weaponDef.sprayAngle + 0.25 * weaponDef.targetMoveError)
-
-		local miss = (1 - weaponDef.predictBoost) * 54
+		local miss = (1 - weaponDef.predictBoost) * unknownSpeed
 		if weaponDef.leadLimit > 0 then
 			miss = math.min(weaponDef.leadLimit, miss)
 		end
 
-		-- Spatial search is via midpoint. Just add padding:
+		-- Spatial search is via midpoint so add unit radius:
 		radius = aoe + scatter + miss + unitDefRadiusAverage
-		damage = getWeaponDamage(weaponDef)
+		damage = getWeaponDamage(weaponDef) * damageScale
 
 		if weaponDef.customParams.cluster_def then
 			local clusterDef = WeaponDefNames[weaponDef.customParams.cluster_def]
 			if clusterDef then
 				radius = radius + math.max(clusterDef.range - aoe, 0) + clusterDef.damageAreaOfEffect * 0.5
-				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number)
+				damage = damage + clusterDef.damages[0] * tonumber(weaponDef.customParams.cluster_number) * damageScale / 2
 			end
 		elseif weaponDef.customParams.spark_range then
 			radius = math.max(radius, tonumber(weaponDef.customParams.spark_range), 0)
-		elseif weaponDef.customParams.speceffect == "split" then
-			radius = radius + 32 -- sure
+			damage = damage * (1 + (tonumber(weaponDef.customParams.spark_forkdamage or 0.0) or 0.0))
 		elseif weaponDef.customParams.area_onhit_range then
 			radius = radius + math.max(tonumber(weaponDef.customParams.area_onhit_range) - aoe, 0)
+			damage = damage + (tonumber(weaponDef.customParams.area_onhit_damage or 0) or 0) * damageScale
 		end
 	end
 
