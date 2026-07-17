@@ -361,7 +361,10 @@ function view.blur()
 	if persistEdits() and WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 		WG['bar_hotkeys'].reloadBindings()
 	end
-	if searchBox then searchBox:blur() end
+	if searchBox then
+		searchBox:setText("") -- clear the filter so the list is unfiltered on reopen
+		searchBox:blur()
+	end
 	if presetDropdown then presetDropdown:close() end
 	if resetDropdown then resetDropdown:close() end
 	capturing = nil
