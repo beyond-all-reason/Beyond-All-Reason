@@ -909,7 +909,7 @@ function state.getEmojiAliasDeleteLength(cursorPos, backwards)
 			return 0
 		end
 		local leftText = utf8.sub(inputText, 1, cursorPos)
-		local aliasToken = leftText:match('(:[%w_]+:)$')
+		local aliasToken = leftText:match('(:[^:%s]+:)$')
 		if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
 			return #aliasToken
 		end
@@ -919,7 +919,7 @@ function state.getEmojiAliasDeleteLength(cursorPos, backwards)
 		return 0
 	end
 	local rightText = utf8.sub(inputText, cursorPos + 1)
-	local aliasToken = rightText:match('^(:[%w_]+:)')
+	local aliasToken = rightText:match('^(:[^:%s]+:)')
 	if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
 		return #aliasToken
 	end
@@ -2828,7 +2828,12 @@ function widget:KeyPress(key)
 				-- Clear selection
 				inputSelectionStart = nil
 			end
-			inputTextPosition = inputTextPosition - 1
+			local jumpLen = state.getEmojiAliasDeleteLength(inputTextPosition, true)
+			if jumpLen > 0 then
+				inputTextPosition = inputTextPosition - jumpLen
+			else
+				inputTextPosition = inputTextPosition - 1
+			end
 			if inputTextPosition < 0 then
 				inputTextPosition = 0
 			end
@@ -2843,7 +2848,12 @@ function widget:KeyPress(key)
 				-- Clear selection
 				inputSelectionStart = nil
 			end
-			inputTextPosition = inputTextPosition + 1
+			local jumpLen = state.getEmojiAliasDeleteLength(inputTextPosition, false)
+			if jumpLen > 0 then
+				inputTextPosition = inputTextPosition + jumpLen
+			else
+				inputTextPosition = inputTextPosition + 1
+			end
 			if inputTextPosition > utf8.len(inputText) then
 				inputTextPosition = utf8.len(inputText)
 			end
