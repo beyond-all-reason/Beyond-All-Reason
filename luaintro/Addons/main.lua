@@ -411,12 +411,12 @@ local progressByLastLine = {
 	["Loading Square Textures"] = { 43, 55 },
 	["Creating Projectile Textures"] = { 48, 60 },
 	["Creating Water"] = { 54, 65 },
-	["PathCosts"] = { 58, 65 },
+	PathCosts = { 58, 65 },
 	["[LoadFinalize] finalizing PFS"] = { 62, 65 },
 	["Loading LuaRules"] = { 69, 75 },
 	["Loading LuaUI"] = { 82, 85 },
 	["Loading Skirmish AIs"] = { 90, 95 },
-	["Finalizing"] = { 100, 100 },
+	Finalizing = { 100, 100 },
 }
 for name, val in pairs(progressByLastLine) do
 	progressByLastLine[name] = { val[1] * 0.01, val[2] * 0.01 }
@@ -527,12 +527,12 @@ function addon.DrawLoadScreen()
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			guishaderRects["loadprocess1"] = { (posX * vsx) - borderSize, (posY * vsy) - borderSize, (vsx - (posX * vsx)) + borderSize, ((posY * vsy) + height + borderSize) }
+			guishaderRects.loadprocess1 = { (posX * vsx) - borderSize, (posY * vsy) - borderSize, (vsx - (posX * vsx)) + borderSize, ((posY * vsy) + height + borderSize) }
 			if showTips and showTipAboveBar and showTipBackground then
-				guishaderRects["loadprocess2"] = { (posX * vsx) - borderSize, ((posY * vsy) + height + borderSize), (vsx - (posX * vsx)) + borderSize, tipPosYtop * vsy }
+				guishaderRects.loadprocess2 = { (posX * vsx) - borderSize, ((posY * vsy) + height + borderSize), (vsx - (posX * vsx)) + borderSize, tipPosYtop * vsy }
 			end
 			if usingIntelPotato or hasLowRam then
-				guishaderRects["loadprocess3"] = { 0, ((usingIntelPotato and hasLowRam) and 0.9 or 0.95) * vsy, vsx, vsy }
+				guishaderRects.loadprocess3 = { 0, ((usingIntelPotato and hasLowRam) and 0.9 or 0.95) * vsy, vsx, vsy }
 			end
 			DrawStencilTexture()
 		end

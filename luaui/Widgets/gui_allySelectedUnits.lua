@@ -630,14 +630,14 @@ function widget:Initialize()
 	end
 	widget:PlayerChanged(myPlayerID)
 
-	WG["allyselectedunits"] = {}
-	WG["allyselectedunits"].getSelectPlayerUnits = function()
+	WG.allyselectedunits = {}
+	WG.allyselectedunits.getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
-	WG["allyselectedunits"].setSelectPlayerUnits = function(value)
+	WG.allyselectedunits.setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
 	end
-	WG["allyselectedunits"].getPlayerSelectedUnits = function(playerID)
+	WG.allyselectedunits.getPlayerSelectedUnits = function(playerID)
 		return playerSelectedUnits[playerID]
 	end
 end

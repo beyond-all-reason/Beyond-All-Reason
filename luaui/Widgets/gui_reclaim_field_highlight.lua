@@ -3816,7 +3816,7 @@ function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
-	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
+	local f = WG.fonts and WG.fonts.getFont(2, 1.5)
 	animCfg.font = f
 	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text)
 		return f:GetTextWidth(text)
@@ -3835,131 +3835,131 @@ function widget:Initialize()
 	widgetHandler:AddAction("reclaim_highlight", enableHighlight, nil, "p")
 	widgetHandler:AddAction("reclaim_highlight", disableHighlight, nil, "r")
 
-	WG["reclaimfieldhighlight"] = {}
-	WG["reclaimfieldhighlight"].getShowOption = function()
+	WG.reclaimfieldhighlight = {}
+	WG.reclaimfieldhighlight.getShowOption = function()
 		return showOption
 	end
-	WG["reclaimfieldhighlight"].setShowOption = function(value)
+	WG.reclaimfieldhighlight.setShowOption = function(value)
 		showOption = value
 	end
-	WG["reclaimfieldhighlight"].getSmoothingSegments = function()
+	WG.reclaimfieldhighlight.getSmoothingSegments = function()
 		return smoothingSegments
 	end
-	WG["reclaimfieldhighlight"].setSmoothingSegments = function(value)
+	WG.reclaimfieldhighlight.setSmoothingSegments = function(value)
 		smoothingSegments = clamp(value, 4, 40) -- Clamp to reasonable range
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG["reclaimfieldhighlight"].getShowEnergyFields = function()
+	WG.reclaimfieldhighlight.getShowEnergyFields = function()
 		return showEnergyFields
 	end
-	WG["reclaimfieldhighlight"].setShowEnergyFields = function(value)
+	WG.reclaimfieldhighlight.setShowEnergyFields = function(value)
 		showEnergyFields = value
 		dirty.needCluster = true -- Force recluster with new settings
 	end
-	WG["reclaimfieldhighlight"].getShowEnergyOption = function()
+	WG.reclaimfieldhighlight.getShowEnergyOption = function()
 		return showEnergyOption
 	end
-	WG["reclaimfieldhighlight"].setShowEnergyOption = function(value)
+	WG.reclaimfieldhighlight.setShowEnergyOption = function(value)
 		showEnergyOption = value
 	end
-	WG["reclaimfieldhighlight"].getFadeStartDistance = function()
+	WG.reclaimfieldhighlight.getFadeStartDistance = function()
 		return fadeStartDistance
 	end
-	WG["reclaimfieldhighlight"].setFadeStartDistance = function(value)
+	WG.reclaimfieldhighlight.setFadeStartDistance = function(value)
 		fadeStartDistance = max(100, value)
 		-- Ensure start < end
 		if fadeStartDistance >= fadeEndDistance then
 			fadeEndDistance = fadeStartDistance + 1000
 		end
 	end
-	WG["reclaimfieldhighlight"].getFadeEndDistance = function()
+	WG.reclaimfieldhighlight.getFadeEndDistance = function()
 		return fadeEndDistance
 	end
-	WG["reclaimfieldhighlight"].setFadeEndDistance = function(value)
+	WG.reclaimfieldhighlight.setFadeEndDistance = function(value)
 		fadeEndDistance = max(fadeStartDistance + 100, value)
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFields = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFields = function()
 		return alwaysShowFields
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFields = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFields = function(value)
 		alwaysShowFields = value
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsThreshold = function()
 		return alwaysShowFieldsThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsThreshold = function(value)
 		-- Deprecated - threshold is now auto-calculated
 		-- This function kept for backwards compatibility
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMinThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsMinThreshold = function()
 		return alwaysShowFieldsMinThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMinThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsMinThreshold = function(value)
 		alwaysShowFieldsMinThreshold = max(0, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG["reclaimfieldhighlight"].getAlwaysShowFieldsMaxThreshold = function()
+	WG.reclaimfieldhighlight.getAlwaysShowFieldsMaxThreshold = function()
 		return alwaysShowFieldsMaxThreshold
 	end
-	WG["reclaimfieldhighlight"].setAlwaysShowFieldsMaxThreshold = function(value)
+	WG.reclaimfieldhighlight.setAlwaysShowFieldsMaxThreshold = function(value)
 		alwaysShowFieldsMaxThreshold = max(alwaysShowFieldsMinThreshold, value)
 		alwaysShowFieldsThreshold = CalculateAlwaysShowThreshold()
 	end
 
-	WG["reclaimfieldhighlight"].getTotalMapMetal = function()
+	WG.reclaimfieldhighlight.getTotalMapMetal = function()
 		return totalMapMetal
 	end
 
 	-- Deferred update settings
-	WG["reclaimfieldhighlight"].getDeferOutOfViewUpdates = function()
+	WG.reclaimfieldhighlight.getDeferOutOfViewUpdates = function()
 		return batch.deferOutOfView
 	end
-	WG["reclaimfieldhighlight"].setDeferOutOfViewUpdates = function(value)
+	WG.reclaimfieldhighlight.setDeferOutOfViewUpdates = function(value)
 		batch.deferOutOfView = value
 	end
-	WG["reclaimfieldhighlight"].getOutOfViewMargin = function()
+	WG.reclaimfieldhighlight.getOutOfViewMargin = function()
 		return batch.outOfViewMargin
 	end
-	WG["reclaimfieldhighlight"].setOutOfViewMargin = function(value)
+	WG.reclaimfieldhighlight.setOutOfViewMargin = function(value)
 		batch.outOfViewMargin = max(0, value)
 	end
 
 	-- Diagnostics: toggle a periodic timing echo (per-call ms for the update
 	-- pass vs the draw/rebuild passes, plus display-list rebuilds per frame) so
 	-- it's easy to confirm whether updating or drawing is the per-frame cost.
-	WG["reclaimfieldhighlight"].getDebugTiming = function()
+	WG.reclaimfieldhighlight.getDebugTiming = function()
 		return debugTiming
 	end
-	WG["reclaimfieldhighlight"].setDebugTiming = function(value)
+	WG.reclaimfieldhighlight.setDebugTiming = function(value)
 		debugTiming = value and true or false
 	end
-	WG["reclaimfieldhighlight"].getTimingInterval = function()
+	WG.reclaimfieldhighlight.getTimingInterval = function()
 		return timingInterval
 	end
-	WG["reclaimfieldhighlight"].setTimingInterval = function(value)
+	WG.reclaimfieldhighlight.setTimingInterval = function(value)
 		timingInterval = max(10, floor(tonumber(value) or timingInterval))
 	end
-	WG["reclaimfieldhighlight"].getTimingSpikeMs = function()
+	WG.reclaimfieldhighlight.getTimingSpikeMs = function()
 		return timingAccum.spikeMs
 	end
-	WG["reclaimfieldhighlight"].setTimingSpikeMs = function(value)
+	WG.reclaimfieldhighlight.setTimingSpikeMs = function(value)
 		timingAccum.spikeMs = max(0.5, tonumber(value) or timingAccum.spikeMs)
 	end
-	WG["reclaimfieldhighlight"].getClusterSliceBudgetMs = function()
+	WG.reclaimfieldhighlight.getClusterSliceBudgetMs = function()
 		return floor((batch.clusterJobBudget or 0) * 1000 + 0.5)
 	end
-	WG["reclaimfieldhighlight"].setClusterSliceBudgetMs = function(value)
+	WG.reclaimfieldhighlight.setClusterSliceBudgetMs = function(value)
 		local ms = tonumber(value)
 		if not ms then
 			return
 		end
 		batch.clusterJobBudget = clamp(ms * 0.001, batch.clusterJobBudgetMin, batch.clusterJobBudgetMax)
 	end
-	WG["reclaimfieldhighlight"].printTimingNow = function()
+	WG.reclaimfieldhighlight.printTimingNow = function()
 		local denom = timingCount > 0 and timingCount or 1
 		Spring.Echo(string.format("[ReclaimField TIMING NOW] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f", timingAccum.updateReclaim / denom * 1000, timingAccum.drawWorldText / denom * 1000, timingAccum.drawPreUnit / denom * 1000, timingAccum.updateFunc / denom * 1000, timingAccum.deferPending / denom * 1000, timingAccum.reclaimPoll / denom * 1000, timingAccum.clusterSlice / denom * 1000, timingAccum.clusterFinalize / denom * 1000, timingAccum.redrawLists / denom * 1000, timingAccum.maxUpdateReclaim * 1000, timingAccum.maxDrawPreUnit * 1000, timingAccum.maxClusterSlice * 1000, timingAccum.maxClusterFinalize * 1000, timingAccum.maxRedrawLists * 1000, timingAccum.rebuilds / denom))
 	end
@@ -4005,7 +4005,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("reclaim_highlight", "p")
 	widgetHandler:RemoveAction("reclaim_highlight", "r")
 
-	WG["reclaimfieldhighlight"] = nil -- todo: register/deregister, right?
+	WG.reclaimfieldhighlight = nil -- todo: register/deregister, right?
 
 	-- Clean up per-cluster display lists
 	for cid in pairs(clusterDisplayLists) do
@@ -4176,7 +4176,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
-	local f = WG["fonts"] and WG["fonts"].getFont(2, 1.5)
+	local f = WG.fonts and WG.fonts.getFont(2, 1.5)
 	animCfg.font = f
 	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text)
 		return f:GetTextWidth(text)

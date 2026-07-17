@@ -178,8 +178,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -192,8 +192,8 @@ function widget:ViewResize()
 	textList = gl.CreateList(DrawWindow)
 
 	-- Layout changed: invalidate the guishader DList so it gets rebuilt next draw
-	if backgroundGuishader ~= nil and WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	if backgroundGuishader ~= nil and WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 		backgroundGuishader = nil
 	end
 end
@@ -306,13 +306,13 @@ function widget:DrawScreen()
 
 		glCallList(textList)
 
-		if WG["guishader"] and backgroundGuishader == nil then
+		if WG.guishader and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG["guishader"].InsertDlist(backgroundGuishader, "missiontext")
+			WG.guishader.InsertDlist(backgroundGuishader, "missiontext")
 		end
 		showOnceMore = false
 
@@ -320,8 +320,8 @@ function widget:DrawScreen()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or (titleRect and math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
 			Spring.SetMouseCursor("cursornormal")
 		end
-	elseif dlistcreated and WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	elseif dlistcreated and WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 		backgroundGuishader = nil
 		dlistcreated = nil
 	end
@@ -428,8 +428,8 @@ function widget:Initialize()
 
 	totalTextLines = #textLines
 
-	WG["missioninfo"] = {}
-	WG["missioninfo"].toggle = function(state)
+	WG.missioninfo = {}
+	WG.missioninfo.toggle = function(state)
 		local wasVisible = show
 		if state ~= nil then
 			show = state
@@ -449,7 +449,7 @@ function widget:Initialize()
 			textList = gl.CreateList(DrawWindow)
 		end
 	end
-	WG["missioninfo"].isvisible = function()
+	WG.missioninfo.isvisible = function()
 		-- Report true while justClosedFromPress so toggleWindow treats us as
 		-- "was open" and doesn't immediately re-open after our mouseEvent close.
 		return show or justClosedFromPress
@@ -475,10 +475,10 @@ function widget:Shutdown()
 		glDeleteList(textList)
 		textList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 	end
-	WG["missioninfo"] = nil
+	WG.missioninfo = nil
 end
 
 function widget:LanguageChanged()

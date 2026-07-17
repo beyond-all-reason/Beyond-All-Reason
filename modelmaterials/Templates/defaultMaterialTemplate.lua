@@ -1624,31 +1624,31 @@ local shaderPlugins = {}
 
 -- bit = (index - 1)
 local knownBitOptions = {
-	["shadowmapping"] = 0,
-	["normalmapping"] = 1,
-	["normalmap_flip"] = 2,
-	["vertex_ao"] = 3,
-	["flashlights"] = 4,
+	shadowmapping = 0,
+	normalmapping = 1,
+	normalmap_flip = 2,
+	vertex_ao = 3,
+	flashlights = 4,
 
-	["treads_arm"] = 5,
-	["treads_core"] = 6,
+	treads_arm = 5,
+	treads_core = 6,
 
-	["health_texturing"] = 7,
-	["health_displace"] = 8,
-	["health_texraptors"] = 9,
+	health_texturing = 7,
+	health_displace = 8,
+	health_texraptors = 9,
 
-	["modelsfog"] = 10,
+	modelsfog = 10,
 
-	["treewind"] = 11,
-	["autonormal"] = 21,
+	treewind = 11,
+	autonormal = 21,
 }
 
 local knownIntOptions = {
-	["shadowsQuality"] = 1,
-	["materialIndex"] = 1,
+	shadowsQuality = 1,
+	materialIndex = 1,
 }
 local knownFloatOptions = {
-	["autoNormalParams"] = 2,
+	autoNormalParams = 2,
 }
 
 local allOptions = nil

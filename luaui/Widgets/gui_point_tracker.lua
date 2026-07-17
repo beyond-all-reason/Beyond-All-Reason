@@ -307,8 +307,8 @@ function DrawMapMarksWorld(isMiniMap)
 		mapMarkShader:SetUniform("mapRotation", getCurrentMiniMapRotationOption() or 0)
 
 		-- Pass PIP visible area if drawing in PIP minimap
-		if isMiniMap > 0 and WG["minimap"] and WG["minimap"].isDrawingInPip and WG["minimap"].getNormalizedVisibleArea then
-			local left, right, bottom, top = WG["minimap"].getNormalizedVisibleArea()
+		if isMiniMap > 0 and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+			local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 			mapMarkShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 		else
 			mapMarkShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -391,7 +391,7 @@ function widget:DrawInMiniMap(sx, sy)
 		return
 	end
 	-- Don't draw map marks inside the PIP minimap
-	if WG["minimap"] and WG["minimap"].isDrawingInPip then
+	if WG.minimap and WG.minimap.isDrawingInPip then
 		return
 	end
 	-- this fixes drawing on only 1 quadrant of minimap as pwe
