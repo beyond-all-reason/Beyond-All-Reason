@@ -140,10 +140,10 @@ local translationCache = {}
 local function getCachedTranslation(key, params)
 	if params then
 		-- Don't cache when params are provided since they can vary
-		return Spring.I18N(key, params)
+		return BAR.I18N(key, params)
 	end
 	if not translationCache[key] then
-		translationCache[key] = Spring.I18N(key)
+		translationCache[key] = BAR.I18N(key)
 	end
 	return translationCache[key]
 end
@@ -990,7 +990,7 @@ local function drawCell(cell, zoom)
 					local info = commandInfo[cmd.action]
 					local part = (1 / colorize)
 					local grey = (0.93 * (part - 1))
-					colorStrCache[cmd.action] = Spring.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
+					colorStrCache[cmd.action] = BAR.Utilities.ConvertColor((grey + info.red) / part, (grey + info.green) / part, (grey + info.blue) / part)
 				end
 				textColor = colorStrCache[cmd.action]
 			else

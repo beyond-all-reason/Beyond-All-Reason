@@ -101,7 +101,7 @@ local spSpawnCEG = Spring.SpawnCEG
 local gameSpeed = Game.gameSpeed
 
 local waterPlaneLevel = spGetWaterPlaneLevel()
-local lavaWater = Spring.Lava.isLavaMap
+local lavaWater = BAR.Lava.isLavaMap
 local voidWater = false
 
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
