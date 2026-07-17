@@ -114,6 +114,7 @@ local pendingDoubleClick = {}
 local heldCommandDescriptionIndex
 local deferClearActiveCommand = false
 local screenSelectKeyHeld = false
+local firstClickPressTime = 0
 
 local function clearDoubleClickPending()
 	pendingDoubleClick = {
@@ -672,6 +673,19 @@ local function insertOrdersByQueueProximity(commandID, selectedUnits, filteredTa
 end
 
 local function giveOrders(commandID, selectedUnits, filteredTargets, options)
+	if commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND then
+		local setTargetOptionBits = getCommandOptionBits(options, false)
+		local setTargetParameters = { 0 }
+		for targetIndex = 1, #filteredTargets do
+			setTargetParameters[1] = toFeatureOrderParamID(filteredTargets[targetIndex])
+			local optionBits = setTargetOptionBits
+			if targetIndex > 1 or options.shift then
+				optionBits = optionBits + CMD.OPT_SHIFT
+			end
+			spGiveOrderToUnitArray(selectedUnits, commandID, setTargetParameters, optionBits)
+		end
+		return
+	end
 	if options.meta and options.shift then
 		insertOrdersByQueueProximity(commandID, selectedUnits, filteredTargets, options)
 		return
@@ -1380,7 +1394,11 @@ local function armPendingDoubleClick(commandID, targetID, options)
 	pendingDoubleClick.meta = options.meta
 	pendingDoubleClick.shift = options.shift
 	pendingDoubleClick.right = options.right
-	pendingDoubleClick.firstClickTime = currentTime
+	local firstClickTime = currentTime
+	if firstClickPressTime > 0 and currentTime - firstClickPressTime <= DOUBLE_CLICK_TIME then
+		firstClickTime = firstClickPressTime
+	end
+	pendingDoubleClick.firstClickTime = firstClickTime
 	if options.shift then
 		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(commandID)
 	end
@@ -1460,6 +1478,7 @@ function widget:MousePress(mouseX, mouseY, button)
 		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
+		firstClickPressTime = osClock()
 		local targetID, targetIsFeature, isDirectTarget = resolveMouseMassOrderTarget(effectiveCommandID, mouseX, mouseY)
 		if isDirectTarget then
 			return false
