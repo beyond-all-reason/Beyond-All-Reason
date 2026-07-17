@@ -64,5 +64,11 @@ surfaces is a separate concern from sharing this structure.
 ## Not covered yet
 
 - A widget/mod action-declaration API, so widgets register their own bindable actions
-  (with labels + category) into the catalog at runtime instead of only being editable when
-  already bound.
+  (with label + category + description) into the catalog at runtime instead of only being
+  editable when already bound.
+- Command descriptions / tooltips. The engine ships per-command descriptions in the shared
+  `cmd.*` i18n namespace (in `interface.json`, localized like everything else), so a future
+  iteration can show them by resolving `cmd.<command>` (falling back to `cmd.<command>._description`
+  for the few structured commands, and `cmd.luarules.<command>` for gadget commands) at display
+  time - no catalog change needed, since the catalog already carries the command per row. Widget/mod
+  actions have no `cmd.*` entry, so their descriptions depend on the declaration API above.
