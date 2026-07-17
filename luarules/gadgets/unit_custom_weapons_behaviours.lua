@@ -499,8 +499,8 @@ weaponCustomParamKeys.split = {
 	model                     = tostring, -- as `projectileParams.model`
 	
 	-- 3. Expansion Phase
-	spread_divisor            = tonumber, -- X/Z spread divisor (defaults to 880)
-	spread_divisor_y          = tonumber, -- Y spread divisor (defaults to 440)
+	spread_divisor            = function(v) return tonumber(v) or 880 end, -- XZ spread divisor
+	spread_divisor_y          = function(v) return tonumber(v) or 440 end, -- Y spread divisor
 }
 
 local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
@@ -539,16 +539,14 @@ end
 
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
-		if params.splitheight then
+		if params.splitheight ~= -1 then -- todo: some value to ignore split height
 			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px and (py - spGetGroundHeight(px, pz)) < params.splitheight then
-				split(params, projectileID)
-				return true
+			if not px or (py - spGetGroundHeight(px, pz)) > params.splitheight then
+				return false
 			end
-		else
-			split(params, projectileID)
-			return true
 		end
+		split(params, projectileID)
+		return true
 	end
 end
 
