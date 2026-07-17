@@ -184,6 +184,8 @@ local state = {
 	emojiPickerItemSize = 0,
 	emojiPickerColumns = 0,
 	emojiPickerPadding = 0,
+	emojiPickerPressFromButton = false,
+	emojiPickerOpenBeforePress = false,
 	autocompleteWords = {},
 	autocompleteInfoText = nil,
 	autocompleteDisplayPrefix = nil,
@@ -478,6 +480,7 @@ function widget:LanguageChanged()
 	I18N = {
 		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
 		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
+		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
 		spectators = Spring.I18N('ui.chat.spectators'),
@@ -594,7 +597,7 @@ local function setCurrentChatLine(line)
 	end
 end
 
-local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, noProcessors)
+local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, noProcessors, channelScope)
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
 
 	if not noProcessors then
@@ -671,6 +674,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
+			channelScope = channelScope,
 			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
@@ -771,6 +775,8 @@ end
 function state.closeEmojiPicker()
 	state.emojiPickerOpen = false
 	state.emojiPickerRect = nil
+	state.emojiPickerPressFromButton = false
+	state.emojiPickerOpenBeforePress = false
 	if WG['guishader'] then
 		WG['guishader'].RemoveRect('chatinputemojipicker')
 	end
@@ -804,6 +810,7 @@ function state.drawEmojiPickerButton(rect, iconSize)
 	if not rect then
 		return
 	end
+	local uvInset = ChatEmoji.GetTexcoordInset()
 	glColor(0, 0, 0, state.emojiPickerOpen and 0.42 or 0.26)
 	RectRound(rect[1], rect[2], rect[3], rect[4], elementCorner*0.6, 0,1,1,0)
 	glColor(1, 1, 1, 0.05)
@@ -812,7 +819,7 @@ function state.drawEmojiPickerButton(rect, iconSize)
 		local inset = floor(iconSize * 0.18)
 		glColor(1, 1, 1, 1)
 		gl.Texture(state.emojiButtonTexture)
-		gl.TexRect(rect[1] + inset, rect[2] + inset, rect[3] - inset, rect[4] - inset)
+		gl.TexRect(rect[1] + inset, rect[2] + inset, rect[3] - inset, rect[4] - inset, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
 		gl.Texture(false)
 	end
 end
@@ -837,6 +844,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	local pickerTop = state.emojiButtonRect[2] - pickerPadding
 	local pickerBottom = pickerTop - pickerHeight
 	local iconInset = floor(pickerItemSize * 0.14)
+	local uvInset = ChatEmoji.GetTexcoordInset()
 
 	state.emojiPickerRect = {pickerLeft, pickerBottom, pickerRight, pickerTop}
 	state.emojiPickerItemSize = pickerItemSize
@@ -861,7 +869,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 			RectRound(iconLeft, iconBottom, iconRight, iconTop, elementCorner*0.35, 1,1,1,1)
 			glColor(1, 1, 1, 1)
 			gl.Texture(texturePath)
-			gl.TexRect(iconLeft + iconInset, iconBottom + iconInset, iconRight - iconInset, iconTop - iconInset)
+			gl.TexRect(iconLeft + iconInset, iconBottom + iconInset, iconRight - iconInset, iconTop - iconInset, uvInset, 1 - uvInset, 1 - uvInset, uvInset)
 			gl.Texture(false)
 		end
 	end
@@ -901,7 +909,7 @@ function state.getEmojiAliasDeleteLength(cursorPos, backwards)
 			return 0
 		end
 		local leftText = utf8.sub(inputText, 1, cursorPos)
-		local aliasToken = leftText:match('(:[%w_]+:)$')
+		local aliasToken = leftText:match('(:[^:%s]+:)$')
 		if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
 			return #aliasToken
 		end
@@ -911,7 +919,7 @@ function state.getEmojiAliasDeleteLength(cursorPos, backwards)
 		return 0
 	end
 	local rightText = utf8.sub(inputText, cursorPos + 1)
-	local aliasToken = rightText:match('^(:[%w_]+:)')
+	local aliasToken = rightText:match('^(:[^:%s]+:)')
 	if aliasToken and ChatEmoji.GetImagePath(aliasToken) then
 		return #aliasToken
 	end
@@ -1035,6 +1043,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local bypassThisMessage = false
 	local skipThisMessage = false
 	local textcolor, c
+	local channelScope = nil
 
 	-- player message
 	if playernames[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
@@ -1045,6 +1054,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local channel
 		text, channel = extractChannelPrefix(text)
 		text = cleanUserText(text)
+		if channel == 'all' then
+			channelScope = 'ALL'
+		end
 
 		if channel == 'allies' then
 			c = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
@@ -1073,6 +1085,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		local channel
 		text, channel = extractChannelPrefix(text)
 		text = cleanUserText(text)
+		if channel == 'all' then
+			channelScope = 'ALL'
+		end
 		c = (channel ~= 'all') and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
 
 		nameText = getColoredPlayerName(name, gameFrame, true)
@@ -1276,7 +1291,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			if lineType < 1 then
 				addConsoleLine(gameFrame, lineType, line, orgLineID, reprocessID)
 			else
-				addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID)
+				addChatLine(gameFrame, lineType, name, nameText, line, orgLineID, skipThisMessage, reprocessID, nil, channelScope)
 			end
 		end
 	end
@@ -1380,6 +1395,7 @@ end
 
 drawChatLine = function(i)
 	local fontHeightOffset = usedFontSize*0.3
+	local textPosX = maxPlayernameWidth+lineSpaceWidth
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin(true)
@@ -1418,6 +1434,24 @@ drawChatLine = function(i)
 			font:End()
 		end
 	end
+	if chatLines[i].channelScope and chatLines[i].lineType ~= LineTypes.System then
+		local localizedScope = chatLines[i].channelScope
+		if chatLines[i].channelScope == 'ALL' and I18N.channelScopeAll and I18N.channelScopeAll ~= '' then
+			localizedScope = I18N.channelScopeAll
+		end
+		local scopeLabel = '[' .. localizedScope .. ']'
+		local scopeFontSize = usedFontSize * 0.72
+		font3:Begin(true)
+		font3:SetOutlineColor(0, 0, 0, 1)
+		if chatLines[i].channelScope == 'SPEC' then
+			font3:SetTextColor(0.84, 0.82, 0.63, 0.92)
+		else
+			font3:SetTextColor(0.78, 0.78, 0.78, 0.92)
+		end
+		font3:Print(scopeLabel, textPosX, fontHeightOffset * 1.2, scopeFontSize, "o")
+		font3:End()
+		textPosX = textPosX + floor(font3:GetTextWidth(scopeLabel .. ' ') * scopeFontSize)
+	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		if chatLines[i].richText then
 			ChatEmoji.DrawRichText(font3, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth-(usedFontSize*0.5), fontHeightOffset*1.2, usedFontSize*0.88, "o", {0, 0, 0, 1})
@@ -1429,11 +1463,11 @@ drawChatLine = function(i)
 		end
 	else
 		if chatLines[i].richText then
-			ChatEmoji.DrawRichText(font, chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
+			ChatEmoji.DrawRichText(font, chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o", {0, 0, 0, 1})
 		else
 			font:Begin(true)
 			font:SetOutlineColor(0, 0, 0, 1)
-			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			font:Print(chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
 	end
@@ -2794,7 +2828,12 @@ function widget:KeyPress(key)
 				-- Clear selection
 				inputSelectionStart = nil
 			end
-			inputTextPosition = inputTextPosition - 1
+			local jumpLen = state.getEmojiAliasDeleteLength(inputTextPosition, true)
+			if jumpLen > 0 then
+				inputTextPosition = inputTextPosition - jumpLen
+			else
+				inputTextPosition = inputTextPosition - 1
+			end
 			if inputTextPosition < 0 then
 				inputTextPosition = 0
 			end
@@ -2809,7 +2848,12 @@ function widget:KeyPress(key)
 				-- Clear selection
 				inputSelectionStart = nil
 			end
-			inputTextPosition = inputTextPosition + 1
+			local jumpLen = state.getEmojiAliasDeleteLength(inputTextPosition, false)
+			if jumpLen > 0 then
+				inputTextPosition = inputTextPosition + jumpLen
+			else
+				inputTextPosition = inputTextPosition + 1
+			end
 			if inputTextPosition > utf8.len(inputText) then
 				inputTextPosition = utf8.len(inputText)
 			end
@@ -2880,6 +2924,7 @@ function widget:MousePress(x, y, button)
 	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
 		return false
 	end
+	state.emojiPickerPressFromButton = false
 
 	if state.emojiPickerOpen and state.emojiPickerRect and math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4]) then
 		local localX = x - state.emojiPickerRect[1] - state.emojiPickerPadding
@@ -2899,7 +2944,9 @@ function widget:MousePress(x, y, button)
 	end
 
 	if inputButton and state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4]) then
-		state.emojiPickerOpen = not state.emojiPickerOpen
+		state.emojiPickerOpenBeforePress = state.emojiPickerOpen
+		state.emojiPickerOpen = true
+		state.emojiPickerPressFromButton = true
 		updateTextInputDlist = true
 		return true
 	end
@@ -2922,6 +2969,48 @@ function widget:MousePress(x, y, button)
 	end
 
 	return false
+end
+
+function widget:MouseRelease(x, y, button)
+	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
+		return false
+	end
+
+	if not state.emojiPickerPressFromButton then
+		return false
+	end
+
+	state.emojiPickerPressFromButton = false
+
+	local hoveredEmojiIndex = state.getEmojiPickerHoverRect(x, y)
+	if hoveredEmojiIndex then
+		local alias = emojiAutocompleteAliases[hoveredEmojiIndex]
+		if alias then
+			state.insertInputTextAtCursor(alias)
+		end
+		state.closeEmojiPicker()
+		updateTextInputDlist = true
+		return true
+	end
+
+	local releasedOnEmojiButton = inputButton and state.emojiButtonRect and math_isInRect(x, y, state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4])
+	local releasedInsidePicker = state.emojiPickerRect and math_isInRect(x, y, state.emojiPickerRect[1], state.emojiPickerRect[2], state.emojiPickerRect[3], state.emojiPickerRect[4])
+
+	if releasedOnEmojiButton and not state.emojiPickerOpenBeforePress then
+		state.emojiPickerOpenBeforePress = false
+		updateTextInputDlist = true
+		return true
+	end
+
+	if releasedInsidePicker then
+		state.emojiPickerOpenBeforePress = false
+		updateTextInputDlist = true
+		return true
+	end
+
+	state.closeEmojiPicker()
+	updateTextInputDlist = true
+	return true
 end
 
 function widget:MouseWheel(up, value)
@@ -3286,8 +3375,8 @@ function widget:Initialize()
 		fontsizeMult = value
 		widget:ViewResize()
 	end
-	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID)
-		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true)
+	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, channelScope)
+		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true, channelScope)
 	end
 	WG['chat'].addChatProcessor = function(id, func)
 		if type(func) == 'function' then

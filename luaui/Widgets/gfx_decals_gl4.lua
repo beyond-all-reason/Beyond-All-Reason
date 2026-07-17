@@ -537,7 +537,8 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	local lifetime = mathFloor(alphastart/alphadecay)
+	-- alphadecay <= 0 means the decal never fades out on its own, so it has no finite lifetime
+	local lifetime = alphadecay > 0 and mathFloor(alphastart/alphadecay) or nil
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 
@@ -559,11 +560,13 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
-	local deathtime = spawnframe + lifetime
-	if decalRemoveQueue[deathtime] == nil then
-		decalRemoveQueue[deathtime] = {decalIndex}
-	else
-		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+	if lifetime then
+		local deathtime = spawnframe + lifetime
+		if decalRemoveQueue[deathtime] == nil then
+			decalRemoveQueue[deathtime] = {decalIndex}
+		else
+			decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+		end
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
