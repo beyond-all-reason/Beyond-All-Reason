@@ -1489,14 +1489,6 @@ function widget:CommandNotify(commandID, parameters, options)
 	return false
 end
 
-local function onScreenSelectHoldPress()
-	screenSelectKeyHeld = true
-end
-
-local function onScreenSelectHoldRelease()
-	screenSelectKeyHeld = false
-end
-
 local function setDoubleClickEnabled(value)
 	doubleClickEnabled = value == true
 	if not doubleClickEnabled then
@@ -1564,8 +1556,8 @@ function widget:Initialize()
 	if spring.GetSpectatingState() then
 		return
 	end
-	widgetHandler:AddAction("screen_select_hold", onScreenSelectHoldPress, nil, "p")
-	widgetHandler:AddAction("screen_select_hold", onScreenSelectHoldRelease, nil, "r")
+	widgetHandler:AddAction("screen_select_hold", function() screenSelectKeyHeld = true end, nil, "p")
+	widgetHandler:AddAction("screen_select_hold", function() screenSelectKeyHeld = false end, nil, "r")
 	registerScreenSelectCommandsApi()
 end
 
@@ -1580,9 +1572,6 @@ function widget:Update()
 	if deferClearActiveCommand then
 		deferClearActiveCommand = false
 		spring.SetActiveCommand(0)
-	end
-	if pendingDoubleClick.targetID and osClock() >= pendingDoubleClick.expireTime then
-		clearDoubleClickPending()
 	end
 	updateShiftCommandKeep()
 end
