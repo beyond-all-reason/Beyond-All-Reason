@@ -242,6 +242,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.shield_radius then
 		local data = {}
 		data.shieldRadius = tonumber(unitDef.customParams.shield_radius)
+		-- Per-shield scaling of the overkill downtime (1 = default behaviour). Smaller values
+		-- shorten how long the shield stays fully offline after being driven to 0.
+		data.downtimeMult = tonumber(unitDef.customParams.shield_downtime_mult) or 1
 
 		for i, weaponsData in pairs(unitDef.weapons) do
 			local wDefData = WeaponDefs[weaponsData.weaponDef]
@@ -353,6 +356,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			shieldPowerRegenEnergy = data.shieldPowerRegenEnergy,
 			shieldWeaponNumber = data.shieldWeaponNumber, -- This is replaced with the real shieldWeaponNumber as soon as the shield is damaged
 			radius = data.shieldRadius,
+			downtimeMult = data.downtimeMult,
 			shieldEnabled = false, -- Virtualized enabled/disabled state until engine equivalent is changed
 			shieldDamage = 0, -- This stores the value of damages populated in ShieldPreDamaged(), then applied in GameFrame() all at once
 			shieldCoverageChecked = false, -- Used to prevent expensive unit coverage checks being performed more than once per cycle
@@ -399,7 +403,7 @@ local function suspendShield(unitID, unitData)
 	spSetUnitShieldState(unitID, unitData.shieldWeaponNumber, false)
 	unitData.shieldEnabled = false
 	unitData.shieldDownTime = gameFrame + minDownTime
-	unitData.maxDownTime = gameFrame + maxDownTime
+	unitData.maxDownTime = gameFrame + maxDownTime * unitData.downtimeMult
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 0, INLOS)
 	shieldsNeedingUpdate[unitID] = true
 end
@@ -409,6 +413,7 @@ local function activateShield(unitID, unitData)
 	shieldsNeedingUpdate[unitID] = nil
 	spSetUnitRulesParam(unitID, shieldOnUnitRulesParamIndex, 1, INLOS)
 	spSetUnitShieldRechargeDelay(unitID, unitData.shieldWeaponNumber, 0)
+	spSetUnitShieldState(unitID, unitData.shieldWeaponNumber, true)
 
 	-- Allow projectiles already in the shield to damage units within the radius.
 	local x, y, z, radius = getUnitShieldWeaponPosition(unitID, unitData)
@@ -513,17 +518,19 @@ function gadget:GameFrame(frame)
 						end
 					end
 				else
-					--if shield is manually turned off, set shield charge to 0
+					-- Unit switched off: keep the shield disabled and zeroed, and stay flagged
+					-- (don't reactivate) so it re-enables and resumes recharging once switched back on.
 					spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, 0)
+					shieldData.shieldEnabled = false
 				end
 
-				if not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
+				if shieldActive and not shieldData.shieldEnabled and shieldData.shieldDownTime < frame and shieldData.overKillDamage >= 0 then
 					if shieldData.overKillDamage > 0 then
 						spSetUnitShieldState(shieldUnitID, shieldData.shieldWeaponNumber, shieldData.overKillDamage)
 						shieldData.overKillDamage = 0
 					end
 					activateShield(shieldUnitID, shieldData)
-				elseif shieldData.maxDownTime < frame then
+				elseif shieldActive and shieldData.maxDownTime < frame then
 					activateShield(shieldUnitID, shieldData)
 					shieldData.overKillDamage = 0
 				end

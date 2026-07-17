@@ -54,6 +54,7 @@ local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua"
 local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
 local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
 local legionSimpleMexes = VFS.Include("unitbasedefs/legion_simplified_mexes.lua").Tweaks
+local techBlockingTweaks = VFS.Include("unitbasedefs/tech_blocking_defs.lua").Tweaks
 local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
 local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
 local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
@@ -307,7 +308,9 @@ local function unitDef_Post(name, uDef)
 		end
 	end
 
-	if modOptions.legionsimplifiedmexes then
+	-- tech_blocking brings the universal T1.5 Voussoir, so Legion's mex economy is
+	-- rebalanced to match (same effect as the standalone experimental toggle).
+	if modOptions.legionsimplifiedmexes or modOptions.tech_blocking then
 		local legiont15mex = {
 			legmext15 = true,
 		}
@@ -410,6 +413,11 @@ local function unitDef_Post(name, uDef)
 		customparams.evolution_power_multiplier = tonumber(customparams.evolution_power_multiplier) or 1
 		customparams.evolution_power_threshold = tonumber(customparams.evolution_power_threshold) or 600
 		customparams.evolution_timer = tonumber(customparams.evolution_timer) or 20
+	end
+
+	-- Tech Blocking: cheaper T2 labs + inject Keystone into T1 constructor menus
+	if modOptions.tech_blocking then
+		techBlockingTweaks(name, uDef)
 	end
 
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
@@ -564,8 +572,8 @@ local function unitDef_Post(name, uDef)
 		uDef = communityBalanceTweaks(name, uDef, modOptions)
 	end
 
-	-- Legion Simplified Mex Rebalance
-	if modOptions.legionsimplifiedmexes == true then
+	-- Legion Simplified Mex Rebalance (also implied by tech_blocking's universal Voussoir)
+	if modOptions.legionsimplifiedmexes == true or modOptions.tech_blocking then
 		legionSimpleMexes(name, uDef)
 	end
 

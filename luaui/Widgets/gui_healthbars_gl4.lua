@@ -375,6 +375,7 @@ local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef we
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitCaptureWatch = {}
 local unitShieldWatch = {} -- maps unitID to last shield value
+local unitShieldHidden = {} -- unitIDs whose shield bar is hidden because the shield is switched off
 local unitReactiveArmorWatch = {}
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
@@ -830,6 +831,7 @@ local function removeBarsFromUnit(unitID, reason)
 		removeBarFromUnit(unitID, barname, reason)
 	end
 	unitShieldWatch[unitID] = nil
+	unitShieldHidden[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil
 	unitCaptureWatch[unitID] = nil
 	unitEmpDamagedWatch[unitID] = nil
@@ -927,6 +929,7 @@ local function init()
 	InstanceVBOTable.clearInstanceTable(healthBarVBO)
 	unitCaptureWatch = {}
 	unitShieldWatch = {} -- maps unitID to last shield value
+	unitShieldHidden = {}
 	unitReactiveArmorWatch = {}
 	unitEmpDamagedWatch = {}
 	unitParalyzedWatch = {}
@@ -1201,14 +1204,31 @@ function widget:GameFrame(n)
 			if shieldOn == false then
 				shieldPower = 0.0
 			end
-			if oldshieldPower ~= shieldPower then
-				if shieldPower == nil then
+			-- The shield gadget keeps the engine shield "enabled" while an onoffable unit is
+			-- toggled off (it only zeroes the power), so key off the unit's active state instead.
+			if Spring.GetUnitIsActive(unitID) == false then
+				-- Unit is switched off: hide the shield bar entirely rather than drawing an empty bar.
+				if not unitShieldHidden[unitID] then
 					removeBarFromUnit(unitID, "shield", "unitShieldWatch")
-				else
-					uniformcache[1] = shieldPower / unitDefhasShield[spGetUnitDefID(unitID)]
-					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+					unitShieldHidden[unitID] = true
+					unitShieldWatch[unitID] = 0.0
 				end
-				unitShieldWatch[unitID] = shieldPower
+			else
+				if unitShieldHidden[unitID] then
+					-- Shield switched back on: re-add the bar and force a refresh below.
+					addBarForUnit(unitID, spGetUnitDefID(unitID), "shield", "unitShieldWatch")
+					unitShieldHidden[unitID] = nil
+					oldshieldPower = nil
+				end
+				if oldshieldPower ~= shieldPower then
+					if shieldPower == nil then
+						removeBarFromUnit(unitID, "shield", "unitShieldWatch")
+					else
+						uniformcache[1] = shieldPower / unitDefhasShield[spGetUnitDefID(unitID)]
+						gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
+					end
+					unitShieldWatch[unitID] = shieldPower
+				end
 			end
 		end
 
