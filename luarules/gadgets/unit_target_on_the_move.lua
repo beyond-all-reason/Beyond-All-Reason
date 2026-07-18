@@ -309,6 +309,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function setTargetPassive(unitID, unitData)
+		if not unitData then
+			return
+		end
 		unitData.activeTarget = false
 		unitData.currentIndex = 1
 		if not inAttackCommand(unitID) then
@@ -347,22 +350,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] then
-			activeTargets[unitID] = nil
-			if not inAttackCommand(unitID) then
-				spSetUnitTarget(unitID, nil)
-			end
-		elseif pausedTargets[unitID] then
-			pausedTargets[unitID] = nil
+		if activeTargets[unitID] and not inAttackCommand(unitID) then
+			spSetUnitTarget(unitID, nil)
+		end
+		if keeptrack then
+			setTargetPassive(unitID, setTargetData[unitID])
+		else
+			SendToUnsynced("targetList", unitID, 0) -- remove all
 		end
 		removeFromQueue(unitID)
-		if keeptrack then
-			SendToUnsynced("targetIndex", unitID, 1, false)
-		elseif setTargetData[unitID] then
-			setTargetPassive(unitID, setTargetData[unitID])
-			setTargetData[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0)
-		end
+		setTargetData[unitID] = nil
+		activeTargets[unitID] = nil
+		pausedTargets[unitID] = nil
 	end
 
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
