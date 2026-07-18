@@ -355,14 +355,15 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 end
 
 local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
+	local selectedCount = #selectedUnits
+	local unitTargetsMap = tableNew(0, selectedCount)
+	for index = 1, selectedCount do
+		unitTargetsMap[selectedUnits[index]] = {}
+	end
+	local currentUnitIndex = 0
+	for index = 1, #filteredTargets do
+		currentUnitIndex = (currentUnitIndex % selectedCount) + 1
+		tableInsert(unitTargetsMap[selectedUnits[currentUnitIndex]], filteredTargets[index])
 	end
 	return unitTargetsMap
 end
