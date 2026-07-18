@@ -373,8 +373,9 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local maxAllowedTargetsPerUnit = mathClamp(mathFloor(commandLimit / selectedUnitsLen), 1, commandLimit)
 
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
+		selectedUnitTable[1] = selectedUnitId
 		sortTargetsByDistance(selectedUnitTable, targets, true)
 		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
