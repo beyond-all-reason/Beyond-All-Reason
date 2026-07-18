@@ -3456,10 +3456,38 @@ function gadget:PlayerChanged()
 	refreshTeamColors()
 end
 
+local function runNanoFrame(n)
+	if DEBUG then
+		local t0 = Spring.GetTimer()
+		scanBuilders(n)
+		_dbgTScan = _dbgTScan + Spring.DiffTimers(Spring.GetTimer(), t0)
+
+		local tc0 = Spring.GetTimer()
+		cullDead(n)
+		_dbgTCull = _dbgTCull + Spring.DiffTimers(Spring.GetTimer(), tc0)
+
+		_dbgFrame = _dbgFrame + 1
+		if _dbgFrame % 30 == 0 then
+			spEcho(string.format(
+				"[NanoGL4] f=%d tracked=%d busy/30=%d task=%d emit=%d live=%d used=%d  | scan=%.2fms cull=%.2fms draw=%.2fms(x%d) rescan=%.2fms",
+				n, #trackedBuildersList, _dbgBuilders, _dbgWithTask, _dbgEmits,
+				liveCount, nanoVBO and nanoVBO.usedElements or -1,
+				_dbgTScan * 1000, _dbgTCull * 1000, _dbgTDraw * 1000, _dbgDraws,
+				_dbgTRescan * 1000))
+			_dbgBuilders, _dbgWithTask, _dbgEmits = 0, 0, 0
+			_dbgTScan, _dbgTCull, _dbgTDraw, _dbgTRescan, _dbgDraws = 0, 0, 0, 0, 0
+		end
+	else
+		scanBuilders(n)
+		cullDead(n)
+	end
+end
 
 -- Emission once per observed sim frame (matches the engine's per-frame
--- AddNanoParticle cadence for an active builder) but scheduled from Update so
--- the work is not attached to the sim-frame callin.
+-- AddNanoParticle cadence for an active builder). Update only observes the
+-- simframe; heavy scan/cull work is delayed to a later DrawWorld when a spare
+-- draw frame exists. If simframes arrive faster than drawframes, we catch up in
+-- Update before queueing the newer frame.
 function gadget:Update()
 	local n = Spring.GetGameFrame()
 	if n <= (deathBuckets.__lastNanoUpdateFrame or -1) then return end
@@ -3543,7 +3571,10 @@ function gadget:Update()
 
 	-- Mode 0 = engine renders the spray; we just track builders for a quick
 	-- restart if the user switches back to gadget mode.
-	if NANO_PARTICLE_MODE == 0 then return end
+	if NANO_PARTICLE_MODE == 0 then
+		deathBuckets.__pendingNanoFrame = nil
+		return
+	end
 
 	-- Periodic team-color refresh: colors can change mid-game (commshare,
 	-- alliance, custom recolor widgets). Cheap (one Spring call per cached
@@ -3584,29 +3615,16 @@ function gadget:Update()
 		end
 	end
 
-	if DEBUG then
-		local t0 = Spring.GetTimer()
-		scanBuilders(n)
-		_dbgTScan = _dbgTScan + Spring.DiffTimers(Spring.GetTimer(), t0)
-
-		local tc0 = Spring.GetTimer()
-		cullDead(n)
-		_dbgTCull = _dbgTCull + Spring.DiffTimers(Spring.GetTimer(), tc0)
-
-		_dbgFrame = _dbgFrame + 1
-		if _dbgFrame % 30 == 0 then
-			spEcho(string.format(
-				"[NanoGL4] f=%d tracked=%d busy/30=%d task=%d emit=%d live=%d used=%d  | scan=%.2fms cull=%.2fms draw=%.2fms(x%d) rescan=%.2fms",
-				n, #trackedBuildersList, _dbgBuilders, _dbgWithTask, _dbgEmits,
-				liveCount, nanoVBO and nanoVBO.usedElements or -1,
-				_dbgTScan * 1000, _dbgTCull * 1000, _dbgTDraw * 1000, _dbgDraws,
-				_dbgTRescan * 1000))
-			_dbgBuilders, _dbgWithTask, _dbgEmits = 0, 0, 0
-			_dbgTScan, _dbgTCull, _dbgTDraw, _dbgTRescan, _dbgDraws = 0, 0, 0, 0, 0
+	do
+		local pendingFrame = deathBuckets.__pendingNanoFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			deathBuckets.__pendingNanoFrame = nil
+			runNanoFrame(pendingFrame)
 		end
-	else
-		scanBuilders(n)
-		cullDead(n)
+		deathBuckets.__pendingNanoFrame = n
+		deathBuckets.__pendingNanoDrawFrame = deathBuckets.__nanoDrawFrame or 0
 	end
 
 	if CLAMP_DEBUG and n >= (deathBuckets.__nextClampDebugFrame or 0) then
@@ -3896,6 +3914,17 @@ function gadget:RenderUnitDestroyed(unitID)
 end
 
 function gadget:DrawWorld()
+	deathBuckets.__nanoDrawFrame = (deathBuckets.__nanoDrawFrame or 0) + 1
+	do
+		local pendingFrame = deathBuckets.__pendingNanoFrame
+		if pendingFrame then
+			local queuedAt = deathBuckets.__pendingNanoDrawFrame or 0
+			if deathBuckets.__nanoDrawFrame > queuedAt + 1 then
+				deathBuckets.__pendingNanoFrame = nil
+				runNanoFrame(pendingFrame)
+			end
+		end
+	end
 	materializeVisibleVirtualStreams(Spring.GetGameFrame())
 	if not nanoVBO or nanoVBO.usedElements == 0 then return end
 

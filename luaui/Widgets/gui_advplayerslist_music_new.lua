@@ -29,6 +29,13 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetConfigInt = Spring.GetConfigInt
 local spSetConfigInt = Spring.SetConfigInt
 local spGetGameRulesParam = Spring.GetGameRulesParam
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spSetSoundStreamVolume = Spring.SetSoundStreamVolume
+
+local gameType = Spring.Utilities.Gametype
+local isRaptors = gameType.IsRaptors()
+local isScavengers = gameType.IsScavengers()
 
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
@@ -96,6 +103,7 @@ local nextMusicSwitchCheckFrame = 0
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, victoryTracksPlayCounter, defeatTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
+local useSoundtrackFades
 local deviceLostSafetyCheck = 0
 local interruptionTime = mathRandom(interruptionMinimumTime, interruptionMaximumTime)
 local gameFrame = 0
@@ -103,12 +111,13 @@ local serverFrame = 0
 local bossHasSpawned = false
 local playInterlude = false
 local isChangingTrack = false
-local lastTrackAttemptTime = Spring.GetTimer()
+local lastTrackAttemptTime = spGetTimer()
 
 local function ReloadMusicPlaylists()
 	-----------------------------------SETTINGS---------------------------------------
 
 	interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	useSoundtrackFades 			= Spring.GetConfigInt('UseSoundtrackFades', 1) == 1
 	local newSoundtrackEnabled 		= Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
 
@@ -571,16 +580,16 @@ local function fadeChange()
 end
 
 local function getMusicVolume()
-	return Spring.GetConfigInt("snd_volmusic", defaultMusicVolume) * 0.01
+	return maxMusicVolume * 0.01
 end
 
 local function setMusicVolume(fadeLevel)
-	Spring.SetSoundStreamVolume(getMusicVolume() * math.clamp(fadeLevel, 0, 100) * 0.01)
+	spSetSoundStreamVolume(getMusicVolume() * math.clamp(fadeLevel, 0, 100) * 0.01)
 end
 
 local function updateFade()
 	if fadeDirection then
-		if Spring.GetConfigInt("UseSoundtrackFades", 1) == 1 then
+		if useSoundtrackFades then
 			fadeLevel = fadeLevel + fadeChange()
 		else
 			if fadeDirection < 0 then
@@ -972,6 +981,7 @@ function widget:Initialize()
 	end
 	WG['music'].RefreshSettings = function()
 		interruptionEnabled 			= Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+		useSoundtrackFades 			= Spring.GetConfigInt('UseSoundtrackFades', 1) == 1
 	end
 	WG['music'].RefreshTrackList = function()
 		Spring.StopSoundStream()
@@ -1241,7 +1251,7 @@ end
 function PlayNewTrack(paused)
 	if isChangingTrack then return end
 	isChangingTrack = true
-	lastTrackAttemptTime = Spring.GetTimer()
+	lastTrackAttemptTime = spGetTimer()
 
 	if Spring.GetConfigInt('music', 1) ~= 1 then
 		isChangingTrack = false
@@ -1474,23 +1484,23 @@ function widget:GameFrame(n)
 		end
 	end
 
-	if Spring.Utilities.Gametype.IsRaptors() then
-		local raptorQueenAnger = spGetGameRulesParam("raptorQueenAnger") or 0
-		if raptorQueenAnger > 60 and warMeter < warHighLevel+1 then
-			warMeter = warHighLevel+1
-		elseif raptorQueenAnger > 20 and warMeter < warLowLevel+1 then
-			warMeter = warLowLevel+1
-		end
-	elseif Spring.Utilities.Gametype.IsScavengers() then
-		local scavBossAnger = spGetGameRulesParam("scavBossAnger") or 0
-		if scavBossAnger > 60 and warMeter < warHighLevel+1 then
-			warMeter = warHighLevel+1
-		elseif scavBossAnger > 20 and warMeter < warLowLevel+1 then
-			warMeter = warLowLevel+1
-		end
-	end
-
 	if n%30 == 15 then
+		if isRaptors then
+			local raptorQueenAnger = spGetGameRulesParam("raptorQueenAnger") or 0
+			if raptorQueenAnger > 60 and warMeter < warHighLevel+1 then
+				warMeter = warHighLevel+1
+			elseif raptorQueenAnger > 20 and warMeter < warLowLevel+1 then
+				warMeter = warLowLevel+1
+			end
+		elseif isScavengers then
+			local scavBossAnger = spGetGameRulesParam("scavBossAnger") or 0
+			if scavBossAnger > 60 and warMeter < warHighLevel+1 then
+				warMeter = warHighLevel+1
+			elseif scavBossAnger > 20 and warMeter < warLowLevel+1 then
+				warMeter = warLowLevel+1
+			end
+		end
+
 		local bossFightStarted = spGetGameRulesParam("BossFightStarted") or 0
 		if bossFightStarted == 1 then
 			bossHasSpawned = true
@@ -1510,7 +1520,7 @@ function widget:GameFrame(n)
 		if not gameOver then
 			if playedTime > 0 and totalTime > 0 then -- music is playing
 				if not fadeDirection then
-					Spring.SetSoundStreamVolume(musicVolume)
+					spSetSoundStreamVolume(musicVolume)
 					if (bossHasSpawned and currentTrackListString ~= "bossFight") or ((not bossHasSpawned) and currentTrackListString == "bossFight") then
 						fadeDirection = -2
 						fadeOutSkipTrack = true
@@ -1523,11 +1533,11 @@ function widget:GameFrame(n)
 						or (currentTrackListString == "interlude" and warMeter > warHighLevel*1.05 )) then -- Interlude is playing but we're hitting WarHigh levels. Let's switch to WarHigh
 							fadeDirection = -2
 							fadeOutSkipTrack = true
-					elseif (playedTime >= totalTime - 12 and Spring.GetConfigInt("UseSoundtrackFades", 1) == 1) then
+					elseif (playedTime >= totalTime - 12 and useSoundtrackFades) then
 						fadeDirection = -1
 					end
 				end
-			elseif totalTime == 0 and (Spring.DiffTimers(Spring.GetTimer(), lastTrackAttemptTime) > 2.0) and (not fadeDirection or Spring.GetConfigInt("UseSoundtrackFades", 1) ~= 1) then -- there's no music and not mid-transition (or fades are disabled)
+			elseif totalTime == 0 and (spDiffTimers(spGetTimer(), lastTrackAttemptTime) > 2.0) and (not fadeDirection or not useSoundtrackFades) then -- there's no music and not mid-transition (or fades are disabled)
 				PlayNewTrack()
 			end
 		end
