@@ -435,7 +435,7 @@ local lastRemovedFrame    = 0
 local cachedGameFrame = 0
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedFullView = select(2, spGetSpectatingState()) or false
-local windX, windZ = 0, 0
+local windX, windZ = 0.0, 0.0
 
 local MAX_PARTICLES = CONFIG.maxParticles
 
@@ -1945,15 +1945,23 @@ end
 
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
+local lastFireUpdateFrame = -1
+local nextWindUpdateFrame = 0
+local nextEmitterUpdateFrame = 0
 
-function gadget:GameFrame(n)
+function gadget:Update()
 	if not particleVBO then return end
+
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= lastFireUpdateFrame then return end
+	lastFireUpdateFrame = n
 
 	cachedGameFrame = n
 	cachedAllyTeamID = spGetMyAllyTeamID()
 	cachedFullView = select(2, spGetSpectatingState()) or false
 
-	if n % 10 == 0 then
+	if n >= nextWindUpdateFrame then
+		nextWindUpdateFrame = n + 10
 		local _, _, _, _, wx, _, wz = spGetWind()
 		windX = wx or 0
 		windZ = wz or 0
@@ -1971,7 +1979,8 @@ function gadget:GameFrame(n)
 	removeExpiredParticles(n)
 	updatePendingWreckFire(n)
 
-	if n % fpsUpdateInterval == 0 then
+	if n >= nextEmitterUpdateFrame then
+		nextEmitterUpdateFrame = n + fpsUpdateInterval
 		updateEmitters(n)
 	end
 end
