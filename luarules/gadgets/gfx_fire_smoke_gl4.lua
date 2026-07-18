@@ -636,7 +636,8 @@ end
 local function updateQualityPreset(gameFrame)
 	if not particleVBO then return end
 
-	if gameFrame % 4 == 0 then  -- AVG_SAMPLE_INTERVAL
+	if gameFrame >= (visibilityState.nextQualitySampleFrame or 0) then  -- AVG_SAMPLE_INTERVAL
+		visibilityState.nextQualitySampleFrame = gameFrame + 4
 		sampleIndex = (sampleIndex % maxSamples) + 1
 		local oldVal = particleCountSamples[sampleIndex] or 0
 		local newVal = particleVBO.usedElements
@@ -663,7 +664,8 @@ local function updateQualityPreset(gameFrame)
 end
 
 local function updateMaxParticles(gameFrame)
-	if gameFrame % 90 ~= 0 then return end  -- re-read configint every ~3 seconds
+	if gameFrame < (visibilityState.nextMaxParticlesFrame or 0) then return end  -- re-read configint every ~3 seconds
+	visibilityState.nextMaxParticlesFrame = gameFrame + 90
 	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then return end
@@ -681,7 +683,8 @@ local function updateMaxParticles(gameFrame)
 end
 
 local function updateWind(gameFrame)
-	if gameFrame % 10 ~= 0 then return end  -- WIND_UPDATE_INTERVAL
+	if gameFrame < (visibilityState.nextWindFrame or 0) then return end  -- WIND_UPDATE_INTERVAL
+	visibilityState.nextWindFrame = gameFrame + 10
 	local _, _, _, strength, wx, _, wz = spGetWind()
 	windX = wx or 0
 	windZ = wz or 0
@@ -1718,8 +1721,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:GameFrame(n)
+function gadget:Update()
 	if not particleVBO then return end
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= (visibilityState.lastUpdateFrame or -1) then return end
+	visibilityState.lastUpdateFrame = n
 
 	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
 	if debugEcho then
@@ -1737,9 +1743,8 @@ function gadget:GameFrame(n)
 	fastForward = (internalSpeed or userSpeed) > 1.5
 
 	-- Periodic housekeeping (staggered across frames)
-	local nMod = n % 90
-	if nMod == 0 then updateMaxParticles(n) end
-	if n % 10 == 0 then updateWind(n) end
+	updateMaxParticles(n)
+	updateWind(n)
 
 	if debugEcho then
 		t1 = spGetTimer()
@@ -1776,7 +1781,8 @@ function gadget:GameFrame(n)
 		updateInterval = 2
 	end
 	-- FPS-based throttling (refresh cached value every 15 frames)
-	if n % 15 == 0 then
+	if n >= (visibilityState.nextFpsFrame or 0) then
+		visibilityState.nextFpsFrame = n + 15
 		local fps = spGetFPS()
 		if fps > 0 then
 			cachedFpsInterval = mathCeil(30 / fps)
@@ -1786,12 +1792,14 @@ function gadget:GameFrame(n)
 		updateInterval = cachedFpsInterval
 	end
 
-	if n % updateInterval == 0 then
+	if n >= (visibilityState.nextEmitterFrame or 0) then
+		visibilityState.nextEmitterFrame = n + updateInterval
 		updatePieceProjectiles(n)
 
 		-- Debug output every 30 frames
 		if debugEcho then
-			if n % 30 == 0 then
+			if n >= (visibilityState.nextPieceDebugFrame or 0) then
+				visibilityState.nextPieceDebugFrame = n + 30
 				local trackedCount = 0
 				for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
 				spEcho(string.format(
@@ -1831,7 +1839,8 @@ function gadget:GameFrame(n)
 	end
 
 	-- Clean up pending death data periodically
-	if nMod == 30 then
+	if n >= (visibilityState.nextDeathCleanupFrame or 30) then
+		visibilityState.nextDeathCleanupFrame = n + 90
 		local k = next(pendingDeathUnitRadii)
 		if k then
 			for uid in pairs(pendingDeathUnitRadii) do
@@ -1852,7 +1861,8 @@ function gadget:GameFrame(n)
 		debugTimings.totalFrame = debugTimings.totalFrame + spDiffTimers(t1, tStart, true)
 		debugTimingSamples = debugTimingSamples + 1
 
-		if n % 30 == 0 and debugTimingSamples > 0 then
+		if n >= (visibilityState.nextTimingDebugFrame or 0) and debugTimingSamples > 0 then
+			visibilityState.nextTimingDebugFrame = n + 30
 			local inv = 1000 / debugTimingSamples  -- convert to microseconds per frame
 			local trackedPieceCount = 0
 			for _ in pairs(trackedPieceProjectiles) do trackedPieceCount = trackedPieceCount + 1 end

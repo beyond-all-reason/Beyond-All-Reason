@@ -105,8 +105,8 @@ local CMD_REPAIR    = CMD.REPAIR
 local MAX_PARTICLES_VBO = 15000
 
 -- Live soft cap. Driven by the MaxParticles springsetting (~33% share, with a
--- 6000 floor so the gadget always has *some* headroom). Polled in GameFrame
--- so the gfx options menu can adjust it without a /luarules reload.
+-- 6000 floor so the gadget always has *some* headroom). Polled from Update so
+-- the gfx options menu can adjust it without a /luarules reload.
 local MAX_PARTICLES_FLOOR = 5000
 local MAX_PARTICLES_FRACTION = 0.33
 local function computeMaxParticles()
@@ -126,7 +126,7 @@ local LOS_FILTER      = true   -- drop emissions outside our LOS
 -- MODE_SETTINGS). Driven by the "NanoParticleMode" springsetting (gfx options UI):
 --   0 = engine nano spray (gadget stays loaded but inert)
 --   1 = gadget 3D shapes
--- Polled live in GameFrame so changes take effect without a /luarules reload.
+-- Polled live from Update so changes take effect without a /luarules reload.
 if Spring.GetConfigInt("NanoParticleMode", 1) == 2 then
 	Spring.SetConfigInt("NanoParticleMode", 1)
 end
@@ -555,8 +555,7 @@ local lastLosUniform = -1       -- cache to skip redundant SetUniform calls
 local nextID = 1
 
 -- Death-frame buckets: deathBuckets[deathFrame] = { id1, id2, ... }
--- Cull walks the bucket for the current frame only -> O(deaths/frame) instead
--- of O(live) per cull pass.
+-- Cull walks due buckets only -> O(deaths/frame) instead of O(live) per cull pass.
 local deathBuckets = {}
 local liveCount    = 0  -- approximate live (incremented on spawn, decremented on cull)
 
@@ -575,7 +574,7 @@ local builderCache = {}
 local trackedBuilders     = {}  -- unitID -> arrayIndex (also used as membership set)
 local trackedBuildersList = {}  -- arrayIndex -> unitID
 
--- Forward declaration so the Initialize/GameFrame callins can call into it.
+-- Forward declaration so Initialize can seed the tracked builder set.
 local trackUnit
 
 -- Cached visibility state
@@ -601,15 +600,15 @@ local function refreshSpec()
 end
 
 -- High gamespeed throttle. When the engine runs faster than 1x (catchup after
--- reconnect, or user /speed) scanBuilders fires many times per render frame and
--- can dominate the Lua budget. Ramps from 0 at *_START to 1 at *_FULL and is
--- used at scan time to cap effective particle pool and cut emitProb.
--- Refreshed in GameFrame on a 1s cadence (cheap, one Spring.GetGameSpeed call).
+-- reconnect, or user /speed) sim frames can advance faster than user frames and
+-- nano emission can dominate the Lua budget. Ramps from 0 at *_START to 1 at
+-- *_FULL and is used at scan time to cap effective particle pool and cut emitProb.
+-- Refreshed from Update on a 1s sim-frame cadence (cheap, one Spring.GetGameSpeed call).
 local GAMESPEED_THROTTLE_START = 1.5   -- below this, no extra throttle
 local GAMESPEED_THROTTLE_FULL  = 5.0   -- at or above this, full throttle
 local GAMESPEED_EMIT_CUT       = 0.66   -- emitProb cut at full throttle (0..1)
 local GAMESPEED_MAX_CUT        = 0.85   -- effective-max cut at full throttle (0..1)
-local speedThrottle = 0.0              -- 0 = none, 1 = max (set in GameFrame)
+local speedThrottle = 0.0              -- 0 = none, 1 = max (set from Update)
 
 local function refreshSpeedThrottle()
 	local _, speedFactor = Spring.GetGameSpeed()
@@ -1265,7 +1264,7 @@ end
 
 -- Team color cache: spGetTeamColor is a Spring->C call; teamID -> {r, g, b}.
 -- Colors can change mid-game (commshare, alliance, modoptions), so a periodic
--- refresh in GameFrame re-fetches every cached team and propagates any change
+-- refresh from Update re-fetches every cached team and propagates any change
 -- into the per-builder info entries via builderCacheByTeam[team] = {info, ...}.
 local teamColorCache    = {}
 local builderCacheByTeam = {}  -- teamID -> array of info tables (for color propagation)
@@ -1592,6 +1591,10 @@ local function spawnParticle(px, py, pz, vx, vy, vz, lifetime, r, g, b, frame, f
 			bucket[#bucket + 1] = id
 		else
 			deathBuckets[death] = { id }
+		end
+		local oldest = deathBuckets.__oldestFrame
+		if not oldest or death < oldest then
+			deathBuckets.__oldestFrame = death
 		end
 		liveCount = liveCount + 1
 		return id
@@ -2612,7 +2615,8 @@ local function applyGroundClamp(frame, dirtyMin, dirtyMax)
 	if not nanoVBO then return dirtyMin, dirtyMax end
 	local runEvery = U.GROUND_CLAMP_RUN_EVERY or 1
 	if runEvery < 1 then runEvery = 1 end
-	if (frame % runEvery) ~= 0 then return dirtyMin, dirtyMax end
+	if frame < (deathBuckets.__nextGroundClampFrame or 0) then return dirtyMin, dirtyMax end
+	deathBuckets.__nextGroundClampFrame = frame + runEvery
 
 	local total = #groundClampParticles
 	if CLAMP_DEBUG and total > clampDbg.maxSubset then clampDbg.maxSubset = total end
@@ -2773,7 +2777,9 @@ local function scanBuilders(frame)
 	-- rate is preserved.
 	local runEvery = MIN_SCAN_RUN_EVERY + math.floor(saturation * (MAX_SCAN_RUN_EVERY - MIN_SCAN_RUN_EVERY) + 0.5)
 	if runEvery < 1 then runEvery = 1 end
-	if (frame % runEvery) ~= 0 then skipEmit = true end
+	local scanTick = (deathBuckets.__scanFrameTick or 0) + 1
+	deathBuckets.__scanFrameTick = scanTick
+	if runEvery > 1 and (scanTick % runEvery) ~= 0 then skipEmit = true end
 
   if not skipEmit then
 	-- Camera position for the per-emit distance throttle. One call per scan;
@@ -2797,10 +2803,8 @@ local function scanBuilders(frame)
 
 	local list = trackedBuildersList
 	local n    = #list
-	-- Use scan-call counter (frame/runEvery) for the stride offset rather than
-	-- raw frame: otherwise runEvery=2 + stride=2 makes frame always even,
-	-- frame%stride always 0, and even-indexed builders never visited.
-	local scanTick = mathFloor(frame / runEvery)
+	-- Use scan-call counter for the stride offset rather than raw frame: otherwise
+	-- runEvery=2 + stride=2 can make the same builder coset win every scan.
 	local start = (scanTick % stride) + 1
 	-- Iterate this scan's stride-coset (indices start, start+stride, ..., <= n)
 	-- starting from a per-scan rotating offset rather than always ascending.
@@ -3147,7 +3151,8 @@ local function scanBuilders(frame)
 		-- Re-aim runs on a slower cadence than the scan: it rewrites per-particle
 		-- pos/vel for every live homed particle (potentially thousands) and only
 		-- needs to keep up with target movement.
-		if (frame % HOMING_RUN_EVERY) == 0 then
+		if frame >= (deathBuckets.__nextHomingFrame or 0) then
+			deathBuckets.__nextHomingFrame = frame + HOMING_RUN_EVERY
 			dirtyMin, dirtyMax = applyHoming(frame, dirtyMin, dirtyMax)
 			dirtyMin, dirtyMax = applyForwardHoming(frame, dirtyMin, dirtyMax)
 		end
@@ -3163,51 +3168,60 @@ local function scanBuilders(frame)
 	end
 end
 
---------------------------------------------------------------------------------
--- Per-frame: cull dead particles. Called from GameFrame (deaths only advance
--- once per sim frame, no point doing this per render frame).
+-- Per-frame: cull dead particles. Called from Update after observing a new sim
+-- frame; overdue buckets are handled so catch-up skips do not leak slots.
 --------------------------------------------------------------------------------
 
 local function cullDead(frame)
-	local bucket = deathBuckets[frame]
-	if not bucket then return end
+	local oldest = deathBuckets.__oldestFrame
+	if not oldest or oldest > frame then return end
 	local nl = deathBuckets.__nanoLight
 	local canRemove = Script.LuaUI("EnvNanoBallisticLightRemove")
-	local nb = #bucket
-	if not nanoVBO then
-		if nl and nl.active then
-			for i = 1, nb do
-				local id = bucket[i]
-				if nl.active[id] then
-					nl.active[id] = nil
-					nl.activeCount = nl.activeCount - 1
-					if canRemove then
-						Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
+	for deathFrame = oldest, frame do
+		local bucket = deathBuckets[deathFrame]
+		if bucket then
+			local nb = #bucket
+			if not nanoVBO then
+				if nl and nl.active then
+					for i = 1, nb do
+						local id = bucket[i]
+						if nl.active[id] then
+							nl.active[id] = nil
+							nl.activeCount = nl.activeCount - 1
+							if canRemove then
+								Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
+							end
+						end
+					end
+				end
+			else
+				-- Per-pop upload (~64B/swap). Tried batching with one uploadElementRange
+				-- at the end and cull jumped from ~2-4ms to ~15-18ms in factory-heavy
+				-- scenes -- per-element marshalling cost in uploadElementRange dominates
+				-- the GL submit savings when slots are scattered.
+				for i = 1, nb do
+					local id = bucket[i]
+					popElementInstance(nanoVBO, id, false)
+					if nl and nl.active and nl.active[id] then
+						nl.active[id] = nil
+						nl.activeCount = nl.activeCount - 1
+						if canRemove then
+							Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
+						end
 					end
 				end
 			end
-		end
-		liveCount = liveCount - nb
-		deathBuckets[frame] = nil
-		return
-	end
-	-- Per-pop upload (~64B/swap). Tried batching with one uploadElementRange
-	-- at the end and cull jumped from ~2-4ms to ~15-18ms in factory-heavy
-	-- scenes -- per-element marshalling cost in uploadElementRange dominates
-	-- the GL submit savings when slots are scattered.
-	for i = 1, nb do
-		local id = bucket[i]
-		popElementInstance(nanoVBO, id, false)
-		if nl and nl.active and nl.active[id] then
-			nl.active[id] = nil
-			nl.activeCount = nl.activeCount - 1
-			if canRemove then
-				Script.LuaUI.EnvNanoBallisticLightRemove("NANOP_" .. id)
-			end
+			liveCount = liveCount - nb
+			deathBuckets[deathFrame] = nil
 		end
 	end
-	liveCount = liveCount - nb
-	deathBuckets[frame] = nil
+	oldest = nil
+	for deathFrame in pairs(deathBuckets) do
+		if type(deathFrame) == "number" and (not oldest or deathFrame < oldest) then
+			oldest = deathFrame
+		end
+	end
+	deathBuckets.__oldestFrame = oldest
 end
 
 --------------------------------------------------------------------------------
@@ -3243,7 +3257,11 @@ local function applyParticleMode(newMode, force)
 	for k in pairs(targetPosCache)      do targetPosCache[k]      = nil end
 	for k in pairs(targetIncompleteCache) do targetIncompleteCache[k] = nil end
 	for k in pairs(reclaimTargetBuildProgress) do reclaimTargetBuildProgress[k] = nil end
-	for k in pairs(deathBuckets)        do deathBuckets[k]        = nil end
+	for k in pairs(deathBuckets) do
+		if type(k) == "number" or k == "__nanoLight" or k == "__oldestFrame" then
+			deathBuckets[k] = nil
+		end
+	end
 	liveCount = 0
 
 	cleanupGL4()
@@ -3304,14 +3322,20 @@ function gadget:PlayerChanged()
 end
 
 
--- Emission once per gameframe (matches the engine's per-frame AddNanoParticle
--- cadence for an active builder).
-function gadget:GameFrame(n)
+-- Emission once per observed sim frame (matches the engine's per-frame
+-- AddNanoParticle cadence for an active builder) but scheduled from Update so
+-- the work is not attached to the sim-frame callin.
+function gadget:Update()
+	local n = Spring.GetGameFrame()
+	if n <= (deathBuckets.__lastNanoUpdateFrame or -1) then return end
+	deathBuckets.__lastNanoUpdateFrame = n
+
 	-- Poll NanoParticleMode. The springsetting is written by the gfx options
 	-- UI; engine doesn't fire a callin on change so we sample on a slow tick.
 	-- Cheap (one GetConfigInt) and 1s latency on a settings-menu toggle is
 	-- imperceptible.
-	if n % 30 == 0 then
+	if n >= (deathBuckets.__nextNanoSettingsPollFrame or 0) then
+		deathBuckets.__nextNanoSettingsPollFrame = n + 30
 		-- Optional deferred nano lights (off by default):
 		--  NanoParticleLights = 0/1 enables bridge to deferred lights widget.
 		local nl = deathBuckets.__nanoLight
@@ -3389,7 +3413,8 @@ function gadget:GameFrame(n)
 	-- Periodic team-color refresh: colors can change mid-game (commshare,
 	-- alliance, custom recolor widgets). Cheap (one Spring call per cached
 	-- team, only propagates on actual change).
-	if n % 150 == 0 then
+	if n >= (deathBuckets.__nextTeamColorRefreshFrame or 0) then
+		deathBuckets.__nextTeamColorRefreshFrame = n + 150
 		refreshTeamColors()
 	end
 
@@ -3397,7 +3422,8 @@ function gadget:GameFrame(n)
 	-- unsynced context (e.g. mid-game gadget reloads, spectator transitions).
 	-- Unit{Created,Finished,Given,Taken,Destroyed} cover the steady state, so
 	-- every 10 seconds is plenty for the safety net.
-	if n % 300 == 0 then
+	if n >= (deathBuckets.__nextBuilderRescanFrame or 0) then
+		deathBuckets.__nextBuilderRescanFrame = n + 300
 		if DEBUG then
 			local t0 = Spring.GetTimer()
 			local all = spGetAllUnits()
@@ -3448,7 +3474,8 @@ function gadget:GameFrame(n)
 		cullDead(n)
 	end
 
-	if CLAMP_DEBUG and (n % 90 == 0) then
+	if CLAMP_DEBUG and n >= (deathBuckets.__nextClampDebugFrame or 0) then
+		deathBuckets.__nextClampDebugFrame = n + 90
 		local checks = clampDbg.emitChecks
 		local enabledPct = (checks > 0) and (100.0 * clampDbg.emitEnabled / checks) or 0.0
 		spEcho(string.format(
