@@ -50,31 +50,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-for id, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.objectify then
-		excludedUnitsDefID[id] = true
-	end
-end
-
-local function addNewCommand(newCmds, unitID, cmdOpts, cmdID)
-	if #newCmds == 0 and not cmdOpts.shift then
-		-- Need to clear orders if not in shift, since just sending the first one
-		-- as not-shift would sometimes fail if that unit is in the end not valid
-		local stopCmd = (cmdID == CMD_ATTACK) and CMD_STOP or CMD_UNIT_CANCEL_TARGET
-		newCmds[1] = {stopCmd, {}, {}}
-	end
-	newCmds[#newCmds + 1] = {cmdID, unitID, CMD.OPT_SHIFT}
-end
-
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not commandAreaToUnits[cmdID] or #cmdParams ~= 4 then
 		return
 	end
 
+	local selectedUnits = spGetSelectedUnits()
+
 	if cmdID == CMD_ATTACK then
 		-- Deterministic handoff: if limiter would kick in (non-bomber overflow),
 		-- do not consume this command so LuaRules areaattack limiter can process it.
-		local selectedUnits = spGetSelectedUnits()
 		local nonBomberCount = 0
 		for i = 1, #selectedUnits do
 			local unitDefID = spGetUnitDefID(selectedUnits[i])
@@ -87,27 +72,33 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 
+	local append = cmdOpts.shift
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
-	local newCmds = {}
-	local somethingWasExcluded = false
+	local excludeTargets = false
+	local includeTargets = false
+	-- Need to clear orders if not in shift, since just sending the first one
+	-- as not-shift would sometimes fail if that unit is in the end not valid
+	local newCommands = append and {{ commandClearOrders[cmdID], unitID, 0 }} or {}
+	local count = #newCommands
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
-
-		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
-		elseif not spGetUnitNeutral(unitID) then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID)
+		if excludedUnitsDefID[unitDefID] or spGetUnitNeutral(unitID) then
+			excludeTargets = true
 		else
-			somethingWasExcluded = true
+			includeTargets = true
+			count = count + 1
+			newCommands[count] = { cmdID, unitID, cmdOpts }
 		end
 	end
-	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)
+
+	if excludeTargets and includeTargets then
+		cmdOpts.shift = true
+		Spring.GiveOrderArrayToUnitArray(selectedUnits, newCommands)
 		return true
+	else
+		return false
 	end
 end
-
-
