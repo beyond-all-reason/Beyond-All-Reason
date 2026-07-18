@@ -22,8 +22,8 @@ local commandAreaToUnits = {
 }
 
 local commandClearOrders = {
-	[GameCMD.UNIT_SET_TARGET]           = CMD.CMD_UNIT_CANCEL_TARGET,
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = CMD.CMD_UNIT_CANCEL_TARGET,
+	[GameCMD.UNIT_SET_TARGET]           = GameCMD.UNIT_CANCEL_TARGET,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = GameCMD.UNIT_CANCEL_TARGET,
 }
 for cmdID in pairs(commandAreaToUnits) do
 	commandClearOrders[cmdID] = commandClearOrders[cmdID] or CMD.STOP
