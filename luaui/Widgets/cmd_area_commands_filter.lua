@@ -444,45 +444,43 @@ local allowedCommands = {
 	[CMD.RESURRECT] = commandConfig({ FEATURE }),
 }
 
-local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
-	local alt = options.alt
-	local ctrl = options.ctrl
-	local filteredTargets = {}
-	local unitDefId = spGetUnitDefID(targetId)
-	if not unitDefId then
-		return nil
+local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance)
+	local targetDefId = spGetUnitDefID(targetId)
+	if not targetDefId then
+		return
 	end
 
-	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
-	if isEnemyTarget and targetAllegiance ~= ALL_UNITS and targetAllegiance ~= ENEMY_UNITS then
-		-- targeting enemy when only allies are allowed
-		return nil
+	local filterTeam = options.ctrl
+	local filterType = not filterTeam and options.alt
+
+	if allegiance ~= ALLY_UNITS and spGetUnitAllyTeam(targetId) ~= myAllyTeamID then
+		allegiance = ENEMY_UNITS
+	elseif allegiance ~= ENEMY_UNITS and filterTeam then
+		allegiance = spGetUnitTeam(targetId)
 	end
 
-	if isEnemyTarget then
-		targetAllegiance = ENEMY_UNITS
-	else
-		targetAllegiance = spGetUnitTeam(targetId)
+	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, allegiance)
+	if not unitsInArea[1] then
+		return
 	end
 
-	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, targetAllegiance)
-
-	if not unitsInArea then
-		return nil
-	end
-
-	if ctrl then
+	if filterTeam then
 		return unitsInArea
 	end
 
-	for i = 1, #unitsInArea do
-		local unitID = unitsInArea[i]
-		if spGetUnitDefID(unitID) == unitDefId then
-			tableInsert(filteredTargets, unitID)
+	if filterType then
+		local targetsByType, count = {}, 0
+		for i = 1, #unitsInArea do
+			local unitID = unitsInArea[i]
+			if spGetUnitDefID(unitID) == targetDefId then
+				count = count + 1
+				targetsByType[count] = unitID
+			end
+		end
+		if count > 0 then
+			return targetsByType
 		end
 	end
-
-	return filteredTargets
 end
 
 local function getTechLevel(unitDefName)
@@ -561,9 +559,8 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local filteredTargets
-
 	if targetType == UNIT then
-		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
+		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, areaCommand.targetAllegiance)
 	elseif targetType == FEATURE then
 		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
