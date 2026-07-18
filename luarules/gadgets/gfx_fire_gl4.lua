@@ -1949,6 +1949,17 @@ local lastFireUpdateFrame = -1
 local nextWindUpdateFrame = 0
 local nextEmitterUpdateFrame = 0
 
+local function runFireFrame(n)
+	cachedGameFrame = n
+	removeExpiredParticles(n)
+	updatePendingWreckFire(n)
+
+	if n >= nextEmitterUpdateFrame then
+		nextEmitterUpdateFrame = n + fpsUpdateInterval
+		updateEmitters(n)
+	end
+end
+
 function gadget:Update()
 	if not particleVBO then return end
 
@@ -1976,16 +1987,32 @@ function gadget:Update()
 		end
 	end
 
-	removeExpiredParticles(n)
-	updatePendingWreckFire(n)
-
-	if n >= nextEmitterUpdateFrame then
-		nextEmitterUpdateFrame = n + fpsUpdateInterval
-		updateEmitters(n)
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			particleRemoveQueue.__pendingFireFrame = nil
+			runFireFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		particleRemoveQueue.__pendingFireFrame = n
+		particleRemoveQueue.__pendingFireDrawFrame = particleRemoveQueue.__fireDrawFrame or 0
 	end
 end
 
 function gadget:DrawWorld()
+	particleRemoveQueue.__fireDrawFrame = (particleRemoveQueue.__fireDrawFrame or 0) + 1
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame then
+			local queuedAt = particleRemoveQueue.__pendingFireDrawFrame or 0
+			if particleRemoveQueue.__fireDrawFrame > queuedAt + 1 then
+				particleRemoveQueue.__pendingFireFrame = nil
+				runFireFrame(pendingFrame)
+			end
+		end
+	end
 	drawParticles()
 end
 
