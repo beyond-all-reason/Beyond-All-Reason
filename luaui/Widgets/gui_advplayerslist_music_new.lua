@@ -26,6 +26,9 @@ local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetConfigInt = Spring.GetConfigInt
+local spSetConfigInt = Spring.SetConfigInt
+local spGetGameRulesParam = Spring.GetGameRulesParam
 
 Spring.CreateDir("music/custom/loading")
 Spring.CreateDir("music/custom/peace")
@@ -87,6 +90,9 @@ local menuTracks = {}
 local loadingTracks = {}
 
 local currentTrack
+local currentTrackDisplayName = ""
+local currentTrackSwitchKey
+local nextMusicSwitchCheckFrame = 0
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, interludeTracksPlayCounter, bossFightTracksPlayCounter, victoryTracksPlayCounter, defeatTracksPlayCounter, gameoverTracksPlayCounter, eventPeaceTracksPlayCounter, eventWarLowTracksPlayCounter, eventWarHighTracksPlayCounter
 local fadeOutSkipTrack = false
 local interruptionEnabled
@@ -627,6 +633,18 @@ local function processTrackname(trackname)
 	return capitalize(trackname)
 end
 
+local function updateCurrentTrackCache(track)
+	if track and track ~= "" then
+		local displayName = processTrackname(track) or ""
+		currentTrackDisplayName = displayName
+		currentTrackSwitchKey = "MusicSwitch " .. displayName
+	else
+		currentTrackDisplayName = ""
+		currentTrackSwitchKey = nil
+	end
+	nextMusicSwitchCheckFrame = 0
+end
+
 local function drawBackground()
 	UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1, nil, nil, nil, nil)
 	borderPadding = bgpadding
@@ -652,10 +670,8 @@ local function drawContent()
 
 	if not mouseover and not draggingSlider and playing and volume > 0 and playedTime < totalTime then
 		-- track name
-		trackname = currentTrack or ''
+		trackname = currentTrackDisplayName or ''
 		glColor(0.45,0.45,0.45,1)
-
-		trackname = processTrackname(trackname)
 
 		local text = ''
 		for i = 1, #trackname do
@@ -811,6 +827,7 @@ function widget:Initialize()
 	isChangingTrack = false
 	if spGetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
+		updateCurrentTrackCache(currentTrack)
 	end
 	ReloadMusicPlaylists()
 	widget:ViewResize()
@@ -829,7 +846,7 @@ function widget:Initialize()
 	end
 	WG['music'].SetMusicVolume = function(value)
 		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", mathMin(99,mathCeil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+		spSetConfigInt("snd_volmusic", mathMin(99,mathCeil(maxMusicVolume))) -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 		if fadeDirection then
 			setMusicVolume(fadeLevel)
 		end
@@ -939,10 +956,11 @@ function widget:Initialize()
 	end
 	WG['music'].playTrack = function(track)
 		currentTrack = track
+		updateCurrentTrackCache(currentTrack)
 		Spring.StopSoundStream()
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
-		Spring.SetConfigInt('music', (playing and 1 or 0))
+		spSetConfigInt('music', (playing and 1 or 0))
 		local playedTime, totalTime = Spring.GetSoundStreamTime()
 		interruptionTime = totalTime + 2
 		if fadeDirection then
@@ -1033,7 +1051,7 @@ function widget:MouseMove(x, y)
 	if showGUI and draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			maxMusicVolume = mathCeil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 99)
-			Spring.SetConfigInt("snd_volmusic", mathMin(99,maxMusicVolume))  -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+			spSetConfigInt("snd_volmusic", mathMin(99,maxMusicVolume))  -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 			if fadeDirection then
 				setMusicVolume(fadeLevel)
 			end
@@ -1041,7 +1059,7 @@ function widget:MouseMove(x, y)
 		end
 		if draggingSlider == 'volume' then
 			volume = mathCeil(getVolumeCoef(getSliderValue(draggingSlider, x)) * 80)
-			Spring.SetConfigInt("snd_volmaster", volume)
+			spSetConfigInt("snd_volmaster", volume)
 			updateDrawing = true
 		end
 	end
@@ -1057,14 +1075,14 @@ local function mouseEvent(x, y, button, release)
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				maxMusicVolume = mathCeil(getVolumeCoef(getSliderValue(button, x)) * 99)
-				Spring.SetConfigInt("snd_volmusic", mathMin(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
+				spSetConfigInt("snd_volmusic", mathMin(99, maxMusicVolume))   -- It took us 2 and half year to realize that the engine is not saving value of a 100 because it's engine default, which is why we're maxing it at 99
 				updateDrawing = true
 			end
 			button = 'volume'
 			if math_isInRect(x, y, buttons[button][1] - sliderWidth, buttons[button][2], buttons[button][3] + sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				volume = mathCeil(getVolumeCoef(getSliderValue(button, x)) * 80)
-				Spring.SetConfigInt("snd_volmaster", volume)
+				spSetConfigInt("snd_volmaster", volume)
 				updateDrawing = true
 			end
 		end
@@ -1074,12 +1092,12 @@ local function mouseEvent(x, y, button, release)
 		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
 			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
 				playing = not playing
-				Spring.SetConfigInt('music', (playing and 1 or 0))
+				spSetConfigInt('music', (playing and 1 or 0))
 				Spring.PauseSoundStream()
 				updateDrawing = true
 			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
 				playing = true
-				Spring.SetConfigInt('music', (playing and 1 or 0))
+				spSetConfigInt('music', (playing and 1 or 0))
 				playInterlude = false
 				PlayNewTrack()
 			end
@@ -1133,20 +1151,11 @@ function widget:Update(dt)
 		updateFade()
 	end
 
-	if showGUI then
-		local mx, my, mlb = spGetMouseState()
-		if math_isInRect(mx, my, left, bottom, right, top) then
-			mouseover = true
+	if currentTrackSwitchKey and playedTime < 2 and frame >= nextMusicSwitchCheckFrame then
+		nextMusicSwitchCheckFrame = frame + 15
+		if spGetConfigInt(currentTrackSwitchKey, 1) == 0 then
+			PlayNewTrack()
 		end
-		local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
-		if volume ~= curVolume then
-			volume = curVolume
-			updateDrawing = true
-		end
-	end
-
-	if currentTrack and playedTime < 2 and Spring.GetConfigInt("MusicSwitch " .. processTrackname(currentTrack), 1) == 0 then
-		PlayNewTrack()
 	end
 end
 
@@ -1162,7 +1171,7 @@ function widget:DrawScreen()
 		mouseover = false
 	else
 		if math_isInRect(mx, my, left, bottom, right, top) then
-			local curVolume = Spring.GetConfigInt("snd_volmaster", 80)
+			local curVolume = spGetConfigInt("snd_volmaster", 80)
 			if volume ~= curVolume then
 				volume = curVolume
 				updateDrawing = true
@@ -1198,12 +1207,15 @@ function widget:DrawScreen()
 	if uiTex then
 		if mouseover then
 			-- display play progress
-			local progressPx = mathFloor((right - left) * (playedTime / totalTime))
-			if progressPx > 1 and playedTime / totalTime < 1 then
+			if totalTime > 0 then
+				local progress = playedTime / totalTime
+				local progressPx = mathFloor((right - left) * progress)
+				if progressPx > 1 and progress < 1 then
 				if progressPx < borderPadding * 5 then
 					progressPx = borderPadding * 5
 				end
 				RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
+				end
 			end
 
 			local color = { 1, 1, 1, 0.1 }
@@ -1249,6 +1261,7 @@ function PlayNewTrack(paused)
 		fadeDirection = nil
 	end
 	currentTrack = nil
+	updateCurrentTrackCache(nil)
 	currentTrackList = nil
 
 	if gameOver then
@@ -1312,6 +1325,7 @@ function PlayNewTrack(paused)
 	end
 
 	if not currentTrackList then
+		isChangingTrack = false
 		return
 	end
 
@@ -1394,6 +1408,7 @@ function PlayNewTrack(paused)
 	end
 
 	if currentTrack then
+		updateCurrentTrackCache(currentTrack)
 		Spring.PlaySoundStream(currentTrack, 1)
 		playing = true
 
@@ -1460,21 +1475,24 @@ function widget:GameFrame(n)
 	end
 
 	if Spring.Utilities.Gametype.IsRaptors() then
-		if (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+		local raptorQueenAnger = spGetGameRulesParam("raptorQueenAnger") or 0
+		if raptorQueenAnger > 60 and warMeter < warHighLevel+1 then
 			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("raptorQueenAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+		elseif raptorQueenAnger > 20 and warMeter < warLowLevel+1 then
 			warMeter = warLowLevel+1
 		end
 	elseif Spring.Utilities.Gametype.IsScavengers() then
-		if (Spring.GetGameRulesParam("scavBossAnger", 0)) > 60 and warMeter < warHighLevel+1 then
+		local scavBossAnger = spGetGameRulesParam("scavBossAnger") or 0
+		if scavBossAnger > 60 and warMeter < warHighLevel+1 then
 			warMeter = warHighLevel+1
-		elseif (Spring.GetGameRulesParam("scavBossAnger", 0)) > 20 and warMeter < warLowLevel+1 then
+		elseif scavBossAnger > 20 and warMeter < warLowLevel+1 then
 			warMeter = warLowLevel+1
 		end
 	end
 
 	if n%30 == 15 then
-		if Spring.GetGameRulesParam("BossFightStarted") and Spring.GetGameRulesParam("BossFightStarted") == 1 then
+		local bossFightStarted = spGetGameRulesParam("BossFightStarted") or 0
+		if bossFightStarted == 1 then
 			bossHasSpawned = true
 		else
 			bossHasSpawned = false
@@ -1545,6 +1563,7 @@ function widget:SetConfigData(data)
 	if spGetGameFrame() > 0 then
 		if data.curTrack ~= nil then
 			currentTrack = data.curTrack
+			updateCurrentTrackCache(currentTrack)
 		end
 	end
 	if data.showGUI ~= nil then
