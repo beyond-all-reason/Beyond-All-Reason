@@ -2,7 +2,7 @@ return {
 	armseap = {
 		blocking = false,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 18000,
+		buildtime = 14000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -26,7 +26,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 535,
 		sonardistance = 535,
-		speed = 271.20001,
+		speed = 271,
 		turnrate = 720,
 		customparams = {
 			model_author = "FireStorm",
@@ -78,7 +78,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 600,
-				reloadtime = 3,
+				reloadtime = 4,
 				soundhit = "xplodep1",
 				soundhitvolume = 3,
 				soundhitwet = "splsmed",
