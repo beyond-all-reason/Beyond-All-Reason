@@ -329,8 +329,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- Unit adding/removal
 
 	local function sendTargetsToUnsynced(unitID)
-		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
-		for index, targetData in ipairs(setTargetData[unitID].targets) do
+		local targetList = setTargetData[unitID].targets
+		local targetCount = #targetList
+		for index = 1, targetCount do
+			local targetData = targetList[index]
 			if not targetData.sent then
 				targetData.sent = true
 				local target = targetData.target
@@ -341,7 +343,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		--tracy.ZoneEnd()
+		SendToUnsynced("targetList", unitID, targetCount + 1)
 	end
 
 	local function removeUnit(unitID, keeptrack)
