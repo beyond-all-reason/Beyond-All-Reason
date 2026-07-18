@@ -1721,47 +1721,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:Update()
-	if not particleVBO then return end
-	local n = mathFloor(Spring.GetGameFrame() or 0)
-	if n <= (visibilityState.lastUpdateFrame or -1) then return end
-	visibilityState.lastUpdateFrame = n
+local function runFireSmokeFrame(n)
+	cachedGameFrame = n
 
 	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
 	if debugEcho then
 		tStart = spGetTimer()
 		t0 = tStart
-	end
-
-	cachedGameFrame = n
-	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
-	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
-	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
-
-	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
-	local userSpeed, internalSpeed = spGetGameSpeed()
-	fastForward = (internalSpeed or userSpeed) > 1.5
-
-	-- Periodic housekeeping (staggered across frames)
-	updateMaxParticles(n)
-	updateWind(n)
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
-		t0 = t1
-	end
-
-	-- Quality auto-scaling
-	updateQualityPreset(n)
-
-	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
-	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
-		t0 = t1
 	end
 
 	-- Remove expired particles
@@ -1891,7 +1857,75 @@ function gadget:Update()
 	end
 end
 
+function gadget:Update()
+	if not particleVBO then return end
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= (visibilityState.lastUpdateFrame or -1) then return end
+	visibilityState.lastUpdateFrame = n
+
+	local t0, t1  -- debug timer locals (only used when debugEcho is true)
+	if debugEcho then
+		t0 = spGetTimer()
+	end
+
+	cachedGameFrame = n
+	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
+
+	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
+	local userSpeed, internalSpeed = spGetGameSpeed()
+	fastForward = (internalSpeed or userSpeed) > 1.5
+
+	-- Periodic housekeeping (staggered across frames)
+	updateMaxParticles(n)
+	updateWind(n)
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	-- Quality auto-scaling
+	updateQualityPreset(n)
+
+	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
+	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			visibilityState.pendingFireSmokeFrame = nil
+			runFireSmokeFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		visibilityState.pendingFireSmokeFrame = n
+		visibilityState.pendingFireSmokeDrawFrame = visibilityState.fireSmokeDrawFrame or 0
+	end
+end
+
 function gadget:DrawWorld()
+	visibilityState.fireSmokeDrawFrame = (visibilityState.fireSmokeDrawFrame or 0) + 1
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame then
+			local queuedAt = visibilityState.pendingFireSmokeDrawFrame or 0
+			if visibilityState.fireSmokeDrawFrame > queuedAt + 1 then
+				visibilityState.pendingFireSmokeFrame = nil
+				runFireSmokeFrame(pendingFrame)
+			end
+		end
+	end
+
 	-- Flush off-screen buffers that are now in view (works while paused too)
 	if offscreenBufferCount > 0 then
 		if crashingAircraftCount > 0 then
