@@ -1,6 +1,8 @@
 
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 function widget:GetInfo()
 	return {
 		name      = "Loop Select",
@@ -128,7 +130,7 @@ end
 function widget:MousePress(mx, my, mButton)
 
 	-- Only left click
-	if (mButton ~= 1) then return false end
+	if not mouseRoles.isPrimaryButton(mButton) then return false end
 
 	-- Only handle if there is no active command
 	local _, actCmdID = spGetActiveCommand()

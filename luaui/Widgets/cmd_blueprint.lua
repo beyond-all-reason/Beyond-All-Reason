@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
 
@@ -920,7 +922,7 @@ function widget:MousePress(x, y, button)
 		return true
 	end
 
-	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
+	if not mouseRoles.isPrimaryButton(button) or not blueprintPlacementActive or not getSelectedBlueprint() then
 		return
 	end
 

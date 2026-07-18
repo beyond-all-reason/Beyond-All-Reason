@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 function widget:GetInfo()
 	return {
 		name = "Quick Build (mex/geo)",
@@ -295,7 +297,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if (button == 3) then
+	if mouseRoles.isSecondaryButton(button) then
 		local _, _, _, shift = spGetModKeyState()
 		if selectedMex then
 			spotBuilder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)

@@ -30,6 +30,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
 
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
@@ -143,7 +144,6 @@ local glLoadIdentity = gl.LoadIdentity
 local spGetActiveCommand = Spring.GetActiveCommand
 local spSetActiveCommand = Spring.SetActiveCommand
 local spGetDefaultCommand = Spring.GetDefaultCommand
-local spGetKeyBindings = Spring.GetKeyBindings
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
@@ -400,31 +400,19 @@ end
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
 
-local function isSecondaryMouseButton(button)
-    local binds = spGetKeyBindings("mouse" .. button)
-    if binds then
-        for i = 1, #binds do
-            if binds[i].command == "mousesecondary" then
-                return true
-            end
-        end
-    end
-    return false
-end
-
 function widget:MousePress(mx, my, mButton)
     lineLength = 0 --for linestipple
     -- Where did we click
     inMinimap = spIsAboveMiniMap(mx, my)
     if inMinimap and not MiniMapFullProxy then return false end
 
-    if not isSecondaryMouseButton(mButton) and usingRMB then
+    if not mouseRoles.isSecondaryButton(mButton) and usingRMB then
         fNodes = {}
         fDists = {}
         usingRMB = false
     end
 
-    if not isSecondaryMouseButton(mButton) then return false end --formations run on the mouse-secondary (default right-click) button
+    if not mouseRoles.isSecondaryButton(mButton) then return false end --formations run on the mouse-secondary (default right-click) button
 
     -- Get command that would've been issued
     local _, activeCmdID = spGetActiveCommand()
