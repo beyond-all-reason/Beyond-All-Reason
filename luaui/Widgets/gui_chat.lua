@@ -481,6 +481,7 @@ function widget:LanguageChanged()
 		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
 		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
 		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
+		channelScopeTeam = Spring.I18N('ui.chat.channelScopeTeam'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
 		spectators = Spring.I18N('ui.chat.spectators'),
@@ -995,7 +996,7 @@ local function getChannelScopeLabel(channelScope)
 	if channelScope == 'ALL' then
 		return '[' .. I18N.channelScopeAll .. ']'
 	elseif channelScope == 'TEAM' then
-		return '[Team]'
+		return '[' .. I18N.channelScopeTeam .. ']'
 	end
 	return '[' .. channelScope .. ']'
 end
