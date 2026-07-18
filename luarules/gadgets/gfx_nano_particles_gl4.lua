@@ -291,10 +291,13 @@ local BUILD_POWER_CACHE_FRAMES   = 8
 -- this many homing passes. Spawn-time aim is correct as long as the target
 -- hasn't moved, collapsing repair-of-static-unit cases to a near-no-op.
 local STATIONARY_SKIP_AFTER      = 4
--- Off-screen emission throttle. Builders whose spray endpoints are outside
--- the view frustum keep only this fraction of emissions. Frustum visibility
--- is cached for OFFSCREEN_VIS_CACHE_FRAMES (camera moves slowly vs emit rate).
--- Keep-fraction scales with pool saturation: MAX at/below SAT_PIVOT, ramping
+-- Off-screen emission throttle. Cold endpoints (not recently visible) do not
+-- allocate particles, but they accrue a bounded virtual stream so the next
+-- visible visit can materialize particles already in flight. Once a spray has
+-- been visible, a short warm grace keeps reduced offscreen emission so quick
+-- camera nudges do not reset the stream. Frustum visibility is cached for
+-- OFFSCREEN_VIS_CACHE_FRAMES (camera moves slowly vs emit rate). Warm
+-- keep-fraction scales with pool saturation: MAX at/below SAT_PIVOT, ramping
 -- linearly to MIN at full saturation.
 local OFFSCREEN_EMIT_KEEP_MAX       = 0.45
 local OFFSCREEN_EMIT_KEEP_MIN       = 0.25
@@ -1616,9 +1619,10 @@ end
 -- so particles only get nudged a small distance ahead of the source -- they
 -- must NOT be placed partway to the target. Defaults to 0 (legacy
 -- simultaneous spawn) when omitted.
-local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID, pieceIdx, count, spreadFrames)
+local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius, frame, targetUnitID, pieceIdx, count, spreadFrames, catchupAgeFrames)
 	count = count or 1
 	spreadFrames = spreadFrames or 0
+	catchupAgeFrames = catchupAgeFrames or 0
 	pieceIdx = pieceIdx or pickNanoPiece(info)
 	local clampThisEmit = false
 	local clampGuideY
@@ -1794,6 +1798,19 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				lifetime = newLifetime
 			end
 
+			-- Cold-offscreen catch-up: materialize a virtual particle already
+			-- partway along its path when the camera first sees this endpoint.
+			if catchupAgeFrames > 0 and lifetime > 1 then
+				local age = mathFloor(mathRandom() * catchupAgeFrames)
+				if age >= lifetime then age = lifetime - 1 end
+				if age > 0 then
+					px = px + vx * age
+					py = py + vy * age
+					pz = pz + vz * age
+					lifetime = lifetime - age
+				end
+			end
+
 			-- LOS filter: enemy emissions hidden when not in our LOS / not full
 			-- view. Throttled per builder -- LOS at the builder location changes
 			-- slowly relative to emit rate. Skipped for tier-1 (radar/sonar
@@ -1962,6 +1979,39 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				end
 			end
 		until true
+	end
+end
+
+local function emitNanoBatch(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, isResurrect, count, spreadWindow, catchupAgeFrames)
+	if count <= 0 then return end
+	local n = info.nPieces
+	if n == 1 then
+		local p1 = info.pieces[1]
+		emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, count, spreadWindow, catchupAgeFrames)
+		if isResurrect then
+			emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, count, spreadWindow, catchupAgeFrames)
+		end
+	else
+		local pieces = info.pieces
+		local startCursor = info.pieceCursor or 0
+		local base = mathFloor(count / n)
+		local rem  = count - base * n
+		for i = 1, n do
+			local cnt = base
+			if i <= rem then cnt = cnt + 1 end
+			if cnt > 0 then
+				local cursor = startCursor + i
+				if cursor > n then cursor = cursor - n end
+				local pIdx = pieces[cursor]
+				emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx, cnt, spreadWindow, catchupAgeFrames)
+				if isResurrect then
+					emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx, cnt, spreadWindow, catchupAgeFrames)
+				end
+			end
+		end
+		local newCursor = startCursor + count
+		while newCursor > n do newCursor = newCursor - n end
+		info.pieceCursor = newCursor
 	end
 end
 
@@ -2134,6 +2184,13 @@ local function resolveTarget(info, cmdID, targetID)
 			effectiveBD  = info.buildDistance and (info.buildDistance + (radius or 0)) or nil,
 			isReclaim    = isReclaim,
 			isResurrect  = isResurrect,
+			visFrame     = -OFFSCREEN_VIS_CACHE_FRAMES,
+			visible      = false,
+			lastVisibleFrame   = -1000000000,
+			coldOffscreenUntil = 0,
+			virtualEmits       = 0,
+			virtualAgeFrames   = 0,
+			virtualFrame       = 0,
 		}
 		-- Keep assistant builders aimed at the actual unit being built.
 		-- HOMING_SKIP_INCOMPLETE already prevents odd forward-homing while the
@@ -2181,6 +2238,91 @@ local function resolveTarget(info, cmdID, targetID)
 	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and meta.resolvedID or nil
 end
 
+local function materializeVisibleVirtualStreams(frame)
+	local virtualList = deathBuckets.__virtualStreamList
+	if not nanoVBO or not virtualList or #virtualList == 0 then return end
+
+	local camX, camY, camZ = Spring.GetCameraPosition()
+	local lastCamX = deathBuckets.__virtualCamX
+	if lastCamX and not deathBuckets.__virtualStreamsNeedCheck then
+		local dcx = camX - lastCamX
+		local dcy = camY - deathBuckets.__virtualCamY
+		local dcz = camZ - deathBuckets.__virtualCamZ
+		if (dcx * dcx + dcy * dcy + dcz * dcz) < 4096 then return end
+	end
+	deathBuckets.__virtualCamX = camX
+	deathBuckets.__virtualCamY = camY
+	deathBuckets.__virtualCamZ = camZ
+	deathBuckets.__virtualStreamsNeedCheck = false
+
+	local preUsed = nanoVBO.usedElements or 0
+	local virtualSet = deathBuckets.__virtualStreamSet
+	local listCount = #virtualList
+	local maxChecks = 64
+	if maxChecks > listCount then maxChecks = listCount end
+	local idx = deathBuckets.__virtualStreamCursor or 1
+	if idx < 1 or idx > listCount then idx = 1 end
+	piecePosEpoch = piecePosEpoch + 1
+
+	local checked = 0
+	while checked < maxChecks and listCount > 0 do
+		if idx > listCount then idx = 1 end
+		local unitID = virtualList[idx]
+		local info = builderCache[unitID]
+		local meta = info and info.targetMeta
+		local virtualEmits = meta and meta.virtualEmits or 0
+		local remove = false
+		if virtualEmits > 0 then
+			local visible = false
+			local vx = meta.virtualX
+			if vx then
+				local radius = meta.virtualRadius or meta.targetRadius or 64
+				if radius < 64 then radius = 64 end
+				-- Small prewarm margin: DrawWorld runs before drawing, so a huge
+				-- offscreen radius just materializes streams far outside the view.
+				radius = radius + 192
+				visible = Spring.IsSphereInView(vx, meta.virtualY, meta.virtualZ, radius) and true or false
+			end
+			if visible then
+				local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID = resolveTarget(info, meta.cmdID, meta.targetID)
+				meta = info.targetMeta
+				if ex and meta then
+					if info.isFactory then jitterRadius = nil end
+					meta.visFrame = frame
+					meta.visible = true
+					meta.lastVisibleFrame = frame
+					meta.coldOffscreenUntil = 0
+					local catchupAgeFrames = meta.virtualAgeFrames or 0
+					meta.virtualEmits = 0
+					meta.virtualAgeFrames = 0
+					meta.virtualFrame = frame
+					emitNanoBatch(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, isResurrect, virtualEmits, 0, catchupAgeFrames)
+				end
+				remove = true
+			end
+		else
+			remove = true
+		end
+		if remove then
+			if virtualSet then virtualSet[unitID] = nil end
+			virtualList[idx] = virtualList[listCount]
+			virtualList[listCount] = nil
+			listCount = listCount - 1
+		else
+			idx = idx + 1
+		end
+		checked = checked + 1
+	end
+
+	if idx > listCount then idx = 1 end
+	deathBuckets.__virtualStreamCursor = idx
+	deathBuckets.__virtualStreamCount = listCount
+	local postUsed = nanoVBO.usedElements or 0
+	if postUsed > preUsed then
+		uploadElementRange(nanoVBO, preUsed, postUsed)
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Per-frame homing: re-aim in-flight inverse particles toward the builder's
 -- current piece position, so reclaim sprays curve when the builder moves
@@ -2206,9 +2348,6 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 			-- loop. Hot path: ~thousands of particles per scan in heavy reclaim.
 			local builderKeyHi = builderID * 256
 			local clampDelta = U.GROUND_CLAMP_SMART_DELTA
-			local piecePosByKey = {}
-			local pieceMovingByKey = {}
-			local pieceGroundYByKey = {}
 			for i = 1, #list do
 				local p = list[i]
 				local remaining = p.death - frame
@@ -2217,54 +2356,47 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 					-- Resolve current piece position via the per-frame cache.
 					local pieceIdx = p.pieceIdx
 					local key = builderKeyHi + pieceIdx
-					local pos = piecePosByKey[key]
-					local pieceMoving = pieceMovingByKey[key]
+					local entry = piecePosCache[key]
+					local pieceMoving
 					local nx, ny, nz
-					if pos then
-						nx, ny, nz = pos[1], pos[2], pos[3]
-					else
-						local entry = piecePosCache[key]
-						if entry and entry[1] == piecePosEpoch then
-							nx, ny, nz = entry[2], entry[3], entry[4]
-							if pieceMoving == nil then
-								local px, py, pz = entry[5], entry[6], entry[7]
-								if px then
-									local mdx = nx - px
-									local mdy = ny - py
-									local mdz = nz - pz
-									pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
-								else
-									pieceMoving = true
-								end
-								pieceMovingByKey[key] = pieceMoving
+					if entry and entry[1] == piecePosEpoch then
+						nx, ny, nz = entry[2], entry[3], entry[4]
+						pieceMoving = entry[8]
+						if pieceMoving == nil then
+							local px, py, pz = entry[5], entry[6], entry[7]
+							if px then
+								local mdx = nx - px
+								local mdy = ny - py
+								local mdz = nz - pz
+								pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
+							else
+								pieceMoving = true
 							end
-						else
-							local ox, oy, oz
-							if entry then ox, oy, oz = entry[2], entry[3], entry[4] end
-							nx, ny, nz = spGetUnitPiecePosDir(builderID, pieceIdx)
-							if nx then
-								if entry then
-									entry[1] = piecePosEpoch
-									entry[2] = nx; entry[3] = ny; entry[4] = nz
-									entry[5] = ox or nx; entry[6] = oy or ny; entry[7] = oz or nz
-								else
-									piecePosCache[key] = { piecePosEpoch, nx, ny, nz, nx, ny, nz }
-								end
-								if pieceMoving == nil then
-									if ox then
-										local mdx = nx - ox
-										local mdy = ny - oy
-										local mdz = nz - oz
-										pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
-									else
-										pieceMoving = true
-									end
-									pieceMovingByKey[key] = pieceMoving
-								end
-							end
+							entry[8] = pieceMoving
 						end
+					else
+						local ox, oy, oz
+						if entry then ox, oy, oz = entry[2], entry[3], entry[4] end
+						nx, ny, nz = spGetUnitPiecePosDir(builderID, pieceIdx)
 						if nx then
-							piecePosByKey[key] = { nx, ny, nz }
+							if entry then
+								entry[1] = piecePosEpoch
+								entry[2] = nx; entry[3] = ny; entry[4] = nz
+								entry[5] = ox or nx; entry[6] = oy or ny; entry[7] = oz or nz
+							else
+								entry = { piecePosEpoch, nx, ny, nz, nx, ny, nz }
+								piecePosCache[key] = entry
+							end
+							if ox then
+								local mdx = nx - ox
+								local mdy = ny - oy
+								local mdz = nz - oz
+								pieceMoving = (mdx*mdx + mdy*mdy + mdz*mdz) >= 1.0
+							else
+								pieceMoving = true
+							end
+							entry[8] = pieceMoving
+							entry[9] = nil
 						end
 					end
 
@@ -2288,10 +2420,10 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 							-- surface before descending at the cliff break.
 							local gyCur = getGroundYMargin(cpx, cpz, frame)
 							if cpy < gyCur then cpy = gyCur end
-							local gyDst = pieceGroundYByKey[key]
+							local gyDst = entry and entry[9]
 							if gyDst == nil then
 								gyDst = getGroundYMargin(nx, nz, frame)
-								pieceGroundYByKey[key] = gyDst
+								if entry then entry[9] = gyDst end
 							end
 							if aimY < gyDst then aimY = gyDst end
 							if gyCur > (aimY + clampDelta) then
@@ -2500,7 +2632,6 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 					end
 				else
 				local writeIdx = 0
-				local piecePosByKey = {}
 				for i = 1, #list do
 					local p = list[i]
 					local remaining = p.death - frame
@@ -2510,28 +2641,20 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 						local maxRangeSq = p.maxRangeSq
 						if maxRangeSq and p.builderID and p.pieceIdx then
 							local key = p.builderID * 256 + p.pieceIdx
-							local pos = piecePosByKey[key]
 							local bx, bz
-							if pos then
-								bx, bz = pos[1], pos[2]
+							local pent = piecePosCache[key]
+							if pent and pent[1] == piecePosEpoch then
+								bx, bz = pent[2], pent[4]
 							else
-								local pent = piecePosCache[key]
-								if pent and pent[1] == piecePosEpoch then
-									bx, bz = pent[2], pent[4]
-								else
-									local px, py, pz = spGetUnitPiecePosDir(p.builderID, p.pieceIdx)
-									if px then
-										if pent then
-											pent[1] = piecePosEpoch
-											pent[2] = px; pent[3] = py; pent[4] = pz
-										else
-											piecePosCache[key] = { piecePosEpoch, px, py, pz }
-										end
-										bx, bz = px, pz
+								local px, py, pz = spGetUnitPiecePosDir(p.builderID, p.pieceIdx)
+								if px then
+									if pent then
+										pent[1] = piecePosEpoch
+										pent[2] = px; pent[3] = py; pent[4] = pz
+									else
+										piecePosCache[key] = { piecePosEpoch, px, py, pz }
 									end
-								end
-								if bx then
-									piecePosByKey[key] = { bx, bz }
+									bx, bz = px, pz
 								end
 							end
 							if bx then
@@ -2933,7 +3056,18 @@ local function scanBuilders(frame)
 					end
 					if cmdID then
 						if DEBUG then _dbgWithTask = _dbgWithTask + 1 end
-						local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID = resolveTarget(info, cmdID, targetID)
+						local ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID
+						local meta = info.targetMeta
+						local coldOffscreen = false
+						if meta and meta.cmdID == cmdID and meta.targetID == targetID and meta.coldOffscreenUntil and frame < meta.coldOffscreenUntil then
+							coldOffscreen = true
+							inverse = meta.isReclaim and true or false
+							isResurrect = meta.isResurrect
+							targetUnitID = (not meta.isFeature) and meta.resolvedID or nil
+						else
+							ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID = resolveTarget(info, cmdID, targetID)
+							meta = info.targetMeta
+						end
 						-- Record this builder as actively reclaiming `targetUnitID`
 						-- so the UnitDestroyed callin can fire a finishing burst
 						-- only from builders that contributed (= teams that got
@@ -2943,7 +3077,7 @@ local function scanBuilders(frame)
 						-- drop its membership in the previous target's set so a
 						-- later reclaim of that earlier unit doesn't credit a
 						-- builder that long-since moved on.
-						local nowReclaiming = (targetUnitID and inverse and info.targetMeta and info.targetMeta.isReclaim) and targetUnitID or nil
+						local nowReclaiming = (targetUnitID and inverse and meta and meta.isReclaim) and targetUnitID or nil
 						local prevReclaiming = info.reclaimTarget
 						if prevReclaiming ~= nowReclaiming then
 							if prevReclaiming then
@@ -2973,26 +3107,76 @@ local function scanBuilders(frame)
 								reclaimTargetBuildProgress[nowReclaiming] = nil
 							end
 						end
+						local emits, resurrectEmits = 0, 0
+						local feedbackForced = false
+						if ex or coldOffscreen then
+							-- Factories always use the engine's fixed 0.15 jitter regardless of buildee size.
+							if info.isFactory then jitterRadius = nil end
+							info.lastVisitFrame = frame
+							local elapsed = 1
+							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
+							local accum = (info.emitAccum or 0) + rate
+							emits = mathFloor(accum)
+							info.emitAccum = accum - emits
+							if emits == 0 and bp > 0 then
+								local lastEmit = info.lastEmitFrame or 0
+								if frame - lastEmit >= FEEDBACK_EMIT_MIN_GAP then
+									emits = 1
+									info.emitAccum = info.emitAccum - 1
+									feedbackForced = true
+								end
+							end
+							if emits > 0 then
+								info.lastEmitFrame = frame
+							end
+							if isResurrect then
+								resurrectEmits = takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate)
+								if info.resurrectRefillFallbackActive and feedbackForced and resurrectEmits < 1 then
+									resurrectEmits = 1
+								end
+							else
+								resurrectEmits = emits
+							end
+						end
 						if ex then
 							-- Off-screen throttle. Test view-frustum at the target
 							-- endpoint (covers the whole spray for a builder near its
-							-- target). Cached on targetMeta + invalidated by
-							-- piecePosEpoch -> at most one IsSphereInView per builder
-							-- per scan, dropped emissions skip emitNano entirely.
+							-- target). Cold endpoints skip emitNano entirely; recently
+							-- visible endpoints keep the old reduced-rate continuity.
 							if offscreenKeep < 1.0 then
-								local meta = info.targetMeta
 								local visible
-								if meta and meta.visEpoch == piecePosEpoch then
+								local radius = meta and meta.targetRadius or 64
+								if radius < 64 then radius = 64 end
+								if meta and meta.visFrame and (frame - meta.visFrame) < OFFSCREEN_VIS_CACHE_FRAMES then
 									visible = meta.visible
 								else
-									visible = Spring.IsSphereInView(ex, ey, ez, 64) and true or false
+									visible = Spring.IsSphereInView(ex, ey, ez, radius) and true or false
 									if meta then
-										meta.visEpoch = piecePosEpoch
+										meta.visFrame = frame
 										meta.visible  = visible
 									end
 								end
-								if not visible and mathRandom() > offscreenKeep then
-									ex = nil
+								if visible then
+									if meta then
+										meta.lastVisibleFrame = frame
+										meta.coldOffscreenUntil = 0
+									end
+								else
+									local warm = meta and meta.lastVisibleFrame and (frame - meta.lastVisibleFrame) <= (OFFSCREEN_VIS_CACHE_FRAMES * 8)
+									if not warm then
+										-- Render-frame catch-up watches the cached endpoint for
+										-- camera arrivals, so the sim scan can sleep at the
+										-- normal frustum-cache cadence while the stream is cold.
+										if meta then
+											meta.coldOffscreenUntil = frame + OFFSCREEN_VIS_CACHE_FRAMES
+											meta.virtualX = ex; meta.virtualY = ey; meta.virtualZ = ez
+											meta.virtualRadius = radius
+										end
+										coldOffscreen = true
+										ex = nil
+									elseif mathRandom() > offscreenKeep then
+										ex = nil
+									end
 								end
 							end
 							-- Distance throttle. Below near-range we keep all; in the
@@ -3018,47 +3202,39 @@ local function scanBuilders(frame)
 								end
 							end
 						end
-						if ex then
-							if DEBUG then _dbgEmits = _dbgEmits + 1 end
-							-- Factories always use the engine's fixed 0.15 jitter regardless of buildee size.
-							if info.isFactory then jitterRadius = nil end
-							-- Per-visit emission count scales with actual buildpower
-							-- throughput (buildSpeed * bp), so a 100-BP commander
-							-- assisting a 3000-BP factory emits ~1/30th as many
-							-- particles -- not the same number, which would visually
-							-- erase its contribution. Integrated over real elapsed
-							-- frames since this builder's last visit so the count is
-							-- proportional regardless of stride/runEvery throttling
-							-- and per-builder visit-skip RNG.
-							info.lastVisitFrame = frame
-							-- Always emit only this frame's share. No catch-up burst
-							-- when a builder was skipped due to pool saturation.
-							local elapsed = 1
-							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
-							-- Deterministic accumulator: carries the fractional
-							-- remainder across visits. Eliminates the Bernoulli jitter
-							-- / "guaranteed at least 1" floors that previously
-							-- equalised low-BP and high-BP builders working the same target.
-							local accum = (info.emitAccum or 0) + rate
-							local emits = mathFloor(accum)
-							info.emitAccum = accum - emits
-							-- Feedback floor: ensure low-BP builders still spit a
-							-- particle every FEEDBACK_EMIT_MIN_GAP frames so the
-							-- player sees that work is happening. Debit the forced
-							-- emit from the accumulator (allowed to go negative) so
-							-- the long-run rate stays proportional to bp.
-							local feedbackForced = false
-							if emits == 0 and bp > 0 then
-								local lastEmit = info.lastEmitFrame or 0
-								if frame - lastEmit >= FEEDBACK_EMIT_MIN_GAP then
-									emits = 1
-									info.emitAccum = info.emitAccum - 1
-									feedbackForced = true
+						if (not ex) and coldOffscreen and resurrectEmits > 0 and meta then
+							local oldVirtualEmits = meta.virtualEmits or 0
+							meta.virtualEmits = oldVirtualEmits + resurrectEmits
+							if meta.virtualEmits > 32 then meta.virtualEmits = 32 end
+							if oldVirtualEmits <= 0 then
+								local virtualSet = deathBuckets.__virtualStreamSet
+								if not virtualSet then
+									virtualSet = {}
+									deathBuckets.__virtualStreamSet = virtualSet
+								end
+								if not virtualSet[unitID] then
+									local virtualList = deathBuckets.__virtualStreamList
+									if not virtualList then
+										virtualList = {}
+										deathBuckets.__virtualStreamList = virtualList
+									end
+									virtualList[#virtualList + 1] = unitID
+									virtualSet[unitID] = true
+									deathBuckets.__virtualStreamCount = (deathBuckets.__virtualStreamCount or 0) + 1
+									deathBuckets.__virtualStreamsNeedCheck = true
 								end
 							end
-							if emits > 0 then
-								info.lastEmitFrame = frame
+							local virtualDelta = ((meta.virtualFrame or 0) > 0) and (frame - meta.virtualFrame) or 1
+							if virtualDelta < 1 then virtualDelta = 1 end
+							meta.virtualAgeFrames = (meta.virtualAgeFrames or 0) + virtualDelta
+							if meta.virtualAgeFrames > (OFFSCREEN_VIS_CACHE_FRAMES * 8) then
+								meta.virtualAgeFrames = OFFSCREEN_VIS_CACHE_FRAMES * 8
 							end
+							meta.virtualFrame = frame
+						end
+						if ex then
+							if DEBUG then _dbgEmits = _dbgEmits + 1 end
+							local elapsed = 1
 							-- Spread window (half-width in frames) for the in-batch
 							-- stagger inside emitNano. Particles end up in
 							-- [-spreadWindow, +spreadWindow] frames of velocity
@@ -3071,57 +3247,16 @@ local function scanBuilders(frame)
 							-- Count compensation still uses full `elapsed`, so total
 							-- emission rate is preserved.
 							local spreadWindow = math.min(MAX_SPREAD_AHEAD_FRAMES, elapsed)
-							local resurrectEmits
-							if isResurrect then
-								resurrectEmits = takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate)
-								-- Preserve the visibility-feedback floor even when resurrect
-								-- scaling would quantize this frame down to zero.
-								if info.resurrectRefillFallbackActive and feedbackForced and resurrectEmits < 1 then
-									resurrectEmits = 1
-								end
-							else
-								resurrectEmits = emits
+							local catchupAgeFrames = 0
+							if meta and meta.virtualEmits and meta.virtualEmits > 0 then
+								resurrectEmits = resurrectEmits + meta.virtualEmits
+								catchupAgeFrames = meta.virtualAgeFrames or 0
+								meta.virtualEmits = 0
+								meta.virtualAgeFrames = 0
+								meta.virtualFrame = frame
 							end
 							if resurrectEmits > 0 then
-								local n = info.nPieces
-								if n == 1 then
-									-- Single-piece batched: amortise piece-pos
-									-- lookup, sqrt, range gate, normalize, jitter
-									-- scale across all particles in this emission.
-									local p1 = info.pieces[1]
-									emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, p1, resurrectEmits, spreadWindow)
-									if isResurrect then
-										emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, p1, resurrectEmits, spreadWindow)
-									end
-								else
-									-- Multi-piece: distribute `emits` across all nano
-									-- pieces in round-robin from the saved cursor, then
-									-- ONE batched emitNano per piece. The naive
-									-- one-per-iteration loop missed the piecePosCache
-									-- on every call (different pieceIdx -> different
-									-- key) so each particle paid full piece-pos /
-									-- sqrt / range / normalize cost.
-									local pieces = info.pieces
-									local startCursor = info.pieceCursor or 0
-									local base = mathFloor(resurrectEmits / n)
-									local rem  = resurrectEmits - base * n
-									for i = 1, n do
-										local cnt = base
-										if i <= rem then cnt = cnt + 1 end
-										if cnt > 0 then
-											local cursor = startCursor + i
-											if cursor > n then cursor = cursor - n end
-											local pIdx = pieces[cursor]
-											emitNano(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, pIdx, cnt, spreadWindow)
-											if isResurrect then
-												emitNano(unitID, info, ex, ey, ez, true, jitterRadius, frame, nil, pIdx, cnt, spreadWindow)
-											end
-										end
-									end
-									local newCursor = startCursor + resurrectEmits
-									while newCursor > n do newCursor = newCursor - n end
-									info.pieceCursor = newCursor
-								end
+								emitNanoBatch(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, isResurrect, resurrectEmits, spreadWindow, catchupAgeFrames)
 							end
 						end
 					elseif info.targetMeta then
@@ -3761,6 +3896,7 @@ function gadget:RenderUnitDestroyed(unitID)
 end
 
 function gadget:DrawWorld()
+	materializeVisibleVirtualStreams(Spring.GetGameFrame())
 	if not nanoVBO or nanoVBO.usedElements == 0 then return end
 
 	local t0
