@@ -21,6 +21,7 @@ end
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
+local tableNew = table.new
 local mathFloor = math.floor
 local mathClamp = math.clamp
 
@@ -537,12 +538,12 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	if #params ~= 4 then
+	if #params ~= 4 or params[4] < 4 then
 		return false
 	end
 
-	local currentCommand = allowedCommands[cmdId]
-	if not currentCommand then
+	local areaCommand = allowedCommands[cmdId]
+	if not areaCommand then
 		return false
 	end
 
@@ -552,10 +553,10 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	local screenX, screenY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
+	local targetType, targetId = spTraceScreenRay(screenX, screenY)
 
-	if not currentCommand.allowedTargetTypes[targetType] then
+	if not areaCommand.allowedTargetTypes[targetType] then
 		return false
 	end
 
@@ -569,7 +570,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	areaCommand.handle(cmdId, selectedUnits, filteredTargets, options)
 	return true
 end
 
