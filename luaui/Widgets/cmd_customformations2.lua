@@ -143,6 +143,7 @@ local glLoadIdentity = gl.LoadIdentity
 local spGetActiveCommand = Spring.GetActiveCommand
 local spSetActiveCommand = Spring.SetActiveCommand
 local spGetDefaultCommand = Spring.GetDefaultCommand
+local spGetKeyBindings = Spring.GetKeyBindings
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
@@ -399,19 +400,31 @@ end
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
 
+local function isSecondaryMouseButton(button)
+    local binds = spGetKeyBindings("mouse" .. button)
+    if binds then
+        for i = 1, #binds do
+            if binds[i].command == "mousesecondary" then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 function widget:MousePress(mx, my, mButton)
     lineLength = 0 --for linestipple
     -- Where did we click
     inMinimap = spIsAboveMiniMap(mx, my)
     if inMinimap and not MiniMapFullProxy then return false end
 
-    if mButton ~= 3 and usingRMB then
+    if not isSecondaryMouseButton(mButton) and usingRMB then
         fNodes = {}
         fDists = {}
         usingRMB = false
     end
 
-    if mButton ~= 3 then return false end --all formation commands are done using right click & drag
+    if not isSecondaryMouseButton(mButton) then return false end --formations run on the mouse-secondary (default right-click) button
 
     -- Get command that would've been issued
     local _, activeCmdID = spGetActiveCommand()
