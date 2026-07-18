@@ -23,7 +23,8 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> partition targets among selected units (see Order assignment below)
-  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping the closest to the clicked target.
+  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping the closest to the clicked target (or, when using queue-end distance, closest to each unit's last queued order).
+  Shift / Shift + Space / double-click mass-order -> unit-relative distance math (travel routes, closest-target trimming, Alt partition) uses each unit's last positional queued order before the mass order, not its current position. Double-click snapshots that position on the first click; Shift double-click also removes the priming click's trailing order before appending the mass route.
 
   Order assignment:
   Normal mass-order -> every selected unit gets the same targets; each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route). Routes are cached by first-hop target so units that share a nearest target reuse the same route.
@@ -128,6 +129,7 @@ local function clearDoubleClickPending()
 		expireTime = 0,
 		commandID = nil,
 		right = false,
+		queueEndByUnitID = nil,
 	}
 end
 
@@ -425,7 +427,7 @@ end
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst, referenceUnitID, positionCache)
 	positionCache = positionCache or {}
 	local referencePosition = referenceUnitID and getTargetPosition(referenceUnitID, positionCache)
-		or toPositionTable(spring.GetUnitArrayCentroid(selectedUnits))
+		or getTargetCentroid(selectedUnits, positionCache)
 	if not referencePosition then
 		return nil
 	end
@@ -559,18 +561,18 @@ local function copyArray(source, maxCount)
 	return result
 end
 
-local function limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache)
+local function limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache, useUnitReference)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
 	if #filteredTargets <= maximumTargetCount then
 		return filteredTargets
 	end
-	local referencePosition = getTargetPosition(referenceTargetID, positionCache)
-	if not referencePosition then
-		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
+	local sortReferenceID = (not useUnitReference) and referenceTargetID or nil
+	if sortReferenceID and getTargetPosition(sortReferenceID, positionCache) then
+		sortTargetsByDistance({ sortReferenceID }, filteredTargets, true, sortReferenceID, positionCache)
 	else
-		sortTargetsByDistance({ referenceTargetID }, filteredTargets, true, referenceTargetID, positionCache)
+		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
 	end
 	return copyArray(filteredTargets, maximumTargetCount)
 end
@@ -609,6 +611,64 @@ local function getQueuedCommandPosition(command, positionCache)
 		return toPositionTable(parameters[1], parameters[2], parameters[3])
 	end
 	return nil
+end
+
+local function getLastQueuedOrderPosition(unitID, positionCache)
+	local commandQueue = spGetUnitCommands(unitID, MAX_QUEUE_COMMANDS)
+	if not commandQueue or #commandQueue == 0 then
+		return nil
+	end
+	for commandIndex = #commandQueue, 1, -1 do
+		local commandPosition = getQueuedCommandPosition(commandQueue[commandIndex], positionCache)
+		if commandPosition then
+			return commandPosition
+		end
+	end
+	return nil
+end
+
+local function collectQueueEndPositions(selectedUnits)
+	local positions = {}
+	local positionCache = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitID = selectedUnits[unitIndex]
+		local queueEndPosition = getLastQueuedOrderPosition(unitID, positionCache)
+		if queueEndPosition then
+			positions[unitID] = queueEndPosition
+		end
+	end
+	return positions
+end
+
+local function seedUnitQueueEndPositions(selectedUnits, positionCache, queueEndByUnitID)
+	local unitPositions = queueEndByUnitID or collectQueueEndPositions(selectedUnits)
+	for unitIndex = 1, #selectedUnits do
+		local unitID = selectedUnits[unitIndex]
+		local queueEndPosition = unitPositions[unitID]
+		if queueEndPosition then
+			positionCache[unitID] = queueEndPosition
+		end
+	end
+end
+
+local function removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
+	local referenceOrderParamID = toFeatureOrderParamID(referenceTargetID)
+	local singleUnitArray = {}
+	for unitIndex = 1, #selectedUnits do
+		local unitID = selectedUnits[unitIndex]
+		local commandQueue = spGetUnitCommands(unitID, MAX_QUEUE_COMMANDS)
+		if commandQueue and #commandQueue > 0 then
+			local lastCommand = commandQueue[#commandQueue]
+			local parameters = lastCommand.params
+			local commandParam = parameters and parameters[1] or nil
+			if lastCommand.tag
+				and (commandParam == referenceTargetID or commandParam == referenceOrderParamID)
+			then
+				singleUnitArray[1] = unitID
+				spGiveOrderToUnitArray(singleUnitArray, CMD.REMOVE, { lastCommand.tag }, 0)
+			end
+		end
+	end
 end
 
 local function findQueueInsertionPosition(unitID, targetCentroid, positionCache)
@@ -788,7 +848,7 @@ local function buildContiguousChunks(sortedIDs, chunkCount)
 end
 
 local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceTargetID, positionCache)
-	local center = toPositionTable(spring.GetUnitArrayCentroid(selectedUnits))
+	local center = getTargetCentroid(selectedUnits, positionCache)
 	if center then
 		return center
 	end
@@ -1258,7 +1318,7 @@ local function collectMassOrderTargets(commandID, targetID, isFeature, options)
 	return collectScopedUnitTargets(commandID, targetID, fallbackAllegiance, nil, options, true)
 end
 
-local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options)
+local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID)
 	selectedUnits = filterUnitsForCommand(selectedUnits, issueCommandID)
 	if #selectedUnits == 0 then
 		return false
@@ -1285,17 +1345,24 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 	filteredTargets = filterTargetsBySelectionMembership(filteredTargets, selectionSet, targetInSelection)
 	local positionCache = {}
 	local reachabilityCache = {}
+	local useQueueEndReference = options.shift == true or queueEndByUnitID ~= nil
+	if useQueueEndReference then
+		seedUnitQueueEndPositions(selectedUnits, positionCache, queueEndByUnitID)
+	end
 	if COMMANDS_REQUIRING_CAPABILITY[issueCommandID] then
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
 	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache)
+	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache, useQueueEndReference)
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
 			finishMassOrderCommandState(issueCommandID, options)
 			return true
 		end
 		return false
+	end
+	if queueEndByUnitID and options.shift then
+		removeTrailingReferenceOrders(selectedUnits, referenceTargetID)
 	end
 	if usePartitionedDispatch then
 		givePartitionedOrders(issueCommandID, selectedUnits, filteredTargets, options, referenceTargetID, positionCache, reachabilityCache)
@@ -1313,6 +1380,7 @@ local function issuePendingDoubleClickMassOrders(options)
 		return false
 	end
 	local referenceTargetIsFeature = isFeatureTargetID(referenceTargetID)
+	local queueEndByUnitID = pendingDoubleClick.queueEndByUnitID
 	clearDoubleClickPending()
 	local selectedUnits = spring.GetSelectedUnits()
 	local massIssued = false
@@ -1325,7 +1393,7 @@ local function issuePendingDoubleClickMassOrders(options)
 		end
 	end
 	if not skipMassReissue and #selectedUnits > 0 then
-		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options)
+		massIssued = issueMassOrdersFromTarget(issueCommandID, referenceTargetID, referenceTargetIsFeature, selectedUnits, options, queueEndByUnitID)
 	end
 	if not massIssued then
 		clearActiveCommandUnlessShift(options)
@@ -1366,6 +1434,9 @@ local function armPendingDoubleClick(commandID, targetID, options)
 	pendingDoubleClick.expireTime = osClock() + DOUBLE_CLICK_TIME
 	pendingDoubleClick.commandID = commandID
 	pendingDoubleClick.right = options.right
+	if not pendingDoubleClick.queueEndByUnitID then
+		pendingDoubleClick.queueEndByUnitID = collectQueueEndPositions(spring.GetSelectedUnits())
+	end
 	if options.shift then
 		heldCommandDescriptionIndex = captureHeldCommandDescriptionIndex(commandID)
 	end
