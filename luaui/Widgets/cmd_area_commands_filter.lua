@@ -488,47 +488,48 @@ local function getTechLevel(unitDefName)
 	return unitDef and unitDef.customParams.techlevel
 end
 
-local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
-	local alt = options.alt
-	local ctrl = options.ctrl
-	local filteredTargets = {}
+local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
-		return nil
+		return
 	end
+
+	local targetUnitDefName = spGetFeatureResurrect(targetId)
+	if (targetUnitDefName or "") == "" then
+		return
+	end
+
+	local filterType = options.alt
+	local filterTech = not filterType and options.ctrl
 
 	local featuresInArea = spGetFeaturesInCylinder(cmdX, cmdZ, radius)
-	if not featuresInArea then
-		return nil
+	if not featuresInArea[1] then
+		return
 	end
 
-	local targetTechLevel
-	if ctrl then
-		targetTechLevel = getTechLevel(targetUnitDefName)
-	end
+	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
 
+	local filteredTargets, count = {}, 0
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
-		if ctrl then
+		local matched = false
+		if filterType then
+			matched = spGetFeatureDefID(featureId) == featureDefId
+		elseif filterTech then
 			local unitDefName = spGetFeatureResurrect(featureId)
-			local unitTechLevel = getTechLevel(unitDefName)
-			if unitTechLevel == targetTechLevel then
-				shouldInsert = true
-			end
+			matched = getTechLevel(unitDefName) == targetTechLevel
 		end
-		if shouldInsert then
-			if not Engine.FeatureSupport.noOffsetForFeatureID then
-				-- featureId is normalised to Game.maxUnits + featureId because of:
-				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
-				-- offset due to be removed in future engine version
-				featureId = featureId + Game.maxUnits
+		if matched then
+			if offsetFeatureID then
+				featureId = featureId + UNIT_ID_MAX
 			end
-			tableInsert(filteredTargets, featureId)
+			count = count + 1
+			filteredTargets[count] = featureId
 		end
 	end
-	return filteredTargets
+	if count > 0 then
+		return filteredTargets
+	end
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -562,15 +563,9 @@ function widget:CommandNotify(cmdId, params, options)
 	if targetType == UNIT then
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, areaCommand.targetAllegiance)
 	elseif targetType == FEATURE then
-		local unitDefName = spGetFeatureResurrect(targetId)
-		-- filter only wrecks which can be resurrected
-		if unitDefName == nil or unitDefName == "" then
-			return false
-		end
-		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, unitDefName)
+		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	end
-
-	if not filteredTargets or #filteredTargets == 0 then
+	if not filteredTargets then
 		return false
 	end
 
