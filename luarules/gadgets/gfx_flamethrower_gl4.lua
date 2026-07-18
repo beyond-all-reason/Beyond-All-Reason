@@ -1865,7 +1865,8 @@ local function updateProjectiles(gameFrame, throttleMult, iterFrac)
 	-- Run only every STALE_GC_INTERVAL frames -- a few extra dead entries lingering
 	-- for half a second cost nothing, but the full table scan every frame is real
 	-- CPU on big games (hundreds of projectiles tracked + thousands ignored).
-	if (gameFrame % STALE_GC_INTERVAL) == 0 then
+	if gameFrame >= (K.NEXT_STALE_GC_FRAME or 0) then
+		K.NEXT_STALE_GC_FRAME = gameFrame + STALE_GC_INTERVAL
 		for proID, tInfo in pairs(tracked) do
 			if tInfo.gen ~= gen then
 				local px = spGetProjectilePosition(proID)
@@ -2094,14 +2095,15 @@ local function runSafetyNet(n)
 	end
 end
 
-function gadget:GameFrame(n)
+local function processFlameFrame(n)
 	if not particleVBO then return end
 
 	cachedGameFrame = n
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
 	-- Wind every 10 frames
-	if n % 10 == 0 then
+	if n >= (K.NEXT_WIND_FRAME or 0) then
+		K.NEXT_WIND_FRAME = n + 10
 		local _, _, _, _, wx, _, wz = spGetWind()
 		windX = wx or 0
 		windZ = wz or 0
@@ -2120,21 +2122,24 @@ function gadget:GameFrame(n)
 
 	removeExpiredParticles(n)
 
-	if n % fpsUpdateInterval == 0 then
+	if n >= (K.NEXT_PROJECTILE_FRAME or 0) then
+		K.NEXT_PROJECTILE_FRAME = n + fpsUpdateInterval
 		updateProjectiles(n, fpsUpdateInterval)
 	end
 
-	if DIAG_ENABLED and (n % DIAG_INTERVAL) == 0 then
+	if DIAG_ENABLED and n >= (K.NEXT_DIAG_FRAME or DIAG_INTERVAL) then
+		K.NEXT_DIAG_FRAME = n + DIAG_INTERVAL
 		dumpDiagnostics(n)
 	end
 
-	if (n % SAFETY_INTERVAL) == 0 then
+	if n >= (K.NEXT_SAFETY_FRAME or SAFETY_INTERVAL) then
+		K.NEXT_SAFETY_FRAME = n + SAFETY_INTERVAL
 		runSafetyNet(n)
 	end
 end
 
--- When the game is paused, gadget:GameFrame stops firing, so updateProjectiles
--- never runs and no new particles are spawned. If the user wasn't already
+-- When the game is paused, regular sim-frame processing stops advancing, so
+-- updateProjectiles never runs and no new particles are spawned. If the user wasn't already
 -- looking at an actively-firing flamethrower when they paused, panning the
 -- camera to one shows nothing -- the stream is invisible.
 --
@@ -2154,7 +2159,13 @@ local lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
 function gadget:Update()
 	if not particleVBO then return end
 
+	local n = mathFloor(Spring.GetGameFrame() or 0)
 	local _, _, paused = spGetGameSpeed()
+	if not paused and n > (K.LAST_UPDATE_FRAME or -1) then
+		K.LAST_UPDATE_FRAME = n
+		processFlameFrame(n)
+	end
+
 	if not paused then
 		-- Reset so the first paused Update after unpause/re-pause emits again.
 		pauseEmitDone = false
