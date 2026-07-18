@@ -992,7 +992,7 @@ local function extractChannelPrefix(text)
 end
 
 local function getChannelScopeLabel(channelScope)
-	if channelScope == 'ALL' and I18N.channelScopeAll and I18N.channelScopeAll ~= '' then
+	if channelScope == 'ALL' then
 		return '[' .. I18N.channelScopeAll .. ']'
 	elseif channelScope == 'TEAM' then
 		return '[Team]'
