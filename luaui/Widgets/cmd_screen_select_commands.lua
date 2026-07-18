@@ -23,11 +23,11 @@ Click modifiers:
   Shift + Space -> insert into the nearest queued path segment
   Ctrl -> expand scope to all visible same-alignment targets (enemies: any enemy excluding neutrals; neutrals: all neutrals; allies: any ally team). For reclaim features, mass-order all reclaimable features (commander corpses still excluded).
   Alt -> partition targets among selected units (see Order assignment below)
-  If units × targets would exceed commandLimit, auto-partition and shrink per-unit assignments to fit the budget. maxMassOrderTargets is the max targets each unit may receive. If more targets exist than the budget, the selection radius shrinks from MASS_ORDER_START_RADIUS by MASS_ORDER_RADIUS_STEP until the count fits.
+  If units × targets would exceed COMMAND_LIMIT, shrink the shared per-unit target count to fit the budget. Extra targets beyond that per-unit cap are dropped, keeping the closest to the clicked target.
 
   Order assignment:
-  Normal mass-order -> every selected unit gets the same targets; each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route).
-  Alt (or auto-partition when over commandLimit) -> when targets >= units, units and targets are sorted by angle around the selection centroid and targets are split into contiguous wedges so each unit works a nearby cluster (then nearest-neighbor route within its share). When targets < units, units are divided evenly across targets, assigning the closest free units to each.
+  Normal mass-order -> every selected unit gets the same targets; each unit's queue is a nearest-neighbor travel route from that unit (closest next hop first; Space alone reverses that route). Routes are cached by first-hop target so units that share a nearest target reuse the same route.
+  Alt -> when targets >= units, units and targets are sorted by angle around the selection centroid and targets are split into contiguous wedges so each unit works a nearby cluster (then nearest-neighbor route within its share). When targets < units, units are divided evenly across targets, assigning the closest free units to each. Over COMMAND_LIMIT, Alt partition also shrinks per-unit assignments to fit.
 
   Team categories (most nested first): own teamID, allies, enemies, neutrals (Gaia ruins via GetUnitNeutral).
   Command-Specific behavior:
@@ -98,14 +98,11 @@ local COMMANDS_REQUIRING_CAPABILITY = {
 }
 
 local MAX_QUEUE_COMMANDS = 100
-local MASS_ORDER_START_RADIUS = 2000
-local MASS_ORDER_RADIUS_STEP = 500
 local DOUBLE_CLICK_TIME = Spring.GetConfigInt("DoubleClickTime", 200) / 1000
 local DOUBLE_CLICK_SNAP_HEIGHT_FRACTION = 32 / 1080
 
 local doubleClickEnabled = true
-local maxMassOrderTargets = 150
-local commandLimit = 4000
+local COMMAND_LIMIT = 4000
 
 local myAllyTeamID
 local myTeamID
@@ -451,6 +448,23 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	return targetDistances
 end
 
+local function findNearestTargetID(referencePosition, targets, positionCache)
+	local nearestTargetID
+	local nearestDistance
+	for targetIndex = 1, #targets do
+		local targetID = targets[targetIndex]
+		local targetPosition = getTargetPosition(targetID, positionCache)
+		if targetPosition then
+			local targetDistance = mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z)
+			if nearestDistance == nil or targetDistance < nearestDistance then
+				nearestTargetID = targetID
+				nearestDistance = targetDistance
+			end
+		end
+	end
+	return nearestTargetID
+end
+
 local function buildNearestNeighborRoute(referencePosition, targets, positionCache)
 	local targetPositions = {}
 	local remainingTargets = {}
@@ -501,23 +515,34 @@ local function buildNearestNeighborRoute(referencePosition, targets, positionCac
 	return route, hasTargetPosition
 end
 
-local function sortTargetsByTravelRoute(referenceUnitID, targets, closestFirst, positionCache)
-	local referencePosition = getTargetPosition(referenceUnitID, positionCache)
-	if not referencePosition then
+local function resolveTravelRouteIntoTargets(unitID, targets, reverseRoute, positionCache, routeCache)
+	local unitPosition = getTargetPosition(unitID, positionCache)
+	if not unitPosition then
 		return
 	end
-	local route, hasTargetPosition = buildNearestNeighborRoute(referencePosition, targets, positionCache)
-	if not hasTargetPosition then
+	local targetCount = #targets
+	local startTargetID = findNearestTargetID(unitPosition, targets, positionCache)
+	if not startTargetID then
 		return
 	end
-	if closestFirst then
-		for targetIndex = 1, #route do
-			targets[targetIndex] = route[targetIndex]
+	local route = routeCache and routeCache[startTargetID]
+	if not route or #route ~= targetCount then
+		local hasTargetPosition
+		route, hasTargetPosition = buildNearestNeighborRoute(unitPosition, targets, positionCache)
+		if not hasTargetPosition then
+			return
 		end
-	else
-		local targetCount = #route
+		if routeCache then
+			routeCache[startTargetID] = route
+		end
+	end
+	if reverseRoute then
 		for targetIndex = 1, targetCount do
 			targets[targetIndex] = route[targetCount - targetIndex + 1]
+		end
+	else
+		for targetIndex = 1, targetCount do
+			targets[targetIndex] = route[targetIndex]
 		end
 	end
 end
@@ -534,45 +559,18 @@ local function copyArray(source, maxCount)
 	return result
 end
 
-local function limitTargetsByRadius(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache)
+local function limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maximumTargetCount, positionCache)
 	if maximumTargetCount <= 0 then
 		return {}
 	end
-	if #filteredTargets == 0 then
+	if #filteredTargets <= maximumTargetCount then
 		return filteredTargets
 	end
 	local referencePosition = getTargetPosition(referenceTargetID, positionCache)
 	if not referencePosition then
 		sortTargetsByDistance(selectedUnits, filteredTargets, true, nil, positionCache)
-		return copyArray(filteredTargets, maximumTargetCount)
-	end
-	local targetDistances = sortTargetsByDistance({ referenceTargetID }, filteredTargets, true, referenceTargetID, positionCache)
-	local radius
-	while true do
-		local limitedTargets
-		if radius == nil then
-			limitedTargets = copyArray(filteredTargets)
-		else
-			limitedTargets = {}
-			local radiusSq = radius * radius
-			for targetIndex = 1, #filteredTargets do
-				local targetID = filteredTargets[targetIndex]
-				local targetDistance = targetDistances and targetDistances[targetID]
-				if targetDistance and targetDistance <= radiusSq then
-					tableInsert(limitedTargets, targetID)
-				end
-			end
-		end
-		if #limitedTargets <= maximumTargetCount then
-			return limitedTargets
-		end
-		if radius == nil then
-			radius = MASS_ORDER_START_RADIUS
-		elseif radius > 0 then
-			radius = radius - MASS_ORDER_RADIUS_STEP
-		else
-			break
-		end
+	else
+		sortTargetsByDistance({ referenceTargetID }, filteredTargets, true, referenceTargetID, positionCache)
 	end
 	return copyArray(filteredTargets, maximumTargetCount)
 end
@@ -802,24 +800,21 @@ local function resolvePartitionCenter(selectedUnits, filteredTargets, referenceT
 end
 
 local function resolveMassOrderBudget(selectedUnitCount, availableTargetCount, forcePartition)
-	local desiredPerUnit = maxMassOrderTargets
-	local targetsPerUnit = mathMin(availableTargetCount, desiredPerUnit)
-	local fullQueueCost = selectedUnitCount * targetsPerUnit
-	local usePartitionedDispatch = forcePartition or fullQueueCost > commandLimit
-	local maxTargetsPerUnit = desiredPerUnit
-	if usePartitionedDispatch and fullQueueCost > commandLimit then
-		maxTargetsPerUnit = mathFloor(commandLimit / selectedUnitCount)
+	local maxTargetsPerUnit = availableTargetCount
+	if selectedUnitCount > 0 and selectedUnitCount * availableTargetCount > COMMAND_LIMIT then
+		maxTargetsPerUnit = mathMax(1, mathFloor(COMMAND_LIMIT / selectedUnitCount))
 	end
+	local usePartitionedDispatch = forcePartition
 	local maxTargetsToCollect
 	if usePartitionedDispatch then
 		maxTargetsToCollect = mathMin(availableTargetCount, selectedUnitCount * maxTargetsPerUnit)
 	else
-		maxTargetsToCollect = targetsPerUnit
+		maxTargetsToCollect = maxTargetsPerUnit
 	end
 	return usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect
 end
 
-local function giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, options, positionCache, reachabilityCache, targets, singleUnitArray)
+local function giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, options, positionCache, reachabilityCache, targets, singleUnitArray, routeCache)
 	local unitTargets = sourceTargets
 	if reachabilityCache then
 		local unitDefID = spGetUnitDefID(unitID)
@@ -834,7 +829,7 @@ local function giveUnitTravelRouteOrders(commandID, unitID, sourceTargets, optio
 	for targetIndex = #unitTargets + 1, #targets do
 		targets[targetIndex] = nil
 	end
-	sortTargetsByTravelRoute(unitID, targets, not options.meta or options.shift, positionCache)
+	resolveTravelRouteIntoTargets(unitID, targets, options.meta and not options.shift, positionCache, routeCache)
 	singleUnitArray[1] = unitID
 	giveOrders(commandID, singleUnitArray, targets, options)
 end
@@ -842,8 +837,24 @@ end
 local function giveOrdersPerUnitByTravelRoute(commandID, selectedUnits, filteredTargets, options, positionCache, reachabilityCache)
 	local singleUnitArray = {}
 	local targets = {}
+	local sharedRouteCache = {}
+	local routeCacheByUnitDefID = {}
+	local needsReachability = COMMANDS_REQUIRING_CAPABILITY[commandID] and reachabilityCache
 	for unitIndex = 1, #selectedUnits do
-		giveUnitTravelRouteOrders(commandID, selectedUnits[unitIndex], filteredTargets, options, positionCache, COMMANDS_REQUIRING_CAPABILITY[commandID] and reachabilityCache or nil, targets, singleUnitArray)
+		local unitID = selectedUnits[unitIndex]
+		local unitReachabilityCache = needsReachability and reachabilityCache or nil
+		local routeCache = sharedRouteCache
+		if unitReachabilityCache then
+			local unitDefID = spGetUnitDefID(unitID)
+			if unitDefID then
+				routeCache = routeCacheByUnitDefID[unitDefID]
+				if not routeCache then
+					routeCache = {}
+					routeCacheByUnitDefID[unitDefID] = routeCache
+				end
+			end
+		end
+		giveUnitTravelRouteOrders(commandID, unitID, filteredTargets, options, positionCache, unitReachabilityCache, targets, singleUnitArray, routeCache)
 	end
 end
 
@@ -861,7 +872,7 @@ local function givePartitionedOrders(commandID, selectedUnits, filteredTargets, 
 		local singleUnitArray = {}
 		local targets = {}
 		for unitIndex = 1, #sortedUnits do
-			giveUnitTravelRouteOrders(commandID, sortedUnits[unitIndex], chunks[unitIndex], options, positionCache, needsReachability and reachabilityCache or nil, targets, singleUnitArray)
+			giveUnitTravelRouteOrders(commandID, sortedUnits[unitIndex], chunks[unitIndex], options, positionCache, needsReachability and reachabilityCache or nil, targets, singleUnitArray, nil)
 		end
 	else
 		local minimumCount = mathFloor(#selectedUnits / #filteredTargets)
@@ -1278,7 +1289,7 @@ local function issueMassOrdersFromTarget(issueCommandID, referenceTargetID, refe
 		filteredTargets = filterTargetsReachableByAnyUnit(selectedUnits, filteredTargets, positionCache, reachabilityCache)
 	end
 	local usePartitionedDispatch, maxTargetsPerUnit, maxTargetsToCollect = resolveMassOrderBudget(#selectedUnits, #filteredTargets, options.alt)
-	filteredTargets = limitTargetsByRadius(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache)
+	filteredTargets = limitTargetsToClosest(filteredTargets, referenceTargetID, selectedUnits, maxTargetsToCollect, positionCache)
 	if #filteredTargets == 0 or maxTargetsPerUnit <= 0 then
 		if #builderUnits > 0 then
 			finishMassOrderCommandState(issueCommandID, options)
@@ -1468,42 +1479,12 @@ local function setDoubleClickEnabled(value)
 	end
 end
 
-local function coercePositiveInt(value)
-	local numericValue = tonumber(value)
-	if not numericValue then
-		return nil
-	end
-	return mathMax(1, mathFloor(numericValue))
-end
-
-local function setMaxMassOrderTargets(value)
-	local numericValue = coercePositiveInt(value)
-	if numericValue then
-		maxMassOrderTargets = numericValue
-	end
-end
-
-local function setCommandLimit(value)
-	local numericValue = coercePositiveInt(value)
-	if numericValue then
-		commandLimit = numericValue
-	end
-end
-
 local function registerScreenSelectCommandsApi()
 	WG["screenSelectCommands"] = {
 		getDoubleClickEnabled = function()
 			return doubleClickEnabled
 		end,
 		setDoubleClickEnabled = setDoubleClickEnabled,
-		getMaxMassOrderTargets = function()
-			return maxMassOrderTargets
-		end,
-		setMaxMassOrderTargets = setMaxMassOrderTargets,
-		getCommandLimit = function()
-			return commandLimit
-		end,
-		setCommandLimit = setCommandLimit,
 	}
 end
 
@@ -1572,21 +1553,11 @@ end
 function widget:GetConfigData()
 	return {
 		doubleClickEnabled = doubleClickEnabled,
-		maxMassOrderTargets = maxMassOrderTargets,
-		commandLimit = commandLimit,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.doubleClickEnabled ~= nil then
 		setDoubleClickEnabled(data.doubleClickEnabled)
-	end
-	if data.maxMassOrderTargets ~= nil then
-		setMaxMassOrderTargets(data.maxMassOrderTargets)
-	elseif data.maxDoubleClickUnits ~= nil then
-		setMaxMassOrderTargets(data.maxDoubleClickUnits)
-	end
-	if data.commandLimit ~= nil then
-		setCommandLimit(data.commandLimit)
 	end
 end
