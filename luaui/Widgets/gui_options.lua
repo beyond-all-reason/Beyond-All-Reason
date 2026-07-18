@@ -1506,7 +1506,7 @@ function widget:DrawScreen()
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
 					local i = 0
-					local vi = 0 -- visible index in the current scrollbar  
+					local vi = 0 -- visible index in the current scrollbar
 					for k, option in pairs(options[showSelectOptions].options) do
 						i = i + 1
 						if i > selectScrollOffset and vi < maxVisible then
@@ -2339,7 +2339,7 @@ function init()
 			distortioneffects = false,
 			snow = false,
 			particles = 10000,
-			nanoparticletype = 0,
+			nanoparticletype = 1,
 			guishader = 0,
 			decalsgl4 = 0,
 			decals = 0,

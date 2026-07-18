@@ -2735,16 +2735,18 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg")
+	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 24))
 	local retval = false
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+	if msg:find('LobbyOverlayActive', 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
+		tracy.ZoneBeginN("W:RecvLuaMsg:"..w.whInfo.name)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return retval  --  FIXME  --  another actionHandler type?
