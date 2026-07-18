@@ -326,6 +326,7 @@ local decalRemoveList = {} -- maps instanceID's of decals that need to be batch 
 -- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
 local activeDecalData = {}
 local footprintDecalSet = {}  -- tracks which decalIndex values are footprints (for rebuild)
+local decalVersion = 0        -- increments when external consumers need to refresh cached decal data
 
 -- Rebuild activeDecalData from existing VBO instance data.
 -- Called when external consumers (e.g. PIP) need the current decal state after a reload or re-enable.
@@ -570,6 +571,7 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
+	decalVersion = decalVersion + 1
 
 	return decalIndex, lifetime
 end
@@ -676,12 +678,19 @@ end
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
+	local removed = false
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
+		removed = true
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalLargeVBO, instanceID)
+		removed = true
 	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalExtraLargeVBO, instanceID)
+		removed = true
+	end
+	if removed then
+		decalVersion = decalVersion + 1
 	end
 end
 
@@ -711,6 +720,9 @@ function widget:GameFrame(n)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalExtraLargeVBO, decalRemoveList)
 		decalRemoveList = {}
+		if removed > 0 then
+			decalVersion = decalVersion + 1
+		end
 
 		if autoupdate and removed > 0 then
 			spEcho("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
@@ -1914,6 +1926,7 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
 
 			footprintDecalSet[decalIndex] = true
+			decalVersion = decalVersion + 1
 		end
 	end
 end
@@ -2023,6 +2036,7 @@ function widget:Initialize()
 	WG['decalsgl4'].RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
 	WG['decalsgl4'].GetVBOData = function() return vboTableCache, footprintDecalSet end
+	WG['decalsgl4'].GetVersion = function() return decalVersion end
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
