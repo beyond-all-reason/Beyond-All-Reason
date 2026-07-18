@@ -14,7 +14,7 @@ return {
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		health = 1000,
+		health = 1050,
 		hoverattack = true,
 		maxacc = 0.2,
 		maxdec = 0.625,
