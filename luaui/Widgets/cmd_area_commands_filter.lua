@@ -292,26 +292,45 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
+local function byDistanceToUnit(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
+local function byDistanceToFeature(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
-	tableSort(filteredTargets, function(targetIdA, targetIdB)
-		local positionA, positionB
-
-		-- Have to convert back to featureId
-		if targetIdA > Game.maxUnits then
-			positionA = toPositionTable(spGetFeaturePosition(targetIdA - Game.maxUnits))
-			positionB = toPositionTable(spGetFeaturePosition(targetIdB - Game.maxUnits))
-		else
-			positionA = toPositionTable(spGetUnitPosition(targetIdA))
-			positionB = toPositionTable(spGetUnitPosition(targetIdB))
-		end
-
-		if closestFirst then
-			return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
-		else
-			return distanceSq(avgPosition, positionA) > distanceSq(avgPosition, positionB)
-		end
-	end)
+	if filteredTargets[1] <= UNIT_ID_MAX then
+		tableSort(filteredTargets, byDistanceToUnit(avgPosition, closestFirst))
+	else
+		tableSort(filteredTargets, byDistanceToFeature(avgPosition, closestFirst))
+	end
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
