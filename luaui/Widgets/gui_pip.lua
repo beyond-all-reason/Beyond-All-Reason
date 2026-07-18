@@ -16627,7 +16627,133 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 	end
 end
 
+pools.RunDeferredPipMaintenance = function(dt)
+	-- Periodic ghost building cleanup. Two failure modes are handled here:
+	--   a) Building destroyed in LOS: UnitDestroyed already cleared it. If it slipped
+	--      through, the LOS-on-position + nil-defID branch below catches it.
+	--   b) Spring engine recycles unitIDs after units die. When the unit cap is hit
+	--      there is heavy churn and a ghost's unitID can be reassigned to a new
+	--      (often allied) unit. In that case GetUnitDefID(gID) returns a NON-nil
+	--      defID that differs from ghost.defID.
+	local cleanupAllyTeam
+	if not cameraState.mySpecState then
+		cleanupAllyTeam = Spring.GetMyAllyTeamID()
+	elseif state.losViewEnabled and state.losViewAllyTeam then
+		cleanupAllyTeam = state.losViewAllyTeam
+	end
+	if cleanupAllyTeam then
+		cache.ghostCleanupTimer = cache.ghostCleanupTimer + dt
+		if cache.ghostCleanupTimer >= 1.0 then
+			cache.ghostCleanupTimer = 0
+			for gID, ghost in pairs(ghostBuildings) do
+				local curDefID = spFunc.GetUnitDefID(gID)
+				local stale = false
+				if curDefID then
+					if curDefID ~= ghost.defID then
+						stale = true
+					else
+						local curTeam = Spring.GetUnitTeam(gID)
+						if curTeam and ghost.teamID and curTeam ~= ghost.teamID then
+							stale = true
+						else
+							local ux, _, uz = spFunc.GetUnitBasePosition(gID)
+							if ux and uz then
+								local dx = ux - ghost.x
+								local dz = uz - ghost.z
+								if dx*dx + dz*dz > 80*80 then
+									stale = true
+								end
+							end
+						end
+					end
+				else
+					local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
+					if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
+						stale = true
+					end
+				end
+				if stale then
+					ghostBuildings[gID] = nil
+				end
+			end
+		end
+	end
+
+	do
+		local maxGhosts = 4000
+		local n = 0
+		for _ in pairs(ghostBuildings) do n = n + 1 end
+		if n > maxGhosts then
+			local toDrop = n - maxGhosts
+			for gID in pairs(ghostBuildings) do
+				if toDrop <= 0 then break end
+				ghostBuildings[gID] = nil
+				toDrop = toDrop - 1
+			end
+		end
+	end
+
+	miscState.selfDRefreshCounter = (miscState.selfDRefreshCounter or 0) + 1
+	if miscState.selfDRefreshCounter >= 30 then
+		miscState.selfDRefreshCounter = 0
+		for uID in pairs(selfDUnits) do
+			local selfDTime = spFunc.GetUnitSelfDTime(uID)
+			if not selfDTime or selfDTime <= 0 then
+				selfDUnits[uID] = nil
+			end
+		end
+	end
+
+	local specState, fullviewState = Spring.GetSpectatingState()
+	if specState and fullviewState then
+		local now = os.clock()
+		if now - miscState.specGhostScanTime >= 2.0 then
+			miscState.specGhostScanTime = now
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
+			local stale = pools.liveSet
+			for gID in pairs(stale) do stale[gID] = nil end
+			for gID in pairs(ghostBuildings) do stale[gID] = true end
+			local allUnits = Spring.GetAllUnits()
+			for i = 1, #allUnits do
+				local uID = allUnits[i]
+				local defID = Spring.GetUnitDefID(uID)
+				if defID and cache.isBuilding[defID] then
+					local uTeam = Spring.GetUnitTeam(uID)
+					if uTeam then
+						local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
+						if uAllyTeam ~= scanAllyTeam then
+							local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
+							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
+								stale[uID] = nil
+								local x, _, z = Spring.GetUnitBasePosition(uID)
+								if x then
+									local g = ghostBuildings[uID]
+									if g then
+										g.defID = defID; g.x = x; g.z = z; g.teamID = uTeam
+									else
+										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+			for gID in pairs(stale) do
+				ghostBuildings[gID] = nil
+				stale[gID] = nil
+			end
+		end
+	end
+end
+
 function widget:DrawScreen()
+	miscState.pipDrawFrame = (miscState.pipDrawFrame or 0) + 1
+	local drawGameFrame = Spring.GetGameFrame()
+	local sameGameFrameAsLastDraw = (drawGameFrame == miscState.pipLastDrawGameFrame)
+	local hadRenderOnlyDraw = miscState.pipSawRenderOnlyDraw
+	miscState.pipLastDrawGameFrame = drawGameFrame
+	miscState.pipSawRenderOnlyDraw = sameGameFrameAsLastDraw
 	local mx, my, mbl = spFunc.GetMouseState()
 
 	-- During animation, disable mouse interaction
@@ -16776,6 +16902,13 @@ function widget:DrawScreen()
 			render.RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, render.elementCorner*0.4, 1, 1, 1, 1)
 		end
 		return
+	end
+
+	if miscState.pendingPipMaintenance and miscState.pipDrawFrame > (miscState.pendingPipMaintenanceDrawFrame or 0) + 1 then
+		local maintenanceDt = miscState.pendingPipMaintenanceDt or 0
+		miscState.pendingPipMaintenance = false
+		miscState.pendingPipMaintenanceDt = 0
+		pools.RunDeferredPipMaintenance(maintenanceDt)
 	end
 
 	-- Cache selected units count once per frame (avoids 5+ redundant GetSelectedUnits calls)
@@ -16941,17 +17074,27 @@ function widget:DrawScreen()
 		local currentTime = os.clock()
 		local dynamicUpdateRate = CalculateDynamicUpdateRate()
 		local pipUpdateInterval = dynamicUpdateRate > 0 and (1 / dynamicUpdateRate) or 0
+		local runR2TUpdates = true
+		local urgentR2TUpdate = pipR2T.forceRefreshFrames > 0 or not pipR2T.contentTex or not pipR2T.unitsTex
+		if not urgentR2TUpdate then
+			if miscState.pendingPipR2TUpdate then
+				if sameGameFrameAsLastDraw then
+					miscState.pendingPipR2TUpdate = false
+				else
+					-- No render-only draw arrived before the next simframe. Catch up now;
+					-- this is the low-FPS case where deferring is not achievable.
+					miscState.pendingPipR2TUpdate = false
+				end
+			elseif (not sameGameFrameAsLastDraw) and hadRenderOnlyDraw then
+				miscState.pendingPipR2TUpdate = true
+				runR2TUpdates = false
+			end
+		end
 
 		-- Decrement the force-refresh counter (grace period after ViewResize / preset change)
 		if pipR2T.forceRefreshFrames > 0 then
 			pipR2T.forceRefreshFrames = pipR2T.forceRefreshFrames - 1
 		end
-
-		-- Update LOS texture
-		UpdateLOSTexture(currentTime)
-
-		-- Update decal overlay texture (~once per second, game-frame based)
-		UpdateDecalTexture()
 
 		-- Force immediate units re-render when fullview state changes.
 		-- The main transition detection code (below) runs AFTER UpdateR2TUnits,
@@ -16975,35 +17118,43 @@ function widget:DrawScreen()
 			miscState._lastUseUnitpics = nowUseUnitpics
 		end
 
-		-- Update oversized units texture at throttled rate (expensive layers)
-		local drawStartTime = os.clock()
-		local prevUnitsTime = pipR2T.unitsLastUpdateTime
-		UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+		if runR2TUpdates then
+			-- Update LOS texture
+			UpdateLOSTexture(currentTime)
 
-		-- Update oversized cheap layers texture at throttled rate
-		local prevContentTime = pipR2T.contentLastUpdateTime
-		UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight)
+			-- Update decal overlay texture (~once per second, game-frame based)
+			UpdateDecalTexture()
 
-		-- Only record draw time when actual rendering occurred (not throttled no-ops)
-		local didRender = pipR2T.unitsLastUpdateTime ~= prevUnitsTime or pipR2T.contentLastUpdateTime ~= prevContentTime
-		if didRender then
-			local drawTime = os.clock() - drawStartTime
-			pipR2T.contentLastDrawTime = drawTime
+			-- Update oversized units texture at throttled rate (expensive layers)
+			local drawStartTime = os.clock()
+			local prevUnitsTime = pipR2T.unitsLastUpdateTime
+			UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeight)
 
-			-- Add to frame time history (ring buffer of last N frames)
-			pipR2T.contentDrawTimeHistoryIndex = (pipR2T.contentDrawTimeHistoryIndex % config.pipFrameTimeHistorySize) + 1
-			pipR2T.contentDrawTimeHistory[pipR2T.contentDrawTimeHistoryIndex] = drawTime
+			-- Update oversized cheap layers texture at throttled rate
+			local prevContentTime = pipR2T.contentLastUpdateTime
+			UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pipHeight)
 
-			-- Calculate average of frame times
-			local sum = 0
-			local count = 0
-			for i = 1, config.pipFrameTimeHistorySize do
-				if pipR2T.contentDrawTimeHistory[i] then
-					sum = sum + pipR2T.contentDrawTimeHistory[i]
-					count = count + 1
+			-- Only record draw time when actual rendering occurred (not throttled no-ops)
+			local didRender = pipR2T.unitsLastUpdateTime ~= prevUnitsTime or pipR2T.contentLastUpdateTime ~= prevContentTime
+			if didRender then
+				local drawTime = os.clock() - drawStartTime
+				pipR2T.contentLastDrawTime = drawTime
+
+				-- Add to frame time history (ring buffer of last N frames)
+				pipR2T.contentDrawTimeHistoryIndex = (pipR2T.contentDrawTimeHistoryIndex % config.pipFrameTimeHistorySize) + 1
+				pipR2T.contentDrawTimeHistory[pipR2T.contentDrawTimeHistoryIndex] = drawTime
+
+				-- Calculate average of frame times
+				local sum = 0
+				local count = 0
+				for i = 1, config.pipFrameTimeHistorySize do
+					if pipR2T.contentDrawTimeHistory[i] then
+						sum = sum + pipR2T.contentDrawTimeHistory[i]
+						count = count + 1
+					end
 				end
+				pipR2T.contentDrawTimeAverage = count > 0 and (sum / count) or 0
 			end
-			pipR2T.contentDrawTimeAverage = count > 0 and (sum / count) or 0
 		end
 
 		-- Update content mask display list if dimensions or position changed
@@ -17676,6 +17827,12 @@ function widget:Update(dt)
 		return
 	end
 
+	miscState.pendingPipMaintenanceDt = (miscState.pendingPipMaintenanceDt or 0) + dt
+	if not miscState.pendingPipMaintenance then
+		miscState.pendingPipMaintenance = true
+		miscState.pendingPipMaintenanceDrawFrame = miscState.pipDrawFrame or 0
+	end
+
 	-- Auto-disable LOS view when the watched allyteam is fully dead
 	if state.losViewEnabled and state.losViewAllyTeam then
 		local allDead = true
@@ -17701,102 +17858,6 @@ function widget:Update(dt)
 			pipR2T.frameNeedsUpdate = true
 			pipR2T.unitsNeedsUpdate = true
 			pipR2T.contentNeedsUpdate = true
-		end
-	end
-
-	-- Periodic ghost building cleanup. Two failure modes are handled here:
-	--   a) Building destroyed in LOS: UnitDestroyed already cleared it. If it slipped
-	--      through, the LOS-on-position + nil-defID branch below catches it.
-	--   b) Spring engine recycles unitIDs after units die. When the unit cap is hit
-	--      there is heavy churn and a ghost's unitID can be reassigned to a new
-	--      (often allied) unit. In that case GetUnitDefID(gID) returns a NON-nil
-	--      defID that differs from ghost.defID — without this check the phantom
-	--      enemy icon would persist forever even with full LOS on the position.
-	--      This matches the reported bug ("unit cap reached, enemy dots all over
-	--      my base, no enemies in victory screen").
-	local cleanupAllyTeam
-	if not cameraState.mySpecState then
-		cleanupAllyTeam = Spring.GetMyAllyTeamID()
-	elseif state.losViewEnabled and state.losViewAllyTeam then
-		cleanupAllyTeam = state.losViewAllyTeam
-	end
-	if cleanupAllyTeam then
-		cache.ghostCleanupTimer = cache.ghostCleanupTimer + dt
-		if cache.ghostCleanupTimer >= 1.0 then  -- check every 1 second
-			cache.ghostCleanupTimer = 0
-			for gID, ghost in pairs(ghostBuildings) do
-				local curDefID = spFunc.GetUnitDefID(gID)
-				local stale = false
-				if curDefID then
-					-- ID is in use. Detect engine ID-reuse:
-					--   * different defID -> definitely a different unit
-					--   * same defID but different team -> definitely a different unit
-					--   * same defID & team but position drifted far from ghost -> mobile unit
-					--     reusing the ID (buildings never move on their own)
-					if curDefID ~= ghost.defID then
-						stale = true
-					else
-						local curTeam = Spring.GetUnitTeam(gID)
-						if curTeam and ghost.teamID and curTeam ~= ghost.teamID then
-							stale = true
-						else
-							local ux, _, uz = spFunc.GetUnitBasePosition(gID)
-							if ux and uz then
-								local dx = ux - ghost.x
-								local dz = uz - ghost.z
-								-- 80 elmos ≈ a few build squares; buildings don't drift, so
-								-- any significant offset means the ID belongs to a new unit.
-								if dx*dx + dz*dz > 80*80 then
-									stale = true
-								end
-							end
-						end
-					end
-				else
-					-- Engine has no record of this unitID anymore. If we have LOS on
-					-- the ghost's position we can confirm the building is gone.
-					local gy = spFunc.GetGroundHeight(ghost.x, ghost.z)
-					if spFunc.IsPosInLos(ghost.x, gy, ghost.z, cleanupAllyTeam) then
-						stale = true
-					end
-				end
-				if stale then
-					ghostBuildings[gID] = nil
-				end
-			end
-		end
-	end
-
-	-- Hard cap on ghostBuildings size. Without an upper bound, repeated luaui
-	-- reloads, sibling-PIP imports, or pathological scout patterns can let the
-	-- table grow without limit across a long match. If we ever exceed the cap,
-	-- drop entries (any entries — table iteration order is fine here) until
-	-- back under the limit. This is a defensive backstop; the per-second
-	-- cleanup above is the primary mechanism.
-	do
-		local maxGhosts = 4000
-		local n = 0
-		for _ in pairs(ghostBuildings) do n = n + 1 end
-		if n > maxGhosts then
-			local toDrop = n - maxGhosts
-			for gID in pairs(ghostBuildings) do
-				if toDrop <= 0 then break end
-				ghostBuildings[gID] = nil
-				toDrop = toDrop - 1
-			end
-		end
-	end
-
-	-- Periodic self-destruct refresh: validate cached selfDUnits set every 30 frames
-	-- Catches edge cases where UnitCommand callin might miss a cancellation (e.g. from synced code)
-	miscState.selfDRefreshCounter = (miscState.selfDRefreshCounter or 0) + 1
-	if miscState.selfDRefreshCounter >= 30 then
-		miscState.selfDRefreshCounter = 0
-		for uID in pairs(selfDUnits) do
-			local selfDTime = spFunc.GetUnitSelfDTime(uID)
-			if not selfDTime or selfDTime <= 0 then
-				selfDUnits[uID] = nil
-			end
 		end
 	end
 
@@ -18026,57 +18087,6 @@ function widget:Update(dt)
 		pipR2T.unitsNeedsUpdate = true
 	end
 	miscState.lastFullview = fullviewState
-
-	-- While fullview is ON, periodically scan enemy buildings and record ghosts
-	-- for buildings the viewed allyteam has seen (INLOS or PREVLOS).
-	-- Uses mark-and-sweep: marks existing ghosts, unmarks those found alive,
-	-- then sweeps stale entries (destroyed buildings).
-	-- Scan every 2 seconds for responsive ghost updates.
-	if specState and fullviewState then
-		local now = os.clock()
-		if now - miscState.specGhostScanTime >= 2.0 then
-			miscState.specGhostScanTime = now
-			-- Use losViewAllyTeam when LOS view is active, otherwise GetMyAllyTeamID()
-			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
-			-- Mark all existing ghosts for sweep
-			local stale = {}
-			for gID in pairs(ghostBuildings) do stale[gID] = true end
-			local allUnits = Spring.GetAllUnits()
-			for i = 1, #allUnits do
-				local uID = allUnits[i]
-				local defID = Spring.GetUnitDefID(uID)
-				if defID and cache.isBuilding[defID] then
-					local uTeam = Spring.GetUnitTeam(uID)
-					if uTeam then
-						local uAllyTeam = Spring.GetTeamAllyTeamID(uTeam)
-						if uAllyTeam ~= scanAllyTeam then
-							-- Only record/keep buildings the viewed allyteam has seen (INLOS or PREVLOS).
-							-- With fullview, GetUnitLosState reliably returns any allyteam's LOS.
-							-- stale[uID] is only cleared inside the PREVLOS check so ghosts for
-							-- buildings the allyteam has NEVER seen get swept (not preserved).
-							local losBits = Spring.GetUnitLosState(uID, scanAllyTeam, true)
-							if losBits and (losBits % 2 >= 1 or losBits % 8 >= 4) then
-								stale[uID] = nil  -- seen and still alive, don't sweep
-								local x, _, z = Spring.GetUnitBasePosition(uID)
-								if x then
-									local g = ghostBuildings[uID]
-									if g then
-										g.defID = defID; g.x = x; g.z = z; g.teamID = uTeam
-									else
-										ghostBuildings[uID] = { defID = defID, x = x, z = z, teamID = uTeam }
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-			-- Sweep stale ghosts (buildings destroyed while we had fullview)
-			for gID in pairs(stale) do
-				ghostBuildings[gID] = nil
-			end
-		end
-	end
 
 	-- Update mouse hover state
 	local mx, my = spFunc.GetMouseState()
