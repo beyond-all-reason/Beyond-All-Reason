@@ -99,7 +99,6 @@ return {
 					speceffect = "torpwaterpen",
 				},
 				damage = {
-					commanders = 150,
 					default = 342,
 					vtol = 15,
 				},

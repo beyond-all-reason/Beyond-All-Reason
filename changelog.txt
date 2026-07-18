@@ -6,7 +6,7 @@
 • [Gunslinger] 1560 -> 1800 health, 49.5 -> 50 speed, 24 AoE added, 500 -> 600 weaponvelocity
 • [Welder] 9500 -> 8000 buildtime, 2950 -> 3500 health, 47.4 -> 48 speed
 • [Sumo] 15000 -> 12000 buildtime, 5940 -> 6500 health, 37.5 -> 38 speed, 0.16 -> 0.3 beamtime, 25 -> 55 dmg vs air
-• [Puffin] 18000 -> 14000 buildtime, 3s -> 4s reloadtime
+• [Puffin] 18000 -> 14000 buildtime, 3s -> 4s reloadtime, removed special damage vs commander
 • [AA turrets]
 	- Flak turrets: 775 -> 850 range, 0.5333 -> 0.5 reloadtime
 	- Chainsaw / Eradicator: 1125 -> 1200 range
