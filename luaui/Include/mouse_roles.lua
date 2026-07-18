@@ -2,10 +2,8 @@
 -- (mouseprimary = select/confirm, mousesecondary = default command), so widgets follow
 -- a rebound/swapped mouse setup instead of hardcoding button 1/3.
 
-local spGetKeyBindings = Spring.GetKeyBindings
-
 local function isButtonBoundTo(button, action)
-	local binds = spGetKeyBindings("mouse" .. button)
+	local binds = Spring.GetKeyBindings("mouse" .. button)
 	if binds then
 		for i = 1, #binds do
 			if binds[i].command == action then
