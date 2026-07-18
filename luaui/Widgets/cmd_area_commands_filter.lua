@@ -1,4 +1,4 @@
-local widget = widget ---@type RulesUnsyncedCallins
+local widget = widget ---@type Widget
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
@@ -18,12 +18,11 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
 local mathFloor = math.floor
-local mathMax = math.max
+local mathClamp = math.clamp
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -48,6 +47,13 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local UNIT_ID_MAX = Game.maxUnits
+
+-- featureId is normalised to Game.maxUnits + featureId because of:
+-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
+-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
+-- offset due to be removed in future engine version
+local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID
 
 local commandLimit = 2000
 
@@ -57,8 +63,8 @@ local myAllyTeamID
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
 
----@field position1 table {x, y, z}
----@field position2 table {x, y, z}
+---@param position1 table {x, y, z}
+---@param position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
@@ -103,8 +109,7 @@ end
 
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets)
-	---@type table<number,TransportData>
-	local transportTypeDataMap = {}
+	local transportTypeDataMap = {} ---@type table<number,TransportData>
 	local validTransportsForUnitTypeMap = {}
 	local passengerPriorities = {}
 	local passengerPositions = {}
@@ -133,8 +138,7 @@ local function distributeTargetsToTransports(transports, targets)
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
-					---@class TransportInfo
-					local transportInfo = { capacity = remainingCapacity, position = position }
+					local transportInfo = { capacity = remainingCapacity, position = position } ---@class TransportInfo
 					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
 					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 				end
@@ -347,7 +351,7 @@ end
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
-	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
+	local maxAllowedTargetsPerUnit = mathClamp(mathFloor(commandLimit / selectedUnitsLen), 1, commandLimit)
 
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
