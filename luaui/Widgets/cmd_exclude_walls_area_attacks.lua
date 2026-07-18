@@ -50,6 +50,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+local function areaToTargetOptions(options)
+	options.shift = true
+	options.alt = false
+	options.ctrl = false
+end
+
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if not commandAreaToUnits[cmdID] or #cmdParams ~= 4 then
 		return
@@ -95,7 +101,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	if excludeTargets and includeTargets then
-		cmdOpts.shift = true
+		areaToTargetOptions(cmdOpts)
 		Spring.GiveOrderArrayToUnitArray(selectedUnits, newCommands)
 		return true
 	else
