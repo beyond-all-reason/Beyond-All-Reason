@@ -36,6 +36,8 @@ local scroll = 0
 local dragging = false
 local editable = false -- true only on Custom (uikeys.txt)
 local capturing
+local captureAny = false -- pending capture binds with the Any+ (match-any-modifier) qualifier
+local captureAnyRect -- clickable rect of the Any checkbox while capturing
 local pendingReset
 local edited = false
 local lastClickTime, lastClickId
@@ -125,6 +127,7 @@ local function buildResolvedCatalog()
 	L.other = Spring.I18N('ui.keybinds.editor.other')
 	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
 	L.customOnly = Spring.I18N('ui.keybinds.editor.customOnly')
+	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
 end
 
 local function rebuildRows()
@@ -444,6 +447,10 @@ local function commitCapture(keyset)
 	end
 end
 
+local function rawHasAny(raw)
+	return raw ~= nil and raw:find("[Aa][Nn][Yy]%+") ~= nil
+end
+
 local function modPrefix()
 	local alt, ctrl, _, shift = spGetModKeyState()
 	local prefix = ""
@@ -463,12 +470,12 @@ local function keysetFromPress(scanCode)
 		return nil
 	end
 
-	return modPrefix() .. sym
+	return (captureAny and "Any+" or modPrefix()) .. sym
 end
 
 -- Side buttons bind as ordinary "mouseN" keysets; only button >= 4 reaches here.
 local function mouseKeysetFromButton(button)
-	return modPrefix() .. "mouse" .. button
+	return (captureAny and "Any+" or modPrefix()) .. "mouse" .. button
 end
 
 local function fitText(text, maxWidth, size)
@@ -507,6 +514,20 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 
 	if capturingThis then
 		font:Print("\255\255\230\120" .. L.pressKey, keyAreaX1, cyc, fs, "ov")
+
+		-- Any-modifier checkbox, right-aligned; toggled by mouse click (keypresses are
+		-- captured as the binding, so it can't be keyboard-toggled).
+		local boxS = floor(fs)
+		local gap2 = floor(4 * scale)
+		local bx2 = listRight - pad
+		local bx1 = bx2 - boxS
+		local labelX = bx1 - gap2 - font:GetTextWidth(L.anyMod) * fs
+		local by1 = cyc - boxS * 0.5
+		local by2 = cyc + boxS * 0.5
+		RectRound(bx1, by1, bx2, by2, floor(2 * scale), 1, 1, 1, 1,
+			captureAny and { 0.9, 0.7, 0.2, 0.95 } or { 1, 1, 1, 0.12 })
+		font:Print(colorText .. L.anyMod, labelX, cyc, fs, "ov")
+		captureAnyRect = { labelX, by1, bx2, by2 }
 		return
 	end
 
@@ -663,11 +684,13 @@ local function handleZone(kind, action, raw)
 		removeKeyset(action, raw)
 	elseif kind == "add" then
 		capturing = { action = action }
+		captureAny = false
 	elseif kind == "rebind" then
 		local id = action .. "|" .. tostring(raw)
 		local now = Spring.GetTimer and Spring.GetTimer()
 		if now and lastClickId == id and lastClickTime and Spring.DiffTimers(now, lastClickTime) < 0.4 then
 			capturing = { action = action, oldRaw = raw }
+			captureAny = rawHasAny(raw)
 			lastClickTime = nil
 		else
 			lastClickId = id
@@ -699,6 +722,12 @@ function view.mousePress(x, y, button)
 	-- While capturing, only side buttons (mouse4+) bind: mouse1 is engine-rejected,
 	-- mouse2/mouse3 are reserved for camera/order UX. Left click cancels.
 	if capturing then
+		if button == 1 and captureAnyRect
+			and x >= captureAnyRect[1] and x <= captureAnyRect[3]
+			and y >= captureAnyRect[2] and y <= captureAnyRect[4] then
+			captureAny = not captureAny
+			return true
+		end
 		if button >= 4 then
 			commitCapture(mouseKeysetFromButton(button))
 		elseif button == 1 then

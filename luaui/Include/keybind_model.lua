@@ -9,12 +9,17 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local keyNameAlias = { enter = "return" }
 
 local function displayKeyset(raw, layout)
+	-- Pull the Any+ qualifier out before sanitizeKey (which drops it) so it stays
+	-- visible and Any+X reads differently from a plain X.
+	local anyPrefix = ""
+	raw = raw:gsub("[Aa][Nn][Yy]%+", function() anyPrefix = "Any + "; return "" end)
+
 	local mods, key = raw:match("^(.-)([^+]*)$")
 	if key and keyNameAlias[key:lower()] then
 		raw = mods .. keyNameAlias[key:lower()]
 	end
 
-	return keyConfig.sanitizeKey(raw, layout):gsub("%+", " + ")
+	return anyPrefix .. keyConfig.sanitizeKey(raw, layout):gsub("%+", " + ")
 end
 
 -- A bound action is identified by the full command string passed to /bind:

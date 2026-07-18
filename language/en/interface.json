@@ -348,7 +348,8 @@
 				"other": "Other",
 				"pressKey": "press a key or mouse button...  (Esc to cancel)",
 				"customOnly": "Switch the preset to Custom to edit keybinds",
-				"reset": "Reset to..."
+				"reset": "Reset to...",
+				"anyMod": "Any"
 			},
 			"chat": {
 				"title": "Chat",
