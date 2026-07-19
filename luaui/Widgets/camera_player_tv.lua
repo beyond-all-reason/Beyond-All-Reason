@@ -16,6 +16,7 @@ end
 -- Localized functions for performance
 local mathFloor = math.floor
 local mathRandom = math.random
+local tableSort = table.sort
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -23,6 +24,8 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetPlayerList = Spring.GetPlayerList
+local spGetTeamInfo = Spring.GetTeamInfo
 
 --[[ Commands
 	/playerview #playerID		(playerID is optional)
@@ -62,10 +65,12 @@ local toggled2 = not fullview
 local drawlist = {}
 local desiredLosmodeChanged = 0
 local showTrackingButtons = true
+local playerStateDirty = false
+local playerNameDrawlistsDirty = false
 
 local math_isInRect = math.isInRect
 
-local playersList = Spring.GetPlayerList()
+local playersList = spGetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
@@ -89,29 +94,44 @@ local guishaderWasActive = false
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
+local function comparePlayerTs(a, b)
+	return a[1] > b[1]
+end
+
 local function tsOrderPlayers()
-	tsOrderedPlayers = {}
-	for _, playerID in ipairs(playersList) do
-		if playersTS[playerID] then
+	local prevCount = #tsOrderedPlayers
+	local count = 0
+	for i = 1, #playersList do
+		local playerID = playersList[i]
+		local playerTs = playersTS[playerID]
+		if playerTs then
 			local _, _, spec, teamID = spGetPlayerInfo(playerID, false)
 			if not spec then
-				tsOrderedPlayers[#tsOrderedPlayers+1] = {playersTS[playerID], playerID}
+				count = count + 1
+				local orderedPlayer = tsOrderedPlayers[count]
+				if orderedPlayer then
+					orderedPlayer[1] = playerTs
+					orderedPlayer[2] = playerID
+				else
+					tsOrderedPlayers[count] = {playerTs, playerID}
+				end
 			end
 		end
 	end
-	local function compare(a,b)
-		return a[1] > b[1]
+	for i = count + 1, prevCount do
+		tsOrderedPlayers[i] = nil
 	end
-	table.sort(tsOrderedPlayers, compare)
+	tableSort(tsOrderedPlayers, comparePlayerTs)
 end
 
 local function updateTrackingButtonAvailability()
 	local humanPlayers = 0
-	playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
+	playersList = spGetPlayerList()
+	for i = 1, #playersList do
+		local playerID = playersList[i]
 		local _, _, spec, team = spGetPlayerInfo(playerID, false)
 		if not spec then
-			local isDestroyable, isDead = select(3, Spring.GetTeamInfo(team, false))
+			local isDestroyable, isDead = select(3, spGetTeamInfo(team, false))
 			if not isDestroyable and not isDead then
 				humanPlayers = humanPlayers + 1
 			end
@@ -119,6 +139,41 @@ local function updateTrackingButtonAvailability()
 	end
 	showTrackingButtons = humanPlayers > 0
 	return humanPlayers
+end
+
+local function refreshPlayerState()
+	local prevTeamID = myTeamID
+	local prevTeamPlayerID = myTeamPlayerID
+	local prevIsSpec = isSpec
+	local prevFullview = fullview
+	myTeamID = spGetMyTeamID()
+	myTeamPlayerID = select(2, spGetTeamInfo(myTeamID))
+	isSpec, fullview = spGetSpectatingState()
+	if prevTeamID ~= myTeamID or prevTeamPlayerID ~= myTeamPlayerID or prevIsSpec ~= isSpec or prevFullview ~= fullview then
+		updateDrawing = true
+		playerNameDrawlistsDirty = true
+	end
+	local prevShowTrackingButtons = showTrackingButtons
+	updateTrackingButtonAvailability()
+	if prevShowTrackingButtons ~= showTrackingButtons then
+		if not showTrackingButtons then
+			toggled = false
+			lockPlayerID = nil
+			prevLockPlayerID = nil
+		end
+		updateDrawing = true
+	end
+	tsOrderPlayers()
+end
+
+local function clearPlayernameDrawlists()
+	local cleared = false
+	for name, playernameDrawlist in pairs(drawlistsPlayername) do
+		gl.DeleteList(playernameDrawlist)
+		drawlistsPlayername[name] = nil
+		cleared = true
+	end
+	return cleared
 end
 
 local function GetSkill(playerID)
@@ -384,40 +439,16 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = spGetMyTeamID()
-	myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
-	isSpec, fullview = spGetSpectatingState()
-	local prevShowTrackingButtons = showTrackingButtons
-	updateTrackingButtonAvailability()
-	if prevShowTrackingButtons ~= showTrackingButtons then
-		if not showTrackingButtons then
-			toggled = false
-			lockPlayerID = nil
-			prevLockPlayerID = nil
-		end
-		updateDrawing = true
+	playerStateDirty = true
+	if playerID == myTeamPlayerID then
+		playerNameDrawlistsDirty = true
 	end
-	tsOrderPlayers()
-	local receateLists = false
 	if not rejoining then
 		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
-			receateLists = true
+			updateDrawing = true
 		end
 	end
-	local name = spGetPlayerInfo(playerID, false)
-	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	if select(4, Spring.GetTeamInfo(myTeamID,false)) then	-- is AI?
-		local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
-		local niceName = Spring.GetGameRulesParam('ainame_' .. myTeamID)
-		name = niceName or aiName
-	end
-	if name and drawlistsPlayername[name] then
-		drawlistsPlayername[name] = gl.DeleteList(drawlistsPlayername[name])
-	end
-	--if receateLists then
-		updateDrawing = true
-	--end
 end
 
 
@@ -452,6 +483,16 @@ end
 local sec = 0.5
 local posCheckTimer = 0
 function widget:Update(dt)
+	if playerStateDirty then
+		playerStateDirty = false
+		refreshPlayerState()
+	end
+	if playerNameDrawlistsDirty then
+		playerNameDrawlistsDirty = false
+		if clearPlayernameDrawlists() then
+			updateDrawing = true
+		end
+	end
 
 	sec = sec + dt
 	if sec > 1 then
@@ -478,7 +519,7 @@ function widget:Update(dt)
 		local currentTeamID = spGetMyTeamID()
 		if currentTeamID ~= myTeamID then
 			myTeamID = currentTeamID
-			myTeamPlayerID = select(2, Spring.GetTeamInfo(myTeamID))
+			myTeamPlayerID = select(2, spGetTeamInfo(myTeamID))
 			updateDrawing = true
 		end
 		updatePosition()
