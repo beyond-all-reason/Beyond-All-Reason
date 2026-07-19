@@ -1490,14 +1490,24 @@ local frameSelCount = 0   -- Cached count from Spring.GetSelectedUnitsCount() (s
 local trackedPlayerSelections = {}
 local trackedPlayerSelectionSeeded = {}
 
+local function GetPlayerSelectedUnitsFromWG()
+	local wgApi = WG['allyselectedunits']
+	return wgApi and wgApi.getPlayerSelectedUnits
+end
+
+local function CanSkipUntrackedSelectionUpdate(playerID)
+	return not trackedPlayerSelections[playerID]
+		and interactionState.trackingPlayerID ~= playerID
+		and GetPlayerSelectedUnitsFromWG() ~= nil
+end
+
 local function SeedTrackedPlayerSelectionsFromWG(playerID)
 	if not playerID or trackedPlayerSelectionSeeded[playerID] then
 		return
 	end
 
 	trackedPlayerSelectionSeeded[playerID] = true
-	local wgApi = WG['allyselectedunits']
-	local getPlayerSelectedUnits = wgApi and wgApi.getPlayerSelectedUnits
+	local getPlayerSelectedUnits = GetPlayerSelectedUnitsFromWG()
 	if not getPlayerSelectedUnits then
 		return
 	end
@@ -9096,17 +9106,29 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:SelectedUnitsClear(playerID)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
 	trackedPlayerSelections[playerID] = {}
 	trackedPlayerSelectionSeeded[playerID] = true
 end
 
 function widget:SelectedUnitsAdd(playerID, unitID)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
 	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
 	selectedByPlayer[unitID] = true
 	trackedPlayerSelectionSeeded[playerID] = true
 end
 
 function widget:SelectedUnitsRemove(playerID, unitID)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
 	local selectedByPlayer = trackedPlayerSelections[playerID]
 	if selectedByPlayer then
 		selectedByPlayer[unitID] = nil
@@ -9115,6 +9137,10 @@ function widget:SelectedUnitsRemove(playerID, unitID)
 end
 
 function widget:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
 	local selectedByPlayer = GetTrackedPlayerSelections(playerID)
 
 	if remCount and remCount > 0 and remUnits then

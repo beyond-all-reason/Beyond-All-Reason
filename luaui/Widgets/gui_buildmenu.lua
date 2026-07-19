@@ -97,6 +97,8 @@ local doUpdate, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
+local buildmenuTexHasContent = false
+local buildmenuRenderedCells = 0
 
 local math_isInRect = math.isInRect
 
@@ -351,12 +353,27 @@ local modKeyMultiplier = {
 	right = -1
 }
 
+local function isFiniteNumber(value)
+	return value and value == value and value > -math.huge and value < math.huge
+end
+
+local function isValidRect(x1, y1, x2, y2)
+	return isFiniteNumber(x1) and isFiniteNumber(y1) and isFiniteNumber(x2) and isFiniteNumber(y2) and x2 > x1 and y2 > y1
+end
+
+local function isValidBuildmenuGeometry()
+	return isValidRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])
+		and isFiniteNumber(width) and isFiniteNumber(height) and width > 0 and height > 0
+		and isFiniteNumber(cellSize) and cellSize > 0
+		and isFiniteNumber(cellPadding) and isFiniteNumber(iconPadding) and cellSize > ((cellPadding + iconPadding) * 2)
+end
+
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
-		if not dlistGuishader then
+		if not dlistGuishader and isValidRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			dlistGuishader = gl.CreateList(function()
 				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
@@ -574,6 +591,7 @@ local function clear()
 		buildmenuBgTex = nil
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
+		buildmenuTexHasContent = false
 	end
 end
 
@@ -812,6 +830,19 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 	tracy.ZoneBeginN("W:BuildMenu:DrawCell")
 	local uDefID = -cmds[cellRectID].id
 	local unitTexture = '#' .. uDefID
+	local cellRect = cellRects[cellRectID]
+	if not cellRect then
+		tracy.ZoneEnd()
+		return false
+	end
+	local iconX1 = cellRect[1] + cellPadding + iconPadding
+	local iconY1 = cellRect[2] + cellPadding + iconPadding
+	local iconX2 = cellRect[3] - cellPadding - iconPadding
+	local iconY2 = cellRect[4] - cellPadding - iconPadding
+	if not isValidRect(iconX1, iconY1, iconX2, iconY2) then
+		tracy.ZoneEnd()
+		return false
+	end
 	if not buildmenuUnitpicWarm.warmed[uDefID] then
 		tracy.ZoneBeginN("W:BuildMenu:DrawCell:TextureWarmFallback")
 		if glTexture(unitTexture) then
@@ -834,10 +865,10 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 	end
 	tracy.ZoneBeginN("W:BuildMenu:DrawCell:UiUnit")
 	UiUnit(
-		cellRects[cellRectID][1] + cellPadding + iconPadding,
-		cellRects[cellRectID][2] + cellPadding + iconPadding,
-		cellRects[cellRectID][3] - cellPadding - iconPadding,
-		cellRects[cellRectID][4] - cellPadding - iconPadding,
+		iconX1,
+		iconY1,
+		iconX2,
+		iconY2,
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
@@ -970,6 +1001,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 		)
 	end
 	tracy.ZoneEnd()
+	return true
 end
 
 local function drawHighlights()
@@ -1022,6 +1054,7 @@ end
 
 function drawBuildmenu()
 	tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu")
+	buildmenuRenderedCells = 0
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -1093,7 +1126,9 @@ function drawBuildmenu()
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
 			local uDefIDCell = -cmds[cellRectID].id
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefIDCell], selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell])
+			if drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefIDCell], selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell]) then
+				buildmenuRenderedCells = buildmenuRenderedCells + 1
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -1119,6 +1154,68 @@ function drawBuildmenu()
 	end
 
 	font2:End()
+	tracy.ZoneEnd()
+end
+
+
+local function refreshBuildmenuTexture()
+	if not refreshBuildmenu then
+		return
+	end
+	tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RefreshTexture")
+	if not isValidBuildmenuGeometry() then
+		refreshBuildmenu = true
+		tracy.ZoneEnd()
+		return
+	end
+	if cmdsCount <= 0 then
+		refreshBuildmenu = true
+		tracy.ZoneEnd()
+		return
+	end
+	local buildmenuUnitpicsWarmDone = true
+	local warmedBuildmenuUnitpicThisFrame = false
+	if buildmenuUnitpicWarm.count > 0 then
+		warmedBuildmenuUnitpicThisFrame = true
+		buildmenuUnitpicsWarmDone = flushBuildmenuUnitpicWarmQueue()
+	end
+	refreshBuildmenu = false
+	if not buildmenuTex and width > 0.05 and height > 0.05 then
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
+		buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		buildmenuTexHasContent = false
+		buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
+		tracy.ZoneEnd()
+	end
+	local forceInitialRender = buildmenuTex and not buildmenuTexHasContent
+	local renderedBuildmenuTex = false
+	if buildmenuTex and (forceInitialRender or (buildmenuUnitpicsWarmDone and not warmedBuildmenuUnitpicThisFrame)) then
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RenderTexture")
+		gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
+		if buildmenuRenderedCells > 0 then
+			buildmenuTexHasContent = true
+			renderedBuildmenuTex = true
+			if forceInitialRender then
+				clearBuildmenuUnitpicWarmQueue()
+			end
+		else
+			buildmenuTexHasContent = false
+			refreshBuildmenu = true
+		end
+		tracy.ZoneEnd()
+	end
+	if not renderedBuildmenuTex and (not buildmenuUnitpicsWarmDone or warmedBuildmenuUnitpicThisFrame) then
+		refreshBuildmenu = true
+	end
 	tracy.ZoneEnd()
 end
 
@@ -1170,40 +1267,7 @@ function widget:DrawScreen()
 	end
 
 	-- create buildmenu
-	if refreshBuildmenu then
-		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RefreshTexture")
-		local buildmenuUnitpicsWarmDone = true
-		local warmedBuildmenuUnitpicThisFrame = false
-		if buildmenuUnitpicWarm.count > 0 then
-			warmedBuildmenuUnitpicThisFrame = true
-			buildmenuUnitpicsWarmDone = flushBuildmenuUnitpicWarmQueue()
-		end
-		refreshBuildmenu = false
-		if not buildmenuTex and width > 0.05 and height > 0.05 then
-			tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
-			buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-				target = GL.TEXTURE_2D,
-				format = GL.RGBA,
-				fbo = true,
-			})
-			gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
-			tracy.ZoneEnd()
-		end
-		if buildmenuTex and buildmenuUnitpicsWarmDone and not warmedBuildmenuUnitpicThisFrame then
-			tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RenderTexture")
-			gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
-			tracy.ZoneEnd()
-		end
-		if not buildmenuUnitpicsWarmDone or warmedBuildmenuUnitpicThisFrame then
-			refreshBuildmenu = true
-		end
-		tracy.ZoneEnd()
-	end
+	refreshBuildmenuTexture()
 
 	-- draw buildmenu background
 	tracy.ZoneBeginN("W:BuildMenu:DrawScreen:BlendBackground")
@@ -1258,7 +1322,7 @@ function widget:DrawScreen()
 		end
 
 		-- draw buildmenu content
-		if buildmenuTex then
+		if buildmenuTex and buildmenuTexHasContent then
 			tracy.ZoneBeginN("W:BuildMenu:DrawScreen:BlendContent")
 			-- content
 			gl.Color(1,1,1,1)
@@ -1386,7 +1450,14 @@ function widget:DrawScreen()
 						if cellRectID and cellRects[cellRectID] then
 							local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
 							progress = 1 - progress -- make the effect wind counter-clockwise
-							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, progressColor)
+							local progressRect = cellRects[cellRectID]
+							local x1 = progressRect[1] + cellPadding + iconPadding
+							local y1 = progressRect[2] + cellPadding + iconPadding
+							local x2 = progressRect[3] - cellPadding - iconPadding
+							local y2 = progressRect[4] - cellPadding - iconPadding
+							if isValidRect(x1, y1, x2, y2) then
+								RectRoundProgress(x1, y1, x2, y2, cellSize * 0.03, progress, progressColor)
+							end
 						end
 					end
 				end

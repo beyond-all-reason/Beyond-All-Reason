@@ -56,6 +56,7 @@ else
 	local UnpackU16 = VFS.UnpackU16
 	local LuaUICallIn = Script.LuaUI
 	local LuaUI = Script.LuaUI
+	local strByte = string.byte
 
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
@@ -72,6 +73,11 @@ else
 	local remUnitIDsBuffer = {}
 	local selectedNowMap = {}
 	local validation = SYNCED.validationSelunits
+
+	local function UnpackMsgU16(msg, pos)
+		local byte1, byte2 = strByte(msg, pos, pos + 1)
+		return byte1 + byte2 * 256
+	end
 
 	local function PackUnitIDCached(unitID)
 		local packed = packedUnitIDCache[unitID]
@@ -109,39 +115,43 @@ else
 		if compressed then		-- we have a compressed msg here
 			msg = ZlibDeCompress( msg )
 		end
+		if #msg < 4 then
+			return
+		end
 
-		local counts = UnpackU16( msg, 1, 2 )
-		if counts[1] == counts[2] and counts[1] == 0xffff then
+		local addCount = UnpackMsgU16(msg, 1)
+		local removeCount = UnpackMsgU16(msg, 3)
+		if addCount == 0xffff and removeCount == 0xffff then
 			--clear all
 			if LuaUICallIn("SelectedUnitsClear") then
 				LuaUI.SelectedUnitsClear(playerID)
 			end
 		else
-			local addCount = counts[1]
-			local removeCount = counts[2]
-			local addUnits
-			local remUnits
-
-			if addCount > 0 then
-				addUnits = UnpackU16( msg, 5, addCount )
-			end
-
-			if removeCount > 0 then
-				remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
-			end
-
 			if LuaUICallIn("SelectedUnitsBatchUpdate") then
+				local addUnits
+				local remUnits
+
+				if addCount > 0 then
+					addUnits = UnpackU16( msg, 5, addCount )
+				end
+
+				if removeCount > 0 then
+					remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
+				end
+
 				LuaUI.SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, removeCount)
 				return
 			end
 
 			if removeCount > 0 and LuaUICallIn("SelectedUnitsRemove") then
+				local remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
 				for i=1,removeCount do
 					LuaUI.SelectedUnitsRemove(playerID,remUnits[i])
 				end
 			end
 
 			if addCount > 0 and LuaUICallIn("SelectedUnitsAdd") then
+				local addUnits = UnpackU16( msg, 5, addCount )
 				for i=1,addCount do
 					LuaUI.SelectedUnitsAdd(playerID,addUnits[i])
 				end
