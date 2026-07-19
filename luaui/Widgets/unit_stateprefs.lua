@@ -77,6 +77,7 @@ end
 
 local bombers = {}
 local factories = {}
+local fighters = {}
 
 local function UnitDefIsBomber(unitDef) -- stolen from old bomber default hold fire widget
 	if not unitDef or not unitDef.weapons then
@@ -113,11 +114,15 @@ for unitName, unitDef in pairs(UnitDefNames) do
 			end
 		end
 	end
+	if unitDef.customParams.fighter or unitDef.customParams.drone or unitDef.customParams.flyingcarrier then -- code from old fighter default fly pref widget
+        fighters[unitName] = true
+    end
 end
 
 local presets = { -- CMD_ID, state_false, state_true, units
 	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
 	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, factories},
+	fighters_default_fly = {CMD.IDLEMODE, nil, 1, fighters},
 }
 
 local function togglePreset(presetName, state, force)

@@ -3007,6 +3007,13 @@ local function getAutoCloakDefaults()
 	return autoCloakDefaults
 end
 
+local function getStatePrefPresetsToggle(presetName, widgetName)
+	if WG['stateprefs'] and WG['stateprefs'].getPresetState("presetName") ~= nil then
+		return WG['stateprefs'].getPresetState("presetName")
+	end
+	return widgetHandler.orderList["widgetName"] ~= 0
+end
+
 function init()
 	presets = {
 		lowest = {
@@ -9120,9 +9127,22 @@ function init()
 			end,
 		},
 
-		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
+		{ id = "fightersfly", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = getStatePrefPresetsToggle("fighters_default_fly", "Fighters Default Fly"), description = Spring.I18N('ui.settings.option.fightersfly_descr'),
+			onchange = function(i, value)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("fighters_default_fly", value)
+				end
+			end,
+			onload = function(i)
+				if WG['stateprefs'] then
+					if WG['stateprefs'].getPresetState("fighters_default_fly") == nil then
+						WG['stateprefs'].setPresetState("fighters_default_fly", widgetHandler.orderList["Fighters Default Fly"] ~= 0)
+					end
+				end
+			end
+		},
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
-		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = WG['stateprefs'] and WG['stateprefs'].getPresetState("bombers_default_hold_fire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr'),
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = getStatePrefPresetsToggle("bombers_default_hold_fire", "BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr'),
 			onchange = function(i, value)
 				if WG['stateprefs'] then
 					WG['stateprefs'].setPresetState("bombers_default_hold_fire", value)
@@ -9131,13 +9151,13 @@ function init()
 			onload = function(i)
 				if WG['stateprefs'] then
 					if WG['stateprefs'].getPresetState("bombers_default_hold_fire") == nil then
-						WG['stateprefs'].setPresetState("bombers_default_hold_fire", not not GetWidgetToggleValue("BombersDefaultHoldFire")) --convert to bool
+						WG['stateprefs'].setPresetState("bombers_default_hold_fire", widgetHandler.orderList["BombersDefaultHoldFire"] ~= 0)
 					end
 				end
 			end
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = WG['stateprefs'] and WG['stateprefs'].getPresetState("factoryguard"), description = Spring.I18N('ui.settings.option.factoryguard_descr'),
+		{ id = "factoryguard", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.factory') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.factoryguard'), type = "bool", value = getStatePrefPresetsToggle("factoryguard", "Factory Guard Default On"), description = Spring.I18N('ui.settings.option.factoryguard_descr'),
 			onchange = function(i, value)
 				if WG['stateprefs'] then
 					WG['stateprefs'].setPresetState("factoryguard", value)
@@ -9146,7 +9166,7 @@ function init()
 			onload = function(i)
 				if WG['stateprefs'] then
 					if WG['stateprefs'].getPresetState("factoryguard") == nil then
-						WG['stateprefs'].setPresetState("factoryguard", not not GetWidgetToggleValue("Factory Guard Default On")) --convert to bool
+						WG['stateprefs'].setPresetState("factoryguard", widgetHandler.orderList["Factory Guard Default On"] ~= 0)
 					end
 				end
 			end
