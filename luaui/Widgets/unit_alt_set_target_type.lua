@@ -13,10 +13,8 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
@@ -30,6 +28,9 @@ local spGetActiveCommand 	 = Spring.GetActiveCommand
 local spGetMouseState    	 = Spring.GetMouseState
 local spTraceScreenRay   	 = Spring.TraceScreenRay
 local spGetModKeyState   	 = Spring.GetModKeyState
+local spGetUnitRulesParam    = Spring.GetUnitRulesParam
+
+local table_insert = table.insert
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -83,7 +84,7 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
         if targetID ~= unitID and targetTeam ~= nil then
             local isAllied = spAreTeamsAllied(unitTeam, targetTeam)
 			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
-				table.insert(unitsInRange, targetID)
+				table_insert(unitsInRange, targetID)
             end
         end
     end
@@ -141,12 +142,20 @@ local commandsToGiveCache = table.new(64, 0)
 local function targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
 	if candidateUnits[1] then
+		local unitTargetID = spGetUnitRulesParam(unitID, "unitTargetID")
 		local commandsToGive = commandsToGiveCache
 		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
 		local nextCmdOpts = { "shift" }
 		local candidateCount = #candidateUnits
 		for index = 2, candidateCount do
-			commandsToGive[index] = { CMD_SET_TARGET, candidateUnits[index], nextCmdOpts }
+			local commandTable = { CMD_SET_TARGET, candidateUnits[index], nextCmdOpts }
+			-- Keep the active target at the front of the target list to avoid target flap.
+			if commandTable[2] == unitTargetID then
+				commandTable[3] = nil -- unshift the command
+				table_insert(commandsToGive, 1, commandTable)
+			else
+				commandsToGive[index] = commandTable
+			end
 		end
 		-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
 		-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
