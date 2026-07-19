@@ -76,7 +76,7 @@ end
 -- Keyboard config for hotkey display
 ----------------------------------------------------------------------------------------------------
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local hotkeyCache = {}
+keyConfig._pipHotkeyCache = keyConfig._pipHotkeyCache or {}
 
 ----------------------------------------------------------------------------------------------------
 -- GL4 instanced rendering support (for efficient icon drawing with many units)
@@ -86,13 +86,13 @@ local hotkeyCache = {}
 local function getActionHotkey(action)
 	local currentKeyboardLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	local cacheKey = currentKeyboardLayout .. "\255" .. action
-	local cachedHotkey = hotkeyCache[cacheKey]
+local cachedHotkey = keyConfig._pipHotkeyCache[cacheKey]
 	if cachedHotkey ~= nil then
 		return cachedHotkey
 	end
 	local hotkeys = Spring.GetActionHotKeys(action)
 	if not hotkeys or #hotkeys == 0 then
-		hotkeyCache[cacheKey] = ""
+		keyConfig._pipHotkeyCache[cacheKey] = ""
 		return ""
 	end
 	-- Find shortest hotkey
@@ -103,7 +103,7 @@ local function getActionHotkey(action)
 		end
 	end
 	local hotkey = keyConfig.sanitizeKey(key, currentKeyboardLayout):gsub("%+", " + ")
-	hotkeyCache[cacheKey] = hotkey
+keyConfig._pipHotkeyCache[cacheKey] = hotkey
 	return hotkey
 end
 
@@ -195,6 +195,7 @@ config = {
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
+	queuedBuildDrawLimit = 160,  -- Max queued building icons drawn per PIP refresh
 
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -1436,7 +1437,6 @@ local drawData = {
 -- This significantly reduces garbage collection overhead in performance-critical draw paths
 local pools = {
 	selectableUnits = {}, -- Reused for GetUnitsInBox results
-	fragmentsByTexture = {}, -- Reused for icon shatter fragments grouping (DrawIconShatters)
 	unitsToShow = {}, -- Reused for DrawCommandQueuesOverlay unit list
 	commandLine = {}, -- Reused for batched command line vertices
 	commandMarker = {}, -- Reused for batched command marker vertices
@@ -1698,14 +1698,14 @@ local function gl4IconSortCmp(a, b)
 	return a < b
 end
 
-local function ResetUnitpicWarmQueue()
+function gl4Icons.ResetUnitpicWarmQueue()
 	local warm = gl4Icons.unitpicWarm
 	for defID in pairs(warm.queuedSet) do warm.queuedSet[defID] = nil end
 	for i = 1, warm.count do warm.queued[i] = nil end
 	warm.count = 0
 end
 
-local function QueueUnitpicWarm(defID)
+function gl4Icons.QueueUnitpicWarm(defID)
 	local warm = gl4Icons.unitpicWarm
 	if defID and not warm.warmed[defID] and not warm.queuedSet[defID] then
 		warm.count = warm.count + 1
@@ -1714,7 +1714,7 @@ local function QueueUnitpicWarm(defID)
 	end
 end
 
-local function FlushUnitpicWarmQueue(cacheUnitPic)
+function gl4Icons.FlushUnitpicWarmQueue(cacheUnitPic)
 	local warm = gl4Icons.unitpicWarm
 	local count = warm.count
 	if count <= 0 then return true, 0 end
@@ -1819,7 +1819,8 @@ local cache = {
 	unEmpableUnit = {},
 	isAirAttacker = {},   -- Air units with ground/sea attack weapons (bombers, gunships)
 	isExpensiveEco = {},  -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
-	maxIconShatters = 20,
+	maxIconShatters = 2,
+	maxIconShatterFragments = 8,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
 	weaponIsPlasma = {},
@@ -6166,16 +6167,23 @@ end
 
 -- Shared state for fragment quad drawing (avoids per-fragment closure allocation)
 local _frag = {}
-local function drawFragQuad()
+local function drawRotatedFragQuad()
+	local x, y = _frag.x, _frag.y
+	local c, s = _frag.cosRot, _frag.sinRot
 	local hs = _frag.hs
-	glFunc.TexCoord(_frag.uvx1, _frag.uvy2)
-	glFunc.Vertex(-hs, -hs, 0)
-	glFunc.TexCoord(_frag.uvx2, _frag.uvy2)
-	glFunc.Vertex(hs, -hs, 0)
-	glFunc.TexCoord(_frag.uvx2, _frag.uvy1)
-	glFunc.Vertex(hs, hs, 0)
+	local x1, y1 = -hs, -hs
+	local x2, y2 = hs, -hs
+	local x3, y3 = hs, hs
+	local x4, y4 = -hs, hs
+
 	glFunc.TexCoord(_frag.uvx1, _frag.uvy1)
-	glFunc.Vertex(-hs, hs, 0)
+	glFunc.Vertex(x + x1 * c - y1 * s, y + x1 * s + y1 * c, 0)
+	glFunc.TexCoord(_frag.uvx2, _frag.uvy1)
+	glFunc.Vertex(x + x2 * c - y2 * s, y + x2 * s + y2 * c, 0)
+	glFunc.TexCoord(_frag.uvx2, _frag.uvy2)
+	glFunc.Vertex(x + x3 * c - y3 * s, y + x3 * s + y3 * c, 0)
+	glFunc.TexCoord(_frag.uvx1, _frag.uvy2)
+	glFunc.Vertex(x + x4 * c - y4 * s, y + x4 * s + y4 * c, 0)
 end
 
 -- Octagon vertex helper (untextured, for borders) — module-level to avoid per-frame re-definition
@@ -6237,6 +6245,12 @@ end
 
 local function DrawIconShatters()
 	if #cache.iconShatters == 0 then return end
+	if cache.maxIconShatters <= 0 then
+		for i = #cache.iconShatters, 1, -1 do
+			cache.iconShatters[i] = nil
+		end
+		return
+	end
 
 	local _, _, isPaused = Spring.GetGameSpeed()
 
@@ -6246,7 +6260,9 @@ local function DrawIconShatters()
 	gl.DepthTest(false)
 
 	-- Cache math functions for better performance
-	local floor = math.floor
+	local rad = math.rad
+	local sin = math.sin
+	local cos = math.cos
 
 	-- Cache world boundaries for culling
 	local worldLeft = render.world.l
@@ -6254,22 +6270,14 @@ local function DrawIconShatters()
 	local worldTop = render.world.t
 	local worldBottom = render.world.b
 
-	-- Reuse pooled table to minimize allocations
-	local fragmentsByTexture = pools.fragmentsByTexture
-
-	-- Clear pool from previous call
-	for k in pairs(fragmentsByTexture) do
-		local t = fragmentsByTexture[k]
-		for i = 1, #t do
-			t[i] = nil
-		end
-	end
-
 	-- When LOS view is active, hide shatters whose origin is outside the viewed allyteam's LOS
 	local shatterLosAlly = state.losViewEnabled and state.losViewAllyTeam or nil
 
 	local n = #cache.iconShatters
 	local i = 1
+	local currentTexture = nil
+	local fragmentsDrawn = 0
+	local fragmentBudget = cache.maxIconShatterFragments
 	while i <= n do
 		local shatter = cache.iconShatters[i]
 		local age = gameTime - shatter.startTime
@@ -6283,6 +6291,10 @@ local function DrawIconShatters()
 		-- LOS view filter: skip shatters whose origin is outside the viewed allyteam's LOS
 		elseif shatterLosAlly and shatter.originX and not spFunc.IsPosInLos(shatter.originX, 0, shatter.originZ, shatterLosAlly) then
 			i = i + 1
+		elseif shatter.originX and (shatter.originX < worldLeft - 600 or shatter.originX > worldRight + 600 or shatter.originZ < worldTop - 600 or shatter.originZ > worldBottom + 600) then
+			i = i + 1
+		elseif fragmentsDrawn >= fragmentBudget then
+			break
 		else
 			local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
 			local scale
@@ -6297,16 +6309,10 @@ local function DrawIconShatters()
 			local velocityDamping = 0.94 + 0.04 * fade
 			local zoomInv = 1 / shatter.zoom
 
-			-- Group fragments by texture
 			local bitmap = shatter.icon.bitmap
-			local texGroup = fragmentsByTexture[bitmap]
-			local texGroupSize
-			if not texGroup then
-				texGroup = {}
-				texGroupSize = 0
-				fragmentsByTexture[bitmap] = texGroup
-			else
-				texGroupSize = #texGroup
+			if bitmap ~= currentTexture then
+				glFunc.Texture(bitmap)
+				currentTexture = bitmap
 			end
 
 			-- Update fragment physics
@@ -6321,6 +6327,9 @@ local function DrawIconShatters()
 			local fragments = shatter.fragments
 			local fragCount = #fragments
 			for j = 1, fragCount do
+				if fragmentsDrawn >= fragmentBudget then
+					break
+				end
 				local frag = fragments[j]
 				-- Update fragment world position with deceleration that increases towards end
 				-- Skip physics when paused so fragments freeze in place
@@ -6348,46 +6357,24 @@ local function DrawIconShatters()
 					fb = fb + (1 - fb) * flashFactor
 				end
 
-				-- Add to batch for this texture (use counter instead of #texGroup)
-				texGroupSize = texGroupSize + 1
-				texGroup[texGroupSize] = {
-					x = pipX,
-					z = pipZ,
-					rot = frag.rot,
-					halfSize = halfSize,
-					uvx1 = frag.uvx1,
-					uvy1 = frag.uvy1,
-					uvx2 = frag.uvx2,
-					uvy2 = frag.uvy2,
-					r = fr,
-					g = fg,
-					b = fb
-				}
+				glFunc.Color(fr, fg, fb, 1.0)
+				_frag.x = pipX
+				_frag.y = pipZ
+				local rotRad = rad(frag.rot)
+				_frag.cosRot = cos(rotRad)
+				_frag.sinRot = sin(rotRad)
+				_frag.hs = halfSize
+				_frag.uvx1 = frag.uvx1
+				_frag.uvy1 = frag.uvy1
+				_frag.uvx2 = frag.uvx2
+				_frag.uvy2 = frag.uvy2
+				glFunc.BeginEnd(glConst.QUADS, drawRotatedFragQuad)
+				fragmentsDrawn = fragmentsDrawn + 1
 			end
 
 			i = i + 1
 		end -- end of else (progress < 1)
 	end -- end of while loop
-
-	-- Draw all fragments grouped by texture
-	for bitmap, frags in pairs(fragmentsByTexture) do
-		glFunc.Texture(bitmap)
-		local fragCount = #frags
-		for i = 1, fragCount do
-			local frag = frags[i]
-			glFunc.PushMatrix()
-				glFunc.Translate(frag.x, frag.z, 0)
-				glFunc.Rotate(frag.rot, 0, 0, 1)
-				glFunc.Color(frag.r, frag.g, frag.b, 1.0)
-				_frag.hs = frag.halfSize
-				_frag.uvx1 = frag.uvx1
-				_frag.uvy1 = frag.uvy1
-				_frag.uvx2 = frag.uvx2
-				_frag.uvy2 = frag.uvy2
-				glFunc.BeginEnd(glConst.QUADS, drawFragQuad)
-			glFunc.PopMatrix()
-		end
-	end
 	glFunc.Texture(false)
 
 	gl.DepthTest(true)
@@ -10509,13 +10496,22 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	-- Counter-rotate by minimap rotation so build queue icons stay upright,
 	-- matching the GL4 shader icons which handle rotation in the vertex shader
 	local mapRotDeg = render.minimapRotation ~= 0 and (-render.minimapRotation * 180 / math.pi) or 0
+	local isRotated = mapRotDeg ~= 0
+	local rotSin, rotCos
+	if isRotated then
+		local rotRad = mapRotDeg * math.pi / 180
+		rotSin = math.sin(rotRad)
+		rotCos = math.cos(rotRad)
+	end
+	local drawLimit = config.queuedBuildDrawLimit
+	local drawStep = bCount > drawLimit and math.ceil(bCount / drawLimit) or 1
 
 	-- Group by bitmap and draw
 	-- Clear texture grouping
 	for k in pairs(pools.buildsByTexture) do pools.buildsByTexture[k] = nil end
 	for k in pairs(pools.buildCountByTexture) do pools.buildCountByTexture[k] = nil end
 
-	for i = 1, bCount do
+	for i = 1, bCount, drawStep do
 		local entry = builds[i]
 		local bmpKey = entry[1]
 		local cx, cy = WorldToPipCoords(entry[2], entry[3])
@@ -10534,7 +10530,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 			tb = {}
 			texBuilds[texCount] = tb
 		end
-		tb[1], tb[2], tb[3] = cx, cy, iconSize
+		tb[1], tb[2], tb[3], tb[4], tb[5] = cx, cy, iconSize, rotSin, rotCos
 	end
 
 	glFunc.Color(0.5, 1, 0.5, 0.4)
@@ -10545,12 +10541,17 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		for i = 1, texCount do
 			local b = texBuilds[i]
 			local cx, cy, iconSize = b[1], b[2], b[3]
-			if mapRotDeg ~= 0 then
-				glFunc.PushMatrix()
-				glFunc.Translate(cx, cy, 0)
-				glFunc.Rotate(mapRotDeg, 0, 0, 1)
-				glFunc.TexRect(-iconSize, -iconSize, iconSize, iconSize)
-				glFunc.PopMatrix()
+			if isRotated then
+				_frag.x = cx
+				_frag.y = cy
+				_frag.hs = iconSize
+				_frag.sinRot = b[4]
+				_frag.cosRot = b[5]
+				_frag.uvx1 = 0
+				_frag.uvy1 = 1
+				_frag.uvx2 = 1
+				_frag.uvy2 = 0
+				glFunc.BeginEnd(glConst.QUADS, drawRotatedFragQuad)
 			else
 				glFunc.TexRect(cx - iconSize, cy - iconSize, cx + iconSize, cy + iconSize)
 			end
@@ -10599,7 +10600,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
 	local unitpicWarmCandidate = config.showUnitpics and unitCount <= config.unitpicMaxUnits and cameraState.targetZoom >= (config.unitpicZoomThreshold - config.unitpicWarmupRange)
 	local useUnitpics = unitpicWarmCandidate and cameraState.targetZoom >= config.unitpicZoomThreshold
-	ResetUnitpicWarmQueue()
+	gl4Icons.ResetUnitpicWarmQueue()
 	local unitpicEntries = gl4Icons.unitpicEntries
 	if not unitpicEntries then
 		unitpicEntries = {}
@@ -10747,6 +10748,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Build tracked set for O(1) lookup in processUnit (must be before processUnit definition)
 	local trackedSet = trackingSet
+	local trustBuildingVisibility = unitCount > config.iconCosmeticSkipThreshold
+		and checkAllyTeamID and not state.losViewEnabled
+		and not (interactionState.trackingPlayerID and cameraState.mySpecState)
 
 	-- Process one unit: resolve LOS, look up icon, write to VBO array.
 	-- Returns updated usedElements. Defined once to avoid closure per-layer.
@@ -10778,12 +10782,21 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				localTeamAllyTeamCache[uTeam] = unitAllyTeam
 			end
 			if unitAllyTeam ~= checkAllyTeamID then
+				local isBuildingLike = cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID]
+				if trustBuildingVisibility and isBuildingLike then
+					local g = ghostBuildings[uID]
+					if g then
+						g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
+					else
+						ghostBuildings[uID] = { defID = uDefID, x = ux, z = uz, teamID = uTeam }
+					end
+				else
 				local losBits = spFunc.GetUnitLosState(uID, checkAllyTeamID, true)
 				if not losBits or losBits == 0 then
 					return usedEl
 				elseif losBits % (LOS_INLOS * 2) >= LOS_INLOS then
 					-- full LOS: draw normally, and record building ghost for when it leaves LOS
-					if cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID] then
+					if isBuildingLike then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -10793,7 +10806,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					end
 				elseif losBits % (LOS_INRADAR * 2) >= LOS_INRADAR then
 					-- Buildings in radar: don't wobble (they're stationary, position is known)
-					if not cacheIsBuilding[uDefID] and not cache.isPseudoBuilding[uDefID] then
+					if not isBuildingLike then
 						isRadar = true
 					end
 					local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS) or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
@@ -10803,7 +10816,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				else
 					-- Not in LOS or radar, but has some bits (e.g. PREVLOS).
 					-- Record ghost for previously-seen buildings so they appear as ghosts.
-					if (cacheIsBuilding[uDefID] or cache.isPseudoBuilding[uDefID]) and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
+					if isBuildingLike and losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS then
 						local g = ghostBuildings[uID]
 						if g then
 							g.defID = uDefID; g.x = ux; g.z = uz; g.teamID = uTeam
@@ -10812,6 +10825,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						end
 					end
 					return usedEl
+				end
 				end
 			end
 		end
@@ -10860,7 +10874,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Self-destruct: use event-driven cache (no per-unit API call)
 		local isSelfD = not isRadar and selfDUnits[uID] or false
 		if unitpicWarmCandidate and not isRadar and visibleDefID then
-			QueueUnitpicWarm(visibleDefID)
+			gl4Icons.QueueUnitpicWarm(visibleDefID)
 		end
 
 		-- Collect unitpic data when zoomed in (only for fully visible, non-radar units)
@@ -11174,12 +11188,12 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		and not gl4Icons._bldgBlockBuiltDuringUnitpics
 
 	gl4Icons._bldgRenderFrame = (gl4Icons._bldgRenderFrame or 0) + 1
-	if not bldgBlockValid and bldgBlock and bCount > 3000
+	if not bldgBlockValid and bldgBlock and bCount > 800
 		and checkAllyTeamID == gl4Icons._bldgBlockCheckAlly
-		and (currentGameFrame - (gl4Icons._bldgBlockFrame or 0)) < bldgBlockGameFrameLimit
+		and bCount == gl4Icons._bldgBlockBCount
+		and bldgHash == gl4Icons._bldgBlockHash
 		and not useUnitpics
-		and not gl4Icons._bldgBlockBuiltDuringUnitpics
-		and (gl4Icons._bldgRenderFrame - (gl4Icons._bldgBlockRebuildRenderFrame or 0)) < 5 then
+		and not gl4Icons._bldgBlockBuiltDuringUnitpics then
 		bldgBlockValid = true
 	end
 
@@ -11312,7 +11326,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Buildings rarely change so this sort runs infrequently.
 		local bldgSetChanged = bCount ~= gl4Icons._lastBldgCount or bldgHash ~= gl4Icons._lastBldgHash
 		if bldgSetChanged then
-			table.sort(buildingIDs, gl4IconSortCmp)
+			if unitCount <= config.iconSortSkipThreshold then
+				table.sort(buildingIDs, gl4IconSortCmp)
+			end
 			for i = 1, bCount do bldgSortedCache[i] = buildingIDs[i] end
 			bldgSortedCache[bCount + 1] = nil
 			gl4Icons._lastBldgCount = bCount
@@ -12091,7 +12107,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		tracy.ZoneEnd()
 	end
 	if unitpicWarmCandidate then
-		local _, warmMissing = FlushUnitpicWarmQueue(cache.unitPic)
+		local _, warmMissing = gl4Icons.FlushUnitpicWarmQueue(cache.unitPic)
 		if warmMissing > 0 then
 			pipR2T.unitsNeedsUpdate = true
 		end
@@ -12516,9 +12532,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		end
 
 		-- Draw icon shatters
-		tracy.ZoneBeginN("W:PIP:Projectiles:IconShatters")
-		DrawIconShatters()
-		tracy.ZoneEnd()
+		if cache.maxIconShatters > 0 and #cache.iconShatters > 0 then
+			tracy.ZoneBeginN("W:PIP:Projectiles:IconShatters")
+			DrawIconShatters()
+			tracy.ZoneEnd()
+		end
 
 		-- Draw seismic pings (always visible at any zoom level)
 		tracy.ZoneBeginN("W:PIP:Projectiles:SeismicPings")
@@ -15469,7 +15487,11 @@ local function DrawTrackedPlayerMinimap()
 		cLeft = mmCenterX - cWidth / 2
 		cRight = mmCenterX + cWidth / 2
 		cBottom = mmCenterY - cHeight / 2
-		cTop = mmCenterY + cHeight / 2
+				_frag.uvx1 = 0
+				_frag.uvy1 = 1
+				_frag.uvx2 = 1
+				_frag.uvy2 = 0
+				glFunc.BeginEnd(glConst.QUADS, drawRotatedFragQuad)
 	else
 		cLeft, cRight, cBottom, cTop = mmLeft, mmRight, mmBottom, mmTop
 		cWidth = minimapWidth
@@ -19224,16 +19246,6 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	-- Performance: limit max simultaneous shatters
 	if #cache.iconShatters >= cache.maxIconShatters then return end
 
-	-- Throttle shatters based on number of visible unit icons
-	local iconCount = #miscState.pipUnits
-	if iconCount >= 4000 then return end  -- no shatters at all above 4000 icons
-	if iconCount >= 3000 then
-		-- Only shatter big-footprint units (xsize*4 >= 16 means footprint >= 4)
-		local xs = cache.xsizes[unitDefID]
-		local zs = cache.zsizes[unitDefID]
-		if not xs or (xs < 16 and (not zs or zs < 16)) then return end
-	end
-
 	-- Only shatter if unit has an icon
 	if not cache.unitIcon[unitDefID] then return end
 
@@ -19260,12 +19272,11 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	local unitBaseSize = Spring.GetConfigFloat("MinimapIconScale", 3.5)
 	local iconSize = unitBaseSize * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(cameraState.zoom) * resScale * iconData.size
 
-	-- Skip shattering for tiny icons (too small to see fragments when zoomed out)
-	if iconSize < 6 then return end
+	-- Keep tiny icons visible: draw a small, stylized shatter instead of skipping entirely.
+	if iconSize < 6 then iconSize = 6 end
 
-	-- Use fixed 2x2 or 3x3 grid for fewer, bigger fragments
-	-- Adjust threshold based on actual rendered size
-	local grid = iconSize < 40 and 2 or 3
+	-- Use fixed 2x2 grid: PIP has a hard draw budget, so keep the effect small but visible.
+	local grid = 2
 	-- Icon is rendered at 2*iconSize (from -iconSize to +iconSize), so fragments need to match
 	local fragSize = (iconSize * 2) / grid
 
