@@ -13,7 +13,7 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 2800,
+		health = 2500,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
