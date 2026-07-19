@@ -45,6 +45,8 @@ local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local UNIT_RANGE_MULTIPLIER = 1.5
 -- Radius in elmos to search for nearby enemy units when click misses
 local SNAP_RADIUS = 100
+-- Number of targets that can be assigned. Used to set up the table pools.
+local TARGET_BY_TYPE_COUNT_MAX = 128
 
 local gameStarted
 
@@ -137,29 +139,39 @@ local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
 	return closestUnit
 end
 
-local commandsToGiveCache = table.new(64, 0)
+local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0) -- can insert active target also
+local commandsToGivePool = table.new(TARGET_BY_TYPE_COUNT_MAX, 0)
+local nextCmdOpts = { "shift" }
+do
+	for i = 1, TARGET_BY_TYPE_COUNT_MAX do
+		commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
+	end
+end
 
 local function targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
 	if candidateUnits[1] then
 		local unitTargetID = spGetUnitRulesParam(unitID, "unitTargetID")
+		local commandTarget = { CMD_SET_TARGET, unitTargetID }
 		local commandsToGive = commandsToGiveCache
 		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
-		local nextCmdOpts = { "shift" }
 		local candidateCount = #candidateUnits
 		for index = 2, candidateCount do
-			local commandTable = { CMD_SET_TARGET, candidateUnits[index], nextCmdOpts }
-			-- Keep the active target at the front of the target list to avoid target flap.
-			if commandTable[2] == unitTargetID then
-				commandTable[3] = nil -- unshift the command
-				table_insert(commandsToGive, 1, commandTable)
-			else
+			if candidateUnits[index] == unitTargetID then
+				-- Keep the active target at the front of the target list to avoid target flap.
+				commandsToGive[1][3] = nextCmdOpts -- First command gains shift modifier.
+				table_insert(commandsToGive, 1, commandTarget)
+			elseif index <= TARGET_BY_TYPE_COUNT_MAX then
+				local commandTable = commandsToGivePool[index]
+				commandTable[2] = candidateUnits[index]
 				commandsToGive[index] = commandTable
 			end
 		end
 		-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
 		-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
-		commandsToGive[candidateCount + 1] = nil
+		if candidateCount < TARGET_BY_TYPE_COUNT_MAX then
+			commandsToGive[candidateCount + 1] = nil
+		end
 		spGiveOrderArrayToUnit(unitID, commandsToGive)
 	else -- TODO: only give order if unit has a target list:
 		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
