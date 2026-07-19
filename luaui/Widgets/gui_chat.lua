@@ -323,6 +323,37 @@ local function clearAutocompleteSource(source)
 	end
 end
 
+function state.applyAutocompleteCommandSnapshot(source, payload)
+	local sourceCommands = autocompleteCommandSources[source]
+	if not sourceCommands then
+		return
+	end
+	local commands = {}
+	local pos = 1
+	local payloadLen = slen(payload)
+	while pos <= payloadLen do
+		local sepStart, sepEnd = sfind(payload, ':', pos, true)
+		if not sepStart then
+			return
+		end
+		local cmdLen = tonumber(ssub(payload, pos, sepStart - 1))
+		if not cmdLen or cmdLen < 0 then
+			return
+		end
+		local cmdStart = sepEnd + 1
+		local cmdEnd = cmdStart + cmdLen - 1
+		if cmdEnd > payloadLen then
+			return
+		end
+		commands[#commands + 1] = ssub(payload, cmdStart, cmdEnd)
+		pos = cmdEnd + 1
+	end
+	clearAutocompleteSource(source)
+	for i = 1, #commands do
+		addAutocompleteCommand(source, commands[i])
+	end
+end
+
 local function refreshWidgetAutocompleteCommands()
 	clearAutocompleteSource('widget')
 	for textAction in pairs(widgetHandler.actionHandler.textActions) do
@@ -1632,10 +1663,12 @@ function widget:RecvLuaMsg(msg, playerID)
 		if not chobbyInterface then
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
-	elseif msg:sub(1,20) == 'gui_chat:chataction:' then
-		local source, mode, cmd = msg:match('^gui_chat:chataction:([^:]+):([^:]+):?(.*)$')
+	elseif sfind(msg, 'gui_chat:chataction:', 1, true) == 1 then
+		local source, mode, cmd = ssub(msg, 21):match('^([^:]+):([^:]+):?(.*)$')
 		if source and mode then
-			if mode == 'clear' then
+			if mode == 'snapshot' then
+				state.applyAutocompleteCommandSnapshot(source, cmd or '')
+			elseif mode == 'clear' then
 				clearAutocompleteSource(source)
 			elseif mode == 'add' and cmd ~= '' then
 				addAutocompleteCommand(source, cmd)
