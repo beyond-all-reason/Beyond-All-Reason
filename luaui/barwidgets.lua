@@ -2735,7 +2735,7 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 24))
+	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 100))
 	local retval = false
 	if msg:find('LobbyOverlayActive', 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')

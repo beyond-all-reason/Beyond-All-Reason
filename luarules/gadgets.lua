@@ -46,11 +46,13 @@ local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
 local CHAT_ACTION_PREFIX = 'gui_chat:chataction:'
 local CHAT_ACTION_REQUEST = 'gui_chat:requestChatActions'
+local CHAT_ACTION_SNAPSHOT = 'snapshot'
 
 local chatActionRegistry = {
 	synced = {},
 	unsynced = {},
 }
+local chatActionBroadcastsEnabled = false
 
 local BroadcastChatActionUpdate
 
@@ -64,7 +66,9 @@ local function RegisterChatAction(source, cmd)
 		return
 	end
 	sourceRegistry[cmd] = true
-	BroadcastChatActionUpdate(source, 'add', cmd)
+	if chatActionBroadcastsEnabled then
+		BroadcastChatActionUpdate(source, 'add', cmd)
+	end
 end
 
 local function UnregisterChatAction(source, cmd)
@@ -74,7 +78,9 @@ local function UnregisterChatAction(source, cmd)
 	end
 	if sourceRegistry[cmd] then
 		sourceRegistry[cmd] = nil
-		BroadcastChatActionUpdate(source, 'remove', cmd)
+		if chatActionBroadcastsEnabled then
+			BroadcastChatActionUpdate(source, 'remove', cmd)
+		end
 	end
 end
 
@@ -97,8 +103,7 @@ actionHandler.RemoveChatAction = function(widget, cmd)
 	return textSuccess
 end
 
-BroadcastChatActionUpdate = function(source, mode, cmd)
-	local msg = CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd
+local function SendChatActionMessage(msg)
 	if Spring.SendLuaUIMsg then
 		Spring.SendLuaUIMsg(msg)
 	elseif SendToUnsynced then
@@ -106,14 +111,26 @@ BroadcastChatActionUpdate = function(source, mode, cmd)
 	end
 end
 
+BroadcastChatActionUpdate = function(source, mode, cmd)
+	SendChatActionMessage(CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd)
+end
+
+local function EncodeChatActionSnapshot(actionMap)
+	local payload = {}
+	for cmd in pairs(actionMap or {}) do
+		if type(cmd) == 'string' and cmd ~= '' then
+			payload[#payload + 1] = tostring(#cmd)
+			payload[#payload + 1] = ':'
+			payload[#payload + 1] = cmd
+		end
+	end
+	return table.concat(payload)
+end
+
 local function BroadcastChatActionSnapshot(source, actionMap)
-	if not Spring.SendLuaUIMsg then
-		return
-	end
-	Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':clear')
-	for cmd in pairs(actionMap or chatActionRegistry[source] or {}) do
-		Spring.SendLuaUIMsg(CHAT_ACTION_PREFIX .. source .. ':add:' .. cmd)
-	end
+	chatActionBroadcastsEnabled = true
+	local payload = EncodeChatActionSnapshot(actionMap or chatActionRegistry[source])
+	SendChatActionMessage(CHAT_ACTION_PREFIX .. source .. ':' .. CHAT_ACTION_SNAPSHOT .. ':' .. payload)
 end
 
 -- Utility call
