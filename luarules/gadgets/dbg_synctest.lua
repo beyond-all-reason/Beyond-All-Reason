@@ -485,7 +485,7 @@ else	-- UNSYNCED
 
 	function gadget:GameFrame(n)
 		if not hudActive then return end
-		if not Engine.hasSyncChecksums then return end
+		if not Platform.hasSyncChecksums then return end
 		local checksum = Spring.GetPrevFrameSyncChecksum()
 		local runFrame = n - hudRunStartFrame
 		local i = #checksumBuffer + 1
