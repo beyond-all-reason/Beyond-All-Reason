@@ -18,6 +18,7 @@ end
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -281,7 +282,7 @@ end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = spGetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
@@ -358,7 +359,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	]]--
 
 	if gameFrame <= 0 and not fullview then
-		local currentAllyTeamID = Spring.GetMyAllyTeamID()
+		local currentAllyTeamID = spGetMyAllyTeamID()
 		if myAllyTeamID ~= currentAllyTeamID then
 			widget:PlayerChanged()
 		end
@@ -696,7 +697,7 @@ function widget:PlayerChanged(playerID)
 	-- the fullview variable is not changed, however
 
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentAllyTeamID = spGetMyAllyTeamID()
 	local currentTeamID = spGetMyTeamID()
 	local currentPlayerID = Spring.GetMyPlayerID()
 
@@ -717,7 +718,7 @@ function widget:PlayerChanged(playerID)
 	-- testing for visible units changed
 	if (currentspec ~= spec) or -- we change from spec to non spec (I dont think its possible to go from player to non-fullview spec in one go)
 		(currentfullview ~= fullview) or
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview) then -- our ALLYteam changes, and we are not in fullview
+		((currentAllyTeamID ~= myAllyTeamID) and not currentspec and not currentfullview) then -- our ALLYteam changes while playing, and we are not in fullview
 		reinit = true
 	end
 
@@ -776,7 +777,7 @@ function widget:Initialize()
 	gameFrame = spGetGameFrame()
 	spec, fullview = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = spGetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded

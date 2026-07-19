@@ -195,7 +195,9 @@ config = {
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
-	queuedBuildDrawLimit = 160,  -- Max queued building icons drawn per PIP refresh
+	queuedBuildDrawLimit = 100,  -- Max queued building icons drawn per PIP refresh
+	queuedBuildDenseDrawLimit = 24, -- Max queued building icons drawn in dense visible-unit views
+	queuedBuildMinZoom = 0.18, -- Hide queued build icons when zoomed out below this
 
 	-- Feature and overlay settings
 	hideEnergyOnlyFeatures = false,
@@ -10370,6 +10372,10 @@ local queuedBuildCache = {
 
 local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 	tracy.ZoneBeginN("W:PIP:QueuedBuilds")
+	if cameraState.zoom < config.queuedBuildMinZoom then
+		tracy.ZoneEnd()
+		return
+	end
 	-- When tracking another player, use their selected units instead of the local player's
 	local selectedUnits
 	local selectedCount = 0
@@ -10503,7 +10509,7 @@ local function DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
 		rotSin = math.sin(rotRad)
 		rotCos = math.cos(rotRad)
 	end
-	local drawLimit = config.queuedBuildDrawLimit
+	local drawLimit = (#miscState.pipUnits > 1500) and config.queuedBuildDenseDrawLimit or config.queuedBuildDrawLimit
 	local drawStep = bCount > drawLimit and math.ceil(bCount / drawLimit) or 1
 
 	-- Group by bitmap and draw
