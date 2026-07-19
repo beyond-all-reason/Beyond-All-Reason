@@ -17,15 +17,19 @@ end
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spEcho = Spring.Echo
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGameRulesParam = Spring.GetGameRulesParam
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSpeed = Spring.GetGameSpeed
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 local spSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
 
@@ -57,6 +61,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance  = InstanceVBOTable.popElementInstance
+local uploadAllElements   = InstanceVBOTable.uploadAllElements
 
 
 -- Localize for speedups:
@@ -75,8 +80,10 @@ local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
 local selUnits = {}
+local nextSelUnits = {}
 local updateSelection = true
 local selectedUnits = spGetSelectedUnits()
+local pendingSelectedUnits = nil
 local drawCallinsEnabled = true
 
 local unitTeam = {}
@@ -103,6 +110,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 local unitBufferUniformCache = {0}
+local selectionInstanceData = {}
+for i = 1, 18 do selectionInstanceData[i] = 0 end
+selectionInstanceData[12] = 1
+selectionInstanceData[14] = 1
 local widgetDrawWorld = nil
 local widgetDrawWorldPreUnit = nil
 local UpdateDrawCallinsEnabled = nil
@@ -142,16 +153,16 @@ local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
 end
 
 
-local function AddPrimitiveAtUnit(unitID)
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true or Spring.IsGUIHidden() then return end
-	local gf = Spring.GetGameFrame()
-	local _, _, isPaused = Spring.GetGameSpeed()
+local function AddPrimitiveAtUnit(unitID, noUpload, waterLevel)
+	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true or spIsGUIHidden() then return end
+	local gf = spGetGameFrame()
+	local _, _, isPaused = spGetGameSpeed()
 	if isPaused then
 		gf = gf - 10
 	end
 
 	if not unitUnitDefID[unitID] then
-		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
+		unitUnitDefID[unitID] = spGetUnitDefID(unitID)
 	end
 	local unitDefID = unitUnitDefID[unitID]
 	if unitDefID == nil then return end -- these cant be selected
@@ -161,15 +172,17 @@ local function AddPrimitiveAtUnit(unitID)
 
 	local radius = unitScale[unitDefID]
 
-	if not unitTeam[unitID] then
-		unitTeam[unitID] = spGetUnitTeam(unitID)
+	local teamID = unitTeam[unitID]
+	if not teamID then
+		teamID = spGetUnitTeam(unitID)
+		unitTeam[unitID] = teamID
 	end
 
 	local buildingDims = unitBuilding[unitDefID]
 	local useUnfinishedRenderPath = false
 	local useUnfinishedGeometry = false
 	if not buildingDims then
-		if Spring.GetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
+		if spGetUnitIsBeingBuilt(unitID) or unitDoneFrame[unitID] ~= nil then
 			useUnfinishedRenderPath = true
 			if not unitBuiltByFactory[unitID] then
 				useUnfinishedGeometry = true
@@ -201,7 +214,7 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	if selectionHighlight then
 		unitBufferUniformCache[1] = 1
-		gl.SetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
+		spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
 	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
@@ -212,24 +225,25 @@ local function AddPrimitiveAtUnit(unitID)
 		targetVBO = selectionVBOGround
 		unitWaterPass[unitID] = false
 	else
-		local useWaterPass = shouldUseWaterPass(unitID, unitDefID)
+		local useWaterPass = (waterLevel ~= nil) and shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel) or shouldUseWaterPass(unitID, unitDefID)
 		unitWaterPass[unitID] = useWaterPass
 		targetVBO = (useWaterPass and selectionVBOWater) or selectionVBOGround
 	end
 
+	selectionInstanceData[1] = length
+	selectionInstanceData[2] = width
+	selectionInstanceData[3] = cornersize
+	selectionInstanceData[4] = additionalheight
+	selectionInstanceData[5] = teamID
+	selectionInstanceData[6] = numVertices
+	selectionInstanceData[7] = gf
+
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-		{
-			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			unitTeam[unitID], -- teamID
-			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
-		},
+		selectionInstanceData,
 		unitID, -- this is the key inside the VBO TAble,
 		true, -- update existing element
-		nil, -- noupload, dont use unless you
+		noUpload, -- noupload, dont use unless you
 		unitID -- last one should be UNITID?
 	)
 end
@@ -337,7 +351,19 @@ UpdateDrawCallinsEnabled = function()
 	RefreshWidgetCallIn("DrawWorldPreUnit")
 end
 
-local function removeFromVBO(unitID, selectionVBO)
+local function UploadDirtySelectionVBOs()
+	if selectionVBOGround and selectionVBOGround.dirty then
+		uploadAllElements(selectionVBOGround)
+	end
+	if selectionVBOUnfinished and selectionVBOUnfinished.dirty then
+		uploadAllElements(selectionVBOUnfinished)
+	end
+	if mapHasWater and selectionVBOWater and selectionVBOWater.dirty then
+		uploadAllElements(selectionVBOWater)
+	end
+end
+
+local function removeFromVBO(unitID, selectionVBO, noUpload)
 	if selectionVBO then
 		if selectionHighlight then
 			unitBufferUniformCache[1] = 0
@@ -345,30 +371,31 @@ local function removeFromVBO(unitID, selectionVBO)
 				spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 			end
 		end
-		popElementInstance(selectionVBO, unitID)
+		popElementInstance(selectionVBO, unitID, noUpload)
 	end
 end
 
-local function RemovePrimitive(unitID)
+local function RemovePrimitive(unitID, noUpload, skipDrawCallinUpdate)
 	if selectionVBOGround.instanceIDtoIndex[unitID] then
-		removeFromVBO(unitID, selectionVBOGround)
+		removeFromVBO(unitID, selectionVBOGround, noUpload)
 	end
 	if selectionVBOUnfinished.instanceIDtoIndex[unitID] then
-		removeFromVBO(unitID, selectionVBOUnfinished)
+		removeFromVBO(unitID, selectionVBOUnfinished, noUpload)
 	end
 	if mapHasWater and selectionVBOWater.instanceIDtoIndex[unitID] then
-		removeFromVBO(unitID, selectionVBOWater)
+		removeFromVBO(unitID, selectionVBOWater, noUpload)
 	end
 	if selectionVBOAir.instanceIDtoIndex[unitID] then
-		removeFromVBO(unitID, selectionVBOAir)
+		removeFromVBO(unitID, selectionVBOAir, noUpload)
 	end
 	unitWaterPass[unitID] = nil
-	if UpdateDrawCallinsEnabled then
+	if not skipDrawCallinUpdate and UpdateDrawCallinsEnabled then
 		UpdateDrawCallinsEnabled()
 	end
 end
 
 function widget:SelectionChanged(sel)
+	pendingSelectedUnits = sel
 	updateSelection = true
 end
 
@@ -408,8 +435,13 @@ function widget:Update(dt)
 	if guiHidden then
 		if not cleanedForHiddenUI then
 			ClearLastMouseOver()
+			local changedVBOs = false
 			for unitID, _ in pairs(selUnits) do
-				RemovePrimitive(unitID)
+				RemovePrimitive(unitID, true, true)
+				changedVBOs = true
+			end
+			if changedVBOs then
+				UploadDirtySelectionVBOs()
 			end
 			-- Reset drawn selection state so we can rebuild when UI becomes visible
 			selUnits = {}
@@ -427,25 +459,40 @@ function widget:Update(dt)
 	end
 
 	if updateSelection then
-		selectedUnits = spGetSelectedUnits()
+		selectedUnits = pendingSelectedUnits or spGetSelectedUnits()
+		pendingSelectedUnits = nil
 		updateSelection = false
 
-		local newSelUnits = {}
+		local oldSelUnits = selUnits
+		local newSelUnits = nextSelUnits
+		for unitID, _ in pairs(newSelUnits) do
+			newSelUnits[unitID] = nil
+		end
+
+		local changedVBOs = false
+		local waterLevel = mapHasWater and getWaterLevel() or nil
 		-- add to selection
-		for i, unitID in ipairs(selectedUnits) do
+		for i = 1, #selectedUnits do
+			local unitID = selectedUnits[i]
 			newSelUnits[unitID] = true
-			if not selUnits[unitID] then
-				AddPrimitiveAtUnit(unitID)
+			if not oldSelUnits[unitID] then
+				AddPrimitiveAtUnit(unitID, true, waterLevel)
+				changedVBOs = true
 			end
 		end
 		-- remove from selection
-		for unitID, _ in pairs(selUnits) do
+		for unitID, _ in pairs(oldSelUnits) do
 			if not newSelUnits[unitID] then
-				RemovePrimitive(unitID)
+				RemovePrimitive(unitID, true, true)
+				changedVBOs = true
 				unitDoneFrame[unitID] = nil
 			end
 		end
 		selUnits = newSelUnits
+		nextSelUnits = oldSelUnits
+		if changedVBOs then
+			UploadDirtySelectionVBOs()
+		end
 		UpdateDrawCallinsEnabled()
 	end
 
@@ -456,16 +503,21 @@ function widget:Update(dt)
 		if gf >= nextWaterPassCheckFrame then
 			nextWaterPassCheckFrame = gf + waterPassCheckInterval
 			local waterLevel = getWaterLevel()
+			local changedVBOs = false
 			-- Keep selected naval/submerged units in the post-water VBO as they move.
 			for unitID, _ in pairs(selUnits) do
 				local unitDefID = unitUnitDefID[unitID]
-				if unitDefID and not unitCanFly[unitDefID] and not Spring.GetUnitIsBeingBuilt(unitID) and unitDoneFrame[unitID] == nil then
+				if unitDefID and not unitCanFly[unitDefID] and not spGetUnitIsBeingBuilt(unitID) and unitDoneFrame[unitID] == nil then
 					local desiredWaterPass = shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
 					if desiredWaterPass ~= unitWaterPass[unitID] then
-						RemovePrimitive(unitID)
-						AddPrimitiveAtUnit(unitID)
+						RemovePrimitive(unitID, true, true)
+						AddPrimitiveAtUnit(unitID, true, waterLevel)
+						changedVBOs = true
 					end
 				end
+			end
+			if changedVBOs then
+				UploadDirtySelectionVBOs()
 			end
 		end
 	end
@@ -534,14 +586,20 @@ function widget:GameFrame(frame)
 	end
 
 	local swapFrame = frame - leaveFactoryFrames
+	local changedVBOs = false
+	local waterLevel = mapHasWater and getWaterLevel() or nil
 	for unitID, doneFrame in pairs(unitDoneFrame) do
 		if doneFrame <= swapFrame then
 			unitDoneFrame[unitID] = nil
 			if selUnits[unitID] then
-				RemovePrimitive(unitID)
-				AddPrimitiveAtUnit(unitID)
+				RemovePrimitive(unitID, true, true)
+				AddPrimitiveAtUnit(unitID, true, waterLevel)
+				changedVBOs = true
 			end
 		end
+	end
+	if changedVBOs then
+		UploadDirtySelectionVBOs()
 	end
 end
 
@@ -551,7 +609,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
 	end
 
 	if type(builderID) == "number" then
-		local builderDefID = Spring.GetUnitDefID(builderID)
+		local builderDefID = spGetUnitDefID(builderID)
 		if builderDefID and UnitDefs[builderDefID] and UnitDefs[builderDefID].isFactory then
 			unitBuiltByFactory[unitID] = true
 		end
@@ -561,7 +619,7 @@ end
 
 function widget:UnitFinished(unitID)
 	if selUnits[unitID] then
-		unitDoneFrame[unitID] = Spring.GetGameFrame()
+		unitDoneFrame[unitID] = spGetGameFrame()
 	end
 end
 
