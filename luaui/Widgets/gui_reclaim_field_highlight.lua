@@ -4470,21 +4470,29 @@ end
 function widget:DrawWorldPreUnit()
 	drawCounter = drawCounter + 1
 
-	local tUpd0 = debugTiming and osClock() or 0
-	UpdateReclaimFields()
-	if debugTiming then
-		local dt = osClock() - tUpd0
-		timingAccum.updateReclaim = timingAccum.updateReclaim + dt
-		if dt > timingAccum.maxUpdateReclaim then timingAccum.maxUpdateReclaim = dt end
-		if dt * 1000 >= timingAccum.spikeMs and (osClock() - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
-			timingAccum.lastSpikeClock = osClock()
-			Spring.Echo(string.format(
-				"[ReclaimField SPIKE] UpdateReclaimFields=%.2fms  features=%d  metalClusters=%d  energyClusters=%d",
-				dt * 1000,
-				cachedKnownFeaturesCount,
-				#featureClusters,
-				#energyFeatureClusters
-			))
+	local frame = spGetGameFrame()
+	local sameGameFrameAsLastDraw = (frame == batch.lastUpdateDrawFrame)
+	local hadRenderOnlyDraw = batch.sawRenderOnlyDraw
+	batch.lastUpdateDrawFrame = frame
+	batch.sawRenderOnlyDraw = sameGameFrameAsLastDraw
+	local shouldUpdateReclaim = sameGameFrameAsLastDraw or not hadRenderOnlyDraw
+	if shouldUpdateReclaim then
+		local tUpd0 = debugTiming and osClock() or 0
+		UpdateReclaimFields()
+		if debugTiming then
+			local dt = osClock() - tUpd0
+			timingAccum.updateReclaim = timingAccum.updateReclaim + dt
+			if dt > timingAccum.maxUpdateReclaim then timingAccum.maxUpdateReclaim = dt end
+			if dt * 1000 >= timingAccum.spikeMs and (osClock() - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
+				timingAccum.lastSpikeClock = osClock()
+				Spring.Echo(string.format(
+					"[ReclaimField SPIKE] UpdateReclaimFields=%.2fms  features=%d  metalClusters=%d  energyClusters=%d",
+					dt * 1000,
+					cachedKnownFeaturesCount,
+					#featureClusters,
+					#energyFeatureClusters
+				))
+			end
 		end
 	end
 
