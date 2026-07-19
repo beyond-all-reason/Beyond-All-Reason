@@ -45,6 +45,9 @@ local keybindsimages = {
 local tabrects = {}
 local lasttab = "Keybindings"
 
+local openKeybindsBtnRect = {}
+local hasViewDataFn = Spring.ViewDataFileOrDir ~= nil
+
 local doUpdate
 local actionHotkeys
 
@@ -120,12 +123,41 @@ local function drawTextTable(lines, x, y)
 	return x, lineIndex
 end
 
+local function drawOpenKeybindsButton()
+	local btnText = "Edit Keybinds"
+	local btnFontSize = 13 * widgetScale
+	
+	local textWidth = font2:GetTextWidth(btnText) * btnFontSize
+	local textHeight = font2:GetTextHeight(btnText) * btnFontSize
+	local textPadding = 8 * widgetScale
+	
+	local btnWidth = textWidth + 2*textPadding
+	local btnHeight = textHeight + 2*textPadding
+
+	local btnLeft = screenX
+	local btnRight = screenX + btnWidth
+	local btnTop = screenY - screenHeight
+	local btnBot = screenY - screenHeight - btnHeight
+	openKeybindsBtnRect = { btnLeft, btnBot, btnRight, btnTop }
+
+	gl.Color(0, 0, 0, WG.FlowUI.clampedOpacity)
+	RectRound(openKeybindsBtnRect[1], openKeybindsBtnRect[2], openKeybindsBtnRect[3], openKeybindsBtnRect[4], elementCorner, 0, 0, 1, 1)
+
+	font2:Begin()
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.4)
+	local textX = btnLeft + textPadding
+	local textY = btnBot + textPadding
+	font2:Print(titleColor .. btnText, textX, textY, btnFontSize, "on")
+	font2:End()
+end
+
 local function drawWindow(activetab)
 	local activetab = activetab or lasttab
 	if activetab == nil then activetab = 'Keybindings' end
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 0, 1,1,1,1, WG.FlowUI.clampedOpacity)
 
 	local titleFontSize = 18 * widgetScale
 
@@ -157,7 +189,6 @@ local function drawWindow(activetab)
 	end
 	font2:End()
 
-
 	if activetab ~= "Keybindings" and keybindsimages[activetab] then
 		gl.Color(1,1,1,1)
 		gl.Texture(0, ":l:"..keybindsimages[activetab])
@@ -165,7 +196,6 @@ local function drawWindow(activetab)
 		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
 		gl.Texture(0, false)
 	else
-
 		local entriesPerColumn = mathCeil(#keybindsText / 3)
 		local entries1 = {}
 		local entries2 = {}
@@ -193,6 +223,10 @@ local function drawWindow(activetab)
 		font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (34*widgetScale), 12.5*widgetScale)
 		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
 		font:End()
+	end
+
+	if hasViewDataFn then
+		drawOpenKeybindsButton()
 	end
 end
 
@@ -337,10 +371,7 @@ function widget:ViewResize()
 	end
 end
 
-
-
 function widget:DrawScreen()
-
 	-- draw the help
 	if doUpdate then
 		if keybinds then
@@ -411,7 +442,7 @@ local function mouseEvent(x, y, button, release)
 					if keybinds then
 						gl.DeleteList(keybinds)
 					end
-					lasstab = tab
+					lasttab = tab
 					keybinds = gl.CreateList(drawWindow, tab)
 					if backgroundGuishader ~= nil then
 						if WG['guishader'] then
@@ -423,6 +454,22 @@ local function mouseEvent(x, y, button, release)
 					end
 					return true
 				end
+			end
+			-- Check "Open Keybinds Folder" button click
+			if not release 
+				and #openKeybindsBtnRect == 4
+				and math_isInRect(x, y, openKeybindsBtnRect[1], openKeybindsBtnRect[2], openKeybindsBtnRect[3], openKeybindsBtnRect[4])
+			then
+				if not hasViewDataFn then
+					Spring.Echo("[Keybinds] ViewDataFileOrDir not available in this engine version.")
+					return true
+				end
+				Spring.Echo("[Keybinds] Opening uikeys.txt")
+				local ok = Spring.ViewDataFileOrDir("uikeys.txt")
+				if not ok then
+					Spring.Echo("[Keybinds] Could not open config file.")
+				end
+				return true
 			end
 			if release or not release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
