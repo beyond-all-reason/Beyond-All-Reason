@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 500,
-		speed = 170,
+		speed = 165,
 		transportcapacity = 1,
 		transportsize = 4,
 		transportunloadmethod = 0,
