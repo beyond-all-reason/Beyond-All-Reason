@@ -23,6 +23,7 @@ local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
 local spAreTeamsAllied       = Spring.AreTeamsAllied
 local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetActiveCommand 	 = Spring.GetActiveCommand
@@ -135,6 +136,27 @@ local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
 	return closestUnit
 end
 
+local commandsToGiveCache = table.new(64, 0)
+
+local function targetUnitsInRangeWithDef(unitID, targetUnitDefID)
+	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
+	if candidateUnits[1] then
+		local commandsToGive = commandsToGiveCache
+		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
+		local nextCmdOpts = { "shift" }
+		local candidateCount = #candidateUnits
+		for index = 2, candidateCount do
+			commandsToGive[index] = { CMD_SET_TARGET, candidateUnits[index], nextCmdOpts }
+		end
+		-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
+		-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
+		commandsToGive[candidateCount + 1] = nil
+		spGiveOrderArrayToUnit(unitID, commandsToGive)
+	else -- TODO: only give order if unit has a target list:
+		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
+	end
+end
+
 function widget:DrawWorld()
     if not cursorPos or not snappedPos then return end
     gl.DepthTest(false)
@@ -180,8 +202,6 @@ local function handleSelectionLine()
 	end
 end
 
-local commandsToGiveCache = table.new(64, 0)
-
 function widget:GameFrame(frame)
 	handleSelectionLine()
 
@@ -190,22 +210,7 @@ function widget:GameFrame(frame)
 	end
 
 	for unitID, targetUnitDefID in pairs(trackedUnitsToUnitDefID) do
-		local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
-		if candidateUnits[1] then
-			local commandsToGive = commandsToGiveCache
-			commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
-			local nextCmdOpts = { "shift" }
-			local candidateCount = #candidateUnits
-			for index = 2, candidateCount do
-				commandsToGive[index] = { CMD_SET_TARGET, candidateUnits[index], nextCmdOpts }
-			end
-			-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
-			-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
-			commandsToGive[candidateCount + 1] = nil
-			spGiveOrderArrayToUnit(unitID, commandsToGive)
-		else -- TODO: only give order if unit has a target list:
-			Spring.GiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
-		end
+		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	end
 end
 
@@ -278,6 +283,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	for _, unitID in ipairs(selectedUnits) do
 		cleanupUnitTargeting(unitID)
 		trackedUnitsToUnitDefID[unitID] = targetUnitDefID
+		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	end
 
 	return true
