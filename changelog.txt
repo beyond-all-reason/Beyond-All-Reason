@@ -6,7 +6,7 @@
 • [Gunslinger] 1560 -> 1800 health, 49.5 -> 50 speed, 24 AoE added, 500 -> 600 weaponvelocity
 • [Welder] 9500 -> 8000 buildtime, 2950 -> 3500 health, 47.4 -> 48 speed
 • [Sumo] 15000 -> 12000 buildtime, 5940 -> 6500 health, 37.5 -> 38 speed, 0.16 -> 0.3 beamtime, 25 -> 55 dmg vs air
-• [Seaplane gunships]
+• [Torpedo gunships]
 	- Puffin: 18000 -> 14000 buildtime, speed 271 -> 210, removed special damage vs commander
 	- Monsoon: 13000 -> 11000 buildtime, speed 266 -> 200, 5s -> 4s reloadtime
 • [AA turrets]
