@@ -6,12 +6,14 @@
 • [Gunslinger] 1560 -> 1800 health, 49.5 -> 50 speed, 24 AoE added, 500 -> 600 weaponvelocity
 • [Welder] 9500 -> 8000 buildtime, 2950 -> 3500 health, 47.4 -> 48 speed
 • [Sumo] 15000 -> 12000 buildtime, 5940 -> 6500 health, 37.5 -> 38 speed, 0.16 -> 0.3 beamtime, 25 -> 55 dmg vs air
-• [Puffin] 18000 -> 14000 buildtime, 3s -> 4s reloadtime, removed special damage vs commander
+• [Seaplane gunships]
+	- Puffin: 18000 -> 14000 buildtime, speed 271 -> 210, removed special damage vs commander
+	- Monsoon: 13000 -> 11000 buildtime, speed 266 -> 200, 5s -> 4s reloadtime
 • [AA turrets]
 	- Flak turrets: 775 -> 850 range, 0.5333 -> 0.5 reloadtime
 	- Chainsaw / Eradicator: 1125 -> 1200 range
-	- Ferret: 840 -> 950 range, 176 -> 208 DPS, Stealth added, 360 -> 330 metalcost, 5800 -> 5000 buildtime
-	- SAM: 840 -> 950 range, 190 -> 225 DPS, 315 -> 350 metalcost, 6100 -> 5500 energycost, 5240 -> 4500 buildtime
+	- Ferret: 840 -> 950 range, 176 -> 208 DPS, Stealth added, 360 -> 330 metalcost, 5800 -> 5000 buildtime, 1330 -> 1600 health
+	- SAM: 840 -> 950 range, 190 -> 225 DPS, 315 -> 350 metalcost, 6100 -> 5500 energycost, 5240 -> 4500 buildtime, 2800 -> 2500 health
 • [T2 transports] -15 speed, -15% health, -15% metalcost
 • [T2 fighters]
 	- Highwind: +7% costs
