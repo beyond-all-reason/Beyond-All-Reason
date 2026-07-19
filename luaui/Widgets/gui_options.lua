@@ -9171,7 +9171,20 @@ function init()
 				end
 			end
 		},
-		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr') },
+		{ id = "factoryholdpos", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryholdpos'), type = "bool", value = getStatePrefPresetsToggle("factory_hold_position", "Factory hold position"), description = Spring.I18N('ui.settings.option.factoryholdpos_descr'),
+			onchange = function(i, value)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("factory_hold_position", value)
+				end
+			end,
+			onload = function(i)
+				if WG['stateprefs'] then
+					if WG['stateprefs'].getPresetState("factory_hold_position") == nil then
+						WG['stateprefs'].setPresetState("factory_hold_position", widgetHandler.orderList["Factory hold position"] ~= 0)
+					end
+				end
+			end
+		},
 		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
 
 		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
