@@ -140,6 +140,9 @@ WG.FlowUI.Draw = {}
 		c1, c2 = top color, bottom color
 ]]
 WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1, c2)
+	if sx <= px or sy <= py or px ~= px or py ~= py or sx ~= sx or sy ~= sy or cs ~= cs then
+		return
+	end
 	-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
@@ -512,6 +515,9 @@ end
 		texture = file location
 ]]
 WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
+	if sx <= px or sy <= py or px ~= px or py ~= py or sx ~= sx or sy ~= sy or cs ~= cs or (size and size ~= size) or (offset and offset ~= offset) or (offsetY and offsetY ~= offsetY) then
+		return
+	end
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
 		-- Pre-calculate invariant values (avoids redundant per-vertex calculations)
 		local width = sx - px
@@ -1118,6 +1124,9 @@ end
 
 -- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
 WG.FlowUI.Draw.TexRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  offset)
+	if sx <= px or sy <= py or px ~= px or py ~= py or sx ~= sx or sy ~= sy or cs ~= cs or offset ~= offset then
+		return
+	end
 
 	-- Pre-calculate invariant values (avoids redundant per-vertex calculations)
 	local height = sy - py
