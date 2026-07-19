@@ -1561,6 +1561,8 @@ local function isSetTargetCommand(commandID)
 	return commandID == GameCMD.UNIT_SET_TARGET or commandID == GameCMD.UNIT_SET_TARGET_NO_GROUND
 end
 
+-- Double-click is armed/consumed here, not via order callins: the engine can delay order
+-- execution, so a second click may arrive before CommandNotify and get missed.
 function widget:MousePress(mouseX, mouseY, button)
 	if button ~= LEFT_MOUSE_BUTTON and button ~= RIGHT_MOUSE_BUTTON then
 		return false
@@ -1568,6 +1570,7 @@ function widget:MousePress(mouseX, mouseY, button)
 	local options = fillCommandOptionModifiers({ right = (button == RIGHT_MOUSE_BUTTON) })
 	local effectiveCommandID = resolveScreenSelectCommandID(nil)
 	local pendingClickActive = isPendingDoubleClickActive()
+	-- Alt+Set Target belongs to unit_alt_set_target_type; yield and drop any pending double-click
 	if isSetTargetCommand(effectiveCommandID) and options.alt then
 		clearDoubleClickPending()
 		return false
@@ -1579,6 +1582,7 @@ function widget:MousePress(mouseX, mouseY, button)
 		if not effectiveCommandID or not ALLOWED_COMMANDS[effectiveCommandID] then
 			return false
 		end
+		--snap to closest because tiny units are hard to click, and a double click reasonably means you're trying to click a unit
 		local targetID, targetIsFeature = resolveNearestValidTargetNearCursor(effectiveCommandID, mouseX, mouseY)
 		if screenSelectKeyHeld then
 			if not targetID then
