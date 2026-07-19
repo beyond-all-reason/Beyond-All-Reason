@@ -499,7 +499,7 @@ else	-- UNSYNCED
 		hudActive = false
 		local count = #checksumBuffer
 		if count == 0 then
-			Spring.Echo("[synctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
+			Spring.Echo("[synctest] sync-hash: no frames collected (Platform.hasSyncChecksums is false — engine built without SYNCCHECK)")
 			return
 		end
 
