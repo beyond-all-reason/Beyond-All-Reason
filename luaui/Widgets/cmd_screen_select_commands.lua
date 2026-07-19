@@ -577,6 +577,83 @@ local function limitTargetsToClosest(filteredTargets, referenceTargetID, selecte
 	return copyArray(filteredTargets, maximumTargetCount)
 end
 
+local function limitTargetsByClusterGap(filteredTargets, referenceTargetID, positionCache)
+	if #filteredTargets <= 1 then
+		return filteredTargets
+	end
+	local referencePosition = getTargetPosition(referenceTargetID, positionCache)
+	if not referencePosition then
+		return filteredTargets
+	end
+	local targetPositions = {}
+	local remainingTargets = {}
+	local remainingCount = 0
+	local seedInList = false
+	for targetIndex = 1, #filteredTargets do
+		local targetID = filteredTargets[targetIndex]
+		local targetPosition = getTargetPosition(targetID, positionCache)
+		if targetPosition then
+			targetPositions[targetID] = targetPosition
+			if targetID == referenceTargetID then
+				seedInList = true
+			else
+				remainingCount = remainingCount + 1
+				remainingTargets[remainingCount] = targetID
+			end
+		end
+	end
+	local cluster = {}
+	local frontier = {}
+	local frontierCount = 0
+	if seedInList then
+		cluster[1] = referenceTargetID
+		frontierCount = 1
+		frontier[1] = referenceTargetID
+	else
+		local nextRemaining = {}
+		local nextRemainingCount = 0
+		for remainingIndex = 1, remainingCount do
+			local targetID = remainingTargets[remainingIndex]
+			local targetPosition = targetPositions[targetID]
+			local targetDistanceSq = mathDistance2dSquared(referencePosition.x, referencePosition.z, targetPosition.x, targetPosition.z)
+			if targetDistanceSq <= MAX_DISTANCE_SQ then
+				cluster[#cluster + 1] = targetID
+				frontierCount = frontierCount + 1
+				frontier[frontierCount] = targetID
+			else
+				nextRemainingCount = nextRemainingCount + 1
+				nextRemaining[nextRemainingCount] = targetID
+			end
+		end
+		remainingTargets = nextRemaining
+		remainingCount = nextRemainingCount
+	end
+	local frontierIndex = 1
+	while frontierIndex <= frontierCount do
+		local frontierID = frontier[frontierIndex]
+		local frontierPosition = targetPositions[frontierID]
+		local nextRemaining = {}
+		local nextRemainingCount = 0
+		for remainingIndex = 1, remainingCount do
+			local targetID = remainingTargets[remainingIndex]
+			local targetPosition = targetPositions[targetID]
+			local targetDistanceSq = mathDistance2dSquared(frontierPosition.x, frontierPosition.z, targetPosition.x, targetPosition.z)
+			if targetDistanceSq <= MAX_DISTANCE_SQ then
+				cluster[#cluster + 1] = targetID
+				frontierCount = frontierCount + 1
+				frontier[frontierCount] = targetID
+			else
+				nextRemainingCount = nextRemainingCount + 1
+				nextRemaining[nextRemainingCount] = targetID
+			end
+		end
+		remainingTargets = nextRemaining
+		remainingCount = nextRemainingCount
+		frontierIndex = frontierIndex + 1
+	end
+	return cluster
+end
+
 local function pointToSegmentDistanceSq(point, segmentStart, segmentEnd)
 	local segmentX = segmentEnd.x - segmentStart.x
 	local segmentZ = segmentEnd.z - segmentStart.z
