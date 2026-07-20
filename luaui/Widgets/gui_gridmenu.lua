@@ -399,18 +399,20 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
-	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
-end
+local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
 local startBuildOptions = {}
-for _, uDefID in pairs(startUnits) do
-	startBuildOptions[#startBuildOptions + 1] = uDefID
-	for _, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
-		startBuildOptions[#startBuildOptions + 1] = buildoptionDefID
+for _, uDefIDString in ipairs(startUnits) do
+	local uDefID = tonumber(uDefIDString)
+	if uDefID ~= nil then
+		local unitDef = UnitDefs[uDefID]
+		if unitDef then
+			startBuildOptions[uDefID] = true
+			for _, buildoptionDefID in pairs(unitDef.buildOptions) do
+				startBuildOptions[buildoptionDefID] = true
+			end
+		end
 	end
 end
-startUnits = nil
 
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
