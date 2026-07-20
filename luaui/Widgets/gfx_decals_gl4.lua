@@ -563,7 +563,9 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 	if lifetime then
 		local deathtime = spawnframe + lifetime
-		if decalRemoveQueue[deathtime] == nil then
+		if deathtime ~= deathtime then -- NaN check
+			spEcho("gfx_decals_gl4: NaN deathtime for decal index", decalIndex, "spawnframe:", spawnframe, "lifetime:", lifetime)
+		elseif decalRemoveQueue[deathtime] == nil then
 			decalRemoveQueue[deathtime] = {decalIndex}
 		else
 			decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex

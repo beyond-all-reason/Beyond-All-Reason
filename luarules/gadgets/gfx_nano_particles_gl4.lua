@@ -282,10 +282,10 @@ local HEALTH_CHECK_EVERY         = 15
 -- count is multiplied by the chosen value so total emission rate is preserved.
 local MIN_SCAN_RUN_EVERY         = 1
 local MAX_SCAN_RUN_EVERY         = 3
--- Cache lifetime for spGetUnitCurrentBuildPower. Only trusted while bp > 0
--- (continuous-build steady state where stale samples are harmless). Idle
--- visits always re-fetch so 0 -> non-zero edges fire on the next visit. The
--- emit accumulator absorbs the worst-case over-emit on the falling edge.
+-- Cache lifetime for spGetUnitCurrentBuildPower while bp > 0 (continuous-build
+-- steady state where stale samples are harmless). Idle builders are polled on
+-- a staggered cadence: massed inactive nano turrets otherwise each make a
+-- Spring->C call every scan. UnitID jitter spreads their wakeups across frames.
 local BUILD_POWER_CACHE_FRAMES   = 8
 -- Forward homing: skip per-particle re-aim once a target has been stationary
 -- this many homing passes. Spawn-time aim is correct as long as the target
@@ -2328,6 +2328,64 @@ local function resolveTarget(info, cmdID, targetID)
 	return px, py, pz, inverse, meta.jitterRadius, isResurrect, (not meta.isFeature) and meta.resolvedID or nil
 end
 
+-- Advance a known-active cold stream without repeating build-power, worker-task,
+-- target-position, and frustum calls. DrawWorld watches virtual endpoints and
+-- clears coldOffscreenUntil as soon as the camera reaches one. Completion
+-- callins also invalidate targetMeta, so sleeping static streams wake promptly.
+U._accrueColdVirtualStream = function(unitID, info, meta, frame)
+	local bp = info.bpCached
+	if not (bp and bp > 0) then return end
+
+	info.lastVisitFrame = frame
+	local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * (NanoParticleRate or 1.0)
+	local accum = (info.emitAccum or 0) + rate
+	local emits = mathFloor(accum)
+	info.emitAccum = accum - emits
+	if emits == 0 then
+		local lastEmit = info.lastEmitFrame or 0
+		if frame - lastEmit >= FEEDBACK_EMIT_MIN_GAP then
+			emits = 1
+			info.emitAccum = info.emitAccum - 1
+		end
+	end
+	if emits <= 0 then return end
+	info.lastEmitFrame = frame
+
+	if meta.isResurrect then
+		emits = takeScaledEmitCount(info, "resurrectEmitAccum", emits, NanoParticleResurrectExtraRate)
+		if emits <= 0 then return end
+	end
+
+	local oldVirtualEmits = meta.virtualEmits or 0
+	meta.virtualEmits = oldVirtualEmits + emits
+	if meta.virtualEmits > 32 then meta.virtualEmits = 32 end
+	if oldVirtualEmits <= 0 then
+		local virtualSet = deathBuckets.__virtualStreamSet
+		if not virtualSet then
+			virtualSet = {}
+			deathBuckets.__virtualStreamSet = virtualSet
+		end
+		if not virtualSet[unitID] then
+			local virtualList = deathBuckets.__virtualStreamList
+			if not virtualList then
+				virtualList = {}
+				deathBuckets.__virtualStreamList = virtualList
+			end
+			virtualList[#virtualList + 1] = unitID
+			virtualSet[unitID] = true
+			deathBuckets.__virtualStreamCount = (deathBuckets.__virtualStreamCount or 0) + 1
+			deathBuckets.__virtualStreamsNeedCheck = true
+		end
+	end
+	local virtualDelta = ((meta.virtualFrame or 0) > 0) and (frame - meta.virtualFrame) or 1
+	if virtualDelta < 1 then virtualDelta = 1 end
+	meta.virtualAgeFrames = (meta.virtualAgeFrames or 0) + virtualDelta
+	if meta.virtualAgeFrames > (OFFSCREEN_VIS_CACHE_FRAMES * 8) then
+		meta.virtualAgeFrames = OFFSCREEN_VIS_CACHE_FRAMES * 8
+	end
+	meta.virtualFrame = frame
+end
+
 local function materializeVisibleVirtualStreams(frame)
 	local virtualList = deathBuckets.__virtualStreamList
 	if not nanoVBO or not virtualList or #virtualList == 0 then return end
@@ -3056,15 +3114,32 @@ local function scanBuilders(frame)
 		if liveCount >= effectiveMax then break end
 		local cosetIdx = (k + rotation) % cosetCount
 		local i = start + cosetIdx * stride
-		do
+		repeat
 			local unitID = list[i]
-			tracy.ZoneBeginN("G:NanoParticles:RunFrame:ScanBuilders:EmitLoop:BuilderState")
+			local info = getBuilderInfo(unitID)
+			if not info then break end
+
+			-- Cold virtual streams are watched from DrawWorld. Until that watcher
+			-- sees the endpoint, only advance their bounded particle debt; avoid all
+			-- Spring queries in the large offscreen-builder steady state.
+			local coldMeta = info.targetMeta
+			if coldMeta and coldMeta.coldOffscreenUntil and frame < coldMeta.coldOffscreenUntil
+					and coldMeta.cmdID == info.cmdID and coldMeta.targetID == info.targetID then
+				U._accrueColdVirtualStream(unitID, info, coldMeta, frame)
+				break
+			end
+
+			-- Inactive builders have no visual state to maintain. Poll them on a
+			-- staggered cadence instead of issuing one engine call per builder per
+			-- scan; worst-case activation latency is under a third of a second.
+			local idleScanUntil = info.idleScanUntil
+			if idleScanUntil and frame < idleScanUntil then break end
+			info.idleScanUntil = nil
 			-- Cheap idle filter: a builder with no current build power is not
 			-- emitting (walking, queued, blocked, paused, no orders). Skipping
 			-- saves the worker-task lookup, which together with this dominates
 			-- per-builder cost when most builders sit idle. bp is cached for a
 			-- few frames but ONLY while non-zero -- see BUILD_POWER_CACHE_FRAMES.
-			local info = getBuilderInfo(unitID)
 			if info then
 				local bp
 				local bpRefetched = false
@@ -3111,6 +3186,7 @@ local function scanBuilders(frame)
 				end
 				if not (bp and bp > 0) then
 					info.resurrectRefillFallbackActive = nil
+					info.idleScanUntil = frame + 6 + (unitID % 4)
 					-- Idle visit: clear lastVisitFrame so the next bp>0 visit
 					-- doesn't credit the idle gap as build time and dump a burst.
 					info.lastVisitFrame = nil
@@ -3127,6 +3203,7 @@ local function scanBuilders(frame)
 					end
 				end
 				if bp and bp > 0 then
+					info.idleScanUntil = nil
 					if DEBUG then _dbgBuilders = _dbgBuilders + 1 end
 					-- Lazy nano-piece refresh: the COB/LUS script may not have
 					-- registered all nano pieces by the time getBuilderInfo is first
@@ -3179,8 +3256,6 @@ local function scanBuilders(frame)
 							ex, ey, ez, inverse, jitterRadius, isResurrect, targetUnitID = resolveTarget(info, cmdID, targetID)
 							meta = info.targetMeta
 						end
-						tracy.ZoneEnd()
-						tracy.ZoneBeginN("G:NanoParticles:RunFrame:ScanBuilders:EmitLoop:Filter")
 						-- Record this builder as actively reclaiming `targetUnitID`
 						-- so the UnitDestroyed callin can fire a finishing burst
 						-- only from builders that contributed (= teams that got
@@ -3345,9 +3420,7 @@ local function scanBuilders(frame)
 							end
 							meta.virtualFrame = frame
 						end
-						tracy.ZoneEnd()
 						if ex then
-							tracy.ZoneBeginN("G:NanoParticles:RunFrame:ScanBuilders:EmitLoop:EmitBatch")
 							if DEBUG then _dbgEmits = _dbgEmits + 1 end
 							local elapsed = 1
 							-- Spread window (half-width in frames) for the in-batch
@@ -3373,10 +3446,8 @@ local function scanBuilders(frame)
 							if resurrectEmits > 0 then
 								emitNanoBatch(unitID, info, ex, ey, ez, inverse, jitterRadius, frame, targetUnitID, isResurrect, resurrectEmits, spreadWindow, catchupAgeFrames)
 							end
-							tracy.ZoneEnd()
 						end
 					elseif info.targetMeta then
-						tracy.ZoneEnd()
 						info.targetMeta = nil  -- builder went idle; drop stale cache
 						info.lastVisitFrame = nil  -- prevent burst on resume
 						local prev = info.reclaimTarget
@@ -3388,16 +3459,10 @@ local function scanBuilders(frame)
 							end
 							info.reclaimTarget = nil
 						end
-					else
-						tracy.ZoneEnd()
 					end
-				else
-					tracy.ZoneEnd()
 				end
-			else
-				tracy.ZoneEnd()
 			end
-		end
+		until true
 	end
 	tracy.ZoneEnd()
 	end -- if not skipEmit
