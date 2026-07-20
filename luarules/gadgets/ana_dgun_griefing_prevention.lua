@@ -352,11 +352,18 @@ local function HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, en
 			if unitX then
 				local d = DistPointToSegment(unitX, unitY, unitZ, startX, startY, startZ, endX, endY, endZ)
 				if d < unitRadius + DGUN_WIDTH / 2 then
+					local _, _, _, captureProgress, buildProgress = spGetUnitHealth(unitID)
+					if (captureProgress or 0) > 0 then
+						-- A unit being captured implies presence of cloaked/jammed enemy comm or enemy decoy.
+						-- It is ok to dgun to prevent unit capture.
+						return false, string.format("DGun is targeting allied %s, which is currently being captured", GetUnitDisplayName(unitDefID))
+					end
+
 					local threatenedPower = 0
 					-- Partially built units only contribute proportional power to threat.
 					-- This is to prevent a malicious player from triggering false negatives
 					-- by trapping an allied comm with a bunch of 1%-built AFUS blueprints or something similar.
-					local buildProgress = select(5, spGetUnitHealth(unitID)) or 1
+					buildProgress = buildProgress or 1
 					threatenedPower = (unitPower[unitDefID] or 0) * math.min(buildProgress, 1)
 					threatenedAllyPower = threatenedAllyPower + threatenedPower
 					if threatenedPower > mostPowerfulThreatenedPower then
@@ -581,6 +588,8 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 
 	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
 
+	Spring.Echo(risksAllies, allyThreatInfo)
+
 	-- If no allies threatened, then it's a nominal dgun
 	if not risksAllies and not allyThreatInfo then
 		ForwardAnalyticsEvent("dgun_nominal", {
@@ -605,7 +614,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		return
 	end
 
-	-- If no frontline indicators are present and we don't threaten enough allied metal, it's ok
+	-- If no frontline indicators are present and we don't threaten enough allied metal (or we are Dgunning to prevent capture), it's ok
 	if not risksAllies and allyThreatInfo then
 		ForwardAnalyticsEvent("dgun_grief_negative", {
 			position = { targetX, targetY, targetZ },
@@ -614,7 +623,10 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 			player = GetPlayerName(playerID),
 			reason = allyThreatInfo,
 		})
+		return
 	end
+
+	Spring.Echo("we should have stopped already", risksAllies, allyThreatInfo)
 
 	-- Otherwise it's classified as griefing
 	ForwardAnalyticsEvent("dgun_grief_positive", {
