@@ -81,12 +81,14 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
     local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
-	for _, targetID in ipairs(candidateUnits) do
-		local targetTeam = spGetUnitTeam(targetID)
-        if targetID ~= unitID and targetTeam ~= nil then
-            local isAllied = spAreTeamsAllied(unitTeam, targetTeam)
-			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
-				table_insert(unitsInRange, targetID)
+	local count = 0
+	for index = 1, #candidateUnits do
+		local targetID = candidateUnits[index]
+        if targetID ~= unitID and spGetUnitDefID(targetID) == unitDefIDToTarget then
+			local targetTeam = spGetUnitTeam(targetID)
+			if targetTeam and not spAreTeamsAllied(unitTeam, targetTeam) then
+				count = count + 1
+				unitsInRange[count] = targetID
             end
         end
     end
