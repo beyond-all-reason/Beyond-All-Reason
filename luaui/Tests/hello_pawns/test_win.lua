@@ -41,18 +41,38 @@ function test()
 	-- Buffer GameOver before anything can win.
 	Test.expectCallin("GameOver")
 
-	-- Cheat-spawn toward the objective instead of really building (the trigger
-	-- counts finished units either way).
+	-- Cheat-spawn toward the objective instead of really building: two finished
+	-- Pawns plus one nanoframe. Has() means COMPLETED units — the nanoframe
+	-- must not win the mission (the factory-blueprint bug).
 	local x = Game.mapSizeX / 2
 	local z = Game.mapSizeZ / 2
-	SyncedRun(function(locals)
-		for i = 1, locals.pawnCount do
+	local frameUnitID = SyncedRun(function(locals)
+		for i = 1, locals.pawnCount - 1 do
 			Spring.CreateUnit(locals.pawnName, locals.x + i * 32, Spring.GetGroundHeight(locals.x + i * 32, locals.z), locals.z, 0, locals.teamID)
 		end
+		-- The nanoframe needs a live builder: unit_prevent_lab_hax2 destroys
+		-- fresh under-construction units whose builder is dead/absent.
+		local builderID = Spring.CreateUnit("armck", locals.x - 64, Spring.GetGroundHeight(locals.x - 64, locals.z), locals.z, 0, locals.teamID)
+		local unitID = Spring.CreateUnit(locals.pawnName, locals.x, Spring.GetGroundHeight(locals.x, locals.z), locals.z, 0, locals.teamID, true, true, nil, builderID)
+		if unitID ~= nil then
+			-- Give it real progress so abandoned-nanoframe decay stays far away.
+			Spring.SetUnitHealth(unitID, { build = 0.8 })
+		end
+		return unitID
 	end)
+	assert(frameUnitID ~= nil, "failed to spawn the nanoframe Pawn")
 
 	Test.waitUntil(function()
 		return Spring.GetTeamUnitDefCount(teamID, pawnDefID) >= PAWN_COUNT
+	end)
+
+	-- Two evaluation cadences with the third Pawn still a nanoframe: no verdict.
+	Test.waitFrames(2 * 15 + 2)
+	assert(Spring.GetGameRulesParam("objective_build_pawns") ~= 1, "mission must not complete while the third Pawn is a nanoframe")
+
+	-- Finish the build; NOW the mission should be won.
+	SyncedRun(function(locals)
+		Spring.SetUnitHealth(locals.frameUnitID, { build = 1 })
 	end)
 
 	-- The mission's effect chain: objective completes, then scripted victory
