@@ -482,6 +482,7 @@ function widget:LanguageChanged()
 			chat = {
 				channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 				channelScopeTeam = Spring.I18N('ui.chat.channelScopeTeam'),
+				channelScopeSpec = Spring.I18N('ui.chat.channelScopeSpec'),
 			},
 		},
 		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
@@ -1001,6 +1002,8 @@ local function getChannelScopeLabel(channelScope)
 		return '[' .. I18N.ui.chat.channelScopeAll .. ']'
 	elseif channelScope == 'TEAM' then
 		return '[' .. I18N.ui.chat.channelScopeTeam .. ']'
+	elseif channelScope == 'SPEC' then
+		return '[' .. I18N.ui.chat.channelScopeSpec .. ']'
 	end
 	return '[' .. channelScope .. ']'
 end
@@ -1072,6 +1075,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			channelScope = 'ALL'
 		elseif channel == 'allies' then
 			channelScope = 'TEAM'
+		elseif channel == 'spectators' then
+			channelScope = 'SPEC'
 		end
 
 		if channel == 'allies' then
@@ -1107,6 +1112,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		text = cleanUserText(text)
 		if channel == 'all' then
 			channelScope = 'ALL'
+		elseif channel == 'spectators' then
+			channelScope = 'SPEC'
 		end
 		c = (channel ~= 'all') and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
 
