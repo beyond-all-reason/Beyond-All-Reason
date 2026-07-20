@@ -346,10 +346,12 @@
 			"editor": {
 				"search": "Search...",
 				"other": "Other",
-				"pressKey": "press a key or mouse button...  (Esc to cancel)",
+				"pressKey": "press a key or mouse button...",
 				"customOnly": "Switch the preset to Custom to edit keybinds",
 				"reset": "Reset to...",
-				"anyMod": "Any"
+				"anyMod": "Any",
+				"accept": "Accept",
+				"cancel": "Cancel"
 			},
 			"chat": {
 				"title": "Chat",

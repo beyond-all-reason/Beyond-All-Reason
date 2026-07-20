@@ -8,7 +8,10 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 -- (e.g. the file keysym "enter" vs the scancode-based "return" from capture).
 local keyNameAlias = { enter = "return" }
 
-local function displayKeyset(raw, layout)
+-- Keychain separator (U+2192) shown between taps, since the engine's "," collides with a bound comma key.
+local chainSep = " \226\134\146 "
+
+local function displayElement(raw, layout)
 	-- Pull the Any+ qualifier out before sanitizeKey (which drops it) so it stays
 	-- visible and Any+X reads differently from a plain X.
 	local anyPrefix = ""
@@ -20,6 +23,37 @@ local function displayKeyset(raw, layout)
 	end
 
 	return anyPrefix .. keyConfig.sanitizeKey(raw, layout):gsub("%+", " + ")
+end
+
+-- Split a chain on separator commas; a comma doesn't split mid-token after "sc_" (the comma key).
+local function splitChain(raw)
+	local elems = {}
+	local cur = ""
+	for i = 1, #raw do
+		local c = raw:sub(i, i)
+		if c == "," and cur:sub(-3) ~= "sc_" then
+			if cur ~= "" then elems[#elems + 1] = cur end
+			cur = ""
+		else
+			cur = cur .. c
+		end
+	end
+	if cur ~= "" then elems[#elems + 1] = cur end
+
+	return elems
+end
+
+local function displayKeyset(raw, layout)
+	if not raw:find(",", 1, true) then
+		return displayElement(raw, layout)
+	end
+
+	local parts = splitChain(raw)
+	for i = 1, #parts do
+		parts[i] = displayElement(parts[i], layout)
+	end
+
+	return table.concat(parts, chainSep)
 end
 
 -- A bound action is identified by the full command string passed to /bind:
@@ -67,4 +101,6 @@ end
 return {
 	build = build,
 	displayKeyset = displayKeyset,
+	splitChain = splitChain,
+	chainSep = chainSep,
 }

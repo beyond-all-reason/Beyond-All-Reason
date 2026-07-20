@@ -340,6 +340,8 @@ local function sanitizeKey(key, layout)
 	key = key:gsub("SC_(.)", function(c)
 		return scanToCode[layout][c] or c
 	end)
+	-- The backslash key comes through as the keysym word, missing the SC_ mapping above.
+	key = key:gsub("BACKSLASH", "\\")
 
 	return key
 end

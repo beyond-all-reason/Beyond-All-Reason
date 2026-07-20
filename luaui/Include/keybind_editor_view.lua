@@ -37,7 +37,6 @@ local dragging = false
 local editable = false -- true only on Custom (uikeys.txt)
 local capturing
 local captureAny = false -- pending capture binds with the Any+ (match-any-modifier) qualifier
-local captureAnyRect -- clickable rect of the Any checkbox while capturing
 local pendingReset
 local edited = false
 local lastClickTime, lastClickId
@@ -128,6 +127,8 @@ local function buildResolvedCatalog()
 	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
 	L.customOnly = Spring.I18N('ui.keybinds.editor.customOnly')
 	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
+	L.accept = Spring.I18N('ui.keybinds.editor.accept')
+	L.cancel = Spring.I18N('ui.keybinds.editor.cancel')
 end
 
 local function rebuildRows()
@@ -316,6 +317,26 @@ local function confirmGeometry()
 	return bx1, by1, bx2, by2, ok, cancel
 end
 
+-- Capture-modal box + button/checkbox rects, recomputed so draw and mousePress agree.
+local function captureGeometry()
+	local w = floor(420 * scale)
+	local h = floor(200 * scale)
+	local cx = (area.x1 + area.x2) * 0.5
+	local cy = (area.y1 + area.y2) * 0.5
+	local bx1, bx2 = floor(cx - w * 0.5), floor(cx + w * 0.5)
+	local by1, by2 = floor(cy - h * 0.5), floor(cy + h * 0.5)
+	local bw = floor(120 * scale)
+	local bh = floor(28 * scale)
+	local pad = floor(16 * scale)
+	local btnY1 = by1 + pad
+	local cancel = { bx1 + pad, btnY1, bx1 + pad + bw, btnY1 + bh }
+	local ok = { bx2 - pad - bw, btnY1, bx2 - pad, btnY1 + bh }
+	local boxS = floor(16 * scale)
+	local anyY = btnY1 + bh + floor(14 * scale)
+	local anyBox = { bx1 + pad, anyY, bx1 + pad + boxS, anyY + boxS }
+	return bx1, by1, bx2, by2, ok, cancel, anyBox
+end
+
 function view.init()
 	font = WG['fonts'].getFont()
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -451,6 +472,68 @@ local function rawHasAny(raw)
 	return raw ~= nil and raw:find("[Aa][Nn][Yy]%+") ~= nil
 end
 
+-- A press within the timeout extends the sequence; a slower one starts over.
+local function appendChain(el)
+	local c = capturing
+	if not c then
+		return
+	end
+
+	local now = Spring.GetTimer and Spring.GetTimer()
+	if #c.elems == 0 then
+		c.elems[1] = el
+	elseif now and c.lastPress and Spring.DiffTimers(now, c.lastPress) * 1000 <= c.timeout then
+		c.elems[#c.elems + 1] = el
+	else
+		c.elems = { el }
+	end
+
+	c.lastPress = now
+end
+
+local modNames = { "Alt+", "Ctrl+", "Meta+", "Shift+" }
+
+-- Strip modifiers by name so a "+"-key (e.g. numpad+) survives; Any+ is tracked by captureAny.
+local function parseElem(raw)
+	raw = raw:gsub("[Aa][Nn][Yy]%+", "")
+	local mods = ""
+	local stripped = true
+	while stripped do
+		stripped = false
+		for _, m in ipairs(modNames) do
+			if raw:sub(1, #m):lower() == m:lower() then
+				mods = mods .. raw:sub(1, #m)
+				raw = raw:sub(#m + 1)
+				stripped = true
+			end
+		end
+	end
+
+	return { sym = raw, mods = mods }
+end
+
+local function startCapture(action, label, oldRaw)
+	-- Rebinding seeds the modal with the current binding; the first press clears it.
+	local elems = {}
+	if oldRaw then
+		for _, part in ipairs(keybindModel.splitChain(oldRaw)) do
+			elems[#elems + 1] = parseElem(part)
+		end
+	end
+
+	capturing = {
+		action = action,
+		label = label,
+		oldRaw = oldRaw,
+		elems = elems,
+		pressed = {},
+		lastPress = nil,
+		-- Fixed 750ms window, not BAR's tighter 333ms KeyChainTimeout, to tap comfortably.
+		timeout = 750,
+	}
+	captureAny = rawHasAny(oldRaw)
+end
+
 local function modPrefix()
 	local alt, ctrl, _, shift = spGetModKeyState()
 	local prefix = ""
@@ -461,7 +544,7 @@ local function modPrefix()
 	return prefix
 end
 
-local function keysetFromPress(scanCode)
+local function pressSym(scanCode)
 	local sym = scanCode and Spring.GetScanSymbol and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
@@ -470,12 +553,21 @@ local function keysetFromPress(scanCode)
 		return nil
 	end
 
-	return (captureAny and "Any+" or modPrefix()) .. sym
+	return sym
 end
 
--- Side buttons bind as ordinary "mouseN" keysets; only button >= 4 reaches here.
-local function mouseKeysetFromButton(button)
-	return (captureAny and "Any+" or modPrefix()) .. "mouse" .. button
+-- Any+ replaces the held modifiers, so toggling the checkbox re-derives each element.
+local function elemRaw(e)
+	return (captureAny and "Any+" or e.mods) .. e.sym
+end
+
+local function chainRaw()
+	local parts = {}
+	for i = 1, #capturing.elems do
+		parts[i] = elemRaw(capturing.elems[i])
+	end
+
+	return table.concat(parts, ",")
 end
 
 local function fitText(text, maxWidth, size)
@@ -488,6 +580,82 @@ local function fitText(text, maxWidth, size)
 	return text .. ".."
 end
 
+-- Fit a chip to its area: shrink to a readable floor, then truncate. Returns text, font size, width.
+local function chipMetrics(display, fs, pad, rightGap, chipArea)
+	local tw = font:GetTextWidth(display) * fs
+	if pad + tw + rightGap <= chipArea then
+		return display, fs, pad + tw + rightGap
+	end
+
+	-- Keep inner positive (a tiny share can drive it negative) so fitText truncates instead of returning the full string.
+	local inner = math.max(floor(fs), chipArea - pad - rightGap)
+	local chipFs = math.max(floor(fs * 0.75), floor(fs * inner / math.max(1, tw)))
+	local disp = fitText(display, inner, chipFs)
+
+	return disp, chipFs, pad + font:GetTextWidth(disp) * chipFs + rightGap
+end
+
+-- Wrap chain tokens across up to two lines; the second truncates if still too long.
+local function wrapChainTwoLines(tokens, sep, maxW, fs)
+	local line1, i = "", 1
+	while i <= #tokens do
+		local cand = (line1 == "") and tokens[i] or (line1 .. sep .. tokens[i])
+		if line1 ~= "" and font:GetTextWidth(cand) * fs > maxW then
+			break
+		end
+		line1, i = cand, i + 1
+	end
+
+	if i > #tokens then
+		return { line1 }
+	end
+
+	local rest = {}
+	for j = i, #tokens do
+		rest[#rest + 1] = tokens[j]
+	end
+	local line2 = table.concat(rest, sep)
+	if font:GetTextWidth(line2) * fs > maxW then
+		line2 = fitText(line2, maxW, fs)
+	end
+
+	return { line1 .. sep, line2 }
+end
+
+-- Lay out a row's chips on one line; on overflow each gets an equal, shrink-to-fit share so all stay clickable.
+local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
+	local ks = working.byAction[action] or {}
+	local n = #ks
+	local mets = {}
+	if n == 0 then
+		return mets, keyAreaX1
+	end
+
+	local total = 0
+	for i = 1, n do
+		local disp, cfs, w = chipMetrics(ks[i].display, fs, pad, rightGap, chipArea)
+		mets[i] = { ks = ks[i], disp = disp, fs = cfs, w = w }
+		total = total + w + (i > 1 and gap or 0)
+	end
+
+	if total > chipArea then
+		local share = floor((chipArea - (n - 1) * gap) / n)
+		for i = 1, n do
+			local disp, cfs, w = chipMetrics(ks[i].display, fs, pad, rightGap, share)
+			mets[i] = { ks = ks[i], disp = disp, fs = cfs, w = w }
+		end
+	end
+
+	local cx = keyAreaX1
+	for i = 1, n do
+		mets[i].x = cx
+		mets[i].removeX1 = cx + mets[i].w - rightGap
+		cx = cx + mets[i].w + gap
+	end
+
+	return mets, cx
+end
+
 local function drawRow(row, top, bottom, mx, my, fs, pad)
 	local cyc = (top + bottom) * 0.5
 
@@ -497,11 +665,8 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 		return
 	end
 
-	local capturingThis = capturing and capturing.action == row.action
 	local hovered = editable and mx >= area.x1 and mx <= listRight and my <= top and my > bottom
-	if capturingThis then
-		RectRound(area.x1, bottom, listRight, top, 0, 0, 0, 0, 0, { 0.9, 0.7, 0.2, 0.18 }, { 0.9, 0.7, 0.2, 0.18 })
-	elseif hovered then
+	if hovered then
 		RectRound(area.x1, bottom, listRight, top, 0, 0, 0, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.06 })
 	end
 
@@ -512,54 +677,27 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 		return
 	end
 
-	if capturingThis then
-		font:Print("\255\255\230\120" .. L.pressKey, keyAreaX1, cyc, fs, "ov")
-
-		-- Any-modifier checkbox, right-aligned; toggled by mouse click (keypresses are
-		-- captured as the binding, so it can't be keyboard-toggled).
-		local boxS = floor(fs)
-		local gap2 = floor(4 * scale)
-		local bx2 = listRight - pad
-		local bx1 = bx2 - boxS
-		local labelX = bx1 - gap2 - font:GetTextWidth(L.anyMod) * fs
-		local by1 = cyc - boxS * 0.5
-		local by2 = cyc + boxS * 0.5
-		RectRound(bx1, by1, bx2, by2, floor(2 * scale), 1, 1, 1, 1,
-			captureAny and { 0.9, 0.7, 0.2, 0.95 } or { 1, 1, 1, 0.12 })
-		font:Print(colorText .. L.anyMod, labelX, cyc, fs, "ov")
-		captureAnyRect = { labelX, by1, bx2, by2 }
-		return
-	end
-
 	local c1, c2 = bottom + floor(3 * scale), top - floor(3 * scale)
-	local cx = keyAreaX1
+	local gap = floor(6 * scale)
 	local glyphW = floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
+	local rightGap = editable and (pad + glyphW) or pad
 	-- When editable, reserve room on the right so "+" always fits.
 	local chipLimit = editable and (listRight - addW - floor(8 * scale)) or listRight
+	local chipArea = chipLimit - keyAreaX1
 
-	for _, ks in ipairs(working.byAction[row.action] or {}) do
-		local tw = font:GetTextWidth(ks.display) * fs
-		-- Read-only chips reserve matching padding so the bg isn't flush against text.
-		local rightGap = editable and (pad + glyphW) or pad
-		local chipW = pad + tw + rightGap
-		if cx + chipW > chipLimit then
-			break
-		end
-
+	local mets, cx = layoutRowChips(row.action, fs, pad, rightGap, chipArea, gap)
+	for _, m in ipairs(mets) do
 		if editable then
-			local removeX1 = cx + chipW - rightGap
-			local overRemove = mx >= removeX1 and mx <= cx + chipW and my >= c1 and my <= c2
-			local overBody = mx >= cx and mx < removeX1 and my >= c1 and my <= c2
-			RectRound(cx, c1, cx + chipW, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, overBody and 0.5 or 0.35 })
-			font:Print(colorKey .. ks.display, cx + pad, cyc, fs, "ov")
-			font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", removeX1 + rightGap * 0.5, cyc, fs, "cov")
+			local overRemove = mx >= m.removeX1 and mx <= m.x + m.w and my >= c1 and my <= c2
+			local overBody = mx >= m.x and mx < m.removeX1 and my >= c1 and my <= c2
+			RectRound(m.x, c1, m.x + m.w, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, overBody and 0.5 or 0.35 })
+			font:Print(colorKey .. m.disp, m.x + pad, cyc, m.fs, "ov")
+			font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", m.removeX1 + rightGap * 0.5, cyc, fs, "cov")
 		else
-			RectRound(cx, c1, cx + chipW, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, 0.25 })
-			font:Print(colorKey .. ks.display, cx + pad, cyc, fs, "ov")
+			RectRound(m.x, c1, m.x + m.w, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, 0.25 })
+			font:Print(colorKey .. m.disp, m.x + pad, cyc, m.fs, "ov")
 		end
-
-		cx = cx + chipW + floor(6 * scale)
 	end
 
 	if editable then
@@ -631,6 +769,95 @@ function view.draw()
 		font:Print(colorText .. "Reset", (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
 		font:End()
 	end
+
+	if capturing then
+		local bx1, by1, bx2, by2, ok, cancel, anyBox = captureGeometry()
+		local cs = floor(6 * scale)
+		local cx = (bx1 + bx2) * 0.5
+
+		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+		UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
+
+		RectRound(anyBox[1], anyBox[2], anyBox[3], anyBox[4], floor(2 * scale), 1, 1, 1, 1,
+			captureAny and { 0.9, 0.7, 0.2, 0.95 } or { 1, 1, 1, 0.12 })
+
+		UiButton(cancel[1], cancel[2], cancel[3], cancel[4])
+		UiButton(ok[1], ok[2], ok[3], ok[4])
+		if mx >= cancel[1] and mx <= cancel[3] and my >= cancel[2] and my <= cancel[4] then
+			Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, 1, { 1, 1, 1 })
+		end
+		if mx >= ok[1] and mx <= ok[3] and my >= ok[2] and my <= ok[4] then
+			Highlight(ok[1], ok[2], ok[3], ok[4], cs, 1, { 1, 1, 1 })
+		end
+
+		local tfs = floor(rowHeight * 0.6)
+		local sfs = floor(rowHeight * 0.5)
+		local bigfs = floor(rowHeight * 0.95)
+		local hasChain = #capturing.elems > 0
+		-- Preview held modifiers only while forming the first element.
+		local held = captureAny and "Any + " or (modPrefix():gsub("%+", " + "))
+		local chainStr
+		if hasChain then
+			chainStr = keybindModel.displayKeyset(chainRaw(), working.layout)
+		elseif held ~= "" then
+			chainStr = held .. "_"
+		else
+			chainStr = L.pressKey
+		end
+		local hasContent = hasChain or held ~= ""
+
+		-- Shrink toward a readable floor, then wrap to a second line, then ellipsize.
+		local chainMaxW = (bx2 - bx1) - floor(32 * scale)
+		local minFs = floor(rowHeight * 0.5)
+		local chainLines, chainFs = { chainStr }, bigfs
+		if hasChain then
+			local naturalW = font:GetTextWidth(chainStr) * bigfs
+			if naturalW <= chainMaxW then
+				chainLines, chainFs = { chainStr }, bigfs
+			elseif floor(bigfs * chainMaxW / naturalW) >= minFs then
+				chainLines, chainFs = { chainStr }, floor(bigfs * chainMaxW / naturalW)
+			else
+				local tokens = {}
+				for _, e in ipairs(capturing.elems) do
+					tokens[#tokens + 1] = keybindModel.displayKeyset(elemRaw(e), working.layout)
+				end
+				chainLines, chainFs = wrapChainTwoLines(tokens, keybindModel.chainSep, chainMaxW, minFs), minFs
+			end
+		else
+			local w = font:GetTextWidth(chainStr) * bigfs
+			if w > chainMaxW then
+				chainFs = math.max(minFs, floor(bigfs * chainMaxW / w))
+			end
+		end
+
+		-- Bar draining over the chain window: time left to extend before it resets.
+		if hasChain and capturing.lastPress and Spring.GetTimer then
+			local frac = 1 - (Spring.DiffTimers(Spring.GetTimer(), capturing.lastPress) * 1000) / capturing.timeout
+			if frac < 0 then frac = 0 end
+			local barW = floor((bx2 - bx1) * 0.5)
+			local barX = cx - barW * 0.5
+			local barY = by1 + floor(88 * scale)
+			local barH = floor(4 * scale)
+			RectRound(barX, barY, barX + barW, barY + barH, floor(2 * scale), 1, 1, 1, 1, { 1, 1, 1, 0.1 })
+			if frac > 0 then
+				RectRound(barX, barY, barX + floor(barW * frac), barY + barH, floor(2 * scale), 1, 1, 1, 1, { 0.9, 0.7, 0.2, 0.9 })
+			end
+		end
+
+		local chainCy = by1 + floor(122 * scale)
+		local lineStep = floor(chainFs * 1.15)
+
+		font:Begin()
+		font:Print(colorText .. (capturing.label or capturing.action), cx, by2 - floor(26 * scale), tfs, "cov")
+		for li = 1, #chainLines do
+			local ly = chainCy + (#chainLines - 1) * lineStep * 0.5 - (li - 1) * lineStep
+			font:Print((hasContent and colorKey or colorDim) .. chainLines[li], cx, ly, chainFs, "cov")
+		end
+		font:Print(colorText .. L.anyMod, anyBox[3] + floor(6 * scale), (anyBox[2] + anyBox[4]) * 0.5, sfs, "ov")
+		font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
+		font:Print((hasChain and colorText or colorDim) .. L.accept, (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+		font:End()
+	end
 end
 
 scrollFromY = function(y)
@@ -651,27 +878,24 @@ function view.mouseWheel(up, value)
 	return true
 end
 
--- Which zone of an editable row a click hit; mirrors drawRow's chip layout.
+-- Which zone of an editable row a click hit; mirrors drawRow's chip layout exactly.
 local function hitTestRow(rowAction, x)
 	local pad = floor(6 * scale)
 	local fs = rowHeight * 0.55
+	local gap = floor(6 * scale)
 	local glyphW = floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
+	local rightGap = pad + glyphW
 	local chipLimit = listRight - addW - floor(8 * scale)
-	local cx = keyAreaX1
+	local chipArea = chipLimit - keyAreaX1
 
-	for _, ks in ipairs(working.byAction[rowAction] or {}) do
-		local chipW = pad + font:GetTextWidth(ks.display) * fs + pad + glyphW
-		if cx + chipW > chipLimit then
-			break
+	local mets, cx = layoutRowChips(rowAction, fs, pad, rightGap, chipArea, gap)
+	for _, m in ipairs(mets) do
+		if x >= m.x and x < m.removeX1 then
+			return "rebind", m.ks.raw
+		elseif x >= m.removeX1 and x <= m.x + m.w then
+			return "remove", m.ks.raw
 		end
-		local removeX1 = cx + chipW - pad - glyphW
-		if x >= cx and x < removeX1 then
-			return "rebind", ks.raw
-		elseif x >= removeX1 and x <= cx + chipW then
-			return "remove", ks.raw
-		end
-		cx = cx + chipW + floor(6 * scale)
 	end
 
 	if x >= cx and x <= cx + addW then
@@ -679,18 +903,16 @@ local function hitTestRow(rowAction, x)
 	end
 end
 
-local function handleZone(kind, action, raw)
+local function handleZone(kind, action, label, raw)
 	if kind == "remove" then
 		removeKeyset(action, raw)
 	elseif kind == "add" then
-		capturing = { action = action }
-		captureAny = false
+		startCapture(action, label)
 	elseif kind == "rebind" then
 		local id = action .. "|" .. tostring(raw)
 		local now = Spring.GetTimer and Spring.GetTimer()
 		if now and lastClickId == id and lastClickTime and Spring.DiffTimers(now, lastClickTime) < 0.4 then
-			capturing = { action = action, oldRaw = raw }
-			captureAny = rawHasAny(raw)
+			startCapture(action, label, raw)
 			lastClickTime = nil
 		else
 			lastClickId = id
@@ -719,19 +941,24 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	-- While capturing, only side buttons (mouse4+) bind: mouse1 is engine-rejected,
-	-- mouse2/mouse3 are reserved for camera/order UX. Left click cancels.
+	-- In the modal, mouse1 drives its controls; only side buttons (mouse4+) bind.
 	if capturing then
-		if button == 1 and captureAnyRect
-			and x >= captureAnyRect[1] and x <= captureAnyRect[3]
-			and y >= captureAnyRect[2] and y <= captureAnyRect[4] then
-			captureAny = not captureAny
-			return true
-		end
-		if button >= 4 then
-			commitCapture(mouseKeysetFromButton(button))
-		elseif button == 1 then
-			capturing = nil
+		local bx1, by1, bx2, by2, ok, cancel, anyBox = captureGeometry()
+		if button == 1 then
+			if x >= anyBox[1] and x <= anyBox[3] and y >= anyBox[2] and y <= anyBox[4] then
+				captureAny = not captureAny
+			elseif x >= ok[1] and x <= ok[3] and y >= ok[2] and y <= ok[4] then
+				if #capturing.elems > 0 then
+					commitCapture(chainRaw())
+				else
+					capturing = nil
+				end
+			elseif (x >= cancel[1] and x <= cancel[3] and y >= cancel[2] and y <= cancel[4])
+				or x < bx1 or x > bx2 or y < by1 or y > by2 then
+				capturing = nil
+			end
+		elseif button >= 4 then
+			appendChain({ sym = "mouse" .. button, mods = modPrefix() })
 		end
 		return true
 	end
@@ -782,7 +1009,7 @@ function view.mousePress(x, y, button)
 		if row and row.type == "editable" then
 			local kind, raw = hitTestRow(row.action, x)
 			if kind then
-				handleZone(kind, row.action, raw)
+				handleZone(kind, row.action, row.label, raw)
 			end
 		end
 		return true
@@ -814,9 +1041,11 @@ function view.keyPress(key, scanCode)
 		if key == 27 then
 			capturing = nil
 		else
-			local keyset = keysetFromPress(scanCode)
-			if keyset then
-				commitCapture(keyset)
+			-- Skip auto-repeat; only the initial press adds an element (release clears pressed).
+			local sym = pressSym(scanCode)
+			if sym and not capturing.pressed[scanCode] then
+				capturing.pressed[scanCode] = true
+				appendChain({ sym = sym, mods = modPrefix() })
 			end
 		end
 		return true
@@ -846,9 +1075,15 @@ function view.keyRelease(key, scanCode)
 		return false
 	end
 
-	local keyset = keysetFromPress(scanCode)
-	if keyset then
-		commitCapture(keyset)
+	-- Skip the release of a press we already appended; engine-only keys (no keyPress) land here.
+	if capturing.pressed[scanCode] then
+		capturing.pressed[scanCode] = nil
+		return true
+	end
+
+	local sym = pressSym(scanCode)
+	if sym then
+		appendChain({ sym = sym, mods = modPrefix() })
 	end
 
 	return true
