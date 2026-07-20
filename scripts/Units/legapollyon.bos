@@ -1,0 +1,303 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  Hull, FrontPipe1, FrontPipe2,
+FrontLeftFender, FrontLeftFenderFirepoint, FrontLeftTracks,
+FrontRightFender, FrontRightFenderFirepoint, FrontRightTracks,
+MiddleLeftFender,
+MiddleRightFender,
+RearLeftFender, RearLeftTracks,
+RearLeftMinigunBase, RearLeftMinigunTurret, RearLeftMinigunTurretSleeve, RearLeftMinigunTurretAmmo, RearLeftMinigunTurretBarrel, RearLeftMinigunTurretBarrelFirepoint,
+RearRightFender, RearRightTracks,
+RearRightMinigunBase, RearRightMinigunTurret, RearRightMinigunTurretSleeve, RearRightMinigunTurretAmmo, RearRightMinigunTurretBarrel, RearRightMinigunTurretBarrelFirepoint,
+MainTurret, MainTurretSleeve, 
+MainTurretLowerLeftBarrel, MainTurretLowerLeftBarrelFirepoint,
+MainTurretLowerRightBarrel, MainTurretLowerRightBarrelFirepoint,
+MainTurretUpperLeftBarrel, MainTurretUpperLeftBarrelFirepoint,
+MainTurretUpperRightBarrel, MainTurretUpperRightBarrelFirepoint,
+MainTurretLeftMinigun, MainTurretLeftMinigunSleeve, MainTurretLeftMinigunBarrel, MainTurretLeftMinigunBarrelFirepoint,
+MainTurretRightMinigun, MainTurretRightMinigunSleeve, MainTurretRightMinigunBarrel, MainTurretRightMinigunBarrelFirepoint;
+
+static-var  restore_delay, last_gun_heading;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
+#define SIG_FIRE1 			16
+#define SIG_FIRE2 			32
+
+#define BASEPIECE Hull
+#define HITSPEED <85.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 7
+#define MAXTILT 100
+
+//StartMoving()
+//{
+//	turn Hull to x-axis <-3> speed <11>;
+//	wait-for-turn Hull around x-axis;
+//	turn Hull to x-axis <0> speed <11>;
+//}
+//
+//StopMoving()
+//{
+//	turn Hull to x-axis <1> speed <5>;
+//	wait-for-turn Hull around x-axis;
+//	turn Hull to x-axis <0> speed <5>;
+//}
+
+Create()
+{
+	restore_delay = 3000;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+    start-script ExecuteRestoreAfterDelay();
+}
+
+static-var  Stunned;
+ExecuteRestoreAfterDelay()
+{
+    if (Stunned) {
+        return (1);
+    }
+    set-signal-mask 0;
+    turn MainTurret to y-axis <0.000000> speed <15.000000>;
+    turn MainTurretSleeve to x-axis <0.000000> speed <15.000000>;
+    turn RearLeftMinigunTurret to y-axis <0.000000> speed <15.000000>;
+    turn RearLeftMinigunTurretSleeve to x-axis <0.000000> speed <15.000000>;
+    turn RearRightMinigunTurret to y-axis <0.000000> speed <15.000000>;
+    turn RearRightMinigunTurretSleeve to x-axis <0.000000> speed <15.000000>;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (!Stunned) {
+	    start-script ExecuteRestoreAfterDelay();
+	}
+}
+
+
+/////////////////////////////////
+// Main Turret Miniguns
+/////////////////////////////////
+AimWeapon1(heading, pitch)
+{   
+    signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+    turn MainTurret to y-axis heading speed <45.000000>;
+    turn MainTurretSleeve to x-axis <0> - pitch speed <45.000000>;
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    start-script RestoreAfterDelay();
+    return (1);
+}
+
+FireWeapon1()
+{
+    spin MainTurretLowerLeftBarrel around z-axis speed <900.000000>;
+    stop-spin MainTurretLowerLeftBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = MainTurretLowerLeftBarrelFirepoint;
+}
+
+
+
+AimWeapon2(heading, pitch)
+{   
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    return (1);
+}
+
+FireWeapon2()
+{
+    spin MainTurretLowerRightBarrel around z-axis speed <-900.000000>;
+    stop-spin MainTurretLowerRightBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum = MainTurretLowerRightBarrelFirepoint;
+}
+
+
+
+AimWeapon3(heading, pitch)
+{   
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    return (1);
+}
+
+FireWeapon3()
+{
+    spin MainTurretUpperRightBarrel around z-axis speed <-900.000000>;
+    stop-spin MainTurretUpperRightBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = MainTurretUpperRightBarrelFirepoint;
+}
+
+
+
+AimWeapon4(heading, pitch)
+{   
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    return (1);
+}
+
+FireWeapon4()
+{
+    spin MainTurretUpperLeftBarrel around z-axis speed <900.000000>;
+    stop-spin MainTurretUpperLeftBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = MainTurretUpperLeftBarrelFirepoint;
+}
+
+/////////////////////////////////
+// Side Turret Miniguns
+/////////////////////////////////
+
+AimWeapon5(heading, pitch)
+{   
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    return (1);
+}
+
+FireWeapon5()
+{
+    spin MainTurretLeftMinigunBarrel around z-axis speed <900.000000>;
+    stop-spin MainTurretLeftMinigunBarrel around z-axis decelerate <10.000000>;
+}
+
+AimFromWeapon5(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon5(piecenum)
+{
+	piecenum = MainTurretLeftMinigunBarrelFirepoint;
+}
+
+AimWeapon6(heading, pitch)
+{   
+    wait-for-turn MainTurret around y-axis;
+	wait-for-turn MainTurretSleeve around x-axis;
+    return (1);
+}
+
+FireWeapon6()
+{
+    spin MainTurretRightMinigunBarrel around z-axis speed <-900.000000>;
+    stop-spin MainTurretRightMinigunBarrel around z-axis decelerate <10.000000>;
+}
+
+AimFromWeapon6(piecenum)
+{
+	piecenum = MainTurretSleeve;
+}
+
+QueryWeapon6(piecenum)
+{
+	piecenum = MainTurretRightMinigunBarrelFirepoint;
+}
+
+/////////////////////////////////
+// Rear Turret Miniguns
+/////////////////////////////////
+
+AimWeapon7(heading, pitch)
+{   
+    signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+    turn RearLeftMinigunTurret to y-axis heading speed <180.000000>;
+    turn RearLeftMinigunTurretSleeve to x-axis <0> - pitch speed <90.000000>;
+    wait-for-turn RearLeftMinigunTurret around y-axis;
+	wait-for-turn RearLeftMinigunTurretSleeve around x-axis;
+    start-script RestoreAfterDelay();
+    return (1);
+}
+
+FireWeapon7()
+{
+    emit-sfx 1024 + 0 from RearLeftMinigunTurretBarrelFirepoint;
+    spin RearLeftMinigunTurretBarrel around z-axis speed <900.000000>;
+    stop-spin RearLeftMinigunTurretBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon7(piecenum)
+{
+	piecenum = RearLeftMinigunTurretSleeve;
+}
+
+QueryWeapon7(piecenum)
+{
+	piecenum = RearLeftMinigunTurretBarrelFirepoint;
+}
+
+AimWeapon8(heading, pitch)
+{   
+    signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+    turn RearRightMinigunTurret to y-axis heading speed <180.000000>;
+    turn RearRightMinigunTurretSleeve to x-axis <0> - pitch speed <90.000000>;
+    wait-for-turn RearRightMinigunTurret around y-axis;
+	wait-for-turn RearRightMinigunTurretSleeve around x-axis;
+    start-script RestoreAfterDelay();
+    return (1);
+}
+
+FireWeapon8()
+{
+    emit-sfx 1024 + 0 from RearRightMinigunTurretBarrelFirepoint;
+    spin RearRightMinigunTurretBarrel around z-axis speed <-900.000000>;
+    stop-spin RearRightMinigunTurretBarrel around z-axis decelerate <5.000000>;
+}
+
+AimFromWeapon8(piecenum)
+{
+	piecenum = RearRightMinigunTurretSleeve;
+}
+
+QueryWeapon8(piecenum)
+{
+	piecenum = RearRightMinigunTurretBarrelFirepoint;
+}
