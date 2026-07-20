@@ -2328,7 +2328,6 @@ local loadedAutocompleteCommands = false
 autocomplete = function(text, fresh)
 	if not loadedAutocompleteCommands then
 		loadedAutocompleteCommands = true
-		requestGadgetAutocompleteCommands()
 	end
 	refreshWidgetAutocompleteCommands()
 
@@ -2350,6 +2349,25 @@ autocomplete = function(text, fresh)
 		rawWords[#rawWords + 1] = word
 		words[#words+1] = word
 		letters = word
+	end
+	if isCmd then
+		if rawWords[1] == 'luarules' and not state.gadgetAutocompleteRequestSent then
+			local hasGadgetActions = false
+			for _ in pairs(autocompleteCommandSources.synced) do
+				hasGadgetActions = true
+				break
+			end
+			if not hasGadgetActions then
+				for _ in pairs(autocompleteCommandSources.unsynced) do
+					hasGadgetActions = true
+					break
+				end
+			end
+			if not hasGadgetActions then
+				state.gadgetAutocompleteRequestSent = true
+				requestGadgetAutocompleteCommands()
+			end
+		end
 	end
 	local givecatLetters = getGivecatAutocompletePrefix(text)
 	-- if there are still suggestions then try to continue before starting fresh with a new word
@@ -3445,7 +3463,6 @@ function widget:Initialize()
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName
 		end
 	end
-	requestGadgetAutocompleteCommands()
 end
 
 function widget:Shutdown()

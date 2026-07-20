@@ -1411,6 +1411,8 @@ local function drawUnitInfo()
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
+		tracy.ZoneEnd()
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:BuildText")
 		-- price
 		local function AddSpaces(price)
 			if price >= 1000 then
