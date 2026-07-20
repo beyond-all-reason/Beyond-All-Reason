@@ -1904,6 +1904,25 @@ function widget:DrawScreen()
         gl.PushMatrix()
     end
 
+    -- Draw the take signal outside render-to-texture so it extends beyond widget bounds (and can blink)
+    if m_take.active and mySpecStatus == false and blink then
+        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+        gl.Scale(widgetScale, widgetScale, 0)
+        gl.Translate(scaleDiffX, scaleDiffY, 0)
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i])
+                end
+            end
+        end
+        gl_Texture(false)
+        gl.PopMatrix()
+        gl.PushMatrix()
+    end
+
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -2476,7 +2495,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
                     if allyteam == myAllyTeamID then
                         if m_take.active then
                             if totake then
-                                DrawTakeSignal(posY)
+                                -- take signal is drawn live in DrawScreen (outside render-to-texture) so it can
+                                -- extend beyond the widget bounds and blink; here we only handle its tooltip
                                 if tipY then
                                     TakeTip(mouseX)
                                 end
@@ -2589,13 +2609,15 @@ end
 
 function DrawTakeSignal(posY)
     if blink then
-        -- Draws a blinking rectangle if the player of the same team left (/take option)
+        -- Draws a blinking arrow + "TAKE" label if a same-team player left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
-        DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+        DrawRect(widgetPosX - (14*playerScale), posY, widgetPosX, posY + (16*playerScale))
         gl_Color(1, 1, 1)
         gl_Texture(pics["takePic"])
-        DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
+        -- take.dds is a square image (90x90), so keep a 1:1 aspect to avoid distortion
+        DrawRect(widgetPosX - (57*playerScale), posY - (14*playerScale), widgetPosX - (12*playerScale), posY + (31*playerScale))
+        gl_Color(1, 1, 1, 1)
     end
 end
 
