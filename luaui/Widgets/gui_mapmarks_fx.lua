@@ -17,6 +17,7 @@ end
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
+local spIsGUIHidden = Spring.IsGUIHidden
 
 -- Localized gl functions
 local glBlending = gl.Blending
@@ -30,6 +31,11 @@ local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
 local glTexture = gl.Texture
 local glBeginEnd = gl.BeginEnd
+
+-- Localized GL constants
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+local GL_QUADS = GL.QUADS
 
 -- Localized math functions
 local osClock = os.clock
@@ -75,10 +81,15 @@ local types = {
 		duration		= 14,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.20},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.75},
+		isMapDraw		= false,
+		isMapErase		= false,
 		-- Precalculated values
-		sizeScaled = 0,
-		endSizeScaled = 0,
-		sizeDelta = 0,
+		sizeScaled = 0.0,
+		endSizeScaled = 0.0,
+		sizeDelta = 0.0,
+		totalDuration = 0.0,
+		glowAlpha = 0.0,
+		ringAlpha = 0.0,
 	},
 	map_draw = {
 		size			= 0.75,
@@ -86,10 +97,15 @@ local types = {
 		duration		= 2,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.15},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.00},
+		isMapDraw		= true,
+		isMapErase		= false,
 		-- Precalculated values
-		sizeScaled = 0,
-		endSizeScaled = 0,
-		sizeDelta = 0,
+		sizeScaled = 0.0,
+		endSizeScaled = 0.0,
+		sizeDelta = 0.0,
+		totalDuration = 0.0,
+		glowAlpha = 0.0,
+		ringAlpha = 0.0,
 	},
 	map_erase = {
 		size			= 3.5,
@@ -97,10 +113,15 @@ local types = {
 		duration		= 4,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.10},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.00},
+		isMapDraw		= false,
+		isMapErase		= true,
 		-- Precalculated values
-		sizeScaled = 0,
-		endSizeScaled = 0,
-		sizeDelta = 0,
+		sizeScaled = 0.0,
+		endSizeScaled = 0.0,
+		sizeDelta = 0.0,
+		totalDuration = 0.0,
+		glowAlpha = 0.0,
+		ringAlpha = 0.0,
 	}
 }
 
@@ -110,6 +131,8 @@ for _, typeData in pairs(types) do
 	typeData.endSizeScaled = generalSize * typeData.endSize
 	typeData.sizeDelta = typeData.endSizeScaled - typeData.sizeScaled
 	typeData.totalDuration = typeData.duration * generalDuration
+	typeData.glowAlpha = typeData.glowColor[4]
+	typeData.ringAlpha = typeData.ringColor[4]
 end
 
 -- Pre-cache texture paths (avoid string concat each frame)
@@ -166,8 +189,10 @@ local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
 	local r, g, b = spGetTeamColor(teamID)
 
 	commandCount = commandCount + 1
+	local typeData = types[cmdType]
 	commands[commandCount] = {
 		cmdType		= cmdType,
+		typeData	= typeData,
 		x			= x,
 		y			= y,
 		z			= z,
@@ -227,37 +252,12 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-	if Spring.IsGUIHidden() then return end
+	if spIsGUIHidden() then return end
 	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
 	if commandCount == 0 then return end
 
 	local currentTime = osClock()
-
-	-- Phase 1: Remove expired and obsolete commands
-	local i = 1
-	while i <= commandCount do
-		local cmd = commands[i]
-		if not cmd then
-			commands[i] = commands[commandCount]
-			commands[commandCount] = nil
-			commandCount = commandCount - 1
-		else
-			local totalDuration = types[cmd.cmdType].totalDuration
-			if currentTime - cmd.osClock > totalDuration
-				or (cmd.cmdType == 'map_draw' and mapDrawNicknameTime[cmd.playerID] ~= nil
-					and cmd.osClock < mapDrawNicknameTime[cmd.playerID]) then
-				commands[i] = commands[commandCount]
-				commands[commandCount] = nil
-				commandCount = commandCount - 1
-			else
-				i = i + 1
-			end
-		end
-	end
-
-	if commandCount == 0 then return end
-
-	-- Phase 2: Build batch data
+	local newCommandCount = 0
 	local glowN = 0
 	local ringN = 0
 	local pencilN = 0
@@ -266,99 +266,112 @@ function widget:DrawWorldPreUnit()
 
 	for j = 1, commandCount do
 		local cmd = commands[j]
-		local typeData = types[cmd.cmdType]
-		local totalDuration = typeData.totalDuration
-		local durationProcess = (currentTime - cmd.osClock) / totalDuration
-		local a = (1 - durationProcess) * generalOpacity
-		local size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
+		if cmd then
+			local typeData = cmd.typeData
+			local cmdOsClock = cmd.osClock
+			local playerID = cmd.playerID
+			local isMapDraw = typeData.isMapDraw
+			local age = currentTime - cmdOsClock
 
-		local cr, cg, cb
-		if cmd.spec then
-			cr, cg, cb = 1, 1, 1
-		else
-			cr, cg, cb = cmd.r, cmd.g, cmd.b
-		end
+			if age <= typeData.totalDuration
+				and (not isMapDraw or mapDrawNicknameTime[playerID] == nil
+					or cmdOsClock >= mapDrawNicknameTime[playerID]) then
+				newCommandCount = newCommandCount + 1
+				commands[newCommandCount] = cmd
 
-		-- Glow
-		local glowAlpha = typeData.glowColor[4]
-		if glowAlpha > 0 then
-			local n = glowN
-			local gs = size * 0.8
-			glowBatch[n+1] = cmd.x; glowBatch[n+2] = cmd.y; glowBatch[n+3] = cmd.z
-			glowBatch[n+4] = gs
-			glowBatch[n+5] = cr; glowBatch[n+6] = cg; glowBatch[n+7] = cb
-			glowBatch[n+8] = a * glowAlpha
-			glowN = n + 8
-		end
+				local durationProcess = age / typeData.totalDuration
+				local a = (1 - durationProcess) * generalOpacity
+				local size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
+				local x, y, z = cmd.x, cmd.y, cmd.z
 
-		-- Ring
-		local ringAlpha = typeData.ringColor[4]
-		if ringAlpha > 0 then
-			local n = ringN
-			local rs = ringStartSize + (size * ringScale) * durationProcess
-			ringBatch[n+1] = cmd.x; ringBatch[n+2] = cmd.y; ringBatch[n+3] = cmd.z
-			ringBatch[n+4] = rs
-			ringBatch[n+5] = cr; ringBatch[n+6] = cg; ringBatch[n+7] = cb
-			ringBatch[n+8] = a * ringAlpha
-			ringN = n + 8
-		end
-
-		-- Icons & Nicknames (spectator drawers only)
-		if cmd.spec and cmd.playerID and cmd.playerID ~= ownPlayerID then
-			local cmdType = cmd.cmdType
-			if cmdType == 'map_draw' or
-				(cmdType == 'map_erase' and cmd.osClock >= (mapEraseNicknameTime[cmd.playerID] or 0)) then
-				local iconAlpha = a * glowAlpha * nicknameOpacityMultiplier
-				local is = 11
-				if cmdType == 'map_draw' then
-					local n = pencilN
-					pencilBatch[n+1] = cmd.x; pencilBatch[n+2] = cmd.y; pencilBatch[n+3] = cmd.z
-					pencilBatch[n+4] = is
-					pencilBatch[n+5] = cr; pencilBatch[n+6] = cg; pencilBatch[n+7] = cb
-					pencilBatch[n+8] = iconAlpha
-					pencilN = n + 8
+				local cr, cg, cb
+				if cmd.spec then
+					cr, cg, cb = 1, 1, 1
 				else
-					local n = eraserN
-					eraserBatch[n+1] = cmd.x; eraserBatch[n+2] = cmd.y; eraserBatch[n+3] = cmd.z
-					eraserBatch[n+4] = is
-					eraserBatch[n+5] = cr; eraserBatch[n+6] = cg; eraserBatch[n+7] = cb
-					eraserBatch[n+8] = iconAlpha
-					eraserN = n + 8
+					cr, cg, cb = cmd.r, cmd.g, cmd.b
 				end
-				nickN = nickN + 1
-				local nn = (nickN - 1) * 4
-				nickBatch[nn+1] = cmd.x; nickBatch[nn+2] = cmd.y; nickBatch[nn+3] = cmd.z
-				nickBatch[nn+4] = iconAlpha
-				nickNames[nickN] = cmd.nickname
+
+				local glowAlpha = typeData.glowAlpha
+				if glowAlpha > 0 then
+					local n = glowN
+					glowBatch[n+1] = x; glowBatch[n+2] = y; glowBatch[n+3] = z
+					glowBatch[n+4] = size * 0.8
+					glowBatch[n+5] = cr; glowBatch[n+6] = cg; glowBatch[n+7] = cb
+					glowBatch[n+8] = a * glowAlpha
+					glowN = n + 8
+				end
+
+				local ringAlpha = typeData.ringAlpha
+				if ringAlpha > 0 then
+					local n = ringN
+					ringBatch[n+1] = x; ringBatch[n+2] = y; ringBatch[n+3] = z
+					ringBatch[n+4] = ringStartSize + (size * ringScale) * durationProcess
+					ringBatch[n+5] = cr; ringBatch[n+6] = cg; ringBatch[n+7] = cb
+					ringBatch[n+8] = a * ringAlpha
+					ringN = n + 8
+				end
+
+				if cmd.spec and playerID and playerID ~= ownPlayerID then
+					if isMapDraw or
+						(typeData.isMapErase and cmdOsClock >= (mapEraseNicknameTime[playerID] or 0)) then
+						local iconAlpha = a * glowAlpha * nicknameOpacityMultiplier
+						if isMapDraw then
+							local n = pencilN
+							pencilBatch[n+1] = x; pencilBatch[n+2] = y; pencilBatch[n+3] = z
+							pencilBatch[n+4] = 11
+							pencilBatch[n+5] = cr; pencilBatch[n+6] = cg; pencilBatch[n+7] = cb
+							pencilBatch[n+8] = iconAlpha
+							pencilN = n + 8
+						else
+							local n = eraserN
+							eraserBatch[n+1] = x; eraserBatch[n+2] = y; eraserBatch[n+3] = z
+							eraserBatch[n+4] = 11
+							eraserBatch[n+5] = cr; eraserBatch[n+6] = cg; eraserBatch[n+7] = cb
+							eraserBatch[n+8] = iconAlpha
+							eraserN = n + 8
+						end
+						nickN = nickN + 1
+						local nn = (nickN - 1) * 4
+						nickBatch[nn+1] = x; nickBatch[nn+2] = y; nickBatch[nn+3] = z
+						nickBatch[nn+4] = iconAlpha
+						nickNames[nickN] = cmd.nickname
+					end
+				end
 			end
 		end
 	end
 
-	-- Phase 3: Render batched (one texture bind + one draw call per type)
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	for j = newCommandCount + 1, commandCount do
+		commands[j] = nil
+	end
+	commandCount = newCommandCount
+
+	if commandCount == 0 then return end
+
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glDepthTest(false)
 
 	if glowN > 0 then
 		glTexture(glowTexture)
-		glBeginEnd(GL.QUADS, DrawBatchedQuads, glowBatch, glowN)
+		glBeginEnd(GL_QUADS, DrawBatchedQuads, glowBatch, glowN)
 		glTexture(false)
 	end
 
 	if ringN > 0 then
 		glTexture(ringTexture)
-		glBeginEnd(GL.QUADS, DrawBatchedQuads, ringBatch, ringN)
+		glBeginEnd(GL_QUADS, DrawBatchedQuads, ringBatch, ringN)
 		glTexture(false)
 	end
 
 	if pencilN > 0 then
 		glTexture(pencilTexture)
-		glBeginEnd(GL.QUADS, DrawBatchedQuads, pencilBatch, pencilN)
+		glBeginEnd(GL_QUADS, DrawBatchedQuads, pencilBatch, pencilN)
 		glTexture(false)
 	end
 
 	if eraserN > 0 then
 		glTexture(eraserTexture)
-		glBeginEnd(GL.QUADS, DrawBatchedQuads, eraserBatch, eraserN)
+		glBeginEnd(GL_QUADS, DrawBatchedQuads, eraserBatch, eraserN)
 		glTexture(false)
 	end
 
