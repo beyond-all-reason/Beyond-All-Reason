@@ -301,3 +301,55 @@ QueryWeapon8(piecenum)
 {
 	piecenum = RearRightMinigunTurretBarrelFirepoint;
 }
+
+/////////////////////////////////
+// Front Fender Missiles
+/////////////////////////////////
+
+AimWeapon9(heading, pitch)
+{   
+    turn FrontLeftFenderFirepoint to y-axis heading speed <300>;
+    turn FrontLeftFenderFirepoint to x-axis <0> - pitch speed <300>;
+    wait-for-turn FrontLeftFenderFirepoint around y-axis;
+	wait-for-turn FrontLeftFenderFirepoint around x-axis;
+    return (1);
+}
+
+FireWeapon9()
+{
+
+}
+
+AimFromWeapon9(piecenum)
+{
+	piecenum = FrontLeftFenderFirepoint;
+}
+
+QueryWeapon9(piecenum)
+{
+	piecenum = FrontLeftFenderFirepoint;
+}
+
+AimWeapon10(heading, pitch)
+{   
+    turn FrontRightFenderFirepoint to y-axis heading speed <300>;
+    turn FrontRightFenderFirepoint to x-axis <0> - pitch speed <300>;
+    wait-for-turn FrontRightFenderFirepoint around y-axis;
+	wait-for-turn FrontRightFenderFirepoint around x-axis;
+    return (1);
+}
+
+FireWeapon10()
+{
+
+}
+
+AimFromWeapon10(piecenum)
+{
+	piecenum = FrontRightFenderFirepoint;
+}
+
+QueryWeapon10(piecenum)
+{
+	piecenum = FrontRightFenderFirepoint;
+}
