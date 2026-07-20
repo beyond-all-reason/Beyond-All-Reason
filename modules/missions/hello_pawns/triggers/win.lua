@@ -1,0 +1,6 @@
+T.When(Team.Player.Has(UnitDef("armpw"), 3))
+	.Then(function()
+		Objective("build_pawns").Complete()
+		MatchFlow.Victory(Team.Player.allyTeam)
+	end)
+	.Register()
