@@ -485,7 +485,7 @@ else	-- UNSYNCED
 
 	function gadget:GameFrame(n)
 		if not hudActive then return end
-		if not Engine.hasSyncChecksums then return end
+		if not Platform.hasSyncChecksums then return end
 		local checksum = Spring.GetPrevFrameSyncChecksum()
 		local runFrame = n - hudRunStartFrame
 		local i = #checksumBuffer + 1
@@ -499,7 +499,7 @@ else	-- UNSYNCED
 		hudActive = false
 		local count = #checksumBuffer
 		if count == 0 then
-			Spring.Echo("[synctest] sync-hash: no frames collected (Engine.hasSyncChecksums is false — engine built without SYNCCHECK)")
+			Spring.Echo("[synctest] sync-hash: no frames collected (Platform.hasSyncChecksums is false — engine built without SYNCCHECK)")
 			return
 		end
 

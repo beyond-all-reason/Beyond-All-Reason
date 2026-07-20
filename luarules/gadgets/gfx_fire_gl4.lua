@@ -435,7 +435,7 @@ local lastRemovedFrame    = 0
 local cachedGameFrame = 0
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedFullView = select(2, spGetSpectatingState()) or false
-local windX, windZ = 0, 0
+local windX, windZ = 0.0, 0.0
 
 local MAX_PARTICLES = CONFIG.maxParticles
 
@@ -1945,15 +1945,34 @@ end
 
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
+local lastFireUpdateFrame = -1
+local nextWindUpdateFrame = 0
+local nextEmitterUpdateFrame = 0
 
-function gadget:GameFrame(n)
+local function runFireFrame(n)
+	cachedGameFrame = n
+	removeExpiredParticles(n)
+	updatePendingWreckFire(n)
+
+	if n >= nextEmitterUpdateFrame then
+		nextEmitterUpdateFrame = n + fpsUpdateInterval
+		updateEmitters(n)
+	end
+end
+
+function gadget:Update()
 	if not particleVBO then return end
+
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= lastFireUpdateFrame then return end
+	lastFireUpdateFrame = n
 
 	cachedGameFrame = n
 	cachedAllyTeamID = spGetMyAllyTeamID()
 	cachedFullView = select(2, spGetSpectatingState()) or false
 
-	if n % 10 == 0 then
+	if n >= nextWindUpdateFrame then
+		nextWindUpdateFrame = n + 10
 		local _, _, _, _, wx, _, wz = spGetWind()
 		windX = wx or 0
 		windZ = wz or 0
@@ -1968,15 +1987,32 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	removeExpiredParticles(n)
-	updatePendingWreckFire(n)
-
-	if n % fpsUpdateInterval == 0 then
-		updateEmitters(n)
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			particleRemoveQueue.__pendingFireFrame = nil
+			runFireFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		particleRemoveQueue.__pendingFireFrame = n
+		particleRemoveQueue.__pendingFireDrawFrame = particleRemoveQueue.__fireDrawFrame or 0
 	end
 end
 
 function gadget:DrawWorld()
+	particleRemoveQueue.__fireDrawFrame = (particleRemoveQueue.__fireDrawFrame or 0) + 1
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame then
+			local queuedAt = particleRemoveQueue.__pendingFireDrawFrame or 0
+			if particleRemoveQueue.__fireDrawFrame > queuedAt + 1 then
+				particleRemoveQueue.__pendingFireFrame = nil
+				runFireFrame(pendingFrame)
+			end
+		end
+	end
 	drawParticles()
 end
 

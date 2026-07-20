@@ -264,6 +264,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local function setupCellGrid(force)
+	tracy.ZoneBeginN("W:OrderMenu:SetupCellGrid")
 	local oldCols = cols
 	local oldRows = rows
 	local cmdCount = #commands
@@ -342,6 +343,7 @@ local function setupCellGrid(force)
 			cellRects[j] = nil
 		end
 	end
+	tracy.ZoneEnd()
 end
 
 local function computeWaitState()
@@ -369,6 +371,8 @@ local function computeWaitState()
 end
 
 local function refreshCommands()
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands")
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:Collect")
 	local waitCommand
 	-- Clear and reuse temp tables instead of creating new ones
 	local stateCommandsCount = 0
@@ -414,8 +418,10 @@ local function refreshCommands()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- Reuse commands table instead of creating new one
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:BuildList")
 	local totalCommands = stateCommandsCount + waitCommandCount + otherCommandsCount
 	-- Clear old entries beyond what we need
 	for i = totalCommands + 1, #commands do
@@ -457,12 +463,16 @@ local function refreshCommands()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	hasWaitCommand = (waitCommand ~= nil)
 
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:WaitState")
 	computeWaitState()
+	tracy.ZoneEnd()
 
 	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:Fingerprint")
 	commandsVisuallyChanged = false
 	local cmdCount = #commands
 	if cmdCount ~= prevCmdCount or activeCommand ~= prevActiveCmd then
@@ -511,11 +521,16 @@ local function refreshCommands()
 			printTextCache[k] = nil
 		end
 	end
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:SetupGrid")
 	setupCellGrid(false)
+	tracy.ZoneEnd()
+	tracy.ZoneEnd()
 end
 
 function widget:ViewResize()
+	tracy.ZoneBeginN("W:OrderMenu:ViewResize")
 	vsx, vsy = spGetViewGeometry()
 
 	width = 0.2125
@@ -594,6 +609,7 @@ function widget:ViewResize()
 	end
 	-- Reset fingerprint so the next refresh always re-renders into the new texture
 	prevCmdCount = -1
+	tracy.ZoneEnd()
 end
 
 local function reloadBindings()
@@ -719,10 +735,12 @@ end
 local buildmenuBottomPos = false
 local sec = 0
 function widget:Update(dt)
+	tracy.ZoneBeginN("W:OrderMenu:Update")
 	ordermenuShows = false
 
 	sec = sec + dt
 	if sec > 0.5 then
+		tracy.ZoneBeginN("W:OrderMenu:Update:Periodic")
 		sec = 0
 		checkGuiShader()
 
@@ -744,6 +762,7 @@ function widget:Update(dt)
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
+		tracy.ZoneEnd()
 	end
 
 	clickCountDown = clickCountDown - 1
@@ -788,6 +807,7 @@ function widget:Update(dt)
 	else
 		ordermenuShows = true
 	end
+	tracy.ZoneEnd()
 end
 
 local function RectQuad(px, py, sx, sy, offset)
@@ -864,6 +884,7 @@ local function drawHighlights()
 end
 
 local function drawCell(cell, zoom)
+	tracy.ZoneBeginN("W:OrderMenu:DrawCell")
 	if not zoom then
 		zoom = 1
 	end
@@ -919,10 +940,13 @@ local function drawCell(cell, zoom)
 			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
+		tracy.ZoneBeginN("W:OrderMenu:DrawCell:Button")
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
+		tracy.ZoneEnd()
 
 		-- icon
 		if showIcons then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Icon")
 			if cursorTextures[cmd.cursor] == nil then
 				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
 				cursorTextures[cmd.cursor] = VFS.FileExists(cursorTexture) and cursorTexture or false
@@ -940,10 +964,12 @@ local function drawCell(cell, zoom)
 					glTexture(false)
 				end
 			end
+			tracy.ZoneEnd()
 		end
 
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Text")
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
 			local text = cmd.cachedText or '?'
 
@@ -995,10 +1021,12 @@ local function drawCell(cell, zoom)
 				printTextCache[printKey] = printStr
 			end
 			font:Print(printStr, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+			tracy.ZoneEnd()
 		end
 
 		-- state lights
 		if isStateCommand[cmd.id] or cmd.id == CMD.WAIT then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:StateLights")
 			local statecount, curstate
 			local fillMin, fillMax
 			if cmd.id == CMD.FIRE_STATE then
@@ -1080,8 +1108,10 @@ local function drawCell(cell, zoom)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
 			end
+			tracy.ZoneEnd()
 		end
 	end
+	tracy.ZoneEnd()
 end
 
 local function drawOrdersBackground()
@@ -1089,6 +1119,7 @@ local function drawOrdersBackground()
 end
 
 local function drawOrders()
+	tracy.ZoneBeginN("W:OrderMenu:DrawOrders")
 	if #commands > 0 then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		font:Begin(true)
@@ -1097,12 +1128,15 @@ local function drawOrders()
 		end
 		font:End()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:DrawScreen()
+	tracy.ZoneBeginN("W:OrderMenu:DrawScreen")
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
 	local cellHovered
+	tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverScan")
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
@@ -1164,6 +1198,7 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
@@ -1173,6 +1208,7 @@ function widget:DrawScreen()
 
 	-- Throttle command refresh to avoid excessive updates during rapid selection changes
 	if doUpdate or (doUpdateClock and now >= doUpdateClock) then
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:RefreshCommands")
 		-- Only refresh if enough time has passed since last refresh
 		if now - lastCommandRefreshTime >= commandRefreshDelay then
 			if doUpdateClock and now >= doUpdateClock then
@@ -1191,14 +1227,18 @@ function widget:DrawScreen()
 				doUpdateClock = now + commandRefreshDelay
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Hide")
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
 		doUpdate = nil
+		tracy.ZoneEnd()
 	else
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Visible")
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
 		end
@@ -1207,6 +1247,7 @@ function widget:DrawScreen()
 		end
 
 		if not ordermenuBgTex then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateBackgroundTexture")
 			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
@@ -1215,19 +1256,25 @@ function widget:DrawScreen()
 			if ordermenuBgTex then
 				gl.R2tHelper.RenderInRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrdersBackground, true)
 			end
+			tracy.ZoneEnd()
 		end
 		if not ordermenuTex then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateOrdersTexture")
 			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
 			})
+			tracy.ZoneEnd()
 		end
 		if ordermenuTex and doUpdate then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:RenderOrdersTexture")
 			gl.R2tHelper.RenderInRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrders, true)
 			doUpdate = nil
+			tracy.ZoneEnd()
 		end
 
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:BlendTextures")
 		if ordermenuBgTex then
 			-- background element
 			gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
@@ -1236,14 +1283,18 @@ function widget:DrawScreen()
 			-- content
 			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
+		tracy.ZoneEnd()
 
 		if #commands >0 then
 			-- draw attention highlights (animated, on top of cached content)
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Highlights")
 			drawHighlights()
+			tracy.ZoneEnd()
 
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if commands and cellHovered then
+					tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverCell")
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then
 						drawCell(cell, cellHoverZoom)
@@ -1276,11 +1327,13 @@ function widget:DrawScreen()
 						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.045 * colorMult or 0.095 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
+					tracy.ZoneEnd()
 				end
 			end
 
 			-- clicked cell effect
 			if clickedCellTime and commands[clickedCell] then
+				tracy.ZoneBeginN("W:OrderMenu:DrawScreen:ClickedCell")
 				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
 					local isActiveCmd = (commands[cell].name == activeCommand)
@@ -1321,9 +1374,12 @@ function widget:DrawScreen()
 					end
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
+				tracy.ZoneEnd()
 			end
 		end
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:MousePress(x, y, button)

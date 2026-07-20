@@ -42,6 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetPlayerInfo = Spring.GetPlayerInfo
 	local spGetUnitStates = Spring.GetUnitStates
+	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 
 	local tremove = table.remove
 	local ensureTable = table.ensureTable
@@ -302,8 +303,10 @@ if gadgetHandler:IsSyncedCode() then
 		local target = targetData.target
 		if type(target) == "number" then
 			spSetUnitTarget(unitID, target, false, targetData.userTarget)
+			spSetUnitRulesParam(unitID, "unitTargetID", target)
 		else
 			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
+			spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		end
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
@@ -314,6 +317,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		unitData.activeTarget = false
 		unitData.currentIndex = 1
+		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		if not inAttackCommand(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
@@ -356,12 +360,13 @@ if gadgetHandler:IsSyncedCode() then
 		if keeptrack then
 			setTargetPassive(unitID, setTargetData[unitID])
 		else
-			SendToUnsynced("targetList", unitID, 0) -- remove all
+			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
 		removeFromQueue(unitID)
 		setTargetData[unitID] = nil
 		activeTargets[unitID] = nil
 		pausedTargets[unitID] = nil
+		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 	end
 
 	local function addUnitTargets(unitID, unitDefID, targetList, append)
