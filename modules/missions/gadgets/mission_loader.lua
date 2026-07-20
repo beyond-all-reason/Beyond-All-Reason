@@ -38,7 +38,15 @@ local ctx = {
 		if unitDef == nil then
 			return 0
 		end
-		return Spring.GetTeamUnitDefCount(teamID, unitDef.id)
+		-- GetTeamUnitDefCount includes nanoframes; Has() means finished units,
+		-- so filter out anything still being built.
+		local count = 0
+		for _, unitID in ipairs(Spring.GetTeamUnitsByDefs(teamID, unitDef.id)) do
+			if not Spring.GetUnitIsBeingBuilt(unitID) then
+				count = count + 1
+			end
+		end
+		return count
 	end,
 }
 
