@@ -207,6 +207,7 @@ local sidePics = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
+widget._advPlayersListDrawState = { lastDrawGameFrame = curFrame, sawSpareDrawFrame = false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -1850,10 +1851,15 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-    if updateMainLists then
+    local drawGameFrame = spGetGameFrame()
+    local drawState = self._advPlayersListDrawState
+    local renderOnlyFrame = drawGameFrame == drawState.lastDrawGameFrame
+    if updateMainLists and (renderOnlyFrame or not drawState.sawSpareDrawFrame) then
         doCreateLists(updateMainLists[1], updateMainLists[2], updateMainLists[3])
         updateMainLists = nil
     end
+    drawState.sawSpareDrawFrame = renderOnlyFrame
+    drawState.lastDrawGameFrame = drawGameFrame
 
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()

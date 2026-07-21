@@ -42,6 +42,9 @@ local mapPoints = {}
 local myPlayerID
 local enabled = true
 local instanceIDgen = 1
+local gameFramePending = false
+local skipGameFrameDraw = false
+local drewBetweenGameFrames = false
 ----------------------------------------------------------------
 --local functions
 ----------------------------------------------------------------
@@ -321,6 +324,14 @@ function widget:DrawScreen()
 	if not enabled then
 		return
 	end
+  local hadGameFrame = gameFramePending
+  gameFramePending = false
+  if hadGameFrame and skipGameFrameDraw then
+    return
+  end
+  if not hadGameFrame then
+    drewBetweenGameFrames = true
+  end
   DrawMapMarksWorld(0)
 end
 
@@ -354,6 +365,9 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 end
 
 function widget:GameFrame(n)
+  gameFramePending = true
+  skipGameFrameDraw = drewBetweenGameFrames
+  drewBetweenGameFrames = false
   if mapPoints[n-timeToLive] then
     for i, instanceID in ipairs(mapPoints[n-timeToLive]) do
       popElementInstance(mapMarkInstanceVBO,instanceID)
