@@ -28,7 +28,12 @@ function TriggerEngine.New()
 		assert(type(descriptor.id) == "string", "trigger descriptor needs an id")
 		assert(type(descriptor.condition) == "table" and type(descriptor.condition.evaluate) == "function",
 			descriptor.id .. ": condition must have an evaluate function")
-		assert(type(descriptor.effect) == "function", descriptor.id .. ": effect must be a function")
+		assert(type(descriptor.effects) == "table" and #descriptor.effects > 0,
+			descriptor.id .. ": descriptor needs a non-empty effects list")
+		for _, effect in ipairs(descriptor.effects) do
+			assert(type(effect) == "table" and type(effect.execute) == "function",
+				descriptor.id .. ": every effect must have an execute function")
+		end
 		for _, existing in ipairs(triggers) do
 			if existing.id == descriptor.id then
 				error("duplicate trigger id: " .. descriptor.id)
@@ -60,7 +65,9 @@ function TriggerEngine.New()
 		for _, trigger in ipairs(triggers) do
 			if not (trigger.once and state.fired[trigger.id]) and trigger.condition.evaluate(ctx) then
 				state.fired[trigger.id] = true
-				trigger.effect(ctx)
+				for _, effect in ipairs(trigger.effects) do
+					effect.execute(ctx)
+				end
 			end
 		end
 	end

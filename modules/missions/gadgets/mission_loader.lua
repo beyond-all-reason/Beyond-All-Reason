@@ -69,25 +69,64 @@ local function resolvePlayerTeam()
 	return nil
 end
 
----Objective verb, demo-minimal: Complete() echoes and flips a rulesparam
----(objective_<name>) that UI or tests can read; IsComplete() is the condition
----side, so victory can be its own trigger driven by objective state (the
----"all objectives complete -> win" shape in miniature). Completion state lives
----in rulesparams — engine-serialized, so it survives a savegame like the rest
----of the trigger progress pile.
+---Objective verb, demo-minimal. Closure-free surface: Complete() is LAZY —
+---it builds an effect the engine executes when the trigger fires, so mission
+---files chain it with Do instead of wrapping it in a function. IsComplete()
+---is the condition side, so victory can be its own trigger driven by
+---objective state (the "all objectives complete -> win" shape in miniature).
+---Completion state lives in rulesparams (objective_<name>) —
+---engine-serialized, so it survives a savegame like the rest of the trigger
+---progress pile.
 ---@param name string
 ---@return MissionObjective
 local function Objective(name)
 	return {
 		Complete = function()
-			Spring.SetGameRulesParam("objective_" .. name, 1)
-			Spring.Echo("[" .. LOG_TAG .. "] objective complete: " .. name)
+			return {
+				execute = function()
+					Spring.SetGameRulesParam("objective_" .. name, 1)
+					Spring.Echo("[" .. LOG_TAG .. "] objective complete: " .. name)
+				end,
+			}
 		end,
 		IsComplete = function()
 			return {
 				---@param ctx MissionContext
 				evaluate = function(ctx)
 					return ctx.IsObjectiveComplete(name)
+				end,
+			}
+		end,
+	}
+end
+
+---The MatchFlow verbs injected into mission files: same names as the module
+---api, but LAZY — Victory(team) builds an effect for a Do chain; the module's
+---imperative api fires only when the trigger does. Takes the Team handle, not
+---a raw allyTeam id, so the mission line reads as English.
+---@param matchflowApi table the matchflow module api (ModuleHandler.Get)
+---@return MissionMatchFlow
+local function makeMatchFlowVerbs(matchflowApi)
+	return {
+		---@param team MissionTeam
+		---@return MissionEffect
+		Victory = function(team)
+			assert(type(team) == "table" and type(team.allyTeam) == "number",
+				"MatchFlow.Victory expects a Team handle (e.g. Team.Player)")
+			return {
+				execute = function()
+					matchflowApi.Victory(team.allyTeam)
+				end,
+			}
+		end,
+		---@param team MissionTeam
+		---@return MissionEffect
+		Defeat = function(team)
+			assert(type(team) == "table" and type(team.allyTeam) == "number",
+				"MatchFlow.Defeat expects a Team handle (e.g. Team.Player)")
+			return {
+				execute = function()
+					matchflowApi.Defeat({ team.allyTeam })
 				end,
 			}
 		end,
@@ -115,7 +154,7 @@ local function loadMission(missionName)
 		return false
 	end
 
-	local matchFlow = ModuleHandler.Get("matchflow")
+	local matchFlow = makeMatchFlowVerbs(ModuleHandler.Get("matchflow"))
 
 	for _, filePath in ipairs(files) do
 		-- Identity is mission-relative so ids survive install-path differences.

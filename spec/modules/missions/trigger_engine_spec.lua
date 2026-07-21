@@ -29,9 +29,11 @@ local function makeTrigger(id, result, log)
 				return result
 			end,
 		},
-		effect = function()
-			log[#log + 1] = id
-		end,
+		effects = { {
+			execute = function()
+				log[#log + 1] = id
+			end,
+		} },
 		once = true,
 	}
 end

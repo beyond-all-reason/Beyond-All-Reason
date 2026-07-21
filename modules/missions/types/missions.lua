@@ -1,8 +1,9 @@
 --- Mission-runtime types: the trigger engine's descriptors and the authoring
---- DSL's chain/condition shapes. The DSL surface is dot-only: every chain step
---- is a plain call with parens, no colon methods, no metatables — mission files
---- must load identically in the synced sandbox (which strips rawset) and in
---- busted.
+--- DSL's chain/condition/effect shapes. The DSL surface is dot-only AND
+--- closure-free: every chain step is a plain call with parens, no colon
+--- methods, no metatables, and no function bodies in mission files — effects
+--- are lazy objects built by named verbs. Mission files must load identically
+--- in the synced sandbox (which strips rawset) and in busted.
 
 --- A condition the trigger engine evaluates on its cadence. Pure: reads only
 --- the ctx it is handed; captures configuration (team ids, unit names), never
@@ -17,12 +18,25 @@
 ---@field IsObjectiveComplete fun(name: string): boolean
 ---@field frame integer current game frame
 
---- The injected Objective verb's handle: Complete() is the effect side,
+--- A lazy effect built by a named verb (Objective("x").Complete(),
+--- MatchFlow.Victory(Team.Player)). The engine executes it when the trigger's
+--- condition fires. Like conditions, effects capture configuration only —
+--- never progress, and never author-written function bodies.
+---@class MissionEffect
+---@field execute fun(ctx: MissionContext)
+
+--- The injected Objective verb's handle: Complete() builds the effect side,
 --- IsComplete() the condition side — victory triggers watch objective state
 --- rather than living inside the objective's own trigger.
 ---@class MissionObjective
----@field Complete fun()
+---@field Complete fun(): MissionEffect
 ---@field IsComplete fun(): MissionCondition
+
+--- The injected MatchFlow verbs: lazy mirrors of the matchflow module api.
+--- They take the Team handle so mission lines read as English.
+---@class MissionMatchFlow
+---@field Victory fun(team: MissionTeam): MissionEffect
+---@field Defeat fun(team: MissionTeam): MissionEffect
 
 --- A registered trigger. Identity = source filename + declaration order,
 --- stamped at registration — the unregister-by-identity key for hot reload.
@@ -31,13 +45,13 @@
 ---@field filename string mission-relative trigger file path
 ---@field order integer 1-based declaration order within the file
 ---@field condition MissionCondition
----@field effect fun(ctx: MissionContext)
+---@field effects MissionEffect[] executed in Do order when the condition fires
 ---@field once boolean fire at most once (default true)
 
 --- The dot-only builder chain returned by T.When. Every step returns the
 --- chain; Register is the terminal and returns nothing.
 ---@class TriggerChain
----@field Then fun(effect: fun(ctx: MissionContext)): TriggerChain
+---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
 ---@field Once fun(once: boolean?): TriggerChain default true; pass false for repeating triggers
 ---@field Register fun()
 
