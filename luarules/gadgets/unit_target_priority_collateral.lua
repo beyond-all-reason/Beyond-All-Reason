@@ -32,6 +32,7 @@ local PRIORITY_CLEAN_SHOT = 0.875
 local friendPowerRatio = 1.15
 
 local spamPowerMax = 50.0
+local spamRatioMin = 0.2
 local allowBadSpamTarget = false
 
 local unknownPower = spamPowerMax * 2.0 -- TODO: We incorrectly add power for crashing/dead, decoration, critter units.
@@ -46,6 +47,8 @@ local effectTarget = 0.20
 local updateInterval = math.round(Game.gameSpeed * 0.5)
 
 -- Lua env globals -------------------------------------------------------------
+
+local math_clamp = math.clamp
 
 local CallAsTeam = CallAsTeam
 
@@ -126,10 +129,12 @@ end
 local unitDefPower = { [-1] = unknownPower }
 local unitDefRadius = { [-1] = 10.0 }
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
+local unitDefIsSpam = {}
 
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	unitDefPower[unitDefID] = unitDef.metalCost + unitDef.energyCost / 70
 	unitDefRadiusAverage = unitDefRadiusAverage + unitDef.radius
+	unitDefIsSpam[unitDefID] = unitDefPower[unitDefID] <= spamPowerMax
 end
 unitDefRadiusAverage = unitDefRadiusAverage / #UnitDefs
 
@@ -141,6 +146,7 @@ local unitTeam = {}
 local unitAllyTeam = {}
 local unitPower = setmetatable({}, { __index = function(self, unitID) return unknownPower end})
 local unitRadius = setmetatable({}, { __index = function(self, unitID) return unknownRadius end})
+local unitIsSpam = {}
 
 local readAs = { read = -1 }
 
@@ -349,14 +355,14 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
 	local avoidRadius = avoidUnit[allyTeam][targetID]
-	if avoidRadius and avoidRadius <= searchRadius + 10 then
-		return true, priority * PRIORITY_ANTI_COLLATERAL
+	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
+		return not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
 
-	-- Prefer targets that are clean hits or are being bombarded anyway.
+	-- Prefer targets that are clean hits or bombarded by larger weapons.
 	local preferRadius = preferUnit[allyTeam][targetID]
 	if preferRadius and preferRadius >= searchRadius - 10 then
-		return true, priority -- Use base priority to focus on deprioritizing bad targets.
+		return true, priority -- No priority bonus. Focus on bad targets.
 	end
 
 	-- This search was not cached yet to within our search radius +/- 10.
@@ -371,7 +377,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 		if not avoidRadius or avoidRadius > searchRadius then
 			avoidUnit[allyTeam][targetID] = searchRadius
 		end
-		if enemyPower <= spamPowerMax then
+		if enemyPower <= spamPowerMax or enemyPower / friendPower <= spamRatioMin then
 			allowed = allowBadSpamTarget
 			priority = priority * PRIORITY_ANTICOLLAT_SPAM
 		else
@@ -406,6 +412,7 @@ local function callinCacheUnitStats(self, unitID, unitDefID, unitTeamID)
 	unitTeam[unitID] = unitTeamID
 	unitAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 	unitPower[unitID] = unitDefPower[unitDefID]
+	unitIsSpam[unitID] = unitDefIsSpam[unitDefID]
 	unitRadius[unitID] = unitDefRadius[unitDefID]
 end
 
@@ -413,6 +420,7 @@ local function callinRemoveUnitStats(self, unitID)
 	unitTeam[unitID] = nil
 	unitAllyTeam[unitID] = nil
 	unitPower[unitID] = nil
+	unitIsSpam[unitID] = nil
 	unitRadius[unitID] = nil
 end
 
