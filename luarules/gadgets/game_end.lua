@@ -60,29 +60,16 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local KillTeam = Spring.KillTeam
 	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetPlayerList = Spring.GetPlayerList
 	local GetTeamInfo = Spring.GetTeamInfo
-	local GetTeamUnitCount = Spring.GetTeamUnitCount
-	local GetAIInfo = Spring.GetAIInfo
-	local GetTeamLuaAI = Spring.GetTeamLuaAI
-	local GetTeamUnits = Spring.GetTeamUnits
-	local GetUnitDefID = Spring.GetUnitDefID
 	local GameOver = Spring.GameOver
 	local AreTeamsAllied = Spring.AreTeamsAllied
 	local GetGameFrame = Spring.GetGameFrame
-	local EMPTY_TABLE = {}
+
+	local Liveness = VFS.Include("modules/matchflow/lib/liveness.lua")
 
 	local playerQuitIsDead = true	-- gets turned off for 1v1's
 	local oneTeamWasActive = false
-	local teamToAllyTeam = { [gaiaTeamID] = gaiaAllyTeamID }
-	local playerIDtoAIs = {}
-	local playerInfoCache = {}
-	local teamEvalFrame = {}
-	local allyTeamEvalFrame = {}
-	local playerList = GetPlayerList()
-	local killTeamQueue = {}
 	local isFFA = Spring.Utilities.Gametype.IsFFA()
 
 	local gameoverFrame
@@ -94,143 +81,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local globalLosGranted = false
 
-	local allyTeamInfos = {}
-	--[[
-	allyTeamInfos structure: (excluding gaia)
-	 allyTeamInfos = {
-		[allyTeamID] = {
-			teams = {
-				[teamID]= {
-					players = {
-						[playerID] = isControlling
-					},
-					unitCount,
-					dead,
-					isAI,
-					isControlled,
-				},
-			},
-			unitCount,
-			unitDecorationCount,
-			dead,
-		},
-	}
-	]]--
-
-	local function UpdateAllyTeamIsDead(allyTeamID, gf)
-		if gf == 0 then return end
-
-		local wipeout = true
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		for teamID, team in pairs(allyTeamInfo.teams) do
-			wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
-		end
-		if wipeout and not allyTeamInfos[allyTeamID].dead then
-			if isFFA and gf < earlyDropGrace then
-				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
-					local teamUnits = GetTeamUnits(teamID) or EMPTY_TABLE
-					for i=1, #teamUnits do
-						Spring.DestroyUnit(teamUnits[i], false, true)	-- reclaim, dont want to leave FFA comwreck for idling starts
-					end
-				end
-			else
-				GG.wipeoutAllyTeam(allyTeamID)
-			end
-			allyTeamInfos[allyTeamID].dead = true
-		end
-	end
-
-	local function CheckPlayer(playerID, gf)
-		local cachedPlayerInfo = playerInfoCache[playerID]
-		local active = cachedPlayerInfo and cachedPlayerInfo.active
-		local spectator = cachedPlayerInfo and cachedPlayerInfo.spectator
-		local teamID = cachedPlayerInfo and cachedPlayerInfo.teamID
-		local allyTeamID = cachedPlayerInfo and cachedPlayerInfo.allyTeamID
-		if teamID == nil then
-			_, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
-		end
-		local team = allyTeamInfos[allyTeamID].teams[teamID]
-
-		if not spectator and active then
-			team.players[playerID] = gf
-		end
-		if teamEvalFrame[teamID] ~= gf then
-			teamEvalFrame[teamID] = gf
-
-			team.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
-
-			local allResigned = true
-			if not team.dead then
-				if team.isAI then
-					allResigned = false
-				else
-					for trackedPlayerID in pairs(team.players) do
-						local trackedInfo = playerInfoCache[trackedPlayerID]
-						local spec = trackedInfo and trackedInfo.spectator
-						if spec == nil then
-							_, _, spec = GetPlayerInfo(trackedPlayerID, false)
-						end
-						allResigned = allResigned and (spec == true)
-						if not allResigned then
-							break
-						end
-					end
-				end
-			end
-			if not team.dead and allResigned then
-				killTeamQueue[teamID] = gf
-			else
-				if not team.hasLeader and not team.dead then
-					if not killTeamQueue[teamID] then
-						killTeamQueue[teamID] = gf + (Game.gameSpeed * (isFFA and 20 or 12))	-- add a grace period before killing the team
-					end
-				elseif killTeamQueue[teamID] then
-					killTeamQueue[teamID] = nil
-				end
-			end
-			if killTeamQueue[teamID] and gf >= killTeamQueue[teamID] then
-				KillTeam(teamID)
-				killTeamQueue[teamID] = nil
-			end
-
-			-- if team isn't AI controlled, then we need to check if we have attached players
-			if not team.isAI then
-				team.isControlled = false
-				for _, isControlling in pairs(team.players) do
-					if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
-						team.isControlled = true
-						break
-					end
-				end
-			end
-		end
-
-		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
-		for AITeam, AIAllyTeam in pairs(playerIDtoAIs[playerID] or EMPTY_TABLE) do
-			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
-		end
-
-		if allyTeamEvalFrame[allyTeamID] ~= gf then
-			allyTeamEvalFrame[allyTeamID] = gf
-			UpdateAllyTeamIsDead(allyTeamID, gf)
-		end
-	end
+	-- Liveness state machine (allyTeamInfos bookkeeping) lives in
+	-- modules/matchflow/lib/liveness.lua, extracted behavior-for-behavior and
+	-- spec'd. This gadget keeps the end-condition decision and the ceremony.
+	local liveness ---@type MatchLiveness
+	local allyTeamInfos ---@type table set from liveness.Infos() at Initialize
 
 	local function CheckAllPlayers(gf)
-		playerList = GetPlayerList()
-		for i = 1, #playerList do
-			local playerID = playerList[i]
-			local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
-			local info = playerInfoCache[playerID] or {}
-			info.active = active
-			info.spectator = spectator
-			info.teamID = teamID
-			info.allyTeamID = allyTeamID
-			playerInfoCache[playerID] = info
-		end
-		for i = 1, #playerList do
-			CheckPlayer(playerList[i], gf)
-		end
+		liveness.CheckAllPlayers(gf)
 	end
 
 	function gadget:GameOver()
@@ -256,54 +114,36 @@ if gadgetHandler:IsSyncedCode() then
 			playerQuitIsDead = false
 		end
 
-		-- at start, fill in the table of all alive allyteams
-		for _, allyTeamID in ipairs(allyteamList) do
-			if allyTeamID ~= gaiaAllyTeamID then
-				local allyteamTeams = Spring.GetTeamList(allyTeamID)
-				local allyTeamInfo = {
-					unitCount = 0,
-					unitDecorationCount = 0,
-					teams = {},
-					dead = (#allyteamTeams == 0),
-				}
-				for _, teamID in ipairs(allyteamTeams) do
-					teamToAllyTeam[teamID] = allyTeamID
-					local teamInfo = {
-						players = {},
-						hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0,
-					}
-					local teamPlayers = GetPlayerList(teamID) or EMPTY_TABLE
-					for p = 1, #teamPlayers do
-						teamInfo.players[teamPlayers[p]] = false
-					end
-					-- engine AI
-					teamInfo.isAI = select(4, GetTeamInfo(teamID, false))
-					if teamInfo.isAI then
-						-- store who hosts that engine AI
-						local AIHostPlayerID = select(3, GetAIInfo(teamID))
-						playerIDtoAIs[AIHostPlayerID] = playerIDtoAIs[AIHostPlayerID] or {}
-						playerIDtoAIs[AIHostPlayerID][teamID] = allyTeamID
-					end
-					-- lua AI
-					local luaAi = GetTeamLuaAI(teamID)
-					if luaAi and luaAi ~= '' then
-						teamInfo.isAI = true
-						teamInfo.isControlled = true
-					end
-
-					teamInfo.unitCount = GetTeamUnitCount(teamID)
-					allyTeamInfo.unitCount = allyTeamInfo.unitCount + teamInfo.unitCount
-					local units = GetTeamUnits(teamID) or EMPTY_TABLE
-					for u = 1, #units do
-						if unitDecoration[GetUnitDefID(units[u])] then
-							allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
-						end
-					end
-					allyTeamInfo.teams[teamID] = teamInfo
-				end
-				allyTeamInfos[allyTeamID] = allyTeamInfo
-			end
-		end
+		liveness = Liveness.New({
+			spring = {
+				GetPlayerList = Spring.GetPlayerList,
+				GetTeamList = Spring.GetTeamList,
+				GetPlayerInfo = Spring.GetPlayerInfo,
+				GetTeamInfo = Spring.GetTeamInfo,
+				GetTeamUnitCount = Spring.GetTeamUnitCount,
+				GetTeamUnits = Spring.GetTeamUnits,
+				GetUnitDefID = Spring.GetUnitDefID,
+				GetAIInfo = Spring.GetAIInfo,
+				GetTeamLuaAI = Spring.GetTeamLuaAI,
+				KillTeam = Spring.KillTeam,
+				DestroyUnit = Spring.DestroyUnit,
+			},
+			config = {
+				gaiaTeamID = gaiaTeamID,
+				gaiaAllyTeamID = gaiaAllyTeamID,
+				isFFA = isFFA,
+				playerQuitIsDead = playerQuitIsDead,
+				earlyDropGrace = earlyDropGrace,
+				killGraceFrames = Game.gameSpeed * (isFFA and 20 or 12),
+				ignoredTeams = ignoredTeams,
+				unitDecoration = unitDecoration,
+			},
+			wipeoutAllyTeam = function(allyTeamID)
+				GG.wipeoutAllyTeam(allyTeamID)
+			end,
+		})
+		liveness.InitTeams(allyteamList)
+		allyTeamInfos = liveness.Infos()
 
 		CheckAllPlayers(GetGameFrame())
 	end
@@ -452,44 +292,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:TeamDied(teamID)
-		local gf = GetGameFrame()
-		local allyTeamID = teamToAllyTeam[teamID]
-		allyTeamInfos[allyTeamID].teams[teamID].dead = true
-		UpdateAllyTeamIsDead(allyTeamID, gf)
-		CheckAllPlayers(gf)
+		liveness.TeamDied(teamID, GetGameFrame())
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID, builderID)
-		if not ignoredTeams[unitTeamID] then
-			local allyTeamID = teamToAllyTeam[unitTeamID]
-			local allyTeamInfo = allyTeamInfos[allyTeamID]
-			allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount + 1
-			allyTeamInfo.unitCount = allyTeamInfo.unitCount + 1
-			if unitDecoration[unitDefID] then
-				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount + 1
-			end
-		end
+		liveness.UnitCreated(unitDefID, unitTeamID)
 	end
 	gadget.UnitGiven = gadget.UnitCreated
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-		if not ignoredTeams[unitTeam] then
-			local allyTeamID = teamToAllyTeam[unitTeam]
-			local allyTeamInfo = allyTeamInfos[allyTeamID]
-			local teamUnitCount = allyTeamInfo.teams[unitTeam].unitCount - 1
-			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-			allyTeamInfo.teams[unitTeam].unitCount = teamUnitCount
-			allyTeamInfo.unitCount = allyTeamUnitCount
-			if unitDecoration[unitDefID] then
-				allyTeamInfo.unitDecorationCount = allyTeamInfo.unitDecorationCount - 1
-			end
-			if allyTeamUnitCount <= allyTeamInfo.unitDecorationCount then
-				for teamID in pairs(allyTeamInfo.teams) do
-					KillTeam(teamID)
-					killTeamQueue[teamID] = nil
-				end
-			end
-		end
+		liveness.UnitDestroyed(unitDefID, unitTeam)
 	end
 	gadget.UnitTaken = gadget.UnitDestroyed
 
