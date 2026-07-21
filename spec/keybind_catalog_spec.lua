@@ -58,33 +58,51 @@ end)
 describe("keybind catalog", function()
 	local catalog = loadJson("common/configs/keybind_catalog.json")
 
-	it("is a non-empty, ordered list of categories", function()
+	it("is a non-empty, ordered list", function()
 		assert(type(catalog) == "table", "catalog must be a list")
 		assert(#catalog > 0, "catalog must not be empty")
 	end)
 
+	it("shapes every entry as a category or a hidden list", function()
+		for _, group in ipairs(catalog) do
+			local isCategory = group.category ~= nil and group.items ~= nil
+			local isHidden = group.hidden ~= nil and group.category == nil and group.items == nil
+			assert(isCategory or isHidden, "entry is neither a category nor a hidden list")
+			if isHidden then
+				assert(type(group.hidden) == "table", "hidden must be a list")
+				for _, prefix in ipairs(group.hidden) do
+					assert(type(prefix) == "string", "hidden entry must be a string prefix")
+				end
+			end
+		end
+	end)
+
 	it("titles every category with a resolvable i18n key and has items", function()
 		for _, group in ipairs(catalog) do
-			assert(type(group.category) == "string", "category missing title key")
-			assert(i18nExists(group.category), "missing i18n for category: " .. group.category)
-			assert(type(group.items) == "table", "category has no items: " .. group.category)
+			if group.category then
+				assert(type(group.category) == "string", "category missing title key")
+				assert(i18nExists(group.category), "missing i18n for category: " .. group.category)
+				assert(type(group.items) == "table", "category has no items: " .. group.category)
+			end
 		end
 	end)
 
 	it("shapes every item as exactly one recognized kind", function()
 		for _, group in ipairs(catalog) do
-			for _, item in ipairs(group.items) do
+			for _, item in ipairs(group.items or {}) do
 				local editable = item.action ~= nil and item.label ~= nil and item.keyLabel == nil and item.prefix == nil
 				local info = item.label ~= nil and item.keyLabel ~= nil and item.action == nil and item.prefix == nil
-				local prefix = item.prefix ~= nil and item.action == nil and item.label == nil and item.keyLabel == nil
-				assert(editable or info or prefix, "unrecognized item shape under " .. group.category)
+				-- prefix groups may carry an optional label (interpolated per action) and unit flag
+				local prefix = item.prefix ~= nil and item.action == nil and item.keyLabel == nil
+					and (item.unit == nil or type(item.unit) == "boolean")
+				assert(editable or info or prefix, "unrecognized item shape under " .. tostring(group.category))
 			end
 		end
 	end)
 
 	it("resolves every label and keyLabel in the English localization", function()
 		for _, group in ipairs(catalog) do
-			for _, item in ipairs(group.items) do
+			for _, item in ipairs(group.items or {}) do
 				if item.label then
 					assert(i18nExists(item.label), "missing i18n for label: " .. item.label)
 				end
