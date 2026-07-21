@@ -84,7 +84,6 @@ if gadgetHandler:IsSyncedCode() then
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
 	local isFFA = Spring.Utilities.Gametype.IsFFA()
-	local getGameOverWinners
 
 	local gameoverFrame
 	local gameoverWinners
@@ -127,7 +126,6 @@ if gadgetHandler:IsSyncedCode() then
 			wipeout = wipeout and (team.dead or (playerQuitIsDead and not team.isControlled or not team.hasLeader))
 		end
 		if wipeout and not allyTeamInfos[allyTeamID].dead then
-			allyTeamInfos[allyTeamID].dead = true
 			if isFFA and gf < earlyDropGrace then
 				for teamID, team in pairs(allyTeamInfos[allyTeamID].teams) do
 					local teamUnits = GetTeamUnits(teamID) or EMPTY_TABLE
@@ -136,8 +134,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			else
-				GG.wipeoutAllyTeam(allyTeamID, nil, nil, nil, nil, not not getGameOverWinners())
+				GG.wipeoutAllyTeam(allyTeamID)
 			end
+			allyTeamInfos[allyTeamID].dead = true
 		end
 	end
 
@@ -374,13 +373,6 @@ if gadgetHandler:IsSyncedCode() then
 		return winnersCorrectFormatCount
 	end
 
-	getGameOverWinners = function()
-		if fixedallies then
-			return CheckSingleAllyVictoryEnd()
-		end
-		return sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
-	end
-
 	function gadget:GameFrame(gf)
 		if gameoverFrame then
 			if not globalLosGranted then
@@ -410,16 +402,18 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		else
+			local winners
 			if fixedallies then
 				if gf < 30 or gf % 30 == 1 then
 					CheckAllPlayers(gf)
 				end
+				winners = CheckSingleAllyVictoryEnd()
 			else
 				if gf < 30 or gf % 15 == 1 then
 					CheckAllPlayers(gf)
 				end
+				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
-			local winners = getGameOverWinners()
 
 			if winners then
 				if Spring.GetModOptions().scenariooptions then

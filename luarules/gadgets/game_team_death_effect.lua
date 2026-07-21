@@ -35,25 +35,17 @@ end
 local spDestroyUnit = Spring.DestroyUnit
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitWeaponDamages = Spring.SetUnitWeaponDamages
 local DISTANCE_LIMIT = math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)
 local destroyUnitQueue = {}
 local wipedoutTeams = {}
-local wipedoutTeamsNoTerrainDamage = {}
-local noCraterDamage = {
-	craterMult = 0,
-	craterBoost = 0,
-	craterAreaOfEffect = 0,
-}
 
 local function getSqrDistance(x1,z1,x2,z2)
 	local dx, dz = x1-x2, z1-z2
 	return (dx*dx) + (dz*dz)
 end
 
-local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noTerrainDamage)	-- only teamID is required
+local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)	-- only teamID is required
 	wipedoutTeams[teamID] = Spring.GetGameFrame()
-	wipedoutTeamsNoTerrainDamage[teamID] = noTerrainDamage
 	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
@@ -73,7 +65,6 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult,
 				destroyUnitQueue[unitID] = {
 					frame = gf + deathFrame,
 					attackerUnitID = attackerUnitID,
-					noTerrainDamage = noTerrainDamage,
 				}
 			end
 
@@ -101,7 +92,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult,
 	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame	-- storing frame of total unit wipeout
 end
 
-local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, periodMult, noTerrainDamage)	-- only allyTeamID is required
+local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, periodMult)	-- only allyTeamID is required
 
 	-- xmas gadget uses this (to prevent creating xmasballs)
 	if not _G.destroyingTeam then _G.destroyingTeam = {} end
@@ -117,7 +108,7 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
-		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult, noTerrainDamage)
+		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	end
 end
 
@@ -126,20 +117,6 @@ GG.wipeoutAllyTeam = wipeoutAllyTeam
 
 local destroyThisFrame = {}
 local destroyThisFrameCount = 0
-
-local function destroyUnit(unitID, selfD, attackerUnitID, noTerrainDamage)
-	if not attackerUnitID and selfD and isCommander[spGetUnitDefID(unitID)] then
-		selfD = false -- always leave commander wreckage (ffa reclaims all on early dropped players now)
-	end
-	if noTerrainDamage then
-		spSetUnitWeaponDamages(unitID, selfD and "selfDestruct" or "explode", noCraterDamage)
-	end
-	if attackerUnitID then
-		spDestroyUnit(unitID, selfD, false, attackerUnitID)
-	else
-		spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-	end
-end
 
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
@@ -162,7 +139,15 @@ function gadget:GameFrame(gf)
 				destroyUnitQueue[unitID] = nil
 				destroyThisFrame[i] = nil
 				if defs then
-					destroyUnit(unitID, selfD, defs.attackerUnitID, defs.noTerrainDamage)
+					if defs.attackerUnitID then
+						spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
+					else
+						if selfD and isCommander[spGetUnitDefID(unitID)] then
+							spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
+						else
+							spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
+						end
+					end
 				end
 			end
 		end
@@ -172,10 +157,6 @@ end
 -- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam]+300 > Spring.GetGameFrame() then
-		local selfD = not GG.wipeoutWithWreckage
-		if wipedoutTeamsNoTerrainDamage[unitTeam] then
-			spSetUnitWeaponDamages(unitID, selfD and "selfDestruct" or "explode", noCraterDamage)
-		end
-		spDestroyUnit(unitID, selfD, false)
+		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
 	end
 end
