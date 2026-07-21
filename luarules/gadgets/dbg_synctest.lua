@@ -60,6 +60,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local active = false
 	local runStartFrame = 0
+	local runEndFrame = 0
+	local pendingStartFrame = nil
 	local totalFrames = 2000
 	local placementRadius = 400
 	local feedMod = 3
@@ -106,6 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 	local initCategoriesForRun
 	local spawnBurstForCategory, spawnBurstForCategoryAtAnchor
 	local computeFeatureDefsToRemove, removeAllSpawnedUnits
+	local beginRun
 
 	--------------------------------------------------------------------
 	-- Run lifecycle
@@ -117,8 +120,14 @@ if gadgetHandler:IsSyncedCode() then
 	--   words[4] areaOffsetX    normalized x start of area    number in [0, 1]    (default 0.0)
 	--   words[5] areaOffsetZ    normalized z start of area    number in [0, 1]    (default 0.0)
 	--   words[6] unitMultiplier scales nuymber of units       number in (0, 8]    (default 1.0)
+	--   words[7] startFrame     absolute frame to start on    integer > current   (default: none)
 	-- areaOffsetX/Z are clamped so offset + areaFraction <= 1.
-	local function startRun(words)
+	--
+	-- Pass startFrame for a run that is reproducible across runs. The command
+	-- to start arrives over the network, so its exact arrival frame is
+	-- non-deterministic. So we want to anchor to a specific frame.
+	-- Omit it to "start now" instead.
+	local function armRun(words)
 		if words[2] then
 			local f = tonumber(words[2])
 			if f then totalFrames = math.max(60, math.floor(f)) end
@@ -142,7 +151,31 @@ if gadgetHandler:IsSyncedCode() then
 		if areaOffsetX + areaFraction > 1 then areaOffsetX = 1 - areaFraction end
 		if areaOffsetZ + areaFraction > 1 then areaOffsetZ = 1 - areaFraction end
 
-		runStartFrame = Spring.GetGameFrame()
+		local now = Spring.GetGameFrame()
+
+		if not words[7] then
+			beginRun(now)
+			return
+		end
+
+		local startFrame = tonumber(words[7])
+		startFrame = startFrame and math.floor(startFrame)
+		if not startFrame or startFrame <= now then
+			Spring.Echo(string.format(
+				"[synctest] ERROR: startFrame must be a frame after the current one (%d); got %s",
+				now, tostring(words[7])))
+			return
+		end
+
+		pendingStartFrame = startFrame
+		Spring.Echo(string.format("[synctest] armed on frame %d, starting on frame %d", now, startFrame))
+	end
+
+	function beginRun(startFrame)
+		runStartFrame = startFrame
+		runEndFrame = runStartFrame + totalFrames
+		pendingStartFrame = nil
+
 		initrandom(RUN_SEED)
 		scanAnchors()
 		initCategoriesForRun()
@@ -150,22 +183,31 @@ if gadgetHandler:IsSyncedCode() then
 		featurestoremove = {}
 
 		Spring.Echo(string.format(
-			"[synctest] starting: totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
-			totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats,
-			#anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
-		SendToUnsynced("synctest_synchash_begin", totalFrames, runStartFrame)
+			"[synctest] starting: startframe=%d endframe=%d totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
+			runStartFrame, runEndFrame, totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier,
+			#enabledCats, #anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
+		SendToUnsynced("synctest_synchash_begin", totalFrames, runStartFrame, runEndFrame)
 		active = true
 	end
 
 	local function endRun()
 		active = false
-		Spring.Echo(string.format("[synctest] ending after %d frames", Spring.GetGameFrame() - runStartFrame))
+		Spring.Echo(string.format("[synctest] ending on frame %d after %d frames",
+			Spring.GetGameFrame(), Spring.GetGameFrame() - runStartFrame))
 		removeAllSpawnedUnits()
 		SendToUnsynced("synctest_synchash_end")
 	end
 
 	local function toggleRun(words)
-		if active then endRun() else startRun(words) end
+		if active then
+			endRun()
+		elseif pendingStartFrame then
+			Spring.Echo(string.format("[synctest] cancelling pending run (was to start on frame %d)",
+				pendingStartFrame))
+			pendingStartFrame = nil
+		else
+			armRun(words)
+		end
 	end
 
 	--------------------------------------------------------------------
@@ -173,6 +215,9 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------
 
 	function gadget:GameFrame(n)
+		if pendingStartFrame and n == pendingStartFrame then
+			beginRun(pendingStartFrame)
+		end
 		if not active then return end
 
 		local runFrame = n - runStartFrame
@@ -196,7 +241,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if runFrame >= totalFrames then
+		if n >= runEndFrame then
 			endRun()
 		end
 	end
@@ -401,8 +446,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Entry point for the `/synctest` chat command, relayed from unsynced
 	-- via Spring.SendLuaRulesMsg. Expected packet format:
-	--   "$st$:synctest [totalFrames] [areaFraction] [areaOffsetX] [areaOffsetZ] [unitMultiplier]"
-	-- See startRun() above for per-argument meaning, ranges, and defaults.
+	--   "$st$:synctest [totalFrames] [areaFraction] [areaOffsetX] [areaOffsetZ] [unitMultiplier] [startFrame]"
+	-- See armRun() above for per-argument meaning, ranges, and defaults.
 	-- Toggles a run: starts if idle, ends if already active.
 	function gadget:RecvLuaMsg(msg, playerID)
 		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
@@ -451,6 +496,7 @@ else	-- UNSYNCED
 	local hudActive = false
 	local hudTotalFrames = 0
 	local hudRunStartFrame = nil
+	local hudRunEndFrame = nil
 
 	function gadget:ViewResize()
 		vsx, vsy = Spring.GetViewGeometry()
@@ -473,30 +519,24 @@ else	-- UNSYNCED
 	local frameBuffer = {}
 	local checksumBuffer = {}
 	local synchashFirstFrame, synchashLastFrame
+	local wroteSynchash = false
+	local endRequested = false
 
-	local function onSynchashBegin(_, totalFrames, runStartFrame)
+	local function onSynchashBegin(_, totalFrames, runStartFrame, runEndFrame)
 		frameBuffer = {}
 		checksumBuffer = {}
 		synchashFirstFrame, synchashLastFrame = nil, nil
 		hudActive = true
+		wroteSynchash = false
+		endRequested = false
 		hudTotalFrames = tonumber(totalFrames) or 0
 		hudRunStartFrame = tonumber(runStartFrame) or Spring.GetGameFrame()
+		hudRunEndFrame = tonumber(runEndFrame) or (hudRunStartFrame + hudTotalFrames)
 	end
 
-	function gadget:GameFrame(n)
-		if not hudActive then return end
-		if not Platform.hasSyncChecksums then return end
-		local checksum = Spring.GetPrevFrameSyncChecksum()
-		local runFrame = n - hudRunStartFrame
-		local i = #checksumBuffer + 1
-		frameBuffer[i] = runFrame
-		checksumBuffer[i] = checksum
-		if not synchashFirstFrame then synchashFirstFrame = runFrame end
-		synchashLastFrame = runFrame
-	end
-
-	local function onSynchashEnd()
-		hudActive = false
+	local function writeSynchash()
+		if wroteSynchash then return end
+		wroteSynchash = true
 		local count = #checksumBuffer
 		if count == 0 then
 			Spring.Echo("[synctest] sync-hash: no frames collected (Platform.hasSyncChecksums is false — engine built without SYNCCHECK)")
@@ -533,6 +573,34 @@ else	-- UNSYNCED
 			path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
 		frameBuffer = {}
 		checksumBuffer = {}
+	end
+
+	function gadget:GameFrame(n)
+		if not hudActive then return end
+
+		-- Gate only sampling on the Platform flag, so a SYNCCHECK-less engine still
+		-- reaches writeSynchash and reports the empty file instead of going quiet.
+		if Platform.hasSyncChecksums and n > hudRunStartFrame and n <= hudRunEndFrame then
+			local checksum = Spring.GetPrevFrameSyncChecksum()
+			local runFrame = n - hudRunStartFrame
+			local i = #checksumBuffer + 1
+			frameBuffer[i] = runFrame
+			checksumBuffer[i] = checksum
+			if not synchashFirstFrame then synchashFirstFrame = runFrame end
+			synchashLastFrame = runFrame
+		end
+
+		if endRequested or n >= hudRunEndFrame then
+			writeSynchash()
+			hudActive = false
+			endRequested = false
+		end
+	end
+
+	-- Only requests the write; GameFrame performs it once this frame's sample is
+	-- taken. Covers early ends (manual toggle) before the end frame is reached.
+	local function onSynchashEnd()
+		endRequested = true
 	end
 
 	--------------------------------------------------------------------
