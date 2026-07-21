@@ -1,4 +1,0 @@
-// This is a placeholder file to ease the transition to grid as default
-// lots of custom hotkey setups got broken by this namechange.
-// TODO: After 1 year (may 2025) delete these
-keyload luaui/configs/hotkeys/legacy_keys.txt

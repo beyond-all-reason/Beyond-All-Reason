@@ -1,7 +1,7 @@
 return {
 	armstump = {
 		buildpic = "ARMSTUMP.DDS",
-		buildtime = 2900,
+		buildtime = 3100,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 18 40",
@@ -11,7 +11,7 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1780,
+		health = 1800,
 		leavetracks = true,
 		maxacc = 0.0438,
 		maxdec = 0.1,
@@ -25,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 330,
-		speed = 75.9,
+		speed = 75,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "armstump_tracks",

@@ -1016,7 +1016,7 @@ local projectileDefDistortions  = {
 	}
 
 	local function AssignDistortionsToAllWeapons()
-		for weaponID=1, #WeaponDefs do
+		for weaponID=0, #WeaponDefs do
 			local weaponDef = WeaponDefs[weaponID]
 			local damage = 100
 			for cat=0, #weaponDef.damages do

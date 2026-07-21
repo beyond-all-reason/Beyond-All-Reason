@@ -128,7 +128,7 @@ local alwaysReturn = false
 local autoSelectFirst = true
 local alwaysShow = false
 local useLabBuildMode = false
-local showPrice = false -- false will still show hover
+local showPrice = true -- false will still show hover
 local showRadarIcon = true -- false will still show hover
 local showGroupIcon = true -- false will still show hover
 local showBuildProgress = true
@@ -258,6 +258,80 @@ for i = 1, cellCount do
 	cellRects[i] = Rect:new(0, 0, 0, 0)
 end
 local uDefCellIds = {}
+local gridmenuUnitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0 }
+local gridmenuUnitpicWarmPerFrame = 2
+
+local function clearGridmenuUnitpicWarmQueue()
+	local warm = gridmenuUnitpicWarm
+	for defID in pairs(warm.queuedSet) do
+		warm.queuedSet[defID] = nil
+	end
+	for i = 1, warm.count do
+		warm.queued[i] = nil
+	end
+	warm.count = 0
+end
+
+local function queueGridmenuUnitpicWarm(unitDefID)
+	local warm = gridmenuUnitpicWarm
+	if unitDefID and not warm.warmed[unitDefID] and not warm.queuedSet[unitDefID] then
+		warm.count = warm.count + 1
+		warm.queued[warm.count] = unitDefID
+		warm.queuedSet[unitDefID] = true
+	end
+end
+
+local function queueGridmenuUnitpicWarmFromGrid()
+	clearGridmenuUnitpicWarmQueue()
+	if not gridOpts then
+		return
+	end
+	local offset = (currentPage - 1) * cellCount
+	for i = offset + 1, offset + cellCount do
+		local opt = gridOpts[i]
+		if opt and opt.id then
+			queueGridmenuUnitpicWarm(-opt.id)
+		end
+	end
+end
+
+local function flushGridmenuUnitpicWarmQueue()
+	local warm = gridmenuUnitpicWarm
+	local count = warm.count
+	if count <= 0 then
+		return true
+	end
+
+	tracy.ZoneBeginN("W:GridMenu:UnitpicWarmup")
+	local limit = math_min(count, gridmenuUnitpicWarmPerFrame)
+	for i = 1, limit do
+		local unitDefID = warm.queued[i]
+		if unitDefID then
+			if gl.Texture("#" .. unitDefID) then
+				warm.warmed[unitDefID] = true
+			end
+			warm.queuedSet[unitDefID] = nil
+		end
+	end
+	gl.Texture(false)
+	if limit < count then
+		for i = limit + 1, count do
+			local unitDefID = warm.queued[i]
+			local newIndex = i - limit
+			warm.queued[newIndex] = unitDefID
+			warm.queued[i] = nil
+		end
+		warm.count = count - limit
+	else
+		for i = 1, count do
+			warm.queued[i] = nil
+		end
+		warm.count = 0
+	end
+	tracy.ZoneEnd()
+
+	return warm.count == 0
+end
 
 local catRects = {}
 catRects[BUILDCAT_ECONOMY] = Rect:new(0, 0, 0, 0)
@@ -325,18 +399,20 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
-	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
-end
+local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
 local startBuildOptions = {}
-for _, uDefID in pairs(startUnits) do
-	startBuildOptions[#startBuildOptions + 1] = uDefID
-	for _, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
-		startBuildOptions[#startBuildOptions + 1] = buildoptionDefID
+for _, uDefIDString in ipairs(startUnits) do
+	local uDefID = tonumber(uDefIDString)
+	if uDefID ~= nil then
+		local unitDef = UnitDefs[uDefID]
+		if unitDef then
+			startBuildOptions[uDefID] = true
+			for _, buildoptionDefID in pairs(unitDef.buildOptions) do
+				startBuildOptions[buildoptionDefID] = true
+			end
+		end
 	end
 end
-startUnits = nil
 
 -------------------------------------------------------------------------------
 --- STATE MANAGEMENT
@@ -714,6 +790,7 @@ local function updateGrid()
 	end
 
 	updateBuildProgress()
+	queueGridmenuUnitpicWarmFromGrid()
 
 	redraw = true
 end
@@ -1346,6 +1423,9 @@ function widget:Initialize()
 		widget:SelectionChanged(Spring.GetSelectedUnits())
 	end
 
+	WG["gridmenu"].getActiveBuilder = function()
+		return activeBuilder
+	end
 	WG["gridmenu"].getAlwaysReturn = function()
 		return alwaysReturn
 	end
@@ -2026,6 +2106,15 @@ local function drawCell(rect)
 	end
 
 	local uid = rect.opts.uDefID
+	local unitTexture = "#" .. uid
+	if not gridmenuUnitpicWarm.warmed[uid] then
+		tracy.ZoneBeginN("W:GridMenu:DrawCell:TextureWarmFallback")
+		if gl.Texture(unitTexture) then
+			gridmenuUnitpicWarm.warmed[uid] = true
+		end
+		gl.Texture(false)
+		tracy.ZoneEnd()
+	end
 	local disabled = rect.opts.disabled
 	local underConstructionDim = backgroundRect.opts.builderUnderConstruction and not rect.opts.hovered and not disabled
 	local queuenr = rect.opts.queuenr
@@ -2086,7 +2175,7 @@ local function drawCell(rect)
 		usedZoom,
 		nil,
 		disabled and 0 or nil,
-		"#" .. uid,
+		unitTexture,
 		groupIcon and (groupIcon and ":l" .. texprefix .. ":" .. groupIcon or nil) or nil,
 		unitGroup and (unitGroup and ":l" .. texprefix .. ":" .. unitGroup or nil) or nil,
 		{ rect.opts.metalCost, rect.opts.energyCost },
@@ -2097,7 +2186,7 @@ local function drawCell(rect)
 	if cellColor then
 		gl.Blending(GL.DST_ALPHA, GL.ONE_MINUS_SRC_COLOR)
 		gl.Color(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		gl.Texture("#" .. uid)
+		gl.Texture(unitTexture)
 		UiUnit(
 			rect.x + cellPadding + iconPadding,
 			rect.y + cellPadding + iconPadding,
@@ -2854,6 +2943,12 @@ function widget:DrawScreen()
 
 		local buildersRectYend = math_ceil((buildersRect.yEnd + bgpadding + (iconMargin * 2)))
 		if redraw then
+			local gridmenuUnitpicsWarmDone = true
+			local warmedGridmenuUnitpicThisFrame = false
+			if gridmenuUnitpicWarm.count > 0 then
+				warmedGridmenuUnitpicThisFrame = true
+				gridmenuUnitpicsWarmDone = flushGridmenuUnitpicWarmQueue()
+			end
 			redraw = nil
 			if not buildmenuBgTex then
 				buildmenuBgTex = gl.CreateTexture(math_floor(backgroundRect.xEnd-backgroundRect.x), math_floor(buildersRectYend-backgroundRect.y), {
@@ -2880,7 +2975,7 @@ function widget:DrawScreen()
 					fbo = true,
 				})
 			end
-			if buildmenuTex then
+			if buildmenuTex and gridmenuUnitpicsWarmDone and not warmedGridmenuUnitpicThisFrame then
 				gl.R2tHelper.RenderToTexture(buildmenuTex,
 					function()
 						gl.Translate(-1, -1, 0)
@@ -2890,6 +2985,9 @@ function widget:DrawScreen()
 					end,
 					true
 				)
+			end
+			if not gridmenuUnitpicsWarmDone or warmedGridmenuUnitpicThisFrame then
+				redraw = true
 			end
 		end
 		if buildmenuBgTex then

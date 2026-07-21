@@ -15,7 +15,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 800,
+		health = 840,
 		maxslope = 14,
 		speed = 90.0,
 		maxwaterdepth = 12,
@@ -29,7 +29,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,
-		turnrate = 720,
+		turnrate = 800,
 		customparams = {
 			firingceg = "barrelshot-tiny",
 			unitgroup = 'weapon',

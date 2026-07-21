@@ -1184,6 +1184,17 @@ local assigncalls = 0
 -- @param texKey A unique key hashed from the textures names, bindpositions
 local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom)
 	assigncalls = (assigncalls + 1 ) % (2^20)
+
+	-- Guard against stale/dying object IDs. Spring.GetUnitDefID can still return a defID for a unit
+	-- that is in its death window (so AddObject/UpdateObject let it through), while InstanceDataFromUnitIDs
+	-- below reports "Non-existing UnitID" and throws, aborting the whole DrawWorldPreUnit call-in and leaving
+	-- the draw bins inconsistent (wrong models/attachments). Bail before inserting it into any bin.
+	if objectID >= 0 then
+		if (not Spring.ValidUnitID(objectID)) or (Spring.GetUnitIsDead(objectID) == true) then return end
+	else
+		if not Spring.ValidFeatureID(-objectID) then return end
+	end
+
 	shader = shader or GetShaderName(flag, objectDefID)
 	texKey = texKey or fastObjectDefIDtoTextureKey[objectDefID]
 

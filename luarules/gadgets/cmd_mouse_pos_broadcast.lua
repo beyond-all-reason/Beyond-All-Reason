@@ -23,12 +23,16 @@ end
 
 --------------------------------------------------------------------------------
 
-local numMousePos		= 2 	-- num mouse pos in 1 packet
+local numMousePos		= 1 	-- num mouse pos in 1 packet
+local sendPacketEvery	= 0.12
+local sendPacketEveryWhenSpec	= 0.35
 
 --------------------------------------------------------------------------------
 
 local PackU16			= VFS.PackU16
-local UnpackU16			= VFS.UnpackU16
+local MOUSE_POS_BYTES	= numMousePos * 4
+local MSG_PAYLOAD_BYTES	= MOUSE_POS_BYTES + 1
+local BATCH_RECORD_BYTES = MSG_PAYLOAD_BYTES + 2
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -37,24 +41,50 @@ if gadgetHandler:IsSyncedCode() then
 
 	local SendToUnsynced = SendToUnsynced
 	local strSub = string.sub
+	local strByte = string.byte
+	local tConcat = table.concat
 	local expectedPrefix = "£" .. validation
 	local EXPECTED_PREFIX_LEN = #expectedPrefix
+	local EXPECTED_MSG_LEN = EXPECTED_PREFIX_LEN + MSG_PAYLOAD_BYTES
+
+	-- Cache prefix bytes to avoid string allocations in the hot path
+	-- Note: "£" is 2 UTF-8 bytes (0xC2, 0xA3 = 194, 163)
+	local ep1, ep2, ep3, ep4 = strByte(expectedPrefix, 1, 4)
+	local playerIDPacked = {}
+	local batchParts = {}
+	local batchPartCount = 0
+
+	local function PackPlayerID(playerID)
+		local packed = playerIDPacked[playerID]
+		if not packed then
+			packed = PackU16(playerID)
+			playerIDPacked[playerID] = packed
+		end
+		return packed
+	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, EXPECTED_PREFIX_LEN) ~= expectedPrefix then
-			return
-		end
-		local xz = strSub(msg, EXPECTED_PREFIX_LEN + 2)
-		if #xz ~= numMousePos * 4 then
-			return
-		end
-		local click = strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_PREFIX_LEN + 1) == "1"
-		local x1 = UnpackU16(strSub(xz, 1, 2))
-		local z1 = UnpackU16(strSub(xz, 3, 4))
-		local x2 = UnpackU16(strSub(xz, 5, 6))
-		local z2 = UnpackU16(strSub(xz, 7, 8))
-		SendToUnsynced("mouseBroadcast", playerID, x1, z1, x2, z2, click)
+		if #msg ~= EXPECTED_MSG_LEN then return end
+		local b1, b2, b3, b4 = strByte(msg, 1, 4)
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 or b4 ~= ep4 then return end
+
+		batchPartCount = batchPartCount + 1
+		batchParts[batchPartCount] = PackPlayerID(playerID)
+		batchPartCount = batchPartCount + 1
+		batchParts[batchPartCount] = strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_MSG_LEN)
 		return true
+	end
+
+	function gadget:GameFrame()
+		if batchPartCount == 0 then
+			return
+		end
+
+		SendToUnsynced("mouseBroadcastBatch", tConcat(batchParts, "", 1, batchPartCount))
+		for i = 1, batchPartCount do
+			batchParts[i] = nil
+		end
+		batchPartCount = 0
 	end
 
 
@@ -62,9 +92,6 @@ else
 
 
 	--------------------------------------------------------------------------------
-
-	local sendPacketEvery	= 0.35
-	local sendPacketEveryWhenSpec	= 0.7
 
 	--------------------------------------------------------------------------------
 
@@ -74,9 +101,13 @@ else
 	local GetSpectatingState	= Spring.GetSpectatingState
 	local GetPlayerInfo			= Spring.GetPlayerInfo
 	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
+	local LuaUICallIn			= Script.LuaUI
+	local LuaUI					= Script.LuaUI
 
 	local floor				= math.floor
 	local abs				= math.abs
+	local strByte			= string.byte
+	local CLICK_BYTE		= string.byte("1")
 
 	local validation = SYNCED.validationMouse
 	local msgPrefix = "£" .. validation
@@ -112,11 +143,11 @@ else
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
+		gadgetHandler:AddSyncAction("mouseBroadcastBatch", handleMouseBroadcastBatchEvent)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction("mouseBroadcast")
+		gadgetHandler:RemoveSyncAction("mouseBroadcastBatch")
 	end
 
 	function gadget:PlayerChanged(playerID)
@@ -137,8 +168,33 @@ else
 				return
 			end
 		end
-		if Script.LuaUI("MouseCursorEvent") then
-			Script.LuaUI.MouseCursorEvent(playerID,x1,z1,x2,z2,click)
+		if LuaUICallIn("MouseCursorEvent") then
+			LuaUI.MouseCursorEvent(playerID,x1,z1,x2,z2,click)
+		end
+	end
+
+	function handleMouseBroadcastBatchEvent(_, batch)
+		local batchLen = batch and #batch or 0
+		if batchLen == 0 or batchLen % BATCH_RECORD_BYTES ~= 0 then
+			return
+		end
+		if not LuaUICallIn("MouseCursorEvent") then
+			return
+		end
+
+		for offset = 1, batchLen, BATCH_RECORD_BYTES do
+			local p1, p2, clickByte, x1b1, x1b2, z1b1, z1b2 = strByte(batch, offset, offset + 6)
+			local playerID = p1 + p2 * 256
+			local x1 = x1b1 + x1b2 * 256
+			local z1 = z1b1 + z1b2 * 256
+			if spec then
+				LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
+			else
+				local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+				if not targetSpec and allyTeamID == myAllyTeamID then
+					LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
+				end
+			end
 		end
 	end
 
@@ -150,17 +206,16 @@ else
 			local _,pos = TraceScreenRay(mx,my,true)
 
 			if pos and (n == 1 or pos[1] ~= lastx or pos[3] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
-				poshistory[n*2]	 = PackU16(floor(pos[1]))
-				poshistory[n*2+1] = PackU16(floor(pos[3]))
-				--if n == numMousePos then
-					lastx,lastz = pos[1],pos[3]
-				--end
+				local historyIdx = (n + 1) * 2
+				poshistory[historyIdx]	 = PackU16(floor(pos[1]))
+				poshistory[historyIdx + 1] = PackU16(floor(pos[3]))
+				lastx,lastz = pos[1],pos[3]
 				n = n + 1
 			end
 			updateTick = updateTimer + saveEach
 		end
 
-		if n > numMousePos then
+		if n >= numMousePos then
 			n = 0
 			updateTimer = 0
 			updateTick = saveEach

@@ -15,7 +15,7 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		health = 750,
+		health = 820,
 		maxacc = 0.5244,
 		maxdec = 3.2775,
 		maxslope = 20,

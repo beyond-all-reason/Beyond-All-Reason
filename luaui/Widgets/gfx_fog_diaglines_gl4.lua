@@ -20,11 +20,21 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 -- Tunables
-local strength       = 0.30  -- 0 = lines off, 1 = full opacity
-local lineFreq       = 42.0  -- elmos per line cycle (world-space; lines anchor to ground and grow with zoom)
+local strength       = 0.25  -- 0 = lines off, 1 = full opacity
+local lineFreq       = 35.94 -- elmos per line cycle (world-space; lines anchor to ground and grow with zoom). Now a true spacing since the shader uses a normalised line direction; was visually ~29.7 before two +10% spacing bumps.
 local lineWidth      = 0.38  -- 0..1 fraction of cycle that is line; lower = thinner lines + bigger gaps
-local lineSharpness  = 0.19  -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out)
-local scrollSpeed    = 0.008  -- cycles per second
+local lineSharpness  = 0.3725 -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out). 0.3725 == blur slider 0.43 (see sharpnessMin/Max below)
+local scrollSpeed    = 0.0067  -- cycles per second
+
+-- Subtle animated noise that locally fades the lines for a dynamic feel.
+local noiseScale     = 512.0  -- elmos per noise cell; larger = bigger, softer blotches
+local noiseAmount    = 0.46   -- 0 = off, 1 = noise can fully fade lines out
+local noiseSpeed     = 0.010  -- how fast the noise field drifts
+
+-- Range that the 0..1 "blurriness" settings slider maps lineSharpness onto.
+-- The default 0.19 above sits a little below the middle of this range.
+local sharpnessMin   = 0.05  -- slider at 0 = crisp lines
+local sharpnessMax   = 0.80  -- slider at 1 = strongly blurred
 
 -- Smoothing tunables (temporal blend toward live engine coverage)
 local accumUpdateRate = 2     -- update accumulator every N gameframes
@@ -56,6 +66,9 @@ local diagShaderSourceCache = {
 		lineWidth     = lineWidth,
 		lineSharpness = lineSharpness,
 		scrollSpeed   = scrollSpeed,
+		noiseScale    = noiseScale,
+		noiseAmount   = noiseAmount,
+		noiseSpeed    = noiseSpeed,
 	},
 	shaderName = "Fog Diagonal Lines GL4",
 	shaderConfig = {},
@@ -146,6 +159,17 @@ function widget:Initialize()
 	WG.fogdiaglines = {
 		getStrength = function() return strength end,
 		setStrength = function(value) strength = math.max(0, math.min(1, value or 0)) end,
+		-- Blurriness slider: 0 = sharp edges, 1 = strongly blurred. Maps linearly
+		-- onto lineSharpness (the smoothstep half-width at each line edge).
+		getBlurriness = function()
+			local range = sharpnessMax - sharpnessMin
+			if range <= 0 then return 0 end -- guard against a degenerate (min == max) range
+			return (lineSharpness - sharpnessMin) / range
+		end,
+		setBlurriness = function(value)
+			local t = math.max(0, math.min(1, value or 0))
+			lineSharpness = sharpnessMin + t * (sharpnessMax - sharpnessMin)
+		end,
 	}
 end
 
@@ -201,6 +225,9 @@ function widget:DrawWorldPreUnit()
 	diagShader:SetUniformFloat("lineWidth", lineWidth)
 	diagShader:SetUniformFloat("lineSharpness", lineSharpness)
 	diagShader:SetUniformFloat("scrollSpeed", scrollSpeed)
+	diagShader:SetUniformFloat("noiseScale", noiseScale)
+	diagShader:SetUniformFloat("noiseAmount", noiseAmount)
+	diagShader:SetUniformFloat("noiseSpeed", noiseSpeed)
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	diagShader:Deactivate()
 
@@ -209,9 +236,14 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData()
-	return { strength = strength }
+	return { strength = strength, blurriness = WG.fogdiaglines and WG.fogdiaglines.getBlurriness() or nil }
 end
 
 function widget:SetConfigData(data)
 	if data.strength ~= nil then strength = data.strength end
+	-- blurriness is the 0..1 slider value; map it back onto lineSharpness.
+	if data.blurriness ~= nil then
+		local t = math.max(0, math.min(1, data.blurriness))
+		lineSharpness = sharpnessMin + t * (sharpnessMax - sharpnessMin)
+	end
 end

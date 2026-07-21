@@ -49,6 +49,7 @@ local spValidUnitID           = Spring.ValidUnitID
 local spGetWind               = Spring.GetWind
 local spGetConfigInt          = Spring.GetConfigInt
 local spGetGameSpeed          = Spring.GetGameSpeed
+local spIsPosInAirLos   	  = Spring.IsPosInAirLos
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -609,6 +610,10 @@ local cachedPreset = QUALITY_PRESETS[currentPreset]
 local cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 local cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
 local fastForward = false  -- true when gamespeed > 1.5 or catching up (rejoining)
+local visibilityState = {
+	allyTeamID = Spring.GetMyAllyTeamID(),
+	fullView = select(2, Spring.GetSpectatingState()) or false,
+}
 
 --------------------------------------------------------------------------------
 -- Helper functions
@@ -624,10 +629,15 @@ end
 
 local maxSamples = mathCeil(15 / 4)  -- AVG_WINDOW_FRAMES / AVG_SAMPLE_INTERVAL
 
+local function isEffectVisible(x, y, z)
+	return visibilityState.fullView or spIsPosInAirLos(x, y, z, visibilityState.allyTeamID)
+end
+
 local function updateQualityPreset(gameFrame)
 	if not particleVBO then return end
 
-	if gameFrame % 4 == 0 then  -- AVG_SAMPLE_INTERVAL
+	if gameFrame >= (visibilityState.nextQualitySampleFrame or 0) then  -- AVG_SAMPLE_INTERVAL
+		visibilityState.nextQualitySampleFrame = gameFrame + 4
 		sampleIndex = (sampleIndex % maxSamples) + 1
 		local oldVal = particleCountSamples[sampleIndex] or 0
 		local newVal = particleVBO.usedElements
@@ -654,7 +664,8 @@ local function updateQualityPreset(gameFrame)
 end
 
 local function updateMaxParticles(gameFrame)
-	if gameFrame % 90 ~= 0 then return end  -- re-read configint every ~3 seconds
+	if gameFrame < (visibilityState.nextMaxParticlesFrame or 0) then return end  -- re-read configint every ~3 seconds
+	visibilityState.nextMaxParticlesFrame = gameFrame + 90
 	local newMax = ((spGetConfigInt("MaxParticles", 10000)-7000)*2) + minFireSmokeParticles
 
 	if newMax == MAX_PARTICLES then return end
@@ -672,7 +683,8 @@ local function updateMaxParticles(gameFrame)
 end
 
 local function updateWind(gameFrame)
-	if gameFrame % 10 ~= 0 then return end  -- WIND_UPDATE_INTERVAL
+	if gameFrame < (visibilityState.nextWindFrame or 0) then return end  -- WIND_UPDATE_INTERVAL
+	visibilityState.nextWindFrame = gameFrame + 10
 	local _, _, _, strength, wx, _, wz = spGetWind()
 	windX = wx or 0
 	windZ = wz or 0
@@ -909,6 +921,7 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	emitter.spawnTimer = 0
 
 	local px, py, pz = emitter.x, emitter.y, emitter.z
+	if not isEffectVisible(px, py, pz) then return true end
 
 	-- View frustum culling
 	if not spIsSphereInView(px, py, pz, POINT_CULLING_TOTAL) then return true end
@@ -1101,6 +1114,16 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		aboveGround = py > groundY + 1
 	end
 	if not aboveGround then debugPiece.skipGround = debugPiece.skipGround + 1 return end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			pools.releaseBuffer(tracked.offscreenBuffer)
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		tracked.offscreenSkip = nil
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
 	if not inView then
@@ -1378,6 +1401,14 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 
 	local px, py, pz = spGetUnitPosition(unitID)
 	if not px then return end
+	if not isEffectVisible(px, py, pz) then
+		if tracked.offscreenBuffer then
+			tracked.offscreenBuffer = nil
+			tracked.bufferLen = nil
+			offscreenBufferCount = offscreenBufferCount - 1
+		end
+		return
+	end
 
 	local inView = spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL)
 	if not inView then
@@ -1661,6 +1692,12 @@ function gadget:Initialize()
 	}
 end
 
+function gadget:PlayerChanged(playerID)
+	if playerID ~= Spring.GetMyPlayerID() then return end
+	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+end
+
 function gadget:Shutdown()
 	cleanupGL4()
 	GG.FireSmoke = nil
@@ -1684,43 +1721,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:GameFrame(n)
-	if not particleVBO then return end
+local function runFireSmokeFrame(n)
+	cachedGameFrame = n
 
 	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
 	if debugEcho then
 		tStart = spGetTimer()
 		t0 = tStart
-	end
-
-	cachedGameFrame = n
-	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
-
-	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
-	local userSpeed, internalSpeed = spGetGameSpeed()
-	fastForward = (internalSpeed or userSpeed) > 1.5
-
-	-- Periodic housekeeping (staggered across frames)
-	local nMod = n % 90
-	if nMod == 0 then updateMaxParticles(n) end
-	if n % 10 == 0 then updateWind(n) end
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
-		t0 = t1
-	end
-
-	-- Quality auto-scaling
-	updateQualityPreset(n)
-
-	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
-	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
-
-	if debugEcho then
-		t1 = spGetTimer()
-		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
-		t0 = t1
 	end
 
 	-- Remove expired particles
@@ -1740,7 +1747,8 @@ function gadget:GameFrame(n)
 		updateInterval = 2
 	end
 	-- FPS-based throttling (refresh cached value every 15 frames)
-	if n % 15 == 0 then
+	if n >= (visibilityState.nextFpsFrame or 0) then
+		visibilityState.nextFpsFrame = n + 15
 		local fps = spGetFPS()
 		if fps > 0 then
 			cachedFpsInterval = mathCeil(30 / fps)
@@ -1750,12 +1758,14 @@ function gadget:GameFrame(n)
 		updateInterval = cachedFpsInterval
 	end
 
-	if n % updateInterval == 0 then
+	if n >= (visibilityState.nextEmitterFrame or 0) then
+		visibilityState.nextEmitterFrame = n + updateInterval
 		updatePieceProjectiles(n)
 
 		-- Debug output every 30 frames
 		if debugEcho then
-			if n % 30 == 0 then
+			if n >= (visibilityState.nextPieceDebugFrame or 0) then
+				visibilityState.nextPieceDebugFrame = n + 30
 				local trackedCount = 0
 				for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
 				spEcho(string.format(
@@ -1795,7 +1805,8 @@ function gadget:GameFrame(n)
 	end
 
 	-- Clean up pending death data periodically
-	if nMod == 30 then
+	if n >= (visibilityState.nextDeathCleanupFrame or 30) then
+		visibilityState.nextDeathCleanupFrame = n + 90
 		local k = next(pendingDeathUnitRadii)
 		if k then
 			for uid in pairs(pendingDeathUnitRadii) do
@@ -1816,7 +1827,8 @@ function gadget:GameFrame(n)
 		debugTimings.totalFrame = debugTimings.totalFrame + spDiffTimers(t1, tStart, true)
 		debugTimingSamples = debugTimingSamples + 1
 
-		if n % 30 == 0 and debugTimingSamples > 0 then
+		if n >= (visibilityState.nextTimingDebugFrame or 0) and debugTimingSamples > 0 then
+			visibilityState.nextTimingDebugFrame = n + 30
 			local inv = 1000 / debugTimingSamples  -- convert to microseconds per frame
 			local trackedPieceCount = 0
 			for _ in pairs(trackedPieceProjectiles) do trackedPieceCount = trackedPieceCount + 1 end
@@ -1845,14 +1857,82 @@ function gadget:GameFrame(n)
 	end
 end
 
+function gadget:Update()
+	if not particleVBO then return end
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= (visibilityState.lastUpdateFrame or -1) then return end
+	visibilityState.lastUpdateFrame = n
+
+	local t0, t1  -- debug timer locals (only used when debugEcho is true)
+	if debugEcho then
+		t0 = spGetTimer()
+	end
+
+	cachedGameFrame = n
+	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
+
+	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
+	local userSpeed, internalSpeed = spGetGameSpeed()
+	fastForward = (internalSpeed or userSpeed) > 1.5
+
+	-- Periodic housekeeping (staggered across frames)
+	updateMaxParticles(n)
+	updateWind(n)
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.housekeeping = debugTimings.housekeeping + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	-- Quality auto-scaling
+	updateQualityPreset(n)
+
+	-- Override to Low preset during fast-forward; restore from currentPreset otherwise
+	cachedPreset = fastForward and QUALITY_PRESETS[1] or QUALITY_PRESETS[currentPreset]
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.qualityPreset = debugTimings.qualityPreset + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
+
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			visibilityState.pendingFireSmokeFrame = nil
+			runFireSmokeFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		visibilityState.pendingFireSmokeFrame = n
+		visibilityState.pendingFireSmokeDrawFrame = visibilityState.fireSmokeDrawFrame or 0
+	end
+end
+
 function gadget:DrawWorld()
+	visibilityState.fireSmokeDrawFrame = (visibilityState.fireSmokeDrawFrame or 0) + 1
+	do
+		local pendingFrame = visibilityState.pendingFireSmokeFrame
+		if pendingFrame then
+			local queuedAt = visibilityState.pendingFireSmokeDrawFrame or 0
+			if visibilityState.fireSmokeDrawFrame > queuedAt + 1 then
+				visibilityState.pendingFireSmokeFrame = nil
+				runFireSmokeFrame(pendingFrame)
+			end
+		end
+	end
+
 	-- Flush off-screen buffers that are now in view (works while paused too)
 	if offscreenBufferCount > 0 then
 		if crashingAircraftCount > 0 then
 			for unitID, tracked in pairs(trackedCrashingAircraft) do
 				if tracked.offscreenBuffer then
 					local px, py, pz = spGetUnitPosition(unitID)
-					if px and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
 						replayCrashBuffer(tracked, cachedGameFrame)
 					end
 				end
@@ -1862,7 +1942,7 @@ function gadget:DrawWorld()
 		for proID, tracked in pairs(trackedPieceProjectiles) do
 			if tracked.offscreenBuffer then
 				local px, py, pz = spGetProjectilePosition(proID)
-				if px and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+				if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
 					replayPieceBuffer(tracked, cachedGameFrame)
 				end
 			end

@@ -38,9 +38,14 @@ local showEnergyFields = true -- Show energy reclaim fields separately
 
 --Metal value font
 local numberColor = {0.9, 0.9, 0.9, 1}
-local energyNumberColor = {0.95, 0.9, 0, 1}
-local fontSizeMin = 30
-local fontSizeMax = 110
+local energyNumberColor = {1.0, 0.9, 0.1, 1}
+
+-- Resource icons (shown in front of each metal/energy value label)
+local showResourceIcons = false -- Enabled at runtime only in scenario games
+local iconSizeRatio = 1.0    -- Icon size relative to text font size
+local iconGapRatio  = 0.0     -- Gap between icon and text relative to font size
+local fontSizeMin = 25
+local fontSizeMax = 75
 
 --Field color
 local reclaimColor = {0, 0, 0, 0.16}
@@ -48,7 +53,7 @@ local reclaimEdgeColor = {1, 1, 1, 0.18}
 
 --Energy field color (yellowish tint)
 local energyReclaimColor = {0.8, 0.8, 0, 0.16}
-local energyReclaimEdgeColor = {1, 1, 0, 0.18}
+local energyReclaimEdgeColor = {1, 0.9, 0, 0.18}
 
 --Energy field settings
 local energyOpacityMultiplier = 0.44 -- Multiplier for energy field opacity (relative to metal fields)
@@ -101,17 +106,44 @@ local animCfg = {
 	toggleFadeDuration = 0.18,
 	-- Cluster identity matching: required overlap fraction (intersection / max(old,new))
 	identityMinOverlap = 0.34,
-	-- Alpha delta beyond which we recreate the gradient display list
-	rebuildThreshold = 0.06,
+	-- Alpha delta beyond which we recreate the gradient display list. Kept in
+	-- step with the alpha quantization used in CreateClusterDisplayList (~32
+	-- buckets), so slowly-fading fields (e.g. distance fade while panning) don't
+	-- recompute a state hash and rebuild a display list almost every frame. The
+	-- fill/gradient alphas are tiny (~0.05-0.13) so ~32 steps stays smooth.
+	rebuildThreshold = 0.03,
 	-- Minimum relative change in cluster resource value to trigger a pulse
 	-- animation. Smaller changes (e.g. a single small wreck added/removed from
 	-- a large field) are ignored so the field only pulses on meaningful changes.
 	pulseMinRelativeChange = 0.12,
+	-- Per-frame budget for alpha-driven display-list rebuilds. The widget now
+	-- keeps this high enough that visible fades track camera motion closely.
+	maxRebuildsPerFrame = 64,
+	rebuildBudgetFrame = -1,
+	rebuildBudgetRemaining = 0,
+	-- Camera-motion aware rebuild throttling. Distance fade makes every field's
+	-- alpha drift while the camera pans; baking that alpha into the gradient
+	-- display list meant continuous panning rebuilt dozens of lists per frame
+	-- (a big CPU spike + stutter). While the camera is moving we only allow a
+	-- small trickle of alpha-only rebuilds (geometry-missing rebuilds always go
+	-- through). The exact fade opacity isn't noticeable mid-pan, and the fields
+	-- snap to their correct opacity within a few frames once the camera settles.
+	cameraMoveDraw = -999,       -- drawCounter of the last detected camera move
+	cameraSettleDraws = 6,       -- draws of stillness before full-rate rebuilds resume
+	movingRebuildsPerFrame = 4,  -- alpha-only rebuild budget while the camera moves
+	-- Budget for building brand-new geometry (missing display lists). After a
+	-- full recluster hundreds of clusters need fresh lists; building them a few
+	-- per frame spreads that cost instead of stuttering in a single frame.
+	newBuildsPerFrame = 24,
+	newBuildBudgetRemaining = 0,
+	-- High-quality font object (loaded in Initialize/ViewResize via WG['fonts'])
+	font = nil,
 }
 
 local gameStarted = Spring.GetGameFrame() > 0
 local lastCheckFrame = Spring.GetGameFrame() - 999
 local lastCheckFrameClock = os.clock() - 99
+local lastClusterRebuildClock = os.clock() - 99
 local lastProcessedFrame = -1
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -168,11 +200,27 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetCameraVectors = Spring.GetCameraVectors
 local spGetGameFrame = Spring.GetGameFrame
 
--- TIMING INSTRUMENTATION (set to true to enable periodic timing echo)
+-- TIMING INSTRUMENTATION (set to true, or via WG['reclaimfieldhighlight'].
+-- setDebugTiming(true), to enable a periodic timing echo that shows whether the
+-- per-frame cost is the update pass or the display-list rebuilds while drawing).
 local debugTiming = false
 local osClock = os.clock
 local timingAccum = {
 	updateReclaim = 0, drawWorldText = 0, drawPreUnit = 0, updateFunc = 0,
+	rebuilds = 0, -- gradient/edge display-list rebuilds since the last echo
+	deferPending = 0,          -- ProcessDeferredFeatures + ProcessPendingFeatureChanges
+	reclaimPoll = 0,           -- UpdateFeatureReclaim
+	clusterSlice = 0,          -- single-frame coroutine resume slices
+	clusterFinalize = 0,       -- finalize step after coroutine completes
+	redrawLists = 0,           -- RecreateDisplayListsForVisibleClusters
+	maxUpdateReclaim = 0,
+	maxDrawPreUnit = 0,
+	maxClusterSlice = 0,
+	maxClusterFinalize = 0,
+	maxRedrawLists = 0,
+	spikeMs = 8.0,             -- emit a spike echo when a timed chunk exceeds this
+	spikeMinGap = 0.25,        -- min seconds between spike echoes
+	lastSpikeClock = -99,
 }
 local timingCount = 0
 local timingInterval = 120 -- echo every N draw calls
@@ -190,10 +238,6 @@ local lastCameraUpdateDraw = -999
 local cameraMovementThreshold = 10 -- Minimum distance to consider camera moved (in elmos)
 local cameraRotationThreshold = 0.01 -- Minimum dot product change to consider camera rotated
 local cameraGeneration = 0 -- Increments when camera moves to invalidate visibility cache
-
--- Text display list caching - tracks last camera facing angle for text rotation
-local minTextUpdateIntervalFrames = 15 -- Minimum frames between text display list recreations per cluster (~0.5s at 30fps)
-local immediateFadeChangeThreshold = 0.05 -- Small fade changes above this should update immediately for responsiveness
 
 -- Check if a point is within the camera view frustum
 local function IsInCameraView(x, y, z, radius, currentDrawCount)
@@ -216,6 +260,8 @@ local function IsInCameraView(x, y, z, radius, currentDrawCount)
 		-- Increment cache generation if camera moved or rotated
 		if moved or rotated then
 			cameraGeneration = cameraGeneration + 1
+			-- Record the move so gradient rebuilds can back off while panning.
+			animCfg.cameraMoveDraw = currentDrawCount
 		end
 
 		-- Update cached camera state
@@ -323,6 +369,14 @@ local dirty = {
 	clusters = {},         -- Track which specific clusters need redrawing
 	energyClusters = {},   -- Track which specific energy clusters need redrawing
 	useRegional = true,    -- Enable regional optimization
+	-- Adaptive reclaim backoff: a decaying tally of how much reclaim churn is
+	-- happening (features depleted + cluster values changed per sampled pass).
+	-- The busier the map is with reclaimers, the larger this grows, and the
+	-- longer we wait between the expensive recluster + display-list rebuild
+	-- passes. It decays back to 0 (=> fully responsive) when reclaim stops.
+	reclaimChurn = 0,
+	reclaimChurnClock = 0,
+	removedSinceCluster = 0, -- removals accumulated since last full recluster
 }
 
 -- Batch queues and deferred update state (consolidated)
@@ -330,8 +384,10 @@ local batch = {
 	toRemove = {},              -- Reusable table for batching feature removals
 	pendDestructions = {},      -- Queue for batching FeatureDestroyed calls
 	pendDestrCount = 0,         -- Count of pending destructions
+	pendDestrHead = 0,          -- Cursor into the destruction queue (budgeted drain)
 	pendCreations = {},         -- Queue for batching FeatureCreated calls
 	pendCreateCount = 0,        -- Count of pending creations
+	pendCreateHead = 0,         -- Cursor into the creation queue (budgeted drain)
 	affectedFeatures = {},      -- Reusable table for regional clustering
 	affectedClusters = {},      -- Reusable table for regional clustering
 	deferCreations = {},        -- Features created outside view
@@ -342,6 +398,16 @@ local batch = {
 	outOfViewMargin = 350,      -- Elmos margin beyond fade distance to still process immediately
 	lastDeferFrame = 0,
 	deferInterval = 60,         -- Process deferred updates every 60 frames (~2 seconds)
+	-- Time-sliced (coroutine) reclustering. A full recluster of a big map (this
+	-- one has ~9k features) stalls a frame badly, so the rebuild runs inside a
+	-- coroutine that yields once it has spent `clusterJobBudget` seconds this
+	-- frame. The previous fields stay on screen until the new set is ready.
+	clusterJobActive = false,
+	clusterJobCo = nil,
+	clusterJobStart = 0,
+	clusterJobBudget = 0.0022,  -- default clustering slice budget (seconds)
+	clusterJobBudgetMin = 0.0012,
+	clusterJobBudgetMax = 0.0030,
 }
 
 -- Cache to avoid redundant Spring API calls
@@ -361,6 +427,57 @@ local epsilonSq = epsilon*epsilon
 local checkFrequency = 30
 local lastFeatureCount = 0
 local cachedKnownFeaturesCount = 0 -- Cached count to avoid iterating all features
+local featureReclaimScanCounter = 0 -- Rotating cursor for sampled feature-resource checks
+local knownFeatureIDs = {} -- Dense feature-ID list for bounded reclaim scans
+
+-- Spatial hash grid for O(k) neighbour queries.
+--
+-- Previously, adding a feature scanned *every* known feature to find neighbours
+-- within `epsilon` (O(n) per add => O(n^2) when a burst of wrecks/eggs spawns,
+-- e.g. during game load, big battles or area-reclaim). That O(n^2) burst is the
+-- primary source of the reported freezes. The grid buckets features into cells
+-- of size `epsilon` so a neighbour lookup only has to visit the 3x3 block of
+-- cells around a point (provably exhaustive when cell size == search radius).
+--
+-- Everything is packed onto one `grid` table (cells + helpers) to keep the main
+-- chunk under Lua's 200 local/upvalue limit (see the batch/anim tables above).
+-- `grid.buildNeighbors` is assigned later, once `featureNeighborsMatrix` exists.
+local grid = {
+	cells = {}, -- [cellKey] = { [fid] = feature }
+}
+
+do
+	local GRID_OFFSET = 8192  -- keeps cell indices non-negative
+	local GRID_STRIDE = 32768 -- > 2*GRID_OFFSET so keys never collide
+	local cellSize = epsilon
+	local cells = grid.cells
+
+	grid.insert = function(featureID, feature)
+		local cx = floor(feature.x / cellSize) + GRID_OFFSET
+		local cz = floor(feature.z / cellSize) + GRID_OFFSET
+		local key = cx * GRID_STRIDE + cz
+		local cell = cells[key]
+		if not cell then
+			cell = {}
+			cells[key] = cell
+		end
+		cell[featureID] = feature
+		feature.gridKey = key
+	end
+
+	grid.remove = function(featureID, feature)
+		local key = feature.gridKey
+		if key == nil then return end
+		local cell = cells[key]
+		if cell then
+			cell[featureID] = nil
+			if next(cell) == nil then
+				cells[key] = nil
+			end
+		end
+		feature.gridKey = nil
+	end
+end
 
 local featureCountMultiplier = 1 -- Multiplier based on feature count
 
@@ -375,6 +492,7 @@ local drawEnergyEnabled = false
 local actionActive = false
 local reclaimerSelected = false
 local resBotSelected = false
+local IsActiveReclaimCommand
 
 local canReclaim = {}
 local canResurrect = {}
@@ -394,6 +512,53 @@ local featureClusters
 local featureConvexHulls
 local featureNeighborsMatrix
 local opticsObject
+
+-- Populate `featureNeighborsMatrix` for a newly-added feature by visiting only
+-- the 3x3 block of grid cells around it. Mirrors the previous full-scan logic
+-- (updates both directions of the matrix and each neighbour's reachability),
+-- but at O(k) instead of O(n). Returns the smallest neighbour distance squared.
+-- Assigned here (rather than next to grid.insert/remove) so it captures the
+-- `featureNeighborsMatrix` module local instead of a global.
+do
+	local GRID_OFFSET = 8192
+	local GRID_STRIDE = 32768
+	local cellSize = epsilon
+	local cells = grid.cells
+
+	grid.buildNeighbors = function(featureID, x, z, M_newFeature)
+		local M = featureNeighborsMatrix
+		local reachDistSq = mathHuge
+		local cx = floor(x / cellSize) + GRID_OFFSET
+		local cz = floor(z / cellSize) + GRID_OFFSET
+		for gx = cx - 1, cx + 1 do
+			local base = gx * GRID_STRIDE
+			for gz = cz - 1, cz + 1 do
+				local cell = cells[base + gz]
+				if cell then
+					for fid2, feat2 in pairs(cell) do
+						local dx = x - feat2.x
+						local dz = z - feat2.z
+						local distSq = dx * dx + dz * dz
+						if distSq <= epsilonSq then
+							local row = M[fid2]
+							if row then
+								row[featureID] = distSq
+								M_newFeature[fid2] = distSq
+								if distSq < reachDistSq then
+									reachDistSq = distSq
+								end
+								if feat2.rd == nil or distSq < feat2.rd then
+									feat2.rd = distSq
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		return reachDistSq
+	end
+end
 
 -- Energy field tables (separate clustering)
 local energyFeatureClusters
@@ -452,7 +617,6 @@ local animState = {
 	DeleteFadingCluster = nil,
 	GetClusterAnimAlphaAndScale = nil,
 	CreateFadingClusterDisplayList = nil,
-	CreateFadingClusterTextDisplayList = nil,
 }
 
 -- Helper function to compute a simple hash/signature of cluster state
@@ -1125,6 +1289,7 @@ end
 local cameraScale = 1
 local processCluster
 local recycleHull
+local FormatResourceText
 do
 	local function getReclaimTotal(cluster, points, resourceType)
 		local total = 0
@@ -1132,7 +1297,7 @@ do
 			total = total + points[j][resourceType]
 		end
 		cluster[resourceType] = total
-		cluster.text = string.formatSI(total)
+		cluster.text = FormatResourceText(total)
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -1179,6 +1344,19 @@ do
 
 	local function sortMonotonic(a, b)
 		return (a.x > b.x) or (a.x == b.x and a.z > b.z)
+	end
+
+	-- Shared cluster-job yield helper for heavy hull construction loops.
+	local clusterHotLoopCounter = 0
+	local function maybeYieldClusterWork(step)
+		if not batch.clusterJobActive then return end
+		clusterHotLoopCounter = clusterHotLoopCounter + (step or 1)
+		if clusterHotLoopCounter >= 64 then
+			clusterHotLoopCounter = 0
+			if osClock() - batch.clusterJobStart >= batch.clusterJobBudget then
+				coroutine.yield()
+			end
+		end
 	end
 
 	---Filter a set of points to give a much smaller set of candidates for constructing
@@ -1252,6 +1430,7 @@ do
 					end
 				end
 			end
+			maybeYieldClusterWork(1)
 		end
 
 		-- (4) The second pass removes remaining points that are inside the inner rectangle.
@@ -1260,6 +1439,7 @@ do
 			if x > rxmin and x < rxmax and z > rzmin and z < rzmax then
 				remove(remaining, jj)
 			end
+			maybeYieldClusterWork(1)
 		end
 
 		return remaining
@@ -1291,6 +1471,7 @@ do
 					remove(lower)
 				end
 				insert(lower, point)
+				maybeYieldClusterWork(1)
 			end
 
 			local upper = {}
@@ -1300,6 +1481,7 @@ do
 					remove(upper)
 				end
 				insert(upper, point)
+				maybeYieldClusterWork(1)
 			end
 
 			remove(upper)
@@ -1437,7 +1619,6 @@ do
 	local subdividedBuf = {}
 	local subdividedBufLen = 0
 	local expandedBuf = {}
-
 	-- Subdivide long edges in hull to ensure smooth expansion
 	local function subdivideHull(hull, maxEdgeLength)
 		if not hull or #hull < 3 then return hull end
@@ -1485,8 +1666,10 @@ do
 							z = interpZ
 						}
 					end
+					maybeYieldClusterWork(1)
 				end
 			end
+			maybeYieldClusterWork(1)
 		end
 
 		-- Clear excess entries from previous larger use
@@ -1514,6 +1697,7 @@ do
 		for i = 1, n do
 			cx = cx + hull[i].x
 			cz = cz + hull[i].z
+			maybeYieldClusterWork(1)
 		end
 		cx = cx / n
 		cz = cz / n
@@ -1586,6 +1770,7 @@ do
 					z = newZ
 				}
 			end
+			maybeYieldClusterWork(1)
 		end
 
 		-- If smoothing disabled, copy from buffer (can't return shared buffer)
@@ -1594,6 +1779,7 @@ do
 			for i = 1, n do
 				local e = expandedBuf[i]
 				result[i] = acquirePoint(e.x, e.y, e.z)
+				maybeYieldClusterWork(1)
 			end
 			return result
 		end
@@ -1628,7 +1814,9 @@ do
 				local newY = c0 * p0.y + c1 * p1.y + c2 * p2.y + c3 * p3.y
 
 				smoothed[#smoothed + 1] = acquirePoint(newX, newY, newZ)
+				maybeYieldClusterWork(1)
 			end
+			maybeYieldClusterWork(1)
 		end
 
 		return smoothed
@@ -1653,6 +1841,7 @@ do
 			xmax = max(xmax, x)
 			zmin = min(zmin, z)
 			zmax = max(zmax, z)
+			maybeYieldClusterWork(1)
 		end
 
 		-- Create grid cells
@@ -1671,6 +1860,7 @@ do
 				subClusters[cellKey] = {}
 			end
 			table.insert(subClusters[cellKey], point)
+			maybeYieldClusterWork(1)
 		end
 
 		return subClusters
@@ -1688,6 +1878,7 @@ do
 			if points[i].radius and points[i].radius > maxRadius then
 				maxRadius = points[i].radius
 			end
+			maybeYieldClusterWork(1)
 		end
 		maxRadius = max(maxRadius, 20)
 
@@ -1717,6 +1908,7 @@ do
 							table.insert(newClusters, subCluster)
 							subClusterIndex = subClusterIndex + 1
 						end
+						maybeYieldClusterWork(1)
 					end
 					-- Return sub-clusters to be added to main array
 					if #newClusters > 0 then
@@ -1827,25 +2019,30 @@ do
 	---This is combined with the previous Clusterize fn step to produce clusters.
 	---It also leaves no point un-clusterized; solo points form their own cluster.
 	---This has allowed all processing to occur in one place and in a single pass.
-	local function Run()
+	---
+	---Builds into the supplied staging tables (not the live globals) and, when
+	---run inside a reclustering coroutine, yields once the per-frame time budget
+	---is spent so a ~9k-feature rebuild is spread across frames without stutter.
+	local function Run(_self, targetClusters, targetHulls)
 		Setup()
 
-		-- Set the appropriate target tables based on resource type
-		local targetClusters, targetHulls
 		local cidField
 		if currentResourceType == "energy" then
-			targetClusters = energyFeatureClusters
-			targetHulls = energyFeatureConvexHulls
 			cidField = "energyCid"
 		else
-			targetClusters = featureClusters
-			targetHulls = featureConvexHulls
 			cidField = "cid"
 		end
 
 		local clusterID = #targetClusters
 		local seedsPQ = PriorityQueue.new()
 		local featureID = next(unprocessed)
+		local spreadSinceCheck = 0
+		clusterHotLoopCounter = 0
+		local function maybeYield()
+			if batch.clusterJobActive and (osClock() - batch.clusterJobStart >= batch.clusterJobBudget) then
+				coroutine.yield()
+			end
+		end
 		while featureID do
 			-- Start a new cluster.
 			local point = knownFeatures[featureID]
@@ -1871,13 +2068,22 @@ do
 
 				local nextNeighbors = featureNeighborsMatrix[pt.fid]
 				Update(nextNeighbors, pt, seedsPQ)
+
+				-- The expansion loop can walk thousands of points for one connected
+				-- reclaim field; check budget periodically so one resume never blocks.
+				spreadSinceCheck = spreadSinceCheck + 1
+				if spreadSinceCheck >= 8 then
+					spreadSinceCheck = 0
+					maybeYield()
+				end
 				pt = seedsPQ:pop()
 			end
 
 			featureID = next(unprocessed)
+			maybeYield()
 		end
 
-		-- Post-process each cluster.
+		-- Post-process each cluster (convex hulls + smoothing = the heavy part).
 		local nextClusterId = clusterID + 1 -- Track next available cluster ID for splits
 		for cid = 1, clusterID do
 			local cluster = targetClusters[cid]
@@ -1889,16 +2095,12 @@ do
 					nextClusterId = nextClusterId + 1
 				end
 			end
-		end
 
-		-- Store results in the correct global tables
-		if currentResourceType == "energy" then
-			energyFeatureClusters = targetClusters
-			energyFeatureConvexHulls = targetHulls
-		else
-			featureClusters = targetClusters
-			featureConvexHulls = targetHulls
+			-- Hull/smoothing work can also spike on big clusters, so check each iteration.
+			maybeYield()
 		end
+		-- Note: the caller swaps the staging tables into the live globals once
+		-- both metal and energy passes have completed.
 	end
 
 	function Optics.new()
@@ -2005,28 +2207,16 @@ local function AddFeature(featureID)
 	end
 
 	-- Assuming the feature's motion is highly likely negligible:
-	local M = featureNeighborsMatrix
 	local M_newFeature = {}
-	local reachDistSq, epsilonSq = mathHuge, epsilonSq
-	for fid2, feat2 in pairs(knownFeatures) do
-		local dx, dz = x - feat2.x, z - feat2.z
-		local distSq = dx * dx + dz * dz
-		if distSq <= epsilonSq then
-			M[fid2][featureID] = distSq
-			M_newFeature[fid2] = distSq
-			if distSq < reachDistSq then
-				reachDistSq = distSq
-			end
-			if feat2.rd == nil or distSq < feat2.rd then
-				feat2.rd = distSq
-			end
-		end
-	end
+	local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
 	featureNeighborsMatrix[featureID] = M_newFeature
 	if reachDistSq < epsilonSq then
 		feature.rd = reachDistSq
 	end
 	knownFeatures[featureID] = feature
+	grid.insert(featureID, feature)
+	knownFeatureIDs[#knownFeatureIDs + 1] = featureID
+	feature.scanIndex = #knownFeatureIDs
 	cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
 end
 
@@ -2040,6 +2230,11 @@ local function RemoveFeature(featureID)
 	-- Mark metal cluster as dirty for redrawing
 	-- Don't delete display list here - it will be recreated in the redrawing section
 	if feature.cid then
+		local cluster = featureClusters[feature.cid]
+		if cluster and cluster.metal then
+			cluster.metal = max(0, cluster.metal - (feature.metal or 0))
+			cluster.text = FormatResourceText(cluster.metal)
+		end
 		dirty.clusters[feature.cid] = true
 		dirty.needRedraw = true
 	end
@@ -2047,6 +2242,11 @@ local function RemoveFeature(featureID)
 	-- Mark energy cluster as dirty for redrawing
 	-- Don't delete display list here - it will be recreated in the redrawing section
 	if feature.energyCid then
+		local energyCluster = energyFeatureClusters[feature.energyCid]
+		if energyCluster and energyCluster.energy then
+			energyCluster.energy = max(0, energyCluster.energy - (feature.energy or 0))
+			energyCluster.text = FormatResourceText(energyCluster.energy)
+		end
 		dirty.energyClusters[feature.energyCid] = true
 		dirty.needRedraw = true
 	end
@@ -2073,27 +2273,49 @@ local function RemoveFeature(featureID)
 		end
 	end
 	featureNeighborsMatrix[featureID] = nil
+	grid.remove(featureID, feature)
 	knownFeatures[featureID] = nil
+	local scanIndex = feature.scanIndex
+	if scanIndex then
+		local lastIndex = #knownFeatureIDs
+		local lastFeatureID = knownFeatureIDs[lastIndex]
+		knownFeatureIDs[scanIndex] = lastFeatureID
+		knownFeatureIDs[lastIndex] = nil
+		if lastFeatureID and lastFeatureID ~= featureID then
+			local lastFeature = knownFeatures[lastFeatureID]
+			if lastFeature then
+				lastFeature.scanIndex = scanIndex
+			end
+		end
+		feature.scanIndex = nil
+		if featureReclaimScanCounter > lastIndex then
+			featureReclaimScanCounter = 1
+		end
+	end
 	cachedKnownFeaturesCount = cachedKnownFeaturesCount - 1
 end
 
 local function UpdateFeatureReclaim()
-	-- Only check a subset of features per frame to reduce API calls
-	-- We rotate through features over multiple frames
+	-- Check a rotating subset of features each frame to bound the cost of
+	-- Spring.GetFeatureResources() on large maps.
 	local removed = false
 	local removeCount = 0
 	local dirtyCount = 0
 	local dirtyEnergyCount = 0
 
-	-- Sample rate: check ~10% of features per frame (or all if < 50 features)
-	-- Use cached count instead of iterating all features
 	local featureCount = cachedKnownFeaturesCount
+	local maxChecksPerFrame = 8
+	if featureCount > 2500 then
+		maxChecksPerFrame = 4
+	end
+	if actionActive or IsActiveReclaimCommand() then
+		maxChecksPerFrame = 48
+	end
+	if featureCount < maxChecksPerFrame then
+		maxChecksPerFrame = featureCount
+	end
 
-	-- ALWAYS check all features to ensure data consistency
-	-- This prevents stale values from causing incorrect cluster totals
-	local checkInterval = 1
-
-	local checkCounter = 0
+	local scanIndex = featureReclaimScanCounter
 	local featuresChecked = 0
 
 	-- Determine what needs updating based on visibility
@@ -2101,12 +2323,18 @@ local function UpdateFeatureReclaim()
 	local needMetalUpdates = drawEnabled
 	local needEnergyUpdates = drawEnergyEnabled
 
-	for fid, fInfo in pairs(knownFeatures) do
-		-- Check features based on interval
-		checkCounter = checkCounter + 1
-		if checkCounter % checkInterval == 0 or featureCount <= 500 then
+	for _ = 1, maxChecksPerFrame do
+		if featureCount == 0 then
+			break
+		end
+		scanIndex = scanIndex + 1
+		if scanIndex > featureCount then
+			scanIndex = 1
+		end
+		local fid = knownFeatureIDs[scanIndex]
+		local fInfo = fid and knownFeatures[fid]
+		if fInfo then
 			featuresChecked = featuresChecked + 1
-			-- Check this feature this frame
 			local metal, _, energy = spGetFeatureResources(fid)
 
 			-- Only remove feature when BOTH metal AND energy are below threshold
@@ -2156,6 +2384,7 @@ local function UpdateFeatureReclaim()
 			end
 		end
 	end
+	featureReclaimScanCounter = scanIndex
 
 	-- Remove in separate loop to avoid iterator issues
 	for i = 1, removeCount do
@@ -2168,7 +2397,24 @@ local function UpdateFeatureReclaim()
 	end
 
 	if removed then
-		dirty.needCluster = true
+		dirty.removedSinceCluster = dirty.removedSinceCluster + removeCount
+		local reclusterThreshold = 8
+		if featureCount > 3000 then
+			reclusterThreshold = 16
+		end
+		if featureCount > 6000 then
+			reclusterThreshold = 28
+		end
+		if featureCount > 8500 then
+			reclusterThreshold = 40
+		end
+
+		-- If the cluster count changed a lot after recent rebuilds, avoid constantly
+		-- restarting full reclusters and batch removals into larger updates.
+		if dirty.removedSinceCluster >= reclusterThreshold then
+			dirty.needCluster = true
+			dirty.removedSinceCluster = 0
+		end
 	elseif dirtyCount > 0 or dirtyEnergyCount > 0 then
 		dirty.needRedraw = true
 
@@ -2177,7 +2423,7 @@ local function UpdateFeatureReclaim()
 			for cid in pairs(dirty.clusters) do
 				local cluster = featureClusters[cid]
 				if cluster then
-					cluster.text = string.formatSI(cluster.metal)
+					cluster.text = FormatResourceText(cluster.metal)
 				end
 			end
 		end
@@ -2187,10 +2433,19 @@ local function UpdateFeatureReclaim()
 			for energyCid in pairs(dirty.energyClusters) do
 				local energyCluster = energyFeatureClusters[energyCid]
 				if energyCluster then
-					energyCluster.text = string.formatSI(energyCluster.energy)
+					energyCluster.text = FormatResourceText(energyCluster.energy)
 				end
 			end
 		end
+	end
+
+	-- Feed the adaptive backoff tally. Depletions (removeCount) trigger a
+	-- recluster (the most expensive path), so they count for more than plain
+	-- value changes. This is normalized per sampled pass, so it reflects how
+	-- widespread reclaim is regardless of how often we happen to poll.
+	local churnThisCall = removeCount * 3 + dirtyCount + dirtyEnergyCount
+	if churnThisCall > 0 then
+		dirty.reclaimChurn = dirty.reclaimChurn + churnThisCall
 	end
 end
 
@@ -2266,163 +2521,116 @@ local function FindNonOverlappingPosition(baseX, baseZ, fontSize)
 	return baseX + fontSize * 2.5, baseZ
 end
 
+FormatResourceText = function(value)
+	local v = value or 0
+	if string.formatSI then
+		local ok, txt = pcall(string.formatSI, v, 0)
+		if ok and txt then return txt end
+		ok, txt = pcall(string.formatSI, v)
+		if ok and txt then return txt end
+	end
+	if v >= 1000000 then
+		return string.format("%.1fM", v / 1000000)
+	elseif v >= 1000 then
+		return string.format("%.1fK", v / 1000)
+	end
+	return string.format("%d", floor(v + 0.5))
+end
+
+local function EnsureClusterTextAnchors()
+	drawnTextPositionCount = 0
+	for cid = 1, #featureClusters do
+		local cluster = featureClusters[cid]
+		if cluster and cluster.center and cluster.font and cluster.font > 0 then
+			if not cluster.text then
+				cluster.text = FormatResourceText(cluster.metal or 0)
+			end
+			local fontSize = cluster.font
+			local textX, textZ = cluster.center.x, cluster.center.z
+			if WouldTextOverlap(textX, textZ, fontSize) then
+				textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+			end
+			cluster.textX = textX
+			cluster.textZ = textZ
+			drawnTextPositionCount = drawnTextPositionCount + 1
+			local posEntry = drawnTextPositions[drawnTextPositionCount]
+			if posEntry then
+				posEntry.x = textX
+				posEntry.z = textZ
+				posEntry.fontSize = fontSize
+			else
+				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+			end
+		end
+	end
+	if showEnergyFields then
+		for cid = 1, #energyFeatureClusters do
+			local cluster = energyFeatureClusters[cid]
+			if cluster and cluster.center and cluster.font and cluster.font > 0 then
+				if not cluster.text then
+					cluster.text = FormatResourceText(cluster.energy or 0)
+				end
+				local fontSize = cluster.font * energyTextSizeMultiplier
+				local textX, textZ = cluster.center.x, cluster.center.z
+				if WouldTextOverlap(textX, textZ, fontSize) then
+					textX, textZ = FindNonOverlappingPosition(textX, textZ, fontSize)
+				end
+				cluster.textX = textX
+				cluster.textZ = textZ
+				drawnTextPositionCount = drawnTextPositionCount + 1
+				local posEntry = drawnTextPositions[drawnTextPositionCount]
+				if posEntry then
+					posEntry.x = textX
+					posEntry.z = textZ
+					posEntry.fontSize = fontSize
+				else
+					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
+				end
+			end
+		end
+	end
+end
+
 local function ClusterizeFeatures()
-	if dirty.useRegional and #dirty.regions > 0 then
-		-- Regional reclustering: only recluster features in dirty regions
-		-- Reuse tables instead of allocating new ones
-		local affectedCount = 0
-		local clusterCount = 0
-		local energyClusterCount = 0
+	-- Runs as a coroutine body (see the driver in UpdateReclaimFields). Builds a
+	-- fresh clustering into staging tables so the previous fields keep rendering
+	-- until the new set is ready, then swaps atomically. Optics.Run yields to the
+	-- driver periodically so a ~9k-feature rebuild is spread over frames instead
+	-- of stalling one frame.
+	local stagingClusters = {}
+	local stagingHulls = {}
+	opticsObject:SetResourceType("metal")
+	opticsObject:Run(stagingClusters, stagingHulls)
 
-		-- Find all features in dirty regions
-		for fid, feature in pairs(knownFeatures) do
-			if IsInDirtyRegion(feature.x, feature.z) then
-				affectedCount = affectedCount + 1
-				batch.affectedFeatures[affectedCount] = fid
-				if feature.cid then
-					local cid = feature.cid
-					if not batch.affectedClusters[cid] then
-						clusterCount = clusterCount + 1
-						batch.affectedClusters[cid] = true
-					end
-				end
-				if feature.energyCid then
-					local cid = feature.energyCid
-					if not batch.affectedClusters[cid] then
-						energyClusterCount = energyClusterCount + 1
-						batch.affectedClusters[cid] = true
-					end
-				end
-			end
-		end
+	local stagingEnergyClusters, stagingEnergyHulls
+	if showEnergyFields then
+		stagingEnergyClusters = {}
+		stagingEnergyHulls = {}
+		opticsObject:SetResourceType("energy")
+		opticsObject:Run(stagingEnergyClusters, stagingEnergyHulls)
+	end
 
-		-- If too many features affected, fall back to full reclustering
-		if affectedCount > 200 then -- Threshold for full recluster
-			-- Clear reusable tables
-			for i = 1, affectedCount do
-				batch.affectedFeatures[i] = nil
-			end
-			for cid in pairs(batch.affectedClusters) do
-				batch.affectedClusters[cid] = nil
-			end
+	-- Atomic swap: recycle the old hulls and point the live globals at the new
+	-- staging tables. (Pre-clustering snapshots still hold the old hull refs for
+	-- fade-out, matching the previous synchronous recycle-then-sync ordering.)
+	for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
+	featureClusters = stagingClusters
+	featureConvexHulls = stagingHulls
+	if showEnergyFields then
+		for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+		energyFeatureClusters = stagingEnergyClusters
+		energyFeatureConvexHulls = stagingEnergyHulls
+	end
 
-			-- Fall through to full clustering
-			dirty.useRegional = false
-
-			-- Cluster metal
-			featureClusters = {}
-			for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
-			featureConvexHulls = {}
-			opticsObject:SetResourceType("metal")
-			opticsObject:Run()
-
-			-- Always cluster energy fields when clustering is needed
-			if showEnergyFields then
-				energyFeatureClusters = {}
-				for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
-				energyFeatureConvexHulls = {}
-				opticsObject:SetResourceType("energy")
-				opticsObject:Run()
-			end
-
-			dirty.useRegional = true
-			-- Clear dirty regions array
-			for i = 1, #dirty.regions do
-				dirty.regions[i] = nil
-			end
-			-- Clear dirty clusters table
-			for cid in pairs(dirty.clusters) do
-				dirty.clusters[cid] = nil
-			end
-			for cid in pairs(dirty.energyClusters) do
-				dirty.energyClusters[cid] = nil
-			end
-			dirty.needCluster = false
-			dirty.needRedraw = true
-			return
-		end
-
-		-- Remove affected clusters and reset cluster IDs for affected features
-		-- Remove affected METAL clusters (batch.affectedClusters contains metal cluster IDs only)
-		for cid in pairs(batch.affectedClusters) do
-			featureClusters[cid] = nil
-			recycleHull(featureConvexHulls[cid])
-			featureConvexHulls[cid] = nil
-			batch.affectedClusters[cid] = nil -- Clear as we go
-		end
-
-		-- Reset cluster IDs for affected features
-		for i = 1, affectedCount do
-			local fid = batch.affectedFeatures[i]
-			local feature = knownFeatures[fid]
-			if feature then
-				feature.cid = nil
-				-- Also reset energy cluster IDs
-				if feature.energyCid and energyFeatureClusters[feature.energyCid] then
-					energyFeatureClusters[feature.energyCid] = nil
-					recycleHull(energyFeatureConvexHulls[feature.energyCid])
-					energyFeatureConvexHulls[feature.energyCid] = nil
-				end
-				feature.energyCid = nil
-			end
-			batch.affectedFeatures[i] = nil -- Clear as we go
-		end
-
-		-- Re-run clustering (it will create new cluster IDs)
-		featureClusters = {}
-		for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
-		featureConvexHulls = {}
-		opticsObject:SetResourceType("metal")
-		opticsObject:Run()
-
-		-- Always cluster energy fields when clustering is needed
-		if showEnergyFields then
-			energyFeatureClusters = {}
-			for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
-			energyFeatureConvexHulls = {}
-			opticsObject:SetResourceType("energy")
-			opticsObject:Run()
-		end
-
-		-- Clear dirty regions array
-		for i = 1, #dirty.regions do
-			dirty.regions[i] = nil
-		end
-		-- Clear dirty clusters table
-		for cid in pairs(dirty.clusters) do
-			dirty.clusters[cid] = nil
-		end
-		for cid in pairs(dirty.energyClusters) do
-			dirty.energyClusters[cid] = nil
-		end
-	else
-		-- Full reclustering
-		featureClusters = {}
-		for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
-		featureConvexHulls = {}
-		opticsObject:SetResourceType("metal")
-		opticsObject:Run()
-
-		-- Always cluster energy fields when clustering is needed
-		if showEnergyFields then
-			energyFeatureClusters = {}
-			for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
-			energyFeatureConvexHulls = {}
-			opticsObject:SetResourceType("energy")
-			opticsObject:Run()
-		end
-
-		-- Clear dirty regions array
-		for i = 1, #dirty.regions do
-			dirty.regions[i] = nil
-		end
-		-- Clear dirty clusters table
-		for cid in pairs(dirty.clusters) do
-			dirty.clusters[cid] = nil
-		end
-		for cid in pairs(dirty.energyClusters) do
-			dirty.energyClusters[cid] = nil
-		end
+	-- A full rebuild supersedes any pending regional/incremental dirty state.
+	for i = 1, #dirty.regions do
+		dirty.regions[i] = nil
+	end
+	for cid in pairs(dirty.clusters) do
+		dirty.clusters[cid] = nil
+	end
+	for cid in pairs(dirty.energyClusters) do
+		dirty.energyClusters[cid] = nil
 	end
 
 	dirty.needCluster = false
@@ -2503,6 +2711,11 @@ local function disableHighlight()
 	actionActive = false
 end
 
+IsActiveReclaimCommand = function()
+	local _, _, _, cmdName = spGetActiveCommand()
+	return cmdName == 'Reclaim'
+end
+
 local UpdateDrawEnabled -- Uses the showOption setting to pick a function call.
 do
 	local function always()
@@ -2551,9 +2764,7 @@ do
 		end
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
-			dirty.needCluster = true
 			dirty.needRedraw = true
-			dirty.forceFullRedraw = true
 		end
 		-- Track the toggle fade target so the group fades smoothly in/out.
 		animState.toggleMetalTarget = drawEnabled and 1 or 0
@@ -2607,9 +2818,7 @@ do
 		drawEnergyEnabled = showEnergyOptionFunctions[showEnergyOption]()
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnergyEnabled and drawEnergyEnabled then
-			dirty.needCluster = true
 			dirty.needRedraw = true
-			dirty.forceFullRedraw = true
 		end
 		animState.toggleEnergyTarget = drawEnergyEnabled and 1 or 0
 		return drawEnergyEnabled
@@ -2627,13 +2836,6 @@ local function DrawHullVertices(hull)
 		glVertex(hull[j].x, hull[j].y, hull[j].z)
 	end
 end
-
--- Pre-allocated energy colors table to avoid per-DL-creation allocation
-local energyGradientColors = {
-	fill = energyReclaimColor,
-	fillAlpha = fillAlpha * energyOpacityMultiplier,
-	gradientAlpha = gradientAlpha * energyOpacityMultiplier,
-}
 
 -- Reusable buffer for DrawHullVerticesGradient inner points
 local innerPointsBuf = {}
@@ -2715,6 +2917,27 @@ local function DrawHullVerticesGradient(hull, center, colors)
 	end
 end
 
+-- Allocation-free display-list recording scratch.
+--
+-- gl.CreateList() records its callback immediately, so the geometry/colours it
+-- reads only need to be valid *during* that call. Previously each rebuild
+-- allocated a fresh colours table plus a fresh closure per list; during fades
+-- (up to maxRebuildsPerFrame per frame) that was a steady stream of garbage.
+-- We now stash the transient inputs on one reusable `dlScratch` table and hand
+-- gl.CreateList a pair of persistent recorder functions instead. Packed onto a
+-- single table to respect the file's 200 local/upvalue budget.
+local dlScratch = {
+	hull = nil,
+	center = nil,
+	colors = { fill = nil, fillAlpha = 0, gradientAlpha = 0 },
+}
+dlScratch.emitGradient = function()
+	glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, dlScratch.hull, dlScratch.center, dlScratch.colors)
+end
+dlScratch.emitEdge = function()
+	glBeginEnd(GL.LINE_LOOP, DrawHullVertices, dlScratch.hull)
+end
+
 -- Helper functions for per-cluster display list management
 DeleteClusterDisplayList = function(cid, isEnergy, keepText)
 	-- keepText (optional) when true will preserve the text display list to avoid
@@ -2739,7 +2962,7 @@ DeleteClusterDisplayList = function(cid, isEnergy, keepText)
 			-- Remove the table entirely when not preserving text
 			displayLists[cid] = nil
 		else
-			-- Preserve text; keep the table entry so CreateClusterTextDisplayList can reuse it
+			-- Preserve the table entry for potential reuse
 			displayLists[cid] = clusterData
 		end
 	end
@@ -2763,10 +2986,11 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	if alphaMult < 0 then alphaMult = 0 end
 	if alphaMult > 1 then alphaMult = 1 end
 
-	-- Compute new state hash; include quantized alpha so fade rebuilds the list
-	local newHash = ComputeClusterStateHash(cluster, hull)
-	-- Quantize alpha to ~16 buckets so we don't rebuild every tiny change
-	newHash = newHash + floor(alphaMult * 16 + 0.5) * 0.0001
+	-- Compute geometry hash (alpha-independent) plus a full hash with quantized
+	-- alpha, so the gradient rebuilds on fade while the edge list can be reused.
+	local geomHash = ComputeClusterStateHash(cluster, hull)
+	-- Quantize alpha to ~32 buckets so we don't rebuild every tiny change
+	local newHash = geomHash + floor(alphaMult * 32 + 0.5) * 0.0001
 	local oldHash = stateHashes[cid]
 
 	-- Only recreate if state actually changed
@@ -2774,61 +2998,49 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 		return -- No change, keep existing display list
 	end
 
+	if debugTiming then timingAccum.rebuilds = timingAccum.rebuilds + 1 end
+
 	-- Prepare clusterData table; if it exists preserve text (we'll recreate geometry only)
 	local clusterData = displayLists[cid]
 	if not clusterData then
 		clusterData = {}
 		displayLists[cid] = clusterData
 	else
-		-- Remove existing geometry lists but preserve text
+		-- Remove the existing gradient list (alpha is baked in, so it always
+		-- rebuilds). The edge list is shape-only and is rebuilt below only when
+		-- the geometry actually changed.
 		if clusterData.gradient then
 			glDeleteList(clusterData.gradient)
 			clusterData.gradient = nil
 		end
-		if clusterData.edge then
-			glDeleteList(clusterData.edge)
-			clusterData.edge = nil
-		end
 	end
 
-	-- Build a colors table with alpha baked in
-	local colorsTbl
+	-- Fill the reusable scratch colours table (alpha baked in). Safe to reuse
+	-- because gl.CreateList records DrawHullVerticesGradient immediately below.
+	local scratchColors = dlScratch.colors
 	if isEnergy then
-		colorsTbl = {
-			fill = energyReclaimColor,
-			fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult,
-			gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult,
-		}
+		scratchColors.fill = energyReclaimColor
+		scratchColors.fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult
 	else
-		colorsTbl = {
-			fill = reclaimColor,
-			fillAlpha = fillAlpha * alphaMult,
-			gradientAlpha = gradientAlpha * alphaMult,
-		}
+		scratchColors.fill = reclaimColor
+		scratchColors.fillAlpha = fillAlpha * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * alphaMult
 	end
+	dlScratch.hull = hull
+	dlScratch.center = cluster.center
 
-	-- Capture immutable values into locals so the display list closure doesn't
-	-- pick up later mutations of the shared colorsTbl.
-	local capturedFillAlpha = colorsTbl.fillAlpha
-	local capturedGradientAlpha = colorsTbl.gradientAlpha
-	local capturedFill = colorsTbl.fill
-	-- We allocate a per-list colors table to avoid the shared table being
-	-- mutated before the list is actually executed.
-	local listColors = {
-		fill = capturedFill,
-		fillAlpha = capturedFillAlpha,
-		gradientAlpha = capturedGradientAlpha,
-	}
+	-- Create gradient fill display list (alpha baked in) using the shared,
+	-- non-allocating recorder function.
+	clusterData.gradient = glCreateList(dlScratch.emitGradient)
 
-	-- Create gradient fill display list
-	clusterData.gradient = glCreateList(function()
-		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, cluster.center, listColors)
-	end)
-
-	-- Create edge display list
-	clusterData.edge = glCreateList(function()
-		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-	end)
+	-- Create the edge display list only when the geometry actually changed; its
+	-- opacity is applied via glColor at draw time, so alpha-only fades reuse it.
+	if not clusterData.edge or clusterData.geomHash ~= geomHash then
+		if clusterData.edge then glDeleteList(clusterData.edge) end
+		clusterData.edge = glCreateList(dlScratch.emitEdge)
+		clusterData.geomHash = geomHash
+	end
 
 	-- Track the alpha used for the current gradient list so we can decide later
 	-- whether to rebuild on subsequent fade ticks.
@@ -2861,144 +3073,30 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 		entry.displayLists = dl
 	end
 	if dl.gradient then glDeleteList(dl.gradient); dl.gradient = nil end
-	if dl.edge then glDeleteList(dl.edge); dl.edge = nil end
 
-	local listColors
+	-- Fill the shared scratch colours (see dlScratch): gl.CreateList records
+	-- immediately, so reusing the table across calls is safe and allocation-free.
+	local scratchColors = dlScratch.colors
 	if isEnergy then
-		listColors = {
-			fill = energyReclaimColor,
-			fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult,
-			gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult,
-		}
+		scratchColors.fill = energyReclaimColor
+		scratchColors.fillAlpha = fillAlpha * energyOpacityMultiplier * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * energyOpacityMultiplier * alphaMult
 	else
-		listColors = {
-			fill = reclaimColor,
-			fillAlpha = fillAlpha * alphaMult,
-			gradientAlpha = gradientAlpha * alphaMult,
-		}
+		scratchColors.fill = reclaimColor
+		scratchColors.fillAlpha = fillAlpha * alphaMult
+		scratchColors.gradientAlpha = gradientAlpha * alphaMult
 	end
+	dlScratch.hull = hull
+	dlScratch.center = center
 
-	dl.gradient = glCreateList(function()
-		glBeginEnd(GL.TRIANGLES, DrawHullVerticesGradient, hull, center, listColors)
-	end)
-	dl.edge = glCreateList(function()
-		glBeginEnd(GL.LINE_LOOP, DrawHullVertices, hull)
-	end)
+	dl.gradient = glCreateList(dlScratch.emitGradient)
+	-- Edge geometry is fixed for the life of the fade; build it once and reuse
+	-- it across every alpha tick (opacity comes from glColor at draw time).
+	if not dl.edge then
+		dl.edge = glCreateList(dlScratch.emitEdge)
+	end
 	entry.lastBakedAlpha = alphaMult
 end
-
--- Create / refresh the text list for a fading cluster. The text fades alongside
--- the hull, so we rebuild it when alpha changes meaningfully.
-local function CreateFadingClusterTextDisplayList(uid, isEnergy)
-	local fading = isEnergy and animState.fadingEnergy or animState.fading
-	local entry = fading[uid]
-	if not entry or not entry.text then return end
-	local dl = entry.displayLists
-	if not dl then
-		dl = {}
-		entry.displayLists = dl
-	end
-	if dl.text then glDeleteList(dl.text); dl.text = nil end
-	local fontSize = isEnergy and (entry.font * energyTextSizeMultiplier) or entry.font
-	local textColor = isEnergy and energyNumberColor or numberColor
-	local alphaMult = entry.alpha or 1
-	if alphaMult < 0 then alphaMult = 0 end
-	if alphaMult > 1 then alphaMult = 1 end
-	dl.text = glCreateList(function()
-		glColor(textColor[1], textColor[2], textColor[3], textColor[4] * alphaMult)
-		glText(entry.text, 0, 0, fontSize, alphaMult >= 0.95 and "cvo" or "cv")
-	end)
-	entry.lastBakedTextAlpha = alphaMult
-end
-
--- Create text display list for a single cluster
--- Text is rendered at origin (0,0) and positioned via matrix in DrawWorld
-local function CreateClusterTextDisplayList(cid, isEnergy, fadeMult)
-	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
-	local clusters = isEnergy and energyFeatureClusters or featureClusters
-
-	local cluster = clusters[cid]
-	if not cluster then return end
-
-	local clusterData = displayLists[cid]
-	if not clusterData then
-		clusterData = {}
-		displayLists[cid] = clusterData
-	end
-
-	if clusterData.text then
-		glDeleteList(clusterData.text)
-		clusterData.text = nil
-	end
-
-	local fontSize = isEnergy and (cluster.font * energyTextSizeMultiplier) or cluster.font
-	local textColor = isEnergy and energyNumberColor or numberColor
-	local textOptions = fadeMult >= 0.95 and "cvo" or "cv"
-
-	clusterData.text = glCreateList(function()
-		glColor(textColor[1], textColor[2], textColor[3], textColor[4] * fadeMult)
-		glText(cluster.text, 0, 0, fontSize, textOptions)
-	end)
-
-	local meta = clusterData.textMeta
-	if meta then
-		meta.fade = fadeMult
-		meta.text = cluster.text
-		meta.fontSize = fontSize
-		meta.lastUpdateFrame = spGetGameFrame()
-	else
-		clusterData.textMeta = {
-			fade = fadeMult,
-			text = cluster.text,
-			fontSize = fontSize,
-			lastUpdateFrame = spGetGameFrame(),
-		}
-	end
-end
-
--- Check if text display list needs updating
-local function TextDisplayListNeedsUpdate(cid, isEnergy, fadeMult)
-	local displayLists = isEnergy and energyClusterDisplayLists or clusterDisplayLists
-	local clusterData = displayLists[cid]
-
-	if not clusterData or not clusterData.text or not clusterData.textMeta then
-		return true
-	end
-
-	local meta = clusterData.textMeta
-	local clusters = isEnergy and energyFeatureClusters or featureClusters
-	local cluster = clusters[cid]
-
-	if not cluster or meta.text ~= cluster.text then
-		return true
-	end
-
-	-- Check font size changed (cluster was reclustered)
-	local fontSize = isEnergy and (cluster.font * energyTextSizeMultiplier) or cluster.font
-	if abs(fontSize - meta.fontSize) > 0.5 then
-		return true
-	end
-
-	local fadeDiff = abs(fadeMult - meta.fade)
-	if fadeMult >= 0.95 and meta.fade >= 0.95 then
-		return false
-	end
-	if fadeDiff > immediateFadeChangeThreshold then
-		return true
-	end
-
-	local currentFrame = spGetGameFrame()
-	if meta.lastUpdateFrame and (currentFrame - meta.lastUpdateFrame) < minTextUpdateIntervalFrames then
-		return false
-	end
-
-	if fadeDiff > 0.15 then
-		return true
-	end
-
-	return false
-end
-
 
 local cachedCameraFacing = 0
 
@@ -3061,28 +3159,99 @@ local function ProcessDeferredFeatures(frame)
 end
 
 -- Helper: Process pending feature changes
+--
+-- Feature creations/destructions are batched (see FeatureCreated/Destroyed) and
+-- drained here once per game frame. A large burst (game load, big battle,
+-- area-reclaim, mass spawns) can queue thousands of items at once; processing
+-- the whole queue in a single frame is the classic freeze. We therefore drain a
+-- bounded number per call and keep the rest for subsequent frames. The overlay
+-- catches up within a fraction of a second instead of stalling the game.
+--
+-- Pre-gamestart we intentionally drain everything at once (during the load /
+-- placement phase, where a one-off spike is invisible) so all metal fields are
+-- discovered immediately, preserving the prior behaviour.
 local function ProcessPendingFeatureChanges()
-	-- Process batched feature creations first
-	if batch.pendCreateCount > 0 then
-		for i = 1, batch.pendCreateCount do
-			local featureID = batch.pendCreations[i]
-			AddFeature(featureID)
-			batch.pendCreations[i] = nil
+	-- Bounded drain per frame in-game; unbounded pre-gamestart (see above).
+	-- Removals can be O(k^2) in dense clusters (reachability re-scan), so their
+	-- budget is kept a touch lower than creations.
+	local createBudget, destroyBudget
+	if gameStarted then
+		createBudget = 96
+		destroyBudget = 96
+		if cachedKnownFeaturesCount > 4000 then
+			createBudget = 64
+			destroyBudget = 64
 		end
-		batch.pendCreateCount = 0
+		if cachedKnownFeaturesCount > 8000 then
+			createBudget = 48
+			destroyBudget = 48
+		end
+
+		local pendingCreates = batch.pendCreateCount - batch.pendCreateHead
+		local pendingDestrs = batch.pendDestrCount - batch.pendDestrHead
+		if pendingCreates > 2000 then
+			createBudget = min(createBudget, 24)
+		end
+		if pendingCreates > 5000 then
+			createBudget = min(createBudget, 16)
+		end
+		if batch.deferCreateCount > 1000 then
+			createBudget = min(createBudget, 12)
+		end
+		if batch.deferCreateCount > 3000 then
+			createBudget = min(createBudget, 8)
+		end
+		if pendingDestrs > 1000 then
+			destroyBudget = min(destroyBudget, 32)
+		end
+	else
+		createBudget = mathHuge
+		destroyBudget = mathHuge
+	end
+
+	-- Process batched feature creations first
+	if batch.pendCreateCount > batch.pendCreateHead then
+		local head = batch.pendCreateHead
+		local tail = batch.pendCreateCount
+		local limit = head + createBudget
+		if limit > tail then limit = tail end
+		local creations = batch.pendCreations
+		for i = head + 1, limit do
+			local featureID = creations[i]
+			creations[i] = nil
+			if featureID then
+				AddFeature(featureID)
+			end
+		end
+		if limit >= tail then
+			batch.pendCreateHead = 0
+			batch.pendCreateCount = 0
+		else
+			batch.pendCreateHead = limit
+		end
 		dirty.needCluster = true
 	end
 
 	-- Process batched feature destructions
-	if batch.pendDestrCount > 0 then
-		for i = 1, batch.pendDestrCount do
-			local featureID = batch.pendDestructions[i]
-			if knownFeatures[featureID] then
+	if batch.pendDestrCount > batch.pendDestrHead then
+		local head = batch.pendDestrHead
+		local tail = batch.pendDestrCount
+		local limit = head + destroyBudget
+		if limit > tail then limit = tail end
+		local destructions = batch.pendDestructions
+		for i = head + 1, limit do
+			local featureID = destructions[i]
+			destructions[i] = nil
+			if featureID and knownFeatures[featureID] then
 				RemoveFeature(featureID)
 			end
-			batch.pendDestructions[i] = nil
 		end
-		batch.pendDestrCount = 0
+		if limit >= tail then
+			batch.pendDestrHead = 0
+			batch.pendDestrCount = 0
+		else
+			batch.pendDestrHead = limit
+		end
 		dirty.needCluster = true
 	end
 end
@@ -3111,28 +3280,14 @@ local function ProcessFlyingFeatures(frame)
 						-- Mark region as dirty for regional reclustering
 						MarkRegionDirty(x, z)
 
-						local M = featureNeighborsMatrix
 						local M_newFeature = {}
-						local reachDistSq, epsilonSq = mathHuge, epsilonSq
-						for fid2, feat2 in pairs(knownFeatures) do
-							local dx, dz = x - feat2.x, z - feat2.z
-							local distSq = dx * dx + dz * dz
-							if distSq <= epsilonSq then
-								M[fid2][featureID] = distSq
-								M_newFeature[fid2] = distSq
-								if distSq < reachDistSq then
-									reachDistSq = distSq
-								end
-								if feat2.rd == nil or distSq < feat2.rd then
-									feat2.rd = distSq
-								end
-							end
-						end
+						local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
 						featureNeighborsMatrix[featureID] = M_newFeature
 						if reachDistSq < epsilonSq then
 							fInfo.rd = reachDistSq
 						end
 						knownFeatures[featureID] = fInfo
+						grid.insert(featureID, fInfo)
 						cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
 						featuresAdded = true
 					else
@@ -3155,13 +3310,26 @@ end
 
 -- Helper: Validate and remove invalid features
 local function ValidateAndRemoveInvalidFeatures()
+	-- Incremental scan: validating every known feature before each recluster can
+	-- itself become a frame spike on large maps. We scan a bounded slice each
+	-- call and rely on repeated passes + UpdateFeatureReclaim for convergence.
 	local removeCount = 0
 	local featureCount = cachedKnownFeaturesCount
-	local checkInterval = max(1, floor(featureCount / 50))
-	validityCheckCounter = validityCheckCounter + 1
+	if featureCount <= 0 then
+		return
+	end
 
-	for fid, fInfo in pairs(knownFeatures) do
-		if checkInterval == 1 or (validityCheckCounter % checkInterval == 0) then
+	local maxChecks = 96
+	if featureCount > 4000 then maxChecks = 64 end
+	if featureCount > 7000 then maxChecks = 48 end
+
+	for _ = 1, maxChecks do
+		validityCheckCounter = validityCheckCounter + 1
+		if validityCheckCounter > featureCount then
+			validityCheckCounter = 1
+		end
+		local fid = knownFeatureIDs[validityCheckCounter]
+		if fid then
 			if not spValidFeatureID(fid) then
 				removeCount = removeCount + 1
 				batch.toRemove[removeCount] = fid
@@ -3175,7 +3343,6 @@ local function ValidateAndRemoveInvalidFeatures()
 				end
 			end
 		end
-		validityCheckCounter = validityCheckCounter + 1
 	end
 
 	for i = 1, removeCount do
@@ -3184,6 +3351,10 @@ local function ValidateAndRemoveInvalidFeatures()
 
 	for i = 1, removeCount do
 		batch.toRemove[i] = nil
+	end
+
+	if validityCheckCounter > #knownFeatureIDs then
+		validityCheckCounter = 0
 	end
 end
 
@@ -3272,27 +3443,144 @@ end
 
 local function UpdateReclaimFields()
 	local frame = spGetGameFrame()
+	local now = os.clock()
+
+	-- (A) A time-sliced recluster coroutine is in flight: feed it one time-slice
+	-- and skip everything else. Feature mutation stays suspended (we return
+	-- before ProcessPendingFeatureChanges / UpdateFeatureReclaim) so the
+	-- coroutine reads a stable feature set; the previous fields keep rendering.
+	if batch.clusterJobActive then
+		local tClusterSlice0 = debugTiming and osClock() or 0
+		local dynamicBudget = batch.clusterJobBudget
+		if cachedKnownFeaturesCount >= 8000 then
+			dynamicBudget = min(dynamicBudget, 0.0016)
+		elseif cachedKnownFeaturesCount >= 5000 then
+			dynamicBudget = min(dynamicBudget, 0.0019)
+		end
+		if dirty.needRedraw then
+			dynamicBudget = min(dynamicBudget, 0.0015)
+		end
+		batch.clusterJobBudget = clamp(dynamicBudget, batch.clusterJobBudgetMin, batch.clusterJobBudgetMax)
+		batch.clusterJobStart = osClock()
+		local ok, err = coroutine.resume(batch.clusterJobCo)
+		if debugTiming then
+			local dt = osClock() - tClusterSlice0
+			timingAccum.clusterSlice = timingAccum.clusterSlice + dt
+			if dt > timingAccum.maxClusterSlice then timingAccum.maxClusterSlice = dt end
+			if dt * 1000 >= timingAccum.spikeMs and (now - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
+				timingAccum.lastSpikeClock = now
+				Spring.Echo(string.format(
+					"[ReclaimField SPIKE] cluster-slice=%.2fms  features=%d  pendingCreate=%d/%d  pendingDestr=%d/%d",
+					dt * 1000,
+					cachedKnownFeaturesCount,
+					batch.pendCreateCount - batch.pendCreateHead,
+					batch.pendCreateCount,
+					batch.pendDestrCount - batch.pendDestrHead,
+					batch.pendDestrCount
+				))
+			end
+		end
+		if not ok then
+			Spring.Echo("[ReclaimFieldHighlight] cluster job error: " .. tostring(err))
+			batch.clusterJobActive = false
+			batch.clusterJobCo = nil
+		elseif coroutine.status(batch.clusterJobCo) == "dead" then
+			local tFinalize0 = debugTiming and osClock() or 0
+			-- Build finished this frame: adopt the new clusters, match identities
+			-- for fade animations. Don't force a full display-list rebuild here:
+			-- it can spike this frame on large maps. The normal incremental redraw
+			-- path below will rebuild visible clusters gradually.
+			batch.clusterJobActive = false
+			batch.clusterJobCo = nil
+			dirty.removedSinceCluster = 0
+			animState.SyncClusterIdentitiesAfterClustering()
+			lastClusterRebuildClock = now
+			lastCheckFrame = frame
+			lastCheckFrameClock = now
+			UpdateDrawEnabled()
+			UpdateDrawEnergyEnabled()
+			dirty.needRedraw = true
+			if debugTiming then
+				local dt = osClock() - tFinalize0
+				timingAccum.clusterFinalize = timingAccum.clusterFinalize + dt
+				if dt > timingAccum.maxClusterFinalize then timingAccum.maxClusterFinalize = dt end
+				if dt * 1000 >= timingAccum.spikeMs and (now - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
+					timingAccum.lastSpikeClock = now
+					Spring.Echo(string.format(
+						"[ReclaimField SPIKE] cluster-finalize=%.2fms  metalClusters=%d  energyClusters=%d",
+						dt * 1000,
+						#featureClusters,
+						#energyFeatureClusters
+					))
+				end
+			end
+		end
+		return
+	end
 
 	-- Process deferred features periodically or when they come into view
 	if frame ~= lastProcessedFrame then
+		local tDefer0 = debugTiming and osClock() or 0
 		lastProcessedFrame = frame
 		ProcessDeferredFeatures(frame)
 		ProcessPendingFeatureChanges()
+		if debugTiming then
+			timingAccum.deferPending = timingAccum.deferPending + (osClock() - tDefer0)
+		end
 	end
 
 	-- Refresh draw state before checking early return (avoid stale cached values)
 	UpdateDrawEnabled()
 	UpdateDrawEnergyEnabled()
+	local overlayVisible = drawEnabled or (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
 
-	if drawEnabled == false and (not showEnergyFields or not drawEnergyEnabled or allEnergyFieldsDrained) then
+	-- Keep background clustering alive even when overlay is hidden, so first
+	-- selection doesn't need to do all clustering/text prep in one stall.
+	if not overlayVisible and not dirty.needCluster and not dirty.forceFullRedraw then
 		return
 	end
 
-	if not dirty.needCluster and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and os.clock() - lastCheckFrameClock < (checkFrequency/30) then
-		return
+	-- Deferred until after the early-return: this hits spGetActiveCommand every
+	-- frame, so we skip it entirely while the overlay is hidden (background mode).
+	local activeReclaim = actionActive or IsActiveReclaimCommand()
+
+	-- Decay the reclaim-churn tally toward 0 (~1.2s half-life). It is topped up
+	-- in UpdateFeatureReclaim whenever features deplete / cluster values change.
+	local churn = dirty.reclaimChurn
+	if churn > 0 then
+		local dtc = now - dirty.reclaimChurnClock
+		if dtc > 0 then
+			churn = churn * (0.5 ^ (dtc / 1.2))
+			if churn < 0.05 then churn = 0 end
+			dirty.reclaimChurn = churn
+		end
+	end
+	dirty.reclaimChurnClock = now
+
+	-- Adaptive backoff: the busier the map is with reclaimers, the longer we
+	-- wait between the expensive recluster + display-list rebuild passes. Light
+	-- reclaim stays snappy; heavy multi-reclaimer churn adds up to ~1.1s extra.
+	local churnDelay = min(churn * 0.05, 1.1)
+
+	local clusterRebuildDue
+	if activeReclaim then
+		-- Throttle the whole (poll + recluster + redraw) pass adaptively instead
+		-- of running it every frame while a reclaim command / order is active.
+		-- Base 0.12s (=> ~8 Hz) already cuts a lot versus the old every-frame path.
+		if not dirty.forceFullRedraw and (now - lastCheckFrameClock) < (0.12 + churnDelay) then
+			return
+		end
+		clusterRebuildDue = dirty.needCluster
+	else
+		-- Not actively reclaiming: relaxed base cadence, still stretched further
+		-- when background reclaimers are churning fields all over the map.
+		clusterRebuildDue = dirty.needCluster and (dirty.forceFullRedraw or (now - lastClusterRebuildClock) >= (0.75 + churnDelay))
+		if not clusterRebuildDue and not dirty.forceFullRedraw and frame - lastCheckFrame < checkFrequency and now - lastCheckFrameClock < (checkFrequency/30) then
+			return
+		end
 	end
 	lastCheckFrame = spGetGameFrame()
-	lastCheckFrameClock = os.clock()
+	lastCheckFrameClock = now
 
 	-- Adjust frequency based on feature count thresholds
 	local currentFeatureCount = cachedKnownFeaturesCount
@@ -3313,19 +3601,80 @@ local function UpdateReclaimFields()
 	-- Process flying features
 	local featuresAdded = ProcessFlyingFeatures(frame)
 
-	-- Always check for feature value updates so stored values are current
-	-- (needed even when clustering is pending, since cluster totals use stored values)
-	UpdateFeatureReclaim()
+	-- Only poll feature reclaim values while overlay is visible; hidden mode is
+	-- used for background clustering/prefetch and should stay cheap.
+	if overlayVisible then
+		local tPoll0 = debugTiming and osClock() or 0
+		UpdateFeatureReclaim()
+		if debugTiming then
+			timingAccum.reclaimPoll = timingAccum.reclaimPoll + (osClock() - tPoll0)
+		end
+	end
 
-	if featuresAdded or dirty.needCluster then
+	local pendingCreates = batch.pendCreateCount - batch.pendCreateHead
+	local pendingDestrs = batch.pendDestrCount - batch.pendDestrHead
+	local pendingBacklog = pendingCreates + pendingDestrs
+	local clusterCooldown = 0.22
+	if activeReclaim then
+		clusterCooldown = 0.30
+	end
+	if cachedKnownFeaturesCount >= 7000 then
+		clusterCooldown = clusterCooldown + 0.10
+	end
+	local clusterStartAllowed = dirty.forceFullRedraw or ((now - lastClusterRebuildClock) >= clusterCooldown)
+
+	if (featuresAdded or clusterRebuildDue) and (pendingBacklog == 0 or dirty.forceFullRedraw) and clusterStartAllowed then
+		-- Kick off a time-sliced recluster instead of doing it all now. Block (A)
+		-- above feeds the coroutine a slice per frame and finalizes it when done;
+		-- the existing fields keep rendering until the new set is ready.
 		ValidateAndRemoveInvalidFeatures()
 		animState.CapturePreClusteringSnapshot()
-		ClusterizeFeatures()
-		animState.SyncClusterIdentitiesAfterClustering()
+		batch.clusterJobCo = coroutine.create(ClusterizeFeatures)
+		batch.clusterJobActive = true
+		dirty.removedSinceCluster = 0
+	end
+
+	if overlayVisible then
+		local missingTextAnchors = false
+		for cid = 1, #featureClusters do
+			local cluster = featureClusters[cid]
+			if cluster and cluster.center and cluster.font and cluster.font > 0 and (cluster.textX == nil or cluster.text == nil) then
+				missingTextAnchors = true
+				break
+			end
+		end
+		if not missingTextAnchors and showEnergyFields and drawEnergyEnabled then
+			for cid = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[cid]
+				if cluster and cluster.center and cluster.font and cluster.font > 0 and (cluster.textX == nil or cluster.text == nil) then
+					missingTextAnchors = true
+					break
+				end
+			end
+		end
+		if missingTextAnchors then
+			EnsureClusterTextAnchors()
+			dirty.needRedraw = true
+		end
 	end
 
 	if dirty.needRedraw == true then
+		local tRedraw0 = debugTiming and osClock() or 0
 		RecreateDisplayListsForVisibleClusters()
+		if debugTiming then
+			local dt = osClock() - tRedraw0
+			timingAccum.redrawLists = timingAccum.redrawLists + dt
+			if dt > timingAccum.maxRedrawLists then timingAccum.maxRedrawLists = dt end
+			if dt * 1000 >= timingAccum.spikeMs and (now - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
+				timingAccum.lastSpikeClock = now
+				Spring.Echo(string.format(
+					"[ReclaimField SPIKE] redraw-lists=%.2fms  rebuildsThisFrame=%d  clusters=%d",
+					dt * 1000,
+					timingAccum.rebuilds,
+					#featureClusters
+				))
+			end
+		end
 	end
 
 	-- Update camera facing vector (used for text rotation in DrawWorld)
@@ -3347,7 +3696,11 @@ end
 
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
+	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
+	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	animCfg.font = f
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 
 	-- Initialize camera scale early to avoid thick lines on first draw
 	local cx, cy, cz = spGetCameraPosition()
@@ -3455,16 +3808,82 @@ function widget:Initialize()
 		batch.outOfViewMargin = max(0, value)
 	end
 
+	-- Diagnostics: toggle a periodic timing echo (per-call ms for the update
+	-- pass vs the draw/rebuild passes, plus display-list rebuilds per frame) so
+	-- it's easy to confirm whether updating or drawing is the per-frame cost.
+	WG['reclaimfieldhighlight'].getDebugTiming = function()
+		return debugTiming
+	end
+	WG['reclaimfieldhighlight'].setDebugTiming = function(value)
+		debugTiming = value and true or false
+	end
+	WG['reclaimfieldhighlight'].getTimingInterval = function()
+		return timingInterval
+	end
+	WG['reclaimfieldhighlight'].setTimingInterval = function(value)
+		timingInterval = max(10, floor(tonumber(value) or timingInterval))
+	end
+	WG['reclaimfieldhighlight'].getTimingSpikeMs = function()
+		return timingAccum.spikeMs
+	end
+	WG['reclaimfieldhighlight'].setTimingSpikeMs = function(value)
+		timingAccum.spikeMs = max(0.5, tonumber(value) or timingAccum.spikeMs)
+	end
+	WG['reclaimfieldhighlight'].getClusterSliceBudgetMs = function()
+		return floor((batch.clusterJobBudget or 0) * 1000 + 0.5)
+	end
+	WG['reclaimfieldhighlight'].setClusterSliceBudgetMs = function(value)
+		local ms = tonumber(value)
+		if not ms then return end
+		batch.clusterJobBudget = clamp(ms * 0.001, batch.clusterJobBudgetMin, batch.clusterJobBudgetMax)
+	end
+	WG['reclaimfieldhighlight'].printTimingNow = function()
+		local denom = timingCount > 0 and timingCount or 1
+		Spring.Echo(string.format(
+			"[ReclaimField TIMING NOW] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f",
+			timingAccum.updateReclaim / denom * 1000,
+			timingAccum.drawWorldText / denom * 1000,
+			timingAccum.drawPreUnit / denom * 1000,
+			timingAccum.updateFunc / denom * 1000,
+			timingAccum.deferPending / denom * 1000,
+			timingAccum.reclaimPoll / denom * 1000,
+			timingAccum.clusterSlice / denom * 1000,
+			timingAccum.clusterFinalize / denom * 1000,
+			timingAccum.redrawLists / denom * 1000,
+			timingAccum.maxUpdateReclaim * 1000,
+			timingAccum.maxDrawPreUnit * 1000,
+			timingAccum.maxClusterSlice * 1000,
+			timingAccum.maxClusterFinalize * 1000,
+			timingAccum.maxRedrawLists * 1000,
+			timingAccum.rebuilds / denom
+		))
+	end
+
 	-- Start/restart feature clustering.
 	knownFeatures = {}
 	flyingFeatures = {}
 	featureNeighborsMatrix = {}
+	knownFeatureIDs = {}
 	featureClusters = {}
 	featureConvexHulls = {}
 	energyFeatureClusters = {}
 	energyFeatureConvexHulls = {}
 	opticsObject = Optics.new()
 	cachedKnownFeaturesCount = 0 -- Reset cached count
+	featureReclaimScanCounter = 0
+
+	-- Reset the spatial grid and the batched-change queues so a widget reload
+	-- doesn't leave stale cells/cursors behind.
+	for k in pairs(grid.cells) do grid.cells[k] = nil end
+	batch.pendCreateCount = 0
+	batch.pendCreateHead = 0
+	batch.pendDestrCount = 0
+	batch.pendDestrHead = 0
+	batch.deferCreateCount = 0
+	batch.deferDestrCount = 0
+	-- Drop any in-flight time-sliced recluster coroutine from a previous load.
+	batch.clusterJobActive = false
+	batch.clusterJobCo = nil
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
@@ -3587,6 +4006,9 @@ function widget:Update(dt)
 			cameraScale = sqrt(sqrt(cameraDist) / 600)
 		end
 	end
+	if debugTiming then
+		timingAccum.updateFunc = timingAccum.updateFunc + (osClock() - tU0)
+	end
 end
 
 function widget:FeatureCreated(featureID, allyTeamID)
@@ -3647,6 +4069,9 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	screenx, screeny = widgetHandler:GetViewSizes()
 	vsx, vsy = Spring.GetViewGeometry()
+	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
+	animCfg.font = f
+	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 end
 
 --------------------------------------------------------------------------------
@@ -3666,7 +4091,7 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	end
 
 	local effAlpha, animScale = animState.GetClusterAnimAlphaAndScale(cluster.uid, isEnergy)
-	if effAlpha <= 0.005 then return 0 end
+	if effAlpha <= 0.001 then return 0 end
 
 	local clusterData
 	if isEnergy then
@@ -3676,15 +4101,41 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 	end
 	if drawGradient then
 		local needRebuild = false
+		local mustRebuild = false
 		if not clusterData or not clusterData.gradient then
 			needRebuild = true
+			mustRebuild = true -- nothing to draw yet, must build geometry now
 		elseif not clusterData.bakedAlpha or abs(effAlpha - clusterData.bakedAlpha) > animCfg.rebuildThreshold then
 			needRebuild = true
 		end
 		if needRebuild then
-			if isEnergy then energyClusterStateHashes[cid] = nil else clusterStateHashes[cid] = nil end
-			CreateClusterDisplayList(cid, isEnergy, effAlpha)
-			clusterData = isEnergy and energyClusterDisplayLists[cid] or clusterDisplayLists[cid]
+			-- Refresh the per-frame rebuild budgets on the first request this frame.
+			if animCfg.rebuildBudgetFrame ~= drawCounter then
+				animCfg.rebuildBudgetFrame = drawCounter
+				-- While the camera is panning, throttle alpha-only rebuilds hard
+				-- (distance fade would otherwise rebuild dozens of lists/frame).
+				local cameraMoving = (drawCounter - animCfg.cameraMoveDraw) <= animCfg.cameraSettleDraws
+				animCfg.rebuildBudgetRemaining = cameraMoving and animCfg.movingRebuildsPerFrame or animCfg.maxRebuildsPerFrame
+				animCfg.newBuildBudgetRemaining = animCfg.newBuildsPerFrame
+			end
+			-- Split budgets: brand-new geometry (mustRebuild) is spread with its
+			-- own budget so a fresh recluster's hundreds of lists build over a few
+			-- frames; alpha-only fade rebuilds use the (camera-aware) fade budget.
+			local doBuild = false
+			if mustRebuild then
+				if animCfg.newBuildBudgetRemaining > 0 then
+					animCfg.newBuildBudgetRemaining = animCfg.newBuildBudgetRemaining - 1
+					doBuild = true
+				end
+			elseif animCfg.rebuildBudgetRemaining > 0 then
+				animCfg.rebuildBudgetRemaining = animCfg.rebuildBudgetRemaining - 1
+				doBuild = true
+			end
+			if doBuild then
+				if isEnergy then energyClusterStateHashes[cid] = nil else clusterStateHashes[cid] = nil end
+				CreateClusterDisplayList(cid, isEnergy, effAlpha)
+				clusterData = isEnergy and energyClusterDisplayLists[cid] or clusterDisplayLists[cid]
+			end
 		end
 		if clusterData and clusterData.gradient then
 			if animScale ~= 1 then
@@ -3727,7 +4178,7 @@ end
 
 local function DrawFadingCluster(uid, entry, drawGradient)
 	local alpha = entry.alpha or 0
-	if alpha <= 0.005 then return end
+	if alpha <= 0.001 then return end
 	local center = entry.center
 	if not center then return end
 	local inView = IsInCameraView(center.x, center.y, center.z, 600, drawCounter)
@@ -3735,10 +4186,22 @@ local function DrawFadingCluster(uid, entry, drawGradient)
 
 	if drawGradient then
 		local dl = entry.displayLists
-		if not dl or not dl.gradient
-			or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold then
-			CreateFadingClusterDisplayList(uid, entry.isEnergy)
-			dl = entry.displayLists
+		local mustRebuild = not dl or not dl.gradient
+		local wantRebuild = mustRebuild
+			or not entry.lastBakedAlpha or abs(alpha - entry.lastBakedAlpha) > animCfg.rebuildThreshold
+		if wantRebuild then
+			if animCfg.rebuildBudgetFrame ~= drawCounter then
+				animCfg.rebuildBudgetFrame = drawCounter
+				local cameraMoving = (drawCounter - animCfg.cameraMoveDraw) <= animCfg.cameraSettleDraws
+				animCfg.rebuildBudgetRemaining = cameraMoving and animCfg.movingRebuildsPerFrame or animCfg.maxRebuildsPerFrame
+			end
+			if mustRebuild or animCfg.rebuildBudgetRemaining > 0 then
+				if not mustRebuild then
+					animCfg.rebuildBudgetRemaining = animCfg.rebuildBudgetRemaining - 1
+				end
+				CreateFadingClusterDisplayList(uid, entry.isEnergy)
+				dl = entry.displayLists
+			end
 		end
 		if dl and dl.gradient then
 			glCallList(dl.gradient)
@@ -3787,83 +4250,214 @@ function widget:DrawWorld()
 	local negSinF = -sinF
 	local negCosF = -cosF
 
-	-- Draw metal text (positions pre-computed in ClusterizeFeatures)
-	if showMetal then
-		for clusterID = 1, #featureClusters do
-			local cluster = featureClusters[clusterID]
-			if cluster and cluster.textX then
-				-- effAlpha already folds in distance/frustum vis (smoothed), anim alpha,
-				-- and toggle fade. We don't need the cached.fadeMult anymore.
-				local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
-				if effAlpha > 0.01 then
-					if TextDisplayListNeedsUpdate(clusterID, false, effAlpha) then
-						CreateClusterTextDisplayList(clusterID, false, effAlpha)
-					end
-					local clusterData = clusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
+	-- Draw text using high-quality font in IMMEDIATE mode (no outer Begin/End).
+	-- Inside a Begin/End block the font batches all quads and flushes them at
+	-- End() with whatever modelview is current then (identity -> origin). In
+	-- immediate mode each Print flushes with the current GL matrix, so our
+	-- ground-plane glMultMatrix applies and text lies flat like the icons.
+	local widgetFont = animCfg.font
+	if widgetFont then
+		if showMetal then
+			local nc = numberColor
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.001 then
+						local drawAlpha = max(effAlpha, 0.2)
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
+						local fs = cluster.font
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glCallList(clusterData.text)
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
 						glPopMatrix()
 					end
 				end
 			end
-		end
-		-- Fading-out metal cluster text
-		for uid, entry in pairs(animState.fading) do
-			local alpha = entry.alpha or 0
-			if alpha > 0.01 and entry.text then
-				if not entry.displayLists or not entry.displayLists.text
-					or not entry.lastBakedTextAlpha or abs(alpha - entry.lastBakedTextAlpha) > animCfg.rebuildThreshold then
-					CreateFadingClusterTextDisplayList(uid, false)
-					entry.lastBakedTextAlpha = alpha
-				end
-				if entry.displayLists and entry.displayLists.text then
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.001 and entry.text then
+						local drawAlpha = max(alpha, 0.2)
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
+					local fs = entry.font or fontSizeMin
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glCallList(entry.displayLists.text)
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
+					glPopMatrix()
+				end
+			end
+		end
+		if showEnergy then
+			local enc = energyNumberColor
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.001 then
+						local drawAlpha = max(effAlpha, 0.2)
+						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
+						local fs = cluster.font * energyTextSizeMultiplier
+						local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						widgetFont:Print(cluster.text, textOX, 0, fs, "cov")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.001 and entry.text then
+						local drawAlpha = max(alpha, 0.2)
+					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
+					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
+					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
+					local textOX = showResourceIcons and (fs * (iconSizeRatio + iconGapRatio)) * 0.5 or 0
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					widgetFont:Print(entry.text, textOX, 0, fs, "cov")
+					glPopMatrix()
+				end
+			end
+		end
+	else
+		-- Fallback to gl.Text if font handler not available
+		if showMetal then
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.01 then
+						local nc = numberColor
+						glColor(nc[1], nc[2], nc[3], nc[4] * effAlpha)
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glText(cluster.text, 0, 0, cluster.font, "co")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local nc = numberColor
+					glColor(nc[1], nc[2], nc[3], nc[4] * alpha)
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glText(entry.text, 0, 0, entry.font or fontSizeMin, "co")
+					glPopMatrix()
+				end
+			end
+		end
+		if showEnergy then
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.01 then
+						local enc = energyNumberColor
+						glColor(enc[1], enc[2], enc[3], enc[4] * effAlpha)
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glText(cluster.text, 0, 0, cluster.font * energyTextSizeMultiplier, "co")
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local enc = energyNumberColor
+					glColor(enc[1], enc[2], enc[3], enc[4] * alpha)
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glText(entry.text, 0, 0, (entry.font or fontSizeMin) * energyTextSizeMultiplier, "co")
 					glPopMatrix()
 				end
 			end
 		end
 	end
 
-	-- Draw energy text (positions pre-computed in ClusterizeFeatures)
-	if showEnergy then
-		for clusterID = 1, #energyFeatureClusters do
-			local cluster = energyFeatureClusters[clusterID]
-			if cluster and cluster.textX then
-				local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
-				if effAlpha > 0.01 then
-					if TextDisplayListNeedsUpdate(clusterID, true, effAlpha) then
-						CreateClusterTextDisplayList(clusterID, true, effAlpha)
-					end
-					local clusterData = energyClusterDisplayLists[clusterID]
-					if clusterData and clusterData.text then
+	-- Draw resource icons (ground-plane quads to the left of each value label,
+	-- using the same matrix as the text so they lie flat like the labels do)
+	if showResourceIcons then
+		local glTexRect = gl.TexRect
+		local glTexture = gl.Texture
+		local getTextWidth = animCfg.getTextWidth or gl.GetTextWidth
+		if showMetal then
+			glTexture(":l:LuaUI/Images/metal.png")
+			for clusterID = 1, #featureClusters do
+				local cluster = featureClusters[clusterID]
+				if cluster and cluster.textX and cluster.text then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
+					if effAlpha > 0.01 then
+						local fs = cluster.font
+						local is = fs * iconSizeRatio
+						local tw = getTextWidth(cluster.text) * fs
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glCallList(clusterData.text)
+						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(effAlpha, 0.2))
+						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
 				end
 			end
-		end
-		-- Fading-out energy cluster text
-		for uid, entry in pairs(animState.fadingEnergy) do
-			local alpha = entry.alpha or 0
-			if alpha > 0.01 and entry.text then
-				if not entry.displayLists or not entry.displayLists.text
-					or not entry.lastBakedTextAlpha or abs(alpha - entry.lastBakedTextAlpha) > animCfg.rebuildThreshold then
-					CreateFadingClusterTextDisplayList(uid, true)
-					entry.lastBakedTextAlpha = alpha
-				end
-				if entry.displayLists and entry.displayLists.text then
+			for uid, entry in pairs(animState.fading) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local fs = entry.font or fontSizeMin
+					local is = fs * iconSizeRatio
+					local tw = getTextWidth(entry.text) * fs
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glCallList(entry.displayLists.text)
+					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(alpha, 0.2))
+					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end
 			end
+			glTexture(false)
+		end
+		if showEnergy then
+			glTexture(":l:LuaUI/Images/energy.png")
+			for clusterID = 1, #energyFeatureClusters do
+				local cluster = energyFeatureClusters[clusterID]
+				if cluster and cluster.textX and cluster.text then
+					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
+					if effAlpha > 0.01 then
+						local fs = cluster.font * energyTextSizeMultiplier
+						local is = fs * iconSizeRatio
+						local tw = getTextWidth(cluster.text) * fs
+						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
+						glPushMatrix()
+						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
+						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(effAlpha, 0.2))
+						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
+						glPopMatrix()
+					end
+				end
+			end
+			for uid, entry in pairs(animState.fadingEnergy) do
+				local alpha = entry.alpha or 0
+				if alpha > 0.01 and entry.text then
+					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
+					local is = fs * iconSizeRatio
+					local tw = getTextWidth(entry.text) * fs
+					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
+					glPushMatrix()
+					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
+					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(alpha, 0.2))
+					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
+					glPopMatrix()
+				end
+			end
+			glTexture(false)
 		end
 	end
 
@@ -3876,10 +4470,30 @@ end
 function widget:DrawWorldPreUnit()
 	drawCounter = drawCounter + 1
 
-	local tUpd0 = debugTiming and osClock() or 0
-	UpdateReclaimFields()
-	if debugTiming then
-		timingAccum.updateReclaim = timingAccum.updateReclaim + (osClock() - tUpd0)
+	local frame = spGetGameFrame()
+	local sameGameFrameAsLastDraw = (frame == batch.lastUpdateDrawFrame)
+	local hadRenderOnlyDraw = batch.sawRenderOnlyDraw
+	batch.lastUpdateDrawFrame = frame
+	batch.sawRenderOnlyDraw = sameGameFrameAsLastDraw
+	local shouldUpdateReclaim = sameGameFrameAsLastDraw or not hadRenderOnlyDraw
+	if shouldUpdateReclaim then
+		local tUpd0 = debugTiming and osClock() or 0
+		UpdateReclaimFields()
+		if debugTiming then
+			local dt = osClock() - tUpd0
+			timingAccum.updateReclaim = timingAccum.updateReclaim + dt
+			if dt > timingAccum.maxUpdateReclaim then timingAccum.maxUpdateReclaim = dt end
+			if dt * 1000 >= timingAccum.spikeMs and (osClock() - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
+				timingAccum.lastSpikeClock = osClock()
+				Spring.Echo(string.format(
+					"[ReclaimField SPIKE] UpdateReclaimFields=%.2fms  features=%d  metalClusters=%d  energyClusters=%d",
+					dt * 1000,
+					cachedKnownFeaturesCount,
+					#featureClusters,
+					#energyFeatureClusters
+				))
+			end
+		end
 	end
 
 	-- Tick animations once per draw using a wall-clock dt (works while paused)
@@ -3957,7 +4571,9 @@ function widget:DrawWorldPreUnit()
 	glDepthTest(true)
 
 	if debugTiming then
-		timingAccum.drawPreUnit = timingAccum.drawPreUnit + (osClock() - tVis0)
+		local dt = osClock() - tVis0
+		timingAccum.drawPreUnit = timingAccum.drawPreUnit + dt
+		if dt > timingAccum.maxDrawPreUnit then timingAccum.maxDrawPreUnit = dt end
 	end
 
 	-- Periodic timing report
@@ -3965,15 +4581,45 @@ function widget:DrawWorldPreUnit()
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
 		Spring.Echo(string.format(
-			"[ReclaimField TIMING] per-call avg (ms): UpdateReclaim=%.3f  DrawWorldText=%.3f  DrawPreUnit=%.3f  | Update()=%.3f  | clusters=%d  features=%d",
+			"[ReclaimField TIMING] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f clusters=%d features=%d pendC=%d pendD=%d defC=%d defD=%d job=%s",
 			timingAccum.updateReclaim / div * 1000,
 			timingAccum.drawWorldText / div * 1000,
 			timingAccum.drawPreUnit / div * 1000,
 			timingAccum.updateFunc / div * 1000,
+			timingAccum.deferPending / div * 1000,
+			timingAccum.reclaimPoll / div * 1000,
+			timingAccum.clusterSlice / div * 1000,
+			timingAccum.clusterFinalize / div * 1000,
+			timingAccum.redrawLists / div * 1000,
+			timingAccum.maxUpdateReclaim * 1000,
+			timingAccum.maxDrawPreUnit * 1000,
+			timingAccum.maxClusterSlice * 1000,
+			timingAccum.maxClusterFinalize * 1000,
+			timingAccum.maxRedrawLists * 1000,
+			timingAccum.rebuilds / div,
 			#featureClusters,
-			cachedKnownFeaturesCount
+			cachedKnownFeaturesCount,
+			batch.pendCreateCount - batch.pendCreateHead,
+			batch.pendDestrCount - batch.pendDestrHead,
+			batch.deferCreateCount,
+			batch.deferDestrCount,
+			batch.clusterJobActive and "1" or "0"
 		))
-		for k in pairs(timingAccum) do timingAccum[k] = 0 end
+		timingAccum.updateReclaim = 0
+		timingAccum.drawWorldText = 0
+		timingAccum.drawPreUnit = 0
+		timingAccum.updateFunc = 0
+		timingAccum.rebuilds = 0
+		timingAccum.deferPending = 0
+		timingAccum.reclaimPoll = 0
+		timingAccum.clusterSlice = 0
+		timingAccum.clusterFinalize = 0
+		timingAccum.redrawLists = 0
+		timingAccum.maxUpdateReclaim = 0
+		timingAccum.maxDrawPreUnit = 0
+		timingAccum.maxClusterSlice = 0
+		timingAccum.maxClusterFinalize = 0
+		timingAccum.maxRedrawLists = 0
 		timingCount = 0
 	end
 end

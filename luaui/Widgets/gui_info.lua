@@ -126,11 +126,16 @@ for ii = 1, #Game.armorTypes do
 end
 
 local function round(value, numDecimalPlaces)
-	if value then
-		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
-	else
-		return 0
+	if type(numDecimalPlaces) ~= "number" then
+		numDecimalPlaces = 0
 	end
+	if type(value) == "number" and value == value and value > -math.huge and value < math.huge then
+		local rounded = math.round(value, numDecimalPlaces)
+		if rounded == rounded and rounded > -math.huge and rounded < math.huge then
+			return string.format("%0." .. numDecimalPlaces .. "f", rounded)
+		end
+	end
+	return 0
 end
 
 local unitDefInfo = {}
@@ -161,6 +166,8 @@ local emptyTable = {}
 local shiftTable = { "shift" }
 local unloadParams = { 0, 0, 0, 0 }  -- x, y, z, unitID
 local viewSelectionCmd = { "viewselection" }
+local selectionUnitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, candidateSet = {}, count = 0 }
+local selectionUnitpicWarmPerFrame = 1
 
 local showWeaponGroups = { ["0"] = true, ["1"] = true } -- <0:=fake weapons, 0:=always active, 1:=primary set, >1:=alternate sets
 
@@ -438,11 +445,12 @@ local function refreshUnitInfo()
 					local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 					local splitn = weaponDef.customParams.number or 1
 					addDPS(calculateWeaponDPS(weaponDef, splitd * splitn))
-				elseif weaponDef.customParams.spark_basedamage then -- Lightning
+				elseif weaponDef.customParams.spark_forkdamage then -- Lightning
 					unitExempt = true
-					local forkd = weaponDef.customParams.spark_forkdamage
-					local forkn = weaponDef.customParams.spark_maxunits or 1
-					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * (1 + forkd * forkn)))
+					addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
+					-- Sparks cannot retarget the original unit they hit, so add them as secondary damages.
+					local forkDamageRate = weaponDef.customParams.spark_forkdamage
+					addSecondaryDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0] * forkDamageRate))
 					if unitExempt and weaponDef.paralyzer then -- DPS => EMP
 						unitDefInfo[unitDefID].minemp = unitDefInfo[unitDefID].mindps
 						unitDefInfo[unitDefID].maxemp = unitDefInfo[unitDefID].maxdps
@@ -592,6 +600,89 @@ end
 local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 local unitOrder = {}	-- retrieves from buildmenu in initialize
 
+local function clearSelectionUnitpicWarmQueue()
+	local warm = selectionUnitpicWarm
+	for defID in pairs(warm.queuedSet) do
+		warm.queuedSet[defID] = nil
+	end
+	for i = 1, warm.count do
+		warm.queued[i] = nil
+	end
+	warm.count = 0
+end
+
+local function queueSelectionUnitpicWarm(unitDefID)
+	local warm = selectionUnitpicWarm
+	if unitDefID and not warm.warmed[unitDefID] and not warm.queuedSet[unitDefID] then
+		warm.count = warm.count + 1
+		warm.queued[warm.count] = unitDefID
+		warm.queuedSet[unitDefID] = true
+	end
+end
+
+local function queueSelectionUnitpicWarmFromSelection(sel)
+	clearSelectionUnitpicWarmQueue()
+	local warm = selectionUnitpicWarm
+	local candidateSet = warm.candidateSet
+	for defID in pairs(candidateSet) do
+		candidateSet[defID] = nil
+	end
+	for i = 1, #sel do
+		local unitDefID = spGetUnitDefID(sel[i])
+		if unitDefID then
+			candidateSet[unitDefID] = true
+		end
+	end
+	for _, unitDefID in pairs(unitOrder) do
+		if candidateSet[unitDefID] then
+			queueSelectionUnitpicWarm(unitDefID)
+			candidateSet[unitDefID] = nil
+		end
+	end
+	for unitDefID in pairs(candidateSet) do
+		queueSelectionUnitpicWarm(unitDefID)
+		candidateSet[unitDefID] = nil
+	end
+end
+
+local function flushSelectionUnitpicWarmQueue()
+	local warm = selectionUnitpicWarm
+	local count = warm.count
+	if count <= 0 then
+		return true
+	end
+
+	tracy.ZoneBeginN("W:Info:SelectionUnitpicWarmup")
+	local limit = math_min(count, selectionUnitpicWarmPerFrame)
+	for i = 1, limit do
+		local unitDefID = warm.queued[i]
+		if unitDefID then
+			if glTexture("#" .. unitDefID) then
+				warm.warmed[unitDefID] = true
+			end
+			warm.queuedSet[unitDefID] = nil
+		end
+	end
+	glTexture(false)
+	if limit < count then
+		for i = limit + 1, count do
+			local unitDefID = warm.queued[i]
+			local newIndex = i - limit
+			warm.queued[newIndex] = unitDefID
+			warm.queued[i] = nil
+		end
+		warm.count = count - limit
+	else
+		for i = 1, count do
+			warm.queued[i] = nil
+		end
+		warm.count = 0
+	end
+	tracy.ZoneEnd()
+
+	return warm.count == 0
+end
+
 local unitDisabled = {}
 local minWaterUnitDepth = -11
 local showWaterUnits = false
@@ -635,9 +726,11 @@ local function checkGeothermalFeatures()
 end
 
 local function checkGuishader(force)
+	tracy.ZoneBeginN("W:Info:CheckGuishader")
 	dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'info', function()
 		RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
 	end, force)
+	tracy.ZoneEnd()
 end
 
 function widget:PlayerChanged(playerID)
@@ -646,6 +739,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:ViewResize()
+	tracy.ZoneBeginN("W:Info:ViewResize")
 	ViewResizeUpdate = true
 
 	vsx, vsy = Spring.GetViewGeometry()
@@ -681,6 +775,7 @@ function widget:ViewResize()
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(2)
+	tracy.ZoneEnd()
 end
 
 function GetColor(colormap, slider)
@@ -715,11 +810,16 @@ function widget:GameFrame()
 end
 
 function widget:Initialize()
+	tracy.ZoneBeginN("W:Info:Initialize")
 	isPregame = Spring.GetGameFrame() < 1
 
+	tracy.ZoneBeginN("W:Info:Initialize:RefreshUnitInfo")
 	refreshUnitInfo()
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:Info:Initialize:CheckGeothermal")
 	checkGeothermalFeatures()
+	tracy.ZoneEnd()
 
 	widget:ViewResize()
 
@@ -809,6 +909,7 @@ function widget:Initialize()
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:Shutdown()
@@ -831,6 +932,7 @@ local sec = 0
 local lastCameraPanMode = false
 local lastMouseOffScreen = false
 function widget:Update(dt)
+	tracy.ZoneBeginN("W:Info:Update")
 	infoShows = false
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
@@ -842,19 +944,23 @@ function widget:Update(dt)
 				dlistGuishader = nil
 			end
 		end
+		tracy.ZoneEnd()
 		return
 	end
 
 	-- Only check changes when camera or mouse state changes
 	if lastCameraPanMode ~= cameraPanMode or lastMouseOffScreen ~= mouseOffScreen then
+		tracy.ZoneBeginN("W:Info:Update:CheckChangesState")
 		lastCameraPanMode = cameraPanMode
 		lastMouseOffScreen = mouseOffScreen
 		checkChanges()
 		doUpdate = true
+		tracy.ZoneEnd()
 	end
 
 	sec2 = sec2 + dt
 	if sec2 > 0.5 then
+		tracy.ZoneBeginN("W:Info:Update:HalfSecond")
 		sec2 = 0
 
 		if not rankTextures and WG['rankicons'] then
@@ -873,15 +979,18 @@ function widget:Update(dt)
 				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	sec = sec + dt
 	if sec > 0.035 then
+		tracy.ZoneBeginN("W:Info:Update:CheckChangesTick")
 		sec = 0
 		checkChanges()
 		if alwaysShow or not emptyInfo then
 			checkGuishader()
 		end
+		tracy.ZoneEnd()
 	end
 
 
@@ -890,11 +999,13 @@ function widget:Update(dt)
 	end
 
 	if doUpdate or (doUpdateClock and os_clock() >= doUpdateClock) or (os_clock() >= doUpdateClock2) then
+		tracy.ZoneBeginN("W:Info:Update:ScheduleTexture")
 		doUpdateClock = nil
 		doUpdateClock2 = os_clock() + 0.9
 		updateTex = true
 		doUpdate = nil
 		lastUpdateClock = os_clock()
+		tracy.ZoneEnd()
 	end
 
 	if displayUnitID and not Spring.ValidUnitID(displayUnitID) then
@@ -904,12 +1015,14 @@ function widget:Update(dt)
 	end
 
 	if (not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame) then
+		tracy.ZoneEnd()
 		return
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
 		infoShows = true
 	end
+	tracy.ZoneEnd()
 end
 
 local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
@@ -957,10 +1070,21 @@ local killCountCache = {}
 local killCountCacheTime = 0
 
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell")
 	if not usedZoom then
 		usedZoom = defaultCellZoom
 	end
+	local unitTexture = "#" .. uDefID
+	if not selectionUnitpicWarm.warmed[uDefID] then
+		tracy.ZoneBeginN("W:Info:DrawSelection:Cell:TextureWarmFallback")
+		if glTexture(unitTexture) then
+			selectionUnitpicWarm.warmed[uDefID] = true
+		end
+		glTexture(false)
+		tracy.ZoneEnd()
+	end
 
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:UiUnit")
 	glColor(1,1,1,1)
 	UiUnit(
 		cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
@@ -968,11 +1092,13 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		1,1,1,1,
 		usedZoom,
 		nil, nil,
-		"#" .. uDefID,
+		unitTexture,
 		nil,
 		groups[unitGroup[uDefID]]
 	)
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:CountText")
 	local selCount = selUnitsCounts[uDefID]
 	-- unit count - calculate fontSize once
 	local fontSize = math_min(gridHeight * 0.17, cellsize * 0.6) * (1 - ((1 + string.len(selCount)) * 0.066))
@@ -981,7 +1107,9 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		font2:Print(cachedColorStrings.white..selCount, cellRect[cellID][3] - cellPadding - (fontSize * 0.09), cellRect[cellID][2] + (fontSize * 0.3), fontSize, "ro")
 		--font2:End()
 	end
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:Info:DrawSelection:Cell:KillCount")
 	-- kill count - cached to reduce expensive calls
 	local currentTime = os_clock()
 	local kills = 0
@@ -1009,8 +1137,9 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		end
 		killCountCache[uDefID] = kills
 	end
-
+	tracy.ZoneEnd()
 	if kills > 0 then
+		tracy.ZoneBeginN("W:Info:DrawSelection:Cell:KillDraw")
 		local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
 		glColor(0.88,0.88,0.88,0.66)
 		glTexture(":l:LuaUI/Images/skull.dds")
@@ -1019,10 +1148,14 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		--font2:Begin(true)
 		font2:Print(cachedColorStrings.white..kills, cellRect[cellID][3] - (size * 0.5)+(cellPadding*0.5), cellRect[cellID][4] -(cellPadding*0.5)- (size * 0.5) - (fontSize * 0.19), fontSize * 0.66, "oc")
 		--font2:End()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 local function drawSelection()
+	tracy.ZoneBeginN("W:Info:DrawSelection")
+	tracy.ZoneBeginN("W:Info:DrawSelection:Query")
 	selUnitsCounts = spGetSelectedUnitsCounts()
 	selUnitsSorted = spGetSelectedUnitsSorted()
 	selUnitTypes = 0
@@ -1045,6 +1178,7 @@ local function drawSelection()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- draw selection totals
 	local numLines
@@ -1089,6 +1223,7 @@ local function drawSelection()
 	local totalKills = 0
 	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits
 	local maxUnitsToCheck = math.min(50, #unitsToCheck)
+	tracy.ZoneBeginN("W:Info:DrawSelection:ResourceTotals")
 	for i = 1, maxUnitsToCheck do
 		local unitID = unitsToCheck[i]
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(unitID)
@@ -1120,6 +1255,7 @@ local function drawSelection()
 		totalEnergyUse = totalEnergyUse * scale
 		totalKills = math.floor(totalKills * scale)
 	end
+	tracy.ZoneEnd()
 
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
@@ -1167,6 +1303,8 @@ local function drawSelection()
 	customInfoArea[4] = backgroundRect[2] + gridHeight
 
 	-- draw selected unit icons
+	tracy.ZoneBeginN("W:Info:DrawSelection:Grid")
+	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:Layout")
 	local rows = 2
 	local maxRows = 15  -- just to be sure
 	local colls = math_ceil(selUnitTypes / rows)
@@ -1184,9 +1322,11 @@ local function drawSelection()
 	cellsize = math_floor((cellsize * (1 - (0.04 / rows))) + 0.5)  -- leave some space at the top
 	cellPadding = math_max(1, math_floor(cellsize * 0.03))
 	customInfoArea[3] = customInfoArea[3] - cellPadding -- leave space at the right side
+	tracy.ZoneEnd()
 
 	-- draw grid (bottom right to top left)
 	-- Reuse cellRect table
+	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:CellRects")
 	if not cellRect then
 		cellRect = {}
 	else
@@ -1200,6 +1340,9 @@ local function drawSelection()
 	if texOffset > 0.25 then
 		texOffset = 0.25
 	end
+	tracy.ZoneEnd()
+
+	tracy.ZoneBeginN("W:Info:DrawSelection:Grid:Cells")
 	local cellID = selUnitTypes
 	for row = 1, rows do
 		for coll = 1, colls do
@@ -1225,8 +1368,11 @@ local function drawSelection()
 			break
 		end
 	end
+	tracy.ZoneEnd()
 	glTexture(false)
 	glColor(1, 1, 1, 1)
+	tracy.ZoneEnd()
+	tracy.ZoneEnd()
 end
 
 local function GetAIName(teamID)
@@ -1242,12 +1388,14 @@ local function GetAIName(teamID)
 end
 
 local function drawUnitInfo()
+	tracy.ZoneBeginN("W:Info:DrawUnitInfo")
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
 
 	local iconSize = math.floor(fontSize * 4.4)
 	local iconPadding = math.floor(fontSize * 0.22)
 
 	if unitDefInfo[displayUnitDefID].buildPic then
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:BuildPic")
 		local iconX = backgroundRect[1] + iconPadding
 		local iconY =  backgroundRect[4] - iconPadding - bgpadding
 		-- unit icon
@@ -1263,6 +1411,8 @@ local function drawUnitInfo()
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
+		tracy.ZoneEnd()
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:BuildText")
 		-- price
 		local function AddSpaces(price)
 			if price >= 1000 then
@@ -1282,13 +1432,17 @@ local function drawUnitInfo()
 		font2:Print(metalPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07) + energyPriceTextHeight, size, "ro")
 		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
 		font2:End()
+		tracy.ZoneEnd()
 	end
 	iconSize = iconSize + iconPadding
 
 	local mindps, maxdps, minemp, maxemp, range, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
+	tracy.ZoneBeginN("W:Info:DrawUnitInfo:DescriptionWrap")
 	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].description, (contentWidth - iconSize) * (loadedFontSize / fontSize))
+	tracy.ZoneEnd()
 
 	if displayUnitID then
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills")
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
 			if displayUnitID then
@@ -1319,7 +1473,10 @@ local function drawUnitInfo()
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
+		tracy.ZoneEnd()
 	end
+
+	tracy.ZoneBeginN("W:Info:DrawUnitInfo:Header")
 
 	local unitNameColor = tooltipTitleColor
 	if SelectedUnitsCount > 0 then
@@ -1368,6 +1525,7 @@ local function drawUnitInfo()
 	if displayMode ~= 'unitdef' or not showBuilderBuildlist or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
 		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.07 }, { 0.8, 0.8, 0.8, 0.1 })
 	end
+	tracy.ZoneEnd()
 
 	local contentPaddingLeft = contentPadding * 0.6
 	local texSize = fontSize * 0.6
@@ -1379,6 +1537,7 @@ local function drawUnitInfo()
 
 	local valueY1, valueY2, valueY3 = '', '', ''
 	local health, maxHealth, _, _, buildProgress
+	tracy.ZoneBeginN("W:Info:DrawUnitInfo:LiveStats")
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
 		if metalMake then
@@ -1428,7 +1587,9 @@ local function drawUnitInfo()
 		--valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
 		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:Info:DrawUnitInfo:ResourceIcons")
 	glColor(1, 1, 1, 1)
 	local texDetailSize = math_floor(texSize * 4)
 	if valueY1 ~= '' then
@@ -1454,11 +1615,13 @@ local function drawUnitInfo()
 	-- health
 	font2:Print(valueY3, backgroundRect[1] + contentPaddingLeft, posY3 - (fontSize2 * 0.31), fontSize2, "o")
 	font2:End()
+	tracy.ZoneEnd()
 
 	cellRect = nil
 
 	-- draw unit buildoption icons
 	if displayMode == 'unitdef' and showBuilderBuildlist and unitDefInfo[displayUnitDefID].buildOptions and not hideBuildlist then
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:BuildOptions")
 		gridHeight = math_ceil(height * 0.975)
 		local rows = 2
 		local colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
@@ -1514,10 +1677,12 @@ local function drawUnitInfo()
 		end
 		glTexture(false)
 		glColor(1, 1, 1, 1)
+		tracy.ZoneEnd()
 
 
 		-- draw transported unit list
 	elseif displayMode == 'unit' and unitDefInfo[displayUnitDefID].transport and (Spring.GetUnitIsTransporting(displayUnitID) and #Spring.GetUnitIsTransporting(displayUnitID) or 0) > 0 then
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:Transported")
 		local units = Spring.GetUnitIsTransporting(displayUnitID)
 		if #units > 0 then
 			gridHeight = math_ceil(height * 0.975)
@@ -1571,7 +1736,10 @@ local function drawUnitInfo()
 			glTexture(false)
 			glColor(1, 1, 1, 1)
 		end
+		tracy.ZoneEnd()
 	else
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:StatsText")
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:StatsText:Collect")
 		-- unit/unitdef info (without buildoptions)
 
 
@@ -1784,8 +1952,10 @@ local function drawUnitInfo()
 			end
 			addTextInfo(Spring.I18N('ui.info.transportcapacity'), unitDefInfo[displayUnitDefID].transport[3])
 		end
+		tracy.ZoneEnd()
 
 		-- Build final text from buffer
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:StatsText:Wrap")
 		local text = table.concat(stringBuffer)
 		text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
@@ -1807,18 +1977,24 @@ local function drawUnitInfo()
 		end
 		text = table.concat(stringBuffer)
 		lines = nil
+		tracy.ZoneEnd()
 
 		-- display unit(def) info text
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:StatsText:Print")
 		font:Begin(true)
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0.1, 0.1, 0.1, 1)
 		font:Print(text, customInfoArea[3] - width + (width*0.025), customInfoArea[4] - contentPadding - (infoFontsize * 0.55), infoFontsize, "o")
 		font:End()
+		tracy.ZoneEnd()
 
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 local function drawEngineTooltip()
+	tracy.ZoneBeginN("W:Info:DrawEngineTooltip")
 	local mouseX, mouseY, lmb, mmb, rmb, mouseOffScreen, cameraPanMode = spGetMouseState()
 	if not cameraPanMode and not mouseOffScreen then
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1926,6 +2102,7 @@ local function drawEngineTooltip()
 			emptyInfo = true
 		end
 	end
+	tracy.ZoneEnd()
 end
 
 local function drawInfoBackground()
@@ -1933,6 +2110,7 @@ local function drawInfoBackground()
 end
 
 local function drawInfo()
+	tracy.ZoneBeginN("W:Info:DrawInfo")
 	emptyInfo = false
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
@@ -1945,6 +2123,7 @@ local function drawInfo()
 	else
 		drawEngineTooltip()
 	end
+	tracy.ZoneEnd()
 end
 
 local function LeftMouseButton(unitDefID, unitTable)
@@ -2138,6 +2317,7 @@ end
 
 
 function widget:DrawScreen()
+	tracy.ZoneBeginN("W:Info:DrawScreen")
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
@@ -2146,10 +2326,12 @@ function widget:DrawScreen()
 			WG['guishader'].DeleteDlist('info')
 			dlistGuishader = nil
 		end
+		tracy.ZoneEnd()
 		return
 	end
 
 	if not infoBgTex then
+		tracy.ZoneBeginN("W:Info:DrawScreen:CreateBackgroundTexture")
 		infoBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 			target = GL.TEXTURE_2D,
 			format = GL.RGBA,
@@ -2163,15 +2345,25 @@ function widget:DrawScreen()
 			end,
 			true
 		)
+		tracy.ZoneEnd()
 	end
 	if not infoTex then
+		tracy.ZoneBeginN("W:Info:DrawScreen:CreateInfoTexture")
 		infoTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, {
 			target = GL.TEXTURE_2D,
 			format = GL.RGBA,
 			fbo = true,
 		})
+		tracy.ZoneEnd()
 	end
-	if infoTex and updateTex then
+	local selectionUnitpicsWarmDone = true
+	local warmedSelectionUnitpicThisFrame = false
+	if selectionUnitpicWarm.count > 0 then
+		warmedSelectionUnitpicThisFrame = true
+		selectionUnitpicsWarmDone = flushSelectionUnitpicWarmQueue()
+	end
+	if infoTex and updateTex and selectionUnitpicsWarmDone and not warmedSelectionUnitpicThisFrame then
+		tracy.ZoneBeginN("W:Info:DrawScreen:RenderInfoTexture")
 		updateTex = nil
 		gl.R2tHelper.RenderToTexture(infoTex,
 			function()
@@ -2181,9 +2373,11 @@ function widget:DrawScreen()
 			end,
 			true
 		)
+		tracy.ZoneEnd()
 	end
 
 	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
+		tracy.ZoneBeginN("W:Info:DrawScreen:BlendTextures")
 		if infoBgTex then
 			-- background element
 			gl.R2tHelper.BlendTexRect(infoBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
@@ -2192,6 +2386,7 @@ function widget:DrawScreen()
 			-- content
 			gl.R2tHelper.BlendTexRect(infoTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
+		tracy.ZoneEnd()
 	elseif dlistGuishader then
 		WG['guishader'].DeleteDlist('info')
 		dlistGuishader = nil
@@ -2199,6 +2394,7 @@ function widget:DrawScreen()
 
 	-- widget hovered
 	if infoShows and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		tracy.ZoneBeginN("W:Info:DrawScreen:Hover")
 
 		Spring.SetMouseCursor('cursornormal')
 
@@ -2312,15 +2508,19 @@ function widget:DrawScreen()
 				WG['unitstats'].showUnit(displayUnitID)
 			end
 		end
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function checkChanges()
+	tracy.ZoneBeginN("W:Info:CheckChanges")
 	hideBuildlist = nil	-- only set for pregame startunit
 	local x, y, b, _, _, _, cameraPanMode = spGetMouseState()
 
 	-- Use custom hover if provided by external widget (e.g., PIP window)
 	-- or skip hover detection if PIP window is above (to prevent showing units below PIP)
+	tracy.ZoneBeginN("W:Info:CheckChanges:Hover")
 	if customHoverType and customHoverData then
 		hoverType = customHoverType
 		hoverData = customHoverData
@@ -2331,12 +2531,14 @@ function checkChanges()
 	else
 		hoverType, hoverData = spTraceScreenRay(x, y)
 	end
+	tracy.ZoneEnd()
 
 	local prevDisplayMode = displayMode
 	local prevDisplayUnitDefID = displayUnitDefID
 	local prevDisplayUnitID = displayUnitID
 
 	-- determine what mode to display
+	tracy.ZoneBeginN("W:Info:CheckChanges:ResolveMode")
 	displayMode = 'text'
 	displayUnitID = nil
 	displayUnitDefID = nil
@@ -2392,6 +2594,8 @@ function checkChanges()
 		local featureDefID = spGetFeatureDefID(featureID)
 		local featureDef = FeatureDefs[featureDefID]
 		if featureDef == nil then
+			tracy.ZoneEnd()
+			tracy.ZoneEnd()
 			return
 		end
 		local newTooltip = featureDef.translatedDescription or ''
@@ -2445,9 +2649,12 @@ function checkChanges()
 			emptyInfo = true
 		end
 	end
+	tracy.ZoneEnd()
+	tracy.ZoneEnd()
 end
 
 function widget:SelectionChanged(sel)
+	tracy.ZoneBeginN("W:Info:SelectionChanged")
 	local newSelectedUnitsCount = spGetSelectedUnitsCount()
 	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
@@ -2456,10 +2663,12 @@ function widget:SelectionChanged(sel)
 		for i = #selectedUnits, 1, -1 do
 			selectedUnits[i] = nil
 		end
+		clearSelectionUnitpicWarmQueue()
 	end
 	if newSelectedUnitsCount > 0 then
 		SelectedUnitsCount = newSelectedUnitsCount
 		selectedUnits = sel
+		queueSelectionUnitpicWarmFromSelection(sel)
 		-- Adaptive throttling: increase delay based on selection size
 		local throttleDelay = 0.01
 		if newSelectedUnitsCount >= 300 then
@@ -2476,8 +2685,11 @@ function widget:SelectionChanged(sel)
 		end
 	end
 	if not alwaysShow and select(7, spGetMouseState()) then	-- cameraPanMode
+		tracy.ZoneBeginN("W:Info:SelectionChanged:CheckChanges")
 		checkChanges()
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:LanguageChanged()

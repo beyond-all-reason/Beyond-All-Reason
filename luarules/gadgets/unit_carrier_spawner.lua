@@ -91,8 +91,8 @@ local wantedList = {}
 
 local spawnCmd = {
 	id = CMD_CARRIER_SPAWN_ONOFF,
-	name = "csSpawning",
-	action = "csSpawning",
+	name = "csspawning",
+	action = "csspawning",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "Enable/Disable drone spawning",
 	params = { '1', 'Spawning Disabled', 'Spawning Enabled' }
@@ -202,7 +202,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 		-- Land carriers struggling with the attack formations
 		-- Drones occationally stuck hovering near the carrier instead of following the active command
 
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.carried_unit then
 
@@ -1722,7 +1722,7 @@ function gadget:GameFrame(f)
 		lastSpawnCheck = f
 		for unitID, _ in pairs(carrierMetaList) do
 			local isDoneBuilding = not spGetUnitIsBeingBuilt(unitID)
-			if not isDoneBuilding then
+			if isDoneBuilding then
 				carrierMetaList[unitID].wasBuilt = true
 			end
 			if carrierMetaList[unitID].startingWithDrones and carrierMetaList[unitID].wasBuilt and isDoneBuilding then

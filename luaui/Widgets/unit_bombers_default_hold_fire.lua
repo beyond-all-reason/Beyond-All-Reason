@@ -12,8 +12,9 @@ function widget:GetInfo()
 	}
 end
 
-local CMD_FIRE_STATE = CMD.FIRE_STATE
-local CMD_MANUALFIRE = CMD.MANUALFIRE
+local CMD_MOVE_STATE = CMD.MOVE_STATE
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+VFS.Include("luaui/Include/user_firestate_commands.lua")
 local gameStarted = false
 local isBomber = {}
 
@@ -51,7 +52,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, user
 		return
 	end
 	if isBomber[unitDefID] then
-		spGiveOrder(unitID, CMD_FIRE_STATE, { 0 }, 0)
+		if WG['firestate'] and WG['firestate'].setFirestateForUnits then
+			WG['firestate'].setFirestateForUnits(CustomFirestateDefs.HOLD_FIRE, { unitID }, { userInitiated = false })
+		end
 		spGiveOrder(unitID, CMD_MOVE_STATE, { 0 }, 0)
 	end
 end

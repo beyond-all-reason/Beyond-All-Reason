@@ -448,36 +448,30 @@ local spGetUnitPosition     = Spring.GetUnitPosition
 
 local chobbyInterface
 
-function widget:TextCommand(command)
-	local mycommand=false --buttonConfig["enemy"][tag]
-
-	if string.find(command, "defrange", nil, true) then
-		mycommand = true
-		local ally = 'ally'
-		local rangetype = 'ground'
-		local enabled = false
-		if string.find(command, "enemy", nil, true) then
-			ally = 'enemy'
-		end
-		if string.find(command, "air", nil, true) then
-			rangetype = 'air'
-		elseif string.find(command, "nuke", nil, true) then
-			rangetype = 'nuke'
-		end
-		if string.find(command, "+", nil, true) then
-			enabled = true
-		end
-		if rangetype == 'ground' then
-			buttonConfig[ally]['ground']=enabled
-			buttonConfig[ally]['cannon']=enabled
-		else
-			buttonConfig[ally][rangetype]=enabled
-		end
-		spEcho("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
-		return true
+local function defrangeCmd(_, line)
+	local command = line or ""
+	local ally = 'ally'
+	local rangetype = 'ground'
+	local enabled = false
+	if string.find(command, "enemy", nil, true) then
+		ally = 'enemy'
 	end
-
-	return false
+	if string.find(command, "air", nil, true) then
+		rangetype = 'air'
+	elseif string.find(command, "nuke", nil, true) then
+		rangetype = 'nuke'
+	end
+	if string.find(command, "+", nil, true) then
+		enabled = true
+	end
+	if rangetype == 'ground' then
+		buttonConfig[ally]['ground'] = enabled
+		buttonConfig[ally]['cannon'] = enabled
+	else
+		buttonConfig[ally][rangetype] = enabled
+	end
+	spEcho("Range visibility of " .. ally .. " " .. rangetype .. " defenses set to", enabled)
+	return true
 end
 
 ------ GL4 THINGS  -----
@@ -580,6 +574,8 @@ local function initGL4()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("defrange", defrangeCmd, nil, "t")
+
 	initUnitList()
 
 	if initGL4() == false then
@@ -614,6 +610,10 @@ function widget:Initialize()
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("defrange", "t")
 end
 
 local floor = math.floor

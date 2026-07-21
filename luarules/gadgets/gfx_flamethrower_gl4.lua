@@ -129,7 +129,7 @@ local CONFIG = {
 	-- muzzleTaperMax: relative size at max weapon range (normally 1.0 for full size).
 	-- Curve is quadratic (distT^2) so growth is gentle near the nozzle and
 	-- accelerates downrange, giving a thin-jet-to-fat-fire profile.
-	muzzleTaperMin       = 0.25,       -- size fraction at muzzle (0 = nothing at nozzle, 1 = full size at nozzle)
+	muzzleTaperMin       = 0.32,       -- size fraction at muzzle (0 = nothing at nozzle, 1 = full size at nozzle)
 	muzzleTaperMax       = 1.0,        -- size fraction at max weapon range
 
 	coreSizeBase         = 7.0,        -- base elmos for core flame chunks (large, dense, painterly)
@@ -189,9 +189,9 @@ local CONFIG = {
 	-- muzzle. The blue is handled separately by the nozzle jet.
 	-- Stops are: (t, r, g, b)
 	tintStops = {
-		{ 0.00, 1.00, 0.95, 0.7 },    -- near-white hot pinch at the nozzle
-		{ 0.12, 1.00, 0.93, 0.58 },    -- bright pale yellow
-		{ 0.32, 1.00, 0.8, 0.45 },    -- saturated yellow-orange (main body)
+		{ 0.00, 1.00, 0.93, 0.68 },    -- near-white hot pinch at the nozzle
+		{ 0.12, 1.00, 0.92, 0.57 },    -- bright pale yellow
+		{ 0.32, 1.00, 0.79, 0.43 },    -- saturated yellow-orange (main body)
 		--{ 0.58, 1.00, 0.55, 0.12 },    -- orange
 		--{ 1.00, 0.55, 0.10, 0.04 },    -- dying ember
 	},
@@ -205,10 +205,10 @@ local CONFIG = {
 	-- Rendered as a soft additive radial disc -- no fire/smoke sprite -- to
 	-- give a clean, jet-like look that contrasts with the chaotic flame.
 	jetColor             = { 0.55, 0.80, 1.00 }, -- base blue color of the jet stream
-	jetBrightness        = 1.33,        -- additive intensity of the jet (drives bloom feel)
-	jetAlphaBase         = 0.75,
+	jetBrightness        = 1.25,        -- additive intensity of the jet (drives bloom feel)
+	jetAlphaBase         = 0.6,
 	jetWobble            = 0.33,       -- jet wobble amplitude (kept very small for clean look)
-	jetStretchMult       = 1.5,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
+	jetStretchMult       = 2.0,        -- jet billboards are stretched along the projectile velocity by this factor (length = baseSize * jetStretchMult, width = baseSize). Lets a single particle cover the screen-space distance the projectile would otherwise need 8 round particles for -- the jet reads as a streak rather than a chain of dots, and the per-frame particle budget for jets effectively pays for ~8x its visible coverage.
 
 	-- Scavenger tint: applied when the projectile owner unit has
 	-- customParams.isscavenger. scavJetColor REPLACES the blue jet RGB, and
@@ -1865,7 +1865,8 @@ local function updateProjectiles(gameFrame, throttleMult, iterFrac)
 	-- Run only every STALE_GC_INTERVAL frames -- a few extra dead entries lingering
 	-- for half a second cost nothing, but the full table scan every frame is real
 	-- CPU on big games (hundreds of projectiles tracked + thousands ignored).
-	if (gameFrame % STALE_GC_INTERVAL) == 0 then
+	if gameFrame >= (K.NEXT_STALE_GC_FRAME or 0) then
+		K.NEXT_STALE_GC_FRAME = gameFrame + STALE_GC_INTERVAL
 		for proID, tInfo in pairs(tracked) do
 			if tInfo.gen ~= gen then
 				local px = spGetProjectilePosition(proID)
@@ -2094,14 +2095,15 @@ local function runSafetyNet(n)
 	end
 end
 
-function gadget:GameFrame(n)
+local function processFlameFrame(n)
 	if not particleVBO then return end
 
 	cachedGameFrame = n
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
 	-- Wind every 10 frames
-	if n % 10 == 0 then
+	if n >= (K.NEXT_WIND_FRAME or 0) then
+		K.NEXT_WIND_FRAME = n + 10
 		local _, _, _, _, wx, _, wz = spGetWind()
 		windX = wx or 0
 		windZ = wz or 0
@@ -2120,21 +2122,24 @@ function gadget:GameFrame(n)
 
 	removeExpiredParticles(n)
 
-	if n % fpsUpdateInterval == 0 then
+	if n >= (K.NEXT_PROJECTILE_FRAME or 0) then
+		K.NEXT_PROJECTILE_FRAME = n + fpsUpdateInterval
 		updateProjectiles(n, fpsUpdateInterval)
 	end
 
-	if DIAG_ENABLED and (n % DIAG_INTERVAL) == 0 then
+	if DIAG_ENABLED and n >= (K.NEXT_DIAG_FRAME or DIAG_INTERVAL) then
+		K.NEXT_DIAG_FRAME = n + DIAG_INTERVAL
 		dumpDiagnostics(n)
 	end
 
-	if (n % SAFETY_INTERVAL) == 0 then
+	if n >= (K.NEXT_SAFETY_FRAME or SAFETY_INTERVAL) then
+		K.NEXT_SAFETY_FRAME = n + SAFETY_INTERVAL
 		runSafetyNet(n)
 	end
 end
 
--- When the game is paused, gadget:GameFrame stops firing, so updateProjectiles
--- never runs and no new particles are spawned. If the user wasn't already
+-- When the game is paused, regular sim-frame processing stops advancing, so
+-- updateProjectiles never runs and no new particles are spawned. If the user wasn't already
 -- looking at an actively-firing flamethrower when they paused, panning the
 -- camera to one shows nothing -- the stream is invisible.
 --
@@ -2154,7 +2159,21 @@ local lastPauseCamX, lastPauseCamY, lastPauseCamZ = 0, 0, 0
 function gadget:Update()
 	if not particleVBO then return end
 
+	local n = mathFloor(Spring.GetGameFrame() or 0)
 	local _, _, paused = spGetGameSpeed()
+	if not paused and n > (K.LAST_UPDATE_FRAME or -1) then
+		K.LAST_UPDATE_FRAME = n
+		local pendingFrame = K.PENDING_FLAME_FRAME
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			K.PENDING_FLAME_FRAME = nil
+			processFlameFrame(pendingFrame)
+		end
+		K.PENDING_FLAME_FRAME = n
+		K.PENDING_FLAME_DRAW_FRAME = K.FLAME_DRAW_FRAME or 0
+	end
+
 	if not paused then
 		-- Reset so the first paused Update after unpause/re-pause emits again.
 		pauseEmitDone = false
@@ -2312,5 +2331,16 @@ function gadget:Update()
 end
 
 function gadget:DrawWorld()
+	K.FLAME_DRAW_FRAME = (K.FLAME_DRAW_FRAME or 0) + 1
+	do
+		local pendingFrame = K.PENDING_FLAME_FRAME
+		if pendingFrame then
+			local queuedAt = K.PENDING_FLAME_DRAW_FRAME or 0
+			if K.FLAME_DRAW_FRAME > queuedAt + 1 then
+				K.PENDING_FLAME_FRAME = nil
+				processFlameFrame(pendingFrame)
+			end
+		end
+	end
 	drawParticles()
 end

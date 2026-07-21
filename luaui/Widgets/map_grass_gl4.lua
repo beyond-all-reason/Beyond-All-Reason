@@ -88,8 +88,9 @@ local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
   patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
   patchSize = 4, -- 1 or 4 clusters of blades, 4 recommended
-  grassMinSize = 0.3; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
-  grassMaxSize = 1.7; -- Size for grassmap value of 254
+  grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
+  grassMinSize = 0.55; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
+  grassMaxSize = 1.5; -- Size for grassmap value of 254
   grassShaderParams = { -- allcaps because thats how i know
     MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
     MAPCOLORBASE = 1.0,     --how much more to blend the bottom of the grass patches into map color
@@ -288,6 +289,8 @@ local cachedUnitCount = 0
 local lastUploadedCount = -1 -- track to skip redundant uploads
 local unitScanDirty = true
 local skipBendUntilGF = 0 -- when conditions fail, skip scanning for 30 frames to avoid table allocs
+local unitScanIntervalGF = 4 -- base scan rate; adaptive logic lowers this when camera is close
+local nextUnitScanGF = 0
 
 local function scanUnitPositions(gf)
 	-- When previously skipped, avoid all API calls until recheck time
@@ -308,7 +311,8 @@ local function scanUnitPositions(gf)
 
 	local visibleUnits = spGetVisibleUnits(-1, nil, false)
 	-- Skip when too many units visible (zoomed out, expensive, not noticeable)
-	if visibleUnits and #visibleUnits > 250 then
+	local visibleCount = visibleUnits and #visibleUnits or 0
+	if visibleCount > 250 then
 		skipBendUntilGF = gf + 30
 		if cachedUnitCount > 0 then
 			cachedUnitCount = 0
@@ -318,8 +322,8 @@ local function scanUnitPositions(gf)
 	end
 
 	local count = 0
-	if visibleUnits then
-		for i = 1, #visibleUnits do
+	if visibleCount > 0 then
+		for i = 1, visibleCount do
 			local unitID = visibleUnits[i]
 			local unitDefID = spGetUnitDefID(unitID)
 			if unitDefID then
@@ -684,9 +688,23 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function widget:GameFrame(gf)
-	-- Scan unit positions every other gameframe (units move on gameframes)
-	if unitBendSSBO then-- and gf % 2 == 0 then
-		scanUnitPositions(gf)
+	-- Scanning visible units allocates with unit count; adapt rate by camera height.
+	if unitBendSSBO then
+		local scanInterval = unitScanIntervalGF
+		local cx, cy, cz = spGetCameraPosition()
+		local gh = spGetGroundHeight(cx, cz) or 0
+		local camHeight = cy - gh
+		local fadeEnd = grassConfig.grassShaderParams.FADEEND * distanceMult
+		if camHeight < fadeEnd * 0.33 then
+			scanInterval = 1
+		elseif camHeight < fadeEnd * 0.66 then
+			scanInterval = 2
+		end
+
+		if gf >= nextUnitScanGF or scanInterval == 1 then
+			nextUnitScanGF = gf + scanInterval
+			scanUnitPositions(gf)
+		end
 	end
 
 	if not processChanges then
@@ -695,9 +713,14 @@ function widget:GameFrame(gf)
 
 	if not placementMode then
 		for unitID, count in pairs(removeUnitGrassQueue) do
-			adjustUnitGrass(unitID, (not unitGrassRemovedHistory[unitID] and 1/removeUnitGrassQueue[unitID]) )
-			removeUnitGrassQueue[unitID] = removeUnitGrassQueue[unitID] - 1
-			if count <= 1 then
+			if not unitGrassRemovedHistory[unitID] then
+				adjustUnitGrass(unitID, 1 / count)
+			else
+				adjustUnitGrass(unitID)
+			end
+			count = count - 1
+			removeUnitGrassQueue[unitID] = count
+			if count <= 0 then
 				removeUnitGrassQueue[unitID] = nil
 			end
 		end
@@ -913,6 +936,7 @@ local function makeShaderVAO()
 		uniformFloat = {
 			grassuniforms = {1,1,1,1},
 			distanceMult = distanceMult,
+			grassBladeScale = grassConfig.grassBladeScale,
 			nightFactor = {1,1,1,1},
 		  },
 		shaderConfig = grassConfig.grassShaderParams,
@@ -929,7 +953,7 @@ local function makeShaderVAO()
 end
 
 local weaponConf = {}
-for i=1, #WeaponDefs do
+for i=0, #WeaponDefs do
 	local radius = WeaponDefs[i].damageAreaOfEffect * 1.2
 	local edgeEffectiveness = WeaponDefs[i].edgeEffectiveness * 1.75
 	if WeaponDefs[i].type == 'DGun' then
@@ -1108,7 +1132,6 @@ function widget:Initialize()
 		lastLavaLevel = initLavaLevel
 		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
 	end
-	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
 
 	processChanges = next(grassInstanceData) ~= nil
 
@@ -1120,8 +1143,13 @@ function widget:Initialize()
 	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
+function widget:GadgetRemoveGrass(posx, posz, radius)
+	if WG['grassgl4'] then
+		WG['grassgl4'].removeGrass(posx, posz, radius)
+	end
+end
+
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	if unitBendSSBO then unitBendSSBO = nil end
 
 	widgetHandler:RemoveAction("placegrass")
@@ -1162,60 +1190,18 @@ local function mapcoordtorow(mapz, offset) -- is this even worth it?
   return grassRowInstance[rownum]
 end
 
-local spIsAABBInView = Spring.IsAABBInView
+local function GetStartEndRows(cz, fadeEnd)
+	-- Conservative row culling around camera z-distance.
+	-- This avoids TraceScreenRay(..., true), which allocates coord tables every frame.
+	local zPad = patchResolution * 6
+	local minZ = mathMax(0, cz - fadeEnd - zPad)
+	local maxZ = mathMin(mapSizeZ, cz + fadeEnd + zPad)
 
-local viewtables = {{0,0},{vsx-1,0},{0,vsy-1},{vsx-1,vsy-1}}
-
-local function distto2dsqr(camy, camz, mapy, mapz)
-  return math.sqrt((camy-mapy)*(camy-mapy) + (camz-mapz) * (camz-mapz))
-end
-
-local function GetStartEndRows() -- returns start and end indices of the instance buffer for more conservative drawing of grass
-  --check if the top or bottom of map is in view
-  -- this function is an abomination
-	local topseen = spIsAABBInView(-9999,0,-9999, mapSizeX+9999,300,22)
-	local botseen = spIsAABBInView(-9999,0,mapSizeZ, mapSizeX+9999,300,mapSizeZ+9999)
-
-	local vsx, vsy = gl.GetViewSizes()
-	local minZ = mapSizeZ
-	local maxZ = 0
-
-	local _, coordsBottomLeft = spTraceScreenRay(viewtables[1][1], viewtables[1][2], true)
-	if coordsBottomLeft then
-	  minZ = mathMin(minZ,coordsBottomLeft[3])
-	  maxZ = mathMax(maxZ,coordsBottomLeft[3])
-	end
-	dontcare, coordsBottomRight = spTraceScreenRay(viewtables[2][1], viewtables[2][2], true)
-	if coordsBottomRight then
-	  minZ = mathMin(minZ,coordsBottomRight[3])
-	  maxZ = mathMax(maxZ,coordsBottomRight[3])
-	end
-	dontcare, coordsTopLeft = spTraceScreenRay(viewtables[3][1], viewtables[3][2], true)
-	if coordsTopLeft then
-	  minZ = mathMin(minZ,coordsTopLeft[3])
-	  maxZ = mathMax(maxZ,coordsTopLeft[3])
-	end
-	dontcare, coordsTopRight = spTraceScreenRay(viewtables[4][1], viewtables[4][2], true)
-	if coordsTopRight then
-	  minZ = mathMin(minZ,coordsTopRight[3])
-	  maxZ = mathMax(maxZ,coordsTopRight[3])
-	end
-
-	if topseen or minZ == mapSizeX  or (coordsTopLeft == nil and coordTopRight == nil) then minZ = 0 end
-	if botseen or maxZ == 0         then maxZ = mapSizeZ end
-
-	local cx, cy, cz = spGetCameraPosition()
-
-	minZ = mathMax(minZ, (distto2dsqr(cy,cz,maxHeight,0) - (grassConfig.grassShaderParams.FADEEND*distanceMult))) -- additional stupidity
-	maxZ = mathMin(maxZ, mapSizeZ - (distto2dsqr(cy,cz,maxHeight,mapSizeZ) - (grassConfig.grassShaderParams.FADEEND*distanceMult)))
-
-	local startInstanceIndex = mapcoordtorow(minZ,-4)
-	local endInstanceIndex =  mapcoordtorow(maxZ, 4)
-
+	local startInstanceIndex = mapcoordtorow(minZ, -4)
+	local endInstanceIndex = mapcoordtorow(maxZ, 4)
 	local numInstanceElements = endInstanceIndex - startInstanceIndex
-	--spEcho("GetStartEndRows", topseen, botseen,minZ,maxZ, startInstanceIndex,endInstanceIndex, numInstanceElements)
 	return startInstanceIndex, numInstanceElements
-	end
+end
 
 local glTexture = gl.Texture
 
@@ -1255,7 +1241,7 @@ function widget:DrawWorldPreUnit()
 	local startInstanceIndex = 0
 	local instanceCount = grassDataLen / 4
     if not placementMode then
-		startInstanceIndex, instanceCount = GetStartEndRows()
+		startInstanceIndex, instanceCount = GetStartEndRows(cz, fadeEnd)
 	end
 	if instanceCount <= 0 or startInstanceIndex == grassDataLen / 4 then return end
     local _, _, isPaused = Spring.GetGameSpeed()
@@ -1317,21 +1303,16 @@ function widget:DrawWorldPreUnit()
   end
 end
 
-local lastSunChanged = -1
-function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
-	--spEcho("widget:SunChanged", df)
-	if df == lastSunChanged then return end
-	lastSunChanged = df
+local function NightFactorChanged(red, green, blue, shadow, altitude)
+	local altitudefactor = 1.0 --+ (1.0 - altitude) * 0.5
+	nightFactor[1] = red * altitudefactor
+	nightFactor[2] = green * altitudefactor
+	nightFactor[3] = blue * altitudefactor
+	nightFactor[4] = shadow
+end
 
-	-- Do the math:
-	if WG['NightFactor'] then
-		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-		nightFactor[1] = WG['NightFactor'].red * altitudefactor
-		nightFactor[2] = WG['NightFactor'].green * altitudefactor
-		nightFactor[3] = WG['NightFactor'].blue * altitudefactor
-		nightFactor[4] = WG['NightFactor'].shadow
-	end
+function widget:NightFactorChanged(red, green, blue, shadow, altitude)
+	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
 -- ahahahah you cant stop me:

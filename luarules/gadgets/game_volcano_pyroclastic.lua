@@ -86,6 +86,7 @@ local pendingDestroy = {}
 local firstFireballFrame = nil
 local ejectScheduled = false
 local buildupSoundPlayed = false
+local volcanoFireballWeaponDefID = nil
 
 local function R(a,b) return a + math.random()*(b-a) end
 
@@ -117,6 +118,21 @@ function gadget:Initialize()
         return
     end
 
+    if WeaponDefNames and WeaponDefNames["volcano_fireball"] then
+        volcanoFireballWeaponDefID = WeaponDefNames["volcano_fireball"].id
+    else
+        for weaponDefID, weaponDef in pairs(WeaponDefs) do
+            if weaponDef.name == "Volcano Fireball" then
+                volcanoFireballWeaponDefID = weaponDefID
+                break
+            end
+        end
+    end
+
+    if volcanoFireballWeaponDefID then
+        Script.SetWatchProjectile(volcanoFireballWeaponDefID, true)
+    end
+
     volcanoActive = IsVolcanoEnabled()
     if not volcanoActive then
         ResetVolcanoState()
@@ -143,6 +159,9 @@ local accountID = Spring.Utilities.GetAccountID(playerID)
 end
 
 function gadget:Shutdown()
+    if volcanoFireballWeaponDefID then
+        Script.SetWatchProjectile(volcanoFireballWeaponDefID, false)
+    end
     gadgetHandler:RemoveChatAction("volcano")
 end
 
@@ -397,8 +416,7 @@ end
 local activeFireballs = {}
 
 function gadget:ProjectileCreated(id, ownerID, weaponDefID)
-    local wd = WeaponDefs[weaponDefID]
-    if wd and wd.name == "Volcano Fireball" then
+    if weaponDefID == volcanoFireballWeaponDefID then
         activeFireballs[id] = true
     end
 end

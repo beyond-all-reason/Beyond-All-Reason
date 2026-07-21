@@ -24,7 +24,41 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
+local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
+
+local function resolveHotkeyTargetVirtualIndex(optWords)
+	local selectedUnits = spGetSelectedUnits()
+	if #selectedUnits == 0 then
+		return nil
+	end
+	local param = optWords[1] and tonumber(optWords[1])
+	if param ~= nil then
+		return param + 1
+	end
+	local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(selectedUnits[1])
+	if virtualIndex == nil then
+		return nil
+	end
+	local _, _, shift = Spring.GetModKeyState()
+	return OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, shift)
+end
+
+local function installFirestateNotifyHooks()
+	local originalHotkeyHandler = OrderMenuFirestate.hotkeyHandler
+	OrderMenuFirestate.hotkeyHandler = function(cmd, optLine, optWords, data, isRepeat, release)
+		if not release then
+			local targetIndex = resolveHotkeyTargetVirtualIndex(optWords)
+			if targetIndex then
+				OrderMenuFirestate.giveVirtualIndex(targetIndex, 0)
+				return false
+			end
+		end
+		return originalHotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
+	end
+end
 
 local cellZoom = 1
 local cellClickedZoom = 1.05
@@ -156,8 +190,6 @@ local lastColorize = -1
 -- Pre-built printable text cache: textColor .. text (cleared on redraw)
 local printTextCache = {}
 
-local CANCEL_TARGET_CMD_ID = 34924 -- UNIT_CANCEL_TARGET
-
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
@@ -232,6 +264,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local function setupCellGrid(force)
+	tracy.ZoneBeginN("W:OrderMenu:SetupCellGrid")
 	local oldCols = cols
 	local oldRows = rows
 	local cmdCount = #commands
@@ -310,6 +343,7 @@ local function setupCellGrid(force)
 			cellRects[j] = nil
 		end
 	end
+	tracy.ZoneEnd()
 end
 
 local function computeWaitState()
@@ -337,6 +371,8 @@ local function computeWaitState()
 end
 
 local function refreshCommands()
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands")
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:Collect")
 	local waitCommand
 	-- Clear and reuse temp tables instead of creating new ones
 	local stateCommandsCount = 0
@@ -366,7 +402,12 @@ local function refreshCommands()
 					-- intentionally empty, no action to take
 				elseif isStateCommand[command.id] then
 					stateCommandsCount = stateCommandsCount + 1
-					stateCommandsTemp[stateCommandsCount] = command
+					if command.id == CMD.FIRE_STATE and cachedFirstUnit and Spring.ValidUnitID(cachedFirstUnit) then
+						local virtualIndex = OrderMenuFirestate.resolveVirtualIndex(cachedFirstUnit)
+						stateCommandsTemp[stateCommandsCount] = virtualIndex and OrderMenuFirestate.buildCmdDesc(command, virtualIndex) or command
+					else
+						stateCommandsTemp[stateCommandsCount] = command
+					end
 				elseif command.id == CMD.WAIT then
 					waitCommandCount = 1
 					waitCommand = command
@@ -377,8 +418,10 @@ local function refreshCommands()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- Reuse commands table instead of creating new one
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:BuildList")
 	local totalCommands = stateCommandsCount + waitCommandCount + otherCommandsCount
 	-- Clear old entries beyond what we need
 	for i = totalCommands + 1, #commands do
@@ -398,18 +441,12 @@ local function refreshCommands()
 	-- OPTIMIZATION: Cache the display text using persistent commandTextCache
 	for _, cmd in ipairs(commands) do
 		if isStateCommand[cmd.id] then
-			local currentStateIndex = cmd.params[1]
-			if currentStateIndex then
-				-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-				local commandState = cmd.params[currentStateIndex + 2]
-				if commandState then
-					if not commandTextCache[commandState] then
-						commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
-					end
-					cmd.cachedText = commandTextCache[commandState]
-				else
-					cmd.cachedText = '?'
+			local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
+			if commandState then
+				if not commandTextCache[commandState] then
+					commandTextCache[commandState] = getCachedTranslation('ui.orderMenu.' .. commandState)
 				end
+				cmd.cachedText = commandTextCache[commandState]
 			else
 				cmd.cachedText = '?'
 			end
@@ -426,12 +463,16 @@ local function refreshCommands()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	hasWaitCommand = (waitCommand ~= nil)
 
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:WaitState")
 	computeWaitState()
+	tracy.ZoneEnd()
 
 	-- Fingerprint: detect if commands visually changed to skip redundant R2T redraws
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:Fingerprint")
 	commandsVisuallyChanged = false
 	local cmdCount = #commands
 	if cmdCount ~= prevCmdCount or activeCommand ~= prevActiveCmd then
@@ -444,7 +485,7 @@ local function refreshCommands()
 				break
 			end
 			if isStateCommand[cmd.id] then
-				local s = cmd.params and cmd.params[1]
+				local s = cmd.cachedText
 				if s ~= prevCmdStates[i] then
 					commandsVisuallyChanged = true
 					break
@@ -463,7 +504,7 @@ local function refreshCommands()
 		for i = 1, cmdCount do
 			prevCmdIDs[i] = commands[i].id
 			if isStateCommand[commands[i].id] then
-				prevCmdStates[i] = commands[i].params and commands[i].params[1]
+				prevCmdStates[i] = commands[i].cachedText
 			elseif commands[i].id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
 			else
@@ -480,11 +521,16 @@ local function refreshCommands()
 			printTextCache[k] = nil
 		end
 	end
+	tracy.ZoneEnd()
 
+	tracy.ZoneBeginN("W:OrderMenu:RefreshCommands:SetupGrid")
 	setupCellGrid(false)
+	tracy.ZoneEnd()
+	tracy.ZoneEnd()
 end
 
 function widget:ViewResize()
+	tracy.ZoneBeginN("W:OrderMenu:ViewResize")
 	vsx, vsy = spGetViewGeometry()
 
 	width = 0.2125
@@ -563,6 +609,7 @@ function widget:ViewResize()
 	end
 	-- Reset fingerprint so the next refresh always re-renders into the new texture
 	prevCmdCount = -1
+	tracy.ZoneEnd()
 end
 
 local function reloadBindings()
@@ -571,6 +618,12 @@ local function reloadBindings()
 end
 
 function widget:Initialize()
+	OrderMenuFirestate.init({
+		onOrderGiven = function()
+			doUpdate = true
+		end,
+	})
+	installFirestateNotifyHooks()
 	reloadBindings()
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
@@ -656,6 +709,8 @@ function widget:Initialize()
 	WG['ordermenu'].hasHighlight = function(cmdID)
 		return cmdID ~= nil and highlight.items[cmdID] ~= nil
 	end
+
+	widgetHandler:AddAction("firestate", OrderMenuFirestate.hotkeyHandler, nil, "p")
 end
 
 function widget:Shutdown()
@@ -680,10 +735,12 @@ end
 local buildmenuBottomPos = false
 local sec = 0
 function widget:Update(dt)
+	tracy.ZoneBeginN("W:OrderMenu:Update")
 	ordermenuShows = false
 
 	sec = sec + dt
 	if sec > 0.5 then
+		tracy.ZoneBeginN("W:OrderMenu:Update:Periodic")
 		sec = 0
 		checkGuiShader()
 
@@ -705,6 +762,7 @@ function widget:Update(dt)
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
+		tracy.ZoneEnd()
 	end
 
 	clickCountDown = clickCountDown - 1
@@ -749,6 +807,7 @@ function widget:Update(dt)
 	else
 		ordermenuShows = true
 	end
+	tracy.ZoneEnd()
 end
 
 local function RectQuad(px, py, sx, sy, offset)
@@ -825,6 +884,7 @@ local function drawHighlights()
 end
 
 local function drawCell(cell, zoom)
+	tracy.ZoneBeginN("W:OrderMenu:DrawCell")
 	if not zoom then
 		zoom = 1
 	end
@@ -880,10 +940,13 @@ local function drawCell(cell, zoom)
 			color2 = { 0, 0, 0,  math_clamp(uiOpacity, 0.55, 0.95) }	-- top
 		end
 
+		tracy.ZoneBeginN("W:OrderMenu:DrawCell:Button")
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding, 1)
+		tracy.ZoneEnd()
 
 		-- icon
 		if showIcons then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Icon")
 			if cursorTextures[cmd.cursor] == nil then
 				local cursorTexture = 'anims/icexuick_200/cursor' .. string.lower(cmd.cursor) .. '_0.png'
 				cursorTextures[cmd.cursor] = VFS.FileExists(cursorTexture) and cursorTexture or false
@@ -901,10 +964,12 @@ local function drawCell(cell, zoom)
 					glTexture(false)
 				end
 			end
+			tracy.ZoneEnd()
 		end
 
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:Text")
 			-- OPTIMIZATION: Use the cached text instead of recalculating it
 			local text = cmd.cachedText or '?'
 
@@ -956,23 +1021,43 @@ local function drawCell(cell, zoom)
 				printTextCache[printKey] = printStr
 			end
 			font:Print(printStr, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+			tracy.ZoneEnd()
 		end
 
 		-- state lights
 		if isStateCommand[cmd.id] or cmd.id == CMD.WAIT then
+			tracy.ZoneBeginN("W:OrderMenu:DrawCell:StateLights")
 			local statecount, curstate
-			if isStateCommand[cmd.id] then
-				statecount = #cmd.params - 1 --number of states for the cmd
-				curstate = cmd.params[1] + 1
+			local fillMin, fillMax
+			if cmd.id == CMD.FIRE_STATE then
+				statecount = OrderMenuFirestate.PIP_COUNT
+				curstate = cmd.virtualIndex or 1
+				fillMin, fillMax = OrderMenuFirestate.pipFill(curstate)
+			elseif isStateCommand[cmd.id] then
+				statecount = #cmd.params - 1
+				curstate = tonumber(cmd.params[1]) + 1
+				fillMin = cmd.pipFillMin or curstate
+				fillMax = cmd.pipFillMax or curstate
 			else
 				statecount = 2
 				curstate = cachedWaitState
+				fillMin = curstate
+				fillMax = curstate
 			end
 			local desiredState = nil
 			if clickedCellDesiredState and cell == clickedCell then
-				desiredState = clickedCellDesiredState + 1
+				if cmd.id == CMD.FIRE_STATE then
+					desiredState = clickedCellDesiredState
+				else
+					desiredState = clickedCellDesiredState + 1
+				end
 			end
-			if curstate == desiredState then
+			if cmd.id == CMD.FIRE_STATE then
+				if curstate == desiredState then
+					clickedCellDesiredState = nil
+					desiredState = nil
+				end
+			elseif curstate == desiredState then
 				clickedCellDesiredState = nil
 				desiredState = nil
 			end
@@ -983,7 +1068,7 @@ local function drawCell(cell, zoom)
 			local glowSize = math_floor(stateHeight * 8)
 			local r, g, b, a = 0, 0, 0, 0
 			for i = 1, statecount do
-				if i == curstate or i == desiredState then
+				if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
 					if i == 1 then
 						r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
 					elseif i == 2 then
@@ -1011,7 +1096,7 @@ local function drawCell(cell, zoom)
 					glRect(x1, y1, x2, y2)
 				end
 				-- fancy active state glow
-				if rows < 6 and i == curstate then
+				if rows < 6 and fillMin and fillMax and i >= fillMin and i <= fillMax then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					glColor(r, g, b, 0.09)
 					glTexture(barGlowCenterTexture)
@@ -1023,8 +1108,10 @@ local function drawCell(cell, zoom)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
 			end
+			tracy.ZoneEnd()
 		end
 	end
+	tracy.ZoneEnd()
 end
 
 local function drawOrdersBackground()
@@ -1032,6 +1119,7 @@ local function drawOrdersBackground()
 end
 
 local function drawOrders()
+	tracy.ZoneBeginN("W:OrderMenu:DrawOrders")
 	if #commands > 0 then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		font:Begin(true)
@@ -1040,12 +1128,15 @@ local function drawOrders()
 		end
 		font:End()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:DrawScreen()
+	tracy.ZoneBeginN("W:OrderMenu:DrawScreen")
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y = Spring.GetMouseState()
 	local cellHovered
+	tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverScan")
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
@@ -1057,22 +1148,39 @@ function widget:DrawScreen()
 							local tooltipKey = cmd.action .. '_tooltip'
 							local tooltip = getCachedTranslation('ui.orderMenu.' .. tooltipKey)
 
-							-- Cache hotkey lookup
 							if not hotkeyCache[cmd.action] then
 								hotkeyCache[cmd.action] = keyConfig.sanitizeKey(actionHotkeys[cmd.action], currentLayout)
 							end
 							local hotkey = hotkeyCache[cmd.action]
+							local hotkeyApplied = false
 
-							if tooltip ~= '' and hotkey ~= '' then
+							if cmd.id == CMD.FIRE_STATE then
+								local commandState = OrderMenuFirestate.stateLabel(cmd)
+								local modeDescrKey = commandState and OrderMenuFirestate.descrByState[commandState]
+								if modeDescrKey then
+									local modeDescr = getCachedTranslation('ui.orderMenu.' .. modeDescrKey)
+									local generalDescr = tooltip
+									if generalDescr ~= '' and hotkey ~= '' then
+										generalDescr = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = generalDescr, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+										hotkeyApplied = true
+									end
+									if modeDescr ~= '' and generalDescr ~= '' then
+										tooltip = modeDescr .. "\n" .. generalDescr
+									elseif modeDescr ~= '' then
+										tooltip = modeDescr
+									elseif generalDescr ~= '' then
+										tooltip = generalDescr
+									end
+								end
+							end
+
+							if tooltip ~= '' and hotkey ~= '' and not hotkeyApplied then
 								tooltip = getCachedTranslation('ui.orderMenu.hotkeyTooltip', { hotkey = hotkey:upper(), tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
 							end
 							if tooltip ~= '' then
 								local title
 								if isStateCommand[cmd.id] then
-									local currentStateIndex = cmd.params[1]
-									-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
-									local stateOffset = 2
-									local commandState = cmd.params[currentStateIndex + stateOffset]
+									local commandState = (cmd.id == CMD.FIRE_STATE) and OrderMenuFirestate.stateLabel(cmd) or CustomFirestateDefs.stateLabel(cmd)
 									if commandState then
 										title = getCachedTranslation('ui.orderMenu.' .. commandState)
 									end
@@ -1090,6 +1198,7 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- make all cmd's fit in the grid
 	local now = os_clock()
@@ -1099,6 +1208,7 @@ function widget:DrawScreen()
 
 	-- Throttle command refresh to avoid excessive updates during rapid selection changes
 	if doUpdate or (doUpdateClock and now >= doUpdateClock) then
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:RefreshCommands")
 		-- Only refresh if enough time has passed since last refresh
 		if now - lastCommandRefreshTime >= commandRefreshDelay then
 			if doUpdateClock and now >= doUpdateClock then
@@ -1117,14 +1227,18 @@ function widget:DrawScreen()
 				doUpdateClock = now + commandRefreshDelay
 			end
 		end
+		tracy.ZoneEnd()
 	end
 
 	if #commands == 0 and (not alwaysShow or spGetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Hide")
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
 		doUpdate = nil
+		tracy.ZoneEnd()
 	else
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Visible")
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
 		end
@@ -1133,6 +1247,7 @@ function widget:DrawScreen()
 		end
 
 		if not ordermenuBgTex then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateBackgroundTexture")
 			ordermenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
@@ -1141,19 +1256,25 @@ function widget:DrawScreen()
 			if ordermenuBgTex then
 				gl.R2tHelper.RenderInRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrdersBackground, true)
 			end
+			tracy.ZoneEnd()
 		end
 		if not ordermenuTex then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:CreateOrdersTexture")
 			ordermenuTex = gl.CreateTexture(math_floor(width*vsx)*(vsy<1400 and 2 or 1), math_floor(height*vsy)*(vsy<1400 and 2 or 1), {	--*(vsy<1400 and 2 or 1)
 				target = GL.TEXTURE_2D,
 				format = GL.ALPHA,
 				fbo = true,
 			})
+			tracy.ZoneEnd()
 		end
 		if ordermenuTex and doUpdate then
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:RenderOrdersTexture")
 			gl.R2tHelper.RenderInRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawOrders, true)
 			doUpdate = nil
+			tracy.ZoneEnd()
 		end
 
+		tracy.ZoneBeginN("W:OrderMenu:DrawScreen:BlendTextures")
 		if ordermenuBgTex then
 			-- background element
 			gl.R2tHelper.BlendTexRect(ordermenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
@@ -1162,14 +1283,18 @@ function widget:DrawScreen()
 			-- content
 			gl.R2tHelper.BlendTexRect(ordermenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 		end
+		tracy.ZoneEnd()
 
 		if #commands >0 then
 			-- draw attention highlights (animated, on top of cached content)
+			tracy.ZoneBeginN("W:OrderMenu:DrawScreen:Highlights")
 			drawHighlights()
+			tracy.ZoneEnd()
 
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if commands and cellHovered then
+					tracy.ZoneBeginN("W:OrderMenu:DrawScreen:HoverCell")
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then
 						drawCell(cell, cellHoverZoom)
@@ -1202,11 +1327,13 @@ function widget:DrawScreen()
 						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.045 * colorMult or 0.095 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
+					tracy.ZoneEnd()
 				end
 			end
 
 			-- clicked cell effect
 			if clickedCellTime and commands[clickedCell] then
+				tracy.ZoneBeginN("W:OrderMenu:DrawScreen:ClickedCell")
 				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
 					local isActiveCmd = (commands[cell].name == activeCommand)
@@ -1247,9 +1374,12 @@ function widget:DrawScreen()
 					end
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				end
+				tracy.ZoneEnd()
 			end
 		end
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:MousePress(x, y, button)
@@ -1267,17 +1397,21 @@ function widget:MousePress(x, y, button)
 							clickedCell = cell
 							clickedCellTime = os_clock()
 
-							-- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-							if isStateCommand[cmd.id] then
+							if cmd.id == CMD.FIRE_STATE then
+								local virtualIndex = cmd.virtualIndex or 1
+								clickedCellDesiredState = OrderMenuFirestate.nextCycledVirtualIndex(virtualIndex, button ~= 1)
+								doUpdate = true
+							elseif isStateCommand[cmd.id] then
+								local currentStateIndex = tonumber(cmd.params[1]) or 0
 								if button == 1 then
-									clickedCellDesiredState = cmd.params[1] + 1
+									clickedCellDesiredState = currentStateIndex + 1
 									if clickedCellDesiredState >= #cmd.params - 1 then
 										clickedCellDesiredState = 0
 									end
 								else
-									clickedCellDesiredState = cmd.params[1] - 1
+									clickedCellDesiredState = currentStateIndex - 1
 									if clickedCellDesiredState < 0 then
-										clickedCellDesiredState = #cmd.params - 1
+										clickedCellDesiredState = #cmd.params - 2
 									end
 								end
 								doUpdate = true
@@ -1286,7 +1420,9 @@ function widget:MousePress(x, y, button)
 							if playSounds then
 								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
-							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
+							if cmd.id == CMD.FIRE_STATE and clickedCellDesiredState ~= nil then
+								OrderMenuFirestate.giveVirtualIndex(clickedCellDesiredState, 0)
+							elseif cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
 							end
 							break
@@ -1301,6 +1437,10 @@ function widget:MousePress(x, y, button)
 			return true
 		end
 	end
+end
+
+function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	return OrderMenuFirestate.commandNotify(cmdID, cmdParams, cmdOptions)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
