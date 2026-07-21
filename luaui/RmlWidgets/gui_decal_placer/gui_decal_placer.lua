@@ -320,9 +320,6 @@ syncDecals = function()
 						local sourcePath = fname:gsub("\\", "/"):gsub("^/+", "")
 						resolved = Bake.resolve(name, sourcePath, Bake.classifyMaskMode(sourcePath))
 					end
-					if not firstSyncDone then
-						Spring.Echo(string.format("[DP] tile %s fname=%s resolved=%s", name, tostring(fname), tostring(resolved)))
-					end
 					if resolved then
 						local imgEl = doc:CreateElement("img")
 						imgEl:SetAttribute("src", resolved)
@@ -448,8 +445,10 @@ function widget:Initialize()
 	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	wireDragHandle()
-	-- Populate tile list after document (and dp-tile-list element) exists.
-	syncDecals()
+	-- Tile list is NOT built here. Building it triggers the backend decal
+	-- enumeration, bitmap-dir scans and the preview bake queue — real GL and
+	-- disk work every match start for players who never open the editor.
+	-- widget:Update's lazy first-build path populates it on first activation.
 end
 
 -- Drain bake queue. Spring restricts gl.RenderToTexture to draw callbacks,

@@ -721,6 +721,19 @@ local function applySkybox(texturePath)
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
+	-- Engine limitation (verified at Recoil 2026.06.12): SetSkyBoxTexture routes
+	-- to ISky::SetLuaTexture, which only the CSkyBox sky class overrides. A map
+	-- that booted without a mapinfo skybox runs the procedural sky, where the
+	-- call is a complete silent no-op. Warn once so users know why nothing
+	-- changes; still apply, since newer engines may honour the swap.
+	if not widgetState._skyboxSwapProbed then
+		widgetState._skyboxSwapProbed = true
+		local mOk, mi = pcall(VFS.Include, "mapinfo.lua")
+		local baked = mOk and type(mi) == "table" and mi.atmosphere and mi.atmosphere.skyBox
+		if type(baked) ~= "string" or baked == "" then
+			Spring.Echo("[Terraform Brush] This map booted without a skybox, so the engine runs the procedural sky. Current engines ignore runtime skybox swaps on such maps (waiting on queued Recoil changes).")
+		end
+	end
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
