@@ -18,25 +18,27 @@ end
 -- This launcher is the only always-on piece. It owns the suite entry commands,
 -- enables the suite widgets on first use, then passes every later invocation
 -- through to the real handlers (they sort after us in the action list).
+-- Backends first, UI panels last: enable order is load order, and the RML
+-- panels expect their WG.* backends to exist when they initialize.
 local SUITE_WIDGETS = {
 	"Terraform Brush",
-	"Terraform Brush UI",
 	"Clone Tool",
 	"Decal Capture",
 	"Decal Placer",
-	"Decal Placer UI",
 	"Diffuse Painter",
-	"Diffuse Library UI",
 	"Feature Placer",
-	"Feature Placer UI",
 	"Grass Brush",
 	"Light Placer",
 	"Metal Brush",
 	"Splat Painter",
 	"Start Positions Tool",
 	"Weather Brush",
-	"Weather Brush UI",
 	"Water Type Overlay GL4",
+	"Terraform Brush UI",
+	"Decal Placer UI",
+	"Diffuse Library UI",
+	"Feature Placer UI",
+	"Weather Brush UI",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
@@ -68,7 +70,10 @@ function widget:Initialize()
 		suiteEnabled = true
 	end
 
-	widgetHandler:AddAction("terraformsuite", function()
+	-- handler = true hands us the RAW widgetHandler, which has no AddAction
+	-- method (that lives on the per-widget proxy). Register through the
+	-- actionHandler directly, like gui_options and dbg_test_runner do.
+	widgetHandler.actionHandler:AddAction(widget, "terraformsuite", function()
 		if not enableSuite() then
 			Spring.Echo("[Terraform Suite] Already loaded")
 		end
@@ -77,7 +82,7 @@ function widget:Initialize()
 
 	for i = 1, #ENTRY_ACTIONS do
 		local cmd = ENTRY_ACTIONS[i]
-		widgetHandler:AddAction(cmd, function(_, optLine)
+		widgetHandler.actionHandler:AddAction(widget, cmd, function(_, optLine)
 			if suiteEnabled then
 				return false -- suite widgets own this command now
 			end

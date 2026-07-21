@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Terraform Brush Team",
 		date      = "2026",
 		license   = "GPL v2",
-		layer     = 0,
+		layer     = 1000000,
 		enabled   = false,
 		handler   = true,
 	}

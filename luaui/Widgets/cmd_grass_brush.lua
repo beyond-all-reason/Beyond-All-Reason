@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 1000001,
 		enabled = false,
 	}
 end
