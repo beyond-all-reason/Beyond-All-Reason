@@ -36,7 +36,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			if not weaponDef.customParams.exclude_preaim then
 				local range = weaponDef.range
 				local param = tonumber(weaponDef.customParams.preaim_range)
-				local boost = math.max(20, range * 0.10, (param or 0) - range)
+				local boost = math.max(20, range * 0.5, (param or 0) - range)
 				weaponBoost[i] = boost
 			end
 		end
