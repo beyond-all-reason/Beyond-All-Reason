@@ -154,18 +154,7 @@ function widget:GetInfo()
 	}
 end
 
-local function NightFactorChanged(red, green, blue, shadow, altitude)
-	WG['NightFactor'].red = red
-	WG['NightFactor'].green = green
-	WG['NightFactor'].blue = blue
-	WG['NightFactor'].shadow = shadow
-	WG['NightFactor'].altitude = altitude
-	--Spring.Echo("Widget NightFactorChanged")
-end
 function widget:Initialize()
-	widgetHandler:RegisterGlobal("NightFactorChanged",NightFactorChanged )
-	WG['NightFactor'] = {red = 1, green = 1, blue = 1, shadow = 1, altitude = 1}
-
 	if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
 	if Spring.GetGameFrame() < 1 then
 		if mapSun[currentMapname] then
@@ -188,6 +177,5 @@ function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change
 	lastSunChanged = df
 end
 
-function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("NightFactorChanged" )
-end
+-- function widget:NightFactorChanged(red, green, blue, shadow, altitude)
+-- end

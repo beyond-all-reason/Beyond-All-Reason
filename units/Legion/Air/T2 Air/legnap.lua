@@ -25,7 +25,6 @@ return {
 		maxslope = 10,
 		speed = 215,
 		maxwaterdepth = 0,
-		firestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",

@@ -4,6 +4,13 @@ end
 
 local widget = widget
 
+local spGetViewGeometry = Spring.GetViewGeometry
+local spSetConfigInt    = Spring.SetConfigInt
+local spGetConfigInt    = Spring.GetConfigInt
+
+-- Drag state (position saved/loaded via RmlUi <handle> — no Spring mouse callbacks needed)
+local hasUserPosition = false  -- true once user has dragged or a saved position was loaded
+
 function widget:GetInfo()
 	return {
 		name = "Territorial Domination Score Display",
@@ -472,8 +479,12 @@ end
 local function calculateUILayout()
 	if not widgetState.document then return end
 
-	local tdRootElement = widgetState.document:GetElementById("td-root")
-	if not tdRootElement then return end
+	-- If the user has a saved position, respect it — don't auto-anchor
+	if hasUserPosition then
+		widgetState.hasValidAdvPlayerListPosition = true
+		checkDocumentVisibility()
+		return
+	end
 
 	local advPlayerListAPI = WG['advplayerlist_api']
 	local topElement = nil
@@ -510,21 +521,26 @@ local function calculateUILayout()
 		return
 	end
 
+	-- Position the body so td-root (which has no transform now) sits in the top-right
+	-- anchored above the player list.
 	local leaderboardTop = apiAbsPosition[1]
-
 	local anchorTopCss = screenHeight - leaderboardTop
-	local desiredBottomCss = anchorTopCss
 
-	if desiredBottomCss >= 0 and desiredBottomCss < screenHeight then
-		local topVh = (desiredBottomCss / screenHeight) * 100
-		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", topVh)
-		tdRootElement:SetAttribute("style", newStyle)
-	else
-		local fallbackTopVh = 100
-		local newStyle = string.format("left: 100vw; top: %.2fvh; transform: translate(-100%%, -100%%);", fallbackTopVh)
-		tdRootElement:SetAttribute("style", newStyle)
+	local tdRootElement = widgetState.document:GetElementById("td-root")
+	if not tdRootElement then
+		checkDocumentVisibility()
+		return
 	end
 
+	local panelWidth  = tdRootElement.offset_width  or 240
+	local panelHeight = tdRootElement.offset_height or 204
+
+	local px = screenWidth  - panelWidth  - 10
+	local py = anchorTopCss - panelHeight - 10
+	py = math.max(0, py)
+
+	tdRootElement.style.left = px .. "px"
+	tdRootElement.style.top  = py .. "px"
 
 	checkDocumentVisibility()
 end
@@ -1124,6 +1140,43 @@ local function updateTimeOnly()
 	end
 end
 
+local function SavePosition()
+    if not widgetState.document then return end
+    local el = widgetState.document:GetElementById("td-root")
+    if not el then return end
+    local x = el.offset_left
+    local y = el.offset_top
+    if not x or not y then return end
+    local vsx, vsy = spGetViewGeometry()
+    if not vsx or not vsy then return end
+    spSetConfigInt("td_posX", math.floor((x / vsx) * 10000))
+    spSetConfigInt("td_posY", math.floor((y / vsy) * 10000))
+    hasUserPosition = true
+end
+
+local function LoadPosition()
+    if not widgetState.document then return end
+    local el = widgetState.document:GetElementById("td-root")
+    if not el then return end
+    local vsx, vsy = spGetViewGeometry()
+    if not vsx or not vsy then return end
+    local relX = spGetConfigInt("td_posX", -1)
+    local relY = spGetConfigInt("td_posY", -1)
+    if relX == -1 or relY == -1 then
+        -- No saved position — default to top-right
+        el.style.left = math.floor(vsx * 0.85) .. "px"
+        el.style.top  = math.floor(vsy * 0.05) .. "px"
+        return
+    end
+    local x = math.floor((relX / 10000) * vsx)
+    local y = math.floor((relY / 10000) * vsy)
+    x = math.max(0, math.min(math.floor(vsx * 0.90), x))
+    y = math.max(0, math.min(math.floor(vsy * 0.90), y))
+    el.style.left = x .. "px"
+    el.style.top  = y .. "px"
+    hasUserPosition = true
+end
+
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
 	if not widgetState.rmlContext then return false end
@@ -1146,9 +1199,52 @@ function widget:Initialize()
 
 	widgetState.document = document
 
+	-- Drag state (local to initialize closure, matching modtools alert-panel pattern)
+	local dragActive  = false
+	local dragOffsetX = 0
+	local dragOffsetY = 0
+	local dragVsy     = 0
+
+	local headerEl = document:GetElementById("header-info")
+	if headerEl then
+		headerEl:AddEventListener("mousedown", function(event)
+			local p = event.parameters
+			if p and p.button and p.button ~= 0 then return end
+			local mx, my = Spring.GetMouseState()
+			local vsx, vsy = Spring.GetViewGeometry()
+			local panel = document:GetElementById("td-root")
+			if not panel then return end
+			dragActive  = true
+			dragOffsetX = mx - panel.offset_left
+			dragOffsetY = (vsy - my) - panel.offset_top
+			dragVsy     = vsy
+			hasUserPosition = true
+			event:StopPropagation()
+		end, false)
+	end
+
+	document:AddEventListener("mousemove", function()
+		if not dragActive then return end
+		local mx, my = Spring.GetMouseState()
+		local panel = document:GetElementById("td-root")
+		if not panel then return end
+		local newX = mx - dragOffsetX
+		local newY = (dragVsy - my) - dragOffsetY
+		panel.style.left = newX .. "px"
+		panel.style.top  = newY .. "px"
+	end, false)
+
+	document:AddEventListener("mouseup", function()
+		if dragActive then
+			dragActive = false
+			SavePosition()
+		end
+	end, false)
+
 	document:ReloadStyleSheet()
 	checkDocumentVisibility()
-	
+	LoadPosition()
+
 	local leaderboardButton = document:GetElementById("leaderboard-button")
 	if leaderboardButton then
 		leaderboardButton:AddEventListener("click", function(event)
@@ -1276,7 +1372,11 @@ function widget:GamePaused(playerID, isPaused)
 end
 
 function widget:ViewResize()
-	calculateUILayout()
+	if hasUserPosition then
+		LoadPosition()
+	else
+		calculateUILayout()
+	end
 end
 
 function widget:KeyPress(key)

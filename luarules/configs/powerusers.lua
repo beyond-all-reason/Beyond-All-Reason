@@ -10,6 +10,7 @@ local everything = {
 	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -20,6 +21,7 @@ local moderator = {
 	devhelpers = false,
 	playerdata = true,
 	waterlevel = false,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -32,6 +34,7 @@ local eventmanager = {
 	devhelpers_teams = true,	-- playertoteam, killteam
 	playerdata = false,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = false,
 	volcano = true,
 }
@@ -41,6 +44,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
+	modmarker = true,
 	playerdata = true,
 	sysinfo = false,
 	volcano = true,
@@ -69,6 +73,8 @@ return {
 	[51535] = everything,	-- Nightmare2512
 	[130329] = everything,	-- SethDGamre
 	[36669] = everything,	-- Steel
+	[197109] = everything,	-- Gabba_Gandalf
+	[57158] = everything,	-- Endorphins
 
 	-- moderator
 	[3] = moderator,		-- Teifion
@@ -80,10 +86,8 @@ return {
 	[57869] = moderator,	-- [BAC]SnekVonPess
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
-	[57158] = moderator,	-- Endorphins
 	[88808] = moderator,	-- Shadowisperke
 	[591000] = moderator,	-- krolya
-	[197109] = moderator,	-- Gabba_Gandalf
 	[4102] = moderator,		-- KayZee
 
 	-- event manager

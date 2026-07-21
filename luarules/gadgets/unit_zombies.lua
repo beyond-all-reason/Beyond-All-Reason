@@ -21,6 +21,7 @@ local ZOMBIE_MAX_ORDER_ATTEMPTS   = 10
 local ZOMBIE_MAX_ORDERS_ISSUED    = 2
 local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.75 -- Chance a zombie will guard allies
+local REFRESH_ORDERS_CHANCE       = 0.005
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
 
 local ZOMBIE_MAX_XP               = 2    -- Maximum experience value for zombies, skewed towards median
@@ -66,6 +67,7 @@ local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames)
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
 local NOGO_ZONE_RADIUS            = 600                -- How far (in units) a no-go zone is
+local NOGO_ZONE_RADIUS_SQ         = NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS
 local ENEMY_ATTACK_DISTANCE       = 1000                -- How far (in units) a zombie will detect and choose to attack an enemy
 local ORDER_DISTANCE              = 800                -- How far (in units) a zombie moves per order
 
@@ -125,6 +127,8 @@ local spSpawnExplosion            = Spring.SpawnExplosion
 local spPlaySoundFile             = Spring.PlaySoundFile
 local spGetFeatureRadius          = Spring.GetFeatureRadius
 local spGetUnitCurrentCommand     = Spring.GetUnitCurrentCommand
+local spGetFactoryCommands        = Spring.GetFactoryCommands
+local spAddTeamResource           = Spring.AddTeamResource
 local spSetUnitExperience         = Spring.SetUnitExperience
 local spGetUnitExperience         = Spring.GetUnitExperience
 local spGetUnitIsBeingBuilt      = Spring.GetUnitIsBeingBuilt
@@ -142,6 +146,7 @@ local ceil                        = math.ceil
 local teams                       = Spring.GetTeamList()
 local scavTeamID
 local gaiaTeamID                  = Spring.GetGaiaTeamID()
+local readAsGaia                  = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
 for _, teamID in ipairs(teams) do
 	local teamLuaAI = Spring.GetTeamLuaAI(teamID)
 	if (teamLuaAI and string.find(teamLuaAI, "ScavengersAI")) then
@@ -287,7 +292,7 @@ end
 
 local function initializeZombie(unitID, unitDefID)
 	local x, y, z = spGetUnitPosition(unitID)
-	zombieWatch[unitID] = { unitDefID = unitDefID, lastLocation = { x = x, y = y, z = z }, noGoZones = {}, isStuck = false }
+	zombieWatch[unitID] = { unitDefID = unitDefID, lastX = x, lastY = y, lastZ = z, noGoZones = {}, isStuck = false }
 end
 
 local function isZombie(unitID)
@@ -352,19 +357,22 @@ end
 local function GetUnitNearestReachableAlly(unitID, unitDefID, range)
 	local bestAllyID
 	local bestDistanceSquared
+	if spGetUnitIsBeingBuilt(unitID) then
+		return nil
+	end
+
 	local x, y, z = spGetUnitPosition(unitID)
 	if not x or not z then
 		return nil
 	end
 
-	local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
 	local gaiaUnits = CallAsTeam(readAsGaia, spGetUnitsInCylinder, x, z, range, ALLIES)
 
 	for i = 1, #gaiaUnits do
 		local allyID = gaiaUnits[i]
 		local allyDefID = spGetUnitDefID(allyID)
 		local currentCommand = spGetUnitCurrentCommand(allyID)
-		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand ~= CMD_GUARD and extraDefs[allyDefID].isMobile and not spGetUnitIsBeingBuilt(unitID) then
+		if (allyID ~= unitID) and fightingDefs[allyDefID] and currentCommand ~= CMD_GUARD and extraDefs[allyDefID].isMobile then
 			local ox, oy, oz = spGetUnitPosition(allyID)
 			if ox and oy and oz then
 				local currentDistanceSquared = distance2dSquared(x, z, ox, oz)
@@ -399,7 +407,11 @@ local function warningCEG(featureID, x, y, z)
 	local radius = spGetFeatureRadius(featureID)
 
 	local selectedEffect = warningEffects[random(#warningEffects)]
-	spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
+	if selectedEffect == "scavradiation-lightning" and GG.SpawnEnvironmentalLightning then
+		GG.SpawnEnvironmentalLightning("scavradiation", x, y, z)
+	else
+		spSpawnCEG(selectedEffect, x, y, z, 0, 0, 0, radius * 0.25)
+	end
 	spSpawnCEG("scaspawn-trail", x, y, z, 0, 0, 0, radius)
 end
 
@@ -435,8 +447,10 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 		return
 	end
 	local isAlreadyGuarding = currentCommand and currentCommand == CMD_GUARD
-	local nearAlly = currentCommand ~= CMD_MOVE and not isAlreadyGuarding and fightingDefs[unitDefID] and
-	GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS) or nil
+	local nearAlly
+	if not closestKnownEnemy and currentCommand ~= CMD_MOVE and not isAlreadyGuarding and fightingDefs[unitDefID] then
+		nearAlly = GetUnitNearestReachableAlly(unitID, unitDefID, ZOMBIE_GUARD_RADIUS)
+	end
 	local weaponRange = unitDefWithWeaponRanges[unitDefID]
 	local data = zombieWatch[unitID]
 
@@ -506,7 +520,7 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 				for _, zone in ipairs(data.noGoZones) do
 					local dx = attemptX - zone.x
 					local dz = attemptZ - zone.z
-					if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
+					if (dx * dx + dz * dz) < NOGO_ZONE_RADIUS_SQ then
 						inNoGoZone = true
 						break
 					end
@@ -528,7 +542,7 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 	end
 
 	if factoriesWithCombatOptions[unitDefID] then
-		local factoryCommands = Spring.GetFactoryCommands(unitID, -1) or {}
+		local factoryCommands = spGetFactoryCommands(unitID, -1) or {}
 		local currentCommandCount = #factoryCommands
 		if currentCommandCount < ZOMBIE_FACTORY_BUILD_COUNT then
 			issueRandomFactoryBuildOrders(unitID, unitDefID)
@@ -582,6 +596,20 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 			currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
 	end
 	local size = unitDef.xsize
+	local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
+	local sizeCategory = ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
+	local sizeName = "small"
+	if sizeCategory > 4.5 then
+		sizeName = "huge"
+	elseif sizeCategory > 3.5 then
+		sizeName = "large"
+	elseif sizeCategory > 2.5 then
+		sizeName = "medium"
+	elseif sizeCategory > 1.5 then
+		sizeName = "small"
+	else
+		sizeName = "tiny"
+	end
 
 	spDestroyFeature(featureID)
 	corpsesData[featureID] = nil
@@ -592,22 +620,8 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local randomZ = z + random(-size * spawnCount, size * spawnCount)
 		local adjustedY = spGetGroundHeight(randomX, randomZ)
 
-		local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
 		local unitID = spCreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
-			local size = ceil((unitDef.xsize / 2 + unitDef.zsize / 2) / 2)
-			local sizeName = "small"
-			if size > 4.5 then
-				sizeName = "huge"
-			elseif size > 3.5 then
-				sizeName = "large"
-			elseif size > 2.5 then
-				sizeName = "medium"
-			elseif size > 1.5 then
-				sizeName = "small"
-			else
-				sizeName = "tiny"
-			end
 			spSpawnCEG("scav-spawnexplo-" .. sizeName, randomX, adjustedY, randomZ, 0, 0, 0)
 			if modOptions.zombies ~= "normal" then
 				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2) -- to skew the experience towards the median
@@ -724,14 +738,14 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
-		Spring.AddTeamResource(gaiaTeamID, "metal", 1000000)
-		Spring.AddTeamResource(gaiaTeamID, "energy", 1000000)
+		spAddTeamResource(gaiaTeamID, "metal", 1000000)
+		spAddTeamResource(gaiaTeamID, "energy", 1000000)
 		for featureID, featureData in pairs(corpsesData) do
-			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
-			if not featureX then --doesn't exist anymore
-				corpsesData[featureID] = nil
-			elseif featureData.spawnFrame - frame < WARNING_TIME then
-				if not featureData.tamperedFrame then
+			if featureData.spawnFrame - frame < WARNING_TIME then
+				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+				if not featureX then --doesn't exist anymore
+					corpsesData[featureID] = nil
+				elseif not featureData.tamperedFrame then
 					warningCEG(featureID, featureX, featureY, featureZ)
 				end
 			end
@@ -743,18 +757,26 @@ function gadget:GameFrame(frame)
 			local unitDefID = data.unitDefID
 			if spGetUnitIsDead(unitID) or not spValidUnitID(unitID) then
 				zombieWatch[unitID] = nil
-			else
-				local REFRESH_ORDERS_CHANCE = 0.005
-				local queueSize = spGetUnitCommandCount(unitID)
-				local closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+			elseif ordersEnabled then
 				local currentCommand = spGetUnitCurrentCommand(unitID)
 				local refreshOrders = currentCommand ~= CMD_FIGHT and random() <= REFRESH_ORDERS_CHANCE
 
-				if ordersEnabled and (refreshOrders or
-				(currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD and
-				(closestKnownEnemy or not (queueSize) or (queueSize < ZOMBIE_MAX_ORDERS_ISSUED)))) then
+				if refreshOrders or (currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD) then
+					local closestKnownEnemy
+					if repairingUnits[unitDefID] or unitDefWithWeaponRanges[unitDefID] then
+						closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+					end
+
+					local shouldUpdateOrders = refreshOrders or closestKnownEnemy
+					if not shouldUpdateOrders then
+						local queueSize = spGetUnitCommandCount(unitID)
+						shouldUpdateOrders = not queueSize or queueSize < ZOMBIE_MAX_ORDERS_ISSUED
+					end
+
+					if shouldUpdateOrders then
 					clearUnitOrders(unitID)
 					updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand)
+					end
 				end
 			end
 		end
@@ -768,10 +790,10 @@ function gadget:GameFrame(frame)
 			else
 				local x, y, z = spGetUnitPosition(unitID)
 				if x and y and z then
-					if distance2dSquared(x, z, data.lastLocation.x, data.lastLocation.z) < STUCK_DISTANCE then
+					if distance2dSquared(x, z, data.lastX, data.lastZ) < STUCK_DISTANCE then
 						local BLOCK_CHECK_STEP = 15
 						local forwardDirection = getActualForwardsYaw(unitID)
-						local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+						local unitX, unitY, unitZ = x, y, z
 						local test1X = unitX + BLOCK_CHECK_STEP * cos(forwardDirection)
 						local test1Z = unitZ + BLOCK_CHECK_STEP * sin(forwardDirection)
 						local test2X = unitX - BLOCK_CHECK_STEP * cos(forwardDirection)
@@ -784,7 +806,7 @@ function gadget:GameFrame(frame)
 							for _, zone in ipairs(data.noGoZones) do
 								local dx = x - zone.x
 								local dz = z - zone.z
-								if (dx * dx + dz * dz) < (NOGO_ZONE_RADIUS * NOGO_ZONE_RADIUS) then
+								if (dx * dx + dz * dz) < NOGO_ZONE_RADIUS_SQ then
 									alreadyPresent = true
 									break
 								end
@@ -799,7 +821,9 @@ function gadget:GameFrame(frame)
 					else
 						data.isStuck = false
 					end
-					data.lastLocation = { x = x, y = y, z = z }
+					data.lastX = x
+					data.lastY = y
+					data.lastZ = z
 				end
 			end
 		end

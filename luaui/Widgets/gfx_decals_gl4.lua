@@ -19,6 +19,9 @@ local mathFloor = math.floor
 local mathMin = math.min
 local mathRandom = math.random
 local round = math.round
+local stringFormat = string.format
+local stringGmatch = string.gmatch
+local tableConcat = table.concat
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -133,6 +136,7 @@ local decalExtraLargeVBO = nil
 
 local decalShader = nil
 local decalLargeShader = nil
+local decalUseGeometryShader = true
 
 
 local hasBadCulling = false -- AMD+Linux combo
@@ -210,27 +214,59 @@ end
 local function initGL4( DPATname)
 	hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == true)
 	if hasBadCulling then spEcho("Decals GL4 detected AMD + Linux platform, attempting to fix culling") end
-	decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+	decalUseGeometryShader = (gl.LuaShader and gl.LuaShader.isGeometryShaderSupported) or false
+	if decalUseGeometryShader then
+		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
+		if not decalShader then
+			decalUseGeometryShader = false
+			spEcho("Decals GL4: geometry shader compile failed, enabling NoGS fallback")
+		end
+	end
 	decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache)
 
-	if (not decalShader) or (not decalLargeShader) then goodbye("Failed to compile ".. DPATname .." GL4 ") end
+	if not decalLargeShader then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 
-	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
-		{
+	local smallDecalLayout
+	if decalUseGeometryShader then
+		smallDecalLayout = {
 			{id = 0, name = 'lengthwidthrotation', size = 4},
 			{id = 1, name = 'uv_atlaspos', size = 4},
 			{id = 2, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
 			{id = 3, name = 'worldPos', size = 4},
 			{id = 4, name = 'parameters', size = 4},
-		},
+		}
+	else
+		smallDecalLayout = {
+			{id = 1, name = 'lengthwidthrotation', size = 4},
+			{id = 2, name = 'uv_atlaspos', size = 4},
+			{id = 3, name = 'alphastart_alphadecay_heatstart_heatdecay', size = 4},
+			{id = 4, name = 'worldPos', size = 4},
+			{id = 5, name = 'parameters', size = 4},
+		}
+	end
+
+	decalVBO = InstanceVBOTable.makeInstanceVBOTable(
+		smallDecalLayout,
 		64, -- maxelements
 		DPATname .. "VBO" -- name
 	)
 	if decalVBO == nil then goodbye("Failed to create decalVBO") end
 
-	local smallDecalVAO = gl.GetVAO()
-	smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
-	decalVBO.VAO = smallDecalVAO
+	if decalUseGeometryShader then
+		local smallDecalVAO = gl.GetVAO()
+		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
+		decalVBO.VAO = smallDecalVAO
+	else
+		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1,1,4,4)
+		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4,4)
+		decalVBO.vertexVBO = planeVBOsmall
+		decalVBO.indexVBO = planeIndexVBOsmall
+		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(
+			decalVBO.vertexVBO,
+			decalVBO.instanceVBO,
+			decalVBO.indexVBO
+		)
+	end
 
 	local planeVBO, numVertices = InstanceVBOTable.makePlaneVBO(1,1,resolution,resolution)
 	local planeIndexVBO, numIndices =  InstanceVBOTable.makePlaneIndexVBO(resolution,resolution) --, true) -- add true to cull into a circle
@@ -290,6 +326,7 @@ local decalRemoveList = {} -- maps instanceID's of decals that need to be batch 
 -- activeDecalData[decalIndex] = {posx, posz, size, alphastart, alphadecay, spawnframe, isFootprint, width, length, rotation, p, q, s, t}
 local activeDecalData = {}
 local footprintDecalSet = {}  -- tracks which decalIndex values are footprints (for rebuild)
+local decalVersion = 0        -- increments when external consumers need to refresh cached decal data
 
 -- Rebuild activeDecalData from existing VBO instance data.
 -- Called when external consumers (e.g. PIP) need the current decal state after a reload or re-enable.
@@ -388,7 +425,9 @@ local updatePositionX = 0
 local updatePositionZ = 0
 function widget:Update() -- this is pointlessly expensive!
 	if autoupdate then
-		decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		if decalUseGeometryShader then
+			decalShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or decalShader
+		end
 		decalLargeShader = LuaShader.CheckShaderUpdates(shaderLargeSourceCache) or		decalLargeShader
 	end
 
@@ -499,7 +538,8 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 	-- match the vertex shader on lifetime:
 	-- 	float currentAlpha = min(1.0, (lifetonow / FADEINTIME))  * alphastart - lifetonow* alphadecay;
 	--  currentAlpha = min(currentAlpha, lengthwidthrotation.w);
-	local lifetime = mathFloor(alphastart/alphadecay)
+	-- alphadecay <= 0 means the decal never fades out on its own, so it has no finite lifetime
+	local lifetime = alphadecay > 0 and mathFloor(alphastart/alphadecay) or nil
 	decalIndex = decalIndex + 1
 	local targetVBO = decalVBO
 
@@ -521,14 +561,19 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		decalIndex, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		false) -- noupload, dont use unless you know what you want to batch push/pop
-	local deathtime = spawnframe + lifetime
-	if decalRemoveQueue[deathtime] == nil then
-		decalRemoveQueue[deathtime] = {decalIndex}
-	else
-		decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+	if lifetime then
+		local deathtime = spawnframe + lifetime
+		if deathtime ~= deathtime then -- NaN check
+			spEcho("gfx_decals_gl4: NaN deathtime for decal index", decalIndex, "spawnframe:", spawnframe, "lifetime:", lifetime)
+		elseif decalRemoveQueue[deathtime] == nil then
+			decalRemoveQueue[deathtime] = {decalIndex}
+		else
+			decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
+		end
 	end
 
 	AddDecalToArea(decalIndex, posx, posz, width, length)
+	decalVersion = decalVersion + 1
 
 	return decalIndex, lifetime
 end
@@ -573,10 +618,16 @@ local function DrawDecals()
 
 
 		if decalVBO.usedElements > 0  then
-			decalShader:Activate()
-			decalShader:SetUniform("fadeDistance",disticon * 1000)
-			decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
-			decalShader:Deactivate()
+			if decalUseGeometryShader then
+				decalShader:Activate()
+				decalShader:SetUniform("fadeDistance",disticon * 1000)
+				decalVBO.VAO:DrawArrays(GL.POINTS, decalVBO.usedElements)
+				decalShader:Deactivate()
+			else
+				decalLargeShader:Activate()
+				decalVBO.VAO:DrawElements(GL.TRIANGLES, nil, 0, decalVBO.usedElements, 0)
+				decalLargeShader:Deactivate()
+			end
 		end
 
 		if decalLargeVBO.usedElements > 0 or decalExtraLargeVBO.usedElements > 0 then
@@ -599,22 +650,20 @@ local function DrawDecals()
 	end
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "decalsgl4stats", nil, true) then
-		local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
-		spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
-			decalVBO.usedElements,
-			decalLargeVBO.usedElements,
-			decalExtraLargeVBO.usedElements,
-			tricount))
-		return true
-	end
-	if string.find(command, "decalsgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Decals GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function decalsgl4statsCmd(_, line)
+	local tricount = 4*4*2 * decalVBO.usedElements + resolution*resolution*2*decalLargeVBO.usedElements + 4*4*resolution*resolution*2*decalExtraLargeVBO.usedElements
+	spEcho(string.format("Small decal = %d, Medium decal = %d, Large decal = %d, tris = %d",
+		decalVBO.usedElements,
+		decalLargeVBO.usedElements,
+		decalExtraLargeVBO.usedElements,
+		tricount))
+	return true
+end
+
+local function decalsgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Decals GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 if Script.IsEngineMinVersion(105, 0, 1422) then
@@ -631,12 +680,19 @@ end
 local function RemoveDecal(instanceID)
 	RemoveDecalFromArea(instanceID)
 	footprintDecalSet[instanceID] = nil
+	local removed = false
 	if decalVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalVBO, instanceID)
+		removed = true
 	elseif decalLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalLargeVBO, instanceID)
+		removed = true
 	elseif decalExtraLargeVBO.instanceIDtoIndex[instanceID] then
 		popElementInstance(decalExtraLargeVBO, instanceID)
+		removed = true
+	end
+	if removed then
+		decalVersion = decalVersion + 1
 	end
 end
 
@@ -666,6 +722,9 @@ function widget:GameFrame(n)
 		removed = removed + compactInstanceVBO(decalLargeVBO, decalRemoveList)
 		removed = removed + compactInstanceVBO(decalExtraLargeVBO, decalRemoveList)
 		decalRemoveList = {}
+		if removed > 0 then
+			decalVersion = decalVersion + 1
+		end
 
 		if autoupdate and removed > 0 then
 			spEcho("Removed",removed,"decals from decal instance tables: s=",decalVBO.usedElements,' l=', decalLargeVBO.usedElements,'xl=', decalExtraLargeVBO.usedElements, "Tot=", totalDecalCount, "Rem=",numDecalsToRemove)
@@ -720,7 +779,7 @@ local globalDamageMult = Spring.GetModOptions().multiplier_weapondamage or 1
 local damageCoefficient = (1 / globalDamageMult + 0.25 * globalDamageMult - 0.25) -- for sane values with high modifiers
 
 local weaponConfig = {}
-for weaponDefID=1, #WeaponDefs do
+for weaponDefID=0, #WeaponDefs do
 	local weaponDef = WeaponDefs[weaponDefID]
 	local nodecal = (weaponDef.customParams and weaponDef.customParams.nodecal)
 	if (not nodecal) and (not string.find(weaponDef.cegTag, 'aa')) then
@@ -1869,13 +1928,72 @@ local function UnitScriptDecal(unitID, unitDefID, whichDecal, posx, posz, headin
 			AddDecalToArea(decalIndex, worldposx, worldposz, decalTable.width, decalTable.height)
 
 			footprintDecalSet[decalIndex] = true
+			decalVersion = decalVersion + 1
 		end
 	end
 end
 
 local pendingRestore = nil  -- Holds saved decal data between SetConfigData and Initialize
+local gameOver = false
+
+local savedDecalsFormatVersion = 2
+local savedDecalFieldCount = 13
+
+local function PackSavedDecals(savedDecals)
+	if not savedDecals or #savedDecals == 0 then
+		return nil
+	end
+
+	local packed = {}
+	for i = 1, #savedDecals do
+		local entry = savedDecals[i]
+		if entry and #entry == savedDecalFieldCount then
+			packed[#packed + 1] = stringFormat(
+				"%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.6g,%d,%d,%d",
+				entry[1], entry[2], entry[3], entry[4],
+				entry[5], entry[6], entry[7], entry[8],
+				entry[9], entry[10], entry[11], entry[12], entry[13]
+			)
+		end
+	end
+
+	if #packed == 0 then
+		return nil
+	end
+
+	return tableConcat(packed, ";")
+end
+
+local function UnpackSavedDecals(packed)
+	if type(packed) ~= "string" or packed == "" then
+		return nil
+	end
+
+	local unpacked = {}
+	for packedEntry in stringGmatch(packed, "([^;]+)") do
+		local entry = {}
+		local count = 0
+		local valid = true
+		for field in stringGmatch(packedEntry, "([^,]+)") do
+			count = count + 1
+			entry[count] = tonumber(field)
+			if entry[count] == nil then
+				valid = false
+				break
+			end
+		end
+		if valid and count == savedDecalFieldCount then
+			unpacked[#unpacked + 1] = entry
+		end
+	end
+
+	return unpacked
+end
 
 function widget:Initialize()
+	widgetHandler:AddAction("decalsgl4stats", decalsgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("decalsgl4skipdraw", decalsgl4skipdrawCmd, nil, "t")
+
 	--if makeAtlases() == false then
 	--	goodbye("Failed to init texture atlas for DecalsGL4")
 	--	return
@@ -1920,10 +2038,10 @@ function widget:Initialize()
 	WG['decalsgl4'].RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = {decalVBO, decalLargeVBO, decalExtraLargeVBO}
 	WG['decalsgl4'].GetVBOData = function() return vboTableCache, footprintDecalSet end
+	WG['decalsgl4'].GetVersion = function() return decalVersion end
 
 	widgetHandler:RegisterGlobal('AddDecalGL4', WG['decalsgl4'].AddDecalGL4)
 	widgetHandler:RegisterGlobal('RemoveDecalGL4', WG['decalsgl4'].RemoveDecalGL4)
-	widgetHandler:RegisterGlobal('UnitScriptDecal', UnitScriptDecal)
 	--spEcho(string.format("Decals GL4 loaded %d textures in %.3fs",numFiles, Spring.DiffTimers(Spring.GetTimer(), t0)))
 	--spEcho("Trying to access _G[NightModeParams]", _G["NightModeParams"])
 
@@ -2040,20 +2158,35 @@ function widget:Initialize()
 
 end
 
+function widget:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+	UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+end
+
 function widget:SunChanged()
 	--local nmp = _G["NightModeParams"]
 	--spEcho("widget:SunChanged()",nmp)
 end
 
 function widget:ShutDown()
+	widgetHandler:RemoveAction("decalsgl4stats", "t")
+	widgetHandler:RemoveAction("decalsgl4skipdraw", "t")
 
 	WG['decalsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDecalGL4')
 	widgetHandler:DeregisterGlobal('RemoveDecalGL4')
-	widgetHandler:DeregisterGlobal('UnitScriptDecal')
+end
+
+function widget:GameOver()
+	gameOver = true
 end
 
 function widget:GetConfigData(_) -- Called by RemoveWidget
+	if gameOver then
+		return {
+			lifeTimeMult = lifeTimeMult,
+		}
+	end
+
 	-- Save the biggest active decals for restoration after luaui reload (cap at 1500)
 	-- Priority: biggest scars first, then biggest footprints if room remains
 	local maxSave = 1500
@@ -2125,7 +2258,8 @@ function widget:GetConfigData(_) -- Called by RemoveWidget
 
 	local savedTable = {
 		lifeTimeMult = lifeTimeMult,
-		savedDecals = savedDecals,
+		savedDecalsPacked = PackSavedDecals(savedDecals),
+		savedDecalsFormat = savedDecalsFormatVersion,
 		saveFrame = frame,
 	}
 	return savedTable
@@ -2135,9 +2269,19 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 	if data.lifeTimeMult ~= nil then
 		lifeTimeMult = data.lifeTimeMult
 	end
-	if data.savedDecals and #data.savedDecals > 0 then
+
+	local savedDecals = nil
+	if data.savedDecalsPacked then
+		savedDecals = UnpackSavedDecals(data.savedDecalsPacked)
+	end
+	if (not savedDecals or #savedDecals == 0) and data.savedDecals and #data.savedDecals > 0 then
+		-- Backward compatibility with older plain-table saves.
+		savedDecals = data.savedDecals
+	end
+
+	if savedDecals and #savedDecals > 0 then
 		pendingRestore = {
-			decals = data.savedDecals,
+			decals = savedDecals,
 			saveFrame = data.saveFrame or 0,
 		}
 	end

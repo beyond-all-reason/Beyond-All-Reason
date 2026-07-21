@@ -24,7 +24,7 @@
 		//   if factory's builder unavailable in current frame: priority ~= map_percent * importance0 / 10 + random(-20..+20)
 		// During game: priority ~= map_percent * importance1 + random(-20..+20)
 		// importanceN = 1.0 by default if not set
-		"importance": [1.0, 0.2],
+		"importance": [1.0, 0.0],
 
 		// 'require_energy' adds energy requirement for tierN (N>0): fallback to lowest tier on low energy
 		"require_energy": false,
@@ -51,7 +51,7 @@
 			"tier5": [ 0.50,    0.00,    0.30,       0.00,      0.00,     0.00,      0.00,     0.10]
 		},
 
-		"caretaker": 3
+		"caretaker": 8
 	},
 
 	"armalab": {
@@ -68,7 +68,7 @@
 			"tier1": [ 0.50,     0.00,		 0.10,      0.15,     0.05,		0.30,	   0.45,      0.00,    	0.00,		0.03,     	0.00,		0.05,      0.05,      0.00,		0.20,       0.00],
 			"tier2": [ 0.40,     0.00,		 0.30,      0.20,     0.15,		0.15,	   0.40,      0.03,     0.01,		0.03,     	0.01,		0.05,      0.05,      0.20,		0.10,       0.00],			
 			"tier3": [ 0.40,     0.00,		 0.20,      0.20,     0.30,		0.00,	   0.15,      0.03,     0.01,		0.05,     	0.05,		0.05,      0.05,      0.20,		0.00,       0.00],
-            "tier4": [ 0.40,     0.10,		 0.20,      0.20,     0.30,		0.00,	   0.15,      0.03,     0.01,		0.05,     	0.05,       0.05,       0.05,      0.20,	0.00,       0.00]			
+            "tier4": [ 0.40,     0.10,		 0.20,      0.20,     0.30,		0.00,	   0.15,      0.03,     0.01,		0.05,     	0.05,       0.05,      0.05,      0.20,		0.00,       0.00]			
 		},                      
 
 		"water": {                
@@ -78,11 +78,11 @@
 			"tier3": [ 0.40,     0.10,		 0.15,      0.10,     0.12,		0.05,	   0.10,      0.01,     0.01,		0.01,     	0.00,       0.00,      0.05,      0.10,		1.00, 		0.10],
             "tier4": [ 0.40,     0.10,		 0.15,      0.10,     0.12,		0.05,	   0.10,      0.01,     0.01,		0.01,     	0.00,       0.00,      0.02,      0.10,		1.00,		0.10]
 		},
-		"caretaker": 6  // maxiumum amount of nanos: #caretake x #factories | actual max total amount gets limited by income/nanobuilspeed (behaviour.json)| e.g. 3rd factory 4 caretaker => 3x4=12
+		"caretaker": 12  // maxiumum amount of nanos: #caretake x #factories | actual max total amount gets limited by income/nanobuilspeed (behaviour.json)| e.g. 3rd factory 4 caretaker => 3x4=12
 	},
 
 	"armvp": {
-		"importance": [1.0, 0.2],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 
@@ -115,7 +115,7 @@
             "tier5": [ 0.50,    0.00,        0.00,     0.00,     0.00,       0.00,        0.00,       0.00,     0.00,       0.00]
 		},
 
-		"caretaker": 4
+		"caretaker": 8
 	},
 
 	"armavp": {
@@ -145,7 +145,7 @@
 			"tier2": [ 0.40,     0.10,			0.00,		0.15,       0.30,      0.15,       0.10,      0.05,      0.02,      0.04,		0.04,		0.10],
             "tier3": [ 0.40,     0.10,			0.00,		0.15,       0.10,      0.25,       0.00,      0.05,      0.02,      0.04,		0.04,		0.20]		
 		},
-		"caretaker": 6
+		"caretaker": 12
 	},
 
 	//T3 factory
@@ -154,20 +154,24 @@
 
 		"require_energy": true,
 
-		"income_tier": [100, 200],
+		"income_tier": [100, 200, 300, 400],
 
 		"unit":      ["armmar", "armraz", "armvang", "armbanth", "armlun", "armthor"],
 
 		"land": {
-			"tier0": [ 0.05,     0.40,     0.45,      0.00,     0.00,        0.10],
-			"tier1": [ 0.05,     0.30,     0.50,      0.30,     0.00,       0.10],
-            "tier2": [ 0.05,     0.30,     0.40,      0.25,     0.00,       0.25]
+			"tier0": [ 0.05,     0.40,     0.45,      0.00,     0.00,        0.00],
+			"tier1": [ 0.05,     0.30,     0.50,      0.00,     0.00,        0.00],
+            "tier2": [ 0.05,     0.30,     0.40,      0.00,     0.00,        0.25],
+            "tier3": [ 0.00,     0.30,     0.40,      0.25,     0.00,        0.25],
+            "tier4": [ 0.00,     0.30,     0.40,      0.25,     0.00,        0.25]
         },
         
         "water":{
 			"tier0": [ 0.40,     0.10,     0.20,      0.00,     0.30,        0.00],
-			"tier1": [ 0.30,     0.00,     0.10,      0.10,     0.30,        0.00],
-            "tier2": [ 0.30,     0.00,     0.10,      0.30,     0.40,       0.00]
+			"tier1": [ 0.30,     0.00,     0.10,      0.00,     0.30,        0.00],
+            "tier2": [ 0.30,     0.00,     0.10,      0.00,     0.40,        0.00],
+            "tier3": [ 0.30,     0.00,     0.10,      0.30,     0.40,        0.00],
+            "tier4": [ 0.30,     0.00,     0.10,      0.30,     0.40,        0.00]
         },
 
 
@@ -176,11 +180,11 @@
 
 	// ARMADA Aircraft
 	"armap": {
-		"importance": [0.5, 0.5],
+		"importance": [0.1, 0.0],
 
 		"require_energy": false,
 
-		"income_tier": [20, 40, 100],
+		"income_tier": [10, 25, 35],
 
 		"unit":      ["armca", "armfig", "armpeep", "armthund", "armkam"],
 
@@ -226,7 +230,7 @@
    
 
 	"armsy": {
-		"importance": [2.0, 2.0],
+		"importance": [2.0, 0.0],
 
 		"require_energy": false,
 
@@ -244,7 +248,7 @@
 	},
 	
 	"armasy": {
-		"importance": [0.0, 6.0],
+		"importance": [0.0, 3.0],
 
 		"require_energy": false,
 
@@ -289,7 +293,7 @@
 	},
 
 	"armfhp": {
-		"importance": [1.5, 1.0],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 
@@ -381,7 +385,7 @@
 		// CORTEX factories
 
 	"corlab": {
-		"importance": [0.8, 0.1],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 
@@ -408,7 +412,7 @@
 	},
 
 	"coralab": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 
 		"require_energy": true,
 
@@ -432,7 +436,7 @@
 	},
 
 	"corvp": {
-		"importance": [0.8, 0.0],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 
@@ -466,7 +470,7 @@
 	},
 
 	"coravp": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 
 		"require_energy": true,
 
@@ -501,23 +505,27 @@
 
 		"require_energy": true,
 
-		"income_tier": [100, 200],
+		"income_tier": [100, 200, 300, 400],
 
 		"unit":      ["corsok", "corshiva", "corkarg", "corcat", "corkorg", "corjugg"],
 
 		"land": {
 			"tier0": [ 1.00, 	0.50,       0.30,      0.20,     0.00,      0.00],
-			"tier1": [ 0.01,	0.30,       0.20,      0.20,     0.20,      0.10],
-            "tier2": [ 0.01,	0.00,       0.20,      0.20,     0.40,      0.20]
+			"tier1": [ 0.01,	0.30,       0.20,      0.20,     0.00,      0.00],
+            "tier2": [ 0.01,	0.00,       0.20,      0.20,     0.00,      0.00],
+            "tier3": [ 0.01,	0.00,       0.20,      0.20,     0.40,      0.20],
+            "tier4": [ 0.01,	0.00,       0.20,      0.20,     0.40,      0.20]
 		},	
 		"water":{
-			"tier0": [ 1.00, 	0.40,       0.30,      0.20,     0.00,      0.00],
-			"tier1": [ 0.40,	0.20,       0.05,      0.20,     0.20,      0.10],
-            "tier2": [ 0.40,	0.10,       0.05,      0.20,     0.40,      0.20]
+			"tier0": [ 1.00, 	0.40,       0.30,      0.00,     0.00,      0.00],
+			"tier1": [ 0.40,	0.20,       0.15,      0.20,     0.00,      0.00],
+            "tier2": [ 0.40,	0.10,       0.15,      0.20,     0.00,      0.00],
+            "tier3": [ 0.40,	0.10,       0.15,      0.20,     0.40,      0.20],
+            "tier4": [ 0.40,	0.10,       0.15,      0.20,     0.40,      0.20]
 		},
 
 
-		"caretaker": 20
+		"caretaker": 30
 	},
 	"corgantuw": {
 		"importance": [0.0, 0.5],
@@ -541,7 +549,7 @@
 
 	// CORTEX Aircraft
 	"corap": {
-		"importance": [0.5, 0.5],
+		"importance": [1.0, 0.0],
 
 		"require_energy": true,
 
@@ -564,7 +572,7 @@
 	},
 	
 	"coraap": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 
 		"require_energy": true,
 
@@ -586,7 +594,7 @@
 
 		// CORTEX Ships
 	"corsy": {
-		"importance": [3.0, 1.0],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 
@@ -603,7 +611,7 @@
 	},
 	
 	"corasy": {
-		"importance": [0.0, 6.0],
+		"importance": [0.0, 3.0],
 
 		"require_energy": true,
 
@@ -640,7 +648,7 @@
 		"caretaker": 2
 	},
     "corfhp": {
-		"importance": [1.5, 0.5],
+		"importance": [1.0, 0.0],
 
 		"require_energy": false,
 

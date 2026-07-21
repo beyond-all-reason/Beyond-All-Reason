@@ -87,6 +87,7 @@ return {
 			[27] = "armfhp",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

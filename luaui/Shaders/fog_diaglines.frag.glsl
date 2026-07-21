@@ -10,6 +10,9 @@ uniform float lineFreq;     // elmos per line cycle (world-space; lines anchor t
 uniform float lineWidth;    // 0..1 fraction of cycle that is line vs gap (0.5 = equal)
 uniform float lineSharpness;// smoothstep half-width at the edge (smaller = sharper)
 uniform float scrollSpeed;  // animation speed in cycles per second
+uniform float noiseScale;   // elmos per noise cell; larger = bigger, softer blotches
+uniform float noiseAmount;  // 0 = lines untouched, 1 = noise can fully fade lines out
+uniform float noiseSpeed;   // how fast the noise field drifts/evolves
 
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -19,6 +22,25 @@ in DataVS {
 };
 
 out vec4 fragColor;
+
+// Cheap 2D value noise: hash the integer grid corners and bilerp with a smooth
+// fade. One hash per corner, no octaves — deliberately low cost.
+float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 345.45));
+    p += dot(p, p + 34.345);
+    return fract(p.x * p.y);
+}
+
+float valueNoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f); // smoothstep fade
+    float a = hash21(i + vec2(0.0, 0.0));
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
 
 void main(void) {
     // Reconstruct world position from depth. This gives us a way to look up
@@ -51,7 +73,12 @@ void main(void) {
     // the behaviour players intuitively expect from a ground overlay).
     // Use a triangle wave (abs of fract) instead of sine so lineWidth maps
     // intuitively to the line-vs-gap fraction of one cycle.
-    float scrolled = (worldPos.x + worldPos.z) / lineFreq - timeInfo.x * scrollSpeed;
+    // lineDir is the (normalised) direction the pattern phase increases along,
+    // which sets the line angle: (cos a, sin a) for an angle a measured from the
+    // X axis. 36 degrees -> (0.809, 0.588). Keep it normalised so lineFreq stays
+    // an honest world-space spacing regardless of angle.
+    const vec2 lineDir = vec2(0.80901699, 0.58778525); // 36 degrees
+    float scrolled = dot(worldPos.xz, lineDir) / lineFreq - timeInfo.x * scrollSpeed;
     float tri = abs(fract(scrolled) * 2.0 - 1.0); // 0 at line center, 1 at gap center
 
     // Anti-alias against actual screen-space derivative of the pattern phase.
@@ -61,6 +88,17 @@ void main(void) {
     float aa = max(lineSharpness, pixelWidth);
     float threshold = clamp(lineWidth, 0.0, 1.0);
     float line = 1.0 - smoothstep(threshold - aa, threshold + aa, tri);
+
+    // Subtle animated noise over the fogged area: low-frequency world-space
+    // blotches that slowly drift, locally fading the lines so the pattern feels
+    // alive rather than perfectly static. The noise is anchored to the ground
+    // (world XZ) and the field itself evolves over time via the z-offset trick.
+    vec2 noiseUV = worldPos.xz / noiseScale + vec2(timeInfo.x * noiseSpeed);
+    float n = valueNoise(noiseUV);
+    // Remap so most of the area is untouched and only the darker patches fade:
+    // smoothstep keeps the effect from looking like uniform flicker.
+    float fade = 1.0 - noiseAmount * smoothstep(0.35, 0.65, n);
+    line *= fade;
 
     fragColor = vec4(lineColor.rgb, line * fogMask * lineColor.a);
 }

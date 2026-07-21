@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGFHP.DDS",
 		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 35 96",
 		collisionvolumetype = "Box",

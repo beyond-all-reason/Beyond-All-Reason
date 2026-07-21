@@ -94,13 +94,28 @@ local isMetalmap = false
 -- Wind + tide
 local avgWindValue, riskWindValue
 local currentWind = 0
+local currentWindText = "\255\255\255\2550"
+local prevWind = nil
 local displayTidalSpeed = not Spring.Lava.isLavaMap
 local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamically changed
+local tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
 local tidalWaveAnimationHeight = 10
 local windRotation = 0
 local minWind = Game.windMin
 local maxWind = Game.windMax
+local minWindText = "\255\166\166\166" .. tostring(minWind)
+local maxWindText = "\255\166\166\166" .. tostring(maxWind)
+local noWindText1 = "\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1')
+local noWindText2 = "\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2')
 local windFunctions = VFS.Include('common/wind_functions.lua')
+
+local function refreshWindTidalTextCache()
+	tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
+	minWindText = "\255\166\166\166" .. tostring(minWind)
+	maxWindText = "\255\166\166\166" .. tostring(maxWind)
+	noWindText1 = "\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1')
+	noWindText2 = "\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2')
+end
 
 -- Commanders
 local allyComs = 0
@@ -190,6 +205,13 @@ local cache = {
 	prevShowButtons = showButtons,
 }
 
+-- Reused scratch tables for DrawScreen to avoid per-frame allocations.
+local resourceNames = { 'metal', 'energy' }
+local windTextScissor = { 0, 0, 0, 0 }
+local comCounterScissor = { 0, 0, 0, 0 }
+local storageScissors = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }
+local activeStorageScissors = { nil, nil }
+
 
 -- Smoothing
 local smoothedResources = {
@@ -230,6 +252,9 @@ local timers = {
 	nextResBarUpdate = 0,
 	nextSlowUpdate = 0,
 	nextBarsUpdate = 0,
+	lastUpdateTime = 0,
+	gameFrameHappened = false,
+	deferResourceUpdate = false,
 	guishaderCheckUpdateRate = 0.5,
 	nextSmoothUpdate = 0,
 }
@@ -1122,6 +1147,7 @@ end
 function widget:GameFrame(n)
 	spec = sp.GetSpectatingState()
 	gameFrame = n
+	timers.gameFrameHappened = true
 	if n == 2 then
 		init()
 	end
@@ -1191,6 +1217,9 @@ end
 
 function widget:Update(dt)
 	now = osClock()
+	timers.deferResourceUpdate = timers.gameFrameHappened and now - timers.lastUpdateTime < (1 / 30)
+	timers.gameFrameHappened = false
+	timers.lastUpdateTime = now
 
 	windRotation = windRotation + (currentWind * cfg.bladeSpeedMultiplier * dt * 30)
 
@@ -1333,6 +1362,7 @@ function widget:Update(dt)
 
 		-- wind
 		currentWind = stringFormat('%.1f', select(4, sp.GetWind()))
+		currentWindText = "\255\255\255\255" .. currentWind
 
 		-- coms
 		if displayComCounter then
@@ -1380,7 +1410,9 @@ local function drawResBars()
 
 	local update = false
 
-	if now > timers.nextBarsUpdate then
+	if now > timers.nextBarsUpdate
+		and not timers.deferResourceUpdate
+	then
 		timers.nextBarsUpdate = now + 0.05
 		update = true
 	end
@@ -1709,8 +1741,8 @@ local function drawUi()
 	if windFunctions.isNoWind() then
 		font2:Begin(true)
 		--font2:Print("\255\200\200\200no wind", windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.05) - (fontsize / 5), fontsize, 'oc') -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind1'), windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
-		font2:Print("\255\200\200\200" .. Spring.I18N('ui.topbar.wind.nowind2'), windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+		font2:Print(noWindText1, windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 1.5) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
+		font2:Print(noWindText2, windSkewCX, windArea[2] + ((windArea[4] - windArea[2]) / 2.8) - (fontsize / 5), fontsize*1.06, 'oc') -- Wind speed text
 		font2:End()
 	end
 
@@ -1719,7 +1751,7 @@ local function drawUi()
 		local fontSize = (tidalarea[4] - tidalarea[2]) / 2.3
 		local skewCenterOffset = cfg.useSkew and (tidalarea[4] - tidalarea[2]) * skewTan * 0.5 or 0
 		font2:Begin(true)
-		font2:Print("\255\255\255\255" .. tidalSpeed, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2) - skewCenterOffset, tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
+		font2:Print(tidalSpeedText, tidalarea[1] + ((tidalarea[3] - tidalarea[1]) / 2) - skewCenterOffset, tidalarea[2] + ((tidalarea[4] - tidalarea[2]) / 2.05) - (fontSize / 5), fontSize, 'oc') -- Tidal speed text
 		font2:End()
 	end
 end
@@ -1751,16 +1783,16 @@ local function renderWindText()
     font2:SetOutlineColor(0,0,0,1)
     -- current wind (large, centered) - only once game has started
     if gameFrame > 0 then
-        font2:Print("\255\255\255\255" .. currentWind, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
+		font2:Print(currentWindText, windArea[1] + ((windArea[3] - windArea[1]) / 2.1) - skewCenterOffset, windArea[2] + (windH / 1.85) - (fontSize / 5), fontSize, 'oc')
     end
     -- min wind: top area, x corrected for slope at text height
     local smallFS = windH / 3.4
     local minBaseline = windArea[4] - smallFS + (1 * widgetScale)
     local minWindX = windArea[3] - (cfg.useSkew and skewTan * (windArea[4] - minBaseline) or 0) - (4.5 * widgetScale)
-    font2:Print("\255\166\166\166" .. minWind, minWindX, minBaseline, smallFS, 'or')
+	font2:Print(minWindText, minWindX, minBaseline, smallFS, 'or')
     -- max wind: bottom-right corner
     local brWindX = windArea[3] - (cfg.useSkew and windH * skewTan or 0)
-    font2:Print("\255\166\166\166" .. maxWind, brWindX - (1.2 * widgetScale), windArea[2] + (4.5 * widgetScale), smallFS, 'or')
+	font2:Print(maxWindText, brWindX - (1.2 * widgetScale), windArea[2] + (4.5 * widgetScale), smallFS, 'or')
     font2:End()
 end
 
@@ -1779,6 +1811,7 @@ end
 
 function widget:DrawScreen()
 	now = osClock()
+	local topbarHeight = topbarArea[4] - topbarArea[2]
 
 	if hoveringTopbar then
 		sp.SetMouseCursor('cursornormal')
@@ -1850,19 +1883,24 @@ function widget:DrawScreen()
 	-- drawResBars() updates uiTex AFTER BlendTexRect each frame, so without this
 	-- the stale storage text is visible for up to ~50ms when the warning first activates.
 	if uiTex and (showingWarning.metal or showingWarning.energy) then
-		local storageScissors = {}
-		for _, res in ipairs({'metal', 'energy'}) do
+		local scissorsCount = 0
+		for i = 1, 2 do
+			local res = resourceNames[i]
 			if showingWarning[res] and resbarDrawinfo[res] and resbarDrawinfo[res].textStorage then
-				storageScissors[#storageScissors+1] = {
-					(resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4),
-					(topbarArea[4]-topbarArea[2])*0.48,
-					resbarDrawinfo[res].textStorage[4]*4.1,
-					topbarArea[4]-topbarArea[2]
-				}
+				scissorsCount = scissorsCount + 1
+				local scissor = storageScissors[scissorsCount]
+				scissor[1] = (resbarDrawinfo[res].textStorage[2]-topbarArea[1])-(resbarDrawinfo[res].textStorage[4]*4)
+				scissor[2] = topbarHeight * 0.48
+				scissor[3] = resbarDrawinfo[res].textStorage[4]*4.1
+				scissor[4] = topbarHeight
 			end
 		end
-		if storageScissors[1] then
-			r2tHelper.RenderToTexture(uiTex, clearFn, true, storageScissors)
+		if scissorsCount > 0 then
+			for i = 1, scissorsCount do
+				activeStorageScissors[i] = storageScissors[i]
+			end
+			activeStorageScissors[scissorsCount + 1] = nil
+			r2tHelper.RenderToTexture(uiTex, clearFn, true, activeStorageScissors)
 		end
 	end
 
@@ -1874,11 +1912,15 @@ function widget:DrawScreen()
 	if not windFunctions.isNoWind() then
 		if currentWind ~= prevWind or refreshUi then
 			prevWind = currentWind
+			windTextScissor[1] = windArea[1]-topbarArea[1]
+			windTextScissor[2] = windArea[2]-topbarArea[2]
+			windTextScissor[3] = windArea[3]-windArea[1]
+			windTextScissor[4] = windArea[4]-windArea[2]
 
 			r2tHelper.RenderToTexture(uiTex,
 				renderWindText,
 				true,
-				{windArea[1]-topbarArea[1], windArea[2]-topbarArea[2], windArea[3]-windArea[1], windArea[4]-windArea[2]}
+				windTextScissor
 			)
 		end
 	end
@@ -1892,11 +1934,15 @@ function widget:DrawScreen()
 		if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
 			prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
 			comsDlistUpdate = nil
+			comCounterScissor[1] = comsArea[1]-topbarArea[1]
+			comCounterScissor[2] = 0
+			comCounterScissor[3] = comsArea[3]-comsArea[1]
+			comCounterScissor[4] = topbarHeight
 
 			r2tHelper.RenderToTexture(uiTex,
 				renderComCounter,
 				true,
-				{comsArea[1]-topbarArea[1], 0, comsArea[3]-comsArea[1], (topbarArea[4]-topbarArea[2])}
+				comCounterScissor
 			)
 		end
 	end
@@ -2232,6 +2278,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function widget:LanguageChanged()
+	refreshWindTidalTextCache()
 	widget:ViewResize()
 end
 
@@ -2333,6 +2380,8 @@ function widget:Initialize()
 
 	updateAvgWind()
 	updateWindRisk()
+	currentWindText = "\255\255\255\255" .. currentWind
+	refreshWindTidalTextCache()
 
 	widget:ViewResize()
 

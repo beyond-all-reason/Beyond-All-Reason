@@ -101,15 +101,15 @@ local function scavUnitDef_Post(name, uDef)
 
 	-- Set autoheal of scav units
 	if uDef.health then
-		if not string.find(name, "armscavengerbossv2") or string.find(name, "scavengerbossv4") then
-			if not string.find(name, "scavbeacon") then
-				uDef.health = uDef.health * 1.25
-				if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.1 end
-				if uDef.energycost then uDef.energycost = uDef.energycost * 1.1 end
-				if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
-			end
-			uDef.autoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+		if not string.find(name, "scavbeacon") then
+			uDef.health = uDef.health * 1.25
+			if uDef.metalcost then uDef.metalcost = uDef.metalcost * 1.1 end
+			if uDef.energycost then uDef.energycost = uDef.energycost * 1.1 end
+			if uDef.buildtime then uDef.buildtime = uDef.buildtime * 1.1 end
 		end
+		uDef.autoheal = 0
+		uDef.idleautoheal = math.ceil(math.sqrt(uDef.health * 0.1))
+		uDef.idletime = 150
 	end
 
 	-- Buff _scav units turnrate
@@ -388,6 +388,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "leggant_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legbunk_scav" -- Pilum - Fast Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "legapollyon_scav" -- Apollyon - Heavy Gatling Tank
 		end
 
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
@@ -504,7 +505,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "corgant_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
-			uDef.buildoptions[numBuildoptions + 2] = "corgolt4_scav" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 			uDef.buildoptions[numBuildoptions + 4] = "corthermite_scav" -- Thermite/Epic Termite
 			uDef.buildoptions[numBuildoptions + 5] = "cormandot4_scav" -- Epic Commando
@@ -514,7 +515,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "corgantuw_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "corkarganetht4_scav" -- Epic Karganeth
-			uDef.buildoptions[numBuildoptions + 2] = "corgolt4_scav" -- Epic Tzar
+			uDef.buildoptions[numBuildoptions + 2] = "corves_scav" -- Vesuvius
 			uDef.buildoptions[numBuildoptions + 3] = "corakt4_scav" -- Epic Grunt
 			uDef.buildoptions[numBuildoptions + 4] = "cormandot4_scav" -- Epic Commando
 		end
@@ -539,6 +540,7 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3_scav" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede_scav" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old_scav" -- Old Sol Invictus - Quad Heatray Mech
 		end
 
 	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------
