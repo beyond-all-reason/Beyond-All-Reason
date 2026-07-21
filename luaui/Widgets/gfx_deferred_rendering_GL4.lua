@@ -379,12 +379,6 @@ local trackedProjectiles = {} -- used for finding out which projectiles can be c
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
 local lastGameFrame = -2
 
-local isTorpedoLauncher = {}
-for weaponDefID = 0, #WeaponDefs do
-	local weaponDef = WeaponDefs[weaponDefID]
-	isTorpedoLauncher[weaponDefID] = weaponDef.type == "TorpedoLauncher"
-end
-
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -585,7 +579,14 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 		autoLightInstanceID = autoLightInstanceID + 1
 		instanceID = autoLightInstanceID
 	end
-	lightparams[spawnFramePos] = gameFrame -- this might be problematic, as we will be modifying a table
+	-- Preserve spawnframe on push-updates so time-based animations (lifetime/sustain/colortime)
+	-- don't get reset every time a light is updated in-place.
+	local existingIndex = targetVBO.instanceIDtoIndex[instanceID]
+	if existingIndex then
+		lightparams[spawnFramePos] = targetVBO.instanceData[(existingIndex - 1) * targetVBO.instanceStep + spawnFramePos]
+	else
+		lightparams[spawnFramePos] = gameFrame
+	end
 	lightparams[pieceIndexPos] = pieceIndex or 0
 	--tracy.ZoneBeginN("pushElementInstance")
 	instanceID = pushElementInstance(targetVBO, lightparams, instanceID, true, noUpload, unitID)
@@ -605,7 +606,7 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 end
 
 ---AddPointLight
----DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
@@ -721,7 +722,7 @@ local function AddRandomDecayingPointLight()
 end
 
 ---AddBeamLight
----DEPRECTATED Note that instanceID can be nil if an auto-generated one is OK.
+---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
 ---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
@@ -1396,16 +1397,13 @@ end
 local defaultProjectileLightDelayWaterline = 2
 local defaultProjectileLightDelayFrames = 0
 local delayedProjectileLightFrames = {}
-local function ShouldDelayProjectileLight(projectileLight, projectileID, weaponDefID, py)
+local function ShouldDelayProjectileLight(projectileLight, projectileID, py)
 	if not projectileLight or not projectileLight.delayUntilSubmerged then
 		return false
 	end
-	if not isTorpedoLauncher[weaponDefID] then
-		return false
-	end
 
-	-- Skipped torpedoes are intentionally not tracked yet, so this can try again
-	-- on later frames after air-launched torpedoes enter the water.
+	-- Skipped projectiles are intentionally not tracked yet, so this can try again
+	-- on later frames after they enter the water.
 	if not py or py > (projectileLight.delayWaterline or defaultProjectileLightDelayWaterline) then
 		delayedProjectileLightFrames[projectileID] = nil
 		return true
@@ -1474,7 +1472,7 @@ local function updateProjectileLights(newgameframe)
 					local weaponDefID = spGetProjectileDefID(projectileID)
 					local projectileLight = projectileDefLights[weaponDefID]
 
-					if ShouldDelayProjectileLight(projectileLight, projectileID, weaponDefID, py) then
+					if ShouldDelayProjectileLight(projectileLight, projectileID, py) then
 						skipProjectileTracking = true
 					elseif projectileLight and (projectileID % (projectileLight.fraction or 1) == 0) then
 						local lightParamTable = projectileLight.lightParamTable
@@ -1677,7 +1675,6 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	if pointLightVBO.usedElements > 0 or
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
-		unitBeamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 or
 		cursorPointLightVBO.usedElements > 0 or

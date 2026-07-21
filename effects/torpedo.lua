@@ -8,7 +8,7 @@ local function torpedoCavitationTrail()
         water              = true,
 
         properties = {
-            colormap           = [[0.55 0.72 1.00 0.024   0.38 0.58 0.95 0.018   0.18 0.32 0.65 0.010   0.04 0.08 0.18 0.004   0 0 0 0.006]],
+            colormap           = [[0.55 0.72 1.00 0.0168   0.38 0.58 0.95 0.0126   0.18 0.32 0.65 0.007   0.04 0.08 0.18 0.0028   0 0 0 0.0042]],
             dir                = [[dir]],
             frontoffset        = 0.03,
             fronttexture       = [[blastwave]],
@@ -23,35 +23,6 @@ local function torpedoCavitationTrail()
 end
 
 local definitions = {
-
-    ["torpedo-cavitation-trail"] = {
-        flame = torpedoCavitationTrail(),
-    },
-    
-    ["torpedo-trail"] = {
-        cavitation = torpedoCavitationTrail(),
-        trail = {
-            air                = false,
-            class              = [[CBitmapMuzzleFlame]],
-            count              = 1,
-            ground             = false,
-            underwater         = true,
-            water              = true,
-
-            properties = {
-                colormap           = [[0.67 0.48 1 0.01   0.27 0.58 0.89 0.03   0.15 0.19 0.35 0.01   0 0 0 0.01]],
-                dir                = [[dir]],
-                frontoffset        = [[0.3 r0.15]],
-                fronttexture       = [[bubbletexture]],
-                sidetexture        = [[longshot]],
-                length             = [[.55 r0.25]],
-                size               = [[2.6 r1.8]],
-                sizegrowth         = 0.28,
-                ttl                = [[12 r4]],
-                useairlos          = true,
-            },
-        },
-    },
 
     ["torpedotrail-tiny"] = {
         cavitation = torpedoCavitationTrail(),
@@ -119,7 +90,28 @@ local definitions = {
                 sidetexture        = [[none]],
                 size               = 1.8,
                 sizegrowth         = 1.4,
-                ttl                = 8,
+                ttl                = 6,
+                rotParams          = [[0, -50 r100, -20 r40]],
+            },
+        },
+
+        trailtiny = {
+            air                = false,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 2,
+            ground             = false,
+            underwater         = true,
+            water              = true,
+            properties = {
+                colormap           = [[0.20 0.21 0.23 0.025   0 0 0 0.001]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[explowater]],
+                length             = -2.7,
+                sidetexture        = [[none]],
+                size               = 1.8,
+                sizegrowth         = 1.4,
+                ttl                = 5,
                 rotParams          = [[0, -50 r100, -20 r40]],
             },
         },
@@ -172,35 +164,6 @@ local definitions = {
         --         useairlos          = false,
         --     },
         -- },
-        waterball = {
-            air                = false,
-            class              = [[CSimpleParticleSystem]],
-            count              = 1,
-            ground             = false,
-            underwater         = 1,
-            water              = true,
-            properties = {
-                airdrag            = 0.91,
-                colormap           = [[0.25 0.25 0.25 .01    0.15 0.15 0.15 .01    0 0 0 0.01]],
-                directional        = true,
-                emitrot            = 180,
-                emitrotspread      = 5,
-                emitvector         = [[dir]],
-                gravity            = [[0.0, 0.1, 0.0]],
-                numparticles       = 2,
-                particlelife       = 5,
-                particlelifespread = 22,
-                particlesize       = 1.25,
-                particlesizespread = 1.85,
-                particlespeed      = 0.2,
-                particlespeedspread = 0.1,
-                pos                = [[-12 r24, 0 r10, -12 r24]],
-                sizegrowth         = 0.02,
-                sizemod            = 1.0,
-                texture            = [[dirt]],
-                useairlos          = true,
-            },
-        },
     },
 
     -- ["torpedo-launch"] = {

@@ -572,6 +572,7 @@ local terminalCorrectionDistanceSq = terminalCorrectionDistance * terminalCorrec
 local function torpedoWaterPen(projectileID)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
+	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 
 	-- Default behavior is neutral vertical correction.
 	-- Surface-target torpedoes should skim near water level rather than constantly diving.
@@ -580,21 +581,17 @@ local function torpedoWaterPen(projectileID)
 
 	if targetType == targetedUnit and targetID then
 		local targetX, targetY, targetZ = spGetUnitPosition(targetID)
-		local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 		local closeToTarget = false
 
-		-- Use a simple squared-distance check to avoid sqrt in this per-projectile path.
 		-- Close torpedoes get stronger correction so they do not miss from over-smoothing.
 		if targetX and positionX then
-			local dx = targetX - positionX
-			local dy = targetY - positionY
-			local dz = targetZ - positionZ
-			closeToTarget = (dx * dx + dy * dy + dz * dz) < terminalCorrectionDistanceSq
+			closeToTarget = distance3dSquared(
+				positionX, positionY, positionZ,
+				targetX, targetY, targetZ
+			) < terminalCorrectionDistanceSq
 		end
 
-		local _, unitDepth = spGetUnitPosition(targetID)
-
-		if unitDepth and unitDepth < -10 then
+		if targetY and targetY < -10 then
 			-- Sub targets sit deeper, so keep at least a slight downward bias.
 			-- If the torpedo is already diving faster, damp that dive instead of forcing
 			-- a fixed hard descent. Never let an upward velocity become the desired dive.
@@ -607,8 +604,7 @@ local function torpedoWaterPen(projectileID)
 			-- Surface targets sit near the waterline.
 			-- Aircraft torpedoes can enter with strong downward momentum, so give
 			-- deep torpedoes a small recovery bias back toward the surface.
-			local _, projectileY = spGetProjectilePosition(projectileID)
-			if projectileY and projectileY < -8 then
+			if positionY and positionY < -8 then
 				diveSpeed = 0.08
 			else
 				diveSpeed = 0
@@ -621,7 +617,6 @@ local function torpedoWaterPen(projectileID)
 
 	-- Terrain correction removes velocity into the seafloor normal, helping torpedoes
 	-- avoid driving straight into slopes while still preserving their forward motion.
-	local positionX, _, positionZ = spGetProjectilePosition(projectileID)
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
 
 	local terrainCorrectedY = velocityY - normalY * (
@@ -672,6 +667,7 @@ do
 		end
 	end
 end
+
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
