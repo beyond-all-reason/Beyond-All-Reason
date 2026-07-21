@@ -9063,6 +9063,22 @@ function widget:SelectedUnitsClear(playerID)
 	trackedPlayerSelectionSeeded[playerID] = true
 end
 
+function widget:SelectedUnitsSet(playerID, units, unitCount)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
+	local selectedByPlayer = {}
+	for i = 1, unitCount do
+		local unitID = units[i]
+		if unitID then
+			selectedByPlayer[unitID] = true
+		end
+	end
+	trackedPlayerSelections[playerID] = selectedByPlayer
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
 function widget:SelectedUnitsAdd(playerID, unitID)
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
