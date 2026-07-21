@@ -1,0 +1,3 @@
+# downloaded layer textures (see README.md) stay untracked
+*.jpg
+*.png

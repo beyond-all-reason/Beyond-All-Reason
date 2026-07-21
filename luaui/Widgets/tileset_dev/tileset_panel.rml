@@ -1,0 +1,250 @@
+<rml>
+<head>
+	<link type="text/rcss" href="tileset_panel.rcss" />
+</head>
+<body data-model="tileset_knobs">
+	<div id="tileset-panel" class="ts-panel">
+		<handle move_target="#tileset-panel">
+			<div class="ts-title">Tileset Terrain tuning<span class="ts-close" data-event-click="onClose()">  X</span></div>
+		</handle>
+		<div class="ts-row">
+			<span class="ts-lbl">Soil scale</span>
+			<input type="range" id="sl-scaleSoil" class="ts-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onKnob('scaleSoil')" />
+			<span class="ts-val" id="nb-scaleSoil">512</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Rocky scale</span>
+			<input type="range" id="sl-scaleRocky" class="ts-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onKnob('scaleRocky')" />
+			<span class="ts-val" id="nb-scaleRocky">512</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff scale</span>
+			<input type="range" id="sl-scaleCliff" class="ts-slider" min="128" max="3072" step="14.72" value="768" data-event-change="onKnob('scaleCliff')" />
+			<span class="ts-val" id="nb-scaleCliff">768</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Plateau scale</span>
+			<input type="range" id="sl-scalePlat" class="ts-slider" min="128" max="2048" step="9.6" value="512" data-event-change="onKnob('scalePlat')" />
+			<span class="ts-val" id="nb-scalePlat">512</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Normal strength</span>
+			<input type="range" id="sl-normalStrength" class="ts-slider" min="0" max="2" step="0.01" value="0.65" data-event-change="onKnob('normalStrength')" />
+			<span class="ts-val" id="nb-normalStrength">0.65</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff norm str</span>
+			<input type="range" id="sl-cliffNormStrength" class="ts-slider" min="0" max="4" step="0.02" value="1.0" data-event-change="onKnob('cliffNormStrength')" />
+			<span class="ts-val" id="nb-cliffNormStrength">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff start deg</span>
+			<input type="range" id="sl-cliffStartDeg" class="ts-slider" min="20" max="70" step="0.25" value="41.4" data-event-change="onKnob('cliffStartDeg')" />
+			<span class="ts-val" id="nb-cliffStartDeg">41.4</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Chunky cliff</span>
+			<input type="range" id="sl-chunkyCliff" class="ts-slider" min="0" max="1" step="1" value="1" data-event-change="onKnob('chunkyCliff')" />
+			<span class="ts-val" id="nb-chunkyCliff">1</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Foothills span</span>
+			<input type="range" id="sl-foothillsSpanDeg" class="ts-slider" min="2" max="30" step="0.25" value="10" data-event-change="onKnob('foothillsSpanDeg')" />
+			<span class="ts-val" id="nb-foothillsSpanDeg">10.0</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Foot norm str</span>
+			<input type="range" id="sl-footNormStrength" class="ts-slider" min="0" max="4" step="0.02" value="2.0" data-event-change="onKnob('footNormStrength')" />
+			<span class="ts-val" id="nb-footNormStrength">2.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Foot scale</span>
+			<input type="range" id="sl-scaleFoot" class="ts-slider" min="128" max="3072" step="14.72" value="768" data-event-change="onKnob('scaleFoot')" />
+			<span class="ts-val" id="nb-scaleFoot">768</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Foot floor</span>
+			<input type="range" id="sl-footFloor" class="ts-slider" min="0" max="0.3" step="0.0015" value="0" data-event-change="onKnob('footFloor')" />
+			<span class="ts-val" id="nb-footFloor">0.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Splat paint</span>
+			<input type="range" id="sl-splatInfluence" class="ts-slider" min="0" max="1" step="0.005" value="1" data-event-change="onKnob('splatInfluence')" />
+			<span class="ts-val" id="nb-splatInfluence">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Anti-tile warp</span>
+			<input type="range" id="sl-antiTileWarp" class="ts-slider" min="0" max="300" step="1.5" value="80" data-event-change="onKnob('antiTileWarp')" />
+			<span class="ts-val" id="nb-antiTileWarp">80</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Macro variation</span>
+			<input type="range" id="sl-macroVar" class="ts-slider" min="0" max="1" step="0.005" value="0.4" data-event-change="onKnob('macroVar')" />
+			<span class="ts-val" id="nb-macroVar">0.40</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Albedo sort V/P</span>
+			<input type="range" id="sl-albedoSortMode" class="ts-slider" min="0" max="1" step="1" value="0" data-event-change="onKnob('albedoSortMode')" />
+			<span class="ts-val" id="nb-albedoSortMode">0</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Stagger amount</span>
+			<input type="range" id="sl-staggerAmount" class="ts-slider" min="0" max="1" step="0.005" value="0.35" data-event-change="onKnob('staggerAmount')" />
+			<span class="ts-val" id="nb-staggerAmount">0.35</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Mask scale 1</span>
+			<input type="range" id="sl-maskScale1" class="ts-slider" min="256" max="4096" step="19.2" value="1000" data-event-change="onKnob('maskScale1')" />
+			<span class="ts-val" id="nb-maskScale1">1000</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Mask scale 2</span>
+			<input type="range" id="sl-maskScale2" class="ts-slider" min="512" max="8192" step="38.4" value="3000" data-event-change="onKnob('maskScale2')" />
+			<span class="ts-val" id="nb-maskScale2">3000</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Feature blend</span>
+			<input type="range" id="sl-lumaBlend" class="ts-slider" min="0" max="1" step="0.005" value="0.65" data-event-change="onKnob('lumaBlend')" />
+			<span class="ts-val" id="nb-lumaBlend">0.65</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Ridge light</span>
+			<input type="range" id="sl-curvHighlight" class="ts-slider" min="0" max="1.5" step="0.0075" value="0.22" data-event-change="onKnob('curvHighlight')" />
+			<span class="ts-val" id="nb-curvHighlight">0.22</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cavity shade</span>
+			<input type="range" id="sl-curvShadow" class="ts-slider" min="0" max="1.5" step="0.0075" value="0.2" data-event-change="onKnob('curvShadow')" />
+			<span class="ts-val" id="nb-curvShadow">0.20</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Curv radius</span>
+			<input type="range" id="sl-curvRadius" class="ts-slider" min="4" max="32" step="0.14" value="12" data-event-change="onKnob('curvRadius')" />
+			<span class="ts-val" id="nb-curvRadius">12</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Specular</span>
+			<input type="range" id="sl-specStrength" class="ts-slider" min="0" max="1" step="0.005" value="0.3" data-event-change="onKnob('specStrength')" />
+			<span class="ts-val" id="nb-specStrength">0.30</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Sky ambient</span>
+			<input type="range" id="sl-hemiAmbient" class="ts-slider" min="0" max="1.5" step="0.0075" value="0.5" data-event-change="onKnob('hemiAmbient')" />
+			<span class="ts-val" id="nb-hemiAmbient">0.50</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">AO depth</span>
+			<input type="range" id="sl-aoStrength" class="ts-slider" min="0" max="1" step="0.005" value="0.6" data-event-change="onKnob('aoStrength')" />
+			<span class="ts-val" id="nb-aoStrength">0.60</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Wet shore</span>
+			<input type="range" id="sl-wetBand" class="ts-slider" min="0" max="40" step="0.2" value="12" data-event-change="onKnob('wetBand')" />
+			<span class="ts-val" id="nb-wetBand">12</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Old-map blend</span>
+			<input type="range" id="sl-smtBlend" class="ts-slider" min="0" max="1" step="0.005" value="0.0" data-event-change="onKnob('smtBlend')" />
+			<span class="ts-val" id="nb-smtBlend">0.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Old cliff match</span>
+			<input type="range" id="sl-oldCliffBlend" class="ts-slider" min="0" max="1" step="0.005" value="0.5" data-event-change="onKnob('oldCliffBlend')" />
+			<span class="ts-val" id="nb-oldCliffBlend">0.50</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Shadow bias</span>
+			<input type="range" id="sl-shadowBias" class="ts-slider" min="0" max="0.005" step="2.5e-05" value="0.0015" data-event-change="onKnob('shadowBias')" />
+			<span class="ts-val" id="nb-shadowBias">0.0015</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Biome tint R</span>
+			<input type="range" id="sl-tintR" class="ts-slider" min="0.4" max="1.6" step="0.006" value="1.0" data-event-change="onKnob('tintR')" />
+			<span class="ts-val" id="nb-tintR">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Biome tint G</span>
+			<input type="range" id="sl-tintG" class="ts-slider" min="0.4" max="1.6" step="0.006" value="1.0" data-event-change="onKnob('tintG')" />
+			<span class="ts-val" id="nb-tintG">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Biome tint B</span>
+			<input type="range" id="sl-tintB" class="ts-slider" min="0.4" max="1.6" step="0.006" value="1.0" data-event-change="onKnob('tintB')" />
+			<span class="ts-val" id="nb-tintB">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Soil tint R</span>
+			<input type="range" id="sl-soilTintR" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('soilTintR')" />
+			<span class="ts-val" id="nb-soilTintR">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Soil tint G</span>
+			<input type="range" id="sl-soilTintG" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('soilTintG')" />
+			<span class="ts-val" id="nb-soilTintG">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Soil tint B</span>
+			<input type="range" id="sl-soilTintB" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('soilTintB')" />
+			<span class="ts-val" id="nb-soilTintB">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Gravel tint R</span>
+			<input type="range" id="sl-rockyTintR" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('rockyTintR')" />
+			<span class="ts-val" id="nb-rockyTintR">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Gravel tint G</span>
+			<input type="range" id="sl-rockyTintG" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('rockyTintG')" />
+			<span class="ts-val" id="nb-rockyTintG">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Gravel tint B</span>
+			<input type="range" id="sl-rockyTintB" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('rockyTintB')" />
+			<span class="ts-val" id="nb-rockyTintB">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff tint R</span>
+			<input type="range" id="sl-cliffTintR" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('cliffTintR')" />
+			<span class="ts-val" id="nb-cliffTintR">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff tint G</span>
+			<input type="range" id="sl-cliffTintG" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('cliffTintG')" />
+			<span class="ts-val" id="nb-cliffTintG">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Cliff tint B</span>
+			<input type="range" id="sl-cliffTintB" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('cliffTintB')" />
+			<span class="ts-val" id="nb-cliffTintB">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Plateau tint R</span>
+			<input type="range" id="sl-platTintR" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('platTintR')" />
+			<span class="ts-val" id="nb-platTintR">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Plateau tint G</span>
+			<input type="range" id="sl-platTintG" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('platTintG')" />
+			<span class="ts-val" id="nb-platTintG">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Plateau tint B</span>
+			<input type="range" id="sl-platTintB" class="ts-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onKnob('platTintB')" />
+			<span class="ts-val" id="nb-platTintB">1.00</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Shadow mode</span>
+			<input type="range" id="sl-shadowMode" class="ts-slider" min="0" max="2" step="1" value="1" data-event-change="onKnob('shadowMode')" />
+			<span class="ts-val" id="nb-shadowMode">1</span>
+		</div>
+		<div class="ts-row">
+			<span class="ts-lbl">Debug view</span>
+			<input type="range" id="sl-debugView" class="ts-slider" min="0" max="7" step="1" value="0" data-event-change="onKnob('debugView')" />
+			<span class="ts-val" id="nb-debugView">0</span>
+		</div>
+		<div class="ts-btnrow">
+			<div class="ts-btn" data-event-click="onReset()">Reset to defaults</div>
+		</div>
+	</div>
+</body>
+</rml>

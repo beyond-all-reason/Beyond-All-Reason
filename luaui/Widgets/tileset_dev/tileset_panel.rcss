@@ -1,0 +1,87 @@
+body {
+	font-family: Poppins;
+	font-size: 14dp;
+}
+
+.ts-panel {
+	position: absolute;
+	left: 40dp;
+	top: 120dp;
+	width: 360dp;
+	background-color: #0d0d14e0;
+	border: 1dp #3a5a40;
+	padding-bottom: 6dp;
+}
+
+.ts-title {
+	display: block;
+	background-color: #2e5237;
+	color: #ffffff;
+	padding: 5dp 8dp;
+	font-size: 15dp;
+}
+
+.ts-close {
+	color: #ffb0b0;
+}
+
+.ts-btnrow {
+	display: block;
+	padding: 6dp 8dp 2dp 8dp;
+}
+
+.ts-btn {
+	display: inline-block;
+	background-color: #2e5237;
+	color: #ffffff;
+	padding: 4dp 14dp;
+	border: 1dp #73bf80;
+	text-align: center;
+}
+
+.ts-btn:hover {
+	background-color: #3a6a47;
+}
+
+.ts-row {
+	display: block;
+	padding: 2dp 8dp;
+}
+
+.ts-lbl {
+	display: inline-block;
+	width: 118dp;
+	color: #dddddd;
+}
+
+.ts-val {
+	display: inline-block;
+	width: 52dp;
+	color: #ffffcc;
+	text-align: right;
+}
+
+input.range {
+	display: inline-block;
+	width: 160dp;
+	height: 16dp;
+	vertical-align: middle;
+}
+
+input.range slidertrack {
+	background-color: #3a3a44;
+	height: 4dp;
+	margin-top: 6dp;
+}
+
+input.range sliderbar {
+	background-color: #73bf80;
+	width: 10dp;
+	height: 16dp;
+	margin-top: -6dp;
+}
+
+input.range sliderarrowdec, input.range sliderarrowinc {
+	width: 0dp;
+	height: 0dp;
+}
