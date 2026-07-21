@@ -5,19 +5,36 @@
 	"description": "Ordered, cross-surface catalog of keybindable commands grouped into categories. Shared by the in-game editor and external lobbies. Holds i18n keys and bind-action ids, not resolved strings or actual key bindings.",
 	"type": "array",
 	"items": {
-		"type": "object",
-		"required": ["category", "items"],
-		"additionalProperties": false,
-		"properties": {
-			"category": {
-				"type": "string",
-				"description": "i18n key for the category title."
+		"oneOf": [
+			{
+				"type": "object",
+				"description": "Category of keybindable commands.",
+				"required": ["category", "items"],
+				"additionalProperties": false,
+				"properties": {
+					"category": {
+						"type": "string",
+						"description": "i18n key for the category title."
+					},
+					"items": {
+						"type": "array",
+						"items": { "$ref": "#/definitions/item" }
+					}
+				}
 			},
-			"items": {
-				"type": "array",
-				"items": { "$ref": "#/definitions/item" }
+			{
+				"type": "object",
+				"description": "Actions bound but intentionally never shown, matched by id prefix.",
+				"required": ["hidden"],
+				"additionalProperties": false,
+				"properties": {
+					"hidden": {
+						"type": "array",
+						"items": { "type": "string", "description": "Action id prefix to suppress." }
+					}
+				}
 			}
-		}
+		]
 	},
 	"definitions": {
 		"item": {
@@ -44,11 +61,13 @@
 				},
 				{
 					"type": "object",
-					"description": "Prefix group: claims every bound action whose id starts with this prefix, listed by raw id.",
+					"description": "Prefix group: claims every bound action whose id starts with this prefix. With a label the arg after the prefix is interpolated as %{n} (or its two whitespace-split tokens as %{row}/%{col}); without one, rows show the raw id. With unit=true the arg is resolved to a unit's translated name.",
 					"required": ["prefix"],
 					"additionalProperties": false,
 					"properties": {
-						"prefix": { "type": "string", "description": "Action id prefix." }
+						"prefix": { "type": "string", "description": "Action id prefix." },
+						"label": { "type": "string", "description": "i18n key for the display label, interpolated per matched action." },
+						"unit": { "type": "boolean", "description": "When true, the arg after the prefix is a unit codename resolved to its translated human name." }
 					}
 				}
 			]
