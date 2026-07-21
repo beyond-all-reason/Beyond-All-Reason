@@ -436,6 +436,7 @@ local LandUnitsList = {
 			["legeheatraymech_scav"] = 1,
 			["legeheatraymech_old_scav"] = 3,
 			["legelrpcmech_scav"] = 3,
+			["legapollyon_scav"] = 3,
 		},
 	},
 	Support = {
