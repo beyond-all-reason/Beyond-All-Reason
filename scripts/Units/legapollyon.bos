@@ -353,3 +353,48 @@ QueryWeapon10(piecenum)
 {
 	piecenum = FrontRightFenderFirepoint;
 }
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode Hull type BITMAPONLY | NOHEATCLOUD;
+		explode MainTurret type BITMAPONLY | NOHEATCLOUD;
+        explode MainTurretLowerLeftBarrel type BITMAPONLY | NOHEATCLOUD;
+        explode MainTurretUpperRightBarrel type BITMAPONLY | NOHEATCLOUD;
+        explode RearLeftMinigunTurret type BITMAPONLY | NOHEATCLOUD;
+        explode RearRightMinigunTurretBarrel type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+        explode Hull type BITMAPONLY | NOHEATCLOUD;
+		explode MainTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode MainTurretLowerLeftBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode MainTurretUpperRightBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode RearLeftMinigunTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode RearRightMinigunTurretBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+        explode Hull type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode MainTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode MainTurretLowerLeftBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode MainTurretUpperRightBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode RearLeftMinigunTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+        explode RearRightMinigunTurretBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+    explode Hull type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode MainTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+    explode MainTurretLowerLeftBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+    explode MainTurretUpperRightBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+    explode RearLeftMinigunTurret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+    explode RearRightMinigunTurretBarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}
