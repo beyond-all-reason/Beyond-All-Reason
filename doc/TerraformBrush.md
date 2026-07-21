@@ -4,7 +4,7 @@ Custom terrain editing tool replacing BAR's default terraform commands with a un
 
 **Files:** `luaui/Widgets/cmd_terraform_brush.lua` · `luaui/RmlWidgets/gui_terraform_brush/`
 
-> **Related docs:** [1.0 Release Plan](TerraformBrush_1.0_Plan.md) · [QoL Tracker](TerraformBrush_QoL_Tracker.md) · [AutoChainMode](TerraformBrush_AutoChainMode.md) · [CloneWindows](TerraformBrush_CloneWindows.md) · [SaveLoad Tracking](TerraformBrush_SaveLoad_Tracking.md)
+> Development trackers and design notes live in the `realtime-terraformer` branch history (PR #7219), not in master.
 
 ---
 
@@ -70,7 +70,6 @@ All saved files live under `<bar data dir>/luaui/terraform_brush/` and friends �
 
 - Mapping help, feedback, and showing off your work: **[BAR Discord](https://discord.gg/beyond-all-reason)** → `#mapping` channel.
 - Bug reports: tag `@BARb` (terraform brush maintainer) in `#mapping`, or open an issue against the realtime-terraformer branch on GitHub.
-- Project tracker / roadmap: see [TerraformBrush_QoL_Tracker.md](TerraformBrush_QoL_Tracker.md) and [TerraformBrush_1.0_Plan.md](TerraformBrush_1.0_Plan.md).
 
 ---
 
@@ -741,7 +740,7 @@ When `totalVertexCount` exceeds the budget, the **oldest** undo entries are evic
 - OpenGL calls only valid in Draw call-ins, not action handlers
 - `gl.CreateShader` returns `0` on failure (truthy in Lua) — must check `== 0`
 - `gl.SaveImage` must be inside the same `RenderToTexture` binding where content was drawn
-- A "clone window" system (drag toolbar buttons to spawn floating panel copies) was prototyped and removed — fundamental limitations in RmlUI's `Clone()` API (no event listener copying) and bidirectional sync complexity made it unmaintainable. See [TerraformBrush_CloneWindows.md](TerraformBrush_CloneWindows.md) for the write-up.
+- A "clone window" system (drag toolbar buttons to spawn floating panel copies) was prototyped and removed — fundamental limitations in RmlUI's `Clone()` API (no event listener copying) and bidirectional sync complexity made it unmaintainable. The write-up lives in the branch history (doc/TerraformBrush_CloneWindows.md before it was pruned for merge).
 
 ---
 
