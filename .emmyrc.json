@@ -67,6 +67,8 @@
       "UnitDef",
       "Objective",
       "MatchFlow",
+      "Policies",
+      "Actions",
       "describe",
       "it",
       "before_each",

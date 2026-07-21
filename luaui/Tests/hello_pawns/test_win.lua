@@ -76,7 +76,8 @@ function test()
 	end)
 
 	-- The mission's effect chain: objective completes, then scripted victory
-	-- for the player's ally team.
+	-- for the player's ally team. The verdict rides the full gameover ceremony
+	-- (GG.maxDeathFrame-or-250 + 70 frame delay), hence the long timeout.
 	Test.waitUntilCallin("GameOver", function(winningAllyTeams)
 		if type(winningAllyTeams) ~= "table" then
 			return false
@@ -87,7 +88,7 @@ function test()
 			end
 		end
 		return false
-	end, 10 * 30)
+	end, 20 * 30)
 
 	assert(Spring.GetGameRulesParam("objective_build_pawns") == 1, "objective build_pawns should be complete before victory")
 end
