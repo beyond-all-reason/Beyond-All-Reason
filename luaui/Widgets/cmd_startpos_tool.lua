@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name      = "Start Positions Tool",
 		desc      = "Place and configure start positions and start boxes for map editing",
-		author    = "Terraform Brush Team",
+		author    = "PtaQ",
 		date      = "2026",
 		license   = "GPL v2",
 		layer     = 1000000,

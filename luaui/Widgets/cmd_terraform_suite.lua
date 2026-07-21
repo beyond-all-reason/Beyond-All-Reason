@@ -4,7 +4,7 @@ function widget:GetInfo()
 	return {
 		name    = "Terraform Suite Launcher",
 		desc    = "Loads the map editor suite on demand (/terraformbrush, /terraformpanel, /terraformsuite)",
-		author  = "PtaQQ",
+		author  = "PtaQ",
 		date    = "July 2026",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
@@ -34,6 +34,7 @@ local SUITE_WIDGETS = {
 	"Start Positions Tool",
 	"Weather Brush",
 	"Water Type Overlay GL4",
+	"Terraformer Shared RmlUi Helpers",
 	"Terraform Brush UI",
 	"Decal Placer UI",
 	"Diffuse Library UI",

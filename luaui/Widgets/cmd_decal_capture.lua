@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name      = "Decal Capture",
 		desc      = "Capture a top-down PNG of the map's diffuse gbuffer for use as a ground decal. Console: /decalcapture <name> [radius]",
-		author    = "tf-brush",
+		author    = "PtaQ",
 		date      = "2026",
 		license   = "GPL-2.0+",
 		layer     = 0,
