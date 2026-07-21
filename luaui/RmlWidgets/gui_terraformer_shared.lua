@@ -8,7 +8,7 @@ function widget:GetInfo()
     return {
         name = "Terraformer Shared RmlUi Helpers",
         desc = "Feature-owned shared helpers (DP-ratio, document registry, draggable panels) used by the realtime terraformer RmlUi widgets: terraform brush, weather brush, feature placer and decal placer.",
-        author = "PtaQ",
+        author = "Mupersega",
         date = "2026",
         license = "GNU GPL, v2 or later",
         layer = -999999,
