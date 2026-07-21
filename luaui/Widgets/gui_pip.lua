@@ -363,6 +363,7 @@ local pipR2T = {
 	contentInvalidInfoStreak = 0,  -- Consecutive invalid TextureInfo reads for contentTex
 	contentNeedsUpdate = true,
 	contentLastUpdateTime = 0,
+	contentNextUpdateTime = 0,
 	contentCurrentUpdateRate = config.pipMinUpdateRate,
 	contentLastWidth = 0,
 	contentLastHeight = 0,
@@ -422,6 +423,7 @@ local pipR2T = {
 	unitsWcz = 0,  -- Camera Z position when unitsTex was rendered
 	unitsNeedsUpdate = true,  -- Flag to force unitsTex re-render
 	unitsLastUpdateTime = 0,  -- Last time unitsTex was rendered
+	unitsNextUpdateTime = 0,  -- Rolling deadline prevents refreshes aliasing onto one render-only frame
 	-- Decal overlay texture state (render-to-texture)
 	decalTex = nil,
 	decalLastCheckFrame = 0,  -- last frame we ran the dirty check
@@ -15891,11 +15893,11 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 		end
 	end
 
-	local timeSinceLastUpdate = currentTime - pipR2T.unitsLastUpdateTime
+	local timerDue = effectiveUpdateInterval == 0 or pipR2T.unitsNextUpdateTime <= 0 or
+		(effectiveUpdateInterval > 0 and currentTime >= pipR2T.unitsNextUpdateTime)
 	local shouldUpdate = pipR2T.unitsNeedsUpdate or rotChanged or driftForced or
 		(sizeChanged and not uiState.areResizing) or
-		effectiveUpdateInterval == 0 or
-		(effectiveUpdateInterval > 0 and timeSinceLastUpdate >= effectiveUpdateInterval)
+		timerDue
 
 	-- Force update during refresh grace period (graphics preset change, ViewResize)
 	if pipR2T.forceRefreshFrames > 0 then
@@ -15953,6 +15955,15 @@ local function UpdateR2TUnits(currentTime, pipUpdateInterval, pipWidth, pipHeigh
 
 		gl.R2tHelper.RenderToTexture(pipR2T.unitsTex, unitsR2TDraw, true)
 		pipR2T.unitsLastUpdateTime = currentTime
+		if effectiveUpdateInterval > 0 then
+			if timerDue and pipR2T.unitsNextUpdateTime > 0 then
+				pipR2T.unitsNextUpdateTime = math.max(pipR2T.unitsNextUpdateTime + effectiveUpdateInterval, currentTime)
+			else
+				pipR2T.unitsNextUpdateTime = currentTime + effectiveUpdateInterval
+			end
+		else
+			pipR2T.unitsNextUpdateTime = currentTime
+		end
 		pipR2T.unitsNeedsUpdate = false
 		tracy.ZoneEnd()
 	end
@@ -16019,11 +16030,11 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 
 	-- Check if should update based on time
 	-- During resize, sizeChanged defers to throttle instead of forcing immediate update
-	local timeSinceLastUpdate = currentTime - pipR2T.contentLastUpdateTime
+	local timerDue = pipUpdateInterval == 0 or pipR2T.contentNextUpdateTime <= 0 or
+		(pipUpdateInterval > 0 and currentTime >= pipR2T.contentNextUpdateTime)
 	local shouldUpdate = pipR2T.contentNeedsUpdate or rotChanged or driftForced or
 		(sizeChanged and not uiState.areResizing) or
-		pipUpdateInterval == 0 or
-		(pipUpdateInterval > 0 and timeSinceLastUpdate >= pipUpdateInterval)
+		timerDue
 
 	-- Force update during refresh grace period (graphics preset change, ViewResize)
 	if pipR2T.forceRefreshFrames > 0 then
@@ -16134,6 +16145,15 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 		pipR2T.contentZoom = cameraState.zoom
 		pipR2T.contentRotation = currentRotation
 		pipR2T.contentLastUpdateTime = currentTime
+		if pipUpdateInterval > 0 then
+			if timerDue and pipR2T.contentNextUpdateTime > 0 then
+				pipR2T.contentNextUpdateTime = math.max(pipR2T.contentNextUpdateTime + pipUpdateInterval, currentTime)
+			else
+				pipR2T.contentNextUpdateTime = currentTime + pipUpdateInterval
+			end
+		else
+			pipR2T.contentNextUpdateTime = currentTime
+		end
 		pipR2T.contentNeedsUpdate = false
 		tracy.ZoneEnd()
 	end
@@ -17017,9 +17037,42 @@ end
 function widget:DrawScreen()
 	tracy.ZoneBeginN("W:PIP:DrawScreen:Total")
 	miscState.pipDrawFrame = (miscState.pipDrawFrame or 0) + 1
+	local drawTime = os.clock()
 	local drawGameFrame = Spring.GetGameFrame()
 	local sameGameFrameAsLastDraw = (drawGameFrame == miscState.pipLastDrawGameFrame)
 	local hadRenderOnlyDraw = miscState.pipSawRenderOnlyDraw
+	if sameGameFrameAsLastDraw then
+		miscState.pipRenderOnlyDraw = (miscState.pipRenderOnlyDraw or 0) + 1
+	else
+		if miscState.pipLastDrawGameFrame ~= nil then
+			local observedRenderOnlyDraws = miscState.pipRenderOnlyDraw or 0
+			local availableRenderOnlyDraws = miscState.pipAvailableRenderOnlyDraws or 1
+			if observedRenderOnlyDraws < availableRenderOnlyDraws then
+				miscState.pipAvailableRenderOnlyDraws = observedRenderOnlyDraws
+				miscState.pipHigherRenderOnlyDrawStreak = 0
+			elseif observedRenderOnlyDraws > availableRenderOnlyDraws then
+				local higherDrawStreak = (miscState.pipHigherRenderOnlyDrawStreak or 0) + 1
+				if higherDrawStreak >= 3 then
+					miscState.pipAvailableRenderOnlyDraws = availableRenderOnlyDraws + 1
+					higherDrawStreak = 0
+				end
+				miscState.pipHigherRenderOnlyDrawStreak = higherDrawStreak
+			else
+				miscState.pipHigherRenderOnlyDrawStreak = 0
+			end
+
+			local gameFrameDelta = drawGameFrame - miscState.pipLastDrawGameFrame
+			if gameFrameDelta > 0 and miscState.pipLastGameFrameDrawTime then
+				local measuredInterval = (drawTime - miscState.pipLastGameFrameDrawTime) / gameFrameDelta
+				if measuredInterval > 0 and measuredInterval < 0.25 then
+					local previousInterval = miscState.pipGameFrameInterval or (1 / 30)
+					miscState.pipGameFrameInterval = previousInterval + (measuredInterval - previousInterval) * 0.15
+				end
+			end
+		end
+		miscState.pipRenderOnlyDraw = 0
+		miscState.pipLastGameFrameDrawTime = drawTime
+	end
 	miscState.pipLastDrawGameFrame = drawGameFrame
 	miscState.pipSawRenderOnlyDraw = sameGameFrameAsLastDraw
 	local mx, my, mbl = spFunc.GetMouseState()
@@ -17363,6 +17416,19 @@ function widget:DrawScreen()
 				miscState.pendingPipR2TUpdate = true
 				runR2TUpdates = false
 			end
+
+			if runR2TUpdates and sameGameFrameAsLastDraw then
+				local availableRenderOnlyDraws = miscState.pipAvailableRenderOnlyDraws or 1
+				if availableRenderOnlyDraws > 1 then
+					local gameFrameInterval = miscState.pipGameFrameInterval or (1 / 30)
+					local updateSlotsNeeded = math.ceil(dynamicUpdateRate * gameFrameInterval)
+					updateSlotsNeeded = math.max(1, math.min(updateSlotsNeeded, availableRenderOnlyDraws))
+					local firstUpdateSlot = availableRenderOnlyDraws - updateSlotsNeeded + 1
+					if miscState.pipRenderOnlyDraw < firstUpdateSlot then
+						runR2TUpdates = false
+					end
+				end
+			end
 		end
 
 		-- Decrement the force-refresh counter (grace period after ViewResize / preset change)
@@ -17400,8 +17466,8 @@ function widget:DrawScreen()
 			-- Update decal overlay texture (~once per second, game-frame based). If other
 			-- R2T layers are already due, let decals slip one interval to avoid stacked hitches.
 			do
-				local unitsTimerDue = pipUpdateInterval == 0 or (pipUpdateInterval > 0 and (currentTime - pipR2T.unitsLastUpdateTime) >= pipUpdateInterval)
-				local contentTimerDue = pipUpdateInterval == 0 or (pipUpdateInterval > 0 and (currentTime - pipR2T.contentLastUpdateTime) >= pipUpdateInterval)
+				local unitsTimerDue = pipUpdateInterval == 0 or pipR2T.unitsNextUpdateTime <= 0 or currentTime >= pipR2T.unitsNextUpdateTime
+				local contentTimerDue = pipUpdateInterval == 0 or pipR2T.contentNextUpdateTime <= 0 or currentTime >= pipR2T.contentNextUpdateTime
 				local r2tWorkDue = pipR2T.forceRefreshFrames > 0 or pipR2T.unitsNeedsUpdate or pipR2T.contentNeedsUpdate
 					or not pipR2T.unitsTex or not pipR2T.contentTex or unitsTimerDue or contentTimerDue
 				local decalFramesSince = Spring.GetGameFrame() - pipR2T.decalLastCheckFrame
