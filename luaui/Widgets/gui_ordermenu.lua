@@ -135,6 +135,7 @@ local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeig
 local buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 local ordermenuShows = false
+local stateLightDisplayLists = {}
 
 -- Cache for translations to avoid repeated Spring.I18N calls
 local translationCache = {}
@@ -221,6 +222,9 @@ local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glRect = gl.Rect
 local glBlending = gl.Blending
+local glCreateList = gl.CreateList
+local glCallList = gl.CallList
+local glDeleteList = gl.DeleteList
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -236,6 +240,13 @@ local RectRound, UiElement, UiButton, elementCorner
 local isSpectating = spGetSpectatingState()
 local cursorTextures = {}
 local actionHotkeys
+
+local function clearStateLightDisplayLists()
+	for cell, cache in pairs(stateLightDisplayLists) do
+		glDeleteList(cache.list)
+		stateLightDisplayLists[cell] = nil
+	end
+end
 
 local isFactory = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -297,6 +308,7 @@ local function setupCellGrid(force)
 	cellMargin = (cellMarginOriginal / sizeDivider) * uiScale
 
 	if force or oldCols ~= cols or oldRows ~= rows then
+		clearStateLightDisplayLists()
 		clickedCell = nil
 		clickedCellTime = nil
 		clickedCellDesiredState = nil
@@ -714,6 +726,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	clearStateLightDisplayLists()
 	if WG['guishader'] and displayListGuiShader then
 		WG['guishader'].DeleteDlist('ordermenu')
 		displayListGuiShader = nil
@@ -878,6 +891,54 @@ local function drawHighlights()
 				{ r, g, b, locGlowAlpha }, { r, g, b, 0 }
 			)
 
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
+end
+
+local function drawStateLights(cell, leftMargin, rightMargin, bottomMargin, padding, cellInnerWidth, cellInnerHeight, statecount, fillMin, fillMax, desiredState)
+	local padding2 = padding
+	local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
+	local stateHeight = math_floor(cellInnerHeight * 0.14)
+	local stateMargin = math_floor((stateWidth * 0.075) + 0.5) + padding2 + padding2
+	local glowSize = math_floor(stateHeight * 8)
+	local r, g, b, a = 0, 0, 0, 0
+	for i = 1, statecount do
+		if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
+			if i == 1 then
+				r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
+			elseif i == 2 then
+				if statecount == 2 then
+					r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
+				else
+					r, g, b, a = 1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
+				end
+			else
+				r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.26 or 0.8)
+			end
+		else
+			r, g, b, a = 0, 0, 0, 0.36
+		end
+		glColor(r, g, b, a)
+		local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
+		local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding + padding2)
+		local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - padding2 - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
+		local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
+		if rows < 6 then
+			RectRound(x1, y1, x2, y2, stateHeight * 0.33,
+				(i == 1 and 0 or 2), (i == statecount and 0 or 2), (i == statecount and 2 or 0), (i == 1 and 2 or 0))
+		else
+			glRect(x1, y1, x2, y2)
+		end
+		if rows < 6 and fillMin and fillMax and i >= fillMin and i <= fillMax then
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glColor(r, g, b, 0.09)
+			glTexture(barGlowCenterTexture)
+			DrawRect(x1, y1 - glowSize, x2, y2 + glowSize, 0.008)
+			glTexture(barGlowEdgeTexture)
+			DrawRect(x1 - (glowSize * 2), y1 - glowSize, x1, y2 + glowSize, 0.008)
+			DrawRect(x2 + (glowSize * 2), y1 - glowSize, x2, y2 + glowSize, 0.008)
+			glTexture(false)
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		end
 	end
@@ -1061,52 +1122,26 @@ local function drawCell(cell, zoom)
 				clickedCellDesiredState = nil
 				desiredState = nil
 			end
-			local padding2 = padding
-			local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
-			local stateHeight = math_floor(cellInnerHeight * 0.14)
-			local stateMargin = math_floor((stateWidth * 0.075) + 0.5) + padding2 + padding2
-			local glowSize = math_floor(stateHeight * 8)
-			local r, g, b, a = 0, 0, 0, 0
-			for i = 1, statecount do
-				if (fillMin and fillMax and i >= fillMin and i <= fillMax) or i == desiredState then
-					if i == 1 then
-						r, g, b, a = 1, 0.1, 0.1, (i == desiredState and 0.33 or 0.8)
-					elseif i == 2 then
-						if statecount == 2 then
-							r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
-						else
-							r, g, b, a = 1, 1, 0.1, (i == desiredState and 0.22 or 0.8)
-						end
-					else
-						r, g, b, a = 0.1, 1, 0.1, (i == desiredState and 0.26 or 0.8)
-					end
+			local cache = stateLightDisplayLists[cell]
+			if cache
+					and cache.statecount == statecount
+					and cache.fillMin == fillMin
+					and cache.fillMax == fillMax
+					and cache.desiredState == desiredState then
+				glCallList(cache.list)
+			else
+				if cache then
+					glDeleteList(cache.list)
 				else
-					r, g, b, a = 0, 0, 0, 0.36  -- default off state
+					cache = {}
+					stateLightDisplayLists[cell] = cache
 				end
-				glColor(r, g, b, a)
-				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
-				local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding + padding2)
-				local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - padding2 - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
-				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
-				-- fancy fitting rectrounds
-				if rows < 6 then
-					RectRound(x1, y1, x2, y2, stateHeight * 0.33,
-						(i == 1 and 0 or 2), (i == statecount and 0 or 2), (i == statecount and 2 or 0), (i == 1 and 2 or 0))
-				else
-					glRect(x1, y1, x2, y2)
-				end
-				-- fancy active state glow
-				if rows < 6 and fillMin and fillMax and i >= fillMin and i <= fillMax then
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					glColor(r, g, b, 0.09)
-					glTexture(barGlowCenterTexture)
-					DrawRect(x1, y1 - glowSize, x2, y2 + glowSize, 0.008)
-					glTexture(barGlowEdgeTexture)
-					DrawRect(x1 - (glowSize * 2), y1 - glowSize, x1, y2 + glowSize, 0.008)
-					DrawRect(x2 + (glowSize * 2), y1 - glowSize, x2, y2 + glowSize, 0.008)
-					glTexture(false)
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				end
+				cache.statecount = statecount
+				cache.fillMin = fillMin
+				cache.fillMax = fillMax
+				cache.desiredState = desiredState
+				cache.list = glCreateList(drawStateLights, cell, leftMargin, rightMargin, bottomMargin, padding, cellInnerWidth, cellInnerHeight, statecount, fillMin, fillMax, desiredState)
+				glCallList(cache.list)
 			end
 			tracy.ZoneEnd()
 		end

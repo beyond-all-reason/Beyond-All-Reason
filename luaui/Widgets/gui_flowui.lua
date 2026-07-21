@@ -22,6 +22,13 @@ local mathPi = math.pi
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
+local CompileUnitDisplayListCache = function() end
+local ResetUnitDisplayListCache = function() end
+local DeleteUnitDisplayListCache = function() end
+local CompileButtonDisplayListCache = function() end
+local ResetButtonDisplayListCache = function() end
+local DeleteButtonDisplayListCache = function() end
+
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
@@ -73,6 +80,8 @@ local function ViewResize(vsx, vsy)
 	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
 		return
 	end
+	ResetUnitDisplayListCache()
+	ResetButtonDisplayListCache()
 	WG.FlowUI.vsx = vsx
 	WG.FlowUI.vsy = vsy
 	-- elementMargin: number of px between each separated ui element
@@ -103,11 +112,15 @@ end
 --end
 
 function widget:Shutdown()
+	DeleteUnitDisplayListCache()
+	DeleteButtonDisplayListCache()
 	WG.FlowUI.shutdown = true
 	--WG.FlowUI = nil	-- commented out so it keeps at least working somewhat after an error
 end
 
 function widget:DrawScreenEffects()
+	CompileUnitDisplayListCache()
+	CompileButtonDisplayListCache()
 	if Spring.IsGUIHidden() then
 		return
 	end
@@ -1064,33 +1077,19 @@ end
 		color1, color2 = (color1[4] alpha value overrides opacity define above)
 		bgpadding = custom border size
 ]]
-WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding, glossMult)
-	local opacity = opacity or 1
-	local color1 = color1 or { 0, 0, 0, opacity}
-	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local bgpadding = mathFloor(bgpadding or WG.FlowUI.buttonPadding*0.5)
-	glossMult = (1 + (2 - (opacity * 1.5))) * (glossMult and glossMult or 1)
-
-	local tl = tl or 1
-	local tr = tr or 1
-	local br = br or 1
-	local bl = bl or 1
-
-	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
-	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
-	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
-	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
-
+local function DrawButtonResolved(px, py, sx, sy, data)
 	local glossHeight = mathFloor((sy-py)*0.4)
-	local cs = bgpadding * 1.6
+	local cs = data.bgpadding * 1.6
 
 	-- Layer 1: Background with gradient
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, color1, color2)
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, data.tl, data.tr, data.br, data.bl,
+		{ data.c1r, data.c1g, data.c1b, data.c1a },
+		{ data.c2r, data.c2g, data.c2b, data.c2a })
 
 	-- Layer 2: Combined top gloss (merges the old top edge highlight + top half gloss + top extended gloss)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local topGlossAlpha = 0.18 * glossMult
-	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0,
+	local topGlossAlpha = 0.18 * data.glossMult
+	WG.FlowUI.Draw.RectRound(px + data.pxPad, sy - data.syPad - glossHeight, sx - data.sxPad, sy - data.syPad, data.bgpadding, data.tl, data.tr, 0, 0,
 		{ 1, 1, 1, 0 },
 		{ 1, 1, 1, topGlossAlpha })
 
@@ -1101,8 +1100,8 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 
 	-- Layer 4: Combined bottom gloss (merges the three overlapping bottom gloss layers)
 	-- Alpha values tuned to match original brightness from overlapping layers
-	local bottomGlossAlpha = 0.075 * glossMult
-	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl,
+	local bottomGlossAlpha = 0.075 * data.glossMult
+	WG.FlowUI.Draw.RectRound(px + data.pxPad, py + data.pyPad, sx - data.sxPad, py + data.pyPad + glossHeight, data.bgpadding, 0, 0, data.br, data.bl,
 		{ 1, 1, 1, bottomGlossAlpha },
 		{ 1, 1, 1, 0 })
 
@@ -1115,11 +1114,255 @@ WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr
 	local outlineWidth = 7
 	local outlineAlpha = opaque and 0.12 or 0.06
 	WG.FlowUI.Draw.RectRoundOutline(
-		px + pxPad, py + pyPad, sx - sxPad, sy - syPad,
+		px + data.pxPad, py + data.pyPad, sx - data.sxPad, sy - data.syPad,
 		cs, outlineWidth,
-		tl, tr, br, bl,
+		data.tl, data.tr, data.br, data.bl,
 		{ 1, 1, 1, outlineAlpha }, { 1, 1, 1, 0 }
 	)
+end
+
+local BUTTON_CACHE_MAX_LISTS = 256
+local BUTTON_CACHE_MAX_CANDIDATES = 256
+local BUTTON_CACHE_ADMISSION_USES = 3
+local BUTTON_CACHE_COMPILE_BUDGET = 16
+---@type table
+local buttonDisplayListCache = {
+	records = {},
+	candidates = {},
+	pending = {},
+	pendingHead = 1,
+	pendingTail = 0,
+	recordCount = 0,
+	lists = {},
+}
+local buttonCacheCandidateCount = 0
+local buttonDrawScratch = {}
+
+local function ButtonRecordsEqual(a, b)
+	return a.width == b.width and a.height == b.height and a.cornerMask == b.cornerMask
+		and a.pxPad == b.pxPad and a.pyPad == b.pyPad and a.sxPad == b.sxPad and a.syPad == b.syPad
+		and a.bgpadding == b.bgpadding and a.glossMult == b.glossMult
+		and a.c1r == b.c1r and a.c1g == b.c1g and a.c1b == b.c1b and a.c1a == b.c1a
+		and a.c2r == b.c2r and a.c2g == b.c2g and a.c2b == b.c2b and a.c2a == b.c2a
+end
+
+local function GetButtonStyleHash(data)
+	local value = data.cornerMask * 3 + data.pxPad * 5 + data.pyPad * 7 + data.sxPad * 11 + data.syPad * 13
+	value = value + data.bgpadding * 17 + data.glossMult * 19
+	value = value + data.c1r * 23 + data.c1g * 29 + data.c1b * 31 + data.c1a * 37
+	value = value + data.c2r * 41 + data.c2g * 43 + data.c2b * 47 + data.c2a * 53
+	return mathFloor(math.abs(value * 1000)) % 1021
+end
+
+local function CopyButtonRecord(data)
+	return {
+		width = data.width,
+		height = data.height,
+		cornerMask = data.cornerMask,
+		tl = data.tl,
+		tr = data.tr,
+		br = data.br,
+		bl = data.bl,
+		pxPad = data.pxPad,
+		pyPad = data.pyPad,
+		sxPad = data.sxPad,
+		syPad = data.syPad,
+		bgpadding = data.bgpadding,
+		glossMult = data.glossMult,
+		c1r = data.c1r,
+		c1g = data.c1g,
+		c1b = data.c1b,
+		c1a = data.c1a,
+		c2r = data.c2r,
+		c2g = data.c2g,
+		c2b = data.c2b,
+		c2a = data.c2a,
+	}
+end
+
+local function GetButtonCacheBucket(records, data, styleHash, create)
+	local widthCache = records[data.width]
+	local heightCache = widthCache and widthCache[data.height]
+	local bucket = heightCache and heightCache[styleHash]
+	if bucket or not create then
+		return bucket
+	end
+	if not widthCache then
+		widthCache = {}
+		records[data.width] = widthCache
+	end
+	if not heightCache then
+		heightCache = {}
+		widthCache[data.height] = heightCache
+	end
+	bucket = {}
+	heightCache[styleHash] = bucket
+	return bucket
+end
+
+local function FindButtonCacheRecord(records, data, styleHash)
+	local bucket = GetButtonCacheBucket(records, data, styleHash, false)
+	if bucket then
+		for i = 1, #bucket do
+			if ButtonRecordsEqual(bucket[i], data) then
+				return bucket[i], bucket, i
+			end
+		end
+	end
+	return nil
+end
+
+local function GetButtonCacheRecord(data)
+	local cache = buttonDisplayListCache
+	local styleHash = GetButtonStyleHash(data)
+	local record = FindButtonCacheRecord(cache.records, data, styleHash)
+	if record then
+		return record
+	end
+	if cache.recordCount >= BUTTON_CACHE_MAX_LISTS then
+		return nil
+	end
+
+	local candidate, candidateBucket, candidateIndex = FindButtonCacheRecord(cache.candidates, data, styleHash)
+	if not candidate then
+		if buttonCacheCandidateCount >= BUTTON_CACHE_MAX_CANDIDATES then
+			cache.candidates = {}
+			buttonCacheCandidateCount = 0
+		end
+		candidate = CopyButtonRecord(data)
+		candidate.uses = 1
+		candidateBucket = GetButtonCacheBucket(cache.candidates, data, styleHash, true)
+		candidateBucket[#candidateBucket + 1] = candidate
+		buttonCacheCandidateCount = buttonCacheCandidateCount + 1
+		return nil
+	end
+	if not candidateBucket or not candidateIndex then
+		return nil
+	end
+	candidate.uses = candidate.uses + 1
+	if candidate.uses < BUTTON_CACHE_ADMISSION_USES then
+		return nil
+	end
+
+	candidateBucket[candidateIndex] = candidateBucket[#candidateBucket]
+	candidateBucket[#candidateBucket] = nil
+	buttonCacheCandidateCount = buttonCacheCandidateCount - 1
+	record = candidate
+	local bucket = GetButtonCacheBucket(cache.records, data, styleHash, true)
+	bucket[#bucket + 1] = record
+	cache.recordCount = cache.recordCount + 1
+	cache.pendingTail = cache.pendingTail + 1
+	cache.pending[cache.pendingTail] = record
+	return record
+end
+
+local buttonCacheCompileRecord
+local function RecordButtonDisplayList()
+	local record = buttonCacheCompileRecord
+	if not record then
+		return
+	end
+	DrawButtonResolved(0, 0, record.width, record.height, record)
+end
+
+CompileButtonDisplayListCache = function()
+	local cache = buttonDisplayListCache
+	local compiled = 0
+	while cache.pendingHead <= cache.pendingTail and compiled < BUTTON_CACHE_COMPILE_BUDGET do
+		local record = cache.pending[cache.pendingHead]
+		cache.pending[cache.pendingHead] = nil
+		cache.pendingHead = cache.pendingHead + 1
+		buttonCacheCompileRecord = record
+		local list = gl.CreateList(RecordButtonDisplayList)
+		buttonCacheCompileRecord = nil
+		if list then
+			record.list = list
+			cache.lists[#cache.lists + 1] = list
+		end
+		compiled = compiled + 1
+	end
+
+	if cache.pendingHead > cache.pendingTail then
+		cache.pending = {}
+		cache.pendingHead = 1
+		cache.pendingTail = 0
+	end
+end
+
+ResetButtonDisplayListCache = function()
+	local cache = buttonDisplayListCache
+	cache.records = {}
+	cache.candidates = {}
+	cache.pending = {}
+	cache.pendingHead = 1
+	cache.pendingTail = 0
+	cache.recordCount = 0
+	buttonCacheCandidateCount = 0
+	buttonCacheCompileRecord = nil
+	buttonDrawScratch = {}
+end
+
+DeleteButtonDisplayListCache = function()
+	local cache = buttonDisplayListCache
+	for i = 1, #cache.lists do
+		gl.DeleteList(cache.lists[i])
+	end
+	ResetButtonDisplayListCache()
+	cache.lists = {}
+end
+
+WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding, glossMult)
+	local width = sx - px
+	local height = sy - py
+	local resolvedOpacity = opacity or 1
+	local resolvedBgpadding = mathFloor(bgpadding or WG.FlowUI.buttonPadding*0.5)
+	local resolvedGlossMult = (1 + (2 - (resolvedOpacity * 1.5))) * (glossMult or 1)
+	local resolvedTl = tl == 0 and 0 or 1
+	local resolvedTr = tr == 0 and 0 or 1
+	local resolvedBr = br == 0 and 0 or 1
+	local resolvedBl = bl == 0 and 0 or 1
+	local data = buttonDrawScratch
+	data.width = width
+	data.height = height
+	data.cornerMask = resolvedTl * 8 + resolvedTr * 4 + resolvedBr * 2 + resolvedBl
+	data.tl = resolvedTl
+	data.tr = resolvedTr
+	data.br = resolvedBr
+	data.bl = resolvedBl
+	data.pxPad = resolvedBgpadding * (px > 0 and 1 or 0) * (pbl or 1)
+	data.pyPad = resolvedBgpadding * (py > 0 and 1 or 0) * (pbr or 1)
+	data.sxPad = resolvedBgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
+	data.syPad = resolvedBgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
+	data.bgpadding = resolvedBgpadding
+	data.glossMult = resolvedGlossMult
+	data.c1r = color1 and color1[1] or 0
+	data.c1g = color1 and color1[2] or 0
+	data.c1b = color1 and color1[3] or 0
+	data.c1a = color1 and color1[4] or resolvedOpacity
+	data.c2r = color2 and color2[1] or 1
+	data.c2g = color2 and color2[2] or 1
+	data.c2b = color2 and color2[3] or 1
+	data.c2a = color2 and color2[4] or resolvedOpacity * 0.1
+
+	local valid = width > 0 and height > 0 and width == width and height == height
+		and data.pxPad == data.pxPad and data.pyPad == data.pyPad and data.sxPad == data.sxPad and data.syPad == data.syPad
+		and resolvedBgpadding == resolvedBgpadding and resolvedGlossMult == resolvedGlossMult
+		and data.c1r == data.c1r and data.c1g == data.c1g and data.c1b == data.c1b and data.c1a == data.c1a
+		and data.c2r == data.c2r and data.c2g == data.c2g and data.c2b == data.c2b and data.c2a == data.c2a
+	if not valid then
+		DrawButtonResolved(px, py, sx, sy, data)
+		return
+	end
+
+	local record = GetButtonCacheRecord(data)
+	if record and record.list then
+		gl.PushMatrix()
+		gl.Translate(px, py, 0)
+		gl.CallList(record.list)
+		gl.PopMatrix()
+	else
+		DrawButtonResolved(px, py, sx, sy, data)
+	end
 end
 
 -- This was broken out from an internal "Unit" function, to allow drawing similar style icons in other places
@@ -1581,11 +1824,7 @@ end
 		price = {metal, energy}
 		queueCount
 ]]
-WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
-	local borderSize = borderSize~=nil and borderSize or mathMin(mathMax(1, mathFloor((sx-px) * 0.024)), mathFloor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
-	local cs = cs~=nil and cs or mathMax(1, mathFloor((sx-px) * 0.024))
-	borderOpacity = borderOpacity or 0.1
-
+local function DrawUnitUncached(px, py, sx, sy, cs, tl, tr, br, bl, zoom, borderSize, borderOpacity, texture, radarTexture, groupTexture)
 	-- Layer 1: Draw unit texture
 	if texture then
 		gl.Texture(texture)
@@ -1650,6 +1889,289 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)
 		gl.Texture(false)
 	end
+end
+
+local function DrawUnitFrame(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	-- Layer 1.1: background base outline (feathered)
+	local baseOutlineWidth = mathMax(1, mathFloor(((sx-px) + (sy-py)) * 0.022))
+	WG.FlowUI.Draw.RectRoundOutline(
+		px-baseOutlineWidth, py-baseOutlineWidth, sx+baseOutlineWidth, sy+baseOutlineWidth, cs*2, baseOutlineWidth,
+		tl, tr, br, bl,
+		{ 0, 0, 0, 0 }, { 0, 0, 0, 0.22 }
+	)
+
+	-- Layer 2: Darken bottom gradient (creates depth)
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
+
+	-- Layers 3-4: Combined shine and edge effects (using additive blending)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+	-- Top shine gradient
+	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1, 1, 0, 0, {1, 1, 1, 0}, {1, 1, 1, 0.06})
+
+	-- Feathered edge highlight using rectangular outline
+	if borderSize > 0 then
+		-- Combined feather edge and border into single call
+		WG.FlowUI.Draw.RectRoundOutline(
+			px, py, sx, sy, cs*0.7, borderSize,
+			tl, tr, br, bl,
+			{ 1, 1, 1, borderOpacity + 0.04 }, { 1, 1, 1, borderOpacity }
+		)
+	else
+		-- Just the feather edge when no border
+		local featherWidth = mathMax(1, mathFloor(((sx-px) + (sy-py)) * 0.015))
+		WG.FlowUI.Draw.RectRoundOutline(
+			px, py, sx, sy, cs*0.7, featherWidth,
+			tl, tr, br, bl,
+			{ 1, 1, 1, 0.04 }, { 1, 1, 1, 0 }
+		)
+	end
+
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+
+	-- Layer 5: Group texture icon (if present)
+	if groupTexture then
+		local iconSize = mathFloor((sx - px) * 0.3)
+		gl.Color(1, 1, 1, 1)
+		gl.Texture(groupTexture)
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px, sy - iconSize, px + iconSize, sy,  0,  0,0,0,0,  0.05)
+		gl.Texture(false)
+	end
+end
+
+local function DrawUnitRadar(px, py, sx, radarTexture)
+	-- Layer 6: Radar texture icon (if present)
+	if radarTexture then
+		local iconSize = mathFloor((sx - px) * 0.25)
+		local iconPadding = mathFloor((sx - px) * 0.03)
+		gl.Color(0.88, 0.88, 0.88, 1)
+		gl.Texture(radarTexture)
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, px + iconPadding, py + iconPadding, px + iconPadding + iconSize, py + iconPadding + iconSize,  0,  0,0,0,0,  0.05)
+		gl.Texture(false)
+	end
+end
+
+local UNIT_CACHE_MAX_LISTS = 512
+local UNIT_CACHE_COMPILE_BUDGET = 16
+---@type table
+local unitDisplayListCache = {
+	texRects = {},
+	frames = {},
+	pending = {},
+	pendingHead = 1,
+	pendingTail = 0,
+	recordCount = 0,
+	lists = {},
+}
+
+local function QueueUnitCacheRecord(record)
+	local cache = unitDisplayListCache
+	if cache.recordCount >= UNIT_CACHE_MAX_LISTS then
+		return nil
+	end
+	cache.recordCount = cache.recordCount + 1
+	cache.pendingTail = cache.pendingTail + 1
+	cache.pending[cache.pendingTail] = record
+	return record
+end
+
+local function GetUnitTexRectRecord(width, height, cs, tl, tr, br, bl, offset)
+	local cornerMask = (tl == 0 and 0 or 8) + (tr == 0 and 0 or 4) + (br == 0 and 0 or 2) + (bl == 0 and 0 or 1)
+	local widthCache = unitDisplayListCache.texRects[width]
+	local heightCache = widthCache and widthCache[height]
+	local cornerSizeCache = heightCache and heightCache[cs]
+	local cornerCache = cornerSizeCache and cornerSizeCache[cornerMask]
+	local record = cornerCache and cornerCache[offset]
+	if record then
+		return record
+	end
+	if unitDisplayListCache.recordCount >= UNIT_CACHE_MAX_LISTS then
+		return nil
+	end
+
+	if not widthCache then
+		widthCache = {}
+		unitDisplayListCache.texRects[width] = widthCache
+	end
+	if not heightCache then
+		heightCache = {}
+		widthCache[height] = heightCache
+	end
+	if not cornerSizeCache then
+		cornerSizeCache = {}
+		heightCache[cs] = cornerSizeCache
+	end
+	if not cornerCache then
+		cornerCache = {}
+		cornerSizeCache[cornerMask] = cornerCache
+	end
+
+	record = QueueUnitCacheRecord({
+		kind = 1,
+		width = width,
+		height = height,
+		cs = cs,
+		tl = tl == 0 and 0 or 1,
+		tr = tr == 0 and 0 or 1,
+		br = br == 0 and 0 or 1,
+		bl = bl == 0 and 0 or 1,
+		offset = offset,
+	})
+	cornerCache[offset] = record
+	return record
+end
+
+local function GetUnitFrameRecord(width, height, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	local cornerMask = (tl == 0 and 0 or 8) + (tr == 0 and 0 or 4) + (br == 0 and 0 or 2) + (bl == 0 and 0 or 1)
+	local groupKey = groupTexture or false
+	local widthCache = unitDisplayListCache.frames[width]
+	local heightCache = widthCache and widthCache[height]
+	local cornerSizeCache = heightCache and heightCache[cs]
+	local cornerCache = cornerSizeCache and cornerSizeCache[cornerMask]
+	local borderSizeCache = cornerCache and cornerCache[borderSize]
+	local borderOpacityCache = borderSizeCache and borderSizeCache[borderOpacity]
+	local record = borderOpacityCache and borderOpacityCache[groupKey]
+	if record then
+		return record
+	end
+	if unitDisplayListCache.recordCount >= UNIT_CACHE_MAX_LISTS then
+		return nil
+	end
+
+	if not widthCache then
+		widthCache = {}
+		unitDisplayListCache.frames[width] = widthCache
+	end
+	if not heightCache then
+		heightCache = {}
+		widthCache[height] = heightCache
+	end
+	if not cornerSizeCache then
+		cornerSizeCache = {}
+		heightCache[cs] = cornerSizeCache
+	end
+	if not cornerCache then
+		cornerCache = {}
+		cornerSizeCache[cornerMask] = cornerCache
+	end
+	if not borderSizeCache then
+		borderSizeCache = {}
+		cornerCache[borderSize] = borderSizeCache
+	end
+	if not borderOpacityCache then
+		borderOpacityCache = {}
+		borderSizeCache[borderOpacity] = borderOpacityCache
+	end
+
+	record = QueueUnitCacheRecord({
+		kind = 2,
+		width = width,
+		height = height,
+		cs = cs,
+		tl = tl == 0 and 0 or 1,
+		tr = tr == 0 and 0 or 1,
+		br = br == 0 and 0 or 1,
+		bl = bl == 0 and 0 or 1,
+		borderSize = borderSize,
+		borderOpacity = borderOpacity,
+		groupTexture = groupTexture,
+	})
+	borderOpacityCache[groupKey] = record
+	return record
+end
+
+local unitCacheCompileRecord
+local function RecordUnitDisplayList()
+	local record = unitCacheCompileRecord
+	if record.kind == 1 then
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, 0, 0, record.width, record.height, record.cs, record.tl, record.tr, record.br, record.bl, record.offset)
+	else
+		DrawUnitFrame(0, 0, record.width, record.height, record.cs, record.tl, record.tr, record.br, record.bl, record.borderSize, record.borderOpacity, record.groupTexture)
+	end
+end
+
+CompileUnitDisplayListCache = function()
+	local cache = unitDisplayListCache
+	local compiled = 0
+	while cache.pendingHead <= cache.pendingTail and compiled < UNIT_CACHE_COMPILE_BUDGET do
+		local record = cache.pending[cache.pendingHead]
+		cache.pending[cache.pendingHead] = nil
+		cache.pendingHead = cache.pendingHead + 1
+		unitCacheCompileRecord = record
+		local list = gl.CreateList(RecordUnitDisplayList)
+		unitCacheCompileRecord = nil
+		if list then
+			record.list = list
+			cache.lists[#cache.lists + 1] = list
+		end
+		compiled = compiled + 1
+	end
+
+	if cache.pendingHead > cache.pendingTail then
+		cache.pending = {}
+		cache.pendingHead = 1
+		cache.pendingTail = 0
+	end
+end
+
+ResetUnitDisplayListCache = function()
+	local cache = unitDisplayListCache
+	cache.texRects = {}
+	cache.frames = {}
+	cache.pending = {}
+	cache.pendingHead = 1
+	cache.pendingTail = 0
+	cache.recordCount = 0
+	unitCacheCompileRecord = nil
+end
+
+DeleteUnitDisplayListCache = function()
+	local cache = unitDisplayListCache
+	for i = 1, #cache.lists do
+		gl.DeleteList(cache.lists[i])
+	end
+	ResetUnitDisplayListCache()
+	cache.lists = {}
+end
+
+WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
+	local width = sx - px
+	local height = sy - py
+	local borderSize = borderSize~=nil and borderSize or mathMin(mathMax(1, mathFloor(width * 0.024)), mathFloor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
+	local cs = cs~=nil and cs or mathMax(1, mathFloor(width * 0.024))
+	borderOpacity = borderOpacity or 0.1
+
+	local offset = zoom + 0.02
+	if width <= 0 or height <= 0
+			or width ~= width or height ~= height or cs ~= cs or offset ~= offset
+			or borderSize ~= borderSize or borderOpacity ~= borderOpacity then
+		DrawUnitUncached(px, py, sx, sy, cs, tl, tr, br, bl, zoom, borderSize, borderOpacity, texture, radarTexture, groupTexture)
+		return
+	end
+
+	local texRectRecord = GetUnitTexRectRecord(width, height, cs, tl, tr, br, bl, offset)
+	local frameRecord = GetUnitFrameRecord(width, height, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+
+	gl.PushMatrix()
+	gl.Translate(px, py, 0)
+	if texture then
+		gl.Texture(texture)
+	end
+	if texRectRecord and texRectRecord.list then
+		gl.CallList(texRectRecord.list)
+	else
+		gl.BeginEnd(GL.QUADS, WG.FlowUI.Draw.TexRectRound, 0, 0, width, height, cs, tl, tr, br, bl, offset)
+	end
+	if texture then
+		gl.Texture(false)
+	end
+	if frameRecord and frameRecord.list then
+		gl.CallList(frameRecord.list)
+	else
+		DrawUnitFrame(0, 0, width, height, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	end
+	DrawUnitRadar(0, 0, width, radarTexture)
+	gl.PopMatrix()
 end
 
 --[[
