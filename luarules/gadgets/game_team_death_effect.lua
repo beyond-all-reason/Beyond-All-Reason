@@ -35,9 +35,15 @@ end
 local spDestroyUnit = Spring.DestroyUnit
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitWeaponDamages = Spring.SetUnitWeaponDamages
 local DISTANCE_LIMIT = math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)
 local destroyUnitQueue = {}
 local wipedoutTeams = {}
+local noCraterDamage = {
+	craterMult = 0,
+	craterBoost = 0,
+	craterAreaOfEffect = 0,
+}
 
 local function getSqrDistance(x1,z1,x2,z2)
 	local dx, dz = x1-x2, z1-z2
@@ -118,6 +124,19 @@ GG.wipeoutAllyTeam = wipeoutAllyTeam
 local destroyThisFrame = {}
 local destroyThisFrameCount = 0
 
+local function destroyUnitWithoutTerrainDamage(unitID, selfD, attackerUnitID)
+	if attackerUnitID then
+		spSetUnitWeaponDamages(unitID, selfD and "selfDestruct" or "explode", noCraterDamage)
+		spDestroyUnit(unitID, selfD, false, attackerUnitID)
+	elseif selfD and isCommander[spGetUnitDefID(unitID)] then
+		spSetUnitWeaponDamages(unitID, "explode", noCraterDamage)
+		spDestroyUnit(unitID, false, false) -- always leave commander wreckage (ffa reclaims all on early dropped players now)
+	else
+		spSetUnitWeaponDamages(unitID, selfD and "selfDestruct" or "explode", noCraterDamage)
+		spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
+	end
+end
+
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
 		-- Collect units to destroy first, since spDestroyUnit triggers synchronous
@@ -139,15 +158,7 @@ function gadget:GameFrame(gf)
 				destroyUnitQueue[unitID] = nil
 				destroyThisFrame[i] = nil
 				if defs then
-					if defs.attackerUnitID then
-						spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
-					else
-						if selfD and isCommander[spGetUnitDefID(unitID)] then
-							spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
-						else
-							spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-						end
-					end
+					destroyUnitWithoutTerrainDamage(unitID, selfD, defs.attackerUnitID)
 				end
 			end
 		end
@@ -157,6 +168,6 @@ end
 -- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam]+300 > Spring.GetGameFrame() then
-		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
+		destroyUnitWithoutTerrainDamage(unitID, not GG.wipeoutWithWreckage)
 	end
 end
