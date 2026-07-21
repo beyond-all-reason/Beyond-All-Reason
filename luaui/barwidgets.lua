@@ -154,6 +154,10 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundPreForward',
+	'DrawGroundPostForward',
+	'DrawGroundPreDeferred',
+	'DrawGroundPostDeferred',
 	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
@@ -1631,6 +1635,46 @@ function widgetHandler:DrawGenesis()
 		tracy.ZoneBeginN(w._tracyDrawGenesisName)
 		w:DrawGenesis()
 		tracy.ZoneEnd()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreForward()
+	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	local list = self.DrawGroundPreForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostForward()
+	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	local list = self.DrawGroundPostForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	local list = self.DrawGroundPreDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	local list = self.DrawGroundPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostDeferred()
 	end
 	tracy.ZoneEnd()
 	return
