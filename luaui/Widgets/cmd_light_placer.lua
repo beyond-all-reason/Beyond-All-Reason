@@ -21,7 +21,6 @@ local TraceScreenRay   = Spring.TraceScreenRay
 local GetGroundHeight  = Spring.GetGroundHeight
 local GetGroundNormal  = Spring.GetGroundNormal
 local GetGameFrame     = Spring.GetGameFrame
-local GetMapSize       = Spring.GetMapInfo  -- fallback: Game.mapSizeX / Game.mapSizeZ
 
 local glColor     = gl.Color
 local glLineWidth = gl.LineWidth

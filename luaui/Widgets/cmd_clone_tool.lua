@@ -417,9 +417,11 @@ local function doCopy()
 		local allDecals = Spring.GetAllGroundDecals()
 		if allDecals then
 			for _, did in ipairs(allDecals) do
-				local dx, _, dz = Spring.GetGroundDecalPosition(did)
+				-- GetGroundDecalMiddlePos returns (posX, posZ); GetGroundDecalSizeAndHeight
+				-- returns half-extents (sizeX, sizeY) — same units SetGroundDecalPosAndDims takes.
+				local dx, dz = Spring.GetGroundDecalMiddlePos(did)
 				if dx and dx >= box.x1 and dx <= box.x2 and dz >= box.z1 and dz <= box.z2 then
-					local sx, sz = Spring.GetGroundDecalSize(did)
+					local sx, sz = Spring.GetGroundDecalSizeAndHeight(did)
 					local dRot = Spring.GetGroundDecalRotation(did)
 					local dAlpha = Spring.GetGroundDecalAlpha(did)
 					local texName = Spring.GetGroundDecalTexture(did, true)
@@ -788,7 +790,16 @@ local function applyPaste(targetX, targetZ)
 				rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
 			wx, wz = clampToMap(wx, wz)
 			local newRot = (d.rotation or 0) + rotRad
-			Spring.CreateGroundDecal(d.tex, d.normTex, wx, wz, d.sizeX, d.sizeZ, newRot, d.alpha or 1)
+			-- CreateGroundDecal takes no arguments and returns a bare decal id;
+			-- all properties go through the setters (same flow as cmd_decal_placer).
+			local id = Spring.CreateGroundDecal()
+			if id then
+				if d.tex then Spring.SetGroundDecalTexture(id, d.tex, true) end
+				if d.normTex then Spring.SetGroundDecalTexture(id, d.normTex, false) end
+				Spring.SetGroundDecalPosAndDims(id, wx, wz, d.sizeX, d.sizeZ)
+				Spring.SetGroundDecalRotation(id, newRot)
+				if Spring.SetGroundDecalAlpha then Spring.SetGroundDecalAlpha(id, d.alpha or 1, 0) end
+			end
 		end
 	end
 

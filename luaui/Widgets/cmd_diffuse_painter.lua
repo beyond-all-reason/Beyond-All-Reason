@@ -232,6 +232,7 @@ local pendingHistoryOps = {} -- "undo"/"redo"/number(target index); run in DrawW
 local pendingInit       = false
 local pendingFullBake   = false  -- re-bake already-allocated squares
 local pendingFullCover  = false  -- allocate every map square + bake (heavy)
+local pendingExport     = false  -- /diffusepaintexport queued; runs in DrawWorld (GL context)
 local pendingPaintStrokes = {}   -- array of {wx, wz, layerId, erase}
 local dirtySquares      = {}     -- squareKey -> true; consumed each Draw
 
@@ -2008,22 +2009,9 @@ function widget:Initialize()
 	-- Dump every currently-composited square texture to disk as PNG so the
 	-- user can repackage them into a real SMF map (engine API only lets us
 	-- override diffuse per square at runtime; baked PBR shading is in RGB).
-	local function exportSquares(folder)
-		folder = folder or "tf_diffuse_export"
-		local count = 0
-		for _, s in pairs(squares) do
-			if s and s.compositeTex then
-				local fname = folder .. "/sq_" .. s.sx .. "_" .. s.sy .. ".png"
-				local ok = pcall(gl.SaveImage, s.compositeTex, fname)
-				if ok then count = count + 1 end
-			end
-		end
-		Echo("[Diffuse Painter] exported " .. count .. " square textures to " ..
-			tostring(Spring.GetConfigString and Spring.GetConfigString("WriteDir", "") or "") ..
-			"/" .. folder .. "/")
-		return count
-	end
-	widgetHandler:AddAction("diffusepaintexport", function() exportSquares() end, nil, "t")
+	-- gl.SaveImage reads the bound framebuffer and needs the GL context, so the
+	-- action only queues; DrawWorld does the RenderToTexture + SaveImage reads.
+	widgetHandler:AddAction("diffusepaintexport", function() pendingExport = true end, nil, "t")
 	widgetHandler:AddAction("diffusepaintundo", function()
 		if active then pendingHistoryOps[#pendingHistoryOps + 1] = "undo" end
 	end, nil, "t")
@@ -2341,6 +2329,24 @@ function widget:DrawWorld()
 		dirtySquares[k] = nil
 		bakedCount = bakedCount + 1
 		if bakedCount >= 16 then break end  -- coarse rate limit per frame
+	end
+
+	-- Deferred /diffusepaintexport: after bakes so every square is fresh.
+	if pendingExport then
+		pendingExport = false
+		local folder = "tf_diffuse_export"
+		Spring.CreateDir(folder)
+		local count = 0
+		for _, s in pairs(squares) do
+			if s and s.compositeTex then
+				local fname = folder .. "/sq_" .. s.sx .. "_" .. s.sy .. ".png"
+				glRenderToTexture(s.compositeTex, function()
+					gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false })
+				end)
+				count = count + 1
+			end
+		end
+		Echo("[Diffuse Painter] exported " .. count .. " square textures to " .. folder .. "/")
 	end
 
 	-- Brush ring
