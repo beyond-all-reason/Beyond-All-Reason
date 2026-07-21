@@ -14,7 +14,15 @@
 --- Spring; specs build it from plain tables.
 ---@class MissionContext
 ---@field GetUnitDefCount fun(teamID: integer, unitDefName: string): integer count of finished units of that def
+---@field IsObjectiveComplete fun(name: string): boolean
 ---@field frame integer current game frame
+
+--- The injected Objective verb's handle: Complete() is the effect side,
+--- IsComplete() the condition side — victory triggers watch objective state
+--- rather than living inside the objective's own trigger.
+---@class MissionObjective
+---@field Complete fun()
+---@field IsComplete fun(): MissionCondition
 
 --- A registered trigger. Identity = source filename + declaration order,
 --- stamped at registration — the unregister-by-identity key for hot reload.

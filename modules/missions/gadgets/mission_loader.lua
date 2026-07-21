@@ -48,6 +48,9 @@ local ctx = {
 		end
 		return count
 	end,
+	IsObjectiveComplete = function(name)
+		return Spring.GetGameRulesParam("objective_" .. name) == 1
+	end,
 }
 
 ---Demo rule (documented in hello_pawns_plan.md): Team.Player is the first
@@ -67,14 +70,26 @@ local function resolvePlayerTeam()
 end
 
 ---Objective verb, demo-minimal: Complete() echoes and flips a rulesparam
----(objective_<name>) that UI or tests can read. No objective widget tonight.
+---(objective_<name>) that UI or tests can read; IsComplete() is the condition
+---side, so victory can be its own trigger driven by objective state (the
+---"all objectives complete -> win" shape in miniature). Completion state lives
+---in rulesparams — engine-serialized, so it survives a savegame like the rest
+---of the trigger progress pile.
 ---@param name string
----@return { Complete: fun() }
+---@return MissionObjective
 local function Objective(name)
 	return {
 		Complete = function()
 			Spring.SetGameRulesParam("objective_" .. name, 1)
 			Spring.Echo("[" .. LOG_TAG .. "] objective complete: " .. name)
+		end,
+		IsComplete = function()
+			return {
+				---@param ctx MissionContext
+				evaluate = function(ctx)
+					return ctx.IsObjectiveComplete(name)
+				end,
+			}
 		end,
 	}
 end
