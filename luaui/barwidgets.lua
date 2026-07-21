@@ -261,6 +261,7 @@ local callInLists = {
 	'UnitParalyzeDamageHealthbars',
 	'UnitParalyzeDamageEffect',
 	'SelectedUnitsClear',
+	'SelectedUnitsSet',
 	'SelectedUnitsBatchUpdate',
 	'SelectedUnitsRemove',
 	'SelectedUnitsAdd',
@@ -3162,6 +3163,15 @@ function widgetHandler:SelectedUnitsClear(playerID)
 	tracy.ZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
+	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	for _, w in ipairs(self.SelectedUnitsSetList) do
+		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
 	tracy.ZoneEnd()
 	return
