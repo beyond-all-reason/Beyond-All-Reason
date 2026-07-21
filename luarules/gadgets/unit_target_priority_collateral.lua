@@ -352,6 +352,9 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	end
 
 	local allyTeam = unitAllyTeam[unitID]
+	if not allyTeam then
+		return
+	end
 
 	-- Avoid collaterals of a similar scale to our own explosion radius.
 	local avoidRadius = avoidUnit[allyTeam][targetID]
