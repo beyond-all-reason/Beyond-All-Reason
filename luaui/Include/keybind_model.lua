@@ -16,6 +16,7 @@ local function displayElement(raw, layout)
 	-- visible and Any+X reads differently from a plain X.
 	local anyPrefix = ""
 	raw = raw:gsub("[Aa][Nn][Yy]%+", function() anyPrefix = "Any + "; return "" end)
+	raw = raw:gsub("%*%+", function() anyPrefix = "Any + "; return "" end)
 
 	local mods, key = raw:match("^(.-)([^+]*)$")
 	if key and keyNameAlias[key:lower()] then

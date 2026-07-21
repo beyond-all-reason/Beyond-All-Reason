@@ -104,23 +104,27 @@ end
 local function buildResolvedCatalog()
 	resolvedCatalog = {}
 	for _, group in ipairs(catalog) do
-		local title = Spring.I18N(group.category)
-		local g = { title = title, titleLower = title:lower(), items = {} }
-		for _, item in ipairs(group.items) do
-			if item.prefix then
-				g.items[#g.items + 1] = { prefix = item.prefix }
-			else
-				local label = Spring.I18N(item.label)
-				g.items[#g.items + 1] = {
-					action = item.action,
-					actionLower = item.action and item.action:lower(),
-					label = label,
-					labelLower = label:lower(),
-					keyText = item.keyLabel and Spring.I18N(item.keyLabel) or "",
-				}
+		if group.hidden then
+			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
+		else
+			local title = Spring.I18N(group.category)
+			local g = { title = title, titleLower = title:lower(), items = {} }
+			for _, item in ipairs(group.items) do
+				if item.prefix then
+					g.items[#g.items + 1] = { prefix = item.prefix, label = item.label, unit = item.unit }
+				else
+					local label = Spring.I18N(item.label)
+					g.items[#g.items + 1] = {
+						action = item.action,
+						actionLower = item.action and item.action:lower(),
+						label = label,
+						labelLower = label:lower(),
+						keyText = item.keyLabel and Spring.I18N(item.keyLabel) or "",
+					}
+				end
 			end
+			resolvedCatalog[#resolvedCatalog + 1] = g
 		end
-		resolvedCatalog[#resolvedCatalog + 1] = g
 	end
 
 	L.other = Spring.I18N('ui.keybinds.editor.other')
@@ -140,24 +144,53 @@ local function rebuildRows()
 	local q = searchBox and searchBox:getText():lower() or ""
 	local catalogActions = {}
 
+	-- Claim hidden actions up front so they never surface, as a row or under Other.
+	for _, group in ipairs(resolvedCatalog) do
+		if group.hidden then
+			for action in pairs(working.byAction) do
+				for _, h in ipairs(group.hidden) do
+					if action:sub(1, #h) == h then catalogActions[action] = true break end
+				end
+			end
+		end
+	end
+
 	for _, group in ipairs(resolvedCatalog) do
 		local categoryMatch = q ~= "" and group.titleLower:find(q, 1, true)
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
 			if item.prefix then
-				-- Claim every bound action under this prefix, listed by raw id.
+				-- Claim every unclaimed action under this prefix. A label, if given, is
+				-- resolved per action with the arg (text after the prefix) as %{n}, or
+				-- its two whitespace-split tokens as %{row}/%{col}.
 				local matched = {}
 				for action in pairs(working.byAction) do
-					if action:sub(1, #item.prefix) == item.prefix then
+					if not catalogActions[action] and action:sub(1, #item.prefix) == item.prefix then
 						catalogActions[action] = true
-						if q == "" or categoryMatch or action:lower():find(q, 1, true) then
-							matched[#matched + 1] = action
-						end
+						matched[#matched + 1] = action
 					end
 				end
 				table.sort(matched)
 				for i = 1, #matched do
-					groupRows[#groupRows + 1] = { type = "editable", action = matched[i], label = matched[i] }
+					local action = matched[i]
+					local arg = action:sub(#item.prefix + 1)
+					if item.unit then
+						local def = UnitDefNames[arg]
+						if def then
+							arg = def.translatedHumanName or arg
+						else
+							-- Factions gated behind modoptions (Legion, scavengers) aren't in
+							-- UnitDefNames, but their names live in the units i18n regardless.
+							local key = "units.names." .. arg
+							local name = Spring.I18N(key)
+							if name ~= key then arg = name end
+						end
+					end
+					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
+					local label = item.label and Spring.I18N(item.label, { n = arg, row = row, col = col }) or action
+					if q == "" or categoryMatch or action:lower():find(q, 1, true) or label:lower():find(q, 1, true) then
+						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
+					end
 				end
 			else
 				if item.action then
@@ -848,7 +881,7 @@ function view.draw()
 		local lineStep = floor(chainFs * 1.15)
 
 		font:Begin()
-		font:Print(colorText .. (capturing.label or capturing.action), cx, by2 - floor(26 * scale), tfs, "cov")
+		font:Print(colorText .. fitText(capturing.label or capturing.action, chainMaxW, tfs), cx, by2 - floor(26 * scale), tfs, "cov")
 		for li = 1, #chainLines do
 			local ly = chainCy + (#chainLines - 1) * lineStep * 0.5 - (li - 1) * lineStep
 			font:Print((hasContent and colorKey or colorDim) .. chainLines[li], cx, ly, chainFs, "cov")
