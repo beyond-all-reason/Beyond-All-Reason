@@ -70,12 +70,19 @@ local spSetUnitMetalExtraction = Spring.SetUnitMetalExtraction
 
 local EXTRACTOR_RADIUS = Game.extractorRadius
 
--- Build lookup: unitDefID -> extractsMetal for all extractor units
-local extractorDefs = {}
-for udid, ud in pairs(UnitDefs) do
-	if ud.extractsMetal and ud.extractsMetal > 0 then
-		extractorDefs[udid] = ud.extractsMetal
+-- Lookup: unitDefID -> extractsMetal for all extractor units. Built on first
+-- editor use instead of walking all UnitDefs at load in every match.
+local extractorDefs = nil
+local function getExtractorDefs()
+	if not extractorDefs then
+		extractorDefs = {}
+		for udid, ud in pairs(UnitDefs) do
+			if ud.extractsMetal and ud.extractsMetal > 0 then
+				extractorDefs[udid] = ud.extractsMetal
+			end
+		end
 	end
+	return extractorDefs
 end
 
 local scratchParts = {}
@@ -287,11 +294,12 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 
 	local halfSq = METAL_SQ * 0.5
 	local recalcCount = 0
+	local exDefs = getExtractorDefs()
 
 	for i = 1, #units do
 		local uid = units[i]
 		local udid = spGetUnitDefID(uid)
-		local mult = extractorDefs[udid]
+		local mult = exDefs[udid]
 		if mult then
 			local ux, _, uz = spGetUnitPosition(uid)
 			-- Sample metal map under this extractor's radius
@@ -421,10 +429,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 		-- Recalc all extractors on the map
 		local allUnits = Spring.GetAllUnits()
 		if allUnits then
+			local exDefs = getExtractorDefs()
 			for i = 1, #allUnits do
 				local uid = allUnits[i]
 				local udid = spGetUnitDefID(uid)
-				if extractorDefs[udid] then
+				if exDefs[udid] then
 					spSetUnitMetalExtraction(uid, 0)
 				end
 			end
@@ -458,10 +467,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 			local allUnits = Spring.GetAllUnits()
 			if allUnits then
 				local halfSq = METAL_SQ * 0.5
+				local exDefs = getExtractorDefs()
 				for i = 1, #allUnits do
 					local uid = allUnits[i]
 					local udid = spGetUnitDefID(uid)
-					local mult = extractorDefs[udid]
+					local mult = exDefs[udid]
 					if mult then
 						local ux, _, uz = spGetUnitPosition(uid)
 						local mxMin = max(0, floor((ux - EXTRACTOR_RADIUS) / METAL_SQ))

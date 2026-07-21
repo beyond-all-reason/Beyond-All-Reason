@@ -82,8 +82,6 @@ local MAX_SNAPSHOT_VERTICES = 8000000
 local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0  -- track approximate memory usage
-local pendingUndoEntries = nil  -- queued undo entries applied one-per-frame in GameFrame
-local pendingUndoStrokeId = nil -- stroke id associated with pendingUndoEntries
 
 -- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.
@@ -1825,25 +1823,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 		finalizeMerge()
 
-		-- If a previous stroke undo is still in progress, flush it immediately
-		if pendingUndoEntries and #pendingUndoEntries > 0 then
-			for i = 1, #pendingUndoEntries do
-				local entry = pendingUndoEntries[i]
-				local vertexCount = entry.vertexCount or 0
-				local redoSnapshot = captureCurrentForSnapshot(entry)
-				redoSnapshot.strokeId = pendingUndoStrokeId
-				applySnapshotHeights(entry)
-				redoStack[#redoStack + 1] = redoSnapshot
-				totalVertexCount = totalVertexCount + vertexCount
-			end
-			pendingUndoEntries = {}
-			pendingUndoStrokeId = nil
-		end
-
 		-- Identify the stroke ID of the top entry
 		local targetStrokeId = undoStack[#undoStack].strokeId
 
-		-- Pop all entries belonging to this stroke into the pending queue
+		-- Pop all entries belonging to this stroke
 		local collected = {}
 		while #undoStack > 0 do
 			local top = undoStack[#undoStack]
@@ -1854,9 +1837,19 @@ function gadget:RecvLuaMsg(msg, playerID)
 			collected[#collected + 1] = top
 		end
 
-		-- Store for gradual application in GameFrame (one entry per frame)
-		pendingUndoEntries = collected
-		pendingUndoStrokeId = targetStrokeId
+		-- Apply the whole stroke now. This gadget defines no GameFrame, so
+		-- entries parked "for gradual application" were only ever flushed when
+		-- the NEXT stroke undo arrived, leaving this undo's height restore
+		-- unapplied until then.
+		for i = 1, #collected do
+			local entry = collected[i]
+			local vertexCount = entry.vertexCount or 0
+			local redoSnapshot = captureCurrentForSnapshot(entry)
+			redoSnapshot.strokeId = targetStrokeId
+			applySnapshotHeights(entry)
+			redoStack[#redoStack + 1] = redoSnapshot
+			totalVertexCount = totalVertexCount + vertexCount
+		end
 
 		if DIAG then
 			Spring.Echo(string.format("[TFBrush DIAG] UNDO_STROKE: strokeId=%d queued=%d remaining=%d",
@@ -1921,7 +1914,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		-- falloff stamp is built before the first apply of a stroke. Builds
 		-- the same deterministic cache entry the apply would; never touches
 		-- the heightmap or ringInnerRatio. Quiet gate: no echo spam.
-		if mapDamageEnabled and (Spring.IsCheatingEnabled() or certified) then
+		if mapDamageEnabled and isTerraformAllowed(certified) then
 			local parts = parseParts(msg:sub(WARM_HEADER_LENGTH + 1))
 			local radius = tonumber(parts[1])
 			if radius then

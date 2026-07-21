@@ -95,6 +95,10 @@ local WOBBLE_AMPLITUDE = 8    -- degrees peak tilt
 local WOBBLE_FREQ      = 0.6  -- radians per frame
 local WOBBLE_RAMP      = 3    -- frames to ramp in
 
+-- GameFrame is registered only while wobble animations run; otherwise every
+-- match paid an empty pairs() walk every sim frame.
+local wobbleActive = false
+
 local function addWobble(featureID)
 	if featureID then
 		local _, yaw, _ = GetFeatureRotation(featureID)
@@ -103,6 +107,10 @@ local function addWobble(featureID)
 			axis  = random() * 2 * pi,
 			yaw   = yaw or 0,
 		}
+		if not wobbleActive then
+			wobbleActive = true
+			gadgetHandler:UpdateCallIn("GameFrame")
+		end
 	end
 end
 
@@ -835,6 +843,8 @@ end
 
 function gadget:Initialize()
 	gaiaTeamID = GetGaiaTeamID()
+	-- Idle until the first wobble is queued (see addWobble).
+	gadgetHandler:RemoveCallIn("GameFrame")
 end
 
 function gadget:GameFrame(frame)
@@ -855,5 +865,9 @@ function gadget:GameFrame(frame)
 			local roll  = angle * sin(info.axis)
 			SetFeatureRotation(fid, pitch, info.yaw, roll)
 		end
+	end
+	if not next(wobbleQueue) then
+		wobbleActive = false
+		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 end
