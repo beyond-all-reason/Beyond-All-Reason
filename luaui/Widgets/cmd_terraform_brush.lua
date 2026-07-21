@@ -1989,7 +1989,14 @@ local function doExportHeightmap()
 	end
 
 	local heightRange = maxH - minH
-	if heightRange < 1 then heightRange = 1 end
+	if heightRange < 1 then
+		-- Keep maxH in sync with the clamped range so the sidecar/tEXt metadata
+		-- records the normalisation actually used. Recording the raw maxH made
+		-- import rescale near-flat maps by the true sub-1 range, compressing
+		-- every height toward minH.
+		heightRange = 1
+		maxH = minH + 1
+	end
 
 	-- Normalise to 16-bit greyscale: black (0) = min height, white (65535) = max height.
 	local samples = {}
@@ -2006,7 +2013,9 @@ local function doExportHeightmap()
 		samples[i] = floor(norm * 65535 + 0.5)
 	end
 
-	local png = extraState._heightmapPNG.encodeGray16(w, h, samples)
+	-- min/max ride along inside the PNG (tEXt chunk) so imports survive a lost
+	-- .txt sidecar; the sidecar stays the interop format for external tools.
+	local png = extraState._heightmapPNG.encodeGray16(w, h, samples, minH, maxH)
 	if not png then
 		Echo("[Terraform Brush] Failed to encode heightmap PNG")
 		return
@@ -2081,7 +2090,8 @@ local function doImportHeightmapRead()
 		end
 	end
 
-	if not minH or not maxH then
+	local sidecarHadRange = (minH ~= nil and maxH ~= nil)
+	if not sidecarHadRange then
 		local gMin, gMax = Spring.GetGroundExtremes()
 		minH = gMin or -200
 		maxH = gMax or 800
@@ -2089,45 +2099,74 @@ local function doImportHeightmapRead()
 	end
 
 	local heightRange = maxH - minH
+	-- Mirror the exporter's clamp so a hand-edited or degenerate sidecar cannot
+	-- collapse the range and compress the terrain toward minH.
+	if heightRange < 1 then heightRange = 1 end
 
 	-- High-precision path: decode the greyscale PNG ourselves in Lua so we keep the
 	-- full 16-bit depth. (gl.Texture round-trips at 8-bit -> 256 levels -> terracing.)
 	-- The decoded image is row-major with row 0 = world z=0, matching the exporter.
-	if heightmapFormat == "grey16" or heightmapFormat == "grey" then
+	-- With no sidecar token this also runs as a probe: new-style exports embed
+	-- their height range in a tEXt chunk, so a lost .txt no longer silently
+	-- rescales the terrain through the 8-bit GL fallback. 8-bit decodes without a
+	-- token still route to GL below (legacy RG-packed files need its B==1 marker
+	-- reconstruction).
+	if heightmapFormat == "grey16" or heightmapFormat == "grey" or heightmapFormat == nil then
 		local f = io.open(filename, "rb")
 		if f then
 			local bytes = f:read("*a")
 			f:close()
 			local img = bytes and extraState._heightmapPNG.decode(bytes)
-			if img and img.gray then
+			if img and img.gray and (heightmapFormat ~= nil or img.bitDepth == 16) then
+				-- Prefer the range embedded in the PNG when the sidecar was absent.
+				if not sidecarHadRange and img.minHeight and img.maxHeight then
+					minH = img.minHeight
+					maxH = img.maxHeight
+					heightRange = maxH - minH
+					if heightRange < 1 then heightRange = 1 end
+					Echo(string.format("[Terraform Brush] Using height range embedded in PNG: %.2f to %.2f", minH, maxH))
+				end
 				local pw, ph = img.width, img.height
 				local gray = img.gray
-				-- Resample (bilinear) onto the current map grid so heightmaps from a
-				-- differently-sized map still apply. Exact/lossless when sizes match
-				-- (the integer source coords land on a pixel and the weights are 0).
 				local w = Game.mapSizeX / squareSize + 1
 				local h = Game.mapSizeZ / squareSize + 1
 				local columns = {}
-				for px = 1, w do
-					local sx = (w > 1) and ((px - 1) / (w - 1) * (pw - 1)) or 0
-					local x0 = floor(sx)
-					local fx = sx - x0
-					local x1 = (x0 + 1 < pw) and (x0 + 1) or (pw - 1)
-					local col = {}
-					for py = 1, h do
-						local sy = (h > 1) and ((py - 1) / (h - 1) * (ph - 1)) or 0
-						local y0 = floor(sy)
-						local fy = sy - y0
-						local y1 = (y0 + 1 < ph) and (y0 + 1) or (ph - 1)
-						local g00 = gray[y0 * pw + x0 + 1]
-						local g10 = gray[y0 * pw + x1 + 1]
-						local g01 = gray[y1 * pw + x0 + 1]
-						local g11 = gray[y1 * pw + x1 + 1]
-						local g0 = g00 + (g10 - g00) * fx
-						local g1 = g01 + (g11 - g01) * fx
-						col[py] = minH + (g0 + (g1 - g0) * fy) * heightRange
+				if pw == w and ph == h then
+					-- Same-size import: direct copy. This is the exact inverse of the
+					-- exporter; the bilinear path's float32 index math can produce
+					-- ~1e-4 fractional weights even at identical sizes, bleeding a
+					-- little of each neighbour into every vertex on steep terrain.
+					for px = 1, w do
+						local col = {}
+						for py = 1, h do
+							col[py] = minH + gray[(py - 1) * pw + px] * heightRange
+						end
+						columns[px] = col
 					end
-					columns[px] = col
+				else
+					-- Resample (bilinear) onto the current map grid so heightmaps from
+					-- a differently-sized map still apply.
+					for px = 1, w do
+						local sx = (w > 1) and ((px - 1) / (w - 1) * (pw - 1)) or 0
+						local x0 = floor(sx)
+						local fx = sx - x0
+						local x1 = (x0 + 1 < pw) and (x0 + 1) or (pw - 1)
+						local col = {}
+						for py = 1, h do
+							local sy = (h > 1) and ((py - 1) / (h - 1) * (ph - 1)) or 0
+							local y0 = floor(sy)
+							local fy = sy - y0
+							local y1 = (y0 + 1 < ph) and (y0 + 1) or (ph - 1)
+							local g00 = gray[y0 * pw + x0 + 1]
+							local g10 = gray[y0 * pw + x1 + 1]
+							local g01 = gray[y1 * pw + x0 + 1]
+							local g11 = gray[y1 * pw + x1 + 1]
+							local g0 = g00 + (g10 - g00) * fx
+							local g1 = g01 + (g11 - g01) * fx
+							col[py] = minH + (g0 + (g1 - g0) * fy) * heightRange
+						end
+						columns[px] = col
+					end
 				end
 				importHeightRows = columns
 				importRowIndex = 0
@@ -2136,7 +2175,9 @@ local function doImportHeightmapRead()
 				return
 			end
 		end
-		Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
+		if heightmapFormat ~= nil then
+			Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
+		end
 	end
 
 	-- Legacy / fallback path (8-bit via GL): handles the older RG-packed exports and

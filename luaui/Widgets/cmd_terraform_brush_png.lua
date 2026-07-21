@@ -96,12 +96,25 @@ local PNG_SIG = schar(137, 80, 78, 71, 13, 10, 26, 10)
 --   width, height : image dimensions
 --   samples       : flat array, row-major (row 0 first), length width*height,
 --                   integer values 0..65535 (clamped here defensively)
+--   minHeight, maxHeight (optional): world-height range the samples were
+--                   normalised against. Embedded as a tEXt chunk so an import
+--                   can reconstruct exact heights even when the .txt sidecar
+--                   is lost or renamed (which previously silently rescaled the
+--                   terrain to the map's initial extremes).
 --   Returns the PNG as a binary string, or nil on failure.
 --------------------------------------------------------------------------------
 
-local function encodeGray16(width, height, samples)
+-- tEXt keyword for the embedded normalisation range; value is "<min> <max>".
+local RANGE_KEYWORD = "terraform_height_range"
+
+local function encodeGray16(width, height, samples, minHeight, maxHeight)
 	-- IHDR: bitDepth 16, colorType 0 (greyscale), no compression/filter/interlace flags
 	local ihdr = u32be(width) .. u32be(height) .. schar(16, 0, 0, 0, 0)
+
+	local rangeChunk = ""
+	if minHeight and maxHeight then
+		rangeChunk = chunk("tEXt", RANGE_KEYWORD .. "\0" .. string.format("%.6f %.6f", minHeight, maxHeight))
+	end
 
 	local parts = {}
 	local p = 0
@@ -123,7 +136,7 @@ local function encodeGray16(width, height, samples)
 	local comp = ZlibCompress(tconcat(parts))
 	if not comp then return nil end
 
-	return PNG_SIG .. chunk("IHDR", ihdr) .. chunk("IDAT", comp) .. chunk("IEND", "")
+	return PNG_SIG .. chunk("IHDR", ihdr) .. rangeChunk .. chunk("IDAT", comp) .. chunk("IEND", "")
 end
 
 --------------------------------------------------------------------------------
@@ -147,6 +160,7 @@ local function decode(data)
 	end
 
 	local width, height, bitDepth, colorType
+	local minHeight, maxHeight
 	local idat = {}
 	local pos = 9
 	local n = #data
@@ -163,6 +177,14 @@ local function decode(data)
 			if interlace ~= 0 then return nil end -- interlaced not supported
 		elseif ctype == "IDAT" then
 			idat[#idat + 1] = ssub(data, dstart, dstart + len - 1)
+		elseif ctype == "tEXt" then
+			-- Embedded normalisation range written by encodeGray16.
+			local payload = ssub(data, dstart, dstart + len - 1)
+			local keyword, text = payload:match("^([^%z]+)%z(.*)$")
+			if keyword == RANGE_KEYWORD and text then
+				local a, b = text:match("^([%-%.%d]+)%s+([%-%.%d]+)")
+				minHeight, maxHeight = tonumber(a), tonumber(b)
+			end
 		elseif ctype == "IEND" then
 			break
 		end
@@ -245,7 +267,8 @@ local function decode(data)
 		prev = cur
 	end
 
-	return { width = width, height = height, bitDepth = bitDepth, gray = gray }
+	return { width = width, height = height, bitDepth = bitDepth, gray = gray,
+		minHeight = minHeight, maxHeight = maxHeight }
 end
 
 return {
