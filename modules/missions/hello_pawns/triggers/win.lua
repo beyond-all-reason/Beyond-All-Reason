@@ -1,11 +1,7 @@
 T.When(Team.Player.Has(UnitDef("armpw"), 3))
-	.Then(function()
-		Objective("build_pawns").Complete()
-	end)
+	.Do(Objective("build_pawns").Complete())
 	.Register()
 
 T.When(Objective("build_pawns").IsComplete())
-	.Then(function()
-		MatchFlow.Victory(Team.Player.allyTeam)
-	end)
+	.Do(MatchFlow.Victory(Team.Player))
 	.Register()

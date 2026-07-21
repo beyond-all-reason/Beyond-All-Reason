@@ -15,8 +15,8 @@ describe("mission DSL", function()
 	end)
 
 	it("builds a descriptor from a dot-only chain", function()
-		local effect = function() end
-		T.When(alwaysTrue).Then(effect).Register()
+		local effect = { execute = function() end }
+		T.When(alwaysTrue).Do(effect).Register()
 
 		assert.are.equal(1, #registered)
 		local descriptor = registered[1]
@@ -24,30 +24,51 @@ describe("mission DSL", function()
 		assert.are.equal("triggers/win.lua", descriptor.filename)
 		assert.are.equal(1, descriptor.order)
 		assert.are.equal(alwaysTrue, descriptor.condition)
-		assert.are.equal(effect, descriptor.effect)
+		assert.are.same({ effect }, descriptor.effects)
 		assert.is_true(descriptor.once)
 	end)
 
+	it("accumulates multiple Do effects in order", function()
+		local first = { execute = function() end }
+		local second = { execute = function() end }
+		T.When(alwaysTrue).Do(first).Do(second).Register()
+		assert.are.same({ first, second }, registered[1].effects)
+	end)
+
+	it("rejects a bare function in Do (closure-free surface)", function()
+		assert.has_error(function()
+			T.When(alwaysTrue).Do(function() end)
+		end)
+	end)
+
 	it("stamps declaration order per file", function()
-		T.When(alwaysTrue).Then(function() end).Register()
-		T.When(alwaysTrue).Then(function() end).Register()
+		T.When(alwaysTrue).Do({ execute = function() end }).Register()
+		T.When(alwaysTrue).Do({ execute = function() end }).Register()
 		assert.are.equal("triggers/win.lua:1", registered[1].id)
 		assert.are.equal("triggers/win.lua:2", registered[2].id)
 	end)
 
 	it("defaults Once to true and honors Once(false)", function()
-		T.When(alwaysTrue).Then(function() end).Once(false).Register()
+		T.When(alwaysTrue).Do({ execute = function() end }).Once(false).Register()
 		assert.is_false(registered[1].once)
 	end)
 
-	it("requires a Then before Register", function()
+	it("requires a Do before Register", function()
 		assert.has_error(function()
 			T.When(alwaysTrue).Register()
 		end)
 	end)
 
+	it("rejects Do after Register (no mutating a registered trigger)", function()
+		local chain = T.When(alwaysTrue).Do({ execute = function() end })
+		chain.Register()
+		assert.has_error(function()
+			chain.Do({ execute = function() end })
+		end)
+	end)
+
 	it("rejects a second Register on the same chain", function()
-		local chain = T.When(alwaysTrue).Then(function() end)
+		local chain = T.When(alwaysTrue).Do({ execute = function() end })
 		chain.Register()
 		assert.has_error(function()
 			chain.Register()
