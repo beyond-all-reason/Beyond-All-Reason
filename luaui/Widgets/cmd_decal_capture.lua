@@ -168,6 +168,7 @@ local function runCapture(job)
 		return false, "could not read viewproj matrix"
 	end
 
+	Spring.CreateDir(CACHE_SUBDIR)
 	local outPath = CACHE_SUBDIR .. job.name .. ".png"
 	local saved = false
 
@@ -458,7 +459,7 @@ local function autoInstall(name, capturedRel)
 end
 
 function widget:Initialize()
-	Spring.CreateDir(CACHE_SUBDIR)
+	-- Cache dir is created at capture time, not at load.
 	widgetHandler:AddAction("decalcapture", actionCapture, nil, "t")
 	widgetHandler:AddAction("decalsdump", actionDump, nil, "t")
 	widgetHandler:AddAction("decaldumpres", actionDumpRes, nil, "t")

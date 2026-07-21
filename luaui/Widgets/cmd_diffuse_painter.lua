@@ -233,6 +233,7 @@ local pendingInit       = false
 local pendingFullBake   = false  -- re-bake already-allocated squares
 local pendingFullCover  = false  -- allocate every map square + bake (heavy)
 local pendingExport     = false  -- /diffusepaintexport queued; runs in DrawWorld (GL context)
+local libraryScanned    = false  -- material library VFS walk done (deferred to first activate)
 local pendingPaintStrokes = {}   -- array of {wx, wz, layerId, erase}
 local dirtySquares      = {}     -- squareKey -> true; consumed each Draw
 
@@ -1958,6 +1959,12 @@ local function activate()
 			return
 		end
 	end
+	-- Deferred from Initialize: recursive VFS walk of the write-dir texture
+	-- library; only editor users should pay it.
+	if not libraryScanned then
+		libraryScanned = true
+		scanMaterialLibrary()
+	end
 	active = true
 	pendingInit = true
 	Echo("[Diffuse Painter] active. LMB paint, RMB erase. /diffusepaint to toggle.")
@@ -1995,7 +2002,7 @@ function widget:Initialize()
 	           handPaintEnabled = true, enabled = true, opacity = 1.0 })
 	activeLayerId = paintId
 
-	scanMaterialLibrary()
+	-- Material library scan happens on first activate(), not here.
 
 	widgetHandler:AddAction("diffusepaint", function()
 		if active then deactivate() else activate() end
@@ -2071,7 +2078,7 @@ function widget:Initialize()
 		getMaterialLibrary = function() return materialLibrary end,
 		rescanMaterialLibrary = scanMaterialLibrary,
 		bakeAll        = function() pendingFullCover = true end,
-		exportSquares  = exportSquares,
+		exportSquares  = function() pendingExport = true end,
 		getBrush       = function() return brushRadius, brushStrength, brushCurve, eraseMode end,
 		setRadius        = function(r) brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r))) end,
 		setStrength      = function(v) brushStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, v)) end,

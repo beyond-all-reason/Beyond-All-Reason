@@ -62,8 +62,13 @@ local PERSIST_PERMANENT = -1
 -- ===========================================================================
 local cegNames = {} -- sorted list of all discovered CEG names
 local cegNameSet = {} -- quick lookup set
+local cegsLoaded = false
 
+-- Deferred from Initialize: DirList + include over the effects/ trees is real
+-- load-time work every player would pay; consumers call this lazily instead.
 local function loadCEGNames()
+	if cegsLoaded then return end
+	cegsLoaded = true
 	cegNames = {}
 	cegNameSet = {}
 	local dirs = { "effects", "effects/lootboxes", "effects/raptors", "effects/scavengers" }
@@ -918,6 +923,7 @@ local function applyCegFlashbangOverride(name)
 end
 
 local function selectCeg(name)
+	loadCEGNames()
 	if not cegNameSet[name] then return end
 	wb.selectedCegs = { name }
 	wb.selectedCegSet = { [name] = true }
@@ -925,6 +931,7 @@ local function selectCeg(name)
 end
 
 local function toggleCeg(name)
+	loadCEGNames()
 	if not cegNameSet[name] then return end
 	if wb.selectedCegSet[name] then
 		wb.selectedCegSet[name] = nil
@@ -1006,6 +1013,7 @@ local function getStateWithCount()
 end
 
 local function getCegNames()
+	loadCEGNames()
 	return cegNames
 end
 
@@ -1267,7 +1275,7 @@ end
 -- Initialize / Shutdown
 -- ===========================================================================
 function widget:Initialize()
-	loadCEGNames()
+	-- CEG names load lazily on first UI/selection use, not here.
 
 	-- Register slash commands
 	widgetHandler:AddAction("weatherbrush", function(_, _, args)

@@ -638,6 +638,7 @@ local function save()
 	}
 
 	local timestamp = os.date("%Y%m%d_%H%M%S")
+	Spring.CreateDir(SAVE_DIR)
 	local filename = SAVE_DIR .. getMapName() .. "_lights_" .. timestamp .. ".lua"
 
 	local lines = { "return {\n", "\tversion = 1,\n", '\tmapName = "' .. (Game.mapName or "unknown") .. '",\n', "\tlights = {\n" }
@@ -748,6 +749,7 @@ local function saveUserPreset(presetName)
 
 	-- Sanitize name
 	local safeName = presetName:gsub("[^%w_%-]", "_")
+	Spring.CreateDir(PRESET_DIR)
 	local filename = PRESET_DIR .. safeName .. ".lua"
 
 	-- Collect all currently placed lights
@@ -974,6 +976,10 @@ end
 -- Preset preview: preview lights for all lights in a pending preset
 ----------------------------------------------------------------
 local function removePresetPreviewLights()
+	presetPreviewLast.valid = false
+	-- DrawWorld's inactive branch calls this every frame; without the guard it
+	-- allocated a fresh table per frame for every player with the widget loaded.
+	if #presetPreviewLights == 0 then return end
 	local api = WG['lightsgl4']
 	if api and api.RemoveLight then
 		for _, p in ipairs(presetPreviewLights) do
@@ -981,7 +987,6 @@ local function removePresetPreviewLights()
 		end
 	end
 	presetPreviewLights = {}
-	presetPreviewLast.valid = false
 end
 
 local function updatePresetPreviewLights(worldX, worldZ)
@@ -1222,8 +1227,7 @@ end
 ----------------------------------------------------------------
 function widget:Initialize()
 	-- Ensure save directories exist
-	Spring.CreateDir(SAVE_DIR)
-	Spring.CreateDir(PRESET_DIR)
+	-- Save dirs are created at save time, not at load for every player.
 
 	WG.LightPlacer = {
 		getState = function()
