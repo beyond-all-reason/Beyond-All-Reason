@@ -14,7 +14,6 @@
 	- Chainsaw / Eradicator: 1125 -> 1200 range
 	- Ferret: 840 -> 950 range, 176 -> 208 DPS, Stealth added, 360 -> 330 metalcost, 5800 -> 5000 buildtime, 1330 -> 1600 health
 	- SAM: 840 -> 950 range, 190 -> 225 DPS, 315 -> 350 metalcost, 6100 -> 5500 energycost, 5240 -> 4500 buildtime, 2800 -> 2500 health
-• [T2 transports] -20 speed, -15% health, -15% metalcost
 • [T2 fighters]
 	- Highwind: +7% costs
 	- Nighthawk: +7% costs, 740 -> 690 range
