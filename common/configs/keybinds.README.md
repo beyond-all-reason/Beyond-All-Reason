@@ -26,10 +26,17 @@ Each category's `items` entry is exactly one of:
 - `{ "action": "<bind command>", "label": "<i18n key>" }` - editable; user can rebind it.
 - `{ "label": "<i18n key>", "keyLabel": "<i18n key>" }` - informational, read-only key hint.
 - `{ "prefix": "<action id prefix>" }` - claims every bound action whose id starts with the
-  prefix, listed by raw id (for numbered families like `group 1`, `group 2`, ...).
+  prefix, listed by raw id (for numbered families like `group 1`, `group 2`, ...). An optional
+  `"label"` is interpolated per matched action with the arg after the prefix as `%{n}` (or its
+  two whitespace-split tokens as `%{row}`/`%{col}`); an optional `"unit": true` resolves that
+  arg from a unit codename to its translated name.
 
 `action` is the bind command exactly as `/bind` expects and `GetKeyBindings` reports it
 (command plus space-separated args, e.g. `select AllMap++_ClearSelection_SelectAll+`).
+
+A single leading `{ "hidden": ["<action id prefix>", ...] }` entry (not a category) lists
+actions that are bound but never shown - by the same prefix match - so they surface neither
+as a row nor under "Other".
 
 ## The config contract (behavior each surface implements)
 
