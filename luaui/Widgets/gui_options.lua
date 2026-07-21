@@ -152,7 +152,7 @@ local math_isInRect = math.isInRect
 
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, scheduleInit
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, selectScrollOffset
 local guishaderWasActive = false
 
@@ -1047,6 +1047,12 @@ function widget:Update(dt)
 
 	if not initialized then
 		return
+	end
+
+	-- widgetHandler:EnableWidget/DisableWidget are deferred but are used to change displayed options. This is a solution to update the options list after next frame.
+	if scheduleInit then
+		scheduleInit = nil
+		init()
 	end
 
 		-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
@@ -2050,6 +2056,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		end
 		forceUpdate = true
+		scheduleInit = true
 		if id == "teamcolors" then
 			Spring.SendCommands("luarules reloadluaui")    -- cause several widgets are still using old colors
 		end
@@ -3569,7 +3576,7 @@ function init()
 			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 				  WG['bar_hotkeys'].reloadBindings()
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 
@@ -3582,7 +3589,7 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),

@@ -1904,6 +1904,25 @@ function widget:DrawScreen()
         gl.PushMatrix()
     end
 
+    -- Draw the take signal outside render-to-texture so it extends beyond widget bounds (and can blink)
+    if m_take.active and mySpecStatus == false and blink then
+        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+        gl.Scale(widgetScale, widgetScale, 0)
+        gl.Translate(scaleDiffX, scaleDiffY, 0)
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i])
+                end
+            end
+        end
+        gl_Texture(false)
+        gl.PopMatrix()
+        gl.PushMatrix()
+    end
+
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
     gl.Scale(widgetScale, widgetScale, 0)
@@ -2413,7 +2432,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local ping = p.ping
     local cpu = p.cpu
     local spec = p.spec
-    local totake = p.totake
     local needm = p.needm
     local neede = p.neede
     local dead = p.dead
@@ -2474,14 +2492,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if mySpecStatus == false then
                 if onlyMainList2 then
                     if allyteam == myAllyTeamID then
-                        if m_take.active then
-                            if totake then
-                                DrawTakeSignal(posY)
-                                if tipY then
-                                    TakeTip(mouseX)
-                                end
-                            end
-                        end
+                        -- take signal + its tooltip are handled live in DrawScreen/Update (outside the
+                        -- render-to-texture) so they can extend beyond the widget bounds and blink
                         if m_share.active and not dead and not hideShareIcons then
                             DrawShareButtons(posY, needm, neede)
                             if tipY then
@@ -2589,13 +2601,15 @@ end
 
 function DrawTakeSignal(posY)
     if blink then
-        -- Draws a blinking rectangle if the player of the same team left (/take option)
+        -- Draws a blinking arrow + "TAKE" label if a same-team player left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
-        DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+        DrawRect(widgetPosX - (14*playerScale), posY, widgetPosX, posY + (16*playerScale))
         gl_Color(1, 1, 1)
         gl_Texture(pics["takePic"])
-        DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
+        -- take.dds is a square image (90x90), so keep a 1:1 aspect to avoid distortion
+        DrawRect(widgetPosX - (57*playerScale), posY - (14*playerScale), widgetPosX - (12*playerScale), posY + (31*playerScale))
+        gl_Color(1, 1, 1, 1)
     end
 end
 
@@ -3195,13 +3209,6 @@ function DrawEraser(posY, time)
     gl_Texture(pics["eraserPic"])
     DrawRect(m_indent.posX + widgetPosX -0.5, posY + (3*playerScale), m_indent.posX + widgetPosX + 1.5 + (8*playerScale), posY + (14*playerScale))
     gl_Color(1, 1, 1, 1)
-end
-
-function TakeTip(mouseX)
-    if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-        tipText = Spring.I18N('ui.playersList.takeUnits')
-        tipTextTime = osClock()
-    end
 end
 
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
@@ -4080,6 +4087,28 @@ function widget:Update(delta)
     --handles takes & related messages
     local mx, my = spGetMouseState()
     hoverPlayerlist = false
+
+    -- the take icon is drawn to the left of the panel, so detect hovering it independently of the panel bounds
+    local overTakeIcon = false
+    if m_take.active and mySpecStatus == false
+        and mx >= widgetPosX - 57 * widgetScale and mx <= widgetPosX - 1 * widgetScale then
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    local posY = widgetPosY + ((widgetHeight - drawListOffset[i]) * widgetScale)
+                    if my >= posY and my <= posY + (16 * widgetScale * playerScale) then
+                        overTakeIcon = true
+                        tipText = Spring.I18N('ui.playersList.takeUnits')
+                        tipTextTitle = nil
+                        tipTextTime = osClock()
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
 
@@ -4096,10 +4125,12 @@ function widget:Update(delta)
 				tipTextTime = osClock()
 			end
 		end
+    end
 
-        if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
-        end
+    if (hoverPlayerlist or overTakeIcon) and tipText and WG['tooltip'] then
+        WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
+    end
+    if hoverPlayerlist or overTakeIcon then
         Spring.SetMouseCursor('cursornormal')
     end
 

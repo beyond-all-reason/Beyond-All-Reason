@@ -1782,13 +1782,15 @@ local function bindBuildUnits(widget)
 
 	unbindBuildUnits()
 
-	comBuildOptions = table.filterTable({
-		armcom = {},
-		corcom = {},
-		legcom = {}
-	}, function(value, key)
-		return UnitDefNames[key] ~= nil
-	end)
+	comBuildOptions = {}
+	local validStartUnits = string.split(spGetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	for _, unitDefIDString in ipairs(validStartUnits) do
+		local unitDefID = tonumber(unitDefIDString)
+		local unitDef = unitDefID and UnitDefs[unitDefID]
+		if unitDef then
+			comBuildOptions[unitDef.name] = {}
+		end
+	end
 
 	for comDefName, buildOptions in pairs(comBuildOptions) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do

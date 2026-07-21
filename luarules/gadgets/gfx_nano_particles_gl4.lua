@@ -291,6 +291,9 @@ local BUILD_POWER_CACHE_FRAMES   = 8
 -- this many homing passes. Spawn-time aim is correct as long as the target
 -- hasn't moved, collapsing repair-of-static-unit cases to a near-no-op.
 local STATIONARY_SKIP_AFTER      = 4
+-- Homing groups are also skipped when a conservative sphere containing the
+-- stream is outside the camera frustum. Dead entries are still pruned so an
+-- offscreen stream cannot retain tracking state after its particles expire.
 -- Off-screen emission throttle. Cold endpoints (not recently visible) do not
 -- allocate particles, but they accrue a bounded virtual stream so the next
 -- visible visit can materialize particles already in flight. Once a spray has
@@ -1966,6 +1969,14 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 					list = {}
 					homingByBuilder[builderID] = list
 				end
+				local viewRadius = len * (1 + jitterScale) + MAX_SPREAD_AHEAD_ELMOS
+				if not list._viewRadius or viewRadius > list._viewRadius then
+					list._viewRadius = viewRadius
+				end
+				local deathFrame = frame + lifetime
+				if not list._latestDeath or deathFrame > list._latestDeath then
+					list._latestDeath = deathFrame
+				end
 				local nL = #list
 				local p
 				if nL >= HOMING_MAX_PER_BUILDER then
@@ -2048,6 +2059,14 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				if not list then
 					list = {}
 					homingFwdByTarget[targetUnitID] = list
+				end
+				local viewRadius = len * (1 + jitterScale) + MAX_SPREAD_AHEAD_ELMOS
+				if not list._viewRadius or viewRadius > list._viewRadius then
+					list._viewRadius = viewRadius
+				end
+				local deathFrame = frame + lifetime
+				if not list._latestDeath or deathFrame > list._latestDeath then
+					list._latestDeath = deathFrame
 				end
 				local nL = #list
 				local p
@@ -2488,11 +2507,22 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 	local trackEntryFree = U._trackEntryFree
 
 	for builderID, list in pairs(homingByBuilder) do
+		repeat
 		local info = builderCache[builderID]
 		if not info or not spValidUnitID(builderID) then
 			U.recycleTrackList(list)
 			homingByBuilder[builderID] = nil
-		else
+			break
+		end
+		if list._latestDeath and frame >= list._latestDeath then
+			U.recycleTrackList(list)
+			homingByBuilder[builderID] = nil
+			break
+		end
+			local _, _, _, viewX, viewY, viewZ = spGetUnitPosition(builderID, true)
+			if viewX and not Spring.IsSphereInView(viewX, viewY, viewZ, list._viewRadius or 64) then
+				break
+			end
 			local writeIdx = 0
 			-- Hoist the high half of the piecePosCache key out of the per-particle
 			-- loop. Hot path: ~thousands of particles per scan in heavy reclaim.
@@ -2617,7 +2647,7 @@ local function applyHoming(frame, dirtyMin, dirtyMax)
 			if writeIdx == 0 then
 				homingByBuilder[builderID] = nil
 			end
-		end
+		until true
 	end
 	return dirtyMin, dirtyMax
 end
@@ -2753,6 +2783,12 @@ local function applyForwardHoming(frame, dirtyMin, dirtyMax)
 				U.recycleTrackList(list)
 				homingFwdByTarget[targetID] = nil
 				targetPosCache[targetID]    = nil
+			elseif not Spring.IsSphereInView(tx, ty, tz, list._viewRadius or 64) then
+				if list._latestDeath and frame >= list._latestDeath then
+					U.recycleTrackList(list)
+					homingFwdByTarget[targetID] = nil
+					targetPosCache[targetID]    = nil
+				end
 			else
 				-- Stationary detection: compare current pos to last-seen pos.
 				-- Threshold is generous (1 elmo) -- builders sub-elmo drift doesn't
