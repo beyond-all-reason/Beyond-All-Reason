@@ -720,7 +720,6 @@ function widget:LanguageChanged()
 	drawCursorText.invalidate()
 end
 
-
 function widget:DrawScreenEffects()
 	if not blueprintPlacementActive then
 		return
