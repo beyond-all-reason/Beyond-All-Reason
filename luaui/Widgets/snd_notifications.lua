@@ -1,4 +1,9 @@
 local widget = widget ---@type Widget
+-- referenced in Get/SetConfigData but never assigned anywhere (upstream bug);
+-- declared so the config round-trip is explicit rather than a global read
+local customNotifications = nil ---@type table?
+
+local customNotificationTimers -- forward-decl: read in GetConfigData export
 
 function widget:GetInfo()
 	return {

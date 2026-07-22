@@ -28,6 +28,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMouseState = Spring.GetMouseState
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
+local spGetPlayerInfo = Spring.GetPlayerInfo
 
 --[[Changelog
 	before v8.0 developed outside of BA by Marmoth
@@ -3804,7 +3805,6 @@ function widget:GetConfigData()
 			gameFrame = spGetGameFrame(),
 			lastSystemData = lastSystemData,
 			alwaysHideSpecs = alwaysHideSpecs,
-			transitionTime = transitionTime,
 			hasresetskill = true,
 			absoluteResbarValues = absoluteResbarValues,
 			originalColourNames = originalColourNames,

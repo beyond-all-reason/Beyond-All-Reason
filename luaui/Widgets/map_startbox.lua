@@ -39,6 +39,8 @@ local GL_TRIANGLES = GL.TRIANGLES
 
 local UPDATE_RATE = 30
 
+local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
+
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 

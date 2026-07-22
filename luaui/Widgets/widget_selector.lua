@@ -314,9 +314,9 @@ end
 local function widgetselectorCmd(_, _, params)
 	show = not show
 	if show then
-		widgetHandler.textOwner = self --widgetHandler:OwnText()
-		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-		Spring.SetConfigInt("widgetselector", 1)
+		widgetHandler.textOwner = widget --widgetHandler:OwnText()
+		SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		SpringUnsynced.SetConfigInt("widgetselector", 1)
 	else
 		Spring.SDLStopTextInput()
 		widgetHandler.textOwner = nil --widgetHandler:DisownText()
@@ -372,9 +372,9 @@ function widget:Initialize()
 		end
 		show = newShow
 		if show then
-			widgetHandler.textOwner = self --widgetHandler:OwnText()
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			Spring.SetConfigInt("widgetselector", 1)
+			widgetHandler.textOwner = widget --widgetHandler:OwnText()
+			SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+			SpringUnsynced.SetConfigInt("widgetselector", 1)
 		else
 			Spring.SDLStopTextInput()
 			widgetHandler.textOwner = nil --widgetHandler:DisownText()
@@ -682,9 +682,9 @@ function widget:KeyPress(key, mods, isRepeat)
 				show = false
 			end
 			if show then
-				widgetHandler.textOwner = self --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-				Spring.SetConfigInt("widgetselector", 1)
+				widgetHandler.textOwner = widget --widgetHandler:OwnText()
+				SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+				SpringUnsynced.SetConfigInt("widgetselector", 1)
 			else
 				Spring.SDLStopTextInput()
 				widgetHandler.textOwner = nil --widgetHandler:DisownText()
@@ -1252,8 +1252,8 @@ function widget:SetConfigData(data)
 	startEntry = data.startEntry or startEntry
 	show = data.show or show
 	if show then
-		widgetHandler.textOwner = self --widgetHandler:OwnText()
-		Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		widgetHandler.textOwner = widget --widgetHandler:OwnText()
+		SpringUnsynced.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
 end
 
