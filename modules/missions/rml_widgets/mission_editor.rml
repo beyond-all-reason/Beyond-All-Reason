@@ -46,7 +46,38 @@
 .me-textmode {
     display: none;
     margin: 4px 0;
-    color: #9ecbff;
+}
+
+.me-bighead {
+    display: block;
+    font-size: 1.7em;
+    color: #ffffff;
+    margin: 4px 0 6px 0;
+}
+
+.me-followline {
+    display: block;
+    color: #8fa3b8;
+    margin-bottom: 6px;
+}
+
+.me-billboard {
+    display: block;
+    font-size: 1.25em;
+}
+
+.me-input {
+    display: inline-block;
+    width: 120px;
+    padding: 0 4px;
+    background-color: #0b0e12;
+    border: 1px #3a4a5c;
+    color: #f6c177;
+    font-size: 0.95em;
+}
+
+.me-input-num {
+    width: 48px;
 }
 
 .me-content {

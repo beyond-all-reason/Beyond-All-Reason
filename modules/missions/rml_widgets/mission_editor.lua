@@ -46,21 +46,43 @@ local lastGeneration = nil
 local pollAccumulator = 0
 local firstMissionFile = nil
 local mode = "form" ---@type "form"|"text"
+local applyViewLayout
 
----Pretty-print a recognizer Value node back to DSL text, literals wrapped in
----spans so the form can style what is form-editable.
+---Pretty-print a recognizer Value node back to DSL text — the DSL's display
+---notation (one renderer, many surfaces: form cards, the text-mode billboard,
+---and whatever shows triggers compactly next). In editable mode, number and
+---string literals become inputs carrying the span + CAS hash an edit intent
+---needs.
 ---@param value table
+---@param ctx { file: string, hash: string, editable: boolean }|nil
 ---@return string
-local function renderValue(value)
+local function renderValue(value, ctx)
 	local kind = value.kind
 	if kind == "number" then
 		local number = value.value
 		if number == math.floor(number) then
 			number = math.floor(number)
 		end
+		if ctx and ctx.editable and value.span then
+			return '<input type="text" class="me-input me-input-num" value="' .. tostring(number)
+				.. '" data-file="' .. ctx.file
+				.. '" data-start="' .. tostring(value.span[1])
+				.. '" data-end="' .. tostring(value.span[2])
+				.. '" data-hash="' .. ctx.hash
+				.. '" data-quote="0"/>'
+		end
 		return '<span class="me-lit">' .. tostring(number) .. "</span>"
 	elseif kind == "string" then
-		return '<span class="me-lit">"' .. tostring(value.value) .. '"</span>'
+		local text = tostring(value.value)
+		if ctx and ctx.editable and value.span and not text:find('"') then
+			return '<input type="text" class="me-input" value="' .. text
+				.. '" data-file="' .. ctx.file
+				.. '" data-start="' .. tostring(value.span[1])
+				.. '" data-end="' .. tostring(value.span[2])
+				.. '" data-hash="' .. ctx.hash
+				.. '" data-quote="1"/>'
+		end
+		return '<span class="me-lit">"' .. text .. '"</span>'
 	elseif kind == "boolean" then
 		return '<span class="me-lit">' .. tostring(value.value) .. "</span>"
 	elseif kind == "name" then
@@ -73,7 +95,7 @@ local function renderValue(value)
 			end
 			local args = {}
 			for _, arg in ipairs(call.args) do
-				args[#args + 1] = renderValue(arg)
+				args[#args + 1] = renderValue(arg, ctx)
 			end
 			parts[#parts + 1] = "(" .. table.concat(args, ", ") .. ")"
 		end
@@ -81,7 +103,7 @@ local function renderValue(value)
 	elseif kind == "table" then
 		local fields = {}
 		for _, field in ipairs(value.fields) do
-			fields[#fields + 1] = field.key .. " = " .. renderValue(field.value)
+			fields[#fields + 1] = field.key .. " = " .. renderValue(field.value, ctx)
 		end
 		return "{ " .. table.concat(fields, ", ") .. " }"
 	end
@@ -89,8 +111,9 @@ local function renderValue(value)
 end
 
 ---@param trigger table
+---@param ctx { file: string, hash: string, editable: boolean }|nil
 ---@return string
-local function renderTrigger(trigger)
+local function renderTrigger(trigger, ctx)
 	local rows = {
 		'<div class="me-card"><div class="me-card-title">'
 			.. (trigger.label or trigger.id)
@@ -100,7 +123,7 @@ local function renderTrigger(trigger)
 		if step.verb ~= "Register" then
 			local args = {}
 			for _, arg in ipairs(step.args) do
-				args[#args + 1] = renderValue(arg)
+				args[#args + 1] = renderValue(arg, ctx)
 			end
 			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb">'
 				.. step.verb:upper()
@@ -113,8 +136,9 @@ local function renderTrigger(trigger)
 	return table.concat(rows)
 end
 
+---@param editable boolean
 ---@return string|nil rml, string|nil err
-local function buildBody()
+local function buildBody(editable)
 	local text = VFS.LoadFile(AST_PATH, VFS.RAW_FIRST)
 	if not text then
 		return nil, "no AST artifact at " .. AST_PATH .. " — run bar-mission-kit parse"
@@ -127,13 +151,14 @@ local function buildBody()
 	local out = {}
 	firstMissionFile = ast.files and ast.files[1] and ast.files[1].path or nil
 	for _, file in ipairs(ast.files or {}) do
+		local ctx = { file = file.path, hash = file.hash or "", editable = editable }
 		out[#out + 1] = '<div class="me-file">' .. file.path .. "</div>"
 		for _, group in ipairs(file.groups or {}) do
 			if group.label then
 				out[#out + 1] = '<div class="me-group">' .. group.label .. "</div>"
 			end
 			for _, trigger in ipairs(group.triggers or {}) do
-				out[#out + 1] = renderTrigger(trigger)
+				out[#out + 1] = renderTrigger(trigger, ctx)
 			end
 		end
 		if file.opaque and #file.opaque > 0 then
@@ -173,16 +198,98 @@ local function serveStatusLine()
 	return '<div class="me-opaque">' .. tostring(status.message) .. "</div>"
 end
 
+local pendingEdits = {}
+local editSequence = 0
+
+---Flush debounced field edits as CAS-protected intents for serve. The last
+---value within a field's window wins; serve validates before writing.
+local function flushPendingEdits()
+	local now = os.clock()
+	for key, edit in pairs(pendingEdits) do
+		if now >= edit.deadline then
+			pendingEdits[key] = nil
+			Spring.CreateDir("modules/missions/editor/edits")
+			editSequence = editSequence + 1
+			local path = "modules/missions/editor/edits/" .. Spring.GetGameFrame() .. "_" .. editSequence .. ".json"
+			local handle = io.open(path, "w")
+			if handle then
+				local newText = edit.value
+				if edit.quote then
+					newText = '"' .. newText .. '"'
+				end
+				handle:write(Json.encode({
+					file = edit.file,
+					start = edit.start,
+					["end"] = edit.finish,
+					new_text = newText,
+					base_hash = edit.hash,
+				}))
+				handle:close()
+			else
+				Spring.Echo("[mission_editor] cannot write edit intent " .. path)
+			end
+		end
+	end
+end
+
+local function attachFormInputs()
+	local content = document:GetElementById("me-content")
+	if not content then
+		return
+	end
+	local inputs = content:GetElementsByTagName("input")
+	for i = 1, #inputs do
+		local input = inputs[i]
+		input:AddEventListener("change", function()
+			local start = tonumber(input:GetAttribute("data-start"))
+			if start == nil then
+				return
+			end
+			pendingEdits[input:GetAttribute("data-file") .. ":" .. start] = {
+				file = input:GetAttribute("data-file"),
+				start = start,
+				finish = tonumber(input:GetAttribute("data-end")),
+				hash = input:GetAttribute("data-hash"),
+				quote = input:GetAttribute("data-quote") == "1",
+				value = tostring(input:GetAttribute("value") or ""),
+				deadline = os.clock() + 0.8,
+			}
+		end)
+	end
+end
+
 local function refresh()
 	if not document then
 		return
 	end
-	local body, err = buildBody()
+	local body, err = buildBody(true)
 	local statusLine = serveStatusLine()
 	local content = document:GetElementById("me-content")
 	if content then
 		content.inner_rml = (statusLine or "")
 			.. (body or ('<div class="me-opaque">' .. (err or "?") .. "</div>"))
+		attachFormInputs()
+	end
+end
+
+---The text-mode billboard: BIG header + serve status + the mission in display
+---notation, read-only — the same renderer the form uses.
+local function fillBillboard()
+	local strip = document:GetElementById("me-textmode")
+	if not strip then
+		return
+	end
+	local body = buildBody(false)
+	strip.inner_rml = '<div class="me-bighead">EDITING IN VS CODE</div>'
+		.. (serveStatusLine() or '<div class="me-followline">The form follows your saves.</div>')
+		.. '<div class="me-billboard">' .. (body or "") .. "</div>"
+end
+
+local function renderCurrent()
+	if mode == "form" then
+		refresh()
+	else
+		fillBillboard()
 	end
 end
 
@@ -205,7 +312,7 @@ local function pollArtifact(dt)
 	local firstSight = lastGeneration == nil
 	lastGeneration = generation
 	if visible then
-		refresh()
+		renderCurrent()
 	end
 	if not firstSight and Spring.GetGameRulesParam("mission_active") == 1 then
 		Spring.SendCommands("luarules mission reload")
@@ -214,6 +321,7 @@ end
 
 function widget:Update(dt)
 	pollArtifact(dt)
+	flushPendingEdits()
 end
 
 function widget:ViewResize()
@@ -225,7 +333,7 @@ end
 ---vw units resolve to 0 in this RmlUi build, so right-anchoring is unusable:
 ---place the panel from real view geometry, and scale the base font with the
 ---view height so the panel tracks resolution.
-local function applyViewLayout()
+applyViewLayout = function()
 	local root = document:GetElementById("me-root")
 	if not root then
 		return
@@ -256,6 +364,9 @@ local function setMode(newMode)
 	end
 	if strip then
 		strip.style.display = isForm and "none" or "block"
+		if not isForm then
+			fillBillboard()
+		end
 	end
 	if editButton then
 		editButton.inner_rml = isForm and "Edit" or "Form"
@@ -268,7 +379,7 @@ local function setVisible(on)
 		return
 	end
 	if on then
-		refresh()
+		renderCurrent()
 		applyViewLayout()
 		document:Show()
 	else
