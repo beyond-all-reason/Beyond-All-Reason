@@ -272,6 +272,12 @@ if gadgetHandler:IsSyncedCode() then
 	gadget.UnitTaken = gadget.UnitDestroyed
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		-- The legacy gadget removed itself under neverend/sandbox, taking this
+		-- spectator-shutdown path with it. Keep that behavior: with elimination
+		-- off, only scripted verdicts remain live.
+		if not eliminationEnabled then
+			return
+		end
 
 		-- detect when no players are ingame (thus only specs remain) and shutdown the game
 		if GetGameFrame() == 0 and string.byte(msg, 1) == 112 and string.byte(msg, 2) == 99 then -- 'p'=112, 'c'=99
