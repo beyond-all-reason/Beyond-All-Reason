@@ -49,7 +49,6 @@ end
 local document
 local visible = false
 local mode = "form" ---@type "form"|"text"
-local cardStyle = "ui" ---@type "ui"|"dsl"
 local lastGeneration = nil
 local pollAccumulator = 0
 local firstMissionFile = nil
@@ -325,7 +324,7 @@ local function renderTrigger(trigger, ctx, style)
 	-- CAS-gated channel; the file comes back re-parsed with fresh controls.
 	local effects = ctx.editable and currentAst and currentAst.surface and currentAst.surface.effects
 	if effects and #effects > 0 then
-		local opts = { '<option value="" selected="true">+ add effect</option>' }
+		local opts = { '<option value="" selected="true">+ add</option>' }
 		for _, effect in ipairs(effects) do
 			opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
 				.. escapeRml(effect.label) .. "</option>"
@@ -363,9 +362,8 @@ local function buildBody(editable)
 	end
 	table.sort(currentObjectives)
 
-	-- The billboard always reads in display notation; the form obeys the
-	-- style toggle.
-	local style = editable and cardStyle or "dsl"
+	-- The form is full-UI; the billboard reads in display notation.
+	local style = editable and "ui" or "dsl"
 	local out = {}
 	firstMissionFile = ast.files and ast.files[1] and ast.files[1].path or nil
 	for _, file in ipairs(ast.files or {}) do
@@ -664,7 +662,6 @@ local function setMode(newMode)
 	local footer = document:GetElementById("me-footer")
 	local strip = document:GetElementById("me-textmode")
 	local editButton = document:GetElementById("me-edit")
-	local styleButton = document:GetElementById("me-style")
 	local isForm = mode == "form"
 	if content then
 		content.style.display = isForm and "block" or "none"
@@ -680,9 +677,6 @@ local function setMode(newMode)
 	end
 	if editButton then
 		editButton.inner_rml = isForm and "Edit" or "Form"
-	end
-	if styleButton then
-		styleButton.style.display = isForm and "inline-block" or "none"
 	end
 end
 
@@ -723,14 +717,6 @@ function widget:Initialize()
 				setMode("form")
 				refresh()
 			end
-		end)
-	end
-	local styleButton = document:GetElementById("me-style")
-	if styleButton then
-		styleButton:AddEventListener("click", function()
-			cardStyle = cardStyle == "ui" and "dsl" or "ui"
-			styleButton.inner_rml = cardStyle == "ui" and "DSL" or "UI"
-			refresh()
 		end)
 	end
 	local refreshButton = document:GetElementById("me-refresh")
