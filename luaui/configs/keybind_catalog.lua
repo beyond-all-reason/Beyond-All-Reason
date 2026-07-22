@@ -9,4 +9,9 @@
 -- plus a leading { hidden = { "<prefix>", ... } } entry of actions never shown.
 -- Source of truth: common/configs/keybind_catalog.json
 local Json = Json or VFS.Include('common/luaUtilities/json.lua')
-return Json.decode(VFS.LoadFile('common/configs/keybind_catalog.json'))
+local ok, catalog = pcall(Json.decode, VFS.LoadFile('common/configs/keybind_catalog.json'))
+if not ok or type(catalog) ~= 'table' then
+	Spring.Echo('[keybind_catalog] could not load common/configs/keybind_catalog.json; falling back to an empty catalog')
+	catalog = {}
+end
+return catalog
