@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetGameFrame = Spring.GetGameFrame
 local spLog = Spring.Log
 local spSendLuaUIMsg = Spring.SendLuaUIMsg

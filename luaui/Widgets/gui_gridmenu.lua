@@ -398,7 +398,7 @@ local function refreshUnitDefs()
 end
 
 -- starting units
-local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+local startUnits = string.split(Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
 local startBuildOptions = {}
 for _, uDefIDString in ipairs(startUnits) do
 	local uDefID = tonumber(uDefIDString)
@@ -1342,7 +1342,7 @@ function widget:Initialize()
 		widgetHandler:DisableWidgetRaw("Build menu")
 	end
 
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
@@ -2816,7 +2816,7 @@ end
 
 function widget:PlayerChanged()
 	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 end
 
 function widget:GetConfigData()

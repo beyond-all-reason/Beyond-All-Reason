@@ -21,7 +21,7 @@ local delayedCacheUnitIcons
 local delayedCacheUnitIconsTimer = 0
 local cachedUnitIcons = false
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local startUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
 local startBuildOptions = {}
 for i, uDefIDString in ipairs(startUnits) do

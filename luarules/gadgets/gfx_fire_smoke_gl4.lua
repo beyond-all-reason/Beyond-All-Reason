@@ -622,7 +622,7 @@ local cachedBudgetNormal = budgetLimits[PRIORITY_NORMAL]
 local cachedBudgetEssential = budgetLimits[PRIORITY_ESSENTIAL]
 local fastForward = false -- true when gamespeed > 1.5 or catching up (rejoining)
 local visibilityState = {
-	allyTeamID = Spring.GetMyAllyTeamID(),
+	allyTeamID = Spring.GetLocalAllyTeamID(),
 	fullView = select(2, Spring.GetSpectatingState()) or false,
 }
 
@@ -1773,10 +1773,10 @@ function gadget:Initialize()
 end
 
 function gadget:PlayerChanged(playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
-	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
 	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
 end
 
@@ -1966,7 +1966,7 @@ function gadget:Update()
 	end
 
 	cachedGameFrame = n
-	visibilityState.allyTeamID = Spring.GetMyAllyTeamID()
+	visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
 	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 

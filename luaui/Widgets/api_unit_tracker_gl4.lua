@@ -16,8 +16,8 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -328,7 +328,7 @@ end
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	--[[
@@ -749,7 +749,7 @@ function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = spGetMyAllyTeamID()
 	local currentTeamID = spGetMyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
+	local currentPlayerID = Spring.GetLocalPlayerID()
 
 	local reinit = false
 
@@ -834,7 +834,7 @@ function widget:Initialize()
 	spec, fullview = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
+	myPlayerID = Spring.GetLocalPlayerID()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
 	scriptLuauiVisibleUnitRemoved = Script.LuaUI.VisibleUnitRemoved
@@ -875,7 +875,7 @@ function widget:AddConsoleLine(lines, priority)
 	end
 	local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)
 	if username and frameNumber and gotChecksum and correctChecksum then
-		local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+		local myPlayerName = Spring.GetPlayerInfo(Spring.GetLocalPlayerID())
 		if myPlayerName == username then
 			-- Yes, we have desynced, time to send a LuaUIMsg to notify the server
 			-- desyncee, gameID, frame, gameversion, engine version, map, chobby version?

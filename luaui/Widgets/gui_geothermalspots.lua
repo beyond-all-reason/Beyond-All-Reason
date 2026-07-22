@@ -42,7 +42,7 @@ local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local isSpec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 local chobbyInterface
 
@@ -467,7 +467,7 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkGeothermalspots()
 	end
