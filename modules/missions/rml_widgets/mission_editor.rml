@@ -342,6 +342,9 @@ scrollbarvertical sliderarrowinc {
 .me-select selectvalue,
 .me-add selectvalue {
     padding: 2px 20px 2px 6px;
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 .me-select selectarrow,
@@ -352,6 +355,10 @@ scrollbarvertical sliderarrowinc {
     border-top: 6px #9cc2ff;
     border-left: 5px #00000000;
     border-right: 5px #00000000;
+}
+
+.me-add-statement {
+    width: 230px;
 }
 	</style>
 </head>
