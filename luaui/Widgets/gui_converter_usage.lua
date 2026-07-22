@@ -59,10 +59,10 @@ local tooltipDirty = true
 local tooltipTitle, defaultTooltipText, warningTooltipText1, warningTooltipText2
 
 local function refreshTooltipText()
-	tooltipTitle = Spring.I18N("ui.topbar.converter_usage.defaultTooltipTitle")
-	defaultTooltipText = Spring.I18N("ui.topbar.converter_usage.defaultTooltip")
-	warningTooltipText1 = Spring.I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip")
-	warningTooltipText2 = Spring.I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
+	tooltipTitle = BAR.I18N("ui.topbar.converter_usage.defaultTooltipTitle")
+	defaultTooltipText = BAR.I18N("ui.topbar.converter_usage.defaultTooltip")
+	warningTooltipText1 = BAR.I18N("ui.topbar.converter_usage.tooManyConverters1Tooltip")
+	warningTooltipText2 = BAR.I18N("ui.topbar.converter_usage.tooManyConverters2Tooltip")
 	tooltipDirty = true
 end
 

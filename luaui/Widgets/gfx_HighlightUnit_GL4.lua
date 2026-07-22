@@ -399,7 +399,7 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("debugapihighlightunit", "t")
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
-		if Spring.Utilities.IsDevMode() then
+		if BAR.Utilities.IsDevMode() then
 			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
 		end
 		highlightUnitVBOTable.VAO:Delete()

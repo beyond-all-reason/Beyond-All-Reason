@@ -1,4 +1,4 @@
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -200,7 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 		if b1 ~= un1 or b2 ~= un2 or b3 ~= vb1 or b4 ~= vb2 then
 			return
 		end
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = BAR.Utilities.GetAccountID(playerID)
 		if _G.permissions.undo[accountID] then
 			local params = string.split(msg, ":")
 			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
@@ -213,7 +213,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		for _, playerID in ipairs(Spring.GetPlayerList()) do
-			local accountID = Spring.Utilities.GetAccountID(playerID)
+			local accountID = BAR.Utilities.GetAccountID(playerID)
 			if _G.permissions.undo[accountID] then
 				Spring.SendMessageToPlayer(playerID, message)
 			end

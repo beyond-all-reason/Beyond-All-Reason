@@ -61,7 +61,7 @@ end
 local maxunits = tonumber(Spring.GetModOptions().maxunits) or 2000
 local engineLimit = 32000
 local gaiaLimit = 500
-if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and Spring.Utilities.Gametype.IsScavengers()) then
+if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and BAR.Utilities.Gametype.IsScavengers()) then
 	if Spring.GetModOptions().ruins_density == "normal" then
 		gaiaLimit = 750
 	elseif Spring.GetModOptions().ruins_density == "dense" then
