@@ -14,13 +14,16 @@ local nextPlayerId = sequence.sequence("player_id", {
 	end,
 })
 
----@class TeamDataMock : TeamData
+---@class TeamDataMock : TeamData, TeamResourceData
 ---@field isHuman boolean
 ---@field playerName string
----@field units table<number, UnitWrapper>
----@field players PlayerData[]
+---@field units table<integer, UnitWrapper|nil>?
+---@field players PlayerData[]?
 ---@field metal ResourceData
 ---@field energy ResourceData
+---@field incomeMultiplier number?
+---@field customTeamKeys table<string, string>?
+---@field luaAI string?
 
 ---@class TeamBuilder : TeamDataMock
 local TeamBuilder = {}
@@ -56,8 +59,9 @@ local nextUnitId = sequence.sequence("unit_id", {
 	end,
 })
 
+---@return TeamBuilder
 function TeamBuilder.new()
-	local instance = {}
+	local instance = {} ---@type table<string, any>
 
 	-- Copy default data
 	for k, v in pairs(defaultData) do
@@ -73,8 +77,8 @@ function TeamBuilder.new()
 	end
 
 	-- Assign unique IDs - team ID and player ID are deliberately different
-	instance.id = tonumber(nextTeamId())
-	local defaultLeaderPlayerId = tonumber(nextPlayerId())
+	instance.id = tonumber(nextTeamId()) --[[@as integer]]
+	local defaultLeaderPlayerId = tonumber(nextPlayerId()) --[[@as integer]]
 	instance.leader = defaultLeaderPlayerId
 	instance.allyTeam = instance.id
 
@@ -95,9 +99,11 @@ function TeamBuilder.new()
 		},
 	}
 
-	return setmetatable(instance, { __index = TeamBuilder })
+	return setmetatable(instance, { __index = TeamBuilder }) --[[@as TeamBuilder]]
 end
 
+---@param teamID integer
+---@return TeamBuilder
 function TeamBuilder:WithID(teamID)
 	if type(teamID) ~= "number" then
 		error("TeamBuilder:WithID requires a numeric teamID")
@@ -106,6 +112,8 @@ function TeamBuilder:WithID(teamID)
 	return self
 end
 
+---@param allyTeamID integer
+---@return TeamBuilder
 function TeamBuilder:WithAllyTeam(allyTeamID)
 	if type(allyTeamID) ~= "number" then
 		error("TeamBuilder:WithAllyTeam requires a numeric allyTeamID")
@@ -134,7 +142,6 @@ function TeamBuilder:Build()
 	return out
 end
 
----@param self TeamBuilder
 ---@param metal number
 ---@return TeamBuilder
 function TeamBuilder:WithMetal(metal)
@@ -142,13 +149,12 @@ function TeamBuilder:WithMetal(metal)
 	return self
 end
 
----@param self TeamBuilder
 ---@param unitDefID string
----@param unitIdCallback fun(unitID: number)|nil
+---@param unitIdCallback fun(unitID: integer)|nil
 ---@return TeamBuilder
 function TeamBuilder:WithUnit(unitDefID, unitIdCallback)
 	local rawUnitId = nextUnitId()
-	local unitID = tonumber(rawUnitId)
+	local unitID = tonumber(rawUnitId) --[[@as integer?]]
 	if unitID == nil then
 		error(string.format("Generated unit ID '%s' is not numeric", tostring(rawUnitId)))
 	end
@@ -170,21 +176,18 @@ function TeamBuilder:WithUnit(unitDefID, unitIdCallback)
 	return self
 end
 
----@param self TeamBuilder
 ---@return TeamBuilder
 function TeamBuilder:AI()
 	self.isHuman = false
 	return self
 end
 
----@param self TeamBuilder
 ---@return TeamBuilder
 function TeamBuilder:Human()
 	self.isHuman = true
 	return self
 end
 
----@param self TeamBuilder
 ---@param energy number
 ---@return TeamBuilder
 function TeamBuilder:WithEnergy(energy)
@@ -192,7 +195,6 @@ function TeamBuilder:WithEnergy(energy)
 	return self
 end
 
----@param self TeamBuilder
 ---@param storage number
 ---@return TeamBuilder
 function TeamBuilder:WithEnergyStorage(storage)
@@ -235,6 +237,11 @@ function TeamBuilder:WithMetalReceived(received)
 	return self
 end
 
+function TeamBuilder:WithMetalExcess(excess)
+	self.metal.excess = excess
+	return self
+end
+
 function TeamBuilder:WithEnergyPull(pull)
 	self.energy.pull = pull
 	return self
@@ -265,11 +272,16 @@ function TeamBuilder:WithEnergyReceived(received)
 	return self
 end
 
----@param self TeamBuilder
----@param playerId number
+function TeamBuilder:WithEnergyExcess(excess)
+	self.energy.excess = excess
+	return self
+end
+
+---@param playerId integer
 ---@param opts table|nil
 ---@return TeamBuilder
 function TeamBuilder:WithPlayer(playerId, opts)
+	---@type PlayerData
 	local player = {
 		id = playerId,
 		name = (opts and opts.name) or self.playerName,
@@ -283,23 +295,24 @@ function TeamBuilder:WithPlayer(playerId, opts)
 		playerOpts = (opts and opts.playerOpts) or {},
 		desynced = (opts and opts.desynced) or false,
 	}
-	for i, p in ipairs(self.players) do
+	local players = self.players or {}
+	self.players = players
+	for i, p in ipairs(players) do
 		if p.id == playerId then
-			self.players[i] = player
+			players[i] = player
 			return self
 		end
 	end
-	table.insert(self.players, player)
+	table.insert(players, player)
 	return self
 end
 
----@param self TeamBuilder
----@param playerId number
+---@param playerId integer
 ---@return TeamBuilder
 function TeamBuilder:WithLeader(playerId)
 	self.leader = playerId
 	local exists = false
-	for _, p in ipairs(self.players) do
+	for _, p in ipairs(self.players or {}) do
 		if p.id == playerId then
 			exists = true
 			break

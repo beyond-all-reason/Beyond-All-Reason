@@ -3,28 +3,33 @@
 ---@class luassert.internal
 local internal = {}
 
+---Callable like standard `assert(v, message)` — returns `v` on success.
 ---@class luassert:luassert.internal
+---@overload fun(v: any, message?: string): any
 local luassert = {}
 
 --#region Assertions
 
 ---Assert that `value == true`.
 ---@param value any The value to confirm is `true`.
-function internal.True(value) end
+---@param message? string Failure message.
+function internal.True(value, message) end
 
 internal.is_true = internal.True
 internal.is_not_true = internal.True
 
 ---Assert that `value == false`.
 ---@param value any The value to confirm is `false`.
-function internal.False(value) end
+---@param message? string Failure message.
+function internal.False(value, message) end
 
 internal.is_false = internal.False
 internal.is_not_false = internal.False
 
 ---Assert that `type(value) == "boolean"`.
 ---@param value any The value to confirm is of type `boolean`.
-function internal.Boolean(value) end
+---@param message? string Failure message.
+function internal.Boolean(value, message) end
 
 internal.boolean = internal.Boolean
 internal.is_boolean = internal.Boolean
@@ -32,7 +37,8 @@ internal.is_not_boolean = internal.Boolean
 
 ---Assert that `type(value) == "number"`.
 ---@param value any The value to confirm is of type `number`.
-function internal.Number(value) end
+---@param message? string Failure message.
+function internal.Number(value, message) end
 
 internal.number = internal.Number
 internal.is_number = internal.Number
@@ -40,7 +46,8 @@ internal.is_not_number = internal.Number
 
 ---Assert that `type(value) == "string"`.
 ---@param value any The value to confirm is of type `string`.
-function internal.String(value) end
+---@param message? string Failure message.
+function internal.String(value, message) end
 
 internal.string = internal.String
 internal.is_string = internal.String
@@ -48,7 +55,8 @@ internal.is_not_string = internal.String
 
 ---Assert that `type(value) == "table"`.
 ---@param value any The value to confirm is of type `table`.
-function internal.Table(value) end
+---@param message? string Failure message.
+function internal.Table(value, message) end
 
 internal.table = internal.Table
 internal.is_table = internal.Table
@@ -56,14 +64,16 @@ internal.is_not_table = internal.Table
 
 ---Assert that `type(value) == "nil"`.
 ---@param value any The value to confirm is of type `nil`.
-function internal.Nil(value) end
+---@param message? string Failure message.
+function internal.Nil(value, message) end
 
 internal.is_nil = internal.Nil
 internal.is_not_nil = internal.Nil
 
 ---Assert that `type(value) == "userdata"`.
 ---@param value any The value to confirm is of type `userdata`.
-function internal.Userdata(value) end
+---@param message? string Failure message.
+function internal.Userdata(value, message) end
 
 internal.userdata = internal.Userdata
 internal.is_userdata = internal.Userdata
@@ -71,14 +81,16 @@ internal.is_not_userdata = internal.Userdata
 
 ---Assert that `type(value) == "function"`.
 ---@param value any The value to confirm is of type `function`.
-function internal.Function(value) end
+---@param message? string Failure message.
+function internal.Function(value, message) end
 
 internal.is_function = internal.Function
 internal.is_not_function = internal.Function
 
 ---Assert that `type(value) == "thread"`.
 ---@param value any The value to confirm is of type `thread`.
-function internal.Thread(value) end
+---@param message? string Failure message.
+function internal.Thread(value, message) end
 
 internal.thread = internal.Thread
 internal.is_thread = internal.Thread
@@ -86,7 +98,8 @@ internal.is_not_thread = internal.Thread
 
 ---Assert that a value is truthy.
 ---@param value any The value to confirm is truthy.
-function internal.truthy(value) end
+---@param message? string Failure message.
+function internal.truthy(value, message) end
 
 internal.Truthy = internal.truthy
 internal.is_truthy = internal.truthy
@@ -94,7 +107,8 @@ internal.is_not_truthy = internal.truthy
 
 ---Assert that a value is falsy.
 ---@param value any The value to confirm is falsy.
-function internal.falsy(value) end
+---@param message? string Failure message.
+function internal.falsy(value, message) end
 
 internal.Falsy = internal.falsy
 internal.is_falsy = internal.falsy
@@ -179,6 +193,9 @@ function internal.equal(expected, ...) end
 internal.Equal = internal.equal
 internal.are_equal = internal.equal
 internal.are_not_equal = internal.equal
+internal.equals = internal.equal
+internal.is_equal = internal.equal
+internal.is_not_equal = internal.equal
 
 ---Check that two or more items that are considered the "same".
 ---
