@@ -765,6 +765,7 @@ function widget:Initialize()
 	end, nil, "t")
 
 	document:Hide()
+	Spring.Echo("[mission_editor] build bcfda03646")
 	return true
 end
 
