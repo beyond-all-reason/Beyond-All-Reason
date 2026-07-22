@@ -293,8 +293,13 @@ function widget:Initialize()
 		end)
 	end
 
-	widgetHandler.actionHandler:AddAction(self, "mission_editor", function()
-		setVisible(not visible)
+	widgetHandler.actionHandler:AddAction(self, "mission", function(_, line)
+		local subcommand = (line or ""):match("^%s*(%S*)")
+		if subcommand == "editor" then
+			setVisible(not visible)
+		else
+			Spring.Echo("[mission_editor] usage: /mission editor")
+		end
 		return true
 	end, nil, "t")
 
@@ -303,7 +308,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	widgetHandler.actionHandler:RemoveAction(self, "mission_editor", "t")
+	widgetHandler.actionHandler:RemoveAction(self, "mission", "t")
 	if document then
 		document:Close()
 		document = nil
