@@ -24,13 +24,13 @@
 			},
 			{
 				"type": "object",
-				"description": "Actions bound but intentionally never shown, matched by id prefix.",
+				"description": "Actions bound but intentionally never shown, matched by exact id (not prefix).",
 				"required": ["hidden"],
 				"additionalProperties": false,
 				"properties": {
 					"hidden": {
 						"type": "array",
-						"items": { "type": "string", "description": "Action id prefix to suppress." }
+						"items": { "type": "string", "description": "Exact action id to suppress." }
 					}
 				}
 			}
