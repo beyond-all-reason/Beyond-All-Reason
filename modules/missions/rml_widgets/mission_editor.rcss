@@ -1,0 +1,96 @@
+.me-root {
+    position: absolute;
+    top: 120dp;
+    right: 40dp;
+    width: 460dp;
+    max-height: 70%;
+    background-color: #101418e6;
+    border: 1dp #2c3540;
+    padding: 10dp;
+    font-family: Poppins;
+    font-size: 14dp;
+    color: #d8dee6;
+}
+
+.me-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8dp;
+}
+
+.me-title {
+    flex: 1;
+    font-size: 15dp;
+    color: #ffffff;
+}
+
+.me-button {
+    margin-left: 6dp;
+    padding: 3dp 8dp;
+    background-color: #1d2732;
+    border: 1dp #3a4a5c;
+    color: #cfd8e3;
+    cursor: pointer;
+}
+
+.me-button:hover {
+    background-color: #2a3846;
+}
+
+.me-button-close {
+    padding: 3dp 7dp;
+}
+
+.me-content {
+    overflow-y: auto;
+    max-height: 520dp;
+}
+
+.me-file {
+    margin: 6dp 0 2dp 0;
+    color: #8fa3b8;
+    font-size: 12dp;
+}
+
+.me-group {
+    margin: 8dp 0 2dp 0;
+    font-size: 15dp;
+    color: #ffd479;
+}
+
+.me-card {
+    background-color: #161d24;
+    border: 1dp #2c3540;
+    margin: 4dp 0;
+    padding: 6dp 8dp;
+}
+
+.me-card-title {
+    color: #9ecbff;
+    margin-bottom: 4dp;
+}
+
+.me-step {
+    margin: 2dp 0 2dp 8dp;
+}
+
+.me-step-verb {
+    color: #c792ea;
+}
+
+.me-verb {
+    color: #82aaff;
+}
+
+.me-lit {
+    color: #f6c177;
+}
+
+.me-ref {
+    color: #a3d9a5;
+}
+
+.me-opaque {
+    color: #e06c75;
+}

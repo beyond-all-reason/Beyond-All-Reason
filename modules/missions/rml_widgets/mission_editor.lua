@@ -1,0 +1,207 @@
+if not RmlUi then
+	return
+end
+
+local widget = widget ---@type Widget
+
+function widget:GetInfo()
+	return {
+		name = "Mission Editor",
+		desc = "Read-only view of the mission's decorated AST (bar-mission-kit artifact); the file is the source of truth",
+		author = "Beyond All Reason",
+		date = "July 2026",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+		handler = true,
+	}
+end
+
+-- The editor architecture (editor_architecture_plan.md): the authoritative
+-- writer is the Devtools editor; the game is a READER. This widget renders the
+-- derived AST artifact bar-mission-kit places in the data dir — a view over
+-- the tree, which is a view over the file. It never owns state and never
+-- writes source.
+
+local AST_PATH = "modules/missions/editor/mission_ast.json"
+local RML_PATH = "modules/missions/rml_widgets/mission_editor.rml"
+
+-- Engine-provided in the widget env (system.lua whitelists it). Do NOT
+-- VFS.Include json.lua here: it reads `local base = _G`, and _G is nil in
+-- unsynced widget sandboxes (the known trap).
+local Json = Json
+if not Json then
+	return
+end
+
+local document
+local visible = false
+
+---Pretty-print a recognizer Value node back to DSL text, literals wrapped in
+---spans so the form can style what is form-editable.
+---@param value table
+---@return string
+local function renderValue(value)
+	local kind = value.kind
+	if kind == "number" then
+		local number = value.value
+		if number == math.floor(number) then
+			number = math.floor(number)
+		end
+		return '<span class="me-lit">' .. tostring(number) .. "</span>"
+	elseif kind == "string" then
+		return '<span class="me-lit">"' .. tostring(value.value) .. '"</span>'
+	elseif kind == "boolean" then
+		return '<span class="me-lit">' .. tostring(value.value) .. "</span>"
+	elseif kind == "name" then
+		return '<span class="me-ref">' .. value.path .. "</span>"
+	elseif kind == "verb" then
+		local parts = { '<span class="me-verb">' .. value.path .. "</span>" }
+		for _, call in ipairs(value.calls) do
+			if call.name then
+				parts[#parts + 1] = '.<span class="me-verb">' .. call.name .. "</span>"
+			end
+			local args = {}
+			for _, arg in ipairs(call.args) do
+				args[#args + 1] = renderValue(arg)
+			end
+			parts[#parts + 1] = "(" .. table.concat(args, ", ") .. ")"
+		end
+		return table.concat(parts)
+	elseif kind == "table" then
+		local fields = {}
+		for _, field in ipairs(value.fields) do
+			fields[#fields + 1] = field.key .. " = " .. renderValue(field.value)
+		end
+		return "{ " .. table.concat(fields, ", ") .. " }"
+	end
+	return '<span class="me-opaque">[' .. tostring(value.reason or "opaque") .. "]</span>"
+end
+
+---@param trigger table
+---@return string
+local function renderTrigger(trigger)
+	local rows = {
+		'<div class="me-card"><div class="me-card-title">'
+			.. (trigger.label or trigger.id)
+			.. "</div>",
+	}
+	for _, step in ipairs(trigger.steps) do
+		if step.verb ~= "Register" then
+			local args = {}
+			for _, arg in ipairs(step.args) do
+				args[#args + 1] = renderValue(arg)
+			end
+			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb">'
+				.. step.verb
+				.. "</span> "
+				.. table.concat(args, ", ")
+				.. "</div>"
+		end
+	end
+	rows[#rows + 1] = "</div>"
+	return table.concat(rows)
+end
+
+---@return string|nil rml, string|nil err
+local function buildBody()
+	local text = VFS.LoadFile(AST_PATH, VFS.RAW_FIRST)
+	if not text then
+		return nil, "no AST artifact at " .. AST_PATH .. " — run bar-mission-kit parse"
+	end
+	local ok, ast = pcall(Json.decode, text)
+	if not ok or type(ast) ~= "table" then
+		return nil, "cannot decode " .. AST_PATH
+	end
+
+	local out = {}
+	for _, file in ipairs(ast.files or {}) do
+		out[#out + 1] = '<div class="me-file">' .. file.path .. "</div>"
+		for _, group in ipairs(file.groups or {}) do
+			if group.label then
+				out[#out + 1] = '<div class="me-group">' .. group.label .. "</div>"
+			end
+			for _, trigger in ipairs(group.triggers or {}) do
+				out[#out + 1] = renderTrigger(trigger)
+			end
+		end
+		if file.opaque and #file.opaque > 0 then
+			out[#out + 1] = '<div class="me-opaque">'
+				.. #file.opaque
+				.. " unrecognized span(s) — see bar-mission-kit check</div>"
+		end
+	end
+	return table.concat(out)
+end
+
+local function refresh()
+	if not document then
+		return
+	end
+	local body, err = buildBody()
+	local content = document:GetElementById("me-content")
+	if content then
+		content.inner_rml = body or ('<div class="me-opaque">' .. (err or "?") .. "</div>")
+	end
+end
+
+local function setVisible(on)
+	visible = on
+	if not document then
+		return
+	end
+	if on then
+		refresh()
+		document:Show()
+	else
+		document:Hide()
+	end
+end
+
+function widget:Initialize()
+	local context = RmlUi.GetContext("shared")
+	if not context then
+		return false
+	end
+	document = context:LoadDocument(RML_PATH)
+	if not document then
+		return false
+	end
+
+	local refreshButton = document:GetElementById("me-refresh")
+	if refreshButton then
+		refreshButton:AddEventListener("click", function()
+			refresh()
+		end)
+	end
+	local reloadButton = document:GetElementById("me-reload")
+	if reloadButton then
+		reloadButton:AddEventListener("click", function()
+			-- The hot-reload path: the FILE changed (the editor wrote it);
+			-- re-arm the mission, then re-read the artifact.
+			Spring.SendCommands("luarules mission reload")
+			refresh()
+		end)
+	end
+	local closeButton = document:GetElementById("me-close")
+	if closeButton then
+		closeButton:AddEventListener("click", function()
+			setVisible(false)
+		end)
+	end
+
+	widgetHandler.actionHandler:AddAction(self, "mission_editor", function()
+		setVisible(not visible)
+	end, nil, "p")
+
+	document:Hide()
+	return true
+end
+
+function widget:Shutdown()
+	widgetHandler.actionHandler:RemoveAction(self, "mission_editor", "p")
+	if document then
+		document:Close()
+		document = nil
+	end
+end
