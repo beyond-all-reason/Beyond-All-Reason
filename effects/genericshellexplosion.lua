@@ -4693,7 +4693,6 @@ local colors = {
     dirt2 = false,
     sparks = false,
     watersparks = {count=1},
-    -- Keep the expanding underwater impact ring above the seafloor so it does not clip into terrain.
     waterring = {count=1, properties={
       colormap=[[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]],
       dir = [[0, 1, 0]],
