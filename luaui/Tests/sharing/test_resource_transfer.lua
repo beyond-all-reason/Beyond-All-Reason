@@ -1,7 +1,8 @@
 ---@diagnostic disable: lowercase-global, undefined-field
 
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
-local TransferEnums = VFS.Include("common/luaUtilities/sharing/transfer_enums.lua")
+local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
+local TransferEnums = Sharing.Enums
 
 local function GetAlliedTargetTeamID(myTeamID)
 	local teamList = Spring.GetTeamList()

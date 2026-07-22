@@ -78,11 +78,12 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 ]]
 --
 
-local TransferEnums = VFS.Include("common/luaUtilities/sharing/transfer_enums.lua")
-local SharingUnsynced = VFS.Include("common/luaUtilities/sharing/unsynced.lua")
+local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
+local TransferEnums = Sharing.Enums
+local SharingUnsynced = Sharing
 local ResourceTransfer = SharingUnsynced.Resources
-local ApiExtensions = VFS.Include("common/luaUtilities/sharing/gui_advplayerlist/api_extensions.lua")
-local Helpers = VFS.Include("common/luaUtilities/sharing/gui_advplayerlist/helpers.lua")
+local ApiExtensions = Sharing.PolicyViews.ApiExtensions
+local Helpers = Sharing.PolicyViews.Helpers
 
 --------------------------------------------------------------------------------
 -- Config

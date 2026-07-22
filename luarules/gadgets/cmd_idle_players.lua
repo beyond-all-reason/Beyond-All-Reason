@@ -38,8 +38,9 @@ local errorKeys = {
 
 if gadgetHandler:IsSyncedCode() then
 	local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
-	local Shared = VFS.Include("common/luaUtilities/sharing/unit_transfer_shared.lua")
-	local TakeComms = VFS.Include("common/luaUtilities/sharing/take_comms.lua")
+	local Sharing = VFS.Include("modules/module_handler.lua").Get("sharing")
+	local Shared = Sharing.Units
+	local TakeComms = Sharing.Take
 
 	local playerInfoTable = {}
 	local currentGameFrame = 0

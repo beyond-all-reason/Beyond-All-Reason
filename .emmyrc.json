@@ -71,7 +71,9 @@
       "CMD_WANTED_SPEED",
       "GadgetCrashingAircraft",
       "ExplosionDefs",
-      "GL_TEXTURE_2D"
+      "GL_TEXTURE_2D",
+      "Actions",
+      "Policies"
     ]
   },
   "runtime": {

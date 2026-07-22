@@ -19,7 +19,7 @@ return {
   verbose = true,
   output = "utfTerminal",
   pattern = "_spec",
-  ROOT = { "spec/" },
+  ROOT = { "spec/", "modules/sharing/spec/", "modules/economy/spec/" },
 
   -- Named tasks
   _all = {
@@ -27,11 +27,11 @@ return {
     output = "utfTerminal",
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
-    ROOT = { "spec/" }
+    ROOT = { "spec/", "modules/sharing/spec/", "modules/economy/spec/" }
   },
   unit = {
     verbose = true,
-    ROOT = { "spec/" }
+    ROOT = { "spec/", "modules/sharing/spec/", "modules/economy/spec/" }
   },
   coverage = {
     verbose = true,
@@ -39,6 +39,6 @@ return {
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
     coverage = true,
-    ROOT = { "spec/" }
+    ROOT = { "spec/", "modules/sharing/spec/", "modules/economy/spec/" }
   }
 }
