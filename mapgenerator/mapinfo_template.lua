@@ -214,7 +214,7 @@ local mapinfo = {
 	},
 
 	teams = {
-		${START_POSITIONS}
+		-- START_POSITIONS placeholder filled by map generator
 	},
 
 	terrainTypes = {

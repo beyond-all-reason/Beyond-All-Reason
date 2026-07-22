@@ -435,6 +435,6 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 
 	wasgameframe = 0
-	prevframems = lastframeduration
+	prevframems = lastframems
 	gameFrameHappened = false
 end

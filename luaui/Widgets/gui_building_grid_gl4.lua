@@ -30,7 +30,7 @@ local config = {
 local waterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 
 local cmdShowForUnitDefID
-local isPregame = Spring.GetGameFrame() == 0 and not isSpec
+local isPregame = Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()
 
 local gridVBO = nil -- the vertex buffer object, an array of vec2 coords
 local gridVAO = nil -- the vertex array object, a way of collecting buffer objects for submission to opengl

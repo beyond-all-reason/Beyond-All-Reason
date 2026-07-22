@@ -1,6 +1,7 @@
 local widget = widget ---@type Widget
 
 local customPresetOptions -- forward-decl: read in options export
+local customPresets = {}
 
 function widget:GetInfo()
 	return {
@@ -1271,6 +1272,7 @@ local function checkQuitscreen()
 	end
 	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
 	if prevQuitscreen ~= quitscreen then
+		local _, _, isClientPaused, _ = Spring.GetGameState()
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end

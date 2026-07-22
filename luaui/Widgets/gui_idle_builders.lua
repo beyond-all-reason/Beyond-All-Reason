@@ -229,7 +229,7 @@ local function drawContent()
 				end
 
 				local texSize = floor(iconSize * 1.33)
-				local zoom = i == hoveredIcon and (b and 0.15 or 0.105) or 0.05
+				local zoom = i == hoveredIcon and (showStack and 0.15 or 0.105) or 0.05
 				local highlightOpacity = 0
 				if i == hoveredIcon then
 					highlightOpacity = 0.22
