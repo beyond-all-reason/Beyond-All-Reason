@@ -1662,11 +1662,19 @@ end
 -- current session's _script.txt (preserving players/teams/modoptions) and
 -- injecting the engine blank-map-generator keys. Returns (scriptText) or
 -- (nil, errorMessage).
-local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath)
+-- opts (all optional; defaults preserve the New Map behavior):
+--   baseHeight   number  blank_map_height (project manifests record theirs)
+--   baseColor    {r,g,b} 0..255 blank_map_color
+-- dntsSet.rawPaths: texture entries are full VFS paths already (project-local
+-- assets/) instead of names under the library DNTS_DIR.
+local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath, opts)
 	local base = VFS.LoadFile("_script.txt")
 	if not base or base == "" then
 		return nil, "no _script.txt available (not in a game?)"
 	end
+	opts = opts or {}
+	local baseHeight = tonumber(opts.baseHeight) or NEWMAP_BASE_HEIGHT
+	local baseColor = opts.baseColor or NEWMAP_COLOR
 
 	local mapName = string.format("Editor Flat %dx%d", widthUnits, heightUnits)
 	local seed = math.random(1, 2000000000)
@@ -1682,6 +1690,11 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	script = script:gsub("[Ii][Nn][Ii][Tt][Bb][Ll][Aa][Nn][Kk]%s*=[^;\r\n]*;?", "")
 	script = script:gsub("[Mm][Aa][Pp][Ss][Ee][Ee][Dd]%s*=[^;\r\n]*;?", "")
 
+	-- An inherited disablemapdamage modoption would make the blank canvas
+	-- read-only (no terraform, no import replay) — strip it for both New Map
+	-- and project loads.
+	script = script:gsub("[Dd][Ii][Ss][Aa][Bb][Ll][Ee][Mm][Aa][Pp][Dd][Aa][Mm][Aa][Gg][Ee]%s*=[^;\r\n]*;?", "")
+
 	-- Swap the map name (the generator uses it as the generated map's label).
 	if script:find("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=") then
 		script = (script:gsub("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=[^;\r\n]*;?", "mapname=" .. mapName .. ";", 1))
@@ -1690,10 +1703,10 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	local opt = {
 		"blank_map_x=" .. widthUnits .. ";",
 		"blank_map_y=" .. heightUnits .. ";",
-		"blank_map_height=" .. NEWMAP_BASE_HEIGHT .. ";",
-		"blank_map_color_r=" .. NEWMAP_COLOR[1] .. ";",
-		"blank_map_color_g=" .. NEWMAP_COLOR[2] .. ";",
-		"blank_map_color_b=" .. NEWMAP_COLOR[3] .. ";",
+		"blank_map_height=" .. baseHeight .. ";",
+		"blank_map_color_r=" .. baseColor[1] .. ";",
+		"blank_map_color_g=" .. baseColor[2] .. ";",
+		"blank_map_color_b=" .. baseColor[3] .. ";",
 	}
 
 	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
@@ -1709,9 +1722,10 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- the blank-map generator must honour these blank_map_splat* keys.
 	if dntsSet and dntsSet.textures then
 		local t, sc, mu = dntsSet.textures, dntsSet.scales or {}, dntsSet.mults or {}
+		local prefix = dntsSet.rawPaths and "" or DNTS_DIR
 		for ch = 1, 4 do
 			if t[ch] then
-				opt[#opt + 1] = "blank_map_splatdetailnormaltex" .. ch .. "=" .. DNTS_DIR .. t[ch] .. ";"
+				opt[#opt + 1] = "blank_map_splatdetailnormaltex" .. ch .. "=" .. prefix .. t[ch] .. ";"
 				opt[#opt + 1] = "blank_map_splattexscale" .. ch .. "=" .. (sc[ch] or 0.01) .. ";"
 				opt[#opt + 1] = "blank_map_splattexmult" .. ch .. "=" .. (mu[ch] or 1.0) .. ";"
 			end
@@ -1720,7 +1734,7 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		-- present, even when DNTS normals are the actual source. Feed a compatible
 		-- placeholder so old gates don't silently disable splats on blank maps.
 		if t[1] then
-			opt[#opt + 1] = "blank_map_splatdetailtex=" .. DNTS_DIR .. t[1] .. ";"
+			opt[#opt + 1] = "blank_map_splatdetailtex=" .. prefix .. t[1] .. ";"
 		end
 		-- Do not force blank_map_splatdistr here. New engine builds can synthesize
 		-- an empty distribution when absent; forcing a missing filename causes load
@@ -1745,6 +1759,65 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	end
 	script = script:sub(1, e) .. "\n" .. inject .. "\n" .. script:sub(e + 1)
 	return script
+end
+
+-- Start script for OPENING a map project (cmd_map_project.lua calls this via
+-- WG before restarting): blank map at the manifest's recorded size/height/color,
+-- DNTS keys pointing at the project's own assets/dnts/ copies (self-contained —
+-- the library may have mutated since the save), skybox resolved from the
+-- library by basename. Returns (scriptText) or (nil, errorMessage).
+widgetState.buildProjectStartScript = function(manifest, slug)
+	if type(manifest) ~= "table" or type(manifest.map) ~= "table" then
+		return nil, "invalid manifest"
+	end
+	local m = manifest.map
+	local sizeX, sizeZ = tonumber(m.size_x), tonumber(m.size_z)
+	if not sizeX or not sizeZ then
+		return nil, "manifest has no map size"
+	end
+
+	local dntsSet = nil
+	if type(m.dnts) == "table" and type(m.dnts.textures) == "table" then
+		local textures = {}
+		local any = false
+		for ch = 1, 4 do
+			local rel = m.dnts.textures[ch]
+			if type(rel) == "string" and rel ~= "" then
+				textures[ch] = "MapProjects/" .. slug .. "/" .. rel
+				any = true
+			end
+		end
+		if any then
+			dntsSet = {
+				rawPaths = true,
+				textures = textures,
+				scales = m.dnts.scales or {},
+				mults = m.dnts.mults or {},
+				diffuseAlpha = (tonumber(m.dnts.diffuse_alpha) == 1) and 1 or 0,
+			}
+		end
+	end
+
+	-- The manifest records the skybox basename; find it in the library so the
+	-- engine bakes a real cubemap sky (runtime swaps need a CSkyBox).
+	local skyboxPath = nil
+	if type(m.skybox) == "string" and m.skybox ~= "" then
+		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
+			local base = (thumb.path or ""):match("([^/\\]+)$")
+			if base == m.skybox then
+				skyboxPath = thumb.path
+				break
+			end
+		end
+		if not skyboxPath then
+			Spring.Echo("[Terraform Brush] Project skybox '" .. m.skybox .. "' not found in the skybox library; using none.")
+		end
+	end
+
+	return buildBlankMapStartScript(sizeX, sizeZ, dntsSet, skyboxPath, {
+		baseHeight = m.base_height,
+		baseColor = m.base_color,
+	})
 end
 
 -- ---- Procedural terrain controls for New Map ----
@@ -1844,6 +1917,9 @@ local initialModel = {
 	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
 	projectSaveOpen = false,
 	projectSaveHint = "",
+	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
+	projectOpenOpen = false,
+	projectOpenHint = "",
 	newMapWidthStr = "12",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
@@ -4497,6 +4573,64 @@ local initialModel = {
 		else
 			if d then d.projectSaveHint = "Save could not start (see console)." end
 		end
+	end,
+	-- ===== Open Project dialog handlers (backed by WG.MapProject) =====
+	onFileOpenProject = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle
+		if d then
+			d.fileMenuOpen = false
+			d.projectOpenOpen = true
+			d.projectOpenHint = ""
+		end
+		-- Imperative DOM list build (same justification as the feature placer's
+		-- save list: rows are dynamic, data-model arrays are not used here).
+		local doc = widgetState.document
+		local listEl = doc and doc:GetElementById("tf-project-open-list")
+		if not listEl then return end
+		listEl.inner_rml = ""
+		if not (WG.MapProject and WG.MapProject.listDetailed) then
+			if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+			return
+		end
+		local projects = WG.MapProject.listDetailed()
+		if #projects == 0 then
+			listEl.inner_rml = '<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">'
+				.. 'No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache).</div>'
+			return
+		end
+		for _, p in ipairs(projects) do
+			local label = string.format("%s&nbsp;&nbsp;<span style=\"color: #6b7280;\">%sx%s&nbsp;&nbsp;%s</span>",
+				p.name or p.slug, tostring(p.size_x or "?"), tostring(p.size_z or "?"),
+				(p.modified or ""):gsub("T", " "):gsub("Z", ""))
+			local item = doc:CreateElement("div")
+			item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
+			item.inner_rml = label
+			local slug = p.slug
+			item:AddEventListener("click", function(ev)
+				playSound("apply")
+				local dm = widgetState.dmHandle
+				if not (WG.MapProject and WG.MapProject.open) then
+					if dm then dm.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+				elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
+					if dm then dm.projectOpenHint = "A save or load is already running (see console)." end
+				elseif not WG.MapProject.open(slug) then
+					if dm then dm.projectOpenHint = "Could not open '" .. slug .. "' — see console for the reason." end
+				end
+				ev:StopPropagation()
+			end, false)
+			item:AddEventListener("mouseover", function()
+				item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #d1d5db; cursor: pointer; border-radius: 3dp; background-color: #2a2a3a;")
+			end, false)
+			item:AddEventListener("mouseout", function()
+				item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
+			end, false)
+			listEl:AppendChild(item)
+		end
+	end,
+	onProjectOpenClose = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle; if d then d.projectOpenOpen = false end
 	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
@@ -8914,6 +9048,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-settings-handle", widgetState.settingsRootEl)
 		makeWindowDraggable("tf-newmap-handle", getCachedEl(doc, "tf-newmap-root"))
 		makeWindowDraggable("tf-project-handle", getCachedEl(doc, "tf-project-root"))
+		makeWindowDraggable("tf-project-open-handle", getCachedEl(doc, "tf-project-open-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====
@@ -9044,6 +9179,11 @@ function widget:Initialize()
 		end,
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
+		end,
+		-- Start script for opening a map project (blank map at the manifest's
+		-- size with project-local DNTS assets); called by WG.MapProject.open.
+		buildProjectStartScript = function(manifest, slug)
+			return widgetState.buildProjectStartScript(manifest, slug)
 		end,
 		isCapturingKey = function()
 			return widgetState.settingsCapturing ~= nil

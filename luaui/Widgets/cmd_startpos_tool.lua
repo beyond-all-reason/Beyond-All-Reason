@@ -893,8 +893,8 @@ local function saveStartPositions(name, explicitPath)
 	end
 end
 
-local function loadStartPositions(name)
-	local filename = SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function loadStartPositions(name, explicitPath)
+	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
 		return VFS.Include(filename, nil, VFS.RAW_FIRST)
 	end)
@@ -961,8 +961,8 @@ local function saveStartboxes(name, explicitPath)
 	end
 end
 
-local function loadStartboxes(name)
-	local filename = STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function loadStartboxes(name, explicitPath)
+	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
 		return VFS.Include(filename, nil, VFS.RAW_FIRST)
 	end)

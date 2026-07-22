@@ -83,6 +83,14 @@ local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0  -- track approximate memory usage
 
+-- Monotonic import-completion counter published as a game rules param. The map
+-- project load driver gates on it: draw frames say nothing about whether the
+-- SIM has processed the streamed columns (startpos slope validation and feature
+-- ground-snap read the unsynced height mirror, which only updates as the sim
+-- applies the import). A rules param — unlike SendToUnsynced — survives
+-- /luaui reload, so a mid-load widget reload can still observe completion.
+local importDoneCounter = 0
+
 -- Active drag session: all pushSnapshot/pushSnapshotFromFlat calls merge into mergeSnapshot until
 -- MERGE_END is received (sent by widget on mouse release).  No time window — MERGE_END is authoritative.
 local mergeSnapshot = nil      -- the active snapshot being merged into; nil = no drag in progress
@@ -1979,6 +1987,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 		-- engine to mark every heightmap chunk dirty, so the GPU mesh, normals,
 		-- shadow pass and minimap all refresh without needing a local edit.
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, 0)
+		importDoneCounter = importDoneCounter + 1
+		Spring.SetGameRulesParam("tfb_import_done", importDoneCounter)
 		return true
 	end
 
