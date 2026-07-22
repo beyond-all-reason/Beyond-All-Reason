@@ -1,98 +1,82 @@
---- Fluent builder for PolicyDescriptors — the modder-facing sugar layer.
+--- Fluent builder that emits PolicyDescriptors — no runtime of its own.
 ---
---- The canonical policy format is the descriptor file (see modules/types/modules.lua):
---- a pure typed evaluate function in its own file. This builder only *emits* that
---- format; it adds no runtime of its own and BAR's built-in policies don't use it.
+--- The canonical policy format is the category file (see types/modules.lua):
+--- modules/<name>/policies/<category>.lua registers an ordered PolicyDescriptor[]
+--- and returns nothing. Pipeline() is how those files read — gates in declaration
+--- order, one terminal compute — and what it hands the loader is a plain
+--- descriptor list, byte-for-byte equivalent to writing the tables by hand:
 ---
----   return PolicyBuilder.new("NoEnemyMetal")
----       :Category("metal_transfer")
----       :Enemy()
----       :Returns(function(ctx) return MyDenyResult(ctx) end)
----       :Build()
+---   Policies.Pipeline()
+---       :Gate("SharingEnabled", function(ctx, resourceType) ... end)
+---       :Compute("ComputeResourceTransfer", function(ctx, resourceType) ... end)
+---       :Register()
 ---
---- is byte-for-byte equivalent (as a descriptor) to writing the table by hand.
+--- Register() is the terminal for category files. Build() returns the descriptor
+--- list instead, for programmatic pipelines and specs.
 
----@class PolicyBuilder
----@field name string
----@field categoryName string|nil
----@field predicates (fun(...): boolean)[]
 local PolicyBuilder = {}
-PolicyBuilder.__index = PolicyBuilder
 
----@param name string
----@return PolicyBuilder
-function PolicyBuilder.new(name)
+---@class PolicyPipeline
+---@field stages PolicyDescriptor[]
+---@field computed boolean
+---@field _sink (fun(stages: PolicyDescriptor[]))|nil bound by the loader's Policies facade
+local PolicyPipeline = {}
+PolicyPipeline.__index = PolicyPipeline
+
+---One ordered pipeline per category file. Order is declaration order — the
+---framework evaluates stages top to bottom, first result wins.
+---@return PolicyPipeline
+---Category is NOT an argument: the pipeline's identity is its filename
+---(policies/<category>.lua) and ModuleHandler.LoadPolicies stamps it — one
+---source of truth, no magic strings to drift.
+function PolicyBuilder.Pipeline()
 	return setmetatable({
+		stages = {},
+		computed = false,
+	}, PolicyPipeline)
+end
+
+---A gate: return a result to end evaluation (usually a deny), nil to pass.
+---@param name string
+---@param evaluate fun(...): any
+---@return PolicyPipeline
+function PolicyPipeline:Gate(name, evaluate)
+	assert(not self.computed, "PolicyPipeline: Gate() after Compute() — the terminal must be last")
+	self.stages[#self.stages + 1] = {
 		name = name,
-		categoryName = nil,
-		predicates = {},
-	}, PolicyBuilder)
-end
-
----@param category string
----@return PolicyBuilder
-function PolicyBuilder:Category(category)
-	self.categoryName = category
-	return self
-end
-
----Add a predicate; evaluate returns nil (pass) unless every predicate holds.
----@param predicate fun(...): boolean receives evaluate's arguments (ctx, ...)
----@return PolicyBuilder
-function PolicyBuilder:When(predicate)
-	self.predicates[#self.predicates + 1] = predicate
-	return self
-end
-
----Sugar: only when sender and receiver are allied (ctx.areAlliedTeams).
----@return PolicyBuilder
-function PolicyBuilder:Allied()
-	return self:When(function(ctx)
-		return ctx.areAlliedTeams == true
-	end)
-end
-
----Sugar: only when sender and receiver are enemies.
----@return PolicyBuilder
-function PolicyBuilder:Enemy()
-	return self:When(function(ctx)
-		return ctx.areAlliedTeams == false
-	end)
-end
-
----Terminal: when all predicates hold, evaluation ends with handler's result.
----@param handler fun(...): any pure function producing the policy result
----@return PolicyBuilder
-function PolicyBuilder:Returns(handler)
-	self.handler = handler
-	return self
-end
-
----Terminal alias for deny-gates: reads as intent at the call site.
----@param makeDenyResult fun(...): any pure function producing the deny result
----@return PolicyBuilder
-function PolicyBuilder:Deny(makeDenyResult)
-	return self:Returns(makeDenyResult)
-end
-
----@return PolicyDescriptor
-function PolicyBuilder:Build()
-	assert(self.handler, "PolicyBuilder: Returns()/Deny() must be set before Build()")
-	local predicates = self.predicates
-	local handler = self.handler
-	---@type PolicyDescriptor
-	return {
-		name = self.name,
-		category = self.categoryName,
-		evaluate = function(...)
-			for _, predicate in ipairs(predicates) do
-				if not predicate(...) then
-					return nil
-				end
-			end
-			return handler(...)
-		end,
+		evaluate = evaluate,
 	}
+	return self
+end
+
+---The terminal: always returns a result. Exactly one, and last.
+---@param name string
+---@param evaluate fun(...): any
+---@return PolicyPipeline
+function PolicyPipeline:Compute(name, evaluate)
+	assert(not self.computed, "PolicyPipeline: only one Compute() per pipeline")
+	self.computed = true
+	self.stages[#self.stages + 1] = {
+		name = name,
+		evaluate = evaluate,
+	}
+	return self
+end
+
+---@return PolicyDescriptor[]
+function PolicyPipeline:Build()
+	assert(self.computed, "PolicyPipeline: a pipeline needs a terminal Compute()")
+	return self.stages
+end
+
+---Terminal for policies/<category>.lua files: hand the built stage list to
+---the loader's sink (injected by ModuleHandler.LoadPolicies). Registration
+---style, one idiom framework-wide: files register, they do not return.
+function PolicyPipeline:Register()
+	if self._sink == nil then
+		error("PolicyPipeline:Register() outside a policies/ loader bracket — use :Build() for programmatic pipelines")
+	end
+	self._sink(self:Build())
 end
 
 return PolicyBuilder

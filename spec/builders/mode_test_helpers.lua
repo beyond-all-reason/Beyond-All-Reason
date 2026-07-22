@@ -1,6 +1,8 @@
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local ModuleHandlerForActions = VFS.Include("modules/module_handler.lua")
+local ResourceTransferAction = ModuleHandlerForActions.LoadActions("sharing").byName.resource_transfer
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 local M = {}
 
@@ -28,7 +30,7 @@ function M.buildModeResult(spring, modeConfig, sender, receiver, resourceType, e
 	ContextFactoryModule.setEnrichers(enricherFn and { enricherFn } or {})
 
 	local ctx = ContextFactoryModule.create(springApi).policy(sender.id, receiver.id)
-	local result = ResourceTransfer.CalcResourcePolicy(ctx, resourceType)
+	local result = PolicyEvaluation.CalcResourcePolicy(ctx, resourceType)
 
 	ContextFactoryModule.setEnrichers(saved)
 	return result
@@ -61,10 +63,10 @@ function M.buildModeTransfer(spring, modeConfig, sender, receiver, resourceType,
 	ContextFactoryModule.setEnrichers(enricherFn and { enricherFn } or {})
 
 	local policyCtx = ContextFactoryModule.create(springApi).policy(sender.id, receiver.id)
-	local policyResult = M.snapshotResult(ResourceTransfer.CalcResourcePolicy(policyCtx, resourceType))
+	local policyResult = M.snapshotResult(PolicyEvaluation.CalcResourcePolicy(policyCtx, resourceType))
 
 	local transferCtx = ContextFactoryModule.create(springApi).resourceTransfer(sender.id, receiver.id, resourceType, desiredAmount, policyResult)
-	local result = ResourceTransfer.ResourceTransfer(transferCtx)
+	local result = ResourceTransferAction.execute(transferCtx)
 
 	ContextFactoryModule.setEnrichers(saved)
 	return result, policyResult

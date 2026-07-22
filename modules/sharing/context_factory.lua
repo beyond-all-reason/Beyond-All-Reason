@@ -1,5 +1,5 @@
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
-local TeamResourceData = VFS.Include("modules/sharing/team_resource_data.lua")
+local TeamResourceData = VFS.Include("modules/module_handler.lua").Get("economy").TeamResourceData
 
 ---@alias PolicyContextEnricher fun(ctx: PolicyContext, springRepo: EngineSynced, senderTeamID: integer, receiverTeamID: integer)
 

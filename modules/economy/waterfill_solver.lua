@@ -1,5 +1,4 @@
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
 
 local ResourceType = ResourceTypes
 local RESOURCE_TYPES = { ResourceTypes.METAL, ResourceTypes.ENERGY }
@@ -18,6 +17,15 @@ local teamLedgerCache = {} ---@type table<integer, table<ResourceName, EconomyFl
 
 ---@param value number?
 ---@return number
+---Default tax resolver: economy is tax-free unless the caller says otherwise.
+---Sharing passes its config's getTeamTaxRate (dependency points inward, not at sharing).
+---@param _springRepo EngineSynced
+---@param _teamId integer
+---@return number
+local function noTeamTax(_springRepo, _teamId)
+	return 0
+end
+
 local function normalizeSlider(value)
 	if type(value) ~= "number" then
 		return 0
@@ -266,9 +274,11 @@ end
 
 ---@param springRepo EngineSynced
 ---@param teamsList table<integer, TeamResourceData>?
+---@param getTeamTaxRate (fun(springRepo: EngineSynced, teamId: integer): number)? tax resolver, defaults to no tax
 ---@return table<integer, TeamResourceData>? teamsList the input table, updated in place (nil input passes through)
 ---@return EconomyFlowSummary
-function Gadgets.Solve(springRepo, teamsList)
+function Gadgets.Solve(springRepo, teamsList, getTeamTaxRate)
+	getTeamTaxRate = getTeamTaxRate or noTeamTax
 	if tracyAvailable then
 		tracy.ZoneBeginN("WaterfillSolver.Solve")
 	end
@@ -329,7 +339,7 @@ function Gadgets.Solve(springRepo, teamsList)
 		for allyTeam, members in pairs(groups) do
 			local memberCount = sizes[allyTeam] or 0
 			if memberCount > 0 then
-				local taxRate = SharedConfig.getTeamTaxRate(springRepo, (members[1] --[[@as EconomyShareMember]]).teamId)
+				local taxRate = getTeamTaxRate(springRepo, (members[1] --[[@as EconomyShareMember]]).teamId)
 				local lift, deltas = solveWaterfill(members, memberCount, taxRate)
 
 				if tracyAvailable and tracy.LuaTracyPlot then
@@ -393,13 +403,14 @@ end
 
 ---@param springRepo EngineSynced
 ---@param teamsList table<integer, TeamResourceData>?
+---@param getTeamTaxRate (fun(springRepo: EngineSynced, teamId: integer): number)? tax resolver, defaults to no tax
 ---@return EconomyTeamResult[]
-function Gadgets.SolveToResults(springRepo, teamsList)
+function Gadgets.SolveToResults(springRepo, teamsList, getTeamTaxRate)
 	if tracyAvailable then
 		tracy.ZoneBeginN("WaterfillSolver.SolveToResults")
 	end
 
-	local updatedTeams, allLedgers = Gadgets.Solve(springRepo, teamsList)
+	local updatedTeams, allLedgers = Gadgets.Solve(springRepo, teamsList, getTeamTaxRate)
 
 	local results = {} ---@type EconomyTeamResult[]
 	local idx = 0

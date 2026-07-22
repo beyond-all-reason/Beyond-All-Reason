@@ -1,6 +1,8 @@
 --- Unit validation helpers for advplayerslist.lua
 --- partition depends only on the sender's modes, so memoise once per selection, not per player
-local UnitShared = VFS.Include("modules/sharing/unit/shared.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local UnitTransferAction = ModuleHandler.LoadActions("sharing").byName.unit_transfer
 
 local UnitValidationHelpers = {}
 
@@ -37,18 +39,18 @@ function UnitValidationHelpers.GetPlayerUnitValidation(myTeamID, receiverTeamID)
 		return nil
 	end
 
-	local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, receiverTeamID, Spring)
+	local policyResult = PolicyEvaluation.GetUnitPolicyCached(myTeamID, receiverTeamID, Spring)
 	if not policyResult.canShare then
 		-- denied receivers all short-circuit to the same empty partition, so compute once
 		if not deniedResult then
-			deniedResult = UnitShared.ValidateUnits(policyResult, currentSelection, Spring, nil, deniedScratch)
+			deniedResult = UnitTransferAction.validate(policyResult, currentSelection, Spring, nil, deniedScratch)
 		end
 		return deniedResult
 	end
 
 	-- Identical for every shareable receiver (modes are the sender's), so compute once.
 	if not sharedPartition then
-		sharedPartition = UnitShared.ValidateUnits(policyResult, currentSelection, Spring, nil, sharedScratch)
+		sharedPartition = UnitTransferAction.validate(policyResult, currentSelection, Spring, nil, sharedScratch)
 	end
 	return sharedPartition
 end

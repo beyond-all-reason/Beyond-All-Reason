@@ -1,8 +1,8 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
-local WaterfillSolver = VFS.Include("modules/sharing/economy/waterfill_solver.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
+local WaterfillSolver = VFS.Include("modules/economy/waterfill_solver.lua")
 
 local function normalizeAllies(teams, allyTeamId)
 	for i = 1, #teams do
@@ -51,7 +51,7 @@ describe("WaterfillSolver.SolveToResults", function()
 		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
 		local teamsList = buildTeamsTable({ teamA, teamB })
 
-		local results = WaterfillSolver.SolveToResults(spring, teamsList)
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		assert.is_table(results)
 		assert.is_true(#results >= 2)
@@ -80,7 +80,7 @@ describe("WaterfillSolver.SolveToResults", function()
 		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
 		local teamsList = buildTeamsTable({ teamA, teamB })
 
-		local results = WaterfillSolver.SolveToResults(spring, teamsList)
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		local teamAMetal, teamBMetal ---@type EconomyTeamResult, EconomyTeamResult
 		for _, result in ipairs(results) do
@@ -109,7 +109,7 @@ describe("WaterfillSolver.SolveToResults", function()
 		local spring = buildSpring({ taxRate = 0.5 }, { teamA, teamB })
 		local teamsList = buildTeamsTable({ teamA, teamB })
 
-		local results = WaterfillSolver.SolveToResults(spring, teamsList)
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		local teamAMetal, teamBMetal ---@type EconomyTeamResult, EconomyTeamResult
 		for _, result in ipairs(results) do
@@ -144,7 +144,7 @@ describe("ResourceExcess redistribution", function()
 		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
 		local teamsList = buildTeamsTable({ teamA, teamB })
 
-		local results = WaterfillSolver.SolveToResults(spring, teamsList)
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, SharedConfig.getTeamTaxRate)
 
 		assert.is_table(results)
 		assert.is_true(#results >= 4)
@@ -165,7 +165,7 @@ describe("ResourceExcess redistribution", function()
 end)
 
 describe("ManualShareLedger", function()
-	local ManualShareLedger = VFS.Include("modules/sharing/economy/manual_share_ledger.lua")
+	local ManualShareLedger = VFS.Include("modules/economy/manual_share_ledger.lua")
 
 	before_each(function()
 		ManualShareLedger.Clear()

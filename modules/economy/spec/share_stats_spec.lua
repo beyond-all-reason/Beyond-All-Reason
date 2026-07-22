@@ -1,4 +1,4 @@
-local ShareStats = VFS.Include("modules/sharing/economy/share_stats.lua")
+local ShareStats = VFS.Include("modules/economy/share_stats.lua")
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 
 local METAL = ResourceTypes.METAL

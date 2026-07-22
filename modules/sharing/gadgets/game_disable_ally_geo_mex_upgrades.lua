@@ -16,11 +16,11 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local UnitTransfer = VFS.Include("modules/sharing/unit/synced.lua")
+local UnitTransferShared = VFS.Include("modules/sharing/unit/shared.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 
 local mode = Spring.GetModOptions().unit_sharing_mode
-local modeUnitTypes = UnitTransfer.GetModeUnitTypes(mode)
+local modeUnitTypes = UnitTransferShared.GetModeUnitTypes(mode)
 local enableShare = table.contains(modeUnitTypes, TransferEnums.UnitType.Utility)
 
 if enableShare then

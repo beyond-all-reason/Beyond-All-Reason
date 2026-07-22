@@ -3,9 +3,10 @@ local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local TransferEnums = VFS.Include("modules/sharing/enums.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local ResourceFactorCache = VFS.Include("modules/sharing/resource/factor_cache.lua")
 local ResourceShared = VFS.Include("modules/sharing/resource/shared.lua")
-local SharedConfig = VFS.Include("modules/sharing/economy/shared_config.lua")
+local SharedConfig = VFS.Include("modules/sharing/config.lua")
 
 local METAL = TransferEnums.ResourceType.METAL
 
@@ -27,14 +28,14 @@ describe("resource policy cache (per-team factors) #policy", function()
 	local function populate()
 		local springApi = spring:Build()
 		local contextFactory = ContextFactoryModule.create(springApi)
-		ResourceTransfer.UpdatePolicyCache(springApi, 1000, -1000, 30, contextFactory)
+		ResourceFactorCache.UpdatePolicyCache(springApi, 1000, -1000, 30, contextFactory)
 		return springApi, contextFactory
 	end
 
 	it("reconstructs an allied pair identically to a direct CalcResourcePolicy", function()
 		local springApi, contextFactory = populate()
 		local cached = ResourceShared.GetCachedPolicyResult(sender.id, receiver.id, METAL, springApi)
-		local direct = ResourceTransfer.CalcResourcePolicy(contextFactory.policy(sender.id, receiver.id), METAL)
+		local direct = PolicyEvaluation.CalcResourcePolicy(contextFactory.policy(sender.id, receiver.id), METAL)
 		assert.equal(direct.canShare, cached.canShare)
 		assert.equal(direct.amountSendable, cached.amountSendable)
 		assert.equal(direct.amountReceivable, cached.amountReceivable)

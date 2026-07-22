@@ -23,8 +23,12 @@ end
 
 GG = GG or {}
 
-local TeamResourceData = VFS.Include("modules/sharing/team_resource_data.lua")
-local ShareStats = VFS.Include("modules/sharing/economy/share_stats.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local Economy = ModuleHandler.Get("economy")
+local TeamResourceData = Economy.TeamResourceData
+local SharingConfig = VFS.Include("modules/sharing/config.lua")
+local ShareStats = Economy.ShareStats
 
 -- single place the GG economy boundary applies Lua-owned sent/received (engine no longer tracks them)
 local function overlaySharing(teamID, resource, sent, received)
@@ -51,14 +55,16 @@ end
 
 local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local ResourceTransfer = VFS.Include("modules/sharing/resource/synced.lua")
+local ResourceFactorCache = VFS.Include("modules/sharing/resource/factor_cache.lua")
+-- auto-registered effectful layer (modules/sharing/actions/)
+local SharingActions = ModuleHandler.LoadActions("sharing")
 local Shared = VFS.Include("modules/sharing/resource/shared.lua")
 local Comms = VFS.Include("modules/sharing/resource/comms.lua")
 local TechBlockingShared = VFS.Include("modules/sharing/tech/blocking.lua")
 local LuaRulesMsg = VFS.Include("common/luaUtilities/lua_rules_msg.lua")
-local ManualShareLedger = VFS.Include("modules/sharing/economy/manual_share_ledger.lua")
+local ManualShareLedger = Economy.ManualShareLedger
 
-local WaterfillSolver = VFS.Include("modules/sharing/economy/waterfill_solver.lua")
+local WaterfillSolver = Economy.WaterfillSolver
 
 -- cast: the library meta declares tracy unconditionally, but profiler-less engine builds lack it
 local tracyAvailable = (tracy and tracy.ZoneBeginN and tracy.ZoneEnd) ~= nil --[[@as boolean]]
@@ -97,9 +103,9 @@ local CADENCE = 30
 ---@param amount number Desired amount to transfer
 ---@return ResourceTransferResult
 function GG.ShareTeamResource(teamID, targetTeamID, resource, amount)
-	local policyResult = Shared.GetCachedPolicyResult(teamID, targetTeamID, resource, springRepo)
+	local policyResult = PolicyEvaluation.CalcResourcePolicyCached(teamID, targetTeamID, resource, springRepo)
 	local ctx = contextFactory.resourceTransfer(teamID, targetTeamID, resource, amount, policyResult)
-	local transferResult = ResourceTransfer.ResourceTransfer(ctx)
+	local transferResult = SharingActions.byName.resource_transfer.execute(ctx)
 
 	local policyResult = transferResult.policyResult
 	if transferResult.success and policyResult then
@@ -127,11 +133,11 @@ function GG.GetTeamShareLevel(teamID, resource)
 end
 
 local function InitializeNewTeam(teamId)
-	-- per-team factor; GetCachedPolicyResult pairs it against other teams on read
+	-- per-team factor; PolicyEvaluation.CalcResourcePolicyCached pairs it against other teams on read
 	contextFactory.clearResourceCache()
 	local ctx = contextFactory.policy(teamId, teamId)
-	ResourceTransfer.CacheTeamFactor(Spring, teamId, ResourceTypes.METAL, ctx)
-	ResourceTransfer.CacheTeamFactor(Spring, teamId, ResourceTypes.ENERGY, ctx)
+	ResourceFactorCache.CacheTeamFactor(Spring, teamId, ResourceTypes.METAL, ctx)
+	ResourceFactorCache.CacheTeamFactor(Spring, teamId, ResourceTypes.ENERGY, ctx)
 end
 
 function gadget:PlayerAdded(playerID)
@@ -200,7 +206,7 @@ local function ProcessEconomy(frame)
 	end
 
 	local teams = buildSnapshot()
-	local results = ManualShareLedger.FoldInto(WaterfillSolver.SolveToResults(springRepo, teams))
+	local results = ManualShareLedger.FoldInto(WaterfillSolver.SolveToResults(springRepo, teams, SharingConfig.getTeamTaxRate))
 
 	-- SetTeamResource moves the pools; AddTeamResourceExcessStats records excess only; sent/received tracked Lua-side via ShareStats
 	for i = 1, #results do
@@ -224,7 +230,7 @@ local function ProcessEconomy(frame)
 	end
 
 	-- policy factor refresh on same tick, reading post-redistribution currents (updateRate 0 = always)
-	lastPolicyUpdate = ResourceTransfer.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, 0, contextFactory)
+	lastPolicyUpdate = ResourceFactorCache.UpdatePolicyCache(springRepo, frame, lastPolicyUpdate, 0, contextFactory)
 
 	if tracyAvailable then
 		tracy.ZoneEnd()

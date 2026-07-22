@@ -1,4 +1,6 @@
-local UnitShared = VFS.Include("modules/sharing/unit/shared.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local UnitTransferAction = ModuleHandler.LoadActions("sharing").byName.unit_transfer
 
 local API = {}
 
@@ -28,8 +30,8 @@ function API.HandleHoverChange(myTeamID, selectedUnits, newHoverTeamID, newHover
 	API.NotifyHoverChangeListeners(newHoverTeamID, newHoverPlayerID)
 
 	if newHoverTeamID and selectedUnits and #selectedUnits > 0 then
-		local policyResult = UnitShared.GetCachedPolicyResult(myTeamID, newHoverTeamID, Spring)
-		local validationResult = UnitShared.ValidateUnits(policyResult, selectedUnits, Spring)
+		local policyResult = PolicyEvaluation.GetUnitPolicyCached(myTeamID, newHoverTeamID, Spring)
+		local validationResult = UnitTransferAction.validate(policyResult, selectedUnits, Spring)
 		local invalidUnitIds = validationResult.invalidUnitIds
 		if not policyResult.canShare and Spring.AreTeamsAllied(myTeamID, newHoverTeamID) then
 			-- sharing fully disabled for this ally, so flag every selected unit for the hover highlight

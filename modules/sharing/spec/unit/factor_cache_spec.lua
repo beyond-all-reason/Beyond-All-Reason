@@ -2,7 +2,8 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ModeEnums = VFS.Include("modes/sharing_mode_enums.lua")
 local ContextFactoryModule = VFS.Include("modules/sharing/context_factory.lua")
-local UnitTransfer = VFS.Include("modules/sharing/unit/synced.lua")
+local PolicyEvaluation = VFS.Include("modules/sharing/policy_evaluation.lua")
+local UnitFactorCache = VFS.Include("modules/sharing/unit/factor_cache.lua")
 local UnitShared = VFS.Include("modules/sharing/unit/shared.lua")
 
 local ALL = ModeEnums.UnitFilterCategory.All
@@ -26,7 +27,7 @@ describe("unit policy cache (per-team factors) #policy", function()
 		local springApi = spring:Build()
 		local contextFactory = ContextFactoryModule.create(springApi)
 		for _, teamId in ipairs(springApi.GetTeamList()) do
-			UnitTransfer.CacheTeamFactor(springApi, teamId, contextFactory.policy(teamId, teamId))
+			UnitFactorCache.CacheTeamFactor(springApi, teamId, contextFactory.policy(teamId, teamId))
 		end
 		return springApi, contextFactory
 	end
@@ -34,7 +35,7 @@ describe("unit policy cache (per-team factors) #policy", function()
 	it("reconstructs an allied pair identically to a direct GetPolicy", function()
 		local springApi, contextFactory = populate()
 		local cached = UnitShared.GetCachedPolicyResult(sender.id, receiver.id, springApi)
-		local direct = UnitTransfer.GetPolicy(contextFactory.policy(sender.id, receiver.id))
+		local direct = PolicyEvaluation.GetUnitPolicy(contextFactory.policy(sender.id, receiver.id))
 		assert.equal(direct.canShare, cached.canShare)
 		assert.same(direct.sharingModes, cached.sharingModes)
 	end)
