@@ -154,7 +154,9 @@
 .me-add {
     display: inline-block;
     width: 180px;
-    padding: 1px 6px;
+    height: 1.5em;
+    vertical-align: middle;
+    padding: 0;
     background-color: #10161d;
     border: 1px #2e4056;
     border-radius: 4px;
@@ -170,7 +172,9 @@
 .me-input {
     display: inline-block;
     width: 130px;
-    padding: 0 5px;
+    height: 1.6em;
+    vertical-align: middle;
+    padding: 1px 5px;
     background-color: #0a0e13;
     border: 1px #33414f;
     border-radius: 4px;
@@ -189,7 +193,9 @@
 .me-select {
     display: inline-block;
     width: 200px;
-    padding: 0 5px;
+    height: 1.6em;
+    vertical-align: middle;
+    padding: 0;
     background-color: #0a0e13;
     border: 1px #33414f;
     border-radius: 4px;
@@ -230,4 +236,42 @@
     border-top: 1px #263646;
     font-size: 0.7em;
     color: #5f6f7f;
+}
+
+/* RmlUi selects are composite widgets: the value area, the arrow, and the
+   popup (selectbox) each need their own styling or they render bare. */
+.me-select selectvalue,
+.me-add selectvalue {
+    padding: 1px 6px;
+}
+
+.me-select selectarrow,
+.me-add selectarrow {
+    width: 16px;
+    decorator: vertical-gradient( #33475c #243343 );
+    border-left: 1px #3d5168;
+    border-radius: 0 4px 4px 0;
+}
+
+.me-select selectbox,
+.me-add selectbox {
+    decorator: vertical-gradient( #1c2531 #10161d );
+    border: 1px #3d5168;
+    border-radius: 4px;
+    padding: 2px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.me-select selectbox option,
+.me-add selectbox option {
+    display: block;
+    padding: 2px 8px;
+    color: #cfd8e3;
+}
+
+.me-select selectbox option:hover,
+.me-add selectbox option:hover {
+    background-color: #2f4156;
+    color: #ffffff;
 }
