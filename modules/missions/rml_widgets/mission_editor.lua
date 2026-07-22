@@ -271,7 +271,7 @@ local STEP_CLASS = {
 local function renderTrigger(trigger, ctx, style)
 	local removeButton = ""
 	if ctx.editable and trigger.remove_span then
-		removeButton = '<button class="me-button me-x" data-op="remove" data-remove-start="'
+		removeButton = '<button class="me-button me-x me-card-x" data-op="remove" data-remove-start="'
 			.. tostring(trigger.remove_span[1]) .. '" data-remove-end="' .. tostring(trigger.remove_span[2])
 			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">×</button>'
 	end
