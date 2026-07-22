@@ -294,15 +294,11 @@ local function renderTrigger(trigger, ctx, style)
 				local pool = (badge == "cond") and currentAst.surface.conditions
 					or (badge == "effect") and currentAst.surface.effects or nil
 				if pool and #pool > 0 and step.span then
-					local opts = { '<option value="" selected="true">swap...</option>' }
-					for _, entry in ipairs(pool) do
-						opts[#opts + 1] = '<option value="' .. escapeRml(entry.template) .. '">'
-							.. escapeRml(entry.label) .. "</option>"
-					end
-					tail[#tail + 1] = '<select class="me-add me-swap" data-kind="swap" data-insert="" data-swap-start="'
-						.. tostring(step.span[1]) .. '" data-swap-end="' .. tostring(step.span[2])
-						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
-						.. table.concat(opts) .. "</select>"
+					tail[#tail + 1] = '<button class="me-button me-x-btn me-swap-btn" data-pool="'
+						.. (badge == "cond" and "conditions" or "effects")
+						.. '" data-swap-start="' .. tostring(step.span[1])
+						.. '" data-swap-end="' .. tostring(step.span[2])
+						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">swap</button>'
 				end
 				if step.verb == "Do" and step.remove_span then
 					tail[#tail + 1] = '<button class="me-button me-x" data-op="remove" data-remove-start="'
@@ -468,6 +464,59 @@ local function queueFieldEdit(element, value, deadline)
 	}
 end
 
+local function closeModal()
+	local modal = document and document:GetElementById("me-modal")
+	if modal then
+		modal.style.display = "none"
+	end
+end
+
+---The swap modal: pick a new shape for this step from the surface pool.
+---Replacing is destructive to the step's current content, so it gets a
+---deliberate modal moment rather than an inline dropdown.
+local function openSwapModal(button)
+	local modal = document:GetElementById("me-modal")
+	local titleEl = document:GetElementById("me-modal-title")
+	local rowsEl = document:GetElementById("me-modal-rows")
+	if not (modal and titleEl and rowsEl and currentAst and currentAst.surface) then
+		return
+	end
+	local poolName = button:GetAttribute("data-pool")
+	local pool = currentAst.surface[poolName]
+	if not pool then
+		return
+	end
+	titleEl.inner_rml = poolName == "conditions" and "Swap condition" or "Swap effect"
+	local out = {}
+	for _, entry in ipairs(pool) do
+		out[#out + 1] = '<div class="me-modal-row" data-value="' .. escapeRml(entry.template) .. '">'
+			.. escapeRml(entry.label) .. "</div>"
+	end
+	rowsEl.inner_rml = table.concat(out)
+	local swap = {
+		file = button:GetAttribute("data-file"),
+		start = tonumber(button:GetAttribute("data-swap-start")),
+		finish = tonumber(button:GetAttribute("data-swap-end")),
+		hash = button:GetAttribute("data-hash"),
+	}
+	local divs = rowsEl:GetElementsByTagName("div")
+	for i = 1, #divs do
+		local row = divs[i]
+		row:AddEventListener("click", function()
+			writeEditIntent({
+				file = swap.file,
+				start = swap.start,
+				finish = swap.finish,
+				hash = swap.hash,
+				quote = false,
+				value = "(" .. tostring(row:GetAttribute("data-value") or "") .. ")",
+			})
+			closeModal()
+		end)
+	end
+	modal.style.display = "block"
+end
+
 local function attachFormControls()
 	local content = document:GetElementById("me-content")
 	if not content then
@@ -483,7 +532,11 @@ local function attachFormControls()
 	local buttons = content:GetElementsByTagName("button")
 	for i = 1, #buttons do
 		local button = buttons[i]
-		if button:GetAttribute("data-op") == "remove" then
+		if button:GetAttribute("data-pool") then
+			button:AddEventListener("click", function()
+				openSwapModal(button)
+			end)
+		elseif button:GetAttribute("data-op") == "remove" then
 			button:AddEventListener("click", function()
 				writeEditIntent({
 					file = button:GetAttribute("data-file"),
@@ -516,20 +569,6 @@ local function attachFormControls()
 		select:AddEventListener("change", function()
 			local value = tostring(select:GetAttribute("value") or "")
 			Spring.Echo("[mission_editor] select -> " .. value)
-			local swapStart = tonumber(select:GetAttribute("data-swap-start"))
-			if swapStart then
-				if value ~= "" then
-					writeEditIntent({
-						file = select:GetAttribute("data-file"),
-						start = swapStart,
-						finish = tonumber(select:GetAttribute("data-swap-end")),
-						hash = select:GetAttribute("data-hash"),
-						quote = false,
-						value = "(" .. value .. ")",
-					})
-				end
-				return
-			end
 			local insertAt = tonumber(select:GetAttribute("data-insert"))
 			if insertAt then
 				if value == "" then
@@ -744,6 +783,12 @@ function widget:Initialize()
 		reloadButton:AddEventListener("click", function()
 			Spring.SendCommands("luarules mission reload")
 			renderCurrent()
+		end)
+	end
+	local modalCancel = document:GetElementById("me-modal-cancel")
+	if modalCancel then
+		modalCancel:AddEventListener("click", function()
+			closeModal()
 		end)
 	end
 	local closeButton = document:GetElementById("me-close")

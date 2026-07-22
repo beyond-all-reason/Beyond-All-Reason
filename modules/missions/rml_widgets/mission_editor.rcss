@@ -112,9 +112,8 @@
     color: #e06c75;
 }
 
-.me-swap {
-    width: 58px;
-    font-size: 0.7em;
+.me-swap-btn {
+    color: #9cc2ff;
 }
 
 .me-card-title {
@@ -354,4 +353,50 @@ scrollbarvertical sliderarrowinc {
 
 .me-add-statement {
     width: 230px;
+}
+
+.me-modal {
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 300;
+    background-color: #05080cb8;
+}
+
+.me-modal-box {
+    margin: 60px auto;
+    width: 300px;
+    decorator: vertical-gradient( #1c2531 #10161d );
+    border: 1px #3d5168;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.me-modal-title {
+    display: block;
+    color: #ffffff;
+    font-size: 1.05em;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px #263646;
+}
+
+.me-modal-row {
+    display: block;
+    padding: 5px 8px;
+    color: #cfd8e3;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.me-modal-row:hover {
+    background-color: #2f4156;
+    color: #ffffff;
+}
+
+.me-modal-cancel {
+    margin-top: 8px;
 }
