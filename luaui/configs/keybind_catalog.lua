@@ -14,16 +14,21 @@
 -- editor under an "Other" section, so nothing is ever hidden.
 
 return {
-	-- Bound but intentionally not shown: legacy cloak (use wantcloak), the no-op
-	-- dynamicsky, chatswitch* (engine chat-mode actions BAR's chat doesn't honor),
-	-- attack_range_dec (the inc/dec pair is one "Display Firing Range" row), the
-	-- fixed esc-stack quit/close actions players don't rebind, and edit_*/pastetext
-	-- (text-field editing that only fires while an input box has focus).
+	-- Bound but intentionally not shown, matched by exact action id (never prefix, so
+	-- a future action can't be caught by coincidence): legacy cloak (use wantcloak),
+	-- the no-op dynamicsky, the chatswitch* chat-mode actions BAR's chat doesn't honor,
+	-- attack_range_dec (the inc/dec pair is one "Display Firing Range" row), the fixed
+	-- esc-stack quit/close actions players don't rebind, and the text-field editing
+	-- (edit_*, pastetext) that only fires while an input box has focus.
 	{ hidden = {
-		"cloak", "dynamicsky", "chatswitch", "attack_range_dec",
+		"cloak", "dynamicsky", "attack_range_dec",
 		"quitmenu", "quitforce", "reloadforce", "quitmessage",
 		"buildmenu_pregame_deselect", "customgameinfo_close", "teamstatus_close",
-		"edit_", "pastetext",
+		"pastetext",
+		"chatswitchally", "chatswitchspec",
+		"edit_backspace", "edit_complete", "edit_delete", "edit_end", "edit_escape",
+		"edit_home", "edit_next_char", "edit_next_line", "edit_next_word",
+		"edit_prev_char", "edit_prev_line", "edit_prev_word", "edit_return",
 	} },
 
 	{ category = "ui.keybinds.chat.title", items = {

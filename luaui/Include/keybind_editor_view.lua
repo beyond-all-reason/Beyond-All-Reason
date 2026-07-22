@@ -145,12 +145,11 @@ local function rebuildRows()
 	local catalogActions = {}
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
+	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
 	for _, group in ipairs(resolvedCatalog) do
 		if group.hidden then
-			for action in pairs(working.byAction) do
-				for _, h in ipairs(group.hidden) do
-					if action:sub(1, #h) == h then catalogActions[action] = true break end
-				end
+			for _, h in ipairs(group.hidden) do
+				catalogActions[h] = true
 			end
 		end
 	end
