@@ -20,6 +20,10 @@ end
 -- same way missions coexist with it today (the scenariooptions path). This
 -- gadget only ever ends the game when a mission scripted a verdict.
 
+-- Deferral is deliberate: Victory/Defeat are called from trigger evaluation
+-- INSIDE GameFrame, and calling Spring.GameOver reentrantly mid-callin risks
+-- undefined ordering. Deferring to the next GameFrame gives one idempotent
+-- application point — double verdicts in a frame collapse to one.
 ---@type integer[]|nil winning ally team ids; applied on the next GameFrame
 local pendingWinners = nil
 
