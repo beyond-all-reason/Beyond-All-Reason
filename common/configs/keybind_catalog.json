@@ -3,7 +3,6 @@
 		"hidden": [
 			"cloak",
 			"dynamicsky",
-			"chatswitch",
 			"attack_range_dec",
 			"quitmenu",
 			"quitforce",
@@ -12,8 +11,22 @@
 			"buildmenu_pregame_deselect",
 			"customgameinfo_close",
 			"teamstatus_close",
-			"edit_",
-			"pastetext"
+			"pastetext",
+			"chatswitchally",
+			"chatswitchspec",
+			"edit_backspace",
+			"edit_complete",
+			"edit_delete",
+			"edit_end",
+			"edit_escape",
+			"edit_home",
+			"edit_next_char",
+			"edit_next_line",
+			"edit_next_word",
+			"edit_prev_char",
+			"edit_prev_line",
+			"edit_prev_word",
+			"edit_return"
 		]
 	},
 	{

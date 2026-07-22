@@ -34,9 +34,9 @@ Each category's `items` entry is exactly one of:
 `action` is the bind command exactly as `/bind` expects and `GetKeyBindings` reports it
 (command plus space-separated args, e.g. `select AllMap++_ClearSelection_SelectAll+`).
 
-A single leading `{ "hidden": ["<action id prefix>", ...] }` entry (not a category) lists
-actions that are bound but never shown - by the same prefix match - so they surface neither
-as a row nor under "Other".
+A single leading `{ "hidden": ["<action id>", ...] }` entry (not a category) lists actions
+that are bound but never shown - matched by exact id, not prefix, so a future action can't be
+suppressed by coincidence - so they surface neither as a row nor under "Other".
 
 ## The config contract (behavior each surface implements)
 
