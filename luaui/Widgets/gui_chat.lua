@@ -3551,6 +3551,17 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 	end
 end
 
+function widget:cycleInputMode()
+	if inputMode == 'a:' then
+		inputMode = ''
+	elseif inputMode == 's:' then
+		inputMode = mySpec and '' or 'a:'
+	else
+		inputMode = 's:'
+	end
+	updateTextInputDlist = true
+end
+
 function widget:KeyRelease(key, mods, label, unicode, scanCode)
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
 	if
@@ -3913,15 +3924,19 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= "label" then -- TAB
-			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
-				inputText = utf8.sub(inputText, 1, inputTextPosition)
+			if utf8.len(inputText) == 0 then
+				self:cycleInputMode()
+			else
+				inputSelectionStart = nil
+				if autocompleteText and autocompleteWords[1] then
+					inputText = utf8.sub(inputText, 1, inputTextPosition)
 					.. autocompleteText
 					.. utf8.sub(inputText, inputTextPosition + 1)
-				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
-				inputHistory[#inputHistory] = inputText
-				autocompleteText = nil
-				autocompleteWords = {}
+					inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
+					inputHistory[#inputHistory] = inputText
+					autocompleteText = nil
+					autocompleteWords = {}
+				end
 			end
 		else
 			-- regular chars/keys handled in widget:TextInput
@@ -4035,13 +4050,7 @@ function widget:MousePress(x, y, button)
 			state.inputButtonRect[4]
 		)
 	then
-		if inputMode == "a:" then
-			inputMode = ""
-		elseif inputMode == "s:" then
-			inputMode = mySpec and "" or "a:"
-		else
-			inputMode = "s:"
-		end
+		self:cycleInputMode()
 		updateTextInputDlist = true
 		return true
 	end
