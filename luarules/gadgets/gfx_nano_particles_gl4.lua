@@ -772,7 +772,7 @@ local trackedBuildersList = {} -- arrayIndex -> unitID
 local trackUnit
 
 -- Cached visibility state
-local cachedAllyTeamID = Spring.GetMyAllyTeamID()
+local cachedAllyTeamID = Spring.GetLocalAllyTeamID()
 local cachedSpecFullView = false
 
 -- Debug instrumentation: timers + per-30f Echo. Toggle to true to profile.
@@ -790,7 +790,7 @@ local _dbgDraws = 0
 local function refreshSpec()
 	local spec, fullView = Spring.GetSpectatingState()
 	cachedSpecFullView = spec and fullView
-	cachedAllyTeamID = Spring.GetMyAllyTeamID()
+	cachedAllyTeamID = Spring.GetLocalAllyTeamID()
 end
 
 -- High gamespeed throttle. When the engine runs faster than 1x (catchup after

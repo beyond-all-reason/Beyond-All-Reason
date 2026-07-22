@@ -19,7 +19,7 @@ local gameStarted = false
 local isBomber = {}
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGiveOrder = Spring.GiveOrderToUnit
 local myTeamID = spGetMyTeamID()
 

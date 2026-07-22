@@ -200,7 +200,7 @@ function widget:RecvLuaMsg(msg)
 end
 
 function widget:PlayerChanged(playerID)
-	local prevTeam, prevFull = Spring.GetMyTeamID(), fullview
+	local prevTeam, prevFull = Spring.GetLocalTeamID(), fullview
 	spec, fullview = spGetSpectatingState()
 	if fullview ~= prevFull then
 		widget:Initialize()

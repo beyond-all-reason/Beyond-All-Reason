@@ -29,7 +29,7 @@ local range = 200
 --speedups
 --------------------------------------------------------------------------------
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local GetMyTeamID = Spring.GetMyTeamID
+local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
