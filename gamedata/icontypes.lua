@@ -2830,7 +2830,7 @@ local icontypes = {
 	},
 	legapollyon = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
-		size = 3.5
+		size = 3
 	},
 	leglht = {
 		bitmap = "icons/defence_0_laser.png",
