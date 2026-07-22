@@ -77,6 +77,11 @@ end
 ---Completion state lives in rulesparams (objective_<name>) —
 ---engine-serialized, so it survives a savegame like the rest of the trigger
 ---progress pile.
+---
+---Rulesparam changes have no callin, but this module is the thing that
+---completes objectives — so Complete() emits "mission.objective_changed" on
+---the mission bus, and IsComplete() declares it as its input (see
+---mission_authoring_dsl.md, "Conditions declare their inputs").
 ---@param name string
 ---@return MissionObjective
 local function Objective(name)
@@ -86,11 +91,13 @@ local function Objective(name)
 				execute = function()
 					Spring.SetGameRulesParam("objective_" .. name, 1)
 					Spring.Echo("[" .. LOG_TAG .. "] objective complete: " .. name)
+					engine.OnEvent("mission.objective_changed")
 				end,
 			}
 		end,
 		IsComplete = function()
 			return {
+				inputs = { "mission.objective_changed" },
 				---@param ctx MissionContext
 				evaluate = function(ctx)
 					return ctx.IsObjectiveComplete(name)
@@ -98,6 +105,28 @@ local function Objective(name)
 			}
 		end,
 	}
+end
+
+-- Engine callins the bus can forward. The gadget hooks ONLY the callins some
+-- registered trigger actually watches (the don't-hook-what-you-don't-use
+-- rule, applied automatically per mission); everything else stays unhooked.
+local FORWARDABLE_CALLINS = { "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken" }
+
+---(Re)hook engine callins to match the engine's watched-input set. Called
+---after every mission (re)load, when the watch set may have changed.
+local function syncWatchedCallins()
+	local watched = engine.WatchedInputs()
+	for _, name in ipairs(FORWARDABLE_CALLINS) do
+		if watched[name] and gadget[name] == nil then
+			gadget[name] = function()
+				engine.OnEvent(name)
+			end
+			gadgetHandler:UpdateCallIn(name)
+		elseif not watched[name] and gadget[name] ~= nil then
+			gadget[name] = nil
+			gadgetHandler:UpdateCallIn(name)
+		end
+	end
 end
 
 ---The MatchFlow verbs injected into mission files: same names as the module
@@ -170,6 +199,7 @@ local function loadMission(missionName)
 		VFS.Include(filePath, env)
 	end
 
+	syncWatchedCallins()
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
 	Spring.Echo("[" .. LOG_TAG .. "] mission armed: " .. missionName .. " (" .. #engine.Triggers() .. " trigger(s))")
