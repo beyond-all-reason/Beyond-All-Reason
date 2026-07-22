@@ -82,6 +82,55 @@ describe("mission DSL", function()
 	end)
 end)
 
+describe("AndWhen composition", function()
+	local registered
+	local T
+
+	before_each(function()
+		registered = {}
+		T = DSL.ForFile("triggers/win.lua", function(descriptor)
+			registered[#registered + 1] = descriptor
+		end)
+	end)
+
+	local function cond(result, inputs)
+		return { inputs = inputs, evaluate = function() return result end }
+	end
+
+	local anEffect = { execute = function() end }
+
+	it("fires only when every condition holds", function()
+		T.When(cond(true)).AndWhen(cond(false)).Do(anEffect).Register()
+		assert.is_false(registered[1].condition.evaluate({}))
+		T.When(cond(true)).AndWhen(cond(true)).Do(anEffect).Register()
+		assert.is_true(registered[2].condition.evaluate({}))
+	end)
+
+	it("composes inputs as the union of the parts'", function()
+		T.When(cond(true, { "A", "B" })).AndWhen(cond(true, { "B", "C" })).Do(anEffect).Register()
+		local inputs = registered[1].condition.inputs
+		table.sort(inputs)
+		assert.are.same({ "A", "B", "C" }, inputs)
+	end)
+
+	it("a poll-only part makes the whole trigger poll", function()
+		T.When(cond(true, { "A" })).AndWhen(cond(true, nil)).Do(anEffect).Register()
+		assert.is_nil(registered[1].condition.inputs)
+	end)
+
+	it("single-condition triggers keep their original condition object", function()
+		local only = cond(true, { "A" })
+		T.When(only).Do(anEffect).Register()
+		assert.are.equal(only, registered[1].condition)
+	end)
+
+	it("rejects a non-condition", function()
+		assert.has_error(function()
+			T.When(cond(true)).AndWhen(function() end)
+		end)
+	end)
+end)
+
 describe("mission verbs", function()
 	it("UnitDef carries the name", function()
 		assert.are.same({ name = "armpw" }, Verbs.UnitDef("armpw"))
@@ -103,46 +152,15 @@ describe("mission verbs", function()
 		assert.is_true(condition.evaluate(ctx))
 	end)
 
+	it("Has declares its engine-callin inputs", function()
+		local team = Verbs.MakeTeam(0, 0)
+		local condition = team.Has(Verbs.UnitDef("armpw"), 3)
+		assert.are.same({ "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken" }, condition.inputs)
+	end)
+
 	it("Team carries teamID and allyTeam for MatchFlow calls", function()
 		local team = Verbs.MakeTeam(2, 1)
 		assert.are.equal(2, team.teamID)
 		assert.are.equal(1, team.allyTeam)
-	end)
-end)
-
-describe("AndWhen composition", function()
-	local registered
-	local T
-
-	before_each(function()
-		registered = {}
-		T = DSL.ForFile("triggers/win.lua", function(descriptor)
-			registered[#registered + 1] = descriptor
-		end)
-	end)
-
-	local function cond(result)
-		return { evaluate = function() return result end }
-	end
-
-	local anEffect = { execute = function() end }
-
-	it("fires only when every condition holds", function()
-		T.When(cond(true)).AndWhen(cond(false)).Do(anEffect).Register()
-		assert.is_false(registered[1].condition.evaluate({}))
-		T.When(cond(true)).AndWhen(cond(true)).Do(anEffect).Register()
-		assert.is_true(registered[2].condition.evaluate({}))
-	end)
-
-	it("single-condition triggers keep their original condition object", function()
-		local only = cond(true)
-		T.When(only).Do(anEffect).Register()
-		assert.are.equal(only, registered[1].condition)
-	end)
-
-	it("rejects a non-condition", function()
-		assert.has_error(function()
-			T.When(cond(true)).AndWhen(function() end)
-		end)
 	end)
 end)

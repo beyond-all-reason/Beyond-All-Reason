@@ -33,6 +33,8 @@ function Verbs.MakeTeam(teamID, allyTeam)
 			"Team.Has expects a UnitDef(...) reference")
 		assert(type(count) == "number", "Team.Has expects a count")
 		return {
+			-- Transfers move counts too, hence Given/Taken.
+			inputs = { "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken" },
 			---@param ctx MissionContext
 			evaluate = function(ctx)
 				return ctx.GetUnitDefCount(teamID, unitDef.name) >= count

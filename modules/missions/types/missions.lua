@@ -5,11 +5,17 @@
 --- are lazy objects built by named verbs. Mission files must load identically
 --- in the synced sandbox (which strips rawset) and in busted.
 
---- A condition the trigger engine evaluates on its cadence. Pure: reads only
---- the ctx it is handed; captures configuration (team ids, unit names), never
---- progress. Progress lives in the engine's state tables (the savegame rule).
+--- A condition is not a bare predicate — it carries metadata about what can
+--- change its answer (mission_authoring_dsl.md, "Conditions declare their
+--- inputs"). Inputs name events on the mission bus: engine callins are one
+--- producer ("UnitFinished"), modules are another ("mission.objective_changed").
+--- nil inputs = poll every cadence — the fallback stays.
+--- Pure: reads only the ctx it is handed; captures configuration (team ids,
+--- unit names), never progress. Progress lives in the engine's state tables;
+--- inputs are configuration, dirty flags are derived (the savegame rule).
 ---@class MissionCondition
 ---@field evaluate fun(ctx: MissionContext): boolean
+---@field inputs string[]|nil events that can change this answer; nil = poll every cadence
 
 --- What the engine hands every condition and effect. The gadget builds it from
 --- Spring; specs build it from plain tables.
