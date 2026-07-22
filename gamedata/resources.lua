@@ -107,8 +107,8 @@ local function AutoAdd(subDir, map, filter)
 	for _, fullPath in ipairs(dirList) do
 		local path, key, ext = fullPath:match("bitmaps/(.*/(.*)%.(.*))")
 		if not fullPath:match("/%.svn") then
-			local subTable = resources["graphics"][subDir] or {}
-			resources["graphics"][subDir] = subTable
+			local subTable = resources.graphics[subDir] or {}
+			resources.graphics[subDir] = subTable
 			if not filter or filter == ext then
 				if not map then
 					table.insert(subTable, path)

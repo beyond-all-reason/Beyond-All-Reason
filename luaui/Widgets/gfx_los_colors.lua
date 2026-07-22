@@ -54,11 +54,11 @@ local function updateLOS()
 end
 
 function widget:Initialize()
-	WG["los"] = {}
-	WG["los"].getOpacity = function()
+	WG.los = {}
+	WG.los.getOpacity = function()
 		return opacity
 	end
-	WG["los"].setOpacity = function(value)
+	WG.los.setOpacity = function(value)
 		opacity = value
 		updateLOS()
 	end

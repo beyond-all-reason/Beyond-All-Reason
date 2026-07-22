@@ -402,7 +402,7 @@ local function doCopy()
 
 	-- Grass
 	if layers.grass then
-		local grassApi = WG["grassgl4"]
+		local grassApi = WG.grassgl4
 		if grassApi and grassApi.getDensityAt then
 			local grassData = {}
 			local gStep = 32 -- grass patch resolution
@@ -795,7 +795,7 @@ local function applyPaste(targetX, targetZ)
 		if not buf.grass then
 			return
 		end
-		local grassApi = WG["grassgl4"]
+		local grassApi = WG.grassgl4
 		if not grassApi or not grassApi.setDensityAt then
 			return
 		end

@@ -97,7 +97,7 @@ end
 -- ========== SNAPSHOT: GL4 WIDGET DECALS ==========
 -- Captures all active decals from the Decals GL4 widget
 local function snapshotGL4Decals()
-	local decalsApi = WG["decalsgl4"]
+	local decalsApi = WG.decalsgl4
 	if not decalsApi then
 		spEcho("[Decal Exporter] Decals GL4 widget not loaded")
 		return nil
@@ -518,7 +518,7 @@ end
 -- ========== SUMMARY STATS ==========
 local function printStats()
 	local gl4Count = 0
-	local decalsApi = WG["decalsgl4"]
+	local decalsApi = WG.decalsgl4
 	if decalsApi and decalsApi.GetActiveDecals then
 		local active = decalsApi.GetActiveDecals()
 		if active then

@@ -52,8 +52,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, factID, factDefID, user
 		return
 	end
 	if isBomber[unitDefID] then
-		if WG["firestate"] and WG["firestate"].setFirestateForUnits then
-			WG["firestate"].setFirestateForUnits(CustomFirestateDefs.HOLD_FIRE, { unitID }, { userInitiated = false })
+		if WG.firestate and WG.firestate.setFirestateForUnits then
+			WG.firestate.setFirestateForUnits(CustomFirestateDefs.HOLD_FIRE, { unitID }, { userInitiated = false })
 		end
 		spGiveOrder(unitID, CMD_MOVE_STATE, { 0 }, 0)
 	end
