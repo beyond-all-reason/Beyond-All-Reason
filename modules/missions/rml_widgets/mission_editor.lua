@@ -103,7 +103,7 @@ local function renderTrigger(trigger)
 				args[#args + 1] = renderValue(arg)
 			end
 			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb">'
-				.. step.verb
+				.. step.verb:upper()
 				.. "</span> "
 				.. table.concat(args, ", ")
 				.. "</div>"

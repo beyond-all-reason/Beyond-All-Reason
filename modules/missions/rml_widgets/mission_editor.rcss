@@ -85,10 +85,18 @@
 
 .me-step {
     display: block;
-    margin: 2px 0 2px 8px;
+    margin: 4px 0 4px 8px;
 }
 
 .me-step-verb {
+    display: inline-block;
+    width: 64px;
+    margin-right: 8px;
+    padding: 1px 0;
+    text-align: center;
+    font-size: 0.7em;
+    background-color: #2a2440;
+    border: 1px #453a6b;
     color: #c792ea;
 }
 
