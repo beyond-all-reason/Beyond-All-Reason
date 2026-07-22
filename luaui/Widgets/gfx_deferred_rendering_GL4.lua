@@ -1510,7 +1510,10 @@ local function updateProjectileLights(newgameframe)
 
 				if not skipProjectileTracking then
 					numadded = numadded + 1
-					if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
+					if debugproj then
+						local projectileName = spGetProjectileName and spGetProjectileName(projectileID) or "unknown_projectile"
+						spEcho("Adding projlight", projectileID, projectileName)
+					end
 					--trackedProjectiles[]
 					trackedProjectileTypes[projectileID] = lightType
 					trackedProjectiles[projectileID] = gameFrame
