@@ -45,6 +45,7 @@ local visible = false
 local lastGeneration = nil
 local pollAccumulator = 0
 local firstMissionFile = nil
+local mode = "form" ---@type "form"|"text"
 
 ---Pretty-print a recognizer Value node back to DSL text, literals wrapped in
 ---spans so the form can style what is form-editable.
@@ -237,6 +238,30 @@ local function applyViewLayout()
 	root.style["font-size"] = tostring(math.floor(16 * scale)) .. "px"
 end
 
+---Form mode shows the cards; text mode collapses to a strip while the real
+---IDE owns the file. Both are the same document — the panel never closes on
+---a mode switch.
+local function setMode(newMode)
+	mode = newMode
+	local content = document:GetElementById("me-content")
+	local footer = document:GetElementById("me-footer")
+	local strip = document:GetElementById("me-textmode")
+	local editButton = document:GetElementById("me-edit")
+	local isForm = mode == "form"
+	if content then
+		content.style.display = isForm and "block" or "none"
+	end
+	if footer then
+		footer.style.display = isForm and "block" or "none"
+	end
+	if strip then
+		strip.style.display = isForm and "none" or "block"
+	end
+	if editButton then
+		editButton.inner_rml = isForm and "Edit" or "Form"
+	end
+end
+
 local function setVisible(on)
 	visible = on
 	if not document then
@@ -279,11 +304,16 @@ function widget:Initialize()
 	local editButton = document:GetElementById("me-edit")
 	if editButton then
 		editButton:AddEventListener("click", function()
-			-- Mode switch: leave form mode explicitly, enter text mode.
-			if firstMissionFile then
-				requestOpenInEditor(firstMissionFile, 1)
+			if mode == "form" then
+				-- Switch to text mode: the IDE owns the file now.
+				if firstMissionFile then
+					requestOpenInEditor(firstMissionFile, 1)
+				end
+				setMode("text")
+			else
+				refresh()
+				setMode("form")
 			end
-			setVisible(false)
 		end)
 	end
 	local closeButton = document:GetElementById("me-close")

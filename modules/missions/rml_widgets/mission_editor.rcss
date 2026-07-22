@@ -38,6 +38,12 @@
     background-color: #2a3846;
 }
 
+.me-textmode {
+    display: none;
+    margin: 4px 0;
+    color: #9ecbff;
+}
+
 .me-content {
     display: block;
     overflow-y: auto;
