@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1500,
+		health = 1400,
 		leavetracks = true,
 		maxacc = 0.01654,
 		maxdec = 0.1,
@@ -33,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.94149,
-		turnrate = 292.80002,
+		turnrate = 292,
 		usepiececollisionvolumes = 0,
 		customparams = {
 			basename = "base",
