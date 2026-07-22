@@ -109,3 +109,40 @@ describe("mission verbs", function()
 		assert.are.equal(1, team.allyTeam)
 	end)
 end)
+
+describe("AndWhen composition", function()
+	local registered
+	local T
+
+	before_each(function()
+		registered = {}
+		T = DSL.ForFile("triggers/win.lua", function(descriptor)
+			registered[#registered + 1] = descriptor
+		end)
+	end)
+
+	local function cond(result)
+		return { evaluate = function() return result end }
+	end
+
+	local anEffect = { execute = function() end }
+
+	it("fires only when every condition holds", function()
+		T.When(cond(true)).AndWhen(cond(false)).Do(anEffect).Register()
+		assert.is_false(registered[1].condition.evaluate({}))
+		T.When(cond(true)).AndWhen(cond(true)).Do(anEffect).Register()
+		assert.is_true(registered[2].condition.evaluate({}))
+	end)
+
+	it("single-condition triggers keep their original condition object", function()
+		local only = cond(true)
+		T.When(only).Do(anEffect).Register()
+		assert.are.equal(only, registered[1].condition)
+	end)
+
+	it("rejects a non-condition", function()
+		assert.has_error(function()
+			T.When(cond(true)).AndWhen(function() end)
+		end)
+	end)
+end)
