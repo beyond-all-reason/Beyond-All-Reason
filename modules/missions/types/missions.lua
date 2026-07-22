@@ -54,16 +54,12 @@
 ---@field effects MissionEffect[] executed in Do order when the condition fires
 ---@field once boolean fire at most once (default true)
 
---- The dot-only builder chain returned by T.When. Every step returns the
+--- The dot-only builder chain returned by When. Every step returns the
 --- chain; Register is the terminal and returns nothing.
 ---@class TriggerChain
 ---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
 ---@field Once fun(once: boolean?): TriggerChain default true; pass false for repeating triggers
 ---@field Register fun()
-
---- The `T` the loader injects into each trigger file's environment.
----@class TriggerDSL
----@field When fun(condition: MissionCondition): TriggerChain
 
 --- A unit-def reference produced by the injected UnitDef verb. Carries the
 --- name only; resolution to an id happens where Spring exists.

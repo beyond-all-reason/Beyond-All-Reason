@@ -5,18 +5,18 @@ local alwaysTrue = { evaluate = function() return true end }
 
 describe("mission DSL", function()
 	local registered ---@type TriggerDescriptor[]
-	local T ---@type TriggerDSL
+	local When
 
 	before_each(function()
 		registered = {}
-		T = DSL.ForFile("triggers/win.lua", function(descriptor)
+		When = DSL.ForFile("triggers/win.lua", function(descriptor)
 			registered[#registered + 1] = descriptor
 		end)
 	end)
 
 	it("builds a descriptor from a dot-only chain", function()
 		local effect = { execute = function() end }
-		T.When(alwaysTrue).Do(effect).Register()
+		When(alwaysTrue).Do(effect).Register()
 
 		assert.are.equal(1, #registered)
 		local descriptor = registered[1]
@@ -31,36 +31,36 @@ describe("mission DSL", function()
 	it("accumulates multiple Do effects in order", function()
 		local first = { execute = function() end }
 		local second = { execute = function() end }
-		T.When(alwaysTrue).Do(first).Do(second).Register()
+		When(alwaysTrue).Do(first).Do(second).Register()
 		assert.are.same({ first, second }, registered[1].effects)
 	end)
 
 	it("rejects a bare function in Do (closure-free surface)", function()
 		assert.has_error(function()
-			T.When(alwaysTrue).Do(function() end)
+			When(alwaysTrue).Do(function() end)
 		end)
 	end)
 
 	it("stamps declaration order per file", function()
-		T.When(alwaysTrue).Do({ execute = function() end }).Register()
-		T.When(alwaysTrue).Do({ execute = function() end }).Register()
+		When(alwaysTrue).Do({ execute = function() end }).Register()
+		When(alwaysTrue).Do({ execute = function() end }).Register()
 		assert.are.equal("triggers/win.lua:1", registered[1].id)
 		assert.are.equal("triggers/win.lua:2", registered[2].id)
 	end)
 
 	it("defaults Once to true and honors Once(false)", function()
-		T.When(alwaysTrue).Do({ execute = function() end }).Once(false).Register()
+		When(alwaysTrue).Do({ execute = function() end }).Once(false).Register()
 		assert.is_false(registered[1].once)
 	end)
 
 	it("requires a Do before Register", function()
 		assert.has_error(function()
-			T.When(alwaysTrue).Register()
+			When(alwaysTrue).Register()
 		end)
 	end)
 
 	it("rejects Do after Register (no mutating a registered trigger)", function()
-		local chain = T.When(alwaysTrue).Do({ execute = function() end })
+		local chain = When(alwaysTrue).Do({ execute = function() end })
 		chain.Register()
 		assert.has_error(function()
 			chain.Do({ execute = function() end })
@@ -68,7 +68,7 @@ describe("mission DSL", function()
 	end)
 
 	it("rejects a second Register on the same chain", function()
-		local chain = T.When(alwaysTrue).Do({ execute = function() end })
+		local chain = When(alwaysTrue).Do({ execute = function() end })
 		chain.Register()
 		assert.has_error(function()
 			chain.Register()
@@ -77,18 +77,18 @@ describe("mission DSL", function()
 
 	it("rejects a condition without evaluate", function()
 		assert.has_error(function()
-			T.When({})
+			When({})
 		end)
 	end)
 end)
 
 describe("AndWhen composition", function()
 	local registered
-	local T
+	local When
 
 	before_each(function()
 		registered = {}
-		T = DSL.ForFile("triggers/win.lua", function(descriptor)
+		When = DSL.ForFile("triggers/win.lua", function(descriptor)
 			registered[#registered + 1] = descriptor
 		end)
 	end)
@@ -100,33 +100,33 @@ describe("AndWhen composition", function()
 	local anEffect = { execute = function() end }
 
 	it("fires only when every condition holds", function()
-		T.When(cond(true)).AndWhen(cond(false)).Do(anEffect).Register()
+		When(cond(true)).AndWhen(cond(false)).Do(anEffect).Register()
 		assert.is_false(registered[1].condition.evaluate({}))
-		T.When(cond(true)).AndWhen(cond(true)).Do(anEffect).Register()
+		When(cond(true)).AndWhen(cond(true)).Do(anEffect).Register()
 		assert.is_true(registered[2].condition.evaluate({}))
 	end)
 
 	it("composes inputs as the union of the parts'", function()
-		T.When(cond(true, { "A", "B" })).AndWhen(cond(true, { "B", "C" })).Do(anEffect).Register()
+		When(cond(true, { "A", "B" })).AndWhen(cond(true, { "B", "C" })).Do(anEffect).Register()
 		local inputs = registered[1].condition.inputs
 		table.sort(inputs)
 		assert.are.same({ "A", "B", "C" }, inputs)
 	end)
 
 	it("a poll-only part makes the whole trigger poll", function()
-		T.When(cond(true, { "A" })).AndWhen(cond(true, nil)).Do(anEffect).Register()
+		When(cond(true, { "A" })).AndWhen(cond(true, nil)).Do(anEffect).Register()
 		assert.is_nil(registered[1].condition.inputs)
 	end)
 
 	it("single-condition triggers keep their original condition object", function()
 		local only = cond(true, { "A" })
-		T.When(only).Do(anEffect).Register()
+		When(only).Do(anEffect).Register()
 		assert.are.equal(only, registered[1].condition)
 	end)
 
 	it("rejects a non-condition", function()
 		assert.has_error(function()
-			T.When(cond(true)).AndWhen(function() end)
+			When(cond(true)).AndWhen(function() end)
 		end)
 	end)
 end)

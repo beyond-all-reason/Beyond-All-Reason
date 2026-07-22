@@ -191,7 +191,7 @@ local function loadMission(missionName)
 		local filename = filePath:sub(#MISSIONS_DIR + 1)
 		engine.UnregisterFile(filename)
 		local env = {
-			T = DSL.ForFile(filename, engine.Register),
+			When = DSL.ForFile(filename, engine.Register),
 			Team = { Player = playerTeam },
 			UnitDef = Verbs.UnitDef,
 			Objective = Objective,
