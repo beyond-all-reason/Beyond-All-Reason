@@ -298,7 +298,7 @@ local function renderTrigger(trigger, ctx, style)
 						.. (badge == "cond" and "conditions" or "effects")
 						.. '" data-swap-start="' .. tostring(step.span[1])
 						.. '" data-swap-end="' .. tostring(step.span[2])
-						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">swap</button>'
+						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '"><img src="/luaui/images/repeat.png" width="11" height="11"/></button>'
 				end
 				if step.verb == "Do" and step.remove_span then
 					tail[#tail + 1] = '<button class="me-button me-x" data-op="remove" data-remove-start="'
