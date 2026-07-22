@@ -608,7 +608,7 @@ local function getMapName()
 	return mapName:gsub("[^%w_%-]", "_")
 end
 
-local function save()
+local function save(explicitPath)
 	local lightList = {}
 	for _, rec in pairs(placedLights) do
 		lightList[#lightList + 1] = {
@@ -631,35 +631,43 @@ local function save()
 		}
 	end
 
-	local data = {
-		version = 1,
-		mapName = Game.mapName,
-		lights  = lightList,
-	}
+	local filename = explicitPath
+	if not filename then
+		local timestamp = os.date("%Y%m%d_%H%M%S")
+		Spring.CreateDir(SAVE_DIR)
+		filename = SAVE_DIR .. getMapName() .. "_lights_" .. timestamp .. ".lua"
+	end
 
-	local timestamp = os.date("%Y%m%d_%H%M%S")
-	Spring.CreateDir(SAVE_DIR)
-	local filename = SAVE_DIR .. getMapName() .. "_lights_" .. timestamp .. ".lua"
+	-- placedLights is keyed by transient instanceID (pairs = hash order): build
+	-- each light's serialized block, then sort the blocks. Lexicographic order
+	-- over the full serialization is a total order, so repeated saves of the same
+	-- scene produce identical bytes (project files are diffed in git).
+	local blocks = {}
+	for _, l in ipairs(lightList) do
+		local b = { "\t\t{\n" }
+		b[#b + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
+		b[#b + 1] = string.format("\t\t\tpos = { %.1f, %.1f, %.1f },\n", l.pos[1], l.pos[2], l.pos[3])
+		b[#b + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
+		b[#b + 1] = string.format("\t\t\tcolor = { %.3f, %.3f, %.3f },\n", l.color[1], l.color[2], l.color[3])
+		b[#b + 1] = string.format("\t\t\tbrightness = %.2f,\n", l.brightness)
+		b[#b + 1] = string.format("\t\t\tmodelfactor = %.2f,\n", l.modelfactor)
+		b[#b + 1] = string.format("\t\t\tspecular = %.2f,\n", l.specular)
+		b[#b + 1] = string.format("\t\t\tscattering = %.2f,\n", l.scattering)
+		b[#b + 1] = string.format("\t\t\tlensflare = %.2f,\n", l.lensflare)
+		if l.pitch then b[#b + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch) end
+		if l.yaw   then b[#b + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw) end
+		if l.roll  then b[#b + 1] = string.format("\t\t\troll = %.1f,\n", l.roll) end
+		if l.theta then b[#b + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta) end
+		if l.beamLength then b[#b + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength) end
+		if l.elevation then b[#b + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation) end
+		b[#b + 1] = "\t\t},\n"
+		blocks[#blocks + 1] = table.concat(b)
+	end
+	table.sort(blocks)
 
 	local lines = { "return {\n", "\tversion = 1,\n", '\tmapName = "' .. (Game.mapName or "unknown") .. '",\n', "\tlights = {\n" }
-	for _, l in ipairs(lightList) do
-		lines[#lines + 1] = "\t\t{\n"
-		lines[#lines + 1] = string.format('\t\t\ttype = "%s",\n', l.type)
-		lines[#lines + 1] = string.format("\t\t\tpos = { %.1f, %.1f, %.1f },\n", l.pos[1], l.pos[2], l.pos[3])
-		lines[#lines + 1] = string.format("\t\t\tradius = %.1f,\n", l.radius)
-		lines[#lines + 1] = string.format("\t\t\tcolor = { %.3f, %.3f, %.3f },\n", l.color[1], l.color[2], l.color[3])
-		lines[#lines + 1] = string.format("\t\t\tbrightness = %.2f,\n", l.brightness)
-		lines[#lines + 1] = string.format("\t\t\tmodelfactor = %.2f,\n", l.modelfactor)
-		lines[#lines + 1] = string.format("\t\t\tspecular = %.2f,\n", l.specular)
-		lines[#lines + 1] = string.format("\t\t\tscattering = %.2f,\n", l.scattering)
-		lines[#lines + 1] = string.format("\t\t\tlensflare = %.2f,\n", l.lensflare)
-		if l.pitch then lines[#lines + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch) end
-		if l.yaw   then lines[#lines + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw) end
-		if l.roll  then lines[#lines + 1] = string.format("\t\t\troll = %.1f,\n", l.roll) end
-		if l.theta then lines[#lines + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta) end
-		if l.beamLength then lines[#lines + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength) end
-		if l.elevation then lines[#lines + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation) end
-		lines[#lines + 1] = "\t\t},\n"
+	for _, b in ipairs(blocks) do
+		lines[#lines + 1] = b
 	end
 	lines[#lines + 1] = "\t},\n"
 	lines[#lines + 1] = "}\n"

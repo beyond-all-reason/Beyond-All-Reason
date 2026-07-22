@@ -982,6 +982,80 @@ local function clearAllPersistent()
 	end
 end
 
+-- Raw copies of all persistent spawners, for project serialization.
+-- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames and
+-- NOT portable across sessions; callers must convert to relative durations.
+local function getPersistentSpawners()
+	local out = {}
+	for _, s in pairs(wb.persistentSpawners) do
+		local cegs = {}
+		for i = 1, #s.cegs do cegs[i] = s.cegs[i] end
+		out[#out + 1] = {
+			cegs = cegs,
+			x = s.x,
+			z = s.z,
+			radius = s.radius,
+			count = s.count,
+			shape = s.shape,
+			angleDeg = s.angleDeg,
+			lengthScale = s.lengthScale,
+			altitude = s.altitude,
+			interval = s.interval,
+			refreshInterval = s.refreshInterval,
+			startFrame = s.startFrame,
+			expireFrame = s.expireFrame,
+			nextFrame = s.nextFrame,
+			spawnCycles = s.spawnCycles,
+			saturationCycles = s.saturationCycles,
+		}
+	end
+	return out
+end
+
+-- Reconstruct a persistent spawner from a serialized project entry, honoring
+-- the saved interval/refreshInterval instead of deriving them from the live UI
+-- cadence (which addPersistentSpawner does). Synthesizes every runtime field
+-- the Update loop dereferences — a missing one crashes the widget on the next
+-- tick. entry.persistence: -1 = permanent, else remaining seconds.
+local function addSpawnerRaw(entry)
+	if type(entry) ~= "table" or type(entry.cegs) ~= "table" or #entry.cegs == 0 then
+		Echo("[Weather Brush] addSpawnerRaw: entry has no cegs, skipped")
+		return nil
+	end
+	local frameRate = Game.gameSpeed
+	local now = GetGameFrame()
+	local cegs = {}
+	for i = 1, #entry.cegs do cegs[i] = tostring(entry.cegs[i]) end
+	local interval = max(1, floor(tonumber(entry.interval) or frameRate))
+	local refreshInterval = max(interval, floor(tonumber(entry.refreshInterval) or interval))
+	local persistence = tonumber(entry.persistence) or PERSIST_PERMANENT
+	local expireFrame = nil
+	if persistence >= 0 then
+		expireFrame = now + max(1, floor(persistence * frameRate))
+	end
+	local id = wb.nextSpawnerId
+	wb.nextSpawnerId = id + 1
+	wb.persistentSpawners[id] = {
+		cegs = cegs,
+		x = tonumber(entry.x) or 0,
+		z = tonumber(entry.z) or 0,
+		radius = tonumber(entry.radius) or 100,
+		count = max(1, floor(tonumber(entry.count) or 1)),
+		shape = entry.shape or "circle",
+		angleDeg = tonumber(entry.angleDeg) or 0,
+		lengthScale = tonumber(entry.lengthScale) or 1.0,
+		altitude = tonumber(entry.altitude) or 0,
+		interval = interval,
+		refreshInterval = refreshInterval,
+		startFrame = now,
+		expireFrame = expireFrame, -- nil = permanent
+		nextFrame = now,
+		spawnCycles = 0,
+		saturationCycles = max(1, floor(refreshInterval / interval)),
+	}
+	return id
+end
+
 -- ===========================================================================
 -- State Export (for UI)
 -- ===========================================================================
@@ -1327,6 +1401,8 @@ function widget:Initialize()
 		getWeatherLibrary = getWeatherLibrary,
 		applyWeatherPreset = applyWeatherPreset,
 		clearAllPersistent = clearAllPersistent,
+		getPersistentSpawners = getPersistentSpawners,
+		addSpawnerRaw = addSpawnerRaw,
 	}
 end
 
