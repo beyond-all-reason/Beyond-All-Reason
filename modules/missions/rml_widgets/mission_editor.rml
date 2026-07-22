@@ -3,6 +3,11 @@
 <head>
 	<title>Mission Editor</title>
 	<style>
+/* Mission Editor stylesheet. Order matters less than hygiene: one bad
+   declaration can take its whole block down, so keep every value in the
+   dialect this RmlUi build demonstrably supports (px/em, decorators,
+   per-side borders; no vw/vh, no auto margins, no 8-digit transparent). */
+
 .me-root {
     position: absolute;
     top: 120px;
@@ -50,31 +55,6 @@
     color: #ffffff;
 }
 
-.me-textmode {
-    display: none;
-    margin: 4px 0;
-}
-
-.me-bighead {
-    display: block;
-    font-size: 1.8em;
-    color: #ffffff;
-    margin: 6px 0 4px 0;
-}
-
-.me-followline {
-    display: block;
-    color: #8fa3b8;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px #263646;
-}
-
-.me-billboard {
-    display: block;
-    font-size: 1.3em;
-}
-
 .me-content {
     display: block;
     overflow-y: auto;
@@ -91,7 +71,6 @@
 .me-group {
     display: block;
     margin: 10px 0 4px 0;
-    font-size: 1.0em;
     color: #ffd479;
 }
 
@@ -108,17 +87,6 @@
 .me-card-head {
     display: block;
     margin-bottom: 6px;
-}
-
-.me-x {
-    margin-left: 4px;
-    padding: 1px 6px;
-    font-size: 0.7em;
-    color: #e06c75;
-}
-
-.me-swap-btn {
-    color: #9cc2ff;
 }
 
 .me-card-title {
@@ -173,6 +141,20 @@
     display: inline-block;
 }
 
+.me-x-btn {
+    margin-left: 4px;
+    padding: 1px 6px;
+    font-size: 0.7em;
+}
+
+.me-x {
+    color: #e06c75;
+}
+
+.me-swap-btn {
+    color: #9cc2ff;
+}
+
 .me-add-row {
     display: block;
     margin-top: 6px;
@@ -180,22 +162,9 @@
     border-top: 1px #223040;
 }
 
-.me-add {
-    display: inline-block;
-    width: 150px;
-    height: 1.5em;
-    vertical-align: middle;
-    padding: 0;
-    background-color: #10161d;
-    border: 1px #2e4056;
-    border-radius: 4px;
+.me-add-btn {
+    margin-left: 0;
     color: #7fa6cc;
-    font-size: 0.8em;
-}
-
-.me-add:hover {
-    border: 1px #4d6d92;
-    color: #b5d2ee;
 }
 
 .me-input {
@@ -240,50 +209,21 @@
     width: 240px;
 }
 
-.me-verb {
-    color: #82aaff;
+.me-select selectvalue {
+    padding: 2px 20px 2px 6px;
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
-.me-lit {
-    color: #f6c177;
-}
-
-.me-ref {
-    color: #a3d9a5;
-}
-
-.me-opaque {
-    display: block;
-    color: #e06c75;
-    margin: 4px 0;
-}
-
-.me-footer {
-    display: block;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px #263646;
-    font-size: 0.7em;
-    color: #5f6f7f;
-}
-
-/* RmlUi selects are composite widgets: the value area, the arrow, and the
-   popup (selectbox) each need their own styling or they render bare. */
-.me-select selectvalue,
-.me-add selectvalue {
-    padding: 1px 6px;
-}
-
-.me-select selectarrow,
-.me-add selectarrow {
+.me-select selectarrow {
     width: 16px;
     decorator: vertical-gradient( #33475c #243343 );
     border-left: 1px #3d5168;
     border-radius: 0 4px 4px 0;
 }
 
-.me-select selectbox,
-.me-add selectbox {
+.me-select selectbox {
     decorator: vertical-gradient( #1c2531 #10161d );
     border: 1px #3d5168;
     border-radius: 4px;
@@ -292,8 +232,7 @@
     overflow-y: auto;
 }
 
-.me-select selectbox option,
-.me-add selectbox option {
+.me-select selectbox option {
     display: block;
     width: 100%;
     padding: 2px 8px;
@@ -302,15 +241,11 @@
     overflow-x: hidden;
 }
 
-.me-select selectbox option:hover,
-.me-add selectbox option:hover {
+.me-select selectbox option:hover {
     background-color: #2f4156;
     color: #ffffff;
 }
 
-/* RmlUi scrollbars are widgets that MUST be styled: with no dimensions the
-   invisible track overlays its whole container and eats every click (the
-   "clicking just scrolls" bug). Confine them to a real gutter. */
 scrollbarvertical {
     width: 12px;
 }
@@ -336,30 +271,6 @@ scrollbarvertical sliderarrowinc {
     height: 0px;
 }
 
-/* The dropdown caret: a border-trick triangle on the widget's arrow element
-   (no image assets needed), with room reserved in the value area. */
-.me-select selectvalue,
-.me-add selectvalue {
-    padding: 2px 20px 2px 6px;
-    white-space: nowrap;
-    overflow-x: hidden;
-    overflow-y: hidden;
-}
-
-.me-select selectarrow,
-.me-add selectarrow {
-    width: 0px;
-    height: 0px;
-    margin: 8px 6px 0 -16px;
-    border-top: 6px #9cc2ff;
-    border-left: 5px #00000000;
-    border-right: 5px #00000000;
-}
-
-.me-add-statement {
-    width: 230px;
-}
-
 .me-modal {
     display: none;
     position: absolute;
@@ -372,9 +283,11 @@ scrollbarvertical sliderarrowinc {
 }
 
 .me-modal-box {
-    margin-top: 60px;
-    margin-left: 90px;
-    width: 300px;
+    position: absolute;
+    left: 50%;
+    top: 90px;
+    margin-left: -170px;
+    width: 340px;
     decorator: vertical-gradient( #1c2531 #10161d );
     border: 1px #3d5168;
     border-radius: 6px;
@@ -388,6 +301,13 @@ scrollbarvertical sliderarrowinc {
     margin-bottom: 8px;
     padding-bottom: 6px;
     border-bottom: 1px #263646;
+}
+
+.me-modal-group {
+    display: block;
+    margin: 8px 0 3px 0;
+    color: #ffd479;
+    font-size: 0.7em;
 }
 
 .me-modal-row {
@@ -405,11 +325,57 @@ scrollbarvertical sliderarrowinc {
 
 .me-modal-cancel {
     margin-top: 8px;
+    margin-left: 0;
 }
 
-.me-add-when {
-    width: 130px;
-    margin-right: 6px;
+.me-textmode {
+    display: none;
+    margin: 4px 0;
+}
+
+.me-bighead {
+    display: block;
+    font-size: 1.7em;
+    color: #ffffff;
+    margin: 4px 0 6px 0;
+}
+
+.me-followline {
+    display: block;
+    color: #8fa3b8;
+    margin-bottom: 6px;
+}
+
+.me-billboard {
+    display: block;
+    font-size: 1.25em;
+}
+
+.me-verb {
+    color: #82aaff;
+}
+
+.me-lit {
+    color: #f6c177;
+}
+
+.me-ref {
+    color: #a3d9a5;
+}
+
+.me-opaque {
+    display: block;
+    color: #e06c75;
+    margin: 4px 0;
+}
+
+.me-footer {
+    display: block;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px #263646;
+    font-size: 0.7em;
+    color: #5f6f7f;
 }
 	</style>
 </head>

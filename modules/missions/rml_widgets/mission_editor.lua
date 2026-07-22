@@ -318,34 +318,11 @@ local function renderTrigger(trigger, ctx, style)
 	-- The add palette: effects the current surface offers, from the schema
 	-- artifact. Choosing one inserts a .Do(...) line through the same
 	-- CAS-gated channel; the file comes back re-parsed with fresh controls.
-	local surface = ctx.editable and currentAst and currentAst.surface
-	if surface then
-		local palettes = {}
-		if surface.conditions and #surface.conditions > 0 and trigger.insert_condition_at then
-			local opts = { '<option value="" selected="true">+ and when</option>' }
-			for _, condition in ipairs(surface.conditions) do
-				opts[#opts + 1] = '<option value="' .. escapeRml(condition.template) .. '">'
-					.. escapeRml(condition.label) .. "</option>"
-			end
-			palettes[#palettes + 1] = '<select class="me-add me-add-when" data-kind="andwhen" data-insert="'
-				.. tostring(trigger.insert_condition_at)
-				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
-				.. table.concat(opts) .. "</select>"
-		end
-		if surface.effects and #surface.effects > 0 then
-			local opts = { '<option value="" selected="true">+ add</option>' }
-			for _, effect in ipairs(surface.effects) do
-				opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
-					.. escapeRml(effect.label) .. "</option>"
-			end
-			palettes[#palettes + 1] = '<select class="me-add" data-kind="effect" data-insert="'
-				.. tostring(trigger.insert_effect_at or trigger.span[2])
-				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
-				.. table.concat(opts) .. "</select>"
-		end
-		if #palettes > 0 then
-			rows[#rows + 1] = '<div class="me-add-row">' .. table.concat(palettes, " ") .. "</div>"
-		end
+	if ctx.editable and currentAst and currentAst.surface then
+		rows[#rows + 1] = '<div class="me-add-row"><button class="me-button me-add-btn" data-add="step" data-insert-cond="'
+			.. tostring(trigger.insert_condition_at or 0)
+			.. '" data-insert-effect="' .. tostring(trigger.insert_effect_at or trigger.span[2])
+			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">+ add</button></div>'
 	end
 	rows[#rows + 1] = "</div>"
 	return table.concat(rows)
@@ -393,15 +370,9 @@ local function buildBody(editable)
 		-- Top-level: add a whole statement (a new trigger chain) to the file.
 		local conditions = editable and ast.surface and ast.surface.conditions
 		if conditions and #conditions > 0 and file.insert_trigger_at then
-			local opts = { '<option value="" selected="true">+ add statement (when...)</option>' }
-			for _, condition in ipairs(conditions) do
-				opts[#opts + 1] = '<option value="' .. escapeRml(condition.template) .. '">'
-					.. escapeRml("when " .. condition.label) .. "</option>"
-			end
-			out[#out + 1] = '<div class="me-add-row me-add-statement-row"><select class="me-add me-add-statement" data-kind="trigger" data-insert="'
+			out[#out + 1] = '<div class="me-add-row me-add-statement-row"><button class="me-button me-add-btn" data-add="statement" data-insert="'
 				.. tostring(file.insert_trigger_at)
-				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
-				.. table.concat(opts) .. "</select></div>"
+				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">+ add statement</button></div>'
 		end
 		if file.opaque and #file.opaque > 0 then
 			out[#out + 1] = '<div class="me-opaque">' .. #file.opaque
@@ -534,6 +505,85 @@ local function openSwapModal(button)
 	modal.style.display = "block"
 end
 
+---The add modal: the whole vocabulary in one structured place. Step mode
+---offers WHEN rows (AndWhen into this trigger) and DO rows (effects);
+---statement mode starts a new chain from a condition. Grouped headers keep
+---it legible as the surface vocabulary grows.
+local function openAddModal(button)
+	local modal = document:GetElementById("me-modal")
+	local titleEl = document:GetElementById("me-modal-title")
+	local rowsEl = document:GetElementById("me-modal-rows")
+	if not (modal and titleEl and rowsEl and currentAst and currentAst.surface) then
+		return
+	end
+	local mode = button:GetAttribute("data-add")
+	local surface = currentAst.surface
+	local out = {}
+	if mode == "statement" then
+		titleEl.inner_rml = "New statement"
+		out[#out + 1] = '<div class="me-modal-group">STARTS WHEN...</div>'
+		for _, condition in ipairs(surface.conditions or {}) do
+			out[#out + 1] = '<div class="me-modal-row" data-kind="trigger" data-value="'
+				.. escapeRml(condition.template) .. '">' .. escapeRml(condition.label) .. "</div>"
+		end
+	else
+		titleEl.inner_rml = "Add to this trigger"
+		out[#out + 1] = '<div class="me-modal-group">WHEN &#183; more conditions (all must hold)</div>'
+		for _, condition in ipairs(surface.conditions or {}) do
+			out[#out + 1] = '<div class="me-modal-row" data-kind="andwhen" data-value="'
+				.. escapeRml(condition.template) .. '">' .. escapeRml(condition.label) .. "</div>"
+		end
+		out[#out + 1] = '<div class="me-modal-group">DO &#183; effects</div>'
+		for _, effect in ipairs(surface.effects or {}) do
+			out[#out + 1] = '<div class="me-modal-row" data-kind="effect" data-value="'
+				.. escapeRml(effect.template) .. '">' .. escapeRml(effect.label) .. "</div>"
+		end
+	end
+	rowsEl.inner_rml = table.concat(out)
+	local target = {
+		file = button:GetAttribute("data-file"),
+		hash = button:GetAttribute("data-hash"),
+		insert = tonumber(button:GetAttribute("data-insert")),
+		insertCond = tonumber(button:GetAttribute("data-insert-cond")),
+		insertEffect = tonumber(button:GetAttribute("data-insert-effect")),
+	}
+	local divs = rowsEl:GetElementsByTagName("div")
+	for i = 1, #divs do
+		local row = divs[i]
+		if tostring(row:GetAttribute("class") or ""):find("me-modal-row", 1, true) then
+			row:AddEventListener("click", function()
+				local value = tostring(row:GetAttribute("data-value") or "")
+				local kind = row:GetAttribute("data-kind")
+				local at, newText
+				if kind == "trigger" then
+					at = target.insert
+					newText = "\nT.When(" .. value .. ")\n"
+						.. '\t.Do(Objective("new_objective").Complete())\n'
+						.. "\t.Register()\n"
+				elseif kind == "andwhen" then
+					at = target.insertCond
+					newText = "\t.AndWhen(" .. value .. ")\n"
+				else
+					at = target.insertEffect
+					newText = "\t.Do(" .. value .. ")\n"
+				end
+				if at then
+					writeEditIntent({
+						file = target.file,
+						start = at,
+						finish = at,
+						hash = target.hash,
+						quote = false,
+						value = newText,
+					})
+				end
+				closeModal()
+			end)
+		end
+	end
+	modal.style.display = "block"
+end
+
 local function attachFormControls()
 	local content = document:GetElementById("me-content")
 	if not content then
@@ -561,6 +611,10 @@ local function attachFormControls()
 		if button:GetAttribute("data-pool") then
 			button:AddEventListener("click", function()
 				openSwapModal(button)
+			end)
+		elseif button:GetAttribute("data-add") then
+			button:AddEventListener("click", function()
+				openAddModal(button)
 			end)
 		elseif button:GetAttribute("data-op") == "remove" then
 			button:AddEventListener("click", function()
