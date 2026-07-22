@@ -72,8 +72,6 @@
 
 .me-content {
     display: block;
-    overflow-y: auto;
-    max-height: 560px;
 }
 
 .me-file {

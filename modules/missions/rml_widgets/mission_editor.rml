@@ -77,8 +77,6 @@
 
 .me-content {
     display: block;
-    overflow-y: auto;
-    max-height: 560px;
 }
 
 .me-file {
@@ -308,7 +306,6 @@
 		<div class="me-header">
 			<span class="me-title">Mission Editor</span>
 			<button id="me-edit" class="me-button">Edit</button>
-			<button id="me-style" class="me-button">DSL</button>
 			<button id="me-refresh" class="me-button">Refresh</button>
 			<button id="me-reload" class="me-button">Reload</button>
 			<button id="me-close" class="me-button">X</button>
