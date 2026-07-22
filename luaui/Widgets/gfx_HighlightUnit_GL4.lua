@@ -335,6 +335,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("debugapihighlightunit", debugapihighlightunitCmd, nil, "t")
+
 	if not gl.CreateShader or Engine.FeatureSupport.transformsInGL4 then -- no shader support or outdated non-quaterion engine,  so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -395,6 +397,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("debugapihighlightunit", "t")
 	if highlightUnitVBOTable and highlightUnitVBOTable.VAO then
 		if Spring.Utilities.IsDevMode() then
 			InstanceVBOTable.dumpAndCompareInstanceData(highlightUnitVBOTable)
@@ -408,28 +411,26 @@ function widget:Shutdown()
 	WG['RefreshHighlightUnitGL4'] = nil
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "debugapihighlightunit", nil, true) == 1 then
-		local startmatch, endmatch = string.find(command, "debugapihighlightunit", nil, true)
-		local param = string.sub(command, endmatch + 2,nil)
-		if param and tonumber(param) then
-			local newdebuglevel = tonumber(param)
-			if newdebuglevel ~= debugmode then
-				spEcho("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
-				debugmode = newdebuglevel
-			end
-			highlightUnitVBOTable.debugZombies = (newdebuglevel>0)
+local function debugapihighlightunitCmd(_, line)
+	local param = line or ""
+	if tonumber(param) then
+		local newdebuglevel = tonumber(param)
+		if newdebuglevel ~= debugmode then
+			spEcho("Debug level for API HighLightUnit GL4 set to:", newdebuglevel)
+			debugmode = newdebuglevel
 		end
-
-		for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
-			local unitdefname = "bad unitid"
-			if spGetUnitDefID(unitID) then
-				unitdefname =  UnitDefs[spGetUnitDefID(unitID)].name
-			end
-			spEcho("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID] )
-		end
-
+		highlightUnitVBOTable.debugZombies = (newdebuglevel > 0)
 	end
+
+	for uniqueID, unitID in pairs(uniqueIDtoUnitID) do
+		local unitdefname = "bad unitid"
+		if spGetUnitDefID(unitID) then
+			unitdefname = UnitDefs[spGetUnitDefID(unitID)].name
+		end
+		spEcho("debugapihighlightunit", uniqueID, unitID, unitdefname, highlightUnitVBOTable.instanceIDtoIndex[uniqueID])
+	end
+
+	return true
 end
 
 local deprecationWarning = "Highlight Unit API is deprecated due to lack of quaterion support. Please use CUS GL4 unit uniform buffers instead"

@@ -50,7 +50,6 @@ end
 --------------------------------------------------------------------------------
 
 local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
-VFS.Include('common/wav.lua')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
 if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
@@ -503,8 +502,6 @@ end
 function widget:Initialize()
 	widget:PlayerChanged()
 
-	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
-
 	WG['notifications'] = {}
 	for sound, params in pairs(notification) do
 		WG['notifications']['getNotification' .. sound] = function()
@@ -632,9 +629,12 @@ function widget:Initialize()
 	end
 end
 
+function widget:NotificationEvent(msg)
+	gadgetNotificationEvent(msg)
+end
+
 function widget:Shutdown()
 	WG['notifications'] = nil
-	widgetHandler:DeregisterGlobal('NotificationEvent')
 end
 
 function widget:GameFrame(gf)
@@ -870,6 +870,10 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	commandersDamages[unitID] = nil
 end
 
+local function getSoundDuration(soundFile)
+	return wavFileLengths[string.sub(soundFile, 8)] or 3
+end
+
 local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
@@ -882,20 +886,10 @@ local function playNextSound()
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
 					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
-					local duration = wavFileLengths[string.sub(notification[event].voiceFilesRare[mRare], 8)]
-					if not duration then
-						duration = ReadWAV(notification[event].voiceFilesRare[mRare])
-						duration = duration.Length
-					end
-					nextSoundQueued = sec + (duration or 3) + silentTime
+					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFilesRare[mRare]) + silentTime
 				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
-					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
-					if not duration then
-						duration = ReadWAV(notification[event].voiceFiles[m])
-						duration = duration.Length
-					end
-					nextSoundQueued = sec + (duration or 3) + silentTime
+					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFiles[m]) + silentTime
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end

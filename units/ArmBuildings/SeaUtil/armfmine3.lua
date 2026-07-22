@@ -37,6 +37,7 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
+			cannot_capture_territory = true,
 			detonaterange = "64",
 			instantselfd = true,
 			mine = true,

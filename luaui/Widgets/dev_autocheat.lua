@@ -16,6 +16,12 @@ function widget:GetInfo()
 	}
 end
 
+function widget:Initialize()
+	if Spring.IsReplay() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
 function widget:Update(f)
 	local modOpts = Spring.GetModOptions()
 	if modOpts ~= nil and modOpts.scenariooptions ~= nil then

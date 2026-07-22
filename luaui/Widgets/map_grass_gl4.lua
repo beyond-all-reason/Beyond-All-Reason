@@ -88,8 +88,9 @@ local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
   patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
   patchSize = 4, -- 1 or 4 clusters of blades, 4 recommended
-  grassMinSize = 0.3; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
-  grassMaxSize = 1.7; -- Size for grassmap value of 254
+  grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
+  grassMinSize = 0.55; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
+  grassMaxSize = 1.5; -- Size for grassmap value of 254
   grassShaderParams = { -- allcaps because thats how i know
     MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
     MAPCOLORBASE = 1.0,     --how much more to blend the bottom of the grass patches into map color
@@ -229,6 +230,23 @@ local mousepos = {0,0,0}
 local cursorradius = 50
 local removeUnitGrassFrames = 25
 local placementMode = false -- this controls wether we are in 'game mode' or placement map dev mode
+local externalBrushActive = false -- when true, suppress built-in painting UI (mouse, keys, circle)
+
+-- Spawn animation: grass grows from ground with elastic wobble when placed
+local SPAWN_ANIM_DURATION = 0.45 -- seconds for grow animation
+local SPAWN_ANIM_MAX = 800       -- max concurrent animations (ring buffer)
+local spawnAnims = {}             -- keyed by vboElementIndex: {target=size, start=clock, prev=oldSize}
+local spawnAnimCount = 0
+local spawnAnimClock = os.clock()
+
+-- Elastic-out easing: overshoots then settles (simulates sprouting wobble)
+local function elasticOut(t)
+	if t <= 0 then return 0 end
+	if t >= 1 then return 1 end
+	local p = 0.35
+	return math.pow(2, -10 * t) * math.sin((t - p / 4) * (2 * math.pi) / p) + 1
+end
+
 include("keysym.h.lua") -- so we can do hacky keypress
 local grassInstanceData = {}
 ---------------------------VAO VBO stuff:---------------------------------------
@@ -560,6 +578,7 @@ end
 
 function widget:KeyPress(key, modifier, isRepeat)
 	if not placementMode then return false end
+	if externalBrushActive then return false end
 	if key == KEYSYMS.LEFTBRACKET then cursorradius = mathMax(8, cursorradius *0.8) end
 	if key == KEYSYMS.RIGHTBRACKET then cursorradius = mathMin(512, cursorradius *1.2) end
 	return false
@@ -755,13 +774,86 @@ function widget:GameFrame(gf)
 end
 
 function widget:MousePress(x,y,button)
-	if placementMode then
+	if placementMode and not externalBrushActive then
 		return true
 	end
 end
 
 local firstUpdate = true
+local shaderRebuildPending = false
+local makeShaderVAO
+
+local function clampNum(v, lo, hi)
+	v = tonumber(v)
+	if not v then return nil end
+	if v < lo then return lo end
+	if v > hi then return hi end
+	return v
+end
+
+local function getGrassVisualConfig()
+	local sp = grassConfig.grassShaderParams or {}
+	return {
+		mapColorFactor = tonumber(sp.MAPCOLORFACTOR) or 0.6,
+		mapColorBase = tonumber(sp.MAPCOLORBASE) or 1.0,
+		grassBrightness = tonumber(sp.GRASSBRIGHTNESS) or 1.0,
+		grassBladeColorTex = grassConfig.grassBladeColorTex,
+		mapGrassColorModTex = grassConfig.mapGrassColorModTex,
+		grassWindPerturbTex = grassConfig.grassWindPerturbTex,
+	}
+end
+
+local function setGrassVisualConfig(cfg)
+	if type(cfg) ~= "table" then return false end
+	local changed = false
+	local sp = grassConfig.grassShaderParams or {}
+
+	local mapColorFactor = clampNum(cfg.mapColorFactor, 0.0, 3.0)
+	if mapColorFactor and sp.MAPCOLORFACTOR ~= mapColorFactor then
+		sp.MAPCOLORFACTOR = mapColorFactor
+		changed = true
+	end
+
+	local mapColorBase = clampNum(cfg.mapColorBase, 0.0, 3.0)
+	if mapColorBase and sp.MAPCOLORBASE ~= mapColorBase then
+		sp.MAPCOLORBASE = mapColorBase
+		changed = true
+	end
+
+	local grassBrightness = clampNum(cfg.grassBrightness, 0.0, 4.0)
+	if grassBrightness and sp.GRASSBRIGHTNESS ~= grassBrightness then
+		sp.GRASSBRIGHTNESS = grassBrightness
+		changed = true
+	end
+
+	if type(cfg.grassBladeColorTex) == "string" and cfg.grassBladeColorTex ~= "" and grassConfig.grassBladeColorTex ~= cfg.grassBladeColorTex then
+		grassConfig.grassBladeColorTex = cfg.grassBladeColorTex
+		changed = true
+	end
+
+	if type(cfg.mapGrassColorModTex) == "string" and cfg.mapGrassColorModTex ~= "" and grassConfig.mapGrassColorModTex ~= cfg.mapGrassColorModTex then
+		grassConfig.mapGrassColorModTex = cfg.mapGrassColorModTex
+		changed = true
+	end
+
+	if type(cfg.grassWindPerturbTex) == "string" and cfg.grassWindPerturbTex ~= "" and grassConfig.grassWindPerturbTex ~= cfg.grassWindPerturbTex then
+		grassConfig.grassWindPerturbTex = cfg.grassWindPerturbTex
+		changed = true
+	end
+
+	if changed then
+		grassConfig.grassShaderParams = sp
+		shaderRebuildPending = true
+	end
+	return changed
+end
+
 function widget:Update(dt)
+	if shaderRebuildPending then
+		makeShaderVAO()
+		shaderRebuildPending = false
+	end
+
 	if not processChanges then
 		return
 	end
@@ -772,6 +864,40 @@ function widget:Update(dt)
 	end
 
 	if not placementMode then return end
+
+	-- Process spawn grow animations (runs even when external brush is active)
+	spawnAnimClock = os.clock()
+	if spawnAnimCount > 0 then
+		for elemIdx, anim in pairs(spawnAnims) do
+			local elapsed = spawnAnimClock - anim.start
+			local progress = elapsed / SPAWN_ANIM_DURATION
+			local vboOffset = elemIdx * grassInstanceVBOStep
+			if progress >= 1.0 then
+				-- Animation complete: set final target size
+				grassInstanceData[vboOffset + 4] = anim.target
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = anim.target
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+				spawnAnims[elemIdx] = nil
+				spawnAnimCount = spawnAnimCount - 1
+			else
+				-- Interpolate with elastic easing from previous size to target
+				local factor = elasticOut(progress)
+				local visualSize = anim.prev + (anim.target - anim.prev) * factor
+				if visualSize < 0 then visualSize = 0 end
+				grassInstanceData[vboOffset + 4] = visualSize
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = visualSize
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+			end
+		end
+	end
+
+	if externalBrushActive then return end -- painting handled by external grass brush
 	local mx, my, lp, mp, rp, offscreen = spGetMouseState ( )
 	local _ , coords = spTraceScreenRay(mx,my,true)
 	if coords then
@@ -918,7 +1044,7 @@ local fsSrcPath = "LuaUI/Shaders/map_grass_gl4.frag.glsl"
 
 
 
-local function makeShaderVAO()
+makeShaderVAO = function()
 	local shaderSourceCache = {
 		vssrcpath = vsSrcPath,
 		fssrcpath = fsSrcPath,
@@ -935,6 +1061,7 @@ local function makeShaderVAO()
 		uniformFloat = {
 			grassuniforms = {1,1,1,1},
 			distanceMult = distanceMult,
+			grassBladeScale = grassConfig.grassBladeScale,
 			nightFactor = {1,1,1,1},
 		  },
 		shaderConfig = grassConfig.grassShaderParams,
@@ -951,7 +1078,7 @@ local function makeShaderVAO()
 end
 
 local weaponConf = {}
-for i=1, #WeaponDefs do
+for i=0, #WeaponDefs do
 	local radius = WeaponDefs[i].damageAreaOfEffect * 1.2
 	local edgeEffectiveness = WeaponDefs[i].edgeEffectiveness * 1.75
 	if WeaponDefs[i].type == 'DGun' then
@@ -998,8 +1125,89 @@ local function savegrassCmd(_, _, params)
 			offset = offset + 1
 		end
 	end
-	local success = Spring.Utilities.SaveTGA(texture, filename)
-	if success then spEcho("Saving grass map image failed",filename,success) end
+	-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
+	local saveError = Spring.Utilities.SaveTGA(texture, filename)
+	if saveError then spEcho("Saving grass map image failed", filename, saveError) end
+end
+
+local function exportGrassConfig(filename)
+	local function fmtVal(v)
+		local t = type(v)
+		if t == "number" then
+			if v == mathFloor(v) then return tostring(v) end
+			return string.format("%.4f", v)
+		elseif t == "boolean" then
+			return v and "true" or "false"
+		end
+		return string.format("%q", tostring(v))
+	end
+
+	local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
+	if not filename or #filename < 2 then
+		local ts = os.date("%Y%m%d_%H%M%S")
+		local dir = "Terraform Brush/GrassConfig/"
+		Spring.CreateDir(dir)
+		filename = dir .. mapSafe .. "_grassconfig_" .. ts .. ".lua"
+	end
+
+	local shader = grassConfig.grassShaderParams or {}
+	local shaderKeys = {}
+	for k, _ in pairs(shader) do
+		shaderKeys[#shaderKeys + 1] = k
+	end
+	table.sort(shaderKeys)
+
+	local out = {
+		"-- Grass config export from Map Grass GL4",
+		"-- Map: " .. (Game.mapName or "unknown"),
+		"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
+		"-- Paste mapinfo.custom = mapinfo.custom or {} and then mapinfo.custom.grassConfig = (this file table).custom.grassConfig",
+		"return {",
+		"\tcustom = {",
+		"\t\tgrassConfig = {",
+		"\t\t\t-- Density/placement",
+		"\t\t\tpatchResolution = " .. fmtVal(grassConfig.patchResolution) .. ",",
+		"\t\t\tpatchPlacementJitter = " .. fmtVal(grassConfig.patchPlacementJitter) .. ",",
+		"\t\t\tpatchSize = " .. fmtVal(grassConfig.patchSize) .. ",",
+		"\t\t\tgrassMinSize = " .. fmtVal(grassConfig.grassMinSize) .. ",",
+		"\t\t\tgrassMaxSize = " .. fmtVal(grassConfig.grassMaxSize) .. ",",
+		"",
+		"\t\t\t-- Color/look",
+		"\t\t\tgrassBladeColorTex = " .. fmtVal(grassConfig.grassBladeColorTex) .. ",",
+		"\t\t\tmapGrassColorModTex = " .. fmtVal(grassConfig.mapGrassColorModTex) .. ",",
+		"\t\t\tgrassWindPerturbTex = " .. fmtVal(grassConfig.grassWindPerturbTex) .. ",",
+		"\t\t\tgrassWindMult = " .. fmtVal(grassConfig.grassWindMult) .. ",",
+		"\t\t\tmaxWindSpeed = " .. fmtVal(grassConfig.maxWindSpeed) .. ",",
+		"\t\t\tgrassDistTGA = " .. fmtVal(grassConfig.grassDistTGA) .. ",",
+		"",
+		"\t\t\tgrassShaderParams = {",
+	}
+
+	for i = 1, #shaderKeys do
+		local k = shaderKeys[i]
+		out[#out + 1] = "\t\t\t\t" .. k .. " = " .. fmtVal(shader[k]) .. ","
+	end
+
+	out[#out + 1] = "\t\t\t},"
+	out[#out + 1] = "\t\t},"
+	out[#out + 1] = "\t},"
+	out[#out + 1] = "}"
+	out[#out + 1] = ""
+
+	local f = io.open(filename, "w")
+	if not f then
+		spEcho("[Grass] ERROR: Could not write grass config to " .. tostring(filename))
+		return false, filename
+	end
+	f:write(table.concat(out, "\n"))
+	f:close()
+	spEcho("[Grass] Saved grass config: " .. filename)
+	return true, filename
+end
+
+local function savegrassconfigCmd(_, _, params)
+	local filename = params and params[1]
+	exportGrassConfig(filename)
 end
 
 local function loadgrassCmd(_, _, params)
@@ -1130,7 +1338,149 @@ function widget:Initialize()
 		lastLavaLevel = initLavaLevel
 		WG['grassgl4'].removeGrassBelowHeight(initLavaLevel)
 	end
-	widgetHandler:RegisterGlobal('GadgetRemoveGrass', WG['grassgl4'].removeGrass)
+	-- Brush-aware grass painting for integration with Grass Brush tool
+	WG['grassgl4'].getConfig = function()
+		return {
+			patchResolution = grassConfig.patchResolution,
+			grassMinSize = grassConfig.grassMinSize,
+			grassMaxSize = grassConfig.grassMaxSize,
+			mapSizeX = mapSizeX,
+			mapSizeZ = mapSizeZ,
+		}
+	end
+	WG['grassgl4'].getDensityAt = function(wx, wz)
+		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
+		if vboOffset < 0 or vboOffset >= #grassInstanceData then return 0 end
+		local size = grassInstanceData[vboOffset + 4]
+		if not size or size <= 0 then return 0 end
+		return size / grassConfig.grassMaxSize
+	end
+	WG['grassgl4'].setDensityAt = function(wx, wz, density, skipAnim)
+		local vboOffset = world2grassmap(wx, wz) * grassInstanceVBOStep
+		if vboOffset < 0 or vboOffset >= #grassInstanceData then return end
+		local size = density * grassConfig.grassMaxSize
+		if size < grassConfig.grassMinSize then size = 0 end
+		local oldSize = grassInstanceData[vboOffset + 4] or 0
+		local oldpx = grassInstanceData[vboOffset + 1]
+		local oldry = grassInstanceData[vboOffset + 2]
+		local oldpz = grassInstanceData[vboOffset + 3]
+
+		-- Register spawn grow animation when density increases
+		local elemIdx = vboOffset / grassInstanceVBOStep
+		if not skipAnim and externalBrushActive and size > oldSize and size > 0 then
+			if spawnAnimCount < SPAWN_ANIM_MAX then
+				if not spawnAnims[elemIdx] then
+					spawnAnimCount = spawnAnimCount + 1
+				end
+				spawnAnims[elemIdx] = {
+					target = size,
+					start = spawnAnimClock,
+					prev = oldSize,
+				}
+			end
+			-- Set initial visual size (start small, animation will grow it)
+			local initSize = oldSize
+			grassInstanceData[vboOffset + 4] = initSize
+			gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, initSize
+			grassInstanceVBO:Upload(gCT, 7, elemIdx)
+		else
+			-- No animation: immediate set
+			if spawnAnims[elemIdx] then
+				spawnAnims[elemIdx] = nil
+				spawnAnimCount = spawnAnimCount - 1
+			end
+			grassInstanceData[vboOffset + 4] = size
+			gCT[1], gCT[2], gCT[3], gCT[4] = oldpx, oldry, oldpz, size
+			grassInstanceVBO:Upload(gCT, 7, elemIdx)
+		end
+	end
+	WG['grassgl4'].enableEditMode = function()
+		if not placementMode then
+			placementMode = true
+			processChanges = true
+			if #grassInstanceData == 0 then
+				makeGrassInstanceVBO()
+			else
+				defineUploadGrassInstanceVBOData()
+				MakeAndAttachToVAO()
+			end
+		end
+	end
+	WG['grassgl4'].disableEditMode = function()
+		placementMode = false
+		externalBrushActive = false
+	end
+	WG['grassgl4'].isEditMode = function()
+		return placementMode
+	end
+	WG['grassgl4'].setExternalBrush = function(active)
+		externalBrushActive = active and true or false
+		if not active then
+			-- Flush all pending spawn animations to final values
+			for elemIdx, anim in pairs(spawnAnims) do
+				local vboOffset = elemIdx * grassInstanceVBOStep
+				grassInstanceData[vboOffset + 4] = anim.target
+				gCT[1] = grassInstanceData[vboOffset + 1]
+				gCT[2] = grassInstanceData[vboOffset + 2]
+				gCT[3] = grassInstanceData[vboOffset + 3]
+				gCT[4] = anim.target
+				grassInstanceVBO:Upload(gCT, 7, elemIdx)
+			end
+			spawnAnims = {}
+			spawnAnimCount = 0
+		end
+	end
+	WG['grassgl4'].hasGrass = function()
+		return #grassInstanceData > 0
+	end
+	WG['grassgl4'].saveGrassTGA = function(filename)
+		if not filename or #filename < 2 then
+			filename = Game.mapName .. "_grassDist.tga"
+		end
+		local texture = Spring.Utilities.NewTGA(
+			mathFloor(mapSizeX / grassConfig.patchResolution),
+			mathFloor(mapSizeZ / grassConfig.patchResolution),
+			1)
+		local offset = 0
+		for y = 1, texture.height do
+			for x = 1, texture.width do
+				texture[y][x] = grassPatchMultToByte(grassInstanceData[offset * 4 + 4])
+				offset = offset + 1
+			end
+		end
+		-- Spring.Utilities.SaveTGA returns nil on success, error string on failure.
+		local saveError = Spring.Utilities.SaveTGA(texture, filename)
+		if saveError then
+			spEcho("[Grass] Failed to save grass map: " .. filename .. " (" .. tostring(saveError) .. ")")
+			return false
+		end
+		spEcho("[Grass] Saved grass map: " .. filename)
+		return true
+	end
+	WG['grassgl4'].saveGrassConfig = function(filename)
+		local ok = exportGrassConfig(filename)
+		return ok
+	end
+	WG['grassgl4'].getVisualConfig = function()
+		return getGrassVisualConfig()
+	end
+	WG['grassgl4'].setVisualConfig = function(cfg)
+		return setGrassVisualConfig(cfg)
+	end
+	WG['grassgl4'].loadGrass = function(filename)
+		if not filename or #filename < 2 then
+			filename = Game.mapName .. "_grassDist.tga"
+		end
+		placementMode = true
+		local ok = LoadGrassTGA(filename)
+		if not ok then return end
+		defineUploadGrassInstanceVBOData()
+		MakeAndAttachToVAO()
+	end
+	WG['grassgl4'].clearGrass = function()
+		cleargrassCmd(nil, nil, {})
+	end
+
 
 	processChanges = next(grassInstanceData) ~= nil
 
@@ -1139,11 +1489,17 @@ function widget:Initialize()
 	widgetHandler:AddAction("loadgrass", loadgrassCmd, nil, 't')
 	widgetHandler:AddAction("editgrass", editgrassCmd, nil, 't')
 	widgetHandler:AddAction("cleargrass", cleargrassCmd, nil, 't')
+	widgetHandler:AddAction("savegrassconfig", savegrassconfigCmd, nil, 't')
 	widgetHandler:AddAction("dumpgrassshaders", dumpgrassshadersCmd, nil, 't')
 end
 
+function widget:GadgetRemoveGrass(posx, posz, radius)
+	if WG['grassgl4'] then
+		WG['grassgl4'].removeGrass(posx, posz, radius)
+	end
+end
+
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GadgetRemoveGrass')
 	if unitBendSSBO then unitBendSSBO = nil end
 
 	widgetHandler:RemoveAction("placegrass")
@@ -1151,6 +1507,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("loadgrass")
 	widgetHandler:RemoveAction("editgrass")
 	widgetHandler:RemoveAction("cleargrass")
+	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
 end
 
@@ -1209,7 +1566,7 @@ function widget:DrawWorldPreUnit()
   if #grassInstanceData == 0 then return end
   local mapDrawMode = Spring.GetMapDrawMode()
   if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
-	if placementMode then
+	if placementMode and not externalBrushActive then
 		--spEcho("circle",mousepos[1],mousepos[2]+10,mousepos[3])
 		gl.LineWidth(2)
 		gl.Color(0.3, 1.0, 0.2, 0.75)
@@ -1297,21 +1654,16 @@ function widget:DrawWorldPreUnit()
   end
 end
 
-local lastSunChanged = -1
-function widget:SunChanged() -- Note that map_nightmode.lua gadget has to change sun twice in a single draw frame to update all
-	local df = Spring.GetDrawFrame()
-	--spEcho("widget:SunChanged", df)
-	if df == lastSunChanged then return end
-	lastSunChanged = df
+local function NightFactorChanged(red, green, blue, shadow, altitude)
+	local altitudefactor = 1.0 --+ (1.0 - altitude) * 0.5
+	nightFactor[1] = red * altitudefactor
+	nightFactor[2] = green * altitudefactor
+	nightFactor[3] = blue * altitudefactor
+	nightFactor[4] = shadow
+end
 
-	-- Do the math:
-	if WG['NightFactor'] then
-		local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-		nightFactor[1] = WG['NightFactor'].red * altitudefactor
-		nightFactor[2] = WG['NightFactor'].green * altitudefactor
-		nightFactor[3] = WG['NightFactor'].blue * altitudefactor
-		nightFactor[4] = WG['NightFactor'].shadow
-	end
+function widget:NightFactorChanged(red, green, blue, shadow, altitude)
+	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
 -- ahahahah you cant stop me:

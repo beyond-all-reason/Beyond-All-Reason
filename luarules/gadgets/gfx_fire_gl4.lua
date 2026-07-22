@@ -37,7 +37,10 @@ end
 -- Localized engine functions
 --------------------------------------------------------------------------------
 local spEcho              = Spring.Echo
+local spGetMyAllyTeamID   = Spring.GetMyAllyTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitPosition   = Spring.GetUnitPosition
+local spIsPosInAirLos     = Spring.IsPosInAirLos
 local spIsSphereInView    = Spring.IsSphereInView
 local spGetWind           = Spring.GetWind
 local spGetFPS            = Spring.GetFPS
@@ -64,7 +67,10 @@ local mathSqrt   = math.sqrt
 local mathSin    = math.sin
 local mathCos    = math.cos
 local mathPi     = math.pi
+local mathHuge   = math.huge
 local TWO_PI     = mathPi * 2
+---@diagnostic disable-next-line: undefined-global
+local ScriptLuaUI = Script.LuaUI
 
 local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Reclaimed
 local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.SelfD
@@ -72,6 +78,10 @@ local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.Se
 local LuaShader = gl.LuaShader
 local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
 local popElementInstance  = gl.InstanceVBOTable.popElementInstance
+
+local function isFinite(v)
+	return v and v == v and v > -mathHuge and v < mathHuge
+end
 
 --------------------------------------------------------------------------------
 -- CONFIG
@@ -162,6 +172,40 @@ local CONFIG = {
 		smokeAlphaMult  = 0.67,
 		smokeSizeMult   = 1.206,
 		smokeTail       = 150,   -- smoke lingers this long after the fire stops
+		light = {
+			intervalMin   = 4,     -- minimum frames between deferred-light pulses
+			intervalJitter = 4,    -- extra randomized frame spacing (0..n)
+			lifeFrames    = 12,     -- per-pulse light lifetime in frames
+			lifeJitter    = 5,     -- random extra lifetime (0..n)
+			sustainFrac   = 0.2,   -- hold full intensity for this life fraction
+			radiusCanopyMult = 2.6,
+			radiusHeightMult = 0.35,
+			brightnessBase = 0.1,
+			secondaryBrightnessMult = 0.6,
+			heightOffset  = 45,
+			modelFactor   = 0.45,
+			specular      = 0.8,
+			scattering    = 1.0,
+			lensflare     = 0.0,
+		},
+	},
+
+	-- Generic fire (unit/wreck/spawned) deferred lighting pulses.
+	fireLight = {
+		intervalMin   = 6,
+		intervalJitter = 6,
+		lifeFrames    = 12,
+		lifeJitter    = 4,
+		sustainFrac   = 0.25,
+		radiusMult    = 1.7,
+		radiusScaleMult = 17.0,
+		brightnessBase = 0.2,
+		secondaryBrightnessMult = 0.55,
+		heightOffset  = 12,
+		modelFactor   = 0.45,
+		specular      = 0.8,
+		scattering    = 1.0,
+		lensflare     = 0.0,
 	},
 
 	-- Culling
@@ -389,7 +433,9 @@ local particleRemoveQueue = {}  -- [deathFrame] = { n = count, id, id, ... }
 local lastRemovedFrame    = 0
 
 local cachedGameFrame = 0
-local windX, windZ = 0, 0
+local cachedAllyTeamID = spGetMyAllyTeamID()
+local cachedFullView = select(2, spGetSpectatingState()) or false
+local windX, windZ = 0.0, 0.0
 
 local MAX_PARTICLES = CONFIG.maxParticles
 
@@ -771,6 +817,70 @@ local function emitTreeFire(e, n)
 				SMOKE_ALPHA * TREE_SMOKE_ALPHA_MULT * smokeDecayMult)
 		end
 	end
+
+	-- Deferred light pulses for burning trees (through LuaUI light bridge).
+	-- Keep this emitter-level and throttled; never tie this to per-particle work.
+	if n <= e.fireEnd then
+		if not e.nextLightFrame or n >= e.nextLightFrame then
+			if ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight") then
+				local lcfg = CONFIG.treeFire.light
+				e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
+
+				local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
+				if life < 1 then life = 1 end
+				local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
+
+				local scaleNorm = (e.scale - 0.16) / 0.84
+				if scaleNorm < 0 then scaleNorm = 0 elseif scaleNorm > 1 then scaleNorm = 1 end
+				local burnLifeMult = smokeFireDiminishMult
+				local flicker = 0.72 + mathRandom() * 0.56
+				local brightness = lcfg.brightnessBase * e.intensity * burnLifeMult * flicker * (0.7 + 0.5 * scaleNorm)
+
+				local radius = (e.canopyR * lcfg.radiusCanopyMult + curH * lcfg.radiusHeightMult) * (0.72 + 0.55 * burnLifeMult)
+				radius = radius * (0.9 + 0.3 * mathRandom())
+
+				if brightness > 0.001 and radius > 1 then
+					local trunkA = 0.34 + 0.20 * mathRandom()
+					local trunkAlong = curH * trunkA
+					local lx = e.x + dirx * trunkAlong * axisH
+					local ly = e.y + lcfg.heightOffset + trunkAlong * axisUp
+					local lz = e.z + dirz * trunkAlong * axisH
+
+					local warm = 0.84 + 0.14 * mathRandom()
+					local lg = 0.36 + 0.22 * mathRandom()
+					ScriptLuaUI.EnvLightningPointLight(
+						lx, ly, lz, radius,
+						warm, lg, 0.10, brightness,
+						life, sustain,
+						lcfg.modelFactor,
+						lcfg.specular,
+						lcfg.scattering,
+						lcfg.lensflare,
+						n)
+
+					-- Secondary dimmer pulse near canopy / leading fire front.
+					if curH > 10 and burnLifeMult > 0.22 then
+						local canopyA = 0.68 + 0.18 * mathRandom()
+						local canopyAlong = curH * canopyA
+						local cx = e.x + dirx * canopyAlong * axisH
+						local cy = e.y + canopyAlong * axisUp
+						local cz = e.z + dirz * canopyAlong * axisH
+						local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.3 * mathRandom())
+						local cRadius = radius * (0.74 + 0.22 * mathRandom())
+						ScriptLuaUI.EnvLightningPointLight(
+							cx, cy, cz, cRadius,
+							1.0, 0.46, 0.12, cBright,
+							life, sustain,
+							lcfg.modelFactor,
+							lcfg.specular,
+							lcfg.scattering,
+							lcfg.lensflare,
+							n)
+					end
+				end
+			end
+		end
+	end
 end
 
 local function emitFromEmitter(e, n)
@@ -937,6 +1047,79 @@ local function emitFromEmitter(e, n)
 				SMOKE_ALPHA * smokeDecayMult)
 		end
 	end
+
+	-- Deferred light pulses for non-tree fires. Kept emitter-level and throttled.
+	if n <= e.fireEnd and e.fireRate > 0 and not e.disableLight then
+		if not e.nextLightFrame or n >= e.nextLightFrame then
+			if ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight") then
+				local lcfg = CONFIG.fireLight
+				e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
+
+				local lightLifeMult = emitterFadeVisual
+				if e.fireDecayStart and n > e.fireDecayStart then
+					local decayEnd = e.fireDecayEnd or e.fireEnd
+					local decaySpan = decayEnd - e.fireDecayStart
+					if decaySpan > 0 then
+						local decayMult = 1.0 - (n - e.fireDecayStart) / decaySpan
+						if decayMult < 0 then decayMult = 0 end
+						if e.fireDecayPower and e.fireDecayPower ~= 1.0 then
+							decayMult = decayMult ^ e.fireDecayPower
+						end
+						local rateMult = decayMult
+						if e.fireRateDecayPower and e.fireRateDecayPower ~= 1.0 then
+							rateMult = rateMult ^ e.fireRateDecayPower
+						end
+						lightLifeMult = lightLifeMult * rateMult
+					end
+				end
+
+				if lightLifeMult > 0.02 then
+					local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
+					if life < 1 then life = 1 end
+					local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
+
+					local scaleNorm = (e.scale - 0.55) / 1.85
+					if scaleNorm < 0 then scaleNorm = 0 elseif scaleNorm > 1 then scaleNorm = 1 end
+					local flicker = 0.72 + mathRandom() * 0.56
+					local radius = (e.radius * lcfg.radiusMult + e.scale * lcfg.radiusScaleMult)
+					radius = radius * (e.lightRadiusMult or 1.0) * (0.70 + 0.55 * lightLifeMult) * (0.88 + 0.26 * mathRandom())
+					local brightness = lcfg.brightnessBase * (e.lightIntensity or 1.0) * e.intensity * lightLifeMult * flicker * (0.75 + 0.50 * scaleNorm)
+
+					if brightness > 0.001 and radius > 2 then
+						local lx = x + (mathRandom() - 0.5) * radius * 0.22
+						local lz = z + (mathRandom() - 0.5) * radius * 0.22
+						local ly = y + lcfg.heightOffset + radius * 0.15
+						local lg = 0.35 + 0.20 * mathRandom()
+						ScriptLuaUI.EnvLightningPointLight(
+							lx, ly, lz, radius,
+							1.0, lg, 0.10, brightness,
+							life, sustain,
+							lcfg.modelFactor,
+							lcfg.specular,
+							lcfg.scattering,
+							lcfg.lensflare,
+							n)
+
+						if radius > 12 and lightLifeMult > 0.35 then
+							local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.30 * mathRandom())
+							local cRadius = radius * (0.66 + 0.28 * mathRandom())
+							local cx = x + (mathRandom() - 0.5) * cRadius * 0.38
+							local cz = z + (mathRandom() - 0.5) * cRadius * 0.38
+							ScriptLuaUI.EnvLightningPointLight(
+								cx, ly, cz, cRadius,
+								1.0, 0.45, 0.12, cBright,
+								life, sustain,
+								lcfg.modelFactor,
+								lcfg.specular,
+								lcfg.scattering,
+								lcfg.lensflare,
+								n)
+						end
+					end
+				end
+			end
+		end
+	end
 end
 
 local function addEmitter(e)
@@ -1078,6 +1261,8 @@ local function spawnFire(x, y, z, opts)
 		radius     = opts.radius or 14,
 		scale      = opts.scale or 1.0,
 		intensity  = opts.intensity or 1.0,
+		lightIntensity  = opts.lightIntensity or 1.0,
+		lightRadiusMult = opts.lightRadiusMult or 1.0,
 		fireRate   = (opts.fire  == false) and 0 or (opts.fireRate  or CONFIG.fireRate),
 		smokeRate  = (opts.smoke == false) and 0 or (opts.smokeRate or CONFIG.smokeRate),
 		emberRate  = (opts.embers == false) and 0 or (opts.emberRate or CONFIG.emberRate),
@@ -1115,6 +1300,8 @@ local function addUnitFire(unitID, unitDefID, durationFrames)
 		radius     = radius,
 		scale      = scale,
 		intensity  = 1.0,
+		lightIntensity  = 1.0,
+		lightRadiusMult = 1.0,
 		fireRate   = CONFIG.fireRate,
 		smokeRate  = CONFIG.smokeRate,
 		emberRate  = CONFIG.emberRate,
@@ -1188,6 +1375,8 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 		scale            = visualScale,
 		lifeScale        = lifeScale,   -- lifetime uses unit class, not scaleMult boost
 		intensity        = 1.0,
+		lightIntensity   = 1.0,
+		lightRadiusMult  = 1.0,
 		scavenger        = scavenger and true or nil,
 		fireRate         = CONFIG.fireRate  * 0.82 * sm,
 		smokeRate        = CONFIG.smokeRate * 1.3 * sm,
@@ -1221,12 +1410,53 @@ local function spawnWreckageFire(x, y, z, scale, opts)
 	})
 end
 
+local function canShowWreckageFire(x, y, z)
+	return cachedFullView or spIsPosInAirLos(x, y, z, cachedAllyTeamID)
+end
+
+local function spawnVisibleWreckageFire(x, y, z, scale, opts)
+	if not canShowWreckageFire(x, y, z) then return end
+	return spawnWreckageFire(x, y, z, scale, opts)
+end
+
 -- Start (or refresh) a growing tree fire keyed by featureID. Driven by the
 -- synced gfx_tree_feller gadget via RecvFromSynced. The column climbs the tree
 -- and tilts into a ground line as the tree falls. Geometry (height/radius/
 -- canopyFrac) is derived from the tree's model mesh on the synced side.
+local TREE_FIRE_MIN_HEIGHT = 4
+local TREE_FIRE_DEFAULT_HEIGHT = 20
+local TREE_FIRE_MAX_HEIGHT = 220
+local TREE_FIRE_MAX_RADIUS = 80
+local TREE_FIRE_RELATIVE_MAX_MULT = 3.5
+
 local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 	if not x or not featureID then return end
+	if not isFinite(x) or not isFinite(y) or not isFinite(z) then return end
+	local baseHeight = height
+	if not isFinite(baseHeight) or baseHeight <= 0 then
+		baseHeight = TREE_FIRE_DEFAULT_HEIGHT
+	end
+	local baseRadius = radius
+	if not isFinite(baseRadius) or baseRadius < 2 then
+		baseRadius = mathMax(6, baseHeight * 0.2)
+	end
+	if not isFinite(height) or height <= 0 then
+		height = baseHeight
+	end
+	if not isFinite(radius) or radius < 2 then
+		radius = baseRadius
+	end
+	local maxHeight = mathMin(TREE_FIRE_MAX_HEIGHT, mathMax(baseHeight * TREE_FIRE_RELATIVE_MAX_MULT, baseHeight + 24))
+	local maxRadius = mathMin(TREE_FIRE_MAX_RADIUS, mathMax(baseRadius * TREE_FIRE_RELATIVE_MAX_MULT, baseRadius + 10))
+	height = mathMax(TREE_FIRE_MIN_HEIGHT, mathMin(height, maxHeight))
+	radius = mathMax(2, mathMin(radius, maxRadius))
+	if not isFinite(canopyFrac) or canopyFrac <= 0 then
+		canopyFrac = CONFIG.treeFire.canopyFrac
+	end
+	canopyFrac = mathMax(0.3, mathMin(0.85, canopyFrac))
+	if not isFinite(dirx) or not isFinite(dirz) then
+		dirx, dirz = 1, 0
+	end
 	-- Force the engine to refresh this feature's UNSYNCED (draw) matrix every
 	-- frame. Spring.SetFeatureDirection on the synced side only updates the synced
 	-- transform; without this the falling tree's mesh stays visually upright even
@@ -1235,8 +1465,6 @@ local function spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dir
 	if spSetFeatureAlwaysUpdateMatrix then
 		spSetFeatureAlwaysUpdateMatrix(featureID, true)
 	end
-	if not height or height < 4 then height = 20 end
-	if not radius or radius < 2 then radius = mathMax(6, height * 0.2) end
 	local now = cachedGameFrame
 	if not burnFrames or burnFrames < 1 then burnFrames = 210 end
 	local existing = treeFireEmitters[featureID]
@@ -1452,12 +1680,23 @@ end
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
+local syncFireSpawn
+local syncFireWreck
+local syncTreeFireStart
+local syncTreeFireStop
+local syncTreeFireFade
+
 function gadget:Initialize()
 	if not gl.CreateShader then
 		goodbye("OpenGL shaders not supported")
 		return
 	end
 	if not initGL4() then return end
+	gadgetHandler:AddSyncAction("fire_spawn", syncFireSpawn)
+	gadgetHandler:AddSyncAction("fire_wreck", syncFireWreck)
+	gadgetHandler:AddSyncAction("treefire_start", syncTreeFireStart)
+	gadgetHandler:AddSyncAction("treefire_stop", syncTreeFireStop)
+	gadgetHandler:AddSyncAction("treefire_fade", syncTreeFireFade)
 
 	GG.Fire = {
 		-- SpawnFire(x, y, z, opts) -> handle. See spawnFire above for opts.
@@ -1478,14 +1717,25 @@ function gadget:Initialize()
 			if udid then return addUnitFire(unitID, udid, durationFrames) end
 		end,
 		-- SpawnWreck(x, y, z[, scale]): short fire + long smoke at a position.
-		SpawnWreck = function(x, y, z, scale) return spawnWreckageFire(x, y, z, scale) end,
+		SpawnWreck = function(x, y, z, scale) return spawnVisibleWreckageFire(x, y, z, scale) end,
 		GetParticleCount = function() return particleVBO and particleVBO.usedElements or 0 end,
 		GetMaxParticles  = function() return MAX_PARTICLES end,
 		GetConfig        = function() return CONFIG end,
 	}
 end
 
+function gadget:PlayerChanged(playerID)
+	if playerID ~= Spring.GetMyPlayerID() then return end
+	cachedAllyTeamID = spGetMyAllyTeamID()
+	cachedFullView = select(2, spGetSpectatingState()) or false
+end
+
 function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("fire_spawn")
+	gadgetHandler:RemoveSyncAction("fire_wreck")
+	gadgetHandler:RemoveSyncAction("treefire_start")
+	gadgetHandler:RemoveSyncAction("treefire_stop")
+	gadgetHandler:RemoveSyncAction("treefire_fade")
 	cleanupGL4()
 	GG.Fire = nil
 end
@@ -1529,6 +1779,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			x, y, z = e.x, e.y, e.z
 		end
 		if x and y and y >= -4 then  -- no wreck fire underwater
+			if not canShowWreckageFire(x, y, z) then
+				pendingWreckFire[unitID] = nil
+				if e then
+					e.unitID = nil
+					unitFireEmitter[unitID] = nil
+					e.mappedUnit = nil
+					e.fireEnd  = mathMin(e.fireEnd, cachedGameFrame)
+					e.emberEnd = mathMin(e.emberEnd, cachedGameFrame)
+				end
+				return
+			end
 			local p    = unitFireParams[unitDefID]
 			local wreckScale = (p and p.wreckScale) or (p and p.scale) or 1.0
 			local wreckLifeScale = (p and p.wreckLifeScale) or wreckScale
@@ -1662,29 +1923,56 @@ end
 --   SendToUnsynced("treefire_start", featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
 --   SendToUnsynced("treefire_stop", featureID)
 --   SendToUnsynced("treefire_fade", featureID)
-function gadget:RecvFromSynced(name, a, b, c, d, e, f, g, h, i, j, k)
-	if name == "fire_spawn" then
-		spawnFire(a, b, c, { scale = d, duration = e })
-	elseif name == "fire_wreck" then
-		spawnWreckageFire(a, b, c, d)
-	elseif name == "treefire_start" then
-		spawnTreeFire(a, b, c, d, e, f, g, h, i, j, k)
-	elseif name == "treefire_stop" then
-		stopTreeFire(a)
-	elseif name == "treefire_fade" then
-		fadeTreeFire(a)
-	end
+syncFireSpawn = function(_, x, y, z, scale, duration)
+	spawnFire(x, y, z, { scale = scale, duration = duration })
+end
+
+syncFireWreck = function(_, x, y, z, scale)
+	spawnVisibleWreckageFire(x, y, z, scale)
+end
+
+syncTreeFireStart = function(_, featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
+	spawnTreeFire(featureID, x, y, z, height, radius, canopyFrac, dirx, dirz, fallFrames, burnFrames)
+end
+
+syncTreeFireStop = function(_, featureID)
+	stopTreeFire(featureID)
+end
+
+syncTreeFireFade = function(_, featureID)
+	fadeTreeFire(featureID)
 end
 
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
+local lastFireUpdateFrame = -1
+local nextWindUpdateFrame = 0
+local nextEmitterUpdateFrame = 0
 
-function gadget:GameFrame(n)
+local function runFireFrame(n)
+	cachedGameFrame = n
+	removeExpiredParticles(n)
+	updatePendingWreckFire(n)
+
+	if n >= nextEmitterUpdateFrame then
+		nextEmitterUpdateFrame = n + fpsUpdateInterval
+		updateEmitters(n)
+	end
+end
+
+function gadget:Update()
 	if not particleVBO then return end
 
-	cachedGameFrame = n
+	local n = mathFloor(Spring.GetGameFrame() or 0)
+	if n <= lastFireUpdateFrame then return end
+	lastFireUpdateFrame = n
 
-	if n % 10 == 0 then
+	cachedGameFrame = n
+	cachedAllyTeamID = spGetMyAllyTeamID()
+	cachedFullView = select(2, spGetSpectatingState()) or false
+
+	if n >= nextWindUpdateFrame then
+		nextWindUpdateFrame = n + 10
 		local _, _, _, _, wx, _, wz = spGetWind()
 		windX = wx or 0
 		windZ = wz or 0
@@ -1699,15 +1987,32 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	removeExpiredParticles(n)
-	updatePendingWreckFire(n)
-
-	if n % fpsUpdateInterval == 0 then
-		updateEmitters(n)
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			particleRemoveQueue.__pendingFireFrame = nil
+			runFireFrame(pendingFrame)
+			cachedGameFrame = n
+		end
+		particleRemoveQueue.__pendingFireFrame = n
+		particleRemoveQueue.__pendingFireDrawFrame = particleRemoveQueue.__fireDrawFrame or 0
 	end
 end
 
 function gadget:DrawWorld()
+	particleRemoveQueue.__fireDrawFrame = (particleRemoveQueue.__fireDrawFrame or 0) + 1
+	do
+		local pendingFrame = particleRemoveQueue.__pendingFireFrame
+		if pendingFrame then
+			local queuedAt = particleRemoveQueue.__pendingFireDrawFrame or 0
+			if particleRemoveQueue.__fireDrawFrame > queuedAt + 1 then
+				particleRemoveQueue.__pendingFireFrame = nil
+				runFireFrame(pendingFrame)
+			end
+		end
+	end
 	drawParticles()
 end
 

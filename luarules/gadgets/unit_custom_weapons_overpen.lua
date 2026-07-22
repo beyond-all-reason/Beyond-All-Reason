@@ -559,3 +559,9 @@ function gadget:Initialize()
 	getUnitShieldState = GG.Shields.GetUnitShieldState
 	GG.Shields.RegisterShieldPreDamaged(projectiles, shieldPreDamaged)
 end
+
+function gadget:Shutdown()
+	if GG.Shields then
+		GG.Shields.RegisterShieldPreDamaged(projectiles, nil)
+	end
+end

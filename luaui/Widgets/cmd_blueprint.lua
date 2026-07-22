@@ -471,10 +471,11 @@ local function updateBuildingGridState(active, blueprint)
 end
 
 local function setBlueprintPlacementActive(active)
-	if blueprintPlacementActive ~= active then
-		state = {}
+	if blueprintPlacementActive == active then
+		return
 	end
 
+	state = {}
 	blueprintPlacementActive = active
 
 	if active then
@@ -492,42 +493,54 @@ end
 -- callins
 -- =======
 
-local function set(tbl)
-	local result = {}
-	for _, v in ipairs(tbl) do
-		result[v] = true
-	end
-	return result
-end
-
 local selectedUnitsOrder = {}
 local selectedUnitsSet = {}
+local selectedUnitsBuildable = {}
+local selectedUnitsPresent = {}
 local pendingBoxSelect = false
 
-local function updateSelectedUnits(selection)
-	-- filter all by buildable
-	local buildable = table.filterArray(selection, function(unitID)
-		return blueprintBuildableUnitDefs[spGetUnitDefID(unitID)]
-	end)
-	tableSort(buildable)
-	local buildableSet = set(buildable)
+local function clearArray(tbl)
+	for i = #tbl, 1, -1 do
+		tbl[i] = nil
+	end
+end
 
-	-- remove from selectionOrder and selectedUnitsSet anything not present here
-	local toRemove = {}
-	for unitID in pairs(selectedUnitsSet) do
-		if not buildableSet[unitID] then
-			toRemove[unitID] = true
+local function clearTable(tbl)
+	for k in pairs(tbl) do
+		tbl[k] = nil
+	end
+end
+
+local function updateSelectedUnits(selection)
+	clearArray(selectedUnitsBuildable)
+	clearTable(selectedUnitsPresent)
+
+	for i = 1, #selection do
+		local unitID = selection[i]
+		if blueprintBuildableUnitDefs[spGetUnitDefID(unitID)] then
+			selectedUnitsBuildable[#selectedUnitsBuildable + 1] = unitID
+			selectedUnitsPresent[unitID] = true
 		end
 	end
-	selectedUnitsOrder = table.filterArray(selectedUnitsOrder, function(unitID)
-		return toRemove[unitID] == nil
-	end)
-	selectedUnitsSet = table.filterTable(selectedUnitsSet, function(_, unitID)
-		return toRemove[unitID] == nil
-	end)
+	tableSort(selectedUnitsBuildable)
+
+	local writeIndex = 1
+	for readIndex = 1, #selectedUnitsOrder do
+		local unitID = selectedUnitsOrder[readIndex]
+		if selectedUnitsPresent[unitID] then
+			selectedUnitsOrder[writeIndex] = unitID
+			writeIndex = writeIndex + 1
+		else
+			selectedUnitsSet[unitID] = nil
+		end
+	end
+	for i = #selectedUnitsOrder, writeIndex, -1 do
+		selectedUnitsOrder[i] = nil
+	end
 
 	-- add all units that aren't in selectedUnitsSet to selectionOrder and selectedUnitsSet
-	for _, unitID in ipairs(buildable) do
+	for i = 1, #selectedUnitsBuildable do
+		local unitID = selectedUnitsBuildable[i]
 		if not selectedUnitsSet[unitID] then
 			tableInsert(selectedUnitsOrder, unitID)
 			selectedUnitsSet[unitID] = true

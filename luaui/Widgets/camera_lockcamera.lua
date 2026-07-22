@@ -19,13 +19,32 @@ local lockcameraLos = true         -- togglelos
 local transitionTime = 1.3         -- how long it takes the camera to move when tracking a player
 local listTime = 14                -- how long back to look for recent broadcasters
 
-local totalTime = 0
+local totalTime = 0.0
 local lastBroadcasts = {}
 local recentBroadcasters = {}
 local newBroadcaster = false
+local playerStateDirty = true
 
-local desiredLosmodeChanged = 0
-local desiredLosmode, myLastCameraState
+local desiredLosmodeChanged = 0.0
+---@type 'los'|'normal'|nil
+local desiredLosmode
+local myLastCameraState
+---@type integer?
+local lockPlayerID
+---@type integer?
+local scheduledSpecFullView
+---@type integer?
+local myPlayerID
+---@type integer?
+local myAllyTeamID
+---@type integer?
+local myTeamID
+---@type number?
+local myTeamPlayerID
+---@type boolean?
+local mySpecStatus
+---@type boolean?
+local fullView
 
 local spGetCameraState = Spring.GetCameraState
 local spSetCameraState = Spring.SetCameraState
@@ -42,6 +61,21 @@ local spGetGameFrame = Spring.GetGameFrame
 local os_clock = os.clock
 local math_pi = math.pi
 local TWO_PI = 2 * math_pi
+
+local function RefreshLocalPlayerState()
+	myPlayerID = spGetMyPlayerID()
+	myAllyTeamID = spGetLocalAllyTeamID()
+	myTeamID = spGetLocalTeamID()
+	myTeamPlayerID = select(2, spGetTeamInfo(myTeamID))
+	mySpecStatus, fullView = spGetSpectatingState()
+	playerStateDirty = false
+end
+
+local function RefreshLocalPlayerStateIfDirty()
+	if playerStateDirty then
+		RefreshLocalPlayerState()
+	end
+end
 
 local function matchRotationRange(current_rotation, target_rotation)
 	local difference = current_rotation - target_rotation
@@ -87,6 +121,8 @@ local function UpdateRecentBroadcasters()
 end
 
 local function LockCamera(playerID)
+	RefreshLocalPlayerState()
+
 	local isSpec, teamID
 	if playerID then
 		_, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
@@ -150,7 +186,7 @@ local function LockCamera(playerID)
 end
 
 
-function CameraBroadcastEvent(playerID, cameraState)
+local function CameraBroadcastEvent(playerID, cameraState)
 	-- if cameraState is empty then transmission has stopped
 	if not cameraState then
 		if lastBroadcasts[playerID] then
@@ -179,8 +215,10 @@ function CameraBroadcastEvent(playerID, cameraState)
 	end
 end
 
-local sec = 0
+local sec = 0.0
 function widget:Update(dt)
+	RefreshLocalPlayerStateIfDirty()
+
 	sec = sec + dt
 	if sec > 1 then
 		sec = 0
@@ -215,11 +253,7 @@ function widget:PlayerChanged(playerID)
 	if lockPlayerID and playerID == myPlayerID and desiredLosmode then
 		desiredLosmodeChanged = os_clock()
 	end
-	myPlayerID = spGetMyPlayerID()
-	myAllyTeamID = spGetLocalAllyTeamID()
-	myTeamID = spGetLocalTeamID()
-	myTeamPlayerID = select(2, spGetTeamInfo(myTeamID))
-	mySpecStatus, fullView = spGetSpectatingState()
+	playerStateDirty = true
 end
 
 function widget:Initialize()
@@ -235,6 +269,7 @@ function widget:Initialize()
 	end
 	WG.lockcamera.SetHideEnemies = function(value)
 		lockcameraHideEnemies = value
+		RefreshLocalPlayerStateIfDirty()
 		if lockPlayerID and not select(3, spGetPlayerInfo(lockPlayerID)) then
 			if not lockcameraHideEnemies then
 				if not fullView then
@@ -267,6 +302,7 @@ function widget:Initialize()
 	end
 	WG.lockcamera.SetLos = function(value)
 		lockcameraLos = value
+		RefreshLocalPlayerStateIfDirty()
 		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, spGetPlayerInfo(lockPlayerID)) then
 			if lockcameraLos and mySpecStatus then
 				desiredLosmode = 'los'
@@ -290,16 +326,17 @@ function widget:Initialize()
 		return nil
 	end
 
-	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
-
 	UpdateRecentBroadcasters()
 
-	widget:PlayerChanged(spGetMyPlayerID())
+	RefreshLocalPlayerState()
+end
+
+function widget:CameraBroadcastEvent(playerID, cameraState)
+	CameraBroadcastEvent(playerID, cameraState)
 end
 
 function widget:Shutdown()
 	WG.lockcamera = nil
-	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 end
 
 function widget:GameOver()
@@ -332,6 +369,7 @@ function widget:SetConfigData(data)
 
 	if spGetGameFrame() > 0 then
 		if data.lockPlayerID ~= nil then
+			RefreshLocalPlayerStateIfDirty()
 			lockPlayerID = data.lockPlayerID
 			if lockPlayerID and not select(3, spGetPlayerInfo(lockPlayerID), false) then
 				if not lockcameraHideEnemies then

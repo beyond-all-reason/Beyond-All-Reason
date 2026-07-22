@@ -1,0 +1,59 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="../gui_feature_placer/gui_feature_placer.rcss" />
+	<link type="text/rcss" href="gui_decal_placer.rcss" />
+</head>
+<body data-model="decal_placer_model">
+	<div id="dp-root" class="fp-root dp-root widget-shadow rounded-md bg-darkest p-2">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="dp-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Decal Library</div>
+			<div class="fp-quit-btn" onclick="widget:OnQuit()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="fp-section-frame">
+			<div class="fp-section-title-row">
+				<div class="text-lg text-light">DECALS</div>
+			</div>
+			<div class="flex flex-row justify-between items-center mb-1">
+				<div class="text-sm text-keybind">Shift+Click to select multiple</div>
+				<div class="text-sm text-keybind"><span>{{selectedCount}}</span> selected</div>
+			</div>
+			<div class="fp-cat-row">
+				<div class="fp-cat-btn" data-class-active="dcCatAll"          data-event-click="onCategorySelect('all')"><span class="fp-cat-label">All</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatScars"        data-event-click="onCategorySelect('scars')"><span class="fp-cat-label">Scars</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatExplosions"   data-event-click="onCategorySelect('explosions')"><span class="fp-cat-label">Explos.</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatTracks"       data-event-click="onCategorySelect('tracks')"><span class="fp-cat-label">Tracks</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatBuilds"       data-event-click="onCategorySelect('builds')"><span class="fp-cat-label">Builds</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatFootprints"   data-event-click="onCategorySelect('footprints')"><span class="fp-cat-label">Foot</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatScorch"       data-event-click="onCategorySelect('scorch')"><span class="fp-cat-label">Scorch</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatGroundplates" data-event-click="onCategorySelect('groundplates')"><span class="fp-cat-label">Plates</span></div>
+				<div class="fp-cat-btn" data-class-active="dcCatOther"        data-event-click="onCategorySelect('other')"><span class="fp-cat-label">Other</span></div>
+			</div>
+		</div>
+		<div class="fp-section-frame">
+			<div class="fp-section-title-row">
+				<div class="text-lg text-light">BROWSE</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
+				<div class="fp-search-wrapper" style="flex: 1;">
+					<input type="text" id="dp-search" class="fp-search-input" placeholder="Search decals..."
+						data-value="search"
+						data-event-focus="onSearchFocus()"
+						data-event-blur="onSearchBlur()"
+						data-event-change="onSearchChange()" />
+					<div class="fp-search-clear-btn" data-event-click="onSearchClear()">
+						<img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" />
+					</div>
+				</div>
+				<div class="fp-clr-btn" onclick="widget:OnClearSelection()">
+					<div class="fp-btn-text">CLR</div>
+				</div>
+			</div>
+			<div id="dp-tile-list" class="fp-feature-list gap-2"></div>
+		</div>
+	</div>
+</body>
+</rml>

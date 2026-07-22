@@ -115,6 +115,7 @@ return {
 				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,
+				cylindertargeting = 1,
 				edgeeffectiveness = 0.9,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				impulsefactor = 2.0,

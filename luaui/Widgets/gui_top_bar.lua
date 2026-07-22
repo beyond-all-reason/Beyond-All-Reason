@@ -252,6 +252,9 @@ local timers = {
 	nextResBarUpdate = 0,
 	nextSlowUpdate = 0,
 	nextBarsUpdate = 0,
+	lastUpdateTime = 0,
+	gameFrameHappened = false,
+	deferResourceUpdate = false,
 	guishaderCheckUpdateRate = 0.5,
 	nextSmoothUpdate = 0,
 }
@@ -1144,6 +1147,7 @@ end
 function widget:GameFrame(n)
 	spec = sp.GetSpectatingState()
 	gameFrame = n
+	timers.gameFrameHappened = true
 	if n == 2 then
 		init()
 	end
@@ -1213,6 +1217,9 @@ end
 
 function widget:Update(dt)
 	now = osClock()
+	timers.deferResourceUpdate = timers.gameFrameHappened and now - timers.lastUpdateTime < (1 / 30)
+	timers.gameFrameHappened = false
+	timers.lastUpdateTime = now
 
 	windRotation = windRotation + (currentWind * cfg.bladeSpeedMultiplier * dt * 30)
 
@@ -1254,13 +1261,14 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > timers.nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
+	if now > timers.nextGuishaderCheck then
 		timers.nextGuishaderCheck = now + timers.guishaderCheckUpdateRate
-		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
-			guishaderEnabled = true
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderEnabled then
+			guishaderEnabled = guishaderActive
 			init()
-		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
-			guishaderEnabled = false
+		elseif not guishaderActive and guishaderEnabled then
+			guishaderEnabled = guishaderActive
 		end
 	end
 
@@ -1403,7 +1411,9 @@ local function drawResBars()
 
 	local update = false
 
-	if now > timers.nextBarsUpdate then
+	if now > timers.nextBarsUpdate
+		and not timers.deferResourceUpdate
+	then
 		timers.nextBarsUpdate = now + 0.05
 		update = true
 	end
@@ -2374,6 +2384,7 @@ function widget:Initialize()
 	currentWindText = "\255\255\255\255" .. currentWind
 	refreshWindTidalTextCache()
 
+	guishaderEnabled = WG['guishader'] ~= nil
 	widget:ViewResize()
 
 	if gameFrame > 0 then

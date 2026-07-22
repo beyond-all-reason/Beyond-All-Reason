@@ -228,7 +228,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
@@ -343,6 +342,7 @@ local projectileConeLightVBO = {} -- for rockets
 local projectileLightVBOMap -- a table of the above 3, keyed by light type
 
 local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+local predictivePointLightVBO = {} -- dedicated VBO for gadget-fed predictive nano lights
 
 local lightRemoveQueue = {} -- stores lights that have expired life {gameframe = {lightIDs ... }}
 
@@ -481,6 +481,7 @@ local function initGL4()
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
+	predictivePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Predictive Point Light VBO")
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
@@ -1179,6 +1180,8 @@ end
 
 function widget:Shutdown()
 	-- TODO: delete the VBOs and shaders like a good boy
+	widgetHandler:RemoveAction("dlgl4stats", "t")
+	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
@@ -1187,8 +1190,11 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('UnitScriptLight')
 	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightSpawn')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightCorrect')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightFade')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightRemove')
 
 	deferredLightShader:Delete()
 	local ram = 0
@@ -1196,6 +1202,7 @@ function widget:Shutdown()
 	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
 	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
 	ram = ram + cursorPointLightVBO:Delete()
+	ram = ram + predictivePointLightVBO:Delete()
 
 	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
 	--spEcho("featureDefLights", table.countMem(featureDefLights))
@@ -1564,30 +1571,37 @@ local function updateProjectileLights(newgameframe)
 	--end
 end
 
-local configCache = {lastUpdate = Spring.GetTimer()}
+local AUTOUPDATE_CONFIG_POLL_INTERVAL = 1.5
+local AUTOUPDATE_SHADER_POLL_INTERVAL = 0.5
+
+local configCache = {lastUpdate = spGetTimer()}
+local shaderUpdateCache = {lastUpdate = spGetTimer()}
 local function checkConfigUpdates()
-	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
-		local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
-		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
-		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
-			LoadLightConfig()
-			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-			end
-			local allFeatures = spGetAllFeatures()
-			local allFeaturesLen = #allFeatures
-			for i = 1, allFeaturesLen do
-				widget:FeatureDestroyed(allFeatures[i], true)
-			end
-			for i = 1, allFeaturesLen do
-				widget:FeatureCreated(allFeatures[i], true)
-			end
-			if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
-			configCache.confa = newconfa
-			configCache.confb = newconfb
-		end
-		configCache.lastUpdate = spGetTimer()
+	local now = spGetTimer()
+	if spDiffTimers(now, configCache.lastUpdate) <= AUTOUPDATE_CONFIG_POLL_INTERVAL then
+		return
 	end
+
+	local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
+	local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
+		LoadLightConfig()
+		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		end
+		local allFeatures = spGetAllFeatures()
+		local allFeaturesLen = #allFeatures
+		for i = 1, allFeaturesLen do
+			widget:FeatureDestroyed(allFeatures[i], true)
+		end
+		for i = 1, allFeaturesLen do
+			widget:FeatureCreated(allFeatures[i], true)
+		end
+		if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
+		configCache.confa = newconfa
+		configCache.confb = newconfb
+	end
+	configCache.lastUpdate = now
 end
 
 local expavg = 0
@@ -1595,6 +1609,9 @@ local sec = 1
 function widget:Update(dt)
 	if autoupdate then checkConfigUpdates() end
 	local tus = spGetTimerMicros()
+	if predictivePointLightVBO.dirty then
+		uploadAllElements(predictivePointLightVBO)
+	end
 
 	-- update/handle Cursor Lights!
 	if WG['allycursors'] and WG['allycursors'].getLights() then
@@ -1612,9 +1629,11 @@ function widget:Update(dt)
 			cursorLights = {}
 		end
 		local cursors, notIdle = WG['allycursors'].getCursors()
+		local isCursorVisible = WG['allycursors'].isCursorVisible
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
-			if teamColor and not cursor[8] and notIdle[playerID] then
+			local visibleToViewer = (not isCursorVisible) or isCursorVisible(playerID)
+			if teamColor and not cursor[8] and notIdle[playerID] and visibleToViewer then
 				if not cursorLights[playerID] and not cursor[8] then
 					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
@@ -1631,6 +1650,9 @@ function widget:Update(dt)
 						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
 					end
 				end
+			elseif cursorLights[playerID] then
+				popElementInstance(cursorPointLightVBO, cursorLights[playerID])
+				cursorLights[playerID] = nil
 			end
 		end
 		uploadAllElements(cursorPointLightVBO)
@@ -1672,10 +1694,15 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--if true then return end
 	if skipdraw then return end
 	if autoupdate then
-		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+		local now = spGetTimer()
+		if spDiffTimers(now, shaderUpdateCache.lastUpdate) > AUTOUPDATE_SHADER_POLL_INTERVAL then
+			deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+			shaderUpdateCache.lastUpdate = now
+		end
 	end
 
 	if pointLightVBO.usedElements > 0 or
+		predictivePointLightVBO.usedElements > 0 or
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
@@ -1751,6 +1778,7 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 
 		pointLightVBO:draw()
+		predictivePointLightVBO:draw()
 		projectilePointLightVBO:draw()
 
 
@@ -1790,26 +1818,25 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--end
 end
 
--- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command)
-	if stringFind(command, "dlgl4stats", nil, true) then
-		spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
-				numAddLights,
-				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
-				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
-				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
-				cursorPointLightVBO.usedElements))
-		return true
-	end
-	if stringFind(command, "dlgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function dlgl4statsCmd(_, line)
+	spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
+			numAddLights,
+			pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
+			unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
+			projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
+			cursorPointLightVBO.usedElements))
+	return true
+end
+
+local function dlgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("dlgl4stats", dlgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("dlgl4skipdraw", dlgl4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
@@ -1901,8 +1928,6 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
-
 	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
 	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
 	-- The gadget owns all tuning (see its lightning configs); this just forwards the
@@ -1920,12 +1945,93 @@ function widget:Initialize()
 			spawnframe, lifetime, sustain)                -- spawnframe, lifetime, sustain (auto-expire)
 	end
 	widgetHandler:RegisterGlobal('EnvLightningPointLight', WG['lightsgl4'].EnvLightningPointLight)
+
+	-- Gadget bridge: predictive nano point lights. Gadget sends one spawn event
+	-- per selected particle, plus sparse correction events when trajectory
+	-- changes (homing / terrain correction). Widget integrates in-between.
+	WG['lightsgl4'].EnvNanoBallisticLightSpawn = function(instanceID,
+			x, y, z, vx, vy, vz,
+			radius, r, g, b, a,
+			lifetime, sustain,
+			modelfactor, specular, scattering, lensflare,
+			spawnframe,
+			updateEvery,
+			correctionMinFrames)
+		if not instanceID or not lifetime or lifetime < 1 then
+			return false
+		end
+		local sf = spawnframe or gameFrame
+		local lightparams = {
+			x, y, z, radius,
+			vx, vy, vz, 1.0,
+			r, g, b, a,
+			modelfactor or 0.35, specular or 0.15, scattering or 0.25, lensflare or 0,
+			sf, lifetime, sustain or lifetime, 0,
+			r, g, b, 0,
+			0,
+			0, 0, 0, 0,
+		}
+		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		if instanceIndex then
+			instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+			local instData = predictivePointLightVBO.instanceData
+			instData[instanceIndex + 1] = x
+			instData[instanceIndex + 2] = y
+			instData[instanceIndex + 3] = z
+			instData[instanceIndex + 5] = vx
+			instData[instanceIndex + 6] = vy
+			instData[instanceIndex + 7] = vz
+			instData[instanceIndex + 8] = 1.0
+			instData[instanceIndex + spawnFramePos] = f
+			predictivePointLightVBO.dirty = true
+		end
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		local ff = mathFloor(fadeFrames or 1)
+		if ff < 1 then ff = 1 end
+		instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+		local instData = predictivePointLightVBO.instanceData
+		instData[instanceIndex + spawnFramePos] = f
+		instData[instanceIndex + 18] = ff
+		instData[instanceIndex + 19] = 0
+		local deathtime = math_ceil(f + ff)
+		if lightRemoveQueue[deathtime] == nil then
+			lightRemoveQueue[deathtime] = {}
+		end
+		lightRemoveQueue[deathtime][instanceID] = predictivePointLightVBO
+		predictivePointLightVBO.dirty = true
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)
+		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
+			popElementInstance(predictivePointLightVBO, instanceID)
+		end
+		return true
+	end
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightSpawn', WG['lightsgl4'].EnvNanoBallisticLightSpawn)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightCorrect', WG['lightsgl4'].EnvNanoBallisticLightCorrect)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightFade', WG['lightsgl4'].EnvNanoBallisticLightFade)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightRemove', WG['lightsgl4'].EnvNanoBallisticLightRemove)
 end
 
 if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end
+end
+
+function widget:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	UnitScriptLight(unitID, unitDefID, lightIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 

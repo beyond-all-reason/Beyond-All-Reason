@@ -108,6 +108,13 @@ local spGetTimer = Spring.GetTimer
 
 local spDiffTimers = Spring.DiffTimers
 local spGetLuaMemUsage = Spring.GetLuaMemUsage or function() return 0, 0, 0, 0, 0, 0, 0, 0 end
+local profilerEchoEnabled = false
+
+local function ProfilerEcho(...)
+	if profilerEchoEnabled then
+		Spring.Echo(...)
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Default Value Helpers
@@ -181,7 +188,7 @@ else
 		highres = true
 	end
 	if not highres then
-		Spring.Echo("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+		ProfilerEcho("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 	end
 
 	hookPreRealFunction = function(gadgetName, callinName)
@@ -292,12 +299,12 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 	end
 
 	hookset = true
-	Spring.Echo("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	ProfilerEcho("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	--// hook all existing callins
 	ForAllGadgetCallins(AddHook)
 
-	Spring.Echo("hooked all callins")
+	ProfilerEcho("hooked all callins")
 
 	--// hook the UpdateCallin function
 	oldUpdateGadgetCallIn = gadgetHandler.UpdateGadgetCallIn
@@ -320,7 +327,7 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 		end
 	end
 
-	Spring.Echo("hooked UpdateCallin")
+	ProfilerEcho("hooked UpdateCallin")
 
 	return false -- allow the unsynced chataction to execute too
 end
@@ -337,16 +344,16 @@ function KillHook()
 		return true
 	end
 
-	Spring.Echo("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	ProfilerEcho("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	ForAllGadgetCallins(RemoveHook)
 
-	Spring.Echo("unhooked all callins")
+	ProfilerEcho("unhooked all callins")
 
 	--// unhook the UpdateCallin function
 	gadgetHandler.UpdateGadgetCallIn = oldUpdateGadgetCallIn
 
-	Spring.Echo("unhooked UpdateCallin")
+	ProfilerEcho("unhooked UpdateCallin")
 
 	hookset = false
 	return false -- allow the unsynced chataction to execute too
@@ -394,16 +401,21 @@ else
 	local function EnableMousePressCallin()
 		-- only claim mouse clicks while the profiler is drawn (for the drill-down)
 		rawset(gadget, "MousePress", gadget.MousePress_)
+		rawset(gadget, "MouseRelease", gadget.MouseRelease_)
 		gadgetHandler:UpdateGadgetCallIn("MousePress", gadget)
+		gadgetHandler:UpdateGadgetCallIn("MouseRelease", gadget)
 	end
 
 	local function DisableMousePressCallin()
 		-- If this gadget currently owns the mouse press sequence, release ownership
 		-- before detaching MousePress so gadgetHandler won't call into stale owner state.
-		if gadgetHandler.mouseOwner == gadget then
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
 			rawset(gadgetHandler, "mouseOwner", nil)
 		end
 		gadgetHandler:RemoveGadgetCallIn("MousePress", gadget)
+		gadgetHandler:RemoveGadgetCallIn("MouseRelease", gadget)
 	end
 
 	local function SyncedCallinStarted(_, gname, cname)
@@ -438,10 +450,10 @@ else
 				local endtime = Spring.GetTimer()
 				local endtimeus = Spring.GetTimerMicros()
 
-				Spring.Echo("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
-				Spring.Echo("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
-				Spring.Echo("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
-				Spring.Echo("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
+				ProfilerEcho("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
+				ProfilerEcho("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
+				ProfilerEcho("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
+				ProfilerEcho("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
 			end
 
 
@@ -452,7 +464,7 @@ else
 			SetDrawCallin(gadget.DrawScreen_)
 			EnableMousePressCallin()
 
-			Spring.Echo("luarules profiler started (player " .. pID .. ")")
+			ProfilerEcho("luarules profiler started (player " .. pID .. ")")
 		end
 	end
 
@@ -460,7 +472,7 @@ else
 		if running then
 			running = false
 
-			Spring.Echo("Killing...")
+			ProfilerEcho("Killing...")
 			SetDrawCallin(nil)
 			DisableMousePressCallin()
 			KillHook()
@@ -472,7 +484,7 @@ else
 			timersSynced = {}
 			memUsageSynced = {}
 
-			Spring.Echo("luarules profiler killed (player " .. pID .. ")")
+			ProfilerEcho("luarules profiler killed (player " .. pID .. ")")
 		end
 	end
 
@@ -665,7 +677,7 @@ else
 			end
 			avgTLoad[gname] = ((avgTLoad[gname] * framesMinusOne) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if not sortByLoad or avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
+			if avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
 				sorted[n] = { name = gname2name[gname] or gname, plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end
@@ -1032,7 +1044,7 @@ else
 		end
 
 		if not next(callinStats) and not next(callinStatsSYNCED) then
-			Spring.Echo("no data in profiler!")
+			ProfilerEcho("no data in profiler!")
 			return
 		end
 
@@ -1127,6 +1139,15 @@ else
 				end
 				return true -- consume the click so it doesn't fall through to the map
 			end
+		end
+		return false
+	end
+
+	function gadget:MouseRelease_()
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
+			rawset(gadgetHandler, "mouseOwner", nil)
 		end
 		return false
 	end

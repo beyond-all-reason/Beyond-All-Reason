@@ -13,22 +13,24 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
 local spAreTeamsAllied       = Spring.AreTeamsAllied
 local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetActiveCommand 	 = Spring.GetActiveCommand
 local spGetMouseState    	 = Spring.GetMouseState
 local spTraceScreenRay   	 = Spring.TraceScreenRay
 local spGetModKeyState   	 = Spring.GetModKeyState
+local spGetUnitRulesParam    = Spring.GetUnitRulesParam
+
+local table_insert = table.insert
 
 local trackedUnitsToUnitDefID = {}
 local unitRanges = {}
@@ -43,6 +45,8 @@ local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local UNIT_RANGE_MULTIPLIER = 1.5
 -- Radius in elmos to search for nearby enemy units when click misses
 local SNAP_RADIUS = 100
+-- Number of targets that can be assigned. Used to set up the table pools.
+local TARGET_BY_TYPE_COUNT_MAX = 128
 
 local gameStarted
 
@@ -77,12 +81,14 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
     local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
-	for _, targetID in ipairs(candidateUnits) do
-		local targetTeam = spGetUnitTeam(targetID)
-        if targetID ~= unitID and targetTeam ~= nil then
-            local isAllied = spAreTeamsAllied(unitTeam, targetTeam)
-			if not isAllied and spGetUnitDefID(targetID) == unitDefIDToTarget then
-				table.insert(unitsInRange, targetID)
+	local count = 0
+	for index = 1, #candidateUnits do
+		local targetID = candidateUnits[index]
+        if targetID ~= unitID and spGetUnitDefID(targetID) == unitDefIDToTarget then
+			local targetTeam = spGetUnitTeam(targetID)
+			if targetTeam and not spAreTeamsAllied(unitTeam, targetTeam) then
+				count = count + 1
+				unitsInRange[count] = targetID
             end
         end
     end
@@ -133,6 +139,45 @@ local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
 	end
 
 	return closestUnit
+end
+
+local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0) -- can insert active target also
+local commandsToGivePool = table.new(TARGET_BY_TYPE_COUNT_MAX, 0)
+local nextCmdOpts = { "shift" }
+do
+	for i = 1, TARGET_BY_TYPE_COUNT_MAX do
+		commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
+	end
+end
+
+local function targetUnitsInRangeWithDef(unitID, targetUnitDefID)
+	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
+	if candidateUnits[1] then
+		local unitTargetID = spGetUnitRulesParam(unitID, "unitTargetID")
+		local commandTarget = { CMD_SET_TARGET, unitTargetID }
+		local commandsToGive = commandsToGiveCache
+		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
+		local candidateCount = #candidateUnits
+		for index = 2, candidateCount do
+			if candidateUnits[index] == unitTargetID then
+				-- Keep the active target at the front of the target list to avoid target flap.
+				commandsToGive[1][3] = nextCmdOpts -- First command gains shift modifier.
+				table_insert(commandsToGive, 1, commandTarget)
+			elseif index <= TARGET_BY_TYPE_COUNT_MAX then
+				local commandTable = commandsToGivePool[index]
+				commandTable[2] = candidateUnits[index]
+				commandsToGive[index] = commandTable
+			end
+		end
+		-- We can use a nil boundary to stop iter in ParseCommandTable because we are careful
+		-- not to introduce a new hash part. luaH_next jumps to the hash following the array.
+		if candidateCount < TARGET_BY_TYPE_COUNT_MAX then
+			commandsToGive[candidateCount + 1] = nil
+		end
+		spGiveOrderArrayToUnit(unitID, commandsToGive)
+	else -- TODO: only give order if unit has a target list:
+		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
+	end
 end
 
 function widget:DrawWorld()
@@ -188,18 +233,7 @@ function widget:GameFrame(frame)
 	end
 
 	for unitID, targetUnitDefID in pairs(trackedUnitsToUnitDefID) do
-		local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
-		local commandsToGive = {}
-		for _, targetID in ipairs(candidateUnits) do
-			local newCmdOpts = {}
-			if #commandsToGive ~= 0  then
-				newCmdOpts = { "shift" }
-			end
-
-			commandsToGive[#commandsToGive+1] = { CMD_SET_TARGET, { targetID }, newCmdOpts }
-		end
-
-		spGiveOrderArrayToUnit(unitID, commandsToGive)
+		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	end
 end
 
@@ -272,6 +306,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	for _, unitID in ipairs(selectedUnits) do
 		cleanupUnitTargeting(unitID)
 		trackedUnitsToUnitDefID[unitID] = targetUnitDefID
+		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
 	end
 
 	return true

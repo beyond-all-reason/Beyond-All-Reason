@@ -4,7 +4,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
   return {
     name      = "Cache Icons",
-    desc      = "loads all icons to prevent briefly showing white unit icons in things like the buildmenu",
+    desc      = "loads all icons to prevent briefly showing white unit icons in things like the buildmenu, and prevents first time unit pic load times",
     author    = "Floris",
     date      = "June 2023",
     license   = "GNU GPL, v2 or later",
@@ -25,26 +25,29 @@ local delayedCacheUnitIconsTimer = 0
 local cachedUnitIcons = false
 
 
-local startUnits = { UnitDefNames.armcom.id, UnitDefNames.corcom.id }
-if Spring.GetModOptions().experimentallegionfaction then
-	startUnits[#startUnits + 1] = UnitDefNames.legcom.id
-end
+local myTeamID = Spring.GetMyTeamID()
+local startUnits = string.split(Spring.GetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
 local startBuildOptions = {}
-for i, uDefID in pairs(startUnits) do
-	startBuildOptions[#startBuildOptions + 1] = uDefID
-	for u, buildoptionDefID in pairs(UnitDefs[uDefID].buildOptions) do
-		startBuildOptions[#startBuildOptions + 1] = buildoptionDefID
+for i, uDefIDString in ipairs(startUnits) do
+	local uDefID = tonumber(uDefIDString)
+	if uDefID ~= nil then
+		local unitDef = UnitDefs[uDefID]
+		if unitDef then
+			startBuildOptions[uDefID] = true
+			for u, buildoptionDefID in pairs(unitDef.buildOptions) do
+				startBuildOptions[buildoptionDefID] = true
+			end
+		end
 	end
 end
-startUnits = nil
 
 
 local function loadToTexture(id)
 	gl.Texture('#' .. id)
-	gl.TexRect(-1, -1, 0, 0)
+	--gl.TexRect(-1, -1, 0, 0)
 	if iconTypes[id] and iconTypes[id].bitmap then
 		gl.Texture(':l:' .. iconTypes[id].bitmap)
-		gl.TexRect(-1, -1, 0, 0)
+		--gl.TexRect(-1, -1, 0, 0)
 	end
 end
 
@@ -53,8 +56,8 @@ end
 -- load time armada+cortex = 0.7 seconds (excluding legion,raptors,scavs) tested with Tracy (pc: RTX4070 + 7800X3D)
 -- only loading armada/cortex start units buildoptions = 45ms, loading the rest gets delayed
 local delayedCachePos = 0
-local cacheIconsPerFrame = 3
-local nonStartUnitCacheDelay = 6    -- apply delay or it will load during loadscreen still
+local cacheIconsPerFrame = 2
+local nonStartUnitCacheDelay = 5    -- apply delay or it will load during loadscreen still
 local function cacheUnitIcons()
 	gl.Translate(-vsx, 0, 0)
 	gl.Color(1, 1, 1, 0.001)

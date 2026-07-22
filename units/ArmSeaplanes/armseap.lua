@@ -2,7 +2,7 @@ return {
 	armseap = {
 		blocking = false,
 		buildpic = "ARMSEAP.DDS",
-		buildtime = 18000,
+		buildtime = 15000,
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
@@ -12,7 +12,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 1380,
+		health = 1300,
 		hoverattack = true,
 		maxacc = 0.2,
 		maxdec = 0.375,
@@ -26,7 +26,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 535,
 		sonardistance = 535,
-		speed = 271.20001,
+		speed = 210,
 		turnrate = 720,
 		customparams = {
 			model_author = "FireStorm",
@@ -99,7 +99,6 @@ return {
 					speceffect = "torpwaterpen",
 				},
 				damage = {
-					commanders = 150,
 					default = 342,
 					vtol = 15,
 				},

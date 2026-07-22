@@ -5,6 +5,7 @@ return {
 		buildpic = "CORAVP.DDS",
 		buildtime = 28000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 8 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",

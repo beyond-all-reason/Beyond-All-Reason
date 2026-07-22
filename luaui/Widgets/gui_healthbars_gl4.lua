@@ -1012,7 +1012,16 @@ local function ProjectileCreatedReloadHB(projectileID, unitID, weaponID, unitDef
 	updateReloadBar(unitID, unitDefID, 'ProjectileCreatedReloadHB')
 end
 
+local function debughealthbarsCmd(_, line)
+	debugmode = not debugmode
+	spEcho("Debug mode for HealthBars GL4 set to", debugmode)
+	healthBarVBO.debug = debugmode
+	return true
+end
+
 function widget:Initialize()
+	widgetHandler:AddAction("debughealthbars", debughealthbarsCmd, nil, "t")
+
 	if not gl.CreateShader then -- no shader support, so just remove the widget itself, especially for headless
 		widgetHandler:RemoveWidget()
 		return
@@ -1058,18 +1067,27 @@ function widget:Initialize()
 	-- This is stuff like trees and map features, and scenario features
 	init()
 	initfeaturebars()
-	widgetHandler:RegisterGlobal("FeatureReclaimStartedHealthbars", FeatureReclaimStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitCaptureStartedHealthbars", UnitCaptureStartedHealthbars )
-	widgetHandler:RegisterGlobal("UnitParalyzeDamageHealthbars", UnitParalyzeDamageHealthbars )
-	widgetHandler:RegisterGlobal("ProjectileCreatedReloadHB", ProjectileCreatedReloadHB )
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("FeatureReclaimStartedHealthbars" )
-	widgetHandler:DeregisterGlobal("UnitCaptureStartedHealthbars" )
-	widgetHandler:DeregisterGlobal("UnitParalyzeDamageHealthbars" )
-	widgetHandler:DeregisterGlobal("ProjectileCreatedReloadHB" )
+	widgetHandler:RemoveAction("debughealthbars", "t")
 	spEcho("Healthbars GL4 unloaded hooks")
+end
+
+function widget:FeatureReclaimStartedHealthbars(featureID, step)
+	FeatureReclaimStartedHealthbars(featureID, step)
+end
+
+function widget:UnitCaptureStartedHealthbars(unitID, step)
+	UnitCaptureStartedHealthbars(unitID, step)
+end
+
+function widget:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+	UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
+end
+
+function widget:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
+	ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -1321,6 +1339,8 @@ function widget:DrawScreenEffects()
 	end
 	if healthBarVBO.usedElements > 0 or featureHealthVBO.usedElements > 0 then -- which quite strictly, is impossible anyway
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+		gl.Culling(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.DepthTest(true)
 		gl.DepthMask(true)
 		gl.Texture(0,healthbartexture)
@@ -1365,16 +1385,10 @@ function widget:DrawScreenEffects()
 
 		healthBarShader:Deactivate()
 		gl.Texture(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.Culling(false)
 		gl.DepthTest(false)
     gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
-	end
-end
-
-function widget:TextCommand(command)
-	if string.find(command, "debughealthbars", nil, true) == 1 then
-		debugmode = not debugmode
-		spEcho("Debug mode for HealthBars GL4 set to", debugmode)
-		healthBarVBO.debug = debugmode
 	end
 end
 

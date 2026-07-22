@@ -698,7 +698,7 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
-local useGeometryShader = true
+local useGeometryShader = true	-- cant set it here, will be overwritten in initGL4()
 
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.
@@ -724,9 +724,7 @@ local WOBBLE_FREQ_VAR  = 0.5
 local WOBBLE_RAMP_FRAMES = 7.0
 local WHITE_HOTSPOT          = 1.5
 local WHITE_HOTSPOT_THRESHOLD = 0.6
-local SIZE_VAR    = 0.3
 local ALPHA_VAR   = 2.5
-local NANO_ALPHA  = 50 / 255
 local ROT_VAL_BASE  = -180  local ROT_VAL_RANGE = 360
 local ROT_VEL_BASE  = -40   local ROT_VEL_RANGE = 80
 -- rotAcc in deg/sec² converted to deg/frame² (GAME_SPEED = 30)
@@ -779,13 +777,24 @@ local function initGL4()
 		forceupdate  = true,
 	}
 
-	-- Try the geometry-shader path first; only fall back if compile actually
-	-- fails. LuaShader.isGeometryShaderSupported can report false negatives on
-	-- some drivers (e.g. AMD/Mesa), so we don't trust it alone.
-	useGeometryShader = true
-	particleShader = LuaShader.CheckShaderUpdates(shaderCacheGS)
+	-- AMD GPUs have no native geometry-shader stage. Mesa emulates this GS by translating it
+	-- onto the hardware's real shader stages, emitting every vertex through memory buffers.
+	-- This is slow both to compile (a multi-second GS compile that stalls on the first draw,
+	-- and isn't kept in the disk cache so it recurs) and to run (those memory round-trips
+	-- cost bandwidth every frame). The no-GS path draws the same particles with none of that.
+	-- AMD-on-Linux is always Mesa.
+	local preferNoGS = (Platform ~= nil and Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux")
+
+	-- Try the geometry-shader path first (unless we already know to skip it); only
+	-- fall back if compile actually fails. LuaShader.isGeometryShaderSupported can
+	-- report false negatives on some drivers (e.g. AMD/Mesa), so we don't trust it
+	-- alone.
+	useGeometryShader = not preferNoGS
+	particleShader = useGeometryShader and LuaShader.CheckShaderUpdates(shaderCacheGS) or nil
 	if not particleShader then
-		spEcho("Energy Explosion Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		if useGeometryShader then
+			spEcho("Energy Explosion Particles GL4: geometry shader compile failed; trying no-GS fallback.")
+		end
 		useGeometryShader = false
 		particleShader = LuaShader.CheckShaderUpdates(shaderCacheNoGS)
 	end
@@ -1266,6 +1275,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
 	if nanoParticleMode == 0 then return end
+	if Spring.GetUnitRulesParam(unitID, "remove_decorations") == 1 then return end
 	-- Skip units that were still under construction when they died.
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil

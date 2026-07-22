@@ -38,6 +38,14 @@ local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
 
+-- Configurable visual parameters (exposed via WG API)
+local snowColorR = 0.8
+local snowColorG = 0.8
+local snowColorB = 0.9
+local snowOpacity = 0.66
+local speedMultiplier = 1.0
+local sizeMultiplier = 1.0
+
 -- pregame info message
 local autoReduce = true
 
@@ -207,12 +215,14 @@ local function init()
 			uniform float scale;
 			uniform vec3 speed;
 			uniform vec3 camPos;
+			uniform vec4 snowColor;
+			uniform float sizeMult;
 			out vec4 vertexColor;
 			void main(void)
 			{
 				vec3 scalePos = vec3(gl_Vertex) * scale;
 
-				vertexColor = vec4(0.8,0.8,0.9,0.66 * cos(scalePos.y));
+				vertexColor = vec4(snowColor.rgb, snowColor.a * cos(scalePos.y));
 
 				vec3 pos = scalePos - mod(camPos, scale);
 				pos.y -= time * 0.5 * (speed.x * (2.0 + gl_Vertex.w));
@@ -236,7 +246,7 @@ local function init()
 
 				vec4 eyePos = gl_ModelViewMatrix * vec4(pos, 1.0);
 
-				gl_PointSize = (1.0 + gl_Vertex.w) * 5000.0 / length(eyePos);
+				gl_PointSize = (1.0 + gl_Vertex.w) * 5000.0 * sizeMult / length(eyePos);
 
 				gl_Position = gl_ProjectionMatrix * eyePos;
 			}
@@ -256,6 +266,8 @@ local function init()
 			scale  = 0,
 			speed  = {0,0,0},
 			camPos = {0,0,0},
+			snowColor = {snowColorR, snowColorG, snowColorB, snowOpacity},
+			sizeMult = sizeMultiplier,
 		},
 	}, "Snow Shader")
 
@@ -316,6 +328,9 @@ function widget:Initialize()
 			CreateParticleLists()
 		end
 	end
+	WG['snow'].getMultiplier = function()
+		return customParticleMultiplier
+	end
 	WG['snow'].setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
@@ -326,6 +341,9 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
+	WG['snow'].getAutoReduce = function()
+		return autoReduce
+	end
 	WG['snow'].setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
@@ -334,6 +352,38 @@ function widget:Initialize()
 		else
 			removeSnow()
 		end
+	end
+	WG['snow'].setColor = function(r, g, b)
+		snowColorR = r or snowColorR
+		snowColorG = g or snowColorG
+		snowColorB = b or snowColorB
+	end
+	WG['snow'].getColor = function()
+		return snowColorR, snowColorG, snowColorB
+	end
+	WG['snow'].setOpacity = function(value)
+		snowOpacity = value
+	end
+	WG['snow'].getOpacity = function()
+		return snowOpacity
+	end
+	WG['snow'].setSpeedMultiplier = function(value)
+		speedMultiplier = value
+	end
+	WG['snow'].getSpeedMultiplier = function()
+		return speedMultiplier
+	end
+	WG['snow'].setSizeMultiplier = function(value)
+		sizeMultiplier = value
+	end
+	WG['snow'].getSizeMultiplier = function()
+		return sizeMultiplier
+	end
+	WG['snow'].setWindMultiplier = function(value)
+		windMultiplier = value
+	end
+	WG['snow'].getWindMultiplier = function()
+		return windMultiplier
 	end
 
 	startOsClock = os.clock()
@@ -429,8 +479,15 @@ function widget:DrawWorld()
 			shader:Activate()
 			camX,camY,camZ = Spring.GetCameraPosition()
 			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
+			-- time stays unscaled; speedMultiplier is applied once, on the
+			-- gravity term of the speed uniform below. Scaling both here and
+			-- there made fall speed scale ~quadratically (the shader multiplies
+			-- time by speed.x), and scaling cumulative time made flakes jump
+			-- when the multiplier changed mid-session.
 			shader:SetUniform("time", diffTime)
 			shader:SetUniform("camPos", camX, camY, camZ)
+			shader:SetUniform("snowColor", snowColorR, snowColorG, snowColorB, snowOpacity)
+			shader:SetUniform("sizeMult", sizeMultiplier)
 
 			glDepthTest(true)
 			glBlending(GL.SRC_ALPHA, GL.ONE)
@@ -450,8 +507,12 @@ function widget:DrawWorld()
 
 			glTexture(snowTexture)
 			for particleType, pt in pairs(particleTypes) do
+				-- scale sets the particle wrap-volume (density/spacing), so it
+				-- must NOT include sizeMultiplier. sizeMultiplier is applied once,
+				-- to gl_PointSize via the sizeMult uniform, so it changes flake
+				-- size only rather than also thinning out the field.
 				shader:SetUniform("scale", pt.scale * particleScale)
-				shader:SetUniform("speed", pt.gravity, offsetX, offsetZ)
+				shader:SetUniform("speed", pt.gravity * speedMultiplier, offsetX, offsetZ)
 				glCallList(particleLists[particleType][particleStep])
 			end
 			glTexture(false)
@@ -485,7 +546,13 @@ function widget:GetConfigData(data)
 		articleStep = particleStep,
 		gameframe = spGetGameFrame(),
 		customParticleMultiplier = customParticleMultiplier,
-		autoReduce = autoReduce
+		autoReduce = autoReduce,
+		-- Snow look params (color/opacity/speed/size/wind) are deliberately NOT
+		-- persisted: they are live editor-session tweaks driven by the terraform
+		-- Environment tab via the WG['snow'] API. Persisting them here leaked a
+		-- one-off map-editing tweak into every later snow-map match, with no
+		-- reset path outside the terraformer UI. They reset to their defaults
+		-- each load; a map that wants a custom look applies it at runtime.
 	}
 end
 

@@ -287,7 +287,15 @@ local function addToExplosions(explosions, area)
 	tableInsert(explosions, index, area)
 end
 
-local getBlockingShieldUnits -- from shield behaviors
+local function getBlockingShieldUnits(x, y, z, radius, onlyAlive)
+	-- Replace function stub at time of first call:
+	if GG.Shields and GG.Shields.GetCoveringShieldUnits then
+		getBlockingShieldUnits = GG.Shields.GetCoveringShieldUnits
+		return getBlockingShieldUnits(x, y, z, radius, onlyAlive)
+	else
+		return {}, 0
+	end
+end
 
 local function getAllyTeam(attackerID, projectileID)
 	return (attackerID and spGetUnitAllyTeam(attackerID))
@@ -537,8 +545,6 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Initialize()
-	getBlockingShieldUnits = GG.Shields.GetBlockingShieldUnits
-
 	areaDamageTypes = GG.EnvAreaWeapons or {}
 	inExplosion = GG.InTimedDamageArea or table.new(1, 0) -- lua trick for ref passing
 	GG.EnvAreaWeapons = areaDamageTypes

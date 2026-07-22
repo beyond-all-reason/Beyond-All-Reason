@@ -24,13 +24,30 @@ local function unescapeDoublePercent(str)
   return str:gsub(ltDummy, "%%<"):gsub(bracketDummy, "%%{")
 end
 
+-- formats remaining positional placeholders (%s, %d, %5d, ...); unconsumed args and lone % render raw instead of crashing
+local function interpolatePositionalVariables(str, vars)
+  if str:find('%%') and not str:find('%%{') and not str:find('%%<') then
+    local scan = str:gsub('%%%%', '')
+    local _, percentCount = scan:gsub('%%[%-%d%.]*%a', '')
+    local args = {}
+    for i = 1, percentCount do
+      args[i] = vars[i] or vars[tostring(i)] or 'nil'
+    end
+    local ok, formatted = pcall(string.format, str, unpack(args))
+    if ok then
+      str = formatted
+    end
+  end
+  return str
+end
+
 
 local function interpolate(str, vars)
   vars = vars or {}
   str = escapeDoublePercent(str)
   str = interpolateVariables(str, vars)
   str = interpolateFormattedVariables(str, vars)
-  str = string.format(str, unpack(vars))
+  str = interpolatePositionalVariables(str, vars)
   str = unescapeDoublePercent(str)
   return str
 end

@@ -212,3 +212,9 @@ function gadget:Initialize()
 	addShieldDamage = GG.Shields.AddShieldDamage
 	GG.Shields.RegisterShieldPreDamaged(dgunData, shieldPreDamaged)
 end
+
+function gadget:Shutdown()
+	if GG.Shields then
+		GG.Shields.RegisterShieldPreDamaged(dgunData, nil)
+	end
+end

@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 	local bosses = {resistances = queenResistance, statuses = {}, playerDamages = {}}
 	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
 	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
-	local lsx1, lsz1, lsx2, lsz2
+	local lsx1, lsz1, lsx2, lsz2 = 0, 0, Game.mapSizeX, Game.mapSizeZ
 	local burrows = {}
 	local aliveEggsTable = {}
 	local squadsTable = {}
@@ -956,6 +956,18 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					queenStagger.currentlyStaggered = true
 					queenStagger.CurrentTimer = queenStagger.Time + 0
+					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
+						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,50 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000), 0,0,0)
+							end
+						end
+					end
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 				end
 			end
@@ -965,7 +977,16 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.CurrentTimer > 0 then
 					SetGameRulesParam("raptorQueenStaggerPercentage", math.ceil((1 - (queenStagger.CurrentTimer/queenStagger.Time))*100))
 					for queenID, _ in pairs(queenIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(queenID)
+						Spring.AddUnitDamage(queenID, 0, 1600000)
 						Spring.SetUnitHealth(queenID, {paralyze = 16000000})
+						for j = 1,10 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+							end
+						end
 					end
 				else
 					queenStagger.currentlyStaggered = false
@@ -984,9 +1005,15 @@ if gadgetHandler:IsSyncedCode() then
 			SetGameRulesParam("raptorQueenStaggerActive", queenStagger.currentlyStaggered)
 		end
 
-		SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+		if totalMaxHealth and totalMaxHealth > 0 then
+			SetGameRulesParam("raptorQueenHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+			RaptorQueenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		else
+			SetGameRulesParam("raptorQueenHealth", 0)
+			RaptorQueenHealthPercentage = 0
+		end
+		
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
-		RaptorQueenHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
 	end
 
 	function SpawnQueen()
@@ -1552,6 +1579,12 @@ if gadgetHandler:IsSyncedCode() then
 				if queenStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
 					queenStagger.CurrentTimer = queenStagger.CurrentTimer - (damage*0.0001)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+					else
+						SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+					end
 				else
 					damage = damage - (damage * resistPercent)
 				end
@@ -1565,7 +1598,7 @@ if gadgetHandler:IsSyncedCode() then
 			return damage
 		end
 		if attackerID and queenIDs[attackerID] then -- Boss Resistance
-			if ScavBossHealthPercentage then
+			if RaptorQueenHealthPercentage then
 				if RaptorQueenHealthPercentage > 50 then
 					damage = damage * 0.25
 				elseif RaptorQueenHealthPercentage > 25 then

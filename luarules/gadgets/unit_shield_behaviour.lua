@@ -31,20 +31,19 @@ local SHIELDSTATE_ENABLED = 1
 local armorTypeShields = Game.armorTypes.shields
 
 local originalShieldDamages = table.new(#WeaponDefs, 1) -- [0] goes into hash part
-local scriptedShieldDamages = {}
-local scriptedShieldEntries = {}
-local scriptedShieldEntryIndex = {}
+local scriptedShieldEntries = {} ---@type [table, function][]
 
 local function registerScriptedShieldEntry(projectileTbl, callback)
-	local index = scriptedShieldEntryIndex[projectileTbl]
+	local index = table.getKeyOf(scriptedShieldEntries, projectileTbl)
 	if index then
-		scriptedShieldEntries[index][2] = callback
-	else
+		if callback then
+			scriptedShieldEntries[index][2] = callback
+		else
+			table.remove(scriptedShieldEntries, index)
+		end
+	elseif callback then
 		scriptedShieldEntries[#scriptedShieldEntries + 1] = { projectileTbl, callback }
-		scriptedShieldEntryIndex[projectileTbl] = #scriptedShieldEntries
 	end
-
-	scriptedShieldDamages[projectileTbl] = callback
 end
 
 -- Some modoptions require engine shield behaviors (namely their bounce/repulsion effects):
@@ -93,7 +92,7 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 
 	---Add a scripted weapon type to be handled by the shield behaviour gadget.
 	---@param projectileTbl table [projectileID] := true
-	---@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+	---@param callback ShieldPreDamagedCallback? accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 	local function registerShieldPreDamaged(projectileTbl, callback)
 		if #scriptedShieldEntries == 0 then
 			gadget.ShieldPreDamaged = doShieldPreDamaged
@@ -102,15 +101,22 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		registerScriptedShieldEntry(projectileTbl, callback)
 	end
 
+	local function getEmptyResultSet()
+		return {}, 0
+	end
+
 	function gadget:Initialize()
 		GG.Shields = {}
 		GG.Shields.AddShieldDamage = addEngineShieldDamage
 		GG.Shields.DamageToShields = originalShieldDamages
-		GG.Shields.GetUnitShieldPosition = function() end -- TODO: parts of the api are not usable (nor needed)
-		GG.Shields.GetShieldUnitsInSphere = function() end -- TODO: parts of the api are not usable (nor needed)
-		GG.Shields.GetUnitShieldState = spGetUnitShieldState
-		GG.Shields.IsInShield = function() end -- TODO: parts of the api are not usable (nor needed)
 		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
+		GG.Shields.GetUnitShieldState = spGetUnitShieldState
+		-- FIXME: The shields api does not have full coverage for engine/bounce shields.
+		GG.Shields.GetUnitShieldPosition = function() end
+		GG.Shields.GetShieldUnitsInSphere = getEmptyResultSet
+		GG.Shields.GetBlockingShieldUnits = getEmptyResultSet
+		GG.Shields.GetCoveringShieldUnits = getEmptyResultSet
+		GG.Shields.IsInShield = function() return false end -- unfortunate
 	end
 
 	return -- do not load custom shields gadget
@@ -896,7 +902,7 @@ end
 
 ---Add a scripted weapon type to be handled by the shield behaviour gadget.
 ---@param projectileTbl table [projectileID] := true
----@param callback ShieldPreDamagedCallback accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
+---@param callback ShieldPreDamagedCallback? accepting the ShieldPreDamaged args (excluding self-ref), returning `true` when consuming the event
 local function registerShieldPreDamaged(projectileTbl, callback)
 	registerScriptedShieldEntry(projectileTbl, callback)
 end

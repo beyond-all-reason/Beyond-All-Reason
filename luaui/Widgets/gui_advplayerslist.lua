@@ -207,6 +207,7 @@ local sidePics = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
+widget._advPlayersListDrawState = { lastDrawGameFrame = curFrame, sawSpareDrawFrame = false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -627,6 +628,7 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
 end
 
 local teamRanking = {}
+local allyTeamRanking = nil
 local isPvE = Spring.Utilities.Gametype.IsPvE()
 
 ---------------------------------------------------------------------------------------------------
@@ -778,33 +780,29 @@ local function LockCamera(playerID)
     UpdateRecentBroadcasters()
 end
 
-function GpuMemEvent(playerID, percentage)
+local function GpuMemEvent(playerID, percentage)
     lastGpuMemData[playerID] = percentage
 end
 
-function LuaMemEvent(playerID, um)
+local function LuaMemEvent(playerID, um)
     lastLuaMemData[playerID] = um
 end
 
-function FpsEvent(playerID, fps)
+local function FpsEvent(playerID, fps)
 	lastFpsData[playerID] = fps
-	WG.playerFPS = WG.playerFPS or {}
-	WG.playerFPS[playerID] = fps
 end
 
-function RankingEvent(allyTeamRanking)
-	WG.allyTeamRanking = allyTeamRanking
+local function RankingEvent(ranking)
+    allyTeamRanking = ranking
 	SortList()
 	CreateLists()
 end
 
-function ApmEvent(teamID, fps)
+local function ApmEvent(teamID, fps)
 	lastApmData[teamID] = fps
-	WG.teamAPM = WG.teamAPM or {}
-	WG.teamAPM[teamID] = fps
 end
 
-function SystemEvent(playerID, system)
+local function SystemEvent(playerID, system)
     local lines, length = 0, 0
     local function helper(line)
         lines = lines + 1;
@@ -815,12 +813,9 @@ function SystemEvent(playerID, system)
     end
     helper( system:gsub("(.-)\r?\n", helper) )
     lastSystemData[playerID] = system
-
-    WG.playerSystemData = WG.playerSystemData or {}
-    WG.playerSystemData[playerID] = system
 end
 
-function ActivityEvent(playerID)
+local function ActivityEvent(playerID)
     lastActivity[playerID] = osClock()
 end
 
@@ -849,7 +844,7 @@ end
 function widget:PlayerChanged(playerID)
     -- Capture name before doPlayerUpdate rebuilds the player table
     local p = player[playerID]
-    if p and p.team and p.name and p.name ~= absentName then
+    if p and p.team and p.name and p.name ~= absentName and not p.spec then
         local _, newActive, newSpec = sp.GetPlayerInfo(playerID, false)
         if newSpec or not newActive then
             lastKnownTeamNames[p.team] = p.name
@@ -883,7 +878,7 @@ function widget:TeamDied(teamID)
     if not lastKnownTeamNames[teamID] then
         for pID = 0, specOffset-1 do
             local p = player[pID]
-            if p and p.team == teamID and p.name and p.name ~= absentName then
+            if p and p.team == teamID and p.name and p.name ~= absentName and not p.spec then
                 lastKnownTeamNames[teamID] = p.name
                 break
             end
@@ -971,16 +966,36 @@ local function speclistCmd(_, _, params)
 	CreateLists()
 end
 
+function widget:ActivityEvent(playerID)
+    ActivityEvent(playerID)
+end
+
+function widget:FpsEvent(playerID, fps)
+    FpsEvent(playerID, fps)
+end
+
+function widget:ApmEvent(teamID, apm)
+    ApmEvent(teamID, apm)
+end
+
+function widget:GpuMemEvent(playerID, mem)
+    GpuMemEvent(playerID, mem)
+end
+
+function widget:LuaMemEvent(playerID, mem)
+    LuaMemEvent(playerID, mem)
+end
+
+function widget:SystemEvent(playerID, systemData)
+    SystemEvent(playerID, systemData)
+end
+
+function widget:RankingEvent(ranking)
+    RankingEvent(ranking)
+end
+
 function widget:Initialize()
 	widget:ViewResize()
-
-	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
-	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
-	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
-	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
-	widgetHandler:RegisterGlobal('LuaMemEvent', LuaMemEvent)
-	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = spGetSpectatingState()
@@ -1110,13 +1125,6 @@ function widget:Shutdown()
 		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
-    widgetHandler:DeregisterGlobal('ActivityEvent')
-	widgetHandler:DeregisterGlobal('FpsEvent')
-	widgetHandler:DeregisterGlobal('ApmEvent')
-    widgetHandler:DeregisterGlobal('GpuMemEvent')
-    widgetHandler:DeregisterGlobal('LuaMemEvent')
-    widgetHandler:DeregisterGlobal('SystemEvent')
-    widgetHandler:DeregisterGlobal('RankingEvent')
     if ShareSlider then
         gl_DeleteList(ShareSlider)
     end
@@ -1180,7 +1188,7 @@ function GetAllPlayers()
             -- Try player entries still carrying this team (works right as player leaves)
             for pID = 0, specOffset - 1 do
                 local ep = player[pID]
-                if ep and ep.team == i and ep.name and ep.name ~= absentName then
+                if ep and ep.team == i and ep.name and ep.name ~= absentName and not ep.spec then
                     lastKnownTeamNames[i] = ep.name
                     break
                 end
@@ -1629,14 +1637,14 @@ function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
     local allyTeamList = sp.GetAllyTeamList()
-	if WG.allyTeamRanking then
-		allyTeamList = WG.allyTeamRanking
+    if allyTeamRanking then
+        allyTeamList = allyTeamRanking
 	end
 
 	-- find own ally team
 	vOffset = 12 / 2.66
 	local ownAllyTeamDrawn = false
-	if not WG.allyTeamRanking or not enemyListShow then
+    if not allyTeamRanking or not enemyListShow then
 		local showOwnAlly = not mySpecStatus or (not hideDeadAllyTeams or (aliveAllyTeams[myAllyTeamID] and populatedAllyTeams[myAllyTeamID]))
 		if showOwnAlly then
 		ownAllyTeamDrawn = true
@@ -1658,7 +1666,7 @@ function SortAllyTeams(vOffset)
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
-		if not WG.allyTeamRanking or not enemyListShow then
+        if not allyTeamRanking or not enemyListShow then
 			if ownAllyTeamDrawn then
 				vOffset = vOffset + 13
 			end
@@ -1672,8 +1680,8 @@ function SortAllyTeams(vOffset)
 		-- add the others
 		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+            for _, allyTeamID in ipairs(allyTeamList) do
+                if (allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
 					if firstenemy then
 						firstenemy = false
 					else
@@ -1843,10 +1851,15 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-    if updateMainLists then
+    local drawGameFrame = spGetGameFrame()
+    local drawState = self._advPlayersListDrawState
+    local renderOnlyFrame = drawGameFrame == drawState.lastDrawGameFrame
+    if updateMainLists and (renderOnlyFrame or not drawState.sawSpareDrawFrame) then
         doCreateLists(updateMainLists[1], updateMainLists[2], updateMainLists[3])
         updateMainLists = nil
     end
+    drawState.sawSpareDrawFrame = renderOnlyFrame
+    drawState.lastDrawGameFrame = drawGameFrame
 
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
@@ -1889,6 +1902,25 @@ function widget:DrawScreen()
                             DrawEraser(posY, p.eraserTime - now)
                         end
                     end
+                end
+            end
+        end
+        gl_Texture(false)
+        gl.PopMatrix()
+        gl.PushMatrix()
+    end
+
+    -- Draw the take signal outside render-to-texture so it extends beyond widget bounds (and can blink)
+    if m_take.active and mySpecStatus == false and blink then
+        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+        gl.Scale(widgetScale, widgetScale, 0)
+        gl.Translate(scaleDiffX, scaleDiffY, 0)
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i])
                 end
             end
         end
@@ -2184,7 +2216,7 @@ function drawMainList()
                 if numberOfEnemies == 0 or enemyListShow then
                     enemyAmount = ""
                 end
-                if WG.allyTeamRanking and enemyListShow then
+                if allyTeamRanking and enemyListShow then
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else
@@ -2406,7 +2438,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local ping = p.ping
     local cpu = p.cpu
     local spec = p.spec
-    local totake = p.totake
     local needm = p.needm
     local neede = p.neede
     local dead = p.dead
@@ -2467,14 +2498,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if mySpecStatus == false then
                 if onlyMainList2 then
                     if allyteam == myAllyTeamID then
-                        if m_take.active then
-                            if totake then
-                                DrawTakeSignal(posY)
-                                if tipY then
-                                    TakeTip(mouseX)
-                                end
-                            end
-                        end
+                        -- take signal + its tooltip are handled live in DrawScreen/Update (outside the
+                        -- render-to-texture) so they can extend beyond the widget bounds and blink
                         if m_share.active and not dead and not hideShareIcons then
                             DrawShareButtons(posY, needm, neede)
                             if tipY then
@@ -2582,13 +2607,15 @@ end
 
 function DrawTakeSignal(posY)
     if blink then
-        -- Draws a blinking rectangle if the player of the same team left (/take option)
+        -- Draws a blinking arrow + "TAKE" label if a same-team player left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
-        DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+        DrawRect(widgetPosX - (14*playerScale), posY, widgetPosX, posY + (16*playerScale))
         gl_Color(1, 1, 1)
         gl_Texture(pics["takePic"])
-        DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
+        -- take.dds is a square image (90x90), so keep a 1:1 aspect to avoid distortion
+        DrawRect(widgetPosX - (57*playerScale), posY - (14*playerScale), widgetPosX - (12*playerScale), posY + (31*playerScale))
+        gl_Color(1, 1, 1, 1)
     end
 end
 
@@ -3190,13 +3217,6 @@ function DrawEraser(posY, time)
     gl_Color(1, 1, 1, 1)
 end
 
-function TakeTip(mouseX)
-    if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-        tipText = Spring.I18N('ui.playersList.takeUnits')
-        tipTextTime = osClock()
-    end
-end
-
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	local pTip = player[playerID]
 	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
@@ -3364,7 +3384,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, luamem, system, name, 
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
         if luamem ~= nil then
-            tipText = tipText .. "    Lua: " .. luamem .. " MB"
+            tipText = tipText .. "    Lua: " .. luamem .. "MB\n"
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then
@@ -3421,27 +3441,19 @@ function CreateShareSlider()
     end)
 end
 
--- Pre-extract thresholds for fast lookup (avoids table access in hot path)
-local cpuThresholds = {}
-local pingThresholds = {}
-for level, data in ipairs(pingLevelData) do
-    cpuThresholds[level] = data.cpuThreshold
-    pingThresholds[level] = data.pingThreshold
-end
-
 function GetCpuLvl(cpuUsage)
-    if cpuUsage < cpuThresholds[1] then return 1
-    elseif cpuUsage < cpuThresholds[2] then return 2
-    elseif cpuUsage < cpuThresholds[3] then return 3
-    elseif cpuUsage < cpuThresholds[4] then return 4
+    if cpuUsage < pingLevelData[1].cpuThreshold then return 1
+    elseif cpuUsage < pingLevelData[2].cpuThreshold then return 2
+    elseif cpuUsage < pingLevelData[3].cpuThreshold then return 3
+    elseif cpuUsage < pingLevelData[4].cpuThreshold then return 4
     else return 5 end
 end
 
 function GetPingLvl(ping)
-    if ping < pingThresholds[1] then return 1
-    elseif ping < pingThresholds[2] then return 2
-    elseif ping < pingThresholds[3] then return 3
-    elseif ping < pingThresholds[4] then return 4
+    if ping < pingLevelData[1].pingThreshold then return 1
+    elseif ping < pingLevelData[2].pingThreshold then return 2
+    elseif ping < pingLevelData[3].pingThreshold then return 3
+    elseif ping < pingLevelData[4].pingThreshold then return 4
     else return 5 end
 end
 
@@ -4081,6 +4093,28 @@ function widget:Update(delta)
     --handles takes & related messages
     local mx, my = spGetMouseState()
     hoverPlayerlist = false
+
+    -- the take icon is drawn to the left of the panel, so detect hovering it independently of the panel bounds
+    local overTakeIcon = false
+    if m_take.active and mySpecStatus == false
+        and mx >= widgetPosX - 57 * widgetScale and mx <= widgetPosX - 1 * widgetScale then
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    local posY = widgetPosY + ((widgetHeight - drawListOffset[i]) * widgetScale)
+                    if my >= posY and my <= posY + (16 * widgetScale * playerScale) then
+                        overTakeIcon = true
+                        tipText = Spring.I18N('ui.playersList.takeUnits')
+                        tipTextTitle = nil
+                        tipTextTime = osClock()
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
 
@@ -4097,10 +4131,12 @@ function widget:Update(delta)
 				tipTextTime = osClock()
 			end
 		end
+    end
 
-        if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
-        end
+    if (hoverPlayerlist or overTakeIcon) and tipText and WG['tooltip'] then
+        WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
+    end
+    if hoverPlayerlist or overTakeIcon then
         Spring.SetMouseCursor('cursornormal')
     end
 

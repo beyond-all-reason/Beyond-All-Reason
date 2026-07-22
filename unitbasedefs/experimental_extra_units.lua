@@ -163,6 +163,7 @@ local function experimentalExtraUnits(name, unitDef)
 	if name == "leggant" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
+		buildoptions[numBuildoptions + 2] = "legapollyon" -- Apollyon - Heavy Gatling Tank
 	end
 end
 

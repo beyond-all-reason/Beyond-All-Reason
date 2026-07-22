@@ -1105,6 +1105,18 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					bossStagger.currentlyStaggered = true
 					bossStagger.CurrentTimer = bossStagger.Time + 0
+					for bossID, _ in pairs(bossIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(bossID)
+						Spring.AddUnitDamage(bossID, 0, 1600000)
+						Spring.SetUnitHealth(bossID, {paralyze = 16000000})
+						for j = 1,50 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-1000, 1000), uy+100, uz+math.random(-1000, 1000), 0,0,0)
+							end
+						end
+					end
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
 				end
 			end
@@ -1114,7 +1126,16 @@ if gadgetHandler:IsSyncedCode() then
 				if bossStagger.CurrentTimer > 0 then
 					SetGameRulesParam("scavBossStaggerPercentage", math.ceil((1 - (bossStagger.CurrentTimer/bossStagger.Time))*100))
 					for bossID, _ in pairs(bossIDs) do
+						local ux, uy, uz = Spring.GetUnitPosition(bossID)
+						Spring.AddUnitDamage(bossID, 0, 1600000)
 						Spring.SetUnitHealth(bossID, {paralyze = 16000000})
+						for j = 1,10 do
+							if GG.SpawnEnvironmentalLightning then
+								GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+							else
+								SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+							end
+						end
 					end
 				else
 					bossStagger.currentlyStaggered = false
@@ -1132,10 +1153,14 @@ if gadgetHandler:IsSyncedCode() then
 
 			SetGameRulesParam("scavBossStaggerActive", bossStagger.currentlyStaggered)
 		end
-
-		SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+		if totalMaxHealth and totalMaxHealth > 0 then
+			SetGameRulesParam("scavBossHealth", math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100)))
+			ScavBossHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
+		else
+			SetGameRulesParam("scavBossHealth", 0)
+			ScavBossHealthPercentage = 0
+		end
 		SetGameRulesParam("pveBossInfo", Json.encode(bosses))
-		ScavBossHealthPercentage = math.floor(0.5 + ((totalHealth / totalMaxHealth) * 100))
 	end
 
 	function SpawnBoss()
@@ -1764,6 +1789,12 @@ if gadgetHandler:IsSyncedCode() then
 				if bossStagger.currentlyStaggered then
 					damage = damage - (damage * resistPercent * 0.5)
 					bossStagger.CurrentTimer = bossStagger.CurrentTimer - (damage*0.0001)
+					local ux, uy, uz = Spring.GetUnitPosition(unitID)
+					if GG.SpawnEnvironmentalLightning then
+						GG.SpawnEnvironmentalLightning("scavradiation", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500))
+					else
+						SpawnCEG("scavradiation-lightning", ux+math.random(-500, 500), uy+100, uz+math.random(-500, 500), 0,0,0)
+					end
 				else
 					damage = damage - (damage * resistPercent)
 				end

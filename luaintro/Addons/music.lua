@@ -12,6 +12,31 @@ if addon.InGetInfo then
 	}
 end
 
+local function capitalize(text)
+	local str = ''
+	local upperNext = true
+	local char = ''
+	for i=1, string.len(text) do
+		char = string.sub(text, i,i)
+		if upperNext then
+			str = str..string.upper(char)
+			upperNext = false
+		else
+			str = str..char
+		end
+		if char == ' ' then
+			upperNext = true
+		end
+	end
+	return str
+end
+
+local function processTrackname(trackname)
+	trackname = string.gsub(trackname, ".%w+$", "")
+	trackname = trackname:match("[^/|\\]*$")
+	return capitalize(trackname)
+end
+
 function addon.DrawLoadScreen()
 	-- local loadProgress = SG.GetLoadProgress()
 
@@ -115,15 +140,23 @@ function addon.Initialize()
 	end
 
 	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-	if #musicPlaylistEvent > 0 then
-		local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
-		Spring.PlaySoundStream(pickedTrack, 1)
-		Spring.SetSoundStreamVolume(musicvolume)
-		Spring.SetConfigString('music_loadscreen_track', pickedTrack)
-	elseif #musicPlaylist > 0 then
-		local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
-		Spring.PlaySoundStream(pickedTrack, 1)
-		Spring.SetSoundStreamVolume(musicvolume)
-		Spring.SetConfigString('music_loadscreen_track', pickedTrack)
+	for i = 1,200 do
+		if #musicPlaylistEvent > 0 or i > 100 then
+			local pickedTrack = musicPlaylistEvent[math.random(1, #musicPlaylistEvent)]
+			if Spring.GetConfigInt("MusicSwitch " .. processTrackname(pickedTrack), 1) == 1 then
+				Spring.PlaySoundStream(pickedTrack, 1)
+				Spring.SetSoundStreamVolume(musicvolume)
+				Spring.SetConfigString('music_loadscreen_track', pickedTrack)
+				break
+			end
+		elseif #musicPlaylist > 0 then
+			local pickedTrack = musicPlaylist[math.random(1, #musicPlaylist)]
+			if Spring.GetConfigInt("MusicSwitch " .. processTrackname(pickedTrack), 1) == 1 or i == 100 then
+				Spring.PlaySoundStream(pickedTrack, 1)
+				Spring.SetSoundStreamVolume(musicvolume)
+				Spring.SetConfigString('music_loadscreen_track', pickedTrack)
+				break
+			end
+		end
 	end
 end
