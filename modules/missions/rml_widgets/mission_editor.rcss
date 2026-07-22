@@ -106,15 +106,14 @@
 }
 
 .me-x {
-    margin-left: 8px;
-    padding: 0 6px;
+    margin-left: 4px;
+    padding: 1px 6px;
     font-size: 0.7em;
     color: #e06c75;
 }
 
 .me-swap {
-    width: 110px;
-    margin-left: 8px;
+    width: 58px;
     font-size: 0.7em;
 }
 
@@ -127,7 +126,15 @@
 
 .me-step {
     display: block;
+    position: relative;
     margin: 5px 0;
+    padding-right: 84px;
+}
+
+.me-step-tools {
+    position: absolute;
+    right: 0px;
+    top: 1px;
 }
 
 .me-step-verb {
@@ -171,7 +178,7 @@
 
 .me-add {
     display: inline-block;
-    width: 180px;
+    width: 150px;
     height: 1.5em;
     vertical-align: middle;
     padding: 0;
@@ -323,4 +330,21 @@ scrollbarvertical sliderarrowdec,
 scrollbarvertical sliderarrowinc {
     width: 0px;
     height: 0px;
+}
+
+/* The dropdown caret: a border-trick triangle on the widget's arrow element
+   (no image assets needed), with room reserved in the value area. */
+.me-select selectvalue,
+.me-add selectvalue {
+    padding: 2px 20px 2px 6px;
+}
+
+.me-select selectarrow,
+.me-add selectarrow {
+    width: 0px;
+    height: 0px;
+    margin: 8px 6px 0 -16px;
+    border-top: 6px #9cc2ff;
+    border-left: 5px #00000000;
+    border-right: 5px #00000000;
 }
