@@ -39,7 +39,7 @@ end
 -- Localized engine functions
 --------------------------------------------------------------------------------
 local spEcho = Spring.Echo
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitPosition = Spring.GetUnitPosition
 local spIsPosInAirLos = Spring.IsPosInAirLos
@@ -1809,7 +1809,7 @@ function gadget:Initialize()
 end
 
 function gadget:PlayerChanged(playerID)
-	if playerID ~= Spring.GetMyPlayerID() then
+	if playerID ~= Spring.GetLocalPlayerID() then
 		return
 	end
 	cachedAllyTeamID = spGetMyAllyTeamID()

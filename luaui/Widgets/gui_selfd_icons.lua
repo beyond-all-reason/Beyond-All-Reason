@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local ignoreUnitDefs = {}

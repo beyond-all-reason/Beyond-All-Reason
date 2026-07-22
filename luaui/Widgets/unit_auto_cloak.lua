@@ -43,7 +43,7 @@ local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var
 local cloakunits = {} -- get UnitID for initial local function
 local giveOrderToUnit = Spring.GiveOrderToUnit --optimization
-local spUnitTeam = Spring.GetMyTeamID --optimization
+local spUnitTeam = Spring.GetLocalTeamID --optimization
 
 local function cloakDeActive(unitID, unitDefID) --DeActivator of Cloak for all units with clock
 	if unitdefConfig[unitDefID] then
