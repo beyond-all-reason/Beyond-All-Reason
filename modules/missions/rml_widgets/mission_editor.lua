@@ -151,11 +151,14 @@ end
 ---@param filePath string
 ---@param line string
 local function requestOpenInEditor(filePath, line)
+	Spring.CreateDir("modules/missions/editor")
 	local handle = io.open(OPEN_REQUEST_PATH, "w")
 	if handle == nil then
 		Spring.Echo("[mission_editor] cannot write " .. OPEN_REQUEST_PATH)
 		return
 	end
+	local writeDir = Platform and Platform.writeDir or "?"
+	Spring.Echo("[mission_editor] open request -> " .. tostring(writeDir) .. OPEN_REQUEST_PATH)
 	handle:write(Json.encode({ file = filePath, line = tonumber(line) or 1 }))
 	handle:close()
 end
