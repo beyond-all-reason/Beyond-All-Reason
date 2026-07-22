@@ -499,6 +499,21 @@ local function attachFormControls()
 	local selects = content:GetElementsByTagName("select")
 	for i = 1, #selects do
 		local select = selects[i]
+		-- The dropdown widget's own option-click listeners don't fire for
+		-- inner_rml-built selects in this build; selection driven
+		-- programmatically works (verified), so arm the options ourselves.
+		local control = RmlUi.Element.As.ElementFormControlSelect(select)
+		if control then
+			local options = select:GetElementsByTagName("option")
+			for optionIndex = 1, #options do
+				local option = options[optionIndex]
+				option:AddEventListener("click", function()
+					Spring.Echo("[mission_editor] option click " .. optionIndex)
+					control.selection = optionIndex - 1
+					select:Blur()
+				end)
+			end
+		end
 		select:AddEventListener("change", function()
 			local value = tostring(select:GetAttribute("value") or "")
 			Spring.Echo("[mission_editor] select -> " .. value)
