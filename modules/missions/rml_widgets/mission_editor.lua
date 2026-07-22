@@ -314,9 +314,9 @@ local function renderTrigger(trigger, ctx, style)
 				.. step.verb:upper()
 				.. '</span><span class="me-step-body">'
 				.. table.concat(args, ", ")
-				.. "</span>"
+				.. '</span><span class="me-step-tools">'
 				.. table.concat(tail, "")
-				.. "</div>"
+				.. "</span></div>"
 		end
 	end
 	-- The add palette: effects the current surface offers, from the schema
@@ -508,7 +508,6 @@ local function attachFormControls()
 			for optionIndex = 1, #options do
 				local option = options[optionIndex]
 				option:AddEventListener("click", function()
-					Spring.Echo("[mission_editor] option click " .. optionIndex)
 					control.selection = optionIndex - 1
 					select:Blur()
 				end)
