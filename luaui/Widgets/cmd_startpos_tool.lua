@@ -861,9 +861,12 @@ local function getMapName()
 	return Game.mapName or "unknown"
 end
 
-local function saveStartPositions(name)
-	Spring.CreateDir(SAVE_DIR)
-	local filename = SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function saveStartPositions(name, explicitPath)
+	local filename = explicitPath
+	if not filename then
+		Spring.CreateDir(SAVE_DIR)
+		filename = SAVE_DIR .. (name or getMapName()) .. ".lua"
+	end
 	local lines = {}
 	lines[#lines + 1] = "-- Start Positions Config"
 	lines[#lines + 1] = "-- Map: " .. getMapName()
@@ -890,8 +893,8 @@ local function saveStartPositions(name)
 	end
 end
 
-local function loadStartPositions(name)
-	local filename = SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function loadStartPositions(name, explicitPath)
+	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
 		return VFS.Include(filename, nil, VFS.RAW_FIRST)
 	end)
@@ -919,9 +922,12 @@ local function listSavedConfigs()
 	return names
 end
 
-local function saveStartboxes(name)
-	Spring.CreateDir(STARTBOX_SAVE_DIR)
-	local filename = STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function saveStartboxes(name, explicitPath)
+	local filename = explicitPath
+	if not filename then
+		Spring.CreateDir(STARTBOX_SAVE_DIR)
+		filename = STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua"
+	end
 	local lines = {}
 	lines[#lines + 1] = "-- Startbox Config"
 	lines[#lines + 1] = "-- Map: " .. getMapName()
@@ -955,8 +961,8 @@ local function saveStartboxes(name)
 	end
 end
 
-local function loadStartboxes(name)
-	local filename = STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua"
+local function loadStartboxes(name, explicitPath)
+	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
 		return VFS.Include(filename, nil, VFS.RAW_FIRST)
 	end)

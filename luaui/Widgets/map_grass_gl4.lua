@@ -1130,7 +1130,7 @@ local function savegrassCmd(_, _, params)
 	if saveError then spEcho("Saving grass map image failed", filename, saveError) end
 end
 
-local function exportGrassConfig(filename)
+local function exportGrassConfig(filename, opts)
 	local function fmtVal(v)
 		local t = type(v)
 		if t == "number" then
@@ -1160,7 +1160,13 @@ local function exportGrassConfig(filename)
 	local out = {
 		"-- Grass config export from Map Grass GL4",
 		"-- Map: " .. (Game.mapName or "unknown"),
-		"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
+	}
+	-- Project saves suppress the date comment: repeated saves of unchanged state
+	-- must serialize identically (project files live in git).
+	if not (opts and opts.nodate) then
+		out[#out + 1] = "-- Date: " .. os.date("%Y-%m-%d %H:%M:%S")
+	end
+	local body = {
 		"-- Paste mapinfo.custom = mapinfo.custom or {} and then mapinfo.custom.grassConfig = (this file table).custom.grassConfig",
 		"return {",
 		"\tcustom = {",
@@ -1182,6 +1188,9 @@ local function exportGrassConfig(filename)
 		"",
 		"\t\t\tgrassShaderParams = {",
 	}
+	for i = 1, #body do
+		out[#out + 1] = body[i]
+	end
 
 	for i = 1, #shaderKeys do
 		local k = shaderKeys[i]
@@ -1457,8 +1466,8 @@ function widget:Initialize()
 		spEcho("[Grass] Saved grass map: " .. filename)
 		return true
 	end
-	WG['grassgl4'].saveGrassConfig = function(filename)
-		local ok = exportGrassConfig(filename)
+	WG['grassgl4'].saveGrassConfig = function(filename, opts)
+		local ok = exportGrassConfig(filename, opts)
 		return ok
 	end
 	WG['grassgl4'].getVisualConfig = function()

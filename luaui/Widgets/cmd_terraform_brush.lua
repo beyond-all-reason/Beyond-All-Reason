@@ -2316,6 +2316,15 @@ local function doImportHeightmapSend()
 	end
 end
 
+-- Heightmap import progress probe for the map project load orchestrator
+-- (cmd_map_project.lua): (busy, columnsSent, columnsTotal). busy covers both the
+-- queued file (not yet decoded) and an in-flight column stream. Attached to
+-- extraState so it can read the file-locals as upvalues (200-local ceiling).
+extraState._importStatus = function()
+	local total = importHeightRows and #importHeightRows or 0
+	return (pendingImportFile ~= nil) or (importHeightRows ~= nil), importRowIndex or 0, total
+end
+
 -- Pre-bundle noise setters into extraState to keep widget:Initialize under the 60-upvalue limit
 -- without adding a new chunk-level local (which would breach the 200-local limit).
 extraState._noiseSetters = {
@@ -2362,6 +2371,7 @@ function widget:Initialize()
 	end
 
 	WG.TerraformBrush = {
+		getImportStatus = extraState._importStatus,
 		setMode = setMode,
 		setShape = setShape,
 		rotate = rotateBy,

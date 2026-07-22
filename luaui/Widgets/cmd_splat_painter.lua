@@ -161,6 +161,9 @@ local lastPaintZ = nil
 local pendingInit = false
 local pendingPaintStrokes = {}
 local pendingSave = false
+local pendingSavePath = nil  -- explicit target (project save); nil = default export dir
+local pendingLoadPath = nil  -- deferred project load (executes in DrawWorld)
+local lastLoadResult = nil   -- "ok" or "failed: <reason>" after the deferred load ran
 
 -- Undo/redo history (texture snapshots per drag)
 local MAX_UNDO_SPLAT = 20
@@ -720,28 +723,100 @@ end
 -- ============ SAVE / EXPORT ============
 
 -- Execute the actual save (must be called from a Draw call-in)
-local function executeSaveSplats()
+local function executeSaveSplats(explicitPath)
 	if not fboTex then return end
 
-	local ext = EXPORT_FORMATS[exportFormatIndex] or "png"
-	local SPLATS_DIR = "Terraform Brush/Splats/"
-	Spring.CreateDir(SPLATS_DIR)
-	local filename = SPLATS_DIR .. "splat_export_" .. Game.mapName .. "." .. ext
+	local filename = explicitPath
+	if not filename then
+		local ext = EXPORT_FORMATS[exportFormatIndex] or "png"
+		local SPLATS_DIR = "Terraform Brush/Splats/"
+		Spring.CreateDir(SPLATS_DIR)
+		filename = SPLATS_DIR .. "splat_export_" .. Game.mapName .. "." .. ext
+	end
 
 	glRenderToTexture(fboTex, function()
-		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false })
+		-- alpha=true: the distribution is 4 channels — without it the A channel
+		-- (splat 4) is silently dropped from the export.
+		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false, alpha = true })
 	end)
 
 	Echo("[Splat Painter] Saved splat distribution to: " .. filename .. " (" .. splatTexWidth .. "x" .. splatTexHeight .. ")")
 end
 
 -- Public API: always defers to DrawWorld
-local function requestSaveSplats()
+local function requestSaveSplats(explicitPath)
 	if not fboTex and not active then
 		Echo("[Splat Painter] No splat texture to save")
 		return
 	end
+	pendingSavePath = explicitPath
 	pendingSave = true
+end
+
+-- ============ PROJECT LOAD ============
+
+-- Blit a saved splat distribution PNG INTO the painter's own fboTex (must be
+-- called from a Draw call-in). Ownership rule: fboTex stays the single owner of
+-- the splat state — a loader-owned texture would be clobbered by the first
+-- paint stroke and dangle on widget reload. Because the PNG lands inside
+-- fboTex, a paint stroke after load extends the loaded state.
+local function executeLoadSplats(path)
+	if not paintShader then
+		if not createShaders() then
+			return "failed: shader creation failed"
+		end
+	end
+	if not fboTex then
+		if not initSplatTexture() then
+			return "failed: map exposes no splat distribution texture (DNTS not bound?)"
+		end
+	end
+
+	local texName = ":l:" .. path
+	if not gl.Texture(texName) then
+		return "failed: could not load " .. path
+	end
+	gl.Texture(false)
+	local info = gl.TextureInfo(texName)
+	if not info or not info.xsize or info.xsize <= 0 then
+		return "failed: could not read texture info for " .. path
+	end
+	if info.xsize > splatTexWidth or info.ysize > splatTexHeight then
+		Echo(string.format(
+			"[Splat Painter] Warning: loaded splat PNG (%dx%d) is larger than the edit texture (%dx%d); downscaling.",
+			info.xsize, info.ysize, splatTexWidth, splatTexHeight))
+	end
+
+	glRenderToTexture(fboTex, function()
+		glBlending(false)
+		glUseShader(copyShader)
+		glTexture(0, texName)
+		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(true)
+	end)
+	gl.DeleteTexture(texName)
+
+	-- Rebind through the painter's own path so the engine points at fboTex and
+	-- the binding inherits the painter's reload lifecycle.
+	SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+	texApplied = true
+
+	Echo(string.format("[Splat Painter] Loaded splat distribution from %s (%dx%d into %dx%d)",
+		path, info.xsize, info.ysize, splatTexWidth, splatTexHeight))
+	return "ok"
+end
+
+-- Public API: defers to DrawWorld (GL work). Poll isLoadPending / getLoadResult.
+local function requestLoadSplats(path)
+	if not path or path == "" then
+		Echo("[Splat Painter] loadSplats: no path given")
+		return false
+	end
+	pendingLoadPath = path
+	lastLoadResult = nil
+	return true
 end
 
 -- ============ GEO DECAL PLACEMENT ============
@@ -985,6 +1060,11 @@ function widget:Initialize()
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		saveSplats = requestSaveSplats,
+		isSavePending = function() return pendingSave end,
+		hasSplatState = function() return fboTex ~= nil end,
+		loadSplats = requestLoadSplats,
+		isLoadPending = function() return pendingLoadPath ~= nil end,
+		getLoadResult = function() return lastLoadResult end,
 		cycleExportFormat = cycleExportFormat,
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
@@ -1507,6 +1587,31 @@ function widget:DrawWorld()
 		glDepthTest(false)
 	end
 
+	-- Deferred save: before the active guard, so a project save requested while
+	-- the tool is deactivated (fboTex still alive) still executes.
+	if pendingSave and fboTex then
+		pendingSave = false
+		local savePath = pendingSavePath
+		pendingSavePath = nil
+		executeSaveSplats(savePath)
+	end
+
+	-- Deferred project load: also before the active guard — the map project
+	-- orchestrator loads splats without the paint tool being active.
+	if pendingLoadPath then
+		local loadPath = pendingLoadPath
+		pendingLoadPath = nil
+		lastLoadResult = executeLoadSplats(loadPath)
+		if lastLoadResult ~= "ok" then
+			Echo("[Splat Painter] Splat load " .. tostring(lastLoadResult))
+		end
+		-- The load may have created fboTex; a still-queued activation init would
+		-- rebuild it and clobber (and leak) the freshly loaded state.
+		if fboTex then
+			pendingInit = false
+		end
+	end
+
 	if not active then return end
 
 	-- Deferred GL initialization (must happen inside a Draw call-in)
@@ -1559,11 +1664,6 @@ function widget:DrawWorld()
 		pendingPaintStrokes = {}
 	end
 
-	-- Deferred save
-	if pendingSave and fboTex then
-		pendingSave = false
-		executeSaveSplats()
-	end
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
