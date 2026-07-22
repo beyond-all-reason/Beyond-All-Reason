@@ -1833,8 +1833,7 @@ local cache = {
 	unEmpableUnit = {},
 	isAirAttacker = {},   -- Air units with ground/sea attack weapons (bombers, gunships)
 	isExpensiveEco = {},  -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
-	maxIconShatters = 2,
-	maxIconShatterFragments = 8,
+	maxIconShatters = 4,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
 	weaponIsPlasma = {},
@@ -6265,18 +6264,7 @@ local function DrawIconShatters()
 		end
 		return
 	end
-
-	local _, _, isPaused = Spring.GetGameSpeed()
-
-	local wcx_cached = cameraState.wcx
-	local wcz_cached = cameraState.wcz
-
-	gl.DepthTest(false)
-
-	-- Cache math functions for better performance
-	local rad = math.rad
-	local sin = math.sin
-	local cos = math.cos
+	if not gl4Prim.enabled then return end
 
 	-- Cache world boundaries for culling
 	local worldLeft = render.world.l
@@ -6289,9 +6277,6 @@ local function DrawIconShatters()
 
 	local n = #cache.iconShatters
 	local i = 1
-	local currentTexture = nil
-	local fragmentsDrawn = 0
-	local fragmentBudget = cache.maxIconShatterFragments
 	while i <= n do
 		local shatter = cache.iconShatters[i]
 		local age = gameTime - shatter.startTime
@@ -6307,29 +6292,13 @@ local function DrawIconShatters()
 			i = i + 1
 		elseif shatter.originX and (shatter.originX < worldLeft - 600 or shatter.originX > worldRight + 600 or shatter.originZ < worldTop - 600 or shatter.originZ > worldBottom + 600) then
 			i = i + 1
-		elseif fragmentsDrawn >= fragmentBudget then
-			break
 		else
-			local fade = 1 - progress			-- Calculate scale: stays at 1.0 for first 50% of duration, then shrinks to 0 (earlier than before)
-			local scale
-			if progress < 0.5 then
-				scale = 1.0
-			else
-				-- Shrink from 1.0 to 0 over the last 50% of duration
-				local shrinkProgress = (progress - 0.5) / 0.5
-				scale = 1.0 - shrinkProgress
-			end			-- Precalculate common values
-			local decel = 0.85 + 0.15 * fade
-			local velocityDamping = 0.94 + 0.04 * fade
+			-- Analytic travel remains strictly increasing throughout the effect.
+			-- Keeping shard size fixed prevents late-life shrink from reading as retreat.
+			local travelTime = age * (1 - 0.4 * progress)
+			local shardAlpha = progress < 0.65 and 1.0 or (1.0 - progress) / 0.35
 			local zoomInv = 1 / shatter.zoom
 
-			local bitmap = shatter.icon.bitmap
-			if bitmap ~= currentTexture then
-				glFunc.Texture(bitmap)
-				currentTexture = bitmap
-			end
-
-			-- Update fragment physics
 			-- Compute per-shatter flash factor: inherited damage flash fading out
 			-- Cubic decay + slight linear tail, so it's bright initially then lingers
 			local flashFactor = 0
@@ -6341,27 +6310,20 @@ local function DrawIconShatters()
 			local fragments = shatter.fragments
 			local fragCount = #fragments
 			for j = 1, fragCount do
-				if fragmentsDrawn >= fragmentBudget then
-					break
-				end
 				local frag = fragments[j]
-				-- Update fragment world position with deceleration that increases towards end
-				-- Skip physics when paused so fragments freeze in place
-				if not isPaused then
-					frag.wx = frag.wx + frag.vx * decel * 0.016
-					frag.wz = frag.wz + frag.vz * decel * 0.016
-					frag.vx = frag.vx * velocityDamping
-					frag.vz = frag.vz * velocityDamping
-					frag.rot = frag.rot + frag.rotSpeed * decel
+				local fragX = shatter.originX + frag.vx * travelTime
+				local fragZ = shatter.originZ + frag.vz * travelTime
+				local rotation = frag.rot + frag.rotSpeed * age * 60
+
+				-- Convert the creation-time pixel size to world size. The GL4 quad shader
+				-- converts it back to PIP pixels and batches every shard in one draw call.
+				local halfSize = frag.size * zoomInv * 0.5
+				local halfWidth, halfHeight
+				if j % 2 == 0 then
+					halfWidth, halfHeight = halfSize * 0.6, halfSize
+				else
+					halfWidth, halfHeight = halfSize, halfSize * 0.6
 				end
-
-				-- Convert world coordinates to PiP-local coordinates
-				local pipX = frag.wx - wcx_cached
-				local pipZ = wcz_cached - frag.wz
-
-				-- Calculate current size with scale, compensating for the glFunc.Scale(zoom) in the matrix
-				local currentSize = frag.size * scale * zoomInv
-				local halfSize = currentSize * 0.5
 
 				-- Mix team color towards white based on flash factor
 				local fr, fg, fb = shatter.teamR, shatter.teamG, shatter.teamB
@@ -6371,27 +6333,12 @@ local function DrawIconShatters()
 					fb = fb + (1 - fb) * flashFactor
 				end
 
-				glFunc.Color(fr, fg, fb, 1.0)
-				_frag.x = pipX
-				_frag.y = pipZ
-				local rotRad = rad(frag.rot)
-				_frag.cosRot = cos(rotRad)
-				_frag.sinRot = sin(rotRad)
-				_frag.hs = halfSize
-				_frag.uvx1 = frag.uvx1
-				_frag.uvy1 = frag.uvy1
-				_frag.uvx2 = frag.uvx2
-				_frag.uvy2 = frag.uvy2
-				glFunc.BeginEnd(glConst.QUADS, drawRotatedFragQuad)
-				fragmentsDrawn = fragmentsDrawn + 1
+				GL4AddQuad(fragX, fragZ, halfWidth, halfHeight, rotation, fr, fg, fb, shardAlpha)
 			end
 
 			i = i + 1
 		end -- end of else (progress < 1)
 	end -- end of while loop
-	glFunc.Texture(false)
-
-	gl.DepthTest(true)
 end
 
 -- Draw seismic pings as animated rotating arcs (matching the gadget draw style)
@@ -9113,6 +9060,22 @@ function widget:SelectedUnitsClear(playerID)
 	end
 
 	trackedPlayerSelections[playerID] = {}
+	trackedPlayerSelectionSeeded[playerID] = true
+end
+
+function widget:SelectedUnitsSet(playerID, units, unitCount)
+	if CanSkipUntrackedSelectionUpdate(playerID) then
+		return
+	end
+
+	local selectedByPlayer = {}
+	for i = 1, unitCount do
+		local unitID = units[i]
+		if unitID then
+			selectedByPlayer[unitID] = true
+		end
+	end
+	trackedPlayerSelections[playerID] = selectedByPlayer
 	trackedPlayerSelectionSeeded[playerID] = true
 end
 
@@ -12566,7 +12529,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		end
 
 		-- Draw icon shatters
-		if cache.maxIconShatters > 0 and #cache.iconShatters > 0 then
+		if #miscState.pipUnits < 1000 and cache.maxIconShatters > 0 and #cache.iconShatters > 0 then
 			tracy.ZoneBeginN("W:PIP:Projectiles:IconShatters")
 			DrawIconShatters()
 			tracy.ZoneEnd()
@@ -19341,6 +19304,7 @@ end
 
 local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ)
 	if uiState.inMinMode then return end
+	if not gl4Prim.enabled or #miscState.pipUnits >= 1000 then return end
 	-- Performance: limit max simultaneous shatters
 	if #cache.iconShatters >= cache.maxIconShatters then return end
 
@@ -19354,6 +19318,7 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	-- Get unit position
 	local ux, uy, uz = spFunc.GetUnitPosition(unitID)
 	if not ux then return end
+	if ux < render.world.l - 600 or ux > render.world.r + 600 or uz < render.world.t - 600 or uz > render.world.b + 600 then return end
 
 	-- LOS view filter: skip shatters for units outside the viewed allyteam's LOS
 	if state.losViewEnabled and state.losViewAllyTeam then
@@ -19395,8 +19360,9 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 		velModZ = unitVelZ * velScale
 	end
 
-	-- Create fragments in a grid pattern - each fragment represents a unique piece of the texture
+	-- Create four generic shards; rendering uses the shared GL4 quad batch.
 	local fragments = {}
+	local fragmentCount = 0
 	for gx = 0, grid - 1 do
 		for gz = 0, grid - 1 do
 			-- Calculate offset from center for this grid cell
@@ -19411,27 +19377,19 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 			-- Divide by zoom to compensate for gl.Scale transformation
 			-- Use square root of iconSize to reduce the impact of larger icons on distance
 			local speedVariation = 0.4 + math.random() * 1.2  -- 0.4 to 1.6
-			local speed = ((25 + math.random() * 15) * (math.sqrt(iconSize) / 6.3) * 3.4 * speedVariation) / cameraState.zoom
+			local speed = ((25 + math.random() * 15) * (math.sqrt(iconSize) / 6.3) * 3.0 * speedVariation) / cameraState.zoom
 
-			table.insert(fragments, {
-				-- Store world coordinates (not PiP-local)
-				wx = ux,
-				wz = uz,
+			fragmentCount = fragmentCount + 1
+			fragments[fragmentCount] = {
 				-- Add unit velocity to fragment velocity
 				vx = math.cos(angle) * speed + velModX,
 				vz = math.sin(angle) * speed + velModZ,
-				-- UV coordinates map each fragment to its portion of the texture
-				-- Flip Y to match OpenGL texture coordinates (Y=0 at bottom)
-				uvx1 = gx / grid,
-				uvy1 = (grid - gz - 1) / grid,
-				uvx2 = (gx + 1) / grid,
-				uvy2 = (grid - gz) / grid,
 				size = fragSize,
 				-- Minor rotation: start with small random angle (0-20 degrees)
 				rot = (math.random() - 0.5) * 20,
 				-- Very slow rotation speed (max ±1 degree per frame, results in ~20 degrees total)
 				rotSpeed = (math.random() - 0.5) * 1,
-			})
+			}
 		end
 	end
 
@@ -19453,7 +19411,6 @@ local function CreateIconShatter(unitID, unitDefID, unitTeam, unitVelX, unitVelZ
 	table.insert(cache.iconShatters, {
 		startTime = gameTime,
 		fragments = fragments,
-		icon = iconData,
 		teamR = teamR,
 		teamG = teamG,
 		teamB = teamB,

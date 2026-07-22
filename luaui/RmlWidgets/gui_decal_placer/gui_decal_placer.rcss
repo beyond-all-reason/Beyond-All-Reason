@@ -1,0 +1,40 @@
+/* Decal Placer Library — extends fp- styles from gui_feature_placer */
+
+.dp-root {
+	width: 13vw;
+	min-width: 220dp;
+	z-index: 901;
+}
+
+/* Decal tiles — .dp-tile-host wrapper is 84dp×84dp; .fp-feature-item
+   fills it 100%×100%. Wrapper lives in DOM so flex-wrap sizes correctly. */
+.dp-root .dp-tile-host {
+	width: 84dp;
+	height: 84dp;
+	margin: 2dp;
+}
+
+.dp-root .dp-tile-host > .fp-feature-item {
+	width: 100%;
+	height: 100%;
+}
+
+/* The decal preview img fills its thumb container. Decals with a real alpha
+   channel (PNG/TGA) show the per-category tint behind through transparent
+   pixels. Channel-encoded BMP atlases (mainscars / tracks / footprints) are
+   fully opaque RGB so the tint is hidden — those need a pre-bake pass to
+   convert the mask channels to alpha (separate workitem). */
+.dp-root .fp-feature-thumb img {
+	width: 100%;
+	height: 100%;
+}
+
+/* Category tints — visible on alpha-channel decals (PNG/TGA). */
+.dp-thumb-scars        { background-color: #6b4838; }
+.dp-thumb-explosions   { background-color: #b04030; }
+.dp-thumb-tracks       { background-color: #4a4a52; }
+.dp-thumb-builds       { background-color: #406090; }
+.dp-thumb-footprints   { background-color: #604838; }
+.dp-thumb-scorch       { background-color: #2a2018; }
+.dp-thumb-groundplates { background-color: #506060; }
+.dp-thumb-other        { background-color: #4a4a4a; }

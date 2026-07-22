@@ -40,24 +40,23 @@ local cameraHeight = 0.0
 
 local unitDamagedScale = 1.0
 function gadget:Update(dt)
-    if unitDamagedScale < 1 then
-        local nextScale = unitDamagedScale + dt * (0.1 - (unitDamagedScale * 0.1))
-        if nextScale < 0.4 then
-            nextScale = 0.4
-        elseif nextScale > 1 then
-            nextScale = 1
-        elseif nextScale > 0.9999 then
-            nextScale = 1
-        end
-        unitDamagedScale = nextScale
-    end
-
     timer = timer + dt
     if timer < UPDATE_INTERVAL then
         return
     end
 
+    local elapsed = timer
     timer = timer - UPDATE_INTERVAL
+
+    if unitDamagedScale < 1 then
+        local nextScale = unitDamagedScale + elapsed * (0.1 - (unitDamagedScale * 0.1))
+        if nextScale < 0.4 then
+            nextScale = 0.4
+        elseif nextScale > 1 or nextScale > 0.9999 then
+            nextScale = 1
+        end
+        unitDamagedScale = nextScale
+    end
 
     settingsPollTimer = settingsPollTimer + UPDATE_INTERVAL
     if settingsPollTimer >= SETTINGS_POLL_INTERVAL then
