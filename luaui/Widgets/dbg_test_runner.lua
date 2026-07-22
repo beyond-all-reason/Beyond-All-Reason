@@ -855,6 +855,11 @@ end
 local function runTestInternal()
 	log(LOG.DEBUG, "[runTestInternal]")
 
+	-- Hooks are setfenv-injected into the test env; capture as locals so the
+	-- analyzer/LLM don't rewrite the bare reads (`_G.cleanup` crashes at runtime).
+	---@diagnostic disable-next-line: undefined-global
+	local skip, setup, test, cleanup = skip, setup, test, cleanup
+
 	if testRunState.filesIndex == 1 then
 		TestExtraUtils.startTests()
 	end
@@ -1041,13 +1046,23 @@ local function loadTestFromFile(filename)
 
 	setfenv(chunk, testEnvironment)
 
-	local success, err = pcall(chunk)
+	local success, result = pcall(chunk)
 	if not success then
-		return false, err
+		return false, result
+	end
+
+	-- Test files return a table { skip?, setup?, test, cleanup? }; merge its
+	-- hooks into testEnvironment so runTestInternal (which reads them as bare
+	-- globals under setfenv) finds them.
+	if type(result) ~= "table" then
+		return false, filename .. " did not return a test table { skip, setup, test, cleanup }"
+	end
+	for k, v in pairs(result) do
+		testEnvironment[k] = v
 	end
 
 	if testEnvironment.test == nil then
-		return false, "no test() function"
+		return false, filename .. " returned a table without a test() function"
 	end
 
 	setfenv(testEnvironment.__runTestInternal, testEnvironment)
