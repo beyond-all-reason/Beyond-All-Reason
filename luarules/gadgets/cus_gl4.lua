@@ -1270,6 +1270,7 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 
 	if unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[objectID] then
 		Spring.Echo("Trying to add a unit to a bin that it is already in!")
+		return true
 	else
 		if debugmode then Spring.Echo("AssignObjectToBin success:",objectID, objectDefID, flag, shader, texKey, uniformBinID	) end
 	end
@@ -1370,6 +1371,7 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 		end
 		Spring.Echo(objids)
 	end
+	return true
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -1398,15 +1400,20 @@ local function AddObject(objectID, drawFlag, reason)
 	if debugmode then Spring.Echo("AddObject",objectID, objectDefID, drawFlag, reason) end
 	if objectDefID == nil then return end -- This bail is needed so that we dont add/update units that dont actually exist any more, when cached from the catchup phase
 
+	local assignedToCUS = false
 	local drawBinKeysLen = #drawBinKeys
 	for k = 1, drawBinKeysLen do
 		local flag = drawBinKeys[k]
 		if HasAllBits(drawFlag, flag) then
 			if overrideDrawFlagsCombined[flag] then
 								 --objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom
-				AssignObjectToBin(objectID, objectDefID, flag, nil,	nil,	  nil,	  nil, 			"addobject")
+				assignedToCUS = AssignObjectToBin(objectID, objectDefID, flag, nil, nil, nil, nil, "addobject") or assignedToCUS
 			end
 		end
+	end
+	if not assignedToCUS then
+		objectIDtoDefID[objectID] = nil
+		return
 	end
 	if objectID >= 0 then
 		spSetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
