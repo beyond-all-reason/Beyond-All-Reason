@@ -2,7 +2,7 @@
 
 -- shim for engines without RecoilEngine LuaSpringContext::SetupAliases
 SpringShared = SpringShared or Spring
-SpringSynced = SpringSynced or Spring
+EngineSynced = EngineSynced or (Spring --[[@as EngineSynced]])
 SpringUnsynced = SpringUnsynced or Spring
 
 -- Universal Lua functions applicable to any Lua code

@@ -14,6 +14,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+
 local modOptions = Spring.GetModOptions()
 
 local ZOMBIE_GUARD_RADIUS = 500 -- Radius for zombies to guard allies
@@ -110,7 +112,6 @@ local spDestroyFeature = Spring.DestroyFeature
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spSetTeamResource = Spring.SetTeamResource
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitHealth = Spring.SetUnitHealth
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
@@ -304,14 +305,14 @@ local function setGaiaStorage()
 	local metalStorageToSet = 1000000
 	local energyStorageToSet = 1000000
 
-	local _, currentMetalStorage = Spring.GetTeamResources(gaiaTeamID, "metal")
+	local _, currentMetalStorage = GG.GetTeamResources(gaiaTeamID, "metal")
 	if currentMetalStorage and currentMetalStorage < metalStorageToSet then
-		spSetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
+		Spring.SetTeamResource(gaiaTeamID, "ms", metalStorageToSet)
 	end
 
-	local _, currentEnergyStorage = Spring.GetTeamResources(gaiaTeamID, "energy")
+	local _, currentEnergyStorage = GG.GetTeamResources(gaiaTeamID, "energy")
 	if currentEnergyStorage and currentEnergyStorage < energyStorageToSet then
-		spSetTeamResource(gaiaTeamID, "es", energyStorageToSet)
+		Spring.SetTeamResource(gaiaTeamID, "es", energyStorageToSet)
 	end
 end
 
@@ -737,8 +738,8 @@ function gadget:GameFrame(frame)
 	end
 
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
-		spAddTeamResource(gaiaTeamID, "metal", 1000000)
-		spAddTeamResource(gaiaTeamID, "energy", 1000000)
+		GG.AddTeamResource(gaiaTeamID, "metal", 1000000)
+		GG.AddTeamResource(gaiaTeamID, "energy", 1000000)
 		for featureID, featureData in pairs(corpsesData) do
 			if featureData.spawnFrame - frame < WARNING_TIME then
 				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
