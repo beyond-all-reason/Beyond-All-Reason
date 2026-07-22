@@ -111,6 +111,10 @@ local dp = {
 	-- Undo/Redo
 	undoStack     = {},      -- each entry = { decalIDs = {id1,id2,...} }
 	redoStack     = {},
+	-- Registry of decals this tool placed (set of ids). GetAllGroundDecals() also
+	-- returns engine decals (unit tracks, scars, building plates); project export
+	-- must only serialize our own placements.
+	projectIDs    = {},
 	undoCount     = 0,
 	redoCount     = 0,
 }
@@ -341,6 +345,7 @@ local function applyDecal(tex, wx, wz, sizeX, sizeZ, rotRad)
 	if dp.alignToNormal and SetGroundDecalNormal then
 		SetGroundDecalNormal(id, 0, 0, 0)
 	end
+	dp.projectIDs[id] = true
 	return id
 end
 
@@ -406,7 +411,10 @@ local function placeRemove(cx, cz)
 			local ddx = dx - cx
 			local ddz = dz - cz
 			if ddx * ddx + ddz * ddz <= r2 then
-				if DestroyGroundDecal(id) then removed = removed + 1 end
+				if DestroyGroundDecal(id) then
+					removed = removed + 1
+					dp.projectIDs[id] = nil
+				end
 			end
 		end
 	end
@@ -443,6 +451,7 @@ local function decalUndo()
 	dp.undoStack[#dp.undoStack] = nil
 	for _, id in ipairs(entry.decalIDs) do
 		DestroyGroundDecal(id)
+		dp.projectIDs[id] = nil
 	end
 	dp.undoCount = #dp.undoStack
 	-- redoStack would need re-creation info; skip redo for destructive ops
@@ -454,6 +463,7 @@ local function decalClearAll()
 	for _, id in ipairs(GetAllGroundDecals()) do
 		if DestroyGroundDecal(id) then n = n + 1 end
 	end
+	dp.projectIDs = {}
 	dp.undoStack = {}
 	dp.redoStack = {}
 	dp.undoCount = 0
@@ -624,6 +634,38 @@ local function decalSave()
 	Echo("[Decal Placer] Saved " .. n .. " decals to " .. filename)
 end
 
+-- Project-mode save: only decals placed by this tool (dp.projectIDs), stable order,
+-- no timestamp comment — repeated saves of the same scene must serialize identically
+-- (project files live in git). Returns the decal count written, or nil on error.
+local function decalSaveProject(explicitPath)
+	if not GetAllGroundDecals then return nil end
+	-- "wb": project files must be byte-identical across OSes (no CRLF translation)
+	local f = io.open(explicitPath, "wb")
+	if not f then Echo("[Decal Placer] Cannot write " .. explicitPath); return nil end
+	local lines = {}
+	for _, id in ipairs(GetAllGroundDecals()) do
+		if dp.projectIDs[id] then
+			local dx, dz = GetGroundDecalMiddlePos(id)
+			local sx, sz = GetGroundDecalSizeAndHeight(id)
+			local rot = Spring.GetGroundDecalRotation and Spring.GetGroundDecalRotation(id) or 0
+			local tex = Spring.GetGroundDecalTexture and Spring.GetGroundDecalTexture(id, true) or ""
+			if dx and tex and tex ~= "" then
+				lines[#lines + 1] = string.format('\t{tex=%q, x=%.1f, z=%.1f, sx=%.1f, sz=%.1f, rot=%.4f},',
+					tex, dx, dz, sx or 64, sz or 64, rot)
+			end
+		end
+	end
+	-- Sorting the fully serialized lines gives a total order over every field, so
+	-- ties can never reorder entries between sessions (files live in git).
+	table.sort(lines)
+	f:write("return {\n")
+	f:write(table.concat(lines, "\n"))
+	if #lines > 0 then f:write("\n") end
+	f:write("}\n")
+	f:close()
+	return #lines
+end
+
 local function decalLoad(filename)
 	if not filename or filename == "" then
 		local saves = VFS.DirList(SAVE_DIR, "*.lua", VFS.RAW) or {}
@@ -785,10 +827,40 @@ function widget:Initialize()
 		undo                  = decalUndo,
 		clearAll              = decalClearAll,
 		save                  = decalSave,
+		saveProject           = decalSaveProject,
 		load                  = decalLoad,
 		listSaves             = listSavedDecalMaps,
 		deactivate            = deactivate,
 	}
+end
+
+-- Persist the placement registry across /luaui reload: placed ground decals are
+-- engine objects that survive a widget reload, but dp.projectIDs would not —
+-- a project save right after a reload would then see zero owned decals and
+-- delete the project's decals section. Guards: ids are only re-adopted in the
+-- same session (game frame is monotonic within one) and are re-validated
+-- against GetAllGroundDecals() at save time anyway.
+function widget:GetConfigData()
+	local ids = {}
+	for id in pairs(dp.projectIDs) do
+		ids[#ids + 1] = id
+	end
+	table.sort(ids)
+	return {
+		projectIDs = ids,
+		savedAtFrame = Spring.GetGameFrame(),
+		mapName = Game.mapName,
+	}
+end
+
+function widget:SetConfigData(data)
+	if not (data and data.projectIDs) then return end
+	if data.mapName ~= Game.mapName then return end
+	local frame = Spring.GetGameFrame()
+	if not data.savedAtFrame or data.savedAtFrame > frame then return end
+	for _, id in ipairs(data.projectIDs) do
+		dp.projectIDs[id] = true
+	end
 end
 
 function widget:Shutdown()

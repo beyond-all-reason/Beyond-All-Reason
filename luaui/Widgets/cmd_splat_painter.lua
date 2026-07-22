@@ -161,6 +161,7 @@ local lastPaintZ = nil
 local pendingInit = false
 local pendingPaintStrokes = {}
 local pendingSave = false
+local pendingSavePath = nil  -- explicit target (project save); nil = default export dir
 
 -- Undo/redo history (texture snapshots per drag)
 local MAX_UNDO_SPLAT = 20
@@ -720,13 +721,16 @@ end
 -- ============ SAVE / EXPORT ============
 
 -- Execute the actual save (must be called from a Draw call-in)
-local function executeSaveSplats()
+local function executeSaveSplats(explicitPath)
 	if not fboTex then return end
 
-	local ext = EXPORT_FORMATS[exportFormatIndex] or "png"
-	local SPLATS_DIR = "Terraform Brush/Splats/"
-	Spring.CreateDir(SPLATS_DIR)
-	local filename = SPLATS_DIR .. "splat_export_" .. Game.mapName .. "." .. ext
+	local filename = explicitPath
+	if not filename then
+		local ext = EXPORT_FORMATS[exportFormatIndex] or "png"
+		local SPLATS_DIR = "Terraform Brush/Splats/"
+		Spring.CreateDir(SPLATS_DIR)
+		filename = SPLATS_DIR .. "splat_export_" .. Game.mapName .. "." .. ext
+	end
 
 	glRenderToTexture(fboTex, function()
 		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false })
@@ -736,11 +740,12 @@ local function executeSaveSplats()
 end
 
 -- Public API: always defers to DrawWorld
-local function requestSaveSplats()
+local function requestSaveSplats(explicitPath)
 	if not fboTex and not active then
 		Echo("[Splat Painter] No splat texture to save")
 		return
 	end
+	pendingSavePath = explicitPath
 	pendingSave = true
 end
 
@@ -985,6 +990,8 @@ function widget:Initialize()
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
 		saveSplats = requestSaveSplats,
+		isSavePending = function() return pendingSave end,
+		hasSplatState = function() return fboTex ~= nil end,
 		cycleExportFormat = cycleExportFormat,
 		setExportFormat = setExportFormat,
 		setGeoDecalMode = setGeoDecalMode,
@@ -1507,6 +1514,15 @@ function widget:DrawWorld()
 		glDepthTest(false)
 	end
 
+	-- Deferred save: before the active guard, so a project save requested while
+	-- the tool is deactivated (fboTex still alive) still executes.
+	if pendingSave and fboTex then
+		pendingSave = false
+		local savePath = pendingSavePath
+		pendingSavePath = nil
+		executeSaveSplats(savePath)
+	end
+
 	if not active then return end
 
 	-- Deferred GL initialization (must happen inside a Draw call-in)
@@ -1559,11 +1575,6 @@ function widget:DrawWorld()
 		pendingPaintStrokes = {}
 	end
 
-	-- Deferred save
-	if pendingSave and fboTex then
-		pendingSave = false
-		executeSaveSplats()
-	end
 
 	local worldX, worldZ = getWorldMousePosition()
 	do

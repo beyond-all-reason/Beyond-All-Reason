@@ -27,6 +27,7 @@
 					<div id="btn-file" class="tf-header-btn tf-file-btn" data-class-active="fileMenuOpen" data-event-mousedown="onFileMenuToggle()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/folder.png" /></div>
 					<div id="tf-file-menu" class="tf-file-menu" data-if="fileMenuOpen">
 						<div id="btn-file-newmap" class="tf-file-menu-item" data-event-mousedown="onFileNewMap()">New Map...</div>
+						<div id="btn-file-saveproject" class="tf-file-menu-item" data-event-mousedown="onFileSaveProject()">Save Project...</div>
 					</div>
 				</div>
 				<div class="tf-rail-spacer"></div>
@@ -6864,6 +6865,32 @@
 					<div class="tf-dj-activate-desc">Hides the pulsing blue notification dots on collapsed section headers.</div>
 				</div>
 				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">{{disableTipsStr}}</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
+	<div id="tf-project-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 30vh;" data-if="projectSaveOpen">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project</div>
+			<div id="btn-project-close" class="tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Re-saving the same name updates it.</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">NAME</div>
+			<div class="text-sm text-keybind">letters, digits, - and _</div>
+		</div>
+		<div class="flex flex-row gap-1 mb-2">
+			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="64" value="" />
+		</div>
+
+		<div class="text-base text-keybind mb-2" data-if="projectSaveHint != ''">{{projectSaveHint}}</div>
+
+		<div class="flex flex-row gap-1 items-center">
+			<div id="btn-project-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onProjectSaveConfirm()">
+				<div class="tf-action-btn-text">SAVE PROJECT</div>
 			</div>
 		</div>
 	</div>

@@ -982,6 +982,36 @@ local function clearAllPersistent()
 	end
 end
 
+-- Raw copies of all persistent spawners, for project serialization.
+-- Frame fields (startFrame/expireFrame/nextFrame) are absolute game frames and
+-- NOT portable across sessions; callers must convert to relative durations.
+local function getPersistentSpawners()
+	local out = {}
+	for _, s in pairs(wb.persistentSpawners) do
+		local cegs = {}
+		for i = 1, #s.cegs do cegs[i] = s.cegs[i] end
+		out[#out + 1] = {
+			cegs = cegs,
+			x = s.x,
+			z = s.z,
+			radius = s.radius,
+			count = s.count,
+			shape = s.shape,
+			angleDeg = s.angleDeg,
+			lengthScale = s.lengthScale,
+			altitude = s.altitude,
+			interval = s.interval,
+			refreshInterval = s.refreshInterval,
+			startFrame = s.startFrame,
+			expireFrame = s.expireFrame,
+			nextFrame = s.nextFrame,
+			spawnCycles = s.spawnCycles,
+			saturationCycles = s.saturationCycles,
+		}
+	end
+	return out
+end
+
 -- ===========================================================================
 -- State Export (for UI)
 -- ===========================================================================
@@ -1327,6 +1357,7 @@ function widget:Initialize()
 		getWeatherLibrary = getWeatherLibrary,
 		applyWeatherPreset = applyWeatherPreset,
 		clearAllPersistent = clearAllPersistent,
+		getPersistentSpawners = getPersistentSpawners,
 	}
 end
 

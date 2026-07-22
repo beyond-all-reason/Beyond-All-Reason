@@ -1481,6 +1481,131 @@ widgetState.applyEnvConfig = function(d)
 	end
 end
 
+-- Serialize the live environment state into the env-config Lua format (the same
+-- format onEnvSave writes and applyEnvConfig consumes). Shared by the env editor's
+-- SAVE button and the map-project orchestrator (cmd_map_project.lua).
+-- opts.nodate suppresses the date comment: repeated project saves of unchanged
+-- state must serialize identically (project files live in git).
+widgetState.buildEnvConfigContent = function(opts)
+	local sX, sY, sZ = gl.GetSun("pos")
+	local grA = { gl.GetSun("ambient") }
+	local grD = { gl.GetSun("diffuse") }
+	local grS = { gl.GetSun("specular") }
+	local unA = { gl.GetSun("ambient", "unit") }
+	local unD = { gl.GetSun("diffuse", "unit") }
+	local unS = { gl.GetSun("specular", "unit") }
+	local gShadow = gl.GetSun("shadowDensity", "ground")
+	local uShadow = gl.GetSun("shadowDensity", "unit")
+	local fgS = gl.GetAtmosphere("fogStart")
+	local fgE = gl.GetAtmosphere("fogEnd")
+	local fgC = { gl.GetAtmosphere("fogColor") }
+	local snC = { gl.GetAtmosphere("sunColor") }
+	local skC = { gl.GetAtmosphere("skyColor") }
+	local skAA = { gl.GetAtmosphere("skyAxisAngle") }
+	local clC = { gl.GetAtmosphere("cloudColor") }
+	local sunIntensity = widgetState.envSunIntensity or 1.0
+	local smR, smG, smB, smA = gl.GetMapRendering("splatTexMults")
+	local ssR, ssG, ssB, ssA = gl.GetMapRendering("splatTexScales")
+	local sdnda = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
+	local vW = gl.GetMapRendering("voidWater")
+	local vG = gl.GetMapRendering("voidGround")
+	local fmt3 = function(t) return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0) end
+	local fmt4 = function(t) return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0) end
+	local bstr = function(v) return v and "true" or "false" end
+	local outLines = {
+		"-- Environment config exported from BAR Terraform Brush",
+		"-- Map: " .. (Game.mapName or "unknown"),
+	}
+	if not (opts and opts.nodate) then
+		outLines[#outLines + 1] = "-- Date: " .. os.date("%Y-%m-%d %H:%M:%S")
+	end
+	local body = {
+		"return {",
+		"\tversion = 1,",
+		"\tmapName = \"" .. (Game.mapName or "unknown") .. "\",",
+		"",
+		"\t-- Sun direction",
+		"\tsunDir = " .. fmt3({sX, sY, sZ}) .. ",",
+		"",
+		"\t-- Shadow density",
+		"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
+		"\tmodelShadowDensity = " .. string.format("%.4f", uShadow) .. ",",
+		"",
+		"\t-- Ground lighting",
+		"\tgroundAmbientColor = " .. fmt3(grA) .. ",",
+		"\tgroundDiffuseColor = " .. fmt3(grD) .. ",",
+		"\tgroundSpecularColor = " .. fmt3(grS) .. ",",
+		"",
+		"\t-- Unit lighting",
+		"\tunitAmbientColor = " .. fmt3(unA) .. ",",
+		"\tunitDiffuseColor = " .. fmt3(unD) .. ",",
+		"\tunitSpecularColor = " .. fmt3(unS) .. ",",
+		"",
+		"\t-- Fog",
+		"\tfogStart = " .. string.format("%.4f", fgS) .. ",",
+		"\tfogEnd = " .. string.format("%.4f", fgE) .. ",",
+		"\tfogColor = " .. fmt4(fgC) .. ",",
+		"",
+		"\t-- Atmosphere colors",
+		"\tsunColor = " .. fmt3(snC) .. ",",
+		"\tskyColor = " .. fmt3(skC) .. ",",
+		"\tcloudColor = " .. fmt3(clC) .. ",",
+		"",
+		"\t-- Sun intensity",
+		"\tsunIntensity = " .. string.format("%.4f", sunIntensity) .. ",",
+		"",
+		"\t-- Skybox rotation",
+		"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
+		"",
+		"\t-- Map rendering",
+		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
+		"\tsplatTexMults = " .. fmt4({smR, smG, smB, smA}) .. ",",
+		"\tsplatTexScales = " .. fmt4({ssR, ssG, ssB, ssA}) .. ",",
+		"\tvoidWater = " .. bstr(vW) .. ",",
+		"\tvoidGround = " .. bstr(vG) .. ",",
+		"",
+		"\t-- Water",
+		"\twater = {",
+	}
+	for i = 1, #body do
+		outLines[#outLines + 1] = body[i]
+	end
+	local wParams = {
+		"shoreWaves", "hasWaterPlane", "forceRendering",
+		"repeatX", "repeatY", "surfaceAlpha",
+		"ambientFactor", "diffuseFactor", "specularFactor", "specularPower",
+		"fresnelMin", "fresnelMax", "fresnelPower",
+		"perlinStartFreq", "perlinLacunarity", "perlinAmplitude", "numTiles",
+		"blurBase", "blurExponent", "reflectionDistortion",
+		"waveOffsetFactor", "waveLength", "waveFoamDistortion", "waveFoamIntensity",
+		"causticsResolution", "causticsStrength",
+	}
+	local boolParams = { shoreWaves = true, hasWaterPlane = true, forceRendering = true }
+	for _, p in ipairs(wParams) do
+		local val = gl.GetWaterRendering(p)
+		if boolParams[p] then
+			outLines[#outLines + 1] = "\t\t" .. p .. " = " .. bstr(val) .. ","
+		else
+			outLines[#outLines + 1] = "\t\t" .. p .. " = " .. string.format("%.4f", val or 0) .. ","
+		end
+	end
+	outLines[#outLines + 1] = "\t},"
+	outLines[#outLines + 1] = ""
+	outLines[#outLines + 1] = "\t-- Water colors"
+	local waterColorExport = {
+		{"absorb", "absorb"}, {"baseColor", "baseColor"}, {"minColor", "minColor"},
+		{"surfaceColor", "surfaceColor"}, {"planeColor", "planeColor"},
+		{"diffuseColor", "diffuseColor"}, {"specularColor", "specularColor"},
+	}
+	for _, wce in ipairs(waterColorExport) do
+		local c = { gl.GetWaterRendering(wce[2]) }
+		outLines[#outLines + 1] = "\twaterColors_" .. wce[1] .. " = " .. fmt3(c) .. ","
+	end
+	outLines[#outLines + 1] = "}"
+	outLines[#outLines + 1] = ""
+	return table.concat(outLines, "\n")
+end
+
 -- Resolve the env preset to apply after a New Map reload (nil = Default/none).
 widgetState._nmCurrentEnvPreset = function()
 	local idx = widgetState.newMapEnvIdx or 0
@@ -1716,6 +1841,9 @@ local initialModel = {
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
 	newMapOpen = false,
+	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
+	projectSaveOpen = false,
+	projectSaveHint = "",
 	newMapWidthStr = "12",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
@@ -4313,6 +4441,63 @@ local initialModel = {
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
 	end,
+	-- ===== Save Project dialog handlers (backed by WG.MapProject) =====
+	onFileSaveProject = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle
+		if d then
+			d.fileMenuOpen = false
+			d.projectSaveOpen = true
+			d.projectSaveHint = ""
+		end
+		-- Prefill: last used name, else the slugified map name.
+		local doc = widgetState.document
+		local inp = doc and doc:GetElementById("input-project-name")
+		if inp then
+			local name = widgetState.projectNameStr
+			if not name or name == "" then
+				name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
+			end
+			widgetState.projectNameStr = name
+			inp:SetAttribute("value", name)
+		end
+	end,
+	onProjectSaveClose = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle; if d then d.projectSaveOpen = false end
+	end,
+	onProjectSaveConfirm = function(_event)
+		local d = widgetState.dmHandle
+		-- Read the input at click time (the change listener also tracks it, but
+		-- typed-and-not-yet-blurred text must not be lost).
+		local doc = widgetState.document
+		local inp = doc and doc:GetElementById("input-project-name")
+		local name = (inp and inp:GetAttribute("value")) or widgetState.projectNameStr or ""
+		name = name:gsub("^%s+", ""):gsub("%s+$", "")
+		if name == "" then
+			if d then d.projectSaveHint = "Enter a project name first." end
+			return
+		end
+		if not name:match("^[A-Za-z0-9_%-]+$") then
+			if d then d.projectSaveHint = "Only letters, digits, - and _ (no spaces)." end
+			return
+		end
+		if not (WG.MapProject and WG.MapProject.save) then
+			if d then d.projectSaveHint = "Map Project widget is not enabled (Settings > Widgets)." end
+			return
+		end
+		if WG.MapProject.isBusy and WG.MapProject.isBusy() then
+			if d then d.projectSaveHint = "A save is already running (see console)." end
+			return
+		end
+		widgetState.projectNameStr = name
+		if WG.MapProject.save(name) then
+			playSound("save")
+			if d then d.projectSaveHint = "Saving to MapProjects/" .. name .. "/ — progress in console." end
+		else
+			if d then d.projectSaveHint = "Save could not start (see console)." end
+		end
+	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
 	onNewMapGenToggle = function(_event)
@@ -5356,116 +5541,7 @@ local initialModel = {
 	end,
 	onEnvSave = function(_event)
 		playSound("save")
-		local sX, sY, sZ = gl.GetSun("pos")
-		local grA = { gl.GetSun("ambient") }
-		local grD = { gl.GetSun("diffuse") }
-		local grS = { gl.GetSun("specular") }
-		local unA = { gl.GetSun("ambient", "unit") }
-		local unD = { gl.GetSun("diffuse", "unit") }
-		local unS = { gl.GetSun("specular", "unit") }
-		local gShadow = gl.GetSun("shadowDensity", "ground")
-		local uShadow = gl.GetSun("shadowDensity", "unit")
-		local fgS = gl.GetAtmosphere("fogStart")
-		local fgE = gl.GetAtmosphere("fogEnd")
-		local fgC = { gl.GetAtmosphere("fogColor") }
-		local snC = { gl.GetAtmosphere("sunColor") }
-		local skC = { gl.GetAtmosphere("skyColor") }
-		local skAA = { gl.GetAtmosphere("skyAxisAngle") }
-		local clC = { gl.GetAtmosphere("cloudColor") }
-		local sunIntensity = widgetState.envSunIntensity or 1.0
-		local smR, smG, smB, smA = gl.GetMapRendering("splatTexMults")
-		local ssR, ssG, ssB, ssA = gl.GetMapRendering("splatTexScales")
-		local sdnda = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
-		local vW = gl.GetMapRendering("voidWater")
-		local vG = gl.GetMapRendering("voidGround")
-		local fmt3 = function(t) return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0) end
-		local fmt4 = function(t) return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0) end
-		local bstr = function(v) return v and "true" or "false" end
-		local outLines = {
-			"-- Environment config exported from BAR Terraform Brush",
-			"-- Map: " .. (Game.mapName or "unknown"),
-			"-- Date: " .. os.date("%Y-%m-%d %H:%M:%S"),
-			"return {",
-			"\tversion = 1,",
-			"\tmapName = \"" .. (Game.mapName or "unknown") .. "\",",
-			"",
-			"\t-- Sun direction",
-			"\tsunDir = " .. fmt3({sX, sY, sZ}) .. ",",
-			"",
-			"\t-- Shadow density",
-			"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
-			"\tmodelShadowDensity = " .. string.format("%.4f", uShadow) .. ",",
-			"",
-			"\t-- Ground lighting",
-			"\tgroundAmbientColor = " .. fmt3(grA) .. ",",
-			"\tgroundDiffuseColor = " .. fmt3(grD) .. ",",
-			"\tgroundSpecularColor = " .. fmt3(grS) .. ",",
-			"",
-			"\t-- Unit lighting",
-			"\tunitAmbientColor = " .. fmt3(unA) .. ",",
-			"\tunitDiffuseColor = " .. fmt3(unD) .. ",",
-			"\tunitSpecularColor = " .. fmt3(unS) .. ",",
-			"",
-			"\t-- Fog",
-			"\tfogStart = " .. string.format("%.4f", fgS) .. ",",
-			"\tfogEnd = " .. string.format("%.4f", fgE) .. ",",
-			"\tfogColor = " .. fmt4(fgC) .. ",",
-			"",
-			"\t-- Atmosphere colors",
-			"\tsunColor = " .. fmt3(snC) .. ",",
-			"\tskyColor = " .. fmt3(skC) .. ",",
-			"\tcloudColor = " .. fmt3(clC) .. ",",
-			"",
-			"\t-- Sun intensity",
-			"\tsunIntensity = " .. string.format("%.4f", sunIntensity) .. ",",
-			"",
-			"\t-- Skybox rotation",
-			"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
-			"",
-			"\t-- Map rendering",
-			"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
-			"\tsplatTexMults = " .. fmt4({smR, smG, smB, smA}) .. ",",
-			"\tsplatTexScales = " .. fmt4({ssR, ssG, ssB, ssA}) .. ",",
-			"\tvoidWater = " .. bstr(vW) .. ",",
-			"\tvoidGround = " .. bstr(vG) .. ",",
-			"",
-			"\t-- Water",
-			"\twater = {",
-		}
-		local wParams = {
-			"shoreWaves", "hasWaterPlane", "forceRendering",
-			"repeatX", "repeatY", "surfaceAlpha",
-			"ambientFactor", "diffuseFactor", "specularFactor", "specularPower",
-			"fresnelMin", "fresnelMax", "fresnelPower",
-			"perlinStartFreq", "perlinLacunarity", "perlinAmplitude", "numTiles",
-			"blurBase", "blurExponent", "reflectionDistortion",
-			"waveOffsetFactor", "waveLength", "waveFoamDistortion", "waveFoamIntensity",
-			"causticsResolution", "causticsStrength",
-		}
-		local boolParams = { shoreWaves = true, hasWaterPlane = true, forceRendering = true }
-		for _, p in ipairs(wParams) do
-			local val = gl.GetWaterRendering(p)
-			if boolParams[p] then
-				outLines[#outLines + 1] = "\t\t" .. p .. " = " .. bstr(val) .. ","
-			else
-				outLines[#outLines + 1] = "\t\t" .. p .. " = " .. string.format("%.4f", val or 0) .. ","
-			end
-		end
-		outLines[#outLines + 1] = "\t},"
-		outLines[#outLines + 1] = ""
-		outLines[#outLines + 1] = "\t-- Water colors"
-		local waterColorExport = {
-			{"absorb", "absorb"}, {"baseColor", "baseColor"}, {"minColor", "minColor"},
-			{"surfaceColor", "surfaceColor"}, {"planeColor", "planeColor"},
-			{"diffuseColor", "diffuseColor"}, {"specularColor", "specularColor"},
-		}
-		for _, wce in ipairs(waterColorExport) do
-			local c = { gl.GetWaterRendering(wce[2]) }
-			outLines[#outLines + 1] = "\twaterColors_" .. wce[1] .. " = " .. fmt3(c) .. ","
-		end
-		outLines[#outLines + 1] = "}"
-		outLines[#outLines + 1] = ""
-		local content = table.concat(outLines, "\n")
+		local content = widgetState.buildEnvConfigContent()
 		local mapSafe = (Game.mapName or "unknown"):gsub("[^%w_%-]", "_")
 		local timestamp = os.date("%Y%m%d_%H%M%S")
 		local LIGHTMAPS_DIR = "Terraform Brush/Lightmaps/"
@@ -8538,6 +8614,26 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	-- Save Project name input (FILE > Save Project): same SDL text-input capture
+	-- as the preset input, plus a change listener mirroring into widgetState so
+	-- the confirm handler has the value even if GetAttribute lags the keystroke.
+	local projectNameInput = getCachedEl(doc, "input-project-name")
+	if projectNameInput then
+		projectNameInput:AddEventListener("focus", function(event)
+			WG.TerraformBrushInputFocused = true
+			Spring.SDLStartTextInput()
+			widgetState.focusedRmlInput = projectNameInput
+		end, false)
+		projectNameInput:AddEventListener("blur", function(event)
+			WG.TerraformBrushInputFocused = false
+			Spring.SDLStopTextInput()
+			widgetState.focusedRmlInput = nil
+		end, false)
+		projectNameInput:AddEventListener("change", function(event)
+			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+		end, false)
+	end
+
 	local function setDropdownOpen(open)
 		dropdownOpen = open
 		if presetDropdown then
@@ -8817,6 +8913,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-light-library-handle", widgetState.lightLibraryRootEl)
 		makeWindowDraggable("tf-settings-handle", widgetState.settingsRootEl)
 		makeWindowDraggable("tf-newmap-handle", getCachedEl(doc, "tf-newmap-root"))
+		makeWindowDraggable("tf-project-handle", getCachedEl(doc, "tf-project-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====
@@ -8940,6 +9037,14 @@ function widget:Initialize()
 
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
+		-- Environment snapshot/apply, for the map-project orchestrator
+		-- (cmd_map_project.lua). Indirect so it tracks widgetState assignments.
+		buildEnvConfigContent = function(opts)
+			return widgetState.buildEnvConfigContent(opts)
+		end,
+		applyEnvConfig = function(d)
+			return widgetState.applyEnvConfig(d)
+		end,
 		isCapturingKey = function()
 			return widgetState.settingsCapturing ~= nil
 		end,
