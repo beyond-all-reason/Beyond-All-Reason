@@ -1,13 +1,13 @@
 local scenariodata = {
-	index			= 13, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "shoretoshorevsbarb013", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "Testing the Waters", -- can be anything
-	author			= "Beherith", -- your name here
-	imagepath		= "scenario013.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Shipyards can be assisted by all constructors", -- This text will be drawn over image
-    summary         = [[Test your skill in naval and aircraft warfare on one of the widest maps. You must defeat a single enemy, who like you, is still quite new to naval combat..]],
-	briefing 		= [[Naval battles in BAR are focused on the interaction between ships, submarines, hovercraft, aircraft and occasionally, amphibious units.
+	index = 13, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "shoretoshorevsbarb013", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "Testing the Waters", -- can be anything
+	author = "Beherith", -- your name here
+	imagepath = "scenario013.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Shipyards can be assisted by all constructors", -- This text will be drawn over image
+	summary = [[Test your skill in naval and aircraft warfare on one of the widest maps. You must defeat a single enemy, who like you, is still quite new to naval combat..]],
+	briefing = [[Naval battles in BAR are focused on the interaction between ships, submarines, hovercraft, aircraft and occasionally, amphibious units.
  
  
 Tips:
@@ -34,36 +34,36 @@ Scoring:
 
     ]],
 
-	mapfilename		= "Shore_to_Shore_V3", -- the name of the map to be displayed here
-	playerstartx	= "5%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "50%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1800, -- par time in seconds
-	parresources	= 1000000, -- par resource amount
-	difficulty		= 1, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-        {name = "Beginner", playerhandicap = 50 , enemyhandicap = 0},
-        {name = "Novice"  , playerhandicap = 25 , enemyhandicap = 0},
-        {name = "Normal"  , playerhandicap = 0  , enemyhandicap = 0},
-        {name = "Hard"    , playerhandicap = 0, enemyhandicap = 50},
-        {name = "Brutal"  , playerhandicap = 0, enemyhandicap = 100},
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all construction units", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Lose all of your construction units",  -- This is plaintext, but should be reflected in startscript
-     unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-	-- dont use the one in startscript, put it here!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
+	mapfilename = "Shore_to_Shore_V3", -- the name of the map to be displayed here
+	playerstartx = "5%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "50%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1800, -- par time in seconds
+	parresources = 1000000, -- par resource amount
+	difficulty = 1, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = 0 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = 0 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 50 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 100 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all construction units", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Lose all of your construction units", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put it here!
+		--armavp = 0,
+		--coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "shoretoshorevsbarb013", --must be present for scores
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "shoretoshorevsbarb013", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 
 [Game]
 {
@@ -147,7 +147,6 @@ Scoring:
 	nohelperais = 0;
 }
 	]],
-
 }
 
 return scenariodata

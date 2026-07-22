@@ -1,14 +1,14 @@
 local scenariodata = {
-	index			= 15, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "thronekoth015", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "King of the Hill", -- can be anything
-	author			= "Beherith", -- your name here
+	index = 15, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "thronekoth015", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "King of the Hill", -- can be anything
+	author = "Beherith", -- your name here
 	isnew = true,
-	imagepath		= "scenario015.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Its cold and lonely up here", -- This text will be drawn over image
-    summary         = [[7 enemy Commanders are allied against you, at the top of Throne. Destroy all of them to keep your crown.]],
-	briefing 		= [[The seven outcroppings on the edge of Throne all occupied by enemy Commanders. They will send early scouting forces, and if left to expand too much, will advance in technology rapidly. The third level is secured for you with the most basic defences, and some light anti-air.
+	imagepath = "scenario015.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Its cold and lonely up here", -- This text will be drawn over image
+	summary = [[7 enemy Commanders are allied against you, at the top of Throne. Destroy all of them to keep your crown.]],
+	briefing = [[The seven outcroppings on the edge of Throne all occupied by enemy Commanders. They will send early scouting forces, and if left to expand too much, will advance in technology rapidly. The third level is secured for you with the most basic defences, and some light anti-air.
  
  
 Tips:
@@ -38,58 +38,57 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 
     ]],
 
-	mapfilename		= "Throne_V8", -- the name of the map to be displayed here
-	playerstartx	= "50%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "50%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1800, -- par time in seconds
-	parresources	= 1000000, -- par resource amount
-	difficulty		= 3, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-        {name = "Beginner", playerhandicap = 50 , enemyhandicap = -50},
-        {name = "Novice"  , playerhandicap = 25 , enemyhandicap = -25},
-        {name = "Normal"  , playerhandicap = 0  , enemyhandicap = 0  },
-        {name = "Hard"    , playerhandicap = 0, enemyhandicap = 50 },
-        {name = "Brutal"  , playerhandicap = 0, enemyhandicap = 100 },
-    },
-    allowedsides     = {"Cortex"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Loss of your Commander",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-	-- dont use the one in startscript, put it here!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
-	
+	mapfilename = "Throne_V8", -- the name of the map to be displayed here
+	playerstartx = "50%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "50%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1800, -- par time in seconds
+	parresources = 1000000, -- par resource amount
+	difficulty = 3, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = -50 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = -25 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 50 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 100 },
+	},
+	allowedsides = { "Cortex" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all enemy Commanders", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Loss of your Commander", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put it here!
+		--armavp = 0,
+		--coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "thronekoth015", --must be present for scores
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "thronekoth015", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
 		unitloadout = {
-			{name = 'corrad', x = 5760, y = 751, z = 5616, rot = 0 , team = 7},
-			{name = 'coradvsol', x = 5760, y = 753, z = 5664, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5264, y = 531, z = 4928, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 5640, y = 578, z = 6472, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5520, y = 535, z = 4736, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 7064, y = 565, z = 5576, rot = 0 , team = 7},
-			{name = 'cormaw', x = 7344, y = 552, z = 5408, rot = 0 , team = 7},
-			{name = 'cormaw', x = 7360, y = 554, z = 5696, rot = 0 , team = 7},
-			{name = 'cormadsam', x = 5512, y = 556, z = 4952, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5712, y = 565, z = 6784, rot = 0 , team = 7},
-			{name = 'cormaw', x = 5408, y = 561, z = 6656, rot = 0 , team = 7},
-			{name = 'corcom', x = 6068, y = 755, z = 5565, rot = -688 , team = 7},
-			{name = 'armcom', x = 1405, y = 85, z = 2774, rot = 0 , team = 0},
-			{name = 'corcom', x = 5334, y = 88, z = 844, rot = 0 , team = 1},
-			{name = 'armcom', x = 10114, y = 86, z = 2076, rot = 0 , team = 2},
-			{name = 'corcom', x = 11342, y = 89, z = 6616, rot = 0 , team = 3},
-			{name = 'armcom', x = 8995, y = 87, z = 10831, rot = 0 , team = 4},
-			{name = 'armcom', x = 4417, y = 88, z = 11187, rot = -11476 , team = 5},
-			{name = 'corcom', x = 903, y = 87, z = 7821, rot = 0 , team = 6},
-		}
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+			{ name = "corrad", x = 5760, y = 751, z = 5616, rot = 0, team = 7 },
+			{ name = "coradvsol", x = 5760, y = 753, z = 5664, rot = 0, team = 7 },
+			{ name = "cormaw", x = 5264, y = 531, z = 4928, rot = 0, team = 7 },
+			{ name = "cormadsam", x = 5640, y = 578, z = 6472, rot = 0, team = 7 },
+			{ name = "cormaw", x = 5520, y = 535, z = 4736, rot = 0, team = 7 },
+			{ name = "cormadsam", x = 7064, y = 565, z = 5576, rot = 0, team = 7 },
+			{ name = "cormaw", x = 7344, y = 552, z = 5408, rot = 0, team = 7 },
+			{ name = "cormaw", x = 7360, y = 554, z = 5696, rot = 0, team = 7 },
+			{ name = "cormadsam", x = 5512, y = 556, z = 4952, rot = 0, team = 7 },
+			{ name = "cormaw", x = 5712, y = 565, z = 6784, rot = 0, team = 7 },
+			{ name = "cormaw", x = 5408, y = 561, z = 6656, rot = 0, team = 7 },
+			{ name = "corcom", x = 6068, y = 755, z = 5565, rot = -688, team = 7 },
+			{ name = "armcom", x = 1405, y = 85, z = 2774, rot = 0, team = 0 },
+			{ name = "corcom", x = 5334, y = 88, z = 844, rot = 0, team = 1 },
+			{ name = "armcom", x = 10114, y = 86, z = 2076, rot = 0, team = 2 },
+			{ name = "corcom", x = 11342, y = 89, z = 6616, rot = 0, team = 3 },
+			{ name = "armcom", x = 8995, y = 87, z = 10831, rot = 0, team = 4 },
+			{ name = "armcom", x = 4417, y = 88, z = 11187, rot = -11476, team = 5 },
+			{ name = "corcom", x = 903, y = 87, z = 7821, rot = 0, team = 6 },
+		},
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 
 [game]
 {
@@ -309,7 +308,6 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 }
 
 	]],
-
 }
 
 return scenariodata -- scenariodata

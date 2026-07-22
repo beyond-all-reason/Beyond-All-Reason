@@ -1,4 +1,3 @@
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -7,13 +6,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Wade Effects",
-		desc      = "Spawn wakes when non-ship ground units move while partially, but not completely submerged",
-		author    = "Anarchid",
-		date      = "March 2016",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Wade Effects",
+		desc = "Spawn wakes when non-ship ground units move while partially, but not completely submerged",
+		author = "Anarchid",
+		date = "March 2016",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -34,8 +33,8 @@ local n_folds = 3 -- check every X-th unit
 local current_fold = 1
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
-local spGetUnitPosition  = Spring.GetUnitPosition
-local spGetUnitVelocity  = Spring.GetUnitVelocity
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSpawnCEG = Spring.SpawnCEG
@@ -44,12 +43,12 @@ local wadeDepth = {}
 ---@type table<integer, string|false>
 local wadeCeg = {}
 
-local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
+local smc = Game.speedModClasses -- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
 local wadingSMC = {
 	[smc.Tank] = true,
 	[smc.KBot] = true,
 }
-local cegSizes = {"waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge"}
+local cegSizes = { "waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge" }
 
 local function checkCanWade(unitDef)
 	local moveDef = unitDef.moveDef
@@ -82,7 +81,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	local ceg = wadeCeg[unitDefID]
 	if maxDepth and ceg then
 		unitsCount = unitsCount + 1
-		local data = {id = unitsCount, unitID = unitID, h = maxDepth, ceg = ceg}
+		local data = { id = unitsCount, unitID = unitID, h = maxDepth, ceg = ceg }
 		unitsData[unitsCount] = data
 		unit[unitID] = data
 	end

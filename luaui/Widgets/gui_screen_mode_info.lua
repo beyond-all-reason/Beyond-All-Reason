@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "November 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -34,13 +34,13 @@ local screenmode
 
 local heightKey, metalKey, pathKey
 
-local screenModeOverviewTable = { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215', keyset = '' }
+local screenModeOverviewTable = { highlightColor = "\255\255\255\255", textColor = "\255\215\215\215", keyset = "" }
 local screenModeTitleTable = { screenMode = "", highlightColor = "\255\255\255\255" }
 
 -- Pre-allocated i18n parameter tables to avoid per-frame allocation
-local heightParams = { keyset = '' }
-local pathParams = { keyset = '' }
-local metalParams = { keyset = '' }
+local heightParams = { keyset = "" }
+local pathParams = { keyset = "" }
+local metalParams = { keyset = "" }
 
 local cachedCameraName = spGetCameraState().name or ""
 local cachedTitleText = ""
@@ -54,7 +54,9 @@ local framecount = 0
 local function getActionHotkey(action)
 	local key = spGetActionHotkeys(action)[1]
 
-	if not key then return "none" end
+	if not key then
+		return "none"
+	end
 
 	return keyConfig.sanitizeKey(key, currentLayout)
 end
@@ -71,7 +73,7 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG["fonts"].getFont(1, 1.5)
 end
 
 function widget:Initialize()
@@ -79,7 +81,9 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-	if WG['topbar'] and WG['topbar'].showingQuit() then return end
+	if WG["topbar"] and WG["topbar"].showingQuit() then
+		return
+	end
 
 	framecount = framecount + 1
 
@@ -97,52 +101,56 @@ function widget:DrawScreen()
 		needsTextRebuild = true
 	end
 
-	local isOverview = cachedCameraName == 'ov'
-	if (screenmode == 'normal' or screenmode == 'los') and not isOverview then return end
+	local isOverview = cachedCameraName == "ov"
+	if (screenmode == "normal" or screenmode == "los") and not isOverview then
+		return
+	end
 
 	if needsTextRebuild then
 		needsTextRebuild = false
 		updateKeys()
 
-		local description, title = '', ''
+		local description, title = "", ""
 		local effectiveMode = screenmode
 
 		if isOverview then
-			effectiveMode = ''
-			description = i18n('ui.screenMode.overview', screenModeOverviewTable)
-		elseif screenmode == 'height' then
-			title = i18n('ui.screenMode.heightTitle')
+			effectiveMode = ""
+			description = i18n("ui.screenMode.overview", screenModeOverviewTable)
+		elseif screenmode == "height" then
+			title = i18n("ui.screenMode.heightTitle")
 			heightParams.keyset = heightKey
-			description = i18n('ui.screenMode.heightmap', heightParams)
-		elseif screenmode == 'pathTraversability' then
-			title = i18n('ui.screenMode.pathingTitle')
+			description = i18n("ui.screenMode.heightmap", heightParams)
+		elseif screenmode == "pathTraversability" then
+			title = i18n("ui.screenMode.pathingTitle")
 			pathParams.keyset = pathKey
-			description = i18n('ui.screenMode.pathing', pathParams)
-		elseif screenmode == 'metal' then
-			title = i18n('ui.screenMode.resourcesTitle')
+			description = i18n("ui.screenMode.pathing", pathParams)
+		elseif screenmode == "metal" then
+			title = i18n("ui.screenMode.resourcesTitle")
 			metalParams.keyset = metalKey
-			description = i18n('ui.screenMode.resources', metalParams)
+			description = i18n("ui.screenMode.resources", metalParams)
 		end
 
-		if effectiveMode ~= '' and title ~= '' then
+		if effectiveMode ~= "" and title ~= "" then
 			screenModeTitleTable.screenMode = title
-			cachedTitleText = '\255\233\233\233' .. i18n('ui.screenMode.title', screenModeTitleTable)
+			cachedTitleText = "\255\233\233\233" .. i18n("ui.screenMode.title", screenModeTitleTable)
 		else
-			cachedTitleText = ''
+			cachedTitleText = ""
 		end
-		cachedDescText = description ~= '' and ('\255\215\215\215' .. description) or ''
+		cachedDescText = description ~= "" and ("\255\215\215\215" .. description) or ""
 	end
 
-	if cachedTitleText == '' and cachedDescText == '' then return end
+	if cachedTitleText == "" and cachedDescText == "" then
+		return
+	end
 
 	glPushMatrix()
 	glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 
 	font:Begin()
-	if cachedTitleText ~= '' then
+	if cachedTitleText ~= "" then
 		font:Print(cachedTitleText, 0, 15 * widgetScale, 20 * widgetScale, "oc")
 	end
-	if cachedDescText ~= '' then
+	if cachedDescText ~= "" then
 		font:Print(cachedDescText, 0, -10 * widgetScale, 17 * widgetScale, "oc")
 	end
 	font:End()

@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name = "Air Transports Speed",
 		desc = "Slows down transport depending on loaded mass",
-		author = "raaar, Hornet",--added com mod 13/06/24
+		author = "raaar, Hornet", --added com mod 13/06/24
 		date = "2015",
 		license = "PD",
 		layer = 0,
@@ -12,7 +12,9 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
 local FRAMES_PER_SECOND = Game.gameSpeed
@@ -50,23 +52,22 @@ local function updateAllowedSpeed(transportId)
 	local tunitdefcustom
 	local iscom = false
 	if units then
-		for _,tUnitId in pairs(units) do
+		for _, tUnitId in pairs(units) do
 			tunitdefid = spGetUnitDefID(tUnitId)
-			tunitdefcustom = UnitDefs[tunitdefid].customParams		
-			if tunitdefcustom and tunitdefcustom.iscommander == '1' then
+			tunitdefcustom = UnitDefs[tunitdefid].customParams
+			if tunitdefcustom and tunitdefcustom.iscommander == "1" then
 				iscom = true
 			end
 		end
 
-		if (iscom) then
-			allowedSpeed =  120 / FRAMES_PER_SECOND
+		if iscom then
+			allowedSpeed = 120 / FRAMES_PER_SECOND
 		else
 			allowedSpeed = unitSpeed[uDefID] / FRAMES_PER_SECOND
 		end
-			airTransportMaxSpeeds[transportId] = allowedSpeed
+		airTransportMaxSpeeds[transportId] = allowedSpeed
 	end
 end
-
 
 --Old complex weight calc for posterity:
 --[[local function updateAllowedSpeed(transportId)
@@ -103,8 +104,6 @@ end
 	end
 end]]
 
-
-
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)
 	if canFly[spGetUnitDefID(transportId)] and not airTransports[transportId] then
@@ -121,21 +120,19 @@ end
 
 -- every frame, adjust speed of air transports according to transported mass, if any
 function gadget:GameFrame(n)
-
 	-- for each air transport with units loaded, reduce speed if currently greater than allowed
 	local factor = 1
-	local vx,vy,vz,vw = 0
+	local vx, vy, vz, vw = 0
 	local alSpeed = 0
-	for unitId,_ in pairs(airTransports) do
-		vx,vy,vz,vw = spGetUnitVelocity(unitId)
+	for unitId, _ in pairs(airTransports) do
+		vx, vy, vz, vw = spGetUnitVelocity(unitId)
 		alSpeed = airTransportMaxSpeeds[unitId]
 		if alSpeed and vw and vw > alSpeed then
 			factor = alSpeed / vw
-			spSetUnitVelocity(unitId,vx * factor,vy * factor,vz * factor)
+			spSetUnitVelocity(unitId, vx * factor, vy * factor, vz * factor)
 		end
 	end
 end
-
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
 	if canFly[spGetUnitDefID(transportId)] then

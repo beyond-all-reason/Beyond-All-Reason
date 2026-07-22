@@ -1,10 +1,9 @@
 local function skyshiftUnitTweaks(name, uDef)
-
----------------------------------------------
-			--------------------
-			---ARMADA AIR T1 ---
-			--------------------
----------------------------------------------
+	---------------------------------------------
+	--------------------
+	---ARMADA AIR T1 ---
+	--------------------
+	---------------------------------------------
 	if name == "armca" then
 		uDef.health = 720
 	end
@@ -94,7 +93,7 @@ local function skyshiftUnitTweaks(name, uDef)
 		uDef.wingangle = 0.06315
 		uDef.wingdrag = 0.185
 		uDef.weapondefs = {
-		emg = {
+			emg = {
 				areaofeffect = 2,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -403,21 +402,17 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 
----------------------------------------------
-			--------------------
-			---ARMADA AIR T2 ---
-			--------------------
----------------------------------------------
+	---------------------------------------------
+	--------------------
+	---ARMADA AIR T2 ---
+	--------------------
+	---------------------------------------------
 
-
-
-
----------------------------------------------
-			--------------------
-			---CORTEX AIR T1 ---
-			--------------------
----------------------------------------------
-
+	---------------------------------------------
+	--------------------
+	---CORTEX AIR T1 ---
+	--------------------
+	---------------------------------------------
 
 	if name == "corfink" then
 		uDef.acceleration = 0.6
@@ -809,26 +804,17 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 
----------------------------------------------
-			--------------------
-			---CORTEX AIR T2 ---
-			--------------------
----------------------------------------------
+	---------------------------------------------
+	--------------------
+	---CORTEX AIR T2 ---
+	--------------------
+	---------------------------------------------
 
-
-
-
-
-
-
-
-
----------------------------------------------
-			--------------------
-			----GROUND UNITS----
-			--------------------
----------------------------------------------
-
+	---------------------------------------------
+	--------------------
+	----GROUND UNITS----
+	--------------------
+	---------------------------------------------
 
 	if name == "armwar" or name == "armham" or name == "armflea" or name == "armpw" or name == "armstump" or name == "armfav" or name == "armart" or name == "armflash" or name == "armpincer" or name == "armjanus" or name == "armcom" or name == "armllt" or name == "armbeamer" or name == "armhlt" or name == "armclaw" or name == "armguard" or name == "corstorm" or name == "corthud" or name == "corak" or name == "corlevlr" or name == "corgarp" or name == "corwolv" or name == "corraid" or name == "corgator" or name == "corfav" or name == "corllt" or name == "corhlt" or name == "corhllt" or name == "cormaw" or name == "corpun" or name == "corpship" or name == "corroy" or name == "coresupp" or name == "armroy" or name == "armpship" or name == "armdecade" or name == "armfhlt" or name == "corfhlt" then
 		for weapons, weaponDef in pairs(uDef.weapondefs) do
@@ -870,20 +856,11 @@ local function skyshiftUnitTweaks(name, uDef)
 		}
 	end
 
-
-
-
-
-
-
-
-
-
----------------------------------------------
-			--------------------
-			----BUILDOPTIONS----
-			--------------------
----------------------------------------------
+	---------------------------------------------
+	--------------------
+	----BUILDOPTIONS----
+	--------------------
+	---------------------------------------------
 	if name == "armap" then
 		uDef.buildoptions[7] = "armsfig"
 	end
@@ -893,15 +870,7 @@ local function skyshiftUnitTweaks(name, uDef)
 	end
 
 	return uDef
-
 end
-
-
-
-
-
-
-
 
 --[[
 
@@ -916,4 +885,4 @@ end
 return {
 	skyshiftUnitTweaks = skyshiftUnitTweaks,
 	--skyshiftWeaponTweaks = skyshiftWeaponTweaks,
-	}
+}

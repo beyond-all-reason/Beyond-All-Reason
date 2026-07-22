@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Water Type Overlay GL4",
-		desc      = "Renders lava/acid shader overlay for water type presets",
-		author    = "PtaQ",
-		date      = "2026",
-		license   = "GNU GPL v2",
-		layer     = -5,
-		enabled   = false,
+		name = "Water Type Overlay GL4",
+		desc = "Renders lava/acid shader overlay for water type presets",
+		author = "PtaQ",
+		date = "2026",
+		license = "GNU GPL v2",
+		layer = -5,
+		enabled = false,
 	}
 end
 
@@ -38,7 +38,7 @@ end
 
 -- State
 local active = false
-local activeType = nil  -- "lava" or "acid"
+local activeType = nil -- "lava" or "acid"
 local lavaShader = nil
 local foglightShader = nil
 local planeVAO = nil
@@ -47,8 +47,8 @@ local engineWaterHidden = false
 local lavaLevel = 0
 local targetLevel = 0
 local currentLevel = 0
-local baseWaterLevel = 0  -- engine water plane at activation time
-local LERP_SPEED = 4.0  -- controls ease-out convergence rate
+local baseWaterLevel = 0 -- engine water plane at activation time
+local LERP_SPEED = 4.0 -- controls ease-out convergence rate
 local heatdistortx = 0
 local heatdistortz = 0
 local smoothFPS = 30
@@ -140,20 +140,28 @@ local typeParams = {
 }
 
 -- Compiled shader caches per type
-local compiledShaders = {}  -- { lava = { surface=shader, foglight=shader }, acid = { ... } }
+local compiledShaders = {} -- { lava = { surface=shader, foglight=shader }, acid = { ... } }
 
 local function compileForType(typeName)
-	if compiledShaders[typeName] then return compiledShaders[typeName] end
+	if compiledShaders[typeName] then
+		return compiledShaders[typeName]
+	end
 	local cfg = shaderConfigs[typeName]
-	if not cfg then return nil end
+	if not cfg then
+		return nil
+	end
 
 	local surfaceCache = {
 		vssrcpath = "shaders/GLSL/lava/lava.vert.glsl",
 		fssrcpath = "shaders/GLSL/lava/lava.frag.glsl",
 		shaderName = "Water Overlay Surface (" .. typeName .. ")",
 		uniformInt = {
-			heightmapTex = 0, lavaDiffuseEmit = 1, lavaNormalHeight = 2,
-			lavaDistortion = 3, shadowTex = 4, infoTex = 5,
+			heightmapTex = 0,
+			lavaDiffuseEmit = 1,
+			lavaNormalHeight = 2,
+			lavaDistortion = 3,
+			shadowTex = 4,
+			infoTex = 5,
 		},
 		uniformFloat = { lavaHeight = 1, heatdistortx = 1, heatdistortz = 1 },
 		shaderConfig = cfg,
@@ -175,34 +183,50 @@ local function compileForType(typeName)
 		Spring.Echo("[WaterOverlay] Compiled shaders for " .. typeName)
 		return compiledShaders[typeName]
 	else
-		if surface then surface:Delete() end
-		if fog then fog:Delete() end
+		if surface then
+			surface:Delete()
+		end
+		if fog then
+			fog:Delete()
+		end
 		Spring.Echo("[WaterOverlay] Failed to compile shaders for " .. typeName)
 		return nil
 	end
 end
 
 local function ensurePlaneVAO()
-	if planeVAO then return true end
+	if planeVAO then
+		return true
+	end
 	local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 	local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
 	local vertexBuffer = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
 	local indexBuffer = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 	planeVAO = gl.GetVAO()
-	if not planeVAO then return false end
+	if not planeVAO then
+		return false
+	end
 	planeVAO:AttachVertexBuffer(vertexBuffer)
 	planeVAO:AttachIndexBuffer(indexBuffer)
 	return true
 end
 
 local function activateOverlay(typeName)
-	if isRealLavaMap then return end
-	if typeName ~= "lava" and typeName ~= "acid" then return end
+	if isRealLavaMap then
+		return
+	end
+	if typeName ~= "lava" and typeName ~= "acid" then
+		return
+	end
 
 	local shaders = compileForType(typeName)
-	if not shaders then return end
+	if not shaders then
+		return
+	end
 
-	if not ensurePlaneVAO() then return end
+	if not ensurePlaneVAO() then
+		return
+	end
 
 	-- Apply type-specific params
 	local tp = typeParams[typeName] or typeParams.lava
@@ -247,15 +271,23 @@ function widget:Initialize()
 	WG.WaterTypeOverlay = {
 		activate = activateOverlay,
 		deactivate = deactivateOverlay,
-		isActive = function() return active end,
-		getActiveType = function() return activeType end,
+		isActive = function()
+			return active
+		end,
+		getActiveType = function()
+			return activeType
+		end,
 		setLevel = function(level)
 			Spring.Echo("[WaterOverlay] setLevel: " .. tostring(level) .. " baseWL=" .. tostring(baseWaterLevel) .. " active=" .. tostring(active))
 			targetLevel = level
 			sendOverlayMsg("wateroverlay:level:" .. string.format("%.1f", level))
 		end,
-		getLevel = function() return currentLevel end,
-		getTargetLevel = function() return targetLevel end,
+		getLevel = function()
+			return currentLevel
+		end,
+		getTargetLevel = function()
+			return targetLevel
+		end,
 		setTideAmplitude = function(v)
 			tideAmplitude = v
 		end,
@@ -271,8 +303,12 @@ end
 function widget:Shutdown()
 	deactivateOverlay()
 	for typeName, shaders in pairs(compiledShaders) do
-		if shaders.surface then shaders.surface:Delete() end
-		if shaders.foglight then shaders.foglight:Delete() end
+		if shaders.surface then
+			shaders.surface:Delete()
+		end
+		if shaders.foglight then
+			shaders.foglight:Delete()
+		end
 	end
 	compiledShaders = {}
 	planeVAO = nil
@@ -280,7 +316,9 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorldPreUnit()
-	if not active or not lavaShader or not planeVAO then return end
+	if not active or not lavaShader or not planeVAO then
+		return
+	end
 
 	-- Update heat distortion
 	local _, _, isPaused = Spring.GetGameSpeed()
@@ -337,11 +375,17 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawWorld()
-	if not active or not foglightShader or not planeVAO then return end
-	if not allowDeferredMapRendering then return end
+	if not active or not foglightShader or not planeVAO then
+		return
+	end
+	if not allowDeferredMapRendering then
+		return
+	end
 
 	local tp = typeParams[activeType]
-	if not tp or not tp.fogEnabled then return end
+	if not tp or not tp.fogEnabled then
+		return
+	end
 
 	local gameFrame = Spring.GetGameFrame()
 	local tideLevel = math.sin(gameFrame / tidePeriod) * tideAmplitude + lavaLevel

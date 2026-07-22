@@ -5,16 +5,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Easy Facing",
-		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Hold the right mouse button to change facing while queueing.",
-		author    = "very_bad_soldier",
-		date      = "2009.08.10",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled   = true
+		name = "Easy Facing",
+		desc = "[v" .. string.format("%s", versionNumber) .. "] Enables changing building facing by holding left mouse button. Hold the right mouse button to change facing while queueing.",
+		author = "very_bad_soldier",
+		date = "2009.08.10",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -22,9 +21,9 @@ local spGetGameFrame = Spring.GetGameFrame
 -- 1.1 Tweaks by Pako, big thx!
 
 -- CONFIGURATION
-local updateInt = 1			-- seconds for the ::update loop
-local sens = 40				-- rotate mouse sensitivity - length of mouse movement vector
-local drawForAll = false	-- draw facing direction also for other buildings than labs
+local updateInt = 1 -- seconds for the ::update loop
+local sens = 40 -- rotate mouse sensitivity - length of mouse movement vector
+local drawForAll = false -- draw facing direction also for other buildings than labs
 
 --------------------------------------------------------------------------------
 
@@ -49,38 +48,37 @@ for udefID, def in ipairs(UnitDefs) do
 	unitZsize[udefID] = def.zsize
 end
 
-local spGetModKeyState      = Spring.GetModKeyState
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetActiveCommand 	= Spring.GetActiveCommand
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
-local spGetCameraVectors    = Spring.GetCameraVectors
-local spWarpMouse			= Spring.WarpMouse
-local spGetBuildFacing		= Spring.GetBuildFacing
-local spSetBuildFacing 		= Spring.SetBuildFacing
-local spPos2BuildPos 		= Spring.Pos2BuildPos
+local spGetModKeyState = Spring.GetModKeyState
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetActiveCommand = Spring.GetActiveCommand
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetCameraVectors = Spring.GetCameraVectors
+local spWarpMouse = Spring.WarpMouse
+local spGetBuildFacing = Spring.GetBuildFacing
+local spSetBuildFacing = Spring.SetBuildFacing
+local spPos2BuildPos = Spring.Pos2BuildPos
 
-local floor                 = math.floor
-local atan2                 = math.atan2
-local pi                    = math.pi
-local sqrt                  = math.sqrt
+local floor = math.floor
+local atan2 = math.atan2
+local pi = math.pi
+local sqrt = math.sqrt
 
-local glColor               = gl.Color
-local glLineWidth           = gl.LineWidth
-local glPopMatrix           = gl.PopMatrix
-local glPushMatrix          = gl.PushMatrix
-local glTranslate           = gl.Translate
-local glVertex              = gl.Vertex
-local glRotate				= gl.Rotate
-local glBeginEnd			= gl.BeginEnd
-local glScale				= gl.Scale
-local GL_TRIANGLES			= GL.TRIANGLES
-
+local glColor = gl.Color
+local glLineWidth = gl.LineWidth
+local glPopMatrix = gl.PopMatrix
+local glPushMatrix = gl.PushMatrix
+local glTranslate = gl.Translate
+local glVertex = gl.Vertex
+local glRotate = gl.Rotate
+local glBeginEnd = gl.BeginEnd
+local glScale = gl.Scale
+local GL_TRIANGLES = GL.TRIANGLES
 
 local function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget()
-    end
+	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 ---map of reason to unitDefID
@@ -93,13 +91,13 @@ local function getForceShowUnitDefID()
 	return reason and forceShow[reason] or nil
 end
 
-local function getVector2dLen( vector )
-	return sqrt( ( vector[1] * vector[1] ) + ( vector[2] * vector[2] ) )
+local function getVector2dLen(vector)
+	return sqrt((vector[1] * vector[1]) + (vector[2] * vector[2]))
 end
 
-local function normalizeVector2d( vector )
-	local len = getVector2dLen( vector )
-	local normVec = {0.0, 0.0}
+local function normalizeVector2d(vector)
+	local len = getVector2dLen(vector)
+	local normVec = { 0.0, 0.0 }
 	normVec[1] = vector[1] / len
 	normVec[2] = vector[2] / len
 	return normVec
@@ -108,7 +106,7 @@ end
 -- I currently get all degrees in a range from 0 to 270 and 0 to -90
 -- this is a hack to correct this
 -- also corrects values > 360
-local function normalizeDegreeRange( degree )
+local function normalizeDegreeRange(degree)
 	if degree < 0 then
 		degree = 360.0 + degree
 	elseif degree > 360 then
@@ -117,40 +115,40 @@ local function normalizeDegreeRange( degree )
 	return degree
 end
 
-local function getRotationVectors2d( vectorA, vectorB )
-	vectorA = normalizeVector2d( vectorA )
-	vectorB = normalizeVector2d( vectorB )
-	local radian = atan2( vectorA[2], vectorA[1] ) - atan2( vectorB[2], vectorB[1] )
-	local val = ( 360 * radian) / ( 2 * pi )
+local function getRotationVectors2d(vectorA, vectorB)
+	vectorA = normalizeVector2d(vectorA)
+	vectorB = normalizeVector2d(vectorB)
+	local radian = atan2(vectorA[2], vectorA[1]) - atan2(vectorB[2], vectorB[1])
+	local val = (360 * radian) / (2 * pi)
 	return normalizeDegreeRange(val)
 end
 
 -- returns the rotation degrees between mouse move vector and defined forward vector
-local function getMouseFacingDegree( mouseVec )
+local function getMouseFacingDegree(mouseVec)
 	local forwVec = { 0.0, 1.0 }
-	return getRotationVectors2d( forwVec, mouseVec )
+	return getRotationVectors2d(forwVec, mouseVec)
 end
 
-local function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
-	local camVecs = spGetCameraVectors()	-- would be cool to update this only on a callin like "onCameraMoved()"
+local function getFacingByMouseDelta(mouseDeltaX, mouseDeltaY)
+	local camVecs = spGetCameraVectors() -- would be cool to update this only on a callin like "onCameraMoved()"
 
 	local mouseMovVec = { mouseDeltaX, mouseDeltaY }
-	local mMovVecLen = getVector2dLen( mouseMovVec )
+	local mMovVecLen = getVector2dLen(mouseMovVec)
 
 	if mMovVecLen < sens then
 		return nil
 	end
 
-	local mouseDegree = getMouseFacingDegree( mouseMovVec )
+	local mouseDegree = getMouseFacingDegree(mouseMovVec)
 
 	-- calculate the camera angle
 	local camRight2d = { camVecs.right[1], -camVecs.right[3] }
-	local camDegree = getMouseFacingDegree( camRight2d ) - 90
-	camDegree = normalizeDegreeRange( camDegree )
+	local camDegree = getMouseFacingDegree(camRight2d) - 90
+	camDegree = normalizeDegreeRange(camDegree)
 
 	-- take the camera angle into account here
 	mouseDegree = mouseDegree + camDegree
-	mouseDegree = normalizeDegreeRange( mouseDegree )
+	mouseDegree = normalizeDegreeRange(mouseDegree)
 
 	local newFacing = nil
 	if mouseDegree >= 280.0 or mouseDegree < 45.0 then
@@ -173,14 +171,16 @@ local function manipulateFacing()
 
 	-- check if valid command
 	local _, cmd_id, cmd_type = spGetActiveCommand()
-	if not cmd_id then return end
+	if not cmd_id then
+		return
+	end
 
 	-- check if build command
 	if cmd_type ~= 20 then
-		return		-- quit here if not a build command
+		return -- quit here if not a build command
 	end
 
-	local mx,my,lmb,mmb,rmb = spGetMouseState()
+	local mx, my, lmb, mmb, rmb = spGetMouseState()
 	if lmb and rmb then
 		if not inDrag then
 			mouseDeltaX = 0
@@ -201,7 +201,7 @@ local function manipulateFacing()
 		local curDeltaY = my - mouseYStartRotate
 		mouseDeltaY = mouseDeltaY + curDeltaY
 
-		local newFacing = getFacingByMouseDelta( mouseDeltaX, mouseDeltaY )
+		local newFacing = getFacingByMouseDelta(mouseDeltaX, mouseDeltaY)
 		if newFacing ~= nil then
 			mouseDeltaX = 0
 			mouseDeltaY = 0
@@ -211,8 +211,8 @@ local function manipulateFacing()
 			end
 		end
 
-		if mouseXStartRotate~=mx or mouseYStartRotate~=my then
-			spWarpMouse( mouseXStartRotate, mouseYStartRotate ) -- set old mouse coords to prevent mouse movement
+		if mouseXStartRotate ~= mx or mouseYStartRotate ~= my then
+			spWarpMouse(mouseXStartRotate, mouseYStartRotate) -- set old mouse coords to prevent mouse movement
 		end
 	end
 	ineffect = true
@@ -220,11 +220,13 @@ end
 
 local function drawOrientation()
 	local forceShowUnitDefID = getForceShowUnitDefID()
-	if not ineffect and not forceShowUnitDefID then return end
+	if not ineffect and not forceShowUnitDefID then
+		return
+	end
 
 	local _, cmd_id, cmd_type = spGetActiveCommand()
 	if cmd_type ~= 20 and not forceShowUnitDefID then
-		return		-- quit here if not a build command
+		return -- quit here if not a build command
 	end
 
 	local unitDefID = forceShowUnitDefID or -cmd_id
@@ -233,18 +235,20 @@ local function drawOrientation()
 	end
 
 	local mx, my = spGetMouseState()
-	local _,_,_,shift = spGetModKeyState()
+	local _, _, _, shift = spGetModKeyState()
 	if shift and inDrag then
 		mx = mouseXStartDrag
 		my = mouseYStartDrag
 	end
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
-	if not coords then return end
+	if not coords then
+		return
+	end
 
 	local facing = spGetBuildFacing()
-	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3], facing )
-	local transSpace = unitZsize[unitDefID] * 4   --should be ysize but its not there?!?
+	local centerX, centerY, centerZ = spPos2BuildPos(unitDefID, coords[1], coords[2], coords[3], facing)
+	local transSpace = unitZsize[unitDefID] * 4 --should be ysize but its not there?!?
 	local transX, transZ
 	if facing == 0 then
 		transX = 0
@@ -273,7 +277,7 @@ local function drawOrientation()
 	gl.DepthTest(false)
 	glTranslate(centerX + transX, centerY, centerZ + transZ)
 	glRotate((3 + facing) * 90, 0, 1, 0)
-	glScale((transSpace or 70)/70, 1.0, (transSpace or 70)/70)
+	glScale((transSpace or 70) / 70, 1.0, (transSpace or 70) / 70)
 	glBeginEnd(GL_TRIANGLES, drawFunc)
 	glScale(1.0, 1.0, 1.0)
 	gl.DepthTest(true)
@@ -282,21 +286,21 @@ local function drawOrientation()
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
+	gameStarted = true
+	maybeRemoveSelf()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or spGetGameFrame() > 0 then
-        maybeRemoveSelf()
-    end
+	if Spring.IsReplay() or spGetGameFrame() > 0 then
+		maybeRemoveSelf()
+	end
 
-	WG['easyfacing'] = {}
-	WG['easyfacing'].setForceShow = function(reason, enabled, unitDefID)
+	WG["easyfacing"] = {}
+	WG["easyfacing"].setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
 			forceShow[reason] = unitDefID
 		else
@@ -306,7 +310,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['easyfacing'] = nil
+	WG["easyfacing"] = nil
 end
 
 function widget:Update()

@@ -46,7 +46,7 @@ local METAL_MAP_X = math.floor(MAP_X / METAL_SQ)
 local METAL_MAP_Z = math.floor(MAP_Z / METAL_SQ)
 
 -- Reference values from map_metal_spot_placer.lua for standard metal spots
-local REF_METAL_BUDGET_PER_UNIT = 0.43 * 9 * 255  -- total raw metal budget per 1.0 extraction rate
+local REF_METAL_BUDGET_PER_UNIT = 0.43 * 9 * 255 -- total raw metal budget per 1.0 extraction rate
 
 local floor = math.floor
 local max = math.max
@@ -94,7 +94,7 @@ local undoStack = {}
 local redoStack = {}
 local MAX_UNDO = 50
 
-local isInsideShape  -- forward declaration
+local isInsideShape -- forward declaration
 
 local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
 	local halfSq = METAL_SQ * 0.5
@@ -119,13 +119,17 @@ local function snapshotShape(centerX, centerZ, radius, shape, angleDeg)
 end
 
 local function pushUndo(snap)
-	if #snap == 0 then return end
+	if #snap == 0 then
+		return
+	end
 	undoStack[#undoStack + 1] = snap
 	if #undoStack > MAX_UNDO then
 		table.remove(undoStack, 1)
 	end
 	-- New operation invalidates redo stack
-	for i = #redoStack, 1, -1 do redoStack[i] = nil end
+	for i = #redoStack, 1, -1 do
+		redoStack[i] = nil
+	end
 end
 
 local function applySnapshot(snap)
@@ -156,7 +160,9 @@ end
 
 -- Rotate a point by -angleDeg (inverse rotation for shape testing)
 local function rotateInv(dx, dz, angleDeg)
-	if angleDeg == 0 then return dx, dz end
+	if angleDeg == 0 then
+		return dx, dz
+	end
 	local rad = -angleDeg * pi / 180
 	local c, s = cos(rad), sin(rad)
 	return dx * c - dz * s, dx * s + dz * c
@@ -264,7 +270,9 @@ local function applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg
 		end
 	end
 
-	if squareCount == 0 or inExtractorCount == 0 then return end
+	if squareCount == 0 or inExtractorCount == 0 then
+		return
+	end
 
 	-- per-square value chosen so exactly metalTarget appears in the [spot] readout
 	local perSquare = (metalTarget * 1000) / inExtractorCount
@@ -286,11 +294,10 @@ end
 -- ============================================================
 local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 	local searchRadius = brushRadius + EXTRACTOR_RADIUS + METAL_SQ
-	local units = spGetUnitsInRectangle(
-		centerX - searchRadius, centerZ - searchRadius,
-		centerX + searchRadius, centerZ + searchRadius
-	)
-	if not units then return end
+	local units = spGetUnitsInRectangle(centerX - searchRadius, centerZ - searchRadius, centerX + searchRadius, centerZ + searchRadius)
+	if not units then
+		return
+	end
 
 	local halfSq = METAL_SQ * 0.5
 	local recalcCount = 0
@@ -355,19 +362,19 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return
 		end
 
-		local direction  = tonumber(scratchParts[1]) or 0
-		local centerX    = tonumber(scratchParts[2]) or 0
-		local centerZ    = tonumber(scratchParts[3]) or 0
-		local radius     = tonumber(scratchParts[4]) or 32
-		local shape      = scratchParts[5] or "circle"
-		local angleDeg   = tonumber(scratchParts[6]) or 0
-		local curve      = tonumber(scratchParts[7]) or 1.0
-		local intensity  = tonumber(scratchParts[8]) or 1.0
+		local direction = tonumber(scratchParts[1]) or 0
+		local centerX = tonumber(scratchParts[2]) or 0
+		local centerZ = tonumber(scratchParts[3]) or 0
+		local radius = tonumber(scratchParts[4]) or 32
+		local shape = scratchParts[5] or "circle"
+		local angleDeg = tonumber(scratchParts[6]) or 0
+		local curve = tonumber(scratchParts[7]) or 1.0
+		local intensity = tonumber(scratchParts[8]) or 1.0
 		local metalTarget = tonumber(scratchParts[9]) or 2.0
 
-		radius    = max(8, min(2000, radius))
+		radius = max(8, min(2000, radius))
 		intensity = max(0.1, min(100.0, intensity))
-		curve     = max(0.1, min(5.0, curve))
+		curve = max(0.1, min(5.0, curve))
 		metalTarget = max(0.01, min(50.0, metalTarget))
 
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
@@ -385,17 +392,21 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if certified then
 			rest = rest:sub(CHEAT_SIG_LEN + 1)
 		end
-		if not isAllowed(certified) then return end
+		if not isAllowed(certified) then
+			return
+		end
 		local count = parseParts(rest)
-		if count < 4 then return end
+		if count < 4 then
+			return
+		end
 
-		local centerX    = tonumber(scratchParts[1]) or 0
-		local centerZ    = tonumber(scratchParts[2]) or 0
-		local radius     = tonumber(scratchParts[3]) or 32
+		local centerX = tonumber(scratchParts[1]) or 0
+		local centerZ = tonumber(scratchParts[2]) or 0
+		local radius = tonumber(scratchParts[3]) or 32
 		local metalTarget = tonumber(scratchParts[4]) or 2.0
-		local shape      = scratchParts[5] or "circle"
-		local angleDeg   = tonumber(scratchParts[6]) or 0
-		local direction  = tonumber(scratchParts[7]) or 1
+		local shape = scratchParts[5] or "circle"
+		local angleDeg = tonumber(scratchParts[6]) or 0
+		local direction = tonumber(scratchParts[7]) or 1
 
 		radius = max(8, min(2000, radius))
 		metalTarget = max(0.01, min(255.0, metalTarget))
@@ -415,7 +426,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if certified then
 			rest = rest:sub(CHEAT_SIG_LEN + 1)
 		end
-		if not isAllowed(certified) then return end
+		if not isAllowed(certified) then
+			return
+		end
 
 		local cleared = 0
 		for mz = 0, METAL_MAP_Z - 1 do
@@ -450,7 +463,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if certified then
 			rest = rest:sub(CHEAT_SIG_LEN + 1)
 		end
-		if not isAllowed(certified) then return end
+		if not isAllowed(certified) then
+			return
+		end
 		local count = parseParts(rest)
 		local loaded = 0
 		for i = 1, count - 2, 3 do
@@ -494,7 +509,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 				end
 			end
 		end
-		if loaded > 0 then Spring.SendLuaUIMsg("mb_metal_updated") end
+		if loaded > 0 then
+			Spring.SendLuaUIMsg("mb_metal_updated")
+		end
 		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
 		return
 	end
@@ -503,7 +520,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, UNDO_HEADER_LEN) == UNDO_HEADER then
 		local rest = msg:sub(UNDO_HEADER_LEN + 1)
 		local certified = rest:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
-		if not isAllowed(certified) then return end
+		if not isAllowed(certified) then
+			return
+		end
 		local snap = undoStack[#undoStack]
 		if not snap then
 			Spring.Echo("[Metal Brush] Undo: nothing to undo")
@@ -516,7 +535,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
 		Spring.SendLuaUIMsg("mb_metal_updated")
-		Spring.Echo("[Metal Brush] Undo (" .. (#snap/3) .. " squares, " .. #undoStack .. " left)")
+		Spring.Echo("[Metal Brush] Undo (" .. (#snap / 3) .. " squares, " .. #undoStack .. " left)")
 		return
 	end
 
@@ -524,7 +543,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, REDO_HEADER_LEN) == REDO_HEADER then
 		local rest = msg:sub(REDO_HEADER_LEN + 1)
 		local certified = rest:sub(1, CHEAT_SIG_LEN) == CHEAT_SIG
-		if not isAllowed(certified) then return end
+		if not isAllowed(certified) then
+			return
+		end
 		local snap = redoStack[#redoStack]
 		if not snap then
 			Spring.Echo("[Metal Brush] Redo: nothing to redo")
@@ -537,7 +558,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
 		Spring.SendLuaUIMsg("mb_metal_updated")
-		Spring.Echo("[Metal Brush] Redo (" .. (#snap/3) .. " squares, " .. #redoStack .. " left)")
+		Spring.Echo("[Metal Brush] Redo (" .. (#snap / 3) .. " squares, " .. #redoStack .. " left)")
 		return
 	end
 end

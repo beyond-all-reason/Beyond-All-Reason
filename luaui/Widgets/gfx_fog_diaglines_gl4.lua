@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Fog Diagonal Lines GL4",
-		desc    = "Sharp screen-space diagonal lines over fog-of-war areas",
-		author  = "ix",
-		date    = "2026.04.29",
+		name = "Fog Diagonal Lines GL4",
+		desc = "Sharp screen-space diagonal lines over fog-of-war areas",
+		author = "ix",
+		date = "2026.04.29",
 		license = "GPL V2",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -20,28 +20,28 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 -- Tunables
-local strength       = 0.25  -- 0 = lines off, 1 = full opacity
-local lineFreq       = 35.94 -- elmos per line cycle (world-space; lines anchor to ground and grow with zoom). Now a true spacing since the shader uses a normalised line direction; was visually ~29.7 before two +10% spacing bumps.
-local lineWidth      = 0.38  -- 0..1 fraction of cycle that is line; lower = thinner lines + bigger gaps
-local lineSharpness  = 0.3725 -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out). 0.3725 == blur slider 0.43 (see sharpnessMin/Max below)
-local scrollSpeed    = 0.0067  -- cycles per second
+local strength = 0.25 -- 0 = lines off, 1 = full opacity
+local lineFreq = 35.94 -- elmos per line cycle (world-space; lines anchor to ground and grow with zoom). Now a true spacing since the shader uses a normalised line direction; was visually ~29.7 before two +10% spacing bumps.
+local lineWidth = 0.38 -- 0..1 fraction of cycle that is line; lower = thinner lines + bigger gaps
+local lineSharpness = 0.3725 -- smoothstep half-width at the edge (smaller = sharper, auto-widened when zoomed out). 0.3725 == blur slider 0.43 (see sharpnessMin/Max below)
+local scrollSpeed = 0.0067 -- cycles per second
 
 -- Subtle animated noise that locally fades the lines for a dynamic feel.
-local noiseScale     = 512.0  -- elmos per noise cell; larger = bigger, softer blotches
-local noiseAmount    = 0.46   -- 0 = off, 1 = noise can fully fade lines out
-local noiseSpeed     = 0.010  -- how fast the noise field drifts
+local noiseScale = 512.0 -- elmos per noise cell; larger = bigger, softer blotches
+local noiseAmount = 0.46 -- 0 = off, 1 = noise can fully fade lines out
+local noiseSpeed = 0.010 -- how fast the noise field drifts
 
 -- Range that the 0..1 "blurriness" settings slider maps lineSharpness onto.
 -- The default 0.19 above sits a little below the middle of this range.
-local sharpnessMin   = 0.05  -- slider at 0 = crisp lines
-local sharpnessMax   = 0.80  -- slider at 1 = strongly blurred
+local sharpnessMin = 0.05 -- slider at 0 = crisp lines
+local sharpnessMax = 0.80 -- slider at 1 = strongly blurred
 
 -- Smoothing tunables (temporal blend toward live engine coverage)
-local accumUpdateRate = 2     -- update accumulator every N gameframes
-local accumBlendAlpha = 0.18  -- per-update fraction of new coverage; lower = smoother but laggier
+local accumUpdateRate = 2 -- update accumulator every N gameframes
+local accumBlendAlpha = 0.18 -- per-update fraction of new coverage; lower = smoother but laggier
 local accumFastBlendCount = 6 -- how many fast updates to do at startup / on ally team change
 
-local lineColor = { 0.0, 0.0, 0.0 }  -- black
+local lineColor = { 0.0, 0.0, 0.0 } -- black
 
 local diagShader = nil
 local accumShader = nil
@@ -57,18 +57,18 @@ local diagShaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/fog_diaglines.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/fog_diaglines.frag.glsl",
 	uniformInt = {
-		mapDepths   = 0,
+		mapDepths = 0,
 		coverageTex = 1,
 	},
 	uniformFloat = {
-		lineColor     = { 0, 0, 0, 0.7 },
-		lineFreq      = lineFreq,
-		lineWidth     = lineWidth,
+		lineColor = { 0, 0, 0, 0.7 },
+		lineFreq = lineFreq,
+		lineWidth = lineWidth,
 		lineSharpness = lineSharpness,
-		scrollSpeed   = scrollSpeed,
-		noiseScale    = noiseScale,
-		noiseAmount   = noiseAmount,
-		noiseSpeed    = noiseSpeed,
+		scrollSpeed = scrollSpeed,
+		noiseScale = noiseScale,
+		noiseAmount = noiseAmount,
+		noiseSpeed = noiseSpeed,
 	},
 	shaderName = "Fog Diagonal Lines GL4",
 	shaderConfig = {},
@@ -78,7 +78,7 @@ local accumShaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/fog_diaglines_accum.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/fog_diaglines_accum.frag.glsl",
 	uniformInt = {
-		losTex   = 0,
+		losTex = 0,
 		radarTex = 1,
 	},
 	uniformFloat = {
@@ -89,7 +89,9 @@ local accumShaderSourceCache = {
 }
 
 local function updateAccumulator(count)
-	if not accumShader or not coverageTex then return end
+	if not accumShader or not coverageTex then
+		return
+	end
 	gl.DepthMask(false)
 	gl.Culling(false)
 	gl.DepthTest(false)
@@ -136,12 +138,12 @@ function widget:Initialize()
 	accumTexY = losTexInfo and losTexInfo.ysize or math.floor(Game.mapSizeZ / mapMipScale)
 
 	coverageTex = gl.CreateTexture(accumTexX, accumTexY, {
-		format    = GL.RGBA8,
-		fbo       = true,
+		format = GL.RGBA8,
+		fbo = true,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
-		wrap_s    = GL.CLAMP_TO_EDGE,
-		wrap_t    = GL.CLAMP_TO_EDGE,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
 	})
 	if not coverageTex then
 		spEcho("Fog Diagonal Lines GL4: failed to create coverage accumulator texture")
@@ -157,13 +159,19 @@ function widget:Initialize()
 	needsClear = true
 
 	WG.fogdiaglines = {
-		getStrength = function() return strength end,
-		setStrength = function(value) strength = math.max(0, math.min(1, value or 0)) end,
+		getStrength = function()
+			return strength
+		end,
+		setStrength = function(value)
+			strength = math.max(0, math.min(1, value or 0))
+		end,
 		-- Blurriness slider: 0 = sharp edges, 1 = strongly blurred. Maps linearly
 		-- onto lineSharpness (the smoothstep half-width at each line edge).
 		getBlurriness = function()
 			local range = sharpnessMax - sharpnessMin
-			if range <= 0 then return 0 end -- guard against a degenerate (min == max) range
+			if range <= 0 then
+				return 0
+			end -- guard against a degenerate (min == max) range
 			return (lineSharpness - sharpnessMin) / range
 		end,
 		setBlurriness = function(value)
@@ -175,7 +183,9 @@ end
 
 function widget:Shutdown()
 	WG.fogdiaglines = nil
-	if coverageTex then gl.DeleteTexture(coverageTex) end
+	if coverageTex then
+		gl.DeleteTexture(coverageTex)
+	end
 	coverageTex = nil
 	diagShader = nil
 	accumShader = nil
@@ -194,7 +204,9 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawGenesis()
-	if not coverageTex or not accumShader or not fullScreenQuadVAO then return end
+	if not coverageTex or not accumShader or not fullScreenQuadVAO then
+		return
+	end
 	if needsClear then
 		gl.RenderToTexture(coverageTex, function()
 			gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
@@ -208,8 +220,12 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawWorldPreUnit()
-	if not diagShader or not fullScreenQuadVAO or not coverageTex then return end
-	if strength <= 0.001 or spGetMapDrawMode() ~= "los" then return end
+	if not diagShader or not fullScreenQuadVAO or not coverageTex then
+		return
+	end
+	if strength <= 0.001 or spGetMapDrawMode() ~= "los" then
+		return
+	end
 
 	gl.Texture(0, "$map_gbuffer_zvaltex")
 	gl.Texture(1, coverageTex)
@@ -232,7 +248,9 @@ function widget:DrawWorldPreUnit()
 	diagShader:Deactivate()
 
 	gl.DepthTest(true)
-	for i = 0, 1 do gl.Texture(i, false) end
+	for i = 0, 1 do
+		gl.Texture(i, false)
+	end
 end
 
 function widget:GetConfigData()
@@ -240,7 +258,9 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data.strength ~= nil then strength = data.strength end
+	if data.strength ~= nil then
+		strength = data.strength
+	end
 	-- blurriness is the 0..1 slider value; map it back onto lineSharpness.
 	if data.blurriness ~= nil then
 		local t = math.max(0, math.min(1, data.blurriness))

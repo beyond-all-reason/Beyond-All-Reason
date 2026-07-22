@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-		name      = "Decal Capture",
-		desc      = "Capture a top-down PNG of the map's diffuse gbuffer for use as a ground decal. Console: /decalcapture <name> [radius]",
-		author    = "PtaQ",
-		date      = "2026",
-		license   = "GPL-2.0+",
-		layer     = 0,
-		enabled   = false,
+		name = "Decal Capture",
+		desc = "Capture a top-down PNG of the map's diffuse gbuffer for use as a ground decal. Console: /decalcapture <name> [radius]",
+		author = "PtaQ",
+		date = "2026",
+		license = "GPL-2.0+",
+		layer = 0,
+		enabled = false,
 	}
 end
 
@@ -34,11 +34,11 @@ Limitations (will iterate):
       c) restart the game so the atlas rebuilds.
 ]]
 
-local OUT_SIZE         = 512
-local DEFAULT_RADIUS   = 256
-local CACHE_SUBDIR     = "LuaUI/Cache/decal_captures/"
+local OUT_SIZE = 512
+local DEFAULT_RADIUS = 256
+local CACHE_SUBDIR = "LuaUI/Cache/decal_captures/"
 
-local pendingCaptures  = {}    -- queue of { name=, cx=, cz=, radius= }
+local pendingCaptures = {} -- queue of { name=, cx=, cz=, radius= }
 local captureShader
 local uniViewProj, uniWorldOrigin, uniWorldExtent, uniMapSize, uniFeatherStart
 
@@ -117,15 +117,17 @@ local FRAG_SRC = [[
 ]]
 
 local function initShader()
-	if captureShader ~= nil then return captureShader and true or false end
+	if captureShader ~= nil then
+		return captureShader and true or false
+	end
 	captureShader = gl.CreateShader({
-		vertex      = VERT_SRC,
-		fragment    = FRAG_SRC,
-		uniformInt  = { tex0 = 0, heightMap = 1 },
+		vertex = VERT_SRC,
+		fragment = FRAG_SRC,
+		uniformInt = { tex0 = 0, heightMap = 1 },
 		uniformFloat = {
-			worldOrigin  = { 0, 0 },
-			worldExtent  = { 1, 1 },
-			mapSize      = { 1, 1 },
+			worldOrigin = { 0, 0 },
+			worldExtent = { 1, 1 },
+			mapSize = { 1, 1 },
 			featherStart = 0.85,
 		},
 	})
@@ -134,10 +136,10 @@ local function initShader()
 		captureShader = false
 		return false
 	end
-	uniViewProj     = gl.GetUniformLocation(captureShader, "viewProj")
-	uniWorldOrigin  = gl.GetUniformLocation(captureShader, "worldOrigin")
-	uniWorldExtent  = gl.GetUniformLocation(captureShader, "worldExtent")
-	uniMapSize      = gl.GetUniformLocation(captureShader, "mapSize")
+	uniViewProj = gl.GetUniformLocation(captureShader, "viewProj")
+	uniWorldOrigin = gl.GetUniformLocation(captureShader, "worldOrigin")
+	uniWorldExtent = gl.GetUniformLocation(captureShader, "worldExtent")
+	uniMapSize = gl.GetUniformLocation(captureShader, "mapSize")
 	uniFeatherStart = gl.GetUniformLocation(captureShader, "featherStart")
 	return true
 end
@@ -146,17 +148,21 @@ end
 -- Capture (must run inside DrawScreen — gl.RenderToTexture restriction)
 --------------------------------------------------------------------------------
 local function runCapture(job)
-	if not initShader() then return false, "shader unavailable" end
+	if not initShader() then
+		return false, "shader unavailable"
+	end
 
 	local fbo = gl.CreateTexture(OUT_SIZE, OUT_SIZE, {
-		border     = false,
+		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
-		wrap_s     = GL.CLAMP_TO_EDGE,
-		wrap_t     = GL.CLAMP_TO_EDGE,
-		fbo        = true,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fbo then return false, "FBO create failed" end
+	if not fbo then
+		return false, "FBO create failed"
+	end
 
 	local cx, cz, r = job.cx, job.cz, job.radius
 	local ox, oz = cx - r, cz - r
@@ -196,10 +202,14 @@ local function runCapture(job)
 
 		-- Quad in NDC; tex coords carry the 0..1 sampling space.
 		gl.BeginEnd(GL.QUADS, function()
-			gl.TexCoord(0, 0); gl.Vertex(-1, -1, 0)
-			gl.TexCoord(1, 0); gl.Vertex( 1, -1, 0)
-			gl.TexCoord(1, 1); gl.Vertex( 1,  1, 0)
-			gl.TexCoord(0, 1); gl.Vertex(-1,  1, 0)
+			gl.TexCoord(0, 0)
+			gl.Vertex(-1, -1, 0)
+			gl.TexCoord(1, 0)
+			gl.Vertex(1, -1, 0)
+			gl.TexCoord(1, 1)
+			gl.Vertex(1, 1, 0)
+			gl.TexCoord(0, 1)
+			gl.Vertex(-1, 1, 0)
 		end)
 
 		gl.UseShader(0)
@@ -225,9 +235,13 @@ end
 -- Action handler
 --------------------------------------------------------------------------------
 local function sanitizeName(s)
-	if not s then return nil end
+	if not s then
+		return nil
+	end
 	s = tostring(s):gsub("[^%w_-]", "_")
-	if s == "" then return nil end
+	if s == "" then
+		return nil
+	end
 	return s
 end
 
@@ -260,13 +274,12 @@ local function actionCapture(_, _, params)
 	local cx, cz = pos[1], pos[3]
 
 	pendingCaptures[#pendingCaptures + 1] = {
-		name   = name,
-		cx     = cx,
-		cz     = cz,
+		name = name,
+		cx = cx,
+		cz = cz,
 		radius = radius,
 	}
-	Spring.Echo(string.format(
-		"[DecalCapture] queued '%s' at (%d, %d) r=%d", name, cx, cz, radius))
+	Spring.Echo(string.format("[DecalCapture] queued '%s' at (%d, %d) r=%d", name, cx, cz, radius))
 	return true
 end
 
@@ -332,8 +345,7 @@ local function actionDumpRes()
 	}) do
 		local exists = VFS.FileExists(f)
 		local existsMod = VFS.FileExists(f, VFS.MOD)
-		Spring.Echo(string.format("[DecalCapture] VFS.FileExists %s any=%s mod=%s",
-			f, tostring(exists), tostring(existsMod)))
+		Spring.Echo(string.format("[DecalCapture] VFS.FileExists %s any=%s mod=%s", f, tostring(exists), tostring(existsMod)))
 	end
 	return true
 end
@@ -372,7 +384,9 @@ local function autoInstall(name, capturedRel)
 	-- gl.SaveImage writes relative to Spring.GetWriteDir(), not to the .sdd.
 	local springWrite = (Spring.GetWriteDir and Spring.GetWriteDir()) or writeDir
 	springWrite = springWrite:gsub("\\", "/")
-	if not springWrite:find("/$") then springWrite = springWrite .. "/" end
+	if not springWrite:find("/$") then
+		springWrite = springWrite .. "/"
+	end
 	local srcAbs = springWrite .. capturedRel
 
 	local dstRel = "bitmaps/decals/" .. name .. ".png"
@@ -396,13 +410,15 @@ local function autoInstall(name, capturedRel)
 		Spring.Echo("[DecalCapture] cannot open captured PNG: " .. srcAbs)
 		return false
 	end
-	local data = fi:read("*a"); fi:close()
+	local data = fi:read("*a")
+	fi:close()
 	local fo = (dstWriteRel and io.open(dstWriteRel, "wb")) or io.open(dstAbs, "wb")
 	if not fo then
 		Spring.Echo("[DecalCapture] cannot write: " .. dstAbs .. " (read-only?)")
 		return false
 	end
-	fo:write(data); fo:close()
+	fo:write(data)
+	fo:close()
 	Spring.Echo("[DecalCapture] copied -> " .. dstAbs)
 
 	local resWriteRel = sddName ~= "" and ("games/" .. sddName .. "/gamedata/resources.lua") or nil
@@ -411,7 +427,8 @@ local function autoInstall(name, capturedRel)
 		Spring.Echo("[DecalCapture] cannot read resources.lua at " .. resAbs)
 		return false
 	end
-	local res = rfi:read("*a"); rfi:close()
+	local res = rfi:read("*a")
+	rfi:close()
 	local entry = "decals/" .. name .. ".png"
 	if res:find(entry, 1, true) then
 		Spring.Echo("[DecalCapture] resources.lua already lists '" .. entry .. "'")
@@ -431,7 +448,9 @@ local function autoInstall(name, capturedRel)
 		local searchFrom = blockStart
 		while true do
 			local s, e = res:find("'decals/[^']+'%s*,", searchFrom)
-			if not s or s > blockEnd then break end
+			if not s or s > blockEnd then
+				break
+			end
 			lastEnd = e
 			searchFrom = e + 1
 		end
@@ -450,7 +469,8 @@ local function autoInstall(name, capturedRel)
 			Spring.Echo("[DecalCapture] cannot write resources.lua: " .. resAbs)
 			return false
 		end
-		rfo:write(newRes); rfo:close()
+		rfo:write(newRes)
+		rfo:close()
 		Spring.Echo("[DecalCapture] appended '" .. entry .. "' to resources.lua")
 	end
 
@@ -476,7 +496,9 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
-	if #pendingCaptures == 0 then return end
+	if #pendingCaptures == 0 then
+		return
+	end
 	local job = table.remove(pendingCaptures, 1)
 	local ok, info = runCapture(job)
 	if ok then

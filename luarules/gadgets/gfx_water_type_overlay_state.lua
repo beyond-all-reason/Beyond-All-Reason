@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Water Type Overlay State",
-		desc      = "Exposes GG.WaterTypeOverlay; applies lava/acid damage when overlay active",
-		author    = "PtaQ",
-		date      = "2026",
-		license   = "GNU GPL v2",
-		layer     = 0,
-		enabled   = true,
+		name = "Water Type Overlay State",
+		desc = "Exposes GG.WaterTypeOverlay; applies lava/acid damage when overlay active",
+		author = "PtaQ",
+		date = "2026",
+		license = "GNU GPL v2",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -26,27 +26,27 @@ end
 -- State
 ------------------------------------------------------------------------
 local active = false
-local activeType = nil  -- "lava" or "acid"
+local activeType = nil -- "lava" or "acid"
 local targetLevel = 0
 local currentLevel = 0
-local baseWaterLevel = 0  -- engine water plane at activation time
-local LERP_SPEED = 4.0  -- matches widget visual interpolation
+local baseWaterLevel = 0 -- engine water plane at activation time
+local LERP_SPEED = 4.0 -- matches widget visual interpolation
 
 ------------------------------------------------------------------------
 -- Damage config per type (health lost per second)
 ------------------------------------------------------------------------
 local typeConfig = {
 	lava = {
-		damage          = 100,   -- HP/sec
-		damageFeatures  = true,
-		slowFraction    = 0.8,   -- 0.8 = 20% max speed when fully submerged
-		effectDamage    = "lava-damage",
+		damage = 100, -- HP/sec
+		damageFeatures = true,
+		slowFraction = 0.8, -- 0.8 = 20% max speed when fully submerged
+		effectDamage = "lava-damage",
 	},
 	acid = {
-		damage          = 50,
-		damageFeatures  = true,
-		slowFraction    = 0.6,   -- 0.6 = 40% max speed
-		effectDamage    = nil,   -- no CEG for acid (set one if you add it)
+		damage = 50,
+		damageFeatures = true,
+		slowFraction = 0.6, -- 0.6 = 40% max speed
+		effectDamage = nil, -- no CEG for acid (set one if you add it)
 	},
 }
 
@@ -54,26 +54,26 @@ local typeConfig = {
 -- Constants
 ------------------------------------------------------------------------
 local gameSpeed = Game.gameSpeed
-local DAMAGE_RATE = 10  -- apply damage every N frames (same cadence as map_lava)
+local DAMAGE_RATE = 10 -- apply damage every N frames (same cadence as map_lava)
 
 ------------------------------------------------------------------------
 -- Cached engine calls
 ------------------------------------------------------------------------
-local spAddUnitDamage     = Spring.AddUnitDamage
-local spAddFeatureDamage  = Spring.AddFeatureDamage
-local spGetAllUnits       = Spring.GetAllUnits
-local spGetAllFeatures    = Spring.GetAllFeatures
-local spGetFeatureDefID   = Spring.GetFeatureDefID
+local spAddUnitDamage = Spring.AddUnitDamage
+local spAddFeatureDamage = Spring.AddFeatureDamage
+local spGetAllUnits = Spring.GetAllUnits
+local spGetAllFeatures = Spring.GetAllFeatures
+local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetUnitDefID      = Spring.GetUnitDefID
-local spGetMoveData       = Spring.GetUnitMoveTypeData
-local spMoveCtrlEnabled   = Spring.MoveCtrl.IsEnabled
-local spSetMoveData       = Spring.MoveCtrl.SetGroundMoveTypeData
-local spGetGroundHeight   = Spring.GetGroundHeight
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetMoveData = Spring.GetUnitMoveTypeData
+local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
+local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
+local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundExtremes = Spring.GetGroundExtremes
-local spSpawnCEG          = Spring.SpawnCEG
-local clamp               = math.clamp
+local spSpawnCEG = Spring.SpawnCEG
+local clamp = math.clamp
 
 ------------------------------------------------------------------------
 -- Unit/feature def caches (built lazily on first activation)
@@ -82,25 +82,27 @@ local clamp               = math.clamp
 -- def) at load. buildDefCaches() runs once, the first time the overlay is
 -- activated.
 ------------------------------------------------------------------------
-local canFly     = {}
-local speedDefs  = {}
-local turnDefs   = {}
-local accDefs    = {}
+local canFly = {}
+local speedDefs = {}
+local turnDefs = {}
+local accDefs = {}
 local unitHeight = {}
 local geoThermal = {}
 local defCachesBuilt = false
 
 local function buildDefCaches()
-	if defCachesBuilt then return end
+	if defCachesBuilt then
+		return
+	end
 	defCachesBuilt = true
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			speedDefs[unitDefID]  = unitDef.speed
-			turnDefs[unitDefID]   = unitDef.turnRate
-			accDefs[unitDefID]    = unitDef.maxAcc
+			speedDefs[unitDefID] = unitDef.speed
+			turnDefs[unitDefID] = unitDef.turnRate
+			accDefs[unitDefID] = unitDef.maxAcc
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -115,13 +117,15 @@ end
 ------------------------------------------------------------------------
 -- Per-unit tracking (slow restore on exit / deactivate)
 ------------------------------------------------------------------------
-local affectedUnits = {}  -- unitID → { currentSlow, slowed }
+local affectedUnits = {} -- unitID → { currentSlow, slowed }
 
 local function updateSlow(unitID, unitDefID, unitSlow)
-	if spMoveCtrlEnabled(unitID) then return false end
+	if spMoveCtrlEnabled(unitID) then
+		return false
+	end
 	local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
 	local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-	local slowedAccRate  = accDefs[unitDefID]   * unitSlow
+	local slowedAccRate = accDefs[unitDefID] * unitSlow
 	local ok = pcall(function()
 		spSetMoveData(unitID, { maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate })
 	end)
@@ -164,8 +168,8 @@ local function damageCheck(cfg, waterLevel)
 				if not affectedUnits[unitID] then
 					local moveType = spGetMoveData(unitID).name
 					local maxSpd = speedDefs[unitDefID]
-					local turn   = turnDefs[unitDefID]
-					local acc    = accDefs[unitDefID]
+					local turn = turnDefs[unitDefID]
+					local acc = accDefs[unitDefID]
 					if moveType == "ground" and (maxSpd and maxSpd ~= 0) and (turn and turn ~= 0) and (acc and acc ~= 0) then
 						affectedUnits[unitID] = { currentSlow = 1, slowed = true }
 					else
@@ -217,15 +221,25 @@ function gadget:Initialize()
 	minGroundHeight = select(3, spGetGroundExtremes())
 
 	GG.WaterTypeOverlay = {
-		isActive = function() return active end,
-		getActiveType = function() return activeType end,
-		getLevel = function() return currentLevel end,
-		getTargetLevel = function() return targetLevel end,
+		isActive = function()
+			return active
+		end,
+		getActiveType = function()
+			return activeType
+		end,
+		getLevel = function()
+			return currentLevel
+		end,
+		getTargetLevel = function()
+			return targetLevel
+		end,
 		setLevel = function(level)
 			targetLevel = level
 		end,
 		activate = function(typeName)
-			if typeName ~= "lava" and typeName ~= "acid" then return false end
+			if typeName ~= "lava" and typeName ~= "acid" then
+				return false
+			end
 			buildDefCaches()
 			baseWaterLevel = Spring.GetWaterPlaneLevel and Spring.GetWaterPlaneLevel() or 0
 			currentLevel = baseWaterLevel + targetLevel
@@ -247,10 +261,14 @@ end
 -- GameFrame: apply damage when overlay active
 ------------------------------------------------------------------------
 function gadget:GameFrame(f)
-	if not active then return end
+	if not active then
+		return
+	end
 
 	local cfg = typeConfig[activeType]
-	if not cfg then return end
+	if not cfg then
+		return
+	end
 
 	-- Refresh cached ground extremes periodically
 	if f % GROUND_EXTREMES_RATE == 0 then
@@ -285,7 +303,9 @@ end
 local CHEAT_SIG = "$c$"
 
 function gadget:RecvLuaMsg(msg, playerID)
-	if type(msg) ~= "string" then return end
+	if type(msg) ~= "string" then
+		return
+	end
 
 	local certified = msg:sub(1, #CHEAT_SIG) == CHEAT_SIG
 	local cleanMsg = certified and msg:sub(#CHEAT_SIG + 1) or msg

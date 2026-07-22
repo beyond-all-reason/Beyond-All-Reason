@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Nonblocking mines',
-		desc = 'For 92.+ mines need to be manually unblocked. But other units cannot be built on them.',
-		author = 'Beherith',
-		date = 'Jan 2013',
-		license = 'GNU GPL, v2 or later',
+		name = "Nonblocking mines",
+		desc = "For 92.+ mines need to be manually unblocked. But other units cannot be built on them.",
+		author = "Beherith",
+		date = "Jan 2013",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -23,7 +23,7 @@ for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.detonaterange then
 		isMine[udid] = true
 	end
-	unitSizing[udid] = {ud.xsize * 4 + 8, ud.zsize * 4 + 8} -- add 8 for the mines size too
+	unitSizing[udid] = { ud.xsize * 4 + 8, ud.zsize * 4 + 8 } -- add 8 for the mines size too
 end
 
 local spSetUnitBlocking = Spring.SetUnitBlocking

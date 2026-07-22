@@ -31,7 +31,7 @@ return {
 		turninplacespeedlimit = 1.9768,
 		turnrate = 410,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "hovercraft",

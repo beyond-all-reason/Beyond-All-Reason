@@ -338,9 +338,7 @@ function Protocol.Decode(msg, teamID, getTeamUnits, getTeamUnitsByDefs)
 		local unitDefCount = unpackU16(msg, 8)
 		local includeCount = unpackU16(msg, 10)
 		local excludeCount = unpackU16(msg, 12)
-		if not unitDefCount or not includeCount or not excludeCount
-			or #msg ~= 13 + (unitDefCount + includeCount + excludeCount) * 2
-		then
+		if not unitDefCount or not includeCount or not excludeCount or #msg ~= 13 + (unitDefCount + includeCount + excludeCount) * 2 then
 			return nil
 		end
 		pos = 14

@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "April 2018",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathPi = math.pi
@@ -23,9 +22,9 @@ local math_sqrt = math.sqrt
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local function CanUnitExecute(uID, cmdID)
-    if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
-        cmdID = CMD_UNLOAD_UNITS
-    end
+	if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
+		cmdID = CMD_UNLOAD_UNITS
+	end
 	return (Spring.FindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 

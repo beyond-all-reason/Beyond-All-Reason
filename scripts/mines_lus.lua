@@ -1,4 +1,3 @@
-
 local base = piece("base")
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
@@ -14,7 +13,7 @@ local function CheckIfCanDetectAndStartThread()
 	-- I don't expect stun/unstun and firestates changes spams to happen
 	-- if it happens, maybe gate this branch with an "isActive" bool instead
 	-- would avoid starting multiple threads (even though they're always killed immediately)
-	if  currentFireState == 2 and notStunned and isBuilt then  -- isBuilt last, because mostly true
+	if currentFireState == 2 and notStunned and isBuilt then -- isBuilt last, because mostly true
 		Signal(stop_detect) -- in case was active, else no-op
 		StartThread(EnemyDetect)
 	else
@@ -44,14 +43,13 @@ function script.AimFromWeapon()
 	return base
 end
 
-function script.FireWeapon()
-end
+function script.FireWeapon() end
 
 function script.Create()
 	-- this seems to be loaded after the first UnitCommand() CMD.FIRE_STATE is fired, see cmd_mines_firestate.lua comments
 	currentFireState = Spring.GetUnitStates(unitID).firestate
 	isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
-	while (not isBuilt) do
+	while not isBuilt do
 		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
 		Sleep(500)
 	end

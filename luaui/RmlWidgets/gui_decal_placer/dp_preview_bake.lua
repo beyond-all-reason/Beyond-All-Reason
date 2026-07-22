@@ -35,27 +35,29 @@
 
 local M = {}
 
-local PREVIEW_SIZE     = 64
-local BAKES_PER_FRAME  = 4
+local PREVIEW_SIZE = 64
+local BAKES_PER_FRAME = 4
 
-local cacheDir         -- set by M.init(); caller is responsible for Spring.CreateDir
-local previewShader    ---@type any?
+local cacheDir -- set by M.init(); caller is responsible for Spring.CreateDir
+local previewShader ---@type any?
 local uniMaskMode
 
 -- { [decalName] = "/vfs/path" or false (resolution failed). nil = unknown }
 local previewResolveCache = {}
 
 -- Enumerated upfront once; drained from DrawScreen.
-local bakeQueue        = {}    -- array of { name, sourcePath, maskMode }
-local bakePending      = {}    -- { [name] = true } dedupe
-local resyncRequested  = false
-local bakesEnqueued    = false
+local bakeQueue = {} -- array of { name, sourcePath, maskMode }
+local bakePending = {} -- { [name] = true } dedupe
+local resyncRequested = false
+local bakesEnqueued = false
 
 --------------------------------------------------------------------------------
 -- Shader (lazy-init on first bake)
 --------------------------------------------------------------------------------
 local function initPreviewShader()
-	if previewShader ~= nil then return previewShader and true or false end
+	if previewShader ~= nil then
+		return previewShader and true or false
+	end
 	previewShader = gl.CreateShader({
 		vertex = [[
 			#version 150 compatibility
@@ -93,10 +95,10 @@ local function initPreviewShader()
 				gl_FragColor = vec4(scarred, 1.0);
 			}
 		]],
-		uniformInt   = { tex0 = 0, maskMode = 1 },
+		uniformInt = { tex0 = 0, maskMode = 1 },
 		-- groundColor matches .dp-thumb-footprints rgb(96, 72, 56) so the
 		-- baked previews blend visually with the category-tinted tile bg.
-		uniformFloat = { groundColor = { 96/255, 72/255, 56/255 }, decalTint = { 0.12, 0.08, 0.06 } },
+		uniformFloat = { groundColor = { 96 / 255, 72 / 255, 56 / 255 }, decalTint = { 0.12, 0.08, 0.06 } },
 	})
 	if not previewShader or previewShader == 0 then
 		Spring.Echo("[DecalPlacer.bake] shader compile failed: " .. tostring(gl.GetShaderLog()))
@@ -121,18 +123,22 @@ end
 -- restriction). Writes the cached PNG and returns true on success.
 --------------------------------------------------------------------------------
 local function bakeDecalPreview(decalName, sourceTexPath, maskMode)
-	if not initPreviewShader() then return false end
+	if not initPreviewShader() then
+		return false
+	end
 
 	local cachePath = bakedPreviewPath(decalName)
 	local fboTex = gl.CreateTexture(PREVIEW_SIZE, PREVIEW_SIZE, {
-		border     = false,
+		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
-		wrap_s     = GL.CLAMP_TO_EDGE,
-		wrap_t     = GL.CLAMP_TO_EDGE,
-		fbo        = true,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
 	})
-	if not fboTex then return false end
+	if not fboTex then
+		return false
+	end
 
 	local saved = false
 	gl.RenderToTexture(fboTex, function()
@@ -149,13 +155,19 @@ local function bakeDecalPreview(decalName, sourceTexPath, maskMode)
 
 		if gl.Texture(0, sourceTexPath) then
 			gl.UseShader(previewShader)
-			if uniMaskMode then gl.Uniform(uniMaskMode, maskMode) end
+			if uniMaskMode then
+				gl.Uniform(uniMaskMode, maskMode)
+			end
 
 			gl.BeginEnd(GL.QUADS, function()
-				gl.TexCoord(0, 1); gl.Vertex(-1, -1, 0)
-				gl.TexCoord(1, 1); gl.Vertex( 1, -1, 0)
-				gl.TexCoord(1, 0); gl.Vertex( 1,  1, 0)
-				gl.TexCoord(0, 0); gl.Vertex(-1,  1, 0)
+				gl.TexCoord(0, 1)
+				gl.Vertex(-1, -1, 0)
+				gl.TexCoord(1, 1)
+				gl.Vertex(1, -1, 0)
+				gl.TexCoord(1, 0)
+				gl.Vertex(1, 1, 0)
+				gl.TexCoord(0, 0)
+				gl.Vertex(-1, 1, 0)
 			end)
 
 			gl.UseShader(0)
@@ -261,7 +273,9 @@ end
 -- returned by WG.DecalPlacer.getDecalCategories(), and a fallback resolver
 -- (typically findPreviewPath) for entries with empty filename.
 function M.enqueueAll(categories, getFallbackPath)
-	if bakesEnqueued or not categories then return 0 end
+	if bakesEnqueued or not categories then
+		return 0
+	end
 
 	for _, items in pairs(categories) do
 		for _, entry in ipairs(items) do
@@ -295,7 +309,9 @@ end
 -- draw callback (Spring restricts gl.RenderToTexture). Sets the internal
 -- resync flag if any bakes succeeded; widget polls via consumeResync.
 function M.drainQueue()
-	if #bakeQueue == 0 then return end
+	if #bakeQueue == 0 then
+		return
+	end
 	local processed = 0
 	while #bakeQueue > 0 and processed < BAKES_PER_FRAME do
 		local item = table.remove(bakeQueue, 1)

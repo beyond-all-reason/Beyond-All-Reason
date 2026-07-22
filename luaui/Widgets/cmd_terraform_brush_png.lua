@@ -18,15 +18,15 @@
 --     VFS.ZlibDecompress produce/consume (zlib's compress()/uncompress()).
 --------------------------------------------------------------------------------
 
-local floor    = math.floor
-local schar    = string.char
-local sbyte    = string.byte
-local ssub     = string.sub
-local tconcat  = table.concat
-local bxor     = math.bit_xor
-local abs      = math.abs
+local floor = math.floor
+local schar = string.char
+local sbyte = string.byte
+local ssub = string.sub
+local tconcat = table.concat
+local bxor = math.bit_xor
+local abs = math.abs
 
-local ZlibCompress   = VFS.ZlibCompress
+local ZlibCompress = VFS.ZlibCompress
 local ZlibDecompress = VFS.ZlibDecompress
 
 --------------------------------------------------------------------------------
@@ -125,7 +125,11 @@ local function encodeGray16(width, height, samples, minHeight, maxHeight)
 		local rowChars = {}
 		for col = 1, width do
 			local v = samples[rb + col]
-			if v < 0 then v = 0 elseif v > 65535 then v = 65535 end
+			if v < 0 then
+				v = 0
+			elseif v > 65535 then
+				v = 65535
+			end
 			local hi = floor(v / 256)
 			rowChars[col] = schar(hi, v - hi * 256) -- big-endian 16-bit
 		end
@@ -134,7 +138,9 @@ local function encodeGray16(width, height, samples, minHeight, maxHeight)
 	end
 
 	local comp = ZlibCompress(tconcat(parts))
-	if not comp then return nil end
+	if not comp then
+		return nil
+	end
 
 	return PNG_SIG .. chunk("IHDR", ihdr) .. rangeChunk .. chunk("IDAT", comp) .. chunk("IEND", "")
 end
@@ -149,8 +155,12 @@ end
 local function paeth(a, b, c)
 	local p = a + b - c
 	local pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
-	if pa <= pb and pa <= pc then return a end
-	if pb <= pc then return b end
+	if pa <= pb and pa <= pc then
+		return a
+	end
+	if pb <= pc then
+		return b
+	end
 	return c
 end
 
@@ -174,7 +184,9 @@ local function decode(data)
 			bitDepth = sbyte(data, dstart + 8)
 			colorType = sbyte(data, dstart + 9)
 			local interlace = sbyte(data, dstart + 12)
-			if interlace ~= 0 then return nil end -- interlaced not supported
+			if interlace ~= 0 then
+				return nil
+			end -- interlaced not supported
 		elseif ctype == "IDAT" then
 			idat[#idat + 1] = ssub(data, dstart, dstart + len - 1)
 		elseif ctype == "tEXt" then
@@ -191,22 +203,36 @@ local function decode(data)
 		pos = dstart + len + 4 -- skip data + 4-byte CRC
 	end
 
-	if not width or not height then return nil end
+	if not width or not height then
+		return nil
+	end
 
 	local channels
-	if colorType == 0 then channels = 1
-	elseif colorType == 2 then channels = 3
-	elseif colorType == 4 then channels = 2 -- grey + alpha
-	elseif colorType == 6 then channels = 4 -- RGBA
-	else return nil end -- palette unsupported
+	if colorType == 0 then
+		channels = 1
+	elseif colorType == 2 then
+		channels = 3
+	elseif colorType == 4 then
+		channels = 2 -- grey + alpha
+	elseif colorType == 6 then
+		channels = 4 -- RGBA
+	else
+		return nil
+	end -- palette unsupported
 
 	local sampleBytes
-	if bitDepth == 16 then sampleBytes = 2
-	elseif bitDepth == 8 then sampleBytes = 1
-	else return nil end
+	if bitDepth == 16 then
+		sampleBytes = 2
+	elseif bitDepth == 8 then
+		sampleBytes = 1
+	else
+		return nil
+	end
 
 	local raw = ZlibDecompress(tconcat(idat))
-	if not raw then return nil end
+	if not raw then
+		return nil
+	end
 
 	local bpp = channels * sampleBytes -- bytes per pixel
 	local rowBytes = width * bpp
@@ -214,7 +240,9 @@ local function decode(data)
 
 	local gray = {}
 	local prev = {}
-	for i = 1, rowBytes do prev[i] = 0 end
+	for i = 1, rowBytes do
+		prev[i] = 0
+	end
 
 	local rowStart = 1 -- index into raw of the current scanline's filter byte
 	for row = 0, height - 1 do
@@ -267,8 +295,7 @@ local function decode(data)
 		prev = cur
 	end
 
-	return { width = width, height = height, bitDepth = bitDepth, gray = gray,
-		minHeight = minHeight, maxHeight = maxHeight }
+	return { width = width, height = height, bitDepth = bitDepth, gray = gray, minHeight = minHeight, maxHeight = maxHeight }
 end
 
 return {

@@ -17,30 +17,49 @@ function M.attach(doc, ctx)
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- Slider change events wired declaratively via onchange= in RML.
 	for _, sid in ipairs({
-		"size", "rotation", "curve", "length",
-		"slope-max", "slope-min", "alt-min", "alt-max",
-		"color-thresh", "color-pad",
-		"symmetry-radial-count", "symmetry-mirror-angle",
+		"size",
+		"rotation",
+		"curve",
+		"length",
+		"slope-max",
+		"slope-min",
+		"alt-min",
+		"alt-max",
+		"color-thresh",
+		"color-pad",
+		"symmetry-radial-count",
+		"symmetry-mirror-angle",
 	}) do
 		local sl = doc:GetElementById("slider-gb-" .. sid)
-		if sl then trackSliderDrag(sl, "gb-" .. sid) end
+		if sl then
+			trackSliderDrag(sl, "gb-" .. sid)
+		end
 	end
 	do
 		local sl = doc:GetElementById("slider-grass-density")
-		if sl then trackSliderDrag(sl, "gb-density") end
+		if sl then
+			trackSliderDrag(sl, "gb-density")
+		end
 		local slHist = doc:GetElementById("slider-gb-history")
-		if slHist then trackSliderDrag(slHist, "gb-history") end
+		if slHist then
+			trackSliderDrag(slHist, "gb-history")
+		end
 		local gbSnapSlider = doc:GetElementById("gb-slider-grid-snap-size")
-		if gbSnapSlider then trackSliderDrag(gbSnapSlider, "gb-grid-snap-size") end
+		if gbSnapSlider then
+			trackSliderDrag(gbSnapSlider, "gb-grid-snap-size")
+		end
 		local gbAngleSlider = doc:GetElementById("gb-slider-angle-snap-step")
-		if gbAngleSlider then trackSliderDrag(gbAngleSlider, "gb-angle-snap-step") end
+		if gbAngleSlider then
+			trackSliderDrag(gbAngleSlider, "gb-angle-snap-step")
+		end
 		local gbManualSlider = doc:GetElementById("gb-slider-manual-spoke")
-		if gbManualSlider then trackSliderDrag(gbManualSlider, "gb-manual-spoke") end
+		if gbManualSlider then
+			trackSliderDrag(gbManualSlider, "gb-manual-spoke")
+		end
 	end
 
 	-- All data-event-click/change handlers (onGbXxx) are defined in initialModel in gui_terraform_brush.lua.
 end
-
 
 function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	local widgetState = ctx.widgetState
@@ -56,7 +75,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	-- Grass sub-mode buttons (driven by dm.gbSubMode via data-class-active)
 	if dm then
 		local sm = gbState.subMode or "paint"
-		if dm.gbSubMode ~= sm then dm.gbSubMode = sm end
+		if dm.gbSubMode ~= sm then
+			dm.gbSubMode = sm
+		end
 	end
 
 	-- Update clay button: unavailable in grass mode
@@ -73,29 +94,32 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
 			if doc and ctx.syncWarnChip then
 				local sfE = gbState.smartFilters or {}
-				local anyFilter = (gbState.smartEnabled and (sfE.avoidCliffs or sfE.preferSlopes or sfE.altMinEnable or sfE.altMaxEnable))
-					or gbState.texFilterEnabled
-				ctx.syncWarnChip(doc, "warn-chip-gb-smart",       "section-gb-smart",       anyFilter and true or false)
-				ctx.syncWarnChip(doc, "warn-chip-gb-overlays",    "section-gb-overlays",    dispActive and true or false)
+				local anyFilter = (gbState.smartEnabled and (sfE.avoidCliffs or sfE.preferSlopes or sfE.altMinEnable or sfE.altMaxEnable)) or gbState.texFilterEnabled
+				ctx.syncWarnChip(doc, "warn-chip-gb-smart", "section-gb-smart", anyFilter and true or false)
+				ctx.syncWarnChip(doc, "warn-chip-gb-overlays", "section-gb-overlays", dispActive and true or false)
 				ctx.syncWarnChip(doc, "warn-chip-gb-instruments", "section-gb-instruments", instActive and true or false)
 			end
 			-- Sync active state on instrument chip buttons so they match TF state
 			-- (driven by dm flags via data-class-active in RML)
 			if dm then
-				local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
-				setDm("gbGridOverlay",     s.gridOverlay and true or false)
-				setDm("gbHeightColormap",  s.heightColormap and true or false)
-				setDm("gbGridSnap",        s.gridSnap and true or false)
-				setDm("gbAngleSnap",       s.angleSnap and true or false)
-				setDm("gbMeasureActive",   s.measureActive and true or false)
-				setDm("gbSymmetryActive",  s.symmetryActive and true or false)
-				setDm("gbSymmetryRadial",  s.symmetryRadial and true or false)
-				setDm("gbSymMirrorX",      s.symmetryMirrorX and true or false)
-				setDm("gbSymMirrorY",      s.symmetryMirrorY and true or false)
+				local function setDm(f, v)
+					if dm[f] ~= v then
+						dm[f] = v
+					end
+				end
+				setDm("gbGridOverlay", s.gridOverlay and true or false)
+				setDm("gbHeightColormap", s.heightColormap and true or false)
+				setDm("gbGridSnap", s.gridSnap and true or false)
+				setDm("gbAngleSnap", s.angleSnap and true or false)
+				setDm("gbMeasureActive", s.measureActive and true or false)
+				setDm("gbSymmetryActive", s.symmetryActive and true or false)
+				setDm("gbSymmetryRadial", s.symmetryRadial and true or false)
+				setDm("gbSymMirrorX", s.symmetryMirrorX and true or false)
+				setDm("gbSymMirrorY", s.symmetryMirrorY and true or false)
 				setDm("gbSymmetryMirrorAny", (s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
 				setDm("gbSymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
-				setDm("gbAngleSnapAuto",   s.angleSnapAuto and true or false)
-				setDm("gbMeasureRulerMode",  s.measureRulerMode and true or false)
+				setDm("gbAngleSnapAuto", s.angleSnapAuto and true or false)
+				setDm("gbMeasureRulerMode", s.measureRulerMode and true or false)
 				setDm("gbMeasureStickyMode", s.measureStickyMode and true or false)
 				setDm("gbMeasureShowLength", s.measureShowLength and true or false)
 			end
@@ -108,7 +132,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 
 		if widgetState.dmHandle then
 			local s = tostring(math.floor(gbState.density * 100 + 0.5)) .. "%"
-			if widgetState.dmHandle.gbDensityStr ~= s then widgetState.dmHandle.gbDensityStr = s end
+			if widgetState.dmHandle.gbDensityStr ~= s then
+				widgetState.dmHandle.gbDensityStr = s
+			end
 		end
 
 		do
@@ -120,7 +146,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		do
 			if widgetState.dmHandle then
 				local s = tostring(gbState.radius or 100)
-				if widgetState.dmHandle.gbSizeStr ~= s then widgetState.dmHandle.gbSizeStr = s end
+				if widgetState.dmHandle.gbSizeStr ~= s then
+					widgetState.dmHandle.gbSizeStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-size"), "gb-size", tostring(gbState.radius or 100))
 
@@ -130,20 +158,26 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				local rotDeg = tfSt and tfSt.rotationDeg or (gbState.rotationDeg or 0)
 				if widgetState.dmHandle then
 					local s = tostring(rotDeg) .. "\194\176"
-					if widgetState.dmHandle.gbRotStr ~= s then widgetState.dmHandle.gbRotStr = s end
+					if widgetState.dmHandle.gbRotStr ~= s then
+						widgetState.dmHandle.gbRotStr = s
+					end
 				end
 				syncAndFlash(getCachedEl(doc, "slider-gb-rotation"), "gb-rotation", tostring(rotDeg))
 			end
 
 			if widgetState.dmHandle then
 				local s = string.format("%.1f", gbState.curve or 1.0)
-				if widgetState.dmHandle.gbCurveStr ~= s then widgetState.dmHandle.gbCurveStr = s end
+				if widgetState.dmHandle.gbCurveStr ~= s then
+					widgetState.dmHandle.gbCurveStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-curve"), "gb-curve", tostring(math.floor((gbState.curve or 1.0) * 10 + 0.5)))
 
 			if widgetState.dmHandle then
 				local s = string.format("%.1f", gbState.lengthScale or 1.0)
-				if widgetState.dmHandle.gbLengthStr ~= s then widgetState.dmHandle.gbLengthStr = s end
+				if widgetState.dmHandle.gbLengthStr ~= s then
+					widgetState.dmHandle.gbLengthStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-length"), "gb-length", tostring(math.floor((gbState.lengthScale or 1.0) * 10 + 0.5)))
 		end
@@ -152,22 +186,28 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		do
 			local smartOn = gbState.smartEnabled
 			local smartToggle = getCachedEl(doc, "btn-gb-smart-toggle")
-			if smartToggle then smartToggle:SetAttribute("src", smartOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			if smartToggle then
+				smartToggle:SetAttribute("src", smartOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+			end
 			-- gb-smart-options does not exist; warn chips handled above via ctx.syncWarnChip
 
 			local sf = gbState.smartFilters or {}
 			local function syncSmartCheck(id, key)
 				local el = getCachedEl(doc, id)
-				if el then el:SetAttribute("src", sf[key] and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+				if el then
+					el:SetAttribute("src", sf[key] and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+				end
 			end
 			-- Pure toggle chips mirror their filter flag
 			local function syncChipActive(id, key)
 				local el = getCachedEl(doc, id)
-				if el then el:SetClass("active", sf[key] == true) end
+				if el then
+					el:SetClass("active", sf[key] == true)
+				end
 			end
-			syncChipActive("btn-gb-pill-avoid-water",  "avoidWater")
+			syncChipActive("btn-gb-pill-avoid-water", "avoidWater")
 			-- Slope sub-chips mirror avoidCliffs / preferSlopes
-			syncChipActive("gb-slope-mode-avoid",  "avoidCliffs")
+			syncChipActive("gb-slope-mode-avoid", "avoidCliffs")
 			syncChipActive("gb-slope-mode-prefer", "preferSlopes")
 			syncSmartCheck("btn-gb-alt-min-enable", "altMinEnable")
 			syncSmartCheck("btn-gb-alt-max-enable", "altMaxEnable")
@@ -175,52 +215,72 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			-- gb-smart-slope-max-row/slider-row visibility driven by data-if="gbAvoidCliffs"
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMax or 45)
-				if widgetState.dmHandle.gbSlopeMaxStr ~= s then widgetState.dmHandle.gbSlopeMaxStr = s end
+				if widgetState.dmHandle.gbSlopeMaxStr ~= s then
+					widgetState.dmHandle.gbSlopeMaxStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-slope-max"), "gb-slope-max", tostring(sf.slopeMax or 45))
 
 			-- gb-smart-slope-min-row/slider-row visibility driven by data-if="gbPreferSlopes"
 			if widgetState.dmHandle then
 				local s = tostring(sf.slopeMin or 10)
-				if widgetState.dmHandle.gbSlopeMinStr ~= s then widgetState.dmHandle.gbSlopeMinStr = s end
+				if widgetState.dmHandle.gbSlopeMinStr ~= s then
+					widgetState.dmHandle.gbSlopeMinStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-slope-min"), "gb-slope-min", tostring(sf.slopeMin or 10))
 
 			-- gb-smart-alt-min-slider-row visibility driven by data-if="gbAltMinEnable"
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMin or 0)
-				if widgetState.dmHandle.gbAltMinStr ~= s then widgetState.dmHandle.gbAltMinStr = s end
+				if widgetState.dmHandle.gbAltMinStr ~= s then
+					widgetState.dmHandle.gbAltMinStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-alt-min"), "gb-alt-min", tostring(sf.altMin or 0))
 
 			-- gb-smart-alt-max-slider-row visibility driven by data-if="gbAltMaxEnable"
 			if widgetState.dmHandle then
 				local s = tostring(sf.altMax or 200)
-				if widgetState.dmHandle.gbAltMaxStr ~= s then widgetState.dmHandle.gbAltMaxStr = s end
+				if widgetState.dmHandle.gbAltMaxStr ~= s then
+					widgetState.dmHandle.gbAltMaxStr = s
+				end
 			end
 			syncAndFlash(getCachedEl(doc, "slider-gb-alt-max"), "gb-alt-max", tostring(sf.altMax or 200))
 
 			-- SAMPLE button active state mirrors TerraformBrush heightSamplingMode
 			local hsm = WG.TerraformBrush and (WG.TerraformBrush.getState() or {}).heightSamplingMode
 			local sampMin = getCachedEl(doc, "btn-gb-alt-min-sample")
-			if sampMin then sampMin:SetClass("active", hsm == "gbAltMin") end
+			if sampMin then
+				sampMin:SetClass("active", hsm == "gbAltMin")
+			end
 			local sampMax = getCachedEl(doc, "btn-gb-alt-max-sample")
-			if sampMax then sampMax:SetClass("active", hsm == "gbAltMax") end
+			if sampMax then
+				sampMax:SetClass("active", hsm == "gbAltMax")
+			end
 
 			-- Filter category chip active state mirrors whether any sub-filter is on
 			local slopeActive = smartOn and (sf.avoidCliffs or sf.preferSlopes)
-			local altActive   = smartOn and (sf.altMinEnable or sf.altMaxEnable)
+			local altActive = smartOn and (sf.altMinEnable or sf.altMaxEnable)
 			local slopeChip = getCachedEl(doc, "btn-gb-pill-slope")
-			if slopeChip then slopeChip:SetClass("active", slopeActive and true or false) end
+			if slopeChip then
+				slopeChip:SetClass("active", slopeActive and true or false)
+			end
 			local altChip = getCachedEl(doc, "btn-gb-pill-altitude")
-			if altChip then altChip:SetClass("active", altActive and true or false) end
+			if altChip then
+				altChip:SetClass("active", altActive and true or false)
+			end
 			-- gb-smart-slope-content / gb-smart-altitude-content visibility driven by data-if
 			if dm then
-				local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
-				setDm("gbSlopeActive",  slopeActive and true or false)
-				setDm("gbAvoidCliffs",  sf.avoidCliffs and true or false)
+				local function setDm(f, v)
+					if dm[f] ~= v then
+						dm[f] = v
+					end
+				end
+				setDm("gbSlopeActive", slopeActive and true or false)
+				setDm("gbAvoidCliffs", sf.avoidCliffs and true or false)
 				setDm("gbPreferSlopes", sf.preferSlopes and true or false)
-				setDm("gbAltActive",    altActive and true or false)
+				setDm("gbAltActive", altActive and true or false)
 				setDm("gbAltMinEnable", sf.altMinEnable and true or false)
 				setDm("gbAltMaxEnable", sf.altMaxEnable and true or false)
 			end
@@ -230,13 +290,19 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		do
 			local colorOn = gbState.texFilterEnabled
 			local colorToggle = getCachedEl(doc, "btn-gb-color-toggle")
-			if colorToggle then colorToggle:SetAttribute("src", colorOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			if colorToggle then
+				colorToggle:SetAttribute("src", colorOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+			end
 			-- gb-color-options does not exist; gb-smart-color-content visibility driven by data-if="gbColorOpen"
 			local colorChip = getCachedEl(doc, "btn-gb-pill-color")
-			if colorChip then colorChip:SetClass("active", colorOn) end
+			if colorChip then
+				colorChip:SetClass("active", colorOn)
+			end
 			if dm then
 				local v = colorOn and true or false
-				if dm.gbColorOpen ~= v then dm.gbColorOpen = v end
+				if dm.gbColorOpen ~= v then
+					dm.gbColorOpen = v
+				end
 			end
 
 			local tc = gbState.texFilterColor or {}
@@ -249,25 +315,33 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 
 			local pipBtn = getCachedEl(doc, "btn-gb-pipette")
-			if pipBtn then pipBtn:SetClass("active", gbState.pipetteMode or false) end
+			if pipBtn then
+				pipBtn:SetClass("active", gbState.pipetteMode or false)
+			end
 
 			local threshVal = math.floor((gbState.texFilterThreshold or 0.35) * 100 + 0.5)
 			syncAndFlash(getCachedEl(doc, "slider-gb-color-thresh"), "gb-color-thresh", tostring(threshVal))
 			if widgetState.dmHandle then
 				local s = tostring(threshVal)
-				if widgetState.dmHandle.gbColorThreshStr ~= s then widgetState.dmHandle.gbColorThreshStr = s end
+				if widgetState.dmHandle.gbColorThreshStr ~= s then
+					widgetState.dmHandle.gbColorThreshStr = s
+				end
 			end
 
 			local padVal = gbState.texFilterPadding or 0
 			syncAndFlash(getCachedEl(doc, "slider-gb-color-pad"), "gb-color-pad", tostring(math.floor(padVal + 0.5)))
 			if widgetState.dmHandle then
 				local s = tostring(math.floor(padVal + 0.5))
-				if widgetState.dmHandle.gbColorPadStr ~= s then widgetState.dmHandle.gbColorPadStr = s end
+				if widgetState.dmHandle.gbColorPadStr ~= s then
+					widgetState.dmHandle.gbColorPadStr = s
+				end
 			end
 
 			local exOn = gbState.texExcludeEnabled
 			local exToggle = getCachedEl(doc, "btn-gb-exclude-toggle")
-			if exToggle then exToggle:SetAttribute("src", exOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png") end
+			if exToggle then
+				exToggle:SetAttribute("src", exOn and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
+			end
 
 			local ec = gbState.texFilterColor or {}
 			local exSwatchEl = getCachedEl(doc, "gb-tex-exclude-swatch")
@@ -279,7 +353,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 			end
 
 			local exPipBtn = getCachedEl(doc, "btn-gb-exclude-pipette")
-			if exPipBtn then exPipBtn:SetClass("active", gbState.pipetteExcludeMode or false) end
+			if exPipBtn then
+				exPipBtn:SetClass("active", gbState.pipetteExcludeMode or false)
+			end
 		end
 
 		-- History slider sync
@@ -292,7 +368,9 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 				syncAndFlash(slH, "gb-history", tostring(histIdx))
 			end
 			local numH = getCachedEl(doc, "slider-gb-history-numbox")
-			if numH then numH:SetAttribute("value", tostring(histIdx)) end
+			if numH then
+				numH:SetAttribute("value", tostring(histIdx))
+			end
 		end
 
 		-- Symmetry count + angle slider sync (labels driven by dm.tbSymCountStr/tbSymAngleStr via syncTBMirrorControls)
@@ -323,42 +401,47 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 		local erase = (sm == "erase")
 		local rotOff = erase or circular
 		ctx.setDisabledIds(doc, {
-			"slider-gb-rotation", "slider-gb-rotation-numbox",
-			"btn-gb-rot-ccw", "btn-gb-rot-cw",
+			"slider-gb-rotation",
+			"slider-gb-rotation-numbox",
+			"btn-gb-rot-ccw",
+			"btn-gb-rot-cw",
 		}, rotOff)
 		ctx.setDisabledIds(doc, {
-			"slider-gb-length", "slider-gb-length-numbox",
-			"btn-gb-length-down", "btn-gb-length-up",
+			"slider-gb-length",
+			"slider-gb-length-numbox",
+			"btn-gb-length-down",
+			"btn-gb-length-up",
 		}, erase)
 		ctx.setDisabledIds(doc, {
-			"slider-gb-curve", "slider-gb-curve-numbox",
-			"btn-gb-curve-down", "btn-gb-curve-up",
+			"slider-gb-curve",
+			"slider-gb-curve-numbox",
+			"btn-gb-curve-down",
+			"btn-gb-curve-up",
 		}, erase)
 		ctx.setDisabledIds(doc, {
-			"slider-grass-density", "slider-grass-density-numbox",
-			"btn-grass-density-down", "btn-grass-density-up",
+			"slider-grass-density",
+			"slider-grass-density-numbox",
+			"btn-grass-density-down",
+			"btn-grass-density-up",
 		}, erase)
 	end
 
 	do
-		local gApi = WG['grassgl4']
+		local gApi = WG["grassgl4"]
 		local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 		if not hasGrass then
 			if sumEl then
 				local sep = '<span class="tf-ss-sep">|</span>'
-				ctx.setInnerRmlIfChanged(sumEl, "status-summary",
-					'<span class="tf-ss-mode" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val" style="color: #fdc04c;">No grass data for this map</span>')
+				ctx.setInnerRmlIfChanged(sumEl, "status-summary", '<span class="tf-ss-mode" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val" style="color: #fdc04c;">No grass data for this map</span>')
 			end
 		else
-			setSummary("GRASS", "#fdc04c",
-				"", (gbState.subMode or "paint"):upper(),
-				"", shapeNames[gbState.shape] or "Circle",
-				"R ", tostring(gbState.radius or 0),
-				"Density ", string.format("%.0f", (gbState.density or 0) * 100) .. "%")
+			setSummary("GRASS", "#fdc04c", "", (gbState.subMode or "paint"):upper(), "", shapeNames[gbState.shape] or "Circle", "R ", tostring(gbState.radius or 0), "Density ", string.format("%.0f", (gbState.density or 0) * 100) .. "%")
 		end
 	end
 
-	if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "gb") end
+	if ctx.syncTBMirrorControls then
+		ctx.syncTBMirrorControls(doc, "gb")
+	end
 end
 
 return M

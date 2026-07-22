@@ -52,19 +52,20 @@ local tidePeriod = 200 -- how much time between live rise up-down
 local effectDamage = "lavadamage" -- damage ceg effect
 local effectBurst = "lavasplash" -- burst ceg effect, set to false to disable
 -- sound arrays: always rows with {soundid, minVolume, maxVolume}
-local effectBurstSounds = { {"lavaburst1", 80, 100}, {"lavaburst2", 80, 100} } -- array of sounds to use for bursts, false or empty array will disable sounds
-local ambientSounds =  { {"lavabubbleshort1", 25, 65}, -- ambient sounds, set ambientSounds = false to disable
-			 {"lavabubbleshort2", 25, 65},
-			 {"lavarumbleshort1", 20, 40},
-			 {"lavarumbleshort2", 20, 40},
-			 {"lavarumbleshort3", 20, 40} }
+local effectBurstSounds = { { "lavaburst1", 80, 100 }, { "lavaburst2", 80, 100 } } -- array of sounds to use for bursts, false or empty array will disable sounds
+local ambientSounds = {
+	{ "lavabubbleshort1", 25, 65 }, -- ambient sounds, set ambientSounds = false to disable
+	{ "lavabubbleshort2", 25, 65 },
+	{ "lavarumbleshort1", 20, 40 },
+	{ "lavarumbleshort2", 20, 40 },
+	{ "lavarumbleshort3", 20, 40 },
+}
 
 --- Tide animation scenes
 ---  each row is: { HeightLevel (elmo), Speed (elmo/second), Delay for next TideRhythm (seconds) }
 ---  first element needs to be -1 than pre-game lava level when present
 local tideRhythm = {}
-local defaultTide = {4, 1.5, 5*6000}
-
+local defaultTide = { 4, 1.5, 5 * 6000 }
 
 ----------------------------------------
 -- Helper methods
@@ -72,8 +73,10 @@ local defaultTide = {4, 1.5, 5*6000}
 local function trimMapVersion(mapName)
 	-- Trims version from the end of the map name.
 	-- find last space before version (version is numbers with dots, possibly preceded by v or V)
-	local lastSpace = mapName:match'^.*()\ [vV]*[%d%.]+'
-	if not lastSpace then return mapName end
+	local lastSpace = mapName:match("^.*() [vV]*[%d%.]+")
+	if not lastSpace then
+		return mapName
+	end
 	return string.sub(mapName, 1, lastSpace - 1)
 end
 
@@ -82,7 +85,9 @@ local function gameConfigPath(mapName)
 end
 
 local function getLavaConfig(mapName)
-	if voidWaterMap then return end
+	if voidWaterMap then
+		return
+	end
 	-- Get lava config for map.
 	-- mapConfig has preference over gameConfig, unless game sets 'overrideMap'
 	local gameConfig, mapConfig
@@ -91,20 +96,20 @@ local function getLavaConfig(mapName)
 		local mapNameNoVersion = trimMapVersion(mapName)
 		if VFS.FileExists(gameConfigPath(mapName)) then
 			gameConfig = VFS.Include(gameConfigPath(mapName))
-			Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapName)
+			Spring.Log("Lava", LOG.INFO, "Loaded map config for", mapName)
 		elseif mapName ~= mapNameNoVersion and VFS.FileExists(gameConfigPath(mapNameNoVersion)) then
 			gameConfig = VFS.Include(gameConfigPath(mapNameNoVersion))
-			Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
+			Spring.Log("Lava", LOG.INFO, "Loaded map config for", mapNameNoVersion)
 		end
 	end
 	if VFS.FileExists(MAP_CONFIG_PATH) then
 		mapConfig = VFS.Include(MAP_CONFIG_PATH)
-		Spring.Log('Lava', LOG.INFO, "Loaded map config for", mapNameNoVersion)
+		Spring.Log("Lava", LOG.INFO, "Loaded map config for", mapNameNoVersion)
 	end
 	if mapConfig and gameConfig and gameConfig.overrideMap then
 		-- allow gameconfig to override map config when 'overrideMap' is set
 		mapConfig = gameConfig
-		Spring.Log('Lava', LOG.INFO, "Game config overrides map")
+		Spring.Log("Lava", LOG.INFO, "Game config overrides map")
 	end
 	return mapConfig or gameConfig
 end
@@ -171,8 +176,8 @@ local function validateTideRhythm(modoptionDataRaw)
 			if not tonumber(value) then
 				Spring.Echo("Lava Advanced Tide Rhythm data is not valid, non-number value: ", value)
 				return false
-			else 
-			table.insert(partRhythm, tonumber(value))
+			else
+				table.insert(partRhythm, tonumber(value))
 			end
 		end
 		if #partRhythm ~= 3 then
@@ -194,26 +199,26 @@ end
 
 local function lavaModGen(modOptions)
 	local tweakLavaRaw = modOptions.map_tweaklava
-	if tweakLavaRaw ~= "" and tweakLavaRaw ~= "0" then 
+	if tweakLavaRaw ~= "" and tweakLavaRaw ~= "0" then
 		local advancedRhythm = validateTideRhythm(tweakLavaRaw)
-		if advancedRhythm then 
+		if advancedRhythm then
 			tideRhythm = advancedRhythm
 			level = tideRhythm[1][1] + 1
 			grow = tideRhythm[1][2]
-		else 
+		else
 			Spring.Echo("Lava Advanced Tide Rhythm data is not valid, using default values")
-			if next(tideRhythm) == nil then 
+			if next(tideRhythm) == nil then
 				level = defaultTide[1]
 				tideRhythm = { defaultTide }
 			end
 		end
-	else 
-		local lowRhythm = {modOptions.map_lavalowlevel, 7.5, modOptions.map_lavalowdwell} --Falls faster: 450 elmo/min
-		local highRhythm = {modOptions.map_lavahighlevel, 4.5, modOptions.map_lavahighdwell} --Rises slower: 270 elmo/min
+	else
+		local lowRhythm = { modOptions.map_lavalowlevel, 7.5, modOptions.map_lavalowdwell } --Falls faster: 450 elmo/min
+		local highRhythm = { modOptions.map_lavahighlevel, 4.5, modOptions.map_lavahighdwell } --Rises slower: 270 elmo/min
 		if modOptions.map_lavatidemode == "lavastartlow" then
-			tideRhythm = {lowRhythm, highRhythm}
+			tideRhythm = { lowRhythm, highRhythm }
 		elseif modOptions.map_lavatidemode == "lavastarthigh" then
-			tideRhythm = {highRhythm, lowRhythm}
+			tideRhythm = { highRhythm, lowRhythm }
 		end
 		level = tideRhythm[1][1] + 1
 		grow = tideRhythm[1][2]
@@ -226,18 +231,17 @@ end
 local mapLavaConfig = getLavaConfig(mapName)
 local modTideRhythm = (Spring.GetModOptions().map_waterislava and Spring.GetModOptions().map_lavatiderhythm) or "default"
 
-if mapLavaConfig and (not voidWaterMap) then
+if mapLavaConfig and not voidWaterMap then
 	applyConfig(mapLavaConfig)
 	if modTideRhythm == "enabled" then
 		lavaModGen(Spring.GetModOptions())
 	elseif modTideRhythm == "disabled" then
-		tideRhythm = {tideRhythm[1]} -- only the first (starting) tide level is used
-		tideRhythm[1][3] = 5*6000 -- extend the first tide 
-		level = tideRhythm[1][1] 
+		tideRhythm = { tideRhythm[1] } -- only the first (starting) tide level is used
+		tideRhythm[1][3] = 5 * 6000 -- extend the first tide
+		level = tideRhythm[1][1]
 		grow = tideRhythm[1][2]
 	end
-
-elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - keep at the very bottom
+elseif Game.waterDamage > 0 and not voidWaterMap then -- Waterdamagemaps - keep at the very bottom
 	isLavaMap = true
 	grow = 0
 	effectBurst = false
@@ -262,8 +266,7 @@ elseif Game.waterDamage > 0 and (not voidWaterMap) then -- Waterdamagemaps - kee
 	fogDistortion = 1
 	tideRhythm = { defaultTide }
 	--tideRhythm = { { 1, 7.5, 5*6000 } }
-
-elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
+elseif Spring.GetModOptions().map_waterislava and not voidWaterMap then
 	isLavaMap = true
 	if modTideRhythm == "enabled" then
 		lavaModGen(Spring.GetModOptions())
@@ -272,8 +275,6 @@ elseif Spring.GetModOptions().map_waterislava and (not voidWaterMap) then
 		tideRhythm = { defaultTide }
 	end
 end
-
-
 
 return {
 	isLavaMap = isLavaMap,

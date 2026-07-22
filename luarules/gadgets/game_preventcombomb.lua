@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "preventcombomb",
-		desc      = "Commanders survive commander blast",
-		author    = "TheFatController",
-		date      = "Aug 31, 2009",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "preventcombomb",
+		desc = "Commanders survive commander blast",
+		author = "TheFatController",
+		date = "Aug 31, 2009",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -38,7 +38,7 @@ local cantFall = {}
 local commCountCache = {}
 local commCountCacheFrame = -1
 
-local COM_BLAST = WeaponDefNames['commanderexplosion'].id
+local COM_BLAST = WeaponDefNames["commanderexplosion"].id
 
 local isCommander = {}
 local commanderDefIDs = {}
@@ -51,21 +51,21 @@ end
 
 local function CommCount(unitTeam)
 	local currentFrame = GetGameFrame()
-	
+
 	-- Use cached result if available for this frame
 	if commCountCacheFrame == currentFrame and commCountCache[unitTeam] then
 		return commCountCache[unitTeam]
 	end
-	
+
 	-- Clear cache if this is a new frame
 	if commCountCacheFrame ~= currentFrame then
 		commCountCache = {}
 		commCountCacheFrame = currentFrame
 	end
-	
+
 	local allyTeamID = select(6, GetTeamInfo(unitTeam, false))
 	local teamsInAlly = GetTeamList(allyTeamID)
-	
+
 	local count = 0
 	if teamsInAlly then
 		for i = 1, #teamsInAlly do
@@ -75,7 +75,7 @@ local function CommCount(unitTeam)
 			end
 		end
 	end
-	
+
 	-- Cache the result
 	commCountCache[unitTeam] = count
 	return count
@@ -92,7 +92,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if not hp then
 			return damage
 		end
-		
+
 		local combombDamage = hp - 200 - math_random(1, 10)
 		if combombDamage < 0 then
 			combombDamage = 0
@@ -106,7 +106,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if weaponID == COM_BLAST and isCommander[unitDefID] and attackerID then
 			local unitTeamID = GetUnitTeam(unitID)
 			local attackerTeamID = GetUnitTeam(attackerID)
-			
+
 			if unitTeamID and attackerTeamID and CommCount(unitTeamID) <= 1 and CommCount(attackerTeamID) <= 1 then
 				if unitID ~= attackerID then
 					-- make unitID immune to DGun
@@ -134,7 +134,7 @@ function gadget:GameFrame(currentFrame)
 			immuneDgunList[unitID] = nil
 		end
 	end
-	
+
 	for unitID, expirationTime in pairs(ctrlCom) do
 		if currentFrame > expirationTime then
 			local x, _, z = GetUnitPosition(unitID)
@@ -149,7 +149,7 @@ function gadget:GameFrame(currentFrame)
 			ctrlCom[unitID] = nil
 		end
 	end
-	
+
 	for unitID, expirationTime in pairs(cantFall) do
 		if currentFrame > expirationTime then
 			cantFall[unitID] = nil

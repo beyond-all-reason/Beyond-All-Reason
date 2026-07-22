@@ -1,13 +1,13 @@
 local scenariodata = {
-	index			= 14, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
-	scenarioid		= "pinewoodvsbarb014", -- no spaces, lowercase, this will be used to save the score
-    version         = "1.0", -- increment this to keep the score when changing a mission
-	title			= "A Safe Haven", -- can be anything
-	author			= "Beherith", -- your name here
-	imagepath		= "scenario014.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Build a shipyard from the shores.", -- This text will be drawn over image
-    summary         = [[An enemy Commander has landed on the southeast corner of the map, neutralize it and destroy every last unit to claim all the resources of this world.]],
-	briefing 		= [[The map is split in two by a river, which is passable on both sides by hovercraft and amphibious units. The central bridge can be easily defended from the outcrops on the top. Make sure to set up some light defences on your end of the bridge as soon as possible. The mountain ranges will provide adequate cover against long-range plasma cannons.
+	index = 14, --  integer, sort order, MUST BE EQUAL TO FILENAME NUMBER
+	scenarioid = "pinewoodvsbarb014", -- no spaces, lowercase, this will be used to save the score
+	version = "1.0", -- increment this to keep the score when changing a mission
+	title = "A Safe Haven", -- can be anything
+	author = "Beherith", -- your name here
+	imagepath = "scenario014.jpg", -- placed next to lua file, should be 3:1 ratio banner style
+	imageflavor = "Build a shipyard from the shores.", -- This text will be drawn over image
+	summary = [[An enemy Commander has landed on the southeast corner of the map, neutralize it and destroy every last unit to claim all the resources of this world.]],
+	briefing = [[The map is split in two by a river, which is passable on both sides by hovercraft and amphibious units. The central bridge can be easily defended from the outcrops on the top. Make sure to set up some light defences on your end of the bridge as soon as possible. The mountain ranges will provide adequate cover against long-range plasma cannons.
  
  
 Tips:
@@ -39,36 +39,36 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 
     ]],
 
-	mapfilename		= "Pinewood_Derby_V1", -- the name of the map to be displayed here
-	playerstartx	= "10%", -- X position of where player comm icon should be drawn, from top left of the map
-	playerstarty	= "25%", -- Y position of where player comm icon should be drawn, from top left of the map
-	partime 		= 1200, -- par time in seconds
-	parresources	= 100000, -- par resource amount
-	difficulty		= 2, -- Percieved difficulty at 'normal' level: integer 1-10
-    defaultdifficulty = "Normal", -- an entry of the difficulty table
-    difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
-        {name = "Beginner", playerhandicap = 50 , enemyhandicap = -50},
-        {name = "Novice"  , playerhandicap = 25 , enemyhandicap = -25},
-        {name = "Normal"  , playerhandicap = 0  , enemyhandicap = 0  },
-        {name = "Hard"    , playerhandicap = 0, enemyhandicap = 50 },
-        {name = "Brutal"  , playerhandicap = 0, enemyhandicap = 100 },
-    },
-    allowedsides     = {"Armada","Cortex","Random"}, --these are the permitted factions for this mission
-	victorycondition= "Kill all construction units", -- This is plaintext, but should be reflected in startscript
-	losscondition	= "Lose all of your construction units",  -- This is plaintext, but should be reflected in startscript
-    unitlimits   = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
-	-- dont use the one in startscript, put it here!
-        --armavp = 0,
-        --coravp = 0,
-    } ,
+	mapfilename = "Pinewood_Derby_V1", -- the name of the map to be displayed here
+	playerstartx = "10%", -- X position of where player comm icon should be drawn, from top left of the map
+	playerstarty = "25%", -- Y position of where player comm icon should be drawn, from top left of the map
+	partime = 1200, -- par time in seconds
+	parresources = 100000, -- par resource amount
+	difficulty = 2, -- Percieved difficulty at 'normal' level: integer 1-10
+	defaultdifficulty = "Normal", -- an entry of the difficulty table
+	difficulties = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
+		{ name = "Beginner", playerhandicap = 50, enemyhandicap = -50 },
+		{ name = "Novice", playerhandicap = 25, enemyhandicap = -25 },
+		{ name = "Normal", playerhandicap = 0, enemyhandicap = 0 },
+		{ name = "Hard", playerhandicap = 0, enemyhandicap = 50 },
+		{ name = "Brutal", playerhandicap = 0, enemyhandicap = 100 },
+	},
+	allowedsides = { "Armada", "Cortex", "Random" }, --these are the permitted factions for this mission
+	victorycondition = "Kill all construction units", -- This is plaintext, but should be reflected in startscript
+	losscondition = "Lose all of your construction units", -- This is plaintext, but should be reflected in startscript
+	unitlimits = { -- table of unitdefname : maxnumberoftese units, 0 is disable it
+		-- dont use the one in startscript, put it here!
+		--armavp = 0,
+		--coravp = 0,
+	},
 
-    scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
-        myoption = "dostuff",
-        scenarioid = "pinewoodvsbarb014", --must be present for scores
+	scenariooptions = { -- this will get lua->json->base64 and passed to scenariooptions in game
+		myoption = "dostuff",
+		scenarioid = "pinewoodvsbarb014", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-    },
-    -- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
-	startscript		= [[
+	},
+	-- https://github.com/spring/spring/blob/105.0/doc/StartScriptFormat.txt
+	startscript = [[
 
 [Game]
 {
@@ -153,7 +153,6 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 	nohelperais = 0;
 }
 	]],
-
 }
 
 return scenariodata -- scenariodata
