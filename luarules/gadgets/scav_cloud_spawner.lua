@@ -12,13 +12,13 @@ function gadget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.Gametype.IsScavengers() then
+if not BAR.Utilities.Gametype.IsScavengers() then
 	return
 end
 
 if gadgetHandler:IsSyncedCode() then -- Synced
 	local teams = Spring.GetTeamList()
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
+	local scavTeamID = BAR.Utilities.GetScavTeamID()
 	local mapx = Game.mapSizeX
 	local mapz = Game.mapSizeZ
 	local cloudMult = math.ceil((math.ceil(((mapx + mapz) * 0.5) / 512) ^ 2) / 18)
@@ -26,9 +26,9 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	local aliveMists = {}
 	local aliveWrecks = {}
 	local mistDefIDs = {
-		[UnitDefNames["scavmist_scav"].id] = true,
-		[UnitDefNames["scavmistxl_scav"].id] = true,
-		[UnitDefNames["scavmistxxl_scav"].id] = true,
+		[UnitDefNames.scavmist_scav.id] = true,
+		[UnitDefNames.scavmistxl_scav.id] = true,
+		[UnitDefNames.scavmistxxl_scav.id] = true,
 	}
 
 	VFS.Include("common/wav.lua")

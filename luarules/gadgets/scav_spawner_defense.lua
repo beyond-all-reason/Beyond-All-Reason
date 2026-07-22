@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gametype.IsRaptors() then
+if BAR.Utilities.Gametype.IsScavengers() and not BAR.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Deactivated!")
@@ -156,8 +156,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	local bossIDs = {}
 	local bosses = { resistances = bossResistance, statuses = {}, playerDamages = {} }
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
-	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+	local scavTeamID = BAR.Utilities.GetScavTeamID()
+	local scavAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local squadsTable = {}
@@ -2562,13 +2562,13 @@ else -- UNSYNCED
 		if hasScavEvent then
 			local scavEventArgs = {}
 			if type ~= nil then
-				scavEventArgs["type"] = type
+				scavEventArgs.type = type
 			end
 			if num ~= nil then
-				scavEventArgs["number"] = num
+				scavEventArgs.number = num
 			end
 			if tech ~= nil then
-				scavEventArgs["tech"] = tech
+				scavEventArgs.tech = tech
 			end
 			Script.LuaUI.ScavEvent(scavEventArgs)
 		end

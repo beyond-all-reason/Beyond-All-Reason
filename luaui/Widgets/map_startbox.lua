@@ -21,7 +21,7 @@ local mathRandom = math.random
 local mathAbs = math.abs
 
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
@@ -99,7 +99,7 @@ local infotextList
 
 local GetTeamColor = Spring.GetTeamColor
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 
 local glTranslate = gl.Translate
 local glCallList = gl.CallList
@@ -129,7 +129,7 @@ local draggingTeamID = nil
 local dragOffsetX = 0
 local dragOffsetZ = 0
 
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gameFrame = 0
 
 local CONE_CLICK_RADIUS = 75
@@ -165,7 +165,7 @@ local function getAIName(teamID, includeLock)
 				aiName = niceName
 			end
 			aiNameI18NTable.name = aiName
-			baseName = Spring.I18N("ui.playersList.aiName", aiNameI18NTable)
+			baseName = BAR.I18N("ui.playersList.aiName", aiNameI18NTable)
 		else
 			local name = spGetPlayerInfo(playerID, false)
 			baseName = WG.playernames and WG.playernames.getPlayername(playerID) or name
@@ -271,8 +271,8 @@ end
 
 local function createCommanderNameList(name, teamID)
 	commanderNameList[teamID] = {}
-	commanderNameList[teamID]["name"] = name
-	commanderNameList[teamID]["list"] = gl.CreateList(function()
+	commanderNameList[teamID].name = name
+	commanderNameList[teamID].list = gl.CreateList(function()
 		local x, y = 0, 0
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
@@ -306,21 +306,21 @@ local function createCommanderNameList(name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]["name"] ~= name then
+	if commanderNameList[teamID] == nil or commanderNameList[teamID].name ~= name then
 		if commanderNameList[teamID] ~= nil then
-			gl.DeleteList(commanderNameList[teamID]["list"])
+			gl.DeleteList(commanderNameList[teamID].list)
 		end
 		createCommanderNameList(name, teamID)
 	end
 	glPushMatrix()
 	glTranslate(mathFloor(x), mathFloor(y), 0)
-	glCallList(commanderNameList[teamID]["list"])
+	glCallList(commanderNameList[teamID].list)
 	glPopMatrix()
 end
 
 local function createInfotextList()
-	local infotext = Spring.I18N("ui.startSpot.anywhere")
-	local infotextBoxes = Spring.I18N("ui.startSpot.startbox")
+	local infotext = BAR.I18N("ui.startSpot.anywhere")
+	local infotextBoxes = BAR.I18N("ui.startSpot.startbox")
 
 	if infotextList then
 		gl.DeleteList(infotextList)
@@ -420,7 +420,7 @@ end
 
 local allSpawnPositions = {}
 local function notifySpawnPositionsChanged()
-	if not WG["quick_start_updateSpawnPositions"] then
+	if not WG.quick_start_updateSpawnPositions then
 		return
 	end
 
@@ -438,7 +438,7 @@ local function notifySpawnPositionsChanged()
 			end
 		end
 	end
-	WG["quick_start_updateSpawnPositions"](allSpawnPositions)
+	WG.quick_start_updateSpawnPositions(allSpawnPositions)
 end
 
 function widget:LanguageChanged()
@@ -490,8 +490,8 @@ local scavengerStartBoxTexture = "LuaUI/Images/scav-tileable_v002_small.tga"
 
 local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 
-local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+local scavengerAIAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -566,8 +566,8 @@ local function DrawStartPolygons(inminimap)
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
@@ -594,8 +594,8 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
 
 	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG["minimap"] and WG["minimap"].isDrawingInPip and WG["minimap"].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG["minimap"].getNormalizedVisibleArea()
+	if inminimap and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+		local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 		startPolygonShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 	else
 		startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -617,8 +617,8 @@ local function DrawStartCones(inminimap)
 	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
 	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG["minimap"] and WG["minimap"].isDrawingInPip and WG["minimap"].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG["minimap"].getNormalizedVisibleArea()
+	if inminimap and WG.minimap and WG.minimap.isDrawingInPip and WG.minimap.getNormalizedVisibleArea then
+		local left, right, bottom, top = WG.minimap.getNormalizedVisibleArea()
 		startConeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
 	else
 		startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
@@ -1061,8 +1061,8 @@ function widget:Initialize()
 
 	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
 
-	WG["map_startbox"] = {}
-	WG["map_startbox"].GetEffectiveStartPosition = getEffectiveStartPosition
+	WG.map_startbox = {}
+	WG.map_startbox.GetEffectiveStartPosition = getEffectiveStartPosition
 
 	updateTeamList()
 	assignTeamColors()
@@ -1123,7 +1123,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
-	WG["map_startbox"] = nil
+	WG.map_startbox = nil
 end
 
 --------------------------------------------------------------------------------
@@ -1232,7 +1232,7 @@ function widget:DrawInMiniMap(sx, sz)
 	end
 
 	-- Check if we're being called from PIP minimap
-	local inPip = WG["minimap"] and WG["minimap"].isDrawingInPip
+	local inPip = WG.minimap and WG.minimap.isDrawingInPip
 
 	DrawStartPolygons(true)
 	DrawStartUnitIcons(sx, sz, inPip)
@@ -1271,7 +1271,7 @@ local lastKnownPlacements = {}
 local currentPlacements = {}
 local startPointTable = {}
 function widget:Update(delta)
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	gameFrame = spGetGameFrame()
 	local currRot = getCurrentMiniMapRotationOption()
 	if lastRot ~= currRot then
@@ -1287,9 +1287,9 @@ function widget:Update(delta)
 	end
 
 	if draftMode == nil or draftMode == "disabled" then -- otherwise draft mod will play it instead
-		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG["notifications"] then
+		if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG.notifications then
 			playedChooseStartLoc = true
-			WG["notifications"].addEvent("ChooseStartLoc", true)
+			WG.notifications.addEvent("ChooseStartLoc", true)
 		end
 	end
 
@@ -1481,16 +1481,16 @@ function widget:RecvLuaMsg(msg)
 				aiPlacedPositions[teamID] = nil
 				aiPlacementStatus[teamID] = false
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationRemoved", aiLocationI18NTable))
 			else
 				aiPlacedPositions[teamID] = { x = x, z = z }
 				aiPlacementStatus[teamID] = true
 				invalidatePosCacheEntry(teamID)
-				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetMyPlayerID(), false)
+				aiLocationI18NTable.playerName = spGetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				aiLocationI18NTable.aiName = getAIName(teamID)
-				Spring.SendMessage(Spring.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
+				Spring.SendMessage(BAR.I18N("ui.startbox.aiStartLocationChanged", aiLocationI18NTable))
 			end
 
 			invalidateMinimapIcons()

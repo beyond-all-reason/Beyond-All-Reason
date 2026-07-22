@@ -46,7 +46,7 @@ local buttonclick = "LuaUI/Sounds/buildbar_waypoint.wav"
 
 local lineHeight = fontSize
 
-local isFFA = Spring.Utilities.Gametype.IsFFA()
+local isFFA = BAR.Utilities.Gametype.IsFFA()
 
 local header = {
 	"frame",
@@ -221,8 +221,8 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
@@ -240,19 +240,19 @@ end
 
 local function refreshHeaders()
 	headerRemap = {
-		frame = { " ", Spring.I18N("ui.teamStats.player") },
-		metalProduced = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceProduced") },
-		metalExcess = { Spring.I18N("ui.teamStats.metal"), Spring.I18N("ui.teamStats.resourceExcess") },
-		energyProduced = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceProduced") },
-		energyExcess = { Spring.I18N("ui.teamStats.energy"), Spring.I18N("ui.teamStats.resourceExcess") },
-		damageDealt = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageDealt") },
-		damageReceived = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageReceived") },
-		damageEfficiency = { Spring.I18N("ui.teamStats.damage"), Spring.I18N("ui.teamStats.damageEfficiency") },
-		unitsProduced = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsProduced") },
-		unitsDied = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsDied") },
-		unitsKilled = { Spring.I18N("ui.teamStats.units"), Spring.I18N("ui.teamStats.unitsKilled") },
-		aggressionLevel = { Spring.I18N("ui.teamStats.aggression"), Spring.I18N("ui.teamStats.aggressionLevel") },
-		actionsPerMinute = { Spring.I18N("ui.teamStats.actionsPerMinute1"), Spring.I18N("ui.teamStats.actionsPerMinute2") },
+		frame = { " ", BAR.I18N("ui.teamStats.player") },
+		metalProduced = { BAR.I18N("ui.teamStats.metal"), BAR.I18N("ui.teamStats.resourceProduced") },
+		metalExcess = { BAR.I18N("ui.teamStats.metal"), BAR.I18N("ui.teamStats.resourceExcess") },
+		energyProduced = { BAR.I18N("ui.teamStats.energy"), BAR.I18N("ui.teamStats.resourceProduced") },
+		energyExcess = { BAR.I18N("ui.teamStats.energy"), BAR.I18N("ui.teamStats.resourceExcess") },
+		damageDealt = { BAR.I18N("ui.teamStats.damage"), BAR.I18N("ui.teamStats.damageDealt") },
+		damageReceived = { BAR.I18N("ui.teamStats.damage"), BAR.I18N("ui.teamStats.damageReceived") },
+		damageEfficiency = { BAR.I18N("ui.teamStats.damage"), BAR.I18N("ui.teamStats.damageEfficiency") },
+		unitsProduced = { BAR.I18N("ui.teamStats.units"), BAR.I18N("ui.teamStats.unitsProduced") },
+		unitsDied = { BAR.I18N("ui.teamStats.units"), BAR.I18N("ui.teamStats.unitsDied") },
+		unitsKilled = { BAR.I18N("ui.teamStats.units"), BAR.I18N("ui.teamStats.unitsKilled") },
+		aggressionLevel = { BAR.I18N("ui.teamStats.aggression"), BAR.I18N("ui.teamStats.aggressionLevel") },
+		actionsPerMinute = { BAR.I18N("ui.teamStats.actionsPerMinute1"), BAR.I18N("ui.teamStats.actionsPerMinute2") },
 	}
 end
 
@@ -275,8 +275,8 @@ function widget:Initialize()
 		widget:GameFrame(GetGameFrame(), true)
 	end
 
-	WG["teamstats"] = {}
-	WG["teamstats"].toggle = function(state)
+	WG.teamstats = {}
+	WG.teamstats.toggle = function(state)
 		if state ~= nil then
 			guiData.mainPanel.visible = state
 		else
@@ -286,7 +286,7 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(), true)
 		end
 	end
-	WG["teamstats"].isvisible = function()
+	WG.teamstats.isvisible = function()
 		return guiData.mainPanel.visible
 	end
 end
@@ -294,8 +294,8 @@ end
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("teamstats_window")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("teamstats_window")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)
@@ -387,14 +387,14 @@ function widget:GameFrame(n, forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or Spring.I18N("ui.teamStats.gone", { player = "" })
+							playerName = teamControllers[teamID] or BAR.I18N("ui.teamStats.gone", { player = "" })
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = Spring.I18N("ui.teamStats.dead", { player = playerName })
+							playerName = BAR.I18N("ui.teamStats.dead", { player = playerName })
 						elseif not isActive then
-							playerName = Spring.I18N("ui.teamStats.gone", { player = playerName })
+							playerName = BAR.I18N("ui.teamStats.gone", { player = playerName })
 						end
 					end
 					if history.damageReceived ~= 0 then
@@ -416,7 +416,7 @@ function widget:GameFrame(n, forceupdate)
 
 					playerName = playerName or ""
 
-					history.frame = Spring.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
+					history.frame = BAR.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName .. "    "
 
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1
@@ -570,17 +570,17 @@ local function DrawBackground()
 		return
 	end
 
-	gl.Color(0, 0, 0, WG["guishader"] and 0.8 or 0.85)
+	gl.Color(0, 0, 0, WG.guishader and 0.8 or 0.85)
 	local x1, y1, x2, y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	UiElement(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
-	if WG["guishader"] then
+	if WG.guishader then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList(function()
 			RectRound(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, elementCorner)
 		end)
-		WG["guishader"].InsertDlist(backgroundGuishader, "teamstats_window")
+		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window")
 	end
 
 	if backgroundDisplayList then
@@ -599,8 +599,8 @@ end
 
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("teamstats_window")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("teamstats_window")
 		end
 		return
 	end

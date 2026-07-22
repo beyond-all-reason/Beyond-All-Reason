@@ -17,7 +17,7 @@ end
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 
@@ -67,8 +67,8 @@ local spGetUnitDefID = spGetUnitDefID
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamInfo = Spring.GetTeamInfo
-local spGetMyPlayerID = Spring.GetMyPlayerID
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spSelectUnitArray = Spring.SelectUnitArray
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -679,14 +679,14 @@ function widget:Initialize()
 	end
 	widget:PlayerChanged(myPlayerID)
 
-	WG["allyselectedunits"] = {}
-	WG["allyselectedunits"].getSelectPlayerUnits = function()
+	WG.allyselectedunits = {}
+	WG.allyselectedunits.getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
-	WG["allyselectedunits"].setSelectPlayerUnits = function(value)
+	WG.allyselectedunits.setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
 	end
-	WG["allyselectedunits"].getPlayerSelectedUnits = function(playerID)
+	WG.allyselectedunits.getPlayerSelectedUnits = function(playerID)
 		return playerSelectedUnits[playerID]
 	end
 end

@@ -1,7 +1,7 @@
 -- XP Effects
 
 return {
-	["levelup_fp1"] = {
+	levelup_fp1 = {
 		levelup_rings = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -112,7 +112,7 @@ return {
 		},
 	},
 
-	["levelup_fp2"] = {
+	levelup_fp2 = {
 		levelup_rings = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -223,7 +223,7 @@ return {
 		},
 	},
 
-	["levelup_fp3"] = {
+	levelup_fp3 = {
 		levelup_rings = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -334,7 +334,7 @@ return {
 		},
 	},
 
-	["levelup_fp4"] = {
+	levelup_fp4 = {
 		levelup_rings = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -445,7 +445,7 @@ return {
 		},
 	},
 
-	["levelup_fp5"] = {
+	levelup_fp5 = {
 		levelup_rings = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -574,7 +574,7 @@ return {
 		},
 	},
 
-	["levelup_ring_fp1"] = {
+	levelup_ring_fp1 = {
 		levelupring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -598,7 +598,7 @@ return {
 		},
 	},
 
-	["levelup_ring_fp2"] = {
+	levelup_ring_fp2 = {
 		levelupring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -622,7 +622,7 @@ return {
 		},
 	},
 
-	["levelup_ring_fp3"] = {
+	levelup_ring_fp3 = {
 		levelupring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -646,7 +646,7 @@ return {
 		},
 	},
 
-	["levelup_ring_fp4"] = {
+	levelup_ring_fp4 = {
 		levelupring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -670,7 +670,7 @@ return {
 		},
 	},
 
-	["levelup_ring_fp5"] = {
+	levelup_ring_fp5 = {
 		levelupring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],

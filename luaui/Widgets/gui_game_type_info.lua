@@ -48,7 +48,7 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	if messages[1] then
 		messages[1].x = widgetScale * 60
@@ -91,16 +91,16 @@ function widget:LanguageChanged()
 		key = "killAllUnits"
 	elseif deathmode == "builders" then
 		key = "killAllBuilders"
-	elseif deathmode == "territorial_domination" and not Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+	elseif deathmode == "territorial_domination" and not BAR.Utilities.Gametype.IsRaptors() and not BAR.Utilities.Gametype.IsScavengers() then
 		key = "territorialDomination"
 	else
 		key = "killAllCommanders"
 	end
 
-	messages[1].str = "\255\255\255\255" .. Spring.I18N("ui.gametypeInfo.victoryCondition") .. ": " .. Spring.I18N("ui.gametypeInfo." .. key)
+	messages[1].str = "\255\255\255\255" .. BAR.I18N("ui.gametypeInfo.victoryCondition") .. ": " .. BAR.I18N("ui.gametypeInfo." .. key)
 
 	if deathmode == "own_com" then
-		messages[3].str = "\255\255\150\150" .. Spring.I18N("ui.gametypeInfo.owncomends")
+		messages[3].str = "\255\255\150\150" .. BAR.I18N("ui.gametypeInfo.owncomends")
 	end
 end
 

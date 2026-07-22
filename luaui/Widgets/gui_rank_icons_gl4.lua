@@ -138,7 +138,7 @@ end -- init this caching table to preserve mem allocs
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then
-		Spring.Debug.TraceEcho("add", unitID, reason)
+		BAR.Debug.TraceEcho("add", unitID, reason)
 	end
 	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
 		if debugmode then
@@ -187,7 +187,7 @@ end
 
 local function RemovePrimitive(unitID, reason)
 	if debugmode then
-		Spring.Debug.TraceEcho("remove", unitID, reason)
+		BAR.Debug.TraceEcho("remove", unitID, reason)
 	end
 	if rankVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(rankVBO, unitID)
@@ -279,26 +279,26 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["rankicons"] = {}
-	WG["rankicons"].getDrawDistance = function()
+	WG.rankicons = {}
+	WG.rankicons.getDrawDistance = function()
 		return distanceMult
 	end
-	WG["rankicons"].setDrawDistance = function(value)
+	WG.rankicons.setDrawDistance = function(value)
 		distanceMult = value
 		usedCutoffDistance = cutoffDistance * distanceMult
 	end
-	WG["rankicons"].getScale = function()
+	WG.rankicons.getScale = function()
 		return iconsizeMult
 	end
-	WG["rankicons"].setScale = function(value)
+	WG.rankicons.setScale = function(value)
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
 		doRefresh = true
 	end
-	WG["rankicons"].getRank = function(unitDefID, xp)
+	WG.rankicons.getRank = function(unitDefID, xp)
 		return getRank(unitDefID, xp)
 	end
-	WG["rankicons"].getRankTextures = function(unitDefID, xp)
+	WG.rankicons.getRankTextures = function(unitDefID, xp)
 		return rankTextures
 	end
 

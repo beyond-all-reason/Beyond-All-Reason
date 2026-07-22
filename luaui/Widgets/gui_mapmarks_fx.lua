@@ -45,7 +45,7 @@ local commands = {}
 local mapDrawNicknameTime = {}
 local mapEraseNicknameTime = {}
 
-local ownPlayerID = Spring.GetMyPlayerID()
+local ownPlayerID = Spring.GetLocalPlayerID()
 local vsx, vsy = spGetViewGeometry()
 
 local commandCount = 0
@@ -210,7 +210,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end
 
 function widget:Initialize()

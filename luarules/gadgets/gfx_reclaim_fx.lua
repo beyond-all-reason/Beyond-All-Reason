@@ -37,7 +37,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMaxY = {}
 	local ignoreUnits = {}
 	for unitDefID, unitDef in ipairs(UnitDefs) do
-		if unitDef.modCategories["object"] or unitDef.customParams.objectify then
+		if unitDef.modCategories.object or unitDef.customParams.objectify then
 			ignoreUnits[unitDefID] = true
 		else
 			unitNumFx[unitDefID] = math.min(1 + math.ceil(unitDef.metalCost / 250), 30)
@@ -147,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 	local function reclaimfx(_, fx, fy, fz)
 		local mySpec, fullview = Spring.GetSpectatingState()
-		if fullview or Spring.IsPosInLos(fx, fy, fz, Spring.GetMyAllyTeamID()) then
+		if fullview or Spring.IsPosInLos(fx, fy, fz, Spring.GetLocalAllyTeamID()) then
 			Spring.PlaySoundFile("reclaimate", 1, fx, fy, fz, "sfx")
 		end
 	end

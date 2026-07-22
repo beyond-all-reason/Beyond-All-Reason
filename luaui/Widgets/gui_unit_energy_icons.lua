@@ -141,7 +141,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 		fullview = select(2, spGetSpectatingState())
 	end
 	if not fullview then
-		teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+		teamList = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
 	else
 		teamList = Spring.GetTeamList()
 	end
@@ -164,8 +164,8 @@ function widget:Initialize()
 		return
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 

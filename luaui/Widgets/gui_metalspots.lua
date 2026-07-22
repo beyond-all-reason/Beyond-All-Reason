@@ -24,7 +24,7 @@ local stringFind = string.find
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -86,7 +86,7 @@ local checkspots = true
 local sceduledCheckedSpotsFrame = spGetGameFrame()
 
 local isSpec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -512,11 +512,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not WG["resource_spot_finder"].metalSpotsList then
+	if not WG.resource_spot_finder.metalSpotsList then
 		spEcho("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
-	if WG["resource_spot_finder"].isMetalMap then
+	if WG.resource_spot_finder.isMetalMap then
 		-- no need for this widget on metal maps
 		widgetHandler:RemoveWidget()
 	end
@@ -545,7 +545,7 @@ function widget:Initialize()
 		return
 	end
 
-	local mSpots = WG["resource_spot_finder"].metalSpotsList
+	local mSpots = WG.resource_spot_finder.metalSpotsList
 	if not mSpots then
 		return
 	end
@@ -605,7 +605,7 @@ function widget:PlayerChanged(playerID)
 	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local oldIncomeMultiplier = incomeMultiplier
 	incomeMultiplier = select(7, Spring.GetTeamInfo(spGetMyTeamID(), false))
 	if incomeMultiplier ~= oldIncomeMultiplier then

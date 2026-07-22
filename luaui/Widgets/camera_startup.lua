@@ -40,7 +40,7 @@ function widget:Initialize()
 		xMax = Game.mapSizeX
 		zMax = Game.mapSizeZ
 	else
-		xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(Spring.GetMyAllyTeamID())
+		xMin, zMin, xMax, zMax = Spring.GetAllyTeamStartBox(Spring.GetLocalAllyTeamID())
 	end
 
 	if not xMin or not zMin or not xMax or not zMax then

@@ -37,7 +37,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitRadius = Spring.GetUnitRadius
@@ -135,8 +135,8 @@ end
 
 local function init()
 	InstanceVBOTable.clearInstanceTable(flankingVBO)
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		local visibleUnits = WG["unittrackerapi"].visibleUnits
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		local visibleUnits = WG.unittrackerapi.visibleUnits
 		for unitID, unitDefID in pairs(visibleUnits) do
 			widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID), true)
 		end
@@ -171,7 +171,7 @@ function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = Spring.GetLocalAllyTeamID()
 	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
 		InstanceVBOTable.clearInstanceTable(flankingVBO)
 		init()

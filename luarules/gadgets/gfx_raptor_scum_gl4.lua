@@ -19,7 +19,7 @@ end
 -- fix stencil testing
 
 if gadgetHandler:IsSyncedCode() then
-	local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+	local pveTeamID = BAR.Utilities.GetScavTeamID() or BAR.Utilities.GetRaptorTeamID()
 
 	local scumSpawnerIDs = {}
 
@@ -327,7 +327,7 @@ if gadgetHandler:IsSyncedCode() then
 			scumRemoveQueue[n] = nil
 		end
 	end
-elseif not Spring.Utilities.Gametype.IsScavengers() then -- UNSYNCED
+elseif not BAR.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 	local textureresolution = "low" -- low or high
 	local textures = {
 		low = {
@@ -941,12 +941,12 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then -- UNSYNCED
 			return
 		end
 		lastSunChanged = df
-		if GG["NightFactor"] then
+		if GG.NightFactor then
 			local altitudefactor = 1.0 --+ (1.0 - WG['NightFactor'].altitude) * 0.5
-			nightFactor[1] = GG["NightFactor"].red
-			nightFactor[2] = GG["NightFactor"].green
-			nightFactor[3] = GG["NightFactor"].blue
-			nightFactor[4] = GG["NightFactor"].shadow
+			nightFactor[1] = GG.NightFactor.red
+			nightFactor[2] = GG.NightFactor.green
+			nightFactor[3] = GG.NightFactor.blue
+			nightFactor[4] = GG.NightFactor.shadow
 		end
 	end
 

@@ -4,8 +4,8 @@
 --- @field getCommand fun(cmd: string): any
 local SelectApi = {}
 
-local defaultdamagetag = Game.armorTypes["default"]
-local vtoldamagetag = Game.armorTypes["vtol"]
+local defaultdamagetag = Game.armorTypes.default
+local vtoldamagetag = Game.armorTypes.vtol
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitCommands = Spring.GetUnitCommands
@@ -85,7 +85,7 @@ end
 local function checkCmd(uid, cmdId, indexTemp)
 	local index = indexTemp or 1
 	local cmd = spGetUnitCommands(uid, index)
-	if cmd and cmd[index] and cmd[index]["id"] == cmdId then
+	if cmd and cmd[index] and cmd[index].id == cmdId then
 		return true
 	end
 	return false
@@ -565,12 +565,12 @@ local function parseSource(sourceDef)
 
 	if sourceDefLower == "allmap" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetTeamUnits(myTeamId)
 		end
 	elseif sourceDefLower == "visible" then
 		return function()
-			local myTeamId = Spring.GetMyTeamID()
+			local myTeamId = Spring.GetLocalTeamID()
 			return Spring.GetVisibleUnits(myTeamId)
 		end
 	elseif sourceDefLower == "prevselection" or sourceDefLower == "previousselection" then

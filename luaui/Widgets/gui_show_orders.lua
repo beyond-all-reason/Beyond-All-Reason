@@ -157,7 +157,7 @@ local spGetFactoryCounts = Spring.GetFactoryCounts
 local spGetSpecState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -207,7 +207,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = vsy / 2000
-	font = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	-- Pre-calculate scaled values
 	cachedScaledValues.iconSize = iconSize * widgetScale

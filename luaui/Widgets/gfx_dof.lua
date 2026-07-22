@@ -334,31 +334,31 @@ end
 
 function widget:Initialize()
 	init()
-	WG["dof"] = {}
-	WG["dof"].getFocusDepth = function()
+	WG.dof = {}
+	WG.dof.getFocusDepth = function()
 		return focusDepth
 	end
-	WG["dof"].setFocusDepth = function(value)
+	WG.dof.setFocusDepth = function(value)
 		focusDepth = value
 	end
-	WG["dof"].getFstop = function()
+	WG.dof.getFstop = function()
 		return fStop
 	end
-	WG["dof"].setFstop = function(value)
+	WG.dof.setFstop = function(value)
 		fStop = value
 		autofocusInFocusMultiplier = fStop / 2
 	end
-	WG["dof"].getHighQuality = function()
+	WG.dof.getHighQuality = function()
 		return highQuality
 	end
-	WG["dof"].setHighQuality = function(value)
+	WG.dof.setHighQuality = function(value)
 		highQuality = value
 		InitTextures()
 	end
-	WG["dof"].getAutofocus = function()
+	WG.dof.getAutofocus = function()
 		return autofocus
 	end
-	WG["dof"].setAutofocus = function(value)
+	WG.dof.setAutofocus = function(value)
 		autofocus = value
 		mousefocus = not autofocus
 	end
@@ -377,7 +377,7 @@ end
 
 function widget:Shutdown()
 	reset()
-	WG["dof"] = nil
+	WG.dof = nil
 end
 
 local function FilterCalculation()

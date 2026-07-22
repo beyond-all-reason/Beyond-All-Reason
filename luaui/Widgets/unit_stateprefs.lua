@@ -169,8 +169,8 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
 
-	priorUserFirestateFunction = WG["firestate"].userFirestateChanged
-	WG["firestate"].userFirestateChanged = recordUserFirestateChanged
+	priorUserFirestateFunction = WG.firestate.userFirestateChanged
+	WG.firestate.userFirestateChanged = recordUserFirestateChanged
 end
 
 function onRecordPress()
@@ -242,13 +242,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	local name = unitName[unitDefID]
 	local prefs = unitSet[name]
-	if unitTeam == Spring.GetMyTeamID() then
+	if unitTeam == Spring.GetLocalTeamID() then
 		for cmdID, cmdParam in pairs(prefs or {}) do
 			if cmdID == 115 then
 				return
 			end -- we're skipping "repeat" command here for now
 			if cmdID == CMD.FIRE_STATE then
-				WG["firestate"].setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
+				WG.firestate.setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
 			else
 				Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 			end
@@ -257,7 +257,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 local function ApplyUnitStates()
-	local teamID = (not spectatingState) and Spring.GetMyTeamID()
+	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
 	if units then
 		for i = 1, #units do
@@ -286,7 +286,7 @@ function widget:GameOver()
 end
 
 function widget:Shutdown()
-	WG["firestate"].userFirestateChanged = priorUserFirestateFunction
+	WG.firestate.userFirestateChanged = priorUserFirestateFunction
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
 	widgetHandler:RemoveAction("stateprefs_clearunit")

@@ -25,7 +25,7 @@ function isAuthorized(playerID, subPermission)
 		return true
 	end
 	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = BAR.Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
 	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
@@ -322,16 +322,16 @@ else -- UNSYNCED
 			local mapcz = Game.mapSizeZ / 2
 			local mapcy = Spring.GetGroundHeight(mapcx, mapcz)
 
-			camState["px"] = mapcx
-			camState["py"] = mapcy
-			camState["pz"] = mapcz
-			camState["dy"] = -1
-			camState["dz"] = -1
-			camState["dx"] = 0
-			camState["rx"] = 2.75
-			camState["height"] = mapcy + 2000
-			camState["dist"] = mapcy + 2000
-			camState["name"] = "spring"
+			camState.px = mapcx
+			camState.py = mapcy
+			camState.pz = mapcz
+			camState.dy = -1
+			camState.dz = -1
+			camState.dx = 0
+			camState.rx = 2.75
+			camState.height = mapcy + 2000
+			camState.dist = mapcy + 2000
+			camState.name = "spring"
 
 			Spring.SetCameraState(camState, 0.75)
 		end
@@ -499,7 +499,7 @@ else -- UNSYNCED
 	end
 
 	function benchmark(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then
+		if playerID ~= Spring.GetLocalPlayerID() then
 			return
 		end
 		Spring.Echo("Benchmark", line, words, playerID, action)

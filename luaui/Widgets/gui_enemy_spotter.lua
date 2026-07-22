@@ -36,7 +36,7 @@ local GL_POINTS = GL.POINTS
 
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}
@@ -164,8 +164,8 @@ local function init()
 		return false
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	else
 		Spring.Echo("Enemy spotter needs unittrackerapi to work!")
 		widgetHandler:RemoveWidget()
@@ -175,9 +175,9 @@ local function init()
 end
 
 function widget:PlayerChanged(playerID)
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
-	widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 end
 
 function widget:Initialize()
@@ -188,25 +188,25 @@ function widget:Initialize()
 	if not init() then
 		return
 	end
-	WG["enemyspotter"] = {}
-	WG["enemyspotter"].getOpacity = function()
+	WG.enemyspotter = {}
+	WG.enemyspotter.getOpacity = function()
 		return opacity
 	end
-	WG["enemyspotter"].setOpacity = function(value)
+	WG.enemyspotter.setOpacity = function(value)
 		opacity = value
 		init()
 	end
-	WG["enemyspotter"].getSkipOwnTeam = function()
+	WG.enemyspotter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
-	WG["enemyspotter"].setSkipOwnTeam = function(value)
+	WG.enemyspotter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
 		init()
 	end
 end
 
 function widget:Shutdown()
-	WG["enemyspotter"] = nil
+	WG.enemyspotter = nil
 end
 
 function widget:GetConfigData(data)

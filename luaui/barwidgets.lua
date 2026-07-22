@@ -494,7 +494,7 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
 	local gameSeconds = math.max(0, math.round(Spring.GetGameFrame() / 30))
 	if type(contents) == "table" then
@@ -1397,7 +1397,7 @@ function widgetHandler:Shutdown()
 
 	-- save config
 	if self.__blankOutConfig then
-		table.save({ ["allowUserWidgets"] = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
+		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
 	else
 		self:SaveConfigData()
 	end
@@ -1895,7 +1895,7 @@ end
 
 function widgetHandler:SunChanged()
 	tracy.ZoneBeginN("W:SunChanged")
-	local nmp = _G["NightModeParams"]
+	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)

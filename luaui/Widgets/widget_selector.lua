@@ -171,8 +171,8 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 		end
 		cursorBlinkTimer = 0
 		updateTextInputDlist = true
-		if WG["limitidlefps"] and WG["limitidlefps"].update then
-			WG["limitidlefps"].update()
+		if WG.limitidlefps and WG.limitidlefps.update then
+			WG.limitidlefps.update()
 		end
 		UpdateList(true)
 		return true
@@ -185,8 +185,8 @@ local function clearChatInput()
 	inputTextPosition = 0
 	inputTextInsertActive = false
 	--backgroundGuishader = gl.DeleteList(backgroundGuishader)
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("selectorinput")
+	if WG.guishader then
+		WG.guishader.RemoveRect("selectorinput")
 	end
 	UpdateList(true)
 end
@@ -222,7 +222,7 @@ function drawChatInput()
 			local leftOffset = floor(lineHeight * 0.7)
 			local distance = 0 --elementMargin
 			local usedFont = inputMode == "" and font3 or font
-			local modeText = Spring.I18N("ui.settings.filter")
+			local modeText = BAR.I18N("ui.settings.filter")
 			if inputMode ~= "" then
 				modeText = inputMode
 			end
@@ -239,8 +239,8 @@ function drawChatInput()
 			chatInputArea = { activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance }
 			UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0, 0, nil, nil, 0, nil, nil, nil, WG.FlowUI.clampedOpacity)
 
-			if WG["guishader"] and activeGuishader then
-				WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "selectorinput")
+			if WG.guishader and activeGuishader then
+				WG.guishader.InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "selectorinput")
 			end
 
 			-- button background
@@ -342,33 +342,33 @@ end
 
 function widget:Initialize()
 	buttons = { --see MouseRelease for which functions are called by which buttons
-		[1] = Spring.I18N("ui.widgetselector.button_reloadluaui"),
-		[2] = Spring.I18N("ui.widgetselector.button_unloadallwidgets"),
-		[3] = Spring.I18N("ui.widgetselector.button_disallowuserwidgets"),
-		[4] = Spring.I18N("ui.widgetselector.button_resetluaui"),
-		[5] = Spring.I18N("ui.widgetselector.button_factoryresetluaui"),
+		[1] = BAR.I18N("ui.widgetselector.button_reloadluaui"),
+		[2] = BAR.I18N("ui.widgetselector.button_unloadallwidgets"),
+		[3] = BAR.I18N("ui.widgetselector.button_disallowuserwidgets"),
+		[4] = BAR.I18N("ui.widgetselector.button_resetluaui"),
+		[5] = BAR.I18N("ui.widgetselector.button_factoryresetluaui"),
 	}
 	if not allowuserwidgets then
 		buttons[3] = ""
 	else
 		if widgetHandler.allowUserWidgets then
-			buttons[3] = Spring.I18N("ui.widgetselector.button_disallowuserwidgets")
+			buttons[3] = BAR.I18N("ui.widgetselector.button_disallowuserwidgets")
 		else
-			buttons[3] = Spring.I18N("ui.widgetselector.button_allowuserwidgets")
+			buttons[3] = BAR.I18N("ui.widgetselector.button_allowuserwidgets")
 		end
 	end
 
 	widgetHandler.knownChanged = true
 	Spring.SendCommands("unbindkeyset f11")
 
-	WG["widgetselector"] = {}
-	WG["widgetselector"].toggle = function(state)
+	WG.widgetselector = {}
+	WG.widgetselector.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG["topbar"] then
-			WG["topbar"].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 		if show then
@@ -380,10 +380,10 @@ function widget:Initialize()
 			widgetHandler.textOwner = nil --widgetHandler:DisownText()
 		end
 	end
-	WG["widgetselector"].isvisible = function()
+	WG.widgetselector.isvisible = function()
 		return show
 	end
-	WG["widgetselector"].getLocalWidgetCount = function()
+	WG.widgetselector.getLocalWidgetCount = function()
 		return localWidgetCount
 	end
 
@@ -628,11 +628,11 @@ function UpdateList(force)
 		end
 	end
 
-	if force and WG["guishader"] then
+	if force and WG.guishader then
 		activeGuishader = false
-		WG["guishader"].RemoveDlist("widgetselector")
-		WG["guishader"].RemoveDlist("widgetselector2")
-		WG["guishader"].RemoveRect("selectorinput")
+		WG.guishader.RemoveDlist("widgetselector")
+		WG.guishader.RemoveDlist("widgetselector2")
+		WG.guishader.RemoveRect("selectorinput")
 		if textInputDlist then
 			textInputDlist = gl.DeleteList(textInputDlist)
 		end
@@ -674,11 +674,11 @@ function widget:KeyPress(key, mods, isRepeat)
 			clearChatInput()
 		else
 			local newShow = not show
-			if newShow and WG["topbar"] then
-				WG["topbar"].hideWindows()
+			if newShow and WG.topbar then
+				WG.topbar.hideWindows()
 			end
 			show = newShow
-			if show and not (Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
+			if show and not (BAR.Utilities.IsDevMode() or BAR.Utilities.ShowDevUI() or Spring.GetConfigInt("widgetselector", 0) == 1 or localWidgetCount > 0) then
 				show = false
 			end
 			if show then
@@ -773,11 +773,11 @@ end
 
 function widget:DrawScreen()
 	if not show then
-		if WG["guishader"] and activeGuishader then
+		if WG.guishader and activeGuishader then
 			activeGuishader = false
-			WG["guishader"].RemoveDlist("widgetselector")
-			WG["guishader"].RemoveDlist("widgetselector2")
-			WG["guishader"].RemoveRect("selectorinput")
+			WG.guishader.RemoveDlist("widgetselector")
+			WG.guishader.RemoveDlist("widgetselector2")
+			WG.guishader.RemoveRect("selectorinput")
 			if textInputDlist then
 				textInputDlist = gl.DeleteList(textInputDlist)
 			end
@@ -785,7 +785,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	if not WG["guishader"] then
+	if not WG.guishader then
 		activeGuishader = false
 	end
 
@@ -807,7 +807,7 @@ function widget:DrawScreen()
 
 	if updateUi then
 		updateTextInputDlist = true
-		local title = Spring.I18N("ui.widgetselector.title")
+		local title = BAR.I18N("ui.widgetselector.title")
 		local titleFontSize = 18 * widgetScale
 		titleRect = { backgroundRect[1], backgroundRect[4], mathFloor(backgroundRect[1] + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(backgroundRect[4] + (titleFontSize * 1.7)) }
 		dlistGuishader = gl.DeleteList(dlistGuishader)
@@ -836,11 +836,11 @@ function widget:DrawScreen()
 		end)
 	end
 
-	if WG["guishader"] and not activeGuishader then
+	if WG.guishader and not activeGuishader then
 		activeGuishader = true
 		if dlistGuishader then
-			WG["guishader"].InsertDlist(dlistGuishader, "widgetselector")
-			WG["guishader"].InsertDlist(dlistGuishader2, "widgetselector2")
+			WG.guishader.InsertDlist(dlistGuishader, "widgetselector")
+			WG.guishader.InsertDlist(dlistGuishader2, "widgetselector2")
 		end
 	end
 
@@ -875,7 +875,7 @@ function widget:DrawScreen()
 				if prevFromZip ~= data.fromZip then
 					customWidgetPosy = posy
 					font2:SetTextColor(0.5, 0.5, 0.5, 0.4)
-					font2:Print(Spring.I18N("ui.widgetselector.islocal"), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
+					font2:Print(BAR.I18N("ui.widgetselector.islocal"), minx + fontSize * sizeMultiplier * 0.25, posy + (fontSize * sizeMultiplier) * 0.33, fontSize * sizeMultiplier, "")
 				end
 
 				local color = ""
@@ -988,7 +988,7 @@ function widget:DrawScreen()
 		font:End()
 	end
 
-	if WG["tooltip"] ~= nil then
+	if WG.tooltip ~= nil then
 		if aboveWidget then
 			local n = aboveWidget[1]
 			local d = aboveWidget[2]
@@ -1008,18 +1008,18 @@ function widget:DrawScreen()
 				end
 			end
 			local tooltip = ""
-			local maxWidth = WG["tooltip"].getFontsize() * 90
+			local maxWidth = WG.tooltip.getFontsize() * 90
 			if d.desc and d.desc ~= "" then
 				local textLines, numLines = font:WrapText(d.desc, maxWidth)
 				tooltip = tooltip .. WhiteStr .. string.gsub(textLines, "[\n]", "\n" .. WhiteStr) .. "\n"
 			end
 			if d.author and d.author ~= "" then
 				local textLines, numLines = font:WrapText(d.author, maxWidth)
-				tooltip = tooltip .. "\255\175\175\175" .. Spring.I18N("ui.widgetselector.author") .. ":  " .. string.gsub(textLines, "[\n]", "\n\255\175\175\175") .. "\n"
+				tooltip = tooltip .. "\255\175\175\175" .. BAR.I18N("ui.widgetselector.author") .. ":  " .. string.gsub(textLines, "[\n]", "\n\255\175\175\175") .. "\n"
 			end
-			tooltip = tooltip .. "\255\175\175\175" .. Spring.I18N("ui.widgetselector.file") .. ":  " .. d.basename .. (not d.fromZip and "   (" .. Spring.I18N("ui.widgetselector.islocal") .. ")" or "")
-			if WG["tooltip"] then
-				WG["tooltip"].ShowTooltip("info", tooltip, nil, nil, tooltipTitle)
+			tooltip = tooltip .. "\255\175\175\175" .. BAR.I18N("ui.widgetselector.file") .. ":  " .. d.basename .. (not d.fromZip and "   (" .. BAR.I18N("ui.widgetselector.islocal") .. ")" or "")
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip("info", tooltip, nil, nil, tooltipTitle)
 			end
 		end
 	end
@@ -1030,8 +1030,8 @@ function widget:DrawScreen()
 	if showTextInput and textInputDlist then
 		gl.CallList(textInputDlist)
 		drawChatInputCursor()
-	elseif WG["guishader"] then
-		WG["guishader"].RemoveRect("selectorinput")
+	elseif WG.guishader then
+		WG.guishader.RemoveRect("selectorinput")
 		textInputDlist = gl.DeleteList(textInputDlist)
 	end
 
@@ -1260,9 +1260,9 @@ end
 function widget:Shutdown()
 	Spring.SendCommands("bind f11 luaui selector") -- if this one is removed or crashes, then have the backup one take over.
 	cancelChatInput()
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("widgetselector")
-		WG["guishader"].DeleteDlist("widgetselector2")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("widgetselector")
+		WG.guishader.DeleteDlist("widgetselector2")
 	end
 	uiList = gl.DeleteList(uiList)
 	uiList2 = gl.DeleteList(uiList2)

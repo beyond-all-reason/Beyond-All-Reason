@@ -28,7 +28,7 @@ local spGetFeatureHealth = Spring.GetFeatureHealth
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spec, fullview = spGetSpectatingState()
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
 
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -54,8 +54,8 @@ local blinkTime = 20
 local minETASecs = 5 -- Don't show ETA if it is less than 5 seconds
 
 -- Pre-cache I18N strings to avoid per-unit per-frame lookups
-local i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-local i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+local i18n_buildTime = "\255\255\255\1" .. BAR.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+local i18n_cancelled = BAR.I18N("ui.buildEstimate.cancelled") .. " "
 
 local unitHeight = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -68,7 +68,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	font = WG["fonts"].getFont(nil, 1.2, 0.2, 20)
+	font = WG.fonts.getFont(nil, 1.2, 0.2, 20)
 end
 
 local function makeUnitETA(unitID, unitDefID)
@@ -142,8 +142,8 @@ function widget:Initialize()
 end
 
 function widget:LanguageChanged()
-	i18n_buildTime = "\255\255\255\1" .. Spring.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
-	i18n_cancelled = Spring.I18N("ui.buildEstimate.cancelled") .. " "
+	i18n_buildTime = "\255\255\255\1" .. BAR.I18N("ui.buildEstimate.time") .. "\255\255\255\255 "
+	i18n_cancelled = BAR.I18N("ui.buildEstimate.cancelled") .. " "
 end
 
 local function updateEta(eta, newProgress, gameSeconds, abs)
@@ -229,8 +229,8 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged()
-	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
-		myAllyTeam = Spring.GetMyAllyTeamID()
+	if myAllyTeam ~= Spring.GetLocalAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = Spring.GetLocalAllyTeamID()
 		spec, fullview = spGetSpectatingState()
 		init()
 	end

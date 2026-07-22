@@ -3835,21 +3835,21 @@ local initialModel = {
 
 	-- Save / Load / Clean
 	onGbSave = function(_event)
-		local grassApi = WG["grassgl4"]
+		local grassApi = WG.grassgl4
 		if grassApi and grassApi.saveGrassTGA then
 			playSound("save")
 			grassApi.saveGrassTGA()
 		end
 	end,
 	onGbLoad = function(_event)
-		local grassApi = WG["grassgl4"]
+		local grassApi = WG.grassgl4
 		if grassApi and grassApi.loadGrass then
 			grassApi.loadGrass()
 		end
 	end,
 	onGbClean = function(_event)
 		playSound("undo")
-		local grassApi = WG["grassgl4"]
+		local grassApi = WG.grassgl4
 		if grassApi and grassApi.clearGrass then
 			grassApi.clearGrass()
 		end
@@ -7155,24 +7155,24 @@ local initialModel = {
 		_envUpdatePreview("env-cloudcol-preview", d.cloudColor[1], d.cloudColor[2], d.cloudColor[3])
 	end,
 	onEnvResetSnow = function(_event)
-		if WG["snow"] then
-			if WG["snow"].setMultiplier then
-				WG["snow"].setMultiplier(1.0)
+		if WG.snow then
+			if WG.snow.setMultiplier then
+				WG.snow.setMultiplier(1.0)
 			end
-			if WG["snow"].setSpeedMultiplier then
-				WG["snow"].setSpeedMultiplier(1.0)
+			if WG.snow.setSpeedMultiplier then
+				WG.snow.setSpeedMultiplier(1.0)
 			end
-			if WG["snow"].setSizeMultiplier then
-				WG["snow"].setSizeMultiplier(1.0)
+			if WG.snow.setSizeMultiplier then
+				WG.snow.setSizeMultiplier(1.0)
 			end
-			if WG["snow"].setWindMultiplier then
-				WG["snow"].setWindMultiplier(4.5)
+			if WG.snow.setWindMultiplier then
+				WG.snow.setWindMultiplier(4.5)
 			end
-			if WG["snow"].setOpacity then
-				WG["snow"].setOpacity(0.66)
+			if WG.snow.setOpacity then
+				WG.snow.setOpacity(0.66)
 			end
-			if WG["snow"].setColor then
-				WG["snow"].setColor(0.8, 0.8, 0.9)
+			if WG.snow.setColor then
+				WG.snow.setColor(0.8, 0.8, 0.9)
 			end
 		end
 		_envSetSlider("slider-env-snow-density", "lbl-env-snow-density", 100, "1.00")
@@ -11039,7 +11039,7 @@ local function attachEventListeners()
 	local grassBtn = getCachedEl(doc, "btn-grass")
 	if grassBtn then
 		grassBtn:AddEventListener("mouseover", function(event)
-			local gApi = WG["grassgl4"]
+			local gApi = WG.grassgl4
 			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 			widgetState.grassHoverNoData = not hasGrass
 		end, false)
@@ -12579,7 +12579,7 @@ function widget:Update()
 
 		-- When game chat input is open, auto-blur any focused RmlUI text input so
 		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
-		if widgetState.focusedRmlInput and WG["chat"] and WG["chat"].isInputActive() then
+		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
 			widgetState.focusedRmlInput:Blur()
 			widgetState.focusedRmlInput = nil
 		end
@@ -12978,7 +12978,7 @@ function widget:Update()
 			-- informational-only: generated blank maps start with zero grass and the
 			-- Grass tool should still be usable so users can paint the first patches.
 			do
-				local gApi = WG["grassgl4"]
+				local gApi = WG.grassgl4
 				local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 				local grassBtnEl = getCachedEl(doc, "btn-grass")
 				if grassBtnEl then

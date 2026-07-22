@@ -239,7 +239,7 @@ if next(glasstriggerfeaturedefsids) == nil then
 end
 
 function widget:Initialize()
-	if Spring.Utilities.Gametype.IsSinglePlayer ~= true then
+	if BAR.Utilities.Gametype.IsSinglePlayer ~= true then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -292,7 +292,7 @@ function widget:PlayerChanged()
 end
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local myteamid = Spring.GetMyTeamID()
+local myteamid = Spring.GetLocalTeamID()
 local effectOn = false
 local effectStart = 0
 
@@ -323,11 +323,11 @@ end
 function widget:DrawScreenEffects()
 	if effectOn then
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		if WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
-			screenCopyTex = WG["screencopymanager"].GetScreenCopy()
+		if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+			screenCopyTex = WG.screencopymanager.GetScreenCopy()
 		else
 			--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-			spEcho("Missing Screencopy Manager, exiting", WG["screencopymanager"])
+			spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 			widgetHandler:RemoveWidget()
 			return false
 		end

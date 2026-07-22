@@ -137,7 +137,7 @@ local function SaveGame(filename, description, requireOverwrite)
 		saveData.gameID = (Spring.GetGameRulesParam("save_gameID") or (Game.gameID and Game.gameID or Spring.GetGameRulesParam("GameID")))
 		saveData.gameframe = spGetGameFrame()
 		saveData.totalGameframe = spGetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
-		saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		saveData.playerName = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 		table.save(saveData, path)
 
 		-- TODO: back up existing save?
@@ -226,12 +226,12 @@ local function savegameCmd(_, _, params)
 end
 
 function widget:Initialize()
-	WG["savegame"] = {}
+	WG.savegame = {}
 	widgetHandler:AddAction("savegame", savegameCmd, nil, "t")
 end
 
 function widget:Shutdown()
-	WG["savegame"] = nil
+	WG.savegame = nil
 	widgetHandler:RemoveAction("savegame")
 end
 

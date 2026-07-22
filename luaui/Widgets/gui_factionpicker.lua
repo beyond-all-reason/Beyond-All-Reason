@@ -30,7 +30,7 @@ local height = 0
 local bgBorderOrg = 0.003
 local bgBorder = bgBorderOrg
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
@@ -99,7 +99,7 @@ local function drawFactionpicker()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.66)
-	font2:Print(Spring.I18N("ui.factionPicker.pick"), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
+	font2:Print(BAR.I18N("ui.factionPicker.pick"), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
 	local contentWidth = mathFloor(backgroundRect[3] - backgroundRect[1] - contentPadding)
 	local contentHeight = mathFloor(backgroundRect[4] - backgroundRect[2] - (contentPadding * 1.33))
@@ -123,15 +123,15 @@ local function drawFactionpicker()
 		end
 		UiUnit(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], nil, 1, 1, 1, 1, 0, nil, disabled and 0.033 or nil, "#" .. factions[i].startUnit)
 		-- faction name
-		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. Spring.I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255") .. BAR.I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 
-		if WG["tooltip"] ~= nil then
-			local text = Spring.I18N("ui.factionPicker.factions." .. factions[i].faction)
+		if WG.tooltip ~= nil then
+			local text = BAR.I18N("ui.factionPicker.factions." .. factions[i].faction)
 			local tooltip = ""
-			local maxWidth = WG["tooltip"].getFontsize() * 80
+			local maxWidth = WG.tooltip.getFontsize() * 80
 			local textLines, numLines = font2:WrapText(text, maxWidth)
 			tooltip = tooltip .. string.gsub(textLines, "[\n]", "\n") .. "\n"
-			WG["tooltip"].AddTooltip("factionpicker_" .. i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, Spring.I18N("units.factions." .. factions[i].faction))
+			WG.tooltip.AddTooltip("factionpicker_" .. i, { factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] }, tooltip, nil, BAR.I18N("units.factions." .. factions[i].faction))
 		end
 	end
 	font2:End()
@@ -161,12 +161,12 @@ function widget:ViewResize()
 	height = mathFloor(height * vsy) / vsy
 
 	local buildmenuBottomPos
-	if WG["buildmenu"] then
-		buildmenuBottomPos = WG["buildmenu"].getBottomPosition()
+	if WG.buildmenu then
+		buildmenuBottomPos = WG.buildmenu.getBottomPosition()
 	end
 
 	local outlineMult = math.clamp(1 / (vsy / 1400), 1, 1.5)
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	local widgetSpaceMargin = WG.FlowUI.elementMargin
 	bgpadding = WG.FlowUI.elementPadding
@@ -175,8 +175,8 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if WG["minimap"] then
-		minimapHeight = WG["minimap"].getHeight()
+	if WG.minimap then
+		minimapHeight = WG.minimap.getHeight()
 	end
 
 	if stickToBottom then
@@ -186,11 +186,11 @@ function widget:ViewResize()
 		if buildmenuBottomPos then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin / vsy)
-		elseif WG["buildmenu"] then
-			local posY2, _ = WG["buildmenu"].getSize()
+		elseif WG.buildmenu then
+			local posY2, _ = WG.buildmenu.getSize()
 			posY2 = posY2 + (widgetSpaceMargin / vsy)
 			posY = posY2 + height
-			if WG["minimap"] then
+			if WG.minimap then
 				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin / vsy)
 			end
 			posX = 0
@@ -230,8 +230,8 @@ function widget:Initialize()
 		end
 	end
 
-	if WG["ordermenu"] then
-		stickToBottom = WG["ordermenu"].getBottomPosition()
+	if WG.ordermenu then
+		stickToBottom = WG.ordermenu.getBottomPosition()
 	end
 
 	widget:ViewResize()
@@ -251,9 +251,9 @@ function widget:Shutdown()
 		factionpickerTex = nil
 	end
 
-	if WG["tooltip"] ~= nil then
+	if WG.tooltip ~= nil then
 		for i, faction in pairs(factions) do
-			WG["tooltip"].RemoveTooltip("factionpicker_" .. i)
+			WG.tooltip.RemoveTooltip("factionpicker_" .. i)
 		end
 	end
 end
@@ -269,13 +269,13 @@ function widget:Update(dt)
 		sec = 0
 		checkGuishader()
 
-		if WG["minimap"] and minimapHeight ~= WG["minimap"].getHeight() then
+		if WG.minimap and minimapHeight ~= WG.minimap.getHeight() then
 			widget:ViewResize()
 			doUpdate = true
 		end
 
-		if WG["ordermenu"] and stickToBottom ~= WG["ordermenu"].getBottomPosition() then
-			stickToBottom = WG["ordermenu"].getBottomPosition()
+		if WG.ordermenu and stickToBottom ~= WG.ordermenu.getBottomPosition() then
+			stickToBottom = WG.ordermenu.getBottomPosition()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -284,7 +284,7 @@ end
 
 function widget:DrawScreen()
 	local x, y, b = Spring.GetMouseState()
-	if not WG["topbar"] or not WG["topbar"].showingQuit() then
+	if not WG.topbar or not WG.topbar.showingQuit() then
 		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor("cursornormal")
 		end
@@ -295,8 +295,8 @@ function widget:DrawScreen()
 		doUpdate = true
 	end
 
-	if dlistGuishader and WG["guishader"] then
-		WG["guishader"].InsertDlist(dlistGuishader, "factionpicker")
+	if dlistGuishader and WG.guishader then
+		WG.guishader.InsertDlist(dlistGuishader, "factionpicker")
 	end
 
 	if not factionpickerBgTex then
@@ -344,7 +344,7 @@ function widget:DrawScreen()
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print(Spring.I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+				font2:Print(BAR.I18N("units.factions." .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end

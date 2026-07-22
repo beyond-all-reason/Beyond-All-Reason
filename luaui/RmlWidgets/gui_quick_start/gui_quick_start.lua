@@ -33,8 +33,8 @@ end
 local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount" or (modOptions.quick_start == "default" and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination"))
 
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetMyTeamID = Spring.GetMyTeamID
-local spI18N = Spring.I18N
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spI18N = BAR.I18N
 
 local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgGetBuildQueueFunc, wgGetBuildPositionsFunc, wgGetPregameUnitSelectedFunc
 
@@ -758,12 +758,12 @@ function widget:Initialize()
 	widgetState.document = document
 	document:Show()
 
-	wgBuildMenu = WG["buildmenu"]
-	wgGridMenu = WG["gridmenu"]
-	wgTopbar = WG["topbar"]
+	wgBuildMenu = WG.buildmenu
+	wgGridMenu = WG.gridmenu
+	wgTopbar = WG.topbar
 	wgPregameBuild = WG["pregame-build"]
-	wgPregameUI = WG["pregameui"]
-	wgPregameUIDraft = WG["pregameui_draft"]
+	wgPregameUI = WG.pregameui
+	wgPregameUIDraft = WG.pregameui_draft
 	wgGetBuildQueueFunc = wgPregameBuild and wgPregameBuild.getBuildQueue
 	wgGetBuildPositionsFunc = wgPregameBuild and wgPregameBuild.getBuildPositions
 	wgGetPregameUnitSelectedFunc = function()
@@ -794,8 +794,8 @@ function widget:Initialize()
 		wgTopbar.setResourceBarsVisible(false)
 	end
 
-	WG["getBuildQueueSpawnStatus"] = getBuildQueueSpawnStatus
-	WG["quick_start_updateSpawnPositions"] = updateSpawnPositions
+	WG.getBuildQueueSpawnStatus = getBuildQueueSpawnStatus
+	WG.quick_start_updateSpawnPositions = updateSpawnPositions
 
 	for id, def in pairs(UnitDefs) do
 		if def.isFactory then
@@ -815,8 +815,8 @@ function widget:Shutdown()
 		wgTopbar.setResourceBarsVisible(true)
 	end
 
-	WG["getBuildQueueSpawnStatus"] = nil
-	WG["quick_start_updateSpawnPositions"] = nil
+	WG.getBuildQueueSpawnStatus = nil
+	WG.quick_start_updateSpawnPositions = nil
 
 	if wgBuildMenu and wgBuildMenu.clearCostOverrides then
 		wgBuildMenu.clearCostOverrides()

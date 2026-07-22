@@ -47,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamsList = Spring.GetTeamList()
 
 	local ignoredTeams = {}
-	local scavTeamID, raptorTeamID = Spring.Utilities.GetScavTeamID(), Spring.Utilities.GetRaptorTeamID()
+	local scavTeamID, raptorTeamID = BAR.Utilities.GetScavTeamID(), BAR.Utilities.GetRaptorTeamID()
 	if scavTeamID then
 		ignoredTeams[scavTeamID] = true
 	end
@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 		if Spring.IsCheatingEnabled() then
 			return true
 		else
-			local accountID = Spring.Utilities.GetAccountID(playerID)
+			local accountID = BAR.Utilities.GetAccountID(playerID)
 			if _G.permissions.cmd[accountID] and not _G.isSinglePlayer then
 				return true
 			end
@@ -349,8 +349,8 @@ if gadgetHandler:IsSyncedCode() then
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	local function HandleBuildBlocked(_, unitDefID, reasonsStr)
 		if Script.LuaUI.UnitBlocked then
@@ -367,8 +367,8 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 			gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID)
 		end
 
-		myPlayerID = Spring.GetMyPlayerID()
-		myTeamID = Spring.GetMyTeamID()
+		myPlayerID = Spring.GetLocalPlayerID()
+		myTeamID = Spring.GetLocalTeamID()
 
 		if myTeamID then
 			gadgetHandler:AddSyncAction("BuildBlocked_" .. myTeamID, HandleBuildBlocked)

@@ -37,12 +37,12 @@ local vsx, vsy = spGetViewGeometry()
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 
 local isreplay = Spring.IsReplay()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -88,8 +88,8 @@ local function CloseVote()
 		voteName = nil
 		weAreVoteOwner = nil
 		eligibleToVote = false
-		if WG["guishader"] then
-			WG["guishader"].DeleteDlist("voteinterface")
+		if WG.guishader then
+			WG.guishader.DeleteDlist("voteinterface")
 		end
 		gl.DeleteList(voteDlist)
 	end
@@ -135,8 +135,8 @@ local function StartVote(name) -- when called without params its just to refresh
 		local xpos = mathFloor(width / 2)
 		local ypos = mathFloor(vsy - (height / 2))
 
-		if WG["topbar"] ~= nil then
-			local topbarArea = WG["topbar"].GetPosition()
+		if WG.topbar ~= nil then
+			local topbarArea = WG.topbar.GetPosition()
 			xpos = mathFloor(topbarArea[1] + (width / 2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1]) / 2))
 			ypos = mathFloor(topbarArea[2] - widgetSpaceMargin - (height / 2))
 		end
@@ -248,7 +248,7 @@ local function StartVote(name) -- when called without params its just to refresh
 			fontSize = fontSize * 0.85
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:SetTextColor(1, 1, 1, 1)
-			font2:Print((weAreVoteOwner and Spring.I18N("ui.voting.endVote") or Spring.I18N("ui.voting.no")), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+			font2:Print((weAreVoteOwner and BAR.I18N("ui.voting.endVote") or BAR.I18N("ui.voting.no")), noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 
 			-- YES
 			if not weAreVoteOwner then
@@ -263,7 +263,7 @@ local function StartVote(name) -- when called without params its just to refresh
 					mult = 1
 				end
 				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, color1, color2, elementCorner * 0.4)
-				font2:Print(Spring.I18N("ui.voting.yes"), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(BAR.I18N("ui.voting.yes"), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 			font2:End()
 		end
@@ -279,11 +279,11 @@ local function StartVote(name) -- when called without params its just to refresh
 	end)
 
 	-- background blur
-	if WG["guishader"] then
+	if WG.guishader then
 		dlistGuishader = gl.CreateList(function()
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 		end)
-		WG["guishader"].InsertDlist(dlistGuishader, "voteinterface")
+		WG.guishader.InsertDlist(dlistGuishader, "voteinterface")
 	end
 end
 
@@ -303,8 +303,8 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 end
 
 function widget:PlayerChanged(playerID)
@@ -365,7 +365,7 @@ end
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
-		myPlayerID = Spring.GetMyPlayerID()
+		myPlayerID = Spring.GetLocalPlayerID()
 		myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 	end
 	widgetHandler:RemoveCallIn("GameFrame")
@@ -383,7 +383,7 @@ function widget:AddConsoleLine(lines, priority)
 	if priority and priority == L_DEPRECATED then
 		return
 	end
-	if not WG["rejoin"] or not WG["rejoin"].showingRejoining() then
+	if not WG.rejoin or not WG.rejoin.showingRejoining() then
 		lines = lines:match("^%[f=[0-9]+%] (.*)$") or lines
 		for line in lines:gmatch("[^\n]+") do
 			-- system message
@@ -463,9 +463,9 @@ function widget:AddConsoleLine(lines, priority)
 					if sfind(line, "* Vote for command", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						if sfind(line, " passed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votepassed")
+							voteEndText = BAR.I18N("ui.voting.votepassed")
 						elseif sfind(line, " failed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votefailed")
+							voteEndText = BAR.I18N("ui.voting.votefailed")
 						end
 						MinimizeVote()
 					end
@@ -474,7 +474,7 @@ function widget:AddConsoleLine(lines, priority)
 					-- > [teh]cluster2[00] * Cancelling "gKick Raiser" vote (command executed directly by Flaka)
 					if sfind(line, "* Vote cancelled", nil, true) or sfind(line, "* Game starting, cancelling ", nil, true) or sfind(line, " vote (command executed directly by ", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
-						voteEndText = Spring.I18N("ui.voting.votecancelled")
+						voteEndText = BAR.I18N("ui.voting.votecancelled")
 						MinimizeVote()
 					end
 					-- > [teh]cluster2[00] * [Z]kynet, you cannot vote currently, there is no vote in progress.
@@ -567,7 +567,7 @@ end
 
 function widget:DrawScreen()
 	if voteDlist then
-		if not WG["topbar"] or not WG["topbar"].showingQuit() then
+		if not WG.topbar or not WG.topbar.showingQuit() then
 			if eligibleToVote then
 				local x, y, b = spGetMouseState()
 				if hovered then

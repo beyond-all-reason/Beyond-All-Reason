@@ -228,7 +228,7 @@ local function drawPause(now)
 	--draw text
 	if not gameover then
 		if not cachedPauseText then
-			cachedPauseText = Spring.I18N("ui.pauseScreen.paused")
+			cachedPauseText = BAR.I18N("ui.pauseScreen.paused")
 		end
 		font:Begin()
 		font:SetOutlineColor(outlineColor)
@@ -313,7 +313,7 @@ function widget:DrawScreenEffects()
 	if spIsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen and WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
+	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
 		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
 		glTexture(0, screencopy)

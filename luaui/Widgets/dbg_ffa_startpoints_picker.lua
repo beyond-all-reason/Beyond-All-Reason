@@ -32,7 +32,7 @@ local tableRemove = table.remove
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 
 --------------------------------------------------------------------------------
@@ -650,8 +650,8 @@ local function initializeUI()
 	panelHotkeys.panelWidth = 15.7 * (padding + textSizeText)
 	panelHotkeys.panelHeight = 5.75 * (padding + textSizeText) - padding
 	panelHotkeys.px = vsx * 0.75 - panelHotkeys.panelWidth
-	if WG["advplayerlist_api"] then
-		local advPlayerListLeft = WG["advplayerlist_api"].GetPosition()[2]
+	if WG.advplayerlist_api then
+		local advPlayerListLeft = WG.advplayerlist_api.GetPosition()[2]
 		panelHotkeys.px = advPlayerListLeft - panelHotkeys.panelWidth - WG.FlowUI.elementMargin
 	end
 	panelHotkeys.py = 0
@@ -808,12 +808,12 @@ local function isSoloDevMode()
 			allyTeamCount = allyTeamCount + 1
 		end
 	end
-	local teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+	local teamList = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
 	local teamCount = table.count(teamList)
 	local isSolo = allyTeamCount == 1 and teamCount == 1
 
 	-- we only run in solo games with dev mode enabled, and not in replays
-	if not isSolo or not Spring.Utilities.IsDevMode() or Spring.IsReplay() then
+	if not isSolo or not BAR.Utilities.IsDevMode() or Spring.IsReplay() then
 		return false
 	end
 	return true

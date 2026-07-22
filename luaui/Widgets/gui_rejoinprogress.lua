@@ -54,7 +54,7 @@ local colorZero0 = { 0, 0, 0, 0 }
 local colorGreenDark = { 0, 0.55, 0, 1 }
 local colorGreenBright = { 0, 1, 0, 1 }
 
-local catchingUpText = Spring.I18N("ui.rejoin.catchingUp")
+local catchingUpText = BAR.I18N("ui.rejoin.catchingUp")
 local lastGameTimeText = nil
 local cachedTitleText = nil
 
@@ -67,8 +67,8 @@ end
 
 local function deleteGuiShaderDList()
 	if dlistRejoinGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("rejoinprogress")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("rejoinprogress")
 		end
 		gl.DeleteList(dlistRejoinGuishader)
 		dlistRejoinGuishader = nil
@@ -96,8 +96,8 @@ local function buildStaticRejoin()
 		dlistRejoinGuishader = gl.CreateList(function()
 			RectRound(area[1], area[2], area[3], area[4], 5.5 * widgetScale, 0, 0, 1, 1)
 		end)
-		if WG["guishader"] then
-			WG["guishader"].InsertDlist(dlistRejoinGuishader, "rejoinprogress")
+		if WG.guishader then
+			WG.guishader.InsertDlist(dlistRejoinGuishader, "rejoinprogress")
 		end
 	end
 
@@ -243,7 +243,7 @@ function widget:ViewResize()
 	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 
 	rejoinArea = { mathFloor(0.5 * vsx) - mathFloor(width * 0.5), mathFloor(posY * vsy) - mathFloor(height * 0.5), mathFloor(0.5 * vsx) + mathFloor(width * 0.5), mathFloor(posY * vsy) + mathFloor(height * 0.5) }
 	updateGeometry()
@@ -277,8 +277,8 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	WG["rejoin"] = {}
-	WG["rejoin"].showingRejoining = function()
+	WG.rejoin = {}
+	WG.rejoin.showingRejoining = function()
 		return showRejoinUI
 	end
 end
@@ -286,5 +286,5 @@ end
 function widget:Shutdown()
 	deleteStaticDList()
 	deleteGuiShaderDList()
-	WG["rejoin"] = nil
+	WG.rejoin = nil
 end

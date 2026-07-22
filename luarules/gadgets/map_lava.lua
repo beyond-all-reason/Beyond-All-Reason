@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local lava = Spring.Lava
+local lava = BAR.Lava
 local lavaMap = lava.isLavaMap
 local gameSpeed = Game.gameSpeed
 
@@ -476,7 +476,7 @@ else -- UNSYCNED
 		shaderConfig = unifiedShaderConfig,
 	}
 
-	local myPlayerID = tostring(Spring.GetMyPlayerID())
+	local myPlayerID = tostring(Spring.GetLocalPlayerID())
 	function gadget:GameFrame(f)
 		if SYNCED.lavaLevel then
 			lavatidelevel = math.sin(Spring.GetGameFrame() / tideperiod) * tideamplitude + SYNCED.lavaLevel

@@ -122,7 +122,7 @@ local function strokeSamplePatch(x, z)
 	if strokeSnap[key] then
 		return
 	end
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api or not api.getDensityAt then
 		return
 	end
@@ -133,7 +133,7 @@ local function strokeEnd()
 	if not strokeSnap then
 		return
 	end
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api or not api.getDensityAt then
 		strokeSnap = nil
 		return
@@ -161,7 +161,7 @@ local function grassUndo()
 	if #undoStack == 0 then
 		return
 	end
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api or not api.setDensityAt then
 		return
 	end
@@ -180,7 +180,7 @@ local function grassRedo()
 	if #redoStack == 0 then
 		return
 	end
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api or not api.setDensityAt then
 		return
 	end
@@ -701,7 +701,7 @@ end
 -- ============================================================
 
 local function ensureEditMode()
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if not grassApi then
 		return false
 	end
@@ -729,7 +729,7 @@ local function shouldApplyAt(wx, wz, patchRes, grassApi, config)
 end
 
 local function applyPaintBrush(worldX, worldZ, direction)
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.setDensityAt or not grassApi.getDensityAt then
 		return
 	end
@@ -782,7 +782,7 @@ local function applyPaintBrush(worldX, worldZ, direction)
 end
 
 local function applyFillBrush(worldX, worldZ, direction)
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.setDensityAt then
 		return
 	end
@@ -815,7 +815,7 @@ local function applyFillBrush(worldX, worldZ, direction)
 end
 
 local function applyEraseBrush(worldX, worldZ)
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.setDensityAt or not grassApi.getDensityAt then
 		return
 	end
@@ -973,7 +973,7 @@ local function drawSmartFilterOverlay(cx, cz)
 	end
 	local step = FILTER_GRID_STEP
 	local halfStep = step * 0.3
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if not grassApi or not grassApi.getConfig then
 		return
 	end
@@ -1015,7 +1015,7 @@ local function drawSmartFilterOverlay(cx, cz)
 end
 
 local function drawCursorInfo(worldX, worldZ)
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	local currentDensity = 0
 	if grassApi and grassApi.getDensityAt then
 		currentDensity = grassApi.getDensityAt(worldX, worldZ)
@@ -1048,7 +1048,7 @@ local function activate(mode)
 	-- immediately interpret it as a tool switch.
 	local _, cmdID = GetActiveCommand()
 	lastActiveCmd = cmdID
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if grassApi and grassApi.setExternalBrush then
 		grassApi.setExternalBrush(true)
 	end
@@ -1062,7 +1062,7 @@ local function deactivate()
 	active = false
 	painting = false
 	paintButton = 0
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if grassApi then
 		if grassApi.setExternalBrush then
 			grassApi.setExternalBrush(false)
@@ -1245,7 +1245,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	local grassApi = WG["grassgl4"]
+	local grassApi = WG.grassgl4
 	if grassApi then
 		if grassApi.setExternalBrush then
 			grassApi.setExternalBrush(false)

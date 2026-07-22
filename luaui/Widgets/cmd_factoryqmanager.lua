@@ -67,8 +67,8 @@ local drawFadeTime = 0.10
 local loadedBorderDisplayTime = 1.0
 
 local repeatIcon = "LuaUI/Images/repeat.png"
-local SAVED_TEXT = Spring.I18N("ui.factoryqmanager.saved")
-local LOADED_TEXT = Spring.I18N("ui.factoryqmanager.loaded")
+local SAVED_TEXT = BAR.I18N("ui.factoryqmanager.saved")
+local LOADED_TEXT = BAR.I18N("ui.factoryqmanager.loaded")
 
 --------------------------------------------------------------------------------
 --INTERNAL USE
@@ -190,7 +190,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiElement = WG.FlowUI.Draw.Element
@@ -235,7 +235,7 @@ function RemoveBuildOrders(unitID, buildDefID, count)
 end
 
 function getButtonUnderMouse(mx, my)
-	local x1 = boxCoords["x"]
+	local x1 = boxCoords.x
 	if x1 == nil then
 		return
 	end

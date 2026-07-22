@@ -17,7 +17,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local teamList = Spring.GetTeamList()
 local allyTeamList = Spring.GetAllyTeamList()
 local allyTeamCount = #allyTeamList - 1
-local isSurvival = Spring.Utilities.Gametype.IsPvE()
+local isSurvival = BAR.Utilities.Gametype.IsPvE()
 
 local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
@@ -26,8 +26,8 @@ local teamSizes = {}
 
 local myAllyTeamID, myTeamID
 if not gadgetHandler:IsSyncedCode() then
-	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 end
 
 -- Special colors
@@ -437,7 +437,7 @@ local function hex2RGB(hex)
 end
 
 -- we don't want to use FFA colors for TeamFFA, because we want each team to have its own color theme
-local useFFAColors = Spring.Utilities.Gametype.IsFFA() and not Spring.Utilities.Gametype.IsTeams()
+local useFFAColors = BAR.Utilities.Gametype.IsFFA() and not BAR.Utilities.Gametype.IsTeams()
 if not useFFAColors and not teamColors[allyTeamCount] and not isSurvival then -- Edge case for TeamFFA with more than supported number of teams
 	useFFAColors = true
 end
@@ -685,7 +685,7 @@ else -- UNSYNCED
 
 	local function updateTeamColors()
 		if isDiscoEnabled() then
-			discoShuffle(Spring.GetMyTeamID())
+			discoShuffle(Spring.GetLocalTeamID())
 		end
 		for teamID, color in pairs(teamColorsTable) do
 			Spring.SetTeamColor(teamID, color.r / 255, color.g / 255, color.b / 255)
@@ -716,9 +716,9 @@ else -- UNSYNCED
 		if playerID ~= myPlayerID then
 			return
 		end
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		local prevMyTeamID = myTeamID
-		myTeamID = Spring.GetMyTeamID()
+		myTeamID = Spring.GetLocalTeamID()
 		if mySpecState and prevMyTeamID ~= myTeamID and Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
 			Spring.SetConfigInt("UpdateTeamColors", 1)
 		end

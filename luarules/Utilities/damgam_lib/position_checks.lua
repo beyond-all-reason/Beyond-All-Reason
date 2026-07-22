@@ -18,7 +18,7 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
-local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavengerAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
@@ -47,7 +47,7 @@ local function initializeStartPositionTable()
 end
 
 -- game_ffa_start_setup can shuffle startboxes after this code runs
-if not Spring.Utilities.Gametype.IsFFA() then
+if not BAR.Utilities.Gametype.IsFFA() then
 	initializeStartPositionTable()
 	startPositionsInitialized = true
 end
@@ -172,7 +172,7 @@ end
 
 local function ResourceCheck(posx, posz, posradius) -- Returns true if there are no resources in the spawn area
 	local posradiusSquared = posradius * posradius
-	local metalSpots = GG["resource_spot_finder"].metalSpotsList
+	local metalSpots = GG.resource_spot_finder.metalSpotsList
 	if metalSpots then
 		for _, spot in ipairs(metalSpots) do
 			if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then
@@ -181,7 +181,7 @@ local function ResourceCheck(posx, posz, posradius) -- Returns true if there are
 		end
 	end
 
-	local geoSpots = GG["resource_spot_finder"].geoSpotsList
+	local geoSpots = GG.resource_spot_finder.geoSpotsList
 	if geoSpots then
 		for _, spot in ipairs(geoSpots) do
 			if math.distance2dSquared(spot.x, spot.z, posx, posz) < posradiusSquared then

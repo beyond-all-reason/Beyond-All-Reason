@@ -442,7 +442,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec, fullview = Spring.GetSpectatingState()
 	local prevMyTeamID = myTeamID
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 	if myTeamID ~= prevMyTeamID then -- TODO only really needed if onlyShowOwnTeam, or if allyteam changed?
 		--spEcho("Initializing Paralyze Effect")
 		init()
@@ -523,8 +523,8 @@ function widget:Initialize()
 			gl.SetUnitBufferUniforms(unitID, { 1.01 }, 4)
 		end
 	end
-	WG["DrawParalyzedUnitGL4"] = DrawParalyzedUnitGL4
-	WG["StopDrawParalyzedUnitGL4"] = StopDrawParalyzedUnitGL4
+	WG.DrawParalyzedUnitGL4 = DrawParalyzedUnitGL4
+	WG.StopDrawParalyzedUnitGL4 = StopDrawParalyzedUnitGL4
 end
 
 function widget:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
@@ -532,8 +532,8 @@ function widget:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
 end
 
 function widget:Shutdown()
-	WG["DrawParalyzedUnitGL4"] = nil
-	WG["StopDrawParalyzedUnitGL4"] = nil
+	WG.DrawParalyzedUnitGL4 = nil
+	WG.StopDrawParalyzedUnitGL4 = nil
 end
 
 function widget:DrawWorld()

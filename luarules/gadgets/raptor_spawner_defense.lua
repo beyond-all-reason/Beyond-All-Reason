@@ -1,4 +1,4 @@
-if Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers() then
+if BAR.Utilities.Gametype.IsRaptors() and not BAR.Utilities.Gametype.IsScavengers() then
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Activated!")
 else
 	Spring.Log("Raptor Defense Spawner", LOG.INFO, "Raptor Defense Spawner Deactivated!")
@@ -181,8 +181,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	local queenIDs = {}
 	local bosses = { resistances = queenResistance, statuses = {}, playerDamages = {} }
-	local raptorTeamID = Spring.Utilities.GetRaptorTeamID()
-	local raptorAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+	local raptorTeamID = BAR.Utilities.GetRaptorTeamID()
+	local raptorAllyTeamID = BAR.Utilities.GetRaptorAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2 = 0, 0, Game.mapSizeX, Game.mapSizeZ
 	local burrows = {}
 	local aliveEggsTable = {}
@@ -214,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 	local isObject = {}
 	UnitDefStaggerMultiplier = {}
 	for udefID, def in ipairs(UnitDefs) do
-		if def.modCategories["object"] or def.customParams.objectify then
+		if def.modCategories.object or def.customParams.objectify then
 			isObject[udefID] = true
 		end
 		if def.customParams.bossStaggerMultiplier then
@@ -2297,13 +2297,13 @@ else -- UNSYNCED
 		if hasRaptorEvent then
 			local raptorEventArgs = {}
 			if type ~= nil then
-				raptorEventArgs["type"] = type
+				raptorEventArgs.type = type
 			end
 			if num ~= nil then
-				raptorEventArgs["number"] = num
+				raptorEventArgs.number = num
 			end
 			if tech ~= nil then
-				raptorEventArgs["tech"] = tech
+				raptorEventArgs.tech = tech
 			end
 			Script.LuaUI.RaptorEvent(raptorEventArgs)
 		end

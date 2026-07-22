@@ -260,7 +260,7 @@ local function showBuildGrid()
 	if gridShowing then
 		return
 	end
-	local bg = WG["buildinggrid"]
+	local bg = WG.buildinggrid
 	if bg and bg.setForceShow and gridForceShowDefID then
 		bg.setForceShow("featureplacer", true, gridForceShowDefID)
 		gridShowing = true
@@ -271,7 +271,7 @@ local function hideBuildGrid()
 	if not gridShowing then
 		return
 	end
-	local bg = WG["buildinggrid"]
+	local bg = WG.buildinggrid
 	if bg and bg.setForceShow then
 		bg.setForceShow("featureplacer", false)
 		gridShowing = false
@@ -336,7 +336,7 @@ local function buildFullMapGrid()
 end
 
 local function ensureBuildGridLoaded()
-	if WG["buildinggrid"] then
+	if WG.buildinggrid then
 		return
 	end
 	-- Building Grid GL4 is disabled by default. Use SendCommands so the call

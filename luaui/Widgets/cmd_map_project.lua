@@ -744,7 +744,7 @@ local function stepWeather()
 end
 
 local function stepGrass()
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not api then
 		sectionSkip("grass", "grass widget not loaded")
 		return true
@@ -1700,7 +1700,7 @@ local function phaseStartposGrass(c)
 	end
 	local grassPath, grassSec = sectionFile("grass")
 	if grassPath then
-		local api = WG["grassgl4"]
+		local api = WG.grassgl4
 		if not (api and api.loadGrass) then
 			loadSkip("grass", "grass widget not loaded")
 		else
@@ -1841,7 +1841,7 @@ local function maybeStartLoad()
 	if Spring.IsReplay() then
 		reasons[#reasons + 1] = "this is a replay"
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		reasons[#reasons + 1] = "not a local singleplayer session"
 	end
@@ -1908,7 +1908,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false

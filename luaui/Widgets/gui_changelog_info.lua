@@ -82,8 +82,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	bgpadding = WG.FlowUI.elementPadding
 	elementCorner = WG.FlowUI.elementCorner
 
@@ -243,7 +243,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title background
-	local title = Spring.I18N("ui.changelog.title")
+	local title = BAR.I18N("ui.changelog.title")
 	local titleFontSize = 18 * widgetScale
 	titleRect = { screenX, screenY, mathFloor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5)), mathFloor(screenY + (titleFontSize * 1.7)) }
 
@@ -275,7 +275,7 @@ function widget:DrawScreen()
 
 		-- draw the changelog panel
 		glCallList(changelogList)
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
@@ -285,7 +285,7 @@ function widget:DrawScreen()
 				-- title
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
-			WG["guishader"].InsertDlist(backgroundGuishader, "changelog")
+			WG.guishader.InsertDlist(backgroundGuishader, "changelog")
 			dlistcreated = true
 		end
 		showOnceMore = false
@@ -316,8 +316,8 @@ function widget:DrawScreen()
 				end
 			end
 		end
-	elseif dlistcreated and WG["guishader"] then
-		WG["guishader"].RemoveDlist("changelog")
+	elseif dlistcreated and WG.guishader then
+		WG.guishader.RemoveDlist("changelog")
 		dlistcreated = nil
 	end
 end
@@ -409,8 +409,8 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	if changelogFile then
-		WG["changelog"] = {}
-		WG["changelog"].toggle = function(state)
+		WG.changelog = {}
+		WG.changelog.toggle = function(state)
 			if state ~= nil then
 				show = state
 			else
@@ -423,10 +423,10 @@ function widget:Initialize()
 				end
 			end
 		end
-		WG["changelog"].isvisible = function()
+		WG.changelog.isvisible = function()
 			return show
 		end
-		WG["changelog"].haschanges = function()
+		WG.changelog.haschanges = function()
 			return lastviewedHash ~= changelogFileHash and lastviewedChangelogLength < changelogFileLength
 		end
 
@@ -460,8 +460,8 @@ function widget:Shutdown()
 		glDeleteList(changelogList)
 		changelogList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("changelog")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("changelog")
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)

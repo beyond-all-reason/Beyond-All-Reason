@@ -12,9 +12,9 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) or (not Spring.Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
+if (not gadgetHandler:IsSyncedCode()) or (not BAR.Utilities.Gametype.IsScavengers()) or Spring.GetModOptions().unit_restrictions_noair then
 	return false
-elseif Spring.Utilities.Gametype.IsRaptors() then
+elseif BAR.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -44,15 +44,15 @@ for unitDefName, tier in pairs({ lootboxbronze_scav = 1, lootboxsilver_scav = 1,
 end
 
 local spawnerList = {}
-if UnitDefNames["scavbeacon_t1_scav"] then
-	spawnerList[UnitDefNames["scavbeacon_t1_scav"].id] = true
-	spawnerList[UnitDefNames["scavbeacon_t2_scav"].id] = true
-	spawnerList[UnitDefNames["scavbeacon_t3_scav"].id] = true
-	spawnerList[UnitDefNames["scavbeacon_t4_scav"].id] = true
+if UnitDefNames.scavbeacon_t1_scav then
+	spawnerList[UnitDefNames.scavbeacon_t1_scav.id] = true
+	spawnerList[UnitDefNames.scavbeacon_t2_scav.id] = true
+	spawnerList[UnitDefNames.scavbeacon_t3_scav.id] = true
+	spawnerList[UnitDefNames.scavbeacon_t4_scav.id] = true
 end
 
-local scavTeamID = Spring.Utilities.GetScavTeamID()
-local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavTeamID = BAR.Utilities.GetScavTeamID()
+local scavAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 local aliveLootboxes = {}
 local aliveLootboxesCount = 0
 local aliveSpawners = {}

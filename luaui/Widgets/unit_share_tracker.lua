@@ -19,13 +19,13 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spEcho = Spring.Echo
 local spPlaySoundFile = Spring.PlaySoundFile
-local spI18N = Spring.I18N
+local spI18N = BAR.I18N
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 -- Localized GL functions
@@ -274,7 +274,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 
 	sMidX = vsx * 0.5
 	sMidY = vsy * 0.5

@@ -1,4 +1,4 @@
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -261,8 +261,8 @@ else -- UNSYNCED
 	local mx, my = GetMouseState()
 	local validation = SYNCED.validationIdle
 	local warningGiven = false
-	local myTeamID = Spring.GetMyTeamID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 
 	local isBuilder = {}
@@ -367,7 +367,7 @@ else -- UNSYNCED
 		updateTimer = 0
 
 		if checkQueueTime and GetGameSeconds() > checkQueueTime then
-			local teamID = Spring.GetMyTeamID()
+			local teamID = Spring.GetLocalTeamID()
 			local myUnits = Spring.GetTeamUnits(teamID)
 			local queueTime = 0
 			for i = 1, #myUnits do

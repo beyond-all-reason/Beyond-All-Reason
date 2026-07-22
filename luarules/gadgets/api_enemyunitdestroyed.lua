@@ -14,11 +14,11 @@ end
 
 if not gadgetHandler:IsSyncedCode() then
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myAllyTeamID = Spring.GetLocalAllyTeamID()
 	local spec, fullView = Spring.GetSpectatingState()
 
 	function gadget:Initialize()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
+		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		spec, fullView = Spring.GetSpectatingState()
 	end
 
@@ -30,7 +30,7 @@ if not gadgetHandler:IsSyncedCode() then
 		local allyTeam = spGetUnitAllyTeam(unitID)
 		if (spec and fullview) or (allyTeam and allyTeam ~= myAllyTeamID) then
 			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
-			if losstate and losstate["los"] and Script.LuaUI("EnemyUnitDestroyed") then
+			if losstate and losstate.los and Script.LuaUI("EnemyUnitDestroyed") then
 				Script.LuaUI.EnemyUnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
 			end
 		end

@@ -1,4 +1,4 @@
-if Spring.Utilities.Gametype.IsSinglePlayer() then
+if BAR.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
@@ -147,8 +147,8 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 else -- UNSYNCED
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	local function showForceResignNotification(playerID, messageKey)
 		if playerID ~= myPlayerID or Spring.GetSpectatingState() then

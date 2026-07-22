@@ -235,7 +235,7 @@ function plural.setDefaultFunction(f)
 end
 
 function plural.reset()
-	defaultFunction = pluralizationFunctions["en"]
+	defaultFunction = pluralizationFunctions.en
 end
 
 plural.reset()

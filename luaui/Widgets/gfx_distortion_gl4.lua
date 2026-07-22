@@ -121,7 +121,7 @@ local projectileDefDistortions -- one distortion per weaponDefID
 local explosionDistortions -- one distortion per weaponDefID
 local gibDistortion -- one distortion for all pieceprojectiles
 
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
@@ -440,7 +440,7 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionparams[i] = 0
 			end
 			if distortionTable.distortionConfig == nil then
-				Spring.Debug.TraceFullEcho()
+				BAR.Debug.TraceFullEcho()
 			end
 			for paramname, tablepos in pairs(distortionParamKeyOrder) do
 				if paramname == "effectType" and type(distortionTable.distortionConfig[paramname]) == "string" then
@@ -859,7 +859,7 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("distortionGL4stats", "t")
 	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
 	-- TODO: delete the VBOs and shaders like a good boy
-	WG["distortionsgl4"] = nil
+	WG.distortionsgl4 = nil
 	widgetHandler:DeregisterGlobal("AddDistortion")
 	widgetHandler:DeregisterGlobal("RemoveDistortion")
 
@@ -927,7 +927,7 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and unitEventDistortions[eventName] then
 		if unitEventDistortions[eventName] then
 			-- get the default event if it is defined
-			local distortionList = unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName]["default"]
+			local distortionList = unitEventDistortions[eventName][unitDefID] or unitEventDistortions[eventName].default
 			if distortionList then
 				for distortionname, distortionTable in pairs(distortionList) do
 					local visible = distortionTable.alwaysVisible
@@ -1072,7 +1072,7 @@ local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
 	local weapon, piece = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
-	Spring.Debug.TraceFullEcho()
+	BAR.Debug.TraceFullEcho()
 end
 
 -- Cache for the view ground rectangle, used to limit spGetProjectilesInRectangle
@@ -1353,8 +1353,8 @@ local function checkConfigUpdates()
 		local newconfb = VFS.LoadFile("luaui/configs/DistortionGL4WeaponsConfig.lua")
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
 			LoadDistortionConfig()
-			if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-				widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+			if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+				widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
@@ -1395,7 +1395,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 	glTexture(5, "$model_gbuffer_difftex")
 	glTexture(6, noisetex3dcube)
 	if shaderConfig.UNIFORMSBUFFERCOPY then
-		local UniformsBufferCopy = WG["api_unitbufferuniform_copy"].GetUnitUniformBufferCopy()
+		local UniformsBufferCopy = WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy()
 		if not UniformsBufferCopy then
 			spEcho("DistortionGL4: UniformsBufferCopy not found")
 			return
@@ -1533,7 +1533,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("distortionGL4stats", distortionGL4statsCmd, nil, "t")
 	widgetHandler:AddAction("distortionGL4skipdraw", distortionGL4skipdrawCmd, nil, "t")
 
-	Spring.Debug.TraceEcho("Initialize distortionGL4")
+	BAR.Debug.TraceEcho("Initialize distortionGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == "0" or spGetConfigString("AllowDeferredModelRendering") == "0" then
 		spEcho("Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!")
 		widgetHandler:RemoveWidget()
@@ -1550,29 +1550,29 @@ function widget:Initialize()
 
 	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 
 	for _, featureID in ipairs(spGetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
-	WG["distortionsgl4"] = {}
-	WG["distortionsgl4"].AddDistortion = AddDistortion
-	WG["distortionsgl4"].RemoveDistortion = RemoveDistortion
-	WG["distortionsgl4"].GetDistortionVBO = GetDistortionVBO
+	WG.distortionsgl4 = {}
+	WG.distortionsgl4.AddDistortion = AddDistortion
+	WG.distortionsgl4.RemoveDistortion = RemoveDistortion
+	WG.distortionsgl4.GetDistortionVBO = GetDistortionVBO
 
-	WG["distortionsgl4"].IntensityMultiplier = function(value)
+	WG.distortionsgl4.IntensityMultiplier = function(value)
 		intensityMultiplier = value
 	end
-	WG["distortionsgl4"].RadiusMultiplier = function(value)
+	WG.distortionsgl4.RadiusMultiplier = function(value)
 		radiusMultiplier = value
 	end
 
-	widgetHandler:RegisterGlobal("AddDistortion", WG["distortionsgl4"].AddDistortion)
-	widgetHandler:RegisterGlobal("RemoveDistortion", WG["distortionsgl4"].RemoveDistortion)
-	widgetHandler:RegisterGlobal("GetDistortionVBO", WG["distortionsgl4"].GetDistortionVBO)
+	widgetHandler:RegisterGlobal("AddDistortion", WG.distortionsgl4.AddDistortion)
+	widgetHandler:RegisterGlobal("RemoveDistortion", WG.distortionsgl4.RemoveDistortion)
+	widgetHandler:RegisterGlobal("GetDistortionVBO", WG.distortionsgl4.GetDistortionVBO)
 end
 
 function widget:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)

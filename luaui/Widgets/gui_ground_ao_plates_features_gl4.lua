@@ -203,7 +203,7 @@ function widget:Initialize()
 	end
 	makeAtlas()
 	--if true then return end
-	local knownheaps3os = { ["arm3x3"] = 1 }
+	local knownheaps3os = { arm3x3 = 1 }
 	for id, featureDefID in pairs(FeatureDefs) do
 		local FD = FeatureDefs[id]
 		if FD.modelname and (string.find(FD.modelname:lower(), "_dead", nil, true) or string.find(FD.name, "_heap", nil, true)) then -- todo TREES!
@@ -270,13 +270,13 @@ function widget:Initialize()
 end
 
 local spec, fullview = spGetSpectatingState()
-local allyTeamID = Spring.GetMyAllyTeamID()
+local allyTeamID = Spring.GetLocalAllyTeamID()
 
 function widget:PlayerChanged()
 	local prevFullview = fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
-	allyTeamID = Spring.GetMyAllyTeamID()
+	allyTeamID = Spring.GetLocalAllyTeamID()
 end
 
 local commandqueue = {}

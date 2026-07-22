@@ -1,10 +1,10 @@
 local widgetName = "Battle Resource Tracker"
 
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -12,11 +12,11 @@ function setup()
 	Test.prepareWidget(widgetName)
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -60,3 +60,5 @@ function test()
 	end
 	assert(totalE == n * unitE)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

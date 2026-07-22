@@ -31,7 +31,7 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -389,7 +389,7 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 		targetPos = { x = occupiedPos[1], y = occupiedPos[2], z = occupiedPos[3] }
 		targetOwner = spGetUnitTeam(occupiedSpot) -- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
-		local buildingPositions = WG["resource_spot_finder"].GetBuildingPositions(spot, -buildingId, 0, true)
+		local buildingPositions = WG.resource_spot_finder.GetBuildingPositions(spot, -buildingId, 0, true)
 		targetPos = math.getClosestPosition(cmdX, cmdZ, buildingPositions)
 		targetOwner = spGetMyTeamID()
 	end
@@ -488,7 +488,7 @@ function widget:Initialize()
 	end
 
 	-- make interfaces available to other widgets:
-	WG["resource_spot_builder"] = {
+	WG.resource_spot_builder = {
 		ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot,
 		ExtractorCanBeUpgraded = extractorCanBeUpgraded,
 		FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor,
@@ -502,19 +502,19 @@ function widget:Initialize()
 	-- builders and buildings - MEX
 	----------------------------------------------
 
-	WG["resource_spot_builder"].GetMexConstructors = function()
+	WG.resource_spot_builder.GetMexConstructors = function()
 		return mexConstructors
 	end
 
-	WG["resource_spot_builder"].GetMexBuildings = function()
+	WG.resource_spot_builder.GetMexBuildings = function()
 		return mexBuildings
 	end
 
-	WG["resource_spot_builder"].GetGeoConstructors = function()
+	WG.resource_spot_builder.GetGeoConstructors = function()
 		return geoConstructors
 	end
 
-	WG["resource_spot_builder"].GetGeoBuildings = function()
+	WG.resource_spot_builder.GetGeoBuildings = function()
 		return geoBuildings
 	end
 end

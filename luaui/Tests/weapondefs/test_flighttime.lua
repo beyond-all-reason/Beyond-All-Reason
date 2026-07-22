@@ -1,9 +1,9 @@
-function skip()
+local function skip()
 	-- TODO re-enable and debug. Disabled 2025-09-30 to unblock CICD
 	return true
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 
 	Spring.SendCommands("editdefs 1")
@@ -11,7 +11,7 @@ function setup()
 	Spring.SendCommands("setspeed 5")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("globallos")
@@ -19,7 +19,7 @@ function cleanup()
 	Spring.SendCommands("editdefs 0")
 end
 
-function runDistanceTest(flightTime, shouldAlive)
+local function runDistanceTest(flightTime, shouldAlive)
 	SyncedRun(function(locals)
 		local flightTime = locals.flightTime
 		for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -75,21 +75,23 @@ function runDistanceTest(flightTime, shouldAlive)
 
 	Test.waitFrames(1)
 
-	Spring.GiveOrderToUnit(unitNames["corbuzz"], CMD.ATTACK, { unitNames["armsolar"] }, 0)
-	Spring.GiveOrderToUnit(unitNames["corstorm"], CMD.ATTACK, { unitNames["armpw"] }, 0)
-	Spring.GiveOrderToUnit(unitNames["armrock"], CMD.ATTACK, { unitNames["armpw"] }, 0)
+	Spring.GiveOrderToUnit(unitNames.corbuzz, CMD.ATTACK, { unitNames.armsolar }, 0)
+	Spring.GiveOrderToUnit(unitNames.corstorm, CMD.ATTACK, { unitNames.armpw }, 0)
+	Spring.GiveOrderToUnit(unitNames.armrock, CMD.ATTACK, { unitNames.armpw }, 0)
 
 	Test.waitFrames(300)
 
-	local isAlive = Spring.ValidUnitID(unitNames["armsolar"])
-	local isAlive2 = Spring.ValidUnitID(unitNames["armpw"])
+	local isAlive = Spring.ValidUnitID(unitNames.armsolar)
+	local isAlive2 = Spring.ValidUnitID(unitNames.armpw)
 
 	assertEqual(isAlive, shouldAlive)
 	assertEqual(isAlive2, shouldAlive)
 end
 
-function test()
+local function test()
 	runDistanceTest(30, true)
 	Test.clearMap()
 	runDistanceTest(0, false)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

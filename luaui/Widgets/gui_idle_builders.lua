@@ -18,7 +18,7 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -50,7 +50,7 @@ local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 
 local floor = mathFloor
 local ceil = math.ceil
@@ -180,12 +180,12 @@ local function drawContent()
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize * 0.6)
-		font2:Print(Spring.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) - offset, iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offset + offsetY, fontSize, style)
+		font2:Print(BAR.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) - offset, iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offset + offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
-		font2:Print(Spring.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2), iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offsetY, fontSize, style)
+		font2:Print(BAR.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2), iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) + offsetY, fontSize, style)
 		fontSize = fontSize * 1.2
 		offset = (fontSize * 0.48)
-		font2:Print(Spring.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) + offset, iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) - offset + offsetY, fontSize, style)
+		font2:Print(BAR.I18N("ui.idleBuilders.sleeping"), iconRect[1] + ((iconRect[3] - iconRect[1]) / 2) + offset, iconRect[2] + ((iconRect[4] - iconRect[2]) / 2) - offset + offsetY, fontSize, style)
 		font2:End()
 	end
 
@@ -402,8 +402,8 @@ local function updateList(force)
 end
 
 local function checkUnitGroupsPos(isViewresize)
-	if WG["unitgroups"] then
-		local px, py, sx, sy = WG["unitgroups"].getPosition()
+	if WG.unitgroups then
+		local px, py, sx, sy = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
@@ -414,8 +414,8 @@ local function checkUnitGroupsPos(isViewresize)
 			doUpdateForce = true
 		end
 	else
-		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG["buildmenu"] and WG["info"] then
-			if (not selectedUnits[1] or not WG["buildmenu"].getIsShowing()) and (posX > 0 or not WG["info"].getIsShowing()) then
+		if buildmenuBottomPosition and not buildmenuAlwaysShow and WG.buildmenu and WG.info then
+			if (not selectedUnits[1] or not WG.buildmenu.getIsShowing()) and (posX > 0 or not WG.info.getIsShowing()) then
 				if posY ~= 0 then
 					posY = 0
 					if not isViewresize then
@@ -443,8 +443,8 @@ function widget:ViewResize()
 	height = setHeight * uiScale
 
 	local outlineMult = math.clamp(1 / (vsy / 1400), 1, 1.5)
-	font2 = WG["fonts"].getFont()
-	font = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont()
+	font = WG.fonts.getFont(2)
 
 	elementCorner = WG.FlowUI.elementCorner
 	backgroundPadding = WG.FlowUI.elementPadding
@@ -454,14 +454,14 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if WG["buildmenu"] then
-		buildmenuBottomPosition = WG["buildmenu"].getBottomPosition()
-		buildmenuIsShowing = WG["buildmenu"].getIsShowing()
+	if WG.buildmenu then
+		buildmenuBottomPosition = WG.buildmenu.getBottomPosition()
+		buildmenuIsShowing = WG.buildmenu.getIsShowing()
 	end
 
 	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
-	if WG["ordermenu"] then
-		omPosX, omPosY, omWidth, omHeight = WG["ordermenu"].getPosition()
+	if WG.ordermenu then
+		omPosX, omPosY, omWidth, omHeight = WG.ordermenu.getPosition()
 	end
 	ordermenuPosY = omPosY
 
@@ -479,7 +479,7 @@ function widget:ViewResize()
 
 	if buildmenuBottomPosition and not buildmenuAlwaysShow then
 		buildmenuShowingPosY = posY
-		if not selectedUnits[1] or not WG["buildmenu"].getIsShowing() then
+		if not selectedUnits[1] or not WG.buildmenu.getIsShowing() then
 			posY = 0
 		end
 	end
@@ -490,8 +490,8 @@ function widget:ViewResize()
 	iconSize = floor((height * vsy) - (posY - height > 0 and backgroundPadding or 0))
 	usedHeight = iconSize + (posY - height > 0 and backgroundPadding or 0)
 
-	if WG["unitgroups"] then
-		local px, py, sx, sy = WG["unitgroups"].getPosition()
+	if WG.unitgroups then
+		local px, py, sx, sy = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx
@@ -522,13 +522,13 @@ function widget:Initialize()
 	initializeGameFrame = spGetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
-	WG["idlebuilders"] = {}
-	WG["idlebuilders"].getPosition = function()
+	WG.idlebuilders = {}
+	WG.idlebuilders.getPosition = function()
 		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 
@@ -544,11 +544,11 @@ function widget:Shutdown()
 		gl.DeleteTexture(uiTex)
 		uiTex = nil
 	end
-	if WG["guishader"] then
+	if WG.guishader then
 		WG.FlowUI.guishaderDeleteDlist("idlebuilders")
 		dlistGuishader = nil
 	end
-	WG["idlebuilders"] = nil
+	WG.idlebuilders = nil
 end
 
 local sec = 0
@@ -563,7 +563,7 @@ local function Update()
 		return
 	end
 
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 	local now = Spring.GetTimer()
@@ -580,26 +580,26 @@ local function Update()
 	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 
-		local tooltipTitle = Spring.I18N("ui.idleBuilders.name")
+		local tooltipTitle = BAR.I18N("ui.idleBuilders.name")
 		local tooltipAddition = ""
 		if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			for i, v in pairs(iconButtons) do
 				if math_isInRect(x, y, iconButtons[i][1], iconButtons[i][2], iconButtons[i][3], iconButtons[i][4]) then
 					local unitDefID = existingIcons[i]
 					if unitDefID then
-						tooltipTitle = Spring.I18N("ui.idleBuilders.idle", { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
+						tooltipTitle = BAR.I18N("ui.idleBuilders.idle", { unit = unitHumanName[unitDefID], highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = Spring.I18N("ui.idleBuilders.controls") .. "\n" .. Spring.I18N("ui.idleBuilders.controls1")
+							tooltipAddition = BAR.I18N("ui.idleBuilders.controls") .. "\n" .. BAR.I18N("ui.idleBuilders.controls1")
 						else
-							tooltipAddition = tooltipAddition .. Spring.I18N("ui.idleBuilders.controls1")
+							tooltipAddition = tooltipAddition .. BAR.I18N("ui.idleBuilders.controls1")
 						end
 					end
 					break
 				end
 			end
 		end
-		if WG["tooltip"] then
-			WG["tooltip"].ShowTooltip("idlebuilders", tooltipAddition, nil, nil, tooltipTitle)
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip("idlebuilders", tooltipAddition, nil, nil, tooltipTitle)
 		end
 
 		Spring.SetMouseCursor("cursornormal")
@@ -614,15 +614,15 @@ local function Update()
 
 	if sec > 0.33 then
 		sec = 0
-		if WG["buildmenu"] then
-			if buildmenuBottomPosition ~= WG["buildmenu"].getBottomPosition() or buildmenuIsShowing ~= WG["buildmenu"].getIsShowing() then
+		if WG.buildmenu then
+			if buildmenuBottomPosition ~= WG.buildmenu.getBottomPosition() or buildmenuIsShowing ~= WG.buildmenu.getIsShowing() then
 				widget:ViewResize()
 				doUpdate = true
 			end
 		end
-		if WG["ordermenu"] then
+		if WG.ordermenu then
 			local prevOrdermenuPosY = ordermenuPosY
-			ordermenuPosY = select(2, WG["ordermenu"].getPosition())
+			ordermenuPosY = select(2, WG.ordermenu.getPosition())
 			if ordermenuPosY ~= prevOrdermenuPosY then
 				widget:ViewResize()
 				doUpdate = true
@@ -632,7 +632,7 @@ local function Update()
 		doUpdate = true -- TODO: find a way to detect changes and only doUpdate then
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			checkGuishader(true)
 		end

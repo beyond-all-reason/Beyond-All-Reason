@@ -20,7 +20,7 @@ function gadget:GetInfo()
 	}
 end
 
-local numPlayers = Spring.Utilities.GetPlayerCount()
+local numPlayers = BAR.Utilities.GetPlayerCount()
 
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
@@ -241,10 +241,10 @@ else
 	-- UNSYNCED
 	-----------------------------
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
-	local ColorString = Spring.Utilities.Color.ToString
+	local ColorString = BAR.Utilities.Color.ToString
 
 	local revealed = false
 
@@ -268,7 +268,7 @@ else
 	end
 
 	function gadget:Initialize()
-		if isReplay or Spring.Utilities.Gametype.IsFFA() or Spring.GetGameFrame() > 6 then
+		if isReplay or BAR.Utilities.Gametype.IsFFA() or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
 		end

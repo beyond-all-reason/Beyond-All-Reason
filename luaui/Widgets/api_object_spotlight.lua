@@ -432,16 +432,16 @@ local function removeAllSpotlights(owner)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if objectOwners["unit"][unitID] then
-		for owner in pairs(objectOwners["unit"][unitID]) do
+	if objectOwners.unit[unitID] then
+		for owner in pairs(objectOwners.unit[unitID]) do
 			removeSpotlight("unit", owner, unitID)
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID, allyTeamID)
-	if objectOwners["feature"][featureID] then
-		for owner in pairs(objectOwners["feature"][featureID]) do
+	if objectOwners.feature[featureID] then
+		for owner in pairs(objectOwners.feature[featureID]) do
 			removeSpotlight("feature", owner, featureID)
 		end
 	end
@@ -499,7 +499,7 @@ function widget:Initialize()
 		return
 	end
 
-	WG["ObjectSpotlight"] = {
+	WG.ObjectSpotlight = {
 		---Adds a new spotlight for a given object. Only one call is needed to create the spotlight (the position is handled in
 		---the shader), but this can be called again to update extra options. Unless a duration is provided, calling
 		---removeSpotlight later is necessary to remove the spotlight.
@@ -547,5 +547,5 @@ function widget:Shutdown()
 		shader:Finalize()
 	end
 
-	WG["ObjectSpotlight"] = nil
+	WG.ObjectSpotlight = nil
 end

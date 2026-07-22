@@ -1188,22 +1188,22 @@ function M.attach(doc, ctx)
 
 	-- Snow enable checkbox
 	do
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		local snowEnabled = snowApi and snowApi.getSnowMap() or false
 		envCheckbox("btn-env-snow-enabled", snowEnabled, function(val)
-			if WG["snow"] then
-				WG["snow"].setSnowMap(val)
+			if WG.snow then
+				WG.snow.setSnowMap(val)
 			end
 		end)
 	end
 
 	-- Snow auto-reduce checkbox
 	do
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		local autoReduce = snowApi and snowApi.getAutoReduce and snowApi.getAutoReduce() or true
 		envCheckbox("btn-env-snow-autoreduce", autoReduce, function(val)
-			if WG["snow"] then
-				WG["snow"].setAutoReduce(val)
+			if WG.snow then
+				WG.snow.setAutoReduce(val)
 			end
 		end)
 	end
@@ -1212,11 +1212,11 @@ function M.attach(doc, ctx)
 	envSlider("slider-env-snow-density", "lbl-env-snow-density", function(v)
 		return v / 100
 	end, function()
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		return snowApi and snowApi.getMultiplier and snowApi.getMultiplier() * 100 or 100
 	end, function(val)
-		if WG["snow"] then
-			WG["snow"].setMultiplier(val)
+		if WG.snow then
+			WG.snow.setMultiplier(val)
 		end
 	end)
 
@@ -1224,11 +1224,11 @@ function M.attach(doc, ctx)
 	envSlider("slider-env-snow-speed", "lbl-env-snow-speed", function(v)
 		return v / 100
 	end, function()
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		return snowApi and snowApi.getSpeedMultiplier and snowApi.getSpeedMultiplier() * 100 or 100
 	end, function(val)
-		if WG["snow"] then
-			WG["snow"].setSpeedMultiplier(val)
+		if WG.snow then
+			WG.snow.setSpeedMultiplier(val)
 		end
 	end)
 
@@ -1236,11 +1236,11 @@ function M.attach(doc, ctx)
 	envSlider("slider-env-snow-size", "lbl-env-snow-size", function(v)
 		return v / 100
 	end, function()
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		return snowApi and snowApi.getSizeMultiplier and snowApi.getSizeMultiplier() * 100 or 100
 	end, function(val)
-		if WG["snow"] then
-			WG["snow"].setSizeMultiplier(val)
+		if WG.snow then
+			WG.snow.setSizeMultiplier(val)
 		end
 	end)
 
@@ -1248,11 +1248,11 @@ function M.attach(doc, ctx)
 	envSlider("slider-env-snow-wind", "lbl-env-snow-wind", function(v)
 		return v / 10
 	end, function()
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		return snowApi and snowApi.getWindMultiplier and snowApi.getWindMultiplier() * 10 or 45
 	end, function(val)
-		if WG["snow"] then
-			WG["snow"].setWindMultiplier(val)
+		if WG.snow then
+			WG.snow.setWindMultiplier(val)
 		end
 	end)
 
@@ -1260,11 +1260,11 @@ function M.attach(doc, ctx)
 	envSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", function(v)
 		return v / 100
 	end, function()
-		local snowApi = WG["snow"]
+		local snowApi = WG.snow
 		return snowApi and snowApi.getOpacity and snowApi.getOpacity() * 100 or 66
 	end, function(val)
-		if WG["snow"] then
-			WG["snow"].setOpacity(val)
+		if WG.snow then
+			WG.snow.setOpacity(val)
 		end
 	end)
 
@@ -1273,7 +1273,7 @@ function M.attach(doc, ctx)
 		envSlider("slider-env-snowcol-" .. suffix, "lbl-env-snowcol-" .. suffix, function(v)
 			return v / 1000
 		end, function()
-			local snowApi = WG["snow"]
+			local snowApi = WG.snow
 			if snowApi and snowApi.getColor then
 				local r, g, b = snowApi.getColor()
 				local c = { r, g, b }
@@ -1281,11 +1281,11 @@ function M.attach(doc, ctx)
 			end
 			return ({ 800, 800, 900 })[idx]
 		end, function(val)
-			if WG["snow"] and WG["snow"].getColor and WG["snow"].setColor then
-				local r, g, b = WG["snow"].getColor()
+			if WG.snow and WG.snow.getColor and WG.snow.setColor then
+				local r, g, b = WG.snow.getColor()
 				local c = { r, g, b }
 				c[idx] = val
-				WG["snow"].setColor(c[1], c[2], c[3])
+				WG.snow.setColor(c[1], c[2], c[3])
 				updatePreview(doc:GetElementById("env-snowcol-preview"), c[1], c[2], c[3])
 			end
 		end)
@@ -1300,7 +1300,7 @@ function M.attach(doc, ctx)
 		previewId = "env-snowcol-preview",
 		sliderPrefix = "snowcol",
 		getColor = function()
-			local snowApi = WG["snow"]
+			local snowApi = WG.snow
 			if snowApi and snowApi.getColor then
 				local r, g, b = snowApi.getColor()
 				return { r, g, b }
@@ -1308,8 +1308,8 @@ function M.attach(doc, ctx)
 			return { 0.8, 0.8, 0.9 }
 		end,
 		setColor = function(c)
-			if WG["snow"] and WG["snow"].setColor then
-				WG["snow"].setColor(c[1], c[2], c[3])
+			if WG.snow and WG.snow.setColor then
+				WG.snow.setColor(c[1], c[2], c[3])
 			end
 		end,
 	})
@@ -1421,7 +1421,7 @@ function M.attach(doc, ctx)
 
 	-- ---- Grass config popup controls ----
 	local function grassCfgPull()
-		local api = WG["grassgl4"]
+		local api = WG.grassgl4
 		if not (api and api.getVisualConfig) then
 			return
 		end
@@ -1451,7 +1451,7 @@ function M.attach(doc, ctx)
 	end
 
 	local function grassCfgPush(tbl)
-		local api = WG["grassgl4"]
+		local api = WG.grassgl4
 		if api and api.setVisualConfig then
 			api.setVisualConfig(tbl)
 		end
@@ -1509,7 +1509,7 @@ function M.attach(doc, ctx)
 	local cfgSave = doc:GetElementById("btn-gb-grasscfg-save")
 	if cfgSave then
 		cfgSave:AddEventListener("mousedown", function(event)
-			local api = WG["grassgl4"]
+			local api = WG.grassgl4
 			if api and api.saveGrassConfig then
 				api.saveGrassConfig()
 			end

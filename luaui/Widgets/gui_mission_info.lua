@@ -117,12 +117,12 @@ local function buildTextLines(data)
 	end
 
 	-- Scenario title as the main heading
-	addTitle(data.title or Spring.I18N("ui.missioninfo.title"))
+	addTitle(data.title or BAR.I18N("ui.missioninfo.title"))
 	addLine("")
 
 	-- Difficulty
 	if data.defaultdifficulty then
-		local diffStr = Spring.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
+		local diffStr = BAR.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
 		if data.difficulty then
 			diffStr = diffStr .. "  (" .. data.difficulty .. "/10)"
 		end
@@ -133,20 +133,20 @@ local function buildTextLines(data)
 
 	-- Objectives
 	if data.victorycondition or data.losscondition then
-		addHeader(Spring.I18N("ui.missioninfo.objectives"))
+		addHeader(BAR.I18N("ui.missioninfo.objectives"))
 		addLine("")
 		if data.victorycondition then
-			addLine(Spring.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
+			addLine(BAR.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
 		end
 		if data.losscondition then
-			addLine(Spring.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
+			addLine(BAR.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
 		end
 		addLine("")
 	end
 
 	-- Summary
 	if data.summary and data.summary ~= "" then
-		addHeader(Spring.I18N("ui.missioninfo.summary"))
+		addHeader(BAR.I18N("ui.missioninfo.summary"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.summary)) do
 			addLine(l)
@@ -156,7 +156,7 @@ local function buildTextLines(data)
 
 	-- Briefing
 	if data.briefing and data.briefing ~= "" then
-		addHeader(Spring.I18N("ui.missioninfo.briefing"))
+		addHeader(BAR.I18N("ui.missioninfo.briefing"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.briefing)) do
 			addLine(l)
@@ -178,8 +178,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -192,8 +192,8 @@ function widget:ViewResize()
 	textList = gl.CreateList(DrawWindow)
 
 	-- Layout changed: invalidate the guishader DList so it gets rebuilt next draw
-	if backgroundGuishader ~= nil and WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	if backgroundGuishader ~= nil and WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 		backgroundGuishader = nil
 	end
 end
@@ -273,7 +273,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title tab
-	local title = Spring.I18N("ui.topbar.button.mission")
+	local title = BAR.I18N("ui.topbar.button.mission")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,
@@ -306,13 +306,13 @@ function widget:DrawScreen()
 
 		glCallList(textList)
 
-		if WG["guishader"] and backgroundGuishader == nil then
+		if WG.guishader and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG["guishader"].InsertDlist(backgroundGuishader, "missiontext")
+			WG.guishader.InsertDlist(backgroundGuishader, "missiontext")
 		end
 		showOnceMore = false
 
@@ -320,8 +320,8 @@ function widget:DrawScreen()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or (titleRect and math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
 			Spring.SetMouseCursor("cursornormal")
 		end
-	elseif dlistcreated and WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	elseif dlistcreated and WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 		backgroundGuishader = nil
 		dlistcreated = nil
 	end
@@ -418,7 +418,7 @@ function widget:Initialize()
 	else
 		-- Fallback: show what we can from the scenarioid alone
 		textLines = {
-			{ kind = "title", text = Spring.I18N("ui.missioninfo.title") },
+			{ kind = "title", text = BAR.I18N("ui.missioninfo.title") },
 			{ kind = "body", text = "" },
 			{ kind = "body", text = "Mission ID: " .. (scenarioid or "unknown") },
 			{ kind = "body", text = "" },
@@ -428,8 +428,8 @@ function widget:Initialize()
 
 	totalTextLines = #textLines
 
-	WG["missioninfo"] = {}
-	WG["missioninfo"].toggle = function(state)
+	WG.missioninfo = {}
+	WG.missioninfo.toggle = function(state)
 		local wasVisible = show
 		if state ~= nil then
 			show = state
@@ -449,7 +449,7 @@ function widget:Initialize()
 			textList = gl.CreateList(DrawWindow)
 		end
 	end
-	WG["missioninfo"].isvisible = function()
+	WG.missioninfo.isvisible = function()
 		-- Report true while justClosedFromPress so toggleWindow treats us as
 		-- "was open" and doesn't immediately re-open after our mouseEvent close.
 		return show or justClosedFromPress
@@ -475,10 +475,10 @@ function widget:Shutdown()
 		glDeleteList(textList)
 		textList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("missiontext")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("missiontext")
 	end
-	WG["missioninfo"] = nil
+	WG.missioninfo = nil
 end
 
 function widget:LanguageChanged()

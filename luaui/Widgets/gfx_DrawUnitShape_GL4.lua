@@ -221,10 +221,10 @@ void main() {
 }
 ]]
 
-local udefID = UnitDefNames["armcom"].id
+local udefID = UnitDefNames.armcom.id
 
-local corcomUnitDefID = UnitDefNames["corcom"].id
-local armcomUnitDefID = UnitDefNames["armcom"].id
+local corcomUnitDefID = UnitDefNames.corcom.id
+local armcomUnitDefID = UnitDefNames.armcom.id
 
 local corDrawUnitVBOTable, corDrawUnitShapeVBOTable
 local armDrawUnitVBOTable, armDrawUnitShapeVBOTable
@@ -293,7 +293,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, team
 		DrawUnitVBOTable = armDrawUnitVBOTable
 	else
 		spEcho("DrawUnitGL4 : The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is neither arm nor cor, only those two are supported at the moment")
-		Spring.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
+		BAR.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
 
@@ -339,7 +339,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID,
 
 	if not DrawUnitShapeVBOTable then
 		spEcho("DrawUnitShapeGL4: The given unitDefID", unitDefID, UnitDefs[unitDefID].name, "is missing a target DrawUnitShapeVBOTable")
-		Spring.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
+		BAR.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
 	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
@@ -546,13 +546,13 @@ function widget:Initialize()
 			widget:UnitCreated(unitID)
 		end
 	end
-	WG["DrawUnitGL4"] = DrawUnitGL4
-	WG["DrawUnitShapeGL4"] = DrawUnitShapeGL4
-	WG["StopDrawUnitGL4"] = StopDrawUnitGL4
-	WG["StopDrawUnitShapeGL4"] = StopDrawUnitShapeGL4
-	WG["StopDrawAll"] = StopDrawAll
-	WG["armDrawUnitShapeVBOTable"] = armDrawUnitShapeVBOTable
-	WG["corDrawUnitShapeVBOTable"] = corDrawUnitShapeVBOTable
+	WG.DrawUnitGL4 = DrawUnitGL4
+	WG.DrawUnitShapeGL4 = DrawUnitShapeGL4
+	WG.StopDrawUnitGL4 = StopDrawUnitGL4
+	WG.StopDrawUnitShapeGL4 = StopDrawUnitShapeGL4
+	WG.StopDrawAll = StopDrawAll
+	WG.armDrawUnitShapeVBOTable = armDrawUnitShapeVBOTable
+	WG.corDrawUnitShapeVBOTable = corDrawUnitShapeVBOTable
 	widgetHandler:RegisterGlobal("DrawUnitGL4", DrawUnitGL4)
 	widgetHandler:RegisterGlobal("DrawUnitShapeGL4", DrawUnitShapeGL4)
 	widgetHandler:RegisterGlobal("StopDrawUnitGL4", StopDrawUnitGL4)
@@ -565,7 +565,7 @@ end
 function widget:Shutdown()
 	for i, VBOTable in ipairs(VBOTables) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if BAR.Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -574,7 +574,7 @@ function widget:Shutdown()
 
 	for tex1, VBOTable in ipairs(tex1ToVBO) do
 		if VBOTable.VAO then
-			if Spring.Utilities.IsDevMode() then
+			if BAR.Utilities.IsDevMode() then
 				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
 			end
 			VBOTable.VAO:Delete()
@@ -588,13 +588,13 @@ function widget:Shutdown()
 		unitShapeShader:Finalize()
 	end
 
-	WG["DrawUnitGL4"] = nil
-	WG["DrawUnitShapeGL4"] = nil
-	WG["StopDrawUnitGL4"] = nil
-	WG["StopDrawUnitShapeGL4"] = nil
-	WG["StopDrawAll"] = nil
-	WG["armDrawUnitShapeVBOTable"] = nil
-	WG["corDrawUnitShapeVBOTable"] = nil
+	WG.DrawUnitGL4 = nil
+	WG.DrawUnitShapeGL4 = nil
+	WG.StopDrawUnitGL4 = nil
+	WG.StopDrawUnitShapeGL4 = nil
+	WG.StopDrawAll = nil
+	WG.armDrawUnitShapeVBOTable = nil
+	WG.corDrawUnitShapeVBOTable = nil
 	widgetHandler:DeregisterGlobal("DrawUnitGL4")
 	widgetHandler:DeregisterGlobal("DrawUnitShapeGL4")
 	widgetHandler:DeregisterGlobal("StopDrawUnitGL4")
