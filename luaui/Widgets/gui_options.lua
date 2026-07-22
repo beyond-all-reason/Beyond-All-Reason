@@ -3691,7 +3691,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "zoomtocursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomtocursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 0)) == 1, description = "",
+		{ id = "zoomtocursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomtocursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 1)) == 1, description = "",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
