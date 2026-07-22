@@ -261,8 +261,12 @@ end
 
 local function lavaentryflare()
 	return {
-		air = false, class = [[CBitmapMuzzleFlame]], count = 1,
-		ground = false, underwater = true, water = true,
+		air = false,
+		class = [[CBitmapMuzzleFlame]],
+		count = 1,
+		ground = false,
+		underwater = true,
+		water = true,
 		properties = {
 			colormap            = [[0.95 0.58 0.16 0.03969   0 0 0 0.002205]],
 			dir                 = [[0, 1, 0]],
