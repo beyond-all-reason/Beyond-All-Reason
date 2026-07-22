@@ -277,14 +277,15 @@ function widget:Initialize()
 
 	widgetHandler.actionHandler:AddAction(self, "mission_editor", function()
 		setVisible(not visible)
-	end, nil, "p")
+		return true
+	end, nil, "t")
 
 	document:Hide()
 	return true
 end
 
 function widget:Shutdown()
-	widgetHandler.actionHandler:RemoveAction(self, "mission_editor", "p")
+	widgetHandler.actionHandler:RemoveAction(self, "mission_editor", "t")
 	if document then
 		document:Close()
 		document = nil
