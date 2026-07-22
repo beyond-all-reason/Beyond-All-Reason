@@ -164,7 +164,7 @@ end
 
 function widget:Shutdown()
 	removeSnow()
-	WG["snow"] = nil
+	WG.snow = nil
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
@@ -315,24 +315,24 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 
-	WG["snow"] = {}
-	WG["snow"].getSnowMap = function()
+	WG.snow = {}
+	WG.snow.getSnowMap = function()
 		if enabled or widgetDisabledSnow then
 			return true
 		else
 			return false
 		end
 	end
-	WG["snow"].setMultiplier = function(value)
+	WG.snow.setMultiplier = function(value)
 		customParticleMultiplier = value
 		if enabled or widgetDisabledSnow then
 			CreateParticleLists()
 		end
 	end
-	WG["snow"].getMultiplier = function()
+	WG.snow.getMultiplier = function()
 		return customParticleMultiplier
 	end
-	WG["snow"].setAutoReduce = function(value)
+	WG.snow.setAutoReduce = function(value)
 		autoReduce = value
 		if autoReduce == false then
 			enabled = true
@@ -342,10 +342,10 @@ function widget:Initialize()
 			averageFps = spGetFPS()
 		end
 	end
-	WG["snow"].getAutoReduce = function()
+	WG.snow.getAutoReduce = function()
 		return autoReduce
 	end
-	WG["snow"].setSnowMap = function(value)
+	WG.snow.setSnowMap = function(value)
 		snowMaps[currentMapname] = value
 		enabled = value
 		if value then
@@ -354,36 +354,36 @@ function widget:Initialize()
 			removeSnow()
 		end
 	end
-	WG["snow"].setColor = function(r, g, b)
+	WG.snow.setColor = function(r, g, b)
 		snowColorR = r or snowColorR
 		snowColorG = g or snowColorG
 		snowColorB = b or snowColorB
 	end
-	WG["snow"].getColor = function()
+	WG.snow.getColor = function()
 		return snowColorR, snowColorG, snowColorB
 	end
-	WG["snow"].setOpacity = function(value)
+	WG.snow.setOpacity = function(value)
 		snowOpacity = value
 	end
-	WG["snow"].getOpacity = function()
+	WG.snow.getOpacity = function()
 		return snowOpacity
 	end
-	WG["snow"].setSpeedMultiplier = function(value)
+	WG.snow.setSpeedMultiplier = function(value)
 		speedMultiplier = value
 	end
-	WG["snow"].getSpeedMultiplier = function()
+	WG.snow.getSpeedMultiplier = function()
 		return speedMultiplier
 	end
-	WG["snow"].setSizeMultiplier = function(value)
+	WG.snow.setSizeMultiplier = function(value)
 		sizeMultiplier = value
 	end
-	WG["snow"].getSizeMultiplier = function()
+	WG.snow.getSizeMultiplier = function()
 		return sizeMultiplier
 	end
-	WG["snow"].setWindMultiplier = function(value)
+	WG.snow.setWindMultiplier = function(value)
 		windMultiplier = value
 	end
-	WG["snow"].getWindMultiplier = function()
+	WG.snow.getWindMultiplier = function()
 		return windMultiplier
 	end
 

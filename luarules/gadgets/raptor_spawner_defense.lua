@@ -214,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 	local isObject = {}
 	UnitDefStaggerMultiplier = {}
 	for udefID, def in ipairs(UnitDefs) do
-		if def.modCategories["object"] or def.customParams.objectify then
+		if def.modCategories.object or def.customParams.objectify then
 			isObject[udefID] = true
 		end
 		if def.customParams.bossStaggerMultiplier then
@@ -2297,13 +2297,13 @@ else -- UNSYNCED
 		if hasRaptorEvent then
 			local raptorEventArgs = {}
 			if type ~= nil then
-				raptorEventArgs["type"] = type
+				raptorEventArgs.type = type
 			end
 			if num ~= nil then
-				raptorEventArgs["number"] = num
+				raptorEventArgs.number = num
 			end
 			if tech ~= nil then
-				raptorEventArgs["tech"] = tech
+				raptorEventArgs.tech = tech
 			end
 			Script.LuaUI.RaptorEvent(raptorEventArgs)
 		end

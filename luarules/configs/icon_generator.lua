@@ -52,7 +52,7 @@ factionColors = function(faction)
 		if color[scheme] then
 			return color[scheme]
 		else
-			return color["unknown"]
+			return color.unknown
 		end
 	end
 end

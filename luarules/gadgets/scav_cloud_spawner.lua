@@ -26,9 +26,9 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 	local aliveMists = {}
 	local aliveWrecks = {}
 	local mistDefIDs = {
-		[UnitDefNames["scavmist_scav"].id] = true,
-		[UnitDefNames["scavmistxl_scav"].id] = true,
-		[UnitDefNames["scavmistxxl_scav"].id] = true,
+		[UnitDefNames.scavmist_scav.id] = true,
+		[UnitDefNames.scavmistxl_scav.id] = true,
+		[UnitDefNames.scavmistxxl_scav.id] = true,
 	}
 
 	VFS.Include("common/wav.lua")

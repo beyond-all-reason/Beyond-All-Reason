@@ -640,10 +640,10 @@ local function initializeAllUnits()
 		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initializeAllUnits", true) -- silent is true
 	end
 
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 end
@@ -848,11 +848,11 @@ function widget:Initialize()
 		initGL4()
 	end
 
-	WG["unittrackerapi"] = {}
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi = {}
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	initializeAllUnits()
 	widgetHandler:RegisterGlobal("GadgetCrashingAircraft1", GadgetCrashingAircraft)
 	RegisterTextAction("debugapiunittracker", debugapiunittrackerCmd)
@@ -916,10 +916,10 @@ function widget:Shutdown()
 	visibleUnitsTeam = {}
 	numVisibleUnits = 0
 
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 

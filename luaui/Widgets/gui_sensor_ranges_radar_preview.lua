@@ -146,7 +146,7 @@ function widget:DrawWorld()
 		end -- not build command
 	end
 
-	if Spring.IsGUIHidden() or (WG["topbar"] and WG["topbar"].showingQuit()) then
+	if Spring.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
 		return
 	end
 

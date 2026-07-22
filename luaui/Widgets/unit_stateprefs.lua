@@ -169,8 +169,8 @@ function widget:Initialize()
 	widgetHandler:AddAction("stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler:AddAction("stateprefs_clearunit", doClearUnit, nil, "p")
 
-	priorUserFirestateFunction = WG["firestate"].userFirestateChanged
-	WG["firestate"].userFirestateChanged = recordUserFirestateChanged
+	priorUserFirestateFunction = WG.firestate.userFirestateChanged
+	WG.firestate.userFirestateChanged = recordUserFirestateChanged
 end
 
 function onRecordPress()
@@ -248,7 +248,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 				return
 			end -- we're skipping "repeat" command here for now
 			if cmdID == CMD.FIRE_STATE then
-				WG["firestate"].setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
+				WG.firestate.setFirestateForUnits(cmdParam, { unitID }, { userInitiated = false })
 			else
 				Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
 			end
@@ -286,7 +286,7 @@ function widget:GameOver()
 end
 
 function widget:Shutdown()
-	WG["firestate"].userFirestateChanged = priorUserFirestateFunction
+	WG.firestate.userFirestateChanged = priorUserFirestateFunction
 	widgetHandler:RemoveAction("stateprefs_record")
 	widgetHandler:RemoveAction("stateprefs_clear")
 	widgetHandler:RemoveAction("stateprefs_clearunit")

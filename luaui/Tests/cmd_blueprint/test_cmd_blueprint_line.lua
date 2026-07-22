@@ -44,7 +44,7 @@ local function test()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 1
-	local bpW, bpH = WG["api_blueprint"].getBuildingDimensions(blueprintUnitDefID, facing)
+	local bpW, bpH = WG.api_blueprint.getBuildingDimensions(blueprintUnitDefID, facing)
 
 	local bpCount = 5
 

@@ -363,7 +363,7 @@ end
 
 function widget:Shutdown()
 	DeleteShaders()
-	WG["guishader"] = nil
+	WG.guishader = nil
 	widgetHandler:DeregisterGlobal("GuishaderInsertRect")
 	widgetHandler:DeregisterGlobal("GuishaderRemoveRect")
 end
@@ -378,10 +378,10 @@ function widget:DrawScreenEffects() -- This blurs the world underneath UI elemen
 			return
 		end
 
-		if WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
-			screencopy = WG["screencopymanager"].GetScreenCopy()
+		if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+			screencopy = WG.screencopymanager.GetScreenCopy()
 		else
-			spEcho("Missing Screencopy Manager, exiting", WG["screencopymanager"])
+			spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 			widgetHandler:RemoveWidget()
 			return false
 		end
@@ -507,14 +507,14 @@ function widget:Initialize()
 
 	self:UpdateCallIns()
 
-	WG["guishader"] = {}
-	WG["guishader"].InsertDlist = function(dlist, name, force)
+	WG.guishader = {}
+	WG.guishader.InsertDlist = function(dlist, name, force)
 		if force or guishaderDlists[name] ~= dlist then
 			guishaderDlists[name] = dlist
 			updateStencilTexture = true
 		end
 	end
-	WG["guishader"].RemoveDlist = function(name)
+	WG.guishader.RemoveDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
 			guishaderDlists[name] = nil
@@ -522,7 +522,7 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG["guishader"].DeleteDlist = function(name)
+	WG.guishader.DeleteDlist = function(name)
 		local found = guishaderDlists[name] ~= nil
 		if found then
 			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderDlists[name]
@@ -531,11 +531,11 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG["guishader"].InsertRect = function(left, top, right, bottom, name)
+	WG.guishader.InsertRect = function(left, top, right, bottom, name)
 		guishaderRects[name] = { left, top, right, bottom }
 		updateStencilTexture = true
 	end
-	WG["guishader"].RemoveRect = function(name)
+	WG.guishader.RemoveRect = function(name)
 		local found = guishaderRects[name] ~= nil
 		if found then
 			guishaderRects[name] = nil
@@ -543,11 +543,11 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG["guishader"].InsertScreenDlist = function(dlist, name)
+	WG.guishader.InsertScreenDlist = function(dlist, name)
 		guishaderScreenDlists[name] = dlist
 		updateStencilTextureScreen = true
 	end
-	WG["guishader"].RemoveScreenDlist = function(name)
+	WG.guishader.RemoveScreenDlist = function(name)
 		local found = guishaderScreenDlists[name] ~= nil
 		if found then
 			guishaderScreenDlists[name] = nil
@@ -555,7 +555,7 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG["guishader"].DeleteScreenDlist = function(name)
+	WG.guishader.DeleteScreenDlist = function(name)
 		local found = guishaderScreenDlists[name] ~= nil
 		if found then
 			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
@@ -563,11 +563,11 @@ function widget:Initialize()
 		end
 		return found
 	end
-	WG["guishader"].InsertScreenRect = function(left, top, right, bottom, name)
+	WG.guishader.InsertScreenRect = function(left, top, right, bottom, name)
 		guishaderScreenRects[name] = { left, top, right, bottom }
 		updateStencilTextureScreen = true
 	end
-	WG["guishader"].RemoveScreenRect = function(name)
+	WG.guishader.RemoveScreenRect = function(name)
 		local found = guishaderScreenRects[name] ~= nil
 		if found then
 			guishaderScreenRects[name] = nil
@@ -576,19 +576,19 @@ function widget:Initialize()
 		return found
 	end
 
-	WG["guishader"].setScreenBlur = function(value)
+	WG.guishader.setScreenBlur = function(value)
 		updateStencilTextureScreen = true
 		screenBlur = value
 	end
-	WG["guishader"].getScreenBlur = function(value)
+	WG.guishader.getScreenBlur = function(value)
 		return screenBlur
 	end
 
 	-- will let it draw a given dlist to be rendered on top of screenblur
-	WG["guishader"].insertRenderDlist = function(value)
+	WG.guishader.insertRenderDlist = function(value)
 		renderDlists[value] = true
 	end
-	WG["guishader"].removeRenderDlist = function(value)
+	WG.guishader.removeRenderDlist = function(value)
 		if renderDlists[value] then
 			renderDlists[value] = nil
 		end
@@ -596,8 +596,8 @@ function widget:Initialize()
 
 	WG.guishader.DrawScreen = DrawScreen -- widgethandler wont call DrawScreen when chobby interface is shown, but it will call this one as exception
 
-	widgetHandler:RegisterGlobal("GuishaderInsertRect", WG["guishader"].InsertRect)
-	widgetHandler:RegisterGlobal("GuishaderRemoveRect", WG["guishader"].RemoveRect)
+	widgetHandler:RegisterGlobal("GuishaderInsertRect", WG.guishader.InsertRect)
+	widgetHandler:RegisterGlobal("GuishaderRemoveRect", WG.guishader.RemoveRect)
 end
 
 function widget:RecvLuaMsg(msg, playerID)

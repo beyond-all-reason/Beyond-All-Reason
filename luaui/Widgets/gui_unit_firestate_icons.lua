@@ -200,17 +200,17 @@ local function initGL4()
 	return true
 end
 
-WG["unitfirestate"] = {}
-WG["unitfirestate"].setEnabled = function(value)
+WG.unitfirestate = {}
+WG.unitfirestate.setEnabled = function(value)
 	showFireStateIcons = value
 end
-WG["unitfirestate"].setShowAllHoldFireIcons = function(value)
+WG.unitfirestate.setShowAllHoldFireIcons = function(value)
 	showAllHoldFireIcons = (value and true) or false
 	if widget and widget.VisibleUnitsChanged and visibleUnits then
 		widget:VisibleUnitsChanged(visibleUnits, nil)
 	end
 end
-WG["unitfirestate"].getShowAllHoldFireIcons = function()
+WG.unitfirestate.getShowAllHoldFireIcons = function()
 	return showAllHoldFireIcons
 end
 
@@ -261,10 +261,10 @@ local function resolveActualUserFirestate(unitID)
 end
 
 local function migrateUserSelectedFirestateStore()
-	WG["unitfirestate_selected"] = WG["unitfirestate_selected"] or {}
-	userSelectedFirestate = WG["unitfirestate_selected"]
-	local oldHold = WG["unitfirestate_manualhold"] or {}
-	local oldReturn = WG["unitfirestate_manualreturn"] or {}
+	WG.unitfirestate_selected = WG.unitfirestate_selected or {}
+	userSelectedFirestate = WG.unitfirestate_selected
+	local oldHold = WG.unitfirestate_manualhold or {}
+	local oldReturn = WG.unitfirestate_manualreturn or {}
 	for unitID, value in pairs(oldHold) do
 		if value and userSelectedFirestate[unitID] == nil then
 			userSelectedFirestate[unitID] = CustomFirestateDefs.HOLD_FIRE
@@ -417,8 +417,8 @@ function widget:Initialize()
 		end
 	end
 
-	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
-		widget:VisibleUnitsChanged(WG["unittrackerapi"].visibleUnits, nil)
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
 end
 
