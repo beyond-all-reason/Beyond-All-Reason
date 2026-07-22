@@ -270,6 +270,8 @@
 
 .me-select selectbox option,
 .me-add selectbox option {
+    display: block;
+    width: 100%;
     padding: 2px 8px;
     color: #cfd8e3;
     white-space: nowrap;
