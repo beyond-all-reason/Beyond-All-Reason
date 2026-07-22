@@ -89,7 +89,12 @@ local function unitOptionsRml(selected)
 	local out = {}
 	for _, name in ipairs(unitNamesSorted) do
 		local def = UnitDefNames[name]
-		local label = (def and def.translatedHumanName or name) .. "  [" .. name .. "]"
+		local human = def and def.translatedHumanName or name
+		-- Untranslated units leak raw i18n keys (units.names.x); fall back.
+		if human:find("^units%.names%.") then
+			human = name
+		end
+		local label = human .. "  [" .. name .. "]"
 		out[#out + 1] = '<option value="' .. name .. '"'
 			.. (name == selected and ' selected="true"' or "")
 			.. ">" .. escapeRml(label) .. "</option>"
@@ -117,20 +122,10 @@ local function controlFor(value, ctx)
 		return '<select class="me-select me-select-unit"' .. editAttrs(value, ctx) .. ' data-quote="1">'
 			.. unitOptionsRml(value.value) .. "</select>"
 	elseif value.kind == "string" and value.semantic == "objective_name" then
-		local seen = false
-		local opts = {}
-		for _, objective in ipairs(currentObjectives) do
-			seen = seen or objective == value.value
-			opts[#opts + 1] = '<option value="' .. escapeRml(objective) .. '"'
-				.. (objective == value.value and ' selected="true"' or "")
-				.. ">" .. escapeRml(objective) .. "</option>"
-		end
-		if not seen then
-			opts[#opts + 1] = '<option value="' .. escapeRml(value.value) .. '" selected="true">'
-				.. escapeRml(value.value) .. "</option>"
-		end
-		return '<select class="me-select"' .. editAttrs(value, ctx) .. ' data-quote="1">'
-			.. table.concat(opts) .. "</select>"
+		-- Free text: new objective names must be creatable; a master list
+		-- would make this a dropdown, overkill for now.
+		return '<input type="text" class="me-input me-input-obj" value="' .. escapeRml(value.value) .. '"'
+			.. editAttrs(value, ctx) .. ' data-quote="1"/>'
 	elseif value.kind == "number" then
 		local number = value.value
 		if number == math.floor(number) then
@@ -304,7 +299,7 @@ local function renderTrigger(trigger, ctx, style)
 			opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
 				.. escapeRml(effect.label) .. "</option>"
 		end
-		rows[#rows + 1] = '<div class="me-add-row"><select class="me-add" data-insert="'
+		rows[#rows + 1] = '<div class="me-add-row"><select class="me-add" data-kind="effect" data-insert="'
 			.. tostring(trigger.insert_effect_at or trigger.span[2])
 			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
 			.. table.concat(opts) .. "</select></div>"
@@ -352,6 +347,19 @@ local function buildBody(editable)
 			for _, trigger in ipairs(group.triggers or {}) do
 				out[#out + 1] = renderTrigger(trigger, ctx, style)
 			end
+		end
+		-- Top-level: add a whole statement (a new trigger chain) to the file.
+		local conditions = editable and ast.surface and ast.surface.conditions
+		if conditions and #conditions > 0 and file.insert_trigger_at then
+			local opts = { '<option value="" selected="true">+ add statement (when...)</option>' }
+			for _, condition in ipairs(conditions) do
+				opts[#opts + 1] = '<option value="' .. escapeRml(condition.template) .. '">'
+					.. escapeRml("when " .. condition.label) .. "</option>"
+			end
+			out[#out + 1] = '<div class="me-add-row me-add-statement-row"><select class="me-add me-add-statement" data-kind="trigger" data-insert="'
+				.. tostring(file.insert_trigger_at)
+				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
+				.. table.concat(opts) .. "</select></div>"
 		end
 		if file.opaque and #file.opaque > 0 then
 			out[#out + 1] = '<div class="me-opaque">' .. #file.opaque
@@ -448,20 +456,32 @@ local function attachFormControls()
 		local select = selects[i]
 		select:AddEventListener("change", function()
 			local value = tostring(select:GetAttribute("value") or "")
+			Spring.Echo("[mission_editor] select -> " .. value)
 			local insertAt = tonumber(select:GetAttribute("data-insert"))
 			if insertAt then
-				-- The add palette: insert a whole .Do(...) line at the
-				-- trigger's insert point.
-				if value ~= "" then
-					writeEditIntent({
-						file = select:GetAttribute("data-file"),
-						start = insertAt,
-						finish = insertAt,
-						hash = select:GetAttribute("data-hash"),
-						quote = false,
-						value = "\t.Do(" .. value .. ")\n",
-					})
+				if value == "" then
+					return
 				end
+				local kind = select:GetAttribute("data-kind")
+				local newText
+				if kind == "trigger" then
+					-- A whole new statement: complete legal chain, so the
+					-- recognizer gate accepts it and the form re-renders it
+					-- as an editable card.
+					newText = "\nT.When(" .. value .. ")\n"
+						.. '\t.Do(Objective("new_objective").Complete())\n'
+						.. "\t.Register()\n"
+				else
+					newText = "\t.Do(" .. value .. ")\n"
+				end
+				writeEditIntent({
+					file = select:GetAttribute("data-file"),
+					start = insertAt,
+					finish = insertAt,
+					hash = select:GetAttribute("data-hash"),
+					quote = false,
+					value = newText,
+				})
 				return
 			end
 			-- Dropdown value edits apply on the next Update tick.

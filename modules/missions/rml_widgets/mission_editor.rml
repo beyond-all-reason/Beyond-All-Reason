@@ -270,9 +270,10 @@
 
 .me-select selectbox option,
 .me-add selectbox option {
-    display: block;
     padding: 2px 8px;
     color: #cfd8e3;
+    white-space: nowrap;
+    overflow-x: hidden;
 }
 
 .me-select selectbox option:hover,
