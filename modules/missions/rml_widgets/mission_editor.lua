@@ -24,7 +24,13 @@ end
 -- writes source.
 
 local AST_PATH = "modules/missions/editor/mission_ast.json"
+local STATUS_PATH = "modules/missions/editor/status.json"
+-- Written via io (relative to the engine WRITE dir). In dev-from-source the
+-- write dir is the repo, so bar-mission-kit serve's default --editor-dir
+-- sees it; with a separate write dir, point serve's --editor-dir there.
+local OPEN_REQUEST_PATH = "modules/missions/editor/open_request.json"
 local RML_PATH = "modules/missions/rml_widgets/mission_editor.rml"
+local POLL_SECONDS = 0.5
 
 -- Engine-provided in the widget env (system.lua whitelists it). Do NOT
 -- VFS.Include json.lua here: it reads `local base = _G`, and _G is nil in
@@ -36,6 +42,8 @@ end
 
 local document
 local visible = false
+local lastGeneration = nil
+local pollAccumulator = 0
 
 ---Pretty-print a recognizer Value node back to DSL text, literals wrapped in
 ---spans so the form can style what is form-editable.
@@ -79,12 +87,17 @@ local function renderValue(value)
 end
 
 ---@param trigger table
+---@param filePath string recognizer-relative mission file path
 ---@return string
-local function renderTrigger(trigger)
+local function renderTrigger(trigger, filePath)
 	local rows = {
-		'<div class="me-card"><div class="me-card-title">'
+		'<div class="me-card"><div class="me-card-head"><div class="me-card-title">'
 			.. (trigger.label or trigger.id)
-			.. "</div>",
+			.. '</div><button class="me-button me-edit" data-file="'
+			.. filePath
+			.. '" data-line="'
+			.. tostring(trigger.line or 1)
+			.. '">Edit</button></div>',
 	}
 	for _, step in ipairs(trigger.steps) do
 		if step.verb ~= "Register" then
@@ -122,7 +135,7 @@ local function buildBody()
 				out[#out + 1] = '<div class="me-group">' .. group.label .. "</div>"
 			end
 			for _, trigger in ipairs(group.triggers or {}) do
-				out[#out + 1] = renderTrigger(trigger)
+				out[#out + 1] = renderTrigger(trigger, file.path)
 			end
 		end
 		if file.opaque and #file.opaque > 0 then
@@ -134,15 +147,87 @@ local function buildBody()
 	return table.concat(out)
 end
 
+---Mode switch to code: ask the serve process to open the file at the line.
+---@param filePath string
+---@param line string
+local function requestOpenInEditor(filePath, line)
+	local handle = io.open(OPEN_REQUEST_PATH, "w")
+	if handle == nil then
+		Spring.Echo("[mission_editor] cannot write " .. OPEN_REQUEST_PATH)
+		return
+	end
+	handle:write(Json.encode({ file = filePath, line = tonumber(line) or 1 }))
+	handle:close()
+end
+
+local function attachCardHandlers()
+	local content = document:GetElementById("me-content")
+	if not content then
+		return
+	end
+	local buttons = content:GetElementsByTagName("button")
+	for i = 1, #buttons do
+		local button = buttons[i]
+		button:AddEventListener("click", function()
+			requestOpenInEditor(button:GetAttribute("data-file"), button:GetAttribute("data-line"))
+		end)
+	end
+end
+
+local function serveStatusLine()
+	local text = VFS.LoadFile(STATUS_PATH, VFS.RAW_FIRST)
+	if not text then
+		return nil
+	end
+	local ok, status = pcall(Json.decode, text)
+	if not ok or type(status) ~= "table" or status.ok then
+		return nil
+	end
+	return '<div class="me-opaque">' .. tostring(status.message) .. "</div>"
+end
+
 local function refresh()
 	if not document then
 		return
 	end
 	local body, err = buildBody()
+	local statusLine = serveStatusLine()
 	local content = document:GetElementById("me-content")
 	if content then
-		content.inner_rml = body or ('<div class="me-opaque">' .. (err or "?") .. "</div>")
+		content.inner_rml = (statusLine or "")
+			.. (body or ('<div class="me-opaque">' .. (err or "?") .. "</div>"))
+		attachCardHandlers()
 	end
+end
+
+---Poll the derived artifact; on a new generation, re-render and hot-reload
+---the running mission so the game and the panel both follow the file.
+local function pollArtifact(dt)
+	pollAccumulator = pollAccumulator + dt
+	if pollAccumulator < POLL_SECONDS then
+		return
+	end
+	pollAccumulator = 0
+	local text = VFS.LoadFile(AST_PATH, VFS.RAW_FIRST)
+	if not text then
+		return
+	end
+	local generation = text:match('"generation"%s*:%s*(%d+)')
+	if generation == lastGeneration then
+		return
+	end
+	local firstSight = lastGeneration == nil
+	lastGeneration = generation
+	if visible then
+		refresh()
+	end
+	if not firstSight and Spring.GetGameRulesParam("mission_active") == 1 then
+		Spring.SendCommands("luarules mission reload")
+	end
+end
+
+function widget:Update(dt)
+	pollArtifact(dt)
 end
 
 local function setVisible(on)

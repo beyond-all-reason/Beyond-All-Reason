@@ -94,3 +94,18 @@
 .me-opaque {
     color: #e06c75;
 }
+
+.me-card-head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.me-card-head .me-card-title {
+    flex: 1;
+}
+
+.me-edit {
+    font-size: 12dp;
+    padding: 1dp 6dp;
+}
