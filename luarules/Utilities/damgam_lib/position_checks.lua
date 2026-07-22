@@ -18,7 +18,7 @@ local mapSizeZ = Game.mapSizeZ
 local landLevel
 local seaLevel
 
-local scavengerAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+local scavengerAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 
 -- Team Startboxes
 local AllyTeamStartboxes = {}
@@ -47,7 +47,7 @@ local function initializeStartPositionTable()
 end
 
 -- game_ffa_start_setup can shuffle startboxes after this code runs
-if not Spring.Utilities.Gametype.IsFFA() then
+if not BAR.Utilities.Gametype.IsFFA() then
 	initializeStartPositionTable()
 	startPositionsInitialized = true
 end

@@ -117,12 +117,12 @@ local function buildTextLines(data)
 	end
 
 	-- Scenario title as the main heading
-	addTitle(data.title or Spring.I18N("ui.missioninfo.title"))
+	addTitle(data.title or BAR.I18N("ui.missioninfo.title"))
 	addLine("")
 
 	-- Difficulty
 	if data.defaultdifficulty then
-		local diffStr = Spring.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
+		local diffStr = BAR.I18N("ui.missioninfo.difficulty") .. ": " .. data.defaultdifficulty
 		if data.difficulty then
 			diffStr = diffStr .. "  (" .. data.difficulty .. "/10)"
 		end
@@ -133,20 +133,20 @@ local function buildTextLines(data)
 
 	-- Objectives
 	if data.victorycondition or data.losscondition then
-		addHeader(Spring.I18N("ui.missioninfo.objectives"))
+		addHeader(BAR.I18N("ui.missioninfo.objectives"))
 		addLine("")
 		if data.victorycondition then
-			addLine(Spring.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
+			addLine(BAR.I18N("ui.missioninfo.victory") .. ":  " .. data.victorycondition)
 		end
 		if data.losscondition then
-			addLine(Spring.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
+			addLine(BAR.I18N("ui.missioninfo.defeat") .. ":  " .. data.losscondition)
 		end
 		addLine("")
 	end
 
 	-- Summary
 	if data.summary and data.summary ~= "" then
-		addHeader(Spring.I18N("ui.missioninfo.summary"))
+		addHeader(BAR.I18N("ui.missioninfo.summary"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.summary)) do
 			addLine(l)
@@ -156,7 +156,7 @@ local function buildTextLines(data)
 
 	-- Briefing
 	if data.briefing and data.briefing ~= "" then
-		addHeader(Spring.I18N("ui.missioninfo.briefing"))
+		addHeader(BAR.I18N("ui.missioninfo.briefing"))
 		addLine("")
 		for _, l in ipairs(string.lines(data.briefing)) do
 			addLine(l)
@@ -273,7 +273,7 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- title tab
-	local title = Spring.I18N("ui.topbar.button.mission")
+	local title = BAR.I18N("ui.topbar.button.mission")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,
@@ -418,7 +418,7 @@ function widget:Initialize()
 	else
 		-- Fallback: show what we can from the scenarioid alone
 		textLines = {
-			{ kind = "title", text = Spring.I18N("ui.missioninfo.title") },
+			{ kind = "title", text = BAR.I18N("ui.missioninfo.title") },
 			{ kind = "body", text = "" },
 			{ kind = "body", text = "Mission ID: " .. (scenarioid or "unknown") },
 			{ kind = "body", text = "" },

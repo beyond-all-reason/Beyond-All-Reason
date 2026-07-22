@@ -122,7 +122,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local accountID = Spring.Utilities.GetAccountID(playerID)
+		local accountID = BAR.Utilities.GetAccountID(playerID)
 		local authorized = _G.permissions.waterlevel[accountID]
 
 		if not (authorized or Spring.IsCheatingEnabled()) then
@@ -153,7 +153,7 @@ else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
-		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local acID = BAR.Utilities.GetAccountID(myPlayerID)
 		local perms = SYNCED.permissions.waterlevel
 		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
 	end

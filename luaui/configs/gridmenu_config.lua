@@ -11,10 +11,10 @@ local homePriority = {}
 
 local unitCategories = {}
 
-local BUILDCAT_ECONOMY = Spring.I18N("ui.buildMenu.category_econ")
-local BUILDCAT_COMBAT = Spring.I18N("ui.buildMenu.category_combat")
-local BUILDCAT_UTILITY = Spring.I18N("ui.buildMenu.category_utility")
-local BUILDCAT_PRODUCTION = Spring.I18N("ui.buildMenu.category_production")
+local BUILDCAT_ECONOMY = BAR.I18N("ui.buildMenu.category_econ")
+local BUILDCAT_COMBAT = BAR.I18N("ui.buildMenu.category_combat")
+local BUILDCAT_UTILITY = BAR.I18N("ui.buildMenu.category_utility")
+local BUILDCAT_PRODUCTION = BAR.I18N("ui.buildMenu.category_production")
 
 local categories = {
 	BUILDCAT_ECONOMY,

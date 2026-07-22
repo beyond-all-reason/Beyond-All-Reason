@@ -21,7 +21,7 @@ local historySeconds = 6
 local maxCommands = 700
 local startWarningOffences = 3
 local maxOffences = 6
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSingleplayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local mathFloor = math.floor
 local mathMax = math.max
 

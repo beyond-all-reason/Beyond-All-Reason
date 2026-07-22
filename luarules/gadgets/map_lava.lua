@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local lava = Spring.Lava
+local lava = BAR.Lava
 local lavaMap = lava.isLavaMap
 local gameSpeed = Game.gameSpeed
 
