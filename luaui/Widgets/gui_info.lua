@@ -2356,13 +2356,23 @@ function widget:DrawScreen()
 		})
 		tracy.ZoneEnd()
 	end
+	local warmedDisplayUnitpicThisFrame = false
+	if displayMode ~= 'selection' and displayUnitDefID and unitDefInfo[displayUnitDefID].buildPic and not selectionUnitpicWarm.warmed[displayUnitDefID] then
+		tracy.ZoneBeginN("W:Info:DisplayUnitpicWarmup")
+		warmedDisplayUnitpicThisFrame = true
+		if glTexture("#" .. displayUnitDefID) then
+			selectionUnitpicWarm.warmed[displayUnitDefID] = true
+		end
+		glTexture(false)
+		tracy.ZoneEnd()
+	end
 	local selectionUnitpicsWarmDone = true
 	local warmedSelectionUnitpicThisFrame = false
-	if selectionUnitpicWarm.count > 0 then
+	if not warmedDisplayUnitpicThisFrame and selectionUnitpicWarm.count > 0 then
 		warmedSelectionUnitpicThisFrame = true
 		selectionUnitpicsWarmDone = flushSelectionUnitpicWarmQueue()
 	end
-	if infoTex and updateTex and selectionUnitpicsWarmDone and not warmedSelectionUnitpicThisFrame then
+	if infoTex and updateTex and selectionUnitpicsWarmDone and not warmedSelectionUnitpicThisFrame and not warmedDisplayUnitpicThisFrame then
 		tracy.ZoneBeginN("W:Info:DrawScreen:RenderInfoTexture")
 		updateTex = nil
 		gl.R2tHelper.RenderToTexture(infoTex,

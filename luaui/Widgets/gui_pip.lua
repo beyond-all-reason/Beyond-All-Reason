@@ -213,7 +213,8 @@ config = {
 	unitpicZoomThreshold = 0.75, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
 	unitpicMaxUnits = 180,   -- Keep dense views on GL4 icons; unitpics use immediate-mode draw calls per unit
 	unitpicWarmupRange = 0.12, -- Start warming buildpic textures shortly before the unitpic threshold
-	unitpicWarmupPerFrame = 6, -- Max newly-bound buildpic textures per PIP refresh
+	unitpicWarmupPerFrame = 6, -- Hard cap in addition to the time budget below
+	unitpicWarmupTimeBudget = 0.004, -- Best-effort budget; one synchronous texture bind can overrun it
 	drawComNametags = true,    -- Draw player names above commander icons
 	comNametagZoomThreshold = 0.18, -- Minimum zoom to show nametags (below this they'd overlap)
 	drawComHealthBars = true,  -- Draw health bars below commander icons when health < 99%
@@ -1701,7 +1702,7 @@ local gl4Icons = {
 	_slowVboUsedElements = 0, -- Elements in slow mobile VBO
 	_slowVboHadOverlay = false, -- Previous upload had overlays
 	quadVBO = nil,            -- Shared per-vertex quad template for NoGS instanced path
-	unitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0 }, -- Incremental buildpic texture warm-up
+	unitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0, ready = false }, -- Incremental buildpic texture warm-up
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1735,15 +1736,27 @@ function gl4Icons.FlushUnitpicWarmQueue(cacheUnitPic)
 
 	tracy.ZoneBeginN("W:PIP:Icons:UnitpicWarmup")
 	local limit = math.min(count, config.unitpicWarmupPerFrame)
+	local startTime = Spring.GetTimer()
+	local processed = 0
+	local allWarmed = true
 	for i = 1, limit do
+		-- Always attempt one texture so an expensive bind cannot stall the queue forever.
+		if processed > 0 and Spring.DiffTimers(Spring.GetTimer(), startTime) >= config.unitpicWarmupTimeBudget then
+			break
+		end
 		local defID = warm.queued[i]
 		local tex = cacheUnitPic[defID]
 		if tex then
 			local textureBound = glFunc.Texture(tex)
 			if textureBound then
 				warm.warmed[defID] = true
+			else
+				allWarmed = false
 			end
+		else
+			allWarmed = false
 		end
+		processed = processed + 1
 	end
 	glFunc.Texture(false)
 	for i = 1, count do
@@ -1754,7 +1767,7 @@ function gl4Icons.FlushUnitpicWarmQueue(cacheUnitPic)
 	warm.count = 0
 	tracy.ZoneEnd()
 
-	return count <= limit, count
+	return allWarmed and processed == count, count
 end
 
 -- Cached factors for WorldToPipCoords (performance optimization)
@@ -7981,6 +7994,14 @@ end
 function widget:Initialize()
 	RebuildAllUnitsCache()
 
+	-- Avoid lazy texture loads stalling the first button-strip draw on hover.
+	drawData.buttonTexturePreloadList = gl.CreateList(function()
+		for i = 1, #buttons do
+			glFunc.Texture(buttons[i].texture)
+		end
+		glFunc.Texture(false)
+	end)
+
 	drawData.unitOutlineList = gl.CreateList(function()
 		glFunc.BeginEnd(GL.LINE_LOOP, function()
 			glFunc.Vertex( 1, 0, 1)
@@ -9187,6 +9208,9 @@ function widget:Shutdown()
 
 		gl.DeleteList(drawData.unitOutlineList)
 		gl.DeleteList(drawData.radarDotList)
+		if drawData.buttonTexturePreloadList then
+			gl.DeleteList(drawData.buttonTexturePreloadList)
+		end
 		if shaders.los then
 			gl.DeleteShader(shaders.los)
 			shaders.los = nil
@@ -10596,7 +10620,6 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
 	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
 	local unitpicWarmCandidate = config.showUnitpics and unitCount <= config.unitpicMaxUnits and cameraState.targetZoom >= (config.unitpicZoomThreshold - config.unitpicWarmupRange)
-	local useUnitpics = unitpicWarmCandidate and cameraState.targetZoom >= config.unitpicZoomThreshold
 	gl4Icons.ResetUnitpicWarmQueue()
 	local unitpicEntries = gl4Icons.unitpicEntries
 	if not unitpicEntries then
@@ -10639,6 +10662,27 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local maxInst = gl4Icons.MAX_INSTANCES
 	local instStep = gl4Icons.INSTANCE_STEP
 	local pipUnits = miscState.pipUnits
+	if unitpicWarmCandidate then
+		-- Resolve the complete candidate set before choosing one representation for this render.
+		-- This keeps every unit on icons until all required buildpics are ready.
+		for i = 1, unitCount do
+			local uID = pipUnits[i]
+			local uDefID = unitDefCacheTbl[uID]
+			if not uDefID then
+				uDefID = spFunc.GetUnitDefID(uID)
+				if uDefID then
+					unitDefCacheTbl[uID] = uDefID
+				end
+			end
+			if uDefID then
+				gl4Icons.QueueUnitpicWarm(uDefID)
+			end
+		end
+		gl4Icons.unitpicWarm.ready = gl4Icons.unitpicWarm.count == 0
+	else
+		gl4Icons.unitpicWarm.ready = false
+	end
+	local useUnitpics = gl4Icons.unitpicWarm.ready and cameraState.targetZoom >= config.unitpicZoomThreshold
 
 	-- Position cache tables (populated during sort key pass, consumed by processUnit)
 	local localCachePosX = gl4Icons.cachedPosX
@@ -10870,13 +10914,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 		-- Self-destruct: use event-driven cache (no per-unit API call)
 		local isSelfD = not isRadar and selfDUnits[uID] or false
-		if unitpicWarmCandidate and not isRadar and visibleDefID then
-			gl4Icons.QueueUnitpicWarm(visibleDefID)
-		end
-
 		-- Collect unitpic data when zoomed in (only for fully visible, non-radar units)
 		-- Also fetch health for damage indication (icon tint + unitpic health bar)
-		if useUnitpics and not isRadar and visibleDefID and gl4Icons.unitpicWarm.warmed[visibleDefID] then
+		if useUnitpics and not isRadar and visibleDefID then
 			local hp, maxHP, _, _, bp = spFunc.GetUnitHealth(uID)
 			if hp and maxHP and maxHP > 0 then
 				healthPct = math.max(0, math.min(100, mathFloor(hp / maxHP * 100)))
@@ -12752,7 +12792,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
-		local unitpicsActive = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+		local unitpicsActive = config.showUnitpics and gl4Icons.unitpicWarm.ready and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local unitpicBaseMult, unitpicBorderTotal
 		if unitpicsActive then
 			local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
@@ -17167,7 +17207,6 @@ function widget:DrawScreen()
 				glFunc.PopMatrix()
 				glFunc.Texture(false)
 			end)
-			tracy.ZoneEnd()
 		end
 
 		-- Apply transform and draw the cached icon at actual position
@@ -17188,6 +17227,7 @@ function widget:DrawScreen()
 			glFunc.Texture(false)
 			render.RectRound(uiState.minModeL, uiState.minModeB, uiState.minModeL + buttonSize, uiState.minModeB + buttonSize, render.elementCorner*0.4, 1, 1, 1, 1)
 		end
+		tracy.ZoneEnd()
 		return
 	end
 

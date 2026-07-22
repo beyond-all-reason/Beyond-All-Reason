@@ -1261,13 +1261,14 @@ function widget:Update(dt)
 		end
 	end
 
-	if now > timers.nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] then
+	if now > timers.nextGuishaderCheck then
 		timers.nextGuishaderCheck = now + timers.guishaderCheckUpdateRate
-		if not guishaderEnabled and widgetHandler.orderList["GUI Shader"] ~= 0 then
-			guishaderEnabled = true
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderEnabled then
+			guishaderEnabled = guishaderActive
 			init()
-		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
-			guishaderEnabled = false
+		elseif not guishaderActive and guishaderEnabled then
+			guishaderEnabled = guishaderActive
 		end
 	end
 
@@ -2383,6 +2384,7 @@ function widget:Initialize()
 	currentWindText = "\255\255\255\255" .. currentWind
 	refreshWindTidalTextCache()
 
+	guishaderEnabled = WG['guishader'] ~= nil
 	widget:ViewResize()
 
 	if gameFrame > 0 then
