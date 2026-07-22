@@ -190,14 +190,18 @@ local function loadMission(missionName)
 		-- Identity is mission-relative so ids survive install-path differences.
 		local filename = filePath:sub(#MISSIONS_DIR + 1)
 		engine.UnregisterFile(filename)
+		local file = DSL.ForFile(filename, engine.Register)
 		local env = {
-			When = DSL.ForFile(filename, engine.Register),
+			When = file.When,
 			Team = { Player = playerTeam },
 			UnitDef = Verbs.UnitDef,
 			Objective = Objective,
 			MatchFlow = matchFlow,
 		}
 		VFS.Include(filePath, env)
+		-- The commit point: statements register here, and a half-finished
+		-- chain (no Do) is a load error naming the file and statement.
+		file.Finalize()
 	end
 
 	syncWatchedCallins()

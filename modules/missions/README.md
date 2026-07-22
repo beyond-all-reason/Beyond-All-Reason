@@ -1,6 +1,6 @@
 # The missions module
 
-Mission logic is authored as dot-only, closure-free trigger chains in
+Mission logic is authored as dot-only, closure-free, terminator-free trigger chains in
 missions/<name>/triggers/*.lua. The loader includes each file in an injected
 environment (the env IS the API surface), the DSL builds descriptors, and the
 trigger engine evaluates them — event-driven where conditions declare inputs,
@@ -12,7 +12,7 @@ flowchart TB
     LUA["missions/&lt;name&gt;/triggers/*.lua<br/>dot-only, closure-free chains"]
     subgraph SYNCED["synced runtime"]
         LOADER["mission_loader gadget<br/>injected env = the API surface;<br/>wires only watched callins"]
-        DSL["DSL builder<br/>When/AndWhen/Do/Once/Register<br/>→ TriggerDescriptor"]
+        DSL["DSL builder<br/>When/.When/Do/Once — no terminator;<br/>finalized at include → TriggerDescriptor"]
         ENGINE["trigger engine<br/>input→watchers index · dirty marks<br/>state tables (the save pile)"]
         BUS["event bus (engine.OnEvent)<br/>engine callins + module events<br/>('UnitFinished', 'mission.objective_changed')"]
         MF["matchflow module<br/>Victory/Defeat → pending verdict"]
