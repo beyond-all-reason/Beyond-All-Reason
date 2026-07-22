@@ -647,7 +647,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if Spring.Lava.isLavaMap == true then
+	if BAR.Lava.isLavaMap == true then
 		widgetHandler:RemoveWidget(self)
 	end
 

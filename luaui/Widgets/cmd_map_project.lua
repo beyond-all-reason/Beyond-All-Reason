@@ -1841,7 +1841,7 @@ local function maybeStartLoad()
 	if Spring.IsReplay() then
 		reasons[#reasons + 1] = "this is a replay"
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		reasons[#reasons + 1] = "not a local singleplayer session"
 	end
@@ -1908,7 +1908,7 @@ local function openProject(slug)
 		echoP("cannot open: " .. err)
 		return false
 	end
-	local gt = Spring.Utilities and Spring.Utilities.Gametype
+	local gt = BAR.Utilities and BAR.Utilities.Gametype
 	if gt and gt.IsSinglePlayer and not gt.IsSinglePlayer() then
 		echoP("cannot open: project loading needs a local singleplayer session")
 		return false

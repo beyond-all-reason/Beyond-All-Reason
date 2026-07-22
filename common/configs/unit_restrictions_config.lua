@@ -36,7 +36,7 @@ local function shouldShowWaterUnits()
 		voidWater = mapinfo.voidwater
 	end
 
-	local lava = Spring.Lava
+	local lava = BAR.Lava
 	local isLava = lava and lava.isLavaMap
 
 	if voidWater or isLava then
