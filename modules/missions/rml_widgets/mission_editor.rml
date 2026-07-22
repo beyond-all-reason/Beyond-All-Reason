@@ -43,6 +43,12 @@
     background-color: #2a3846;
 }
 
+.me-textmode {
+    display: none;
+    margin: 4px 0;
+    color: #9ecbff;
+}
+
 .me-content {
     display: block;
     overflow-y: auto;
@@ -124,8 +130,9 @@
 			<button id="me-reload" class="me-button">Reload Mission</button>
 			<button id="me-close" class="me-button">X</button>
 		</div>
+		<div id="me-textmode" class="me-textmode">Text mode - editing in VS Code; the form follows your saves.</div>
 		<div id="me-content" class="me-content"></div>
-		<div class="me-footer">The .lua file is the source of truth - edit it in your editor; this view follows.</div>
+		<div id="me-footer" class="me-footer">The .lua file is the source of truth - edit it in your editor; this view follows.</div>
 	</div>
 </body>
 </rml>
