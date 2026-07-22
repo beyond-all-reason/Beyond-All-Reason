@@ -143,13 +143,15 @@ local BaseClasses = {
 
 	TorpedoProjectile = {
 		lightType = 'cone', -- or cone or beam
+		delayUntilSubmerged = true,
+		delayWaterline = 2,
+		delayFrames = 8,
 		lightConfig = {
-			posx = 0, posy = 0, posz = 0, radius = 100,
-			r = 0, g = 0, b = 0, a = 1,
-			color2r = 1, color2g = 0.55, color2b = 0.12, colortime = 30,
+			posx = 0, posy = 0, posz = 0, radius = 77,
+			r = 1.15, g = 0.32, b = 0.03, a = 1,
 			dirx = 1, diry = 0, dirz = 1, theta = 0.15,  -- cone lights only, specify direction and half-angle in radians
 			modelfactor = 1, specular = 0, scattering = 1, lensflare = 1,
-			lifetime = 0, sustain = 1, 	selfshadowing = 4,
+			lifetime = 0, sustain = 1, selfshadowing = 4,
 		},
 	},
 
@@ -527,10 +529,9 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID].lightConfig.selfshadowing = 1 -- Screen Space Light Shadows
 			--Spring.Echo(WeaponDefNames[weaponID], weaponDef.type, weaponDef.name)
 
-		elseif weaponDef.type == 'TorpedoLauncher' then
-			sizeclass = "Small"
-			t.r, t.g, t.b = 0.1, 0.2, 0.5
-			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", "Cold", sizeclass, t)
+		elseif weaponDef.type == 'TorpedoLauncher' and not Spring.GetModOptions().map_waterislava then
+			-- Torpedo projectile lights are assigned here, but activation is delayed until water entry.
+			projectileDefLights[weaponID] = GetLightClass("TorpedoProjectile", nil, nil, {})
 
 		elseif weaponDef.type == 'Shield' then
 			sizeclass = "Large"

@@ -1,3 +1,27 @@
+local function torpedoEntryFlare()
+    return {
+        air                = false,
+        class              = [[CBitmapMuzzleFlame]],
+        count              = 1,
+        ground             = false,
+        water              = true,
+        underwater         = true,
+        properties = {
+            colormap           = [[0.44 0.48 1 0.0441   0 0 0 0.002205]],
+            dir                = [[0, 1, 0]],
+            frontoffset        = 0,
+            fronttexture       = [[glow]],
+            length             = 0,
+            sidetexture        = [[none]],
+            size               = 25,
+            sizegrowth         = -3.5,
+            ttl                = 4,
+            pos                = [[0, 1, 0]],
+            useairlos          = true,
+        },
+    }
+end
+
 local definitions = {
     ["splash-emerge-tiny"] = {
         waterball = {
@@ -306,6 +330,7 @@ local definitions = {
     },
 
     ["splash-torpedo"] = {
+        entryflare = torpedoEntryFlare(),
         waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -325,7 +350,7 @@ local definitions = {
         sizegrowth         = 1.8,
         ttl                = 65,
         rotParams          = [[-2 r4, -0.5 r1, -180 r360]],
-        pos                = [[0.5, 1, 0.0]],    
+        pos                = [[0.5, 1, 0.0]],
       },
     },
     circlewaves = {
@@ -448,6 +473,7 @@ local definitions = {
     },
 
     ["splash-tiny"] = {
+        entryflare = torpedoEntryFlare(),
         waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],

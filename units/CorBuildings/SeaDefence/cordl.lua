@@ -100,6 +100,7 @@ return {
 				bouncerebound = 0.6,
 				bounceslip = 0.6,
 				burnblow = true,
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
