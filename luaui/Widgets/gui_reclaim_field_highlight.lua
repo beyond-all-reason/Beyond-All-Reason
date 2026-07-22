@@ -153,9 +153,6 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local tableSort = table.sort
 
-local insert = table.insert
-local remove = table.remove
-
 local abs = math.abs
 local floor = math.floor
 local min = math.min
@@ -405,16 +402,87 @@ local batch = {
 	clusterJobActive = false,
 	clusterJobCo = nil,
 	clusterJobStart = 0,
-	clusterJobBudget = 0.0022,  -- default clustering slice budget (seconds)
-	clusterJobBudgetMin = 0.0012,
-	clusterJobBudgetMax = 0.0030,
+	clusterJobBudget = 0.002,  -- default clustering slice budget (seconds)
+	clusterJobBudgetMin = 0.001,
+	clusterJobBudgetMax = 0.0025,
 	-- When a hidden layer becomes visible while its clusters are stale, keep it
 	-- hidden until the pending time-sliced rebuild atomically swaps in fresh data.
 	waitForFreshMetal = false,
 	waitForFreshEnergy = false,
 	metalRevealPending = false,
 	energyRevealPending = false,
+	reusedMetalHulls = 0,
+	reusedEnergyHulls = 0,
+	partialReusedMetalHulls = 0,
+	partialReusedEnergyHulls = 0,
+	copiedEnergyHulls = 0,
+	clusterJobCpu = 0,
+	lastClusterJobCpu = 0,
+	terrainGeneration = 0,
+	clusterJobTerrainGeneration = 0,
+	clusterEnergyPositiveCount = 0,
+	clusterTracyPhase = nil,
+	clusterTracyResource = nil,
+	clusterTracyZoneActive = false,
+	clusterTracyNames = {
+		setup = "W:ReclaimField:Cluster:Setup",
+		graph = "W:ReclaimField:Cluster:Graph",
+		stats = "W:ReclaimField:Cluster:Stats",
+		reuse = "W:ReclaimField:Cluster:ReuseHull",
+		partialReuse = "W:ReclaimField:Cluster:PartialReuseHull",
+		copyHull = "W:ReclaimField:Cluster:CopyHull",
+		sort = "W:ReclaimField:Cluster:Sort",
+		split = "W:ReclaimField:Cluster:Split",
+		condition = "W:ReclaimField:Cluster:HullCondition",
+		monotone = "W:ReclaimField:Cluster:MonotoneHull",
+		bounding = "W:ReclaimField:Cluster:BoundingBox",
+		subdivide = "W:ReclaimField:Cluster:Subdivide",
+		expand = "W:ReclaimField:Cluster:Expand",
+		catmull = "W:ReclaimField:Cluster:CatmullRom",
+		swap = "W:ReclaimField:Cluster:SwapRecycle",
+		text = "W:ReclaimField:Cluster:TextAnchors",
+	},
 }
+
+-- Tracy zones must not span coroutine suspension. Keep one clustering phase
+-- open at a time, close it before yielding, and reopen it on the next resume.
+batch.openClusterTracyZone = function()
+	if batch.clusterTracyPhase and not batch.clusterTracyZoneActive then
+		tracy.ZoneBeginN(batch.clusterTracyPhase)
+		batch.clusterTracyZoneActive = true
+		if batch.clusterTracyResource then
+			tracy.ZoneText(batch.clusterTracyResource)
+		end
+	end
+end
+
+batch.closeClusterTracyZone = function()
+	if batch.clusterTracyZoneActive then
+		tracy.ZoneEnd()
+		batch.clusterTracyZoneActive = false
+	end
+end
+
+batch.setClusterTracyPhase = function(phase)
+	if batch.clusterTracyPhase == phase and batch.clusterTracyZoneActive then
+		return
+	end
+	batch.closeClusterTracyZone()
+	batch.clusterTracyPhase = phase
+	batch.openClusterTracyZone()
+end
+
+batch.finishClusterTracy = function()
+	batch.closeClusterTracyZone()
+	batch.clusterTracyPhase = nil
+	batch.clusterTracyResource = nil
+end
+
+batch.yieldClusterJob = function()
+	batch.closeClusterTracyZone()
+	coroutine.yield()
+	batch.openClusterTracyZone()
+end
 
 -- Cache to avoid redundant Spring API calls
 local lastFlyingCheckFrame = 0 -- Track when we last checked flying features
@@ -520,9 +588,8 @@ local featureNeighborsMatrix
 local opticsObject
 
 -- Populate `featureNeighborsMatrix` for a newly-added feature by visiting only
--- the 3x3 block of grid cells around it. Mirrors the previous full-scan logic
--- (updates both directions of the matrix and each neighbour's reachability),
--- but at O(k) instead of O(n). Returns the smallest neighbour distance squared.
+-- the 3x3 block of grid cells around it. Mirrors the previous full-scan logic,
+-- but at O(k) instead of O(n).
 -- Assigned here (rather than next to grid.insert/remove) so it captures the
 -- `featureNeighborsMatrix` module local instead of a global.
 do
@@ -533,7 +600,6 @@ do
 
 	grid.buildNeighbors = function(featureID, x, z, M_newFeature)
 		local M = featureNeighborsMatrix
-		local reachDistSq = mathHuge
 		local cx = floor(x / cellSize) + GRID_OFFSET
 		local cz = floor(z / cellSize) + GRID_OFFSET
 		for gx = cx - 1, cx + 1 do
@@ -548,21 +614,14 @@ do
 						if distSq <= epsilonSq then
 							local row = M[fid2]
 							if row then
-								row[featureID] = distSq
-								M_newFeature[fid2] = distSq
-								if distSq < reachDistSq then
-									reachDistSq = distSq
-								end
-								if feat2.rd == nil or distSq < feat2.rd then
-									feat2.rd = distSq
-								end
+								row[featureID] = true
+								M_newFeature[fid2] = true
 							end
 						end
 					end
 				end
 			end
 		end
-		return reachDistSq
 	end
 end
 
@@ -593,8 +652,10 @@ local animState = {
 	clusterAnims = {},        -- metal, [uid] = state
 	energyClusterAnims = {},  -- energy, [uid] = state
 
-	-- Snapshot of clusters from the previous clustering pass (for identity match)
-	prevSnapshot = {},        -- metal, [uid] = {fids, fidCount}
+	-- Snapshot of clusters from the previous clustering pass (for identity match).
+	-- Feature-to-uid ownership lives directly on each feature, avoiding a reverse
+	-- index rebuild over every snapshot member after each clustering job.
+	prevSnapshot = {},        -- metal, [uid] = {fidCount, value}
 	prevEnergySnapshot = {},  -- energy
 
 	-- Clusters that disappeared and are currently fading out. They own their
@@ -665,21 +726,6 @@ end
 -- Reusable scratch table for syncSide() overlap tallies (cleared per cluster).
 local sharedTally = {}
 
--- Build a {fid=true,...} set from a cluster's members
-local function BuildFidSet(members)
-	local set, count = {}, 0
-	if members then
-		for i = 1, #members do
-			local m = members[i]
-			if m and m.fid then
-				set[m.fid] = true
-				count = count + 1
-			end
-		end
-	end
-	return set, count
-end
-
 -- Capture the current cluster state so that, if any clusters disappear after
 -- the upcoming reclustering, we can keep rendering them while they fade out.
 --
@@ -746,14 +792,7 @@ local function syncSide(isEnergy)
 	local anims = isEnergy and animState.energyClusterAnims or animState.clusterAnims
 	local hullCopies = isEnergy and animState.preEnergyHullCopies or animState.preHullCopies
 	local fading = isEnergy and animState.fadingEnergy or animState.fading
-
-	-- Build fid->oldUid index for fast matching
-	local fidToOldUid = {}
-	for oldUid, snap in pairs(snapshot) do
-		for fid in pairs(snap.fids) do
-			fidToOldUid[fid] = oldUid
-		end
-	end
+	local uidField = isEnergy and "energyClusterUid" or "metalClusterUid"
 
 	local now = os.clock()
 	local matchedOldUids = {}
@@ -763,22 +802,32 @@ local function syncSide(isEnergy)
 		-- Skip "split parent" placeholders (font==0 indicates a cluster that was
 		-- split into sub-clusters; only the children carry visible geometry).
 		if cluster and (cluster.font ~= 0) and cluster.members then
-			local fids, count = BuildFidSet(cluster.members)
+			local members = cluster.members
+			local count = #members
+			local exactUid = cluster.identityUid
+			local membersAlreadyOwned = cluster.identityMembersCurrent
+			cluster.identityUid = nil
+			cluster.identityMembersCurrent = nil
 			-- Tally overlap with each old uid (reuse a single table across
 			-- iterations to avoid one tally allocation per cluster).
-			local bestOldUid, bestOverlap = nil, 0
-			local tally = sharedTally
-			for k in pairs(tally) do tally[k] = nil end
-			for fid in pairs(fids) do
-				local oldUid = fidToOldUid[fid]
-				if oldUid and not matchedOldUids[oldUid] then
-					tally[oldUid] = (tally[oldUid] or 0) + 1
+			local bestOldUid, bestOverlap
+			if exactUid and snapshot[exactUid] and not matchedOldUids[exactUid] then
+				bestOldUid, bestOverlap = exactUid, count
+			else
+				bestOverlap = 0
+				local tally = sharedTally
+				for k in pairs(tally) do tally[k] = nil end
+				for i = 1, count do
+					local oldUid = members[i][uidField]
+					if oldUid and snapshot[oldUid] and not matchedOldUids[oldUid] then
+						tally[oldUid] = (tally[oldUid] or 0) + 1
+					end
 				end
-			end
-			for oldUid, overlap in pairs(tally) do
-				if overlap > bestOverlap then
-					bestOverlap = overlap
-					bestOldUid = oldUid
+				for oldUid, overlap in pairs(tally) do
+					if overlap > bestOverlap then
+						bestOverlap = overlap
+						bestOldUid = oldUid
+					end
 				end
 			end
 
@@ -836,8 +885,12 @@ local function syncSide(isEnergy)
 			end
 
 			cluster.uid = uid
+			if not membersAlreadyOwned or uid ~= exactUid then
+				for i = 1, count do
+					members[i][uidField] = uid
+				end
+			end
 			newSnapshot[uid] = {
-				fids = fids,
 				fidCount = count,
 				value = (isEnergy and cluster.energy or cluster.metal) or 0,
 			}
@@ -1059,88 +1112,6 @@ animState.TickClusterAnimations = function(now)
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Priority Queue
-
-local PriorityQueue = {}
-do
-	local function push(self, priority, value)
-		local n = self.size + 1
-		self.size = n
-		local pris = self.priorities
-		local vals = self.values
-		pris[n] = priority
-		vals[n] = value
-		local p = floor(n * 0.5)
-		while n > 1 and pris[n] < pris[p] do
-			pris[n], pris[p] = pris[p], pris[n]
-			vals[n], vals[p] = vals[p], vals[n]
-			n = p
-			p = floor(n * 0.5)
-		end
-	end
-
-	local function pop(self)
-		local size = self.size
-		if size == 0 then return nil end
-		local pris = self.priorities
-		local vals = self.values
-		local value = vals[1]
-		if size == 1 then
-			pris[1] = nil
-			vals[1] = nil
-			self.size = 0
-			return value
-		end
-		pris[1] = pris[size]
-		vals[1] = vals[size]
-		pris[size] = nil
-		vals[size] = nil
-		size = size - 1
-		self.size = size
-		local root = 1
-		local child = 2
-		while child <= size do
-			if child + 1 <= size and pris[child + 1] < pris[child] then
-				child = child + 1
-			end
-			if pris[root] <= pris[child] then
-				break
-			end
-			pris[root], pris[child] = pris[child], pris[root]
-			vals[root], vals[child] = vals[child], vals[root]
-			root = child
-			child = 2 * root
-		end
-		return value
-	end
-
-	local function clear(self)
-		local pris = self.priorities
-		local vals = self.values
-		for i = 1, self.size do
-			pris[i] = nil
-			vals[i] = nil
-		end
-		self.size = 0
-	end
-
-	local pqMeta = {
-		__index = {
-			push  = push,
-			pop   = pop,
-			clear = clear,
-		},
-	}
-
-	function PriorityQueue.new()
-		return setmetatable({ priorities = {}, values = {}, size = 0 }, pqMeta)
-	end
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Visibility caching helper function
 
 -- Check if a position is within view + margin (for deferred updates)
@@ -1297,13 +1268,28 @@ local processCluster
 local recycleHull
 local FormatResourceText
 do
-	local function getReclaimTotal(cluster, points, resourceType)
+	local maybeYieldClusterWork
+	local function getClusterStats(cluster, points, resourceType)
+		batch.setClusterTracyPhase(batch.clusterTracyNames.stats)
 		local total = 0
+		local maxRadius = 0
+		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
 		for j = 1, #points do
-			total = total + points[j][resourceType]
+			local point = points[j]
+			total = total + point[resourceType]
+			if point.radius and point.radius > maxRadius then
+				maxRadius = point.radius
+			end
+			local x, z = point.x, point.z
+			if x < xmin then xmin = x end
+			if x > xmax then xmax = x end
+			if z < zmin then zmin = z end
+			if z > zmax then zmax = z end
+			maybeYieldClusterWork(1)
 		end
 		cluster[resourceType] = total
 		cluster.text = FormatResourceText(total)
+		return max(maxRadius, 20), xmin, xmax, zmin, zmax
 	end
 
 	local function getClusterDimensions(cluster, points)
@@ -1354,13 +1340,13 @@ do
 
 	-- Shared cluster-job yield helper for heavy hull construction loops.
 	local clusterHotLoopCounter = 0
-	local function maybeYieldClusterWork(step)
+	maybeYieldClusterWork = function(step)
 		if not batch.clusterJobActive then return end
 		clusterHotLoopCounter = clusterHotLoopCounter + (step or 1)
 		if clusterHotLoopCounter >= 64 then
 			clusterHotLoopCounter = 0
 			if osClock() - batch.clusterJobStart >= batch.clusterJobBudget then
-				coroutine.yield()
+				batch.yieldClusterJob()
 			end
 		end
 	end
@@ -1370,6 +1356,7 @@ do
 	---Credit: mindthenerd.blogspot.ru/2012/05/fastest-convex-hull-algorithm-ever.html
 	---Also: www-cgrl.cs.mcgill.ca/~godfried/publications/fast.convex.hull.algorithm.pdf
 	local function convexSetConditioning(points)
+		batch.setClusterTracyPhase(batch.clusterTracyNames.condition)
 		-- tableSort(points, sortMonotonic) -- Moved to previous, shared step.
 		local remaining = { points[1] }
 		local x, z = points[1].x, points[1].z
@@ -1439,13 +1426,25 @@ do
 			maybeYieldClusterWork(1)
 		end
 
-		-- (4) The second pass removes remaining points that are inside the inner rectangle.
-		for jj = #remaining - 1, 1, -1 do
-			local x, z = remaining[jj].x, remaining[jj].z
-			if x > rxmin and x < rxmax and z > rzmin and z < rzmax then
-				remove(remaining, jj)
+		-- (4) The second pass removes remaining points that are inside the inner
+		-- rectangle. Compact in place instead of repeatedly shifting the array.
+		-- The last point is intentionally retained, matching the previous reverse
+		-- removal loop which stopped at #remaining - 1.
+		local remainingCount = #remaining
+		local lastPoint = remaining[remainingCount]
+		local writeIndex = 1
+		for readIndex = 1, remainingCount - 1 do
+			local point = remaining[readIndex]
+			local x, z = point.x, point.z
+			if not (x > rxmin and x < rxmax and z > rzmin and z < rzmax) then
+				remaining[writeIndex] = point
+				writeIndex = writeIndex + 1
 			end
 			maybeYieldClusterWork(1)
+		end
+		remaining[writeIndex] = lastPoint
+		for i = writeIndex + 1, remainingCount do
+			remaining[i] = nil
 		end
 
 		return remaining
@@ -1466,6 +1465,7 @@ do
 		end
 
 		MonotoneChain = function (points)
+			batch.setClusterTracyPhase(batch.clusterTracyNames.monotone)
 			local numPoints = #points
 			if numPoints < 3 then return end
 			-- tableSort(points, sortMonotonic) -- Moved to previous, shared step.
@@ -1474,9 +1474,9 @@ do
 			for i = 1, numPoints do
 				local point = points[i]
 				while (#lower >= 2 and cross(lower[#lower - 1], lower[#lower], point) <= 0) do
-					remove(lower)
+					lower[#lower] = nil
 				end
-				insert(lower, point)
+				lower[#lower + 1] = point
 				maybeYieldClusterWork(1)
 			end
 
@@ -1484,16 +1484,16 @@ do
 			for i = numPoints, 1, -1 do
 				local point = points[i]
 				while (#upper >= 2 and cross(upper[#upper - 1], upper[#upper], point) <= 0) do
-					remove(upper)
+					upper[#upper] = nil
 				end
-				insert(upper, point)
+				upper[#upper + 1] = point
 				maybeYieldClusterWork(1)
 			end
 
-			remove(upper)
-			remove(lower)
+			upper[#upper] = nil
+			lower[#lower] = nil
 			for i = 1, #lower do
-				insert(upper, lower[i])
+				upper[#upper + 1] = lower[i]
 			end
 			return upper
 		end
@@ -1525,18 +1525,8 @@ do
 		end
 	end
 
-	local function BoundingBox(cluster, points)
-		-- Calculate max radius of wrecks
-		local maxRadius = 0
-		for i = 1, #points do
-			if points[i].radius and points[i].radius > maxRadius then
-				maxRadius = points[i].radius
-			end
-		end
-
-		-- Ensure minimum radius for visibility
-		maxRadius = max(maxRadius, 20)
-
+	local function BoundingBox(cluster, points, maxRadius)
+		batch.setClusterTracyPhase(batch.clusterTracyNames.bounding)
 		local convexHull
 
 		if #points == 1 then
@@ -1625,8 +1615,46 @@ do
 	local subdividedBuf = {}
 	local subdividedBufLen = 0
 	local expandedBuf = {}
+	local catmullBasis = {}
+	local catmullBasisSegments = 0
+	local function getGeometrySegments()
+		if smoothingSegments <= 0 then
+			return 0
+		end
+		local zoomBonus = cameraScale <= 1.5 and 2 or (cameraScale <= 2.5 and 1 or 0)
+		return smoothingSegments + zoomBonus
+	end
+
+	local function getCatmullBasis(segmentsPerEdge)
+		if catmullBasisSegments == segmentsPerEdge then
+			return catmullBasis
+		end
+
+		local previousCount = catmullBasisSegments
+		for seg = 0, segmentsPerEdge - 1 do
+			local t = seg / segmentsPerEdge
+			local t2 = t * t
+			local t3 = t2 * t
+			local coefficients = catmullBasis[seg + 1]
+			if not coefficients then
+				coefficients = {}
+				catmullBasis[seg + 1] = coefficients
+			end
+			coefficients[1] = -0.5 * t3 + t2 - 0.5 * t
+			coefficients[2] = 1.5 * t3 - 2.5 * t2 + 1.0
+			coefficients[3] = -1.5 * t3 + 2.0 * t2 + 0.5 * t
+			coefficients[4] = 0.5 * t3 - 0.5 * t2
+		end
+		for i = segmentsPerEdge + 1, previousCount do
+			catmullBasis[i] = nil
+		end
+		catmullBasisSegments = segmentsPerEdge
+		return catmullBasis
+	end
+
 	-- Subdivide long edges in hull to ensure smooth expansion
 	local function subdivideHull(hull, maxEdgeLength)
+		batch.setClusterTracyPhase(batch.clusterTracyNames.subdivide)
 		if not hull or #hull < 3 then return hull end
 
 		local count = 0
@@ -1688,7 +1716,7 @@ do
 	end
 
 	-- Expand hull outward by a margin and create rounded corners with Catmull-Rom smoothing
-	local function expandAndSmoothHull(hull, expandDist)
+	local function expandAndSmoothHull(hull, expandDist, segmentsPerEdge)
 		if not hull or #hull < 3 then return hull end
 
 		-- Subdivide long edges first to ensure smooth, even expansion
@@ -1696,6 +1724,7 @@ do
 		local maxEdgeLength = max(expandDist * 1.5, 80)  -- At least one subdivision per ~expansion distance
 		hull = subdivideHull(hull, maxEdgeLength)
 
+		batch.setClusterTracyPhase(batch.clusterTracyNames.expand)
 		local n = #hull
 
 		-- Calculate centroid for radial expansion
@@ -1780,7 +1809,7 @@ do
 		end
 
 		-- If smoothing disabled, copy from buffer (can't return shared buffer)
-		if smoothingSegments <= 0 then
+		if segmentsPerEdge <= 0 then
 			local result = {}
 			for i = 1, n do
 				local e = expandedBuf[i]
@@ -1791,10 +1820,9 @@ do
 		end
 
 		-- Second pass: Apply Catmull-Rom spline interpolation for smooth curves
+		batch.setClusterTracyPhase(batch.clusterTracyNames.catmull)
 		local smoothed = {}
-		-- Boost smoothing when zoomed in (at no extra cost since we're already rebuilding)
-		local zoomBonus = cameraScale <= 1.5 and 2 or (cameraScale <= 2.5 and 1 or 0)
-		local segmentsPerEdge = smoothingSegments + zoomBonus
+		local basis = getCatmullBasis(segmentsPerEdge)
 
 		for i = 1, n do
 			local p0 = expandedBuf[i == 1 and n or i - 1]
@@ -1804,15 +1832,8 @@ do
 
 			-- Catmull-Rom spline between p1 and p2
 			for seg = 0, segmentsPerEdge - 1 do
-				local t = seg / segmentsPerEdge
-				local t2 = t * t
-				local t3 = t2 * t
-
-				-- Catmull-Rom basis
-				local c0 = -0.5 * t3 + t2 - 0.5 * t
-				local c1 = 1.5 * t3 - 2.5 * t2 + 1.0
-				local c2 = -1.5 * t3 + 2.0 * t2 + 0.5 * t
-				local c3 = 0.5 * t3 - 0.5 * t2
+				local coefficients = basis[seg + 1]
+				local c0, c1, c2, c3 = coefficients[1], coefficients[2], coefficients[3], coefficients[4]
 
 				local newX = c0 * p0.x + c1 * p1.x + c2 * p2.x + c3 * p3.x
 				local newZ = c0 * p0.z + c1 * p1.z + c2 * p2.z + c3 * p3.z
@@ -1829,7 +1850,8 @@ do
 	end
 
 	-- Split a large cluster into smaller sub-clusters using spatial subdivision
-	local function splitLargeCluster(points, clusterWidth, clusterDepth)
+	local function splitLargeCluster(points, clusterWidth, clusterDepth, xmin, xmax, zmin, zmax)
+		batch.setClusterTracyPhase(batch.clusterTracyNames.split)
 		-- Calculate how many subdivisions we need
 		local xDivisions = math.ceil(clusterWidth / maxClusterSize)
 		local zDivisions = math.ceil(clusterDepth / maxClusterSize)
@@ -1837,17 +1859,6 @@ do
 		-- If no splitting needed, return nil
 		if xDivisions <= 1 and zDivisions <= 1 then
 			return nil
-		end
-
-		-- Find bounds of all points
-		local xmin, xmax, zmin, zmax = mathHuge, -mathHuge, mathHuge, -mathHuge
-		for i = 1, #points do
-			local x, z = points[i].x, points[i].z
-			xmin = min(xmin, x)
-			xmax = max(xmax, x)
-			zmin = min(zmin, z)
-			zmax = max(zmax, z)
-			maybeYieldClusterWork(1)
 		end
 
 		-- Create grid cells
@@ -1872,24 +1883,147 @@ do
 		return subClusters
 	end
 
-	processCluster = function (cluster, clusterID, points, resourceType, targetHulls, targetClusters, nextClusterId)
-		getReclaimTotal(cluster, points, resourceType or "metal")
+	processCluster = function (
+		cluster, clusterID, points, resourceType, targetHulls, targetClusters, nextClusterId,
+		previousCluster, previousHull, alternateCluster, alternateHull
+	)
+		local maxRadius, xmin, xmax, zmin, zmax
+		if cluster.statsMaxRadius then
+			maxRadius = cluster.statsMaxRadius
+			xmin, xmax = cluster.statsXmin, cluster.statsXmax
+			zmin, zmax = cluster.statsZmin, cluster.statsZmax
+			cluster.statsMaxRadius = nil
+			cluster.statsXmin, cluster.statsXmax = nil, nil
+			cluster.statsZmin, cluster.statsZmax = nil, nil
+		else
+			maxRadius, xmin, xmax, zmin, zmax = getClusterStats(cluster, points, resourceType or "metal")
+		end
+		local geometrySegments = getGeometrySegments()
+		local exactPreviousMembership = previousCluster
+			and previousCluster.members
+			and #previousCluster.members == #points
+		if exactPreviousMembership and previousCluster.uid then
+			cluster.identityUid = previousCluster.uid
+			cluster.identityMembersCurrent = true
+		end
+
+		-- Feature positions and radii are immutable after entering knownFeatures.
+		-- If membership and smoothing quality are unchanged, transfer the old hull
+		-- instead of repeating sorting, hull construction, ground queries and spline
+		-- generation. Resource totals above are still refreshed from current values.
+		local reusableCluster, reusableHull, copyHull, partialReuse
+		if previousCluster and previousHull
+			and previousCluster.font ~= 0
+			and previousCluster.geometrySegments == geometrySegments
+			and previousCluster.geometryTerrainGeneration == batch.terrainGeneration
+		then
+			if exactPreviousMembership then
+				reusableCluster, reusableHull = previousCluster, previousHull
+			elseif previousCluster.geometryMaxRadius == maxRadius
+				and previousCluster.geometryDependencyFids
+			then
+				local cidField = resourceType == "energy" and "energyCid" or "cid"
+				local dependenciesPresent = true
+				for i = 1, #previousCluster.geometryDependencyFids do
+					local feature = knownFeatures[previousCluster.geometryDependencyFids[i]]
+					if not feature or feature[cidField] ~= clusterID then
+						dependenciesPresent = false
+						break
+					end
+				end
+				if dependenciesPresent then
+					reusableCluster, reusableHull, partialReuse = previousCluster, previousHull, true
+				end
+			end
+		end
+		if not reusableCluster and alternateCluster and alternateHull
+			and alternateCluster.font ~= 0
+			and alternateCluster.geometrySegments == geometrySegments
+			and alternateCluster.geometryTerrainGeneration == batch.terrainGeneration
+			and alternateCluster.members and #alternateCluster.members == #points
+		then
+			reusableCluster, reusableHull, copyHull = alternateCluster, alternateHull, true
+		end
+
+		if reusableCluster then
+			local reusePhase = batch.clusterTracyNames.reuse
+			if copyHull then
+				reusePhase = batch.clusterTracyNames.copyHull
+			elseif partialReuse then
+				reusePhase = batch.clusterTracyNames.partialReuse
+			end
+			batch.setClusterTracyPhase(reusePhase)
+			if not partialReuse then
+				cluster.members = reusableCluster.members
+			end
+			cluster.center = reusableCluster.center
+			cluster.width = reusableCluster.width
+			cluster.depth = reusableCluster.depth
+			cluster.xmin = reusableCluster.xmin
+			cluster.xmax = reusableCluster.xmax
+			cluster.zmin = reusableCluster.zmin
+			cluster.zmax = reusableCluster.zmax
+			cluster.dx = reusableCluster.dx
+			cluster.dz = reusableCluster.dz
+			cluster.area = reusableCluster.area
+			cluster.font = reusableCluster.font
+			cluster.radius = reusableCluster.radius
+			cluster.geometrySegments = geometrySegments
+			cluster.geometryTerrainGeneration = batch.terrainGeneration
+			cluster.geometryMaxRadius = reusableCluster.geometryMaxRadius
+			cluster.geometryDependencyFids = reusableCluster.geometryDependencyFids
+			if copyHull then
+				local hullCopy = {}
+				for i = 1, #reusableHull do
+					local point = reusableHull[i]
+					hullCopy[i] = acquirePoint(point.x, point.y, point.z)
+					maybeYieldClusterWork(1)
+				end
+				targetHulls[clusterID] = hullCopy
+			else
+				targetHulls[clusterID] = reusableHull
+				reusableCluster.hullReused = true
+			end
+			return nil, true, copyHull, partialReuse
+		end
 
 		local convexHull, hullArea
 		local usedBoundingBox = false
-		local maxRadius = 0
-
-		-- Calculate max wreck radius for scaling
-		for i = 1, #points do
-			if points[i].radius and points[i].radius > maxRadius then
-				maxRadius = points[i].radius
-			end
-			maybeYieldClusterWork(1)
-		end
-		maxRadius = max(maxRadius, 20)
 
 		if #points >= 3 then
-			tableSort(points, sortMonotonic) -- Moved to avoid repeating the sort.
+			if not cluster.membersSorted then
+				batch.setClusterTracyPhase(batch.clusterTracyNames.sort)
+				tableSort(points, sortMonotonic)
+				cluster.membersSorted = true
+			end
+
+			local clusterWidth = xmax - xmin
+			local clusterDepth = zmax - zmin
+			if targetClusters and nextClusterId and (clusterWidth > maxClusterSize or clusterDepth > maxClusterSize) then
+				-- The parent is hidden whenever splitting succeeds, so avoid building
+				-- a convex hull that would immediately be discarded. Points are sorted
+				-- first exactly as before, preserving child insertion and output order.
+				local subClusters = splitLargeCluster(points, clusterWidth, clusterDepth, xmin, xmax, zmin, zmax)
+				if subClusters then
+					local newClusters = {}
+					local subClusterIndex = nextClusterId
+					for _, subPoints in pairs(subClusters) do
+						if #subPoints >= 3 then
+							local subCluster = { members = subPoints }
+							processCluster(subCluster, subClusterIndex, subPoints, resourceType, targetHulls, nil, nil)
+							newClusters[#newClusters + 1] = subCluster
+							subClusterIndex = subClusterIndex + 1
+						end
+						maybeYieldClusterWork(1)
+					end
+					if #newClusters > 0 then
+						targetHulls[clusterID] = nil
+						cluster.font = 0
+						return newClusters
+					end
+				end
+			end
+
 			if #points >= 60 then
 				convexHull = MonotoneChain(convexSetConditioning(points))
 			else
@@ -1898,33 +2032,6 @@ do
 			hullArea = polygonArea(convexHull)
 			getClusterDimensions(cluster, convexHull)
 
-			-- Check if cluster is too large and needs splitting
-			if targetClusters and nextClusterId and (cluster.width > maxClusterSize or cluster.depth > maxClusterSize) then
-				-- Split this cluster into sub-clusters
-				local subClusters = splitLargeCluster(points, cluster.width, cluster.depth)
-				if subClusters then
-					-- Process each sub-cluster and collect them
-					local newClusters = {}
-					local subClusterIndex = nextClusterId
-					for _, subPoints in pairs(subClusters) do
-						if #subPoints >= 3 then -- Only process sub-clusters with enough points
-							local subCluster = {}
-							subCluster.members = subPoints
-							processCluster(subCluster, subClusterIndex, subPoints, resourceType, targetHulls, nil, nil)
-							table.insert(newClusters, subCluster)
-							subClusterIndex = subClusterIndex + 1
-						end
-						maybeYieldClusterWork(1)
-					end
-					-- Return sub-clusters to be added to main array
-					if #newClusters > 0 then
-						-- Don't create hull for original cluster
-						targetHulls[clusterID] = nil
-						cluster.font = 0 -- Hide text for split cluster
-						return newClusters
-					end
-				end
-			end
 		else
 			hullArea = 0
 			getClusterDimensions(cluster, points)
@@ -1932,7 +2039,7 @@ do
 
 		-- Replace lines and sets of one or two with a bounding box.
 		if hullArea < areaTextMin then
-			local boundingConvex, boundingArea = BoundingBox(cluster, points)
+			local boundingConvex, boundingArea = BoundingBox(cluster, points, maxRadius)
 			-- Only replace if BoundingBox succeeded
 			if boundingConvex and #boundingConvex >= 3 then
 				convexHull, hullArea = boundingConvex, boundingArea
@@ -1959,6 +2066,20 @@ do
 		-- Apply to all cases including BoundingBox for smooth organic shapes
 		-- expandDist: how much to expand outward (in elmos)
 		if convexHull and #convexHull >= 3 then
+			local geometryDependencyFids = {}
+			for i = 1, #convexHull do
+				local fid = convexHull[i].fid
+				if fid then
+					geometryDependencyFids[#geometryDependencyFids + 1] = fid
+				end
+			end
+			if #geometryDependencyFids == 0 then
+				for i = 1, #points do
+					geometryDependencyFids[i] = points[i].fid
+				end
+			end
+			cluster.geometryDependencyFids = geometryDependencyFids
+			cluster.geometryMaxRadius = maxRadius
 			-- Scale expansion with wreck size for proportional fields
 			-- Increased expansion values for more encompassing, uniform fields
 			local expansion
@@ -1972,7 +2093,9 @@ do
 
 			-- Always use the standard expand+smooth method which follows the hull shape
 			-- The ellipse approach was too rigid and caused overshooting
-			local expandedHull = expandAndSmoothHull(convexHull, expansion)
+			cluster.geometrySegments = geometrySegments
+			cluster.geometryTerrainGeneration = batch.terrainGeneration
+			local expandedHull = expandAndSmoothHull(convexHull, expansion, geometrySegments)
 			-- Ensure we don't lose the hull if expansion fails
 			if expandedHull and #expandedHull >= 3 then
 				convexHull = expandedHull
@@ -1994,6 +2117,8 @@ end
 local Optics = {}
 do
 	local unprocessed -- Intermediate table for processing points
+	local rootCandidates = {}
+	local rootCandidateCount = 0
 	local currentResourceType -- Track which resource type we're clustering for
 
 	---Get ready for a clustering run
@@ -2002,23 +2127,45 @@ do
 		if not unprocessed then
 			unprocessed = {}
 		end
+		local energyPositiveCount = 0
 		for fid, feature in pairs(knownFeatures) do
+			if currentResourceType == "energy" and feature.energy and feature.energy > 0 then
+				energyPositiveCount = energyPositiveCount + 1
+			end
 			-- Only include features that have this resource type
 			if feature[currentResourceType] and feature[currentResourceType] >= minFeatureValue then
 				unprocessed[fid] = true
 			end
 		end
+		if currentResourceType == "energy" then
+			batch.clusterEnergyPositiveCount = energyPositiveCount
+		end
+
+		-- Materialize the table's native iteration order once. Repeated
+		-- next(unprocessed) calls restart at the first hash slot for every
+		-- component; on maps with many energy components that repeatedly walks the
+		-- already-cleared prefix. This list preserves the same root order.
+		local previousCount = rootCandidateCount
+		rootCandidateCount = 0
+		for fid in pairs(unprocessed) do
+			rootCandidateCount = rootCandidateCount + 1
+			rootCandidates[rootCandidateCount] = fid
+		end
+		for i = rootCandidateCount + 1, previousCount do
+			rootCandidates[i] = nil
+		end
 	end
 
-	---Update the priority queue to contain the list of neighbors.
-	local function Update(neighbors, point, seedsPQ)
-		for fid, distSq in pairs(neighbors) do
+	---Add unprocessed neighbors to the component worklist.
+	local function AddNeighbors(neighbors, worklist, workCount)
+		for fid in pairs(neighbors) do
 			if unprocessed[fid] == true then
 				unprocessed[fid] = nil
-				local np = knownFeatures[fid]
-				seedsPQ:push(np.rd or mathHuge, np)
+				workCount = workCount + 1
+				worklist[workCount] = knownFeatures[fid]
 			end
 		end
+		return workCount
 	end
 
 	---Runs a both simplified and augmented OPTICS sequencing step.
@@ -2029,71 +2176,180 @@ do
 	---Builds into the supplied staging tables (not the live globals) and, when
 	---run inside a reclustering coroutine, yields once the per-frame time budget
 	---is spent so a ~9k-feature rebuild is spread across frames without stutter.
-	local function Run(_self, targetClusters, targetHulls)
+	local function Run(_self, targetClusters, targetHulls, alternateClusters, alternateHulls)
+		batch.clusterTracyResource = currentResourceType
+		batch.setClusterTracyPhase(batch.clusterTracyNames.setup)
 		Setup()
 
-		local cidField
+		local cidField, previousClusters, previousHulls, alternateCidField, alternateResourceType
 		if currentResourceType == "energy" then
 			cidField = "energyCid"
+			previousClusters = energyFeatureClusters
+			previousHulls = energyFeatureConvexHulls
+			if alternateClusters then
+				alternateCidField = "cid"
+				alternateResourceType = "metal"
+			end
 		else
 			cidField = "cid"
+			previousClusters = featureClusters
+			previousHulls = featureConvexHulls
 		end
 
 		local clusterID = #targetClusters
-		local seedsPQ = PriorityQueue.new()
-		local featureID = next(unprocessed)
+		local worklist = {}
+		local workCount = 0
+		local rootIndex = 1
 		local spreadSinceCheck = 0
 		clusterHotLoopCounter = 0
 		local function maybeYield()
 			if batch.clusterJobActive and (osClock() - batch.clusterJobStart >= batch.clusterJobBudget) then
-				coroutine.yield()
+				batch.yieldClusterJob()
 			end
 		end
-		while featureID do
-			-- Start a new cluster.
-			local point = knownFeatures[featureID]
-			local members = { point }
-			local cluster = { members = members }
-			clusterID = clusterID + 1
-			targetClusters[clusterID] = cluster
+		batch.setClusterTracyPhase(batch.clusterTracyNames.graph)
+		while rootIndex <= rootCandidateCount do
+			local featureID = rootCandidates[rootIndex]
+			rootIndex = rootIndex + 1
+			if unprocessed[featureID] == true then
+				-- Start a new cluster.
+				local point = knownFeatures[featureID]
+				local previousCid = point[cidField]
+				local samePreviousCluster = previousCid ~= nil
+				local alternateCid = alternateCidField
+					and point[alternateResourceType] >= minFeatureValue
+					and point[alternateCidField]
+				local sameAlternateCluster = alternateCid ~= nil
+				local members = { point }
+				local pointRadius = point.radius or 0
+				local resourceTotal = point[currentResourceType]
+				local cluster = {
+					members = members,
+					previousCid = previousCid,
+					alternateCid = alternateCid,
+					statsMaxRadius = pointRadius,
+					statsXmin = point.x,
+					statsXmax = point.x,
+					statsZmin = point.z,
+					statsZmax = point.z,
+				}
+				clusterID = clusterID + 1
+				targetClusters[clusterID] = cluster
 
-			-- Process visited points, like so.
-			point[cidField] = clusterID
-			unprocessed[featureID] = nil
+				-- Process visited points, like so.
+				point[cidField] = clusterID
+				unprocessed[featureID] = nil
 
-			-- Process immediate neighbors.
-			local neighbors = featureNeighborsMatrix[featureID]
-			seedsPQ:clear()
-			Update(neighbors, point, seedsPQ)
+				-- Process immediate neighbors.
+				local neighbors = featureNeighborsMatrix[featureID]
+				workCount = AddNeighbors(neighbors, worklist, workCount)
 
-			-- Spread through next-neighbors by moving to the nearest point.
-			local pt = seedsPQ:pop()
-			while pt do
-				members[#members+1] = pt
-				pt[cidField] = clusterID
+				-- Spread through the entire epsilon-connected component.
+				while workCount > 0 do
+					local pt = worklist[workCount]
+					worklist[workCount] = nil
+					workCount = workCount - 1
+					members[#members+1] = pt
+					resourceTotal = resourceTotal + pt[currentResourceType]
+					local radius = pt.radius or 0
+					if radius > cluster.statsMaxRadius then cluster.statsMaxRadius = radius end
+					local x, z = pt.x, pt.z
+					if x < cluster.statsXmin then cluster.statsXmin = x end
+					if x > cluster.statsXmax then cluster.statsXmax = x end
+					if z < cluster.statsZmin then cluster.statsZmin = z end
+					if z > cluster.statsZmax then cluster.statsZmax = z end
+					if pt[cidField] ~= previousCid then
+						samePreviousCluster = false
+					end
+					if sameAlternateCluster and (
+						pt[alternateResourceType] < minFeatureValue
+						or pt[alternateCidField] ~= alternateCid
+					) then
+						sameAlternateCluster = false
+					end
+					pt[cidField] = clusterID
 
-				local nextNeighbors = featureNeighborsMatrix[pt.fid]
-				Update(nextNeighbors, pt, seedsPQ)
+					local nextNeighbors = featureNeighborsMatrix[pt.fid]
+					workCount = AddNeighbors(nextNeighbors, worklist, workCount)
 
-				-- The expansion loop can walk thousands of points for one connected
-				-- reclaim field; check budget periodically so one resume never blocks.
-				spreadSinceCheck = spreadSinceCheck + 1
-				if spreadSinceCheck >= 8 then
-					spreadSinceCheck = 0
-					maybeYield()
+					-- The expansion loop can walk thousands of points for one connected
+					-- reclaim field; check budget periodically so one resume never blocks.
+					spreadSinceCheck = spreadSinceCheck + 1
+					if spreadSinceCheck >= 8 then
+						spreadSinceCheck = 0
+						maybeYield()
+					end
 				end
-				pt = seedsPQ:pop()
-			end
+				if not samePreviousCluster then
+					cluster.previousCid = nil
+				end
+				if not sameAlternateCluster then
+					cluster.alternateCid = nil
+				end
+				cluster.statsMaxRadius = max(cluster.statsMaxRadius, 20)
+				cluster[currentResourceType] = resourceTotal
+				cluster.text = FormatResourceText(resourceTotal)
 
-			featureID = next(unprocessed)
-			maybeYield()
+				maybeYield()
+			end
 		end
 
 		-- Post-process each cluster (convex hulls + smoothing = the heavy part).
 		local nextClusterId = clusterID + 1 -- Track next available cluster ID for splits
 		for cid = 1, clusterID do
 			local cluster = targetClusters[cid]
-			local newClusters = processCluster(cluster, cid, cluster.members, currentResourceType, targetHulls, targetClusters, nextClusterId)
+			local previousCid = cluster.previousCid
+			local alternateCid = cluster.alternateCid
+			cluster.previousCid = nil
+			cluster.alternateCid = nil
+			local previousCluster = previousCid and previousClusters[previousCid]
+			local previousHull = previousCid and previousHulls[previousCid]
+			if previousCluster and previousCluster.membersSorted and #cluster.members >= 3 then
+				-- Removal-only components are subsets of their previous component.
+				-- Filter the already sorted member array in place instead of sorting
+				-- the graph traversal order again. This also handles components split
+				-- by a removed connector while preserving exact hull input order.
+				local members = cluster.members
+				for i = #members, 1, -1 do
+					members[i] = nil
+				end
+				local previousMembers = previousCluster.members
+				for i = 1, #previousMembers do
+					local member = previousMembers[i]
+					if member[cidField] == cid then
+						members[#members + 1] = member
+					end
+				end
+				cluster.membersSorted = true
+			end
+			local alternateCluster = alternateCid and alternateClusters[alternateCid]
+			local alternateHull = alternateCid and alternateHulls[alternateCid]
+			if alternateCluster and #alternateCluster.members ~= #cluster.members then
+				alternateCluster = nil
+				alternateHull = nil
+			end
+			local newClusters, reusedHull, copiedHull, partialReuse = processCluster(
+				cluster, cid, cluster.members, currentResourceType,
+				targetHulls, targetClusters, nextClusterId,
+				previousCluster, previousHull, alternateCluster, alternateHull
+			)
+			if reusedHull then
+				if currentResourceType == "energy" then
+					batch.reusedEnergyHulls = batch.reusedEnergyHulls + 1
+				else
+					batch.reusedMetalHulls = batch.reusedMetalHulls + 1
+				end
+				if copiedHull then
+					batch.copiedEnergyHulls = batch.copiedEnergyHulls + 1
+				end
+				if partialReuse then
+					if currentResourceType == "energy" then
+						batch.partialReusedEnergyHulls = batch.partialReusedEnergyHulls + 1
+					else
+						batch.partialReusedMetalHulls = batch.partialReusedMetalHulls + 1
+					end
+				end
+			end
 			if newClusters then
 				-- Cluster was split - add sub-clusters to arrays
 				for i = 1, #newClusters do
@@ -2214,11 +2470,8 @@ local function AddFeature(featureID)
 
 	-- Assuming the feature's motion is highly likely negligible:
 	local M_newFeature = {}
-	local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
+	grid.buildNeighbors(featureID, x, z, M_newFeature)
 	featureNeighborsMatrix[featureID] = M_newFeature
-	if reachDistSq < epsilonSq then
-		feature.rd = reachDistSq
-	end
 	knownFeatures[featureID] = feature
 	grid.insert(featureID, feature)
 	knownFeatureIDs[#knownFeatureIDs + 1] = featureID
@@ -2258,24 +2511,10 @@ local function RemoveFeature(featureID)
 	end
 
 	local neighbors = featureNeighborsMatrix[featureID]
-	local epsilonSq = epsilonSq
-	for nid, distSq in pairs(neighbors) do
-		-- Update the reachability of neighbors linked through this point.
-		local neighbor = knownFeatures[nid]
-		if neighbor then
-			if neighbor.rd == distSq then
-				local nextNeighbors = featureNeighborsMatrix[nid]
-				nextNeighbors[featureID] = nil
-				local reachDistSq = mathHuge
-				for fid2, distSq2 in pairs(nextNeighbors) do
-					if distSq2 < reachDistSq then
-						reachDistSq = distSq2
-					end
-				end
-				neighbor.rd = (reachDistSq <= epsilonSq and reachDistSq) or nil
-			else
-				featureNeighborsMatrix[nid][featureID] = nil
-			end
+	for nid in pairs(neighbors) do
+		local neighborRow = featureNeighborsMatrix[nid]
+		if neighborRow then
+			neighborRow[featureID] = nil
 		end
 	end
 	featureNeighborsMatrix[featureID] = nil
@@ -2322,8 +2561,6 @@ local function UpdateFeatureReclaim()
 	end
 
 	local scanIndex = featureReclaimScanCounter
-	local featuresChecked = 0
-
 	-- Determine what needs updating based on visibility
 	-- Use cached values to avoid function call overhead
 	local needMetalUpdates = drawEnabled
@@ -2340,7 +2577,6 @@ local function UpdateFeatureReclaim()
 		local fid = knownFeatureIDs[scanIndex]
 		local fInfo = fid and knownFeatures[fid]
 		if fInfo then
-			featuresChecked = featuresChecked + 1
 			local metal, _, energy = spGetFeatureResources(fid)
 
 			-- Only remove feature when BOTH metal AND energy are below threshold
@@ -2456,19 +2692,9 @@ local function UpdateFeatureReclaim()
 end
 
 -- Check if all energy fields have been drained
-local function CheckAllEnergyDrained()
+local function CheckAllEnergyDrained(featuresWithEnergy)
 	if not showEnergyFields then
 		return -- Energy fields disabled
-	end
-
-	-- Check if there are any features with energy remaining
-	local totalEnergy = 0
-	local featuresWithEnergy = 0
-	for fid, feature in pairs(knownFeatures) do
-		if feature.energy and feature.energy > 0 then
-			totalEnergy = totalEnergy + feature.energy
-			featuresWithEnergy = featuresWithEnergy + 1
-		end
 	end
 
 	if featuresWithEnergy > 0 then
@@ -2493,20 +2719,75 @@ local function CheckAllEnergyDrained()
 end
 
 -- Track text positions to avoid overlaps
-local drawnTextPositions = {}
+local drawnTextPositions = {
+	grid = {},
+	cellSize = fontSizeMax * 1.5,
+}
 local drawnTextPositionCount = 0
 
 local function WouldTextOverlap(x, z, fontSize)
 	local thresholdSq = (fontSize * 1.5) ^ 2
-	for i = 1, drawnTextPositionCount do
-		local pos = drawnTextPositions[i]
-		local dx = x - pos.x
-		local dz = z - pos.z
-		if dx * dx + dz * dz < thresholdSq then
-			return true, pos
+	local cellSize = drawnTextPositions.cellSize
+	local cellX = floor(x / cellSize)
+	local cellZ = floor(z / cellSize)
+	local cellRange = math.ceil(sqrt(thresholdSq) / cellSize)
+	local grid = drawnTextPositions.grid
+	for gx = cellX - cellRange, cellX + cellRange do
+		local row = grid[gx]
+		if row then
+			for gz = cellZ - cellRange, cellZ + cellRange do
+				local bucket = row[gz]
+				if bucket then
+					for i = 1, #bucket do
+						local pos = bucket[i]
+						local dx = x - pos.x
+						local dz = z - pos.z
+						if dx * dx + dz * dz < thresholdSq then
+							return true, pos
+						end
+					end
+				end
+			end
 		end
 	end
 	return false, nil
+end
+
+local function ResetDrawnTextPositions()
+	drawnTextPositionCount = 0
+	local grid = drawnTextPositions.grid
+	for cellX in pairs(grid) do
+		grid[cellX] = nil
+	end
+end
+
+local function AddDrawnTextPosition(x, z, fontSize)
+	drawnTextPositionCount = drawnTextPositionCount + 1
+	local posEntry = drawnTextPositions[drawnTextPositionCount]
+	if posEntry then
+		posEntry.x = x
+		posEntry.z = z
+		posEntry.fontSize = fontSize
+	else
+		posEntry = {x = x, z = z, fontSize = fontSize}
+		drawnTextPositions[drawnTextPositionCount] = posEntry
+	end
+
+	local cellSize = drawnTextPositions.cellSize
+	local cellX = floor(x / cellSize)
+	local cellZ = floor(z / cellSize)
+	local grid = drawnTextPositions.grid
+	local row = grid[cellX]
+	if not row then
+		row = {}
+		grid[cellX] = row
+	end
+	local bucket = row[cellZ]
+	if not bucket then
+		bucket = {}
+		row[cellZ] = bucket
+	end
+	bucket[#bucket + 1] = posEntry
 end
 
 -- Pre-computed offset multipliers (avoid table allocation per call)
@@ -2544,7 +2825,7 @@ FormatResourceText = function(value)
 end
 
 local function EnsureClusterTextAnchors()
-	drawnTextPositionCount = 0
+	ResetDrawnTextPositions()
 	for cid = 1, #featureClusters do
 		local cluster = featureClusters[cid]
 		if cluster and cluster.center and cluster.font and cluster.font > 0 then
@@ -2558,15 +2839,7 @@ local function EnsureClusterTextAnchors()
 			end
 			cluster.textX = textX
 			cluster.textZ = textZ
-			drawnTextPositionCount = drawnTextPositionCount + 1
-			local posEntry = drawnTextPositions[drawnTextPositionCount]
-			if posEntry then
-				posEntry.x = textX
-				posEntry.z = textZ
-				posEntry.fontSize = fontSize
-			else
-				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
-			end
+			AddDrawnTextPosition(textX, textZ, fontSize)
 		end
 	end
 	if showEnergyFields then
@@ -2583,15 +2856,7 @@ local function EnsureClusterTextAnchors()
 				end
 				cluster.textX = textX
 				cluster.textZ = textZ
-				drawnTextPositionCount = drawnTextPositionCount + 1
-				local posEntry = drawnTextPositions[drawnTextPositionCount]
-				if posEntry then
-					posEntry.x = textX
-					posEntry.z = textZ
-					posEntry.fontSize = fontSize
-				else
-					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
-				end
+				AddDrawnTextPosition(textX, textZ, fontSize)
 			end
 		end
 	end
@@ -2613,17 +2878,33 @@ local function ClusterizeFeatures()
 		stagingEnergyClusters = {}
 		stagingEnergyHulls = {}
 		opticsObject:SetResourceType("energy")
-		opticsObject:Run(stagingEnergyClusters, stagingEnergyHulls)
+		opticsObject:Run(stagingEnergyClusters, stagingEnergyHulls, stagingClusters, stagingHulls)
 	end
 
 	-- Atomic swap: recycle the old hulls and point the live globals at the new
 	-- staging tables. (Pre-clustering snapshots still hold the old hull refs for
 	-- fade-out, matching the previous synchronous recycle-then-sync ordering.)
-	for _, hull in pairs(featureConvexHulls) do recycleHull(hull) end
+	batch.clusterTracyResource = nil
+	batch.setClusterTracyPhase(batch.clusterTracyNames.swap)
+	for cid, hull in pairs(featureConvexHulls) do
+		local oldCluster = featureClusters[cid]
+		if oldCluster and oldCluster.hullReused then
+			oldCluster.hullReused = nil
+		else
+			recycleHull(hull)
+		end
+	end
 	featureClusters = stagingClusters
 	featureConvexHulls = stagingHulls
 	if showEnergyFields then
-		for _, hull in pairs(energyFeatureConvexHulls) do recycleHull(hull) end
+		for cid, hull in pairs(energyFeatureConvexHulls) do
+			local oldCluster = energyFeatureClusters[cid]
+			if oldCluster and oldCluster.hullReused then
+				oldCluster.hullReused = nil
+			else
+				recycleHull(hull)
+			end
+		end
 		energyFeatureClusters = stagingEnergyClusters
 		energyFeatureConvexHulls = stagingEnergyHulls
 	end
@@ -2654,11 +2935,12 @@ local function ClusterizeFeatures()
 
 	-- Check if all energy has been drained after clustering
 	if showEnergyFields then
-		CheckAllEnergyDrained()
+		CheckAllEnergyDrained(batch.clusterEnergyPositiveCount)
 	end
 
 	-- Pre-compute overlap-adjusted text positions for all clusters
-	drawnTextPositionCount = 0
+	batch.setClusterTracyPhase(batch.clusterTracyNames.text)
+	ResetDrawnTextPositions()
 	for cid = 1, #featureClusters do
 		local cluster = featureClusters[cid]
 		if cluster and cluster.center then
@@ -2669,15 +2951,7 @@ local function ClusterizeFeatures()
 			end
 			cluster.textX = textX
 			cluster.textZ = textZ
-			drawnTextPositionCount = drawnTextPositionCount + 1
-			local posEntry = drawnTextPositions[drawnTextPositionCount]
-			if posEntry then
-				posEntry.x = textX
-				posEntry.z = textZ
-				posEntry.fontSize = fontSize
-			else
-				drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
-			end
+			AddDrawnTextPosition(textX, textZ, fontSize)
 		end
 	end
 	if showEnergyFields then
@@ -2691,18 +2965,11 @@ local function ClusterizeFeatures()
 				end
 				cluster.textX = textX
 				cluster.textZ = textZ
-				drawnTextPositionCount = drawnTextPositionCount + 1
-				local posEntry = drawnTextPositions[drawnTextPositionCount]
-				if posEntry then
-					posEntry.x = textX
-					posEntry.z = textZ
-					posEntry.fontSize = fontSize
-				else
-					drawnTextPositions[drawnTextPositionCount] = {x = textX, z = textZ, fontSize = fontSize}
-				end
+				AddDrawnTextPosition(textX, textZ, fontSize)
 			end
 		end
 	end
+	batch.finishClusterTracy()
 end
 
 --------------------------------------------------------------------------------
@@ -3023,6 +3290,7 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	if oldHash and oldHash == newHash then
 		return -- No change, keep existing display list
 	end
+	tracy.ZoneBeginN("W:ReclaimField:CompileDisplayList")
 
 	if debugTiming then timingAccum.rebuilds = timingAccum.rebuilds + 1 end
 
@@ -3076,6 +3344,7 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 
 	-- Update state hash after successful recreation
 	stateHashes[cid] = newHash
+	tracy.ZoneEnd()
 end
 
 -- Build (or rebuild) display lists for a single fading-out cluster entry.
@@ -3091,6 +3360,7 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 	local alphaMult = entry.alpha or entry.startAlpha or 1
 	if alphaMult < 0 then alphaMult = 0 end
 	if alphaMult > 1 then alphaMult = 1 end
+	tracy.ZoneBeginN("W:ReclaimField:CompileFadingDisplayList")
 
 	-- Reuse table if present; otherwise allocate
 	local dl = entry.displayLists
@@ -3122,6 +3392,7 @@ local function CreateFadingClusterDisplayList(uid, isEnergy)
 		dl.edge = glCreateList(dlScratch.emitEdge)
 	end
 	entry.lastBakedAlpha = alphaMult
+	tracy.ZoneEnd()
 end
 
 local cachedCameraFacing = 0
@@ -3307,11 +3578,8 @@ local function ProcessFlyingFeatures(frame)
 						MarkRegionDirty(x, z)
 
 						local M_newFeature = {}
-						local reachDistSq = grid.buildNeighbors(featureID, x, z, M_newFeature)
+						grid.buildNeighbors(featureID, x, z, M_newFeature)
 						featureNeighborsMatrix[featureID] = M_newFeature
-						if reachDistSq < epsilonSq then
-							fInfo.rd = reachDistSq
-						end
 						knownFeatures[featureID] = fInfo
 						grid.insert(featureID, fInfo)
 						cachedKnownFeaturesCount = cachedKnownFeaturesCount + 1
@@ -3492,6 +3760,7 @@ local function UpdateReclaimFields()
 		if debugTiming then
 			local dt = osClock() - tClusterSlice0
 			timingAccum.clusterSlice = timingAccum.clusterSlice + dt
+			batch.clusterJobCpu = batch.clusterJobCpu + dt
 			if dt > timingAccum.maxClusterSlice then timingAccum.maxClusterSlice = dt end
 			if dt * 1000 >= timingAccum.spikeMs and (now - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
 				timingAccum.lastSpikeClock = now
@@ -3507,9 +3776,16 @@ local function UpdateReclaimFields()
 			end
 		end
 		if not ok then
+			batch.finishClusterTracy()
 			Spring.Echo("[ReclaimFieldHighlight] cluster job error: " .. tostring(err))
 			batch.clusterJobActive = false
 			batch.clusterJobCo = nil
+			for cid = 1, #featureClusters do
+				featureClusters[cid].hullReused = nil
+			end
+			for cid = 1, #energyFeatureClusters do
+				energyFeatureClusters[cid].hullReused = nil
+			end
 			batch.waitForFreshMetal = false
 			batch.waitForFreshEnergy = false
 			batch.metalRevealPending = false
@@ -3518,6 +3794,7 @@ local function UpdateReclaimFields()
 			UpdateDrawEnergyEnabled()
 		elseif coroutine.status(batch.clusterJobCo) == "dead" then
 			local tFinalize0 = debugTiming and osClock() or 0
+			batch.lastClusterJobCpu = batch.clusterJobCpu
 			-- Build finished this frame: adopt the new clusters, match identities
 			-- for fade animations. Don't force a full display-list rebuild here:
 			-- it can spike this frame on large maps. The normal incremental redraw
@@ -3529,7 +3806,12 @@ local function UpdateReclaimFields()
 			batch.metalRevealPending = false
 			batch.energyRevealPending = false
 			dirty.removedSinceCluster = 0
+			if batch.clusterJobTerrainGeneration ~= batch.terrainGeneration then
+				dirty.needCluster = true
+			end
+			tracy.ZoneBeginN("W:ReclaimField:Cluster:IdentitySync")
 			animState.SyncClusterIdentitiesAfterClustering()
+			tracy.ZoneEnd()
 			lastClusterRebuildClock = now
 			lastCheckFrame = frame
 			lastCheckFrameClock = now
@@ -3540,13 +3822,27 @@ local function UpdateReclaimFields()
 				local dt = osClock() - tFinalize0
 				timingAccum.clusterFinalize = timingAccum.clusterFinalize + dt
 				if dt > timingAccum.maxClusterFinalize then timingAccum.maxClusterFinalize = dt end
+				Spring.Echo(string.format(
+					"[ReclaimField CLUSTER] cpu=%.2fms finalize=%.2fms clusters=%d/%d reused=%d/%d partial=%d/%d copiedE=%d",
+					batch.lastClusterJobCpu * 1000,
+					dt * 1000,
+					#featureClusters,
+					#energyFeatureClusters,
+					batch.reusedMetalHulls,
+					batch.reusedEnergyHulls,
+					batch.partialReusedMetalHulls,
+					batch.partialReusedEnergyHulls,
+					batch.copiedEnergyHulls
+				))
 				if dt * 1000 >= timingAccum.spikeMs and (now - timingAccum.lastSpikeClock) >= timingAccum.spikeMinGap then
 					timingAccum.lastSpikeClock = now
 					Spring.Echo(string.format(
-						"[ReclaimField SPIKE] cluster-finalize=%.2fms  metalClusters=%d  energyClusters=%d",
+						"[ReclaimField SPIKE] cluster-finalize=%.2fms  metalClusters=%d  energyClusters=%d  reused=%d/%d",
 						dt * 1000,
 						#featureClusters,
-						#energyFeatureClusters
+						#energyFeatureClusters,
+						batch.reusedMetalHulls,
+						batch.reusedEnergyHulls
 					))
 				end
 			end
@@ -3558,8 +3854,10 @@ local function UpdateReclaimFields()
 	if frame ~= lastProcessedFrame then
 		local tDefer0 = debugTiming and osClock() or 0
 		lastProcessedFrame = frame
+		tracy.ZoneBeginN("W:ReclaimField:ProcessFeatureQueues")
 		ProcessDeferredFeatures(frame)
 		ProcessPendingFeatureChanges()
+		tracy.ZoneEnd()
 		if debugTiming then
 			timingAccum.deferPending = timingAccum.deferPending + (osClock() - tDefer0)
 		end
@@ -3654,7 +3952,9 @@ local function UpdateReclaimFields()
 	-- used for background clustering/prefetch and should stay cheap.
 	if overlayVisible then
 		local tPoll0 = debugTiming and osClock() or 0
+		tracy.ZoneBeginN("W:ReclaimField:UpdateFeatureReclaim")
 		UpdateFeatureReclaim()
+		tracy.ZoneEnd()
 		if debugTiming then
 			timingAccum.reclaimPoll = timingAccum.reclaimPoll + (osClock() - tPoll0)
 		end
@@ -3676,8 +3976,17 @@ local function UpdateReclaimFields()
 		-- Kick off a time-sliced recluster instead of doing it all now. Block (A)
 		-- above feeds the coroutine a slice per frame and finalizes it when done;
 		-- the existing fields keep rendering until the new set is ready.
+		tracy.ZoneBeginN("W:ReclaimField:Cluster:ValidateSnapshot")
 		ValidateAndRemoveInvalidFeatures()
 		animState.CapturePreClusteringSnapshot()
+		tracy.ZoneEnd()
+		batch.reusedMetalHulls = 0
+		batch.reusedEnergyHulls = 0
+		batch.partialReusedMetalHulls = 0
+		batch.partialReusedEnergyHulls = 0
+		batch.copiedEnergyHulls = 0
+		batch.clusterJobCpu = 0
+		batch.clusterJobTerrainGeneration = batch.terrainGeneration
 		batch.clusterJobCo = coroutine.create(ClusterizeFeatures)
 		batch.clusterJobActive = true
 		dirty.removedSinceCluster = 0
@@ -3702,14 +4011,18 @@ local function UpdateReclaimFields()
 			end
 		end
 		if missingTextAnchors then
+			tracy.ZoneBeginN("W:ReclaimField:EnsureTextAnchors")
 			EnsureClusterTextAnchors()
+			tracy.ZoneEnd()
 			dirty.needRedraw = true
 		end
 	end
 
 	if dirty.needRedraw == true then
 		local tRedraw0 = debugTiming and osClock() or 0
+		tracy.ZoneBeginN("W:ReclaimField:RecreateDisplayLists")
 		RecreateDisplayListsForVisibleClusters()
+		tracy.ZoneEnd()
 		if debugTiming then
 			local dt = osClock() - tRedraw0
 			timingAccum.redrawLists = timingAccum.redrawLists + dt
@@ -3889,7 +4202,7 @@ function widget:Initialize()
 	WG['reclaimfieldhighlight'].printTimingNow = function()
 		local denom = timingCount > 0 and timingCount or 1
 		Spring.Echo(string.format(
-			"[ReclaimField TIMING NOW] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f",
+			"[ReclaimField TIMING NOW] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f lastJob=%.2fms reuse=%d/%d partial=%d/%d copiedE=%d",
 			timingAccum.updateReclaim / denom * 1000,
 			timingAccum.drawWorldText / denom * 1000,
 			timingAccum.drawPreUnit / denom * 1000,
@@ -3904,7 +4217,13 @@ function widget:Initialize()
 			timingAccum.maxClusterSlice * 1000,
 			timingAccum.maxClusterFinalize * 1000,
 			timingAccum.maxRedrawLists * 1000,
-			timingAccum.rebuilds / denom
+			timingAccum.rebuilds / denom,
+			batch.lastClusterJobCpu * 1000,
+			batch.reusedMetalHulls,
+			batch.reusedEnergyHulls,
+			batch.partialReusedMetalHulls,
+			batch.partialReusedEnergyHulls,
+			batch.copiedEnergyHulls
 		))
 	end
 
@@ -4127,6 +4446,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	animCfg.getTextWidth = (f and f.GetTextWidth) and function(text) return f:GetTextWidth(text) end or gl.GetTextWidth
 end
 
+function widget:UnsyncedHeightMapUpdate()
+	batch.terrainGeneration = batch.terrainGeneration + 1
+	dirty.needCluster = true
+end
+
 --------------------------------------------------------------------------------
 -- Per-cluster draw helpers (hoisted to module scope so widget:DrawWorldPreUnit
 -- doesn't reallocate them as closures every frame).
@@ -4310,6 +4634,7 @@ function widget:DrawWorld()
 	-- End() with whatever modelview is current then (identity -> origin). In
 	-- immediate mode each Print flushes with the current GL matrix, so our
 	-- ground-plane glMultMatrix applies and text lies flat like the icons.
+	tracy.ZoneBeginN("W:ReclaimField:DrawLabels")
 	local widgetFont = animCfg.font
 	if widgetFont then
 		if showMetal then
@@ -4437,10 +4762,12 @@ function widget:DrawWorld()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- Draw resource icons (ground-plane quads to the left of each value label,
 	-- using the same matrix as the text so they lie flat like the labels do)
 	if showResourceIcons then
+		tracy.ZoneBeginN("W:ReclaimField:DrawResourceIcons")
 		local glTexRect = gl.TexRect
 		local glTexture = gl.Texture
 		local getTextWidth = animCfg.getTextWidth or gl.GetTextWidth
@@ -4514,6 +4841,7 @@ function widget:DrawWorld()
 			end
 			glTexture(false)
 		end
+		tracy.ZoneEnd()
 	end
 
 	glDepthTest(true)
@@ -4533,7 +4861,9 @@ function widget:DrawWorldPreUnit()
 	local shouldUpdateReclaim = sameGameFrameAsLastDraw or not hadRenderOnlyDraw
 	if shouldUpdateReclaim then
 		local tUpd0 = debugTiming and osClock() or 0
+		tracy.ZoneBeginN("W:ReclaimField:UpdateReclaimFields")
 		UpdateReclaimFields()
+		tracy.ZoneEnd()
 		if debugTiming then
 			local dt = osClock() - tUpd0
 			timingAccum.updateReclaim = timingAccum.updateReclaim + dt
@@ -4552,7 +4882,9 @@ function widget:DrawWorldPreUnit()
 	end
 
 	-- Tick animations once per draw using a wall-clock dt (works while paused)
+	tracy.ZoneBeginN("W:ReclaimField:TickAnimations")
 	animState.TickClusterAnimations(osClock())
+	tracy.ZoneEnd()
 
 	-- Before gamestart, always show; after gamestart, check drawEnabled
 	if spIsGUIHidden() == true then
@@ -4584,6 +4916,7 @@ function widget:DrawWorldPreUnit()
 	-- Draw metal fields (gradient + edge)
 	if showMetal then
 		-- Gradient layer (pushed down by 1 unit)
+		tracy.ZoneBeginN("W:ReclaimField:DrawMetalGradient")
 		glPushMatrix()
 		glTranslate(0, -1, 0)
 		for cid = 1, #featureClusters do
@@ -4594,18 +4927,22 @@ function widget:DrawWorldPreUnit()
 			DrawFadingCluster(uid, entry, true)
 		end
 		glPopMatrix()
+		tracy.ZoneEnd()
 
 		-- Edge layer (reuse cached visibility from gradient pass)
+		tracy.ZoneBeginN("W:ReclaimField:DrawMetalEdge")
 		for cid = 1, #featureClusters do
 			DrawLiveCluster(cid, false, false)
 		end
 		for uid, entry in pairs(animState.fading) do
 			DrawFadingCluster(uid, entry, false)
 		end
+		tracy.ZoneEnd()
 	end
 
 	-- Draw energy fields (gradient + edge)
 	if showEnergy then
+		tracy.ZoneBeginN("W:ReclaimField:DrawEnergyGradient")
 		glPushMatrix()
 		glTranslate(0, -1, 0)
 		for cid = 1, #energyFeatureClusters do
@@ -4615,13 +4952,16 @@ function widget:DrawWorldPreUnit()
 			DrawFadingCluster(uid, entry, true)
 		end
 		glPopMatrix()
+		tracy.ZoneEnd()
 
+		tracy.ZoneBeginN("W:ReclaimField:DrawEnergyEdge")
 		for cid = 1, #energyFeatureClusters do
 			DrawLiveCluster(cid, true, false)
 		end
 		for uid, entry in pairs(animState.fadingEnergy) do
 			DrawFadingCluster(uid, entry, false)
 		end
+		tracy.ZoneEnd()
 	end
 
 	glLineWidth(1.0)
@@ -4638,7 +4978,7 @@ function widget:DrawWorldPreUnit()
 	if debugTiming and timingCount >= timingInterval then
 		local div = timingCount
 		Spring.Echo(string.format(
-			"[ReclaimField TIMING] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f clusters=%d features=%d pendC=%d pendD=%d defC=%d defD=%d job=%s",
+			"[ReclaimField TIMING] avg(ms): UpdReclaim=%.3f DrawText=%.3f DrawPre=%.3f Update=%.3f DefPend=%.3f Poll=%.3f Slice=%.3f Final=%.3f Redraw=%.3f | max(ms): Upd=%.2f DrawPre=%.2f Slice=%.2f Final=%.2f Redraw=%.2f | DL/frame=%.1f clusters=%d features=%d pendC=%d pendD=%d defC=%d defD=%d job=%s lastJob=%.2fms reuse=%d/%d partial=%d/%d copiedE=%d",
 			timingAccum.updateReclaim / div * 1000,
 			timingAccum.drawWorldText / div * 1000,
 			timingAccum.drawPreUnit / div * 1000,
@@ -4660,7 +5000,13 @@ function widget:DrawWorldPreUnit()
 			batch.pendDestrCount - batch.pendDestrHead,
 			batch.deferCreateCount,
 			batch.deferDestrCount,
-			batch.clusterJobActive and "1" or "0"
+			batch.clusterJobActive and "1" or "0",
+			batch.lastClusterJobCpu * 1000,
+			batch.reusedMetalHulls,
+			batch.reusedEnergyHulls,
+			batch.partialReusedMetalHulls,
+			batch.partialReusedEnergyHulls,
+			batch.copiedEnergyHulls
 		))
 		timingAccum.updateReclaim = 0
 		timingAccum.drawWorldText = 0
