@@ -408,6 +408,12 @@ local batch = {
 	clusterJobBudget = 0.0022,  -- default clustering slice budget (seconds)
 	clusterJobBudgetMin = 0.0012,
 	clusterJobBudgetMax = 0.0030,
+	-- When a hidden layer becomes visible while its clusters are stale, keep it
+	-- hidden until the pending time-sliced rebuild atomically swaps in fresh data.
+	waitForFreshMetal = false,
+	waitForFreshEnergy = false,
+	metalRevealPending = false,
+	energyRevealPending = false,
 }
 
 -- Cache to avoid redundant Spring API calls
@@ -2765,9 +2771,18 @@ do
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnabled and drawEnabled then
 			dirty.needRedraw = true
+			batch.metalRevealPending = true
+			batch.waitForFreshMetal = gameStarted and (
+				batch.clusterJobActive or dirty.needCluster
+				or batch.pendCreateCount > batch.pendCreateHead
+				or batch.pendDestrCount > batch.pendDestrHead
+			)
+		elseif not drawEnabled then
+			batch.metalRevealPending = false
+			batch.waitForFreshMetal = false
 		end
 		-- Track the toggle fade target so the group fades smoothly in/out.
-		animState.toggleMetalTarget = drawEnabled and 1 or 0
+		animState.toggleMetalTarget = drawEnabled and not batch.waitForFreshMetal and 1 or 0
 		return drawEnabled
 	end
 end
@@ -2812,6 +2827,8 @@ do
 		local previousDrawEnergyEnabled = drawEnergyEnabled
 		if not showEnergyFields then
 			drawEnergyEnabled = false
+			batch.energyRevealPending = false
+			batch.waitForFreshEnergy = false
 			animState.toggleEnergyTarget = 0
 			return false
 		end
@@ -2819,8 +2836,17 @@ do
 		-- If visibility changed from false to true, force a full display list recreation
 		if not previousDrawEnergyEnabled and drawEnergyEnabled then
 			dirty.needRedraw = true
+			batch.energyRevealPending = true
+			batch.waitForFreshEnergy = gameStarted and (
+				batch.clusterJobActive or dirty.needCluster
+				or batch.pendCreateCount > batch.pendCreateHead
+				or batch.pendDestrCount > batch.pendDestrHead
+			)
+		elseif not drawEnergyEnabled then
+			batch.energyRevealPending = false
+			batch.waitForFreshEnergy = false
 		end
-		animState.toggleEnergyTarget = drawEnergyEnabled and 1 or 0
+		animState.toggleEnergyTarget = drawEnergyEnabled and not batch.waitForFreshEnergy and 1 or 0
 		return drawEnergyEnabled
 	end
 end
@@ -3484,6 +3510,12 @@ local function UpdateReclaimFields()
 			Spring.Echo("[ReclaimFieldHighlight] cluster job error: " .. tostring(err))
 			batch.clusterJobActive = false
 			batch.clusterJobCo = nil
+			batch.waitForFreshMetal = false
+			batch.waitForFreshEnergy = false
+			batch.metalRevealPending = false
+			batch.energyRevealPending = false
+			UpdateDrawEnabled()
+			UpdateDrawEnergyEnabled()
 		elseif coroutine.status(batch.clusterJobCo) == "dead" then
 			local tFinalize0 = debugTiming and osClock() or 0
 			-- Build finished this frame: adopt the new clusters, match identities
@@ -3492,6 +3524,10 @@ local function UpdateReclaimFields()
 			-- path below will rebuild visible clusters gradually.
 			batch.clusterJobActive = false
 			batch.clusterJobCo = nil
+			batch.waitForFreshMetal = false
+			batch.waitForFreshEnergy = false
+			batch.metalRevealPending = false
+			batch.energyRevealPending = false
 			dirty.removedSinceCluster = 0
 			animState.SyncClusterIdentitiesAfterClustering()
 			lastClusterRebuildClock = now
@@ -3533,6 +3569,19 @@ local function UpdateReclaimFields()
 	UpdateDrawEnabled()
 	UpdateDrawEnergyEnabled()
 	local overlayVisible = drawEnabled or (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
+	local refreshPending = dirty.needCluster
+		or batch.pendCreateCount > batch.pendCreateHead
+		or batch.pendDestrCount > batch.pendDestrHead
+	if batch.metalRevealPending then
+		batch.waitForFreshMetal = gameStarted and refreshPending
+		batch.metalRevealPending = false
+	end
+	if batch.energyRevealPending then
+		batch.waitForFreshEnergy = gameStarted and refreshPending
+		batch.energyRevealPending = false
+	end
+	if batch.waitForFreshMetal then animState.toggleMetalTarget = 0 end
+	if batch.waitForFreshEnergy then animState.toggleEnergyTarget = 0 end
 
 	-- Keep background clustering alive even when overlay is hidden, so first
 	-- selection doesn't need to do all clustering/text prep in one stall.
@@ -3884,6 +3933,10 @@ function widget:Initialize()
 	-- Drop any in-flight time-sliced recluster coroutine from a previous load.
 	batch.clusterJobActive = false
 	batch.clusterJobCo = nil
+	batch.waitForFreshMetal = false
+	batch.waitForFreshEnergy = false
+	batch.metalRevealPending = false
+	batch.energyRevealPending = false
 
 	for _, featureID in ipairs(Spring.GetAllFeatures()) do
 		widget:FeatureCreated(featureID)
@@ -4225,10 +4278,12 @@ function widget:DrawWorld()
 
 	local hasFadingMetal = next(animState.fading) ~= nil
 	local hasFadingEnergy = next(animState.fadingEnergy) ~= nil
-	local showMetal = drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal
-	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
-		or (showEnergyFields and animState.toggleEnergy > 0.005)
-		or hasFadingEnergy
+	local showMetal = not batch.waitForFreshMetal
+		and (drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal)
+	local showEnergy = not batch.waitForFreshEnergy
+		and ((showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
+			or (showEnergyFields and animState.toggleEnergy > 0.005)
+			or hasFadingEnergy)
 	if not showMetal and not showEnergy then return end
 
 	local t0 = debugTiming and osClock() or 0
@@ -4508,10 +4563,12 @@ function widget:DrawWorldPreUnit()
 	-- toggle-fade-out, and we always render currently fading-out clusters.
 	local hasFadingMetal = next(animState.fading) ~= nil
 	local hasFadingEnergy = next(animState.fadingEnergy) ~= nil
-	local showMetal = drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal
-	local showEnergy = (showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
-		or (showEnergyFields and animState.toggleEnergy > 0.005)
-		or hasFadingEnergy
+	local showMetal = not batch.waitForFreshMetal
+		and (drawEnabled or animState.toggleMetal > 0.005 or hasFadingMetal)
+	local showEnergy = not batch.waitForFreshEnergy
+		and ((showEnergyFields and drawEnergyEnabled and not allEnergyFieldsDrained)
+			or (showEnergyFields and animState.toggleEnergy > 0.005)
+			or hasFadingEnergy)
 
 	if not showMetal and not showEnergy then
 		return
