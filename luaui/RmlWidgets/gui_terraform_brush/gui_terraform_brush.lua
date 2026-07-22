@@ -1066,7 +1066,9 @@ end
 
 local function _isGeneratedBlankMap()
 	local mapName = Game.mapName or ""
-	if mapName:find("^Editor Flat %d+x%d+$") then return true end
+	-- Prefix match: generated names carry a per-session uniquifier suffix
+	-- (see buildBlankMapStartScript).
+	if mapName:find("^Editor Flat %d+x%d+") then return true end
 	local mapOpts = Spring.GetMapOptions()
 	if type(mapOpts) ~= "table" then return false end
 	return (tonumber(mapOpts.blank_map_x) or 0) > 0 or (tonumber(mapOpts.blank_map_y) or 0) > 0
@@ -1676,8 +1678,14 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	local baseHeight = tonumber(opts.baseHeight) or NEWMAP_BASE_HEIGHT
 	local baseColor = opts.baseColor or NEWMAP_COLOR
 
-	local mapName = string.format("Editor Flat %dx%d", widthUnits, heightUnits)
 	local seed = math.random(1, 2000000000)
+	-- Unique name per restart: the engine's archive scanner (current master)
+	-- wrongly persists the generated map's VIRTUAL archive into ArchiveCache at
+	-- shutdown; a reused name then resolves to that stale entry (no file on
+	-- disk) and the next restart dies with "Dependent archive not found". A
+	-- fresh name can never collide with a poisoned cache entry. All name
+	-- matchers use the "^Editor Flat %dx%d" PREFIX, never an exact match.
+	local mapName = string.format("Editor Flat %dx%d s%d", widthUnits, heightUnits, seed % 100000)
 
 	local script = base
 
