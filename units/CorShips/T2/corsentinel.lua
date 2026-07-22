@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 13500,
-		buildcostmetal = 1350,
+		energycost = 13500,
+		metalcost = 1350,
 		buildpic = "CORSENTINEL.DDS",
 		buildtime = 20000,
 		canmove = true,
@@ -22,7 +22,7 @@ return {
 		footprintz = 6,
 		losemitheight = 56,
 		mass = 5000,
-		maxdamage = 3800,
+		health = 3800,
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "BOAT9",
@@ -151,8 +151,8 @@ return {
 					spawnrate = 6, 				--Spawnrate roughly in seconds.
 					maxunits = 5,				--Will spawn units until this amount has been reached.
 					startingdronecount = 2,
-					buildcostenergy = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 1000,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 40,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 2,
 					attackformationspread = 200,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
