@@ -19,6 +19,7 @@ end
 local LOG_TAG = "mission_loader"
 
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local ChatGuard = VFS.Include("modules/missions/lib/chat_guard.lua")
 local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
@@ -209,7 +210,13 @@ end
 ---@param cmd string
 ---@param line string
 ---@param words string[]
-local function missionChatAction(cmd, line, words)
+local function missionChatAction(cmd, line, words, playerID)
+	-- Synced chat actions arrive from ANY player in multiplayer; arming or
+	-- reloading a mission is not an open verb (review point on PR #8375).
+	if not ChatGuard.IsAllowed(Spring.Utilities.Gametype.IsSinglePlayer(), Spring.IsCheatingEnabled()) then
+		Spring.Log(LOG_TAG, LOG.WARNING, "/mission refused: multiplayer without cheats (player " .. tostring(playerID) .. ")")
+		return true
+	end
 	local missionName = words[1]
 	if missionName == nil or missionName == "" then
 		Spring.Log(LOG_TAG, LOG.ERROR, "usage: /luarules mission <name> | reload")
