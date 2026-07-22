@@ -101,7 +101,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				stockpile = true,
 				stockpiletime = 80,
 				startvelocity = 1000,

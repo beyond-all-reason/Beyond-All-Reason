@@ -199,8 +199,6 @@ return {
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
-				soundhitvolume = 3,
-				soundhitwetvolume = 12,
 				startvelocity = 300,
 				tracks = true,
 				turnrate = 64000,

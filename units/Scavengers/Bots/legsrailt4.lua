@@ -125,7 +125,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 50,
 				stockpile = true,
 				stockpiletime = 12,
 				thickness = 4,

@@ -128,7 +128,6 @@ return {
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
 				soundstart = "banthie2",
-				soundstartvolume = 45,
 				thickness = 3.3,
 				tolerance = 10000,
 				turret = true,
@@ -202,7 +201,6 @@ return {
 				range = 0,
 				reloadtime = 1.5,
 				soundhit = "banthstep",
-				soundhitvolume = 35,
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {

@@ -138,8 +138,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				startvelocity = 450,
 				texture1 = "null",
 				texture2 = "smoketraildark",

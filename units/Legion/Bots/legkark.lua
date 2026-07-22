@@ -165,7 +165,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 3,
 				sprayangle = 1680,
 				texture1 = "shot",
 				texture2 = "empty",

@@ -120,7 +120,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3burn",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				thickness = 4.5,
 				turret = true,
