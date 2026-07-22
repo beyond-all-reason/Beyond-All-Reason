@@ -42,7 +42,6 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetProjectileName = Spring.GetProjectileName
 local spGetWind = Spring.GetWind
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -567,7 +566,6 @@ end
 ---AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -609,7 +607,6 @@ end
 ---AddPointLight
 ---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -725,7 +722,6 @@ end
 ---AddBeamLight
 ---DEPRECATED Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -807,7 +803,6 @@ end
 ---AddConeLight
 ---DEPRECATED! Note that instanceID can be nil if an auto-generated one is OK.
 ---If the light is not attached to a unit, and its lifetime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing light,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex nil if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
@@ -1179,7 +1174,6 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
-	-- TODO: delete the VBOs and shaders like a good boy
 	widgetHandler:RemoveAction("dlgl4stats", "t")
 	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
 	WG['lightsgl4'] = nil
@@ -1517,10 +1511,6 @@ local function updateProjectileLights(newgameframe)
 
 				if not skipProjectileTracking then
 					numadded = numadded + 1
-					if debugproj then
-						local projectileName = spGetProjectileName and spGetProjectileName(projectileID) or "unknown_projectile"
-						spEcho("Adding projlight", projectileID, projectileName)
-					end
 					--trackedProjectiles[]
 					trackedProjectileTypes[projectileID] = lightType
 					trackedProjectiles[projectileID] = gameFrame
