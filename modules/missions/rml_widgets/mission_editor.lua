@@ -318,17 +318,34 @@ local function renderTrigger(trigger, ctx, style)
 	-- The add palette: effects the current surface offers, from the schema
 	-- artifact. Choosing one inserts a .Do(...) line through the same
 	-- CAS-gated channel; the file comes back re-parsed with fresh controls.
-	local effects = ctx.editable and currentAst and currentAst.surface and currentAst.surface.effects
-	if effects and #effects > 0 then
-		local opts = { '<option value="" selected="true">+ add</option>' }
-		for _, effect in ipairs(effects) do
-			opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
-				.. escapeRml(effect.label) .. "</option>"
+	local surface = ctx.editable and currentAst and currentAst.surface
+	if surface then
+		local palettes = {}
+		if surface.conditions and #surface.conditions > 0 and trigger.insert_condition_at then
+			local opts = { '<option value="" selected="true">+ and when</option>' }
+			for _, condition in ipairs(surface.conditions) do
+				opts[#opts + 1] = '<option value="' .. escapeRml(condition.template) .. '">'
+					.. escapeRml(condition.label) .. "</option>"
+			end
+			palettes[#palettes + 1] = '<select class="me-add me-add-when" data-kind="andwhen" data-insert="'
+				.. tostring(trigger.insert_condition_at)
+				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
+				.. table.concat(opts) .. "</select>"
 		end
-		rows[#rows + 1] = '<div class="me-add-row"><select class="me-add" data-kind="effect" data-insert="'
-			.. tostring(trigger.insert_effect_at or trigger.span[2])
-			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
-			.. table.concat(opts) .. "</select></div>"
+		if surface.effects and #surface.effects > 0 then
+			local opts = { '<option value="" selected="true">+ add</option>' }
+			for _, effect in ipairs(surface.effects) do
+				opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
+					.. escapeRml(effect.label) .. "</option>"
+			end
+			palettes[#palettes + 1] = '<select class="me-add" data-kind="effect" data-insert="'
+				.. tostring(trigger.insert_effect_at or trigger.span[2])
+				.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
+				.. table.concat(opts) .. "</select>"
+		end
+		if #palettes > 0 then
+			rows[#rows + 1] = '<div class="me-add-row">' .. table.concat(palettes, " ") .. "</div>"
+		end
 	end
 	rows[#rows + 1] = "</div>"
 	return table.concat(rows)
@@ -576,7 +593,9 @@ local function attachFormControls()
 				end
 				local kind = select:GetAttribute("data-kind")
 				local newText
-				if kind == "trigger" then
+				if kind == "andwhen" then
+					newText = "\t.AndWhen(" .. value .. ")\n"
+				elseif kind == "trigger" then
 					-- A whole new statement: complete legal chain, so the
 					-- recognizer gate accepts it and the form re-renders it
 					-- as an editable card.

@@ -372,7 +372,8 @@ scrollbarvertical sliderarrowinc {
 }
 
 .me-modal-box {
-    margin: 60px auto;
+    margin-top: 60px;
+    margin-left: 90px;
     width: 300px;
     decorator: vertical-gradient( #1c2531 #10161d );
     border: 1px #3d5168;
@@ -404,6 +405,11 @@ scrollbarvertical sliderarrowinc {
 
 .me-modal-cancel {
     margin-top: 8px;
+}
+
+.me-add-when {
+    width: 130px;
+    margin-right: 6px;
 }
 	</style>
 </head>
