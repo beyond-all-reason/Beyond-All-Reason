@@ -1,0 +1,17 @@
+<rml>
+<head>
+    <link type="text/rcss" href="mission_editor.rcss" />
+</head>
+<body>
+    <div id="me-root" class="me-root">
+        <div class="me-header">
+            <div class="me-title">Mission Editor — read-only view</div>
+            <button id="me-refresh" class="me-button">Refresh</button>
+            <button id="me-reload" class="me-button">Reload Mission</button>
+            <button id="me-close" class="me-button me-button-close">×</button>
+        </div>
+        <div id="me-content" class="me-content"></div>
+        <div class="me-footer">The .lua file is the source of truth — edit it in your editor; this view follows.</div>
+    </div>
+</body>
+</rml>
