@@ -44,6 +44,7 @@ local document
 local visible = false
 local lastGeneration = nil
 local pollAccumulator = 0
+local firstMissionFile = nil
 
 ---Pretty-print a recognizer Value node back to DSL text, literals wrapped in
 ---spans so the form can style what is form-editable.
@@ -87,17 +88,12 @@ local function renderValue(value)
 end
 
 ---@param trigger table
----@param filePath string recognizer-relative mission file path
 ---@return string
-local function renderTrigger(trigger, filePath)
+local function renderTrigger(trigger)
 	local rows = {
-		'<div class="me-card"><div class="me-card-head"><div class="me-card-title">'
+		'<div class="me-card"><div class="me-card-title">'
 			.. (trigger.label or trigger.id)
-			.. '</div><button class="me-button me-edit" data-file="'
-			.. filePath
-			.. '" data-line="'
-			.. tostring(trigger.line or 1)
-			.. '">Edit</button></div>',
+			.. "</div>",
 	}
 	for _, step in ipairs(trigger.steps) do
 		if step.verb ~= "Register" then
@@ -128,6 +124,7 @@ local function buildBody()
 	end
 
 	local out = {}
+	firstMissionFile = ast.files and ast.files[1] and ast.files[1].path or nil
 	for _, file in ipairs(ast.files or {}) do
 		out[#out + 1] = '<div class="me-file">' .. file.path .. "</div>"
 		for _, group in ipairs(file.groups or {}) do
@@ -135,7 +132,7 @@ local function buildBody()
 				out[#out + 1] = '<div class="me-group">' .. group.label .. "</div>"
 			end
 			for _, trigger in ipairs(group.triggers or {}) do
-				out[#out + 1] = renderTrigger(trigger, file.path)
+				out[#out + 1] = renderTrigger(trigger)
 			end
 		end
 		if file.opaque and #file.opaque > 0 then
@@ -163,20 +160,6 @@ local function requestOpenInEditor(filePath, line)
 	handle:close()
 end
 
-local function attachCardHandlers()
-	local content = document:GetElementById("me-content")
-	if not content then
-		return
-	end
-	local buttons = content:GetElementsByTagName("button")
-	for i = 1, #buttons do
-		local button = buttons[i]
-		button:AddEventListener("click", function()
-			requestOpenInEditor(button:GetAttribute("data-file"), button:GetAttribute("data-line"))
-		end)
-	end
-end
-
 local function serveStatusLine()
 	local text = VFS.LoadFile(STATUS_PATH, VFS.RAW_FIRST)
 	if not text then
@@ -199,7 +182,6 @@ local function refresh()
 	if content then
 		content.inner_rml = (statusLine or "")
 			.. (body or ('<div class="me-opaque">' .. (err or "?") .. "</div>"))
-		attachCardHandlers()
 	end
 end
 
@@ -235,12 +217,24 @@ end
 
 function widget:ViewResize()
 	if document and visible then
-		local root = document:GetElementById("me-root")
-		if root then
-			local vsx = Spring.GetViewGeometry()
-			root.style.left = tostring(math.max(0, vsx - 500)) .. "px"
-		end
+		applyViewLayout()
 	end
+end
+
+---vw units resolve to 0 in this RmlUi build, so right-anchoring is unusable:
+---place the panel from real view geometry, and scale the base font with the
+---view height so the panel tracks resolution.
+local function applyViewLayout()
+	local root = document:GetElementById("me-root")
+	if not root then
+		return
+	end
+	local vsx, vsy = Spring.GetViewGeometry()
+	local scale = math.max(0.85, math.min(1.6, vsy / 1200))
+	local width = math.floor(480 * scale)
+	root.style.left = tostring(math.max(0, vsx - width - 40)) .. "px"
+	root.style.width = tostring(width) .. "px"
+	root.style.font_size = tostring(math.floor(16 * scale)) .. "px"
 end
 
 local function setVisible(on)
@@ -250,13 +244,7 @@ local function setVisible(on)
 	end
 	if on then
 		refresh()
-		-- vw units resolve to 0 in this RmlUi build, so right-anchoring is
-		-- unusable: place the panel from real view geometry instead.
-		local root = document:GetElementById("me-root")
-		if root then
-			local vsx = Spring.GetViewGeometry()
-			root.style.left = tostring(math.max(0, vsx - 500)) .. "px"
-		end
+		applyViewLayout()
 		document:Show()
 	else
 		document:Hide()
@@ -286,6 +274,16 @@ function widget:Initialize()
 			-- re-arm the mission, then re-read the artifact.
 			Spring.SendCommands("luarules mission reload")
 			refresh()
+		end)
+	end
+	local editButton = document:GetElementById("me-edit")
+	if editButton then
+		editButton:AddEventListener("click", function()
+			-- Mode switch: leave form mode explicitly, enter text mode.
+			if firstMissionFile then
+				requestOpenInEditor(firstMissionFile, 1)
+			end
+			setVisible(false)
 		end)
 	end
 	local closeButton = document:GetElementById("me-close")

@@ -13,7 +13,7 @@
     border: 1px #2c3540;
     padding: 10px;
     font-family: Exo 2;
-    font-size: 14px;
+    font-size: 16px;
     color: #d8dee6;
 }
 
@@ -24,8 +24,8 @@
 
 .me-title {
     display: inline-block;
-    width: 230px;
-    font-size: 15px;
+    width: 180px;
+    font-size: 1.1em;
     color: #ffffff;
 }
 
@@ -53,13 +53,13 @@
     display: block;
     margin: 6px 0 2px 0;
     color: #8fa3b8;
-    font-size: 12px;
+    font-size: 0.8em;
 }
 
 .me-group {
     display: block;
     margin: 8px 0 2px 0;
-    font-size: 15px;
+    font-size: 1.05em;
     color: #ffd479;
 }
 
@@ -80,11 +80,6 @@
     width: 340px;
     color: #9ecbff;
     margin-bottom: 4px;
-}
-
-.me-edit {
-    font-size: 12px;
-    padding: 1px 6px;
 }
 
 .me-step {
@@ -115,7 +110,7 @@
 .me-footer {
     display: block;
     margin-top: 6px;
-    font-size: 11px;
+    font-size: 0.75em;
     color: #6d7a88;
 }
 	</style>
@@ -124,6 +119,7 @@
 	<div id="me-root" class="me-root">
 		<div class="me-header">
 			<span class="me-title">Mission Editor</span>
+			<button id="me-edit" class="me-button">Edit</button>
 			<button id="me-refresh" class="me-button">Refresh</button>
 			<button id="me-reload" class="me-button">Reload Mission</button>
 			<button id="me-close" class="me-button">X</button>
