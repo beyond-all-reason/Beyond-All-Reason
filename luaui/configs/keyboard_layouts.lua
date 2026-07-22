@@ -355,7 +355,20 @@ end
 -- / the lobby); the first entry is the default fallback.
 -- Source of truth: common/configs/keybind_presets.json
 local Json = Json or VFS.Include('common/luaUtilities/json.lua')
-local presetList = Json.decode(VFS.LoadFile('common/configs/keybind_presets.json')).presets
+local ok, decoded = pcall(Json.decode, VFS.LoadFile('common/configs/keybind_presets.json'))
+local presetList = ok and type(decoded) == 'table' and decoded.presets or nil
+if type(presetList) ~= 'table' or #presetList == 0 then
+	-- Boot even if the shared registry is missing/corrupt: presets gate the editor,
+	-- the settings menu, and the hotkeys widget, so fall back to the built-in list.
+	Spring.Echo('[keyboard_layouts] could not load common/configs/keybind_presets.json; using built-in preset fallback')
+	presetList = {
+		{ name = 'Grid', file = 'luaui/configs/hotkeys/grid_keys.txt' },
+		{ name = 'Grid (60% Keyboard)', file = 'luaui/configs/hotkeys/grid_keys_60pct.txt' },
+		{ name = 'Legacy', file = 'luaui/configs/hotkeys/legacy_keys.txt' },
+		{ name = 'Legacy (60% Keyboard)', file = 'luaui/configs/hotkeys/legacy_keys_60pct.txt' },
+		{ name = 'Custom', file = 'uikeys.txt' },
+	}
+end
 
 local keybindingLayouts = {}
 local keybindingPresets = {}
