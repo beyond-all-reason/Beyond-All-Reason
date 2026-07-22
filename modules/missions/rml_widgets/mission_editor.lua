@@ -154,8 +154,8 @@ local function requestOpenInEditor(filePath, line)
 		Spring.Echo("[mission_editor] cannot write " .. OPEN_REQUEST_PATH)
 		return
 	end
-	local writeDir = Platform and Platform.writeDir or "?"
-	Spring.Echo("[mission_editor] open request -> " .. tostring(writeDir) .. OPEN_REQUEST_PATH)
+	local absolute = VFS.GetFileAbsolutePath and VFS.GetFileAbsolutePath(OPEN_REQUEST_PATH)
+	Spring.Echo("[mission_editor] open request -> " .. tostring(absolute or OPEN_REQUEST_PATH))
 	handle:write(Json.encode({ file = filePath, line = tonumber(line) or 1 }))
 	handle:close()
 end
@@ -234,7 +234,7 @@ local function applyViewLayout()
 	local width = math.floor(480 * scale)
 	root.style.left = tostring(math.max(0, vsx - width - 40)) .. "px"
 	root.style.width = tostring(width) .. "px"
-	root.style.font_size = tostring(math.floor(16 * scale)) .. "px"
+	root.style["font-size"] = tostring(math.floor(16 * scale)) .. "px"
 end
 
 local function setVisible(on)
