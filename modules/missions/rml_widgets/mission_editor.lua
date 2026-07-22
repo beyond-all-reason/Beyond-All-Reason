@@ -270,10 +270,16 @@ local STEP_CLASS = {
 ---@param style "ui"|"dsl"
 ---@return string
 local function renderTrigger(trigger, ctx, style)
+	local removeButton = ""
+	if ctx.editable and trigger.remove_span then
+		removeButton = '<button class="me-button me-x" data-op="remove" data-remove-start="'
+			.. tostring(trigger.remove_span[1]) .. '" data-remove-end="' .. tostring(trigger.remove_span[2])
+			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">×</button>'
+	end
 	local rows = {
-		'<div class="me-card"><div class="me-card-title">'
+		'<div class="me-card"><div class="me-card-head"><span class="me-card-title">'
 			.. escapeRml(trigger.label or trigger.id)
-			.. "</div>",
+			.. "</span>" .. removeButton .. "</div>",
 	}
 	for _, step in ipairs(trigger.steps) do
 		if step.verb ~= "Register" then
@@ -282,11 +288,36 @@ local function renderTrigger(trigger, ctx, style)
 			for _, arg in ipairs(step.args) do
 				args[#args + 1] = (style == "ui") and renderArgUi(arg, ctx) or renderValue(arg, ctx)
 			end
+			-- Decomposition controls: swap this step's content for another
+			-- template of its kind; remove Do lines outright.
+			local tail = {}
+			if ctx.editable and currentAst and currentAst.surface then
+				local pool = (badge == "cond") and currentAst.surface.conditions
+					or (badge == "effect") and currentAst.surface.effects or nil
+				if pool and #pool > 0 and step.span then
+					local opts = { '<option value="" selected="true">swap...</option>' }
+					for _, entry in ipairs(pool) do
+						opts[#opts + 1] = '<option value="' .. escapeRml(entry.template) .. '">'
+							.. escapeRml(entry.label) .. "</option>"
+					end
+					tail[#tail + 1] = '<select class="me-add me-swap" data-kind="swap" data-insert="" data-swap-start="'
+						.. tostring(step.span[1]) .. '" data-swap-end="' .. tostring(step.span[2])
+						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
+						.. table.concat(opts) .. "</select>"
+				end
+				if step.verb == "Do" and step.remove_span then
+					tail[#tail + 1] = '<button class="me-button me-x" data-op="remove" data-remove-start="'
+						.. tostring(step.remove_span[1]) .. '" data-remove-end="' .. tostring(step.remove_span[2])
+						.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">×</button>'
+				end
+			end
 			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb me-verb-' .. badge .. '">'
 				.. step.verb:upper()
 				.. '</span><span class="me-step-body">'
 				.. table.concat(args, ", ")
-				.. "</span></div>"
+				.. "</span>"
+				.. table.concat(tail, "")
+				.. "</div>"
 		end
 	end
 	-- The add palette: effects the current surface offers, from the schema
@@ -451,12 +482,42 @@ local function attachFormControls()
 			queueFieldEdit(input, tostring(input:GetAttribute("value") or ""), os.clock() + EDIT_DEBOUNCE_SECONDS)
 		end)
 	end
+	local buttons = content:GetElementsByTagName("button")
+	for i = 1, #buttons do
+		local button = buttons[i]
+		if button:GetAttribute("data-op") == "remove" then
+			button:AddEventListener("click", function()
+				writeEditIntent({
+					file = button:GetAttribute("data-file"),
+					start = tonumber(button:GetAttribute("data-remove-start")),
+					finish = tonumber(button:GetAttribute("data-remove-end")),
+					hash = button:GetAttribute("data-hash"),
+					quote = false,
+					value = "",
+				})
+			end)
+		end
+	end
 	local selects = content:GetElementsByTagName("select")
 	for i = 1, #selects do
 		local select = selects[i]
 		select:AddEventListener("change", function()
 			local value = tostring(select:GetAttribute("value") or "")
 			Spring.Echo("[mission_editor] select -> " .. value)
+			local swapStart = tonumber(select:GetAttribute("data-swap-start"))
+			if swapStart then
+				if value ~= "" then
+					writeEditIntent({
+						file = select:GetAttribute("data-file"),
+						start = swapStart,
+						finish = tonumber(select:GetAttribute("data-swap-end")),
+						hash = select:GetAttribute("data-hash"),
+						quote = false,
+						value = "(" .. value .. ")",
+					})
+				end
+				return
+			end
 			local insertAt = tonumber(select:GetAttribute("data-insert"))
 			if insertAt then
 				if value == "" then

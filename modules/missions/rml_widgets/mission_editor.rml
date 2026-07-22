@@ -105,11 +105,29 @@
     padding: 8px 10px;
 }
 
-.me-card-title {
+.me-card-head {
     display: block;
+    margin-bottom: 6px;
+}
+
+.me-x {
+    margin-left: 8px;
+    padding: 0 6px;
+    font-size: 0.7em;
+    color: #e06c75;
+}
+
+.me-swap {
+    width: 110px;
+    margin-left: 8px;
+    font-size: 0.7em;
+}
+
+.me-card-title {
+    display: inline-block;
+    width: 300px;
     color: #9ecbff;
     font-size: 0.85em;
-    margin-bottom: 6px;
 }
 
 .me-step {
