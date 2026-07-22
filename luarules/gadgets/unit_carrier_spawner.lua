@@ -24,7 +24,6 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local SetUnitNoSelect = Spring.SetUnitNoSelect
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spUseTeamResource = Spring.UseTeamResource
-local spGetTeamResources = Spring.GetTeamResources
 local GetUnitCommands = Spring.GetUnitCommands
 local spSetUnitArmored = Spring.SetUnitArmored
 local spGetUnitStates = Spring.GetUnitStates
@@ -510,8 +509,8 @@ local function spawnUnit(spawnData)
 								stockpiledEnergy = stockpiledEnergy - energyCost
 							end
 						else
-							local availableMetal = spGetTeamResources(spawnData.teamID, "metal")
-							local availableEnergy = spGetTeamResources(spawnData.teamID, "energy")
+							local availableMetal = GG.GetTeamResources(spawnData.teamID, "metal")
+							local availableEnergy = GG.GetTeamResources(spawnData.teamID, "energy")
 							if availableMetal > metalCost and availableEnergy > energyCost then
 								spUseTeamResource(spawnData.teamID, "metal", metalCost)
 								spUseTeamResource(spawnData.teamID, "energy", energyCost)
