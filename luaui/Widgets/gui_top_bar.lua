@@ -41,8 +41,8 @@ local sp = {
 	GetGameSpeed = Spring.GetGameSpeed,
 }
 
-local SharingUnsynced = VFS.Include("common/luaUtilities/sharing/unsynced.lua")
-local ShareStats = VFS.Include("common/luaUtilities/economy/share_stats.lua")
+local SharingUnsynced = VFS.Include("modules/sharing/unsynced.lua")
+local ShareStats = VFS.Include("modules/sharing/economy/share_stats.lua")
 
 local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1 -- much faster than drawing via DisplayLists only
 
