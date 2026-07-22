@@ -7,7 +7,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Mission Editor",
-		desc = "Read-only view of the mission's decorated AST (bar-mission-kit artifact); the file is the source of truth",
+		desc = "Form + display-notation views over the mission AST (bar-mission-kit artifact); the .lua file is the source of truth",
 		author = "Beyond All Reason",
 		date = "July 2026",
 		license = "GNU GPL, v2 or later",
@@ -18,19 +18,25 @@ function widget:GetInfo()
 end
 
 -- The editor architecture (editor_architecture_plan.md): the authoritative
--- writer is the Devtools editor; the game is a READER. This widget renders the
--- derived AST artifact bar-mission-kit places in the data dir — a view over
--- the tree, which is a view over the file. It never owns state and never
--- writes source.
+-- writer is the Devtools serve process; the game is a reader plus an intent
+-- source. This widget renders the derived AST artifact and writes EDIT
+-- INTENTS only — span edits carrying a CAS hash, validated by the recognizer
+-- before any byte reaches the .lua file. Two card styles over one AST:
+--   "ui"  — sentence forms; schema'd verbs read as English with real
+--           controls (unit dropdowns from the game's own UnitDefNames,
+--           objective dropdowns from the artifact) in the slots
+--   "dsl" — the display notation: colored chain text with inline controls
 
 local AST_PATH = "modules/missions/editor/mission_ast.json"
 local STATUS_PATH = "modules/missions/editor/status.json"
--- Written via io (relative to the engine WRITE dir). In dev-from-source the
--- write dir is the repo, so bar-mission-kit serve's default --editor-dir
--- sees it; with a separate write dir, point serve's --editor-dir there.
+-- Written via io (relative to the engine WRITE dir, e.g.
+-- ~/.local/state/Beyond All Reason). bar-mission-kit serve must watch the
+-- same dir — just bar::mission-serve points there.
 local OPEN_REQUEST_PATH = "modules/missions/editor/open_request.json"
+local EDITS_DIR = "modules/missions/editor/edits"
 local RML_PATH = "modules/missions/rml_widgets/mission_editor.rml"
 local POLL_SECONDS = 0.5
+local EDIT_DEBOUNCE_SECONDS = 0.8
 
 -- Engine-provided in the widget env (system.lua whitelists it). Do NOT
 -- VFS.Include json.lua here: it reads `local base = _G`, and _G is nil in
@@ -42,47 +48,126 @@ end
 
 local document
 local visible = false
+local mode = "form" ---@type "form"|"text"
+local cardStyle = "ui" ---@type "ui"|"dsl"
 local lastGeneration = nil
 local pollAccumulator = 0
 local firstMissionFile = nil
-local mode = "form" ---@type "form"|"text"
+local currentAst = nil
+local currentObjectives = {}
+local pendingEdits = {}
+local editSequence = 0
 local applyViewLayout
 
----Pretty-print a recognizer Value node back to DSL text — the DSL's display
----notation (one renderer, many surfaces: form cards, the text-mode billboard,
----and whatever shows triggers compactly next). In editable mode, number and
----string literals become inputs carrying the span + CAS hash an edit intent
----needs.
+--------------------------------------------------------------------------------
+-- Rendering: the DSL's display notation + the full-UI sentence forms.
+-- One AST, two projections; both write through the same intent channel.
+--------------------------------------------------------------------------------
+
+local function escapeRml(text)
+	return (tostring(text):gsub("&", "&amp;"):gsub('"', "&quot;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
+local unitNamesSorted = nil
+
+---Options for the unit dropdown. The GAME supplies the domain list — the
+---server only stamped "this is a unit definition"; UnitDefNames is right here.
+---@param selected string
+---@return string
+local function unitOptionsRml(selected)
+	if not unitNamesSorted then
+		unitNamesSorted = {}
+		-- UnitDefNames is an engine proxy; ipairs(UnitDefs) is the idiom that
+		-- actually iterates (same as game_end's commander scan).
+		for _, def in ipairs(UnitDefs) do
+			if def.name then
+				unitNamesSorted[#unitNamesSorted + 1] = def.name
+			end
+		end
+		table.sort(unitNamesSorted)
+	end
+	local out = {}
+	for _, name in ipairs(unitNamesSorted) do
+		local def = UnitDefNames[name]
+		local label = (def and def.translatedHumanName or name) .. "  [" .. name .. "]"
+		out[#out + 1] = '<option value="' .. name .. '"'
+			.. (name == selected and ' selected="true"' or "")
+			.. ">" .. escapeRml(label) .. "</option>"
+	end
+	return table.concat(out)
+end
+
+---@param value table a literal node with a span
+---@param ctx { file: string, hash: string, editable: boolean }
+---@return string
+local function editAttrs(value, ctx)
+	return ' data-file="' .. ctx.file .. '" data-start="' .. tostring(value.span[1])
+		.. '" data-end="' .. tostring(value.span[2]) .. '" data-hash="' .. ctx.hash .. '"'
+end
+
+---The control for one literal leaf, chosen by the semantic the annotator
+---stamped: unit_def_name -> unit dropdown, objective_name -> objective
+---dropdown, number -> number field, plain string -> text field.
+---@return string|nil
+local function controlFor(value, ctx)
+	if not (ctx and ctx.editable) or not value.span then
+		return nil
+	end
+	if value.kind == "string" and value.semantic == "unit_def_name" then
+		return '<select class="me-select me-select-unit"' .. editAttrs(value, ctx) .. ' data-quote="1">'
+			.. unitOptionsRml(value.value) .. "</select>"
+	elseif value.kind == "string" and value.semantic == "objective_name" then
+		local seen = false
+		local opts = {}
+		for _, objective in ipairs(currentObjectives) do
+			seen = seen or objective == value.value
+			opts[#opts + 1] = '<option value="' .. escapeRml(objective) .. '"'
+				.. (objective == value.value and ' selected="true"' or "")
+				.. ">" .. escapeRml(objective) .. "</option>"
+		end
+		if not seen then
+			opts[#opts + 1] = '<option value="' .. escapeRml(value.value) .. '" selected="true">'
+				.. escapeRml(value.value) .. "</option>"
+		end
+		return '<select class="me-select"' .. editAttrs(value, ctx) .. ' data-quote="1">'
+			.. table.concat(opts) .. "</select>"
+	elseif value.kind == "number" then
+		local number = value.value
+		if number == math.floor(number) then
+			number = math.floor(number)
+		end
+		return '<input type="text" class="me-input me-input-num" value="' .. tostring(number) .. '"'
+			.. editAttrs(value, ctx) .. ' data-quote="0"/>'
+	elseif value.kind == "string" and not value.value:find('"') then
+		return '<input type="text" class="me-input" value="' .. escapeRml(value.value) .. '"'
+			.. editAttrs(value, ctx) .. ' data-quote="1"/>'
+	end
+	return nil
+end
+
+---Display notation: pretty-print a Value node back to DSL text (one
+---renderer, many surfaces — see editor_architecture_plan.md). Editable
+---literals become controls in place.
 ---@param value table
 ---@param ctx { file: string, hash: string, editable: boolean }|nil
 ---@return string
 local function renderValue(value, ctx)
 	local kind = value.kind
+	local control = ctx and ctx.editable and controlFor(value, ctx) or nil
 	if kind == "number" then
+		if control then
+			return control
+		end
 		local number = value.value
 		if number == math.floor(number) then
 			number = math.floor(number)
 		end
-		if ctx and ctx.editable and value.span then
-			return '<input type="text" class="me-input me-input-num" value="' .. tostring(number)
-				.. '" data-file="' .. ctx.file
-				.. '" data-start="' .. tostring(value.span[1])
-				.. '" data-end="' .. tostring(value.span[2])
-				.. '" data-hash="' .. ctx.hash
-				.. '" data-quote="0"/>'
-		end
 		return '<span class="me-lit">' .. tostring(number) .. "</span>"
 	elseif kind == "string" then
-		local text = tostring(value.value)
-		if ctx and ctx.editable and value.span and not text:find('"') then
-			return '<input type="text" class="me-input" value="' .. text
-				.. '" data-file="' .. ctx.file
-				.. '" data-start="' .. tostring(value.span[1])
-				.. '" data-end="' .. tostring(value.span[2])
-				.. '" data-hash="' .. ctx.hash
-				.. '" data-quote="1"/>'
+		if control then
+			return control
 		end
-		return '<span class="me-lit">"' .. text .. '"</span>'
+		return '<span class="me-lit">"' .. escapeRml(value.value) .. '"</span>'
 	elseif kind == "boolean" then
 		return '<span class="me-lit">' .. tostring(value.value) .. "</span>"
 	elseif kind == "name" then
@@ -107,30 +192,122 @@ local function renderValue(value, ctx)
 		end
 		return "{ " .. table.concat(fields, ", ") .. " }"
 	end
-	return '<span class="me-opaque">[' .. tostring(value.reason or "opaque") .. "]</span>"
+	return '<span class="me-opaque">[' .. escapeRml(value.reason or "opaque") .. "]</span>"
 end
 
+---Sentence templates for the full-UI card style: schema'd verb shapes read
+---as English; {semantic} slots bind to the annotated leaves underneath.
+local PHRASES = {
+	["Team.Player.Has"] = "Player has {count} × {unit_def_name}",
+	["Objective.IsComplete"] = "objective {objective_name} is complete",
+	["Objective.Complete"] = "complete objective {objective_name}",
+	["MatchFlow.Victory"] = "victory for the player team",
+	["MatchFlow.Defeat"] = "defeat for the player team",
+}
+
+local function phraseKey(verbValue)
+	local chained = nil
+	for _, call in ipairs(verbValue.calls or {}) do
+		if call.name then
+			chained = call.name
+		end
+	end
+	return verbValue.path .. (chained and ("." .. chained) or "")
+end
+
+local function findSemanticLeaf(value, semantic)
+	if (value.kind == "number" or value.kind == "string") and value.semantic == semantic then
+		return value
+	end
+	if value.kind == "verb" then
+		for _, call in ipairs(value.calls) do
+			for _, arg in ipairs(call.args) do
+				local found = findSemanticLeaf(arg, semantic)
+				if found then
+					return found
+				end
+			end
+		end
+	elseif value.kind == "table" then
+		for _, field in ipairs(value.fields) do
+			local found = findSemanticLeaf(field.value, semantic)
+			if found then
+				return found
+			end
+		end
+	end
+	return nil
+end
+
+---Full-UI rendering of one step argument: the sentence with controls in the
+---slots, falling back to display notation for shapes no phrase covers.
+local function renderArgUi(value, ctx)
+	if value.kind == "verb" then
+		local phrase = PHRASES[phraseKey(value)]
+		if phrase then
+			return (phrase:gsub("{([%w_]+)}", function(semantic)
+				local leaf = findSemanticLeaf(value, semantic)
+				local control = leaf and controlFor(leaf, ctx)
+				if control then
+					return control
+				end
+				if leaf then
+					return '<span class="me-lit">' .. escapeRml(tostring(leaf.value)) .. "</span>"
+				end
+				return "{" .. semantic .. "}"
+			end))
+		end
+	end
+	return renderValue(value, ctx)
+end
+
+-- Badge category per chain verb: conditions, effects, modifiers.
+local STEP_CLASS = {
+	When = "cond",
+	AndWhen = "cond",
+	Do = "effect",
+	Once = "mod",
+	Debounce = "mod",
+}
+
 ---@param trigger table
----@param ctx { file: string, hash: string, editable: boolean }|nil
+---@param ctx { file: string, hash: string, editable: boolean }
+---@param style "ui"|"dsl"
 ---@return string
-local function renderTrigger(trigger, ctx)
+local function renderTrigger(trigger, ctx, style)
 	local rows = {
 		'<div class="me-card"><div class="me-card-title">'
-			.. (trigger.label or trigger.id)
+			.. escapeRml(trigger.label or trigger.id)
 			.. "</div>",
 	}
 	for _, step in ipairs(trigger.steps) do
 		if step.verb ~= "Register" then
+			local badge = STEP_CLASS[step.verb] or "mod"
 			local args = {}
 			for _, arg in ipairs(step.args) do
-				args[#args + 1] = renderValue(arg, ctx)
+				args[#args + 1] = (style == "ui") and renderArgUi(arg, ctx) or renderValue(arg, ctx)
 			end
-			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb">'
+			rows[#rows + 1] = '<div class="me-step"><span class="me-step-verb me-verb-' .. badge .. '">'
 				.. step.verb:upper()
-				.. "</span> "
+				.. '</span><span class="me-step-body">'
 				.. table.concat(args, ", ")
-				.. "</div>"
+				.. "</span></div>"
 		end
+	end
+	-- The add palette: effects the current surface offers, from the schema
+	-- artifact. Choosing one inserts a .Do(...) line through the same
+	-- CAS-gated channel; the file comes back re-parsed with fresh controls.
+	local effects = ctx.editable and currentAst and currentAst.surface and currentAst.surface.effects
+	if effects and #effects > 0 then
+		local opts = { '<option value="" selected="true">+ add effect</option>' }
+		for _, effect in ipairs(effects) do
+			opts[#opts + 1] = '<option value="' .. escapeRml(effect.template) .. '">'
+				.. escapeRml(effect.label) .. "</option>"
+		end
+		rows[#rows + 1] = '<div class="me-add-row"><select class="me-add" data-insert="'
+			.. tostring(trigger.insert_effect_at or trigger.span[2])
+			.. '" data-file="' .. ctx.file .. '" data-hash="' .. ctx.hash .. '">'
+			.. table.concat(opts) .. "</select></div>"
 	end
 	rows[#rows + 1] = "</div>"
 	return table.concat(rows)
@@ -141,13 +318,28 @@ end
 local function buildBody(editable)
 	local text = VFS.LoadFile(AST_PATH, VFS.RAW_FIRST)
 	if not text then
-		return nil, "no AST artifact at " .. AST_PATH .. " — run bar-mission-kit parse"
+		return nil, "no AST artifact at " .. AST_PATH .. " — run: just bar::mission-serve"
 	end
 	local ok, ast = pcall(Json.decode, text)
 	if not ok or type(ast) ~= "table" then
 		return nil, "cannot decode " .. AST_PATH
 	end
+	currentAst = ast
+	currentObjectives = {}
+	local seen = {}
+	for _, file in ipairs(ast.files or {}) do
+		for _, objective in ipairs(file.objectives or {}) do
+			if not seen[objective] then
+				seen[objective] = true
+				currentObjectives[#currentObjectives + 1] = objective
+			end
+		end
+	end
+	table.sort(currentObjectives)
 
+	-- The billboard always reads in display notation; the form obeys the
+	-- style toggle.
+	local style = editable and cardStyle or "dsl"
 	local out = {}
 	firstMissionFile = ast.files and ast.files[1] and ast.files[1].path or nil
 	for _, file in ipairs(ast.files or {}) do
@@ -155,24 +347,27 @@ local function buildBody(editable)
 		out[#out + 1] = '<div class="me-file">' .. file.path .. "</div>"
 		for _, group in ipairs(file.groups or {}) do
 			if group.label then
-				out[#out + 1] = '<div class="me-group">' .. group.label .. "</div>"
+				out[#out + 1] = '<div class="me-group">' .. escapeRml(group.label) .. "</div>"
 			end
 			for _, trigger in ipairs(group.triggers or {}) do
-				out[#out + 1] = renderTrigger(trigger, ctx)
+				out[#out + 1] = renderTrigger(trigger, ctx, style)
 			end
 		end
 		if file.opaque and #file.opaque > 0 then
-			out[#out + 1] = '<div class="me-opaque">'
-				.. #file.opaque
+			out[#out + 1] = '<div class="me-opaque">' .. #file.opaque
 				.. " unrecognized span(s) — see bar-mission-kit check</div>"
 		end
 	end
 	return table.concat(out)
 end
 
----Mode switch to code: ask the serve process to open the file at the line.
+--------------------------------------------------------------------------------
+-- The intent channel: filesystem out, regeneration back.
+--------------------------------------------------------------------------------
+
+---Mode switch to code: ask the serve process to open the file in the IDE.
 ---@param filePath string
----@param line string
+---@param line number
 local function requestOpenInEditor(filePath, line)
 	Spring.CreateDir("modules/missions/editor")
 	local handle = io.open(OPEN_REQUEST_PATH, "w")
@@ -180,11 +375,104 @@ local function requestOpenInEditor(filePath, line)
 		Spring.Echo("[mission_editor] cannot write " .. OPEN_REQUEST_PATH)
 		return
 	end
-	local absolute = VFS.GetFileAbsolutePath and VFS.GetFileAbsolutePath(OPEN_REQUEST_PATH)
-	Spring.Echo("[mission_editor] open request -> " .. tostring(absolute or OPEN_REQUEST_PATH))
-	handle:write(Json.encode({ file = filePath, line = tonumber(line) or 1 }))
+	handle:write(Json.encode({ file = filePath, line = line or 1 }))
 	handle:close()
 end
+
+---@param edit { file: string, start: number, finish: number, hash: string, quote: boolean, value: string }
+local function writeEditIntent(edit)
+	Spring.CreateDir(EDITS_DIR)
+	editSequence = editSequence + 1
+	local path = EDITS_DIR .. "/" .. Spring.GetGameFrame() .. "_" .. editSequence .. ".json"
+	local handle = io.open(path, "w")
+	if not handle then
+		Spring.Echo("[mission_editor] cannot write edit intent " .. path)
+		return
+	end
+	local newText = edit.value
+	if edit.quote then
+		newText = '"' .. newText .. '"'
+	end
+	handle:write(Json.encode({
+		file = edit.file,
+		start = edit.start,
+		["end"] = edit.finish,
+		new_text = newText,
+		base_hash = edit.hash,
+	}))
+	handle:close()
+end
+
+---Flush debounced field edits. The last value within a field's window wins;
+---serve validates through the recognizer before any byte lands.
+local function flushPendingEdits()
+	local now = os.clock()
+	for key, edit in pairs(pendingEdits) do
+		if now >= edit.deadline then
+			pendingEdits[key] = nil
+			writeEditIntent(edit)
+		end
+	end
+end
+
+local function queueFieldEdit(element, value, deadline)
+	local start = tonumber(element:GetAttribute("data-start"))
+	if start == nil then
+		return
+	end
+	pendingEdits[element:GetAttribute("data-file") .. ":" .. start] = {
+		file = element:GetAttribute("data-file"),
+		start = start,
+		finish = tonumber(element:GetAttribute("data-end")),
+		hash = element:GetAttribute("data-hash"),
+		quote = element:GetAttribute("data-quote") == "1",
+		value = value,
+		deadline = deadline,
+	}
+end
+
+local function attachFormControls()
+	local content = document:GetElementById("me-content")
+	if not content then
+		return
+	end
+	local inputs = content:GetElementsByTagName("input")
+	for i = 1, #inputs do
+		local input = inputs[i]
+		input:AddEventListener("change", function()
+			queueFieldEdit(input, tostring(input:GetAttribute("value") or ""), os.clock() + EDIT_DEBOUNCE_SECONDS)
+		end)
+	end
+	local selects = content:GetElementsByTagName("select")
+	for i = 1, #selects do
+		local select = selects[i]
+		select:AddEventListener("change", function()
+			local value = tostring(select:GetAttribute("value") or "")
+			local insertAt = tonumber(select:GetAttribute("data-insert"))
+			if insertAt then
+				-- The add palette: insert a whole .Do(...) line at the
+				-- trigger's insert point.
+				if value ~= "" then
+					writeEditIntent({
+						file = select:GetAttribute("data-file"),
+						start = insertAt,
+						finish = insertAt,
+						hash = select:GetAttribute("data-hash"),
+						quote = false,
+						value = "\t.Do(" .. value .. ")\n",
+					})
+				end
+				return
+			end
+			-- Dropdown value edits apply on the next Update tick.
+			queueFieldEdit(select, value, 0)
+		end)
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Panel state
+--------------------------------------------------------------------------------
 
 local function serveStatusLine()
 	local text = VFS.LoadFile(STATUS_PATH, VFS.RAW_FIRST)
@@ -195,67 +483,7 @@ local function serveStatusLine()
 	if not ok or type(status) ~= "table" or status.ok then
 		return nil
 	end
-	return '<div class="me-opaque">' .. tostring(status.message) .. "</div>"
-end
-
-local pendingEdits = {}
-local editSequence = 0
-
----Flush debounced field edits as CAS-protected intents for serve. The last
----value within a field's window wins; serve validates before writing.
-local function flushPendingEdits()
-	local now = os.clock()
-	for key, edit in pairs(pendingEdits) do
-		if now >= edit.deadline then
-			pendingEdits[key] = nil
-			Spring.CreateDir("modules/missions/editor/edits")
-			editSequence = editSequence + 1
-			local path = "modules/missions/editor/edits/" .. Spring.GetGameFrame() .. "_" .. editSequence .. ".json"
-			local handle = io.open(path, "w")
-			if handle then
-				local newText = edit.value
-				if edit.quote then
-					newText = '"' .. newText .. '"'
-				end
-				handle:write(Json.encode({
-					file = edit.file,
-					start = edit.start,
-					["end"] = edit.finish,
-					new_text = newText,
-					base_hash = edit.hash,
-				}))
-				handle:close()
-			else
-				Spring.Echo("[mission_editor] cannot write edit intent " .. path)
-			end
-		end
-	end
-end
-
-local function attachFormInputs()
-	local content = document:GetElementById("me-content")
-	if not content then
-		return
-	end
-	local inputs = content:GetElementsByTagName("input")
-	for i = 1, #inputs do
-		local input = inputs[i]
-		input:AddEventListener("change", function()
-			local start = tonumber(input:GetAttribute("data-start"))
-			if start == nil then
-				return
-			end
-			pendingEdits[input:GetAttribute("data-file") .. ":" .. start] = {
-				file = input:GetAttribute("data-file"),
-				start = start,
-				finish = tonumber(input:GetAttribute("data-end")),
-				hash = input:GetAttribute("data-hash"),
-				quote = input:GetAttribute("data-quote") == "1",
-				value = tostring(input:GetAttribute("value") or ""),
-				deadline = os.clock() + 0.8,
-			}
-		end)
-	end
+	return '<div class="me-opaque">' .. escapeRml(status.message) .. "</div>"
 end
 
 local function refresh()
@@ -268,12 +496,12 @@ local function refresh()
 	if content then
 		content.inner_rml = (statusLine or "")
 			.. (body or ('<div class="me-opaque">' .. (err or "?") .. "</div>"))
-		attachFormInputs()
+		attachFormControls()
 	end
 end
 
----The text-mode billboard: BIG header + serve status + the mission in display
----notation, read-only — the same renderer the form uses.
+---The text-mode billboard: BIG header + serve status + the mission in
+---display notation, read-only — the same renderer the form uses.
 local function fillBillboard()
 	local strip = document:GetElementById("me-textmode")
 	if not strip then
@@ -324,12 +552,6 @@ function widget:Update(dt)
 	flushPendingEdits()
 end
 
-function widget:ViewResize()
-	if document and visible then
-		applyViewLayout()
-	end
-end
-
 ---vw units resolve to 0 in this RmlUi build, so right-anchoring is unusable:
 ---place the panel from real view geometry, and scale the base font with the
 ---view height so the panel tracks resolution.
@@ -340,21 +562,28 @@ applyViewLayout = function()
 	end
 	local vsx, vsy = Spring.GetViewGeometry()
 	local scale = math.max(0.85, math.min(1.6, vsy / 1200))
-	local width = math.floor(480 * scale)
+	local width = math.floor(500 * scale)
 	root.style.left = tostring(math.max(0, vsx - width - 40)) .. "px"
 	root.style.width = tostring(width) .. "px"
 	root.style["font-size"] = tostring(math.floor(16 * scale)) .. "px"
 end
 
----Form mode shows the cards; text mode collapses to a strip while the real
----IDE owns the file. Both are the same document — the panel never closes on
----a mode switch.
+function widget:ViewResize()
+	if document and visible then
+		applyViewLayout()
+	end
+end
+
+---Form mode shows the cards; text mode collapses to the billboard while the
+---real IDE owns the file. Both are the same document — the panel never
+---closes on a mode switch.
 local function setMode(newMode)
 	mode = newMode
 	local content = document:GetElementById("me-content")
 	local footer = document:GetElementById("me-footer")
 	local strip = document:GetElementById("me-textmode")
 	local editButton = document:GetElementById("me-edit")
+	local styleButton = document:GetElementById("me-style")
 	local isForm = mode == "form"
 	if content then
 		content.style.display = isForm and "block" or "none"
@@ -370,6 +599,9 @@ local function setMode(newMode)
 	end
 	if editButton then
 		editButton.inner_rml = isForm and "Edit" or "Form"
+	end
+	if styleButton then
+		styleButton.style.display = isForm and "inline-block" or "none"
 	end
 end
 
@@ -397,21 +629,6 @@ function widget:Initialize()
 		return false
 	end
 
-	local refreshButton = document:GetElementById("me-refresh")
-	if refreshButton then
-		refreshButton:AddEventListener("click", function()
-			refresh()
-		end)
-	end
-	local reloadButton = document:GetElementById("me-reload")
-	if reloadButton then
-		reloadButton:AddEventListener("click", function()
-			-- The hot-reload path: the FILE changed (the editor wrote it);
-			-- re-arm the mission, then re-read the artifact.
-			Spring.SendCommands("luarules mission reload")
-			refresh()
-		end)
-	end
 	local editButton = document:GetElementById("me-edit")
 	if editButton then
 		editButton:AddEventListener("click", function()
@@ -422,9 +639,30 @@ function widget:Initialize()
 				end
 				setMode("text")
 			else
-				refresh()
 				setMode("form")
+				refresh()
 			end
+		end)
+	end
+	local styleButton = document:GetElementById("me-style")
+	if styleButton then
+		styleButton:AddEventListener("click", function()
+			cardStyle = cardStyle == "ui" and "dsl" or "ui"
+			styleButton.inner_rml = cardStyle == "ui" and "DSL" or "UI"
+			refresh()
+		end)
+	end
+	local refreshButton = document:GetElementById("me-refresh")
+	if refreshButton then
+		refreshButton:AddEventListener("click", function()
+			renderCurrent()
+		end)
+	end
+	local reloadButton = document:GetElementById("me-reload")
+	if reloadButton then
+		reloadButton:AddEventListener("click", function()
+			Spring.SendCommands("luarules mission reload")
+			renderCurrent()
 		end)
 	end
 	local closeButton = document:GetElementById("me-close")
