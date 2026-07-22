@@ -542,6 +542,15 @@ local function attachFormControls()
 	local inputs = content:GetElementsByTagName("input")
 	for i = 1, #inputs do
 		local input = inputs[i]
+		-- Printable keys only reach RmlUi inputs while SDL text-input mode
+		-- is on (gui_chat does the same dance); backspace is a plain keydown,
+		-- which is why deleting worked while typing did not.
+		input:AddEventListener("focus", function()
+			Spring.SDLStartTextInput()
+		end)
+		input:AddEventListener("blur", function()
+			Spring.SDLStopTextInput()
+		end)
 		input:AddEventListener("change", function()
 			queueFieldEdit(input, tostring(input:GetAttribute("value") or ""), os.clock() + EDIT_DEBOUNCE_SECONDS)
 		end)
