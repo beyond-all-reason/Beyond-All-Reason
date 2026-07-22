@@ -1,6 +1,6 @@
 --- Fluent builder that emits PolicyDescriptors — no runtime of its own.
 ---
---- The canonical policy format is the category file (see modules/types/modules.lua):
+--- The canonical policy format is the category file (see types/modules.lua):
 --- modules/<name>/policies/<category>.lua registers an ordered PolicyDescriptor[]
 --- and returns nothing. Pipeline() is how those files read — gates in declaration
 --- order, one terminal compute — and what it hands the loader is a plain
