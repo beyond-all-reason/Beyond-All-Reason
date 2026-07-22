@@ -2828,6 +2828,10 @@ local icontypes = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
 		size = 2
 	},
+	legapollyon = {
+		bitmap = "icons/vehicle_t3_tank_mgun.png",
+		size = 3.5
+	},
 	leglht = {
 		bitmap = "icons/defence_0_laser.png",
 		size = 0.80000001
@@ -2922,7 +2926,7 @@ local icontypes = {
 	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
-		size = 1.45000005
+		size = 1.3000005
 	},
 	legnap = {
 		bitmap = "icons/air_t2_bomber_napalm.png",
