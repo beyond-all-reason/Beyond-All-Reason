@@ -4696,10 +4696,10 @@ local colors = {
     -- Keep the expanding underwater impact ring above the seafloor so it does not clip into terrain.
     waterring = {count=1, properties={
       colormap=[[0.6 0.61 0.63 0.013   0.40 0.41 0.43 0.01   0.1 0.1 0.1 0.006   0 0 0 0]],
-      dir=[[0, 1, 0]],
-      pos=[[0, 8, 0]],
-      speed=[[0, 0.1, 0]],
-      ttl=56,
+      dir = [[0, 1, 0]],
+      pos = [[0, 8, 0]],
+      speed = [[0, 0.1, 0]],
+      ttl = 56,
     }},
   },
   bomb = {
