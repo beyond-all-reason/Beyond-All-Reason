@@ -625,6 +625,10 @@
 				"label": "ui.keybinds.buildHotkeys.areaMex"
 			},
 			{
+				"action": "toggle_allied_upgrade",
+				"label": "ui.keybinds.buildHotkeys.skipAlliedUpgrade"
+			},
+			{
 				"prefix": "buildunit_",
 				"label": "ui.keybinds.buildHotkeys.unit",
 				"unit": true
