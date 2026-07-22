@@ -2,7 +2,7 @@
 --- policy_builder idiom. Pure Lua, no Spring.
 ---
 --- The surface is dot-only AND closure-free: every chain step is a plain call
---- with parens — `T.When(cond).Do(effect).Register()` — no colon methods, no
+--- with parens — `When(cond).Do(effect).Register()` — no colon methods, no
 --- metatables, and no function bodies in mission files. Effects are lazy
 --- objects built by named verbs (Objective("x").Complete()); the engine
 --- executes them when the condition fires. Chains are closures over a local
@@ -14,21 +14,20 @@
 
 local DSL = {}
 
----Build the `T` injected into one trigger file's environment. Declaration
----order is per-file: the Nth Register call in the file is trigger N.
+---Build the `When` chain entry injected into one trigger file's environment.
+---Declaration order is per-file: the Nth Register call in the file is
+---trigger N.
 ---@param filename string mission-relative path, e.g. "triggers/win.lua"
 ---@param sink fun(descriptor: TriggerDescriptor)
----@return TriggerDSL
+---@return fun(condition: MissionCondition): TriggerChain
 function DSL.ForFile(filename, sink)
 	local order = 0
 
-	local T = {}
-
 	---@param condition MissionCondition
 	---@return TriggerChain
-	T.When = function(condition)
+	local When = function(condition)
 		assert(type(condition) == "table" and type(condition.evaluate) == "function",
-			filename .. ": T.When expects a condition (a table with an evaluate function)")
+			filename .. ": When expects a condition (a table with an evaluate function)")
 
 		local conditions = { condition } ---@type MissionCondition[]
 		local effects = {} ---@type MissionEffect[]
@@ -115,7 +114,7 @@ function DSL.ForFile(filename, sink)
 		return chain
 	end
 
-	return T
+	return When
 end
 
 return DSL
