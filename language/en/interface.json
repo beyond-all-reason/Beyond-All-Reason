@@ -587,6 +587,7 @@
 				"title": "Build",
 				"unit": "Build %{n}",
 				"areaMex": "Area mex",
+				"skipAlliedUpgrade": "Toggle skipping allied units when upgrading",
 				"split": "Split build orders between builders"
 			},
 			"blueprints": {
