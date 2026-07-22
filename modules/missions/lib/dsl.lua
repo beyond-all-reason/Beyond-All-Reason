@@ -71,9 +71,26 @@ function DSL.ForFile(filename, sink)
 			order = order + 1
 			local combined = condition
 			if #conditions > 1 then
-				-- AND-composition. The closure captures the conditions list —
+				-- AND-composition. Inputs compose as the UNION of the parts';
+				-- any poll-only part (nil inputs) makes the whole trigger
+				-- poll. The closure captures the conditions list —
 				-- configuration, never progress (the savegame rule holds).
+				local union = {}
+				local seen = {}
+				for _, part in ipairs(conditions) do
+					if part.inputs == nil then
+						union = nil
+						break
+					end
+					for _, input in ipairs(part.inputs) do
+						if not seen[input] then
+							seen[input] = true
+							union[#union + 1] = input
+						end
+					end
+				end
 				combined = {
+					inputs = union,
 					---@param ctx MissionContext
 					evaluate = function(ctx)
 						for _, part in ipairs(conditions) do

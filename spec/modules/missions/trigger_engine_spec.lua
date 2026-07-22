@@ -101,6 +101,81 @@ describe("TriggerEngine", function()
 		assert.are.same({}, log)
 	end)
 
+	describe("condition inputs (event-driven evaluation)", function()
+		local function watcherTrigger(id, log, inputs, result)
+			return {
+				id = id,
+				filename = id:match("^(.*):") or id,
+				order = tonumber(id:match(":(%d+)$")) or 1,
+				condition = {
+					inputs = inputs,
+					evaluate = function()
+						log.evaluated[#log.evaluated + 1] = id
+						return result ~= false
+					end,
+				},
+				effects = { { execute = function()
+					log.fired[#log.fired + 1] = id
+				end } },
+				once = true,
+			}
+		end
+
+		local function newLog()
+			return { evaluated = {}, fired = {} }
+		end
+
+		it("indexes watched inputs at Register", function()
+			local engine = TriggerEngine.New()
+			local log = newLog()
+			engine.Register(watcherTrigger("f.lua:1", log, { "UnitFinished", "UnitDestroyed" }))
+			assert.are.same({ UnitFinished = true, UnitDestroyed = true }, engine.WatchedInputs())
+		end)
+
+		it("evaluates a watcher once on arm, then only after its events", function()
+			local engine = TriggerEngine.New()
+			local log = newLog()
+			engine.Register(watcherTrigger("f.lua:1", log, { "UnitFinished" }, false))
+			engine.Evaluate(makeCtx({})) -- armed: evaluates once
+			engine.Evaluate(makeCtx({})) -- no event since: skipped
+			assert.are.equal(1, #log.evaluated)
+			engine.OnEvent("UnitFinished")
+			engine.Evaluate(makeCtx({}))
+			assert.are.equal(2, #log.evaluated)
+		end)
+
+		it("ignores events nothing watches", function()
+			local engine = TriggerEngine.New()
+			local log = newLog()
+			engine.Register(watcherTrigger("f.lua:1", log, { "UnitFinished" }, false))
+			engine.Evaluate(makeCtx({}))
+			engine.OnEvent("mission.objective_changed")
+			engine.Evaluate(makeCtx({}))
+			assert.are.equal(1, #log.evaluated)
+		end)
+
+		it("polls conditions with nil inputs every cadence", function()
+			local engine = TriggerEngine.New()
+			local log = newLog()
+			engine.Register(watcherTrigger("f.lua:1", log, nil, false))
+			engine.Evaluate(makeCtx({}))
+			engine.Evaluate(makeCtx({}))
+			engine.Evaluate(makeCtx({}))
+			assert.are.equal(3, #log.evaluated)
+		end)
+
+		it("UnregisterFile cleans the watcher index", function()
+			local engine = TriggerEngine.New()
+			local log = newLog()
+			engine.Register(watcherTrigger("a.lua:1", log, { "UnitFinished" }))
+			engine.UnregisterFile("a.lua")
+			assert.are.same({}, engine.WatchedInputs())
+			engine.OnEvent("UnitFinished")
+			engine.Evaluate(makeCtx({}))
+			assert.are.equal(0, #log.evaluated)
+		end)
+	end)
+
 	describe("UnregisterFile", function()
 		it("removes exactly that file's triggers and their progress", function()
 			local engine = TriggerEngine.New()
