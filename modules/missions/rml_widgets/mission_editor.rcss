@@ -81,7 +81,16 @@
 
 .me-card-head {
     display: block;
+    position: relative;
     margin-bottom: 6px;
+    padding-right: 30px;
+}
+
+.me-card-x {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    margin-left: 0;
 }
 
 .me-card-title {
