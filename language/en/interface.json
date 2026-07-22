@@ -90,9 +90,58 @@
 			"requestSupport": "Double-click to ask for support",
 			"requestMetal": "Click-and-drag to ask for metal",
 			"requestEnergy": "Click-and-drag to ask for energy",
-			"shareUnits": "Double-click to share units",
-			"shareMetal": "Click-and-drag to share metal",
-			"shareEnergy": "Click-and-drag to share energy",
+			"shareUnits": {
+				"base": {
+					"default": "Double-click to share units",
+					"disabled": "Unit sharing not allowed (mode is %{unitSharingMode})",
+					"allInvalid": "Sharing these units is not allowed (mode is %{unitSharingMode})",
+					"buildDelay": {
+						"one": "%{count} shared constructor will be paused for %{buildDelaySeconds}s",
+						"other": "%{count} shared constructors will be paused for %{buildDelaySeconds}s"
+					},
+					"stunDelay": {
+						"one": "%{count} shared %{stunCategory} unit will be stunned for %{stunSeconds}s",
+						"other": "%{count} shared %{stunCategory} units will be stunned for %{stunSeconds}s"
+					},
+					"invalid": {
+						"one": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} cannot be shared)",
+						"other": "Double-click to share units (mode is %{unitSharingMode} - %{count} units cannot be shared, including %{firstInvalidUnitName})"
+					}
+				},
+				"tech": {
+					"disabled": "Unit sharing unlocks at Tech %{nextTechLevel} (%{currentKeystones}/%{requiredKeystones} Keystones)",
+					"noUnlock": "These units cannot be shared",
+					"allInvalid": "These units cannot be shared — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel} (%{currentKeystones}/%{requiredKeystones} Keystones)",
+					"invalid": {
+						"one": "Double-click to share units (%{firstInvalidUnitName} blocked — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel}, %{currentKeystones}/%{requiredKeystones} Keystones)",
+						"other": "Double-click to share units (%{count} units blocked, including %{firstInvalidUnitName} — %{nextUnitSharingMode} unlocks at Tech %{nextTechLevel}, %{currentKeystones}/%{requiredKeystones} Keystones)"
+					}
+				}
+			},
+		"shareMetal": {
+				"base": {
+					"default": "Click-and-drag to share metal",
+					"disabled": "Metal sharing not allowed",
+					"taxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%%"
+				},
+				"tech": {
+					"disabled": "%{resourceType} sharing unlocks at Tech %{nextTechLevel} (%{currentKeystones}/%{requiredKeystones} Keystones)",
+					"default": "Click-and-drag to share metal (tax-free now, %{nextRate}%% tax at Tech %{nextTechLevel} — %{currentKeystones}/%{requiredKeystones} Keystones)",
+					"taxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%% (reduces to %{nextRate}%% at Tech %{nextTechLevel} — %{currentKeystones}/%{requiredKeystones} Keystones)"
+				}
+			},
+			"shareEnergy": {
+				"base": {
+					"default": "Click-and-drag to share energy",
+					"disabled": "Energy sharing not allowed",
+					"taxed": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%%"
+				},
+				"tech": {
+					"disabled": "%{resourceType} sharing unlocks at Tech %{nextTechLevel} (%{currentKeystones}/%{requiredKeystones} Keystones)",
+					"default": "Click-and-drag to share energy (tax-free now, %{nextRate}%% tax at Tech %{nextTechLevel} — %{currentKeystones}/%{requiredKeystones} Keystones)",
+					"taxed": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%% (reduces to %{nextRate}%% at Tech %{nextTechLevel} — %{currentKeystones}/%{requiredKeystones} Keystones)"
+				}
+			},
 			"becomeEnemy": "Click to become enemy",
 			"becomeAlly": "Click to become ally",
 			"thousands": "%{number}k",
@@ -116,8 +165,10 @@
 				"needEnergyAmount": "I need %{amount} energy!",
 				"giveMetal": "I sent %{amount} metal to %{name}",
 				"giveEnergy": "I sent %{amount} energy to %{name}",
-				"giveMetal_taxed": "I sent %{amount} metal to %{name} and they received %{amount2} metal",
-				"giveEnergy_taxed": "I sent %{amount} energy to %{name} and they received %{amount2} energy",
+				"sentMetal": "Sent %{receivedAmount}m",
+				"sentMetalTaxed": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead",
+				"sentEnergy": "Sent %{receivedAmount}e",
+				"sentEnergyTaxed": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead",
 				"takeTeam": "I took %{name}.",
 				"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
 			}
@@ -1961,6 +2012,33 @@
 			"refundNotification": "Remaining budget will be refunded as Metal.",
 			"remainingResourcesWarning": "Use the Base Budget to instantly spawn structures within range",
 			"unallocatedBudget": "Quick Start enabled: use your Base Budget first"
+		},
+		"techBlocking": {
+			"techLevel": "TECH",
+			"gameStart": "Tech Core active: build Keystones to unlock T2 (%{t2Threshold} needed) and T3 (%{t3Threshold} needed)",
+			"techUp": "Tech %{level} unlocked! %{unlockDescription}",
+			"milestone": {
+				"t2": "T2 units and %{unitSharingMode} unit sharing unlocked",
+				"t3": "T3 units and full sharing unlocked"
+			},
+			"tooltip": {
+				"currentLevel": "Tech %{level} — %{points}/%{threshold} Keystones",
+				"nextUnlock": "Next: Tech %{nextLevel} unlocks %{unitSharingMode} sharing at %{threshold} Keystones"
+			},
+			"techPopup": {
+				"level1": "Tech Level 1",
+				"level2": "Tech Level 2 Unlocked!",
+				"level3": "Tech Level 3 Unlocked!"
+			}
+		},
+		"unitSharingMode": {
+			"none": "Disabled",
+			"all": "All",
+			"combat": "Combat",
+			"buildings": "Buildings",
+			"constructors": "Constructors",
+			"resource": "Resource",
+			"non_combat": "Non-combat"
 		}
 	},
 	"cmd":{
