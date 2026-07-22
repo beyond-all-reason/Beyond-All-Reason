@@ -23,6 +23,7 @@ local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRapt
 local autoReload = false -- refresh shader code every second (disable in production!)
 
 local StartBoxes = {} -- list of xXyY
+local NUM_BOXES = 0
 local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
 if noRushTime == 0 then
 	return
