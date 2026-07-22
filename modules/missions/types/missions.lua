@@ -55,11 +55,12 @@
 ---@field once boolean fire at most once (default true)
 
 --- The dot-only builder chain returned by When. Every step returns the
---- chain; Register is the terminal and returns nothing.
+--- chain. There is no terminator: the loader finalizes all chains when the
+--- file's include returns, and a chain without a Do fails the load.
 ---@class TriggerChain
+---@field When fun(condition: MissionCondition): TriggerChain another condition; all must hold
 ---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
 ---@field Once fun(once: boolean?): TriggerChain default true; pass false for repeating triggers
----@field Register fun()
 
 --- A unit-def reference produced by the injected UnitDef verb. Carries the
 --- name only; resolution to an id happens where Spring exists.
