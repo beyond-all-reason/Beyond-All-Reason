@@ -1,7 +1,7 @@
 -- Tachyon Effects
 
 return {
-	["tachyonshot"] = {
+	tachyonshot = {
 		-- fire = {
 		--   air                = true,
 		--   class              = [[CBitmapMuzzleFlame]],

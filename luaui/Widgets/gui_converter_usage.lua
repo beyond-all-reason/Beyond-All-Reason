@@ -71,13 +71,13 @@ local function updateUI()
 	local useSkew = false
 	local nextWidgetScale = widgetScale
 	local nextArea1, nextArea2, nextArea3, nextArea4 = area[1], area[2], area[3], area[4]
-	if WG["topbar"] then
-		local freeArea = WG["topbar"].GetFreeArea()
+	if WG.topbar then
+		local freeArea = WG.topbar.GetFreeArea()
 		nextWidgetScale = freeArea[5]
 		local topbarH = freeArea[4] - freeArea[2]
 		local smallVPad = 0
-		if WG["topbar"].GetSkewConfig then
-			local skewCfg = WG["topbar"].GetSkewConfig()
+		if WG.topbar.GetSkewConfig then
+			local skewCfg = WG.topbar.GetSkewConfig()
 			useSkew = skewCfg.useSkew
 			localSkewTan = skewCfg.skewTan
 			if useSkew then
@@ -103,8 +103,8 @@ local function updateUI()
 		currentSkewTan = localSkewTan
 
 		if dlistGuishader ~= nil then
-			if WG["guishader"] then
-				WG["guishader"].RemoveDlist("converter_usage")
+			if WG.guishader then
+				WG.guishader.RemoveDlist("converter_usage")
 			end
 			glDeleteList(dlistGuishader)
 		end
@@ -132,8 +132,8 @@ local function updateUI()
 			UiElement(area[1], area[2], area[3], area[4], 0, 0, 1, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, skew)
 		end)
 
-		if WG["guishader"] then
-			WG["guishader"].InsertDlist(dlistGuishader, "converter_usage")
+		if WG.guishader then
+			WG.guishader.InsertDlist(dlistGuishader, "converter_usage")
 		end
 	end
 
@@ -153,14 +153,14 @@ local function updateUI()
 		color = "\255\000\255\000" --Green
 	end
 
-	if WG["tooltip"] ~= nil and (layoutChanged or tooltipDirty or warningLevel ~= displayedWarningLevel) then
+	if WG.tooltip ~= nil and (layoutChanged or tooltipDirty or warningLevel ~= displayedWarningLevel) then
 		local tooltipText = defaultTooltipText
 		if warningLevel == 2 then
 			tooltipText = tooltipText .. "\n\n\255\255\100\075" .. warningTooltipText1 .. "\n\255\255\100\075" .. warningTooltipText2
 		elseif warningLevel == 1 then
 			tooltipText = tooltipText .. "\n\n\255\255\120\050" .. warningTooltipText1 .. "\n\255\255\120\050" .. warningTooltipText2
 		end
-		WG["tooltip"].AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
+		WG.tooltip.AddTooltip("converter_usage", area, tooltipText, nil, tooltipTitle)
 		tooltipDirty = false
 	end
 	displayedWarningLevel = warningLevel
@@ -226,8 +226,8 @@ end
 
 function widget:Shutdown()
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 	end
@@ -237,10 +237,10 @@ function widget:Shutdown()
 	if dlistBackground ~= nil then
 		glDeleteList(dlistBackground)
 	end
-	if WG["tooltip"] then
-		WG["tooltip"].RemoveTooltip("converter_usage")
+	if WG.tooltip then
+		WG.tooltip.RemoveTooltip("converter_usage")
 	end
-	WG["converter_usage"] = nil
+	WG.converter_usage = nil
 end
 
 function widget:ViewResize()
@@ -249,7 +249,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
-	font2 = WG["fonts"].getFont(2)
+	font2 = WG.fonts.getFont(2)
 	layoutDirty = true
 end
 
@@ -257,8 +257,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	refreshTooltipText()
 
-	WG["converter_usage"] = {}
-	WG["converter_usage"].GetPosition = function()
+	WG.converter_usage = {}
+	WG.converter_usage.GetPosition = function()
 		return area
 	end
 end
@@ -312,8 +312,8 @@ function widget:Update(dt)
 
 	-- Dont draw if there are no converters
 	if dlistGuishader ~= nil then
-		if WG["guishader"] then
-			WG["guishader"].RemoveDlist("converter_usage")
+		if WG.guishader then
+			WG.guishader.RemoveDlist("converter_usage")
 		end
 		glDeleteList(dlistGuishader)
 		dlistGuishader = nil
@@ -331,8 +331,8 @@ function widget:Update(dt)
 		displayedConverterUse = nil
 	end
 
-	if displayedWarningLevel ~= nil and WG["tooltip"] then
-		WG["tooltip"].RemoveTooltip("converter_usage")
+	if displayedWarningLevel ~= nil and WG.tooltip then
+		WG.tooltip.RemoveTooltip("converter_usage")
 	end
 	displayedWarningLevel = nil
 	tooltipDirty = true

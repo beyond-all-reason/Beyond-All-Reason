@@ -563,7 +563,7 @@ end
 ---@param isBuildSplit boolean If true, split the work among builders. If false, builders of the same faction work together.
 ---@param cmdOpts table Command options.
 local function placeBlueprint(blueprint, buildPositions, builders, isBuildSplit, cmdOpts)
-	local BuildOrders = WG["api_build_orders"]
+	local BuildOrders = WG.api_build_orders
 	local allBuildings = createBuildings(blueprint, buildPositions)
 
 	if isBuildSplit then
@@ -830,7 +830,7 @@ local function createBlueprintFromSerialized(serializedBlueprint)
 	for _, serializedUnit in ipairs(serializedBlueprint.units) do
 		local unitDefID = UnitDefNames[serializedUnit.unitName] and UnitDefNames[serializedUnit.unitName].id
 		tableInsert(result.units, {
-			blueprintUnitID = WG["cmd_blueprint"].nextBlueprintUnitID(),
+			blueprintUnitID = WG.cmd_blueprint.nextBlueprintUnitID(),
 			position = serializedUnit.position,
 			facing = serializedUnit.facing,
 			unitDefID = unitDefID,
@@ -874,7 +874,7 @@ function widget:Initialize()
 		Spring.Log("BlueprintAPI", LOG.INFO, "Reports are DISABLED.")
 	end
 
-	WG["api_blueprint"] = {
+	WG.api_blueprint = {
 		getActiveBlueprint = function()
 			return activeBlueprint
 		end,
@@ -904,7 +904,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["api_blueprint"] = nil
+	WG.api_blueprint = nil
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Blueprint API shutdown.")
 
 	if isHeadless then

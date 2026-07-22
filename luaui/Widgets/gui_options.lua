@@ -358,9 +358,9 @@ function widget:ViewResize()
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
-	font3 = WG["fonts"].getFont(2, 1.6)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
+	font3 = WG.fonts.getFont(2, 1.6)
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -423,8 +423,8 @@ function widget:TextInput(char) -- if it isnt working: chobby probably hijacked 
 		end
 		cursorBlinkTimer = 0
 		updateTextInputDlist = true
-		if WG["limitidlefps"] and WG["limitidlefps"].update then
-			WG["limitidlefps"].update()
+		if WG.limitidlefps and WG.limitidlefps.update then
+			WG.limitidlefps.update()
 		end
 
 		applyFilter()
@@ -445,13 +445,13 @@ end
 local function cancelChatInput()
 	local doReinit = inputText ~= ""
 	backgroundGuishader = glDeleteList(backgroundGuishader)
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("options")
-		WG["guishader"].RemoveRect("optionsinput")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("options")
+		WG.guishader.RemoveRect("optionsinput")
 		if selectOptionsList then
-			WG["guishader"].RemoveScreenRect("options_select")
-			WG["guishader"].RemoveScreenRect("options_select_options")
-			WG["guishader"].removeRenderDlist(selectOptionsList)
+			WG.guishader.RemoveScreenRect("options_select")
+			WG.guishader.RemoveScreenRect("options_select_options")
+			WG.guishader.removeRenderDlist(selectOptionsList)
 		end
 	end
 	if selectOptionsList then
@@ -503,8 +503,8 @@ function updateInputDlist()
 		local x2 = math.max(textPosX + lineHeight + floor(usedFont:GetTextWidth(inputText) * inputFontSize), floor(activationArea[1] + ((activationArea[3] - activationArea[1]) / 5)))
 		chatInputArea = { activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance }
 		UiElement(chatInputArea[1], chatInputArea[2], chatInputArea[3], chatInputArea[4], 0, 0, nil, nil, 0, nil, nil, nil, WG.FlowUI.clampedOpacity)
-		if WG["guishader"] then
-			WG["guishader"].InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "optionsinput")
+		if WG.guishader then
+			WG.guishader.InsertRect(activationArea[1], activationArea[2] + chatlogHeightDiff - distance - inputHeight, x2, activationArea[2] + chatlogHeightDiff - distance, "optionsinput")
 		end
 
 		-- button background
@@ -653,7 +653,7 @@ function DrawWindow()
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
 
 	-- title drawing
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG["guishader"] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG["guishader"] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
 	RectRound(titleRect[1] + groupMargin, titleRect[4] - groupMargin - ((titleRect[4] - titleRect[2]) * 0.5), titleRect[3] - groupMargin, titleRect[4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 1, 0.95, 0.85, 0.03 }, { 1, 0.95, 0.85, 0.15 })
 
 	font2:Begin()
@@ -674,7 +674,7 @@ function DrawWindow()
 				if devMode or devUI or group.id ~= "dev" then
 					xpos = groupRect[id][3]
 					if currentGroupTab == nil or currentGroupTab ~= group.id then
-						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG["guishader"] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG["guishader"] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
 						RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
 
 						RectRound(groupRect[id][1] + groupMargin + groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin - groupPadding, groupRect[id][4] - groupMargin - groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0, 0, 0, 0.13 }, { 0, 0, 0, 0.13 })
@@ -690,7 +690,7 @@ function DrawWindow()
 						font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
 						font2:End()
 					else
-						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG["guishader"] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG["guishader"] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
+						RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG.guishader and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG.guishader and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
 						RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
 
 						font2:Begin()
@@ -1112,7 +1112,7 @@ function widget:Update(dt)
 		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
 
 		-- detect guishader toggle: force refresh when it comes back on
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderWasActive then
 			if backgroundGuishader then
 				backgroundGuishader = glDeleteList(backgroundGuishader)
@@ -1151,8 +1151,8 @@ function widget:Update(dt)
 			options[getOptionByID("sndvolmaster")].value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
 		end
 		if getOptionByID("sndvolmusic") then
-			if WG["music"] and WG["music"].GetMusicVolume then
-				options[getOptionByID("sndvolmusic")].value = WG["music"].GetMusicVolume()
+			if WG.music and WG.music.GetMusicVolume then
+				options[getOptionByID("sndvolmusic")].value = WG.music.GetMusicVolume()
 			else
 				options[getOptionByID("sndvolmusic")].value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
 			end
@@ -1266,7 +1266,7 @@ local function checkQuitscreen()
 	if not canPauseGame then
 		return
 	end
-	quitscreen = (WG["topbar"] and WG["topbar"].showingQuit() or false)
+	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
 	if prevQuitscreen ~= quitscreen then
 		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
@@ -1308,10 +1308,10 @@ function widget:DrawScreen()
 		end
 
 		if not showSelectOptions and selectOptionsList then
-			if WG["guishader"] then
-				WG["guishader"].RemoveScreenRect("options_select")
-				WG["guishader"].RemoveScreenRect("options_select_options")
-				WG["guishader"].removeRenderDlist(selectOptionsList)
+			if WG.guishader then
+				WG.guishader.RemoveScreenRect("options_select")
+				WG.guishader.RemoveScreenRect("options_select_options")
+				WG.guishader.removeRenderDlist(selectOptionsList)
 			end
 			selectOptionsList = glDeleteList(selectOptionsList)
 		end
@@ -1337,7 +1337,7 @@ function widget:DrawScreen()
 
 			-- draw the options panel
 			glCallList(windowList)
-			if WG["guishader"] then
+			if WG.guishader then
 				if not backgroundGuishader then
 					backgroundGuishader = glCreateList(function()
 						-- background
@@ -1360,7 +1360,7 @@ function widget:DrawScreen()
 							guishaderedTabs = false
 						end
 					end)
-					WG["guishader"].InsertDlist(backgroundGuishader, "options")
+					WG.guishader.InsertDlist(backgroundGuishader, "options")
 				end
 			end
 			showOnceMore = false
@@ -1402,7 +1402,7 @@ function widget:DrawScreen()
 						if options[i].onclick == nil then
 							RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, { 0.5, 0.5, 0.5, 0.22 }, { 1, 1, 1, 0.22 })
 						end
-						if WG["tooltip"] ~= nil and options[i].type == "slider" then
+						if WG.tooltip ~= nil and options[i].type == "slider" then
 							local value = options[i].value
 							if options[i].steps then
 								value = NearestValue(options[i].steps, value)
@@ -1412,7 +1412,7 @@ function widget:DrawScreen()
 									value = string.format("%." .. string.len(string.sub("" .. options[i].step, 3)) .. "f", value) -- do rounding via a string because floats show rounding errors at times
 								end
 							end
-							WG["tooltip"].ShowTooltip("options_showvalue", value)
+							WG.tooltip.ShowTooltip("options_showvalue", value)
 							tooltipShowing = true
 						end
 					end
@@ -1451,7 +1451,7 @@ function widget:DrawScreen()
 									end
 								end
 								if showTooltip then
-									desc = font:WrapText(desc, WG["tooltip"].getFontsize() * 90)
+									desc = font:WrapText(desc, WG.tooltip.getFontsize() * 90)
 									WG.tooltip.ShowTooltip("options_description", desc) --, nil, nil, optionColor..options[i].name)
 								end
 							end
@@ -1499,15 +1499,15 @@ function widget:DrawScreen()
 					maxWidth = math.max(maxWidth, font:GetTextWidth(option .. "   ") * fontSize)
 				end
 				if selectOptionsList then
-					if WG["guishader"] then
-						WG["guishader"].removeRenderDlist(selectOptionsList)
+					if WG.guishader then
+						WG.guishader.removeRenderDlist(selectOptionsList)
 					end
 					glDeleteList(selectOptionsList)
 				end
 				selectOptionsList = glCreateList(function()
 					local borderSize = math.max(1, math.floor(vsy / 900))
 					RectRound(optionButtons[showSelectOptions][1] - borderSize, yPos - oHeight - oPadding - borderSize, optionButtons[showSelectOptions][1] + maxWidth + borderSize, optionButtons[showSelectOptions][2] + borderSize, (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0, 0, 0, 0.25 }, { 0, 0, 0, 0.25 })
-					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0.3, 0.3, 0.3, WG["guishader"] and 0.84 or 0.94 }, { 0.35, 0.35, 0.35, WG["guishader"] and 0.84 or 0.94 })
+					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0.3, 0.3, 0.3, WG.guishader and 0.84 or 0.94 }, { 0.35, 0.35, 0.35, WG.guishader and 0.84 or 0.94 })
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
 					local i = 0
@@ -1559,10 +1559,10 @@ function widget:DrawScreen()
 						gl.Color(1, 1, 1, 1)
 					end
 				end)
-				if WG["guishader"] then
-					WG["guishader"].InsertScreenRect(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], "options_select")
-					WG["guishader"].InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], "options_select_options")
-					WG["guishader"].insertRenderDlist(selectOptionsList)
+				if WG.guishader then
+					WG.guishader.InsertScreenRect(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], "options_select")
+					WG.guishader.InsertScreenRect(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], "options_select_options")
+					WG.guishader.insertRenderDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)
 				end
@@ -1577,19 +1577,19 @@ function widget:DrawScreen()
 				if textInputDlist then
 					glCallList(textInputDlist)
 					drawChatInputCursor()
-				elseif WG["guishader"] then
-					WG["guishader"].RemoveRect("optionsinput")
+				elseif WG.guishader then
+					WG.guishader.RemoveRect("optionsinput")
 					textInputDlist = glDeleteList(textInputDlist)
 				end
 			end
 		else
-			if WG["guishader"] then
+			if WG.guishader then
 				if backgroundGuishader then
-					WG["guishader"].RemoveDlist("options")
+					WG.guishader.RemoveDlist("options")
 					backgroundGuishader = glDeleteList(backgroundGuishader)
 				end
 				if textInputDlist then
-					WG["guishader"].RemoveRect("optionsinput")
+					WG.guishader.RemoveRect("optionsinput")
 					textInputDlist = glDeleteList(textInputDlist)
 				end
 			end
@@ -2463,8 +2463,8 @@ function init()
 		custom = {},
 	}
 
-	local screenModes = WG["screenMode"] and WG["screenMode"].GetScreenModes() or {}
-	local displays = WG["screenMode"] and WG["screenMode"].GetDisplays() or {}
+	local screenModes = WG.screenMode and WG.screenMode.GetScreenModes() or {}
+	local displays = WG.screenMode and WG.screenMode.GetDisplays() or {}
 
 	local currentDisplay = 1
 	local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
@@ -2710,8 +2710,8 @@ function init()
 			onchange = function(i, value)
 				Spring.SetConfigInt("SelectedScreenMode", value)
 
-				if WG["screenMode"] then
-					WG["screenMode"].SetScreenMode(value + screenmodeOffset)
+				if WG.screenMode then
+					WG.screenMode.SetScreenMode(value + screenmodeOffset)
 					currentDisplay = 1
 					local v_sx, v_sy, v_px, v_py = Spring.GetViewGeometry()
 					for index, display in ipairs(displays) do
@@ -3069,11 +3069,11 @@ function init()
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.ssao_quality"),
 			type = "select",
 			options = { Spring.I18N("ui.settings.option.select_low"), Spring.I18N("ui.settings.option.select_medium"), Spring.I18N("ui.settings.option.select_high") },
-			value = (WG["ssao"] ~= nil and WG["ssao"].getPreset() or 2),
+			value = (WG.ssao ~= nil and WG.ssao.getPreset() or 2),
 			description = Spring.I18N("ui.settings.option.ssao_quality_descr"),
 			onload = function(i)
-				if widgetHandler.configData["SSAO"] ~= nil and widgetHandler.configData["SSAO"].preset ~= nil then
-					options[getOptionByID("ssao_quality")].value = widgetHandler.configData["SSAO"].preset
+				if widgetHandler.configData.SSAO ~= nil and widgetHandler.configData.SSAO.preset ~= nil then
+					options[getOptionByID("ssao_quality")].value = widgetHandler.configData.SSAO.preset
 				end
 			end,
 			onchange = function(i, value)
@@ -3107,7 +3107,7 @@ function init()
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.bloomdeferred_quality"),
 			type = "select",
 			options = { Spring.I18N("ui.settings.option.select_low"), Spring.I18N("ui.settings.option.select_medium"), Spring.I18N("ui.settings.option.select_high") },
-			value = (WG["bloomdeferred"] ~= nil and WG["bloomdeferred"].getPreset() or 2),
+			value = (WG.bloomdeferred ~= nil and WG.bloomdeferred.getPreset() or 2),
 			description = Spring.I18N("ui.settings.option.bloomdeferred_quality_descr"),
 			onload = function(i)
 				if widgetHandler.configData["Bloom Shader Deferred"] ~= nil and widgetHandler.configData["Bloom Shader Deferred"].preset ~= nil then
@@ -3287,7 +3287,7 @@ function init()
 			min = 0.01,
 			max = 1,
 			step = 0.01,
-			value = (WG["los"] ~= nil and WG["los"].getOpacity ~= nil and WG["los"].getOpacity()) or 0.66,
+			value = (WG.los ~= nil and WG.los.getOpacity ~= nil and WG.los.getOpacity()) or 0.66,
 			description = "",
 			onload = function(i)
 				loadWidgetData("LOS colors", "losopacity", { "opacity" })
@@ -3767,7 +3767,7 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (WG["chat"] ~= nil and WG["chat"].getChatVolume() or 0),
+			value = (WG.chat ~= nil and WG.chat.getChatVolume() or 0),
 			description = Spring.I18N("ui.settings.option.console_chatvolume_descr"),
 			onload = function(i)
 				loadWidgetData("Chat", "console_chatvolume", { "sndChatFileVolume" })
@@ -3785,7 +3785,7 @@ function init()
 			min = 0,
 			max = 1,
 			step = 0.01,
-			value = (WG["mapmarkping"] ~= nil and WG["mapmarkping"].getMapmarkVolume() or 0.6),
+			value = (WG.mapmarkping ~= nil and WG.mapmarkping.getMapmarkVolume() or 0.6),
 			description = Spring.I18N("ui.settings.option.console_mapmarkvolume_descr"),
 			onload = function(i)
 				loadWidgetData("Chat", "mapmarkvolume", { "volume" })
@@ -3806,8 +3806,8 @@ function init()
 			value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50),
 			onload = function(i) end,
 			onchange = function(i, value)
-				if WG["music"] and WG["music"].SetMusicVolume then
-					WG["music"].SetMusicVolume(value)
+				if WG.music and WG.music.SetMusicVolume then
+					WG.music.SetMusicVolume(value)
 				else
 					Spring.SetConfigInt("snd_volmusic", value)
 				end
@@ -3887,8 +3887,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtracknew_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackNew", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3903,8 +3903,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackraptors_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackRaptors", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3919,8 +3919,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackscavengers_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackScavengers", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3935,8 +3935,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackaprilfools_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackAprilFools", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3951,8 +3951,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackaprilfoolspostevent_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackAprilFoolsPostEvent", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3967,8 +3967,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackhalloween_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackHalloween", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3983,8 +3983,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackhalloweenpostevent_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackHalloweenPostEvent", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -3999,8 +3999,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackxmas_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackXmas", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -4015,8 +4015,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackxmaspostevent_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackXmasPostEvent", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -4031,8 +4031,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackcustom_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackCustom", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshTrackList then
-					WG["music"].RefreshTrackList()
+				if WG.music and WG.music.RefreshTrackList then
+					WG.music.RefreshTrackList()
 					init()
 				end
 			end,
@@ -4047,8 +4047,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackinterruption_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackInterruption", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshSettings then
-					WG["music"].RefreshSettings()
+				if WG.music and WG.music.RefreshSettings then
+					WG.music.RefreshSettings()
 				end
 			end,
 		},
@@ -4062,8 +4062,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.soundtrackfades_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("UseSoundtrackFades", value and 1 or 0)
-				if WG["music"] and WG["music"].RefreshSettings then
-					WG["music"].RefreshSettings()
+				if WG.music and WG.music.RefreshSettings then
+					WG.music.RefreshSettings()
 				end
 			end,
 		},
@@ -4085,7 +4085,7 @@ function init()
 			onload = function(i) end,
 			onchange = function(i, value)
 				Spring.SetConfigString("voiceset", options[i].options[options[i].value])
-				if widgetHandler.orderList["Notifications"] ~= nil then
+				if widgetHandler.orderList.Notifications ~= nil then
 					widgetHandler:DisableWidget("Notifications")
 					widgetHandler:EnableWidget("Notifications")
 					init()
@@ -4107,7 +4107,7 @@ function init()
 			name = Spring.I18N("ui.settings.option.notifications_messages"),
 			category = types.basic,
 			type = "bool",
-			value = (WG["notifications"] ~= nil and WG["notifications"].getMessages()),
+			value = (WG.notifications ~= nil and WG.notifications.getMessages()),
 			description = Spring.I18N("ui.settings.option.notifications_messages_descr"),
 			onload = function(i)
 				loadWidgetData("Notifications", "notifications_messages", { "displayMessages" })
@@ -4122,7 +4122,7 @@ function init()
 			name = Spring.I18N("ui.settings.option.notifications_spoken"),
 			category = types.basic,
 			type = "bool",
-			value = (WG["notifications"] ~= nil and WG["notifications"].getSpoken()),
+			value = (WG.notifications ~= nil and WG.notifications.getSpoken()),
 			description = Spring.I18N("ui.settings.option.notifications_spoken_descr"),
 			onload = function(i)
 				loadWidgetData("Notifications", "notifications_spoken", { "spoken" })
@@ -4215,8 +4215,8 @@ function init()
 			end,
 			onchange = function(_, value)
 				Spring.SetConfigString("KeyboardLayout", keyLayouts.layouts[value])
-				if WG["bar_hotkeys"] and WG["bar_hotkeys"].reloadBindings then
-					WG["bar_hotkeys"].reloadBindings()
+				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
+					WG.bar_hotkeys.reloadBindings()
 				end
 			end,
 		},
@@ -4254,7 +4254,7 @@ function init()
 					return
 				end
 
-				local isCustom = keyLayouts.keybindingPresets["Custom"] == keyFile
+				local isCustom = keyLayouts.keybindingPresets.Custom == keyFile
 
 				if isCustom and not VFS.FileExists(keyFile) then
 					Spring.SendCommands("keysave " .. keyFile)
@@ -4278,8 +4278,8 @@ function init()
 					widgetHandler:EnableWidget("Build menu")
 				end
 
-				if WG["bar_hotkeys"] and WG["bar_hotkeys"].reloadBindings then
-					WG["bar_hotkeys"].reloadBindings()
+				if WG.bar_hotkeys and WG.bar_hotkeys.reloadBindings then
+					WG.bar_hotkeys.reloadBindings()
 				end
 				scheduleInit = true
 			end,
@@ -4310,7 +4310,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.gridmenu_alwaysreturn"),
 			type = "bool",
-			value = (WG["gridmenu"] ~= nil and WG["gridmenu"].getAlwaysReturn ~= nil and WG["gridmenu"].getAlwaysReturn()),
+			value = (WG.gridmenu ~= nil and WG.gridmenu.getAlwaysReturn ~= nil and WG.gridmenu.getAlwaysReturn()),
 			description = Spring.I18N("ui.settings.option.gridmenu_alwaysreturn_descr"),
 			onload = function() end,
 			onchange = function(_, value)
@@ -4323,7 +4323,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.gridmenu_autoselectfirst"),
 			type = "bool",
-			value = (WG["gridmenu"] ~= nil and WG["gridmenu"].getAutoSelectFirst ~= nil and WG["gridmenu"].getAutoSelectFirst()),
+			value = (WG.gridmenu ~= nil and WG.gridmenu.getAutoSelectFirst ~= nil and WG.gridmenu.getAutoSelectFirst()),
 			description = Spring.I18N("ui.settings.option.gridmenu_autoselectfirst_descr"),
 			onload = function() end,
 			onchange = function(_, value)
@@ -4336,7 +4336,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.gridmenu_labbuildmode"),
 			type = "bool",
-			value = (WG["gridmenu"] ~= nil and WG["gridmenu"].getUseLabBuildMode ~= nil and WG["gridmenu"].getUseLabBuildMode()),
+			value = (WG.gridmenu ~= nil and WG.gridmenu.getUseLabBuildMode ~= nil and WG.gridmenu.getUseLabBuildMode()),
 			description = Spring.I18N("ui.settings.option.gridmenu_labbuildmode_descr"),
 			onload = function() end,
 			onchange = function(_, value)
@@ -4353,7 +4353,7 @@ function init()
 			min = -20,
 			max = 100,
 			step = 1,
-			value = (WG["gridmenu"] ~= nil and WG["gridmenu"].getCtrlKeyModifier ~= nil and WG["gridmenu"].getCtrlKeyModifier()),
+			value = (WG.gridmenu ~= nil and WG.gridmenu.getCtrlKeyModifier ~= nil and WG.gridmenu.getCtrlKeyModifier()),
 			description = Spring.I18N("ui.settings.option.gridmenu_ctrlkeymodifier_descr"),
 			onload = function() end,
 			onchange = function(_, value)
@@ -4369,7 +4369,7 @@ function init()
 			min = -20,
 			max = 100,
 			step = 1,
-			value = (WG["gridmenu"] ~= nil and WG["gridmenu"].getShiftKeyModifier ~= nil and WG["gridmenu"].getShiftKeyModifier()),
+			value = (WG.gridmenu ~= nil and WG.gridmenu.getShiftKeyModifier ~= nil and WG.gridmenu.getShiftKeyModifier()),
 			description = Spring.I18N("ui.settings.option.gridmenu_shiftkeymodifier_descr"),
 			onload = function() end,
 			onchange = function(_, value)
@@ -4403,10 +4403,10 @@ function init()
 			value = true,
 			description = Spring.I18N("ui.settings.option.setcamera_bugfix_descr"),
 			onload = function(i)
-				WG["setcamera_bugfix"] = true
+				WG.setcamera_bugfix = true
 			end,
 			onchange = function(i, value)
-				WG["setcamera_bugfix"] = value
+				WG.setcamera_bugfix = value
 			end,
 		},
 		{
@@ -4422,8 +4422,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.cursorsize_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
-				if WG["cursors"] then
-					WG["cursors"].setsizemult(value)
+				if WG.cursors then
+					WG.cursors.setsizemult(value)
 				end
 			end,
 		},
@@ -4818,7 +4818,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.allyselunits_select"),
 			type = "bool",
-			value = (WG["allyselectedunits"] ~= nil and WG["allyselectedunits"].getSelectPlayerUnits()),
+			value = (WG.allyselectedunits ~= nil and WG.allyselectedunits.getSelectPlayerUnits()),
 			description = Spring.I18N("ui.settings.option.allyselunits_select_descr"),
 			onload = function(i)
 				loadWidgetData("Ally Selected Units", "allyselunits_select", { "selectPlayerUnits" })
@@ -4887,8 +4887,8 @@ function init()
 			value = languageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local language = languageCodes[value]
-				WG["language"].setLanguage(language)
-				if widgetHandler.orderList["Notifications"] ~= nil then
+				WG.language.setLanguage(language)
+				if widgetHandler.orderList.Notifications ~= nil then
 					widgetHandler:DisableWidget("Notifications")
 					widgetHandler:EnableWidget("Notifications")
 					init()
@@ -4903,7 +4903,7 @@ function init()
 			type = "bool",
 			value = Spring.GetConfigInt("language_english_unit_names", 0) == 1,
 			onchange = function(i, value)
-				WG["language"].setEnglishUnitNames(value)
+				WG.language.setEnglishUnitNames(value)
 			end,
 		},
 		{
@@ -5010,8 +5010,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.minimap_maxheight_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigFloat("MinimapMaxHeight", value)
-				if WG["minimap"] and WG["minimap"].setMaxHeight then
-					WG["minimap"].setMaxHeight(value)
+				if WG.minimap and WG.minimap.setMaxHeight then
+					WG.minimap.setMaxHeight(value)
 				end
 			end,
 		},
@@ -5025,8 +5025,8 @@ function init()
 			description = Spring.I18N("ui.settings.option.minimapleftclick_descr"),
 			onchange = function(i, value)
 				Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
-				if WG["minimap"] and WG["minimap"].setLeftClickMove then
-					WG["minimap"].setLeftClickMove(value)
+				if WG.minimap and WG.minimap.setLeftClickMove then
+					WG.minimap.setLeftClickMove(value)
 				end
 			end,
 		},
@@ -5045,8 +5045,8 @@ function init()
 			onchange = function(i, value)
 				Spring.SetConfigFloat("MinimapIconScale", value)
 				Spring.SendCommands("minimap unitsize " .. value) -- spring wont remember what you set with '/minimap iconssize #'
-				if WG["minimap"] and WG["minimap"].setBaseIconScale then
-					WG["minimap"].setBaseIconScale(value)
+				if WG.minimap and WG.minimap.setBaseIconScale then
+					WG.minimap.setBaseIconScale(value)
 				end
 			end,
 		},
@@ -5078,7 +5078,7 @@ function init()
 				end
 			end,
 			onchange = function(i, value)
-				if WG["minimaprotationmanager"] ~= nil and WG["minimaprotationmanager"].setMode ~= nil then
+				if WG.minimaprotationmanager ~= nil and WG.minimaprotationmanager.setMode ~= nil then
 					saveOptionValue("Minimap Rotation Manager", "minimaprotationmanager", "setMode", { "mode" }, value)
 				else
 					widgetHandler:EnableWidget("Minimap Rotation Manager") -- Widget has auto sync
@@ -5145,13 +5145,13 @@ function init()
 			value = 4000,
 			description = Spring.I18N("ui.settings.option.pip_engine_fallback_threshold_descr"),
 			onload = function(i)
-				if WG["minimap"] and WG["minimap"].getEngineMinimapFallbackThreshold then
-					options[getOptionByID("pip_engine_fallback_threshold")].value = WG["minimap"].getEngineMinimapFallbackThreshold()
+				if WG.minimap and WG.minimap.getEngineMinimapFallbackThreshold then
+					options[getOptionByID("pip_engine_fallback_threshold")].value = WG.minimap.getEngineMinimapFallbackThreshold()
 				end
 			end,
 			onchange = function(i, value)
-				if WG["minimap"] and WG["minimap"].setEngineMinimapFallbackThreshold then
-					WG["minimap"].setEngineMinimapFallbackThreshold(value)
+				if WG.minimap and WG.minimap.setEngineMinimapFallbackThreshold then
+					WG.minimap.setEngineMinimapFallbackThreshold(value)
 				end
 			end,
 		},
@@ -5165,7 +5165,7 @@ function init()
 			category = types.basic,
 			name = Spring.I18N("ui.settings.option.buildmenu") .. widgetOptionColor .. "  " .. Spring.I18N("ui.settings.option.buildmenu_bottom"),
 			type = "bool",
-			value = (WG["buildmenu"] ~= nil and WG["buildmenu"].getBottomPosition ~= nil and WG["buildmenu"].getBottomPosition()),
+			value = (WG.buildmenu ~= nil and WG.buildmenu.getBottomPosition ~= nil and WG.buildmenu.getBottomPosition()),
 			description = Spring.I18N("ui.settings.option.buildmenu_bottom_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5197,7 +5197,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.buildmenu_alwaysshow"),
 			type = "bool",
-			value = (WG["buildmenu"] ~= nil and WG["buildmenu"].getAlwaysShow ~= nil and WG["buildmenu"].getAlwaysShow()),
+			value = (WG.buildmenu ~= nil and WG.buildmenu.getAlwaysShow ~= nil and WG.buildmenu.getAlwaysShow()),
 			description = Spring.I18N("ui.settings.option.buildmenu_alwaysshow_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5211,7 +5211,7 @@ function init()
 			category = types.basic,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.buildmenu_prices"),
 			type = "bool",
-			value = (WG["buildmenu"] ~= nil and WG["buildmenu"].getShowPrice ~= nil and WG["buildmenu"].getShowPrice()),
+			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowPrice ~= nil and WG.buildmenu.getShowPrice()),
 			description = Spring.I18N("ui.settings.option.buildmenu_prices_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5225,7 +5225,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.buildmenu_groupicon"),
 			type = "bool",
-			value = (WG["buildmenu"] ~= nil and WG["buildmenu"].getShowGroupIcon ~= nil and WG["buildmenu"].getShowGroupIcon()),
+			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowGroupIcon ~= nil and WG.buildmenu.getShowGroupIcon()),
 			description = Spring.I18N("ui.settings.option.buildmenu_groupicon_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5239,7 +5239,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.buildmenu_radaricon"),
 			type = "bool",
-			value = (WG["buildmenu"] ~= nil and WG["buildmenu"].getShowRadarIcon ~= nil and WG["buildmenu"].getShowRadarIcon()),
+			value = (WG.buildmenu ~= nil and WG.buildmenu.getShowRadarIcon ~= nil and WG.buildmenu.getShowRadarIcon()),
 			description = Spring.I18N("ui.settings.option.buildmenu_radaricon_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5254,7 +5254,7 @@ function init()
 			category = types.basic,
 			name = Spring.I18N("ui.settings.option.ordermenu") .. widgetOptionColor .. "  " .. Spring.I18N("ui.settings.option.ordermenu_bottompos"),
 			type = "bool",
-			value = (WG["ordermenu"] ~= nil and WG["ordermenu"].getBottomPosition ~= nil and WG["ordermenu"].getBottomPosition()),
+			value = (WG.ordermenu ~= nil and WG.ordermenu.getBottomPosition ~= nil and WG.ordermenu.getBottomPosition()),
 			description = Spring.I18N("ui.settings.option.ordermenu_bottompos_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5285,7 +5285,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.ordermenu_alwaysshow"),
 			type = "bool",
-			value = (WG["ordermenu"] ~= nil and WG["ordermenu"].getAlwaysShow ~= nil and WG["ordermenu"].getAlwaysShow()),
+			value = (WG.ordermenu ~= nil and WG.ordermenu.getAlwaysShow ~= nil and WG.ordermenu.getAlwaysShow()),
 			description = Spring.I18N("ui.settings.option.ordermenu_alwaysshow_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5298,7 +5298,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.ordermenu_hideset"),
 			type = "bool",
-			value = (WG["ordermenu"] ~= nil and WG["ordermenu"].getDisabledCmd ~= nil and WG["ordermenu"].getDisabledCmd("Move")),
+			value = (WG.ordermenu ~= nil and WG.ordermenu.getDisabledCmd ~= nil and WG.ordermenu.getDisabledCmd("Move")),
 			description = Spring.I18N("ui.settings.option.ordermenu_hideset_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5315,7 +5315,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.info") .. widgetOptionColor .. "  " .. Spring.I18N("ui.settings.option.info_buildlist"),
 			type = "bool",
-			value = (WG["info"] and WG["info"].getShowBuilderBuildlist ~= nil and WG["info"].getShowBuilderBuildlist()),
+			value = (WG.info and WG.info.getShowBuilderBuildlist ~= nil and WG.info.getShowBuilderBuildlist()),
 			description = Spring.I18N("ui.settings.option.info_buildlist_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5328,7 +5328,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.info_mappos"),
 			type = "bool",
-			value = (WG["info"] and WG["info"].getDisplayMapPosition ~= nil and WG["info"].getDisplayMapPosition()),
+			value = (WG.info and WG.info.getDisplayMapPosition ~= nil and WG.info.getDisplayMapPosition()),
 			description = Spring.I18N("ui.settings.option.info_mappos_descr"),
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -5341,7 +5341,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.info_alwaysshow"),
 			type = "bool",
-			value = (WG["info"] ~= nil and WG["info"].getAlwaysShow ~= nil and WG["info"].getAlwaysShow()),
+			value = (WG.info ~= nil and WG.info.getAlwaysShow ~= nil and WG.info.getAlwaysShow()),
 			onload = function(i) end,
 			onchange = function(i, value)
 				saveOptionValue("Info", "info", "setAlwaysShow", { "alwaysShow" }, value)
@@ -5561,7 +5561,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. widgetOptionColor .. Spring.I18N("ui.settings.option.musicplayer"),
 			type = "bool",
-			value = (WG["music"] ~= nil and WG["music"].GetShowGui() or false),
+			value = (WG.music ~= nil and WG.music.GetShowGui() or false),
 			description = Spring.I18N("ui.settings.option.musicplayer_descr"),
 			onload = function(i)
 				loadWidgetData("AdvPlayersList Music Player New", "musicplayer", { "showGUI" })
@@ -5578,7 +5578,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.displayselectedname"),
 			type = "bool",
-			value = (WG["playertv"] ~= nil and WG["playertv"].GetAlwaysDisplayName() or false),
+			value = (WG.playertv ~= nil and WG.playertv.GetAlwaysDisplayName() or false),
 			description = Spring.I18N("ui.settings.option.displayselectedname_descr"),
 			onload = function(i)
 				loadWidgetData("Player-TV", "displayselectedname", { "alwaysDisplayName" })
@@ -5597,7 +5597,7 @@ function init()
 			min = 0.92,
 			max = 1.12,
 			step = 0.02,
-			value = (WG["chat"] ~= nil and WG["chat"].getFontsize() or 1),
+			value = (WG.chat ~= nil and WG.chat.getFontsize() or 1),
 			description = "",
 			onload = function(i)
 				loadWidgetData("Chat", "console_fontsize", { "fontsizeMult" })
@@ -5615,7 +5615,7 @@ function init()
 			min = 0,
 			max = 0.45,
 			step = 0.01,
-			value = (WG["chat"] ~= nil and WG["chat"].getBackgroundOpacity() or 0),
+			value = (WG.chat ~= nil and WG.chat.getBackgroundOpacity() or 0),
 			description = Spring.I18N("ui.settings.option.console_backgroundopacity_descr"),
 			onload = function(i)
 				loadWidgetData("Chat", "console_backgroundopacity", { "chatBackgroundOpacity" })
@@ -5656,7 +5656,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.console_hide"),
 			type = "bool",
-			value = (WG["chat"] ~= nil and WG["chat"].getHide() or false),
+			value = (WG.chat ~= nil and WG.chat.getHide() or false),
 			description = Spring.I18N("ui.settings.option.console_hide_descr"),
 			onload = function(i)
 				loadWidgetData("Chat", "console_hide", { "hide" })
@@ -5674,7 +5674,7 @@ function init()
 			min = 3,
 			max = 7,
 			step = 1,
-			value = (WG["chat"] ~= nil and WG["chat"].getMaxLines() or 5),
+			value = (WG.chat ~= nil and WG.chat.getMaxLines() or 5),
 			description = "",
 			onload = function(i)
 				loadWidgetData("Chat", "console_maxlines", { "maxLines" })
@@ -5692,7 +5692,7 @@ function init()
 			min = 2,
 			max = 12,
 			step = 1,
-			value = (WG["chat"] ~= nil and WG["chat"].getMaxConsoleLines() or 2),
+			value = (WG.chat ~= nil and WG.chat.getMaxConsoleLines() or 2),
 			description = "",
 			onload = function(i)
 				loadWidgetData("Chat", "console_maxconsolelines", { "maxConsoleLines" })
@@ -5743,7 +5743,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.topbar") .. widgetOptionColor .. "  " .. Spring.I18N("ui.settings.option.topbar_hidebuttons"),
 			type = "bool",
-			value = (WG["topbar"] ~= nil and WG["topbar"].getAutoHideButtons() or 0),
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons() or 0),
 			onload = function(i)
 				loadWidgetData("Top Bar", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
@@ -6068,7 +6068,7 @@ function init()
 			category = types.advanced,
 			name = Spring.I18N("ui.settings.option.metalspots") .. widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.metalspots_values"),
 			type = "bool",
-			value = (WG["metalspots"] ~= nil and WG["metalspots"].getShowValue()),
+			value = (WG.metalspots ~= nil and WG.metalspots.getShowValue()),
 			description = Spring.I18N("ui.settings.option.metalspots_values_descr"),
 			onload = function(i)
 				loadWidgetData("Metalspots", "metalspots_values", { "showValues" })
@@ -6125,7 +6125,7 @@ function init()
 			min = 0.7,
 			max = 2,
 			step = 0.1,
-			value = (WG["healthbar"] ~= nil and WG["healthbar"].getHeight() or 0.9),
+			value = (WG.healthbar ~= nil and WG.healthbar.getHeight() or 0.9),
 			description = "",
 			onload = function(i)
 				loadWidgetData("Health Bars GL4", "healthbarsheight", { "barHeight" })
@@ -6142,7 +6142,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.healthbarsvariable"),
 			type = "bool",
-			value = (WG["healthbar"] ~= nil and WG["healthbar"].getVariableSizes()),
+			value = (WG.healthbar ~= nil and WG.healthbar.getVariableSizes()),
 			description = Spring.I18N("ui.settings.option.healthbarsvariable_descr"),
 			onload = function(i)
 				loadWidgetData("Health Bars GL4", "healthbarsvariable", { "variableBarSizes" })
@@ -6157,7 +6157,7 @@ function init()
 			category = types.dev,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.healthbarswhenguihidden"),
 			type = "bool",
-			value = (WG["healthbar"] ~= nil and WG["healthbar"].getDrawWhenGuiHidden()),
+			value = (WG.healthbar ~= nil and WG.healthbar.getDrawWhenGuiHidden()),
 			description = Spring.I18N("ui.settings.option.healthbarswhenguihidden_descr"),
 			onload = function(i)
 				loadWidgetData("Health Bars GL4", "healthbarswhenguihidden", { "drawWhenGuiHidden" })
@@ -6176,7 +6176,7 @@ function init()
 			min = 0.1,
 			max = 1.5,
 			step = 0.05,
-			value = (WG["rankicons"] ~= nil and WG["rankicons"].getDrawDistance ~= nil and WG["rankicons"].getDrawDistance()),
+			value = (WG.rankicons ~= nil and WG.rankicons.getDrawDistance ~= nil and WG.rankicons.getDrawDistance()),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -6192,7 +6192,7 @@ function init()
 			min = 0.5,
 			max = 2,
 			step = 0.1,
-			value = (WG["rankicons"] ~= nil and WG["rankicons"].getScale ~= nil and WG["rankicons"].getScale()),
+			value = (WG.rankicons ~= nil and WG.rankicons.getScale ~= nil and WG.rankicons.getScale()),
 			description = "",
 			onload = function(i) end,
 			onchange = function(i, value)
@@ -6506,7 +6506,7 @@ function init()
 			min = 0.3,
 			max = 1,
 			step = 0.05,
-			value = (WG["buildinggrid"] ~= nil and WG["buildinggrid"].getOpacity ~= nil and WG["buildinggrid"].getOpacity()) or 1,
+			value = (WG.buildinggrid ~= nil and WG.buildinggrid.getOpacity ~= nil and WG.buildinggrid.getOpacity()) or 1,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Building Grid GL4", "buildinggridopacity", { "opacity" })
@@ -6538,7 +6538,7 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG["radarrange"] ~= nil and WG["radarrange"].getOpacity ~= nil and WG["radarrange"].getOpacity()) or 0.08,
+			value = (WG.radarrange ~= nil and WG.radarrange.getOpacity ~= nil and WG.radarrange.getOpacity()) or 0.08,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { "opacity" })
@@ -6559,7 +6559,7 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG["sonarrange"] ~= nil and WG["sonarrange"].getOpacity ~= nil and WG["sonarrange"].getOpacity()) or 0.08,
+			value = (WG.sonarrange ~= nil and WG.sonarrange.getOpacity ~= nil and WG.sonarrange.getOpacity()) or 0.08,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { "opacity" })
@@ -6580,7 +6580,7 @@ function init()
 			min = 0.01,
 			max = 0.66,
 			step = 0.01,
-			value = (WG["jammerrange"] ~= nil and WG["jammerrange"].getOpacity ~= nil and WG["jammerrange"].getOpacity()) or 0.08,
+			value = (WG.jammerrange ~= nil and WG.jammerrange.getOpacity ~= nil and WG.jammerrange.getOpacity()) or 0.08,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { "opacity" })
@@ -6601,7 +6601,7 @@ function init()
 			min = 0.01,
 			max = 0.33,
 			step = 0.01,
-			value = (WG["losrange"] ~= nil and WG["losrange"].getOpacity ~= nil and WG["losrange"].getOpacity()) or 0.08,
+			value = (WG.losrange ~= nil and WG.losrange.getOpacity ~= nil and WG.losrange.getOpacity()) or 0.08,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { "opacity" })
@@ -6616,7 +6616,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.losrangeteamcolors"),
 			type = "bool",
-			value = (WG["losrange"] ~= nil and WG["losrange"].getUseTeamColors ~= nil and WG["losrange"].getUseTeamColors()),
+			value = (WG.losrange ~= nil and WG.losrange.getUseTeamColors ~= nil and WG.losrange.getUseTeamColors()),
 			description = "",
 			onload = function(i)
 				loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { "useteamcolors" })
@@ -6633,7 +6633,7 @@ function init()
 			group = "ui",
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.attackrange_shiftonly"),
 			type = "bool",
-			value = (WG["attackrange"] ~= nil and WG["attackrange"].getShiftOnly ~= nil and WG["attackrange"].getShiftOnly()),
+			value = (WG.attackrange ~= nil and WG.attackrange.getShiftOnly ~= nil and WG.attackrange.getShiftOnly()),
 			description = Spring.I18N("ui.settings.option.attackrange_shiftonly_descr"),
 			onload = function(i)
 				loadWidgetData("Attack Range GL4", "attackrange_shiftonly", { "shift_only" })
@@ -6648,7 +6648,7 @@ function init()
 			group = "ui",
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.attackrange_cursorunitrange"),
 			type = "bool",
-			value = (WG["attackrange"] ~= nil and WG["attackrange"].getCursorUnitRange ~= nil and WG["attackrange"].getCursorUnitRange()),
+			value = (WG.attackrange ~= nil and WG.attackrange.getCursorUnitRange ~= nil and WG.attackrange.getCursorUnitRange()),
 			description = Spring.I18N("ui.settings.option.attackrange_cursorunitrange_descr"),
 			onload = function(i)
 				loadWidgetData("Attack Range GL4", "attackrange_cursorunitrange", { "cursor_unit_range" })
@@ -6666,7 +6666,7 @@ function init()
 			min = 0.3,
 			max = 1,
 			step = 0.1,
-			value = (WG["attackrange"] ~= nil and WG["attackrange"].getOpacity ~= nil and WG["attackrange"].getNumRangesMult()) or 1,
+			value = (WG.attackrange ~= nil and WG.attackrange.getOpacity ~= nil and WG.attackrange.getNumRangesMult()) or 1,
 			description = Spring.I18N("ui.settings.option.attackrange_numrangesmult_descr"),
 			onload = function(i)
 				loadWidgetData("Attack Range GL4", "attackrange_numrangesmult", { "selectionDisableThresholdMult" })
@@ -6684,7 +6684,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_allyair"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getAllyAir ~= nil and WG["defrange"].getAllyAir()),
+			value = (WG.defrange ~= nil and WG.defrange.getAllyAir ~= nil and WG.defrange.getAllyAir()),
 			description = Spring.I18N("ui.settings.option.defrange_allyair_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_allyair", { "enabled", "ally", "air" })
@@ -6700,7 +6700,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_allyground"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getAllyGround ~= nil and WG["defrange"].getAllyGround()),
+			value = (WG.defrange ~= nil and WG.defrange.getAllyGround ~= nil and WG.defrange.getAllyGround()),
 			description = Spring.I18N("ui.settings.option.defrange_allyground_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_allyground", { "enabled", "ally", "ground" })
@@ -6718,7 +6718,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_allynuke"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getAllyNuke ~= nil and WG["defrange"].getAllyNuke()),
+			value = (WG.defrange ~= nil and WG.defrange.getAllyNuke ~= nil and WG.defrange.getAllyNuke()),
 			description = Spring.I18N("ui.settings.option.defrange_allynuke_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_allynuke", { "enabled", "ally", "nuke" })
@@ -6734,7 +6734,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_allylrpc"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getAllyLRPC ~= nil and WG["defrange"].getAllyLRPC()),
+			value = (WG.defrange ~= nil and WG.defrange.getAllyLRPC ~= nil and WG.defrange.getAllyLRPC()),
 			description = Spring.I18N("ui.settings.option.defrange_allylrpc_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_allylrpc", { "enabled", "ally", "lrpc" })
@@ -6750,7 +6750,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_enemyair"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getEnemyAir ~= nil and WG["defrange"].getEnemyAir()),
+			value = (WG.defrange ~= nil and WG.defrange.getEnemyAir ~= nil and WG.defrange.getEnemyAir()),
 			description = Spring.I18N("ui.settings.option.defrange_enemyair_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_enemyair", { "enabled", "enemy", "air" })
@@ -6766,7 +6766,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_enemyground"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getEnemyGround ~= nil and WG["defrange"].getEnemyGround()),
+			value = (WG.defrange ~= nil and WG.defrange.getEnemyGround ~= nil and WG.defrange.getEnemyGround()),
 			description = Spring.I18N("ui.settings.option.defrange_enemyground_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_enemyground", { "enabled", "enemy", "ground" })
@@ -6784,7 +6784,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_enemynuke"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getEnemyNuke ~= nil and WG["defrange"].getEnemyNuke()),
+			value = (WG.defrange ~= nil and WG.defrange.getEnemyNuke ~= nil and WG.defrange.getEnemyNuke()),
 			description = Spring.I18N("ui.settings.option.defrange_enemynuke_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_enemynuke", { "enabled", "enemy", "nuke" })
@@ -6800,7 +6800,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.defrange_enemylrpc"),
 			type = "bool",
-			value = (WG["defrange"] ~= nil and WG["defrange"].getEnemyLRPC ~= nil and WG["defrange"].getEnemyLRPC()),
+			value = (WG.defrange ~= nil and WG.defrange.getEnemyLRPC ~= nil and WG.defrange.getEnemyLRPC()),
 			description = Spring.I18N("ui.settings.option.defrange_enemylrpc_descr"),
 			onload = function(i)
 				loadWidgetData("Defense Range GL4", "defrange_enemylrpc", { "enabled", "enemy", "lrpc" })
@@ -6826,7 +6826,7 @@ function init()
 			min = 0.1,
 			max = 2,
 			step = 0.1,
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getWidgetSize ~= nil and WG["spectator_hud"].getWidgetSize()) or 0.8,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getWidgetSize ~= nil and WG.spectator_hud.getWidgetSize()) or 0.8,
 			description = "",
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_size", { "widgetScale" })
@@ -6843,7 +6843,7 @@ function init()
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.spectator_hud_config"),
 			type = "select",
 			options = spectatorHUDConfigOptions,
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getConfig ~= nil and WG["spectator_hud"].getConfig()) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getConfig ~= nil and WG.spectator_hud.getConfig()) or 1,
 			description = Spring.I18N("ui.settings.option.spectator_hud_config_descr"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_config", { "config" })
@@ -6860,7 +6860,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.metalIncome_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("metalIncome")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("metalIncome")) or 1,
 			description = Spring.I18N("ui.spectator_hud.metalIncome_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalIncome", { "metricsEnabled", "metalIncome" })
@@ -6875,7 +6875,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.energyIncome_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("energyIncome")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("energyIncome")) or 1,
 			description = Spring.I18N("ui.spectator_hud.energyIncome_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyIncome", { "metricsEnabled", "energyIncome" })
@@ -6890,7 +6890,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.buildPower_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("buildPower")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("buildPower")) or 1,
 			description = Spring.I18N("ui.spectator_hud.buildPower_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_buildPower", { "metricsEnabled", "buildPower" })
@@ -6905,7 +6905,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.metalProduced_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("metalProduced")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("metalProduced")) or 1,
 			description = Spring.I18N("ui.spectator_hud.metalProduced_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalProduced", { "metricsEnabled", "metalProduced" })
@@ -6920,7 +6920,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.energyProduced_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("energyProduced")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("energyProduced")) or 1,
 			description = Spring.I18N("ui.spectator_hud.energyProduced_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyProduced", { "metricsEnabled", "energyProduced" })
@@ -6935,7 +6935,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.metalExcess_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("metalExcess")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("metalExcess")) or 1,
 			description = Spring.I18N("ui.spectator_hud.metalExcess_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_metalExcess", { "metricsEnabled", "metalExcess" })
@@ -6950,7 +6950,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.energyExcess_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("energyExcess")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("energyExcess")) or 1,
 			description = Spring.I18N("ui.spectator_hud.energyExcess_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_energyExcess", { "metricsEnabled", "energyExcess" })
@@ -6965,7 +6965,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.armyValue_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("armyValue")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("armyValue")) or 1,
 			description = Spring.I18N("ui.spectator_hud.armyValue_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_armyValue", { "metricsEnabled", "armyValue" })
@@ -6980,7 +6980,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.defenseValue_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("defenseValue")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("defenseValue")) or 1,
 			description = Spring.I18N("ui.spectator_hud.defenseValue_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_defenseValue", { "metricsEnabled", "defenseValue" })
@@ -6995,7 +6995,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.utilityValue_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("utilityValue")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("utilityValue")) or 1,
 			description = Spring.I18N("ui.spectator_hud.utilityValue_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_utilityValue", { "metricsEnabled", "utilityValue" })
@@ -7010,7 +7010,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.economyValue_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("economyValue")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("economyValue")) or 1,
 			description = Spring.I18N("ui.spectator_hud.economyValue_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_economyValue", { "metricsEnabled", "economyValue" })
@@ -7025,7 +7025,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.spectator_hud.damageDealt_title"),
 			type = "bool",
-			value = (WG["spectator_hud"] ~= nil and WG["spectator_hud"].getMetricEnabled ~= nil and WG["spectator_hud"].getMetricEnabled("damageDealt")) or 1,
+			value = (WG.spectator_hud ~= nil and WG.spectator_hud.getMetricEnabled ~= nil and WG.spectator_hud.getMetricEnabled("damageDealt")) or 1,
 			description = Spring.I18N("ui.spectator_hud.damageDealt_tooltip"),
 			onload = function(i)
 				loadWidgetData("Spectator HUD", "spectator_hud_metric_damageDealt", { "metricsEnabled", "damageDealt" })
@@ -7243,7 +7243,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.builderpriority_nanos"),
 			type = "bool",
-			value = (WG["builderpriority"] ~= nil and WG["builderpriority"].getLowPriorityNanos ~= nil and WG["builderpriority"].getLowPriorityNanos()),
+			value = (WG.builderpriority ~= nil and WG.builderpriority.getLowPriorityNanos ~= nil and WG.builderpriority.getLowPriorityNanos()),
 			description = Spring.I18N("ui.settings.option.builderpriority_nanos_descr"),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_nanos", { "lowpriorityNanos" })
@@ -7259,7 +7259,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.builderpriority_cons"),
 			type = "bool",
-			value = (WG["builderpriority"] ~= nil and WG["builderpriority"].getLowPriorityCons ~= nil and WG["builderpriority"].getLowPriorityCons()),
+			value = (WG.builderpriority ~= nil and WG.builderpriority.getLowPriorityCons ~= nil and WG.builderpriority.getLowPriorityCons()),
 			description = Spring.I18N("ui.settings.option.builderpriority_cons_descr"),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_cons", { "lowpriorityCons" })
@@ -7275,7 +7275,7 @@ function init()
 			category = types.advanced,
 			name = widgetOptionColor .. "   " .. Spring.I18N("ui.settings.option.builderpriority_labs"),
 			type = "bool",
-			value = (WG["builderpriority"] ~= nil and WG["builderpriority"].getLowPriorityLabs ~= nil and WG["builderpriority"].getLowPriorityLabs()),
+			value = (WG.builderpriority ~= nil and WG.builderpriority.getLowPriorityLabs ~= nil and WG.builderpriority.getLowPriorityLabs()),
 			description = Spring.I18N("ui.settings.option.builderpriority_labs_descr"),
 			onload = function(i)
 				loadWidgetData("Builder Priority", "builderpriority_labs", { "lowpriorityLabs" })
@@ -7295,19 +7295,19 @@ function init()
 			category = types.basic,
 			name = "Ferry ignores units with manual orders",
 			type = "bool",
-			value = (WG["transportFactoryGuard"] ~= nil and WG["transportFactoryGuard"].getBlacklistOrderedUnits ~= nil and WG["transportFactoryGuard"].getBlacklistOrderedUnits()),
+			value = (WG.transportFactoryGuard ~= nil and WG.transportFactoryGuard.getBlacklistOrderedUnits ~= nil and WG.transportFactoryGuard.getBlacklistOrderedUnits()),
 			description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
 			onload = function(i)
 				loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { "blacklistOrderedUnits" })
 			end,
 			onchange = function(_, value)
-				if widgetHandler.configData["transportFactoryGuard"] == nil then
-					widgetHandler.configData["transportFactoryGuard"] = {}
+				if widgetHandler.configData.transportFactoryGuard == nil then
+					widgetHandler.configData.transportFactoryGuard = {}
 				end
 				widgetHandler.configData["Auto Group"].immediate = value
 				saveOptionValue("Transport Factory Guard", "transportFactoryGuard", "setBlacklistOrderedUnits", { "blacklistOrderedUnits" }, value)
-				if WG["transportFactoryGuard"] and WG["transportFactoryGuard"].setBlacklistOrderedUnits then
-					WG["transportFactoryGuard"].setBlacklistOrderedUnits(value)
+				if WG.transportFactoryGuard and WG.transportFactoryGuard.setBlacklistOrderedUnits then
+					WG.transportFactoryGuard.setBlacklistOrderedUnits(value)
 				end
 			end,
 		},
@@ -7328,7 +7328,7 @@ function init()
 			category = types.basic,
 			name = Spring.I18N("ui.settings.option.autogroup_immediate"),
 			type = "bool",
-			value = (WG["autogroup"] ~= nil and WG["autogroup"].getImmediate ~= nil and WG["autogroup"].getImmediate()),
+			value = (WG.autogroup ~= nil and WG.autogroup.getImmediate ~= nil and WG.autogroup.getImmediate()),
 			description = Spring.I18N("ui.settings.option.autogroup_immediate_descr"),
 			onload = function(i)
 				loadWidgetData("Auto Group", "autogroup_immediate", { "immediate" })
@@ -7348,7 +7348,7 @@ function init()
 			category = types.basic,
 			name = Spring.I18N("ui.settings.option.autogroup_persist"),
 			type = "bool",
-			value = (WG["autogroup"] ~= nil and WG["autogroup"].getPersist ~= nil and WG["autogroup"].getPersist()),
+			value = (WG.autogroup ~= nil and WG.autogroup.getPersist ~= nil and WG.autogroup.getPersist()),
 			description = Spring.I18N("ui.settings.option.autogroup_persist_descr"),
 			onload = function(i)
 				loadWidgetData("Auto Group", "autogroup_persist", { "persist" })
@@ -7774,7 +7774,7 @@ function init()
 			value = devLanguageCodes[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				local devLanguage = devLanguageCodes[value]
-				WG["language"].setLanguage(devLanguage)
+				WG.language.setLanguage(devLanguage)
 			end,
 		},
 		{
@@ -9641,21 +9641,21 @@ function init()
 		options[getOptionByID("spectator_hud_metric_damageDealt")] = nil
 	end
 
-	if not Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays().aprilfools then
 		options[getOptionByID("soundtrackAprilFools")] = nil
 		Spring.SetConfigInt("UseSoundtrackAprilFools", 1)
 	else
 		options[getOptionByID("soundtrackAprilFoolsPostEvent")] = nil
 	end
 
-	if not Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays().halloween then
 		options[getOptionByID("soundtrackHalloween")] = nil
 		Spring.SetConfigInt("UseSoundtrackHalloween", 1)
 	else
 		options[getOptionByID("soundtrackHalloweenPostEvent")] = nil
 	end
 
-	if not Spring.Utilities.Gametype.GetCurrentHolidays()["xmas"] then
+	if not Spring.Utilities.Gametype.GetCurrentHolidays().xmas then
 		options[getOptionByID("soundtrackXmas")] = nil
 		Spring.SetConfigInt("UseSoundtrackXmas", 1)
 	else
@@ -9873,8 +9873,8 @@ function init()
 
 	-- add music tracks options
 	local trackList
-	if WG["music"] ~= nil then
-		trackList = WG["music"].getTracksConfig()
+	if WG.music ~= nil then
+		trackList = WG.music.getTracksConfig()
 	end
 	if type(trackList) == "table" then
 		local newOptions = {}
@@ -9904,8 +9904,8 @@ function init()
 						type = "bool",
 						value = Spring.GetConfigInt("MusicSwitch " .. v[2], 1) == 1, --..'\n'..v[4],
 						onclick = function()
-							if WG["music"] ~= nil and WG["music"].playTrack then
-								WG["music"].playTrack(v[3])
+							if WG.music ~= nil and WG.music.playTrack then
+								WG.music.playTrack(v[3])
 							end
 						end,
 						onchange = function(_, value)
@@ -9961,10 +9961,10 @@ function init()
 
 	-- add sound notification widget sound toggle options
 	local notificationList
-	if WG["notifications"] ~= nil then
-		notificationList = WG["notifications"].getNotificationList()
-	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].notificationList ~= nil then
-		notificationList = widgetHandler.configData["Notifications"].notificationList
+	if WG.notifications ~= nil then
+		notificationList = WG.notifications.getNotificationList()
+	elseif widgetHandler.configData.Notifications ~= nil and widgetHandler.configData.Notifications.notificationList ~= nil then
+		notificationList = widgetHandler.configData.Notifications.notificationList
 	end
 	if type(notificationList) == "table" then
 		local newOptions = {}
@@ -9991,8 +9991,8 @@ function init()
 								saveOptionValue("Notifications", "notifications", "setNotification" .. v[1], { "notificationList" }, value)
 							end,
 							onclick = function()
-								if WG["notifications"] ~= nil and WG["notifications"].playNotification then
-									WG["notifications"].playNotification(v[1])
+								if WG.notifications ~= nil and WG.notifications.playNotification then
+									WG.notifications.playNotification(v[1])
 								end
 							end,
 						}
@@ -10005,25 +10005,25 @@ function init()
 
 	-- add auto cloak toggles
 	local defaultUnitdefConfig = { -- copy pasted defaults from the widget
-		[UnitDefNames["armdecom"] and UnitDefNames["armdecom"].id or -1] = false,
-		[UnitDefNames["cordecom"] and UnitDefNames["cordecom"].id or -1] = false,
-		[UnitDefNames["armferret"] and UnitDefNames["armferret"].id or -1] = false,
-		[UnitDefNames["armamb"] and UnitDefNames["armamb"].id or -1] = false,
-		[UnitDefNames["armpb"] and UnitDefNames["armpb"].id or -1] = false,
-		[UnitDefNames["armsnipe"] and UnitDefNames["armsnipe"].id or -1] = false,
-		[UnitDefNames["corsktl"] and UnitDefNames["corsktl"].id or -1] = false,
-		[UnitDefNames["armgremlin"] and UnitDefNames["armgremlin"].id or -1] = true,
-		[UnitDefNames["armamex"] and UnitDefNames["armamex"].id or -1] = true,
-		[UnitDefNames["armshockwave"] and UnitDefNames["armshockwave"].id or -1] = true,
-		[UnitDefNames["armckfus"] and UnitDefNames["armckfus"].id or -1] = true,
-		[UnitDefNames["armspy"] and UnitDefNames["armspy"].id or -1] = true,
-		[UnitDefNames["corspy"] and UnitDefNames["corspy"].id or -1] = true,
-		[UnitDefNames["corphantom"] and UnitDefNames["corphantom"].id or -1] = true,
-		[UnitDefNames["legaspy"] and UnitDefNames["legaspy"].id or -1] = true,
+		[UnitDefNames.armdecom and UnitDefNames.armdecom.id or -1] = false,
+		[UnitDefNames.cordecom and UnitDefNames.cordecom.id or -1] = false,
+		[UnitDefNames.armferret and UnitDefNames.armferret.id or -1] = false,
+		[UnitDefNames.armamb and UnitDefNames.armamb.id or -1] = false,
+		[UnitDefNames.armpb and UnitDefNames.armpb.id or -1] = false,
+		[UnitDefNames.armsnipe and UnitDefNames.armsnipe.id or -1] = false,
+		[UnitDefNames.corsktl and UnitDefNames.corsktl.id or -1] = false,
+		[UnitDefNames.armgremlin and UnitDefNames.armgremlin.id or -1] = true,
+		[UnitDefNames.armamex and UnitDefNames.armamex.id or -1] = true,
+		[UnitDefNames.armshockwave and UnitDefNames.armshockwave.id or -1] = true,
+		[UnitDefNames.armckfus and UnitDefNames.armckfus.id or -1] = true,
+		[UnitDefNames.armspy and UnitDefNames.armspy.id or -1] = true,
+		[UnitDefNames.corspy and UnitDefNames.corspy.id or -1] = true,
+		[UnitDefNames.corphantom and UnitDefNames.corphantom.id or -1] = true,
+		[UnitDefNames.legaspy and UnitDefNames.legaspy.id or -1] = true,
 	}
 	local unitdefConfig = {}
-	if WG["autocloak"] ~= nil then
-		unitdefConfig = WG["autocloak"].getUnitdefConfig()
+	if WG.autocloak ~= nil then
+		unitdefConfig = WG.autocloak.getUnitdefConfig()
 	elseif widgetHandler.configData["Auto Cloak Units"] ~= nil and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil then
 		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
 			if UnitDefNames[unitName] then
@@ -10066,15 +10066,15 @@ function init()
 	end
 
 	-- cursors
-	if WG["cursors"] == nil then
+	if WG.cursors == nil then
 		options[getOptionByID("cursor")] = nil
 		options[getOptionByID("cursorsize")] = nil
 	else
 		local cursorsets = {}
 		local cursor = 1
 		local cursoroption
-		cursorsets = WG["cursors"].getcursorsets()
-		local cursorname = WG["cursors"].getcursor()
+		cursorsets = WG.cursors.getcursorsets()
+		local cursorname = WG.cursors.getcursor()
 		for i, c in pairs(cursorsets) do
 			if c == cursorname then
 				cursor = i
@@ -10085,29 +10085,29 @@ function init()
 			options[getOptionByID("cursor")].options = cursorsets
 			options[getOptionByID("cursor")].value = cursor
 		end
-		if WG["cursors"].getsizemult then
-			options[getOptionByID("cursorsize")].value = WG["cursors"].getsizemult()
+		if WG.cursors.getsizemult then
+			options[getOptionByID("cursorsize")].value = WG.cursors.getsizemult()
 		else
 			options[getOptionByID("cursorsize")] = nil
 		end
 	end
 
-	if WG["smartselect"] == nil then
+	if WG.smartselect == nil then
 		options[getOptionByID("smartselect_includebuildings")] = nil
 		options[getOptionByID("smartselect_includebuilders")] = nil
 		options[getOptionByID("smartselect_includeantinuke")] = nil
 		options[getOptionByID("smartselect_includeradar")] = nil
 		options[getOptionByID("smartselect_includejammer")] = nil
 	else
-		options[getOptionByID("smartselect_includebuildings")].value = WG["smartselect"].getIncludeBuildings()
-		options[getOptionByID("smartselect_includebuilders")].value = WG["smartselect"].getIncludeBuilders()
-		options[getOptionByID("smartselect_includeantinuke")].value = WG["smartselect"].getIncludeAntinuke()
-		options[getOptionByID("smartselect_includeradar")].value = WG["smartselect"].getIncludeRadar()
-		options[getOptionByID("smartselect_includejammer")].value = WG["smartselect"].getIncludeJammer()
+		options[getOptionByID("smartselect_includebuildings")].value = WG.smartselect.getIncludeBuildings()
+		options[getOptionByID("smartselect_includebuilders")].value = WG.smartselect.getIncludeBuilders()
+		options[getOptionByID("smartselect_includeantinuke")].value = WG.smartselect.getIncludeAntinuke()
+		options[getOptionByID("smartselect_includeradar")].value = WG.smartselect.getIncludeRadar()
+		options[getOptionByID("smartselect_includejammer")].value = WG.smartselect.getIncludeJammer()
 	end
 
-	if WG["snow"] ~= nil and WG["snow"].getSnowMap ~= nil then
-		options[getOptionByID("snowmap")].value = WG["snow"].getSnowMap()
+	if WG.snow ~= nil and WG.snow.getSnowMap ~= nil then
+		options[getOptionByID("snowmap")].value = WG.snow.getSnowMap()
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
@@ -10121,7 +10121,7 @@ function init()
 		options[id].onchange(id, options[id].value)
 	end
 
-	if WG["playercolorpalette"] == nil or WG["playercolorpalette"].getSameTeamColors == nil then
+	if WG.playercolorpalette == nil or WG.playercolorpalette.getSameTeamColors == nil then
 		options[getOptionByID("sameteamcolors")] = nil
 	end
 
@@ -10170,8 +10170,8 @@ function init()
 				options[#options + 1] = { id = "label_custom_widgets_spacer", group = "custom", category = types.basic }
 			end
 			local desc = data.desc or ""
-			if desc ~= "" and WG["tooltip"] then
-				local maxWidth = WG["tooltip"].getFontsize() * 90
+			if desc ~= "" and WG.tooltip then
+				local maxWidth = WG.tooltip.getFontsize() * 90
 				local textLines, numLines = font:WrapText(desc, maxWidth)
 				desc = string.gsub(textLines, "[\n]", "\n")
 			end
@@ -10294,8 +10294,8 @@ end
 
 local function optionsCmd(_, _, params)
 	local newShow = not show
-	if newShow and WG["topbar"] then
-		WG["topbar"].hideWindows()
+	if newShow and WG.topbar then
+		WG.topbar.hideWindows()
 	end
 	show = newShow
 	if showTextInput then
@@ -10392,10 +10392,10 @@ function widget:Initialize()
 	if widgetHandler:IsWidgetKnown("Fog Volumes Old GL4") then
 		widgetHandler:DisableWidget("Fog Volumes Old GL4")
 	end
-	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
+	if widgetHandler.orderList.FlowUI and widgetHandler.orderList.FlowUI < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
-	if widgetHandler.orderList["Language"] and widgetHandler.orderList["Language"] < 0.5 then
+	if widgetHandler.orderList.Language and widgetHandler.orderList.Language < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
 
@@ -10526,14 +10526,14 @@ function widget:Initialize()
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5))) -- spring wont remember what you set with '/minimap iconssize #'
 
-	WG["options"] = {}
-	WG["options"].toggle = function(state)
+	WG.options = {}
+	WG.options.toggle = function(state)
 		local newShow = state
 		if newShow == nil then
 			newShow = not show
 		end
-		if newShow and WG["topbar"] then
-			WG["topbar"].hideWindows()
+		if newShow and WG.topbar then
+			WG.topbar.hideWindows()
 		end
 		show = newShow
 		if showTextInput then
@@ -10545,25 +10545,25 @@ function widget:Initialize()
 			end
 		end
 	end
-	WG["options"].getOptionsList = function()
+	WG.options.getOptionsList = function()
 		local optionList = {}
 		for i, option in pairs(options) do
 			optionList[#optionList + 1] = option.id
 		end
 		return optionList
 	end
-	WG["options"].isvisible = function()
+	WG.options.isvisible = function()
 		return show
 	end
-	WG["options"].getOptionValue = function(option)
+	WG.options.getOptionValue = function(option)
 		if getOptionByID(option) then
 			return options[getOptionByID(option)].value
 		end
 	end
-	WG["options"].getCameraSmoothness = function()
+	WG.options.getCameraSmoothness = function()
 		return cameraTransitionTime
 	end
-	WG["options"].disallowEsc = function()
+	WG.options.disallowEsc = function()
 		if showSelectOptions then
 			--or draggingSlider then
 			return true
@@ -10571,7 +10571,7 @@ function widget:Initialize()
 			return false
 		end
 	end
-	WG["options"].addOptions = function(newOptions)
+	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
 			customOptions[#customOptions + 1] = option
@@ -10579,7 +10579,7 @@ function widget:Initialize()
 
 		init()
 	end
-	WG["options"].removeOptions = function(names)
+	WG.options.removeOptions = function(names)
 		for _, name in ipairs(names) do
 			for i, option in pairs(customOptions) do
 				if option.id == name then
@@ -10591,13 +10591,13 @@ function widget:Initialize()
 
 		init()
 	end
-	WG["options"].addOption = function(option)
-		return WG["options"].addOptions({ option })
+	WG.options.addOption = function(option)
+		return WG.options.addOptions({ option })
 	end
-	WG["options"].removeOption = function(name)
-		return WG["options"].removeOptions({ name })
+	WG.options.removeOption = function(name)
+		return WG.options.removeOptions({ name })
 	end
-	WG["options"].applyOptionValue = function(option, value)
+	WG.options.applyOptionValue = function(option, value)
 		local optionID = getOptionByID(option)
 		if not optionID then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
@@ -10638,13 +10638,13 @@ function widget:Shutdown()
 			gl.DeleteFont(fontOption[i])
 		end
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveDlist("options")
-		WG["guishader"].RemoveRect("optionsinput")
-		WG["guishader"].RemoveScreenRect("options_select")
-		WG["guishader"].RemoveScreenRect("options_select_options")
+	if WG.guishader then
+		WG.guishader.RemoveDlist("options")
+		WG.guishader.RemoveRect("optionsinput")
+		WG.guishader.RemoveScreenRect("options_select")
+		WG.guishader.RemoveScreenRect("options_select_options")
 		if selectOptionsList then
-			WG["guishader"].removeRenderDlist(selectOptionsList)
+			WG.guishader.removeRenderDlist(selectOptionsList)
 		end
 	end
 	if selectOptionsList then
@@ -10652,7 +10652,7 @@ function widget:Shutdown()
 	end
 	glDeleteList(consoleCmdDlist)
 	glDeleteList(textInputDlist)
-	WG["options"] = nil
+	WG.options = nil
 
 	resetUserVolume()
 	Spring.SendCommands("grabinput 0")

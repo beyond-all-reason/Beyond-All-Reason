@@ -247,11 +247,11 @@ end
 
 function widget:DrawScreenEffects()
 	--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-	if WG["screencopymanager"] and WG["screencopymanager"].GetScreenCopy then
-		screenCopyTex = WG["screencopymanager"].GetScreenCopy()
+	if WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
+		screenCopyTex = WG.screencopymanager.GetScreenCopy()
 	else
 		--glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-		spEcho("Missing Screencopy Manager, exiting", WG["screencopymanager"])
+		spEcho("Missing Screencopy Manager, exiting", WG.screencopymanager)
 		widgetHandler:RemoveWidget()
 		return false
 	end

@@ -427,7 +427,7 @@ function M.sync(doc, ctx, gbState, setSummary, sumEl)
 	end
 
 	do
-		local gApi = WG["grassgl4"]
+		local gApi = WG.grassgl4
 		local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 		if not hasGrass then
 			if sumEl then

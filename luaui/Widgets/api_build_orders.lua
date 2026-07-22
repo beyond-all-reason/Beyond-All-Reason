@@ -337,7 +337,7 @@ local function splitBuildOrders(builders, buildings, cmdOpts)
 end
 
 function widget:Initialize()
-	WG["api_build_orders"] = {
+	WG.api_build_orders = {
 		getBuilderInfo = getBuilderInfo,
 		groupBuilders = groupBuilders,
 		forkBuilders = forkBuilders,
@@ -348,5 +348,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["api_build_orders"] = nil
+	WG.api_build_orders = nil
 end

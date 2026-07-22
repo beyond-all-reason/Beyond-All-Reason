@@ -891,14 +891,14 @@ local function setMapOverlay(v)
 	if mapOverlay then
 		invalidateMetalCaches()
 		-- Dim the map so metal patches stand out; save previous darkness to restore later
-		if savedDarknessBeforeOverlay == nil and WG["darkenmap"] then
-			savedDarknessBeforeOverlay = WG["darkenmap"].getMapDarkness()
-			WG["darkenmap"].setMapDarkness(MAP_OVERLAY_DIM)
+		if savedDarknessBeforeOverlay == nil and WG.darkenmap then
+			savedDarknessBeforeOverlay = WG.darkenmap.getMapDarkness()
+			WG.darkenmap.setMapDarkness(MAP_OVERLAY_DIM)
 		end
 	else
 		-- Restore map brightness
-		if savedDarknessBeforeOverlay ~= nil and WG["darkenmap"] then
-			WG["darkenmap"].setMapDarkness(savedDarknessBeforeOverlay)
+		if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
+			WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
 		end
 		savedDarknessBeforeOverlay = nil
 	end
@@ -1218,8 +1218,8 @@ local function deactivate()
 	painting = false
 	paintButton = 0
 	-- Restore map brightness if overlay was on when we deactivated
-	if savedDarknessBeforeOverlay ~= nil and WG["darkenmap"] then
-		WG["darkenmap"].setMapDarkness(savedDarknessBeforeOverlay)
+	if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
+		WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
 	end
 	savedDarknessBeforeOverlay = nil
 end
@@ -1302,8 +1302,8 @@ function widget:Shutdown()
 		clusterVisList = nil
 	end
 	-- Restore map brightness if overlay dim was active
-	if savedDarknessBeforeOverlay ~= nil and WG["darkenmap"] then
-		WG["darkenmap"].setMapDarkness(savedDarknessBeforeOverlay)
+	if savedDarknessBeforeOverlay ~= nil and WG.darkenmap then
+		WG.darkenmap.setMapDarkness(savedDarknessBeforeOverlay)
 		savedDarknessBeforeOverlay = nil
 	end
 end

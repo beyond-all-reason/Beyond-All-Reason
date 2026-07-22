@@ -532,7 +532,7 @@ local function applyHistoryEntry(entry)
 			end
 		elseif item.grass then
 			-- Grass-attach patch: swap stored density with the current one.
-			local api = WG["grassgl4"]
+			local api = WG.grassgl4
 			if api and api.getDensityAt and api.setDensityAt then
 				local cur = api.getDensityAt(item.x, item.z) or 0
 				api.setDensityAt(item.x, item.z, item.d or 0)
@@ -943,7 +943,7 @@ local function paintGrassAttach(wx, wz, layer, erase, effR, effS)
 	if gd <= 0.001 then
 		return
 	end -- erase included: don't touch grass the layer never planted
-	local api = WG["grassgl4"]
+	local api = WG.grassgl4
 	if not (api and api.setDensityAt and api.getDensityAt) then
 		return
 	end

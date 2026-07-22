@@ -61,9 +61,9 @@ function widget:Initialize()
 	mexBuildings = builder.GetMexBuildings()
 	geoBuildings = builder.GetGeoBuildings()
 
-	geoSpots = WG["resource_spot_finder"].geoSpotsList
-	metalSpots = WG["resource_spot_finder"].metalSpotsList
-	metalMap = WG["resource_spot_finder"].isMetalMap
+	geoSpots = WG.resource_spot_finder.geoSpotsList
+	metalSpots = WG.resource_spot_finder.metalSpotsList
+	metalMap = WG.resource_spot_finder.isMetalMap
 end
 
 function widget:GameStart()
@@ -211,12 +211,12 @@ function widget:Update()
 	local selectedExtractor = isMetalExtractor and selectedMex or selectedGeo
 	local buildingsToCheck = isMetalExtractor and mexBuildings or geoBuildings
 
-	if WG["skip_allied_upgrade"] then
-		spotsToSearch = WG["skip_allied_upgrade"].filterOutAlliedSpots(spotsToSearch, buildingsToCheck)
+	if WG.skip_allied_upgrade then
+		spotsToSearch = WG.skip_allied_upgrade.filterOutAlliedSpots(spotsToSearch, buildingsToCheck)
 	end
 
 	local shouldIgnoreAlreadyQueuedUpSpots = shift
-	local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor, shouldIgnoreAlreadyQueuedUpSpots)
+	local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(x, z, spotsToSearch, selectedExtractor, shouldIgnoreAlreadyQueuedUpSpots)
 
 	if not nearestSpot then
 		clear()
@@ -224,7 +224,7 @@ function widget:Update()
 	end
 
 	buildCmd = {}
-	local cmd = WG["resource_spot_builder"].PreviewExtractorCommand(pos, buildingId, nearestSpot)
+	local cmd = WG.resource_spot_builder.PreviewExtractorCommand(pos, buildingId, nearestSpot)
 	if cmd and #cmd > 0 then
 		targetPos = { x = cmd[2], y = cmd[3], z = cmd[4] }
 		WG.ExtractorSnap.position = targetPos -- used by prospector and pregame queue
@@ -269,7 +269,7 @@ local function handleBuildMenu(shift)
 	if not shift then
 		Spring.SetActiveCommand(0)
 	end
-	local grid = WG["gridmenu"]
+	local grid = WG.gridmenu
 	if not grid or not grid.clearCategory or not grid.getAlwaysReturn or not grid.setCurrentCategory then
 		return
 	end
@@ -290,12 +290,12 @@ function widget:MousePress(x, y, button)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		shift = Spring.GetInvertQueueKey() and not shift or shift
 		if selectedMex then
-			WG["resource_spot_builder"].ApplyPreviewCmds(buildCmd, mexConstructors, shift)
+			WG.resource_spot_builder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)
 			handleBuildMenu(shift)
 			return true
 		end
 		if selectedGeo then
-			WG["resource_spot_builder"].ApplyPreviewCmds(buildCmd, geoConstructors, shift)
+			WG.resource_spot_builder.ApplyPreviewCmds(buildCmd, geoConstructors, shift)
 			handleBuildMenu(shift)
 			return true -- override other mouse presses and handle stuff manually
 		end

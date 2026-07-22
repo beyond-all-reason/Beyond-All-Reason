@@ -371,7 +371,7 @@ end
 -- Add a single GL4 deferred light and track it
 ----------------------------------------------------------------
 local function addOneLight(px, pz, lightDef)
-	local lightsAPI = WG["lightsgl4"]
+	local lightsAPI = WG.lightsgl4
 	if not lightsAPI then
 		return nil
 	end
@@ -429,7 +429,7 @@ end
 -- Remove a placed light from the deferred renderer
 ----------------------------------------------------------------
 local function removeOneLight(instanceID)
-	local lightsAPI = WG["lightsgl4"]
+	local lightsAPI = WG.lightsgl4
 	if not lightsAPI then
 		return
 	end
@@ -967,7 +967,7 @@ local function removePreviewLight()
 	if not previewLight.id then
 		return
 	end
-	local api = WG["lightsgl4"]
+	local api = WG.lightsgl4
 	if api and api.RemoveLight then
 		api.RemoveLight(previewLight.shape, previewLight.id, nil)
 	end
@@ -977,7 +977,7 @@ local function removePreviewLight()
 end
 
 local function updatePreviewLight(worldX, worldZ)
-	local api = WG["lightsgl4"]
+	local api = WG.lightsgl4
 	if not api then
 		removePreviewLight()
 		return
@@ -1035,7 +1035,7 @@ local function removePresetPreviewLights()
 	if #presetPreviewLights == 0 then
 		return
 	end
-	local api = WG["lightsgl4"]
+	local api = WG.lightsgl4
 	if api and api.RemoveLight then
 		for _, p in ipairs(presetPreviewLights) do
 			api.RemoveLight(p.shape, p.id, nil)
@@ -1049,7 +1049,7 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		removePresetPreviewLights()
 		return
 	end
-	local api = WG["lightsgl4"]
+	local api = WG.lightsgl4
 	if not api then
 		removePresetPreviewLights()
 		return

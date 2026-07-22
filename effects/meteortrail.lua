@@ -1,6 +1,6 @@
 return {
 
-	["meteortrail"] = {
+	meteortrail = {
 
 		fireglow = {
 			air = true,

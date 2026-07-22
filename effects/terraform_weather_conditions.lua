@@ -13,7 +13,7 @@ return {
 	-- Gentle snowflake cluster drifting down from 300-600 elmos above ground.
 	-- Uses cloudpuff for soft round flakes, slight lateral wobble from gravity,
 	-- airdrag 0.97 bleeds speed so flakes decelerate into a lazy drift.
-	["weather_snowflake"] = {
+	weather_snowflake = {
 		usedefaultexplosions = false,
 		flakes = {
 			air = true,
@@ -49,7 +49,7 @@ return {
 
 	-- Dense snowfall with blowing drift at lower altitude.
 	-- Two layers: falling flakes from high up + wind-blown cloud banks lower.
-	["weather_snowfall_heavy"] = {
+	weather_snowfall_heavy = {
 		usedefaultexplosions = false,
 		flakes = {
 			air = true,
@@ -121,7 +121,7 @@ return {
 	-- Fast, bright white particles plummeting from 400-600 above ground.
 	-- directional=true elongates sprites along velocity for streak effect.
 	-- No airdrag (1.0) so they accelerate under gravity to terminal speed.
-	["weather_hailstone"] = {
+	weather_hailstone = {
 		usedefaultexplosions = false,
 		stones = {
 			air = true,
@@ -161,7 +161,7 @@ return {
 	-- Dark particles descending slowly from 200-500 above ground.
 	-- Uses dirtpuff for an ashy/dusty visual. Low alpha for semi-transparent
 	-- drift. Lateral gravity wobble for organic fluttering.
-	["weather_ashfall"] = {
+	weather_ashfall = {
 		usedefaultexplosions = false,
 		ash = {
 			air = true,
@@ -202,7 +202,7 @@ return {
 	-- Tiny yellow-green specks floating lazily on warm air currents.
 	-- Almost no directed movement; random 3D emission with slight updraft.
 	-- flare1 texture gives a soft warm glow at small sizes.
-	["weather_pollen"] = {
+	weather_pollen = {
 		usedefaultexplosions = false,
 		speck = {
 			air = true,
@@ -242,7 +242,7 @@ return {
 	-- Glowing orange/red sparks rising from the ground.
 	-- Positive Y gravity lifts them. Colormap shifts from bright orange
 	-- through red to dark ember glow before vanishing.
-	["weather_embers"] = {
+	weather_embers = {
 		usedefaultexplosions = false,
 		ember = {
 			air = true,
@@ -283,7 +283,7 @@ return {
 	-- Fine rain haze occupying the mid-altitude band (50-200 above ground).
 	-- Designed as a layering companion for raindrop—fills the gap between
 	-- the falling streaks above and ground splashes below.
-	["weather_drizzle_mist"] = {
+	weather_drizzle_mist = {
 		usedefaultexplosions = false,
 		mist = {
 			air = true,

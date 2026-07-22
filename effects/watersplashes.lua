@@ -6,7 +6,7 @@
 return {
 
 	-- Commander sea laser bubbles (used in unit weapondefs)
-	["com_sea_laser_bubbles"] = {
+	com_sea_laser_bubbles = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -39,7 +39,7 @@ return {
 	},
 
 	-- Small water bubbles
-	["small_water_bubbles"] = {
+	small_water_bubbles = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -72,7 +72,7 @@ return {
 	},
 
 	-- Extra small water splash
-	["watersplash_extrasmall"] = {
+	watersplash_extrasmall = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -163,7 +163,7 @@ return {
 	},
 
 	-- Small water splash (used by unit_water_depth_damage.lua)
-	["watersplash_small"] = {
+	watersplash_small = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -254,7 +254,7 @@ return {
 	},
 
 	-- Small light water splash
-	["watersplash_small_light"] = {
+	watersplash_small_light = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -373,7 +373,7 @@ return {
 	},
 
 	-- Large water splash (used by unit_water_depth_damage.lua)
-	["watersplash_large"] = {
+	watersplash_large = {
 		waterring = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -513,7 +513,7 @@ return {
 	},
 
 	-- Extra large water splash
-	["watersplash_extralarge"] = {
+	watersplash_extralarge = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
@@ -604,7 +604,7 @@ return {
 	},
 
 	-- Emerge splash (submarine surfacing)
-	["watersplash_emerge"] = {
+	watersplash_emerge = {
 		waterball = {
 			air = false,
 			class = [[CSimpleParticleSystem]],
