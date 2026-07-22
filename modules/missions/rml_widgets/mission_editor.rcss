@@ -72,6 +72,8 @@
 
 .me-content {
     display: block;
+    overflow-y: auto;
+    max-height: 560px;
 }
 
 .me-file {
@@ -293,4 +295,32 @@
 .me-add selectbox option:hover {
     background-color: #2f4156;
     color: #ffffff;
+}
+
+/* RmlUi scrollbars are widgets that MUST be styled: with no dimensions the
+   invisible track overlays its whole container and eats every click (the
+   "clicking just scrolls" bug). Confine them to a real gutter. */
+scrollbarvertical {
+    width: 12px;
+}
+
+scrollbarvertical slidertrack {
+    background-color: #10161d;
+    border-left: 1px #223040;
+}
+
+scrollbarvertical sliderbar {
+    background-color: #3d5168;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+scrollbarvertical sliderbar:hover {
+    background-color: #5a7794;
+}
+
+scrollbarvertical sliderarrowdec,
+scrollbarvertical sliderarrowinc {
+    width: 0px;
+    height: 0px;
 }
