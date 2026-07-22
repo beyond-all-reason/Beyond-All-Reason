@@ -2298,7 +2298,7 @@ local function projectSaveSquare(dir, sx, sy)
 	if s and s.compositeTex then
 		local ok
 		glRenderToTexture(s.compositeTex, function()
-			ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false })
+			ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false, alpha = true })
 		end)
 		return ok and true or false
 	end
@@ -2326,7 +2326,7 @@ local function projectSaveSquare(dir, sx, sy)
 		glTexture(0, false)
 		glUseShader(0)
 		glBlending(true)
-		ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false })
+		ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false, alpha = true })
 	end)
 	glDeleteTexture(tmp)
 	return ok and true or false
@@ -2375,7 +2375,8 @@ local function projectSaveTick()
 			local fname = req.dir .. "channel_" .. key .. ".png"
 			local ok
 			glRenderToTexture(ch.tex, function()
-				ok = gl.SaveImage(0, 0, ch.w, ch.h, fname, { yflip = false })
+				-- alpha=true: normal-channel alpha carries the diffuse-blend weight
+				ok = gl.SaveImage(0, 0, ch.w, ch.h, fname, { yflip = false, alpha = true })
 			end)
 			if ok then
 				chans[#chans + 1] = key

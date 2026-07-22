@@ -701,6 +701,35 @@ local function stepGrass()
 	return true
 end
 
+-- Read a live engine texture into a PNG (GL context required — the save pump
+-- runs in DrawScreen). Plain fixed-function blit, alpha preserved (DNTS normal
+-- alpha carries the diffuse-blend weight).
+local function captureLiveTexture(texName, destPath)
+	local info = gl.TextureInfo(texName)
+	if not (info and info.xsize and info.xsize > 1) then return nil end
+	local w, h = info.xsize, info.ysize
+	local fbo = gl.CreateTexture(w, h, {
+		border = false,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+	})
+	if not fbo then return nil end
+	local ok
+	gl.RenderToTexture(fbo, function()
+		gl.Blending(false)
+		gl.Texture(0, texName)
+		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		gl.Texture(0, false)
+		gl.Blending(true)
+		ok = gl.SaveImage(0, 0, w, h, destPath, { yflip = false, alpha = true })
+	end)
+	gl.DeleteTexture(fbo)
+	return ok and true or false
+end
+
 local function stepAssets()
 	local mo = job.mapOptions
 	-- DNTS set: copy the resolved textures INTO the project (libraries mutate
@@ -736,6 +765,40 @@ local function stepAssets()
 		-- Provenance: the library set folder name, if the path reveals one
 		local firstTex = mo.blank_map_splatdetailnormaltex1 or ""
 		dnts.set = firstTex:match("([^/\\]+)[/\\][^/\\]+$")
+	end
+
+	-- Compiled maps carry no blank_map_splat* options — their splat setup lives
+	-- in mapinfo. Capture the LIVE engine textures instead, so the project is
+	-- self-contained and the saved splat.png has textures to modulate on load
+	-- (without a dnts record, a splat section saved from a compiled map is
+	-- unloadable on the blank canvas).
+	if not dnts then
+		local scR, scG, scB, scA = gl.GetMapRendering("splatTexScales")
+		local muR, muG, muB, muA = gl.GetMapRendering("splatTexMults")
+		local scales = { scR, scG, scB, scA }
+		local mults = { muR, muG, muB, muA }
+		for ch = 1, 4 do
+			local name = "capture_normals" .. ch .. ".png"
+			if captureLiveTexture("$ssmf_splat_normals:" .. (ch - 1), job.dir .. "assets/dnts/" .. name) then
+				dnts = dnts or { textures = {}, scales = {}, mults = {} }
+				dnts.textures[ch] = "assets/dnts/" .. name
+				dnts.scales[ch] = tonumber(scales[ch]) or 0
+				dnts.mults[ch] = tonumber(mults[ch]) or 0
+			end
+		end
+		-- Legacy SSMF maps modulate a single grayscale detail texture instead of
+		-- (or in addition to) DNTS normals — capture it too.
+		if captureLiveTexture("$ssmf_splat_detail", job.dir .. "assets/dnts/capture_detail.png") then
+			dnts = dnts or { textures = {}, scales = scales, mults = mults }
+			dnts.detail = "assets/dnts/capture_detail.png"
+		end
+		if dnts then
+			dnts.set = "live-capture"
+			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
+			echoP("captured the map's live splat textures into assets/dnts/")
+		elseif findSection("splat") then
+			warn("map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas")
+		end
 	end
 	job.dnts = dnts
 
@@ -866,6 +929,9 @@ local function stepManifest()
 			end
 		end
 		add("\t\t\t},")
+		if job.dnts.detail then
+			add(string.format("\t\t\tdetail = %q,", job.dnts.detail))
+		end
 		local function quad(name, t)
 			add(string.format("\t\t\t%s = { %s, %s, %s, %s },", name,
 				fmtNum(t[1] or 0), fmtNum(t[2] or 0), fmtNum(t[3] or 0), fmtNum(t[4] or 0)))

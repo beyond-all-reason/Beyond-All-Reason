@@ -735,7 +735,9 @@ local function executeSaveSplats(explicitPath)
 	end
 
 	glRenderToTexture(fboTex, function()
-		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false })
+		-- alpha=true: the distribution is 4 channels — without it the A channel
+		-- (splat 4) is silently dropped from the export.
+		glSaveImage(0, 0, splatTexWidth, splatTexHeight, filename, { yflip = false, alpha = true })
 	end)
 
 	Echo("[Splat Painter] Saved splat distribution to: " .. filename .. " (" .. splatTexWidth .. "x" .. splatTexHeight .. ")")

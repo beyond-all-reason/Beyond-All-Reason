@@ -1738,10 +1738,13 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 			end
 		end
 		-- Legacy SMFReadMap codepaths gate splat activation on splatDetailTex being
-		-- present, even when DNTS normals are the actual source. Feed a compatible
-		-- placeholder so old gates don't silently disable splats on blank maps.
-		if t[1] then
-			opt[#opt + 1] = "blank_map_splatdetailtex=" .. prefix .. t[1] .. ";"
+		-- present, even when DNTS normals are the actual source. Prefer a real
+		-- captured detail texture (compiled-map projects record one); else feed
+		-- ch1 as a compatible placeholder so old gates don't silently disable
+		-- splats on blank maps.
+		local detailTex = dntsSet.detail or t[1]
+		if detailTex then
+			opt[#opt + 1] = "blank_map_splatdetailtex=" .. prefix .. detailTex .. ";"
 		end
 		-- Do not force blank_map_splatdistr here. New engine builds can synthesize
 		-- an empty distribution when absent; forcing a missing filename causes load
@@ -1784,20 +1787,30 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	end
 
 	local dntsSet = nil
-	if type(m.dnts) == "table" and type(m.dnts.textures) == "table" then
+	if type(m.dnts) == "table" then
 		local textures = {}
 		local any = false
-		for ch = 1, 4 do
-			local rel = m.dnts.textures[ch]
-			if type(rel) == "string" and rel ~= "" then
-				textures[ch] = "MapProjects/" .. slug .. "/" .. rel
-				any = true
+		if type(m.dnts.textures) == "table" then
+			for ch = 1, 4 do
+				local rel = m.dnts.textures[ch]
+				if type(rel) == "string" and rel ~= "" then
+					textures[ch] = "MapProjects/" .. slug .. "/" .. rel
+					any = true
+				end
 			end
+		end
+		-- A captured detail texture alone (legacy SSMF map) still warrants a set:
+		-- blank_map_splatdetailtex is what old activation gates key on.
+		local detail = nil
+		if type(m.dnts.detail) == "string" and m.dnts.detail ~= "" then
+			detail = "MapProjects/" .. slug .. "/" .. m.dnts.detail
+			any = true
 		end
 		if any then
 			dntsSet = {
 				rawPaths = true,
 				textures = textures,
+				detail = detail,
 				scales = m.dnts.scales or {},
 				mults = m.dnts.mults or {},
 				diffuseAlpha = (tonumber(m.dnts.diffuse_alpha) == 1) and 1 or 0,
