@@ -233,6 +233,12 @@ local pendingInit       = false
 local pendingFullBake   = false  -- re-bake already-allocated squares
 local pendingFullCover  = false  -- allocate every map square + bake (heavy)
 local pendingExport     = false  -- /diffusepaintexport queued; runs in DrawWorld (GL context)
+local pendingProjectSave = nil   -- map-project save job (chunked in DrawWorld); see projectSaveTick
+local projectSaveResult  = nil   -- result table once the save job finished
+local pendingProjectLoad = nil   -- map-project load job (chunked in DrawWorld); see projectLoadTick
+local projectLoadResult  = nil   -- result table once the load job finished
+local PROJECT_SAVE_SQUARES_PER_TICK = 4  -- 1024^2 readback+PNG encode each; full-map capture must not freeze
+local PROJECT_LOAD_SQUARES_PER_TICK = 8
 local libraryScanned    = false  -- material library VFS walk done (deferred to first activate)
 local pendingPaintStrokes = {}   -- array of {wx, wz, layerId, erase}
 local dirtySquares      = {}     -- squareKey -> true; consumed each Draw
@@ -2079,6 +2085,33 @@ function widget:Initialize()
 		rescanMaterialLibrary = scanMaterialLibrary,
 		bakeAll        = function() pendingFullCover = true end,
 		exportSquares  = function() pendingExport = true end,
+		-- Map project (cmd_map_project.lua): chunked DrawWorld jobs saving/loading
+		-- baked square diffuse + channel textures; poll the pending flags.
+		saveProject = function(dir, allSquares)
+			if pendingProjectSave or pendingProjectLoad then return false end
+			pendingProjectSave = { dir = dir, allSquares = allSquares and true or false, sx = 0, sy = 0, written = {} }
+			projectSaveResult = nil
+			return true
+		end,
+		isProjectSavePending = function() return pendingProjectSave ~= nil end,
+		getProjectSaveResult = function() return projectSaveResult end,
+		loadProject = function(squareList, channelMap)
+			if pendingProjectSave or pendingProjectLoad then return false end
+			pendingProjectLoad = { squares = squareList or {}, channels = channelMap or {}, i = 1 }
+			projectLoadResult = nil
+			return true
+		end,
+		isProjectLoadPending = function() return pendingProjectLoad ~= nil end,
+		getProjectLoadResult = function() return projectLoadResult end,
+		hasProjectState = function()
+			for _, s in pairs(squares) do
+				if s.compositeTex then return true end
+			end
+			for key, ch in pairs(channels) do
+				if channelsEnabled[key] and ch.tex then return true end
+			end
+			return false
+		end,
 		getBrush       = function() return brushRadius, brushStrength, brushCurve, eraseMode end,
 		setRadius        = function(r) brushRadius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r))) end,
 		setStrength      = function(v) brushStrength = max(MIN_STRENGTH, min(MAX_STRENGTH, v)) end,
@@ -2251,6 +2284,230 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+-- ============================================================================
+-- Map project save/load (cmd_map_project.lua) — chunked in DrawWorld
+-- ============================================================================
+
+-- Save one square to <dir>sq_<sx>_<sy>.png. Painted squares save their baked
+-- composite; untouched squares (full capture) read the engine's own diffuse
+-- through a transient texture, so a compiled map's shipped art (e.g. World
+-- Machine output) rides along in the project. Returns true on success.
+local function projectSaveSquare(dir, sx, sy)
+	local fname = dir .. "sq_" .. sx .. "_" .. sy .. ".png"
+	local s = squares[squareKey(sx, sy)]
+	if s and s.compositeTex then
+		local ok
+		glRenderToTexture(s.compositeTex, function()
+			ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false })
+		end)
+		return ok and true or false
+	end
+	local tmp = glCreateTexture(TILE_PX, TILE_PX, {
+		border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = false, format = GL.RGBA8,
+	})
+	if not tmp then return false end
+	if not GetMapSquareTextureFn(sx, sy, 0, tmp, 0) then
+		glDeleteTexture(tmp)
+		return false
+	end
+	local scratch = getScratchTex(TILE_PX)
+	if not scratch then
+		glDeleteTexture(tmp)
+		return false
+	end
+	local ok
+	glRenderToTexture(scratch, function()
+		glBlending(false)
+		glUseShader(copyShader)
+		glTexture(0, tmp)
+		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		glTexture(0, false)
+		glUseShader(0)
+		glBlending(true)
+		ok = gl.SaveImage(0, 0, TILE_PX, TILE_PX, fname, { yflip = false })
+	end)
+	glDeleteTexture(tmp)
+	return ok and true or false
+end
+
+local function projectSaveTick()
+	local req = pendingProjectSave
+	if not copyShader then
+		if not createShaders() then
+			projectSaveResult = { error = "shader creation failed" }
+			pendingProjectSave = nil
+			return
+		end
+	end
+	local done = 0
+	while req.sy < numSqZ and done < PROJECT_SAVE_SQUARES_PER_TICK do
+		local k = squareKey(req.sx, req.sy)
+		local s = squares[k]
+		if req.allSquares or (s and s.compositeTex) then
+			-- The bake pass drains dirtySquares in hash order at its own rate; a
+			-- square still dirty when the save cursor reaches it would capture a
+			-- stale composite (e.g. mid-save layer tweak). Bake it now.
+			if dirtySquares[k] and s and s.seedTex then
+				bakeSquare(s)
+				dirtySquares[k] = nil
+			end
+			if projectSaveSquare(req.dir, req.sx, req.sy) then
+				req.written[#req.written + 1] = "sq_" .. req.sx .. "_" .. req.sy .. ".png"
+			else
+				req.failed = (req.failed or 0) + 1
+			end
+			done = done + 1
+		end
+		req.sx = req.sx + 1
+		if req.sx >= numSqX then
+			req.sx = 0
+			req.sy = req.sy + 1
+		end
+	end
+	if req.sy < numSqZ then return end
+	-- Channels: enabled + allocated only (a disabled channel means the engine's
+	-- own texture is showing — not ours to record).
+	local chans = {}
+	for key, ch in pairs(channels) do
+		if channelsEnabled[key] and ch.tex then
+			local fname = req.dir .. "channel_" .. key .. ".png"
+			local ok
+			glRenderToTexture(ch.tex, function()
+				ok = gl.SaveImage(0, 0, ch.w, ch.h, fname, { yflip = false })
+			end)
+			if ok then
+				chans[#chans + 1] = key
+			else
+				req.failed = (req.failed or 0) + 1
+			end
+		end
+	end
+	table.sort(chans)
+	projectSaveResult = {
+		squares = req.written,
+		channels = chans,
+		-- Coverage fact, not capture mode: a loaded full project re-saves from a
+		-- blank session with every square painted — recording the mode would
+		-- flip this field and break save->load->save byte-idempotence.
+		full = (#req.written == numSqX * numSqZ),
+		failed = req.failed or 0,
+		squareSize = TILE_PX,
+	}
+	pendingProjectSave = nil
+end
+
+local function projectLoadTick()
+	local req = pendingProjectLoad
+	if not copyShader then
+		if not createShaders() then
+			projectLoadResult = { error = "shader creation failed" }
+			pendingProjectLoad = nil
+			return
+		end
+	end
+	-- A load replaces the entire diffuse state: stale hand-paint masks would be
+	-- double-applied by the next bake (the strokes are already baked into the
+	-- loaded PNGs), and undoing a pre-load snapshot would resurrect old paint.
+	if not req.cleared then
+		req.cleared = true
+		clearHistory()
+		for _, layerMasks in pairs(masks) do
+			for _, maskTex in pairs(layerMasks) do
+				clearMaskTex(maskTex)
+			end
+		end
+	end
+	local done = 0
+	while req.i <= #req.squares and done < PROJECT_LOAD_SQUARES_PER_TICK do
+		local e = req.squares[req.i]
+		req.i = req.i + 1
+		done = done + 1
+		local s = getOrAllocSquare(e.sx, e.sy)
+		local texName = ":l:" .. e.path
+		if s and gl.Texture(texName) then
+			gl.Texture(false)
+			-- Recreate both textures FBO-capable: an engine-seeded seedTex is not
+			-- renderable, and the loaded PNG must become the square's new SEED so
+			-- later layer bakes composite over it instead of the engine texture.
+			freeSquare(s)
+			s.allocFailed = nil
+			s.seedTex = glCreateTexture(TILE_PX, TILE_PX, {
+				border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+				wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+				fbo = true, format = GL.RGBA8,
+			})
+			s.compositeTex = s.seedTex and glCreateTexture(TILE_PX, TILE_PX, {
+				border = false, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+				wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+				fbo = true, format = GL.RGBA8,
+			}) or nil
+			if s.seedTex and s.compositeTex then
+				local targets = { s.seedTex, s.compositeTex }
+				for t = 1, 2 do
+					glRenderToTexture(targets[t], function()
+						glBlending(false)
+						glUseShader(copyShader)
+						glTexture(0, texName)
+						glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+						glTexture(0, false)
+						glUseShader(0)
+						glBlending(true)
+					end)
+				end
+				s.dirty = false
+				bindSquare(s)
+				req.loaded = (req.loaded or 0) + 1
+			else
+				if s.seedTex then
+					glDeleteTexture(s.seedTex)
+					s.seedTex = nil
+				end
+				req.failed = (req.failed or 0) + 1
+			end
+			gl.DeleteTexture(texName)
+		else
+			req.failed = (req.failed or 0) + 1
+		end
+	end
+	if req.i <= #req.squares then return end
+	local chLoaded = 0
+	for key, path in pairs(req.channels or {}) do
+		if channelsEnabled[key] ~= nil then
+			-- Verify the PNG loads BEFORE flipping the enabled flag: an enabled
+			-- but unbound channel would accept strokes the engine never shows.
+			local texName = ":l:" .. path
+			if gl.Texture(texName) then
+				gl.Texture(false)
+				channelsEnabled[key] = true
+				local ch = ensureChannel(key)
+				if ch then
+					glRenderToTexture(ch.tex, function()
+						glBlending(false)
+						glUseShader(copyShader)
+						glTexture(0, texName)
+						glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+						glTexture(0, false)
+						glUseShader(0)
+						glBlending(true)
+					end)
+					bindChannel(ch)
+					chLoaded = chLoaded + 1
+				else
+					channelsEnabled[key] = false
+					req.failed = (req.failed or 0) + 1
+				end
+				gl.DeleteTexture(texName)
+			else
+				req.failed = (req.failed or 0) + 1
+			end
+		end
+	end
+	projectLoadResult = { loaded = req.loaded or 0, failed = req.failed or 0, channels = chLoaded }
+	pendingProjectLoad = nil
+end
+
 function widget:DrawWorld()
 	-- Lazy init: NO bulk alloc. Squares are allocated on first paint stroke
 	-- (executeStroke) or on explicit /diffusepaintbake (which will allocate
@@ -2354,6 +2611,15 @@ function widget:DrawWorld()
 			end
 		end
 		Echo("[Diffuse Painter] exported " .. count .. " square textures to " .. folder .. "/")
+	end
+
+	-- Deferred map-project save/load: after the bake section so painted squares
+	-- are fresh; chunked so a full-map capture cannot freeze the session.
+	if pendingProjectSave then
+		projectSaveTick()
+	end
+	if pendingProjectLoad and not pendingProjectSave then
+		projectLoadTick()
 	end
 
 	-- Brush ring

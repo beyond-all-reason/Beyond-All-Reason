@@ -1695,6 +1695,13 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- and project loads.
 	script = script:gsub("[Dd][Ii][Ss][Aa][Bb][Ll][Ee][Mm][Aa][Pp][Dd][Aa][Mm][Aa][Gg][Ee]%s*=[^;\r\n]*;?", "")
 
+	-- Inherited startboxes (startrectleft/right/top/bottom in the allyteam
+	-- blocks) confine pregame commander placement to a sliver of the blank
+	-- canvas — every click outside a startrect is silently ignored before the
+	-- game starts, which reads as a dead mouse. The editor canvas allows
+	-- placement anywhere.
+	script = script:gsub("[Ss][Tt][Aa][Rr][Tt][Rr][Ee][Cc][Tt][A-Za-z]*%s*=[^;\r\n]*;?", "")
+
 	-- Swap the map name (the generator uses it as the generated map's label).
 	if script:find("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=") then
 		script = (script:gsub("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=[^;\r\n]*;?", "mapname=" .. mapName .. ";", 1))

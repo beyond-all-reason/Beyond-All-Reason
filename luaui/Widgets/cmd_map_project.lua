@@ -53,6 +53,7 @@ local DNTS_WAIT_TICKS      = 300  -- wait for splat normals to appear before spl
 local SPLAT_LOAD_TIMEOUT   = 600
 local IMPORT_START_TICKS   = 300  -- import never went in-flight => decode failed
 local ACK_TIMEOUT_FRAMES   = 120  -- GAME frames after stream end without sim ack => failed
+local DIFFUSE_TIMEOUT_TICKS = 3600  -- full-map diffuse capture/load is many chunked GL ticks
 
 local heightmapPNG = nil  -- lazy VFS.Include of the shared 16-bit PNG codec
 
@@ -319,6 +320,105 @@ local function stepSplat()
 		sectionOk("splat", "splat.png", bytes)
 	else
 		sectionSkip("splat", "painter reported done but file missing")
+	end
+	return true
+end
+
+-- Baked diffuse capture (per-square PNGs + enabled shading channels).
+-- On real (compiled) maps EVERY square is captured, so a map whose diffuse was
+-- generated externally (World Machine workflow) carries its full texture in
+-- the project; blank canvases save only painted squares. Layers/masks are NOT
+-- serialized — the project records the baked result, and post-load painting
+-- extends it (same ownership semantics as the splat section).
+-- Failure skips (widget missing, busy, timeout, all captures failed) must NOT
+-- delete the diffuse dir or drop the section — hours of paint could live
+-- there. Carry the previous manifest section forward so the loader still sees
+-- the old files; only a genuine "no paint state" marks the dir as deletable.
+local function diffuseFailSkip(reason)
+	local prev = job.prev and job.prev.sections and job.prev.sections.diffuse
+	if prev and prev.dir then
+		warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
+		job.diffuse = {
+			full = prev.full or false,
+			channels = prev.channels or {},
+			squareSize = tonumber(prev.square_size) or 1024,
+			count = tonumber(prev.squares) or 0,
+		}
+		sectionOk("diffuse", "diffuse/", tonumber(prev.bytes) or 0, "carried forward from previous save")
+	else
+		sectionSkip("diffuse", reason)
+	end
+	return true
+end
+
+local function stepDiffuse()
+	local dp = WG.DiffusePainter
+	local c = job.cursor
+	if not c.requested then
+		if not (dp and dp.saveProject) then
+			return diffuseFailSkip("diffuse painter widget not loaded")
+		end
+		local mo = job.mapOptions
+		local isBlank = (mo.blank_map_x or mo.blank_map_y) and true or false
+		if isBlank and not (dp.hasProjectState and dp.hasProjectState()) then
+			sectionSkip("diffuse", "no diffuse paint state")
+			job.diffuseStateEmpty = true  -- the ONE case where cleanup may wipe diffuse/
+			return true
+		end
+		Spring.CreateDir(job.dir .. "diffuse")
+		if not dp.saveProject(job.dir .. "diffuse/", not isBlank) then
+			return diffuseFailSkip("painter is busy")
+		end
+		echoP("capturing diffuse squares" .. ((not isBlank) and " (full map)" or "") .. "...")
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if dp.isProjectSavePending() then
+		if c.ticks > DIFFUSE_TIMEOUT_TICKS then
+			return diffuseFailSkip("timed out (painter draw pump never finished)")
+		end
+		return false
+	end
+	local res = dp.getProjectSaveResult and dp.getProjectSaveResult()
+	if not res or res.error or #(res.squares or {}) == 0 then
+		return diffuseFailSkip((res and res.error) or "no squares captured")
+	end
+	-- Stale files inside diffuse/ from a previous save would be resurrected by
+	-- the loader's glob — remove anything this save did not write. (VFS listing
+	-- of files created earlier THIS session is unpinned; cross-session staleness
+	-- is what this reliably covers.)
+	local writtenSet = {}
+	for _, f in ipairs(res.squares) do
+		writtenSet[f] = true
+	end
+	for _, key in ipairs(res.channels) do
+		writtenSet["channel_" .. key .. ".png"] = true
+	end
+	local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
+	for _, p in ipairs(existing) do
+		local name = basename(p)
+		if not writtenSet[name] then
+			os.remove(job.dir .. "diffuse/" .. name)
+			echoP("removed stale diffuse/" .. name)
+		end
+	end
+	local bytes = 0
+	for name in pairs(writtenSet) do
+		bytes = bytes + (fileSize(job.dir .. "diffuse/" .. name) or 0)
+	end
+	job.diffuse = {
+		full = res.full,
+		channels = res.channels,
+		squareSize = res.squareSize or 1024,
+		count = #res.squares,
+		bytes = bytes,
+	}
+	sectionOk("diffuse", "diffuse/", bytes, #res.squares .. " squares"
+		.. (#res.channels > 0 and (", channels: " .. table.concat(res.channels, " ")) or ""))
+	if (res.failed or 0) > 0 then
+		warn(res.failed .. " diffuse square(s) failed to capture")
 	end
 	return true
 end
@@ -704,6 +804,19 @@ local function stepCleanupStale()
 			end
 		end
 	end
+	-- Dir-based diffuse section: clear its folder ONLY when the state is
+	-- genuinely empty (paint deleted). Failure skips carry the previous section
+	-- forward instead — wiping a dir of up to thousands of square PNGs because
+	-- the painter widget happened to be disabled would be data loss.
+	if not findSection("diffuse") and job.diffuseStateEmpty then
+		local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
+		for _, p in ipairs(existing) do
+			os.remove(job.dir .. "diffuse/" .. basename(p))
+		end
+		if #existing > 0 then
+			echoP("removed " .. #existing .. " stale diffuse square(s) (section now empty)")
+		end
+	end
 	return true
 end
 
@@ -766,18 +879,29 @@ local function stepManifest()
 	add("")
 	add("\tsections = {")
 	-- Fixed emission order (deterministic diffs); only sections actually written.
-	local order = { "heightmap", "splat", "metal", "features", "decals", "startpos", "startboxes", "lights", "environment", "weather", "grass" }
+	local order = { "heightmap", "splat", "diffuse", "metal", "features", "decals", "startpos", "startboxes", "lights", "environment", "weather", "grass" }
 	for _, name in ipairs(order) do
 		local s = findSection(name)
 		if s then
-			local extraFields = ""
-			if name == "grass" then
-				if job.grassPatchResolution then
-					extraFields = string.format(" patch_resolution = %d,", job.grassPatchResolution)
+			if name == "diffuse" then
+				-- Dir-based section: per-square PNGs, discovered by glob at load.
+				local d = job.diffuse or {}
+				local chParts = {}
+				for i, key in ipairs(d.channels or {}) do
+					chParts[i] = string.format("%q", key)
 				end
-				extraFields = extraFields .. ' config = "grass_config.lua",'
+				add(string.format('\t\tdiffuse = { dir = "diffuse/", version = 1, bytes = %d, square_size = %d, squares = %d, full = %s, channels = { %s } },',
+					s.bytes, d.squareSize or 1024, d.count or 0, tostring(d.full or false), table.concat(chParts, ", ")))
+			else
+				local extraFields = ""
+				if name == "grass" then
+					if job.grassPatchResolution then
+						extraFields = string.format(" patch_resolution = %d,", job.grassPatchResolution)
+					end
+					extraFields = extraFields .. ' config = "grass_config.lua",'
+				end
+				add(string.format("\t\t%s = { file = %q, version = 1, bytes = %d,%s },", name, s.file, s.bytes, extraFields))
 			end
-			add(string.format("\t\t%s = { file = %q, version = 1, bytes = %d,%s },", name, s.file, s.bytes, extraFields))
 		end
 	end
 	add("\t},")
@@ -811,6 +935,7 @@ local STEPS = {
 	{ name = "prepare",     run = stepPrepare },
 	{ name = "heightmap",   run = stepHeightmap },
 	{ name = "splat",       run = stepSplat },
+	{ name = "diffuse",     run = stepDiffuse },
 	{ name = "metal",       run = stepMetal },
 	{ name = "features",    run = stepFeatures },
 	{ name = "decals",      run = stepDecals },
@@ -930,8 +1055,8 @@ end
 local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
 	local content = string.format(
-		"return { path = %q, size_x = %d, size_z = %d, phase = %d }\n",
-		t.path, t.size_x, t.size_z, t.phase or 0)
+		"return { path = %q, size_x = %d, size_z = %d, phase = %d, phases = %d }\n",
+		t.path, t.size_x, t.size_z, t.phase or 0, t.phases or 0)
 	return writeFile(POINTER_PATH, content) ~= nil
 end
 
@@ -1151,7 +1276,80 @@ local function phaseDntsSplat(c)
 	return true
 end
 
--- Phase 3: metal. Direct $metal_clear$/$metal_load$ batching (mirrors the
+-- Phase 3: diffuse. Per-square PNGs blitted into painter-owned seed+composite
+-- textures (later paint bakes over the loaded state), channel PNGs into the
+-- painter's channel textures. Files discovered by glob — the save side keeps
+-- the diffuse/ dir exact.
+local function phaseDiffuse(c)
+	local sec = loadJob.manifest.sections and loadJob.manifest.sections.diffuse
+	if not (sec and sec.dir) then return true end
+	local dp = WG.DiffusePainter
+	if not (dp and dp.loadProject) then
+		loadSkip("diffuse", "diffuse painter widget not loaded")
+		return true
+	end
+	if not c.requested then
+		local dir = loadJob.dir .. sec.dir
+		local files = VFS.DirList(dir, "*.png", VFS.RAW) or {}
+		local sqs, chans, nChans = {}, {}, 0
+		for _, p in ipairs(files) do
+			local name = p:match("([^/\\]+)$")
+			-- NOT `name and name:match(...)`: `and` truncates a multi-return to
+			-- its first value, which would silently drop sy.
+			local sx, sy
+			if name then
+				sx, sy = name:match("^sq_(%d+)_(%d+)%.png$")
+			end
+			if sx and sy then
+				sqs[#sqs + 1] = { sx = tonumber(sx), sy = tonumber(sy), path = dir .. name }
+			else
+				local key = name and name:match("^channel_(%w+)%.png$")
+				if key then
+					chans[key] = dir .. name
+					nChans = nChans + 1
+				end
+			end
+		end
+		if #sqs == 0 and nChans == 0 then
+			loadSkip("diffuse", "no PNGs found in " .. sec.dir)
+			return true
+		end
+		table.sort(sqs, function(a, b)
+			if a.sy ~= b.sy then return a.sy < b.sy end
+			return a.sx < b.sx
+		end)
+		if not dp.loadProject(sqs, chans) then
+			loadSkip("diffuse", "painter is busy")
+			return true
+		end
+		echoP(string.format("diffuse: loading %d squares%s...", #sqs,
+			nChans > 0 and (" + " .. nChans .. " channel(s)") or ""))
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if dp.isProjectLoadPending() then
+		if c.ticks > DIFFUSE_TIMEOUT_TICKS then
+			loadSkip("diffuse", "timed out (painter draw pump never finished)")
+			return true
+		end
+		return false
+	end
+	local res = dp.getProjectLoadResult and dp.getProjectLoadResult()
+	if not res or res.error or ((res.loaded or 0) == 0 and (res.channels or 0) == 0) then
+		loadSkip("diffuse", (res and (res.error or ((res.failed or 0) .. " square(s) failed"))) or "no result reported")
+	else
+		loadOk("diffuse", (res.loaded or 0) .. " squares"
+			.. ((res.channels or 0) > 0 and (", " .. res.channels .. " channel(s)") or ""))
+		if (res.failed or 0) > 0 then
+			echoP("WARNING: " .. res.failed .. " diffuse square(s) failed to load")
+		end
+	end
+	return true
+end
+
+-- Phase 4: metal. Direct $metal_clear$/$metal_load$ batching (mirrors the
 -- save side: no dependency on the metal brush widget being enabled).
 local function phaseMetal(c)
 	local path = sectionFile("metal")
@@ -1194,7 +1392,7 @@ local function phaseMetal(c)
 	return false
 end
 
--- Phase 4: features. Clear-all first so a resumed replay cannot duplicate.
+-- Phase 5: features. Clear-all first so a resumed replay cannot duplicate.
 local function phaseFeatures(c)
 	local path = sectionFile("features")
 	if not path then return true end
@@ -1209,7 +1407,7 @@ local function phaseFeatures(c)
 	return true
 end
 
--- Phase 5: decals + lights (client-side; need final heights for light Y).
+-- Phase 6: decals + lights (client-side; need final heights for light Y).
 local function phaseDecalsLights(c)
 	local decalPath = sectionFile("decals")
 	if decalPath then
@@ -1244,7 +1442,7 @@ local function phaseDecalsLights(c)
 	return true
 end
 
--- Phase 6: environment. Short settle countdown mirrors the New Map env-preset
+-- Phase 7: environment. Short settle countdown mirrors the New Map env-preset
 -- pattern (the water renderer needs a few draw frames after map changes).
 local function phaseEnvironment(c)
 	local path = sectionFile("environment")
@@ -1271,7 +1469,7 @@ local function phaseEnvironment(c)
 	return true
 end
 
--- Phase 7: weather. Clear persistent spawners first (idempotent replay), then
+-- Phase 8: weather. Clear persistent spawners first (idempotent replay), then
 -- rebuild each from its serialized entry with rebased timing.
 local function phaseWeather(c)
 	local path = sectionFile("weather")
@@ -1295,7 +1493,7 @@ local function phaseWeather(c)
 	return true
 end
 
--- Phase 8: startpos + startboxes + grass (all need sim-acked terrain: slope
+-- Phase 9: startpos + startboxes + grass (all need sim-acked terrain: slope
 -- validation and patch ground-snap read final heights).
 local function phaseStartposGrass(c)
 	local st = WG.StartPosTool
@@ -1361,6 +1559,7 @@ end
 local LOAD_PHASES = {
 	{ name = "heightmap",       run = phaseHeightmap },
 	{ name = "dnts+splat",      run = phaseDntsSplat },
+	{ name = "diffuse",         run = phaseDiffuse },
 	{ name = "metal",           run = phaseMetal },
 	{ name = "features",        run = phaseFeatures },
 	{ name = "decals+lights",   run = phaseDecalsLights },
@@ -1435,7 +1634,7 @@ local function runLoadTick()
 		loadJob.cursor = {}
 		loadJob.announced = nil
 		-- Journal progress so /luaui reload mid-load resumes here.
-		writePointer({ path = loadJob.dir, size_x = loadJob.sizeX, size_z = loadJob.sizeZ, phase = loadJob.phase })
+		writePointer({ path = loadJob.dir, size_x = loadJob.sizeX, size_z = loadJob.sizeZ, phase = loadJob.phase, phases = #LOAD_PHASES })
 		if not LOAD_PHASES[loadJob.phase + 1] then
 			finishLoad()
 		end
@@ -1490,13 +1689,21 @@ local function maybeStartLoad()
 		echoP("PENDING PROJECT LOAD CANCELLED: " .. verr .. ". Pointer removed.")
 		return
 	end
+	-- A journal written by a different code version counts phases on a different
+	-- list; resuming would silently skip the wrong ones. Phases are idempotent,
+	-- so restart from the beginning instead.
+	local startPhase = tonumber(ptr.phase) or 0
+	if startPhase > 0 and tonumber(ptr.phases) ~= #LOAD_PHASES then
+		echoP("phase journal was written by a different version; restarting the load from the beginning")
+		startPhase = 0
+	end
 	loadJob = {
 		slug = ptr.path:match("([^/\\]+)[/\\]*$") or ptr.path,
 		dir = ptr.path,
 		sizeX = ptr.size_x,
 		sizeZ = ptr.size_z,
 		manifest = manifest,
-		phase = tonumber(ptr.phase) or 0,
+		phase = startPhase,
 		cursor = {},
 		loaded = {},
 		skipped = {},
@@ -1574,7 +1781,7 @@ local function openProject(slug)
 	os.remove("Terraform Brush/pending_newmap.lua")
 	os.remove("Terraform Brush/pending_newmap_env.lua")
 	local m = manifest.map
-	if not writePointer({ path = dir, size_x = m.size_x, size_z = m.size_z, phase = 0 }) then
+	if not writePointer({ path = dir, size_x = m.size_x, size_z = m.size_z, phase = 0, phases = #LOAD_PHASES }) then
 		echoP("cannot open: failed to write " .. POINTER_PATH)
 		return false
 	end
