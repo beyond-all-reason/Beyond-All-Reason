@@ -1,17 +1,135 @@
+<?xml version="1.0"?>
 <rml>
 <head>
-    <link type="text/rcss" href="mission_editor.rcss" />
+	<title>Mission Editor</title>
+	<style>
+.me-root {
+    position: absolute;
+    top: 120px;
+    left: 40px;
+    width: 460px;
+    z-index: 10000;
+    background-color: #101418e6;
+    border: 1px #2c3540;
+    padding: 10px;
+    font-family: Exo 2;
+    font-size: 14px;
+    color: #d8dee6;
+}
+
+.me-header {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.me-title {
+    display: inline-block;
+    width: 230px;
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.me-button {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 8px;
+    background-color: #1d2732;
+    border: 1px #3a4a5c;
+    color: #cfd8e3;
+    cursor: pointer;
+}
+
+.me-button:hover {
+    background-color: #2a3846;
+}
+
+.me-content {
+    display: block;
+    overflow-y: auto;
+    max-height: 520px;
+}
+
+.me-file {
+    display: block;
+    margin: 6px 0 2px 0;
+    color: #8fa3b8;
+    font-size: 12px;
+}
+
+.me-group {
+    display: block;
+    margin: 8px 0 2px 0;
+    font-size: 15px;
+    color: #ffd479;
+}
+
+.me-card {
+    display: block;
+    background-color: #161d24;
+    border: 1px #2c3540;
+    margin: 4px 0;
+    padding: 6px 8px;
+}
+
+.me-card-head {
+    display: block;
+}
+
+.me-card-title {
+    display: inline-block;
+    width: 340px;
+    color: #9ecbff;
+    margin-bottom: 4px;
+}
+
+.me-edit {
+    font-size: 12px;
+    padding: 1px 6px;
+}
+
+.me-step {
+    display: block;
+    margin: 2px 0 2px 8px;
+}
+
+.me-step-verb {
+    color: #c792ea;
+}
+
+.me-verb {
+    color: #82aaff;
+}
+
+.me-lit {
+    color: #f6c177;
+}
+
+.me-ref {
+    color: #a3d9a5;
+}
+
+.me-opaque {
+    color: #e06c75;
+}
+
+.me-footer {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #6d7a88;
+}
+	</style>
 </head>
 <body>
-    <div id="me-root" class="me-root">
-        <div class="me-header">
-            <div class="me-title">Mission Editor — read-only view</div>
-            <button id="me-refresh" class="me-button">Refresh</button>
-            <button id="me-reload" class="me-button">Reload Mission</button>
-            <button id="me-close" class="me-button me-button-close">×</button>
-        </div>
-        <div id="me-content" class="me-content"></div>
-        <div class="me-footer">The .lua file is the source of truth — edit it in your editor; this view follows.</div>
-    </div>
+	<div id="me-root" class="me-root">
+		<div class="me-header">
+			<span class="me-title">Mission Editor</span>
+			<button id="me-refresh" class="me-button">Refresh</button>
+			<button id="me-reload" class="me-button">Reload Mission</button>
+			<button id="me-close" class="me-button">X</button>
+		</div>
+		<div id="me-content" class="me-content"></div>
+		<div class="me-footer">The .lua file is the source of truth - edit it in your editor; this view follows.</div>
+	</div>
 </body>
 </rml>

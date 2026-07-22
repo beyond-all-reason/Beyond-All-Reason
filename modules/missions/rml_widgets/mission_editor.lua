@@ -230,6 +230,16 @@ function widget:Update(dt)
 	pollArtifact(dt)
 end
 
+function widget:ViewResize()
+	if document and visible then
+		local root = document:GetElementById("me-root")
+		if root then
+			local vsx = Spring.GetViewGeometry()
+			root.style.left = tostring(math.max(0, vsx - 500)) .. "px"
+		end
+	end
+end
+
 local function setVisible(on)
 	visible = on
 	if not document then
@@ -237,6 +247,13 @@ local function setVisible(on)
 	end
 	if on then
 		refresh()
+		-- vw units resolve to 0 in this RmlUi build, so right-anchoring is
+		-- unusable: place the panel from real view geometry instead.
+		local root = document:GetElementById("me-root")
+		if root then
+			local vsx = Spring.GetViewGeometry()
+			root.style.left = tostring(math.max(0, vsx - 500)) .. "px"
+		end
 		document:Show()
 	else
 		document:Hide()

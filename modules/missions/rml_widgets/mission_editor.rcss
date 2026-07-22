@@ -1,35 +1,35 @@
 .me-root {
     position: absolute;
-    top: 120dp;
-    right: 40dp;
-    width: 460dp;
-    max-height: 70%;
+    top: 120px;
+    left: 40px;
+    width: 460px;
+    z-index: 10000;
     background-color: #101418e6;
-    border: 1dp #2c3540;
-    padding: 10dp;
-    font-family: Poppins;
-    font-size: 14dp;
+    border: 1px #2c3540;
+    padding: 10px;
+    font-family: Exo 2;
+    font-size: 14px;
     color: #d8dee6;
 }
 
 .me-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 8dp;
+    display: block;
+    margin-bottom: 8px;
 }
 
 .me-title {
-    flex: 1;
-    font-size: 15dp;
+    display: inline-block;
+    width: 230px;
+    font-size: 15px;
     color: #ffffff;
 }
 
 .me-button {
-    margin-left: 6dp;
-    padding: 3dp 8dp;
+    display: inline-block;
+    margin-left: 6px;
+    padding: 3px 8px;
     background-color: #1d2732;
-    border: 1dp #3a4a5c;
+    border: 1px #3a4a5c;
     color: #cfd8e3;
     cursor: pointer;
 }
@@ -38,41 +38,53 @@
     background-color: #2a3846;
 }
 
-.me-button-close {
-    padding: 3dp 7dp;
-}
-
 .me-content {
+    display: block;
     overflow-y: auto;
-    max-height: 520dp;
+    max-height: 520px;
 }
 
 .me-file {
-    margin: 6dp 0 2dp 0;
+    display: block;
+    margin: 6px 0 2px 0;
     color: #8fa3b8;
-    font-size: 12dp;
+    font-size: 12px;
 }
 
 .me-group {
-    margin: 8dp 0 2dp 0;
-    font-size: 15dp;
+    display: block;
+    margin: 8px 0 2px 0;
+    font-size: 15px;
     color: #ffd479;
 }
 
 .me-card {
+    display: block;
     background-color: #161d24;
-    border: 1dp #2c3540;
-    margin: 4dp 0;
-    padding: 6dp 8dp;
+    border: 1px #2c3540;
+    margin: 4px 0;
+    padding: 6px 8px;
+}
+
+.me-card-head {
+    display: block;
 }
 
 .me-card-title {
+    display: inline-block;
+    width: 340px;
     color: #9ecbff;
-    margin-bottom: 4dp;
+    margin-bottom: 4px;
+}
+
+.me-edit {
+    font-size: 12px;
+    padding: 1px 6px;
 }
 
 .me-step {
-    margin: 2dp 0 2dp 8dp;
+    display: block;
+    margin: 2px 0 2px 8px;
 }
 
 .me-step-verb {
@@ -95,17 +107,9 @@
     color: #e06c75;
 }
 
-.me-card-head {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.me-card-head .me-card-title {
-    flex: 1;
-}
-
-.me-edit {
-    font-size: 12dp;
-    padding: 1dp 6dp;
+.me-footer {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #6d7a88;
 }
