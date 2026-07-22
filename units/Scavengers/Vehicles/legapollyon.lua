@@ -18,7 +18,7 @@ return {
 		leavetracks = true,
 		health = 56000,
 		maxslope = 16,
-		speed = 48.0,
+		speed = 38.0,
 		maxwaterdepth = 20,
 		movementclass = "EPICVEH",
 		nochasecategory = "VTOL",
@@ -35,7 +35,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.7,
-		turnrate = 150,
+		turnrate = 120,
 		customparams = {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
@@ -139,7 +139,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 900,
 				damage = {
-					default = 75,
+					default = 50,
 				},
 			},
 			legapollyon_gatling_small = {
@@ -179,7 +179,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 750,
 				damage = {
-					default = 25,
+					default = 20,
 				},
 			},
 			legapollyon_gatling_aa = {
@@ -265,7 +265,7 @@ return {
 				weaponvelocity = 600,
 				wobble = 1500,
 				damage = {
-					default = 500,
+					default = 465,
 				},
 				customparams = {
 					projectile_destruction_method = "explode",
