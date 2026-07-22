@@ -741,7 +741,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 
 	nextParticleID = nextParticleID + 1
 	local particleID = nextParticleID
-	pushElementInstance(particleVBO, particleData, particleID, true, false)
+	pushElementInstance(particleVBO, particleData, particleID, true, visibilityState.deferParticleUploads or false)
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
@@ -986,14 +986,16 @@ local function spawnPointEmitterParticles(emitter, gameFrame, preset)
 	return true  -- emitter still alive
 end
 
-local function updatePointEmitters(gameFrame)
+local function updatePointEmitters(gameFrame, phase, phaseCount)
 	if pointEmitterCount == 0 then return end
 
 	for emitterID, emitter in pairs(pointEmitters) do
-		local alive = spawnPointEmitterParticles(emitter, gameFrame, cachedPreset)
-		if not alive then
-			pointEmitters[emitterID] = nil
-			pointEmitterCount = pointEmitterCount - 1
+		if emitterID % phaseCount == phase - 1 then
+			local alive = spawnPointEmitterParticles(emitter, gameFrame, cachedPreset)
+			if not alive then
+				pointEmitters[emitterID] = nil
+				pointEmitterCount = pointEmitterCount - 1
+			end
 		end
 	end
 end
@@ -1224,74 +1226,88 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	end
 end
 
-local function updatePieceProjectiles(gameFrame)
-	-- Prefer the shared dispatcher (map-wide piece scan, cached once per tick).
-	-- We subscribed without a defIDSet so GetMatches returns every piece
-	-- projectile, matching the original engine call's behaviour.
+local function updatePieceProjectiles(gameFrame, phase, phaseCount)
 	local projectiles, numProjectiles
-	local PS = GG.ProjectileScan
-	if PS and dispatchHandle then
-		projectiles, numProjectiles = PS.GetMatches(dispatchHandle)
+	local gen
+	if phase == 1 then
+		-- Scan once per cycle, then spread the cached list over its frames.
+		local PS = GG.ProjectileScan
+		if PS and dispatchHandle then
+			projectiles, numProjectiles = PS.GetMatches(dispatchHandle)
+		else
+			projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
+			numProjectiles = projectiles and #projectiles or 0
+		end
+		visibilityState.pieceProjectiles = projectiles
+		visibilityState.pieceProjectileCount = numProjectiles or 0
+		pieceGeneration = pieceGeneration + 1
+		gen = pieceGeneration
+		visibilityState.pieceGeneration = gen
 	else
-		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, true, false)
-		numProjectiles = projectiles and #projectiles or 0
+		projectiles = visibilityState.pieceProjectiles
+		numProjectiles = visibilityState.pieceProjectileCount or 0
+		gen = visibilityState.pieceGeneration
 	end
-	if not projectiles then return end
 
 	local _, ownerRadius = next(pendingDeathUnitRadii)
 
-	pieceGeneration = pieceGeneration + 1
-	local gen = pieceGeneration
-	for i = 1, numProjectiles do
-		local proID = projectiles[i]
-		local tracked = trackedPieceProjectiles[proID]
-		if not tracked then
-			local ownerID = spGetProjectileOwnerID(proID)
-			if ownerID and excludedDeathUnits[ownerID] then
-				local t = pools.acquireTracker()
-				t.gen      = gen
-				t.excluded = true
-				trackedPieceProjectiles[proID] = t
-			else
-				local px, py, pz = spGetProjectilePosition(proID)
-				if px then
-					local pieceRadius = ownerRadius or 10
-					local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
-					local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
-					local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
+	if projectiles and gen then
+		for i = phase, numProjectiles, phaseCount do
+			local proID = projectiles[i]
+			local tracked = trackedPieceProjectiles[proID]
+			if not tracked then
+				local ownerID = spGetProjectileOwnerID(proID)
+				if ownerID and excludedDeathUnits[ownerID] then
 					local t = pools.acquireTracker()
-					t.sizeScale     = sizeScale
-					t.birthFrame    = gameFrame
-					t.lifeFrames    = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
-					t.gen           = gen
-					t.fireIntensity = fi
-					t.lifeBias      = mathRandom() * 0.7
+					t.gen      = gen
+					t.excluded = true
 					trackedPieceProjectiles[proID] = t
-				end
-			end
-		else
-			tracked.gen = gen
-			if not tracked.excluded then
-				-- Skip off-screen pieces for a few frames without re-querying position
-				local skip = tracked.offscreenSkip
-				if skip and skip > 0 then
-					tracked.offscreenSkip = skip - 1
 				else
-					spawnPieceTrailParticles(tracked, proID, gameFrame)
+					local px = spGetProjectilePosition(proID)
+					if px then
+						local pieceRadius = ownerRadius or 10
+						local sizeScale = mathMax(PIECE_SIZE_SCALE_MIN, mathMin(PIECE_SIZE_SCALE_MAX, pieceRadius / PIECE_SIZE_SCALE_REF))
+						local fi = mathRandom() < PIECE_FIRE_CHANCE and (0.3 + mathRandom() * 0.7) or 0
+						local lifeScale = fi > 0 and (1.0 + 0.3 * fi) or 0.7
+						local t = pools.acquireTracker()
+						t.sizeScale     = sizeScale
+						t.birthFrame    = gameFrame
+						t.lifeFrames    = mathFloor((PIECE_LIFE_BASE + pieceRadius * PIECE_LIFE_PER_RADIUS) * lifeScale)
+						t.gen           = gen
+						t.fireIntensity = fi
+						t.lifeBias      = mathRandom() * 0.7
+						trackedPieceProjectiles[proID] = t
+					end
+				end
+			else
+				tracked.gen = gen
+				if not tracked.excluded then
+					-- Skip off-screen pieces for a few frames without re-querying position
+					local skip = tracked.offscreenSkip
+					if skip and skip > 0 then
+						tracked.offscreenSkip = skip - 1
+					else
+						spawnPieceTrailParticles(tracked, proID, gameFrame)
+					end
 				end
 			end
 		end
 	end
 
-	for proID, tracked in pairs(trackedPieceProjectiles) do
-		if tracked.gen ~= gen then
-			if tracked.offscreenBuffer then
-				pools.releaseBuffer(tracked.offscreenBuffer)
-				offscreenBufferCount = offscreenBufferCount - 1
+	if phase == phaseCount and gen then
+		for proID, tracked in pairs(trackedPieceProjectiles) do
+			if tracked.gen ~= gen then
+				if tracked.offscreenBuffer then
+					pools.releaseBuffer(tracked.offscreenBuffer)
+					offscreenBufferCount = offscreenBufferCount - 1
+				end
+				trackedPieceProjectiles[proID] = nil
+				pools.releaseTracker(tracked)
 			end
-			trackedPieceProjectiles[proID] = nil
-			pools.releaseTracker(tracked)
 		end
+		visibilityState.pieceProjectiles = nil
+		visibilityState.pieceProjectileCount = nil
+		visibilityState.pieceGeneration = nil
 	end
 end
 
@@ -1505,20 +1521,22 @@ local function spawnCrashTrailParticles(tracked, unitID, gameFrame)
 	end
 end
 
-local function updateCrashingAircraft(gameFrame)
+local function updateCrashingAircraft(gameFrame, phase, phaseCount)
 	if crashingAircraftCount == 0 then return end
 
 	for unitID, tracked in pairs(trackedCrashingAircraft) do
-		if not spValidUnitID(unitID) then
-			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
-			trackedCrashingAircraft[unitID] = nil
-			crashingAircraftCount = crashingAircraftCount - 1
-		elseif gameFrame - tracked.birthFrame > CRASH_MAX_DURATION then
-			if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
-			trackedCrashingAircraft[unitID] = nil
-			crashingAircraftCount = crashingAircraftCount - 1
-		else
-			spawnCrashTrailParticles(tracked, unitID, gameFrame)
+		if unitID % phaseCount == phase - 1 then
+			if not spValidUnitID(unitID) then
+				if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
+				trackedCrashingAircraft[unitID] = nil
+				crashingAircraftCount = crashingAircraftCount - 1
+			elseif gameFrame - tracked.birthFrame > CRASH_MAX_DURATION then
+				if tracked.offscreenBuffer then offscreenBufferCount = offscreenBufferCount - 1 end
+				trackedCrashingAircraft[unitID] = nil
+				crashingAircraftCount = crashingAircraftCount - 1
+			else
+				spawnCrashTrailParticles(tracked, unitID, gameFrame)
+			end
 		end
 	end
 end
@@ -1722,6 +1740,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 local function runFireSmokeFrame(n)
+	local pVBO = particleVBO
+	if not pVBO then return end
 	cachedGameFrame = n
 
 	local t0, t1, tStart  -- debug timer locals (only used when debugEcho is true)
@@ -1751,61 +1771,80 @@ local function runFireSmokeFrame(n)
 		visibilityState.nextFpsFrame = n + 15
 		local fps = spGetFPS()
 		if fps > 0 then
-			cachedFpsInterval = mathCeil(30 / fps)
+			cachedFpsInterval = mathMax(1, mathFloor(30 / fps + 0.5))
 		end
 	end
 	if cachedFpsInterval > updateInterval then
 		updateInterval = cachedFpsInterval
 	end
 
-	if n >= (visibilityState.nextEmitterFrame or 0) then
-		visibilityState.nextEmitterFrame = n + updateInterval
-		updatePieceProjectiles(n)
+	local phase = visibilityState.emitterPhase
+	local phaseCount = visibilityState.emitterPhaseCount
+	if phase then
+		phase = phase + 1
+	else
+		phase = 1
+		phaseCount = updateInterval
+		visibilityState.emitterPhaseCount = phaseCount
+	end
+	visibilityState.emitterPhase = phase
 
-		-- Debug output every 30 frames
-		if debugEcho then
-			if n >= (visibilityState.nextPieceDebugFrame or 0) then
-				visibilityState.nextPieceDebugFrame = n + 30
-				local trackedCount = 0
-				for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
-				spEcho(string.format(
-					"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
-					debugPiece.spawn, debugPiece.call, trackedCount,
-					debugPiece.skipGround, debugPiece.skipOffscreen, debugPiece.skipExpired, debugPiece.skipNoPos,
-					cachedPreset.name, updateInterval
-				))
-				debugPiece.spawn = 0
-				debugPiece.call = 0
-				debugPiece.skipGround = 0
-				debugPiece.skipOffscreen = 0
-				debugPiece.skipExpired = 0
-				debugPiece.skipNoPos = 0
-			end
+	local uploadStart = pVBO.usedElements
+	visibilityState.deferParticleUploads = true
+	updatePieceProjectiles(n, phase, phaseCount)
 
-			t1 = spGetTimer()
-			debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
-			t0 = t1
+	-- Debug output every 30 frames
+	if debugEcho then
+		if n >= (visibilityState.nextPieceDebugFrame or 0) then
+			visibilityState.nextPieceDebugFrame = n + 30
+			local trackedCount = 0
+			for _ in pairs(trackedPieceProjectiles) do trackedCount = trackedCount + 1 end
+			spEcho(string.format(
+				"[PieceTrails-OLD] spawned=%d  calls=%d  tracked=%d  skipGround=%d  skipOffscreen=%d  skipExpired=%d  skipNoPos=%d  preset=%s  interval=%d",
+				debugPiece.spawn, debugPiece.call, trackedCount,
+				debugPiece.skipGround, debugPiece.skipOffscreen, debugPiece.skipExpired, debugPiece.skipNoPos,
+				cachedPreset.name, phaseCount
+			))
+			debugPiece.spawn = 0
+			debugPiece.call = 0
+			debugPiece.skipGround = 0
+			debugPiece.skipOffscreen = 0
+			debugPiece.skipExpired = 0
+			debugPiece.skipNoPos = 0
 		end
 
-		updateCrashingAircraft(n)
+		t1 = spGetTimer()
+		debugTimings.pieceProjectiles = debugTimings.pieceProjectiles + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
 
-		if debugEcho then
-			t1 = spGetTimer()
-			debugTimings.crashingAircraft = debugTimings.crashingAircraft + spDiffTimers(t1, t0, true)
-			t0 = t1
-		end
+	updateCrashingAircraft(n, phase, phaseCount)
 
-		updatePointEmitters(n)
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.crashingAircraft = debugTimings.crashingAircraft + spDiffTimers(t1, t0, true)
+		t0 = t1
+	end
 
-		if debugEcho then
-			t1 = spGetTimer()
-			debugTimings.pointEmitters = debugTimings.pointEmitters + spDiffTimers(t1, t0, true)
-			t0 = t1
-		end
+	updatePointEmitters(n, phase, phaseCount)
+	visibilityState.deferParticleUploads = nil
+	local uploadEnd = pVBO.usedElements
+	if uploadEnd > uploadStart then
+		gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
+	end
+	if phase >= phaseCount then
+		visibilityState.emitterPhase = nil
+		visibilityState.emitterPhaseCount = nil
+	end
+
+	if debugEcho then
+		t1 = spGetTimer()
+		debugTimings.pointEmitters = debugTimings.pointEmitters + spDiffTimers(t1, t0, true)
+		t0 = t1
 	end
 
 	-- Clean up pending death data periodically
-	if n >= (visibilityState.nextDeathCleanupFrame or 30) then
+	if not visibilityState.emitterPhase and n >= (visibilityState.nextDeathCleanupFrame or 30) then
 		visibilityState.nextDeathCleanupFrame = n + 90
 		local k = next(pendingDeathUnitRadii)
 		if k then
