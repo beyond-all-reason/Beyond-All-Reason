@@ -1443,6 +1443,7 @@ local function drawUnitInfo()
 
 	if displayUnitID then
 		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills")
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills:Rank")
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
 			if displayUnitID then
@@ -1452,15 +1453,17 @@ local function drawUnitInfo()
 					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
 					local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 					glColor(1, 1, 1, 0.88)
-					glTexture(':lr' .. (rankIconSize * 2) .. ',' .. (rankIconSize * 2) .. ':' .. rankTextures[rank])
+					glTexture(':l:' .. rankTextures[rank])
 					glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 					glTexture(false)
 					glColor(1, 1, 1, 1)
 				end
 			end
 		end
+		tracy.ZoneEnd()
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills:Kills")
 		local kills = spGetUnitRulesParam(displayUnitID, "kills")
-		if kills then
+		if kills and kills > 0 then
 			local rankIconSize = math_floor((height * vsy * 0.16))
 			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
 			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
@@ -1473,6 +1476,7 @@ local function drawUnitInfo()
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
+		tracy.ZoneEnd()
 		tracy.ZoneEnd()
 	end
 

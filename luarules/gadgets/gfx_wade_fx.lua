@@ -17,8 +17,16 @@ function gadget:GetInfo()
 	}
 end
 
+---@class WadeUnitData
+---@field id integer
+---@field unitID integer
+---@field h number
+---@field ceg string
+
+---@type table<integer, WadeUnitData>
 local unit = {}
 local unitsCount = 0
+---@type WadeUnitData[]
 local unitsData = {}
 
 local fold_frames = 4 -- every X-th frame
@@ -33,25 +41,15 @@ local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSpawnCEG = Spring.SpawnCEG
 
 local wadeDepth = {}
-local wadeSfxID = {}
+---@type table<integer, string|false>
+local wadeCeg = {}
 
 local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
 local wadingSMC = {
 	[smc.Tank] = true,
 	[smc.KBot] = true,
 }
-local SFXTYPE_WAKE1 = 2
-local SFXTYPE_WAKE2 = 3
-
 local cegSizes = {"waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge"}
-
-local unitWadeCeg = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if not unitDef.isBuilding then
-		local footprint = math.max(unitDef.xsize, unitDef.zsize)
-		unitWadeCeg[unitDefID] = cegSizes[math.clamp(footprint - 2, 1, #cegSizes)]
-	end
-end
 
 local function checkCanWade(unitDef)
 	local moveDef = unitDef.moveDef
@@ -69,24 +67,24 @@ for unitDefID = 1, #UnitDefs do
 	local unitDef = UnitDefs[unitDefID]
 	if checkCanWade(unitDef) then
 		wadeDepth[unitDefID] = -spGetUnitDefDimensions(unitDefID).height
-
-		local cpR = unitDef.customParams.modelradius
-		local r = cpR and tonumber(cpR) or unitDef.radius
-		wadeSfxID[unitDefID] = (((r > 50) or unitDef.customParams.floattoggle) and SFXTYPE_WAKE2) or SFXTYPE_WAKE1
+		local footprint = math.max(unitDef.xsize, unitDef.zsize)
+		wadeCeg[unitDefID] = cegSizes[math.clamp(footprint - 2, 1, #cegSizes)]
 	else
 		-- there are ~400 wadables but the highest one's ID is >512, so we also assign `false`
 		-- instead of keeping them `nil` to keep the internal representation an array (faster)
 		wadeDepth[unitDefID] = false
-		wadeSfxID[unitDefID] = false
+		wadeCeg[unitDefID] = false
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	local maxDepth = wadeDepth[unitDefID]
-	if maxDepth then
+	local ceg = wadeCeg[unitDefID]
+	if maxDepth and ceg then
 		unitsCount = unitsCount + 1
-		unitsData[unitsCount] = unitID
-		unit[unitID] = {id = unitsCount, h = maxDepth, fx = wadeSfxID[unitDefID], defid = unitDefID}
+		local data = {id = unitsCount, unitID = unitID, h = maxDepth, ceg = ceg}
+		unitsData[unitsCount] = data
+		unit[unitID] = data
 	end
 end
 
@@ -95,14 +93,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if data then
 		local unitIndex = data.id
 		if unitIndex ~= unitsCount then
-			local lastUnitID = unitsData[unitsCount]
-			if lastUnitID and unit[lastUnitID] then
-				-- move last entry to position of current unit destroyed
-				unitsData[unitIndex] = lastUnitID
-				unit[lastUnitID].id = unitIndex
+			local lastUnitData = unitsData[unitsCount]
+			if lastUnitData then
+				unitsData[unitIndex] = lastUnitData
+				lastUnitData.id = unitIndex
 			end
 		end
-		-- remove destroyed unit from data
 		unit[unitID] = nil
 		unitsData[unitsCount] = nil
 		unitsCount = unitsCount - 1
@@ -110,39 +106,38 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(n)
-	if n%fold_frames == 0 then
-		if n <= fold_frames then
-			local minheight = Spring.GetGroundExtremes()
-			if minheight > 20 then
-				gadgetHandler:RemoveGadget(self)
-				return
-			end
-		end
+	if n % fold_frames ~= 0 then
+		return
+	end
 
-		local listData = unitsData
-		if current_fold and unitsCount then
-			for i = current_fold, unitsCount, n_folds do	-- this line errors sometimes: "attempt to compare number with nil" therefore the nil check above
-				local unitID = listData[i]
-				local data = unit[unitID]
-				if data and unitWadeCeg[data.defid] then
-					local x,y,z = spGetUnitPosition(unitID)
-					if y and y > data.h and y <= 0 then
-						local _, _, _, speed = spGetUnitVelocity(unitID)
-						if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
-							-- 1 is the pieceID, most likely it's usually the base piece
-							-- but even if it isn't, it doesn't really matter
-							--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-							spSpawnCEG(unitWadeCeg[data.defid], x, 0, z, 0, 0, 0)
-						end
-					end
+	local listData = unitsData
+	for i = current_fold, unitsCount, n_folds do
+		local data = listData[i]
+		if data then
+			local unitID = data.unitID
+			local x, y, z = spGetUnitPosition(unitID)
+			if y and y > data.h and y <= 0 then
+				local _, _, _, speed = spGetUnitVelocity(unitID)
+				if speed and speed > 0 and not spGetUnitIsCloaked(unitID) then
+					spSpawnCEG(data.ceg, x, 0, z, 0, 0, 0)
 				end
 			end
 		end
-		current_fold = (current_fold % n_folds) + 1
+	end
+
+	current_fold = current_fold + 1
+	if current_fold > n_folds then
+		current_fold = 1
 	end
 end
 
 function gadget:Initialize()
+	local minHeight = Spring.GetGroundExtremes()
+	if minHeight > 20 then
+		gadgetHandler:RemoveGadget(self)
+		return
+	end
+
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]

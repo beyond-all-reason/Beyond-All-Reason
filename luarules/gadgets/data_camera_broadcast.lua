@@ -12,8 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
-local broadcastPeriod = 0.1	-- will send packet in this interval (s) for non-spectators
-local spectatorBroadcastPeriod = 0.2	-- will send packet in this interval (s) for spectators
+local minBroadcastPeriod = 0.1
+local maxBroadcastPeriod = 0.35
+local broadcastPeriod = minBroadcastPeriod	-- will send packet in this interval (s) for non-spectators
+local spectatorBroadcastPeriod = maxBroadcastPeriod	-- will send packet in this interval (s) for spectators
+local broadcastPeriodScalingStart = 8	-- when still minBroadcastPeriod
+local broadcastPeriodScalingEnd = 32	-- when reaches maxBroadcastPeriod
 
 local PACKET_HEADER = "="
 
@@ -49,15 +53,24 @@ else	-- UNSYNCED
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetPlayerInfo = Spring.GetPlayerInfo
+	local GetPlayerList = Spring.GetPlayerList
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local SendCommands = Spring.SendCommands
 
 	local strByte = string.byte
 	local strChar = string.char
+	local tableUnpack = unpack
 
 	local floor = math.floor
 	local math_frexp = math.frexp
 	local math_ldexp = math.ldexp
+	local FLOAT_BITS = 14
+	local FLOAT_RANGE = 16384
+	local MANTISSA_RANGE = 64
+	local POW2 = {
+		[0] = 1, 2, 4, 8, 16, 32, 64, 128,
+		256, 512, 1024, 2048, 4096, 8192,
+	}
 
 	local timeSinceBroadcast = 0
 
@@ -72,11 +85,6 @@ else	-- UNSYNCED
 	------------------------------------------------
 	-- H4X
 	------------------------------------------------
-	-- [0, 254] -> char
-	local function CustomPackU8(num)
-		return strChar(num + 1)
-	end
-
 	local function CustomUnpackU8(s, offset)
 		local byte = strByte(s, offset)
 		if byte then
@@ -84,70 +92,98 @@ else	-- UNSYNCED
 		end
 	end
 
-	-- 1 sign bit, 7 exponent bits, 8 mantissa bits, -64 bias, denorm, no infinities or NaNs, avoid zero bytes, big-Endian
-	local function CustomPackF16(num)
+	-- 1 sign bit, 7 exponent bits, 6 mantissa bits, -64 bias, denorm, no infinities or NaNs
+	local function CustomPackF14(num)
 		if num == 0 then
-			return strChar(1, 1)
+			return MANTISSA_RANGE
 		end
 
 		local m, e = math_frexp(num)
 		local sign = 0
 		if m < 0 then
-			sign = 128
+			sign = 8192
 			m = -m
 		end
 
 		local exp = e - 1
-		local mantissa = floor((2 * m - 1) * 256)
+		local mantissa = floor((2 * m - 1) * MANTISSA_RANGE + 0.5)
 
 		if exp > 63 then
 			exp = 63
-			mantissa = 255
+			mantissa = MANTISSA_RANGE - 1
 		elseif exp < -62 then
-			--denorm
-			mantissa = floor(math_ldexp(m, e + 70))
+			mantissa = floor(math_ldexp(m, e + 68) + 0.5)
 			if mantissa == 0 then
-				mantissa = 1
+				return MANTISSA_RANGE
+			elseif mantissa == MANTISSA_RANGE then
+				exp = -62
+				mantissa = 0
+			else
+				exp = -63
 			end
-			exp = -63
+		elseif mantissa == MANTISSA_RANGE then
+			exp = exp + 1
+			mantissa = 0
+			if exp > 63 then
+				exp = 63
+				mantissa = MANTISSA_RANGE - 1
+			end
 		end
 
-		if mantissa ~= 255 then
-			mantissa = mantissa + 1
-		end
-
-		return strChar(sign + exp + 64, mantissa)
+		return sign + (exp + 64) * MANTISSA_RANGE + mantissa
 	end
 
-	local function CustomUnpackF16(s, offset)
-		offset = offset or 1
-		local byte1, byte2 = strByte(s, offset, offset + 1)
-
-		if not (byte1 and byte2) then return nil end
-
+	local function CustomUnpackF14(code)
 		local sign = 1
-		local exponent = byte1
-		local mantissa = byte2 - 1
+		local exponent = floor(code / MANTISSA_RANGE)
+		local mantissa = code - exponent * MANTISSA_RANGE
 		local norm = 1
 
-		if byte1 >= 128 then
+		if exponent >= 128 then
 			exponent = exponent - 128
 			sign = -1
 		end
+		if exponent == 0 then return nil end
 
 		if exponent == 1 then
 			exponent = 2
 			norm = 0
 		end
 
-		return sign * math_ldexp(norm + mantissa / 256, exponent - 64)
+		return sign * math_ldexp(norm + mantissa / MANTISSA_RANGE, exponent - 64)
 	end
 
 	------------------------------------------------
 	-- packets
 	------------------------------------------------
 
-	local tableConcat = table.concat
+	local packedCameraBytes = {}
+
+	local function PackCameraValues(state, stateFormat)
+		local bitBuffer = 0
+		local bitCount = 0
+		local byteCount = 0
+		for i=1, #stateFormat do
+			local num = state[stateFormat[i]]
+			if not num then return nil end
+
+			bitBuffer = bitBuffer * FLOAT_RANGE + CustomPackF14(num)
+			bitCount = bitCount + FLOAT_BITS
+			while bitCount >= 8 do
+				bitCount = bitCount - 8
+				local divisor = POW2[bitCount]
+				local byte = floor(bitBuffer / divisor)
+				bitBuffer = bitBuffer - byte * divisor
+				byteCount = byteCount + 1
+				packedCameraBytes[byteCount] = byte
+			end
+		end
+		if bitCount > 0 then
+			byteCount = byteCount + 1
+			packedCameraBytes[byteCount] = bitBuffer * POW2[8 - bitCount]
+		end
+		return byteCount
+	end
 
 	-- does not allow spaces in keys; values are numbers
 	local function CameraStateToPacket(s)
@@ -157,43 +193,49 @@ else	-- UNSYNCED
 
 		if not stateFormat or not cameraID then return nil end
 
-		local parts = { msgPrefix, CustomPackU8(cameraID), CustomPackU8(s.mode) }
-		local n = 3
+		local byteCount = PackCameraValues(s, stateFormat)
+		if not byteCount then return nil end
 
-		for i=1, #stateFormat do
-			local num = s[stateFormat[i]]
-			if not num then return end
-			n = n + 1
-			parts[n] = CustomPackF16(num)
-		end
-
-		return tableConcat(parts)
+		return msgPrefix .. strChar(cameraID + 1, tableUnpack(packedCameraBytes, 1, byteCount))
 	end
 
 	local function PacketToCameraState(p)
 		local offset = msgPrefixLen + 1
 		local cameraID = CustomUnpackU8(p, offset)
-		local mode = CustomUnpackU8(p, offset + 1)
 		local name = CAMERA_NAMES[cameraID]
 		local stateFormat = CAMERA_STATE_FORMATS[name]
-		if not (cameraID and mode and name and stateFormat) then
+		if not (cameraID and name and stateFormat) then
 			return nil
 		end
+		local packedStateBytes = floor((#stateFormat * FLOAT_BITS + 7) / 8)
+		if #p ~= msgPrefixLen + 1 + packedStateBytes then return nil end
 		local result = {
 			name = name,
-			mode = mode,
+			mode = cameraID,
 		}
 
-		offset = offset + 2
+		offset = offset + 1
+		local bitBuffer = 0
+		local bitCount = 0
 
 		for i=1, #stateFormat do
-			local num = CustomUnpackF16(p, offset)
-
+			while bitCount < FLOAT_BITS do
+				local byte = strByte(p, offset)
+				if not byte then return nil end
+				bitBuffer = bitBuffer * 256 + byte
+				bitCount = bitCount + 8
+				offset = offset + 1
+			end
+			bitCount = bitCount - FLOAT_BITS
+			local divisor = POW2[bitCount]
+			local code = floor(bitBuffer / divisor)
+			bitBuffer = bitBuffer - code * divisor
+			local num = CustomUnpackF14(code)
 			if not num then return nil end
 
 			result[stateFormat[i]] = num
-			offset = offset + 2
 		end
+		if bitBuffer ~= 0 then return nil end
 
 		return result
 	end
@@ -219,7 +261,30 @@ else	-- UNSYNCED
 	-- workaround a bug where minimap remains minimized because we switched to overview cam
 	SendCommands("minimap minimize")
 
+	local function RefreshBroadcastPeriod()
+		local humanPlayerCount = 0
+		local playerList = GetPlayerList() or {}
+		for _, playerID in ipairs(playerList) do
+			local _, _, isSpec = GetPlayerInfo(playerID, false)
+			if isSpec == false then
+				humanPlayerCount = humanPlayerCount + 1
+			end
+		end
+
+		if humanPlayerCount <= broadcastPeriodScalingStart then
+			broadcastPeriod = minBroadcastPeriod
+		elseif humanPlayerCount >= broadcastPeriodScalingEnd then
+			broadcastPeriod = maxBroadcastPeriod
+		else
+			broadcastPeriod = minBroadcastPeriod
+				+ (maxBroadcastPeriod - minBroadcastPeriod)
+					* (humanPlayerCount - broadcastPeriodScalingStart)
+					/ (broadcastPeriodScalingEnd - broadcastPeriodScalingStart)
+		end
+	end
+
 	function gadget:Initialize()
+		RefreshBroadcastPeriod()
 		gadgetHandler:AddSyncAction("cameraBroadcast", handleCameraBroadcastEvent)
 	end
 
@@ -234,6 +299,15 @@ else	-- UNSYNCED
 	function gadget:PlayerChanged(playerID)
 		spec, fullView = GetSpectatingState()
 		myAllyTeamID = GetMyAllyTeamID()
+		RefreshBroadcastPeriod()
+	end
+
+	function gadget:PlayerAdded()
+		RefreshBroadcastPeriod()
+	end
+
+	function gadget:PlayerRemoved()
+		RefreshBroadcastPeriod()
 	end
 
 	function handleCameraBroadcastEvent(_,playerID,msg)
@@ -268,7 +342,8 @@ else	-- UNSYNCED
 			local stateFormat = CAMERA_STATE_FORMATS[name]
 			if stateFormat then
 				for i = 1, #stateFormat do
-					lastCameraValues[stateFormat[i]] = state[stateFormat[i]]
+					local key = stateFormat[i]
+					lastCameraValues[key] = CustomPackF14(state[key])
 				end
 			end
 			return true
@@ -277,10 +352,12 @@ else	-- UNSYNCED
 		if not stateFormat then return false end
 		for i = 1, #stateFormat do
 			local key = stateFormat[i]
-			if state[key] ~= lastCameraValues[key] then
-				for j = i, #stateFormat do
+			local packedValue = CustomPackF14(state[key])
+			if packedValue ~= lastCameraValues[key] then
+				lastCameraValues[key] = packedValue
+				for j = i + 1, #stateFormat do
 					local k2 = stateFormat[j]
-					lastCameraValues[k2] = state[k2]
+					lastCameraValues[k2] = CustomPackF14(state[k2])
 				end
 				return true
 			end

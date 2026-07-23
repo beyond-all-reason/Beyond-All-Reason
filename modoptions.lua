@@ -276,6 +276,15 @@ local options = {
 		def		= false,
 	},
 
+    {
+        key 	= "comm_trans_slow",
+        name 	= "Slow Commander Transport",
+        desc 	= "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished.",
+        type 	= "bool",
+        section = "options_main",
+        def 	= false,
+    },
+
 	{
 		key		= "sub_header",
 		section	= "options_main",

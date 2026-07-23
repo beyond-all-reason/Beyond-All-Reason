@@ -118,7 +118,6 @@ return {
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				soundstartvolume = 2,
 				sprayangle = 1000,
 				turret = true,
 				weapontype = "Cannon",

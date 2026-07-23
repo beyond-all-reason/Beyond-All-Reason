@@ -59,10 +59,18 @@ local types = {
 local spGetCameraPosition		= Spring.GetCameraPosition
 local spTraceScreenRay			= Spring.TraceScreenRay
 local spGetMouseState			= Spring.GetMouseState
+local spIsGUIHidden				= Spring.IsGUIHidden
 
 local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
+local glBlending				= gl.Blending
+local glDepthTest				= gl.DepthTest
+local glPushMatrix				= gl.PushMatrix
+local glPopMatrix				= gl.PopMatrix
+local glTranslate				= gl.Translate
+local glScale					= gl.Scale
+local glColor					= gl.Color
 
 local diag						= math.diag
 
@@ -162,22 +170,26 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-  if Spring.IsGUIHidden() then return end
+	if spIsGUIHidden() or commandCount == 0 then return end
 
 	local osClock = os.clock()
 	local camX, camY, camZ = spGetCameraPosition()
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.DepthTest(false)
-	gl.PushMatrix()
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glDepthTest(false)
+	glPushMatrix()
 
-	for cmdKey, cmdValue in pairs(commands) do
+	local cmdKey = 1
+	while cmdKey <= commandCount do
+		local cmdValue = commands[cmdKey]
 
 		local duration		= types[cmdValue.cmdType].duration * generalDuration
 		local durationProcess = (osClock - cmdValue.osClock) / duration
 
 		-- remove when duration has passed
 		if osClock - cmdValue.osClock > duration  then
-			commands[cmdKey] = nil
+			commands[cmdKey] = commands[commandCount]
+			commands[commandCount] = nil
+			commandCount = commandCount - 1
 
 		-- draw all
 		elseif  types[cmdValue.cmdType].baseColor[4] > 0 then
@@ -186,7 +198,7 @@ function widget:DrawWorldPreUnit()
 			local baseColor = types[cmdValue.cmdType].baseColor
 			a = a * baseColor[4]
 
-			gl.Translate(cmdValue.x, cmdValue.y, cmdValue.z)
+			glTranslate(cmdValue.x, cmdValue.y, cmdValue.z)
 
 			local camDistance = diag(camX-cmdValue.x, camY-cmdValue.y, camZ-cmdValue.z)
 			if camDistance ~= camDistance or camDistance >= math.huge then
@@ -197,23 +209,25 @@ function widget:DrawWorldPreUnit()
 			local scale = 1
 			if scaleWithCamera and camZ then
 				scale = 0.82 + camDistance / 20000
-				gl.Scale(scale,scale,scale)
+				glScale(scale,scale,scale)
 			end
 
 			-- base glow
 			if baseColor[4] > 0 then
-				gl.Color(baseColor[1],baseColor[2],baseColor[3],a)
-				gl.Scale(size,1,size)
+				glColor(baseColor[1],baseColor[2],baseColor[3],a)
+				glScale(size,1,size)
 				glCallList(baseDlist)
-				gl.Scale(1/size,1,1/size)
+				glScale(1/size,1,1/size)
 			end
 			if scaleWithCamera and camZ then
-				gl.Scale(1/scale,1/scale,1/scale)
+				glScale(1/scale,1/scale,1/scale)
 			end
-			gl.Translate(-cmdValue.x, -cmdValue.y, -cmdValue.z)
+			glTranslate(-cmdValue.x, -cmdValue.y, -cmdValue.z)
 		end
+
+		cmdKey = cmdKey + 1
 	end
 
-	gl.PopMatrix()
+	glPopMatrix()
 end
 

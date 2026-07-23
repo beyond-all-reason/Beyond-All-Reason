@@ -259,6 +259,29 @@ local function lavagroundflash(size, sizegrowth, ttl)
 	}
 end
 
+local function lavaentryflare()
+	return {
+		air = false,
+		class = [[CBitmapMuzzleFlame]],
+		count = 1,
+		ground = false,
+		underwater = true,
+		water = true,
+		properties = {
+			colormap            = [[0.95 0.58 0.16 0.03969   0 0 0 0.002205]],
+			dir                 = [[0, 1, 0]],
+			frontoffset         = 0,
+			fronttexture        = [[glow]],
+			length              = 0,
+			sidetexture         = [[none]],
+			size                = 25,
+			sizegrowth          = -3.5,
+			ttl                 = 4,
+			pos                 = [[0, 1, 0]],
+			alwaysvisible       = true,
+		},
+	}
+end
 
 -- Assemble lava splash definitions from components
 -- Sizes are ~65-70% of water counterparts
@@ -266,6 +289,7 @@ end
 local definitions = {}
 
 definitions["lavasplash-torpedo"] = {
+	entryflare  = lavaentryflare(),
 	lavapool    = lavapool(4, 40),
 	circlewaves = lavawaves(1, [[0.4 r0.5]], [[0.8 i0.2]], 18),
 	embers      = lavaembers(2, 3, 8, 0.5, 5, 5, 10),
@@ -273,6 +297,7 @@ definitions["lavasplash-torpedo"] = {
 }
 
 definitions["lavasplash-tiny"] = {
+	entryflare  = lavaentryflare(),
 	lavapool    = lavapool(7, 45, [[-2 r4, -0.5 r1, -180 r360]]),
 	circlewaves = lavawaves(1, [[0.5 r0.7]], [[1.0 i0.2]], 20),
 	embers      = lavaembers(3, 3, 8, 0.6, 6, 6, 12),

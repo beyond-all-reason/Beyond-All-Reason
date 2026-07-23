@@ -119,7 +119,6 @@ return {
 				range = 400,
 				reloadtime = 1.5,
 				soundhit = "xplodep1",
-				soundhitvolume = 10,
 				soundstart = "torpedo1",
 				startvelocity = 130,
 				tolerance = 12000,

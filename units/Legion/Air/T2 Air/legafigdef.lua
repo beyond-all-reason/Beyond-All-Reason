@@ -104,7 +104,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 2,
 				soundTrigger = true,
 				sprayangle = 125,
 				texture1 = "shot",
