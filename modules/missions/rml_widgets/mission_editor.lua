@@ -557,12 +557,11 @@ local function openAddModal(button)
 				local at, newText
 				if kind == "trigger" then
 					at = target.insert
-					newText = "\nT.When(" .. value .. ")\n"
+					newText = "\nWhen(" .. value .. ")\n"
 						.. '\t.Do(Objective("new_objective").Complete())\n'
-						.. "\t.Register()\n"
 				elseif kind == "andwhen" then
 					at = target.insertCond
-					newText = "\t.AndWhen(" .. value .. ")\n"
+					newText = "\t.When(" .. value .. ")\n"
 				else
 					at = target.insertEffect
 					newText = "\t.Do(" .. value .. ")\n"
@@ -657,14 +656,13 @@ local function attachFormControls()
 				local kind = select:GetAttribute("data-kind")
 				local newText
 				if kind == "andwhen" then
-					newText = "\t.AndWhen(" .. value .. ")\n"
+					newText = "\t.When(" .. value .. ")\n"
 				elseif kind == "trigger" then
 					-- A whole new statement: complete legal chain, so the
 					-- recognizer gate accepts it and the form re-renders it
 					-- as an editable card.
-					newText = "\nT.When(" .. value .. ")\n"
+					newText = "\nWhen(" .. value .. ")\n"
 						.. '\t.Do(Objective("new_objective").Complete())\n'
-						.. "\t.Register()\n"
 				else
 					newText = "\t.Do(" .. value .. ")\n"
 				end
