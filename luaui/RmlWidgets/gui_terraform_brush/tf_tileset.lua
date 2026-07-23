@@ -15,6 +15,8 @@ local KNOBS = {
 	{ "scalePlat", "%.0f" }, { "scaleFoot", "%.0f" },
 	{ "normalStrength", "%.2f" }, { "cliffNormStrength", "%.2f" }, { "footNormStrength", "%.2f" },
 	{ "cliffStartDeg", "%.1f" }, { "chunkyCliff", "%d" }, { "foothillsSpanDeg", "%.1f" }, { "footFloor", "%.2f" },
+	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
+	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" },
 	{ "splatInfluence", "%.2f" }, { "antiTileWarp", "%.0f" }, { "macroVar", "%.2f" }, { "albedoSortMode", "%d" },
 	{ "staggerAmount", "%.2f" }, { "maskScale1", "%.0f" }, { "maskScale2", "%.0f" }, { "lumaBlend", "%.2f" },
 	{ "curvHighlight", "%.2f" }, { "curvShadow", "%.2f" }, { "curvRadius", "%.0f" },

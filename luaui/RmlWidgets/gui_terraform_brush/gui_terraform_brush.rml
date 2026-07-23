@@ -5185,6 +5185,40 @@
 					</div>
 				</div><!-- /frame-ts-cliffs -->
 
+				<div class="tf-section-frame tf-collapsed" id="frame-ts-place">
+					<div id="btn-toggle-ts-place" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-ts-place" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">LAYER PLACEMENT</div>
+					</div>
+					<div id="section-ts-place" class="hidden">
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Gravel height</div>
+								<input type="range" id="ts-slider-gravelHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.30" data-event-change="onTilesetKnob('gravelHeight')" />
+								<input type="text" id="ts-slider-gravelHeight-numbox" class="tf-slider-numbox" readonly value="0.30" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Gravel blend</div>
+								<input type="range" id="ts-slider-gravelBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('gravelBlend')" />
+								<input type="text" id="ts-slider-gravelBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau height</div>
+								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.60" data-event-change="onTilesetKnob('platHeight')" />
+								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="0.60" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau blend</div>
+								<input type="range" id="ts-slider-platBlend" class="tf-slider" min="0.01" max="0.5" step="0.005" value="0.12" data-event-change="onTilesetKnob('platBlend')" />
+								<input type="text" id="ts-slider-platBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Cliff border</div>
+								<input type="range" id="ts-slider-cliffBlend" class="tf-slider" min="0.02" max="0.6" step="0.005" value="0.20" data-event-change="onTilesetKnob('cliffBlend')" />
+								<input type="text" id="ts-slider-cliffBlend-numbox" class="tf-slider-numbox" readonly value="0.20" />
+							</div>
+					</div>
+				</div><!-- /frame-ts-place -->
+
 				<div class="tf-section-frame tf-collapsed" id="frame-ts-blend">
 					<div id="btn-toggle-ts-blend" class="tf-section-title-row" style="cursor: pointer;">
 						<img id="img-toggle-ts-blend" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
