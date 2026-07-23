@@ -1010,6 +1010,7 @@ local function _deactivateAllTools()
 	if WG.CloneTool      then WG.CloneTool.deactivate()      end
 	widgetState.decalsActive   = false
 	if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
+	widgetState.tilesetActive  = false
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
@@ -6155,6 +6156,32 @@ local initialModel = {
 		end)
 		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2)) end
 	end,
+	onTfSwitchTileset = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.TilesetTerrain then return end
+		if widgetState.tilesetActive then
+			widgetState.tilesetActive = false
+			if WG.TerraformBrush then
+				local st = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(st and st.mode or "raise")
+			end
+		else
+			_deactivateAllTools()
+			widgetState.tilesetActive = true
+		end
+	end,
+	onTilesetKnob = function(_event, key)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
+		local v = _elemSliderVal("ts-slider-" .. key, 0)
+		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
+	end,
+	onTilesetReset = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.reset then
+			WG.TilesetTerrain.reset()
+			playSound("click")
+		end
+	end,
 	onTfSwitchLights = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -8139,6 +8166,7 @@ local tfClone = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_clone.lua")
 local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
 local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
 local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
+local tfTileset = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_tileset.lua")
 local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
 
 -- Shared context passed to all extracted tool modules
@@ -9003,6 +9031,7 @@ local function attachEventListeners()
 	tfDiffuse.attach(doc, ctx)
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
+	tfTileset.attach(doc, ctx)
 	tfLights.attach(doc, ctx)
 	tfNoise.attach(doc, ctx)
 
@@ -10326,9 +10355,15 @@ function widget:Update()
 		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
 		decalsActive = false
 	end
+	-- Deactivate tileset mode when any other tool becomes active. The terraform
+	-- brush has no *Active branch in the tool derivation below (it maps to ""),
+	-- so without this the tileset panel would linger when you switch to it.
+	if widgetState.tilesetActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive) then
+		widgetState.tilesetActive = false
+	end
 
 	-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
-	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.passthroughMode) and not widgetState.panelHidden
+	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive or widgetState.passthroughMode) and not widgetState.panelHidden
 	if widgetState.rootElement then
 		widgetState.rootElement:SetClass("hidden", not panelVisible)
 	end
@@ -10367,6 +10402,7 @@ function widget:Update()
 		elseif stpActive then tool = "stp"
 		elseif clActive then tool = "cl"
 		elseif dfpActive then tool = "diff"
+		elseif widgetState.tilesetActive then tool = "ts"
 		end
 		if widgetState.dmHandle then
 			if widgetState.dmHandle.activeTool ~= tool then widgetState.dmHandle.activeTool = tool end
@@ -10587,6 +10623,15 @@ function widget:Update()
 				if dfpBtnEl then dfpBtnEl:SetClass("hidden", not dfpAvail) end
 			end
 		end
+		do
+			-- TILESET tool button: shown only when the tileset widget is loaded.
+			local tsAvail = WG.TilesetTerrain ~= nil
+			if widgetState.tsBtnShown ~= tsAvail then
+				widgetState.tsBtnShown = tsAvail
+				local tsBtnEl = getCachedEl(doc, "btn-tileset")
+				if tsBtnEl then tsBtnEl:SetClass("hidden", not tsAvail) end
+			end
+		end
 	end
 
 	if mbActive then
@@ -10627,6 +10672,9 @@ function widget:Update()
 
 	elseif decalsActive then
 		tfDecals.sync(doc, ctx, setSummary)
+
+	elseif widgetState.tilesetActive then
+		tfTileset.sync(doc, ctx, setSummary)
 
 
 	elseif wbState and wbState.active then

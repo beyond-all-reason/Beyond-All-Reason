@@ -772,6 +772,18 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-env-toggle-perlin",   "img-env-toggle-perlin",   "env-section-perlin",   false)
 		envSectionToggle("btn-env-toggle-blur",     "img-env-toggle-blur",     "env-section-blur",     false)
 
+		-- Tileset Terrain tool (TILESET) category sections
+		envSectionToggle("btn-toggle-ts-scale",   "img-toggle-ts-scale",   "section-ts-scale",   true)
+		envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
+		envSectionToggle("btn-toggle-ts-cliffs",  "img-toggle-ts-cliffs",  "section-ts-cliffs",  false)
+		envSectionToggle("btn-toggle-ts-blend",   "img-toggle-ts-blend",   "section-ts-blend",   false)
+		envSectionToggle("btn-toggle-ts-curv",    "img-toggle-ts-curv",    "section-ts-curv",    false)
+		envSectionToggle("btn-toggle-ts-light",   "img-toggle-ts-light",   "section-ts-light",   false)
+		envSectionToggle("btn-toggle-ts-oldmap",  "img-toggle-ts-oldmap",  "section-ts-oldmap",  false)
+		envSectionToggle("btn-toggle-ts-biome",   "img-toggle-ts-biome",   "section-ts-biome",   false)
+		envSectionToggle("btn-toggle-ts-tints",   "img-toggle-ts-tints",   "section-ts-tints",   false)
+		envSectionToggle("btn-toggle-ts-debug",   "img-toggle-ts-debug",   "section-ts-debug",   false)
+
 		-- Wire ± buttons for env color RGB sliders
 		do
 			local colorSliders = {
