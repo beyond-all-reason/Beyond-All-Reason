@@ -420,16 +420,14 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		buildEvolutionFamilies()
 
-		-- Rebuild family counts when reloading the gadget in an active game.
+		-- Rebuild evolution state when reloading the gadget in an active game.
 		local allUnits = spGetAllUnits()
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
 			local unitDefID = spGetUnitDefID(unitID)
 			local teamID = spGetUnitTeam(unitID)
 
-			if unitDefID and teamID then
-				gadget:UnitCreated(unitID, unitDefID, teamID)
-			end
+			gadget:UnitCreated(unitID, unitDefID, teamID)
 		end
 	end
 
