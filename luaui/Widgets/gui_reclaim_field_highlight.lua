@@ -402,9 +402,9 @@ local batch = {
 	clusterJobActive = false,
 	clusterJobCo = nil,
 	clusterJobStart = 0,
-	clusterJobBudget = 0.002,  -- default clustering slice budget (seconds)
-	clusterJobBudgetMin = 0.001,
-	clusterJobBudgetMax = 0.0025,
+	clusterJobBudget = 0.0016,  -- default clustering slice budget (seconds)
+	clusterJobBudgetMin = 0.0009,
+	clusterJobBudgetMax = 0.002,
 	-- When a hidden layer becomes visible while its clusters are stale, keep it
 	-- hidden until the pending time-sliced rebuild atomically swaps in fresh data.
 	waitForFreshMetal = false,

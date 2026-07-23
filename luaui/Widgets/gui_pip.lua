@@ -8480,9 +8480,9 @@ if isMinimapMode then
 	miscState.oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	miscState.oldMinimapMinimized = Spring.GetConfigInt("MinimapMinimize", 0)
 	miscState.oldMinimapDrawPings = Spring.GetConfigInt("MiniMapDrawPings", 1)
-	-- Fully hide the engine minimap: slave it so it only renders when we call gl.DrawMiniMap() (which we don't)
-	Spring.SendCommands("minimap minimize 1")
+	-- SlaveMiniMap(true) clears the engine's minimized flag, so minimize it afterwards.
 	gl.SlaveMiniMap(true)
+	Spring.SendCommands("minimap minimize 1")
 	-- Disable engine minimap pings (the PIP draws its own)
 	Spring.SetConfigInt("MiniMapDrawPings", 0)
 	-- Disable the gui_minimap widget if it's running (we're replacing it)
@@ -17095,8 +17095,8 @@ function widget:DrawScreen()
 	-- Guards against other widgets (e.g. Minimap widget briefly enabled during reload)
 	-- or engine commands resetting the minimize/slave state between frames.
 	if isMinimapMode and not miscState.engineMinimapActive then
-		Spring.SendCommands("minimap minimize 1")
 		gl.SlaveMiniMap(true)
+		Spring.SendCommands("minimap minimize 1")
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
@@ -18356,8 +18356,8 @@ function widget:Update(dt)
 			widgetHandler:DisableWidget("Minimap")
 		end
 		-- Also ensure the engine minimap stays minimized
-		Spring.SendCommands("minimap minimize 1")
 		gl.SlaveMiniMap(true)
+		Spring.SendCommands("minimap minimize 1")
 		-- Re-register WG['minimap'] API: the standard Minimap widget's Initialize
 		-- may have overwritten our registration (it has a higher layer number so
 		-- it initializes after us during luaui reload)
@@ -18381,8 +18381,8 @@ function widget:Update(dt)
 				miscState.engineMinimapActive = false
 			end
 			-- Ensure engine minimap stays minimized and slaved (PIP controls rendering)
-			Spring.SendCommands("minimap minimize 1")
 			gl.SlaveMiniMap(true)
+			Spring.SendCommands("minimap minimize 1")
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
 				if WG['guishader'] then
