@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function drawLines(positions)
 	for i = 1, #positions - 1 do
@@ -11,7 +11,7 @@ end
 return {
 	type = 'DrawLines',
 	parameters = {
-		{ name = 'positions', required = true, type = Types.Positions },
+		{ name = 'positions', required = true, type = ParameterTypes.Positions },
 	},
 	actionFunction = drawLines,
 }

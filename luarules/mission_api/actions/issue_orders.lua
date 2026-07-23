@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function issueOrders(unitName, orders)
 	local tracking = GG['MissionAPI'].Modules.Tracking
@@ -11,8 +11,8 @@ end
 return {
 	type = 'IssueOrders',
 	parameters = {
-		{ name = 'unitName', required = true, type = Types.UnitName },
-		{ name = 'orders', required = true, type = Types.Orders },
+		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+		{ name = 'orders', required = true, type = ParameterTypes.Orders },
 	},
 	actionFunction = issueOrders,
 }

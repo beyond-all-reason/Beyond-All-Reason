@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function transferUnits(unitName, newTeam)
 	local tracking = GG['MissionAPI'].Modules.Tracking
@@ -15,8 +15,8 @@ end
 return {
 	type = 'TransferUnits',
 	parameters = {
-		{ name = 'unitName', required = true, type = Types.UnitName },
-		{ name = 'newTeam', required = true, type = Types.TeamID },
+		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+		{ name = 'newTeam', required = true, type = ParameterTypes.TeamID },
 	},
 	actionFunction = transferUnits,
 }

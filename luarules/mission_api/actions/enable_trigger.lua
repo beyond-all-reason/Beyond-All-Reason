@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function enableTrigger(triggerID)
 	GG['MissionAPI'].Triggers[triggerID].settings.active = true
@@ -10,7 +10,7 @@ return {
 		{
 			name = 'triggerID',
 			required = true,
-			type = Types.TriggerID
+			type = ParameterTypes.TriggerID
 		}
 	},
 	actionFunction = enableTrigger

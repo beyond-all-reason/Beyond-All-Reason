@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function addMarker(position, label, name)
 	if name then
@@ -10,9 +10,9 @@ end
 return {
 	type = 'AddMarker',
 	parameters = {
-		{ name = 'position', required = true, type = Types.Position },
-		{ name = 'label', required = false, type = Types.String },
-		{ name = 'name', required = false, type = Types.String },
+		{ name = 'position', required = true, type = ParameterTypes.Position },
+		{ name = 'label', required = false, type = ParameterTypes.String },
+		{ name = 'name', required = false, type = ParameterTypes.String },
 	},
 	actionFunction = addMarker,
 }

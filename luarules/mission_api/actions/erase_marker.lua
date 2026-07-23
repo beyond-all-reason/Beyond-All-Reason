@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function eraseMarker(name)
 	local position = GG['MissionAPI'].markerNames[name]
@@ -11,7 +11,7 @@ end
 return {
 	type = 'EraseMarker',
 	parameters = {
-		{ name = 'name', required = true, type = Types.String },
+		{ name = 'name', required = true, type = ParameterTypes.String },
 	},
 	actionFunction = eraseMarker,
 }

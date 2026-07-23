@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function spawnExplosion(weaponDefName, position, direction)
 	direction = direction or { x = 0, y = 0, z = 0 }
@@ -23,9 +23,9 @@ end
 return {
 	type = 'SpawnExplosion',
 	parameters = {
-		{ name = 'weaponDefName', required = true, type = Types.WeaponDefName },
-		{ name = 'position', required = true, type = Types.Position },
-		{ name = 'direction', required = false, type = Types.Position },
+		{ name = 'weaponDefName', required = true, type = ParameterTypes.WeaponDefName },
+		{ name = 'position', required = true, type = ParameterTypes.Position },
+		{ name = 'direction', required = false, type = ParameterTypes.Position },
 	},
 	actionFunction = spawnExplosion,
 }

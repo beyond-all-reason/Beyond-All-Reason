@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function defeat(losingAllyTeamIDs)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
@@ -14,7 +14,7 @@ end
 return {
 	type = 'Defeat',
 	parameters = {
-		{ name = 'allyTeamIDs', required = true, type = Types.AllyTeamIDs },
+		{ name = 'allyTeamIDs', required = true, type = ParameterTypes.AllyTeamIDs },
 	},
 	actionFunction = defeat,
 }

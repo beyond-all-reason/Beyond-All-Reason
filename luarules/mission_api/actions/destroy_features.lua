@@ -1,4 +1,4 @@
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function destroyFeatures(featureName)
 	local tracking = GG['MissionAPI'].Modules.Tracking
@@ -15,7 +15,7 @@ end
 return {
 	type = 'DestroyFeatures',
 	parameters = {
-		{ name = 'featureName', required = true, type = Types.FeatureName },
+		{ name = 'featureName', required = true, type = ParameterTypes.FeatureName },
 	},
 	actionFunction = destroyFeatures,
 }
