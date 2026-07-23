@@ -141,7 +141,7 @@ if gadgetHandler:IsSyncedCode() then
 		local participatingDefs = {}
 
 		for sourceUnitDefID, unitDef in pairs(UnitDefs) do
-			local targetName = unitDef.customParams and unitDef.customParams.evolution_target
+			local targetName = unitDef.customParams.evolution_target
 			local targetDef = targetName and UnitDefNames[targetName]
 
 			if targetDef then
