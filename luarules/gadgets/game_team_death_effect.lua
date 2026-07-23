@@ -49,46 +49,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
-	local teamUnits = Spring.GetTeamUnits(teamID)
-	for i=1, #teamUnits do
-		local unitID = teamUnits[i]
-		if not unitDecoration[spGetUnitDefID(unitID)] then
-			local x,_,z = spGetUnitPosition(unitID)
-			local deathFrame
-			if originX and originZ then
-				deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod*0.6), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
-			else
-				deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.3) + math.random(0,wavePeriod/2.5)) * periodMult)
-			end
-			maxDeathFrame = math.max(maxDeathFrame, deathFrame)
-			if destroyUnitQueue[unitID] == nil then
-				destroyUnitQueue[unitID] = {
-					frame = gf + deathFrame,
-					attackerUnitID = attackerUnitID,
-				}
-			end
-
-			-- neutralize units
-			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitSensorRadius(unitID, 'los', 0)
-			Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
-			Spring.SetUnitSensorRadius(unitID, 'radar', 0)
-			Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
-			local i = 0
-			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
-				Spring.UnitWeaponHoldFire(unitID, weaponID)
-				i = i + 1
-			end
-			if i > 0 then
-				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, 0)
-				Spring.SetUnitTarget(unitID, nil)
-				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then	-- remove any settarget cmd
-					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
-				end
-			end
-			--Spring.SetUnitNoMinimap(unitID, true)
-		end
-	end
+	GG.Desolation.DesolateTeam(teamID)
 	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame	-- storing frame of total unit wipeout
 end
 
@@ -119,39 +80,7 @@ local destroyThisFrame = {}
 local destroyThisFrameCount = 0
 
 function gadget:GameFrame(gf)
-	if next(destroyUnitQueue) then
-		-- Collect units to destroy first, since spDestroyUnit triggers synchronous
-		-- callins (UnitDestroyed -> TeamDied -> wipeoutAllyTeam) that can insert
-		-- new entries into destroyUnitQueue, causing "invalid key to 'next'"
-		destroyThisFrameCount = 0
-		for unitID, defs in pairs(destroyUnitQueue) do
-			if gf > defs.frame then
-				destroyThisFrameCount = destroyThisFrameCount + 1
-				destroyThisFrame[destroyThisFrameCount] = unitID
-			end
-		end
 
-		if destroyThisFrameCount > 0 then
-			local selfD = not GG.wipeoutWithWreckage
-			for i = 1, destroyThisFrameCount do
-				local unitID = destroyThisFrame[i]
-				local defs = destroyUnitQueue[unitID]
-				destroyUnitQueue[unitID] = nil
-				destroyThisFrame[i] = nil
-				if defs then
-					if defs.attackerUnitID then
-						spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
-					else
-						if selfD and isCommander[spGetUnitDefID(unitID)] then
-							spDestroyUnit(unitID, false, false)	-- always leave commander wreckage (ffa reclaims all on early dropped players now)
-						else
-							spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-						end
-					end
-				end
-			end
-		end
-	end
 end
 
 -- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
