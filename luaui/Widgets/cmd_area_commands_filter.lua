@@ -479,10 +479,12 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
 	end
-	local config = {} --- @type CommandConfig
-	config.handle = handler or defaultHandler
-	config.allowedTargetTypes = allowedTargetTypes
-	config.targetAllegiance = targetAllegiance
+	--- @type CommandConfig
+	local config = {
+		handle             = handler or defaultHandler,
+		allowedTargetTypes = allowedTargetTypes,
+		targetAllegiance   = targetAllegiance,
+	}
 	return config
 end
 
