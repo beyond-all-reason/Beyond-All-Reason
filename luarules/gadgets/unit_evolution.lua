@@ -428,7 +428,7 @@ if gadgetHandler:IsSyncedCode() then
 			local teamID = spGetUnitTeam(unitID)
 
 			if unitDefID and teamID then
-				registerFamilyUnit(unitID, unitDefID, teamID)
+				gadget:UnitCreated(unitID, unitDefID, teamID)
 			end
 		end
 	end
