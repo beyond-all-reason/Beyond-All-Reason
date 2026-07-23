@@ -9625,6 +9625,17 @@ function widget:DrawScreenPost()
 
 
 
+	-- Feature 3: when the Tileset Terrain shader is active, the 4 splat channels
+	-- blend its 4 layers, so the swatches should preview those layer textures
+	-- instead of the map's DNTS normals. Re-run discovery whenever it flips.
+	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive
+		and WG.TilesetTerrain.isActive()) and true or false
+	if tilesetActive ~= widgetState.spPreviewTilesetActive then
+		widgetState.spPreviewTilesetActive = tilesetActive
+		widgetState.spPreviewVerified = false
+		widgetState.spPreviewRetries = 0
+	end
+
 	if not widgetState.spPreviewVerified then
 
 		widgetState.spPreviewRetries = (widgetState.spPreviewRetries or 0) + 1
@@ -9778,6 +9789,24 @@ function widget:DrawScreenPost()
 
 			end
 
+		end
+
+		-- Tileset Terrain shader owns the channels: override any map DNTS discovery
+		-- with the tileset's per-channel layer diffuse (rendered as lit diffuse,
+		-- isDNTS = false). Falls back to whatever was found if a texture is missing.
+		if tilesetActive and WG.TilesetTerrain.getChannelTextures then
+			local chTex = WG.TilesetTerrain.getChannelTextures()
+			if type(chTex) == "table" then
+				local tf = {}
+				for i = 1, 4 do
+					local p = chTex[i]
+					if type(p) == "string" and p ~= "" then
+						local info = gl.TextureInfo(p)
+						if info and info.xsize and info.xsize > 0 then tf[i] = p end
+					end
+				end
+				if next(tf) then found = tf; isDNTS = false end
+			end
 		end
 
 		widgetState.spPreviewTextures = found
