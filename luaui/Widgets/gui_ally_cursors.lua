@@ -481,16 +481,9 @@ local function getCameraRotationY()
 	return math_deg(mathAtan2(x, -z))
 end
 
-local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
-	if not spIsSphereInView(wx, wy, wz, usedCursorSize) then
-		return
-	end
-
-	--calc scale
+local function GetCursorOpacityMultiplier(wx, wy, wz, camX, camY, camZ, opacity)
 	local camDistance = diag(camX - wx, camY - wy, camZ - wz)
-	local drawScale = 0.83 + camDistance / 5000
 
-	-- calc opacity
 	local opacityMultiplier = 1
 	if drawNamesFade and camDistance > NameFadeStartDistance then
 		opacityMultiplier = (1 - (camDistance - NameFadeStartDistance) / (NameFadeEndDistance - NameFadeStartDistance))
@@ -505,27 +498,50 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 		-- if (spec and) fading out due to idling
 		opacityMultiplier = floor(opacityMultiplier * (opacity * dlistAmount)) / dlistAmount
 	end
+	return opacityMultiplier, 0.83 + camDistance / 5000
+end
 
-	if opacityMultiplier > 0.11 then
-		if allycursorDrawList[playerID] == nil then
-			allycursorDrawList[playerID] = {}
-		end
-		if allycursorDrawList[playerID][opacityMultiplier] == nil then
-			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
-		end
-
-		glPushMatrix()
-		glTranslate(wx, wy, wz)
-		glRotate(-rotY, 0, 1, 0)
-		if drawNamesScaling then
-			glScale(drawScale, 0, drawScale)
-		end
-		glCallList(allycursorDrawList[playerID][opacityMultiplier])
-		if drawNamesScaling then
-			glScale(-drawScale, 0, -drawScale)
-		end
-		glPopMatrix()
+local function PrepareCursorDrawList(playerID, cursor)
+	local wx, wy, wz = cursor[1], cursor[2], cursor[3]
+	if not spIsSphereInView(wx, wy, wz, usedCursorSize) then
+		cursor[9] = false
+		return
 	end
+
+	local opacityMultiplier, drawScale = GetCursorOpacityMultiplier(wx, wy, wz, cursor[4], cursor[5], cursor[6], cursor[7])
+	cursor[9] = opacityMultiplier > 0.11
+	cursor[10] = opacityMultiplier
+	cursor[11] = drawScale
+	if not cursor[9] then
+		return
+	end
+
+	if allycursorDrawList[playerID] == nil then
+		allycursorDrawList[playerID] = {}
+	end
+	if allycursorDrawList[playerID][opacityMultiplier] == nil then
+		allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
+	end
+end
+
+local function DrawCursor(playerID, cursor)
+	if not cursor[9] then
+		return
+	end
+
+	local drawList = allycursorDrawList[playerID] and allycursorDrawList[playerID][cursor[10]]
+	if not drawList then
+		return
+	end
+
+	glPushMatrix()
+	glTranslate(cursor[1], cursor[2], cursor[3])
+	glRotate(-rotY, 0, 1, 0)
+	if drawNamesScaling then
+		glScale(cursor[11], 0, cursor[11])
+	end
+	glCallList(drawList)
+	glPopMatrix()
 end
 
 
@@ -630,6 +646,9 @@ function widget:Update(dt)
 				cursors[playerID] = nil
 			end
 		end
+		if cursors[playerID] then
+			PrepareCursorDrawList(playerID, cursors[playerID])
+		end
 	end
 end
 
@@ -647,7 +666,7 @@ function widget:DrawWorldPreUnit()
 	for playerID, cursor in pairs(cursors) do
 		if notIdle[playerID] then
 			if IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID) then
-				DrawCursor(playerID, cursor[1], cursor[2], cursor[3], cursor[4], cursor[5], cursor[6], cursor[7])
+				DrawCursor(playerID, cursor)
 			end
 		end
 	end
