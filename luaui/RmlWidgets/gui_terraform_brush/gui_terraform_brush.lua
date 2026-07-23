@@ -2184,6 +2184,8 @@ local initialModel = {
 	splatRadiusStr = "100",
 	splatRotationStr = "0",
 	splatCurveStr = "1.0",
+	splatFractalStr = "0.00",
+	splatFractalFreqStr = "15",
 	splatSlopeMaxStr = "45",
 	splatSlopeMinStr = "10",
 	splatAltMinStr = "0",
@@ -2975,6 +2977,34 @@ local initialModel = {
 		if not WG.SplatPainter then return end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setCurve(st.curve - CURVE_STEP)
+	end,
+	onSplFractalChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		local v = (tonumber(_elemSliderVal("sp-slider-fractal", 0)) or 0) / 100
+		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(v, nil) end
+	end,
+	onSplFractalStep = function(_event, delta)
+		if not WG.SplatPainter or not WG.SplatPainter.getFractal then return end
+		local amt = WG.SplatPainter.getFractal()
+		if WG.SplatPainter.setFractal then
+			WG.SplatPainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
+		end
+	end,
+	onSplFractalFreqChange = function(_event)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		-- slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
+		local v = tonumber(_elemSliderVal("sp-slider-fractal-freq", 30)) or 30
+		local freq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
+		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(nil, freq) end
+	end,
+	onSplFractalFreqStep = function(_event, delta)
+		if not WG.SplatPainter or not WG.SplatPainter.getFractal then return end
+		local _, freq = WG.SplatPainter.getFractal()
+		-- convert current freq back to slider units (1-50), step, clamp, convert back
+		local v = math.floor(0.5 + 1 + ((freq or 0.0002) - 0.0002) / (0.01 - 0.0002) * 49)
+		v = math.max(1, math.min(50, v + (delta or 0)))
+		local newFreq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
+		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(nil, newFreq) end
 	end,
 	onSplToggleSmart = function(_event, filterKey)
 		if not WG.SplatPainter then return end

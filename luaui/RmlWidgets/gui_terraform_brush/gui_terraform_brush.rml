@@ -3759,6 +3759,34 @@
 			<input type="text" id="sp-slider-curve-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FRACTAL EDGE: <span class="text-xl font-bold">{{splatFractalStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-sp-fractal-down" class="tf-sm-btn" data-event-mousedown="onSplFractalStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="sp-slider-fractal" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onSplFractalChange()" />
+			<div id="btn-sp-fractal-up" class="tf-sm-btn" data-event-mousedown="onSplFractalStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="sp-slider-fractal-numbox" class="tf-slider-numbox" readonly value="0" />
+		</div>
+
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">FRACTAL FREQ: <span class="text-xl font-bold">{{splatFractalFreqStr}}</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-sp-fractal-freq-down" class="tf-sm-btn" data-event-mousedown="onSplFractalFreqStep(-5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="sp-slider-fractal-freq" class="tf-slider" min="1" max="50" step="1" value="15" data-event-change="onSplFractalFreqChange()" />
+			<div id="btn-sp-fractal-freq-up" class="tf-sm-btn" data-event-mousedown="onSplFractalFreqStep(5)">
+				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="sp-slider-fractal-freq-numbox" class="tf-slider-numbox" readonly value="15" />
+		</div>
+
 		</div><!-- /section-sp-controls -->
 		</div><!-- /frame-sp-controls -->
 
