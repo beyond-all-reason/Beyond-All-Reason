@@ -5,17 +5,29 @@
 --- are lazy objects built by named verbs. Mission files must load identically
 --- in the synced sandbox (which strips rawset) and in busted.
 
+--- The mission bus vocabulary, CLOSED BY TYPE: every event name that may
+--- cross the bus is a member of this alias. Engine callins are one producer,
+--- modules are another — same kind of string, one type. Adding an event
+--- means extending this alias; the checker then walks you to every consumer
+--- (inputs declarations, OnEvent emitters) and flags typos as type errors —
+--- the state heritage is tied together by the compiler, not convention.
+---@alias MissionEventName
+---| "UnitFinished"
+---| "UnitDestroyed"
+---| "UnitGiven"
+---| "UnitTaken"
+---| "mission.objective_changed"
+
 --- A condition is not a bare predicate — it carries metadata about what can
 --- change its answer (mission_authoring_dsl.md, "Conditions declare their
---- inputs"). Inputs name events on the mission bus: engine callins are one
---- producer ("UnitFinished"), modules are another ("mission.objective_changed").
+--- inputs"). Inputs name events on the mission bus (MissionEventName).
 --- nil inputs = poll every cadence — the fallback stays.
 --- Pure: reads only the ctx it is handed; captures configuration (team ids,
 --- unit names), never progress. Progress lives in the engine's state tables;
 --- inputs are configuration, dirty flags are derived (the savegame rule).
 ---@class MissionCondition
 ---@field evaluate fun(ctx: MissionContext): boolean
----@field inputs string[]|nil events that can change this answer; nil = poll every cadence
+---@field inputs MissionEventName[]|nil events that can change this answer; nil = poll every cadence
 
 --- What the engine hands every condition and effect. The gadget builds it from
 --- Spring; specs build it from plain tables.
