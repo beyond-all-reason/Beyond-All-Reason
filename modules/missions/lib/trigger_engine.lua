@@ -17,8 +17,8 @@ local TriggerEngine = {}
 ---@class MissionTriggerEngine
 ---@field Register fun(descriptor: TriggerDescriptor)
 ---@field UnregisterFile fun(filename: string): integer removed count
----@field OnEvent fun(name: string) mark the input's watchers dirty (the mission bus entry point)
----@field WatchedInputs fun(): table<string, boolean> input names some registered trigger watches
+---@field OnEvent fun(name: MissionEventName) mark the input's watchers dirty (the mission bus entry point)
+---@field WatchedInputs fun(): table<MissionEventName, boolean> input names some registered trigger watches
 ---@field Evaluate fun(ctx: MissionContext)
 ---@field Triggers fun(): TriggerDescriptor[] registration order, read-only by convention
 ---@field GetState fun(): TriggerEngineState the serializable progress pile
@@ -98,7 +98,7 @@ function TriggerEngine.New()
 	---An event on the mission bus: engine callins and module events are the
 	---same kind of string here. Marks the input's watchers for evaluation on
 	---the next cadence.
-	---@param name string
+	---@param name MissionEventName
 	engine.OnEvent = function(name)
 		for id in pairs(watchers[name] or {}) do
 			dirty[id] = true
