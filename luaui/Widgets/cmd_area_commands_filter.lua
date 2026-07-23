@@ -371,6 +371,17 @@ local function splitTargets(selectedUnits, filteredTargets)
 	return unitTargetsMap
 end
 
+local function sortByProjection(position, projection, units, count)
+	local indexUnit, valueUnit = tableNew(count, 0), tableNew(count, 0)
+	for i = 1, count do
+		indexUnit[i] = i
+		local x, _, z = position(units[i])
+		valueUnit[i] = projection(x, z)
+	end
+	tableSort(indexUnit, function(a, b) return valueUnit[a] < valueUnit[b] end)
+	return indexUnit
+end
+
 local function splitTargetsIntoRivers(units, targets)
 	local ucx, ucy, ucz = spGetUnitArrayCentroid(units)
 	local tcx, tcy, tcz = spGetUnitArrayCentroid(targets)
@@ -389,23 +400,10 @@ local function splitTargetsIntoRivers(units, targets)
 
 	local countTargets = #targets
 	local countUnits = #units
-	local indexTarget = tableNew(countTargets, 0)
-	local valueTarget = tableNew(countTargets, 0)
-	for i = 1, countTargets do
-		indexTarget[i] = i
-		local x, _, z = spGetUnitPosition(targets[i])
-		valueTarget[i] = projection(x, z)
-	end
-	tableSort(indexTarget, function(a, b) return valueTarget[a] < valueTarget[b] end)
 
-	local indexUnit = tableNew(countUnits, 0)
-	local valueUnit = tableNew(countUnits, 0)
-	for i = 1, countUnits do
-		indexUnit[i] = i
-		local x, _, z = spGetUnitPosition(units[i])
-		valueUnit[i] = projection(x, z)
-	end
-	tableSort(indexUnit, function(a, b) return valueUnit[a] < valueUnit[b] end)
+	-- TODO: fix unit/feature splits again
+	local indexUnit = sortByProjection(spGetUnitPosition, projection, units, countUnits)
+	local indexTarget = sortByProjection(spGetUnitPosition, projection, targets, countTargets)
 
 	local result = tableNew(0, countUnits)
 	local perUnit = math.ceil(countTargets / countUnits)
