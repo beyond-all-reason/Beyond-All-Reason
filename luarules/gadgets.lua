@@ -505,6 +505,17 @@ function gadgetHandler:Initialize()
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
 
+	-- Encapsulated modules ship their own gadgets (modules/<name>/gadgets/).
+	-- Game-side shim until the engine loads module subdirectories natively.
+	if Script.GetName():gsub("US$", "") == "LuaRules" then
+		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
+
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
