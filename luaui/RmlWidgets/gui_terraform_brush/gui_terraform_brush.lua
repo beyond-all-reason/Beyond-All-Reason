@@ -1685,7 +1685,9 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- disk) and the next restart dies with "Dependent archive not found". A
 	-- fresh name can never collide with a poisoned cache entry. All name
 	-- matchers use the "^Editor Flat %dx%d" PREFIX, never an exact match.
-	local mapName = string.format("Editor Flat %dx%d s%d", widthUnits, heightUnits, seed % 100000)
+	-- Wall-clock, not the terrain seed above: this widget never seeds math.random
+	-- with real entropy, so reusing it here risked non-unique "unique" names.
+	local mapName = string.format("Editor Flat %dx%d s%d", widthUnits, heightUnits, os.time())
 
 	local script = base
 
