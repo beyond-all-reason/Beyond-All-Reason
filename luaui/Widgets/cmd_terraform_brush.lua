@@ -966,7 +966,11 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		absCapMax = (heightCapMax and lockedGroundY) and string.format("%.0f", lockedGroundY + heightCapMax) or "nil"
 	end
 	local instant = isStampMode() and "1" or "0"
-	local flattenStr = flattenHeight and string.format("%.0f", flattenHeight) or "nil"
+	-- Smooth mode has no single flatten target: the gadget computes a local
+	-- per-cell blur target instead. "smooth" rides the same wire slot as a
+	-- non-numeric sentinel (tonumber() on it is nil, same as the "no target"
+	-- case), so recordLinkedStroke/replay need no changes to carry it.
+	local flattenStr = (activeMode == "smooth") and "smooth" or (flattenHeight and string.format("%.0f", flattenHeight) or "nil")
 	local penPressureFactor = 1
 	if extraState.penPressureEnabled and extraState.penPressureModulateIntensity and not extraState.penOverUI then
 		local pm = extraState.penPressureMapped or extraState.penPressure or 0
@@ -3425,22 +3429,12 @@ function widget:Update(dt)
 			stampApplied = true
 		end
 
-		-- For level/smooth mode (direction=0): pass the flatten target height.
-		-- level: first-click height (pinned target). smooth: live mean of brush area.
+		-- Level mode (direction=0) passes the flatten target height (first-click,
+		-- pinned). Smooth mode needs none: the gadget computes a local per-cell
+		-- blur target itself (see the "smooth" sentinel in sendTerraformMessage).
 		local fh = nil
-		if activeDirection == 0 then
-			if activeMode == "smooth" then
-				local sum = 0
-				local step = activeRadius * 0.4
-				for ix = -2, 2 do
-					for iz = -2, 2 do
-						sum = sum + GetGroundHeight(lockedWorldX + ix * step, lockedWorldZ + iz * step)
-					end
-				end
-				fh = sum / 25
-			else
-				fh = lockedGroundY
-			end
+		if activeDirection == 0 and activeMode ~= "smooth" then
+			fh = lockedGroundY
 		end
 
 		-- Interpolated stamps: bridge the gap between last applied position and
@@ -3473,18 +3467,7 @@ function widget:Update(dt)
 				local t = i / steps
 				local ix = prevX + (lockedWorldX - prevX) * t
 				local iz = prevZ + (lockedWorldZ - prevZ) * t
-				local fhi = fh
-				if activeMode == "smooth" and activeDirection == 0 then
-					local sum = 0
-					local step = activeRadius * 0.4
-					for jx = -2, 2 do
-						for jz = -2, 2 do
-							sum = sum + GetGroundHeight(ix + jx * step, iz + jz * step)
-						end
-					end
-					fhi = sum / 25
-				end
-				sendTerraformMessage(activeDirection, ix, iz, activeRadius, activeShape, activeRotation, activeCurve, fhi)
+				sendTerraformMessage(activeDirection, ix, iz, activeRadius, activeShape, activeRotation, activeCurve, fh)
 			end
 			extraState.interpIntensityScale = 1
 		end

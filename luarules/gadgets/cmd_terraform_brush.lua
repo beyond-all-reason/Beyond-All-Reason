@@ -100,6 +100,7 @@ local currentStrokeId = 0      -- incremented on each STROKE_END; tags all entri
 local lastUndoFrame = -1       -- throttle: only one undo per game frame
 local MAX_RADIUS = 2000
 local MIN_RADIUS = 8
+local MAX_BLUR_STEP = 6  -- smooth mode: widest neighbor spacing (grid cells) at max intensity
 
 -- ── Diagnostics ──────────────────────────────────────────────────────────────
 local DIAG = false  -- set false to silence
@@ -111,6 +112,7 @@ local ringInnerRatio = 0.6
 local scratchHeightData = {}
 local scratchHeightDataMax = 0  -- high-water mark for reliable trimming (avoids # on reused table)
 local scratchSnapFlat = {}  -- flat buffer: x,z,h,x,z,h,... (no sub-table allocation)
+local scratchBlurHeights = {}  -- padded (sw+2)x(sh+2) height grid for smooth-mode local blur
 local scratchParts = {}
 
 -- Parse a space-separated payload into scratchParts, reusing the table
@@ -678,7 +680,7 @@ local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ring
 	return stamp
 end
 
-local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight, instant)
+local function applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight, instant, localBlur)
 	local squareSize = Game.squareSize
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -694,7 +696,7 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 	opacity = opacity or 0.3
 	local dirStep = direction * HEIGHT_STEP
 	local levelTarget
-	if direction == 0 then
+	if direction == 0 and not localBlur then
 		-- Heights are only written after the loop, so this matches the
 		-- per-cell read it replaces.
 		levelTarget = flattenHeight or GetGroundHeight(centerX, centerZ)
@@ -714,6 +716,36 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 	local centerCellX = floor(centerX / squareSize + 0.5)
 	local centerCellZ = floor(centerZ / squareSize + 0.5)
 
+	-- Smooth mode (localBlur): each cell blends toward the mean of its OWN 3x3
+	-- neighborhood instead of one flat target for the whole stamp, so a cell at
+	-- the falloff edge blends toward a value close to its own height (most of
+	-- its neighbors are untouched terrain) -- no plateau-vs-untouched seam.
+	-- Neighbor spacing (blurStep, in grid cells) scales with intensity: at low
+	-- intensity it stays tight (fine-detail smoothing only, gentle), so at high
+	-- intensity a single pass reaches wide enough to actually flatten broad
+	-- bumps instead of forever only erasing single-cell noise. Capped at half
+	-- the brush's own radius so small brushes don't sample past themselves.
+	-- Read the padded rect once; the main loop below reuses it for both the
+	-- cell's own height and all 8 neighbor samples.
+	local blurBuf, blurStride, blurStep
+	if localBlur then
+		local intensityT = max(0, min(1, math.log(intensity / 0.1) / math.log(100.0 / 0.1)))
+		blurStep = floor(1 + intensityT * (MAX_BLUR_STEP - 1) + 0.5)
+		blurStep = max(1, min(blurStep, floor(radius / squareSize / 2)))
+		blurStride = sw + 2 * blurStep
+		blurBuf = scratchBlurHeights
+		for pz = 0, sh - 1 + 2 * blurStep do
+			local zCell = centerCellZ + (pz - blurStep - sCz)
+			local bz = max(0, min(mapSizeZ, zCell * squareSize))
+			local rowBase = pz * blurStride
+			for px = 0, sw - 1 + 2 * blurStep do
+				local xCell = centerCellX + (px - blurStep - sCx)
+				local bx = max(0, min(mapSizeX, xCell * squareSize))
+				blurBuf[rowBase + px + 1] = GetGroundHeight(bx, bz)
+			end
+		end
+	end
+
 	-- Reuse scratch tables to reduce per-frame allocation
 	local heightData = scratchHeightData
 	local snapFlat = scratchSnapFlat
@@ -731,7 +763,25 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 					local xCell = centerCellX + (ix - sCx)
 					local x = xCell * squareSize
 					if x >= 0 and x <= mapSizeX then
-						local current = GetGroundHeight(x, z)
+						local current
+						local blurTarget
+						if localBlur then
+							local rowN = iz * blurStride
+							local rowC = (iz + blurStep) * blurStride
+							local rowS = (iz + 2 * blurStep) * blurStride
+							local colW = ix + 1
+							local colC = ix + blurStep + 1
+							local colE = ix + 2 * blurStep + 1
+							current = blurBuf[rowC + colC]
+							blurTarget = (
+								blurBuf[rowN + colW] + blurBuf[rowN + colC] + blurBuf[rowN + colE] +
+								blurBuf[rowC + colW]                       + blurBuf[rowC + colE] +
+								blurBuf[rowS + colW] + blurBuf[rowS + colC] + blurBuf[rowS + colE] +
+								current
+							) / 9
+						else
+							current = GetGroundHeight(x, z)
+						end
 						-- Write to flat scratch buffer (no sub-table allocation)
 						local base = sCount * 3
 						snapFlat[base + 1] = x
@@ -748,7 +798,8 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 							elseif direction < 0 and heightMin then
 								newHeight = current + (heightMin - current) * falloff
 							elseif direction == 0 then
-								newHeight = current + (levelTarget - current) * falloff
+								local target = localBlur and blurTarget or levelTarget
+								newHeight = current + (target - current) * falloff
 								if heightMin then newHeight = max(heightMin, newHeight) end
 								if heightMax then newHeight = min(heightMax, newHeight) end
 							else
@@ -762,7 +813,8 @@ local function applyTerraform(centerX, centerZ, radius, direction, shape, angleD
 							local delta = (random() * 2 - 1) * HEIGHT_STEP * falloff * intensity * opacity
 							newHeight = current + delta
 						elseif direction == 0 then
-							local diff = levelTarget - current
+							local target = localBlur and blurTarget or levelTarget
+							local diff = target - current
 							local blend = min(1.0, falloff * opacity * intensity)
 							newHeight = current + diff * blend
 						else
@@ -2269,6 +2321,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local dustMode = parts[13] == "1"
 	local opacity = tonumber(parts[14]) or 0.3
 	local instant = parts[15] == "1"
+	-- "smooth" is a sentinel (not a number): smooth mode has no single flatten
+	-- target, the gadget computes one locally per cell instead.
+	local localBlur = parts[16] == "smooth"
 	local flattenHeight = tonumber(parts[16])
 	if parts[17] then
 		ringInnerRatio = max(0.05, min(0.95, tonumber(parts[17]) or 0.6))
@@ -2284,7 +2339,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	lengthScale = max(0.2, min(5.0, lengthScale))
 	opacity = max(0.01, min(1.0, opacity))
 
-	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight, instant)
+	applyTerraform(centerX, centerZ, radius, direction, shape, angleDeg, curve, heightMin, heightMax, intensity, lengthScale, clayMode, opacity, flattenHeight, instant, localBlur)
 	if dustMode then
 		spawnDust(centerX, centerZ, radius, intensity)
 	end
