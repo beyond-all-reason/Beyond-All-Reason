@@ -806,21 +806,19 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 	}
 	setmetatable(widget.whInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation. Saves 0.5us per tracy call, (1 us -> 0.5us)
-	if tracy then
-		widget._tracyUpdateName             = "W:Update:"             .. wi.name
-		widget._tracyViewResizeName         = "W:ViewResize:"         .. wi.name
-		widget._tracyDrawScreenName         = "W:DrawScreen:"         .. wi.name
-		widget._tracyDrawGenesisName        = "W:DrawGenesis:"        .. wi.name
-		widget._tracyDrawWorldName          = "W:DrawWorld:"          .. wi.name
-		widget._tracyDrawWorldPreUnitName   = "W:DrawWorldPreUnit:"   .. wi.name
-		widget._tracyDrawScreenEffectsName  = "W:DrawScreenEffects:"  .. wi.name
-		widget._tracyDrawScreenPostName     = "W:DrawScreenPost:"     .. wi.name
-		widget._tracyGameStartName          = "W:GameStart:"          .. wi.name
-		widget._tracyPlayerChangedName      = "W:PlayerChanged:"      .. wi.name
-		widget._tracyGameFrameName          = "W:GameFrame:"          .. wi.name
-		widget._tracyGameFramePostName      = "W:GameFramePost:"      .. wi.name
-		widget._tracyVisibleUnitsChangedName= "W:VisibleUnitsChanged:".. wi.name
-	end
+	widget._tracyUpdateName             = "W:Update:"             .. wi.name
+	widget._tracyViewResizeName         = "W:ViewResize:"         .. wi.name
+	widget._tracyDrawScreenName         = "W:DrawScreen:"         .. wi.name
+	widget._tracyDrawGenesisName        = "W:DrawGenesis:"        .. wi.name
+	widget._tracyDrawWorldName          = "W:DrawWorld:"          .. wi.name
+	widget._tracyDrawWorldPreUnitName   = "W:DrawWorldPreUnit:"   .. wi.name
+	widget._tracyDrawScreenEffectsName  = "W:DrawScreenEffects:"  .. wi.name
+	widget._tracyDrawScreenPostName     = "W:DrawScreenPost:"     .. wi.name
+	widget._tracyGameStartName          = "W:GameStart:"          .. wi.name
+	widget._tracyPlayerChangedName      = "W:PlayerChanged:"      .. wi.name
+	widget._tracyGameFrameName          = "W:GameFrame:"          .. wi.name
+	widget._tracyGameFramePostName      = "W:GameFramePost:"      .. wi.name
+	widget._tracyVisibleUnitsChangedName= "W:VisibleUnitsChanged:".. wi.name
 end
 
 function widgetHandler:ValidateWidget(widget)

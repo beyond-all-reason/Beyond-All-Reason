@@ -1339,10 +1339,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			if tracy then
-				--tracy.Message(string.format("spawnCreepStructure: %s, flatCheck=%d, occupancyCheck=%d, scumCheck=%d", unitDefName, flatCheck, occupancyCheck, scumCheck))
-				-- testing determined that its mostly occupancy and scum check failing, as expected
-			end
 		else -- Otherwise use Raptor LoS as creep with Players sensors being the safety zone
 			for _ = 1,5 do
 				spawnPosX = mRandom(lsx1 + spread, lsx2 - spread)
@@ -1371,9 +1367,7 @@ if gadgetHandler:IsSyncedCode() then
 				tracy.ZoneEnd()
 				return structureUnitID, spawnPosX, spawnPosY, spawnPosZ
 			else
-				if tracy then
-					tracy.Message(string.format("spawnCreepStructure: Failed to spawn %s at %d*%d*%d ", unitDefName, spawnPosX, spawnPosY, spawnPosZ ))
-				end
+				tracy.Message(string.format("spawnCreepStructure: Failed to spawn %s at %d*%d*%d ", unitDefName, spawnPosX, spawnPosY, spawnPosZ ))
 			end
 		end
 		tracy.ZoneEnd()
