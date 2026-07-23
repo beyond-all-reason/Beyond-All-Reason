@@ -22,7 +22,9 @@ end
 local tableInsert = table.insert
 local tableSort = table.sort
 local tableNew = table.new
+local mathMin = math.min
 local mathFloor = math.floor
+local mathSqrt = math.sqrt
 local mathClamp = math.clamp
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
@@ -369,12 +371,64 @@ local function splitTargets(selectedUnits, filteredTargets)
 	return unitTargetsMap
 end
 
+local function splitTargetsIntoRivers(units, targets)
+	local ucx, ucy, ucz = spGetUnitArrayCentroid(units)
+	local tcx, tcy, tcz = spGetUnitArrayCentroid(targets)
+
+	local dx, dz = tcx - ucx, tcz - ucz
+	local length = mathSqrt(dx * dx + dz * dz)
+
+	if length < 24 then
+		return splitTargets(units, targets)
+	end
+
+	local ux, uz = dx / length, dz / length
+	local px, pz = -uz, ux -- Use the perpendicular or the rivers will be sidelong stripes.
+
+	local function projection(x, z) return (x - ucx) * px + (z - ucz) * pz end
+
+	local countTargets = #targets
+	local countUnits = #units
+	local indexTarget = tableNew(countTargets, 0)
+	local valueTarget = tableNew(countTargets, 0)
+	for i = 1, countTargets do
+		indexTarget[i] = i
+		local x, _, z = spGetUnitPosition(targets[i])
+		valueTarget[i] = projection(x, z)
+	end
+	tableSort(indexTarget, function(a, b) return valueTarget[a] < valueTarget[b] end)
+
+	local indexUnit = tableNew(countUnits, 0)
+	local valueUnit = tableNew(countUnits, 0)
+	for i = 1, countUnits do
+		indexUnit[i] = i
+		local x, _, z = spGetUnitPosition(units[i])
+		valueUnit[i] = projection(x, z)
+	end
+	tableSort(indexUnit, function(a, b) return valueUnit[a] < valueUnit[b] end)
+
+	local result = tableNew(0, countUnits)
+	local perUnit = math.ceil(countTargets / countUnits)
+	for i = 1, countUnits do
+		local unit = units[indexUnit[i]]
+		local start = (i - 1) * perUnit + 1
+		local finish = mathMin(i * perUnit, countTargets)
+		local count = finish - start + 1
+		local tlist = tableNew(count, 0)
+		for j = start, finish do
+			tlist[j - start + 1] = targets[indexTarget[j]]
+		end
+		result[unit] = tlist
+	end
+	return result
+end
+
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathClamp(mathFloor(commandLimit / selectedUnitsLen), 1, commandLimit)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local unitTargetsMap = (selectedUnitsLen <= 200 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
 	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
