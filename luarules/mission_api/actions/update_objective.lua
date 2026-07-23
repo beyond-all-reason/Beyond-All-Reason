@@ -22,11 +22,11 @@ local function updateObjective(objectiveID, completed, textKey)
 end
 
 return {
-	name = 'UpdateObjective',
+	type = 'UpdateObjective',
 	parameters = {
 		{ name = 'objectiveID', required = true, type = Types.ObjectiveID },
 		{ name = 'completed', required = false, type = Types.Boolean },
 		{ name = 'textKey', required = false, type = Types.String },
 	},
-	execute = updateObjective,
+	actionFunction = updateObjective,
 }

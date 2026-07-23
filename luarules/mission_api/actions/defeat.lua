@@ -12,9 +12,9 @@ local function defeat(losingAllyTeamIDs)
 end
 
 return {
-	name = 'Defeat',
+	type = 'Defeat',
 	parameters = {
 		{ name = 'allyTeamIDs', required = true, type = Types.AllyTeamIDs },
 	},
-	execute = defeat,
+	actionFunction = defeat,
 }

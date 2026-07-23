@@ -1,5 +1,5 @@
 return {
-	name = 'AlterMapZones',
+	type = 'AlterMapZones',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

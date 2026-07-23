@@ -5,9 +5,9 @@ local function custom(func)
 end
 
 return {
-	name = 'Custom',
+	type = 'Custom',
 	parameters = {
 		{ name = 'function', required = true, type = Types.Function },
 	},
-	execute = custom,
+	actionFunction = custom,
 }

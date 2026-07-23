@@ -1,5 +1,5 @@
 return {
-	name = 'ControlCamera',
+	type = 'ControlCamera',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

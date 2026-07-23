@@ -1,5 +1,5 @@
 return {
-	name = 'UnrevealLOS',
+	type = 'UnrevealLOS',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

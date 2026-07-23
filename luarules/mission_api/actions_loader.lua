@@ -3,36 +3,26 @@ local ACTION_FILES_PATTERN = '*.lua'
 
 local function loadActionDefinitions()
 	local actionFiles = VFS.DirList(ACTIONS_DIR, ACTION_FILES_PATTERN)
-	table.sort(actionFiles)
 
 	local types = {}
 	local parameters = {}
-	local functionsByType = {}
+	local actionFunctions = {}
 
 	for typeID, filePath in ipairs(actionFiles) do
 		local actionDefinition = VFS.Include(filePath)
-		local actionName = actionDefinition.name
+		local actionType = actionDefinition.type
 
-		types[actionName] = typeID
+		types[actionType] = typeID
 		parameters[typeID] = actionDefinition.parameters or {}
-		functionsByType[typeID] = actionDefinition.execute or function() end
+		actionFunctions[typeID] = actionDefinition.actionFunction
 	end
 
 	return {
 		Types = types,
 		Parameters = parameters,
-		Functions = functionsByType,
+		Functions = actionFunctions,
 	}
 end
-
---[[
-	actionID = {
-		type = actionTypes.EnableTrigger,
-		parameters = {
-			triggerID = 'triggerID'
-		}
-	}
-]]
 
 local function processRawActions(rawActions)
 	local actions = table.map(rawActions, table.copy)

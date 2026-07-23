@@ -9,9 +9,9 @@ local function drawLines(positions)
 end
 
 return {
-	name = 'DrawLines',
+	type = 'DrawLines',
 	parameters = {
 		{ name = 'positions', required = true, type = Types.Positions },
 	},
-	execute = drawLines,
+	actionFunction = drawLines,
 }

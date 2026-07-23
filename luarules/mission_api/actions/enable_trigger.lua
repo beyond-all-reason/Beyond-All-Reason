@@ -5,7 +5,7 @@ local function enableTrigger(triggerID)
 end
 
 return {
-	name = 'EnableTrigger',
+	type = 'EnableTrigger',
 	parameters = {
 		{
 			name = 'triggerID',
@@ -13,5 +13,5 @@ return {
 			type = Types.TriggerID
 		}
 	},
-	execute = enableTrigger
+	actionFunction = enableTrigger
 }

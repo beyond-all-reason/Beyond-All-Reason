@@ -1,5 +1,5 @@
 return {
-	name = 'SpawnWeapon',
+	type = 'SpawnWeapon',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

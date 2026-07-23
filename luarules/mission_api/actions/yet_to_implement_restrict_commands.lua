@@ -1,5 +1,5 @@
 return {
-	name = 'RestrictCommands',
+	type = 'RestrictCommands',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

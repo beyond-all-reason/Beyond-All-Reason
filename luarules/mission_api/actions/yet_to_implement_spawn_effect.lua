@@ -1,5 +1,5 @@
 return {
-	name = 'SpawnEffect',
+	type = 'SpawnEffect',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

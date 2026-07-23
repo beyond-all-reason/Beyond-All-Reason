@@ -5,9 +5,9 @@ local function changeStage(stageID)
 end
 
 return {
-	name = 'ChangeStage',
+	type = 'ChangeStage',
 	parameters = {
 		{ name = 'stageID', required = true, type = Types.StageID },
 	},
-	execute = changeStage,
+	actionFunction = changeStage,
 }

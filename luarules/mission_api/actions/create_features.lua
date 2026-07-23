@@ -5,9 +5,9 @@ local function createFeatures(featureLoadout)
 end
 
 return {
-	name = 'CreateFeatures',
+	type = 'CreateFeatures',
 	parameters = {
 		{ name = 'featureLoadout', required = true, type = Types.FeatureLoadout },
 	},
-	execute = createFeatures,
+	actionFunction = createFeatures,
 }

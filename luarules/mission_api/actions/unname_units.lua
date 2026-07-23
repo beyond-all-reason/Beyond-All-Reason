@@ -6,9 +6,9 @@ local function unnameUnits(unitName)
 end
 
 return {
-	name = 'UnnameUnits',
+	type = 'UnnameUnits',
 	parameters = {
 		{ name = 'unitName', required = true, type = Types.UnitName },
 	},
-	execute = unnameUnits,
+	actionFunction = unnameUnits,
 }

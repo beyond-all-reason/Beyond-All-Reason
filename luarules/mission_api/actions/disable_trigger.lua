@@ -5,9 +5,9 @@ local function disableTrigger(triggerID)
 end
 
 return {
-	name = 'DisableTrigger',
+	type = 'DisableTrigger',
 	parameters = {
 		{ name = 'triggerID', required = true, type = Types.TriggerID },
 	},
-	execute = disableTrigger,
+	actionFunction = disableTrigger,
 }

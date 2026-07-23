@@ -1,5 +1,5 @@
 return {
-	name = 'AlterBuildlist',
+	type = 'AlterBuildlist',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

@@ -5,9 +5,9 @@ local function victory(winningAllyTeamIDs)
 end
 
 return {
-	name = 'Victory',
+	type = 'Victory',
 	parameters = {
 		{ name = 'allyTeamIDs', required = true, type = Types.AllyTeamIDs },
 	},
-	execute = victory,
+	actionFunction = victory,
 }

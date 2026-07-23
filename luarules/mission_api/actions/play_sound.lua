@@ -10,12 +10,12 @@ local function playSound(soundfile, volume, position, enqueue)
 end
 
 return {
-	name = 'PlaySound',
+	type = 'PlaySound',
 	parameters = {
 		{ name = 'soundfile', required = true, type = Types.SoundFile },
 		{ name = 'volume', required = false, type = Types.Number },
 		{ name = 'position', required = false, type = Types.Position },
 		{ name = 'enqueue', required = false, type = Types.Boolean },
 	},
-	execute = playSound,
+	actionFunction = playSound,
 }

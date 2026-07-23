@@ -1,5 +1,5 @@
 return {
-	name = 'EnableBuildOption',
+	type = 'EnableBuildOption',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

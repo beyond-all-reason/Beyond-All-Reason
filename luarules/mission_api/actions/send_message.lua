@@ -1,9 +1,9 @@
 local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 return {
-	name = 'SendMessage',
+	type = 'SendMessage',
 	parameters = {
 		{ name = 'message', required = true, type = Types.String },
 	},
-	execute = Spring.Echo,
+	actionFunction = Spring.Echo,
 }

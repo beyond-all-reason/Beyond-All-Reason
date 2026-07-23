@@ -1,5 +1,5 @@
 return {
-	name = 'Pause',
+	type = 'Pause',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }

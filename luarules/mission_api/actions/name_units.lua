@@ -46,7 +46,7 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 end
 
 return {
-	name = 'NameUnits',
+	type = 'NameUnits',
 	parameters = {
 		{ name = 'unitName', required = true, type = Types.UnitName },
 		{ name = 'teamID', required = false, type = Types.Number },
@@ -54,5 +54,5 @@ return {
 		{ name = 'area', required = false, type = Types.Area },
 		requiresOneOf = { 'teamID', 'unitDefName', 'area' },
 	},
-	execute = nameUnits,
+	actionFunction = nameUnits,
 }

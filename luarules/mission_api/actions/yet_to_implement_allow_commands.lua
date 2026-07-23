@@ -1,5 +1,5 @@
 return {
-	name = 'AllowCommands',
+	type = 'AllowCommands',
 	parameters = {},
-	execute = function() end,
+	actionFunction = function() end,
 }
