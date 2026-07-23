@@ -312,14 +312,14 @@ end
 local function byDistanceToFeature(position, closestFirst)
 	if closestFirst ~= false then
 		return function(targetIdA, targetIdB)
-			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
-			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			local positionA = toPositionTable(spGetFeaturePosition(targetIdA))
+			local positionB = toPositionTable(spGetFeaturePosition(targetIdB))
 			return distanceSq(position, positionA) < distanceSq(position, positionB)
 		end
 	else
 		return function(targetIdA, targetIdB)
-			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
-			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			local positionA = toPositionTable(spGetFeaturePosition(targetIdA))
+			local positionB = toPositionTable(spGetFeaturePosition(targetIdB))
 			return distanceSq(position, positionA) > distanceSq(position, positionB)
 		end
 	end
