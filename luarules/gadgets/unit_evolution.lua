@@ -70,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitFamily = {}
 
 	-- Temporary state while evolve() replaces one unit with another.
-	local evolutionReplacement
+	local currentEvolutionData
 
 	local function getFamilyCount(teamID, rootUnitDefID)
 		local teamCounts = familyCount[teamID]
