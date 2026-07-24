@@ -9,7 +9,9 @@ local function removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTe
 	for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
             if reclaim then
-                if not reclaimerTeam then reclaimerTeam = Spring.GetUnitTeam(unitID) end
+                if not reclaimerTeam then
+                    reclaimerTeam = Spring.GetUnitTeam(unitID)
+                end
                 local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
                 if unitDef and unitDef.metalCost then
                     Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost)
