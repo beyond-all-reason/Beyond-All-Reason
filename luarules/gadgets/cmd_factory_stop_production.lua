@@ -54,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 		while count > 0 do
 			local opts = DEQUEUE_OPTS
 			if count >= 100 then
-			count = count - 100
+				count = count - 100
 				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
 			elseif count >= 20 then
 				count = count - 20
@@ -75,8 +75,8 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		end
 
-		-- Dequeue build order by sending build command to factory to minimize number of commands sent
-		-- As opposed to removing each build command individually
+		-- Dequeue build order by sending build command to factory to minimize number of commands sent.
+		-- As opposed to removing each build command individually.
 		local queue = spGetRealBuildQueue(unitID)
 		if queue ~= nil then
 			local total = 0
@@ -92,6 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 					keepDefID = -firstID
 				end
 			end
+
 			for _, buildPair in ipairs(queue) do
 				local buildUnitDefID, count = next(buildPair, nil)
 				if keepDefID == buildUnitDefID then
