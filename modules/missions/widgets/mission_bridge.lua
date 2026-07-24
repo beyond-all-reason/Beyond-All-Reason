@@ -19,6 +19,7 @@ end
 local VIEW_PATH = "modules/missions/editor/mission_view.json"
 local DOMAINS_PATH = "modules/missions/editor/domains.json"
 local STATE_PATH = "modules/missions/editor/state.json"
+local ACTIVE_PATH = "modules/missions/editor/active_mission.json"
 local POLL_SECONDS = 0.5
 local LIVE_SAMPLE_SECONDS = 1.0
 
@@ -145,11 +146,25 @@ local function pollArtifact(dt)
 	end
 end
 
+local lastMissionName = nil
+
+---Tell serve which mission is armed so it can re-scope the editor
+---(--missions-root mode): picker click retargets form, probes, Edit button.
+local function publishActiveMission()
+	local name = Spring.GetGameRulesParam("mission_name")
+	if name == lastMissionName or type(name) ~= "string" then
+		return
+	end
+	lastMissionName = name
+	writeJson(ACTIVE_PATH, { name = name })
+end
+
 function widget:Update(dt)
 	pollArtifact(dt)
 	liveAccumulator = liveAccumulator + dt
 	if liveAccumulator >= LIVE_SAMPLE_SECONDS then
 		liveAccumulator = 0
+		publishActiveMission()
 		sampleLive()
 	end
 end
