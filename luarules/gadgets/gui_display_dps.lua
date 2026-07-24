@@ -96,8 +96,8 @@ local ignoreDamageTypes = {}
 
 -- Do not display death-reason damage types which typically use overkill damage.
 ignoreDamageTypes[Game.envDamageTypes.Killed] = true
+-- ignoreDamageTypes[Game.envDamageTypes.Crushed] = true -- Seems like an exception.
 ignoreDamageTypes[Game.envDamageTypes.Reclaimed] = true
-ignoreDamageTypes[Game.envDamageTypes.TurnedIntoFeature] = true
 ignoreDamageTypes[Game.envDamageTypes.TransportKilled] = true
 ignoreDamageTypes[Game.envDamageTypes.FactoryKilled] = true
 ignoreDamageTypes[Game.envDamageTypes.FactoryCancel] = true
@@ -105,6 +105,13 @@ ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
 ignoreDamageTypes[Game.envDamageTypes.OutOfBounds] = true
 ignoreDamageTypes[Game.envDamageTypes.KilledByCheat] = true
 ignoreDamageTypes[Game.envDamageTypes.KilledByLua] = true
+
+-- We likely want to ignore most self-damages used to control e.g. build progress.
+ignoreDamageTypes[Game.envDamageTypes.Kamikaze] = true
+ignoreDamageTypes[Game.envDamageTypes.SelfD] = true
+ignoreDamageTypes[Game.envDamageTypes.ConstructionDecay] = true
+ignoreDamageTypes[Game.envDamageTypes.TurnedIntoFeature] = true -- end of build with unitDef->isFeature
+ignoreDamageTypes[Game.envDamageTypes.UnitScript] = true -- likely to be self-damage?
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
