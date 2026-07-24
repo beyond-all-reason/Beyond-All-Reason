@@ -115,7 +115,7 @@ return {
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 35,
-				range = 3650,
+				range = 3000,
 				reloadtime = 2,
 				smokecolor = 0.9,
 				smokeperiod = 8,
