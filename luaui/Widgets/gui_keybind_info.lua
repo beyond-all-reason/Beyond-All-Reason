@@ -47,7 +47,7 @@ local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
-local keybinds, backgroundGuishader, show
+local keybinds, backgroundGuishader, show, wasShown
 
 local function drawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
@@ -211,6 +211,13 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:Update()
+	-- Re-snapshot the live keymap each time the panel opens so bindings made since
+	-- (e.g. a runtime /bind) show without waiting for a preset switch or keyreload.
+	if show and not wasShown then
+		refreshText()
+	end
+	wasShown = show
+
 	local want = show and keybindEditor.wantsTextOwner()
 	if want then
 		widgetHandler.textOwner = widget
