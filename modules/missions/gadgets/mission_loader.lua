@@ -141,8 +141,7 @@ local function makeMatchFlowVerbs(matchflowApi)
 		---@param team MissionTeam
 		---@return MissionEffect
 		Victory = function(team)
-			assert(type(team) == "table" and type(team.allyTeam) == "number",
-				"MatchFlow.Victory expects a Team handle (e.g. Team.Player)")
+			assert(type(team) == "table" and type(team.allyTeam) == "number", "MatchFlow.Victory expects a Team handle (e.g. Team.Player)")
 			return {
 				execute = function()
 					matchflowApi.Victory(team.allyTeam)
@@ -152,8 +151,7 @@ local function makeMatchFlowVerbs(matchflowApi)
 		---@param team MissionTeam
 		---@return MissionEffect
 		Defeat = function(team)
-			assert(type(team) == "table" and type(team.allyTeam) == "number",
-				"MatchFlow.Defeat expects a Team handle (e.g. Team.Player)")
+			assert(type(team) == "table" and type(team.allyTeam) == "number", "MatchFlow.Defeat expects a Team handle (e.g. Team.Player)")
 			return {
 				execute = function()
 					matchflowApi.Defeat({ team.allyTeam })
@@ -207,6 +205,7 @@ local function loadMission(missionName)
 	syncWatchedCallins()
 	activeMission = missionName
 	Spring.SetGameRulesParam("mission_active", 1)
+	Spring.SetGameRulesParam("mission_name", missionName)
 	Spring.Echo("[" .. LOG_TAG .. "] mission armed: " .. missionName .. " (" .. #engine.Triggers() .. " trigger(s))")
 	return true
 end
