@@ -55,6 +55,7 @@ local weAreVoteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonA
 local voteEndTime, voteEndText
 
 local eligibleToVote = false
+local teamResignMode = Spring.GetModOptions().team_resign
 
 local votesRequired, votesEligible
 local votesCountYes = 0
@@ -434,6 +435,10 @@ function widget:AddConsoleLine(lines, priority)
 					local teamResignTarget = string.match(line, TEAM_RESIGN_VOTE_PATTERN)
 
 					local isIndividualResignVote = individualResignTarget ~= nil
+					if teamResignMode then
+						isIndividualResignVote = nil
+					end
+
 					local isTeamResignVote = teamResignTarget ~= nil
 
 					local isResignVote = isIndividualResignVote or isTeamResignVote
