@@ -1373,6 +1373,8 @@
 				"cursorsize_descr": "Note that cursor already auto-scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size",
 				"doubleclicktime": "Double-click time",
 				"doubleclicktime_descr": "Time in ms between two consecutive left clicks to be considered a doubleclick",
+				"screen_select_double_click_enabled": "Double-click Mass Orders",
+				"screen_select_double_click_enabled_descr": "Double click to mass-order visible targets. Disable to exempt orders from double-clicking.",
 				"dragthreshold": "Drag threshold",
 				"dragthreshold_descr": "Number of pixels of mouse movement for a click to be considered a drag",
 				"crossalpha": "Cursor 'cross' alpha",
