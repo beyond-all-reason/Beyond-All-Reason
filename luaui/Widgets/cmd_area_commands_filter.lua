@@ -79,6 +79,38 @@ local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
 end
 
+local getFeatureID, getFeaturePosition; do
+	local function getFeatureIDFromObjectID(targetID)
+		return targetID
+	end
+	local function getFeatureIDFromOffsetID(targetID)
+		return targetID - UNIT_ID_MAX
+	end
+	getFeatureID = offsetFeatureID and getFeatureIDFromOffsetID or getFeatureIDFromObjectID
+
+	local function getFeaturePositionFromObjectID(targetID)
+		return spGetFeaturePosition(targetID)
+	end
+	local function getFeaturePositionFromOffsetID(targetID)
+		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
+	end
+	getFeaturePosition = offsetFeatureID and getFeaturePositionFromOffsetID or getFeaturePositionFromObjectID
+end
+
+---Shim for feature centroids which do not have an engine callout.
+local function getObjectArrayCentroid(targets, targetsAreFeatures)
+	if not targetsAreFeatures then
+		return spGetUnitArrayCentroid(targets)
+	end
+	local sumX, sumY, sumZ = 0, 0, 0
+	local count = #targets
+	for i = 1, count do
+		local x, y, z = spGetFeaturePosition(getFeatureID(targets[i]))
+		sumX, sumY, sumZ = sumX + x, sumY + y, sumZ + z
+	end
+	return sumX / count, sumY / count, sumZ / count
+end
+
 ----------------------------------------------------------------------------------------------------------
 --- Logic which distributes targets between transports. Should be split and extracted to separate widget
 --- Preferably after https://github.com/beyond-all-reason/Beyond-All-Reason/pull/5738 will be merged
@@ -314,14 +346,14 @@ end
 local function byDistanceToFeature(position, closestFirst)
 	if closestFirst ~= false then
 		return function(targetIdA, targetIdB)
-			local positionA = toPositionTable(spGetFeaturePosition(targetIdA))
-			local positionB = toPositionTable(spGetFeaturePosition(targetIdB))
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
 			return distanceSq(position, positionA) < distanceSq(position, positionB)
 		end
 	else
 		return function(targetIdA, targetIdB)
-			local positionA = toPositionTable(spGetFeaturePosition(targetIdA))
-			local positionB = toPositionTable(spGetFeaturePosition(targetIdB))
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
 			return distanceSq(position, positionA) > distanceSq(position, positionB)
 		end
 	end
@@ -383,8 +415,10 @@ local function sortByProjection(position, projection, units, count)
 end
 
 local function splitTargetsIntoRivers(units, targets)
+	local targetsAreFeatures = targets[1] > UNIT_ID_MAX
+	local targetPosition = targetsAreFeatures and getFeaturePosition or spGetUnitPosition
+	local tcx, tcy, tcz = getObjectArrayCentroid(targets, targetsAreFeatures)
 	local ucx, ucy, ucz = spGetUnitArrayCentroid(units)
-	local tcx, tcy, tcz = spGetUnitArrayCentroid(targets)
 
 	local dx, dz = tcx - ucx, tcz - ucz
 	local length = mathSqrt(dx * dx + dz * dz)
@@ -401,9 +435,8 @@ local function splitTargetsIntoRivers(units, targets)
 	local countTargets = #targets
 	local countUnits = #units
 
-	-- TODO: fix unit/feature splits again
 	local indexUnit = sortByProjection(spGetUnitPosition, projection, units, countUnits)
-	local indexTarget = sortByProjection(spGetUnitPosition, projection, targets, countTargets)
+	local indexTarget = sortByProjection(targetPosition, projection, targets, countTargets)
 
 	local result = tableNew(0, countUnits)
 	local perUnit = math.ceil(countTargets / countUnits)
