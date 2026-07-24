@@ -11,7 +11,7 @@ local function loadActionDefinitions()
 
 	for _, filePath in ipairs(actionFiles) do
 		local actionDefinitions = VFS.Include(filePath)
-		for _, actionDefinition in pairs(actionDefinitions) do
+		for _, actionDefinition in ipairs(actionDefinitions) do
 			typesCount = typesCount + 1
 			local actionType = actionDefinition.type
 
