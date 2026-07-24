@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name = "Unit Evolution",
 		desc = "Evolves a unit permanently into another unit when certain criteria are met",
-		author = "Xehrath, tetrisface",
+		author = "Xehrath, tetrisface, RandomGuyJunior",
 		date = "2023-03-31",
 		license = "None",
 		layer = 50,
@@ -38,8 +38,11 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 	local spGetAllUnits = Spring.GetAllUnits
 	local spGetUnitDefID = Spring.GetUnitDefID
+	local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
+	local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 
 	local GAME_SPEED = Game.gameSpeed
+	local DEFAULT_MAX_THIS_UNIT = 32000
 	local PRIVATE = { private = true }
 
 	local evolutionMetaList = {}
@@ -57,27 +60,35 @@ if gadgetHandler:IsSyncedCode() then
 	-- Evolution-family limits
 	--------------------------------------------------------------------------------
 
-	-- Every stage maps to the first UnitDef in its evolution line.
+	-- Every connected evolution UnitDef maps to one shared family ID.
 	local evolutionFamily = {}
 
-	-- The root UnitDef's maxThisUnit applies to the whole line.
+	-- The smallest configured maxThisUnit in the family applies to all members.
 	local familyLimit = {}
 
-	-- familyCount[teamID][rootUnitDefID] = number of live family members.
+	-- familyCount[teamID][familyID] = number of live family members.
 	local familyCount = {}
 
-	-- unitFamily[unitID] = rootUnitDefID.
+	-- unitFamily[unitID] = familyID.
 	local unitFamily = {}
+
+	-- familyMembers[familyID][unitDefID] = true.
+	local familyMembers = {}
+
+	-- familyBuilders[teamID][familyID][builderID] = true.
+	local familyBuilders = {}
 
 	-- Temporary state while evolve() replaces one unit with another.
 	local currentEvolutionData
 
-	local function getFamilyCount(teamID, rootUnitDefID)
+	local updateFamilyBuildCommands
+
+	local function getFamilyCount(teamID, familyID)
 		local teamCounts = familyCount[teamID]
-		return teamCounts and teamCounts[rootUnitDefID] or 0
+		return teamCounts and teamCounts[familyID] or 0
 	end
 
-	local function changeFamilyCount(teamID, rootUnitDefID, amount)
+	local function changeFamilyCount(teamID, familyID, amount)
 		local teamCounts = familyCount[teamID]
 
 		if not teamCounts then
@@ -88,56 +99,60 @@ if gadgetHandler:IsSyncedCode() then
 			familyCount[teamID] = teamCounts
 		end
 
-		local newCount = (teamCounts[rootUnitDefID] or 0) + amount
+		local newCount = (teamCounts[familyID] or 0) + amount
 
 		if newCount > 0 then
-			teamCounts[rootUnitDefID] = newCount
+			teamCounts[familyID] = newCount
 		else
-			teamCounts[rootUnitDefID] = nil
+			teamCounts[familyID] = nil
 			if not next(teamCounts) then
 				familyCount[teamID] = nil
 			end
 		end
+
+		if updateFamilyBuildCommands then
+			updateFamilyBuildCommands(teamID, familyID)
+		end
 	end
 
 	local function registerFamilyUnit(unitID, unitDefID, teamID)
-		local rootUnitDefID = evolutionFamily[unitDefID]
+		local familyID = evolutionFamily[unitDefID]
 
-		if not rootUnitDefID or unitFamily[unitID] then
+		if not familyID or unitFamily[unitID] then
 			return
 		end
 
-		local replacement = evolutionReplacement
+		local replacement = currentEvolutionData
 
 		if replacement
 			and replacement.targetUnitDefID == unitDefID
 			and replacement.teamID == teamID
-			and replacement.rootUnitDefID == rootUnitDefID
+			and replacement.familyID == familyID
 		then
 			-- The evolved form inherits the old form's existing slot.
 			unitFamily[replacement.oldUnitID] = nil
-			unitFamily[unitID] = rootUnitDefID
-			evolutionReplacement = nil
+			unitFamily[unitID] = familyID
+			currentEvolutionData = nil
 			return
 		end
 
-		changeFamilyCount(teamID, rootUnitDefID, 1)
-		unitFamily[unitID] = rootUnitDefID
+		changeFamilyCount(teamID, familyID, 1)
+		unitFamily[unitID] = familyID
 	end
 
 	local function unregisterFamilyUnit(unitID, teamID)
-		local rootUnitDefID = unitFamily[unitID]
+		local familyID = unitFamily[unitID]
 
-		if not rootUnitDefID then
+		if not familyID then
 			return
 		end
 
 		unitFamily[unitID] = nil
-		changeFamilyCount(teamID, rootUnitDefID, -1)
+		changeFamilyCount(teamID, familyID, -1)
 	end
 
 	local function buildEvolutionFamilies()
-		local targetToSource = {}
+		local evolutionLinks = {}
 		local participatingDefs = {}
 
 		for sourceUnitDefID, unitDef in pairs(UnitDefs) do
@@ -145,44 +160,159 @@ if gadgetHandler:IsSyncedCode() then
 			local targetDef = targetName and UnitDefNames[targetName]
 
 			if targetDef then
-				participatingDefs[sourceUnitDefID] = true
-				participatingDefs[targetDef.id] = true
+				local targetUnitDefID = targetDef.id
 
-				if targetToSource[targetDef.id]
-					and targetToSource[targetDef.id] ~= sourceUnitDefID
-				then
-					spEcho(string.format(
-						"[Unit Evolution] Multiple units evolve into '%s'; family limit disabled for that branch",
-						targetDef.name
-					))
-					targetToSource[targetDef.id] = false
-				elseif targetToSource[targetDef.id] == nil then
-					targetToSource[targetDef.id] = sourceUnitDefID
-				end
+				participatingDefs[sourceUnitDefID] = true
+				participatingDefs[targetUnitDefID] = true
+
+				evolutionLinks[sourceUnitDefID] = evolutionLinks[sourceUnitDefID] or {}
+				evolutionLinks[targetUnitDefID] = evolutionLinks[targetUnitDefID] or {}
+
+				-- Links are bidirectional only for family discovery.
+				-- Evolution itself remains directed through evolution_target.
+				evolutionLinks[sourceUnitDefID][targetUnitDefID] = true
+				evolutionLinks[targetUnitDefID][sourceUnitDefID] = true
 			end
 		end
 
-		for unitDefID in pairs(participatingDefs) do
-			local rootUnitDefID = unitDefID
-			local visited = {}
+		local visited = {}
 
-			while targetToSource[rootUnitDefID] do
-				if visited[rootUnitDefID] then
-					rootUnitDefID = nil
-					break
+		for startUnitDefID in pairs(participatingDefs) do
+			if not visited[startUnitDefID] then
+				local family = {}
+				local stack = { startUnitDefID }
+				local familyID = startUnitDefID
+				local limit
+
+				visited[startUnitDefID] = true
+
+				while #stack > 0 do
+					local unitDefID = stack[#stack]
+					stack[#stack] = nil
+
+					family[#family + 1] = unitDefID
+
+					if unitDefID < familyID then
+						familyID = unitDefID
+					end
+
+					local unitLimit = tonumber(UnitDefs[unitDefID].maxThisUnit)
+
+					if unitLimit
+						and unitLimit > 0
+						and unitLimit < DEFAULT_MAX_THIS_UNIT
+					then
+						if not limit or unitLimit < limit then
+							limit = unitLimit
+						end
+					end
+
+					local linkedDefs = evolutionLinks[unitDefID]
+
+					if linkedDefs then
+						for linkedUnitDefID in pairs(linkedDefs) do
+							if not visited[linkedUnitDefID] then
+								visited[linkedUnitDefID] = true
+								stack[#stack + 1] = linkedUnitDefID
+							end
+						end
+					end
 				end
 
-				visited[rootUnitDefID] = true
-				rootUnitDefID = targetToSource[rootUnitDefID]
+				if limit then
+					familyLimit[familyID] = limit
+					familyMembers[familyID] = {}
+
+					for i = 1, #family do
+						local unitDefID = family[i]
+						evolutionFamily[unitDefID] = familyID
+						familyMembers[familyID][unitDefID] = true
+					end
+				end
 			end
+		end
+	end
 
-			if rootUnitDefID then
-				local limit = tonumber(UnitDefs[rootUnitDefID].maxThisUnit)
 
-				if limit and limit > 0 then
-					evolutionFamily[unitDefID] = rootUnitDefID
-					familyLimit[rootUnitDefID] = limit
-				end
+
+	local function updateBuilderFamilyCommands(builderID, teamID, familyID)
+		local members = familyMembers[familyID]
+		local limit = familyLimit[familyID]
+
+		if not members or not limit then
+			return
+		end
+
+		local disabled = getFamilyCount(teamID, familyID) >= limit
+
+		for unitDefID in pairs(members) do
+			local cmdDescID = spFindUnitCmdDesc(builderID, -unitDefID)
+
+			if cmdDescID then
+				spEditUnitCmdDesc(builderID, cmdDescID, {
+					disabled = disabled,
+				})
+			end
+		end
+	end
+
+	updateFamilyBuildCommands = function(teamID, familyID)
+		local teamBuilders = familyBuilders[teamID]
+		local builders = teamBuilders and teamBuilders[familyID]
+
+		if not builders then
+			return
+		end
+
+		for builderID in pairs(builders) do
+			if spGetUnitDefID(builderID) then
+				updateBuilderFamilyCommands(builderID, teamID, familyID)
+			else
+				builders[builderID] = nil
+			end
+		end
+	end
+
+	local function unregisterFamilyBuilder(builderID, teamID)
+		local teamBuilders = familyBuilders[teamID]
+
+		if not teamBuilders then
+			return
+		end
+
+		for familyID, builders in pairs(teamBuilders) do
+			builders[builderID] = nil
+
+			if not next(builders) then
+				teamBuilders[familyID] = nil
+			end
+		end
+
+		if not next(teamBuilders) then
+			familyBuilders[teamID] = nil
+		end
+	end
+
+	local function registerFamilyBuilder(builderID, builderDefID, teamID)
+		local buildOptions = UnitDefs[builderDefID].buildOptions
+
+		if not buildOptions then
+			return
+		end
+
+		local registeredFamilies = {}
+
+		for i = 1, #buildOptions do
+			local familyID = evolutionFamily[buildOptions[i]]
+
+			if familyID and not registeredFamilies[familyID] then
+				familyBuilders[teamID] = familyBuilders[teamID] or {}
+				familyBuilders[teamID][familyID] =
+					familyBuilders[teamID][familyID] or {}
+				familyBuilders[teamID][familyID][builderID] = true
+				registeredFamilies[familyID] = true
+
+				updateBuilderFamilyCommands(builderID, teamID, familyID)
 			end
 		end
 	end
@@ -318,25 +448,25 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local rootUnitDefID = evolutionFamily[targetUnitDef.id]
-		if rootUnitDefID then
-			evolutionReplacement = {
+		local familyID = evolutionFamily[targetUnitDef.id]
+		if familyID then
+			currentEvolutionData = {
 				oldUnitID = unitID,
 				targetUnitDefID = targetUnitDef.id,
-				rootUnitDefID = rootUnitDefID,
+				familyID = familyID,
 				teamID = team,
 			}
 		end
 
 		local newUnitID = spCreateUnit(toUnitNameSkipped, x, y, z , face, team)
 		if not newUnitID then
-			evolutionReplacement = nil
+			currentEvolutionData = nil
 			evolutionMetaList[unitID] = evolution
 			return
 		end
 
 		-- UnitCreated normally consumes the replacement during Spring.CreateUnit.
-		evolutionReplacement = nil
+		currentEvolutionData = nil
 
 		if (not evolution.evolution_condition
 			or evolution.evolution_condition == 'timer'
@@ -432,27 +562,28 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowUnitCreation(unitDefID, builderID, builderTeamID)
-		local rootUnitDefID = evolutionFamily[unitDefID]
+		local familyID = evolutionFamily[unitDefID]
 
-		if not rootUnitDefID then
+		if not familyID then
 			return true
 		end
 
-		local replacement = evolutionReplacement
+		local replacement = currentEvolutionData
 
 		if replacement
 			and replacement.targetUnitDefID == unitDefID
 			and replacement.teamID == builderTeamID
-			and replacement.rootUnitDefID == rootUnitDefID
+			and replacement.familyID == familyID
 		then
 			return true
 		end
 
-		return getFamilyCount(builderTeamID, rootUnitDefID) < familyLimit[rootUnitDefID]
+		return getFamilyCount(builderTeamID, familyID) < familyLimit[familyID]
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		registerFamilyUnit(unitID, unitDefID, unitTeam)
+		registerFamilyBuilder(unitID, unitDefID, unitTeam)
 
 		local udcp = UnitDefs[unitDefID].customParams
 		if udcp.evolution_target then
@@ -484,6 +615,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		unregisterFamilyBuilder(unitID, unitTeam)
 		unregisterFamilyUnit(unitID, unitTeam)
 
 		if evolutionMetaList[unitID] then
@@ -507,24 +639,29 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeamID, newTeamID)
-		local rootUnitDefID = evolutionFamily[unitDefID]
+		local familyID = evolutionFamily[unitDefID]
 
-		if not rootUnitDefID or oldTeamID == newTeamID then
+		if not familyID or oldTeamID == newTeamID then
 			return true
 		end
 
-		return getFamilyCount(newTeamID, rootUnitDefID) < familyLimit[rootUnitDefID]
+		return getFamilyCount(newTeamID, familyID) < familyLimit[familyID]
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
-		local rootUnitDefID = unitFamily[unitID]
-
-		if not rootUnitDefID or newTeamID == oldTeamID then
+		if newTeamID == oldTeamID then
 			return
 		end
 
-		changeFamilyCount(oldTeamID, rootUnitDefID, -1)
-		changeFamilyCount(newTeamID, rootUnitDefID, 1)
+		unregisterFamilyBuilder(unitID, oldTeamID)
+		registerFamilyBuilder(unitID, unitDefID, newTeamID)
+
+		local familyID = unitFamily[unitID]
+
+		if familyID then
+			changeFamilyCount(oldTeamID, familyID, -1)
+			changeFamilyCount(newTeamID, familyID, 1)
+		end
 	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
