@@ -1575,7 +1575,9 @@ local function AddObject(objectID, drawFlag, reason)
 		objectDefID = spGetUnitDefID(objectID)
 		objectIDtoDefID[objectID] = objectDefID
 	else
-		objectDefID = -1 * spGetFeatureDefID(-1 * objectID)
+		local featureDefID = spGetFeatureDefID(-1 * objectID)
+		if featureDefID == nil then return end
+		objectDefID = -featureDefID
 		objectIDtoDefID[objectID] = objectDefID
 	end
 	if debugmode then Spring.Echo("AddObject",objectID, objectDefID, drawFlag, reason) end
