@@ -2,7 +2,7 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
     return {
-        name      = "GeoVent Sounds",
+        name      = "Atmosphere Sound Effects",
         desc      = "Plays sound effect over geovents",
         author    = "Damgam",
         date      = "2023",
@@ -112,9 +112,9 @@ end
 function PlaySeaSound(n) -- We want wind to play at volume depending on wind speed and height.
     local randomposx = math.random(0, data.map_sizeX)
     local randomposz = math.random(0, data.map_sizeZ)
-    local randomposy = Spring.GetGroundHeight(randomposx, randomposz) 
+    local randomposy = Spring.GetGroundHeight(randomposx, randomposz)
     if randomposy <= data.sea_minDepth and Spring.IsSphereInView(randomposx,randomposy + 400,randomposz) then
-        local windSpeed = select(4, Spring.GetWind())/25 
+        local windSpeed = select(4, Spring.GetWind())/25
         if math.random() > 0.1 then
             Spring.PlaySoundFile(data.sea_soundBank[math.random(1,#data.sea_soundBank)], (0.10 + (windSpeed*0.75)), randomposx, (randomposy + 400), randomposz, 'sfx')
         else
@@ -129,7 +129,7 @@ function PlayBeachSound(n) -- We want wind to play at volume depending on wind s
     local randomposz = math.random(0, data.map_sizeZ)
     local randomposy = Spring.GetGroundHeight(randomposx, randomposz)
     if randomposy < 0 and randomposy >= data.beach_maxDepth and Spring.IsSphereInView(randomposx,randomposy,randomposz) then
-        local windSpeed = select(4, Spring.GetWind())/25 
+        local windSpeed = select(4, Spring.GetWind())/25
         if math.random() > 0.1 then
             Spring.PlaySoundFile(data.beach_soundBank[math.random(1,#data.beach_soundBank)], (0.20 + (windSpeed*0.6)), randomposx, (randomposy + 400), randomposz, 'sfx')
         else
