@@ -40,6 +40,9 @@ end
 
 _G.GG = _G.GG or {}
 
+_G.CMD     = _G.CMD or {}
+_G.GameCMD = _G.GameCMD or {}
+
 _G.unpack = _G.unpack or table.unpack or function(t, i, j)
     i = i or 1; j = j or #t
     if i > j then return end
@@ -94,7 +97,7 @@ _G.VFS.Include = function(path, env, mode)
             -- Force cache population by calling FileExists with a dummy path
             _G.VFS.FileExists("___dummy_path___")
         end
-        
+
         local cleanPath = path:gsub("^%./", "")
         local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
         if cachedPath then
@@ -109,7 +112,7 @@ _G.VFS.Include = function(path, env, mode)
         if env then
             setfenv(chunk, env)
         end
-        
+
         local success, result = pcall(chunk)
         if success then
             _G.VFS._cache[path] = result
@@ -118,7 +121,7 @@ _G.VFS.Include = function(path, env, mode)
             print("Error loading " .. path .. ": " .. tostring(result))
         end
     end
-    
+
     -- Fallback to old require method if file not found on disk (e.g. standard libs)
     -- Convert filesystem-like path to module name for require
     local mod = path
@@ -148,11 +151,11 @@ _G.VFS.SubDirs = function(path)
         -- Force cache population
         _G.VFS.FileExists("___dummy_path___")
     end
-    
+
     -- Currently the cache only has files. We need directories too or just assume 'find' works if we fix the path.
     -- But for SubDirs we want to list subdirectories.
     -- Let's assume the input path might be wrong casing.
-    
+
     -- Simple heuristic: try to find the directory case-insensitively if it doesn't exist
     local searchPath = path
     local handle = io.open(path)
@@ -189,7 +192,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
     -- Returns relative paths with directory prefix, just like native VFS.DirList
     local files = {}
     local cmd
-    
+
     -- Fix directory path case-sensitivity
     local searchDir = directory
     local handle = io.open(directory)
@@ -241,4 +244,3 @@ _G.inspect = (function()
     -- fallback: no-op string (won't break prints/concats)
     return function(_) return _ end
 end)()
-
