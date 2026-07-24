@@ -310,7 +310,7 @@ local actions = {
 	},
 
 	killFriendlyBot = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'friendlyBot',
 		},

@@ -127,11 +127,9 @@ local actions = {
 	},
 
 	killCons1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'con-bots',
-			selfDestruct = false,
-			reclaimed = false
 		},
 	},
 
@@ -143,11 +141,9 @@ local actions = {
 	},
 
 	selfDestructCons1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.SelfDestructUnits,
 		parameters = {
 			unitName = 'con-bots',
-			selfDestruct = true,
-			reclaimed = false
 		},
 	},
 
@@ -159,11 +155,9 @@ local actions = {
 	},
 
 	despawnCons1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.ReclaimUnits,
 		parameters = {
 			unitName = 'con-bots',
-			selfDestruct = false,
-			reclaimed = true
 		},
 	},
 
@@ -175,11 +169,9 @@ local actions = {
 	},
 
 	despawnEnergyGrid1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.ReclaimUnits,
 		parameters = {
 			unitName = 'fusions',
-			selfDestruct = false,
-			reclaimed = true
 		},
 	},
 

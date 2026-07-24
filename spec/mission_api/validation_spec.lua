@@ -415,8 +415,8 @@ describe("mission_api.validation", function()
 
 		describe("Boolean", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.DespawnUnits, parameters = { unitName = 'x', selfDestruct = 'bad' } })
-				assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Action: a, Parameter: selfDestruct"))
+				actionErrors({ type = actionTypes.PlaySound, parameters = { soundfile = "x", enqueue = 'bad' } })
+				assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Action: a, Parameter: enqueue"))
 			end)
 		end)
 
