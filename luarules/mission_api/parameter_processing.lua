@@ -4,8 +4,9 @@
 
 VFS.Include('common/wav.lua')
 
-local Types = VFS.Include('luarules/mission_api/parameter_types.lua').Types
-local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
 
 ----------------------------------------------------------------

@@ -35,14 +35,14 @@ end
 
 local function validateField(value, fieldName, expectedType)
 	if not value then
-		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName }
+		return { message = "Missing required parameter", parameterNameSuffix = "." .. fieldName, fieldName = fieldName, missing = true }
 	end
 	if type(value) ~= expectedType then
-		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName }
+		return { message = "Unexpected parameter type, expected " .. expectedType .. ", got " .. type(value), parameterNameSuffix = "." .. fieldName, fieldName = fieldName }
 	end
 end
 
-local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+local parameterTypes = GG['MissionAPI'].Modules.ParameterTypes
 local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
@@ -478,7 +478,8 @@ end
 local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local triggersSchemaSettings = triggersSchema.Settings
 local triggersSchemaParameters = triggersSchema.Parameters
-local actionsSchemaParameters = VFS.Include('luarules/mission_api/actions_schema.lua').Parameters
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
@@ -508,7 +509,7 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 					logError(actionOrTrigger .. " missing required parameter. " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name)
 				end
 			else
-				local validationResults = validators[parameter.type](value) or {}
+				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
 				for _, validationResult in pairs(validationResults) do
 					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
 				end
@@ -766,7 +767,11 @@ local function validateUnitLoadoutEntry(entry, index, context)
 
 	local positionResult = validators[Types.Position](entry)
 	for _, positionError in ipairs(positionResult or {}) do
-		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+		if positionError.missing then
+			logError(prefix .. ": missing required field '" .. positionError.fieldName .. "'")
+		else
+			logError(prefix .. ", field '" .. positionError.fieldName .. "': " .. positionError.message)
+		end
 	end
 
 	if entry.teamName == nil then
@@ -851,7 +856,11 @@ local function validateFeatureLoadoutEntry(entry, index, context)
 
 	local positionResult = validators[Types.Position](entry)
 	for _, positionError in ipairs(positionResult or {}) do
-		logError(prefix .. ", " .. positionError.message .. (positionError.parameterNameSuffix or ""))
+		if positionError.missing then
+			logError(prefix .. ": missing required field '" .. positionError.fieldName .. "'")
+		else
+			logError(prefix .. ", field '" .. positionError.fieldName .. "': " .. positionError.message)
+		end
 	end
 
 	-- Optional fields
@@ -1115,7 +1124,7 @@ end
 
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
-	local actionTypes = GG['MissionAPI'].ActionTypes
+	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 	local objectives = GG['MissionAPI'].Objectives
 	local stages = GG['MissionAPI'].Stages
 	local triggers = GG['MissionAPI'].Triggers

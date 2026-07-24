@@ -2,7 +2,7 @@
 --- Loadout spawning logic used in :GamePreload() and the SpawnUnits and CreateFeatures actions.
 ---
 
-local tracking = VFS.Include('luarules/mission_api/tracking.lua')
+local tracking = GG['MissionAPI'].Modules.Tracking
 
 local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs
 local trackedFeatureIDs = GG['MissionAPI'].trackedFeatureIDs

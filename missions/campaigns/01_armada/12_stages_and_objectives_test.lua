@@ -1,6 +1,6 @@
 
 local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local lobbyData = {
 	missionId = "stages_and_objectives_test",
