@@ -8,11 +8,13 @@ local function addMarker(position, label, name)
 end
 
 return {
-	type = 'AddMarker',
-	parameters = {
-		{ name = 'position', required = true, type = ParameterTypes.Position },
-		{ name = 'label', required = false, type = ParameterTypes.String },
-		{ name = 'name', required = false, type = ParameterTypes.String },
-	},
-	actionFunction = addMarker,
+	{
+		type = 'AddMarker',
+		parameters = {
+			{ name = 'position', required = true, type = ParameterTypes.Position },
+			{ name = 'label', required = false, type = ParameterTypes.String },
+			{ name = 'name', required = false, type = ParameterTypes.String },
+		},
+		actionFunction = addMarker,
+	}
 }

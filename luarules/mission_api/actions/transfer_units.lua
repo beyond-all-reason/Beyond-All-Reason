@@ -13,10 +13,12 @@ local function transferUnits(unitName, newTeam)
 end
 
 return {
-	type = 'TransferUnits',
-	parameters = {
-		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-		{ name = 'newTeam', required = true, type = ParameterTypes.TeamID },
-	},
-	actionFunction = transferUnits,
+	{
+		type = 'TransferUnits',
+		parameters = {
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+			{ name = 'newTeam', required = true, type = ParameterTypes.TeamID },
+		},
+		actionFunction = transferUnits,
+	}
 }

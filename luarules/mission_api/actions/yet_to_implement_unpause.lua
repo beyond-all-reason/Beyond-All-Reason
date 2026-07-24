@@ -1,5 +1,7 @@
 return {
-	type = 'Unpause',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'Unpause',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

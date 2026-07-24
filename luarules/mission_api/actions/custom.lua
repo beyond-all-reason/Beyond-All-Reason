@@ -5,9 +5,11 @@ local function custom(func)
 end
 
 return {
-	type = 'Custom',
-	parameters = {
-		{ name = 'function', required = true, type = ParameterTypes.Function },
-	},
-	actionFunction = custom,
+	{
+		type = 'Custom',
+		parameters = {
+			{ name = 'function', required = true, type = ParameterTypes.Function },
+		},
+		actionFunction = custom,
+	}
 }

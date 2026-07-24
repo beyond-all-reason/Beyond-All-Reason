@@ -21,11 +21,13 @@ local function spawnExplosion(weaponDefName, position, direction)
 end
 
 return {
-	type = 'SpawnExplosion',
-	parameters = {
-		{ name = 'weaponDefName', required = true, type = ParameterTypes.WeaponDefName },
-		{ name = 'position', required = true, type = ParameterTypes.Position },
-		{ name = 'direction', required = false, type = ParameterTypes.Position },
-	},
-	actionFunction = spawnExplosion,
+	{
+		type = 'SpawnExplosion',
+		parameters = {
+			{ name = 'weaponDefName', required = true, type = ParameterTypes.WeaponDefName },
+			{ name = 'position', required = true, type = ParameterTypes.Position },
+			{ name = 'direction', required = false, type = ParameterTypes.Position },
+		},
+		actionFunction = spawnExplosion,
+	}
 }

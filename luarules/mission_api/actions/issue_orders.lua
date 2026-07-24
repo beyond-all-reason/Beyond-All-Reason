@@ -9,10 +9,12 @@ local function issueOrders(unitName, orders)
 end
 
 return {
-	type = 'IssueOrders',
-	parameters = {
-		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-		{ name = 'orders', required = true, type = ParameterTypes.Orders },
-	},
-	actionFunction = issueOrders,
+	{
+		type = 'IssueOrders',
+		parameters = {
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+			{ name = 'orders', required = true, type = ParameterTypes.Orders },
+		},
+		actionFunction = issueOrders,
+	}
 }

@@ -4,7 +4,9 @@ local function clearAllMarkers()
 end
 
 return {
-	type = 'ClearAllMarkers',
-	parameters = {},
-	actionFunction = clearAllMarkers,
+	{
+		type = 'ClearAllMarkers',
+		parameters = {},
+		actionFunction = clearAllMarkers,
+	}
 }

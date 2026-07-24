@@ -1,5 +1,7 @@
 return {
-	type = 'UnrevealLOS',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'UnrevealLOS',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }
