@@ -1,5 +1,7 @@
 return {
-	type = 'ControlCamera',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'ControlCamera',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

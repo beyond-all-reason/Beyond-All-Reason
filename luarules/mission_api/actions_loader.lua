@@ -8,13 +8,16 @@ local function loadActionDefinitions()
 	local parameters = {}
 	local actionFunctions = {}
 
-	for typeID, filePath in ipairs(actionFiles) do
-		local actionDefinition = VFS.Include(filePath)
-		local actionType = actionDefinition.type
+	for _, filePath in ipairs(actionFiles) do
+		local actionDefinitions = VFS.Include(filePath)
+		for _, actionDefinition in ipairs(actionDefinitions) do
+			local typesCount = #types + 1
+			local actionType = actionDefinition.type
 
-		types[actionType] = typeID
-		parameters[typeID] = actionDefinition.parameters or {}
-		actionFunctions[typeID] = actionDefinition.actionFunction
+			types[actionType] = typesCount
+			parameters[typesCount] = actionDefinition.parameters or {}
+			actionFunctions[typesCount] = actionDefinition.actionFunction
+		end
 	end
 
 	return {

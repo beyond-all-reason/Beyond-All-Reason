@@ -5,9 +5,11 @@ local function changeStage(stageID)
 end
 
 return {
-	type = 'ChangeStage',
-	parameters = {
-		{ name = 'stageID', required = true, type = ParameterTypes.StageID },
-	},
-	actionFunction = changeStage,
+	{
+		type = 'ChangeStage',
+		parameters = {
+			{ name = 'stageID', required = true, type = ParameterTypes.StageID },
+		},
+		actionFunction = changeStage,
+	}
 }

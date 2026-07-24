@@ -1,5 +1,7 @@
 return {
-	type = 'AlterBuildlist',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'AlterBuildlist',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

@@ -9,9 +9,11 @@ local function eraseMarker(name)
 end
 
 return {
-	type = 'EraseMarker',
-	parameters = {
-		{ name = 'name', required = true, type = ParameterTypes.String },
-	},
-	actionFunction = eraseMarker,
+	{
+		type = 'EraseMarker',
+		parameters = {
+			{ name = 'name', required = true, type = ParameterTypes.String },
+		},
+		actionFunction = eraseMarker,
+	}
 }

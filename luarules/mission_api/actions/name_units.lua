@@ -46,13 +46,15 @@ local function nameUnits(unitName, teamID, unitDefName, area)
 end
 
 return {
-	type = 'NameUnits',
-	parameters = {
-		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-		{ name = 'teamID', required = false, type = ParameterTypes.Number },
-		{ name = 'unitDefName', required = false, type = ParameterTypes.String },
-		{ name = 'area', required = false, type = ParameterTypes.Area },
-		requiresOneOf = { 'teamID', 'unitDefName', 'area' },
-	},
-	actionFunction = nameUnits,
+	{
+		type = 'NameUnits',
+		parameters = {
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+			{ name = 'teamID', required = false, type = ParameterTypes.Number },
+			{ name = 'unitDefName', required = false, type = ParameterTypes.String },
+			{ name = 'area', required = false, type = ParameterTypes.Area },
+			requiresOneOf = { 'teamID', 'unitDefName', 'area' },
+		},
+		actionFunction = nameUnits,
+	}
 }
