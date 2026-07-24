@@ -104,7 +104,7 @@ ignoreDamageTypes[Game.envDamageTypes.TransportKilled] = true
 ignoreDamageTypes[Game.envDamageTypes.FactoryKilled] = true
 ignoreDamageTypes[Game.envDamageTypes.FactoryCancel] = true
 ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
-ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
+ignoreDamageTypes[Game.envDamageTypes.OutOfBounds] = true
 ignoreDamageTypes[Game.envDamageTypes.KilledByCheat] = true
 ignoreDamageTypes[Game.envDamageTypes.KilledByLua] = true
 
