@@ -413,6 +413,13 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("Boolean", function()
+			it("rejects wrong type", function()
+				actionErrors({ type = actionTypes.DespawnUnits, parameters = { unitName = 'x', selfDestruct = 'bad' } })
+				assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Action: a, Parameter: selfDestruct"))
+			end)
+		end)
+
 		describe("Function", function()
 			it("rejects wrong type", function()
 				actionErrors({ type = actionTypes.Custom, parameters = { ['function'] = 'bad' } })
