@@ -1,0 +1,448 @@
+<rml>
+<head>
+    <title>CEG Browser</title>
+    <link rel="stylesheet" href="gui_ceg_browser.rcss" type="text/rcss" />
+</head>
+
+<body id="ceg-browser-widget">
+<div id="widget-container" data-model="ceg_browser_model" class="panel">
+
+    <!-- CEG INFO panel: absolutely positioned to the left of the widget -->
+    <div class="info-panel" data-if="infoOpen == 1">
+        <div class="floating-panel-header">
+            <span class="info-title">CEG Info: {{infoName}}</span>
+            <button class="floating-panel-close" data-event-click="toggleInfo()">X</button>
+        </div>
+        <div class="info-source">{{infoSource}}</div>
+        <div class="info-scroll">
+            <div data-repeat data-for="line : infoLines">
+                <span class="info-line">{{line.text}}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TITLE BAR: drag handled via Lua AddEventListener -->
+    <div id="ceg-titlebar" class="titlebar">
+        <span class="title">CEG Browser</span>
+        <div class="titlebar-btns">
+            <button class="winbtn scale-btn" data-class-disabled="scaleAtMin == 1" data-event-click="scaleDown()">-</button>
+            <span class="scale-label">{{scaleLabel}}</span>
+            <button class="winbtn scale-btn" data-class-disabled="scaleAtMax == 1" data-event-click="scaleUp()">+</button>
+            <button class="winbtn minimize" data-event-click="toggleCollapse()">_</button>
+            <button class="winbtn danger"   data-event-click="closeWidget()">X</button>
+        </div>
+    </div>
+
+    <!-- NAVBAR: alphabet left, utility buttons right -->
+    <div class="navbar" data-class-collapsed="isCollapsed">
+
+        <div class="alphabet">
+            <div class="alphabet-row">
+                <button class="letter-button" data-event-click="gotoLetter('')"  data-class-selected="letterFilter == ''">All</button>
+                <button class="letter-button" data-event-click="gotoLetter('A')" data-class-selected="letterFilter == 'a'">A</button>
+                <button class="letter-button" data-event-click="gotoLetter('B')" data-class-selected="letterFilter == 'b'">B</button>
+                <button class="letter-button" data-event-click="gotoLetter('C')" data-class-selected="letterFilter == 'c'">C</button>
+                <button class="letter-button" data-event-click="gotoLetter('D')" data-class-selected="letterFilter == 'd'">D</button>
+                <button class="letter-button" data-event-click="gotoLetter('E')" data-class-selected="letterFilter == 'e'">E</button>
+                <button class="letter-button" data-event-click="gotoLetter('F')" data-class-selected="letterFilter == 'f'">F</button>
+                <button class="letter-button" data-event-click="gotoLetter('G')" data-class-selected="letterFilter == 'g'">G</button>
+            </div>
+            <div class="alphabet-row">
+                <button class="letter-button" data-event-click="gotoLetter('H')" data-class-selected="letterFilter == 'h'">H</button>
+                <button class="letter-button" data-event-click="gotoLetter('I')" data-class-selected="letterFilter == 'i'">I</button>
+                <button class="letter-button" data-event-click="gotoLetter('J')" data-class-selected="letterFilter == 'j'">J</button>
+                <button class="letter-button" data-event-click="gotoLetter('K')" data-class-selected="letterFilter == 'k'">K</button>
+                <button class="letter-button" data-event-click="gotoLetter('L')" data-class-selected="letterFilter == 'l'">L</button>
+                <button class="letter-button" data-event-click="gotoLetter('M')" data-class-selected="letterFilter == 'm'">M</button>
+                <button class="letter-button" data-event-click="gotoLetter('N')" data-class-selected="letterFilter == 'n'">N</button>
+            </div>
+            <div class="alphabet-row">
+                <button class="letter-button" data-event-click="gotoLetter('O')" data-class-selected="letterFilter == 'o'">O</button>
+                <button class="letter-button" data-event-click="gotoLetter('P')" data-class-selected="letterFilter == 'p'">P</button>
+                <button class="letter-button" data-event-click="gotoLetter('Q')" data-class-selected="letterFilter == 'q'">Q</button>
+                <button class="letter-button" data-event-click="gotoLetter('R')" data-class-selected="letterFilter == 'r'">R</button>
+                <button class="letter-button" data-event-click="gotoLetter('S')" data-class-selected="letterFilter == 's'">S</button>
+                <button class="letter-button" data-event-click="gotoLetter('T')" data-class-selected="letterFilter == 't'">T</button>
+                <button class="letter-button" data-event-click="gotoLetter('U')" data-class-selected="letterFilter == 'u'">U</button>
+            </div>
+            <div class="alphabet-row">
+                <button class="letter-button" data-event-click="gotoLetter('V')" data-class-selected="letterFilter == 'v'">V</button>
+                <button class="letter-button" data-event-click="gotoLetter('W')" data-class-selected="letterFilter == 'w'">W</button>
+                <button class="letter-button" data-event-click="gotoLetter('X')" data-class-selected="letterFilter == 'x'">X</button>
+                <button class="letter-button" data-event-click="gotoLetter('Y')" data-class-selected="letterFilter == 'y'">Y</button>
+                <button class="letter-button" data-event-click="gotoLetter('Z')" data-class-selected="letterFilter == 'z'">Z</button>
+            </div>
+        </div>
+
+        <!-- 4-row utility buttons -->
+        <div class="navbar-right">
+            <div class="navbar-btn-row">
+                <button data-class-active="cheatOn == 1"     data-event-click="sendCheat()">cheat</button>
+                <button data-class-active="globallosOn == 1" data-event-click="sendGlobalLOS()">globallos</button>
+            </div>
+            <div class="navbar-btn-row">
+                <button data-event-click="reloadCEGs()">Reload CEGs</button>
+                <button data-class-active="infoOpen == 1" data-event-click="toggleInfo()">CEG INFO</button>
+            </div>
+            <div class="navbar-btn-row">
+                <button data-event-click="resetAll()">Reset</button>
+                <button data-class-active="soundsOpen == 1" data-event-click="toggleSounds()">SOUNDS</button>
+            </div>
+            <div class="navbar-btn-row">
+                <button data-class-active="groundArmed == 1" data-event-click="armGround()">GROUND</button>
+                <button data-class-active="fireArmed == 1"   data-event-click="armFire()">PROJECTILE</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content" data-class-collapsed="isCollapsed">
+
+        <!-- Search row: input + clear + count (above tuning) -->
+        <div class="search-row">
+            <div class="search-wrapper">
+                <input type="text"
+                       class="search-input"
+                       data-value="filterText"
+                       data-event-change="applyFilter()"
+                       data-event-focus="onInputFocus()"
+                       data-event-blur="onInputBlur()" />
+                <span class="search-placeholder" data-class-hidden="filterText != '' || inputFocused == 1">search CEG name...</span>
+            </div>
+            <button class="clear-btn" data-event-click="clearFilter()">x</button>
+            <span class="status-count">{{totalCount}}</span>
+        </div>
+
+        <!-- Ground Tuning Panel: visible when GROUND is armed -->
+        <!-- Note: RmlUi intercepts Ctrl+drag on range sliders; use the text inputs for fine adjustment -->
+        <div class="tuning-panel" data-if="groundArmed == 1">
+            <div class="tuning-header">CEG Tuning</div>
+            <div class="tuning-row">
+                <span class="tuning-label">Pattern</span>
+                <button class="pattern-btn" data-class-active="patternLine == 1"    data-event-click="setPattern('line')">Line</button>
+                <button class="pattern-btn" data-class-active="patternRing == 1"    data-event-click="setPattern('ring')">Ring</button>
+                <button class="pattern-btn" data-class-active="patternScatter == 1" data-event-click="setPattern('scatter')">Scatter</button>
+            </div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Spawn Count</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="1" max="100" step="1"
+                               data-value="spawnCount" data-event-change="setSpawnCount()" />
+                        <input type="text" class="tuning-val-input tuning-val-3"
+                               data-value="spawnCount"
+                               data-event-change="setSpawnCountText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Height Offset</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="0" max="1000" step="1"
+                               data-value="heightOffset" data-event-change="setHeightOffset()" />
+                        <input type="text" class="tuning-val-input tuning-val-4"
+                               data-value="heightOffset"
+                               data-event-change="setHeightOffsetText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+            </div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Spacing</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="0" max="1000" step="1"
+                               data-value="spacingValue" data-event-change="setSpacing()" />
+                        <input type="text" class="tuning-val-input tuning-val-4"
+                               data-value="spacingValue"
+                               data-event-change="setSpacingText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col"></div>
+            </div>
+        </div>
+
+        <!-- Projectile Tuning Panel: visible when PROJECTILE is armed -->
+        <!-- Note: RmlUi intercepts Ctrl+drag on range sliders; use the text inputs for fine adjustment -->
+        <div class="tuning-panel" data-if="fireArmed == 1">
+            <div class="tuning-header">Projectile Tuning</div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Direction (Yaw)</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="-180" max="180" step="1"
+                               data-value="projYaw" data-event-change="setProjYaw()" />
+                        <input type="text" class="tuning-val-input tuning-val-4"
+                               data-value="projYaw"
+                               data-event-change="setProjYawText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Pitch</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="-45" max="80" step="1"
+                               data-value="projPitch" data-event-change="setProjPitch()" />
+                        <input type="text" class="tuning-val-input tuning-val-4"
+                               data-value="projPitch"
+                               data-event-change="setProjPitchText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+            </div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Speed</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="0" max="600" step="1"
+                               data-value="projSpeed" data-event-change="setProjSpeed()" />
+                        <input type="text" class="tuning-val-input tuning-val-4"
+                               data-value="projSpeed"
+                               data-event-change="setProjSpeedText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Gravity</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="-100" max="100" step="1"
+                               data-value="projGravityInt" data-event-change="setProjGravity()" />
+                        <input type="text" class="tuning-val-input tuning-val-5"
+                               data-value="projGravityDisp"
+                               data-event-change="setProjGravityText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+            </div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Forward Offset</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="0" max="100" step="1"
+                               data-value="projFwdOffset" data-event-change="setProjFwdOffset()" />
+                        <input type="text" class="tuning-val-input tuning-val-3"
+                               data-value="projFwdOffset"
+                               data-event-change="setProjFwdOffsetText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Height Offset</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="0" max="100" step="1"
+                               data-value="projUpOffset" data-event-change="setProjUpOffset()" />
+                        <input type="text" class="tuning-val-input tuning-val-3"
+                               data-value="projUpOffset"
+                               data-event-change="setProjUpOffsetText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+            </div>
+            <div class="tuning-row">
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Time To Live (s)</span>
+                    <div class="slider-with-input">
+                        <input type="range" class="ceg-slider" min="1" max="30" step="1"
+                               data-value="projTTL" data-event-change="setProjTTL()" />
+                        <input type="text" class="tuning-val-input tuning-val-3"
+                               data-value="projTTL"
+                               data-event-change="setProjTTLText()"
+                               data-event-focus="onInputFocus()"
+                               data-event-blur="onInputBlur()" />
+                    </div>
+                </div>
+                <div class="tuning-slider-col">
+                    <span class="tuning-label">Airburst</span>
+                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-if="projAirburst == 0"
+                            data-event-click="toggleAirburst()">Airburst: OFF</button>
+                    <button class="pattern-btn" data-class-active="projAirburst == 1" data-if="projAirburst == 1"
+                            data-event-click="toggleAirburst()">Airburst: ON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend: changes based on armed mode -->
+        <div class="legend-row" data-if="fireArmed == 0">
+            <div class="legend-box"></div>
+            <span class="legend-text">Selected CEG (LMB) + CTRL = Multi-Select</span>
+        </div>
+        <div class="legend-row legend-row-proj" data-if="fireArmed == 1">
+            <div class="legend-box legend-box-trail"></div>
+            <span class="legend-text">Trail (LMB)</span>
+            <div class="legend-box legend-box-muzzle"></div>
+            <span class="legend-text">Muzzle (MMB)</span>
+            <div class="legend-box legend-box-impact"></div>
+            <span class="legend-text">Impact (RMB)</span>
+        </div>
+        <div class="legend-row legend-row-compact" data-if="fireArmed == 1">
+            <span class="legend-text legend-text-dim">+ CTRL = Multi-Select</span>
+        </div>
+
+        <!-- CEG grid -->
+        <div class="ceg-grid" id="ceg-grid">
+            <button class="ceg-entry"
+                    data-repeat
+                    data-for="item : cegList"
+                    data-event-click="spawnCEG(item.name)"
+                    data-event-mouseover="hoverCEG(item.name)"
+                    data-event-mouseout="hoverCEG('')"
+                    data-class-selected="item.selected == 1"
+                    data-class-impact-sel="item.impactSel == 1"
+                    data-class-muzzle-sel="item.muzzleSel == 1">{{item.name}}</button>
+        </div>
+
+        <!-- ALT hint above bottom pager -->
+        <div class="alt-hint">Hold ALT to view full CEG name</div>
+
+        <!-- Pager bottom -->
+        <div class="pager">
+            <button data-event-click="prevPage()">&lt;</button>
+            <span class="pager-label">Page {{pageDisplay}}</span>
+            <button data-event-click="nextPage()">&gt;</button>
+        </div>
+
+    </div>
+
+    <!-- SOUNDS panel: floats to the left of the widget, toggled by SOUNDS button -->
+    <div id="sounds-panel" class="sounds-panel" data-if="soundsOpen == 1">
+
+        <!-- Header: title left, X right -->
+        <div class="floating-panel-header">
+            <span class="sounds-title">Sound Browser</span>
+            <button class="floating-panel-close" data-event-click="toggleSounds()">X</button>
+        </div>
+
+        <!-- Alphabet + category/play buttons side by side -->
+        <div class="sound-nav-block">
+            <div class="alphabet">
+                <div class="alphabet-row">
+                    <button class="letter-button" data-event-click="soundGotoLetter('')"  data-class-selected="soundLetterFilter == ''">All</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('A')" data-class-selected="soundLetterFilter == 'a'">A</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('B')" data-class-selected="soundLetterFilter == 'b'">B</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('C')" data-class-selected="soundLetterFilter == 'c'">C</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('D')" data-class-selected="soundLetterFilter == 'd'">D</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('E')" data-class-selected="soundLetterFilter == 'e'">E</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('F')" data-class-selected="soundLetterFilter == 'f'">F</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('G')" data-class-selected="soundLetterFilter == 'g'">G</button>
+                </div>
+                <div class="alphabet-row">
+                    <button class="letter-button" data-event-click="soundGotoLetter('H')" data-class-selected="soundLetterFilter == 'h'">H</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('I')" data-class-selected="soundLetterFilter == 'i'">I</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('J')" data-class-selected="soundLetterFilter == 'j'">J</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('K')" data-class-selected="soundLetterFilter == 'k'">K</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('L')" data-class-selected="soundLetterFilter == 'l'">L</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('M')" data-class-selected="soundLetterFilter == 'm'">M</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('N')" data-class-selected="soundLetterFilter == 'n'">N</button>
+                </div>
+                <div class="alphabet-row">
+                    <button class="letter-button" data-event-click="soundGotoLetter('O')" data-class-selected="soundLetterFilter == 'o'">O</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('P')" data-class-selected="soundLetterFilter == 'p'">P</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('Q')" data-class-selected="soundLetterFilter == 'q'">Q</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('R')" data-class-selected="soundLetterFilter == 'r'">R</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('S')" data-class-selected="soundLetterFilter == 's'">S</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('T')" data-class-selected="soundLetterFilter == 't'">T</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('U')" data-class-selected="soundLetterFilter == 'u'">U</button>
+                </div>
+                <div class="alphabet-row">
+                    <button class="letter-button" data-event-click="soundGotoLetter('V')" data-class-selected="soundLetterFilter == 'v'">V</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('W')" data-class-selected="soundLetterFilter == 'w'">W</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('X')" data-class-selected="soundLetterFilter == 'x'">X</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('Y')" data-class-selected="soundLetterFilter == 'y'">Y</button>
+                    <button class="letter-button" data-event-click="soundGotoLetter('Z')" data-class-selected="soundLetterFilter == 'z'">Z</button>
+                </div>
+            </div>
+
+            <!-- Right column: category filters + play buttons -->
+            <div class="sound-right-col">
+                <div class="sound-cat-row">
+                    <button class="sound-cat-btn" data-class-active="catWeapons == 1"     data-event-click="toggleSoundCat('weapons')">WEAPONS</button>
+                    <button class="sound-cat-btn" data-class-active="catEnvironment == 1" data-event-click="toggleSoundCat('environment')">ENV</button>
+                </div>
+                <div class="sound-cat-row">
+                    <button class="sound-cat-btn" data-class-active="catUnit == 1"      data-event-click="toggleSoundCat('unit')">UNIT</button>
+                    <button class="sound-cat-btn" data-class-active="catCritters == 1"  data-event-click="toggleSoundCat('critters')">CRITTERS</button>
+                </div>
+                <div class="sound-cat-row">
+                    <button class="sound-cat-btn" data-class-active="catUI == 1"        data-event-click="toggleSoundCat('ui')">UI</button>
+                    <button class="sound-cat-btn" data-class-active="catBuildings == 1" data-event-click="toggleSoundCat('buildings')">BUILDINGS</button>
+                </div>
+                <div class="sound-cat-row">
+                    <button class="sound-cat-btn sound-cat-full" data-class-active="catFunctions == 1" data-event-click="toggleSoundCat('functions')">FUNCTIONS</button>
+                </div>
+                <div class="sound-cat-row">
+                    <button class="sound-reset-btn sound-cat-full" data-event-click="resetSounds()">RESET</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Play buttons: full width below nav block -->
+        <div class="sound-play-row">
+            <button class="sound-play-btn" data-event-click="playFireSound()">Play Fire Sound</button>
+            <button class="sound-play-btn" data-event-click="playImpactSound()">Play Impact Sound</button>
+        </div>
+
+        <!-- Spacer between play buttons and search row -->
+        <div class="sound-alphabet-search-gap"></div>
+
+        <!-- Search row -->
+        <div class="search-row">
+            <div class="search-wrapper">
+                <input type="text"
+                       class="search-input"
+                       data-value="soundFilterText"
+                       data-event-change="soundApplyFilter()"
+                       data-event-focus="soundOnInputFocus()"
+                       data-event-blur="soundOnInputBlur()" />
+                <span class="search-placeholder" data-class-hidden="soundFilterText != '' || soundInputFocused == 1">search sound name...</span>
+            </div>
+            <button class="clear-btn" data-event-click="soundClearFilter()">x</button>
+            <span class="status-count">{{soundTotalCount}}</span>
+        </div>
+
+        <!-- Legend: below search -->
+        <div class="sound-legend-row">
+            <div class="legend-box legend-box-fire"></div>
+            <span class="legend-text">Fire Sound (LMB)</span>
+            <div class="legend-box legend-box-impact"></div>
+            <span class="legend-text">Impact Sound (RMB)</span>
+        </div>
+
+        <!-- Sound list -->
+        <div class="sound-list" id="sound-list">
+            <button class="sound-entry"
+                    data-repeat
+                    data-for="item : soundList"
+                    data-event-click="selectSound(item.name)"
+                    data-event-mouseover="hoverSound(item.name)"
+                    data-event-mouseout="hoverSound('')"
+                    data-class-fire-sel="item.fireSel == 1"
+                    data-class-impact-sel="item.impactSel == 1">{{item.name}}</button>
+        </div>
+
+        <!-- Pager pinned to bottom -->
+        <div class="sound-pager">
+            <button data-event-click="soundPrevPage()">&lt;</button>
+            <span class="pager-label">{{soundPageDisplay}}</span>
+            <button data-event-click="soundNextPage()">&gt;</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Floating ALT tooltip: positioned via Lua, outside widget flow -->
+<div id="ceg-alt-tooltip" class="alt-tooltip-float alt-tooltip-hidden"></div>
+
+</body>
+</rml>
