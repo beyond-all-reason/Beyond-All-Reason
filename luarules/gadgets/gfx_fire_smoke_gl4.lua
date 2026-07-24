@@ -1967,23 +1967,35 @@ function gadget:DrawWorld()
 
 	-- Flush off-screen buffers that are now in view (works while paused too)
 	if offscreenBufferCount > 0 then
-		if crashingAircraftCount > 0 then
-			for unitID, tracked in pairs(trackedCrashingAircraft) do
-				if tracked.offscreenBuffer then
-					local px, py, pz = spGetUnitPosition(unitID)
-					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
-						replayCrashBuffer(tracked, cachedGameFrame)
+		local pVBO = particleVBO
+		if pVBO then
+			local uploadStart = pVBO.usedElements
+			-- Replays can create hundreds of retroactive particles. Defer their VBO
+			-- writes so a visibility transition produces one upload instead of one per particle.
+			visibilityState.deferParticleUploads = true
+			if crashingAircraftCount > 0 then
+				for unitID, tracked in pairs(trackedCrashingAircraft) do
+					if tracked.offscreenBuffer then
+						local px, py, pz = spGetUnitPosition(unitID)
+						if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+							replayCrashBuffer(tracked, cachedGameFrame)
+						end
 					end
 				end
 			end
-		end
 
-		for proID, tracked in pairs(trackedPieceProjectiles) do
-			if tracked.offscreenBuffer then
-				local px, py, pz = spGetProjectilePosition(proID)
-				if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-					replayPieceBuffer(tracked, cachedGameFrame)
+			for proID, tracked in pairs(trackedPieceProjectiles) do
+				if tracked.offscreenBuffer then
+					local px, py, pz = spGetProjectilePosition(proID)
+					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+						replayPieceBuffer(tracked, cachedGameFrame)
+					end
 				end
+			end
+			visibilityState.deferParticleUploads = nil
+			local uploadEnd = pVBO.usedElements
+			if uploadEnd > uploadStart then
+				gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
 			end
 		end
 	end
