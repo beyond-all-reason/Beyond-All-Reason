@@ -995,8 +995,8 @@ local function updateMissiles()
 								size = size * (1 + rand * cfg.widthRand)
 							end
 
+							if flameCount >= MAX_FLAMES then break end
 							flameCount = flameCount + 1
-							if flameCount > MAX_FLAMES then break end
 							local offset = (flameCount - 1) * flameStep
 							flameData[offset + 1]  = px
 							flameData[offset + 2]  = py
