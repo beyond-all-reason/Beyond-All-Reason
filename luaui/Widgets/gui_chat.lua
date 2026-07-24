@@ -2710,6 +2710,17 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
+function widget:cycleInputMode()
+	if inputMode == 'a:' then
+		inputMode = ''
+	elseif inputMode == 's:' then
+		inputMode = mySpec and '' or 'a:'
+	else
+		inputMode = 's:'
+	end
+	updateTextInputDlist = true
+end
+
 function widget:KeyRelease()
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
 	return false
@@ -3026,13 +3037,17 @@ function widget:KeyPress(key)
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 then -- TAB
-			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
-				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
-				inputHistory[#inputHistory] = inputText
-				autocompleteText = nil
-				autocompleteWords = {}
+			if utf8.len(inputText) == 0 then
+				self:cycleInputMode()
+			else
+				inputSelectionStart = nil
+				if autocompleteText and autocompleteWords[1] then
+					inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
+					inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
+					inputHistory[#inputHistory] = inputText
+					autocompleteText = nil
+					autocompleteWords = {}
+				end
 			end
 		else
 			-- regular chars/keys handled in widget:TextInput
@@ -3080,14 +3095,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if inputButton and state.inputButtonRect and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
-		if inputMode == 'a:' then
-			inputMode = ''
-		elseif inputMode == 's:' then
-			inputMode = mySpec and '' or 'a:'
-		else
-			inputMode = 's:'
-		end
-		updateTextInputDlist = true
+		self:cycleInputMode()
 		return true
 	end
 
