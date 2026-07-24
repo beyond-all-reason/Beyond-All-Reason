@@ -18,7 +18,7 @@ local function processPosition(position)
 end
 
 local function processPositions(positions)
-	for _, position in ipairs(positions) do
+	for _, position in pairs(positions) do
 		processPosition(position)
 	end
 end

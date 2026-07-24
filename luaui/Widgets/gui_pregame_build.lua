@@ -209,7 +209,7 @@ end
 local function convertBuildQueueFaction(previousFactionSide, currentFactionSide)
 	Spring.Log("gui_pregame_build", LOG.DEBUG, string.format("Calling SubLogic.processBuildQueueSubstitution (in-place) from %s to %s for %d queue items.", previousFactionSide, currentFactionSide, #buildQueue))
 	local result = SubLogic.processBuildQueueSubstitution(buildQueue, previousFactionSide, currentFactionSide)
-	
+
 	if result.substitutionFailed then
 		spEcho(string.format("[gui_pregame_build] %s", result.summaryMessage))
 	end
@@ -247,6 +247,21 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
+
+	-- skip if scenario or mission options disable initial commander spawn
+	local modOptions = Spring.GetModOptions()
+	local options = modOptions.scenariooptions or modOptions.missionoptions
+	if options then
+		-- NOTE: JSON keys are case-sensitive and preserve camelCase from the encoded payload.
+		-- Spring.GetModOptions() lowercases the outer modoption key ("missionoptions"),
+		-- but the decoded JSON retains original casing, so use "disableInitialCommanderSpawn" here.
+		local optionsDecoded = Json.decode(string.base64Decode(options))
+		if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+			widgetHandler:RemoveWidget()
+			return
+		end
+	end
+
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
@@ -328,7 +343,7 @@ local function snapPosition(unitDefID, pos, facing)
 	else
 		result.z = mathFloor((pos.z + SQUARE_SIZE) / BUILD_SQUARE_SIZE) * BUILD_SQUARE_SIZE
 	end
-	
+
 	return result
 end
 
@@ -357,10 +372,10 @@ end
 local function calculateBuildingPlacementSteps(unitDefID, startPos, endPos, spacing, facing)
 	local buildingWidth, buildingHeight = GetBuildingDimensions(unitDefID, facing)
 	local delta = { x = endPos.x - startPos.x, z = endPos.z - startPos.z }
-	
+
 	local xSize = buildingWidth + SQUARE_SIZE * spacing * 2
 	local zSize = buildingHeight + SQUARE_SIZE * spacing * 2
-	
+
 	local xCount = mathFloor((mathAbs(delta.x) + xSize * BUILDING_COUNT_FUDGE_FACTOR) / xSize)
 	local zCount = mathFloor((mathAbs(delta.z) + zSize * BUILDING_COUNT_FUDGE_FACTOR) / zSize)
 
@@ -384,12 +399,12 @@ local function getBuildPositionsLine(unitDefID, facing, startPos, endPos, spacin
 	if not startPos or not endPos then
 		return {}
 	end
-	
+
 	local snappedStart = snapPosition(unitDefID, startPos, facing)
 	local snappedEnd = snapPosition(unitDefID, endPos, facing)
-	
+
 	local xStep, zStep, xCount, zCount, delta = calculateBuildingPlacementSteps(unitDefID, snappedStart, snappedEnd, spacing or 0, facing)
-	
+
 	local xGreaterThanZ = mathAbs(delta.x) > mathAbs(delta.z)
 
 	if xGreaterThanZ then
@@ -406,7 +421,7 @@ local function getBuildPositionsGrid(unitDefID, facing, startPos, endPos, spacin
 	if not startPos or not endPos then
 		return {}
 	end
-	
+
 	local snappedStart = snapPosition(unitDefID, startPos, facing)
 	local snappedEnd = snapPosition(unitDefID, endPos, facing)
 
@@ -430,7 +445,7 @@ local function getBuildPositionsBox(unitDefID, facing, startPos, endPos, spacing
 	if not startPos or not endPos then
 		return {}
 	end
-	
+
 	local snappedStart = snapPosition(unitDefID, startPos, facing)
 	local snappedEnd = snapPosition(unitDefID, endPos, facing)
 
@@ -654,13 +669,13 @@ function widget:Update(dt)
 	if not preGamestartPlayer then
 		return
 	end
-	
+
 	updateTime = updateTime + dt
 	if updateTime < UPDATE_PERIOD then
 		return
 	end
 	updateTime = 0
-	
+
 	local x, y, leftButton = spGetMouseState()
 
 	local _, _, _, shift = Spring.GetModKeyState()
@@ -730,20 +745,20 @@ function widget:Update(dt)
 		buildModeState.buildPositions = {}
 		return
 	end
-	
+
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	
+
 	if not shift and buildModeState.startPosition then
 		buildModeState.startPosition = nil
 		buildModeState.buildPositions = {}
 		return
 	end
-	
+
 	if not buildModeState.startPosition then
 		return
 	end
 	local modKeys = { alt, ctrl, meta, shift }
-	
+
 	local buildAroundTarget = getGhostBuildingUnderCursor(x, y)
 
 	local endPosition = getMouseWorldPosition(selBuildQueueDefID, x, y)
@@ -921,8 +936,8 @@ function widget:MousePress(mx, my, button)
 			buildModeState.buildPositions = {}
 			return true
 		end
-		
-		
+
+
 		if (meta or not shift) and cx ~= -100 then
 			local cbx, cby, cbz = Spring.Pos2BuildPos(startDefID, cx, cy, cz)
 
@@ -1114,7 +1129,7 @@ function widget:DrawWorld()
         local currentFactionSide = currentDefName and SubLogic.getSideFromUnitName(currentDefName)
 
         if previousFactionSide and currentFactionSide and previousFactionSide ~= currentFactionSide then
-            convertBuildQueueFaction(previousFactionSide, currentFactionSide) 
+            convertBuildQueueFaction(previousFactionSide, currentFactionSide)
             if selBuildQueueDefID then
                 selBuildQueueDefID = handleSelectedBuildingConversion(selBuildQueueDefID, previousFactionSide, currentFactionSide, selBuildData)
             end
@@ -1123,7 +1138,7 @@ function widget:DrawWorld()
                 "Sides determined but are the same (%s), no conversion needed.", currentFactionSide))
         else
             Spring.Log(widget:GetInfo().name, LOG.WARNING, string.format(
-                "Could not determine sides for conversion: prevDefID=%s (name: %s), currentDefID=%s (name: %s). Names might be unhandled by SubLogic.getSideFromUnitName, or SubLogic itself might be incomplete from a non-critical load error.", 
+                "Could not determine sides for conversion: prevDefID=%s (name: %s), currentDefID=%s (name: %s). Names might be unhandled by SubLogic.getSideFromUnitName, or SubLogic itself might be incomplete from a non-critical load error.",
                 tostring(prevStartDefID), tostring(prevDefName), tostring(startDefID), tostring(currentDefName)))
         end
         prevStartDefID = startDefID
@@ -1372,7 +1387,7 @@ function widget:DrawWorld()
 			selBuildData[4],
 			selBuildData[5]
 		) ~= 0
-		
+
 		local isSelectedSpawned = false
 		local selectedAlpha = ALPHA_DEFAULT
 		local getBuildQueueSpawnStatus = WG["getBuildQueueSpawnStatus"]
@@ -1381,7 +1396,7 @@ function widget:DrawWorld()
 			isSelectedSpawned = spawnStatus.selectedSpawned or false
 			selectedAlpha = isSelectedSpawned and ALPHA_SPAWNED or ALPHA_DEFAULT
 		end
-		
+
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha)
@@ -1444,9 +1459,9 @@ function widget:GameFrame(n)
 	if tasker then
 		local quickStartOption = Spring.GetModOptions().quick_start
 		local quickStartEnabled = quickStartOption ~= "disabled"
-		
+
 		if quickStartEnabled and #buildQueue > 0 then
-			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned. 
+			--we have to temporary Echo data like this because there are reports of builds that should be spawned in quickstart not being spawned.
 			--Widget data isn't caught in replays so we have to echo this for now. 1/12/26
 			Spring.Echo(string.format("=== Build Queue for Commander (unitID: %d) ===", tasker))
 			for b = 1, #buildQueue do
@@ -1459,7 +1474,7 @@ function widget:GameFrame(n)
 			end
 			Spring.Echo(string.format("=== Total queue items: %d ===", #buildQueue))
 		end
-		
+
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]
 			Spring.GiveOrderToUnit(

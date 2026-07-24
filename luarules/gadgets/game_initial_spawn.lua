@@ -21,6 +21,21 @@ end
 -- FFA start points config format is handled by `game_ffa_start_setup`.
 
 ----------------------------------------------------------------
+-- Shared (evaluated independently in both the synced and unsynced VMs)
+----------------------------------------------------------------
+
+local _missionOptions = (function()
+	local raw = Spring.GetModOptions()
+	raw = raw.scenariooptions or raw.missionoptions
+	if not raw then
+		return {}
+	end
+	return Json.decode(string.base64Decode(raw)) or {}
+end)()
+--- True when a mission/scenario handles its own unit spawning.
+local missionSpawnDisabled = _missionOptions.disableInitialCommanderSpawn == true or not table.isNilOrEmpty(_missionOptions.unitloadout)
+
+----------------------------------------------------------------
 -- Synced
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
@@ -307,7 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- keep track of choosing faction ingame
 	function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam, allyTeamID = spGetPlayerInfo(playerID, false)
-		
+
 		local startUnit = false
 		if string.sub(msg, 1, string.len("changeStartUnit")) == "changeStartUnit" then
 			startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -358,7 +373,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not playerIsSpec and (draftMode ~= nil and draftMode ~= "disabled") then
 			DraftRecvLuaMsg(msg, playerID, playerIsSpec, playerTeam, allyTeamID)
 		end
-		
+
 		if string.sub(msg, 1, 17) == "aiPlacedPosition:" then
 			local data = string.sub(msg, 18)
 			local teamID, x, z = string.match(data, "(%d+):([%d%.]+):([%d%.]+)")
@@ -558,16 +573,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- spawn starting unit
 		local y = spGetGroundHeight(x, z)
-		local scenarioSpawnsUnits = false
-
-		if Spring.GetModOptions().scenariooptions then
-			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
-			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
-				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
-				scenarioSpawnsUnits = true
-			end
+		local scenarioSpawnsUnits = missionSpawnDisabled
+		if missionSpawnDisabled then
+			Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 		end
-
 
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
@@ -622,7 +631,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnRegularly(teamID, allyTeamID)
 		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		
+
 		if Game.startPosType == SPAWN_CHOOSE_IN_GAME then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine
@@ -739,7 +748,7 @@ else -- UNSYNCED
 	local spawnWarpInFrame = Game.spawnWarpInFrame
 
 	function gadget:GameFrame(n)
-		if n == spawnInitialFrame then
+		if n == spawnInitialFrame and not missionSpawnDisabled then
 			Spring.PlaySoundFile("commanderspawn", 0.6, 'ui')
 		end
 		if n > spawnWarpInFrame then

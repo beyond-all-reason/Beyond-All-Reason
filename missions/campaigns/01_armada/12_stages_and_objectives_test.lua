@@ -1,5 +1,41 @@
+
 local triggerTypes = GG['MissionAPI'].TriggerTypes
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+
+local lobbyData = {
+	missionId = "stages_and_objectives_test",
+	title = "Stages and Objectives Test",
+	description = "Tests stages and objectives.",
+	unlocked = true,
+}
+
+local startScript = {
+	mapName = "Quicksilver Remake 1.24",
+	startPosType = 'chooseBeforeGame',
+	allyTeams = {
+		thePlayerAllyTeam = {
+			teams = {
+				thePlayerTeam = {
+					name = "TestPlayer",
+					Side = 'Cortex',
+					StartPosX = 2200,
+					StartPosZ = 1500,
+				},
+			},
+		},
+		theEnemyAllyTeam = {
+			teams = {
+				theEnemyTeam = {
+					name = "Mission Bots",
+					Side = 'Armada',
+					StartPosX = 3000,
+					StartPosZ = 2400,
+					ai = "NullAI",
+				},
+			}
+		},
+	},
+}
 
 local initialStage = 'firstStage'
 local stages = {
@@ -34,7 +70,7 @@ local objectives = {
 			type = triggerTypes.ConstructionFinished,
 			parameters = {
 				unitDefName = 'corak',
-				teamID = 0,
+				teamName = 'thePlayerTeam',
 			},
 		},
 	},
@@ -46,7 +82,7 @@ local objectives = {
 			type = triggerTypes.UnitsOwned,
 			parameters = {
 				unitName = 'bots',
-				teamID = 0,
+				teamName = 'thePlayerTeam',
 			},
 		},
 	},
@@ -83,7 +119,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'corak', x = 1800, z = 1800, team = 0, unitName = 'bots' },
+				{ unitDefName = 'corak', x = 1800, z = 1800, teamName = 'thePlayerTeam', unitName = 'bots' },
 			},
 		},
 	},
@@ -99,13 +135,15 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armllt', x = 1800, z = 2200, team = 1, quantity = 2 },
+				{ unitDefName = 'armllt', x = 1800, z = 2200, teamName = 'theEnemyTeam', quantity = 2 },
 			},
 		},
 	},
 }
 
 return {
+	LobbyData   = lobbyData,
+	StartScript = startScript,
 	InitialStage = initialStage,
 	Stages = stages,
 	Objectives = objectives,

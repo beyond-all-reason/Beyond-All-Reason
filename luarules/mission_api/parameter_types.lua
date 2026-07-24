@@ -8,7 +8,7 @@ local types = {
 	Table = 'Table',
 	Position = 'Position',
 	Positions = 'Positions',
-	AllyTeamIDs = 'AllyTeamIDs',
+	AllyTeamNames = 'AllyTeamNames',
 	Orders = 'Orders',
 	Area = 'Area',
 	UnitLoadout = 'UnitLoadout',
@@ -25,14 +25,14 @@ local types = {
 	UnitDefName = 'UnitDefName',
 	FeatureDefName = 'FeatureDefName',
 	WeaponDefName = 'WeaponDefName',
+	TeamName = 'TeamName',
+	AllyTeamName = 'AllyTeamName',
 	Facing = 'Facing',
 	SoundFile = 'SoundFile',
 
 	-- Number Validators:
 	Number = 'Number',
 	Quantity = 'Quantity',
-	TeamID = 'TeamID',
-	AllyTeamID = 'AllyTeamID',
 
 	-- Boolean Validators:
 	Boolean = 'Boolean',

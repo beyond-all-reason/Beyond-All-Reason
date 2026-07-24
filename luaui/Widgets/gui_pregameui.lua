@@ -331,7 +331,7 @@ function widget:Initialize()
 
 	widget:ViewResize(vsx, vsy)
 	checkStartPointChosen()
-	
+
 	WG['pregameui'] = {}
 	WG['pregameui'].addReadyCondition = function(conditionKey, description)
 		if conditionKey and description then
@@ -430,7 +430,7 @@ function widget:DrawScreen()
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
 			gl.CallList(buttonHoverList)
 			colorString = "\255\210\210\210"
-			
+
 			if isReadyBlocked and WG['tooltip'] then
 				WG['tooltip'].ShowTooltip('pregameui', cachedTooltipText)
 			end
@@ -479,6 +479,16 @@ end
 
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then return end
+
+	-- skip if scenario or mission options disable initial commander spawn
+	local modOptions = Spring.GetModOptions()
+	local options = modOptions.scenariooptions or modOptions.missionoptions
+	if options then
+		local optionsDecoded = Json.decode(string.base64Decode(options))
+		if optionsDecoded and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout)) then
+			return
+		end
+	end
 
 	-- draw pregamestart commander models at start positions
 	local id
