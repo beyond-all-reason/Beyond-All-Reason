@@ -1,383 +1,516 @@
-/* Mission Editor stylesheet. Order matters less than hygiene: one bad
-   declaration can take its whole block down, so keep every value in the
-   dialect this RmlUi build demonstrably supports (px/em, decorators,
-   per-side borders; no vw/vh, no auto margins, no 8-digit transparent). */
+/* Mission Editor theme. The markup is server-rendered (bar-mission-kit); this
+   file is the entire game-side look. Hygiene: one bad declaration can take
+   its whole block down, so risky properties (box-shadow) sit in their own
+   blocks; layout mechanisms (flex, dp shadows) are ones sibling RmlWidgets
+   already prove out in this build. */
 
 .me-root {
-    position: absolute;
-    top: 120px;
-    left: 40px;
-    width: 500px;
-    z-index: 10000;
-    decorator: vertical-gradient( #151d28f6 #0b1016f8 );
-    border: 1px #33465a;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-family: Exo 2;
-    font-size: 16px;
-    color: #d8dee6;
+	position: absolute;
+	top: 120px;
+	left: 40px;
+	width: 500px;
+	z-index: 10000;
+	decorator: vertical-gradient( #111823f6 #0a0e14fa );
+	border: 1px #223040;
+	border-radius: 10px;
+	padding: 14px 16px;
+	font-family: Exo 2;
+	font-size: 16px;
+	color: #d5dde7;
+}
+
+.me-root {
+	box-shadow: 0dp 12dp 34dp 0dp #000000a8, inset 0dp 1dp 0dp 0dp #ffffff12;
 }
 
 .me-header {
-    display: block;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px #263646;
+	display: flex;
+	align-items: center;
+	margin-bottom: 12px;
+	padding-bottom: 10px;
+	border-bottom: 1px #1d2938;
 }
 
 .me-title {
-    display: inline-block;
-    width: 170px;
-    font-size: 1.1em;
-    color: #ffffff;
+	flex: 1;
+	font-size: 1.1em;
+	color: #ffffff;
+	white-space: nowrap;
 }
 
 .me-button {
-    display: inline-block;
-    margin-left: 6px;
-    padding: 3px 10px;
-    decorator: vertical-gradient( #263443 #1a2530 );
-    border: 1px #3d5168;
-    border-radius: 4px;
-    color: #cfd8e3;
-    font-size: 0.85em;
-    cursor: pointer;
+	display: inline-block;
+	margin-left: 6px;
+	padding: 3px 11px;
+	background-color: #ffffff09;
+	border: 1px #2c3b4d;
+	border-radius: 5px;
+	color: #9fb3c8;
+	font-size: 0.8em;
+	cursor: pointer;
 }
 
 .me-button:hover {
-    decorator: vertical-gradient( #33475c #243343 );
-    border: 1px #5a7794;
-    color: #ffffff;
+	background-color: #22303f;
+	border: 1px #4c6784;
+	color: #ffffff;
 }
 
 .me-content {
-    display: block;
-    overflow-y: auto;
-    max-height: 560px;
+	display: block;
+	overflow-y: auto;
+	max-height: 560px;
 }
 
 .me-file {
-    display: block;
-    margin: 6px 0 2px 0;
-    color: #6d8196;
-    font-size: 0.75em;
+	display: block;
+	margin: 8px 0 4px 0;
+	color: #55677a;
+	font-size: 0.7em;
 }
 
 .me-group {
-    display: block;
-    margin: 10px 0 4px 0;
-    color: #ffd479;
+	display: block;
+	margin: 12px 0 4px 0;
+	color: #e8c884;
+	font-size: 0.8em;
 }
 
+/* One flat card: triggers are left-ruled groups, not nested boxes. */
 .me-card {
-    display: block;
-    decorator: vertical-gradient( #1a2330 #141c26 );
-    border: 1px #2b3a4b;
-    border-left: 3px #82aaff;
-    border-radius: 6px;
-    margin: 6px 0;
-    padding: 8px 10px;
+	display: block;
+	border-left: 2px #2c3b4d;
+	margin: 10px 0;
+	padding: 2px 0 2px 12px;
 }
+
+.me-section {
+	display: block;
+	border-top: 1px #1d2938;
+	margin-top: 4px;
+}
+
+.me-section-head {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	background-color: transparent;
+	border: 0;
+	color: #8fa3b8;
+	font-size: 0.72em;
+	padding: 10px 2px 8px 2px;
+	cursor: pointer;
+}
+
+.me-section-head:hover {
+	color: #cfe4ff;
+}
+
+/* No auto margins in this build: the title flexes to push the hint right.
+   The caret glyph is web-only (Exo 2 lacks it); hidden here. */
+.me-section-title {
+	flex: 1;
+}
+
+.me-section-hint {
+	color: #4c5d70;
+}
+
+.me-caret {
+	display: none;
+}
+
+.me-section.collapsed .me-section-body {
+	display: none;
+}
+
+.me-section-body {
+	display: block;
+}
+
+.me-noun-group {
+	display: block;
+	color: #55677a;
+	font-size: 0.65em;
+	margin: 10px 0 3px 0;
+}
+
+.me-noun {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 3px 4px;
+	border-radius: 4px;
+}
+
+.me-noun-name {
+	color: #c6d2df;
+}
+
+.me-noun-open {
+	cursor: pointer;
+}
+
+.me-noun-open:hover {
+	background-color: #1a2634;
+}
+
 
 .me-card-head {
-    display: block;
-    position: relative;
-    margin-bottom: 6px;
-    padding-right: 30px;
+	display: block;
+	position: relative;
+	margin-bottom: 8px;
+	padding-right: 30px;
 }
 
 .me-card-x {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    margin-left: 0;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	margin-left: 0;
 }
 
 .me-card-title {
-    display: inline-block;
-    width: 300px;
-    color: #9ecbff;
-    font-size: 0.85em;
+	display: inline-block;
+	color: #6f9fd8;
+	font-size: 0.75em;
+}
+
+.me-jump {
+	cursor: pointer;
+}
+
+.me-jump:hover {
+	color: #cfe4ff;
 }
 
 .me-step {
-    display: block;
-    position: relative;
-    margin: 5px 0;
-    padding-right: 84px;
+	display: flex;
+	align-items: center;
+	margin: 7px 0;
+}
+
+.me-step-live {
+	margin-left: 6px;
 }
 
 .me-step-tools {
-    position: absolute;
-    right: 0px;
-    top: 1px;
+	margin-left: 6px;
 }
 
 .me-step-verb {
-    display: inline-block;
-    width: 68px;
-    margin-right: 10px;
-    padding: 2px 0;
-    text-align: center;
-    font-size: 0.65em;
-    border-radius: 4px;
+	display: inline-block;
+	width: 64px;
+	margin-right: 12px;
+	padding: 2px 0;
+	text-align: center;
+	font-size: 0.62em;
+	border-radius: 9px;
 }
 
 .me-verb-cond {
-    decorator: vertical-gradient( #21374f #182a3e );
-    border: 1px #3d5a8c;
-    color: #9cc2ff;
+	background-color: #16283c;
+	border: 1px #33517a;
+	color: #8fbcff;
 }
 
 .me-verb-effect {
-    decorator: vertical-gradient( #453014 #33240f );
-    border: 1px #7a5524;
-    color: #ffc078;
+	background-color: #33230e;
+	border: 1px #6b4a1e;
+	color: #ffb45e;
 }
 
 .me-verb-mod {
-    decorator: vertical-gradient( #242c36 #1b222a );
-    border: 1px #3c4754;
-    color: #9aa7b5;
+	background-color: #1c242e;
+	border: 1px #3a4754;
+	color: #97a5b4;
 }
 
 .me-step-body {
-    display: inline-block;
+	flex: 1;
+	color: #dbe4ee;
 }
 
 .me-x-btn {
-    margin-left: 4px;
-    padding: 1px 6px;
-    font-size: 0.7em;
+	margin-left: 4px;
+	padding: 1px 6px;
+	font-size: 0.7em;
 }
 
 .me-x {
-    color: #e06c75;
+	color: #d98a92;
+	border: 1px #4a2c31;
+	background-color: #d94a5410;
+}
+
+.me-x:hover {
+	background-color: #58242b;
+	border: 1px #8a4a52;
+	color: #ffd3d7;
 }
 
 .me-swap-btn {
-    color: #9cc2ff;
+	color: #8fbcff;
+	border: 1px #2c3b4d;
 }
 
 .me-add-row {
-    display: block;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px #223040;
+	display: block;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px #1c2836;
 }
 
 .me-add-btn {
-    margin-left: 0;
-    color: #7fa6cc;
+	margin-left: 0;
+	background-color: #4f8ce00e;
+	border: 1px #2c405a;
+	color: #7fa9d8;
+}
+
+.me-add-btn:hover {
+	background-color: #24384f;
+	border: 1px #4f7099;
+	color: #cfe4ff;
 }
 
 .me-input {
-    display: inline-block;
-    width: 130px;
-    height: 1.6em;
-    vertical-align: middle;
-    padding: 1px 5px;
-    background-color: #0a0e13;
-    border: 1px #33414f;
-    border-radius: 4px;
-    color: #f6c177;
-    font-size: 0.95em;
+	display: inline-block;
+	width: 180px;
+	height: 1.6em;
+	vertical-align: middle;
+	padding: 1px 6px;
+	background-color: #0a0f16;
+	border: 1px #263544;
+	border-radius: 5px;
+	color: #ffd08a;
+	font-size: 0.95em;
 }
 
 .me-input:focus {
-    border: 1px #f6c177;
+	border: 1px #6ea8e8;
+	background-color: #0c1420;
 }
 
 .me-input-num {
-    width: 52px;
+	width: 52px;
+}
+
+.me-input-obj {
+	width: 230px;
 }
 
 .me-select {
-    display: inline-block;
-    width: 200px;
-    height: 1.6em;
-    vertical-align: middle;
-    padding: 0;
-    background-color: #0a0e13;
-    border: 1px #33414f;
-    border-radius: 4px;
-    color: #a3d9a5;
-    font-size: 0.95em;
+	display: inline-block;
+	width: 200px;
+	height: 1.6em;
+	vertical-align: middle;
+	padding: 0;
+	background-color: #0a0f16;
+	border: 1px #263544;
+	border-radius: 5px;
+	color: #9fd3a4;
+	font-size: 0.95em;
 }
 
 .me-select:hover {
-    border: 1px #5a7794;
+	border: 1px #4c6784;
 }
 
 .me-select-unit {
-    width: 240px;
+	width: 320px;
 }
 
 .me-select selectvalue {
-    padding: 2px 20px 2px 6px;
-    white-space: nowrap;
-    overflow-x: hidden;
-    overflow-y: hidden;
+	padding: 2px 20px 2px 7px;
+	white-space: nowrap;
+	overflow-x: hidden;
+	overflow-y: hidden;
 }
 
 .me-select selectarrow {
-    width: 16px;
-    decorator: vertical-gradient( #33475c #243343 );
-    border-left: 1px #3d5168;
-    border-radius: 0 4px 4px 0;
+	width: 16px;
+	background-color: #1d2a39;
+	border-left: 1px #263544;
+	border-radius: 0 5px 5px 0;
 }
 
 .me-select selectbox {
-    decorator: vertical-gradient( #1c2531 #10161d );
-    border: 1px #3d5168;
-    border-radius: 4px;
-    padding: 2px;
-    max-height: 320px;
-    overflow-y: auto;
+	decorator: vertical-gradient( #1a2431f8 #10161dfa );
+	border: 1px #34455a;
+	border-radius: 6px;
+	padding: 3px;
+	max-height: 320px;
+	overflow-y: auto;
+}
+
+.me-select selectbox {
+	box-shadow: 0dp 8dp 22dp 0dp #00000090;
 }
 
 .me-select selectbox option {
-    display: block;
-    width: 100%;
-    padding: 2px 8px;
-    color: #cfd8e3;
-    white-space: nowrap;
-    overflow-x: hidden;
+	display: block;
+	width: 100%;
+	padding: 3px 8px;
+	border-radius: 3px;
+	color: #c6d2df;
+	white-space: nowrap;
+	overflow-x: hidden;
 }
 
 .me-select selectbox option:hover {
-    background-color: #2f4156;
-    color: #ffffff;
+	background-color: #2c4158;
+	color: #ffffff;
 }
 
 scrollbarvertical {
-    width: 12px;
+	width: 10px;
 }
 
 scrollbarvertical slidertrack {
-    background-color: #10161d;
-    border-left: 1px #223040;
+	background-color: #0c121a;
 }
 
 scrollbarvertical sliderbar {
-    background-color: #3d5168;
-    border-radius: 4px;
-    min-height: 24px;
+	background-color: #33435a;
+	border-radius: 5px;
+	min-height: 24px;
 }
 
 scrollbarvertical sliderbar:hover {
-    background-color: #5a7794;
+	background-color: #4c6784;
 }
 
 scrollbarvertical sliderarrowdec,
 scrollbarvertical sliderarrowinc {
-    width: 0px;
-    height: 0px;
+	width: 0px;
+	height: 0px;
 }
 
 .me-modal {
-    display: none;
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
-    z-index: 300;
-    background-color: #05080cb8;
+	display: none;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 300;
+	background-color: #05080cd0;
 }
 
 .me-modal-box {
-    position: absolute;
-    left: 50%;
-    top: 90px;
-    margin-left: -170px;
-    width: 340px;
-    decorator: vertical-gradient( #1c2531 #10161d );
-    border: 1px #3d5168;
-    border-radius: 6px;
-    padding: 10px 12px;
+	position: absolute;
+	left: 50%;
+	top: 90px;
+	margin-left: -180px;
+	width: 360px;
+	decorator: vertical-gradient( #1a2431f8 #10161dfa );
+	border: 1px #34455a;
+	border-radius: 8px;
+	padding: 12px 14px;
+}
+
+.me-modal-box {
+	box-shadow: 0dp 14dp 40dp 0dp #000000b0;
 }
 
 .me-modal-title {
-    display: block;
-    color: #ffffff;
-    font-size: 1.05em;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px #263646;
+	display: block;
+	color: #ffffff;
+	font-size: 1.0em;
+	margin-bottom: 8px;
+	padding-bottom: 8px;
+	border-bottom: 1px #1d2938;
 }
 
 .me-modal-group {
-    display: block;
-    margin: 8px 0 3px 0;
-    color: #ffd479;
-    font-size: 0.7em;
+	display: block;
+	margin: 10px 0 3px 0;
+	color: #e8c884;
+	font-size: 0.65em;
 }
 
 .me-modal-row {
-    display: block;
-    padding: 5px 8px;
-    color: #cfd8e3;
-    border-radius: 3px;
-    cursor: pointer;
+	display: block;
+	padding: 6px 9px;
+	color: #c6d2df;
+	border-radius: 5px;
+	cursor: pointer;
 }
 
 .me-modal-row:hover {
-    background-color: #2f4156;
-    color: #ffffff;
+	background-color: #2c4158;
+	color: #ffffff;
 }
 
 .me-modal-cancel {
-    margin-top: 8px;
-    margin-left: 0;
+	margin-top: 10px;
+	margin-left: 0;
 }
 
 .me-textmode {
-    display: none;
-    margin: 4px 0;
+	display: none;
+	margin: 4px 0;
 }
 
 .me-bighead {
-    display: block;
-    font-size: 1.7em;
-    color: #ffffff;
-    margin: 4px 0 6px 0;
+	display: block;
+	font-size: 1.7em;
+	color: #ffffff;
+	margin: 4px 0 6px 0;
 }
 
 .me-followline {
-    display: block;
-    color: #8fa3b8;
-    margin-bottom: 6px;
+	display: block;
+	color: #8fa3b8;
+	margin-bottom: 6px;
 }
 
 .me-billboard {
-    display: block;
-    font-size: 1.25em;
+	display: block;
+	font-size: 1.25em;
 }
 
 .me-verb {
-    color: #82aaff;
+	color: #82aaff;
 }
 
 .me-lit {
-    color: #f6c177;
+	color: #f6c177;
 }
 
 .me-ref {
-    color: #a3d9a5;
+	color: #9fd3a4;
+}
+
+.me-live {
+	display: inline-block;
+	margin-left: 8px;
+	padding: 1px 8px;
+	border-radius: 9px;
+	font-size: 0.7em;
+	background-color: #16283c;
+	border: 1px #33517a;
+	color: #8fbcff;
+}
+
+.me-live.done {
+	background-color: #12301c;
+	border: 1px #2e6b40;
+	color: #7fd79a;
 }
 
 .me-opaque {
-    display: block;
-    color: #e06c75;
-    margin: 4px 0;
+	display: block;
+	color: #e06c75;
+	margin: 4px 0;
 }
 
 .me-footer {
-    display: block;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px #263646;
-    font-size: 0.7em;
-    color: #5f6f7f;
+	display: block;
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px #1d2938;
+	font-size: 0.68em;
+	color: #4c5d70;
 }
