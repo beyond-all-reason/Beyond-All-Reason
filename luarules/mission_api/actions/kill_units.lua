@@ -15,18 +15,15 @@ local function killUnits(unitName, selfDestruct, despawn, reclaim, killerTeam)
             --     Spring.AddTeamResource(killerTeam, "energy", unitDef.energyCost)
             -- end
         end
-        if selfDestruct then
-            killerTeam = Spring.GetUnitTeam(unitID)
-        end
         Spring.DestroyUnit(unitID, selfDestruct, despawn, killerTeam)
 	end
 end
 
-local function destroyUnits(unitName, killerTeam)
+local function destroyUnits(unitName)
     local selfDestruct = false
     local despawn = false
     local reclaim = false
-    killUnits(unitName, selfDestruct, despawn, reclaim, killerTeam)
+    killUnits(unitName, selfDestruct, despawn, reclaim, nil)
 end
 
 local function selfDestructUnits(unitName)
@@ -55,7 +52,6 @@ return {
 	    type = 'DestroyUnits',
 	    parameters = {
 	    	{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-	    	{ name = 'killerTeam', required = false, type = ParameterTypes.TeamID },
 	    },
 	    actionFunction = destroyUnits,
     },
