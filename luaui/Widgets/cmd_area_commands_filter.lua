@@ -1,4 +1,4 @@
-local widget = widget ---@type RulesUnsyncedCallins
+local widget = widget ---@type Widget
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
@@ -18,12 +18,14 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
+local tableNew = table.new
+local mathMin = math.min
 local mathFloor = math.floor
-local mathMax = math.max
+local mathSqrt = math.sqrt
+local mathClamp = math.clamp
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -48,6 +50,13 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local UNIT_ID_MAX = Game.maxUnits
+
+-- featureId is normalised to Game.maxUnits + featureId because of:
+-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
+-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
+-- offset due to be removed in future engine version
+local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID
 
 local commandLimit = 2000
 
@@ -57,8 +66,8 @@ local myAllyTeamID
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
 
----@field position1 table {x, y, z}
----@field position2 table {x, y, z}
+---@param position1 table {x, y, z}
+---@param position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
@@ -68,6 +77,38 @@ end
 ---@return table {x, y, z}
 local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
+end
+
+local getFeatureID, getFeaturePosition; do
+	local function getFeatureIDFromObjectID(targetID)
+		return targetID
+	end
+	local function getFeatureIDFromOffsetID(targetID)
+		return targetID - UNIT_ID_MAX
+	end
+	getFeatureID = offsetFeatureID and getFeatureIDFromOffsetID or getFeatureIDFromObjectID
+
+	local function getFeaturePositionFromObjectID(targetID)
+		return spGetFeaturePosition(targetID)
+	end
+	local function getFeaturePositionFromOffsetID(targetID)
+		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
+	end
+	getFeaturePosition = offsetFeatureID and getFeaturePositionFromOffsetID or getFeaturePositionFromObjectID
+end
+
+---Shim for feature centroids which do not have an engine callout.
+local function getObjectArrayCentroid(targets, targetsAreFeatures)
+	if not targetsAreFeatures then
+		return spGetUnitArrayCentroid(targets)
+	end
+	local sumX, sumY, sumZ = 0, 0, 0
+	local count = #targets
+	for i = 1, count do
+		local x, y, z = spGetFeaturePosition(getFeatureID(targets[i]))
+		sumX, sumY, sumZ = sumX + x, sumY + y, sumZ + z
+	end
+	return sumX / count, sumY / count, sumZ / count
 end
 
 ----------------------------------------------------------------------------------------------------------
@@ -103,8 +144,7 @@ end
 
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets)
-	---@type table<number,TransportData>
-	local transportTypeDataMap = {}
+	local transportTypeDataMap = {} ---@type table<number,TransportData>
 	local validTransportsForUnitTypeMap = {}
 	local passengerPriorities = {}
 	local passengerPositions = {}
@@ -133,8 +173,7 @@ local function distributeTargetsToTransports(transports, targets)
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
-					---@class TransportInfo
-					local transportInfo = { capacity = remainingCapacity, position = position }
+					local transportInfo = { capacity = remainingCapacity, position = position } ---@class TransportInfo
 					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
 					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 				end
@@ -288,26 +327,45 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
+local function byDistanceToUnit(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
+local function byDistanceToFeature(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
-	tableSort(filteredTargets, function(targetIdA, targetIdB)
-		local positionA, positionB
-
-		-- Have to convert back to featureId
-		if targetIdA > Game.maxUnits then
-			positionA = toPositionTable(spGetFeaturePosition(targetIdA - Game.maxUnits))
-			positionB = toPositionTable(spGetFeaturePosition(targetIdB - Game.maxUnits))
-		else
-			positionA = toPositionTable(spGetUnitPosition(targetIdA))
-			positionB = toPositionTable(spGetUnitPosition(targetIdB))
-		end
-
-		if closestFirst then
-			return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
-		else
-			return distanceSq(avgPosition, positionA) > distanceSq(avgPosition, positionB)
-		end
-	end)
+	if filteredTargets[1] <= UNIT_ID_MAX then
+		tableSort(filteredTargets, byDistanceToUnit(avgPosition, closestFirst))
+	else
+		tableSort(filteredTargets, byDistanceToFeature(avgPosition, closestFirst))
+	end
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
@@ -332,26 +390,79 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 end
 
 local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
+	local selectedCount = #selectedUnits
+	local unitTargetsMap = tableNew(0, selectedCount)
+	for index = 1, selectedCount do
+		unitTargetsMap[selectedUnits[index]] = {}
+	end
+	local currentUnitIndex = 0
+	for index = 1, #filteredTargets do
+		currentUnitIndex = (currentUnitIndex % selectedCount) + 1
+		tableInsert(unitTargetsMap[selectedUnits[currentUnitIndex]], filteredTargets[index])
 	end
 	return unitTargetsMap
+end
+
+local function sortByProjection(position, projection, units, count)
+	local indexUnit, valueUnit = tableNew(count, 0), tableNew(count, 0)
+	for i = 1, count do
+		indexUnit[i] = i
+		local x, _, z = position(units[i])
+		valueUnit[i] = projection(x, z)
+	end
+	tableSort(indexUnit, function(a, b) return valueUnit[a] < valueUnit[b] end)
+	return indexUnit
+end
+
+local function splitTargetsIntoRivers(units, targets)
+	local targetsAreFeatures = targets[1] > UNIT_ID_MAX
+	local targetPosition = targetsAreFeatures and getFeaturePosition or spGetUnitPosition
+	local tcx, tcy, tcz = getObjectArrayCentroid(targets, targetsAreFeatures)
+	local ucx, ucy, ucz = spGetUnitArrayCentroid(units)
+
+	local dx, dz = tcx - ucx, tcz - ucz
+	local length = mathSqrt(dx * dx + dz * dz)
+
+	if length < 24 then
+		return splitTargets(units, targets)
+	end
+
+	local ux, uz = dx / length, dz / length
+	local px, pz = -uz, ux -- Use the perpendicular or the rivers will be sidelong stripes.
+
+	local function projection(x, z) return (x - ucx) * px + (z - ucz) * pz end
+
+	local countTargets = #targets
+	local countUnits = #units
+
+	local indexUnit = sortByProjection(spGetUnitPosition, projection, units, countUnits)
+	local indexTarget = sortByProjection(targetPosition, projection, targets, countTargets)
+
+	local result = tableNew(0, countUnits)
+	local perUnit = math.ceil(countTargets / countUnits)
+	for i = 1, countUnits do
+		local unit = units[indexUnit[i]]
+		local start = (i - 1) * perUnit + 1
+		local finish = mathMin(i * perUnit, countTargets)
+		local count = finish - start + 1
+		local tlist = tableNew(count, 0)
+		for j = start, finish do
+			tlist[j - start + 1] = targets[indexTarget[j]]
+		end
+		result[unit] = tlist
+	end
+	return result
 end
 
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
-	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
+	local maxAllowedTargetsPerUnit = mathClamp(mathFloor(commandLimit / selectedUnitsLen), 1, commandLimit)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local unitTargetsMap = (selectedUnitsLen <= 200 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
+	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
+		selectedUnitTable[1] = selectedUnitId
 		sortTargetsByDistance(selectedUnitTable, targets, true)
 		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
@@ -399,10 +510,12 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
 	end
-	local config = {} --- @type CommandConfig
-	config.handle = handler or defaultHandler
-	config.allowedTargetTypes = allowedTargetTypes
-	config.targetAllegiance = targetAllegiance
+	--- @type CommandConfig
+	local config = {
+		handle             = handler or defaultHandler,
+		allowedTargetTypes = allowedTargetTypes,
+		targetAllegiance   = targetAllegiance,
+	}
 	return config
 end
 
@@ -419,45 +532,43 @@ local allowedCommands = {
 	[CMD.RESURRECT] = commandConfig({ FEATURE }),
 }
 
-local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
-	local alt = options.alt
-	local ctrl = options.ctrl
-	local filteredTargets = {}
-	local unitDefId = spGetUnitDefID(targetId)
-	if not unitDefId then
-		return nil
+local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance)
+	local targetDefId = spGetUnitDefID(targetId)
+	if not targetDefId then
+		return
 	end
 
-	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID
-	if isEnemyTarget and targetAllegiance ~= ALL_UNITS and targetAllegiance ~= ENEMY_UNITS then
-		-- targeting enemy when only allies are allowed
-		return nil
+	local filterTeam = options.ctrl
+	local filterType = not filterTeam and options.alt
+
+	if allegiance ~= ALLY_UNITS and spGetUnitAllyTeam(targetId) ~= myAllyTeamID then
+		allegiance = ENEMY_UNITS
+	elseif allegiance ~= ENEMY_UNITS and filterTeam then
+		allegiance = spGetUnitTeam(targetId)
 	end
 
-	if isEnemyTarget then
-		targetAllegiance = ENEMY_UNITS
-	else
-		targetAllegiance = spGetUnitTeam(targetId)
+	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, allegiance)
+	if not unitsInArea[1] then
+		return
 	end
 
-	local unitsInArea = spGetUnitsInCylinder(cmdX, cmdZ, radius, targetAllegiance)
-
-	if not unitsInArea then
-		return nil
-	end
-
-	if ctrl then
+	if filterTeam then
 		return unitsInArea
 	end
 
-	for i = 1, #unitsInArea do
-		local unitID = unitsInArea[i]
-		if spGetUnitDefID(unitID) == unitDefId then
-			tableInsert(filteredTargets, unitID)
+	if filterType then
+		local targetsByType, count = {}, 0
+		for i = 1, #unitsInArea do
+			local unitID = unitsInArea[i]
+			if spGetUnitDefID(unitID) == targetDefId then
+				count = count + 1
+				targetsByType[count] = unitID
+			end
+		end
+		if count > 0 then
+			return targetsByType
 		end
 	end
-
-	return filteredTargets
 end
 
 local function getTechLevel(unitDefName)
@@ -465,47 +576,48 @@ local function getTechLevel(unitDefName)
 	return unitDef and unitDef.customParams.techlevel
 end
 
-local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitDefName)
-	local alt = options.alt
-	local ctrl = options.ctrl
-	local filteredTargets = {}
+local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	local featureDefId = spGetFeatureDefID(targetId)
 	if not featureDefId then
-		return nil
+		return
 	end
+
+	local targetUnitDefName = spGetFeatureResurrect(targetId)
+	if (targetUnitDefName or "") == "" then
+		return
+	end
+
+	local filterType = options.alt
+	local filterTech = not filterType and options.ctrl
 
 	local featuresInArea = spGetFeaturesInCylinder(cmdX, cmdZ, radius)
-	if not featuresInArea then
-		return nil
+	if not featuresInArea[1] then
+		return
 	end
 
-	local targetTechLevel
-	if ctrl then
-		targetTechLevel = getTechLevel(targetUnitDefName)
-	end
+	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
 
+	local filteredTargets, count = {}, 0
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
-		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
-		if ctrl then
+		local matched = false
+		if filterType then
+			matched = spGetFeatureDefID(featureId) == featureDefId
+		elseif filterTech then
 			local unitDefName = spGetFeatureResurrect(featureId)
-			local unitTechLevel = getTechLevel(unitDefName)
-			if unitTechLevel == targetTechLevel then
-				shouldInsert = true
-			end
+			matched = getTechLevel(unitDefName) == targetTechLevel
 		end
-		if shouldInsert then
-			if not Engine.FeatureSupport.noOffsetForFeatureID then
-				-- featureId is normalised to Game.maxUnits + featureId because of:
-				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
-				-- offset due to be removed in future engine version
-				featureId = featureId + Game.maxUnits
+		if matched then
+			if offsetFeatureID then
+				featureId = featureId + UNIT_ID_MAX
 			end
-			tableInsert(filteredTargets, featureId)
+			count = count + 1
+			filteredTargets[count] = featureId
 		end
 	end
-	return filteredTargets
+	if count > 0 then
+		return filteredTargets
+	end
 end
 
 function widget:CommandNotify(cmdId, params, options)
@@ -513,12 +625,12 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	if #params ~= 4 then
+	if #params ~= 4 or params[4] < 4 then
 		return false
 	end
 
-	local currentCommand = allowedCommands[cmdId]
-	if not currentCommand then
+	local areaCommand = allowedCommands[cmdId]
+	if not areaCommand then
 		return false
 	end
 
@@ -528,31 +640,24 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
-	local mouseX, mouseY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
-	local targetType, targetId = spTraceScreenRay(mouseX, mouseY)
+	local screenX, screenY = spWorldToScreenCoords(cmdX, cmdY, cmdZ)
+	local targetType, targetId = spTraceScreenRay(screenX, screenY)
 
-	if not currentCommand.allowedTargetTypes[targetType] then
+	if not areaCommand.allowedTargetTypes[targetType] then
 		return false
 	end
 
 	local filteredTargets
-
 	if targetType == UNIT then
-		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
+		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, areaCommand.targetAllegiance)
 	elseif targetType == FEATURE then
-		local unitDefName = spGetFeatureResurrect(targetId)
-		-- filter only wrecks which can be resurrected
-		if unitDefName == nil or unitDefName == "" then
-			return false
-		end
-		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options, unitDefName)
+		filteredTargets = filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	end
-
-	if not filteredTargets or #filteredTargets == 0 then
+	if not filteredTargets then
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	areaCommand.handle(cmdId, selectedUnits, filteredTargets, options)
 	return true
 end
 
