@@ -8,7 +8,8 @@ local function removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTe
     local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
 	for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
-            if reclaim and reclaimerTeam then
+            if reclaim then
+                if not reclaimerTeam then reclaimerTeam = Spring.GetUnitTeam(unitID) end
                 local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
                 if unitDef and unitDef.metalCost then
                     Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost)
@@ -69,7 +70,7 @@ return {
 	    type = 'ReclaimUnits',
 	    parameters = {
 	    	{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-	    	{ name = 'reclaimerTeam', required = true, type = ParameterTypes.TeamID },
+	    	{ name = 'reclaimerTeam', required = false, type = ParameterTypes.TeamID },
 	    },
 	    actionFunction = reclaimUnits,
     },
