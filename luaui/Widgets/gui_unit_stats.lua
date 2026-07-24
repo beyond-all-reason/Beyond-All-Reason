@@ -212,8 +212,14 @@ local targetableTypes = {
 -- Only groups 0 [always active] and 1 [primary weapon set] are aggregated.
 -- Others might be checked for abilities still, e.g. antinuke interceptors.
 local weaponGroupNumbers = table.new(#WeaponDefs, 1) -- defID [0] is hashed
+local isBogusWeapon = table.new(#WeaponDefs, 1)
+local isWeaponBackup = table.new(#WeaponDefs, 1)
 for weaponDefID = 0, #WeaponDefs do
-	weaponGroupNumbers[weaponDefID] = tonumber(WeaponDefs[weaponDefID].customParams.weapons_group or -1) or -1
+	local weaponDef = WeaponDefs[weaponDefID]
+	weaponGroupNumbers[weaponDefID] = tonumber(weaponDef.customParams.weapons_group or -1) or -1
+	isBogusWeapon[weaponDefID] = weaponDef.customParams.bogus == "1"
+	isWeaponBackup[weaponDefID] = weaponDef.customParams.smart_priority == nil
+		and (weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker)
 end
 
 ------------------------------------------------------------------------------------
@@ -689,13 +695,18 @@ local function computeContent(uDefID, uID, shiftBool)
 	------------------------------------------------------------------------------------
 	-- Weapons
 	------------------------------------------------------------------------------------
+	local hasSmartPriority = uDef.customParams.weapons_smart_select ~= nil
+
 	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
 	local weaponNums = {}
+	local weaponDefToNum = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
-		if weaponGroupNumbers[wDefID] >= 0 then
+		if isBogusWeapon[wDefID] then
+			-- continue
+		elseif weaponGroupNumbers[wDefID] >= 0 then
 			local wCount = wepCounts[wDefID]
 			if wCount then
 				wepCounts[wDefID] = wCount + 1
@@ -703,10 +714,19 @@ local function computeContent(uDefID, uID, shiftBool)
 				wepCounts[wDefID] = 1
 				wepsCompact[#wepsCompact + 1] = wDefID
 				weaponNums[#wepsCompact] = i
+				weaponDefToNum[wDefID] = i
 			end
 		end
 	end
-	tableSortStable(wepsCompact, function(a, b) return weaponGroupNumbers[a] < weaponGroupNumbers[b] end)
+
+	tableSortStable(wepsCompact, function(a, b)
+		if weaponGroupNumbers[a] ~= weaponGroupNumbers[b] then
+			return weaponGroupNumbers[a] < weaponGroupNumbers[b]
+		end
+		if weaponDefToNum[a] ~= weaponDefToNum[b] then
+			return weaponDefToNum[a] < weaponDefToNum[b]
+		end
+	end)
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
@@ -768,7 +788,7 @@ local function computeContent(uDefID, uID, shiftBool)
 			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
 		end
 
-		if range > 0 and uWep.customParams.bogus ~= "1" then
+		if range > 0 then
 			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
 			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
 				oRld = spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTimeXP") or
@@ -847,9 +867,13 @@ local function computeContent(uDefID, uID, shiftBool)
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / (useExp and reload or uWep.reload))
 					end
-					totaldps = totaldps + wepCount*dps
-					totalbDamages = totalbDamages + wepCount* burstDamage
 					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
+					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
+					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
+						totaldps = totaldps + wepCount*dps
+						totalbDamages = totalbDamages + wepCount* burstDamage
+					end
 				end
 				DrawText(texts.dmg..":", damageString)
 

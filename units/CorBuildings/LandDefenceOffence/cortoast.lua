@@ -126,7 +126,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					default = 420,
@@ -162,7 +161,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					default = 420,

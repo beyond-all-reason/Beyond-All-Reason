@@ -381,10 +381,10 @@ local function refreshUnitInfo()
 				unitDefInfo[unitDefID].shieldRechargeCost = weaponDef.shieldPowerRegenEnergy
 
 			else
-				if unitDef.name == 'armamb' or unitDef.name == 'cortoast' then -- weapons with low/high traj, this list is incomplete
-					unitExempt = true
-					if i==1 then                                --Calculating using first weapon only
-						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0])) --Damage to default armor category
+				if unitDef.customParams.weapons_smart_select and (weaponDef.customParams.smart_priority or weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker) then
+					unitExempt = true -- NB: I hate this thing
+					if weaponDef.customParams.smart_priority then
+						addDPS(calculateWeaponDPS(weaponDef, weaponDef.damages[0]))
 					end
 
 				elseif

@@ -749,6 +749,42 @@ local function unitDef_Post(name, uDef)
 			end
 			weaponDef.customparams.weapons_group = groupNumber
 		end
+
+		-- Remove all smart-select customparams unless all three of these are valid:
+		local priorityWeapon, backupWeapon, trajectoryWeapon
+
+		for weaponNumber, weapon in ipairs(weapons) do
+			local weaponName = (weapon.def or ""):lower()
+			local weaponDef = weapondefs[weaponName]
+			local weaponParams = weaponDef and weaponDef.customparams or {}
+
+			if weaponParams.smart_priority and not priorityWeapon then
+				priorityWeapon = weaponNumber
+			elseif weaponParams.smart_backup and not backupWeapon then
+				backupWeapon = weaponNumber
+			elseif weaponParams.smart_trajectory_checker and not trajectoryWeapon then
+				trajectoryWeapon = weaponNumber
+			end
+
+			weaponParams.smart_priority = nil
+			weaponParams.smart_backup = nil
+			weaponParams.smart_trajectory_checker = nil
+		end
+
+		if priorityWeapon and backupWeapon and trajectoryWeapon then
+			customparams.weapons_smart_select = true
+
+			if customparams.smart_weapon_cmddesc ~= "trajectory" then
+				customparams.smart_weapon_cmddesc = "default"
+			end
+
+			weapondefs[weapons[  priorityWeapon].def:lower()].customparams.smart_priority = true
+			weapondefs[weapons[    backupWeapon].def:lower()].customparams.smart_backup = true
+			weapondefs[weapons[trajectoryWeapon].def:lower()].customparams.smart_trajectory_checker = true
+		else
+			customparams.weapons_smart_select = nil
+			customparams.smart_weapon_cmddesc = nil
+		end
 	end
 
 	-- Defend firestate: aircraft, long-range, starburst, and drone carrier units engage threats at any range in defend mode
