@@ -488,12 +488,24 @@ end
 -- Use with a weapon with a high firing arc, or it can cause strange behaviors, e.g. when firing down.
 
 weaponCustomParamKeys.split = {
-	speceffect_def    = toWeaponDefID, -- name of spawned weapondef (weapon type must be non-hitscan)
-	number            = tonumber, -- count of projectiles to spawn
-	splitexplosionceg = tostring, -- name of spawned CEG (use a small puff, there is no damage)
-	cegtag            = tostring, -- as `projectileParams.cegTag`
-	model             = tostring, -- as `projectileParams.model`
+	splitheight               = tonumber, -- altitude above ground to trigger split (optional, splits at apogee if omitted or -1)
+	speceffect_def            = toWeaponDefID, -- name of spawned weapondef
+	number                    = tonumber, -- count of projectiles to spawn
+	splitexplosionceg         = tostring, -- name of spawned CEG (use a small puff, there is no damage)
+	cegtag                    = tostring, -- as `projectileParams.cegTag`
+	model                     = tostring, -- as `projectileParams.model`
+	spread_divisor            = function(v) return tonumber(v) or 880 end, -- XZ spread divisor
+	spread_divisor_y          = function(v) return tonumber(v) or 440 end, -- Y spread divisor
 }
+
+local function calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
+	local spreadDiv = params.spread_divisor or 880
+	local spreadDivY = params.spread_divisor_y or 440
+
+	speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / spreadDiv)
+	speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / spreadDivY)
+	speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / spreadDiv)
+end
 
 local function split(params, projectileID)
 	local weaponDefID, projectileParams, parentSpeed = getProjectileArgs(params, projectileID)
@@ -501,24 +513,69 @@ local function split(params, projectileID)
 	spDeleteProjectile(projectileID)
 
 	local pos = projectileParams.pos
-	spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
+	if params.splitexplosionceg then
+		spSpawnCEG(params.splitexplosionceg, pos[1], pos[2], pos[3])
+	end
 
 	projectileParams.gravity = gravityPerFrame
 
 	local speed = projectileParams.speed
 	local velocityX, velocityY, velocityZ = speed[1], speed[2], speed[3]
 
-	for _ = 1, params.number do
-		speed[1] = velocityX + parentSpeed * (math_random(-100, 100) / 880)
-		speed[2] = velocityY + parentSpeed * (math_random(-100, 100) / 440)
-		speed[3] = velocityZ + parentSpeed * (math_random(-100, 100) / 880)
-
-		spSpawnProjectile(weaponDefID, projectileParams)
+	local totalNumber = params.number or 1
+	
+	if weaponDefID and totalNumber > 0 then
+		for _ = 1, totalNumber do
+			calculateSubmunitionVelocity(speed, params, parentSpeed, velocityX, velocityY, velocityZ)
+			spSpawnProjectile(weaponDefID, projectileParams)
+		end
 	end
+end
+
+local function shouldSplitAtHeight(projectileID, px, py, pz, splitHeight)
+	local vx, vy, vz = spGetProjectileVelocity(projectileID)
+	local frameDistance = math.sqrt(vx*vx + vy*vy + vz*vz)
+	local stepSize = 8 -- Grid size of Spring heightmap
+
+	if frameDistance > 0 then
+		local steps = math.floor(frameDistance / stepSize)
+		local testX, testY, testZ = px, py, pz
+		if steps > 0 then
+			local stepX = (vx / frameDistance) * stepSize
+			local stepY = (vy / frameDistance) * stepSize
+			local stepZ = (vz / frameDistance) * stepSize
+
+			for _ = 1, steps do
+				if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
+					return true
+				end
+				testX = testX + stepX
+				testY = testY + stepY
+				testZ = testZ + stepZ
+			end
+		else
+			if (testY - spGetGroundHeight(testX, testZ)) < splitHeight then
+				return true
+			end
+		end
+	else
+		if (py - spGetGroundHeight(px, pz)) < splitHeight then
+			return true
+		end
+	end
+	return false
 end
 
 specialEffectFunction.split = function(params, projectileID)
 	if isProjectileFalling(projectileID) then
+		-- Fallback to -1 if splitheight is omitted entirely (since parseCustomParams skips missing keys)
+		local splitHeight = params.splitheight or -1
+		if splitHeight ~= -1 then -- -1 ignores split height (splits immediately at apogee)
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			if not px or not shouldSplitAtHeight(projectileID, px, py, pz, splitHeight) then
+				return false
+			end
+		end
 		split(params, projectileID)
 		return true
 	end
