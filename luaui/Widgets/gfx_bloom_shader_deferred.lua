@@ -91,6 +91,15 @@ local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local glDeleteShader = gl.DeleteShader
 
+local function HasHDRSceneTexture()
+	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
+		return false
+	end
+
+	local hdrInfo = Spring.GetHDRInfo()
+	return hdrInfo and hdrInfo.sceneTargetActive
+end
+
 
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
@@ -410,6 +419,8 @@ local function MakeBloomShaders()
 
 			uniform sampler2D modelDepthTex;
 			uniform sampler2D mapDepthTex;
+			uniform sampler2D sceneColorTex;
+			uniform int hdrSceneInput;
 
 			uniform float illuminationThreshold;
 			uniform float kneeWidth;
@@ -419,43 +430,50 @@ local function MakeBloomShaders()
 			void main(void) {
 				// Center texture coordinates correctly (rounding pad correction)
 				vec2 texCoors = vec2(gl_TexCoord[0].xy * vec2(VSX, VSY) / vec2(DOWNSCALE * HSX, DOWNSCALE * HSY ));
-				#if DOWNSCALE <= 2
-					float modelDepth = texture2D(modelDepthTex, texCoors).r;
+				vec4 color;
+				vec4 colorEmit = vec4(0.0);
+				float unoccludedModel = 1.0;
 
-					// Bail early if this is not a model fragment
-					if (modelDepth > 0.9999) {
-						gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-						return;
-					}
+				if (hdrSceneInput == 1) {
+					// The engine texture is resolved scene-linear extended sRGB and can
+					// contain luminance above SDR white.
+					color = texture2D(sceneColorTex, texCoors);
+				} else {
+					#if DOWNSCALE <= 2
+						float modelDepth = texture2D(modelDepthTex, texCoors).r;
 
-					float mapDepth = texture2D(mapDepthTex, texCoors).r;
-					float unoccludedModel = float(modelDepth < mapDepth);
+						// Bail early if this is not a model fragment
+						if (modelDepth > 0.9999) {
+							gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+							return;
+						}
 
-					vec4 color = vec4(texture2D(modelDiffuseTex, texCoors));
-					vec4 colorEmit = texture2D(modelEmitTex, texCoors);
+						float mapDepth = texture2D(mapDepthTex, texCoors).r;
+						unoccludedModel = float(modelDepth < mapDepth);
 
-				#else
-					// downscale by 3 case
-					vec2 offset = vec2(1.0/VSX, 1.0/VSY) * 0.56;
-					float modelDepth1 = texture2D(modelDepthTex, texCoors + offset).r;
-					float modelDepth2 = texture2D(modelDepthTex, texCoors - offset).r;
+						color = texture2D(modelDiffuseTex, texCoors);
+						colorEmit = texture2D(modelEmitTex, texCoors);
+					#else
+						// downscale by 3 case
+						vec2 offset = vec2(1.0/VSX, 1.0/VSY) * 0.56;
+						float modelDepth1 = texture2D(modelDepthTex, texCoors + offset).r;
+						float modelDepth2 = texture2D(modelDepthTex, texCoors - offset).r;
 
-					if ((modelDepth1 + modelDepth2) > 1.9999) {
-						gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-						return;
-					}
+						if ((modelDepth1 + modelDepth2) > 1.9999) {
+							gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+							return;
+						}
 
-					float mapDepth = texture2D(mapDepthTex, texCoors).r;
-					float unoccludedModel = float((modelDepth1 + modelDepth2) * 0.5 < mapDepth);
+						float mapDepth = texture2D(mapDepthTex, texCoors).r;
+						unoccludedModel = float((modelDepth1 + modelDepth2) * 0.5 < mapDepth);
 
-					vec4 color = vec4(texture2D(modelDiffuseTex, texCoors+ offset));
-						 color += vec4(texture2D(modelDiffuseTex, texCoors- offset));
-						 color *= 0.5;
-					vec4 colorEmit = texture2D(modelEmitTex, texCoors+ offset);
-						 colorEmit *=2;
-						 colorEmit += texture2D(modelEmitTex, texCoors- offset);
-
-				#endif
+						color = texture2D(modelDiffuseTex, texCoors + offset);
+						color += texture2D(modelDiffuseTex, texCoors - offset);
+						color *= 0.5;
+						colorEmit = texture2D(modelEmitTex, texCoors + offset) * 2.0;
+						colorEmit += texture2D(modelEmitTex, texCoors - offset);
+					#endif
+				}
 
 
 				// Handle transparency in color.a
@@ -489,6 +507,8 @@ local function MakeBloomShaders()
 			modelEmitTex = 1,
 			modelDepthTex = 2,
 			mapDepthTex = 3,
+			sceneColorTex = 4,
+			hdrSceneInput = 0,
 		},
 		uniformFloat = {
 			illuminationThreshold = 0,
@@ -561,8 +581,13 @@ local function FullScreenQuad()
 	rectVAO:DrawArrays(GL.TRIANGLES)
 end
 
-local function Bloom()
+local function Bloom(useHDRScene)
 	if #bloomMips == 0 then return end
+	local brightContributionLimit = maxBrightContribution
+	if useHDRScene then
+		local hdrInfo = Spring.GetHDRInfo()
+		brightContributionLimit = math.max(4.0, (hdrInfo and hdrInfo.hdrHeadroom) or 1.0)
+	end
 
 	gl.DepthMask(false)
 	gl.Color(1, 1, 1, 1)
@@ -574,12 +599,16 @@ local function Bloom()
 		brightShader:SetUniform("illuminationThreshold", illumThreshold)
 		brightShader:SetUniform("kneeWidth", kneeWidth)
 		brightShader:SetUniform("fragGlowAmplifier", glowAmplifier*glowAmplifierMult)
-		brightShader:SetUniform("maxBrightContribution", maxBrightContribution)
+		brightShader:SetUniform("maxBrightContribution", brightContributionLimit)
+		brightShader:SetUniformInt("hdrSceneInput", useHDRScene and 1 or 0)
 
 		glTexture(0, "$model_gbuffer_difftex")
 		glTexture(1, "$model_gbuffer_emittex")
 		glTexture(2, "$model_gbuffer_zvaltex")
 		glTexture(3, "$map_gbuffer_zvaltex")
+		if useHDRScene then
+			glTexture(4, "$scene_color")
+		end
 
 		glRenderToTexture(bloomMips[1].tex, FullScreenQuad)
 
@@ -587,6 +616,7 @@ local function Bloom()
 		glTexture(1, false)
 		glTexture(2, false)
 		glTexture(3, false)
+		glTexture(4, false)
 	brightShader:Deactivate()
 
 	if not debugBrightShader then
@@ -656,12 +686,12 @@ local function Bloom()
 
 	-- 4) Combine: blend the accumulated bloom onto the screen.
 	if dbgDraw == 0 then
-		if useScreenBlend then
+		if useScreenBlend and not useHDRScene then
 			-- "Screen"-like blend: dst + src*(1-dst). Naturally soft-caps near 1.0
 			-- so already-bright scene pixels don't blow out from added bloom.
 			gl.Blending(GL.ONE_MINUS_DST_COLOR, GL.ONE)
 		else
-			gl.Blending("alpha_add")
+			gl.Blending(GL.ONE, GL.ONE)
 		end
 	else
 		gl.Blending(GL.ONE, GL.ZERO)
@@ -689,7 +719,15 @@ local function Bloom()
 end
 
 function widget:DrawWorld()
-	Bloom()
+	if not HasHDRSceneTexture() then
+		Bloom(false)
+	end
+end
+
+function widget:DrawScreenEffects()
+	if HasHDRSceneTexture() then
+		Bloom(true)
+	end
 end
 
 function widget:GetConfigData()

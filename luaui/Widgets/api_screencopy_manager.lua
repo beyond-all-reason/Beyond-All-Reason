@@ -54,6 +54,15 @@ local lastDepthCopyFrame
 local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local firstCopy = true
 
+local function HasHDRSceneTextures()
+	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
+		return false
+	end
+
+	local hdrInfo = Spring.GetHDRInfo()
+	return hdrInfo and hdrInfo.sceneTargetActive
+end
+
 function widget:ViewResize()
 	vsx, vsy, vpx, vpy = spGetViewGeometry()
 	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
@@ -80,6 +89,10 @@ function widget:ViewResize()
 end
 
 local function GetScreenCopy()
+	if HasHDRSceneTextures() then
+		return "$scene_color"
+	end
+
 	local df = Spring.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastScreenCopyFrame then
@@ -95,6 +108,10 @@ end
 
 
 local function GetDepthCopy()
+	if HasHDRSceneTextures() then
+		return "$scene_depth"
+	end
+
 	local df = Spring.GetDrawFrame()
 	--spEcho("GetScreenCopy", df)
 	if df ~= lastDepthCopyFrame then

@@ -192,6 +192,15 @@ local shaderPlugins = {
 	-- Inserted between %%TARGET%% blocks via InsertPlugin
 }
 
+local function IsHDRSceneLinear()
+	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
+		return 0
+	end
+
+	local hdrInfo = Spring.GetHDRInfo()
+	return (hdrInfo and hdrInfo.sceneTargetActive) and 1 or 0
+end
+
 
 local function SunChanged(luaShader)
 
@@ -206,6 +215,7 @@ local function SunChanged(luaShader)
         Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
+	luaShader:SetUniformIntAlways("hdrSceneLinear", IsHDRSceneLinear())
 end
 
 defaultMaterialTemplate.SunChangedOrig = SunChanged

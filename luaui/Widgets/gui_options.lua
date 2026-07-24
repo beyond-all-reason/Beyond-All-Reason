@@ -80,6 +80,45 @@ end
 
 local devMode = Spring.Utilities.IsDevMode()
 local devUI = Spring.Utilities.ShowDevUI()
+local hdrApiAvailable = Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo
+local hdrModeValues = { "off", "auto", "on" }
+local lastHDRGeneration
+
+local function GetHDRModeOptionValue()
+	local configuredMode = Spring.GetConfigString("HDRMode", "off")
+	for index, mode in ipairs(hdrModeValues) do
+		if mode == configuredMode then
+			return index
+		end
+	end
+	return 1
+end
+
+local function GetHDRStatusDescription()
+	if not hdrApiAvailable then
+		return Spring.I18N('ui.settings.option.hdr_unsupported_engine')
+	end
+
+	local hdrInfo = Spring.GetHDRInfo()
+	if not hdrInfo then
+		return Spring.I18N('ui.settings.option.hdr_status_unavailable')
+	end
+
+	local osEnabled = hdrInfo.osHdrEnabled
+	local osState = osEnabled == nil and Spring.I18N('ui.settings.option.hdr_unknown')
+		or (osEnabled and Spring.I18N('ui.settings.option.select_enabled') or Spring.I18N('ui.settings.option.select_off'))
+	local windowEnabled = hdrInfo.windowHdrEnabled
+	local windowState = windowEnabled == nil and Spring.I18N('ui.settings.option.hdr_unknown')
+		or (windowEnabled and Spring.I18N('ui.settings.option.select_enabled') or Spring.I18N('ui.settings.option.select_off'))
+
+	return Spring.I18N('ui.settings.option.hdr_descr')
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_capability') .. ': ' .. tostring(hdrInfo.capability)
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_os_state') .. ': ' .. osState
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_window_state') .. ': ' .. windowState
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_active_mode') .. ': ' .. tostring(hdrInfo.effectiveMode)
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_state') .. ': ' .. tostring(hdrInfo.state)
+		.. '\n' .. Spring.I18N('ui.settings.option.hdr_fallback_reason') .. ': ' .. tostring(hdrInfo.inactiveReason)
+end
 
 local advSettings = false
 local initialized = false
@@ -1115,6 +1154,25 @@ function widget:Update(dt)
 		sec2 = 0
 		continuouslyClean = Spring.GetConfigInt("ContinuouslyClearMapmarks", 0) == 1
 		cachedMuteOffscreen = Spring.GetConfigInt("muteOffscreen", 0) == 1
+
+		if hdrApiAvailable then
+			local hdrInfo = Spring.GetHDRInfo()
+			if hdrInfo and hdrInfo.generation ~= lastHDRGeneration then
+				lastHDRGeneration = hdrInfo.generation
+				local hdrDescription = GetHDRStatusDescription()
+				for _, option in ipairs(unfilteredOptions) do
+					if option.id == 'hdrmode' then
+						option.description = hdrDescription
+						break
+					end
+				end
+				local hdrOptionIndex = getOptionByID('hdrmode')
+				if hdrOptionIndex and options[hdrOptionIndex] then
+					options[hdrOptionIndex].description = hdrDescription
+					forceUpdate = true
+				end
+			end
+		end
 
 		-- detect guishader toggle: force refresh when it comes back on
 		local guishaderActive = WG['guishader'] ~= nil
@@ -2692,6 +2750,18 @@ function init()
 						end
 					end
 				end
+			end,
+		},
+		{ id = "hdrmode", group = "gfx", category = types.basic, name = Spring.I18N('ui.settings.option.hdr'), type = "select", restart = true,
+			options = {
+				Spring.I18N('ui.settings.option.select_off'),
+				Spring.I18N('ui.settings.option.select_auto'),
+				Spring.I18N('ui.settings.option.select_on'),
+			},
+			value = GetHDRModeOptionValue(),
+			description = GetHDRStatusDescription(),
+			onchange = function(_, value)
+				Spring.SetConfigString("HDRMode", hdrModeValues[value] or "off")
 			end,
 		},
 		{ id = "dualmode_enabled", group = "gfx", category = types.dev, name = Spring.I18N('ui.settings.option.dualmode'), type = "bool", value = Spring.GetConfigInt("DualScreenMode"), description = Spring.I18N('ui.settings.option.dualmode_enabled_descr'),

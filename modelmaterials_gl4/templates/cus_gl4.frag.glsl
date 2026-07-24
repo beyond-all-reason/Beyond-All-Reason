@@ -100,6 +100,9 @@ uniform sampler2D envLUT;			//11
 
 
 uniform float gamma = 1.0;
+// Recoil HDR output API: when enabled, this material writes scene-linear values
+// and leaves tone/output mapping to the engine presentation pass.
+uniform int hdrSceneLinear = 0;
 
 
 //[0]-healthMix, [1]-healthMod, [2]-vertDisplacement, [3]-tracks
@@ -1148,7 +1151,9 @@ void main(void){
 
 
 
-	outColor = TONEMAP(outColor);
+	if (hdrSceneLinear == 0) {
+		outColor = TONEMAP(outColor);
+	}
 
 	if (BITMASK_FIELD(bitOptions, OPTION_MODELSFOG)) {
 		outColor = mix(fogColor.rgb, outColor, aoterm_fogFactor_selfIllumMod_healthFraction.y);
@@ -1358,7 +1363,9 @@ void main(void){
 		// Deferred Rendering Mode
 		float alphaBin = (texColor2.a < 0.5) ? 0.0 : 1.0;
 
-		outSpecularColor = TONEMAP(outSpecularColor);
+		if (hdrSceneLinear == 0) {
+			outSpecularColor = TONEMAP(outSpecularColor);
+		}
 		#ifdef HASALPHASHADOWS
 			if (texColor2.a < 0.5) {
 				discard;
