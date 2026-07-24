@@ -33,11 +33,11 @@ local spIsPosInAirLos             = Spring.IsPosInAirLos
 local spGetMyAllyTeamID           = Spring.GetMyAllyTeamID
 local spGetSpectatingState        = Spring.GetSpectatingState
 local spGetGameFrame              = Spring.GetGameFrame
-local spGetFrameTimeOffset        = Spring.GetFrameTimeOffset
 local spGetGameSpeed              = Spring.GetGameSpeed
 local spGetProjectileOwnerID      = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView              = Spring.IsAABBInView
+local spGetUnitTransformMatrix    = Spring.GetUnitTransformMatrix ---@type function
 
 local glBlending  = gl.Blending
 local glTexture   = gl.Texture
@@ -73,15 +73,14 @@ local GHOST_THICKNESS_MIN   = 1.5   -- thickness at or below which gets min ghos
 local GHOST_THICKNESS_MAX   = 5.0   -- thickness at or above which gets max ghost frames
 local FLARE_GHOST_FRAC      = 0.4   -- fraction of weapon ghostFrames where flare stays visible (0..1)
 
--- Hardpoint bucketing: muzzle position is quantized into a coarse grid and the
--- bucket index is part of the tracking key. This lets multiple hardpoints on
--- the same unit that share a weaponDefID (e.g. dual-barrel beam turrets) each
--- get their own tracked beam slot, while still merging consecutive shots from
--- one rotating turret (whose muzzle moves only a few elmos between shots)
--- onto the same key -- avoiding the "stuttering rapid-fire trail" that a
--- per-shot key would produce.
+-- Hardpoint bucketing: unit-local muzzle position is quantized into a coarse
+-- grid and included in the tracking key. Model-space coordinates keep one
+-- hardpoint stable while its unit moves and rotates, while the bucket still
+-- separates multiple hardpoints that share a weaponDefID.
 local HARDPOINT_BUCKET_SIZE = 12    -- elmos per bucket on each axis
 local INV_HARDPOINT_BUCKET  = 1 / HARDPOINT_BUCKET_SIZE
+local HARDPOINT_MATCH_DISTANCE_SQ = 24 * 24 -- follow an animated muzzle across adjacent buckets
+local HARDPOINT_DEDUPE_DISTANCE_SQ = 8 * 8  -- merge overlapping shots already claimed this scan
 
 -- Textures
 local beamTexture  = "bitmaps/projectiletextures/largebeam.tga"
@@ -162,6 +161,22 @@ local shaderConfig = {
 local weaponConfigs = {}  -- weaponDefID -> config table
 local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM  -- pre-computed for weaponConfigs
 
+-- A weapon definition mounted once on a unit has only one legitimate emitter.
+-- Keep model-space hardpoint separation only for definitions mounted repeatedly.
+local repeatedMountWeaponDefs = {}
+for _, unitDef in pairs(UnitDefs or {}) do
+	local seenWeaponDefs = {}
+	local weapons = unitDef.weapons
+	for i = 1, #weapons do
+		local weaponDefID = weapons[i].weaponDef
+		if seenWeaponDefs[weaponDefID] then
+			repeatedMountWeaponDefs[weaponDefID] = true
+		else
+			seenWeaponDefs[weaponDefID] = true
+		end
+	end
+end
+
 for weaponID, weaponDef in pairs(WeaponDefs) do
 	if weaponDef.type == "BeamLaser" then
 		local cp = weaponDef.customParams or {}
@@ -186,6 +201,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 
 		-- Paralyzer beams get a unique tint
 		local isParalyzer = weaponDef.paralyzer or false
+		local hasRepeatedMounts = repeatedMountWeaponDefs[weaponID]
 
 		-- Per-weapon ghost frames based on thickness
 		local ghostFrac = mathMin(1, mathMax(0, (thickness - GHOST_THICKNESS_MIN) / (GHOST_THICKNESS_MAX - GHOST_THICKNESS_MIN)))
@@ -201,6 +217,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			range = range,
 			beamttl = beamttl,
 			beamtime = beamtime,
+			emitterMatchDistSq = hasRepeatedMounts and HARDPOINT_MATCH_DISTANCE_SQ or math.huge,
+			claimedMatchDistSq = hasRepeatedMounts and HARDPOINT_DEDUPE_DISTANCE_SQ or math.huge,
 			isParalyzer = isParalyzer,
 			-- Per-weapon ghost config
 			ghostFrames = ghostFrames,
@@ -263,6 +281,7 @@ local ownerBeamsPoolN  = 0
 
 local function releaseTrackedBeam(rec)
 	rec.cfg = nil
+	rec.simStamp = nil
 	trackedPoolN = trackedPoolN + 1
 	trackedPool[trackedPoolN] = rec
 end
@@ -280,6 +299,64 @@ local BEAM_KEY_BZ_MUL = 1
 local BEAM_KEY_BY_MUL = 4096
 local BEAM_KEY_BX_MUL = 4096 * 4096
 local BEAM_KEY_WDEFID_MUL = 4096 * 4096 * 4096
+
+local function getBeamInnerKey(ownerID, wDefID, px, py, pz)
+	-- The optional second argument returns the inverse affine transform.
+	local m11, m12, m13, _, m21, m22, m23, _, m31, m32, m33, _, m41, m42, m43 = spGetUnitTransformMatrix(ownerID, true)
+	if m11 then
+		local worldX, worldY, worldZ = px, py, pz
+		px = m11 * worldX + m21 * worldY + m31 * worldZ + m41
+		py = m12 * worldX + m22 * worldY + m32 * worldZ + m42
+		pz = m13 * worldX + m23 * worldY + m33 * worldZ + m43
+	else
+		local ux, uy, uz = Spring.GetUnitPosition(ownerID)
+		if ux then
+			px = px - ux
+			py = py - uy
+			pz = pz - uz
+		end
+	end
+	local bx = mathFloor(px * INV_HARDPOINT_BUCKET)
+	local by = mathFloor(py * INV_HARDPOINT_BUCKET)
+	local bz = mathFloor(pz * INV_HARDPOINT_BUCKET)
+	local innerKey = wDefID * BEAM_KEY_WDEFID_MUL
+		+ (bx + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BX_MUL
+		+ (by + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BY_MUL
+		+ (bz + BEAM_KEY_AXIS_OFFSET)
+	return innerKey, px, py, pz
+end
+
+local function resolveBeamEmitter(ownerBeams, ownerID, wDefID, px, py, pz, stamp, stampField, matchMaxDistSq, claimedMaxDistSq)
+	local innerKey, emitterX, emitterY, emitterZ = getBeamInnerKey(ownerID, wDefID, px, py, pz)
+	local direct = ownerBeams[innerKey]
+	if direct and direct.wDefID == wDefID then
+		local dx = emitterX - direct.emitterX
+		local dy = emitterY - direct.emitterY
+		local dz = emitterZ - direct.emitterZ
+		local distSq = dx * dx + dy * dy + dz * dz
+		local maxDistSq = direct[stampField] == stamp and claimedMaxDistSq or matchMaxDistSq
+		if distSq <= maxDistSq then
+			return innerKey, direct, emitterX, emitterY, emitterZ
+		end
+	end
+
+	local nearestKey, nearest, nearestDistSq
+	for candidateKey, candidate in pairs(ownerBeams) do
+		if candidate ~= direct and candidate.wDefID == wDefID then
+			local dx = emitterX - candidate.emitterX
+			local dy = emitterY - candidate.emitterY
+			local dz = emitterZ - candidate.emitterZ
+			local distSq = dx * dx + dy * dy + dz * dz
+			local maxDistSq = candidate[stampField] == stamp and claimedMaxDistSq or matchMaxDistSq
+			if distSq <= maxDistSq and (not nearestDistSq or distSq < nearestDistSq) then
+				nearestKey = candidateKey
+				nearest = candidate
+				nearestDistSq = distSq
+			end
+		end
+	end
+	return nearestKey or innerKey, nearest, emitterX, emitterY, emitterZ
+end
 
 --------------------------------------------------------------------------------
 -- Shader sources: Beam (direction-aligned quad)
@@ -1244,7 +1321,6 @@ local function updateBeams()
 	local callStamp = updateBeamsStamp
 
 	local gameFrame = spGetGameFrame()
-	local dto = spGetFrameTimeOffset()
 
 	-- No per-frame clear needed: rec.liveStamp is stamped to callStamp on every
 	-- live sighting and compared back here, so stale .liveSlot values from prior
@@ -1361,23 +1437,6 @@ local function updateBeams()
 								mathMax(px, endX) + pad, mathMax(py, endY) + pad, mathMax(pz, endZ) + pad
 							) then
 								local ownerID = spGetProjectileOwnerID(proID) or 0
-								-- Key = ownerID -> packed(wDefID, bx, by, bz) where bx/by/bz quantize
-								-- the muzzle position into HARDPOINT_BUCKET_SIZE-elmo cells. Multiple
-								-- hardpoints on one unit that share a weaponDefID (e.g. dual-barrel
-								-- beam turrets) land in different buckets and each get their own
-								-- tracked beam, fixing the bug where only one barrel rendered.
-								-- Rotation drift on a single hardpoint between shots is well below
-								-- one bucket, so consecutive shots still merge onto the same key
-								-- and don't produce a "stuttering rapid-fire trail" of ghost beams.
-								-- Numeric packing avoids the 5x string-concat allocations the old
-								-- "ownerID|wDefID|bx,by,bz" key cost per beam per frame.
-								local bx = mathFloor(origPx * INV_HARDPOINT_BUCKET)
-								local by = mathFloor(origPy * INV_HARDPOINT_BUCKET)
-								local bz = mathFloor(origPz * INV_HARDPOINT_BUCKET)
-								local innerKey = wDefID * BEAM_KEY_WDEFID_MUL
-									+ (bx + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BX_MUL
-									+ (by + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BY_MUL
-									+ (bz + BEAM_KEY_AXIS_OFFSET)
 								local ownerBeams = weaponBeams[ownerID]
 								if not ownerBeams then
 									if ownerBeamsPoolN > 0 then
@@ -1389,7 +1448,14 @@ local function updateBeams()
 									end
 									weaponBeams[ownerID] = ownerBeams
 								end
-								local tracked = ownerBeams[innerKey]
+								-- Single-mount definitions always reuse one record. Repeated mounts
+								-- follow nearest model-space emitters, with tighter same-scan matching.
+								local innerKey, tracked, emitterX, emitterY, emitterZ = resolveBeamEmitter(
+									ownerBeams, ownerID, wDefID, origPx, origPy, origPz,
+									callStamp, "liveStamp",
+									ownerID ~= 0 and cfg.emitterMatchDistSq or HARDPOINT_MATCH_DISTANCE_SQ,
+									ownerID ~= 0 and cfg.claimedMatchDistSq or HARDPOINT_DEDUPE_DISTANCE_SQ
+								)
 								if not tracked then
 									if trackedPoolN > 0 then
 										tracked = trackedPool[trackedPoolN]
@@ -1404,6 +1470,10 @@ local function updateBeams()
 									hasGhosts = true
 								end
 
+								tracked.wDefID = wDefID
+								tracked.emitterX = emitterX
+								tracked.emitterY = emitterY
+								tracked.emitterZ = emitterZ
 								tracked.px = origPx;   tracked.py = origPy;   tracked.pz = origPz
 								tracked.endX = origEndX; tracked.endY = origEndY; tracked.endZ = origEndZ
 								tracked.lastSeenFrame = gameFrame
@@ -1630,15 +1700,6 @@ function gadget:GameFrame(n)
 					local vx, vy, vz = spGetProjectileVelocity(proID)
 					if vx then
 						local ownerID = spGetProjectileOwnerID(proID) or 0
-						-- Bucketed muzzle position in key disambiguates multiple hardpoints
-						-- sharing one wDefID on the same unit. See DrawWorld for rationale.
-						local bx = mathFloor(px * INV_HARDPOINT_BUCKET)
-						local by = mathFloor(py * INV_HARDPOINT_BUCKET)
-						local bz = mathFloor(pz * INV_HARDPOINT_BUCKET)
-						local innerKey = wDefID * BEAM_KEY_WDEFID_MUL
-							+ (bx + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BX_MUL
-							+ (by + BEAM_KEY_AXIS_OFFSET) * BEAM_KEY_BY_MUL
-							+ (bz + BEAM_KEY_AXIS_OFFSET)
 						local ownerBeams = weaponBeams[ownerID]
 						if not ownerBeams then
 							if ownerBeamsPoolN > 0 then
@@ -1650,7 +1711,12 @@ function gadget:GameFrame(n)
 							end
 							weaponBeams[ownerID] = ownerBeams
 						end
-						local tracked = ownerBeams[innerKey]
+						local innerKey, tracked, emitterX, emitterY, emitterZ = resolveBeamEmitter(
+							ownerBeams, ownerID, wDefID, px, py, pz,
+							n, "simStamp",
+							ownerID ~= 0 and cfg.emitterMatchDistSq or HARDPOINT_MATCH_DISTANCE_SQ,
+							ownerID ~= 0 and cfg.claimedMatchDistSq or HARDPOINT_DEDUPE_DISTANCE_SQ
+						)
 						if not tracked then
 							if trackedPoolN > 0 then
 								tracked = trackedPool[trackedPoolN]
@@ -1664,6 +1730,11 @@ function gadget:GameFrame(n)
 							ownerBeams[innerKey] = tracked
 							hasGhosts = true
 						end
+						tracked.wDefID = wDefID
+						tracked.emitterX = emitterX
+						tracked.emitterY = emitterY
+						tracked.emitterZ = emitterZ
+						tracked.simStamp = n
 						tracked.px   = px;       tracked.py   = py;       tracked.pz   = pz
 						tracked.endX = px + vx;  tracked.endY = py + vy;  tracked.endZ = pz + vz
 						tracked.lastSeenFrame = n

@@ -257,6 +257,7 @@ local timers = {
 	deferResourceUpdate = false,
 	guishaderCheckUpdateRate = 0.5,
 	nextSmoothUpdate = 0,
+	nextForcedBarsUpdate = 0,
 }
 
 local blinkDirection = true
@@ -1412,9 +1413,10 @@ local function drawResBars()
 	local update = false
 
 	if now > timers.nextBarsUpdate
-		and not timers.deferResourceUpdate
+		and (not timers.deferResourceUpdate or now > timers.nextForcedBarsUpdate)
 	then
 		timers.nextBarsUpdate = now + 0.05
+		timers.nextForcedBarsUpdate = now + 0.2
 		update = true
 	end
 
