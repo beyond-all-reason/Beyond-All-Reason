@@ -6,17 +6,19 @@ local function killUnits(unitName, selfDestruct, despawn, reclaim, killerTeam)
 
     local trackedUnitIDs = table.copy(GG['MissionAPI'].trackedUnitIDs[unitName])
 	for unitID in pairs(trackedUnitIDs) do
-        if reclaim then
-            local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-            if unitDef and unitDef.metalCost then
-                Spring.AddTeamResource(killerTeam, "metal", unitDef.metalCost)
+        if Spring.GetUnitIsDead(unitID) == false then
+            if reclaim then
+                local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+                if unitDef and unitDef.metalCost then
+                    Spring.AddTeamResource(killerTeam, "metal", unitDef.metalCost)
+                end
+                -- if unitDef and unitDef.energyCost then -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
+                --     Spring.AddTeamResource(killerTeam, "energy", unitDef.energyCost)
+                -- end
             end
-            -- if unitDef and unitDef.energyCost then -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
-            --     Spring.AddTeamResource(killerTeam, "energy", unitDef.energyCost)
-            -- end
+            Spring.DestroyUnit(unitID, selfDestruct, despawn, killerTeam)
         end
-        Spring.DestroyUnit(unitID, selfDestruct, despawn, killerTeam)
-	end
+	end 
 end
 
 local function destroyUnits(unitName)
