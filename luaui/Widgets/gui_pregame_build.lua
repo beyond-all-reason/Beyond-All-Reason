@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 -- Include the substitution logic directly with a shorter alias
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
@@ -781,14 +783,14 @@ function widget:MousePress(mx, my, button)
 	end
 	local _, _, meta, shift = Spring.GetModKeyState()
 
-	if button == 3 and selBuildQueueDefID then
+	if mouseRoles.isSecondaryButton(button) and selBuildQueueDefID then
 		setPreGamestartDefID(nil)
 		buildModeState.startPosition = nil
 		buildModeState.buildPositions = {}
 		return true
 	end
 
-	if button == 3 and shift then
+	if mouseRoles.isSecondaryButton(button) and shift then
 		local x, y, _ = spGetMouseState()
 		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
@@ -804,7 +806,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	local alt, ctrl = Spring.GetModKeyState()
-	if button == 1 and shift and ctrl then
+	if mouseRoles.isPrimaryButton(button) and shift and ctrl then
 		local buildAroundTarget = getGhostBuildingUnderCursor(mx, my)
 		if buildAroundTarget then
 			local buildFacing = Spring.GetBuildFacing()
@@ -891,7 +893,7 @@ function widget:MousePress(mx, my, button)
 	end
 
 	local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
-	if button == 1 then
+	if mouseRoles.isPrimaryButton(button) then
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		if WG.ExtractorSnap then
 			local snapPos = WG.ExtractorSnap.position
@@ -987,7 +989,7 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
-	if button == 1 and #buildQueue > 0 and buildQueue[1][1]>0 then
+	if mouseRoles.isPrimaryButton(button) and #buildQueue > 0 and buildQueue[1][1]>0 then
 		local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(startDefID))
 		if not pos then
 			return
@@ -999,7 +1001,7 @@ function widget:MousePress(mx, my, button)
 		end
 	end
 
-	if button == 3 and #buildQueue > 0 then
+	if mouseRoles.isSecondaryButton(button) and #buildQueue > 0 then
 		tableRemove(buildQueue, #buildQueue)
 
 		return true

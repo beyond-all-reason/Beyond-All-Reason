@@ -30,6 +30,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
 
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
@@ -405,13 +406,13 @@ function widget:MousePress(mx, my, mButton)
     inMinimap = spIsAboveMiniMap(mx, my)
     if inMinimap and not MiniMapFullProxy then return false end
 
-    if mButton ~= 3 and usingRMB then
+    if not mouseRoles.isSecondaryButton(mButton) and usingRMB then
         fNodes = {}
         fDists = {}
         usingRMB = false
     end
 
-    if mButton ~= 3 then return false end --all formation commands are done using right click & drag
+    if not mouseRoles.isSecondaryButton(mButton) then return false end --formations run on the mouse-secondary (default right-click) button
 
     -- Get command that would've been issued
     local _, activeCmdID = spGetActiveCommand()
