@@ -1,11 +1,17 @@
 require("spec_helper")
 
-local validation     = VFS.Include('luarules/mission_api/validation.lua')
-local triggerSchema  = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local actionSchema   = VFS.Include('luarules/mission_api/actions_schema.lua')
+-- mirror eager module loading in api_missions.lua
+GG['MissionAPI'] = GG['MissionAPI'] or {}
+GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
+GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
+
+local validation    = VFS.Include('luarules/mission_api/validation.lua')
+local triggerSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
+local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 
 local triggerTypes  = triggerSchema.Types
-local actionTypes   = actionSchema.Types
+local actionTypes   = actionDefinitions.Types
 
 -- Mirrors the normalisation done by triggers_loader before calling ValidateTriggers.
 local function normalizeTrigger(raw)
@@ -38,12 +44,13 @@ describe("mission_api.validation", function()
 		_G.FeatureDefNames       = {}
 		_G.WeaponDefNames        = {}
 		GG['MissionAPI']         = {
-			TriggerTypes = triggerTypes,
-			ActionTypes  = actionTypes,
-			Objectives   = {},
-			Stages       = {},
-			Triggers     = {},
-			Actions      = {},
+			TriggerTypes      = triggerTypes,
+			Modules           = {},
+			ActionDefinitions = actionDefinitions,
+			Objectives        = {},
+			Stages            = {},
+			Triggers          = {},
+			Actions           = {},
 		}
 	end)
 
@@ -434,41 +441,63 @@ describe("mission_api.validation", function()
 
 		describe("UnitDefName", function()
 			it("rejects wrong type", function()
-				triggerErrors({
-					type       = triggerTypes.UnitExists,
-					parameters = { unitDefName = 123 },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 123, team = 0, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: unitDefName"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Unexpected parameter type, expected string, got number"))
 			end)
 
 			it("rejects unknown unit def name", function()
-				triggerErrors({
-					type       = triggerTypes.UnitExists,
-					parameters = { unitDefName = 'noSuch' },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 'noSuch', team = 0, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Invalid unitDefName: noSuch. Trigger: t, Parameter: unitDefName"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'unitDefName': Invalid unitDefName: noSuch"))
 			end)
 		end)
 
 		describe("FeatureDefName", function()
 			it("rejects wrong type", function()
-				triggerErrors({
-					type       = triggerTypes.FeatureCreated,
-					parameters = { featureDefName = 123 },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 123, x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected string, got number. Trigger: t, Parameter: featureDefName"))
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1, field 'featureDefName': Unexpected parameter type, expected string, got number"))
 			end)
 
 			it("rejects unknown feature def name", function()
-				triggerErrors({
-					type       = triggerTypes.FeatureCreated,
-					parameters = { featureDefName = 'noSuch' },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 'noSuch', x = 0, z = 0 } } },
 				})
-				assert.is_true(hasError("Invalid featureDefName: noSuch. Trigger: t, Parameter: featureDefName"))
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1, field 'featureDefName': Invalid featureDefName: noSuch"))
+			end)
+		end)
+
+		describe("loadout entry required fields", function()
+			it("reports a missing position coordinate in a unitLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0 } } }, -- missing z
+				})
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'z'"))
+			end)
+
+			it("reports a missing required field in a unitLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.SpawnUnits,
+					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0 } } }, -- missing team
+				})
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1: missing required field 'team'"))
+			end)
+
+			it("reports a missing position coordinate in a featureLoadout entry", function()
+				actionErrors({
+					type       = actionTypes.CreateFeatures,
+					parameters = { featureLoadout = { { featureDefName = 'rockdef', z = 0 } } }, -- missing x
+				})
+				assert.is_true(hasError("Action 'a' featureLoadout entry #1: missing required field 'x'"))
 			end)
 		end)
 
@@ -494,17 +523,17 @@ describe("mission_api.validation", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, facing = {} } } },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = {} } } },
 				})
-				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Unexpected parameter type, expected string or number, got table"))
 			end)
 
 			it("rejects invalid facing value", function()
 				actionErrors({
 					type       = actionTypes.SpawnUnits,
-					parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, facing = 'diagonal' } } },
+					parameters = { unitLoadout = { { unitDefName = 'armwar', team = 0, x = 0, z = 0, facing = 'diagonal' } } },
 				})
-				assert.is_true(hasError("UnitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
+				assert.is_true(hasError("Action 'a' unitLoadout entry #1, field 'facing': Invalid facing: diagonal. Must be one of 'n', 's', 'e', 'w', 'north', 'south', 'east', 'west'."))
 			end)
 		end)
 
@@ -535,22 +564,20 @@ describe("mission_api.validation", function()
 
 		describe("TeamID", function()
 			it("rejects wrong type", function()
-				triggerErrors({
-					type       = triggerTypes.UnitExists,
-					parameters = { unitDefName = 'armwar', teamID = 'bad' },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.AddResources,
+					parameters = { teamID = 'bad' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: teamID"))
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Action: a, Parameter: teamID"))
 			end)
 
 			it("rejects invalid team ID", function()
 				Spring.GetTeamAllyTeamID = function() return nil end
-				triggerErrors({
-					type       = triggerTypes.UnitExists,
-					parameters = { unitDefName = 'armwar', teamID = 99 },
-					actions    = { 'ok' },
+				actionErrors({
+					type       = actionTypes.AddResources,
+					parameters = { teamID = 99 },
 				})
-				assert.is_true(hasError("Invalid teamID: 99. Trigger: t, Parameter: teamID"))
+				assert.is_true(hasError("Invalid teamID: 99. Action: a, Parameter: teamID"))
 			end)
 		end)
 
@@ -819,6 +846,8 @@ describe("mission_api.validation", function()
 				spawnUnused  = { type = actionTypes.SpawnUnits, parameters = { unitLoadout = { { unitDefName = 'armwar', x = 0, z = 0, team = 0, unitName = 'unusedUnit' } } } },
 				useUnknown   = { type = actionTypes.DespawnUnits, parameters = { unitName = 'unknownUnit' } },
 				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureDefName = 'rockdef', x = 0, z = 0, featureName = 'unusedRock' } } } },
+				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },
+				createUnused = { type = actionTypes.CreateFeatures, parameters = { featureLoadout = { { featureName = 'unusedRock' } } } },
 				deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = 'unknownRock' } },
 				addUnused    = { type = actionTypes.AddMarker, parameters = { name = 'unusedFlag' } },
 				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = 'unknownFlag' } },

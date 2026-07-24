@@ -3,7 +3,7 @@
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
 
@@ -214,20 +214,18 @@ local actions = {
 	spawnFriendlyBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'friendlyBot',
-			unitDefName = 'armwar',
-			teamID = 0,
-			position = { x = 1800, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armwar', x = 1800, z = 1800, team = 0, unitName = 'friendlyBot' },
+			},
 		},
 	},
 
 	spawnEnemyBot = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'enemyBot',
-			unitDefName = 'armpw',
-			teamID = 1,
-			position = { x = 1880, z = 1800 },
+			unitLoadout = {
+				{ unitDefName = 'armpw', x = 1880, z = 1800, team = 1, unitName = 'enemyBot' },
+			},
 		},
 	},
 
@@ -254,10 +252,9 @@ local actions = {
 	spawnCapturable = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'capturableSolar',
-			unitDefName = 'armsolar',
-			teamID = 1,
-			position = { x = 1800, z = 1950 },
+			unitLoadout = {
+				{ unitDefName = 'armsolar', x = 1800, z = 1950, team = 1, unitName = 'capturableSolar' },
+			},
 		},
 	},
 
@@ -274,21 +271,18 @@ local actions = {
 	spawnCapturer = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'capturer',
-			unitDefName = 'armdecom',
-			teamID = 0,
-			position = { x = 1900, z = 2000 },
+			unitLoadout = {
+				{ unitDefName = 'armdecom', x = 1900, z = 2000, team = 0, unitName = 'capturer' },
+			},
 		},
 	},
 
 	spawnConstructor = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			unitName = 'constructor',
-			unitDefName = 'armck',
-			teamID = 0,
-			position = { x = 1850, z = 2100 },
-			quantity = 4,
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 1850, z = 2100, team = 0, unitName = 'constructor', quantity = 4 },
+			},
 		},
 	},
 

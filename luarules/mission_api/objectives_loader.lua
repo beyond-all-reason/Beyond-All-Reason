@@ -23,7 +23,7 @@ local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(triggersS
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local objectives = rawObjectives or {}
 
-	local actionTypes = GG['MissionAPI'].ActionTypes
+	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 	-- Build objective-to-stages mapping from stages structure
 	local objectiveToStages = {}
