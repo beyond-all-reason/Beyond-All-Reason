@@ -155,7 +155,7 @@ local actions = {
 	},
 
 	despawnCons1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.ReclaimUnits,
 		parameters = {
 			unitName = 'con-bots',
 		},
@@ -169,7 +169,7 @@ local actions = {
 	},
 
 	despawnEnergyGrid1 = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.ReclaimUnits,
 		parameters = {
 			unitName = 'fusions',
 		},
