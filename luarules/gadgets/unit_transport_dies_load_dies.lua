@@ -9,8 +9,8 @@
 --when trans is self d'ed, on the frame it dies it has both Spring.GetUnitHealth(ID)>0 and Spring.UnitSelfDTime(ID)=0
 --when trans is crashing it isn't dead
 
-if not gadgetHandler:IsSyncedCode() then return end
 
+if not gadgetHandler:IsSyncedCode() then return end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -23,6 +23,11 @@ function gadget:GetInfo()
 		layer     = 0,
 		enabled   = true
 	}
+end
+
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping transport_dies_load_dies gadget")
+	return false
 end
 
 local isParatrooper = {}

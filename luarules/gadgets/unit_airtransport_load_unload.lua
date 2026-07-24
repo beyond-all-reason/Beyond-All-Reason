@@ -1,4 +1,3 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -11,6 +10,11 @@ function gadget:GetInfo()
 		layer = 0,
 		enabled = true,
 	}
+end
+
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
+	Spring.Echo("Custom transports enabled via modoption, skipping Load/unload gadget")
+	return false
 end
 
 local isAirTransport = {}
