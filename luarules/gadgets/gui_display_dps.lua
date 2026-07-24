@@ -95,9 +95,7 @@ local ignoreDamageTypes = {}
 --------------------------------------------------------------------------------
 
 -- Do not display death-reason damage types which typically use overkill damage.
-ignoreDamageTypes[Game.envDamageTypes.Kamikaze] = true
-ignoreDamageTypes[Game.envDamageTypes.SelfD] = true
-ignoreDamageTypes[Game.envDamageTypes.ConstructionDecay] = true
+ignoreDamageTypes[Game.envDamageTypes.Killed] = true
 ignoreDamageTypes[Game.envDamageTypes.Reclaimed] = true
 ignoreDamageTypes[Game.envDamageTypes.TurnedIntoFeature] = true
 ignoreDamageTypes[Game.envDamageTypes.TransportKilled] = true
