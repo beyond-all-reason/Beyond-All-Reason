@@ -5,13 +5,15 @@ local function enableTrigger(triggerID)
 end
 
 return {
-	type = 'EnableTrigger',
-	parameters = {
-		{
-			name = 'triggerID',
-			required = true,
-			type = ParameterTypes.TriggerID
-		}
-	},
-	actionFunction = enableTrigger
+	{
+		type = 'EnableTrigger',
+		parameters = {
+			{
+				name = 'triggerID',
+				required = true,
+				type = ParameterTypes.TriggerID
+			}
+		},
+		actionFunction = enableTrigger
+	}
 }

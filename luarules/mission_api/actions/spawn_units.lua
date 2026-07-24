@@ -5,9 +5,11 @@ local function spawnUnits(unitLoadout)
 end
 
 return {
-	type = 'SpawnUnits',
-	parameters = {
-		{ name = 'unitLoadout', required = true, type = ParameterTypes.UnitLoadout },
-	},
-	actionFunction = spawnUnits,
+	{
+		type = 'SpawnUnits',
+		parameters = {
+			{ name = 'unitLoadout', required = true, type = ParameterTypes.UnitLoadout },
+		},
+		actionFunction = spawnUnits,
+	}
 }

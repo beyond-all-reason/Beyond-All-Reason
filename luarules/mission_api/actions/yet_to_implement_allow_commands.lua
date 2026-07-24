@@ -1,5 +1,7 @@
 return {
-	type = 'AllowCommands',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'AllowCommands',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

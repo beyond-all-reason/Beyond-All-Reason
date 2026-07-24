@@ -10,12 +10,14 @@ local function addResources(teamID, metal, energy)
 end
 
 return {
-	type = 'AddResources',
-	parameters = {
-		{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
-		{ name = 'metal', required = false, type = ParameterTypes.Number },
-		{ name = 'energy', required = false, type = ParameterTypes.Number },
-		requiresOneOf = { 'metal', 'energy' },
-	},
-	actionFunction = addResources,
+	{
+		type = 'AddResources',
+		parameters = {
+			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
+			{ name = 'metal', required = false, type = ParameterTypes.Number },
+			{ name = 'energy', required = false, type = ParameterTypes.Number },
+			requiresOneOf = { 'metal', 'energy' },
+		},
+		actionFunction = addResources,
+	}
 }

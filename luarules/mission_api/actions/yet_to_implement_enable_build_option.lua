@@ -1,5 +1,7 @@
 return {
-	type = 'EnableBuildOption',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'EnableBuildOption',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

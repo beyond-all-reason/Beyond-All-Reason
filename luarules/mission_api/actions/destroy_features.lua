@@ -13,9 +13,11 @@ local function destroyFeatures(featureName)
 end
 
 return {
-	type = 'DestroyFeatures',
-	parameters = {
-		{ name = 'featureName', required = true, type = ParameterTypes.FeatureName },
-	},
-	actionFunction = destroyFeatures,
+	{
+		type = 'DestroyFeatures',
+		parameters = {
+			{ name = 'featureName', required = true, type = ParameterTypes.FeatureName },
+		},
+		actionFunction = destroyFeatures,
+	}
 }

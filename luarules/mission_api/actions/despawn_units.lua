@@ -14,11 +14,13 @@ local function despawnUnits(unitName, selfDestruct, reclaimed)
 end
 
 return {
-	type = 'DespawnUnits',
-	parameters = {
-		{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-		{ name = 'selfDestruct', required = false, type = ParameterTypes.Boolean },
-		{ name = 'reclaimed', required = false, type = ParameterTypes.Boolean },
-	},
-	actionFunction = despawnUnits,
+	{
+		type = 'DespawnUnits',
+		parameters = {
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+			{ name = 'selfDestruct', required = false, type = ParameterTypes.Boolean },
+			{ name = 'reclaimed', required = false, type = ParameterTypes.Boolean },
+		},
+		actionFunction = despawnUnits,
+	}
 }

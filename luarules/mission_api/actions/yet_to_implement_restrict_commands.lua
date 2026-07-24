@@ -1,5 +1,7 @@
 return {
-	type = 'RestrictCommands',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'RestrictCommands',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }

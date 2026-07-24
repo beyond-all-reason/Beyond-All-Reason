@@ -1,5 +1,7 @@
 return {
-	type = 'AlterMapZones',
-	parameters = {},
-	actionFunction = function() end,
+	{
+		type = 'AlterMapZones',
+		parameters = {},
+		actionFunction = function() end,
+	}
 }
