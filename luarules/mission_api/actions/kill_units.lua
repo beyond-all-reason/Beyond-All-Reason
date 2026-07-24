@@ -15,9 +15,7 @@ local function killUnits(unitName, selfDestruct, despawn, reclaim, killerTeam)
             --     Spring.AddTeamResource(killerTeam, "energy", unitDef.energyCost)
             -- end
         end
-        if Spring.GetUnitIsDead(unitID) == false then
-            Spring.DestroyUnit(unitID, selfDestruct, despawn, killerTeam)
-        end
+        Spring.DestroyUnit(unitID, selfDestruct, despawn, killerTeam)
 	end
 end
 
