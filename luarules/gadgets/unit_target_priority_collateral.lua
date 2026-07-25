@@ -126,8 +126,9 @@ do
 	end
 end
 
-local unitDefPower = { [-1] = unknownPower }
-local unitDefRadius = { [-1] = 10.0 }
+-- TODO: Fallback is from when this code would use CallAsTeam to check unitDef properties. Should remove.
+local unitDefPower = setmetatable(table.new(#UnitDefs, 0), {__index = function() return unknownPower end})
+local unitDefRadius = setmetatable(table.new(#UnitDefs, 0), {__index = function() return unknownRadius end})
 local unitDefRadiusAverage = 0.0 -- TODO: median or something
 local unitDefIsSpam = {}
 
