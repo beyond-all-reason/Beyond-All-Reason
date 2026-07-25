@@ -1416,7 +1416,7 @@ local function drawResBars()
 		and (not timers.deferResourceUpdate or now > timers.nextForcedBarsUpdate)
 	then
 		timers.nextBarsUpdate = now + 0.05
-		timers.nextForcedBarsUpdate = now + 0.2
+		timers.nextForcedBarsUpdate = now + 0.03
 		update = true
 	end
 

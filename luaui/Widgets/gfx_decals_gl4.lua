@@ -1149,6 +1149,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local random = mathRandom
 
 	local radius = params[2] * (1 + (random()-0.5) * params[3])
+	if radius <= 0 or radius ~= radius then
+		return
+	end
 	local elevation = spGetGroundHeight(px, pz)
 	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
 	if exploHeight >= radius then

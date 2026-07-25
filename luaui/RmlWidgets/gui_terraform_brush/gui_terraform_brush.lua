@@ -1097,6 +1097,18 @@ end
 
 local function _splatToolUnavailable()
 	if _newMapSplatUnavailable() then return true end
+	-- Generated blank maps expose only a 1x1 fallback splat distribution; the
+	-- splat painter PROMOTES that to a map-sized editable target (see
+	-- cmd_splat_painter initSplatTexture), so the tool works as long as the DNTS
+	-- normals are actually bound (the engine blank-map DNTS path plus the widget
+	-- fallback do this). The strict >1x1 check below would wrongly reject that
+	-- promotable case, leaving the button greyed even though painting succeeds.
+	if _isGeneratedBlankMap() then
+		local distr = gl.TextureInfo("$ssmf_splat_distr")
+		local normals = gl.TextureInfo("$ssmf_splat_normals:0")
+		return not (distr and (distr.xsize or 0) > 0
+			and normals and (normals.xsize or 0) > 0)
+	end
 	return not _mapHasUsableSplatTexture()
 end
 
