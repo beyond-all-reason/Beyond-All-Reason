@@ -1,58 +1,78 @@
 local Roster = VFS.Include("modules/missions/lib/roster.lua")
+local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
 
-describe("mission roster", function()
-	it("parses entries with defaults applied", function()
-		local entries = Roster.Parse({
-			{ def = "corllt", team = "gaia", x = 100, z = 200 },
-			{ name = "hub", def = "corlab", team = "gaia", x = 300, z = 400, facing = 2, group = "outpost_auto" },
-		})
-		assert.are.equal(2, #entries)
-		assert.are.same(
-			{ def = "corllt", team = "gaia", x = 100, z = 200, facing = 0 },
-			entries[1]
-		)
-		assert.are.same(
-			{ name = "hub", def = "corlab", team = "gaia", x = 300, z = 400, facing = 2, group = "outpost_auto" },
-			entries[2]
-		)
+describe("mission roster DSL", function()
+	local Spawn
+	local Finalize
+
+	before_each(function()
+		local file = Roster.ForFile("cm8/units.lua")
+		Spawn = file.Spawn
+		Finalize = file.Finalize
 	end)
 
-	it("rejects a non-table roster", function()
-		assert.has_error(function()
-			Roster.Parse("nope")
-		end)
+	it("builds entries from Spawn chains at Finalize", function()
+		Spawn(Verbs.UnitDef("corlab"), "gaia")
+			.At(0.42, 0.42)
+			.Named("hub")
+			.Grouped("outpost_auto")
+		Spawn(Verbs.UnitDef("armcom"), "enemy")
+			.At(0.77, 0.77)
+		local entries = Finalize()
+		assert.are.same({
+			{ def = "corlab", team = "gaia", fx = 0.42, fz = 0.42, name = "hub", group = "outpost_auto" },
+			{ def = "armcom", team = "enemy", fx = 0.77, fz = 0.77 },
+		}, entries)
 	end)
 
-	it("rejects an entry without a def, naming the entry", function()
-		local ok, err = pcall(Roster.Parse, { { team = "gaia", x = 1, z = 1 } })
+	it("a spawn without an At fails the load, naming the statement", function()
+		Spawn(Verbs.UnitDef("corlab"), "gaia").Named("hub")
+		local ok, err = pcall(Finalize)
 		assert.is_false(ok)
-		assert.is_truthy(tostring(err):find("entry 1", 1, true))
+		assert.is_truthy(tostring(err):find("Spawn 1", 1, true))
 	end)
 
-	it("rejects unknown team roles", function()
+	it("rejects duplicate unit names at Finalize", function()
+		Spawn(Verbs.UnitDef("corlab"), "gaia").At(0.1, 0.1).Named("hub")
+		Spawn(Verbs.UnitDef("corllt"), "gaia").At(0.2, 0.2).Named("hub")
 		assert.has_error(function()
-			Roster.Parse({ { def = "corllt", team = "raptors", x = 1, z = 1 } })
+			Finalize()
 		end)
 	end)
 
-	it("rejects missing coordinates", function()
+	it("rejects a plain string where a UnitDef reference belongs", function()
 		assert.has_error(function()
-			Roster.Parse({ { def = "corllt", team = "gaia", x = 1 } })
+			Spawn("corlab", "gaia")
 		end)
 	end)
 
-	it("rejects duplicate unit names", function()
+	it("rejects an unknown team role", function()
 		assert.has_error(function()
-			Roster.Parse({
-				{ name = "hub", def = "corllt", team = "gaia", x = 1, z = 1 },
-				{ name = "hub", def = "corllt", team = "gaia", x = 2, z = 2 },
-			})
+			Spawn(Verbs.UnitDef("corlab"), "raptors")
 		end)
 	end)
 
-	it("rejects a non-numeric facing", function()
+	it("rejects positions outside map fractions", function()
 		assert.has_error(function()
-			Roster.Parse({ { def = "corllt", team = "gaia", x = 1, z = 1, facing = "south" } })
+			Spawn(Verbs.UnitDef("corlab"), "gaia").At(512, 512)
+		end)
+	end)
+
+	it("rejects chain calls after Finalize", function()
+		local chain = Spawn(Verbs.UnitDef("corlab"), "gaia").At(0.1, 0.1)
+		Finalize()
+		assert.has_error(function()
+			chain.Named("late")
+		end)
+		assert.has_error(function()
+			Spawn(Verbs.UnitDef("corllt"), "gaia")
+		end)
+	end)
+
+	it("rejects Finalize twice", function()
+		Finalize()
+		assert.has_error(function()
+			Finalize()
 		end)
 	end)
 end)

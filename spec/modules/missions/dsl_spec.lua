@@ -1,4 +1,5 @@
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
+local CombatVerbs = VFS.Include("modules/combat/lib/mission_verbs.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
 
 local alwaysTrue = { evaluate = function() return true end }
@@ -20,7 +21,7 @@ describe("mission DSL", function()
 
 	it("builds a descriptor from a terminator-free chain at Finalize", function()
 		When(alwaysTrue).Do(anEffect)
-		assert.are.equal(0, #registered) -- nothing arms before the commit point
+		assert.are.equal(0, #registered)
 		Finalize()
 
 		assert.are.equal(1, #registered)
@@ -57,11 +58,11 @@ describe("mission DSL", function()
 
 	it("a statement without a Do fails the load, naming the statement", function()
 		When(alwaysTrue).Do(anEffect)
-		When(alwaysTrue) -- half-finished
+		When(alwaysTrue)
 		assert.has_error(function()
 			Finalize()
 		end)
-		assert.are.equal(0, #registered) -- the failed load arms nothing
+		assert.are.equal(0, #registered)
 	end)
 
 	it("rejects a bare function in Do (closure-free surface)", function()
@@ -184,6 +185,8 @@ describe("mission verbs", function()
 end)
 
 describe("unit noun", function()
+	local Unit = Verbs.MakeUnit({ hub = true, device = true })
+
 	---@return MissionContext
 	local function makeCtx(dead, spotted)
 		return {
@@ -198,7 +201,7 @@ describe("unit noun", function()
 	end
 
 	it("IsDestroyed reads the latch through ctx and declares its input", function()
-		local condition = Verbs.Unit("hub").IsDestroyed()
+		local condition = Unit("hub").IsDestroyed()
 		assert.are.same({ "UnitDestroyed" }, condition.inputs)
 		assert.is_false(condition.evaluate(makeCtx({}, {})))
 		assert.is_true(condition.evaluate(makeCtx({ hub = true }, {})))
@@ -206,30 +209,38 @@ describe("unit noun", function()
 
 	it("IsSpotted is per-allyteam and declares its input", function()
 		local team = Verbs.MakeTeam(0, 1)
-		local condition = Verbs.Unit("device").IsSpotted(team)
+		local condition = Unit("device").IsSpotted(team)
 		assert.are.same({ "UnitEnteredLos" }, condition.inputs)
 		assert.is_false(condition.evaluate(makeCtx({}, {})))
 		assert.is_true(condition.evaluate(makeCtx({}, { device_1 = true })))
 		assert.is_false(condition.evaluate(makeCtx({}, { device_2 = true })))
 	end)
 
+	it("a name the roster never declared is a load error, not a dead condition", function()
+		local ok, err = pcall(Unit, "hubb")
+		assert.is_false(ok)
+		assert.is_truthy(tostring(err):find("hubb", 1, true))
+	end)
+
 	it("IsSpotted rejects a non-Team argument", function()
 		assert.has_error(function()
-			Verbs.Unit("device").IsSpotted("player")
+			Unit("device").IsSpotted("player")
 		end)
 	end)
 
 	it("Unit rejects a non-string name", function()
 		assert.has_error(function()
-			Verbs.Unit(7)
+			Unit(7)
 		end)
 	end)
 end)
 
 describe("units verbs", function()
+	local Units = Verbs.MakeUnits({ outpost_auto = true })
+
 	it("Transfer builds an effect that moves the group through ctx", function()
 		local team = Verbs.MakeTeam(3, 1)
-		local effect = Verbs.Units.Transfer("outpost_auto", team)
+		local effect = Units.Transfer("outpost_auto", team)
 		local transferred = {}
 		effect.execute({
 			TransferGroup = function(group, teamID)
@@ -239,23 +250,30 @@ describe("units verbs", function()
 		assert.are.same({ { group = "outpost_auto", teamID = 3 } }, transferred)
 	end)
 
+	it("a group the roster never declared is a load error", function()
+		local ok, err = pcall(Units.Transfer, "outpost", Verbs.MakeTeam(0, 0))
+		assert.is_false(ok)
+		assert.is_truthy(tostring(err):find("outpost", 1, true))
+	end)
+
 	it("Transfer rejects bad arguments", function()
 		assert.has_error(function()
-			Verbs.Units.Transfer(nil, Verbs.MakeTeam(0, 0))
+			Units.Transfer(nil, Verbs.MakeTeam(0, 0))
 		end)
 		assert.has_error(function()
-			Verbs.Units.Transfer("outpost_auto", 3)
+			Units.Transfer("outpost_auto", 3)
 		end)
 	end)
 end)
 
 describe("combat verbs", function()
+	local Unit = Verbs.MakeUnit({ hub = true })
 	local untils
 	local combat
 
 	before_each(function()
 		untils = {}
-		combat = Verbs.MakeCombat(untils)
+		combat = CombatVerbs.MakeCombat(untils)
 	end)
 
 	local function protectLog()
@@ -273,7 +291,7 @@ describe("combat verbs", function()
 
 	it("Protect builds an effect over the roster name", function()
 		local log, ctx = protectLog()
-		combat.Protect(Verbs.Unit("hub")).execute(ctx)
+		combat.Protect(Unit("hub")).execute(ctx)
 		assert.are.same({ "protect:hub" }, log)
 		assert.are.same({}, untils)
 	end)
@@ -281,7 +299,7 @@ describe("combat verbs", function()
 	it("Until records the companion and returns the same protect effect", function()
 		local condition = { evaluate = function() return true end }
 		local log, ctx = protectLog()
-		local effect = combat.Protect(Verbs.Unit("hub")).Until(condition)
+		local effect = combat.Protect(Unit("hub")).Until(condition)
 		effect.execute(ctx)
 		assert.are.same({ "protect:hub" }, log)
 		assert.are.equal(1, #untils)
@@ -291,7 +309,7 @@ describe("combat verbs", function()
 
 	it("Unprotect builds the primitive Until sugars over", function()
 		local log, ctx = protectLog()
-		combat.Unprotect(Verbs.Unit("hub")).execute(ctx)
+		combat.Unprotect(Unit("hub")).execute(ctx)
 		assert.are.same({ "unprotect:hub" }, log)
 	end)
 
@@ -303,7 +321,7 @@ describe("combat verbs", function()
 
 	it("Until rejects a non-condition", function()
 		assert.has_error(function()
-			combat.Protect(Verbs.Unit("hub")).Until(function() end)
+			combat.Protect(Unit("hub")).Until(function() end)
 		end)
 	end)
 end)
