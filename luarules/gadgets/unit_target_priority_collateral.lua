@@ -356,7 +356,7 @@ function gadget:AllowWeaponTarget(unitID, targetID, weaponNum, weaponDefID, prio
 	-- Avoid collaterals of a similar scale to our own explosion radius.
 	local avoidRadius = avoidUnit[allyTeam][targetID]
 	if avoidRadius and avoidRadius == math_clamp(avoidRadius, searchRadius * 0.5, searchRadius + 10) then
-		return not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
+		return allowBadSpamTarget or not unitIsSpam[targetID], priority * PRIORITY_ANTI_COLLATERAL
 	end
 
 	-- Prefer targets that are clean hits or bombarded by larger weapons.
