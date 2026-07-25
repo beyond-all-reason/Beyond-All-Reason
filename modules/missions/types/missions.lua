@@ -1,9 +1,18 @@
+---@meta dsl
+
 --- Mission-runtime types: the trigger engine's descriptors and the authoring
 --- DSL's chain/condition/effect shapes. The DSL surface is dot-only AND
 --- closure-free: every chain step is a plain call with parens, no colon
 --- methods, no metatables, and no function bodies in mission files — effects
 --- are lazy objects built by named verbs. Mission files must load identically
 --- in the synced sandbox (which strips rawset) and in busted.
+
+--- Domain aliases: the DSL's typed parameters. These names are LOAD-BEARING
+--- beyond the checker — the mission kit derives its semantic model from them
+--- (alias name -> slot semantic, literal unions -> editor enums), so a verb
+--- annotated with these types is understood by the editor without kit code.
+---@alias UnitDefName string unit def name, e.g. "armpw"
+---@alias ObjectiveName string
 
 --- The mission bus vocabulary, CLOSED BY TYPE: every event name that may
 --- cross the bus is a member of this alias. Engine callins are one producer,
@@ -77,7 +86,7 @@
 --- A unit-def reference produced by the injected UnitDef verb. Carries the
 --- name only; resolution to an id happens where Spring exists.
 ---@class MissionUnitDefRef
----@field name string
+---@field name UnitDefName
 
 --- The injected Team.Player handle. Demo rule: resolves to the first human
 --- team at mission load.

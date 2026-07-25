@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<rml>
+<head>
+	<title>Mission Editor</title>
+	<link type="text/rcss" href="mission_editor.rcss" />
+</head>
+<body>
+	<div id="me-root" class="me-root">
+		<div class="me-header">
+			<span class="me-title">Mission Editor</span>
+			<button id="me-edit" class="me-button">Edit</button>
+			<button id="me-refresh" class="me-button">Refresh</button>
+			<button id="me-reload" class="me-button">Reload</button>
+			<button id="me-close" class="me-button">X</button>
+		</div>
+		<div id="me-textmode" class="me-textmode"></div>
+		<div id="me-content" class="me-content"></div>
+		<div id="me-modal" class="me-modal">
+			<div class="me-modal-box">
+				<div id="me-modal-title" class="me-modal-title"></div>
+				<div id="me-modal-rows"></div>
+				<button id="me-modal-cancel" class="me-button me-modal-cancel">Cancel</button>
+			</div>
+		</div>
+		<div id="me-footer" class="me-footer">The .lua file is the source of truth - this form and your IDE are two views over it.</div>
+	</div>
+</body>
+</rml>
