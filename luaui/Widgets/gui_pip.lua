@@ -1810,8 +1810,20 @@ local gl4Prim = {
 	LINE_MAX = 16384,         -- max vertices (8192 line segments)
 	CIRCLE_STEP = 12,         -- floats per instance: 3 x vec4
 	CIRCLE_MAX = 2048,        -- max circle instances
-	QUAD_STEP = 12,           -- floats per instance: 3 x vec4
+	QUAD_STEP = 16,           -- floats per instance: position, color, angle, atlas UV rect
 	QUAD_MAX = 4096,          -- max quad instances
+	quadAtlasTexture = "LuaUI/Images/pip_projectile_atlas.png",
+	quadAtlasSprites = {
+		-- 512x64 atlas, eight 64x64 cells; half-pixel inset prevents neighbor bleeding.
+		solid =   {  1.5 / 512, 1.5 / 64,  62.5 / 512, 62.5 / 64},
+		missile = { 65 / 512, 0.5 / 64, 127 / 512, 63.5 / 64},
+		blaster = {128 / 512, 0.5 / 64, 191 / 512, 63.5 / 64},
+		bomb =    {192 / 512, 0.5 / 64, 255 / 512, 63.5 / 64},
+		shell =   {256 / 512, 0.5 / 64, 319 / 512, 63.5 / 64},
+		debris =  {320 / 512, 0.5 / 64, 383 / 512, 63.5 / 64},
+		plasma =  {384 / 512, 0.5 / 64, 447 / 512, 63.5 / 64},
+		flame =   {448 / 512, 0.5 / 64, 511 / 512, 63.5 / 64},
+	},
 	enabled = false,
 	useGeometryShader = true,
 	quadVBO = nil,
@@ -3641,6 +3653,7 @@ gl4Prim.quadShaderCode = {
 		layout(location = 0) in vec4 posSizeIn;     // worldX, worldZ, halfWidth, halfHeight
 		layout(location = 1) in vec4 colorIn;        // r, g, b, a
 		layout(location = 2) in vec4 angleFlags;     // angleDeg, 0, 0, 0
+		layout(location = 3) in vec4 uvRectIn;       // u0, v0, u1, v1
 
 		uniform vec2 wtp_scale;
 		uniform vec2 wtp_offset;
@@ -3653,6 +3666,7 @@ gl4Prim.quadShaderCode = {
 		out float v_angle;
 		out vec2 v_ndcScale;
 		out vec2 v_rotSC;
+		out vec4 v_uvRect;
 
 		void main() {
 			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
@@ -3666,6 +3680,7 @@ gl4Prim.quadShaderCode = {
 			v_rotSC = rotSC;
 			v_color = colorIn;
 			v_angle = radians(angleFlags.x);
+			v_uvRect = uvRectIn;
 		}
 	]],
 	geometry = [[
@@ -3678,14 +3693,17 @@ gl4Prim.quadShaderCode = {
 		in float v_angle[];
 		in vec2 v_ndcScale[];
 		in vec2 v_rotSC[];
+		in vec4 v_uvRect[];
 
 		out vec4 f_color;
+		out vec2 f_texCoord;
 
 		void main() {
 			vec4 c = gl_in[0].gl_Position;
 			vec2 hs = v_halfSizePx[0];
 			vec2 ndc = v_ndcScale[0];
 			vec2 rsc = v_rotSC[0];
+			vec4 uv = v_uvRect[0];
 			f_color = v_color[0];
 			float a = v_angle[0];
 			float sa = sin(a), ca = cos(a);
@@ -3700,21 +3718,27 @@ gl4Prim.quadShaderCode = {
 			vec2 dy = vec2(-sT, cT) * hs.y;
 
 			// Convert pixel offsets to NDC
-			gl_Position = vec4(c.xy + (-dx - dy) * ndc, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + ( dx - dy) * ndc, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + (-dx + dy) * ndc, 0, 1); EmitVertex();
-			gl_Position = vec4(c.xy + ( dx + dy) * ndc, 0, 1); EmitVertex();
+			gl_Position = vec4(c.xy + (-dx - dy) * ndc, 0, 1); f_texCoord = uv.xy; EmitVertex();
+			gl_Position = vec4(c.xy + ( dx - dy) * ndc, 0, 1); f_texCoord = vec2(uv.z, uv.y); EmitVertex();
+			gl_Position = vec4(c.xy + (-dx + dy) * ndc, 0, 1); f_texCoord = vec2(uv.x, uv.w); EmitVertex();
+			gl_Position = vec4(c.xy + ( dx + dy) * ndc, 0, 1); f_texCoord = uv.zw; EmitVertex();
 			EndPrimitive();
 		}
 	]],
 	fragment = [[
 		#version 330
+		uniform sampler2D atlasTex;
+		in vec2 f_texCoord;
 		in vec4 f_color;
 		out vec4 fragColor;
 		void main() {
-			fragColor = f_color;
+			vec4 texel = texture(atlasTex, f_texCoord);
+			fragColor = texel * f_color;
 		}
 	]],
+	uniformInt = {
+		atlasTex = 0,
+	},
 }
 
 gl4Prim.quadShaderCodeNoGS = {
@@ -3724,6 +3748,7 @@ gl4Prim.quadShaderCodeNoGS = {
 		layout(location = 1) in vec4 posSizeIn;
 		layout(location = 2) in vec4 colorIn;
 		layout(location = 3) in vec4 angleFlags;
+		layout(location = 4) in vec4 uvRectIn;
 
 		uniform vec2 wtp_scale;
 		uniform vec2 wtp_offset;
@@ -3732,6 +3757,7 @@ gl4Prim.quadShaderCodeNoGS = {
 		uniform vec2 rotCenter;
 
 		out vec4 f_color;
+		out vec2 f_texCoord;
 
 		void main() {
 			vec2 pipPos = wtp_offset + posSizeIn.xy * wtp_scale;
@@ -3754,9 +3780,12 @@ gl4Prim.quadShaderCodeNoGS = {
 			);
 			gl_Position = vec4(centerNDC + rotatedPx * ndcScale, 0.0, 1.0);
 			f_color = colorIn;
+			vec2 uvMix = quadPos * 0.5 + 0.5;
+			f_texCoord = mix(uvRectIn.xy, uvRectIn.zw, uvMix);
 		}
 	]],
 	fragment = gl4Prim.quadShaderCode.fragment,
+	uniformInt = gl4Prim.quadShaderCode.uniformInt,
 }
 
 -- Line shader: simple world-space → NDC vertex transform with per-vertex color
@@ -4186,12 +4215,14 @@ local function InitGL4Primitives()
 			{id = 0, name = 'posSizeIn',   size = 4},
 			{id = 1, name = 'colorIn',     size = 4},
 			{id = 2, name = 'angleFlags',  size = 4},
+			{id = 3, name = 'uvRectIn',     size = 4},
 		}
 	else
 		quadLayout = {
 			{id = 1, name = 'posSizeIn',   size = 4},
 			{id = 2, name = 'colorIn',     size = 4},
 			{id = 3, name = 'angleFlags',  size = 4},
+			{id = 4, name = 'uvRectIn',     size = 4},
 		}
 	end
 	local qVbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
@@ -4302,15 +4333,17 @@ local function GL4AddCircle(worldX, worldZ, radius, alpha, coreR, coreG, coreB, 
 	c.count = c.count + 1
 end
 
--- Helper: add an oriented quad (missile, blaster)
-local function GL4AddQuad(worldX, worldZ, halfW, halfH, angleDeg, r, g, b, a)
+-- Helper: add an oriented, atlas-textured quad (missile, blaster, and solid-color effects)
+local function GL4AddQuad(worldX, worldZ, halfW, halfH, angleDeg, r, g, b, a, sprite)
 	local q = gl4Prim.quads
 	if q.count >= gl4Prim.QUAD_MAX then return end
 	local off = q.count * gl4Prim.QUAD_STEP
 	local d = q.data
+	local uv = sprite or gl4Prim.quadAtlasSprites.solid
 	d[off+1] = worldX; d[off+2] = worldZ; d[off+3] = halfW;  d[off+4] = halfH
 	d[off+5] = r;      d[off+6] = g;      d[off+7] = b;      d[off+8] = a or 1
 	d[off+9] = angleDeg or 0; d[off+10] = 0; d[off+11] = 0; d[off+12] = 0
+	d[off+13] = uv[1]; d[off+14] = uv[2]; d[off+15] = uv[3]; d[off+16] = uv[4]
 	q.count = q.count + 1
 end
 
@@ -4374,6 +4407,7 @@ local function GL4FlushEffects()
 	if gl4Prim.quads.count > 0 then
 		local q = gl4Prim.quads
 		q.vbo:Upload(q.data, nil, 0, 1, q.count * gl4Prim.QUAD_STEP)
+		glFunc.Texture(0, gl4Prim.quadAtlasTexture)
 		GL4SetPrimUniforms(q.shader, q.uniformLocs)
 		if gl4Prim.useGeometryShader then
 			q.vao:DrawArrays(GL.POINTS, q.count)
@@ -4381,6 +4415,7 @@ local function GL4FlushEffects()
 			q.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, q.count)
 		end
 		gl.UseShader(0)
+		glFunc.Texture(0, false)
 	end
 
 	-- Lines (3 width categories, same shader)
@@ -5339,15 +5374,13 @@ local function drawColoredLine()
 	glFunc.Vertex(_line.x2, _line.y2, 0)
 end
 
-local function DrawProjectile(pID)
+local function DrawProjectile(pID, pDefID)
 	local mSin, mCos, mAtan2, mMin, mMax, mLog = math.sin, math.cos, math.atan2, math.min, math.max, math.log
 	local px, py, pz = spFunc.GetProjectilePosition(pID)
 	if not px then return end
 
 	local resScale = render.contentScale or 1
-
-	-- Get projectile DefID - all projectiles from weapons will have this
-	local pDefID = spFunc.GetProjectileDefID(pID)
+	local atlasSprites = gl4Prim.quadAtlasSprites
 
 	-- Get projectile size from cache or calculate it
 	local size = 4 -- Default size
@@ -5637,9 +5670,8 @@ local function DrawProjectile(pID)
 			particleSize = particleSize * (1 + age * 0.6)
 
 			if gl4Prim.enabled then
-				GL4AddCircle(px + offsetX, pz - offsetZ, particleSize, alpha,
-					mMin(1, r*1.2), mMin(1, g*1.2), mMin(1, b*1.2),
-					r, g, b, 0.55 * alpha, 0)
+				GL4AddQuad(px + offsetX, pz - offsetZ, particleSize, particleSize, v3 * 18,
+					mMin(1, r * 1.2), mMin(1, g * 1.2), mMin(1, b * 1.2), alpha, atlasSprites.flame)
 			end
 			return -- Don't draw as regular projectile
 		end
@@ -5648,7 +5680,7 @@ local function DrawProjectile(pID)
 		if cache.weaponIsBlaster[pDefID] then
 			-- Get weapon color from cached data
 			local colorData = cache.weaponColor[pDefID]
-			color = {colorData[1], colorData[2], colorData[3], 1}
+			color[1], color[2], color[3], color[4] = colorData[1], colorData[2], colorData[3], 1
 
 			-- Bolt dimensions based on weapon size + damage (explosion radius as proxy)
 			local wSize = cache.weaponSize[pDefID] or 1
@@ -5900,49 +5932,25 @@ local function DrawProjectile(pID)
 
 	-- GL4 path: add projectile shapes directly in world coords
 	if pDefID and cache.weaponIsBlaster[pDefID] then
-		-- Outer glow: slightly wider and longer than core, semi-transparent weapon color
-		GL4AddQuad(px, pz, width * 1.6, height * 1.1, angle, color[1], color[2], color[3], color[4] * 0.35)
-		-- Inner core: narrow bright bolt, white-shifted for hot center
-		local whiteness = 0.7
-		local coreR = color[1] * (1 - whiteness) + whiteness
-		local coreG = color[2] * (1 - whiteness) + whiteness
-		local coreB = color[3] * (1 - whiteness) + whiteness
-		GL4AddQuad(px, pz, width * 0.7, height * 0.85, angle, coreR, coreG, coreB, color[4] * 0.95)
+		-- The atlas combines the former outer glow and hot core in one instance.
+		GL4AddQuad(px, pz, width * 1.6, height * 1.1, angle,
+			color[1], color[2], color[3], color[4], atlasSprites.blaster)
 	elseif pDefID and cache.weaponIsMissile[pDefID] then
-		-- Missile shape: body + nose + tail fins offset along flight direction
+		-- The atlas combines body, nose, fins, and exhaust in one instance.
 		local rad = angle * 0.01745329  -- pi/180
 		local sinA = mSin(rad)
 		local cosA = mCos(rad)
 
-		-- Color variants from cache (computed once at init)
 		local mc = cache.missileColors[pDefID]
 		if not mc then mc = cache.missileColors[0] end  -- fallback default
 		local bodyR, bodyG, bodyB = mc[1], mc[2], mc[3]
-		local noseR, noseG, noseB = mc[4], mc[5], mc[6]
-		local finR, finG, finB = mc[7], mc[8], mc[9]
-
-		-- Main body: shifted 0.2*height forward (matching legacy -0.7h to +0.3h center)
-		local bodyFwd = height * 0.2
-		GL4AddQuad(px + sinA * bodyFwd, pz + cosA * bodyFwd,
-			width, height * 0.5, angle, bodyR, bodyG, bodyB, color[4])
-
-		-- Nose cone: narrow tapered quad at the front tip
-		local noseFwd = height * 0.82
-		GL4AddQuad(px + sinA * noseFwd, pz + cosA * noseFwd,
-			width * 0.3, height * 0.2, angle, noseR, noseG, noseB, color[4])
-
-		-- Tail fins: wider short quad at the back, swept shape
-		local finFwd = -height * 0.18
-		GL4AddQuad(px + sinA * finFwd, pz + cosA * finFwd,
-			width * 2.0, height * 0.18, angle, finR, finG, finB, color[4] * 0.85)
-
-		-- Exhaust glow at the very back
-		local exhFwd = -height * 0.38
-		local exhR, exhG, exhB = mc[10], mc[11], mc[12]
-		GL4AddQuad(px + sinA * exhFwd, pz + cosA * exhFwd,
-			width * 0.5, height * 0.1, angle, exhR, exhG, exhB, color[4] * 0.6)
+		local spriteCenterFwd = height * 0.27
+		-- The visible silhouette occupies 38x58 pixels within the 64x64 atlas cell.
+		-- Compensate for that transparent padding to retain the former body-plus-fin footprint.
+		GL4AddQuad(px + sinA * spriteCenterFwd, pz + cosA * spriteCenterFwd,
+			width * 3.37, height * 0.83, angle, bodyR, bodyG, bodyB, color[4], atlasSprites.missile)
 	elseif pDefID and cache.weaponIsBomb[pDefID] then
-		-- Aircraft bomb: grey-white rectangle with pointy nose
+		-- Aircraft bomb: one atlas silhouette, oriented along its horizontal velocity.
 		local vx, vy, vz = spFunc.GetProjectileVelocity(pID)
 		local bombAngle = 0
 		if vx and (vx ~= 0 or vz ~= 0) then
@@ -5956,47 +5964,30 @@ local function DrawProjectile(pID)
 		local bombW = bombSize * 1.3 * zoomScale
 		local bombH = bombSize * 1.8 * zoomScale
 
-		-- Main body: grey-white rectangle
 		local rad = bombAngle * 0.01745329
 		local sinA = mSin(rad)
 		local cosA = mCos(rad)
-
-		GL4AddQuad(px, pz, bombW, bombH * 0.45, bombAngle, 0.73, 0.73, 0.71, 1.0)
-
-		-- Pointy nose cone: narrow tapered quad at the front
-		local noseFwd = bombH * 0.6
-		GL4AddQuad(px + sinA * noseFwd, pz + cosA * noseFwd,
-			bombW * 0.33, bombH * 0.18, bombAngle, 0.73, 0.73, 0.71, 1.0)
-
-		-- Tail fins: wider short quad at the back
-		-- local finFwd = -bombH * 0.35
-		-- GL4AddQuad(px + sinA * finFwd, pz + cosA * finFwd,
-		-- 	bombW * 1.6, bombH * 0.12, bombAngle, 0.64, 0.64, 0.62, 0.9)
+		local spriteCenterFwd = bombH * 0.165
+		GL4AddQuad(px + sinA * spriteCenterFwd, pz + cosA * spriteCenterFwd,
+			bombW, bombH * 0.615, bombAngle, 0.73, 0.73, 0.71, 1.0, atlasSprites.bomb)
 	elseif pDefID and cache.weaponIsPlasma[pDefID] then
-		-- Plasma gradient circle (reduce size when zoomed in to stay proportional to world scale)
+		-- Plasma atlas glow (reduce size when zoomed in to stay proportional to world scale)
 		local plasmaZoomReduction = mMax(0.35, mMin(1, 0.55 + 0.45 * (1 - cameraState.zoom)))
 		local baseRadius = mMax(width, height) * plasmaZoomReduction
 		-- Use a soft visibility floor so tiny plasma shots stay readable without flattening
 		-- every weapon to the same apparent size.
 		local radius = mMax(baseRadius, 1.0 * resScale + baseRadius * 0.45) * 3.0
-		local coreWhiteness = 0.9
-		local coreR, coreG, coreB, outerR, outerG, outerB
+		local plasmaR, plasmaG, plasmaB
 		if cache.weaponIsAA[pDefID] then
-			-- AA plasma: rose pink tint (matching AA missile trails)
-			coreR = 1.0; coreG = 0.85; coreB = 0.9
-			outerR = 0.9; outerG = 0.4; outerB = 0.55
+			plasmaR, plasmaG, plasmaB = 1.0, 0.65, 0.75
 		else
-			coreR = color[1] * (1 - coreWhiteness) + coreWhiteness
-			coreG = color[2] * (1 - coreWhiteness) + coreWhiteness
-			coreB = color[3] * (1 - coreWhiteness) + coreWhiteness
-			local orangeTint = 0.4
-			outerR = math.min(1, color[1] + orangeTint)
-			outerG = math.max(0, color[2] - orangeTint * 0.3)
-			outerB = math.max(0, color[3] - orangeTint * 0.5)
+			local whiteness = 0.35
+			plasmaR = color[1] * (1 - whiteness) + whiteness
+			plasmaG = color[2] * (1 - whiteness) + whiteness
+			plasmaB = color[3] * (1 - whiteness) + whiteness
 		end
-		-- Use a two-layer body so the projectile stays visible even when zoom scaling is low.
-		GL4AddCircle(px, pz, radius * 1.35, color[4] * 0.55, coreR * 0.9, coreG * 0.9, coreB * 0.95, outerR, outerG, outerB, color[4] * 0.35, 0)
-		GL4AddCircle(px, pz, radius * 0.72, color[4] * 0.98, coreR, coreG, coreB, outerR, outerG, outerB, color[4], 0)
+		GL4AddQuad(px, pz, radius * 1.35, radius * 1.35, 0,
+			plasmaR, plasmaG, plasmaB, color[4], atlasSprites.plasma)
 
 		-- Plasma trail: short fading trail for artillery/cannon projectiles with CEG trails
 		-- Uses game frames instead of os.clock() so trails don't elongate during catchup
@@ -6087,6 +6078,8 @@ local function DrawProjectile(pID)
 				glFunc.LineWidth(1 * resScale)
 			end
 		end
+	else
+		GL4AddQuad(px, pz, width, height, angle, color[1], color[2], color[3], color[4], atlasSprites.shell)
 	end
 end
 
@@ -12505,13 +12498,13 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 				tracy.ZoneBeginN("W:PIP:Projectiles:Loop")
 				for i = 1, projectileCount, projectileStep do
 					local pID = projectiles[i]
+					local pDefID = spFunc.GetProjectileDefID(pID)
 					-- Filter small projectiles when over budget
 					-- Always draw lasers/lightning/blasters (they're visually important beams)
-					local shouldDraw = true
-					if minRadius > 0 then
-						local pDefID = spFunc.GetProjectileDefID(pID)
-						if not (pDefID and (cache.weaponIsLaser[pDefID] or cache.weaponIsLightning[pDefID] or cache.weaponIsBlaster[pDefID])) then
-							local r = pDefID and cache.weaponExplosionRadius[pDefID] or 10
+					local shouldDraw = pDefID ~= nil
+					if shouldDraw and minRadius > 0 then
+						if not (cache.weaponIsLaser[pDefID] or cache.weaponIsLightning[pDefID] or cache.weaponIsBlaster[pDefID]) then
+							local r = cache.weaponExplosionRadius[pDefID] or 10
 							if r < minRadius then
 								shouldDraw = false
 							end
@@ -12525,12 +12518,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						end
 					end
 					if shouldDraw then
-						DrawProjectile(pID)
+						DrawProjectile(pID, pDefID)
 					end
 					-- Count projectiles with trails inside the actual PIP viewport for EMA
 					if trailThreshold > 0 then
-						local pDefID2 = spFunc.GetProjectileDefID(pID)
-						if pDefID2 and (cache.weaponIsMissile[pDefID2] or cache.weaponIsPlasma[pDefID2]) then
+						if pDefID and (cache.weaponIsMissile[pDefID] or cache.weaponIsPlasma[pDefID]) then
 							local ppx, _, ppz = spFunc.GetProjectilePosition(pID)
 							if ppx and ppx >= worldL and ppx <= worldR and ppz >= worldT and ppz <= worldB then
 								visibleThisFrame = visibleThisFrame + 1
