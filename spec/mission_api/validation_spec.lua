@@ -5,12 +5,13 @@ GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
+GG['MissionAPI'].TriggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 
 local validation    = VFS.Include('luarules/mission_api/validation.lua')
-local triggerSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local triggerDefinitions = GG['MissionAPI'].TriggerDefinitions
 
-local triggerTypes  = triggerSchema.Types
+local triggerTypes  = triggerDefinitions.Types
 local actionTypes   = actionDefinitions.Types
 
 -- Mirrors the normalisation done by triggers_loader before calling ValidateTriggers.
@@ -44,7 +45,7 @@ describe("mission_api.validation", function()
 		_G.FeatureDefNames       = {}
 		_G.WeaponDefNames        = {}
 		GG['MissionAPI']         = {
-			TriggerTypes      = triggerTypes,
+			TriggerDefinitions = triggerDefinitions,
 			Modules           = {},
 			ActionDefinitions = actionDefinitions,
 			Objectives        = {},
