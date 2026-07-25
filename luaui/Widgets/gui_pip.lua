@@ -211,7 +211,8 @@ config = {
 	iconRadius = 40,
 	showUnitpics = true,      -- Show unitpics instead of icons when zoomed in
 	unitpicZoomThreshold = 0.75, -- Zoom level at which to switch to unitpics (higher = more zoomed in)
-	unitpicMaxUnits = 180,   -- Keep dense views on GL4 icons; unitpics use immediate-mode draw calls per unit
+	unitpicTexInset = 0.1, -- Crop a fixed percentage from each unitpic texture edge
+	unitpicMaxUnits = 300,   -- Maximum visible units when entering unitpic mode; active unitpics stay until zoomed out
 	unitpicWarmupRange = 0.12, -- Start warming buildpic textures shortly before the unitpic threshold
 	unitpicWarmupPerFrame = 6, -- Hard cap in addition to the time budget below
 	unitpicWarmupTimeBudget = 0.004, -- Best-effort budget; one synchronous texture bind can overrun it
@@ -1703,6 +1704,9 @@ local gl4Icons = {
 	_slowVboHadOverlay = false, -- Previous upload had overlays
 	quadVBO = nil,            -- Shared per-vertex quad template for NoGS instanced path
 	unitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0, ready = false }, -- Incremental buildpic texture warm-up
+	unitpicsActive = false,   -- Latched after warm-up; cleared only below the zoom threshold or when disabled
+	unitpicGeometry = {},     -- Reused rounded geometry by unitDefID
+	unitpicGeometryGeneration = 0,
 }
 
 -- Persistent sort comparator for icon draw order (avoids per-frame closure allocation)
@@ -1729,6 +1733,28 @@ function gl4Icons.QueueUnitpicWarm(defID)
 	end
 end
 
+function gl4Icons.DeactivateUnitpics()
+	if not gl4Icons.unitpicsActive then return end
+	gl4Icons.unitpicsActive = false
+
+	-- Dense icon mode can otherwise reuse VBO blocks and positions from before
+	-- unitpics became active, producing one stale icon frame during zoom-out.
+	gl4Icons._vboValid = false
+	gl4Icons._vboUsedElements = 0
+	gl4Icons._mobileBlock = nil
+	gl4Icons._mobileBlockAge = nil
+	gl4Icons._slowVboValid = false
+	gl4Icons._slowVboUsedElements = 0
+	gl4Icons._slowMobileBlock = nil
+	gl4Icons._slowMobileBlockAge = nil
+	for unitID in pairs(gl4Icons.cachedPosX) do
+		gl4Icons.cachedPosX[unitID] = nil
+	end
+	for unitID in pairs(gl4Icons.cachedPosZ) do
+		gl4Icons.cachedPosZ[unitID] = nil
+	end
+end
+
 function gl4Icons.FlushUnitpicWarmQueue(cacheUnitPic)
 	local warm = gl4Icons.unitpicWarm
 	local count = warm.count
@@ -1740,23 +1766,27 @@ function gl4Icons.FlushUnitpicWarmQueue(cacheUnitPic)
 	local processed = 0
 	local allWarmed = true
 	for i = 1, limit do
-		-- Always attempt one texture so an expensive bind cannot stall the queue forever.
-		if processed > 0 and Spring.DiffTimers(Spring.GetTimer(), startTime) >= config.unitpicWarmupTimeBudget then
-			break
-		end
 		local defID = warm.queued[i]
-		local tex = cacheUnitPic[defID]
-		if tex then
-			local textureBound = glFunc.Texture(tex)
-			if textureBound then
-				warm.warmed[defID] = true
+		if warm.warmed[defID] then
+			processed = processed + 1
+		else
+			-- Always attempt one texture so an expensive bind cannot stall the queue forever.
+			if processed > 0 and Spring.DiffTimers(Spring.GetTimer(), startTime) >= config.unitpicWarmupTimeBudget then
+				break
+			end
+			local tex = cacheUnitPic[defID]
+			if tex then
+				local textureBound = glFunc.Texture(tex)
+				if textureBound then
+					warm.warmed[defID] = true
+				else
+					allWarmed = false
+				end
 			else
 				allWarmed = false
 			end
-		else
-			allWarmed = false
+			processed = processed + 1
 		end
-		processed = processed + 1
 	end
 	glFunc.Texture(false)
 	for i = 1, count do
@@ -6227,46 +6257,52 @@ local function drawOctagonVertices(cx, cy, s, c)
 end
 
 -- Textured octagon vertex helper (for unitpic texture, Y-flipped) — module-level
-local function drawTexturedOctagonVertices(cx, cy, s, c, texIn)
-	local t0, t1 = texIn, 1 - texIn
-	local tRange = t1 - t0
-	local tMid = (t0 + t1) * 0.5
-	local inv2s = 1 / (2 * s)
-	glFunc.TexCoord(tMid, tMid)
+local function drawTexturedOctagonVertices(cx, cy, s, c, texInset)
+	local texMin, texMax = texInset, 1 - texInset
+	local texChamferMin = texInset + (1 - 2 * texInset) * c / (2 * s)
+	local texChamferMax = 1 - texChamferMin
+	glFunc.TexCoord(0.5, 0.5)
 	glFunc.Vertex(cx, cy, 0)
-	local tx, ty
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	ty = t1 - tRange * (-s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texChamferMin, texMax)
 	glFunc.Vertex(cx - s + c, cy - s, 0)
-	tx = t0 + tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texChamferMax, texMax)
 	glFunc.Vertex(cx + s - c, cy - s, 0)
-	tx = t0 + tRange * (s + s) * inv2s
-	ty = t1 - tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texMax, texChamferMax)
 	glFunc.Vertex(cx + s, cy - s + c, 0)
-	ty = t1 - tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texMax, texChamferMin)
 	glFunc.Vertex(cx + s, cy + s - c, 0)
-	tx = t0 + tRange * (s - c + s) * inv2s
-	ty = t1 - tRange * (s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texChamferMax, texMin)
 	glFunc.Vertex(cx + s - c, cy + s, 0)
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texChamferMin, texMin)
 	glFunc.Vertex(cx - s + c, cy + s, 0)
-	tx = t0 + tRange * (-s + s) * inv2s
-	ty = t1 - tRange * (s - c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texMin, texChamferMin)
 	glFunc.Vertex(cx - s, cy + s - c, 0)
-	ty = t1 - tRange * (-s + c + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texMin, texChamferMax)
 	glFunc.Vertex(cx - s, cy - s + c, 0)
-	tx = t0 + tRange * (-s + c + s) * inv2s
-	ty = t1 - tRange * (-s + s) * inv2s
-	glFunc.TexCoord(tx, ty)
+	glFunc.TexCoord(texChamferMin, texMax)
 	glFunc.Vertex(cx - s + c, cy - s, 0)
+end
+
+local function DrawUnitpicHealthBar(cx, barY, barW, barH, outlineSize, healthFrac)
+	local quad = pools.scratchQuad
+	glFunc.Texture(false)
+
+	glFunc.Color(0, 0, 0, 0.9)
+	quad.x1, quad.y1 = cx - barW - outlineSize, barY - outlineSize
+	quad.x2, quad.y2 = cx + barW + outlineSize, barY + barH + outlineSize
+	glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
+
+	glFunc.Color(0.15, 0.15, 0.15, 0.8)
+	quad.x1, quad.y1 = cx - barW, barY
+	quad.x2, quad.y2 = cx + barW, barY + barH
+	glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
+
+	local healthRed = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
+	local healthGreen = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
+	glFunc.Color(healthRed, healthGreen, 0, 0.9)
+	quad.x1, quad.y1 = cx - barW, barY
+	quad.x2, quad.y2 = cx + barW * (2 * healthFrac - 1), barY + barH
+	glFunc.BeginEnd(glConst.QUADS, DrawScratchQuad)
 end
 
 local function DrawIconShatters()
@@ -10619,7 +10655,13 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	-- Use targetZoom (instant scroll response) instead of smooth zoom so the transition from
 	-- unitpics to icons happens immediately when the user scrolls out, not after the smooth
 	-- zoom animation catches up (which would leave a visible gap with no icons/unitpics).
-	local unitpicWarmCandidate = config.showUnitpics and unitCount <= config.unitpicMaxUnits and cameraState.targetZoom >= (config.unitpicZoomThreshold - config.unitpicWarmupRange)
+	local aboveUnitpicThreshold = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+	if not aboveUnitpicThreshold then
+		gl4Icons.DeactivateUnitpics()
+	end
+	local unitpicWarmCandidate = config.showUnitpics
+		and (gl4Icons.unitpicsActive or unitCount <= config.unitpicMaxUnits)
+		and cameraState.targetZoom >= (config.unitpicZoomThreshold - config.unitpicWarmupRange)
 	gl4Icons.ResetUnitpicWarmQueue()
 	local unitpicEntries = gl4Icons.unitpicEntries
 	if not unitpicEntries then
@@ -10663,8 +10705,8 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local instStep = gl4Icons.INSTANCE_STEP
 	local pipUnits = miscState.pipUnits
 	if unitpicWarmCandidate then
-		-- Resolve the complete candidate set before choosing one representation for this render.
-		-- This keeps every unit on icons until all required buildpics are ready.
+		-- Before initial entry, keep all units on icons until every buildpic is ready.
+		-- Once active, newly encountered buildpics warm without changing representation.
 		for i = 1, unitCount do
 			local uID = pipUnits[i]
 			local uDefID = unitDefCacheTbl[uID]
@@ -10682,7 +10724,10 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	else
 		gl4Icons.unitpicWarm.ready = false
 	end
-	local useUnitpics = gl4Icons.unitpicWarm.ready and cameraState.targetZoom >= config.unitpicZoomThreshold
+	if not gl4Icons.unitpicsActive and aboveUnitpicThreshold and unitCount <= config.unitpicMaxUnits and gl4Icons.unitpicWarm.ready then
+		gl4Icons.unitpicsActive = true
+	end
+	local useUnitpics = gl4Icons.unitpicsActive and aboveUnitpicThreshold
 
 	-- Position cache tables (populated during sort key pass, consumed by processUnit)
 	local localCachePosX = gl4Icons.cachedPosX
@@ -10709,14 +10754,20 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 	local teamColorR = gl4Icons._teamColorR
 	local teamColorG = gl4Icons._teamColorG
 	local teamColorB = gl4Icons._teamColorB
+	local teamColorBrightness = gl4Icons._teamColorBrightness
 	if not teamColorR then
 		teamColorR = {}; teamColorG = {}; teamColorB = {}
 		gl4Icons._teamColorR = teamColorR
 		gl4Icons._teamColorG = teamColorG
 		gl4Icons._teamColorB = teamColorB
 	end
+	if not teamColorBrightness then
+		teamColorBrightness = {}
+		gl4Icons._teamColorBrightness = teamColorBrightness
+	end
 	for tID, c in pairs(localTeamColors) do
 		teamColorR[tID] = c[1]; teamColorG[tID] = c[2]; teamColorB[tID] = c[3]
+		teamColorBrightness[tID] = 0.7 + (c[1] + c[2] + c[3]) / 9
 	end
 
 	-- At high unit counts, skip cosmetic-only features (stun tint, damage flash)
@@ -11964,14 +12015,23 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 		-- Scale unitpics up progressively with zoom to better match real-world unit sizes
 		local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
 		local unitpicSizeMult = 0.88 + 0.05 * zoomFrac
-		local picTexInset = math.max(0.125, 0.2 * (1 - (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold)))
+		local picTexInset = config.unitpicTexInset
 		local distMult = math.min(math.max(1, 2.2-(cameraState.zoom*3.3)), 3)
 		local teamBorderSize = 3 * cameraState.zoom * distMult * resScale
 		local blackBorderSize = 4 * cameraState.zoom * distMult * resScale
 		local cornerCutRatio = 0.18
+		local unitpicBaseSize = iconRadiusZoomDistMult * unitpicSizeMult
+		local teamBorderPixels = mathFloor(teamBorderSize + 0.5)
+		local blackBorderPixels = mathFloor(blackBorderSize + 0.5)
+		local teamCornerAdjustment = teamBorderPixels * 0.5858
+		local blackCornerAdjustment = blackBorderPixels * 0.5858
 		local isRotated = render.minimapRotation ~= 0
 		local hoveredID = drawData.hoveredUnitID
 		local cacheUnitPic = cache.unitPic
+		local warmedUnitpics = gl4Icons.unitpicWarm.warmed
+		local geometryCache = gl4Icons.unitpicGeometry
+		local geometryGeneration = gl4Icons.unitpicGeometryGeneration + 1
+		gl4Icons.unitpicGeometryGeneration = geometryGeneration
 
 		-- Draw each unitpic (already in correct layer order from 4-pass processing)
 		for j = 1, unitpicCount do
@@ -11979,26 +12039,35 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 			local uDefID, uTeam = up[3], up[4]
 			local isSelected, buildProgress, uID = up[5], up[6], up[7]
 
-			local iconData = cacheUnitIcon[uDefID]
-			local rawIconSize = iconRadiusZoomDistMult * (iconData and iconData.size or 0.5) * unitpicSizeMult
-			-- Pixel-align center and round sizes to whole pixels so all concentric
-			-- octagons (black border, team border, icon) are symmetric on every side
 			local px = mathFloor(up[1] + 0.5)
 			local py = mathFloor(up[2] + 0.5)
-			local iconSize = mathFloor(rawIconSize + 0.5)
-			local teamBdrSize = iconSize + mathFloor(teamBorderSize + 0.5)
-			local bdrSize = teamBdrSize + mathFloor(blackBorderSize + 0.5)
-			local crnrCut = mathFloor(bdrSize * cornerCutRatio + 0.5)
-			local crnrCutOuter = mathFloor(bdrSize * cornerCutRatio * 1.2 + 0.5)
-			-- Reduce inner corner cut so diagonal border matches straight border thickness
-			-- Without this, the diagonal gap between team octagon and icon octagon is √2× wider
-			local teamGap = teamBdrSize - iconSize
-			local crnrCutInner = math.max(0, mathFloor(crnrCut - teamGap * 0.5858 + 0.5))
-			local blackGap = bdrSize - teamBdrSize
-			local crnrCutTeam = math.max(0, mathFloor(crnrCutOuter - blackGap * 0.5858 + 0.5))
+			local geometry = geometryCache[uDefID]
+			if not geometry then
+				geometry = {}
+				geometryCache[uDefID] = geometry
+			end
+			local iconSize, teamBdrSize, bdrSize, crnrCutOuter, crnrCutInner, crnrCutTeam
+			if geometry[1] == geometryGeneration then
+				iconSize, teamBdrSize, bdrSize = geometry[2], geometry[3], geometry[4]
+				crnrCutOuter, crnrCutInner, crnrCutTeam = geometry[5], geometry[6], geometry[7]
+			else
+				local iconData = cacheUnitIcon[uDefID]
+				iconSize = mathFloor(unitpicBaseSize * (iconData and iconData.size or 0.5) + 0.5)
+				teamBdrSize = iconSize + teamBorderPixels
+				bdrSize = teamBdrSize + blackBorderPixels
+				local crnrCut = mathFloor(bdrSize * cornerCutRatio + 0.5)
+				crnrCutOuter = mathFloor(bdrSize * cornerCutRatio * 1.2 + 0.5)
+				-- Reduce inner corner cuts so diagonal borders match straight border thickness.
+				crnrCutInner = math.max(0, mathFloor(crnrCut - teamCornerAdjustment + 0.5))
+				crnrCutTeam = math.max(0, mathFloor(crnrCutOuter - blackCornerAdjustment + 0.5))
+				geometry[1], geometry[2], geometry[3], geometry[4] = geometryGeneration, iconSize, teamBdrSize, bdrSize
+				geometry[5], geometry[6], geometry[7] = crnrCutOuter, crnrCutInner, crnrCutTeam
+			end
 			local opacity = buildProgress >= 1 and 1.0 or (0.2 + (buildProgress * 0.5))
 			local isHovered = hoveredID and uID == hoveredID
-			local color = localTeamColors[uTeam]
+			local colorR = teamColorR[uTeam] or 1
+			local colorG = teamColorG[uTeam] or 1
+			local colorB = teamColorB[uTeam] or 1
 			local unitpic = cacheUnitPic[uDefID]
 
 			if isRotated then
@@ -12014,20 +12083,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				-- Team color border
 				if isSelected then
 					glFunc.Color(1, 1, 1, 1)
-				elseif color then
-					glFunc.Color(color[1], color[2], color[3], 1)
 				else
-					glFunc.Color(1, 1, 1, 1)
+					glFunc.Color(colorR, colorG, colorB, 1)
 				end
 				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, 0, 0, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
-				if unitpic then
-					glFunc.Texture(unitpic)
+				if unitpic and glFunc.Texture(unitpic) then
+					warmedUnitpics[uDefID] = true
 					if isSelected then
 						glFunc.Color(1, 1, 1, isHovered and math.min(1.0, opacity * 1.3) or opacity)
 					else
-						local brightness = 0.7 + ((color and (color[1] + color[2] + color[3]) or 3) / 9)
+						local brightness = teamColorBrightness[uTeam] or 1.0333333333333
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
@@ -12041,34 +12108,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					local barH = math.max(1, iconSize * 0.1508)
 					local barY = iconSize - barH * 1.5
 					local outl = math.max(1, barH * 0.2)
-					glFunc.Texture(false)
-					-- Outline
-					glFunc.Color(0, 0, 0, 0.9)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(-barW - outl, barY - outl, 0)
-						glFunc.Vertex(barW + outl, barY - outl, 0)
-						glFunc.Vertex(barW + outl, barY + barH + outl, 0)
-						glFunc.Vertex(-barW - outl, barY + barH + outl, 0)
-					end)
-					-- Background
-					glFunc.Color(0.15, 0.15, 0.15, 0.8)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(-barW, barY, 0)
-						glFunc.Vertex(barW, barY, 0)
-						glFunc.Vertex(barW, barY + barH, 0)
-						glFunc.Vertex(-barW, barY + barH, 0)
-					end)
-					-- Fill with green→yellow→red gradient
-					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
-					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
-					local fillW = barW * 2 * healthFrac - barW
-					glFunc.Color(hr, hg, 0, 0.9)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(-barW, barY, 0)
-						glFunc.Vertex(fillW, barY, 0)
-						glFunc.Vertex(fillW, barY + barH, 0)
-						glFunc.Vertex(-barW, barY + barH, 0)
-					end)
+					DrawUnitpicHealthBar(0, barY, barW, barH, outl, healthFrac)
 				end
 
 				glFunc.PopMatrix()
@@ -12081,20 +12121,18 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 				-- Team color border
 				if isSelected then
 					glFunc.Color(1, 1, 1, 1)
-				elseif color then
-					glFunc.Color(color[1], color[2], color[3], 1)
 				else
-					glFunc.Color(1, 1, 1, 1)
+					glFunc.Color(colorR, colorG, colorB, 1)
 				end
 				glFunc.BeginEnd(glConst.TRIANGLE_FAN, drawOctagonVertices, px, py, teamBdrSize, crnrCutTeam)
 
 				-- Unitpic texture
-				if unitpic then
-					glFunc.Texture(unitpic)
+				if unitpic and glFunc.Texture(unitpic) then
+					warmedUnitpics[uDefID] = true
 					if isSelected then
 						glFunc.Color(1, 1, 1, isHovered and math.min(1.0, opacity * 1.3) or opacity)
 					else
-						local brightness = 0.7 + ((color and (color[1] + color[2] + color[3]) or 3) / 9)
+						local brightness = teamColorBrightness[uTeam] or 1.0333333333333
 						if isHovered then brightness = brightness * 1.2 end
 						glFunc.Color(brightness, brightness, brightness, opacity)
 					end
@@ -12108,34 +12146,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 					local barH = math.max(1, iconSize * 0.185)
 					local barY = py + iconSize - barH * 1.5
 					local outl = math.max(1, barH * 0.4)
-					glFunc.Texture(false)
-					-- Outline
-					glFunc.Color(0, 0, 0, 0.9)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(px - barW - outl, barY - outl, 0)
-						glFunc.Vertex(px + barW + outl, barY - outl, 0)
-						glFunc.Vertex(px + barW + outl, barY + barH + outl, 0)
-						glFunc.Vertex(px - barW - outl, barY + barH + outl, 0)
-					end)
-					-- Background
-					glFunc.Color(0.15, 0.15, 0.15, 0.8)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(px - barW, barY, 0)
-						glFunc.Vertex(px + barW, barY, 0)
-						glFunc.Vertex(px + barW, barY + barH, 0)
-						glFunc.Vertex(px - barW, barY + barH, 0)
-					end)
-					-- Fill with green→yellow→red gradient
-					local hr = healthFrac < 0.5 and 1.0 or (1.0 - (healthFrac - 0.5) * 2)
-					local hg = healthFrac > 0.5 and 1.0 or (healthFrac * 2)
-					local fillW = barW * 2 * healthFrac - barW
-					glFunc.Color(hr, hg, 0, 0.9)
-					glFunc.BeginEnd(glConst.QUADS, function()
-						glFunc.Vertex(px - barW, barY, 0)
-						glFunc.Vertex(px + fillW, barY, 0)
-						glFunc.Vertex(px + fillW, barY + barH, 0)
-						glFunc.Vertex(px - barW, barY + barH, 0)
-					end)
+					DrawUnitpicHealthBar(px, barY, barW, barH, outl, healthFrac)
 				end
 			end
 		end
@@ -12792,7 +12803,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
-		local unitpicsActive = config.showUnitpics and gl4Icons.unitpicWarm.ready and cameraState.targetZoom >= config.unitpicZoomThreshold
+		local unitpicsActive = gl4Icons.unitpicsActive and config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
 		local unitpicBaseMult, unitpicBorderTotal
 		if unitpicsActive then
 			local zoomFrac = math.max(0, (cameraState.zoom - config.unitpicZoomThreshold) / (1 - config.unitpicZoomThreshold))
@@ -17454,7 +17465,12 @@ function widget:DrawScreen()
 		-- Uses targetZoom (same as GL4DrawIcons) so the transition is detected on the
 		-- same frame the user scrolls, not after the smooth zoom animation catches up.
 		do
-			local nowUseUnitpics = config.showUnitpics and #miscState.pipUnits <= config.unitpicMaxUnits and cameraState.targetZoom >= config.unitpicZoomThreshold
+			local aboveUnitpicThreshold = config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
+			if not aboveUnitpicThreshold then
+					gl4Icons.DeactivateUnitpics()
+			end
+			local nowUseUnitpics = aboveUnitpicThreshold
+				and (gl4Icons.unitpicsActive or #miscState.pipUnits <= config.unitpicMaxUnits)
 			if miscState._lastUseUnitpics ~= nil and miscState._lastUseUnitpics ~= nowUseUnitpics then
 				pipR2T.unitsNeedsUpdate = true
 			end
