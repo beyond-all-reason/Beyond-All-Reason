@@ -1777,10 +1777,9 @@ local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spValidUnitID = Spring.ValidUnitID
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 
-local function ProcessUnits(units, drawFlags, reason, firstIndex, lastIndex)
-	firstIndex = firstIndex or 1
-	lastIndex = lastIndex or #units
-	for i = firstIndex, lastIndex do
+local function ProcessUnits(units, drawFlags, reason)
+	local numUnits = #units
+	for i = 1, numUnits do
 		local unitID = units[i]
 		local drawFlag = drawFlags[i]
 		if debugmode then Spring.Echo("ProcessUnits", unitID, drawFlag, reason) end
@@ -1828,10 +1827,9 @@ local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
 local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
 local spSetFeatureFade = Spring.SetFeatureFade
 
-local function ProcessFeatures(features, drawFlags, reason, firstIndex, lastIndex)
-	firstIndex = firstIndex or 1
-	lastIndex = lastIndex or #features
-	for i = firstIndex, lastIndex do
+local function ProcessFeatures(features, drawFlags, reason)
+	local numFeatures = #features
+	for i = 1, numFeatures do
 		local featureID = features[i]
 		local drawFlag = drawFlags[i]
 
@@ -2412,75 +2410,6 @@ local destroyedFeatureIDs = {}
 local destroyedFeatureDrawFlags = {}
 local numdestroyedFeatures = 0
 
-local maxChangedObjectsPerDraw = 128
-local pendingChangedUnitIDs = {}
-local pendingChangedUnitDrawFlags = {}
-local pendingChangedUnitHead = 1
-local numPendingChangedUnits = 0
-local pendingChangedFeatureIDs = {}
-local pendingChangedFeatureDrawFlags = {}
-local pendingChangedFeatureHead = 1
-local numPendingChangedFeatures = 0
-
-local function QueueChangedObjects(objectIDs, drawFlags, pendingIDs, pendingDrawFlags, pendingCount)
-	for i = 1, #objectIDs do
-		pendingCount = pendingCount + 1
-		pendingIDs[pendingCount] = objectIDs[i]
-		pendingDrawFlags[pendingCount] = drawFlags[i]
-	end
-	return pendingCount
-end
-
-local function ProcessPendingChangedObjects()
-	local remaining = maxChangedObjectsPerDraw
-	local processed = 0
-
-	if pendingChangedUnitHead <= numPendingChangedUnits then
-		local lastIndex = pendingChangedUnitHead + remaining - 1
-		if lastIndex > numPendingChangedUnits then
-			lastIndex = numPendingChangedUnits
-		end
-		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:ProcessChangesUnits")
-		ProcessUnits(pendingChangedUnitIDs, pendingChangedUnitDrawFlags, "changed", pendingChangedUnitHead, lastIndex)
-		tracy.ZoneEnd()
-		local processedUnits = lastIndex - pendingChangedUnitHead + 1
-		for i = pendingChangedUnitHead, lastIndex do
-			pendingChangedUnitIDs[i] = nil
-			pendingChangedUnitDrawFlags[i] = nil
-		end
-		pendingChangedUnitHead = lastIndex + 1
-		if pendingChangedUnitHead > numPendingChangedUnits then
-			pendingChangedUnitHead = 1
-			numPendingChangedUnits = 0
-		end
-		remaining = remaining - processedUnits
-		processed = processed + processedUnits
-	end
-
-	if remaining > 0 and pendingChangedFeatureHead <= numPendingChangedFeatures then
-		local lastIndex = pendingChangedFeatureHead + remaining - 1
-		if lastIndex > numPendingChangedFeatures then
-			lastIndex = numPendingChangedFeatures
-		end
-		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:ProcessChangesFeatures")
-		ProcessFeatures(pendingChangedFeatureIDs, pendingChangedFeatureDrawFlags, "changed", pendingChangedFeatureHead, lastIndex)
-		tracy.ZoneEnd()
-		local processedFeatures = lastIndex - pendingChangedFeatureHead + 1
-		for i = pendingChangedFeatureHead, lastIndex do
-			pendingChangedFeatureIDs[i] = nil
-			pendingChangedFeatureDrawFlags[i] = nil
-		end
-		pendingChangedFeatureHead = lastIndex + 1
-		if pendingChangedFeatureHead > numPendingChangedFeatures then
-			pendingChangedFeatureHead = 1
-			numPendingChangedFeatures = 0
-		end
-		processed = processed + processedFeatures
-	end
-
-	return processed
-end
-
 -- The Call order for event triggered draw changes is the following:
 --During Sim:
 -- 1. gadget:Unit*
@@ -2615,12 +2544,7 @@ function gadget:DrawWorldPreUnit()
 		--	Spring.Echo("Updatenums", #units, #features, # drawFlagsUnits, #drawFlagsFeatures, numdestroyedUnits, numdestroyedFeatures)
 		--	Spring.Echo(printDrawPassStats())
 		--end
-		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:QueueChanges")
-		numPendingChangedUnits = QueueChangedObjects(units, drawFlagsUnits, pendingChangedUnitIDs, pendingChangedUnitDrawFlags, numPendingChangedUnits)
-		numPendingChangedFeatures = QueueChangedObjects(features, drawFlagsFeatures, pendingChangedFeatureIDs, pendingChangedFeatureDrawFlags, numPendingChangedFeatures)
-		tracy.ZoneEnd()
-
-		local totalobjects = numdestroyedUnits + numdestroyedFeatures
+		local totalobjects = #units + #features + numdestroyedUnits + numdestroyedFeatures
 
 		-- Why do we also do this processing round if #units > 0?
 		if debugmode and (#destroyedUnitIDs>0 or #units > 0) then Spring.Echo("Processing destroyedUnitIDs", #units, #destroyedUnitIDs) end
@@ -2672,7 +2596,12 @@ function gadget:DrawWorldPreUnit()
 		end
 
 
-		totalobjects = totalobjects + ProcessPendingChangedObjects()
+		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:ProcessChangesUnits")
+		ProcessUnits(units, drawFlagsUnits, "changed")
+		tracy.ZoneEnd()
+		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:ProcessChangesFeatures")
+		ProcessFeatures(features, drawFlagsFeatures, "changed")
+		tracy.ZoneEnd()
 
 		local deltat = Spring.DiffTimers(Spring.GetTimerMicros(),t0,  nil) -- in ms
 		--Spring.Echo(deltat)
