@@ -22,8 +22,20 @@ function Objective(name) end
 ---@return MissionUnitDefRef
 function UnitDef(name) end
 
+---Named-unit reference: the condition side of one unit the mission's
+---units.lua roster spawned.
+---@param name MissionUnitName
+---@return MissionUnitRef
+function Unit(name) end
+
 ---@type { Player: MissionTeam }
 Team = {}
+
+---@type MissionUnits
+Units = {}
+
+---@type MissionCombat
+Combat = {}
 
 ---@type MissionMatchFlow
 MatchFlow = {}

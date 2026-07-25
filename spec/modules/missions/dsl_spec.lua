@@ -182,3 +182,128 @@ describe("mission verbs", function()
 		assert.are.equal(1, team.allyTeam)
 	end)
 end)
+
+describe("unit noun", function()
+	---@return MissionContext
+	local function makeCtx(dead, spotted)
+		return {
+			frame = 0,
+			IsUnitDestroyed = function(name)
+				return dead[name] == true
+			end,
+			IsUnitSpotted = function(name, allyTeamID)
+				return spotted[name .. "_" .. allyTeamID] == true
+			end,
+		}
+	end
+
+	it("IsDestroyed reads the latch through ctx and declares its input", function()
+		local condition = Verbs.Unit("hub").IsDestroyed()
+		assert.are.same({ "UnitDestroyed" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({ hub = true }, {})))
+	end)
+
+	it("IsSpotted is per-allyteam and declares its input", function()
+		local team = Verbs.MakeTeam(0, 1)
+		local condition = Verbs.Unit("device").IsSpotted(team)
+		assert.are.same({ "UnitEnteredLos" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({}, { device_1 = true })))
+		assert.is_false(condition.evaluate(makeCtx({}, { device_2 = true })))
+	end)
+
+	it("IsSpotted rejects a non-Team argument", function()
+		assert.has_error(function()
+			Verbs.Unit("device").IsSpotted("player")
+		end)
+	end)
+
+	it("Unit rejects a non-string name", function()
+		assert.has_error(function()
+			Verbs.Unit(7)
+		end)
+	end)
+end)
+
+describe("units verbs", function()
+	it("Transfer builds an effect that moves the group through ctx", function()
+		local team = Verbs.MakeTeam(3, 1)
+		local effect = Verbs.Units.Transfer("outpost_auto", team)
+		local transferred = {}
+		effect.execute({
+			TransferGroup = function(group, teamID)
+				transferred[#transferred + 1] = { group = group, teamID = teamID }
+			end,
+		})
+		assert.are.same({ { group = "outpost_auto", teamID = 3 } }, transferred)
+	end)
+
+	it("Transfer rejects bad arguments", function()
+		assert.has_error(function()
+			Verbs.Units.Transfer(nil, Verbs.MakeTeam(0, 0))
+		end)
+		assert.has_error(function()
+			Verbs.Units.Transfer("outpost_auto", 3)
+		end)
+	end)
+end)
+
+describe("combat verbs", function()
+	local untils
+	local combat
+
+	before_each(function()
+		untils = {}
+		combat = Verbs.MakeCombat(untils)
+	end)
+
+	local function protectLog()
+		local log = {}
+		local ctx = {
+			Protect = function(name)
+				log[#log + 1] = "protect:" .. name
+			end,
+			Unprotect = function(name)
+				log[#log + 1] = "unprotect:" .. name
+			end,
+		}
+		return log, ctx
+	end
+
+	it("Protect builds an effect over the roster name", function()
+		local log, ctx = protectLog()
+		combat.Protect(Verbs.Unit("hub")).execute(ctx)
+		assert.are.same({ "protect:hub" }, log)
+		assert.are.same({}, untils)
+	end)
+
+	it("Until records the companion and returns the same protect effect", function()
+		local condition = { evaluate = function() return true end }
+		local log, ctx = protectLog()
+		local effect = combat.Protect(Verbs.Unit("hub")).Until(condition)
+		effect.execute(ctx)
+		assert.are.same({ "protect:hub" }, log)
+		assert.are.equal(1, #untils)
+		assert.are.equal("hub", untils[1].unit.name)
+		assert.are.equal(condition, untils[1].condition)
+	end)
+
+	it("Unprotect builds the primitive Until sugars over", function()
+		local log, ctx = protectLog()
+		combat.Unprotect(Verbs.Unit("hub")).execute(ctx)
+		assert.are.same({ "unprotect:hub" }, log)
+	end)
+
+	it("Protect rejects a plain string (wants a Unit reference)", function()
+		assert.has_error(function()
+			combat.Protect("hub")
+		end)
+	end)
+
+	it("Until rejects a non-condition", function()
+		assert.has_error(function()
+			combat.Protect(Verbs.Unit("hub")).Until(function() end)
+		end)
+	end)
+end)

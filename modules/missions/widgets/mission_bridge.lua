@@ -13,8 +13,7 @@ function widget:GetInfo()
 end
 
 -- No UI here: terminals (RmlUi panel, VS Code, browser) render the served
--- view. This widget contributes what only the game knows and follows the
--- file — it runs whether or not any panel is open.
+-- view; this widget contributes what only the game knows and runs whether or not a panel is open.
 
 local VIEW_PATH = "modules/missions/.editor/mission_view.json"
 local DOMAINS_PATH = "modules/missions/.editor/domains.json"
@@ -72,8 +71,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Live state: sample what the view manifest asks for, publish for every
--- terminal (state.json / GET /state). Unarmed = no values: a pawn count
--- without a running mission reads as progress but is just world state.
+-- terminal. Unarmed = no values — a pawn count without a running mission would read as progress.
 --------------------------------------------------------------------------------
 
 local function countFinishedUnits(unitDefName)
@@ -112,6 +110,14 @@ local function sampleLive()
 			elseif probe.kind == "objective" and probe.objective then
 				local done = Spring.GetGameRulesParam("objective_" .. probe.objective) == 1
 				values[probe.key] = { text = done and "✓" or "–", state = done and "done" or "pending", pct = done and 1 or 0 }
+			elseif probe.kind == "unit_dead" and probe.unit_name then
+				-- Latched by the mission loader; readable here unlike unit
+				-- validity, which LOS would fog for enemy roster units.
+				local dead = Spring.GetGameRulesParam("mission_unit_dead_" .. probe.unit_name) == 1
+				values[probe.key] = { text = dead and "destroyed" or "alive", state = dead and "done" or "pending", pct = dead and 1 or 0 }
+			elseif probe.kind == "unit_spotted" and probe.unit_name then
+				local spotted = Spring.GetGameRulesParam("mission_unit_spotted_" .. probe.unit_name .. "_" .. Spring.GetMyAllyTeamID()) == 1
+				values[probe.key] = { text = spotted and "✓" or "–", state = spotted and "done" or "pending", pct = spotted and 1 or 0 }
 			end
 		end
 	end

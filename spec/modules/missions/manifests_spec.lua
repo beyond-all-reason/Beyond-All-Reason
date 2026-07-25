@@ -8,13 +8,14 @@ describe("mission module manifests", function()
 		manifests = ModuleHandler.Discover()
 	end)
 
-	it("discovers missions and matchflow", function()
+	it("discovers missions, matchflow and combat", function()
 		assert.is_table(manifests.missions)
 		assert.is_table(manifests.matchflow)
+		assert.is_table(manifests.combat)
 	end)
 
-	it("missions declares its matchflow dependency", function()
-		assert.are.same({ "matchflow" }, manifests.missions.requires)
+	it("missions declares its matchflow and combat dependencies", function()
+		assert.are.same({ "matchflow", "combat" }, manifests.missions.requires)
 	end)
 
 	it("every declared requirement resolves to a discovered module", function()

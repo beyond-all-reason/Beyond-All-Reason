@@ -12,6 +12,8 @@
 --- (alias name -> slot semantic, literal unions -> editor enums), so a verb
 --- annotated with these types is understood by the editor without kit code.
 ---@alias UnitDefName string unit def name, e.g. "armpw"
+---@alias MissionUnitName string roster unit name, declared by units.lua
+---@alias MissionUnitGroup string roster group name, declared by units.lua
 ---@alias ObjectiveName string
 
 --- The mission bus vocabulary, CLOSED BY TYPE: every event name that may
@@ -25,6 +27,7 @@
 ---| "UnitDestroyed"
 ---| "UnitGiven"
 ---| "UnitTaken"
+---| "UnitEnteredLos"
 ---| "mission.objective_changed"
 
 --- A condition is not a bare predicate — it carries metadata about what can
@@ -39,10 +42,17 @@
 ---@field inputs MissionEventName[]|nil events that can change this answer; nil = poll every cadence
 
 --- What the engine hands every condition and effect. The gadget builds it from
---- Spring; specs build it from plain tables.
+--- Spring; specs build it from plain tables. The unit half reads/acts through
+--- the roster registry: names come from the mission's units.lua, and the
+--- destroyed/spotted answers are latched (once true, stay true).
 ---@class MissionContext
 ---@field GetUnitDefCount fun(teamID: integer, unitDefName: string): integer count of finished units of that def
 ---@field IsObjectiveComplete fun(name: string): boolean
+---@field IsUnitDestroyed fun(name: string): boolean
+---@field IsUnitSpotted fun(name: string, allyTeamID: integer): boolean
+---@field TransferGroup fun(groupName: string, teamID: integer)
+---@field Protect fun(name: string) combat-module protection by roster name
+---@field Unprotect fun(name: string)
 ---@field frame integer current game frame
 
 --- A lazy effect built by a named verb (Objective("x").Complete(),
@@ -59,11 +69,46 @@
 ---@field Complete fun(): MissionEffect
 ---@field IsComplete fun(): MissionCondition
 
---- The injected MatchFlow verbs: lazy mirrors of the matchflow module api.
---- They take the Team handle so mission lines read as English.
+--- The injected MatchFlow verbs: lazy mirrors of the matchflow module api,
+--- plus the Started condition. They take the Team handle so mission lines
+--- read as English.
 ---@class MissionMatchFlow
+---@field Started fun(): MissionCondition holds from the first cadence tick after arming
 ---@field Victory fun(team: MissionTeam): MissionEffect
 ---@field Defeat fun(team: MissionTeam): MissionEffect
+
+--- A named-unit reference produced by the injected Unit verb: the condition
+--- side of one roster unit. Both conditions are latched.
+---@class MissionUnitRef
+---@field name MissionUnitName
+---@field IsDestroyed fun(): MissionCondition
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+
+--- The injected Units verbs: effects over roster-named groups.
+---@class MissionUnits
+---@field Transfer fun(group: MissionUnitGroup, team: MissionTeam): MissionEffect
+
+--- The injected Combat verbs. Protect is an effect; its Until sugar bounds
+--- the protection with a companion trigger — the literal desugared statement
+--- When(condition).Do(Combat.Unprotect(unit)).
+---@class MissionCombat
+---@field Protect fun(unit: MissionUnitRef): MissionProtectEffect
+---@field Unprotect fun(unit: MissionUnitRef): MissionEffect
+
+--- Combat.Protect's return: a plain effect plus the Until lifetime sugar.
+---@class MissionProtectEffect
+---@field execute fun(ctx: MissionContext)
+---@field Until fun(condition: MissionCondition): MissionEffect
+
+--- One validated units.lua spawn entry. Teams are roles resolved at arm time.
+---@class MissionRosterEntry
+---@field def UnitDefName
+---@field team "player"|"enemy"|"gaia"
+---@field x number
+---@field z number
+---@field facing number
+---@field name MissionUnitName|nil roster name (addressable as Unit("name"))
+---@field group MissionUnitGroup|nil roster group (addressable via Units verbs)
 
 --- A registered trigger. Identity = source filename + declaration order,
 --- stamped at registration — the unregister-by-identity key for hot reload.
