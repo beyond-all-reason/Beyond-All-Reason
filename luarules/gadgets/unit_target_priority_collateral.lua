@@ -222,11 +222,7 @@ local weaponTypesExplosion = {
 local function getExplosionRadiusEffective(groups, weaponNum, weaponDef)
 	local radius, damage = 0.0, 0.0
 
-	if not weaponTypesExplosion[weaponDef.type] then
-		return radius, damage
-	end
-
-	if not ignoreWeaponDef(weaponDef) then
+	if weaponTypesExplosion[weaponDef.type] and not ignoreWeaponDef(weaponDef) then
 		-- Start with stats that are based on firing: aiming, accuracy, burst size, etc.
 		local scatter = weaponDef.range * (math.max(weaponDef.accuracy, weaponDef.movingAccuracy * 0.5) + weaponDef.sprayAngle + 0.25 * weaponDef.targetMoveError)
 		local projectiles = weaponDef.projectiles * weaponDef.salvoSize
