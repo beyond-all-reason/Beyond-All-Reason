@@ -309,6 +309,19 @@ local function unitDef_Post(name, uDef)
 			else
 				uDef.metalcost = math.floor((uDef.metalcost or 0) * 0.8)
 				uDef.energycost = math.floor((uDef.energycost or 0) * 0.8)
+				-- Drones should use stockpiling when there are no remaining stockpiling weapon conflicts.
+				-- Maybe an exception: babyscavbossunits. So I'm leaving this in the antinuke restriction.
+				for weaponName, weaponDef in pairs(weapondefs) do
+					if weaponDef.customparams and tonumber(weaponDef.customparams.spawnrate) and not weaponDef.stockpiletime then
+						if not table.any(weapondefs, function(wd, wn) return wn ~= weaponName and wd.stockpile end) then
+							weaponDef.stockpile = true
+							weaponDef.stockpiletime = tonumber(weaponDef.customparams.spawnrate) or 10
+							weaponDef.customparams.stockpilelimit = tonumber(weaponDef.customparams.maxunits) or tonumber(weaponDef.customparams.startingdronecount)
+							weaponDef.customparams.dronesusestockpile = true
+							weaponDef.customparams.stockpilemetal = weaponDef.metalpershot
+							weaponDef.customparams.stockpileenergy = weaponDef.energypershot
+							break
+						end
 					end
 				end
 			end
