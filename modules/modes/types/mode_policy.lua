@@ -1,0 +1,41 @@
+---@meta policy mode
+
+---A game mode preset under construction. Every verb claims one policy and the
+---modoptions it writes; the panel is a whitelist, so a mode shows exactly what
+---it claims. A verb's claim is followed by at most one of Locked, Sealed,
+---Unlocked or Hidden, which applies to that claim only.
+---
+---Locked pins the claim's structure (the option a player would flip) and leaves
+---its dials open; Sealed pins the dials too. Dials are the numeric follow-ons:
+---MaxUnits, NoRush, UnitRestrictions, and the round settings End brings along.
+---@class GameModeChain
+---@field Desc fun(desc: string): GameModeChain The sentence the lobby shows under the mode's name.
+---@field Ranked fun(enabled: boolean?): GameModeChain Whether the mode may count for rating. Ranked() allows it; Ranked(false), or never saying Ranked, pins ranked_game off, lockable like any claim.
+---@field Bot fun(aiName: string): GameModeChain An AI the lobby fields for this mode, by short name; repeat for more.
+---@field Uses fun(contract: table): GameModeChain A module whose fact providers this preset makes live, besides the module that ships the preset; named by its contract.lua, never a string. The mode decides who answers a slot; two live providers for one slot is a load error.
+---@field RetainValues fun(): GameModeChain A non-sticky preset (Customize): picking it exposes and unlocks its claims but keeps the current values instead of resetting the category to defaults.
+---@field Hidden fun(): GameModeChain The last claim stays out of the lobby UI; its pin still applies.
+---@field Unlocked fun(): GameModeChain The last claim is fully editable, structure and dials.
+---@field Locked fun(): GameModeChain The last claim's structure is pinned; its dials stay editable.
+---@field Sealed fun(): GameModeChain The last claim is pinned outright, dials included.
+---@field End fun(deathmode: DeathModeKey): GameModeChain How the game ends: writes deathmode. territorial_domination brings its round length and elimination dials along, open.
+---@field Wreckage fun(enabled: boolean): GameModeChain Whether a resigned or eliminated player's units stay as wreckage: writes ffa_wreckage.
+---@field ShuffleStartBoxes fun(enabled: boolean): GameModeChain Randomise which start box each team gets: writes teamffa_start_boxes_shuffle.
+---@field MaxUnits fun(count: number): GameModeChain Unit cap per player: writes maxunits, a dial.
+---@field Draft fun(draft: DraftModeKey): GameModeChain Start position drafting: writes draft_mode with the given key.
+---@field Anonymous fun(anonymous: AnonymousModeKey): GameModeChain Team colour anonymity: writes teamcolors_anonymous_mode with the given key.
+---@field PausedCommands fun(enabled: boolean): GameModeChain Whether orders may be given while paused: writes allowpausegameplay.
+---@field CustomWidgets fun(enabled: boolean): GameModeChain Whether players may run their own widgets: writes allowuserwidgets.
+---@field UnitControlWidgets fun(enabled: boolean): GameModeChain Whether widgets may control units: writes allowunitcontrolwidgets.
+---@field FixedAlliances fun(enabled: boolean): GameModeChain Whether alliances are fixed for the game: writes fixedallies.
+---@field MapDeformation fun(enabled: boolean): GameModeChain Whether weapons reshape terrain. Stated in the player's terms; writes disablemapdamage inverted.
+---@field FogOfWar fun(enabled: boolean): GameModeChain Whether the map has fog of war. Stated in the player's terms; writes disable_fogofwar inverted.
+---@field NoRush fun(minutes: number, middleFree: boolean?): GameModeChain Minutes players must stay in their start boxes, 0 for none: writes norushtimer and norushmiddlefree, both dials.
+---@field SlowComTransport fun(enabled: boolean): GameModeChain Whether carrying your own commander slows a transport: writes comm_trans_slow.
+---@field UnitRestrictions fun(): GameModeChain Claims every unit_restrictions_* toggle at off, so the panel shows them as dials the host may flip. Sealed() pins them all off; Locked() does not, they are dials.
+
+---The category is not a parameter: the grammar binds every chain from this
+---module to "game".
+---@param name string
+---@return GameModeChain
+function Mode(name) end
