@@ -41,6 +41,11 @@ local options = {
         desc   	= "",
         type   	= "section",
         weight  = 7,
+        -- The game axis governs these: the base rules of a match belong to
+        -- how the match is played, so a lobby folds them under the Game mode
+        -- (modules/modes/modoptions.lua) — a mode locks what it pins and
+        -- leaves the rest open.
+        mode_category = "game",
     },
 
     {
