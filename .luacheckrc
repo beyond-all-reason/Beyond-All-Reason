@@ -57,3 +57,14 @@ globals = {
 
     "CMDTYPE", "COBSCALE", "CallAsTeam", "SYNCED", "loadlib",
 }
+
+-- Mission trigger files run in the mission_loader sandbox; these are its
+-- injected environment (modules/missions/types/dsl.lua mirrors it).
+files["modules/missions/**/triggers/**"] = {
+    read_globals = { "When", "Objective", "UnitDef", "Unit", "Team", "Units", "Combat", "MatchFlow" },
+}
+
+-- Mission rosters (units.lua) run in their own, smaller sandbox.
+files["modules/missions/**/units.lua"] = {
+    read_globals = { "Spawn", "UnitDef" },
+}

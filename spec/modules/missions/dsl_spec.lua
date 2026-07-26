@@ -1,0 +1,326 @@
+local DSL = VFS.Include("modules/missions/lib/dsl.lua")
+local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
+
+local alwaysTrue = { evaluate = function() return true end }
+local anEffect = { execute = function() end }
+
+describe("mission DSL", function()
+	local registered ---@type TriggerDescriptor[]
+	local When
+	local Finalize
+
+	before_each(function()
+		registered = {}
+		local file = DSL.ForFile("triggers/win.lua", function(descriptor)
+			registered[#registered + 1] = descriptor
+		end)
+		When = file.When
+		Finalize = file.Finalize
+	end)
+
+	it("builds a descriptor from a terminator-free chain at Finalize", function()
+		When(alwaysTrue).Do(anEffect)
+		assert.are.equal(0, #registered)
+		Finalize()
+
+		assert.are.equal(1, #registered)
+		local descriptor = registered[1]
+		assert.are.equal("triggers/win.lua:1", descriptor.id)
+		assert.are.equal("triggers/win.lua", descriptor.filename)
+		assert.are.equal(1, descriptor.order)
+		assert.are.equal(alwaysTrue, descriptor.condition)
+		assert.are.same({ anEffect }, descriptor.effects)
+		assert.is_true(descriptor.once)
+	end)
+
+	it("stamps declaration order by When-call order", function()
+		When(alwaysTrue).Do(anEffect)
+		When(alwaysTrue).Do(anEffect)
+		Finalize()
+		assert.are.equal("triggers/win.lua:1", registered[1].id)
+		assert.are.equal("triggers/win.lua:2", registered[2].id)
+	end)
+
+	it("accumulates multiple Do effects in order", function()
+		local first = { execute = function() end }
+		local second = { execute = function() end }
+		When(alwaysTrue).Do(first).Do(second)
+		Finalize()
+		assert.are.same({ first, second }, registered[1].effects)
+	end)
+
+	it("defaults Once to true and honors Once(false)", function()
+		When(alwaysTrue).Do(anEffect).Once(false)
+		Finalize()
+		assert.is_false(registered[1].once)
+	end)
+
+	it("a statement without a Do fails the load, naming the statement", function()
+		When(alwaysTrue).Do(anEffect)
+		When(alwaysTrue)
+		assert.has_error(function()
+			Finalize()
+		end)
+		assert.are.equal(0, #registered)
+	end)
+
+	it("rejects a bare function in Do (closure-free surface)", function()
+		assert.has_error(function()
+			When(alwaysTrue).Do(function() end)
+		end)
+	end)
+
+	it("rejects a condition without evaluate", function()
+		assert.has_error(function()
+			When({})
+		end)
+	end)
+
+	it("rejects chain calls after Finalize", function()
+		local chain = When(alwaysTrue).Do(anEffect)
+		Finalize()
+		assert.has_error(function()
+			chain.Do(anEffect)
+		end)
+	end)
+
+	it("rejects Finalize twice", function()
+		Finalize()
+		assert.has_error(function()
+			Finalize()
+		end)
+	end)
+end)
+
+describe("repeated When (AND composition)", function()
+	local registered
+	local When
+	local Finalize
+
+	before_each(function()
+		registered = {}
+		local file = DSL.ForFile("triggers/win.lua", function(descriptor)
+			registered[#registered + 1] = descriptor
+		end)
+		When = file.When
+		Finalize = file.Finalize
+	end)
+
+	local function cond(result, inputs)
+		return { inputs = inputs, evaluate = function() return result end }
+	end
+
+	it("fires only when every condition holds", function()
+		When(cond(true)).When(cond(false)).Do(anEffect)
+		When(cond(true)).When(cond(true)).Do(anEffect)
+		Finalize()
+		assert.is_false(registered[1].condition.evaluate({}))
+		assert.is_true(registered[2].condition.evaluate({}))
+	end)
+
+	it("composes inputs as the union of the parts'", function()
+		When(cond(true, { "A", "B" })).When(cond(true, { "B", "C" })).Do(anEffect)
+		Finalize()
+		local inputs = registered[1].condition.inputs
+		table.sort(inputs)
+		assert.are.same({ "A", "B", "C" }, inputs)
+	end)
+
+	it("a poll-only part makes the whole trigger poll", function()
+		When(cond(true, { "A" })).When(cond(true, nil)).Do(anEffect)
+		Finalize()
+		assert.is_nil(registered[1].condition.inputs)
+	end)
+
+	it("single-condition statements keep their original condition object", function()
+		local only = cond(true, { "A" })
+		When(only).Do(anEffect)
+		Finalize()
+		assert.are.equal(only, registered[1].condition)
+	end)
+
+	it("rejects a non-condition", function()
+		assert.has_error(function()
+			When(cond(true)).When(function() end)
+		end)
+	end)
+end)
+
+describe("mission verbs", function()
+	it("UnitDef carries the name", function()
+		assert.are.same({ name = "armpw" }, Verbs.UnitDef("armpw"))
+	end)
+
+	it("Team.Has evaluates against ctx counts", function()
+		local team = Verbs.MakeTeam(0, 0)
+		local condition = team.Has(Verbs.UnitDef("armpw"), 3)
+
+		local counts = { [0] = { armpw = 2 } }
+		local ctx = {
+			frame = 0,
+			GetUnitDefCount = function(teamID, defName)
+				return (counts[teamID] or {})[defName] or 0
+			end,
+			IsObjectiveComplete = function()
+				return false
+			end,
+		}
+		assert.is_false(condition.evaluate(ctx))
+		counts[0].armpw = 3
+		assert.is_true(condition.evaluate(ctx))
+	end)
+
+	it("Has declares its engine-callin inputs", function()
+		local team = Verbs.MakeTeam(0, 0)
+		local condition = team.Has(Verbs.UnitDef("armpw"), 3)
+		assert.are.same({ "UnitFinished", "UnitDestroyed", "UnitGiven", "UnitTaken" }, condition.inputs)
+	end)
+
+	it("Team carries teamID and allyTeam for MatchFlow calls", function()
+		local team = Verbs.MakeTeam(2, 1)
+		assert.are.equal(2, team.teamID)
+		assert.are.equal(1, team.allyTeam)
+	end)
+end)
+
+describe("unit noun", function()
+	local Unit = Verbs.MakeUnit({ hub = true, device = true })
+
+	---@return MissionContext
+	local function makeCtx(dead, spotted)
+		return {
+			frame = 0,
+			IsUnitDestroyed = function(name)
+				return dead[name] == true
+			end,
+			IsUnitSpotted = function(name, allyTeamID)
+				return spotted[name .. "_" .. allyTeamID] == true
+			end,
+		}
+	end
+
+	it("IsDestroyed reads the latch through ctx and declares its input", function()
+		local condition = Unit("hub").IsDestroyed()
+		assert.are.same({ "UnitDestroyed" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({ hub = true }, {})))
+	end)
+
+	it("IsSpotted is per-allyteam and declares its input", function()
+		local team = Verbs.MakeTeam(0, 1)
+		local condition = Unit("device").IsSpotted(team)
+		assert.are.same({ "UnitEnteredLos" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({}, { device_1 = true })))
+		assert.is_false(condition.evaluate(makeCtx({}, { device_2 = true })))
+	end)
+
+	it("a name the roster never declared is a load error, not a dead condition", function()
+		local ok, err = pcall(Unit, "hubb")
+		assert.is_false(ok)
+		assert.is_truthy(tostring(err):find("hubb", 1, true))
+	end)
+
+	it("IsSpotted rejects a non-Team argument", function()
+		assert.has_error(function()
+			Unit("device").IsSpotted("player")
+		end)
+	end)
+
+	it("Unit rejects a non-string name", function()
+		assert.has_error(function()
+			Unit(7)
+		end)
+	end)
+end)
+
+describe("units verbs", function()
+	local Units = Verbs.MakeUnits({ outpost_auto = true })
+
+	it("Transfer builds an effect that moves the group through ctx", function()
+		local team = Verbs.MakeTeam(3, 1)
+		local effect = Units.Transfer("outpost_auto", team)
+		local transferred = {}
+		effect.execute({
+			TransferGroup = function(group, teamID)
+				transferred[#transferred + 1] = { group = group, teamID = teamID }
+			end,
+		})
+		assert.are.same({ { group = "outpost_auto", teamID = 3 } }, transferred)
+	end)
+
+	it("a group the roster never declared is a load error", function()
+		local ok, err = pcall(Units.Transfer, "outpost", Verbs.MakeTeam(0, 0))
+		assert.is_false(ok)
+		assert.is_truthy(tostring(err):find("outpost", 1, true))
+	end)
+
+	it("Transfer rejects bad arguments", function()
+		assert.has_error(function()
+			Units.Transfer(nil, Verbs.MakeTeam(0, 0))
+		end)
+		assert.has_error(function()
+			Units.Transfer("outpost_auto", 3)
+		end)
+	end)
+end)
+
+describe("combat verbs", function()
+	local Unit = Verbs.MakeUnit({ hub = true })
+	local untils
+	local combat
+
+	before_each(function()
+		untils = {}
+		combat = Verbs.MakeCombat(untils)
+	end)
+
+	local function protectLog()
+		local log = {}
+		local ctx = {
+			Protect = function(name)
+				log[#log + 1] = "protect:" .. name
+			end,
+			Unprotect = function(name)
+				log[#log + 1] = "unprotect:" .. name
+			end,
+		}
+		return log, ctx
+	end
+
+	it("Protect builds an effect over the roster name", function()
+		local log, ctx = protectLog()
+		combat.Protect(Unit("hub")).execute(ctx)
+		assert.are.same({ "protect:hub" }, log)
+		assert.are.same({}, untils)
+	end)
+
+	it("Until records the companion and returns the same protect effect", function()
+		local condition = { evaluate = function() return true end }
+		local log, ctx = protectLog()
+		local effect = combat.Protect(Unit("hub")).Until(condition)
+		effect.execute(ctx)
+		assert.are.same({ "protect:hub" }, log)
+		assert.are.equal(1, #untils)
+		assert.are.equal("hub", untils[1].unit.name)
+		assert.are.equal(condition, untils[1].condition)
+	end)
+
+	it("Unprotect builds the primitive Until sugars over", function()
+		local log, ctx = protectLog()
+		combat.Unprotect(Unit("hub")).execute(ctx)
+		assert.are.same({ "unprotect:hub" }, log)
+	end)
+
+	it("Protect rejects a plain string (wants a Unit reference)", function()
+		assert.has_error(function()
+			combat.Protect("hub")
+		end)
+	end)
+
+	it("Until rejects a non-condition", function()
+		assert.has_error(function()
+			combat.Protect(Unit("hub")).Until(function() end)
+		end)
+	end)
+end)
