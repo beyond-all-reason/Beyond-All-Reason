@@ -78,10 +78,9 @@ local function parseCustomParams(weaponDef)
 	local effectName = weaponDef.customParams.speceffect
 
 	if not specialEffectFunction[effectName] then
+		success = false
 		local message = weaponDef.name .. " has bad speceffect: " .. tostring(effectName)
 		Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
-
-		success = false
 	end
 
 	local effectParams = {}
@@ -92,10 +91,9 @@ local function parseCustomParams(weaponDef)
 			if value ~= nil then
 				effectParams[key] = value
 			else
+				success = false
 				local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
 				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
-
-				success = false
 			end
 		end
 
