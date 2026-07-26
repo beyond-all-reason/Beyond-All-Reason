@@ -563,14 +563,9 @@ end
 
 local waterDepthSubs = -20
 local waterDepthDeep = -80
-local torpedoTurnRadius = 400
-
-local function getTorpedoTrackingRadius(value)
-	return tonumber(value) or torpedoTurnRadius -- TODO: should use weapondef properties
-end
 
 weaponCustomParamKeys.torpwaterpen = {
-	tracking_turn_radius = getTorpedoTrackingRadius, -- turn radius of a tracking projectile
+	tracking_turn_radius = tonumber, -- turn radius of a tracking projectile, larger gives stronger correction
 }
 
 local function torpedoWaterPen(params, projectileID)
