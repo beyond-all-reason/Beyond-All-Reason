@@ -42,6 +42,7 @@ local options = {
 		desc = "",
 		type = "section",
 		weight = 7,
+		mode_category = "game",
 	},
 
 	{
@@ -2766,6 +2767,10 @@ for i = 1, 9 do
 		def = "",
 		hidden = true,
 	}
+end
+
+for _, option in ipairs(VFS.Include("modules/module_handler.lua").ModOptions()) do
+	options[#options + 1] = option
 end
 
 return options
