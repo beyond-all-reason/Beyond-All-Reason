@@ -1,5 +1,5 @@
---- Combat ships no modoptions today; module discovery must still leave the
---- game's serialized modoptions byte-identical to the hand-authored list.
+--- Combat ships no modoptions; module fragments (sharing's) merge into the
+--- game's list exactly once, in handler order, at the tail.
 
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 
@@ -53,14 +53,16 @@ describe("combat modoption neutrality", function()
 		assert.is_false(VFS.FileExists("modules/combat/modoptions.lua"))
 	end)
 
-	it("module-contributed options are byte-neutral over the game's list", function()
-		local merged = {}
-		for index, option in ipairs(options) do
-			merged[index] = option
+	it("module-contributed options are the list's tail, exactly once", function()
+		local contributed = ModuleHandler.ModOptions()
+		assert.is_true(#contributed > 0)
+		local rebuilt = {}
+		for index = 1, #options - #contributed do
+			rebuilt[index] = options[index]
 		end
-		for _, option in ipairs(ModuleHandler.ModOptions()) do
-			merged[#merged + 1] = option
+		for _, option in ipairs(contributed) do
+			rebuilt[#rebuilt + 1] = option
 		end
-		assert.are.equal(baseline, serialize(merged))
+		assert.are.equal(baseline, serialize(rebuilt))
 	end)
 end)

@@ -21,7 +21,6 @@ local mathFloor = math.floor
 local mathMin = math.min
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -37,6 +36,7 @@ local LineTypes = {
 }
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
+local SharingUnsynced = VFS.Include("modules/sharing/unsynced.lua")
 local badWords = VFS.Include('luaui/configs/badwords.lua')
 local ChatEmoji = VFS.Include('luaui/Include/chat_emoji.lua')
 
@@ -128,7 +128,7 @@ local longestPlayername = '(s) [xx]playername'
 
 -- State tables to reduce local variable count
 local state = {
-	I18N = {},
+	i18nStrings = {},
 	orgLines = {},
 	chatLines = {},
 	consoleLines = {},
@@ -149,10 +149,10 @@ local state = {
 	gameFrameHappened = false,
 	deferredDrawWork = false,
 	skipOptionalDrawWork = false,
-	myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false),
+	myName = Spring.GetPlayerInfo(Spring.GetLocalPlayerID(), false),
 	mySpec = spGetSpectatingState(),
-	myTeamID = spGetMyTeamID(),
-	myAllyTeamID = Spring.GetMyAllyTeamID(),
+	myTeamID = Spring.GetLocalTeamID(),
+	myAllyTeamID = Spring.GetLocalAllyTeamID(),
 	font = nil,
 	font2 = nil,
 	font3 = nil,
@@ -526,13 +526,13 @@ local function refreshUnitDefs()
 end
 
 function widget:LanguageChanged()
-	state.I18N = {
+	state.i18nStrings = {
 		energy = Spring.I18N('ui.topbar.resources.energy'):lower(),
 		metal = Spring.I18N('ui.topbar.resources.metal'):lower(),
-		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
 		spectators = Spring.I18N('ui.chat.spectators'),
+		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		cmd = Spring.I18N('ui.chat.cmd'),
 		shortcut = Spring.I18N('ui.chat.shortcut'),
 		nohistory = Spring.I18N('ui.chat.nohistory'),
@@ -670,18 +670,48 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 		local params = string.split(text, ':')
 		local t = {}
 		if params[1] then
-			for k,v in pairs(params) do
-				if k > 1 then
-					local pair = string.split(v, '=')
-					if pair[2] then
-						if playernames[pair[2]] then
-							t[ pair[1] ] = getPlayerColorString(pair[2], gameFrame)..playernames[pair[2]][7]..msgColor
-						elseif params[1]:lower():find('energy', nil, true) then
-							t[ pair[1] ] = energyValueColor..pair[2]..msgColor
+			local resourceType = nil
+				if params[1]:lower():find('energy', nil, true) then
+				resourceType = "energy"
 						elseif params[1]:lower():find('metal', nil, true) then
-							t[ pair[1] ] = metalValueColor..pair[2]..msgColor
+				resourceType = "metal"
+			end
+			-- Check for explicit resourceType parameter (overrides key-based detection)
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key == "resourceType" and value then
+					resourceType = value
+					break
+				end
+			end
+
+			for i = 2, #params, 2 do
+				local key = params[i]
+				local value = params[i + 1]
+				if key and value then
+					if key == "resourceType" then
+						-- Skip the resourceType parameter itself
+					elseif playernames[value] then
+							t[key] = getPlayerColorString(value, gameFrame) .. playernames[value][7] .. msgColor
+					else
+						local shouldHighlight = false
+						if key:lower():find("energy", nil, true) or key:lower():find("metal", nil, true) then
+							shouldHighlight = true
 						else
-							t[ pair[1] ] = pair[2]
+							shouldHighlight = SharingUnsynced.Resources.SendTransferChatMessageProtocolHighlights[key] == true
+						end
+
+						if shouldHighlight then
+							if resourceType == "energy" then
+								t[key] = energyValueColor .. value .. msgColor
+							elseif resourceType == "metal" then
+								t[key ] = metalValueColor.. value..msgColor
+						else
+							t[key ] = value
+							end
+						else
+							t[key] = value
 						end
 					end
 				end
@@ -689,14 +719,14 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			text = Spring.I18N(params[1], t)
 			-- Fix a widget crash that could occur with message "> ."
 			if type(text) ~= "string" then text = text_orig end
-			if text:lower():find(state.I18N.energy, nil, true) then
-				local pos = text:lower():find(state.I18N.energy, nil, true)
-				local len = slen(state.I18N.energy)
+			if text:lower():find(state.i18nStrings.energy, nil, true) then
+				local pos = text:lower():find(state.i18nStrings.energy, nil, true)
+				local len = slen(state.i18nStrings.energy)
 				text = ssub(text, 1, pos-1)..energyColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
 			end
-			if text:lower():find(state.I18N.metal, nil, true) then
-				local pos = text:lower():find(state.I18N.metal, nil, true)
-				local len = slen(state.I18N.metal)
+			if text:lower():find(state.i18nStrings.metal, nil, true) then
+				local pos = text:lower():find(state.i18nStrings.metal, nil, true)
+				local len = slen(state.i18nStrings.metal)
 				text = ssub(text, 1, pos-1)..metalColor..ssub(text, pos, pos+len-1).. msgColor..ssub(text, pos+len)
 			end
 		end
@@ -775,10 +805,10 @@ local function cancelChatInput()
 	state.autocompleteDisplayPrefix = nil
 	state.autocompleteWords = {}
 	state.clearChatInputGuishader()
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chatinputautocomplete')
-		WG['guishader'].RemoveRect('chatinputinfo')
-		WG['guishader'].RemoveRect('chatinputemojipicker')
+	if WG.guishader then
+		WG.guishader.RemoveRect('chatinputautocomplete')
+		WG.guishader.RemoveRect('chatinputinfo')
+		WG.guishader.RemoveRect('chatinputemojipicker')
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
@@ -826,14 +856,14 @@ function state.closeEmojiPicker()
 	state.emojiPickerRect = nil
 	state.emojiPickerPressFromButton = false
 	state.emojiPickerOpenBeforePress = false
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chatinputemojipicker')
+	if WG.guishader then
+		WG.guishader.RemoveRect('chatinputemojipicker')
 	end
 end
 
 function state.clearChatInputGuishader()
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('chatinput')
+	if WG.guishader then
+		WG.guishader.RemoveDlist('chatinput')
 	end
 	if state.chatInputGuishaderDlist then
 		state.chatInputGuishaderDlist = glDeleteList(state.chatInputGuishaderDlist)
@@ -841,7 +871,7 @@ function state.clearChatInputGuishader()
 end
 
 function state.updateChatInputGuishader(left, bottom, right, top)
-	if not WG['guishader'] then
+	if not WG.guishader then
 		if state.chatInputGuishaderDlist then
 			state.chatInputGuishaderDlist = glDeleteList(state.chatInputGuishaderDlist)
 		end
@@ -851,8 +881,8 @@ function state.updateChatInputGuishader(left, bottom, right, top)
 	state.chatInputGuishaderDlist = glCreateList(function()
 		RectRound(left, bottom, right, top, elementCorner)
 	end)
-	WG['guishader'].RemoveDlist('chatinput')
-	WG['guishader'].InsertDlist(state.chatInputGuishaderDlist, 'chatinput')
+	WG.guishader.RemoveDlist('chatinput')
+	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, 'chatinput')
 end
 
 function state.drawEmojiPickerButton(rect, iconSize)
@@ -876,8 +906,8 @@ end
 function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	if not state.emojiPickerOpen or not state.emojiButtonRect then
 		state.emojiPickerRect = nil
-		if WG['guishader'] then
-			WG['guishader'].RemoveRect('chatinputemojipicker')
+		if WG.guishader then
+			WG.guishader.RemoveRect('chatinputemojipicker')
 		end
 		return
 	end
@@ -901,8 +931,8 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	state.emojiPickerPadding = pickerPadding
 	glColor(0, 0, 0, inputAlpha * 1.12)
 	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner*0.7, 0,0,1,1)
-	if WG['guishader'] then
-		WG['guishader'].InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, 'chatinputemojipicker')
+	if WG.guishader then
+		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, 'chatinputemojipicker')
 	end
 	for i = 1, #emojiAutocompleteAliases do
 		local col = (i - 1) % pickerColumns
@@ -1368,6 +1398,9 @@ local function addLastUnitShareMessage()
 end
 
 function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
+	if Spring.GetGameRulesParam("isTakeInProgress") == 1 then
+		return
+	end
 	local oldAllyTeamID = select(6, spGetTeamInfo(oldTeamID))
 	local newAllyTeamID = select(6, spGetTeamInfo(newTeamID))
 
@@ -1485,8 +1518,8 @@ drawChatLine = function(i)
 	end
 	if state.chatLines[i].channelScope and state.chatLines[i].lineType ~= LineTypes.System then
 		local localizedScope = state.chatLines[i].channelScope
-		if state.chatLines[i].channelScope == 'ALL' and state.I18N.channelScopeAll and state.I18N.channelScopeAll ~= '' then
-			localizedScope = state.I18N.channelScopeAll
+		if state.chatLines[i].channelScope == 'ALL' and state.i18nStrings.channelScopeAll and state.i18nStrings.channelScopeAll ~= '' then
+			localizedScope = state.i18nStrings.channelScopeAll
 		end
 		local scopeLabel = '[' .. localizedScope .. ']'
 		local scopeFontSize = usedFontSize * 0.72
@@ -1579,9 +1612,26 @@ function widget:Update(dt)
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
-					local name = spGetPlayerInfo(playerID, false)
-					name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-					changedPlayers[name] = true
+					local rawName, _, isSpec, pTeamID = spGetPlayerInfo(playerID, false)
+					if rawName then
+						-- refresh cached team color so messages don't use a stale (mirror-team) color
+						if playernames[rawName] and not isSpec and pTeamID and pTeamID ~= Spring.GetGaiaTeamID() then
+							playernames[rawName][5] = { r, g, b }
+							playernames[rawName][6] = ColorIsDark(r, g, b)
+						end
+						changedPlayers[rawName] = true
+						local aliasName = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or rawName
+					changedPlayers[aliasName] = true
+					end
+				end
+			end
+		end
+		if changeDetected then
+			-- re-color already-displayed lines from players whose color just changed
+			for i = 1, #state.chatLines do
+				if state.chatLines[i].playerName and changedPlayers[state.chatLines[i].playerName] then
+					state.chatLines[i].reprocess = true
+					updateDrawUi = true
 				end
 			end
 		end
@@ -1612,8 +1662,8 @@ function widget:Update(dt)
 		end
 
 		-- add settings option commands
-		if not addedOptionsList and WG['options'] and WG['options'].getOptionsList then
-			local optionsList = WG['options'].getOptionsList()
+		if not addedOptionsList and WG.options and WG.options.getOptionsList then
+			local optionsList = WG.options.getOptionsList()
 			if optionsList and #optionsList > 0 then
 				addedOptionsList = true
 				for i, option in ipairs(optionsList) do
@@ -1655,7 +1705,7 @@ function widget:Update(dt)
 	end
 
 	local chatlogHeightDiff = state.historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if WG['topbar'] and WG['topbar'].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		state.historyMode = false
 		setCurrentChatLine(#state.chatLines)
 	elseif math_isInRect(x, y, state.activationArea[1], state.activationArea[2], state.activationArea[3], state.activationArea[4]) then
@@ -1724,13 +1774,13 @@ drawChatInput = function()
 		local usedFont = isCmd and font3 or state.font
 		local inputBottom = state.activationArea[2]+chatlogHeightDiff-distance-inputHeight
 		local inputTop = state.activationArea[2]+chatlogHeightDiff-distance
-		local modeText = state.I18N.everyone
+		local modeText = state.i18nStrings.everyone
 		if isCmd then
-			modeText = state.I18N.cmd
+			modeText = state.i18nStrings.cmd
 		elseif state.inputMode == 'a:' then
-			modeText = state.I18N.allies
+			modeText = state.i18nStrings.allies
 		elseif state.inputMode == 's:' then
-			modeText = state.I18N.spectators
+			modeText = state.i18nStrings.spectators
 		end
 		local modeTextPosX = floor(state.activationArea[1]+elementPadding+elementPadding+leftOffset)
 		local baseTextPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
@@ -1743,6 +1793,21 @@ drawChatInput = function()
 		updateTextInputDlist = false
 		textInputDlist = glDeleteList(textInputDlist)
 		textInputDlist = glCreateList(function()
+			local chatlogHeightDiff = state.historyMode and floor(vsy * (scrollingPosY - posY)) or 0
+			local inputFontSize = floor(usedFontSize * 1.03)
+			local inputHeight = floor(inputFontSize * 2.3)
+			local leftOffset = floor(lineHeight * 0.7)
+			local distance = (state.historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
+			local isCmd = ssub(state.inputText, 1, 1) == "/"
+			local usedFont = isCmd and font3 or state.font
+			local modeText = state.i18nStrings.everyone
+			if isCmd then
+				modeText = state.i18nStrings.cmd
+			elseif state.inputMode == "a:" then
+				modeText = state.i18nStrings.allies
+			elseif state.inputMode == "s:" then
+				modeText = state.i18nStrings.spectators
+			end
 			local modeTextPosX = floor(state.activationArea[1]+elementPadding+elementPadding+leftOffset)
 			local baseTextPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
 			local textPosX = baseTextPosX
@@ -1897,8 +1962,8 @@ drawChatInput = function()
 				local height = (autocLineHeight * mathMin(allowMultiAutocompleteMax, #state.autocompleteWords-1) + leftOffset) + (#state.autocompleteWords > allowMultiAutocompleteMax+1 and autocLineHeight or 0)
 				glColor(0,0,0,inputAlpha)
 				RectRound(xPos-leftOffset, yPos-height, x2-elementMargin, yPos, elementCorner*0.6, 0,0,1,1)
-				if WG['guishader'] then
-					WG['guishader'].InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
+				if WG.guishader then
+					WG.guishader.InsertRect(xPos-leftOffset, yPos-height, x2-elementPadding, yPos, 'chatinputautocomplete')
 				end
 				local addHeight = floor((inputFontSize*scale) * 1.35) - autocLineHeight
 				for i, word in ipairs(state.autocompleteWords) do
@@ -1920,8 +1985,8 @@ drawChatInput = function()
 					end
 				end
 			else
-				if WG['guishader'] then
-					WG['guishader'].RemoveRect('chatinputautocomplete')
+				if WG.guishader then
+					WG.guishader.RemoveRect('chatinputautocomplete')
 				end
 			end
 
@@ -1937,12 +2002,12 @@ drawChatInput = function()
 				RectRound(infoLeft, infoBottom, infoRight, infoTop, elementCorner*0.45, 0,1,1,1)
 				usedFont:SetTextColor(r,g,b, 0.62)
 				usedFont:Print(state.autocompleteInfoText, infoTextX, infoBottom + floor(infoHeight * 0.34), inputFontSize * 0.92, "o")
-				if WG['guishader'] then
-					WG['guishader'].InsertRect(infoLeft, infoBottom, infoRight, infoTop, 'chatinputinfo')
+				if WG.guishader then
+					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, 'chatinputinfo')
 				end
 			else
-				if WG['guishader'] then
-					WG['guishader'].RemoveRect('chatinputinfo')
+				if WG.guishader then
+					WG.guishader.RemoveRect('chatinputinfo')
 				end
 			end
 
@@ -1972,7 +2037,7 @@ drawUi = function()
 			if hovering then --and Spring.GetGameFrame() < 30*60*7 then
 				state.font:Begin(true)
 				state.font:SetTextColor(0.1,0.1,0.1,0.66)
-				state.font:Print(state.I18N.shortcut, state.activationArea[3]-elementPadding-elementPadding, state.activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
+				state.font:Print(state.i18nStrings.shortcut, state.activationArea[3]-elementPadding-elementPadding, state.activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 				state.font:End()
 			end
 		end
@@ -2017,7 +2082,7 @@ drawUi = function()
 		if #state.chatLines == 0 and state.historyMode == 'chat' then
 			state.font:Begin(true)
 			state.font:SetTextColor(0.35,0.35,0.35,0.66)
-			state.font:Print(state.I18N.nohistory, state.activationArea[1]+(state.activationArea[3]-state.activationArea[1])/2, state.activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
+			state.font:Print(state.i18nStrings.nohistory, state.activationArea[1]+(state.activationArea[3]-state.activationArea[1])/2, state.activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize*1.1, "c")
 			state.font:End()
 		end
 		local checkedLines = 0
@@ -2178,10 +2243,10 @@ drawTextInput = function()
 			end
 		else
 			state.clearChatInputGuishader()
-			if WG['guishader'] then
-			WG['guishader'].RemoveRect('chatinputautocomplete')
-				WG['guishader'].RemoveRect('chatinputinfo')
-				WG['guishader'].RemoveRect('chatinputemojipicker')
+			if WG.guishader then
+			WG.guishader.RemoveRect('chatinputautocomplete')
+				WG.guishader.RemoveRect('chatinputinfo')
+				WG.guishader.RemoveRect('chatinputemojipicker')
 			end
 			textInputDlist = glDeleteList(textInputDlist)
 		end
@@ -2201,8 +2266,8 @@ function widget:DrawScreen()
 	local _, ctrl, _, _ = Spring.GetModKeyState()
 	local x,y,b = spGetMouseState()
 	local chatlogHeightDiff = state.historyMode and floor(vsy*(scrollingPosY-posY)) or 0
-	if hovering and WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
+	if hovering and WG.guishader then
+		WG.guishader.RemoveRect('chat')
 	end
 
 	if hide and not state.historyMode then
@@ -2214,8 +2279,8 @@ function widget:DrawScreen()
 		hovering = true
 		if state.historyMode then
 			UiElement(state.activationArea[1], state.activationArea[2]+chatlogHeightDiff, state.activationArea[3], state.activationArea[4])
-			if WG['guishader'] then
-				WG['guishader'].InsertRect(state.activationArea[1], state.activationArea[2]+chatlogHeightDiff, state.activationArea[3], state.activationArea[4], 'chat')
+			if WG.guishader then
+				WG.guishader.InsertRect(state.activationArea[1], state.activationArea[2]+chatlogHeightDiff, state.activationArea[3], state.activationArea[4], 'chat')
 			end
 
 			-- player name background
@@ -2682,8 +2747,8 @@ function state.insertInputTextAtCursor(text)
 	state.cursorBlinkTimer = 0
 	autocomplete(state.inputText)
 	updateTextInputDlist = true
-	if WG['limitidlefps'] and WG['limitidlefps'].update then
-		WG['limitidlefps'].update()
+	if WG.limitidlefps and WG.limitidlefps.update then
+		WG.limitidlefps.update()
 	end
 end
 
@@ -3182,7 +3247,7 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = spGetMouseState()
 	local chatlogHeightDiff = state.historyMode and floor(vsy*(scrollingPosY-posY)) or 0
 	if #state.chatLines > 0 and math_isInRect(x, y, state.activationArea[1],state.activationArea[2]+chatlogHeightDiff,state.activationArea[3],state.activationArea[4]) then
-		return state.I18N.scroll
+		return state.i18nStrings.scroll
 	end
 end
 
@@ -3216,9 +3281,9 @@ function widget:ViewResize()
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = usedFontSize*consoleFontSizeMult
 
-	state.font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2, 1.2, 0.13, 20)
-	font3 = WG['fonts'].getFont(3)
+	state.font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2, 1.2, 0.13, 20)
+	font3 = WG.fonts.getFont(3)
 
 	-- get longest player name and calc its width
 	if not state.font or not longestPlayername then
@@ -3245,14 +3310,14 @@ function widget:ViewResize()
 	backgroundPadding = elementPadding + floor(lineHeight*0.5)
 
 	local posY2 = 0.94
-	if WG['topbar'] ~= nil then
-		topbarArea = WG['topbar'].GetPosition()
+	if WG.topbar ~= nil then
+		topbarArea = WG.topbar.GetPosition()
 		posY2 = floor(topbarArea[2] - elementMargin)/vsy
 		posX = topbarArea[1]/vsx
 		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
 	end
 	consolePosY = floor((vsy * posY2) - backgroundPadding - (maxConsoleLines * consoleLineHeight)) / vsy
-	posY = floor((consolePosY*vsy) - (backgroundPadding*1.5) - ((lineHeight*maxLines))) / vsy
+	posY = floor((consolePosY*vsy) - (backgroundPadding*1.5) - (lineHeight*maxLines)) / vsy
 
 	state.activationArea = {
 		floor(vsx * posX),
@@ -3279,8 +3344,8 @@ end
 
 function widget:PlayerChanged(playerID)
 	state.mySpec = spGetSpectatingState()
-	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	if state.mySpec and state.inputMode == 'a:' then
 		state.inputMode = 's:'
 	end
@@ -3414,84 +3479,84 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-	widget:PlayerChanged(Spring.GetMyPlayerID())
+	widget:PlayerChanged(Spring.GetLocalPlayerID())
 
 	Spring.SendCommands("console 0")
 
-	WG['chat'] = {}
-	WG['chat'].isInputActive = function()
+	WG.chat = {}
+	WG.chat.isInputActive = function()
 		return state.showTextInput
 	end
-	WG['chat'].getInputButton = function()
+	WG.chat.getInputButton = function()
 		return inputButton
 	end
-	WG['chat'].setHide = function(value)
+	WG.chat.setHide = function(value)
 		hide = value
 	end
-	WG['chat'].getHide = function()
+	WG.chat.getHide = function()
 		return hide
 	end
-	WG['chat'].setChatInputHistory = function(value)
+	WG.chat.setChatInputHistory = function(value)
 		showHistoryWhenChatInput = value
 	end
-	WG['chat'].getChatInputHistory = function()
+	WG.chat.getChatInputHistory = function()
 		return showHistoryWhenChatInput
 	end
-	WG['chat'].setInputButton = function(value)
+	WG.chat.setInputButton = function(value)
 		inputButton = value
 	end
-	WG['chat'].getHandleInput = function()
+	WG.chat.getHandleInput = function()
 		return handleTextInput
 	end
-	WG['chat'].setHandleInput = function(value)
+	WG.chat.setHandleInput = function(value)
 		handleTextInput = value
 		if not handleTextInput then
 			cancelChatInput()
 		end
 		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 	end
-	WG['chat'].getChatVolume = function()
+	WG.chat.getChatVolume = function()
 		return sndChatFileVolume
 	end
-	WG['chat'].setChatVolume = function(value)
+	WG.chat.setChatVolume = function(value)
 		sndChatFileVolume = value
 	end
-	WG['chat'].getBackgroundOpacity = function()
+	WG.chat.getBackgroundOpacity = function()
 		return backgroundOpacity
 	end
-	WG['chat'].setBackgroundOpacity = function(value)
+	WG.chat.setBackgroundOpacity = function(value)
 		backgroundOpacity = value
 	end
-	WG['chat'].getMaxLines = function()
+	WG.chat.getMaxLines = function()
 		return maxLines
 	end
-	WG['chat'].setMaxLines = function(value)
+	WG.chat.setMaxLines = function(value)
 		maxLines = value
 		widget:ViewResize()
 	end
-	WG['chat'].getMaxConsoleLines = function()
+	WG.chat.getMaxConsoleLines = function()
 		return maxLines
 	end
-	WG['chat'].setMaxConsoleLines = function(value)
+	WG.chat.setMaxConsoleLines = function(value)
 		maxConsoleLines = value
 		widget:ViewResize()
 	end
-	WG['chat'].getFontsize = function()
+	WG.chat.getFontsize = function()
 		return fontsizeMult
 	end
-	WG['chat'].setFontsize = function(value)
+	WG.chat.setFontsize = function(value)
 		fontsizeMult = value
 		widget:ViewResize()
 	end
-	WG['chat'].addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, channelScope)
+	WG.chat.addChatLine = function(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, channelScope)
 		addChatLine(gameFrame, lineType, name, nameText, text, orgLineID, ignore, chatLineID, true, channelScope)
 	end
-	WG['chat'].addChatProcessor = function(id, func)
+	WG.chat.addChatProcessor = function(id, func)
 		if type(func) == 'function' then
 			chatProcessors[id] = func
 		end
 	end
-	WG['chat'].removeChatProcessor = function(id)
+	WG.chat.removeChatProcessor = function(id)
 		chatProcessors[id] = nil
 	end
 
@@ -3525,12 +3590,12 @@ end
 function widget:Shutdown()
 	clearDisplayLists()	-- console/chat displaylists
 	glDeleteList(textInputDlist)
-	WG['chat'] = nil
+	WG.chat = nil
 	state.clearChatInputGuishader()
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('chat')
-		WG['guishader'].RemoveRect('chatinputautocomplete')
-		WG['guishader'].RemoveRect('chatinputinfo')
+	if WG.guishader then
+		WG.guishader.RemoveRect('chat')
+		WG.guishader.RemoveRect('chatinputautocomplete')
+		WG.guishader.RemoveRect('chatinputinfo')
 	end
 	if uiTex then
 		gl.DeleteTexture(uiTex)

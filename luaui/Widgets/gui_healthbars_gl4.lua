@@ -354,7 +354,7 @@ for barname, bt in pairs(barTypeMap) do
 	cache[15] = bt.maxcolor[3]
 	cache[16] = bt.maxcolor[4]
 
-	bt['cache'] = cache
+	bt.cache = cache
 end
 
 
@@ -362,7 +362,7 @@ end
 --------------------------------------------------------------------------------
 
 local spec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local GetUnitWeaponState = Spring.GetUnitWeaponState
 
 local chobbyInterface
@@ -378,6 +378,7 @@ local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef we
 local unitBars = {} -- we need this additional table of {[unitID] = {barhealth, barrez, barreclaim}}
 local unitCaptureWatch = {}
 local unitShieldWatch = {} -- maps unitID to last shield value
+local unitShieldHidden = {} -- unitIDs whose shield bar is hidden because the shield is switched off
 local unitReactiveArmorWatch = {}
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
@@ -471,7 +472,7 @@ local shaderSourceCache = {
 		gssrcpath = gsSrcPath,
 		shaderName = "Health Bars Shader GL4",
 		uniformInt = {
-			healthbartexture = 0;
+			healthbartexture = 0,
 			},
 		uniformFloat = {
 			--addRadius = 1,
@@ -489,7 +490,7 @@ local fallbackShaderSourceCache = {
 		fssrcpath = fallbackFsSrcPath,
 		shaderName = "Health Bars Shader GL4 (NoGS)",
 		uniformInt = {
-			healthbartexture = 0;
+			healthbartexture = 0,
 			},
 		uniformFloat = {
 			iconDistance = 27,
@@ -509,7 +510,7 @@ for udefID, unitDef in pairs(UnitDefs) do
 	end --ignore debug units
 
 	local shieldDefID = unitDef.shieldWeaponDef
-	local shieldPower = ((shieldDefID) and (WeaponDefs[shieldDefID].shieldPower)) or (-1)
+	local shieldPower = (shieldDefID and WeaponDefs[shieldDefID].shieldPower) or-1
 	if shieldPower > 1 then unitDefhasShield[udefID] = shieldPower
 		--spEcho("HAS SHIELD")
 	end
@@ -659,7 +660,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then
-			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
+			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitDefID, barname)
 		end
 		return nil
 	end
@@ -711,7 +712,7 @@ local function updateReloadBar(unitID, unitDefID, reason)
 		addBarForUnit(unitID, unitDefID, "reload", reason)
 	end
 
-	if (reloadFrame and reloadTime and gl.SetUnitBufferUniforms) then
+	if reloadFrame and reloadTime and gl.SetUnitBufferUniforms then
 		uniformcache[1] = reloadFrame - 30 * reloadTime
 		gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 		uniformcache[1] = reloadFrame
@@ -817,6 +818,7 @@ local function removeBarsFromUnit(unitID, reason)
 		removeBarFromUnit(unitID, barname, reason)
 	end
 	unitShieldWatch[unitID] = nil
+	unitShieldHidden[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil
 	unitCaptureWatch[unitID] = nil
 	unitEmpDamagedWatch[unitID] = nil
@@ -897,6 +899,7 @@ local function init()
 	InstanceVBOTable.clearInstanceTable(healthBarVBO)
 	unitCaptureWatch = {}
 	unitShieldWatch = {} -- maps unitID to last shield value
+	unitShieldHidden = {}
 	unitReactiveArmorWatch = {}
 	unitEmpDamagedWatch = {}
 	unitParalyzedWatch = {}
@@ -1026,19 +1029,19 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG['healthbars'] = {}
-	WG['healthbars'].getScale = function()
+	WG.healthbars = {}
+	WG.healthbars.getScale = function()
 		return barScale
 	end
-	WG['healthbars'].setScale = function(value)
+	WG.healthbars.setScale = function(value)
 		barScale = value
 		init()
 		initfeaturebars()
 	end
-	WG['healthbars'].getHeight = function()
+	WG.healthbars.getHeight = function()
 		return barHeight
 	end
-	WG['healthbars'].setHeight = function(value)
+	WG.healthbars.setHeight = function(value)
 		barHeight = value
 		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
 		shaderSourceCache.shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
@@ -1046,18 +1049,18 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
-	WG['healthbars'].getVariableSizes = function()
+	WG.healthbars.getVariableSizes = function()
 		return variableBarSizes
 	end
-	WG['healthbars'].setVariableSizes = function(value)
+	WG.healthbars.setVariableSizes = function(value)
 		variableBarSizes = value
 		init()
 		initfeaturebars()
 	end
-	WG['healthbars'].getDrawWhenGuiHidden = function()
+	WG.healthbars.getDrawWhenGuiHidden = function()
 		return drawWhenGuiHidden
 	end
-	WG['healthbars'].setDrawWhenGuiHidden = function(value)
+	WG.healthbars.setDrawWhenGuiHidden = function(value)
 		drawWhenGuiHidden = value
 	end
 
@@ -1118,7 +1121,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	spec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 
 	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
@@ -1131,16 +1134,18 @@ end
 function widget:PlayerChanged(playerID)
 
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentTeamID = Spring.GetMyTeamID()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
+	local currentTeamID = Spring.GetLocalTeamID()
+	local currentAllyTeamID = Spring.GetLocalAllyTeamID()
+	local currentPlayerID = Spring.GetLocalPlayerID()
 	local reinit = false
 
 	if debugmode then spEcho("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end
 
 	-- cases where we need to trigger:
-	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
-		(currentfullview ~= fullview) or -- we turn on or off fullview
+	if (currentspec ~= spec) -- we transition from spec to player, yes this is needed
+or
+		(currentfullview ~= fullview) -- we turn on or off fullview
+or
 		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
 
 		then
@@ -1169,14 +1174,31 @@ function widget:GameFrame(n)
 		for unitID, oldshieldPower in pairs(unitShieldWatch) do
 			local shieldOn, shieldPower = Spring.GetUnitShieldState(unitID)
 			if shieldOn == false then shieldPower = 0.0 end
+			-- The shield gadget keeps the engine shield "enabled" while an onoffable unit is
+			-- toggled off (it only zeroes the power), so key off the unit's active state instead.
+			if Spring.GetUnitIsActive(unitID) == false then
+				-- Unit is switched off: hide the shield bar entirely rather than drawing an empty bar.
+				if not unitShieldHidden[unitID] then
+					removeBarFromUnit(unitID, "shield", "unitShieldWatch")
+					unitShieldHidden[unitID] = true
+					unitShieldWatch[unitID] = 0.0
+				end
+			else
+				if unitShieldHidden[unitID] then
+					-- Shield switched back on: re-add the bar and force a refresh below.
+					addBarForUnit(unitID, spGetUnitDefID(unitID), "shield", "unitShieldWatch")
+					unitShieldHidden[unitID] = nil
+					oldshieldPower = nil
+				end
 			if oldshieldPower ~= shieldPower then
 				if shieldPower == nil then
 					removeBarFromUnit(unitID, "shield", "unitShieldWatch")
 				else
-					uniformcache[1] = shieldPower / (unitDefhasShield[spGetUnitDefID(unitID)])
+					uniformcache[1] = shieldPower /unitDefhasShield[spGetUnitDefID(unitID)]
 					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 				end
 				unitShieldWatch[unitID] = shieldPower
+				end
 			end
 		end
 

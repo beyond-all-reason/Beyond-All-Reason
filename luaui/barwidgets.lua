@@ -219,6 +219,7 @@ local callInLists = {
 	'CommandsChanged',
 	'LanguageChanged',
 	'UnitBlocked',
+	"SharePolicyChanged",
 	'VisibleUnitAdded',
 	'VisibleUnitRemoved',
 	'VisibleUnitsChanged',
@@ -369,7 +370,7 @@ end
 
 --------------------------------------------------------------------------------
 local unsortedWidgets
-local doMoreYield = (Spring.Yield ~= nil);
+local doMoreYield = (Spring.Yield ~= nil)
 
 local function Yield()
 	if doMoreYield then
@@ -505,7 +506,7 @@ function widgetHandler:AddSpadsMessage(contents)
 		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
 	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
 	if type(contents) == 'table' then
@@ -1917,6 +1918,7 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+	---@diagnostic disable-next-line: undefined-global
   for _,w in ripairs(self.DrawBuildSquareList) do
     w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
   end
@@ -1925,7 +1927,7 @@ end
 
 function widgetHandler:SunChanged()
 	tracy.ZoneBeginN("W:SunChanged")
-	local nmp = _G['NightModeParams']
+	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)
@@ -2500,6 +2502,14 @@ function widgetHandler:UnitBlocked(unitDefID, reasons)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
 		w:UnitBlocked(unitDefID, reasons)
+	end
+	tracy.ZoneEnd()
+end
+
+function widgetHandler:SharePolicyChanged(teamID, domain)
+	tracy.ZoneBeginN("W:SharePolicyChanged")
+	for _, w in ipairs(self.SharePolicyChangedList) do
+		w:SharePolicyChanged(teamID, domain)
 	end
 	tracy.ZoneEnd()
 end

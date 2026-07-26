@@ -14,6 +14,8 @@ function widget:GetInfo()
 	}
 end
 
+local SharingUnsynced = VFS.Include("modules/sharing/unsynced.lua")
+
 --------------------------------------------------------------------------------
 --vars
 --------------------------------------------------------------------------------
@@ -29,16 +31,14 @@ local range = 200
 --speedups
 --------------------------------------------------------------------------------
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local GetMyTeamID = Spring.GetMyTeamID
+local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local ShareResources = Spring.ShareResources
 local I18N = Spring.I18N
 local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local PlaySoundFile = Spring.PlaySoundFile
-local GetTeamColor = Spring.GetTeamColor
 local GetActiveCommand = Spring.GetActiveCommand
 local GetCameraPosition = Spring.GetCameraPosition
 local GetMouseState = Spring.GetMouseState
@@ -46,7 +46,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -154,13 +153,7 @@ local function getMouseDistance()
 	return sqrt(dx * dx + dy * dy + dz * dz)
 end
 
-local function getTeamColorWithAlpha(teamId)
-	local tred, tgreen, tblue = GetTeamColor(teamId)
-	return { tred, tgreen, tblue, 1 }
-end
-
-local function drawAoE(tx, ty, tz, selectedTeam)
-	--local color = selectedTeam and getTeamColorWithAlpha(selectedTeam) or defaultColor
+local function drawAoE(tx, ty, tz)
 	local color = defaultColor
 
 	mouseDistance = getMouseDistance() or 1000
@@ -283,7 +276,7 @@ local function getSelectedTeam()
 
 	local tx, ty, tz, targetUnitID = getMouseTargetPosition()
 
-	if (not tx and not targetUnitID) then
+	if not tx and not targetUnitID then
 		return nil
 	end
 
@@ -302,19 +295,19 @@ local function getSelectedTeam()
 end
 
 function widget:DrawWorld()
-	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
+	local targetX, targetY, targetZ = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
-	drawAoE(targetX, targetY+10, targetZ, selectedTeam)
+	drawAoE(targetX, targetY+10, targetZ)
 end
 
 function widget:DrawScreen()
 	local targetX, _, _, selectedTeam = getSelectedTeam()
 
-	if (not targetX) then
+	if not targetX then
 		return
 	end
 
@@ -336,14 +329,26 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 			targetTeamID = findTeamInArea(mouseX, mouseY)
 		end
 
-		if targetTeamID == nil or targetTeamID == myTeamID or GetTeamAllyTeamID(targetTeamID) ~= myAllyTeamID then
-			-- invalid target, don't do anything
+		local policyResult = SharingUnsynced.Units.GetCachedPolicyResult( myTeamID,targetTeamID)
+		if not policyResult or not policyResult.canShare then
 			return true
 		end
 
-		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, 'ui')
+		local selectedUnits = GetSelectedUnits()
+		if #selectedUnits > 0 then
+			local msg = "share:units:" ..targetTeamID .. ":" .. table.concat(selectedUnits, ",")
+			Spring.SendLuaRulesMsg(msg)
+		end
 		return false
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:find("^unit_transfer:success:") then
+		local senderTeamID = tonumber(msg:match("^unit_transfer:success:(%d+)"))
+		if senderTeamID == GetMyTeamID() then
+		PlaySoundFile("beep4", 1, 'ui')
+		end
 	end
 end
 
@@ -371,7 +376,7 @@ function widget:CommandsChanged()
 end
 
 function widget:ViewResize(vsx, vsy)
-	font = WG['fonts'].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 end
 
 function widget:Initialize()

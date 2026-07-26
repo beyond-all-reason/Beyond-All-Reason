@@ -72,8 +72,8 @@ local guiData = {
 	mainPanel = {
 		relSizes = {
 			x = {
-				min = 0.1 + ((0.08*aspectMult)),
-				max = 0.9 - ((0.08*aspectMult)),
+				min = 0.1 + (0.08*aspectMult),
+				max = 0.9 - (0.08*aspectMult),
 				length = 0.49,
 			},
 			y = {
@@ -99,6 +99,7 @@ local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
+local ShareStats = VFS.Include("modules/sharing/economy/share_stats.lua")
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
 local GetLocalTeamID		= Spring.GetLocalTeamID
@@ -224,8 +225,8 @@ function widget:ViewResize()
 	vsx,vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	for _, data in pairs(headerRemap) do
 		maxColumnTextSize = max(font:GetTextWidth(data[2]), max(font:GetTextWidth(data[1]), maxColumnTextSize))
 	end
@@ -278,8 +279,8 @@ function widget:Initialize()
 		widget:GameFrame(GetGameFrame(),true)
 	end
 
-	WG['teamstats'] = {}
-	WG['teamstats'].toggle = function(state)
+	WG.teamstats = {}
+	WG.teamstats.toggle = function(state)
 		if state ~= nil then
 			guiData.mainPanel.visible = state
 		else
@@ -289,7 +290,7 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(),true)
 		end
 	end
-	WG['teamstats'].isvisible = function()
+	WG.teamstats.isvisible = function()
 		return guiData.mainPanel.visible
 	end
 end
@@ -297,8 +298,8 @@ end
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('teamstats_window')
+	if WG.guishader then
+		WG.guishader.RemoveDlist('teamstats_window')
 	end
 	if backgroundGuishader ~= nil then
 		glDeleteList(backgroundGuishader)
@@ -366,6 +367,13 @@ function widget:GameFrame(n,forceupdate)
 					history = history[#history]
 					history.resourcesProduced = history.metalProduced + history.energyProduced/60
 					history.resourcesUsed = history.metalUsed + history.energyUsed/60
+					-- sent/received are Lua-owned now; fall back to engine history when no Lua stats published
+					local mShare = ShareStats.Read(Spring, teamID, "metal")
+					local eShare = ShareStats.Read(Spring, teamID, "energy")
+					history.metalSent = mShare.sent or history.metalSent
+					history.energySent = eShare.sent or history.energySent
+					history.metalReceived = mShare.received or history.metalReceived
+					history.energyReceived = eShare.received or history.energyReceived
 					history.resourcesExcess = history.metalExcess + history.energyExcess/60
 					history.resourcesSent = history.metalSent + history.energySent/60
 					history.resourcesReceived = history.metalReceived + history.energyReceived/60
@@ -574,17 +582,17 @@ local function DrawBackground()
 		return
 	end
 
-	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
+	gl.Color(0,0,0,WG.guishader and 0.8 or 0.85)
 	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
-	if WG['guishader'] then
+	if WG.guishader then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList( function()
 			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, elementCorner)
 		end)
-		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
+		WG.guishader.InsertDlist(backgroundGuishader,'teamstats_window')
 	end
 
 	if backgroundDisplayList then
@@ -603,8 +611,8 @@ end
 
 function widget:DrawScreen()
 	if not guiData.mainPanel.visible then
-		if WG['guishader'] then
-			WG['guishader'].RemoveDlist('teamstats_window')
+		if WG.guishader then
+			WG.guishader.RemoveDlist('teamstats_window')
 		end
 		return
 	end

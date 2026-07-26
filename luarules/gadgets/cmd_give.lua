@@ -22,7 +22,7 @@ local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 local isSilentUnitGift = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.modCategories['object'] or def.customParams.objectify then
+	if def.modCategories.object or def.customParams.objectify then
 		isSilentUnitGift[udefID] = true
 	end
 end
@@ -55,7 +55,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- give resources
 		if unitName == "metal" or unitName == "energy" then
 			-- Give resources instead of units
-			Spring.AddTeamResource(teamID, unitName, amount)
+			GG.AddTeamResource(teamID, unitName, amount)
 			Spring.SendMessageToTeam(teamID, "You have been given: "..amount.." "..unitName)
 			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..amount.." "..unitName)
 			return
@@ -118,7 +118,7 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local acID = Spring.Utilities.GetAccountID(myPlayerID)
@@ -152,4 +152,3 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction(cmdname)
 	end
 end
-
