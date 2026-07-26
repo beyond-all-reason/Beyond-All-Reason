@@ -152,6 +152,14 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.gadgets, vfsMode)
 end
 
+---The presets a module ships, one file each under modes/; the modes module
+---aggregates them into the game's options.
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ModeDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.modes, vfsMode)
+end
+
 ---@param filePath string
 ---@return string
 local function nameFromFile(filePath)
