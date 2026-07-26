@@ -75,7 +75,17 @@
       "SFX",
       "unitID",
       "MultiMove",
-      "MultiTurn"
+      "MultiTurn",
+      "Policies",
+      "Actions",
+      "describe",
+      "it",
+      "before_each",
+      "after_each",
+      "setup",
+      "teardown",
+      "spy",
+      "stub"
     ]
   },
   "runtime": {
