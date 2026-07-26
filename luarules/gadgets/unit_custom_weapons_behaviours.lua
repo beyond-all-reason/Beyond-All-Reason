@@ -88,16 +88,14 @@ local function parseCustomParams(weaponDef)
 
 	if weaponCustomParamKeys[effectName] then
 		for key, conversion in pairs(weaponCustomParamKeys[effectName]) do
-			if weaponDef.customParams[key] then
-				local value = conversion(weaponDef.customParams[key])
-				if value ~= nil then
-					effectParams[key] = value
-				else
-					local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
+			local value = conversion(weaponDef.customParams[key])
+			if value ~= nil then
+				effectParams[key] = value
+			else
+				local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
 
-					success = false
-				end
+				success = false
 			end
 		end
 	end
