@@ -98,12 +98,12 @@ local function parseCustomParams(weaponDef)
 				success = false
 			end
 		end
-	end
 
-	-- Modders/tweakdefs are likely to use these values for a while:
-	if weaponDef.customParams.def or weaponDef.customParams.when then
-		local message = weaponDef.name .. " uses old customparams (def/when)"
-		Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		-- Modders/tweakdefs are likely to use these values for a while:
+		if weaponDef.customParams.def or weaponDef.customParams.when then
+			local message = weaponDef.name .. " uses old customparams (def/when)"
+			Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		end
 	end
 
 	if success then
