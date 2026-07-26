@@ -405,7 +405,7 @@ local actions = {
 	},
 
 	actionReferencingSpawnedUnitName = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'spawnedCom',
 		},
@@ -450,7 +450,7 @@ local actions = {
 
 	-- This valid action references a unitName that only exists in UnitLoadout;
 	actionReferencingLoadoutUnitName = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'loadoutCom',
 		},
