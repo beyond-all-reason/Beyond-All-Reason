@@ -43,3 +43,25 @@
 ---@field name string
 ---@field category string|nil Defaults to the policies/<category>.lua filename
 ---@field evaluate function fun(...): result|nil
+
+--- Mode presets (surrogate modes): modules/<name>/modes/<key>.lua returns a
+--- ModeConfig built by modules/mode_builder.lua over the module's vocabulary;
+--- ModuleHandler.ModeDirs aggregates the preset dirs.
+---@class ModOptionConfig
+---@field value any
+---@field locked boolean
+---@field ui string|nil UI hints (e.g., "hidden")
+
+--- A policy reference in a mode's bundle: the policy identity, or a table
+--- with the identity at [1] plus its params (locked, ui, dials, ...).
+---@alias ModePolicyRef string|table
+
+---@class ModeConfig
+---@field key string Unique identifier for this mode
+---@field category string Mode category (e.g., "sharing")
+---@field name string Display name
+---@field desc string Description
+---@field allowRanked boolean Whether this mode is allowed in ranked games
+---@field retainValues boolean|nil Non-sticky: keep current modoption values instead of resetting to this preset
+---@field policies ModePolicyRef[]|nil Named policy bundle this mode activates; modOptions is its serialization
+---@field modOptions table<string, ModOptionConfig> Map of mod option keys to their configurations
