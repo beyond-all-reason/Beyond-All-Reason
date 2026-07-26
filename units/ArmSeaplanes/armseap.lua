@@ -95,7 +95,7 @@ return {
 				customparams = {
 					noattackrangearc = 1,
 					speceffect = "torpwaterpen",
-					tracking_turn_radius = 650,
+					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 342,
