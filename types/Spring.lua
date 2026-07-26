@@ -65,3 +65,10 @@
 ---@class ObjectRenderingTable
 ---@field ActivateMaterial fun(objectID: integer, lod: integer)
 ---@field DeactivateMaterial fun(objectID: integer, lod: integer)
+
+--- The submodule declares Spring as a GLOBAL, not a named type, so this alias is what makes
+--- `engine: Spring` annotations resolve; `table` keeps mock injection free of false mismatches.
+---@alias Spring table
+
+--- gadget:ResourceExcess payload comes from RecoilEngine PR #2642 (still open); overflow already deducted this frame.
+---@alias ResourceExcesses table<integer, { [1]: number, [2]: number }>
