@@ -298,7 +298,7 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nonukes or modOptions.unit_restrictions_noantinuke then
-		if next(weapondefs) then
+		if next(weapondefs) and not (customparams.restrictions_exclusion or ""):find("_noantinuke_") then
 			local numWeapons = 0
 			local newWdefs = {}
 			local hasAnti = false
