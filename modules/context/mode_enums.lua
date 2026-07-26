@@ -60,6 +60,7 @@ M.ModeCategories = {
 }
 
 M.Modes = {
+	Standard = "standard",
 	Disabled = "disabled",
 	Enabled = "enabled",
 	EasyTax = "easy_tax",
