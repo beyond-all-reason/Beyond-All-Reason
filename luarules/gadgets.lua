@@ -510,6 +510,21 @@ function gadgetHandler:Initialize()
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
 
+	-- Encapsulated modules ship their own gadgets (modules/<name>/gadgets/).
+	-- Game-side shim until the engine loads module subdirectories natively.
+	if Script.GetName():gsub("US$", "") == "LuaRules" then
+		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+		-- A reload is the one moment a module's shape may have changed under
+		-- us: manifests, apis, actions and policies are all memoised, and a
+		-- file added since the last load is invisible until they are dropped.
+		ModuleHandler.ResetCaches()
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
+
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
