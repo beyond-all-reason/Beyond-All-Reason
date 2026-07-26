@@ -65,3 +65,7 @@
 ---@class ObjectRenderingTable
 ---@field ActivateMaterial fun(objectID: ObjectID, lod: integer)
 ---@field DeactivateMaterial fun(objectID: ObjectID, lod: integer)
+
+---@alias Spring table
+
+---@alias ResourceExcesses table<integer, { [1]: number, [2]: number }>
