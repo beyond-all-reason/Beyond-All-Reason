@@ -66,3 +66,14 @@
 ---@field ActivateMaterial fun(objectID: integer, lod: integer)
 ---@field DeactivateMaterial fun(objectID: integer, lod: integer)
 
+
+--- The engine surface as an injected dependency: modules that take the
+--- engine as a parameter (context factories, policy pipelines, spec mocks)
+--- annotate it as `Spring`. The submodule declares the GLOBAL, not a named
+--- type, so this alias is what makes the annotation resolve; `table` keeps
+--- mock injection free of false mismatches.
+---@alias Spring table
+
+--- gadget:ResourceExcess payload (RecoilEngine PR #2642): per team, the
+--- overflow the engine already deducted this frame — [1] metal, [2] energy.
+---@alias ResourceExcesses table<integer, { [1]: number, [2]: number }>
