@@ -348,7 +348,7 @@
 				"pressKey": "press a key or mouse button...",
 				"customOnly": "Switch the preset to Custom to edit keybinds",
 				"reset": "Reset to...",
-				"anyMod": "Any",
+				"anyMod": "Ignore Modifiers",
 				"accept": "Accept",
 				"cancel": "Cancel"
 			},

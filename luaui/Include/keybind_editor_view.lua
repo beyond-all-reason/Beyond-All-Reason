@@ -567,6 +567,12 @@ local function startCapture(action, label, oldRaw)
 end
 
 local function modPrefix()
+	-- "Ignore Modifiers" drops held modifiers outright, so a capture can only ever
+	-- produce Any+<key>, never a contradictory Any+Shift+<key>.
+	if captureAny then
+		return ""
+	end
+
 	local alt, ctrl, _, shift = spGetModKeyState()
 	local prefix = ""
 	if alt then prefix = prefix .. "Alt+" end
