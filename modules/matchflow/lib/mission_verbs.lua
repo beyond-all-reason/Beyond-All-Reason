@@ -1,0 +1,49 @@
+
+local MatchFlowVerbs = {}
+
+---@param matchflowApi table the matchflow module api (ModuleHandler.Get)
+---@return MatchFlowActions
+function MatchFlowVerbs.Make(matchflowApi)
+	return {
+		---Empty inputs: evaluated once when the trigger arms, and arming IS the
+		---mission starting.
+		---@return MissionCondition
+		Started = function()
+			return {
+				inputs = {},
+				---@param ctx MissionContext
+				evaluate = function(ctx)
+					return ctx.frame > 0
+				end,
+			}
+		end,
+		---@param team MissionTeam
+		---@return MissionEffect
+		Victory = function(team)
+			assert(
+				type(team) == "table" and type(team.allyTeam) == "number",
+				"MatchFlow.Victory expects a Team handle (e.g. Team.Player)"
+			)
+			return {
+				execute = function()
+					matchflowApi.Victory(team.allyTeam)
+				end,
+			}
+		end,
+		---@param team MissionTeam
+		---@return MissionEffect
+		Defeat = function(team)
+			assert(
+				type(team) == "table" and type(team.allyTeam) == "number",
+				"MatchFlow.Defeat expects a Team handle (e.g. Team.Player)"
+			)
+			return {
+				execute = function()
+					matchflowApi.Defeat({ team.allyTeam })
+				end,
+			}
+		end,
+	}
+end
+
+return MatchFlowVerbs
