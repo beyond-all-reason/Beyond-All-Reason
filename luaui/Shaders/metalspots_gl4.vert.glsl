@@ -81,6 +81,9 @@ void main()
 	);
 	circlealpha = clamp(circlealpha, 0.0, 0.5);
 	v_targetcolor = vec4(vec3(1),circlealpha);
+	// NOTOCCUPIED also says who a free spot is open to, when the widget asks: 2 is open to me, 3 is closed to me
+	if (visibility.x > 2.5) v_targetcolor.rgb = vec3(1.0, 0.25, 0.25);
+	else if (visibility.x > 1.5) v_targetcolor.rgb = vec3(0.3, 1.0, 0.3);
 	
 	v_uvcoords = vec4(-1);
 	
