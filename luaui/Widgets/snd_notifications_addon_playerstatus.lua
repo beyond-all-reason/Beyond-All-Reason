@@ -9,6 +9,9 @@ function widget:GetInfo()
     }
 end
 
+if Spring.Utilities.Gametype.IsSinglePlayer() then
+    return
+end
 
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
