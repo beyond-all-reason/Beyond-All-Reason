@@ -134,7 +134,6 @@ function gadget:Initialize()
 	callins                 = GG['MissionAPI'].TriggerDefinitions.Callins
 	triggers                = GG['MissionAPI'].Triggers
 	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
-	trackedUnitIDs          = GG['MissionAPI'].trackedUnitIDs
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
 
@@ -157,6 +156,30 @@ function gadget:Initialize()
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
+
+	-- AllowFeatureBuildStep / AllowUnitBuildStep fire on every builder's build or
+	-- reclaim step (among the hottest call-ins in the game), so only stay subscribed
+	-- to them when the loaded mission actually needs the reclaim bookkeeping they do:
+	--   * AllowUnitBuildStep accumulates unit reclaim income -> only ResourceIncome.
+	--   * AllowFeatureBuildStep accumulates feature reclaim income (ResourceIncome)
+	--     AND marks reclaimedFeatures, which FeatureReclaimed needs to fire and
+	--     FeatureDestroyed needs to suppress reclaims (avoid firing "destroyed").
+	local needsReclaimIncome = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ResourceIncome
+	end)
+
+	if not needsReclaimIncome then
+		gadgetHandler:RemoveCallIn('AllowUnitBuildStep')
+	end
+
+	local needsReclaimTracking = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.FeatureReclaimed
+			or trigger.type == triggerTypes.FeatureDestroyed
+	end)
+
+	if not needsReclaimIncome and not needsReclaimTracking then
+		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
+	end
 end
 
 function gadget:GameFrame(frameNumber)
@@ -247,13 +270,13 @@ function gadget:TeamDied(teamID)
 end
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, buildStep)
+	-- Negative buildStep means reclaim
 	if buildStep < 0 then
 		local featureDef = FeatureDefs[featureDefID]
 		if not featureDef then
 			return true
 		end
 
-		-- Negative buildStep means reclaim
 		reclaimedFeatures[featureID] = builderTeamID
 
 		-- Accumulate reclaim incomes - buildStep is fraction of feature's total reclaim
