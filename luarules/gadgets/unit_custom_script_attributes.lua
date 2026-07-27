@@ -7,12 +7,12 @@ end
 function gadget:GetInfo()
 	return {
 		name    = "Unit Script Attributes",
-		desc    = "Sends customparam values to scripts at unit creation",
+		desc    = "Sends customparam values to COB scripts at unit creation",
 		author  = "efrec",
 		version = "1.0",
 		date    = "2026-06",
 		license = "GNU GPL, v2 or later",
-		layer   = 1, -- after unit_script.lua
+		layer   = -1, -- try to complete init/creation early
 		enabled = true,
 	}
 end
@@ -76,18 +76,13 @@ local weaponAttributeDefinitions = {
 
 -- Initialization and setup
 
+local function usesCobUnitScript(unitDef)
+	return (unitDef.script or ""):find(".cob$") ~= nil
+end
+
 local spCallCobScript = Spring.CallCOBScript
-local callLUS = Spring.UnitScript.CallAsUnit
 local callCOB = function(unitID, funcName, ...)
 	spCallCobScript(unitID, funcName, 0, ...) -- Adaptor for COB to add the return count.
-end
-local function getUnitScriptCall(unitID)
-	local lusEnv = Spring.UnitScript.GetScriptEnv(unitID)
-	return lusEnv
-		and function(unitID, funcName, ...)
-			callLUS(unitID, lusEnv[funcName], ...) -- Hold `env` in a temporary closure.
-		end
-		or callCOB
 end
 
 local function hasAttribute(def, attribute)
@@ -130,11 +125,13 @@ end
 local unitScriptAttributes = {}
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	local attributes = {}
-	getUnitAttributes(unitDef.customParams, attributes)
-	getWeaponAttributes(unitDef.weapons, attributes)
-	if next(attributes) then
-		unitScriptAttributes[unitDefID] = attributes
+	if usesCobUnitScript(unitDef) then
+		local attributes = {}
+		getUnitAttributes(unitDef.customParams, attributes)
+		getWeaponAttributes(unitDef.weapons, attributes)
+		if next(attributes) then
+			unitScriptAttributes[unitDefID] = attributes
+		end
 	end
 end
 
@@ -143,12 +140,11 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local attributes = unitScriptAttributes[unitDefID]
 	if attributes then
-		local call = getUnitScriptCall(unitID)
 		for methodName, arguments in pairs(attributes) do
 			if type(arguments) == "table" then
-				call(unitID, methodName, unpack(arguments))
+				callCOB(unitID, methodName, unpack(arguments))
 			else
-				call(unitID, methodName, arguments)
+				callCOB(unitID, methodName, arguments)
 			end
 		end
 	end
