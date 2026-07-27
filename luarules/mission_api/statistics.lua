@@ -33,12 +33,14 @@ local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames,
 
 		statisticsTriggerCounts[triggerID] = (statisticsTriggerCounts[triggerID] or 0) + direction
 
-		-- Repeat at quantity, 2*quantity, 3*quantity, ... (only when incrementing)
-		-- quantity = 0 is a special case: fire once when the count reaches 0.
+		-- quantity > 0: fire each time the count crosses a milestone (quantity, 2*quantity, ...), and only when incrementing.
+		-- quantity == 0 is a special case: fire only when count reaches 0
 		local quantity = trigger.parameters.quantity
-		local nextThreshold = quantity > 0 and (trigger.repeatCount + 1) * quantity or 0
-		if direction > 0 and statisticsTriggerCounts[triggerID] >= nextThreshold then
-			activateTrigger(trigger)
+		if quantity > 0 and direction > 0 then
+			local nextThreshold = (trigger.repeatCount + 1) * quantity
+			if statisticsTriggerCounts[triggerID] >= nextThreshold then
+				activateTrigger(trigger)
+			end
 		elseif quantity == 0 and statisticsTriggerCounts[triggerID] == 0 then
 			activateTrigger(trigger)
 		end
