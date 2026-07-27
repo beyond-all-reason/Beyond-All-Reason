@@ -20,7 +20,7 @@ describe("mission DSL", function()
 
 	it("builds a descriptor from a terminator-free chain at Finalize", function()
 		When(alwaysTrue).Do(anEffect)
-		assert.are.equal(0, #registered) -- nothing arms before the commit point
+		assert.are.equal(0, #registered)
 		Finalize()
 
 		assert.are.equal(1, #registered)
@@ -57,11 +57,11 @@ describe("mission DSL", function()
 
 	it("a statement without a Do fails the load, naming the statement", function()
 		When(alwaysTrue).Do(anEffect)
-		When(alwaysTrue) -- half-finished
+		When(alwaysTrue)
 		assert.has_error(function()
 			Finalize()
 		end)
-		assert.are.equal(0, #registered) -- the failed load arms nothing
+		assert.are.equal(0, #registered)
 	end)
 
 	it("rejects a bare function in Do (closure-free surface)", function()
@@ -180,5 +180,56 @@ describe("mission verbs", function()
 		local team = Verbs.MakeTeam(2, 1)
 		assert.are.equal(2, team.teamID)
 		assert.are.equal(1, team.allyTeam)
+	end)
+end)
+
+describe("unit noun", function()
+	local Unit = Verbs.MakeUnit({ hub = true, device = true })
+
+	---@return MissionContext
+	local function makeCtx(dead, spotted)
+		return {
+			frame = 0,
+			IsUnitDestroyed = function(name)
+				return dead[name] == true
+			end,
+			IsUnitSpotted = function(name, allyTeamID)
+				return spotted[name .. "_" .. allyTeamID] == true
+			end,
+		}
+	end
+
+	it("IsDestroyed reads the latch through ctx and declares its input", function()
+		local condition = Unit("hub").IsDestroyed()
+		assert.are.same({ "UnitDestroyed" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({ hub = true }, {})))
+	end)
+
+	it("IsSpotted is per-allyteam and declares its input", function()
+		local team = Verbs.MakeTeam(0, 1)
+		local condition = Unit("device").IsSpotted(team)
+		assert.are.same({ "UnitEnteredLos" }, condition.inputs)
+		assert.is_false(condition.evaluate(makeCtx({}, {})))
+		assert.is_true(condition.evaluate(makeCtx({}, { device_1 = true })))
+		assert.is_false(condition.evaluate(makeCtx({}, { device_2 = true })))
+	end)
+
+	it("a name the roster never declared is a load error, not a dead condition", function()
+		local ok, err = pcall(Unit, "hubb")
+		assert.is_false(ok)
+		assert.is_truthy(tostring(err):find("hubb", 1, true))
+	end)
+
+	it("IsSpotted rejects a non-Team argument", function()
+		assert.has_error(function()
+			Unit("device").IsSpotted("player")
+		end)
+	end)
+
+	it("Unit rejects a non-string name", function()
+		assert.has_error(function()
+			Unit(7)
+		end)
 	end)
 end)
