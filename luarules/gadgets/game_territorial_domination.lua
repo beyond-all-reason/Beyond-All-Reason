@@ -124,7 +124,7 @@ for defID, def in pairs(UnitDefs) do
 		if def.speed == 0 then
 			defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
 		end
-		if def.customParams and def.customParams.objectify then
+		if def.customParams and (def.customParams.objectify or def.customParams.cannot_capture_territory) then
 			defData.power = nil
 		end
 	end

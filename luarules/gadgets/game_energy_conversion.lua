@@ -52,9 +52,13 @@ local teamList = {}
 local teamCapacities = {}
 local teamMMList = {}
 local teamEfficiencies = {}
+local teamMMLevels = {}
+local teamTotalCapacities = {}
+local teamUsages = {}
+local teamAverageEfficiencies = {}
 local eSteps = {}
+local eStepsCount = 0
 local teamActiveMM = {}
-local splitMMPointer = 1
 
 local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop rate per slowupdate
 
@@ -63,7 +67,6 @@ local paralysisRelRate = 75 -- unit HP / paralysisRelRate = paralysis dmg drop r
 ----------------------------------------------------------------
 
 local spGetPlayerInfo = Spring.GetPlayerInfo
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitHealth = Spring.GetUnitHealth
@@ -79,28 +82,19 @@ local tableSort = table.sort
 -- Functions
 ----------------------------------------------------------------
 
-local function prototype(t)
-	local u = { }
-	for k, v in pairs(t) do
-		u[k] = v
-	end
-	return setmetatable(u, getmetatable(t))
-end
-
 local function AdjustTeamCapacity(teamID, adjustment, e)
 	local teamCaps = teamCapacities[teamID]
-	local newCapacity = teamCaps[e] + adjustment
-	teamCaps[e] = newCapacity
-
-	local totalCapacity = 0
-	local eStepsCount = #eSteps
-	for j = 1, eStepsCount do
-		totalCapacity = totalCapacity + teamCaps[eSteps[j]]
-	end
+	teamCaps[e] = teamCaps[e] + adjustment
+	local totalCapacity = teamTotalCapacities[teamID] + adjustment
+	teamTotalCapacities[teamID] = totalCapacity
 	spSetTeamRulesParam(teamID, mmCapacityParamName, totalCapacity)
 end
 
-local function updateUnitConversion(unitID, amount, e)
+local function updateUnitConversion(unitID, unitData, amount, e)
+	if unitData.energyUse == amount then
+		return
+	end
+	unitData.energyUse = amount
 	spSetUnitResourcing(unitID, "umm", amount * e)
 	spSetUnitResourcing(unitID, "uue", amount)
 end
@@ -114,7 +108,6 @@ local function UpdateMetalMakers(teamID, energyUse)
 	end
 
 	local teamMM = teamMMList[teamID]
-	local eStepsCount = #eSteps
 	for j = 1, eStepsCount do
 		local eStep = eSteps[j]
 		local teamMMUnits = teamMM[eStep]
@@ -127,7 +120,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 						amount = 0
 					end
 					energyUse = energyUse - cap
-					updateUnitConversion(unitID, amount, eStep)
+					updateUnitConversion(unitID, defs, amount, eStep)
 
 					if defs.status == 0 then
 						spCallCOBScript(unitID, "MMStatus", 0, 1)
@@ -136,7 +129,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 					end
 				else
 					if defs.status == 1 then
-						updateUnitConversion(unitID, 0, 0)
+						updateUnitConversion(unitID, defs, 0, 0)
 						spCallCOBScript(unitID, "MMStatus", 0, 0)
 						defs.status = 0
 						activeCount = activeCount - 1
@@ -189,60 +182,67 @@ function EmpedVector:push(uID, frameID)
 end
 
 function EmpedVector:process(currentFrame)
-	local toRemove
-	local removeCount = 0
 	for uID, frameID in pairs(self.unitBuffer) do
 		if currentFrame >= frameID then
 			UnitParalysisOver(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
-			if not toRemove then toRemove = {} end
-			removeCount = removeCount + 1
-			toRemove[removeCount] = uID
+			self.unitBuffer[uID] = nil
 		end
-	end
-	for i = 1, removeCount do
-		self.unitBuffer[toRemove[i]] = nil
 	end
 end
 
 ----------------------------------------------------------------
 -- Efficiencies Methods
 ----------------------------------------------------------------
-local Efficiencies = { size = 4, buffer = {}, pointer = 0, tID = -1 }
+local efficiencySampleCount = 4
 
-function Efficiencies:avg()
-	local sumE = 0
-	local sumM = 0
-	local nonZeroCount = 0
-	for j = 1, self.size do
-		if not (self.buffer[j] == nil) then
-			sumM = sumM + self.buffer[j].m
-			sumE = sumE + self.buffer[j].e
-			nonZeroCount = nonZeroCount + 1
-		end
+local function NewEfficiencyTracker()
+	return { pointer = 0, activeSamples = 0, sumM = 0, sumE = 0 }
+end
+
+local function PushEfficiency(tracker, metal, energy)
+	local sampleIndex = tracker.pointer + 1
+	local metalIndex = sampleIndex * 2 - 1
+	local energyIndex = metalIndex + 1
+	local oldEnergy = tracker[energyIndex] or 0
+	local activeSamples = tracker.activeSamples
+	if oldEnergy > 0 then
+		activeSamples = activeSamples - 1
 	end
-	if nonZeroCount > 0 and sumE > 0 then
+	if energy > 0 then
+		activeSamples = activeSamples + 1
+	end
+	local sumM = tracker.sumM - (tracker[metalIndex] or 0) + metal
+	local sumE = tracker.sumE - oldEnergy + energy
+	if activeSamples == 0 then
+		sumM = 0
+		sumE = 0
+	end
+
+	tracker[metalIndex] = metal
+	tracker[energyIndex] = energy
+	tracker.activeSamples = activeSamples
+	tracker.sumM = sumM
+	tracker.sumE = sumE
+	tracker.pointer = sampleIndex % efficiencySampleCount
+
+	if sumE > 0 then
 		return sumM / sumE
 	end
 	return 0
 end
 
-function Efficiencies:push(o)
-	local idx = self.pointer + 1
-	local entry = self.buffer[idx]
-	if entry then
-		entry.m = o.m
-		entry.e = o.e
-	else
-		self.buffer[idx] = o
+local function BuildESteps()
+	local seenEfficiencies = {}
+	for _, defs in pairs(convertCapacities) do
+		if not seenEfficiencies[defs.e] then
+			seenEfficiencies[defs.e] = true
+			eSteps[#eSteps + 1] = defs.e
+		end
 	end
-	self.pointer = idx % self.size
-end
-
-function Efficiencies:init(tID)
-	for j = 1, self.size do
-		self.buffer[j] = nil
-	end
-	self.tID = tID
+	tableSort(eSteps, function(m1, m2)
+		return m1 > m2
+	end)
+	eStepsCount = #eSteps
 end
 
 ----------------------------------------------------------------
@@ -250,15 +250,17 @@ end
 ----------------------------------------------------------------
 function gadget:Initialize()
 	SetMMRulesParams()
-	BuildeSteps()
+	BuildESteps()
 	teamList = spGetTeamList()
 	local teamListCount = #teamList
-	local eStepsCount = #eSteps
 	for i = 1, teamListCount do
 		local tID = teamList[i]
 		teamCapacities[tID] = {}
-		teamEfficiencies[tID] = prototype(Efficiencies)
-		teamEfficiencies[tID]:init(tID)
+		teamEfficiencies[tID] = NewEfficiencyTracker()
+		teamMMLevels[tID] = 0.75
+		teamTotalCapacities[tID] = 0
+		teamUsages[tID] = 0
+		teamAverageEfficiencies[tID] = 0
 		teamMMList[tID] = {}
 		teamActiveMM[tID] = 0
 		for j = 1, eStepsCount do
@@ -268,94 +270,68 @@ function gadget:Initialize()
 		spSetTeamRulesParam(tID, mmLevelParamName, 0.75)
 		spSetTeamRulesParam(tID, mmCapacityParamName, 0)
 		spSetTeamRulesParam(tID, mmUseParamName, 0)
-		spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
+		spSetTeamRulesParam(tID, mmAvgEffiParamName, 0)
 
 	end
-end
-
-function BuildeSteps()
-	local i = 1
-	for defid, defs in pairs(convertCapacities) do
-		local inTable = false
-		for j = 1, #eSteps do
-			if eSteps[j] == defs.e then
-				inTable = true
-			end
-		end
-		if inTable == false then
-			eSteps[i] = defs.e
-			i = i + 1
-		end
-	end
-	tableSort(eSteps, function(m1, m2)
-		return m1 > m2;
-	end)
 end
 
 function gadget:GameFrame(n)
-
+	local frameOffset = n % resourceRefreshRate
 	-- process emped in the least likely used frame by the actual per team maker computations
-	if n % resourceRefreshRate == resourceRefreshRate - 1 then
+	if frameOffset == resourceRefreshRate - 1 then
 		currentFrameStamp = currentFrameStamp + 1
 		EmpedVector:process(currentFrameStamp)
 	end
 
 	-- process a team in each gameframe so that all teams are process exactly once in every 15 gameframes
 	-- in case of more than 15 teams ingame, two or more teams are processed in one gameframe
+	local teamListCount = #teamList
+	for tpos = frameOffset + 1, teamListCount, resourceRefreshRate do
+		local tID = teamList[tpos]
+		local efficiencyTracker = teamEfficiencies[tID]
+		if teamTotalCapacities[tID] ~= 0 or teamActiveMM[tID] ~= 0 or efficiencyTracker.activeSamples ~= 0 then
+			local eCur, eStor = spGetTeamResources(tID, 'energy')
+			local mmLevel = teamMMLevels[tID]
+			local convertAmount = eCur - eStor * mmLevel
+			local eConverted, mConverted = 0, 0
 
-	if n % resourceRefreshRate == (splitMMPointer - 1) then
-		local teamListCount = #teamList
-		local ceilTeams = mathCeil(teamListCount / resourceRefreshRate)
-		local eStepsCount = #eSteps
-		for i = 0, ceilTeams - 1 do
-			local tID
-			local tpos = (splitMMPointer + (i * resourceRefreshRate))
-			if tpos <= teamListCount then
-				tID = teamList[tpos]
-
-				local eCur, eStor = spGetTeamResources(tID, 'energy')
-				local mmLevel = spGetTeamRulesParam(tID, mmLevelParamName)
-				local convertAmount = eCur - eStor * mmLevel
-				local eConverted, mConverted, teamUsages = 0, 0, 0
-
-				local teamCaps = teamCapacities[tID]
-				for j = 1, eStepsCount do
-					local eStep = eSteps[j]
-					local teamCapacity = teamCaps[eStep]
-					if teamCapacity > 1 then
-						if convertAmount > 1 then
-							local convertStep = teamCapacity * resourceFraction
-							if convertStep > convertAmount then
-								convertStep = convertAmount
-							end
-							eConverted = convertStep + eConverted
-							mConverted = convertStep * eStep + mConverted
-							teamUsages = teamUsages + convertStep
-							convertAmount = convertAmount - convertStep
-						else
-							break
-						end
+			local teamCaps = teamCapacities[tID]
+			for j = 1, eStepsCount do
+				local eStep = eSteps[j]
+				local teamCapacity = teamCaps[eStep]
+				if teamCapacity > 1 then
+					if convertAmount > 1 then
+						local convertStep = teamCapacity * resourceFraction
+						if convertStep > convertAmount then
+							convertStep = convertAmount
 					end
+						eConverted = convertStep + eConverted
+						mConverted = convertStep * eStep + mConverted
+						convertAmount = convertAmount - convertStep
+					else
+						break
 				end
-
-				teamEfficiencies[tID]:push({ m = mConverted, e = eConverted })
-				local tUsage = resourceUpdatesPerGameSec * teamUsages
-				UpdateMetalMakers(tID, tUsage)
-				spSetTeamRulesParam(tID, mmUseParamName, tUsage)
-				spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
+				end
 			end
-		end
-		if splitMMPointer == resourceRefreshRate then
-			splitMMPointer = 1
-		else
-			splitMMPointer = splitMMPointer + 1
+
+			local avgEfficiency = PushEfficiency(efficiencyTracker, mConverted, eConverted)
+			local tUsage = resourceUpdatesPerGameSec * eConverted
+			UpdateMetalMakers(tID, tUsage)
+			if teamUsages[tID] ~= tUsage then
+				teamUsages[tID] = tUsage
+				spSetTeamRulesParam(tID, mmUseParamName, tUsage)
+			end
+			if teamAverageEfficiencies[tID] ~= avgEfficiency then
+				teamAverageEfficiencies[tID] = avgEfficiency
+				spSetTeamRulesParam(tID, mmAvgEffiParamName, avgEfficiency)
+			end
 		end
 	end
 end
 
 function gadget:UnitCreated(uID, uDefID, uTeam, builderID)
 	if convertCapacities[uDefID] then
-		teamMMList[uTeam][convertCapacities[uDefID].e][uID] = { capacity = 0, status = 0, built = false, emped = false }
+		teamMMList[uTeam][convertCapacities[uDefID].e][uID] = { capacity = 0, status = 0, built = false, emped = false, energyUse = false }
 	end
 end
 
@@ -367,7 +343,7 @@ function gadget:UnitFinished(uID, uDefID, uTeam)
 
 	local teamMM = teamMMList[uTeam][cDefs.e]
 	if not teamMM[uID] then
-		teamMM[uID] = { capacity = 0, status = 0, built = false, emped = false }
+		teamMM[uID] = { capacity = 0, status = 0, built = false, emped = false, energyUse = false }
 	end
 
 	local unitData = teamMM[uID]
@@ -443,7 +419,8 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 		capacity = oldUnitData.capacity,
 		status = oldUnitData.status,
 		emped = oldUnitData.emped,
-		built = oldUnitData.built
+		built = oldUnitData.built,
+		energyUse = false,
 	}
 
 	oldTeamMM[uID] = nil
@@ -455,7 +432,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if newLevel and newLevel >= 0 and newLevel <= 100 then
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)
 		if playerTeam and not playerIsSpec then -- NB: playerTeam is nil for replay-watching specs
-			spSetTeamRulesParam(playerTeam, mmLevelParamName, newLevel / 100)
+			local mmLevel = newLevel / 100
+			if teamMMLevels[playerTeam] ~= mmLevel then
+				teamMMLevels[playerTeam] = mmLevel
+				spSetTeamRulesParam(playerTeam, mmLevelParamName, mmLevel)
+			end
 			return true
 		end
 	end

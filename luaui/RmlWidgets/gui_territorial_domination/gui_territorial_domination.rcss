@@ -20,9 +20,8 @@ body {
 	padding: 6dp 12dp;
 	decorator: image("/luaui/images/stripes-small.png" repeat);
 	image-color: rgba(40, 40, 40, 109);
-	left: 87.25vw;
-	top: 100vh;
-	transform: translate(-100%, -100%);
+	left: 0;
+	top: 0;
 	gap: 6dp;
 }
 
@@ -47,6 +46,7 @@ body {
 	position: relative;
 	z-index: 2;
 	background-color: transparent;
+	cursor: move;
 }
 
 .scorepanel-top-header-row {

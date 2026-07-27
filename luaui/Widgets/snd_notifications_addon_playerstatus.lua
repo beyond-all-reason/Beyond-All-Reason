@@ -70,7 +70,7 @@ function widget:Update(dt)
 		end
         for playerName, data in pairs(PlayersInformationMemory) do
             local ping = select(6, spGetPlayerInfo(data.id))
-            if ping and ping > 5 and not PlayersInformationMemory[playerName].timingout then
+            if ping and (ping > 5 or ping == 0) and not PlayersInformationMemory[playerName].timingout then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
                     if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerLagging", true)
@@ -81,7 +81,7 @@ function widget:Update(dt)
                     end
                 end
                 PlayersInformationMemory[playerName].timingout = true
-            elseif ping and ping <= 2 and PlayersInformationMemory[playerName].timingout and (not PlayersInformationMemory[playerName].hasDisconnected) then
+            elseif ping and ping <= 2 and ping > 0 and PlayersInformationMemory[playerName].timingout and (not PlayersInformationMemory[playerName].hasDisconnected) then
                 if (not PlayersInformationMemory[playerName].spectator) and (not PlayersInformationMemory[playerName].resigned) then
                     if (spGetSpectatingState() and lockPlayerID == nil) or PlayersInformationMemory[playerName].teamID == spGetLocalTeamID() then
                         WG['notifications'].queueNotification("NeutralPlayerCaughtUp", true)

@@ -202,7 +202,7 @@ local DEFAULT_DOCK_CHECK_FREQUENCY = 15		-- Checks the docking queue. Increasing
 		-- Land carriers struggling with the attack formations
 		-- Drones occationally stuck hovering near the carrier instead of following the active command
 
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.carried_unit then
 

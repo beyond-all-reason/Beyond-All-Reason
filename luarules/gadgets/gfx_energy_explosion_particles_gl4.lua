@@ -1275,6 +1275,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
 	if nanoParticleMode == 0 then return end
+	if Spring.GetUnitRulesParam(unitID, "remove_decorations") == 1 then return end
 	-- Skip units that were still under construction when they died.
 	local wasFinished = finishedUnits[unitID]
 	finishedUnits[unitID] = nil

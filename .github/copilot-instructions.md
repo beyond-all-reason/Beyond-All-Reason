@@ -96,6 +96,7 @@ Avoid:
 
 ## RmlUi interface framework
 
-- When working with the RmlUi interface framework, follow the RmlUi syntax and semantics, but always optimize for performance, meaning avoid unnecessary DOM updates, reflows, and excessive event handling and shadow DOM usage. Use the RmlUi API for all interface interactions, and avoid direct DOM manipulation unless absolutely necessary.
+- When working with the RmlUi interface framework, follow the RmlUi syntax and semantics, but always optimize for performance, meaning avoid unnecessary DOM updates, reflows, and excessive event handling and shadow DOM usage. Use the RmlUi API for all interface interactions. Where possible use absolute positioning and fixed layouts to reduce layout recalculations. Avoid using complex CSS selectors and prefer class-based styling for better performance. Use RmlUi's built-in event handling system instead of relying on external libraries or custom event handling code.
+- RmlUi practices and instructions for this repository: RmlUi-instructions.md
 - Engine implemented RmlUi Lua documentation: https://recoilengine.org/docs/lua-api/#RmlUi
 - RmlUi official documentation (might be ahead): https://github.com/mikke89/RmlUiDoc/tree/master/pages/rml

@@ -504,6 +504,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	widgetHandler:AddAction("mascot", mascotCmd, nil, "t")
+
 	-- Rebuild OPTIONS from disk so newly added images/sounds are picked up on reload
 	for i = #OPTIONS, 1, -1 do OPTIONS[i] = nil end
 	loadMascotsFromDirectory()
@@ -520,6 +522,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("mascot", "t")
 	for i = 1, 4 do
 		if drawlist[i] then glDeleteList(drawlist[i]) end
 	end
@@ -625,13 +628,13 @@ function widget:MousePress(mx, my, mb)
 	end
 end
 
-function widget:TextCommand(command)
-	if string.sub(command, 1, 6) == 'mascot' then
-		soundTimer = 0
-		resetEmoteState()
-		toggleOptions(tonumber(string.sub(command, 8)))
-		Spring.Echo("Playerlist mascot: "..OPTIONS[currentOption].name)
-	end
+function mascotCmd(_, line)
+	soundTimer = 0
+	resetEmoteState()
+	local option = tonumber((line or ""):match("%S+"))
+	toggleOptions(option)
+	Spring.Echo("Playerlist mascot: " .. OPTIONS[currentOption].name)
+	return true
 end
 
 function widget:GetConfigData()

@@ -82,7 +82,7 @@ local myTeam = spGetMyTeamID()
 local idleBuilders = {}
 
 -- [builderID] = { targetID, homeX, homeY, homeZ }
-local activeRepairs = {}
+local activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
 
 -- [unitID] = expiryFrame
 local reclaimBlacklist = {}
@@ -162,6 +162,8 @@ function widget:Initialize()
 		return
 	end
 
+	activeRepairs = table.ensureTable(WG, "InIdleWorkerTask")
+
 	for _, unitID in ipairs(spGetTeamUnits(myTeam)) do
 		local unitDefID = spGetUnitDefID(unitID) 
 		if isMobileBuilder[unitDefID] and spGetUnitCommandCount(unitID) == 0 then
@@ -172,6 +174,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	for unitID in pairs(WG.InIdleWorkerTask) do
+		WG.InIdleWorkerTask[unitID] = nil
+	end
 	idleBuilders = {}
 	activeRepairs = {}
 	reclaimBlacklist = {}

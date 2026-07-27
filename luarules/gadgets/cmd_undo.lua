@@ -43,7 +43,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
-	local lastSelfdTeamID = 0
+	local selfdBlastUnits = {}
 	local sceduledRestoreHeightmap = {}
 	local CMD_SELFD = CMD.SELFD
 	local enemyNearbyCacheFrame = {}
@@ -103,13 +103,13 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				teamSelfdUnits[teamID] = cleanedUnits
 			end
-			local cleanedSelfd = {}
-			for unitID, gameframeVal in pairs(selfdCmdUnits) do
+			local cleanedBlast = {}
+			for unitID, gameframeVal in pairs(selfdBlastUnits) do
 				if gameframeVal > gameFrame - 30 then
-					cleanedSelfd[unitID] = gameframeVal
+					cleanedBlast[unitID] = gameframeVal
 				end
 			end
-			selfdCmdUnits = cleanedSelfd
+			selfdBlastUnits = cleanedBlast
 		end
 
 		-- apply sceduled heightmap restoration
@@ -125,6 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function restoreUnits(teamID, seconds, toTeamID, playerID)
 		if not Spring.GetTeamInfo(toTeamID, false) then
+			Spring.SendMessageToPlayer(playerID, 'Invalid receiving teamID: ' .. tostring(toTeamID))
 			return
 		end
 		if teamSelfdUnits[teamID] == nil then
@@ -158,7 +159,8 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				local unitID = Spring.CreateUnit(params[2], unitX, Spring.GetGroundHeight(unitX, unitZ), unitZ, params[7], toTeamID)
+				local restoreTeamID = params[11] or toTeamID
+				local unitID = Spring.CreateUnit(params[2], unitX, Spring.GetGroundHeight(unitX, unitZ), unitZ, params[7], restoreTeamID)
 				if unitID ~= nil then
 					Spring.SetUnitHealth(unitID, params[3])
 					Spring.SetUnitDirection(unitID, params[8], params[9], params[10])
@@ -280,23 +282,29 @@ if gadgetHandler:IsSyncedCode() then
 		enemyNearbyCacheFrame[unitID] = nil
 		enemyNearbyCacheValue[unitID] = nil
 
-		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID]) then -- attackerID == nil -> selfd/reclaim
+		local attackerWasSelfd = false
+		if attackerID ~= nil then
+			attackerWasSelfd = (selfdBlastUnits[attackerID] ~= nil) or ((selfdCmdUnits[attackerID] == true) and (weaponDefID ~= nil and selfDWeaponToUnit[weaponDefID] ~= nil))
+		end
+
+		if (attackerID == nil and selfdCmdUnits[unitID] == true) or attackerWasSelfd then -- attackerID == nil -> selfd/reclaim
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
 			local buildFacing = Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz = Spring.GetUnitDirection(unitID)
+			local originalTeamID = teamID  -- capture before potential overwrite below
 			if attackerID ~= nil then
-				selfdCmdUnits[unitID] = Spring.GetGameFrame() - Spring.GetUnitSelfDTime(unitID)
-				teamID = lastSelfdTeamID
+				teamID = attackerTeamID or Spring.GetUnitTeam(attackerID) or teamID
 				health = maxHealth -- health only applicable to actual selfd units
-			else
-				lastSelfdTeamID = teamID
 			end
+			selfdBlastUnits[unitID] = Spring.GetGameFrame()
 			if teamSelfdUnits[teamID] == nil then
 				teamSelfdUnits[teamID] = {}
 			end
-			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz}
+			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz, originalTeamID}
 		end
+
+		selfdCmdUnits[unitID] = nil
 	end
 
 	-- log selfd commands
@@ -305,7 +313,7 @@ if gadgetHandler:IsSyncedCode() then
 			if Spring.GetUnitSelfDTime(unitID) > 0 then
 				selfdCmdUnits[unitID] = nil
 			else
-				selfdCmdUnits[unitID] = Spring.GetGameFrame()
+				selfdCmdUnits[unitID] = true
 			end
 		else
 			-- check for queued selfd (to check if queue gets cancelled)

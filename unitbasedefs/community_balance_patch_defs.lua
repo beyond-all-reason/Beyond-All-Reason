@@ -4,88 +4,11 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 	if not communityBalancePatchDisabled then
 		local all = modOptions.community_balance_patch == "enabled"
 		local custom = modOptions.community_balance_patch == "custom"
-		if all or (custom and modOptions.community_balance_commando) then
-			if name == "cormando" then
-				-- +130 jammer range (150 -> 280)
-				uDef.radardistancejam = 280
-				-- +300 radar and LoS (900 -> 1200, 600 -> 900)
-				uDef.radardistance = 1200
-				uDef.sightdistance = 900
-				-- Add light and heavy mines to build options
-				local numBuildoptions = #uDef.buildoptions
-				uDef.buildoptions[numBuildoptions + 1] = "cormine1"
-				uDef.buildoptions[numBuildoptions + 2] = "cormine3"
-				-- 2s self-destruct timer
-				uDef.selfdestructcountdown = 2
-				-- x2 autoheal (9 -> 18)
-				uDef.autoheal = 18
-				uDef.idleautoheal = 18
-
-				-- Weapon changes: Cannon -> Laser
-				if uDef.weapondefs then
-					for weaponName, weaponDef in pairs(uDef.weapondefs) do
-						if weaponName == "commando_blaster" then
-							weaponDef.accuracy = 0
-							weaponDef.areaofeffect = 8
-							weaponDef.avoidfeature = false
-							weaponDef.beamtime = 0.2
-							weaponDef.beamttl = 1
-							weaponDef.tolerance = 10000
-							weaponDef.thickness = 3
-							weaponDef.corethickness = 0.2
-							weaponDef.laserflaresize = 4
-							weaponDef.impactonly = 1
-							weaponDef.craterareaofeffect = 0
-							weaponDef.craterboost = 0
-							weaponDef.cratermult = 0
-							weaponDef.energypershot = 20
-							weaponDef.edgeeffectiveness = 0.15
-							weaponDef.explosiongenerator = "custom:laserhit-small-red"
-							weaponDef.firestarter = 100
-							weaponDef.gravityaffected = false
-							weaponDef.impulsefactor = 0
-							weaponDef.name = "CommandoBlaster"
-							weaponDef.noselfdamage = true
-							weaponDef.predictboost = 0
-							weaponDef.proximitypriority = nil
-							weaponDef.range = 450
-							weaponDef.reloadtime = 0.5
-							weaponDef.rgbcolor = "0.85 0.3 0.2"
-							weaponDef.soundhit = "xplosml5"
-							weaponDef.soundhitwet = "sizzle"
-							weaponDef.soundstart = "lasrfir5"
-							weaponDef.turret = true
-							weaponDef.weapontype = "BeamLaser"
-							weaponDef.weaponvelocity = 1000
-						end
-					end
-				end
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_corkorg) then
-			if name == "corkorg" then
-				uDef.airsightdistance = 1600
-				uDef.metalcost = 26000
-			end
-		end
 
 		if all or (custom and modOptions.community_balance_corspy) then
 			if name == "corspy" then
 				uDef.energycost = 8800
 				uDef.metalcost = 135
-			end
-		end
-
-		if all or (custom and modOptions.community_balance_corjamt) then
-			if name == "corjamt" then
-				uDef.buildtime = 9950
-				uDef.energycost = 8500
-				uDef.energyupkeep = 40
-				uDef.health = 790
-				uDef.metalcost = 240
-				uDef.radardistancejam = 500
-				uDef.sightdistance = 195
 			end
 		end
 
@@ -102,6 +25,104 @@ local function communityBalanceTweaks(name, uDef, modOptions)
 					uDef.weapondefs.cor_canlaser.range = 300
 					uDef.weapondefs.cor_canlaser.beamtime = 0.24
 				end
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_corkarg) then
+			if name == "corkarg" then
+				uDef.sightdistance = 515
+				uDef.maxacc = 0.18
+				uDef.turnrate = 515
+				uDef.turninplacespeedlimit = 1.25
+				uDef.strafetoattack = true
+				uDef.metalcost = 2650
+				uDef.buildtime = 100000
+				if uDef.weapondefs and uDef.weapondefs.super_missile then
+					uDef.weapondefs.super_missile.trajectoryheight = 0.25
+				end
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_armkam) then
+			if name == "armkam" then
+				uDef.maxacc = 0.35
+				if uDef.weapondefs and uDef.weapondefs.emg then
+					local weaponDef = uDef.weapondefs.emg
+					weaponDef.burst = nil
+					weaponDef.burstrate = nil
+					weaponDef.areaofeffect = 32
+					weaponDef.accuracy = 0
+					weaponDef.cegtag = "impulse-trail"
+					weaponDef.cylindertargeting = 0
+					weaponDef.edgeeffectiveness = 0.40
+					weaponDef.explosiongenerator = "custom:genericshellexplosion-small-bomb"
+					weaponDef.impulsefactor = 2.14
+					weaponDef.range = 400
+					weaponDef.reloadtime = 3.0
+					weaponDef.soundstart = "mavgun4"
+					weaponDef.sprayangle = nil
+					weaponDef.tolerance = 2000
+					weaponDef.turret = true
+					weaponDef.weapontimer = 0
+					weaponDef.weaponvelocity = 1090
+					weaponDef.customparams = {
+						noattackrangearc = 1,
+					}
+					weaponDef.damage = {
+						default = 141,
+						vtol = 3,
+					}
+				end
+				uDef.weapons[1].maindir = "0 0 1"
+				uDef.weapons[1].maxangledif = 45
+			end
+		end
+
+		if all or (custom and modOptions.community_balance_armblade) then
+			if name == "armblade" then
+				uDef.maxacc = 0.28
+				uDef.maxdec = 0.55
+				uDef.health = 3350
+				uDef.speed = 125
+				uDef.turninplaceanglelimit = 120
+				uDef.turnrate = 420
+				uDef.sightdistance = 720
+				uDef.weapondefs.vtol_sabot = {
+					areaofeffect = 64,
+					avoidfeature = false,
+					burst = 2,
+					burstrate = 0.15,
+					cegtag = "impulse-trail",
+					collidefriendly = false,
+					craterareaofeffect = 0,
+					craterboost = 0,
+					cratermult = 0,
+					cylindertargeting = 1,
+					edgeeffectiveness = 0.40,
+					explosiongenerator = "custom:genericshellexplosion-medium-bomb",
+					firestarter = 70,
+					gravityaffected = "true",
+					impulsefactor = 1.5,
+					name = "Medium-range precision gauss rifle",
+					noselfdamage = true,
+					range = 1100,
+					reloadtime = 4.0,
+					soundhit = "xplomed2",
+					soundhitwet = "splshbig",
+					soundstart = "mavgun5",
+					turret = true,
+					weapontype = "Cannon",
+					weaponvelocity = 1090,
+					customparams = {
+						noattackrangearc = 1,
+					},
+					damage = {
+						commanders = 200,
+						default = 425,
+					},
+				}
+				uDef.weapons[1].maindir = "0 0 1"
+				uDef.weapons[1].maxangledif = 45
 			end
 		end
 	end

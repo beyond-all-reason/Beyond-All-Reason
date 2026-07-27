@@ -487,11 +487,17 @@ local armorDefs = {
 	},
 	nanos = {
 		"armnanotc",
+		"armnanotct2",
 		"cornanotc",
+		"cornanotct2",
 		"armnanotcplat",
+		"armnanotc2plat",
 		"cornanotcplat",
+		"cornanotc2plat",
 		"legnanotc",
+		"legnanotct2",
 		"legnanotcplat",
+		"legnanotct2plat",
 	},
 	vtol = {
 		"armhvytrans",

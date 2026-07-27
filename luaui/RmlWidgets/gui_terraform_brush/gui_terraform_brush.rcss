@@ -1,0 +1,3432 @@
+* Terraform Brush - Widget-specific styles */
+/* Layout utilities, palette colors, and theme classes come from shared style guide files */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Standard values for visual consistency across all
+   sub-panels (Terrain, Metal, Features, Splat, Decals, Weather,
+   Environment, Lights). Update these comments when changing values.
+   ═══════════════════════════════════════════════════════════════════════
+   SURFACES
+     Panel bg:       #1d1d1d  (bg-darkest)
+     Input bg:       #161620
+     Button bg (primary): #393942  — top-level mode, shape buttons
+     Button bg (secondary): #32323c — action, compact, env launcher, dist
+     Button hover:   #484858  (secondary), #4c4c58 (primary)
+     Inset bg:       #141418  (grouped toggles, dropdown interiors)
+
+   BORDERS
+     Default (primary):  #50505a50
+     Default (secondary): #55556040
+     Hover:          #8a8aa0bb (primary), #7878909a (secondary)
+     Focus:          #6a6a80cc
+     Divider:        #34343e  (section separators)
+
+   TEXT
+     Primary:        #e5e7eb  (text-light)  — headings, titles
+     Secondary:      #d8dce4  (text-medium) — button labels, body
+     Muted:          #9ca3af               — hints, keybinds
+     Keybind:        #d9c28a               — shortcut hints (on pill bg)
+
+   ACCENTS (BAR brand palette — beyondallreason.info)
+     Gold (primary):   #fdc04c  — SELECTION: active mode / shape / radio option
+       hover border:   #ffd47a
+       active bg:      #2b2113   active bg hover: #3b2d17
+       dim border:     #fdc04c66
+     Teal (toggles):   #40e0c0  — on/off TOGGLES & overlays (sampled from the
+       hover border:   #7cecd6    editions infographic teal, brightened)
+       active bg:      #0d2c24   active bg hover: #133a30
+       bright label:   #a2f2e2
+     Blue (secondary): #2ba5ea  — informational (badges, load, water, min-cap)
+       hover border:   #5cc0f4
+       active bg:      #0e2637   active bg hover: #14364d
+     Red (destructive):#ef4444  — remove / erase / confirm-delete ONLY
+       hover border:   #f87171
+       active bg:      #3a1616   active bg hover: #55201f
+
+   BUTTON HIERARCHY (height / border-radius)
+     Mode:           54dp / 8dp   — top-level mode buttons (Raise, Metal…)
+     Sub-mode:       40dp / 8dp   — tool sub-modes (Scatter, Point…)
+     Compact:        28dp / 6dp   — text-only toggles (Point/Cone/Beam)
+     Distribution:   32dp / 7dp   — distribution selectors
+     Action:         36dp / 7dp   — Save, Load, Clear, Reset, Undo…
+     Env launcher:   36dp / 7dp   — environment category buttons (with icon)
+     Small (±):      22dp / 5dp   — increment/decrement
+     History (⏪⏩): 24dp / 5dp   — undo/redo arrows
+
+   SLIDERS
+     Track height:   8dp,  bg #262630,  radius 4dp
+     Thumb:          16Ă—16dp,  bg #b0b4be,  radius 8dp
+     Compact thumb:  12Ă—12dp  (material/color sliders in Lights)
+     Numbox:         32dp wide,  height 24dp,  bg #161620
+
+   FONT SIZES (preferred stops)
+     xs:  0.75rem    sm:  0.9rem    base: 1.0rem
+     lg:  1.15rem    xl:  1.3rem    2xl:  1.5rem
+
+   TRANSITIONS
+     Standard:       0.15s
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.text-keybind { color: #d9c28a; }
+
+/* Stamp mode indicator badge */
+.tf-stamp-badge {
+	padding: 1dp 5dp;
+	background-color: #fdc04c;
+	border-radius: 3dp;
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #1a1408;
+	margin-left: 6dp;
+}
+
+/* Warning notice banner (e.g. no grass on map, map damage disabled) */
+.tf-notice-banner {
+	padding: 4dp 8dp;
+	margin-bottom: 4dp;
+	background-color: #6b4c1299;
+	border: 1dp #fdc04caa;
+	border-radius: 4dp;
+	font-size: 0.9rem;
+	color: #fdc04c;
+	text-align: center;
+}
+
+/* Highlighted text inside notice banners */
+.tf-notice-highlight {
+	color: #ffd88f;
+	font-weight: bold;
+}
+
+/* Terrain section locked when map damage is disabled */
+.tf-terrain-locked .tf-mode-btn {
+	opacity: 0.28;
+	pointer-events: none;
+}
+
+/* Keybind badge in top-left corner of buttons */
+.tf-keybind-badge {
+	position: absolute;
+	top: -1dp;
+	left: 2dp;
+	font-size: 1.0rem;
+	font-weight: bold;
+	color: #d9c28a;
+	pointer-events: none;
+	background-color: #1e1a12dc;
+	padding: 0dp 3dp;
+	border-radius: 3dp;
+}
+
+body {
+	pointer-events: none;
+}
+
+/* === Root Positioning === */
+/*
+ * Width uses `vw` so the panel scales with viewport width (same visual
+ * proportion across 1080p / 1440p / 4k). `min-width` in `px` keeps it
+ * readable on small windows where 15vw collapses.
+ */
+.tf-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 78vw;
+	top: 25vh;
+	width: 13vw;
+	min-width: 220px;
+	z-index: 900;
+	padding-left: 5dp;
+	padding-right: 5dp;
+}
+
+/* === Noise Panel (separate floating window) === */
+.tf-noise-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 62vw;
+	top: 25vh;
+	width: 13vw;
+	min-width: 220px;
+	z-index: 900;
+}
+
+/* === Skybox Library (separate floating window) === */
+.tf-skybox-library-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 55vw;
+	top: 15vh;
+	width: 13vw;
+	min-width: 220px;
+	z-index: 900;
+}
+
+/* Bump small text up one size inside skybox library */
+.tf-skybox-library-root .text-sm { font-size: 1rem; }
+.tf-skybox-library-root .text-xs { font-size: 0.875rem; }
+
+/* Bump section titles up one size inside env float windows */
+.tf-env-float-window .text-sm.text-light.font-bold { font-size: 1rem; }
+/* Bump green label text up one size inside env float windows for readability */
+.tf-env-float-window .text-sm.text-keybind { font-size: 1rem; }
+.tf-skybox-library-root .text-sm.text-keybind { font-size: 1rem; }
+
+/* === Environment floating windows (shared base) === */
+.tf-env-float-window {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 900;
+	width: 13vw;
+	min-width: 220px;
+	max-height: 80vh;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+/* Ensure sliders can shrink inside the constrained flex rows */
+.tf-env-float-window .tf-slider {
+	min-width: 0;
+	width: 0;
+}
+
+.tf-light-library-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 62vw;
+	top: 12vh;
+	width: 13vw;
+	min-width: 220px;
+	z-index: 910;
+}
+
+.ll-preset-list {
+	max-height: 30vh;
+	overflow-y: auto;
+}
+
+.ll-preset-item {
+	display: flex;
+	flex-direction: column;
+	padding: 4dp 6dp;
+	margin: 2dp 0;
+	border: 1dp #40404a60;
+	border-radius: 5dp;
+	cursor: pointer;
+	background-color: #161620;
+}
+
+.ll-preset-item:hover {
+	background-color: #2b2113;
+	border-color: #fdc04c;
+}
+
+.ll-preset-item.selected {
+	background-color: #2b2113;
+	border-color: #fdc04c;
+}
+
+.ll-preset-name {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #e0e0e0;
+}
+
+.ll-preset-desc {
+	font-size: 0.75rem;
+	color: #888;
+}
+
+.ll-preset-input {
+	flex: 1;
+	height: 24dp;
+	line-height: 18dp;
+	font-size: 0.9rem;
+	padding: 2dp 4dp;
+	border: 1dp #40404a60;
+	border-radius: 5dp;
+	background-color: #161620;
+	color: #e0e0e0;
+}
+
+/* === Light Library Search Bar === */
+.ll-search-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.ll-search-input {
+	flex: 1;
+	height: 24dp;
+	line-height: 18dp;
+	font-size: 0.9rem;
+	padding: 2dp 20dp 2dp 4dp;
+	border: 1dp #40404a60;
+	border-radius: 5dp;
+	background-color: #161620;
+	color: #e0e0e0;
+}
+
+.ll-search-input:focus {
+	border-color: #6a6a80cc;
+}
+
+.ll-search-clear-btn {
+	position: absolute;
+	right: 2dp;
+	width: 14dp;
+	height: 14dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	opacity: 0.5;
+}
+
+.ll-search-clear-btn:hover {
+	opacity: 1.0;
+}
+
+.ll-search-clear-icon {
+	width: 10dp;
+	height: 10dp;
+}
+
+.tf-ll-tab-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* === Drag Handle === */
+.tf-drag-handle {
+	cursor: move;
+	padding: 4dp 0 4dp 4dp;
+}
+
+.tf-status-summary {
+	padding: 5dp 0;
+	background-color: #12121a;
+	border-radius: 4dp;
+	border: 1dp #ffffff0a;
+	font-size: 1.4rem;
+	letter-spacing: 0.2dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-evenly;
+	/* Long values must clip instead of wrapping over the rows below */
+	overflow: hidden;
+	white-space: nowrap;
+}
+.tf-ss-mode {
+	font-weight: bold;
+	font-size: 1.5rem;
+	letter-spacing: 0.5dp;
+}
+.tf-ss-sep {
+	color: #ffffff18;
+	font-size: 1.3rem;
+}
+.tf-ss-label {
+	color: #6b7280;
+	font-size: 1.3rem;
+}
+.tf-ss-val {
+	color: #d1d5db;
+	padding-left: 2dp;
+	font-size: 1.4rem;
+}
+
+/* === Mode Buttons === */
+.tf-mode-btn {
+	flex: 1;
+	height: 54dp;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 1dp;
+	padding-bottom: 4dp;
+	background-color: #393942;
+	border-radius: 8dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	position: relative;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+/* .tf-mode-btn declares display:flex at the same specificity as the global
+   .hidden utility, so an explicit combined rule is needed to actually hide
+   (used by btn-diffuse until its painter widget is loaded). */
+.tf-mode-btn.hidden {
+	display: none;
+}
+
+.tf-mode-btn:hover {
+	background-color: #4c4c58;
+	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-btn-text {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #d8dce4;
+}
+
+.tf-mode-btn.active .tf-btn-text {
+	color: #e5e7eb;
+}
+
+/* (metal button is now active - see .tf-btn-metal.active below) */
+
+/* Environment button */
+.tf-btn-environment.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Light tool */
+.tf-btn-lights.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-lt-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-lp-mode-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-lp-dist-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.lp-color-preview {
+	width: 100%;
+	height: 12dp;
+	border-radius: 3dp;
+	border: 1dp #3a3a3a80;
+	background-color: #ffcc00;
+}
+
+/* === Light Compact Buttons (type, mode, distribution) === */
+.tf-lp-compact-btn {
+	flex: 1;
+	height: 28dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #32323c;
+	border-radius: 6dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-lp-compact-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+/* === Light Distribution Buttons === */
+.tf-lp-dist-btn {
+	flex: 1;
+	height: 28dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #32323c;
+	border-radius: 6dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-lp-dist-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-lp-dist-btn .tf-btn-text {
+	font-size: 0.9rem;
+}
+
+/* === Light Action Buttons === */
+.tf-lp-action-btn {
+	flex: 1;
+	height: 32dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 7dp;
+	border: 1dp;
+	cursor: pointer;
+	background-color: #32323c;
+	border-color: #55556040;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-lp-action-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-lp-action-btn .tf-action-btn-text {
+	font-size: 1.0rem;
+}
+
+/* === Light compact slider === */
+.lp-slider-compact {
+	height: 18dp;
+}
+
+.lp-slider-compact sliderbar {
+	width: 8dp;
+	height: 18dp;
+	margin-top: 0dp;
+}
+
+/* RGB channel tinting for color sliders (thumb color indicates channel) */
+.tf-slider.lp-slider-channel-r sliderbar {
+	background-color: #e03030;
+	decorator: vertical-gradient(#ff6060 #901818);
+	border: 1dp #ffffff40;
+}
+.tf-slider.lp-slider-channel-r sliderbar:hover {
+	background-color: #ff5050;
+	decorator: vertical-gradient(#ff8080 #b02020);
+}
+.tf-slider.lp-slider-channel-g sliderbar {
+	background-color: #30c040;
+	decorator: vertical-gradient(#60e070 #186020);
+	border: 1dp #ffffff40;
+}
+.tf-slider.lp-slider-channel-g sliderbar:hover {
+	background-color: #50e060;
+	decorator: vertical-gradient(#80ff90 #208030);
+}
+.tf-slider.lp-slider-channel-b sliderbar {
+	background-color: #3060e8;
+	decorator: vertical-gradient(#6090ff #182f80);
+	border: 1dp #ffffff40;
+}
+.tf-slider.lp-slider-channel-b sliderbar:hover {
+	background-color: #5080ff;
+	decorator: vertical-gradient(#80a8ff #2040a0);
+}
+
+/* === Color Palette Grid === */
+.lp-color-palette {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 1dp;
+	width: 100%;
+}
+
+.lp-palette-swatch {
+	width: 12dp;
+	height: 12dp;
+	border: 1dp #33333380;
+	border-radius: 2dp;
+	cursor: pointer;
+}
+
+.lp-palette-swatch:hover {
+	border-color: #fdc04c;
+	border-width: 1dp;
+}
+
+/* Environment skybox grid */
+.env-skybox-grid {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4dp;
+	margin-bottom: 4dp;
+	max-height: 300dp;
+	overflow-y: auto;
+}
+
+.env-skybox-thumb {
+	width: 64dp;
+	height: 64dp;
+	border: 2dp #3a3a3a80;
+	border-radius: 4dp;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.env-skybox-thumb:hover {
+	border-color: #fdc04c;
+}
+
+.env-skybox-thumb.active {
+	border-color: #fdc04c;
+	border-width: 2dp;
+}
+
+.env-skybox-thumb img {
+	width: 100%;
+	height: 100%;
+}
+
+.env-skybox-name {
+	font-size: 0.75rem;
+	color: #8a8a9a;
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+	margin-top: 1dp;
+}
+
+/* Mode active states — standardized BAR gold; destructive modes use red */
+.tf-btn-raise.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Metal icon - big square M */
+.tf-metal-icon {
+	width: 22dp;
+	height: 22dp;
+	border: 2dp #fdc04c99;
+	border-radius: 3dp;
+	background-color: #2b2113;
+	color: #fdc04c;
+	font-size: 16dp;
+	font-weight: bold;
+	text-align: center;
+	line-height: 22dp;
+}
+
+.tf-btn-metal.active .tf-metal-icon {
+	border-color: #ffd47a;
+	color: #ffd47a;
+	background-color: #3b2d17;
+}
+
+/* Metal mode */
+.tf-btn-metal.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-mb-btn-paint.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-mb-btn-stamp.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-lower.active {
+	border-color: #ef4444;
+	background-color: #3a1616;
+}
+
+.tf-btn-lower .tf-icon-md {
+	width: 38dp;
+	height: 38dp;
+}
+
+.tf-btn-level.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-ramp.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-restore.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-noise.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-erode.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-noise-type-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-features.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-splat.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Diffuse painter */
+.tf-btn-diffuse.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-btn-decals.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Grass tool */
+.tf-btn-grass.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-gb-btn-paint.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-gb-btn-fill.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Start Positions tool */
+.tf-btn-startpos.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-sp-btn-express.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-sp-btn-shape.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-sp-btn-startbox.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Startbox placement sub-picker (Box / Polygon / Free) */
+.tf-sp-btn-sbx-box.active,
+.tf-sp-btn-sbx-polygon.active,
+.tf-sp-btn-sbx-freedraw.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* Clone tool */
+.tf-btn-clone.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-cl-toggle {
+	height: 30dp;
+	background-color: #2c2c36;
+	border-color: #3e3e4a50;
+}
+
+.tf-cl-toggle.active {
+	border-color: #40e0c0;
+	background-color: #0d2c24;
+	box-shadow: 0dp 0dp 5dp 0dp #40e0c025;
+}
+
+/* Clone tool — layer chip grid (legacy, retained for compatibility) */
+.tf-cl-layer-grid {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4dp;
+}
+.tf-cl-chip {
+	flex: 1 0 22%;
+	padding: 6dp 6dp;
+	border-radius: 5dp;
+	background-color: #2a2a34;
+	border: 1dp #3e3e4a50;
+	cursor: pointer;
+	transition: background-color 0.1s, border-color 0.1s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
+}
+.tf-cl-chip:hover {
+	background-color: #3a3a46;
+	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
+}
+.tf-cl-chip.active {
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+}
+.tf-cl-chip.active:hover {
+	background-color: #133a30;
+	border-color: #40e0c0;
+}
+.tf-cl-chip-label {
+	font-size: 0.85rem;
+	color: #6b7280;
+}
+.tf-cl-chip.active .tf-cl-chip-label {
+	color: #d1d5db;
+}
+
+/* Clone tool — hints */
+.tf-cl-hints {
+	background-color: #12121a;
+	border-radius: 4dp;
+	padding: 5dp 8dp;
+	border: 1dp #ffffff0a;
+}
+.tf-cl-hint {
+	font-size: 0.72rem;
+	color: #6b728080;
+	margin-bottom: 1dp;
+}
+.tf-cl-status {
+	font-size: 0.9rem;
+	color: #d1d5db;
+}
+
+/* === Shape Buttons === */
+.tf-shape-btn {
+	width: 50dp;
+	height: 50dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #393942;
+	border-radius: 8dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	position: relative;
+	decorator: vertical-gradient(#4e4e5a #2c2c34);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-shape-btn.hidden {
+	display: none;
+}
+
+#section-mb-shape .tf-shape-btn {
+	width: auto;
+	flex: 1;
+}
+
+.tf-shape-btn:hover {
+	background-color: #4c4c58;
+	border-color: #7878909a;
+	decorator: vertical-gradient(#626270 #3a3a46);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-shape-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+	box-shadow: 0dp 0dp 6dp 1dp #fdc04c28;
+}
+
+.tf-shape-btn.disabled {
+	background-color: #252528;
+	border-color: #33333540;
+	cursor: default;
+	opacity: 0.4;
+}
+
+.tf-shape-btn.disabled:hover {
+	background-color: #252528;
+	border-color: #33333540;
+}
+
+/* === Clay Toggle Button (in shape row) === */
+.tf-clay-spacer {
+	flex-grow: 1;
+}
+
+.tf-clay-btn {
+	flex-direction: column;
+	background-color: #3e3424;
+	border-color: #5a4228a0;
+	decorator: vertical-gradient(#524638 #2c2416);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-clay-btn:hover {
+	background-color: #584c30;
+	border-color: #907040;
+	decorator: vertical-gradient(#6a5e44 #423826);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-clay-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+	box-shadow: 0dp 0dp 6dp 1dp #fdc04c25;
+}
+
+.tf-clay-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-clay-label {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #d9bd85;
+	text-align: center;
+}
+
+.tf-clay-btn.active .tf-clay-label {
+	color: #fdc04c;
+}
+
+.tf-clay-btn.unavailable {
+	background-color: #252525;
+	border-color: #33333380;
+}
+
+.tf-clay-btn.unavailable:hover {
+	background-color: #252525;
+	border-color: #33333380;
+}
+
+.tf-clay-btn.unavailable .tf-clay-label {
+	color: #4a4a4a;
+}
+
+/* === Full Restore Button (replaces clay btn in restore mode) === */
+.tf-full-restore-btn {
+	flex-direction: column;
+	background-color: #2b2113;
+	border-color: #fdc04c66;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-full-restore-btn:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-full-restore-label {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #fdc04c;
+	text-align: center;
+}
+
+.tf-full-restore-btn.confirming {
+	border-color: #ef4444;
+	background-color: #3a0808;
+}
+
+.tf-full-restore-btn.confirming:hover {
+	background-color: #5a1010;
+	border-color: #f87171;
+}
+
+.tf-full-restore-btn.confirming .tf-full-restore-label {
+	color: #fca5a5;
+}
+
+/* === Metal Clean Button confirming state === */
+.tf-action-btn.confirming {
+	border-color: #ef4444;
+	background-color: #3a0808;
+}
+
+.tf-action-btn.confirming:hover {
+	background-color: #5a1010;
+	border-color: #f87171;
+}
+
+.tf-action-btn.confirming .tf-action-btn-text {
+	color: #fca5a5;
+}
+
+/* === Undo Button (in shape row) === */
+.tf-undo-btn {
+	background-color: #2b2113;
+	border-color: #fdc04c70;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-undo-btn:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+/* === History Row (Undo / Slider / Redo) === */
+.tf-history-btn {
+	width: 24dp;
+	height: 24dp;
+	min-width: 24dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #2b2113;
+	border-radius: 5dp;
+	border: 1dp #fdc04c50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-history-btn:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28, 0dp 0dp 4dp 0dp #fdc04c30;
+}
+
+/* === Undo Mode Toggle Buttons === */
+.tf-undo-mode-btn {
+	padding: 2dp 8dp;
+	font-size: 0.9rem;
+	color: #d8dce4;
+	background-color: #26262e;
+	border: 1dp #40404a60;
+	border-radius: 5dp;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#343440 #1a1a22);
+	box-shadow: 0dp 1dp 3dp 0dp #00000048, inset 0dp 1dp 0dp 0dp #ffffff14;
+}
+
+.tf-undo-mode-btn:hover {
+	background-color: #3e3e4c;
+	border-color: #7878909a;
+	decorator: vertical-gradient(#4c4c5c #2c2c38);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff22;
+}
+
+.tf-undo-mode-btn.active {
+	background-color: #2b2113;
+	border-color: #fdc04ccc;
+	color: #e5e7eb;
+}
+
+
+.tf-slider-history slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 8dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+
+.tf-slider-history sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #d99a28;
+	decorator: vertical-gradient(#ffd47a #8a5f10);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 1dp;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+	transition: background-color 0.1s;
+}
+
+.tf-slider-history sliderbar:hover {
+	background-color: #fdc04c;
+	decorator: vertical-gradient(#ffe2a0 #a87614);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
+}
+
+/* === Small Buttons (rotation, fall-off, intensity) === */
+.tf-sm-btn {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #34343d;
+	decorator: vertical-gradient(#4a4a56 #25252d);
+	border-radius: 4dp;
+	border: 1dp #ffffff15;
+	cursor: pointer;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff20;
+	transition: background-color 0.1s, border-color 0.1s;
+}
+
+.tf-sm-btn:hover {
+	background-color: #43434e;
+	decorator: vertical-gradient(#5e5e6c #303039);
+	border-color: #ffffff28;
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff35;
+}
+
+/* === Transport toggle pill — click to reveal the 3 transport buttons === */
+.tf-transport-toggle {
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+	background-color: #26262e;
+	border: 1dp #3a3a4440;
+	font-size: 0.78rem;
+	color: #6b7280;
+	cursor: pointer;
+	transition: background-color 0.1s, border-color 0.1s, color 0.1s;
+}
+.tf-transport-toggle:hover {
+	background-color: #343440;
+	border-color: #55556080;
+	color: #9ca3af;
+}
+.tf-transport-toggle.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0a0;
+	color: #40e0c0;
+}
+.tf-transport-toggle.active:hover {
+	background-color: #133a30;
+	border-color: #7cecd6;
+	color: #a2f2e2;
+}
+
+/* === Transport (auto-scroll) button group — shown/hidden by toggle pill === */
+.tf-transport-group {
+	display: flex;
+	align-items: center;
+	gap: 3dp;
+	margin-left: 3dp;
+}
+.tf-transport-group.hidden {
+	display: none;
+}
+
+/* === Slider label rows — prevent wrapping when value is a single character === */
+.tf-root .text-lg.text-light {
+	white-space: nowrap;
+}
+
+/* === Slider value span — fixed min-width prevents pill buttons from wiggling as number changes === */
+.tf-slider-val {
+	display: inline-block;
+	min-width: 8dp;
+}
+
+/* === Transport (auto-scroll) buttons — icon pill-shaped, teal highlights === */
+.tf-transport-btn {
+	padding: 3dp 5dp;
+	border-radius: 4dp;
+	background-color: #26262e;
+	border: 1dp #3a3a4440;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.1s, border-color 0.1s;
+}
+
+.tf-icon-xs {
+	width: 12dp;
+	height: 12dp;
+}
+
+.tf-transport-btn:hover {
+	background-color: #343440;
+	border-color: #55556080;
+}
+
+.tf-transport-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c060;
+}
+
+/* === Wiggle level chips (Stroke settings tab) === */
+.tf-wiggle-chip {
+	padding: 2dp 7dp;
+	border-radius: 4dp;
+	background-color: #1a1a2e;
+	border: 1dp #ffffff33;
+	font-size: 0.72rem;
+	color: #888888;
+	cursor: pointer;
+	transition: background-color 0.1s, border-color 0.1s;
+}
+
+.tf-wiggle-chip.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	color: #a2f2e2;
+}
+
+.tf-wiggle-chip:hover {
+	background-color: #252540;
+	border-color: #ffffff55;
+}
+
+/* === Height-cap SAMPLE pill button === */
+.tf-sample-btn {
+	padding: 2dp 8dp;
+	font-size: 0.78rem;
+	font-weight: bold;
+	letter-spacing: 0.05em;
+	border-radius: 10dp;
+	border: 1dp #ffffff33;
+	color: #9ca3af;
+	background-color: #25252f;
+	cursor: pointer;
+	transition: background-color 0.12s;
+	decorator: vertical-gradient(#333340 #191921);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
+}
+
+.tf-sample-btn:hover {
+	background-color: #35354a;
+	border-color: #ffffffaa;
+	color: #e5e7eb;
+	decorator: vertical-gradient(#444458 #262636);
+	box-shadow: 0dp 2dp 4dp 0dp #00000068, inset 0dp 1dp 0dp 0dp #ffffff22;
+}
+
+.tf-sample-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0cc;
+	color: #40e0c0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HEADER — the crown jewel. Two tiers: a full-width wordmark on top (its
+   own line, so it never wraps), and a sleek full-width "control rail"
+   beneath it — FILE on the left, the icon cluster on the right. The icon
+   buttons stay flat until hovered/active so the rail reads as one polished
+   unit. The gold gem + accent word tie it to the tool's amber identity.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Two-tier header stack */
+.tf-header {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 5dp;
+}
+
+/* Top tier: wordmark (left, shrinks) + window controls (right, fixed) */
+.tf-header-top {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6dp;
+}
+
+/* Pause + close, parked top-right as window chrome */
+.tf-header-top-btns {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 2dp;
+	flex-shrink: 0;
+}
+
+/* === Wordmark (top tier, also the drag handle) === */
+.tf-title {
+	flex: 0 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 7dp;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+/* Faceted accent "gem" — vertical gold bar with a soft glow */
+.tf-title-gem {
+	width: 4dp;
+	height: 18dp;
+	flex-shrink: 0;
+	border-radius: 2dp;
+	decorator: vertical-gradient(#ffe2a0 #d99a28);
+	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
+}
+
+.tf-title-main {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 1.5dp;
+	color: #eef1f6;
+}
+
+.tf-title-accent {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 2dp;
+	color: #fdc04c;
+}
+
+/* === Control rail (bottom tier) — full-width inset capsule === */
+.tf-header-rail {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 3dp;
+	padding: 3dp 4dp;
+	border-radius: 8dp;
+	border: 1dp #ffffff0e;
+	background-color: #12121a;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000070, inset 0dp -1dp 0dp 0dp #ffffff08;
+}
+
+/* Flexible gap that pushes the icon cluster to the right edge of the rail */
+.tf-rail-spacer {
+	flex: 1;
+}
+
+/* Hairline divider between rail groups */
+.tf-rail-sep {
+	width: 1dp;
+	height: 16dp;
+	flex-shrink: 0;
+	background-color: #ffffff14;
+	margin: 0dp 2dp;
+}
+
+/* === Header Buttons (shared base) — flat until interacted with === */
+.tf-header-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	background-color: transparent;
+	flex-shrink: 0;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+
+.tf-header-btn:hover {
+	background-color: #ffffff16;
+	border-color: #ffffff22;
+}
+
+.tf-header-icon {
+	width: 14dp;
+	height: 14dp;
+}
+
+/* === FILE menu (header dropdown) === */
+.tf-file-menu-wrap {
+	position: relative;
+	flex-shrink: 0;
+}
+
+.tf-file-menu {
+	position: absolute;
+	left: 0dp;
+	top: 26dp;
+	min-width: 130dp;
+	z-index: 1000;
+	background-color: #1e1e28;
+	border: 1dp #5a5a6a;
+	border-radius: 5dp;
+	padding: 3dp;
+	box-shadow: 0dp 4dp 10dp 0dp #00000088;
+}
+
+.tf-file-menu-item {
+	padding: 6dp 10dp;
+	cursor: pointer;
+	border-radius: 4dp;
+	color: #c8ccd6;
+	font-size: 13dp;
+}
+
+.tf-file-menu-item:hover {
+	background-color: #3a3a48;
+	color: #ffffff;
+}
+
+/* FILE button (folder icon) — gold highlight while the menu is open */
+.tf-file-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-file-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
+.tf-file-btn.active img {
+	image-color: #fdc04c;
+}
+
+/* === New Map window (floating, FILE > New Map) === */
+.tf-newmap-window {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 920;
+	width: 300dp;
+	min-width: 260dp;
+	max-height: 84vh;
+	overflow-y: auto;
+}
+
+/* New Map: compact section divider label */
+.tf-newmap-section {
+	color: #d9c28a;
+	font-size: 0.85rem;
+	font-weight: bold;
+	margin-top: 6dp;
+	margin-bottom: 2dp;
+}
+
+/* === Sound Toggle Button === */
+.tf-sound-btn.muted {
+	border-color: #5a3a3a;
+	background-color: #281e20;
+}
+
+.tf-sound-btn.muted:hover {
+	background-color: #402a2a;
+	border-color: #cc6666;
+}
+
+.tf-sound-btn.muted img {
+	image-color: #aa6666;
+}
+
+.tf-sound-btn.muted:hover img {
+	image-color: #dd8888;
+}
+
+/* === Guide Mode Button === */
+.tf-guide-btn {
+	color: #8888aa;
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+.tf-guide-btn:hover {
+	color: #d0d0f0;
+}
+
+.tf-guide-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	color: #40e0c0;
+}
+
+/* === Passthrough (Pause) Button === */
+.tf-passthrough-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+}
+
+.tf-passthrough-btn.active:hover {
+	background-color: #133a30;
+	border-color: #7cecd6;
+}
+
+.tf-passthrough-btn.active img {
+	image-color: #40e0c0;
+}
+
+.tf-passthrough-btn.active:hover img {
+	image-color: #7cecd6;
+}
+
+/* Dim the panel body when passthrough is active */
+.tf-root.passthrough-dimmed {
+	opacity: 0.7;
+}
+
+/* === Guide Floating Tooltip === */
+.tf-guide-floating-tip {
+	position: absolute;
+	z-index: 1100;
+	width: 166dp;
+	background-color: #0c1a16;
+	border: 1dp #40e0c0;
+	border-radius: 4dp;
+	padding: 5dp 8dp;
+	color: #a2f2e2;
+	font-size: 1.15rem;
+	pointer-events: none;
+}
+
+/* === Quit Button === */
+.tf-quit-btn:hover {
+	background-color: #4a2424;
+	border-color: #cc666690;
+}
+
+/* === Colored Slider Variants (Height Cap) === */
+.tf-slider-cap-max sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #d99a28;
+	decorator: vertical-gradient(#ffd47a #8a5f10);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 1dp;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+	transition: background-color 0.1s;
+}
+
+.tf-slider-cap-max sliderbar:hover {
+	background-color: #fdc04c;
+	decorator: vertical-gradient(#ffe2a0 #a87614);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
+}
+
+.tf-slider-cap-min sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #2ba5ea;
+	decorator: vertical-gradient(#5cc0f4 #14547e);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 1dp;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+	transition: background-color 0.1s;
+}
+
+.tf-slider-cap-min sliderbar:hover {
+	background-color: #45b5f2;
+	decorator: vertical-gradient(#82d2fa #1a6a9e);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
+}
+
+/* === Tooltip === */
+@keyframes pulse-opacity {
+	0% { opacity: 0.6; }
+	50% { opacity: 1.0; }
+	100% { opacity: 0.6; }
+}
+
+.tf-tooltip {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	z-index: 1000;
+	background-color: #1a1a1add;
+	border: 1dp #787878aa;
+	border-radius: 4dp;
+	padding: 4dp 8dp;
+	font-size: 0.9rem;
+	color: #d1d5db;
+	pointer-events: none;
+	animation: pulse-opacity 2s infinite;
+}
+
+/* === Disabled Load Button === */
+.tf-load-btn-disabled {
+	background-color: #2a2a2a;
+	border-color: #4a4a4a80;
+	cursor: default;
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+/* === Grass tool disabled on maps with no grass data === */
+.tf-btn-grass.disabled {
+	background-color: #252528;
+	border-color: #33333540;
+	opacity: 0.4;
+}
+.tf-btn-grass.disabled:hover {
+	background-color: #2a2a2e;
+	border-color: #33333560;
+	opacity: 0.55;
+}
+
+/* Pulsating summary text (used for "No grass data for this map") */
+.tf-ss-pulse {
+	animation: pulse-opacity 1.6s infinite;
+}
+
+/* === Range Slider === */
+.tf-slider {
+	flex: 1;
+	height: 26dp;
+	tab-index: none;
+}
+
+.tf-slider slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 11dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+
+.tf-slider sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 5dp;
+	transition: background-color 0.1s;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+}
+
+.tf-slider sliderbar:hover {
+	background-color: #d4d8e4;
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
+}
+
+.tf-slider sliderarrowdec,
+.tf-slider sliderarrowinc {
+	display: none;
+}
+
+/* === Slider Numeric Input Box === */
+/* Default: 4 chars (e.g. 2000, 1500, -500) */
+.tf-slider-numbox {
+	flex: 0 0 32dp;
+	height: 24dp;
+	padding: 0dp 4dp;
+	line-height: 24dp;
+	font-size: 1.25rem;
+	color: #d8dce4;
+	background-color: #161620;
+	border: 1dp #40404a60;
+	border-radius: 4dp;
+	text-align: right;
+	tab-index: none;
+	box-shadow: inset 0dp 1dp 2dp 0dp #00000030;
+}
+
+/* Per-panel numbox width overrides (sized to fit widest value in each panel) */
+/* Decals: max 3 chars (512) */
+#tf-decal-controls .tf-slider-numbox { flex: 0 0 22dp; }
+/* Decal reset button */
+.tf-dc-reset-btn { background-color: #5a3232; border-color: #c8505080; }
+.tf-dc-reset-btn:hover { background-color: #8a4a4a; border-color: #e87878cc; }
+.tf-dc-reset-btn:hover .tf-action-btn-text { color: #f0f0f0; }
+/* Sun & Shadows: max 5 chars (-9999) */
+#tf-env-sun-root .tf-slider-numbox { flex: 0 0 38dp; }
+
+/* === Env window inline reset button (small in section headers) === */
+.tf-env-reset-btn {
+	height: 14dp;
+	line-height: 14dp;
+	padding: 0 5dp;
+	background-color: #26262e;
+	border: 1dp #4a4a5a40;
+	border-radius: 3dp;
+	font-size: 0.75rem;
+	color: #9ca3af;
+	cursor: pointer;
+	margin-left: 4dp;
+	text-align: center;
+}
+.tf-env-reset-btn:hover {
+	background-color: #343440;
+	border-color: #8a8aa080;
+	color: #d8dce4;
+}
+
+.tf-slider-numbox:focus {
+	border-color: #6a6a80cc;
+	background-color: #1c1c28;
+}
+
+/* === Restore Defaults Button === */
+.tf-defaults-btn {
+	background-color: #32323c;
+	border-color: #60606a60;
+}
+
+.tf-defaults-btn:hover {
+	background-color: #484858;
+	border-color: #9696a8cc;
+}
+
+.tf-defaults-btn:hover .text-medium,
+.tf-defaults-btn:hover .tf-action-btn-text {
+	color: #e5e7eb;
+}
+
+/* === Small Action Button (Save / Load / Defaults row) === */
+.tf-action-btn-sm {
+	height: 24dp;
+}
+
+/* === Preset System === */
+.tf-preset-input {
+	flex: 1;
+	height: 28dp;
+	padding: 2dp 6dp;
+	line-height: 20dp;
+	font-size: 1.0rem;
+	color: #d8dce4;
+	background-color: #161620;
+	border: 1dp #40404a60;
+	border-radius: 6dp;
+}
+
+.tf-preset-input:focus {
+	border-color: #6a6a80cc;
+}
+
+.tf-dim-input {
+	flex: 1;
+	height: 28dp;
+	padding: 2dp 6dp;
+	line-height: 20dp;
+	font-size: 1.0rem;
+	color: #d8dce4;
+	background-color: #161620;
+	border: 1dp #40404a60;
+	border-radius: 6dp;
+	max-width: 100dp;
+}
+
+.tf-dim-input:focus {
+	border-color: #6a6a80cc;
+}
+
+.tf-preset-btn {
+	height: 28dp;
+	padding: 0 10dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6dp;
+	border: 2dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-preset-save {
+	background-color: #2b2113;
+	border-color: #fdc04c70;
+	decorator: vertical-gradient(#3b2d17 #1e1509);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-preset-save:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47acc;
+	decorator: vertical-gradient(#4c3a1e #2b2113);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-preset-toggle {
+	padding: 0 6dp;
+	background-color: #32323c;
+	border-color: #50505a60;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-preset-toggle:hover {
+	background-color: #484858;
+	border-color: #8888a0cc;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-preset-toggle.open {
+	background-color: #40404c;
+	border-color: #7878909a;
+}
+
+.tf-dropdown-arrow {
+	font-size: 0.75rem;
+	color: #9ca3af;
+}
+
+.tf-preset-dropdown {
+	max-height: 168dp;
+	overflow-y: auto;
+	background-color: #16161eee;
+	border: 1dp #44445060;
+	border-radius: 6dp;
+	margin-top: 2dp;
+	margin-bottom: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+
+.tf-preset-dropdown scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+
+.tf-preset-dropdown scrollbarvertical slidertrack {
+	background-color: #2a2a2a;
+	border-radius: 4dp;
+}
+
+.tf-preset-row {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 1dp;
+	min-height: 26dp;
+	padding: 3dp 6dp 4dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-preset-row:hover {
+	background-color: #3a3a4a;
+}
+
+.tf-preset-row.selected {
+	background-color: #2b2113;
+	border: 1dp #fdc04c60;
+}
+
+/* Top row inside a preset entry: name + delete button */
+.tf-preset-row-top {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+}
+
+/* Summary line: condensed params below the preset name */
+.tf-preset-summary {
+	font-size: 0.9rem;
+	color: #9ca3af;
+	overflow: hidden;
+}
+
+.tf-preset-name {
+	flex: 1;
+	font-size: 1.0rem;
+	color: #d1d5db;
+	overflow: hidden;
+}
+
+.tf-preset-delete {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: #ef4444aa;
+	font-weight: bold;
+}
+
+.tf-preset-delete:hover {
+	background-color: #3a1a1a;
+	color: #ef4444;
+}
+
+.tf-preset-delete-disabled {
+	cursor: default;
+	color: transparent;
+}
+
+.tf-preset-delete-disabled:hover {
+	background-color: transparent;
+	color: transparent;
+}
+
+.tf-preset-builtin .tf-preset-name {
+	color: #93a8c4;
+	font-style: italic;
+}
+
+/* === Heightmap browser (Load Heightmap dropdown) === */
+.tf-hm-browser {
+	display: flex;
+	flex-direction: column;
+	max-height: 240dp;
+	overflow-y: auto;
+	background-color: #11131aee;
+	border: 1dp #3a3f4d;
+	border-radius: 6dp;
+	margin-top: 4dp;
+	margin-bottom: 4dp;
+	padding: 4dp;
+}
+
+.tf-hm-browser scrollbarvertical {
+	width: 8dp;
+	margin-left: 2dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar {
+	background-color: #6a6a6a;
+	border-radius: 4dp;
+}
+.tf-hm-browser scrollbarvertical sliderbar:hover {
+	background-color: #8a8a8a;
+}
+.tf-hm-browser scrollbarvertical slidertrack {
+	background-color: #1f2027;
+	border-radius: 4dp;
+}
+
+.tf-hm-header {
+	display: flex;
+	flex-direction: row;
+	flex-shrink: 0;
+	align-items: center;
+	padding: 4dp 6dp;
+	color: #94a3b8;
+	font-size: 0.85rem;
+	font-weight: bold;
+	border-bottom: 1dp #2a2f3a;
+	margin-bottom: 4dp;
+	cursor: pointer;
+}
+.tf-hm-header:hover {
+	color: #cbd5e1;
+}
+.tf-hm-header-chevron {
+	display: inline-block;
+	width: 14dp;
+	margin-right: 4dp;
+	color: #64748b;
+	transition: transform 0.12s;
+}
+.tf-hm-header-text {
+	flex: 1;
+}
+.tf-hm-browser.collapsed .tf-hm-header {
+	border-bottom: 1dp transparent;
+	margin-bottom: 0;
+}
+.tf-hm-browser.collapsed .tf-hm-row,
+.tf-hm-browser.collapsed .tf-hm-empty {
+	display: none;
+}
+
+.tf-hm-empty {
+	padding: 14dp 8dp;
+	color: #6b7280;
+	font-size: 0.95rem;
+	font-style: italic;
+}
+
+.tf-hm-row {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	align-items: stretch;
+	padding: 5dp 8dp;
+	margin-top: 2dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	border: 1dp transparent;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+.tf-hm-row:hover {
+	background-color: #232a38;
+	border: 1dp #2ba5ea80;
+}
+.tf-hm-row:active {
+	background-color: #1d2433;
+}
+
+.tf-hm-row-line {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12dp;
+}
+
+.tf-hm-date {
+	color: #94a3b8;
+	font-size: 0.95rem;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+.tf-hm-badge {
+	color: #7ecbf5;
+	font-size: 0.8rem;
+	line-height: 1.3;
+	background-color: #10344ecc;
+	border: 1dp #2ba5ea80;
+	border-radius: 3dp;
+	padding: 1dp 6dp;
+}
+
+.tf-hm-row.legacy .tf-hm-badge {
+	color: #fdc04c;
+	background-color: #2b2113cc;
+	border: 1dp #fdc04c80;
+}
+
+.tf-hm-mapname {
+	flex: 1;
+	color: #e5e7eb;
+	font-size: 1.0rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	padding-right: 6dp;
+}
+
+.tf-hm-row:hover .tf-hm-mapname {
+	color: #f9fafb;
+}
+
+/* === Absolute Height Cap Toggle === */
+.tf-abs-toggle {
+	width: 20dp;
+	height: 20dp;
+	min-width: 20dp;
+	max-width: 20dp;
+	min-height: 20dp;
+	max-height: 20dp;
+	padding: 0;
+	display: block;
+	border: 2dp #78787899;
+	background-color: #1d1d1dc8;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-abs-toggle:hover {
+	background-color: #2a2a2adc;
+	border-color: #9a9a9a99;
+}
+
+.tf-abs-toggle.active {
+	border-color: #40e0c0cc;
+	background-color: #0d2c24dc;
+	color: #40e0c0;
+}
+
+/* === Action Buttons (Save/Load) === */
+/* === Water Type Preset Buttons === */
+.tf-wtype-btn {
+	min-width: 52dp;
+	height: 26dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6dp;
+	border: 1dp;
+	cursor: pointer;
+	background-color: #282e34;
+	border-color: #40404a50;
+	padding: 0 6dp;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#363e48 #1c2228);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-wtype-btn:hover {
+	background-color: #3c4650;
+	border-color: #6a7a8acc;
+	decorator: vertical-gradient(#4a5462 #2a323e);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-wtype-btn-text {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #a0a8b0;
+}
+
+.tf-wtype-btn:hover .tf-wtype-btn-text {
+	color: #e0e4e8;
+}
+
+.tf-wtype-active {
+	background-color: #0e2637;
+	border-color: #2ba5eacc;
+}
+
+.tf-wtype-active .tf-wtype-btn-text {
+	color: #e8f0f8;
+}
+
+.tf-wtype-active:hover {
+	background-color: #14364d;
+}
+
+.tf-action-btn {
+	flex: 1;
+	height: 36dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 7dp;
+	border: 1dp;
+	cursor: pointer;
+	background-color: #32323c;
+	border-color: #55556040;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-action-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-action-btn:hover .tf-action-btn-text {
+	color: #f0f0f0;
+}
+
+/* === Environment Buttons (full-width with icon) === */
+.tf-env-btn {
+	flex: 1;
+	height: 36dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	border-radius: 7dp;
+	border: 1dp;
+	cursor: pointer;
+	background-color: #32323c;
+	border-color: #55556040;
+	transition: background-color 0.15s;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.tf-env-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff28;
+}
+
+.tf-env-btn:hover .tf-env-btn-text {
+	color: #f0f0f0;
+}
+
+.tf-env-btn.env-open {
+	border-color: #8a8a8acc;
+	background-color: #484848;
+}
+
+.tf-env-btn.env-open .tf-env-btn-text {
+	color: #f0f0f0;
+}
+
+.tf-action-btn.env-open {
+	border-color: #8a8a8acc;
+	background-color: #484848;
+}
+
+.tf-env-btn-icon {
+	width: 28dp;
+	height: 28dp;
+	position: absolute;
+	left: 8dp;
+	top: 4dp;
+}
+
+.tf-env-btn-text {
+	font-size: 1.15rem;
+	font-weight: bold;
+	color: #d8dce4;
+	text-align: center;
+	flex: 1;
+}
+
+/* === Action Button Text (consistent across all panels) === */
+.tf-action-btn-text {
+	font-size: 1.05rem;
+	font-weight: bold;
+	color: #dce0e8;
+}
+
+.tf-save-btn {
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	decorator: vertical-gradient(#133a30 #081e18);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #40e0c030;
+}
+
+.tf-save-btn:hover {
+	background-color: #133a30;
+	border-color: #7cecd6cc;
+	decorator: vertical-gradient(#18463a #0d2c24);
+	box-shadow: 0dp 2dp 5dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #40e0c050;
+}
+
+.tf-save-btn:hover .text-medium,
+.tf-save-btn:hover .tf-action-btn-text,
+.tf-save-btn:hover .tf-env-btn-text {
+	color: #a2f2e2;
+}
+
+.tf-load-btn {
+	background-color: #0e2637;
+	border-color: #2ba5ea80;
+	decorator: vertical-gradient(#17344a #091b28);
+}
+
+.tf-load-btn:hover {
+	background-color: #14364d;
+	border-color: #5cc0f4cc;
+	decorator: vertical-gradient(#1e4460 #0e2637);
+}
+
+.tf-load-btn:hover .text-medium,
+.tf-load-btn:hover .tf-action-btn-text {
+	color: #e5e7eb;
+}
+
+/* === Icon Sizes === */
+.tf-icon-lg {
+	width: 33dp;
+	height: 33dp;
+}
+
+.tf-icon-md {
+	width: 32dp;
+	height: 32dp;
+}
+
+#tf-tools-rows .tf-icon-md,
+#tf-tools-rows2 .tf-icon-md {
+	margin-top: 4dp;
+}
+
+.tf-icon-sm {
+	width: 14dp;
+	min-width: 14dp;
+	max-width: 14dp;
+	height: 14dp;
+}
+
+.tf-icon-xs {
+	width: 10dp;
+	height: 10dp;
+}
+
+/* === Feature Placer Sub-mode Buttons === */
+#section-fp-mode .tf-mode-btn,
+#section-dc-mode .tf-mode-btn,
+#section-wb-mode .tf-mode-btn,
+#section-mb-mode .tf-mode-btn,
+#section-gb-mode .tf-mode-btn,
+#section-sp-mode .tf-mode-btn,
+#section-smooth-mode .tf-mode-btn,
+#section-ramp-type .tf-mode-btn,
+#section-lt-type .tf-mode-btn,
+#section-lt-placement .tf-mode-btn {
+	flex-direction: row;
+	justify-content: center;
+	gap: 8dp;
+	padding-bottom: 0dp;
+}
+
+#section-fp-mode .tf-icon-md,
+#section-dc-mode .tf-icon-md,
+#section-wb-mode .tf-icon-md,
+#section-mb-mode .tf-icon-md,
+#section-gb-mode .tf-icon-md,
+#section-sp-mode .tf-icon-md,
+#section-smooth-mode .tf-icon-md,
+#section-ramp-type .tf-icon-md,
+#section-lt-type .tf-icon-md,
+#section-lt-placement .tf-icon-md {
+	width: 28dp;
+	height: 28dp;
+	margin-top: 0dp;
+}
+
+#section-fp-mode .tf-btn-text,
+#section-dc-mode .tf-btn-text,
+#section-wb-mode .tf-btn-text,
+#section-mb-mode .tf-btn-text,
+#section-gb-mode .tf-btn-text,
+#section-sp-mode .tf-btn-text,
+#section-smooth-mode .tf-btn-text,
+#section-ramp-type .tf-btn-text,
+#section-lt-type .tf-btn-text,
+#section-lt-placement .tf-btn-text {
+	margin-top: 0dp;
+	font-size: 13dp;
+}
+
+.tf-fp-btn-scatter.active,
+.tf-dc-btn-scatter.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-fp-btn-point.active,
+.tf-dc-btn-point.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-fp-btn-remove.active,
+.tf-dc-btn-remove.active,
+.tf-mb-btn-remove.active {
+	border-color: #ef4444;
+	background-color: #3a1616;
+}
+
+.tf-sm-btn-smooth.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-sm-btn-level.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-ramp-btn-straight.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-ramp-btn-spline.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* === Feature Placer Distribution Buttons === */
+.tf-fp-dist-btn {
+	flex: 1;
+	height: 32dp;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 6dp;
+	background-color: #32323c;
+	border-radius: 7dp;
+	border: 1dp #50505a50;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-icon-dist {
+	width: 20dp;
+	height: 20dp;
+}
+
+.tf-fp-dist-btn:hover {
+	background-color: #484858;
+	border-color: #8a8aa0bb;
+}
+
+.tf-fp-dist-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-fp-dist-btn .tf-btn-text {
+	font-size: 1.0rem;
+}
+
+.tf-fp-dist-btn.active .tf-btn-text {
+	color: #e5e7eb;
+}
+
+/* === Weather Brush Styles === */
+
+.tf-btn-weather.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+/* === Weather sub-mode buttons === */
+.tf-wb-btn-scatter.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-wb-btn-point.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
+.tf-wb-btn-remove.active {
+	border-color: #ef4444;
+	background-color: #3a1616;
+}
+
+/* === Weather Persistence slider === */
+.tf-slider-persist sliderbar {
+	width: 16dp;
+	height: 16dp;
+	background-color: #b0b4be;
+	border-radius: 8dp;
+	border: 2dp #ffffff38;
+	margin-top: 3dp;
+	box-shadow: 0dp 1dp 3dp 0dp #00000050;
+}
+
+.tf-slider-persist sliderbar:hover {
+	background-color: #dce0e8;
+	box-shadow: 0dp 0dp 6dp 2dp #ffffff38;
+}
+
+/* === Tools Buttons (shorter, 4 per row) === */
+#tf-tools-rows .tf-mode-btn,
+#tf-tools-rows2 .tf-mode-btn {
+	height: 44dp;
+}
+
+/* === Sub-mode Buttons (smaller than main mode) === */
+#tf-feature-submodes .tf-mode-btn,
+#tf-weather-submodes .tf-mode-btn,
+#tf-startpos-submodes .tf-mode-btn,
+#tf-decal-controls .tf-mode-btn,
+#tf-dc-submodes .tf-mode-btn,
+#tf-metal-submodes .tf-mode-btn,
+#tf-grass-submodes .tf-mode-btn,
+#tf-smooth-submodes .tf-mode-btn,
+#tf-ramp-type-row .tf-mode-btn,
+#tf-light-controls .tf-mode-btn {
+	height: 40dp;
+}
+
+/* === Splat Channel 2x2 Grid === */
+.tf-sp-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 3dp;
+}
+.tf-sp-row {
+	display: flex;
+	flex-direction: row;
+	gap: 3dp;
+}
+
+/* === Splat Channel Buttons === */
+.tf-sp-ch-btn {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 3dp;
+	background-color: #32323c;
+	border-radius: 8dp;
+	border: 1dp #44445060;
+	cursor: pointer;
+	position: relative;
+}
+.tf-sp-ch-btn:hover {
+	background-color: #404050;
+	border-color: #606070;
+}
+
+/* Per-channel active states (matches UI convention: colored border + tinted bg) */
+#btn-sp-ch1.active { border-color: #cc5555; background-color: #2a1a1a; }
+#btn-sp-ch2.active { border-color: #55cc55; background-color: #1a2a1a; }
+#btn-sp-ch3.active { border-color: #5566cc; background-color: #1a1a2a; }
+#btn-sp-ch4.active { border-color: #cccc55; background-color: #2a2a1a; }
+
+/* === Splat badge (top-left channel number) === */
+.tf-sp-badge {
+	position: absolute;
+	top: 4dp;
+	left: 6dp;
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #9ca3af;
+	pointer-events: none;
+}
+#btn-sp-ch1.active .tf-sp-badge { color: #ee7777; }
+#btn-sp-ch2.active .tf-sp-badge { color: #77ee77; }
+#btn-sp-ch3.active .tf-sp-badge { color: #7777ee; }
+#btn-sp-ch4.active .tf-sp-badge { color: #eeee77; }
+
+/* === Splat Texture Preview Thumbnail === */
+.tf-sp-preview {
+	width: 100%;
+	height: 64dp;
+	border-radius: 5dp;
+	background-color: #111114;
+	display: block;
+}
+
+/* === Active-state hover highlights === */
+.tf-btn-raise.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-lower.active:hover {
+	background-color: #55201f;
+	border-color: #f87171;
+}
+
+.tf-btn-level.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-ramp.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-restore.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-noise.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-erode.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-noise-type-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-features.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-shape-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-fp-btn-scatter.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-fp-btn-point.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-fp-btn-remove.active:hover,
+.tf-mb-btn-remove.active:hover {
+	background-color: #55201f;
+	border-color: #f87171;
+}
+
+.tf-fp-dist-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-weather.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-wb-btn-scatter.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-wb-btn-point.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-wb-btn-remove.active:hover {
+	background-color: #55201f;
+	border-color: #f87171;
+}
+
+.tf-undo-mode-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-abs-toggle.active:hover {
+	background-color: #133a30dc;
+	border-color: #7cecd6cc;
+}
+
+.tf-btn-splat.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-diffuse.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-decals.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-grass.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-gb-btn-paint.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-gb-btn-fill.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-gb-btn-erase.active {
+	border-color: #ef4444;
+	background-color: #3a1616;
+}
+
+.tf-gb-btn-erase.active:hover {
+	background-color: #55201f;
+	border-color: #f87171;
+}
+
+/* --- Grass Texture Filter Color Swatch --- */
+#gb-tex-color-swatch {
+	width: 100%;
+	height: 20dp;
+	border-radius: 5dp;
+	border: 2dp #0c0c0c;
+	background-color: #3f7326;
+}
+
+/* --- Grass Exclude Color Swatch --- */
+#gb-tex-exclude-swatch {
+	width: 100%;
+	height: 20dp;
+	border-radius: 5dp;
+	border: 2dp #0c0c0c;
+	background-color: #a65919;
+}
+
+/* --- Grass Pipette Button --- */
+.tf-gb-pipette-btn {
+	padding: 2dp 8dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #26262e;
+	border-radius: 4dp;
+	border: 1dp #4a4a5a60;
+	font-size: 0.9rem;
+	color: #9ca3af;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+.tf-gb-pipette-btn:hover {
+	background-color: #3a3a44;
+	color: #d1d5db;
+	border-color: #7878909a;
+}
+.tf-gb-pipette-btn.active {
+	background-color: #0d2c24;
+	border-color: #40e0c066;
+	color: #40e0c0;
+}
+
+/* === Slider Wheel-Lock (double-click to lock) === */
+/* Locked — teal tint fill + teal outline (toggle-state accent) */
+.slider-locked sliderbar {
+	background-color: #1a4438;
+	border: 2dp #40e0c0bb;
+	box-shadow: none;
+	transition: background-color 0.08s, border-color 0.08s;
+}
+.slider-locked sliderbar:hover {
+	background-color: #215446;
+	border-color: #40e0c0ee;
+}
+/* Pulse phase — border fades to dim; fill stays constant */
+.slider-locked.slider-pulse sliderbar {
+	background-color: #1a4438;
+	border: 2dp #40e0c040;
+}
+.slider-locked.slider-pulse sliderbar:hover {
+	background-color: #215446;
+	border-color: #40e0c088;
+}
+
+/* Keybind-scroll flash — brief teal highlight that fades back via base transition */
+.slider-flash sliderbar {
+	background-color: #40e0c0;
+	border: 2dp #7cecd6aa;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PHASE 4: Section grouping & visual hierarchy
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* === Section Frame (fieldset/legend style — all collapsible sections) ===
+ * The frame wraps each toggle-row + section-body pair.
+ * margin-top: 10dp creates space above for the title row to float.
+ * The title row (position: absolute, top: -10dp) straddles the top border
+ * so its vertical midpoint aligns with the frame's top border line.
+ * When collapsed (.tf-collapsed), only the top border edge shows (acts as separator). */
+.tf-section-frame {
+	position: relative;
+	margin-top: 14dp;
+	margin-bottom: 10dp;
+	padding: 7dp 4dp 4dp 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+/* Collapsed: only top border edge visible (replaces old divider-horizontal-dark) */
+.tf-section-frame.tf-collapsed {
+	border-left-width: 0;
+	border-right-width: 0;
+	border-bottom-width: 0;
+	border-radius: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-bottom: 4dp;
+}
+
+/* Title row: floats above the frame's top border, masking it with the panel bg.
+ * The background-color must match bg-darkest (#1d1d1d) used by tf-root and all
+ * floating windows so the border appears "punched through" behind the label. */
+.tf-section-title-row {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	background-color: #1d1d1d;
+	padding: 0 5dp;
+	cursor: pointer;
+}
+
+/* === Data-if wrapper divs (tool-section containers) ===
+ * These block divs wrap per-tool sections via data-if. They carry the leading
+ * margin (same 14dp as .tf-section-frame) so the first frame child inside
+ * doesn't need to — preventing any first-child margin interaction at wrapper
+ * boundaries that could cause uneven spacing across tool modes. */
+#tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
+#tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
+#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes,
+#tf-ramp-type-row, #tf-smooth-submodes, #tf-dc-submodes,
+#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls,
+#tf-weather-controls, #tf-splat-controls, #tf-decal-controls,
+#tf-environment-controls, #tf-light-controls {
+	margin-top: 14dp;
+}
+/* Zero the first frame's margin-top since the wrapper provides the gap. */
+#tf-startpos-submodes > .tf-section-frame:first-child,
+#tf-startpos-controls > .tf-section-frame:first-child,
+#tf-clone-controls > .tf-section-frame:first-child,
+#tf-shape-row > .tf-section-frame:first-child,
+#tf-metal-submodes > .tf-section-frame:first-child,
+#tf-metal-controls > .tf-section-frame:first-child,
+#tf-grass-submodes > .tf-section-frame:first-child,
+#tf-grass-controls > .tf-section-frame:first-child,
+#tf-feature-submodes > .tf-section-frame:first-child,
+#tf-ramp-type-row > .tf-section-frame:first-child,
+#tf-smooth-submodes > .tf-section-frame:first-child,
+#tf-dc-submodes > .tf-section-frame:first-child,
+#tf-weather-submodes > .tf-section-frame:first-child,
+#tf-terraform-controls > .tf-section-frame:first-child,
+#tf-feature-controls > .tf-section-frame:first-child,
+#tf-weather-controls > .tf-section-frame:first-child,
+#tf-splat-controls > .tf-section-frame:first-child,
+#tf-decal-controls > .tf-section-frame:first-child,
+#tf-environment-controls > .tf-section-frame:first-child,
+#tf-light-controls > .tf-section-frame:first-child {
+	margin-top: 0;
+}
+
+/* frame-shape sits inside the tf-shape-row wrapper and precedes tf-terraform-controls.
+ * When expanded, the default margin-bottom of 10dp creates a 24dp visual gap to the
+ * DISPLAY section (10 + 14dp wrapper mt), while collapsed→collapsed gaps are only 18dp.
+ * Lock it to 4dp so the SHAPE→DISPLAY gap is consistent with all other section gaps. */
+#frame-shape {
+	margin-bottom: 4dp;
+}
+
+/* === Stronger Section Divider (use between major groups) === */
+.tf-section-divider {
+	height: 1dp;
+	background-color: #34343e;
+	margin: 6dp 0;
+}
+
+/* === Overlay Chip Row === */
+/* Compact chip buttons for persistent overlays (Grid, Height Map) */
+.tf-overlay-chip {
+	padding: 3dp 8dp;
+	border-radius: 5dp;
+	background-color: #2a2a34;
+	border: 1dp #3e3e4a50;
+	cursor: pointer;
+	transition: background-color 0.1s, border-color 0.1s;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
+}
+.tf-overlay-chip:hover {
+	background-color: #3a3a46;
+	border-color: #5a5a6a;
+	decorator: vertical-gradient(#4a4a58 #2a2a36);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff20;
+}
+.tf-overlay-chip.active {
+	background-color: #0d2c24;
+	border-color: #40e0c0;
+	decorator: vertical-gradient(#133a30 #081e18);
+	box-shadow: 0dp 2dp 4dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #40e0c030;
+}
+.tf-overlay-chip.active:hover {
+	background-color: #133a30;
+	border-color: #7cecd6;
+	decorator: vertical-gradient(#18463a #0d2c24);
+	box-shadow: 0dp 2dp 5dp 0dp #00000080, inset 0dp 1dp 0dp 0dp #40e0c050;
+}
+.tf-overlay-chip-label {
+	font-size: 1.0rem;
+	color: #9ca3af;
+}
+.tf-overlay-chip.active .tf-overlay-chip-label {
+	color: #a2f2e2;
+}
+
+/* === Controls section: muted active state (param chips are almost always on) === */
+#section-sliders .tf-overlay-chip.active {
+	background-color: #12261f;
+	border-color: #40e0c050;
+}
+#section-sliders .tf-overlay-chip.active:hover {
+	background-color: #17302a;
+	border-color: #40e0c080;
+}
+#section-sliders .tf-overlay-chip.active .tf-overlay-chip-label {
+	color: #9fd2c4;
+}
+#section-fp-controls .tf-overlay-chip.active {
+	background-color: #12261f;
+	border-color: #40e0c050;
+}
+#section-fp-controls .tf-overlay-chip.active:hover {
+	background-color: #17302a;
+	border-color: #40e0c080;
+}
+#section-fp-controls .tf-overlay-chip.active .tf-overlay-chip-label {
+	color: #9fd2c4;
+}
+
+/* === Inline Header Chip === */
+/* Small chip embedded in section header rows (SNAP on SIZE, SHOW on FALL-OFF, ~VEL on INTENSITY) */
+.tf-inline-chip {
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+	background-color: #26262e;
+	border: 1dp #3a3a4440;
+	font-size: 0.78rem;
+	color: #6b7280;
+	cursor: pointer;
+	transition: background-color 0.1s, border-color 0.1s, color 0.1s;
+}
+.tf-inline-chip:hover {
+	background-color: #343440;
+	border-color: #55556080;
+	color: #9ca3af;
+}
+.tf-inline-chip.active {
+	background-color: #0d2c24;
+	border-color: #40e0c060;
+	color: #40e0c0;
+}
+.tf-inline-chip.active:hover {
+	background-color: #133a30;
+	border-color: #40e0c0;
+	color: #a2f2e2;
+}
+
+/* === DJ Mode Toggle Rows (Settings Panel) === */
+.tf-dj-activate-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding: 7dp 10dp;
+	margin-bottom: 10dp;
+	background-color: #1e1e28;
+	border: 1dp #32323c;
+	border-radius: 6dp;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+.tf-dj-activate-row:hover {
+	background-color: #262634;
+	border-color: #3e5a52;
+}
+.tf-dj-activate-row.active {
+	background-color: #0d2c24;
+	border-color: #40e0c060;
+}
+.tf-dj-activate-row.active:hover {
+	background-color: #133a30;
+	border-color: #40e0c0;
+}
+.tf-dj-activate-name {
+	font-size: 1.15rem;
+	font-weight: bold;
+	color: #e2e8f0;
+}
+.tf-dj-activate-row.active .tf-dj-activate-name {
+	color: #a2f2e2;
+}
+.tf-dj-activate-desc {
+	font-size: 0.9rem;
+	color: #6b7280;
+	margin-top: 2dp;
+}
+.tf-dj-activate-row .tf-dj-toggle-pill {
+	min-width: 36dp;
+	text-align: center;
+}
+.tf-dj-activate-row.active .tf-dj-toggle-pill {
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	color: #a2f2e2;
+}
+.tf-dj-sub-settings {
+	transition: opacity 0.15s;
+}
+.tf-dj-sub-settings.dj-disabled {
+	opacity: 0.38;
+	pointer-events: none;
+}
+.tf-dj-toggle-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding: 7dp 10dp;
+	margin-bottom: 4dp;
+	background-color: #1e1e28;
+	border: 1dp #32323c;
+	border-radius: 6dp;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+.tf-dj-toggle-row:hover {
+	background-color: #262634;
+	border-color: #454558;
+}
+.tf-dj-toggle-row.active {
+	background-color: #0d2c24;
+	border-color: #40e0c050;
+}
+.tf-dj-toggle-row.active:hover {
+	background-color: #133a30;
+	border-color: #40e0c090;
+}
+.tf-dj-toggle-name {
+	font-size: 1.05rem;
+	color: #d8dce4;
+}
+.tf-dj-toggle-desc {
+	font-size: 0.88rem;
+	color: #6b7280;
+	margin-top: 2dp;
+}
+.tf-dj-toggle-pill {
+	padding: 2dp 8dp;
+	border-radius: 10dp;
+	font-size: 0.85rem;
+	font-weight: bold;
+	background-color: #2a2a34;
+	border: 1dp #3e3e4a80;
+	color: #6b7280;
+	transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+}
+.tf-dj-toggle-row.active .tf-dj-toggle-pill {
+	background-color: #0d2c24;
+	border-color: #40e0c080;
+	color: #a2f2e2;
+}
+#settings-tab-dj .text-sm {
+	font-size: 0.95rem;
+}
+#settings-tab-dj .text-base {
+	font-size: 1.0rem;
+}
+
+/* === Button Press States (micro-polish) === */
+.tf-mode-btn:active {
+	background-color: #2e2e36;
+}
+
+.tf-shape-btn:active {
+	background-color: #2e2e36;
+}
+
+.tf-action-btn:active {
+	background-color: #24242c;
+}
+
+.tf-lp-action-btn:active {
+	background-color: #24242c;
+}
+
+.tf-env-btn:active {
+	background-color: #24242c;
+}
+
+.tf-sm-btn:active {
+	background-color: #2a2a32;
+}
+
+.tf-fp-dist-btn:active {
+	background-color: #24242c;
+}
+
+.tf-lp-compact-btn:active {
+	background-color: #24242c;
+}
+
+.tf-lp-dist-btn:active {
+	background-color: #24242c;
+}
+
+.tf-preset-btn:active {
+	background-color: #24242c;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETTINGS WINDOW
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tf-settings-window {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 920;
+	width: 320dp;
+	min-height: 200dp;
+	max-height: 80vh;
+	overflow-y: auto;
+}
+
+.tf-settings-glyph {
+	font-size: 1.15rem;
+	color: #b0b4be;
+	pointer-events: none;
+}
+
+.tf-settings-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-settings-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
+/* Settings tab bar */
+.tf-settings-tab {
+	padding: 4dp 12dp;
+	background-color: #32323c;
+	border: 1dp #55556040;
+	border-radius: 6dp 6dp 0dp 0dp;
+	font-size: 1.15rem;
+	font-weight: bold;
+	color: #9ca3af;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.tf-settings-tab:hover {
+	background-color: #484858;
+}
+
+.tf-settings-tab.active {
+	background-color: #393942;
+	border-bottom-color: #393942;
+	color: #e5e7eb;
+}
+
+.tf-settings-tab-content {
+	border: 1dp #55556040;
+	border-top: 0dp;
+	border-radius: 0dp 0dp 6dp 6dp;
+	padding: 8dp;
+	background-color: #1a1a22;
+}
+
+/* Keybind list */
+.tf-keybind-list {
+	max-height: 50vh;
+	overflow-y: auto;
+}
+
+.tf-keybind-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 4dp 4dp;
+	border-bottom: 1dp #34343e;
+	transition: background-color 0.15s;
+}
+
+.tf-keybind-row:hover {
+	background-color: #24242e;
+}
+
+.tf-keybind-action {
+	flex: 1;
+	font-size: 1.15rem;
+	color: #d8dce4;
+}
+
+.tf-keybind-key {
+	width: 72dp;
+	padding: 4dp 8dp;
+	text-align: center;
+	font-size: 1.15rem;
+	font-weight: bold;
+	color: #d9c28a;
+	background-color: #1e1a12dc;
+	border: 1dp #55556040;
+	border-radius: 4dp;
+	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s;
+}
+
+.tf-keybind-key:hover {
+	background-color: #2e2a20;
+	border-color: #7878909a;
+}
+
+.tf-keybind-key.capturing {
+	background-color: #2b2113;
+	border-color: #fdc04c;
+	color: #fdc04c;
+}
+
+.tf-keybind-key.modified {
+	color: #fdc04c;
+}
+
+/* Fixed/non-rebindable system key badge (e.g. ESC to clear locked sliders) */
+.tf-keybind-key-fixed {
+	width: 72dp;
+	padding: 4dp 8dp;
+	text-align: center;
+	font-size: 1.15rem;
+	font-weight: bold;
+	color: #a89a70;
+	background-color: #1e1a1277;
+	border: 1dp #44445040;
+	border-radius: 4dp;
+	cursor: default;
+}
+
+/* Scroll controls separator */
+.tf-keybind-separator {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding: 6dp 0dp 2dp 0dp;
+	gap: 6dp;
+}
+
+.tf-keybind-sep-line {
+	flex: 1;
+	height: 1dp;
+	background-color: #44445060;
+}
+
+.tf-keybind-sep-label {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #6b7280;
+	white-space: nowrap;
+}
+
+/* Scroll keybind row key area */
+.tf-scroll-keys {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+}
+
+.tf-scroll-plus {
+	font-size: 0.9rem;
+	color: #6b7280;
+}
+
+.tf-scroll-mod {
+	width: auto;
+	min-width: 40dp;
+	padding: 4dp 6dp;
+}
+
+.tf-scroll-fixed {
+	padding: 4dp 8dp;
+	text-align: center;
+	font-size: 1.0rem;
+	font-weight: bold;
+	color: #8b9ab0;
+	background-color: #16161edc;
+	border: 1dp #3a3a4860;
+	border-radius: 4dp;
+	white-space: nowrap;
+}
+
+/* === Collapsible Section Header === */
+/* Used by all +/- collapse toggles throughout the panel */
+.tf-collapsible-title {
+	font-size: 1.05rem;
+	font-weight: bold;
+	color: #c8d0d8;
+}
+
+/* Warning chip — shown in the toggle header when section is collapsed but items within are active */
+.tf-overlay-chip-warn {
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+	background-color: #5a1a1a;
+	border: 1dp #cc333380;
+}
+.tf-overlay-chip-warn:hover {
+	background-color: #6e2020;
+	border-color: #cc3333;
+}
+.tf-overlay-chip-warn .tf-overlay-chip-label {
+	font-size: 0.78rem;
+	color: #ff9999;
+}
+
+/* Instrument sub-panel — outlined box for each tool's controls */
+.tf-instrument-sub {
+padding: 5dp 8dp;
+border: 1dp #3a3a5060;
+border-radius: 4dp;
+margin-top: 3dp;
+}
+
+/* === Notify Dot === */
+/* Small pulsating dot placed in a section header to hint the user something interesting is inside */
+@keyframes notify-dot-pulse {
+	0%   { opacity: 0.35; }
+	50%  { opacity: 1.0; }
+	100% { opacity: 0.35; }
+}
+.tf-notify-dot {
+	width: 7dp;
+	height: 7dp;
+	border-radius: 4dp;
+	background-color: #40e0c0;
+	box-shadow: 0dp 0dp 5dp 0dp #40e0c099;
+	animation: notify-dot-pulse 1.3s infinite;
+}
+
+/* === Chip 2-pulse attention animation === */
+/* Plays once when a section is opened to draw attention to a chip inside */
+@keyframes chip-2pulse {
+	0%   { background-color: #2a2a34; border-color: #3e3e4a50; }
+	20%  { background-color: #133a30; border-color: #40e0c0ff; }
+	40%  { background-color: #2a2a34; border-color: #3e3e4a50; }
+	62%  { background-color: #133a30; border-color: #40e0c0ff; }
+	82%  { background-color: #2a2a34; border-color: #3e3e4a50; }
+	100% { background-color: #2a2a34; border-color: #3e3e4a50; }
+}
+.tf-chip-2pulse {
+	animation: chip-2pulse 1.1s 1;
+}
+
+/* === Light Orientation Globe === */
+.lp-orient-globe {
+	position: relative;
+	width: 110dp;
+	height: 110dp;
+	border-radius: 55dp;
+	background-color: #080e16;
+	border: 1dp #3a5070;
+	cursor: pointer;
+}
+.lp-orient-ring {
+	position: absolute;
+	border-radius: 55dp;
+	background-color: transparent;
+}
+.lp-orient-horizon {
+	left: 4dp;
+	top: 4dp;
+	width: 102dp;
+	height: 102dp;
+	border: 1dp #4a6888;
+}
+.lp-orient-mid {
+	left: 24dp;
+	top: 24dp;
+	width: 62dp;
+	height: 62dp;
+	border: 1dp #36506870;
+}
+.lp-orient-compass {
+	position: absolute;
+	font-size: 0.8rem;
+	color: #7a9ac0;
+	font-weight: bold;
+}
+.lp-orient-N {
+	left: 49dp;
+	top: 2dp;
+}
+.lp-orient-E {
+	left: 100dp;
+	top: 48dp;
+}
+.lp-orient-S {
+	left: 49dp;
+	top: 97dp;
+}
+.lp-orient-W {
+	left: 2dp;
+	top: 48dp;
+}
+.lp-orient-center {
+	position: absolute;
+	width: 6dp;
+	height: 6dp;
+	border-radius: 3dp;
+	background-color: #4a6080;
+	left: 52dp;
+	top: 52dp;
+}
+.lp-orient-indicator {
+	position: absolute;
+	width: 16dp;
+	height: 16dp;
+	border-radius: 8dp;
+	background-color: #fdc04ce0;
+	border: 1dp #ffe2a0;
+	left: 47dp;
+	top: 47dp;
+	cursor: pointer;
+}
+.lp-orient-numbox {
+	width: 48dp;
+	height: 24dp;
+	line-height: 24dp;
+	font-size: 1.15rem;
+	padding: 0dp 4dp;
+	border: 1dp #40404a60;
+	border-radius: 4dp;
+	background-color: #161620;
+	color: #d8dce4;
+	text-align: right;
+	tab-index: none;
+}
+.lp-orient-numbox:focus {
+	border-color: #6a6a80cc;
+	background-color: #1c1c28;
+}
+.lp-orient-label {
+	width: 36dp;
+	text-align: right;
+	font-size: 1.0rem;
+	color: #e5e7eb;
+}
+.lp-orient-deg {
+	font-size: 0.9rem;
+	color: #9ca3af;
+}
+.lp-orient-hintbar {
+	font-size: 0.75rem;
+	color: #d9c28a;
+	margin-bottom: 4dp;
+}
+.lp-orient-hint {
+	color: #d9c28a;
+	font-size: 0.75rem;
+}
+
+/* Grayed-out unavailable controls (e.g. scatter/distribution for cone/beam lights) */
+.lp-unavailable {
+	opacity: 0.32;
+	pointer-events: none;
+	cursor: default;
+}
+
+/* === Phase 3 generic grayout ============================================== */
+/* Applied via ctx.setDisabled(doc, id, on) from per-tool M.sync when a        */
+/* control is irrelevant to the current sub-mode/shape/submode. Visible but    */
+/* non-interactive. More-specific .tf-shape-btn.disabled etc. still override.  */
+.disabled {
+	opacity: 0.35;
+	pointer-events: none;
+	cursor: default;
+}
+.disabled:hover {
+	opacity: 0.35;
+}

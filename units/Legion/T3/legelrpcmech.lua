@@ -154,8 +154,6 @@ return {
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 800,

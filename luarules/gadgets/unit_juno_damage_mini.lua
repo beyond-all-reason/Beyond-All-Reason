@@ -137,9 +137,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--config -- see also in unsynced
-	local radius = 315 --outer radius of area denial ring
+	local radius = 250 --outer radius of area denial ring
 	local width = 30 --width of area denial ring
-	local effectlength = 10 --how long area denial lasts, in seconds
+	local effectlength = 7 --how long area denial lasts, in seconds
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals

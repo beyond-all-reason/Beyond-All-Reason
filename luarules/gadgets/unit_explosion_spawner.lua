@@ -80,7 +80,7 @@ local spawnCount = 0
 local spawnNames = {}
 local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
 
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.spawns_name then
 		local unitNames = strSplit(wdcp.spawns_name)
