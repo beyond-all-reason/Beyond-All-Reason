@@ -285,16 +285,19 @@ end
 -- Reset Custom to a clean copy of a shipped preset: load that preset live, dump it
 -- over uikeys.txt, then reload as Custom. Discards pending Custom edits by design.
 resetToPreset = function(opt)
+	-- The dump only holds the preset if the reload actually swapped the live binds in,
+	-- so without it we would write the unchanged custom binds back and report success.
+	if not (WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings) then
+		Spring.Echo("Keybind reset needs the BAR Hotkeys widget enabled")
+		return
+	end
+
 	edited = false
 	Spring.SetConfigString("KeybindingFile", opt.file)
-	if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-		WG['bar_hotkeys'].reloadBindings()
-	end
+	WG['bar_hotkeys'].reloadBindings()
 	spSendCommands("keysave uikeys.txt")
 	Spring.SetConfigString("KeybindingFile", "uikeys.txt")
-	if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-		WG['bar_hotkeys'].reloadBindings()
-	end
+	WG['bar_hotkeys'].reloadBindings()
 	Spring.Echo("Keybind custom reset from preset: " .. opt.label)
 	view.refresh()
 end

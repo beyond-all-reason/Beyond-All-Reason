@@ -564,7 +564,11 @@
 				"clear": "Remove selection from control groups",
 				"addAuto": "Add unit type to auto-group %{n}",
 				"removeOne": "Remove closest unit from its group",
-				"preset": "Load auto-group preset %{n}"
+				"preset": "Load auto-group preset %{n}",
+				"focus": "Select control group %{n} and focus camera",
+				"add": "Add selection to control group %{n}",
+				"selectAdd": "Add control group %{n} to selection",
+				"selectToggle": "Toggle control group %{n} in selection"
 			},
 			"factory": {
 				"queueMode": "Toggle factory repeat mode",

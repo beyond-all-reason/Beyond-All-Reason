@@ -137,9 +137,13 @@ return {
 	} },
 
 	{ category = "ui.keybinds.controlGroups.title", items = {
+		{ prefix = "group select ", label = "ui.keybinds.controlGroups.select" },
+		{ prefix = "group focus ", label = "ui.keybinds.controlGroups.focus" },
 		{ prefix = "group set ", label = "ui.keybinds.controlGroups.assign" },
+		{ prefix = "group add ", label = "ui.keybinds.controlGroups.add" },
+		{ prefix = "group selectadd ", label = "ui.keybinds.controlGroups.selectAdd" },
+		{ prefix = "group selecttoggle ", label = "ui.keybinds.controlGroups.selectToggle" },
 		{ action = "group unset", label = "ui.keybinds.controlGroups.clear" },
-		{ prefix = "group ", label = "ui.keybinds.controlGroups.select" },
 		{ prefix = "add_to_autogroup ", label = "ui.keybinds.controlGroups.addAuto" },
 		{ action = "remove_from_autogroup", label = "ui.keybinds.massSelect.removeAutoGroup" },
 		{ action = "remove_one_unit_from_group", label = "ui.keybinds.controlGroups.removeOne" },

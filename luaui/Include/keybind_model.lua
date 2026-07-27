@@ -26,13 +26,14 @@ local function displayElement(raw, layout)
 	return anyPrefix .. keyConfig.sanitizeKey(raw, layout):gsub("%+", " + ")
 end
 
--- Split a chain on separator commas; a comma doesn't split mid-token after "sc_" (the comma key).
+-- Split a chain on separator commas. A comma is the bound key rather than a separator
+-- when nothing has been read yet (","), straight after a modifier ("Alt+,") or after "sc_".
 local function splitChain(raw)
 	local elems = {}
 	local cur = ""
 	for i = 1, #raw do
 		local c = raw:sub(i, i)
-		if c == "," and cur:sub(-3) ~= "sc_" then
+		if c == "," and cur ~= "" and cur:sub(-1) ~= "+" and cur:sub(-3) ~= "sc_" then
 			if cur ~= "" then elems[#elems + 1] = cur end
 			cur = ""
 		else
