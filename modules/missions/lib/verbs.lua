@@ -1,10 +1,5 @@
---- The three demo verbs' pure halves: UnitDef refs and the Team handle with
---- its Has condition. No Spring here — conditions read counts from the ctx the
---- engine is handed, so this specs under busted; the gadget supplies a ctx
---- backed by Spring.GetTeamUnitDefCount.
----
---- Conditions capture configuration only (team id, unit name, threshold) —
---- never progress. Dot-only surface, same rule as the chain DSL.
+--- Mission verbs' pure halves. No Spring here, so this specs under busted;
+--- conditions/effects capture configuration only, never progress.
 
 local Verbs = {}
 
@@ -43,6 +38,44 @@ function Verbs.MakeTeam(teamID, allyTeam)
 	end
 
 	return team
+end
+
+---Build the Unit noun over the roster: unknown name is a LOAD error, not a
+---silently-never-true condition. IsDestroyed/IsSpotted read latched state.
+---@param names table<string, boolean> the roster's declared unit names
+---@return fun(name: MissionUnitName): MissionUnitRef
+function Verbs.MakeUnit(names)
+	return function(name)
+		assert(type(name) == "string", "Unit expects a mission unit name string")
+		assert(names[name],
+			'Unit("' .. name .. '"): no such unit — units.lua Named(...) declares the mission\'s unit names')
+		return {
+			name = name,
+			---@return MissionCondition
+			IsDestroyed = function()
+				return {
+					inputs = { "UnitDestroyed" },
+					---@param ctx MissionContext
+					evaluate = function(ctx)
+						return ctx.IsUnitDestroyed(name)
+					end,
+				}
+			end,
+			---@param team MissionTeam
+			---@return MissionCondition
+			IsSpotted = function(team)
+				assert(type(team) == "table" and type(team.allyTeam) == "number",
+					"Unit.IsSpotted expects a Team handle (e.g. Team.Player)")
+				return {
+					inputs = { "UnitEnteredLos" },
+					---@param ctx MissionContext
+					evaluate = function(ctx)
+						return ctx.IsUnitSpotted(name, team.allyTeam)
+					end,
+				}
+			end,
+		}
+	end
 end
 
 return Verbs
