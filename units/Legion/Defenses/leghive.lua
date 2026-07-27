@@ -39,7 +39,7 @@ return {
 			model_author = "Zephyr",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			legacyname = "Gaat Gun",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",

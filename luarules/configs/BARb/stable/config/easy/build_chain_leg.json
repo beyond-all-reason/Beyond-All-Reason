@@ -25,7 +25,7 @@
 		"legion": ["legeyes"]
 	},
 
-	// Fallback defence
+	// Fallback defense
 	"default": {
 		"legion": "leglht"
 	}
@@ -34,7 +34,7 @@
 // Actions on building finished event
 "build_chain": {
 	// WARNING: Avoid recursion
-	// <category>: factory, nano, store, pylon, energy, geo, defence, bunker, big_gun, radar, sonar, convert, mex, mexup
+	// <category>: factory, nano, store, pylon, energy, geo, defense, bunker, big_gun, radar, sonar, convert, mex, mexup
 	"energy": {
 		// <UnitDef>: {<elements>}
 		"legadvsol": {
@@ -63,7 +63,7 @@
 			// Build chain of units
 			"hub": [
 				[  // chain1
-					{"unit": "legmg", "category": "defence", "offset": {"front": 80}, "condition": {"chance": 0.25}}
+					{"unit": "legmg", "category": "defense", "offset": {"front": 80}, "condition": {"chance": 0.25}}
 //				],
 //				[  // chain2
 //					{"unit": "legeconv", "category": "convert", "offset": [80, 80], "condition": {"energy": true}}
@@ -78,8 +78,8 @@
 				[  // chain1
 //					{"unit": "legadveconv", "category": "convert", "offset": [-60, +16]},
 //					{"unit": "legadveconv", "category": "convert", "offset": [-60, -16]},
-					{"unit": "legapopupdef", "category": "defence", "offset": [200, 0], "condition": {"chance": 0.5}},
-					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "legapopupdef", "category": "defense", "offset": [200, 0], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defense", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		},
@@ -87,28 +87,28 @@
 			"hub": [
 				[  // chain1
 
-					{"unit": "legabm", "category": "defence", "offset": [-120, -120], "condition": {"chance": 0.5}},
-					{"unit": "legbastion", "category": "defence", "offset": [-180, -180]},
-					{"unit": "legapopupdef", "category": "defence", "offset": [-80, -80], "condition": {"chance": 0.5}},
-					{"unit": "legrhapsis", "category": "defence", "offset": [-80, 80], "condition": {"air": true}}
+					{"unit": "legabm", "category": "defense", "offset": [-120, -120], "condition": {"chance": 0.5}},
+					{"unit": "legbastion", "category": "defense", "offset": [-180, -180]},
+					{"unit": "legapopupdef", "category": "defense", "offset": [-80, -80], "condition": {"chance": 0.5}},
+					{"unit": "legrhapsis", "category": "defense", "offset": [-80, 80], "condition": {"air": true}}
 				]
 			]
 		}
 	},
 	"geo": {
 		"leggeo": {
-			"hub": [[{"unit": "legmg", "category": "defence", "offset": {"front": 64}}]]
+			"hub": [[{"unit": "legmg", "category": "defense", "offset": {"front": 64}}]]
 		}
 	},
 	"factory": {
 		"leglab": {
-			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "leglht", "category": "defense", "offset": {"back": 5}, "priority": "now"}]]
 		},
 		"legvp": {
-			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"back": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "leglht", "category": "defense", "offset": {"back": 5}, "priority": "now"}]]
 		},
 		"legap": {
-			"hub": [[{"unit": "leglht", "category": "defence", "offset": {"front": 5}, "priority": "now"}]]
+			"hub": [[{"unit": "leglht", "category": "defense", "offset": {"front": 5}, "priority": "now"}]]
 		}
 	},
 	"mex": {
@@ -120,9 +120,9 @@
 	"radar":{
 		"legrad": {
 			"hub": [
-				[{"unit": "leglht", "category": "defence", "offset": {"front": 100}, "priority": "now"}],
-				[{"unit": "legrl", "category": "defence", "offset": {"back": 10}, "priority": "high"}],
-				[{"unit": "leghive", "category": "defence", "offset": {"front": 100}, "priority": "high"}]
+				[{"unit": "leglht", "category": "defense", "offset": {"front": 100}, "priority": "now"}],
+				[{"unit": "legrl", "category": "defense", "offset": {"back": 10}, "priority": "high"}],
+				[{"unit": "leghive", "category": "defense", "offset": {"front": 100}, "priority": "high"}]
 			]
 		}
 

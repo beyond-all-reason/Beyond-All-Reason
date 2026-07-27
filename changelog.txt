@@ -398,7 +398,7 @@
 • [Mace] Health increased 900->1000
 • [Thug] Health increased 1000->1100, buildtime increased from 1970->2100 so it doesn't get repaired too quickly
 • [Tremor] Reloadtime reverted to 0.5s, impulse reduced 30%
-• [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defences (Rattlesnake, Persecutor, Pulsar)
+• [Vanguard] Range increased 1325->1450, health reduced 10000->8500.  Tremor and Vanguard's higher ranges now let them outrange long range defenses (Rattlesnake, Persecutor, Pulsar)
 
 # August 2024
 • [Tremor] firemodes unified to remove the toggle, and effective DPS in target area increased. Wasp bugfixed, and now has mild tracking on rockets, so will miss shots less often.

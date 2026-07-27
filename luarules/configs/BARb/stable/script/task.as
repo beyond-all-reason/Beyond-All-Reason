@@ -23,7 +23,7 @@ enum BuildType {
 	ENERGY,
 	GEO,
 	GEOUP,
-	DEFENCE,
+	DEFENSE,
 	BUNKER,
 	BIG_GUN,  // super weapon
 	RADAR,

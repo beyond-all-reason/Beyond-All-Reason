@@ -444,7 +444,7 @@ local options = {
 
 	{
 		key		= "unit_restrictions_noantinuke",
-		name	= "Disable Anti-Nuke Defence",
+		name	= "Disable Anti-Nuke Defense",
 		desc	= "Disables Nuke Interceptor Units and Structures.",
 		type	= "bool",
 		section	= "options_main",

@@ -6,15 +6,15 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario003.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "", -- This text will be drawn over image
-    summary         = [[Destroy three Barbarian AI's on large, metal rich flat map.]],
-	briefing 		= [[This scenario is a true test of a players skill, only the very few top players can handle three Barbarian AI players on such a metal-rich map. If you win this scenario on at least Normal difficulty, dont forget to post your replay on our Discord server for bragging rights.
+    summary         = [[Destroy three Barbarian AI's on a large, metal-rich, flat map.]],
+	briefing 		= [[This scenario is a true test of a player's skill; only the very few top players can handle three Barbarian AI players on such a metal-rich map. If you win this scenario on at least Normal difficulty, don't forget to post your replay on our Discord server for bragging rights.
 
 Tips:
-- One of the three AI's will likely start with an Aircraft plant
-- AI's expand very quickly, and you must prevent them from getting too much metal early on before they overwhelm you
+- One of the three AI's will likely start with an Aircraft plant.
+- AI's expand very quickly, and you must prevent them from getting too much metal early on before they overwhelm you.
 - Early raids on the enemy's bases is key to keeping them on the back foot.
 - The enemies randomly start with the Armada or Cortex factions.
-- Keep up continous pressure, the moment you sit back, the enemy will overwhelm you!
+- Keep up continous pressure; the moment you sit back, the enemy will overwhelm you!
 
 Good luck, you will need all your skill here!
     ]],

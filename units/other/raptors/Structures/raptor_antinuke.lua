@@ -34,7 +34,7 @@ return {
 			normaltex = "unittextures/chicken_l_normals.png",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			techlevel = 2,
 		},
 		sounds = {

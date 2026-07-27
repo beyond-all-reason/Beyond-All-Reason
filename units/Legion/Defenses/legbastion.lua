@@ -44,7 +44,7 @@ return {
 			model_author = "Gabs",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			techlevel = 2,
 		},
 		featuredefs = {

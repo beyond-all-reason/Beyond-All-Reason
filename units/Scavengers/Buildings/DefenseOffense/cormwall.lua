@@ -43,7 +43,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			techlevel = 2,
 		},
 		featuredefs = {

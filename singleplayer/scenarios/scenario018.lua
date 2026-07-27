@@ -8,34 +8,34 @@ local scenariodata = {
 	imagepath		= "scenario018.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Gunslingers heal and gain experience quickly.", -- This text will be drawn over image
     summary         = [[You are left with a rogue force of a handful of units, and no base to take on the dreadful Cortex. Fatboy, Gunslinger, Welder and a minor foray of supporting units are your last hope.]],
-	briefing 		= [[After a lost battle, your base is left crippled beyond repair, and you only have a few units remaining to take out the Cortex stronghold. Destroy the Cortex Commander with what you have left, while trying to keep all of your units alive. 
+	briefing 		= [[After a lost battle, your base is left crippled beyond repair, and you only have a few units remaining to take out the Cortex stronghold. Destroy the Cortex Commander with what you have left, while trying to keep all of your units alive.
  
-You start the game with Fatboy, Gunslinger, Welder, a Compass radar bot, some Ghost spies, and two Lazarus resurrections bots, and just enough energy to keep the spies cloaked, and the radar in working condition. 
- 
-The Cortex Commander also has his technology crippled, and does not have access to Tier 2 units, but if left to his devices, could amass a critical force of T1 units capable of overpowering your ragtag band. 
+You start the game with Fatboy, Gunslinger, Welder, a Compass radar bot, some Ghost spies, and two Lazarus resurrections bots, and just enough energy to keep the spies cloaked, and the radar in working condition.
 
-Our intelligence reports that Cortex have laid a minefield along the bridge, so be extremely cautious when approaching it. 
- 
+The Cortex Commander also has his technology crippled, and does not have access to Tier 2 units, but if left to his devices, could amass a critical force of T1 units capable of overpowering your ragtag band.
+
+Our intelligence reports that Cortex have laid a minefield along the bridge, so be extremely cautious when approaching it.
+
 Tips:
- - Ghosts are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
- - Fatboy has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Gunslinger to keep any smaller Tier 1 units away from him. 
- - Gunslinger will heal himself quickly after taking damage, and will gain extra HP and a faster reload time with experience gained from damaging enemy units. 
- - Welder is quite tanky, and can be used to absorb damage from any defenses. 
- - Compass has a very long line-of-sight, but is extremely fragile.
- - Lazarus can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
- - All mobile units can be ordered to Hold Position, to prevent them from moving to engage targets in their vision.
- - There may be useful wrecks on different areas of the map, that may assist you in your mission.
- 
+    1. Ghosts are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
+    2. Fatboy has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Gunslinger to keep any smaller Tier 1 units away from him.
+    3. Gunslinger will heal himself quickly after taking damage, and will gain extra HP and a faster reload time with experience gained from damaging enemy units.
+    4. Welder is quite tanky, and can be used to absorb damage from any defenses.
+    5. Compass has a very long line-of-sight, but is extremely fragile.
+    6. Lazarus can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
+    7. All mobile units can be ordered to Hold Position, to prevent them from moving to engage targets in their vision.
+    8. There may be useful wrecks on different areas of the map, that may assist you in your mission.
+
 Scoring:
- - Time taken to complete the scenario
- - Resources spent to destroy all enemy units.
- 
-The difficulty modifier will change the amount of resources you and the enemy receive from metal and energy production structures:
- - Beginner: You +50%, enemy -50%
- - Novice: You +25%, enemy -25%
- - Normal: Regular resources for both sides
- - Hard: Regular resources for you, +50% for the enemy
- - Brutal: Regular resources for you, +100% for the enemy
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: Regular resources for you, +50% for the enemy
+    5. Brutal: Regular resources for you, +100% for the enemy
     ]],
 
 	mapfilename		= "Pinewood_Derby_V1", -- the name of the map to be displayed here

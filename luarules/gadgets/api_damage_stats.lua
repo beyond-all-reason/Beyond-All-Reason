@@ -55,7 +55,7 @@ function gadget:Initialize()
     end
 
     if nRaptorTeams >=1 then
-        gameType = "raptor defence"
+        gameType = "raptor defense"
         return
     end
 

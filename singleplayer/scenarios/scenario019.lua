@@ -6,31 +6,31 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	isnew 			= true,
 	imagepath		= "scenario019.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Scour the map for hidden treasures", -- This text will be drawn over image
+	imageflavor		= "Scour the map for hidden treasures.", -- This text will be drawn over image
     summary         = [[Only a few units remain, Tzar, Tiger, Negotiator and a few supporting roles. Navigate your way through this glacier pass without building a base, and destroy the waves of Armada Tier 1 units to get to their Commander.]],
-	briefing 		= [[You only have a couple of vehicles to navigate the treacherous Glacer Pass, straight through an Armada base. Luckily this Armada Commander does not have much useful technology at his disposal. 
- 
+	briefing 		= [[You only have a couple of vehicles to navigate the treacherous Glacer Pass, straight through an Armada base. Luckily this Armada Commander does not have much useful technology at his disposal.
+
 Intelligence reports mines around the walled entrance to the main Armada base, enter cautiously, or use the massive area of effect damage of the Tzar to clear mines.
- 
-You will not be able to construct a base in this mission at all.  
- 
+
+You will not be able to construct a base in this mission at all.
+
 Tips:
- - Spectre are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
- - Tzar has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Tigers to keep any smaller Tier 1 units away from it.
- - Negotiator, while slow, has an enormous range, and can take out anything foolish enough to stand still.
- - Graverobbers can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
- - There may be useful wrecks on different areas of the map, that can assist you in your mission.
- 
+    1. Spectres are cloakable, stealthy spies, that can be self-destructed for a large EMP blast to stun groups of units.
+    2. The Tzar has a very large range, and a huge area of effect, but is slow and hard to maneuver. Use Tigers to keep any smaller Tier 1 units away from it.
+    3. The Negotiator, while slow, has an enormous range, and can take out anything foolish enough to stand still.
+    4. Graverobbers can resurrect wrecked units, however, wrecks can be reduced to useless heaps by area-of-effect damage.
+    5. There may be useful wrecks on different areas of the map, that can assist you in your mission.
+
 Scoring:
- - Time taken to complete the scenario
- - Resources spent to destroy all enemy units.
- 
-The difficulty modifier will change the amount of resources you and the enemy receive from metal and energy production structures:
- - Beginner: You +50%, enemy -50%
- - Novice: You +25%, enemy -25%
- - Normal: Regular resources for both sides
- - Hard: Regular resources for you, +50% for the enemy
- - Brutal: Regular resources for you, +100% for the enemy
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: Regular resources for you, +50% for the enemy
+    5. Brutal: Regular resources for you, +100% for the enemy
     ]],
 
 	mapfilename		= "Glacier Pass 1.2", -- the name of the map to be displayed here

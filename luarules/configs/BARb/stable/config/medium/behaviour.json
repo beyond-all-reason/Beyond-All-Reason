@@ -6,7 +6,7 @@
 	"attack": 40.0,  // min power of attack group
 	"thr_mod": {
 		"attack": [1.0, 1.0],  // [<min>, <max>] enemy threat modifier for target selection of attack task
-		"defence": [1.0, 1.0],  // [<min>, <max>] enemy threat modifier for group size calculation of defence task
+		"defense": [1.0, 1.0],  // [<min>, <max>] enemy threat modifier for group size calculation of defense task
 		"mobile": 1.05,  // initial modifier for power of attack group based on mobile enemy threat
 		"static": 1.2,  // initial modifier for power of attack group based on static enemy threat
 		"comm": 0.01
@@ -44,7 +44,7 @@
 	"shield": [0.25, 0.55]  // [<empty>, <full>] shield power
 },
 
-"defence": {
+"defense": {
 	"infl_rad": 5,  // radius in influenece cells for defendAlly map
 	"base_rad": [600.0, 1200.0],  // defend if enemy within clamp(distance(lane_pos, base_pos), 1000, 2000) radius
 	"comm_rad": [1000.0, 500.0],  // 0 distance from base ~ 1000, base_rad ~ 500.0

@@ -124,8 +124,8 @@ local seaGeosList = {
 	"coruwageo",
 }
 
-local landDefences = {}
-local seaDefences = {}
+local landDefenses = {}
+local seaDefenses = {}
 for i = 1,#scavConfig.unprocessedScavTurrets do
 	if i ~= 7 then -- we don't want the endgame stuff in these ruins
 		for unitName, defs in pairs(scavConfig.unprocessedScavTurrets[i]) do
@@ -137,16 +137,16 @@ for i = 1,#scavConfig.unprocessedScavTurrets do
 			if defs.type ~= "nuke" and UnitDefNames[unitName] and not UnitDefNames[unitName].isFactory then -- we don't want nukes and factories in ruins
 				if defs.surface == "land" then
 					for _ = 1,defs.maxExisting*((7-i)^2) do
-						landDefences[#landDefences+1] = unitName
+						landDefenses[#landDefenses+1] = unitName
 					end
 				elseif defs.surface == "sea" then
 					for _ = 1,defs.maxExisting*((7-i)^2) do
-						seaDefences[#seaDefences+1] = unitName
+						seaDefenses[#seaDefenses+1] = unitName
 					end
 				elseif defs.surface == "mixed" then
 					for _ = 1,defs.maxExisting*((7-i)^2) do
-						landDefences[#landDefences+1] = unitName
-						seaDefences[#seaDefences+1] = unitName
+						landDefenses[#landDefenses+1] = unitName
+						seaDefenses[#seaDefenses+1] = unitName
 					end
 				end
 			end
@@ -407,11 +407,11 @@ local function SpawnMexGeoRandomStructures()
 					local posx2 = math.ceil((spot.x+math.random(-512,512))/16)*16
 					local posz2 = math.ceil((spot.z+math.random(-512,512))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
-					local defencesList
+					local defensesList
 					if posy2 > 0 then
-						defencesList = landDefences
+						defensesList = landDefenses
 					else
-						defencesList = seaDefences
+						defensesList = seaDefenses
 					end
 
 					local radius = 128
@@ -431,8 +431,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					if canBuildHere then
-						local defence = defencesList[math.random(1,#defencesList)]
-						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						local defense = defensesList[math.random(1,#defensesList)]
+						local unit = Spring.CreateUnit(UnitDefNames[defense].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
@@ -453,11 +453,11 @@ local function SpawnMexGeoRandomStructures()
 					local posx2 = math.ceil((spot.x+math.random(-1024,1024))/16)*16
 					local posz2 = math.ceil((spot.z+math.random(-1024,1024))/16)*16
 					local posy2 = Spring.GetGroundHeight(posx2, posz2)
-					local defencesList
+					local defensesList
 					if posy2 > 0 then
-						defencesList = landDefences
+						defensesList = landDefenses
 					else
-						defencesList = seaDefences
+						defensesList = seaDefenses
 					end
 
 					local radius = 128
@@ -477,8 +477,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					if canBuildHere then
-						local defence = defencesList[math.random(1,#defencesList)]
-						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
+						local defense = defensesList[math.random(1,#defensesList)]
+						local unit = Spring.CreateUnit(UnitDefNames[defense].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
@@ -497,11 +497,11 @@ local function SpawnRandomStructures()
 			local posx = math.ceil(math.random(196,Game.mapSizeX-196)/16)*16
 			local posz = math.ceil(math.random(196,Game.mapSizeZ-196)/16)*16
 			local posy = Spring.GetGroundHeight(posx, posz)
-			local defencesList
+			local defensesList
 			if posy > 0 then
-				defencesList = landDefences
+				defensesList = landDefenses
 			else
-				defencesList = seaDefences
+				defensesList = seaDefenses
 			end
 
 			local radius = 128
@@ -521,8 +521,8 @@ local function SpawnRandomStructures()
 			end
 
 			if canBuildHere then
-				local defence = defencesList[math.random(1,#defencesList)]
-				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+				local defense = defensesList[math.random(1,#defensesList)]
+				local unit = Spring.CreateUnit(UnitDefNames[defense].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)

@@ -8,21 +8,20 @@ local scenariodata = {
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
     summary         = [[Pathfinding benchmark.]],
-	briefing 		= [[Pathfinding benchmark. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server. Amount of units at the end of testing depends of setting: 
-	1 unit spawn rate ~700 units; 
-	3 unit spawn rate ~2000 units; 
-	10 unit spawn rate ~7000 units; 
-	15 unit spawn rate ~10000 units
-		
-	A total of 2000 simulation frames are tested. 
-	
-	The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
+	briefing 		= [[Pathfinding benchmark. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server. Amount of units at the end of testing depends of setting:
+1 unit spawn rate ~700 units;
+3 unit spawn rate ~2000 units;
+10 unit spawn rate ~7000 units;
+15 unit spawn rate ~10000 units
 
-	/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
-	For this benchmark, it is
+A total of 2000 simulation frames are tested.
 
-	/luarules armcv armck 11000 1 12000
+The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
 
+/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
+For this benchmark, it is
+
+/luarules armcv armck 11000 1 12000
 	]],
 
 	mapfilename		= "Jade Empress 1.3", -- the name of the map to be displayed here
