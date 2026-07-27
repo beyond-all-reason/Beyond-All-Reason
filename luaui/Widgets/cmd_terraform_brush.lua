@@ -2030,7 +2030,12 @@ local function doExportHeightmap()
 	-- Timestamped filename so multiple saves accumulate and can be listed in the
 	-- load picker (older format was a single overwriting file).
 	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
-	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName .. "_" .. stamp
+	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>",
+	-- see buildBlankMapStartScript). Strip it so a save made on one canvas stays
+	-- visible in the load picker on every later canvas of the same size.
+	local mapName = Game.mapName or ""
+	mapName = mapName:match("^(Editor Flat %d+x%d+) s%d+$") or mapName
+	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
 	local pngFile = io.open(filename, "wb")
@@ -2679,13 +2684,22 @@ function widget:Initialize()
 			local out = {}
 			if not files then return out end
 			local mapName = Game.mapName or ""
-			local mapPrefix = "heightmap_export_" .. mapName
+			-- Generated canvases get a fresh uniquified name every restart ("Editor
+			-- Flat 12x12 s<time>"), so an exact-name filter can never surface saves
+			-- from a previous canvas. Filter by the size-carrying base name instead;
+			-- real maps keep exact matching (same name implies same dimensions).
+			local canonical = mapName:match("^(Editor Flat %d+x%d+) s%d+$") or mapName
+			local mapPrefix = "heightmap_export_" .. canonical
+			local escaped = mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1")
 			for _, path in ipairs(files) do
 				local base = path:match("([^/\\]+)%.png$") or path
-				-- Match "heightmap_export_<mapName>_<YYYY-MM-DD_HH-MM-SS>" and the
-				-- legacy un-stamped "heightmap_export_<mapName>" form.
-				local stamp = base:match("^" .. mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1") .. "_(.+)$")
+				-- Match "heightmap_export_<name>_<YYYY-MM-DD_HH-MM-SS>", the legacy
+				-- un-stamped "heightmap_export_<name>" form, and older generated-
+				-- canvas saves that still embed the " s<time>" uniquifier.
+				local stamp = base:match("^" .. escaped .. "_(.+)$")
+					or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
+					or (base:match("^" .. escaped .. " s%d+$") ~= nil)
 				if isThisMap then
 					local label
 					local sortKey = stamp or "0"

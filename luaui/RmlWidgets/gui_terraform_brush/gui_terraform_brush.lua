@@ -7421,7 +7421,7 @@ local guideHints = {
 	["btn-ts-preset-toggle"]= "Open or close the tileset preset list to load or delete a saved config.",
 	-- Export / Import
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
-	["btn-import"]      = "Load the previously saved heightmap PNG for this map (Terraform Brush/Heightmaps/heightmap_export_<map>.png) and apply it to the terrain.",
+	["btn-import"]      = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
 	-- Feature Placer sub-modes
 	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
 	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
@@ -8839,6 +8839,9 @@ local function attachEventListeners()
 				short = short:gsub("^heightmap_export_", "")
 				short = short:gsub("%.png$", "")
 				short = short:gsub("_%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d$", "")
+				-- Older generated-canvas saves embed the per-restart uniquifier
+				-- ("Editor Flat 12x12 s<time>") — hide it in the row label.
+				short = short:gsub("^(Editor Flat %d+x%d+) s%d+$", "%1")
 				parts[#parts+1] = string.format(
 					'<div id="tf-hm-r%d" class="%s"><div class="tf-hm-row-line">'
 					.. '<div class="tf-hm-date">%s</div>'
