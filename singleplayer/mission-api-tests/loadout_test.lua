@@ -10,7 +10,7 @@ local triggers = {
 	intro = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1,
+			seconds = 0,
 		},
 		actions = { 'messageIntro' },
 	},
@@ -18,7 +18,7 @@ local triggers = {
 	movePlayerCon = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'movePlayerCon' },
 	},
@@ -26,7 +26,7 @@ local triggers = {
 	destroyWreck = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 120,
+			seconds = 4,
 		},
 		actions = { 'destroyWreck', 'messageWreckDestroyed' },
 	},
@@ -34,7 +34,7 @@ local triggers = {
 	spawnReinforcements = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 200,
+			seconds = 7,
 		},
 		actions = { 'spawnReinforcements', 'createFeatures', 'messageReinforcementsArrived' },
 	},
@@ -42,7 +42,7 @@ local triggers = {
 	actOnReinforcements = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 300,
+			seconds = 10,
 		},
 		actions = { 'moveReinforcements', 'destroyReinforcementWreck', 'messageReinforcementsActedOn' },
 	},
@@ -50,7 +50,7 @@ local triggers = {
 	victory = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 600,
+			seconds = 20,
 		},
 		actions = { 'messageEnd', 'victory' },
 	},

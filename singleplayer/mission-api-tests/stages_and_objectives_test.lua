@@ -21,7 +21,7 @@ local objectives = {
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {
-				gameFrame = 90,
+				seconds = 3,
 			},
 		},
 		nextStage = 'secondStage',
@@ -62,8 +62,8 @@ local triggers = {
 			maxRepeats = 5,
 		},
 		parameters = {
-			gameFrame = 5,
-			interval = 60,
+			seconds = 0,
+			interval = 2,
 		},
 		actions = { 'spawnBot' },
 	},
@@ -71,7 +71,7 @@ local triggers = {
 	changeStage3 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 210,
+			seconds = 7,
 		},
 		actions = { 'changeToThirdStage', 'spawnBotDestroyer' },
 	},

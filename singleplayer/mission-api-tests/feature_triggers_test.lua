@@ -10,7 +10,7 @@ local triggers = {
 	spawnFeatures = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 30,
+			seconds = 1,
 		},
 		actions = { 'createRockToReclaim', 'createRockToDestroy', 'createWreckToResurrect', 'createWreckToAttack', 'spawnReclaimer', 'spawnAttacker', 'orderAttackerDestroyWreck' },
 	},
@@ -18,7 +18,7 @@ local triggers = {
 	orderReclaimerReclaimAndRes = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		-- for some reason, CMD.RESURRECT doesn't work in the same frame as its target is spawned
 		actions = { 'orderReclaimerReclaimAndRes' },
@@ -27,7 +27,7 @@ local triggers = {
 	destroyRocks = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			seconds = 5,
 		},
 		actions = { 'destroyRocks' },
 	},

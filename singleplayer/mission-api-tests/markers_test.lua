@@ -5,7 +5,7 @@ local triggers = {
 	addMarkers = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'addMarkerWithLabel', 'addMarkerWithoutLabel' },
 	},
@@ -13,7 +13,7 @@ local triggers = {
 	drawLines = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 180,
+			seconds = 6,
 		},
 		actions = { 'drawLines', 'messageDrawLines' },
 	},
@@ -21,7 +21,7 @@ local triggers = {
 	eraseMarker = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 270,
+			seconds = 9,
 		},
 		actions = { 'eraseMarker', 'messageEraseMarker' },
 	},
@@ -29,7 +29,7 @@ local triggers = {
 	clearAll = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 360,
+			seconds = 12,
 		},
 		actions = { 'clearAll', 'messageClearAll' },
 	},

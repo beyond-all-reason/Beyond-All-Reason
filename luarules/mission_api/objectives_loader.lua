@@ -8,7 +8,7 @@ local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {
-				gameFrame = 90,
+				seconds = 3,
 			},
 		},
 		nextStage = 'secondStage',
