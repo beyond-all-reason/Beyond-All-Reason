@@ -33,7 +33,7 @@ local function customFrames(def, key)
 	return value and math.round(value * gameSpeed, 0) or nil
 end
 
-local function customCobAngle(def, key)
+local function customAngle(def, key)
 	local value = customNumber(def, key)
 	return value and value * DEG2COBANGLE or nil
 end
@@ -65,13 +65,13 @@ local weaponAttributeDefinitions = {
 		method   = "SetTurretSpeedWeapon",
 		numbered = true,
 		params   = { "turretspeedx", "turretspeedy" },
-		process  = function(self, def) return { customCobAngle(def, self.params[1]) or 0, customCobAngle(def, self.params[2]) or 0 } end,
+		process  = function(self, def) return { customAngle(def, self.params[1]) or 0, customAngle(def, self.params[2]) or 0 } end,
 	},
 	{
 		method   = "SetTurretSpeedWeapon",
 		numbered = true,
 		params   = "turretspeed",
-		process  = function(self, def) return { customCobAngle(def, self.params) or 0, customCobAngle(def, self.params) or 0 } end,
+		process  = function(self, def) return { customAngle(def, self.params) or 0, customAngle(def, self.params) or 0 } end,
 	},
 }
 
