@@ -30,7 +30,7 @@ end
 
 local function customFrames(def, key)
 	local value = customNumber(def, key)
-	return value and math.round(value * gameSpeed) or nil
+	return value and math.round(value * gameSpeed, 0) or nil
 end
 
 local function customCobAngle(def, key)
