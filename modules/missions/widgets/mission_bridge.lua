@@ -128,6 +128,14 @@ local function sampleLive()
 			elseif probe.kind == "objective" and probe.objective then
 				local done = Spring.GetGameRulesParam("objective_" .. probe.objective) == 1
 				values[probe.key] = { text = done and "✓" or "–", state = done and "done" or "pending", pct = done and 1 or 0 }
+			elseif probe.kind == "unit_dead" and probe.unit_name then
+				-- Latched by the mission loader; readable here unlike unit
+				-- validity, which LOS would fog for enemy roster units.
+				local dead = Spring.GetGameRulesParam("mission_unit_dead_" .. probe.unit_name) == 1
+				values[probe.key] = { text = dead and "destroyed" or "alive", state = dead and "done" or "pending", pct = dead and 1 or 0 }
+			elseif probe.kind == "unit_spotted" and probe.unit_name then
+				local spotted = Spring.GetGameRulesParam("mission_unit_spotted_" .. probe.unit_name .. "_" .. Spring.GetMyAllyTeamID()) == 1
+				values[probe.key] = { text = spotted and "✓" or "–", state = spotted and "done" or "pending", pct = spotted and 1 or 0 }
 			end
 		end
 	end
