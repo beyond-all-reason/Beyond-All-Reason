@@ -10,6 +10,9 @@ local function loadActionDefinitions()
 	local actionsSubdirs = {
 		ACTIONS_DIR,
 	}
+	for _, subDir in pairs(VFS.SubDirs(ACTIONS_DIR, "*", nil, true)) do
+		actionsSubdirs[#actionsSubdirs + 1] = subDir
+	end
 
 	repeat
 		--Spring.Echo("Mission API Actions SubDir", actionsSubdirs[1])
@@ -26,9 +29,6 @@ local function loadActionDefinitions()
 			end
 		end
 
-		for _, subDir in pairs(VFS.SubDirs(actionsSubdirs[1])) do
-			actionsSubdirs[#actionsSubdirs + 1] = subDir
-		end
 
 		table.remove(actionsSubdirs, 1)
 	until #actionsSubdirs == 0
