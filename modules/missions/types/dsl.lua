@@ -22,8 +22,23 @@ function Objective(name) end
 ---@return MissionUnitDefRef
 function UnitDef(name) end
 
+---Named-unit reference: the condition side of one unit the mission's
+---units.lua roster spawned. Validated against the roster at load — an
+---unknown name is a load error, not a silent never-true condition.
+---@param name MissionUnitName
+---@return MissionUnitRef
+function Unit(name) end
+
+---Declare one unit of the mission's opening world state. units.lua sandbox
+---only — not injected into trigger files. Chain .At(fx, fz) (required, map
+---fractions), .Named(name), .Grouped(group).
+---@param unitDef MissionUnitDefRef
+---@param team MissionTeamRole
+---@return MissionSpawnChain
+function Spawn(unitDef, team) end
+
 ---@type { Player: MissionTeam }
 Team = {}
 
----@type MissionMatchFlow
-MatchFlow = {}
+---@type MissionUnits
+Units = {}
