@@ -694,7 +694,7 @@ function widget:GameFrame(gf)
 		for unitID, frame in pairs(idleBuilder) do
 			if Spring.GetUnitTeam(unitID) == myTeamID then
 				if frame < gf and m_currentLevel > m_storage*0.5 and e_currentLevel > e_storage*0.5 then
-					local posx, posy, posz = Spring.GetUnitPosition(unitID)
+					local posx, posy, posz = spGetUnitPosition(unitID)
 					queueNotification('IdleConstructors', false, posx, posy, posz)
 					idleBuilder[unitID] = nil    -- do not repeat
 				end
@@ -746,19 +746,19 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if isT2mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('UnitReady/Tech2UnitReady', false, posx, posy, posz)
 		elseif isT3mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('UnitReady/Tech3UnitReady', false, posx, posy, posz)
 		elseif isT4mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('UnitReady/Tech4UnitReady', false, posx, posy, posz)
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
 			if unitDefID == tab[1] then
-				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				local posx, posy, posz = spGetUnitPosition(unitID)
 				queueNotification(tab[2], false, posx, posy, posz)
 				break
 			end
@@ -767,13 +767,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	if #Spring.GetTeamList(myAllyTeamID) > 1 then
 		if isT2mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('Tech2TeamReached', false, posx, posy, posz)
 		elseif isT3mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('Tech3TeamReached', false, posx, posy, posz)
 		elseif isT4mobile[unitDefID] then
-			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			local posx, posy, posz = spGetUnitPosition(unitID)
 			queueNotification('Tech4TeamReached', false, posx, posy, posz)
 		end
 	end
@@ -793,7 +793,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	local posx, posy, posz = Spring.GetUnitPosition(unitID)
+	local posx, posy, posz = spGetUnitPosition(unitID)
 	queueNotification('UnitDetected/EnemyDetected', false, posx, posy, posz)
 	if isAircraft[udefID] then
 		queueNotification('UnitDetected/AircraftDetected', false, posx, posy, posz)
@@ -896,7 +896,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 					end
 				end
 				if totalDamage >= commanders[unitID] * 0.2 and spGetUnitHealth(unitID)/commanders[unitID] <= 0.85 then
-					local posx, posy, posz = Spring.GetUnitPosition(unitID)
+					local posx, posy, posz = spGetUnitPosition(unitID)
 					queueNotification('ComHeavyDamage', false, posx, posy, posz)
 				end
 			end
