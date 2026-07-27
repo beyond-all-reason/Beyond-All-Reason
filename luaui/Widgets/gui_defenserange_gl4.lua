@@ -646,6 +646,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
+			if ringParams then
 			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
 			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
@@ -673,6 +674,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 				defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
 			end
 			defenses[unitID].vaokeys[instanceID] = vaokey
+			end
 		end
 	end
 	if addedrings == 0 then
