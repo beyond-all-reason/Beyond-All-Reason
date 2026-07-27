@@ -773,6 +773,8 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-env-toggle-blur",     "img-env-toggle-blur",     "env-section-blur",     false)
 
 		-- Tileset Terrain tool (TILESET) category sections
+		envSectionToggle("btn-toggle-ts-library", "img-toggle-ts-library", "section-ts-library", true)
+		envSectionToggle("btn-toggle-ts-metal",   "img-toggle-ts-metal",   "section-ts-metal",   false)
 		envSectionToggle("btn-toggle-ts-scale",   "img-toggle-ts-scale",   "section-ts-scale",   true)
 		envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
 		envSectionToggle("btn-toggle-ts-cliffs",  "img-toggle-ts-cliffs",  "section-ts-cliffs",  false)
@@ -784,6 +786,7 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-ts-biome",   "img-toggle-ts-biome",   "section-ts-biome",   false)
 		envSectionToggle("btn-toggle-ts-tints",   "img-toggle-ts-tints",   "section-ts-tints",   false)
 		envSectionToggle("btn-toggle-ts-debug",   "img-toggle-ts-debug",   "section-ts-debug",   false)
+		envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
 
 		-- Wire ± buttons for env color RGB sliders
 		do

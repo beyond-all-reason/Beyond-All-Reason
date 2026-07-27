@@ -268,6 +268,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Start Positions tool section elements
 	startposActive = false,
 	envFadeEnabled = true,   -- whether skybox transitions use fade effect
+	tsSkyboxSync = true,     -- TILESET tool: swap skybox to match the picked biome (BAR only)
 	skyboxLibraryRootEl = nil, -- floating skybox library window element
 	-- Environment sub-window elements and open state
 	envSunRootEl = nil,
@@ -742,6 +743,46 @@ local function applySkybox(texturePath)
 end
 widgetState.applySkybox = applySkybox
 
+-- Per-biome skybox ("each biome is a planet"). BAR only, since the mapped skyboxes
+-- ship in this user's writable Terraform Brush/SkyBoxes/ library. Values are lowercase
+-- basename fragments matched against the DDS library so exact filenames/versions can
+-- vary (SpaceSkybox1/2/3, EarthSkybox1/2/3, ...). namaqualand -> red desert planet
+-- is our pick (user specified only bismuth/teizer/enborelde).
+local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
+local BIOME_SKYBOX_MATCH = {
+	bismuth     = "spaceskybox",      -- starry sky
+	teizer      = "goldsunrise",      -- sunset
+	enborelde   = "earthskybox",      -- sunny blue sky with clouds
+	namaqualand = "redplanet",        -- red desert planet
+	palehang    = "allthatglitters",  -- crystal-desert sky (Theta Crystals family)
+}
+
+-- Resolve a biome key to a full DDS path in the skybox library, or nil if unmapped /
+-- the matching file is absent. Deterministic: lowest-sorted name wins (so *1 variants).
+local function resolveBiomeSkybox(biomeKey)
+	local frag = BIOME_SKYBOX_MATCH[biomeKey]
+	if not frag then return nil end
+	local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
+	table.sort(files)
+	for _, fp in ipairs(files) do
+		local base = (fp:match("([^/\\]+)%.[Dd][Dd][Ss]$") or ""):lower()
+		if base:find(frag, 1, true) then return fp:gsub("\\", "/") end
+	end
+	return nil
+end
+
+-- Apply the skybox mapped to a biome, and keep the ENV library highlight in sync.
+local function syncSkyboxToBiome(biomeKey)
+	if not (IS_BAR and widgetState.tsSkyboxSync and widgetState.applySkybox) then return end
+	local sky = resolveBiomeSkybox(biomeKey)
+	if not sky then return end
+	widgetState.applySkybox(sky)
+	widgetState.envCurrentSkybox = sky
+	for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
+		t.element:SetClass("active", t.path == sky)
+	end
+end
+
 local function tickSkyboxFade(dt)
 	if not skyFade.active then return end
 	local step = skyFade.speed * dt
@@ -974,7 +1015,7 @@ end
 -- Forward declarations for variables defined after initialModel but captured as
 -- upvalues by onTf*/onTb* model-king handlers inside initialModel.
 local shapeNames, CLAY_UNAVAILABLE_MODES
-local ringWidthPct, applyCap, capMaxValue, capMinValue
+local ringWidthPct, applyCap, capMaxValue, capMinValue, capEnabled
 
 -- TB-shared helpers used by onTb* handlers in initialModel.
 local TB_ANGLE_PRESETS = { 7.5, 15, 30, 45, 60, 90 }
@@ -1432,6 +1473,17 @@ widgetState._nmRefreshEnvLabel = function()
 	if d.newMapEnvStr ~= name then d.newMapEnvStr = name end
 end
 
+-- TEMPORARY: the current fog is a placeholder to be replaced, and its defaults
+-- (fogStart ~0.8 / fogEnd ~1.0) heavily obscure fresh maps + reloads. Until the new
+-- fog system lands, keep fog pushed past the far plane everywhere the widget touches
+-- atmosphere. Values match maxing both ENV fog sliders (fogStart 1.99 / fogEnd 2.0);
+-- manual slider drags still override this live (they SetAtmosphere directly). To bring
+-- fog back, delete FOG_OFF/disableFog use and restore env-config fogStart/fogEnd below.
+local FOG_OFF = { fogStart = 1.99, fogEnd = 2.0 }
+widgetState.disableFog = function()
+	Spring.SetAtmosphere({ fogStart = FOG_OFF.fogStart, fogEnd = FOG_OFF.fogEnd })
+end
+
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
@@ -1458,8 +1510,9 @@ widgetState.applyEnvConfig = function(d)
 		Spring.SendCommands("luarules updatesun")
 	end
 	local atmosParams = {}
-	if d.fogStart      then atmosParams.fogStart      = d.fogStart      end
-	if d.fogEnd        then atmosParams.fogEnd        = d.fogEnd        end
+	-- Env-preset fog intentionally NOT applied (placeholder + obscuring): force it off.
+	atmosParams.fogStart = FOG_OFF.fogStart
+	atmosParams.fogEnd   = FOG_OFF.fogEnd
 	if d.fogColor      then atmosParams.fogColor      = d.fogColor      end
 	if d.sunColor      then atmosParams.sunColor      = d.sunColor      end
 	if d.skyColor      then atmosParams.skyColor      = d.skyColor      end
@@ -1986,6 +2039,11 @@ local initialModel = {
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
+	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
+	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
+	tsBiome = "",
+	tsDebugView = 0,   -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
+	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -2350,6 +2408,7 @@ local initialModel = {
 	tfPenIntActive = false,
 	tfPenSizeActive = false,
 	tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png",
+	tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png",
 	-- clone paste transforms panel
 	clonePasteTransformsVisible = false,
 	-- clone tool active states (Phase 2 step 2 data-class-active bindings)
@@ -6176,10 +6235,103 @@ local initialModel = {
 		local v = _elemSliderVal("ts-slider-" .. key, 0)
 		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
 	end,
+	-- DEBUG view multi-toggle (replaces the old debugView slider). Sets the knob and
+	-- lights the matching button; tf_tileset.sync mirrors debugView -> tsDebugView so
+	-- console-driven changes stay in sync.
+	onTilesetDebugView = function(_event, n)
+		if not WG.TilesetTerrain then return end
+		n = tonumber(n) or 0
+		if WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob("debugView", n) end
+		local dm = widgetState.dmHandle
+		if dm then dm.tsDebugView = n end
+		playSound("click")
+	end,
+	-- TILESET CONFIG & PRESETS
+	onTilesetReset = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.reset then WG.TilesetTerrain.reset() end
+		playSound("reset")
+	end,
+	onTilesetDump = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.dumpConfig then WG.TilesetTerrain.dumpConfig() end
+		playSound("click")
+	end,
+	onTilesetPresetSave = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.savePreset) then return end
+		local doc = widgetState.document
+		local inp = doc and doc:GetElementById("ts-preset-name-input")
+		local name = inp and (inp:GetAttribute("value") or "") or ""
+		name = tostring(name):match("^%s*(.-)%s*$")
+		if name == "" then return end
+		WG.TilesetTerrain.savePreset(name)
+		if inp then inp:SetAttribute("value", "") end
+		playSound("save")
+		if widgetState.tsDropdownOpen and widgetState.rebuildTsPresetList then
+			widgetState.rebuildTsPresetList()
+		end
+	end,
+	onTilesetPresetToggle = function(_event)
+		local open = not widgetState.tsDropdownOpen
+		if open and widgetState.rebuildTsPresetList then widgetState.rebuildTsPresetList() end
+		if widgetState.setTsDropdownOpen then widgetState.setTsDropdownOpen(open) end
+		playSound("click")
+	end,
 	onTilesetReset = function(_event)
 		if WG.TilesetTerrain and WG.TilesetTerrain.reset then
 			WG.TilesetTerrain.reset()
 			playSound("click")
+		end
+	end,
+	onPickBiome = function(_event, key)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then return end
+		local ok = WG.TilesetTerrain.setBiome(key)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then dm.tsBiome = key end
+			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
+			-- toggle on; also no-op on maps that booted without a real cubemap sky).
+			syncSkyboxToBiome(key)
+		end
+	end,
+	onTsToggleSkyboxSync = function(_event)
+		widgetState.tsSkyboxSync = not widgetState.tsSkyboxSync
+		playSound(widgetState.tsSkyboxSync and "toggleOn" or "toggleOff")
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-skybox-sync")
+		if el then
+			el:SetAttribute("src",
+				widgetState.tsSkyboxSync
+				and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+		-- Turning it on snaps the skybox to the currently active biome right away.
+		if widgetState.tsSkyboxSync and WG.TilesetTerrain and WG.TilesetTerrain.getActiveBiome then
+			local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
+			if bkey then syncSkyboxToBiome(bkey) end
+		end
+	end,
+	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
+	-- widget's METAL_STYLES and swap the metal material + knob baseline live).
+	onPickMetalStyle = function(_event, key)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalStyle) then return end
+		local ok = WG.TilesetTerrain.setMetalStyle(key)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then dm.tsMetalStyle = key end
+		end
+	end,
+	-- Dim per-spot glow lights toggle (deferred point lights via lightsgl4).
+	onTsToggleMetalGlow = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalLights) then return end
+		local on = WG.TilesetTerrain.setMetalLights(not (WG.TilesetTerrain.getMetalLights and WG.TilesetTerrain.getMetalLights()))
+		playSound(on and "toggleOn" or "toggleOff")
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-metal-glow")
+		if el then
+			el:SetAttribute("src",
+				on and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
 		end
 	end,
 	onTfSwitchLights = function(_event)
@@ -6406,6 +6558,15 @@ local initialModel = {
 		local dm = widgetState.dmHandle
 		if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
 		playSound(capAbsolute and "toggleOn" or "toggleOff")
+	end,
+	onTfCapEnabled = function(_event)
+		capEnabled = not capEnabled
+		-- Re-push both sides so enabling/disabling takes effect immediately.
+		applyCap("max", capMaxValue)
+		applyCap("min", capMinValue)
+		local dm = widgetState.dmHandle
+		if dm then dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		playSound(capEnabled and "toggleOn" or "toggleOff")
 	end,
 	onTfExport = function(_event)
 		if WG.TerraformBrush then
@@ -7010,15 +7171,19 @@ end
 
 capMinValue = 0
 capMaxValue = 0
+capEnabled = true  -- master on/off for the height cap; min/max values are retained when off
 local capAbsolute = true
 ringWidthPct = 40  -- percent of radius; inner ratio = 1 - ringWidthPct/100
 
 applyCap = function(which, value)
 	if not WG.TerraformBrush then return end
+	-- capEnabled gates the whole cap: when off, push nil so terraform is unclamped
+	-- but capMinValue/capMaxValue stay put so toggling back on restores them.
+	local eff = (capEnabled and value ~= 0) and value or nil
 	if which == "max" then
-		WG.TerraformBrush.setHeightCapMax(value ~= 0 and value or nil)
+		WG.TerraformBrush.setHeightCapMax(eff)
 	else
-		WG.TerraformBrush.setHeightCapMin(value ~= 0 and value or nil)
+		WG.TerraformBrush.setHeightCapMin(eff)
 	end
 end
 
@@ -7229,6 +7394,7 @@ local guideHints = {
 	["btn-curve-up"]    = "Sharpen the edge fall-off — terrain drops off more steeply right at the brush boundary.",
 	["slider-curve"]    = "Controls edge fall-off sharpness. Low = gentle gradient, high = cliff-like drop at the brush edge. Shift+Scroll.",
 	-- Height Cap
+	["btn-cap-enabled"]  = "Master switch for the height cap. When off, the brush is unclamped and the Min/Max values are ignored (but kept, so turning it back on restores them).",
 	["btn-cap-absolute"] = "When on, cap values are world-space elevations. When off, they are offsets relative to where you start the stroke.",
 	["slider-cap-max"]   = "Clamps the maximum elevation the brush can raise terrain to. Useful to keep edits within a specific height band.",
 	["btn-cap-max-down"] = "Decrease the height cap maximum by one step.",
@@ -7248,6 +7414,11 @@ local guideHints = {
 	["preset-name-input"] = "Type a name here to save the current brush settings as a reusable preset, or to filter the preset list.",
 	["btn-preset-save"]   = "Save the current brush settings under the typed name. Built-in presets show in italic and cannot be overwritten.",
 	["btn-preset-toggle"] = "Open or close the preset dropdown list to load or delete a saved brush configuration.",
+	-- Tileset config & presets
+	["btn-ts-defaults"]     = "Reset all TILESET shader knobs back to their factory defaults.",
+	["btn-ts-dump"]         = "Print the current tileset knob values to the console as a paste-ready Lua block (for baking new defaults).",
+	["btn-ts-preset-save"]  = "Save the current tileset shader knobs as a preset under the typed name.",
+	["btn-ts-preset-toggle"]= "Open or close the tileset preset list to load or delete a saved config.",
 	-- Export / Import
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
 	["btn-import"]      = "Load the previously saved heightmap PNG for this map (Terraform Brush/Heightmaps/heightmap_export_<map>.png) and apply it to the terrain.",
@@ -8807,7 +8978,9 @@ local function attachEventListeners()
 			capMinValue = 0
 			capMaxValue = 0
 			capAbsolute = true
+			capEnabled = true
 			if dm then dm.tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png" end
+			if dm then dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png" end
 			if dm then dm.tfClayMode = false end
 			if dm then dm.tfGridOverlay = false end
 			local dustEl = getCachedEl(doc, "btn-dust-effects")
@@ -9018,6 +9191,78 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	-- TILESET tool CONFIG & PRESETS dropdown (mirrors the raise-brush preset UI). A
+	-- tileset preset is just a named snapshot of the knob table, stored in the write-dir
+	-- widget via WG.TilesetTerrain.savePreset/loadPreset. Closures hang on widgetState so
+	-- the model handlers (onTilesetPreset*) can drive them.
+	local tsPresetNameInput = getCachedEl(doc, "ts-preset-name-input")
+	local tsPresetDropdown  = getCachedEl(doc, "ts-preset-dropdown")
+	local tsPresetToggleBtn = getCachedEl(doc, "btn-ts-preset-toggle")
+	if tsPresetNameInput then
+		tsPresetNameInput:AddEventListener("focus", function(_e)
+			WG.TerraformBrushInputFocused = true
+			Spring.SDLStartTextInput()
+			widgetState.focusedRmlInput = tsPresetNameInput
+		end, false)
+		tsPresetNameInput:AddEventListener("blur", function(_e)
+			WG.TerraformBrushInputFocused = false
+			Spring.SDLStopTextInput()
+			widgetState.focusedRmlInput = nil
+		end, false)
+	end
+	local function setTsDropdownOpen(open)
+		widgetState.tsDropdownOpen = open
+		if tsPresetDropdown  then tsPresetDropdown:SetClass("hidden", not open) end
+		if tsPresetToggleBtn then tsPresetToggleBtn:SetClass("open", open) end
+	end
+	widgetState.setTsDropdownOpen = setTsDropdownOpen
+	local function rebuildTsPresetList()
+		if not tsPresetDropdown or not (WG.TilesetTerrain and WG.TilesetTerrain.getPresetNames) then return end
+		tsPresetDropdown.inner_rml = ""
+		local names = WG.TilesetTerrain.getPresetNames()
+		if #names == 0 then
+			local empty = doc:CreateElement("div")
+			empty:SetClass("tf-preset-summary", true)
+			empty.inner_rml = "No saved presets yet"
+			tsPresetDropdown:AppendChild(empty)
+			return
+		end
+		for _, name in ipairs(names) do
+			local row = doc:CreateElement("div")
+			row:SetClass("tf-preset-row", true)
+			local topRow = doc:CreateElement("div")
+			topRow:SetClass("tf-preset-row-top", true)
+			local nameEl = doc:CreateElement("div")
+			nameEl:SetClass("tf-preset-name", true)
+			nameEl.inner_rml = name
+			topRow:AppendChild(nameEl)
+			local delEl = doc:CreateElement("div")
+			delEl:SetClass("tf-preset-delete", true)
+			delEl.inner_rml = "X"
+			topRow:AppendChild(delEl)
+			row:AppendChild(topRow)
+			row:AddEventListener("click", function(event)
+				playSound("click")
+				if WG.TilesetTerrain and WG.TilesetTerrain.loadPreset then
+					WG.TilesetTerrain.loadPreset(name)
+					if tsPresetNameInput then tsPresetNameInput:SetAttribute("value", name) end
+				end
+				setTsDropdownOpen(false)
+				event:StopPropagation()
+			end, false)
+			delEl:AddEventListener("click", function(event)
+				playSound("reset")
+				if WG.TilesetTerrain and WG.TilesetTerrain.deletePreset then
+					WG.TilesetTerrain.deletePreset(name)
+					rebuildTsPresetList()
+				end
+				event:StopPropagation()
+			end, false)
+			tsPresetDropdown:AppendChild(row)
+		end
+	end
+	widgetState.rebuildTsPresetList = rebuildTsPresetList
+
 	-- Metal Brush controls (extracted to tf_metal.lua)
 	tfMetal.attach(doc, ctx)
 
@@ -9179,6 +9424,10 @@ function widget:Initialize()
 		return false
 	end
 	widgetState.dmHandle = dm
+
+	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
+	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
+	widgetState._pendingFogOff = 15
 
 	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
 	if not document then
@@ -9367,6 +9616,16 @@ function widget:DrawScreen()
 			widgetState._pendingEnvApply = nil
 			widgetState.applyEnvConfig(p)
 			Spring.Echo("[Terraform Brush] Applied environment preset: " .. (p.name or "?"))
+		end
+	end
+
+	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
+	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
+	if widgetState._pendingFogOff then
+		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
+		if widgetState._pendingFogOff <= 0 then
+			widgetState._pendingFogOff = nil
+			widgetState.disableFog()
 		end
 	end
 
@@ -10904,6 +11163,7 @@ function widget:Update()
 				sliderCapMin:SetAttribute("value", tostring(capMinValue))
 			end
 			if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+			if dm then dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
 
 			local sliderHistory = getCachedEl(doc, "slider-history")
 			if sliderHistory and ds ~= "history" then

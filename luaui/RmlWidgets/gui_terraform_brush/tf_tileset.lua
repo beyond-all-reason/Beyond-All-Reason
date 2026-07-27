@@ -28,7 +28,12 @@ local KNOBS = {
 	{ "rockyTintR", "%.2f" }, { "rockyTintG", "%.2f" }, { "rockyTintB", "%.2f" },
 	{ "cliffTintR", "%.2f" }, { "cliffTintG", "%.2f" }, { "cliffTintB", "%.2f" },
 	{ "platTintR", "%.2f" }, { "platTintG", "%.2f" }, { "platTintB", "%.2f" },
-	{ "debugView", "%d" },
+	{ "metalInfluence", "%.2f" }, { "metalness", "%.2f" }, { "metalReflect", "%.2f" },
+	{ "metalRoughMul", "%.2f" }, { "metalScale", "%.0f" }, { "metalRelief", "%.2f" },
+	{ "metalEdge", "%.2f" },
+	{ "metalTintR", "%.2f" }, { "metalTintG", "%.2f" }, { "metalTintB", "%.2f" },
+	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
+	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
 }
 
 function M.attach(doc, ctx)
@@ -48,6 +53,32 @@ function M.sync(doc, ctx, setSummary)
 	local dm = widgetState.dmHandle
 	-- Only push values while the TILESET tool owns the panel.
 	if not dm or dm.activeTool ~= "ts" then return end
+
+	-- Keep the BIOME LIBRARY active-tile highlight in sync with the widget
+	-- (covers the initial state + console-driven /tileset biome changes).
+	if WG.TilesetTerrain.getActiveBiome then
+		local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
+		if bkey and dm.tsBiome ~= bkey then dm.tsBiome = bkey end
+	end
+
+	-- Same for the METAL SPOTS style tiles + the glow-light checkbox (covers
+	-- /tileset metal + /tileset metallights console changes).
+	if WG.TilesetTerrain.getActiveMetalStyle then
+		local _, _, mkey = WG.TilesetTerrain.getActiveMetalStyle()
+		if mkey and dm.tsMetalStyle ~= mkey then dm.tsMetalStyle = mkey end
+	end
+	if WG.TilesetTerrain.getMetalLights then
+		local glow = WG.TilesetTerrain.getMetalLights() and true or false
+		if widgetState.tsGlowLast ~= glow then
+			widgetState.tsGlowLast = glow
+			local el = doc:GetElementById("btn-ts-metal-glow")
+			if el then
+				el:SetAttribute("src", glow
+					and "/luaui/images/terraform_brush/check_on.png"
+					or  "/luaui/images/terraform_brush/check_off.png")
+			end
+		end
+	end
 
 	local knobs = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
 	if not knobs then return end
@@ -73,6 +104,12 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 	uiState.updatingFromCode = false
+
+	-- Mirror debugView -> tsDebugView so the DEBUG multi-toggle highlight tracks the
+	-- widget (initial state + console-driven /tileset changes); debugView has no slider.
+	if knobs.debugView ~= nil and dm.tsDebugView ~= knobs.debugView then
+		dm.tsDebugView = knobs.debugView
+	end
 
 	if setSummary then
 		local on = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()

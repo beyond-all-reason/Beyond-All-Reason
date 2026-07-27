@@ -116,8 +116,11 @@ local mapinfo = {
 		minWind      = 5.0,
 		maxWind      = 25.0,
 
-		fogStart     = 0.1,
-		fogEnd       = 1.0,
+		-- Fog pushed past the far plane: the current fog is a placeholder to be
+		-- replaced, and fogStart 0.1 heavily obscured generated maps. Values match
+		-- maxing the ENV fog sliders. Restore ~0.1/1.0 when the fog system lands.
+		fogStart     = 1.99,
+		fogEnd       = 2.0,
 		fogColor     = {0.7, 0.7, 0.8},
 
 		sunColor     = {1.0, 1.0, 1.0},
