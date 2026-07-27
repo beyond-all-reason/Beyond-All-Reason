@@ -4659,6 +4659,7 @@ local initialModel = {
 		uiState.updatingFromCode = false
 		-- Fresh name field each open (a stale name is harmless — the uniquifier
 		-- makes reuse safe — but an unnoticed leftover would misname the map).
+		widgetState.newMapNameStr = ""
 		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
 		if nameInp then nameInp:SetAttribute("value", "") end
 		_nmRefreshLabels()
@@ -4956,8 +4957,13 @@ local initialModel = {
 			local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
 			skyboxPath = first and first.path or nil
 		end
-		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
-		local customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
+		-- Prefer the change-mirrored value (GetAttribute can lag the last
+		-- keystroke on deferred clicks); fall back to the attribute.
+		local customName = widgetState.newMapNameStr
+		if not customName or customName == "" then
+			local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
+			customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
+		end
 		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath,
 			{ customName = customName })
 		if not script then
@@ -9066,6 +9072,25 @@ local function attachEventListeners()
 		end, false)
 		projectNameInput:AddEventListener("change", function(event)
 			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+		end, false)
+	end
+
+	-- New Map wizard MAP NAME input: same SDL text-input capture (without it the
+	-- game eats every keystroke and the field never types) + change mirror.
+	local newMapNameInput = getCachedEl(doc, "newmap-name-input")
+	if newMapNameInput then
+		newMapNameInput:AddEventListener("focus", function(event)
+			WG.TerraformBrushInputFocused = true
+			Spring.SDLStartTextInput()
+			widgetState.focusedRmlInput = newMapNameInput
+		end, false)
+		newMapNameInput:AddEventListener("blur", function(event)
+			WG.TerraformBrushInputFocused = false
+			Spring.SDLStopTextInput()
+			widgetState.focusedRmlInput = nil
+		end, false)
+		newMapNameInput:AddEventListener("change", function(event)
+			widgetState.newMapNameStr = newMapNameInput:GetAttribute("value") or ""
 		end, false)
 	end
 
