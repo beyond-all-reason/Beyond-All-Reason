@@ -397,16 +397,32 @@
 		"category": "ui.keybinds.controlGroups.title",
 		"items": [
 			{
+				"prefix": "group select ",
+				"label": "ui.keybinds.controlGroups.select"
+			},
+			{
+				"prefix": "group focus ",
+				"label": "ui.keybinds.controlGroups.focus"
+			},
+			{
 				"prefix": "group set ",
 				"label": "ui.keybinds.controlGroups.assign"
 			},
 			{
-				"action": "group unset",
-				"label": "ui.keybinds.controlGroups.clear"
+				"prefix": "group add ",
+				"label": "ui.keybinds.controlGroups.add"
 			},
 			{
-				"prefix": "group ",
-				"label": "ui.keybinds.controlGroups.select"
+				"prefix": "group selectadd ",
+				"label": "ui.keybinds.controlGroups.selectAdd"
+			},
+			{
+				"prefix": "group selecttoggle ",
+				"label": "ui.keybinds.controlGroups.selectToggle"
+			},
+			{
+				"action": "group unset",
+				"label": "ui.keybinds.controlGroups.clear"
 			},
 			{
 				"prefix": "add_to_autogroup ",
