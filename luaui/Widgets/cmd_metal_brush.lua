@@ -421,6 +421,7 @@ local DEFAULT_CLUSTER_RADIUS = 256
 local mapOverlay = false
 local MAP_OVERLAY_DIM = 0.45  -- darkness applied to map while overlay is active
 local savedDarknessBeforeOverlay = nil  -- non-nil while we've applied overlay dim
+local savedBrushBeforeMetal = nil       -- {gridSnap, radius, shape} to restore on tool exit
 local clusterCounter = false
 local clusterRadius = DEFAULT_CLUSTER_RADIUS
 local lassoActive = false
@@ -1128,6 +1129,20 @@ end
 -- ============================================================
 
 local function activate(mode)
+	-- Snapshot the shared brush settings on ENTRY (not on paint/stamp submode
+	-- re-activations) so leaving the metal tool can restore them — the forced
+	-- snap/square/3x3 defaults below must not bleed into the other tools
+	if not active and savedBrushBeforeMetal == nil then
+		local tb = WG.TerraformBrush
+		local st = tb and tb.getState and tb.getState()
+		if st then
+			savedBrushBeforeMetal = {
+				gridSnap = st.gridSnap and true or false,
+				radius   = st.radius,
+				shape    = st.shape,
+			}
+		end
+	end
 	active = true
 	subMode = mode or "stamp"
 	painting = false
@@ -1154,6 +1169,16 @@ local function deactivate()
 		WG['darkenmap'].setMapDarkness(savedDarknessBeforeOverlay)
 	end
 	savedDarknessBeforeOverlay = nil
+	-- Hand the pre-metal brush settings back to the shared brush
+	if savedBrushBeforeMetal ~= nil then
+		local tb = WG.TerraformBrush
+		if tb then
+			if tb.setGridSnap then tb.setGridSnap(savedBrushBeforeMetal.gridSnap) end
+			if tb.setRadius and savedBrushBeforeMetal.radius then tb.setRadius(savedBrushBeforeMetal.radius) end
+			if tb.setShape and savedBrushBeforeMetal.shape then tb.setShape(savedBrushBeforeMetal.shape) end
+		end
+		savedBrushBeforeMetal = nil
+	end
 end
 
 local function setSubMode(mode)

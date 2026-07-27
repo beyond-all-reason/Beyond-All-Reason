@@ -298,27 +298,30 @@ local function unitDef_Post(name, uDef)
 	end
 
 	if modOptions.unit_restrictions_nonukes or modOptions.unit_restrictions_noantinuke then
-		if next(weapondefs) then
-			local numWeapons = 0
-			local newWdefs = {}
-			local hasAnti = false
-			for i, weapon in pairs(weapondefs) do
-				if weapon.interceptor and weapon.interceptor == 1 then
-					weapondefs[i] = nil
-					hasAnti = true
-				else
-					numWeapons = numWeapons + 1
-					newWdefs[numWeapons] = weapon
+		if table.any(weapondefs, function(def) return def.interceptor == 1 end) then
+			for weaponName, weaponDef in pairs(weapondefs) do
+				if weaponDef.interceptor == 1 then
+					weapondefs[weaponName] = nil
 				end
 			end
-			if hasAnti then
-				uDef.weapondefs = newWdefs
-				if numWeapons == 0 and (not (customparams.restrictions_exclusion and string.find(customparams.restrictions_exclusion, "_noantinuke_"))) then
-					customparams.modoption_blocked = true
-				else
-					if uDef.metalcost then
-						uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
-						uDef.energycost = math.floor(uDef.energycost * 0.6)
+			if not next(weapondefs) and not (customparams.restrictions_exclusion or ""):find("_noantinuke_") then
+				customparams.modoption_blocked = true
+			else
+				uDef.metalcost = math.floor((uDef.metalcost or 0) * 0.8)
+				uDef.energycost = math.floor((uDef.energycost or 0) * 0.8)
+				-- Drones should use stockpiling when there are no remaining stockpiling weapon conflicts.
+				-- Maybe an exception: babyscavbossunits. So I'm leaving this in the antinuke restriction.
+				for weaponName, weaponDef in pairs(weapondefs) do
+					if weaponDef.customparams and tonumber(weaponDef.customparams.spawnrate) and not weaponDef.stockpiletime then
+						if not table.any(weapondefs, function(wd, wn) return wn ~= weaponName and wd.stockpile end) then
+							weaponDef.stockpile = true
+							weaponDef.stockpiletime = tonumber(weaponDef.customparams.spawnrate) or 10
+							weaponDef.customparams.stockpilelimit = tonumber(weaponDef.customparams.maxunits) or tonumber(weaponDef.customparams.startingdronecount)
+							weaponDef.customparams.dronesusestockpile = true
+							weaponDef.customparams.stockpilemetal = weaponDef.metalpershot
+							weaponDef.customparams.stockpileenergy = weaponDef.energypershot
+							break
+						end
 					end
 				end
 			end
