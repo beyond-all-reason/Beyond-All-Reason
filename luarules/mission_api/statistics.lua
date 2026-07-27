@@ -18,6 +18,8 @@ local function init(deps)
 end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)
+	unitNames = unitNames or {}
+
 	processTriggersOfType(triggerType, function(trigger, triggerID)
 		if teamID ~= trigger.parameters.teamID then
 			return
