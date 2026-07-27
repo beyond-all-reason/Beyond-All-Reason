@@ -1,7 +1,7 @@
 ---@meta actions
 
---- One declaration read by both grammars: an action cannot mean one thing to a
---- mode file and another to a trigger file.
+---@class (partial) MissionContext
+---@field TransferGroup fun(groupName: string, teamID: integer, fiat: boolean|nil) a roster group changes hands; fiat skips the mode's say
 
 --- Not callable: a mission performs the action, not a slice of it.
 ---@class TransferGrant

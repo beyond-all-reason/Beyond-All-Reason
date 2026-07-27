@@ -50,4 +50,18 @@ return { tower = tower, boss = boss }
 		m:WithUnits(0, "armpw", 1):Step()
 		assert.are.equal(1, m:Param("objective_found"))
 	end)
+
+	it("Combat.Protect takes the exported handle", function()
+		local m = Builders.Mission
+			.new()
+			:WithSources("t", {
+				["units.lua"] = 'local hub = Spawn(UnitDef("corlab"), "gaia").At(0.4, 0.4)\nreturn { hub = hub }\n',
+				["triggers/a.lua"] = 'local Units = VFS.Include("modules/missions/t/units.lua")\nWhen(MatchFlow.Started()).Do(Combat.Protect(Units.hub))\n',
+			})
+			:Arm()
+			:Step()
+		local protect = m:Calls("combat")[1]
+		assert.are.equal("Protect", protect.method)
+		assert.are.equal(m:UnitOf("hub"), protect.args[1])
+	end)
 end)

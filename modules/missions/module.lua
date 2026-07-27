@@ -2,5 +2,5 @@
 return {
 	name = "missions",
 	description = "Mission runtime: trigger engine, authoring DSL, mission loader",
-	requires = { "matchflow", "transport" },
+	requires = { "matchflow", "transport", "combat", "transfer" },
 }

@@ -6,12 +6,13 @@ Spawn(UnitDef("corllt"), "gaia").At(0.4, 0.4).Named("tower").Grouped("base").Neu
 Spawn(UnitDef("corlab"), "gaia").At(0.42, 0.4).Grouped("base").Neutral()
 Claim(UnitDef("armcom"), "enemy").Named("boss").OrSpawnAt(0.8, 0.8)
 ]]
-local WIN = [[
-When(Unit("tower").IsSpotted(Team.Player)).When(Unit("boss").IsDestroyed()).Do(MatchFlow.Victory(Team.Player))
+local HANDOVER = [[
+When(Unit("tower").IsSpotted(Team.Player)).Do(Transfer.Give("base", Team.Player))
+When(MatchFlow.Started()).Do(Combat.Protect(Unit("tower")).Until(Unit("boss").IsDestroyed()))
 ]]
 
 local function mission()
-	return Builders.Mission.new():WithSources("t", { ["units.lua"] = UNITS, ["triggers/a.lua"] = WIN })
+	return Builders.Mission.new():WithSources("t", { ["units.lua"] = UNITS, ["triggers/a.lua"] = HANDOVER })
 end
 
 describe("the mission builder's unit world", function()
@@ -33,13 +34,24 @@ describe("the mission builder's unit world", function()
 		assert.are.equal("armcom", fresh:Units()[fresh:UnitOf("boss")].def)
 	end)
 
-	it("Spot and Kill drive the real latches", function()
+	it("Spot drives the real latch, and the handover is recorded against transfer", function()
 		local m = mission():Arm():Step()
-		assert.are.equal(0, #m:Calls("matchflow"))
+		assert.are.equal(0, #m:Calls("transfer"))
 		m:Spot("tower"):Step()
-		assert.are.equal(0, #m:Calls("matchflow"))
+		local give = m:Calls("transfer")[1]
+		assert.are.equal("Give", give.method)
+		assert.are.equal(2, #give.args[1])
+		assert.are.equal(0, give.args[2])
+	end)
+
+	it("Protect ... Until releases on the real death latch", function()
+		local m = mission():Arm():Step()
+		local combat = m:Calls("combat")
+		assert.are.equal("Protect", combat[1].method)
+		assert.are.equal(m:UnitOf("tower"), combat[1].args[1])
 		m:Kill("boss", 0):Step()
-		assert.are.equal("Victory", m:Calls("matchflow")[1].method)
+		combat = m:Calls("combat")
+		assert.are.equal("Unprotect", combat[#combat].method)
 	end)
 
 	it("a mission file is real Lua: a local names a value and is used later", function()
