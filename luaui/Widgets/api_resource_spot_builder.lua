@@ -206,7 +206,7 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 		return true
 	end
 
-	-- Some extractors are special and may be desirable even if they produce less energy
+	-- Some extractors are special and may be desirable even if they produce less resources
 	if newExtractorStrength ~= currentExtractorStrength and newExtractorIsSpecial then
 		return true
 	end
