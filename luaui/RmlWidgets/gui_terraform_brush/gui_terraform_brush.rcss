@@ -695,6 +695,12 @@ body {
 	background-color: #2b2113;
 }
 
+/* Tileset tool */
+.tf-btn-tileset.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
 /* Diffuse painter */
 .tf-btn-diffuse.active {
 	border-color: #fdc04c;
@@ -2607,6 +2613,11 @@ body {
 }
 
 .tf-btn-splat.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+.tf-btn-tileset.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
