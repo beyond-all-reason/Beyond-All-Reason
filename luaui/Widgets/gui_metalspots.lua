@@ -329,7 +329,7 @@ local function updateSpot(spot, gf)
 	if index then
 		local offset = (index - 1) * instanceTable.instanceStep
 		local instanceData = instanceTable.instanceData
-		instanceData[offset + 5] = (occupied and 0) or 1
+		instanceData[offset + 5] = (occupied and 0) or (spot.tint or 1)
 		instanceData[offset + 6] = gf
 		uploadElementRange(instanceTable, index - 1, index)
 	end
@@ -402,6 +402,70 @@ local function runPendingChecks(gf)
 		pendingSpots[i], pendingFrames[i] = nil, nil
 	end
 	pendingCount = kept
+end
+
+-- Which free spots are open to me, by construction's own placement rule: the one a build order is refused by. Asked
+-- only before the start and while a mex is being placed, and shown only when some spot on the map is closed to me, so
+-- a match where every spot is open looks exactly as it always has. 1 is plain, 2 open to me, 3 closed to me.
+local Construction = require("modules/construction/api")
+local tinted = false
+
+local function placingAMex()
+	local _, cmdID = Spring.GetActiveCommand()
+	return cmdID ~= nil and ((GameCMD and cmdID == GameCMD.AREA_MEX) or (cmdID < 0 and extractorDefs[-cmdID] ~= nil))
+end
+
+-- Before the start nothing about me is decided until I have placed: the engine holds no start position for a team
+-- that has not picked one, and whatever a rule says then is about nobody in particular.
+local function havePlaced()
+	local x, _, z = Spring.GetTeamStartPosition(spGetMyTeamID())
+	return x ~= nil and x > 0 and z > 0
+end
+
+local function retintSpots()
+	local asking
+	if spGetGameFrame() <= 0 then
+		asking = havePlaced()
+	else
+		asking = placingAMex()
+	end
+	if not asking and not tinted then
+		return
+	end
+	local myTeamID = spGetMyTeamID()
+	local open, anyClosed = {}, false
+	if asking then
+		for i = 1, #mySpots do
+			open[i] = Construction.MayPlaceMexAt(myTeamID, mySpots[i].x, mySpots[i].z)
+			anyClosed = anyClosed or not open[i]
+		end
+	end
+	tinted = asking and anyClosed
+	local instanceTable = spotInstanceVBO
+	for i = 1, #mySpots do
+		local spot = mySpots[i]
+		local tint = (not tinted and 1) or (open[i] and 2) or 3
+		if spot.tint ~= tint then
+			spot.tint = tint
+			if not spot.occupied and instanceTable then
+				local index = instanceTable.instanceIDtoIndex[spot.instanceID] ---@type integer?
+				if index then
+					local offset = (index - 1) * instanceTable.instanceStep
+					instanceTable.instanceData[offset + 5] = tint
+					uploadElementRange(instanceTable, index - 1, index)
+				end
+			end
+		end
+	end
+end
+
+local sinceRetint = 0
+function widget:Update(dt)
+	sinceRetint = sinceRetint + dt
+	if sinceRetint >= 1 then
+		sinceRetint = 0
+		retintSpots()
+	end
 end
 
 local function valueToText(value)
@@ -510,7 +574,7 @@ local function InitializeSpots(mSpots)
 							mySpot.y,
 							spot.z,
 							scale,
-							(occupied and 0) or 1,
+							(occupied and 0) or (mySpot.tint or 1),
 							-1000,
 							uvcoords.w,
 							uvcoords.h,
@@ -552,7 +616,7 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 						spot.y,
 						spot.z,
 						spot.scale,
-						(occupied and 0) or 1,
+						(occupied and 0) or (spot.tint or 1),
 						-1000,
 						uvcoords.w,
 						uvcoords.h,
