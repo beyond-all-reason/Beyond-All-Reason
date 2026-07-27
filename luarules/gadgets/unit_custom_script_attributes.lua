@@ -127,7 +127,7 @@ local unitScriptAttributes = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if usesCobUnitScript(unitDef) then
 		local attributes = {}
-		getUnitAttributes(unitDef.customParams, attributes)
+		getUnitAttributes(unitDef, attributes)
 		getWeaponAttributes(unitDef.weapons, attributes)
 		if next(attributes) then
 			unitScriptAttributes[unitDefID] = attributes
