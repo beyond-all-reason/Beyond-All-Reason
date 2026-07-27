@@ -2030,11 +2030,16 @@ local function doExportHeightmap()
 	-- Timestamped filename so multiple saves accumulate and can be listed in the
 	-- load picker (older format was a single overwriting file).
 	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
-	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>",
-	-- see buildBlankMapStartScript). Strip it so a save made on one canvas stays
-	-- visible in the load picker on every later canvas of the same size.
+	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>"
+	-- or "<custom name> s<time>", see buildBlankMapStartScript). Strip it so a save
+	-- made on one canvas stays visible in the load picker on later canvases with
+	-- the same base name. Gated on blank-map mapoptions so a real map name that
+	-- happens to end in " s<digits>" is never truncated.
 	local mapName = Game.mapName or ""
-	mapName = mapName:match("^(Editor Flat %d+x%d+) s%d+$") or mapName
+	local mo = Spring.GetMapOptions()
+	if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+		mapName = mapName:match("^(.-) s%d+$") or mapName
+	end
 	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
@@ -2685,10 +2690,16 @@ function widget:Initialize()
 			if not files then return out end
 			local mapName = Game.mapName or ""
 			-- Generated canvases get a fresh uniquified name every restart ("Editor
-			-- Flat 12x12 s<time>"), so an exact-name filter can never surface saves
-			-- from a previous canvas. Filter by the size-carrying base name instead;
-			-- real maps keep exact matching (same name implies same dimensions).
-			local canonical = mapName:match("^(Editor Flat %d+x%d+) s%d+$") or mapName
+			-- Flat 12x12 s<time>" or "<custom name> s<time>"), so an exact-name
+			-- filter can never surface saves from a previous canvas. Filter by the
+			-- stripped base name instead, gated on blank-map mapoptions so a real
+			-- map name ending in " s<digits>" is never truncated; real maps keep
+			-- exact matching (same name implies same dimensions).
+			local canonical = mapName
+			local mo = Spring.GetMapOptions()
+			if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+				canonical = mapName:match("^(.-) s%d+$") or mapName
+			end
 			local mapPrefix = "heightmap_export_" .. canonical
 			local escaped = mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1")
 			for _, path in ipairs(files) do

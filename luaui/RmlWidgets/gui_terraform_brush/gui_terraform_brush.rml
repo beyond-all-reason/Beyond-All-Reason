@@ -7460,6 +7460,15 @@
 
 		<div class="text-base text-keybind mb-2">Create a fresh flat map and reload the current session onto it. Unsaved terrain edits will be lost.</div>
 
+		<!-- Optional custom name; blank = automatic "Editor Flat <W>x<H>" -->
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">MAP NAME</div>
+			<div class="text-sm text-keybind">optional</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<input type="text" id="newmap-name-input" class="tf-preset-input" maxlength="40" value="" />
+		</div>
+
 		<!-- Procedural terrain is opt-in; default is a dead-flat canvas. -->
 		<div class="flex flex-row gap-1 items-center mb-2">
 			<div class="text-base text-light" style="flex: 1;">GENERATE TERRAIN</div>

@@ -1733,6 +1733,8 @@ end
 -- opts (all optional; defaults preserve the New Map behavior):
 --   baseHeight   number  blank_map_height (project manifests record theirs)
 --   baseColor    {r,g,b} 0..255 blank_map_color
+--   customName   string  user map name from the wizard; sanitized, still gets
+--                        the " s<time>" uniquifier. Blank/absent = "Editor Flat WxH"
 -- dntsSet.rawPaths: texture entries are full VFS paths already (project-local
 -- assets/) instead of names under the library DNTS_DIR.
 local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath, opts)
@@ -1753,7 +1755,22 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- matchers use the "^Editor Flat %dx%d" PREFIX, never an exact match.
 	-- Wall-clock, not the terrain seed above: this widget never seeds math.random
 	-- with real entropy, so reusing it here risked non-unique "unique" names.
-	local mapName = string.format("Editor Flat %dx%d s%d", widthUnits, heightUnits, os.time())
+	--
+	-- Custom names (New Map wizard MAP NAME field) get the SAME " s<time>"
+	-- uniquifier: it dodges the poisoned-cache bug above and makes collision
+	-- with a real installed archive name impossible. The heightmap picker
+	-- strips the suffix back off (gated on blank-map mapoptions), so saves
+	-- group under the typed name across sessions.
+	local custom = tostring(opts.customName or "")
+	-- Strip characters that would break the start script (; = { }), the archive
+	-- name, or Windows filenames derived from the map name (heightmap exports).
+	custom = custom:gsub('[%c;=<>:"/\\|%?%*{}%[%]]', " "):gsub("%s+", " "):match("^%s*(.-)%s*$"):sub(1, 40)
+	local mapName
+	if custom ~= "" then
+		mapName = string.format("%s s%d", custom, os.time())
+	else
+		mapName = string.format("Editor Flat %dx%d s%d", widthUnits, heightUnits, os.time())
+	end
 
 	local script = base
 
@@ -4640,6 +4657,10 @@ local initialModel = {
 		_elemSetSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT)
 		_elemSetSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT)
 		uiState.updatingFromCode = false
+		-- Fresh name field each open (a stale name is harmless — the uniquifier
+		-- makes reuse safe — but an unnoticed leftover would misname the map).
+		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
+		if nameInp then nameInp:SetAttribute("value", "") end
 		_nmRefreshLabels()
 		_nmRefreshSplatLabel()
 		widgetState._nmRefreshEnvLabel()
@@ -4935,7 +4956,10 @@ local initialModel = {
 			local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
 			skyboxPath = first and first.path or nil
 		end
-		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath)
+		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
+		local customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
+		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath,
+			{ customName = customName })
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
@@ -7422,6 +7446,7 @@ local guideHints = {
 	-- Export / Import
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
 	["btn-import"]      = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
+	["newmap-name-input"] = "Optional name for the new map. Leave blank for automatic naming (Editor Flat <size>). Saved heightmaps group under this name across sessions.",
 	-- Feature Placer sub-modes
 	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
 	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
