@@ -109,8 +109,8 @@ local function getWeaponAttribute(weaponNum, weaponDef, attribute, out)
 	end
 end
 
-local function getWeaponAttributes(weapons, out)
-	for weaponNum, weapon in ipairs(weapons) do
+local function getWeaponAttributes(unitDef, out)
+	for weaponNum, weapon in ipairs(unitDef.weapons) do
 		local weaponDef = WeaponDefs[weapon.weaponDef]
 		for index, attribute in ipairs(weaponAttributeDefinitions) do
 			getWeaponAttribute(weaponNum, weaponDef, attribute, out)
@@ -124,7 +124,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if usesCobUnitScript(unitDef) then
 		local attributes = {}
 		getUnitAttributes(unitDef, attributes)
-		getWeaponAttributes(unitDef.weapons, attributes)
+		getWeaponAttributes(unitDef, attributes)
 		if next(attributes) then
 			unitScriptAttributes[unitDefID] = attributes
 		end
