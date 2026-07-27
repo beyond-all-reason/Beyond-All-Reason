@@ -17,6 +17,7 @@ function gadget:GetInfo()
 	}
 end
 
+local spCallCobScript = Spring.CallCOBScript
 local gameSpeed = Game.gameSpeed
 local DEG2COBANGLE = COBSCALE / 360
 
@@ -74,15 +75,10 @@ local weaponAttributeDefinitions = {
 	},
 }
 
--- Initialization and setup
+-- Initialization
 
 local function usesCobUnitScript(unitDef)
 	return (unitDef.script or ""):find(".cob$") ~= nil
-end
-
-local spCallCobScript = Spring.CallCOBScript
-local callCOB = function(unitID, funcName, ...)
-	spCallCobScript(unitID, funcName, 0, ...) -- Adaptor for COB to add the return count.
 end
 
 local function hasAttribute(def, attribute)
@@ -142,9 +138,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if attributes then
 		for methodName, arguments in pairs(attributes) do
 			if type(arguments) == "table" then
-				callCOB(unitID, methodName, unpack(arguments))
+				spCallCobScript(unitID, methodName, 0, unpack(arguments))
 			else
-				callCOB(unitID, methodName, arguments)
+				spCallCobScript(unitID, methodName, 0, arguments)
 			end
 		end
 	end
