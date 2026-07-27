@@ -2,7 +2,6 @@ local ACTIONS_DIR = 'luarules/mission_api/actions/'
 local ACTION_FILES_PATTERN = '*.lua'
 
 local function loadActionDefinitions()
-	--local 
 
 	local types = {}
 	local typesCount = 0
