@@ -3430,3 +3430,38 @@ margin-top: 3dp;
 .disabled:hover {
 	opacity: 0.35;
 }
+
+/* === BIOME LIBRARY picker (TILESET tool) ================================== */
+/* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
+/* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
+.tf-biome-tile {
+	flex: 1 1 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 3dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+.tf-biome-tile:hover {
+	border-color: #fdc04caa;
+}
+.tf-biome-tile.active {
+	border-color: #fdc04c;
+	background-color: #fdc04c1a;
+}
+.tf-biome-thumb {
+	width: 60dp;
+	height: 60dp;
+	border-radius: 3dp;
+}
+.tf-biome-name {
+	margin-top: 2dp;
+	font-size: 12dp;
+	color: #d0d0d8;
+	text-align: center;
+}
+.tf-biome-tile.active .tf-biome-name {
+	color: #fdc04c;
+}
