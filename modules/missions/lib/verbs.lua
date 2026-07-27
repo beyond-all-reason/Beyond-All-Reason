@@ -1,10 +1,3 @@
---- The three demo verbs' pure halves: UnitDef refs and the Team handle with
---- its Has condition. No Spring here — conditions read counts from the ctx the
---- engine is handed, so this specs under busted; the gadget supplies a ctx
---- backed by Spring.GetTeamUnitDefCount.
----
---- Conditions capture configuration only (team id, unit name, threshold) —
---- never progress. Dot-only surface, same rule as the chain DSL.
 
 local Verbs = {}
 
@@ -41,6 +34,61 @@ function Verbs.MakeTeam(teamID, allyTeam)
 	end
 
 	return team
+end
+
+---An unknown unit name is a LOAD error, not a silently-never-true condition.
+---An unknown roster name is a LOAD error, not a silently-never-true condition.
+--- A reference to a roster unit by name, no validation: the roster handle
+--- builds one for itself, the Unit verb validates the name first.
+---@param name MissionUnitName|fun(): MissionUnitName the name, or how to read it once known
+---@return MissionUnitRef
+function Verbs.UnitRef(name)
+	local function resolved()
+		local value = type(name) == "function" and name() or name
+		assert(type(value) == "string", "a roster handle was referenced before it was named")
+		return value
+	end
+	return {
+		name = type(name) == "string" and name or nil,
+		---@return MissionCondition
+		IsDestroyed = function()
+			return {
+				inputs = { "UnitDestroyed" },
+				---@param ctx MissionContext
+				evaluate = function(ctx)
+					return ctx.IsUnitDestroyed(resolved())
+				end,
+			}
+		end,
+		---@param team MissionTeam
+		---@return MissionCondition
+		IsSpotted = function(team)
+			assert(
+				type(team) == "table" and type(team.allyTeam) == "number",
+				"Unit.IsSpotted expects a Team handle (e.g. Team.Player)"
+			)
+			return {
+				inputs = { "UnitEnteredLos" },
+				---@param ctx MissionContext
+				evaluate = function(ctx)
+					return ctx.IsUnitSpotted(resolved(), team.allyTeam)
+				end,
+			}
+		end,
+	}
+end
+
+---@param names table<string, boolean> the roster's declared unit names
+---@return fun(name: MissionUnitName): MissionUnitRef
+function Verbs.MakeUnit(names)
+	return function(name)
+		assert(type(name) == "string", "Unit expects a mission unit name string")
+		assert(
+			names[name],
+			'Unit("' .. name .. "\"): no such unit — units.lua Named(...) declares the mission's unit names"
+		)
+		return Verbs.UnitRef(name)
+	end
 end
 
 return Verbs

@@ -6,6 +6,8 @@
 --- Alias names are LOAD-BEARING beyond the checker: the mission kit derives its
 --- semantic model from them (alias -> slot semantic, literal unions -> editor enums).
 ---@alias UnitDefName string unit def name, e.g. "armpw"
+---@alias MissionUnitName string roster unit name, declared by units.lua Named(...)
+---@alias MissionUnitGroup string roster group name, declared by units.lua Grouped(...)
 ---@alias ObjectiveName string
 ---@alias MissionTeamRole "player"|"enemy"|"gaia" spawn-time team role, resolved at arm
 --- Wall-clock seconds, never frames. An alias so an editor can name the unit the
@@ -66,8 +68,45 @@
 ---@field revealAtArm boolean|nil marked by the loader: no declared moment, no completable predecessor
 ---@field foreshadow boolean
 
---- A registered trigger. Identity = source filename + declaration order,
---- stamped at registration — the unregister-by-identity key for hot reload.
+--- Both conditions are latched; unknown names never arm (validated at load).
+---@class MissionUnitRef
+---@field name MissionUnitName
+---@field IsDestroyed fun(): MissionCondition
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+
+--- Positions are map fractions until real maps pin real coordinates; a chain
+--- without At fails the load.
+---@class MissionSpawnChain
+---@field At fun(fx: number, fz: number): MissionSpawnChain
+---@field Named fun(name: MissionUnitName): MissionSpawnChain
+---@field Grouped fun(group: MissionUnitGroup|MissionGroupRef): MissionSpawnChain
+---@field Neutral fun(): MissionSpawnChain starts inert: neither shoots nor is shot at, until handed over
+---@field IsSpotted fun(team: MissionTeam): MissionCondition the handle is also the reference
+---@field IsDestroyed fun(): MissionCondition
+---@field name MissionUnitName? set once the file is loaded: Named, or the export key
+
+--- No At: a claimed unit is already somewhere. OrSpawnAt is required because it
+--- says where to build one when the team turns out to have none.
+---@class MissionClaimChain
+---@field Named fun(name: MissionUnitName): MissionClaimChain
+---@field Grouped fun(group: MissionUnitGroup|MissionGroupRef): MissionClaimChain
+---@field OrSpawnAt fun(fx: number, fz: number): MissionClaimChain
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+---@field IsDestroyed fun(): MissionCondition
+---@field name MissionUnitName? set once the file is loaded: Named, or the export key
+
+---@class MissionRosterEntry
+---@field def UnitDefName
+---@field team MissionTeamRole
+---@field fx number map-fraction position, resolved against map size at spawn
+---@field fz number
+---@field name MissionUnitName|nil declared by Named
+---@field group MissionUnitGroup|nil declared by Grouped
+---@field claim boolean|nil written by Claim: bind to an existing unit if the team has one
+---@field neutral boolean|nil written by Neutral: spawn inert, cleared when the unit changes hands
+
+--- Identity = source filename + declaration order: the unregister-by-identity
+--- key for hot reload.
 ---@class TriggerDescriptor
 ---@field id string "<filename>:<order>"
 ---@field filename string mission-relative trigger file path
