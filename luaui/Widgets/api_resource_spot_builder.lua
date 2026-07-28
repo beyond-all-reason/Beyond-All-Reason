@@ -189,7 +189,6 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
 
-	-- Disallow building the same extractor over itself
 	if currentExtractorId == newExtractorId then
 		return false
 	end
@@ -203,10 +202,15 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 		return false
 	end
 
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0 or (newExtractor.radarDistanceJam or 0) > 0
+	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0 or newExtractor.radarDistanceJam > 0
 
-	local newTechLevel = tonumber(newExtractor.customParams and newExtractor.customParams.techlevel) or 1
-	local currentTechLevel = tonumber(currentExtractor.customParams and currentExtractor.customParams.techlevel) or 1
+	local newTechLevel = tonumber(newExtractor.customParams.techlevel) or 1
+	local currentTechLevel = tonumber(currentExtractor.customParams.techlevel) or 1
+
+	if newTechLevel < currentTechLevel then
+		return false
+	end
+
 	
 	if newExtractorStrength > currentExtractorStrength then
 		return true
