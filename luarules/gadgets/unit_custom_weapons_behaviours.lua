@@ -579,7 +579,6 @@ local maxWaterEntryCorrection = 0.85
 local goldenRatio = (1 + math.sqrt(5)) / 2
 local minSurfaceTrackingCorrection = 0.1
 local maxSurfaceTrackingCorrection = 0.15
-local terminalSurfaceCorrectionDistance = 60
 local torpedoWaterEntryCorrected = {}
 
 local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, initialWaterEntry, targetX, targetY, targetZ)
@@ -667,10 +666,6 @@ local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, init
 				smooth = minSurfaceTrackingCorrection +
 					(maxSurfaceTrackingCorrection - minSurfaceTrackingCorrection) * proximityBlend
 			end
-
-			-- Allow decisive vertical correction only during the final approach.
-			local terminalBlend = math_clamp(1 - distance / terminalSurfaceCorrectionDistance, 0, 1)
-			smooth = smooth + (1 - smooth) * terminalBlend
 		end
 	end
 
