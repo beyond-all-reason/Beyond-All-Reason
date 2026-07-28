@@ -192,7 +192,9 @@ local function rebuildRows()
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
 				end
-			else
+			-- Skip an action a hidden entry or an earlier prefix already claimed, so a
+			-- hide stays authoritative and entry order can't produce a duplicate row.
+			elseif not (item.action and catalogActions[item.action]) then
 				if item.action then
 					catalogActions[item.action] = true
 				end
