@@ -103,6 +103,7 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					norangering = 1,
+					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 750,
