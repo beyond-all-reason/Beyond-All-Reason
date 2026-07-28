@@ -103,6 +103,15 @@ end
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
 
+-- unpack() does not handle optional parameters, as it cannot pass a value as nil
+local function unpackCallinArgs(args, i)
+	i = i or 1
+
+	if i <= args.n then
+		return args[i], unpackCallinArgs(args, i + 1)
+	end
+end
+
 -- Dispatches a logical call-in to every per-trigger handler registered for it.
 -- Each handler receives (trigger, triggerID, triggerContext, ...call-in args).
 local function dispatchTriggerCallin(callinName, ...)
@@ -110,11 +119,10 @@ local function dispatchTriggerCallin(callinName, ...)
 	if not handlersByType then
 		return
 	end
-	local args = { ... }
-	local argCount = select('#', ...)
+	local args = { n = select('#', ...), ... }
 	for triggerType, handler in pairs(handlersByType) do
 		processTriggersOfType(triggerType, function(trigger, triggerID)
-			handler(trigger, triggerID, triggerContext, unpack(args, 1, argCount))
+			handler(trigger, triggerID, triggerContext, unpackCallinArgs(args))
 		end)
 	end
 end
