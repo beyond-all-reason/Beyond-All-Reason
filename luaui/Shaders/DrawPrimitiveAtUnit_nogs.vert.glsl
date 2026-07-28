@@ -59,6 +59,7 @@ uniform float iconDistance = 20000.0;
 out DataGS {
 	vec4 g_color;
 	vec4 g_uv;
+	float g_invalid;
 };
 
 #if USEQUATERNIONS == 0
@@ -201,6 +202,7 @@ void main()
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 		g_color = vec4(0.0);
 		g_uv = vec4(0.0);
+		g_invalid = 0.0;
 		return;
 	}
 
@@ -257,5 +259,6 @@ void main()
 		gl_Position.z = (gl_Position.z) - ZPULL / (gl_Position.w);
 	#endif
 	g_uv.zw = v_parameters.zw;
+	g_invalid = v_parameters.y;
 	POST_GEOMETRY
 }

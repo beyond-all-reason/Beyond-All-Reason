@@ -1,0 +1,53 @@
+{
+	"ui": {
+		"playersList": {
+			"shareUnits": {
+				"default": "Double-click to share units",
+				"disabled": "Unit sharing not allowed (mode is %{unitSharingMode})",
+				"allInvalid": "Sharing these units is not allowed (mode is %{unitSharingMode})",
+				"buildDelay": {
+					"one": "%{count} shared constructor will be paused for %{buildDelaySeconds}s",
+					"other": "%{count} shared constructors will be paused for %{buildDelaySeconds}s"
+				},
+				"stunDelay": {
+					"one": "%{count} shared %{stunCategory} unit will be stunned for %{stunSeconds}s",
+					"other": "%{count} shared %{stunCategory} units will be stunned for %{stunSeconds}s"
+				},
+				"invalid": {
+					"one": "Double-click to share units (mode is %{unitSharingMode} - %{firstInvalidUnitName} cannot be shared)",
+					"other": "Double-click to share units (mode is %{unitSharingMode} - %{count} units cannot be shared, including %{firstInvalidUnitName})"
+				}
+			},
+			"shareMetal": {
+				"default": "Click-and-drag to share metal",
+				"disabled": "Metal sharing not allowed",
+				"taxed": "Click-and-drag to share metal, receivable: %{amountReceivable}m, sendable: %{amountSendable}m at %{taxRatePercentage}%%"
+			},
+			"shareEnergy": {
+				"default": "Click-and-drag to share energy",
+				"disabled": "Energy sharing not allowed",
+				"taxed": "Click-and-drag to share energy, receivable: %{amountReceivable}e, sendable: %{amountSendable}e at %{taxRatePercentage}%%"
+			},
+			"noted": "%{text} — %{note}",
+			"chat": {
+				"sentMetal": "Sent %{receivedAmount}m",
+				"sentMetalTaxed": "Sent %{receivedAmount}m, spent %{sentAmount}m at %{taxRatePercentage}%% overhead",
+				"sentEnergy": "Sent %{receivedAmount}e",
+				"sentEnergyTaxed": "Sent %{receivedAmount}e, spent %{sentAmount}e at %{taxRatePercentage}%% overhead"
+			}
+		},
+		"unitSharingMode": {
+			"none": "Disabled",
+			"all": "All",
+			"combat": "Combat",
+			"buildings": "Buildings",
+			"constructors": "Constructors",
+			"resource": "Resource",
+			"non_combat": "Non-combat"
+		},
+		"orderMenu": {
+			"quicksharetotarget": "Share Unit",
+			"quicksharetotarget_tooltip": "Share unit to target player."
+		}
+	}
+}

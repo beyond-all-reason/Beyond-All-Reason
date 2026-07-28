@@ -47,6 +47,8 @@ local isDevSingle = (BAR.Utilities.IsDevMode() and BAR.Utilities.Gametype.IsSing
 -- Configuration consolidated into table to reduce local variable count
 local vsx, vsy = gl.GetViewSizes()
 local config = {
+	-- which fields of a share chat line carry an amount (the widget is at Lua's local limit; this rides on config)
+	shareChatHighlights = require("modules/transfer/api_unsynced").Resources.ChatHighlights,
 	showHistoryWhenChatInput = true,
 	showHistoryWhenCtrlShift = true,
 	enableShortcutClick = true,
@@ -761,6 +763,8 @@ local function addChatLine(
 					if pair[2] then
 						if playernames[pair[2]] then
 							t[pair[1]] = getPlayerColorString(pair[2], gameFrame) .. playernames[pair[2]][7] .. msgColor
+						elseif config.shareChatHighlights[pair[1]] == false then
+							t[pair[1]] = pair[2]
 						elseif params[1]:lower():find("energy", nil, true) then
 							t[pair[1]] = energyValueColor .. pair[2] .. msgColor
 						elseif params[1]:lower():find("metal", nil, true) then

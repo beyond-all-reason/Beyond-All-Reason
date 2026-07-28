@@ -6,6 +6,7 @@
 ---@field Transport string
 ---@field Construction string
 ---@field Economy string
+---@field Transfer string
 local Modules = {
 	Regions = "regions",
 	Start = "start",
@@ -14,6 +15,7 @@ local Modules = {
 	Transport = "transport",
 	Construction = "construction",
 	Economy = "economy",
+	Transfer = "transfer",
 }
 
 return { Modules = Modules }
