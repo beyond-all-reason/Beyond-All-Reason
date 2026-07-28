@@ -528,6 +528,7 @@
 			"channelScopeAll": "ALL",
 			"everyone": "everyone",
 			"allies": "allies",
+			"label": "label",
 			"spectators": "spectators",
 			"spectator": "spectator",
 			"cmd": "COMMAND",
