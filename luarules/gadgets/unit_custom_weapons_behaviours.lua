@@ -573,8 +573,15 @@ local maxUnderwaterSurfaceRiseSpeed = 1.25
 local surfaceArrivalLeadFrames = 20
 local surfaceTransitionStartDepth = -12
 local defaultTrackingTurnRadius = 180
+local waterEntryCorrectionStartDistance = 180
+local minWaterEntryCorrection = 0.45
+local maxWaterEntryCorrection = 0.85
+local goldenRatio = (1 + math.sqrt(5)) / 2
+local minSurfaceTrackingCorrection = 0.1
+local maxSurfaceTrackingCorrection = 0.15
+local torpedoWaterEntryCorrected = {}
 
-local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, targetX, targetY, targetZ)
+local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, initialWaterEntry, targetX, targetY, targetZ)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
 	local diveSpeed = 0
@@ -644,7 +651,21 @@ local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, targ
 				minSurfaceDiveSpeed,
 				surfaceRiseLimit
 			)
-			smooth = 0.5 + 0.35 * proximityBlend
+			if predictSurfaceArrival then
+				smooth = 0.5 + 0.35 * proximityBlend
+			elseif initialWaterEntry then
+				-- Water-entry torpedoes should not flatten into an abrupt turn.
+				-- A golden-ratio ease-in keeps most of the correction inside 120 elmos.
+				local directTargetBlend = math_clamp(1 - distance / waterEntryCorrectionStartDistance, 0, 1)
+				directTargetBlend = directTargetBlend ^ goldenRatio
+				smooth = minWaterEntryCorrection +
+					(maxWaterEntryCorrection - minWaterEntryCorrection) * directTargetBlend
+			else
+				-- After entry, retain a light surface-depth correction without
+				-- repeatedly arresting the projectile's vertical velocity.
+				smooth = minSurfaceTrackingCorrection +
+					(maxSurfaceTrackingCorrection - minSurfaceTrackingCorrection) * proximityBlend
+			end
 		end
 	end
 
@@ -666,7 +687,7 @@ local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, targ
 	end
 
 	if velocityY > 0 then
-		smooth = math.max(smooth, 0.5 + 0.3 * surfaceTransition)
+		smooth = math.max(smooth, 0.5 + 0.35 * surfaceTransition)
 	end
 	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
@@ -676,7 +697,9 @@ end
 
 specialEffectFunction.torpwaterpen = function(params, projectileID)
 	if isProjectileInWater(projectileID) then
-		return not torpedoWaterPen(params, projectileID, false)
+		local initialWaterEntry = not torpedoWaterEntryCorrected[projectileID]
+		torpedoWaterEntryCorrected[projectileID] = true
+		return not torpedoWaterPen(params, projectileID, false, initialWaterEntry)
 	end
 end
 
@@ -695,7 +718,7 @@ specialEffectFunction.torpsurfacetrack = function(projectileID)
 		return true
 	end
 
-	torpedoWaterPen(nil, projectileID, true, targetX, targetY, targetZ)
+	torpedoWaterPen(nil, projectileID, true, false, targetX, targetY, targetZ)
 	return false
 end
 
@@ -754,6 +777,7 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	torpedoWaterEntryCorrected[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
