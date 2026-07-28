@@ -20,19 +20,20 @@ function test()
 	local facing = 0
 
 	local cases = {
-		-- label, current unit, new unit, expected
-		{ "1", "armmex", "armamex", true },       -- arm mex -> stealthy mex
-		{ "2", "armamex", "armmex", false },      -- stealthy mex -> t1 mex
-		{ "3", "armgmm", "armageo", true },       -- prude -> ageo
-		{ "4", "armageo", "armgmm", true },       -- ageo -> prude
-		{ "5", "corbhmth", "legrampart", true },  -- cerberus -> legion rampart
-		{ "6", "armgeo", "corgeo", false },       -- t1 geo cross-faction
-		{ "7", "armageo", "corageo", false },     -- ageo cross-faction
-		{ "8", "armmoho", "cormoho", false },     -- t2 mex cross-faction
+		-- current unit, new unit, expected
+		{ "armmex", "armamex", true },       -- arm mex -> stealthy mex
+		{ "armamex", "armmex", false },      -- stealthy mex -> t1 mex
+		{ "armgmm", "armageo", true },       -- prude -> ageo
+		{ "armageo", "armgmm", true },       -- ageo -> prude
+		{ "corbhmth", "legrampart", true },  -- cerberus -> legion rampart
+		{ "armgeo", "corgeo", false },       -- t1 geo cross-faction
+		{ "armageo", "corageo", false },     -- ageo cross-faction
+		{ "armmoho", "cormoho", false },     -- t2 mex cross-faction
+		{ "armmoho", "armmex", false },     -- t2 mex to t1 mex
 	}
 
 	for i = 1, #cases do
-		local label, currentName, newName, expected = cases[i][1], cases[i][2], cases[i][3], cases[i][4]
+		local currentName, newName, expected = cases[i][1], cases[i][2], cases[i][3]
 
 		assert(UnitDefNames[currentName], "missing UnitDefNames." .. currentName)
 		assert(UnitDefNames[newName], "missing UnitDefNames." .. newName)
@@ -54,8 +55,7 @@ function test()
 			canUpgrade,
 			expected,
 			string.format(
-				"%s: expected ExtractorCanBeUpgraded(%s -> %s) == %s, got %s",
-				label,
+				"expected ExtractorCanBeUpgraded(%s -> %s) == %s, got %s",
 				currentName,
 				newName,
 				tostring(expected),
