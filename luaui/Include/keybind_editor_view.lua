@@ -1051,8 +1051,10 @@ function view.mousePress(x, y, button)
 	end
 
 	if editable and x >= area.x1 and x <= listRight and y >= listBottom() and y <= listTop then
+		-- The band can end in a partial row that draw never paints, so clamp to the
+		-- painted count or a click in that strip would edit an unseen row.
 		local r = floor((listTop - y) / rowHeight) + 1
-		local row = rows[scroll + r]
+		local row = r <= visibleRows() and rows[scroll + r] or nil
 		if row and row.type == "editable" then
 			local kind, raw = hitTestRow(row.action, x)
 			if kind then
