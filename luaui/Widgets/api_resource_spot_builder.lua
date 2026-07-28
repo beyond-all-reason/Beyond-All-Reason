@@ -55,7 +55,7 @@ local geoConstructors = {}
 local geoConstructorsDef = {}
 local geoBuildings = {}
 
-local normalExtractors = {}
+local standardExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
 ------------------------------------------------------------
@@ -67,6 +67,10 @@ for uDefID, uDef in pairs(UnitDefs) do
 	local customParams = uDef.customParams or {}
 	if customParams.geothermal then
 		geoBuildings[uDefID] = uDef.energyMake
+	end
+	-- Standard extractors produce just metal / energy and are available to all factions.
+	if customParams.standardextractor then
+		standardExtractors[uDefID] = true
 	end
 end
 
@@ -94,28 +98,6 @@ for uDefID, uDef in pairs(UnitDefs) do
 				end
 			end
 		end
-	end
-end
-
-
--- Standard extractors produce just metal / energy and are available to all factions.
-local normalExtractorNames = {
-	-- T1 
-	"armmex", "cormex", "legmex",
-	-- T2 mexes
-	"armmoho", "cormoho", "legmoho", 
-	"armuwmme", "coruwmme", "leganavalmex",
-	-- T1 geos
-	"armgeo", "corgeo", "leggeo",
-	"armuwgeo", "coruwgeo", "leguwgeo",
-	-- T2 geos
-	"armageo", "corageo", "legageo",
-	"armuwageo", "coruwageo", "leganavaladvgeo",
-}
-for i = 1, #normalExtractorNames do
-	local unitDef = UnitDefNames[normalExtractorNames[i]]
-	if unitDef then
-		normalExtractors[unitDef.id] = true
 	end
 end
 
@@ -200,9 +182,10 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 	return bestExtractor
 end
 
----extractorCanBeUpgraded
+---Whether an allied extractor can be replaced: higher techlevel or same-tier higher yield always upgrades; otherwise specialty extractors (does more than just produce metal/energy) may replace standard extractors/other specialty extractors.
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
+---@return boolean
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
 	if not isAllied then
@@ -222,20 +205,19 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 		return true
 	end
 
-	local newIsNormal = normalExtractors[newExtractorId]
-	local currentIsNormal = normalExtractors[currentExtractorId]
 
-	-- Special case for T2 Geo as AGeo is considered normal, but may be more desirable over other T2 Geos.
-	local isT2SpecialGeoToAgeo = geoBuildings[currentExtractorId]
-		and geoBuildings[newExtractorId]
-		and newTechLevel >= 2
-		and not currentIsNormal
-	if isT2SpecialGeoToAgeo then
+	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
+	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
+	if not (newExtractorStrength and currentExtractorStrength) then
+		return false
+	end
+
+	if newExtractorStrength > currentExtractorStrength then
 		return true
 	end
 
-	-- In all other cases, specialty extractors are always considered to be better than normal extractors, but interchangable with each other.
-	return not newIsNormal
+	local newIsStandard = standardExtractors[newExtractorId]
+	return not newIsStandard
 end
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
