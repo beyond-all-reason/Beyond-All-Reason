@@ -276,6 +276,8 @@ config = {
 	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
 	showSpectatorPings = true,  -- Show map pings from spectators on PIPs
+	showMapDrawings = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1,  -- Show non-spectator map drawing lines on PIPs
+	mapDrawingDuration = math.max(0.1, Spring.GetConfigFloat("PipMapDrawingDuration", 15)),  -- Seconds before map drawing lines disappear
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
@@ -514,6 +516,13 @@ local miscState = {
 	allUnitsIndex = {},  -- [unitID] = index in allUnitsCache for O(1) swap-remove updates
 	allUnitsDirty = true,
 	mapMarkers = {},  -- Table to store active map markers
+	mapLines = {},  -- Non-spectator map drawing segments
+	mapLinePool = {},
+	mapLineOverwriteIndex = 1,
+	mapLinesDirty = true,
+	mapLinesNextUpdateTime = 0,
+	mapLinesLastFilterKey = -2,
+	mapDrawPlayerInfo = {},
 	minimapWidgetDisabled = false,  -- Whether we've disabled the old minimap widget (for minimap mode)
 	minimapCameraRestored = false,  -- Whether minimap camera state was restored from config (for luaui reload)
 	minimapRestoreAtMinZoom = false,  -- Whether the restored minimap camera was at minimum zoom (snap to recalculated min)
@@ -1802,6 +1811,8 @@ local wtp = { scaleX = 1, scaleZ = 1, offsetX = 0, offsetZ = 0 }
 local gl4Prim = {
 	LINE_STEP = 6,            -- floats per vertex: worldX, worldZ, r, g, b, a
 	LINE_MAX = 16384,         -- max vertices (8192 line segments)
+	MAP_LINE_MAX = 4096,      -- max persistent map drawing segments
+	MAP_LINE_CLEANUP_INTERVAL = 0.25,
 	CIRCLE_STEP = 12,         -- floats per instance: 3 x vec4
 	CIRCLE_MAX = 2048,        -- max circle instances
 	QUAD_STEP = 16,           -- floats per instance: position, color, angle, atlas UV rect
@@ -1837,6 +1848,7 @@ local gl4Prim = {
 	glowLines = { vbo = nil, vao = nil, data = nil, count = 0 },   -- thick (beam/lightning glow)
 	coreLines = { vbo = nil, vao = nil, data = nil, count = 0 },   -- medium (beam/lightning core)
 	normLines = { vbo = nil, vao = nil, data = nil, count = 0 },   -- thin (trails, commands)
+	mapLines = { vbo = nil, vao = nil, data = nil, count = 0 },    -- persistent map drawing lines
 	lineShader = nil,
 	lineUniformLocs = {},
 }
@@ -3794,6 +3806,8 @@ gl4Prim.lineShaderCode = {
 		uniform vec2 ndcScale;
 		uniform vec2 rotSC;
 		uniform vec2 rotCenter;
+		uniform vec4 colorMul;
+		uniform vec3 mapLineFade; // enabled, currentTime, duration
 
 		out vec4 f_color;
 
@@ -3802,7 +3816,13 @@ gl4Prim.lineShaderCode = {
 			vec2 d = pipPos - rotCenter;
 			pipPos = rotCenter + vec2(d.x*rotSC.y - d.y*rotSC.x, d.x*rotSC.x + d.y*rotSC.y);
 			gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
-			f_color = vertColor;
+			float alpha = vertColor.a;
+			if (mapLineFade.x > 0.5) {
+				float fadeDuration = min(1.0, mapLineFade.z);
+				float remaining = mapLineFade.z - (mapLineFade.y - vertColor.a);
+				alpha = 0.85 * clamp(remaining / fadeDuration, 0.0, 1.0);
+			}
+			f_color = vec4(vertColor.rgb, alpha) * colorMul;
 		}
 	]],
 	fragment = [[
@@ -4258,6 +4278,12 @@ local function InitGL4Primitives()
 	end
 	gl4Prim.normLines.vbo, gl4Prim.normLines.vao, gl4Prim.normLines.data = nlVbo, nlVao, nlData
 
+	-- Persistent map drawing VBO. Failure only disables the optimized map-line path.
+	local mlVbo, mlVao, mlData = CreateLineVBOSet(gl4Prim.MAP_LINE_MAX * 2)
+	if mlVbo then
+		gl4Prim.mapLines.vbo, gl4Prim.mapLines.vao, gl4Prim.mapLines.data = mlVbo, mlVao, mlData
+	end
+
 	-- Shader variants were compiled up-front via real GS-attempt/fallback logic.
 	gl4Prim.circles.shader = cShader
 
@@ -4267,6 +4293,10 @@ local function InitGL4Primitives()
 	if not lShader then
 		Spring.Echo("[PIP] GL4 line shader failed: " .. tostring(gl.GetShaderLog()))
 		gl.DeleteShader(qShader); gl.DeleteShader(cShader)
+		if mlVao then
+			mlVao:Delete(); mlVbo:Delete()
+			gl4Prim.mapLines.vao, gl4Prim.mapLines.vbo, gl4Prim.mapLines.data = nil, nil, nil
+		end
 		nlVao:Delete(); nlVbo:Delete(); clVao:Delete(); clVbo:Delete()
 		glVao:Delete(); glVbo:Delete(); qVao:Delete(); qVbo:Delete()
 		cVao:Delete(); cVbo:Delete()
@@ -4287,6 +4317,8 @@ local function InitGL4Primitives()
 	gl4Prim.circles.uniformLocs = cacheUniforms(cShader)
 	gl4Prim.quads.uniformLocs = cacheUniforms(qShader)
 	gl4Prim.lineUniformLocs = cacheUniforms(lShader)
+	gl4Prim.lineUniformLocs.colorMul = gl.GetUniformLocation(lShader, "colorMul")
+	gl4Prim.lineUniformLocs.mapLineFade = gl.GetUniformLocation(lShader, "mapLineFade")
 	gl4Prim.useGeometryShader = useGS
 
 	gl4Prim.enabled = true
@@ -4299,7 +4331,7 @@ local function DestroyGL4Primitives()
 	if gl4Prim.lineShader      then gl.DeleteShader(gl4Prim.lineShader);      gl4Prim.lineShader = nil end
 	if gl4Prim.quadVBO then gl4Prim.quadVBO:Delete(); gl4Prim.quadVBO = nil end
 
-	for _, sub in ipairs({gl4Prim.circles, gl4Prim.quads, gl4Prim.glowLines, gl4Prim.coreLines, gl4Prim.normLines}) do
+	for _, sub in ipairs({gl4Prim.circles, gl4Prim.quads, gl4Prim.glowLines, gl4Prim.coreLines, gl4Prim.normLines, gl4Prim.mapLines}) do
 		if sub.vao then sub.vao:Delete(); sub.vao = nil end
 		if sub.vbo then sub.vbo:Delete(); sub.vbo = nil end
 	end
@@ -4376,6 +4408,12 @@ local function GL4SetPrimUniforms(shader, ulocs)
 	local rot = render.minimapRotation or 0
 	gl.UniformFloat(ulocs.rotSC, math.sin(rot), math.cos(rot))
 	gl.UniformFloat(ulocs.rotCenter, fboW * 0.5, fboH * 0.5)
+	if ulocs.colorMul and ulocs.colorMul >= 0 then
+		gl.UniformFloat(ulocs.colorMul, 1, 1, 1, 1)
+	end
+	if ulocs.mapLineFade and ulocs.mapLineFade >= 0 then
+		gl.UniformFloat(ulocs.mapLineFade, 0, 0, 0)
+	end
 end
 
 -- Draw all collected circles, quads, and effect lines (called after PopMatrix in DrawUnitsAndFeatures)
@@ -8673,6 +8711,31 @@ end
 		config.drawCommandFX = value
 		pipR2T.unitsNeedsUpdate = true
 	end
+	pipApi.getShowMapDrawings = function()
+		return config.showMapDrawings
+	end
+	pipApi.setShowMapDrawings = function(value)
+		config.showMapDrawings = value
+		if not value then
+			local pool = miscState.mapLinePool
+			for i = #miscState.mapLines, 1, -1 do
+				pool[#pool + 1] = miscState.mapLines[i]
+				miscState.mapLines[i] = nil
+			end
+			miscState.mapLineOverwriteIndex = 1
+			gl4Prim.mapLines.count = 0
+		end
+		miscState.mapLinesDirty = true
+		miscState.mapLinesNextUpdateTime = 0
+	end
+	pipApi.getMapDrawingDuration = function()
+		return config.mapDrawingDuration
+	end
+	pipApi.setMapDrawingDuration = function(value)
+		config.mapDrawingDuration = math.max(0.1, tonumber(value) or 12)
+		miscState.mapLinesDirty = true
+		miscState.mapLinesNextUpdateTime = 0
+	end
 	pipApi.getAltKeyRequiredForZoom = function()
 		return config.altKeyRequiredForZoom
 	end
@@ -9095,6 +9158,11 @@ function widget:PlayerChanged(playerID)
 
 	-- Invalidate commander nametag cache (player names/teams may have changed)
 	comNametagCache.dirty = true
+
+	for pID in pairs(miscState.mapDrawPlayerInfo) do
+		miscState.mapDrawPlayerInfo[pID] = nil
+	end
+	miscState.mapLinesDirty = true
 
 	-- Prune tracked-player selection cache for players that no longer exist.
 	local activePlayers = {}
@@ -13571,6 +13639,189 @@ local function DrawWaterAndLOSOverlays()
 	end
 end
 
+-- Draw callbacks for map drawing segments (state is prepared by DrawMapLines).
+pools.DrawMapLineSegments = function()
+	local lines = miscState.mapLines
+	local shadowPass = pools.mapLineShadowPass
+	for i = 1, #lines do
+		local line = lines[i]
+		if line.shouldDraw then
+			if shadowPass then
+				glFunc.Color(0, 0, 0, line.alpha * 0.55)
+			else
+				glFunc.Color(line.r, line.g, line.b, line.alpha)
+			end
+			glFunc.Vertex(line.sx1, line.sy1)
+			glFunc.Vertex(line.sx2, line.sy2)
+		end
+	end
+end
+
+pools.ReleaseMapLine = function(line)
+	local pool = miscState.mapLinePool
+	pool[#pool + 1] = line
+end
+
+pools.DrawMapLines = function()
+	local lines = miscState.mapLines
+	if not config.showMapDrawings or #lines == 0 then
+		return
+	end
+
+	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	local filterByAllyTeam = shouldShowLOS and losAllyTeam ~= nil
+	local currentTime = os.clock()
+	local duration = config.mapDrawingDuration
+	local fadeDuration = math.min(1, duration)
+	local useGL4 = gl4Prim.enabled and gl4Prim.mapLines.vbo and gl4Prim.lineShader
+	local resScale = render.contentScale or 1
+	local lineWidth = math.max(1, 2 * render.widgetScale * resScale)
+	if useGL4 then
+		local filterKey = filterByAllyTeam and losAllyTeam or -1
+		local needsRebuild = miscState.mapLinesDirty
+			or miscState.mapLinesLastFilterKey ~= filterKey
+			or currentTime >= miscState.mapLinesNextUpdateTime
+		local lineBatch = gl4Prim.mapLines
+
+		if needsRebuild then
+			local lineData = lineBatch.data
+			local vertexCount = 0
+			local nextUpdateTime = math.huge
+			local i = 1
+			local n = #lines
+
+			while i <= n do
+				local line = lines[i]
+				local expireTime = line.time + duration
+				if currentTime >= expireTime then
+					lines[i] = lines[n]
+					lines[n] = nil
+					n = n - 1
+					pools.ReleaseMapLine(line)
+				else
+					if expireTime < nextUpdateTime then nextUpdateTime = expireTime end
+
+					if not filterByAllyTeam or teamAllyTeamCache[line.teamID] == losAllyTeam then
+						local teamColor = teamColors[line.teamID]
+						local r, g, b
+						if teamColor then
+							r, g, b = teamColor[1], teamColor[2], teamColor[3]
+						else
+							r, g, b = Spring.GetTeamColor(line.teamID)
+						end
+						local off = vertexCount * gl4Prim.LINE_STEP
+						lineData[off+1] = line.x1
+						lineData[off+2] = line.z1
+						lineData[off+3] = r
+						lineData[off+4] = g
+						lineData[off+5] = b
+						lineData[off+6] = line.time
+						lineData[off+7] = line.x2
+						lineData[off+8] = line.z2
+						lineData[off+9] = r
+						lineData[off+10] = g
+						lineData[off+11] = b
+						lineData[off+12] = line.time
+						vertexCount = vertexCount + 2
+					end
+					i = i + 1
+				end
+			end
+
+			lineBatch.count = vertexCount
+			if vertexCount > 0 then
+				lineBatch.vbo:Upload(lineData, nil, 0, 1, vertexCount * gl4Prim.LINE_STEP)
+			end
+			miscState.mapLinesDirty = false
+			miscState.mapLinesLastFilterKey = filterKey
+			if nextUpdateTime < currentTime + gl4Prim.MAP_LINE_CLEANUP_INTERVAL then
+				nextUpdateTime = currentTime + gl4Prim.MAP_LINE_CLEANUP_INTERVAL
+			end
+			miscState.mapLinesNextUpdateTime = nextUpdateTime
+		end
+
+		local vertexCount = lineBatch.count
+		if vertexCount == 0 then
+			return
+		end
+
+		local pipWidth = render.dim.r - render.dim.l
+		local pipHeight = render.dim.t - render.dim.b
+		local savedOffX, savedOffZ = wtp.offsetX, wtp.offsetZ
+		wtp.offsetX = savedOffX - render.dim.l
+		wtp.offsetZ = savedOffZ - render.dim.b
+		gl.Viewport(render.dim.l, render.dim.b, pipWidth, pipHeight)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		GL4SetPrimUniforms(gl4Prim.lineShader, gl4Prim.lineUniformLocs)
+		gl.UniformFloat(gl4Prim.lineUniformLocs.mapLineFade, 1, currentTime, duration)
+
+		gl.UniformFloat(gl4Prim.lineUniformLocs.colorMul, 0, 0, 0, 0.55)
+		glFunc.LineWidth(lineWidth + 2)
+		lineBatch.vao:DrawArrays(GL.LINES, vertexCount)
+		gl.UniformFloat(gl4Prim.lineUniformLocs.colorMul, 1, 1, 1, 1)
+		glFunc.LineWidth(lineWidth)
+		lineBatch.vao:DrawArrays(GL.LINES, vertexCount)
+
+		gl.UseShader(0)
+		wtp.offsetX, wtp.offsetZ = savedOffX, savedOffZ
+		gl.Viewport(0, 0, render.vsx, render.vsy)
+		glFunc.LineWidth(1)
+		return
+	end
+
+	local anyVisible = false
+	local i = 1
+	local n = #lines
+	while i <= n do
+		local line = lines[i]
+		local age = currentTime - line.time
+		if age >= duration then
+			lines[i] = lines[n]
+			lines[n] = nil
+			n = n - 1
+			pools.ReleaseMapLine(line)
+		else
+			line.shouldDraw = not filterByAllyTeam or teamAllyTeamCache[line.teamID] == losAllyTeam
+			if line.shouldDraw then
+				line.sx1 = wtp.offsetX + line.x1 * wtp.scaleX
+				line.sy1 = wtp.offsetZ + line.z1 * wtp.scaleZ
+				line.sx2 = wtp.offsetX + line.x2 * wtp.scaleX
+				line.sy2 = wtp.offsetZ + line.z2 * wtp.scaleZ
+				local minX = line.sx1 < line.sx2 and line.sx1 or line.sx2
+				local maxX = line.sx1 > line.sx2 and line.sx1 or line.sx2
+				local minY = line.sy1 < line.sy2 and line.sy1 or line.sy2
+				local maxY = line.sy1 > line.sy2 and line.sy1 or line.sy2
+				line.shouldDraw = maxX >= render.dim.l and minX <= render.dim.r and maxY >= render.dim.b and minY <= render.dim.t
+				if line.shouldDraw then
+					local teamColor = teamColors[line.teamID]
+					if teamColor then
+						line.r, line.g, line.b = teamColor[1], teamColor[2], teamColor[3]
+					else
+						line.r, line.g, line.b = Spring.GetTeamColor(line.teamID)
+					end
+					line.alpha = age > duration - fadeDuration and 0.85 * (duration - age) / fadeDuration or 0.85
+					anyVisible = true
+				end
+			end
+			i = i + 1
+		end
+	end
+
+	if not anyVisible then
+		return
+	end
+
+	glFunc.Texture(false)
+	pools.mapLineShadowPass = true
+	glFunc.LineWidth(lineWidth + 2)
+	glFunc.BeginEnd(GL.LINES, pools.DrawMapLineSegments)
+	pools.mapLineShadowPass = false
+	glFunc.LineWidth(lineWidth)
+	glFunc.BeginEnd(GL.LINES, pools.DrawMapLineSegments)
+	glFunc.LineWidth(1)
+	glFunc.Color(1, 1, 1, 1)
+end
+
 -- Helper function to draw map markers with rotating rectangles
 local function DrawMapMarkers()
 	if #miscState.mapMarkers == 0 then
@@ -17783,7 +18034,7 @@ function widget:DrawScreen()
 	-- Draw map markers and camera view bounds at full frame rate (not throttled with unitsTex)
 	-- Drawn after DrawInMiniMap overlays so they appear on top of everything
 	tracy.ZoneBeginN("W:PIP:DrawScreen:MinimapOverlays")
-	if isMinimapMode or #miscState.mapMarkers > 0 then
+	if isMinimapMode or #miscState.mapMarkers > 0 or (config.showMapDrawings and #miscState.mapLines > 0) then
 		local minimapWidth = render.dim.r - render.dim.l
 		local minimapHeight = render.dim.t - render.dim.b
 		gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
@@ -17797,6 +18048,7 @@ function widget:DrawScreen()
 			glFunc.Translate(-centerX, -centerY, 0)
 		end
 
+		pools.DrawMapLines()
 		DrawMapMarkers()
 
 		if render.minimapRotation ~= 0 then
@@ -18193,6 +18445,7 @@ function widget:Update(dt)
 		if colorsChanged then
 			pipR2T.unitsNeedsUpdate = true
 			pipR2T.frameNeedsUpdate = true
+			miscState.mapLinesDirty = true
 		end
 	end
 
@@ -20012,6 +20265,57 @@ function widget:DefaultCommand()
 	end
 end
 
+pools.GetMapDrawPlayerInfo = function(playerID)
+	local playerInfo = miscState.mapDrawPlayerInfo[playerID]
+	if playerInfo then
+		return playerInfo
+	end
+
+	local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
+	if teamID == nil then
+		return nil
+	end
+	playerInfo = {isSpec = isSpec, teamID = teamID}
+	miscState.mapDrawPlayerInfo[playerID] = playerInfo
+	return playerInfo
+end
+
+pools.EraseMapLinesAt = function(x, z, radius)
+	local lines = miscState.mapLines
+	local pool = miscState.mapLinePool
+	local radiusSq = radius * radius
+	local erased = false
+	for i = #lines, 1, -1 do
+		local line = lines[i]
+		if x >= line.minX - radius and x <= line.maxX + radius
+			and z >= line.minZ - radius and z <= line.maxZ + radius then
+			local closestX, closestZ
+			if line.invLengthSq > 0 then
+				local t = ((x - line.x1) * line.dx + (z - line.z1) * line.dz) * line.invLengthSq
+				if t < 0 then t = 0 elseif t > 1 then t = 1 end
+				closestX = line.x1 + t * line.dx
+				closestZ = line.z1 + t * line.dz
+			else
+				closestX, closestZ = line.x1, line.z1
+			end
+
+			local eraseDx = x - closestX
+			local eraseDz = z - closestZ
+			if eraseDx * eraseDx + eraseDz * eraseDz <= radiusSq then
+				local last = #lines
+				lines[i] = lines[last]
+				lines[last] = nil
+				pool[#pool + 1] = line
+				erased = true
+			end
+		end
+	end
+	if erased then
+		miscState.mapLinesDirty = true
+		miscState.mapLinesNextUpdateTime = 0
+	end
+end
+
 function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	if uiState.inMinMode then return end
 
@@ -20149,6 +20453,51 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 				miscState.activityFocusTargetZ = mz
 				miscState.activityFocusTime = os.clock()
 			end
+		end
+	elseif cmdType == 'line' then
+		if not config.showMapDrawings or a == nil or c == nil then return false end
+		local playerInfo = pools.GetMapDrawPlayerInfo(playerID)
+		if not playerInfo or playerInfo.isSpec then return false end
+
+		local lines = miscState.mapLines
+		local lineIndex = #lines + 1
+		local line
+		if #lines >= gl4Prim.MAP_LINE_MAX then
+			lineIndex = miscState.mapLineOverwriteIndex
+			miscState.mapLineOverwriteIndex = lineIndex < gl4Prim.MAP_LINE_MAX and lineIndex + 1 or 1
+			line = lines[lineIndex]
+		else
+			local pool = miscState.mapLinePool
+			local poolCount = #pool
+			if poolCount > 0 then
+				line = pool[poolCount]
+				pool[poolCount] = nil
+			else
+				line = {}
+			end
+		end
+
+		local dx = a - mx
+		local dz = c - mz
+		local lengthSq = dx * dx + dz * dz
+		line.x1, line.z1 = mx, mz
+		line.x2, line.z2 = a, c
+		line.dx, line.dz = dx, dz
+		line.invLengthSq = lengthSq > 0 and 1 / lengthSq or 0
+		line.minX, line.maxX = mx < a and mx or a, mx > a and mx or a
+		line.minZ, line.maxZ = mz < c and mz or c, mz > c and mz or c
+		line.time = os.clock()
+		line.teamID = playerInfo.teamID
+		lines[lineIndex] = line
+		miscState.mapLinesDirty = true
+		miscState.mapLinesNextUpdateTime = 0
+	elseif cmdType == 'erase' then
+		if not config.showMapDrawings then return false end
+		local playerInfo = pools.GetMapDrawPlayerInfo(playerID)
+		if not playerInfo or playerInfo.isSpec then return false end
+		local eraseRadius = tonumber(a) or 100
+		if eraseRadius > 0 then
+			pools.EraseMapLinesAt(mx, mz, eraseRadius)
 		end
 	end
 
