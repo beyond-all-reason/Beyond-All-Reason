@@ -144,15 +144,20 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 		return keybindEditor.keyPress(key, scanCode)
 	end
 
-	-- Otherwise Escape closes the panel, like every other panel.
+	if not show then
+		return
+	end
+
+	-- The editor gets first refusal so Escape can close its dropdowns or cancel the
+	-- reset confirm; only an Escape it does not want closes the panel.
+	if keybindEditor.keyPress(key, scanCode) then
+		return true
+	end
+
 	if key == 27 then
 		show = false
 		keybindEditor.blur()
 		return
-	end
-
-	if show and keybindEditor.keyPress(key, scanCode) then
-		return true
 	end
 end
 
