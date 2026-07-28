@@ -290,43 +290,6 @@ local options = {
 		section	= "options_main",
 		type	= "separator",
 	},
-	{
-		key		= "sub_header",
-		name	= "-- Sharing and Taxes",
-		section	= "options_main",
-		type	= "subheader",
-		def		=  true,
-	},
-	{
-		key		= "tax_resource_sharing_amount",
-		name	= "Resource Sharing Tax",
-		desc	=	"Taxes resource sharing".."\255\128\128\128".." and overflow (engine TODO:)\n"..
-					"Set to [0] to turn off. Recommended: [0.4]. (Ranges: 0 - 0.99)",
-		type	= "number",
-		def		= 0,
-		min		= 0,
-		max		= 0.99,
-		step	= 0.01,
-		section	= "options_main",
-		column	= 1,
-	},
-	{
-		key		= "disable_unit_sharing",
-		name	= "Disable Unit Sharing",
-		desc	= "Disable sharing units and structures to allies",
-		type	= "bool",
-		section	= "options_main",
-		def		= false,
-	},
-	{
-		key		= "disable_assist_ally_construction",
-		name	= "Disable Assist Ally Construction",
-		desc	= "Disables assisting allied blueprints and labs.",
-		type	= "bool",
-		section	= "options_main",
-		def		=  false,
-		column	= 1.66,
-	},
     {
         key     = "sub_header",
         section = "options_main",
@@ -1691,28 +1654,6 @@ local options = {
         linkwidth = 350,
     },
 
-    {
-        key 	= "easytax",
-        name 	= "Easy Tax v2",
-        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
-        key     = "easytax_link",
-        name    = "Changelog",
-        desc    = "Easy Tax v2 description.",
-        section = "options_experimental",
-        type    = "link",
-        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
-        width   = 215,
-        column  = 1.65,
-        linkheight = 325,
-        linkwidth = 350,
-    },
-
     -- Hidden Tests
 
     {
@@ -2472,6 +2413,11 @@ for i = 1, 9 do
         def     = "",
         hidden = true,
     }
+end
+
+-- module-owned fragments, appended in handler order
+for _, option in ipairs(VFS.Include("modules/module_handler.lua").ModOptions()) do
+	options[#options + 1] = option
 end
 
 return options
