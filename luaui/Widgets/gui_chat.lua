@@ -568,6 +568,7 @@ function widget:LanguageChanged()
 		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
+		label = Spring.I18N('ui.chat.label'),
 		spectators = Spring.I18N('ui.chat.spectators'),
 		cmd = Spring.I18N('ui.chat.cmd'),
 		shortcut = Spring.I18N('ui.chat.shortcut'),
@@ -1933,7 +1934,7 @@ drawChatInput = function()
 		local inputTop = activationArea[2]+chatlogHeightDiff-distance
 		local modeText = I18N.everyone
 		if isLabel then
-			modeText = 'label'
+			modeText = I18N.label
 		elseif isCmd then
 			modeText = I18N.cmd
 		elseif inputMode == 'a:' then
@@ -2380,7 +2381,7 @@ drawTextInput = function()
 				glColor(1,1,1,0.075)
 				RectRound(state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4], elementCorner*0.6, 1,1,1,1)
 			end
-			if state.inputButtonRect and state.inputButtonRect[1] and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
+			if inputMode ~= 'label' and state.inputButtonRect and state.inputButtonRect[1] and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
 				RectRound(state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
