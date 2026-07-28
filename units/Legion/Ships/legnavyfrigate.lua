@@ -135,6 +135,7 @@ return {
 				weaponvelocity = 250,
 				customparams = {
 					speceffect = "torpwaterpen",
+					tracking_turn_radius = 2000,
 					weapons_group = 1,
 				},
 				damage = {
@@ -178,6 +179,8 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					speceffect = "torpwaterpen",
+					tracking_turn_radius = 2000,
 					weapons_group = 2,
 				},
 				damage = {

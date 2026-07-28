@@ -106,6 +106,7 @@ return {
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
+					tracking_turn_radius = 800,
 				},
 			},
 		},
