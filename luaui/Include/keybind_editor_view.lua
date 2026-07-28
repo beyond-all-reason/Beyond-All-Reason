@@ -11,6 +11,7 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = VFS.Include("luaui/configs/keybind_catalog.lua")
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
+local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
 local view = {}
 
@@ -615,8 +616,11 @@ local function fitText(text, maxWidth, size)
 	if maxWidth <= 0 or font:GetTextWidth(text) * size <= maxWidth then
 		return text
 	end
-	while #text > 1 and font:GetTextWidth(text .. "..") * size > maxWidth do
-		text = text:sub(1, #text - 1)
+	-- Trim whole characters: translated labels and the chain arrow are multi-byte.
+	local len = utf8.len(text)
+	while len > 1 and font:GetTextWidth(text .. "..") * size > maxWidth do
+		len = len - 1
+		text = utf8.sub(text, 1, len)
 	end
 	return text .. ".."
 end
