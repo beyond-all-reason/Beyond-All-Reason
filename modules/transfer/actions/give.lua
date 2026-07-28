@@ -1,0 +1,30 @@
+--- Hand units over with no policy question asked.
+---
+--- The giver is the game itself, not a team choosing to share: a mission
+--- handing a garrison to the player, a seat being taken over. A mode has no
+--- say, which is why this is a separate action rather than a flag on units —
+--- bypassing policy should be something you can see in the call.
+
+---@param request TransferGiveRequest
+---@return boolean allowed, string? reason
+Actions.RegisterValidate(function(request)
+	if type(request) ~= "table" then
+		return false, "transfer.give expects a request table"
+	end
+	if type(request.to) ~= "number" then
+		return false, "transfer.give needs a receiving team id"
+	end
+	if type(request.unitIDs) ~= "table" or #request.unitIDs == 0 then
+		return false, "transfer.give needs a non-empty unitIDs list"
+	end
+	if type(request.move) ~= "function" then
+		return false, "the unit transfer controller has not initialized"
+	end
+	return true
+end)
+
+---@param request TransferGiveRequest
+---@return integer transferred
+Actions.RegisterExecute(function(request)
+	return request.move(request.unitIDs, request.to, true)
+end)
