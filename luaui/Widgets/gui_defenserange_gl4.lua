@@ -646,33 +646,35 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID]['rings'][i]
-			local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-			local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
-			--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
+			if ringParams then
+				local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+				local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+				--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
-			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
-			-- so it only goes up with popups
-			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
-			ringParams[18] = turretHeight
+				-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
+				-- so it only goes up with popups
+				local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
+				ringParams[18] = turretHeight
 
 
-			cacheTable[1] = mpx
-			cacheTable[2] = turretHeight
-			cacheTable[3] = mpz
-			local vaokey = allystring .. weaponType
+				cacheTable[1] = mpx
+				cacheTable[2] = turretHeight
+				cacheTable[3] = mpz
+				local vaokey = allystring .. weaponType
 
-			for j = 1,13 do
-				cacheTable[j+3] = ringParams[j]
+				for j = 1,13 do
+					cacheTable[j+3] = ringParams[j]
+				end
+
+				local instanceID = 1000000 * i + unitID
+				pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
+				addedrings = addedrings + 1
+				if defenses[unitID] == nil then
+					--lazy creation
+					defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
+				end
+				defenses[unitID].vaokeys[instanceID] = vaokey
 			end
-
-			local instanceID = 1000000 * i + unitID
-			pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true,  noUpload)
-			addedrings = addedrings + 1
-			if defenses[unitID] == nil then
-				--lazy creation
-				defenses[unitID] = { posx = mpx, posy = mpy, posz = mpz, vaokeys = {}, allied = alliedUnit, unitDefID = unitDefID}
-			end
-			defenses[unitID].vaokeys[instanceID] = vaokey
 		end
 	end
 	if addedrings == 0 then

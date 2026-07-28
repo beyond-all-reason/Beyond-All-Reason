@@ -4054,6 +4054,26 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "pip_mapdrawings", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawings'), type = "bool", value = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1, description = Spring.I18N('ui.settings.option.pip_mapdrawings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipShowMapDrawings", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setShowMapDrawings then
+					  WG['pip' .. n].setShowMapDrawings(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_mapdrawing_duration", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawing_duration'), type = "slider", min = 1, max = 60, step = 1, value = Spring.GetConfigFloat("PipMapDrawingDuration", 15), description = Spring.I18N('ui.settings.option.pip_mapdrawing_duration_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("PipMapDrawingDuration", value)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setMapDrawingDuration then
+					  WG['pip' .. n].setMapDrawingDuration(value)
+				  end
+			  end
+		  end,
+		},
 		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
 		--   onload = function(i)
 		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
