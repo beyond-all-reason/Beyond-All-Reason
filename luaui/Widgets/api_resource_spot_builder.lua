@@ -188,6 +188,12 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	end
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
+
+	-- Disallow building the same extractor over itself
+	if currentExtractorId == newExtractorId then
+		return false
+	end
+
 	local newExtractor = UnitDefs[newExtractorId]
 	local currentExtractor = UnitDefs[currentExtractorId]
 	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
@@ -197,7 +203,7 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 		return false
 	end
 
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
+	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0 or (newExtractor.radarDistanceJam or 0) > 0
 
 	local newTechLevel = tonumber(newExtractor.customParams and newExtractor.customParams.techlevel) or 1
 	local currentTechLevel = tonumber(currentExtractor.customParams and currentExtractor.customParams.techlevel) or 1
@@ -206,8 +212,8 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 		return true
 	end
 
-	-- Some extractors are special and may be desirable even if they produce less resources
-	if newExtractorStrength ~= currentExtractorStrength and newExtractorIsSpecial then
+	-- Some extractors are special and may be desirable regardless of yield
+	if newExtractorIsSpecial then
 		return true
 	end
 
