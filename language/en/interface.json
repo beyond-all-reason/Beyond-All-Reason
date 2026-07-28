@@ -1,7 +1,6 @@
 {
 	"ui": {
-		"forceResignWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
-		"forceResignMessage": "You have been force-resigned due to self-destructing all your units.",
+		"selfdPolicyWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 		"factoryqmanager": {
 			"saved": "Saved",
 			"loaded": "Loaded"
