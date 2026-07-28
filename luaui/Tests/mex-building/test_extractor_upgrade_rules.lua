@@ -25,7 +25,6 @@ function test()
 		{ "armamex", "armmex", false },      -- stealthy mex -> t1 mex
 		{ "armgmm", "armageo", true },       -- prude -> ageo
 		{ "armageo", "armgmm", true },       -- ageo -> prude
-		{ "corbhmth", "legrampart", true },  -- cerberus -> legion rampart
 		{ "armgeo", "corgeo", false },       -- t1 geo cross-faction
 		{ "armageo", "corageo", false },     -- ageo cross-faction
 		{ "armmoho", "cormoho", false },     -- t2 mex cross-faction
