@@ -36,3 +36,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
 	end
 end
+
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end
