@@ -12,6 +12,12 @@
   {
     debugcommands=1:cheat|2:godmode|3:globallos|30:runtestsheadless;
 		deathmode=neverend;
+		tech_blocking=1;
+		t2_tech_threshold=1;
+		t3_tech_threshold=2;
+		unit_sharing_mode=all;
+		resource_sharing_enabled=1;
+		take_mode=enabled;
   }
   [ALLYTEAM0]
   {
@@ -21,8 +27,19 @@
     allyteam=0;
     teamleader=0;
   }
+  [TEAM1]
+  {
+    allyteam=0;
+    teamleader=0;
+  }
   [PLAYER0]
   {
     team=0;
+  }
+  [AI0]
+  {
+    team=1;
+    shortname=NullAI;
+    host=0;
   }
 }
