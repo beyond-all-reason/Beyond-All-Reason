@@ -8,7 +8,7 @@ return {
 		buildpic = "legnavyscout.DDS",
 		buildtime = 1800,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 -0.5 0",
 		collisionvolumescales = "20 21 41",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",

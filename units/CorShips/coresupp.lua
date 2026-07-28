@@ -4,7 +4,7 @@ return {
 		buildpic = "CORESUPP.DDS",
 		buildtime = 1400,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 -2.5 0",
 		collisionvolumescales = "20 21 40",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
