@@ -874,6 +874,12 @@ local function weaponDef_Post(name, wDef)
 	local damage = wDef.damage
 	local shield = wDef.shield
 
+	-- Underwater-launched torpedoes should rise toward surface targets sooner.
+	-- Preserve explicit special effects used by air-launched and other custom weapons.
+	if wDef.weapontype == "TorpedoLauncher" and not customparams.speceffect then
+		customparams.speceffect = "torpsurfacetrack"
+	end
+
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS
 

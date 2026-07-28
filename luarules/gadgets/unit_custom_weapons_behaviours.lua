@@ -566,10 +566,17 @@ end
 -- Uses no weapon customParams.
 
 local minSubTargetDiveSpeed = -0.08
+local surfaceTargetDepth = -2
+local surfaceDepthCorrection = 0.025
+local minSurfaceDiveSpeed = -0.12
+local maxSurfaceRiseSpeed = 0.2
+local maxUnderwaterSurfaceRiseSpeed = 1.25
+local surfaceArrivalLeadFrames = 20
+local surfaceTransitionStartDepth = -12
 local terminalCorrectionDistance = 180
 local terminalCorrectionDistanceSq = terminalCorrectionDistance * terminalCorrectionDistance
 
-local function torpedoWaterPen(projectileID)
+local function torpedoWaterPen(projectileID, predictSurfaceArrival)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local targetType, targetID = spGetProjectileTarget(projectileID)
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
@@ -578,6 +585,8 @@ local function torpedoWaterPen(projectileID)
 	-- Surface-target torpedoes should skim near water level rather than constantly diving.
 	local diveSpeed = 0
 	local smooth = 0.45
+	local trackingSurfaceTarget = false
+	local surfaceTransition = 0
 
 	if targetType == targetedUnit and targetID then
 		local targetX, targetY, targetZ = spGetUnitPosition(targetID)
@@ -602,16 +611,56 @@ local function torpedoWaterPen(projectileID)
 			smooth = closeToTarget and 1.0 or 0.45
 		else
 			-- Surface targets sit near the waterline.
-			-- Aircraft torpedoes can enter with strong downward momentum, so give
-			-- deep torpedoes a small recovery bias back toward the surface.
-			if positionY and positionY < -8 then
-				diveSpeed = 0.08
-			else
-				diveSpeed = 0
+			-- Continuously ease elevated-launch torpedoes toward a shallow running
+			-- depth without forcing them above the water surface.
+			trackingSurfaceTarget = true
+			local depthControlSpeed = (surfaceTargetDepth - positionY) * surfaceDepthCorrection
+			local surfaceSpeed = depthControlSpeed
+			local surfaceRiseLimit = maxSurfaceRiseSpeed
+			surfaceTransition = math_clamp(
+				(positionY - surfaceTransitionStartDepth) /
+				(surfaceTargetDepth - surfaceTransitionStartDepth),
+				0,
+				1
+			)
+			surfaceTransition = surfaceTransition * surfaceTransition * (3 - 2 * surfaceTransition)
+
+			-- Torpedoes launched well below the surface need to spread their climb
+			-- across the remaining horizontal travel instead of waiting for native
+			-- homing to make a hard terminal turn.
+			if predictSurfaceArrival and targetX then
+				local deltaX = targetX - positionX
+				local deltaZ = targetZ - positionZ
+				local horizontalDistance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
+				local horizontalSpeed = math.sqrt(velocityX * velocityX + velocityZ * velocityZ)
+
+				if horizontalSpeed > 0.01 then
+					local riseFrames = math.max(
+						horizontalDistance / horizontalSpeed - surfaceArrivalLeadFrames,
+						1
+					)
+					local predictedSurfaceSpeed = math_clamp(
+						(surfaceTargetDepth - positionY) / riseFrames,
+						minSurfaceDiveSpeed,
+						maxUnderwaterSurfaceRiseSpeed
+					)
+					surfaceRiseLimit = maxUnderwaterSurfaceRiseSpeed
+
+					-- Round off the climb by progressively handing control to the
+					-- shallow running-depth controller instead of switching abruptly.
+					surfaceSpeed = predictedSurfaceSpeed +
+						(depthControlSpeed - predictedSurfaceSpeed) * surfaceTransition
+				end
 			end
 
-			-- Allow stronger correction near impact, but keep distant travel smoother.
-			smooth = closeToTarget and 0.85 or 0.45
+			diveSpeed = math_clamp(
+				surfaceSpeed,
+				minSurfaceDiveSpeed,
+				surfaceRiseLimit
+			)
+
+			-- Correct gradually at range and more firmly during the terminal approach.
+			smooth = closeToTarget and 0.85 or 0.5
 		end
 	end
 
@@ -630,18 +679,49 @@ local function torpedoWaterPen(projectileID)
 		terrainCorrectedY = diveSpeed
 	end
 
+	-- Progressively suppress extra seafloor-normal lift as the torpedo settles
+	-- into its surface running depth, preventing both a sharp handoff and breaching.
+	if trackingSurfaceTarget and surfaceTransition > 0 then
+		terrainCorrectedY = terrainCorrectedY +
+			(diveSpeed - terrainCorrectedY) * surfaceTransition
+		if velocityY > 0 then
+			smooth = math.max(smooth, 0.5 + 0.3 * surfaceTransition)
+		end
+	end
+
 	-- Blend toward the corrected vertical speed.
 	-- 0.0 = no correction, 1.0 = immediate correction.
 	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
+	return trackingSurfaceTarget
 end
 
 specialEffectFunction.torpwaterpen = function(projectileID)
 	if isProjectileInWater(projectileID) then
-		torpedoWaterPen(projectileID)
+		return not torpedoWaterPen(projectileID)
+	end
+end
+
+-- Surface guidance for torpedoes launched underwater.
+-- Submerged targets keep the engine's normal torpedo tracking.
+specialEffectFunction.torpsurfacetrack = function(projectileID)
+	if not isProjectileInWater(projectileID) then
+		return
+	end
+
+	local targetType, targetID = spGetProjectileTarget(projectileID)
+	if targetType ~= targetedUnit or not targetID then
+		return false
+	end
+
+	local _, targetY = spGetUnitPosition(targetID)
+	if not targetY or targetY < -10 then
 		return true
 	end
+
+	torpedoWaterPen(projectileID, true)
+	return false
 end
 
 -- Water penetration with retargeting (torpedo)
