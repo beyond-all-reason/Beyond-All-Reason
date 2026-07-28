@@ -55,6 +55,7 @@ local geoConstructors = {}
 local geoConstructorsDef = {}
 local geoBuildings = {}
 
+local normalExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
 ------------------------------------------------------------
@@ -96,6 +97,27 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
+
+-- Standard extractors produce just metal / energy and are available to all factions.
+local normalExtractorNames = {
+	-- T1 
+	"armmex", "cormex", "legmex",
+	-- T2 mexes
+	"armmoho", "cormoho", "legmoho", 
+	"armuwmme", "coruwmme", "leganavalmex",
+	-- T1 geos
+	"armgeo", "corgeo", "leggeo",
+	"armuwgeo", "coruwgeo", "leguwgeo",
+	-- T2 geos
+	"armageo", "corageo", "legageo",
+	"armuwageo", "coruwageo", "leganavaladvgeo",
+}
+for i = 1, #normalExtractorNames do
+	local unitDef = UnitDefNames[normalExtractorNames[i]]
+	if unitDef then
+		normalExtractors[unitDef.id] = true
+	end
+end
 
 ------------------------------------------------------------
 -- Building logic
@@ -189,46 +211,31 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
 
-	if currentExtractorId == newExtractorId then
-		return false
-	end
-
 	local newExtractor = UnitDefs[newExtractorId]
 	local currentExtractor = UnitDefs[currentExtractorId]
-	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
-	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
 
-	if not (newExtractorStrength and currentExtractorStrength) then
-		return false
-	end
-
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0 or newExtractor.radarDistanceJam > 0
-
-	local newTechLevel = tonumber(newExtractor.customParams.techlevel) or 1
-	local currentTechLevel = tonumber(currentExtractor.customParams.techlevel) or 1
-
+	local newTechLevel = math.floor(tonumber(newExtractor.customParams.techlevel) or 1)
+	local currentTechLevel = math.floor(tonumber(currentExtractor.customParams.techlevel) or 1)
 	if newTechLevel < currentTechLevel then
 		return false
-	end
-
-	
-	if newExtractorStrength > currentExtractorStrength then
+	elseif newTechLevel > currentTechLevel then
 		return true
 	end
 
-	-- Some extractors are special and may be desirable regardless of yield
-	if newExtractorIsSpecial then
+	local newIsNormal = normalExtractors[newExtractorId]
+	local currentIsNormal = normalExtractors[currentExtractorId]
+
+	-- Special case for T2 Geo as AGeo is considered normal, but may be more desirable over other T2 Geos.
+	local isT2SpecialGeoToAgeo = geoBuildings[currentExtractorId]
+		and geoBuildings[newExtractorId]
+		and newTechLevel >= 2
+		and not currentIsNormal
+	if isT2SpecialGeoToAgeo then
 		return true
 	end
 
-	-- Extractors on the same tier may always be upgraded to each other as long as they're different
-	if newExtractorStrength ~= currentExtractorStrength then
-		if newTechLevel == currentTechLevel then
-			return true
-		end
-	end
-
-	return false
+	-- In all other cases, specialty extractors are always considered to be better than normal extractors, but interchangable with each other.
+	return not newIsNormal
 end
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
