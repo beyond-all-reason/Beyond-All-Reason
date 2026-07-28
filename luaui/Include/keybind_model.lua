@@ -1,6 +1,6 @@
 -- Read model for the in-game keybind editor.
--- Source of truth is Spring.GetKeyBindings(); we normalize each binding, group
--- by action, and build a keyset->actions index used for conflict detection.
+-- Source of truth is Spring.GetKeyBindings(); we normalize each binding and group
+-- by action.
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
