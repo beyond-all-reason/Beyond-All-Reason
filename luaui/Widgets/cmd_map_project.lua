@@ -1724,7 +1724,13 @@ local function maybeStartLoad()
 			Game.mapSizeX / ELMOS_PER_UNIT, Game.mapSizeZ / ELMOS_PER_UNIT,
 			tostring(ptr.size_x), tostring(ptr.size_z))
 	end
-	if not (Game.mapName or ""):match("^Editor Flat %d+x%d+") then
+	-- Project restarts auto-name their canvas "Editor Flat ...", but accept any
+	-- blank-generated map (mapoptions gate) so wizard-named canvases don't trip
+	-- a false session mismatch.
+	local mo = Spring.GetMapOptions()
+	local isBlankCanvas = type(mo) == "table"
+		and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0)
+	if not (isBlankCanvas or (Game.mapName or ""):match("^Editor Flat %d+x%d+")) then
 		reasons[#reasons + 1] = "map is '" .. tostring(Game.mapName) .. "', not an editor blank map"
 	end
 	if Game.mapDamage == false then

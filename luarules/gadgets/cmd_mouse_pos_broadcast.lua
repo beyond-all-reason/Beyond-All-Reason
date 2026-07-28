@@ -24,15 +24,17 @@ end
 --------------------------------------------------------------------------------
 
 local numMousePos		= 1 	-- num mouse pos in 1 packet
-local sendPacketEvery	= 0.12
-local sendPacketEveryWhenSpec	= 0.35
+local sendPacketEveryMin	= 0.12
+local sendPacketEveryMax	= 0.35
+local sendPacketEveryWhenSpec = 0.5
+local playerCountScalingStart = 8
+local playerCountScalingEnd = 64
 
 --------------------------------------------------------------------------------
 
 local PackU16			= VFS.PackU16
 local MOUSE_POS_BYTES	= numMousePos * 4
 local MSG_PAYLOAD_BYTES	= MOUSE_POS_BYTES + 1
-local BATCH_RECORD_BYTES = MSG_PAYLOAD_BYTES + 2
 
 
 if gadgetHandler:IsSyncedCode() then
@@ -42,7 +44,6 @@ if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
 	local strSub = string.sub
 	local strByte = string.byte
-	local tConcat = table.concat
 	local expectedPrefix = "£" .. validation
 	local EXPECTED_PREFIX_LEN = #expectedPrefix
 	local EXPECTED_MSG_LEN = EXPECTED_PREFIX_LEN + MSG_PAYLOAD_BYTES
@@ -50,41 +51,20 @@ if gadgetHandler:IsSyncedCode() then
 	-- Cache prefix bytes to avoid string allocations in the hot path
 	-- Note: "£" is 2 UTF-8 bytes (0xC2, 0xA3 = 194, 163)
 	local ep1, ep2, ep3, ep4 = strByte(expectedPrefix, 1, 4)
-	local playerIDPacked = {}
-	local batchParts = {}
-	local batchPartCount = 0
-
-	local function PackPlayerID(playerID)
-		local packed = playerIDPacked[playerID]
-		if not packed then
-			packed = PackU16(playerID)
-			playerIDPacked[playerID] = packed
-		end
-		return packed
-	end
+	local paused = false
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if #msg ~= EXPECTED_MSG_LEN then return end
 		local b1, b2, b3, b4 = strByte(msg, 1, 4)
 		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 or b4 ~= ep4 then return end
+		if paused then return end
 
-		batchPartCount = batchPartCount + 1
-		batchParts[batchPartCount] = PackPlayerID(playerID)
-		batchPartCount = batchPartCount + 1
-		batchParts[batchPartCount] = strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_MSG_LEN)
+		SendToUnsynced("mouseBroadcast", playerID, strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_MSG_LEN))
 		return true
 	end
 
-	function gadget:GameFrame()
-		if batchPartCount == 0 then
-			return
-		end
-
-		SendToUnsynced("mouseBroadcastBatch", tConcat(batchParts, "", 1, batchPartCount))
-		for i = 1, batchPartCount do
-			batchParts[i] = nil
-		end
-		batchPartCount = 0
+	function gadget:GamePaused(_, isPaused)
+		paused = isPaused
 	end
 
 
@@ -100,7 +80,10 @@ else
 	local SendLuaRulesMsg		= Spring.SendLuaRulesMsg
 	local GetSpectatingState	= Spring.GetSpectatingState
 	local GetPlayerInfo			= Spring.GetPlayerInfo
+	local GetPlayerList			= Spring.GetPlayerList
+	local GetTeamInfo			= Spring.GetTeamInfo
 	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
+	local GetGameSpeed			= Spring.GetGameSpeed
 	local LuaUICallIn			= Script.LuaUI
 	local LuaUI					= Script.LuaUI
 
@@ -116,7 +99,8 @@ else
 	local spec, _ = GetSpectatingState()
 	local myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
 
-	local saveEach = (spec and sendPacketEveryWhenSpec or sendPacketEvery) / numMousePos
+	local playerBroadcastPeriod = sendPacketEveryMin
+	local saveEach = playerBroadcastPeriod / numMousePos
 	local updateTick = saveEach
 
 	local updateTimer = 0
@@ -124,9 +108,50 @@ else
 
 	local lastx,lastz = 0,0
 	local n = 0
+	local wasBroadcastActive = false
 
 	local tableConcat = table.concat
 	local sendParts = {msgPrefix, false, false, false, false, false}
+
+	local function ResetCursorBroadcastState()
+		for i = 0, numMousePos * 2 + 1 do
+			poshistory[i] = nil
+		end
+		lastx,lastz = 0,0
+		n = 0
+		updateTimer = 0
+		updateTick = saveEach
+	end
+
+	local function IsCursorBroadcastActive()
+		local _, _, paused = GetGameSpeed()
+		return not paused
+	end
+
+	local function RefreshSendInterval()
+		local humanPlayerCount = 0
+		local playerList = GetPlayerList() or {}
+		for _, playerID in ipairs(playerList) do
+			local _, _, isSpec, teamID = GetPlayerInfo(playerID, false)
+			if not isSpec and not select(4, GetTeamInfo(teamID, false)) then
+				humanPlayerCount = humanPlayerCount + 1
+			end
+		end
+
+		if humanPlayerCount <= playerCountScalingStart then
+			playerBroadcastPeriod = sendPacketEveryMin
+		elseif humanPlayerCount >= playerCountScalingEnd then
+			playerBroadcastPeriod = sendPacketEveryMax
+		else
+			playerBroadcastPeriod = sendPacketEveryMin
+				+ (sendPacketEveryMax - sendPacketEveryMin)
+					* (humanPlayerCount - playerCountScalingStart)
+					/ (playerCountScalingEnd - playerCountScalingStart)
+		end
+
+		saveEach = (spec and sendPacketEveryWhenSpec or playerBroadcastPeriod) / numMousePos
+		updateTick = updateTimer + saveEach
+	end
 
 	local function sendPositionPacket(clickChar)
 		sendParts[2] = clickChar
@@ -143,22 +168,28 @@ else
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("mouseBroadcastBatch", handleMouseBroadcastBatchEvent)
+		RefreshSendInterval()
+		gadgetHandler:AddSyncAction("mouseBroadcast", handleMouseBroadcastEvent)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction("mouseBroadcastBatch")
+		gadgetHandler:RemoveSyncAction("mouseBroadcast")
 	end
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
 			spec, _ = Spring.GetSpectatingState()
 			myAllyTeamID = select(5, GetPlayerInfo(myPlayerID, false))
-			if spec then
-				saveEach = sendPacketEveryWhenSpec/numMousePos
-				updateTick = saveEach
-			end
 		end
+		RefreshSendInterval()
+	end
+
+	function gadget:PlayerAdded()
+		RefreshSendInterval()
+	end
+
+	function gadget:PlayerRemoved()
+		RefreshSendInterval()
 	end
 
 	function handleMousePosEvent(_,playerID,x1,z1,x2,z2,click)
@@ -173,32 +204,40 @@ else
 		end
 	end
 
-	function handleMouseBroadcastBatchEvent(_, batch)
-		local batchLen = batch and #batch or 0
-		if batchLen == 0 or batchLen % BATCH_RECORD_BYTES ~= 0 then
+	function handleMouseBroadcastEvent(_, playerID, payload)
+		if not payload or #payload ~= MSG_PAYLOAD_BYTES then
 			return
 		end
 		if not LuaUICallIn("MouseCursorEvent") then
 			return
 		end
 
-		for offset = 1, batchLen, BATCH_RECORD_BYTES do
-			local p1, p2, clickByte, x1b1, x1b2, z1b1, z1b2 = strByte(batch, offset, offset + 6)
-			local playerID = p1 + p2 * 256
-			local x1 = x1b1 + x1b2 * 256
-			local z1 = z1b1 + z1b2 * 256
-			if spec then
+		local clickByte, x1b1, x1b2, z1b1, z1b2 = strByte(payload, 1, MSG_PAYLOAD_BYTES)
+		local x1 = x1b1 + x1b2 * 256
+		local z1 = z1b1 + z1b2 * 256
+		if spec then
+			LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
+		else
+			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+			if not targetSpec and allyTeamID == myAllyTeamID then
 				LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
-			else
-				local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
-				if not targetSpec and allyTeamID == myAllyTeamID then
-					LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
-				end
 			end
 		end
 	end
 
 	function gadget:Update()
+		if not IsCursorBroadcastActive() then
+			if wasBroadcastActive then
+				ResetCursorBroadcastState()
+			end
+			wasBroadcastActive = false
+			return
+		end
+		if not wasBroadcastActive then
+			ResetCursorBroadcastState()
+			wasBroadcastActive = true
+		end
+
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 
 		if updateTimer > updateTick then
@@ -226,6 +265,9 @@ else
 
 	function gadget:MousePress(x,y,button)
 		if button == 2 then
+			return
+		end
+		if not IsCursorBroadcastActive() then
 			return
 		end
 		local mx,my = GetMouseState()

@@ -134,7 +134,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 30,
 				thickness = 4,
 				firetolerance = 7000,
 				tolerance = 7000,

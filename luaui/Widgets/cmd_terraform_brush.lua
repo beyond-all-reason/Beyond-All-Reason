@@ -966,7 +966,11 @@ local function sendTerraformMessage(direction, worldX, worldZ, radius, shape, ro
 		absCapMax = (heightCapMax and lockedGroundY) and string.format("%.0f", lockedGroundY + heightCapMax) or "nil"
 	end
 	local instant = isStampMode() and "1" or "0"
-	local flattenStr = flattenHeight and string.format("%.0f", flattenHeight) or "nil"
+	-- Smooth mode has no single flatten target: the gadget computes a local
+	-- per-cell blur target instead. "smooth" rides the same wire slot as a
+	-- non-numeric sentinel (tonumber() on it is nil, same as the "no target"
+	-- case), so recordLinkedStroke/replay need no changes to carry it.
+	local flattenStr = (activeMode == "smooth") and "smooth" or (flattenHeight and string.format("%.0f", flattenHeight) or "nil")
 	local penPressureFactor = 1
 	if extraState.penPressureEnabled and extraState.penPressureModulateIntensity and not extraState.penOverUI then
 		local pm = extraState.penPressureMapped or extraState.penPressure or 0
@@ -2026,7 +2030,17 @@ local function doExportHeightmap()
 	-- Timestamped filename so multiple saves accumulate and can be listed in the
 	-- load picker (older format was a single overwriting file).
 	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
-	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName .. "_" .. stamp
+	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>"
+	-- or "<custom name> s<time>", see buildBlankMapStartScript). Strip it so a save
+	-- made on one canvas stays visible in the load picker on later canvases with
+	-- the same base name. Gated on blank-map mapoptions so a real map name that
+	-- happens to end in " s<digits>" is never truncated.
+	local mapName = Game.mapName or ""
+	local mo = Spring.GetMapOptions()
+	if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+		mapName = mapName:match("^(.-) s%d+$") or mapName
+	end
+	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
 	local pngFile = io.open(filename, "wb")
@@ -2675,13 +2689,28 @@ function widget:Initialize()
 			local out = {}
 			if not files then return out end
 			local mapName = Game.mapName or ""
-			local mapPrefix = "heightmap_export_" .. mapName
+			-- Generated canvases get a fresh uniquified name every restart ("Editor
+			-- Flat 12x12 s<time>" or "<custom name> s<time>"), so an exact-name
+			-- filter can never surface saves from a previous canvas. Filter by the
+			-- stripped base name instead, gated on blank-map mapoptions so a real
+			-- map name ending in " s<digits>" is never truncated; real maps keep
+			-- exact matching (same name implies same dimensions).
+			local canonical = mapName
+			local mo = Spring.GetMapOptions()
+			if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+				canonical = mapName:match("^(.-) s%d+$") or mapName
+			end
+			local mapPrefix = "heightmap_export_" .. canonical
+			local escaped = mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1")
 			for _, path in ipairs(files) do
 				local base = path:match("([^/\\]+)%.png$") or path
-				-- Match "heightmap_export_<mapName>_<YYYY-MM-DD_HH-MM-SS>" and the
-				-- legacy un-stamped "heightmap_export_<mapName>" form.
-				local stamp = base:match("^" .. mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1") .. "_(.+)$")
+				-- Match "heightmap_export_<name>_<YYYY-MM-DD_HH-MM-SS>", the legacy
+				-- un-stamped "heightmap_export_<name>" form, and older generated-
+				-- canvas saves that still embed the " s<time>" uniquifier.
+				local stamp = base:match("^" .. escaped .. "_(.+)$")
+					or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
+					or (base:match("^" .. escaped .. " s%d+$") ~= nil)
 				if isThisMap then
 					local label
 					local sortKey = stamp or "0"
@@ -3425,22 +3454,12 @@ function widget:Update(dt)
 			stampApplied = true
 		end
 
-		-- For level/smooth mode (direction=0): pass the flatten target height.
-		-- level: first-click height (pinned target). smooth: live mean of brush area.
+		-- Level mode (direction=0) passes the flatten target height (first-click,
+		-- pinned). Smooth mode needs none: the gadget computes a local per-cell
+		-- blur target itself (see the "smooth" sentinel in sendTerraformMessage).
 		local fh = nil
-		if activeDirection == 0 then
-			if activeMode == "smooth" then
-				local sum = 0
-				local step = activeRadius * 0.4
-				for ix = -2, 2 do
-					for iz = -2, 2 do
-						sum = sum + GetGroundHeight(lockedWorldX + ix * step, lockedWorldZ + iz * step)
-					end
-				end
-				fh = sum / 25
-			else
-				fh = lockedGroundY
-			end
+		if activeDirection == 0 and activeMode ~= "smooth" then
+			fh = lockedGroundY
 		end
 
 		-- Interpolated stamps: bridge the gap between last applied position and
@@ -3473,18 +3492,7 @@ function widget:Update(dt)
 				local t = i / steps
 				local ix = prevX + (lockedWorldX - prevX) * t
 				local iz = prevZ + (lockedWorldZ - prevZ) * t
-				local fhi = fh
-				if activeMode == "smooth" and activeDirection == 0 then
-					local sum = 0
-					local step = activeRadius * 0.4
-					for jx = -2, 2 do
-						for jz = -2, 2 do
-							sum = sum + GetGroundHeight(ix + jx * step, iz + jz * step)
-						end
-					end
-					fhi = sum / 25
-				end
-				sendTerraformMessage(activeDirection, ix, iz, activeRadius, activeShape, activeRotation, activeCurve, fhi)
+				sendTerraformMessage(activeDirection, ix, iz, activeRadius, activeShape, activeRotation, activeCurve, fh)
 			end
 			extraState.interpIntensityScale = 1
 		end

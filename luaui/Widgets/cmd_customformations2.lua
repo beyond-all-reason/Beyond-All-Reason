@@ -129,7 +129,11 @@ local MiniMapFullProxy = (Spring.GetConfigInt("MiniMapFullProxy", 0) == 1)
 -- Speedups
 --------------------------------------------------------------------------------
 local GL_LINE_STRIP = GL.LINE_STRIP
+local GL_QUADS = GL.QUADS
 local glVertex = gl.Vertex
+local glTexCoord = gl.TexCoord
+local glTexture = gl.Texture
+local glDepthTest = gl.DepthTest
 local glLineStipple = gl.LineStipple
 local glLineWidth = gl.LineWidth
 local glColor = gl.Color
@@ -732,14 +736,6 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 
-local function tVerts(verts)
-    for i = 1, #verts do
-        local v = verts[i]
-        glVertex(v[1], v[2], v[3])
-    end
-end
-
-
 local function tVertsMinimap(verts)
     for i = 1, #verts do
         local v = verts[i]
@@ -749,67 +745,59 @@ end
 
 
 local function DrawGroundquad(x,y,z,size)
-    gl.TexCoord(0,0)
-    gl.Vertex(x-size,y,z-size)
-    gl.TexCoord(0,1)
-    gl.Vertex(x-size,y,z+size)
-    gl.TexCoord(1,1)
-    gl.Vertex(x+size,y,z+size)
-    gl.TexCoord(1,0)
-    gl.Vertex(x+size,y,z-size)
+    glTexCoord(0,0)
+    glVertex(x-size,y,z-size)
+    glTexCoord(0,1)
+    glVertex(x-size,y,z+size)
+    glTexCoord(1,1)
+    glVertex(x+size,y,z+size)
+    glTexCoord(1,0)
+    glVertex(x+size,y,z-size)
 end
 
 
-local function DrawFilledCircleOutFading(pos, size, cornerCount)
+local function DrawFormationDotQuads(dotSize, lengthPerUnit)
+    local nodeCount = #fNodes
+    local firstNode = fNodes[1]
+    DrawGroundquad(firstNode[1], firstNode[2], firstNode[3], dotSize)
+
+    if nodeCount > 2 then
+        local currentLength = 0
+        local nextDotLength = lengthPerUnit
+        for i = 1, nodeCount - 1 do
+            local node = fNodes[i]
+            local nextNode = fNodes[i + 1]
+            local dx = nextNode[1] - node[1]
+            local dy = nextNode[2] - node[2]
+            local dz = nextNode[3] - node[3]
+            local segmentLength = sqrt(dx*dx + dz*dz)
+            local segmentEnd = currentLength + segmentLength
+            while segmentEnd >= nextDotLength and nextDotLength < lineLength do
+                local factor = (nextDotLength - currentLength) / segmentLength
+                DrawGroundquad(node[1] + dx*factor, node[2] + dy*factor, node[3] + dz*factor, dotSize)
+                nextDotLength = nextDotLength + lengthPerUnit
+            end
+            currentLength = segmentEnd
+        end
+    end
+
+    local lastNode = fNodes[nodeCount]
+    DrawGroundquad(lastNode[1], lastNode[2], lastNode[3], dotSize)
+end
+
+
+local function DrawFormationDots(zoomY)
+    local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
+    local dotSize = sqrt(zoomY*0.24)
     SetColor(usingCmd, 1)
-	local lengthPerUnit = lineLength / (selectedUnitsCount-1)
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
 		glColor(1.0,0.3,0.0,1.0)
-	end
-    gl.Texture(dotImage)
-    gl.BeginEnd(GL.QUADS,DrawGroundquad, pos[1], pos[2], pos[3], size)
-    gl.Texture(false)
-end
-
-
-local function DrawFormationDots(vertFunction, zoomY)
-	gl.PushAttrib(GL.ALL_ATTRIB_BITS)
-    gl.DepthTest(false)
-    local currentLength = 0
-    local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
-    local lengthUnitNext = lengthPerUnit
-    local dotSize = sqrt(zoomY*0.24)
-    if (#fNodes > 1) and (selectedUnitsCount > 1) then
-        SetColor(usingCmd, 0.6)
-		if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
-			glColor(1.0,0.3,0.0,0.6)
-		end
-        DrawFilledCircleOutFading(fNodes[1], dotSize)
-        if (#fNodes > 2) then
-            for i=1, #fNodes-1 do
-                local x = fNodes[i][1]
-                local y = fNodes[i][3]
-                local x2 = fNodes[i+1][1]
-                local y2 = fNodes[i+1][3]
-                local dx = x - x2
-                local dy = y - y2
-                local length = sqrt((dx*dx)+(dy*dy))
-                while (currentLength + length >= lengthUnitNext) do
-                    local factor = (lengthUnitNext - currentLength) / length
-                    local factorPos =
-                    {fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
-                        fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
-                        fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
-                    DrawFilledCircleOutFading(factorPos, dotSize)
-                    lengthUnitNext = lengthUnitNext + lengthPerUnit
-                end
-                currentLength = currentLength + length
-            end
-        end
-        DrawFilledCircleOutFading(fNodes[#fNodes], dotSize)
     end
-    gl.DepthTest(true)
-	gl.PopAttrib(GL.ALL_ATTRIB_BITS)
+    glDepthTest(false)
+    glTexture(dotImage)
+    glBeginEnd(GL_QUADS, DrawFormationDotQuads, dotSize, lengthPerUnit)
+    glTexture(false)
+    glDepthTest(true)
 end
 
 
@@ -845,25 +833,24 @@ end
 
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
-    if #fNodes > 1 or #dimmNodes > 1 then
-        local camX, camY, camZ = spGetCameraPosition()
-        local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
-		local zoomY
-        if at == "ground" then
-            local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
-            --zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25
-            zoomY = sqrt(dx*dx + dy*dy + dz*dz)
-        else
-            --zoomY = sqrt((camY - max(spGetGroundHeight(camX, camZ), 0))*0.1)
-            zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
-        end
-        if zoomY < 6 then zoomY = 6 end
-        if lineLength > 0 then  --don't try and draw if the command was cancelled by having two mouse buttons pressed at once
-            DrawFormationDots(tVerts, zoomY)
-        end
-		glColor(1,1,1,1)
+    if chobbyInterface or #fNodes <= 1 or selectedUnitsCount <= 1 or lineLength <= 0 then
+        return
     end
+
+    local camX, camY, camZ = spGetCameraPosition()
+    local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
+	local zoomY
+    if at == "ground" then
+        local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
+        --zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25
+        zoomY = sqrt(dx*dx + dy*dy + dz*dz)
+    else
+        --zoomY = sqrt((camY - max(spGetGroundHeight(camX, camZ), 0))*0.1)
+        zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
+    end
+    if zoomY < 6 then zoomY = 6 end
+    DrawFormationDots(zoomY)
+	glColor(1,1,1,1)
 end
 
 

@@ -100,8 +100,6 @@ return {
 				soundhit = "nukearm",
 				soundhitwet = "nukewater",
 				soundstart = "nukelaunch",
-				soundhitwetvolume = 53,
-				soundstartvolume = 20,
 				texture1 = "null",
 				texture2 = "railguntrail",
 				texture3 = "null",

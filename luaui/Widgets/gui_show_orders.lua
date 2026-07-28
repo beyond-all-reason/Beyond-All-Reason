@@ -156,6 +156,7 @@ local floor = math.floor
 local spGetModKeyState = Spring.GetModKeyState
 local spDrawUnitCommands = Spring.DrawUnitCommands
 local spGetFactoryCounts = Spring.GetFactoryCounts
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetSpecState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -404,8 +405,10 @@ local function UpdateRenderData()
 		local uDefID = spGetUnitDefID(uID)
 		if uDefID then
 			local isBuilding, progress = spGetUnitIsBeingBuilt(uID)
-			local factoryCounts, factoryCount = spGetFactoryCounts(uID, maxCells)
-			local hasFactoryCommands = factoryCount and factoryCount > 0
+			local factoryCounts = spGetFactoryCounts(uID, maxCells)
+			local factoryCount = spGetFactoryCommandCount(uID) or 0
+			local factoryEntryCount = factoryCounts and factoryCounts.n or 0
+			local hasFactoryCommands = factoryCount > 0
 
 			local cells = getCellsArray()
 
@@ -423,15 +426,18 @@ local function UpdateRenderData()
 				end
 			end
 
-			if hasFactoryCommands then
-				for c = 1, factoryCount do
+			if factoryCounts then
+				for c = 1, factoryEntryCount do
 					if #cells >= maxCells then break end
-					local cDefID, count = next(factoryCounts[c])
-					if cDefID and count then
+					local factoryEntry = factoryCounts[c]
+					if factoryEntry then
+						local cDefID, count = next(factoryEntry)
+						if cDefID and count then
 						local cell = getCell()
 						cell.texture = getUnitTexture(cDefID)
 						cell.text = numberStrings[count] or tostring(count)
 						cells[#cells + 1] = cell
+						end
 					end
 				end
 			end

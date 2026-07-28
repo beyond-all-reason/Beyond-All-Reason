@@ -72,6 +72,15 @@ local DEFAULT_CURVE = 1.0
 local MIN_CURVE = 0.1
 local MAX_CURVE = 5.0
 local CURVE_STEP = 0.1
+-- Fractal brush-edge warp (ported from cmd_diffuse_painter): amount 0 = off,
+-- freq is world-space fBm frequency in 1/elmos. Step granularity is applied
+-- UI-side (the FRACTAL sliders), so only the defaults + clamps live here.
+local DEFAULT_FRACTAL = 0.0
+local MIN_FRACTAL = 0.0
+local MAX_FRACTAL = 1.0
+local DEFAULT_FRACTAL_FREQ = 0.003
+local MIN_FRACTAL_FREQ = 0.0001
+local MAX_FRACTAL_FREQ = 0.05
 local DEFAULT_INTENSITY = 1.0
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 10.0
@@ -91,6 +100,8 @@ local activeRadius = DEFAULT_RADIUS
 local activeShape = "circle"
 local activeRotation = 0
 local activeCurve = DEFAULT_CURVE
+local activeFractalAmount = DEFAULT_FRACTAL
+local activeFractalFreq = DEFAULT_FRACTAL_FREQ
 local eraseMode = false
 
 -- Export format state
@@ -141,6 +152,8 @@ local uLocMapSize = nil
 local uLocBrushCurve = nil
 local uLocBrushShape = nil
 local uLocBrushRotation = nil
+local uLocFractalAmount = nil
+local uLocFractalFreq = nil
 
 -- Copy shader (blit existing texture into FBO)
 local copyShader = nil
@@ -258,6 +271,8 @@ local PAINT_FRAG_SRC = [[
 	uniform float brushCurve;     // falloff exponent
 	uniform int brushShape;       // 0=circle, 1=square, 2=triangle, 3=hexagon, 4=octagon
 	uniform float brushRotation;  // rotation in radians
+	uniform float fractalAmount;  // 0 = off, 0-1 = brush-edge fBm warp strength
+	uniform float fractalFreq;    // world-space fBm frequency (1/elmos)
 
 	// Smart-filter uniforms
 	uniform int sfEnabled;
@@ -315,12 +330,37 @@ local PAINT_FRAG_SRC = [[
 		return true;
 	}
 
+	// ------ fBm domain-warp for organic brush edges ------
+	float hfh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+	float hfn(vec2 p) {
+		vec2 i = floor(p), f = fract(p);
+		vec2 u = f * f * (3.0 - 2.0 * f);
+		return mix(mix(hfh(i), hfh(i+vec2(1.0,0.0)), u.x),
+		           mix(hfh(i+vec2(0.0,1.0)), hfh(i+vec2(1.0,1.0)), u.x), u.y) * 2.0 - 1.0;
+	}
+	float hffbm(vec2 p) {
+		float v = 0.0;
+		v += 0.500 * hfn(p); p *= 2.13;
+		v += 0.225 * hfn(p); p *= 2.13;
+		v += 0.101 * hfn(p); p *= 2.13;
+		v += 0.045 * hfn(p);
+		return v;
+	}
+
 	void main() {
 		vec2 uv = gl_TexCoord[0].st;
 		vec4 current = texture2D(tex0, uv);
 
 		// Convert UV to world position
 		vec2 worldPos = uv * mapSize;
+
+		// Domain-warp the sample position for fractal / organic brush edges.
+		// Only shifts the falloff shape; the smart filter still tests the real pixel.
+		if (fractalAmount > 0.001) {
+			float wx = hffbm(worldPos * fractalFreq + vec2(31.4, 57.2));
+			float wy = hffbm(worldPos * fractalFreq + vec2(89.7, 23.1));
+			worldPos += vec2(wx, wy) * brushRadius * fractalAmount;
+		}
 
 		// Vector from brush center to this pixel
 		vec2 delta = worldPos - brushPos;
@@ -449,6 +489,8 @@ local function createShaders()
 	uLocBrushCurve = glGetUniformLocation(paintShader, "brushCurve")
 	uLocBrushShape = glGetUniformLocation(paintShader, "brushShape")
 	uLocBrushRotation = glGetUniformLocation(paintShader, "brushRotation")
+	uLocFractalAmount = glGetUniformLocation(paintShader, "fractalAmount")
+	uLocFractalFreq = glGetUniformLocation(paintShader, "fractalFreq")
 	-- Smart filter uniform locations
 	uLocSfEnabled     = glGetUniformLocation(paintShader, "sfEnabled")
 	uLocSfAvoidWater  = glGetUniformLocation(paintShader, "sfAvoidWater")
@@ -680,6 +722,8 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUniform(uLocBrushCurve, activeCurve)
 		glUniformInt(uLocBrushShape, SHAPE_INDEX[activeShape] or 0)
 		glUniform(uLocBrushRotation, rotDeg * pi / 180)
+		glUniform(uLocFractalAmount, activeFractalAmount)
+		glUniform(uLocFractalFreq, activeFractalFreq)
 
 		-- Smart filter uniforms
 		local sf = smartFilter
@@ -912,6 +956,8 @@ local function getState()
 		shape = activeShape,
 		rotationDeg = activeRotation,
 		curve = activeCurve,
+		fractalAmount = activeFractalAmount,
+		fractalFreq = activeFractalFreq,
 		eraseMode = eraseMode,
 		exportFormat = EXPORT_FORMATS[exportFormatIndex],
 		smartEnabled = smartFilterEnabled,
@@ -1004,6 +1050,12 @@ local function setCurve(c)
 	invalidateDrawCache()
 end
 
+local function setFractal(amount, freq)
+	if amount ~= nil then activeFractalAmount = max(MIN_FRACTAL, min(MAX_FRACTAL, amount)) end
+	if freq ~= nil then activeFractalFreq = max(MIN_FRACTAL_FREQ, min(MAX_FRACTAL_FREQ, freq)) end
+	invalidateDrawCache()
+end
+
 local function setEraseMode(enabled)
 	eraseMode = enabled
 end
@@ -1056,6 +1108,8 @@ function widget:Initialize()
 		setRotation = setRotation,
 		rotate = rotateBy,
 		setCurve = setCurve,
+		setFractal = setFractal,
+		getFractal = function() return activeFractalAmount, activeFractalFreq end,
 		setEraseMode = setEraseMode,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,

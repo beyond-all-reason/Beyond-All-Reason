@@ -474,6 +474,7 @@ local function RefreshCommands()
 		cmds[i] = nil
 	end
 	cmdsCount = 0
+	clearTable(cellRects)
 
 	if preGamestartPlayer then
 		if startDefID then
@@ -1289,9 +1290,10 @@ function widget:DrawScreen()
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if hovering then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+					local cmd = cmds[cellRectID]
+					if cmd and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
-						local uDefID = -cmds[cellRectID].id
+						local uDefID = -cmd.id
 						WG['buildmenu'].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
