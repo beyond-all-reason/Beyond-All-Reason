@@ -54,7 +54,7 @@ local function processRawTriggers(rawTriggers)
 		settings.maxRepeats = settings.maxRepeats or nil
 		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
-		settings.active = settings.active or true
+		settings.active = settings.active == nil and true or settings.active
 		settings.stages = settings.stages or {}
 
 		rawTrigger.settings = settings

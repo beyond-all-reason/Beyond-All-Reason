@@ -22,7 +22,7 @@ local function normalizeTrigger(raw)
 	s.maxRepeats    = s.maxRepeats or nil
 	s.difficulties  = s.difficulties or nil
 	s.coop          = s.coop or false
-	s.active        = s.active or true
+	s.active        = s.active == nil and true or s.active
 	raw.settings    = s
 	raw.triggered   = false
 	raw.repeatCount = 0
