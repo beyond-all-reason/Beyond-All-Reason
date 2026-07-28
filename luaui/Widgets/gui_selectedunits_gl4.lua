@@ -77,6 +77,9 @@ local GL_POINTS = GL.POINTS
 
 local initialized = false
 local selUnits = {}
+-- Units the player list says the hovered player may not receive; drawn red (the shader's g_invalid).
+local invalidUnits = {}
+local hoverListenerRegistered = false
 local nextSelUnits = {}
 local updateSelection = true
 local selectedUnits = spGetSelectedUnits()
@@ -216,7 +219,7 @@ local function AddPrimitiveAtUnit(unitID, startFrame, waterLevel)
 		length = radius
 	end
 	if selectionHighlight then
-		unitBufferUniformCache[1] = (unitID == lastMouseOverUnitID) and 3 or 1 -- keep the mouseover flag
+		unitBufferUniformCache[1] = invalidUnits[unitID] and -1 or ((unitID == lastMouseOverUnitID) and 3 or 1) -- keep the mouseover flag; red when the hovered player may not receive the unit
 		spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
 	local targetVBO
@@ -238,6 +241,7 @@ local function AddPrimitiveAtUnit(unitID, startFrame, waterLevel)
 	selectionInstanceData[5] = teamID
 	selectionInstanceData[6] = numVertices
 	selectionInstanceData[7] = startFrame
+	selectionInstanceData[8] = invalidUnits[unitID] and 1 or 0
 
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
@@ -391,13 +395,37 @@ local function RemovePrimitive(unitID, noUpload)
 	unitWaterPass[unitID] = nil
 end
 
+-- The player list says which of the selected units the hovered player may not receive.
+---@param invalidUnitIds integer[]
+local function OnHoverInvalidUnitsChanged(_newHoverTeamID, _newHoverPlayerID, invalidUnitIds)
+	local newInvalidUnits = {}
+	for _, unitID in ipairs(invalidUnitIds) do
+		newInvalidUnits[unitID] = true
+	end
+	local oldInvalidUnits = invalidUnits
+	invalidUnits = newInvalidUnits
+	-- only the units whose state changed are redrawn, or the selection flickers
+	local changed = false
+	local waterLevel = mapHasWater and getWaterLevel() or nil
+	for unitID in pairs(selUnits) do
+		if spValidUnitID(unitID) and (oldInvalidUnits[unitID] ~= nil) ~= (newInvalidUnits[unitID] ~= nil) then
+			RemovePrimitive(unitID, true)
+			AddPrimitiveAtUnit(unitID, primitiveStartFrame(), waterLevel)
+			changed = true
+		end
+	end
+	if changed then
+		UploadDirtySelectionVBOs()
+	end
+end
+
 function widget:SelectionChanged(sel)
 	pendingSelectedUnits = sel
 	updateSelection = true
 end
 
 local cleanedForHiddenUI = false
-local mouseOverUnitUniform = { 0 }
+local mouseOverUnitUniform = { 0, 0 }
 local mouseOverFeatureUniform = { 0 }
 local lastMouseX, lastMouseY = -1, -1
 local lastCamX, lastCamY, lastCamZ, lastCamDirX, lastCamDirY, lastCamDirZ
@@ -408,7 +436,8 @@ local mouseOverIdleCheckInterval = 4
 local function ClearLastMouseOver()
 	if lastMouseOverUnitID then
 		if spValidUnitID(lastMouseOverUnitID) then
-			mouseOverUnitUniform[1] = (selectionHighlight and selUnits[lastMouseOverUnitID]) and 1 or 0
+			mouseOverUnitUniform[1] = invalidUnits[lastMouseOverUnitID] and -1
+				or ((selectionHighlight and selUnits[lastMouseOverUnitID]) and 1 or 0)
 			spSetUnitBufferUniforms(lastMouseOverUnitID, mouseOverUnitUniform, 6)
 		end
 		lastMouseOverUnitID = nil
@@ -572,7 +601,8 @@ function widget:Update(dt)
 		local unitID = data
 		if lastMouseOverUnitID ~= unitID then
 			ClearLastMouseOver()
-			mouseOverUnitUniform[1] = ((selectionHighlight and selUnits[unitID]) and 1 or 0) + 2
+			mouseOverUnitUniform[1] = invalidUnits[unitID] and -1
+				or (((selectionHighlight and selUnits[unitID]) and 1 or 0) + 2)
 			spSetUnitBufferUniforms(unitID, mouseOverUnitUniform, 6)
 			lastMouseOverUnitID = unitID
 		end
@@ -659,9 +689,10 @@ local function init()
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.USETEXTURE = 0 -- was a plain white texture
 	shaderConfig.USE_QUADS = nil
-	-- transparency and teamcolorization are uniforms, set from opacity and teamcolorOpacity
+	-- transparency and teamcolorization are uniforms, set from opacity and teamcolorOpacity; g_invalid paints the
+	-- selection red when the hovered player may not receive the unit
 	shaderConfig.POST_SHADING =
-		"fragColor.rgba = vec4(mix(g_color.rgb + addRadius, vec3(1.0), 1.0 - teamcolorization), transparency + addRadius);"
+		"fragColor.rgba = vec4(g_invalid > 0.5 ? vec3(1.0, 0.0, 0.0) : mix(g_color.rgb + addRadius, vec3(1.0), 1.0 - teamcolorization), transparency + addRadius);"
 	selectionVBOGround, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnitsGround")
 	if selectionVBOGround == nil then
 		return false
@@ -693,6 +724,10 @@ function widget:Initialize()
 	if not init() then
 		widgetHandler:RemoveWidget()
 		return
+	end
+	if not hoverListenerRegistered and WG.advplayerlist_api and WG.advplayerlist_api.AddHoverInvalidUnitsListener then
+		WG.advplayerlist_api.AddHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+		hoverListenerRegistered = true
 	end
 	WG.selectedunits = {}
 	WG.selectedunits.getOpacity = function()
@@ -736,6 +771,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	if hoverListenerRegistered and WG.advplayerlist_api and WG.advplayerlist_api.RemoveHoverInvalidUnitsListener then
+		WG.advplayerlist_api.RemoveHoverInvalidUnitsListener(OnHoverInvalidUnitsChanged)
+		hoverListenerRegistered = false
+	end
 	if not (WG.teamplatter or WG.highlightselunits) then
 		Spring.LoadCmdColorsConfig("unitBox  0 1 0 1")
 	end
