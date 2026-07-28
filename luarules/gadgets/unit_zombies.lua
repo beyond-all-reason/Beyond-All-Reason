@@ -52,8 +52,8 @@ local zombieModeConfigs           = {
 		rezSpeed = 48,
 		rezMin = 30,
 		rezMax = 45,
-		countMin = 4,
-		countMax = 10
+		countMin = 3,
+		countMax = 6,
 	}
 }
 
