@@ -1,6 +1,8 @@
+---@alias ResourceName "metal"|"energy"
+
 ---@class ResourceTypes
----@field METAL string
----@field ENERGY string
+---@field METAL ResourceName
+---@field ENERGY ResourceName
 
 ---@type ResourceTypes
 local ResourceTypes = {
