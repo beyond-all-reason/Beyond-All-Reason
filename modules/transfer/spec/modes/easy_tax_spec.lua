@@ -1,0 +1,181 @@
+---@type Builders
+local Builders = VFS.Include("spec/builders/index.lua")
+local TransferEnums = VFS.Include("modules/context/enums.lua")
+local H = Builders.Mode
+
+local easyTaxMode = VFS.Include("modules/transfer/modes/easy_tax.lua")
+
+local sender = Builders.Team:new():Human()
+local receiver = Builders.Team:new():Human()
+local spring = Builders.Spring
+	.new()
+	:WithTeam(sender)
+	:WithTeam(receiver)
+	:WithAlliance(sender.id, receiver.id, true)
+	:WithTeamRulesParam(receiver.id, "numActivePlayers", 1)
+	:WithTeamRulesParam(sender.id, "numActivePlayers", 1)
+
+describe("Easy Tax mode #policy", function()
+	describe("with default settings (30% tax)", function()
+		---@type ResourcePolicyResult
+		local metalResult
+		---@type ResourcePolicyResult
+		local energyResult
+
+		before_each(function()
+			sender:WithMetal(500):WithEnergy(500)
+			receiver:WithMetal(0):WithEnergy(0)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			metalResult = H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL)
+			energyResult = H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.ENERGY)
+		end)
+
+		it("should ALLOW sharing of both resources", function()
+			assert.equal(true, metalResult.canShare)
+			assert.equal(true, energyResult.canShare)
+		end)
+
+		it("should apply 30% tax rate", function()
+			assert.equal(0.30, metalResult.taxRate)
+			assert.equal(0.30, energyResult.taxRate)
+		end)
+
+		it("should compute sendable amount with 30% tax overhead", function()
+			-- sender=500, rate=0.30: 500 * 0.70 = 350
+			assert.equal(350, metalResult.amountSendable)
+			assert.equal(350, energyResult.amountSendable)
+		end)
+	end)
+
+	describe("when receiver is full", function()
+		---@type ResourcePolicyResult
+		local metalResult
+		---@type ResourcePolicyResult
+		local energyResult
+
+		before_each(function()
+			sender:WithMetal(500):WithEnergy(500)
+			receiver:WithMetal(1000):WithEnergy(1000)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			metalResult = H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL)
+			energyResult = H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.ENERGY)
+		end)
+
+		it("should NOT allow sharing", function()
+			assert.equal(false, metalResult.canShare)
+			assert.equal(false, energyResult.canShare)
+		end)
+
+		it("should set amount sendable to 0", function()
+			assert.equal(0, metalResult.amountSendable)
+			assert.equal(0, energyResult.amountSendable)
+		end)
+	end)
+
+	describe("when sender is empty", function()
+		it("should NOT allow sharing", function()
+			sender:WithMetal(0):WithEnergy(0)
+			receiver:WithMetal(0):WithEnergy(0)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			local metalResult =
+				H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL)
+			local energyResult =
+				H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.ENERGY)
+
+			assert.equal(false, metalResult.canShare)
+			assert.equal(false, energyResult.canShare)
+		end)
+	end)
+
+	describe("when sender has less than desired", function()
+		it("should cap sendable amount to sender budget after tax", function()
+			sender:WithMetal(50):WithEnergy(500)
+			receiver:WithMetal(0):WithEnergy(0)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			local policy = H.snapshotResult(
+				H.buildModeResult(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL)
+			)
+
+			assert.equal(true, policy.canShare)
+			-- sender=50, rate=0.30: 50 * 0.70 = 35
+			assert.equal(35, policy.amountSendable)
+		end)
+	end)
+
+	describe("transfer action with 30% tax", function()
+		it("should deduct more from sender than receiver gets", function()
+			sender:WithMetal(500):WithEnergy(500)
+			receiver:WithMetal(0):WithEnergy(0)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			local result =
+				H.buildModeTransfer(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL, 100)
+
+			assert.is_true(result.success)
+			assert.equal(100, result.received)
+			assert.is_true(result.sent > result.received)
+		end)
+
+		it("should transfer energy with tax overhead", function()
+			sender:WithMetal(500):WithEnergy(500)
+			receiver:WithMetal(0):WithEnergy(0)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			local result =
+				H.buildModeTransfer(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.ENERGY, 200)
+
+			assert.is_true(result.success)
+			assert.equal(200, result.received)
+			-- 30% tax: sender pays 200 / 0.7 ≈ 285.71
+			assert.is_near(285.71, result.sent, 0.1)
+		end)
+
+		it("should not transfer when receiver is full", function()
+			sender:WithMetal(500):WithEnergy(500)
+			receiver:WithMetal(1000):WithEnergy(1000)
+			receiver:WithMetalStorage(1000):WithEnergyStorage(1000)
+
+			local result =
+				H.buildModeTransfer(spring, easyTaxMode, sender, receiver, TransferEnums.ResourceType.METAL, 100)
+
+			assert.equal(false, result.success)
+			assert.equal(0, result.sent)
+			assert.equal(0, result.received)
+		end)
+	end)
+end)
+
+describe("Easy Tax mode policy bundle", function()
+	local ModeEnums = VFS.Include("modules/context/mode_enums.lua")
+
+	it("keeps the enum key", function()
+		assert.equal(ModeEnums.Modes.EasyTax, easyTaxMode.key)
+	end)
+
+	it("serializes to the exact modOptions the literal preset declared", function()
+		assert.same({
+			[ModeEnums.ModOptions.UnitSharingMode] = { value = ModeEnums.UnitFilterCategory.All, locked = true },
+			[ModeEnums.ModOptions.UnitShareStunSeconds] = { value = 30, locked = false },
+			[ModeEnums.ModOptions.UnitStunCategory] = { value = ModeEnums.UnitFilterCategory.Resource, locked = true },
+			[ModeEnums.ModOptions.ConstructorBuildDelay] = { value = 30, locked = false },
+			[ModeEnums.ModOptions.ResourceSharingEnabled] = { value = true, locked = true },
+			[ModeEnums.ModOptions.TaxResourceSharingAmount] = { value = 0.30, locked = false },
+			[ModeEnums.ModOptions.AlliedAssistMode] = { value = ModeEnums.AlliedAssistMode.Enabled, locked = true },
+			[ModeEnums.ModOptions.AlliedUnitReclaimMode] = {
+				value = ModeEnums.AlliedUnitReclaimMode.Enabled,
+				locked = true,
+			},
+			[ModeEnums.ModOptions.AllowPartialResurrection] = {
+				value = ModeEnums.AllowPartialResurrection.Enabled,
+				locked = true,
+			},
+			[ModeEnums.ModOptions.TakeMode] = { value = ModeEnums.TakeMode.StunDelay, locked = true },
+			[ModeEnums.ModOptions.TakeDelaySeconds] = { value = 30, locked = false },
+			[ModeEnums.ModOptions.TakeDelayCategory] = { value = ModeEnums.UnitCategory.Resource, locked = true },
+		}, easyTaxMode.modOptions)
+	end)
+end)

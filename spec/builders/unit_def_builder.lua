@@ -5,7 +5,7 @@
 
 ---@class UnitDefBuilder
 ---@field _def table
----@field _defID number|nil
+---@field _defID integer|nil
 local UDB = {}
 UDB.__index = UDB
 
@@ -25,7 +25,7 @@ function UDB.new(name)
 	}, UDB)
 end
 
----@param defID number
+---@param defID integer
 ---@return UnitDefBuilder
 function UDB:WithDefID(defID)
 	self._defID = defID
@@ -63,7 +63,7 @@ function UDB:Builds(...)
 	return self
 end
 
----@return number
+---@return integer
 function UDB:GetDefID()
 	if not self._defID then
 		error("UnitDefBuilder for '" .. tostring(self._def.name) .. "' is missing defID; call :WithDefID(n)")

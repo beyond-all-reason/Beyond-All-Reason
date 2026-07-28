@@ -256,6 +256,16 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+-- Your defaults are applied when a unit finishes building for you. A unit that
+-- ARRIVES already finished never crosses that moment, so a shared, taken or
+-- mission-granted unit kept its previous owner's states forever. Same rule,
+-- applied at the other point a unit becomes yours.
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitFinished(unitID, unitDefID, newTeam)
+	end
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
