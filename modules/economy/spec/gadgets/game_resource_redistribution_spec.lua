@@ -1,0 +1,176 @@
+local Builders = VFS.Include("spec/builders/index.lua")
+local TAX_RATE_OPTION = "spec_tax_rate" -- the provider under test reads this, transfer supplies the real one
+local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+local WaterfillSolver = VFS.Include("modules/economy/lib/waterfill_solver.lua")
+
+---The tax a spec sets by a spec-private option, read the way transfer's provider would.
+---@param springRepo Spring
+---@return number
+local function taxRateFromModoption(springRepo)
+	return tonumber(springRepo.GetModOptions()[TAX_RATE_OPTION]) or 0
+end
+
+local function normalizeAllies(teams, allyTeamId)
+	for i = 1, #teams do
+		teams[i].allyTeam = allyTeamId
+	end
+end
+
+local function allyAll(teams, springBuilder)
+	for i = 1, #teams do
+		for j = i, #teams do
+			springBuilder:WithAlliance(teams[i].id, teams[j].id, true)
+		end
+	end
+end
+
+local function buildTeamsTable(builders)
+	local teams = {}
+	for i = 1, #builders do
+		local built = builders[i]:Build()
+		teams[built.id] = built
+	end
+	return teams
+end
+
+local function buildSpring(opts, teams)
+	local builder = Builders.Spring.new()
+	builder:WithModOption(TAX_RATE_OPTION, opts.taxRate or 0)
+	for i = 1, #teams do
+		builder:WithTeam(teams[i])
+	end
+	allyAll(teams, builder)
+	return builder:Build()
+end
+
+describe("WaterfillSolver.SolveToResults", function()
+	it("returns EconomyTeamResult[] with correct structure", function()
+		local teamA = Builders.Team:new():WithMetal(800):WithMetalStorage(1000):WithMetalShareSlider(50)
+		local teamB = Builders.Team:new():WithMetal(200):WithMetalStorage(1000):WithMetalShareSlider(50)
+
+		normalizeAllies({ teamA, teamB }, teamA.allyTeam)
+
+		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
+		local teamsList = buildTeamsTable({ teamA, teamB })
+
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, taxRateFromModoption)
+
+		assert.is_table(results)
+		assert.is_true(#results >= 2)
+
+		local foundMetal = false
+		for _, result in ipairs(results) do
+			assert.is_number(result.teamId)
+			assert.is_not_nil(result.resourceType)
+			assert.is_number(result.delta)
+			assert.is_number(result.excess)
+			assert.is_number(result.sent)
+			assert.is_number(result.received)
+			if result.resourceType == ResourceTypes.METAL then
+				foundMetal = true
+			end
+		end
+		assert.is_true(foundMetal)
+	end)
+
+	it("balances metal between teams without tax", function()
+		local teamA = Builders.Team:new():WithMetal(800):WithMetalStorage(1000):WithMetalShareSlider(50)
+		local teamB = Builders.Team:new():WithMetal(200):WithMetalStorage(1000):WithMetalShareSlider(50)
+
+		normalizeAllies({ teamA, teamB }, teamA.allyTeam)
+
+		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
+		local teamsList = buildTeamsTable({ teamA, teamB })
+
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, taxRateFromModoption)
+
+		local teamAMetal, teamBMetal ---@type EconomyTeamResult, EconomyTeamResult
+		for _, result in ipairs(results) do
+			if result.resourceType == ResourceTypes.METAL then
+				if result.teamId == teamA.id then
+					teamAMetal = result
+				elseif result.teamId == teamB.id then
+					teamBMetal = result
+				end
+			end
+		end
+
+		assert.is_near(-300, teamAMetal.delta, 0.1)
+		assert.is_near(300, teamBMetal.delta, 0.1)
+		assert.is_near(300, teamAMetal.sent, 0.1)
+		assert.is_near(300, teamBMetal.received, 0.1)
+		assert.is_near(0, teamAMetal.delta + teamBMetal.delta, 0.1)
+	end)
+
+	it("applies tax correctly in results", function()
+		local teamA = Builders.Team:new():WithMetal(800):WithMetalStorage(1000):WithMetalShareSlider(50)
+		local teamB = Builders.Team:new():WithMetal(700):WithMetalStorage(1000):WithMetalShareSlider(50)
+
+		normalizeAllies({ teamA, teamB }, teamA.allyTeam)
+
+		local spring = buildSpring({ taxRate = 0.5 }, { teamA, teamB })
+		local teamsList = buildTeamsTable({ teamA, teamB })
+
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, taxRateFromModoption)
+
+		local teamAMetal, teamBMetal ---@type EconomyTeamResult, EconomyTeamResult
+		for _, result in ipairs(results) do
+			if result.resourceType == ResourceTypes.METAL then
+				if result.teamId == teamA.id then
+					teamAMetal = result
+				elseif result.teamId == teamB.id then
+					teamBMetal = result
+				end
+			end
+		end
+
+		assert.is_near(-66.67, teamAMetal.delta, 0.1)
+		assert.is_near(33.33, teamBMetal.delta, 0.1)
+		assert.is_true(teamAMetal.sent > teamBMetal.received)
+		assert.is_near(-33.33, teamAMetal.delta + teamBMetal.delta, 0.1)
+	end)
+end)
+
+describe("ResourceExcess redistribution", function()
+	it("processes excesses and returns results", function()
+		local teamA = Builders.Team
+			:new()
+			:WithMetal(800)
+			:WithMetalStorage(1000)
+			:WithMetalShareSlider(50)
+			:WithEnergy(500)
+			:WithEnergyStorage(1000)
+			:WithEnergyShareSlider(50)
+		local teamB = Builders.Team
+			:new()
+			:WithMetal(200)
+			:WithMetalStorage(1000)
+			:WithMetalShareSlider(50)
+			:WithEnergy(500)
+			:WithEnergyStorage(1000)
+			:WithEnergyShareSlider(50)
+
+		normalizeAllies({ teamA, teamB }, teamA.allyTeam)
+
+		local spring = buildSpring({ taxRate = 0 }, { teamA, teamB })
+		local teamsList = buildTeamsTable({ teamA, teamB })
+
+		local results = WaterfillSolver.SolveToResults(spring, teamsList, taxRateFromModoption)
+
+		assert.is_table(results)
+		assert.is_true(#results >= 4)
+
+		local metalResults = 0
+		local energyResults = 0
+		for _, result in ipairs(results) do
+			if result.resourceType == ResourceTypes.METAL then
+				metalResults = metalResults + 1
+			elseif result.resourceType == ResourceTypes.ENERGY then
+				energyResults = energyResults + 1
+			end
+		end
+
+		assert.equal(2, metalResults)
+		assert.equal(2, energyResults)
+	end)
+end)
