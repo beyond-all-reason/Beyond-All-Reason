@@ -19,6 +19,12 @@ local floor = math.floor
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spSendCommands = Spring.SendCommands
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spGetScanSymbol = Spring.GetScanSymbol
+
+-- The engine's own name for the editable preset; the editor only allows edits on it.
+local customKeysFile = "uikeys.txt"
 
 local area = { x1 = 0, y1 = 0, x2 = 0, y2 = 0 }
 local scale = 1
@@ -69,7 +75,7 @@ end
 
 local resetOptions = {}
 for i = 1, #presetOptions do
-	if presetOptions[i].file ~= "uikeys.txt" then
+	if presetOptions[i].file ~= customKeysFile then
 		resetOptions[#resetOptions + 1] = presetOptions[i]
 	end
 end
@@ -142,7 +148,7 @@ local function rebuildRows()
 	end
 
 	rows = {}
-	local q = searchBox and searchBox:getText():lower() or ""
+	local query = searchBox and searchBox:getText():lower() or ""
 	local catalogActions = {}
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
@@ -156,10 +162,11 @@ local function rebuildRows()
 	end
 
 	for _, group in ipairs(resolvedCatalog) do
-		local categoryMatch = q ~= "" and group.titleLower:find(q, 1, true)
+		local categoryMatch = query ~= "" and group.titleLower:find(query, 1, true)
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
-			if item.prefix then
+			-- An empty prefix would claim every bound action, so treat it as no prefix.
+			if item.prefix and item.prefix ~= "" then
 				-- Claim every unclaimed action under this prefix. A label, if given, is
 				-- resolved per action with the arg (text after the prefix) as %{n}, or
 				-- its two whitespace-split tokens as %{row}/%{col}.
@@ -188,7 +195,7 @@ local function rebuildRows()
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and Spring.I18N(item.label, { n = arg, row = row, col = col }) or action
-					if q == "" or categoryMatch or action:lower():find(q, 1, true) or label:lower():find(q, 1, true) then
+					if query == "" or categoryMatch or action:lower():find(query, 1, true) or label:lower():find(query, 1, true) then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
 				end
@@ -198,8 +205,8 @@ local function rebuildRows()
 				if item.action then
 					catalogActions[item.action] = true
 				end
-				if q == "" or categoryMatch or item.labelLower:find(q, 1, true)
-					or (item.actionLower and item.actionLower:find(q, 1, true)) then
+				if query == "" or categoryMatch or item.labelLower:find(query, 1, true)
+					or (item.actionLower and item.actionLower:find(query, 1, true)) then
 					if item.action then
 						groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 					else
@@ -217,10 +224,10 @@ local function rebuildRows()
 		end
 	end
 
-	local otherMatch = q ~= "" and ("other"):find(q, 1, true)
+	local otherMatch = query ~= "" and ("other"):find(query, 1, true)
 	local others = {}
 	for action in pairs(working.byAction) do
-		if not catalogActions[action] and (q == "" or otherMatch or action:lower():find(q, 1, true)) then
+		if not catalogActions[action] and (query == "" or otherMatch or action:lower():find(query, 1, true)) then
 			others[#others + 1] = action
 		end
 	end
@@ -258,7 +265,7 @@ local function persistEdits()
 		return false
 	end
 	edited = false
-	spSendCommands("keysave uikeys.txt")
+	spSendCommands("keysave " .. customKeysFile)
 	return true
 end
 
@@ -268,7 +275,7 @@ switchPreset = function(opt)
 
 	local fromLabel = presetOptions[currentPresetIndex()].label
 	local file = opt.file
-	if file == "uikeys.txt" and not VFS.FileExists(file) then
+	if file == customKeysFile and not VFS.FileExists(file) then
 		spSendCommands("keysave " .. file)
 	end
 	Spring.SetConfigString("KeybindingFile", file)
@@ -298,8 +305,8 @@ resetToPreset = function(opt)
 	edited = false
 	Spring.SetConfigString("KeybindingFile", opt.file)
 	WG['bar_hotkeys'].reloadBindings()
-	spSendCommands("keysave uikeys.txt")
-	Spring.SetConfigString("KeybindingFile", "uikeys.txt")
+	spSendCommands("keysave " .. customKeysFile)
+	Spring.SetConfigString("KeybindingFile", customKeysFile)
 	WG['bar_hotkeys'].reloadBindings()
 	Spring.Echo("Keybind custom reset from preset: " .. opt.label)
 	view.refresh()
@@ -389,7 +396,7 @@ function view.refresh()
 	ensureControls()
 	seedWorkingFromEngine()
 	resolvedCatalog = nil
-	editable = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1]) == "uikeys.txt"
+	editable = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1]) == customKeysFile
 	presetDropdown:setSelected(currentPresetIndex())
 	if not editable then
 		resetDropdown:close()
@@ -517,10 +524,10 @@ local function appendChain(el)
 		return
 	end
 
-	local now = Spring.GetTimer and Spring.GetTimer()
+	local now = spGetTimer()
 	if #c.elems == 0 then
 		c.elems[1] = el
-	elseif now and c.lastPress and Spring.DiffTimers(now, c.lastPress) * 1000 <= c.timeout then
+	elseif c.lastPress and spDiffTimers(now, c.lastPress) * 1000 <= c.timeout then
 		c.elems[#c.elems + 1] = el
 	else
 		c.elems = { el }
@@ -566,7 +573,7 @@ local function startCapture(action, label, oldRaw)
 		elems = elems,
 		pressed = {},
 		lastPress = nil,
-		-- Fixed 750ms window, not BAR's tighter 333ms KeyChainTimeout, to tap comfortably.
+		-- Matches the engine's KeyChainTimeout default; BAR ships a tighter 333ms.
 		timeout = 750,
 	}
 	captureAny = rawHasAny(oldRaw)
@@ -589,7 +596,7 @@ local function modPrefix()
 end
 
 local function pressSym(scanCode)
-	local sym = scanCode and Spring.GetScanSymbol and Spring.GetScanSymbol(scanCode)
+	local sym = scanCode and spGetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end
@@ -878,8 +885,8 @@ function view.draw()
 		end
 
 		-- Bar draining over the chain window: time left to extend before it resets.
-		if hasChain and capturing.lastPress and Spring.GetTimer then
-			local frac = 1 - (Spring.DiffTimers(Spring.GetTimer(), capturing.lastPress) * 1000) / capturing.timeout
+		if hasChain and capturing.lastPress then
+			local frac = 1 - (spDiffTimers(spGetTimer(), capturing.lastPress) * 1000) / capturing.timeout
 			if frac < 0 then frac = 0 end
 			local barW = floor((bx2 - bx1) * 0.5)
 			local barX = cx - barW * 0.5
@@ -957,8 +964,8 @@ local function handleZone(kind, action, label, raw)
 		startCapture(action, label)
 	elseif kind == "rebind" then
 		local id = action .. "|" .. tostring(raw)
-		local now = Spring.GetTimer and Spring.GetTimer()
-		if now and lastClickId == id and lastClickTime and Spring.DiffTimers(now, lastClickTime) < 0.4 then
+		local now = spGetTimer()
+		if lastClickId == id and lastClickTime and spDiffTimers(now, lastClickTime) < 0.4 then
 			startCapture(action, label, raw)
 			lastClickTime = nil
 		else
