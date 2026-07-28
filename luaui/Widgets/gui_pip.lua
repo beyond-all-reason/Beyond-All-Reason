@@ -14293,9 +14293,9 @@ local function DrawCameraViewBounds()
 	local tl_c1x, tl_c1y, tl_c2x, tl_c2y
 
 	if needRebuild then
-		-- Trace screen center to find ground Y (matches engine's TraceRay::GuiTraceRay at screen center)
+		-- Trace screen center to terrain, ignoring water like the engine minimap frustum indicator.
 		local groundY
-		local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true)
+		local _, centerPos = Spring.TraceScreenRay(math.floor(vsx / 2), math.floor(vsy / 2), true, false, false, true)
 		if centerPos then
 			groundY = centerPos[2]
 		else
