@@ -183,12 +183,12 @@ function Editbox:keyPress(key)
 	local _, ctrl, _, shift = Spring.GetModKeyState()
 	local changed = false
 
-	if ctrl and key == 97 then -- ctrl+a
+	if ctrl and key == KEYSYMS.A then
 		self.selAnchor = 0
 		self.caret = utf8.len(self.text)
-	elseif key == 27 or key == 13 then -- escape / enter
+	elseif key == KEYSYMS.ESCAPE or key == KEYSYMS.RETURN then
 		self:blur()
-	elseif key == 8 then -- backspace
+	elseif key == KEYSYMS.BACKSPACE then
 		if not self:deleteSelection() then
 			if ctrl then
 				local p = self:prevWord()
@@ -202,20 +202,20 @@ function Editbox:keyPress(key)
 			end
 		end
 		changed = true
-	elseif key == 127 then -- delete
+	elseif key == KEYSYMS.DELETE then
 		if not self:deleteSelection() then
 			if self.caret < utf8.len(self.text) then
 				self.text = utf8.sub(self.text, 1, self.caret) .. utf8.sub(self.text, self.caret + 2)
 			end
 		end
 		changed = true
-	elseif key == 276 then -- left
+	elseif key == KEYSYMS.LEFT then
 		self:setCaret(ctrl and self:prevWord() or self.caret - 1, shift)
-	elseif key == 275 then -- right
+	elseif key == KEYSYMS.RIGHT then
 		self:setCaret(ctrl and self:nextWord() or self.caret + 1, shift)
-	elseif key == 278 then -- home
+	elseif key == KEYSYMS.HOME then
 		self:setCaret(0, shift)
-	elseif key == 279 then -- end
+	elseif key == KEYSYMS.END then
 		self:setCaret(utf8.len(self.text), shift)
 	end
 
