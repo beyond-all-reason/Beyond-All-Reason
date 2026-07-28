@@ -1,5 +1,4 @@
 
-
 if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -7,15 +6,15 @@ end
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name	= "Self-Destruct Resign",
-        desc	= "Cancel the order and resign players which try to self-destruct all their units",
-        author	= "Floris",
-        date	= "October 2021",
-        license	= "GNU GPL, v2 or later",
-        layer	= 0,
-        enabled	= true,
-    }
+	return {
+		name	= "Self-Destruct Resign",
+		desc	= "Warn and cancel mass self-D while teammates are alive; on the third attempt allow it and send analytics",
+		author	= "Floris",
+		date	= "October 2021",
+		license	= "GNU GPL, v2 or later",
+		layer	= 0,
+		enabled	= true,
+	}
 end
 
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -68,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_SELFD = CMD.SELFD
 	local selfdCheckTeamUnits = {}
-	local forceResignStrikesByTeamID = {}
+	local massSelfdStrikesByTeamID = {}
 	local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
 	local spGetTeamUnits = Spring.GetTeamUnits
 
@@ -82,28 +81,32 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function notifyTeamPlayers(teamID, message)
+	local function notifyTeamPlayers(teamID, message, ...)
 		local players = Spring.GetPlayerList()
 		for _, playerID in pairs(players) do
 			if teamID == select(4, Spring.GetPlayerInfo(playerID, false)) then
-				SendToUnsynced(message, playerID)
+				SendToUnsynced(message, playerID, ...)
 			end
 		end
 	end
 
-	local function forceResignTeam(teamID)
-		cancelSelfDestructOrders(teamID)
+	local function handleMassSelfD(teamID, unitCount, selfdUnitCount)
+		local strikes = massSelfdStrikesByTeamID[teamID] or 0
+		if strikes >= allowedStrikes then
+			return -- warn + analytics cycle finished; allow freely
+		end
 
-		local strikes = (forceResignStrikesByTeamID[teamID] or 0) + 1
-		forceResignStrikesByTeamID[teamID] = strikes
+		strikes = strikes + 1
+		massSelfdStrikesByTeamID[teamID] = strikes
 
 		if strikes < allowedStrikes then
-			notifyTeamPlayers(teamID, 'forceResignWarn')
+			cancelSelfDestructOrders(teamID)
+			notifyTeamPlayers(teamID, 'selfdPolicyWarn')
 			return
 		end
 
-		notifyTeamPlayers(teamID, 'forceResignMessage')
-		Spring.KillTeam(teamID)
+		-- Final strike: let self-D proceed and emit a single analytics event
+		notifyTeamPlayers(teamID, 'selfdMassAnalytics', unitCount, selfdUnitCount)
 	end
 
 	function gadget:Initialize()
@@ -132,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 						elseif selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
 							if not LuaAI or not ( string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors") ) then
-								forceResignTeam(teamID)
+								handleMassSelfD(teamID, unitCount, selfdUnitCount)
 							end
 							break
 						end
@@ -157,7 +160,7 @@ else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myTeamID = Spring.GetMyTeamID()
 
-	local function showForceResignNotification(playerID, messageKey)
+	local function showSelfdPolicyNotification(playerID)
 		if playerID ~= myPlayerID or Spring.GetSpectatingState() then
 			return
 		end
@@ -166,25 +169,42 @@ else -- UNSYNCED
 		end
 
 		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy(messageKey))
+			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.selfdPolicyWarn'))
 		end
 	end
 
-	local function forceResignWarn(_, playerID)
-		showForceResignNotification(playerID, 'ui.forceResignWarn')
+	local function selfdPolicyWarn(_, playerID)
+		showSelfdPolicyNotification(playerID)
 	end
 
-	local function forceResignMessage(_, playerID)
-		showForceResignNotification(playerID, 'ui.forceResignMessage')
+	local function selfdMassAnalytics(_, playerID, unitCount, selfdUnitCount)
+		if playerID ~= myPlayerID or Spring.GetSpectatingState() then
+			return
+		end
+		if isLastAliveNonGaiaAllyTeam(myTeamID) then
+			return
+		end
+		if not hasActiveHumanTeammate(myTeamID) then
+			return
+		end
+
+		if Script.LuaUI('SelfDResignAnalytics') then
+			Script.LuaUI.SelfDResignAnalytics("selfd_mass_allowed", {
+				time = Spring.GetGameFrame(),
+				gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
+				unitCount = unitCount,
+				selfdUnitCount = selfdUnitCount,
+			})
+		end
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction('forceResignWarn', forceResignWarn)
-		gadgetHandler:AddSyncAction('forceResignMessage', forceResignMessage)
+		gadgetHandler:AddSyncAction('selfdPolicyWarn', selfdPolicyWarn)
+		gadgetHandler:AddSyncAction('selfdMassAnalytics', selfdMassAnalytics)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction('forceResignWarn')
-		gadgetHandler:RemoveSyncAction('forceResignMessage')
+		gadgetHandler:RemoveSyncAction('selfdPolicyWarn')
+		gadgetHandler:RemoveSyncAction('selfdMassAnalytics')
 	end
 end
