@@ -686,8 +686,8 @@ local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, init
 			(diveSpeed - terrainCorrectedY) * surfaceTransition
 	end
 
-	if velocityY > 0 and surfaceTransition > 0 then
-		smooth = math.max(smooth, 0.85 * surfaceTransition)
+	if velocityY > 0 then
+		smooth = math.max(smooth, 0.5 + 0.35 * surfaceTransition)
 	end
 	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
