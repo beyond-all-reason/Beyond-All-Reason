@@ -784,13 +784,15 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 	}
 	setmetatable(gadget.ghInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation
-	gadget._tracyGameFrameName          = "G:GameFrame:"          .. gi.name
-	gadget._tracyGameFramePostName      = "G:GameFramePost:"      .. gi.name
-	gadget._tracyViewResizeName         = "G:ViewResize:"         .. gi.name
-	gadget._tracyPlayerChangedName      = "G:PlayerChanged:"      .. gi.name
-	gadget._tracyUpdateName             = "G:Update:"             .. gi.name
-	gadget._tracyDrawWorldName          = "G:DrawWorld:"          .. gi.name
-	gadget._tracyDrawWorldPreUnitName   = "G:DrawWorldPreUnit:"   .. gi.name
+	if tracy then
+		gadget._tracyGameFrameName          = "G:GameFrame:"          .. gi.name
+		gadget._tracyGameFramePostName      = "G:GameFramePost:"      .. gi.name
+		gadget._tracyViewResizeName         = "G:ViewResize:"         .. gi.name
+		gadget._tracyPlayerChangedName      = "G:PlayerChanged:"      .. gi.name
+		gadget._tracyUpdateName             = "G:Update:"             .. gi.name
+		gadget._tracyDrawWorldName          = "G:DrawWorld:"          .. gi.name
+		gadget._tracyDrawWorldPreUnitName   = "G:DrawWorldPreUnit:"   .. gi.name
+	end
 end
 
 function gadgetHandler:ValidateGadget(gadget)
