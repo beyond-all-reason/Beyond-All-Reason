@@ -1817,7 +1817,7 @@ local gl4Prim = {
 	CIRCLE_MAX = 2048,        -- max circle instances
 	QUAD_STEP = 16,           -- floats per instance: position, color, angle, atlas UV rect
 	QUAD_MAX = 4096,          -- max quad instances
-	quadAtlasTexture = "LuaUI/Images/pip_projectile_atlas.png",
+	quadAtlasTexture = "LuaUI/Images/pip/pip_projectile_atlas.png",
 	quadAtlasSprites = {
 		-- 512x64 atlas, eight 64x64 cells; half-pixel inset prevents neighbor bleeding.
 		solid =   {  1.5 / 512, 1.5 / 64,  62.5 / 512, 62.5 / 64},
