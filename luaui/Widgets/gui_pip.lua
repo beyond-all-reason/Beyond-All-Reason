@@ -275,7 +275,7 @@ config = {
 	minimapModeHideMoveResize = true,  -- Hide move and resize buttons in minimap mode
 	autoMaximizeOnGameStart = false,  -- Automatically maximize PIP when the game starts (players only, not spectators)
 	hideAICommands = true,  -- Hide command queues from AI players (default: enabled)
-	showSpectatorPings = true,  -- Show map pings from spectators on the PIP minimap
+	showSpectatorPings = true,  -- Show map pings from spectators on PIPs
 	showViewRectangleOnMinimap = false,  -- Show the PIP view rectangle on the engine minimap
 	showViewRectangleInWorld = false,  -- Show the PIP view rectangle as an outline in the 3D world
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
@@ -477,8 +477,6 @@ local interactionState = {
 	areAreaDragging = false,
 	areaCommandStartX = 0,
 	areaCommandStartY = 0,
-	lastMapDrawX = nil,
-	lastMapDrawZ = nil,
 	clickHandledInPanMode = false,
 	isMouseOverPip = false,
 	lastHoverCheckTime = 0,
@@ -505,10 +503,6 @@ end
 local miscState = {
 	startX = nil,
 	startZ = nil,
-	isProcessingMapDraw = false,
-	mapmarkInitScreenX = nil,
-	mapmarkInitScreenY = nil,
-	mapmarkInitTime = 0,
 	backupTracking = nil,
 	isSwitchingViews = false,
 	hadSavedConfig = false,
@@ -5243,6 +5237,13 @@ local function PipToWorldCoords(mx, my)
 	return render.world.l + (render.world.r - render.world.l) * normX,
 		   render.world.b + (render.world.t - render.world.b) * normY
 end
+
+IsInsidePipMap = function(mx, my)
+	return not uiState.inMinMode and
+		mx >= render.dim.l and mx <= render.dim.r and
+		my >= render.dim.b and my <= render.dim.t
+end
+
 local function WorldToPipCoords(wx, wz)
 	-- Use precalculated factors for performance (avoids repeated division)
 	-- Rotation is now handled by matrix transformation in RenderPipContents
@@ -8645,6 +8646,12 @@ end
 	pipApi.GetScreenBounds = function()
 		-- Returns the screen coordinates of the PIP
 		return render.dim.l, render.dim.r, render.dim.b, render.dim.t
+	end
+	pipApi.ScreenToWorld = function(mx, my)
+		if miscState.apiInteractionLocked or (isMinimapMode and miscState.minimapMinimized) or not IsInsidePipMap(mx, my) then
+			return
+		end
+		return PipToWorldCoords(mx, my)
 	end
 	pipApi.IsMinimized = function()
 		return uiState.inMinMode or (isMinimapMode and miscState.minimapMinimized)
@@ -17776,7 +17783,7 @@ function widget:DrawScreen()
 	-- Draw map markers and camera view bounds at full frame rate (not throttled with unitsTex)
 	-- Drawn after DrawInMiniMap overlays so they appear on top of everything
 	tracy.ZoneBeginN("W:PIP:DrawScreen:MinimapOverlays")
-	if isMinimapMode then
+	if isMinimapMode or #miscState.mapMarkers > 0 then
 		local minimapWidth = render.dim.r - render.dim.l
 		local minimapHeight = render.dim.t - render.dim.b
 		gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
@@ -17797,7 +17804,9 @@ function widget:DrawScreen()
 		end
 
 		-- Draw camera view bounds OUTSIDE the rotation matrix so it can pixel-align after rotation
-		DrawCameraViewBounds()
+		if isMinimapMode then
+			DrawCameraViewBounds()
+		end
 
 		gl.Scissor(false)
 	end
@@ -17952,6 +17961,7 @@ function widget:DrawScreen()
 			font:End()
 		end
 	end
+
 	tracy.ZoneEnd()
 
 	-- Note: In minimap mode, we don't call gl.DrawMiniMap() because it would render the engine
@@ -20004,18 +20014,14 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 	if uiState.inMinMode then return end
-	-- Prevent infinite recursion when we call Spring.Marker* functions
-	if miscState.isProcessingMapDraw then
-		return false
-	end
 
 	-- Store point markers for rendering (from any player, but not spectators)
 	if cmdType == 'point' then
 		-- Get player's team and spec status
 		local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID, false)
 
-		-- Add marker if player is not a spectator, or if spectator pings are enabled in minimap mode
-		local showMarker = not isSpec or (isMinimapMode and config.showSpectatorPings)
+		-- Add marker if player is not a spectator, or if spectator pings are enabled
+		local showMarker = not isSpec or config.showSpectatorPings
 		if showMarker then
 			-- Shorten lifetime of older nearby markers from the same player
 			local now = os.clock()
@@ -20146,89 +20152,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 		end
 	end
 
-	-- Only process our own mapmarks for placement logic (not from other players)
-	local myPlayerID = Spring.GetMyPlayerID()
-	if playerID ~= myPlayerID then
-		return false
-	end
-
-	-- The mx,my,mz parameters are world coordinates from where the camera is looking
-	-- We need to check if the mapmark was initiated while mouse was over the PiP
-
-	-- For point markers, use the stored initiation position (from double-click)
-	-- For line/erase, use current mouse position (for continuous drawing)
-	local screenX, screenY
-	if cmdType == 'point' and miscState.mapmarkInitScreenX and miscState.mapmarkInitScreenY then
-		-- Use the position where mapmark was initiated (double-click position)
-		-- Check if it was recent (within last 10 seconds - allows time for typing message)
-		if (os.clock() - miscState.mapmarkInitTime) < 10 then
-			screenX = miscState.mapmarkInitScreenX
-			screenY = miscState.mapmarkInitScreenY
-			-- Clear the stored position after using it
-			miscState.mapmarkInitScreenX = nil
-			miscState.mapmarkInitScreenY = nil
-		else
-			-- Too old, use current position and clear stored position
-			screenX, screenY = spFunc.GetMouseState()
-			miscState.mapmarkInitScreenX = nil
-			miscState.mapmarkInitScreenY = nil
-		end
-	else
-		-- For line drawing and erase, use current mouse position
-		screenX, screenY = spFunc.GetMouseState()
-	end
-
-	-- Check if the mouse was/is over the PiP window
-	if screenX >= render.dim.l and screenX <= render.dim.r and screenY >= render.dim.b and screenY <= render.dim.t and not uiState.inMinMode then
-		-- The mapmark was initiated while mouse was over PiP
-		-- Translate the PiP screen position to world coordinates
-		local wx, wz = PipToWorldCoords(screenX, screenY)
-		if not wx or not wz then
-			-- If translation fails, let default handler process it
-			return false
-		end
-
-		local wy = spFunc.GetGroundHeight(wx, wz)
-		-- Add small height offset so markers are visible above ground (except for erase)
-		local markerHeight = wy + 5
-
-		-- Now place the marker at the PiP world coordinates instead of camera world coordinates
-		miscState.isProcessingMapDraw = true
-
-		if cmdType == 'point' then
-			-- Place marker at PiP location
-			Spring.MarkerAddPoint(wx, markerHeight, wz, c or "")
-
-		elseif cmdType == 'line' then
-			-- For line drawing in PiP - track for continuous drawing
-
-			-- If we have a previous position, draw line from there to here
-			if interactionState.lastMapDrawX and interactionState.lastMapDrawZ then
-				local lastY = spFunc.GetGroundHeight(interactionState.lastMapDrawX, interactionState.lastMapDrawZ) + 5
-				Spring.MarkerAddLine(interactionState.lastMapDrawX, lastY, interactionState.lastMapDrawZ, wx, markerHeight, wz)
-			end
-
-			-- Update last position for next segment
-			interactionState.lastMapDrawX = wx
-			interactionState.lastMapDrawZ = wz
-
-		elseif cmdType == 'erase' then
-			-- Erase at the PiP location - use ground height for better detection
-			Spring.MarkerErasePosition(wx, wy, wz)
-		end
-
-		miscState.isProcessingMapDraw = false
-		return true -- Consume the original event to prevent double placement
-
-	else
-		-- Not over PiP, reset map drawing state and allow default handling
-		if cmdType == 'line' or cmdType == 'erase' then
-			interactionState.lastMapDrawX = nil
-			interactionState.lastMapDrawZ = nil
-		end
-	end
-
-	return false -- Let default handler process it
+	return false
 end
 
 function widget:IsAbove(mx, my)
@@ -20380,6 +20304,7 @@ function widget:MousePress(mx, my, mButton)
 	if Spring.IsGUIHidden() then return end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
+	if WG['chat'] and WG['chat'].isMapDrawActive and WG['chat'].isMapDrawActive() then return false end
 
 	-- When minimap is hidden via MinimapMinimize, only handle click on maximize button
 	if isMinimapMode and miscState.minimapMinimized then
@@ -20432,13 +20357,6 @@ function widget:MousePress(mx, my, mButton)
 	-- Block all mouse interaction during minimize/maximize animation to prevent
 	-- double-click from triggering an accidental minimize (which corrupts savedDimensions)
 	if uiState.isAnimating then return end
-
-	-- Track mapmark initiation position if mouse is over PiP (for point markers with double-click)
-	if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t and not uiState.inMinMode then
-		miscState.mapmarkInitScreenX = mx
-		miscState.mapmarkInitScreenY = my
-		miscState.mapmarkInitTime = os.clock()
-	end
 
 	-- Handle click/drag on pip-minimap (if visible and not tracking player camera)
 	local mmBounds = interactionState.pipMinimapBounds
@@ -21544,7 +21462,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	end
 end
 
-function widget:KeyRelease(key)
+function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if miscState.apiInteractionLocked then return end
 	-- When shift is released after issuing a command with shift held,
 	-- clear the active command (matches engine behavior in the world view)
