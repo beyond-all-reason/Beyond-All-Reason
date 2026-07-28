@@ -26,6 +26,7 @@ local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
 local math_tau = math.tau
+local math_diag = math.diag
 local distance3dSquared = math.distance3dSquared
 
 local CallAsTeam = CallAsTeam
@@ -78,34 +79,30 @@ local function parseCustomParams(weaponDef)
 	local effectName = weaponDef.customParams.speceffect
 
 	if not specialEffectFunction[effectName] then
+		success = false
 		local message = weaponDef.name .. " has bad speceffect: " .. tostring(effectName)
 		Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
-
-		success = false
 	end
 
 	local effectParams = {}
 
 	if weaponCustomParamKeys[effectName] then
 		for key, conversion in pairs(weaponCustomParamKeys[effectName]) do
-			if weaponDef.customParams[key] then
-				local value = conversion(weaponDef.customParams[key])
-				if value ~= nil then
-					effectParams[key] = value
-				else
-					local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
-					Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
-
-					success = false
-				end
+			local value = conversion(weaponDef.customParams[key])
+			if value ~= nil then
+				effectParams[key] = value
+			else
+				success = false
+				local message = weaponDef.name .. " has bad customparam: " .. tostring(key)
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, message)
 			end
 		end
-	end
 
-	-- Modders/tweakdefs are likely to use these values for a while:
-	if weaponDef.customParams.def or weaponDef.customParams.when then
-		local message = weaponDef.name .. " uses old customparams (def/when)"
-		Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		-- Modders/tweakdefs are likely to use these values for a while:
+		if weaponDef.customParams.def or weaponDef.customParams.when then
+			local message = weaponDef.name .. " uses old customparams (def/when)"
+			Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, message)
+		end
 	end
 
 	if success then
@@ -560,10 +557,12 @@ specialEffectFunction.cannonwaterpen = function(params, projectileID)
 end
 
 -- Water penetration (torpedo)
--- Torpedoes are tracking with very high turn rates which causes problems depending on initial conditions.
--- This smooths water-entry motion with stronger correction allowed for close targets.
+-- Uses the per-weapon turn radius to smoothly scale correction strength while
+-- preserving gentler water entry and continuous surface-depth tracking.
 
--- Uses no weapon customParams.
+weaponCustomParamKeys.torpwaterpen = {
+	tracking_turn_radius = tonumber, -- turn radius of a tracking projectile, larger gives stronger correction
+}
 
 local minSubTargetDiveSpeed = -0.08
 local surfaceTargetDepth = -2
@@ -573,62 +572,52 @@ local maxSurfaceRiseSpeed = 0.2
 local maxUnderwaterSurfaceRiseSpeed = 1.25
 local surfaceArrivalLeadFrames = 20
 local surfaceTransitionStartDepth = -12
-local terminalCorrectionDistance = 180
-local terminalCorrectionDistanceSq = terminalCorrectionDistance * terminalCorrectionDistance
+local defaultTrackingTurnRadius = 180
 
-local function torpedoWaterPen(projectileID, predictSurfaceArrival)
+local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, targetX, targetY, targetZ)
 	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
-	local targetType, targetID = spGetProjectileTarget(projectileID)
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-
-	-- Default behavior is neutral vertical correction.
-	-- Surface-target torpedoes should skim near water level rather than constantly diving.
 	local diveSpeed = 0
 	local smooth = 0.45
 	local trackingSurfaceTarget = false
 	local surfaceTransition = 0
 
-	if targetType == targetedUnit and targetID then
-		local targetX, targetY, targetZ = spGetUnitPosition(targetID)
-		local closeToTarget = false
-
-		-- Close torpedoes get stronger correction so they do not miss from over-smoothing.
-		if targetX and positionX then
-			closeToTarget = distance3dSquared(
-				positionX, positionY, positionZ,
-				targetX, targetY, targetZ
-			) < terminalCorrectionDistanceSq
+	if not targetX then
+		local targetType, targetID = spGetProjectileTarget(projectileID)
+		if targetType == targetedUnit and targetID then
+			targetX, targetY, targetZ = spGetUnitPosition(targetID)
 		end
+	end
 
-		if targetY and targetY < -10 then
-			-- Sub targets sit deeper, so keep at least a slight downward bias.
-			-- If the torpedo is already diving faster, damp that dive instead of forcing
-			-- a fixed hard descent. Never let an upward velocity become the desired dive.
+	if targetX and positionX then
+		local distance = math_diag(
+			positionX - targetX,
+			positionY - targetY,
+			positionZ - targetZ
+		)
+		local trackingTurnRadius = params and params.tracking_turn_radius or defaultTrackingTurnRadius
+		local closeness = math_clamp(1.2 - distance / trackingTurnRadius, 0.25, 1.0)
+		local proximityBlend = (closeness - 0.25) / 0.75
+
+		if targetY < -10 then
+			-- Submerged targets keep their downward tracking bias and leave the
+			-- continuous surface controller after this initial correction.
 			diveSpeed = math.min(velocityY / 4, minSubTargetDiveSpeed)
-
-			-- Far from sub targets, smooth for nicer travel.
-			-- Near impact, allow immediate correction for reliability.
-			smooth = closeToTarget and 1.0 or 0.45
+			smooth = 0.45 + 0.55 * proximityBlend
 		else
-			-- Surface targets sit near the waterline.
-			-- Continuously ease elevated-launch torpedoes toward a shallow running
-			-- depth without forcing them above the water surface.
 			trackingSurfaceTarget = true
 			local depthControlSpeed = (surfaceTargetDepth - positionY) * surfaceDepthCorrection
 			local surfaceSpeed = depthControlSpeed
 			local surfaceRiseLimit = maxSurfaceRiseSpeed
 			surfaceTransition = math_clamp(
 				(positionY - surfaceTransitionStartDepth) /
-				(surfaceTargetDepth - surfaceTransitionStartDepth),
+					(surfaceTargetDepth - surfaceTransitionStartDepth),
 				0,
 				1
 			)
 			surfaceTransition = surfaceTransition * surfaceTransition * (3 - 2 * surfaceTransition)
 
-			-- Torpedoes launched well below the surface need to spread their climb
-			-- across the remaining horizontal travel instead of waiting for native
-			-- homing to make a hard terminal turn.
-			if predictSurfaceArrival and targetX then
+			if predictSurfaceArrival then
 				local deltaX = targetX - positionX
 				local deltaZ = targetZ - positionZ
 				local horizontalDistance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
@@ -645,9 +634,6 @@ local function torpedoWaterPen(projectileID, predictSurfaceArrival)
 						maxUnderwaterSurfaceRiseSpeed
 					)
 					surfaceRiseLimit = maxUnderwaterSurfaceRiseSpeed
-
-					-- Round off the climb by progressively handing control to the
-					-- shallow running-depth controller instead of switching abruptly.
 					surfaceSpeed = predictedSurfaceSpeed +
 						(depthControlSpeed - predictedSurfaceSpeed) * surfaceTransition
 				end
@@ -658,53 +644,42 @@ local function torpedoWaterPen(projectileID, predictSurfaceArrival)
 				minSurfaceDiveSpeed,
 				surfaceRiseLimit
 			)
-
-			-- Correct gradually at range and more firmly during the terminal approach.
-			smooth = closeToTarget and 0.85 or 0.5
+			smooth = 0.5 + 0.35 * proximityBlend
 		end
 	end
 
-	-- Terrain correction removes velocity into the seafloor normal, helping torpedoes
-	-- avoid driving straight into slopes while still preserving their forward motion.
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
-
 	local terrainCorrectedY = velocityY - normalY * (
 		velocityX * normalX +
 		velocityY * normalY +
 		velocityZ * normalZ
 	)
-
-	-- Do not let terrain correction demand a harder dive than the target behavior wants.
 	if terrainCorrectedY < diveSpeed then
 		terrainCorrectedY = diveSpeed
 	end
 
 	-- Progressively suppress extra seafloor-normal lift as the torpedo settles
 	-- into its surface running depth, preventing both a sharp handoff and breaching.
-	if trackingSurfaceTarget and surfaceTransition > 0 then
+	if surfaceTransition > 0 then
 		terrainCorrectedY = terrainCorrectedY +
 			(diveSpeed - terrainCorrectedY) * surfaceTransition
-		if velocityY > 0 then
-			smooth = math.max(smooth, 0.5 + 0.3 * surfaceTransition)
-		end
 	end
 
-	-- Blend toward the corrected vertical speed.
-	-- 0.0 = no correction, 1.0 = immediate correction.
+	if velocityY > 0 then
+		smooth = math.max(smooth, 0.5 + 0.3 * surfaceTransition)
+	end
 	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
 	return trackingSurfaceTarget
 end
 
-specialEffectFunction.torpwaterpen = function(projectileID)
+specialEffectFunction.torpwaterpen = function(params, projectileID)
 	if isProjectileInWater(projectileID) then
-		return not torpedoWaterPen(projectileID)
+		return not torpedoWaterPen(params, projectileID, false)
 	end
 end
 
--- Surface guidance for torpedoes launched underwater.
--- Submerged targets keep the engine's normal torpedo tracking.
 specialEffectFunction.torpsurfacetrack = function(projectileID)
 	if not isProjectileInWater(projectileID) then
 		return
@@ -715,37 +690,13 @@ specialEffectFunction.torpsurfacetrack = function(projectileID)
 		return false
 	end
 
-	local _, targetY = spGetUnitPosition(targetID)
+	local targetX, targetY, targetZ = spGetUnitPosition(targetID)
 	if not targetY or targetY < -10 then
 		return true
 	end
 
-	torpedoWaterPen(projectileID, true)
+	torpedoWaterPen(nil, projectileID, true, targetX, targetY, targetZ)
 	return false
-end
-
--- Water penetration with retargeting (torpedo)
--- This is a WIP solution for massed torpedo gunships to get value out of otherwise-wasted shots.
--- Limited to use by tweakdefs/modders for now and the (unmaintained?) Hornet balance test packs.
-
--- Torpedoes are semi-magical to prevent hitting allied units while skimming the water's surface,
--- so remain active when overkilling targets. This simplifies micro and discourages the knowledge
--- check of perfect torpedo bombing outside AA range since `retarget` needs continued proximity.
-
--- Uses no weapon customParams.
-
-do
-	local retarget = specialEffectFunction.retarget
-	local torpedoWaterPen = specialEffectFunction.torpwaterpen
-
-	specialEffectFunction.torpwaterpenretarget = function(projectileID)
-		if retarget(projectileID) then
-			projectiles[projectileID] = torpedoWaterPen
-			return torpedoWaterPen(projectileID)
-		elseif torpedoWaterPen(projectileID) then
-			projectiles[projectileID] = retarget
-		end
-	end
 end
 
 --------------------------------------------------------------------------------
