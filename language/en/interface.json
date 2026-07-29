@@ -1,7 +1,6 @@
 {
 	"ui": {
-		"forceResignWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
-		"forceResignMessage": "You have been force-resigned due to self-destructing all your units.",
+		"selfdPolicyWarn": "Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 		"factoryqmanager": {
 			"saved": "Saved",
 			"loaded": "Loaded"
@@ -643,6 +642,7 @@
 			"channelScopeAll": "ALL",
 			"everyone": "everyone",
 			"allies": "allies",
+			"label": "label",
 			"spectators": "spectators",
 			"spectator": "spectator",
 			"cmd": "COMMAND",
@@ -1601,6 +1601,10 @@
 				"pip_altkeyzoom_descr": "When enabled, scrolling over the minimap only zooms if ALT or middle mouse button is held. Otherwise scroll passes through to the game camera.",
 				"pip_commandfx": "command FX lines",
 				"pip_commandfx_descr": "Show brief fading lines when orders are given in the PIP minimap",
+				"pip_mapdrawings": "map drawing lines",
+				"pip_mapdrawings_descr": "Show temporary map drawing lines from non-spectator players in PIP windows",
+				"pip_mapdrawing_duration": "map drawing line duration",
+				"pip_mapdrawing_duration_descr": "Seconds before map drawing lines disappear from PIP windows",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
 				"pip_engine_fallback_threshold": "engine fallback unit threshold",
