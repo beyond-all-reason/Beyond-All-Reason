@@ -1721,6 +1721,14 @@ body {
 	border-color: #6a6a80cc;
 }
 
+/* New Map dialog: map name gets a larger, more prominent input */
+#newmap-name-input {
+	height: 36dp;
+	padding: 2dp 10dp;
+	line-height: 30dp;
+	font-size: 1.4rem;
+}
+
 .tf-dim-input {
 	flex: 1;
 	height: 28dp;
