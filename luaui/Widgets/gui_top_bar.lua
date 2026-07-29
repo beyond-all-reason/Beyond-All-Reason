@@ -1934,7 +1934,7 @@ function widget:DrawScreen()
 	if displayComCounter and dlist.coms then
 
 		-- commander counter
-		if comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
+		if refreshUi or comsDlistUpdate or prevComAlert == nil or (prevComAlert ~= (allyComs == 1 and (gameFrame % 12 < 6))) then
 			prevComAlert = (allyComs == 1 and (gameFrame % 12 < 6))
 			comsDlistUpdate = nil
 			comCounterScissor[1] = comsArea[1]-topbarArea[1]
