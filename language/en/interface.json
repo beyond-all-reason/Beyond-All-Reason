@@ -348,7 +348,7 @@
 				"pressKey": "Press a key or mouse button...",
 				"customOnly": "Switch the preset to Custom to edit keybinds",
 				"reset": "Reset to...",
-				"anyMod": "Ignore Modifiers",
+				"anyMod": "Ignore modifiers",
 				"accept": "Accept",
 				"cancel": "Cancel"
 			},
@@ -363,7 +363,7 @@
 				"ignore": "Ignore player"
 			},
 			"camera": {
-				"title": "Camera Movement",
+				"title": "Camera movement",
 				"zoomKey": "scrollwheel",
 				"zoom": "Zoom camera",
 				"panKey": "arrow keys / mouse at screen edge",
@@ -393,7 +393,7 @@
 				"moveTilt": "Tilt camera"
 			},
 			"cameraModes": {
-				"title": "Camera Modes",
+				"title": "Camera modes",
 				"changeKey": "ctrl + f1,2,3,4,5",
 				"change": "Change camera type",
 				"fullscreen": "Toggle fullscreen",
@@ -413,18 +413,18 @@
 				"trackMode": "Toggle unit tracking"
 			},
 			"mapViews": {
-				"title": "Map Views",
+				"title": "Map views",
 				"fogOfWar": "Toggle Fog of War"
 			},
 			"interfaceDisplay": {
-				"title": "Interface & Display",
+				"title": "Interface & display",
 				"settings": "Settings",
 				"unitStats": "Unit stats",
 				"gameInfo": "Game info",
 				"saveGame": "Save game",
 				"screenshot": "Take screenshot",
 				"widgetSelector": "Open widget selector",
-				"firingRange": "Display Firing Range"
+				"firingRange": "Display firing range"
 			},
 			"sound": {
 				"title": "Sound",
@@ -433,7 +433,7 @@
 				"volumeDown": "Decrease volume"
 			},
 			"selection": {
-				"title": "Selecting Units",
+				"title": "Selecting units",
 				"unitsKey": "left mouse (+ drag)",
 				"units": "Select or deselect units",
 				"commAppend": "Add commander to selection",
@@ -480,7 +480,7 @@
 				"revertKey": "right mouse (single click)"
 			},
 			"queues": {
-				"title": "Queueing Orders",
+				"title": "Queueing orders",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
 				"prepend": "Add order to start of order queue",
@@ -530,12 +530,12 @@
 				"pause": "Pause"
 			},
 			"moreOrders": {
-				"title": "More Orders",
+				"title": "More orders",
 				"areaAttack": "Area attack",
 				"guard": "Guard",
 				"capture": "Capture",
 				"restore": "Restore terrain",
-				"setTargetNoGround": "Set target (ignore ground)",
+				"setTargetNoGround": "Set unit target",
 				"loadUnits": "Load units",
 				"unloadUnits": "Unload units",
 				"gatherWait": "Gather wait",
@@ -543,7 +543,7 @@
 				"stopProduction": "Stop production"
 			},
 			"unitStates": {
-				"title": "Unit States",
+				"title": "Unit states",
 				"fireHold": "Fire state: Hold fire",
 				"fireReturn": "Fire state: Return fire",
 				"fireAtWill": "Fire state: Fire at will",
@@ -558,7 +558,7 @@
 				"trajectory": "Trajectory %{n}"
 			},
 			"controlGroups": {
-				"title": "Control Groups",
+				"title": "Control groups",
 				"select": "Select control group %{n}",
 				"assign": "Assign selection to control group %{n}",
 				"clear": "Remove selection from control groups",
@@ -578,8 +578,8 @@
 				"showPresets": "Show factory presets"
 			},
 			"gridMenu": {
-				"title": "Grid Menu",
-				"buildKey": "Row %{row}, Column %{col}",
+				"title": "Grid menu",
+				"buildKey": "Row %{row}, column %{col}",
 				"nextPage": "Next page",
 				"cycleBuilder": "Cycle builder"
 			},
@@ -602,13 +602,13 @@
 				"prev": "Previous blueprint"
 			},
 			"gameSpeed": {
-				"title": "Game Speed"
+				"title": "Game speed"
 			},
 			"gameControl": {
-				"title": "Game Control",
+				"title": "Game control",
 				"increaseSpeed": "Increase game speed",
 				"decreaseSpeed": "Decrease game speed",
-				"voteForcestart": "Vote Forcestart"
+				"voteForcestart": "Vote forcestart"
 			}
 		},
 		"blueprint": {
