@@ -1647,6 +1647,23 @@ local function finishLoad()
 	end
 	deletePointer()
 	loadJob = nil
+
+	-- Leave pregame, or the whole map is unclickable above the canvas base height.
+	--
+	-- The engine clips every ground ray at readMap->GetCurrMaxHeight()
+	-- (CGround::LineGroundCol -> ClampInMapHeight). That bound is only refreshed
+	-- from CReadMap::Update(), which runs per SIM FRAME — and the entire project
+	-- load happens in pregame at f=-1, where no sim frames run. So the bound
+	-- stays at the blank canvas's flat base height while the imported terrain
+	-- towers above it: clicks over anything higher find no ground at all, which
+	-- kills commander placement AND every editor tool that traces the cursor.
+	-- The engine fixes the bound itself the moment pregame ends — CGame does a
+	-- full UpdateHeightBounds() with the comment "needed in case pre-game
+	-- terraform changed the map" — so starting the game is the cure.
+	if Spring.GetGameFrame() <= 0 then
+		echoP("starting the game: terrain taller than the canvas base is unclickable in pregame (engine clips ground rays at the last known max height, which only updates once sim frames run)")
+		Spring.SendCommands("forcestart")
+	end
 end
 
 local function abortLoad(reason)
