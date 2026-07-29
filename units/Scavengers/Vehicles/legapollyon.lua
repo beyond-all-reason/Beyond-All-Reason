@@ -40,7 +40,7 @@ return {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
-			model_author = "Gab, Damgam",
+			model_author = "Gabs (Modeling), Mako2772 (Concept), Damgam (Finishing touches and implementation)",
 			techlevel = 3,
 		},
 		featuredefs = {
