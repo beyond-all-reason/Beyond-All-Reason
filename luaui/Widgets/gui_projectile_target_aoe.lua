@@ -17,7 +17,9 @@ end
 -- Localized functions
 --------------------------------------------------------------------------------
 local max = math.max
+local min = math.min
 local floor = math.floor
+local ceil = math.ceil
 local sqrt = math.sqrt
 local sin = math.sin
 local cos = math.cos
@@ -31,7 +33,11 @@ local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetProjectileTarget = Spring.GetProjectileTarget
 local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
+local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetGroundHeight = Spring.GetGroundHeight
+local spTraceRayGroundInDirection = Spring.TraceRayGroundInDirection
+local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -45,6 +51,7 @@ local spGetCameraPosition = Spring.GetCameraPosition
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+local gameSpeed = Game.gameSpeed
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -145,7 +152,16 @@ local function BuildWeaponCache()
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
+					weaponAcceleration = wd.weaponAcceleration or 0,
+					uptime = wd.uptime or 0,
+					turnRate = wd.turnRate or 0,
+					initialTimeToLive = wd.flightTime or 0,
+					tracks = wd.tracks,
 				}
+				if starburstWeapons[wdid].initialTimeToLive == 0 then
+					starburstWeapons[wdid].initialTimeToLive = starburstWeapons[wdid].uptime * gameSpeed
+						+ wd.range / starburstWeapons[wdid].projectileSpeed + 100
+				end
 				--Spring.Echo(wdid, wd.name, aoe, wd.range, isNuke, isParalyzer)
 			end
 		end
@@ -465,13 +481,13 @@ local function GetProjectileTargetPos(proID)
 	-- Ground target
 	if targetType == 103 then  -- ASCII 'g'
 		if type(targetData) == "table" then
-			return targetData[1], targetData[2], targetData[3]
+			return targetData[1], targetData[2], targetData[3], true
 		end
 	-- Unit target
 	elseif targetType == 117 then  -- ASCII 'u'
-		local ux, uy, uz = spGetUnitPosition(targetData)
-		if ux then
-			return ux, uy, uz
+		local _, _, _, aimX, aimY, aimZ = spGetUnitPosition(targetData, false, true)
+		if aimX then
+			return aimX, aimY, aimZ, true
 		end
 	-- Feature target
 	elseif targetType == 102 then  -- ASCII 'f'
@@ -486,6 +502,95 @@ local function GetProjectileTargetPos(proID)
 	end
 
 	return nil
+end
+
+local function GetAscentGroundCollisionPos(weaponInfo, ascentFrames, px, py, pz, vx, vy, vz, velocityLength, tx, ty, tz)
+	local simX, simY, simZ = px, py, pz
+	local dirX, dirY, dirZ = vx / velocityLength, vy / velocityLength, vz / velocityLength
+	local speed = velocityLength
+	local maxSpeed = weaponInfo.projectileSpeed
+	local acceleration = weaponInfo.weaponAcceleration
+	local turnRate = weaponInfo.turnRate
+	if turnRate == 0 then turnRate = 0.06 end
+
+	for frame = 1, 512 do
+		if ascentFrames > 0 then
+			speed = min(speed + acceleration, maxSpeed)
+			ascentFrames = ascentFrames - 1
+		else
+			local targetDX, targetDY, targetDZ = tx - simX, ty - simY, tz - simZ
+			local targetLength = sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
+			if targetLength <= 8 then return nil end
+
+			local targetDirX, targetDirY, targetDirZ = targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
+			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
+			if directionDotTarget > 0.99 then
+				dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
+				local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
+				if hitDistance and hitDistance + 8 < targetLength then
+					return hitX, hitY, hitZ
+				end
+				return nil
+			end
+
+			local turnX = targetDirX - dirX * directionDotTarget
+			local turnY = targetDirY - dirY * directionDotTarget
+			local turnZ = targetDirZ - dirZ * directionDotTarget
+			local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
+			if turnLength > 0 then
+				turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
+				dirX = dirX + turnX * turnRate
+				dirY = dirY + turnY * turnRate
+				dirZ = dirZ + turnZ * turnRate
+				local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+				dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
+			end
+		end
+
+		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
+		local groundY = spGetGroundHeight(nextX, nextZ)
+		if groundY and nextY <= groundY then
+			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, nextX, nextY, nextZ, false)
+			return hitX, hitY, hitZ
+		end
+		simX, simY, simZ = nextX, nextY, nextZ
+	end
+
+	return nil
+end
+
+local function GetGroundCollisionPos(proID, weaponInfo, launchElapsed, px, py, pz, tx, ty, tz)
+	local vx, vy, vz = spGetProjectileVelocity(proID)
+	if not vx then return nil end
+
+	local targetDX, targetDY, targetDZ = tx - px, ty - py, tz - pz
+	local targetDistance = sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
+	if targetDistance <= 8 then return nil end
+
+	local velocityLength = sqrt(vx * vx + vy * vy + vz * vz)
+	if velocityLength <= 0 then return nil end
+
+	local ascentTimeRemaining = weaponInfo.uptime - launchElapsed
+	if ascentTimeRemaining > 0 then
+		-- The queried projectile position is already after this frame's uptime decrement and movement.
+		local ascentFrames = max(0, ceil(ascentTimeRemaining * gameSpeed) - 1)
+		return GetAscentGroundCollisionPos(weaponInfo, ascentFrames, px, py, pz, vx, vy, vz, velocityLength, tx, ty, tz)
+	end
+
+	local hitDistance, hitX, hitY, hitZ = spTraceRayGroundInDirection(px, py, pz, vx, vy, vz, targetDistance, false)
+	if hitDistance and hitDistance + 8 < targetDistance then
+		return hitX, hitY, hitZ
+	end
+
+	return nil
+end
+
+local function GetProjectileLaunchElapsed(proID, weaponInfo, fallbackElapsed)
+	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
+	if remainingTimeToLive then
+		return max(0, weaponInfo.initialTimeToLive - remainingTimeToLive) / gameSpeed
+	end
+	return fallbackElapsed
 end
 
 local function UpdateTrackedProjectiles()
@@ -524,6 +629,38 @@ local function UpdateTrackedProjectiles()
 						existingData.projectileY = py
 						existingData.projectileZ = pz
 					end
+
+					if existingData.weaponInfo.tracks then
+						local tx, ty, tz, isGroundImpact = GetProjectileTargetPos(proID)
+						if tx then
+							if isGroundImpact then
+								local groundY = spGetGroundHeight(tx, tz)
+								if groundY then ty = groundY end
+							end
+							existingData.impactX = tx
+							existingData.impactY = ty
+							existingData.impactZ = tz
+						end
+					end
+
+					local launchElapsed = GetProjectileLaunchElapsed(proID, existingData.weaponInfo, currentTime - existingData.startTime)
+					local tx, ty, tz = existingData.impactX, existingData.impactY, existingData.impactZ
+					if px and tx then
+						if launchElapsed < existingData.weaponInfo.uptime and not existingData.weaponInfo.tracks then
+							tx, ty, tz = existingData.ascentTargetX, existingData.ascentTargetY, existingData.ascentTargetZ
+						else
+							local hitX, hitY, hitZ = GetGroundCollisionPos(proID, existingData.weaponInfo, launchElapsed, px, py, pz, tx, ty, tz)
+							if hitX then
+								tx, ty, tz = hitX, hitY, hitZ
+								existingData.hasTerrainCollision = true
+							elseif existingData.hasTerrainCollision then
+								tx, ty, tz = existingData.targetX, existingData.targetY, existingData.targetZ
+							end
+						end
+						existingData.targetX = tx
+						existingData.targetY = ty
+						existingData.targetZ = tz
+					end
 				end
 			else
 				local teamID = spGetProjectileTeamID(proID)
@@ -532,10 +669,21 @@ local function UpdateTrackedProjectiles()
 				local isAlly = (allyTeamID == myAllyTeamID)
 
 				if isSpectator or isOwnTeam then
-					local tx, ty, tz = GetProjectileTargetPos(proID)
+					local tx, ty, tz, isGroundImpact = GetProjectileTargetPos(proID)
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then
+						if isGroundImpact then
+							local groundY = spGetGroundHeight(tx, tz)
+							if groundY then ty = groundY end
+						end
+						local impactX, impactY, impactZ = tx, ty, tz
+						local launchElapsed = GetProjectileLaunchElapsed(proID, weaponInfo, 0)
+						local hitX, hitY, hitZ = GetGroundCollisionPos(proID, weaponInfo, launchElapsed, px, py, pz, tx, ty, tz)
+						if hitX then
+							tx, ty, tz = hitX, hitY, hitZ
+						end
+
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
 						local speed = max(weaponInfo.projectileSpeed * 30, 1)
@@ -544,13 +692,16 @@ local function UpdateTrackedProjectiles()
 						newCount = newCount + 1
 						if weaponInfo.isNuke then newNukeCount = newNukeCount + 1 end
 
-						-- Cache ground-adjusted target Y at creation (avoids per-frame API call)
-						local groundY = spGetGroundHeight(tx, tz)
-						if groundY and groundY > ty then ty = groundY end
-
 						trackedProjectiles[proID] = {
 							generation = gen,
 							weaponInfo = weaponInfo,
+							impactX = impactX,
+							impactY = impactY,
+							impactZ = impactZ,
+							hasTerrainCollision = hitX ~= nil,
+							ascentTargetX = tx,
+							ascentTargetY = ty,
+							ascentTargetZ = tz,
 							targetX = tx,
 							targetY = ty,
 							targetZ = tz,
