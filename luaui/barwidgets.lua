@@ -1915,10 +1915,9 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-	tracy.ZoneBeginN("W:DrawBuildSquare")
-	local list = self.DrawBuildSquareList
-	for i = #list, 1, -1 do
-		list[i]:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+	---@diagnostic disable-next-line: undefined-global
+	for _, w in ripairs(self.DrawBuildSquareList) do
+		w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
 	tracy.ZoneEnd()
 	return

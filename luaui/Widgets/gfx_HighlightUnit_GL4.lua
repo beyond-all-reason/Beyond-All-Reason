@@ -364,6 +364,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 end
 
+local debugapihighlightunitCmd
+
 function widget:Initialize()
 	widgetHandler:AddAction("debugapihighlightunit", debugapihighlightunitCmd, nil, "t")
 
@@ -448,7 +450,7 @@ function widget:Shutdown()
 	WG.RefreshHighlightUnitGL4 = nil
 end
 
-local function debugapihighlightunitCmd(_, line)
+function debugapihighlightunitCmd(_, line)
 	local param = line or ""
 	if tonumber(param) then
 		local newdebuglevel = tonumber(param)

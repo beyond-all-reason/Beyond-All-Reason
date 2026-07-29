@@ -91,6 +91,7 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 	-- duplicated in every file. We now properly pass local variables up the stack via VFS.Include and handle logic only
 	-- here, but we also add additional backwards compatibility logic in case any such legacy start points config exists
 	-- in the wild.
+	---@diagnostic disable-next-line: undefined-global
 	if ffaStartPoints and ffaStartPoints[requiredStartPointCount] then
 		Spring.Log(
 			gadget:GetInfo().name,
@@ -100,6 +101,7 @@ local function tryLoadConfig(currentMapName, requiredStartPointCount)
 				requiredStartPointCount
 			)
 		)
+		---@diagnostic disable-next-line: undefined-global
 		layout = ffaStartPoints[requiredStartPointCount]
 	end
 

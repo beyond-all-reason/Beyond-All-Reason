@@ -132,7 +132,7 @@ local longestPlayername = "(s) [xx]playername"
 
 -- State tables to reduce local variable count
 local state = {
-	I18N = {},
+	i18nStrings = {},
 	orgLines = {},
 	chatLines = {},
 	consoleLines = {},
@@ -225,7 +225,8 @@ local state = {
 }
 
 -- Essential state aliases (heavily accessed - keep as locals)
-local I18N, orgLines, chatLines, consoleLines = state.I18N, state.orgLines, state.chatLines, state.consoleLines
+local i18nStrings, orgLines, chatLines, consoleLines =
+	state.i18nStrings, state.orgLines, state.chatLines, state.consoleLines
 local activationArea, font = state.activationArea, state.font
 local showTextInput, inputText, cursorBlinkTimer, cursorBlinkDuration = false, "", 0, 1
 local inputSelectionStart = nil
@@ -580,7 +581,7 @@ local function refreshUnitDefs()
 end
 
 function widget:LanguageChanged()
-	I18N = {
+	i18nStrings = {
 		energy = BAR.I18N("ui.topbar.resources.energy"):lower(),
 		metal = BAR.I18N("ui.topbar.resources.metal"):lower(),
 		channelScopeAll = BAR.I18N("ui.chat.channelScopeAll"),
@@ -770,18 +771,18 @@ local function addChatLine(
 			if type(text) ~= "string" then
 				text = text_orig
 			end
-			if text:lower():find(I18N.energy, nil, true) then
-				local pos = text:lower():find(I18N.energy, nil, true)
-				local len = slen(I18N.energy)
+			if text:lower():find(i18nStrings.energy, nil, true) then
+				local pos = text:lower():find(i18nStrings.energy, nil, true)
+				local len = slen(i18nStrings.energy)
 				text = ssub(text, 1, pos - 1)
 					.. energyColor
 					.. ssub(text, pos, pos + len - 1)
 					.. msgColor
 					.. ssub(text, pos + len)
 			end
-			if text:lower():find(I18N.metal, nil, true) then
-				local pos = text:lower():find(I18N.metal, nil, true)
-				local len = slen(I18N.metal)
+			if text:lower():find(i18nStrings.metal, nil, true) then
+				local pos = text:lower():find(i18nStrings.metal, nil, true)
+				local len = slen(i18nStrings.metal)
 				text = ssub(text, 1, pos - 1)
 					.. metalColor
 					.. ssub(text, pos, pos + len - 1)
@@ -1935,8 +1936,8 @@ drawChatLine = function(i)
 	end
 	if chatLines[i].channelScope and chatLines[i].lineType ~= LineTypes.System then
 		local localizedScope = chatLines[i].channelScope
-		if chatLines[i].channelScope == "ALL" and I18N.channelScopeAll and I18N.channelScopeAll ~= "" then
-			localizedScope = I18N.channelScopeAll
+		if chatLines[i].channelScope == "ALL" and i18nStrings.channelScopeAll and i18nStrings.channelScopeAll ~= "" then
+			localizedScope = i18nStrings.channelScopeAll
 		end
 		local scopeLabel = "[" .. localizedScope .. "]"
 		local scopeFontSize = usedFontSize * 0.72
@@ -2249,15 +2250,15 @@ drawChatInput = function()
 		local usedFont = isCmd and font3 or font
 		local inputBottom = activationArea[2] + chatlogHeightDiff - distance - inputHeight
 		local inputTop = activationArea[2] + chatlogHeightDiff - distance
-		local modeText = I18N.everyone
+		local modeText = i18nStrings.everyone
 		if isLabel then
-			modeText = I18N.label
+			modeText = i18nStrings.label
 		elseif isCmd then
-			modeText = I18N.cmd
+			modeText = i18nStrings.cmd
 		elseif inputMode == "a:" then
-			modeText = I18N.allies
+			modeText = i18nStrings.allies
 		elseif inputMode == "s:" then
-			modeText = I18N.spectators
+			modeText = i18nStrings.spectators
 		end
 		local modeTextPosX = floor(activationArea[1] + elementPadding + elementPadding + leftOffset)
 		local baseTextPosX =
@@ -2612,7 +2613,7 @@ drawUi = function()
 				font:Begin(true)
 				font:SetTextColor(0.1, 0.1, 0.1, 0.66)
 				font:Print(
-					I18N.shortcut,
+					i18nStrings.shortcut,
 					activationArea[3] - elementPadding - elementPadding,
 					activationArea[2] + elementPadding + elementPadding,
 					usedConsoleFontSize,
@@ -2663,7 +2664,7 @@ drawUi = function()
 			font:Begin(true)
 			font:SetTextColor(0.35, 0.35, 0.35, 0.66)
 			font:Print(
-				I18N.nohistory,
+				i18nStrings.nohistory,
 				activationArea[1] + (activationArea[3] - activationArea[1]) / 2,
 				activationArea[2] + elementPadding + elementPadding,
 				usedConsoleFontSize * 1.1,
@@ -4185,7 +4186,7 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 			activationArea[4]
 		)
 	then
-		return I18N.scroll
+		return i18nStrings.scroll
 	end
 end
 

@@ -22,6 +22,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local selectionVBO = nil
 local selectShader = nil
+local RemovePrimitive -- initialized in widget:Initialize()
 local luaShaderDir = "LuaUI/Include/"
 
 local glTexture = gl.Texture
@@ -96,6 +97,7 @@ end
 function widget:Initialize()
 	local DPatUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
+	RemovePrimitive = DPatUnit.RemovePrimitive
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 1
 	shaderConfig.HEIGHTOFFSET = 1

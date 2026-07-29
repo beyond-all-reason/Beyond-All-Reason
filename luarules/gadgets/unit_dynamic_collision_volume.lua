@@ -40,9 +40,8 @@ if gadgetHandler:IsSyncedCode() then
 		pieceIndexStr[i] = tostring(i)
 	end
 
-	local unitDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to
-	local featureDefMidAndAimPos = {} -- this is a table read from customparams mapping unitDefID to
-	-- {unitDefID  = {aimx, aimz, aimy, midx, midy, midz}}
+	local unitDefMidAndAimPos = {} -- {unitDefID = {aimx, aimz, aimy, midx, midy, midz}}
+	local featureDefMidAndAimPos = {} -- same, keyed by featureDefID
 	local function parseMidAndAimPos(defID, def, midAimPosTable, prefix)
 		if def.customParams then
 			if def.customParams["unit" .. prefix .. "pos"] then
@@ -270,9 +269,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
-		if featureDefMidAndAimPos[featureDefID] then
-			--Spring.SetFeatureMidAndAimPos ( number featureID, number mpX, number mpY, number mpZ, number apX, number apY, number apZ [, bool relative )
-			local midAndAimPos = featureDefMidAndAimPos[featureDefID]
+		local featureDefID = Spring.GetFeatureDefID(featureID)
+		local midAndAimPos = featureDefMidAndAimPos[featureDefID]
+		if midAndAimPos then
 			Spring.SetFeatureMidAndAimPos(
 				featureID,
 				midAndAimPos.midx or 0,
@@ -280,10 +279,10 @@ if gadgetHandler:IsSyncedCode() then
 				midAndAimPos.midz or 0,
 				(midAndAimPos.aimx or 0) * -1, -- because engine is bugged
 				midAndAimPos.aimy or 0,
-				midAndAimPos.aimz or 0 -- relative?
+				midAndAimPos.aimz or 0
 			)
 		end
-		if is3doFeature[Spring.GetFeatureDefID(featureID)] then
+		if is3doFeature[featureDefID] then
 			local rs, hs
 			if spGetFeatureRadius(featureID) > 47 then
 				rs, hs = 0.68, 0.60
