@@ -1,4 +1,4 @@
-local widget = widget ---@type Widget
+local widget = widget --[[@as Widget]]
 
 -- makes the intent of our usage of Spring.Echo clear
 local FeedbackForUser = Spring.Echo
@@ -113,8 +113,8 @@ local function subtractPoints(a, b)
 	return result
 end
 
----@return number
 local currentBlueprintUnitID = 0
+---@return number
 local function nextBlueprintUnitID()
 	currentBlueprintUnitID = currentBlueprintUnitID + 1
 	return currentBlueprintUnitID
@@ -180,7 +180,7 @@ local state = {
 	---non-nil implies that we are dragging
 	startPosition = nil,
 
-	---@type Point
+	---@type Point|nil
 	---end of drag motion (basically current mouse position)
 	endPosition = nil,
 
@@ -286,7 +286,9 @@ end
 local function getMouseWorldPosition(blueprint, x, y)
 	local _, pos = SpringTraceScreenRay(x, y, true, true, false, not blueprint.floatOnWater)
 	if pos then
-		pos = WG.api_blueprint.snapBlueprint(blueprint, pos, blueprint.facing)
+		local posArr = pos
+		---@cast posArr number[]
+		pos = WG.api_blueprint.snapBlueprint(blueprint, posArr, blueprint.facing)
 	end
 
 	return pos
@@ -380,7 +382,8 @@ local function createBlueprint(unitIDs, ordered)
 				position = { x, y, z },
 				facing = Spring.GetUnitBuildFacing(unitID),
 				originalName = unitName,
-			}
+			},
+				nil
 		end),
 	}
 
@@ -483,7 +486,7 @@ local function setBlueprintPlacementActive(active)
 	if active then
 		widget:SelectionChanged(spGetSelectedUnits())
 
-		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.activateBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 	else
 		WG.api_blueprint.setActiveBlueprint(nil)
 		WG.api_blueprint.setBlueprintPositions({})
@@ -632,6 +635,7 @@ function widget:Update(dt)
 	if endPosition then
 		endPosition[2] = 0
 	end
+	---@diagnostic disable-next-line: param-type-mismatch
 	if not tablesEqual(state.endPosition, endPosition) then
 		endPositionChanged = true
 		state.endPosition = endPosition
@@ -812,7 +816,7 @@ local function handleBlueprintNextAction()
 	setSelectedBlueprintIndex(getNextFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -830,7 +834,7 @@ local function handleBlueprintPrevAction()
 	setSelectedBlueprintIndex(getPrevFilteredBlueprintIndex())
 	lastExplicitlySelectedBlueprintIndex = selectedBlueprintIndex
 
-	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.selectBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -841,7 +845,7 @@ local function handleBlueprintCreateAction()
 	createBlueprint(unitIDs, true)
 	setSelectedBlueprintIndex(#blueprints)
 
-	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.createBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -863,7 +867,7 @@ local function handleBlueprintDeleteAction()
 
 	deleteBlueprint(selectedBlueprintIndex)
 
-	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, "ui")
+	Spring.PlaySoundFile(sounds.deleteBlueprint, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 	return true
 end
@@ -887,7 +891,7 @@ local function handleFacingAction(_, _, args)
 	if newFacing then
 		setBlueprintFacing(newFacing)
 
-		Spring.PlaySoundFile(sounds.facing, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.facing, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 		return true
 	end
@@ -915,7 +919,7 @@ local function handleSpacingAction(_, _, args)
 	if newSpacing then
 		setBlueprintSpacing(newSpacing)
 
-		Spring.PlaySoundFile(sounds.spacing, 0.75, "ui")
+		Spring.PlaySoundFile(sounds.spacing, 0.75, nil, nil, nil, nil, nil, nil, "ui")
 
 		return true
 	end
@@ -950,7 +954,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button ~= 1 or not blueprintPlacementActive or not getSelectedBlueprint() then
-		return
+		return false
 	end
 
 	local blueprint = getSelectedBlueprint()
@@ -1006,7 +1010,7 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_BLUEPRINT_CREATE then
-		handleBlueprintCreateAction()
+		return handleBlueprintCreateAction()
 	elseif cmdID == CMD_BLUEPRINT_PLACE then
 		local selectedBlueprint = getSelectedBlueprint()
 
@@ -1072,7 +1076,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 						unitDefID = bpu.unitDefID,
 						position = { sx, sy, sz },
 						facing = bpu.facing,
-					}
+					},
+						nil
 				end)
 			)
 		end
@@ -1093,6 +1098,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 		return true
 	end
+	return false
 end
 
 -- saving/loading
@@ -1116,13 +1122,14 @@ local function serializeBlueprint(blueprint)
 				unitName = unitName,
 				position = blueprintUnit.position,
 				facing = blueprintUnit.facing,
-			}
+			},
+				nil
 		end),
 	}
 end
 
 ---@param serializedBlueprint SerializedBlueprint
----@return Blueprint
+---@return Blueprint|nil
 local function deserializeBlueprint(serializedBlueprint, index)
 	local blueprint = WG.api_blueprint.createBlueprintFromSerialized(serializedBlueprint)
 
@@ -1155,6 +1162,7 @@ local function loadBlueprintsFromFile()
 	end
 
 	local decoded = Json.decode(content)
+	---@cast decoded table?
 
 	if decoded == nil then
 		FeedbackForUser("Failed to decode blueprints file JSON: " .. BLUEPRINT_FILE_PATH)
@@ -1197,7 +1205,7 @@ local function saveBlueprintsToFile()
 	table.append(allSerializedBpsToSave, filteredOutSerializedBlueprints)
 
 	if #allSerializedBpsToSave == 0 then
-		allSerializedBpsToSave = 0
+		allSerializedBpsToSave = {}
 	end
 
 	local encoded = Json.encode({

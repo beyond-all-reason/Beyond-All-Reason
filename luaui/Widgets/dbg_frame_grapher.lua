@@ -5,6 +5,10 @@
 
 local widget = widget ---@type Widget
 
+local lastframems -- forward-decl: read into prevframems
+
+local alpha = 0 -- forward-decl: read at file scope in a shader-params table
+
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher",
@@ -232,6 +236,7 @@ end
 
 local wasgameframe = 0
 local prevframems = 0
+local lastframeduration -- shared across draw callins; read into prevframems
 local gameFrameHappened = false
 local drawspergameframe = 0
 

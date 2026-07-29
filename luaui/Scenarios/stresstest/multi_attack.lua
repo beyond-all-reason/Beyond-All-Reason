@@ -75,6 +75,7 @@ function run_commands(nattackers, ntargets, attackerDef, targetDef)
 		targetDef = locals.targetDef
 		nattackers = locals.nattackers
 	end
+	local opts = {} -- no-shift options; first target is immediate, rest shift-queued
 	local shiftOpts = { "shift" }
 	local currOpt
 	local CMD_ATTACK = CMD.ATTACK

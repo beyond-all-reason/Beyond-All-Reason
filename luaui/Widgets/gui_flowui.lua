@@ -1393,6 +1393,9 @@ local function DrawButtonResolved(px, py, sx, sy, data)
 
 	-- Layer 6: White feathered inner outline glow
 	local outlineWidth = 7
+	-- Button shares Element's body chunk but never had Element's `opaque`
+	-- parameter (upstream bug): the global read was always nil/falsy. Pin it.
+	local opaque = false
 	local outlineAlpha = opaque and 0.12 or 0.06
 	WG.FlowUI.Draw.RectRoundOutline(
 		px + data.pxPad,

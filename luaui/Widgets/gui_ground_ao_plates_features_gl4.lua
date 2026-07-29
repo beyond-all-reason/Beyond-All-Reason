@@ -1,5 +1,8 @@
 local widget = widget ---@type Widget
 
+local files = {} -- forward-decl: referenced only by dead addDirToAtlas
+local imgExts = {} -- forward-decl: referenced only by dead addDirToAtlas
+
 function widget:GetInfo()
 	return {
 		name = "Ground AO Plates Features GL4",

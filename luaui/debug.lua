@@ -52,10 +52,10 @@ function PrintCommandQueue(uid)
 		local msg = ""
 		local count = 0
 		for i, cmd in pairs(queue) do
-			local name = CommandNames[cmd]
+			local name = CMD[cmd.id]
 			if name ~= nil then
 				count = count + 1
-				msg = msg .. "  " .. CommandNames[cmd] .. ","
+				msg = msg .. "  " .. name .. ","
 				if count >= 8 then
 					break
 				end
@@ -268,7 +268,7 @@ function PrintCommands(commands)
 	end
 end
 
-function Debug()
+function DebugDumpDefs()
 	for i, v in pairs(UnitDefs) do
 		if v ~= nil then
 			print(i .. " " .. v.name)
