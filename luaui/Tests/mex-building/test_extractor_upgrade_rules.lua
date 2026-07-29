@@ -29,6 +29,9 @@ function test()
 		{ "armageo", "corageo", false },     -- ageo cross-faction
 		{ "armmoho", "cormoho", false },     -- t2 mex cross-faction
 		{ "armmoho", "armmex", false },     -- t2 mex to t1 mex
+		{ "armmoho", "cormoho", false },     -- t2 mex to t2 mex cross-faction
+		{ "armamex", "armmex", false },     -- t1 mex to t1 mex
+		{"armgmm", "armgmm", false },     -- prude -> prude
 	}
 
 	for i = 1, #cases do

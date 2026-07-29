@@ -193,6 +193,9 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	end
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
+	if currentExtractorId == newExtractorId then
+		return false
+	end
 
 	local newExtractor = UnitDefs[newExtractorId]
 	local currentExtractor = UnitDefs[currentExtractorId]
