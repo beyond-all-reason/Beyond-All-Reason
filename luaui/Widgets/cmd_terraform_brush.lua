@@ -6658,10 +6658,14 @@ function widget:DrawWorld()
 		if savedRadius    then activeRadius    = savedRadius    end
 	end
 
-	-- Suppress brush outline when placing/hovering/dragging symmetry origin
+	-- Suppress brush outline when placing/hovering/dragging symmetry origin, or
+	-- whenever the map labels tool owns the cursor (placing, dot hover/drag,
+	-- over its windows, or a comment is open)
 	local suppressBrush = extraState.symmetryPlacingOrigin
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
+		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush
+			and WG.MapLabels.shouldSuppressBrush())
 
 	-- Animated glow outline — drawn every frame outside the display-list cache so it can pulse.
 	if activeMode and activeMode ~= "ramp" and not suppressBrush then

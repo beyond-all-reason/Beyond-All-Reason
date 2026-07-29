@@ -2080,6 +2080,8 @@ local initialModel = {
 	passthroughActive = false,
 	settingsOpen = false,
 	settingsTab = "keybinds",
+	-- Map Labels window (gui_map_labels widget) — header button highlight
+	mapLabelsOpen = false,
 	noiseWindowVisible = false,
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
@@ -5197,6 +5199,15 @@ local initialModel = {
 			playSound("modeSwitch")
 		end
 	end,
+	onToggleMapLabels = function(_event)
+		if not WG.MapLabels then
+			Spring.Echo("[Terraform Brush] Map Labels widget is not loaded")
+			return
+		end
+		local open = WG.MapLabels.toggle()
+		playSound(open and "panelOpen" or "click")
+		local d = widgetState.dmHandle; if d then d.mapLabelsOpen = open end
+	end,
 	onGuideToggleSettings = function(_event)
 		playSound(widgetState.settingsOpen and "click" or "panelOpen")
 		widgetState.settingsOpen = not widgetState.settingsOpen
@@ -7551,6 +7562,8 @@ local guideHints = {
 	["btn-fp-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
+	-- Map labels
+	["btn-maplabels"]   = "Show map comments: colored pins you can place, drag, colour-code and write notes in — for planning and review. Switching it off hides every comment.",
 	-- Restore defaults
 	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
 	-- Presets
@@ -10657,6 +10670,16 @@ function widget:Update()
 		widgetState.noTerraformInitDone = true
 		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
 		WG.FeaturePlacer.setMode("scatter")
+	end
+
+	-- Mirror the Map Labels window state onto the header button highlight
+	-- (the window can close itself via its own X button)
+	do
+		local d = widgetState.dmHandle
+		if d then
+			local mlOpen = (WG.MapLabels and WG.MapLabels.isOpen()) and true or false
+			if d.mapLabelsOpen ~= mlOpen then d.mapLabelsOpen = mlOpen end
+		end
 	end
 
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)

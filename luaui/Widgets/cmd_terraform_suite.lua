@@ -40,6 +40,7 @@ local SUITE_WIDGETS = {
 	"Diffuse Library UI",
 	"Feature Placer UI",
 	"Weather Brush UI",
+	"Map Labels UI",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions

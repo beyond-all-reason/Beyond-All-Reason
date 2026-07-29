@@ -32,6 +32,7 @@
 					</div>
 				</div>
 				<div class="tf-rail-spacer"></div>
+				<div id="btn-maplabels" class="tf-header-btn tf-maplabels-btn" data-class-active="mapLabelsOpen" data-event-mousedown="onToggleMapLabels()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/map_labels.png" /></div>
 				<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 				<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>

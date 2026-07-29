@@ -665,6 +665,25 @@ local function stepLights()
 	return true
 end
 
+local function stepLabels()
+	local ml = WG.MapLabels
+	if not (ml and ml.saveProject) then
+		sectionSkip("labels", "map labels widget not loaded")
+		return true
+	end
+	local path = job.dir .. "labels.lua"
+	local n = ml.saveProject(path)
+	if not n then
+		sectionSkip("labels", "save failed")
+	elseif n == 0 then
+		os.remove(path)
+		sectionSkip("labels", "no comments placed")
+	else
+		sectionOk("labels", "labels.lua", fileSize(path), n .. " comments")
+	end
+	return true
+end
+
 local function stepStartPos()
 	local st = WG.StartPosTool
 	if not st then
@@ -944,6 +963,7 @@ local SECTION_FILES = {
 	startpos    = { "startpos.lua" },
 	startboxes  = { "startboxes.lua" },
 	lights      = { "lights.lua" },
+	labels      = { "labels.lua" },
 	environment = { "environment.lua" },
 	weather     = { "weather.lua" },
 	grass       = { "grass_dist.tga", "grass_config.lua" },
@@ -1039,7 +1059,7 @@ local function stepManifest()
 	add("")
 	add("\tsections = {")
 	-- Fixed emission order (deterministic diffs); only sections actually written.
-	local order = { "heightmap", "splat", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "environment", "weather", "grass" }
+	local order = { "heightmap", "splat", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "labels", "environment", "weather", "grass" }
 	for _, name in ipairs(order) do
 		local s = findSection(name)
 		if s then
@@ -1104,6 +1124,7 @@ local STEPS = {
 	{ name = "units",       run = stepUnits },
 	{ name = "decals",      run = stepDecals },
 	{ name = "lights",      run = stepLights },
+	{ name = "labels",      run = stepLabels },
 	{ name = "startpos",    run = stepStartPos },
 	{ name = "environment", run = stepEnvironment },
 	{ name = "weather",     run = stepWeather },
@@ -1658,7 +1679,8 @@ local function phaseUnits(c)
 	return false
 end
 
--- Phase 7: decals + lights (client-side; need final heights for light Y).
+-- Phase 7: decals + lights + map labels (client-side; all three need the final
+-- heights — light Y and label dots are both projected onto the loaded terrain).
 local function phaseDecalsLights(c)
 	local decalPath = sectionFile("decals")
 	if decalPath then
@@ -1690,10 +1712,30 @@ local function phaseDecalsLights(c)
 			loadSkip("lights", "light placer widget not loaded")
 		end
 	end
+	local labelPath = sectionFile("labels")
+	local ml = WG.MapLabels
+	if labelPath then
+		if ml and ml.loadProject then
+			local ok, n = ml.loadProject(labelPath)
+			if ok then
+				loadOk("labels", (n or 0) .. " comments")
+			else
+				loadSkip("labels", "map labels widget rejected the file")
+			end
+		else
+			loadSkip("labels", "map labels widget not loaded")
+		end
+	elseif ml and ml.clearProject then
+		-- No labels section: this project has no comments. The live set is keyed
+		-- by map name, which generated canvases share, so clear it rather than
+		-- letting the previously opened project's comments show up here.
+		local hasSection = loadJob.manifest.sections and loadJob.manifest.sections.labels
+		if not hasSection then ml.clearProject() end
+	end
 	return true
 end
 
--- Phase 7: environment. Short settle countdown mirrors the New Map env-preset
+-- Phase 8: environment. Short settle countdown mirrors the New Map env-preset
 -- pattern (the water renderer needs a few draw frames after map changes).
 local function phaseEnvironment(c)
 	local path = sectionFile("environment")
@@ -1814,7 +1856,7 @@ local LOAD_PHASES = {
 	{ name = "metal",           run = phaseMetal },
 	{ name = "features",        run = phaseFeatures },
 	{ name = "units",           run = phaseUnits },
-	{ name = "decals+lights",   run = phaseDecalsLights },
+	{ name = "decals+lights",   run = phaseDecalsLights },  -- also map labels
 	{ name = "environment",     run = phaseEnvironment },
 	{ name = "weather",         run = phaseWeather },
 	{ name = "startpos+grass",  run = phaseStartposGrass },

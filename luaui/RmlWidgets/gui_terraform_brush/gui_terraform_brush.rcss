@@ -3108,6 +3108,16 @@ body {
 	border-color: #fdc04c;
 }
 
+.tf-maplabels-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-maplabels-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
 /* Settings tab bar */
 .tf-settings-tab {
 	padding: 4dp 12dp;
