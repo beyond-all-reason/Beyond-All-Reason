@@ -96,6 +96,10 @@ local multiUnitOnlyCmds = {
 
 local chobbyInterface
 local lineLength = 0
+local formationVersion = 0
+local formationOrders = nil
+local formationOrdersVersion = nil
+local formationOrdersShifted = nil
 
 --------------------------------------------------------------------------------
 -- Globals
@@ -297,6 +301,7 @@ local function AddFNode(pos)
         lineLength = lineLength+distSq^0.5
     end
 
+    formationVersion = formationVersion + 1
     totaldxy = 0
     return true
 end
@@ -1086,7 +1091,7 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
 end
 
 
-function GetOrdersHungarian(nodes, units, unitCount, shifted)
+function GetOrdersHungarian(nodes, units, unitCount, shifted, adjustLimit)
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
     -- (the following code is written by gunblob)
@@ -1135,11 +1140,11 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted)
 
     local delay = osclock() - t
 
-    if (delay > maxHngTime) and (maxHungarianUnits > minHungarianUnits) then
+    if adjustLimit ~= false and (delay > maxHngTime) and (maxHungarianUnits > minHungarianUnits) then
 
         -- Delay is greater than desired, we have to reduce units
         maxHungarianUnits = maxHungarianUnits - 1
-    else
+    elseif adjustLimit ~= false then
         -- Delay is less than desired, so thats OK
         -- To make judgements we need number of units to be close to max
         -- Because we are making predictions of time and we want them to be accurate
@@ -1594,6 +1599,37 @@ function widget:Initialize()
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end
+
+    WG.customformations.GetFormationOrders = function()
+        if #fNodes < 2 then
+            return nil
+        end
+
+        local _, _, meta, shift = GetModKeys()
+        local shifted = shift and not meta
+        if formationOrdersVersion ~= formationVersion or formationOrdersShifted ~= shifted then
+            local mUnits = GetExecutingUnits(usingCmd)
+            if #mUnits == 0 then
+                return nil
+            end
+            local interpNodes = GetInterpNodes(mUnits)
+            local orders
+            if #mUnits <= maxHungarianUnits then
+                orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)
+            else
+                orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shifted)
+            end
+
+            formationOrders = {}
+            for i = 1, #orders do
+                local order = orders[i]
+                formationOrders[order[1]] = order[2]
+            end
+            formationOrdersVersion = formationVersion
+            formationOrdersShifted = shifted
+        end
+        return formationOrders
+    end
 end
 
 
