@@ -675,7 +675,17 @@ local function applySkyboxNow(boundTexName, rawPath)
 	local name = boundTexName
 	if not name or name == "" then name = rawPath end
 	if not name or name == "" then return end
+	-- Swapping the skybox makes the engine re-derive sky state from mapinfo,
+	-- which stomps the LIVE fog params back to the map's baked values — fog
+	-- reappears while the ENV sliders still show the runtime values (seen on
+	-- biome skybox sync on loaded maps). Snapshot fog and re-assert it after.
+	local fogS = gl.GetAtmosphere("fogStart")
+	local fogE = gl.GetAtmosphere("fogEnd")
+	local fR, fG, fB, fA = gl.GetAtmosphere("fogColor")
 	Spring.SetSkyBoxTexture(name)
+	if fogS and fogE then
+		Spring.SetAtmosphere({ fogStart = fogS, fogEnd = fogE, fogColor = { fR or 0.7, fG or 0.7, fB or 0.8, fA or 0 } })
+	end
 end
 
 -- Start a skybox fade transition (screen overlay fade-to-black)
