@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name    = "Map Project",
-		desc    = "Save and load map projects: one git-friendly folder bundling heightmap, splat, metal, features, decals, lights, environment, weather, grass and start positions",
+		desc    = "Save and load map projects: one git-friendly folder bundling heightmap, splat, metal, features, decals, lights, environment, weather, grass, start positions and (optionally) the unit loadout",
 		author  = "PtaQ",
 		date    = "2026",
 		license = "GNU GPL, v2 or later",
@@ -54,11 +54,14 @@ local SPLAT_LOAD_TIMEOUT   = 600
 local IMPORT_START_TICKS   = 300  -- import never went in-flight => decode failed
 local ACK_TIMEOUT_FRAMES   = 120  -- GAME frames after stream end without sim ack => failed
 local DIFFUSE_TIMEOUT_TICKS = 3600  -- full-map diffuse capture/load is many chunked GL ticks
+local UNITS_TIMEOUT_TICKS  = 300  -- synced units export round-trip
+local UNITS_ACK_PARAM      = "mpu_ack"  -- rules param set by the units gadget after a replace
 
 local heightmapPNG = nil  -- lazy VFS.Include of the shared 16-bit PNG codec
 
 local job = nil      -- active save job, nil when idle
 local loadJob = nil  -- active load job, nil when idle (never both at once)
+local unitsRx = nil  -- receive buffer for the synced units export (stepUnits)
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -531,6 +534,96 @@ local function stepFeatures()
 	return true
 end
 
+-- Units loadout (opt-in via the Save Project dialog toggle). Collection is a
+-- synced gadget round-trip (cmd_map_project_units.lua): the unsynced unit view
+-- is LOS-limited, so reading Spring.GetAllUnits here would silently drop every
+-- enemy unit outside the player's own LOS — exactly the units a mission draft
+-- cares about. The gadget streams begin/data/end into the globals registered
+-- in Initialize; this step polls the buffer (same request/poll shape as splat).
+local function stepUnits()
+	if not job.saveUnits then
+		if job.prev and job.prev.sections and job.prev.sections.units then
+			warn("'save units loadout' was OFF — the previous save's units.lua will be removed")
+		end
+		sectionSkip("units", "'save units loadout' toggle off")
+		return true
+	end
+	local c = job.cursor
+	if not c.requested then
+		unitsRx = nil
+		Spring.SendLuaRulesMsg("$mpunits_export$")
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if not (unitsRx and unitsRx.done) then
+		if c.ticks > UNITS_TIMEOUT_TICKS then
+			warn("units export timed out (is the Map Project Unit Loadout gadget loaded?)")
+			sectionSkip("units", "export timeout")
+			unitsRx = nil
+			return true
+		end
+		return false
+	end
+	local rx = unitsRx
+	unitsRx = nil
+	if rx.denied then
+		warn("units export refused: " .. rx.denied)
+		sectionSkip("units", rx.denied)
+		return true
+	end
+	local entries = {}
+	for _, payload in ipairs(rx.batches) do
+		for entry in payload:gmatch("[^|]+") do
+			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
+			x, z = tonumber(x), tonumber(z)
+			if name and x and z then
+				entries[#entries + 1] = {
+					name = name, x = x, z = z,
+					rot = tonumber(rot) or 0,
+					team = tonumber(team) or 0,
+					neutral = neutral == "1",
+				}
+			end
+		end
+	end
+	if #entries == 0 then
+		sectionSkip("units", "no units on map")
+		return true
+	end
+	-- Unit IDs are transient; order by content for deterministic diffs.
+	table.sort(entries, function(a, b)
+		if a.team ~= b.team then return a.team < b.team end
+		if a.name ~= b.name then return a.name < b.name end
+		if a.x ~= b.x then return a.x < b.x end
+		if a.z ~= b.z then return a.z < b.z end
+		return a.rot < b.rot
+	end)
+	local lines = {
+		"-- Unit loadout for map project (position/team of every unit at save time)",
+		"-- Entry fields (name/x/z/rot/team) match scenariooptions.unitloadout",
+		"return {",
+		"\tversion = 1,",
+		"\tunits = {",
+	}
+	local format = string.format
+	for _, e in ipairs(entries) do
+		lines[#lines + 1] = format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d, team = %d%s },",
+			e.name, e.x, e.z, e.rot, e.team, e.neutral and ", neutral = true" or "")
+	end
+	lines[#lines + 1] = "\t},"
+	lines[#lines + 1] = "}"
+	local bytes = writeFile(job.dir .. "units.lua", table.concat(lines, "\n"))
+	if bytes then
+		job.unitsCount = #entries
+		sectionOk("units", "units.lua", bytes, #entries .. " units")
+	else
+		sectionSkip("units", "write failed")
+	end
+	return true
+end
+
 local function stepDecals()
 	local dp = WG.DecalPlacer
 	if not (dp and dp.saveProject) then
@@ -846,6 +939,7 @@ local SECTION_FILES = {
 	splat       = { "splat.png" },
 	metal       = { "metal.lua" },
 	features    = { "features.lua" },
+	units       = { "units.lua" },
 	decals      = { "decals.lua" },
 	startpos    = { "startpos.lua" },
 	startboxes  = { "startboxes.lua" },
@@ -945,7 +1039,7 @@ local function stepManifest()
 	add("")
 	add("\tsections = {")
 	-- Fixed emission order (deterministic diffs); only sections actually written.
-	local order = { "heightmap", "splat", "diffuse", "metal", "features", "decals", "startpos", "startboxes", "lights", "environment", "weather", "grass" }
+	local order = { "heightmap", "splat", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "environment", "weather", "grass" }
 	for _, name in ipairs(order) do
 		local s = findSection(name)
 		if s then
@@ -960,6 +1054,9 @@ local function stepManifest()
 					s.bytes, d.squareSize or 1024, d.count or 0, tostring(d.full or false), table.concat(chParts, ", ")))
 			else
 				local extraFields = ""
+				if name == "units" and job.unitsCount then
+					extraFields = string.format(" count = %d,", job.unitsCount)
+				end
 				if name == "grass" then
 					if job.grassPatchResolution then
 						extraFields = string.format(" patch_resolution = %d,", job.grassPatchResolution)
@@ -1004,6 +1101,7 @@ local STEPS = {
 	{ name = "diffuse",     run = stepDiffuse },
 	{ name = "metal",       run = stepMetal },
 	{ name = "features",    run = stepFeatures },
+	{ name = "units",       run = stepUnits },
 	{ name = "decals",      run = stepDecals },
 	{ name = "lights",      run = stepLights },
 	{ name = "startpos",    run = stepStartPos },
@@ -1038,7 +1136,9 @@ local function finishSave()
 	job = nil
 end
 
-local function startSave(slug)
+-- opts.saveUnits: record the unit loadout (position/team of every unit) into
+-- units.lua so a loaded project restores the drafted mission state.
+local function startSave(slug, opts)
 	if job then
 		echoP("a save is already running")
 		return false
@@ -1063,9 +1163,19 @@ local function startSave(slug)
 		sections = {},
 		skipped = {},
 		warnings = {},
+		saveUnits = (opts and opts.saveUnits) and true or false,
 	}
-	echoP("saving project '" .. slug .. "'...")
+	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
 	return true
+end
+
+-- Does a saved project include a units section? (UI confirm guard: warns
+-- before a toggle-off re-save silently drops a previously saved loadout.)
+local function projectHasUnits(slug)
+	local ok = validateSlug(slug)
+	if not ok then return false end
+	local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+	return (manifest and manifest.sections and manifest.sections.units) and true or false
 end
 
 -- Enumerate projects with manifest details for the Open Project dialog.
@@ -1473,7 +1583,82 @@ local function phaseFeatures(c)
 	return true
 end
 
--- Phase 6: decals + lights (client-side; need final heights for light Y).
+-- Phase 6: units. Streamed to the units gadget, which replaces the map's
+-- units atomically (spawn saved loadout, then remove pre-existing units —
+-- including the session's freshly spawned commanders, which the saved loadout
+-- itself contains from save time). Runs after the sim-acked heightmap so
+-- ground snap uses final heights. Completion is a rules-param ack, pause-aware
+-- like the heightmap phase.
+local function phaseUnits(c)
+	local path = sectionFile("units")
+	if not path then return true end
+	if not c.sent then
+		local data, err = readLuaFile(path)
+		if not (data and type(data.units) == "table") then
+			loadSkip("units", "unreadable units.lua (" .. tostring(err) .. ")")
+			return true
+		end
+		-- Build every batch BEFORE sending anything: an all-invalid file must not
+		-- leave the gadget with a dangling begin. All messages go out in one tick
+		-- so the sim applies the whole replace in a single frame.
+		local batches, parts = {}, {}
+		local format = string.format
+		local count = 0
+		for _, u in ipairs(data.units) do
+			local x, z = tonumber(u.x), tonumber(u.z)
+			if type(u.name) == "string" and x and z then
+				count = count + 1
+				parts[#parts + 1] = format("%s %.1f %.1f %d %d %d",
+					u.name, x, z, tonumber(u.rot) or 0, tonumber(u.team) or 0, u.neutral and 1 or 0)
+				if #parts >= 25 then
+					batches[#batches + 1] = table.concat(parts, "|")
+					parts = {}
+				end
+			end
+		end
+		if #parts > 0 then
+			batches[#batches + 1] = table.concat(parts, "|")
+		end
+		if #batches == 0 then
+			loadSkip("units", "no valid entries in units.lua")
+			return true
+		end
+		Spring.SendLuaRulesMsg("$mpunits_begin$")
+		for _, b in ipairs(batches) do
+			Spring.SendLuaRulesMsg("$mpunits_data$" .. b)
+		end
+		Spring.SendLuaRulesMsg("$mpunits_end$")
+		c.sent = true
+		c.count = count
+		c.ackBase = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
+		c.frameAtSend = Spring.GetGameFrame()
+		c.ticks = 0
+		echoP("units: replaying " .. count .. " units...")
+		return false
+	end
+	local ack = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
+	if ack > c.ackBase then
+		local spawned = Spring.GetGameRulesParam("mpu_spawned") or 0
+		local failed = Spring.GetGameRulesParam("mpu_failed") or 0
+		local remapped = Spring.GetGameRulesParam("mpu_remapped") or 0
+		loadOk("units", spawned .. " spawned"
+			.. (failed > 0 and (", " .. failed .. " FAILED (unknown def or unit limit)") or "")
+			.. (remapped > 0 and (", " .. remapped .. " remapped to Gaia (team missing/dead)") or ""))
+		return true
+	end
+	c.ticks = c.ticks + 1
+	local frame = Spring.GetGameFrame()
+	if frame > c.frameAtSend + ACK_TIMEOUT_FRAMES then
+		loadSkip("units", "sim never acknowledged the loadout (was /cheat disabled mid-load?)")
+		return true
+	end
+	if frame == c.frameAtSend and (c.ticks % 300) == 299 then
+		echoP("units: waiting for the sim to apply the loadout — unpause the game to continue")
+	end
+	return false
+end
+
+-- Phase 7: decals + lights (client-side; need final heights for light Y).
 local function phaseDecalsLights(c)
 	local decalPath = sectionFile("decals")
 	if decalPath then
@@ -1535,7 +1720,7 @@ local function phaseEnvironment(c)
 	return true
 end
 
--- Phase 8: weather. Clear persistent spawners first (idempotent replay), then
+-- Phase 9: weather. Clear persistent spawners first (idempotent replay), then
 -- rebuild each from its serialized entry with rebased timing.
 local function phaseWeather(c)
 	local path = sectionFile("weather")
@@ -1559,7 +1744,7 @@ local function phaseWeather(c)
 	return true
 end
 
--- Phase 9: startpos + startboxes + grass (all need sim-acked terrain: slope
+-- Phase 10: startpos + startboxes + grass (all need sim-acked terrain: slope
 -- validation and patch ground-snap read final heights).
 local function phaseStartposGrass(c)
 	local st = WG.StartPosTool
@@ -1628,6 +1813,7 @@ local LOAD_PHASES = {
 	{ name = "diffuse",         run = phaseDiffuse },
 	{ name = "metal",           run = phaseMetal },
 	{ name = "features",        run = phaseFeatures },
+	{ name = "units",           run = phaseUnits },
 	{ name = "decals+lights",   run = phaseDecalsLights },
 	{ name = "environment",     run = phaseEnvironment },
 	{ name = "weather",         run = phaseWeather },
@@ -1915,23 +2101,40 @@ end
 local function mapProjectAction(_, optLine, params)
 	local sub = params and params[1]
 	if sub == "save" then
-		startSave(params[2])
+		startSave(params[2], { saveUnits = params[3] == "units" })
 	elseif sub == "open" then
 		openProject(params[2])
 	elseif sub == "list" then
 		listProjects()
 	else
-		echoP("usage: /mapproject save <name>  |  /mapproject open <name>  |  /mapproject list")
+		echoP("usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list")
 	end
 end
 
 function widget:Initialize()
 	widgetHandler:AddAction("mapproject", mapProjectAction, nil, "t")
+	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
+	-- synced walk through these; see stepUnits for why collection is synced).
+	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
+		unitsRx = { batches = {}, expected = count, done = false }
+	end)
+	widgetHandler:RegisterGlobal("mapproject_units_save_data", function(payload)
+		if unitsRx and type(payload) == "string" then
+			unitsRx.batches[#unitsRx.batches + 1] = payload
+		end
+	end)
+	widgetHandler:RegisterGlobal("mapproject_units_save_end", function(_count)
+		if unitsRx then unitsRx.done = true end
+	end)
+	widgetHandler:RegisterGlobal("mapproject_units_save_denied", function(reason)
+		unitsRx = { batches = {}, done = true, denied = tostring(reason or "export denied") }
+	end)
 	WG.MapProject = {
 		save = startSave,
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		hasUnitsSection = projectHasUnits,
 		isBusy = function() return job ~= nil or loadJob ~= nil end,
 		isLoading = function() return loadJob ~= nil end,
 	}
@@ -1941,6 +2144,10 @@ end
 function widget:Shutdown()
 	WG.MapProject = nil
 	widgetHandler:RemoveAction("mapproject")
+	widgetHandler:DeregisterGlobal("mapproject_units_save_begin")
+	widgetHandler:DeregisterGlobal("mapproject_units_save_data")
+	widgetHandler:DeregisterGlobal("mapproject_units_save_end")
+	widgetHandler:DeregisterGlobal("mapproject_units_save_denied")
 	if job then
 		echoP("save aborted by widget shutdown — project may be incomplete (no manifest written)")
 		job = nil

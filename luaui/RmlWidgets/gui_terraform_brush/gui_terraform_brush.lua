@@ -2087,6 +2087,7 @@ local initialModel = {
 	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
 	projectSaveOpen = false,
 	projectSaveHint = "",
+	projectSaveUnits = false,  -- "save units loadout" toggle (position/team of every unit)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
@@ -4736,7 +4737,9 @@ local initialModel = {
 			d.fileMenuOpen = false
 			d.projectSaveOpen = true
 			d.projectSaveHint = ""
+			d.projectSaveUnits = widgetState.projectSaveUnits and true or false
 		end
+		widgetState.projectUnitsDropArmed = nil
 		-- Prefill: last used name, else the slugified map name.
 		local doc = widgetState.document
 		local inp = doc and doc:GetElementById("input-project-name")
@@ -4752,6 +4755,16 @@ local initialModel = {
 	onProjectSaveClose = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.projectSaveOpen = false end
+	end,
+	onProjectSaveUnitsToggle = function(_event)
+		playSound("click")
+		widgetState.projectSaveUnits = not widgetState.projectSaveUnits
+		widgetState.projectUnitsDropArmed = nil
+		local d = widgetState.dmHandle
+		if d then
+			d.projectSaveUnits = widgetState.projectSaveUnits
+			d.projectSaveHint = ""
+		end
 	end,
 	onProjectSaveConfirm = function(_event)
 		local d = widgetState.dmHandle
@@ -4778,7 +4791,17 @@ local initialModel = {
 			return
 		end
 		widgetState.projectNameStr = name
-		if WG.MapProject.save(name) then
+		-- Toggle-off re-save of a project that HAS a units loadout would silently
+		-- drop it (stale-section cleanup). Require a second SAVE click to confirm.
+		if not widgetState.projectSaveUnits
+			and widgetState.projectUnitsDropArmed ~= name
+			and WG.MapProject.hasUnitsSection and WG.MapProject.hasUnitsSection(name) then
+			widgetState.projectUnitsDropArmed = name
+			if d then d.projectSaveHint = "'" .. name .. "' includes a units loadout. Saving with the toggle OFF removes it — press SAVE PROJECT again to confirm." end
+			return
+		end
+		widgetState.projectUnitsDropArmed = nil
+		if WG.MapProject.save(name, { saveUnits = widgetState.projectSaveUnits and true or false }) then
 			playSound("save")
 			if d then d.projectSaveHint = "Saving to MapProjects/" .. name .. "/ — progress in console." end
 		else

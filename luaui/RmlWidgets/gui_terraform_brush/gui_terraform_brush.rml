@@ -7428,6 +7428,16 @@
 			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="64" value="" />
 		</div>
 
+		<!-- Opt-in mission drafting: record position/team of every unit on the map -->
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div class="text-base text-light" style="flex: 1;">SAVE UNITS LOADOUT</div>
+			<div id="btn-project-units" class="tf-action-btn" style="flex: 0.9;" data-class-active="projectSaveUnits" data-event-mousedown="onProjectSaveUnitsToggle()">
+				<div class="tf-action-btn-text" data-if="projectSaveUnits">ON</div>
+				<div class="tf-action-btn-text" data-if="!projectSaveUnits">OFF</div>
+			</div>
+		</div>
+		<div class="text-sm text-keybind mb-2">Records every unit's position and team so opening the project restores the drafted mission loadout.</div>
+
 		<div class="text-base text-keybind mb-2" data-if="projectSaveHint != ''">{{projectSaveHint}}</div>
 
 		<div class="flex flex-row gap-1 items-center">
