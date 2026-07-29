@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "Evil4Zerggin",
 		date = "26 September 2008",
 		license = "GNU LGPL, v2.1 or later",
-		layer = 1,
+		layer = -1,
 		enabled = true
 	}
 end
@@ -43,6 +43,7 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
 local spGetUnitRadius = Spring.GetUnitRadius
 local spGetUnitStates = Spring.GetUnitStates
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -53,6 +54,7 @@ local spGetUnitWeaponTestRange = Spring.GetUnitWeaponTestRange
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetViewGeometry = Spring.GetViewGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
+local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -90,6 +92,7 @@ local Config = {
 		gameSpeed = Game.gameSpeed,
 		minSpread = 8,
 		minRingRadius = 1,
+		drawAoeForAllSelectedUnits = true,
 	},
 	Colors = {
 		aoe = { 1, 0, 0, 1 },
@@ -201,6 +204,8 @@ local State = {
 	manualFireUnitDefID = nil,
 	attackUnitID = nil,
 	manualFireUnitID = nil,
+	attackAimUnits = {},
+	manualAimUnits = {},
 
 	pulsePhase = 0,
 	circleList = 0,
@@ -209,6 +214,7 @@ local State = {
 
 	aimData = defaultAimData,
 	isOverMinimap = false,
+	starburstPredictions = {},
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -399,6 +405,131 @@ local function GetNormalizedAndMagnitude(x, y, z)
 	if mag ~= 0 then
 		return x / mag, y / mag, z / mag, mag
 	end
+end
+
+local function CreateStarburstTrajectoryList(prediction)
+	local pathX, pathY, pathZ = prediction.pathX, prediction.pathY, prediction.pathZ
+	local pathCount = prediction.pathCount
+	return glCreateList(function()
+		glBeginEnd(GL_LINE_STRIP, function()
+			for i = 1, pathCount do
+				glVertex(pathX[i], pathY[i], pathZ[i])
+			end
+		end)
+	end)
+end
+
+local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, prediction)
+	local px, py, pz, weaponDirX, weaponDirY, weaponDirZ = spGetUnitWeaponVectors(unitID, weaponInfo.weaponNum)
+	if not px then return nil end
+
+	py = py + 2
+	local pathX, pathY, pathZ = prediction.pathX, prediction.pathY, prediction.pathZ
+	local pathCount = 1
+	pathX[pathCount], pathY[pathCount], pathZ[pathCount] = px, py, pz
+	local dirX, dirY, dirZ = 0, 1, 0
+	if weaponInfo.fixedLauncher then
+		dirX, dirY, dirZ = weaponDirX, weaponDirY, weaponDirZ
+	end
+
+	local speed = weaponInfo.startVelocity
+	local maxSpeed = weaponInfo.projectileSpeed
+	local acceleration = weaponInfo.weaponAcceleration
+	local turnRate = weaponInfo.turnRate
+	if turnRate == 0 then turnRate = 0.06 end
+	-- The engine decrements uptime before the first trajectory update.
+	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
+
+	for frame = 1, 512 do
+		if ascentFrames > 0 then
+			speed = min(speed + acceleration, maxSpeed)
+			ascentFrames = ascentFrames - 1
+		else
+			local targetDX, targetDY, targetDZ = tx - px, ty - py, tz - pz
+			local targetLength = sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
+			if targetLength <= 8 then
+				pathCount = pathCount + 1
+				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
+				return nil, nil, nil, pathCount
+			end
+
+			local targetDirX, targetDirY, targetDirZ = targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
+			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
+			if directionDotTarget > 0.99 then
+				local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, tx, ty, tz, false)
+				pathCount = pathCount + 1
+				if hitDistance and hitDistance + 8 < targetLength then
+					pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
+					return hitX, hitY, hitZ, pathCount
+				end
+				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
+				return nil, nil, nil, pathCount
+			end
+
+			local turnX = targetDirX - dirX * directionDotTarget
+			local turnY = targetDirY - dirY * directionDotTarget
+			local turnZ = targetDirZ - dirZ * directionDotTarget
+			local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
+			if turnLength > 0 then
+				turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
+				dirX = dirX + turnX * turnRate
+				dirY = dirY + turnY * turnRate
+				dirZ = dirZ + turnZ * turnRate
+				local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+				dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
+			end
+		end
+
+		local nextX, nextY, nextZ = px + dirX * speed, py + dirY * speed, pz + dirZ * speed
+		local groundY = spGetGroundHeight(nextX, nextZ)
+		if groundY and nextY <= groundY then
+			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
+			pathCount = pathCount + 1
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
+			return hitX, hitY, hitZ, pathCount
+		end
+		px, py, pz = nextX, nextY, nextZ
+		if frame % 8 == 0 then
+			pathCount = pathCount + 1
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = px, py, pz
+		end
+	end
+
+	return nil, nil, nil, pathCount
+end
+
+local function GetCachedStarburstTarget(weaponInfo, unitID, tx, ty, tz)
+	local predictions = State.starburstPredictions
+	local prediction = predictions[unitID]
+	if not prediction then
+		prediction = { pathX = {}, pathY = {}, pathZ = {} }
+		predictions[unitID] = prediction
+	end
+	local currentTime = osClock()
+	if prediction.unitID == unitID
+		and prediction.weaponNum == weaponInfo.weaponNum
+		and abs(prediction.targetX - tx) < 4
+		and abs(prediction.targetY - ty) < 4
+		and abs(prediction.targetZ - tz) < 4
+		and currentTime - prediction.updatedTime < 0.1 then
+		return prediction.x, prediction.y, prediction.z
+	end
+
+	local hitX, hitY, hitZ, pathCount = GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, prediction)
+	prediction.unitID = unitID
+	prediction.weaponNum = weaponInfo.weaponNum
+	prediction.targetX, prediction.targetY, prediction.targetZ = tx, ty, tz
+	prediction.updatedTime = currentTime
+	prediction.x, prediction.y, prediction.z = hitX or tx, hitY or ty, hitZ or tz
+	prediction.pathCount = pathCount or 0
+	if prediction.trajectoryList and prediction.trajectoryList ~= 0 then
+		glDeleteList(prediction.trajectoryList)
+		prediction.trajectoryList = nil
+	end
+	if prediction.pathCount > 1 then
+		prediction.trajectoryList = CreateStarburstTrajectoryList(prediction)
+	end
+	return prediction.x, prediction.y, prediction.z
 end
 
 -- Clamp the max range for scatter calculations
@@ -651,6 +782,13 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 			info.salvoDelay = weaponDef.salvoDelay
 		end
 	elseif weaponType == "StarburstLauncher" then
+		info.isStarburst = true
+		info.projectileSpeed = weaponDef.projectilespeed
+		info.startVelocity = weaponDef.startvelocity
+		info.weaponAcceleration = weaponDef.weaponAcceleration
+		info.uptime = weaponDef.uptime
+		info.turnRate = weaponDef.turnRate
+		info.fixedLauncher = weaponDef.fixedLauncher
 		-- Check for nuclear weapons (customParams.nuclear)
 		if info.isNuke then
 			info.type = "nuke"
@@ -762,6 +900,12 @@ local function DeleteDisplayLists()
 	glDeleteList(State.circleList)
 	glDeleteList(State.unitDiskList)
 	glDeleteList(State.nuclearTrefoilList)
+	for _, prediction in pairs(State.starburstPredictions) do
+		local trajectoryList = prediction.trajectoryList
+		if trajectoryList and trajectoryList ~= 0 then
+			glDeleteList(trajectoryList)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -794,6 +938,16 @@ local function GetBestUnitID(unitIDs, info, isManual)
 	return bestUnit
 end
 
+local function ClearStarburstPredictions()
+	for _, prediction in pairs(State.starburstPredictions) do
+		local trajectoryList = prediction.trajectoryList
+		if trajectoryList and trajectoryList ~= 0 then
+			glDeleteList(trajectoryList)
+		end
+	end
+	State.starburstPredictions = {}
+end
+
 local function UpdateSelection()
 	local maxCost = 0
 	local maxCostManual = 0
@@ -804,21 +958,36 @@ local function UpdateSelection()
 	State.hasSelection = false
 	State.isMonitoringStockpile = false
 	State.unitsToMonitorStockpile = {}
+	State.attackAimUnits = {}
+	State.manualAimUnits = {}
+	ClearStarburstPredictions()
 
 	local sel = spGetSelectedUnitsSorted()
 	for unitDefID, unitIDs in pairs(sel) do
 		local currCost = Cache.UnitProperties.cost[unitDefID] * #unitIDs
-		if Cache.manualWeaponInfos[unitDefID] and currCost > maxCostManual then
-			maxCostManual = currCost
-			State.manualFireUnitDefID = unitDefID
-			State.manualFireUnitID = GetBestUnitID(unitIDs, Cache.manualWeaponInfos[unitDefID].primary, true)
-			State.hasSelection = true
+		local manualWeaponInfos = Cache.manualWeaponInfos[unitDefID]
+		if manualWeaponInfos then
+			if currCost > maxCostManual then
+				maxCostManual = currCost
+				State.manualFireUnitDefID = unitDefID
+				State.manualFireUnitID = GetBestUnitID(unitIDs, manualWeaponInfos.primary, true)
+				State.hasSelection = true
+			end
+			for i = 1, #unitIDs do
+				State.manualAimUnits[#State.manualAimUnits + 1] = { unitID = unitIDs[i], weaponInfos = manualWeaponInfos }
+			end
 		end
-		if Cache.weaponInfos[unitDefID] and currCost > maxCost then
-			maxCost = currCost
-			State.attackUnitDefID = unitDefID
-			State.attackUnitID = GetBestUnitID(unitIDs, Cache.weaponInfos[unitDefID].primary)
-			State.hasSelection = true
+		local attackWeaponInfos = Cache.weaponInfos[unitDefID]
+		if attackWeaponInfos then
+			if currCost > maxCost then
+				maxCost = currCost
+				State.attackUnitDefID = unitDefID
+				State.attackUnitID = GetBestUnitID(unitIDs, attackWeaponInfos.primary)
+				State.hasSelection = true
+			end
+			for i = 1, #unitIDs do
+				State.attackAimUnits[#State.attackAimUnits + 1] = { unitID = unitIDs[i], weaponInfos = attackWeaponInfos }
+			end
 		end
 	end
 end
@@ -832,12 +1001,29 @@ local function GetActiveUnitInfo()
 	local _, cmd, _ = spGetActiveCommand()
 
 	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and State.manualFireUnitDefID) then
-		return Cache.manualWeaponInfos[State.manualFireUnitDefID], State.manualFireUnitID
+		return Cache.manualWeaponInfos[State.manualFireUnitDefID], State.manualFireUnitID, State.manualAimUnits, cmd
 	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and State.attackUnitDefID) then
-		return Cache.weaponInfos[State.attackUnitDefID], State.attackUnitID
+		return Cache.weaponInfos[State.attackUnitDefID], State.attackUnitID, State.attackAimUnits, cmd
 	else
 		return nil, nil
 	end
+end
+
+local function GetCustomFormationTargets(activeCommand)
+	local customFormations = WG.customformations
+	if not customFormations
+		or not customFormations.IsFormationActive
+		or not customFormations.GetFormationCommand
+		or not customFormations.GetFormationOrders
+		or not customFormations.IsFormationActive() then
+		return nil
+	end
+
+	if customFormations.GetFormationCommand() ~= activeCommand then
+		return nil
+	end
+
+	return customFormations.GetFormationOrders()
 end
 
 --------------------------------------------------------------------------------
@@ -1762,93 +1948,113 @@ function widget:Shutdown()
 	DeleteDisplayLists()
 end
 
-function widget:DrawWorldPreUnit()
-	State.isOverMinimap = false
-
-	local weaponInfos, aimingUnitID = GetActiveUnitInfo()
-	if not weaponInfos then
-		ResetPulseAnimation()
-		return
-	end
-
-	local tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
-	if not tx then
-		ResetPulseAnimation()
-		return
-	end
-
+local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCamera, drawStockpile)
 	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
-	if not ux then
-		ResetPulseAnimation()
-		return
-	end
+	if not ux then return end
 
 	local weaponInfo = weaponInfos.primary
 	local dist = distance3d(ux, uy, uz, tx, ty, tz)
 	if weaponInfos.secondary and dist > weaponInfo.range then
 		weaponInfo = weaponInfos.secondary
 	end
-
-	-- Do not draw if unit can't move and targeting outside the range
 	if not weaponInfo.mobile and not spGetUnitWeaponTestRange(aimingUnitID, weaponInfo.weaponNum, tx, ty, tz) then
-		ResetPulseAnimation()
 		return
 	end
 
 	local aimData = State.aimData
-
 	aimData.weaponInfo = weaponInfo
 	aimData.unitID = aimingUnitID
-	aimData.distanceFromCamera = GetMouseDistance() or 1000
-
-	if (not weaponInfo.mobile) then
+	aimData.distanceFromCamera = distanceFromCamera
+	if not weaponInfo.mobile then
 		uy = uy + spGetUnitRadius(aimingUnitID)
 	end
 	aimData.source.x, aimData.source.y, aimData.source.z = ux, uy, uz
 
-	if not weaponInfo.waterWeapon and ty < 0 then
-		ty = 0
+	if not weaponInfo.waterWeapon and ty < 0 then ty = 0 end
+	if weaponInfo.isStarburst then
+		tx, ty, tz = GetCachedStarburstTarget(weaponInfo, aimingUnitID, tx, ty, tz)
 	end
 	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 
-	-- Color Calculation
 	local baseColor = weaponInfo.color or Config.Colors.aoe
 	local baseFillColor = weaponInfo.color or Config.Colors.none
 	local noStockpileColor = Config.Colors.noStockpile
 	local scatterColor = Config.Colors.scatter
-
 	if weaponInfo.hasStockpile then
-		-- handle transition from stockpile loading bar
 		local alpha = 1 - StockpileStatus.progressBarAlpha
 		LerpColor(noStockpileColor, baseColor, alpha, aimData.colors.base)
 		LerpColor(noStockpileColor, scatterColor, alpha, aimData.colors.scatter)
 		LerpColor(noStockpileColor, baseFillColor, alpha, aimData.colors.fill)
 	else
-		-- Copy to avoid creating new tables
 		CopyColor(baseColor, aimData.colors.base)
 		CopyColor(baseFillColor, aimData.colors.fill)
 		CopyColor(scatterColor, aimData.colors.scatter)
 	end
 
-	-- Skip world draw when hovering over the minimap; DrawInMiniMap handles it
+	local prediction = State.starburstPredictions[aimingUnitID]
+	local trajectoryList = prediction and prediction.trajectoryList
+	if weaponInfo.isStarburst and trajectoryList and trajectoryList ~= 0 then
+		SetGlColor(0.7, aimData.colors.base)
+		glLineWidth(max(1, screenLineWidthScale))
+		glCallList(trajectoryList)
+		glColor(1, 1, 1, 1)
+		glLineWidth(1)
+	end
+
+	local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe
+	handleWeaponType(aimData)
+
+	if drawStockpile and weaponInfo.hasStockpile then
+		local numStockpiled, _, buildPercent = spGetUnitStockpile(aimingUnitID)
+		if numStockpiled > 0 then buildPercent = 1 end
+		DrawStockpileProgress(aimData, buildPercent, baseColor, noStockpileColor)
+	end
+end
+
+function widget:DrawWorldPreUnit()
+	State.isOverMinimap = false
+	local weaponInfos, aimingUnitID, aimUnits, activeCommand = GetActiveUnitInfo()
+	if not weaponInfos then
+		ResetPulseAnimation()
+		return
+	end
+
+	local formationTargets = GetCustomFormationTargets(activeCommand)
+	local tx, ty, tz
+	if formationTargets then
+		local target = formationTargets[aimingUnitID]
+		if not target then
+			ResetPulseAnimation()
+			return
+		end
+		tx, ty, tz = target[1], target[2], target[3]
+	else
+		tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
+		if not tx then
+			ResetPulseAnimation()
+			return
+		end
+	end
+
 	local mx, my = spGetMouseState()
 	if spIsAboveMiniMap(mx, my) then
 		State.isOverMinimap = true
 		return
 	end
 
-	local handleWeaponType = WeaponTypeHandlers[weaponInfo.type] or DrawAoe
-	handleWeaponType(aimData)
-
-	-- Draw Stockpile Progress
-	if weaponInfo.hasStockpile then
-		local numStockpiled, numStockpileQued, buildPercent = spGetUnitStockpile(aimingUnitID)
-
-		if numStockpiled > 0 then
-			-- do not 'load' the bar during transition
-			buildPercent = 1
+	local distanceFromCamera = GetMouseDistance() or 1000
+	if Config.General.drawAoeForAllSelectedUnits then
+		for i = 1, #aimUnits do
+			local aimUnit = aimUnits[i]
+			local target = formationTargets and formationTargets[aimUnit.unitID]
+			if target then
+				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, target[1], target[2], target[3], distanceFromCamera, aimUnit.unitID == aimingUnitID)
+			elseif not formationTargets then
+				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, tx, ty, tz, distanceFromCamera, aimUnit.unitID == aimingUnitID)
+			end
 		end
-		DrawStockpileProgress(aimData, buildPercent, baseColor, noStockpileColor)
+	else
+		DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCamera, true)
 	end
 end
 

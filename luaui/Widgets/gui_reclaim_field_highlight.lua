@@ -131,6 +131,7 @@ local animCfg = {
 	cameraMoveDraw = -999,       -- drawCounter of the last detected camera move
 	cameraSettleDraws = 6,       -- draws of stillness before full-rate rebuilds resume
 	movingRebuildsPerFrame = 4,  -- alpha-only rebuild budget while the camera moves
+	visibilityGraceDraws = 2,    -- Ignore isolated distance/frustum rejects while the camera moves
 	-- Budget for building brand-new geometry (missing display lists). After a
 	-- full recluster hundreds of clusters need fresh lists; building them a few
 	-- per frame spreads that cost instead of stuttering in a single frame.
@@ -1186,8 +1187,9 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 			entry.inView = true
 			entry.dist = 0
 			entry.fadeMult = 1
+			entry.lastInViewDraw = currentDrawCount
 		else
-			cache[cid] = { frame = currentDrawCount, generation = cameraGeneration, inView = true, dist = 0, fadeMult = 1 }
+			cache[cid] = { frame = currentDrawCount, generation = cameraGeneration, inView = true, dist = 0, fadeMult = 1, lastInViewDraw = currentDrawCount }
 		end
 		return true, 0, 1
 	end
@@ -1227,8 +1229,22 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 		end
 	end
 
-	-- Cache the result (reuse existing table to reduce GC pressure)
+	-- Camera motion can put a cluster just outside the conservative frustum or
+	-- fade boundary for one draw. Keep the previous accepted state briefly so
+	-- that transient rejection cannot zero its animation or delete its lists.
 	local cached = cache[cid]
+	if inView then
+		if cached then
+			cached.lastInViewDraw = currentDrawCount
+		end
+	elseif cached and cached.lastInViewDraw
+		and currentDrawCount - cached.lastInViewDraw <= animCfg.visibilityGraceDraws
+	then
+		inView = true
+		fadeMult = cached.fadeMult or 0
+	end
+
+	-- Cache the result (reuse existing table to reduce GC pressure)
 	if cached then
 		cached.frame = currentDrawCount
 		cached.generation = cameraGeneration
@@ -1241,7 +1257,8 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 			generation = cameraGeneration,
 			inView = inView,
 			dist = dist,
-			fadeMult = fadeMult
+			fadeMult = fadeMult,
+			lastInViewDraw = inView and currentDrawCount or nil,
 		}
 	end
 
