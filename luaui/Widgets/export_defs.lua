@@ -187,10 +187,17 @@ local function ExportDefs()
 	ExportUnitDefs(soundIndex, iconTypeIndex)
 end
 
-function widget:TextCommand(command)
-	if command == "exportdefs" then
-		ExportDefs()
-	end
+local function exportdefsCmd(_, line)
+	ExportDefs()
+	return true
+end
+
+function widget:Initialize()
+	widgetHandler:AddAction("exportdefs", exportdefsCmd, nil, "t")
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("exportdefs", "t")
 end
 
 

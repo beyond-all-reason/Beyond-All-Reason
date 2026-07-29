@@ -819,6 +819,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the distortions for thi
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("distortionGL4stats", "t")
+	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
 	-- TODO: delete the VBOs and shaders like a good boy
 	WG['distortionsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDistortion')
@@ -1429,26 +1431,25 @@ if autoupdate then
 	end
 end
 
--- Register /luaui distortionGL4stats to dump distortion statistics
-function widget:TextCommand(command)
-	if stringFind(command, "distortionGL4stats", nil, true) then
-		spEcho(stringFormat("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
-				numAddDistortions,
-				pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
-				unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,
-				projectilePointDistortionVBO.usedElements, projectileBeamDistortionVBO.usedElements, projectileConeDistortionVBO.usedElements)
+local function distortionGL4statsCmd(_, line)
+	spEcho(stringFormat("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
+			numAddDistortions,
+			pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
+			unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,
+			projectilePointDistortionVBO.usedElements, projectileBeamDistortionVBO.usedElements, projectileConeDistortionVBO.usedElements)
 	)
-		return true
-	end
-	if stringFind(command, "distortionGL4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+	return true
+end
+
+local function distortionGL4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("distortionGL4stats", distortionGL4statsCmd, nil, "t")
+	widgetHandler:AddAction("distortionGL4skipdraw", distortionGL4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize distortionGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then

@@ -493,31 +493,25 @@ local CMD_FIGHT 		  = CMD.FIGHT
 local CMD_AREA_ATTACK 	  = CMD.AREA_ATTACK
 local CMD_MANUALFIRE	  = CMD.MANUALFIRE
 
-function widget:TextCommand(command)
-	local mycommand = false --buttonConfig["enemy"][tag]
-
-	if string.find(command, "defrange", nil, true) then
-		mycommand = true
-		local ally = 'ally'
-		local rangetype = 'ground'
-		local enabled = false
-		if string.find(command, "enemy", nil, true) then
-			ally = 'enemy'
-		end
-		if string.find(command, "nano", nil, true) then
-			rangetype = 'nano'
-		elseif string.find(command, "AA", nil, true) then
-			rangetype = 'AA'
-		end
-		if string.find(command, "+", nil, true) then
-			enabled = true
-		end
-		buttonConfig[ally][rangetype] = enabled
-		spEcho("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
-		return true
+local function defrangeCmd(_, line)
+	local command = line or ""
+	local ally = 'ally'
+	local rangetype = 'ground'
+	local enabled = false
+	if string.find(command, "enemy", nil, true) then
+		ally = 'enemy'
 	end
-
-	return false
+	if string.find(command, "nano", nil, true) then
+		rangetype = 'nano'
+	elseif string.find(command, "AA", nil, true) then
+		rangetype = 'AA'
+	end
+	if string.find(command, "+", nil, true) then
+		enabled = true
+	end
+	buttonConfig[ally][rangetype] = enabled
+	spEcho("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
+	return true
 end
 
 ------ GL4 THINGS  -----
@@ -987,6 +981,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("defrange", defrangeCmd, nil, "t")
+
 	initUnitList()
 
 	if initGL4() == false then
@@ -1037,6 +1033,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("defrange", "t")
 	widgetHandler:RemoveAction("cursor_range_toggle", "p")
 	widgetHandler:RemoveAction("attack_range_inc", "p")
 	widgetHandler:RemoveAction("attack_range_dec", "p")

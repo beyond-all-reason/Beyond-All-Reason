@@ -41,6 +41,7 @@ Spring.SendCommands({
 
 local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
@@ -153,6 +154,10 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundPreForward',
+	'DrawGroundPostForward',
+	'DrawGroundPreDeferred',
+	'DrawGroundPostDeferred',
 	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
@@ -166,6 +171,7 @@ local flexCallIns = {
 	'DrawScreenEffects',
 	'DrawScreenPost',
 	'DrawInMiniMap',
+ 	'DrawBuildSquare',
 	'DrawOpaqueUnitsLua',
 	'DrawOpaqueFeaturesLua',
 	'DrawAlphaUnitsLua',
@@ -255,6 +261,7 @@ local callInLists = {
 	'UnitParalyzeDamageHealthbars',
 	'UnitParalyzeDamageEffect',
 	'SelectedUnitsClear',
+	'SelectedUnitsSet',
 	'SelectedUnitsBatchUpdate',
 	'SelectedUnitsRemove',
 	'SelectedUnitsAdd',
@@ -264,6 +271,34 @@ local callInLists = {
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
 	--  'MouseRelease',
+}
+
+local headlessDisabledCallIns = {
+	FontsChanged = true,
+	ViewResize = true,
+	DrawScreen = true,
+	DrawGenesis = true,
+	DrawGroundDeferred = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawPreDecals = true,
+	DrawWorldPreParticles = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawUnitsPostDeferred = true,
+	DrawFeaturesPostDeferred = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawInMiniMap = true,
+	DrawBuildSquare = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	SunChanged = true,
 }
 
 -- append the flex call-ins
@@ -604,7 +639,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not allowuserwidgets)) then
+		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -1073,6 +1108,11 @@ end
 
 function widgetHandler:UpdateCallIn(name)
 	local listName = name .. 'List'
+	if isHeadless and headlessDisabledCallIns[name] then
+		_G[name] = nil
+		Script.UpdateCallIn(name)
+		return
+	end
 	if name == 'Update' or	name == 'DrawScreen' then
 		return
 	end
@@ -1601,6 +1641,46 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundPreForward()
+	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	local list = self.DrawGroundPreForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostForward()
+	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	local list = self.DrawGroundPostForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	local list = self.DrawGroundPreDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	local list = self.DrawGroundPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawGroundDeferred()
 	tracy.ZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
@@ -1823,6 +1903,13 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	end
 	tracy.ZoneEnd()
 	return
+end
+
+function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  for _,w in ripairs(self.DrawBuildSquareList) do
+    w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+  end
+  return
 end
 
 function widgetHandler:SunChanged()
@@ -2693,16 +2780,18 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg")
+	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 100))
 	local retval = false
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+	if msg:find('LobbyOverlayActive', 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
+		tracy.ZoneBeginN("W:RecvLuaMsg:"..w.whInfo.name)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return retval  --  FIXME  --  another actionHandler type?
@@ -3074,6 +3163,15 @@ function widgetHandler:SelectedUnitsClear(playerID)
 	tracy.ZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
+	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	for _, w in ipairs(self.SelectedUnitsSetList) do
+		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
 	tracy.ZoneEnd()
 	return

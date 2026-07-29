@@ -95,7 +95,6 @@ return {
 		reloadtime = 3.6,
 		soundhit = "xplomed4",
 		soundstart = "largegun",
-		soundstartvolume = 30,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

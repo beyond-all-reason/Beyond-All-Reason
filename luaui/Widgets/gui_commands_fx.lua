@@ -61,6 +61,7 @@ local texOffset = 0
 local prevOsClock = os_clock()
 
 local unprocessedCommands = {}
+local unprocessedCommandsStart = 1
 local unprocessedCommandsNum = 0
 local newUnitCommands = {}
 
@@ -410,15 +411,15 @@ end
 
 local function getQueueFingerprint(unitID)
 	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then return nil end
+	if not cmdCount or cmdCount <= 0 then return nil, 0 end
 	-- GetUnitCurrentCommand returns values directly — zero table allocation
 	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
-	if not cmdID then return nil end
+	if not cmdID then return nil, cmdCount end
 	-- Numeric fingerprint: cmdCount + cmdID + quantized position
 	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
 	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
 	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
-	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount
 end
 
 local function releaseQueue(command)
@@ -581,11 +582,13 @@ function widget:Shutdown()
 end
 
 local function RemovePreviousCommand(unitID)
-	if unitCommand[unitID] and commands[unitCommand[unitID]] then
-		local prev = commands[unitCommand[unitID]]
-		prev.draw = false
+	local previousCommandIndex = unitCommand[unitID]
+	local prev = previousCommandIndex and commands[previousCommandIndex]
+	if prev then
 		releaseQueue(prev)
-		prev.queueSize = 0
+		commands[previousCommandIndex] = nil
+		totalCommands = totalCommands - 1
+		releaseTable(prev)
 	end
 end
 
@@ -595,7 +598,7 @@ local function addUnitCommand(unitID, unitDefID, cmdID)
 		local cmd = getTable()
 		cmd.unitID = unitID
 		cmd.draw = false
-		unprocessedCommands[unprocessedCommandsNum] = cmd
+		unprocessedCommands[unprocessedCommandsStart + unprocessedCommandsNum - 1] = cmd
 		if useTeamColors or (mySpec and useTeamColorsWhenSpec) then
 			cmd.teamID = spGetUnitTeam(unitID)
 		end
@@ -630,9 +633,8 @@ local QTARGET_COORD = 1    -- static coordinate (MOVE, BUILD, PATROL, etc.)
 local QTARGET_UNIT = 2     -- unit target (needs live position each frame)
 local QTARGET_FEATURE = 3  -- feature target (position pre-extracted; features are static)
 
-local function getCommandsQueue(unitID)
-	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then
+local function getCommandsQueue(unitID, cmdCount)
+	if cmdCount <= 0 then
 		return nil, 0
 	end
 	local fetchCount = cmdCount < cmdLimitPerUnit and cmdCount or cmdLimitPerUnit
@@ -755,8 +757,10 @@ function widget:Update(dt)
 		queueShareGeneration = queueShareGeneration + 1
 		local qGen = queueShareGeneration
 
-		for k = 1, processLimit do
-			local cmd = unprocessedCommands[k]
+		for k = 0, processLimit - 1 do
+			local queueIndex = unprocessedCommandsStart + k
+			local cmd = unprocessedCommands[queueIndex]
+			unprocessedCommands[queueIndex] = nil
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
 				local i = maxCommand
@@ -767,7 +771,7 @@ function widget:Update(dt)
 				unitCommand[cmd.unitID] = i
 
 				-- Try to share queue with another unit that has identical commands
-				local fingerprint = getQueueFingerprint(cmd.unitID)
+				local fingerprint, cmdCount = getQueueFingerprint(cmd.unitID)
 				local cached = fingerprint and queueShareCache[fingerprint]
 				local our_q, qsize
 				if cached and cached.generation == qGen and cached.queue then
@@ -780,7 +784,7 @@ function widget:Update(dt)
 					commands[i].sharedQueue = cached
 				else
 					-- Full parse needed
-					our_q, qsize = getCommandsQueue(cmd.unitID)
+					our_q, qsize = getCommandsQueue(cmd.unitID, cmdCount)
 					if qsize > 0 then
 						commands[i].queue = our_q
 						commands[i].queueSize = qsize
@@ -822,22 +826,10 @@ function widget:Update(dt)
 			end
 			processedCount = processedCount + 1
 		end
-		-- Shift remaining unprocessed commands to front (if any left)
-		if processedCount < unprocessedCommandsNum then
-			local remaining = unprocessedCommandsNum - processedCount
-			for k = 1, remaining do
-				unprocessedCommands[k] = unprocessedCommands[processedCount + k]
-			end
-			for k = remaining + 1, unprocessedCommandsNum do
-				unprocessedCommands[k] = nil
-			end
-			unprocessedCommandsNum = remaining
-		else
-			-- Clear unprocessedCommands array (tables already moved to commands or released)
-			for k = 1, unprocessedCommandsNum do
-				unprocessedCommands[k] = nil
-			end
-			unprocessedCommandsNum = 0
+		unprocessedCommandsStart = unprocessedCommandsStart + processedCount
+		unprocessedCommandsNum = unprocessedCommandsNum - processedCount
+		if unprocessedCommandsNum == 0 then
+			unprocessedCommandsStart = 1
 		end
 	end
 end
@@ -917,6 +909,7 @@ function widget:DrawWorldPreUnit()
 				if unitCommand[unitID] == i then
 					unitCommand[unitID] = nil
 				end
+				releaseTable(command)
 
 			elseif command.draw and (spIsUnitInView(unitID) or
 				(command.x and spIsSphereInView(command.x, command.y, command.z, 1))) then
@@ -930,8 +923,18 @@ function widget:DrawWorldPreUnit()
 					local usedLineWidth = lineWidth - (progress * lineWidthDelta)
 					local queue = command.queue
 					local cmdTeamColour = useTeamColorsForDraw and command.teamID and teamColor[command.teamID]
+					local queueEnd = queueSize
+					local sharedQueue = command.sharedQueue
+					if sharedQueue then
+						if sharedQueue.drawGeneration == dGen then
+							queueEnd = 1
+						else
+							sharedQueue.drawGeneration = dGen
+						end
+					end
+					commandCount = commandCount + queueSize - queueEnd
 
-					for j = 1, queueSize do
+					for j = 1, queueEnd do
 						local qe = queue[j]
 						if not qe then break end  -- safety: queue may have been partially cleared
 						-- Resolve position from pre-extracted data

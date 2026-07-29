@@ -15,6 +15,7 @@ end
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local ignoreUnitDefs = {}
@@ -50,7 +51,8 @@ local spGetCameraDirection		= Spring.GetCameraDirection
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitTransporter		= Spring.GetUnitTransporter
 
-local spec = spGetSpectatingState()
+local myPlayerID = spGetMyPlayerID()
+local spec, fullView = spGetSpectatingState()
 
 
 
@@ -119,7 +121,7 @@ local function init()
 	drawLists = {}
 	font = WG['fonts'].getFont(2, 1.5)
 
-	spec = spGetSpectatingState()
+	spec, fullView = spGetSpectatingState()
 
 	activeSelfD = {}
 	queuedSelfD = {}
@@ -130,7 +132,11 @@ local function init()
 end
 
 function widget:PlayerChanged(playerID)
-	init()
+	local prevFullView = fullView
+	spec, fullView = spGetSpectatingState()
+	if playerID == myPlayerID and prevFullView ~= fullView then
+		init()
+	end
 end
 function widget:ViewResize(vsx,vsy)
 	init()

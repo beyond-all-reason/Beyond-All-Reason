@@ -1,3 +1,33 @@
+# July
+• [Stout, Brute] +10% buildtime, 1.1667s -> 1.2s reloadtime, 330 -> 350 sightdistance
+• [Rover] 1000 -> 1100 buildtime
+• [Pounder] 1500 -> 1400 health
+• [Grunt] 500 -> 520 sightdistance, 42 -> 43 metalcost
+• [Gunslinger] 1560 -> 1800 health, 49.5 -> 50 speed, 24 AoE added, 500 -> 600 weaponvelocity
+• [Welder] 9500 -> 8000 buildtime, 2950 -> 3500 health, 47.4 -> 48 speed
+• [Sumo] 15000 -> 12000 buildtime, 5940 -> 6500 health, 37.5 -> 38 speed, 0.16 -> 0.3 beamtime, 25 -> 55 dmg vs air
+• [Turtle] 450 -> 600 weaponvelocity, Impulse added
+• [Torpedo gunships]
+	- Puffin: 18000 -> 14000 buildtime, speed 271 -> 210, removed special damage vs commander
+	- Monsoon: 13000 -> 11000 buildtime, speed 266 -> 200, 5s -> 4s reloadtime
+• [AA turrets]
+	- Flak turrets: 775 -> 850 range, 0.5333 -> 0.5 reloadtime
+	- Chainsaw / Eradicator: 1125 -> 1200 range
+	- Ferret: 840 -> 950 range, 176 -> 208 DPS, Stealth added, 360 -> 330 metalcost, 5800 -> 5000 buildtime, 1330 -> 1600 health
+	- SAM: 840 -> 950 range, 190 -> 225 DPS, 315 -> 350 metalcost, 6100 -> 5500 energycost, 5240 -> 4500 buildtime, 2800 -> 2500 health
+• [T2 fighters]
+	- Highwind: +7% costs
+	- Nighthawk: +7% costs, 740 -> 690 range
+• [Legion changes]
+	- Phobos health increased 800 -> 840, turnrate increased 720 -> 800
+	- Karkinos cost reduced 330m2600E -> 310m2400E, heatray reloadtime reduced 2 -> 1.8s, shotgun range increased 240 -> 250
+	- Dragon's Jaw no longer gains range with elevation
+	- Arquebus reloadtime increased 6 -> 7s, damage increased 750 -> 850
+	- Thanatos reloadtime reduced 9 -> 8s
+	- Quickshot turret turn speed and weapon velocity increased
+	- Blindfold health reduced 890 -> 600, juno bomb aoe reduced 700 -> 500
+	- Phoenix bugfix, it should no longer fire up into space
+	
 # June
 • [General] Hold ALT when upgrading metal extractors to ignore allied extractors.
 • [All Builders] Idle mobile builders now auto-repair units within a range that depends on the movement state.
@@ -10,7 +40,6 @@
 	- Thalassa (T2 cruiser) range increased 450 -> 500
 	- Belcher sprayangle reduced 2500 -> 1500
 	- Advanced solar buildtime 13580 -> 12500
-
 
 # May
 • [T1 bot constructors] +70 health

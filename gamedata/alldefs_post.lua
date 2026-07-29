@@ -378,22 +378,6 @@ local function unitDef_Post(name, uDef)
 		customparams.evolution_timer                  = tonumber(customparams.evolution_timer) or 20
 	end
 
-	-- Tech Blocking System -------------------------------------------------------------------------------------------------------------------------
-	if modOptions.tech_blocking then
-		local techLevel = customparams.techlevel or 1
-		if #buildoptions > 0 and (not uDef.speed or uDef.speed == 0) then
-			if techLevel == 1 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 1
-			elseif techLevel == 2 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 6
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 2
-			elseif techLevel == 3 then
-				customparams.tech_points_gain = customparams.tech_points_gain or 9
-				customparams.tech_build_blocked_until_level = customparams.tech_build_blocked_until_level or 3
-			end
-		end
-	end
-
 	-- Extra Units ----------------------------------------------------------------------------------------------------------------------------------
 	if modOptions.experimentalextraunits then
 		extraUnitsTweaks(name, uDef)
@@ -573,14 +557,6 @@ local function unitDef_Post(name, uDef)
 
 	if modOptions.techsplit_balance == true then
 		uDef = techsplit_balanceTweaks(name, uDef)
-	end
-
-	-- Experimental Low Priority Pacifists
-	if modOptions.experimental_low_priority_pacifists then
-		if uDef.energycost and uDef.metalcost and not next(weapons) and uDef.speed and uDef.speed > 0 and
-		(string.find(name, "arm") or string.find(name, "cor") or string.find(name, "leg")) then
-			uDef.power = uDef.power or ((uDef.metalcost + uDef.energycost / 60) * 0.1) --recreate the default power formula obtained from the spring wiki for target prioritization
-		end
 	end
 
 	-- Multipliers Modoptions
@@ -775,6 +751,28 @@ local function unitDef_Post(name, uDef)
 		end
 	end
 
+	-- Defend firestate: aircraft, long-range, starburst, and drone carrier units engage threats at any range in defend mode
+	-- regardless of calculated threat distance (see luarules/gadgets/unit_defend_firestate.lua).
+	--DEFEND FIRESTATE REWORK: Remove modoption guard; always set defend_never_hesitate for qualifying units
+	if modOptions.experimental_defend_firestate then
+		local DEFEND_NEVER_HESITATE_RANGE = 2000
+
+		if not customparams.defend_never_hesitate and next(weapondefs) then
+			for _, weaponDef in pairs(weapondefs) do
+				if not weaponDef.customparams.bogus then
+					if uDef.canfly
+						or weaponDef.weapontype == "StarburstLauncher"
+						or (weaponDef.range and weaponDef.range > DEFEND_NEVER_HESITATE_RANGE)
+						or (weaponDef.customparams.carried_unit and weaponDef.customparams.carried_unit ~= "")
+					then
+						customparams.defend_never_hesitate = true
+						break
+					end
+				end
+			end
+		end
+	end
+
 	-- Suppress engine default piece explosion effects (handled by gfx_death_fire_smoke_gl4 widget)
 	if not uDef.sfxtypes then
 		uDef.sfxtypes = {}
@@ -788,41 +786,82 @@ local function unitDef_Post(name, uDef)
 	end
 end
 
+local weaponTypeSoundMultiplier = {
+	["LaserCannon"] = {
+		soundstartvolume = 0.8,
+		soundhitvolume = 0.8,
+		soundhitwetvolume = 0.5,
+	},
+	["BeamLaser"] = {
+		soundhitwetvolume = 0.3,
+	},
+	["TorpedoLauncher"] = {
+		soundstartvolume = 0.4,
+		soundhitvolume = 0.5,
+		soundhitwetvolume = 0.5,
+	},
+}
+
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
-	if not forceSetVolume then
-		return
-	end
 
-	local defaultDamage = wd.damage and wd.damage.default
-
-	if not defaultDamage or defaultDamage <= 50 then
-		-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
-		-- if not defaultDamage then
-		wd.soundstartvolume = 5
-		wd.soundhitvolume = 5
-		wd.soundhitwetvolume = 5
-		return
-	end
-
-	local soundVolume = math.sqrt(defaultDamage * 0.5)
-
-	if wd.weapontype == "LaserCannon" then
-		soundVolume = soundVolume * 0.5
-	end
-
-	if not wd.soundstartvolume then
-		wd.soundstartvolume = soundVolume
-	end
-	if not wd.soundhitvolume then
-		wd.soundhitvolume = soundVolume
-	end
-	if not wd.soundhitwetvolume then
-		if wd.weapontype == "LaserCannon" or "BeamLaser" then
-			wd.soundhitwetvolume = soundVolume * 0.3
-		else
-			wd.soundhitwetvolume = soundVolume * 1.4
+	local defaultDamage = 10
+	if wd.damage then -- pick weapon with the biggest damage, in case the default is very low.
+		for _, damage in pairs(wd.damage) do
+			defaultDamage = math.max(defaultDamage, damage)
 		end
+	end
+
+	local volumeMultiplier
+	if wd.customparams.sound_volume_multiplier then
+		volumeMultiplier = tonumber(wd.customparams.sound_volume_multiplier)
+	else
+		volumeMultiplier = 1
+	end
+
+	local startVolumeMultiplier
+	if wd.customparams.soundstart_volume_multiplier then
+		startVolumeMultiplier = tonumber(wd.customparams.soundstart_volume_multiplier)
+	else
+		startVolumeMultiplier = 1
+	end
+
+	local hitVolumeMultiplier
+	if wd.customparams.soundhit_volume_multiplier then
+		hitVolumeMultiplier = tonumber(wd.customparams.soundhit_volume_multiplier)
+	else
+		hitVolumeMultiplier = 1
+	end
+
+	local hitwetVolumeMultiplier
+	if wd.customparams.soundhitwet_volume_multiplier then
+		hitwetVolumeMultiplier = tonumber(wd.customparams.soundhitwet_volume_multiplier)
+	else
+		hitwetVolumeMultiplier = 1
+	end
+
+	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume then
+		wd.soundstartvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundstartvolume
+	else
+		wd.soundstartvolume = math.sqrt(defaultDamage * 0.5)
+	end
+
+	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume then
+		wd.soundhitvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundhitvolume
+	else
+		wd.soundhitvolume = math.sqrt(defaultDamage * 0.5)
+	end
+
+	if weaponTypeSoundMultiplier[wd.weapontype] and weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume then
+		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5) * weaponTypeSoundMultiplier[wd.weapontype].soundhitwetvolume
+	else
+		wd.soundhitwetvolume = math.sqrt(defaultDamage * 0.5)
+	end
+
+	wd.soundstartvolume = math.sqrt(math.min(200, math.max(1, wd.soundstartvolume)))*4*volumeMultiplier*startVolumeMultiplier
+	wd.soundhitvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitvolume)))*4*volumeMultiplier*hitVolumeMultiplier
+	wd.soundhitwetvolume = math.sqrt(math.min(200, math.max(1, wd.soundhitwetvolume)))*4*volumeMultiplier*hitwetVolumeMultiplier
+	if volumeMultiplier ~= 1 then
+		Spring.Echo("WeaponVolumes", wd.weapontype, defaultDamage, volumeMultiplier, wd.name, wd.soundstartvolume, wd.soundhitvolume, wd.soundhitwetvolume)
 	end
 end
 
@@ -851,6 +890,11 @@ local function weaponDef_Post(name, wDef)
 			if not isExempt then
 				wDef.mygravity = 0.1445
 			end
+		end
+
+		-- Remove water splashes on lava maps
+		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
+			wDef.explosiongenerator = "custom:blank"
 		end
 
 		----EMP rework

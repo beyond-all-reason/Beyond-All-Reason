@@ -48,6 +48,7 @@ local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spDestroyUnit = Spring.DestroyUnit
 
 local waterIsLava = Spring.GetModOptions().map_waterislava
@@ -109,7 +110,11 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
-					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					if spGetUnitRulesParam(unitID, "unit_effigy") then
+						spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+					else
+						spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					end
 				else
 					spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
 				end

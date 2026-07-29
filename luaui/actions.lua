@@ -101,6 +101,8 @@ end
 
 
 
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -164,6 +166,8 @@ end
 function actionHandler:RemoveSyncAction(widget, cmd)
   return RemoveMapAction(self.syncActions, widget, cmd)
 end
+
+
 
 
 function actionHandler:RemoveWidgetActions(widget)

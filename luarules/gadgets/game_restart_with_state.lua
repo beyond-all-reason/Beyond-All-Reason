@@ -344,6 +344,7 @@ local function restoreUnits()
 
 	-- Now that restored units exist, safely remove the old pre-restore units.
 	for i = 1, #oldUnits do
+		Spring.SetUnitRulesParam(oldUnits[i], "remove_decorations", 1)
 		Spring.DestroyUnit(oldUnits[i], false, true)
 	end
 

@@ -144,7 +144,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestGive)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestGive)
+		end
 	end
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction(cmdname)

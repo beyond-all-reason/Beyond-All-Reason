@@ -242,6 +242,19 @@ local function removeUnit(unitID)
 	end
 end
 
+local function showSelectedUnit(unitID)
+	if not spGetUnitDefID(unitID) then return end
+	selectedUnits[unitID] = false
+	local unitTeam = spGetUnitTeam(unitID)
+	local allyTeam = teamAllyTeam[unitTeam]
+	if allyTeam == nil then
+		allyTeam = select(6, spGetTeamInfo(unitTeam, false))
+		teamAllyTeam[unitTeam] = allyTeam
+	end
+	unitAllyteam[unitID] = allyTeam
+	addUnit(unitID)
+end
+
 local function selectPlayerSelectedUnits(playerID)
 	if not playerID then return end
 	local selectedByPlayer = playerSelectedUnits[playerID]
@@ -304,17 +317,7 @@ local function selectedUnitsAdd(playerID,unitID)
 	end
 
 	if not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID) then
-		if spGetUnitDefID(unitID) then
-			selectedUnits[unitID] = false
-			local unitTeam = spGetUnitTeam(unitID)
-			local allyTeam = teamAllyTeam[unitTeam]
-			if allyTeam == nil then
-				allyTeam = select(6, spGetTeamInfo(unitTeam, false))
-				teamAllyTeam[unitTeam] = allyTeam
-			end
-			unitAllyteam[unitID] = allyTeam
-			addUnit(unitID)
-		end
+		showSelectedUnit(unitID)
 	end
 	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
@@ -391,16 +394,8 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 					changed = true
 				end
 
-				if shouldDraw and spGetUnitDefID(unitID) then
-					selectedUnits[unitID] = false
-					local unitTeam = spGetUnitTeam(unitID)
-					local allyTeam = teamAllyTeam[unitTeam]
-					if allyTeam == nil then
-						allyTeam = select(6, spGetTeamInfo(unitTeam, false))
-						teamAllyTeam[unitTeam] = allyTeam
-					end
-					unitAllyteam[unitID] = allyTeam
-					addUnit(unitID)
+				if shouldDraw then
+					showSelectedUnit(unitID)
 				end
 			end
 		end
@@ -418,8 +413,60 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 	end
 end
 
+local function selectedUnitsSet(playerID, units, unitCount)
+	if not spec and playerID == myPlayerID then
+		return
+	end
+
+	local previousSelection = playerSelectedUnits[playerID] or {}
+	local nextSelection = {}
+	local nextCount = 0
+	for i = 1, unitCount do
+		local unitID = units[i]
+		if unitID and not nextSelection[unitID] then
+			nextSelection[unitID] = true
+			nextCount = nextCount + 1
+		end
+	end
+
+	local changed = nextCount ~= (playerSelectedUnitsCount[playerID] or 0)
+	local shouldDraw = not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID)
+	for unitID in pairs(previousSelection) do
+		if not nextSelection[unitID] then
+			changed = true
+			if shouldDraw then
+				widget:VisibleUnitRemoved(unitID)
+			end
+		end
+	end
+	for unitID in pairs(nextSelection) do
+		if not previousSelection[unitID] then
+			changed = true
+			if shouldDraw then
+				showSelectedUnit(unitID)
+			end
+		end
+	end
+
+	playerSelectedUnits[playerID] = nextSelection
+	playerSelectedUnitsCount[playerID] = nextCount
+	if changed then
+		bumpPlayerSelectionVersion(playerID)
+	end
+
+	if lockPlayerID and playerID == lockPlayerID and selectPlayerUnits then
+		selectPlayerSelectedUnits(lockPlayerID)
+		lockPlayerLastAppliedID = lockPlayerID
+		lockPlayerLastAppliedVersion = playerSelectionVersion[lockPlayerID] or 0
+	end
+end
+
 function widget:SelectedUnitsClear(playerID)
 	selectedUnitsClear(playerID)
+end
+
+function widget:SelectedUnitsSet(playerID, units, unitCount)
+	selectedUnitsSet(playerID, units, unitCount)
 end
 
 function widget:SelectedUnitsAdd(playerID, unitID)

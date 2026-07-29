@@ -28,9 +28,12 @@ local raptorTurrets = {}
 raptorTurrets["raptor_turret_basic_t2_v1"] = { minQueenAnger = 0, spawnedPerWave = 0.5, maxExisting = 20, maxQueenAnger = 1000, }
 raptorTurrets["raptor_turret_acid_t2_v1"]  = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
 raptorTurrets["raptor_turret_emp_t2_v1"]   = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_brood_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
 raptorTurrets["raptor_turret_basic_t3_v1"] = { minQueenAnger = 30, spawnedPerWave = 0.5, maxExisting = 6, maxQueenAnger = 1000, }
 raptorTurrets["raptor_turret_acid_t3_v1"]  = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
 raptorTurrets["raptor_turret_emp_t3_v1"]   = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
+raptorTurrets["raptor_turret_brood_t3_v1"] = { minQueenAnger = 45, spawnedPerWave = 0.25, maxExisting = 3, maxQueenAnger = 1000, }
+
 
 if not Spring.GetModOptions().unit_restrictions_nonukes then
 	raptorTurrets["raptor_turret_antinuke_t2_v1"] = { minQueenAnger = 15, spawnedPerWave = 0.25, maxExisting = 10, maxQueenAnger = 1000, }
@@ -44,8 +47,13 @@ if not Spring.GetModOptions().unit_restrictions_noair then
 end
 if not Spring.GetModOptions().unit_restrictions_nolrpc then
 	raptorTurrets["raptor_turret_basic_t4_v1"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_basic_t4_v2"] = { minQueenAnger = 60, spawnedPerWave = 0.25, maxExisting = 2, maxQueenAnger = 1000, }
 	raptorTurrets["raptor_turret_emp_t4_v1"]   = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_emp_t4_v2"]   = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
 	raptorTurrets["raptor_turret_acid_t4_v1"]  = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_acid_t4_v2"]  = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_brood_t4_v1"] = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
+	raptorTurrets["raptor_turret_brood_t4_v2"] = { minQueenAnger = 75, spawnedPerWave = 0.25, maxExisting = 1, maxQueenAnger = 1000, }
 end
 
 local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to be true, if some unit is not specified here, it drops random egg colors.
@@ -135,12 +143,19 @@ local raptorEggs = { -- Specify eggs dropped by unit here, requires useEggs to b
 	raptor_turret_basic_t2_v1             = "white",
 	raptor_turret_basic_t3_v1             = "white",
 	raptor_turret_basic_t4_v1             = "white",
+	raptor_turret_basic_t4_v2             = "white",
 	raptor_turret_emp_t2_v1               = "blue",
 	raptor_turret_emp_t3_v1               = "blue",
 	raptor_turret_emp_t4_v1               = "blue",
+	raptor_turret_emp_t4_v2               = "blue",
 	raptor_turret_acid_t2_v1              = "acidgreen",
 	raptor_turret_acid_t3_v1              = "acidgreen",
 	raptor_turret_acid_t4_v1              = "acidgreen",
+	raptor_turret_acid_t4_v2              = "acidgreen",
+	raptor_turret_brood_t2_v1             = "purple",
+	raptor_turret_brood_t3_v1             = "purple",
+	raptor_turret_brood_t4_v1             = "purple",
+	raptor_turret_brood_t4_v2             = "purple",
 	raptor_turret_antinuke_t2_v1          = "white",
 	raptor_turret_antinuke_t3_v1          = "white",
 	raptor_turret_antiair_t2_v1           = "red",
@@ -296,6 +311,7 @@ raptorBehaviours = {
 		[UnitDefNames["raptor_turret_basic_t2_v1"].id] = true,
 		[UnitDefNames["raptor_turret_basic_t3_v1"].id] = true,
 		[UnitDefNames["raptor_turret_basic_t4_v1"].id] = true,
+		[UnitDefNames["raptor_turret_basic_t4_v2"].id] = true,
 		[UnitDefNames["raptor_turret_meteor_t4_v1"].id] = true,
 		[UnitDefNames["raptor_hive"].id] = true,
 	},
