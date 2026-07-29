@@ -484,12 +484,15 @@ local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, pr
 		local groundY = spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY <= groundY then
 			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
+			if not hitX then
+				hitX, hitY, hitZ = nextX, groundY, nextZ
+			end
 			pathCount = pathCount + 1
 			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
 			return hitX, hitY, hitZ, pathCount
 		end
 		px, py, pz = nextX, nextY, nextZ
-		if frame % 8 == 0 then
+		if frame % 4 == 0 then
 			pathCount = pathCount + 1
 			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = px, py, pz
 		end
