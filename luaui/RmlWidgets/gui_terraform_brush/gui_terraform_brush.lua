@@ -1805,6 +1805,44 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- placement anywhere.
 	script = script:gsub("[Ss][Tt][Aa][Rr][Tt][Rr][Ee][Cc][Tt][A-Za-z]*%s*=[^;\r\n]*;?", "")
 
+	-- Startboxes have a SECOND source that the startrect strip above does not
+	-- cover: the lobby's mapmetadata_startbox* modoptions. game_startbox_config
+	-- decodes them into polygons, calls Spring.SetAllyTeamStartBox and enforces
+	-- them through GG.IsInsideStartbox, so inheriting them from a session that
+	-- was launched on a real map re-creates the dead-mouse symptom on the
+	-- canvas — placement silently confined to a band, scaled to the new map
+	-- size (the polygons are proportional, not absolute). Without them the
+	-- gadget falls back to a non-explicit config, which never restricts.
+	local function stripKeyCI(text, key)
+		local pattern = key:gsub("%a", function(c)
+			return "[" .. c:upper() .. c:lower() .. "]"
+		end)
+		return (text:gsub(pattern .. "%s*=[^;\r\n]*;?", ""))
+	end
+	script = stripKeyCI(script, "mapmetadata_startboxes_set")
+	script = stripKeyCI(script, "mapmetadata_startbox_override")
+
+	-- Stripping alone is NOT enough: with no startrect keys the engine falls back
+	-- to its own default rect for the allyteam, and the engine resolves the
+	-- pregame placement click against that rect BEFORE any Lua callin runs — so
+	-- clicks land only near the default rect (observed: only the map corner
+	-- accepted a commander, flat ground mid-map did nothing). Write an explicit
+	-- full-map rect into every allyteam block instead, which is what an editor
+	-- canvas wants: place anywhere. Fractions of map size, 0..1.
+	script = script:gsub("(%[[Aa][Ll][Ll][Yy][Tt][Ee][Aa][Mm]%d+%]%s*\r?\n?%s*{)",
+		"%1\nstartrectleft=0;\nstartrecttop=0;\nstartrectright=1;\nstartrectbottom=1;")
+
+	-- Editor sessions must never end: with deathmode=neverend both game_end and
+	-- game_team_com_ends remove themselves at init, so teams survive with zero
+	-- units (edit without commanders) and commander death cannot end the session.
+	script = script:gsub("[Dd][Ee][Aa][Tt][Hh][Mm][Oo][Dd][Ee]%s*=[^;\r\n]*;?", "")
+	local needModoptions = true
+	local _, moE = script:find("%[[Mm][Oo][Dd][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*\r?\n?%s*{")
+	if moE then
+		script = script:sub(1, moE) .. "\ndeathmode=neverend;" .. script:sub(moE + 1)
+		needModoptions = false
+	end
+
 	-- Swap the map name (the generator uses it as the generated map's label).
 	if script:find("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=") then
 		script = (script:gsub("[Mm][Aa][Pp][Nn][Aa][Mm][Ee]%s*=[^;\r\n]*;?", "mapname=" .. mapName .. ";", 1))
@@ -1855,14 +1893,23 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		opt[#opt + 1] = "blank_map_splatdetailnormaldiffusealpha=" .. (dntsSet.diffuseAlpha == 1 and 1 or 0) .. ";"
 	end
 
-	local inject = table.concat({
+	local injectParts = {
 		"InitBlank=1;",
 		"MapSeed=" .. seed .. ";",
 		"[mapoptions]",
 		"{",
 		table.concat(opt, "\n"),
 		"}",
-	}, "\n")
+	}
+	-- Source script had no [modoptions] block to receive deathmode=neverend:
+	-- create one at game scope alongside the [mapoptions] injection.
+	if needModoptions then
+		injectParts[#injectParts + 1] = "[modoptions]"
+		injectParts[#injectParts + 1] = "{"
+		injectParts[#injectParts + 1] = "deathmode=neverend;"
+		injectParts[#injectParts + 1] = "}"
+	end
+	local inject = table.concat(injectParts, "\n")
 
 	-- Insert immediately after the opening brace of the [game] block so the new
 	-- keys sit at game scope alongside mapname/modoptions.
