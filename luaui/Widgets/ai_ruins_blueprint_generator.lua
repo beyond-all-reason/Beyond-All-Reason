@@ -2,16 +2,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name      = "Ruins Blueprint Generator",
-	desc      = "Generates Lua blueprint code from selected units",
-	author    = "Damgam",
-	date      = "2020",
-	license   = "GNU GPL, v2 or later",
-	layer     = 0,
-	enabled   = true,
+		name = "Ruins Blueprint Generator",
+		desc = "Generates Lua blueprint code from selected units",
+		author = "Damgam",
+		date = "2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathCeil = math.ceil
@@ -101,8 +100,8 @@ local function generateCode(type)
 
 	for _, unitID in ipairs(selectedUnits) do
 		local unitDirection = Spring.GetUnitBuildFacing(unitID)
-		local xOffset = mathCeil(centerposx[unitID]-blueprintCenterX)
-		local zOffset = mathCeil(centerposz[unitID]-blueprintCenterZ)
+		local xOffset = mathCeil(centerposx[unitID] - blueprintCenterX)
+		local zOffset = mathCeil(centerposz[unitID] - blueprintCenterZ)
 		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -117,9 +116,8 @@ local function generateCode(type)
 	end
 
 	table.sort(buildings, function(b1, b2)
-			return b1.buildTime < b2.buildTime
-		end
-	)
+		return b1.buildTime < b2.buildTime
+	end)
 
 	file:write("\n")
 	file:write("local function " .. blueprintName .. "()", "\n")

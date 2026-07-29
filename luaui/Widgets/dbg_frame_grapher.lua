@@ -3,23 +3,20 @@
 -- reading on LuaVBO: https://github.com/beyond-all-reason/spring/blob/BAR/rts/Lua/LuaVBOImpl.cpp
 -- Quick video on what VAO/VBO are: https://www.youtube.com/watch?v=WMiggUPst-Q
 
-
-
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher",
-    desc = "Draw frame time graph in bottom right; bar height is elapsed frame time. Colors: red=sim, yellow=update, green=draw, blue=swap, magenta=error",
+		desc = "Draw frame time graph in bottom right; bar height is elapsed frame time. Colors: red=sim, yellow=update, green=draw, blue=swap, magenta=error",
 		author = "Beherith",
 		date = "2021.mar.29",
 		license = "GNU GPL, v2 or later",
 		layer = -200001,
-    
+
 		enabled = false,
 	}
 end
-
 
 -- Localized functions for performance
 local mathAbs = math.abs
@@ -47,7 +44,7 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
+local drawInstanceVBO = InstanceVBOTable.drawInstanceVBO
 
 local maxframes = 2500
 local vsx, vsy = 0, 0
@@ -75,13 +72,13 @@ local rulerFontSize = 10
 local rulerBaseTickLen = 8
 local rulerBasePaddingToLegend = 26
 local rulerBaseFontSize = 10
-local rulerTickMs = {0, 8, 16, 24, 33}
+local rulerTickMs = { 0, 8, 16, 24, 33 }
 local legendEntries = {
-  {1.0, 0.0, 0.0, "SIM"},
-  {1.0, 1.0, 0.0, "Update"},
-  {0.0, 1.0, 0.0, "Draw"},
-  {0.0, 0.0, 1.0, "Swap"},
-  {1.0, 0.0, 1.0, "Error"},
+	{ 1.0, 0.0, 0.0, "SIM" },
+	{ 1.0, 1.0, 0.0, "Update" },
+	{ 0.0, 1.0, 0.0, "Draw" },
+	{ 0.0, 0.0, 1.0, "Swap" },
+	{ 1.0, 0.0, 1.0, "Error" },
 }
 
 local vsSrc = [[
@@ -176,56 +173,57 @@ void main() {
 ]]
 --------------------------------------------------------------------------------
 
-
 function widget:Initialize()
-  local viewSizeX, viewSizeY = Spring.GetViewGeometry()
-  self:ViewResize(viewSizeX, viewSizeY)
+	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	self:ViewResize(viewSizeX, viewSizeY)
 
-  local rectvbo, numVertices = InstanceVBOTable.makeRectVBO(0,0,1,1,0,0,1,1)
-  rectInstanceTable = InstanceVBOTable.makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+100, "framegraphervbotable")
-  rectInstanceTable.VAO = InstanceVBOTable.makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
-  rectInstanceTable.numVertices = numVertices
+	local rectvbo, numVertices = InstanceVBOTable.makeRectVBO(0, 0, 1, 1, 0, 0, 1, 1)
+	rectInstanceTable = InstanceVBOTable.makeInstanceVBOTable({ { id = 1, name = "instances", size = 4 } }, maxframes + 100, "framegraphervbotable")
+	rectInstanceTable.VAO = InstanceVBOTable.makeVAOandAttach(rectvbo, rectInstanceTable.instanceVBO)
+	rectInstanceTable.numVertices = numVertices
 
-  local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-  rectShader = LuaShader({
-      vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs) ,
-      fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
-      uniformInt = {}, --  usually textures go here
-      uniformFloat = {  shaderparams = {alpha, 0.5, 0.5, 0.5},} -- other uniform params
-      })
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	rectShader = LuaShader({
+		vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+		fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
+		uniformInt = {}, --  usually textures go here
+		uniformFloat = { shaderparams = { alpha, 0.5, 0.5, 0.5 } }, -- other uniform params
+	})
 
-  local shaderCompiled = rectShader:Initialize()
-  if not shaderCompiled then
-   spEcho("Failed to compile shaders for: frame grapher v2")
-   widgetHandler:RemoveWidget(self)
-  end
-  timerstart = Spring.GetTimerMicros()
-  timerold = Spring.GetTimerMicros()
+	local shaderCompiled = rectShader:Initialize()
+	if not shaderCompiled then
+		spEcho("Failed to compile shaders for: frame grapher v2")
+		widgetHandler:RemoveWidget(self)
+	end
+	timerstart = Spring.GetTimerMicros()
+	timerold = Spring.GetTimerMicros()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-  if not viewSizeX or not viewSizeY then
-    viewSizeX, viewSizeY = Spring.GetViewGeometry()
-  end
-  vsx = viewSizeX
-  vsy = viewSizeY
+	if not viewSizeX or not viewSizeY then
+		viewSizeX, viewSizeY = Spring.GetViewGeometry()
+	end
+	vsx = viewSizeX
+	vsy = viewSizeY
 
-  uiScale = math.max(1, vsy / 1440)
-  graphHeightScale = 16 * uiScale
-  pixelsPerMs = graphHeightScale * 0.5
+	uiScale = math.max(1, vsy / 1440)
+	graphHeightScale = 16 * uiScale
+	pixelsPerMs = graphHeightScale * 0.5
 
-  legendRightPadding = math.floor(legendBaseRightPadding * uiScale + 0.5)
-  legendBottomPadding = math.floor(legendBaseBottomPadding * uiScale + 0.5)
-  legendFontSize = math.floor(legendBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
-  legendLineHeight = math.floor(legendBaseLineHeight * uiScale * legendTextScaleBoost + 0.5)
+	legendRightPadding = math.floor(legendBaseRightPadding * uiScale + 0.5)
+	legendBottomPadding = math.floor(legendBaseBottomPadding * uiScale + 0.5)
+	legendFontSize = math.floor(legendBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
+	legendLineHeight = math.floor(legendBaseLineHeight * uiScale * legendTextScaleBoost + 0.5)
 
-  rulerTickLen = math.floor(rulerBaseTickLen * uiScale + 0.5)
-  rulerPaddingToLegend = math.floor(rulerBasePaddingToLegend * uiScale + 0.5)
-  rulerFontSize = math.floor(rulerBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
+	rulerTickLen = math.floor(rulerBaseTickLen * uiScale + 0.5)
+	rulerPaddingToLegend = math.floor(rulerBasePaddingToLegend * uiScale + 0.5)
+	rulerFontSize = math.floor(rulerBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
 end
 
 function widget:Shutdown()
-	if rectShader then rectShader:Finalize() end
+	if rectShader then
+		rectShader:Finalize()
+	end
 end
 
 local wasgameframe = 0
@@ -233,104 +231,101 @@ local prevframems = 0
 local gameFrameHappened = false
 local drawspergameframe = 0
 
-
-local eventBuffer = {} 
--- This is a table of events that get pushed on every :DrawScreen 
+local eventBuffer = {}
+-- This is a table of events that get pushed on every :DrawScreen
 -- Even types are : "sim","update", "draw", "swap", params are start, duration, type
 
-local lastCallin = 'DrawGenesis'
+local lastCallin = "DrawGenesis"
 local lastTime = Spring.GetTimerMicros()
 
 local frametypeidx = {
-  sim = 1, -- 
-  update = 2, -- 
-  draw = 3, -- 
-  swap = 4, -- 
-  error = 5, -- error
+	sim = 1, --
+	update = 2, --
+	draw = 3, --
+	swap = 4, --
+	error = 5, -- error
 }
 
 local nowToPrevToFrameType = {
-  GameFramePost = {
-    GameFramePost = "error",
-    GameFrame = "sim",
-    DrawGenesis = "error",
-    DrawScreenPost = "error",
-    Update = "error",
-  },
-  GameFrame = {
-    GameFramePost = "none",
-    GameFrame = "error",
-    DrawGenesis = "error",
-    DrawScreenPost = "swap",
-    Update = "error",
-  },
-  DrawGenesis = {
-    GameFramePost = "error",
-    GameFrame = "error",
-    DrawGenesis = "error",
-    DrawScreenPost = "error",
-    Update = "update",
-  },
-  DrawScreenPost = {
-    GameFramePost = "error",
-    GameFrame = "error",
-    DrawGenesis = "draw",
-    DrawScreenPost = "error",
-    Update = "error",
-  },
-  Update = {
-    GameFramePost = "none",
-    GameFrame = "error",
-    DrawGenesis = "error",
-    DrawScreenPost = "swap",
-    Update = "error",
-  },
-
+	GameFramePost = {
+		GameFramePost = "error",
+		GameFrame = "sim",
+		DrawGenesis = "error",
+		DrawScreenPost = "error",
+		Update = "error",
+	},
+	GameFrame = {
+		GameFramePost = "none",
+		GameFrame = "error",
+		DrawGenesis = "error",
+		DrawScreenPost = "swap",
+		Update = "error",
+	},
+	DrawGenesis = {
+		GameFramePost = "error",
+		GameFrame = "error",
+		DrawGenesis = "error",
+		DrawScreenPost = "error",
+		Update = "update",
+	},
+	DrawScreenPost = {
+		GameFramePost = "error",
+		GameFrame = "error",
+		DrawGenesis = "draw",
+		DrawScreenPost = "error",
+		Update = "error",
+	},
+	Update = {
+		GameFramePost = "none",
+		GameFrame = "error",
+		DrawGenesis = "error",
+		DrawScreenPost = "swap",
+		Update = "error",
+	},
 }
 local function nowEvent(e)
-    local frameType = nowToPrevToFrameType[e][lastCallin]
-      local nowTime = Spring.GetTimerMicros()
-    if frameType ~= "error" then
-      local lastframetime = spDiffTimers(nowTime, timerstart, nil, true) * 1000 -- in MILLISECONDS
-      local lastframeduration = spDiffTimers(nowTime, lastTime, nil, true) * 1000 -- in MILLISECONDS
+	local frameType = nowToPrevToFrameType[e][lastCallin]
+	local nowTime = Spring.GetTimerMicros()
+	if frameType ~= "error" then
+		local lastframetime = spDiffTimers(nowTime, timerstart, nil, true) * 1000 -- in MILLISECONDS
+		local lastframeduration = spDiffTimers(nowTime, lastTime, nil, true) * 1000 -- in MILLISECONDS
 
-      eventBuffer[#eventBuffer+1] = {frameType, lastframetime, lastframeduration}
-      --spEcho("Event", frameType, "from", e,  "duration", lastframeduration, "ms")
-    end
-    lastTime = nowTime
-    lastCallin = e
+		eventBuffer[#eventBuffer + 1] = { frameType, lastframetime, lastframeduration }
+		--spEcho("Event", frameType, "from", e,  "duration", lastframeduration, "ms")
+	end
+	lastTime = nowTime
+	lastCallin = e
 end
 
-
-function widget:GameFramePost() 
-  nowEvent("GameFramePost")
-  --spEcho("GameFramePost", spGetGameFrame())
+function widget:GameFramePost()
+	nowEvent("GameFramePost")
+	--spEcho("GameFramePost", spGetGameFrame())
 end
 
 function widget:GameFrame(n)
-  nowEvent("GameFrame")
-  wasgameframe =  wasgameframe + 1
-  gameFrameHappened = true
-  if drawspergameframe ~= 2 then
-	--spEcho(drawspergameframe, "draws instead of 2", n)
-  end
-  drawspergameframe = 0
+	nowEvent("GameFrame")
+	wasgameframe = wasgameframe + 1
+	gameFrameHappened = true
+	if drawspergameframe ~= 2 then
+		--spEcho(drawspergameframe, "draws instead of 2", n)
+	end
+	drawspergameframe = 0
 end
 
 function widget:DrawGenesis()
-  nowEvent("DrawGenesis")
+	nowEvent("DrawGenesis")
 end
 
 function widget:DrawScreenPost()
-  nowEvent("DrawScreenPost")
+	nowEvent("DrawScreenPost")
 end
 
-function widget:Update() 
-  nowEvent("Update")
+function widget:Update()
+	nowEvent("Update")
 end
 
 function widget:DrawScreen()
---[[
+	--[[
   drawspergameframe = drawspergameframe + 1
 	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
 
@@ -368,71 +363,74 @@ function widget:DrawScreen()
     pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, 3}, rectInstancePtr, true)
   end
 
-]]--#region
+]]
+	--#region
 
-  for i = 1, #eventBuffer do
-    local event = eventBuffer[i]
-    local frametype = event[1]
-    local lastframetime = event[2]
-    local lastframeduration = event[3] 
+	for i = 1, #eventBuffer do
+		local event = eventBuffer[i]
+		local frametype = event[1]
+		local lastframetime = event[2]
+		local lastframeduration = event[3]
 
-    rectInstancePtr = rectInstancePtr+1
-    if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    local frameColor = frametypeidx[frametype]
-    --spEcho("Event", frametype, "frameColor", frameColor, lastframeduration, "ms", lastframetime)
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, frameColor, 0 }, rectInstancePtr, true)
-  end
-  eventBuffer = {} -- clear the event buffer
+		rectInstancePtr = rectInstancePtr + 1
+		if rectInstancePtr >= maxframes then
+			rectInstancePtr = 0
+		end
+		local frameColor = frametypeidx[frametype]
+		--spEcho("Event", frametype, "frameColor", frameColor, lastframeduration, "ms", lastframetime)
+		pushElementInstance(rectInstanceTable, { lastframetime, lastframeduration, frameColor, 0 }, rectInstancePtr, true)
+	end
+	eventBuffer = {} -- clear the event buffer
 
-  rectShader:Activate()
-   -- We should be setting individual uniforms AFTER activate
-  local shadertime = spDiffTimers(Spring.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
-  rectShader:SetUniform("shaderparams", shadertime, graphHeightScale, 0, 0)
-  drawInstanceVBO(rectInstanceTable)
-  rectShader:Deactivate()
+	rectShader:Activate()
+	-- We should be setting individual uniforms AFTER activate
+	local shadertime = spDiffTimers(Spring.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
+	rectShader:SetUniform("shaderparams", shadertime, graphHeightScale, 0, 0)
+	drawInstanceVBO(rectInstanceTable)
+	rectShader:Deactivate()
 
-  local legendX = vsx - legendRightPadding
-  local legendY = legendBottomPadding
+	local legendX = vsx - legendRightPadding
+	local legendY = legendBottomPadding
 
-  local legendMaxWidth = glGetTextWidth("Frame Colors") * legendFontSize
-  for i = 1, #legendEntries do
-    local entryWidth = glGetTextWidth("■ " .. legendEntries[i][4]) * legendFontSize
-    if entryWidth > legendMaxWidth then
-      legendMaxWidth = entryWidth
-    end
-  end
+	local legendMaxWidth = glGetTextWidth("Frame Colors") * legendFontSize
+	for i = 1, #legendEntries do
+		local entryWidth = glGetTextWidth("■ " .. legendEntries[i][4]) * legendFontSize
+		if entryWidth > legendMaxWidth then
+			legendMaxWidth = entryWidth
+		end
+	end
 
-  local rulerX = legendX - legendMaxWidth - rulerPaddingToLegend
-  local rulerTopY = legendY + rulerTickMs[#rulerTickMs] * pixelsPerMs
+	local rulerX = legendX - legendMaxWidth - rulerPaddingToLegend
+	local rulerTopY = legendY + rulerTickMs[#rulerTickMs] * pixelsPerMs
 
-  glColor(1, 1, 1, 1)
-  glText("Frame Colors", legendX, legendY + (#legendEntries * legendLineHeight), legendFontSize, "or")
-  for i = 1, #legendEntries do
-    local entry = legendEntries[i]
-    glColor(entry[1], entry[2], entry[3], 1)
-    glText("■ " .. entry[4], legendX, legendY + ((#legendEntries - i) * legendLineHeight), legendFontSize, "or")
-  end
+	glColor(1, 1, 1, 1)
+	glText("Frame Colors", legendX, legendY + (#legendEntries * legendLineHeight), legendFontSize, "or")
+	for i = 1, #legendEntries do
+		local entry = legendEntries[i]
+		glColor(entry[1], entry[2], entry[3], 1)
+		glText("■ " .. entry[4], legendX, legendY + ((#legendEntries - i) * legendLineHeight), legendFontSize, "or")
+	end
 
-  glColor(1, 1, 1, 0.85)
-  glBeginEnd(GL.LINES, function()
-    glVertex(rulerX, legendY, 0)
-    glVertex(rulerX, rulerTopY, 0)
-    for i = 1, #rulerTickMs do
-      local tickY = legendY + rulerTickMs[i] * pixelsPerMs
-      glVertex(rulerX - rulerTickLen, tickY, 0)
-      glVertex(rulerX, tickY, 0)
-    end
-  end)
+	glColor(1, 1, 1, 0.85)
+	glBeginEnd(GL.LINES, function()
+		glVertex(rulerX, legendY, 0)
+		glVertex(rulerX, rulerTopY, 0)
+		for i = 1, #rulerTickMs do
+			local tickY = legendY + rulerTickMs[i] * pixelsPerMs
+			glVertex(rulerX - rulerTickLen, tickY, 0)
+			glVertex(rulerX, tickY, 0)
+		end
+	end)
 
-  for i = 1, #rulerTickMs do
-    local tickMs = rulerTickMs[i]
-    local tickY = legendY + tickMs * pixelsPerMs
-    glText(tickMs .. "ms", rulerX - rulerTickLen - (4 * uiScale), tickY - (rulerFontSize * 0.35), rulerFontSize, "or")
-  end
+	for i = 1, #rulerTickMs do
+		local tickMs = rulerTickMs[i]
+		local tickY = legendY + tickMs * pixelsPerMs
+		glText(tickMs .. "ms", rulerX - rulerTickLen - (4 * uiScale), tickY - (rulerFontSize * 0.35), rulerFontSize, "or")
+	end
 
-  glColor(1, 1, 1, 1)
+	glColor(1, 1, 1, 1)
 
-  wasgameframe = 0
-  prevframems = lastframeduration
-  gameFrameHappened = false
+	wasgameframe = 0
+	prevframems = lastframeduration
+	gameFrameHappened = false
 end

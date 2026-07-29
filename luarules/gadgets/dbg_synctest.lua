@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2026-04-13",
 		license = "GNU GPL, v2 or later",
 		layer = -1999999999,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -29,14 +29,12 @@ local function isAuthorized(playerID, subPermission)
 	local playername = Spring.GetPlayerInfo(playerID)
 	local accountID = Spring.Utilities.GetAccountID(playerID)
 	local hasPermission = false
-	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or
-	   (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
+	if (_G and _G.permissions.devhelpers and (_G.permissions.devhelpers[accountID] or (playername and _G.permissions.devhelpers[playername]))) or (SYNCED and SYNCED.permissions.devhelpers and (SYNCED.permissions.devhelpers[accountID] or (playername and SYNCED.permissions.devhelpers[playername]))) then
 		hasPermission = true
 	end
 	if not hasPermission and subPermission then
 		local permKey = "devhelpers_" .. subPermission
-		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or
-		   (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
+		if (_G and _G.permissions[permKey] and (_G.permissions[permKey][accountID] or (playername and _G.permissions[permKey][playername]))) or (SYNCED and SYNCED.permissions[permKey] and (SYNCED.permissions[permKey][accountID] or (playername and SYNCED.permissions[permKey][playername]))) then
 			hasPermission = true
 		end
 	end
@@ -48,9 +46,7 @@ local function isAuthorized(playerID, subPermission)
 	return false
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	--------------------------------------------------------------------
 	-- Run configuration and state
 	--------------------------------------------------------------------
@@ -81,16 +77,15 @@ if gadgetHandler:IsSyncedCode() then
 	-- TODO: add `cons` (with mex-build onSpawn) and `transports` (with
 	-- load/unload onSpawn).
 	local categoryDefs = {
-		{ name = "bots",       t1 = "armpw",    t2 = "corak",    max = 400, step = 28, class = "land" },
-		{ name = "tanks",      t1 = "armbull",  t2 = "armbull",  max = 280, step = 14, class = "land" },
-		{ name = "fighters",   t1 = "corvamp",  t2 = "armhawk",  max = 280, step = 14, class = "air" },
-		{ name = "bombers",    t1 = "armpnix",  t2 = "corshad",  max = 140, step = 7,  class = "air" },
-		{ name = "hover",      t1 = "armanac",  t2 = "corsh",    max = 200, step = 14, class = "land" },
-		{ name = "subs",       t1 = "armsub",   t2 = "corsub",   max = 200, step = 14, class = "water" },
-		{ name = "ships",      t1 = "armpt",    t2 = "corpt",    max = 200, step = 14, class = "water" },
-		{ name = "spiders",    t1 = "armspid",  t2 = "armflea",  max = 200, step = 14, class = "land" },
-		{ name = "commanders", t1 = "armcom",   t2 = "corcom",   max = 3,   step = 1,  class = "land",
-			noMultiplier = true },
+		{ name = "bots", t1 = "armpw", t2 = "corak", max = 400, step = 28, class = "land" },
+		{ name = "tanks", t1 = "armbull", t2 = "armbull", max = 280, step = 14, class = "land" },
+		{ name = "fighters", t1 = "corvamp", t2 = "armhawk", max = 280, step = 14, class = "air" },
+		{ name = "bombers", t1 = "armpnix", t2 = "corshad", max = 140, step = 7, class = "air" },
+		{ name = "hover", t1 = "armanac", t2 = "corsh", max = 200, step = 14, class = "land" },
+		{ name = "subs", t1 = "armsub", t2 = "corsub", max = 200, step = 14, class = "water" },
+		{ name = "ships", t1 = "armpt", t2 = "corpt", max = 200, step = 14, class = "water" },
+		{ name = "spiders", t1 = "armspid", t2 = "armflea", max = 200, step = 14, class = "land" },
+		{ name = "commanders", t1 = "armcom", t2 = "corcom", max = 3, step = 1, class = "land", noMultiplier = true },
 	}
 
 	local enabledCats = {}
@@ -130,26 +125,40 @@ if gadgetHandler:IsSyncedCode() then
 	local function armRun(words)
 		if words[2] then
 			local f = tonumber(words[2])
-			if f then totalFrames = math.max(60, math.floor(f)) end
+			if f then
+				totalFrames = math.max(60, math.floor(f))
+			end
 		end
 		if words[3] then
 			local af = tonumber(words[3])
-			if af and af > 0 and af <= 1 then areaFraction = af end
+			if af and af > 0 and af <= 1 then
+				areaFraction = af
+			end
 		end
 		if words[4] then
 			local ox = tonumber(words[4])
-			if ox and ox >= 0 and ox <= 1 then areaOffsetX = ox end
+			if ox and ox >= 0 and ox <= 1 then
+				areaOffsetX = ox
+			end
 		end
 		if words[5] then
 			local oz = tonumber(words[5])
-			if oz and oz >= 0 and oz <= 1 then areaOffsetZ = oz end
+			if oz and oz >= 0 and oz <= 1 then
+				areaOffsetZ = oz
+			end
 		end
 		if words[6] then
 			local m = tonumber(words[6])
-			if m and m > 0 and m <= 8 then unitMultiplier = m end
+			if m and m > 0 and m <= 8 then
+				unitMultiplier = m
+			end
 		end
-		if areaOffsetX + areaFraction > 1 then areaOffsetX = 1 - areaFraction end
-		if areaOffsetZ + areaFraction > 1 then areaOffsetZ = 1 - areaFraction end
+		if areaOffsetX + areaFraction > 1 then
+			areaOffsetX = 1 - areaFraction
+		end
+		if areaOffsetZ + areaFraction > 1 then
+			areaOffsetZ = 1 - areaFraction
+		end
 
 		local now = Spring.GetGameFrame()
 
@@ -161,9 +170,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startFrame = tonumber(words[7])
 		startFrame = startFrame and math.floor(startFrame)
 		if not startFrame or startFrame <= now then
-			Spring.Echo(string.format(
-				"[synctest] ERROR: startFrame must be a frame after the current one (%d); got %s",
-				now, tostring(words[7])))
+			Spring.Echo(string.format("[synctest] ERROR: startFrame must be a frame after the current one (%d); got %s", now, tostring(words[7])))
 			return
 		end
 
@@ -182,18 +189,14 @@ if gadgetHandler:IsSyncedCode() then
 		computeFeatureDefsToRemove()
 		featurestoremove = {}
 
-		Spring.Echo(string.format(
-			"[synctest] starting: startframe=%d endframe=%d totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d",
-			runStartFrame, runEndFrame, totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier,
-			#enabledCats, #anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
+		Spring.Echo(string.format("[synctest] starting: startframe=%d endframe=%d totalframes=%d area=%.2f offset=%.2f,%.2f mult=%.2f categories=%d anchors land/water/air=%d/%d/%d", runStartFrame, runEndFrame, totalFrames, areaFraction, areaOffsetX, areaOffsetZ, unitMultiplier, #enabledCats, #anchorsByClass.land, #anchorsByClass.water, #anchorsByClass.air))
 		SendToUnsynced("synctest_synchash_begin", totalFrames, runStartFrame, runEndFrame)
 		active = true
 	end
 
 	local function endRun()
 		active = false
-		Spring.Echo(string.format("[synctest] ending on frame %d after %d frames",
-			Spring.GetGameFrame(), Spring.GetGameFrame() - runStartFrame))
+		Spring.Echo(string.format("[synctest] ending on frame %d after %d frames", Spring.GetGameFrame(), Spring.GetGameFrame() - runStartFrame))
 		removeAllSpawnedUnits()
 		SendToUnsynced("synctest_synchash_end")
 	end
@@ -202,8 +205,7 @@ if gadgetHandler:IsSyncedCode() then
 		if active then
 			endRun()
 		elseif pendingStartFrame then
-			Spring.Echo(string.format("[synctest] cancelling pending run (was to start on frame %d)",
-				pendingStartFrame))
+			Spring.Echo(string.format("[synctest] cancelling pending run (was to start on frame %d)", pendingStartFrame))
 			pendingStartFrame = nil
 		else
 			armRun(words)
@@ -218,7 +220,9 @@ if gadgetHandler:IsSyncedCode() then
 		if pendingStartFrame and n == pendingStartFrame then
 			beginRun(pendingStartFrame)
 		end
-		if not active then return end
+		if not active then
+			return
+		end
 
 		local runFrame = n - runStartFrame
 
@@ -275,9 +279,13 @@ if gadgetHandler:IsSyncedCode() then
 							anchorsByClass.water[#anchorsByClass.water + 1] = { x = x, z = z }
 							pickedWater = true
 						end
-						if pickedLand and pickedWater then break end
+						if pickedLand and pickedWater then
+							break
+						end
 					end
-					if pickedLand and pickedWater then break end
+					if pickedLand and pickedWater then
+						break
+					end
 				end
 			end
 		end
@@ -293,7 +301,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- test is solid.
 
 	function spawnBurstForCategoryAtAnchor(cat, teamID, udID, anchor)
-		if Spring.GetTeamUnitDefCount(teamID, udID) >= cat.effectiveMax then return {} end
+		if Spring.GetTeamUnitDefCount(teamID, udID) >= cat.effectiveMax then
+			return {}
+		end
 
 		local footprint = math.max(UnitDefs[udID].xsize, UnitDefs[udID].zsize)
 		local sqrtFeed = math.max(1, math.ceil(math.sqrt(cat.effectiveStep)))
@@ -335,10 +345,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	function spawnBurstForCategory(cat)
 		local anchors = anchorsByClass[cat.class]
-		if not anchors or #anchors == 0 then return end
+		if not anchors or #anchors == 0 then
+			return
+		end
 		cat.anchorCounter = cat.anchorCounter + 1
 		local anchor = anchors[((cat.anchorCounter - 1) % #anchors) + 1]
-		
+
 		-- make sure we spawn for both teams
 		spawnBurstForCategoryAtAnchor(cat, 0, cat.t1id, anchor)
 		spawnBurstForCategoryAtAnchor(cat, 1, cat.t2id, anchor)
@@ -359,18 +371,17 @@ if gadgetHandler:IsSyncedCode() then
 					cat.t1id = UnitDefNames[cat.t1].id
 					cat.t2id = UnitDefNames[cat.t2].id
 					if cat.noMultiplier then
-						cat.effectiveMax  = cat.max
+						cat.effectiveMax = cat.max
 						cat.effectiveStep = cat.step
 					else
-						cat.effectiveMax  = math.max(1, math.floor(cat.max  * unitMultiplier / 2.0))
+						cat.effectiveMax = math.max(1, math.floor(cat.max * unitMultiplier / 2.0))
 						cat.effectiveStep = math.max(1, math.floor(cat.step * unitMultiplier / 2.0))
 					end
 					enabledCats[#enabledCats + 1] = cat
 					allTeamUnitDefNames[cat.t1] = true
 					allTeamUnitDefNames[cat.t2] = true
 				else
-					Spring.Echo(string.format(
-						"[synctest] skipping category %s: no %s anchors", cat.name, cat.class))
+					Spring.Echo(string.format("[synctest] skipping category %s: no %s anchors", cat.name, cat.class))
 				end
 			end
 		end
@@ -393,7 +404,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:FeatureCreated(featureID, allyTeam)
-		if not active then return end
+		if not active then
+			return
+		end
 		local fdID = Spring.GetFeatureDefID(featureID)
 		if fdID and featureDefsToRemove[fdID] then
 			featurestoremove[featureID] = (Spring.GetGameFrame() - runStartFrame) + cleanupFeatureLife
@@ -458,8 +471,12 @@ if gadgetHandler:IsSyncedCode() then
 		for word in msg:gmatch("[%-_%w%.]+") do
 			table.insert(words, word)
 		end
-		if words[1] ~= "synctest" then return end
-		if not isAuthorized(playerID, "terrain") then return end
+		if words[1] ~= "synctest" then
+			return
+		end
+		if not isAuthorized(playerID, "terrain") then
+			return
+		end
 		toggleRun(words)
 	end
 
@@ -469,23 +486,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	function initrandom(seed)
 		math.randomseed(seed)
-		for i=1, 5000 do
+		for i = 1, 5000 do
 			seededrand[i] = math.random()
 		end
 		randindex = 1
 	end
 
 	function getrandom()
-		if #seededrand < 1 then initrandom(RUN_SEED) end
+		if #seededrand < 1 then
+			initrandom(RUN_SEED)
+		end
 		randindex = randindex + 1
-		if randindex > #seededrand then randindex = 1 end
+		if randindex > #seededrand then
+			randindex = 1
+		end
 		return seededrand[randindex]
 	end
-
-
-else	-- UNSYNCED
-
-
+else -- UNSYNCED
 	--------------------------------------------------------------------
 	-- HUD
 	--------------------------------------------------------------------
@@ -504,12 +521,13 @@ else	-- UNSYNCED
 	end
 
 	function gadget:DrawScreen()
-		if not hudActive then return end
+		if not hudActive then
+			return
+		end
 		local gameFrame = Spring.GetGameFrame()
 		local runFrame = hudRunStartFrame and (gameFrame - hudRunStartFrame) or 0
 		gl.Color(1, 1, 1, 1)
-		gl.Text(string.format("Synctest  frame %d / %d", runFrame, hudTotalFrames),
-			600 * uiScale, 600 * uiScale, 16 * uiScale)
+		gl.Text(string.format("Synctest  frame %d / %d", runFrame, hudTotalFrames), 600 * uiScale, 600 * uiScale, 16 * uiScale)
 	end
 
 	--------------------------------------------------------------------
@@ -535,7 +553,9 @@ else	-- UNSYNCED
 	end
 
 	local function writeSynchash()
-		if wroteSynchash then return end
+		if wroteSynchash then
+			return
+		end
 		wroteSynchash = true
 		local count = #checksumBuffer
 		if count == 0 then
@@ -568,15 +588,15 @@ else	-- UNSYNCED
 		end
 		f:write(content)
 		f:close()
-		Spring.Echo(string.format(
-			"[synctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)",
-			path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
+		Spring.Echo(string.format("[synctest] sync-hash: wrote %s (md5=%s, %d frames %d..%d)", path, digest, count, synchashFirstFrame or -1, synchashLastFrame or -1))
 		frameBuffer = {}
 		checksumBuffer = {}
 	end
 
 	function gadget:GameFrame(n)
-		if not hudActive then return end
+		if not hudActive then
+			return
+		end
 
 		-- Gate only sampling on the Platform flag, so a SYNCCHECK-less engine still
 		-- reaches writeSynchash and reports the empty file instead of going quiet.
@@ -586,7 +606,9 @@ else	-- UNSYNCED
 			local i = #checksumBuffer + 1
 			frameBuffer[i] = runFrame
 			checksumBuffer[i] = checksum
-			if not synchashFirstFrame then synchashFirstFrame = runFrame end
+			if not synchashFirstFrame then
+				synchashFirstFrame = runFrame
+			end
 			synchashLastFrame = runFrame
 		end
 
@@ -608,26 +630,31 @@ else	-- UNSYNCED
 	--------------------------------------------------------------------
 
 	local function synctest(_, line, words, playerID, action)
-		if playerID ~= Spring.GetMyPlayerID() then return end
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
 		Spring.Echo("[synctest]", line, playerID, action)
-		if not isAuthorized(playerID, "terrain") then return end
-		local msg = PACKET_HEADER .. ':synctest'
+		if not isAuthorized(playerID, "terrain") then
+			return
+		end
+		local msg = PACKET_HEADER .. ":synctest"
 		for i = 1, 6 do
-			if words[i] then msg = msg .. " " .. tostring(words[i]) end
+			if words[i] then
+				msg = msg .. " " .. tostring(words[i])
+			end
 		end
 		Spring.SendLuaRulesMsg(msg)
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction('synctest', synctest, "")
-		gadgetHandler:AddSyncAction('synctest_synchash_begin', onSynchashBegin)
-		gadgetHandler:AddSyncAction('synctest_synchash_end',   onSynchashEnd)
+		gadgetHandler:AddChatAction("synctest", synctest, "")
+		gadgetHandler:AddSyncAction("synctest_synchash_begin", onSynchashBegin)
+		gadgetHandler:AddSyncAction("synctest_synchash_end", onSynchashEnd)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('synctest')
-		gadgetHandler:RemoveSyncAction('synctest_synchash_begin')
-		gadgetHandler:RemoveSyncAction('synctest_synchash_end')
+		gadgetHandler:RemoveChatAction("synctest")
+		gadgetHandler:RemoveSyncAction("synctest_synchash_begin")
+		gadgetHandler:RemoveSyncAction("synctest_synchash_end")
 	end
-
 end

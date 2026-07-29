@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Terraform Suite Launcher",
-		desc    = "Loads the map editor suite on demand (/terraformbrush, /terraformpanel, /terraformsuite)",
-		author  = "PtaQ",
-		date    = "July 2026",
+		name = "Terraform Suite Launcher",
+		desc = "Loads the map editor suite on demand (/terraformbrush, /terraformpanel, /terraformsuite)",
+		author = "PtaQ",
+		date = "July 2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 		handler = true,
 	}
@@ -45,15 +45,25 @@ local SUITE_WIDGETS = {
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
 -- (/diffusepaint, /grassbrush, ...) become available once the suite is up.
 local ENTRY_ACTIONS = {
-	"terraformbrush", "terraformup", "terraformdown", "terraformlevel",
-	"terraformsmooth", "terraformerode", "terraformramp", "terraformrestore",
-	"terraformexport", "terraformimport", "terraformpanel",
+	"terraformbrush",
+	"terraformup",
+	"terraformdown",
+	"terraformlevel",
+	"terraformsmooth",
+	"terraformerode",
+	"terraformramp",
+	"terraformrestore",
+	"terraformexport",
+	"terraformimport",
+	"terraformpanel",
 }
 
 local suiteEnabled = false
 
 local function enableSuite()
-	if suiteEnabled then return false end
+	if suiteEnabled then
+		return false
+	end
 	suiteEnabled = true
 	Spring.Echo("[Terraform Suite] Loading map editor widgets...")
 	for i = 1, #SUITE_WIDGETS do

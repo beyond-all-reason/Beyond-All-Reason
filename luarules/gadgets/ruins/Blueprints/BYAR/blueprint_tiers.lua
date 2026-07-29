@@ -5,100 +5,104 @@ local wallUnitDefs = {
 	["arm"] = {
 		[1] = {
 			["land"] = {
-				unarmed = {"armdrag"},
-				armed = {"armclaw"},
+				unarmed = { "armdrag" },
+				armed = { "armclaw" },
 			},
 			["sea"] = {
-				unarmed = {"armfdrag"},
-				armed = {"armfdrag"}, -- placeholder,
+				unarmed = { "armfdrag" },
+				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
 			["land"] = {
-				unarmed = {"armfort"},
-				armed = {"armlwall"},
+				unarmed = { "armfort" },
+				armed = { "armlwall" },
 			},
 			["sea"] = {
-				unarmed = {"armfdrag"}, -- placeholder,
-				armed = {"armfdrag"}, -- placeholder,
+				unarmed = { "armfdrag" }, -- placeholder,
+				armed = { "armfdrag" }, -- placeholder,
 			},
 		},
 	},
 	["cor"] = {
 		[1] = {
 			["land"] = {
-				unarmed = {"cordrag"},
-				armed = {"cormaw"},
+				unarmed = { "cordrag" },
+				armed = { "cormaw" },
 			},
 			["sea"] = {
-				unarmed = {"corfdrag"},
-				armed = {"corfdrag"}, -- placeholder,
+				unarmed = { "corfdrag" },
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
 			["land"] = {
-				unarmed = {"corfort"},
-				armed = {"cormwall"},
+				unarmed = { "corfort" },
+				armed = { "cormwall" },
 			},
 			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 	},
 	["leg"] = {
 		[1] = {
 			["land"] = {
-				unarmed = {"legdrag"},
-				armed = {"legdtr"},
+				unarmed = { "legdrag" },
+				armed = { "legdtr" },
 			},
 			["sea"] = {
-				unarmed = {"legfdrag"},
-				armed = {"legfdrag"}, -- placeholder,
+				unarmed = { "legfdrag" },
+				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
 			["land"] = {
-				unarmed = {"legforti"},
-				armed = {"legrwall"},
+				unarmed = { "legforti" },
+				armed = { "legrwall" },
 			},
 			["sea"] = {
-				unarmed = {"legfdrag"}, -- placeholder,
-				armed = {"legfdrag"}, -- placeholder,
+				unarmed = { "legfdrag" }, -- placeholder,
+				armed = { "legfdrag" }, -- placeholder,
 			},
 		},
 	},
 	["scav"] = {
 		[1] = {
 			["land"] = {
-				unarmed = {"corscavdrag"},
-				armed = {"corscavdtf", "corscavdtl", "corscavdtm"},
+				unarmed = { "corscavdrag" },
+				armed = { "corscavdtf", "corscavdtl", "corscavdtm" },
 			},
 			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 		[2] = {
 			["land"] = {
-				unarmed = {"corscavfort"},
-				armed = {"corscavfort"}, -- placeholder,
+				unarmed = { "corscavfort" },
+				armed = { "corscavfort" }, -- placeholder,
 			},
 			["sea"] = {
-				unarmed = {"corfdrag"}, -- placeholder,
-				armed = {"corfdrag"}, -- placeholder,
+				unarmed = { "corfdrag" }, -- placeholder,
+				armed = { "corfdrag" }, -- placeholder,
 			},
 		},
 	},
 }
 
-
 function BPWallOrPopup(faction, tier, surface)
 	local wallRandom = math.random()
-	if not faction then faction = "scav" end
-	if not tier then tier = 1 end
-	if not surface then surface = "land" end
-
+	if not faction then
+		faction = "scav"
+	end
+	if not tier then
+		tier = 1
+	end
+	if not surface then
+		surface = "land"
+	end
 
 	if wallRandom <= 0.1 and wallUnitDefs[faction][tier][surface].armed[1] then -- armed
 		return UDN[wallUnitDefs[faction][tier][surface].armed[math.random(1, #wallUnitDefs[faction][tier][surface].armed)]].id

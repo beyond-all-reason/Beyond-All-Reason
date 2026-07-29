@@ -1,4 +1,3 @@
-
 if Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
@@ -7,13 +6,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "Self-Destruct Resign",
-		desc	= "Warn and cancel mass self-D while teammates are alive; on the third attempt allow it and send analytics",
-		author	= "Floris",
-		date	= "October 2021",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
-		enabled	= true,
+		name = "Self-Destruct Resign",
+		desc = "Warn and cancel mass self-D while teammates are alive; on the third attempt allow it and send analytics",
+		author = "Floris",
+		date = "October 2021",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -61,7 +60,6 @@ local function hasActiveHumanTeammate(teamID)
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local thresholdPercentage = 0.95
 	local allowedStrikes = 3
 
@@ -73,7 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function cancelSelfDestructOrders(teamID)
 		local units = spGetTeamUnits(teamID)
-		for i=1, #units do
+		for i = 1, #units do
 			local unitID = units[i]
 			if spGetUnitSelfDTime(unitID) > 0 then
 				Spring.GiveOrderToUnit(unitID, CMD_SELFD, {}, 0)
@@ -101,12 +99,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if strikes < allowedStrikes then
 			cancelSelfDestructOrders(teamID)
-			notifyTeamPlayers(teamID, 'selfdPolicyWarn')
+			notifyTeamPlayers(teamID, "selfdPolicyWarn")
 			return
 		end
 
 		-- Final strike: let self-D proceed and emit a single analytics event
-		notifyTeamPlayers(teamID, 'selfdMassAnalytics', unitCount, selfdUnitCount)
+		notifyTeamPlayers(teamID, "selfdMassAnalytics", unitCount, selfdUnitCount)
 	end
 
 	function gadget:Initialize()
@@ -123,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 					local skipResignAmount = unitCount - triggerResignAmount
 					local selfdUnitCount = 0
 					local skippedUnitCount = 0
-					for i=1, unitCount do
+					for i = 1, unitCount do
 						local unitID = units[i]
 						if spGetUnitSelfDTime(unitID) > 0 then
 							selfdUnitCount = selfdUnitCount + 1
@@ -134,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						elseif selfdUnitCount >= triggerResignAmount then
 							local LuaAI = Spring.GetTeamLuaAI(teamID)
-							if not LuaAI or not ( string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors") ) then
+							if not LuaAI or not (string.find(LuaAI, "Scavengers") or string.find(LuaAI, "Raptors")) then
 								handleMassSelfD(teamID, unitCount, selfdUnitCount)
 							end
 							break
@@ -152,11 +150,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
-
-
 else -- UNSYNCED
-
-
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myTeamID = Spring.GetMyTeamID()
 
@@ -168,8 +162,8 @@ else -- UNSYNCED
 			return
 		end
 
-		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI('GadgetMessageProxy') then
-			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.selfdPolicyWarn'))
+		if hasActiveHumanTeammate(myTeamID) and Script.LuaUI("GadgetMessageProxy") then
+			Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy("ui.selfdPolicyWarn"))
 		end
 	end
 
@@ -188,7 +182,7 @@ else -- UNSYNCED
 			return
 		end
 
-		if Script.LuaUI('SelfDResignAnalytics') then
+		if Script.LuaUI("SelfDResignAnalytics") then
 			Script.LuaUI.SelfDResignAnalytics("selfd_mass_allowed", {
 				time = Spring.GetGameFrame(),
 				gameID = Game.gameID or Spring.GetGameRulesParam("GameID"),
@@ -199,12 +193,12 @@ else -- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction('selfdPolicyWarn', selfdPolicyWarn)
-		gadgetHandler:AddSyncAction('selfdMassAnalytics', selfdMassAnalytics)
+		gadgetHandler:AddSyncAction("selfdPolicyWarn", selfdPolicyWarn)
+		gadgetHandler:AddSyncAction("selfdMassAnalytics", selfdMassAnalytics)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction('selfdPolicyWarn')
-		gadgetHandler:RemoveSyncAction('selfdMassAnalytics')
+		gadgetHandler:RemoveSyncAction("selfdPolicyWarn")
+		gadgetHandler:RemoveSyncAction("selfdMassAnalytics")
 	end
 end

@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'Energy Conversion',
-		desc = 'Handles converting energy to metal',
-		author = 'Niobium(modified by TheFatController, Finkky)',
-		version = 'v2.3',
-		date = 'May 2011',
-		license = 'GNU GPL, v2 or later',
+		name = "Energy Conversion",
+		desc = "Handles converting energy to metal",
+		author = "Niobium(modified by TheFatController, Finkky)",
+		version = "v2.3",
+		date = "May 2011",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -25,11 +25,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
-local mmLevelParamName = 'mmLevel'
-local mmCapacityParamName = 'mmCapacity'
-local mmUseParamName = 'mmUse'
-local mmAvgEffiParamName = 'mmAvgEffi'
+local alterLevelRegex = "^" .. string.char(137) .. "(%d+)$"
+local mmLevelParamName = "mmLevel"
+local mmCapacityParamName = "mmCapacity"
+local mmUseParamName = "mmUse"
+local mmAvgEffiParamName = "mmAvgEffi"
 local function SetMMRulesParams()
 	-- make convertCapacities accessible to all
 	for uDID, conv in pairs(convertCapacities) do
@@ -271,7 +271,6 @@ function gadget:Initialize()
 		spSetTeamRulesParam(tID, mmCapacityParamName, 0)
 		spSetTeamRulesParam(tID, mmUseParamName, 0)
 		spSetTeamRulesParam(tID, mmAvgEffiParamName, 0)
-
 	end
 end
 
@@ -290,7 +289,7 @@ function gadget:GameFrame(n)
 		local tID = teamList[tpos]
 		local efficiencyTracker = teamEfficiencies[tID]
 		if teamTotalCapacities[tID] ~= 0 or teamActiveMM[tID] ~= 0 or efficiencyTracker.activeSamples ~= 0 then
-			local eCur, eStor = spGetTeamResources(tID, 'energy')
+			local eCur, eStor = spGetTeamResources(tID, "energy")
 			local mmLevel = teamMMLevels[tID]
 			local convertAmount = eCur - eStor * mmLevel
 			local eConverted, mConverted = 0, 0
@@ -304,13 +303,13 @@ function gadget:GameFrame(n)
 						local convertStep = teamCapacity * resourceFraction
 						if convertStep > convertAmount then
 							convertStep = convertAmount
-					end
+						end
 						eConverted = convertStep + eConverted
 						mConverted = convertStep * eStep + mConverted
 						convertAmount = convertAmount - convertStep
 					else
 						break
-				end
+					end
 				end
 			end
 
@@ -427,7 +426,9 @@ function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
-	if string.byte(msg, 1) ~= 137 then return end -- fast guard: first byte must be char(137)
+	if string.byte(msg, 1) ~= 137 then
+		return
+	end -- fast guard: first byte must be char(137)
 	local newLevel = tonumber(msg:match(alterLevelRegex))
 	if newLevel and newLevel >= 0 and newLevel <= 100 then
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)

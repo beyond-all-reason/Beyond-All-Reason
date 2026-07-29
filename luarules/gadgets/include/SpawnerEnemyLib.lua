@@ -6,13 +6,12 @@ local adjustSide = function(sideMin, sideMax, mapSize, spread)
 		return sideMin, sideMax
 	end
 
-	local incrementBy = math.ceil((spread - sideSize)/2)
+	local incrementBy = math.ceil((spread - sideSize) / 2)
 	sideMin = sideMin - incrementBy
 	sideMax = sideMax + incrementBy
 	sideMin = math.max(sideMin, 0)
 	sideMax = math.min(sideMax, mapSize)
 	return sideMin, sideMax
-
 end
 
 local adjustStartBox = function(startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax, spread)

@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "26 September 2008",
 		license = "GNU LGPL, v2.1 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -112,14 +112,14 @@ local Config = {
 		maxFilledCircleAlpha = 0.35,
 		minFilledCircleAlpha = 0.15,
 		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
-		outerRingAlpha = 0.33,  -- Transparency for outer AOE circle
-		baseLineWidth = 1,     -- Base line width (scaled by screen resolution)
+		outerRingAlpha = 0.33, -- Transparency for outer AOE circle
+		baseLineWidth = 1, -- Base line width (scaled by screen resolution)
 	},
 	Animation = {
 		salvoSpeed = 0.1,
 		waveDuration = 0.35,
 		fadeDuration = 0,
-	}
+	},
 }
 
 -- Derived Constants
@@ -136,7 +136,9 @@ local function UpdateScreenScale()
 	local _, screenHeight = spGetViewGeometry()
 	-- Linear scale: 1.0 at 1080p, 2.3 at 2160p
 	screenLineWidthScale = 1.0 + (screenHeight - 1080) * (2 / 1080)
-	if screenLineWidthScale < 0.5 then screenLineWidthScale = 0.5 end  -- Minimum for low res
+	if screenLineWidthScale < 0.5 then
+		screenLineWidthScale = 0.5
+	end -- Minimum for low res
 end
 
 --------------------------------------------------------------------------------
@@ -144,7 +146,7 @@ end
 --------------------------------------------------------------------------------
 local napalmShader
 local shaderSourceCache = {
-	shaderName = 'AoE Napalm Shader',
+	shaderName = "AoE Napalm Shader",
 	vssrcpath = "LuaUI/Shaders/gui_attack_aoe_napalm.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/gui_attack_aoe_napalm.frag.glsl",
 	uniformInt = {},
@@ -153,8 +155,7 @@ local shaderSourceCache = {
 		center = { 0, 0 },
 		u_color = { 1, 0, 0, 0.5 },
 	},
-	shaderConfig = {
-	}
+	shaderConfig = {},
 }
 
 --------------------------------------------------------------------------------
@@ -189,7 +190,7 @@ local defaultAimData = {
 		base = { 0, 0, 0, 0 },
 		fill = { 0, 0, 0, 0 },
 		scatter = { 0, 0, 0, 0 },
-	}
+	},
 }
 
 local State = {
@@ -258,7 +259,9 @@ function StockpileStatus:Update(dt, unitID, hasStockpile)
 
 	if unitID and hasStockpile then
 		local count = spGetUnitStockpile(unitID)
-		if count == 0 then targetAlpha = 1 end
+		if count == 0 then
+			targetAlpha = 1
+		end
 	end
 
 	if self.progressBarAlpha < targetAlpha then
@@ -275,7 +278,6 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
 	local targetType, target = spTraceScreenRay(mx, my)
-
 
 	if not targetType or not target then
 		return nil
@@ -318,9 +320,9 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 		local shouldIgnoreUnit = false
 
 		if isDgun then
-			shouldIgnoreUnit = (isAlly and WG['dgunnoally']) or (not isAlly and WG['dgunnoenemy'])
+			shouldIgnoreUnit = (isAlly and WG["dgunnoally"]) or (not isAlly and WG["dgunnoenemy"])
 		else
-			shouldIgnoreUnit = (isAlly and WG['attacknoally'])
+			shouldIgnoreUnit = (isAlly and WG["attacknoally"])
 		end
 
 		if not shouldIgnoreUnit then
@@ -421,7 +423,9 @@ end
 
 local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, prediction)
 	local px, py, pz, weaponDirX, weaponDirY, weaponDirZ = spGetUnitWeaponVectors(unitID, weaponInfo.weaponNum)
-	if not px then return nil end
+	if not px then
+		return nil
+	end
 
 	py = py + 2
 	local pathX, pathY, pathZ = prediction.pathX, prediction.pathY, prediction.pathZ
@@ -436,7 +440,9 @@ local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, pr
 	local maxSpeed = weaponInfo.projectileSpeed
 	local acceleration = weaponInfo.weaponAcceleration
 	local turnRate = weaponInfo.turnRate
-	if turnRate == 0 then turnRate = 0.06 end
+	if turnRate == 0 then
+		turnRate = 0.06
+	end
 	-- The engine decrements uptime before the first trajectory update.
 	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
 
@@ -509,12 +515,7 @@ local function GetCachedStarburstTarget(weaponInfo, unitID, tx, ty, tz)
 		predictions[unitID] = prediction
 	end
 	local currentTime = osClock()
-	if prediction.unitID == unitID
-		and prediction.weaponNum == weaponInfo.weaponNum
-		and abs(prediction.targetX - tx) < 4
-		and abs(prediction.targetY - ty) < 4
-		and abs(prediction.targetZ - tz) < 4
-		and currentTime - prediction.updatedTime < 0.1 then
+	if prediction.unitID == unitID and prediction.weaponNum == weaponInfo.weaponNum and abs(prediction.targetX - tx) < 4 and abs(prediction.targetY - ty) < 4 and abs(prediction.targetZ - tz) < 4 and currentTime - prediction.updatedTime < 0.1 then
 		return prediction.x, prediction.y, prediction.z
 	end
 
@@ -622,13 +623,19 @@ end
 
 ---@param data IndicatorDrawData
 local function DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, rMax, alphaFactor)
-	if alphaFactor <= 0 then return end
+	if alphaFactor <= 0 then
+		return
+	end
 
 	local arcLength = rMax * spreadAngle * 2
 	local segments = ceil(arcLength / 20)
 
-	if segments < 8 then segments = 8 end
-	if segments > 64 then segments = 64 end
+	if segments < 8 then
+		segments = 8
+	end
+	if segments > 64 then
+		segments = 64
+	end
 
 	local step = (spreadAngle * 2) / segments
 
@@ -668,10 +675,7 @@ local function FindBestWeapon(unitDef)
 		if weapon.weaponDef then
 			local weaponDef = WeaponDefs[weapon.weaponDef]
 			if weaponDef then
-				local isValid = weaponDef.canAttackGround
-					and not (weaponDef.type == "Shield")
-					and not ToBool(weaponDef.interceptor)
-					and not string.find(weaponDef.name, "flak", nil, true)
+				local isValid = weaponDef.canAttackGround and not (weaponDef.type == "Shield") and not ToBool(weaponDef.interceptor) and not string.find(weaponDef.name, "flak", nil, true)
 
 				if isValid then
 					if weaponDef.manualFire and unitDef.canManualFire then
@@ -685,9 +689,7 @@ local function FindBestWeapon(unitDef)
 						-- Primary (highest spread)
 						validSecondaryWeapons[weaponNum] = weaponDef
 						local currentSpread = max(weaponDef.damageAreaOfEffect, weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle))
-						if (weaponDef.damageAreaOfEffect > best.maxSpread
-							or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > best.maxSpread
-							or weaponDef.type == "LightningCannon") then
+						if weaponDef.damageAreaOfEffect > best.maxSpread or weaponDef.range * (weaponDef.accuracy + weaponDef.sprayAngle) > best.maxSpread or weaponDef.type == "LightningCannon" then
 							best.maxSpread = currentSpread
 							best.weaponDef = weaponDef
 							best.weaponNum = weaponNum
@@ -842,14 +844,13 @@ local function SetupUnitDef(unitDefID, unitDef)
 		---@class WeaponInfos
 		Cache.weaponInfos[unitDefID] = {
 			primary = infoPrimary,
-			secondary = infoSecondary
+			secondary = infoSecondary,
 		}
 	end
 	if bestManual.weaponDef then
 		local info = BuildWeaponInfo(unitDef, bestManual.weaponDef, bestManual.weaponNum)
 		Cache.manualWeaponInfos[unitDefID] = { primary = info }
 	end
-
 end
 
 local function SetupDisplayLists()
@@ -877,13 +878,13 @@ local function SetupDisplayLists()
 	-- Nuclear trefoil (radiation symbol) display list
 	-- Consists of 3 fan blades at 120° intervals and a center hole
 	State.nuclearTrefoilList = glCreateList(function()
-		local innerRadius = 0.18  -- Center hole radius
-		local outerRadius = 0.85  -- Blade outer radius
-		local bladeAngle = rad(60)  -- Each blade spans 60 degrees
+		local innerRadius = 0.18 -- Center hole radius
+		local outerRadius = 0.85 -- Blade outer radius
+		local bladeAngle = rad(60) -- Each blade spans 60 degrees
 		local bladeSegments = 16
 
 		for blade = 0, 2 do
-			local baseAngle = blade * rad(120) - rad(90)  -- Start at top, 120° apart
+			local baseAngle = blade * rad(120) - rad(90) -- Start at top, 120° apart
 			local startAngle = baseAngle - bladeAngle / 2
 			local step = bladeAngle / bladeSegments
 
@@ -1003,9 +1004,9 @@ local function GetActiveUnitInfo()
 
 	local _, cmd, _ = spGetActiveCommand()
 
-	if ((cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and State.manualFireUnitDefID) then
+	if (cmd == CMD_MANUALFIRE or cmd == CMD_MANUAL_LAUNCH) and State.manualFireUnitDefID then
 		return Cache.manualWeaponInfos[State.manualFireUnitDefID], State.manualFireUnitID, State.manualAimUnits, cmd
-	elseif ((cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and State.attackUnitDefID) then
+	elseif (cmd == CMD_ATTACK or cmd == CMD_UNIT_SET_TARGET or cmd == CMD_UNIT_SET_TARGET_NO_GROUND) and State.attackUnitDefID then
 		return Cache.weaponInfos[State.attackUnitDefID], State.attackUnitID, State.attackAimUnits, cmd
 	else
 		return nil, nil
@@ -1014,11 +1015,7 @@ end
 
 local function GetCustomFormationTargets(activeCommand)
 	local customFormations = WG.customformations
-	if not customFormations
-		or not customFormations.IsFormationActive
-		or not customFormations.GetFormationCommand
-		or not customFormations.GetFormationOrders
-		or not customFormations.IsFormationActive() then
+	if not customFormations or not customFormations.IsFormationActive or not customFormations.GetFormationCommand or not customFormations.GetFormationOrders or not customFormations.IsFormationActive() then
 		return nil
 	end
 
@@ -1323,7 +1320,7 @@ local function DrawNoExplode(data, overrideSource)
 	local color
 	local alpha
 
-	if requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), 'energy')) < requiredEnergy then
+	if requiredEnergy and select(1, spGetTeamResources(spGetMyTeamID(), "energy")) < requiredEnergy then
 		color = Config.Colors.noEnergy
 		alpha = lerp(0, 1, State.pulsePhase)
 	else
@@ -1358,12 +1355,12 @@ local function DrawDGun(data)
 
 	local angle = atan2(ux - tx, uz - tz) + (pi / 2.1)
 	local dx, dz, offset_x, offset_z = ux, uz, 0, 0
-	if unitName == 'armcom' then
+	if unitName == "armcom" then
 		offset_x = (sin(angle) * 10)
 		offset_z = (cos(angle) * 10)
 		dx = ux - offset_x
 		dz = uz - offset_z
-	elseif unitName == 'corcom' or unitName == 'legcom' then
+	elseif unitName == "corcom" or unitName == "legcom" then
 		offset_x = (sin(angle) * 14)
 		offset_z = (cos(angle) * 14)
 		dx = ux + offset_x
@@ -1384,7 +1381,6 @@ end
 --- Calculates the launch vector to hit a target (dx, dy, dz) with speed v
 --- @param trajectoryMode number low (-1) or high (1) trajectory
 local function GetBallisticVector(initialSpeed, dx, dy, dz, trajectoryMode)
-
 	local horizontalDistSq = distance2dSquared(dx, dz, 0, 0)
 	local horizontalDist = sqrt(horizontalDistSq)
 
@@ -1450,8 +1446,12 @@ local function GetScatterImpact(ux, uz, calc_tx, calc_tz, v_f, gravity_f, height
 		local d1 = distance2dSquared(x1, z1, calc_tx, calc_tz)
 		local d2 = distance2dSquared(x2, z2, calc_tx, calc_tz)
 
-		if t1 < 0 then return x2, z2 end
-		if t2 < 0 then return x1, z1 end
+		if t1 < 0 then
+			return x2, z2
+		end
+		if t2 < 0 then
+			return x1, z1
+		end
 
 		if d1 < d2 then
 			return x1, z1
@@ -1543,8 +1543,12 @@ local function DrawBallisticScatter(data)
 	local axisUpZ = hz_up - calc_tz
 	local lenUp = diag(axisUpX, axisUpZ)
 
-	if lenRight > maxAxisLen then lenRight = maxAxisLen end
-	if lenUp > maxAxisLen then lenUp = maxAxisLen end
+	if lenRight > maxAxisLen then
+		lenRight = maxAxisLen
+	end
+	if lenUp > maxAxisLen then
+		lenUp = maxAxisLen
+	end
 
 	----------------------------------------------------------------------------
 	-- VISIBILITY
@@ -1569,7 +1573,9 @@ local function DrawBallisticScatter(data)
 	local rMin = dist - lenUp
 
 	-- Prevent drawing behind the unit
-	if rMin < 50 then rMin = 50 end
+	if rMin < 50 then
+		rMin = 50
+	end
 
 	-- Calculate Draw Angle:
 	-- We want the visual cone width to match the physical width (lenRight).
@@ -1673,8 +1679,12 @@ local function DrawWobbleScatter(data)
 	local timeFactor = pow(flightFrames, TIME_EXPONENT)
 	local spreadAngle = netWobble * SPREAD_CALIBRATION * timeFactor
 
-	if spreadAngle > 1.2 then spreadAngle = 1.2 end
-	if spreadAngle < 0.02 then spreadAngle = 0.02 end
+	if spreadAngle > 1.2 then
+		spreadAngle = 1.2
+	end
+	if spreadAngle < 0.02 then
+		spreadAngle = 0.02
+	end
 
 	local spreadRadius = clampedDist * tan(spreadAngle)
 
@@ -1706,7 +1716,9 @@ local function DrawWobbleScatter(data)
 	local rMax = dist + (spreadRadius * forwardBias)
 	local rMin = dist - (spreadRadius * backwardBias)
 
-	if rMin < 50 then rMin = 50 end
+	if rMin < 50 then
+		rMin = 50
+	end
 
 	-- Using lower overrangeDistance because projectiles won't reach it most of the time
 	-- but ensure it's actually larger than the range
@@ -1718,8 +1730,12 @@ local function DrawWobbleScatter(data)
 		overrange = overrange + (dist - clampedDist)
 	end
 
-	if rMax > overrange then rMax = overrange end
-	if rMin >= rMax then rMin = rMax - 10 end
+	if rMax > overrange then
+		rMax = overrange
+	end
+	if rMin >= rMax then
+		rMin = rMax - 10
+	end
 
 	-- 7. Recalculate Draw Angle for overrange
 	-- This keeps the indicator shaped exactly as it is at max range
@@ -1812,7 +1828,7 @@ local function DrawDropped(data)
 
 	local bx, _, bz = normalize(dx, 0, dz)
 
-	if (not bx) then
+	if not bx then
 		return
 	end
 
@@ -1886,7 +1902,7 @@ local function DrawNuke(data)
 	local minRingRadius = Config.General.minRingRadius
 
 	for ringIndex, damageLevel in ipairs(damageLevels) do
-		if ringIndex > 1 then  -- Skip innermost ring
+		if ringIndex > 1 then -- Skip innermost ring
 			local ringRadius = GetRadiusForDamageLevel(aoe, damageLevel, edgeEffectiveness)
 			if ringRadius >= minRingRadius then
 				local alphaFactor = GetAlphaFactorForRing(damageLevel, damageLevel + 0.4, ringIndex, phase, 1, triggerTimes)
@@ -1908,7 +1924,7 @@ local function DrawNuke(data)
 	SetGlColor(trefoilOpacity, color)
 	glPushMatrix()
 	glTranslate(tx, ty, tz)
-	glRotate(osClock() * 30, 0, 1, 0)  -- Slow rotation: 30 degrees per second
+	glRotate(osClock() * 30, 0, 1, 0) -- Slow rotation: 30 degrees per second
 	glScale(aoe * 0.55, aoe * 0.55, aoe * 0.55)
 	glCallList(State.nuclearTrefoilList)
 	glPopMatrix()
@@ -1953,7 +1969,9 @@ end
 
 local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCamera, drawStockpile)
 	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
-	if not ux then return end
+	if not ux then
+		return
+	end
 
 	local weaponInfo = weaponInfos.primary
 	local dist = distance3d(ux, uy, uz, tx, ty, tz)
@@ -1973,7 +1991,9 @@ local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCa
 	end
 	aimData.source.x, aimData.source.y, aimData.source.z = ux, uy, uz
 
-	if not weaponInfo.waterWeapon and ty < 0 then ty = 0 end
+	if not weaponInfo.waterWeapon and ty < 0 then
+		ty = 0
+	end
 	if weaponInfo.isStarburst then
 		tx, ty, tz = GetCachedStarburstTarget(weaponInfo, aimingUnitID, tx, ty, tz)
 	end
@@ -2009,7 +2029,9 @@ local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCa
 
 	if drawStockpile and weaponInfo.hasStockpile then
 		local numStockpiled, _, buildPercent = spGetUnitStockpile(aimingUnitID)
-		if numStockpiled > 0 then buildPercent = 1 end
+		if numStockpiled > 0 then
+			buildPercent = 1
+		end
 		DrawStockpileProgress(aimData, buildPercent, baseColor, noStockpileColor)
 	end
 end

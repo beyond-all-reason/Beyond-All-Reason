@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name    = "Light Placer",
-		desc    = "Brush tool for placing, arranging, and removing deferred GL4 lights on the map",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Light Placer",
+		desc = "Brush tool for placing, arranging, and removing deferred GL4 lights on the map",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000000,
+		layer = 1000000,
 		enabled = false,
 	}
 end
@@ -13,52 +13,52 @@ end
 ----------------------------------------------------------------
 -- Localize engine calls
 ----------------------------------------------------------------
-local Echo             = Spring.Echo
-local GetMouseState    = Spring.GetMouseState
-local GetModKeyState   = Spring.GetModKeyState
-local GetKeyState      = Spring.GetKeyState
-local TraceScreenRay   = Spring.TraceScreenRay
-local GetGroundHeight  = Spring.GetGroundHeight
-local GetGroundNormal  = Spring.GetGroundNormal
-local GetGameFrame     = Spring.GetGameFrame
+local Echo = Spring.Echo
+local GetMouseState = Spring.GetMouseState
+local GetModKeyState = Spring.GetModKeyState
+local GetKeyState = Spring.GetKeyState
+local TraceScreenRay = Spring.TraceScreenRay
+local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundNormal = Spring.GetGroundNormal
+local GetGameFrame = Spring.GetGameFrame
 
-local glColor     = gl.Color
+local glColor = gl.Color
 local glLineWidth = gl.LineWidth
-local glBeginEnd  = gl.BeginEnd
-local glVertex    = gl.Vertex
-local glPushMatrix  = gl.PushMatrix
-local glPopMatrix   = gl.PopMatrix
-local glTranslate   = gl.Translate
-local glDepthTest   = gl.DepthTest
-local GL_LINES      = GL.LINES
-local GL_LINE_LOOP  = GL.LINE_LOOP
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glDepthTest = gl.DepthTest
+local GL_LINES = GL.LINES
+local GL_LINE_LOOP = GL.LINE_LOOP
 
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
 local SAVE_DIR = "lightmaps/"
 
-local CIRCLE_SEGMENTS  = 48
-local DEFAULT_RADIUS   = 200
-local MIN_RADIUS       = 8
-local MAX_RADIUS       = 2000
-local RADIUS_STEP      = 8
-local ROTATION_STEP    = 3
-local COLOR_STEP       = 0.05
-local BRIGHTNESS_STEP  = 0.1
+local CIRCLE_SEGMENTS = 48
+local DEFAULT_RADIUS = 200
+local MIN_RADIUS = 8
+local MAX_RADIUS = 2000
+local RADIUS_STEP = 8
+local ROTATION_STEP = 3
+local COLOR_STEP = 0.05
+local BRIGHTNESS_STEP = 0.1
 local LIGHT_RADIUS_STEP = 10
-local ELEVATION_STEP   = 5
-local KEYSYMS_SPACE    = 0x20
-local UPDATE_INTERVAL  = 1 / 30
+local ELEVATION_STEP = 5
+local KEYSYMS_SPACE = 0x20
+local UPDATE_INTERVAL = 1 / 30
 
 local floor = math.floor
-local max   = math.max
-local min   = math.min
-local cos   = math.cos
-local sin   = math.sin
-local pi    = math.pi
-local sqrt  = math.sqrt
-local rad   = math.rad
+local max = math.max
+local min = math.min
+local cos = math.cos
+local sin = math.sin
+local pi = math.pi
+local sqrt = math.sqrt
+local rad = math.rad
 local atan2 = math.atan2
 
 local BrushShapes = VFS.Include("common/brush_shapes.lua")
@@ -68,39 +68,39 @@ local BrushShapes = VFS.Include("common/brush_shapes.lua")
 ----------------------------------------------------------------
 local LIGHT_DEFAULTS = {
 	point = {
-		radius     = 300,
-		color      = { 1.0, 0.9, 0.7 },
+		radius = 300,
+		color = { 1.0, 0.9, 0.7 },
 		brightness = 0.5,
 		modelfactor = 1.0,
-		specular   = 1.0,
+		specular = 1.0,
 		scattering = 1.0,
-		lensflare  = 0.0,
+		lensflare = 0.0,
 	},
 	cone = {
-		radius     = 500,
-		color      = { 1.0, 0.95, 0.8 },
+		radius = 500,
+		color = { 1.0, 0.95, 0.8 },
 		brightness = 0.5,
 		modelfactor = 1.0,
-		specular   = 1.0,
+		specular = 1.0,
 		scattering = 1.0,
-		lensflare  = 0.0,
-		theta      = 0.5,   -- half-angle radians (~28 degrees)
-		pitch      = -90,   -- degrees, pointing straight down by default
-		yaw        = 0,
-		roll       = 0,
+		lensflare = 0.0,
+		theta = 0.5, -- half-angle radians (~28 degrees)
+		pitch = -90, -- degrees, pointing straight down by default
+		yaw = 0,
+		roll = 0,
 	},
 	beam = {
-		radius     = 200,
-		color      = { 0.8, 0.9, 1.0 },
+		radius = 200,
+		color = { 0.8, 0.9, 1.0 },
 		brightness = 0.5,
 		modelfactor = 1.0,
-		specular   = 1.0,
+		specular = 1.0,
 		scattering = 1.0,
-		lensflare  = 0.0,
+		lensflare = 0.0,
 		beamLength = 300,
-		pitch      = 0,
-		yaw        = 0,
-		roll       = 0,
+		pitch = 0,
+		yaw = 0,
+		roll = 0,
 	},
 }
 
@@ -108,56 +108,56 @@ local LIGHT_DEFAULTS = {
 -- State
 ----------------------------------------------------------------
 local lp = {
-	active        = false,
-	mode          = nil,        -- "point", "scatter", "remove"
-	lightType     = "point",    -- "point", "cone", "beam"
-	shape         = "circle",
-	radius        = DEFAULT_RADIUS,
-	rotation      = 0,
-	lightCount    = 5,
-	cadence       = 50,
-	distribution  = "random",   -- "random", "regular", "clustered"
+	active = false,
+	mode = nil, -- "point", "scatter", "remove"
+	lightType = "point", -- "point", "cone", "beam"
+	shape = "circle",
+	radius = DEFAULT_RADIUS,
+	rotation = 0,
+	lightCount = 5,
+	cadence = 50,
+	distribution = "random", -- "random", "regular", "clustered"
 
 	-- Light parameters (current)
-	lightRadius     = 300,
-	color           = { 1.0, 0.9, 0.7 },
-	brightness      = 0.5,
-	modelfactor     = 1.0,
-	specular        = 1.0,
-	scattering      = 1.0,
-	lensflare       = 0.0,
+	lightRadius = 300,
+	color = { 1.0, 0.9, 0.7 },
+	brightness = 0.5,
+	modelfactor = 1.0,
+	specular = 1.0,
+	scattering = 1.0,
+	lensflare = 0.0,
 
 	-- Cone/beam direction (Euler angles in degrees)
-	pitch           = -45,
-	yaw             = 0,
-	roll            = 0,
+	pitch = -45,
+	yaw = 0,
+	roll = 0,
 
 	-- Cone specific
-	theta           = 0.5,
+	theta = 0.5,
 
 	-- Beam specific
-	beamLength      = 300,
+	beamLength = 300,
 
 	-- Elevation offset above ground
-	elevation       = 20,
+	elevation = 20,
 
 	-- Smart filter
-	smartEnabled  = false,
-	smartFilters  = {
-		avoidWater   = true,
-		avoidCliffs  = true,
-		slopeMax     = 45,
+	smartEnabled = false,
+	smartFilters = {
+		avoidWater = true,
+		avoidCliffs = true,
+		slopeMax = 45,
 		preferSlopes = false,
-		slopeMin     = 10,
+		slopeMin = 10,
 		altMinEnable = false,
-		altMin       = 0,
+		altMin = 0,
 		altMaxEnable = false,
-		altMax       = 200,
+		altMax = 200,
 	},
 
-	dragging      = false,
-	dragAction    = nil,
-	placeTimer    = 0,
+	dragging = false,
+	dragAction = nil,
+	placeTimer = 0,
 
 	-- For gizmo support (Phase 4)
 	selectedLight = nil,
@@ -166,16 +166,16 @@ local lp = {
 local updateTimer = 0
 
 -- Cursor preview light (removed when deactivated or position changes enough)
-local previewLight   = { id = nil, shape = nil }
+local previewLight = { id = nil, shape = nil }
 -- Last-applied preview params (plain values; cursor quantized to whole elmos
 -- to match the old "%.0f" string-hash rebuild cadence)
-local previewLast    = { valid = false }
+local previewLast = { valid = false }
 
 -- Pending preset: when set, MousePress places this entire preset at cursor
 -- and the preview shows the composite of preset lights following the cursor.
-local pendingPreset      = nil   -- presetData (with .lights array) or nil
-local presetPreviewLights = {}   -- array of { shape, id }
-local presetPreviewLast   = { valid = false }
+local pendingPreset = nil -- presetData (with .lights array) or nil
+local presetPreviewLights = {} -- array of { shape, id }
+local presetPreviewLast = { valid = false }
 
 ----------------------------------------------------------------
 -- Builtin presets
@@ -190,9 +190,16 @@ local BUILTIN_PRESETS = {
 				local angle = (i / 20) * 2 * pi + (i % 3) * 0.4
 				local dist = 60 + (i * 23) % 160
 				t[i] = {
-					type = "point", offsetX = cos(angle) * dist, offsetZ = sin(angle) * dist,
-					radius = 25 + (i % 5) * 8, color = { 0.6 + (i % 3) * 0.1, 0.8, 0.25 + (i % 4) * 0.05 },
-					brightness = 0.15 + (i % 4) * 0.05, modelfactor = 1, specular = 0.1, scattering = 0.8, lensflare = 0.15,
+					type = "point",
+					offsetX = cos(angle) * dist,
+					offsetZ = sin(angle) * dist,
+					radius = 25 + (i % 5) * 8,
+					color = { 0.6 + (i % 3) * 0.1, 0.8, 0.25 + (i % 4) * 0.05 },
+					brightness = 0.15 + (i % 4) * 0.05,
+					modelfactor = 1,
+					specular = 0.1,
+					scattering = 0.8,
+					lensflare = 0.15,
 				}
 			end
 			return t
@@ -227,9 +234,16 @@ local BUILTIN_PRESETS = {
 			for i = 1, 8 do
 				local angle = (i / 8) * 2 * pi
 				t[i] = {
-					type = "point", offsetX = cos(angle) * 100, offsetZ = sin(angle) * 100,
-					radius = 60, color = { 0.1, 0.7, 0.65 },
-					brightness = 0.6, modelfactor = 1, specular = 0.3, scattering = 1.2, lensflare = 0.1,
+					type = "point",
+					offsetX = cos(angle) * 100,
+					offsetZ = sin(angle) * 100,
+					radius = 60,
+					color = { 0.1, 0.7, 0.65 },
+					brightness = 0.6,
+					modelfactor = 1,
+					specular = 0.3,
+					scattering = 1.2,
+					lensflare = 0.1,
 				}
 			end
 			return t
@@ -240,11 +254,11 @@ local BUILTIN_PRESETS = {
 ----------------------------------------------------------------
 -- Placed lights tracking
 ----------------------------------------------------------------
-local placedLights = {}    -- { [instanceID] = lightDef }
-local nextLightID  = 1
-local undoStack    = {}    -- { { action="add"|"remove", lights={...} }, ... }
-local redoStack    = {}
-local MAX_UNDO     = 100
+local placedLights = {} -- { [instanceID] = lightDef }
+local nextLightID = 1
+local undoStack = {} -- { { action="add"|"remove", lights={...} }, ... }
+local redoStack = {}
+local MAX_UNDO = 100
 
 ----------------------------------------------------------------
 -- Utility: Euler angles to direction vector
@@ -280,15 +294,25 @@ end
 ----------------------------------------------------------------
 local function isPointValid(px, pz, sf)
 	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then return false end
+	if sf.avoidWater and h < 0 then
+		return false
+	end
 	local _, ny = GetGroundNormal(px, pz)
 	if ny then
 		local slopeAngle = math.acos(min(ny, 1.0)) * 180 / pi
-		if sf.avoidCliffs and slopeAngle > sf.slopeMax then return false end
-		if sf.preferSlopes and slopeAngle < sf.slopeMin then return false end
+		if sf.avoidCliffs and slopeAngle > sf.slopeMax then
+			return false
+		end
+		if sf.preferSlopes and slopeAngle < sf.slopeMin then
+			return false
+		end
 	end
-	if sf.altMinEnable and h < sf.altMin then return false end
-	if sf.altMaxEnable and h > sf.altMax then return false end
+	if sf.altMinEnable and h < sf.altMin then
+		return false
+	end
+	if sf.altMaxEnable and h > sf.altMax then
+		return false
+	end
 	return true
 end
 
@@ -347,11 +371,15 @@ end
 -- Add a single GL4 deferred light and track it
 ----------------------------------------------------------------
 local function addOneLight(px, pz, lightDef)
-	local lightsAPI = WG['lightsgl4']
-	if not lightsAPI then return nil end
+	local lightsAPI = WG["lightsgl4"]
+	if not lightsAPI then
+		return nil
+	end
 
 	local py = GetGroundHeight(px, pz)
-	if not py then py = 0 end
+	if not py then
+		py = 0
+	end
 	-- Elevate above ground: prefer per-light elevation (e.g. from save) over live slider.
 	local elevation = lightDef.elevation or lp.elevation
 	py = py + elevation
@@ -362,55 +390,34 @@ local function addOneLight(px, pz, lightDef)
 
 	local instanceID
 	if lightDef.type == "point" then
-		instanceID = lightsAPI.AddPointLight(
-			nil, nil, nil, nil,
-			px, py, pz, lightDef.radius,
-			r, g, b, 1.0,
-			0, 0, 0, 0,
-			lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare,
-			nil, 0, 1, 0
-		)
+		instanceID = lightsAPI.AddPointLight(nil, nil, nil, nil, px, py, pz, lightDef.radius, r, g, b, 1.0, 0, 0, 0, 0, lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare, nil, 0, 1, 0)
 	elseif lightDef.type == "cone" then
 		local dx, dy, dz = eulerToDirection(lightDef.pitch or -90, lightDef.yaw or 0)
-		instanceID = lightsAPI.AddConeLight(
-			nil, nil, nil, nil,
-			px, py, pz, lightDef.radius,
-			r, g, b, 1.0,
-			dx, dy, dz, lightDef.theta or 0.5, 0,
-			lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare,
-			nil, 0, 1, 0
-		)
+		instanceID = lightsAPI.AddConeLight(nil, nil, nil, nil, px, py, pz, lightDef.radius, r, g, b, 1.0, dx, dy, dz, lightDef.theta or 0.5, 0, lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare, nil, 0, 1, 0)
 	elseif lightDef.type == "beam" then
 		local ex, ey, ez = beamEndpoint(px, py, pz, lightDef.pitch or 0, lightDef.yaw or 0, lightDef.beamLength or 300)
-		instanceID = lightsAPI.AddBeamLight(
-			nil, nil, nil, nil,
-			px, py, pz, lightDef.radius,
-			r, g, b, 1.0,
-			ex, ey, ez, lightDef.radius, 0,
-			lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare,
-			nil, 0, 1, 0
-		)
+		instanceID = lightsAPI.AddBeamLight(nil, nil, nil, nil, px, py, pz, lightDef.radius, r, g, b, 1.0, ex, ey, ez, lightDef.radius, 0, lightDef.modelfactor, lightDef.specular, lightDef.scattering, lightDef.lensflare, nil, 0, 1, 0)
 	end
 
 	if instanceID then
 		local record = {
-			instanceID  = instanceID,
-			type        = lightDef.type,
-			pos         = { px, py, pz },
-			radius      = lightDef.radius,
-			color       = { lightDef.color[1], lightDef.color[2], lightDef.color[3] },
-			brightness  = lightDef.brightness,
+			instanceID = instanceID,
+			type = lightDef.type,
+			pos = { px, py, pz },
+			radius = lightDef.radius,
+			color = { lightDef.color[1], lightDef.color[2], lightDef.color[3] },
+			brightness = lightDef.brightness,
 			modelfactor = lightDef.modelfactor,
-			specular    = lightDef.specular,
-			scattering  = lightDef.scattering,
-			lensflare   = lightDef.lensflare,
-			pitch       = lightDef.pitch,
-			yaw         = lightDef.yaw,
-			roll        = lightDef.roll,
-			theta       = lightDef.theta,
-			beamLength  = lightDef.beamLength,
-			elevation   = elevation,
-			animation   = nil, -- reserved for Phase 3
+			specular = lightDef.specular,
+			scattering = lightDef.scattering,
+			lensflare = lightDef.lensflare,
+			pitch = lightDef.pitch,
+			yaw = lightDef.yaw,
+			roll = lightDef.roll,
+			theta = lightDef.theta,
+			beamLength = lightDef.beamLength,
+			elevation = elevation,
+			animation = nil, -- reserved for Phase 3
 		}
 		placedLights[instanceID] = record
 		return record
@@ -422,10 +429,14 @@ end
 -- Remove a placed light from the deferred renderer
 ----------------------------------------------------------------
 local function removeOneLight(instanceID)
-	local lightsAPI = WG['lightsgl4']
-	if not lightsAPI then return end
+	local lightsAPI = WG["lightsgl4"]
+	if not lightsAPI then
+		return
+	end
 	local record = placedLights[instanceID]
-	if not record then return end
+	if not record then
+		return
+	end
 
 	local lightShape
 	if record.type == "point" then
@@ -444,19 +455,19 @@ end
 ----------------------------------------------------------------
 local function buildLightDef()
 	return {
-		type        = lp.lightType,
-		radius      = lp.lightRadius,
-		color       = { lp.color[1], lp.color[2], lp.color[3] },
-		brightness  = lp.brightness,
+		type = lp.lightType,
+		radius = lp.lightRadius,
+		color = { lp.color[1], lp.color[2], lp.color[3] },
+		brightness = lp.brightness,
 		modelfactor = lp.modelfactor,
-		specular    = lp.specular,
-		scattering  = lp.scattering,
-		lensflare   = lp.lensflare,
-		pitch       = lp.pitch,
-		yaw         = lp.yaw,
-		roll        = lp.roll,
-		theta       = lp.theta,
-		beamLength  = lp.beamLength,
+		specular = lp.specular,
+		scattering = lp.scattering,
+		lensflare = lp.lensflare,
+		pitch = lp.pitch,
+		yaw = lp.yaw,
+		roll = lp.roll,
+		theta = lp.theta,
+		beamLength = lp.beamLength,
 	}
 end
 
@@ -472,7 +483,9 @@ local function pushUndo(action, lights)
 end
 
 local function doUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 	local entry = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
 
@@ -498,7 +511,9 @@ local function doUndo()
 end
 
 local function doRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 	local entry = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
 
@@ -537,19 +552,18 @@ local function placeAtPosition(worldX, worldZ)
 			return
 		end
 		local rec = addOneLight(worldX, worldZ, lightDef)
-		if rec then added[#added + 1] = rec end
-
+		if rec then
+			added[#added + 1] = rec
+		end
 	elseif lp.mode == "scatter" then
-		local positions = generateScatterPositions(
-			worldX, worldZ,
-			lp.radius, lp.lightCount,
-			lp.shape, lp.rotation, lp.distribution
-		)
+		local positions = generateScatterPositions(worldX, worldZ, lp.radius, lp.lightCount, lp.shape, lp.rotation, lp.distribution)
 		for _, pos in ipairs(positions) do
 			local px, pz = pos[1], pos[2]
 			if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
 				local rec = addOneLight(px, pz, lightDef)
-				if rec then added[#added + 1] = rec end
+				if rec then
+					added[#added + 1] = rec
+				end
 			end
 		end
 	end
@@ -585,14 +599,18 @@ local function placeSymmetric(fn, cx, cz)
 	local rot = lp.rotation or 0
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.angleSnap then
+			rot = st.rotationDeg or rot
+		end
 		if st.gridSnap and tb.snapWorld then
 			cx, cz = tb.snapWorld(cx, cz, rot)
 		end
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
-				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				for _, p in ipairs(positions) do
+					fn(p.x, p.z)
+				end
 				return
 			end
 		end
@@ -612,22 +630,22 @@ local function save(explicitPath)
 	local lightList = {}
 	for _, rec in pairs(placedLights) do
 		lightList[#lightList + 1] = {
-			type        = rec.type,
-			pos         = { rec.pos[1], rec.pos[2], rec.pos[3] },
-			radius      = rec.radius,
-			color       = { rec.color[1], rec.color[2], rec.color[3] },
-			brightness  = rec.brightness,
+			type = rec.type,
+			pos = { rec.pos[1], rec.pos[2], rec.pos[3] },
+			radius = rec.radius,
+			color = { rec.color[1], rec.color[2], rec.color[3] },
+			brightness = rec.brightness,
 			modelfactor = rec.modelfactor,
-			specular    = rec.specular,
-			scattering  = rec.scattering,
-			lensflare   = rec.lensflare,
-			pitch       = rec.pitch,
-			yaw         = rec.yaw,
-			roll        = rec.roll,
-			theta       = rec.theta,
-			beamLength  = rec.beamLength,
-			elevation   = rec.elevation,
-			animation   = rec.animation,
+			specular = rec.specular,
+			scattering = rec.scattering,
+			lensflare = rec.lensflare,
+			pitch = rec.pitch,
+			yaw = rec.yaw,
+			roll = rec.roll,
+			theta = rec.theta,
+			beamLength = rec.beamLength,
+			elevation = rec.elevation,
+			animation = rec.animation,
 		}
 	end
 
@@ -654,12 +672,24 @@ local function save(explicitPath)
 		b[#b + 1] = string.format("\t\t\tspecular = %.2f,\n", l.specular)
 		b[#b + 1] = string.format("\t\t\tscattering = %.2f,\n", l.scattering)
 		b[#b + 1] = string.format("\t\t\tlensflare = %.2f,\n", l.lensflare)
-		if l.pitch then b[#b + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch) end
-		if l.yaw   then b[#b + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw) end
-		if l.roll  then b[#b + 1] = string.format("\t\t\troll = %.1f,\n", l.roll) end
-		if l.theta then b[#b + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta) end
-		if l.beamLength then b[#b + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength) end
-		if l.elevation then b[#b + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation) end
+		if l.pitch then
+			b[#b + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch)
+		end
+		if l.yaw then
+			b[#b + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw)
+		end
+		if l.roll then
+			b[#b + 1] = string.format("\t\t\troll = %.1f,\n", l.roll)
+		end
+		if l.theta then
+			b[#b + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta)
+		end
+		if l.beamLength then
+			b[#b + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength)
+		end
+		if l.elevation then
+			b[#b + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation)
+		end
 		b[#b + 1] = "\t\t},\n"
 		blocks[#blocks + 1] = table.concat(b)
 	end
@@ -714,7 +744,7 @@ local function load(filename)
 			Echo("[LightPlacer] No saved light files found")
 			return false
 		end
-		filename = saves[#saves]  -- most recent (alphabetically last = most recent timestamp)
+		filename = saves[#saves] -- most recent (alphabetically last = most recent timestamp)
 	end
 
 	local chunk, err = loadfile(filename)
@@ -736,7 +766,9 @@ local function load(filename)
 	local added = {}
 	for _, l in ipairs(data.lights) do
 		local rec = addOneLight(l.pos[1], l.pos[3], l)
-		if rec then added[#added + 1] = rec end
+		if rec then
+			added[#added + 1] = rec
+		end
 	end
 
 	if #added > 0 then
@@ -753,7 +785,9 @@ end
 local PRESET_DIR = "lightmaps/presets/"
 
 local function saveUserPreset(presetName)
-	if not presetName or presetName == "" then return nil end
+	if not presetName or presetName == "" then
+		return nil
+	end
 
 	-- Sanitize name
 	local safeName = presetName:gsub("[^%w_%-]", "_")
@@ -778,29 +812,29 @@ local function saveUserPreset(presetName)
 
 	for _, rec in pairs(placedLights) do
 		lightList[#lightList + 1] = {
-			type        = rec.type,
-			offsetX     = rec.pos[1] - centerX,
-			offsetZ     = rec.pos[3] - centerZ,
-			radius      = rec.radius,
-			color       = { rec.color[1], rec.color[2], rec.color[3] },
-			brightness  = rec.brightness,
+			type = rec.type,
+			offsetX = rec.pos[1] - centerX,
+			offsetZ = rec.pos[3] - centerZ,
+			radius = rec.radius,
+			color = { rec.color[1], rec.color[2], rec.color[3] },
+			brightness = rec.brightness,
 			modelfactor = rec.modelfactor,
-			specular    = rec.specular,
-			scattering  = rec.scattering,
-			lensflare   = rec.lensflare,
-			pitch       = rec.pitch,
-			yaw         = rec.yaw,
-			roll        = rec.roll,
-			theta       = rec.theta,
-			beamLength  = rec.beamLength,
-			elevation   = rec.elevation,
+			specular = rec.specular,
+			scattering = rec.scattering,
+			lensflare = rec.lensflare,
+			pitch = rec.pitch,
+			yaw = rec.yaw,
+			roll = rec.roll,
+			theta = rec.theta,
+			beamLength = rec.beamLength,
+			elevation = rec.elevation,
 		}
 	end
 
 	local data = {
 		version = 1,
-		name    = presetName,
-		lights  = lightList,
+		name = presetName,
+		lights = lightList,
 	}
 
 	local lines = { "return {\n", "\tversion = 1,\n", '\tname = "' .. presetName .. '",\n', "\tlights = {\n" }
@@ -816,12 +850,24 @@ local function saveUserPreset(presetName)
 		lines[#lines + 1] = string.format("\t\t\tspecular = %.2f,\n", l.specular)
 		lines[#lines + 1] = string.format("\t\t\tscattering = %.2f,\n", l.scattering)
 		lines[#lines + 1] = string.format("\t\t\tlensflare = %.2f,\n", l.lensflare)
-		if l.pitch then lines[#lines + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch) end
-		if l.yaw   then lines[#lines + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw) end
-		if l.roll  then lines[#lines + 1] = string.format("\t\t\troll = %.1f,\n", l.roll) end
-		if l.theta then lines[#lines + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta) end
-		if l.beamLength then lines[#lines + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength) end
-		if l.elevation then lines[#lines + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation) end
+		if l.pitch then
+			lines[#lines + 1] = string.format("\t\t\tpitch = %.1f,\n", l.pitch)
+		end
+		if l.yaw then
+			lines[#lines + 1] = string.format("\t\t\tyaw = %.1f,\n", l.yaw)
+		end
+		if l.roll then
+			lines[#lines + 1] = string.format("\t\t\troll = %.1f,\n", l.roll)
+		end
+		if l.theta then
+			lines[#lines + 1] = string.format("\t\t\ttheta = %.3f,\n", l.theta)
+		end
+		if l.beamLength then
+			lines[#lines + 1] = string.format("\t\t\tbeamLength = %.1f,\n", l.beamLength)
+		end
+		if l.elevation then
+			lines[#lines + 1] = string.format("\t\t\televation = %.1f,\n", l.elevation)
+		end
 		lines[#lines + 1] = "\t\t},\n"
 	end
 	lines[#lines + 1] = "\t},\n"
@@ -853,14 +899,18 @@ local function listUserPresets()
 end
 
 local function placePreset(presetData, worldX, worldZ)
-	if not presetData or not presetData.lights then return end
+	if not presetData or not presetData.lights then
+		return
+	end
 	local added = {}
 	for _, l in ipairs(presetData.lights) do
 		local px = worldX + (l.offsetX or 0)
 		local pz = worldZ + (l.offsetZ or 0)
 		if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
 			local rec = addOneLight(px, pz, l)
-			if rec then added[#added + 1] = rec end
+			if rec then
+				added[#added + 1] = rec
+			end
 		end
 	end
 	if #added > 0 then
@@ -882,86 +932,81 @@ end
 ----------------------------------------------------------------
 local function applyLightTypeDefaults(lightType)
 	local defaults = LIGHT_DEFAULTS[lightType]
-	if not defaults then return end
-	lp.lightType    = lightType
-	lp.lightRadius  = defaults.radius
-	lp.color        = { defaults.color[1], defaults.color[2], defaults.color[3] }
-	lp.brightness   = defaults.brightness
-	lp.modelfactor  = defaults.modelfactor
-	lp.specular     = defaults.specular
-	lp.scattering   = defaults.scattering
-	lp.lensflare    = defaults.lensflare
-	if defaults.theta      then lp.theta      = defaults.theta end
-	if defaults.pitch      then lp.pitch      = defaults.pitch end
-	if defaults.yaw        then lp.yaw        = defaults.yaw end
-	if defaults.roll       then lp.roll       = defaults.roll end
-	if defaults.beamLength then lp.beamLength = defaults.beamLength end
+	if not defaults then
+		return
+	end
+	lp.lightType = lightType
+	lp.lightRadius = defaults.radius
+	lp.color = { defaults.color[1], defaults.color[2], defaults.color[3] }
+	lp.brightness = defaults.brightness
+	lp.modelfactor = defaults.modelfactor
+	lp.specular = defaults.specular
+	lp.scattering = defaults.scattering
+	lp.lensflare = defaults.lensflare
+	if defaults.theta then
+		lp.theta = defaults.theta
+	end
+	if defaults.pitch then
+		lp.pitch = defaults.pitch
+	end
+	if defaults.yaw then
+		lp.yaw = defaults.yaw
+	end
+	if defaults.roll then
+		lp.roll = defaults.roll
+	end
+	if defaults.beamLength then
+		lp.beamLength = defaults.beamLength
+	end
 end
 
 ----------------------------------------------------------------
 -- Preview light: live GL4 light that follows the cursor
 ----------------------------------------------------------------
 local function removePreviewLight()
-	if not previewLight.id then return end
-	local api = WG['lightsgl4']
+	if not previewLight.id then
+		return
+	end
+	local api = WG["lightsgl4"]
 	if api and api.RemoveLight then
 		api.RemoveLight(previewLight.shape, previewLight.id, nil)
 	end
-	previewLight.id    = nil
+	previewLight.id = nil
 	previewLight.shape = nil
-	previewLast.valid  = false
+	previewLast.valid = false
 end
 
 local function updatePreviewLight(worldX, worldZ)
-	local api = WG['lightsgl4']
-	if not api then removePreviewLight(); return end
+	local api = WG["lightsgl4"]
+	if not api then
+		removePreviewLight()
+		return
+	end
 	-- Compare against the last-applied params directly instead of building a
 	-- format string every frame; cursor is quantized to whole elmos so
 	-- sub-elmo mouse jitter doesn't rebuild the light (same as the old hash).
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pl = previewLast
-	if pl.valid
-		and pl.x == qx and pl.z == qz
-		and pl.lightType == lp.lightType
-		and pl.r == lp.color[1] and pl.g == lp.color[2] and pl.b == lp.color[3]
-		and pl.brightness == lp.brightness
-		and pl.lightRadius == lp.lightRadius
-		and pl.pitch == lp.pitch and pl.yaw == lp.yaw
-		and pl.theta == lp.theta
-		and pl.elevation == lp.elevation
-		and pl.beamLength == lp.beamLength
-	then
+	if pl.valid and pl.x == qx and pl.z == qz and pl.lightType == lp.lightType and pl.r == lp.color[1] and pl.g == lp.color[2] and pl.b == lp.color[3] and pl.brightness == lp.brightness and pl.lightRadius == lp.lightRadius and pl.pitch == lp.pitch and pl.yaw == lp.yaw and pl.theta == lp.theta and pl.elevation == lp.elevation and pl.beamLength == lp.beamLength then
 		return
 	end
 	removePreviewLight()
 	local py = (GetGroundHeight(worldX, worldZ) or 0) + lp.elevation
-	local r  = lp.color[1] * lp.brightness
-	local g  = lp.color[2] * lp.brightness
-	local b  = lp.color[3] * lp.brightness
+	local r = lp.color[1] * lp.brightness
+	local g = lp.color[2] * lp.brightness
+	local b = lp.color[3] * lp.brightness
 	local id
 	if lp.lightType == "point" then
-		id = api.AddPointLight(nil, nil, nil, nil,
-			worldX, py, worldZ, lp.lightRadius,
-			r, g, b, 1.0, 0, 0, 0, 0,
-			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
-			nil, 0, 1, 0)
+		id = api.AddPointLight(nil, nil, nil, nil, worldX, py, worldZ, lp.lightRadius, r, g, b, 1.0, 0, 0, 0, 0, lp.modelfactor, lp.specular, lp.scattering, lp.lensflare, nil, 0, 1, 0)
 		previewLight.shape = "point"
 	elseif lp.lightType == "cone" then
 		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
-		id = api.AddConeLight(nil, nil, nil, nil,
-			worldX, py, worldZ, lp.lightRadius,
-			r, g, b, 1.0, dx, dy, dz, lp.theta, 0,
-			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
-			nil, 0, 1, 0)
+		id = api.AddConeLight(nil, nil, nil, nil, worldX, py, worldZ, lp.lightRadius, r, g, b, 1.0, dx, dy, dz, lp.theta, 0, lp.modelfactor, lp.specular, lp.scattering, lp.lensflare, nil, 0, 1, 0)
 		previewLight.shape = "cone"
 	elseif lp.lightType == "beam" then
 		local ex, ey, ez = beamEndpoint(worldX, py, worldZ, lp.pitch, lp.yaw, lp.beamLength)
-		id = api.AddBeamLight(nil, nil, nil, nil,
-			worldX, py, worldZ, lp.lightRadius,
-			r, g, b, 1.0, ex, ey, ez, lp.lightRadius, 0,
-			lp.modelfactor, lp.specular, lp.scattering, lp.lensflare,
-			nil, 0, 1, 0)
+		id = api.AddBeamLight(nil, nil, nil, nil, worldX, py, worldZ, lp.lightRadius, r, g, b, 1.0, ex, ey, ez, lp.lightRadius, 0, lp.modelfactor, lp.specular, lp.scattering, lp.lensflare, nil, 0, 1, 0)
 		previewLight.shape = "beam"
 	end
 	if id then
@@ -987,8 +1032,10 @@ local function removePresetPreviewLights()
 	presetPreviewLast.valid = false
 	-- DrawWorld's inactive branch calls this every frame; without the guard it
 	-- allocated a fresh table per frame for every player with the widget loaded.
-	if #presetPreviewLights == 0 then return end
-	local api = WG['lightsgl4']
+	if #presetPreviewLights == 0 then
+		return
+	end
+	local api = WG["lightsgl4"]
 	if api and api.RemoveLight then
 		for _, p in ipairs(presetPreviewLights) do
 			api.RemoveLight(p.shape, p.id, nil)
@@ -1002,15 +1049,17 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		removePresetPreviewLights()
 		return
 	end
-	local api = WG['lightsgl4']
-	if not api then removePresetPreviewLights(); return end
+	local api = WG["lightsgl4"]
+	if not api then
+		removePresetPreviewLights()
+		return
+	end
 	-- Plain value comparison (cursor quantized to whole elmos, matching the
 	-- old "%.0f" string-hash rebuild cadence)
 	local qx = floor(worldX + 0.5)
 	local qz = floor(worldZ + 0.5)
 	local pp = presetPreviewLast
-	if pp.valid and pp.x == qx and pp.z == qz and pp.count == #pendingPreset.lights
-		and #presetPreviewLights > 0 then
+	if pp.valid and pp.x == qx and pp.z == qz and pp.count == #pendingPreset.lights and #presetPreviewLights > 0 then
 		return
 	end
 	removePresetPreviewLights()
@@ -1025,25 +1074,13 @@ local function updatePresetPreviewLights(worldX, worldZ)
 		local id
 		local ltype = l.type or "point"
 		if ltype == "point" then
-			id = api.AddPointLight(nil, nil, nil, nil,
-				px, py, pz, radius,
-				r, g, b, 1.0, 0, 0, 0, 0,
-				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
-				nil, 0, 1, 0)
+			id = api.AddPointLight(nil, nil, nil, nil, px, py, pz, radius, r, g, b, 1.0, 0, 0, 0, 0, l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0, nil, 0, 1, 0)
 		elseif ltype == "cone" then
 			local dx, dy, dz = eulerToDirection(l.pitch or -90, l.yaw or 0)
-			id = api.AddConeLight(nil, nil, nil, nil,
-				px, py, pz, radius,
-				r, g, b, 1.0, dx, dy, dz, l.theta or 0.5, 0,
-				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
-				nil, 0, 1, 0)
+			id = api.AddConeLight(nil, nil, nil, nil, px, py, pz, radius, r, g, b, 1.0, dx, dy, dz, l.theta or 0.5, 0, l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0, nil, 0, 1, 0)
 		elseif ltype == "beam" then
 			local ex, ey, ez = beamEndpoint(px, py, pz, l.pitch or 0, l.yaw or 0, l.beamLength or 300)
-			id = api.AddBeamLight(nil, nil, nil, nil,
-				px, py, pz, radius,
-				r, g, b, 1.0, ex, ey, ez, radius, 0,
-				l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0,
-				nil, 0, 1, 0)
+			id = api.AddBeamLight(nil, nil, nil, nil, px, py, pz, radius, r, g, b, 1.0, ex, ey, ez, radius, 0, l.modelfactor or 1, l.specular or 1, l.scattering or 1, l.lensflare or 0, nil, 0, 1, 0)
 		end
 		if id then
 			presetPreviewLights[#presetPreviewLights + 1] = { shape = ltype, id = id }
@@ -1069,7 +1106,9 @@ end
 -- Draw: cursor preview circle + ghost light indicator
 ----------------------------------------------------------------
 local function drawBrushCircle(worldX, worldZ)
-	if not worldX then return end
+	if not worldX then
+		return
+	end
 	local gy = GetGroundHeight(worldX, worldZ) or 0
 
 	glDepthTest(true)
@@ -1130,7 +1169,7 @@ local function drawBrushCircle(worldX, worldZ)
 	if lp.lightType == "cone" then
 		local dx, dy, dz = eulerToDirection(lp.pitch, lp.yaw)
 		local reach = lp.lightRadius * 0.6
-		local rimR  = reach * math.tan(lp.theta)
+		local rimR = reach * math.tan(lp.theta)
 		local tipX, tipY, tipZ = worldX, gy + lp.elevation, worldZ
 		local rimCX = tipX + dx * reach
 		local rimCY = tipY + dy * reach
@@ -1144,11 +1183,15 @@ local function drawBrushCircle(worldX, worldZ)
 			-- cross (0,1,0) × (dx,dy,dz) = (dz,0,-dx)
 			px, py2, pz = dz, 0, -dx
 		end
-		local pl = sqrt(px*px + py2*py2 + pz*pz)
-		if pl > 0.001 then px = px/pl; py2 = py2/pl; pz = pz/pl end
-		local qx = dy*pz - dz*py2
-		local qy = dz*px - dx*pz
-		local qz = dx*py2 - dy*px
+		local pl = sqrt(px * px + py2 * py2 + pz * pz)
+		if pl > 0.001 then
+			px = px / pl
+			py2 = py2 / pl
+			pz = pz / pl
+		end
+		local qx = dy * pz - dz * py2
+		local qy = dz * px - dx * pz
+		local qz = dx * py2 - dy * px
 		-- Cone rim circle
 		glColor(lp.color[1], lp.color[2], lp.color[3], 0.45)
 		glLineWidth(2)
@@ -1156,9 +1199,7 @@ local function drawBrushCircle(worldX, worldZ)
 			for i = 0, CIRCLE_SEGMENTS - 1 do
 				local a = (i / CIRCLE_SEGMENTS) * 2 * pi
 				local c, s = cos(a), sin(a)
-				glVertex(rimCX + (px*c + qx*s) * rimR,
-				         rimCY + (py2*c + qy*s) * rimR,
-				         rimCZ + (pz*c + qz*s) * rimR)
+				glVertex(rimCX + (px * c + qx * s) * rimR, rimCY + (py2 * c + qy * s) * rimR, rimCZ + (pz * c + qz * s) * rimR)
 			end
 		end)
 		-- 4 edge lines from tip to rim
@@ -1169,9 +1210,7 @@ local function drawBrushCircle(worldX, worldZ)
 				local a = (k / 4) * 2 * pi
 				local c, s = cos(a), sin(a)
 				glVertex(tipX, tipY, tipZ)
-				glVertex(rimCX + (px*c + qx*s) * rimR,
-				         rimCY + (py2*c + qy*s) * rimR,
-				         rimCZ + (pz*c + qz*s) * rimR)
+				glVertex(rimCX + (px * c + qx * s) * rimR, rimCY + (py2 * c + qy * s) * rimR, rimCZ + (pz * c + qz * s) * rimR)
 			end
 		end)
 	elseif lp.lightType == "beam" then
@@ -1193,13 +1232,17 @@ local function drawBrushCircle(worldX, worldZ)
 		glColor(lp.color[1], lp.color[2], lp.color[3], 0.5)
 		glLineWidth(2)
 		glBeginEnd(GL_LINES, function()
-			glVertex(tipX - cr, tipY, tipZ); glVertex(tipX + cr, tipY, tipZ)
-			glVertex(tipX, tipY, tipZ - cr); glVertex(tipX, tipY, tipZ + cr)
+			glVertex(tipX - cr, tipY, tipZ)
+			glVertex(tipX + cr, tipY, tipZ)
+			glVertex(tipX, tipY, tipZ - cr)
+			glVertex(tipX, tipY, tipZ + cr)
 		end)
 		-- End marker
 		glBeginEnd(GL_LINES, function()
-			glVertex(endX - cr, endY, endZ); glVertex(endX + cr, endY, endZ)
-			glVertex(endX, endY, endZ - cr); glVertex(endX, endY, endZ + cr)
+			glVertex(endX - cr, endY, endZ)
+			glVertex(endX + cr, endY, endZ)
+			glVertex(endX, endY, endZ - cr)
+			glVertex(endX, endY, endZ + cr)
 		end)
 	end
 
@@ -1240,39 +1283,41 @@ function widget:Initialize()
 	WG.LightPlacer = {
 		getState = function()
 			return {
-				active       = lp.active,
-				mode         = lp.mode,
-				lightType    = lp.lightType,
-				shape        = lp.shape,
-				radius       = lp.radius,
-				rotation     = lp.rotation,
-				lightCount   = lp.lightCount,
-				cadence      = lp.cadence,
+				active = lp.active,
+				mode = lp.mode,
+				lightType = lp.lightType,
+				shape = lp.shape,
+				radius = lp.radius,
+				rotation = lp.rotation,
+				lightCount = lp.lightCount,
+				cadence = lp.cadence,
 				distribution = lp.distribution,
-				lightRadius  = lp.lightRadius,
-				color        = lp.color,
-				brightness   = lp.brightness,
-				modelfactor  = lp.modelfactor,
-				specular     = lp.specular,
-				scattering   = lp.scattering,
-				lensflare    = lp.lensflare,
-				pitch        = lp.pitch,
-				yaw          = lp.yaw,
-				roll         = lp.roll,
-				theta        = lp.theta,
-				beamLength   = lp.beamLength,
-				elevation    = lp.elevation,
+				lightRadius = lp.lightRadius,
+				color = lp.color,
+				brightness = lp.brightness,
+				modelfactor = lp.modelfactor,
+				specular = lp.specular,
+				scattering = lp.scattering,
+				lensflare = lp.lensflare,
+				pitch = lp.pitch,
+				yaw = lp.yaw,
+				roll = lp.roll,
+				theta = lp.theta,
+				beamLength = lp.beamLength,
+				elevation = lp.elevation,
 				smartEnabled = lp.smartEnabled,
 				smartFilters = lp.smartFilters,
-				undoCount    = #undoStack,
-				redoCount    = #redoStack,
+				undoCount = #undoStack,
+				redoCount = #redoStack,
 				lightCount_placed = 0,
 				selectedLight = lp.selectedLight,
 			}
 		end,
 
-		activate     = function() lp.active = true end,
-		deactivate   = function()
+		activate = function()
+			lp.active = true
+		end,
+		deactivate = function()
 			lp.active = false
 			lp.mode = nil
 			lp.dragging = false
@@ -1280,52 +1325,111 @@ function widget:Initialize()
 			clearPendingPreset()
 		end,
 
-		setMode         = function(m) lp.mode = m; lp.active = (m ~= nil) end,
-		setLightType    = function(t) applyLightTypeDefaults(t) end,
-		setShape        = function(s) lp.shape = s end,
-		setRadius       = function(r) lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, r)) end,
-		setRotation     = function(d) lp.rotation = d % 360 end,
-		rotate          = function(step) lp.rotation = (lp.rotation + step) % 360 end,
-		setLightCount   = function(n) lp.lightCount = max(1, min(500, n)) end,
-		setCadence      = function(v) lp.cadence = max(1, min(1000, v)) end,
-		setDistribution = function(d) lp.distribution = d end,
+		setMode = function(m)
+			lp.mode = m
+			lp.active = (m ~= nil)
+		end,
+		setLightType = function(t)
+			applyLightTypeDefaults(t)
+		end,
+		setShape = function(s)
+			lp.shape = s
+		end,
+		setRadius = function(r)
+			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, r))
+		end,
+		setRotation = function(d)
+			lp.rotation = d % 360
+		end,
+		rotate = function(step)
+			lp.rotation = (lp.rotation + step) % 360
+		end,
+		setLightCount = function(n)
+			lp.lightCount = max(1, min(500, n))
+		end,
+		setCadence = function(v)
+			lp.cadence = max(1, min(1000, v))
+		end,
+		setDistribution = function(d)
+			lp.distribution = d
+		end,
 
-		setLightRadius  = function(r) lp.lightRadius = max(10, min(5000, r)) end,
-		setColor        = function(r, g, b) lp.color = { r, g, b } end,
-		setBrightness   = function(v) lp.brightness = max(0.01, min(50, v)) end,
-		setModelfactor  = function(v) lp.modelfactor = max(0, min(5, v)) end,
-		setSpecular     = function(v) lp.specular = max(0, min(5, v)) end,
-		setScattering   = function(v) lp.scattering = max(0, min(5, v)) end,
-		setLensflare    = function(v) lp.lensflare = max(0, min(5, v)) end,
+		setLightRadius = function(r)
+			lp.lightRadius = max(10, min(5000, r))
+		end,
+		setColor = function(r, g, b)
+			lp.color = { r, g, b }
+		end,
+		setBrightness = function(v)
+			lp.brightness = max(0.01, min(50, v))
+		end,
+		setModelfactor = function(v)
+			lp.modelfactor = max(0, min(5, v))
+		end,
+		setSpecular = function(v)
+			lp.specular = max(0, min(5, v))
+		end,
+		setScattering = function(v)
+			lp.scattering = max(0, min(5, v))
+		end,
+		setLensflare = function(v)
+			lp.lensflare = max(0, min(5, v))
+		end,
 
-		setPitch        = function(v) lp.pitch = max(-90, min(90, v)) end,
-		setYaw          = function(v) lp.yaw = v % 360 end,
-		setRoll         = function(v) lp.roll = v % 360 end,
-		setTheta        = function(v) lp.theta = max(0.05, min(1.5, v)) end,
-		setBeamLength   = function(v) lp.beamLength = max(10, min(5000, v)) end,
-		setElevation    = function(v) lp.elevation = max(0, min(2000, v)) end,
+		setPitch = function(v)
+			lp.pitch = max(-90, min(90, v))
+		end,
+		setYaw = function(v)
+			lp.yaw = v % 360
+		end,
+		setRoll = function(v)
+			lp.roll = v % 360
+		end,
+		setTheta = function(v)
+			lp.theta = max(0.05, min(1.5, v))
+		end,
+		setBeamLength = function(v)
+			lp.beamLength = max(10, min(5000, v))
+		end,
+		setElevation = function(v)
+			lp.elevation = max(0, min(2000, v))
+		end,
 
-		setSmartEnabled = function(b) lp.smartEnabled = b end,
-		setSmartFilter  = function(k, v) lp.smartFilters[k] = v end,
+		setSmartEnabled = function(b)
+			lp.smartEnabled = b
+		end,
+		setSmartFilter = function(k, v)
+			lp.smartFilters[k] = v
+		end,
 
-		undo     = doUndo,
-		redo     = doRedo,
-		save     = save,
-		load     = load,
+		undo = doUndo,
+		redo = doRedo,
+		save = save,
+		load = load,
 		listSaves = listSaves,
-		clearAll  = clearAllLights,
+		clearAll = clearAllLights,
 
-		saveUserPreset  = saveUserPreset,
+		saveUserPreset = saveUserPreset,
 		listUserPresets = listUserPresets,
-		loadPresetFile  = loadPresetFile,
-		placePreset     = placePreset,
-		getBuiltinPresets = function() return BUILTIN_PRESETS end,
+		loadPresetFile = loadPresetFile,
+		placePreset = placePreset,
+		getBuiltinPresets = function()
+			return BUILTIN_PRESETS
+		end,
 
-		setPendingPreset   = setPendingPreset,
+		setPendingPreset = setPendingPreset,
 		clearPendingPreset = clearPendingPreset,
-		getPendingPreset   = function() return pendingPreset end,
+		getPendingPreset = function()
+			return pendingPreset
+		end,
 
-		getPlacedCount  = function() local n = 0; for _ in pairs(placedLights) do n = n + 1 end; return n end,
+		getPlacedCount = function()
+			local n = 0
+			for _ in pairs(placedLights) do
+				n = n + 1
+			end
+			return n
+		end,
 	}
 end
 
@@ -1346,26 +1450,42 @@ end
 
 local function isOverLightsUI(mx, my)
 	local tfUI = WG.TerraformBrushUI
-	if not tfUI then return false end
+	if not tfUI then
+		return false
+	end
 	local function overBounds(b)
-		if not b then return false end
+		if not b then
+			return false
+		end
 		return mx >= b.left and mx <= b.right and my >= b.bottomY and my <= b.topY
 	end
-	if overBounds(tfUI.getPanelBounds and tfUI.getPanelBounds()) then return true end
-	if overBounds(tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()) then return true end
+	if overBounds(tfUI.getPanelBounds and tfUI.getPanelBounds()) then
+		return true
+	end
+	if overBounds(tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()) then
+		return true
+	end
 	return false
 end
 
 function widget:MousePress(mx, my, button)
-	if not lp.active or not lp.mode then return false end
-	if button ~= 1 and button ~= 3 then return false end
-	if isOverLightsUI(mx, my) then return true end
+	if not lp.active or not lp.mode then
+		return false
+	end
+	if button ~= 1 and button ~= 3 then
+		return false
+	end
+	if isOverLightsUI(mx, my) then
+		return true
+	end
 
 	-- Defer to measure tool when active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
-		if st and st.measureActive then return false end
+		if st and st.measureActive then
+			return false
+		end
 		-- Defer to symmetry origin drag so terraform can grab the drag
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
@@ -1375,7 +1495,9 @@ function widget:MousePress(mx, my, button)
 	end
 
 	local _, coords = TraceScreenRay(mx, my, true)
-	if not coords then return false end
+	if not coords then
+		return false
+	end
 
 	local worldX, _, worldZ = coords[1], coords[2], coords[3]
 
@@ -1422,18 +1544,26 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:Update(dt)
-	if not lp.active or not lp.dragging then return end
-	if lp.mode ~= "scatter" and lp.dragAction ~= "remove" then return end
+	if not lp.active or not lp.dragging then
+		return
+	end
+	if lp.mode ~= "scatter" and lp.dragAction ~= "remove" then
+		return
+	end
 
 	lp.placeTimer = lp.placeTimer + dt
 	-- Cadence: higher = faster. 1000 = every frame, 1 = very slow
 	local interval = 1.0 / max(lp.cadence / 100, 0.01)
-	if lp.placeTimer < interval then return end
+	if lp.placeTimer < interval then
+		return
+	end
 	lp.placeTimer = lp.placeTimer - interval
 
 	local mx, my = GetMouseState()
 	local _, coords = TraceScreenRay(mx, my, true)
-	if not coords then return end
+	if not coords then
+		return
+	end
 
 	if lp.dragAction == "remove" then
 		placeSymmetric(removeAtPosition, coords[1], coords[3])
@@ -1454,7 +1584,9 @@ function widget:DrawWorld()
 
 	-- Real ground position under cursor (if any)
 	local _, coords = TraceScreenRay(mx, my, true)
-	if coords then worldX, worldZ = coords[1], coords[3] end
+	if coords then
+		worldX, worldZ = coords[1], coords[3]
+	end
 
 	-- Animated unmouse: slide brush toward the parked spot when cursor is over
 	-- the terraform panel or the light library, and back when it leaves.
@@ -1462,11 +1594,13 @@ function widget:DrawWorld()
 		local tb = WG.TerraformBrush
 		local tfUI = WG.TerraformBrushUI
 		local function overBounds(b)
-			if not b then return false end
+			if not b then
+				return false
+			end
 			return mx >= b.left and mx <= b.right and my >= b.bottomY and my <= b.topY
 		end
 		local libBounds = tfUI and tfUI.getLightLibraryBounds and tfUI.getLightLibraryBounds()
-		local overLib   = overBounds(libBounds)
+		local overLib = overBounds(libBounds)
 		if tb and tb.animateUnmouse then
 			-- When cursor is over the light library but not the main panel, the
 			-- shared animateUnmouse won't detect it. Treat "over library" as if
@@ -1479,7 +1613,9 @@ function widget:DrawWorld()
 				end
 				local cy = floor(vsy * 0.5)
 				local _, ccoords = TraceScreenRay(cx, cy, true)
-				if ccoords then worldX, worldZ = ccoords[1], ccoords[3] end
+				if ccoords then
+					worldX, worldZ = ccoords[1], ccoords[3]
+				end
 			else
 				worldX, worldZ = tb.animateUnmouse("lightPlacer", worldX, worldZ, lp.radius, 1.0)
 			end
@@ -1523,7 +1659,9 @@ function widget:DrawWorld()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if not lp.active then return false end
+	if not lp.active then
+		return false
+	end
 
 	-- Escape = deactivate
 	if key == 0x1B then
@@ -1607,10 +1745,14 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:MouseWheel(up, value)
-	if not lp.active then return false end
+	if not lp.active then
+		return false
+	end
 	do
 		local mx, my = GetMouseState()
-		if isOverLightsUI(mx, my) then return false end
+		if isOverLightsUI(mx, my) then
+			return false
+		end
 	end
 
 	local alt, ctrl, _, shift = GetModKeyState()

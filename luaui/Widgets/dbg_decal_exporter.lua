@@ -97,7 +97,7 @@ end
 -- ========== SNAPSHOT: GL4 WIDGET DECALS ==========
 -- Captures all active decals from the Decals GL4 widget
 local function snapshotGL4Decals()
-	local decalsApi = WG['decalsgl4']
+	local decalsApi = WG["decalsgl4"]
 	if not decalsApi then
 		spEcho("[Decal Exporter] Decals GL4 widget not loaded")
 		return nil
@@ -282,15 +282,9 @@ local function exportCSV(snapshot, filename)
 
 	for _, d in ipairs(snapshot) do
 		if d.source == "engine" then
-			lines[#lines + 1] = format("engine,%s,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.3f,%s,false",
-				d.decalType, d.posX, d.posZ, d.posY,
-				d.sizeX or 0, d.sizeZ or 0, d.rotation, d.alpha,
-				d.texture or "")
+			lines[#lines + 1] = format("engine,%s,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.3f,%s,false", d.decalType, d.posX, d.posZ, d.posY, d.sizeX or 0, d.sizeZ or 0, d.rotation, d.alpha, d.texture or "")
 		else
-			lines[#lines + 1] = format("gl4,scar,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.3f,,%s",
-				d.posx, d.posz, d.posy,
-				d.width, d.length, d.rotation, d.alpha,
-				tostring(d.isFootprint))
+			lines[#lines + 1] = format("gl4,scar,%.1f,%.1f,%.1f,%.1f,%.1f,%.4f,%.3f,,%s", d.posx, d.posz, d.posy, d.width, d.length, d.rotation, d.alpha, tostring(d.isFootprint))
 		end
 	end
 
@@ -413,8 +407,7 @@ local function exportHeatmapCSV(filename)
 	end
 
 	-- Header with metadata
-	file:write(format("# Combat heatmap | Map: %s | Cell size: %d elmos | Grid: %dx%d | Explosions: %d | Max heat: %.2f\n",
-		mapName, HEAT_CELL_SIZE, heatGridW, heatGridH, totalExplosions, heatMax))
+	file:write(format("# Combat heatmap | Map: %s | Cell size: %d elmos | Grid: %dx%d | Explosions: %d | Max heat: %.2f\n", mapName, HEAT_CELL_SIZE, heatGridW, heatGridH, totalExplosions, heatMax))
 
 	for row = 1, heatGridH do
 		local rowData = {}
@@ -426,8 +419,7 @@ local function exportHeatmapCSV(filename)
 	end
 
 	file:close()
-	spEcho(format("[Decal Exporter] Heatmap CSV saved: %s (%dx%d grid, %d explosions, peak=%.1f)",
-		path, heatGridW, heatGridH, totalExplosions, heatMax))
+	spEcho(format("[Decal Exporter] Heatmap CSV saved: %s (%dx%d grid, %d explosions, peak=%.1f)", path, heatGridW, heatGridH, totalExplosions, heatMax))
 end
 
 -- ========== EXPORT: HEATMAP AS PGM IMAGE (Portable Gray Map) ==========
@@ -463,8 +455,7 @@ local function exportHeatmapPGM(filename)
 	file:write(table.concat(chars))
 	file:close()
 
-	spEcho(format("[Decal Exporter] Heatmap PGM saved: %s (%dx%d, %d explosions)",
-		path, heatGridW, heatGridH, totalExplosions))
+	spEcho(format("[Decal Exporter] Heatmap PGM saved: %s (%dx%d, %d explosions)", path, heatGridW, heatGridH, totalExplosions))
 end
 
 -- ========== EXPORT: FEATURES.LUA (convert decal scars to map features) ==========
@@ -478,8 +469,12 @@ local function exportFeaturesLua(snapshot, filename)
 
 	-- Map decal sizes to appropriate feature types
 	local function sizeToFeature(size)
-		if size > 200 then return "heap" end
-		if size > 80 then return "metal" end
+		if size > 200 then
+			return "heap"
+		end
+		if size > 80 then
+			return "metal"
+		end
 		return "rock"
 	end
 
@@ -500,8 +495,7 @@ local function exportFeaturesLua(snapshot, filename)
 		if px and pz then
 			count = count + 1
 			local feat = sizeToFeature(size)
-			lines[#lines + 1] = format("\t{ name = %q, x = %.0f, z = %.0f, rot = %.0f },",
-				feat, px, pz, rot * 180 / pi)
+			lines[#lines + 1] = format("\t{ name = %q, x = %.0f, z = %.0f, rot = %.0f },", feat, px, pz, rot * 180 / pi)
 		end
 	end
 
@@ -524,18 +518,22 @@ end
 -- ========== SUMMARY STATS ==========
 local function printStats()
 	local gl4Count = 0
-	local decalsApi = WG['decalsgl4']
+	local decalsApi = WG["decalsgl4"]
 	if decalsApi and decalsApi.GetActiveDecals then
 		local active = decalsApi.GetActiveDecals()
 		if active then
-			for _ in pairs(active) do gl4Count = gl4Count + 1 end
+			for _ in pairs(active) do
+				gl4Count = gl4Count + 1
+			end
 		end
 	end
 
 	local engineCount = 0
 	if Spring.GetAllGroundDecals then
 		local ids = Spring.GetAllGroundDecals()
-		if ids then engineCount = #ids end
+		if ids then
+			engineCount = #ids
+		end
 	end
 
 	spEcho("===== DECAL EXPORTER STATS =====")
@@ -554,8 +552,12 @@ function widget:TextCommand(command)
 		local gl4 = snapshotGL4Decals() or {}
 		local eng = snapshotEngineDecals() or {}
 		local combined = {}
-		for _, d in ipairs(gl4) do combined[#combined + 1] = d end
-		for _, d in ipairs(eng) do combined[#combined + 1] = d end
+		for _, d in ipairs(gl4) do
+			combined[#combined + 1] = d
+		end
+		for _, d in ipairs(eng) do
+			combined[#combined + 1] = d
+		end
 
 		if #combined > 0 then
 			exportLuaTable(combined)
@@ -589,8 +591,12 @@ function widget:TextCommand(command)
 		local gl4 = snapshotGL4Decals() or {}
 		local eng = snapshotEngineDecals() or {}
 		local combined = {}
-		for _, d in ipairs(gl4) do combined[#combined + 1] = d end
-		for _, d in ipairs(eng) do combined[#combined + 1] = d end
+		for _, d in ipairs(gl4) do
+			combined[#combined + 1] = d
+		end
+		for _, d in ipairs(eng) do
+			combined[#combined + 1] = d
+		end
 		if #combined > 0 then
 			exportFeaturesLua(combined)
 		end
@@ -630,8 +636,12 @@ function widget:Initialize()
 		exportFeatures = exportFeaturesLua,
 		exportHeatmapCSV = exportHeatmapCSV,
 		exportHeatmapPGM = exportHeatmapPGM,
-		getHeatGrid = function() return heatGrid, heatGridW, heatGridH, heatMax end,
-		getTotalExplosions = function() return totalExplosions end,
+		getHeatGrid = function()
+			return heatGrid, heatGridW, heatGridH, heatMax
+		end,
+		getTotalExplosions = function()
+			return totalExplosions
+		end,
 		resetHeatmap = initHeatGrid,
 		stats = printStats,
 	}

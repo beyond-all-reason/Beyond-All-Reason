@@ -1,21 +1,20 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "Watereffects",
-		desc      = "Make splash sound in water",
-		version   = "1.1",
-		author    = "Jools ,Nixtux",
-		date      = "April,2012",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true,
+		name = "Watereffects",
+		desc = "Make splash sound in water",
+		version = "1.1",
+		author = "Jools ,Nixtux",
+		date = "April,2012",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
 local abs = math.abs
@@ -50,12 +49,12 @@ end
 local function getWeaponAOE(weaponDef, waterSplash)
 	local aoe = weaponDef.damageAreaOfEffect
 	-- add damage bonus, since LRPC dont have a lot of AoE, but do pack a punch
-	if weaponDef.type == 'DGun' then
+	if weaponDef.type == "DGun" then
 		aoe = aoe + 80
 	else
 		if weaponDef.damages and waterSplash ~= 0 then
 			local maxDmg = 0
-			for _,v in pairs(weaponDef.damages) do
+			for _, v in pairs(weaponDef.damages) do
 				if v > maxDmg then
 					maxDmg = v
 				end
@@ -63,7 +62,7 @@ local function getWeaponAOE(weaponDef, waterSplash)
 			if weaponDef.paralyzer then
 				maxDmg = maxDmg / 25
 			end
-			aoe = (aoe + (maxDmg/20))
+			aoe = (aoe + (maxDmg / 20))
 		end
 	end
 	return aoe / 2
@@ -97,7 +96,6 @@ local weaponNoSplash = {}
 local weaponAoe = {}
 local weaponSplashCEG = {}
 for weaponDefID, def in pairs(WeaponDefs) do
-
 	local waterSplash = def.customParams.water_splash and tonumber(def.customParams.water_splash)
 	waterSplash = waterSplash or (nonexplosiveWeapons[def.type] and 0 or 1)
 
@@ -122,7 +120,7 @@ for weaponDefID, def in pairs(WeaponDefs) do
 end
 
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
-	if Spring.GetGroundHeight(px,pz) < 0 then
+	if Spring.GetGroundHeight(px, pz) < 0 then
 		local aoe = weaponAoe[weaponID]
 		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			local splashCEG = weaponSplashCEG[weaponID]
@@ -142,7 +140,7 @@ function gadget:Initialize()
 	local minHeight, maxHeight = Spring.GetGroundExtremes()
 	if minHeight < 100 then
 		for wDefID, wDef in pairs(WeaponDefs) do
-			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and (not weaponNoSplash[wDefID]) then
+			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and not weaponNoSplash[wDefID] then
 				Script.SetWatchExplosion(wDef.id, true)
 			end
 		end

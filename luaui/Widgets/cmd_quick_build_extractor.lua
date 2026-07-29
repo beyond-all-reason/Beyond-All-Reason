@@ -9,10 +9,9 @@ function widget:GetInfo()
 		date = "Jan 2024",
 		license = "GNU GPL, v2 or later",
 		layer = 1000,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -74,7 +73,6 @@ local function unitIsCloaked(uDefId)
 	return isCloakableBuilder[spGetUnitDefID(uDefId)] and select(5, spGetUnitStates(uDefId, false, true))
 end
 
-
 local spotFinder
 local spotBuilder
 
@@ -98,7 +96,6 @@ function widget:Initialize()
 	end
 end
 
-
 local function clearGhostBuild()
 	if WG.DrawUnitShapeGL4 and activeShape then
 		WG.StopDrawUnitShapeGL4(activeShape)
@@ -112,7 +109,6 @@ local function clearGhostBuild()
 	lastMx, lastMy = -1, -1
 end
 
-
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
@@ -121,19 +117,17 @@ function widget:SelectionChanged(sel)
 	selectionDirty = true
 end
 
-
 function widget:Update(dt)
-	if(selectedSpot or selectedPos) and (selectedMex or selectedGeo) then
+	if (selectedSpot or selectedPos) and (selectedMex or selectedGeo) then
 		-- we want to do this every frame to avoid cursor flicker. Rest of work can be on a timer
-		spSetMouseCursor(selectedMex and 'upgmex' or 'upgmex')
+		spSetMouseCursor(selectedMex and "upgmex" or "upgmex")
 	end
 
 	updateTime = updateTime + dt
-	if(updateTime < 0.05) then
+	if updateTime < 0.05 then
 		return
 	end
 	updateTime = 0
-
 
 	if not selectedUnits or #selectedUnits == 0 then
 		clearGhostBuild()
@@ -151,7 +145,6 @@ function widget:Update(dt)
 		clearGhostBuild()
 		return
 	end
-
 
 	if not bestMex and not bestGeo then
 		clearGhostBuild()
@@ -172,13 +165,13 @@ function widget:Update(dt)
 	-- First check unit under cursor. If it's an extractor, see if there's valid upgrades
 	-- If it's not an extractor, simply exit
 	local type, rayParams = spTraceScreenRay(mx, my)
-	local unitUuid = type == 'unit' and rayParams
-	local unitDefID = type == 'unit' and spGetUnitDefID(rayParams)
+	local unitUuid = type == "unit" and rayParams
+	local unitDefID = type == "unit" and spGetUnitDefID(rayParams)
 
-	if(unitUuid and unitDefID) then
+	if unitUuid and unitDefID then
 		local unitIsMex = mexBuildings[unitDefID]
 		local unitIsGeo = geoBuildings[unitDefID]
-		if (unitIsMex or unitIsGeo) then
+		if unitIsMex or unitIsGeo then
 			local x, y, z = spGetUnitPosition(unitUuid)
 
 			extractor = unitIsMex and bestMex or bestGeo
@@ -188,7 +181,9 @@ function widget:Update(dt)
 				return
 			end
 
-			reusePos.x = x; reusePos.y = y; reusePos.z = z
+			reusePos.x = x
+			reusePos.y = y
+			reusePos.z = z
 			selectedPos = reusePos
 			if unitIsMex then
 				selectedMex = bestMex
@@ -242,12 +237,13 @@ function widget:Update(dt)
 		end
 	end
 
-
 	-- Set up ghost
 	if extractor and (selectedSpot or (selectedPos and metalMap)) then
 		-- we only want to build on the center, so we pass the spot in for the position, instead of the groundPos
 		local src = selectedPos or selectedSpot
-		reuseCmdPos[1] = src.x; reuseCmdPos[2] = src.y; reuseCmdPos[3] = src.z
+		reuseCmdPos[1] = src.x
+		reuseCmdPos[2] = src.y
+		reuseCmdPos[3] = src.z
 		local cmd = spotBuilder.PreviewExtractorCommand(reuseCmdPos, extractor, selectedSpot, metalMap)
 		if not cmd then
 			clearGhostBuild()
@@ -260,7 +256,12 @@ function widget:Update(dt)
 		if unitShape and (unitShape[2] ~= newX or unitShape[3] ~= newY or unitShape[4] ~= newZ) then
 			clearGhostBuild()
 		end
-		reuseUnitShape[1] = newDef; reuseUnitShape[2] = newX; reuseUnitShape[3] = newY; reuseUnitShape[4] = newZ; reuseUnitShape[5] = cmd[5]; reuseUnitShape[6] = cmd[6]
+		reuseUnitShape[1] = newDef
+		reuseUnitShape[2] = newX
+		reuseUnitShape[3] = newY
+		reuseUnitShape[4] = newZ
+		reuseUnitShape[5] = cmd[5]
+		reuseUnitShape[6] = cmd[6]
 		unitShape = reuseUnitShape
 	else
 		unitShape = false
@@ -278,7 +279,6 @@ function widget:Update(dt)
 	end
 end
 
-
 function widget:MousePress(x, y, button)
 	if not bestMex and not bestGeo then
 		clearGhostBuild()
@@ -295,7 +295,7 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if (button == 3) then
+	if button == 3 then
 		local _, _, _, shift = spGetModKeyState()
 		if selectedMex then
 			spotBuilder.ApplyPreviewCmds(buildCmd, mexConstructors, shift)
@@ -307,7 +307,6 @@ function widget:MousePress(x, y, button)
 		end
 	end
 end
-
 
 function widget:Shutdown()
 	clearGhostBuild()

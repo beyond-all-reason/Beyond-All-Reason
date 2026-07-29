@@ -37,13 +37,12 @@ local widgetState = {
 
 local manuallyHidden = false
 local lastActive = false
-local userDragged = false  -- once user drags, stop auto-positioning
+local userDragged = false -- once user drags, stop auto-positioning
 
 local function buildRootStyle()
 	-- Width lives in RCSS (.wb-root) so it scales with dp_ratio and stays
 	-- readable via `min-width: Npx`. We only emit position here.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		INITIAL_LEFT_VW, INITIAL_TOP_VH)
+	return string.format("left: %.2fvw; top: %.2fvh;", INITIAL_LEFT_VW, INITIAL_TOP_VH)
 end
 
 local initialModel = {
@@ -89,7 +88,9 @@ function widget:OnFilterChange()
 end
 
 function widget:OnClearCegs()
-	if WG.WeatherBrush then WG.WeatherBrush.clearSelectedCegs() end
+	if WG.WeatherBrush then
+		WG.WeatherBrush.clearSelectedCegs()
+	end
 	if widgetState.dmHandle then
 		widgetState.dmHandle.filter = ""
 	end
@@ -101,13 +102,19 @@ local ALTITUDE_MAX = 2000
 local function clampAltitude(v)
 	v = tonumber(v) or 0
 	v = math.floor(v + 0.5)
-	if v < ALTITUDE_MIN then v = ALTITUDE_MIN end
-	if v > ALTITUDE_MAX then v = ALTITUDE_MAX end
+	if v < ALTITUDE_MIN then
+		v = ALTITUDE_MIN
+	end
+	if v > ALTITUDE_MAX then
+		v = ALTITUDE_MAX
+	end
 	return v
 end
 
 function widget:OnAltitudeChange(event)
-	if not WG.WeatherBrush then return end
+	if not WG.WeatherBrush then
+		return
+	end
 	-- Prefer event.parameters.value (RmlUi 'change' payload); fall back to DM.
 	local raw
 	if event and event.parameters and event.parameters.value ~= nil then
@@ -123,7 +130,9 @@ function widget:OnAltitudeChange(event)
 end
 
 function widget:OnAltitudeStep(delta)
-	if not WG.WeatherBrush then return end
+	if not WG.WeatherBrush then
+		return
+	end
 	local st = WG.WeatherBrush.getState()
 	local v = clampAltitude((st and st.altitude or 0) + delta)
 	WG.WeatherBrush.setAltitude(v)
@@ -145,41 +154,41 @@ end
 -- Icon map for weather conditions (unicode weather symbols)
 local iconMap = {
 	-- Precipitation
-	rain_light      = "&#x1F327;",
-	rain_heavy      = "&#x26C8;",
-	storm           = "&#x26A1;",
-	rain_acid       = "&#x2623;",
-	snow_light      = "&#x2744;",
-	blizzard        = "&#x1F328;",
-	hail            = "&#x1F327;",
+	rain_light = "&#x1F327;",
+	rain_heavy = "&#x26C8;",
+	storm = "&#x26A1;",
+	rain_acid = "&#x2623;",
+	snow_light = "&#x2744;",
+	blizzard = "&#x1F328;",
+	hail = "&#x1F327;",
 	-- Wind & Sand
-	sandstorm       = "&#x1F32A;",
-	dust_devil      = "&#x1F300;",
+	sandstorm = "&#x1F32A;",
+	dust_devil = "&#x1F300;",
 	-- Fog & Atmosphere
-	fog             = "&#x1F32B;",
-	mist            = "&#x1F32B;",
-	overcast        = "&#x2601;",
-	toxic           = "&#x2623;",
-	mist_purple     = "&#x1F52E;",
+	fog = "&#x1F32B;",
+	mist = "&#x1F32B;",
+	overcast = "&#x2601;",
+	toxic = "&#x2623;",
+	mist_purple = "&#x1F52E;",
 	-- Fire & Volcanic
-	volcanic        = "&#x1F30B;",
-	embers          = "&#x1F525;",
-	lava            = "&#x1F525;",
-	steam           = "&#x2668;",
+	volcanic = "&#x1F30B;",
+	embers = "&#x1F525;",
+	lava = "&#x1F525;",
+	steam = "&#x2668;",
 	-- Ambient & Magical
-	fireflies       = "&#x2728;",
+	fireflies = "&#x2728;",
 	fireflies_green = "&#x2728;",
-	fireflies_purple= "&#x2728;",
-	pollen          = "&#x1F33C;",
-	dust_motes      = "&#x2727;",
+	fireflies_purple = "&#x2728;",
+	pollen = "&#x1F33C;",
+	dust_motes = "&#x2727;",
 	-- Storm & Energy
-	lightning       = "&#x26A1;",
+	lightning = "&#x26A1;",
 	lightning_green = "&#x26A1;",
 	-- Smoke & Industrial
-	smoke           = "&#x1F4A8;",
-	nuke            = "&#x2622;",
+	smoke = "&#x1F4A8;",
+	nuke = "&#x2622;",
 	-- Special
-	meteor          = "&#x2604;",
+	meteor = "&#x2604;",
 }
 
 -- Category groups: { label, startIndex, endIndex }
@@ -200,14 +209,17 @@ local categoryGroups = {
 -- ===========================================================================
 local function attachEventListeners()
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	-- Drag handle
 	if WG.TerraformerShared and WG.TerraformerShared.attachDraggable then
-		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(
-			doc, "wb-handle", widgetState.rootElement,
-			{ onDragStart = function() userDragged = true end }
-		)
+		widgetState.dragHandle = WG.TerraformerShared.attachDraggable(doc, "wb-handle", widgetState.rootElement, {
+			onDragStart = function()
+				userDragged = true
+			end,
+		})
 	end
 end
 
@@ -249,7 +261,9 @@ end
 -- ===========================================================================
 function widget:Update()
 	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
-	if widgetState.dragHandle then widgetState.dragHandle.tick() end
+	if widgetState.dragHandle then
+		widgetState.dragHandle.tick()
+	end
 
 	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
 	local wbActive = wbState and wbState.active
@@ -270,23 +284,24 @@ function widget:Update()
 			widgetState.dmHandle.altitude = stateAlt
 		end
 	end
-	if not wbActive then return end
+	if not wbActive then
+		return
+	end
 
 	-- Align to the left of the main terraform panel (only if not user-dragged)
-	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect
-		and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
+	local mainPanel = WG.TerraformerShared and WG.TerraformerShared.getElementRect and WG.TerraformerShared.getElementRect("terraform_brush", "tf-root")
 	if not userDragged and mainPanel and widgetState.rootElement then
 		local myWidth = widgetState.rootElement.offset_width
 		if myWidth and myWidth > 0 then
 			local gap = 8
-			widgetState.rootElement:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;",
-					mainPanel.left - myWidth - gap, mainPanel.top))
+			widgetState.rootElement:SetAttribute("style", string.format("left: %dpx; top: %dpx;", mainPanel.left - myWidth - gap, mainPanel.top))
 		end
 	end
 
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 
 	-- Selected CEGs label (cached element + dirty-check: runs every Update tick)
 	local selectedLabel = widgetState.selectedCegsLabelEl
@@ -300,7 +315,9 @@ function widget:Update()
 			display = '<span style="color: #6b7280;">none</span>'
 		else
 			display = table.concat(wbState.selectedCegs, ", ")
-			if #display > 50 then display = display:sub(1, 47) .. "..." end
+			if #display > 50 then
+				display = display:sub(1, 47) .. "..."
+			end
 		end
 		if widgetState.lastSelectedCegsRml ~= display then
 			widgetState.lastSelectedCegsRml = display
@@ -382,12 +399,17 @@ function widget:Update()
 			for _, name in ipairs(cegNames) do
 				if filterLower == "" or name:lower():find(filterLower, 1, true) then
 					shown = shown + 1
-					if shown > maxShow then break end
+					if shown > maxShow then
+						break
+					end
 					local item = doc:CreateElement("div")
 					item:SetClass("wb-ceg-item", true)
 					local isSelected = false
 					for _, sel in ipairs(wbState.selectedCegs) do
-						if sel == name then isSelected = true; break end
+						if sel == name then
+							isSelected = true
+							break
+						end
 					end
 					item:SetClass("selected", isSelected)
 					item.inner_rml = name

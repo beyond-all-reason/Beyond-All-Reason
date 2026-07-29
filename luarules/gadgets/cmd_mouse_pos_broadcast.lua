@@ -11,31 +11,30 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "Cursor Broadcast",
-		desc	= "Shows the mouse pos of allied players",
-		author	= "jK,TheFatController",
-		date	= "Apr,2009",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
+		name = "Cursor Broadcast",
+		desc = "Shows the mouse pos of allied players",
+		author = "jK,TheFatController",
+		date = "Apr,2009",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 		enabled = true,
 	}
 end
 
 --------------------------------------------------------------------------------
 
-local numMousePos		= 1 	-- num mouse pos in 1 packet
-local sendPacketEveryMin	= 0.12
-local sendPacketEveryMax	= 0.35
+local numMousePos = 1 -- num mouse pos in 1 packet
+local sendPacketEveryMin = 0.12
+local sendPacketEveryMax = 0.35
 local sendPacketEveryWhenSpec = 0.5
 local playerCountScalingStart = 8
 local playerCountScalingEnd = 64
 
 --------------------------------------------------------------------------------
 
-local PackU16			= VFS.PackU16
-local MOUSE_POS_BYTES	= numMousePos * 4
-local MSG_PAYLOAD_BYTES	= MOUSE_POS_BYTES + 1
-
+local PackU16 = VFS.PackU16
+local MOUSE_POS_BYTES = numMousePos * 4
+local MSG_PAYLOAD_BYTES = MOUSE_POS_BYTES + 1
 
 if gadgetHandler:IsSyncedCode() then
 	local validation = string.randomString(2)
@@ -54,10 +53,16 @@ if gadgetHandler:IsSyncedCode() then
 	local paused = false
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if #msg ~= EXPECTED_MSG_LEN then return end
+		if #msg ~= EXPECTED_MSG_LEN then
+			return
+		end
 		local b1, b2, b3, b4 = strByte(msg, 1, 4)
-		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 or b4 ~= ep4 then return end
-		if paused then return end
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 or b4 ~= ep4 then
+			return
+		end
+		if paused then
+			return
+		end
 
 		SendToUnsynced("mouseBroadcast", playerID, strSub(msg, EXPECTED_PREFIX_LEN + 1, EXPECTED_MSG_LEN))
 		return true
@@ -66,31 +71,27 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GamePaused(_, isPaused)
 		paused = isPaused
 	end
-
-
 else
-
-
 	--------------------------------------------------------------------------------
 
 	--------------------------------------------------------------------------------
 
-	local GetMouseState			= Spring.GetMouseState
-	local TraceScreenRay		= Spring.TraceScreenRay
-	local SendLuaRulesMsg		= Spring.SendLuaRulesMsg
-	local GetSpectatingState	= Spring.GetSpectatingState
-	local GetPlayerInfo			= Spring.GetPlayerInfo
-	local GetPlayerList			= Spring.GetPlayerList
-	local GetTeamInfo			= Spring.GetTeamInfo
-	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
-	local GetGameSpeed			= Spring.GetGameSpeed
-	local LuaUICallIn			= Script.LuaUI
-	local LuaUI					= Script.LuaUI
+	local GetMouseState = Spring.GetMouseState
+	local TraceScreenRay = Spring.TraceScreenRay
+	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local GetSpectatingState = Spring.GetSpectatingState
+	local GetPlayerInfo = Spring.GetPlayerInfo
+	local GetPlayerList = Spring.GetPlayerList
+	local GetTeamInfo = Spring.GetTeamInfo
+	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+	local GetGameSpeed = Spring.GetGameSpeed
+	local LuaUICallIn = Script.LuaUI
+	local LuaUI = Script.LuaUI
 
-	local floor				= math.floor
-	local abs				= math.abs
-	local strByte			= string.byte
-	local CLICK_BYTE		= string.byte("1")
+	local floor = math.floor
+	local abs = math.abs
+	local strByte = string.byte
+	local CLICK_BYTE = string.byte("1")
 
 	local validation = SYNCED.validationMouse
 	local msgPrefix = "£" .. validation
@@ -106,18 +107,18 @@ else
 	local updateTimer = 0
 	local poshistory = {}
 
-	local lastx,lastz = 0,0
+	local lastx, lastz = 0, 0
 	local n = 0
 	local wasBroadcastActive = false
 
 	local tableConcat = table.concat
-	local sendParts = {msgPrefix, false, false, false, false, false}
+	local sendParts = { msgPrefix, false, false, false, false, false }
 
 	local function ResetCursorBroadcastState()
 		for i = 0, numMousePos * 2 + 1 do
 			poshistory[i] = nil
 		end
-		lastx,lastz = 0,0
+		lastx, lastz = 0, 0
 		n = 0
 		updateTimer = 0
 		updateTick = saveEach
@@ -143,10 +144,7 @@ else
 		elseif humanPlayerCount >= playerCountScalingEnd then
 			playerBroadcastPeriod = sendPacketEveryMax
 		else
-			playerBroadcastPeriod = sendPacketEveryMin
-				+ (sendPacketEveryMax - sendPacketEveryMin)
-					* (humanPlayerCount - playerCountScalingStart)
-					/ (playerCountScalingEnd - playerCountScalingStart)
+			playerBroadcastPeriod = sendPacketEveryMin + (sendPacketEveryMax - sendPacketEveryMin) * (humanPlayerCount - playerCountScalingStart) / (playerCountScalingEnd - playerCountScalingStart)
 		end
 
 		saveEach = (spec and sendPacketEveryWhenSpec or playerBroadcastPeriod) / numMousePos
@@ -160,8 +158,10 @@ else
 			local xStr = poshistory[i * 2]
 			local zStr = poshistory[i * 2 + 1]
 			if xStr and zStr then
-				pn = pn + 1; sendParts[pn] = xStr
-				pn = pn + 1; sendParts[pn] = zStr
+				pn = pn + 1
+				sendParts[pn] = xStr
+				pn = pn + 1
+				sendParts[pn] = zStr
 			end
 		end
 		SendLuaRulesMsg(tableConcat(sendParts, "", 1, pn))
@@ -192,15 +192,15 @@ else
 		RefreshSendInterval()
 	end
 
-	function handleMousePosEvent(_,playerID,x1,z1,x2,z2,click)
+	function handleMousePosEvent(_, playerID, x1, z1, x2, z2, click)
 		if not spec then
-			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)
 			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end
 		end
 		if LuaUICallIn("MouseCursorEvent") then
-			LuaUI.MouseCursorEvent(playerID,x1,z1,x2,z2,click)
+			LuaUI.MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 		end
 	end
 
@@ -218,7 +218,7 @@ else
 		if spec then
 			LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
 		else
-			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)
 			if not targetSpec and allyTeamID == myAllyTeamID then
 				LuaUI.MouseCursorEvent(playerID, x1, z1, x1, z1, clickByte == CLICK_BYTE)
 			end
@@ -241,14 +241,14 @@ else
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 
 		if updateTimer > updateTick then
-			local mx,my = GetMouseState()
-			local _,pos = TraceScreenRay(mx,my,true)
+			local mx, my = GetMouseState()
+			local _, pos = TraceScreenRay(mx, my, true)
 
-			if pos and (n == 1 or pos[1] ~= lastx or pos[3] ~= lastz) then	-- only record change in position unless packet is already being instigated previous update tick
+			if pos and (n == 1 or pos[1] ~= lastx or pos[3] ~= lastz) then -- only record change in position unless packet is already being instigated previous update tick
 				local historyIdx = (n + 1) * 2
-				poshistory[historyIdx]	 = PackU16(floor(pos[1]))
+				poshistory[historyIdx] = PackU16(floor(pos[1]))
 				poshistory[historyIdx + 1] = PackU16(floor(pos[3]))
-				lastx,lastz = pos[1],pos[3]
+				lastx, lastz = pos[1], pos[3]
 				n = n + 1
 			end
 			updateTick = updateTimer + saveEach
@@ -262,32 +262,29 @@ else
 		end
 	end
 
-
-	function gadget:MousePress(x,y,button)
+	function gadget:MousePress(x, y, button)
 		if button == 2 then
 			return
 		end
 		if not IsCursorBroadcastActive() then
 			return
 		end
-		local mx,my = GetMouseState()
-		local _,pos = TraceScreenRay(mx,my,true)
+		local mx, my = GetMouseState()
+		local _, pos = TraceScreenRay(mx, my, true)
 
 		if not pos then
 			return
 		end
 		if abs(pos[1] - lastx) > 300 or abs(pos[3] - lastz) > 300 then
-			for i=0,5 do
-				local posindex = i%2 == 0 and 1 or 3
+			for i = 0, 5 do
+				local posindex = i % 2 == 0 and 1 or 3
 				poshistory[i] = PackU16(floor(pos[posindex]))
 			end
-			lastx,lastz = pos[1],pos[3]
+			lastx, lastz = pos[1], pos[3]
 			updateTick = saveEach
 			updateTimer = 0
 			n = 0
 			sendPositionPacket("0")
 		end
 	end
-
 end
-

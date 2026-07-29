@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "-",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -17,7 +17,6 @@ if Spring.GetModOptions().fixedallies then
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	local GetUnitDefID = Spring.GetUnitDefID
 	local AreTeamsAllied = Spring.AreTeamsAllied
 	local GetUnitsInSphere = Spring.GetUnitsInSphere
@@ -141,7 +140,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
 	----------------------------------------------------------------
 	-- Unsynced
@@ -158,22 +156,22 @@ else
 	end
 
 	local function allianceMade(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.create", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function allianceBroken(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.destroy", { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function backstab(_, victimTeam, traitorTeam)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
+		if Script.LuaUI("GadgetMessageProxy") then
+			local message = Script.LuaUI.GadgetMessageProxy("ui.dynamicAlly.backstab", { player = getTeamLeaderName(traitorTeam) })
 			SendMessageToTeam(victimTeam, message)
 		end
 	end
@@ -183,5 +181,4 @@ else
 		gadgetHandler:AddSyncAction("AllianceBroken", allianceBroken)
 		gadgetHandler:AddSyncAction("Backstab", backstab)
 	end
-
 end

@@ -67,7 +67,9 @@ local cegsLoaded = false
 -- Deferred from Initialize: DirList + include over the effects/ trees is real
 -- load-time work every player would pay; consumers call this lazily instead.
 local function loadCEGNames()
-	if cegsLoaded then return end
+	if cegsLoaded then
+		return
+	end
 	cegsLoaded = true
 	cegNames = {}
 	cegNameSet = {}
@@ -110,7 +112,7 @@ local weatherLibrary = {
 		-- Lift so end-of-life particles fade near ground, not underground.
 		altitude = 900,
 		persistence = 600,
-		cegLifetimeS = 4,   -- particlelife 34 + spread 90 = ~124 frames
+		cegLifetimeS = 4, -- particlelife 34 + spread 90 = ~124 frames
 	},
 	{
 		name = "Heavy Downpour",
@@ -143,7 +145,7 @@ local weatherLibrary = {
 		-- rain wants ~900, fogdirty wants ~60; 400 is the visible compromise.
 		altitude = 400,
 		persistence = 300,
-		cegLifetimeS = 26,  -- fogdirty dominates: 520+260 frames
+		cegLifetimeS = 26, -- fogdirty dominates: 520+260 frames
 	},
 	{
 		name = "Acid Rain",
@@ -173,7 +175,7 @@ local weatherLibrary = {
 		-- weather_snowflake pos y already at 300-600; fall ~440 fits above ground.
 		altitude = 0,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 7,   -- particlelife 90 + spread 130 = ~220 frames
+		cegLifetimeS = 7, -- particlelife 90 + spread 130 = ~220 frames
 	},
 	{
 		name = "Blizzard",
@@ -189,7 +191,7 @@ local weatherLibrary = {
 		-- main flakes pos y 250-600, drift 20-80; mistycloud -20..+130.
 		altitude = 20,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 27,  -- mistycloud: 300+500 frames
+		cegLifetimeS = 27, -- mistycloud: 300+500 frames
 	},
 	{
 		name = "Hailstorm",
@@ -206,7 +208,7 @@ local weatherLibrary = {
 		-- Lift so streaks stay visible; splash also reads OK slightly raised.
 		altitude = 600,
 		persistence = 300,
-		cegLifetimeS = 2,   -- particlelife 22 + spread 30 = ~52 frames
+		cegLifetimeS = 2, -- particlelife 22 + spread 30 = ~52 frames
 	},
 	-- ===================================================================
 	-- WIND & SAND — lateral movement + overhead sand cloud layers
@@ -224,7 +226,7 @@ local weatherLibrary = {
 		-- sandblast is horizontal ground-level; sandclouddense overhead at ~125.
 		altitude = 0,
 		persistence = 600,
-		cegLifetimeS = 15,  -- sandclouddense: 190+250 frames
+		cegLifetimeS = 15, -- sandclouddense: 190+250 frames
 	},
 	{
 		name = "Dust Devil",
@@ -239,7 +241,7 @@ local weatherLibrary = {
 		cadence = 3,
 		altitude = 0,
 		persistence = 300,
-		cegLifetimeS = 8,   -- dunedust: 120+120 frames
+		cegLifetimeS = 8, -- dunedust: 120+120 frames
 	},
 	-- ===================================================================
 	-- FOG & ATMOSPHERE — ground-hugging to mid-altitude
@@ -335,7 +337,7 @@ local weatherLibrary = {
 		-- ashfall pos y 200-500 falls slow; smokeblack y -50..+25 rises. Keep low.
 		altitude = 60,
 		persistence = PERSIST_PERMANENT,
-		cegLifetimeS = 33,  -- smokeblack: 600+400 frames
+		cegLifetimeS = 33, -- smokeblack: 600+400 frames
 	},
 	{
 		name = "Rising Embers",
@@ -350,7 +352,7 @@ local weatherLibrary = {
 		cadence = 5,
 		altitude = 0,
 		persistence = 600,
-		cegLifetimeS = 4,   -- embers: 45+85 frames
+		cegLifetimeS = 4, -- embers: 45+85 frames
 	},
 	{
 		name = "Lava Field",
@@ -537,29 +539,29 @@ local weatherLibrary = {
 -- ===========================================================================
 local wb = {
 	active = false,
-	mode = "scatter",       -- "scatter", "point", "remove"
-	shape = "circle",       -- "circle", "square", "hexagon", "octagon"
+	mode = "scatter", -- "scatter", "point", "remove"
+	shape = "circle", -- "circle", "square", "hexagon", "octagon"
 	radius = DEFAULT_RADIUS,
 	lengthScale = DEFAULT_LENGTH_SCALE,
 	rotation = 0,
-	rotRandom = 0,          -- 0-100
+	rotRandom = 0, -- 0-100
 	spawnCount = DEFAULT_COUNT,
-	cadence = DEFAULT_CADENCE,  -- 1-1000 logarithmic placement speed
-	frequency = 1.0,            -- spawn interval in seconds (0.1-60.0)
+	cadence = DEFAULT_CADENCE, -- 1-1000 logarithmic placement speed
+	frequency = 1.0, -- spawn interval in seconds (0.1-60.0)
 	distribution = "random",
-	altitude = 0,            -- Y offset above ground for spawn point
+	altitude = 0, -- Y offset above ground for spawn point
 
-	selectedCegs = {},       -- ordered list of selected CEG names
-	selectedCegSet = {},     -- quick lookup
+	selectedCegs = {}, -- ordered list of selected CEG names
+	selectedCegSet = {}, -- quick lookup
 
 	-- Persistence settings
-	persistenceSeconds = 0,  -- 0 = one-shot, PERSIST_PERMANENT = forever
-	persistentMode = false,  -- derived from persistenceSeconds > 0
-	cegLifetimeS = nil,      -- per-preset particle lifetime override (nil = use default)
+	persistenceSeconds = 0, -- 0 = one-shot, PERSIST_PERMANENT = forever
+	persistentMode = false, -- derived from persistenceSeconds > 0
+	cegLifetimeS = nil, -- per-preset particle lifetime override (nil = use default)
 
 	-- Drag state
 	dragging = false,
-	dragAction = nil,        -- "place" or "remove"
+	dragAction = nil, -- "place" or "remove"
 	lockedWorldX = 0,
 	lockedWorldZ = 0,
 	placeTimer = 0,
@@ -611,12 +613,16 @@ end
 -- CEG Spawning (routed through gadget via SendLuaRulesMsg)
 -- ===========================================================================
 local function sendCegBatch(entries)
-	if #entries == 0 then return end
+	if #entries == 0 then
+		return
+	end
 	SendLuaRulesMsg(CEG_HEADER .. table.concat(entries, "|"))
 end
 
 local function spawnWeatherAtArea(cegs, cx, cz, radius, count, shape, angleDeg, lengthScale, altitude)
-	if not cegs or #cegs == 0 then return end
+	if not cegs or #cegs == 0 then
+		return
+	end
 	local altStr = " " .. floor(altitude or 0)
 	local batch = {}
 	for i = 1, count do
@@ -628,7 +634,9 @@ local function spawnWeatherAtArea(cegs, cx, cz, radius, count, shape, angleDeg, 
 end
 
 local function spawnSingleCeg(cegs, x, z, altitude)
-	if not cegs or #cegs == 0 then return end
+	if not cegs or #cegs == 0 then
+		return
+	end
 	local altStr = " " .. floor(altitude or 0)
 	local batch = {}
 	for _, cegName in ipairs(cegs) do
@@ -641,14 +649,14 @@ end
 -- Persistent Spawner System
 -- ===========================================================================
 -- Fade constants: ramp spawn count over the first/last portion of lifetime
-local FADE_IN_SECONDS  = 5   -- seconds to ramp from 1 to full count
-local FADE_OUT_SECONDS = 8   -- seconds to ramp from full count down to 0
+local FADE_IN_SECONDS = 5 -- seconds to ramp from 1 to full count
+local FADE_OUT_SECONDS = 8 -- seconds to ramp from full count down to 0
 
 -- Saturation: once enough cycles have run to reach steady-state particle
 -- density, stop continuous spawning and switch to periodic refresh bursts
 -- that fire once per particle lifetime so the area stays filled without
 -- piling up additional particles on top of the existing ones.
-local ESTIMATED_PARTICLE_LIFETIME_S = 10  -- conservative CEG lifetime guess
+local ESTIMATED_PARTICLE_LIFETIME_S = 10 -- conservative CEG lifetime guess
 
 local function addPersistentSpawner(cegs, cx, cz, radius, count, shape, angleDeg, durationSeconds, cegLifetimeS)
 	local frameRate = Game.gameSpeed
@@ -705,7 +713,9 @@ local function removePersistentSpawnersInArea(cx, cz, radius, shape, angleDeg, l
 end
 
 local function updatePersistentSpawners()
-	if next(wb.persistentSpawners) == nil then return end
+	if next(wb.persistentSpawners) == nil then
+		return
+	end
 	local frame = GetGameFrame()
 	local frameRate = Game.gameSpeed
 	local expired = {}
@@ -763,7 +773,9 @@ end
 -- Placement Actions
 -- ===========================================================================
 local function doScatterPlace(cx, cz)
-	if #wb.selectedCegs == 0 then return end
+	if #wb.selectedCegs == 0 then
+		return
+	end
 
 	spawnWeatherAtArea(wb.selectedCegs, cx, cz, wb.radius, wb.spawnCount, wb.shape, wb.rotation, wb.lengthScale, wb.altitude)
 
@@ -775,7 +787,9 @@ local function doScatterPlace(cx, cz)
 end
 
 local function doPointPlace(cx, cz)
-	if #wb.selectedCegs == 0 then return end
+	if #wb.selectedCegs == 0 then
+		return
+	end
 
 	spawnSingleCeg(wb.selectedCegs, cx, cz, wb.altitude)
 
@@ -799,14 +813,18 @@ local function placeSymmetric(fn, cx, cz)
 	local rot = wb.rotation or 0
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st.angleSnap then rot = st.rotationDeg or rot end
+		if st.angleSnap then
+			rot = st.rotationDeg or rot
+		end
 		if st.gridSnap and tb.snapWorld then
 			cx, cz = tb.snapWorld(cx, cz, rot)
 		end
 		if st.symmetryActive and tb.getSymmetricPositions then
 			local positions = tb.getSymmetricPositions(cx, cz, rot)
 			if positions and #positions > 0 then
-				for _, p in ipairs(positions) do fn(p.x, p.z) end
+				for _, p in ipairs(positions) do
+					fn(p.x, p.z)
+				end
 				return
 			end
 		end
@@ -821,8 +839,12 @@ local function activate(mode)
 	wb.active = true
 	wb.mode = mode or "scatter"
 	-- Deactivate terraform brush and feature placer
-	if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-	if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.deactivate()
+	end
+	if WG.FeaturePlacer then
+		WG.FeaturePlacer.deactivate()
+	end
 end
 
 local function deactivate()
@@ -907,7 +929,9 @@ end
 -- When such a CEG becomes the selection, clamp to a single, slow, one-shot
 -- spawn so the effect stays usable without blinding.
 local function cegFlashbangOverride(name)
-	if not name then return nil end
+	if not name then
+		return nil
+	end
 	if name:upper():find("COMMANDER_EXPLOSION", 1, true) then
 		return { spawnCount = 1, cadence = 2, persistence = 0 }
 	end
@@ -916,7 +940,9 @@ end
 
 local function applyCegFlashbangOverride(name)
 	local ov = cegFlashbangOverride(name)
-	if not ov then return end
+	if not ov then
+		return
+	end
 	setSpawnCount(ov.spawnCount)
 	setCadence(ov.cadence)
 	setPersistenceSeconds(ov.persistence)
@@ -924,7 +950,9 @@ end
 
 local function selectCeg(name)
 	loadCEGNames()
-	if not cegNameSet[name] then return end
+	if not cegNameSet[name] then
+		return
+	end
 	wb.selectedCegs = { name }
 	wb.selectedCegSet = { [name] = true }
 	applyCegFlashbangOverride(name)
@@ -932,12 +960,16 @@ end
 
 local function toggleCeg(name)
 	loadCEGNames()
-	if not cegNameSet[name] then return end
+	if not cegNameSet[name] then
+		return
+	end
 	if wb.selectedCegSet[name] then
 		wb.selectedCegSet[name] = nil
 		local newList = {}
 		for _, v in ipairs(wb.selectedCegs) do
-			if v ~= name then newList[#newList + 1] = v end
+			if v ~= name then
+				newList[#newList + 1] = v
+			end
 		end
 		wb.selectedCegs = newList
 	else
@@ -954,7 +986,9 @@ end
 
 local function applyWeatherPreset(index)
 	local preset = weatherLibrary[index]
-	if not preset then return end
+	if not preset then
+		return
+	end
 
 	wb.selectedCegs = {}
 	wb.selectedCegSet = {}
@@ -989,7 +1023,9 @@ local function getPersistentSpawners()
 	local out = {}
 	for _, s in pairs(wb.persistentSpawners) do
 		local cegs = {}
-		for i = 1, #s.cegs do cegs[i] = s.cegs[i] end
+		for i = 1, #s.cegs do
+			cegs[i] = s.cegs[i]
+		end
 		out[#out + 1] = {
 			cegs = cegs,
 			x = s.x,
@@ -1025,7 +1061,9 @@ local function addSpawnerRaw(entry)
 	local frameRate = Game.gameSpeed
 	local now = GetGameFrame()
 	local cegs = {}
-	for i = 1, #entry.cegs do cegs[i] = tostring(entry.cegs[i]) end
+	for i = 1, #entry.cegs do
+		cegs[i] = tostring(entry.cegs[i])
+	end
 	local interval = max(1, floor(tonumber(entry.interval) or frameRate))
 	local refreshInterval = max(interval, floor(tonumber(entry.refreshInterval) or interval))
 	local persistence = tonumber(entry.persistence) or PERSIST_PERMANENT
@@ -1120,9 +1158,9 @@ local function drawRotatedSquare(cx, cy, cz, radius, angleDeg, lengthScale)
 	glBeginEnd(GL_LINE_LOOP, function()
 		local corners = {
 			{ -radius, -radiusZ },
-			{  radius, -radiusZ },
-			{  radius,  radiusZ },
-			{ -radius,  radiusZ },
+			{ radius, -radiusZ },
+			{ radius, radiusZ },
+			{ -radius, radiusZ },
 		}
 		for _, corner in ipairs(corners) do
 			local rx, rz = rotatePoint(corner[1], corner[2], angleDeg)
@@ -1135,7 +1173,9 @@ end
 -- Input Handling
 -- ===========================================================================
 function widget:KeyPress(key, mods, isRepeat)
-	if not wb.active then return false end
+	if not wb.active then
+		return false
+	end
 
 	-- Escape to deactivate
 	if key == 27 then -- ESCAPE
@@ -1151,14 +1191,20 @@ function widget:IsAbove(x, y)
 end
 
 function widget:MousePress(mx, my, button)
-	if not wb.active then return false end
-	if button ~= 1 and button ~= 3 then return false end
+	if not wb.active then
+		return false
+	end
+	if button ~= 1 and button ~= 3 then
+		return false
+	end
 
 	-- Defer to measure tool when active
 	do
 		local tb = WG.TerraformBrush
 		local st = tb and tb.getState and tb.getState() or nil
-		if st and st.measureActive then return false end
+		if st and st.measureActive then
+			return false
+		end
 		-- Defer to symmetry origin drag so terraform can grab the drag
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
@@ -1168,7 +1214,9 @@ function widget:MousePress(mx, my, button)
 	end
 
 	local wx, wy, wz = getWorldMousePosition()
-	if not wx then return false end
+	if not wx then
+		return false
+	end
 
 	wb.dragging = true
 	wb.lockedWorldX = wx
@@ -1201,7 +1249,9 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:MouseWheel(up, value)
-	if not wb.active then return false end
+	if not wb.active then
+		return false
+	end
 
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
@@ -1245,11 +1295,17 @@ function widget:Update(dt)
 	-- Update persistent spawners regardless of active state
 	updatePersistentSpawners()
 
-	if not wb.active then return end
-	if not wb.dragging then return end
+	if not wb.active then
+		return
+	end
+	if not wb.dragging then
+		return
+	end
 
 	lastDt = lastDt + dt
-	if lastDt < getCadenceInterval() then return end
+	if lastDt < getCadenceInterval() then
+		return
+	end
 	lastDt = 0
 
 	local lmb, _, rmb = GetMouseState()
@@ -1260,7 +1316,9 @@ function widget:Update(dt)
 	end
 
 	local wx, _, wz = getWorldMousePosition()
-	if not wx then return end
+	if not wx then
+		return
+	end
 
 	wb.lockedWorldX = wx
 	wb.lockedWorldZ = wz
@@ -1278,24 +1336,34 @@ end
 -- Drawing (World)
 -- ===========================================================================
 function widget:DrawWorld()
-	if not wb.active then return end
+	if not wb.active then
+		return
+	end
 
 	local wx, wy, wz = getWorldMousePosition()
 	do
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			wx, wz = tb.animateUnmouse("weatherBrush", wx, wz, wb.radius, wb.lengthScale or 1.0)
-			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
+			if wx then
+				wy = (GetGroundHeight(wx, wz) or 0) + 4
+			end
 		elseif tb and tb.getUnmouseTarget and not wx then
 			wx, wz = tb.getUnmouseTarget(wb.radius, wb.lengthScale or 1.0)
-			if wx then wy = (GetGroundHeight(wx, wz) or 0) + 4 end
+			if wx then
+				wy = (GetGroundHeight(wx, wz) or 0) + 4
+			end
 		end
 	end
-	if not wx then return end
+	if not wx then
+		return
+	end
 	do
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
-		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then return end
+		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
+			return
+		end
 	end
 
 	local groundY = (GetGroundHeight(wx, wz) or 0) + 4
@@ -1373,8 +1441,7 @@ function widget:Initialize()
 		activate("remove")
 	end, nil, "t")
 
-	widgetHandler:AddAction("weatherbrushoff",
-		deactivate, nil, "t")
+	widgetHandler:AddAction("weatherbrushoff", deactivate, nil, "t")
 
 	-- Expose API for the RmlUI controller
 	WG.WeatherBrush = {

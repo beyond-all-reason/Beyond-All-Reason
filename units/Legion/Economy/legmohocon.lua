@@ -1,4 +1,4 @@
-return {						--costs should be same as legmohoconct and legmohoconin
+return { --costs should be same as legmohoconct and legmohoconin
 	legmohocon = {
 		maxacc = 0,
 		activatewhenbuilt = true,
@@ -35,7 +35,7 @@ return {						--costs should be same as legmohoconct and legmohoconin
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Tharsis and Protar",

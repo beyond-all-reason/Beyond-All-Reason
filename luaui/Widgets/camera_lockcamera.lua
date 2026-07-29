@@ -14,10 +14,10 @@ function widget:GetInfo()
 end
 
 local lockcameraHideEnemies = true -- specfullview
-local lockcameraLos = true         -- togglelos
+local lockcameraLos = true -- togglelos
 
-local transitionTime = 1.3         -- how long it takes the camera to move when tracking a player
-local listTime = 14                -- how long back to look for recent broadcasters
+local transitionTime = 1.3 -- how long it takes the camera to move when tracking a player
+local listTime = 14 -- how long back to look for recent broadcasters
 
 local totalTime = 0.0
 local lastBroadcasts = {}
@@ -90,11 +90,15 @@ local function matchRotation(targetState)
 
 	if not myRotation then
 		myRotation = 0
-		if myState.flipped == 0 then myRotation = math_pi end
+		if myState.flipped == 0 then
+			myRotation = math_pi
+		end
 	end
 	if not targetRotation then
 		targetRotation = 0
-		if targetState.flipped == 0 then targetRotation = math_pi end
+		if targetState.flipped == 0 then
+			targetRotation = math_pi
+		end
 	end
 
 	myState.ry = matchRotationRange(myRotation, targetRotation)
@@ -103,7 +107,6 @@ local function matchRotation(targetState)
 	spSetCameraState(myState)
 	myLastCameraState = myLastCameraState or myState
 end
-
 
 local function UpdateRecentBroadcasters()
 	for k in pairs(recentBroadcasters) do
@@ -138,19 +141,19 @@ local function LockCamera(playerID)
 				spSendCommands("specfullview")
 			end
 			if not isSpec and lockcameraLos and mySpecStatus then
-				desiredLosmode = 'los'
+				desiredLosmode = "los"
 				desiredLosmodeChanged = os_clock()
 			end
 		elseif lockcameraHideEnemies and isSpec then
 			if not fullView then
 				spSendCommands("specfullview")
 			end
-			desiredLosmode = 'normal'
+			desiredLosmode = "normal"
 			desiredLosmodeChanged = os_clock()
 		end
 		lockPlayerID = playerID
 		if not isSpec and lockcameraLos and mySpecStatus then
-			desiredLosmode = 'los'
+			desiredLosmode = "los"
 			desiredLosmodeChanged = os_clock()
 		end
 		myLastCameraState = myLastCameraState or spGetCameraState()
@@ -172,19 +175,18 @@ local function LockCamera(playerID)
 				spSendCommands("specfullview")
 			end
 			if lockcameraLos and mySpecStatus then
-				desiredLosmode = 'normal'
+				desiredLosmode = "normal"
 				desiredLosmodeChanged = os_clock()
 			end
 		end
 		lockPlayerID = nil
-		desiredLosmode = 'normal'
+		desiredLosmode = "normal"
 		desiredLosmodeChanged = os_clock()
 	end
 	UpdateRecentBroadcasters()
 
 	return lockPlayerID
 end
-
 
 local function CameraBroadcastEvent(playerID, cameraState)
 	-- if cameraState is empty then transmission has stopped
@@ -275,7 +277,7 @@ function widget:Initialize()
 				if not fullView then
 					spSendCommands("specfullview")
 					if lockcameraLos and mySpecStatus then
-						desiredLosmode = 'normal'
+						desiredLosmode = "normal"
 						desiredLosmodeChanged = os_clock()
 						spSendCommands("togglelos")
 					end
@@ -284,7 +286,7 @@ function widget:Initialize()
 				if fullView then
 					spSendCommands("specfullview")
 					if lockcameraLos and mySpecStatus then
-						desiredLosmode = 'los'
+						desiredLosmode = "los"
 						desiredLosmodeChanged = os_clock()
 					end
 				end
@@ -305,11 +307,11 @@ function widget:Initialize()
 		RefreshLocalPlayerStateIfDirty()
 		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3, spGetPlayerInfo(lockPlayerID)) then
 			if lockcameraLos and mySpecStatus then
-				desiredLosmode = 'los'
+				desiredLosmode = "los"
 				desiredLosmodeChanged = os_clock()
 				spSendCommands("togglelos")
 			elseif not lockcameraLos and spGetMapDrawMode() == "los" then
-				desiredLosmode = 'normal'
+				desiredLosmode = "normal"
 				desiredLosmodeChanged = os_clock()
 				spSendCommands("togglelos")
 			end
@@ -376,7 +378,7 @@ function widget:SetConfigData(data)
 					if not fullView then
 						spSendCommands("specfullview")
 						if lockcameraLos and mySpecStatus and spGetMapDrawMode() == "los" then
-							desiredLosmode = 'normal'
+							desiredLosmode = "normal"
 							desiredLosmodeChanged = os_clock()
 						end
 					end
@@ -384,7 +386,7 @@ function widget:SetConfigData(data)
 					if fullView then
 						spSendCommands("specfullview")
 						if lockcameraLos and mySpecStatus then
-							desiredLosmode = 'los'
+							desiredLosmode = "los"
 							desiredLosmodeChanged = os_clock()
 						end
 					end

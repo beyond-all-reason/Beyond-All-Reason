@@ -1,11 +1,11 @@
 function widget:GetInfo()
 	return {
-		name    = "Feature Placer",
-		desc    = "Brush tool for placing, arranging, and removing map features",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer",
+		desc = "Brush tool for placing, arranging, and removing map features",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 1000000,
+		layer = 1000000,
 		enabled = false,
 	}
 end
@@ -13,103 +13,103 @@ end
 ----------------------------------------------------------------
 -- Localize engine calls
 ----------------------------------------------------------------
-local Echo             = Spring.Echo
-local GetMouseState    = Spring.GetMouseState
-local GetModKeyState   = Spring.GetModKeyState
-local GetKeyState      = Spring.GetKeyState
-local TraceScreenRay   = Spring.TraceScreenRay
-local GetGroundHeight  = Spring.GetGroundHeight
-local GetGroundNormal  = Spring.GetGroundNormal
-local GetGameFrame     = Spring.GetGameFrame
-local SendLuaRulesMsg  = Spring.SendLuaRulesMsg
-local GetAllFeatures   = Spring.GetAllFeatures
+local Echo = Spring.Echo
+local GetMouseState = Spring.GetMouseState
+local GetModKeyState = Spring.GetModKeyState
+local GetKeyState = Spring.GetKeyState
+local TraceScreenRay = Spring.TraceScreenRay
+local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundNormal = Spring.GetGroundNormal
+local GetGameFrame = Spring.GetGameFrame
+local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturePosition = Spring.GetFeaturePosition
-local GetFeatureDefID  = Spring.GetFeatureDefID
+local GetFeatureDefID = Spring.GetFeatureDefID
 
-local glColor     = gl.Color
+local glColor = gl.Color
 local glLineWidth = gl.LineWidth
-local glBeginEnd  = gl.BeginEnd
-local glVertex    = gl.Vertex
-local glPushMatrix  = gl.PushMatrix
-local glPopMatrix   = gl.PopMatrix
-local glTranslate   = gl.Translate
-local glDepthTest   = gl.DepthTest
-local glCreateList  = gl.CreateList
-local glDeleteList  = gl.DeleteList
-local glCallList    = gl.CallList
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glDepthTest = gl.DepthTest
+local glCreateList = gl.CreateList
+local glDeleteList = gl.DeleteList
+local glCallList = gl.CallList
 local glPolygonOffset = gl.PolygonOffset
-local GL_TRIANGLES  = GL.TRIANGLES
-local GL_LINES      = GL.LINES
-local GL_LINE_LOOP  = GL.LINE_LOOP
+local GL_TRIANGLES = GL.TRIANGLES
+local GL_LINES = GL.LINES
+local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
 local SCATTER_HEADER = "$feature_scatter$"
-local POINT_HEADER   = "$feature_point$"
-local REMOVE_HEADER  = "$feature_remove$"
-local UNDO_HEADER    = "$feature_undo$"
-local REDO_HEADER    = "$feature_redo$"
-local SAVE_HEADER    = "$feature_save$"
-local LOAD_HEADER    = "$feature_load$"
+local POINT_HEADER = "$feature_point$"
+local REMOVE_HEADER = "$feature_remove$"
+local UNDO_HEADER = "$feature_undo$"
+local REDO_HEADER = "$feature_redo$"
+local SAVE_HEADER = "$feature_save$"
+local LOAD_HEADER = "$feature_load$"
 local CLEARALL_HEADER = "$feature_clearall$"
 
 local SAVE_DIR = "Terraform Brush/FeatureMaps/"
 
 local CIRCLE_SEGMENTS = 48
-local DEFAULT_RADIUS  = 200
-local MIN_RADIUS      = 8
-local MAX_RADIUS      = 2000
-local RADIUS_STEP     = 8
-local ROTATION_STEP   = 3
-local KEYSYMS_SPACE   = 0x20
+local DEFAULT_RADIUS = 200
+local MIN_RADIUS = 8
+local MAX_RADIUS = 2000
+local RADIUS_STEP = 8
+local ROTATION_STEP = 3
+local KEYSYMS_SPACE = 0x20
 local UPDATE_INTERVAL = 1 / 30
-local GRID_SNAP_SIZE  = 48  -- matches build grid widget spacing (3 * 16 elmos)
-local gridSnapSize    = 48  -- mutable; user-adjustable via setGridSnapSize
+local GRID_SNAP_SIZE = 48 -- matches build grid widget spacing (3 * 16 elmos)
+local gridSnapSize = 48 -- mutable; user-adjustable via setGridSnapSize
 
 local floor = math.floor
-local max   = math.max
-local min   = math.min
-local cos   = math.cos
-local sin   = math.sin
-local pi    = math.pi
-local sqrt  = math.sqrt
+local max = math.max
+local min = math.min
+local cos = math.cos
+local sin = math.sin
+local pi = math.pi
+local sqrt = math.sqrt
 
 ----------------------------------------------------------------
 -- State (packed into table to conserve locals)
 ----------------------------------------------------------------
 local fp = {
-	active        = false,
-	mode          = nil,       -- "scatter", "point", "remove"
-	shape         = "circle",
-	radius        = DEFAULT_RADIUS,
-	rotation      = 0,
-	rotRandom     = 100,   -- 0 = all same heading, 100 = fully random
-	featureCount  = 10,
-	cadence       = 10,        -- 1-1000 logarithmic (higher = faster)
-	distribution  = "random",  -- "random", "regular", or "clustered"
-	smartEnabled  = false,     -- terrain-aware filtering applied on top of distribution
-	smartFilters  = {
-		avoidWater   = false,  -- reject underwater positions (height < 0)
-		avoidCliffs  = false,  -- reject terrain steeper than slopeMax degrees
-		slopeMax     = 45,
-		preferSlopes = false,  -- reject terrain flatter than slopeMin degrees
-		slopeMin     = 10,
-		altMinEnable = false,  -- reject terrain below altMin
-		altMin       = 0,
-		altMaxEnable = false,  -- reject terrain above altMax
-		altMax       = 200,
+	active = false,
+	mode = nil, -- "scatter", "point", "remove"
+	shape = "circle",
+	radius = DEFAULT_RADIUS,
+	rotation = 0,
+	rotRandom = 100, -- 0 = all same heading, 100 = fully random
+	featureCount = 10,
+	cadence = 10, -- 1-1000 logarithmic (higher = faster)
+	distribution = "random", -- "random", "regular", or "clustered"
+	smartEnabled = false, -- terrain-aware filtering applied on top of distribution
+	smartFilters = {
+		avoidWater = false, -- reject underwater positions (height < 0)
+		avoidCliffs = false, -- reject terrain steeper than slopeMax degrees
+		slopeMax = 45,
+		preferSlopes = false, -- reject terrain flatter than slopeMin degrees
+		slopeMin = 10,
+		altMinEnable = false, -- reject terrain below altMin
+		altMin = 0,
+		altMaxEnable = false, -- reject terrain above altMax
+		altMax = 200,
 	},
-	selectedDefs  = {},        -- { defName1, defName2, ... }
-	selectedSet   = {},        -- { [defName] = true } for quick lookup
-	dragging      = false,
-	dragAction    = nil,       -- "place" or "remove"
-	lockedWorldX  = nil,
-	lockedWorldZ  = nil,
-	placeTimer    = 0,
-	undoCount     = 0,
-	redoCount     = 0,
+	selectedDefs = {}, -- { defName1, defName2, ... }
+	selectedSet = {}, -- { [defName] = true } for quick lookup
+	dragging = false,
+	dragAction = nil, -- "place" or "remove"
+	lockedWorldX = nil,
+	lockedWorldZ = nil,
+	placeTimer = 0,
+	undoCount = 0,
+	redoCount = 0,
 }
 
 local updateTimer = 0
@@ -123,13 +123,21 @@ local gridDirty = false
 ----------------------------------------------------------------
 -- Feature definition cache for asset library
 ----------------------------------------------------------------
-local featureDefList = {}   -- sorted { {name=..., id=...}, ... }
+local featureDefList = {} -- sorted { {name=..., id=...}, ... }
 local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
 local CATEGORY_ORDER = {
-	"rocks", "trees", "foliage", "crystals", "christmas",
-	"raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other",
+	"rocks",
+	"trees",
+	"foliage",
+	"crystals",
+	"christmas",
+	"raptor",
+	"armada_wrecks",
+	"cortex_wrecks",
+	"legion_wrecks",
+	"other",
 }
 
 local CATEGORY_LABELS = {
@@ -147,41 +155,40 @@ local CATEGORY_LABELS = {
 
 local function classifyFeature(name, def)
 	-- Exclude debris and heaps entirely
-	if name:find("_heap$") then return nil end
-	if name:find("debris") then return nil end
+	if name:find("_heap$") then
+		return nil
+	end
+	if name:find("debris") then
+		return nil
+	end
 
 	-- Christmas items
-	if name:find("^candycane") or name:find("^xmascom") then return "christmas" end
+	if name:find("^candycane") or name:find("^xmascom") then
+		return "christmas"
+	end
 
 	-- Raptor items
-	if name:find("^raptor_egg") then return "raptor" end
+	if name:find("^raptor_egg") then
+		return "raptor"
+	end
 
 	-- Crystals
-	if name:find("^pilha_crystal") or name:find("^tiberium") then return "crystals" end
+	if name:find("^pilha_crystal") or name:find("^tiberium") then
+		return "crystals"
+	end
 
 	-- Rocks
-	if name:find("^rocks30_") or name:find("^prock%d") or name:find("^pdrock")
-	   or name:find("^brock_") or name:find("^moonrock") or name:find("^rocksoar")
-	   or name:find("^agorm_rock") or name:find("^slrock") or name:find("^rock%d")
-	   or name:find("^pvolcanicrock") then
+	if name:find("^rocks30_") or name:find("^prock%d") or name:find("^pdrock") or name:find("^brock_") or name:find("^moonrock") or name:find("^rocksoar") or name:find("^agorm_rock") or name:find("^slrock") or name:find("^rock%d") or name:find("^pvolcanicrock") then
 		return "rocks"
 	end
 
 	-- Trees (checked before bushes since some naming overlaps)
-	if name:find("^treetype%d") or name:find("^ad0_pine") or name:find("^ad0_aleppo")
-	   or name:find("^ad0_banyan") or name:find("^ad0_baobab") or name:find("^ad0_senegal")
-	   or name:find("^allpinesb_") or name:find("^lowpoly_tree_") or name:find("^cedar_atlas")
-	   or name:find("^btree") or name:find("^cluster") or name:find("^treecluster")
-	   or name:find("^talltree") or name:find("^fir_tree_") or name:find("^fir_sapling")
-	   or name:find("^hclus%d") or name:find("^hpalm%d") or name:find("^palmetto_")
-	   or name:find("^artbirch") or name:find("^artmaple") or name:find("^artoak") then
+	if name:find("^treetype%d") or name:find("^ad0_pine") or name:find("^ad0_aleppo") or name:find("^ad0_banyan") or name:find("^ad0_baobab") or name:find("^ad0_senegal") or name:find("^allpinesb_") or name:find("^lowpoly_tree_") or name:find("^cedar_atlas") or name:find("^btree") or name:find("^cluster") or name:find("^treecluster") or name:find("^talltree") or name:find("^fir_tree_") or name:find("^fir_sapling") or name:find("^hclus%d") or name:find("^hpalm%d") or name:find("^palmetto_") or name:find("^artbirch") or name:find("^artmaple") or name:find("^artoak") then
 		return "trees"
 	end
 
 	-- Foliage and small plants
-	if name:find("^ad0_bush") or name:find("^artbush") or name:find("^peyote")
-	   or name:find("^pedro") or name:find("^fern") or name:find("^cycas")
-	   or name:find("^mushroom") then
+	if name:find("^ad0_bush") or name:find("^artbush") or name:find("^peyote") or name:find("^pedro") or name:find("^fern") or name:find("^cycas") or name:find("^mushroom") then
 		return "foliage"
 	end
 
@@ -201,7 +208,9 @@ local function classifyFeature(name, def)
 end
 
 local function buildFeatureDefList()
-	if featureDefListBuilt then return end
+	if featureDefListBuilt then
+		return
+	end
 	featureDefListBuilt = true
 	featureDefList = {}
 	featureCategories = {}
@@ -224,10 +233,14 @@ local function buildFeatureDefList()
 			catList[#catList + 1] = entry
 		end
 	end
-	table.sort(featureDefList, function(a, b) return a.name < b.name end)
+	table.sort(featureDefList, function(a, b)
+		return a.name < b.name
+	end)
 	for _, cat in ipairs(CATEGORY_ORDER) do
 		if featureCategories[cat] then
-			table.sort(featureCategories[cat], function(a, b) return a.name < b.name end)
+			table.sort(featureCategories[cat], function(a, b)
+				return a.name < b.name
+			end)
 		end
 	end
 end
@@ -244,8 +257,10 @@ for id, def in pairs(UnitDefs) do
 end
 
 local function showBuildGrid()
-	if gridShowing then return end
-	local bg = WG['buildinggrid']
+	if gridShowing then
+		return
+	end
+	local bg = WG["buildinggrid"]
 	if bg and bg.setForceShow and gridForceShowDefID then
 		bg.setForceShow("featureplacer", true, gridForceShowDefID)
 		gridShowing = true
@@ -253,8 +268,10 @@ local function showBuildGrid()
 end
 
 local function hideBuildGrid()
-	if not gridShowing then return end
-	local bg = WG['buildinggrid']
+	if not gridShowing then
+		return
+	end
+	local bg = WG["buildinggrid"]
 	if bg and bg.setForceShow then
 		bg.setForceShow("featureplacer", false)
 		gridShowing = false
@@ -262,8 +279,7 @@ local function hideBuildGrid()
 end
 
 local function snapToGrid(x, z)
-	return floor(x / gridSnapSize + 0.5) * gridSnapSize,
-	       floor(z / gridSnapSize + 0.5) * gridSnapSize
+	return floor(x / gridSnapSize + 0.5) * gridSnapSize, floor(z / gridSnapSize + 0.5) * gridSnapSize
 end
 
 -- Full-map grid display list: terrain-following lines at gridSnapSize intervals.
@@ -275,7 +291,7 @@ local function buildFullMapGrid()
 		glDeleteList(gridDL)
 		gridDL = nil
 	end
-	local gs  = gridSnapSize
+	local gs = gridSnapSize
 	local msx = Game.mapSizeX
 	local msz = Game.mapSizeZ
 	local BUMP = 3
@@ -320,7 +336,9 @@ local function buildFullMapGrid()
 end
 
 local function ensureBuildGridLoaded()
-	if WG['buildinggrid'] then return end
+	if WG["buildinggrid"] then
+		return
+	end
 	-- Building Grid GL4 is disabled by default. Use SendCommands so the call
 	-- works from any context (including RmlUi data-event-click handlers, where
 	-- the dynamically-attached widgetHandler:EnableWidget can be nil).
@@ -337,7 +355,9 @@ end
 
 local function setGridSnap(value)
 	gridSnap = value and true or false
-	if gridSnap then ensureBuildGridLoaded() end
+	if gridSnap then
+		ensureBuildGridLoaded()
+	end
 end
 
 local function setGridSnapSize(value)
@@ -365,7 +385,7 @@ local function getSymmetricPositions(wx, wz, rot)
 	if tb and tb.getSymmetricPositions then
 		return tb.getSymmetricPositions(wx, wz, rot or 0)
 	end
-	return {{ x = wx, z = wz, rot = rot or 0 }}
+	return { { x = wx, z = wz, rot = rot or 0 } }
 end
 
 ----------------------------------------------------------------
@@ -380,36 +400,23 @@ end
 -- Send messages to gadget
 ----------------------------------------------------------------
 local function sendScatterMessage(worldX, worldZ)
-	if #fp.selectedDefs == 0 then return end
+	if #fp.selectedDefs == 0 then
+		return
+	end
 	local defList = table.concat(fp.selectedDefs, "|")
 	local sf = fp.smartFilters
 	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
 	for i = 1, #positions do
 		local p = positions[i]
-		local msg = SCATTER_HEADER
-			.. defList .. " "
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. fp.radius .. " "
-			.. fp.shape .. " "
-			.. p.rot .. " "
-			.. fp.featureCount .. " "
-			.. fp.distribution .. " "
-			.. fp.rotRandom .. " "
-			.. (fp.smartEnabled and "1" or "0") .. " "
-			.. (sf.avoidWater   and "1" or "0") .. " "
-			.. (sf.avoidCliffs  and "1" or "0") .. " "
-			.. sf.slopeMax .. " "
-			.. (sf.preferSlopes and "1" or "0") .. " "
-			.. sf.slopeMin .. " "
-			.. (sf.altMinEnable and tostring(floor(sf.altMin)) or "_") .. " "
-			.. (sf.altMaxEnable and tostring(floor(sf.altMax)) or "_")
+		local msg = SCATTER_HEADER .. defList .. " " .. floor(p.x) .. " " .. floor(p.z) .. " " .. fp.radius .. " " .. fp.shape .. " " .. p.rot .. " " .. fp.featureCount .. " " .. fp.distribution .. " " .. fp.rotRandom .. " " .. (fp.smartEnabled and "1" or "0") .. " " .. (sf.avoidWater and "1" or "0") .. " " .. (sf.avoidCliffs and "1" or "0") .. " " .. sf.slopeMax .. " " .. (sf.preferSlopes and "1" or "0") .. " " .. sf.slopeMin .. " " .. (sf.altMinEnable and tostring(floor(sf.altMin)) or "_") .. " " .. (sf.altMaxEnable and tostring(floor(sf.altMax)) or "_")
 		SendLuaRulesMsg(msg)
 	end
 end
 
 local function sendPointMessage(worldX, worldZ)
-	if #fp.selectedDefs == 0 then return end
+	if #fp.selectedDefs == 0 then
+		return
+	end
 	local defList = table.concat(fp.selectedDefs, "|")
 	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
 	for i = 1, #positions do
@@ -417,11 +424,7 @@ local function sendPointMessage(worldX, worldZ)
 		local baseHeading = floor(p.rot / 360 * 65536) % 65536
 		local spread = floor(fp.rotRandom / 100 * 32768)
 		local heading = (baseHeading + math.random(-spread, spread)) % 65536
-		local msg = POINT_HEADER
-			.. defList .. " "
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. heading
+		local msg = POINT_HEADER .. defList .. " " .. floor(p.x) .. " " .. floor(p.z) .. " " .. heading
 		SendLuaRulesMsg(msg)
 	end
 end
@@ -430,12 +433,7 @@ local function sendRemoveMessage(worldX, worldZ)
 	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
 	for i = 1, #positions do
 		local p = positions[i]
-		local msg = REMOVE_HEADER
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. fp.radius .. " "
-			.. fp.shape .. " "
-			.. p.rot
+		local msg = REMOVE_HEADER .. floor(p.x) .. " " .. floor(p.z) .. " " .. fp.radius .. " " .. fp.shape .. " " .. p.rot
 		SendLuaRulesMsg(msg)
 	end
 end
@@ -586,7 +584,9 @@ local function handleSaveBegin(count)
 end
 
 local function handleSaveData(dataStr)
-	if not dataStr then return end
+	if not dataStr then
+		return
+	end
 	saveBuffer[#saveBuffer + 1] = dataStr
 end
 
@@ -620,11 +620,11 @@ local function handleSaveEnd(count)
 				parts[#parts + 1] = word
 			end
 			local defName = parts[1]
-			local x       = parts[2]
-			local z       = parts[3]
-			local rot     = parts[4] or "0"   -- engine heading, written as rot
+			local x = parts[2]
+			local z = parts[3]
+			local rot = parts[4] or "0" -- engine heading, written as rot
 			if defName and x and z then
-				file:write(string.format('\t{ name = %q, x = %s, z = %s, rot = %s },\n', defName, x, z, rot))
+				file:write(string.format("\t{ name = %q, x = %s, z = %s, rot = %s },\n", defName, x, z, rot))
 			end
 		end
 	end
@@ -690,7 +690,9 @@ local function featureLoad(filename)
 			if f.name and f.x and f.z then
 				-- `rot` (setcfg) or `heading` (legacy); "random"/non-numeric → random heading
 				local rot = f.rot or f.heading or 0
-				if type(rot) ~= "number" then rot = math.random(-32768, 32767) end
+				if type(rot) ~= "number" then
+					rot = math.random(-32768, 32767)
+				end
 				batch[#batch + 1] = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
 			end
 		end
@@ -709,23 +711,23 @@ end
 
 local function getState()
 	return {
-		active       = fp.active,
-		mode         = fp.mode,
-		shape        = fp.shape,
-		radius       = fp.radius,
-		rotation     = fp.rotation,
-		rotRandom    = fp.rotRandom,
+		active = fp.active,
+		mode = fp.mode,
+		shape = fp.shape,
+		radius = fp.radius,
+		rotation = fp.rotation,
+		rotRandom = fp.rotRandom,
 		featureCount = fp.featureCount,
-		cadence      = fp.cadence,
+		cadence = fp.cadence,
 		distribution = fp.distribution,
 		smartEnabled = fp.smartEnabled,
 		smartFilters = fp.smartFilters,
 		selectedDefs = fp.selectedDefs,
-		selectedSet  = fp.selectedSet,
-		undoCount    = fp.undoCount,
-		redoCount    = fp.redoCount,
-		gridOverlay  = gridOverlay,
-		gridSnap     = gridSnap,
+		selectedSet = fp.selectedSet,
+		undoCount = fp.undoCount,
+		redoCount = fp.redoCount,
+		gridOverlay = gridOverlay,
+		gridSnap = gridSnap,
 		gridSnapSize = gridSnapSize,
 	}
 end
@@ -781,9 +783,9 @@ end
 local function drawRotatedSquare(cx, cz, radius, angleDeg)
 	local corners = {
 		{ -radius, -radius },
-		{  radius, -radius },
-		{  radius,  radius },
-		{ -radius,  radius },
+		{ radius, -radius },
+		{ radius, radius },
+		{ -radius, radius },
 	}
 	glBeginEnd(GL.LINE_LOOP, function()
 		for i = 1, 4 do
@@ -798,26 +800,36 @@ end
 ----------------------------------------------------------------
 -- Smart filter visualization helpers
 ----------------------------------------------------------------
-local GRID_STEP = 24   -- elmos between sample points
+local GRID_STEP = 24 -- elmos between sample points
 
 -- Check if a point passes the current smart filter constraints
 local function isPointValid(px, pz, sf)
 	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then return false end
+	if sf.avoidWater and h < 0 then
+		return false
+	end
 	if sf.avoidCliffs or sf.preferSlopes then
 		local _, ny = GetGroundNormal(px, pz)
 		ny = ny or 1.0
 		if sf.avoidCliffs then
 			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then return false end
+			if ny < nyMin then
+				return false
+			end
 		end
 		if sf.preferSlopes then
 			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then return false end
+			if ny > nyMax then
+				return false
+			end
 		end
 	end
-	if sf.altMinEnable and h < sf.altMin then return false end
-	if sf.altMaxEnable and h > sf.altMax then return false end
+	if sf.altMinEnable and h < sf.altMin then
+		return false
+	end
+	if sf.altMaxEnable and h > sf.altMax then
+		return false
+	end
 	return true
 end
 
@@ -830,20 +842,30 @@ local function isInsideBrush(lx, lz, radius, shape)
 	elseif shape == "hexagon" then
 		local ax, az = math.abs(lx), math.abs(lz)
 		local apothem = radius * cos(pi / 6)
-		if az > apothem then return false end
-		if ax > radius then return false end
+		if az > apothem then
+			return false
+		end
+		if ax > radius then
+			return false
+		end
 		return ax * cos(pi / 6) + az * sin(pi / 6) <= apothem
 	elseif shape == "octagon" then
 		local ax, az = math.abs(lx), math.abs(lz)
 		local cut = radius * sin(pi / 8)
 		local side = radius * cos(pi / 8)
-		if ax > side or az > side then return false end
+		if ax > side or az > side then
+			return false
+		end
 		return (ax + az) <= (side + cut)
 	elseif shape == "triangle" then
 		local dist = sqrt(lx * lx + lz * lz)
-		if dist < 0.001 then return true end
+		if dist < 0.001 then
+			return true
+		end
 		local angle = math.atan2(lz, lx)
-		if angle < 0 then angle = angle + 2 * pi end
+		if angle < 0 then
+			angle = angle + 2 * pi
+		end
 		local sectorAngle = 2 * pi / 3
 		local angleInSector = (angle % sectorAngle) - sectorAngle / 2
 		local apothem = radius * cos(pi / 3)
@@ -908,7 +930,7 @@ local function getShapeCorners(shape, radius, angleDeg)
 			corners[#corners + 1] = { radius * cos(a), radius * sin(a) }
 		end
 	elseif shape == "square" then
-		local pts = { {-radius,-radius}, {radius,-radius}, {radius,radius}, {-radius,radius} }
+		local pts = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
 		for _, p in ipairs(pts) do
 			local rx = p[1] * cos(rad) - p[2] * sin(rad)
 			local rz = p[1] * sin(rad) + p[2] * cos(rad)
@@ -930,10 +952,14 @@ end
 
 -- Draw altitude cap prism (orange for max, cyan for min, white struts)
 local function drawAltitudeCapPrism(cx, cz, radius, shape, angleDeg, sf)
-	if not sf.altMinEnable and not sf.altMaxEnable then return end
+	if not sf.altMinEnable and not sf.altMaxEnable then
+		return
+	end
 
 	local corners = getShapeCorners(shape, radius, angleDeg)
-	if #corners == 0 then return end
+	if #corners == 0 then
+		return
+	end
 
 	local botY = sf.altMinEnable and sf.altMin or nil
 	local topY = sf.altMaxEnable and sf.altMax or nil
@@ -980,7 +1006,9 @@ end
 -- Keybinds
 ----------------------------------------------------------------
 function widget:KeyPress(key, mods, isRepeat)
-	if not fp.active then return false end
+	if not fp.active then
+		return false
+	end
 
 	if key == 0x1B then -- Escape
 		deactivate()
@@ -1008,14 +1036,20 @@ function widget:IsAbove(x, y)
 end
 
 function widget:MousePress(mx, my, button)
-	if not fp.active or not fp.mode then return false end
+	if not fp.active or not fp.mode then
+		return false
+	end
 
 	-- Defer to measure / symmetry origin tools when active
 	local tb = WG.TerraformBrush
 	if tb and tb.getState then
 		local st = tb.getState()
-		if st and st.measureActive then return false end
-		if st and st.heightSamplingMode then return false end
+		if st and st.measureActive then
+			return false
+		end
+		if st and st.heightSamplingMode then
+			return false
+		end
 		if st and st.symmetryActive then
 			if st.symmetryPlacingOrigin or st.symmetryHoveringOrigin or st.symmetryDraggingOrigin then
 				return false
@@ -1028,8 +1062,12 @@ function widget:MousePress(mx, my, button)
 
 	if button == 1 then
 		local worldX, worldZ = getWorldMousePosition()
-		if not worldX then return false end
-		if gridSnap then worldX, worldZ = snapToGrid(worldX, worldZ) end
+		if not worldX then
+			return false
+		end
+		if gridSnap then
+			worldX, worldZ = snapToGrid(worldX, worldZ)
+		end
 
 		fp.dragging = true
 		fp.dragAction = "place"
@@ -1052,8 +1090,12 @@ function widget:MousePress(mx, my, button)
 	-- Right-click removes features regardless of current mode
 	if button == 3 then
 		local worldX, worldZ = getWorldMousePosition()
-		if not worldX then return false end
-		if gridSnap then worldX, worldZ = snapToGrid(worldX, worldZ) end
+		if not worldX then
+			return false
+		end
+		if gridSnap then
+			worldX, worldZ = snapToGrid(worldX, worldZ)
+		end
 
 		fp.dragging = true
 		fp.dragAction = "remove"
@@ -1080,7 +1122,9 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function widget:MouseWheel(up, value)
-	if not fp.active then return false end
+	if not fp.active then
+		return false
+	end
 
 	local alt, ctrl, _, shift = GetModKeyState()
 
@@ -1111,11 +1155,15 @@ function widget:MouseWheel(up, value)
 		-- Space+Scroll = cadence (logarithmic)
 		if up then
 			local newC = fp.cadence * 1.15
-			if newC < fp.cadence + 1 then newC = fp.cadence + 1 end
+			if newC < fp.cadence + 1 then
+				newC = fp.cadence + 1
+			end
 			setCadence(newC)
 		else
 			local newC = fp.cadence / 1.15
-			if newC > fp.cadence - 1 then newC = fp.cadence - 1 end
+			if newC > fp.cadence - 1 then
+				newC = fp.cadence - 1
+			end
 			setCadence(newC)
 		end
 		Echo("[Feature Placer] Cadence: " .. fp.cadence)
@@ -1137,9 +1185,13 @@ end
 -- Update loop
 ----------------------------------------------------------------
 function widget:Update(dt)
-	if not fp.active then return end
+	if not fp.active then
+		return
+	end
 
-	if not fp.dragging then return end
+	if not fp.dragging then
+		return
+	end
 
 	local mx, my, leftPressed, _, rightPressed = GetMouseState()
 	local buttonHeld = (fp.dragAction == "remove" and rightPressed) or (fp.dragAction == "place" and leftPressed)
@@ -1154,12 +1206,18 @@ function widget:Update(dt)
 	-- Accumulate real time and check cadence interval
 	fp.placeTimer = (fp.placeTimer or 0) + dt
 	local interval = getCadenceInterval()
-	if fp.placeTimer < interval then return end
+	if fp.placeTimer < interval then
+		return
+	end
 	fp.placeTimer = fp.placeTimer - interval
 
 	local worldX, worldZ = getWorldMousePosition()
-	if not worldX then return end
-	if gridSnap then worldX, worldZ = snapToGrid(worldX, worldZ) end
+	if not worldX then
+		return
+	end
+	if gridSnap then
+		worldX, worldZ = snapToGrid(worldX, worldZ)
+	end
 
 	fp.lockedWorldX = worldX
 	fp.lockedWorldZ = worldZ
@@ -1185,7 +1243,9 @@ function widget:DrawWorld()
 		if (not gridDL) or gridDLSize ~= gridSnapSize or gridDirty then
 			buildFullMapGrid()
 		end
-		if gridDL then glCallList(gridDL) end
+		if gridDL then
+			glCallList(gridDL)
+		end
 	end
 
 	if not fp.active or not fp.mode then
@@ -1202,7 +1262,9 @@ function widget:DrawWorld()
 			worldX, worldZ = tb.getUnmouseTarget(fp.radius, 1.0)
 		end
 	end
-	if not worldX then return end
+	if not worldX then
+		return
+	end
 
 	-- Grid snap + visual
 	if gridSnap then
@@ -1313,44 +1375,50 @@ function widget:Initialize()
 		end
 		return activate("scatter")
 	end, nil, "t")
-	widgetHandler:AddAction("featureplacerscatter", function() return activate("scatter") end, nil, "t")
-	widgetHandler:AddAction("featureplacerpoint",   function() return activate("point") end, nil, "t")
-	widgetHandler:AddAction("featureplacerremove",  function() return activate("remove") end, nil, "t")
-	widgetHandler:AddAction("featureplaceroff",     deactivate, nil, "t")
+	widgetHandler:AddAction("featureplacerscatter", function()
+		return activate("scatter")
+	end, nil, "t")
+	widgetHandler:AddAction("featureplacerpoint", function()
+		return activate("point")
+	end, nil, "t")
+	widgetHandler:AddAction("featureplacerremove", function()
+		return activate("remove")
+	end, nil, "t")
+	widgetHandler:AddAction("featureplaceroff", deactivate, nil, "t")
 
 	buildFeatureDefList()
 
 	-- Expose API
 	WG.FeaturePlacer = {
-		getState            = getState,
-		getFeatureDefList   = getFeatureDefList,
+		getState = getState,
+		getFeatureDefList = getFeatureDefList,
 		getFeatureCategories = getFeatureCategories,
-		getCategoryOrder     = getCategoryOrder,
-		getCategoryLabels    = getCategoryLabels,
-		setMode             = setMode,
-		setShape            = setShape,
-		setRadius           = setRadius,
-		setRotation         = setRotation,
-		rotate              = rotate,
-		setRotRandom        = setRotRandom,
-		setFeatureCount     = setFeatureCount,
-		setCadence          = setCadence,
-		setDistribution     = setDistribution,
-		setSmartEnabled     = setSmartEnabled,
-		setSmartFilter      = setSmartFilter,
-		selectFeature       = selectFeature,
-		toggleFeature       = toggleFeature,
+		getCategoryOrder = getCategoryOrder,
+		getCategoryLabels = getCategoryLabels,
+		setMode = setMode,
+		setShape = setShape,
+		setRadius = setRadius,
+		setRotation = setRotation,
+		rotate = rotate,
+		setRotRandom = setRotRandom,
+		setFeatureCount = setFeatureCount,
+		setCadence = setCadence,
+		setDistribution = setDistribution,
+		setSmartEnabled = setSmartEnabled,
+		setSmartFilter = setSmartFilter,
+		selectFeature = selectFeature,
+		toggleFeature = toggleFeature,
 		clearSelectedFeatures = clearSelectedFeatures,
-		undo                = featureUndo,
-		redo                = featureRedo,
-		save                = featureSave,
-		load                = featureLoad,
-		listSaves           = listSavedFeatureMaps,
-		clearAll            = featureClearAll,
-		setGridOverlay      = setGridOverlay,
-		setGridSnap         = setGridSnap,
-		setGridSnapSize     = setGridSnapSize,
-		deactivate          = deactivate,
+		undo = featureUndo,
+		redo = featureRedo,
+		save = featureSave,
+		load = featureLoad,
+		listSaves = listSavedFeatureMaps,
+		clearAll = featureClearAll,
+		setGridOverlay = setGridOverlay,
+		setGridSnap = setGridSnap,
+		setGridSnapSize = setGridSnapSize,
+		deactivate = deactivate,
 	}
 
 	-- These names live in the shared widget global namespace; RegisterGlobal

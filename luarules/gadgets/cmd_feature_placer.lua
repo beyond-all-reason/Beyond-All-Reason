@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name    = "Feature Placer",
-		desc    = "Synced gadget for placing, removing, and managing map features via brush tool",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer",
+		desc = "Synced gadget for placing, removing, and managing map features via brush tool",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -36,13 +36,13 @@ end
 ----------------------------------------------------------------
 -- Constants & Headers
 ----------------------------------------------------------------
-local SCATTER_HEADER  = "$feature_scatter$"
-local POINT_HEADER    = "$feature_point$"
-local REMOVE_HEADER   = "$feature_remove$"
-local UNDO_HEADER     = "$feature_undo$"
-local REDO_HEADER     = "$feature_redo$"
-local SAVE_HEADER     = "$feature_save$"
-local LOAD_HEADER     = "$feature_load$"
+local SCATTER_HEADER = "$feature_scatter$"
+local POINT_HEADER = "$feature_point$"
+local REMOVE_HEADER = "$feature_remove$"
+local UNDO_HEADER = "$feature_undo$"
+local REDO_HEADER = "$feature_redo$"
+local SAVE_HEADER = "$feature_save$"
+local LOAD_HEADER = "$feature_load$"
 local CLEARALL_HEADER = "$feature_clearall$"
 
 local MAX_UNDO = 100
@@ -50,34 +50,34 @@ local MAX_UNDO = 100
 ----------------------------------------------------------------
 -- Localize
 ----------------------------------------------------------------
-local max    = math.max
-local min    = math.min
-local floor  = math.floor
-local ceil   = math.ceil
-local sqrt   = math.sqrt
-local log    = math.log
-local cos    = math.cos
-local sin    = math.sin
-local abs    = math.abs
-local atan2  = math.atan2
+local max = math.max
+local min = math.min
+local floor = math.floor
+local ceil = math.ceil
+local sqrt = math.sqrt
+local log = math.log
+local cos = math.cos
+local sin = math.sin
+local abs = math.abs
+local atan2 = math.atan2
 local random = math.random
-local pi     = math.pi
+local pi = math.pi
 
-local SendToUnsynced       = SendToUnsynced
-local CreateFeature        = Spring.CreateFeature
-local DestroyFeature       = Spring.DestroyFeature
-local GetGroundHeight      = Spring.GetGroundHeight
-local GetGroundNormal      = Spring.GetGroundNormal
-local GetAllFeatures       = Spring.GetAllFeatures
+local SendToUnsynced = SendToUnsynced
+local CreateFeature = Spring.CreateFeature
+local DestroyFeature = Spring.DestroyFeature
+local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundNormal = Spring.GetGroundNormal
+local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local GetFeaturePosition   = Spring.GetFeaturePosition
-local GetFeatureDefID      = Spring.GetFeatureDefID
-local GetFeatureHeading    = Spring.GetFeatureHeading
-local ValidFeatureID       = Spring.ValidFeatureID
-local GetGaiaTeamID        = Spring.GetGaiaTeamID
-local SetFeatureRotation   = Spring.SetFeatureRotation
-local GetFeatureRotation   = Spring.GetFeatureRotation
-local GetGameFrame         = Spring.GetGameFrame
+local GetFeaturePosition = Spring.GetFeaturePosition
+local GetFeatureDefID = Spring.GetFeatureDefID
+local GetFeatureHeading = Spring.GetFeatureHeading
+local ValidFeatureID = Spring.ValidFeatureID
+local GetGaiaTeamID = Spring.GetGaiaTeamID
+local SetFeatureRotation = Spring.SetFeatureRotation
+local GetFeatureRotation = Spring.GetFeatureRotation
+local GetGameFrame = Spring.GetGameFrame
 
 ----------------------------------------------------------------
 -- State
@@ -90,10 +90,10 @@ local gaiaTeamID
 -- Wobble animation
 ----------------------------------------------------------------
 local wobbleQueue = {}
-local WOBBLE_DURATION  = 22   -- frames (~0.73s at 30fps)
-local WOBBLE_AMPLITUDE = 8    -- degrees peak tilt
-local WOBBLE_FREQ      = 0.6  -- radians per frame
-local WOBBLE_RAMP      = 3    -- frames to ramp in
+local WOBBLE_DURATION = 22 -- frames (~0.73s at 30fps)
+local WOBBLE_AMPLITUDE = 8 -- degrees peak tilt
+local WOBBLE_FREQ = 0.6 -- radians per frame
+local WOBBLE_RAMP = 3 -- frames to ramp in
 
 -- GameFrame is registered only while wobble animations run; otherwise every
 -- match paid an empty pairs() walk every sim frame.
@@ -104,8 +104,8 @@ local function addWobble(featureID)
 		local _, yaw, _ = GetFeatureRotation(featureID)
 		wobbleQueue[featureID] = {
 			start = GetGameFrame(),
-			axis  = random() * 2 * pi,
-			yaw   = yaw or 0,
+			axis = random() * 2 * pi,
+			yaw = yaw or 0,
 		}
 		if not wobbleActive then
 			wobbleActive = true
@@ -151,9 +151,13 @@ local function isInsideShape(dx, dz, radius, shape, angleDeg)
 	elseif shape == "hexagon" or shape == "octagon" or shape == "triangle" then
 		local numSides = shape == "hexagon" and 6 or (shape == "octagon" and 8 or 3)
 		local dist = sqrt(lx * lx + lz * lz)
-		if dist < 0.001 then return true end
+		if dist < 0.001 then
+			return true
+		end
 		local angle = atan2(lz, lx)
-		if angle < 0 then angle = angle + 2 * pi end
+		if angle < 0 then
+			angle = angle + 2 * pi
+		end
 		local sectorAngle = 2 * pi / numSides
 		local angleInSector = (angle % sectorAngle) - sectorAngle / 2
 		local apothem = radius * cos(pi / numSides)
@@ -298,7 +302,7 @@ local function generateClusteredPositions(centerX, centerZ, radius, shape, angle
 			minSpacing = def.radius
 		end
 	end
-	minSpacing = minSpacing * 1.4   -- slightly larger than the model radius
+	minSpacing = minSpacing * 1.4 -- slightly larger than the model radius
 
 	-- Safety clamp: guarantee Poisson-disk capacity >= count.
 	-- Rough capacity estimate: 0.5 * (R/r)^2
@@ -328,7 +332,7 @@ local function generateClusteredPositions(centerX, centerZ, radius, shape, angle
 
 	-- Gaussian sigma: spread features over roughly 1/numClusters of the brush.
 	local sigma = radius / max(1, #clusterCenters) * 1.2
-	local RANDOM_FRAC = 0.25   -- fraction placed with pure random scatter
+	local RANDOM_FRAC = 0.25 -- fraction placed with pure random scatter
 
 	local positions = {}
 	local maxAttempts = count * 15
@@ -389,7 +393,7 @@ end
 -- Used when smartEnabled is true regardless of distribution mode.
 ----------------------------------------------------------------
 local function filterSmartPositions(positions, opts)
-	local nyCliffMin = opts.avoidCliffs  and cos(opts.slopeMax * pi / 180) or 0
+	local nyCliffMin = opts.avoidCliffs and cos(opts.slopeMax * pi / 180) or 0
 	local nySlopeMax = opts.preferSlopes and cos(opts.slopeMin * pi / 180) or 1
 
 	local filtered = {}
@@ -400,11 +404,21 @@ local function filterSmartPositions(positions, opts)
 		ny = ny or 1.0
 
 		local valid = true
-		if opts.avoidWater and h < 0 then valid = false end
-		if valid and opts.avoidCliffs  and ny < nyCliffMin then valid = false end
-		if valid and opts.preferSlopes and ny > nySlopeMax  then valid = false end
-		if valid and opts.altMin and h < opts.altMin then valid = false end
-		if valid and opts.altMax and h > opts.altMax then valid = false end
+		if opts.avoidWater and h < 0 then
+			valid = false
+		end
+		if valid and opts.avoidCliffs and ny < nyCliffMin then
+			valid = false
+		end
+		if valid and opts.preferSlopes and ny > nySlopeMax then
+			valid = false
+		end
+		if valid and opts.altMin and h < opts.altMin then
+			valid = false
+		end
+		if valid and opts.altMax and h > opts.altMax then
+			valid = false
+		end
 
 		if valid then
 			filtered[#filtered + 1] = pos
@@ -421,11 +435,11 @@ local function generateSmartPositions(centerX, centerZ, radius, shape, angleDeg,
 	-- GetGroundNormal returns (nx, ny, nz).
 	-- ny = 1.0 for flat ground, ny -> 0 for vertical cliffs.
 	-- degrees -> ny threshold: ny = cos(angle_in_radians)
-	local nyCliffMin = opts.avoidCliffs  and cos(opts.slopeMax * pi / 180) or 0
+	local nyCliffMin = opts.avoidCliffs and cos(opts.slopeMax * pi / 180) or 0
 	local nySlopeMax = opts.preferSlopes and cos(opts.slopeMin * pi / 180) or 1
 
 	local positions = {}
-	local maxAttempts = count * 30  -- extra budget since we're filtering
+	local maxAttempts = count * 30 -- extra budget since we're filtering
 	local attempts = 0
 
 	while #positions < count and attempts < maxAttempts do
@@ -476,7 +490,9 @@ end
 -- Feature placement
 ----------------------------------------------------------------
 local function placeFeatures(defNames, positions, baseHeading, rotRandom)
-	if #defNames == 0 or #positions == 0 then return end
+	if #defNames == 0 or #positions == 0 then
+		return
+	end
 	local placed = {}
 	local numDefs = #defNames
 	local spread = floor((rotRandom or 100) / 100 * 32768)
@@ -500,7 +516,9 @@ local function placeFeatures(defNames, positions, baseHeading, rotRandom)
 end
 
 local function placeSingleFeature(defNames, x, z, heading)
-	if #defNames == 0 then return end
+	if #defNames == 0 then
+		return
+	end
 	x = max(0, min(Game.mapSizeX, x))
 	z = max(0, min(Game.mapSizeZ, z))
 	local defName = defNames[random(1, #defNames)]
@@ -523,7 +541,9 @@ local function removeFeatures(centerX, centerZ, radius, shape, angleDeg)
 	local z2 = min(Game.mapSizeZ, centerZ + extent)
 
 	local features = GetFeaturesInRectangle(x1, z1, x2, z2)
-	if not features or #features == 0 then return end
+	if not features or #features == 0 then
+		return
+	end
 
 	local removed = {}
 	for i = 1, #features do
@@ -550,7 +570,9 @@ end
 -- Undo / Redo
 ----------------------------------------------------------------
 local function featureUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 	local entry = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
 
@@ -572,7 +594,9 @@ local function featureUndo()
 end
 
 local function featureRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 	local entry = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
 
@@ -634,8 +658,8 @@ local function loadFeatureBatch(payload)
 			parts[#parts + 1] = word
 		end
 		local defName = parts[1]
-		local x       = tonumber(parts[2])
-		local z       = tonumber(parts[3])
+		local x = tonumber(parts[2])
+		local z = tonumber(parts[3])
 		local heading = tonumber(parts[4]) or 0
 		if defName and x and z and FeatureDefNames[defName] then
 			x = max(0, min(Game.mapSizeX, x))
@@ -691,14 +715,18 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Undo
 	if msg == UNDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureUndo()
 		return true
 	end
 
 	-- Redo
 	if msg == REDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureRedo()
 		return true
 	end
@@ -715,24 +743,24 @@ function gadget:RecvLuaMsg(msg, playerID)
 			parts[#parts + 1] = word
 		end
 		local defNames = parseDefList(parts[1] or "")
-		local centerX  = tonumber(parts[2])
-		local centerZ  = tonumber(parts[3])
-		local radius   = tonumber(parts[4])
-		local shape    = parts[5] or "circle"
+		local centerX = tonumber(parts[2])
+		local centerZ = tonumber(parts[3])
+		local radius = tonumber(parts[4])
+		local shape = parts[5] or "circle"
 		local angleDeg = tonumber(parts[6]) or 0
-		local count    = tonumber(parts[7]) or 5
-		local mode     = parts[8] or "random"
+		local count = tonumber(parts[7]) or 5
+		local mode = parts[8] or "random"
 		local rotRandom = tonumber(parts[9]) or 100
 		-- Smart filter enabled flag (parts[10]), filter params in parts[11..17]
 		local smartEnabled = parts[10] == "1"
 		local smartOpts = {
-			avoidWater   = parts[11] == "1",
-			avoidCliffs  = parts[12] == "1",
-			slopeMax     = tonumber(parts[13]) or 45,
+			avoidWater = parts[11] == "1",
+			avoidCliffs = parts[12] == "1",
+			slopeMax = tonumber(parts[13]) or 45,
 			preferSlopes = parts[14] == "1",
-			slopeMin     = tonumber(parts[15]) or 10,
-			altMin       = (parts[16] and parts[16] ~= "_") and tonumber(parts[16]) or nil,
-			altMax       = (parts[17] and parts[17] ~= "_") and tonumber(parts[17]) or nil,
+			slopeMin = tonumber(parts[15]) or 10,
+			altMin = (parts[16] and parts[16] ~= "_") and tonumber(parts[16]) or nil,
+			altMax = (parts[17] and parts[17] ~= "_") and tonumber(parts[17]) or nil,
 		}
 
 		if #defNames == 0 or not centerX or not centerZ or not radius then
@@ -776,8 +804,8 @@ function gadget:RecvLuaMsg(msg, playerID)
 			parts[#parts + 1] = word
 		end
 		local defNames = parseDefList(parts[1] or "")
-		local x       = tonumber(parts[2])
-		local z       = tonumber(parts[3])
+		local x = tonumber(parts[2])
+		local z = tonumber(parts[3])
 		local heading = tonumber(parts[4]) or random(0, 65535)
 
 		if #defNames == 0 or not x or not z then
@@ -810,7 +838,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Clear all
 	if msg == CLEARALL_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		clearAllFeatures()
 		return true
 	end
@@ -826,10 +856,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 		for word in payload:gmatch("%S+") do
 			parts[#parts + 1] = word
 		end
-		local centerX  = tonumber(parts[1])
-		local centerZ  = tonumber(parts[2])
-		local radius   = tonumber(parts[3])
-		local shape    = parts[4] or "circle"
+		local centerX = tonumber(parts[1])
+		local centerZ = tonumber(parts[2])
+		local radius = tonumber(parts[3])
+		local shape = parts[4] or "circle"
 		local angleDeg = tonumber(parts[5]) or 0
 
 		if not centerX or not centerZ or not radius then
@@ -862,7 +892,7 @@ function gadget:GameFrame(frame)
 			local angleDeg = WOBBLE_AMPLITUDE * sin(elapsed * WOBBLE_FREQ) * decay * ramp
 			local angle = angleDeg * pi / 180
 			local pitch = angle * cos(info.axis)
-			local roll  = angle * sin(info.axis)
+			local roll = angle * sin(info.axis)
 			SetFeatureRotation(fid, pitch, info.yaw, roll)
 		end
 	end

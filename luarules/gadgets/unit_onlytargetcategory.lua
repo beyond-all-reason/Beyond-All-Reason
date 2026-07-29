@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "Only Target onlytargetcategory",
-		desc	= "Prevents attacking anything other than the only target category",
-		author	= "Floris",
-		date	= "September 2020",
-		license	= "GNU GPL, v2 or later",
-		layer	= 0,
-		enabled	= true,
+		name = "Only Target onlytargetcategory",
+		desc = "Prevents attacking anything other than the only target category",
+		author = "Floris",
+		date = "September 2020",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -28,10 +28,10 @@ for udid, unitDef in pairs(UnitDefs) do
 			for category, _ in pairs(weapon.onlyTargets) do
 				if unitOnlyTargetsCategory[udid] == nil then
 					unitOnlyTargetsCategory[udid] = category
-					if category == 'vtol' then
+					if category == "vtol" then
 						unitDontAttackGround[udid] = true
 					end
-				elseif unitOnlyTargetsCategory[udid] ~= category then  -- multiple different onlytargetcategory used: disregard
+				elseif unitOnlyTargetsCategory[udid] ~= category then -- multiple different onlytargetcategory used: disregard
 					unitOnlyTargetsCategory[udid] = nil
 					unitDontAttackGround[udid] = nil -- If there are multiple categories, then it can shoot ground, and should be allowed to do so
 					disregard = true
@@ -51,10 +51,7 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	-- accepts: CMD.ATTACK
-	if cmdParams[2] == nil
-	and unitOnlyTargetsCategory[unitDefID]
-	and type(cmdParams[1]) == 'number'
-	and not (unitCategories[Spring.GetUnitDefID(cmdParams[1])] and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
+	if cmdParams[2] == nil and unitOnlyTargetsCategory[unitDefID] and type(cmdParams[1]) == "number" and not (unitCategories[Spring.GetUnitDefID(cmdParams[1])] and unitCategories[Spring.GetUnitDefID(cmdParams[1])][unitOnlyTargetsCategory[unitDefID]]) then
 		return false
 	else
 		if cmdParams[2] and unitDontAttackGround[unitDefID] then

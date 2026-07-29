@@ -2,14 +2,14 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = 'AA Targeting Priority',
-		desc = '',
-		author = 'Doo', --additions wilkubyk
-		version = 'v1.0',
-		date = 'May 2018',
-		license = 'GNU GPL, v2 or later',
+		name = "AA Targeting Priority",
+		desc = "",
+		author = "Doo", --additions wilkubyk
+		version = "v1.0",
+		date = "May 2018",
+		license = "GNU GPL, v2 or later",
 		layer = -1, --must run before game_initial_spawn, because game_initial_spawn must control the return of GameSteup
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -31,8 +31,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	local nonAntiAirTypes = {
-		AircraftBomb    = true,
-		Shield          = true,
+		AircraftBomb = true,
+		Shield = true,
 		TorpedoLauncher = true,
 	}
 
@@ -41,13 +41,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function hasAntiAirTargeting(weapon)
-		return table.any(weapon.onlyTargets, function(v, k) return isAirCategory[k] end) and not
-			   table.any(weapon.badTargets,  function(v, k) return isAirCategory[k] end)
+		return table.any(weapon.onlyTargets, function(v, k)
+			return isAirCategory[k]
+		end) and not table.any(weapon.badTargets, function(v, k)
+			return isAirCategory[k]
+		end)
 	end
 
 	local function isBomberWeapon(weapon)
 		local weaponDef = WeaponDefs[weapon.weaponDef]
-		return weaponDef.type == 'AircraftBomb' or weaponDef.type == 'TorpedoLauncher' or stringFind(weaponDef.name, 'arm_pidr', 1, true)
+		return weaponDef.type == "AircraftBomb" or weaponDef.type == "TorpedoLauncher" or stringFind(weaponDef.name, "arm_pidr", 1, true)
 	end
 
 	local function isFighterWeapon(weapon)

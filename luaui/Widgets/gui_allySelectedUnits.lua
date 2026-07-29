@@ -4,16 +4,15 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Ally Selected Units", -- GL4
-		desc      = "Shows units selected by teammates",
-		author    = "Beherith, Floris",
-		date      = "April 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Ally Selected Units", -- GL4
+		desc = "Shows units selected by teammates",
+		author = "Beherith, Floris",
+		date = "April 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -23,7 +22,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local showAsSpectator = true
-local selectPlayerUnits = true	-- when lockcamera player
+local selectPlayerUnits = true -- when lockcamera player
 local hideBelowGameframe = 100
 
 -- unit platter
@@ -43,7 +42,7 @@ local lavaWaterLevel = nil
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 
 local selectionVBOGround = nil
 local selectionVBOWater = nil
@@ -51,32 +50,32 @@ local selectShader = nil
 local waterShader = nil
 local luaShaderDir = "LuaUI/Include/"
 
-local glStencilFunc         = gl.StencilFunc
-local glStencilOp           = gl.StencilOp
-local glStencilTest         = gl.StencilTest
-local glStencilMask         = gl.StencilMask
-local glDepthTest           = gl.DepthTest
-local glClear               = gl.Clear
-local GL_ALWAYS             = GL.ALWAYS
-local GL_NOTEQUAL           = GL.NOTEQUAL
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local glStencilFunc = gl.StencilFunc
+local glStencilOp = gl.StencilOp
+local glStencilTest = gl.StencilTest
+local glStencilMask = gl.StencilMask
+local glDepthTest = gl.DepthTest
+local glClear = gl.Clear
+local GL_ALWAYS = GL.ALWAYS
+local GL_NOTEQUAL = GL.NOTEQUAL
+local GL_KEEP = 0x1E00 --GL.KEEP
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
-local GL_REPLACE            = GL.REPLACE
-local GL_POINTS				= GL.POINTS
+local GL_REPLACE = GL.REPLACE
+local GL_POINTS = GL.POINTS
 
-local spGetUnitDefID        = spGetUnitDefID
-local spGetPlayerInfo       = Spring.GetPlayerInfo
-local spGetSpectatingState	= Spring.GetSpectatingState
-local spGetTeamInfo         = Spring.GetTeamInfo
-local spGetMyPlayerID       = Spring.GetMyPlayerID
-local spGetMyAllyTeamID     = Spring.GetMyAllyTeamID
-local spSelectUnitArray     = Spring.SelectUnitArray
-local spValidUnitID         = Spring.ValidUnitID
-local spGetUnitIsDead       = Spring.GetUnitIsDead
-local spGetPlayerList       = Spring.GetPlayerList
+local spGetUnitDefID = spGetUnitDefID
+local spGetPlayerInfo = Spring.GetPlayerInfo
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spSelectUnitArray = Spring.SelectUnitArray
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetPlayerList = Spring.GetPlayerList
 
 local playerIsSpec = {}
-for i,playerID in pairs(Spring.GetPlayerList()) do
+for i, playerID in pairs(Spring.GetPlayerList()) do
 	playerIsSpec[playerID] = select(3, spGetPlayerInfo(playerID, false))
 end
 
@@ -85,7 +84,7 @@ local myTeamID = spGetMyTeamID()
 local myAllyTeam = spGetMyAllyTeamID()
 local myPlayerID = spGetMyPlayerID()
 local selectedUnits = {}
-local playerSelectedUnits = {}  -- [playerID][unitID] = true
+local playerSelectedUnits = {} -- [playerID][unitID] = true
 local playerSelectedUnitsCount = {}
 local playerSelectionVersion = {}
 local playerTeamID = {}
@@ -105,29 +104,41 @@ end
 local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
-local sizeAdd = -(lineSize*1.5)
+local sizeAdd = -(lineSize * 1.5)
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (7.5 * ( unitDef.xsize*unitDef.xsize + unitDef.zsize*unitDef.zsize ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * (unitDef.xsize * unitDef.xsize + unitDef.zsize * unitDef.zsize) ^ 0.5) + 8
 	unitScale[unitDefID] = unitScale[unitDefID] + sizeAdd
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
-	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0 then
 		unitBuilding[unitDefID] = {
 			(unitDef.xsize * 8.2 + 12) + sizeAdd,
-			(unitDef.zsize * 8.2 + 12) + sizeAdd
+			(unitDef.zsize * 8.2 + 12) + sizeAdd,
 		}
 	end
 end
 
 local instanceCache = {
-			0,0,0,0,  -- lengthwidthcornerheight
-			0, -- teamID
-			useHexagons and 6 or 64, -- how many trianges should we make
-			0, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
-			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
-	}
+	0,
+	0,
+	0,
+	0, -- lengthwidthcornerheight
+	0, -- teamID
+	useHexagons and 6 or 64, -- how many trianges should we make
+	0,
+	0,
+	0,
+	0, -- the gameFrame (for animations), and any other parameters one might want to add
+	0,
+	1,
+	0,
+	1, -- These are our default UV atlas tranformations
+	0,
+	0,
+	0,
+	0, -- these are just padding zeros, that will get filled in
+}
 
 local function getWaterLevel()
 	if lavaWaterLevel then
@@ -145,18 +156,26 @@ function widget:LavaRenderState(tideLevel)
 end
 
 local function shouldUseWaterPass(unitID, unitDefID)
-	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	if not mapHasWater or unitCanFly[unitDefID] then
+		return false
+	end
 	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then return false end
+	if not x or not y or not z then
+		return false
+	end
 	local waterLevel = getWaterLevel()
 	local groundY = spGetGroundHeight(x, z)
 	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
 end
 
 local function shouldUseWaterPassAtLevel(unitID, unitDefID, waterLevel)
-	if not mapHasWater or unitCanFly[unitDefID] then return false end
+	if not mapHasWater or unitCanFly[unitDefID] then
+		return false
+	end
 	local x, y, z = spGetUnitPosition(unitID)
-	if not x or not y or not z then return false end
+	if not x or not y or not z then
+		return false
+	end
 	local groundY = spGetGroundHeight(x, z)
 	return (groundY < waterLevel + 1) and (y <= waterLevel + 20)
 end
@@ -173,7 +192,9 @@ end
 
 local function AddPrimitiveAtUnit(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
-	if unitDefID == nil then return end -- these cant be selected
+	if unitDefID == nil then
+		return
+	end -- these cant be selected
 
 	local numVertices = useHexagons and 6 or 64
 	local cornersize = 0
@@ -243,7 +264,9 @@ local function removeUnit(unitID)
 end
 
 local function showSelectedUnit(unitID)
-	if not spGetUnitDefID(unitID) then return end
+	if not spGetUnitDefID(unitID) then
+		return
+	end
 	selectedUnits[unitID] = false
 	local unitTeam = spGetUnitTeam(unitID)
 	local allyTeam = teamAllyTeam[unitTeam]
@@ -256,7 +279,9 @@ local function showSelectedUnit(unitID)
 end
 
 local function selectPlayerSelectedUnits(playerID)
-	if not playerID then return end
+	if not playerID then
+		return
+	end
 	local selectedByPlayer = playerSelectedUnits[playerID]
 	if not selectedByPlayer then
 		spSelectUnitArray({})
@@ -301,7 +326,7 @@ local function selectedUnitsClear(playerID)
 end
 
 -- called by gadget
-local function selectedUnitsAdd(playerID,unitID)
+local function selectedUnitsAdd(playerID, unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
@@ -327,7 +352,7 @@ local function selectedUnitsAdd(playerID,unitID)
 end
 
 -- called by gadget
-local function selectedUnitsRemove(playerID,unitID)
+local function selectedUnitsRemove(playerID, unitID)
 	if not spec and playerID == myPlayerID then
 		return
 	end
@@ -369,7 +394,7 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 	local shouldDraw = not playerIsSpec[playerID] or (lockPlayerID ~= nil and playerID == lockPlayerID)
 
 	if remCount and remCount > 0 and remUnits then
-		for i=1,remCount do
+		for i = 1, remCount do
 			local unitID = remUnits[i]
 			if unitID and selectedByPlayer[unitID] then
 				selectedByPlayer[unitID] = nil
@@ -385,7 +410,7 @@ local function selectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, 
 	end
 
 	if addCount and addCount > 0 and addUnits then
-		for i=1,addCount do
+		for i = 1, addCount do
 			local unitID = addUnits[i]
 			if unitID then
 				if not selectedByPlayer[unitID] then
@@ -496,7 +521,7 @@ function widget:PlayerRemoved(playerID, reason)
 end
 
 function widget:PlayerAdded(playerID)
-	local _,_,isSpec,teamID = spGetPlayerInfo(playerID, false)
+	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	playerIsSpec[playerID] = isSpec
 	playerTeamID[playerID] = teamID
 	if not playerSelectedUnits[playerID] then
@@ -530,8 +555,8 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 
-	for i,playerID in pairs(spGetPlayerList()) do
-		local _,_,isSpec,teamID = spGetPlayerInfo(playerID, false)
+	for i, playerID in pairs(spGetPlayerList()) do
+		local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 		if isSpec and not playerIsSpec[playerID] then
 			selectedUnitsClear(playerID)
 		end
@@ -611,7 +636,7 @@ function widget:Update(dt)
 end
 
 local function init()
-	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local DPatUnit = VFS.Include(luaShaderDir .. "DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
@@ -646,20 +671,22 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	if not init() then return end
+	if not init() then
+		return
+	end
 	for _, playerID in pairs(spGetPlayerList()) do
 		widget:PlayerAdded(playerID)
 	end
 	widget:PlayerChanged(myPlayerID)
 
-	WG['allyselectedunits'] = {}
-	WG['allyselectedunits'].getSelectPlayerUnits = function()
+	WG["allyselectedunits"] = {}
+	WG["allyselectedunits"].getSelectPlayerUnits = function()
 		return selectPlayerUnits
 	end
-	WG['allyselectedunits'].setSelectPlayerUnits = function(value)
+	WG["allyselectedunits"].setSelectPlayerUnits = function(value)
 		selectPlayerUnits = value
 	end
-	WG['allyselectedunits'].getPlayerSelectedUnits = function(playerID)
+	WG["allyselectedunits"].getPlayerSelectedUnits = function(playerID)
 		return playerSelectedUnits[playerID]
 	end
 end
@@ -682,7 +709,7 @@ local function DrawSelections(selectionVBO, shader)
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		glDepthTest(true)
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
-		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
+		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
@@ -706,9 +733,13 @@ local function DrawSelections(selectionVBO, shader)
 end
 
 function widget:DrawWorld()
-	if spGetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then
+		return
+	end
 
-	if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then
+		return
+	end
 
 	if enablePlatter then
 		if mapHasWater and selectionVBOWater and selectionVBOWater.usedElements > 0 then
@@ -720,9 +751,13 @@ function widget:DrawWorld()
 end
 
 function widget:DrawWorldPreUnit()
-	if spGetGameFrame() < hideBelowGameframe then return end
+	if spGetGameFrame() < hideBelowGameframe then
+		return
+	end
 
-	if Spring.IsGUIHidden() then return end
+	if Spring.IsGUIHidden() then
+		return
+	end
 
 	if enablePlatter then
 		drawFrame = drawFrame + 1
@@ -731,16 +766,16 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData()
-    return {
-        selectPlayerUnits = selectPlayerUnits,
-        version = 2.0
-    }
+	return {
+		selectPlayerUnits = selectPlayerUnits,
+		version = 2.0,
+	}
 end
 
 function widget:SetConfigData(data)
-    if data.version ~= nil and data.version == 2.0 then
+	if data.version ~= nil and data.version == 2.0 then
 		if data.selectPlayerUnits ~= nil then
 			selectPlayerUnits = data.selectPlayerUnits
 		end
-    end
+	end
 end

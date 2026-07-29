@@ -1,14 +1,13 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name	= "Activity Broadcast",
-		desc	= "Checks if there is keyboard/mouse activity or camera changes",
-		author	= "Floris",
-		date	= "July,2016",
+		name = "Activity Broadcast",
+		desc = "Checks if there is keyboard/mouse activity or camera changes",
+		author = "Floris",
+		date = "July,2016",
 		license = "GNU GPL, v2 or later",
-		layer	= 0,
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -17,7 +16,7 @@ end
 -- config
 --------------------------------------------------------------------------------
 
-local sendPacketEvery	= 2
+local sendPacketEvery = 2
 
 --------------------------------------------------------------------------------
 -- synced
@@ -30,26 +29,25 @@ if gadgetHandler:IsSyncedCode() then
 	local vb1, vb2 = string.byte(validation, 1, 2)
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if #msg >= 3 and string.byte(msg,1)==hat_b and string.byte(msg,2)==vb1 and string.byte(msg,3)==vb2 then
-			SendToUnsynced("activityBroadcast",playerID)
+		if #msg >= 3 and string.byte(msg, 1) == hat_b and string.byte(msg, 2) == vb1 and string.byte(msg, 3) == vb2 then
+			SendToUnsynced("activityBroadcast", playerID)
 			return true
 		end
 	end
-
 else
 	--------------------------------------------------------------------------------
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetMouseState					= Spring.GetMouseState
-	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
-	local GetCameraState				= Spring.GetCameraState
+	local GetMouseState = Spring.GetMouseState
+	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local GetCameraState = Spring.GetCameraState
 
-	local activity							= false
-	local old_mx,old_my					= 0,0
-	local updateTimer						= 0
-	local prevCameraState				= GetCameraState()
+	local activity = false
+	local old_mx, old_my = 0, 0
+	local updateTimer = 0
+	local prevCameraState = GetCameraState()
 	local validation = SYNCED.validationActivity
 
 	function gadget:Initialize()
@@ -60,7 +58,7 @@ else
 		gadgetHandler:RemoveSyncAction("activityBroadcast")
 	end
 
-	function handleActivityEvent(_,playerID)
+	function handleActivityEvent(_, playerID)
 		if Script.LuaUI("ActivityEvent") then
 			Script.LuaUI.ActivityEvent(playerID)
 		end
@@ -70,9 +68,9 @@ else
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 		if updateTimer > sendPacketEvery then
 			-- mouse
-			local mx,my = GetMouseState()
+			local mx, my = GetMouseState()
 			if mx ~= old_mx or my ~= old_my then
-				old_mx,old_my = mx,my
+				old_mx, old_my = mx, my
 				activity = true
 			end
 			-- camera
@@ -91,7 +89,7 @@ else
 			end
 
 			if activity then
-				SendLuaRulesMsg("^"..validation)
+				SendLuaRulesMsg("^" .. validation)
 				activity = false
 			end
 			updateTimer = 0
@@ -101,6 +99,4 @@ else
 	function gadget:KeyPress(key, mods, isRepeat)
 		activity = true
 	end
-
 end
-

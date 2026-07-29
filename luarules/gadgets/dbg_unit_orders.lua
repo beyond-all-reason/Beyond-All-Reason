@@ -1,6 +1,5 @@
 local gadget = gadget ---@type Gadget
 
-
 --- TO USE: CHANGE THIS TO TRUE
 local ENABLED = false -- set to true to enable the gadget, it will print a lot of info about unit orders
 -------------------------------
@@ -40,12 +39,12 @@ end
 
 local function command(cmdID)
 	local ret
-	
+
 	-- Typically negative IDs are build/construct commands
 	if cmdID < 0 then
 		if not UnitDefs[-cmdID] then
-				return "INVALID BUILD("..cmdID..")"
-	 	end
+			return "INVALID BUILD(" .. cmdID .. ")"
+		end
 		local unitDefName = UnitDefs[-cmdID].name
 		return "BUILD(" .. unitDefName .. ")"
 	end
@@ -60,8 +59,8 @@ local function command(cmdID)
 	return "UNKNOWN(" .. cmdID .. ")"
 end
 
--- Spring.SetCustomCommandDrawData 
--- 
+-- Spring.SetCustomCommandDrawData
+--
 
 if gadgetHandler:IsSyncedCode() then
 	-- Synced
@@ -69,22 +68,22 @@ if gadgetHandler:IsSyncedCode() then
 		if unitTeam ~= 0 then
 			return false
 		end
-		Spring.Echo("CommandFallback", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
+		Spring.Echo("CommandFallback", "uID", unitID, "defID", unitDefID, command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 		return false
 	end
-	
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		if unitTeam ~= 0 then
 			return true
 		end
 
-		Spring.Echo("AllowCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag, "synced", fromSynced, "lua", fromLua)
+		Spring.Echo("AllowCommand", "uID", unitID, "defID", unitDefID, command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag, "synced", fromSynced, "lua", fromLua)
 		return true
 	end
 else
 	-- Unsynced
 	function gadget:CommandNotify(cmdID, cmdParams, cmdOptions)
-		Spring.Echo("CommandNotify",  command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions))
+		Spring.Echo("CommandNotify", command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions))
 
 		return false
 	end
@@ -99,21 +98,21 @@ else
 
 		return nil
 	end
-	
+
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 		if unitTeam ~= 0 then
 			return
 		end
-		
-		Spring.Echo("UnitCommand", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
+
+		Spring.Echo("UnitCommand", "uID", unitID, "defID", unitDefID, command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 	end
-	
+
 	function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 		if unitTeam ~= 0 then
 			return
 		end
 
-		Spring.Echo("UnitCmdDone", "uID", unitID, "defID", unitDefID,   command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
+		Spring.Echo("UnitCmdDone", "uID", unitID, "defID", unitDefID, command(cmdID), "params", summaryOrSomething(cmdParams), "opts", summaryOrSomething(cmdOptions), "tag", cmdTag)
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if PING then
 			Spring.MarkerAddPoint(x, y, z, "UnitCmdDone: " .. command(cmdID) .. " (tag: " .. tostring(cmdTag) .. ")")
@@ -124,7 +123,7 @@ else
 		if unitTeam ~= 0 then
 			return
 		end
-		
+
 		Spring.Echo("UnitIdle", "uID", unitID, "defID", unitDefID)
 		Spring.Echo(" ")
 	end

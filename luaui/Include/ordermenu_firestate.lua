@@ -188,7 +188,7 @@ local function hotkeyHandler(cmd, optLine, optWords, data, isRepeat, release)
 end
 
 local function hasMatchingStagedFirestate(engineParam)
-	local stagedFirestateByUnitId = WG['firestate'] and WG['firestate'].stagedFirestateByUnitId
+	local stagedFirestateByUnitId = WG["firestate"] and WG["firestate"].stagedFirestateByUnitId
 	if not stagedFirestateByUnitId then
 		return false
 	end

@@ -1,4 +1,3 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -9,7 +8,7 @@ function gadget:GetInfo()
 		date = "3 27 2011",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -88,7 +87,7 @@ function gadget:GameFrame(f)
 end
 
 local function isInsideMap(unitID)
-	local x,_,z = spGetUnitPosition(unitID)
+	local x, _, z = spGetUnitPosition(unitID)
 	return spIsPosInMap(x, z)
 end
 

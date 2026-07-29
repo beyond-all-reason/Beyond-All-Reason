@@ -1,7 +1,7 @@
 local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplate.lua")
 
 local unitsNormalMapTemplate = table.merge(matTemplate, {
-	texUnits  = {
+	texUnits = {
 		[0] = "%%UNITDEFID:0",
 		[1] = "%%UNITDEFID:1",
 		[2] = "%NORMALTEX",
@@ -62,7 +62,7 @@ local GL_INT = 0x1404
 -- args=<objID, matName, lodMatNum, uniformName, uniformType, uniformData>
 local mySetMaterialUniform = {
 	[false] = Spring.UnitRendering.SetForwardMaterialUniform,
-	[true]  = Spring.UnitRendering.SetDeferredMaterialUniform,
+	[true] = Spring.UnitRendering.SetDeferredMaterialUniform,
 }
 
 local armTanks = {}
@@ -71,7 +71,7 @@ local raptorUnits = {}
 local otherUnits = {}
 local spGetUnitHealth = Spring.GetUnitHealth
 local unitsHealth = {} --cache
-local healthArray = {[1] = 0.0}
+local healthArray = { [1] = 0.0 }
 
 local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetUnitHealth(unitID)
@@ -95,7 +95,7 @@ local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
 		if hasDef then
-			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
+			mySetMaterialUniform[true](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
 		if hasShad then
 			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
@@ -105,7 +105,7 @@ end
 
 local healthMod = {} --cache
 local vertDisp = {} --cache
-local vdhmArray = {[1] = 0.0, [2] = 0.0}
+local vdhmArray = { [1] = 0.0, [2] = 0.0 }
 local function SendVertDispAndHelthMod(unitID, unitDefID, hasStd, hasDef, hasShad)
 	-- fill caches, if empty
 	if not healthMod[unitDefID] then
@@ -125,7 +125,7 @@ local function SendVertDispAndHelthMod(unitID, unitDefID, hasStd, hasDef, hasSha
 			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		end
 		if hasDef then
-			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
+			mySetMaterialUniform[true](unitID, "opaque", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
 		end
 		if hasShad then
 			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[1]", GL_FLOAT, vdhmArray)
@@ -133,14 +133,14 @@ local function SendVertDispAndHelthMod(unitID, unitDefID, hasStd, hasDef, hasSha
 	end
 end
 
-local uidArray = {[1] = 0}
+local uidArray = { [1] = 0 }
 local function SendUnitID(unitID, hasStd, hasDef, hasShad)
 	uidArray[1] = unitID
 	if hasStd then
 		mySetMaterialUniform[false](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
 	end
 	if hasDef then
-		mySetMaterialUniform[true ](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
+		mySetMaterialUniform[true](unitID, "opaque", 3, "intOptions[0]", GL_INT, uidArray)
 	end
 	if hasShad then
 		mySetMaterialUniform[false](unitID, "shadow", 3, "intOptions[0]", GL_INT, uidArray)
@@ -151,7 +151,7 @@ local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 local floor = math.floor
 local treadSpeeds = {} --cache
-local treadsArray = {[1] = 0.0}
+local treadsArray = { [1] = 0.0 }
 
 local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	if not treadSpeeds[unitID] then
@@ -166,7 +166,7 @@ local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	end
 
 	local udx, udy, udz = spGetUnitDirection(unitID)
-	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
+	if udx > 0 and usx < 0 or udx < 0 and usx > 0 or udz > 0 and usz < 0 or udz < 0 and usz > 0 then
 		speed = -speed
 	end
 
@@ -177,14 +177,15 @@ local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
 		if hasDef then
-			mySetMaterialUniform[true ](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
+			mySetMaterialUniform[true](unitID, "opaque", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
 		--[[
 		-- tank tracks usually don't contribute much to shadows look
 		if hasShad then
 			mySetMaterialUniform[false](unitID, "shadow", 3, "floatOptions[3]", GL_FLOAT, treadsArray)
 		end
-		]]--
+		]]
+		--
 	end
 end
 
@@ -224,7 +225,7 @@ end
 
 local materials = {
 	unitsNormalMapArmTanks = table.merge(unitsNormalMapTemplate, {
-		texUnits  = {
+		texUnits = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
 			[5] = "%NORMALTEX2",
@@ -236,15 +237,21 @@ local materials = {
 			treads_arm = true,
 			materialIndex = 1,
 		},
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(armTanks, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(armTanks, unitID, unitDefID) end,
+		UnitCreated = function(unitID, unitDefID, mat)
+			UnitCreated(armTanks, unitID, unitDefID, mat)
+		end,
+		UnitDestroyed = function(unitID, unitDefID)
+			UnitDestroyed(armTanks, unitID, unitDefID)
+		end,
 
-		GameFrame = function (gf, mat) GameFrame(true, armTanks, gf, mat) end,
+		GameFrame = function(gf, mat)
+			GameFrame(true, armTanks, gf, mat)
+		end,
 
 		UnitDamaged = UnitDamaged,
 	}),
 	unitsNormalMapCorTanks = table.merge(unitsNormalMapTemplate, {
-		texUnits  = {
+		texUnits = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
 			[5] = "%NORMALTEX2",
@@ -256,28 +263,39 @@ local materials = {
 			treads_core = true,
 			materialIndex = 2,
 		},
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(corTanks, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(corTanks, unitID, unitDefID) end,
+		UnitCreated = function(unitID, unitDefID, mat)
+			UnitCreated(corTanks, unitID, unitDefID, mat)
+		end,
+		UnitDestroyed = function(unitID, unitDefID)
+			UnitDestroyed(corTanks, unitID, unitDefID)
+		end,
 
-		GameFrame = function (gf, mat) GameFrame(true, corTanks, gf, mat) end,
+		GameFrame = function(gf, mat)
+			GameFrame(true, corTanks, gf, mat)
+		end,
 
 		UnitDamaged = UnitDamaged,
 	}),
 	unitsNormalMapOthersArmCor = table.merge(unitsNormalMapTemplate, {
-		texUnits  = {
+		texUnits = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
 			[5] = "%NORMALTEX2",
 		},
-		shaderOptions = {
-		},
+		shaderOptions = {},
 		deferredOptions = {
 			materialIndex = 3,
 		},
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+		UnitCreated = function(unitID, unitDefID, mat)
+			UnitCreated(otherUnits, unitID, unitDefID, mat)
+		end,
+		UnitDestroyed = function(unitID, unitDefID)
+			UnitDestroyed(otherUnits, unitID, unitDefID)
+		end,
 
-		GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
+		GameFrame = function(gf, mat)
+			GameFrame(false, otherUnits, gf, mat)
+		end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -299,8 +317,12 @@ local materials = {
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(otherUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(otherUnits, unitID, unitDefID) end,
+		UnitCreated = function(unitID, unitDefID, mat)
+			UnitCreated(otherUnits, unitID, unitDefID, mat)
+		end,
+		UnitDestroyed = function(unitID, unitDefID)
+			UnitDestroyed(otherUnits, unitID, unitDefID)
+		end,
 
 		--GameFrame = function (gf, mat) GameFrame(false, otherUnits, gf, mat) end,
 
@@ -331,10 +353,16 @@ local materials = {
 		},
 
 		-- are these below required?
-		UnitCreated = function (unitID, unitDefID, mat) UnitCreated(raptorUnits, unitID, unitDefID, mat) end,
-		UnitDestroyed = function (unitID, unitDefID) UnitDestroyed(raptorUnits, unitID, unitDefID) end,
+		UnitCreated = function(unitID, unitDefID, mat)
+			UnitCreated(raptorUnits, unitID, unitDefID, mat)
+		end,
+		UnitDestroyed = function(unitID, unitDefID)
+			UnitDestroyed(raptorUnits, unitID, unitDefID)
+		end,
 
-		GameFrame = function (gf, mat) GameFrame(false, raptorUnits, gf, mat) end,
+		GameFrame = function(gf, mat)
+			GameFrame(false, raptorUnits, gf, mat)
+		end,
 
 		UnitDamaged = UnitDamaged,
 	}),
@@ -365,7 +393,6 @@ for id = 1, #UnitDefs do
 	local udef = UnitDefs[id]
 
 	if not cusUnitMaterials[id] and udef.modeltype == "s3o" then
-
 		local udefCM = udef.customParams
 
 		local udefName = udef.name or ""
@@ -377,18 +404,18 @@ for id = 1, #UnitDefs do
 
 		if udef.modCategories["tank"] then
 			if facName == "arm" then
-				unitMaterials[id] = {"unitsNormalMapArmTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+				unitMaterials[id] = { "unitsNormalMapArmTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3] }
 			elseif facName == "cor" then
-				unitMaterials[id] = {"unitsNormalMapCorTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+				unitMaterials[id] = { "unitsNormalMapCorTanks", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3] }
 			end
 		else
 			if wreckAtlas then
-				unitMaterials[id] = {"unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3]}
+				unitMaterials[id] = { "unitsNormalMapOthersArmCor", NORMALTEX = normalTex, TEXW1 = wreckAtlas[1], TEXW2 = wreckAtlas[2], NORMALTEX2 = wreckAtlas[3] }
 			else
 				if facName == "rap" then
-					unitMaterials[id] = {"unitsNormalMapRaptors", NORMALTEX = normalTex}
+					unitMaterials[id] = { "unitsNormalMapRaptors", NORMALTEX = normalTex }
 				else
-					unitMaterials[id] = {"unitsNormalMapOthers", NORMALTEX = normalTex}
+					unitMaterials[id] = { "unitsNormalMapOthers", NORMALTEX = normalTex }
 				end
 			end
 		end

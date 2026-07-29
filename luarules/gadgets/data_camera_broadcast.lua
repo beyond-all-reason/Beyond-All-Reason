@@ -8,21 +8,20 @@ function gadget:GetInfo()
 		date = "16 January 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = -5,
-		enabled = true
+		enabled = true,
 	}
 end
 
 local minBroadcastPeriod = 0.1
 local maxBroadcastPeriod = 0.35
-local broadcastPeriod = minBroadcastPeriod	-- will send packet in this interval (s) for non-spectators
-local spectatorBroadcastPeriod = maxBroadcastPeriod	-- will send packet in this interval (s) for spectators
-local broadcastPeriodScalingStart = 8	-- when still minBroadcastPeriod
-local broadcastPeriodScalingEnd = 32	-- when reaches maxBroadcastPeriod
+local broadcastPeriod = minBroadcastPeriod -- will send packet in this interval (s) for non-spectators
+local spectatorBroadcastPeriod = maxBroadcastPeriod -- will send packet in this interval (s) for spectators
+local broadcastPeriodScalingStart = 8 -- when still minBroadcastPeriod
+local broadcastPeriodScalingEnd = 32 -- when reaches maxBroadcastPeriod
 
 local PACKET_HEADER = "="
 
 if gadgetHandler:IsSyncedCode() then
-
 	local strSub = string.sub
 
 	local validation = string.randomString(2)
@@ -36,17 +35,17 @@ if gadgetHandler:IsSyncedCode() then
 	local ep1, ep2, ep3 = string.byte(expectedPrefix, 1, 3)
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if #msg < expectedPrefixLen then return end
+		if #msg < expectedPrefixLen then
+			return
+		end
 		local b1, b2, b3 = string.byte(msg, 1, 3)
-		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 then return end
-		SendToUnsynced("cameraBroadcast",playerID,msg)
+		if b1 ~= ep1 or b2 ~= ep2 or b3 ~= ep3 then
+			return
+		end
+		SendToUnsynced("cameraBroadcast", playerID, msg)
 		return true
 	end
-
-
-else	-- UNSYNCED
-
-
+else -- UNSYNCED
 	local GetCameraState = Spring.GetCameraState
 	local SetCameraState = Spring.SetCameraState
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
@@ -68,8 +67,20 @@ else	-- UNSYNCED
 	local FLOAT_RANGE = 16384
 	local MANTISSA_RANGE = 64
 	local POW2 = {
-		[0] = 1, 2, 4, 8, 16, 32, 64, 128,
-		256, 512, 1024, 2048, 4096, 8192,
+		[0] = 1,
+		2,
+		4,
+		8,
+		16,
+		32,
+		64,
+		128,
+		256,
+		512,
+		1024,
+		2048,
+		4096,
+		8192,
 	}
 
 	local timeSinceBroadcast = 0
@@ -143,7 +154,9 @@ else	-- UNSYNCED
 			exponent = exponent - 128
 			sign = -1
 		end
-		if exponent == 0 then return nil end
+		if exponent == 0 then
+			return nil
+		end
 
 		if exponent == 1 then
 			exponent = 2
@@ -163,9 +176,11 @@ else	-- UNSYNCED
 		local bitBuffer = 0
 		local bitCount = 0
 		local byteCount = 0
-		for i=1, #stateFormat do
+		for i = 1, #stateFormat do
 			local num = state[stateFormat[i]]
-			if not num then return nil end
+			if not num then
+				return nil
+			end
 
 			bitBuffer = bitBuffer * FLOAT_RANGE + CustomPackF14(num)
 			bitCount = bitCount + FLOAT_BITS
@@ -191,10 +206,14 @@ else	-- UNSYNCED
 		local stateFormat = CAMERA_STATE_FORMATS[name]
 		local cameraID = CAMERA_IDS[name]
 
-		if not stateFormat or not cameraID then return nil end
+		if not stateFormat or not cameraID then
+			return nil
+		end
 
 		local byteCount = PackCameraValues(s, stateFormat)
-		if not byteCount then return nil end
+		if not byteCount then
+			return nil
+		end
 
 		return msgPrefix .. strChar(cameraID + 1, tableUnpack(packedCameraBytes, 1, byteCount))
 	end
@@ -208,7 +227,9 @@ else	-- UNSYNCED
 			return nil
 		end
 		local packedStateBytes = floor((#stateFormat * FLOAT_BITS + 7) / 8)
-		if #p ~= msgPrefixLen + 1 + packedStateBytes then return nil end
+		if #p ~= msgPrefixLen + 1 + packedStateBytes then
+			return nil
+		end
 		local result = {
 			name = name,
 			mode = cameraID,
@@ -218,10 +239,12 @@ else	-- UNSYNCED
 		local bitBuffer = 0
 		local bitCount = 0
 
-		for i=1, #stateFormat do
+		for i = 1, #stateFormat do
 			while bitCount < FLOAT_BITS do
 				local byte = strByte(p, offset)
-				if not byte then return nil end
+				if not byte then
+					return nil
+				end
 				bitBuffer = bitBuffer * 256 + byte
 				bitCount = bitCount + 8
 				offset = offset + 1
@@ -231,33 +254,36 @@ else	-- UNSYNCED
 			local code = floor(bitBuffer / divisor)
 			bitBuffer = bitBuffer - code * divisor
 			local num = CustomUnpackF14(code)
-			if not num then return nil end
+			if not num then
+				return nil
+			end
 
 			result[stateFormat[i]] = num
 		end
-		if bitBuffer ~= 0 then return nil end
+		if bitBuffer ~= 0 then
+			return nil
+		end
 
 		return result
 	end
-
 
 	Spring.Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
 	local prevCameraState = GetCameraState()
 	for name, num in pairs(CAMERA_IDS) do
 		CAMERA_NAMES[num] = name
-		SetCameraState({name=name,mode=num},0)
+		SetCameraState({ name = name, mode = num }, 0)
 		local packetFormat = {}
 		local packetFormatIndex = 1
 		for stateindex in pairs(GetCameraState()) do
 			if stateindex ~= "mode" and stateindex ~= "name" then
 				packetFormat[packetFormatIndex] = stateindex
-				packetFormatIndex = packetFormatIndex +1
+				packetFormatIndex = packetFormatIndex + 1
 			end
 		end
 		table.sort(packetFormat)
 		CAMERA_STATE_FORMATS[name] = packetFormat
 	end
-	SetCameraState(prevCameraState,0)
+	SetCameraState(prevCameraState, 0)
 	-- workaround a bug where minimap remains minimized because we switched to overview cam
 	SendCommands("minimap minimize")
 
@@ -276,10 +302,7 @@ else	-- UNSYNCED
 		elseif humanPlayerCount >= broadcastPeriodScalingEnd then
 			broadcastPeriod = maxBroadcastPeriod
 		else
-			broadcastPeriod = minBroadcastPeriod
-				+ (maxBroadcastPeriod - minBroadcastPeriod)
-					* (humanPlayerCount - broadcastPeriodScalingStart)
-					/ (broadcastPeriodScalingEnd - broadcastPeriodScalingStart)
+			broadcastPeriod = minBroadcastPeriod + (maxBroadcastPeriod - minBroadcastPeriod) * (humanPlayerCount - broadcastPeriodScalingStart) / (broadcastPeriodScalingEnd - broadcastPeriodScalingStart)
 		end
 	end
 
@@ -310,7 +333,7 @@ else	-- UNSYNCED
 		RefreshBroadcastPeriod()
 	end
 
-	function handleCameraBroadcastEvent(_,playerID,msg)
+	function handleCameraBroadcastEvent(_, playerID, msg)
 		local cameraState
 		-- a packet consisting only of the header indicates that transmission has stopped
 		if msg ~= PACKET_HEADER then
@@ -321,13 +344,13 @@ else	-- UNSYNCED
 			end
 		end
 		if not spec or not fullView then
-			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+			local _, _, targetSpec, _, allyTeamID = GetPlayerInfo(playerID, false)
 			if targetSpec or allyTeamID ~= myAllyTeamID then
 				return
 			end
 		end
 		if Script.LuaUI("CameraBroadcastEvent") then
-			Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
+			Script.LuaUI.CameraBroadcastEvent(playerID, cameraState)
 		end
 	end
 
@@ -349,7 +372,9 @@ else	-- UNSYNCED
 			return true
 		end
 		local stateFormat = CAMERA_STATE_FORMATS[name]
-		if not stateFormat then return false end
+		if not stateFormat then
+			return false
+		end
 		for i = 1, #stateFormat do
 			local key = stateFormat[i]
 			local packedValue = CustomPackF14(state[key])
@@ -389,4 +414,3 @@ else	-- UNSYNCED
 		SendLuaRulesMsg(msg)
 	end
 end
-

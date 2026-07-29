@@ -2,10 +2,10 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name 	= "Manual launch command",
-		desc	= "Replaces manual fire command with a distinct Launch command for manually fired missiles",
-		date	= "December 2021",
-		layer	= 0,
+		name = "Manual launch command",
+		desc = "Replaces manual fire command with a distinct Launch command for manually fired missiles",
+		date = "December 2021",
+		layer = 0,
 		enabled = true,
 	}
 end
@@ -31,7 +31,7 @@ end
 local launchCommand = {
 	id = CMD_MANUAL_LAUNCH,
 	action = "manuallaunch",
-	cursor = 'cursorattack',
+	cursor = "cursorattack",
 	type = CMDTYPE.ICON_UNIT_OR_MAP,
 }
 

@@ -21,7 +21,6 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 if gadgetHandler:IsSyncedCode() then
-
 	local waterlevel = Spring.GetModOptions().map_waterlevel
 
 	function adjustFeatureHeight()
@@ -29,13 +28,13 @@ if gadgetHandler:IsSyncedCode() then
 		local x, y, z
 		for i = 1, #featuretable do
 			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-      		Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
+			Spring.SetFeaturePosition(featuretable[i], x, y, z, true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
-    	Spring.Echo("Map Waterlevel: adjusting water level with: "..waterlevel)
+		Spring.Echo("Map Waterlevel: adjusting water level with: " .. waterlevel)
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustOriginalHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
@@ -97,11 +96,8 @@ if gadgetHandler:IsSyncedCode() then
 				waterlevel = modOptions.map_waterlevel
 
 				-- adjust tidal strength if previosuly not present and applicable
-				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged")
-					and Spring.GetTidal() == 0
-					and select(1, Spring.GetGroundExtremes()) > 0
-					then
-						Spring.SetTidal( 15 )
+				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged") and Spring.GetTidal() == 0 and select(1, Spring.GetGroundExtremes()) > 0 then
+					Spring.SetTidal(15)
 				end
 
 				adjustWaterlevel()
@@ -133,7 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		local params = string.split(msg, ':')
+		local params = string.split(msg, ":")
 		local command = params[2]
 		local value = tonumber(params[3])
 		if not value then
@@ -141,21 +137,19 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 
-		if command == 'waterlevel' then
+		if command == "waterlevel" then
 			waterlevel = value
 			adjustWaterlevel()
-			Spring.Echo('Changed waterlevel: ' .. waterlevel)
-		elseif command == 'clampminheight' then
+			Spring.Echo("Changed waterlevel: " .. waterlevel)
+		elseif command == "clampminheight" then
 			clampMapHeight(value, true)
-			Spring.Echo('Clamped map min height to: ' .. value)
-		elseif command == 'clampmaxheight' then
+			Spring.Echo("Clamped map min height to: " .. value)
+		elseif command == "clampmaxheight" then
 			clampMapHeight(value, false)
-			Spring.Echo('Clamped map max height to: ' .. value)
+			Spring.Echo("Clamped map max height to: " .. value)
 		end
 	end
-
-else  -- UNSYNCED
-
+else -- UNSYNCED
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
@@ -169,28 +163,28 @@ else  -- UNSYNCED
 			return
 		end
 		if (isAuthorized() or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
-			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. command .. ':' .. words[1])
+			Spring.SendLuaRulesMsg(PACKET_HEADER .. ":" .. command .. ":" .. words[1])
 		end
 	end
 
 	local function waterlevel(cmd, line, words, playerID)
-		sendCommand('waterlevel', words, playerID)
+		sendCommand("waterlevel", words, playerID)
 	end
 	local function clampMinHeight(cmd, line, words, playerID)
-		sendCommand('clampminheight', words, playerID)
+		sendCommand("clampminheight", words, playerID)
 	end
 	local function clampMaxHeight(cmd, line, words, playerID)
-		sendCommand('clampmaxheight', words, playerID)
+		sendCommand("clampmaxheight", words, playerID)
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction('waterlevel', waterlevel)
-		gadgetHandler:AddChatAction('clampminheight', clampMinHeight)
-		gadgetHandler:AddChatAction('clampmaxheight', clampMaxHeight)
+		gadgetHandler:AddChatAction("waterlevel", waterlevel)
+		gadgetHandler:AddChatAction("clampminheight", clampMinHeight)
+		gadgetHandler:AddChatAction("clampmaxheight", clampMaxHeight)
 	end
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('waterlevel')
-		gadgetHandler:RemoveChatAction('clampminheight')
-		gadgetHandler:RemoveChatAction('clampmaxheight')
+		gadgetHandler:RemoveChatAction("waterlevel")
+		gadgetHandler:RemoveChatAction("clampminheight")
+		gadgetHandler:RemoveChatAction("clampmaxheight")
 	end
 end
