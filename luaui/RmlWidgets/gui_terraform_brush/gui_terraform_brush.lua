@@ -318,6 +318,11 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	fullRestoreConfirmExpiry = 0,
 	-- Metal clean confirm state
 	metalCleanConfirmExpiry = 0,
+	-- Open Project: selected row, DELETE confirm window, row elements to repaint
+	projectOpenSelectedSlug = nil,
+	projectDeleteConfirmExpiry = 0,
+	projectOpenRowEls = {},  -- {{slug = ..., el = ...}, ...} for selection painting
+	projectOpenNeedsRebuild = false,  -- set by a delete, consumed in Update
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
@@ -2093,6 +2098,8 @@ local initialModel = {
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
+	projectOpenSelected = "",       -- display name of the picked row ("" = nothing picked)
+	projectDeleteConfirming = false,  -- DELETE armed, waiting for the second click
 	newMapWidthStr = "12",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
@@ -3908,24 +3915,22 @@ local initialModel = {
 			listEl.inner_rml = ""
 			local files = WG.FeaturePlacer.listSaves()
 			if #files == 0 then
-				listEl.inner_rml = '<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">No saved feature maps</div>'
+				listEl.inner_rml = '<div class="tf-hm-empty">No saved feature maps</div>'
 			else
+				-- Same row markup as the heightmap browser / Open Project list, and
+				-- hover comes from RCSS :hover: repainting it from mouseover/mouseout
+				-- left the highlight stuck on rows the pointer had already left.
 				for _, filepath in ipairs(files) do
 					local fname = filepath:match("[^/\\]+$") or filepath
 					local item = doc:CreateElement("div")
-					item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
-					item.inner_rml = fname
+					item:SetClass("tf-hm-row", true)
+					item.inner_rml = '<div class="tf-hm-row-line"><div class="tf-hm-mapname">'
+						.. (fname:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) .. '</div></div>'
 					item:AddEventListener("click", function(ev)
 						playSound("apply")
 						if WG.FeaturePlacer then WG.FeaturePlacer.load(filepath) end
 						if widgetState.dmHandle then widgetState.dmHandle.fpSaveLoadOpen = false end
 						ev:StopPropagation()
-					end, false)
-					item:AddEventListener("mouseover", function()
-						item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #d1d5db; cursor: pointer; border-radius: 3dp; background-color: #2a2a3a;")
-					end, false)
-					item:AddEventListener("mouseout", function()
-						item:SetAttribute("style", "padding: 3dp 6dp; font-size: 0.9rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
 					end, false)
 					listEl:AppendChild(item)
 				end
@@ -4823,52 +4828,140 @@ local initialModel = {
 		end
 		-- Imperative DOM list build (same justification as the feature placer's
 		-- save list: rows are dynamic, data-model arrays are not used here).
+		-- Markup, styling and the date/name/badge layout are shared with the Load
+		-- Heightmap browser (tf-hm-* classes): one atomic inner_rml write, then
+		-- click handlers wired by row id. Hover is RCSS :hover — painting it from
+		-- mouseover/mouseout handlers left highlights stuck on rows the pointer
+		-- had already left.
+		-- Clicking a row only selects it — LOAD and DELETE live at the bottom of
+		-- the dialog, like Save Project and New Map. Neither belongs on a stray
+		-- click in a list: one restarts the session, the other destroys files.
 		local doc = widgetState.document
 		local listEl = doc and doc:GetElementById("tf-project-open-list")
 		if not listEl then return end
-		listEl.inner_rml = ""
-		if not (WG.MapProject and WG.MapProject.listDetailed) then
-			if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
-			return
-		end
-		local projects = WG.MapProject.listDetailed()
-		if #projects == 0 then
-			listEl.inner_rml = '<div style="padding: 4dp 6dp; font-size: 0.9rem; color: #6b7280;">'
-				.. 'No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache).</div>'
-			return
-		end
-		for _, p in ipairs(projects) do
-			local label = string.format("%s&nbsp;&nbsp;<span style=\"color: #6b7280;\">%sx%s&nbsp;&nbsp;%s</span>",
-				p.name or p.slug, tostring(p.size_x or "?"), tostring(p.size_z or "?"),
-				(p.modified or ""):gsub("T", " "):gsub("Z", ""))
-			local item = doc:CreateElement("div")
-			item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
-			item.inner_rml = label
-			local slug = p.slug
-			item:AddEventListener("click", function(ev)
-				playSound("apply")
-				local dm = widgetState.dmHandle
-				if not (WG.MapProject and WG.MapProject.open) then
-					if dm then dm.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
-				elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
-					if dm then dm.projectOpenHint = "A save or load is already running (see console)." end
-				elseif not WG.MapProject.open(slug) then
-					if dm then dm.projectOpenHint = "Could not open '" .. slug .. "' — see console for the reason." end
+		local function rebuild()
+			widgetState.projectOpenRowEls = {}
+			widgetState.projectOpenSelectedSlug = nil
+			widgetState.projectDeleteConfirmExpiry = 0
+			if widgetState.dmHandle then
+				widgetState.dmHandle.projectOpenSelected = ""
+				widgetState.dmHandle.projectDeleteConfirming = false
+			end
+			listEl.inner_rml = ""
+			local dm = widgetState.dmHandle
+			if not (WG.MapProject and WG.MapProject.listDetailed) then
+				listEl.inner_rml = '<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
+				if dm then dm.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+				return
+			end
+			local projects = WG.MapProject.listDetailed()
+			if #projects == 0 then
+				listEl.inner_rml = '<div class="tf-hm-empty">'
+					.. 'No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache).</div>'
+				return
+			end
+			local function esc(s) return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
+			local parts = {}
+			for i, p in ipairs(projects) do
+				-- Manifests stamp ISO-8601 UTC ("2026-07-27T14:22:31Z"); the heightmap
+				-- browser shows "YYYY-MM-DD HH:MM", so drop the seconds and the T/Z.
+				local stamp = tostring(p.modified or "")
+				local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
+				local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi)
+					or (stamp ~= "" and stamp or "(no date)")
+				parts[#parts + 1] = string.format(
+					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
+					.. '<div class="tf-hm-date">%s</div>'
+					.. '<div class="tf-hm-mapname">%s</div>'
+					.. '<div class="tf-hm-badge">%sx%s</div>'
+					.. '</div></div>',
+					i, esc(when), esc(p.name or p.slug),
+					esc(p.size_x or "?"), esc(p.size_z or "?"))
+			end
+			listEl.inner_rml = table.concat(parts)
+			for i, p in ipairs(projects) do
+				local row = doc:GetElementById("tf-proj-r" .. i)
+				if row then
+					local slug, label = p.slug, (p.name or p.slug)
+					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = { slug = slug, el = row }
+					row:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						playSound("click")
+						widgetState.projectOpenSelectedSlug = slug
+						-- Picking a different project must not inherit the armed DELETE.
+						widgetState.projectDeleteConfirmExpiry = 0
+						local dm2 = widgetState.dmHandle
+						if dm2 then
+							dm2.projectOpenSelected = label
+							dm2.projectDeleteConfirming = false
+							dm2.projectOpenHint = ""
+						end
+						for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
+							r.el:SetClass("selected", r.slug == slug)
+						end
+					end, false)
 				end
-				ev:StopPropagation()
-			end, false)
-			item:AddEventListener("mouseover", function()
-				item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #d1d5db; cursor: pointer; border-radius: 3dp; background-color: #2a2a3a;")
-			end, false)
-			item:AddEventListener("mouseout", function()
-				item:SetAttribute("style", "padding: 4dp 6dp; font-size: 0.95rem; color: #9ca3af; cursor: pointer; border-radius: 3dp;")
-			end, false)
-			listEl:AppendChild(item)
+			end
+		end
+		-- Stashed on widgetState (not a chunk local) so the bottom buttons can
+		-- refresh the list after a delete.
+		widgetState.projectOpenRebuild = rebuild
+		rebuild()
+	end,
+	-- LOAD PROJECT / DELETE act on the selected row. Both are pointer-events:none
+	-- while nothing is selected (data-class-disabled), so neither needs its own
+	-- empty-selection branch beyond the guard below.
+	onProjectOpenLoad = function(_event)
+		local slug = widgetState.projectOpenSelectedSlug
+		if not slug then return end
+		playSound("apply")
+		local d = widgetState.dmHandle
+		if not (WG.MapProject and WG.MapProject.open) then
+			if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+		elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
+			if d then d.projectOpenHint = "A save or load is already running (see console)." end
+		elseif not WG.MapProject.open(slug) then
+			if d then d.projectOpenHint = "Could not open '" .. slug .. "' — see console for the reason." end
+		end
+	end,
+	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
+	-- disarms after 3 s.
+	onProjectOpenDelete = function(_event)
+		local slug = widgetState.projectOpenSelectedSlug
+		if not slug then return end
+		local d = widgetState.dmHandle
+		local now = Spring.GetGameSeconds() or 0
+		if (widgetState.projectDeleteConfirmExpiry or 0) > now then
+			widgetState.projectDeleteConfirmExpiry = 0
+			if d then d.projectDeleteConfirming = false end
+			playSound("reset")
+			if not (WG.MapProject and WG.MapProject.delete) then
+				if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+			elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
+				if d then d.projectOpenHint = "A save or load is already running (see console)." end
+			elseif WG.MapProject.delete(slug) then
+				if d then d.projectOpenHint = "Deleted '" .. slug .. "'." end
+				-- Rebuild next frame, not here: the rebuild destroys the rows while
+				-- this click is still being dispatched.
+				widgetState.projectOpenNeedsRebuild = true
+			else
+				if d then d.projectOpenHint = "Could not delete '" .. slug .. "' — see console for the reason." end
+			end
+		else
+			widgetState.projectDeleteConfirmExpiry = now + 3
+			if d then d.projectDeleteConfirming = true end
+			playSound("toggleOn")
 		end
 	end,
 	onProjectOpenClose = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.projectOpenOpen = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.projectOpenOpen = false
+			d.projectDeleteConfirming = false
+		end
+		-- Never leave DELETE armed for the next time the dialog opens.
+		widgetState.projectDeleteConfirmExpiry = 0
 	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
@@ -11898,6 +11991,21 @@ function widget:Update()
 			_noDmLabel("mbCleanLabelStr", "CLEAN")
 		end
 	end
+	-- Open Project delete confirm timeout: same 3 s window as FULL RESTORE
+	if (widgetState.projectDeleteConfirmExpiry or 0) > 0 then
+		local now = Spring.GetGameSeconds() or 0
+		if now >= widgetState.projectDeleteConfirmExpiry then
+			widgetState.projectDeleteConfirmExpiry = 0
+			local d = widgetState.dmHandle
+			if d then d.projectDeleteConfirming = false end
+		end
+	end
+	-- Deferred Open Project list refresh (queued by a delete, which cannot
+	-- destroy its own row from inside the click handler)
+	if widgetState.projectOpenNeedsRebuild then
+		widgetState.projectOpenNeedsRebuild = false
+		if widgetState.projectOpenRebuild then widgetState.projectOpenRebuild() end
+	end
 	-- Slider keybind-scroll flash countdown
 	do
 		local sf = widgetState.sliderFlashes
@@ -12075,6 +12183,13 @@ function widget:Shutdown()
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
+	-- Open Project row handles belong to the closed document too; a queued
+	-- rebuild must not run against it after shutdown.
+	widgetState.projectOpenRowEls = {}
+	widgetState.projectOpenSelectedSlug = nil
+	widgetState.projectDeleteConfirmExpiry = 0
+	widgetState.projectOpenNeedsRebuild = false
+	widgetState.projectOpenRebuild = nil
 	uiState.draggingSlider = nil
 	uiState.draggingSliderEl = nil
 

@@ -27,8 +27,8 @@
 					<div id="btn-file" class="tf-header-btn tf-file-btn" data-class-active="fileMenuOpen" data-event-mousedown="onFileMenuToggle()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/folder.png" /></div>
 					<div id="tf-file-menu" class="tf-file-menu" data-if="fileMenuOpen">
 						<div id="btn-file-newmap" class="tf-file-menu-item" data-event-mousedown="onFileNewMap()">New Map...</div>
-						<div id="btn-file-openproject" class="tf-file-menu-item" data-event-mousedown="onFileOpenProject()">Open Project...</div>
 						<div id="btn-file-saveproject" class="tf-file-menu-item" data-event-mousedown="onFileSaveProject()">Save Project...</div>
+						<div id="btn-file-openproject" class="tf-file-menu-item" data-event-mousedown="onFileOpenProject()">Open Project...</div>
 					</div>
 				</div>
 				<div class="tf-rail-spacer"></div>
@@ -3000,7 +3000,7 @@
 				<div class="tf-action-btn-text">CLEAR</div>
 			</div>
 		</div>
-		<div id="fp-save-load-list" class="tf-save-load-list" data-if="fpSaveLoadOpen">
+		<div id="fp-save-load-list" class="tf-save-load-list tf-hm-browser" data-if="fpSaveLoadOpen">
 			<!-- Populated dynamically with saved feature maps -->
 		</div>
 		</div><!-- /section-fp-save -->
@@ -7471,9 +7471,22 @@
 
 		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. This restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
 
-		<div id="tf-project-open-list" class="mb-2" style="max-height: 40vh; overflow-y: auto;"></div>
+		<div id="tf-project-open-list" class="tf-hm-browser mb-2" style="max-height: 40vh;"></div>
+
+		<div class="text-base text-keybind mb-1" data-if="projectOpenSelected == ''">Select a project above, then LOAD or DELETE it.</div>
+		<div class="text-base text-light mb-1" data-if="projectOpenSelected != ''">Selected: {{projectOpenSelected}}</div>
 
 		<div class="text-base text-keybind mb-1" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
+
+		<div class="flex flex-row gap-1 items-center">
+			<div id="btn-project-open-load" class="tf-action-btn tf-save-btn" style="flex: 1;" data-class-disabled="projectOpenSelected == ''" data-event-mousedown="onProjectOpenLoad()">
+				<div class="tf-action-btn-text">LOAD PROJECT</div>
+			</div>
+			<div id="btn-project-open-delete" class="tf-action-btn" style="flex: 0.8;" data-class-disabled="projectOpenSelected == ''" data-class-confirming="projectDeleteConfirming" data-event-mousedown="onProjectOpenDelete()">
+				<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">DELETE</div>
+				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- ============ NEW MAP WINDOW (floating, opened from FILE menu) ============ -->

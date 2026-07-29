@@ -1243,6 +1243,54 @@ local function listProjects()
 	return #found
 end
 
+-- Delete a project folder. validateSlug already rejects anything with a path
+-- separator, so the target can only ever be one directory under PROJECTS_DIR,
+-- and a readable manifest is required — never delete a folder this widget did
+-- not write. The manifest goes first on purpose: if a file is locked and the
+-- sweep leaves junk behind, the project has already stopped listing (both list
+-- paths need project.lua) instead of showing up half-deleted.
+local function deleteProject(slug)
+	if job then
+		echoP("cannot delete a project while a save is running")
+		return false
+	end
+	if loadJob then
+		echoP("cannot delete a project while a load is running")
+		return false
+	end
+	local ok, err = validateSlug(slug)
+	if not ok then
+		echoP("cannot delete: " .. err)
+		return false
+	end
+	local dir = PROJECTS_DIR .. slug .. "/"
+	if not readPrevManifest(dir) then
+		echoP("cannot delete '" .. slug .. "': no readable project.lua in " .. dir)
+		return false
+	end
+	local removed, failed = 0, 0
+	if os.remove(dir .. "project.lua") then removed = removed + 1 else failed = failed + 1 end
+	for _, path in ipairs(VFS.DirList(dir, "*", VFS.RAW, true) or {}) do
+		if os.remove(path) then removed = removed + 1 else failed = failed + 1 end
+	end
+	-- Deepest first, otherwise a parent is still non-empty when we reach it.
+	local subs = VFS.SubDirs(dir, "*", VFS.RAW, true) or {}
+	table.sort(subs, function(a, b) return #a > #b end)
+	subs[#subs + 1] = dir
+	for _, d in ipairs(subs) do
+		os.remove((d:gsub("[/\\]+$", "")))
+	end
+	-- Leftovers are inert: without project.lua the folder no longer lists, so
+	-- report and move on rather than failing the delete.
+	if failed > 0 then
+		echoP(string.format("deleted '%s' (%d files, %d could not be removed — folder may linger in %s)",
+			slug, removed, failed, PROJECTS_DIR))
+	else
+		echoP(string.format("deleted project '%s' (%d files)", slug, removed))
+	end
+	return true
+end
+
 ----------------------------------------------------------------
 -- Load: pointer file (restart survivor with phase journal)
 ----------------------------------------------------------------
@@ -2148,8 +2196,10 @@ local function mapProjectAction(_, optLine, params)
 		openProject(params[2])
 	elseif sub == "list" then
 		listProjects()
+	elseif sub == "delete" then
+		deleteProject(params[2])
 	else
-		echoP("usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list")
+		echoP("usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>")
 	end
 end
 
@@ -2176,6 +2226,7 @@ function widget:Initialize()
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
 		isBusy = function() return job ~= nil or loadJob ~= nil end,
 		isLoading = function() return loadJob ~= nil end,

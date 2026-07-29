@@ -1902,7 +1902,9 @@ body {
 	font-style: italic;
 }
 
-/* === Heightmap browser (Load Heightmap dropdown) === */
+/* === Heightmap browser (Load Heightmap dropdown) ===
+   The Open Project list reuses the browser frame and the row/date/name/badge
+   classes so both file pickers read the same. */
 .tf-hm-browser {
 	display: flex;
 	flex-direction: column;
@@ -2001,11 +2003,15 @@ body {
 	gap: 12dp;
 }
 
+/* Fixed column: the font is proportional, so equal-length timestamps still
+   render at different widths ("11:11" is far narrower than "20:27") and the
+   names after them would start at a different x on every row. */
 .tf-hm-date {
 	color: #94a3b8;
 	font-size: 0.95rem;
 	white-space: nowrap;
-	min-width: 0;
+	flex-shrink: 0;
+	min-width: 84dp;
 }
 
 .tf-hm-badge {
@@ -2036,6 +2042,18 @@ body {
 
 .tf-hm-row:hover .tf-hm-mapname {
 	color: #f9fafb;
+}
+
+/* Open Project rows: clicking one selects it; LOAD and DELETE sit at the
+   bottom of the dialog and act on the selection. The window keeps the shared
+   .tf-newmap-window width — no override — so it matches New Map / Save Project. */
+.tf-proj-row.selected {
+	background-color: #1f3a4d;
+	border: 1dp #2ba5ea;
+}
+
+.tf-proj-row.selected .tf-hm-mapname {
+	color: #ffffff;
 }
 
 /* === Absolute Height Cap Toggle === */
