@@ -943,7 +943,66 @@ state.getMapmarkWorldPosition = function(mx, my)
 	end
 end
 
-state.handleMapmarkAction = function(_, _, _, _, _, _, _, key, scanCode)
+state.mapActionMatchesCurrentModifiers = function(command, actions)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	for i = 1, #actions do
+		local action = actions[i]
+		if action.command == command and type(action.boundWith) == 'string' then
+			local keySet = action.boundWith:match('([^,]+)$'):lower():gsub('%s+', '')
+			local expectedAlt, expectedCtrl, expectedMeta, expectedShift = false, false, false, false
+			local anyModifiers = false
+			while true do
+				if keySet:find('^any%+') then
+					anyModifiers = true
+					keySet = keySet:sub(5)
+				elseif keySet:find('^%*%+') then
+					anyModifiers = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^alt%+') then
+					expectedAlt = true
+					keySet = keySet:sub(5)
+				elseif keySet:find('^a%+') then
+					expectedAlt = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^ctrl%+') then
+					expectedCtrl = true
+					keySet = keySet:sub(6)
+				elseif keySet:find('^c%+') then
+					expectedCtrl = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^meta%+') then
+					expectedMeta = true
+					keySet = keySet:sub(6)
+				elseif keySet:find('^m%+') then
+					expectedMeta = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^shift%+') then
+					expectedShift = true
+					keySet = keySet:sub(7)
+				elseif keySet:find('^s%+') then
+					expectedShift = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^up%+') then
+					keySet = keySet:sub(4)
+				elseif keySet:find('^u%+') then
+					keySet = keySet:sub(3)
+				else
+					break
+				end
+			end
+			if anyModifiers or
+			   (alt == expectedAlt and ctrl == expectedCtrl and meta == expectedMeta and shift == expectedShift) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+state.handleMapmarkAction = function(_, _, _, _, _, _, actions, key, scanCode)
+	if not state.mapActionMatchesCurrentModifiers('drawlabel', actions) then
+		return false
+	end
 	local x, y, z = state.getMapmarkWorldPosition()
 	if x and y and z then
 		state.stopMapDraw()
@@ -952,10 +1011,20 @@ state.handleMapmarkAction = function(_, _, _, _, _, _, _, key, scanCode)
 	return true
 end
 
-state.handleMapDrawAction = function(_, _, _, _, _, release, _, key, scanCode)
+state.handleMapDrawAction = function(_, _, _, _, _, release, actions, key, scanCode)
 	if release then
-		state.stopMapDraw()
-		return true
+		if state.mapDrawActive and
+		   (key == state.mapDrawKey or (scanCode and scanCode == state.mapDrawScanCode)) then
+			state.stopMapDraw()
+			return true
+		end
+		return false
+	end
+	if not state.mapActionMatchesCurrentModifiers('drawinmap', actions) then
+		return false
+	end
+	if state.mapActionMatchesCurrentModifiers('drawlabel', actions) then
+		return false
 	end
 	if not state.mapDrawActive and not Spring.IsGUIHidden() then
 		state.mapDrawActive = true
