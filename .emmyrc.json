@@ -42,6 +42,7 @@
       "widgetHandler",
       "actionHandler",
       "gadgetHandler",
+      "CALLIN_MAP",
       "fontHandler",
       "LUAUI_DIRNAME",
       "socket",
@@ -87,6 +88,7 @@
   "workspace": {
     "ignoreDir": [
       "modules/i18n/i18nlib/spec",
+      "mapgenerator",
       ".vscode",
       ".lux"
     ],

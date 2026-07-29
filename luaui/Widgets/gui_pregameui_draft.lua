@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local isAI = false -- forward-decl: read in DrawState
+
 function widget:GetInfo()
 	return {
 		name = "Pregame UI - Draft Spawn Order",

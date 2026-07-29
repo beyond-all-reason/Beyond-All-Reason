@@ -736,6 +736,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local lastGameFrame = 0
 	function gadget:GameFrame(n)
+		---@diagnostic disable-next-line: undefined-global
 		if not scenarioSpawnsUnits then
 			if n == spawnInitialFrame then
 				for i = 1, #startUnitList do

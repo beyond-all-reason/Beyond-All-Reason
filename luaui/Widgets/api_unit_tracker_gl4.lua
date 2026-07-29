@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local drawdebugvisible = false -- forward-decl: debug flag read below
+
 function widget:GetInfo()
 	return {
 		name = "API Unit Tracker DEVMODE GL4",

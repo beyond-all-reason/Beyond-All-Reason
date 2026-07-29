@@ -458,7 +458,10 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 	-- Simple Team Colors
 	elseif
 		localRun
-		and (Spring.GetConfigInt("SimpleTeamColors", 0) == 1 or (anonymousMode == "allred" and not mySpecState))
+		and (
+			Spring.GetConfigInt("SimpleTeamColors", 0) == 1
+			or (anonymousMode == "allred" and not Spring.GetSpectatingState())
+		)
 	then
 		local brightnessVariation = 0
 		local maxColorVariation = 0

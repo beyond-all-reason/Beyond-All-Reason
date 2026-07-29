@@ -3,6 +3,8 @@
 --
 --  Icon Generator Config File
 --
+-- info/scheme/faction are injected into this include's fenv by the caller
+---@diagnostic disable: undefined-global
 
 --// Info
 if info then
