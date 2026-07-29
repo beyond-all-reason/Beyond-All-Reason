@@ -7408,6 +7408,20 @@
 				</div>
 				<div id="pill-ui-disable-tips" class="tf-dj-toggle-pill">{{disableTipsStr}}</div>
 			</div>
+			<div id="btn-ui-keep-alive" class="tf-dj-activate-row" data-class-active="keepAliveActive" data-event-mousedown="onGuideToggleKeepAlive()">
+				<div>
+					<div class="tf-dj-activate-name">Keep match alive (sandbox)</div>
+					<div class="tf-dj-activate-desc">Disables win conditions for this session: teams survive with zero units and commander death cannot end the match. Uses /cheat; one-way until the session ends. Editor maps (New Map / Open Project) have this on from the start.</div>
+				</div>
+				<div id="pill-ui-keep-alive" class="tf-dj-toggle-pill">{{keepAliveStr}}</div>
+			</div>
+			<div id="btn-ui-clear-units" class="tf-dj-activate-row" data-event-mousedown="onGuideClearAllUnits()">
+				<div>
+					<div class="tf-dj-activate-name">Remove all units</div>
+					<div class="tf-dj-activate-desc">Deletes every unit on the map for a clean canvas (turns on Keep match alive first so nothing ends the game).</div>
+				</div>
+				<div id="pill-ui-clear-units" class="tf-dj-toggle-pill">RUN</div>
+			</div>
 		</div>
 	</div>
 

@@ -2425,6 +2425,7 @@ local initialModel = {
 	penPressureStr = "OFF",
 	wiggleStr = "OFF",
 	disableTipsStr = "OFF",
+	keepAliveStr = "OFF",  -- Settings > General: match end disabled for this session
 	penSensitivityStr = "100",
 	-- Phase 2 step 6: guide toggle active states (data-class-active bindings)
 	djModeActive = false,
@@ -2433,6 +2434,7 @@ local initialModel = {
 	penPressureActive = false,
 	wiggleActive = false,
 	disableTipsActive = false,
+	keepAliveActive = false,
 	-- Phase 2 step 6: sub-panel dj-disabled states (true = grayed out)
 	djSubDisabled = true,
 	penSubDisabled = true,
@@ -5360,6 +5362,37 @@ local initialModel = {
 				local splatChip = doc2:GetElementById("btn-sp-splat-overlay")
 				if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
 			end
+		end
+	end,
+	-- Keep match alive (sandbox): disable the two match-end gadgets for this
+	-- session via the gadget handler's cheat-gated "/luarules disablegadget"
+	-- path, so teams survive with zero units and commander death cannot end
+	-- the match. One-way: re-enabling game_end mid-session would rebuild its
+	-- state from the live team roster and could declare gameover instantly.
+	-- The actual sends run in widget:Update (cheat must be OBSERVED on first).
+	onGuideToggleKeepAlive = function(_event)
+		local ka = widgetState.keepAlive
+		if ka and ka.active then
+			playSound("click")
+			Spring.Echo("[Terraform Brush] Match end is already disabled for this session (one-way: re-enabling mid-game could end the match instantly).")
+			return
+		end
+		playSound("toggleOn")
+		widgetState.keepAlive = ka or {}
+		widgetState.keepAlive.pending = true
+	end,
+	-- Remove all units: empty-loadout replace via the map project units gadget
+	-- ($mpunits_begin$ + $mpunits_end$ with no data = wipe). Arms keep-alive
+	-- first — wiping units while game_end is live would end the match.
+	onGuideClearAllUnits = function(_event)
+		playSound("click")
+		local ka = widgetState.keepAlive or {}
+		widgetState.keepAlive = ka
+		ka.clearQueued = true
+		if ka.active then
+			ka.clearDelay = 1
+		else
+			ka.pending = true
 		end
 	end,
 	-- Phase 2 step 6: tf_lights model-king handlers — defined here (not in M.attach)
@@ -9558,6 +9591,19 @@ function widget:Initialize()
 	end
 	widgetState.dmHandle = dm
 
+	-- Match-end state for Settings > General: editor canvases start with
+	-- deathmode=neverend (injected by buildBlankMapStartScript) and
+	-- single-allyteam sessions are engine sandbox (game_end removes itself) —
+	-- both mean the keep-alive toggle is already effectively ON.
+	do
+		local allyCount = #Spring.GetAllyTeamList() - 1  -- minus gaia
+		if Spring.GetModOptions().deathmode == "neverend" or allyCount < 2 then
+			widgetState.keepAlive = { active = true }
+			dm.keepAliveStr = "ON"
+			dm.keepAliveActive = true
+		end
+	end
+
 	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
 	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
 	widgetState._pendingFogOff = 15
@@ -10557,6 +10603,54 @@ end
 
 function widget:Update()
 	local ok, err = pcall(function()
+
+	-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
+	-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
+	-- off, with a resend gap and an attempt cap (same rule as the project load
+	-- driver). The unit wipe waits a short delay after arming keep-alive because
+	-- the disablegadget chat path and SendLuaRulesMsg are separate channels with
+	-- no cross-ordering guarantee — wiping before game_end is gone would end the
+	-- match on the spot.
+	local ka = widgetState.keepAlive
+	if ka and (ka.pending or ka.clearQueued) then
+		if Spring.IsCheatingEnabled() then
+			ka.cheatSends, ka.lastCheatSend = nil, nil
+			if ka.pending then
+				ka.pending = nil
+				ka.active = true
+				Spring.SendCommands("luarules disablegadget Game End")
+				Spring.SendCommands("luarules disablegadget Team Com Ends")
+				local d = widgetState.dmHandle
+				if d then d.keepAliveStr = "ON"; d.keepAliveActive = true end
+				Spring.Echo("[Terraform Brush] Match end disabled for this session: teams now survive with zero units.")
+				if ka.clearQueued then ka.clearDelay = 90 end
+			end
+			if ka.clearQueued then
+				ka.clearDelay = (ka.clearDelay or 1) - 1
+				if ka.clearDelay <= 0 then
+					ka.clearQueued = nil
+					Spring.SendLuaRulesMsg("$mpunits_begin$")
+					Spring.SendLuaRulesMsg("$mpunits_end$")
+					Spring.Echo("[Terraform Brush] Removing all units from the map...")
+				end
+			end
+		else
+			local now = os.clock()
+			if not ka.lastCheatSend or (now - ka.lastCheatSend) > 5 then
+				if (ka.cheatSends or 0) >= 3 then
+					ka.pending, ka.clearQueued = nil, nil
+					ka.cheatSends, ka.lastCheatSend = nil, nil
+					local d = widgetState.dmHandle
+					if d and not ka.active then d.keepAliveStr = "OFF"; d.keepAliveActive = false end
+					Spring.Echo("[Terraform Brush] Could not enable /cheat — match end protection unchanged. Enable cheats and try again.")
+				else
+					ka.cheatSends = (ka.cheatSends or 0) + 1
+					ka.lastCheatSend = now
+					Spring.SendCommands("cheat")
+				end
+			end
+		end
+	end
 
 	-- One-shot: when map damage is disabled, auto-switch to Features tool on first update
 	if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
