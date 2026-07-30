@@ -1309,6 +1309,15 @@ body {
 	color: #fdc04c;
 }
 
+/* Version badge: reads as metadata next to the title, not part of the name. */
+.tf-title-version {
+	font-size: 11dp;
+	font-weight: bold;
+	letter-spacing: 0.5dp;
+	margin-left: 4dp;
+	color: #8a8f9a;
+}
+
 /* === Control rail (bottom tier) — full-width inset capsule === */
 .tf-header-rail {
 	display: flex;

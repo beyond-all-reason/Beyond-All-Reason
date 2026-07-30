@@ -13,6 +13,9 @@
 					<div class="tf-title-gem"></div>
 					<span class="tf-title-main">TERRAFORM</span>
 					<span class="tf-title-accent">BRUSH</span>
+					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
+					     branch N is version 1.N. -->
+					<span class="tf-title-version">1.8</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -1844,10 +1847,12 @@
 		     and friends. -->
 		<div id="tf-fp-selection" data-if="fpShowSelection">
 			<div class="tf-section-frame" id="frame-fp-selection">
-				<div class="tf-section-title-row">
+				<!-- Not a collapse toggle, unlike every other title row, so it must not
+				     inherit the pointer cursor .tf-section-title-row carries. -->
+				<div class="tf-section-title-row" style="cursor: default;">
 					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/edit_pencil.png" />
 					<div class="tf-collapsible-title">SELECTION</div>
-					<div id="chip-fp-selection-count" class="tf-overlay-chip" data-class-active="fpHasSelection"><div class="tf-overlay-chip-label">{{fpSelectionStr}}</div></div>
+					<div id="chip-fp-selection-count" class="tf-overlay-chip tf-overlay-chip-sm" data-class-active="fpHasSelection"><div class="tf-overlay-chip-label">{{fpSelectionStr}}</div></div>
 				</div>
 			<div id="section-fp-selection">
 			<div class="flex flex-row items-center gap-1 mb-1">
