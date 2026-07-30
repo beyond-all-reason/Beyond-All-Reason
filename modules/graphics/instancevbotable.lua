@@ -1231,51 +1231,52 @@ local function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://ww
 
 	local VBOData = {}
 	radius = radius or 1
-	local x, y, z, xy; --  vertex position
+	-- stylua: ignore start
+	local x, y, z, xy  --  vertex position
 	local nx, ny, nz
-	local lengthInv = 1.0 / radius;    -- vertex normal
-	local s, t;                                     -- vertex texCoord
+	local lengthInv = 1.0 / radius     -- vertex normal
+	local s, t                                      -- vertex texCoord
 
-	local sectorStep = 2 * math.pi / sectorCount;
-	local stackStep = math.pi / stackCount;
-	local sectorAngle, stackAngle;
+	local sectorStep = 2 * math.pi / sectorCount
+	local stackStep = math.pi / stackCount
+	local sectorAngle, stackAngle
 
 	for i = 0, stackCount do
 
-		stackAngle = math.pi / 2 - i * stackStep;        -- starting from pi/2 to -pi/2
-		xy = radius * math.cos(stackAngle);             -- r * cos(u)
-		z = radius * math.sin(stackAngle);              -- r * sin(u)
+		stackAngle = math.pi / 2 - i * stackStep         -- starting from pi/2 to -pi/2
+		xy = radius * math.cos(stackAngle)              -- r * cos(u)
+		z = radius * math.sin(stackAngle)               -- r * sin(u)
 
 		-- add (sectorCount+1) vertices per stack
 		-- the first and last vertices have same position and normal, but different tex coords
 		for j = 0, sectorCount do -- for (int j = 0; j <= sectorCount; ++j)
 
-			sectorAngle = j * sectorStep;           -- starting from 0 to 2pi
+			sectorAngle = j * sectorStep            -- starting from 0 to 2pi
 
 			-- vertex position (x, y, z)
-			x = xy * math.cos(sectorAngle);             -- r * cos(u) * cos(v)
-			y = xy * math.sin(sectorAngle);             -- r * cos(u) * sin(v)
-			VBOData[#VBOData + 1] = x;
-			VBOData[#VBOData + 1] = y;
-			VBOData[#VBOData + 1] = z;
-			VBOData[#VBOData + 1] = sectorAngle;
+			x = xy * math.cos(sectorAngle)              -- r * cos(u) * cos(v)
+			y = xy * math.sin(sectorAngle)              -- r * cos(u) * sin(v)
+			VBOData[#VBOData + 1] = x
+			VBOData[#VBOData + 1] = y
+			VBOData[#VBOData + 1] = z
+			VBOData[#VBOData + 1] = sectorAngle
 			--Spring.Echo(x,y,z)
 			-- normalized vertex normal (nx, ny, nz)
-			nx = x * lengthInv;
-			ny = y * lengthInv;
-			nz = z * lengthInv;
+			nx = x * lengthInv
+			ny = y * lengthInv
+			nz = z * lengthInv
 
 
-			VBOData[#VBOData + 1] = nx;
-			VBOData[#VBOData + 1] = ny;
-			VBOData[#VBOData + 1] = nz;
+			VBOData[#VBOData + 1] = nx
+			VBOData[#VBOData + 1] = ny
+			VBOData[#VBOData + 1] = nz
 
 			-- vertex tex coord (s, t) range between [0, 1]
-			s = j / sectorCount;
-			t = i / stackCount;
+			s = j / sectorCount
+			t = i / stackCount
 
-			VBOData[#VBOData + 1] = s;
-			VBOData[#VBOData + 1] = t;
+			VBOData[#VBOData + 1] = s
+			VBOData[#VBOData + 1] = t
 		end
 	end
 	sphereVBO:Define(#VBOData/9, vertVBOLayout)
@@ -1325,6 +1326,7 @@ local function makeSphereVBO(sectorCount, stackCount, radius, name) -- http://ww
 			k2 = k2 + 1
 		end
 	end
+	-- stylua: ignore end
 
 
 	sphereIndexVBO:Define(#VBOData)
