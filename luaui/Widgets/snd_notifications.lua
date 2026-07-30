@@ -38,6 +38,7 @@ local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
+local mapPings = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
@@ -577,6 +578,12 @@ function widget:Initialize()
 	WG['notifications'].setSpoken = function(value)
 		spoken = value
 	end
+	WG['notifications'].getMapPings = function()
+		return mapPings
+	end
+	WG['notifications'].setMapPings = function(value)
+		mapPings = value
+	end
 	WG['notifications'].getMessages = function()
 		return displayMessages
 	end
@@ -944,6 +951,9 @@ local function playNextSound()
 				if soundQueue[1].posx then
 					--WG['messages'].addMessage("| X: " .. math.ceil(soundQueue[1].posx) .. " | Z: " .. math.ceil(soundQueue[1].posz) .. " | " .. Spring.I18N(notification[event].textID))
 					WG['messages'].addMessage("|🚩| " .. Spring.I18N(notification[event].textID))
+					if mapPings then
+						Spring.MarkerAddPoint(soundQueue[1].posx, Spring.GetGroundHeight(soundQueue[1].posx, soundQueue[1].posz), soundQueue[1].posz, "|🚩| " .. Spring.I18N(notification[event].textID), true)
+					end
 				else
 					WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 				end
@@ -1082,6 +1092,7 @@ function widget:GetConfigData(data)
 		notificationList = notificationList,
 		globalVolume = globalVolume,
 		spoken = spoken,
+		mapPings = mapPings,
 		displayMessages = displayMessages,
 		LastPlay = LastPlay,
 		tutorialMode = tutorialMode,
@@ -1103,6 +1114,9 @@ function widget:SetConfigData(data)
 	end
 	if data.spoken ~= nil then
 		spoken = data.spoken
+	end
+	if data.mapPings ~= nil then
+		mapPings = data.mapPings
 	end
 	if data.displayMessages ~= nil then
 		displayMessages = data.displayMessages
