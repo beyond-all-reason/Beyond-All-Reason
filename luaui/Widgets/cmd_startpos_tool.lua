@@ -1975,6 +1975,7 @@ local function buildPolygonFillList(verts, lift, cellSize)
 				for ri = 0, N - 1 do
 					local rUBase = ri * (ri + 1) * 0.5
 					local rDBase = (ri + 1) * (ri + 2) * 0.5
+					-- stylua: ignore start
 					for j = 0, ri do
 						local uK  = (rUBase + j)     * 3
 						local d1K = (rDBase + j)     * 3
@@ -1991,6 +1992,7 @@ local function buildPolygonFillList(verts, lift, cellSize)
 						glVertex(rowBuf[dK  + 1], rowBuf[dK  + 2], rowBuf[dK  + 3])
 						glVertex(rowBuf[u2K + 1], rowBuf[u2K + 2], rowBuf[u2K + 3])
 					end
+					-- stylua: ignore end
 				end
 			end
 		end)
@@ -2708,6 +2710,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 	local bx         = cx - w * 0.5
 	local by         = cy
 
+	-- stylua: ignore start
 	-- Card background (dark chamfered-corner rect — octagon fan)
 	local bgA = hovered and 0.85 or 0.68
 	glColor(0.04, 0.06, 0.09, bgA)
@@ -2755,6 +2758,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		glVertex(bx + w - padX,        by + h - padY)
 		glVertex(bx + padX + barW + 1, by + h - padY)
 	end)
+	-- stylua: ignore end
 
 	-- "Team N" label (shadow + color-bright)
 	local textX = bx + padX + barW + gap

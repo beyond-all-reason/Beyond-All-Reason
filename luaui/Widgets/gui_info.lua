@@ -388,13 +388,13 @@ local function refreshUnitInfo()
 					end
 
 				elseif
-					unitDef.customParams.evocomlvl  or -- use primary weapon for evolving commanders
-					unitDef.name == 'armcom'       or -- ignore underwater secondary
-					unitDef.name == 'corcom'       or
+					unitDef.customParams.evocomlvl -- use primary weapon for evolving commanders
+					or unitDef.name == 'armcom' -- ignore underwater secondary
+					or unitDef.name == 'corcom'       or
 					unitDef.name == 'legcom'       or
-					unitDef.name == 'corkarg'      or -- ignore secondary weapons, kick
-					unitDef.name == 'armguard'     or -- ignore high-trajectory modes
-					unitDef.name == 'corpun'       or
+					unitDef.name == 'corkarg' -- ignore secondary weapons, kick
+					or unitDef.name == 'armguard' -- ignore high-trajectory modes
+					or unitDef.name == 'corpun'       or
 					unitDef.name == 'legcluster'   or
 					unitDef.name == 'leglob'   or
 					unitDef.name == 'legnavyfrigate'   or
