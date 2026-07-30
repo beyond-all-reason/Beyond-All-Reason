@@ -35,6 +35,7 @@ return {
 			buildinggrounddecaltype = "decals/corgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Tharsis, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

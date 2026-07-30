@@ -200,6 +200,8 @@ local state = {
 	mapDrawLastTime = 0,
 	mapDrawLastLeftClickTime = 0,
 	inputTextInsertActive = false,
+	minimapViewportY = select(4, Spring.GetViewGeometry()),
+	minimapToWorld = VFS.Include('luaui/Include/minimap_utils.lua').minimapToWorld,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
@@ -934,6 +936,12 @@ state.getMapmarkWorldPosition = function(mx, my)
 			if x and z then
 				return x, Spring.GetGroundHeight(x, z) + 5, z
 			end
+		end
+	end
+	if Spring.IsAboveMiniMap(mx, my) then
+		local x, y, z = state.minimapToWorld(mx, my, state.minimapViewportY)
+		if x and y and z then
+			return x, y + 5, z
 		end
 	end
 
@@ -3567,7 +3575,8 @@ function widget:AddConsoleLine(lines, priority)
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
+	state.minimapViewportY = select(4, Spring.GetViewGeometry())
 
 	widgetScale = vsy * 0.00075 * ui_scale
 

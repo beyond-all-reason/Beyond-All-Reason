@@ -195,6 +195,7 @@ config = {
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
+	commandQueueRefreshBatchSize = 12,  -- Units whose command queues are refreshed per PIP content render
 	queuedBuildDrawLimit = 100,  -- Max queued building icons drawn per PIP refresh
 	queuedBuildDenseDrawLimit = 24, -- Max queued building icons drawn in dense visible-unit views
 	queuedBuildMinZoom = 0.18, -- Hide queued build icons when zoomed out below this
@@ -9678,7 +9679,7 @@ function widget:SetConfigData(data)
 	--if data.showTrackedPlayerCursor ~= nil then config.showTrackedPlayerCursor = data.showTrackedPlayerCursor end
 	if data.engineMinimapFallback ~= nil then config.engineMinimapFallback = data.engineMinimapFallback end
 	if data.engineMinimapExplosionOverlay ~= nil then config.engineMinimapExplosionOverlay = data.engineMinimapExplosionOverlay end
-	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
+	if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
 	if data.tvEnabled ~= nil then
 		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
 		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
@@ -10051,15 +10052,15 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	if unitCount > 1 then unitHash = unitHash + unitsToShow[unitCount] end
 	if unitCount > 2 then unitHash = unitHash + unitsToShow[math.floor(unitCount / 2)] end
 
-	-- Rolling refresh: refresh a small rotating batch each frame to avoid
-	-- GC spikes from GetUnitCommands.  With 50 units and batch=3, the full
-	-- list cycles in ~17 frames (~280ms at 60fps) — fast enough for waypoint display.
+	-- Rolling refresh: refresh a rotating batch each frame to avoid GC spikes
+	-- from GetUnitCommands. With 50 units and batch=12, the full list cycles
+	-- in ~5 frames while still avoiding a full queue scan every render.
 	local hashChanged = (unitHash ~= cmdQueueCache.lastUnitHash)
 	cmdQueueCache.lastUnitHash = unitHash
 
 	local refreshLimit = math.min(unitCount, 300)
-	-- Batch sizing: 3 per frame (tiny GC footprint), full refresh on selection change
-	local batchSize = hashChanged and refreshLimit or math.min(3, refreshLimit)
+	-- Full refresh on selection change; otherwise use the bounded rolling batch.
+	local batchSize = hashChanged and refreshLimit or math.min(config.commandQueueRefreshBatchSize, refreshLimit)
 	local counter = cmdQueueCache.counter
 	local batchStart = hashChanged and 1 or ((counter * batchSize) % refreshLimit) + 1
 	local batchEnd = math.min(batchStart + batchSize - 1, refreshLimit)
@@ -19890,6 +19891,27 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	elseif cmdID == CMD.STOP then
 		-- Stop cancels self-destruct
 		selfDUnits[unitID] = nil
+
+		-- The command-queue overlay refreshes units in batches, so discard this
+		-- unit's stale waypoints instead of waiting for its next cache refresh.
+		cmdQueueCache.waypoints[unitID] = nil
+
+		-- Stop also invalidates this unit's pending command-path effects.
+		commandFX.lastTarget[unitID] = nil
+		local writeIdx = 0
+		for i = 1, commandFX.count do
+			local fx = commandFX.list[i]
+			if fx.unitID ~= unitID then
+				writeIdx = writeIdx + 1
+				if writeIdx ~= i then
+					commandFX.list[writeIdx] = fx
+				end
+			end
+		end
+		for i = writeIdx + 1, commandFX.count do
+			commandFX.list[i] = nil
+		end
+		commandFX.count = writeIdx
 	end
 
 	if not config.drawCommandFX then return end
@@ -19987,6 +20009,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if commandFX.count < commandFX.MAX then
 		commandFX.count = commandFX.count + 1
 		commandFX.list[commandFX.count] = {
+			unitID = unitID,
 			unitX = startX, unitZ = startZ,
 			targetX = targetX, targetZ = targetZ,
 			cmdID = cmdID,
