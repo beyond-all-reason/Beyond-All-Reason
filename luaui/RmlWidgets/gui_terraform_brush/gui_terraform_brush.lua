@@ -280,6 +280,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envDimensionsRootEl = nil,
 	splatTexRootEl = nil,
 	grassCfgRootEl = nil,
+	captureOpen = false,
 	envSunOpen = false,
 	envFogOpen = false,
 	envGroundLightingOpen = false,
@@ -2070,6 +2071,97 @@ do
 	if ok and type(t) == "table" then widgetState.newMapArchetypes = t end
 end
 
+-- ---- Capture (top-down map photo + per-unit SVG layer) ----
+-- The work lives in cmd_terraform_brush_capture.lua; this side owns the window,
+-- mirrors that widget's settings into the data model, and keeps the
+-- size/tiles/time readout live. A capture hijacks the camera for seconds and can
+-- write a 12k-square PNG, so the cost is always on screen before CAPTURE is
+-- pressed rather than discovered afterwards.
+-- Grouped into one table on purpose: this chunk sits near Lua 5.1's 200-local
+-- ceiling, so new file-level helpers go on a namespace rather than each taking
+-- a slot.
+local capUI = {}
+
+function capUI.readout()
+	local api = WG.TerraformCapture
+	if not (api and api.estimate) then return "Capture widget is not enabled", "" end
+	local ok, est = pcall(api.estimate)
+	if not ok or type(est) ~= "table" then return "unavailable", "" end
+	-- Tight separators: this line lives in a 220dp panel and should stay on one row.
+	local readout = string.format("%d\195\151%d px \194\183 %d tiles \194\183 ~%ds",
+		est.outW, est.outH, est.tiles, math.max(1, math.floor(est.seconds + 0.5)))
+	local warn = ""
+	if est.capped then
+		warn = string.format("%sx is wider than this GPU's %d px texture limit \226\128\148 capturing at %.2fx.",
+			tostring(est.detail), est.maxTex, est.effectiveDetail)
+	elseif est.strips then
+		-- Not an error: too big for one image, so it lands as horizontal strips
+		-- whose filenames carry their Y offset. Say so before CAPTURE is pressed.
+		warn = "Too big for one image \226\128\148 saves as horizontal strips (Y offset in each filename)."
+	end
+	return readout, warn
+end
+
+function capUI.sync()
+	local d = widgetState.dmHandle
+	if not d then return end
+	local api = WG.TerraformCapture
+	if api and api.getSettings then
+		local s = api.getSettings()
+		d.captureDetail         = tostring(s.detail)
+		d.capturePhotoWater     = s.photoWater and true or false
+		d.capturePhotoShadows   = s.photoShadows and true or false
+		d.capturePhotoBloom     = s.photoBloom and true or false
+		d.capturePhotoFog       = s.photoFog and true or false
+		d.capturePhotoFeatures  = s.photoFeatures and true or false
+		d.captureUnitLayer      = s.unitLayer and true or false
+		d.captureUnitStyle      = tostring(s.unitStyle)
+		d.captureUnitSizeStr    = tostring(math.floor(s.unitSize))
+		d.captureUnitScalingStr = string.format("%.2f", s.unitScaling)
+		d.captureGroupTeam      = s.unitGroupTeam and true or false
+		d.captureLabels         = s.unitLabels and true or false
+		d.captureFeatureLayer   = s.featureLayer and true or false
+		d.captureCommentLayer   = s.commentLayer and true or false
+		d.capturePortraitOpts   = (s.unitLayer and s.unitStyle == "portrait") and true or false
+	end
+	local readout, warn = capUI.readout()
+	d.captureReadout = readout
+	d.captureWarn = warn
+end
+
+-- Result bar. Two booleans rather than one flag plus a compound data expression,
+-- matching the rest of this document's bindings.
+function capUI.setResult(ok, head, body)
+	local d = widgetState.dmHandle
+	if not d then return end
+	local shown = (body ~= nil and body ~= "")
+	d.captureResultOk   = (shown and ok) and true or false
+	d.captureResultBad  = (shown and not ok) and true or false
+	d.captureResultHead = shown and (head or "") or ""
+	d.captureResult     = shown and body or ""
+end
+
+-- Sliders are plain elements, not data-bound, so their handle position has to be
+-- pushed on open (guarded, or the change listener would echo it straight back).
+function capUI.syncSliders()
+	local doc = widgetState.document
+	local api = WG.TerraformCapture
+	if not (doc and api and api.getSettings) then return end
+	local s = api.getSettings()
+	uiState.updatingFromCode = true
+	local elSize = doc:GetElementById("slider-capture-unitsize")
+	if elSize then elSize:SetAttribute("value", tostring(math.floor(s.unitSize))) end
+	local elScale = doc:GetElementById("slider-capture-unitscaling")
+	if elScale then elScale:SetAttribute("value", tostring(math.floor(s.unitScaling * 100 + 0.5))) end
+	uiState.updatingFromCode = false
+end
+
+function capUI.set(key, value)
+	local api = WG.TerraformCapture
+	if api and api.setSetting then api.setSetting(key, value) end
+	capUI.sync()
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -2087,6 +2179,34 @@ local initialModel = {
 	settingsTab = "keybinds",
 	-- Map Labels window (gui_map_labels widget) — header button highlight
 	mapLabelsOpen = false,
+	-- Capture window (cmd_terraform_brush_capture.lua does the rendering)
+	captureOpen = false,
+	captureVisible = false,
+	captureDetail = "1",
+	capturePhotoWater = true,
+	capturePhotoShadows = true,
+	capturePhotoBloom = true,
+	capturePhotoFog = false,
+	capturePhotoFeatures = true,
+	captureUnitLayer = true,
+	captureUnitStyle = "portrait",
+	-- Computed rather than an "&&" data expression: nothing else in this
+	-- document's bindings uses compound operators, so keep the RML trivial.
+	capturePortraitOpts = true,
+	captureUnitSizeStr = "96",
+	captureUnitScalingStr = "0.35",
+	captureGroupTeam = true,
+	captureLabels = false,
+	captureFeatureLayer = false,
+	captureCommentLayer = false,
+	captureReadout = "",
+	captureWarn = "",
+	captureBusy = false,
+	captureProgress = "",
+	captureResult = "",
+	captureResultHead = "",
+	captureResultOk = false,
+	captureResultBad = false,
 	noiseWindowVisible = false,
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
@@ -5330,6 +5450,66 @@ local initialModel = {
 		playSound(open and "panelOpen" or "click")
 		local d = widgetState.dmHandle; if d then d.mapLabelsOpen = open end
 	end,
+	onToggleCapture = function(_event)
+		-- Opens even without the capture widget loaded: a window that says what
+		-- to enable beats a button that silently does nothing.
+		widgetState.captureOpen = not widgetState.captureOpen
+		playSound(widgetState.captureOpen and "panelOpen" or "click")
+		local d = widgetState.dmHandle
+		if d then
+			d.captureOpen = widgetState.captureOpen
+			d.captureVisible = widgetState.captureOpen
+		end
+		if widgetState.captureOpen then
+			capUI.sync()
+			capUI.syncSliders()
+		end
+	end,
+	onCaptureClose = function(_event)
+		playSound("click")
+		widgetState.captureOpen = false
+		local d = widgetState.dmHandle
+		if d then d.captureOpen = false; d.captureVisible = false end
+	end,
+	onCaptureSetDetail = function(_event, value)
+		playSound("click")
+		capUI.set("detail", tonumber(value) or 1)
+	end,
+	onCaptureToggle = function(_event, key)
+		playSound("click")
+		local api = WG.TerraformCapture
+		if not (api and api.getSettings) then return end
+		local s = api.getSettings()
+		if s[key] == nil then return end
+		capUI.set(key, not s[key])
+	end,
+	onCaptureSetUnitStyle = function(_event, value)
+		playSound("click")
+		capUI.set("unitStyle", tostring(value))
+	end,
+	onCaptureRun = function(_event)
+		local api = WG.TerraformCapture
+		if not (api and api.start) then
+			playSound("click")
+			capUI.setResult(false, "NOT LOADED",
+				"Enable the \"Terraform Brush Capture\" widget in Settings > Widgets.")
+			return
+		end
+		local ok, err = api.start()
+		if ok then
+			playSound("panelOpen")
+			capUI.setResult(true, "", "")
+		else
+			playSound("click")
+			capUI.setResult(false, "CANNOT START", tostring(err or "could not start"))
+		end
+	end,
+	onCaptureCancel = function(_event)
+		playSound("click")
+		if WG.TerraformCapture and WG.TerraformCapture.cancel then
+			WG.TerraformCapture.cancel()
+		end
+	end,
 	onGuideToggleSettings = function(_event)
 		playSound(widgetState.settingsOpen and "click" or "panelOpen")
 		widgetState.settingsOpen = not widgetState.settingsOpen
@@ -7686,6 +7866,21 @@ local guideHints = {
 	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	-- Map labels
 	["btn-maplabels"]   = "Show map comments: colored pins you can place, drag, colour-code and write notes in — for planning and review. Switching it off hides every comment.",
+	-- Capture
+	["btn-capture"]     = "Capture: export a maximum-resolution top-down photo of the whole map, plus a separate SVG layer holding every unit as its own movable image — drop both into Figma to draft a mission.",
+	["btn-capture-run"] = "Fly the camera over the map tile by tile and write the photo, the unit layer and any extra layers into Terraform Brush/Captures. Takes over the camera for a few seconds; Esc cancels.",
+	["btn-capture-water"]         = "Keep the water surface in the photo. Off renders the seabed dry.",
+	["btn-capture-shadows"]       = "Keep terrain and feature shadows in the photo.",
+	["btn-capture-bloom"]         = "Keep the bloom post-process in the photo.",
+	["btn-capture-fog"]           = "Leave the session's fog alone. Off forces fog out of the photo, which is usually what a design document wants.",
+	["btn-capture-photofeatures"] = "Bake trees, rocks and wrecks into the photo. Units are never baked in — they are the separate layer.",
+	["btn-capture-unitlayer"]     = "Write units.svg: one <image> per unit, so Figma imports every unit as its own movable layer over the photo.",
+	["btn-capture-style-portrait"] = "Build pictures in team-coloured tiles, like the zoomed-in minimap. Constant size, easy to read and label.",
+	["btn-capture-style-topdown"]  = "Plan-view renders of the actual models at true world scale and heading. Experimental.",
+	["btn-capture-groupteam"]     = "Put each team's units in their own SVG group, so Figma nests them under one layer per team.",
+	["btn-capture-labels"]        = "Write the unit name under every sprite as SVG text.",
+	["btn-capture-featurelayer"]  = "Also export features as their own SVG layer, movable independently of the photo.",
+	["btn-capture-commentlayer"]  = "Export the map comments as an SVG pin-and-text layer.",
 	-- Restore defaults
 	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
 	-- Presets
@@ -8916,6 +9111,30 @@ local function attachEventListeners()
 		end, false)
 	end
 
+	-- Capture window sliders. Both are pure settings (no live scene effect), so
+	-- they just push into WG.TerraformCapture and refresh the readout.
+	local sliderCapSize = getCachedEl(doc, "slider-capture-unitsize")
+	if sliderCapSize then
+		trackSliderDrag(sliderCapSize, "capture-unitsize")
+		sliderCapSize:AddEventListener("change", function(event)
+			if not uiState.updatingFromCode then
+				capUI.set("unitSize", tonumber(sliderCapSize:GetAttribute("value")) or 96)
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
+	local sliderCapScaling = getCachedEl(doc, "slider-capture-unitscaling")
+	if sliderCapScaling then
+		trackSliderDrag(sliderCapScaling, "capture-unitscaling")
+		sliderCapScaling:AddEventListener("change", function(event)
+			if not uiState.updatingFromCode then
+				capUI.set("unitScaling", (tonumber(sliderCapScaling:GetAttribute("value")) or 35) / 100)
+			end
+			event:StopPropagation()
+		end, false)
+	end
+
 	local sliderRotation = getCachedEl(doc, "slider-rotation")
 	if sliderRotation then
 		trackSliderDrag(sliderRotation, "rotation")
@@ -9697,6 +9916,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-newmap-handle", getCachedEl(doc, "tf-newmap-root"))
 		makeWindowDraggable("tf-project-handle", getCachedEl(doc, "tf-project-root"))
 		makeWindowDraggable("tf-project-open-handle", getCachedEl(doc, "tf-project-open-root"))
+		makeWindowDraggable("tf-capture-handle", getCachedEl(doc, "tf-capture-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====
@@ -11061,6 +11281,32 @@ function widget:Update()
 			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
 			setDm("clonePasteTransformsVisible", showTransforms and true or false)
 			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
+
+			-- Capture window: the readout has to track things the window does not
+			-- own (viewport size, another widget cancelling the job), so it is
+			-- refreshed here rather than only on click.
+			if widgetState.captureOpen then
+				local capApi = WG.TerraformCapture
+				local busy = (capApi and capApi.isBusy and capApi.isBusy()) or false
+				setDm("captureBusy", busy)
+				if capApi and capApi.getStatus then
+					local st = capApi.getStatus()
+					setDm("captureProgress", st.message or "")
+					if not busy then
+						if st.error ~= "" then
+							capUI.setResult(false, "FAILED", st.error)
+						elseif st.lastPath ~= "" then
+							capUI.setResult(true, st.lastSummary or "SAVED", st.lastPath)
+						end
+					end
+				end
+				if not busy then
+					local readout, warn = capUI.readout()
+					setDm("captureReadout", readout)
+					setDm("captureWarn", warn)
+				end
+			end
+
 			-- env sub-windows
 			if not envActive then
 				widgetState.envSunOpen = false

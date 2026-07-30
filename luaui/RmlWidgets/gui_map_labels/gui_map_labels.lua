@@ -941,6 +941,17 @@ function widget:Initialize()
 		end,
 		getLabelCount = function() return #state.labels end,
 
+		-- Read-only snapshot for exporters (Terraform Brush Capture writes these
+		-- as an SVG pin layer). Copied so a caller cannot mutate live state.
+		getLabels = function()
+			local out = {}
+			for i, L in ipairs(state.labels) do
+				out[i] = { id = L.id, x = L.x, z = L.z, color = L.color,
+					author = L.author, created = L.created, text = L.text }
+			end
+			return out
+		end,
+
 		-- Map project integration (cmd_map_project.lua). Comments are part of a
 		-- project's persisted data: saveProject writes them into the project
 		-- folder, loadProject replaces the live set when a project is opened.

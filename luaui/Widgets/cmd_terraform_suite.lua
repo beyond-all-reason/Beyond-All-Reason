@@ -33,6 +33,7 @@ local SUITE_WIDGETS = {
 	"Metal Brush",
 	"Splat Painter",
 	"Start Positions Tool",
+	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
 	"Terraformer Shared RmlUi Helpers",

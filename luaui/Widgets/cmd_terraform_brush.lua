@@ -6337,8 +6337,13 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Full-map grid overlay: visible across the whole map regardless of brush active state
-	if gridOverlay then
+	-- Full-map grid overlay: visible across the whole map regardless of brush active state.
+	-- Skipped with the interface hidden (F5) or while a map capture is walking
+	-- the camera — the capture reprojects the rendered frame, so the grid would
+	-- be baked into the exported photo. Conditions are inlined rather than
+	-- hoisted into a helper: this chunk is at the Lua 5.1 200-local ceiling.
+	if gridOverlay and not Spring.IsGUIHidden()
+		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy()) then
 		-- Debounce rebuilds: while actively terraforming, `gridDirty` flips true
 		-- every stroke tick. Rebuilding the full-map display list (thousands of
 		-- GetGroundHeight calls) every frame is wasted work — the visual is
@@ -6687,9 +6692,15 @@ function widget:DrawWorld()
 	-- Suppress brush outline when placing/hovering/dragging symmetry origin, or
 	-- whenever the map labels tool owns the cursor (placing, dot hover/drag,
 	-- over its windows, or a comment is open)
+	-- ...or whenever the interface is hidden (F5) or a map capture is walking the
+	-- camera. Both mean "no cursor furniture in the world": the capture
+	-- reprojects the rendered frame, so a ring drawn here is baked into the
+	-- exported photo (and the symmetry mirror bakes in a second one).
 	local suppressBrush = extraState.symmetryPlacingOrigin
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
+		or Spring.IsGUIHidden()
+		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
 		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush
 			and WG.MapLabels.shouldSuppressBrush())
 

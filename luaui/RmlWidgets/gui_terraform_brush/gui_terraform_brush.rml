@@ -33,6 +33,7 @@
 				</div>
 				<div class="tf-rail-spacer"></div>
 				<div id="btn-maplabels" class="tf-header-btn tf-maplabels-btn" data-class-active="mapLabelsOpen" data-event-mousedown="onToggleMapLabels()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/map_labels.png" /></div>
+				<div id="btn-capture" class="tf-header-btn tf-capture-btn" data-class-active="captureOpen" data-event-mousedown="onToggleCapture()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/camera.png" /></div>
 				<div id="btn-sound" class="tf-header-btn tf-sound-btn" data-class-muted="soundMuted" data-event-mousedown="onGuideToggleSound()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/volume.png" /></div>
 				<div id="btn-guide" class="tf-header-btn tf-guide-btn" data-class-active="guideMode" data-event-mousedown="onGuideToggle()"><span>?</span></div>
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
@@ -7524,6 +7525,124 @@
 				<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">DELETE</div>
 				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
 			</div>
+		</div>
+	</div>
+
+	<!-- ============ CAPTURE WINDOW (floating, opened from the header rail) ============ -->
+	<div id="tf-capture-root" class="tf-capture-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 46vw; top: 16vh;" data-if="captureVisible">
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div id="tf-capture-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Capture</div>
+			<div id="btn-capture-close" class="tf-quit-btn" data-event-mousedown="onCaptureClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="text-sm text-keybind">Map photo + one SVG layer per unit, for Figma.</div>
+
+		<div class="tf-section-frame" id="capture-frame-output">
+			<div id="btn-capture-toggle-output" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-capture-toggle-output" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">OUTPUT</div>
+			</div>
+			<div id="capture-section-output">
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<div class="text-sm text-keybind" style="width: 40dp;">detail</div>
+					<div id="btn-capture-detail-half" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureDetail == '0.5'" data-event-mousedown="onCaptureSetDetail('0.5')"><div class="tf-overlay-chip-label" style="text-align: center;">0.5x</div></div>
+					<div id="btn-capture-detail-one" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureDetail == '1'" data-event-mousedown="onCaptureSetDetail('1')"><div class="tf-overlay-chip-label" style="text-align: center;">1x</div></div>
+					<div id="btn-capture-detail-two" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureDetail == '2'" data-event-mousedown="onCaptureSetDetail('2')"><div class="tf-overlay-chip-label" style="text-align: center;">2x</div></div>
+				</div>
+				<div class="tf-capture-readout">{{captureReadout}}</div>
+				<div class="tf-notice-banner mt-1" data-if="captureWarn != ''">{{captureWarn}}</div>
+			</div>
+		</div>
+
+		<div class="tf-section-frame" id="capture-frame-photo">
+			<div id="btn-capture-toggle-photo" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-capture-toggle-photo" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">PHOTO</div>
+			</div>
+			<div id="capture-section-photo">
+				<!-- Explicit rows with flex:1, not a wrapping percentage grid: a
+				     percentage flex-basis is measured before the chip's own padding
+				     and border, so 100%/45% bases overflow the panel. -->
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-capture-water" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="capturePhotoWater" data-event-mousedown="onCaptureToggle('photoWater')"><div class="tf-overlay-chip-label" style="text-align: center;">Water</div></div>
+					<div id="btn-capture-shadows" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="capturePhotoShadows" data-event-mousedown="onCaptureToggle('photoShadows')"><div class="tf-overlay-chip-label" style="text-align: center;">Shadows</div></div>
+				</div>
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-capture-bloom" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="capturePhotoBloom" data-event-mousedown="onCaptureToggle('photoBloom')"><div class="tf-overlay-chip-label" style="text-align: center;">Bloom</div></div>
+					<div id="btn-capture-fog" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="capturePhotoFog" data-event-mousedown="onCaptureToggle('photoFog')"><div class="tf-overlay-chip-label" style="text-align: center;">Fog</div></div>
+				</div>
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-capture-photofeatures" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="capturePhotoFeatures" data-event-mousedown="onCaptureToggle('photoFeatures')"><div class="tf-overlay-chip-label" style="text-align: center;">Features</div></div>
+				</div>
+				<div class="text-sm text-keybind">Units are never in the photo.</div>
+			</div>
+		</div>
+
+		<div class="tf-section-frame" id="capture-frame-units">
+			<div id="btn-capture-toggle-units" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-capture-toggle-units" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+				<div class="tf-collapsible-title">UNITS</div>
+			</div>
+			<div id="capture-section-units">
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-capture-unitlayer" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureUnitLayer" data-event-mousedown="onCaptureToggle('unitLayer')"><div class="tf-overlay-chip-label" style="text-align: center;">Export unit layer</div></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1" data-if="captureUnitLayer">
+					<div class="text-sm text-keybind" style="width: 40dp;">style</div>
+					<div id="btn-capture-style-portrait" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureUnitStyle == 'portrait'" data-event-mousedown="onCaptureSetUnitStyle('portrait')"><div class="tf-overlay-chip-label" style="text-align: center;">Portraits</div></div>
+					<div id="btn-capture-style-topdown" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureUnitStyle == 'topdown'" data-event-mousedown="onCaptureSetUnitStyle('topdown')"><div class="tf-overlay-chip-label" style="text-align: center;">Top-down</div></div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1" data-if="capturePortraitOpts">
+					<div class="text-sm text-keybind" style="width: 40dp;">size</div>
+					<input type="range" id="slider-capture-unitsize" class="tf-slider" min="32" max="192" step="4" value="96" />
+					<div class="tf-capture-slider-val">{{captureUnitSizeStr}}</div>
+				</div>
+				<div class="flex flex-row gap-1 items-center mb-1" data-if="capturePortraitOpts">
+					<div class="text-sm text-keybind" style="width: 40dp;">scale</div>
+					<input type="range" id="slider-capture-unitscaling" class="tf-slider" min="0" max="100" step="5" value="35" />
+					<div class="tf-capture-slider-val">{{captureUnitScalingStr}}</div>
+				</div>
+				<div class="flex flex-row gap-1 mb-1" data-if="captureUnitLayer">
+					<div id="btn-capture-groupteam" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureGroupTeam" data-event-mousedown="onCaptureToggle('unitGroupTeam')"><div class="tf-overlay-chip-label" style="text-align: center;">By team</div></div>
+					<div id="btn-capture-labels" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureLabels" data-event-mousedown="onCaptureToggle('unitLabels')"><div class="tf-overlay-chip-label" style="text-align: center;">Name labels</div></div>
+				</div>
+				<div class="text-sm text-keybind" data-if="captureUnitStyle == 'portrait'">Build pictures, constant map size.</div>
+				<div class="text-sm text-keybind" data-if="captureUnitStyle == 'topdown'">Plan-view models, true scale. Experimental.</div>
+			</div>
+		</div>
+
+		<div class="tf-section-frame" id="capture-frame-extra">
+			<div id="btn-capture-toggle-extra" class="tf-section-title-row" style="cursor: pointer;">
+				<img id="img-capture-toggle-extra" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+				<div class="tf-collapsible-title">EXTRA LAYERS</div>
+			</div>
+			<div id="capture-section-extra">
+				<div class="flex flex-row gap-1">
+					<div id="btn-capture-featurelayer" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureFeatureLayer" data-event-mousedown="onCaptureToggle('featureLayer')"><div class="tf-overlay-chip-label" style="text-align: center;">Features .svg</div></div>
+					<div id="btn-capture-commentlayer" class="tf-overlay-chip" style="flex: 1; text-align: center;" data-class-active="captureCommentLayer" data-event-mousedown="onCaptureToggle('commentLayer')"><div class="tf-overlay-chip-label" style="text-align: center;">Comments .svg</div></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="flex flex-row gap-1 items-center" data-if="!captureBusy">
+			<div id="btn-capture-run" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onCaptureRun()">
+				<div class="tf-action-btn-text">CAPTURE</div>
+			</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center" data-if="captureBusy">
+			<div class="tf-capture-progress" style="flex: 1;">{{captureProgress}}</div>
+			<div id="btn-capture-cancel" class="tf-action-btn" style="flex: 0.6;" data-event-mousedown="onCaptureCancel()">
+				<div class="tf-action-btn-text">CANCEL</div>
+			</div>
+		</div>
+		<!-- Result bar: same inset panel language as the clone tool's status
+		     readout, but wrapping — the output path has to stay readable. -->
+		<div class="tf-capture-result mt-1" data-if="captureResultOk">
+			<div class="tf-capture-result-head">SAVED <span class="tf-capture-result-meta">{{captureResultHead}}</span></div>
+			<div class="tf-capture-result-path">{{captureResult}}</div>
+		</div>
+		<div class="tf-capture-result tf-capture-result-bad mt-1" data-if="captureResultBad">
+			<div class="tf-capture-result-head">{{captureResultHead}}</div>
+			<div class="tf-capture-result-path">{{captureResult}}</div>
 		</div>
 	</div>
 

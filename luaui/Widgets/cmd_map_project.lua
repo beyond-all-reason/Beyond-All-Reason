@@ -633,6 +633,72 @@ local function stepFeatures()
 	return true
 end
 
+-- Shared by the project save and by WG.MapProject.requestUnits: the gadget
+-- streams pipe-joined "name x z rot team neutral" records in batches.
+local function parseUnitBatches(batches)
+	local entries = {}
+	for _, payload in ipairs(batches or {}) do
+		for entry in payload:gmatch("[^|]+") do
+			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
+			x, z = tonumber(x), tonumber(z)
+			if name and x and z then
+				entries[#entries + 1] = {
+					name = name, x = x, z = z,
+					rot = tonumber(rot) or 0,
+					team = tonumber(team) or 0,
+					neutral = neutral == "1",
+				}
+			end
+		end
+	end
+	return entries
+end
+
+-- One-shot unit-list read for other widgets (Terraform Brush Capture builds its
+-- SVG unit layer from this). Same synced round-trip as the save path, so it sees
+-- units outside the player's LOS; refused while a save/load job owns the buffer.
+local unitsWaiter = nil
+local unitsWaiterTicks = 0
+
+local function requestUnits(callback)
+	if type(callback) ~= "function" then return false end
+	if job or loadJob then
+		callback(nil, "a project save/load is running")
+		return false
+	end
+	if unitsWaiter then
+		callback(nil, "a unit list request is already pending")
+		return false
+	end
+	unitsRx = nil
+	unitsWaiter = callback
+	unitsWaiterTicks = 0
+	Spring.SendLuaRulesMsg("$mpunits_export$")
+	return true
+end
+
+local function pollUnitsWaiter()
+	if not unitsWaiter then return end
+	unitsWaiterTicks = unitsWaiterTicks + 1
+	if not (unitsRx and unitsRx.done) then
+		if unitsWaiterTicks > UNITS_TIMEOUT_TICKS then
+			local cb = unitsWaiter
+			unitsWaiter = nil
+			cb(nil, "units export timed out (is the Map Project Unit Loadout gadget loaded?)")
+		end
+		return
+	end
+	local rx = unitsRx
+	unitsRx = nil
+	local cb = unitsWaiter
+	unitsWaiter = nil
+	if rx.denied then
+		cb(nil, rx.denied)
+	else
+		cb(parseUnitBatches(rx.batches))
+	end
+end
+
 -- Units loadout (opt-in via the Save Project dialog toggle). Collection is a
 -- synced gadget round-trip (cmd_map_project_units.lua): the unsynced unit view
 -- is LOS-limited, so reading Spring.GetAllUnits here would silently drop every
@@ -672,21 +738,7 @@ local function stepUnits()
 		sectionSkip("units", rx.denied)
 		return true
 	end
-	local entries = {}
-	for _, payload in ipairs(rx.batches) do
-		for entry in payload:gmatch("[^|]+") do
-			local name, x, z, rot, team, neutral = entry:match("^(%S+) (%S+) (%S+) (%S+) (%S+) (%S+)$")
-			x, z = tonumber(x), tonumber(z)
-			if name and x and z then
-				entries[#entries + 1] = {
-					name = name, x = x, z = z,
-					rot = tonumber(rot) or 0,
-					team = tonumber(team) or 0,
-					neutral = neutral == "1",
-				}
-			end
-		end
-	end
+	local entries = parseUnitBatches(rx.batches)
 	if #entries == 0 then
 		sectionSkip("units", "no units on map")
 		return true
@@ -2255,6 +2307,9 @@ local function openProject(slug)
 end
 
 function widget:DrawScreen()
+	if unitsWaiter then
+		pollUnitsWaiter()
+	end
 	if loadJob then
 		runLoadTick()
 	end
@@ -2327,6 +2382,8 @@ function widget:Initialize()
 		listDetailed = listProjectsDetailed,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
+		-- callback(entries) on success, callback(nil, reason) on failure
+		requestUnits = requestUnits,
 		isBusy = function() return job ~= nil or loadJob ~= nil end,
 		isLoading = function() return loadJob ~= nil end,
 	}

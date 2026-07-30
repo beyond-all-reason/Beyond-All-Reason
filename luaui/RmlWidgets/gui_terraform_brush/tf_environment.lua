@@ -728,6 +728,12 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-env-toggle-skyrot",   "img-env-toggle-skyrot",   "env-section-skyrot",   false)
 		envSectionToggle("btn-env-toggle-skydyn",   "img-env-toggle-skydyn",   "env-section-skydyn",   false)
 
+		-- Capture window collapsible sections (extra layers collapsed: rarely used)
+		envSectionToggle("btn-capture-toggle-output", "img-capture-toggle-output", "capture-section-output", true)
+		envSectionToggle("btn-capture-toggle-photo",  "img-capture-toggle-photo",  "capture-section-photo",  true)
+		envSectionToggle("btn-capture-toggle-units",  "img-capture-toggle-units",  "capture-section-units",  true)
+		envSectionToggle("btn-capture-toggle-extra",  "img-capture-toggle-extra",  "capture-section-extra",  false)
+
 		-- Sun & Shadows collapsible sections (default expanded)
 		envSectionToggle("btn-env-toggle-sundir",   "img-env-toggle-sundir",   "env-section-sundir",   true)
 		envSectionToggle("btn-env-toggle-sunint",   "img-env-toggle-sunint",   "env-section-sunint",   true)
