@@ -41,22 +41,40 @@ local TAU = 2 * pi
 ----------------------------------------------------------------
 -- Deterministic RNG
 ----------------------------------------------------------------
--- A self-contained LCG rather than math.random: the layout has to be
--- reproducible from a seed so the preview is stable across frames, and widgets
--- must not perturb the shared math.random stream to get it. Constants are the
--- Numerical Recipes LCG; the products stay under 2^53 so doubles hold them
--- exactly in Lua 5.1.
-local LCG_MUL = 1664525
-local LCG_ADD = 1013904223
-local LCG_MOD = 4294967296
+-- Self-contained rather than math.random: the layout has to be reproducible
+-- from a seed so the preview stays put while the cursor moves, and getting that
+-- by reseeding the shared math.random stream would disturb every other widget.
+--
+-- Wichmann-Hill specifically, because **Recoil builds Lua with
+-- LUA_NUMBER = float** (rts/lib/lua/include/luaconf.h -- the `double` line is
+-- commented out). Integers are therefore only exact to 2^24 = 16777216, and any
+-- generator whose intermediates exceed that silently disintegrates: the textbook
+-- 32-bit LCG this replaced computed 1664525 * state, up to 7.1e15, and collapsed
+-- to FIVE distinct outputs in 500 draws -- every scattered feature landing on one
+-- of a couple of spots.
+--
+-- Wichmann-Hill's three multiplies peak at 172 * 30306 = 5212632, comfortably
+-- exact, and it still has a period around 7e12.
+local WH_M1, WH_A1 = 30269, 171
+local WH_M2, WH_A2 = 30307, 172
+local WH_M3, WH_A3 = 30323, 170
+local SEED_MAX = 16777216 -- 2^24; anything above this is not exact as a float
 
 local RngMT = {}
 RngMT.__index = RngMT
 
 ---Next float in [0, 1).
 function RngMT:next()
-	self.state = (LCG_MUL * self.state + LCG_ADD) % LCG_MOD
-	return self.state / LCG_MOD
+	self.s1 = (WH_A1 * self.s1) % WH_M1
+	self.s2 = (WH_A2 * self.s2) % WH_M2
+	self.s3 = (WH_A3 * self.s3) % WH_M3
+	local v = (self.s1 / WH_M1 + self.s2 / WH_M2 + self.s3 / WH_M3) % 1
+	-- Guard the boundary: at float precision the fractional sum can round up to
+	-- exactly 1.0, which would push :int() one past its upper bound.
+	if v >= 1 then
+		return 0
+	end
+	return v
 end
 
 ---Next integer in [lo, hi] inclusive.
@@ -64,23 +82,54 @@ function RngMT:int(lo, hi)
 	if hi <= lo then
 		return lo
 	end
-	return lo + floor(self:next() * (hi - lo + 1))
+	local v = lo + floor(self:next() * (hi - lo + 1))
+	if v > hi then
+		return hi
+	end
+	return v
 end
 
 local function newRng(seed)
-	return setmetatable({ state = (floor(seed or 0) % LCG_MOD + LCG_MOD) % LCG_MOD }, RngMT)
+	seed = floor(seed or 0)
+	if seed < 0 then
+		seed = -seed
+	end
+	seed = seed % SEED_MAX
+
+	local rng = setmetatable({
+		s1 = (seed % (WH_M1 - 1)) + 1,
+		s2 = (floor(seed / 3) % (WH_M2 - 1)) + 1,
+		s3 = (floor(seed / 7) % (WH_M3 - 1)) + 1,
+	}, RngMT)
+
+	-- Adjacent seeds start from adjacent states, which correlates the first few
+	-- draws. Cheap to spin past.
+	for _ = 1, 12 do
+		rng:next()
+	end
+	return rng
 end
 
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
+-- Orbits a brush-local offset as the brush rotates.
+--
+-- The sign has to match the heading convention or the layout counter-rotates:
+-- brush rotation feeds both this and baseHeading, and a feature with heading h
+-- faces (sin h, 0, cos h). Rotating the brush by t must therefore move an offset
+-- exactly the way it turns that facing -- i.e. this is Ry_engine(-t), the same
+-- rotation the model itself receives. The textbook (x*c - z*s, x*s + z*c) is the
+-- mirror of that: a feature due +Z of the centre would swing to -X while turning
+-- to face +X, so the group appeared to spin the wrong way about its own axes
+-- instead of orbiting the brush centre.
 local function rotatePoint(px, pz, angleDeg)
 	if angleDeg == 0 then
 		return px, pz
 	end
 	local rad = angleDeg * pi / 180
 	local ca, sa = cos(rad), sin(rad)
-	return px * ca - pz * sa, px * sa + pz * ca
+	return px * ca + pz * sa, -px * sa + pz * ca
 end
 
 -- Local-space containment: the layout is generated unrotated and rotated into

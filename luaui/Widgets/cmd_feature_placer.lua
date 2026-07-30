@@ -408,7 +408,9 @@ end
 -- brush parameter or the seed changes; the seed is rerolled after every stamp so
 -- consecutive stamps do not come out identical.
 local preview = {
-	seed = 1,
+	-- Clock-derived so two sessions do not open with the same scatter, then
+	-- advanced by a fixed stride on every reroll. Kept well under 2^24.
+	seed = floor(os.clock() * 1000) % 16777216,
 	layout = nil,
 	layoutKey = nil,
 	ghosts = {},
@@ -416,10 +418,18 @@ local preview = {
 	warnedCap = false,
 }
 
+-- Seeds stay under 2^24 because Recoil builds Lua with LUA_NUMBER = float, so
+-- integers above that are not exact -- see the RNG note in common/feature_scatter.lua.
+local SEED_MAX = 16777216
+local SEED_STRIDE = 8191
+
 local function rerollPreview()
-	-- os.clock rather than math.random: widgets do not seed math.random, so it
-	-- returns the same sequence every session.
-	preview.seed = floor(os.clock() * 1000000) % 4294967296
+	-- Advance a counter rather than re-reading the clock: os.clock is coarse
+	-- enough that two stamps in the same tick would land on the same seed and
+	-- rubber-stamp an identical layout. The clock only seeds the very first one,
+	-- so layouts differ between sessions too (widgets do not seed math.random,
+	-- so that is not an option here).
+	preview.seed = (preview.seed + SEED_STRIDE) % SEED_MAX
 	preview.layoutKey = nil
 end
 
@@ -644,7 +654,10 @@ end
 local strokeCounter = 0
 local function nextStrokeID()
 	strokeCounter = strokeCounter + 1
-	return string.format("%d.%d", floor(os.clock() * 1000) % 100000000, strokeCounter)
+	-- Counter guarantees uniqueness within a session; the clock component only
+	-- keeps a reloaded widget from reusing an id the gadget still has open. Both
+	-- stay small because Lua numbers are floats here.
+	return string.format("%d.%d", floor(os.clock() * 100) % 65536, strokeCounter)
 end
 
 local function sendPlacements(placements)
