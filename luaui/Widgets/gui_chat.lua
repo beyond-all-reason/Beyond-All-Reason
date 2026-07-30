@@ -123,7 +123,6 @@ local colorSpecStr, colorAllyStr, colorOtherAllyStr, colorGameStr, colorConsoleS
 
 -- Layout (keep local for performance)
 local maxPlayernameWidth, lineSpaceWidth, backgroundPadding = 50, 24*config.widgetScale, usedFontSize
-local longestPlayername = '[Spectator] [xx]playername'
 
 -- State tables to reduce local variable count
 local state = {
@@ -1035,9 +1034,9 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
 				end
 			end
-			return teamColor .. '■ ' .. colorSpecStr .. '[Spectator] ' .. displayName
+			return teamColor .. '■ ' .. colorSpecStr .. getChannelScopeLabel('SPEC') .. ' ' .. displayName
 		end
-		return colorSpecStr .. '[Spectator] ' .. displayName
+		return colorSpecStr .. getChannelScopeLabel('SPEC') .. ' ' .. displayName
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
 end
@@ -3136,20 +3135,17 @@ function widget:ViewResize()
 	font3 = WG['fonts'].getFont(3)
 
 	-- get longest player name and calc its width
-	if not font or not longestPlayername then
+	if not font then
 		return
 	end
-	local namePrefixWidth = math.max(font:GetTextWidth(getChannelScopeLabel('ALL') .. ' '), font:GetTextWidth(getChannelScopeLabel('TEAM') .. ' '), font:GetTextWidth('[Spectator] '))
-	maxPlayernameWidth = (namePrefixWidth + font:GetTextWidth(longestPlayername)) * usedFontSize
+	local namePrefixWidth = math.max(font:GetTextWidth(getChannelScopeLabel('ALL') .. ' '), font:GetTextWidth(getChannelScopeLabel('TEAM') .. ' '), font:GetTextWidth(getChannelScopeLabel('SPEC') .. ' '))
+	maxPlayernameWidth = namePrefixWidth * usedFontSize
 	for _, playerID in ipairs(playersList) do
 		local name = spGetPlayerInfo(playerID, false)
 		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		if name ~= longestPlayername then
-			local nameWidth = (namePrefixWidth + font:GetTextWidth(name)) * usedFontSize
-			if nameWidth > maxPlayernameWidth then
-				longestPlayername = name
-				maxPlayernameWidth = nameWidth
-			end
+		local nameWidth = (namePrefixWidth + font:GetTextWidth(name)) * usedFontSize
+		if nameWidth > maxPlayernameWidth then
+			maxPlayernameWidth = nameWidth
 		end
 	end
 	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
