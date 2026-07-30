@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -131,7 +131,7 @@ return {
 				},
 				customparams = {
 					exclude_preaim = true,
-				}
+				},
 			},
 			hllt_2 = {
 				areaofeffect = 12,
@@ -171,7 +171,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 			hllt_3 = {
 				areaofeffect = 12,
@@ -211,7 +211,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 			hllt_4 = {
 				areaofeffect = 12,
@@ -251,7 +251,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					norangering = 1,
-				}
+				},
 			},
 		},
 		weapons = {

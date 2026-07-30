@@ -46,7 +46,12 @@ local function hasKamikazeWeapon(unitDef)
 	for weaponNum = 1, #weapons do
 		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
 		local damageAreaOfEffect = weaponDef and (weaponDef.damageAreaOfEffect or weaponDef.areaOfEffect or 0) or 0
-		if weaponDef and not weaponDef.customParams.bogus and weaponDef.name == "Crawlingbomb Dummy Weapon" and damageAreaOfEffect > 0 then
+		if
+			weaponDef
+			and not weaponDef.customParams.bogus
+			and weaponDef.name == "Crawlingbomb Dummy Weapon"
+			and damageAreaOfEffect > 0
+		then
 			return true
 		end
 	end
@@ -64,10 +69,8 @@ function WeaponThreat.isKamikazeUnitDef(unitDef)
 end
 
 local function getKamikazeExplosionRadius(unitDef)
-	local explosionRadius = math.max(
-		getWeaponExplosionRadius(unitDef.deathExplosion),
-		getWeaponExplosionRadius(unitDef.selfDExplosion)
-	)
+	local explosionRadius =
+		math.max(getWeaponExplosionRadius(unitDef.deathExplosion), getWeaponExplosionRadius(unitDef.selfDExplosion))
 	local weapons = unitDef.weapons
 	for weaponNum = 1, #weapons do
 		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
@@ -328,7 +331,13 @@ function WeaponThreat.buildDefendData()
 				local rangesForWeapon = {}
 				for targetIndex = 1, #targetUnitDefIDs do
 					local enemyUnitDefID = targetUnitDefIDs[targetIndex]
-					rangesForWeapon[enemyUnitDefID] = getThreatRange(weapon, weaponDef, defenderUnitDef, enemyProps[enemyUnitDefID], enemyUnitDefs[enemyUnitDefID])
+					rangesForWeapon[enemyUnitDefID] = getThreatRange(
+						weapon,
+						weaponDef,
+						defenderUnitDef,
+						enemyProps[enemyUnitDefID],
+						enemyUnitDefs[enemyUnitDefID]
+					)
 				end
 				threatRanges[weaponDefID] = rangesForWeapon
 			end

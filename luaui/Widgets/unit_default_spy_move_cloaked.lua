@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-	name	= "Cloaked Buildpower Default Move",
-	desc	= "Prevents accidental reclaim, load, and attack commands on cloaked units\nMakes move the default command for commanders, decoys, and spies when cloaked",
-	author	= "Catcow, BrainDamage",
-	date	= "11/14/25",
-	license	= "GNU GPL, v2 or later",
-	layer	= 0,
-	enabled	= true,
+		name = "Cloaked Buildpower Default Move",
+		desc = "Prevents accidental reclaim, load, and attack commands on cloaked units\nMakes move the default command for commanders, decoys, and spies when cloaked",
+		author = "Catcow, BrainDamage",
+		date = "11/14/25",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -60,7 +60,9 @@ local function update()
 
 	cloakedBuilderMovableSelected = false
 	-- above a little amount we likely aren't micro-ing cloaked things anymore...
-	if selectedUnitsCount == 0 or selectedUnitsCount > 20 then return end
+	if selectedUnitsCount == 0 or selectedUnitsCount > 20 then
+		return
+	end
 
 	local selectedUnitTypes = spGetSelectedUnitsSorted()
 	for unitDefID, units in pairs(selectedUnitTypes) do
@@ -81,7 +83,7 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_WANT_CLOAK) and (idCanBuildCloakMove[unitDefID]) and (teamID == spGetMyTeamID()) then
+	if (cmdID == CMD_WANT_CLOAK) and idCanBuildCloakMove[unitDefID] and (teamID == spGetMyTeamID()) then
 		update()
 	end
 end

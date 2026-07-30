@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "27 of July 2017",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -56,7 +56,18 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if reverseUnit[unitID] then
 		refreshList[unitID] = unitDefID
 	end

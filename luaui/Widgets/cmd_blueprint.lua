@@ -347,7 +347,9 @@ end
 
 local function createBlueprint(unitIDs, ordered)
 	if #unitIDs > BLUEPRINT_UNIT_LIMIT then
-		FeedbackForUser(string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs))
+		FeedbackForUser(
+			string.format("[Blueprint] can only save %d units (attempted to save %d)", BLUEPRINT_UNIT_LIMIT, #unitIDs)
+		)
 		return true
 	end
 
@@ -636,7 +638,19 @@ function widget:Update(dt)
 	end
 
 	if endPositionChanged or modeChanged or targetIDChanged or blueprintChanged then
-		state.buildPositions = WG["api_blueprint"].calculateBuildPositions(blueprint, state.mode, unpack(determineBuildModeArgs(state.mode, state.startPosition, state.endPosition, state.targetID, blueprint.spacing)))
+		state.buildPositions = WG["api_blueprint"].calculateBuildPositions(
+			blueprint,
+			state.mode,
+			unpack(
+				determineBuildModeArgs(
+					state.mode,
+					state.startPosition,
+					state.endPosition,
+					state.targetID,
+					blueprint.spacing
+				)
+			)
+		)
 		WG["api_blueprint"].setBlueprintPositions(state.buildPositions)
 	end
 end
@@ -885,7 +899,9 @@ local function handleSpacingAction(_, _, args)
 		return
 	end
 
-	local minSpacing = math.floor(-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension) / WG["api_blueprint"].BUILD_SQUARE_SIZE)
+	local minSpacing = math.floor(
+		-(mathMin(bp.dimensions[1], bp.dimensions[2]) - bp.minBuildingDimension) / WG["api_blueprint"].BUILD_SQUARE_SIZE
+	)
 
 	local newSpacing = nil
 	if args and args[1] == "inc" then
@@ -1035,7 +1051,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 			local facing = pos[4] or 0
 			if not blueprintRotations[facing] then
-				blueprintRotations[facing] = WG["api_blueprint"].rotateBlueprint(selectedBlueprint, selectedBlueprint.facing + facing)
+				blueprintRotations[facing] =
+					WG["api_blueprint"].rotateBlueprint(selectedBlueprint, selectedBlueprint.facing + facing)
 				if not selectedBlueprint.ordered then
 					tableSort(blueprintRotations[facing].units, buildingComparator)
 				end
@@ -1116,7 +1133,12 @@ local function deserializeBlueprint(serializedBlueprint, index)
 		if not name or name == "" then
 			name = "#" .. tostring(index)
 		end
-		FeedbackForUser(string.format("[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.", name))
+		FeedbackForUser(
+			string.format(
+				"[Blueprint] Blueprint '%s' was filtered out as it contains no valid or substitutable units.",
+				name
+			)
+		)
 		return nil
 	end
 

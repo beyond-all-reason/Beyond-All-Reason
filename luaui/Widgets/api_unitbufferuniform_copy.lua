@@ -1,16 +1,15 @@
 function widget:GetInfo()
-  return {
-    name      = "API UnitBufferUniform Copy",
-    version   = "v0.1",
-    desc      = "Copies SUniformsBuffer every Gameframe",
-    author    = "Beherith",
-    date      = "2024.12.05",
-    license   = "GPL V2",
-    layer     = 0,
-    enabled   = false,
-  }
+	return {
+		name = "API UnitBufferUniform Copy",
+		version = "v0.1",
+		desc = "Copies SUniformsBuffer every Gameframe",
+		author = "Beherith",
+		date = "2024.12.05",
+		license = "GPL V2",
+		layer = 0,
+		enabled = false,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -20,7 +19,7 @@ local LuaShader = gl.LuaShader
 
 local cmpShader
 
--- The compute shader is reponsible for updating the position, velocity, and color of each particle 
+-- The compute shader is reponsible for updating the position, velocity, and color of each particle
 local cmpSrc = [[
 #version 430 core
 
@@ -97,13 +96,12 @@ function widget:Initialize()
 
 	UniformsBufferCopy = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
 	UniformsBufferCopy:Define(numEntries, {
-		{id = 0, name = "modelUniformData", type = GL.FLOAT_VEC4, size = structSizeInVec4s},
-	}
-	)
+		{ id = 0, name = "modelUniformData", type = GL.FLOAT_VEC4, size = structSizeInVec4s },
+	})
 	pcache = {}
-	
+
 	for i = 0, (numEntries * structSizeInVec4s * 4 - 1) do
-		pcache[i+1] = 0
+		pcache[i + 1] = 0
 	end
 	UniformsBufferCopy:Upload(pcache)
 	UniformsBufferCopy:BindBufferRange(4)
@@ -116,32 +114,40 @@ function widget:Initialize()
 		},
 		uniformFloat = {
 			frameTime = 0.016,
-		}
+		},
 	}, "cmpShader")
-	
+
 	shaderCompiled = cmpShader:Initialize()
 	spEcho("cmpShader ", shaderCompiled)
-	if not shaderCompiled then widgetHandler:RemoveWidget() end
+	if not shaderCompiled then
+		widgetHandler:RemoveWidget()
+	end
 
 	spEcho("Hello")
-	WG['api_unitbufferuniform_copy'] = {}
-	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() 
+	WG["api_unitbufferuniform_copy"] = {}
+	WG["api_unitbufferuniform_copy"].GetUnitUniformBufferCopy = function()
 		copyRequested = true
-		return UniformsBufferCopy 	
+		return UniformsBufferCopy
 	end
-	widgetHandler:RegisterGlobal('GetUnitUniformBufferCopy', WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy)
+	widgetHandler:RegisterGlobal("GetUnitUniformBufferCopy", WG["api_unitbufferuniform_copy"].GetUnitUniformBufferCopy)
 end
 
 function widget:Shutdown()
-	widgetHandler:DeregisterGlobal('GetUnitUniformBufferCopy')
+	widgetHandler:DeregisterGlobal("GetUnitUniformBufferCopy")
 
-	if cmpShader then cmpShader:Finalize() end
-	if UniformsBufferCopy then UniformsBufferCopy:Delete() end
+	if cmpShader then
+		cmpShader:Finalize()
+	end
+	if UniformsBufferCopy then
+		UniformsBufferCopy:Delete()
+	end
 end
 
 local lastUpdateFrame = 0
 function widget:DrawScreenPost()
-	if not copyRequested then return end
+	if not copyRequested then
+		return
+	end
 	if spGetGameFrame() == lastUpdateFrame then
 		return
 	else

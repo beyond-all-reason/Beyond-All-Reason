@@ -1,5 +1,5 @@
 local shaderTemplate = {
-vertex = [[
+	vertex = [[
 	//shader version is added via gadget
 
 	%%GLOBAL_NAMESPACE%%
@@ -347,7 +347,7 @@ vertex = [[
 	}
 ]],
 
-fragment = [[
+	fragment = [[
 	//shader version is added via gadget
 
 	#if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
@@ -1477,27 +1477,27 @@ fragment = [[
 #endif
 ]],
 	uniformInt = {
-		texture1 	 = 0,
-		texture2 	 = 1,
-		normalTex    = 2,
+		texture1 = 0,
+		texture2 = 1,
+		normalTex = 2,
 
-		texture1w    = 3,
-		texture2w    = 4,
-		normalTexw   = 5,
+		texture1w = 3,
+		texture2w = 4,
+		normalTexw = 5,
 
-		shadowTex    = 6,
-		reflectTex   = 7,
+		shadowTex = 6,
+		reflectTex = 7,
 
-		losMapTex    = 8,
-		brdfLUT      = 9,
-		envLUT       = 10,
-		rgbNoise     = 11,
+		losMapTex = 8,
+		brdfLUT = 9,
+		envLUT = 10,
+		rgbNoise = 11,
 	},
 	uniformFloat = {
-		sunAmbient		= {gl.GetSun("ambient" ,"unit")},
-		sunDiffuse		= {gl.GetSun("diffuse" ,"unit")},
-		sunSpecular		= {gl.GetSun("specular" ,"unit")},
-		shadowDensity	=  gl.GetSun("shadowDensity" ,"unit"),
+		sunAmbient = { gl.GetSun("ambient", "unit") },
+		sunDiffuse = { gl.GetSun("diffuse", "unit") },
+		sunSpecular = { gl.GetSun("specular", "unit") },
+		shadowDensity = gl.GetSun("shadowDensity", "unit"),
 	},
 }
 
@@ -1505,9 +1505,9 @@ local defaultMaterialTemplate = {
 	--standardUniforms --locs, set by api_cus
 	--deferredUniforms --locs, set by api_cus
 
-	shader   = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
+	shader = shaderTemplate, -- `shader` is replaced with standardShader later in api_cus
 	deferred = shaderTemplate, -- `deferred` is replaced with deferredShader later in api_cus
-	shadow   = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
+	shadow = shaderTemplate, -- `shadow` is replaced with deferredShader later in api_cus
 
 	-- note these definitions below are not inherited!!!
 	-- they need to be redefined on every child material that has its own {shader,deferred,shadow}Definitions
@@ -1519,61 +1519,61 @@ local defaultMaterialTemplate = {
 	},
 	shadowDefinitions = {
 		"#define RENDERING_MODE 2",
-		"#define SUPPORT_DEPTH_LAYOUT ".. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
-		"#define SUPPORT_CLIP_CONTROL ".. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
+		"#define SUPPORT_DEPTH_LAYOUT " .. tostring((Platform.glSupportFragDepthLayout and 1) or 0),
+		"#define SUPPORT_CLIP_CONTROL " .. tostring((Platform.glSupportClipSpaceControl and 1) or 0),
 	},
 
 	shaderOptions = {
-		shadowmapping     = true,
-		normalmapping     = false,
+		shadowmapping = true,
+		normalmapping = false,
 
-		vertex_ao         = false,
-		flashlights       = false,
-		normalmap_flip    = false,
+		vertex_ao = false,
+		flashlights = false,
+		normalmap_flip = false,
 
-		treads_arm       = false,
-		treads_core      = false,
+		treads_arm = false,
+		treads_core = false,
 
-		health_displace  = false,
+		health_displace = false,
 		health_texturing = false,
 		health_texraptors = false,
 
-		modelsfog        = true,
+		modelsfog = true,
 
-		treewind         = false,
-		autonormal       = false,
+		treewind = false,
+		autonormal = false,
 
-		shadowsQuality   = 2,
+		shadowsQuality = 2,
 
-		autoNormalParams = {1.0, 0.00200}, -- Sampling distance, autonormal value
+		autoNormalParams = { 1.0, 0.00200 }, -- Sampling distance, autonormal value
 	},
 
 	deferredOptions = {
-		shadowmapping    = true,
-		normalmapping    = false,
+		shadowmapping = true,
+		normalmapping = false,
 
-		vertex_ao        = false,
-		flashlights      = false,
-		normalmap_flip   = false,
+		vertex_ao = false,
+		flashlights = false,
+		normalmap_flip = false,
 
-		treads_arm      = false,
-		treads_core     = false,
+		treads_arm = false,
+		treads_core = false,
 
-		modelsfog        = true,
+		modelsfog = true,
 
-		health_displace  = false,
+		health_displace = false,
 		health_texturing = false,
 		health_texraptors = false,
 
-		treewind         = false,
-		autonormal       = false,
+		treewind = false,
+		autonormal = false,
 
-		shadowsQuality   = 0,
-		materialIndex    = 0,
+		shadowsQuality = 0,
+		materialIndex = 0,
 	},
 
 	shadowOptions = {
-		treewind         = false,
+		treewind = false,
 	},
 
 	feature = false,
@@ -1598,9 +1598,7 @@ local defaultMaterialTemplate = {
 	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }
 
-local shaderPlugins = {
-}
-
+local shaderPlugins = {}
 
 --[[
 	#define OPTION_SHADOWMAPPING 0
@@ -1621,7 +1619,8 @@ local shaderPlugins = {
 	#define OPTION_TREEWIND 11
 
 	#define OPTION_AUTONORMAL 21
-]]--
+]]
+--
 
 -- bit = (index - 1)
 local knownBitOptions = {
@@ -1647,7 +1646,6 @@ local knownBitOptions = {
 local knownIntOptions = {
 	["shadowsQuality"] = 1,
 	["materialIndex"] = 1,
-
 }
 local knownFloatOptions = {
 	["autoNormalParams"] = 2,
@@ -1670,7 +1668,7 @@ local function ProcessOptions(materialDef, optName, optValues)
 		materialDef.originalOptions[3] = table.copy(materialDef.shadowOptions)
 	end
 
-	for id, optTable in ipairs({materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions}) do
+	for id, optTable in ipairs({ materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions }) do
 		if knownBitOptions[optName] then --boolean
 			local optValue = unpack(optValues or {})
 			local optOriginalValue = materialDef.originalOptions[id][optName]
@@ -1701,7 +1699,6 @@ local function ProcessOptions(materialDef, optName, optValues)
 end
 
 local function ApplyOptions(luaShader, materialDef, key)
-
 	local optionsTbl
 	if key == 1 then
 		optionsTbl = materialDef.shaderOptions
@@ -1715,24 +1712,19 @@ local function ApplyOptions(luaShader, materialDef, key)
 
 	for optName, optValue in pairs(optionsTbl) do
 		if knownBitOptions[optName] then --boolean
-
 			intOption = EncodeBitmaskField(intOption, optValue, knownBitOptions[optName]) --encode options into Int.
-
 		elseif knownIntOptions[optName] then --integer
-
 			if type(optValue) == "number" and knownIntOptions[optName] == 1 then
 				luaShader:SetUniformInt(optName, optValue)
 			elseif type(optValue) == "table" and knownIntOptions[optName] == #optValue then
 				luaShader:SetUniformInt(optName, unpack(optValue))
 			end
-
 		elseif knownFloatOptions[optName] then --float
 			if type(optValue) == "number" and knownFloatOptions[optName] == 1 then
 				luaShader:SetUniformFloat(optName, optValue)
 			elseif type(optValue) == "table" and knownFloatOptions[optName] == #optValue then
 				luaShader:SetUniformFloat(optName, unpack(optValue))
 			end
-
 		end
 	end
 
@@ -1758,21 +1750,21 @@ local function GetAllOptions()
 end
 
 local function SunChanged(luaShader)
-	luaShader:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
+	luaShader:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity", "unit"))
 
-	luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
+	luaShader:SetUniformAlways("sunAmbient", gl.GetSun("ambient", "unit"))
+	luaShader:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse", "unit"))
+	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular", "unit"))
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
-        Spring.GetConfigFloat("tonemapA", 4.75),
-        Spring.GetConfigFloat("tonemapB", 0.75),
-        Spring.GetConfigFloat("tonemapC", 3.5),
-        Spring.GetConfigFloat("tonemapD", 0.85),
-        Spring.GetConfigFloat("tonemapE", 1.0),
-        Spring.GetConfigFloat("envAmbient", 0.25),
-        Spring.GetConfigFloat("unitSunMult", 1.0),
-        Spring.GetConfigFloat("unitExposureMult", 1.0),
+		Spring.GetConfigFloat("tonemapA", 4.75),
+		Spring.GetConfigFloat("tonemapB", 0.75),
+		Spring.GetConfigFloat("tonemapC", 3.5),
+		Spring.GetConfigFloat("tonemapD", 0.85),
+		Spring.GetConfigFloat("tonemapE", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.25),
+		Spring.GetConfigFloat("unitSunMult", 1.0),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))
 end

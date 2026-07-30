@@ -15,7 +15,6 @@ end
 local identifier = "StopProduction"
 
 if gadgetHandler:IsSyncedCode() then
-
 	local isFactory = {}
 	for udid = 1, #UnitDefs do
 		local ud = UnitDefs[udid]
@@ -54,7 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 		while count > 0 do
 			local opts = DEQUEUE_OPTS
 			if count >= 100 then
-			count = count - 100
+				count = count - 100
 				opts = opts + CMD.OPT_SHIFT + CMD.OPT_CTRL
 			elseif count >= 20 then
 				count = count - 20
@@ -87,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 			local keepDefID
 			if total > 1 then
 				local firstCommand = Spring.GetFactoryCommands(unitID, 1)
-				local firstID = firstCommand[1]['id']
+				local firstID = firstCommand[1]["id"]
 				if firstID < 0 then
 					keepDefID = -firstID
 				end
@@ -129,7 +128,7 @@ else
 
 	local function stopProduction(_, unitID, unitDefID, unitTeam, cmdID)
 		if isSpec or Spring.AreTeamsAllied(unitTeam, myTeamID) then
-			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, {coded = 0})
+			Script.LuaUI.UnitCommand(unitID, unitDefID, unitTeam, cmdID, {}, { coded = 0 })
 		end
 	end
 
