@@ -942,7 +942,8 @@ local function playNextSound()
 			end
 			if displayMessages and WG['messages'] and notification[event].textID and (not notification[event].notext) then
 				if soundQueue[1].posx then
-					WG['messages'].addMessage("| X: " .. math.ceil(soundQueue[1].posx) .. " | Z: " .. math.ceil(soundQueue[1].posz) .. " | " .. Spring.I18N(notification[event].textID))
+					--WG['messages'].addMessage("| X: " .. math.ceil(soundQueue[1].posx) .. " | Z: " .. math.ceil(soundQueue[1].posz) .. " | " .. Spring.I18N(notification[event].textID))
+					WG['messages'].addMessage("|🚩| " .. Spring.I18N(notification[event].textID))
 				else
 					WG['messages'].addMessage(Spring.I18N(notification[event].textID))
 				end
