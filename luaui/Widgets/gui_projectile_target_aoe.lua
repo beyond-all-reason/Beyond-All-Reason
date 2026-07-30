@@ -79,7 +79,8 @@ local Config = {
 	circleDivs = 32,              -- Circle segments
 	baseLineWidth = 1.3,          -- Base line width
 	updateInterval = 0.25,        -- Seconds between projectile updates (0 = every frame)
-	impactFadeDuration = 0.6,     -- Seconds to fade out after impact
+	impactFadeDuration = 0.66,    -- Seconds to fade out after impact
+	impactFadeEndEarly = 1.2,      -- Seconds to start fading out before impact
 
 	-- Colors (RGBA)
 	allyColor = { 1.0, 0.3, 0.2, 1.0 },           -- Red for allied (your missiles)
@@ -96,7 +97,7 @@ local Config = {
 	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
-	targetMarkerTickStartRadius = 0.8,
+	targetMarkerTickStartRadius = 0.95,
 	targetMarkerTickEndRadius = 0.34,
 	targetMarkerTickLength = 0.15,
 	targetMarkerTickCloseExponent = 0.7,
@@ -461,9 +462,16 @@ local function SetColor(color, alpha)
 end
 
 local function AddFadingImpact(data, currentTime, impactProgress)
+	if Config.impactFadeEndEarly > 0 then
+		return
+	end
+
 	local clampedProgress = impactProgress
 	if clampedProgress > 1 then clampedProgress = 1 elseif clampedProgress < 0 then clampedProgress = 0 end
 	local impactRingScale = 1 - clampedProgress * 0.5
+	local elapsed = currentTime - data.startTime
+	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * clampedProgress * 0.5
+	local rotation = -((elapsed * avgSpeed) % 360) * 0.5
 
 	fadingImpactCount = fadingImpactCount + 1
 	fadingImpacts[fadingImpactCount] = {
@@ -476,6 +484,7 @@ local function AddFadingImpact(data, currentTime, impactProgress)
 		initialFlightTime = data.initialFlightTime,
 		fadeStartTime = currentTime,
 		impactRingScale = impactRingScale,
+		rotation = rotation,
 	}
 end
 
@@ -798,6 +807,35 @@ local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 	end
 	opacity = opacity * camFade
 
+	local projectileX, projectileY, projectileZ = spGetProjectilePosition(data.projectileID)
+	if not projectileX then
+		if Config.impactFadeEndEarly > 0 then
+			return
+		end
+		projectileX, projectileY, projectileZ = data.projectileX, data.projectileY, data.projectileZ
+	end
+	local remainingDX = tx - projectileX
+	local remainingDY = ty - projectileY
+	local remainingDZ = tz - projectileZ
+	local remainingDistance = sqrt(remainingDX * remainingDX + remainingDY * remainingDY + remainingDZ * remainingDZ)
+	if Config.impactFadeEndEarly > 0 and remainingDistance <= 8 then
+		return
+	end
+
+	local flightFade = 1
+	if Config.impactFadeEndEarly > 0 and remainingDistance > 0 then
+		local closingSpeed = data.speed
+		local velocityX, velocityY, velocityZ = spGetProjectileVelocity(data.projectileID)
+		if velocityX then
+			local liveClosingSpeed = (remainingDX * velocityX + remainingDY * velocityY + remainingDZ * velocityZ) * gameSpeed / remainingDistance
+			if liveClosingSpeed > 0 then closingSpeed = liveClosingSpeed end
+		end
+		if closingSpeed > 0 then
+			flightFade = min(1, remainingDistance / (closingSpeed * Config.impactFadeEndEarly))
+		end
+	end
+	opacity = opacity * flightFade
+
 	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
 	local rotation = (elapsed * avgSpeed) % 360
 
@@ -816,15 +854,7 @@ local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 
 	-- Center target marker (rotating)
 	local markerSize = aoe * 0.4
-	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade
-	local projectileX, projectileY, projectileZ = spGetProjectilePosition(data.projectileID)
-	if not projectileX then
-		projectileX, projectileY, projectileZ = data.projectileX, data.projectileY, data.projectileZ
-	end
-	local remainingDX = projectileX - tx
-	local remainingDY = projectileY - ty
-	local remainingDZ = projectileZ - tz
-	local remainingDistance = sqrt(remainingDX * remainingDX + remainingDY * remainingDY + remainingDZ * remainingDZ)
+	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade * flightFade
 	local distanceProgress = 1 - remainingDistance / max(data.initialDistance, 1)
 	if distanceProgress > 1 then distanceProgress = 1 elseif distanceProgress < 0 then distanceProgress = 0 end
 	distanceProgress = distanceProgress ^ Config.targetMarkerTickCloseExponent
@@ -879,7 +909,8 @@ local function DrawFadingImpactIndicator(data, currentTime, camX, camY, camZ)
 
 	local markerSize = aoe * 0.4
 	SetColor(color, fadeMul * 0.5)
-	DrawTargetMarker(tx, ty + 3, tz, markerSize, 0, 1)
+	local rotation = data.rotation - (currentTime - data.fadeStartTime) * Config.rotationSpeedMin * 0.5
+	DrawTargetMarker(tx, ty + 3, tz, markerSize, rotation, 1)
 
 	return true
 end
