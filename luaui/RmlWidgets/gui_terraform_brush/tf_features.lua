@@ -71,6 +71,19 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if widgetState.dmHandle.activeShape ~= shp then widgetState.dmHandle.activeShape = shp end
 		end
 
+		-- Gizmo selection. The SELECTION section only appears on an empty mouse,
+		-- because that is the only time clicking the map selects rather than
+		-- places; Reroll is the mirror case, only useful while scattering.
+		if widgetState.dmHandle then
+			local dmh = widgetState.dmHandle
+			local function setDm(f, v) if dmh[f] ~= v then dmh[f] = v end end
+			local count = fpState.selectionCount or 0
+			setDm("fpShowSelection", fpState.selectMode == true)
+			setDm("fpShowReroll", fpState.selectMode ~= true and (fpState.mode == "scatter" or fpState.mode == "point"))
+			setDm("fpHasSelection", count > 0)
+			setDm("fpSelectionStr", count == 0 and "none" or (count .. " selected"))
+		end
+
 		if doc then
 			uiState.updatingFromCode = true
 			local ds = uiState.draggingSlider

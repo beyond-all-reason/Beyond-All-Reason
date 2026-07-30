@@ -50,6 +50,8 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 -- brush parameters for the gadget to roll its own dice with. That is what makes
 -- the ghost preview truthful: preview and result are the same array.
 local PLACELIST_HEADER = "$feature_place_list$"
+local TRANSFORM_HEADER = "$feature_transform$"
+local REMOVEIDS_HEADER = "$feature_remove_ids$"
 local REMOVE_HEADER  = "$feature_remove$"
 local UNDO_HEADER    = "$feature_undo$"
 local REDO_HEADER    = "$feature_redo$"
@@ -73,6 +75,7 @@ local PREVIEW_GHOST_CAP = 300
 -- see them. See the header of that file for why.
 local Scatter = VFS.Include("common/feature_scatter.lua")
 local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local Gizmo = VFS.Include("luaui/Include/gizmo3d_gl4.lua")
 
 local abs = math.abs
 local asin = math.asin
@@ -699,6 +702,501 @@ local function sendRemoveMessage(worldX, worldZ)
 end
 
 ----------------------------------------------------------------
+-- Selection and gizmo
+----------------------------------------------------------------
+-- Selection is only live on an "empty mouse": with nothing chosen in the asset
+-- library there is nothing to place, so a click means "pick that one" instead.
+-- The moment a library item is selected the tool goes back to placing and the
+-- gizmo disappears.
+local gz = {
+	selection = {},
+	selectedSet = {},
+	base = {}, -- featureID -> transform snapshotted at drag start
+	pivotBase = nil,
+	hovered = nil,
+	dragging = false,
+	strokeID = nil,
+	boxing = false,
+	boxX1 = 0,
+	boxY1 = 0,
+	boxX2 = 0,
+	boxY2 = 0,
+	ghosts = {},
+	ghostCount = 0,
+	hidden = {},
+	settleTargets = nil, -- transforms awaiting the sim before the real feature is shown again
+	settleDeadline = 0,
+}
+
+local GIZMO_OWNER = "cmd_feature_placer_gizmo"
+-- A drag never survives this long; without a deadline a dropped message would
+-- leave features permanently invisible.
+local SETTLE_TIMEOUT = 2.0
+local SETTLE_EPSILON = 0.5
+-- A press that moves less than this many pixels is a click, not a box select.
+local BOX_MIN_PX = 4
+
+-- Remove mode is excluded on purpose: an empty library is the normal way to use
+-- the erase brush, so hijacking its left button for selection would break the
+-- tool's whole point.
+local function selectModeActive()
+	return fp.active and (fp.mode == "scatter" or fp.mode == "point") and #fp.selectedDefs == 0
+end
+
+local function readFeatureTransform(featureID)
+	local x, y, z = GetFeaturePosition(featureID)
+	if not x then
+		return nil
+	end
+	local pitch, yaw, roll = Spring.GetFeatureRotation(featureID)
+	return { x = x, y = y, z = z, pitch = pitch or 0, yaw = yaw or 0, roll = roll or 0 }
+end
+
+-- How far a feature reaches from its own origin. Position is the model's base,
+-- so a tall tree needs its height counted, not just its collision radius, or the
+-- gizmo would sit around the trunk with the canopy hiding it.
+local function featureReach(featureID)
+	local defID = GetFeatureDefID(featureID)
+	local def = defID and FeatureDefs[defID]
+	if not def then
+		return 16
+	end
+	local r = def.radius or 16
+	local h = def.model and def.model.maxy or 0
+	return (h > r) and h or r
+end
+
+local function recomputePivot()
+	local n = #gz.selection
+	if n == 0 then
+		Gizmo.setPivot(nil)
+		Gizmo.setObjectRadius(0)
+		return
+	end
+
+	local sx, sy, sz, valid = 0, 0, 0, 0
+	for i = 1, n do
+		local t = readFeatureTransform(gz.selection[i])
+		if t then
+			sx, sy, sz = sx + t.x, sy + t.y, sz + t.z
+			valid = valid + 1
+		end
+	end
+
+	if valid == 0 then
+		Gizmo.setPivot(nil)
+		Gizmo.setObjectRadius(0)
+		return
+	end
+
+	local px, py, pz = sx / valid, sy / valid, sz / valid
+	Gizmo.setPivot(px, py, pz)
+
+	-- Largest single member, NOT the bounding radius of the whole selection. The
+	-- floor exists so handles cannot hide inside a model; a group spread over
+	-- 900 elmos does not hide anything, and sizing to its extent would give a
+	-- gizmo thousands of pixels across the moment you zoomed in.
+	local reach = 0
+	for i = 1, n do
+		local r = featureReach(gz.selection[i])
+		if r > reach then
+			reach = r
+		end
+	end
+	Gizmo.setObjectRadius(reach)
+end
+
+local function clearGizmoGhosts()
+	if WG.StopDrawFeatureShapesGL4 and gz.ghostCount > 0 then
+		WG.StopDrawFeatureShapesGL4(GIZMO_OWNER)
+	end
+	for i = 1, gz.ghostCount do
+		gz.ghosts[i] = nil
+	end
+	gz.ghostCount = 0
+end
+
+local function showHiddenFeatures()
+	for featureID in pairs(gz.hidden) do
+		if Spring.ValidFeatureID(featureID) then
+			Spring.SetFeatureNoDraw(featureID, false)
+		end
+	end
+	gz.hidden = {}
+end
+
+local function clearSelection()
+	gz.selection = {}
+	gz.selectedSet = {}
+	gz.base = {}
+	gz.dragging = false
+	Gizmo.setPivot(nil)
+	Gizmo.setObjectRadius(0)
+	Gizmo.endDrag()
+	clearGizmoGhosts()
+	showHiddenFeatures()
+	gz.settleTargets = nil
+end
+
+local function setSelection(featureIDs)
+	gz.selection = {}
+	gz.selectedSet = {}
+	for i = 1, #featureIDs do
+		local featureID = featureIDs[i]
+		if Spring.ValidFeatureID(featureID) and not gz.selectedSet[featureID] then
+			gz.selectedSet[featureID] = true
+			gz.selection[#gz.selection + 1] = featureID
+		end
+	end
+	recomputePivot()
+end
+
+local function toggleSelection(featureID)
+	if gz.selectedSet[featureID] then
+		gz.selectedSet[featureID] = nil
+		for i = 1, #gz.selection do
+			if gz.selection[i] == featureID then
+				table.remove(gz.selection, i)
+				break
+			end
+		end
+	else
+		gz.selectedSet[featureID] = true
+		gz.selection[#gz.selection + 1] = featureID
+	end
+	recomputePivot()
+end
+
+----------------------------------------------------------------
+-- Orientation maths (Recoil convention)
+----------------------------------------------------------------
+-- The gizmo presents three WORLD-aligned rings, so a drag has to be composed as
+-- a world-space rotation. Adding the drag angle to the matching euler component
+-- does not do that, and is wrong in the ordinary case:
+--
+--   SetFeatureRotation composes M = Rx(pitch) * Ry(yaw) * Rz(roll). Only pitch
+--   is applied last and is therefore a genuine world-X rotation. Roll is applied
+--   FIRST, so it turns the model about its own local Z -- and once a feature has
+--   a yaw (scatter gives every feature a random heading) that local Z has swung
+--   away from world Z. At yaw 90 degrees it lies along world X, so the roll ring
+--   does exactly what the pitch ring does.
+--
+-- So: rebuild the current matrix, pre-multiply the world delta, read the euler
+-- triple back out. Matrices are Recoil's, not the right-handed GLSL ones -- see
+-- the note in gfx_DrawFeatureShape_GL4.lua's vertex shader.
+--
+-- Row-major, m[row][col], acting on column vectors.
+local function mat3Mul(a, b)
+	local r = { {}, {}, {} }
+	for i = 1, 3 do
+		local ai = a[i]
+		local ri = r[i]
+		for j = 1, 3 do
+			ri[j] = ai[1] * b[1][j] + ai[2] * b[2][j] + ai[3] * b[3][j]
+		end
+	end
+	return r
+end
+
+local function rotX(a)
+	local c, s = cos(a), sin(a)
+	return { { 1, 0, 0 }, { 0, c, s }, { 0, -s, c } }
+end
+
+local function rotY(a)
+	local c, s = cos(a), sin(a)
+	return { { c, 0, -s }, { 0, 1, 0 }, { s, 0, c } }
+end
+
+local function rotZ(a)
+	local c, s = cos(a), sin(a)
+	return { { c, s, 0 }, { -s, c, 0 }, { 0, 0, 1 } }
+end
+
+local function matFromEuler(pitch, yaw, roll)
+	return mat3Mul(rotX(pitch), mat3Mul(rotY(yaw), rotZ(roll)))
+end
+
+-- Inverse of matFromEuler. Same decomposition the engine's
+-- CMatrix44f::GetEulerAnglesLftHand performs, including the gimbal-lock branch
+-- at yaw = +/-90 degrees, which is a perfectly ordinary feature heading here.
+local function eulerFromMat(m)
+	local sy = -m[1][3]
+	if sy > 1 then
+		sy = 1
+	elseif sy < -1 then
+		sy = -1
+	end
+	local yaw = asin(sy)
+
+	-- Both branches lose accuracy as cos(yaw) goes to zero, in opposite
+	-- directions: the general one divides by it (error ~ eps/cos), the
+	-- degenerate one assumes it is exactly zero (error ~ cos). They cross around
+	-- cos(yaw) = sqrt(eps), so the best split is to take the general branch right
+	-- up to the point where sin(yaw) stops being representably below 1. Measured
+	-- over 60k samples biased hard toward gimbal lock: worst round-trip error
+	-- 1.0e-8 at this threshold, versus 8.8e-3 at a "safe-looking" 0.99999.
+	-- Exact +/-90 degrees still lands in the degenerate branch, since sin is
+	-- exactly 1.0 there.
+	if abs(m[1][3]) < 1.0 then
+		return atan2(m[2][3], m[3][3]), yaw, atan2(m[1][2], m[1][1])
+	end
+	-- cos(yaw) == 0: pitch and roll act on the same axis and cannot be told
+	-- apart. Pin roll and put the whole rotation in pitch.
+	return atan2(-m[3][2], m[2][2]), yaw, 0
+end
+
+-- World-space rotation of `angle` about a cardinal axis.
+local function worldRotation(axis, angle)
+	if axis == 1 then
+		return rotX(angle)
+	elseif axis == 2 then
+		return rotY(angle)
+	end
+	return rotZ(angle)
+end
+
+local function applyMat(m, x, y, z)
+	return m[1][1] * x + m[1][2] * y + m[1][3] * z,
+		m[2][1] * x + m[2][2] * y + m[2][3] * z,
+		m[3][1] * x + m[3][2] * y + m[3][3] * z
+end
+
+-- Where every selected feature ends up for a given gizmo delta.
+--
+-- Exactly one ring drags at a time, so (dPitch, dYaw, dRoll) is really one
+-- world-axis rotation: the non-zero component names both the axis and the angle.
+-- That single delta matrix both spins each member and orbits it around the
+-- pivot, so the two can never disagree.
+local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
+	local pivotBase = gz.pivotBase
+
+	local delta = nil
+	if dPitch ~= 0 then
+		delta = worldRotation(1, dPitch)
+	elseif dYaw ~= 0 then
+		delta = worldRotation(2, dYaw)
+	elseif dRoll ~= 0 then
+		delta = worldRotation(3, dRoll)
+	end
+
+	local targets = {}
+	for i = 1, #gz.selection do
+		local featureID = gz.selection[i]
+		local base = gz.base[featureID]
+		if base then
+			local ox, oy, oz = base.x - pivotBase.x, base.y - pivotBase.y, base.z - pivotBase.z
+			local pitch, yaw, roll = base.pitch, base.yaw, base.roll
+
+			if delta then
+				ox, oy, oz = applyMat(delta, ox, oy, oz)
+				pitch, yaw, roll = eulerFromMat(mat3Mul(delta, matFromEuler(base.pitch, base.yaw, base.roll)))
+			end
+
+			targets[#targets + 1] = {
+				id = featureID,
+				x = pivotBase.x + ox + dx,
+				y = pivotBase.y + oy + dy,
+				z = pivotBase.z + oz + dz,
+				pitch = pitch,
+				yaw = yaw,
+				roll = roll,
+			}
+		end
+	end
+	return targets
+end
+
+local function syncGizmoGhosts(targets)
+	local draw = WG.DrawFeatureShapeGL4
+	if not draw then
+		return
+	end
+
+	local n = 0
+	for i = 1, #targets do
+		local t = targets[i]
+		local defID = GetFeatureDefID(t.id)
+		if defID then
+			local handle = draw(
+				defID, t.x, t.y, t.z, t.yaw, t.pitch, t.roll,
+				-- Not fully opaque: with depth writes off, a solid model shows
+				-- its own back faces through the front ones.
+				0.85, 1, 1, 1, 0,
+				gz.ghosts[n + 1], GIZMO_OWNER
+			)
+			if handle then
+				n = n + 1
+				gz.ghosts[n] = handle
+			end
+		end
+	end
+
+	for i = n + 1, gz.ghostCount do
+		if WG.StopDrawFeatureShapeGL4 then
+			WG.StopDrawFeatureShapeGL4(gz.ghosts[i])
+		end
+		gz.ghosts[i] = nil
+	end
+	gz.ghostCount = n
+end
+
+local function beginGizmoDrag(handle, mx, my)
+	if not Gizmo.beginDrag(handle, mx, my) then
+		return false
+	end
+
+	local pivot = Gizmo.getPivot()
+	gz.pivotBase = { x = pivot.x, y = pivot.y, z = pivot.z }
+	gz.base = {}
+	for i = 1, #gz.selection do
+		local featureID = gz.selection[i]
+		gz.base[featureID] = readFeatureTransform(featureID)
+	end
+
+	-- Hide the real features locally and show ghosts instead. The drag is then a
+	-- pure client-side preview: nothing goes over the wire until the mouse comes
+	-- up, so a slow drag costs no network traffic and no sim churn.
+	for i = 1, #gz.selection do
+		local featureID = gz.selection[i]
+		if Spring.ValidFeatureID(featureID) then
+			Spring.SetFeatureNoDraw(featureID, true)
+			gz.hidden[featureID] = true
+		end
+	end
+
+	gz.dragging = true
+	gz.strokeID = nextStrokeID()
+
+	local tb = WG.TerraformBrush
+	local tbState = tb and tb.getState and tb.getState()
+	Gizmo.setSnap({
+		grid = gridSnap and gridSnapSize or nil,
+		angleDeg = (tbState and tbState.angleSnap) and tbState.angleSnapStep or nil,
+	})
+
+	syncGizmoGhosts(computeDragTargets(0, 0, 0, 0, 0, 0))
+	return true
+end
+
+local function updateGizmoDrag(mx, my)
+	if not gz.dragging then
+		return nil, false
+	end
+	local dx, dy, dz, dPitch, dYaw, dRoll = Gizmo.updateDrag(mx, my)
+	local targets = computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
+	syncGizmoGhosts(targets)
+	Gizmo.setPivot(gz.pivotBase.x + dx, gz.pivotBase.y + dy, gz.pivotBase.z + dz)
+
+	local moved = abs(dx) > 0.01 or abs(dy) > 0.01 or abs(dz) > 0.01
+		or abs(dPitch) > 1e-4 or abs(dYaw) > 1e-4 or abs(dRoll) > 1e-4
+	return targets, moved
+end
+
+local function sendTransforms(targets)
+	if #targets == 0 then
+		return
+	end
+
+	local batch = {}
+	local function flush()
+		if #batch > 0 then
+			SendLuaRulesMsg(TRANSFORM_HEADER .. gz.strokeID .. "|" .. table.concat(batch, "|"))
+			batch = {}
+		end
+	end
+
+	for i = 1, #targets do
+		local t = targets[i]
+		batch[#batch + 1] =
+			string.format("%d %.2f %.2f %.2f %.5f %.5f %.5f", t.id, t.x, t.y, t.z, t.pitch, t.yaw, t.roll)
+		if #batch >= PLACE_BATCH then
+			flush()
+		end
+	end
+	flush()
+end
+
+local function endGizmoDrag(mx, my)
+	if not gz.dragging then
+		return
+	end
+
+	local targets, moved = updateGizmoDrag(mx, my)
+	Gizmo.endDrag()
+	gz.dragging = false
+
+	-- A click that grabbed a handle without dragging it anywhere should not cost
+	-- an undo entry.
+	if not moved or not targets then
+		showHiddenFeatures()
+		clearGizmoGhosts()
+		recomputePivot()
+		return
+	end
+
+	sendTransforms(targets)
+
+	-- Keep the ghosts up until the sim has actually moved the real features,
+	-- otherwise they visibly snap back for the round-trip. Deadline guards
+	-- against a message that never lands.
+	gz.settleTargets = targets
+	gz.settleDeadline = os.clock() + SETTLE_TIMEOUT
+end
+
+-- Swaps ghosts back out for the real features as the sim catches up.
+local function tickSettle()
+	if not gz.settleTargets then
+		return
+	end
+
+	local remaining = {}
+	for i = 1, #gz.settleTargets do
+		local t = gz.settleTargets[i]
+		local x, y, z = GetFeaturePosition(t.id)
+		local settled = not Spring.ValidFeatureID(t.id)
+			or (x and abs(x - t.x) < SETTLE_EPSILON and abs(y - t.y) < SETTLE_EPSILON and abs(z - t.z) < SETTLE_EPSILON)
+		if settled then
+			if gz.hidden[t.id] and Spring.ValidFeatureID(t.id) then
+				Spring.SetFeatureNoDraw(t.id, false)
+				gz.hidden[t.id] = nil
+			end
+		else
+			remaining[#remaining + 1] = t
+		end
+	end
+
+	if #remaining == 0 or os.clock() > gz.settleDeadline then
+		showHiddenFeatures()
+		clearGizmoGhosts()
+		gz.settleTargets = nil
+		recomputePivot()
+		return
+	end
+
+	gz.settleTargets = remaining
+	syncGizmoGhosts(remaining)
+end
+
+local function deleteSelection()
+	if #gz.selection == 0 then
+		return
+	end
+
+	local ids = {}
+	for i = 1, #gz.selection do
+		ids[#ids + 1] = tostring(gz.selection[i])
+	end
+	SendLuaRulesMsg(REMOVEIDS_HEADER .. table.concat(ids, "|"))
+	clearSelection()
+end
+
+local function selectAllInBox(x1, y1, x2, y2)
+	local featureIDs = Spring.GetFeaturesInScreenRectangle(x1, y1, x2, y2)
+	setSelection(featureIDs or {})
+end
+
+----------------------------------------------------------------
 -- Activation / Mode management
 ----------------------------------------------------------------
 local function activate(mode)
@@ -729,6 +1227,7 @@ local function deactivate()
 	fp.lockedWorldZ = nil
 	hideBuildGrid()
 	clearGhosts()
+	clearSelection()
 	return true
 end
 
@@ -839,6 +1338,64 @@ end
 local saveBuffer = {}
 local saveExpectedCount = 0
 
+-- One-shot feature-list read for other widgets. The Map Project save used to
+-- walk Spring.GetAllFeatures() itself, but Spring.GetFeatureRotation called from
+-- LuaUI reads transMatrix[0], which FeatureDrawerData only refreshes for
+-- features that were actually drawn this frame -- so off-screen features
+-- reported zero rotation and the saved file depended on where the camera was
+-- pointing. The gadget runs synced, where the transform is always current.
+local dataWaiter = nil
+local dataWaiterTicks = 0
+local DATA_WAITER_TIMEOUT = 300 -- Update ticks, ~10s
+
+local function parseSavedEntries()
+	local entries = {}
+	for _, batchStr in ipairs(saveBuffer) do
+		for chunk in batchStr:gmatch("[^|]+") do
+			local parts = {}
+			for word in chunk:gmatch("%S+") do
+				parts[#parts + 1] = word
+			end
+			if parts[1] and parts[2] and parts[3] then
+				entries[#entries + 1] = {
+					name = parts[1],
+					x = tonumber(parts[2]),
+					z = tonumber(parts[3]),
+					rot = tonumber(parts[4]) or 0,
+					-- Present only for features the gizmo tilted or lifted; the
+					-- gadget decides, comparing against the engine's own resting
+					-- alignment rather than against zero.
+					pitch = tonumber(parts[5]),
+					roll = tonumber(parts[6]),
+					y = tonumber(parts[7]),
+				}
+			end
+		end
+	end
+	return entries
+end
+
+---@param callback function receives (entries) or (nil, errorMessage)
+---@return boolean started
+local function requestFeatureData(callback)
+	if type(callback) ~= "function" then
+		return false
+	end
+	if dataWaiter then
+		callback(nil, "a feature export is already pending")
+		return false
+	end
+	if not Spring.IsCheatingEnabled() then
+		callback(nil, "feature export requires /cheat")
+		return false
+	end
+	saveBuffer = {}
+	dataWaiter = callback
+	dataWaiterTicks = 0
+	SendLuaRulesMsg(SAVE_HEADER)
+	return true
+end
+
 local function handleSaveBegin(count)
 	saveBuffer = {}
 	saveExpectedCount = count or 0
@@ -850,6 +1407,16 @@ local function handleSaveData(dataStr)
 end
 
 local function handleSaveEnd(count)
+	-- A pending data request consumes the export instead of writing a file.
+	if dataWaiter then
+		local cb = dataWaiter
+		dataWaiter = nil
+		local entries = parseSavedEntries()
+		saveBuffer = {}
+		cb(entries)
+		return
+	end
+
 	Spring.CreateDir(SAVE_DIR)
 	local mapName = Game.mapName or "unknown"
 	local timestamp = os.date("%Y%m%d_%H%M%S")
@@ -883,7 +1450,17 @@ local function handleSaveEnd(count)
 			local z       = parts[3]
 			local rot     = parts[4] or "0"   -- engine heading, written as rot
 			if defName and x and z then
-				file:write(string.format('\t{ name = %q, x = %s, z = %s, rot = %s },\n', defName, x, z, rot))
+				-- pitch/roll/y only appear for features the gizmo tilted or
+				-- lifted, so a map that was never gizmo-edited writes exactly
+				-- the same bytes it always did.
+				if parts[5] and parts[6] and parts[7] then
+					file:write(string.format(
+						'\t{ name = %q, x = %s, z = %s, rot = %s, pitch = %s, roll = %s, y = %s },\n',
+						defName, x, z, rot, parts[5], parts[6], parts[7]
+					))
+				else
+					file:write(string.format('\t{ name = %q, x = %s, z = %s, rot = %s },\n', defName, x, z, rot))
+				end
 			end
 		end
 	end
@@ -997,6 +1574,11 @@ local function getState()
 		gridOverlay  = gridOverlay,
 		gridSnap     = gridSnap,
 		gridSnapSize = gridSnapSize,
+		-- Gizmo selection. selectMode tells the panel whether clicking the map
+		-- picks features or places them.
+		selectMode      = selectModeActive(),
+		selectionCount  = #gz.selection,
+		gizmoDragging   = gz.dragging,
 	}
 end
 
@@ -1253,7 +1835,27 @@ function widget:KeyPress(key, mods, isRepeat)
 	if not fp.active then return false end
 
 	if key == 0x1B then -- Escape
-		deactivate()
+		-- First Escape drops the selection, second leaves the tool. Deactivating
+		-- out from under an active selection loses work with no way back.
+		if #gz.selection > 0 then
+			clearSelection()
+		else
+			deactivate()
+		end
+		return true
+	end
+
+	-- Delete / Backspace removes the gizmo selection. The right mouse button
+	-- keeps its brush-erase meaning in every mode, as it does in the other tools.
+	if (key == 0x7F or key == 0x08) and #gz.selection > 0 then
+		deleteSelection()
+		return true
+	end
+
+	-- Ctrl+A selects everything the camera can see.
+	if mods.ctrl and key == 97 and selectModeActive() then -- a
+		local vsx, vsy = Spring.GetViewGeometry()
+		selectAllInBox(0, 0, vsx, vsy)
 		return true
 	end
 
@@ -1296,6 +1898,35 @@ function widget:MousePress(mx, my, button)
 		return false
 	end
 
+	-- Empty mouse: nothing is selected in the library, so the left button
+	-- manipulates what is already on the map instead of placing more.
+	if button == 1 and selectModeActive() then
+		if #gz.selection > 0 then
+			local handle = Gizmo.hitTest(mx, my)
+			if handle and beginGizmoDrag(handle, mx, my) then
+				return true
+			end
+		end
+
+		local traceType, traceID = TraceScreenRay(mx, my)
+		if traceType == "feature" then
+			local _, _, _, shift = GetModKeyState()
+			if shift then
+				toggleSelection(traceID)
+			else
+				setSelection({ traceID })
+			end
+			return true
+		end
+
+		-- Empty ground: start a box select. Whether this was a box or just a
+		-- click that clears the selection is decided on release.
+		gz.boxing = true
+		gz.boxX1, gz.boxY1 = mx, my
+		gz.boxX2, gz.boxY2 = mx, my
+		return true
+	end
+
 	if button == 1 then
 		local worldX, worldZ = getWorldMousePosition()
 		if not worldX then return false end
@@ -1336,7 +1967,36 @@ function widget:MousePress(mx, my, button)
 	return false
 end
 
+function widget:MouseMove(mx, my, dx, dy, button)
+	if gz.dragging then
+		updateGizmoDrag(mx, my)
+		return true
+	end
+	if gz.boxing then
+		gz.boxX2, gz.boxY2 = mx, my
+		return true
+	end
+	return false
+end
+
 function widget:MouseRelease(mx, my, button)
+	if button == 1 and gz.dragging then
+		endGizmoDrag(mx, my)
+		return true
+	end
+
+	if button == 1 and gz.boxing then
+		gz.boxing = false
+		gz.boxX2, gz.boxY2 = mx, my
+		if abs(gz.boxX2 - gz.boxX1) >= BOX_MIN_PX or abs(gz.boxY2 - gz.boxY1) >= BOX_MIN_PX then
+			selectAllInBox(gz.boxX1, gz.boxY1, gz.boxX2, gz.boxY2)
+		else
+			-- A click on empty ground, not a drag: deselect.
+			clearSelection()
+		end
+		return true
+	end
+
 	if (button == 1 or button == 3) and fp.dragging then
 		fp.dragging = false
 		fp.dragAction = nil
@@ -1407,6 +2067,44 @@ end
 function widget:Update(dt)
 	if not fp.active then return end
 
+	-- Selection survives a mode switch but not a library pick: choosing something
+	-- to place means the tool is placing again, and a stale gizmo would sit there
+	-- catching clicks meant for the brush.
+	if #fp.selectedDefs > 0 and #gz.selection > 0 then
+		clearSelection()
+	end
+
+	-- A refused or lost export must not wedge every later request.
+	if dataWaiter then
+		dataWaiterTicks = dataWaiterTicks + 1
+		if dataWaiterTicks > DATA_WAITER_TIMEOUT then
+			local cb = dataWaiter
+			dataWaiter = nil
+			cb(nil, "feature export timed out")
+		end
+	end
+
+	tickSettle()
+
+	if selectModeActive() and not gz.dragging and #gz.selection > 0 then
+		local mx, my = GetMouseState()
+		gz.hovered = Gizmo.hitTest(mx, my)
+	else
+		gz.hovered = nil
+	end
+
+	-- MouseMove only fires while a button is down in some camera modes; poll the
+	-- release too so a drag cannot get stuck if the release event is swallowed.
+	if gz.dragging then
+		local mx, my, leftPressed = GetMouseState()
+		if leftPressed then
+			updateGizmoDrag(mx, my)
+		else
+			endGizmoDrag(mx, my)
+		end
+		return
+	end
+
 	if not fp.dragging then return end
 
 	local mx, my, leftPressed, _, rightPressed = GetMouseState()
@@ -1439,6 +2137,30 @@ function widget:Update(dt)
 	end
 end
 
+----------------------------------------------------------------
+-- Selection markers
+----------------------------------------------------------------
+-- A ring on the ground under each selected feature, sized from the feature's own
+-- collision radius. Deliberately not a tinted model ghost: that would draw the
+-- model a second time on top of itself and read as a rendering fault.
+local function drawSelectionMarkers()
+	glDepthTest(false)
+	glLineWidth(2)
+	glColor(1.0, 0.85, 0.25, 0.85)
+
+	for i = 1, #gz.selection do
+		local featureID = gz.selection[i]
+		local x, _, z = GetFeaturePosition(featureID)
+		if x then
+			local defID = GetFeatureDefID(featureID)
+			local def = defID and FeatureDefs[defID]
+			local r = (def and def.radius or 16) * 1.1
+			drawRegularPolygon(x, z, r, 0, 20)
+		end
+	end
+
+	glLineWidth(1)
+end
 
 ----------------------------------------------------------------
 -- DrawWorld — brush outline
@@ -1457,6 +2179,13 @@ function widget:DrawWorld()
 		hideBuildGrid()
 		clearGhosts()
 		return
+	end
+
+	-- Selection rings and the gizmo sit on top of everything else this tool
+	-- draws, and stay up while the brush outline is hidden behind the panel.
+	if #gz.selection > 0 then
+		drawSelectionMarkers()
+		Gizmo.draw(gz.hovered)
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
@@ -1582,6 +2311,32 @@ function widget:DrawWorld()
 end
 
 ----------------------------------------------------------------
+-- DrawScreen — box selection rectangle
+----------------------------------------------------------------
+function widget:DrawScreen()
+	if not gz.boxing then
+		return
+	end
+
+	local x1, y1 = gz.boxX1, gz.boxY1
+	local x2, y2 = gz.boxX2, gz.boxY2
+
+	gl.Color(1.0, 0.85, 0.25, 0.12)
+	gl.Rect(x1, y1, x2, y2)
+
+	gl.Color(1.0, 0.85, 0.25, 0.9)
+	glLineWidth(1.5)
+	glBeginEnd(GL_LINE_LOOP, function()
+		glVertex(x1, y1)
+		glVertex(x2, y1)
+		glVertex(x2, y2)
+		glVertex(x1, y2)
+	end)
+	glLineWidth(1)
+	gl.Color(1, 1, 1, 1)
+end
+
+----------------------------------------------------------------
 -- Initialize / Shutdown
 ----------------------------------------------------------------
 function widget:Initialize()
@@ -1597,6 +2352,11 @@ function widget:Initialize()
 	widgetHandler:AddAction("featureplaceroff",     deactivate, nil, "t")
 
 	buildFeatureDefList()
+
+	if not Gizmo.init() then
+		-- Placement still works without it; only the transform gizmo is lost.
+		Echo("[Feature Placer] Gizmo unavailable (GL4 init failed); selection editing disabled")
+	end
 
 	-- Expose API
 	WG.FeaturePlacer = {
@@ -1629,6 +2389,13 @@ function widget:Initialize()
 		setGridSnap         = setGridSnap,
 		setGridSnapSize     = setGridSnapSize,
 		reroll              = rerollPreview,
+		requestFeatureData  = requestFeatureData,
+		clearSelection      = clearSelection,
+		deleteSelection     = deleteSelection,
+		selectAllVisible    = function()
+			local vsx, vsy = Spring.GetViewGeometry()
+			selectAllInBox(0, 0, vsx, vsy)
+		end,
 		deactivate          = deactivate,
 	}
 
@@ -1649,6 +2416,8 @@ end
 function widget:Shutdown()
 	hideBuildGrid()
 	clearGhosts()
+	clearSelection()
+	Gizmo.shutdown()
 	if gridDL then
 		glDeleteList(gridDL)
 		gridDL = nil

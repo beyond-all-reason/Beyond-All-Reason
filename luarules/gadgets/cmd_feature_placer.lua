@@ -41,6 +41,8 @@ end
 -- created. $feature_scatter$ and $feature_point$, which asked this gadget to
 -- roll its own positions, are gone.
 local PLACELIST_HEADER = "$feature_place_list$"
+local TRANSFORM_HEADER = "$feature_transform$"
+local REMOVEIDS_HEADER = "$feature_remove_ids$"
 local REMOVE_HEADER   = "$feature_remove$"
 local UNDO_HEADER     = "$feature_undo$"
 local REDO_HEADER     = "$feature_redo$"
@@ -424,26 +426,128 @@ local function removeFeatureIDs(payload)
 	if #removed > 0 then
 		pushUndo({ action = "remove", features = removed })
 	end
+	return #removed
+end
+
+----------------------------------------------------------------
+-- Gizmo transforms
+----------------------------------------------------------------
+local function transformFeatures(payload)
+	local strokeID, bodyStart = splitStroke(payload)
+	if strokeID == "" then
+		return 0
+	end
+
+	local entry = openStroke(strokeID, "transform", "transform")
+	local index = stroke.index
+	local applied = 0
+
+	for chunk in payload:sub(bodyStart):gmatch("[^|]+") do
+		local parts = {}
+		for word in chunk:gmatch("%S+") do
+			parts[#parts + 1] = word
+		end
+
+		local fid = tonumber(parts[1])
+		local after = {
+			x = tonumber(parts[2]),
+			y = tonumber(parts[3]),
+			z = tonumber(parts[4]),
+			pitch = tonumber(parts[5]) or 0,
+			yaw = tonumber(parts[6]) or 0,
+			roll = tonumber(parts[7]) or 0,
+		}
+
+		if fid and after.x and after.y and after.z and ValidFeatureID(fid) then
+			local slot = index[fid]
+			if not slot then
+				-- First time this feature moves in this stroke: its current state
+				-- is what undo has to restore to.
+				local before = readTransform(fid)
+				if before then
+					entry.features[#entry.features + 1] = { id = fid, before = before, after = after }
+					index[fid] = #entry.features
+					commitStroke()
+				end
+			else
+				entry.features[slot].after = after
+			end
+
+			if applyTransform(fid, after) then
+				applied = applied + 1
+			end
+		end
+	end
+
+	return applied
 end
 
 ----------------------------------------------------------------
 -- Undo / Redo
 ----------------------------------------------------------------
+-- Recreating a feature gives it a NEW id, and it is not only the entry being
+-- replayed that stores that id: a "transform" entry deeper in the stack is keyed
+-- entirely by live feature ids. Leave those pointing at the destroyed id and
+-- undoing a gizmo drag silently does nothing (ValidFeatureID fails), or worse,
+-- once the engine's id pool recycles the number, moves an unrelated feature.
+--
+-- So every recreate publishes an old -> new mapping across both stacks.
+local function remapFeatureIDs(mapping)
+	local function patch(stack)
+		for i = 1, #stack do
+			local features = stack[i].features
+			for j = 1, #features do
+				local newID = mapping[features[j].id]
+				if newID then
+					features[j].id = newID
+				end
+			end
+		end
+	end
+	patch(undoStack)
+	patch(redoStack)
+end
+
+local function recreateInto(features)
+	local mapping = nil
+	for i = 1, #features do
+		local f = features[i]
+		local oldID = f.id
+		f.id = createFromPlacement(f)
+		if oldID and f.id and oldID ~= f.id then
+			mapping = mapping or {}
+			mapping[oldID] = f.id
+		end
+	end
+	if mapping then
+		remapFeatureIDs(mapping)
+	end
+end
+
+local function destroyAll(features)
+	for i = 1, #features do
+		local f = features[i]
+		if ValidFeatureID(f.id) then
+			DestroyFeature(f.id)
+		end
+	end
+end
+
 local function featureUndo()
 	if #undoStack == 0 then return end
+	closeStroke()
+
 	local entry = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
 
 	if entry.action == "place" then
-		for _, f in ipairs(entry.features) do
-			if ValidFeatureID(f.id) then
-				DestroyFeature(f.id)
-			end
-		end
+		destroyAll(entry.features)
 	elseif entry.action == "remove" then
-		for i, f in ipairs(entry.features) do
-			local id = CreateFeature(f.defName, f.x, f.y, f.z, f.heading, gaiaTeamID)
-			f.id = id
+		recreateInto(entry.features)
+	elseif entry.action == "transform" then
+		for i = 1, #entry.features do
+			local f = entry.features[i]
+			applyTransform(f.id, f.before)
 		end
 	end
 
@@ -481,12 +585,28 @@ local function exportAllFeatures()
 	local data = {}
 	for i = 1, #allFeatures do
 		local fid = allFeatures[i]
-		local defID = GetFeatureDefID(fid)
-		local def = FeatureDefs[defID]
-		if def then
-			local fx, fy, fz = GetFeaturePosition(fid)
-			local heading = GetFeatureHeading(fid) or 0
-			data[#data + 1] = def.name .. " " .. floor(fx) .. " " .. floor(fz) .. " " .. heading
+		local snapshot = captureFeature(fid)
+		if snapshot then
+			local entry = snapshot.defName
+				.. " "
+				.. floor(snapshot.x)
+				.. " "
+				.. floor(snapshot.z)
+				.. " "
+				.. snapshot.heading
+			-- Only carry the tilt/lift tail when there is one, so maps that were
+			-- never touched by the gizmo serialise exactly as they did before.
+			-- "Tilted" means tilted away from the engine's own resting alignment,
+			-- not simply non-zero pitch: ground-aligned features on a slope have
+			-- plenty of that without anyone having touched them.
+			if
+				not snapshot.resting
+				or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON
+			then
+				entry = entry
+					.. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
+			end
+			data[#data + 1] = entry
 		end
 	end
 	-- Send count first, then batches of features
@@ -520,12 +640,9 @@ local function clearAllFeatures()
 	local removed = {}
 	for i = 1, #allFeatures do
 		local fid = allFeatures[i]
-		local defID = GetFeatureDefID(fid)
-		local def = FeatureDefs[defID]
-		if def then
-			local fx, fy, fz = GetFeaturePosition(fid)
-			local heading = GetFeatureHeading(fid) or 0
-			removed[#removed + 1] = { defName = def.name, x = fx, y = fy, z = fz, heading = heading }
+		local snapshot = captureFeature(fid)
+		if snapshot then
+			removed[#removed + 1] = snapshot
 			DestroyFeature(fid)
 		end
 	end
@@ -560,8 +677,30 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return true
 		end
 		-- No closeStroke() here: the batches of one stamp must coalesce, and
-		-- openStroke already closes a stroke of a different id or kind.
+		-- openStroke already closes a stroke of a different id or kind, so a new
+		-- placement still cannot share an entry with a gizmo drag.
 		placeFromList(msg:sub(#PLACELIST_HEADER + 1), true)
+		return true
+	end
+
+	-- Gizmo transform
+	if msg:sub(1, #TRANSFORM_HEADER) == TRANSFORM_HEADER then
+		if not Spring.IsCheatingEnabled() then
+			Spring.Echo("[Feature Placer] Requires /cheat to be enabled")
+			return true
+		end
+		transformFeatures(msg:sub(#TRANSFORM_HEADER + 1))
+		return true
+	end
+
+	-- Remove an explicit selection
+	if msg:sub(1, #REMOVEIDS_HEADER) == REMOVEIDS_HEADER then
+		if not Spring.IsCheatingEnabled() then
+			Spring.Echo("[Feature Placer] Requires /cheat to be enabled")
+			return true
+		end
+		closeStroke()
+		removeFeatureIDs(msg:sub(#REMOVEIDS_HEADER + 1))
 		return true
 	end
 

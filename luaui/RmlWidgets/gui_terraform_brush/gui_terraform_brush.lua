@@ -2204,6 +2204,13 @@ local initialModel = {
 	fpMeasureStickyMode = false,
 	fpSymMirrorX = false,
 	fpSymMirrorY = false,
+	-- features placer gizmo selection. fpShowSelection/fpShowReroll are combined
+	-- in Lua because nothing else in this document uses a compound data
+	-- expression, and this is not the place to be the first.
+	fpShowSelection = false,
+	fpShowReroll = false,
+	fpHasSelection = false,
+	fpSelectionStr = "none",
 	-- features placer save/load popup
 	fpSaveLoadOpen = false,
 	-- light placer
@@ -3955,6 +3962,28 @@ local initialModel = {
 			local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
 			WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
 		end
+	end,
+
+	-- Gizmo selection
+	onFpSelectVisible = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.selectAllVisible) then return end
+		playSound("toggleOn")
+		WG.FeaturePlacer.selectAllVisible()
+	end,
+	onFpClearSelection = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.clearSelection) then return end
+		playSound("toggleOff")
+		WG.FeaturePlacer.clearSelection()
+	end,
+	onFpDeleteSelection = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.deleteSelection) then return end
+		playSound("toggleOff")
+		WG.FeaturePlacer.deleteSelection()
+	end,
+	onFpReroll = function(_event)
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.reroll) then return end
+		playSound("toggleOn")
+		WG.FeaturePlacer.reroll()
 	end,
 
 	-- Grid overlay / snap

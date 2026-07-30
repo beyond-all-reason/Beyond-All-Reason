@@ -480,11 +480,25 @@ local function stepMetal()
 	return true
 end
 
-local function stepFeatures()
-	-- Serialized unsynced straight from the engine: the feature placer's own save
-	-- is an async gadget round-trip with no completion signal, and the data is
-	-- fully readable from here. Output format = FeaturePlacer setcfg (unchanged),
-	-- so the existing loader consumes it as-is.
+-- Features come from the feature placer's synced export, not from a local walk
+-- of Spring.GetAllFeatures(). Spring.GetFeatureRotation called from LuaUI reads
+-- transMatrix[0], which FeatureDrawerData only refreshes for features that were
+-- actually drawn this frame, so an unsynced walk reports zero rotation for
+-- everything off screen -- the saved bytes would depend on where the camera
+-- happened to be pointing. The gadget runs synced, where the transform is always
+-- current, and it is also the thing that decides whether a feature is merely
+-- ground-aligned or genuinely gizmo-tilted.
+--
+-- Same request/poll shape as stepUnits.
+local FEATURES_TIMEOUT_TICKS = 300
+local featuresRx = nil
+
+-- Fallback for when the synced export is unavailable (it needs /cheat, and
+-- nothing can have been gizmo-transformed without /cheat either). Reads what the
+-- old code read and writes the same 4-field records, deliberately never emitting
+-- a transform tail: unsynced rotation is camera-dependent, so guessing from it
+-- would be worse than omitting it.
+local function writeFeaturesUnsynced(reason)
 	local featureIDs = Spring.GetAllFeatures()
 	local entries = {}
 	for i = 1, #featureIDs do
@@ -493,36 +507,121 @@ local function stepFeatures()
 		local def = defID and FeatureDefs[defID]
 		local x, _, z = Spring.GetFeaturePosition(fid)
 		if def and x then
-			entries[#entries + 1] = {
-				name = def.name,
-				x = x,
-				z = z,
-				rot = Spring.GetFeatureHeading(fid) or 0,
-			}
+			entries[#entries + 1] = { name = def.name, x = x, z = z, rot = Spring.GetFeatureHeading(fid) or 0 }
 		end
 	end
 	if #entries == 0 then
 		sectionSkip("features", "no features on map")
 		return true
 	end
-	-- Feature IDs are transient (re-assigned every load), so order by content.
 	table.sort(entries, function(a, b)
 		if a.name ~= b.name then return a.name < b.name end
 		if a.x ~= b.x then return a.x < b.x end
 		if a.z ~= b.z then return a.z < b.z end
 		return a.rot < b.rot
 	end)
+	local lines = { "local setcfg = {", "\tunitlist = {},", "\tbuildinglist = {},", "\tobjectlist = {" }
+	for _, e in ipairs(entries) do
+		lines[#lines + 1] =
+			string.format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+	end
+	lines[#lines + 1] = "\t},"
+	lines[#lines + 1] = "}"
+	lines[#lines + 1] = "return setcfg"
+	local bytes = writeFile(job.dir .. "features.lua", table.concat(lines, "\n"))
+	if bytes then
+		warn("features saved without transform data (" .. reason .. ")")
+		sectionOk("features", "features.lua", bytes, #entries .. " features")
+	else
+		sectionSkip("features", "write failed")
+	end
+	return true
+end
+
+local function stepFeatures()
+	local fp = WG.FeaturePlacer
+	if not (fp and fp.requestFeatureData) then
+		return writeFeaturesUnsynced("feature placer widget not loaded")
+	end
+
+	local c = job.cursor
+	if not c.requested then
+		featuresRx = nil
+		local started = fp.requestFeatureData(function(entries, err)
+			featuresRx = { entries = entries, err = err, done = true }
+		end)
+		if not started then
+			-- Refused up front (usually /cheat off, which also means nothing can
+			-- have been gizmo-transformed). Write what is readable rather than
+			-- dropping the whole section.
+			local why = (featuresRx and featuresRx.err) or "export unavailable"
+			featuresRx = nil
+			return writeFeaturesUnsynced(why)
+		end
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+
+	c.ticks = c.ticks + 1
+	if not (featuresRx and featuresRx.done) then
+		if c.ticks > FEATURES_TIMEOUT_TICKS then
+			featuresRx = nil
+			return writeFeaturesUnsynced("export timed out")
+		end
+		return false
+	end
+
+	local rx = featuresRx
+	featuresRx = nil
+	if rx.err or not rx.entries then
+		return writeFeaturesUnsynced(tostring(rx.err))
+	end
+
+	local entries = rx.entries
+	if #entries == 0 then
+		sectionSkip("features", "no features on map")
+		return true
+	end
+
+	-- Feature IDs are transient (re-assigned every load), so order by content.
+	-- The comparator has to stay total across every field that is written, or two
+	-- features differing only in tilt could swap places between saves and produce
+	-- a spurious diff.
+	local function num(v)
+		return v or 0
+	end
+	table.sort(entries, function(a, b)
+		if a.name ~= b.name then return a.name < b.name end
+		if a.x ~= b.x then return a.x < b.x end
+		if a.z ~= b.z then return a.z < b.z end
+		if a.rot ~= b.rot then return a.rot < b.rot end
+		if num(a.y) ~= num(b.y) then return num(a.y) < num(b.y) end
+		if num(a.pitch) ~= num(b.pitch) then return num(a.pitch) < num(b.pitch) end
+		return num(a.roll) < num(b.roll)
+	end)
+
 	local lines = {
 		"local setcfg = {",
-		"\tunitlist = {},",
-		"\tbuildinglist = {},",
-		"\tobjectlist = {",
+		"	unitlist = {},",
+		"	buildinglist = {},",
+		"	objectlist = {",
 	}
 	local format = string.format
 	for _, e in ipairs(entries) do
-		lines[#lines + 1] = format("\t\t{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+		-- The tail is present exactly when the gadget decided this feature was
+		-- transformed, so an unedited map writes the same 4-field records it
+		-- always did.
+		if e.pitch and e.roll and e.y then
+			lines[#lines + 1] = format(
+				"		{ name = %q, x = %.1f, z = %.1f, rot = %d, pitch = %.4f, roll = %.4f, y = %.1f },",
+				e.name, e.x, e.z, e.rot, e.pitch, e.roll, e.y
+			)
+		else
+			lines[#lines + 1] = format("		{ name = %q, x = %.1f, z = %.1f, rot = %d },", e.name, e.x, e.z, e.rot)
+		end
 	end
-	lines[#lines + 1] = "\t},"
+	lines[#lines + 1] = "	},"
 	lines[#lines + 1] = "}"
 	lines[#lines + 1] = "return setcfg"
 	local bytes = writeFile(job.dir .. "features.lua", table.concat(lines, "\n"))

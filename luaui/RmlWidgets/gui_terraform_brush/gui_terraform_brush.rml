@@ -1836,6 +1836,43 @@
 			</div><!-- /frame-fp-mode -->
 		</div>
 
+		<!-- Feature selection / gizmo. Only meaningful on an "empty mouse": with
+		     nothing picked in the asset library, clicking the map selects placed
+		     features instead of placing new ones. fpShowSelection is computed in
+		     Lua rather than as a compound data expression, matching fpSymHasAxis
+		     and friends. -->
+		<div id="tf-fp-selection" data-if="fpShowSelection">
+			<div class="tf-section-frame" id="frame-fp-selection">
+				<div class="tf-section-title-row">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/edit_pencil.png" />
+					<div class="tf-collapsible-title">SELECTION</div>
+					<div id="chip-fp-selection-count" class="tf-overlay-chip" data-class-active="fpHasSelection"><div class="tf-overlay-chip-label">{{fpSelectionStr}}</div></div>
+				</div>
+			<div id="section-fp-selection">
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div id="btn-fp-select-visible" class="tf-overlay-chip" data-event-mousedown="onFpSelectVisible()">
+					<div class="tf-overlay-chip-label">Select Visible</div>
+				</div>
+				<div id="btn-fp-selection-clear" class="tf-overlay-chip" data-event-mousedown="onFpClearSelection()">
+					<div class="tf-overlay-chip-label">Clear</div>
+				</div>
+				<div id="btn-fp-selection-delete" class="tf-overlay-chip" data-event-mousedown="onFpDeleteSelection()">
+					<div class="tf-overlay-chip-label">Delete</div>
+				</div>
+			</div>
+			</div><!-- /section-fp-selection -->
+			</div><!-- /frame-fp-selection -->
+		</div>
+
+		<!-- Reroll the previewed scatter layout without placing it. -->
+		<div id="tf-fp-reroll-row" data-if="fpShowReroll">
+			<div class="flex flex-row items-center gap-1 mb-1">
+				<div id="btn-fp-reroll" class="tf-overlay-chip" data-event-mousedown="onFpReroll()">
+					<div class="tf-overlay-chip-label">Reroll Preview</div>
+				</div>
+			</div>
+		</div>
+
 		<!-- Ramp type row (visible only when Ramp mode active) -->
 		<div id="tf-ramp-type-row" data-if="tfRampMode">
 			<div class="tf-section-frame" id="frame-ramp-type">
