@@ -46,8 +46,10 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 ----------------------------------------------------------------
 -- Constants
 ----------------------------------------------------------------
-local SCATTER_HEADER = "$feature_scatter$"
-local POINT_HEADER   = "$feature_point$"
+-- Placement is now a list this widget generated and previewed, not a set of
+-- brush parameters for the gadget to roll its own dice with. That is what makes
+-- the ghost preview truthful: preview and result are the same array.
+local PLACELIST_HEADER = "$feature_place_list$"
 local REMOVE_HEADER  = "$feature_remove$"
 local UNDO_HEADER    = "$feature_undo$"
 local REDO_HEADER    = "$feature_redo$"
@@ -56,6 +58,25 @@ local LOAD_HEADER    = "$feature_load$"
 local CLEARALL_HEADER = "$feature_clearall$"
 
 local SAVE_DIR = "Terraform Brush/FeatureMaps/"
+
+-- Features per message. The richer placement format runs ~45 chars an entry, so
+-- this keeps a full batch around 2 KB, in line with the load path that has been
+-- shipping 50 shorter entries per message.
+local PLACE_BATCH = 40
+
+local GHOST_ALPHA = 0.55
+local GHOST_OWNER = "cmd_feature_placer"
+-- Ceiling on previewed ghosts only; placement is never capped.
+local PREVIEW_GHOST_CAP = 300
+
+-- Same generators the gadget used to run, moved widget-side so the preview can
+-- see them. See the header of that file for why.
+local Scatter = VFS.Include("common/feature_scatter.lua")
+local BrushShapes = VFS.Include("common/brush_shapes.lua")
+
+local abs = math.abs
+local asin = math.asin
+local atan2 = math.atan2
 
 local CIRCLE_SEGMENTS = 48
 local DEFAULT_RADIUS  = 200
@@ -85,8 +106,8 @@ local fp = {
 	shape         = "circle",
 	radius        = DEFAULT_RADIUS,
 	rotation      = 0,
-	rotRandom     = 100,   -- 0 = all same heading, 100 = fully random
-	featureCount  = 10,
+	rotRandom     = 0,     -- 0 = all same heading, 100 = fully random
+	featureCount  = 1,
 	cadence       = 10,        -- 1-1000 logarithmic (higher = faster)
 	distribution  = "random",  -- "random", "regular", or "clustered"
 	smartEnabled  = false,     -- terrain-aware filtering applied on top of distribution
@@ -377,53 +398,290 @@ local function getCadenceInterval()
 end
 
 ----------------------------------------------------------------
--- Send messages to gadget
+-- Brush layout: generate once, resolve per frame
 ----------------------------------------------------------------
-local function sendScatterMessage(worldX, worldZ)
-	if #fp.selectedDefs == 0 then return end
-	local defList = table.concat(fp.selectedDefs, "|")
-	local sf = fp.smartFilters
-	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
-	for i = 1, #positions do
-		local p = positions[i]
-		local msg = SCATTER_HEADER
-			.. defList .. " "
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. fp.radius .. " "
-			.. fp.shape .. " "
-			.. p.rot .. " "
-			.. fp.featureCount .. " "
-			.. fp.distribution .. " "
-			.. fp.rotRandom .. " "
-			.. (fp.smartEnabled and "1" or "0") .. " "
-			.. (sf.avoidWater   and "1" or "0") .. " "
-			.. (sf.avoidCliffs  and "1" or "0") .. " "
-			.. sf.slopeMax .. " "
-			.. (sf.preferSlopes and "1" or "0") .. " "
-			.. sf.slopeMin .. " "
-			.. (sf.altMinEnable and tostring(floor(sf.altMin)) or "_") .. " "
-			.. (sf.altMaxEnable and tostring(floor(sf.altMax)) or "_")
-		SendLuaRulesMsg(msg)
-	end
+-- The layout is brush-relative and cached, so the preview keeps its shape while
+-- the cursor moves instead of reshuffling every frame. It is rebuilt only when a
+-- brush parameter or the seed changes; the seed is rerolled after every stamp so
+-- consecutive stamps do not come out identical.
+local preview = {
+	seed = 1,
+	layout = nil,
+	layoutKey = nil,
+	ghosts = {},
+	ghostCount = 0,
+	warnedCap = false,
+}
+
+local function rerollPreview()
+	-- os.clock rather than math.random: widgets do not seed math.random, so it
+	-- returns the same sequence every session.
+	preview.seed = floor(os.clock() * 1000000) % 4294967296
+	preview.layoutKey = nil
 end
 
-local function sendPointMessage(worldX, worldZ)
-	if #fp.selectedDefs == 0 then return end
-	local defList = table.concat(fp.selectedDefs, "|")
+local function layoutParams()
+	return {
+		shape = fp.shape,
+		radius = fp.radius,
+		rotation = fp.rotation,
+		count = fp.featureCount,
+		distribution = fp.distribution,
+		rotRandom = fp.rotRandom,
+		defNames = fp.selectedDefs,
+		smartEnabled = fp.smartEnabled,
+		smartFilters = fp.smartFilters,
+	}
+end
+
+local function layoutKey(params)
+	return table.concat({
+		preview.seed,
+		fp.mode or "",
+		params.shape,
+		params.radius,
+		params.rotation,
+		params.count,
+		params.distribution,
+		params.rotRandom,
+		table.concat(params.defNames, ","),
+	}, "\0")
+end
+
+local function ensureLayout(params)
+	local key = layoutKey(params)
+	if preview.layoutKey == key then
+		return preview.layout
+	end
+
+	if #params.defNames == 0 then
+		preview.layout = {}
+	elseif fp.mode == "point" then
+		-- One feature under the cursor. Generated here rather than through the
+		-- scatter generators, which would offset it away from the crosshair.
+		local rng = Scatter.newRng(preview.seed)
+		local baseHeading = floor(params.rotation / 360 * 65536) % 65536
+		local spread = floor(params.rotRandom / 100 * 32768)
+		preview.layout = { {
+			dx = 0,
+			dz = 0,
+			defName = params.defNames[rng:int(1, #params.defNames)],
+			heading = (baseHeading + rng:int(-spread, spread)) % 65536,
+		} }
+	else
+		preview.layout = Scatter.generateLocal(params, preview.seed)
+	end
+
+	preview.layoutKey = key
+	return preview.layout
+end
+
+-- Every placement the brush would make right now, across all symmetry copies.
+local function resolvePlacements(worldX, worldZ)
+	local params = layoutParams()
+	local layout = ensureLayout(params)
+	if not layout or #layout == 0 then
+		return {}
+	end
+
+	local placements = {}
 	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
 	for i = 1, #positions do
 		local p = positions[i]
-		local baseHeading = floor(p.rot / 360 * 65536) % 65536
-		local spread = floor(fp.rotRandom / 100 * 32768)
-		local heading = (baseHeading + math.random(-spread, spread)) % 65536
-		local msg = POINT_HEADER
-			.. defList .. " "
-			.. floor(p.x) .. " "
-			.. floor(p.z) .. " "
-			.. heading
-		SendLuaRulesMsg(msg)
+		-- Each symmetry copy carries its own rotation, and the outline and the
+		-- erase brush both already honour it. The layout was rotated once by the
+		-- base rotation, so hand resolve() only the difference.
+		local resolved = Scatter.resolve(layout, p.x, p.z, params, (p.rot or fp.rotation) - fp.rotation)
+		for j = 1, #resolved do
+			placements[#placements + 1] = resolved[j]
+		end
 	end
+	return placements
+end
+
+----------------------------------------------------------------
+-- Ghost preview
+----------------------------------------------------------------
+-- Heading and yaw run in OPPOSITE directions, so these conversions are not just
+-- a unit change.
+--
+-- GetVectorFromHeading builds frontdir = (sin t, 0, cos t) with t = heading in
+-- radians (System/SpringMath.cpp). A draw matrix carrying only yaw y has
+-- frontdir = column 2 of the engine's Ry, which is (-sin y, 0, cos y). Equating
+-- the two gives y = -t. Drop the sign and every previewed feature is mirrored
+-- about the Z axis relative to the one that actually gets placed.
+local HEADING_TO_RAD = 2 * pi / 65536
+
+local function headingToYaw(heading)
+	return -(heading or 0) * HEADING_TO_RAD
+end
+
+local function yawToHeading(yaw)
+	return floor(-(yaw or 0) / HEADING_TO_RAD) % 65536
+end
+
+local function clearGhosts()
+	if WG.StopDrawFeatureShapesGL4 and preview.ghostCount > 0 then
+		WG.StopDrawFeatureShapesGL4(GHOST_OWNER)
+	end
+	for i = 1, preview.ghostCount do
+		preview.ghosts[i] = nil
+	end
+	preview.ghostCount = 0
+end
+
+-- Reuses handles in place so a moving cursor updates instances rather than
+-- churning the instance buffer.
+local function syncGhosts(items)
+	local draw = WG.DrawFeatureShapeGL4
+	if not draw then
+		return
+	end
+
+	-- The preview is redrawn every frame while the cursor moves, so a 500-feature
+	-- brush under symmetry would be thousands of instances a frame for something
+	-- the eye cannot read anyway. Placement is NOT capped -- only what is shown.
+	local shown = #items
+	if shown > PREVIEW_GHOST_CAP then
+		shown = PREVIEW_GHOST_CAP
+		if not preview.warnedCap then
+			preview.warnedCap = true
+			Echo(
+				"[Feature Placer] Preview limited to "
+					.. PREVIEW_GHOST_CAP
+					.. " ghosts; all "
+					.. #items
+					.. " features are still placed on click"
+			)
+		end
+	end
+
+	local ghosts = preview.ghosts
+	local n = 0
+	for i = 1, shown do
+		local item = items[i]
+		local def = FeatureDefNames[item.defName]
+		if def then
+			local handle = draw(
+				def.id,
+				item.x,
+				item.y,
+				item.z,
+				headingToYaw(item.heading),
+				item.pitch or 0,
+				item.roll or 0,
+				item.alpha or GHOST_ALPHA,
+				item.tintR or 1,
+				item.tintG or 1,
+				item.tintB or 1,
+				item.tintAmount or 0,
+				ghosts[n + 1],
+				GHOST_OWNER
+			)
+			if handle then
+				n = n + 1
+				ghosts[n] = handle
+			end
+		end
+	end
+
+	for i = n + 1, preview.ghostCount do
+		if WG.StopDrawFeatureShapeGL4 then
+			WG.StopDrawFeatureShapeGL4(ghosts[i])
+		end
+		ghosts[i] = nil
+	end
+	preview.ghostCount = n
+end
+
+-- Remove mode has nothing to preview, so it highlights what the brush is about
+-- to destroy instead: the features under it, tinted red.
+local function collectRemovalTargets(worldX, worldZ)
+	local items = {}
+	local positions = getSymmetricPositions(worldX, worldZ, fp.rotation)
+	for i = 1, #positions do
+		local p = positions[i]
+		local featureIDs = Spring.GetFeaturesInCylinder(p.x, p.z, fp.radius * 1.42)
+		for j = 1, (featureIDs and #featureIDs or 0) do
+			local fid = featureIDs[j]
+			local fx, fy, fz = GetFeaturePosition(fid)
+			if fx and BrushShapes.isInside(fx - p.x, fz - p.z, fp.radius, fp.shape, p.rot) then
+				local defID = GetFeatureDefID(fid)
+				local def = defID and FeatureDefs[defID]
+				if def then
+					local pitch, yaw, roll = Spring.GetFeatureRotation(fid)
+					items[#items + 1] = {
+						defName = def.name,
+						x = fx,
+						y = fy,
+						z = fz,
+						heading = (yaw or 0) / (2 * pi) * 65536,
+						pitch = pitch or 0,
+						roll = roll or 0,
+						alpha = 0.7,
+						tintR = 1,
+						tintG = 0.15,
+						tintB = 0.1,
+						tintAmount = 0.75,
+					}
+				end
+			end
+		end
+	end
+	return items
+end
+
+----------------------------------------------------------------
+-- Send messages to gadget
+----------------------------------------------------------------
+-- Stroke ids let the gadget fold every message of one user action into a single
+-- undo entry. os.clock rather than math.random: widgets never seed math.random,
+-- so it would hand out an identical sequence every session and merge unrelated
+-- actions into one another's undo entries.
+local strokeCounter = 0
+local function nextStrokeID()
+	strokeCounter = strokeCounter + 1
+	return string.format("%d.%d", floor(os.clock() * 1000) % 100000000, strokeCounter)
+end
+
+local function sendPlacements(placements)
+	if #placements == 0 then
+		return
+	end
+
+	-- One stamp is one undo step no matter how many messages it takes.
+	local strokeID = nextStrokeID()
+	local batch = {}
+	local function flush()
+		if #batch > 0 then
+			SendLuaRulesMsg(PLACELIST_HEADER .. strokeID .. "|" .. table.concat(batch, "|"))
+			batch = {}
+		end
+	end
+
+	for i = 1, #placements do
+		local p = placements[i]
+		local entry
+		if p.pitch ~= 0 or p.roll ~= 0 or p.y ~= GetGroundHeight(p.x, p.z) then
+			entry = string.format("%s %.1f %.1f %d %.4f %.4f %.1f", p.defName, p.x, p.z, p.heading, p.pitch, p.roll, p.y)
+		else
+			entry = string.format("%s %.1f %.1f %d", p.defName, p.x, p.z, p.heading)
+		end
+		batch[#batch + 1] = entry
+		if #batch >= PLACE_BATCH then
+			flush()
+		end
+	end
+	flush()
+end
+
+local function placeAt(worldX, worldZ)
+	if #fp.selectedDefs == 0 then
+		return
+	end
+	sendPlacements(resolvePlacements(worldX, worldZ))
+	-- Next stamp gets a fresh layout, or dragging would rubber-stamp one pattern.
+	rerollPreview()
 end
 
 local function sendRemoveMessage(worldX, worldZ)
@@ -470,6 +728,7 @@ local function deactivate()
 	fp.lockedWorldX = nil
 	fp.lockedWorldZ = nil
 	hideBuildGrid()
+	clearGhosts()
 	return true
 end
 
@@ -680,22 +939,33 @@ local function featureLoad(filename)
 	-- the legacy flat array of {name, x, z, heading}.
 	local list = data.objectlist or data
 
-	-- Send features to gadget in batches
-	local BATCH = 50
+	-- Send features to gadget in batches, all under one stroke id so replaying a
+	-- whole saved map is a single undo step rather than #features/40 of them.
+	local strokeID = nextStrokeID()
 	local count = #list
-	for i = 1, count, BATCH do
+	for i = 1, count, PLACE_BATCH do
 		local batch = {}
-		for j = i, min(i + BATCH - 1, count) do
+		for j = i, min(i + PLACE_BATCH - 1, count) do
 			local f = list[j]
 			if f.name and f.x and f.z then
 				-- `rot` (setcfg) or `heading` (legacy); "random"/non-numeric → random heading
 				local rot = f.rot or f.heading or 0
 				if type(rot) ~= "number" then rot = math.random(-32768, 32767) end
-				batch[#batch + 1] = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
+				local entry = f.name .. " " .. floor(f.x) .. " " .. floor(f.z) .. " " .. floor(rot)
+				-- Optional gizmo transform. Files written before the gizmo
+				-- existed simply have none of these and load as they always did.
+				if f.pitch or f.roll or f.y then
+					entry = entry
+						.. string.format(" %.4f %.4f", tonumber(f.pitch) or 0, tonumber(f.roll) or 0)
+					if f.y then
+						entry = entry .. string.format(" %.1f", tonumber(f.y))
+					end
+				end
+				batch[#batch + 1] = entry
 			end
 		end
 		if #batch > 0 then
-			SendLuaRulesMsg(LOAD_HEADER .. table.concat(batch, "|"))
+			SendLuaRulesMsg(LOAD_HEADER .. strokeID .. "|" .. table.concat(batch, "|"))
 		end
 	end
 
@@ -1038,12 +1308,10 @@ function widget:MousePress(mx, my, button)
 		fp.placeTimer = 0
 
 		-- Perform initial placement
-		if fp.mode == "scatter" then
-			sendScatterMessage(worldX, worldZ)
-		elseif fp.mode == "point" then
-			sendPointMessage(worldX, worldZ)
-		elseif fp.mode == "remove" then
+		if fp.mode == "remove" then
 			sendRemoveMessage(worldX, worldZ)
+		else
+			placeAt(worldX, worldZ)
 		end
 
 		return true
@@ -1164,16 +1432,13 @@ function widget:Update(dt)
 	fp.lockedWorldX = worldX
 	fp.lockedWorldZ = worldZ
 
-	if fp.dragAction == "remove" then
+	if fp.dragAction == "remove" or fp.mode == "remove" then
 		sendRemoveMessage(worldX, worldZ)
-	elseif fp.mode == "scatter" then
-		sendScatterMessage(worldX, worldZ)
-	elseif fp.mode == "point" then
-		sendPointMessage(worldX, worldZ)
-	elseif fp.mode == "remove" then
-		sendRemoveMessage(worldX, worldZ)
+	else
+		placeAt(worldX, worldZ)
 	end
 end
+
 
 ----------------------------------------------------------------
 -- DrawWorld — brush outline
@@ -1190,6 +1455,7 @@ function widget:DrawWorld()
 
 	if not fp.active or not fp.mode then
 		hideBuildGrid()
+		clearGhosts()
 		return
 	end
 
@@ -1202,7 +1468,10 @@ function widget:DrawWorld()
 			worldX, worldZ = tb.getUnmouseTarget(fp.radius, 1.0)
 		end
 	end
-	if not worldX then return end
+	if not worldX then
+		clearGhosts()
+		return
+	end
 
 	-- Grid snap + visual
 	if gridSnap then
@@ -1212,6 +1481,15 @@ function widget:DrawWorld()
 		showBuildGrid()
 	else
 		hideBuildGrid()
+	end
+
+	-- WYSIWYG: the exact features about to be placed, at their exact positions
+	-- and orientations. Remove mode has nothing to place, so it tints what the
+	-- brush would destroy instead.
+	if fp.mode == "remove" or (fp.dragging and fp.dragAction == "remove") then
+		syncGhosts(collectRemovalTargets(worldX, worldZ))
+	else
+		syncGhosts(resolvePlacements(worldX, worldZ))
 	end
 
 	-- Color by mode (red when right-dragging to remove)
@@ -1311,7 +1589,7 @@ function widget:Initialize()
 		if args and args[1] then
 			return activate(args[1])
 		end
-		return activate("scatter")
+		return activate("point")
 	end, nil, "t")
 	widgetHandler:AddAction("featureplacerscatter", function() return activate("scatter") end, nil, "t")
 	widgetHandler:AddAction("featureplacerpoint",   function() return activate("point") end, nil, "t")
@@ -1350,6 +1628,7 @@ function widget:Initialize()
 		setGridOverlay      = setGridOverlay,
 		setGridSnap         = setGridSnap,
 		setGridSnapSize     = setGridSnapSize,
+		reroll              = rerollPreview,
 		deactivate          = deactivate,
 	}
 
@@ -1369,6 +1648,7 @@ end
 
 function widget:Shutdown()
 	hideBuildGrid()
+	clearGhosts()
 	if gridDL then
 		glDeleteList(gridDL)
 		gridDL = nil

@@ -2879,6 +2879,7 @@
 				<div id="fp-slider-rotation-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
 				<div id="fp-slider-rotation-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
 			</div>
+			<div id="kbhint-fp-rotation" class="text-sm text-keybind" style="margin-left: auto;">Alt+Scroll</div>
 		</div>
 		<div class="flex flex-row gap-1 items-center mb-1">
 			<div id="btn-fp-rot-ccw" class="tf-sm-btn" data-event-mousedown="onFpRotCCW()">
@@ -2906,7 +2907,7 @@
 			<div id="btn-fp-rot-random-down" class="tf-sm-btn" data-event-mousedown="onFpRotRandomDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="fp-slider-rot-random" class="tf-slider" min="0" max="100" step="1" value="100" data-event-change="onFpRotRandomChange()" />
+			<input type="range" id="fp-slider-rot-random" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onFpRotRandomChange()" />
 			<div id="btn-fp-rot-random-up" class="tf-sm-btn" data-event-mousedown="onFpRotRandomUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
@@ -2928,7 +2929,7 @@
 			<div id="btn-fp-count-down" class="tf-sm-btn" data-event-mousedown="onFpCountDown()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
 			</div>
-			<input type="range" id="fp-slider-count" class="tf-slider" min="1" max="500" step="1" value="5" data-event-change="onFpCountChange()" />
+			<input type="range" id="fp-slider-count" class="tf-slider" min="1" max="500" step="1" value="1" data-event-change="onFpCountChange()" />
 			<div id="btn-fp-count-up" class="tf-sm-btn" data-event-mousedown="onFpCountUp()">
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>

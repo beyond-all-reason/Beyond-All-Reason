@@ -2268,7 +2268,7 @@ local initialModel = {
 	noiseType = "perlin",      -- noise type selection
 	mbSubMode = "paint",       -- metal brush sub-mode
 	gbSubMode = "paint",       -- grass brush sub-mode
-	fpSubMode = "scatter",     -- feature placer sub-mode
+	fpSubMode = "point",       -- feature placer sub-mode
 	fpDistMode = "random",     -- feature placer distribution
 	dcLibMode = "",            -- decal library mode (scatter/point/remove)
 	dcDistribution = "random", -- decal distribution (random/regular/clustered)
@@ -2367,8 +2367,8 @@ local initialModel = {
 	-- Phase 2 step 4: feature placer label interpolation strings
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
-	fpRotRandomStr = "100",
-	fpCountStr = "5",
+	fpRotRandomStr = "0",
+	fpCountStr = "1",
 	fpCadenceStr = "1",
 	fpSlopeMaxStr = "45",
 	fpSlopeMinStr = "10",
@@ -5267,7 +5267,7 @@ local initialModel = {
 				if s.tool == "terraform" and WG.TerraformBrush then
 					WG.TerraformBrush.setMode(s.mode or "raise")
 				elseif s.tool == "features" and WG.FeaturePlacer then
-					WG.FeaturePlacer.setMode(s.mode or "scatter")
+					WG.FeaturePlacer.setMode(s.mode or "point")
 				elseif s.tool == "weather" and WG.WeatherBrush then
 					WG.WeatherBrush.setMode(s.mode or "place")
 				elseif s.tool == "splat" and WG.SplatPainter then
@@ -6369,7 +6369,7 @@ local initialModel = {
 		clearPassthrough()
 		if not WG.FeaturePlacer then return end
 		_deactivateAllTools()
-		WG.FeaturePlacer.setMode("scatter")
+		WG.FeaturePlacer.setMode("point")
 	end,
 	onTfSwitchWeather = function(_event)
 		playSound("toolSwitch")
@@ -8048,6 +8048,7 @@ updateAllKeybindBadges = function()
 			["kbhint-length"]       = "scroll_length",
 			["kbhint-curve"]        = "scroll_curve",
 			["kbhint-fp-size"]      = "scroll_size",
+			["kbhint-fp-rotation"]  = "scroll_rotation",
 			["kbhint-wb-size"]      = "scroll_size",
 			["kbhint-wb-length"]    = "scroll_length",
 			["kbhint-sp-strength"]  = "scroll_intensity",
@@ -10762,7 +10763,7 @@ function widget:Update()
 	if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
 		widgetState.noTerraformInitDone = true
 		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-		WG.FeaturePlacer.setMode("scatter")
+		WG.FeaturePlacer.setMode("point")
 	end
 
 	-- Mirror the Map Labels window state onto the header button highlight

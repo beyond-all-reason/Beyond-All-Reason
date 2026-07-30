@@ -59,7 +59,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 		-- Feature sub-mode and distribution (driven by dm fields via data-class-active)
 		if widgetState.dmHandle then
 			local dmh = widgetState.dmHandle
-			local sm = fpState.mode or "scatter"
+			local sm = fpState.mode or "point"
 			if dmh.fpSubMode ~= sm then dmh.fpSubMode = sm end
 			local dist = fpState.distribution or "random"
 			if dmh.fpDistMode ~= dist then dmh.fpDistMode = dist end
@@ -302,17 +302,33 @@ function M.sync(doc, ctx, fpState, setSummary)
 
 		-- P3.2 Feature Placer grayouts (per Phase 3 relevance matrix)
 		if doc and ctx.setDisabledIds then
-			local mode = fpState.mode or "scatter"
+			local mode = fpState.mode or "point"
 			local circular = (fpState.shape == "circle")
 			local remove = (mode == "remove")
 			local scatter = (mode == "scatter")
-			local rotOff = circular or remove
+
+			-- Rotation and randomise-alignment are separate concerns and used to
+			-- share one "circular or remove" condition, which greyed out
+			-- randomise-alignment for every circular brush -- the default shape,
+			-- and the only shape point mode has. It defaults to 100 (fully
+			-- random), so features came out randomly turned with no way to stop
+			-- it.
+			--
+			-- Brush rotation sets the base heading of everything placed (see
+			-- generateLocal / the point-mode branch of ensureLayout), so it is
+			-- meaningful whatever the shape. Only in remove mode is it purely a
+			-- shape orientation, and only then does a circle make it pointless.
 			ctx.setDisabledIds(doc, {
 				"fp-slider-rotation", "fp-slider-rotation-numbox",
 				"btn-fp-rot-ccw", "btn-fp-rot-cw",
+			}, remove and circular)
+
+			-- Randomise-alignment perturbs each feature's own heading. Nothing to
+			-- do with the brush shape; only meaningless when placing nothing.
+			ctx.setDisabledIds(doc, {
 				"fp-slider-rot-random", "fp-slider-rot-random-numbox",
 				"btn-fp-rot-random-down", "btn-fp-rot-random-up",
-			}, rotOff)
+			}, remove)
 			ctx.setDisabledIds(doc, {
 				"fp-slider-count", "fp-slider-count-numbox",
 				"btn-fp-count-down", "btn-fp-count-up",
