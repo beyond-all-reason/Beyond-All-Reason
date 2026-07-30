@@ -42,7 +42,6 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetProjectileName = Spring.GetProjectileName
 local spGetWind = Spring.GetWind
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -1396,6 +1395,39 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+local defaultProjectileLightDelayWaterline = 2
+local defaultProjectileLightDelayFrames = 0
+local delayedProjectileLightFrames = {}
+local function ShouldDelayProjectileLight(projectileLight, projectileID, py)
+	if not projectileLight or not projectileLight.delayUntilSubmerged then
+		return false
+	end
+
+	-- Skipped projectiles are intentionally not tracked yet, so this can try again
+	-- on later frames after they enter the water.
+	if not py or py > (projectileLight.delayWaterline or defaultProjectileLightDelayWaterline) then
+		delayedProjectileLightFrames[projectileID] = nil
+		return true
+	end
+
+	local delayFrames = projectileLight.delayFrames or defaultProjectileLightDelayFrames
+	if delayFrames <= 0 then
+		return false
+	end
+
+	local readyFrame = delayedProjectileLightFrames[projectileID]
+	if not readyFrame then
+		readyFrame = gameFrame + delayFrames
+		delayedProjectileLightFrames[projectileID] = readyFrame
+	end
+	if gameFrame < readyFrame then
+		return true
+	end
+
+	delayedProjectileLightFrames[projectileID] = nil
+	return false
+end
+
 
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
@@ -1429,6 +1461,8 @@ local function updateProjectileLights(newgameframe)
 			else
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
+				local skipProjectileTracking = false
+
 				if piece then
 					local gib = gibLight.lightParamTable
 					gib[1] = px
@@ -1436,18 +1470,21 @@ local function updateProjectileLights(newgameframe)
 					gib[3] = pz
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
-						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
-						lightType = projectileDefLights[weaponDefID].lightType
+					local weaponDefID = spGetProjectileDefID(projectileID)
+					local projectileLight = projectileDefLights[weaponDefID]
 
+					if ShouldDelayProjectileLight(projectileLight, projectileID, py) then
+						skipProjectileTracking = true
+					elseif projectileLight and (projectileID % (projectileLight.fraction or 1) == 0) then
+						local lightParamTable = projectileLight.lightParamTable
+						lightType = projectileLight.lightType
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						if debugproj then spEcho(lightType, projectileLight.lightClassName) end
 
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
 						if lightType == 'beam' then
 							lightParamTable[5] = px + dx
@@ -1471,15 +1508,19 @@ local function updateProjectileLights(newgameframe)
 						--AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
 					end
 				end
-				numadded = numadded + 1
-				if debugproj then
-					local projectileName = spGetProjectileName and spGetProjectileName(projectileID) or "unknown_projectile"
-					spEcho("Adding projlight", projectileID, projectileName)
+
+				if not skipProjectileTracking then
+					numadded = numadded + 1
+					--trackedProjectiles[]
+					trackedProjectileTypes[projectileID] = lightType
+					trackedProjectiles[projectileID] = gameFrame
 				end
-				--trackedProjectiles[]
-				trackedProjectileTypes[projectileID] = lightType
 			end
-			trackedProjectiles[projectileID] = gameFrame
+		end
+	end
+	for projectileID, readyFrame in pairs(delayedProjectileLightFrames) do
+		if readyFrame < gameFrame - 300 then
+			delayedProjectileLightFrames[projectileID] = nil
 		end
 	end
 	-- remove theones that werent updated
@@ -1656,7 +1697,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 or
-		cursorPointLightVBO.usedElements > 0
+		cursorPointLightVBO.usedElements > 0 or
+		projectilePointLightVBO.usedElements > 0 or
+		projectileBeamLightVBO.usedElements > 0 or
+		projectileConeLightVBO.usedElements > 0
 		then
 
 		local alt, ctrl = spGetModKeyState()

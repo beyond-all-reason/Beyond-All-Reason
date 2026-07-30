@@ -388,6 +388,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "leggant_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legbunk_scav" -- Pilum - Fast Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "legapollyon_scav" -- Apollyon - Heavy Gatling Tank
 		end
 
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
@@ -539,6 +540,7 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3_scav" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede_scav" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old_scav" -- Old Sol Invictus - Quad Heatray Mech
 		end
 
 	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------

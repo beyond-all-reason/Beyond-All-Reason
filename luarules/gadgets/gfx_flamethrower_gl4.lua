@@ -2163,7 +2163,15 @@ function gadget:Update()
 	local _, _, paused = spGetGameSpeed()
 	if not paused and n > (K.LAST_UPDATE_FRAME or -1) then
 		K.LAST_UPDATE_FRAME = n
-		processFlameFrame(n)
+		local pendingFrame = K.PENDING_FLAME_FRAME
+		if pendingFrame and pendingFrame < n then
+			-- No spare draw frame arrived before the next simframe. Catch up here;
+			-- this is the low-FPS/catchup case where deferring is not achievable.
+			K.PENDING_FLAME_FRAME = nil
+			processFlameFrame(pendingFrame)
+		end
+		K.PENDING_FLAME_FRAME = n
+		K.PENDING_FLAME_DRAW_FRAME = K.FLAME_DRAW_FRAME or 0
 	end
 
 	if not paused then
@@ -2323,5 +2331,16 @@ function gadget:Update()
 end
 
 function gadget:DrawWorld()
+	K.FLAME_DRAW_FRAME = (K.FLAME_DRAW_FRAME or 0) + 1
+	do
+		local pendingFrame = K.PENDING_FLAME_FRAME
+		if pendingFrame then
+			local queuedAt = K.PENDING_FLAME_DRAW_FRAME or 0
+			if K.FLAME_DRAW_FRAME > queuedAt + 1 then
+				K.PENDING_FLAME_FRAME = nil
+				processFlameFrame(pendingFrame)
+			end
+		end
+	end
 	drawParticles()
 end

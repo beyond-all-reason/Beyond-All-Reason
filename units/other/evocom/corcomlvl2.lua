@@ -304,8 +304,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,

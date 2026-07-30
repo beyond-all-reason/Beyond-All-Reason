@@ -101,6 +101,7 @@ local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
+local GetLocalTeamID		= Spring.GetLocalTeamID
 local GetMouseState			= spGetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local min					= mathMin
@@ -122,6 +123,7 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
 local isSpec = spGetSpectatingState()
+local localTeamID = GetLocalTeamID()
 
 
 local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
@@ -320,8 +322,17 @@ function compareTeams(a,b)
 end
 
 function widget:PlayerChanged()
-	isSpec = spGetSpectatingState()
-	widget:GameFrame(GetGameFrame(),true)
+	local newIsSpec = spGetSpectatingState()
+	local newLocalTeamID = GetLocalTeamID()
+	local needsUpdate = false
+	if anonymousMode ~= "disabled" then
+		needsUpdate = newIsSpec ~= isSpec or (not newIsSpec and newLocalTeamID ~= localTeamID)
+	end
+	isSpec = newIsSpec
+	localTeamID = newLocalTeamID
+	if needsUpdate then
+		widget:GameFrame(GetGameFrame(),true)
+	end
 end
 
 function widget:ApmEvent(teamID, apm)
@@ -339,6 +350,7 @@ function widget:GameFrame(n,forceupdate)
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
 	end
+	localTeamID = GetLocalTeamID()
 	teamData = {}
 	local totalNumLines = 2
 	local allyInsertCount = 1
@@ -363,7 +375,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= localTeamID then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
 						teamColor = { Spring.GetTeamColor(teamID) }

@@ -222,11 +222,12 @@ local function InitializeUnits()
 end
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
+	local wasFullview = spec and fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+	local isFullview = spec and fullview
+	if isFullview ~= wasFullview or ((not isFullview) and allyTeamID ~= myPrevAllyTeamID) then
 		InitializeUnits()
 	end
 end

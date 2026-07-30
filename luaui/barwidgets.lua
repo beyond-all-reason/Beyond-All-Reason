@@ -154,6 +154,10 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundPreForward',
+	'DrawGroundPostForward',
+	'DrawGroundPreDeferred',
+	'DrawGroundPostDeferred',
 	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
@@ -257,6 +261,7 @@ local callInLists = {
 	'UnitParalyzeDamageHealthbars',
 	'UnitParalyzeDamageEffect',
 	'SelectedUnitsClear',
+	'SelectedUnitsSet',
 	'SelectedUnitsBatchUpdate',
 	'SelectedUnitsRemove',
 	'SelectedUnitsAdd',
@@ -1636,6 +1641,46 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundPreForward()
+	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	local list = self.DrawGroundPreForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostForward()
+	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	local list = self.DrawGroundPostForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	local list = self.DrawGroundPreDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	local list = self.DrawGroundPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawGroundDeferred()
 	tracy.ZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
@@ -2735,7 +2780,7 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 24))
+	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 100))
 	local retval = false
 	if msg:find('LobbyOverlayActive', 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
@@ -3118,6 +3163,15 @@ function widgetHandler:SelectedUnitsClear(playerID)
 	tracy.ZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
+	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	for _, w in ipairs(self.SelectedUnitsSetList) do
+		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
 	tracy.ZoneEnd()
 	return

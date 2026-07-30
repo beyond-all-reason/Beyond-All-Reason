@@ -61,7 +61,7 @@ end
 function EnemyDetect()
 	SetSignalMask(stop_detect)
 	while true do
-		if spGetUnitNearestEnemy(unitID, triggerRange) ~= nil then
+		if spGetUnitNearestEnemy(unitID, triggerRange, true) ~= nil then
 			StartThread(Detonate) -- Makes sure detonation is not cancellable
 			break
 		else

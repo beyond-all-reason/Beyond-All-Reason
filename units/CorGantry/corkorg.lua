@@ -167,6 +167,9 @@ return {
 					default = 5500,
 					vtol = 2750,
 				},
+				customparams = {
+					sound_volume_multiplier = 2.5,
+				}
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,
@@ -233,7 +236,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,
