@@ -805,15 +805,23 @@ local function recomputePivot()
 	local px, py, pz = sx / valid, sy / valid, sz / valid
 	Gizmo.setPivot(px, py, pz)
 
-	-- Largest single member, NOT the bounding radius of the whole selection. The
-	-- floor exists so handles cannot hide inside a model; a group spread over
-	-- 900 elmos does not hide anything, and sizing to its extent would give a
-	-- gizmo thousands of pixels across the moment you zoomed in.
+	-- Bounding radius of the whole selection about the pivot, so the handles sit
+	-- outside the group rather than buried among its members. For a single
+	-- feature this reduces to that feature's own reach.
+	--
+	-- The gizmo caps itself against the viewport (see gizmoScale), which is what
+	-- keeps a huge group zoomed in from producing a gizmo thousands of pixels
+	-- across.
 	local reach = 0
 	for i = 1, n do
-		local r = featureReach(gz.selection[i])
-		if r > reach then
-			reach = r
+		local featureID = gz.selection[i]
+		local x, y, z = GetFeaturePosition(featureID)
+		if x then
+			local dx, dy, dz = x - px, y - py, z - pz
+			local d = sqrt(dx * dx + dy * dy + dz * dz) + featureReach(featureID)
+			if d > reach then
+				reach = d
+			end
 		end
 	end
 	Gizmo.setObjectRadius(reach)

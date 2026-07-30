@@ -35,6 +35,7 @@ local WorldToScreenCoords = Spring.WorldToScreenCoords
 local GetPixelDir = Spring.GetPixelDir
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
+local GetViewGeometry = Spring.GetViewGeometry
 
 local sqrt = math.sqrt
 local abs = math.abs
@@ -55,10 +56,19 @@ local TAU = pi * 2
 local GIZMO_PX = 110
 local GIZMO_MIN_PX = 72 -- below this the handles stop being clickable
 local GIZMO_MAX_PX = 320 -- keeps a zoomed-in gizmo from swallowing the screen
--- How far outside the object's own bounding radius the handles sit. The rings
--- have to clear the silhouette or they are impossible to pick out against the
--- model.
+
+-- How far outside the transformed object's bounding radius the handles sit. The
+-- rings have to clear the silhouette or they cannot be picked out against the
+-- model -- and for a multi-selection, outside the whole group.
 local OBJECT_CLEARANCE = 1.35
+
+-- Hard ceiling on the gizmo RADIUS as a fraction of the smaller viewport axis.
+-- The clearance floor overrides GIZMO_MAX_PX but not this. Set generously
+-- (radius = one viewport axis, so diameter = two) because handles that run off
+-- the edge are still perfectly grabbable where they cross the view -- projection
+-- does not clip laterally, and both the segment and ring tests find the nearest
+-- point on the visible part. This only stops the truly absurd.
+local GIZMO_MAX_VIEWPORT_FRAC = 1.0
 
 local ARROW_GRAB_PX = 16
 local RING_GRAB_PX = 12
@@ -236,16 +246,28 @@ local function gizmoScale()
 	if size < clearance then
 		size = clearance
 	end
-	if size < wpp * GIZMO_MIN_PX then
-		size = wpp * GIZMO_MIN_PX
-	end
 
+	-- Clearance normally overrides the usual on-screen ceiling, because capping a
+	-- large object back down would put the handles inside it again. The one thing
+	-- it may not do is outgrow the viewport: past that the handles are off-screen
+	-- and there is no "outside the selection" left to sit in, so the fraction
+	-- below wins and the user zooms out instead.
 	local cap = wpp * GIZMO_MAX_PX
 	if cap < clearance then
 		cap = clearance
 	end
+	local vsx, vsy = GetViewGeometry()
+	local viewportCap = wpp * (vsx < vsy and vsx or vsy) * GIZMO_MAX_VIEWPORT_FRAC
+	if cap > viewportCap then
+		cap = viewportCap
+	end
 	if size > cap then
 		size = cap
+	end
+
+	-- Applied last: an unclickable gizmo is worse than an oversized one.
+	if size < wpp * GIZMO_MIN_PX then
+		size = wpp * GIZMO_MIN_PX
 	end
 
 	return size
@@ -329,12 +351,27 @@ end
 -- happened to place.
 local function pixelDistToSegment(mx, my, ax, ay, az, bx, by, bz)
 	local sax, say, saz = WorldToScreenCoords(ax, ay, az)
-	if not saz or saz <= 0 or saz >= 1 then
-		return nil
-	end
 	local sbx, sby, sbz = WorldToScreenCoords(bx, by, bz)
-	if not sbz or sbz <= 0 or sbz >= 1 then
-		return nil
+	local aOk = saz and saz > 0 and saz < 1
+	local bOk = sbz and sbz > 0 and sbz < 1
+
+	if not (aOk and bOk) then
+		-- One end is behind the camera or past the far plane, which happens once
+		-- the gizmo is large enough for the camera to sit inside it. Projecting
+		-- across that boundary gives nonsense, so walk the segment and keep the
+		-- part that does project.
+		if not (aOk or bOk) then
+			return nil
+		end
+		local best = nil
+		for i = 0, 16 do
+			local t = i / 16
+			local d = pixelDistSq(mx, my, ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t)
+			if d and (not best or d < best) then
+				best = d
+			end
+		end
+		return best and sqrt(best) or nil
 	end
 
 	local dx, dy = sbx - sax, sby - say
