@@ -1065,11 +1065,7 @@ local function activate(direction, mode, args)
 	activeDirection = direction
 	activeMode = mode
 	activeRadius = parseRadius(args)
-	if mode == "level" or mode == "smooth" then
-		activeCurve = 2.5
-		clayMode = true
-		activeIntensity = 0.5
-	end
+	extraState.swapModeParams(mode)
 	local modeLabels = { raise = "RAISE", lower = "LOWER", level = "LEVEL", smooth = "SMOOTH", ramp = "RAMP", restore = "RESTORE", erode = "ERODE" }
 	local modeLabel = modeLabels[mode] or mode
 	Echo("[Terraform Brush] Mode: " .. modeLabel .. " | Radius: " .. activeRadius .. " | Hold left-click to terraform, /terraformbrushoff to stop")
@@ -1114,7 +1110,40 @@ local function deactivateTerraform()
 	return true
 end
 
+-- Curve / intensity / clay live in one shared slot for every mode, but SMOOTH and
+-- LEVEL need their own soft defaults (gentle curve, low intensity, clay on) to feel
+-- right. Entering them used to overwrite the shared slot outright, so raise/lower
+-- inherited the soft settings and stayed wrong until the next map load. Instead keep
+-- one snapshot per mode group and swap it on every group change.
+-- Attached to extraState rather than new chunk-level locals (main chunk is at the
+-- 200-local limit).
+extraState.MODE_PARAM_GROUPS = {
+	raise = "sculpt", lower = "sculpt", ramp   = "sculpt", restore = "sculpt",
+	noise = "sculpt", erode = "sculpt", level  = "modify", smooth  = "modify",
+}
+extraState.paramGroup = "sculpt"
+extraState.modeParamSnapshots = {
+	modify = { curve = 2.5, intensity = 0.5, clay = true },
+}
+
+extraState.swapModeParams = function(mode)
+	local newGroup = extraState.MODE_PARAM_GROUPS[mode]
+	if not newGroup or newGroup == extraState.paramGroup then return end
+	-- Save what the outgoing group was using, then restore the incoming group's.
+	extraState.modeParamSnapshots[extraState.paramGroup] = {
+		curve = activeCurve, intensity = activeIntensity, clay = clayMode,
+	}
+	extraState.paramGroup = newGroup
+	local snap = extraState.modeParamSnapshots[newGroup]
+	if snap then
+		activeCurve     = snap.curve
+		activeIntensity = snap.intensity
+		clayMode        = snap.clay
+	end
+end
+
 local function setMode(mode)
+	extraState.swapModeParams(mode)
 	if mode == "raise" then
 		activeDirection = 1
 		activeMode = "raise"
@@ -1124,9 +1153,6 @@ local function setMode(mode)
 	elseif mode == "level" or mode == "smooth" then
 		activeDirection = 0
 		activeMode = mode
-		activeCurve = 2.5
-		clayMode = true
-		activeIntensity = 0.5
 		if activeShape == "ring" then
 			activeShape = "circle"
 		end
@@ -1500,8 +1526,8 @@ local function loadPreset(name)
 	end
 	-- Validate and apply with tonumber guards to prevent crashes from corrupted data
 	local ok, err = pcall(function()
-		-- Set mode FIRST so its defaults (curve/intensity/clayMode for "level") can be
-		-- overridden by the preset's saved values applied below.
+		-- Set mode FIRST so the mode group's curve/intensity/clayMode snapshot is swapped
+		-- in before the preset's own saved values overwrite it below.
 		if type(data.mode) == "string" then setMode(data.mode) end
 		if type(data.shape) == "string" then setShape(data.shape) end
 		if tonumber(data.radius) then setRadius(tonumber(data.radius)) end
