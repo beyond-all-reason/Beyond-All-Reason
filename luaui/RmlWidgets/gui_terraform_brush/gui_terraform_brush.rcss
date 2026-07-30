@@ -3296,6 +3296,23 @@ body {
 	color: #c8d0d8;
 }
 
+/* Compact chip for section title rows.
+ *
+ * .tf-section-title-row is absolutely positioned at top: -10dp and masks the
+ * frame border with its own background, so it only has room for a short chip.
+ * A full-size .tf-overlay-chip (3dp 8dp padding, 1.0rem label) grows the row
+ * past that band and collides with the border and the first content row.
+ *
+ * Geometry only — colour and state still come from .tf-overlay-chip and its
+ * .active rule, so this stays in step with the palette. */
+.tf-overlay-chip-sm {
+	padding: 2dp 6dp;
+	border-radius: 4dp;
+}
+.tf-overlay-chip-sm .tf-overlay-chip-label {
+	font-size: 0.78rem;
+}
+
 /* Warning chip — shown in the toggle header when section is collapsed but items within are active */
 .tf-overlay-chip-warn {
 	padding: 2dp 6dp;
