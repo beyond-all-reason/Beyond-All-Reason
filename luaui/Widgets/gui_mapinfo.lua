@@ -87,6 +87,7 @@ local function createMapinfoList(opacityMultiplier)
 
 		local height = 90
 		local thickness = -(thickness*scale)
+		-- stylua: ignore start
 		glBeginEnd(GL.QUADS,function()
 			glColor(0.12,0.12,0.12,0.4*opacityMultiplier*opacityMultiplier)
 			glVertex( height, 0        , 0);         -- Top Right Of The Quad (Top)
@@ -121,6 +122,7 @@ local function createMapinfoList(opacityMultiplier)
 			glVertex( 0     ,-thickness, 0);         -- Bottom Left Of The Quad (Bottom)
 			glVertex( height,-thickness, 0);         -- Bottom Right Of The Quad (Bottom)
 		end)
+		-- stylua: ignore end
 
 		glRotate(180,1,0,0)
 		glRotate(90,0,1,0)

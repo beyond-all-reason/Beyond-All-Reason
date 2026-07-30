@@ -168,7 +168,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 	-- find nearest free spot closest to best
 	local bx,bz = freeMetalSpots[bestIndex][1],freeMetalSpots[bestIndex][2]
 	local nx,nz
-	local bestDistance = (xmax)*(xmax)+(zmax)*(zmax) -- meh, just need to be big
+	local bestDistance = xmax * xmax + zmax * zmax -- meh, just need to be big
 
 	for i=1,#freeMetalSpots do
 		if i ~= bestIndex then

@@ -103,7 +103,7 @@ function widget:DrawWorldPreUnit()
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0 
 
-		glStencilFunc(GL_NOTEQUAL, 1, 1); -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
+		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
 	
 		selectShader:SetUniform("addRadius",0) -- pass this 

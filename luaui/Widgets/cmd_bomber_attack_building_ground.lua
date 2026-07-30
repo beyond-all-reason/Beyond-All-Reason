@@ -46,8 +46,8 @@ function widget:GameFrame(gf)
 	if gf % 7 == 1 then
 		for unitID, params in pairs(monitorTargets) do
 			if not spValidUnitID(unitID) then
-				if spIsPosInLos(params[1]-losGraceRadius,params[2],params[3]+losGraceRadius) and		-- check wider area because unit can be marked invalid while just becoming in los
-					spIsPosInLos(params[1]-losGraceRadius,params[2],params[3]-losGraceRadius) and
+				if spIsPosInLos(params[1]-losGraceRadius,params[2],params[3]+losGraceRadius) -- check wider area because unit can be marked invalid while just becoming in los
+					and spIsPosInLos(params[1]-losGraceRadius,params[2],params[3]-losGraceRadius) and
 					spIsPosInLos(params[1]+losGraceRadius,params[2],params[3]-losGraceRadius) and
 					spIsPosInLos(params[1]+losGraceRadius,params[2],params[3]+losGraceRadius)
 				then

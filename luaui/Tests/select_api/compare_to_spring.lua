@@ -73,10 +73,8 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 					name == "cormlv" or
 					name == "armmlv"
 				))
-				-- api command selects these, but spring select doesn't
-				-- I think they spawn? don't seem to exist during build script
-				or name == "armdrone" or name == "corvacct"
-				or name == "armtl"
+				or name == "armdrone" or name == "corvacct" -- api command selects these, but spring select doesn't
+				or name == "armtl" -- I think they spawn? don't seem to exist during build script
 
 			if not isWeirdOutlier then
 				table.insert(missingInSpring, uid)
