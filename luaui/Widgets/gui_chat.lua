@@ -2994,14 +2994,21 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
-function widget:cycleInputMode()
-	if inputMode == 'a:' then
-		inputMode = ''
-	elseif inputMode == 's:' then
-		inputMode = mySpec and '' or 'a:'
-	else
-		inputMode = 's:'
+function widget:cycleInputMode(reverse)
+	local channelOrder = {'', 's:', 'a:'}
+	local zeroModeIndex -- use zero-based index for modulo, and add 1 before accessing channelOrder
+	for i, mode in ipairs(channelOrder) do
+		if mode == inputMode then
+			zeroModeIndex = i - 1
+			break
+		end
 	end
+
+	local channelCount = mySpec and #channelOrder - 1 or #channelOrder
+	local direction = reverse and -1 or 1
+	local newZeroIndex = (zeroModeIndex + direction) % channelCount
+	inputMode = channelOrder[newZeroIndex + 1] -- convert back to 1-based index
+
 	updateTextInputDlist = true
 end
 
@@ -3341,8 +3348,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= 'label' then -- TAB
-			if utf8.len(inputText) == 0 then
-				self:cycleInputMode()
+			if inputText == '' then
+				self:cycleInputMode(shift)
 			else
 				inputSelectionStart = nil
 				if autocompleteText and autocompleteWords[1] then
