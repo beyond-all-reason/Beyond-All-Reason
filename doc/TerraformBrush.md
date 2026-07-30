@@ -229,6 +229,64 @@ Distribution mode (random/regular/clustered) · Size/rotation/count/cadence slid
 
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
 
+#### WYSIWYG Preview
+
+The brush draws the features it is about to place, as translucent instanced
+models at their real positions and orientations, before you commit. What you see
+is literally what gets created: the widget generates the layout
+(`common/feature_scatter.lua`), previews it, and on click ships that same array
+to the gadget. Layouts used to be rolled gadget-side, which made a truthful
+preview impossible.
+
+- The layout is brush-relative and cached, so it keeps its shape while the cursor
+  moves rather than reshuffling every frame.
+- The seed rerolls after every stamp, so dragging does not rubber-stamp one
+  pattern. **Reroll Preview** in the panel shuffles it without placing.
+- Smart-filter rejection is re-evaluated at the live cursor position, so ghosts
+  disappear over water or cliffs exactly where placement would skip them.
+- Remove mode has nothing to place, so it tints the features under the brush red
+  instead.
+- Ghosts render through `WG.DrawFeatureShapeGL4`
+  (`luaui/Widgets/gfx_DrawFeatureShape_GL4.lua`), one instanced draw call per
+  texture pair, so a 500-feature preview stays cheap.
+
+#### Selection & Gizmo
+
+Available on an **empty mouse** — with nothing picked in the asset library there
+is nothing to place, so the left button manipulates what is already on the map.
+Picking any library item switches straight back to placing. Remove mode is
+excluded: an empty library is the normal way to use the erase brush.
+
+| Input | Action |
+|-------|--------|
+| LMB on a feature | Select it |
+| Shift + LMB | Add / remove from the selection |
+| LMB drag on empty ground | Box select |
+| LMB on empty ground | Clear the selection |
+| Ctrl + A | Select everything on screen |
+| Delete / Backspace | Remove the selection |
+| Esc | Clear the selection; a second press leaves the tool |
+| RMB | Unchanged — erase brush, in every mode |
+
+The gizmo has three translate arrows, three rotation rings and a centre handle
+that slides the selection over the terrain. Multi-selections transform rigidly
+about their centroid. Handles keep a constant on-screen size and are picked in
+screen space, so a thin ring stays grabbable at any zoom. Grid Snap constrains
+translation; the Protractor's angle snap constrains rotation.
+
+**Vertical movement works.** `Spring.SetFeaturePosition` goes through
+`CFeature::ForcedMove`, which does not put the feature back into the physics
+update queue, so a lifted feature stays lifted. Features created above the ground
+*are* queued and would fall, so the gadget zeroes their movement masks
+(`SetFeatureMoveCtrl` with `enabled = false`) to hold them in place.
+
+**Scale is not available.** The engine exposes no feature-scale setter.
+
+While dragging, the real features are hidden client-side
+(`Spring.SetFeatureNoDraw`) and ghosts follow the cursor, so nothing goes over
+the wire until the mouse comes up. One `$feature_transform$` stroke is one undo
+entry.
+
 #### Distribution Modes
 | Mode | Behaviour |
 |------|-----------|
@@ -631,6 +689,58 @@ All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
 | `$terraform_merge_end$` | (no args) — sent by widget on mouse release to finalize the drag-stroke undo entry |
 | `$terraform_stroke_end$` | (no args) — marks the end of a distinct stroke for diagnostics |
 
+**Feature placer messages** (`luarules/gadgets/cmd_feature_placer.lua`). Every
+mutating branch is gated on `Spring.IsCheatingEnabled()`.
+
+| Message | Format |
+|---------|--------|
+| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y]` per entry, joined by `\|`, 40 per message |
+| `$feature_transform$` | `strokeId` then `fid x y z pitch yaw roll` per entry, joined by `\|` |
+| `$feature_remove_ids$` | `fid` per entry, joined by `\|` |
+| `$feature_remove$` | `x z radius shape rot` |
+| `$feature_load$` | Same format as `$feature_place_list$`; one stroke id for the whole file, skips the placement wobble |
+| `$feature_save$` | (no args) — gadget replies over `SendToUnsynced` |
+| `$feature_undo$` / `$feature_redo$` / `$feature_clearall$` | (no args) |
+
+The optional `pitch roll y` tail is only sent for features the gizmo tilted or
+lifted. `strokeId` collapses one user action into one undo entry even when it is
+split across several messages -- a 500-feature stamp is 13 batches, a gizmo drag
+over a large selection several more -- the same way the terraform brush merges a
+paint stroke. Only one stroke is open at a time, and the entry is pushed lazily
+on the first real change, so a no-op message neither leaves an empty undo step
+behind nor clears the redo stack.
+
+`$feature_scatter$` and `$feature_point$` are **gone**. They asked the gadget to
+roll its own positions, which is exactly what made a truthful placement preview
+impossible; the widget generates layouts now and sends the result.
+
+**Saved feature format** (`features.lua`, FeaturePlacer `setcfg`):
+
+```lua
+{ name = "treetype1", x = 1234.0, z = 5678.0, rot = 32768 }
+{ name = "rock01", x = 900.0, z = 200.0, rot = 0, pitch = 0.2100, roll = -0.0800, y = 412.5 }
+```
+
+`pitch`/`roll`/`y` are written only when the feature is genuinely transformed, so
+a map that was never gizmo-edited serialises byte-for-byte as it did before.
+Files without them load exactly as they always did.
+
+"Transformed" is **not** "pitch is non-zero". Non-upright feature defs are
+ground-aligned by the engine, so a rock on any real slope carries a pitch and
+roll nobody gave it. The test compares the feature's up-vector against its
+expected resting up -- `(0,1,0)` for an upright def, the ground normal otherwise
+-- which is the quantity `UpdateDirVectors` actually sets, and is free of gimbal
+lock. Lift stays a plain 0.5-elmo threshold.
+
+The data is collected **synced**, in the gadget. `Spring.GetFeatureRotation`
+called from LuaUI reads `transMatrix[0]`, which `FeatureDrawerData` only
+refreshes for features drawn that frame, so an unsynced walk reports zero
+rotation for everything off screen and the saved bytes would depend on where the
+camera was pointing. `WG.FeaturePlacer.requestFeatureData(callback)` wraps the
+round-trip; the Map Project save uses it, falling back to a transform-free
+unsynced walk when `/cheat` is off -- in which case nothing can have been
+gizmo-transformed anyway.
+
 **`$terraform_brush$` field reference:**
 
 | # | Field | Type | Notes |
@@ -756,8 +866,6 @@ Development is organized into **release milestones**.
 | # | Item | MoSCoW | Complexity | Notes |
 |---|------|--------|:----------:|-------|
 | 1 | **Full WYSIWYG preview** | S | 8 | Show actual resulting terrain deformation in real-time under the brush cursor before committing. Requires a scratch heightmap buffer + shader-based preview mesh. |
-| 2 | **Feature placement preview** | S | 5 | Render ghost/translucent 3D models at candidate positions before committing. |
-| 3 | **Feature gizmo tool** | S | 7 | Select already-placed features (click/box-drag) and manipulate with a 3D gizmo: translate, rotate, scale, delete. Post-placement fine-tuning without remove-and-replace. |
 | 6 | **Ramp width taper** | C | 4 | Allow radius to vary along the ramp path for natural road-like shapes. |
 | 9 | **Per-axis radius sliders** | C | 3 | Replace single radius + lengthScale with independent X/Z radius controls. |
 | 14 | **Light animations** | S | 6 | Timed/looped animations: pulsing, flickering, color cycling. `animation` field already reserved. Presets for torch flicker, alarm strobe, slow breathe. |
@@ -841,6 +949,8 @@ Temporal dimension: **record and playback** brush strokes for dynamic, time-vary
 
 | # | Item | Notes |
 |---|------|-------|
+| 2 | **Feature placement preview** | WYSIWYG ghosts: the exact features about to be placed, at their exact positions and orientations, drawn as instanced translucent models under the cursor. Remove mode tints what the brush would destroy. See [Feature Placer → WYSIWYG Preview](#wysiwyg-preview). |
+| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid. Scale is not implemented because the engine exposes no feature-scale API. See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
 | 4 | **Symmetry tool** | Full implementation. Mirror X/Y modes with axis angle rotation; N-way radial mode (2–16 copies); draggable origin gizmo; Flipped mode (mirror + invert heights); one-shot Mirror Terrain button. See [Instruments → Symmetry / Mirror Tool](#symmetry--mirror-tool). |
 | 5 | **Velocity-sensitive intensity** | Toggle in Overlays section; scales brush strength by mouse drag speed. See [Velocity-Sensitive Intensity](#velocity-sensitive-intensity). |
 | 7 | **Partial restore slider** | Slider in restore mode; 0–100% blend target sent to gadget. See [Restore](#restore). |
