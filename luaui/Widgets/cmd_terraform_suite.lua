@@ -26,6 +26,7 @@ local SUITE_WIDGETS = {
 	"Decal Capture",
 	"Decal Placer",
 	"Diffuse Painter",
+	"DrawFeatureShape GL4",
 	"Feature Placer",
 	"Grass Brush",
 	"Light Placer",
