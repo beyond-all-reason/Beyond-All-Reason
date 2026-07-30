@@ -550,6 +550,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		incrementUnitStatistics(types.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
 
+	if GG['MissionAPI'].untargetableUnitIDs[unitID] then
+		GG['MissionAPI'].untargetableUnitIDs[unitID] = nil
+	end
+
 	untrackUnitID(unitID)
 end
 
@@ -632,6 +636,14 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, 
 		end
 	end
 	return true
+end
+
+function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+    if GG['MissionAPI'].untargetableUnitIDs[targetID] then
+        return false, defPriority
+    end
+
+    return true, defPriority
 end
 
 function gadget:FeatureCreated(featureID, allyTeamID)
