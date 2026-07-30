@@ -268,7 +268,7 @@ local function closeHandler()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("teamstatus_close", closeHandler, nil, "p")
+	widgetHandler:AddAction("teamstatus_close", closeHandler, nil, "pt")
 
 	refreshHeaders()
 	guiData.mainPanel.visible = false

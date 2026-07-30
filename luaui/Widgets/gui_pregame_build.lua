@@ -247,10 +247,10 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
-	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
-	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
-	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "pt")
+	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "pt")
+	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "pt")
+	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "pt")
 
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Pregame Queue Initializing. Local SubLogic is assumed available.")
 

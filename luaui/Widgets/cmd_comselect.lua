@@ -124,5 +124,5 @@ function widget:Initialize()
 
 	myTeamID = spGetMyTeamID()
 
-	widgetHandler:AddAction("selectcomm", handleSelectComm, nil, "p")
+	widgetHandler:AddAction("selectcomm", handleSelectComm, nil, "pt")
 end
