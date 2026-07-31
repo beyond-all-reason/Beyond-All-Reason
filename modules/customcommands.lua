@@ -14,7 +14,7 @@
 
 local gameCommands = {
 	FACTORY_GUARD = 13921,
-	AREA_GUARD = 13922, -- unused
+	AREA_GUARD = 13922, -- unit_guard_area
 	STOP_PRODUCTION = 13923,
 
 	-- blueprint
