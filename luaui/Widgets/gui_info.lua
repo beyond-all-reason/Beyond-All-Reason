@@ -1169,44 +1169,34 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		tracy.ZoneEnd()
 	end
 
-	-- persistent target type indicator (bottom-left corner)
+	-- persistent target type indicator (top-right corner)
 	if selUnitsSorted and selUnitsSorted[uDefID] then
 		local targetDefID = getTargetTypeForUnitDef(selUnitsSorted[uDefID])
 		if targetDefID then
 			local size = math_floor((cellRect[cellID][3] - (cellRect[cellID][1] + (cellPadding*0.5)))*0.33)
 			local targetIconPadding = cellPadding * 0.5
+			local tx2 = cellRect[cellID][3] - targetIconPadding
+			local ty2 = cellRect[cellID][4] - targetIconPadding
+			local tx1 = tx2 - size
+			local ty1 = ty2 - size
+
+			-- Draw dark 1px border
+			glColor(0, 0, 0, 1)
+			RectRound(tx1 - 1, ty1 - 1, tx2 + 1, ty2 + 1, size * 0.1)
 
 			-- Draw semi-transparent background for contrast
 			glColor(0, 0, 0, 0.5)
-			RectRound(
-				cellRect[cellID][1] + targetIconPadding,
-				cellRect[cellID][2] + targetIconPadding,
-				cellRect[cellID][1] + targetIconPadding + size,
-				cellRect[cellID][2] + targetIconPadding + size,
-				size * 0.1
-			)
+			RectRound(tx1, ty1, tx2, ty2, size * 0.1)
 
 			-- Draw target unit thumbnail
 			glColor(1, 1, 1, 0.85)
 			glTexture("#" .. targetDefID)
-			glTexRect(
-				cellRect[cellID][1] + targetIconPadding,
-				cellRect[cellID][2] + targetIconPadding,
-				cellRect[cellID][1] + targetIconPadding + size,
-				cellRect[cellID][2] + targetIconPadding + size
-			)
+			glTexRect(tx1, ty1, tx2, ty2)
 			glTexture(false)
 
 			-- Draw red border overlay to indicate "targeting"
 			glColor(1, 0.3, 0.3, 0.6)
-			RectRound(
-				cellRect[cellID][1] + targetIconPadding,
-				cellRect[cellID][2] + targetIconPadding,
-				cellRect[cellID][1] + targetIconPadding + size,
-				cellRect[cellID][2] + targetIconPadding + size,
-				size * 0.1, 0, 0, 0, 0,
-				{0, 0, 0, 0}, {1, 0.3, 0.3, 0.6}
-			)
+			RectRound(tx1, ty1, tx2, ty2, size * 0.1, 0, 0, 0, 0, {0, 0, 0, 0}, {1, 0.3, 0.3, 0.6})
 
 			glColor(1, 1, 1, 1)
 		end
@@ -1494,6 +1484,39 @@ local function drawUnitInfo()
 		font2:Print(energyPriceText, iconX + iconSize - padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "ro")
 		font2:End()
 		tracy.ZoneEnd()
+
+		-- persistent target type indicator (top-right corner of the unit icon)
+		if displayUnitID and WG['unittargeting'] then
+			local targetDefID = WG['unittargeting'].getTargetType(displayUnitID)
+			if targetDefID then
+				local targetSize = math_floor(iconSize * 0.33)
+				local targetPad = iconPadding
+				local tx2 = (iconX + iconSize) - targetPad
+				local ty2 = iconY - targetPad
+				local tx1 = tx2 - targetSize
+				local ty1 = ty2 - targetSize
+
+				-- Draw dark 1px border
+				glColor(0, 0, 0, 1)
+				RectRound(tx1 - 1, ty1 - 1, tx2 + 1, ty2 + 1, targetSize * 0.1)
+
+				-- Draw semi-transparent background for contrast
+				glColor(0, 0, 0, 0.5)
+				RectRound(tx1, ty1, tx2, ty2, targetSize * 0.1)
+
+				-- Draw target unit thumbnail
+				glColor(1, 1, 1, 0.85)
+				glTexture("#" .. targetDefID)
+				glTexRect(tx1, ty1, tx2, ty2)
+				glTexture(false)
+
+				-- Draw red border overlay to indicate "targeting"
+				glColor(1, 0.3, 0.3, 0.6)
+				RectRound(tx1, ty1, tx2, ty2, targetSize * 0.1, 0, 0, 0, 0, {0, 0, 0, 0}, {1, 0.3, 0.3, 0.6})
+
+				glColor(1, 1, 1, 1)
+			end
+		end
 	end
 	iconSize = iconSize + iconPadding
 
