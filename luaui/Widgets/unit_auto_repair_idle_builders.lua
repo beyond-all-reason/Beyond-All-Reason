@@ -17,6 +17,7 @@ end
 ----------------------------------------------------------------
 local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetTeamUnits         = Spring.GetTeamUnits
+local spGetUnitTeam          = Spring.GetUnitTeam
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitHealth        = Spring.GetUnitHealth
@@ -60,14 +61,24 @@ local builderBuildDist = {}
 local cachedUnitDefs = {}
 
 local maxUnitRadius = 0
+local maxReclaimRange = 0
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilder and (unitDef.canAssist or unitDef.canResurrect) and unitDef.canMove and not unitDef.isFactory then
+	if unitDef.isBuilder and (unitDef.canAssist or unitDef.canResurrect)
+		and unitDef.canMove and unitDef.speed > 0 and not unitDef.isFactory then
 		isMobileBuilder[unitDefID] = true
 		builderBuildDist[unitDefID] = unitDef.buildDistance
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius }
+	local canReclaim = unitDef.isBuilder and unitDef.canReclaim or false
+	if canReclaim then
+		local reclaimRange = unitDef.buildDistance or 0
+		if reclaimRange > maxReclaimRange then
+			maxReclaimRange = reclaimRange
+		end
+	end
+
+	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, canReclaim = canReclaim }
 	if unitDef.radius > maxUnitRadius then
 		maxUnitRadius = unitDef.radius
 	end
@@ -144,6 +155,32 @@ local function onReclaimerStopped(reclaimerID)
 	if not hasActiveReclaimers(targetID) then
 		reclaimBlacklist[targetID] = spGetGameFrame() + RECLAIM_BLACKLIST_DURATION
 	end
+end
+
+local function isReclaimingUnit(reclaimerID, targetID)
+	local cmdID, _, _, p1, p2 = spGetUnitCurrentCommand(reclaimerID)
+	return cmdID == CMD_RECLAIM and p2 == nil and p1 == targetID
+end
+
+local function findAllyReclaimerOf(targetID)
+	local tx, _, tz = spGetUnitPosition(targetID)
+	if not tx then
+		return nil
+	end
+
+	local nearby = spGetUnitsInCylinder(tx, tz, maxReclaimRange, ALLY_UNITS)
+	for i = 1, #nearby do
+		local uID = nearby[i]
+		if uID ~= targetID
+			and spGetUnitTeam(uID) ~= myTeam -- our own reclaims are tracked via CommandNotify
+			and cachedUnitDefs[spGetUnitDefID(uID)].canReclaim
+			and isReclaimingUnit(uID, targetID)
+		then
+			return uID
+		end
+	end
+
+	return nil
 end
 
 ----------------------------------------------------------------
@@ -295,6 +332,15 @@ function widget:GameFrame(frame)
 		end
 	end
 
+	-- Check if any allies aren't reclaiming their unit anymore.
+	for reclaimerID, targetID in pairs(activeReclaimers) do
+		if spGetUnitTeam(reclaimerID) ~= myTeam
+			and (not isUnitAlive(reclaimerID) or not isReclaimingUnit(reclaimerID, targetID))
+		then
+			onReclaimerStopped(reclaimerID)
+		end
+	end
+
 	-- Phase 2: Monitor active repairs
 	for builderID, info in pairs(activeRepairs) do
 		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
@@ -342,6 +388,10 @@ function widget:GameFrame(frame)
 			idleBuilders[builderID] = nil
 		elseif not isUnitAlive(builderID) then
 			idleBuilders[builderID] = nil
+		elseif spGetUnitStates(builderID)["repeat"] then
+			-- The commands this widget issues end up getting repeated, which is weird.
+		elseif spGetUnitIsBeingBuilt(builderID) then
+			-- Giving orders to unbuilt units breaks factory guard.
 		else
 			local leash = getLeashRadius(builderID)
 			local nearbyUnits = spGetUnitsInCylinder(homePos.homeX, homePos.homeZ, leash + maxUnitRadius, ALLY_UNITS)
@@ -370,15 +420,23 @@ function widget:GameFrame(frame)
 			end
 
 			if bestTarget then
-				spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget)
+				local allyReclaimerID = findAllyReclaimerOf(bestTarget)
+				-- We don't have CommandNotify for allies, so we do a spot check when assigning
+				-- a repair target.
+				if allyReclaimerID then
+					activeReclaimers[allyReclaimerID] = bestTarget
+					reclaimBlacklist[bestTarget] = math.huge
+				else
+					spGiveOrderToUnit(builderID, CMD_REPAIR, bestTarget)
 
-				activeRepairs[builderID] = {
-					targetID = bestTarget,
-					homeX = homePos.homeX,
-					homeY = homePos.homeY,
-					homeZ = homePos.homeZ,
-				}
-				idleBuilders[builderID] = nil
+					activeRepairs[builderID] = {
+						targetID = bestTarget,
+						homeX = homePos.homeX,
+						homeY = homePos.homeY,
+						homeZ = homePos.homeZ,
+					}
+					idleBuilders[builderID] = nil
+				end
 			end
 		end
 	end
