@@ -1416,7 +1416,7 @@ local definitions = {
     --         sizegrowth         = [[-16 r4]],
     --         ttl                = 140,
     --         pos                = [[0, 0, 0]],
-    --         alwaysvisible      = falloffStampCache,
+    --         alwaysvisible      = false,
     --       },
     --     },
     dirt = {
