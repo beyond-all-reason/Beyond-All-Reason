@@ -119,7 +119,7 @@ local function dispatchTriggerCallin(callinName, ...)
 	if not handlersByType then
 		return
 	end
-	local args = { n = select('#', ...), ... }
+	local args = table.pack(...)
 	for triggerType, handler in pairs(handlersByType) do
 		processTriggersOfType(triggerType, function(trigger, triggerID)
 			handler(trigger, triggerID, triggerContext, unpackCallinArgs(args))
