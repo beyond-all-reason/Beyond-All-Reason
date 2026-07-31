@@ -2995,19 +2995,19 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 end
 
 function widget:cycleInputMode(reverse)
-	local channelOrder = {'', 's:', 'a:'}
-	local zeroModeIndex -- use zero-based index for modulo, and add 1 before accessing channelOrder
-	for i, mode in ipairs(channelOrder) do
+	local inputModeOrder = {'', 's:', 'a:'}
+	local zeroModeIndex = 0 -- use zero-based index for modulo, and add 1 before accessing inputModeOrder
+	for i, mode in ipairs(inputModeOrder) do
 		if mode == inputMode then
 			zeroModeIndex = i - 1
 			break
 		end
 	end
 
-	local channelCount = mySpec and #channelOrder - 1 or #channelOrder
+	local modeCount = mySpec and #inputModeOrder - 1 or #inputModeOrder
 	local direction = reverse and -1 or 1
-	local newZeroIndex = (zeroModeIndex + direction) % channelCount
-	inputMode = channelOrder[newZeroIndex + 1] -- convert back to 1-based index
+	local newZeroIndex = (zeroModeIndex + direction) % modeCount
+	inputMode = inputModeOrder[newZeroIndex + 1] -- convert back to 1-based index
 
 	updateTextInputDlist = true
 end
