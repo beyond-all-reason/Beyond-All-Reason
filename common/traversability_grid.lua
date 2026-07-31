@@ -10,6 +10,9 @@ local DEFAULT_GRID_SPACING = 32 -- the interval at which terrain is tested using
 local GRID_RESOLUTION_MULTIPLIER_DEFAULT = 2 -- how many GRID_SPACINGs step to check in each direction to determine if a spot is reachable or not.
 local DEFAULT_MAX_SLOPE = 0.36 -- calibrated using quickstart on ascendency
 
+local BFS_NDX = {1, -1, 0,  0}
+local BFS_NDZ = {0,  0, 1, -1}
+
 local unitIDTraversabilityGrids = {}
 local unitIDGridResolutions = {}
 
@@ -34,7 +37,6 @@ local function generateTraversableGrid(originX, originZ, range, gridResolution, 
 
 	local grid = {}
 	local visited = {}
-	local queue = {}
 
 	local snappedOriginX = snapToGrid(originX, gridResolution)
 	local snappedOriginZ = snapToGrid(originZ, gridResolution)
@@ -50,26 +52,23 @@ local function generateTraversableGrid(originX, originZ, range, gridResolution, 
 	grid[snappedOriginX][snappedOriginZ] = true
 	visited[snappedOriginX] = visited[snappedOriginX] or {}
 	visited[snappedOriginX][snappedOriginZ] = true
-	queue[#queue + 1] = {x = snappedOriginX, z = snappedOriginZ}
 
-	local neighbors = {
-		{dx = gridResolution, dz = 0},
-		{dx = -gridResolution, dz = 0},
-		{dx = 0, dz = gridResolution},
-		{dx = 0, dz = -gridResolution}
-	}
+	local queueX = {snappedOriginX}
+	local queueZ = {snappedOriginZ}
+	local queueLen = 1
+	local rangeSq = range * range
 
 	local i = 1
-	while i <= #queue do
-		local current = queue[i]
+	while i <= queueLen do
+		local currentX = queueX[i]
+		local currentZ = queueZ[i]
 		i = i + 1
 
-		for j = 1, #neighbors do
-			local neighbor = neighbors[j]
-			local neighborX = current.x + neighbor.dx
-			local neighborZ = current.z + neighbor.dz
+		for j = 1, 4 do
+			local neighborX = currentX + BFS_NDX[j] * gridResolution
+			local neighborZ = currentZ + BFS_NDZ[j] * gridResolution
 
-			if distance2dSquared(neighborX, neighborZ, snappedOriginX, snappedOriginZ) <= (range * range) then
+			if distance2dSquared(neighborX, neighborZ, snappedOriginX, snappedOriginZ) <= rangeSq then
 				local visitedX = visited[neighborX]
 				if not visitedX or not visitedX[neighborZ] then
 					visited[neighborX] = visited[neighborX] or {}
@@ -80,7 +79,9 @@ local function generateTraversableGrid(originX, originZ, range, gridResolution, 
 					grid[neighborX] = grid[neighborX] or {}
 					if isNeighborTraversable then
 						grid[neighborX][neighborZ] = true
-						queue[#queue + 1] = {x = neighborX, z = neighborZ}
+						queueLen = queueLen + 1
+						queueX[queueLen] = neighborX
+						queueZ[queueLen] = neighborZ
 					else
 						grid[neighborX][neighborZ] = false
 					end

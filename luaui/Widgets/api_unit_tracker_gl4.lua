@@ -18,6 +18,7 @@ end
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -281,7 +282,7 @@ end
 
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = spGetMyAllyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
@@ -358,7 +359,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID, reason, sile
 	]]--
 
 	if gameFrame <= 0 and not fullview then
-		local currentAllyTeamID = Spring.GetMyAllyTeamID()
+		local currentAllyTeamID = spGetMyAllyTeamID()
 		if myAllyTeamID ~= currentAllyTeamID then
 			widget:PlayerChanged()
 		end
@@ -597,78 +598,94 @@ local function initializeAllUnits()
 	alliedUnitsChanged()
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "debugapiunittracker", nil, true) == 1 then
-		local startmatch, endmatch = string.find(command, "debugapiunittracker", nil, true)
-		local param = string.sub(command, endmatch + 2,nil)
-		if param and param == 'draw' then
-			spEcho("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
-			if debugdrawvisible then
-				InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
-				debugdrawvisible = false
-			else
-				debugdrawvisible = true
-				initGL4()
-				initializeAllUnits()
-			end
-		end
-		if param and tonumber(param) then
-			local newdebuglevel = tonumber(param)
-			if newdebuglevel ~= debuglevel then
-				spEcho("Debug level for API Unit Tracker GL4 set to:", newdebuglevel)
-				debuglevel = newdebuglevel
-			end
+local function debugapiunittrackerCmd(_, line)
+	local param = line or ""
+	if param == 'draw' then
+		spEcho("Debug mode for API Unit Tracker GL4 set to draw:", not debugdrawvisible)
+		if debugdrawvisible then
+			InstanceVBOTable.clearInstanceTable(unitTrackerVBO)
+			debugdrawvisible = false
+		else
+			debugdrawvisible = true
+			initGL4()
+			initializeAllUnits()
 		end
 	end
+	if tonumber(param) then
+		local newdebuglevel = tonumber(param)
+		if newdebuglevel ~= debuglevel then
+			spEcho("Debug level for API Unit Tracker GL4 set to:", newdebuglevel)
+			debuglevel = newdebuglevel
+		end
+	end
+	return true
+end
 
-	if string.find(command, "execute", nil, true) == 1 then
-		local cmd = string.sub(command, string.find(command, "execute", nil, true) + 8, nil)
-		local success, functionize = pcall(loadstring( 'return function() return {' .. cmd .. '} end')) -- note, because of the return{} stuff, this cant execute any arbitrary for loop
-		if not success then
-			spEcho("Failed to parse command:",success, cmd)
+local function executeCmd(_, line)
+	local cmd = line or ""
+	local success, functionize = pcall(loadstring('return function() return {' .. cmd .. '} end'))
+	if not success then
+		spEcho("Failed to parse command:", success, cmd)
+	else
+		local ok, data = pcall(functionize)
+		if not ok then
+			spEcho("Failed to execute command:", ok, cmd)
 		else
-			local success, data = pcall(functionize)
-			if not success then
-				spEcho("Failed to execute command:", success, cmd)
-			else
-				if type(data) == type({}) then
-					if #data == 1 then
-						spEcho(data[1])
-					elseif #data == 0 then
-						spEcho("nil")
-					else
-						spEcho(data)
-					end
+			if type(data) == type({}) then
+				if #data == 1 then
+					spEcho(data[1])
+				elseif #data == 0 then
+					spEcho("nil")
 				else
 					spEcho(data)
 				end
+			else
+				spEcho(data)
 			end
 		end
 	end
+	return true
+end
 
-	if string.find(command, "noreturnexecute", nil, true) == 1 then
-		local cmd = string.sub(command, string.find(command, "noreturnexecute", nil, true) + 16, nil)
-		local success, functionize = pcall(loadstring( 'return function() ' .. cmd .. ' end')) --
-		if not success then
-			spEcho("Failed to parse command:",success, cmd)
+local function noreturnexecuteCmd(_, line)
+	local cmd = line or ""
+	local success, functionize = pcall(loadstring('return function() ' .. cmd .. ' end'))
+	if not success then
+		spEcho("Failed to parse command:", success, cmd)
+	else
+		local ok, data = pcall(functionize)
+		if not ok then
+			spEcho("Failed to execute command:", ok, cmd)
 		else
-			local success, data = pcall(functionize)
-			if not success then
-				spEcho("Failed to execute command:", success, cmd)
-			else
-				if type(data) == type({}) then
-					if #data == 1 then
-						spEcho(data[1])
-					elseif #data == 0 then
-						spEcho("nil")
-					else
-						spEcho(data)
-					end
+			if type(data) == type({}) then
+				if #data == 1 then
+					spEcho(data[1])
+				elseif #data == 0 then
+					spEcho("nil")
 				else
 					spEcho(data)
 				end
+			else
+				spEcho(data)
 			end
 		end
+	end
+	return true
+end
+
+local function RegisterTextAction(actionName, handler)
+	if widgetHandler.AddAction then
+		widgetHandler:AddAction(actionName, handler, nil, "t")
+	elseif widgetHandler.actionHandler and widgetHandler.actionHandler.AddAction then
+		widgetHandler.actionHandler:AddAction(widget, actionName, handler, nil, "t")
+	end
+end
+
+local function UnregisterTextAction(actionName)
+	if widgetHandler.RemoveAction then
+		widgetHandler:RemoveAction(actionName, "t")
+	elseif widgetHandler.actionHandler and widgetHandler.actionHandler.RemoveAction then
+		widgetHandler.actionHandler:RemoveAction(widget, actionName)
 	end
 end
 
@@ -680,7 +697,7 @@ function widget:PlayerChanged(playerID)
 	-- the fullview variable is not changed, however
 
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
+	local currentAllyTeamID = spGetMyAllyTeamID()
 	local currentTeamID = spGetMyTeamID()
 	local currentPlayerID = Spring.GetMyPlayerID()
 
@@ -701,7 +718,7 @@ function widget:PlayerChanged(playerID)
 	-- testing for visible units changed
 	if (currentspec ~= spec) or -- we change from spec to non spec (I dont think its possible to go from player to non-fullview spec in one go)
 		(currentfullview ~= fullview) or
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview) then -- our ALLYteam changes, and we are not in fullview
+		((currentAllyTeamID ~= myAllyTeamID) and not currentspec and not currentfullview) then -- our ALLYteam changes while playing, and we are not in fullview
 		reinit = true
 	end
 
@@ -760,7 +777,7 @@ function widget:Initialize()
 	gameFrame = spGetGameFrame()
 	spec, fullview = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = spGetMyAllyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
@@ -783,6 +800,9 @@ function widget:Initialize()
 	WG['unittrackerapi'].alliedUnitsTeam = alliedUnitsTeam
 	initializeAllUnits()
 	widgetHandler:RegisterGlobal('GadgetCrashingAircraft1', GadgetCrashingAircraft)
+	RegisterTextAction("debugapiunittracker", debugapiunittrackerCmd)
+	RegisterTextAction("execute", executeCmd)
+	RegisterTextAction("noreturnexecute", noreturnexecuteCmd)
 end
 
 
@@ -848,4 +868,7 @@ function widget:Shutdown()
 	alliedUnitsChanged()
 
 	widgetHandler:DeregisterGlobal('GadgetCrashingAircraft1')
+	UnregisterTextAction("debugapiunittracker")
+	UnregisterTextAction("execute")
+	UnregisterTextAction("noreturnexecute")
 end

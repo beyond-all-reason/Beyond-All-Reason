@@ -26,8 +26,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 30,
-		idletime = 900,
 		health = 9600,
 		maxslope = 20,
 		speed = 60.0,
@@ -63,17 +61,13 @@ return {
             paratrooper = true,
 			water_fall_damage_multiplier = 0,
 			fall_damage_multiplier = 0,
+			firestateoncloak = 0,
 			nopvebuilder = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:radarpulse_t1",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -126,8 +120,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,

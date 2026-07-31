@@ -43,6 +43,7 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 	local channels = texture.channels
 	for j=1, texture.height do
 		local line = {}
+		local lineIdx = 0
 		for i=1, texture.width do
 			for k=1, channels do
 				offset = offset + 1
@@ -53,10 +54,11 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 					--Spring.Echo("LoadTGA failed to parse",j,i,k,val,offset)
 					val = 0
 				end
-				table.insert(line,val)
-			end
+				lineIdx = lineIdx + 1
+				line[lineIdx] = val
+			 end
 		end
-		table.insert(texture, line)
+		texture[j] = line
 	end
 	return texture
 end
@@ -102,12 +104,14 @@ local function newTGA(width, height, channels, initvalue) -- returns the new 'te
 
 	for j=1, height do
 		local line = {}
+		local lineIdx = 0
 		for i=1, width do
 			for k=1, channels do
-				table.insert(line,initvalue[k])
+				lineIdx = lineIdx + 1
+				line[lineIdx] = initvalue[k]
 			end
 		end
-		table.insert(texture, line)
+		texture[j] = line
 	end
 	return texture
 end

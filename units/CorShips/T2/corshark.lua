@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1610,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.05,
 		maxdec = 0.05,
 		metalcost = 730,
@@ -77,11 +75,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -124,7 +117,6 @@ return {
 				range = 400,
 				reloadtime = 2.2,
 				soundhit = "xplodep1",
-				soundhitvolume = 18,
 				soundstart = "torpedo1",
 				startvelocity = 150,
 				tolerance = 9000,

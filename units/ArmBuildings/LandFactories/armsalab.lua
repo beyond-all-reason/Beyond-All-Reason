@@ -5,6 +5,7 @@ return {
 		buildpic = "LEGALAB.DDS",
 		buildtime = 51000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "124 75 140",
 		collisionvolumetype = "Box",
@@ -15,8 +16,6 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 4250,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -79,13 +78,6 @@ return {
 				object = "Units/arm5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

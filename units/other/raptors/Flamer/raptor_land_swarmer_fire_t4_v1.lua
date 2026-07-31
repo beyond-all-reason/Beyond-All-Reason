@@ -62,7 +62,6 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
-				[4] = "custom:flamestreamxl",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",
@@ -88,6 +87,9 @@ return {
 				turret = "true",
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0.001,
 				},

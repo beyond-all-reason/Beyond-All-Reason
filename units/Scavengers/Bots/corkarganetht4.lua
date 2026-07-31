@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3xxl",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1000000,
 		health = 50000,
 		maxslope = 160,
@@ -24,7 +22,7 @@ return {
 		movementclass = "EPICALLTERRAIN",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corkarganetht4.s3o",
-		script = "Units/scavboss/corkarganetht4.COB",
+		script = "Units/scavboss/corkarganetht4.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xxl",
 		sightdistance = 550,
@@ -54,13 +52,6 @@ return {
 				metal = 6000,
 				object = "Units/scavboss/corkarganetht4_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

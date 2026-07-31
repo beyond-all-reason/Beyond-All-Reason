@@ -3,16 +3,14 @@ local GaiaTeamID = Spring.GetGaiaTeamID()
 local GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local function NearbyCapture(unitID, difficulty, range)
-    local difficulty = difficulty
-    if not difficulty then difficulty = 1 end
-    local range = range
-    if not range then range = 256 end
-    
+    difficulty = difficulty or 1
+    range = range or 256
+
     local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    
+
     local x,y,z = Spring.GetUnitPosition(unitID)
     local nearbyUnits = Spring.GetUnitsInCylinder(x, z, range)
-    
+
     local captureDamage = 0
     for i = 1,#nearbyUnits do
         local attackerID = nearbyUnits[i]
@@ -33,11 +31,12 @@ local function NearbyCapture(unitID, difficulty, range)
 
     if captureDamage ~= 0 then
         local captureProgress = select(4, Spring.GetUnitHealth(unitID))
-        if captureProgress+captureDamage < 0 then
+        local newProgress = captureProgress + captureDamage
+        if newProgress < 0 then
             Spring.SetUnitHealth(unitID, {capture = 0})
             SendToUnsynced("unitCaptureFrame", unitID, 0)
             GG.addUnitToCaptureDecay(unitID)
-        elseif captureProgress+captureDamage >= 1 then
+        elseif newProgress >= 1 then
             local nearestAttacker = Spring.GetUnitNearestEnemy(unitID, range*2, false)
             if nearestAttacker then
                 local attackerTeamID = Spring.GetUnitTeam(nearestAttacker)
@@ -47,13 +46,13 @@ local function NearbyCapture(unitID, difficulty, range)
                 GG.addUnitToCaptureDecay(unitID)
             end
         else
-            Spring.SetUnitHealth(unitID, {capture = captureProgress + captureDamage})
-            SendToUnsynced("unitCaptureFrame", unitID, captureProgress + captureDamage)
+            Spring.SetUnitHealth(unitID, {capture = newProgress})
+            SendToUnsynced("unitCaptureFrame", unitID, newProgress)
             GG.addUnitToCaptureDecay(unitID)
         end
     end
 end
 
-return { 
+return {
     NearbyCapture = NearbyCapture,
 }

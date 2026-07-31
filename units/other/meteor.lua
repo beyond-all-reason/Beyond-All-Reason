@@ -16,8 +16,6 @@ return {
 		explodeas = "",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 0,
-		idletime = 0,
 		levelground = false,
 		mass = 165.75,
 		health = 2,
@@ -45,10 +43,6 @@ return {
 		featuredefs = {},
 		sfxtypes = {
 			explosiongenerators = {},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		weapondefs = {
 			weapon = {
@@ -70,7 +64,6 @@ return {
 				smoketrail = 1,
 				soundhit = "xplonuk4",
 				soundhitwet = "sizzle",
-				soundhitwetvolume = 0.5,
 				stages = 0,
 				startvelocity = 2000,
 				turret = 1,

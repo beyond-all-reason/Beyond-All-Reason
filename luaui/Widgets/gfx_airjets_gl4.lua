@@ -25,6 +25,8 @@ local mathFloor = math.floor
 local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+local spGetTeamList = Spring.GetTeamList
 local spGetSpectatingState = Spring.GetSpectatingState
 
 -- TODO:
@@ -133,6 +135,12 @@ for name, effects in pairs(effectDefs) do
 			effectDefs[name][fx].light = data.light * lightMult
 		end
 	end
+end
+
+-- Build list of DefIDs that have jet effects for filtered unit queries
+local effectDefIDList = {}
+for defID, _ in pairs(effectDefs) do
+	effectDefIDList[#effectDefIDList + 1] = defID
 end
 
 --------------------------------------------------------------------------------
@@ -644,10 +652,16 @@ function widget:Update(dt)
 	local prevLighteffectsEnabled = lighteffectsEnabled
 	lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
-		for _, unitID in ipairs(spGetAllUnits()) do
-			local unitDefID = spGetUnitDefID(unitID)
-			RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
-			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+		for _, teamID in ipairs(spGetTeamList()) do
+			local teamUnits = spGetTeamUnitsByDefs(teamID, effectDefIDList)
+			if teamUnits then
+				for i = 1, #teamUnits do
+					local unitID = teamUnits[i]
+					local unitDefID = spGetUnitDefID(unitID)
+					RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+					AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+				end
+			end
 		end
 	end
 end
@@ -720,9 +734,15 @@ local function reInitialize()
 	lights = {}
 	gl.InstanceVBOTable.clearInstanceTable(jetInstanceVBO)
 
-	for _, unitID in ipairs(spGetAllUnits()) do
-		local unitDefID = spGetUnitDefID(unitID)
-		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+	for _, teamID in ipairs(spGetTeamList()) do
+		local teamUnits = spGetTeamUnitsByDefs(teamID, effectDefIDList)
+		if teamUnits then
+			for i = 1, #teamUnits do
+				local unitID = teamUnits[i]
+				local unitDefID = spGetUnitDefID(unitID)
+				AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+			end
+		end
 	end
 end
 

@@ -14,8 +14,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
 		health = 83000,
@@ -70,10 +68,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 				[2] = "custom:DUST_CLOUD_HUGE",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

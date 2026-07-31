@@ -14,10 +14,10 @@ local scenariodata = {
 	
 	The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
 
-	/luarules fightertest [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
+	/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
 	For this benchmark, it is
 
-	/luarules fightertest corak armpw 650 10 2040
+	/luarules benchmark corak armpw 650 10 2040
 
 	]],
 
@@ -42,7 +42,7 @@ local scenariodata = {
         --myoption = "dostuff",
         scenarioid = "benchmark_lightside", --must be present for scores
 		disablefactionpicker = true, -- this is needed to prevent faction picking outside of the allowedsides
-		benchmarkcommand = "luarules fightertest corak armpw 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
+		benchmarkcommand = "luarules benchmark corak armpw 650 10 2040", -- make sure the matches the debugcommands identically named modoption's info
 		benchmarkframes = 2000,
 		-- quiteforce sucks, does not end the game. 
 		--unitloadout = {},	
@@ -87,7 +87,7 @@ local scenariodata = {
 	[modoptions]
 	{
         scenariooptions = __SCENARIOOPTIONS__;
-		debugcommands = 1:cheat|15:luarules fightertest __PLAYERHANDICAP__|20:vsync 0|25:deselect|30:__SIMSPEED__|35:__CPU80__|2015:screenshot|2016:luarules fightertest|2020:vsync 1;
+		debugcommands = 1:cheat|15:luarules benchmark __PLAYERHANDICAP__|20:vsync 0|25:deselect|30:__SIMSPEED__|35:__CPU80__|2015:screenshot|2016:luarules benchmark|2020:vsync 1;
 	}
 
 	[allyTeam1]

@@ -16,8 +16,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 9600,
@@ -85,11 +83,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
 			},
 		},
 		sounds = {
@@ -141,17 +134,16 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 950,
-				reloadtime = 4,
+				reloadtime = 4.5,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3000,
+				weaponvelocity = 3160,
 				customparams = {
 					overpenetrate = true,
 				},

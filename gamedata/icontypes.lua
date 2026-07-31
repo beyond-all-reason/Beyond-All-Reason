@@ -1728,6 +1728,10 @@ local icontypes = {
 		bitmap = "icons/armrattet4.png",
 		size = 3.09749985
 	},
+	corves = {
+		bitmap = "icons/armrattet4.png",
+		size = 3.09749985
+	},
 	corgplat = {
 		bitmap = "icons/defence_0_0.8.png",
 		size = 0.83999997
@@ -2536,6 +2540,10 @@ local icontypes = {
 		bitmap = "icons/air_trans.png",
 		size = 1.5
 	},
+	legavantinuke = {
+		bitmap = "icons/antinukevehicle.png",
+		size = 1.46999991
+	},
 	legavp = {
 		bitmap = "icons/factory_vehicle_t2.png",
 		size = 1.9425
@@ -2546,7 +2554,7 @@ local icontypes = {
 	},
 	legbar = {
 		bitmap = "icons/vehicle_t1_arty_napalm.png",
-		size = 1.54999995
+		size = 1.35
 	},
 	legbart = {
 		bitmap = "icons/bot_t2_arty_napalm.png",
@@ -2737,7 +2745,7 @@ local icontypes = {
 		size = 1.29999995
 	},
 	leggob = {
-		bitmap = "icons/bot_t1_raid_0.7.png",
+		bitmap = "icons/bot_t1_skirmish.png",
 		size = 0.60000002
 	},
 	leggobt3 = {
@@ -2819,6 +2827,10 @@ local icontypes = {
 	legkeres = {
 		bitmap = "icons/vehicle_t3_tank_mgun.png",
 		size = 2
+	},
+	legapollyon = {
+		bitmap = "icons/vehicle_t3_tank_mgun.png",
+		size = 3
 	},
 	leglht = {
 		bitmap = "icons/defence_0_laser.png",
@@ -2914,7 +2926,7 @@ local icontypes = {
 	},
 	legmrv = {
 		bitmap = "icons/vehicle_t2_raid.png",
-		size = 1.45000005
+		size = 1.3000005
 	},
 	legnap = {
 		bitmap = "icons/air_t2_bomber_napalm.png",
@@ -3661,6 +3673,26 @@ local icontypes = {
 		bitmap = "icons/raptor_tentacle2.png",
 		size = 5
 	},
+	raptor_turret_acid_t4_v2 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 5
+	},
+	raptor_turret_brood_t2_v1 = {
+		bitmap = "icons/raptor_tentacle.png",
+		size = 2
+	},
+	raptor_turret_brood_t3_v1 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 3
+	},
+	raptor_turret_brood_t4_v1 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 5
+	},
+	raptor_turret_brood_t4_v2 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 5
+	},
 	raptor_turret_antiair_t2_v1 = {
 		bitmap = "icons/raptor_tentacle.png",
 		size = 2
@@ -3693,6 +3725,10 @@ local icontypes = {
 		bitmap = "icons/raptor_tentacle2.png",
 		size = 5
 	},
+	raptor_turret_basic_t4_v2 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 5
+	},
 	raptor_turret_emp_t2_v1 = {
 		bitmap = "icons/raptor_tentacle.png",
 		size = 2
@@ -3702,6 +3738,10 @@ local icontypes = {
 		size = 3
 	},
 	raptor_turret_emp_t4_v1 = {
+		bitmap = "icons/raptor_tentacle2.png",
+		size = 5
+	},
+	raptor_turret_emp_t4_v2 = {
 		bitmap = "icons/raptor_tentacle2.png",
 		size = 5
 	},

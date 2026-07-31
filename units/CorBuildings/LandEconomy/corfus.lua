@@ -14,8 +14,6 @@ return {
 		footprintz = 5,
 		health = 4300,
 		hidedamage = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -39,6 +37,7 @@ return {
 			subfolder = "CorBuildings/LandEconomy",
 			techlevel = 2,
 			unitgroup = "energy",
+			restrictions_inclusion = "_nofusion_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -68,13 +67,6 @@ return {
 				object = "Units/cor5X5D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

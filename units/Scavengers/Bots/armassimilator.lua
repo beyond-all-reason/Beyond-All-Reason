@@ -2,10 +2,10 @@ return {
 	armassimilator = {
 		maxacc = 0.2369,
 		maxdec = 0.9039,
-		energycost = 25000,
+		energycost = 49000,
 		metalcost = 2500,
 		buildpic = "ARMASSIMILATOR.DDS",
-		buildtime = 25000,
+		buildtime = 80000,
 		canmove = true,
 		collisionvolumeoffsets = "0.0 -2.0 -5",
 		collisionvolumescales = "50.0 60.0 50.0",
@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 200000,
 		health = 7500,
 		maxslope = 15,
@@ -72,13 +70,6 @@ return {
 				object = "Units/arm3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

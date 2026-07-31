@@ -151,6 +151,9 @@ end
 
 
 local spGetUnitHealth = Spring.GetUnitHealth
+local spSetUnitHealth = Spring.SetUnitHealth
+local math_min = math.min
+local math_max = math.max
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 	if not paralyzer then
@@ -169,15 +172,15 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 
 	if paralyzeTimeException then
 		-- Custom Stun Logic: ParalyzeTime_Exception - Restrict a specific weapon-unit combination to a reduced paralyzetime
-		thismaxtime = math.min(maxTime, paralyzeTimeException)
+		thismaxtime = math_min(maxTime, paralyzeTimeException)
 		local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
-		damage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
+		damage = math_max(0, math_min(damage, maxEmpDamage - currentEmp))
 		return damage, 1
 	else
 		-- restrict the max paralysis time of mobile units
 		if not isBuilding[uDefID] and not excluded[uDefID] then
 			local ohm = 0
-			if Spring.GetModOptions().emprework==true then
+			if modOptions.emprework==true then
 				ohm = unitOhms[uDefID]--	 or 0)) <= 0 and 0.6 or unitOhms[uDefID]
 				-- if default resistance, maxstun cap slightly lowered
 				-- if nondefault, max stun affected by resistance
@@ -209,13 +212,13 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
 			--thismaxtime = math.max(1, thismaxtime)--prevent microstuns (compounds oddly with shuri unfortunately)
 
 			--still obey the hard global cap though
-			thismaxtime = math.min(maxTime, thismaxtime)
+			thismaxtime = math_min(maxTime, thismaxtime)
 			--Spring.Echo('times', weaponParalyzeDamageTime[weaponID], thismaxtime, unitOhms[uDefID] or 1)
 
 			--thanks to sprung for this arcane spell
 			local maxEmpDamage = (1 + (thismaxtime / paralyzeDeclineRate)) * effectiveHP
 
-			newdamage = math.max(0, math.min(damage, maxEmpDamage - currentEmp))
+			newdamage = math_max(0, math_min(damage, maxEmpDamage - currentEmp))
 			--Spring.Echo('h mh ph wpt old new',hp,maxHP, currentEmp, thismaxtime, damage, newdamage)
 
 			damage = newdamage
@@ -249,17 +252,17 @@ function gadget:UnitDamaged(unitID,unitDefID,unitTeam,damage,paralyzer,weaponDef
 		return
 	end
 
-	local uHealth, uMaxHealth, uParalyze = Spring.GetUnitHealth(unitID)
+	local uHealth, uMaxHealth, uParalyze = spGetUnitHealth(unitID)
 
 	-- Support for paralyzeOnMaxHealth Feature
 	local effectiveHP = Game.paralyzeOnMaxHealth and uMaxHealth or uHealth
 
 	-- Still obey the EMP global hard-cap
-	local applyTime = math.min(maxTime, stunDuration)
+	local applyTime = math_min(maxTime, stunDuration)
 
 	-- Calculate the paralyzeDamage required for the fixed stun duration
 	local paralyzeDamage = (1 + (applyTime / Game.paralyzeDeclineRate)) * effectiveHP
 
 	-- Override the paralyzeDamage of the target to apply the fixed duration stun
-	Spring.SetUnitHealth(unitID, { paralyze = paralyzeDamage })
+	spSetUnitHealth(unitID, { paralyze = paralyzeDamage })
 end

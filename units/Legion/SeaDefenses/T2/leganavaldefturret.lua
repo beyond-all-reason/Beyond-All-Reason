@@ -15,8 +15,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
 		footprintz = 7,
-		idleautoheal = 2,
-		idletime = 2500,
 		mass = 9500,
 		health = 6300,
 		minwaterdepth = 24,
@@ -58,10 +56,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 				[2] = "custom:barrelshot-small-impulse",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -115,7 +109,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "mgun6heavy",
-				soundstartvolume = 4.5,
 				soundtrigger = true,
 				sprayangle = 650,
 				texture1 = "shot",
@@ -155,7 +148,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 3,
 				sprayangle = 1500,
 				thickness = 1,
 				tolerance = 6000,

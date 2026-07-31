@@ -61,10 +61,11 @@ if gadgetHandler:IsSyncedCode() then
 		-- evolution_announcement_size = 18.5, 		-- Size of the onscreen announcement
 
 		--	-- Has a default value, as indicated, if not chosen:
-		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "timer_global", "health", or "power"
+		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "timer_global", "health", "power", or "xp"
 		-- evolution_timer = 600, 					-- set the timer used for the timer condition. Given in secons from when the unit was created.
 		-- evolution_health_threshold = 0,			-- threshold for triggering the "health" evolution condition.
 		-- evolution_power_threshold = 600,			-- threshold for triggering the "power" evolution condition.
+		-- evolution_xp_threshold = 0.8,			-- threshold for triggering the "xp" evolution condition. Max rank icon reached at 0.8
 		-- evolution_power_enemy_multiplier = 1,	-- Scales the power calculated based on the average enemy combined power.
 		-- evolution_power_multiplier = 1,			-- Scales the power calculated based on your own combined power.
 		-- combatradius = 1000,						-- Range for setting in-combat status if enemies are within range, and disabling evolution while in-combat.
@@ -93,10 +94,11 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	local function reAssignAssists(newUnit,oldUnit)
-		local allUnits = Spring.GetAllUnits(newUnit)
+		local allUnits = Spring.GetAllUnits()
 		for _,unitID in pairs(allUnits) do
 			if GG.GetUnitTarget and GG.GetUnitTarget(unitID) == oldUnit and newUnit then
-				GG.SetUnitTarget(unitID, newUnit)
+				-- GG.SetUnitTarget(unitID, newUnit) -- FIXME: unit_target_on_the_move provides only GetUnitTarget
+				Spring.SetUnitTarget(unitID, newUnit)
 			end
 
 			local cmds = Spring.GetUnitCommands(unitID, -1)
@@ -271,6 +273,7 @@ if gadgetHandler:IsSyncedCode() then
 				evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier),
 				evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier),
 				evolution_power_threshold        = tonumber(udcp.evolution_power_threshold),
+				evolution_xp_threshold           = tonumber(udcp.evolution_xp_threshold),
 				evolution_timer                  = tonumber(udcp.evolution_timer),
 				timeCreated                      = spGetGameSeconds(),
 			})
@@ -389,6 +392,18 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
+	local function isEvolutionXPPassed(unitID, evolution)
+		if evolution.evolution_condition ~= 'xp' then
+			return false
+		end
+		local threshold = evolution.evolution_xp_threshold
+		if not threshold then
+			return false
+		end
+		local xp = spGetUnitExperience(unitID) or 0
+		return xp >= threshold
+	end
+
 	function gadget:GameFrame(f)
 		if f % GAME_SPEED ~= 0 or fillToCheckUnitIDs() then
 			return
@@ -411,7 +426,7 @@ if gadgetHandler:IsSyncedCode() then
 
 			if evolution and not combatCheckUpdate(unitID, evolution, currentTime)
 				and not spGetUnitTransporter(unitID)
-				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution)) then
+				and (isEvolutionTimePassed(evolution, currentTime) or isEvolutionPowerPassed(evolution) or isEvolutionXPPassed(unitID, evolution)) then
 					evolve(unitID)
 			end
 

@@ -10,6 +10,7 @@ return {
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "-1 -7 2",
 		collisionvolumescales = "64 64 159",
 		collisionvolumetype = "CylZ",
@@ -24,8 +25,6 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		health = 5000,
-		idleautoheal = 15,
-		idletime = 600,
 		mass = 10000,
 		maxacc = 0.01722,
 		maxdec = 0.01722,
@@ -92,11 +91,6 @@ return {
 				[1] = "custom:radarpulse_t2",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

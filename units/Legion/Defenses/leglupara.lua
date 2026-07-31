@@ -16,8 +16,6 @@ return {
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -75,11 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-flak",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -134,8 +127,6 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				soundhitvolume = 7.5,
-				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				weapontimer = 1,

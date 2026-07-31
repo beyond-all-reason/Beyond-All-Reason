@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 1610,
@@ -79,12 +77,6 @@ return {
 				shadtrans = 1,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			cloak = "kloak1",
@@ -122,7 +114,7 @@ return {
 				flighttime = 10,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "corkbmissl1.s3o",
+				model = "corkbmissl0.s3o",
 				name = "Rocket",
 				noselfdamage = true,
 				range = 500,

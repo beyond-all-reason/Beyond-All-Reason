@@ -28,7 +28,7 @@ local unitListReclaimSpeed = {}
 
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.reclaimSpeed > 0 then
-        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / 30
+        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / Game.gameSpeed
     end
 end
 
@@ -46,9 +46,7 @@ local function getStep(featureDefID, unitDefID)
 	local reclaimTime = featureListReclaimTime[featureDefID]
 	local reclaimSpeed = unitListReclaimSpeed[unitDefID]
 	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then return nil end
-	local oldformula = (reclaimSpeed*0.70 + 10*0.30) * 1.5  / reclaimTime
-	local newformula = reclaimSpeed / reclaimTime
-	return (((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource
+	return ((0.05 * reclaimSpeed + 4.5) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
 end
 
 

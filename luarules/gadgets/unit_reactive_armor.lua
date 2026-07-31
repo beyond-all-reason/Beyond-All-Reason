@@ -415,8 +415,9 @@ function gadget:Initialize()
 	end
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if armoredUnitDefs[spGetUnitDefID(unitID)] then
-			reloadUnitState(unitID, spGetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		local uDefID = spGetUnitDefID(unitID)
+		if armoredUnitDefs[uDefID] then
+			reloadUnitState(unitID, uDefID, Spring.GetUnitTeam(unitID))
 		end
 	end
 end

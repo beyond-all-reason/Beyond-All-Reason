@@ -15,8 +15,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1060,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = false,
 		maxacc = 0.0697,
 		maxdec = 0.13939,
@@ -43,6 +41,7 @@ return {
 		turnrate = 701.79999,
 		customparams = {
 			basename = "base",
+			firestateoncloak = 0,
 			firingceg = "barrelshot-small",
 			kickback = "-0.65",
 			model_author = "FireStorm",
@@ -88,11 +87,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

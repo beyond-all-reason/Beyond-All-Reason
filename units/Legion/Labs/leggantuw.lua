@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGGANTUW.DDS",
 		buildtime = 67300,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 105 196",
 		collisionvolumetype = "Box",
@@ -16,8 +17,6 @@ return {
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 12,
 		footprintz = 12,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 17800,
 		maxslope = 10,
 		metalstorage = 800,
@@ -85,10 +84,6 @@ return {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

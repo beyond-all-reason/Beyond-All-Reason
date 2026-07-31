@@ -4,6 +4,7 @@ return {
 		buildpic = "ARMSY.DDS",
 		buildtime = 5160,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 16 0",
 		collisionvolumescales = "90 60 90",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 4100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 450,
@@ -64,11 +63,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

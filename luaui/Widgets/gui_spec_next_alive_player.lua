@@ -59,6 +59,7 @@ function widget:TeamDied(teamID)
 	if spec and spGetMyTeamID() == teamID then
 		processTeamDiedFrame = spGetGameFrame() + 1
 		processTeamDiedTeamID = teamID
+		widgetHandler:UpdateCallIn('GameFrame')
 	end
 end
 
@@ -68,6 +69,7 @@ function widget:PlayerChanged(playerID)
 	if spec and teamID and spGetMyTeamID() == teamID then
 		processTeamDiedFrame = spGetGameFrame() + 1
 		processTeamDiedTeamID = teamID
+		widgetHandler:UpdateCallIn('GameFrame')
 	end
 end
 
@@ -77,4 +79,5 @@ function widget:GameFrame(f)
 		processTeamDiedFrame = nil
 		processTeamDiedTeamID = nil
 	end
+	widgetHandler:RemoveCallIn('GameFrame')
 end

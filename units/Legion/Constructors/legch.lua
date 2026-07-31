@@ -18,8 +18,6 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1390,
 		maxslope = 16,
 		speed = 72.9,
@@ -127,10 +125,6 @@ return {
 				[1] = "custom:waterwake-small-hover",
 				[2] = "custom:bowsplash-small-hover",
 				[3] = "custom:hover-wake-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
 			},
 		},
 		sounds = {

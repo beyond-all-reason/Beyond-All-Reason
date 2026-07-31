@@ -5,16 +5,14 @@ return {
 		canmove = true,
 		cantbetransported = true, --Need to true!!!!!!!!!!
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "55 80 55",
+		collisionvolumeoffsets = "0 -16 0",
+		collisionvolumescales = "40 48 40",
 		collisionvolumetype = "CYLY",
 		corpse = "DEAD",
 		energycost = 42000,
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 32,
-		idletime = 1800,
 		health = 9400,
 		speed = 82.0,
 		maxslope = 17,
@@ -82,11 +80,6 @@ return {
 				[2] = "custom:barrelshot-lightning",
 				[3] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,8 +128,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
-					noattackrangearc = 1,
 					bogus = 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 0,
@@ -165,18 +158,19 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "sizzlexs",
 				soundstart = "packolau",
-				soundstartvolume = 26,
 				soundtrigger = true,
 				turret = true,
 				thickness = 24,
 				waterweapon = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 600,
-				damage = {
-					commanders = 500,
-					default = 1500,},
 				customparams = {
 					overpenetrate = true,
+					weapons_role = "secondary",
+				},
+				damage = {
+					commanders = 500,
+					default = 1500,
 				},
 			},
 			railgunt2 = {
@@ -210,18 +204,17 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 3000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
+				customparams = {
+					overpenetrate = true,
+				},
 				damage = {
 					commanders = 250,
 					default = 475,
-				},
-				customparams = {
-					overpenetrate = true,
 				},
 			},
 		},

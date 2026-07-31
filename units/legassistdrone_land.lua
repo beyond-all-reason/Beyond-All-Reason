@@ -11,13 +11,11 @@ return {
 		cancapture = true,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1 1",
-		collisionvolumescales = "11 8 21",
+		collisionvolumescales = "12 12 22",
 		collisionvolumetype = "Box",
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 2000,
 		maxslope = 16,
@@ -73,13 +71,6 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorVehicles",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

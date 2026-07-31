@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGALAB.DDS",
 		buildtime = 25200,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "140 52 140",
 		collisionvolumetype = "Box",
@@ -17,8 +18,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
 		footprintz = 9,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 4500,
 		maxslope = 15,
 		maxwaterdepth = 0,
@@ -94,10 +93,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

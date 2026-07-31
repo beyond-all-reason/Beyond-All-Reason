@@ -20,8 +20,6 @@ local mathFloor = math.floor
 local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
-
 local timeNotation = 24
 
 local font
@@ -39,6 +37,8 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 
 local passedTime = 0
+local positionCheckTime = 0
+local POSITION_CHECK_INTERVAL = 0.05
 local textWidthClock = 0
 local gameframe = spGetGameFrame()
 local gamespeed = 1.0
@@ -70,7 +70,7 @@ local function drawContent()
 	end
 	local time = minutes..':'..seconds
 
-	font:Begin(useRenderToTexture)
+	font:Begin(true)
 	font:SetOutlineColor(0.15,0.15,0.15,0.8)
 	font:Print(valueColor..time, left+textXPadding, bottom+(0.48*widgetHeight*widgetScale)-(textsize*0.35), textsize, 'no')
 	local extraSpacing = 0
@@ -111,56 +111,22 @@ local function refreshUiDrawing()
 	end
 
 	if right-left >= 1 and top-bottom >= 1 then
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-						gl.Translate(-left, -bottom, 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if drawlist[1] ~= nil then
-				glDeleteList(drawlist[1])
-			end
-			drawlist[1] = glCreateList( function()
-				drawBackground()
-			end)
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(uiBgTex, left, bottom, right, top, drawBackground, true)
 		end
-		if useRenderToTexture then
-			if not uiTex then
-				uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {	--*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / (right-left), 2 / (top-bottom), 0)
-					gl.Translate(-left, -bottom, 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		else
-			if drawlist[2] ~= nil then
-				glDeleteList(drawlist[2])
-			end
-			drawlist[2] = glCreateList( function()
-				drawContent()
-			end)
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(right-left), mathFloor(top-bottom), {	--*(vsy<1400 and 2 or 1)
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
 		end
+		gl.R2tHelper.RenderInRect(uiTex, left, bottom, right, top, drawContent, true)
 	end
 end
 
@@ -225,12 +191,19 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-	updatePosition()
-	
+	passedTime = passedTime + dt
+	positionCheckTime = positionCheckTime + dt
+
+	-- Throttle position checks to ~4x per second instead of every frame
+	if positionCheckTime >= POSITION_CHECK_INTERVAL then
+		positionCheckTime = 0
+		updatePosition()
+	end
+
 	-- Calculate actual gamespeed over a longer interval for stability
 	local currentGameframe = spGetGameFrame()
 	gamespeedUpdateTime = gamespeedUpdateTime + dt
-	
+
 	-- Update gamespeed calculation every 0.2 seconds for smoother results
 	if gamespeedUpdateTime >= 0.2 then
 		local frameDelta = currentGameframe - gamespeedFrameStart
@@ -240,11 +213,9 @@ function widget:Update(dt)
 		gamespeedFrameStart = currentGameframe
 		gamespeedUpdateTime = 0
 	end
-	
-	gameframe = currentGameframe
-	
-	passedTime = passedTime + dt
+
 	if passedTime > 1 then
+		gameframe = currentGameframe
 		updateDrawing = true
 		passedTime = passedTime - 1
 	end
@@ -277,25 +248,10 @@ function widget:DrawScreen()
 		refreshUiDrawing()
 	end
 
-	if useRenderToTexture then
-		if uiBgTex then
-			-- background element
-			gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, useRenderToTexture)
-		end
+	if uiBgTex then
+		gl.R2tHelper.BlendTexRect(uiBgTex, left, bottom, right, top, true)
 	end
-	if useRenderToTexture then
-		if uiTex then
-			-- content
-			gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, useRenderToTexture)
-		end
-	else
-		if drawlist[2] then
-			glPushMatrix()
-			if not useRenderToTexture  and drawlist[1] then
-				glCallList(drawlist[1])
-			end
-			glCallList(drawlist[2])
-			glPopMatrix()
-		end
+	if uiTex then
+		gl.R2tHelper.BlendTexRect(uiTex, left, bottom, right, top, true)
 	end
 end

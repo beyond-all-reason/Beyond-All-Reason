@@ -12,8 +12,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 1900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1325,
 		maxaileron = 0.01347,
 		maxbank = 0.8,
@@ -44,20 +42,6 @@ return {
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			unitgroup = "sub",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -104,9 +88,7 @@ return {
 				range = 400,
 				reloadtime = 7,
 				soundhit = "xplodep2",
-				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 14,
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
@@ -121,6 +103,7 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					norangering = 1,
+					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 750,

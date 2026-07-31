@@ -13,11 +13,9 @@ return {
 		footprintz = 2,
 		health = 750,
 		hightrajectory = 1,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02293,
-		maxdec = 0.04585,
+		maxdec = 0.1,
 		maxslope = 10,
 		maxwaterdepth = 8,
 		metalcost = 170,
@@ -28,7 +26,7 @@ return {
 		script = "Units/CORWOLV.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 330,
 		speed = 48,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -87,10 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

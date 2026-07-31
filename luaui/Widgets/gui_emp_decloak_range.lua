@@ -57,6 +57,8 @@ local glDepthTest          = gl.DepthTest
 local glDrawGroundCircle   = gl.DrawGroundCircle
 
 local spGetAllUnits        = Spring.GetAllUnits
+local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
+local spGetTeamList        = Spring.GetTeamList
 local spGetCameraPosition  = Spring.GetCameraPosition
 local spGetUnitPosition    = Spring.GetUnitPosition
 local spIsSphereInView     = Spring.IsSphereInView
@@ -106,6 +108,22 @@ for udid, ud in pairs(UnitDefs) do
     end
 end
 
+-- Build a combined DefID list for GetTeamUnitsByDefs
+local spyGremlinDefIDList = {}
+local spyGremlinDefIDSet = {}
+for udid, _ in pairs(isSpy) do
+    if not spyGremlinDefIDSet[udid] then
+        spyGremlinDefIDList[#spyGremlinDefIDList + 1] = udid
+        spyGremlinDefIDSet[udid] = true
+    end
+end
+for udid, _ in pairs(isGremlin) do
+    if not spyGremlinDefIDSet[udid] then
+        spyGremlinDefIDList[#spyGremlinDefIDList + 1] = udid
+        spyGremlinDefIDSet[udid] = true
+    end
+end
+
 local function addSpy(unitID, unitDefID)
     local props = isSpy[unitDefID]
     units[unitID] = { props[1], props[2] }
@@ -120,12 +138,19 @@ end
 --------------------------------------------------------------------------------
 function widget:Initialize()
     units = {}
-    for _, unitID in ipairs(spGetAllUnits()) do
-        local udid = spGetUnitDefID(unitID)
-        if isSpy[udid] then
-            addSpy(unitID, udid)
-        elseif isGremlin[udid] then
-            addGremlin(unitID, udid)
+    if #spyGremlinDefIDList == 0 then return end
+    for _, teamID in ipairs(spGetTeamList()) do
+        local teamUnits = spGetTeamUnitsByDefs(teamID, spyGremlinDefIDList)
+        if teamUnits then
+            for i = 1, #teamUnits do
+                local unitID = teamUnits[i]
+                local udid = spGetUnitDefID(unitID)
+                if isSpy[udid] then
+                    addSpy(unitID, udid)
+                elseif isGremlin[udid] then
+                    addGremlin(unitID, udid)
+                end
+            end
         end
     end
 end

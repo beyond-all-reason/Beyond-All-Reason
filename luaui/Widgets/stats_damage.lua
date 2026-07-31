@@ -48,11 +48,6 @@ if chunk then
 end
 
 
-function widget:Initialize()
-	widgetHandler:RegisterGlobal('SendStats', RecieveStats)
-	widgetHandler:RegisterGlobal('SendStats_GameMode', RecieveGameMode)
-end
-
 function RecieveGameMode(mode)
     mode = mode or "unknown"
 
@@ -91,6 +86,14 @@ function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_co
     info[name].n = info[name].n + n
 end
 
+function widget:SendStats_GameMode(mode)
+    RecieveGameMode(mode)
+end
+
+function widget:SendStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
+    RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
+end
+
 function widget:GameOver()
     if not info or Spring.IsReplay() then return end
     if Spring.Utilities.IsDevMode() then return end
@@ -98,7 +101,3 @@ function widget:GameOver()
     table.save(stats, STATS_FILE, '-- Damage Stats')
 end
 
-function widget:Shutdown()
-    widgetHandler:DeregisterGlobal('SendStats')
-    widgetHandler:DeregisterGlobal('SendStats_GameMode')
-end

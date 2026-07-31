@@ -1,6 +1,5 @@
 return {
 	corfort = {
-		autoheal = 12,
 		blocking = true,
 		buildangle = 0,
 		buildpic = "CORFORT.DDS",
@@ -18,7 +17,6 @@ return {
 		footprintz = 2,
 		health = 8900,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,
@@ -66,12 +64,6 @@ return {
 				object = "Units/cor1X1B.s3o",
 				reclaimable = true,
 				shadtrans = 1,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

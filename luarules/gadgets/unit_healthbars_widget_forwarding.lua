@@ -15,6 +15,10 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	local SendToUnsynced = SendToUnsynced
+	local spGetGameFrame = Spring.GetGameFrame
+	local spGetUnitWeaponState = Spring.GetUnitWeaponState
+
 	local forwardedFeatureIDs = {} -- so we only forward the start event once
 	local forwardedCaptureUnitIDs = {}
 	local weapondefsreload = {}
@@ -28,7 +32,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- step is large positive if refilling
 		-- step is small positive if rezzing
 
-		local gf = Spring.GetGameFrame()
+		local gf = spGetGameFrame()
 		--Spring.Echo("AllowFeatureBuildStep",gf,builderID, builderTeam, featureID, featureDefID, step)
 		if forwardedFeatureIDs[featureID] == nil or forwardedFeatureIDs[featureID] < gf then
 			 forwardedFeatureIDs[featureID] = gf
@@ -87,8 +91,8 @@ if gadgetHandler:IsSyncedCode() then
 		local weaponIndex = weapondefsreload[weaponID]
 
 		if weaponIndex then
-			local gf = Spring.GetGameFrame()
-			local reloadFrame = Spring.GetUnitWeaponState(ownerID, weaponIndex, 'reloadFrame')
+			local gf = spGetGameFrame()
+			local reloadFrame = spGetUnitWeaponState(ownerID, weaponIndex, 'reloadFrame')
 
 			if unitreloadframe[ownerID] == nil or unitreloadframe[ownerID] <= gf then
 				SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
@@ -101,6 +105,8 @@ else
 
 	local glSetFeatureBufferUniforms = gl.SetFeatureBufferUniforms
 	local GetFeatureResources = Spring.GetFeatureResources
+	local GetFeaturePosition = Spring.GetFeaturePosition
+	local IsPosInLos = Spring.IsPosInLos
 	local rezreclaim = {0.0, 1.0} -- this is just a small table cache, so we dont allocate a new table for every update
 	local forwardedFeatureIDsResurrect = {} -- so we only forward the start event once
 	local forwardedFeatureIDsReclaim = {} -- so we only forward the start event once
@@ -119,6 +125,13 @@ else
 
 	function featureReclaimFrame(cmd, featureID, step)
 		--Spring.Echo("HandleFeatureReclaimStarted", featureID)
+		if not fullview then
+			local x, y, z = GetFeaturePosition(featureID)
+			if x and not IsPosInLos(x, y, z, myAllyTeamID) then
+				return
+			end
+		end
+
 		rezreclaim[1] = select(3, GetFeatureHealth( featureID )) -- resurrect progress
 		rezreclaim[2] = select(5, GetFeatureResources(featureID)) -- reclaim percent
 

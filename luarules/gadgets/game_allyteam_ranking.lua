@@ -41,6 +41,7 @@ local spGetTeamList = Spring.GetTeamList
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local mathFloor = math.floor
 local tableSort = table.sort
+local rankSortFunc = function(m1, m2) return m1.totalCost > m2.totalCost end
 
 local unitCost = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -135,9 +136,7 @@ function gadget:GameFrame(gf)
 				end
 				temp[#temp+1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
 			end
-			tableSort(temp, function(m1, m2)
-				return m1.totalCost > m2.totalCost
-			end)
+			tableSort(temp, rankSortFunc)
 			local rankingChanged = false
 			local ranking = {}
 			for i, params in ipairs(temp) do

@@ -24,21 +24,14 @@ local sendPacketEvery	= 2
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationFps = validation
 
+	local at_b = string.byte("@") -- 64
+	local vb1, vb2 = string.byte(validation, 1, 2)
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="@" and msg:sub(2,3)==validation then
+		if #msg >= 3 and string.byte(msg,1)==at_b and string.byte(msg,2)==vb1 and string.byte(msg,3)==vb2 then
 			SendToUnsynced("fpsBroadcast",playerID,tonumber(msg:sub(4)))
 			return true
 		end

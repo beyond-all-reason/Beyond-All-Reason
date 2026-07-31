@@ -5,6 +5,7 @@ return {
 		buildpic = "legsplab.DDS",
 		buildtime = 11800,
 		canmove = true,
+		canReclaim = false,
 		category = "SURFACE UNDERWATER",
 		corpse = "DEAD",
 		energycost = 5500,
@@ -13,8 +14,6 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		health = 2200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1400,
@@ -26,7 +25,7 @@ return {
 		sightdistance = 169,
 		sonardistance = 800,
 		terraformspeed = 1000,
-		waterline = 0,
+		waterline = 50,
 		workertime = 300,
 		yardmap = "wwwwww weeeew weeeew weeeew weeeew wwwwww",
 		buildoptions = {
@@ -44,6 +43,8 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Labs",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -59,13 +60,6 @@ return {
 				metal = 930,
 				object = "Units/legsplab_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

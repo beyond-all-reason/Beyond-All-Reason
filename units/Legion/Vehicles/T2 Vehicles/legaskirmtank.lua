@@ -7,15 +7,14 @@ return {
 		buildpic = "LEGASKIRMTANK.DDS",
 		buildtime = 10490,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "30 30 34", ---not respected used collisionvolumes.lua
-		collisionvolumetype = "BOX",
+		collisionvolumeoffsets = "0 -8 -3",
+		collisionvolumescales = "36 36 40",
+		collisionvolumetype = "CylZ",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 2500,--3900,
 		maxslope = 12,
@@ -83,10 +82,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

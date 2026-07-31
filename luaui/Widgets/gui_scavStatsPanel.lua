@@ -140,7 +140,7 @@ local function CreatePanelDisplayList()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 	local currentTime = GetGameSeconds()
-	--if currentTime > gameInfo.scavGracePeriod then
+	if currentTime > gameInfo.scavGracePeriod then
 		if gameInfo.scavBossAnger < 100 then
 
 			local gain = 0
@@ -168,8 +168,15 @@ local function CreatePanelDisplayList()
 			end
 		else
 			font:Print(textColor .. Spring.I18N('ui.scavs.bossHealth', { count = nBosses, health = gameInfo.scavBossHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
+
+			if Spring.GetGameRulesParam("scavBossStaggerActive") == false then
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossStaggerPercentage', {count = nBosses, value = 100-Spring.GetGameRulesParam("scavBossStaggerPercentage") }), panelMarginX, PanelRow(2), panelFontSize, "")
+			else
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.scavs.bossStaggerActive', {count = nBosses}), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print("\255\255\255\0" .. Spring.I18N('ui.scavs.bossStaggerPercentage', {count = nBosses, value = 100-Spring.GetGameRulesParam("scavBossStaggerPercentage") }), panelMarginX, PanelRow(3), panelFontSize, "")
+			end
 			if nBosses > 1 then
-				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
+				font:Print(textColor .. Spring.I18N('ui.scavs.bossesKilled', { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }), panelMarginX, PanelRow(4), panelFontSize, "")
 			end
 			for i = 1,#currentlyResistantToNames do
 				if i == 1 then
@@ -178,9 +185,9 @@ local function CreatePanelDisplayList()
 				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(12+i), panelFontSize, "")
 			end
 		end
-	--else
-	--	font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(mathCeil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
-	--end
+	else
+		font:Print(textColor .. Spring.I18N('ui.scavs.gracePeriod', { time = string.formatTime(mathCeil(((currentTime - gameInfo.scavGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+	end
 
 	-- font:Print(textColor .. Spring.I18N('ui.scavs.scavKillCount', { count = gameInfo.scavKills }), panelMarginX, PanelRow(6), panelFontSize, "")
 	local endless = ""
@@ -197,11 +204,10 @@ end
 
 local function getMarqueeMessage(scavEventArgs)
 	local messages = {}
-	--if scavEventArgs.type == "firstWave" then
-	--	messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
-	--	messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
-	--else
-	if scavEventArgs.type == "boss" then
+	if scavEventArgs.type == "firstWave" then
+		messages[1] = textColor .. Spring.I18N('ui.scavs.firstWave1')
+		messages[2] = textColor .. Spring.I18N('ui.scavs.firstWave2')
+	elseif scavEventArgs.type == "boss" then
 		messages[1] = textColor .. Spring.I18N('ui.scavs.bossIsAngry1', { count = nBosses })
 		messages[2] = textColor .. Spring.I18N('ui.scavs.bossIsAngry2')
 	elseif scavEventArgs.type == "airWave" then
@@ -304,7 +310,7 @@ local function UpdateRules()
 	updatePanel = true
 end
 
-function ScavEvent(scavEventArgs)
+local function ScavEvent(scavEventArgs)
 	if scavEventArgs.type == "firstWave" or (scavEventArgs.type == "boss" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
@@ -344,7 +350,6 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("ScavEvent", ScavEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
 	local x = mathAbs(mathFloor(viewSizeX - 320))
@@ -356,6 +361,10 @@ function widget:Initialize()
 	--end
 
 	updatePos(x, y)
+end
+
+function widget:ScavEvent(scavEventArgs)
+	ScavEvent(scavEventArgs)
 end
 
 function widget:Shutdown()
@@ -370,7 +379,6 @@ function widget:Shutdown()
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("ScavEvent")
 end
 
 function widget:GameFrame(n)

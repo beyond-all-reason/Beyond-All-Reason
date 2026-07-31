@@ -5,12 +5,16 @@ local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMiniMapRotation = Spring.GetMiniMapRotation
 
+local math_floor = math.floor
+local PI_HALF = math.pi / 2
+local PI_THREE_HALF = 3 * math.pi / 2
+
 local function getMiniMapFlipped()
 	if not spGetMiniMapRotation then return false end
 
 	local rot = spGetMiniMapRotation()
 
-	return rot > math.pi/2 and rot <= 3 * math.pi/2;
+	return rot > PI_HALF and rot <= PI_THREE_HALF;
 end
 
 local ROTATION = {
@@ -23,7 +27,7 @@ local ROTATION = {
 local function getCurrentMiniMapRotationOption() -- Spring.GetMiniMapRotation() returns rads, instead here we return iterations of 90 degrees (0, 1, 2, 3)
 	if not spGetMiniMapRotation then return ROTATION.NONE end
 
-	return math.floor((spGetMiniMapRotation() / math.pi * 2 + 0.5) % 4)
+	return math_floor((spGetMiniMapRotation() / math.pi * 2 + 0.5) % 4)
 end
 
 local function minimapToWorld(x, y, vpy, dualScreen)

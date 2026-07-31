@@ -56,6 +56,7 @@ if commonFunctions.i18n[environment] then
 end
 
 if commonFunctions.cmd[environment] then
+	Game.Commands = VFS.Include("modules/commands.lua")
 	Game.CustomCommands = VFS.Include("modules/customcommands.lua")
 end
 

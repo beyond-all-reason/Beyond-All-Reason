@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 1610,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		maxacc = 0,
@@ -83,11 +81,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4-fire",
 			},
 		},
 		sounds = {
@@ -139,10 +132,8 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 0.75,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 7.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,

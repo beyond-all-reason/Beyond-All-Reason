@@ -82,7 +82,7 @@ local wallUnitDefs = {
 		[2] = {
 			["land"] = {
 				unarmed = {"corscavfort"},
-				armed = {"corfdrag"}, -- placeholder,
+				armed = {"corscavfort"}, -- placeholder,
 			},
 			["sea"] = {
 				unarmed = {"corfdrag"}, -- placeholder,

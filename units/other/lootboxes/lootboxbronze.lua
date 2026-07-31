@@ -26,8 +26,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 10,
-		idletime = 1800,
 		levelground = false,
 		mass = 749,
 		health = 33500,
@@ -62,10 +60,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:LootboxLightGold",
 				[2] = "custom:LootboxBeaconBronze",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

@@ -18,8 +18,6 @@ return {
 		footprintz = 2,
 		health = 435,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.072,
 		maxdec = 0.4275,
 		maxslope = 10,
@@ -72,23 +70,9 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorSeaplanes",
+			subfolder = "CorSeaplanes", -- help me
 			techlevel = 2,
 			unitgroup = "buildert2",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2-builder",
-				[2] = "airdeathceg3-builder",
-				[3] = "airdeathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

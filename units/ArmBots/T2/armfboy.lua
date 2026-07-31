@@ -1,19 +1,17 @@
 return {
 	armfboy = {
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 28000,
+		buildtime = 32000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 40 42",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 15000,
+		energycost = 20000,
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		health = 7800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.138,
 		maxdec = 0.43125,
 		maxslope = 20,
@@ -72,11 +70,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

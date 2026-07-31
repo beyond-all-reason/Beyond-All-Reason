@@ -44,11 +44,152 @@ VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
+local CHAT_ACTION_PREFIX = 'gui_chat:chataction:'
+local CHAT_ACTION_REQUEST = 'gui_chat:requestChatActions'
+local CHAT_ACTION_SNAPSHOT = 'snapshot'
+local CHAT_ACTION_INITIAL_SNAPSHOT_UPDATES = 5
+
+local chatActionRegistry = {
+	synced = {},
+	unsynced = {},
+}
+local chatActionBroadcastsEnabled = false
+local chatActionInitialSnapshotUpdates = 0
+
+local BroadcastChatActionUpdate
+
+local function GetChatActionSource()
+	return (SendToUnsynced ~= nil) and 'synced' or 'unsynced'
+end
+
+local function RegisterChatAction(source, cmd)
+	local sourceRegistry = chatActionRegistry[source]
+	if not sourceRegistry then
+		return
+	end
+	sourceRegistry[cmd] = true
+	if chatActionBroadcastsEnabled then
+		BroadcastChatActionUpdate(source, 'add', cmd)
+	end
+end
+
+local function UnregisterChatAction(source, cmd)
+	local sourceRegistry = chatActionRegistry[source]
+	if not sourceRegistry then
+		return
+	end
+	if sourceRegistry[cmd] then
+		sourceRegistry[cmd] = nil
+		if chatActionBroadcastsEnabled then
+			BroadcastChatActionUpdate(source, 'remove', cmd)
+		end
+	end
+end
+
+local rawAddChatAction = actionHandler.AddChatAction
+local rawRemoveChatAction = actionHandler.RemoveChatAction
+
+actionHandler.AddChatAction = function(widget, cmd, func, help)
+	local textSuccess = rawAddChatAction(widget, cmd, func, help)
+	if textSuccess then
+		RegisterChatAction(GetChatActionSource(), cmd)
+	end
+	return textSuccess
+end
+
+actionHandler.RemoveChatAction = function(widget, cmd)
+	local textSuccess = rawRemoveChatAction(widget, cmd)
+	if textSuccess then
+		UnregisterChatAction(GetChatActionSource(), cmd)
+	end
+	return textSuccess
+end
+
+local function SendChatActionMessage(msg)
+	if Spring.SendLuaUIMsg then
+		Spring.SendLuaUIMsg(msg)
+	elseif SendToUnsynced then
+		SendToUnsynced(msg)
+	end
+end
+
+BroadcastChatActionUpdate = function(source, mode, cmd)
+	SendChatActionMessage(CHAT_ACTION_PREFIX .. source .. ':' .. mode .. ':' .. cmd)
+end
+
+local function EncodeChatActionSnapshot(actionMap)
+	local payload = {}
+	for cmd in pairs(actionMap or {}) do
+		if type(cmd) == 'string' and cmd ~= '' then
+			payload[#payload + 1] = tostring(#cmd)
+			payload[#payload + 1] = ':'
+			payload[#payload + 1] = cmd
+		end
+	end
+	return table.concat(payload)
+end
+
+local function ApplyChatActionSnapshot(source, payload)
+	local sourceRegistry = chatActionRegistry[source]
+	if not sourceRegistry then
+		return
+	end
+	for cmd in pairs(sourceRegistry) do
+		sourceRegistry[cmd] = nil
+	end
+	local pos = 1
+	local payloadLen = #payload
+	while pos <= payloadLen do
+		local sepStart, sepEnd = string.find(payload, ':', pos, true)
+		if not sepStart then
+			return
+		end
+		local cmdLen = tonumber(string.sub(payload, pos, sepStart - 1))
+		if not cmdLen or cmdLen < 0 then
+			return
+		end
+		local cmdStart = sepEnd + 1
+		local cmdEnd = cmdStart + cmdLen - 1
+		if cmdEnd > payloadLen then
+			return
+		end
+		sourceRegistry[string.sub(payload, cmdStart, cmdEnd)] = true
+		pos = cmdEnd + 1
+	end
+end
+
+local function ApplyChatActionMessage(msg)
+	local source, mode, cmd = string.sub(msg, #CHAT_ACTION_PREFIX + 1):match('^([^:]+):([^:]+):?(.*)$')
+	local sourceRegistry = source and chatActionRegistry[source]
+	if not sourceRegistry or not mode then
+		return
+	end
+	if mode == CHAT_ACTION_SNAPSHOT then
+		ApplyChatActionSnapshot(source, cmd or '')
+	elseif mode == 'clear' then
+		for action in pairs(sourceRegistry) do
+			sourceRegistry[action] = nil
+		end
+	elseif mode == 'add' and cmd ~= '' then
+		sourceRegistry[cmd] = true
+	elseif mode == 'remove' and cmd ~= '' then
+		sourceRegistry[cmd] = nil
+	end
+end
+
+local function BroadcastChatActionSnapshot(source, actionMap)
+	chatActionBroadcastsEnabled = true
+	local payload = EncodeChatActionSnapshot(actionMap or chatActionRegistry[source])
+	SendChatActionMessage(CHAT_ACTION_PREFIX .. source .. ':' .. CHAT_ACTION_SNAPSHOT .. ':' .. payload)
+end
+
 -- Utility call
 local isSyncedCode = (SendToUnsynced ~= nil)
 local function IsSyncedCode()
 	return isSyncedCode
 end
+
+local isHeadless = (Platform and Platform.isHeadless) or false
 
 if IsSyncedCode() then
 	local devModeEnabled = string.find(string.upper(Game.gameVersion), "$VERSION", 1, true)
@@ -208,6 +349,7 @@ local callInLists = {
 	"AllowWeaponTargetCheck",
 	"AllowWeaponTarget",
 	"AllowWeaponInterceptTarget",
+	"UnitAutoTargetRange",
 	-- unsynced
 	"DrawUnit",
 	"DrawFeature",
@@ -274,6 +416,58 @@ local callInLists = {
 	"UnsyncedHeightMapUpdate"
 }
 
+local headlessDisabledCallIns = {
+	DrawUnit = true,
+	DrawFeature = true,
+	DrawShield = true,
+	DrawProjectile = true,
+	ViewResize = true,
+	DrawGenesis = true,
+	DrawWorld = true,
+	DrawWorldPreUnit = true,
+	DrawWorldShadow = true,
+	DrawWorldReflection = true,
+	DrawWorldRefraction = true,
+	DrawScreenEffects = true,
+	DrawScreenPost = true,
+	DrawScreen = true,
+	DrawInMiniMap = true,
+	DrawOpaqueUnitsLua = true,
+	DrawOpaqueFeaturesLua = true,
+	DrawAlphaUnitsLua = true,
+	DrawAlphaFeaturesLua = true,
+	DrawShadowUnitsLua = true,
+	DrawShadowFeaturesLua = true,
+	FontsChanged = true,
+}
+
+local headlessDisabledGadgetPrefixes = {
+	"gfx_",
+	"gui_",
+	"snd_",
+}
+
+local function ShouldSkipHeadlessUnsyncedGadget(gadget, basename)
+	if not isHeadless or IsSyncedCode() then
+		return false
+	end
+
+	for i = 1, #headlessDisabledGadgetPrefixes do
+		local prefix = headlessDisabledGadgetPrefixes[i]
+		if string.sub(basename, 1, #prefix) == prefix then
+			return true
+		end
+	end
+
+	for _, ciName in ipairs(callInLists) do
+		if type(gadget[ciName]) == 'function' and not headlessDisabledCallIns[ciName] then
+			return false
+		end
+	end
+
+	return true
+end
+
 
 -- initialize the call-in lists
 do
@@ -281,27 +475,6 @@ do
 		gadgetHandler[listname .. 'List'] = {}
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  array-table reverse iterator
---
---  used to invert layer ordering so draw and events will have inverse ordering
---
-local function r_ipairs(tbl)
-	local function r_iter(tbl, key)
-		if key <= 1 then
-			return nil
-		end
-
-		-- next idx, next val
-		return key - 1, tbl[key - 1]
-	end
-
-	return r_iter, tbl, (1 + #tbl)
-end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -387,6 +560,8 @@ function gadgetHandler:Initialize()
 	-- Since Initialize is run out of the normal callin wrapper, we
 	-- need to reorder explicitly here.
 	gadgetHandler:PerformReorders()
+	BroadcastChatActionSnapshot(GetChatActionSource(), self.actionHandler.textActions)
+	chatActionInitialSnapshotUpdates = CHAT_ACTION_INITIAL_SNAPSHOT_UPDATES
 end
 
 function gadgetHandler:LoadGadget(filename, overridevfsmode)
@@ -437,6 +612,11 @@ function gadgetHandler:LoadGadget(filename, overridevfsmode)
 	err = self:ValidateGadget(gadget)
 	if err then
 		Spring.Log(LOG_SECTION, LOG.ERROR, 'Failed to load: ' .. basename .. '  (' .. err .. ')')
+		return nil
+	end
+
+	if ShouldSkipHeadlessUnsyncedGadget(gadget, basename) then
+		Spring.Log(LOG_SECTION, LOG.INFO, 'Headless: skipped unsynced gadget: ' .. basename)
 		return nil
 	end
 
@@ -603,6 +783,16 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		__metatable = "protected"
 	}
 	setmetatable(gadget.ghInfo, mt)
+	-- cache tracy zone name strings to avoid per-frame string allocation
+	if tracy then
+		gadget._tracyGameFrameName          = "G:GameFrame:"          .. gi.name
+		gadget._tracyGameFramePostName      = "G:GameFramePost:"      .. gi.name
+		gadget._tracyViewResizeName         = "G:ViewResize:"         .. gi.name
+		gadget._tracyPlayerChangedName      = "G:PlayerChanged:"      .. gi.name
+		gadget._tracyUpdateName             = "G:Update:"             .. gi.name
+		gadget._tracyDrawWorldName          = "G:DrawWorld:"          .. gi.name
+		gadget._tracyDrawWorldPreUnitName   = "G:DrawWorldPreUnit:"   .. gi.name
+	end
 end
 
 function gadgetHandler:ValidateGadget(gadget)
@@ -619,10 +809,9 @@ end
 local function SafeWrap(func, funcName)
 	local gh = gadgetHandler
 	return function(g, ...)
-		local r = { pcall(func, g, ...) }
-		if r[1] then
-			table.remove(r, 1)
-			return unpack(r)
+		local ok, r1, r2, r3 = pcall(func, g, ...)
+		if ok then
+			return r1, r2, r3
 		else
 			if funcName ~= 'Shutdown' then
 				gadgetHandler:RemoveGadget(g)
@@ -630,7 +819,7 @@ local function SafeWrap(func, funcName)
 				Spring.Log(LOG_SECTION, LOG.ERROR, 'Error in Shutdown')
 			end
 			local name = g.ghInfo.name
-			Spring.Log(LOG_SECTION, LOG.INFO, r[2])
+			Spring.Log(LOG_SECTION, LOG.INFO, r1)
 			Spring.Log(LOG_SECTION, LOG.INFO, 'Removed gadget: ' .. name)
 			return nil
 		end
@@ -817,6 +1006,11 @@ function gadgetHandler:UpdateCallIn(name)
 	local forceUpdate = (name == 'GotChatMsg' or name == 'RecvFromSynced') -- redundant?
 
 	_G[name] = nil
+
+	if isHeadless and headlessDisabledCallIns[name] then
+		Script.UpdateCallIn(name)
+		return
+	end
 
 	if forceUpdate or #self[listName] > 0 then
 		local selffunc = self[name]
@@ -1154,12 +1348,16 @@ function gadgetHandler:Shutdown()
 end
 
 function gadgetHandler:GameFrame(frameNum)
+	if IsSyncedCode() and chatActionInitialSnapshotUpdates > 0 then
+		BroadcastChatActionSnapshot('synced', self.actionHandler.textActions)
+		chatActionInitialSnapshotUpdates = chatActionInitialSnapshotUpdates - 1
+	end
 	-- Since GameGrame should never be called nested ensure here the callinDepth
 	-- is ok. We set it to 1 so after the run it will be set to 0 again.
 	callinDepth = 1
 	tracy.ZoneBeginN("G:GameFrame")
 	for _, g in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN("G:GameFrame:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyGameFrameName)
 		g:GameFrame(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1170,8 +1368,10 @@ end
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
 	tracy.ZoneBeginN("G:GameFramePost")
-	for _, g in r_ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN("G:GameFramePost:" .. g.ghInfo.name)
+	local list = self.GameFramePostList
+	for i = #list, 1, -1 do
+		local g = list[i]
+		tracy.ZoneBeginN(g._tracyGameFramePostName)
 		g:GameFramePost(frameNum)
 		tracy.ZoneEnd()
 	end
@@ -1187,6 +1387,17 @@ end
 
 function gadgetHandler:RecvFromSynced(...)
 	local arg1, arg2 = ...
+	if arg1 == CHAT_ACTION_REQUEST then
+		BroadcastChatActionSnapshot('unsynced', self.actionHandler.textActions)
+		return true
+	end
+	if type(arg1) == 'string' and string.sub(arg1, 1, #CHAT_ACTION_PREFIX) == CHAT_ACTION_PREFIX then
+		ApplyChatActionMessage(arg1)
+		if Spring.SendLuaUIMsg then
+			Spring.SendLuaUIMsg(arg1)
+		end
+		return true
+	end
   if (type(arg1) == 'string') then
 		tracy.ZoneBeginN("G:RecvFromSynced:"..arg1)
 	else
@@ -1242,6 +1453,13 @@ function gadgetHandler:GotChatMsg(msg, player)
 end
 
 function gadgetHandler:RecvLuaMsg(msg, player)
+	if msg == CHAT_ACTION_REQUEST then
+		BroadcastChatActionSnapshot('synced', self.actionHandler.textActions)
+		if SendToUnsynced then
+			SendToUnsynced(CHAT_ACTION_REQUEST)
+		end
+		return true
+	end
 	tracy.ZoneBeginN("G:RecvLuaMsg")
 	for _, g in ipairs(self.RecvLuaMsgList) do
 		if g:RecvLuaMsg(msg, player) then
@@ -1281,7 +1499,7 @@ end
 function gadgetHandler:ViewResize(vsx, vsy)
 	tracy.ZoneBeginN("G:ViewResize")
 	for _, g in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN("G:ViewResize:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyViewResizeName)
 		g:ViewResize(vsx, vsy)
 		tracy.ZoneEnd()
 	end
@@ -1326,7 +1544,7 @@ end
 function gadgetHandler:PlayerChanged(playerID)
 	tracy.ZoneBeginN("G:PlayerChanged")
 	for _, g in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN("G:PlayerChanged:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyPlayerChangedName)
 		g:PlayerChanged(playerID)
 		tracy.ZoneEnd()
 	end
@@ -1356,6 +1574,9 @@ end
 local CMD_ANY = CMD.ANY
 local CMD_NIL = CMD.NIL
 local CMD_BUILD = CMD.BUILD
+local CMD_INSERT = CMD.INSERT
+local unpackInsertParams = Game.Commands.UnpackInsertParams
+
 local allowCommandList = {[CMD_ANY] = {}}
 
 function gadgetHandler:ReorderAllowCommands(gadget, f)
@@ -1493,6 +1714,14 @@ end
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 									cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	local fromInsert
+	-- NB: State commands can be inserted, so should not update state or produce other side effects from
+	-- within g:AllowCommand callins without checking if they were inserted, first (`fromInsert ~= nil`).
+	if cmdID == CMD_INSERT then
+		fromInsert = cmdOptions
+		cmdTag, cmdID, cmdOptions = unpackInsertParams(cmdParams)
+	end
+
 	local cmdKey = cmdID or CMD_NIL
 	if not allowCommandList[cmdKey] then
 		if type(cmdKey) == "number" and cmdKey < 0 then
@@ -1505,7 +1734,7 @@ function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
 	tracy.ZoneBeginN("G:AllowCommand")
 	for _, g in ipairs(allowCommandList[cmdKey]) do
 		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
-		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) then
+		if not g:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert) then
 			--tracy.ZoneEnd()
 			tracy.ZoneEnd()
 			return false
@@ -1553,7 +1782,9 @@ function gadgetHandler:AllowUnitTransportLoad(transporterID, transporterUnitDefI
 end
 
 function gadgetHandler:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, unloadPosX, unloadPosY, unloadPosZ)
-	for _, g in r_ipairs(self.AllowUnitTransportUnloadList) do
+	local list = self.AllowUnitTransportUnloadList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if not g:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, unloadPosX, unloadPosY, unloadPosZ) then
 			return false
 		end
@@ -1705,24 +1936,36 @@ end
 return ((ignore and -1) or 1)
 end
 
-
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+	-- Calls with no input priority are pure pass/fail tests.
+	-- These are common, and BAR never disallows any of them.
+	-- if not defPriority then
+	-- 	return true -- The second return value is never used.
+	-- end
+
 	local allowed = true
-	local priority = 1.0
+	local result = 1.0
 
-	for _, g in ipairs(self.AllowWeaponTargetList) do
-		local targetAllowed, targetPriority = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-
-		if not targetAllowed then
-			allowed = false;
-			break
+	if targetID == -1 and attackerWeaponNum == -1 then
+		-- The `defPriority` return value here is actually the autotarget search radius,
+		-- and applies to the unit's targeting search for its command AI, not weapons.
+		for _, g in ipairs(self.UnitAutoTargetRangeList) do
+			defPriority = g:UnitAutoTargetRange(attackerID, defPriority)
 		end
-		if targetPriority > priority then
-			priority = targetPriority
+
+		allowed, result = defPriority > 0, defPriority
+	else
+		-- The actual callin. BAR only uses AllowWeaponTarget for the target priority.
+		for _, g in ipairs(self.AllowWeaponTargetList) do
+			allowed, result = g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 		end
 	end
+	return allowed, result
+end
 
-	return allowed, priority
+function gadgetHandler:UnitAutoTargetRange(attackerID, autoTargetRange)
+	-- Implementation stub for g:UnitAutoTargetRange. See g:AllowWeaponTarget, above.
+	-- This is needed for gadgetHandler to "see" this callin and build its call list.
 end
 
 function gadgetHandler:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponNum, interceptorTargetID)
@@ -1770,14 +2013,18 @@ function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
 end
 
 function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
-	for _, g in r_ipairs(self.UnitReverseBuiltList) do
+	local list = self.UnitReverseBuiltList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnitReverseBuilt(unitID, unitDefID, unitTeam)
 	end
 	return
 end
 
 function gadgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
-	for _,g in r_ipairs(self.UnitStunnedList) do
+	local list = self.UnitStunnedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
 	return
@@ -1795,7 +2042,9 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 end
 
 function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	for _, g in r_ipairs(self.RenderUnitDestroyedList) do
+	local list = self.RenderUnitDestroyedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	return
@@ -1993,7 +2242,9 @@ function gadgetHandler:UnitUnitCollision(colliderID, collideeID)
 end
 
 function gadgetHandler:UnitFeatureCollision(colliderID, collideeID)
-	for _, g in r_ipairs(self.UnitFeatureCollisionList) do
+	local list = self.UnitFeatureCollisionList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if g:UnitFeatureCollision(colliderID, collideeID) then
 			return true
 		end
@@ -2131,7 +2382,9 @@ end
 
 function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	-- "noGfx = noGfx or ..." short-circuits, so equivalent to this
-	for _, g in r_ipairs(self.ExplosionList) do
+	local list = self.ExplosionList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		if g:Explosion(weaponID, px, py, pz, ownerID, projectileID) then
 			return true
 		end
@@ -2154,9 +2407,14 @@ end
 
 function gadgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
+	if chatActionInitialSnapshotUpdates > 0 then
+		BroadcastChatActionSnapshot('synced', chatActionRegistry.synced)
+		BroadcastChatActionSnapshot('unsynced', self.actionHandler.textActions)
+		chatActionInitialSnapshotUpdates = chatActionInitialSnapshotUpdates - 1
+	end
 	tracy.ZoneBeginN("G:Update")
 	for _, g in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("G:Update:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyUpdateName)
 		g:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -2181,13 +2439,17 @@ function gadgetHandler:ActiveCommandChanged(id, cmdType)
 end
 
 function gadgetHandler:CameraRotationChanged(rotx, roty, rotz)
-	for _, g in r_ipairs(self.CameraRotationChangedList) do
+	local list = self.CameraRotationChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:CameraRotationChanged(rotx, roty, rotz)
 	end
 end
 
 function gadgetHandler:CameraPositionChanged(posx, posy, posz)
-	for _, g in r_ipairs(self.CameraPositionChangedList) do
+	local list = self.CameraPositionChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:CameraPositionChanged(posx, posy, posz)
 	end
 end
@@ -2213,7 +2475,7 @@ end
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld")
 	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN("G:DrawWorld:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyDrawWorldName)
 		g:DrawWorld()
 		tracy.ZoneEnd()
 	end
@@ -2224,7 +2486,7 @@ end
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN("G:DrawWorldPreUnit:" .. g.ghInfo.name)
+		tracy.ZoneBeginN(g._tracyDrawWorldPreUnitName)
 		g:DrawWorldPreUnit()
 		tracy.ZoneEnd()
 	end
@@ -2427,7 +2689,9 @@ function gadgetHandler:GetTooltip(x, y)
 end
 
 function gadgetHandler:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	for _, g in r_ipairs(self.UnsyncedHeightMapUpdateList) do
+	local list = self.UnsyncedHeightMapUpdateList
+	for i = #list, 1, -1 do
+		local g = list[i]
 		g:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 	return
@@ -2470,9 +2734,11 @@ end
 --------------------------------------------------------------------------------
 
 function gadgetHandler:FontsChanged()
-	tracy.ZoneBeginN("FontsChanged")
-	for _, w in r_ipairs(self.FontsChangedList) do
-		w:FontsChanged()
+	tracy.ZoneBeginN("G:FontsChanged")
+	local list = self.FontsChangedList
+	for i = #list, 1, -1 do
+		local g = list[i]
+		g:FontsChanged()
 	end
 	tracy.ZoneEnd()
 	return

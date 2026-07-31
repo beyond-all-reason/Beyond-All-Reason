@@ -1,8 +1,10 @@
 -- see alldefs.lua for documentation
-VFS.Include("gamedata/unitdefrenames.lua")
-VFS.Include("gamedata/alldefs_post.lua")
-VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
+local alldefs = VFS.Include("gamedata/alldefs_post.lua")
+local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+
+local unitDef_Post = alldefs.UnitDef_Post
+local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
 if Spring.GetTeamList then
@@ -23,8 +25,17 @@ end
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
 
+local function normalizeUnitDef(unitDef)
+	system.lowerkeys(unitDef)
+	table.ensureTable(unitDef, "customparams")
+	table.ensureTable(unitDef, "buildoptions")
+	table.ensureTable(unitDef, "weapondefs")
+	table.ensureTable(unitDef, "weapons")
+end
+
 for name, unitDef in pairs(UnitDefs) do
 	regularUnitDefs[name] = unitDef
+	normalizeUnitDef(unitDef)
 end
 
 local function getFilePath(filename, path)
@@ -53,7 +64,7 @@ local function bakeUnitDefs()
 				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)		-- not that this always gets to be lowercase despite whatever it is in the repo
 			end
 		end
-		SaveDefToCustomParams("UnitDefs", name, unitDef)
+		saveDefToCustomParams("UnitDefs", name, unitDef)
 	end
 end
 
@@ -239,6 +250,8 @@ local function preProcessTweakOptions()
 		return a.index < b.index
 	end)
 
+	local shouldNormalizeUnitDefs = false
+
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
@@ -253,7 +266,9 @@ local function preProcessTweakOptions()
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
-						if not success then
+						if success then
+							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
+						else
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
 						end
 					end
@@ -270,6 +285,7 @@ local function preProcessTweakOptions()
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
 							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
 						end
 					end
 				end
@@ -278,11 +294,17 @@ local function preProcessTweakOptions()
 			end
 		end
 	end
+
+	if shouldNormalizeUnitDefs then
+		for _, unitDef in pairs(UnitDefs) do
+			normalizeUnitDef(unitDef)
+		end
+	end
 end
 
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
-		UnitDef_Post(name, unitDef)
+		unitDef_Post(name, unitDef)
 	end
 end
 
@@ -301,7 +323,7 @@ end
 -- UnitDef processing
 --------------------------------------------------------------
 
-PrebakeUnitDefs()
+alldefs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end

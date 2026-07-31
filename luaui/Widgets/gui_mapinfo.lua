@@ -183,7 +183,7 @@ local function Init()
 end
 
 function widget:GameFrame(gf)
-	if gf == 1 then
+	if gf >= 1 then
 		local prevMapInfoBoxHeight = mapInfoBoxHeight
 		mapInfoBoxHeight = spGetGroundHeight(0, Game.mapSizeZ)
 		if mapInfoBoxHeight ~= prevMapInfoBoxHeight then
@@ -192,6 +192,7 @@ function widget:GameFrame(gf)
 				mapinfoList[opacity] = nil
 			end
 		end
+		widgetHandler:RemoveCallIn('GameFrame')
 	end
 end
 

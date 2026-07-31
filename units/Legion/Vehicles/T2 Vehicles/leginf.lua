@@ -2,7 +2,7 @@ return {
 	leginf = {
 		maxacc = 0.0098,
 		airsightdistance = 1050,
-		maxdec = 0.0196,
+		maxdec = 0.1,
 		energycost = 30000,
 		metalcost = 1700,
 		buildpic = "LEGINF.DDS",
@@ -16,8 +16,6 @@ return {
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 5001,
 		health = 3650,
@@ -81,11 +79,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -148,6 +141,7 @@ return {
 					area_onhit_damage = 60,
 					area_onhit_range = 75,
 					area_onhit_time = 7,
+					water_splash = 0,
 				},
 				damage = {
 					default = 60,

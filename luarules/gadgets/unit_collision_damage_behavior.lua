@@ -46,6 +46,7 @@ local minImpulseToDamageRatio = 0.2
 local groundCollisionDefID = Game.envDamageTypes.GroundCollision
 local objectCollisionDefID = Game.envDamageTypes.ObjectCollision
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spSetUnitVelocity = Spring.SetUnitVelocity
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -53,6 +54,7 @@ local spDestroyUnit = Spring.DestroyUnit
 local mathMin = math.min
 local mathMax = math.max
 local mathAbs = math.abs
+local mathSqrt = math.sqrt
 
 local fallDamageMultipliers = {}
 local unitsMaxImpulse = {}
@@ -149,6 +151,10 @@ end
 local function preventOverkillDamage(unitID, damage, health, healthRatioMultiplier)
 	damage = damage * healthRatioMultiplier
 	if damage >= health then
+		if spGetUnitRulesParam(unitID, "unit_effigy") then
+			-- Let the normal damage path run so respawn gadgets can intercept lethal damage.
+			return damage
+		end
 		fallingKillQueue[unitID] = true --done in GameFrame to take it out of unitPreDamaged
 		return 0
 	else
@@ -212,7 +218,7 @@ function gadget:GameFrame(frame)
 			local velX, velY, velZ, velocityLength = spGetUnitVelocity(unitID)
 			if not data.velocityReduced and velocityLength > data.velocityCap then
 				local verticalVelocityCapThreshold = 0.07 --value derived from empirical testing to prevent fall damage and goofy trajectories from impulse
-				local horizontalVelocity = math.sqrt(velX^2 + velZ^2)
+				local horizontalVelocity = mathSqrt(velX^2 + velZ^2)
 				local newVelY = mathAbs(mathMin(horizontalVelocity * verticalVelocityCapThreshold, velY))
 				local newVelYToOldVelYRatio
 				if velY ~= 0 then

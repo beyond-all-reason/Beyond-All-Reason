@@ -15,8 +15,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2200,
-		idleautoheal = 2,
-		idletime = 900,
 		maxacc = 0.065,
 		maxdec = 0.065,
 		metalcost = 570,
@@ -78,11 +76,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-small",
 				[3] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -149,6 +142,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 138,
 				},
@@ -164,7 +160,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 5,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,

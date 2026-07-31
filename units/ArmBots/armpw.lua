@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 370,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.414,
 		maxdec = 0.69,
 		maxslope = 17,
@@ -75,10 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -134,7 +128,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 9,
-					vtol = 3,
+					vtol = 2,
 				},
 			},
 		},
