@@ -91,14 +91,11 @@ local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
 local glDeleteShader = gl.DeleteShader
 
-local function HasHDRSceneTexture()
-	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
-		return false
-	end
+local HDR = VFS.Include("luaui/Include/hdr_utils.lua")
 
-	local hdrInfo = Spring.GetHDRInfo()
-	return hdrInfo and hdrInfo.sceneTargetActive
-end
+-- Lower bound for the HDR bright-pass contribution cap; the actual cap grows
+-- with the display's reported headroom.
+local HDR_MIN_BRIGHT_CAP = 4.0
 
 
 local function SetIllumThreshold()
@@ -585,8 +582,8 @@ local function Bloom(useHDRScene)
 	if #bloomMips == 0 then return end
 	local brightContributionLimit = maxBrightContribution
 	if useHDRScene then
-		local hdrInfo = Spring.GetHDRInfo()
-		brightContributionLimit = math.max(4.0, (hdrInfo and hdrInfo.hdrHeadroom) or 1.0)
+		local hdrInfo = HDR.GetInfo()
+		brightContributionLimit = math.max(HDR_MIN_BRIGHT_CAP, (hdrInfo and hdrInfo.hdrHeadroom) or 1.0)
 	end
 
 	gl.DepthMask(false)
@@ -690,8 +687,12 @@ local function Bloom(useHDRScene)
 			-- "Screen"-like blend: dst + src*(1-dst). Naturally soft-caps near 1.0
 			-- so already-bright scene pixels don't blow out from added bloom.
 			gl.Blending(GL.ONE_MINUS_DST_COLOR, GL.ONE)
-		else
+		elseif useHDRScene then
+			-- Scene-linear bloom is added directly in extended-sRGB space.
 			gl.Blending(GL.ONE, GL.ONE)
+		else
+			-- Legacy SDR additive blend (SRC_ALPHA, ONE), preserved unchanged.
+			gl.Blending("alpha_add")
 		end
 	else
 		gl.Blending(GL.ONE, GL.ZERO)
@@ -719,13 +720,13 @@ local function Bloom(useHDRScene)
 end
 
 function widget:DrawWorld()
-	if not HasHDRSceneTexture() then
+	if not HDR.IsSceneTargetActive() then
 		Bloom(false)
 	end
 end
 
 function widget:DrawScreenEffects()
-	if HasHDRSceneTexture() then
+	if HDR.IsSceneTargetActive() then
 		Bloom(true)
 	end
 end

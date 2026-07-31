@@ -1,6 +1,8 @@
 local vssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.vert.glsl")
 local fssrc = VFS.LoadFile("modelmaterials_gl4/templates/cus_gl4.frag.glsl")
 
+local HDR = VFS.Include("luaui/Include/hdr_utils.lua")
+
 local shaderTemplate = {
 
 	vertex = vssrc,
@@ -193,12 +195,7 @@ local shaderPlugins = {
 }
 
 local function IsHDRSceneLinear()
-	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
-		return 0
-	end
-
-	local hdrInfo = Spring.GetHDRInfo()
-	return (hdrInfo and hdrInfo.sceneTargetActive) and 1 or 0
+	return HDR.IsSceneTargetActive() and 1 or 0
 end
 
 

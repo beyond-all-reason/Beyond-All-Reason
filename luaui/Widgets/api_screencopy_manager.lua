@@ -54,14 +54,7 @@ local lastDepthCopyFrame
 local vsx, vsy, vpx, vpy = spGetViewGeometry()
 local firstCopy = true
 
-local function HasHDRSceneTextures()
-	if not (Engine.FeatureSupport.hdrOutputApiVersion and Spring.GetHDRInfo) then
-		return false
-	end
-
-	local hdrInfo = Spring.GetHDRInfo()
-	return hdrInfo and hdrInfo.sceneTargetActive
-end
+local HDR = VFS.Include("luaui/Include/hdr_utils.lua")
 
 function widget:ViewResize()
 	vsx, vsy, vpx, vpy = spGetViewGeometry()
@@ -89,7 +82,7 @@ function widget:ViewResize()
 end
 
 local function GetScreenCopy()
-	if HasHDRSceneTextures() then
+	if HDR.IsSceneTargetActive() then
 		return "$scene_color"
 	end
 
@@ -108,7 +101,7 @@ end
 
 
 local function GetDepthCopy()
-	if HasHDRSceneTextures() then
+	if HDR.IsSceneTargetActive() then
 		return "$scene_depth"
 	end
 
