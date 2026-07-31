@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name	= "CUS GL4",
 		desc	= "Implements CustomUnitShaders for GL4 rendering pipeline",
-		version = "0.5",
+		version = "0.6",
 		author	= "ivand, Beherith",
 		date 	= "20220310",
 		license = "GNU GPL, v2 or later",
@@ -2302,6 +2302,23 @@ local function FreeTextures() -- pre we are using 2200mb
 end
 
 
+local function shouldEnableCUS()
+	local cusConfig = Spring.GetConfigInt("cus2", -1)
+	if cusConfig >= 0 then
+		return cusConfig == 1
+	end
+
+	local glRenderer = Platform.glRenderer and string.lower(Platform.glRenderer) or ""
+	-- cus is currently too slow through zink, but keep an explicit override for testing
+	if string.find(glRenderer, "zink", 1, true) then
+		Spring.Echo("[CUS GL4] Zink renderer detected, using the engine model renderer")
+		return false
+	end
+
+	return true
+end
+
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("reloadcusgl4", ReloadCUSGL4)
 	gadgetHandler:AddChatAction("disablecusgl4", DisableCUSGL4)
@@ -2310,7 +2327,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("dumpcusgl4", DumpCUSGL4)
 	gadgetHandler:AddChatAction("markbincusgl4", MarkBinCUSGL4)
 	gadgetHandler:AddChatAction("freetextures", FreeTextures)
-	if not initiated and tonumber(Spring.GetConfigInt("cus2", 1) or 1) == 1 then
+	if not initiated and shouldEnableCUS() then
 		initGL4()
 	end
 
