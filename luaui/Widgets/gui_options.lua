@@ -4054,6 +4054,26 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "pip_nanostreams", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostreams'), type = "bool", value = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostreams_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawNanoStreams", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawNanoStreams then
+					  WG['pip' .. n].setDrawNanoStreams(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostream_usage", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostream_usage'), type = "bool", value = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostream_usage_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipNanoStreamReflectUsage", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setNanoStreamReflectUsage then
+					  WG['pip' .. n].setNanoStreamReflectUsage(value)
+				  end
+			  end
+		  end,
+		},
 		{ id = "pip_mapdrawings", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawings'), type = "bool", value = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1, description = Spring.I18N('ui.settings.option.pip_mapdrawings_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("PipShowMapDrawings", value and 1 or 0)
