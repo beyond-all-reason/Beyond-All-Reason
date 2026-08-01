@@ -32,6 +32,7 @@ local spGetUnitRulesParam    = Spring.GetUnitRulesParam
 local spGetUnitRadius         = Spring.GetUnitRadius
 local spGetGroundHeight       = Spring.GetGroundHeight
 local spValidUnitID           = Spring.ValidUnitID
+local ENEMY_UNITS 			  = Spring.ENEMY_UNITS
 
 local table_insert = table.insert
 local math_sin = math.sin
@@ -44,7 +45,9 @@ local unitRanges = {}
 local cursorPos    -- current cursor position 	    (table{x,y,z})
 local snappedPos   -- snapped valid target position (table{x,y,z})
 local snappedUnitID -- unit the command would snap to (highlighted as "selected")
+local resumeKey = nil -- Last position in the unit list
 
+local UNITS_PER_UPDATE = 100
 local POLLING_RATE = 15
 local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
@@ -88,7 +91,7 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDsToTarget)
     if maxRange == nil or maxRange <= 0 then return unitsInRange end
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
-    local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
+    local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange, ENEMY_UNITS)
 	local count = 0
 	for index = 1, #candidateUnits do
 		local targetID = candidateUnits[index]
@@ -151,7 +154,7 @@ local function MakeGroundDisc(cx, cz, radius)
 end
 
 local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
-	local candidateUnits = spGetUnitsInCylinder(x, z, radius)
+	local candidateUnits = spGetUnitsInCylinder(x, z, radius, ENEMY_UNITS)
 
 	local closestUnit = nil
 	local closestDistance = math.huge
@@ -290,8 +293,23 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	for unitID, targetUnitDefIDTable in pairs(trackedUnitsToTargetedDefs) do
+	if resumeKey ~= nil and trackedUnitsToTargetedDefs[resumeKey] == nil then
+		-- Our resume key is invalid now
+		resumeKey = nil
+	end
+
+	local processed = 0
+	local unitID, targetUnitDefIDTable = next(trackedUnitsToTargetedDefs, resumeKey)
+	while unitID ~= nil and processed < UNITS_PER_UPDATE do
 		targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
+		processed = processed + 1
+		resumeKey = unitID
+		unitID, targetUnitDefIDTable = next(trackedUnitsToTargetedDefs, unitID)
+	end
+
+	-- Reached the end of the table; wrap around on the next update.
+	if unitID == nil then
+		resumeKey = nil
 	end
 end
 
@@ -384,7 +402,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		trackedUnitsToTargetID[unitID] = targetID
 
 		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
-		targetUnitsInRangeWithDef(unitID, newTargetedDefs)
+		if #selectedUnits < UNITS_PER_UPDATE then
+			targetUnitsInRangeWithDef(unitID, newTargetedDefs)
+		end
 	end
 
 	return true
