@@ -30,6 +30,7 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
+local seismicContacts           = {}
 
 
 ----------------------------------------------------------------
@@ -162,6 +163,7 @@ function gadget:Initialize()
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
+		SeismicContacts          = seismicContacts,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
 
@@ -259,6 +261,18 @@ end
 
 function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	dispatchTriggerCallin('UnitLeftLos', unitID, unitTeam, losAllyTeamID, unitDefID)
+end
+
+function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	dispatchTriggerCallin('UnitEnteredRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
+end
+
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	dispatchTriggerCallin('UnitSeismicPing', x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+end
+
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	dispatchTriggerCallin('UnitLeftRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
