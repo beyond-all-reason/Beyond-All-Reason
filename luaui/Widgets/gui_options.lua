@@ -3165,8 +3165,8 @@ function init()
 		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
 		  type = "select",
 		  options = {
-			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_basic'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_advanced'),
 		  },
 		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),

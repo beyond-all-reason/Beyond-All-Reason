@@ -17928,10 +17928,9 @@ function widget:DrawScreen()
 				WG['minimap'].getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
 				WG['minimap'].getZoomLevel = minimapApi.getZoomLevel
 
-				-- Compute rotation-aware ortho bounds for fixed-function GL widgets.
+				-- Compute the visible rectangle in full-minimap pixel coordinates.
 				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
-				-- so we do NOT apply GL rotation. Instead we compute ortho bounds that match
-				-- each rotation's pixel coordinate mapping.
+				-- so we do not apply another GL rotation here.
 				--
 				-- Widget pixel coordinate conventions per rotation:
 				--   DEG_0:   pixelX = worldX/mapX * sx,            pixelY = sz - worldZ/mapZ * sz
@@ -17939,9 +17938,6 @@ function widget:DrawScreen()
 				--   DEG_180: pixelX = sx - worldX/mapX * sx,       pixelY = worldZ/mapZ * sz
 				--   DEG_270: pixelX = sx - worldZ/mapZ * sx,       pixelY = sz - worldX/mapX * sz
 				--
-				-- We compute the ortho bounds [left, right, bottom, top] so that the pixel
-				-- range corresponding to the visible world area maps to the full viewport.
-
 				local rotCategory = 0
 				if render.minimapRotation then
 					rotCategory = math.floor((render.minimapRotation / math.pi * 2 + 0.5) % 4)
@@ -17970,6 +17966,16 @@ function widget:DrawScreen()
 					visPixelBottom = (1 - worldB / mapInfo.mapSizeZ) * minimapHeight
 				end
 
+				-- Remap the full minimap viewport so its visible pixel rectangle fills the PIP.
+				-- This transform happens after vertex shading, so it also covers GL4 widgets
+				-- that write minimap NDC directly and therefore ignore the fixed-function matrix.
+				local visiblePixelWidth = visPixelRight - visPixelLeft
+				local visiblePixelHeight = visPixelTop - visPixelBottom
+				local overlayViewportWidth = minimapWidth * minimapWidth / visiblePixelWidth
+				local overlayViewportHeight = minimapHeight * minimapHeight / visiblePixelHeight
+				local overlayViewportX = render.dim.l - visPixelLeft * minimapWidth / visiblePixelWidth
+				local overlayViewportY = render.dim.b - visPixelBottom * minimapHeight / visiblePixelHeight
+
 				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
 					if w ~= widget then  -- Don't recursively call ourselves
 						-- Save current matrices
@@ -17977,16 +17983,18 @@ function widget:DrawScreen()
 						glFunc.PushMatrix()
 						gl.LoadIdentity()
 
-						-- Ortho maps the visible pixel range to NDC [-1,1], which maps to viewport.
-						-- bottom > top flips Y so widget Y-down coords map correctly to screen.
-						gl.Ortho(visPixelLeft, visPixelRight, visPixelBottom, visPixelTop, -1, 1)
+						-- Keep fixed-function widgets in the engine's full-minimap pixel space.
+						gl.Ortho(0, minimapWidth, 0, minimapHeight, -1, 1)
 
 						gl.MatrixMode(GL.MODELVIEW)
 						glFunc.PushMatrix()
 						gl.LoadIdentity()
 
-						-- Set viewport to PIP area so NDC [-1,1] maps to our PIP screen coords
-						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
+						-- Offset and scale the full minimap so the visible area fills the PIP.
+						gl.Viewport(
+							overlayViewportX, overlayViewportY,
+							overlayViewportWidth, overlayViewportHeight
+						)
 
 						-- Direct call instead of pcall closure to avoid per-widget per-frame allocations
 						-- Isolate external widget failures so matrix/scissor cleanup still runs.
