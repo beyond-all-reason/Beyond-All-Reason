@@ -12,10 +12,17 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized functions for performance
+local mathSqrt = math.sqrt
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+
 local spGetCameraState   = Spring.GetCameraState
 local spGetCameraVectors = Spring.GetCameraVectors
 local spGetModKeyState   = Spring.GetModKeyState
-local spGetMouseState    = Spring.GetMouseState
+local spGetMouseState    = spGetMouseState
 local spIsAboveMiniMap   = Spring.IsAboveMiniMap
 local spSendCommands     = Spring.SendCommands
 local spSetCameraState   = Spring.SetCameraState
@@ -65,11 +72,11 @@ function widget:Update(dt)
       -- forward, up, right, top, bottom, left, right
       local camVecs = spGetCameraVectors()
       local cf = camVecs.forward
-      local len = math.sqrt((cf[1] * cf[1]) + (cf[3] * cf[3]))
+      local len = mathSqrt((cf[1] * cf[1]) + (cf[3] * cf[3]))
       local dfx = cf[1] / len
       local dfz = cf[3] / len
       local cr = camVecs.right
-      local len = math.sqrt((cr[1] * cr[1]) + (cr[3] * cr[3]))
+      local len = mathSqrt((cr[1] * cr[1]) + (cr[3] * cr[3]))
       local drx = cr[1] / len
       local drz = cr[3] / len
       local mxm = (speed * (x - mx))
@@ -146,7 +153,7 @@ function widget:MouseWheel(up, value)
     end
 
     -- Get the mouse position and position on ground
-    local mouseX, mouseY = Spring.GetMouseState()
+    local mouseX, mouseY = spGetMouseState()
     local _, groundPos = Spring.TraceScreenRay(mouseX, mouseY, true)
 
     -- If there is no ground position, adjust the camera vertically
@@ -160,7 +167,7 @@ function widget:MouseWheel(up, value)
         local dx = groundPos[1] - cameraState.px
         local dy = groundPos[2] - cameraState.py
         local dz = groundPos[3] - cameraState.pz
-        -- local distance = math.sqrt((dx * dx) + (dy * dy) + (dz * dz))
+        -- local distance = mathSqrt((dx * dx) + (dy * dy) + (dz * dz))
         local speed = (up and 1 or -1) * (1 / 8)
 
         dx = dx * speed

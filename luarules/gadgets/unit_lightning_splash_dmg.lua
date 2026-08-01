@@ -38,7 +38,7 @@ local math_max = math.max
 local math_cos = math.cos
 local math_sin = math.sin
 
--- A fun unit test is: /luarules fightertest armclaw armclaw 200 10 1000
+-- A fun unit test is: /luarules benchmark armclaw armclaw 200 10 1000
 
 -- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink.
 local projTablePoolSize = 0
@@ -156,7 +156,7 @@ function gadget:ProjectileDestroyed(proID)
 							projectileCacheTable['end'][2] = ey
 							projectileCacheTable['end'][3] = ez
 
-							--spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
+							-- NB: Lightning sparks have no team/owner. So are not subject to LOS (natural force). But they give no credit for damage (stats, xp, etc).
 							spSpawnProjectile(lightning.weaponDefID, {["pos"]={lightning.x,lightning.y,lightning.z},["end"] = {ex,ey,ez}, ["ttl"] = 2, ["owner"] = -1})
 							count = count - 1 -- spark target count accounting
 						end

@@ -1,7 +1,9 @@
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -880,10 +882,22 @@ void main(void)
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
 	
 	
-	vec3 reflection = reflect(lightDirection, normals.xyz);
-	specular = dot(reflection, viewDirection);
-	specular = v_modelfactor_specular_scattering_lensflare.y * pow(max(0.0, specular), 8.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
-	attenuation = pow(attenuation, 1.0);
+	// Blinn-Phong specular: half-vector instead of reflect(). Produces rounder
+	// highlights that elongate naturally at grazing angles (more wet-metal/PBR look)
+	// instead of Phong's teardrop-then-pop. Exponent is ~4x Phong to match the
+	// equivalent highlight tightness.
+	vec3 halfVector = normalize(-lightDirection + viewDirection);
+	specular = max(0.0, dot(halfVector, normals.xyz));
+	specular = v_modelfactor_specular_scattering_lensflare.y * pow(specular, 32.0 * ( 1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x) ) * (1.0 + ismodel * v_modelfactor_specular_scattering_lensflare.x);
+	// Core-weighted falloff:
+	//  - attCore: quick drop right outside the center (reduces "blob" look)
+	//  - attTailEase: smooth/eased approach to zero near the max radius
+	// Blend keeps the soft radius edge while making the center visibly hotter.
+	float attLinear = attenuation;
+	float attCore = pow(attLinear, 2.5);
+	float attTailEase = attLinear * attLinear * (3.0 - 2.0 * attLinear);
+	attenuation = mix(attCore, attTailEase, 0.17);
+	attenuation = clamp(attenuation * (1.0 + 0.22 * attLinear * attLinear), 0.0, 1.0);
 
 	//Give each light a unique blue noise sampling offset 
 	vec2 blueNoiseUV = (gl_FragCoord.xy + float(v_noiseoffset.a)*7.0)/64.0;

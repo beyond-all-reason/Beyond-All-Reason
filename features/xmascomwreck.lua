@@ -11,7 +11,7 @@ return {
        footprintz = 2,
        height = 20,
        metal = 1250,
-       object = "gingerbread",
+       object = "gingerbread.s3o",
        reclaimable = true,
     },
     heap = {

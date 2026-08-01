@@ -12,11 +12,15 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+
 local CMD_STOP = CMD.STOP
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = spGetMyTeamID()
 
 function widget:PlayerChanged(playerID)
-    myTeamID = Spring.GetMyTeamID()
+    myTeamID = spGetMyTeamID()
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)

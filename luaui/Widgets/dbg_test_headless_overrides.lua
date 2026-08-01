@@ -10,11 +10,9 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() or Platform.gl then
+if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() or not Platform.isHeadless then
 	return
 end
-
-Spring.SetConfigInt("ui_rendertotexture", 0)
 
 -- PushMatrix and PopMatrix still perform accounting and can generate errors on headless.
 -- Problem here is CallList won't really call dlists, so when a PushMatrix or PopMatrix

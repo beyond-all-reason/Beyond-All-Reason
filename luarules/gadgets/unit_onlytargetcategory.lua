@@ -24,19 +24,22 @@ for udid, unitDef in pairs(UnitDefs) do
 	local add = false
 	for wid, weapon in ipairs(unitDef.weapons) do
 		if weapon.onlyTargets then
-			local i = 0
+			local disregard = false
 			for category, _ in pairs(weapon.onlyTargets) do
-				i = i + 1
-				if not unitOnlyTargetsCategory[udid] then
+				if unitOnlyTargetsCategory[udid] == nil then
 					unitOnlyTargetsCategory[udid] = category
 					if category == 'vtol' then
 						unitDontAttackGround[udid] = true
 					end
-				elseif unitOnlyTargetsCategory[udid] ~= category then	-- multiple different onlytargetcategory used: disregard
+				elseif unitOnlyTargetsCategory[udid] ~= category then  -- multiple different onlytargetcategory used: disregard
 					unitOnlyTargetsCategory[udid] = nil
 					unitDontAttackGround[udid] = nil -- If there are multiple categories, then it can shoot ground, and should be allowed to do so
+					disregard = true
 					break
 				end
+			end
+			if disregard then
+				break
 			end
 		end
 	end

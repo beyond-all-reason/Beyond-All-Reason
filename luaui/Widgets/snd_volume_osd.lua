@@ -21,6 +21,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- SETTINGS, internal, don't edit
@@ -65,7 +69,7 @@ local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
 		volume = 200
 	end
 	Spring.SetConfigInt("snd_volmaster", volume)
-	--Spring.Echo("Volume = " .. volume)
+	--spEcho("Volume = " .. volume)
 	if not isRepeat then
 		Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
 	end
@@ -83,7 +87,7 @@ local function sndVolumeDecreaseHandler(_, _, _, _, isRepeat)
 		volume = 200
 	end
 	Spring.SetConfigInt("snd_volmaster", volume)
-	--Spring.Echo("Volume = " .. volume)
+	--spEcho("Volume = " .. volume)
 	if not isRepeat then
 		Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui')
 	end

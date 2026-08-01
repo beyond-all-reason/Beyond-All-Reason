@@ -1,7 +1,7 @@
 return {
 	corban = {
 		buildpic = "CORBAN.DDS",
-		buildtime = 23100,
+		buildtime = 30000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -9 1",
 		collisionvolumescales = "42 42 42",
@@ -12,11 +12,9 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2500,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02,
-		maxdec = 0.04537,
+		maxdec = 0.1,
 		maxslope = 20,
 		maxwaterdepth = 20,
 		metalcost = 1000,
@@ -85,11 +83,6 @@ return {
 				[1] = "custom:rocketflare-large",
 				[2] = "custom:DUST_CLOUD",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -116,7 +109,6 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
-				burnblow = true,
 				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
@@ -152,6 +144,10 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 720,
+				customparams = {
+					projectile_destruction_method = "descend",
+					overrange_distance = 920,
+				},
 				damage = {
 					default = 1000,
 					subs = 500,

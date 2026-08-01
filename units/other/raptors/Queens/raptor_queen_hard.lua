@@ -14,7 +14,7 @@ return {
 		metalcost = 50000,
 		builder = false,
 		buildpic = "raptors/h_raptorq.DDS",
-		buildtime = 1500000,
+		buildtime = 5000000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -35,7 +35,7 @@ return {
 		leavetracks = true,
 		maneuverleashlength = 2000,
 		mass = 2000000,
-		health = 1000000,
+		health = 1500000,
 		maxslope = 40,
 		speed = 75.0,
 		maxwaterdepth = 0,
@@ -67,6 +67,7 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
 			treeshader = "yes",
+			ispvefinalboss = true,
 		},
 		sfxtypes = {
 			explosiongenerators = {
@@ -176,7 +177,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
@@ -190,6 +190,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 1000*playerCountScale,

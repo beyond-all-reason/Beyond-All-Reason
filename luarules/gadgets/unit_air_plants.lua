@@ -38,6 +38,7 @@ local isAirplantNames = {
 	legap = true,
 	legaap = true,
 	legapt3 = true,
+	legsplab = true,
 }
 local isAirplantNamesCopy = table.copy(isAirplantNames)
 for name,v in pairs(isAirplantNamesCopy) do
@@ -57,7 +58,7 @@ local buildingUnits = {}
 local landCmd = {
 	id = CMD_LAND_AT,
 	name = "apLandAt",
-	action = "apLandAt",
+	action = "aplandat",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
 	params = { '1', ' Fly ', 'Land' }

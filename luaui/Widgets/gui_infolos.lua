@@ -15,6 +15,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spEcho = Spring.Echo
+
 local GL_RGBA32F_ARB = 0x8814
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -171,7 +178,7 @@ function widget:PlayerChanged(playerID)
 		delay = 5
 	end
 	if updateInfoLOSTexture > 0 and autoreload  then
-		Spring.Echo("Fast Updating infolos texture for", currentAllyTeam, updateInfoLOSTexture, "times")
+		spEcho("Fast Updating infolos texture for", currentAllyTeam, updateInfoLOSTexture, "times")
 	end
 end
 
@@ -198,7 +205,7 @@ function widget:Initialize()
 
 	infoShader =  LuaShader.CheckShaderUpdates(shaderSourceCache)
 	shaderCompiled = infoShader:Initialize()
-	if not shaderCompiled then Spring.Echo("Failed to compile InfoLOS GL4") end
+	if not shaderCompiled then spEcho("Failed to compile InfoLOS GL4") end
 
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5
@@ -220,7 +227,7 @@ end
 
 function widget:GameFrame(n)
 	if (n % updateRate) == 0 then
-		updateInfoLOSTexture = math.max(1,updateInfoLOSTexture)
+		updateInfoLOSTexture = mathMax(1,updateInfoLOSTexture)
 	end
 end
 
@@ -233,8 +240,8 @@ function widget:DrawGenesis()
 	-- local nowtime = Spring.GetTimer()
 	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
-	-- outputAlpha = math.min(1.0, math.max(0.07,deltat))
-	-- Spring.Echo(deltat,outputAlpha)
+	-- outputAlpha = math.min(1.0, mathMax(0.07,deltat))
+	-- spEcho(deltat,outputAlpha)
 
 
 	if updateInfoLOSTexture > 0 then

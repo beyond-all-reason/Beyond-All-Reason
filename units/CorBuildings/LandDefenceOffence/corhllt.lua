@@ -14,8 +14,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1670,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 10200,
 		maxacc = 0,
 		maxdec = 0,
@@ -69,12 +67,6 @@ return {
 				object = "Units/cor4X4D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -158,7 +150,7 @@ return {
 				name = "Close-quarters light g2g laser",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 480,
+				range = 490,
 				reloadtime = 0.46667,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",

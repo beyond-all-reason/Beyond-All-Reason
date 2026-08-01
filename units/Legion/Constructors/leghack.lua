@@ -18,8 +18,6 @@ return {
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 830,
 		maxslope = 50,
 		speed = 75.0,
@@ -63,7 +61,7 @@ return {
 			[23] = "leghalab",
 			[26] = "legvp",
 			[27] = "legap",
-			[28] = "corsy",
+			[28] = "legsy",
 			[29] = "legnanotc",
 			[30] = "legfus",
 			[31] = "legsd",
@@ -107,13 +105,6 @@ return {
 				object = "Units/cor2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

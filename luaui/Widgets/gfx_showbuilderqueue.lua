@@ -13,7 +13,13 @@ function widget:GetInfo()
 	}
 end
 
-local shapeOpacity = 0.26
+-- Localized functions for performance
+local tableInsert = table.insert
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
+local shapeOpacity = 0.24
 local maxUnitShapes = 4096
 
 --Changelog
@@ -28,7 +34,7 @@ local maxUnitShapes = 4096
 -- v9 SuperKitowiec - Extract builder queue related code to api_builder_queue.lua.
 
 local myPlayerId = Spring.GetMyPlayerID()
-local _, fullView, _ = Spring.GetSpectatingState()
+local _, fullView, _ = spGetSpectatingState()
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local halfPi = math.pi / 2
@@ -44,6 +50,11 @@ local builderQueueApiCallbacks = {} --- @type BuilderQueueEventCallback[]
 
 -- Used to ensure proper display of submerged buildings
 local unitWaterlineMap = {}
+for unitDefId, unitDefinition in ipairs(UnitDefs) do
+	if unitDefinition.waterline and unitDefinition.waterline > 0 then
+		unitWaterlineMap[unitDefId] = unitDefinition.waterline
+	end
+end
 
 --- @param buildCommand BuildCommandEntry
 local function drawUnitShape(shapeId, unitDefId, groundHeight, buildCommand)
@@ -121,17 +132,11 @@ function widget:Initialize()
 
 	builderQueueAPI = WG.BuilderQueueApi
 
-	for unitDefId, unitDefinition in ipairs(UnitDefs) do
-		if unitDefinition.waterline and unitDefinition.waterline > 0 then
-			unitWaterlineMap[unitDefId] = unitDefinition.waterline
-		end
-	end
-
 	-- Register event callbacks
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnUnitCreated(onUnitCreated))
-	table.insert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitCreated(onUnitCreated))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
 
 	unitShapes = {}
 	removedUnitShapes = {}
@@ -149,14 +154,17 @@ function widget:Shutdown()
 			removeUnitShape(shapeId)
 		end
 	end
-	for _, callbackData in ipairs(builderQueueApiCallbacks) do
+
+	for i = 1, #builderQueueApiCallbacks do
+		local callbackData = builderQueueApiCallbacks[i]
 		builderQueueAPI.UnregisterCallback(callbackData.eventName, callbackData.callback)
+		builderQueueApiCallbacks[i] = nil
 	end
 end
 
 function widget:PlayerChanged(playerId)
 	local prevFullView = fullView
-	_, fullView, _ = Spring.GetSpectatingState()
+	_, fullView, _ = spGetSpectatingState()
 	if playerId == myPlayerId and prevFullView ~= fullView then
 		reInitialize = true
 	end
@@ -165,20 +173,31 @@ end
 local prevGuiHidden = Spring.IsGUIHidden()
 
 function widget:Update()
-	if not Spring.IsGUIHidden() then
+	if not WG.BuilderQueueApi then
+		error("API Builder Queue is disabled")
+		widget:Shutdown()
+		return
+	end
+
+	local isGuiHidden = Spring.IsGUIHidden()
+
+	if not isGuiHidden then
 		if reInitialize then
 			reInitialize = nil
 			widget:Initialize()
 		end
-		removedUnitShapes = {}
+
+		for k in pairs(removedUnitShapes) do
+			removedUnitShapes[k] = nil
+		end
 	end
-	if Spring.IsGUIHidden() ~= prevGuiHidden then
-		prevGuiHidden = Spring.IsGUIHidden()
-		if prevGuiHidden then
+
+	if isGuiHidden ~= prevGuiHidden then
+		prevGuiHidden = isGuiHidden
+		if isGuiHidden then
 			widget:Shutdown()
 		else
 			widget:Initialize()
 		end
 	end
 end
-

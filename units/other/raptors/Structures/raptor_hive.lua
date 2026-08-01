@@ -21,8 +21,6 @@ return {
 		explodeas = "ROOST_DEATH",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 165.75,
 		health = 50000,
@@ -99,6 +97,10 @@ return {
 				weapontype = "Cannon",
 				weapontimer = 0.2,
 				weaponvelocity = 520,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1280,
 					shields = 320,
@@ -133,7 +135,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",
@@ -147,6 +148,10 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2000,
 				wobble = 32000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 1000,
@@ -172,13 +177,15 @@ return {
 				reloadtime = 5,
 				smoketrail = 1,
 				soundhit = "nuke4",
-				soundhitvolume = 10,
 				startvelocity = 2000,
 				turret = 1,
 				weaponacceleration = 120,
 				weapontimer = 10,
 				weaponvelocity = 2000,
 				wobble = 0,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					raptor = 0.1,
 					default = 50000,

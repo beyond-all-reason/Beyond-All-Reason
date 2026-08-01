@@ -141,33 +141,32 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1, 9) == "buildicon" then
-			if not Spring.IsCheatingEnabled() then
-				Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
-				return true
-			end
-
-			local msg = msg:sub(11, msg:len())
-			local d = msg:find(";", nil, true)
-			local defname = msg:sub(1, d - 1)
-			local a = msg:find(";", d + 1, true)
-			local attack = (msg:sub(d + 1, a - 1) == "1")
-			local m = msg:find(";", a + 1, true)
-			local move = (msg:sub(a + 1, m - 1) == "1")
-			local t = msg:find(";", m + 1, true)
-			local teamID = tonumber(msg:sub(m + 1, t - 1))
-			local w = msg:find(";", t + 1, true)
-			local wait = tonumber(msg:sub(t + 1, w - 1))
-			local sa = msg:find(";", w + 1, true)
-			local shotAngle = tonumber(msg:sub(w + 1, sa - 1))
-
-			createunits[#createunits + 1] = { defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
-
-			gadget.GameFrame = GameFrame
-			gadgetHandler:UpdateCallIn("GameFrame")
-			gadgetHandler:UpdateCallIn("GameFrame")
+		if #msg < 9 or string.byte(msg, 1) ~= 98 or msg:sub(1, 9) ~= "buildicon" then return end -- 98 = 'b'
+		if not Spring.IsCheatingEnabled() then
+			Spring.SendMessageToPlayer(playerID, "Cheating must be enabled")
 			return true
 		end
+
+		local msg = msg:sub(11, msg:len())
+		local d = msg:find(";", nil, true)
+		local defname = msg:sub(1, d - 1)
+		local a = msg:find(";", d + 1, true)
+		local attack = (msg:sub(d + 1, a - 1) == "1")
+		local m = msg:find(";", a + 1, true)
+		local move = (msg:sub(a + 1, m - 1) == "1")
+		local t = msg:find(";", m + 1, true)
+		local teamID = tonumber(msg:sub(m + 1, t - 1))
+		local w = msg:find(";", t + 1, true)
+		local wait = tonumber(msg:sub(t + 1, w - 1))
+		local sa = msg:find(";", w + 1, true)
+		local shotAngle = tonumber(msg:sub(w + 1, sa - 1))
+
+		createunits[#createunits + 1] = { defname = defname, team = teamID, move = move, attack = attack, time = wait, shotAngle = shotAngle }
+
+		gadget.GameFrame = GameFrame
+		gadgetHandler:UpdateCallIn("GameFrame")
+		gadgetHandler:UpdateCallIn("GameFrame")
+		return true
 	end
 
 

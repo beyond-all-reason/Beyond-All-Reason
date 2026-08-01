@@ -12,6 +12,10 @@ function widget:GetInfo()
    }
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+
 local onlyOwnTeam = true
 
 local idleUnitDelay = 8	-- how long a unit must be idle before the icon shows up
@@ -22,9 +26,10 @@ local iconSequenceFrametime = 0.02	-- duration per frame
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
@@ -111,13 +116,16 @@ function widget:Initialize()
 end
 
 
+local function isWorkerUnitIdle(unitID, unitDefID)
+	return inIdleWorkerTask[unitID]
+		or (unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
+end
+
 local function updateIcons()
-	local gf = Spring.GetGameFrame()
-	local queue
+	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(unitScope) do
-		queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
-		if queue == 0 then
-			if iconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
+		if isWorkerUnitIdle(unitID, unitDefID) then
+			if not iconVBO.instanceIDtoIndex[unitID] then -- not already being drawn
 				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 					if not idleUnitList[unitID] then
 						idleUnitList[unitID] = os.clock()
@@ -150,7 +158,7 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if Spring.GetGameFrame() % 25 == 0 then
+	if spGetGameFrame() % 25 == 0 then
 		updateIcons()
 	end
 end
@@ -169,7 +177,9 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	idleUnitList[unitID] = nil
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if Spring.IsGUIHidden() then return end
 
 	if iconVBO.usedElements > 0 then

@@ -1,7 +1,7 @@
 return {
 	leghrk = {
 		buildpic = "LEGHRK.DDS",
-		buildtime = 9000,
+		buildtime = 12600,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 0",
         collisionvolumescales = "40.0 40.0 46.0",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1265,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -27,7 +25,7 @@ return {
 		script = "Units/LEGHRK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 370.5,
+		sightdistance = 380,
 		speed = 45,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -125,10 +118,10 @@ return {
 				noselfdamage = true,
 				proximitypriority = -1,
 				range = 1200,
-				reloadtime = 9,
+				reloadtime = 8,
 				smokecolor = 0.5,
-				smokeperiod = 4,
-				smokesize = 8.5,
+				smokeperiod = 5,
+				smokesize = 7,
 				smoketime = 12,
 				smoketrail = true,
 				smoketrailcastshadow = false,

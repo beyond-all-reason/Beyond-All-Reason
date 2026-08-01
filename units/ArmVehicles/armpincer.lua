@@ -13,11 +13,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1340,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03572,
-		maxdec = 0.07144,
+		maxdec = 0.1,
 		maxslope = 15,
 		maxwaterdepth = 125,
 		metalcost = 200,
@@ -86,10 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -122,6 +116,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Light close-quarters plasma cannon",
 				noselfdamage = true,

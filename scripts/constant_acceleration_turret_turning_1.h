@@ -22,6 +22,9 @@
 // This ensures that the CATT1_Aim() thread is not killed when the AimWeapon thread is killed.
 // Then we have to manually set the signal mask for CATT_Aim() to the desired value.
 
+// TODO: Catch up units that use constant_acceleration_turret_turning_{1, 2, 3}.h
+// TODO: with the changes in constant_acceleration_turret_turning.h (not numbered)
+
 // The piece that will aim left-right
 #ifndef CATT1_PIECE_Y
 	#define CATT1_PIECE_Y aimy

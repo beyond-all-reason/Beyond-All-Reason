@@ -16,8 +16,6 @@ return {
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 900,
 		health = 26500,
 		speed = 45.0,
 		minwaterdepth = 30,
@@ -71,13 +69,6 @@ return {
 				object = "Units/arm3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

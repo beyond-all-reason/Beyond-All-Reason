@@ -13,7 +13,20 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 include("keysym.h.lua")
+local unitBlocking = VFS.Include('luaui/Include/unitBlocking.lua')
 
 local pairs = pairs
 local ipairs = ipairs
@@ -33,8 +46,6 @@ end
 SYMKEYS = table_invert(KEYSYMS)
 
 local CMD_STOP_PRODUCTION = GameCMD.STOP_PRODUCTION
-
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
 
 local comBuildOptions
 local boundUnits = {}
@@ -60,10 +71,17 @@ local maxPosY = 0.74
 
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
-local showPrice = false		-- false will still show hover
+local showPrice = true		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
 local showBuildProgress = true
+local progressColor = { 0.08, 0.08, 0.08, 0.6 }
+local drawnBuildTargets = {}
+
+-- Highlight API state: { [unitDefID] = { color={r,g,b}, startTime=os_clock() } }
+local highlights = {}
+local highlightCount = 0
+local defaultHighlightColor = { 1.0, 1.0, 1.0 }
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -79,17 +97,21 @@ local doUpdate, ordermenuHeight, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
+local buildmenuTexHasContent = false
+local buildmenuRenderedCells = 0
 
 local math_isInRect = math.isInRect
 
 local buildmenuShows = false
 local refreshBuildmenu = true
+local delayRefresh
 
 local costOverrides = {}
 --[[ MODIFICATION START ]]
 -- New state variables for the robust update system
-local selectionUpdateCountdown = 0  -- The debouncer timer, for selection changes only
+local selectionUpdateTime = 0  -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
+local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false   -- The failsafe retry flag
 local refreshRetryCounter = 0       -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -101,9 +123,9 @@ local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local ordermenuLeft = math.floor(vsx / 5)
+local ordermenuLeft = mathFloor(vsx / 5)
 local advplayerlistLeft = vsx * 0.8
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
@@ -111,8 +133,8 @@ local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
 
-local isSpec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local isSpec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -130,16 +152,32 @@ local height = 0
 local selectedBuilders = {}
 local selectedBuilderCount = 0
 local selectedFactoryCount = 0
+local prevAnyFactoryUnfinished = false
 local cellRects = {}
 local cmds = {}
 local cmdsCount = 0
 local currentPage = 1
 local pages = 1
 local paginatorRects = {}
-local preGamestartPlayer = Spring.GetGameFrame() == 0 and not isSpec
+local preGamestartPlayer = spGetGameFrame() == 0 and not isSpec
 
 local unitDefToCellMap = {}
 local cellQuotas = {}
+
+-- Reusable tables to reduce allocations in hot paths
+local cmdUnitdefsTemp = {}
+local selBuilderDefsTemp1 = {}
+local selBuilderDefsTemp2 = {}
+local currentSelBuilderDefs = selBuilderDefsTemp1  -- Track which temp table is current
+local buildCycleTemp = {}
+local emptyParams = {}
+local buildmenuUnitpicWarm = { warmed = {}, queued = {}, queuedSet = {}, count = 0 }
+local buildmenuUnitpicWarmPerFrame = 2
+
+-- Cache for expensive Spring API calls
+local cachedActiveCmdDescs = nil
+local cachedActiveCmdDescsTime = 0
+local activeCmdDescsCacheDelay = 0.05  -- Cache for 50ms
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -189,9 +227,9 @@ local SelectedUnitsCount = spGetSelectedUnitsCount()
 local string_sub = string.sub
 local os_clock = os.clock
 
-local math_floor = math.floor
+local math_floor = mathFloor
 local math_ceil = math.ceil
-local math_max = math.max
+local math_max = mathMax
 local math_min = math.min
 
 local glTexture = gl.Texture
@@ -203,11 +241,91 @@ local GL_ONE = GL.ONE
 local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 
-local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
-
-local function convertColor(r, g, b)
-	return string.char(255, (r * 255), (g * 255), (b * 255))
+-- Helper function for cached Spring API calls (must be after localizations)
+local function getCachedActiveCmdDescs()
+	local now = os_clock()
+	if not cachedActiveCmdDescs or (now - cachedActiveCmdDescsTime) > activeCmdDescsCacheDelay then
+		cachedActiveCmdDescs = spGetActiveCmdDescs()
+		cachedActiveCmdDescsTime = now
+	end
+	return cachedActiveCmdDescs
 end
+
+local function clearBuildmenuUnitpicWarmQueue()
+	local warm = buildmenuUnitpicWarm
+	for defID in pairs(warm.queuedSet) do
+		warm.queuedSet[defID] = nil
+	end
+	for i = 1, warm.count do
+		warm.queued[i] = nil
+	end
+	warm.count = 0
+end
+
+local function queueBuildmenuUnitpicWarm(unitDefID)
+	local warm = buildmenuUnitpicWarm
+	if unitDefID and not warm.warmed[unitDefID] and not warm.queuedSet[unitDefID] then
+		warm.count = warm.count + 1
+		warm.queued[warm.count] = unitDefID
+		warm.queuedSet[unitDefID] = true
+	end
+end
+
+local function queueBuildmenuUnitpicWarmFromCommands()
+	clearBuildmenuUnitpicWarmQueue()
+	local numCellsPerPage = rows * colls
+	local startCellID = numCellsPerPage * (currentPage - 1)
+	local maxCellRectID = numCellsPerPage * currentPage
+	if maxCellRectID > cmdsCount then
+		maxCellRectID = cmdsCount
+	end
+	for cellRectID = startCellID + 1, maxCellRectID do
+		local cmd = cmds[cellRectID]
+		if cmd and cmd.id then
+			queueBuildmenuUnitpicWarm(-cmd.id)
+		end
+	end
+end
+
+local function flushBuildmenuUnitpicWarmQueue()
+	local warm = buildmenuUnitpicWarm
+	local count = warm.count
+	if count <= 0 then
+		return true
+	end
+
+	tracy.ZoneBeginN("W:BuildMenu:UnitpicWarmup")
+	local limit = math_min(count, buildmenuUnitpicWarmPerFrame)
+	for i = 1, limit do
+		local unitDefID = warm.queued[i]
+		if unitDefID then
+			if glTexture("#" .. unitDefID) then
+				warm.warmed[unitDefID] = true
+			end
+			warm.queuedSet[unitDefID] = nil
+		end
+	end
+	glTexture(false)
+	if limit < count then
+		for i = limit + 1, count do
+			local unitDefID = warm.queued[i]
+			local newIndex = i - limit
+			warm.queued[newIndex] = unitDefID
+			warm.queued[i] = nil
+		end
+		warm.count = count - limit
+	else
+		for i = 1, count do
+			warm.queued[i] = nil
+		end
+		warm.count = 0
+	end
+	tracy.ZoneEnd()
+
+	return warm.count == 0
+end
+
+local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
@@ -235,26 +353,27 @@ local modKeyMultiplier = {
 	right = -1
 }
 
-local disableWind = ((Game.windMin + Game.windMax) / 2) < 5
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
+local function isFiniteNumber(value)
+	return value and value == value and value > -math.huge and value < math.huge
 end
 
-local showWaterUnits = false
--- make them a disabled unit (instead of removing it entirely)
-if not showWaterUnits then
-	units.restrictWaterUnits(true)
+local function isValidRect(x1, y1, x2, y2)
+	return isFiniteNumber(x1) and isFiniteNumber(y1) and isFiniteNumber(x2) and isFiniteNumber(y2) and x2 > x1 and y2 > y1
 end
 
+local function isValidBuildmenuGeometry()
+	return isValidRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4])
+		and isFiniteNumber(width) and isFiniteNumber(height) and width > 0 and height > 0
+		and isFiniteNumber(cellSize) and cellSize > 0
+		and isFiniteNumber(cellPadding) and isFiniteNumber(iconPadding) and cellSize > ((cellPadding + iconPadding) * 2)
+end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
-		if not dlistGuishader then
+		if not dlistGuishader and isValidRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			dlistGuishader = gl.CreateList(function()
 				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
@@ -268,11 +387,12 @@ local function checkGuishader(force)
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	isSpec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 local function UpdateGridGeometry()
+	tracy.ZoneBeginN("W:BuildMenu:UpdateGridGeometry")
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -343,53 +463,63 @@ local function UpdateGridGeometry()
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
 	priceFontSize = math_floor((cellInnerSize * (colls == 5 and cfgPriceFontSizeFiveColls or cfgPriceFontSizeFourColls)) + 0.5)
+	tracy.ZoneEnd()
 end
 
 local function RefreshCommands()
-	cmds = {}
+	tracy.ZoneBeginN("W:BuildMenu:RefreshCommands")
+	tracy.ZoneBeginN("W:BuildMenu:RefreshCommands:Collect")
+	-- Clear and reuse cmds table instead of creating new one
+	for i = #cmds, 1, -1 do
+		cmds[i] = nil
+	end
 	cmdsCount = 0
+	clearTable(cellRects)
 
 	if preGamestartPlayer then
 		if startDefID then
 
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for i, udefid in ipairs(unitBuildOptions[startDefID]) do
-				cmdUnitdefs[udefid] = i
+				cmdUnitdefsTemp[udefid] = i
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
 					-- mimmick output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
-						id = uDefID * -1,
+						id = -uDefID,
 						name = unitName[uDefID],
-						params = {}
+						params = emptyParams
 					}
 				end
 			end
 		end
 	else
 
-		local activeCmdDescs = spGetActiveCmdDescs()
+		local activeCmdDescs = getCachedActiveCmdDescs()
 		if smartOrderUnits then
-			local cmdUnitdefs = {}
+			-- Clear and reuse temp table instead of creating new one
+			clearTable(cmdUnitdefsTemp)
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						cmdUnitdefs[cmd.id * -1] = index
+						cmdUnitdefsTemp[-cmd.id] = index
 					end
 				end
 			end
 			for k, uDefID in ipairs(units.unitOrder) do
-				if cmdUnitdefs[uDefID] then
+				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
-					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefs[uDefID]]
+					cmds[cmdsCount] = activeCmdDescs[cmdUnitdefsTemp[uDefID]]
 				end
 			end
 		else
 			for index, cmd in ipairs(activeCmdDescs) do
 				if type(cmd) == "table" then
-					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' then
+					local uDefID = -cmd.id
+					if not cmd.disabled and string_sub(cmd.action, 1, 10) == 'buildunit_' and not units.unitHidden[uDefID] then
 						cmdsCount = cmdsCount + 1
 						cmds[cmdsCount] = cmd
 					end
@@ -397,6 +527,7 @@ local function RefreshCommands()
 			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	--[[ MODIFICATION START ]]
 	-- Failsafe check with reset logic
@@ -410,9 +541,13 @@ local function RefreshCommands()
 	end
 	--[[ MODIFICATION END ]]
 
+	tracy.ZoneBeginN("W:BuildMenu:RefreshCommands:GridGeometry")
 	UpdateGridGeometry()
+	tracy.ZoneEnd()
+	queueBuildmenuUnitpicWarmFromCommands()
 
 	--- CHANGE START ---
+	tracy.ZoneBeginN("W:BuildMenu:RefreshCommands:CellMap")
 	clearTable(unitDefToCellMap)
 	clearTable(cellQuotas)
 	--- CHANGE END ---
@@ -422,12 +557,14 @@ local function RefreshCommands()
 	for i = 1, numCellsPerPage do
 		local cellRectID = startCellID + i
 		if cmds[cellRectID] then
-			local uDefID = cmds[cellRectID].id * -1
+			local uDefID = -cmds[cellRectID].id
 			unitDefToCellMap[uDefID] = cellRectID
 		end
 	end
+	tracy.ZoneEnd()
 
 	if WG.Quotas then
+		tracy.ZoneBeginN("W:BuildMenu:RefreshCommands:Quotas")
 		local quotas = WG.Quotas.getQuotas()
 		for _, factoryID in ipairs(spGetSelectedUnits()) do
 			if quotas[factoryID] then
@@ -439,7 +576,9 @@ local function RefreshCommands()
 				end
 			end
 		end
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 local function clear()
@@ -453,11 +592,13 @@ local function clear()
 		buildmenuBgTex = nil
 		gl.DeleteTexture(buildmenuTex)
 		buildmenuTex = nil
+		buildmenuTexHasContent = false
 	end
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	tracy.ZoneBeginN("W:BuildMenu:ViewResize")
+	vsx, vsy = spGetViewGeometry()
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
 	font2 = WG['fonts'].getFont(2)
@@ -533,6 +674,7 @@ function widget:ViewResize()
 	if cmdsCount > 0 then
 		UpdateGridGeometry()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:LanguageChanged()
@@ -551,6 +693,12 @@ end
 local sec = 0
 local prevSelBuilderDefs = {}
 function widget:Update(dt)
+	tracy.ZoneBeginN("W:BuildMenu:Update")
+	if delayRefresh and spGetGameSeconds() >= delayRefresh then
+		clear()
+		doUpdate = true
+		delayRefresh = nil
+	end
 	--[[ MODIFICATION START ]]
 	-- Check failsafe retry flag
 	if forceRefreshNextFrame and refreshRetryCounter > 0 then
@@ -561,17 +709,24 @@ function widget:Update(dt)
 		end
 	end
 
-	-- Debounced selection update logic
-	if selectionUpdateCountdown > 0 then
-		selectionUpdateCountdown = selectionUpdateCountdown - 1
-		if selectionUpdateCountdown == 0 then
+	-- Debounced selection update logic (time-based)
+	if selectionUpdateTime > 0 then
+		tracy.ZoneBeginN("W:BuildMenu:Update:Selection")
+		local now = os_clock()
+		if now >= selectionUpdateTime then
+			selectionUpdateTime = 0
 			-- The old `updateSelection = false` is no longer needed
 			-- The rest of the original logic from `if updateSelection` block is moved here
 			selectedBuilders = {}
 			selectedBuilderCount = 0
 			local prevSelectedFactoryCount = selectedFactoryCount
 			selectedFactoryCount = 0
-			local selBuilderDefs = {}
+
+			-- Swap to the other temp table (ping-pong buffering)
+			local prevSelBuilderDefs = currentSelBuilderDefs
+			currentSelBuilderDefs = (currentSelBuilderDefs == selBuilderDefsTemp1) and selBuilderDefsTemp2 or selBuilderDefsTemp1
+			clearTable(currentSelBuilderDefs)
+
 			SelectedUnitsCount = spGetSelectedUnitsCount()
 			if SelectedUnitsCount > 0 then
 				local sel = Spring.GetSelectedUnits()
@@ -579,12 +734,12 @@ function widget:Update(dt)
 					local uDefID = spGetUnitDefID(unitID)
 					if units.isFactory[uDefID] then
 						selectedFactoryCount = selectedFactoryCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 					if units.isBuilder[uDefID] then
 						selectedBuilders[unitID] = true
 						selectedBuilderCount = selectedBuilderCount + 1
-						selBuilderDefs[uDefID] = true
+						currentSelBuilderDefs[uDefID] = true
 					end
 				end
 
@@ -594,17 +749,17 @@ function widget:Update(dt)
 
 				-- check if builder type selection actually differs from previous selection
 				if not doUpdate then
-					if #selBuilderDefs ~= #prevSelBuilderDefs then
+					if #currentSelBuilderDefs ~= #prevSelBuilderDefs then
 						doUpdate = true
 					else
 						for uDefID, _ in pairs(prevSelBuilderDefs) do
-							if not selBuilderDefs[uDefID] then
+							if not currentSelBuilderDefs[uDefID] then
 								doUpdate = true
 								break
 							end
 						end
 						if not doUpdate then
-							for uDefID, _ in pairs(selBuilderDefs) do
+							for uDefID, _ in pairs(currentSelBuilderDefs) do
 								if not prevSelBuilderDefs[uDefID] then
 									doUpdate = true
 									break
@@ -614,8 +769,8 @@ function widget:Update(dt)
 					end
 				end
 			end
-			prevSelBuilderDefs = selBuilderDefs
 		end
+		tracy.ZoneEnd()
 	end
 	--[[ MODIFICATION END ]]
 
@@ -636,17 +791,13 @@ function widget:Update(dt)
 
 	sec = sec + dt
 	if sec > 0.33 then
+		tracy.ZoneBeginN("W:BuildMenu:Update:Periodic")
 		sec = 0
 		checkGuishader()
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 		end
 
-		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not voidWater and mapMinWater <= units.minWaterUnitDepth and not showWaterUnits then
-			showWaterUnits = true
-			units.restrictWaterUnits(false)
-		end
 
 		if stickToBottom then
 			if WG['advplayerlist_api'] ~= nil then
@@ -667,42 +818,74 @@ function widget:Update(dt)
 		end
 
 		disableInput = Spring.IsGodModeEnabled() and false or (disableInputWhenSpec and isSpec)
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0, nil, nil, nil, nil, nil, nil, nil, nil)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
-	local uDefID = cmds[cellRectID].id * -1
+local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruction)
+	tracy.ZoneBeginN("W:BuildMenu:DrawCell")
+	local uDefID = -cmds[cellRectID].id
+	local unitTexture = '#' .. uDefID
+	local cellRect = cellRects[cellRectID]
+	if not cellRect then
+		tracy.ZoneEnd()
+		return false
+	end
+	local iconX1 = cellRect[1] + cellPadding + iconPadding
+	local iconY1 = cellRect[2] + cellPadding + iconPadding
+	local iconX2 = cellRect[3] - cellPadding - iconPadding
+	local iconY2 = cellRect[4] - cellPadding - iconPadding
+	if not isValidRect(iconX1, iconY1, iconX2, iconY2) then
+		tracy.ZoneEnd()
+		return false
+	end
+	if not buildmenuUnitpicWarm.warmed[uDefID] then
+		tracy.ZoneBeginN("W:BuildMenu:DrawCell:TextureWarmFallback")
+		if glTexture(unitTexture) then
+			buildmenuUnitpicWarm.warmed[uDefID] = true
+		end
+		glTexture(false)
+		tracy.ZoneEnd()
+	end
 
 	-- unit icon
+	local texprefix = ''
 	if disabled then
 		glColor(0.4, 0.4, 0.4, 1)
+		texprefix = 't0.3,0.3,0.3'
+	elseif underConstruction then
+		glColor(0.77, 0.77, 0.77, 1)
+		texprefix = 't0.63,0.63,0.63'
 	else
 		glColor(1, 1, 1, 1)
 	end
+	tracy.ZoneBeginN("W:BuildMenu:DrawCell:UiUnit")
 	UiUnit(
-		cellRects[cellRectID][1] + cellPadding + iconPadding,
-		cellRects[cellRectID][2] + cellPadding + iconPadding,
-		cellRects[cellRectID][3] - cellPadding - iconPadding,
-		cellRects[cellRectID][4] - cellPadding - iconPadding,
+		iconX1,
+		iconY1,
+		iconX2,
+		iconY2,
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
-		'#' .. uDefID,
-		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. (disabled and 't0.3,0.3,0.3' or '') ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
-		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. (disabled and 't0.3,0.3,0.3:' or ':') ..groups[units.unitGroup[uDefID]] or nil) or nil,
+		unitTexture,
+		showRadarIcon and (((units.unitIconType[uDefID] and iconTypes[units.unitIconType[uDefID]]) and ':l' .. texprefix ..':' .. iconTypes[units.unitIconType[uDefID]] or nil)) or nil,
+		showGroupIcon and (groups[units.unitGroup[uDefID]] and ':l' .. texprefix ..':' ..groups[units.unitGroup[uDefID]] or nil) or nil,
 		{units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
 	)
+	tracy.ZoneEnd()
 
 	-- colorize/highlight unit icon
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture('#' .. uDefID)
+		glTexture(unitTexture)
 		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -734,19 +917,19 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			end
 			return price
 		end
-		
+
 		local costOverride = costOverrides and costOverrides[uDefID]
-		
+
 		if costOverride then
 			local topValue = costOverride.top and costOverride.top.value or units.unitMetalCost[uDefID]
 			local bottomValue = costOverride.bottom and costOverride.bottom.value or units.unitEnergyCost[uDefID]
-			
+
 			if costOverride.top and not costOverride.top.disabled then
 				local costColor = costOverride.top.color or "\255\100\255\100"
 				if disabled then
 					costColor = costOverride.top.colorDisabled or "\255\100\200\100"
 				end
-				local costPrice = AddSpaces(math.floor(topValue))
+				local costPrice = AddSpaces(mathFloor(topValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			elseif not costOverride.top then
@@ -754,13 +937,13 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 				local metalPrice = AddSpaces(units.unitMetalCost[uDefID])
 				font2:Print(metalColor .. metalPrice, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "ro")
 			end
-			
+
 			if costOverride.bottom and not costOverride.bottom.disabled then
 				local costColor = costOverride.bottom.color or "\255\255\255\000"
 				if disabled then
 					costColor = costOverride.bottom.colorDisabled or "\255\135\135\135"
 				end
-				local costPrice = AddSpaces(math.floor(bottomValue))
+				local costPrice = AddSpaces(mathFloor(bottomValue))
 				local costPriceText = costColor .. costPrice
 				font2:Print(costPriceText, cellRects[cellRectID][3] - cellPadding - (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 0.35), priceFontSize, "ro")
 			elseif not costOverride.bottom then
@@ -818,9 +1001,61 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, colls)
 			"ro"
 		)
 	end
+	tracy.ZoneEnd()
+	return true
+end
+
+local function drawHighlights()
+	if highlightCount == 0 or not next(highlights) then return end
+	local now = os_clock()
+	for uDefID, hl in pairs(highlights) do
+		local cellRectID = unitDefToCellMap[uDefID]
+		local rect = cellRectID and cellRects[cellRectID]
+		if rect then
+			local color = hl.color or defaultHighlightColor
+			local r, g, b = color[1], color[2], color[3]
+			local t = now - (hl.startTime or now)
+			-- Pulse, period ~1.4s
+			local pulse = 0.5 + 0.5 * math.sin(t * 4.5)
+
+			local x1 = rect[1] + cellPadding + iconPadding
+			local y1 = rect[2] + cellPadding + iconPadding
+			local x2 = rect[3] - cellPadding - iconPadding
+			local y2 = rect[4] - cellPadding - iconPadding
+
+			-- Brighten unit icon (additive overlay using its own texture)
+			local brighten = 0.10 + 0.22 * pulse
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glColor(r * brighten, g * brighten, b * brighten, 1)
+			glTexture('#' .. uDefID)
+			UiUnit(x1, y1, x2, y2, cornerSize, 1, 1, 1, 1, defaultCellZoom)
+			glTexture(false)
+
+			-- Feathered inner outline ring with pulsing alpha (proper chamfered corners)
+			local thickness = math_max(2, math_floor((x2 - x1) * 0.04))
+			local outlineAlpha = 0.45 + 0.5 * pulse
+			local cs = cornerSize
+			local outerCol = { r, g, b, outlineAlpha }
+			local innerCol = { r, g, b, outlineAlpha * 0.85 }
+			WG.FlowUI.Draw.RectRoundOutline(x1, y1, x2, y2, cs, thickness, 1, 1, 1, 1, outerCol, innerCol)
+
+			-- Soft inner glow fading inward from the outline
+			local glowAlpha = 0.10 + 0.20 * pulse
+			local glowWidth = thickness * 3
+			WG.FlowUI.Draw.RectRoundOutline(
+				x1 + thickness, y1 + thickness, x2 - thickness, y2 - thickness,
+				math_max(0, cs - thickness), glowWidth, 1, 1, 1, 1,
+				{ r, g, b, glowAlpha }, { r, g, b, 0 }
+			)
+
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		end
+	end
 end
 
 function drawBuildmenu()
+	tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu")
+	buildmenuRenderedCells = 0
 	local activeArea = {
 		backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin,
 		backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin,
@@ -841,7 +1076,25 @@ function drawBuildmenu()
 	if maxCellRectID > cmdsCount then
 		maxCellRectID = cmdsCount
 	end
-	font2:Begin(useRenderToTexture)
+	-- build set of unit defs that can be built by at least one finished factory
+	tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu:Buildable")
+	local finishedBuildable = {}
+	if selectedFactoryCount > 0 then
+		for _, unitID in ipairs(spGetSelectedUnits()) do
+			local defID = spGetUnitDefID(unitID)
+			if units.isFactory and units.isFactory[defID] and not spGetUnitIsBeingBuilt(unitID) then
+				local opts = unitBuildOptions[defID]
+				if opts then
+					for _, optDefID in ipairs(opts) do
+						finishedBuildable[optDefID] = true
+					end
+				end
+			end
+		end
+	end
+	tracy.ZoneEnd()
+	tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu:Cells")
+	font2:Begin(true)
 	local iconCount = 0
 	for row = 1, rows do
 		if cellRectID >= maxCellRectID then
@@ -873,14 +1126,19 @@ function drawBuildmenu()
 			local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 			local usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[cmds[cellRectID].id * -1])
+			local uDefIDCell = -cmds[cellRectID].id
+			if drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, units.unitRestricted[uDefIDCell], selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell]) then
+				buildmenuRenderedCells = buildmenuRenderedCells + 1
+			end
 		end
 	end
+	tracy.ZoneEnd()
 
 	-- paginator
 	if pages == 1 then
 		paginatorRects = {}
 	else
+		tracy.ZoneBeginN("W:BuildMenu:DrawBuildmenu:Paginator")
 		local paginatorFontSize = math_max(0.016 * vsy, paginatorCellHeight * 0.2)
 		local paginatorCellWidth = math_floor(contentWidth * 0.3)
 
@@ -893,26 +1151,93 @@ function drawBuildmenu()
 		font2:Print(">", paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize * 1.2, "co")
 
 		font2:Print("\255\245\245\245" .. currentPage .. "  /  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
+		tracy.ZoneEnd()
 	end
 
 	font2:End()
+	tracy.ZoneEnd()
+end
+
+
+local function refreshBuildmenuTexture()
+	if not refreshBuildmenu then
+		return
+	end
+	tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RefreshTexture")
+	if not isValidBuildmenuGeometry() then
+		refreshBuildmenu = true
+		tracy.ZoneEnd()
+		return
+	end
+	if cmdsCount <= 0 then
+		refreshBuildmenu = true
+		tracy.ZoneEnd()
+		return
+	end
+	local buildmenuUnitpicsWarmDone = true
+	local warmedBuildmenuUnitpicThisFrame = false
+	if buildmenuUnitpicWarm.count > 0 then
+		warmedBuildmenuUnitpicThisFrame = true
+		buildmenuUnitpicsWarmDone = flushBuildmenuUnitpicWarmQueue()
+	end
+	refreshBuildmenu = false
+	if not buildmenuTex and width > 0.05 and height > 0.05 then
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
+		buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		buildmenuTexHasContent = false
+		buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
+			target = GL.TEXTURE_2D,
+			format = GL.RGBA,
+			fbo = true,
+		})
+		gl.R2tHelper.RenderInRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenuBg, true)
+		tracy.ZoneEnd()
+	end
+	local forceInitialRender = buildmenuTex and not buildmenuTexHasContent
+	local renderedBuildmenuTex = false
+	if buildmenuTex and (forceInitialRender or (buildmenuUnitpicsWarmDone and not warmedBuildmenuUnitpicThisFrame)) then
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RenderTexture")
+		gl.R2tHelper.RenderInRect(buildmenuTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBuildmenu, true)
+		if buildmenuRenderedCells > 0 then
+			buildmenuTexHasContent = true
+			renderedBuildmenuTex = true
+			if forceInitialRender then
+				clearBuildmenuUnitpicWarmQueue()
+			end
+		else
+			buildmenuTexHasContent = false
+			refreshBuildmenu = true
+		end
+		tracy.ZoneEnd()
+	end
+	if not renderedBuildmenuTex and (not buildmenuUnitpicsWarmDone or warmedBuildmenuUnitpicThisFrame) then
+		refreshBuildmenu = true
+	end
+	tracy.ZoneEnd()
 end
 
 
 function widget:DrawScreen()
+	tracy.ZoneBeginN("W:BuildMenu:DrawScreen")
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if WG['buildmenu'] then
 		WG['buildmenu'].hoverID = nil
 	end
 
 	if not buildmenuShows then
+		tracy.ZoneEnd()
 		return
 	end
 
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 
-	if Spring.GetGameFrame() == 0 and WG['pregame-build'] then
+	if spGetGameFrame() == 0 and WG['pregame-build'] then
 		activeCmd = WG["pregame-build"] and WG["pregame-build"].getPreGameDefID()
 		if activeCmd then
 			activeCmd = unitName[activeCmd]
@@ -935,68 +1260,22 @@ function widget:DrawScreen()
 
 	-- The main refresh condition check
 	if doUpdate or refreshBuildmenu then
-		if not useRenderToTexture then
-			dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
-		end
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:RefreshCommands")
 		RefreshCommands()
 		doUpdate = nil
 		refreshBuildmenu = true
+		tracy.ZoneEnd()
 	end
 
 	-- create buildmenu
-	if refreshBuildmenu then
-		refreshBuildmenu = false
-		if useRenderToTexture then
-			if not buildmenuTex and width > 0.05 and height > 0.05 then
-				buildmenuTex = gl.CreateTexture(math_floor(width*vsx)*2, math_floor(height*vsy)*2, { --*(vsy<1400 and 2 or 1)
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				buildmenuBgTex = gl.CreateTexture(math_floor(width*vsx), math_floor(height*vsy), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(buildmenuBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenuBg()
-					end,
-					useRenderToTexture
-				)
-			end
-			if buildmenuTex then
-				gl.R2tHelper.RenderToTexture(buildmenuTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (width*vsx), 2 / (height*vsy),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBuildmenu()
-					end,
-					useRenderToTexture
-				)
-			end
-		else
-			if not dlistBuildmenuBg then
-				dlistBuildmenuBg = gl.CreateList(function() drawBuildmenuBg() end)
-			end
-			if not dlistBuildmenu then
-				dlistBuildmenu = gl.CreateList(function() drawBuildmenu() end)
-			end
-		end
-	end
+	refreshBuildmenuTexture()
 
 	-- draw buildmenu background
-	if useRenderToTexture then
-		if buildmenuBgTex and backgroundRect then
-			gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-		end
-	else
-		gl.CallList(dlistBuildmenuBg)
+	tracy.ZoneBeginN("W:BuildMenu:DrawScreen:BlendBackground")
+	if buildmenuBgTex and backgroundRect then
+		gl.R2tHelper.BlendTexRect(buildmenuBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
 	end
+	tracy.ZoneEnd()
 
 	local hovering = false
 	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
@@ -1005,14 +1284,16 @@ function widget:DrawScreen()
 	end
 
 	if preGamestartPlayer or selectedBuilderCount ~= 0 then
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:Content")
 		-- pre process + 'highlight' under the icons
 		local hoveredCellID
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			if hovering then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+					local cmd = cmds[cellRectID]
+					if cmd and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 						hoveredCellID = cellRectID
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = -cmd.id
 						WG['buildmenu'].hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -1043,12 +1324,14 @@ function widget:DrawScreen()
 		end
 
 		-- draw buildmenu content
-		if buildmenuTex then
+		if buildmenuTex and buildmenuTexHasContent then
+			tracy.ZoneBeginN("W:BuildMenu:DrawScreen:BlendContent")
 			-- content
 			gl.Color(1,1,1,1)
 			gl.Texture(buildmenuTex)
 			gl.TexRect(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], false, true)
 			gl.Texture(false)
+			tracy.ZoneEnd()
 		elseif dlistBuildmenu then
 			gl.CallList(dlistBuildmenu)
 		end
@@ -1080,7 +1363,7 @@ function widget:DrawScreen()
 
 				-- draw cell hover
 				if hoveredCellID then
-					local uDefID = cmds[hoveredCellID].id * -1
+					local uDefID = -cmds[hoveredCellID].id
 					local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
 					if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
 						prevQueueNr = cmds[hoveredCellID].params[1]
@@ -1133,7 +1416,7 @@ function widget:DrawScreen()
 								end
 
 								-- re-draw cell with hover zoom (and price shown)
-								font2:Begin(useRenderToTexture)
+								font2:Begin(true)
 								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
@@ -1151,30 +1434,50 @@ function widget:DrawScreen()
 			end
 		end
 
+		-- draw attention highlights (animated)
+		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:Highlights")
+		drawHighlights()
+		tracy.ZoneEnd()
+
 		-- draw builders buildoption progress
 		if showBuildProgress then
+			tracy.ZoneBeginN("W:BuildMenu:DrawScreen:BuildProgress")
 			for builderUnitID, _ in pairs(selectedBuilders) do
 				local unitBuildID = spGetUnitIsBuilding(builderUnitID)
-				if unitBuildID then
+				if unitBuildID and not drawnBuildTargets[unitBuildID] then
+					drawnBuildTargets[unitBuildID] = true
 					local unitBuildDefID = spGetUnitDefID(unitBuildID)
 					if unitBuildDefID then
 						local cellRectID = unitDefToCellMap[unitBuildDefID]
 						if cellRectID and cellRects[cellRectID] then
 							local _, progress = spGetUnitIsBeingBuilt(unitBuildID)
 							progress = 1 - progress -- make the effect wind counter-clockwise
-							RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
+							local progressRect = cellRects[cellRectID]
+							local x1 = progressRect[1] + cellPadding + iconPadding
+							local y1 = progressRect[2] + cellPadding + iconPadding
+							local x2 = progressRect[3] - cellPadding - iconPadding
+							local y2 = progressRect[4] - cellPadding - iconPadding
+							if isValidRect(x1, y1, x2, y2) then
+								RectRoundProgress(x1, y1, x2, y2, cellSize * 0.03, progress, progressColor)
+							end
 						end
 					end
 				end
 			end
+			for k in pairs(drawnBuildTargets) do
+				drawnBuildTargets[k] = nil
+			end
+			tracy.ZoneEnd()
 		end
+		tracy.ZoneEnd()
 	end
+	tracy.ZoneEnd()
 end
 
 function widget:DrawWorld()
 
 	-- Avoid unnecessary overhead after buildqueue has been setup in early frames
-	if Spring.GetGameFrame() > 0 then
+	if spGetGameFrame() > 0 then
 		widgetHandler:RemoveWidgetCallIn('DrawWorld', self)
 		return
 	end
@@ -1203,8 +1506,20 @@ end
 
 function widget:SelectionChanged(sel)
 	--[[ MODIFICATION START ]]
-	-- The original `updateSelection = true` is replaced with the debouncer.
-	selectionUpdateCountdown = 2
+	-- Adaptive throttling: increase delay based on selection size
+	local selCount = #sel
+	local throttleDelay = 0.01
+	if selCount >= 300 then
+		throttleDelay = 0.03
+	elseif selCount >= 160 then
+		throttleDelay = 0.02
+	elseif selCount >= 80 then
+		throttleDelay = 0.015
+	end
+
+	selectionUpdateTime = os_clock() + throttleDelay
+	-- Invalidate cached commands on selection change
+	cachedActiveCmdDescs = nil
 	--[[ MODIFICATION END ]]
 end
 
@@ -1219,9 +1534,24 @@ end
 function widget:GameStart()
 	preGamestartPlayer = false
 
-	units.checkGeothermalFeatures()
-
 	unbindBuildUnits()
+end
+
+function widget:GameFrame(n)
+	if n % 15 ~= 0 or selectedFactoryCount == 0 then return end
+	local finishedCount = 0
+	for _, unitID in ipairs(spGetSelectedUnits()) do
+		local defID = spGetUnitDefID(unitID)
+		if units.isFactory and units.isFactory[defID] then
+			if not spGetUnitIsBeingBuilt(unitID) then
+				finishedCount = finishedCount + 1
+			end
+		end
+	end
+	if finishedCount ~= prevAnyFactoryUnfinished then
+		prevAnyFactoryUnfinished = finishedCount
+		refreshBuildmenu = true
+	end
 end
 
 local function setPreGamestartDefID(uDefID)
@@ -1251,7 +1581,7 @@ local function updateQuotaNumber(unitDefID, count)
 				quotas[builderID] = quotas[builderID] or {}
 				quotas[builderID][unitDefID] = quotas[builderID][unitDefID] or 0
 				local prev = quotas[builderID][unitDefID]
-				quotas[builderID][unitDefID] = math.max(quotas[builderID][unitDefID] + (count or 0), 0)
+				quotas[builderID][unitDefID] = mathMax(quotas[builderID][unitDefID] + (count or 0), 0)
 				quotaChanged = quotaChanged or prev ~= quotas[builderID][unitDefID]
 			end
 		end
@@ -1333,7 +1663,7 @@ function widget:MousePress(x, y, button)
 									Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 								end
 								if preGamestartPlayer then
-									setPreGamestartDefID(cmds[cellRectID].id * -1)
+									setPreGamestartDefID(-cmds[cellRectID].id)
 								elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 									Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 3, false, true, Spring.GetModKeyState())
 								end
@@ -1410,24 +1740,27 @@ local function buildUnitHandler(_, _, _, data)
 	-- didnt find a suitable binding to cycle from
 	if not (pressedKey or pressedScan) then return end
 
-	local buildCycle = {}
+	-- Clear and reuse temp table instead of creating new one
+	clearTable(buildCycleTemp)
+	local buildCycleCount = 0
 	for _, keybind in ipairs(Spring.GetKeyBindings(pressedKey, pressedScan)) do
 		if string_sub(keybind.command, 1, 10) == 'buildunit_' then
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 	        if uDef then -- prevents crashing when trying to access unloaded units (legion)
 	            if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
-	                table.insert(buildCycle, uDef.id)
+	                buildCycleCount = buildCycleCount + 1
+	                buildCycleTemp[buildCycleCount] = uDef.id
 	            end
         	end
 		end
 	end
 
-	if #buildCycle == 0 then return end
+	if buildCycleCount == 0 then return end
 
 	local buildCycleIndex
-	for i, v in ipairs(buildCycle) do
-		if v == selBuildQueueDefID then
+	for i = 1, buildCycleCount do
+		if buildCycleTemp[i] == selBuildQueueDefID then
 			buildCycleIndex = i
 			break
 		end
@@ -1439,9 +1772,9 @@ local function buildUnitHandler(_, _, _, data)
 	end
 
 	buildCycleIndex = buildCycleIndex + 1
-	if buildCycleIndex > #buildCycle then buildCycleIndex = 1 end
+	if buildCycleIndex > buildCycleCount then buildCycleIndex = 1 end
 
-	setPreGamestartDefID(buildCycle[buildCycleIndex])
+	setPreGamestartDefID(buildCycleTemp[buildCycleIndex])
 
 	return true
 end
@@ -1451,14 +1784,21 @@ local function bindBuildUnits(widget)
 
 	unbindBuildUnits()
 
-	comBuildOptions = { armcom = {}, corcom = {} }
+	comBuildOptions = {}
+	local validStartUnits = string.split(spGetTeamRulesParam(myTeamID, "validStartUnits") or Spring.GetGameRulesParam("validStartUnits"), "|")
+	for _, unitDefIDString in ipairs(validStartUnits) do
+		local unitDefID = tonumber(unitDefIDString)
+		local unitDef = unitDefID and UnitDefs[unitDefID]
+		if unitDef then
+			comBuildOptions[unitDef.name] = {}
+		end
+	end
 
-	for _, comDefName in ipairs({ "armcom", "corcom" }) do
+	for comDefName, buildOptions in pairs(comBuildOptions) do
 		for _, buildOption in ipairs(UnitDefNames[comDefName].buildOptions) do
 			if not units.unitRestricted[buildOption] then
 				local unitDefName = unitName[buildOption]
-
-				comBuildOptions[comDefName][buildOption] = true
+				buildOptions[buildOption] = true
 				table.insert(boundUnits, unitDefName)
 				widgetHandler.actionHandler:AddAction(widget, "buildunit_" .. unitDefName, buildUnitHandler, { unitDefID = buildOption }, 'p')
 			end
@@ -1469,16 +1809,18 @@ end
 function widget:Initialize()
 	refreshUnitDefs()
 
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	end
+
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Grid menu")
 	end
 
-	units.checkGeothermalFeatures()
-	if disableWind then
-		units.restrictWindUnits(true)
-	end
 
 	-- Get our starting unit
 	if preGamestartPlayer then
@@ -1612,6 +1954,56 @@ function widget:Initialize()
 			end
 		end
 		clear()
+	end
+
+	---Highlight a build option to draw the player's attention to it with a pulsing
+	---inner outline and a soft inner glow. Non-destructive: does not affect input or
+	---block hover/selection visuals. Subsequent calls update the existing highlight.
+	---@param unitDefID number The unit definition ID to highlight.
+	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
+	WG['buildmenu'].setHighlight = function(unitDefID, color)
+		if not unitDefID then return end
+		if not highlights[unitDefID] then
+			highlightCount = highlightCount + 1
+		end
+		highlights[unitDefID] = {
+			color = color,
+			startTime = (highlights[unitDefID] and highlights[unitDefID].startTime) or os_clock(),
+		}
+	end
+
+	---Remove a highlight previously set via setHighlight.
+	---@param unitDefID number
+	WG['buildmenu'].removeHighlight = function(unitDefID)
+		if unitDefID and highlights[unitDefID] then
+			highlights[unitDefID] = nil
+			highlightCount = math_max(0, highlightCount - 1)
+		end
+	end
+
+	---Clear all active highlights.
+	WG['buildmenu'].clearHighlights = function()
+		for k in pairs(highlights) do
+			highlights[k] = nil
+		end
+		highlightCount = 0
+	end
+
+	---Returns true if there is an active highlight for the given unitDefID.
+	---@param unitDefID number
+	---@return boolean
+	WG['buildmenu'].hasHighlight = function(unitDefID)
+		return unitDefID ~= nil and highlights[unitDefID] ~= nil
+	end
+end
+
+
+
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons["hidden"] ~= nil
+	if not delayRefresh or delayRefresh < spGetGameSeconds() then
+		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
 	end
 end
 

@@ -27,7 +27,7 @@ static-var gun_1, torsoaim, miniguncount, animFramesPerKeyframe, movespeed,
 //--start ups :)
 //--------------------------------------------------------
 
-walk() 	// (c) CC BY NC ND Beherith mysterme@gmail.com
+walk()
 {
 	set-signal-mask SIG_WALK;	if (bMoving) { //Frame:4
 			//turn lfoot to x-axis <-45.174461> speed <1339.883614> / animSpeed; 

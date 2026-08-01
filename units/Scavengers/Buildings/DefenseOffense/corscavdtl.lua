@@ -17,8 +17,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 10,
-		idletime = 900,
 		levelground = false,
 		mass = 10000000000,
 		health = 1330,
@@ -86,10 +84,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-lightning",
-				[2] = "deathceg4-lightning",
 			},
 		},
 		sounds = {

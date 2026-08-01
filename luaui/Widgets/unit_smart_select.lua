@@ -12,6 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
 local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
@@ -24,6 +31,10 @@ local referenceX, referenceY
 local selectBuildingsWithMobile = false		-- whether to select buildings when mobile units are inside selection rectangle
 local includeNanosAsMobile = true
 local includeBuilders = false
+local includeResurrectors = false
+local includeAntinuke = false
+local includeRadar = false
+local includeJammer = false
 
 -- selection modifiers
 local mods = {
@@ -61,16 +72,21 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNoSelect = Spring.GetUnitNoSelect
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
-local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnits = spGetSelectedUnits()
 
-local spec = Spring.GetSpectatingState()
-local myTeamID = Spring.GetMyTeamID()
+local spec = spGetSpectatingState()
+local myTeamID = spGetMyTeamID()
 
 local ignoreUnits = {}
 local combatFilter = {}
 local builderFilter = {}
+local resurrectorFilter = {}
 local buildingFilter = {}
 local mobileFilter = {}
+local utilFilter = {}
+local antinukeFilter = {}
+local radarFilter = {}
+local jammerFilter = {}
 local customFilter = {}
 
 for udid, udef in pairs(UnitDefs) do
@@ -78,22 +94,55 @@ for udid, udef in pairs(UnitDefs) do
 		ignoreUnits[udid] = true
 	end
 
-	local isMobile = not udef.isImmobile  or  (includeNanosAsMobile and (udef.isStaticBuilder and not udef.isFactory))
-	local builder = (udef.canReclaim and udef.reclaimSpeed > 0)  or  (udef.canResurrect and udef.resurrectSpeed > 0)  or  (udef.canRepair and udef.repairSpeed > 0) or (udef.buildOptions and udef.buildOptions[1])
+	local isMobile = not udef.isImmobile or (includeNanosAsMobile and (udef.isStaticBuilder and not udef.isFactory))
+	local builder = (udef.buildOptions and udef.buildOptions[1])  or  ((udef.canRepair and udef.repairSpeed > 0)  or  (udef.canReclaim and udef.reclaimSpeed > 0))  and  not  (udef.canResurrect and udef.resurrectSpeed > 0)
+	local resurrector = (udef.canResurrect and udef.resurrectSpeed > 0)  and  not  (udef.buildOptions and udef.buildOptions[1])
 	local building = (isMobile == false)
-	local combat = (not builder) and isMobile and (#udef.weapons > 0)
+	local isUtil = udef.customParams.unitgroup == "util"
+	local antinuke = isMobile and udef.customParams.unitgroup == "antinuke"
+	local radar = isMobile and isUtil and udef.radarDistance > 0
+	local jammer = isMobile and isUtil and udef.radarDistanceJam > 0
 
-	if string.find(udef.name, 'armspid') or string.find(udef.name, 'leginfestor') then
+	if udef.customParams.selectable_as_combat_unit then
 		builder = false
+		resurrector = false
 	end
+
+	local combat = ((not builder) and isMobile and (#udef.weapons > 0)) or udef.customParams.selectable_as_combat_unit
+
 	combatFilter[udid] = combat
 	builderFilter[udid] = builder
+	resurrectorFilter[udid] = resurrector
 	buildingFilter[udid] = building
 	mobileFilter[udid] = isMobile
+	utilFilter[udid] = isUtil
+	antinukeFilter[udid] = antinuke
+	radarFilter[udid] = radar
+	jammerFilter[udid] = jammer
+end
+
+local function smartSelectIncludeFilter(udid)
+	if UnitDefs[udid].customParams and UnitDefs[udid].customParams.selectable_as_combat_unit then
+		return true
+	end
+
+	local smartSelectFilters = {
+		{include = includeBuilders, filter = builderFilter},
+		{include = includeResurrectors, filter = resurrectorFilter},
+		{include = includeAntinuke, filter = antinukeFilter},
+		{include = includeRadar, filter = radarFilter},
+		{include = includeJammer, filter = jammerFilter}
+	}
+    for _, unit in ipairs(smartSelectFilters) do
+        if not unit.include and unit.filter[udid] then
+            return false
+        end
+    end
+    return true
 end
 
 local dualScreen
-local vpy = select(Spring.GetViewGeometry(), 4)
+local vpy = select(spGetViewGeometry(), 4)
 local referenceSelection = {}
 local referenceSelectionTypes = {}
 
@@ -120,8 +169,6 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
-
-
 local function handleSetCustomFilter(_, ruleDef)
 	customFilter = selectApi.getFilter(ruleDef)
 	customFilterDef = ruleDef
@@ -132,10 +179,16 @@ local function handleClearCustomFilter(_, _, _)
 	customFilterDef = ""
 end
 
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
+
+local function isUnitIdle(unitID)
+	return inIdleWorkerTask[unitID] or spGetUnitCommandCount(unitID) == 0
+end
+
 
 function widget:ViewResize()
 	dualScreen = Spring.GetMiniMapDualScreen()
-	_, _, _, vpy = Spring.GetViewGeometry()
+	_, _, _, vpy = spGetViewGeometry()
 end
 
 function widget:SelectionChanged(sel)
@@ -160,6 +213,17 @@ function widget:SelectionChanged(sel)
 	selectedUnits = sel
 end
 
+-- function mousePress is called after all widgets have had their chance with widget:MousePress. 
+-- If any of those widgets change the selection on mouse press, referenceSelection will not only become stale, it will be stale inconsistently because widget:SelectionChanged is deferred.
+-- So we make a snapshot of the selection before any widget has had a chance to change it (layer -999999), and use that as the reference for the selection box.
+-- This produces a consistent behavior for Ctrl+drag deselect, even if other widgets select on mouse press (e.g. Squad Selection on ctrl+left click).
+function widget:MousePress(x, y, button)
+	if button == 1 then
+		referenceSelection = spGetSelectedUnits()
+	end
+	return false
+end
+
 -- this widget gets called early due to its layer
 -- this function will get called after all widgets have had their chance with widget:MousePress
 local function mousePress(x, y, button, hasMouseOwner)  --function widget:MousePress(x, y, button)
@@ -170,7 +234,6 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 
 	skipSel = false
 
-	referenceSelection = selectedUnits
 	referenceSelectionTypes = {}
 	for i = 1, #referenceSelection do
 		local udid = spGetUnitDefID(referenceSelection[i])
@@ -186,8 +249,8 @@ local function mousePress(x, y, button, hasMouseOwner)  --function widget:MouseP
 end
 
 function widget:PlayerChanged()
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	spec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 end
 
 local sec = 0
@@ -240,7 +303,7 @@ function widget:Update(dt)
 	local newSelection = {}
 	local uid, udid
 
-	local tmp = {}
+	local included = {}
 	local n = 0
 	local equalsMouseSelection = #mouseSelection == lastMouseSelectionCount
 	if equalsMouseSelection and lastMouseSelectionCount == 0 and not mods.deselect and not mods.append then
@@ -256,7 +319,7 @@ function widget:Update(dt)
 			 -- filter gaia units + ignored units (objects)
 			(isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)])) then
 			n = n + 1
-			tmp[n] = uid
+			included[n] = uid
 			if equalsMouseSelection and not lastMouseSelection[uid] then
 				equalsMouseSelection = false
 			end
@@ -288,67 +351,67 @@ function widget:Update(dt)
 		lastMouseSelection[mouseSelection[i]] = true
 	end
 
-	mouseSelection = tmp
+	mouseSelection = included
 
 	if next(customFilter) ~= nil then -- use custom filter if it's not empty
-		tmp = {}
+		included = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 
 			if selectApi.unitPassesFilter(uid, customFilter) then
-				tmp[#tmp + 1] = uid
+				included[#included + 1] = uid
 			end
 		end
 
-		if #tmp ~= 0 then -- treat the filter as a preference
-			mouseSelection = tmp -- if no units match, just keep everything
+		if #included ~= 0 then -- treat the filter as a preference
+			mouseSelection = included -- if no units match, just keep everything
 		end
 	end
 
 	if mods.idle then
-		tmp = {}
+		included = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			udid = spGetUnitDefID(uid)
-			if spGetUnitCommandCount(uid) == 0 then
-				tmp[#tmp + 1] = uid
+			if isUnitIdle(uid) then
+				included[#included + 1] = uid
 			end
 		end
-		mouseSelection = tmp
+		mouseSelection = included
 	end
 
 	-- only select new units identical to those already selected
-	if mods.same and #referenceSelection > 0 then
-		tmp = {}
+	if mods.same and next(referenceSelectionTypes) ~= nil then
+		included = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			if referenceSelectionTypes[ spGetUnitDefID(uid) ] ~= nil then
-				tmp[#tmp + 1] = uid
+				included[#included + 1] = uid
 			end
 		end
-		mouseSelection = tmp
+		mouseSelection = included
 	end
 
 	if mods.mobile then  -- only select mobile combat units
 		if not mods.deselect then
-			tmp = {}
+			included = {}
 			for i = 1, #referenceSelection do
 				uid = referenceSelection[i]
 				if combatFilter[ spGetUnitDefID(uid) ] then  -- is a combat unit
-					tmp[#tmp + 1] = uid
+					included[#included + 1] = uid
 				end
 			end
-			newSelection = tmp
+			newSelection = included
 		end
 
-		tmp = {}
+		included = {}
 		for i = 1, #mouseSelection do
 			uid = mouseSelection[i]
 			if combatFilter[ spGetUnitDefID(uid) ] then  -- is a combat unit
-				tmp[#tmp + 1] = uid
+				included[#included + 1] = uid
 			end
 		end
-		mouseSelection = tmp
+		mouseSelection = included
 
 	elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) and mods.deselect == false then
 		-- only select mobile units, not buildings
@@ -362,23 +425,23 @@ function widget:Update(dt)
 		end
 
 		if mobiles then
-			tmp = {}
-			local tmp2 = {}
+			included = {}
+			local excluded = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
 				udid = spGetUnitDefID(uid)
 				if buildingFilter[udid] == false then
-					if includeBuilders or not builderFilter[udid] then
-						tmp[#tmp + 1] = uid
+					if smartSelectIncludeFilter(udid) then
+						included[#included + 1] = uid
 					else
-						tmp2[#tmp2 + 1] = uid
+						excluded[#excluded + 1] = uid
 					end
 				end
 			end
-			if #tmp == 0 then
-				tmp = tmp2
+			if #included == 0 then
+				included = excluded
 			end
-			mouseSelection = tmp
+			mouseSelection = included
 		end
 	end
 
@@ -393,21 +456,21 @@ function widget:Update(dt)
 			negative[uid] = true
 		end
 
-		tmp = {}
+		included = {}
 		for i = 1, #newSelection do
 			uid = newSelection[i]
 			if not negative[uid]  then
-				tmp[#tmp + 1] = uid
+				included[#included + 1] = uid
 			end
 		end
-		newSelection = tmp
+		newSelection = included
 		selectedUnits = newSelection
 		spSelectUnitArray(selectedUnits)
 
 	elseif (mods.append or mods.all) then  -- append units inside selection rectangle to current selection
 		spSelectUnitArray(newSelection)
 		spSelectUnitArray(mouseSelection, true)
-		selectedUnits = Spring.GetSelectedUnits()
+		selectedUnits = spGetSelectedUnits()
 
 	elseif #mouseSelection > 0 then  -- select units inside selection rectangle
 		selectedUnits = mouseSelection
@@ -455,7 +518,7 @@ function widget:Initialize()
 	-- Function to set the reference selection for external box selections
 	WG.SmartSelect_SetReference = function()
 		externalSelectionReference = {}
-		local current = Spring.GetSelectedUnits()
+		local current = spGetSelectedUnits()
 		for i = 1, #current do
 			externalSelectionReference[current[i]] = true
 		end
@@ -472,7 +535,7 @@ function widget:Initialize()
 		local mouseSelection = units
 		local uid, udid
 		
-		local tmp = {}
+		local included = {}
 		
 		-- Filter unselectable units and ignored units (always apply this basic filter)
 		local isGodMode = spIsGodModeEnabled()
@@ -480,10 +543,10 @@ function widget:Initialize()
 			uid = mouseSelection[i]
 			if not spGetUnitNoSelect(uid) and
 				(isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)])) then
-				tmp[#tmp + 1] = uid
+				included[#included + 1] = uid
 			end
 		end
-		mouseSelection = tmp
+		mouseSelection = included
 		
 		-- Check modifiers to determine mode
 		local _, ctrl, _, shift = spGetModKeyState()
@@ -521,52 +584,52 @@ function widget:Initialize()
 		
 		-- Apply custom filter if set
 		if next(customFilter) ~= nil then
-			tmp = {}
+			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
 				if selectApi.unitPassesFilter(uid, customFilter) then
-					tmp[#tmp + 1] = uid
+					included[#included + 1] = uid
 				end
 			end
-			if #tmp ~= 0 then
-				mouseSelection = tmp
+			if #included ~= 0 then
+				mouseSelection = included
 			end
 		end
 		
 		-- Apply idle filter if active
 		if mods.idle then
-			tmp = {}
+			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
-				if spGetUnitCommandCount(uid) == 0 then
-					tmp[#tmp + 1] = uid
+				if isUnitIdle(uid) then
+					included[#included + 1] = uid
 				end
 			end
-			mouseSelection = tmp
+			mouseSelection = included
 		end
 		
 		-- Apply same-type filter if active
-		if mods.same and #referenceSelection > 0 then
-			tmp = {}
+		if mods.same and next(referenceSelectionTypes) ~= nil then
+			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
 				if referenceSelectionTypes[spGetUnitDefID(uid)] then
-					tmp[#tmp + 1] = uid
+					included[#included + 1] = uid
 				end
 			end
-			mouseSelection = tmp
+			mouseSelection = included
 		end
 		
 		-- Apply mobile filter if active
 		if mods.mobile then
-			tmp = {}
+			included = {}
 			for i = 1, #mouseSelection do
 				uid = mouseSelection[i]
 				if combatFilter[spGetUnitDefID(uid)] then
-					tmp[#tmp + 1] = uid
+					included[#included + 1] = uid
 				end
 			end
-			mouseSelection = tmp
+			mouseSelection = included
 		elseif selectBuildingsWithMobile == false and (mods.any == false and mods.all == false) then
 			-- Filter out buildings if mobile units are present
 			local mobiles = false
@@ -579,23 +642,23 @@ function widget:Initialize()
 			end
 			
 			if mobiles then
-				tmp = {}
-				local tmp2 = {}
+				included = {}
+				local excluded = {}
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = spGetUnitDefID(uid)
 					if buildingFilter[udid] == false then
-						if includeBuilders or not builderFilter[udid] then
-							tmp[#tmp + 1] = uid
+						if smartSelectIncludeFilter(udid) then
+							included[#included + 1] = uid
 						else
-							tmp2[#tmp2 + 1] = uid
+							excluded[#excluded + 1] = uid
 						end
 					end
 				end
-				if #tmp == 0 then
-					tmp = tmp2
+				if #included == 0 then
+					included = excluded
 				end
-				mouseSelection = tmp
+				mouseSelection = included
 			end
 		end
 		
@@ -649,6 +712,30 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].getIncludeResurrectors = function()
+		return includeResurrectors
+	end
+	WG['smartselect'].setIncludeResurrectors = function(value)
+		includeResurrectors = value
+	end
+	WG['smartselect'].getIncludeAntinuke = function()
+		return includeAntinuke
+	end
+	WG['smartselect'].setIncludeAntinuke = function(value)
+		includeAntinuke = value
+	end
+	WG['smartselect'].getIncludeRadar = function()
+		return includeRadar
+	end
+	WG['smartselect'].setIncludeRadar = function(value)
+		includeRadar = value
+	end
+	WG['smartselect'].getIncludeJammer = function()
+		return includeJammer
+	end
+	WG['smartselect'].setIncludeJammer = function(value)
+		includeJammer = value
+	end
 
 	widget:ViewResize()
 end
@@ -657,7 +744,11 @@ function widget:GetConfigData()
 	return {
 		selectBuildingsWithMobile = selectBuildingsWithMobile,
 		includeNanosAsMobile = includeNanosAsMobile,
-		includeBuilders = includeBuilders
+		includeBuilders = includeBuilders,
+		includeResurrectors = includeResurrectors,
+		includeAntinuke = includeAntinuke,
+		includeRadar = includeRadar,
+		includeJammer = includeJammer
 	}
 end
 
@@ -670,5 +761,17 @@ function widget:SetConfigData(data)
 	end
 	if data.includeBuilders ~= nil then
 		includeBuilders = data.includeBuilders
+	end
+	if data.includeResurrectors ~= nil then
+		includeResurrectors = data.includeResurrectors
+	end
+	if data.includeAntinuke ~= nil then
+		includeAntinuke = data.includeAntinuke
+	end
+	if data.includeRadar ~= nil then
+		includeRadar = data.includeRadar
+	end
+	if data.includeJammer ~= nil then
+		includeJammer = data.includeJammer
 	end
 end

@@ -3,8 +3,9 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "LEGAVP.DDS",
-		buildtime = 35000,
+		buildtime = 51000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 8 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -15,8 +16,6 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 5100,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,
@@ -86,10 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

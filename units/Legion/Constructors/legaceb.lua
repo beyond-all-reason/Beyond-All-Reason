@@ -18,8 +18,6 @@ return {
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 830,
 		maxslope = 50,
 		speed = 75.0,
@@ -54,8 +52,9 @@ return {
 			"leggob",
 			"legaabot",
 			"legstr",
-			"legfloat",
-			"legch",
+			"legnavyfrigate",
+			"legnavyconship",
+			"legamph",
 		},
 		customparams = {
 			unitgroup = 'buildert2',
@@ -93,13 +92,6 @@ return {
 				object = "Units/cor2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

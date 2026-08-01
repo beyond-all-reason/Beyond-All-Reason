@@ -13,6 +13,14 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetUnitTeam = Spring.GetUnitTeam
+
 ------------------------------------------------------------
 -- Speedups
 ------------------------------------------------------------
@@ -47,6 +55,7 @@ local geoConstructors = {}
 local geoConstructorsDef = {}
 local geoBuildings = {}
 
+local standardExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
 ------------------------------------------------------------
@@ -59,6 +68,10 @@ for uDefID, uDef in pairs(UnitDefs) do
 	if customParams.geothermal then
 		geoBuildings[uDefID] = uDef.energyMake
 	end
+	-- Standard extractors produce just metal / energy and are available to all factions.
+	if customParams.standardextractor then
+		standardExtractors[uDefID] = true
+	end
 end
 
 for uDefID, uDef in pairs(UnitDefs) do
@@ -67,7 +80,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 		local maxProduceEnergy = 0
 		for _, option in ipairs(uDef.buildOptions) do
 			if mexBuildings[option] then
-				maxExtractMetal = math.max(maxExtractMetal, mexBuildings[option])
+				maxExtractMetal = mathMax(maxExtractMetal, mexBuildings[option])
 				if mexConstructorsDef[uDefID] then
 					mexConstructorsDef[uDefID].buildings = mexConstructorsDef[uDefID].buildings + 1
 					mexConstructorsDef[uDefID].building[mexConstructorsDef[uDefID].buildings] = option * -1
@@ -76,7 +89,7 @@ for uDefID, uDef in pairs(UnitDefs) do
 				end
 			end
 			if geoBuildings[option] then
-				maxProduceEnergy = math.max(maxProduceEnergy, geoBuildings[option])
+				maxProduceEnergy = mathMax(maxProduceEnergy, geoBuildings[option])
 				if geoConstructorsDef[uDefID] then
 					geoConstructorsDef[uDefID].buildings = geoConstructorsDef[uDefID].buildings + 1
 					geoConstructorsDef[uDefID].building[geoConstructorsDef[uDefID].buildings] = option * -1
@@ -88,7 +101,6 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-
 ------------------------------------------------------------
 -- Building logic
 ------------------------------------------------------------
@@ -98,12 +110,11 @@ end
 local function spotHasExtractor(spot)
 	local units = Spring.GetUnitsInCylinder(spot.x, spot.z, Game_extractorRadius)
 	local type = spot.isMex and mexBuildings or geoBuildings
-	for j=1, #units do
+	for j = 1, #units do
 		if type[spGetUnitDefID(units[j])] then return units[j] end
 	end
 	return false
 end
-
 
 ---Checks if there is an existing command among the current builders to make an extractor on the given spot
 ---@param spot table
@@ -113,12 +124,12 @@ local function spotHasExtractorQueued(spot, builders)
 
 	-- annoying pregame stuff
 	local function checkQueue(queue)
-		for j=1, #queue do
+		for j = 1, #queue do
 			local command = queue[j]
 			local id = command.id and -command.id or command[1]
 			local x = command.params and command.params[1] or command[2]
 			local z = command.params and command.params[3] or command[4]
-			if(mexBuildings[id] or geoBuildings[id]) then
+			if (mexBuildings[id] or geoBuildings[id]) then
 				local dist = math.distance2dSquared(spot.x, spot.z, x, z)
 				-- Save a sqrt by multiplying by 4
 				-- Note that this is calculating by diameter, and could be too aggressive on maps with closely spaced mexes
@@ -136,8 +147,9 @@ local function spotHasExtractorQueued(spot, builders)
 		return checkQueue(queue)
 
 	else
-		for i=1, #builders do
-			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100))
+		for i = 1, #builders do
+			-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
+			local hasOrder = checkQueue(Spring.GetUnitCommands(builders[i], 100) or {})
 			if hasOrder then
 				return true
 			end
@@ -145,7 +157,6 @@ local function spotHasExtractorQueued(spot, builders)
 	end
 	return false
 end
-
 
 ---Gets the naive best extractor, ignores special mexes (exploiter etc), just finds highest extraction amount
 ---@param units table selected units
@@ -162,7 +173,7 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 		if constructor then
 			local buildingID = -constructor.building[1]
 			local extractionAmount = extractors[buildingID]
-			if(extractionAmount > bestExtraction) then
+			if (extractionAmount > bestExtraction) then
 				bestExtraction = extractionAmount
 				bestExtractor = buildingID
 			end
@@ -171,40 +182,46 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 	return bestExtractor
 end
 
-
----extractorCanBeUpgraded
+---Whether an allied extractor can be replaced: higher techlevel or same-tier higher yield always upgrades; otherwise specialty extractors (does more than just produce metal/energy) may replace standard extractors/other specialty extractors.
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
+---@return boolean
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
-	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), Spring.GetUnitTeam(currentExtractorUuid))
+	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
 	if not isAllied then
 		return false
 	end
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
+	if currentExtractorId == newExtractorId then
+		return false
+	end
+
 	local newExtractor = UnitDefs[newExtractorId]
+	local currentExtractor = UnitDefs[currentExtractorId]
+
+	local newTechLevel = math.floor(tonumber(newExtractor.customParams.techlevel) or 1)
+	local currentTechLevel = math.floor(tonumber(currentExtractor.customParams.techlevel) or 1)
+	if newTechLevel < currentTechLevel then
+		return false
+	elseif newTechLevel > currentTechLevel then
+		return true
+	end
+
+
 	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
 	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
-
 	if not (newExtractorStrength and currentExtractorStrength) then
 		return false
 	end
 
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
-
-	if(newExtractorStrength > currentExtractorStrength) then
+	if newExtractorStrength > currentExtractorStrength then
 		return true
 	end
-	if(newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-		return true
-	end
-	if currentExtractorStrength == newExtractorStrength then
-		return false
-	end
 
-	return false
+	local newIsStandard = standardExtractors[newExtractorId]
+	return not newIsStandard
 end
-
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades
 ---@param spot table
@@ -223,7 +240,7 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 		local isExtractor = spot.isMex and mexBuildings[uDefId] or geoBuildings[uDefId]
 		local canUpgrade = extractorCanBeUpgraded(uid, extractorId)
 		local isBeingBuilt, _ = spGetUnitIsBeingBuilt(uid)
-		if(isExtractor and (not canUpgrade or isBeingBuilt)) then
+		if (isExtractor and (not canUpgrade or isBeingBuilt)) then
 			return false
 		end
 	end
@@ -231,13 +248,13 @@ local function extractorCanBeBuiltOnSpot(spot, extractorId)
 	return true
 end
 
-
 ---Finds the nearest unoccupied resource spot from the provided list
 ---@param x number
 ---@param z number
 ---@param spotsIn table
 ---@param extractor table unitDefID
-local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
+---@param shouldIgnoreAlreadyQueuedUpSpots boolean
+local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor, shouldIgnoreAlreadyQueuedUpSpots)
 	-- sort spots by distance
 	local spots = table.copy(spotsIn)
 	table.sort(spots, function(a, b)
@@ -247,17 +264,22 @@ local function findNearestValidSpotForExtractor(x, z, spotsIn, extractor)
 		local spot = spots[i]
 		local existingExtractor = spotHasExtractor(spot)
 		local hasExtractorQueued = spotHasExtractorQueued(spot)
-		if not existingExtractor and not hasExtractorQueued then
+
+		if shouldIgnoreAlreadyQueuedUpSpots and not existingExtractor and not hasExtractorQueued then
 			return spot
 		end
 
-		local canBeBuilt = extractorCanBeBuiltOnSpot(spot, extractor)
-		if canBeBuilt and not hasExtractorQueued then
+		local isUnoccupied = not existingExtractor
+		local canBeBuiltOn = extractorCanBeBuiltOnSpot(spot, extractor)
+		local notQueued = not hasExtractorQueued
+
+		local isValidSpot = (isUnoccupied or canBeBuiltOn) and (not shouldIgnoreAlreadyQueuedUpSpots or notQueued)
+
+		if isValidSpot then
 			return spot
 		end
 	end
 end
-
 
 ---Gives build order to the units that can make the selected building, all other builders get guard commands to the primary builders
 ---@param units table
@@ -276,7 +298,8 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 			-- iterate over constructor options to see if it can make the chosen extractor
 			local canBuild = false
 			for _, buildable in pairs(constructor.building) do
-				if -buildable == buildingId then -- assume that it's a valid extractor based on previous steps
+				if -buildable == buildingId then
+					-- assume that it's a valid extractor based on previous steps
 					mainBuilders[#mainBuilders + 1] = id
 					canBuild = true
 					break
@@ -300,7 +323,8 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 
 	local function hasExistingGuardOrder(uid)
-		local queue = Spring.GetUnitCommands(uid, 10)
+		-- GetUnitCommands returns nil if enemy unit is selected (with godmode on)
+		local queue = Spring.GetUnitCommands(uid, 10) or {}
 		for i = 1, #queue do
 			local cmd = queue[i]
 			if cmd.id == CMD_GUARD and (cmd.params and cmd.params[1] and isMainBuilderOfId(cmd.params[1])) then
@@ -333,7 +357,6 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	return mainBuilders
 end
 
-
 local function previewMetalMapExtractorCommand(params, extractor)
 	local buildingId = -extractor
 	local facing = spGetBuildFacing() or 1
@@ -341,11 +364,10 @@ local function previewMetalMapExtractorCommand(params, extractor)
 	local targetOwner = spGetMyTeamID()
 
 	if x and z then
-		return { math.abs(buildingId), x, y, z, facing, targetOwner }
+		return { mathAbs(buildingId), x, y, z, facing, targetOwner }
 	end
 	return nil
 end
-
 
 ---Puts together build orders for ghost previews (e.g. mex snap). These orders can be fed directly to
 ---ApplyPreviewCmds to actually give the orders to units
@@ -374,8 +396,8 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	local occupiedSpot = spotHasExtractor(spot)
 	if occupiedSpot then
 		local occupiedPos = { spGetUnitPosition(occupiedSpot) }
-		targetPos = { x=occupiedPos[1], y=occupiedPos[2], z=occupiedPos[3] }
-		targetOwner = Spring.GetUnitTeam(occupiedSpot)	-- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
+		targetPos = { x = occupiedPos[1], y = occupiedPos[2], z = occupiedPos[3] }
+		targetOwner = spGetUnitTeam(occupiedSpot)    -- because gadget "Mex Upgrade Reclaimer" will share a t2 mex build upon ally t1 mex
 	else
 		local buildingPositions = WG['resource_spot_finder'].GetBuildingPositions(spot, -buildingId, 0, true)
 		targetPos = math.getClosestPosition(cmdX, cmdZ, buildingPositions)
@@ -383,11 +405,10 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	end
 	if targetPos then
 		local newx, newz = targetPos.x, targetPos.z
-		finalCommand = { math.abs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
+		finalCommand = { mathAbs(buildingId), newx, spGetGroundHeight(newx, newz), newz, facing, targetOwner }
 	end
 	return finalCommand
 end
-
 
 local function ApplyPreviewCmds(cmds, constructorIds, shift)
 	if not cmds or #cmds <= 0 then
@@ -412,11 +433,12 @@ local function ApplyPreviewCmds(cmds, constructorIds, shift)
 		local cmd = cmds[i]
 		local orderParams = { cmd[2], cmd[3], cmd[4], cmd[5] }
 
-		if meta then -- put at front of queue
+		if meta then
+			-- put at front of queue
 			-- cmd insert layout is really weird, it needs to be formatted like:
 			-- { CMD.INSERT, { queue_pos, cmd_id, opt, params_flattened, }, { "alt }}
 			-- this an engine command so index starts at 0. Increment position by command count
-			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, {i-1, -buildingId, 0, unpack(orderParams) }, { "alt" })
+			Spring.GiveOrderToUnitArray(unitArray, CMD.INSERT, { i - 1, -buildingId, 0, unpack(orderParams) }, { "alt" })
 		else
 			-- we don't want to give a stop command to clear queue because it plays an unwanted sound
 			-- issuing any command without shift will clear the queue for us,
@@ -465,11 +487,9 @@ function widget:UnitGiven(unitID, unitDefID, newTeam)
 	end
 end
 
-
 function widget:GameStart()
 	isPregame = false
 end
-
 
 function widget:Initialize()
 	local units = spGetTeamUnits(spGetMyTeamID())
@@ -478,15 +498,16 @@ function widget:Initialize()
 		widget:UnitCreated(id, spGetUnitDefID(id))
 	end
 
-	--make interfaces available to other widgets:
-	WG['resource_spot_builder'] = { }
-	WG['resource_spot_builder'].ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot
-	WG['resource_spot_builder'].ExtractorCanBeUpgraded = extractorCanBeUpgraded
-	WG['resource_spot_builder'].FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor
-	WG['resource_spot_builder'].PreviewExtractorCommand = PreviewExtractorCommand
-	WG['resource_spot_builder'].ApplyPreviewCmds = ApplyPreviewCmds
-	WG['resource_spot_builder'].SpotHasExtractorQueued = spotHasExtractorQueued
-	WG['resource_spot_builder'].GetBestExtractorFromBuilders = getBestExtractorFromBuilders
+	-- make interfaces available to other widgets:
+	WG['resource_spot_builder'] = {
+		ExtractorCanBeBuiltOnSpot = extractorCanBeBuiltOnSpot,
+		ExtractorCanBeUpgraded = extractorCanBeUpgraded,
+		FindNearestValidSpotForExtractor = findNearestValidSpotForExtractor,
+		PreviewExtractorCommand = PreviewExtractorCommand,
+		ApplyPreviewCmds = ApplyPreviewCmds,
+		SpotHasExtractorQueued = spotHasExtractorQueued,
+		GetBestExtractorFromBuilders = getBestExtractorFromBuilders,
+	}
 
 	----------------------------------------------
 	-- builders and buildings - MEX

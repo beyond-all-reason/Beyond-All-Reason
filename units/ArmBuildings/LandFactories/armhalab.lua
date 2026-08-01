@@ -2,8 +2,9 @@ return {
 	armhalab = {
 		builder = true,
 		buildpic = "ARMSHLTX.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 16000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -40,7 +39,7 @@ return {
 			[7] = "armzeus",
 			[8] = "armmar",
 			[9] = "armspy",
-			[10] = "armaak"
+			[10] = "armaak",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -86,10 +85,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

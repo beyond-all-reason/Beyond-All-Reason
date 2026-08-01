@@ -5,7 +5,7 @@ return {
 		bankingallowed = false,
 		blocking = true,
 		buildpic = "CORCRWH.DDS",
-		buildtime = 84200,
+		buildtime = 120000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -19,8 +19,6 @@ return {
 		footprintz = 3,
 		health = 16700,
 		hoverattack = true,
-		idleautoheal = 15,
-		idletime = 1200,
 		maxacc = 0.15,
 		maxdec = 0.15,
 		maxslope = 10,
@@ -45,20 +43,7 @@ return {
 			unitgroup = "weapon",
 		},
 		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
 			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
 			},
 		},
 		sounds = {
@@ -126,6 +111,7 @@ return {
 				weaponvelocity = 1250,
 				customparams = {
 					noattackrangearc = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 76,
@@ -161,10 +147,8 @@ return {
 				reloadtime = 0.4,
 				sizegrowth = 2.5,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 9.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 7.3,
 				soundtrigger = false,
 				sprayangle = 700,
 				tolerance = 20000,

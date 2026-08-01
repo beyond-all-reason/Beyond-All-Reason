@@ -51,38 +51,45 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function restoreStorage(unitID, unitDefID, teamID)
-	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage + storageDefs[unitDefID].metal)
-	end
-	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage + storageDefs[unitDefID].energy)
+	local storage = storageDefs[unitDefID]
+	if storage then
+		if storage.metal then
+			local _, totalStorage = spGetTeamResources(teamID, "metal")
+			spSetTeamResource(teamID, "ms", totalStorage + storage.metal)
+		end
+		if storage.energy then
+			local _, totalStorage = spGetTeamResources(teamID, "energy")
+			spSetTeamResource(teamID, "es", totalStorage + storage.energy)
+		end
 	end
 	paralyzedUnits[unitID] = nil
 end
 
 local function reduceStorage(unitID, unitDefID, teamID)
 	paralyzedUnits[unitID] = unitDefID
-	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage - storageDefs[unitDefID].metal)
-	end
-	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage - storageDefs[unitDefID].energy)
+	local storage = storageDefs[unitDefID]
+	if storage then
+		if storage.metal then
+			local _, totalStorage = spGetTeamResources(teamID, "metal")
+			spSetTeamResource(teamID, "ms", totalStorage - storage.metal)
+		end
+		if storage.energy then
+			local _, totalStorage = spGetTeamResources(teamID, "energy")
+			spSetTeamResource(teamID, "es", totalStorage - storage.energy)
+		end
 	end
 end
 
 if #isCommander > 0 then
 	function gadget:GameFrame(n)
 		if n > 150 then
+			-- Avoid reducing storage during the spawn-in time when commanders may be stunned.
 			for commander, _ in pairs(isCommander) do
 				if UnitDefs[commander].metalStorage >= 50 then
-					storageDefs[udid].metal = UnitDefs[commander].metalStorage
+					storageDefs[commander].metal = UnitDefs[commander].metalStorage
 				end
 				if UnitDefs[commander].energyStorage >= 100 then
-					storageDefs[udid].energy = UnitDefs[commander].energyStorage
+					storageDefs[commander].energy = UnitDefs[commander].energyStorage
 				end
 			end
 			isCommander = nil

@@ -11,6 +11,11 @@ function widget:GetInfo()
   }
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+
 local LuaShader = gl.LuaShader
 
 local cmpShader
@@ -93,10 +98,10 @@ function widget:Initialize()
 	}, "cmpShader")
 	
 	shaderCompiled = cmpShader:Initialize()
-	Spring.Echo("cmpShader ", shaderCompiled)
+	spEcho("cmpShader ", shaderCompiled)
 	if not shaderCompiled then widgetHandler:RemoveWidget() end
 
-	Spring.Echo("Hello")
+	spEcho("Hello")
 	WG['api_unitbufferuniform_copy'] = {}
 	WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy = function() 
 		copyRequested = true
@@ -115,10 +120,10 @@ end
 local lastUpdateFrame = 0
 function widget:DrawScreenPost()
 	if not copyRequested then return end
-	if Spring.GetGameFrame() == lastUpdateFrame then
+	if spGetGameFrame() == lastUpdateFrame then
 		return
 	else
-		lastUpdateFrame = Spring.GetGameFrame()
+		lastUpdateFrame = spGetGameFrame()
 	end
 	UniformsBufferCopy:BindBufferRange(4) -- dunno why, but if we dont, it gets lost after a few seconds
 	cmpShader:Activate()

@@ -12,6 +12,16 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized functions for performance
+local mathSin = math.sin
+local mathCos = math.cos
+
+-- Localized Spring API for performance
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -- Changelog
@@ -76,11 +86,11 @@ local function DrawCircleLine()
 				a4 = ((i + circleInnerOffset + detailPartWidth) * radStep)
 
 				--outer (fadein)
-				gl.Vertex(math.sin(a4) * innerSize, 0, math.cos(a4) * innerSize)
-				gl.Vertex(math.sin(a3) * innerSize, 0, math.cos(a3) * innerSize)
+				gl.Vertex(mathSin(a4) * innerSize, 0, mathCos(a4) * innerSize)
+				gl.Vertex(mathSin(a3) * innerSize, 0, mathCos(a3) * innerSize)
 				--outer (fadeout)
-				gl.Vertex(math.sin(a1) * outerSize, 0, math.cos(a1) * outerSize)
-				gl.Vertex(math.sin(a2) * outerSize, 0, math.cos(a2) * outerSize)
+				gl.Vertex(mathSin(a1) * outerSize, 0, mathCos(a1) * outerSize)
+				gl.Vertex(mathSin(a2) * outerSize, 0, mathCos(a2) * outerSize)
 			end
 		end
 	end)
@@ -90,8 +100,8 @@ local selectedUnits = {}
 local selectedUnitsCount = 0
 
 function widget:Initialize()
-	selectedUnits = Spring.GetSelectedUnits()
-	selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	selectedUnits = spGetSelectedUnits()
+	selectedUnitsCount = spGetSelectedUnitsCount()
 	circleList = gl.CreateList(DrawCircleLine)
 end
 
@@ -101,7 +111,7 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	selectedUnitsCount = spGetSelectedUnitsCount()
 	unitsToDraw = {}
 end
 
@@ -124,7 +134,7 @@ function widget:GameFrame(n)
 	activeTransportDefs = {}
 	for i = 1, #selectedUnits do
 		local transID = selectedUnits[i]
-		local transDefID = Spring.GetUnitDefID(transID)
+		local transDefID = spGetUnitDefID(transID)
 
 		if validTrans[transDefID] then
 			local transportedUnits = Spring.GetUnitIsTransporting(transID)
@@ -150,7 +160,7 @@ function widget:GameFrame(n)
 	end
 
 	for _, unitID in ipairs(visibleUnits) do
-		local passengerDefID = Spring.GetUnitDefID(unitID)
+		local passengerDefID = spGetUnitDefID(unitID)
 		if not cantBeTransported[passengerDefID] and not Spring.IsUnitIcon(unitID) then
 			local passengerFootprintX = unitXSize[passengerDefID] / springFootprintScale
 			local canBePickedUp = false

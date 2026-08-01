@@ -7,7 +7,7 @@ return {
 		energycost = 6200,
 		metalcost = 180,
 		buildpic = "legionnaire.DDS",
-		buildtime = 10000,
+		buildtime = 11850,
 		canfly = true,
 		canmove = true,
 		collide = false,
@@ -46,17 +46,6 @@ return {
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -111,7 +100,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 2,
 				sprayangle = 125,
 				thickness = 0.6,
 				tolerance = 2400,

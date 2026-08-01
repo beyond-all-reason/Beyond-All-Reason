@@ -1,7 +1,9 @@
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -204,7 +206,7 @@ void main(void)
 	
 	// add emissive heat, if required
 	#if (USEGLOW == 1) 
-		float glowChannel = tex2color.a; // Could use a power operator here?
+		float glowChannel = tex2color.a * tex1color.a; // Could use a power operator here?
 
 		float hotness = max(0,g_parameters.w);
 		vec3 heatColor = Temperature(hotness*glowChannel);

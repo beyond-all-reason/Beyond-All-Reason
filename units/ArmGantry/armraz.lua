@@ -1,7 +1,7 @@
 return {
 	armraz = {
 		buildpic = "ARMRAZ.DDS",
-		buildtime = 88600,
+		buildtime = 120000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 13300,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 3800,
 		maxacc = 0.2369,
 		maxdec = 0.9039,
@@ -74,13 +72,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -112,7 +103,7 @@ return {
 				beamtime = 0.07,
 				burst = 6,
 				burstrate = 0.06667,
-				corethickness = 0.35,
+				corethickness = 0.45,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -129,7 +120,7 @@ return {
 				proximitypriority = 1,
 				pulsespeed = 8,
 				range = 475,
-				reloadtime = 0.63333,
+				reloadtime = 0.6,
 				rgbcolor = "0.75 0 0",
 				rgbcolor2 = "0.9 0.9 0.6",
 				soundhitdry = "",
@@ -142,8 +133,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage = {
-					default = 116,
-					vtol = 22,
+					default = 105,
+					vtol = 20,
 				},
 			},
 		},

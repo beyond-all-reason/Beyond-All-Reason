@@ -12,6 +12,12 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+
 -------   Configurables: -------------------
 local debugmode = false
 ---
@@ -21,7 +27,7 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 126 -- To ensure its only 2 warps per instance
-local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
+local rangecorrectionelmos = debugmode and -16 or 16 -- visually align dotted line with fog-of-war radar edge (sharpened in shaders/GLSL/infoLOS.lua)
 --------- End configurables ------
 
 local minRadarDistance = 500
@@ -45,7 +51,7 @@ local circleInstanceVBO = nil
 
 local radarStencilTexture 
 local resolution = 4
-local vsx, vsy  = Spring.GetViewGeometry()
+local vsx, vsy  = spGetViewGeometry()
 
 local circleShaderSourceCache = {
 	shaderName = 'Radar Ranges Circles GL4',
@@ -75,13 +81,13 @@ stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
 stencilShaderSourceCache.shaderName = 'Radar Ranges Stencil GL4'
 
 local function goodbye(reason)
-	Spring.Echo("Sensor Ranges LOS widget exiting with reason: " .. reason)
+	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 	return false
 end
  
 local function CreateStencilShaderAndTexture()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -100,7 +106,7 @@ local function CreateStencilShaderAndTexture()
 	end
 
 	local GL_R8 = 0x8229
-    vsx, vsy = Spring.GetViewGeometry()
+    vsx, vsy = spGetViewGeometry()
 	lineScale = (vsy + 500)/ 1300
     if radarStencilTexture then gl.DeleteTexture(radarStencilTexture) end
     radarStencilTexture = gl.CreateTexture(vsx/resolution, vsy/resolution, {
@@ -186,7 +192,7 @@ local unitList = {} -- all ally units and their coordinates and radar ranges
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then	-- save perf by excluding low radar range units
-		unitRange[unitDefID] = unitDef.radarDistance
+		unitRange[unitDefID] = unitDef.radarDistance - rangecorrectionelmos
 	end
 end
 
@@ -198,7 +204,7 @@ end
 local instanceCache = {0,0,0,0,0,0,0,0}
 
 local function InitializeUnits()
-	--Spring.Echo("Sensor Ranges LOS InitializeUnits")
+	--spEcho("Sensor Ranges LOS InitializeUnits")
 	InstanceVBOTable.clearInstanceTable(circleInstanceVBO)
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		local visibleUnits =  WG['unittrackerapi'].visibleUnits
@@ -210,11 +216,12 @@ local function InitializeUnits()
 end
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
+	local wasFullview = spec and fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+	local isFullview = spec and fullview
+	if isFullview ~= wasFullview or ((not isFullview) and allyTeamID ~= myPrevAllyTeamID) then
 		InitializeUnits()
 	end
 end
@@ -241,7 +248,7 @@ function widget:Shutdown()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
-	--Spring.Echo("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
+	--spEcho("widget:VisibleUnitAdded",unitID, unitDefID, unitTeam, reason, noupload)
 	unitTeam = unitTeam or spGetUnitTeam(unitID)
 	noupload = noupload == true
 	if unitRange[unitDefID] == nil or unitTeam == gaiaTeamID then return end
@@ -256,10 +263,10 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason,  noupload)
 
 	
 	local active = spGetUnitIsActive(unitID)
-	local gameFrame = Spring.GetGameFrame()
+	local gameFrame = spGetGameFrame()
 	if reason == "UnitFinished" then
 		if active then 
-			instanceCache[2] = Spring.GetGameFrame()
+			instanceCache[2] = spGetGameFrame()
 		else
 			instanceCache[2] = -2 -- start from full size
 		end
@@ -322,7 +329,7 @@ function widget:DrawWorld()
 	gl.Texture(1, radarStencilTexture) -- Bind the heightmap texture
 
 	radarCircleShader:SetUniform("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity )
-	--Spring.Echo("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
+	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	radarCircleShader:SetUniform("teamColorMix", 0)
 
 	gl.LineWidth(rangeLineWidth * lineScale * 1.0)

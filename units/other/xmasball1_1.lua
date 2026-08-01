@@ -19,7 +19,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-		idleautoheal = 0,
 		mass = 40,
 		health = 560000,
 		maxslope = 64,

@@ -1,7 +1,7 @@
 return {
 	armmar = {
 		buildpic = "ARMMAR.DDS",
-		buildtime = 26100,
+		buildtime = 33000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 4900,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 970,
 		maxacc = 0.253,
 		maxdec = 0.8211,
@@ -80,11 +78,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:subbubbles",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -149,6 +142,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 90,
 				},
@@ -162,6 +158,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 5,
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Double close-quarters gauss cannon",
 				noselfdamage = true,

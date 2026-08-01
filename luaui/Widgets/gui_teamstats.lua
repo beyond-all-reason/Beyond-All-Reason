@@ -13,7 +13,18 @@ function widget:GetInfo()
 	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetMouseState = Spring.GetMouseState
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
+
+local vsx,vsy = spGetViewGeometry()
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -90,12 +101,13 @@ local GetTeamList			= Spring.GetTeamList
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
-local GetMouseState			= Spring.GetMouseState
+local GetLocalTeamID		= Spring.GetLocalTeamID
+local GetMouseState			= spGetMouseState
 local GetGameFrame			= Spring.GetGameFrame
-local min					= math.min
-local max					= math.max
+local min					= mathMin
+local max					= mathMax
 local clamp					= math.clamp
-local floor					= math.floor
+local floor					= mathFloor
 local huge					= math.huge
 local sort					= table.sort
 local log10					= math.log10
@@ -110,7 +122,8 @@ local font, font2, backgroundGuishader, gameStarted, bgpadding, gameover
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
 
-local isSpec = Spring.GetSpectatingState()
+local isSpec = spGetSpectatingState()
+local localTeamID = GetLocalTeamID()
 
 
 local playerScale = math.clamp(25 / #Spring.GetTeamList(), 0.3, 1)
@@ -147,11 +160,8 @@ function isAbove(mousePos,guiData)
 	end
 end
 
-function colorToChar(colorarray)
-	return char(255,clamp(floor(colorarray[1]*255), 1, 255) ,clamp(floor(colorarray[2]*255), 1, 255) ,clamp(floor(colorarray[3]*255), 1, 255))
-end
-
 local teamData={}
+local teamAPM = {}
 local maxColumnTextSize = 0
 local columnSize = 0
 local prevNumLines = 0
@@ -164,7 +174,21 @@ local mousex,mousey = 0,0
 local sortVar = "damageDealt"
 local sortAscending = false
 local numColums = #header
+local playerColumnWidthWeight = 2
 
+local function getColumnBounds(column)
+	local left = guiData.mainPanel.absSizes.x.min + (columnSize / 2)
+	if column > 1 then
+		left = left + ((playerColumnWidthWeight + column - 2) * columnSize)
+	end
+	local width = (column == 1 and playerColumnWidthWeight or 1) * columnSize
+	return left, left + width
+end
+
+local function getColumnCenter(column)
+	local left, right = getColumnBounds(column)
+	return (left + right) / 2
+end
 
 function widget:SetConfigData(data)
 	--guiData = data.guiData or guiData -- buggy positioning, so disabled this
@@ -197,7 +221,7 @@ function calcAbsSizes()
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
@@ -298,21 +322,35 @@ function compareTeams(a,b)
 end
 
 function widget:PlayerChanged()
-	isSpec = Spring.GetSpectatingState()
-	widget:GameFrame(GetGameFrame(),true)
+	local newIsSpec = spGetSpectatingState()
+	local newLocalTeamID = GetLocalTeamID()
+	local needsUpdate = false
+	if anonymousMode ~= "disabled" then
+		needsUpdate = newIsSpec ~= isSpec or (not newIsSpec and newLocalTeamID ~= localTeamID)
+	end
+	isSpec = newIsSpec
+	localTeamID = newLocalTeamID
+	if needsUpdate then
+		widget:GameFrame(GetGameFrame(),true)
+	end
 end
 
-function widget:GameFrame(n,forceupdate)
+function widget:ApmEvent(teamID, apm)
+	teamAPM[teamID] = apm
+end
+
+function widget:GameFrame(n,forceupdate,allowGameoverUpdate)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		forceupdate = true
 	end
 
-	if gameover then return end
+	if gameover and not allowGameoverUpdate then return end
 
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
 	end
+	localTeamID = GetLocalTeamID()
 	teamData = {}
 	local totalNumLines = 2
 	local allyInsertCount = 1
@@ -320,7 +358,6 @@ function widget:GameFrame(n,forceupdate)
 		local allyVec = {}
 		local allyTotal = {}
 		local teamInsertCount = 1
-		local teamAPM = WG.teamAPM or {}
 		for _,teamID in ipairs(GetTeamList(allyTeamID)) do
 			if teamID ~= GetGaiaTeamID() then
 				local range = GetTeamStatsHistory(teamID)
@@ -338,7 +375,7 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor
-					if not isSpec and anonymousMode ~= "disabled" and teamID ~= Spring.GetLocalTeamID() then
+					if not isSpec and anonymousMode ~= "disabled" and teamID ~= localTeamID then
 						teamColor = { anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3] }
 					else
 						teamColor = { Spring.GetTeamColor(teamID) }
@@ -380,7 +417,7 @@ function widget:GameFrame(n,forceupdate)
 
 					playerName = playerName or ''
 
-					history.frame = colorToChar(teamColor) .. playerName..'    '
+					history.frame = Spring.Utilities.ConvertColor(teamColor[1], teamColor[2], teamColor[3]) .. playerName..'    '
 
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1
@@ -432,9 +469,9 @@ end
 
 function widget:GameOver()
 	gameover = true
+	widget:GameFrame(GetGameFrame(),true,true)
 	if replaceEndStats then
 		guiData.mainPanel.visible = true
-		widget:GameFrame(GetGameFrame(),true)
 		Spring.SendCommands("endgraph 0")
 	end
 end
@@ -488,18 +525,24 @@ function getLineAndColumn(x,y)
 	local relativex = x - guiData.mainPanel.absSizes.x.min - columnSize/2
 	local relativey = guiData.mainPanel.absSizes.y.max - y
 	local line = floor(relativey/lineHeight) +1
-	local column = floor(relativex/columnSize) +1
+	local column
+	if relativex >= 0 then
+		if relativex < (playerColumnWidthWeight * columnSize) then
+			column = 1
+		else
+			column = floor((relativex - (playerColumnWidthWeight * columnSize)) / columnSize) + 2
+		end
+	end
 	return line,column
 end
 
 
 function updateFontSize()
-	columnSize = guiData.mainPanel.absSizes.x.length / numColums
-	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
-	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
+	columnSize = guiData.mainPanel.absSizes.x.length / (numColums - 1 + playerColumnWidthWeight)
+	fontSize = 11*widgetScale + floor(columnSize/maxColumnTextSize)
 	fontSize = fontSize * playerScale
 	lineHeight = fontSize
-	fontSize = fontSize + math.min(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
+	fontSize = fontSize + mathMin(fontSize * 0.5, (fontSize * ((1-playerScale)*0.7)))
 end
 
 function widget:MouseMove(mx,my,dx,dy)
@@ -532,8 +575,8 @@ local function DrawBackground()
 	end
 
 	gl.Color(0,0,0,WG['guishader'] and 0.8 or 0.85)
-	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, math.max(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
@@ -569,8 +612,8 @@ function widget:DrawScreen()
 	DrawBackground()
 	DrawAllStats()
 
-	local mx, my = Spring.GetMouseState()
-	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	local mx, my = spGetMouseState()
+	local x1,y1,x2,y2 = mathFloor(guiData.mainPanel.absSizes.x.min), mathFloor(guiData.mainPanel.absSizes.y.min), mathFloor(guiData.mainPanel.absSizes.x.max), mathFloor(guiData.mainPanel.absSizes.y.max)
 	if math_isInRect(mx, my, x1,y1,x2,y2) then
 		Spring.SetMouseCursor('cursornormal')
 	end
@@ -593,10 +636,10 @@ function ReGenerateBackgroundDisplayList()
 		glColor(colour)
 		if evenLineColour and lineCount > 2 then
 			local bottomCorner = 0
-			if math.floor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
+			if mathFloor(boxSizes.x.min) >= guiData.mainPanel.absSizes.y.min then
 				bottomCorner = 1
 			end
-			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*lineHeight), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
+			RectRound(mathFloor(boxSizes.x.min), mathFloor(boxSizes.y.max -lineCount*lineHeight), mathFloor(boxSizes.x.max), mathFloor(boxSizes.y.max -(lineCount-1)*lineHeight), bgpadding, 0,0,bottomCorner,bottomCorner, {colour[1],colour[2],colour[3],colour[4]*ui_opacity}, {colour[1],colour[2],colour[3],colour[4]*3*ui_opacity})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*lineHeight, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*lineHeight, 3*widgetScale)
 		end
@@ -607,7 +650,8 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc[1], sortHighLightColourDesc[2], sortHighLightColourDesc[3], sortHighLightColourDesc[4]*ui_opacity)
 		end
-		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+		local x1, x2 = getColumnBounds(selectedColumn)
+		RectRound(mathFloor(x1), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(x2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -616,7 +660,8 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc[1], activeSortColourDesc[2], activeSortColourDesc[3], activeSortColourDesc[4]*ui_opacity)
 			end
-			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*lineHeight), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding, 0,0,1,1)
+			local x1, x2 = getColumnBounds(selectedIndex)
+			RectRound(mathFloor(x1), mathFloor(boxSizes.y.max -2*lineHeight), mathFloor(x2), mathFloor(boxSizes.y.max), bgpadding, 0,0,1,1)
 			break
 		end
 	end
@@ -625,27 +670,25 @@ end
 function ReGenerateTextDisplayList()
 	local lineCount = 1
 	local boxSizes = guiData.mainPanel.absSizes
-	local baseXSize = boxSizes.x.min + columnSize
 	local baseYSize = boxSizes.y.max - (0.002*vsy) -- small align adjustment so text is in the middle of a row
 
 	font:Begin()
 	font:SetTextColor(1, 1, 1, 1)
 	font:SetOutlineColor(0, 0, 0, 1)
 		--print the header
-		local colCount = 0
 		local heightCorrection = lineHeight*((1-fontSizePercentage)/2)
 
-		for _, headerName in ipairs(header) do
-			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
-			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
-			colCount = colCount + 1
+		for column, headerName in ipairs(header) do
+			local columnX = getColumnCenter(column)
+			font:Print(headerRemap[headerName][1], columnX, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][2], columnX, baseYSize+heightCorrection-(lineCount+1)*lineHeight, (fontSize*fontSizePercentage), "dco")
 		end
 		lineCount = lineCount + 3
 
 		for _, allyTeamData in ipairs(teamData) do
 			for _, teamData in ipairs(allyTeamData) do
-				local colCount = 0
 				for i, varName in ipairs(header) do
+					local columnX = getColumnCenter(i)
 					local value = teamData[varName]
 					if value == huge or value == -huge then
 						value = "-"
@@ -669,12 +712,11 @@ function ReGenerateTextDisplayList()
 					end
 					if i == 1 then
 						font2:Begin()
-						font2:Print(color..value, baseXSize + columnSize*colCount, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+						font2:Print(color..value, columnX, baseYSize+(heightCorrection*1.66)-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 						font2:End()
 					else
-						font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
+						font:Print(color..value, columnX, baseYSize+heightCorrection-lineCount*lineHeight, (fontSize*fontSizePercentage), "dco")
 					end
-					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
 			end

@@ -87,6 +87,9 @@ return {
 				turret = "true",
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0.001,
 				},

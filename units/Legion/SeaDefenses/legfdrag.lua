@@ -1,6 +1,5 @@
 return {
 	legfdrag = {
-		autoheal = 4,
 		blocking = true,
 		buildangle = 8192,
 		buildpic = "legfdrag.DDS",
@@ -17,7 +16,6 @@ return {
 		footprintz = 2,
 		health = 4450,
 		hidedamage = true,
-		idleautoheal = 0,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 32,

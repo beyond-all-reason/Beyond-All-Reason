@@ -2,7 +2,7 @@ return {
 	armblade = {
 		blocking = false,
 		buildpic = "ARMBLADE.DDS",
-		buildtime = 24000,
+		buildtime = 32000,
 		canfly = true,
 		canmove = true,
 		collide = true,
@@ -13,8 +13,6 @@ return {
 		footprintz = 2,
 		health = 3000,
 		hoverattack = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.6,
 		maxdec = 0.35,
 		maxslope = 10,
@@ -35,20 +33,6 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -107,6 +91,7 @@ return {
 				texture1 = "null",
 				texture2 = "smoketrailbar",
 				tolerance = 8000,
+				tracks = true,
 				turnrate = 18000,
 				turret = false,
 				weaponacceleration = 440,

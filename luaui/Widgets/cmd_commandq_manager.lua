@@ -21,7 +21,7 @@ end
 -- Locals
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitCommandsSize = Spring.GetUnitCommands
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetGameFrame = Spring.GetGameFrame
@@ -37,7 +37,7 @@ function SkipCurrentCommand()
 		if force then
 			RemoveCommand(nil, 1, nil)
 		else
-			RemoveCommand(id, 1, spGetUnitCommandsSize(id, 0))
+			RemoveCommand(id, 1, spGetUnitCommandCount(id))
 		end
 	end)
 end
@@ -47,7 +47,7 @@ function CancelLastCommand()
 		if force then
 			RemoveCommand(nil, #WG["pregame-build"].getBuildQueue(), nil)
 		else
-			local commandQueueSize = spGetUnitCommandsSize(id, 0)
+			local commandQueueSize = spGetUnitCommandCount(id)
 			if not commandQueueSize or commandQueueSize < 1 then
 				return
 			end

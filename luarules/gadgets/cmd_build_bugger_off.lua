@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		version = "1.0",
 		license = "GNU GPL, v2 or later",
 		layer   = 0,
-		enabled = true   --  loaded by default?
+		enabled = true,
 	}
 end
 
@@ -17,68 +17,53 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local gameSpeed = Game.gameSpeed
+local math_max = math.max
+local math_diag = math.diag
+local math_pointOnCircle = math.closestPointOnCircle
 
-local shouldNotBuggeroff = {}
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitTeam = Spring.GetUnitTeam
+
+local spAreTeamsAllied = Spring.AreTeamsAllied
+local spDestroyUnit = Spring.DestroyUnit
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spTestMoveOrder = Spring.TestMoveOrder
+
+local gameSpeed = Game.gameSpeed
+local footprint = Game.squareSize * Game.footprintScale
+
+local CMD_INSERT = CMD.INSERT
+local CMD_OPT_ALT = CMD.OPT_ALT
+local insertMoveParams = { 0, CMD.MOVE, CMD.OPT_INTERNAL, 0, 0, 0 }
+
 local cachedUnitDefs = {}
-local cachedBuilderTeams = {}
-local mostRecentCommandFrame = {}
-local gameFrame = 0
 local unitSpeedMax = 0
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isImmobile then
-		shouldNotBuggeroff[unitDefID] = true
-	elseif unitDef.speed > unitSpeedMax and not unitDef.canFly then
+	if unitDef.speed > unitSpeedMax and not unitDef.canFly then
 		unitSpeedMax = unitDef.speed
 	end
 
-	cachedUnitDefs[unitDefID] = { radius = unitDef.radius, isBuilder = unitDef.isBuilder}
+	cachedUnitDefs[unitDefID] = {
+		isImmobile = unitDef.isImmobile,
+		isBlocking = not unitDef.reclaimable and unitDef.customParams.decoration and unitDef.customParams.subfolder ~= "other/hats",
+		isBuilder  = unitDef.isBuilder,
+		radius     = unitDef.radius,
+		semiAxisX  = unitDef.xsize * footprint * 0.5,
+		semiAxisZ  = unitDef.zsize * footprint * 0.5,
+	}
 end
 
-local function willBeNearTarget(unitID, tx, ty, tz, seconds, maxDistance)
-	local ux, uy, uz = Spring.GetUnitPosition(unitID)
-	if not ux then return false end
-
-	local vx, vy, vz = Spring.GetUnitVelocity(unitID)
-	if not vx then return false end
-
-	local futureX = ux + vx * seconds * gameSpeed
-	local futureY = uy + vy * seconds * gameSpeed
-	local futureZ = uz + vz * seconds * gameSpeed
-
-	local dx = futureX - tx
-	local dy = futureY - ty
-	local dz = futureZ - tz
-
-	if math.diag(dx, dy, dz) <= maxDistance then
-		-- Unit is in the target area at the end of the period.
-		return true
-	else
-		-- Test if the unit will pass through the entire area.
-		local a = vx * vx + vy * vy + vz * vz
-		local b = (dx * vx + dy * vy + dz * vz) * 2
-		local c = dx * dx + dy * dy + dz * dz - maxDistance * maxDistance
-		return b * b - 4 * a * c >= 0
-	end
-end
-
-local function isInTargetArea(unitID, x, z, radius)
-	local ux, uy, uz = Spring.GetUnitPosition(unitID)
-	if not ux then return false end
-	return math.diag(ux - x, uz - z) <= radius
-end
-
-local function IsUnitRepeatOn(unitID)
-	local cmdDescs = Spring.GetUnitCmdDescs(unitID)
-	if not cmdDescs then return false end
-	for _, desc in ipairs(cmdDescs) do
-		if desc.id == CMD.REPEAT then
-			return desc.params and desc.params[1] == "1"
-		end
-	end
-	return false
-end
+local gameFrame = 0
+local mostRecentCommandFrame = {}
 
 local slowUpdateBuilders 	= {}
 local watchedBuilders 		= {}
@@ -89,17 +74,62 @@ local areaCommandCooldown	= {}
 local FAST_UPDATE_RADIUS	= 400
 -- builders take about this much to enter build stance; determined empirically
 local BUILDER_DELAY_SECONDS = 3.3
-local BUILDER_BUILD_RADIUS  = 200
-local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * (Game.squareSize * Game.footprintScale)
-local FAST_UPDATE_FREQUENCY = gameSpeed
-local SLOW_UPDATE_FREQUENCY = 2 * gameSpeed
-local BUGGEROFF_RADIUS_INCREMENT = 4 * Game.squareSize
--- Limit the buggeroff time to 20 seconds, a tortured enough duration:
-local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (20 * gameSpeed / SLOW_UPDATE_FREQUENCY)
+local BUILDER_BUILD_RADIUS  = 200 * Spring.GetModOptions().multiplier_builddistance -- ! varies per-unit
+-- Assume the units are super-fast and medium-sized.
+local SEARCH_RADIUS_OFFSET  = unitSpeedMax + 2 * footprint
+local FAST_UPDATE_FREQUENCY = gameSpeed * 0.5
+local SLOW_UPDATE_FREQUENCY = FAST_UPDATE_FREQUENCY * 3 -- NB: must be a multiple
+local BUGGEROFF_RADIUS_INCREMENT = footprint
+-- Move away based on predicted position with lookahead:
+local BUGGEROFF_LOOKAHEAD   = (1/6) * gameSpeed
+-- The max buggeroff radius = increment * (time * update rate - 1), so we set a max time here also, implicitly.
+-- Prevent units from roaming by maintaining a max radius <= 400, the engine's max leash radius (see e.g. CMobileCAI::ExecuteFight).
+local MAX_BUGGEROFF_TIME    = 13
+local MAX_BUGGEROFF_RADIUS  = BUGGEROFF_RADIUS_INCREMENT * (MAX_BUGGEROFF_TIME * gameSpeed / FAST_UPDATE_FREQUENCY - 1) -- => 400 elmos
 -- Don't buggeroff units that were ordered to do something recently
 local USER_COMMAND_TIMEOUT	= 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
+
+local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
+	local sx = ux - tx
+	local sz = uz - tz
+
+	-- If unit starts in area, allow to leave quickly; else, check over a long period.
+	local seconds = math_diag(sx, sz) <= maxDistance and 0.5 or BUILDER_DELAY_SECONDS
+	local dx = ux + vx * seconds - tx
+	local dz = uz + vz * seconds - tz
+
+	if math_diag(dx, dz) <= maxDistance then
+		-- Unit ends within the area after `seconds`.
+		return true
+	end
+
+	local ix = tx - ux
+	local iz = tz - uz
+
+	if math_diag(ix , iz) > maxDistance then
+		-- The unit starts within the area but does not end in it.
+		return false
+	else
+		-- Check whether or not the unit passes through the area.
+		local a = vx * vx + vz * vz
+		local b = (ix * vx + iz * vz) * 2
+		local c = ix * ix + iz * iz - maxDistance * maxDistance
+		return b * b - 4 * a * c >= 0
+	end
+end
+
+local function isInTargetArea(unitID, x, z, radius)
+	local ux, uy, uz = spGetUnitPosition(unitID)
+	if not ux then return false end
+	return math_diag(ux - x, uz - z) <= radius
+end
+
+local function IsUnitRepeatOn(unitID)
+	local states = spGetUnitStates(unitID)
+	return states and states["repeat"] == true
+end
 
 local function watchBuilder(builderID)
 	slowUpdateBuilders[builderID]   = nil
@@ -121,30 +151,28 @@ local function slowWatchBuilder(builderID)
 	needsUpdate = true
 end
 
-local function shouldIssueBuggeroff(builderTeam, interferingUnitID, x, y, z, radius)
-	if Spring.AreTeamsAllied(Spring.GetUnitTeam(interferingUnitID), builderTeam) == false then
+local function ignoreBuggeroff(unitID, unitDefData)
+	return unitDefData.isImmobile
+		or spGetUnitIsDead(unitID) ~= false
+		or spGetUnitIsBeingBuilt(unitID) ~= false
+		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
+end
+
+local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
+	if unitDefData.isBlocking then
+		visitedUnits[unitID] = true
+		spDestroyUnit(unitID, false, true)
 		return false
 	end
 
-	if shouldNotBuggeroff[Spring.GetUnitDefID(interferingUnitID)] then
+	if ignoreBuggeroff(unitID, unitDefData) then
+		visitedUnits[unitID] = true
 		return false
-	end
 
-	if mostRecentCommandFrame[interferingUnitID] ~= nil and gameFrame - mostRecentCommandFrame[interferingUnitID] < USER_COMMAND_TIMEOUT then
-		return false
-	end
-
-	local lookahead = 0.25
-
-	if not isInTargetArea(interferingUnitID, x, z, radius) then
-		lookahead = BUILDER_DELAY_SECONDS
-	end
-
-	if willBeNearTarget(interferingUnitID, x, y, z, lookahead, radius) then
+	elseif spAreTeamsAllied(spGetUnitTeam(unitID), builderTeam) then
+		visitedUnits[unitID] = true
 		return true
 	end
-
-	return false
 end
 
 function gadget:GameFrame(frame)
@@ -157,67 +185,93 @@ function gadget:GameFrame(frame)
 	local visitedUnits = {}
 	local cylinderCache = {}  -- Cache GetUnitsInCylinder results per location
 
+	local moveParams = insertMoveParams
+
+	-- Collect deferred actions to avoid modifying tables during pairs() iteration
+	local deferRemove = {}
+	local deferSlow = {}
+	local deferRemoveCount = 0
+	local deferSlowCount = 0
+
 	for builderID, _ in pairs(watchedBuilders) do
-		local cmdID, _, _, targetX, targetY, targetZ =  Spring.GetUnitCurrentCommand(builderID, 1)
-		local isBuilding  	 = Spring.GetUnitIsBuilding(builderID) ~= nil
-		local x, y, z		 = Spring.GetUnitPosition(builderID)
-		local builderTeam    = Spring.GetUnitTeam(builderID);
-		local targetDistance = targetZ and math.distance2d(targetX, targetZ, x, z)
+		local cmdID, _, _, targetX, targetY, targetZ = spGetUnitCurrentCommand(builderID, 1)
+		local isBuilding  	 = spGetUnitIsBuilding(builderID) ~= nil
+		local x, y, z		 = spGetUnitPosition(builderID)
+		local builderTeam    = spGetUnitTeam(builderID);
+		local targetDistance = targetZ and x and math_diag(targetX - x, targetZ - z)
+		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
 
-		-- Skip if no valid build command or unit position
-		if not cmdID or cmdID > -1 or not x then
-			if not x then
-				removeBuilder(builderID)
-			else
-				slowWatchBuilder(builderID)
-			end
-		elseif targetDistance > FAST_UPDATE_RADIUS then
-			slowWatchBuilder(builderID)
+		if not x then
+			deferRemoveCount = deferRemoveCount + 1
+			deferRemove[deferRemoveCount] = builderID
 
-		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + cachedUnitDefs[-cmdID].radius and Spring.GetUnitIsBeingBuilt(builderID) == false then
-			local builtUnitDefID	= -cmdID
-			local buggerOffRadius	= cachedUnitDefs[builtUnitDefID].radius + builderRadiusOffsets[builderID]
-			local searchRadius		= buggerOffRadius + SEARCH_RADIUS_OFFSET
-			
+		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
+			deferSlowCount = deferSlowCount + 1
+			deferSlow[deferSlowCount] = builderID
+
+		elseif not isBuilding and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius and spGetUnitIsBeingBuilt(builderID) == false then
+			local buildDefRadius    = buildUnitDefData.radius
+			local searchRadius		= SEARCH_RADIUS_OFFSET + buildDefRadius
+
 			-- Use cached cylinder lookup to reduce redundant API calls
-			local cacheKey = string.format("%.0f_%.0f_%.0f", targetX, targetZ, searchRadius)
-			local interferingUnits = cylinderCache[cacheKey]
-			if not interferingUnits then
-				interferingUnits = Spring.GetUnitsInCylinder(targetX, targetZ, searchRadius)
-				cylinderCache[cacheKey] = interferingUnits
+			-- Nested numeric tables avoid string format allocation/GC overhead
+			local cache1 = cylinderCache[targetX]
+			if not cache1 then
+				cache1 = {}
+				cylinderCache[targetX] = cache1
 			end
+			local cacheKey2 = targetZ * 10000 + searchRadius
+			local interferingUnits = cache1[cacheKey2]
+			if not interferingUnits then
+				interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
+				cache1[cacheKey2] = interferingUnits
+			end
+
+			-- Escalate the radius every update. We want to send units away the minimum distance, but
+			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
+			local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
+			local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
 			-- Make sure at least one builder per player is never told to move
 			if (visitedTeams[builderTeam] == nil) then
 				visitedTeams[builderTeam] = true
 				visitedUnits[builderID] = true
 			end
-			-- Escalate the radius every update. We want to send units away the minimum distance, but
-			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
-			builderRadiusOffsets[builderID] = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-			for _, interferingUnitID in ipairs(interferingUnits) do
-				if builderID ~= interferingUnitID and not visitedUnits[interferingUnitID] and Spring.GetUnitIsBeingBuilt(interferingUnitID) == false then
-					-- Only buggeroff from one build site at a time
-					visitedUnits[interferingUnitID] = true
-					local unitX, _, unitZ = Spring.GetUnitPosition(interferingUnitID)
-					local unitBuggerRadius = cachedUnitDefs[builtUnitDefID].radius + buggerOffRadius
-					if shouldIssueBuggeroff(cachedBuilderTeams[builderID], interferingUnitID, targetX, targetY, targetZ, unitBuggerRadius) then
-						local sendX, sendZ = math.closestPointOnCircle(targetX, targetZ, unitBuggerRadius, unitX, unitZ)
-						for _ = 1, 2 do
-							if not Spring.TestMoveOrder(Spring.GetUnitDefID(interferingUnitID), sendX, targetY, sendZ) then
-								-- It is preferable to move the unit any distance at all toward the move goal. -- fixme: stupid hack
-								sendX = (unitX + sendX) * 0.5
-								sendZ = (unitZ + sendZ) * 0.5
+			for _, interferingID in ipairs(interferingUnits) do
+				local unitDefID = spGetUnitDefID(interferingID)
+				local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
+
+				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
+					-- continue
+				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
+					local unitX, _, unitZ = spGetUnitPosition(interferingID)
+					if unitX then
+						local speedX, _, speedZ = spGetUnitVelocity(interferingID)
+						if speedX then
+							local unitRadius = unitDefData.radius
+							local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
+
+							if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+								local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
+								local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
+								local sendX, sendZ = math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+
+								if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
+									moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
+									spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+								end
 							end
 						end
-						Spring.GiveOrderToUnit(interferingUnitID, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_INTERNAL, sendX, targetY, sendZ}, CMD.OPT_ALT)
 					end
 				end
 			end
 
-			if builderRadiusOffsets[builderID] > MAX_BUGGEROFF_RADIUS or IsUnitRepeatOn(builderID) then
-				removeBuilder(builderID)
+			if buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID)) then
+				deferRemoveCount = deferRemoveCount + 1
+				deferRemove[deferRemoveCount] = builderID
+			else
+				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
 			end
 
 		elseif isBuilding then
@@ -226,59 +280,63 @@ function gadget:GameFrame(frame)
 		end
 	end
 
+	-- Apply deferred removals/transitions after iteration is complete
+	for i = 1, deferRemoveCount do
+		removeBuilder(deferRemove[i])
+	end
+	for i = 1, deferSlowCount do
+		slowWatchBuilder(deferSlow[i])
+	end
+
 	if frame % SLOW_UPDATE_FREQUENCY ~= 0 and not needsUpdate then
 		return
 	end
 
 	needsUpdate = false
-	for builderID, _ in pairs(slowUpdateBuilders) do
-		-- Only check first few commands instead of entire queue for performance
-		local builderCommands   = Spring.GetUnitCommands(builderID, 5)
-		local hasBuildCommand, buildCommandFirst = false, false
-		local targetX, targetZ  = 0, 0
 
-		if builderCommands ~= nil then
-			for idx, command in ipairs(builderCommands) do
-				if command.id < 0 then
-					hasBuildCommand = true
-					if idx == 1 and command.params[1] and command.params[3] then
-						buildCommandFirst = true
-						targetX, targetZ  = command.params[1], command.params[3]
-					end
-					break  -- Early exit once we find a build command
+	local deferSlowRemove = {}
+	local deferWatch = {}
+	local deferSlowRemoveCount = 0
+	local deferWatchCount = 0
+
+	for builderID in pairs(slowUpdateBuilders) do
+		-- Use spGetUnitCurrentCommand per-index to avoid allocating command tables
+		local hasBuildCommand, buildCommandFirst = false, false
+		local targetX, targetZ = 0, 0
+
+		for idx = 1, 5 do
+			local cmdID, _, _, px, _, pz = spGetUnitCurrentCommand(builderID, idx)
+			if not cmdID then break end
+			if cmdID < 0 then
+				hasBuildCommand = true
+				if idx == 1 and px and pz then
+					buildCommandFirst = true
+					targetX, targetZ = px, pz
 				end
+				break
 			end
 		end
 
-		local isBuilding  = false
-		if Spring.GetUnitIsBuilding(builderID) then isBuilding = true end
-
-		local x, _, z = Spring.GetUnitPosition(builderID)
-		if hasBuildCommand == false then
-			removeBuilder(builderID)
-		elseif buildCommandFirst and isBuilding == false and math.distance2d(targetX, targetZ, x, z) <= FAST_UPDATE_RADIUS then
-			watchBuilder(builderID)
+		if not hasBuildCommand then
+			deferSlowRemoveCount = deferSlowRemoveCount + 1
+			deferSlowRemove[deferSlowRemoveCount] = builderID
+		elseif buildCommandFirst and not spGetUnitIsBuilding(builderID) and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
+			deferWatchCount = deferWatchCount + 1
+			deferWatch[deferWatchCount] = builderID
 		end
 	end
-end
 
-function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	if cachedUnitDefs[unitDefID].isBuilder then
-		cachedBuilderTeams[unitID] = unitTeam
+	for i = 1, deferSlowRemoveCount do
+		removeBuilder(deferSlowRemove[i])
+	end
+	for i = 1, deferWatchCount do
+		watchBuilder(deferWatch[i])
 	end
 end
 
-function gadget:Initialize()
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local unitList = Spring.GetTeamUnits(teamID)
-		for _, unitID in ipairs(unitList) do
-			gadget:MetaUnitAdded(unitID, Spring.GetUnitDefID(unitID), teamID)
-		end
-	end
-end
+-- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	cachedBuilderTeams[unitID] = nil
 	if cachedUnitDefs[unitDefID].isBuilder then
 		removeBuilder(unitID)
 	end

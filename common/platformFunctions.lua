@@ -28,7 +28,8 @@ local function checkRequires(allRequires)
 	if not allRequires or isSyncedCode then
 		return true
 	end
-	for _, req in pairs(allRequires) do
+	for i = 1, #allRequires do
+		local req = allRequires[i]
 		if req == 'gl' and not hasGL then
 			return false
 		elseif req == 'gl4' and not hasGL4 then

@@ -47,8 +47,8 @@ if commonFunctions.spring[environment] then
 	local springFunctions = VFS.Include('common/springFunctions.lua')
 	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
 	Spring.Debug = Spring.Debug or springFunctions.Debug
-	-- extend platform
 	VFS.Include('common/platformFunctions.lua')
+	VFS.Include('common/constants.lua')
 end
 
 if commonFunctions.i18n[environment] then
@@ -56,6 +56,7 @@ if commonFunctions.i18n[environment] then
 end
 
 if commonFunctions.cmd[environment] then
+	Game.Commands = VFS.Include("modules/commands.lua")
 	Game.CustomCommands = VFS.Include("modules/customcommands.lua")
 end
 

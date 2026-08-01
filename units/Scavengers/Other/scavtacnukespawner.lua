@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "box",
 		footprintx = 0,
 		footprintz = 0,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 10,
 		health = 11,
@@ -79,6 +77,9 @@ return {
 					commanders = 500,
 					scavboss = 1,
 					default = 2500,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},

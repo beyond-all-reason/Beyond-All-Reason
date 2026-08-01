@@ -1,7 +1,7 @@
 return {
 	corkarg = {
 		buildpic = "CORKARG.DDS",
-		buildtime = 76000,
+		buildtime = 94000,
 		canmove = true,
 		cantbetransported = true,
 		collisionvolumeoffsets = "0.0 -2.0 1",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 12500,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 2500,
 		maxacc = 0.1104,
 		maxdec = 0.8211,
@@ -23,8 +21,8 @@ return {
 		metalcost = 2500,
 		movementclass = "HTBOT6",
 		nochasecategory = "VTOL",
-		objectname = "Units/CORKARG.s3o",
-		script = "Units/CORKARG.COB",
+		objectname = "Units/corkarg.s3o",
+		script = "Units/corkarg.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 455,
@@ -70,13 +68,6 @@ return {
 				object = "Units/cor4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -144,6 +135,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,

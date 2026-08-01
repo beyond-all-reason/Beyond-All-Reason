@@ -12,13 +12,12 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "47 47 47",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 3700,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -39,6 +38,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Defenses",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -74,11 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -120,7 +115,7 @@ return {
 				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1380,
-				reloadtime = 2.9,
+				reloadtime = 3.5,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -130,15 +125,16 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 8,
 					exclude_preaim = true,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
-					default = 345,
-					lboats = 345,
-					subs = 110,
-					vtol = 110,
+					default = 414,
+					lboats = 414,
+					subs = 132,
+					vtol = 132,
 				},
 			},
 			cluster_munition = {
@@ -160,8 +156,8 @@ return {
 				soundstart = "cannhvy5",
 				weapontype = "Cannon",
 				damage = {
-					default = 65,
-					lboats = 65,
+					default = 105,
+					lboats = 105,
 					subs = 15,
 					vtol = 15,
 				},
@@ -182,7 +178,7 @@ return {
 				name = "Pop-Up Long-range g2g Cluster Plasma Cannon",
 				noselfdamage = true,
 				range = 1380,
-				reloadtime = 2.9,
+				reloadtime = 3.5,
 				rgbcolor = "0.7 0.7 1.0",
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -192,15 +188,16 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					cluster_def = 'cluster_munition',
-					cluster_number = 10,
+					cluster_number = 8,
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
-					default = 345,
-					lboats = 345,
-					subs = 110,
-					vtol = 110,
+					default = 414,
+					lboats = 414,
+					subs = 132,
+					vtol = 132,
 				},
 			},
 			smart_trajectory_dummy = {
@@ -226,6 +223,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
+					bogus = 1,
 					exclude_preaim = true,
 					smart_trajectory_checker = true,
 				},

@@ -32,14 +32,12 @@ local fallDamage = 0.18
 --this influences the compounding escalation of fall damage from water collisions.
 local fallDamageCompoundingFactor = 1.05
 
---statics
 local gameFrame = 0
 local gameFrameExpirationThreshold = 3
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
---functions
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 local spAddUnitDamage = Spring.AddUnitDamage
@@ -50,9 +48,13 @@ local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spDestroyUnit = Spring.DestroyUnit
 
---tables
+local waterIsLava = Spring.GetModOptions().map_waterislava
+local largeSplashCEG = waterIsLava and 'lavasplash_large' or 'watersplash_large'
+local smallSplashCEG = waterIsLava and 'lavasplash_small' or 'watersplash_small'
+
 local unitDefData = {}
 local transportDrops = {}
 local drowningUnitsWatch = {}
@@ -76,6 +78,10 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			defData.isDrownable = true
 		end
 	end
+	if unitDef.customParams.decoration then
+		defData.isAmphibious = true
+		defData.isDrownable = false
+	end
 	unitDefData[unitDefID] = defData
 end
 
@@ -98,19 +104,23 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
-			spSpawnCEG('watersplash_large', posX, posY, posZ)
+			spSpawnCEG(largeSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
-					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					if spGetUnitRulesParam(unitID, "unit_effigy") then
+						spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+					else
+						spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					end
 				else
-					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
 				end
 			end
 		else
-			spSpawnCEG('watersplash_small', posX, posY, posZ)
+			spSpawnCEG(smallSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
 		transportDrops[unitID] = nil
@@ -135,7 +145,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 local function getUnitPositionHeight(unitID) -- returns nil for invalid units
-	if (spGetUnitIsDead(unitID) ~= false) or (spValidUnitID(unitID) ~= true) then return nil, nil, nil end
+	if spGetUnitIsDead(unitID) ~= false or spValidUnitID(unitID) ~= true then return nil, nil, nil end
 	local posX, posY, posZ = spGetUnitPosition(unitID)
 	if posX and posY and posZ then
 		return posX, posY, posZ
@@ -165,7 +175,7 @@ function gadget:GameFrame(frame)
 					if math.random(1, 6) == 1 then
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
-					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, data.drowningDamage, 0, nil, waterDamageDefID)
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit

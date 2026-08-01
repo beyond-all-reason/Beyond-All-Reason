@@ -17,7 +17,6 @@ static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statec
 // speed and maxaccare in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
 //#define MAX_AIMY1_VELOCITY <3.00>
 #define AIMY1_maxacc <0.16>
 //#define AIMY1_JERK <0.5>

@@ -23,6 +23,10 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local spGetAllUnits = Spring.GetAllUnits
+local spGetUnitDefID = Spring.GetUnitDefID
+local spSetUnitMaxRange = Spring.SetUnitMaxRange
+
 local unitMaxRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.customParams.maxrange then
@@ -31,13 +35,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	local allUnits = spGetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitMaxRange[unitDefID] then
-		Spring.SetUnitMaxRange(unitID, unitMaxRange[unitDefID])
+		spSetUnitMaxRange(unitID, unitMaxRange[unitDefID])
 	end
 end

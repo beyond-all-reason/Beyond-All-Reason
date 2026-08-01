@@ -23,6 +23,30 @@ end
 -- nobody will notice, but don't profile if you don't need too
 
 --------------------------------------------------------------------------------
+-- Localizations
+--------------------------------------------------------------------------------
+
+-- Localize frequently used functions
+local tableInsert = table.insert
+local tableRemove = table.remove
+local tableSort = table.sort
+local mathFloor = math.floor
+local mathMax = math.max
+local mathMin = math.min
+local mathExp = math.exp
+local mathRandom = math.random
+local stringChar = string.char
+local stringSub = string.sub
+local stringFind = string.find
+local stringLower = string.lower
+local stringFormat = string.format
+local stringMatch = string.match
+local pairs = pairs
+local ipairs = ipairs
+local next = next
+local select = select
+
+--------------------------------------------------------------------------------
 -- Prefixed Gadget Names
 --------------------------------------------------------------------------------
 
@@ -38,12 +62,34 @@ local prefixColor = {
 	dbg = '\255\120\120\120',
 }
 local prefixedGnames = {}
+local gadgetNameColors = {}  -- Store RGB values for background tinting
 local function ConstructPrefixedName (ghInfo)
 	local gadgetName = ghInfo.name
 	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1, true)
-	local prefix = ((_pos and usePrefixedNames) and ((prefixColor[baseName:sub(1, _pos - 1)] and prefixColor[baseName:sub(1, _pos - 1)] or "\255\166\166\166") .. baseName:sub(1, _pos - 1) .. "     ") or "")
-	prefixedGnames[gadgetName] = prefix .. string.char(255, math.random(100, 255), math.random(100, 255), math.random(100, 255)) .. gadgetName .. "   "
+	local _pos = stringFind(baseName, "_", 1, true)
+	local prefix = ""
+	if _pos and usePrefixedNames then
+		local prefixKey = stringSub(baseName, 1, _pos - 1)
+		local prefixClr = prefixColor[prefixKey] or "\255\166\166\166"
+		prefix = prefixClr .. prefixKey .. "     "
+	end
+	-- Cache random color generation with more contrast
+	local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+	-- Ensure at least one channel is bright for visibility and prevent too dark colors
+	local maxChannel = mathMax(r, g, b)
+	if maxChannel < 150 then
+		-- If all channels are too dark, make at least one bright
+		local brightChannel = mathRandom(1, 3)
+		if brightChannel == 1 then
+			r = mathRandom(180, 255)
+		elseif brightChannel == 2 then
+			g = mathRandom(180, 255)
+		else
+			b = mathRandom(180, 255)
+		end
+	end
+	gadgetNameColors[gadgetName] = {r / 255, g / 255, b / 255}  -- Store normalized RGB
+	prefixedGnames[gadgetName] = prefix .. stringChar(255, r, g, b) .. gadgetName .. "   "
 	return prefixedGnames[gadgetName]
 end
 
@@ -62,6 +108,13 @@ local spGetTimer = Spring.GetTimer
 
 local spDiffTimers = Spring.DiffTimers
 local spGetLuaMemUsage = Spring.GetLuaMemUsage or function() return 0, 0, 0, 0, 0, 0, 0, 0 end
+local profilerEchoEnabled = false
+
+local function ProfilerEcho(...)
+	if profilerEchoEnabled then
+		Spring.Echo(...)
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Default Value Helpers
@@ -80,7 +133,9 @@ end
 local function ArrayInsert(t, gadget)
 	local layer = gadget.ghInfo.layer
 	local index = 1
-	for i, v in ipairs(t) do
+	local tLen = #t
+	for i = 1, tLen do
+		local v = t[i]
 		if v == gadget then
 			return -- already in the table
 		end
@@ -88,14 +143,15 @@ local function ArrayInsert(t, gadget)
 			index = i + 1
 		end
 	end
-	table.insert(t, index, gadget)
+	tableInsert(t, index, gadget)
 end
 
 local function ArrayRemove(t, gadget)
-	for k, v in ipairs(t) do
-		if v == gadget then
-			table.remove(t, k)
-			-- break
+	local tLen = #t
+	for k = 1, tLen do
+		if t[k] == gadget then
+			tableRemove(t, k)
+			return -- Only one instance to remove
 		end
 	end
 end
@@ -132,7 +188,7 @@ else
 		highres = true
 	end
 	if not highres then
-		Spring.Echo("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
+		ProfilerEcho("Profiler not using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 	end
 
 	hookPreRealFunction = function(gadgetName, callinName)
@@ -196,22 +252,34 @@ end
 local hookset = false
 
 local dummyTable = {} -- Avoid re-creating an empty table that will never be given elements
-local function ForAllGadgetCallins(action) -- This should be local, but it was failing to find it for some reason?
+
+-- Cache the CallInsList to avoid rebuilding it every time
+local cachedCallInsList
+local function BuildCallInsList()
 	local CallInsList = {}
 	local CallInsListCount = 0
 
 	for key, value in pairs(gadgetHandler) do
-		local i = key:find("List", nil, true)
+		local i = stringFind(key, "List", nil, true)
 		if i and type(value) == "table" then
 			CallInsListCount = CallInsListCount + 1
-			CallInsList[CallInsListCount] = key:sub(1, i - 1)
+			CallInsList[CallInsListCount] = stringSub(key, 1, i - 1)
 		end
 	end
 
-	for _, callin in ipairs(CallInsList) do
+	return CallInsList
+end
+
+local function ForAllGadgetCallins(action)
+	if not cachedCallInsList then
+		cachedCallInsList = BuildCallInsList()
+	end
+
+	for i = 1, #cachedCallInsList do
+		local callin = cachedCallInsList[i]
 		local callinGadgets = gadgetHandler[callin .. "List"]
-		for _, gadget in ipairs(callinGadgets or dummyTable) do
-			action(gadget, callin)
+		for j = 1, #(callinGadgets or dummyTable) do
+			action(callinGadgets[j], callin)
 		end
 	end
 end
@@ -231,12 +299,12 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 	end
 
 	hookset = true
-	Spring.Echo("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	ProfilerEcho("start profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	--// hook all existing callins
 	ForAllGadgetCallins(AddHook)
 
-	Spring.Echo("hooked all callins")
+	ProfilerEcho("hooked all callins")
 
 	--// hook the UpdateCallin function
 	oldUpdateGadgetCallIn = gadgetHandler.UpdateGadgetCallIn
@@ -259,7 +327,7 @@ local function StartHook(optName, line, words, playerID) -- this one is synced?
 		end
 	end
 
-	Spring.Echo("hooked UpdateCallin")
+	ProfilerEcho("hooked UpdateCallin")
 
 	return false -- allow the unsynced chataction to execute too
 end
@@ -276,16 +344,16 @@ function KillHook()
 		return true
 	end
 
-	Spring.Echo("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
+	ProfilerEcho("stop profiling (" .. (SendToUnsynced ~= nil and "synced" or "unsynced") .. ")")
 
 	ForAllGadgetCallins(RemoveHook)
 
-	Spring.Echo("unhooked all callins")
+	ProfilerEcho("unhooked all callins")
 
 	--// unhook the UpdateCallin function
 	gadgetHandler.UpdateGadgetCallIn = oldUpdateGadgetCallIn
 
-	Spring.Echo("unhooked UpdateCallin")
+	ProfilerEcho("unhooked UpdateCallin")
 
 	hookset = false
 	return false -- allow the unsynced chataction to execute too
@@ -310,6 +378,16 @@ else
 
 	local running = false
 
+	-- Per-callin drill-down state (only populated for the gadget currently drilled into).
+	-- Declared here, above Start/Kill, so every function captures the same upvalues.
+	local selectedGadget = nil    -- plain prefixed gname currently drilled into, or nil
+	local selectedSynced = false  -- which list (unsynced/synced) the selection came from
+	local selectedCallinAvgs = {} -- { [cname] = { tLoad, sLoad } } smoothed, reset on selection
+	local clickableRows = {}      -- reused each frame: { {x1, y1, x2, y2, gname, synced}, ... }
+	local clickableRowCount = 0   -- how many entries of clickableRows are valid this frame
+	local columnReserve = 0       -- width reserved left of column 0 for the detail panel (0 when none)
+	local detailColour = "\255\255\255\255"
+
 	local timersSynced = {}
 	local startTickTimer
 	local memUsageSynced = {}
@@ -318,6 +396,26 @@ else
 		-- when the profiler isn't running, the profiler gadget should have *no* draw callin
 		gadget.DrawScreen = drawCallin
 		gadgetHandler:UpdateGadgetCallIn("DrawScreen", gadget)
+	end
+
+	local function EnableMousePressCallin()
+		-- only claim mouse clicks while the profiler is drawn (for the drill-down)
+		rawset(gadget, "MousePress", gadget.MousePress_)
+		rawset(gadget, "MouseRelease", gadget.MouseRelease_)
+		gadgetHandler:UpdateGadgetCallIn("MousePress", gadget)
+		gadgetHandler:UpdateGadgetCallIn("MouseRelease", gadget)
+	end
+
+	local function DisableMousePressCallin()
+		-- If this gadget currently owns the mouse press sequence, release ownership
+		-- before detaching MousePress so gadgetHandler won't call into stale owner state.
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
+			rawset(gadgetHandler, "mouseOwner", nil)
+		end
+		gadgetHandler:RemoveGadgetCallIn("MousePress", gadget)
+		gadgetHandler:RemoveGadgetCallIn("MouseRelease", gadget)
 	end
 
 	local function SyncedCallinStarted(_, gname, cname)
@@ -352,10 +450,10 @@ else
 				local endtime = Spring.GetTimer()
 				local endtimeus = Spring.GetTimerMicros()
 
-				Spring.Echo("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
-				Spring.Echo("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
-				Spring.Echo("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
-				Spring.Echo("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
+				ProfilerEcho("GetTimer secs", Spring.DiffTimers( endtime,starttime, nil))
+				ProfilerEcho("GetTimer msecs", Spring.DiffTimers( endtime, starttime,true))
+				ProfilerEcho("GetTimerMicros secs", Spring.DiffTimers( endtimeus,starttimeus, nil, true))
+				ProfilerEcho("GetTimerMicros msecs", Spring.DiffTimers( endtimeus, starttimeus,true, true))
 			end
 
 
@@ -364,8 +462,9 @@ else
 			startTickTimer = spGetTimer()
 
 			SetDrawCallin(gadget.DrawScreen_)
+			EnableMousePressCallin()
 
-			Spring.Echo("luarules profiler started (player " .. pID .. ")")
+			ProfilerEcho("luarules profiler started (player " .. pID .. ")")
 		end
 	end
 
@@ -373,15 +472,19 @@ else
 		if running then
 			running = false
 
-			Spring.Echo("Killing...")
+			ProfilerEcho("Killing...")
 			SetDrawCallin(nil)
+			DisableMousePressCallin()
 			KillHook()
+
+			selectedGadget = nil
+			selectedCallinAvgs = {}
 
 			startTickTimer = nil
 			timersSynced = {}
 			memUsageSynced = {}
 
-			Spring.Echo("luarules profiler killed (player " .. pID .. ")")
+			ProfilerEcho("luarules profiler killed (player " .. pID .. ")")
 		end
 	end
 
@@ -443,48 +546,63 @@ else
 	local title_colour = "\255\160\255\160"
 	local totals_colour = "\255\200\200\255"
 
+	-- Cache color char conversion
+	local colorCharCache = {}
 	local function ColorChar(color)
-		return string.char(math.floor(color * 255))
+		local key = mathFloor(color * 255)
+		if not colorCharCache[key] then
+			colorCharCache[key] = stringChar(key)
+		end
+		return colorCharCache[key]
 	end
 
 	local function ColourString(R, G, B)
 		return "\255" .. ColorChar(R) .. ColorChar(G) .. ColorChar(B)
 	end
 
-	function GetRedColourStrings(tTime, sLoad, name, redStr, deltaTime)
-		local u = math.exp(-deltaTime / 5) --magic colour changing rate
+	-- Precompute constants
+	local colorScaleFactor = (255 - 64) / 255
+	local percRange = maxPerc - minPerc
+	local spaceRange = maxSpace - minSpace
 
+	function GetRedColourStrings(tTime, sLoad, name, redStr, deltaTime)
+		local u = mathExp(-deltaTime / 5) --magic colour changing rate
+		local oneMinusU = 1 - u
+
+		-- Clamp tTime
 		if tTime > maxPerc then
 			tTime = maxPerc
-		end
-		if tTime < minPerc then
+		elseif tTime < minPerc then
 			tTime = minPerc
 		end
 
 		-- time
-		local new_r = ((tTime - minPerc) / (maxPerc - minPerc))
-		redStr[name .. '_time'] = redStr[name .. '_time'] or 0
-		redStr[name .. '_time'] = u * redStr[name .. '_time'] + (1 - u) * new_r
-		local r, g, b = 1, 1 - redStr[name .. "_time"] * ((255 - 64) / 255), 1 - redStr[name .. "_time"] * ((255 - 64) / 255)
+		local new_r = (tTime - minPerc) / percRange
+		local timeKey = name .. '_time'
+		redStr[timeKey] = redStr[timeKey] or 0
+		redStr[timeKey] = u * redStr[timeKey] + oneMinusU * new_r
+		local timeRedStrength = redStr[timeKey]
+		local colorFactor = 1 - timeRedStrength * colorScaleFactor
+		local r, g, b = 1, colorFactor, colorFactor
 		local timeColourString = ColourString(r, g, b)
 
 		-- space
-		new_r = (sLoad - minSpace) / (maxSpace - minSpace)
+		new_r = (sLoad - minSpace) / spaceRange
 		if new_r > 1 then
 			new_r = 1
 		elseif new_r < 0 then
 			new_r = 0
 		end
 
-		redStr[name .. '_space'] = redStr[name .. '_space'] or 0
-		redStr[name .. '_space'] = u * redStr[name .. '_space'] + (1 - u) * new_r
-		g = 1 - redStr[name .. "_space"] * ((255 - 64) / 255)
-		b = g
-		local spaceColourString = ColourString(r, g, b)
+		local spaceKey = name .. '_space'
+		redStr[spaceKey] = redStr[spaceKey] or 0
+		redStr[spaceKey] = u * redStr[spaceKey] + oneMinusU * new_r
+		local spaceColorFactor = 1 - redStr[spaceKey] * colorScaleFactor
+		local spaceColourString = ColourString(r, spaceColorFactor, spaceColorFactor)
 		return timeColourString, spaceColourString
 	end
 
-	local function ProcessCallinStats(stats, timeLoadAvgs, spaceloadAvgs, redStr, deltaTime)
+	local function ProcessCallinStats(stats, timeLoadAvgs, spaceloadAvgs, redStr, deltaTime, isSynced)
 		totalLoads = {}
 		local allOverTime = 0
 		local allOverSpace = 0
@@ -492,8 +610,16 @@ else
 
 		local sorted = {}
 
+		-- Only smooth the per-callin breakdown for the gadget being drilled into,
+		-- and only in the list (unsynced/synced) it was selected from.
+		local captureThisList = selectedGadget and (isSynced == selectedSynced)
+
 		local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
 		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
+
+		-- Cache FPS and frame calculation
+		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
+		local framesMinusOne = frames - 1
 
 		for gname, callins in pairs(stats) do
 			local t = 0 -- would call it time, but protected
@@ -502,20 +628,36 @@ else
 			local space = 0
 			local cmax_space = 0
 			local cmaxname_space = "-"
+
+			local captureGadget = captureThisList and gname == selectedGadget
+
 			for cname, c in pairs(callins) do
-				t = t + c[1]
-				if c[2] > cmax_t then
-					cmax_t = c[2]
+				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
+				t = t + c1
+				if c2 > cmax_t then
+					cmax_t = c2
 					cmaxname_t = cname
 				end
 				c[1] = 0
 
-				space = space + c[3]
-				if c[4] > cmax_space then
-					cmax_space = c[4]
+				space = space + c3
+				if c4 > cmax_space then
+					cmax_space = c4
 					cmaxname_space = cname
 				end
 				c[3] = 0
+
+				if captureGadget then
+					local relT = 100 * c1 / deltaTime
+					local relS = c3 / deltaTime
+					local prev = selectedCallinAvgs[cname]
+					if prev then
+						prev[1] = CalcLoad(prev[1], relT, averageTime)
+						prev[2] = CalcLoad(prev[2], relS, averageTime)
+					else
+						selectedCallinAvgs[cname] = { relT, relS }
+					end
+				end
 			end
 
 			local relTime = 100 * t / deltaTime
@@ -533,10 +675,9 @@ else
 			if not avgTLoad[gname] then
 				avgTLoad[gname] = tLoad * 0.7
 			end
-			local frames = math.min(1 / tick, Spring.GetFPS()) * retainSortTime
-			avgTLoad[gname] = ((avgTLoad[gname]*(frames-1)) + tLoad) / frames
+			avgTLoad[gname] = ((avgTLoad[gname] * framesMinusOne) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if not sortByLoad or avgTLoad[gname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+			if avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
 				sorted[n] = { name = gname2name[gname] or gname, plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end
@@ -544,9 +685,9 @@ else
 			allOverSpace = allOverSpace + sLoad
 		end
 		if sortByLoad then
-			table.sort(sorted, SortFunc)
+			tableSort(sorted, SortFunc)
 		else
-			table.sort(sorted, function(a, b) return a.name < b.name end)
+			tableSort(sorted, function(a, b) return a.name < b.name end)
 		end
 
 		sorted.allOverTime = allOverTime
@@ -577,9 +718,8 @@ else
 	function gadget:ViewResize(vsx, vsy)
 		viewWidth, viewHeight = gl.GetViewSizes()
 
-		fontSize = math.max(11, math.floor(11 * viewWidth / 1920))
+		fontSize = mathMax(11, mathFloor(11 * viewWidth / 1920))
 		lineSpace = fontSize + 2
-
 
 		dataColWidth = fontSize * 5
 		nameColWidth = fontSize * 15
@@ -589,7 +729,7 @@ else
 		initialX = viewWidth - colWidth
 		initialY = viewHeight * 0.77
 
-		maxLines = math.max(20, math.floor(initialY / lineSpace) - 3)
+		maxLines = mathMax(20, mathFloor(initialY / lineSpace) - 3)
 	end
 	gadget:ViewResize(viewWidth, viewHeight)
 
@@ -609,24 +749,102 @@ else
 		end
 	end
 
+	-- Horizontal offset of the current column. When a gadget is drilled into, a
+	-- band is reserved immediately left of column 0 for the detail panel, so every
+	-- overflow column (index >= 1) is pushed further left to clear it.
+	local function ColumnShift()
+		return currentColumnIndex * colWidth + (currentColumnIndex >= 1 and columnReserve or 0)
+	end
+
 	local function Text(color, string, dataColIndex)
 		gl.Text(
 			color .. string,
-			initialX + dataColWidth * dataColIndex - currentColumnIndex * colWidth,
+			initialX + dataColWidth * dataColIndex - ColumnShift(),
 			initialY - lineSpace * currentLineIndex,
 			fontSize,
 			"no"
 		)
 	end
 
+	-- Helper function to render percentage with dimmed leading zeros
+	local function DrawPercentWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces)
+		local formatStr = '%.' .. (decimalPlaces or 3) .. 'f%%'
+		local formatted = stringFormat(formatStr, value)
+		local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+
+		if leadingPart then
+			-- Has leading zeros - render them dimmed
+			gl.Text(colorString .. '\255\150\150\150' .. leadingPart, x, y, fontSize, "no")
+			local leadingWidth = gl.GetTextWidth(leadingPart) * fontSize
+			gl.Text(colorString .. significantPart, x + leadingWidth, y, fontSize, "no")
+		else
+			-- No leading zeros - render normally
+			gl.Text(colorString .. formatted, x, y, fontSize, "no")
+		end
+	end
+
+	-- Helper function to render memory allocation with dimmed leading zeros and right-alignment
+	local function DrawMemoryWithDimmedZeros(colorString, value, x, y, fontSize, decimalPlaces, suffix)
+		local formatStr = '%.' .. (decimalPlaces or 1) .. 'f'
+		local formatted = stringFormat(formatStr, value)
+		local fullText = formatted .. suffix
+
+		-- Calculate total width for right alignment with left padding
+		local totalWidth = gl.GetTextWidth(fullText) * fontSize
+		local rightAlignedX = x + (dataColWidth * 0.75) - totalWidth  -- Adjust to 75% to add more spacing
+
+		-- Check if value is 0.0 (all zeros)
+		if tonumber(formatted) == 0 then
+			-- Render entire "0.0" dimmed and right-aligned
+			gl.Text(colorString .. '\255\150\150\150' .. fullText, rightAlignedX, y, fontSize, "no")
+		else
+			local leadingPart, significantPart = stringMatch(formatted, '^(0%.0*)(.+)$')
+			if leadingPart then
+				-- Has leading zeros - render them dimmed and right-aligned
+				gl.Text(colorString .. '\255\150\150\150' .. leadingPart, rightAlignedX, y, fontSize, "no")
+				local leadingWidth = gl.GetTextWidth(leadingPart) * fontSize
+				gl.Text(colorString .. significantPart .. suffix, rightAlignedX + leadingWidth, y, fontSize, "no")
+			else
+				-- No leading zeros - render normally and right-aligned
+				gl.Text(colorString .. fullText, rightAlignedX, y, fontSize, "no")
+			end
+		end
+	end
+
 	-- Spacing above indicates the number of blank lines left. spacingAbove = 0 will still result in a line break.
-	local function Line(spacingAbove, color, col1String, col2String, col3String, color2, color3)
+	local function Line(spacingAbove, color, col1String, col2String, col3String, color2, color3, gadgetName)
 		local advance = 1 + spacingAbove
 		RequireSpace(advance)
 		currentLineIndex = currentLineIndex + advance
-		Text(color, col1String or "", 0)
-		Text(color2 or color, col2String or "", 1)
-		Text(color3 or color, col3String or "", 2)
+
+		-- Draw tinted background and colored square for gadget line
+		if gadgetName then
+			local gadgetColor = gadgetNameColors[gadgetName]
+			if gadgetColor then
+				local x = initialX - ColumnShift()
+				local textY = initialY - lineSpace * currentLineIndex
+
+				-- Draw opaque colored square on the left
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 1.0)
+				gl.Rect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+				-- Draw subtle tinted background across the whole line
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 0.25)
+				gl.Rect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+				gl.Color(1, 1, 1, 1)  -- Reset color
+			end
+		end
+
+		if col1String then
+			Text(color, col1String, 0)
+		end
+		if col2String then
+			Text(color2 or color, col2String, 1)
+		end
+		if col3String then
+			Text(color3 or color, col3String, 2)
+		end
 	end
 
 	local function NewSection(title)
@@ -636,15 +854,20 @@ else
 		currentLineIndex = currentLineIndex + 1
 	end
 
-	local function DrawSortedList(list, name)
+	-- Cache format strings
+	local noDataColor = "\255\200\200\200"
+	local maxnameColor = "\255\200\200\200"
+
+	local function DrawSortedList(list, name, isSynced)
 		NewSection(name)
 
-		if #list == 0 then
-			Line(0, "\255\200\200\200", nil, nil, "No data!")
+		local listLen = #list
+		if listLen == 0 then
+			Line(0, noDataColor, nil, nil, "No data!")
 			return
 		end
 
-		for i = 1, #list do
+		for i = 1, listLen do
 			local v = list[i]
 			local gname = v.fullname
 			local tLoad = v.tLoad
@@ -652,14 +875,163 @@ else
 			local tColour = v.tColourString
 			local sColour = v.sColourString
 
-			Line(0, tColour, ('%.3f%%'):format(tLoad), ('%.02f'):format(sLoad) .. 'kB/s', gname, sColour)
+			-- Draw line with background and dimmed zeros
+			RequireSpace(1)
+			currentLineIndex = currentLineIndex + 1
+
+			local x = initialX - ColumnShift()
+			local textY = initialY - lineSpace * currentLineIndex
+
+			-- Draw tinted background and colored square for gadget line
+			local gadgetColor = gadgetNameColors[v.name]
+			if not gadgetColor then
+				-- Generate color on-the-fly if not already generated
+				local r, g, b = mathRandom(30, 255), mathRandom(30, 255), mathRandom(30, 255)
+				local maxChannel = mathMax(r, g, b)
+				if maxChannel < 150 then
+					local brightChannel = mathRandom(1, 3)
+					if brightChannel == 1 then
+						r = mathRandom(180, 255)
+					elseif brightChannel == 2 then
+						g = mathRandom(180, 255)
+					else
+						b = mathRandom(180, 255)
+					end
+				end
+				gadgetColor = {r / 255, g / 255, b / 255}
+				gadgetNameColors[v.name] = gadgetColor
+			end
+
+			if gadgetColor then
+				-- Draw opaque colored square on the left
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 1.0)
+				gl.Rect(x - 12, textY - 3, x - 5, textY + fontSize - 3)
+
+				-- Draw subtle tinted background across the whole line
+				gl.Color(gadgetColor[1], gadgetColor[2], gadgetColor[3], 0.25)
+				gl.Rect(x - 5, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+
+				gl.Color(1, 1, 1, 1)  -- Reset color
+			end
+
+			-- Highlight the row that is currently drilled into
+			if v.plainname == selectedGadget and isSynced == selectedSynced then
+				gl.Color(1, 1, 1, 0.18)
+				gl.Rect(x - 12, textY - 3, x + colWidth - 15, textY + fontSize - 3)
+				gl.Color(1, 1, 1, 1)
+			end
+
+			-- Record click target so MousePress can map a click back to this gadget.
+			-- Reuse the row tables across frames to avoid per-frame GC churn.
+			clickableRowCount = clickableRowCount + 1
+			local r = clickableRows[clickableRowCount]
+			if not r then
+				r = {}
+				clickableRows[clickableRowCount] = r
+			end
+			r[1], r[2], r[3], r[4], r[5], r[6] = x - 12, textY - 3, x + colWidth - 15, textY + fontSize - 3, v.plainname, isSynced
+
+			-- Draw percentage with dimmed zeros
+			DrawPercentWithDimmedZeros(tColour, tLoad, x + dataColWidth * 0, textY, fontSize, 3)
+
+			-- Draw memory with dimmed zeros
+			DrawMemoryWithDimmedZeros(sColour, sLoad, x + dataColWidth * 1, textY, fontSize, 1, 'kB/s')
+
+			-- Draw gadget name
+			Text(tColour, gname, 2)
 		end
 
-		Line(0, totals_colour,
-			('%.3f%%'):format(list.allOverTime),
-			('%.0f'):format(list.allOverSpace) .. 'kB/s',
-			"totals (" .. string.lower(name) .. ")"
-		)
+		RequireSpace(1)
+		currentLineIndex = currentLineIndex + 1
+
+		-- Draw totals with dimmed zeros
+		DrawPercentWithDimmedZeros(totals_colour, list.allOverTime,
+			initialX + dataColWidth * 0 - ColumnShift(),
+			initialY - lineSpace * currentLineIndex,
+			fontSize, 3)
+
+		DrawMemoryWithDimmedZeros(totals_colour, list.allOverSpace,
+			initialX + dataColWidth * 1 - ColumnShift(),
+			initialY - lineSpace * currentLineIndex,
+			fontSize, 1, 'kB/s')
+
+		Text(totals_colour, "totals (" .. stringLower(name) .. ")", 2)
+	end
+
+	-- Drill-down view: every callin of the selected gadget, sorted by cpu time.
+	-- Absolutely positioned (outside the column flow) in the band reserved to the
+	-- left of column 0 by columnReserve.
+	local function DrawDetailPanel(x, y, panelWidth)
+		local avgs = selectedCallinAvgs
+
+		-- Hide a callin only when BOTH its cpu and alloc rate are negligible; hidden
+		-- callins still count towards the total so it stays accurate.
+		local minCallinPerc = 0.003 -- % of running time
+		local minCallinKB = 0.1     -- kB/s allocated
+
+		local list = {}
+		local hidden = 0
+		local total_t, total_s = 0, 0
+		for cname, a in pairs(avgs) do
+			total_t = total_t + a[1]
+			total_s = total_s + a[2]
+			if a[1] >= minCallinPerc or a[2] >= minCallinKB then
+				list[#list + 1] = { name = cname, tLoad = a[1], sLoad = a[2] }
+			else
+				hidden = hidden + 1
+			end
+		end
+		tableSort(list, function(a, b) return a.tLoad > b.tLoad end)
+
+		local colW = fontSize * 8 -- one column width, wide enough for "9999.9 kB/s"
+		local timeColX = x
+		local allocsColX = x + colW
+		local callinColX = x + colW * 2
+		local panelRight = x + panelWidth
+
+		-- Fixed lines: title, blank, header, total, blank, close-hint (+ optional hidden line)
+		local lineCount = #list + 6 + (hidden > 0 and 1 or 0)
+
+		-- translucent backdrop (drawn first so the text lands on top of it)
+		gl.Color(0, 0, 0, 0.55)
+		gl.Rect(x - 10, y - lineSpace * lineCount - 3, panelRight, y + lineSpace)
+		gl.Color(1, 1, 1, 1)
+
+		-- Line cursor: returns the current line's y, then advances past it plus any trailing blanks.
+		local cy = y
+		local function line(blanks)
+			local ly = cy
+			cy = cy - lineSpace * (1 + (blanks or 0))
+			return ly
+		end
+
+		local label = (selectedSynced and "\255\200\200\255[synced] " .. detailColour or "") .. (gname2name[selectedGadget] or selectedGadget)
+		gl.Text(title_colour .. "CALLIN BREAKDOWN  " .. detailColour .. label, x, line(1), fontSize, "no")
+
+		local hy = line()
+		gl.Text(totals_colour .. "time", timeColX, hy, fontSize, "no")
+		gl.Text(totals_colour .. "allocs", allocsColX, hy, fontSize, "no")
+		gl.Text(totals_colour .. "callin", callinColX, hy, fontSize, "no")
+
+		for i = 1, #list do
+			local v = list[i]
+			local ry = line()
+			DrawPercentWithDimmedZeros(detailColour, v.tLoad, timeColX, ry, fontSize, 3)
+			DrawMemoryWithDimmedZeros(detailColour, v.sLoad, allocsColX, ry, fontSize, 1, 'kB/s')
+			gl.Text(detailColour .. v.name, callinColX, ry, fontSize, "no")
+		end
+
+		local ty = line()
+		DrawPercentWithDimmedZeros(totals_colour, total_t, timeColX, ty, fontSize, 2)
+		DrawMemoryWithDimmedZeros(totals_colour, total_s, allocsColX, ty, fontSize, 0, 'kB/s')
+		gl.Text(totals_colour .. "total", callinColX, ty, fontSize, "no")
+
+		if hidden > 0 then
+			gl.Text(totals_colour .. '\255\140\140\140' .. stringFormat("(%d negligible callins hidden)", hidden), x, line(), fontSize, "no")
+		end
+
+		line() -- blank separator before the close hint
+		gl.Text(title_colour .. "click the gadget again to close", x, line(), fontSize, "no")
 	end
 
 	--------------------------------------------------------------------------------
@@ -672,18 +1044,17 @@ else
 		end
 
 		if not next(callinStats) and not next(callinStatsSYNCED) then
-			Spring.Echo("no data in profiler!")
+			ProfilerEcho("no data in profiler!")
 			return
 		end
 
 		local deltaTime = spDiffTimers(spGetTimer(), startTickTimer, nil, highres)
 
-
 		if deltaTime >= tick then
 			startTickTimer = spGetTimer()
 
-			sortedList = ProcessCallinStats(callinStats, timeLoadAverages, spaceLoadAverages, redStrength, deltaTime)
-			sortedListSYNCED = ProcessCallinStats(callinStatsSYNCED, timeLoadAveragesSYNCED, spaceLoadAveragesSYNCED, redStrengthSYNCED, deltaTime)
+			sortedList = ProcessCallinStats(callinStats, timeLoadAverages, spaceLoadAverages, redStrength, deltaTime, false)
+			sortedListSYNCED = ProcessCallinStats(callinStatsSYNCED, timeLoadAveragesSYNCED, spaceLoadAveragesSYNCED, redStrengthSYNCED, deltaTime, true)
 
 			luarulesMemory, _, globalMemory, _, unsyncedMemory, _, syncedMemory, _ = spGetLuaMemUsage()
 		end
@@ -691,38 +1062,93 @@ else
 		currentLineIndex = 0
 		currentColumnIndex = 0
 
+		clickableRowCount = 0 -- refilled below so MousePress hit-testing matches what is on screen
+
+		-- When a gadget is drilled into, reserve a band immediately left of column 0
+		-- for the detail panel; overflow columns then wrap to the left of it.
+		local panelGap = fontSize * 2 -- gutter between the panel and column 0
+		local panelWidth = mathMin(colWidth - panelGap, fontSize * 30)
+		columnReserve = selectedGadget and (panelWidth + panelGap) or 0
+
 		gl.Color(1, 1, 1, 1)
 		gl.BeginText()
 
-		DrawSortedList(sortedList, "UNSYNCED")
-		DrawSortedList(sortedListSYNCED, "SYNCED")
+		DrawSortedList(sortedList, "UNSYNCED", false)
+		DrawSortedList(sortedListSYNCED, "SYNCED", true)
+
+		if selectedGadget then
+			-- Fixed slot in the reserved band, just left of column 0.
+			DrawDetailPanel(initialX - panelGap - panelWidth, initialY, panelWidth)
+		end
 
 		NewSection("ALL")
 
+		-- Cache combined totals
+		local totalTime = (sortedList.allOverTime or 0) + (sortedListSYNCED.allOverTime or 0)
+		local totalSpace = (sortedList.allOverSpace or 0) + (sortedListSYNCED.allOverSpace or 0)
+
 		Line(0, totals_colour,
-			"",
-			('%.1f%%'):format((sortedList.allOverTime or 0) + (sortedListSYNCED.allOverTime or 0)),
+			nil,
+			stringFormat('%.1f%%', totalTime),
 			"total percentage of running time spent in luarules callins"
 		)
 
 		Line(0, totals_colour,
-			"",
-			('%.0f'):format((sortedList.allOverSpace or 0) + (sortedListSYNCED.allOverSpace or 0)) .. 'kB/s',
+			nil,
+			stringFormat('%.0f', totalSpace) .. 'kB/s',
 			"total rate of mem allocation by luarules callins"
 		)
 
-		Line(1, title_colour, 'total lua memory usage is ' .. ('%.0f'):format(globalMemory / 1000) .. 'MB, of which:')
+		-- Cache memory calculations
+		local globalMemMB = globalMemory / 1000
+		local luarulesPercent = 100 * luarulesMemory / globalMemory
+		local unsyncedPercent = 100 * unsyncedMemory / globalMemory
+		local syncedPercent = 100 * syncedMemory / globalMemory
 
-		Line(1, totals_colour, "",  ('%.0f'):format(100 * luarulesMemory / globalMemory) .. '% is from unsynced luarules')
-		Line(0, totals_colour, "", ('%.0f'):format(100 * unsyncedMemory / globalMemory) .. '% is from unsynced states (luarules+luagaia+luaui)')
-		Line(0, totals_colour, "", ('%.0f'):format(100 * syncedMemory / globalMemory) .. '% is from synced states (luarules+luagaia)')
+		Line(1, title_colour, 'total lua memory usage is ' .. stringFormat('%.0f', globalMemMB) .. 'MB, of which:')
+
+		Line(1, totals_colour, nil, stringFormat('%.0f', luarulesPercent) .. '% is from unsynced luarules')
+		Line(0, totals_colour, nil, stringFormat('%.0f', unsyncedPercent) .. '% is from unsynced states (luarules+luagaia+luaui)')
+		Line(0, totals_colour, nil, stringFormat('%.0f', syncedPercent) .. '% is from synced states (luarules+luagaia)')
 
 		Line(1, title_colour, "All data excludes load from garbage collection & executing GL calls")
 		Line(0, title_colour, "Callins in brackets are heaviest per gadget for (time,allocs)")
+		Line(0, title_colour, "Click a gadget to break it down per-callin")
 
 		Line(1, title_colour, "Tick time: " .. tick .. "s")
 		Line(0, title_colour, "Smoothing time: " .. Spring.GetConfigFloat("profiler_averagetime", 2) .. "s")
 
 		gl.EndText()
+	end
+
+	-- Click a gadget row to drill into its per-callin breakdown; click it again to close.
+	-- Only attached while the profiler is running (see SetMousePressCallin).
+	function gadget:MousePress_(mx, my, button)
+		if not running or button ~= 1 or clickableRowCount == 0 then
+			return false
+		end
+		for i = 1, clickableRowCount do
+			local r = clickableRows[i]
+			if mx >= r[1] and mx <= r[3] and my >= r[2] and my <= r[4] then
+				if selectedGadget == r[5] and selectedSynced == r[6] then
+					selectedGadget = nil
+				else
+					selectedGadget = r[5]
+					selectedSynced = r[6]
+					selectedCallinAvgs = {} -- start a fresh smoothing window
+				end
+				return true -- consume the click so it doesn't fall through to the map
+			end
+		end
+		return false
+	end
+
+	function gadget:MouseRelease_()
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
+			rawset(gadgetHandler, "mouseOwner", nil)
+		end
+		return false
 	end
 end

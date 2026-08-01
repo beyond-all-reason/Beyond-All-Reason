@@ -9,6 +9,7 @@ return {
 		builddistance = 161,
 		builder = true,
 		buildpic = "CORCOM.DDS",
+		onoffable = true,
 		buildtime = 120000,
 		cancapture = true,
 		cancloak = true,
@@ -31,8 +32,6 @@ return {
 		hidedamage = true,
     	holdsteady = true,
 		icontype = "corcom",
-		idleautoheal = 52,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 4900,
 		health = 6000,
@@ -122,9 +121,10 @@ return {
 			evolution_power_multiplier = 1,
 			combatradius = 0,
 			shield_color_mult = 0.8,
-			shield_power = 3300,
+			shield_power = 6270,
 			shield_radius = 100,
 			effigy = "comeffigylvl2",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
@@ -175,10 +175,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -247,6 +243,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 380,
 					subs = 125,
@@ -287,6 +286,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 300,
 					subs = 150,
@@ -316,8 +318,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,
@@ -325,11 +325,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			corcomeyelaser = {
@@ -362,6 +365,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 18,
@@ -383,15 +389,16 @@ return {
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
+					exterior = true,
 					force = 2.5,
 					intercepttype = 8191,
-					power = 3300,
-					powerregen = 75,
+					power = 6270,
+					powerregen = 188,
 					powerregenenergy = 15,
 					radius = 100,
 					repulser = false,
 					smart = true,
-					startingpower = 3300,
+					startingpower = 6270,
 					visiblerepulse = false,
 					badcolor = {
 						[1] = 1,

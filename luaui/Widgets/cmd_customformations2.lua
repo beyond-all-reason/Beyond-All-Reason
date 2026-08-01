@@ -15,6 +15,11 @@ function widget:GetInfo()
     }
 end
 
+
+-- Localized Spring API for performance
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 -- Behavior:
 -- To give a line command: select command, then right click & drag
 -- To give a command within an area: select command, then left click and drag
@@ -91,6 +96,10 @@ local multiUnitOnlyCmds = {
 
 local chobbyInterface
 local lineLength = 0
+local formationVersion = 0
+local formationOrders = nil
+local formationOrdersVersion = nil
+local formationOrdersShifted = nil
 
 --------------------------------------------------------------------------------
 -- Globals
@@ -124,7 +133,11 @@ local MiniMapFullProxy = (Spring.GetConfigInt("MiniMapFullProxy", 0) == 1)
 -- Speedups
 --------------------------------------------------------------------------------
 local GL_LINE_STRIP = GL.LINE_STRIP
+local GL_QUADS = GL.QUADS
 local glVertex = gl.Vertex
+local glTexCoord = gl.TexCoord
+local glTexture = gl.Texture
+local glDepthTest = gl.DepthTest
 local glLineStipple = gl.LineStipple
 local glLineWidth = gl.LineWidth
 local glColor = gl.Color
@@ -174,8 +187,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnits = spGetSelectedUnits()
+local selectedUnitsCount = spGetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -186,7 +199,7 @@ local function GetModKeys()
     if spGetInvertQueueKey() then -- Shift inversion
         shift = not shift
     end
-    
+
     -- Check if PiP widget wants to force shift for right-click drags
     if WG.pipForceShift then
         shift = true
@@ -247,10 +260,8 @@ end
 
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOADUNIT then
-        local transporting = spGetUnitIsTransporting(uID)
-        return (transporting and #transporting > 0)
+        cmdID = CMD_UNLOADUNITS
     end
-
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
@@ -290,6 +301,7 @@ local function AddFNode(pos)
         lineLength = lineLength+distSq^0.5
     end
 
+    formationVersion = formationVersion + 1
     totaldxy = 0
     return true
 end
@@ -388,7 +400,7 @@ end
 
 function widget:SelectionChanged(sel)
     selectedUnits = sel
-    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+    selectedUnitsCount = spGetSelectedUnitsCount()
 end
 
 
@@ -505,8 +517,12 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
         -- If the line is a path, start the units moving to this node
         if pathCandidate then
 
-            local alt, ctrl, meta, shift = GetModKeys()
-            local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
+            -- For the first path command, use raw shift state to decide whether to clear queue
+            -- This ensures queue is cleared unless user explicitly holds shift
+            local alt, ctrl, meta, _ = GetModKeys()
+            local _, _, _, rawShift = spGetModKeyState()
+            if spGetInvertQueueKey() then rawShift = not rawShift end
+            local cmdOpts = GetCmdOpts(false, ctrl, meta, rawShift, usingRMB) -- using alt uses springs box formation, so we set it off always
 
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
@@ -692,7 +708,9 @@ function widget:MouseRelease(mx, my, mButton)
                         end
                     end
                 end
-
+				if usingCmd == CMD_SETTARGET then
+					Spring.SendLuaRulesMsg("settarget_line")
+				end
                 spSetActiveCommand(0) -- Deselect command
             end
         end
@@ -723,14 +741,6 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 
-local function tVerts(verts)
-    for i = 1, #verts do
-        local v = verts[i]
-        glVertex(v[1], v[2], v[3])
-    end
-end
-
-
 local function tVertsMinimap(verts)
     for i = 1, #verts do
         local v = verts[i]
@@ -740,67 +750,59 @@ end
 
 
 local function DrawGroundquad(x,y,z,size)
-    gl.TexCoord(0,0)
-    gl.Vertex(x-size,y,z-size)
-    gl.TexCoord(0,1)
-    gl.Vertex(x-size,y,z+size)
-    gl.TexCoord(1,1)
-    gl.Vertex(x+size,y,z+size)
-    gl.TexCoord(1,0)
-    gl.Vertex(x+size,y,z-size)
+    glTexCoord(0,0)
+    glVertex(x-size,y,z-size)
+    glTexCoord(0,1)
+    glVertex(x-size,y,z+size)
+    glTexCoord(1,1)
+    glVertex(x+size,y,z+size)
+    glTexCoord(1,0)
+    glVertex(x+size,y,z-size)
 end
 
 
-local function DrawFilledCircleOutFading(pos, size, cornerCount)
+local function DrawFormationDotQuads(dotSize, lengthPerUnit)
+    local nodeCount = #fNodes
+    local firstNode = fNodes[1]
+    DrawGroundquad(firstNode[1], firstNode[2], firstNode[3], dotSize)
+
+    if nodeCount > 2 then
+        local currentLength = 0
+        local nextDotLength = lengthPerUnit
+        for i = 1, nodeCount - 1 do
+            local node = fNodes[i]
+            local nextNode = fNodes[i + 1]
+            local dx = nextNode[1] - node[1]
+            local dy = nextNode[2] - node[2]
+            local dz = nextNode[3] - node[3]
+            local segmentLength = sqrt(dx*dx + dz*dz)
+            local segmentEnd = currentLength + segmentLength
+            while segmentEnd >= nextDotLength and nextDotLength < lineLength do
+                local factor = (nextDotLength - currentLength) / segmentLength
+                DrawGroundquad(node[1] + dx*factor, node[2] + dy*factor, node[3] + dz*factor, dotSize)
+                nextDotLength = nextDotLength + lengthPerUnit
+            end
+            currentLength = segmentEnd
+        end
+    end
+
+    local lastNode = fNodes[nodeCount]
+    DrawGroundquad(lastNode[1], lastNode[2], lastNode[3], dotSize)
+end
+
+
+local function DrawFormationDots(zoomY)
+    local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
+    local dotSize = sqrt(zoomY*0.24)
     SetColor(usingCmd, 1)
-	local lengthPerUnit = lineLength / (selectedUnitsCount-1)
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
 		glColor(1.0,0.3,0.0,1.0)
-	end
-    gl.Texture(dotImage)
-    gl.BeginEnd(GL.QUADS,DrawGroundquad, pos[1], pos[2], pos[3], size)
-    gl.Texture(false)
-end
-
-
-local function DrawFormationDots(vertFunction, zoomY)
-	gl.PushAttrib(GL.ALL_ATTRIB_BITS)
-    gl.DepthTest(false)
-    local currentLength = 0
-    local lengthPerUnit = lineLength / (selectedUnitsCount - 1)
-    local lengthUnitNext = lengthPerUnit
-    local dotSize = sqrt(zoomY*0.24)
-    if (#fNodes > 1) and (selectedUnitsCount > 1) then
-        SetColor(usingCmd, 0.6)
-		if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
-			glColor(1.0,0.3,0.0,0.6)
-		end
-        DrawFilledCircleOutFading(fNodes[1], dotSize)
-        if (#fNodes > 2) then
-            for i=1, #fNodes-1 do
-                local x = fNodes[i][1]
-                local y = fNodes[i][3]
-                local x2 = fNodes[i+1][1]
-                local y2 = fNodes[i+1][3]
-                local dx = x - x2
-                local dy = y - y2
-                local length = sqrt((dx*dx)+(dy*dy))
-                while (currentLength + length >= lengthUnitNext) do
-                    local factor = (lengthUnitNext - currentLength) / length
-                    local factorPos =
-                    {fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
-                        fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
-                        fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
-                    DrawFilledCircleOutFading(factorPos, dotSize)
-                    lengthUnitNext = lengthUnitNext + lengthPerUnit
-                end
-                currentLength = currentLength + length
-            end
-        end
-        DrawFilledCircleOutFading(fNodes[#fNodes], dotSize)
     end
-    gl.DepthTest(true)
-	gl.PopAttrib(GL.ALL_ATTRIB_BITS)
+    glDepthTest(false)
+    glTexture(dotImage)
+    glBeginEnd(GL_QUADS, DrawFormationDotQuads, dotSize, lengthPerUnit)
+    glTexture(false)
+    glDepthTest(true)
 end
 
 
@@ -836,25 +838,24 @@ end
 
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
-    if #fNodes > 1 or #dimmNodes > 1 then
-        local camX, camY, camZ = spGetCameraPosition()
-        local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
-		local zoomY
-        if at == "ground" then
-            local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
-            --zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25
-            zoomY = sqrt(dx*dx + dy*dy + dz*dz)
-        else
-            --zoomY = sqrt((camY - max(spGetGroundHeight(camX, camZ), 0))*0.1)
-            zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
-        end
-        if zoomY < 6 then zoomY = 6 end
-        if lineLength > 0 then  --don't try and draw if the command was cancelled by having two mouse buttons pressed at once
-            DrawFormationDots(tVerts, zoomY)
-        end
-		glColor(1,1,1,1)
+    if chobbyInterface or #fNodes <= 1 or selectedUnitsCount <= 1 or lineLength <= 0 then
+        return
     end
+
+    local camX, camY, camZ = spGetCameraPosition()
+    local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
+	local zoomY
+    if at == "ground" then
+        local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
+        --zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25
+        zoomY = sqrt(dx*dx + dy*dy + dz*dz)
+    else
+        --zoomY = sqrt((camY - max(spGetGroundHeight(camX, camZ), 0))*0.1)
+        zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
+    end
+    if zoomY < 6 then zoomY = 6 end
+    DrawFormationDots(zoomY)
+	glColor(1,1,1,1)
 end
 
 
@@ -1090,7 +1091,7 @@ function GetOrdersNoX(nodes, units, unitCount, shifted)
 end
 
 
-function GetOrdersHungarian(nodes, units, unitCount, shifted)
+function GetOrdersHungarian(nodes, units, unitCount, shifted, adjustLimit)
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
     -- (the following code is written by gunblob)
@@ -1139,11 +1140,11 @@ function GetOrdersHungarian(nodes, units, unitCount, shifted)
 
     local delay = osclock() - t
 
-    if (delay > maxHngTime) and (maxHungarianUnits > minHungarianUnits) then
+    if adjustLimit ~= false and (delay > maxHngTime) and (maxHungarianUnits > minHungarianUnits) then
 
         -- Delay is greater than desired, we have to reduce units
         maxHungarianUnits = maxHungarianUnits - 1
-    else
+    elseif adjustLimit ~= false then
         -- Delay is less than desired, so thats OK
         -- To make judgements we need number of units to be close to max
         -- Because we are making predictions of time and we want them to be accurate
@@ -1392,8 +1393,10 @@ function widget:Initialize()
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
 	end
-	
+
 	-- External formation dragging API (for PIP window, etc.)
+	local isFirstPathCommand = true -- Track whether next path command should clear queue
+
 	WG.customformations.StartFormation = function(worldPos, cmdID, fromMinimap)
 		-- Reset state
 		fNodes = {}
@@ -1406,12 +1409,13 @@ function widget:Initialize()
 		pathPositions = {}
 		overriddenCmd = nil
 		overriddenTarget = nil
-		
+		isFirstPathCommand = true -- Reset for new formation
+
 		-- Set command
 		usingCmd = cmdID or CMD_MOVE
 		usingRMB = true
 		inMinimap = fromMinimap or false
-		
+
 		-- Add first node
 		if AddFNode(worldPos) then
 			local alt, ctrl, meta, shift = spGetModKeyState()
@@ -1420,18 +1424,18 @@ function widget:Initialize()
 		end
 		return false
 	end
-	
+
 	WG.customformations.AddFormationNode = function(worldPos)
 		if #fNodes == 0 then return false end
-		
+
 		local added = AddFNode(worldPos)
-		
+
 		-- Start drawing when we have 2+ nodes
 		if #fNodes == 2 then
 			widgetHandler:UpdateWidgetCallIn("DrawWorld", self)
 			widgetHandler:UpdateWidgetCallIn("DrawInMiniMap", self)
 		end
-		
+
 		-- Path handling
 		if #fNodes > 1 and pathCandidate then
 			local minDist = minPathSpacingSq
@@ -1449,11 +1453,18 @@ function widget:Initialize()
 							break
 						end
 					end
-					
+
 					-- Only add command if it's not too close to any previous position
 					if not tooClose then
 						draggingPath = true
+						-- Use raw shift for first path command, GetModKeys for subsequent
 						local alt, ctrl, meta, shift = GetModKeys()
+						if isFirstPathCommand then
+							-- First command: use raw shift to decide queue clearing
+							_, _, _, shift = spGetModKeyState()
+							if spGetInvertQueueKey() then shift = not shift end
+							isFirstPathCommand = false
+						end
 						local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
 						GiveNotifyingOrder(usingCmd, worldPos, cmdOpts)
 						lastPathPos = worldPos
@@ -1465,31 +1476,37 @@ function widget:Initialize()
 				pathPositions[1] = {worldPos[1], worldPos[2], worldPos[3]}
 			end
 		end
-		
+
 		return added
 	end
-	
+
 	WG.customformations.EndFormation = function(worldPos, cmdID)
 		if #fNodes == 0 then return false end
-		
+
 		-- Add final position
 		if worldPos then
 			AddFNode(worldPos)
 		end
-		
+
 		-- Determine if we used the formation
 		local usingFormation = not draggingPath
 		local result = false
-		
+
 		if usingFormation then
+			-- Use raw shift for single-click orders (first command should clear queue unless user holds shift)
 			local alt, ctrl, meta, shift = GetModKeys()
+			if isFirstPathCommand then
+				-- This is effectively a single click or very short drag - use raw shift
+				_, _, _, shift = spGetModKeyState()
+				if spGetInvertQueueKey() then shift = not shift end
+			end
 			local cmdOpts = GetCmdOpts(alt, ctrl, meta, shift, usingRMB)
-			
+
 			-- Get drag threshold
 			local selectionThreshold = Spring.GetConfigInt("MouseDragFrontCommandThreshold") or 20
 			local dragDelta = selectionThreshold -- Approximate for external callers
 			local adjustedMinFormationLength = max(dragDelta, minFormationLength)
-			
+
 			if fDists[#fNodes] < adjustedMinFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
 				-- Single-click style order
 				if usingCmd == CMD_MOVE and #fNodes > 0 then
@@ -1507,7 +1524,7 @@ function widget:Initialize()
 					else
 						orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
 					end
-					
+
 					local unitArr = {}
 					local orderArr = {}
 					if meta then
@@ -1537,7 +1554,7 @@ function widget:Initialize()
 				end
 			end
 		end
-		
+
 		-- Show dimming line
 		if #fNodes > 1 then
 			dimmCmd = usingCmd
@@ -1545,15 +1562,15 @@ function widget:Initialize()
 			dimmAlpha = 1.0
 			widgetHandler:UpdateWidgetCallIn("Update", self)
 		end
-		
+
 		-- Reset
 		fNodes = {}
 		fDists = {}
 		draggingPath = false
-		
+
 		return result
 	end
-	
+
 	WG.customformations.CancelFormation = function()
 		fNodes = {}
 		fDists = {}
@@ -1562,26 +1579,57 @@ function widget:Initialize()
 		pathPositions = {}
 		return true
 	end
-	
+
 	WG.customformations.IsFormationActive = function()
 		return #fNodes > 0
 	end
-	
+
 	WG.customformations.GetFormationNodes = function()
 		return fNodes
 	end
-	
+
 	WG.customformations.GetFormationCommand = function()
 		return usingCmd
 	end
-	
+
 	WG.customformations.GetFormationLineLength = function()
 		return lineLength
 	end
-	
+
 	WG.customformations.GetSelectedUnitsCount = function()
 		return selectedUnitsCount
 	end
+
+    WG.customformations.GetFormationOrders = function()
+        if #fNodes < 2 then
+            return nil
+        end
+
+        local _, _, meta, shift = GetModKeys()
+        local shifted = shift and not meta
+        if formationOrdersVersion ~= formationVersion or formationOrdersShifted ~= shifted then
+            local mUnits = GetExecutingUnits(usingCmd)
+            if #mUnits == 0 then
+                return nil
+            end
+            local interpNodes = GetInterpNodes(mUnits)
+            local orders
+            if #mUnits <= maxHungarianUnits then
+                orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)
+            else
+                orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shifted)
+            end
+
+            formationOrders = {}
+            for i = 1, #orders do
+                local order = orders[i]
+                formationOrders[order[1]] = order[2]
+            end
+            formationOrdersVersion = formationVersion
+            formationOrdersShifted = shifted
+        end
+        return formationOrders
+    end
 end
 
 

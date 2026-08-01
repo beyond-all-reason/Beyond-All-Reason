@@ -74,6 +74,16 @@ local options = {
         desc   	= "Allow custom user widgets or disallow them",
         type   	= "bool",
         def    	= true,
+		hidden	= true,
+        section	= "options_main",
+    },
+
+    {
+        key    	= "allowunitcontrolwidgets",
+        name   	= "Allow Custom 'Unit Control' Widgets",
+        desc   	= "Allow custom user 'unit control' widgets or disallow them",
+        type   	= "bool",
+        def    	= true,
         section	= "options_main",
     },
 
@@ -104,7 +114,7 @@ local options = {
     {
         key    	= "maxunits",
         name   	= "Max Units Per Player",
-        desc   	= "Keep in mind there is an absolute limit of units, 32000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
+        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
         def    	= 2000,
         min    	= 500,
@@ -120,40 +130,41 @@ local options = {
         def     = "com",
         section = "options_main",
         items   = {
-            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config" } },
-            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config" } },
-            --{ key= "territorial_domination",  name= "Territorial Domination",     desc="Teams race to capture territory against an ever-increasing quota to stay in the game. Commander retreat or death results in defeat.", unlock = {"territorial_domination_config"} },
-            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config" } },
-            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config" } },
-            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config" } },
+            { key = "neverend", name = "Never ending",             desc = "Teams are never eliminated",                       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "com",     name = "Kill all enemy Commanders", desc = "When a team has no Commanders left, it loses",     lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key= "territorial_domination",  name= "Territorial Domination",     desc="Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.", unlock = {"territorial_domination_config", "territorial_domination_elimination_threshold_multiplier"} },
+            { key = "builders", name = "Kill all Builders",        desc = "When a team has no builders left, it loses",       lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "killall", name = "Kill everything",           desc = "Every last unit must be eliminated, no exceptions!", lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
+            { key = "own_com", name = "Player resign on Com death", desc = "When player commander dies, you auto-resign.",    lock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" } },
         }
-    },
-
-    --temporary, uncomment the added deathmode entry and delete entries related to temp_enable_territorial_domination once beta is over.
-    {
-        key     = "temp_enable_territorial_domination",
-        name    = "Territorial Domination V0.1",
-        desc    = "Enable experimental Territorial Domination gamemode",
-        hidden  = true,
-        type    = "bool",
-        section = "options_main",
-        unlock  = { "territorial_domination_config" },
-        def     = false,
     },
 
     {
         key     = "territorial_domination_config",
-        name    = "Territorial Domination Duration",
+        name    = "Territorial Domination Length",
         desc    =
         "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
         type    = "list",
-        def     = "default",
+        def     = "25_minutes",
         section = "options_main",
         items   = {
-            { key = "short",  name = "Short",  desc = "6 minutes grace period, 18 minute until the maximum territory is required" },
-            { key = "default", name = "Default", desc = "6 minutes grace period, 24 minute until the maximum territory is required" },
-            { key = "long",   name = "Long",   desc = "6 minutes grace period, 36 minute until the maximum territory is required" },
+            { key = "20_minutes", name = "4 Rounds, 20 Minutes",  desc = "Early tech emphasis, comebacks very likely, elimination unlikely." },
+            { key = "25_minutes",  name = "5 Rounds, 25 Minutes(Default)",  desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon" },
+            { key = "30_minutes", name = "6 Rounds, 30 Minutes", desc = "Late-game tech, comebacks less significant, eliminations likely" },
+            { key = "35_minutes",   name = "7 Rounds, 35 Minutes",   desc = "Super lategame tech, eliminations extremely likely" },
         }
+    },
+
+    {
+        key     = "territorial_domination_elimination_threshold_multiplier",
+        name    = "Elimination Threshold Multiplier",
+        desc    = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+        type    = "number",
+        def     = 1.2,
+        min     = 1.0,
+        max     = 1.5,
+        step    = 0.1,
+        section = "options_main",
     },
 
     {
@@ -246,13 +257,32 @@ local options = {
 			"PLEASE NOTE: For this to work, the game needs to have set startboxes.\n"..
 			-- tabs don't do much in chobby
 			"                          It won't work in FFA mode without boxes.\n"..
-			"                          Also, it does not affect Scavengers and Raptors.",
+			"                          Also, it does not affect Scavengers and Raptors.\n"..
+			"\255\75\0\100".."WARNING: No Rush Time over 30 minutes may cause performance or stability issues due to excessive unit buildup.",
         type   	= "number",
         section	= "options_main",
         def    	= 0,
         min    	= 0,
-        max    	= 30,
+        max    	= 120,
         step   	= 1,
+    },
+    {
+		key		= "norushmiddlefree",
+		name	= "No Rush Non Base FFA",
+		desc	= "Allows units to leave startboxes but disallows commands issued in enemy startboxes.\n"..
+            "Does not prevent commands onto the other side of startboxes so recommend East/West or North/South startboxes.",
+		type	= "bool",
+		section	= "options_main",
+		def		= false,
+	},
+
+    {
+        key 	= "comm_trans_slow",
+        name 	= "Slow Commander Transport",
+        desc 	= "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished.",
+        type 	= "bool",
+        section = "options_main",
+        def 	= false,
     },
 
 	{
@@ -295,7 +325,7 @@ local options = {
 		type	= "bool",
 		section	= "options_main",
 		def		=  false,
-		column	= 1.76,
+		column	= 1.66,
 	},
     {
         key     = "sub_header",
@@ -353,9 +383,9 @@ local options = {
     },
 
 	{
-		key		= "unit_restrictions_nodefence",
-		name	= "Disable Defences",
-		desc	= "Disables Defensive Structures, apart from basic LLTs and basic AA",
+		key		= "unit_restrictions_nosea",
+		name	= "Disable Sea Units",
+		desc	= "Disable Sea Units",
 		type	= "bool",
 		section	= "options_main",
 		def		= false,
@@ -506,6 +536,32 @@ local options = {
     },
 
     {
+        key		= "wreck_metal_ratio",
+        name	= "Wreck Metal Percent",
+        desc	= "Percent of unit metal that is left in its wrecks",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.6,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
+    },
+
+    {
+        key		= "heap_metal_ratio",
+        name	= "Heap Metal Percent",
+        desc	= "Percent of unit metal that is left in its heaps",
+        hidden 	= true,
+        type	= "number",
+        section	= "options",
+        def		= 0.25,
+        min		= 0,
+        max		= 1,
+        step	= 0.05,
+    },
+
+    {
         key		= "coop",
         name	= "Cooperative mode",
         desc	= "Adds extra commanders to id-sharing teams, 1 com per player",
@@ -541,6 +597,19 @@ local options = {
         section = "raptor_defense_options",
         type    = "subheader",
         def     =  true,
+    },
+
+    {
+        key     = "raptors_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Raptors development discussion.",
+        section = "raptor_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/781097030692110346",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
 	{
@@ -713,6 +782,19 @@ local options = {
         def     =  true,
     },
 
+    {
+        key     = "scavengers_dev_channel_link",
+        name    = "Development Discussion",
+        desc    = "Scavengers development discussion.",
+        section = "scav_defense_options",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/659550298653589504",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
 	{
 		key		= "sub_header",
 		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
@@ -833,6 +915,18 @@ local options = {
         def		= 1,
         min		= 1,
         max		= 5,
+        step	= 0.1,
+        section	= "scav_defense_options",
+    },
+
+    {
+        key		= "scav_graceperiodmult",
+        name	= "Grace Period Time Multiplier",
+        desc	= "(Range: 0.1 - 3). Time before Scavs become active. ",
+        type	= "number",
+        def		= 1,
+        min		= 0.1,
+        max		= 3,
         step	= 0.1,
         section	= "scav_defense_options",
     },
@@ -1133,6 +1227,19 @@ local options = {
     },
 
     {
+        key     = "evocom_feedback_thread_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about Evolving Commanders.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1233887661291343913",
+        width   = 215,
+        column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "evocomlevelupmethod",
         name 	= "EvoCom: Leveling Method",
         desc   	= "Dynamic: Commanders evolve to keep up with the highest power player. Timed: Static Evolution Rate",
@@ -1241,6 +1348,19 @@ local options = {
     },
 
     {
+        key     = "quick_start_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about quick start.",
+        section = "options_extra",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1413936809980858408",
+        width   = 215,
+        column  = 2,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
         key 	= "quick_start_amount",
         name 	= "Quick Start Base Budget",
         desc   	= "How much pre-game resources you have to spend on pre-queuing structures.",
@@ -1249,33 +1369,43 @@ local options = {
         section = "options_extra",
         items 	= {
             { key = "default", 	name = "Default", desc = "Uses the default amount based on game mode" },
-            { key = "small", 	name = "Small", desc = "1000 Base Budget" },
-            { key = "normal", 	name = "Normal", desc = "1500 Base Budget" },
-            { key = "large", 	name = "Large", desc = "3000 Base Budget" },
+            { key = "small", 	name = "Small", desc = "800 Base Budget" },
+            { key = "normal", 	name = "Normal", desc = "1200 Base Budget" },
+            { key = "large", 	name = "Large", desc = "2400 Base Budget" },
         }
+    },
+
+    {
+        key 	= "enable_quickstart_overrides",
+        name 	= "Enable Quick Start Overrides",
+        desc   	= "Allow overriding quick start range and budget (for debugging/modding).",
+        type 	= "bool",
+        def 	= false,
+        section = "options_extra",
+        hidden 	= true,
     },
 
     {
         key 	= "override_quick_start_range",
         name 	= "Override Quick Start Range",
-        desc   	= "Override the quick start build range. Set to 0 to use default behavior.",
+        desc   	= "Override the quick start build range when overrides are enabled (values below 200 are clamped to 200).",
         type 	= "number",
-        def 	= 0,
-        min 	= 300,
-        max 	= 10000,
+        def 	= 600,
+        min 	= 200,
+        max 	= 2000,
         step 	= 1,
         section = "options_extra",
         hidden 	= true,
     },
 
     {
-        key 	= "override_quick_start_resources",
-        name 	= "Override Quick Start Resources",
-        desc   	= "Override the quick start starting resources. Set to 0 to use default behavior.",
+        key 	= "override_quick_start_budget",
+        name 	= "Override Quick Start Budget",
+        desc   	= "Override the quick start starting resources when overrides are enabled.",
         type 	= "number",
-        def 	= 0,
+        def 	= 1200,
         min 	= 100,
-        max 	= 10000,
+        max 	= 1000000,
         step 	= 1,
         section = "options_extra",
         hidden 	= true,
@@ -1308,7 +1438,7 @@ local options = {
         def    	= 1,
         min    	= 0.5,
         max    	= 5,
-        step   	= 1,
+        step   	= 0.1,
     },
 
     {
@@ -1396,16 +1526,6 @@ local options = {
         }
     },
 
-    {
-        key     = "seasonal_surprise",
-        name    = "Seasonal Surprise",
-        desc    = "Happy Halloween!",
-        type    = "bool",
-        def     = false,
-        section = "options_extra",
-        hidden  = true,
-    },
-
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Experimental Options
@@ -1445,12 +1565,152 @@ local options = {
     },
 
     {
+        key 	= "proposed_unit_reworks",
+        name 	= "Placeholder for BLT testing",
+        desc 	= "Placeholder for official balance testing mod option",
+        type 	= "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "community_balance_patch",
+        name    = "Community Balance Patch 5-6/26",
+        desc    = "Enable community balance patch changes\n(overwrites changes in official seasonal balance test)",
+        type    = "list",
+        def     = "disabled",
+        section = "options_experimental",
+        items   = {
+            { key = "disabled", name = "Disabled", desc = "No community balance changes",
+            lock = {"community_balance_corspy","community_balance_armmav","community_balance_corcan","community_balance_corkarg","community_balance_armkam","community_balance_armblade"} },
+
+            { key = "enabled",  name = "Enabled",  desc = "Enable all community balance changes\nSpectre\nGunslinger\nSumo\nKarganeth\nBanshee\nHornet",
+            lock = {"community_balance_corspy","community_balance_armmav","community_balance_corcan","community_balance_corkarg","community_balance_armkam","community_balance_armblade"} },
+
+            { key = "custom",   name = "Custom",   desc = "Customize individual community balance changes",
+            unlock = {"community_balance_corspy", "community_balance_armmav", "community_balance_corcan", "community_balance_corkarg", "community_balance_armkam", "community_balance_armblade"} },
+        }
+    },
+
+    {
+        key     = "community_balance_patch_changelog_link",
+        name    = "Changelog/Feedback",
+        desc    = "Community Balance Patch discussion",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1512596823070740550",
+        width   = 235,
+        column  = 2.025,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "community_balance_corspy",
+        name    = "(CBP) Spectre",
+        desc    = "(From February)\nEnergy cost: 8800 (from 12500)\nMetal cost: 135 (from 165)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armmav",
+        name    = "(CBP) Gunslinger",
+        desc    = "(From April)\nMetal cost: 520 (from 650)\nEnergy cost: 6500 (from 11000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corcan",
+        name    = "(CBP) Sumo",
+        desc    = "(From April)\nMain laser range: 300 (from 275)\nMain laser beam time: 0.24 (from 0.16)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_corkarg",
+        name    = "(CBP) Karganeth",
+        desc    = "(New)\nSight distance: 515 (from 455)\nMax acceleration: 0.18 (from 0.1104)\nTurn rate: 515 (from 400)\nTurn-in-place speed limit: 1.25 (from 0.99)\nStrafe to attack: true (from false)\nMissile trajectory height: 0.25 (from none)\nMetal cost: 2650 (from 2500)\nBuild time: 100000 (from 94000)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armkam",
+        name    = "(CBP) Banshee",
+        desc    = "(New)\nMax acceleration: 0.35 (from 0.15)\nWeapon range: 400 (from 350)\nWeapon reload: 3.0 (from 0.7)\nWeapon damage: 141 single shot (from 9 x 3 burst)\nArea of effect: 32 (from 40)\nEdge effectiveness: 0.40 (from 0.5)\nProjectile velocity: 1090 (from 1000)\nWeapon accuracy: 0 (from 13), spray angle removed (from 1024)\nCylindrical targeting: 0 (from 1)\nWeapon timer: 0 (from 0.1)\nWeapon tolerance: 2000 (from 5000)\nImpulse factor: 2.14 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-small-bomb (from plasmahit-small)\nWeapon sound: mavgun4 (from flashemg)\nTurret: true (from false)\nFiring arc: 45° forward, hidden attack range arc (from unrestricted/fixed)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
+        key     = "community_balance_armblade",
+        name    = "(CBP) Hornet",
+        desc    = "(New)\nMax acceleration: 0.28 (from 0.6)\nMax deceleration: 0.55 (from 0.35)\nHealth: 3350 (from 3000)\nSpeed: 125 (from 204)\nTurn angle limit: 120 (from 360)\nTurn rate: 420 (from 720)\nSight distance: 720 (from 624)\nWeapon range: 1100 (from 420)\nWeapon reload: 4.0 (from 2.26667)\nWeapon damage: 425 x 2 burst (from 190 x 2 burst)\nCommander damage: 200 x 2 burst\nBurst rate: 0.15 (from 0.23333)\nArea of effect: 64 (from 32)\nEdge effectiveness: 0.40 (from 0.15)\nProjectile type: Cannon (from MissileLauncher)\nProjectile velocity: 1090 (from 1000)\nImpulse factor: 1.5 (from 0.123)\nWeapon visual: impulse-trail / genericshellexplosion-medium-bomb (from missiletrailsmall-simple / genericshellexplosion-medium)\nWeapon sound: mavgun5 / xplomed2 (from SabotFire / SabotHit)\nTurret: true (from false)\nFiring arc: 45° forward (from unrestricted)",
+        type    = "bool",
+        def     = false,
+        section = "options_experimental",
+    },
+
+    {
         key    	= "experimentallegionfaction",
         name   	= "Legion Faction",
         desc   	= "3rd experimental faction",
         type   	= "bool",
         section = "options_experimental",
         def  	= false,
+    },
+
+	{
+        key    	= "legionsimplifiedmexes",
+        name   	= "Legion Simplified Mexes",
+        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.  Legion light T1 units are given a higher metal cost but lower E cost, and heavy T1 units are given a higher E cost and slightly lower metal cost.",
+        type   	= "bool",
+        section = "options_experimental",
+        def  	= false,
+    },
+
+    {
+        key     = "experimentallegionfaction_link",
+        name    = "Development Discussion",
+        desc    = "Discord discussion about Legion faction.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1063217502898884701/1441480747629412675",
+        width   = 275,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key 	= "easytax",
+        name 	= "Easy Tax v2",
+        desc 	= "Anti co-op sharing tax mod. Overwrites other tax settings. Don't combine with other sharing restriction mods, everything you need is included with easy tax.",
+        type 	= "bool",
+        section = "options_experimental",
+        def 	= false,
+    },
+
+    {
+        key     = "easytax_link",
+        name    = "Changelog",
+        desc    = "Easy Tax v2 description.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://gist.github.com/RebelNode/43b986f29b9cfacbe95cf634cac25c49",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     -- Hidden Tests
@@ -1476,32 +1736,25 @@ local options = {
     },
 
     {
-        key    	= "shieldsrework",
-        name   	= "Shields Rework v2.0",
-        desc   	= "Shields block plasma. Overkill damage is absorbed. Shield is down for the duration required to recharge the overkill damage at normal energy cost.",
-        type   	= "bool",
-        hidden 	= false,
+        key     = "experimental_defend_firestate",
+        name    = "Defend Combat Stance",
+        desc    = "Replaces Return Fire with the new Defend combat stance.\nDefending units will shoot threats to themselves when they become threats on a 1v1 basis.",
+        type    = "bool",
         section = "options_experimental",
-        def  	= false,
+        def     = false,
     },
 
     {
-        key    	= "experimental_low_priority_pacifists",
-        name   	= "Low Priority Pacifists",
-        desc   	= "Makes the automatic target priority of non-combat mobile units much lower, so they must be intentionally targeted.",
-        type   	= "bool",
+        key     = "experimental_defend_firestate_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about the Defend Combat Stance rework.",
         section = "options_experimental",
-        def  	= false,
-    },
-
-    {
-        key 	= "lategame_rebalance",
-        name 	= "Lategame Rebalance",
-        desc 	= "T2 defenses and anti-air is weaker, giving more time for late T2 strategies to be effective.  Early T3 unit prices increased. Increased price of calamity/ragnarock by 20% so late T3 has more time to be effective.",
-        type 	= "bool",
-        section = "options_experimental",
-        def 	= false,
-        hidden 	= true,
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1520166826435280998",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
     },
 
     {
@@ -1556,16 +1809,6 @@ local options = {
     },
 
     {
-        key 	= "proposed_unit_reworks",
-        name 	= "Proposed Unit Reworks",
-        desc 	= "Modoption used to test balance changes that are being considered for the base game.",
-        type 	= "bool",
-        --hidden 	= true,
-        section = "options_experimental",
-        def 	= false,
-    },
-
-    {
         key 	= "naval_balance_tweaks",
         name 	= "Proposed Naval Balance Tweaks",
         desc 	= "Modoption used to test specific balance adjustments dedicated towards naval units.",
@@ -1573,6 +1816,29 @@ local options = {
         --hidden 	= true,
         section = "options_experimental",
         def 	= false,
+    },
+
+    {
+        key     = "naval_balance_tweaks_link",
+        name    = "Feedback thread",
+        desc    = "Discord discussion about naval balance tweaks.",
+        section = "options_experimental",
+        type    = "link",
+        link    = "https://discord.com/channels/549281623154229250/1428031834045939833",
+        width   = 215,
+        column  = 1.65,
+        linkheight = 325,
+        linkwidth = 350,
+    },
+
+    {
+        key     = "forge_volcano",
+        name    = "Forge Volcano Event",
+        desc    = "Enable the cinematic volcano eruption event on Forge v2.3.",
+        type    = "bool",
+        hidden 	= true,
+        section = "options_experimental",
+        def     = false,
     },
 
     {
@@ -1591,7 +1857,6 @@ local options = {
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
     {
         key		= "modes",
         name	= "GameModes",
@@ -1599,7 +1864,6 @@ local options = {
         hidden 	= true,
         type	= "section",
     },
-
 
     {
         key    	= "shareddynamicalliancevictory",
@@ -1623,7 +1887,6 @@ local options = {
         max    	= 10,
         step   	= 0.1,
     },
-
 
     {
         key     = "defaultdecals",
@@ -1668,7 +1931,7 @@ local options = {
     {
         key     = "debugcommands",
         name    = "Debug Commands",
-        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules fightertest|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "A pipe separated list of commands to execute at [gameframe]:luarules benchmark|100:forcequit...", -- example: debugcommands=150:cheat 1|200:luarules benchmark|600:quitforce;
         section = "dev",
         type    = "string",
         def     = "",
@@ -1676,7 +1939,7 @@ local options = {
     {
         key     = "animationcleanup",
         name    = "Animation Cleanup",
-        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules fightertest|600:quitforce;
+        desc    = "Use animations from the BOSCleanup branch", -- example: debugcommands=150:cheat 1|200:luarules benchmark|600:quitforce;
         section = "dev",
         type    = "bool",
         def     =  false,
@@ -1754,6 +2017,24 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         type    = "string",
         def     = "",
     },
+    {
+        key     = "mapmetadata_startboxes_set",
+        name    = "Map Metadata: Startboxes Set",
+        desc    = "Per-team-count startbox arrangements (rect or polygon). Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
+    {
+        key     = "mapmetadata_startbox_override",
+        name    = "Map Metadata: Startbox Override",
+        desc    = "Custom startbox arrangement that overrides the set when its team count matches. Format is: base64url(zlib(json))",
+        hidden  = true,
+        section = "mapmetadata",
+        type    = "string",
+        def     = "",
+    },
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     -- Cheats
@@ -1826,6 +2107,15 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     },
 
     {
+        key     = "allow_enemy_ai_spawn_placement",
+        name    = "Allow Hostile AI Spawn Placement",
+        desc    = "When enabled, allows enemy allyteams to view and place enemy AI start positions during the pregame",
+        type    = "bool",
+        def     = false,
+        section = "options_cheats",
+    },
+
+    {
         key     = "sub_header",
         section = "options_cheats",
         type    = "separator",
@@ -1843,7 +2133,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetal",
         name	= "Starting Metal",
-        desc	= "(Range 0 - 10000). Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -1855,7 +2145,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -1867,7 +2157,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergy",
         name	= "Starting Energy",
-        desc	= "(Range 0 - 10000). Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -1879,13 +2169,22 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergystorage",
         name	= "Starting Energy Storage",
-        desc	= "(Range 1000 - 20000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
         min		= 1000,
         max		= 20000,
         step	= 1,
+    },
+
+    {
+        key		= "bonusstartresourcemultiplier",
+        name	= "Apply Bonus to Starting Resources",
+        desc	= "If enabled, multiplies each players starting resources with their bonus.",
+        type	= "bool",
+        section	= "options_cheats",
+        def		= false,
     },
 
     {
@@ -2099,9 +2398,9 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
         hidden  = true,
         items	= {
             { key = "unchanged", 		name = "Unchanged", 			desc = "Unchanged" },
-            { key = "absorbplasma", 	name = "Absorb Plasma", 		desc = "Collisions Disabled" },
-            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Collisions Enabled" },
-            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Collisions Enabled" },
+            { key = "absorbeverything", name = "Absorb Everything", 	desc = "Shields absorb everything" },
+            { key = "bounceplasma",     name = "Deflect Plasma", 		desc = "Shields deflect plasma only" },
+            { key = "bounceeverything", name = "Deflect Everything", 	desc = "Shields deflect everything" },
         }
     },
 

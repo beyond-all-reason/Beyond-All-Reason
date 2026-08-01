@@ -13,8 +13,6 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		health = 4700,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,
@@ -39,6 +37,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -75,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -125,10 +120,8 @@ return {
 				range = 4950,
 				reloadtime = 16,
 				soundhit = "lrpcexplo",
-				soundhitvolume = 42,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
-				soundstartvolume = 28,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,

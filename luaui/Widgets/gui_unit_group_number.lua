@@ -12,6 +12,10 @@ function widget:GetInfo()
 	}
 end
 
+
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local hideBelowGameframe = 100
 
 local GetGroupUnits = Spring.GetGroupUnits
@@ -150,7 +154,7 @@ end
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -189,7 +193,7 @@ function widget:GroupChanged(groupID)
 end
 
 function widget:Initialize()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -233,7 +237,9 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so group numbers render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end

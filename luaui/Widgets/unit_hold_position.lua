@@ -13,7 +13,11 @@ function widget:GetInfo()
 	}
 end
 
-local myTeamID = Spring.GetMyTeamID()
+
+-- Localized Spring API for performance
+local spGetMyTeamID = Spring.GetMyTeamID
+
+local myTeamID = spGetMyTeamID()
 
 local isAir = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -52,7 +56,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	maybeRemoveSelf()
-	myTeamID = Spring.GetMyTeamID()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:Initialize()

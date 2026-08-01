@@ -12,7 +12,16 @@ function widget:GetInfo()
 	}
 end
 
-local useRenderToTexture = Spring.GetConfigFloat("ui_rendertotexture", 1) == 1		-- much faster than drawing via DisplayLists only
+
+-- Localized functions for performance
+local mathFloor = math.floor
+local mathMax = math.max
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spGetMyTeamID = Spring.GetMyTeamID
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetSpectatingState = Spring.GetSpectatingState
 
 local alwaysShow = true		-- always show AT LEAST the label
 local alwaysShowLabel = true	-- always show the label regardless
@@ -29,24 +38,25 @@ local doUpdateForce = true
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiUnit
 
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+
 local spGetMouseState = Spring.GetMouseState
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
-local spGetFactoryCommands = Spring.GetFactoryCommands
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local myTeamID = Spring.GetMyTeamID()
 
-local floor = math.floor
+local floor = mathFloor
 local ceil = math.ceil
 local min = math.min
-local max = math.max
+local max = mathMax
 local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -78,8 +88,10 @@ local clicks = {}
 local unitList = {}
 
 local idleList = {}
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
+local guishaderWasActive = false
 
 local unitHumanName = {}
 local unitConf = {}
@@ -93,7 +105,7 @@ local function refreshUnitDefs()
 			end
 			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
 				unitConf[unitDefID] = unitDef.isFactory
-		end
+			end
 		end
 	end
 end
@@ -115,19 +127,10 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 local function checkGuishader(force)
-	if WG['guishader'] then
-		if force and dlistGuishader then
-			WG['guishader'].RemoveDlist('idlebuilders')
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if not dlistGuishader and backgroundRect then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
-			end)
-			WG['guishader'].InsertDlist(dlistGuishader, 'idlebuilders')
-		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	if backgroundRect then
+		dlistGuishader = WG.FlowUI.guishaderCheckDlist(dlistGuishader, 'idlebuilders', function()
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+		end, force)
 	end
 end
 
@@ -139,7 +142,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		rect[1], rect[2], rect[3], rect[4],
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
-		nil, math.max(0.1, highlightOpacity or 0.1),
+		nil, mathMax(0.1, highlightOpacity or 0.1),
 		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
@@ -182,7 +185,7 @@ local function drawContent()
 		local offset = ((iconRect[3]-iconRect[1])/5)
 		local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 		local style = 'co'
-		font2:Begin(useRenderToTexture)
+		font2:Begin(true)
 		font2:SetOutlineColor(0, 0, 0, 0.2)
 		font2:SetTextColor(0.45, 0.45, 0.45, 1)
 		offset = (fontSize*0.6)
@@ -279,7 +282,7 @@ local function drawContent()
 
 				if unitCount > 1 then
 					local fontSize = height*vsy*0.39
-					font:Begin(useRenderToTexture)
+					font:Begin(true)
 					font:Print('\255\240\240\240'..unitCount, iconRect[1]+iconMargin+(fontSize*0.18), iconRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 				end
@@ -290,13 +293,16 @@ local function drawContent()
 	end
 end
 
+local function isWorkerUnitIdle(unitID, unitDefID)
+	return inIdleWorkerTask[unitID]
+		or (unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
+end
+
 local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
-	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommands(unitID, 0) or spGetUnitCommandCount(unitID, 0)
-		if queue == 0 then
+		if isWorkerUnitIdle(unitID, unitDefID) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
@@ -405,45 +411,22 @@ local function updateList(force)
 			checkGuishader(true)
 		end
 
-		if useRenderToTexture then
-			if not uiBgTex then
-				uiBgTex = gl.CreateTexture(math.floor(uiTexWidth), math.floor(backgroundRect[4]-backgroundRect[2]), {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-				gl.R2tHelper.RenderToTexture(uiBgTex,
-					function()
-						gl.Translate(-1, -1, 0)
-						gl.Scale(2 / (backgroundRect[3]-backgroundRect[1]), 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-						gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-						drawBackground()
-					end,
-					useRenderToTexture
-				)
-			end
-			if not uiTex then
-				uiTex = gl.CreateTexture(math.floor(uiTexWidth)*2, math.floor(backgroundRect[4]-backgroundRect[2])*2, {
-					target = GL.TEXTURE_2D,
-					format = GL.RGBA,
-					fbo = true,
-				})
-			end
-			gl.R2tHelper.RenderToTexture(uiTex,
-				function()
-					gl.Translate(-1, -1, 0)
-					gl.Scale(2 / uiTexWidth, 2 / (backgroundRect[4]-backgroundRect[2]),	0)
-					gl.Translate(-backgroundRect[1], -backgroundRect[2], 0)
-					drawContent()
-				end,
-				useRenderToTexture
-			)
-		else
-			dlist = gl.CreateList(function()
-				drawBackground()
-				drawContent()
-			end)
+		if not uiBgTex then
+			uiBgTex = gl.CreateTexture(mathFloor(uiTexWidth), mathFloor(backgroundRect[4]-backgroundRect[2]), {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+			gl.R2tHelper.RenderInRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], drawBackground, true)
 		end
+		if not uiTex then
+			uiTex = gl.CreateTexture(mathFloor(uiTexWidth)*2, mathFloor(backgroundRect[4]-backgroundRect[2])*2, {
+				target = GL.TEXTURE_2D,
+				format = GL.RGBA,
+				fbo = true,
+			})
+		end
+		gl.R2tHelper.RenderInRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], drawContent, true)
 	end
 end
 
@@ -486,7 +469,7 @@ end
 
 local doCheckUnitGroupsPos = false
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	height = setHeight * uiScale
 
 	local outlineMult = math.clamp(1/(vsy/1400), 1, 1.5)
@@ -551,8 +534,8 @@ function widget:LanguageChanged()
 end
 
 function widget:PlayerChanged(playerID)
-	spec = Spring.GetSpectatingState()
-	myTeamID = Spring.GetMyTeamID()
+	spec = spGetSpectatingState()
+	myTeamID = spGetMyTeamID()
 	if not showWhenSpec and spec then
 		widgetHandler:RemoveWidget()
 		return
@@ -567,7 +550,7 @@ function widget:Initialize()
 		return
 	end
 	refreshUnitDefs()
-	initializeGameFrame = Spring.GetGameFrame()
+	initializeGameFrame = spGetGameFrame()
 	widget:ViewResize()
 	widget:PlayerChanged()
 	WG['idlebuilders'] = {}
@@ -593,7 +576,7 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('idlebuilders')
+		WG.FlowUI.guishaderDeleteDlist('idlebuilders')
 		dlistGuishader = nil
 	end
 	WG['idlebuilders'] = nil
@@ -605,7 +588,7 @@ local sec = 0
 local sec2 = 0
 local timerStart = Spring.GetTimer()
 local function Update()
-	if Spring.GetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
+	if spGetGameFrame() <= initializeGameFrame and initializeGameFrame ~= 0 then
 		return
 	end
 	doCheckUnitGroupsPos = true
@@ -680,6 +663,13 @@ local function Update()
 		end
 
 		doUpdate = true	-- TODO: find a way to detect changes and only doUpdate then
+
+		-- detect guishader toggle: force refresh when it comes back on
+		local guishaderActive = WG['guishader'] ~= nil
+		if guishaderActive and not guishaderWasActive then
+			checkGuishader(true)
+		end
+		guishaderWasActive = guishaderActive
 	elseif hovered and sec2 > 0.05 then
 		sec2 = 0
 		doUpdate = true
@@ -687,6 +677,7 @@ local function Update()
 end
 
 function widget:DrawScreen()
+	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not spec or showWhenSpec then
 		Update()
 		if doUpdate or doUpdateForce then
@@ -695,17 +686,13 @@ function widget:DrawScreen()
 			doUpdateForce = nil
 		end
 		if dlist or uiTex or uiBgTex then
-			if useRenderToTexture then
-				if uiBgTex then
-					-- background element
-					gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], useRenderToTexture)
-				end
-				if uiTex then
-					--content
-					gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], useRenderToTexture)
-				end
-			else
-				gl.CallList(dlist)
+			if uiBgTex then
+				-- background element
+				gl.R2tHelper.BlendTexRect(uiBgTex, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], true)
+			end
+			if uiTex then
+				--content
+				gl.R2tHelper.BlendTexRect(uiTex, backgroundRect[1], backgroundRect[2], backgroundRect[1]+uiTexWidth, backgroundRect[4], true)
 			end
 		end
 	end

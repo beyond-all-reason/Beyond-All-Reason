@@ -7,12 +7,65 @@ function widget:GetInfo()
 		desc = "Renders screen-space distortion effects",
 		author = "Beherith",
 		date = "2022.06.10",
-		license = "Lua code is GPL V2, GLSL is (c) Beherith (mysterme@gmail.com)",
+		license = "GNU GPL v2",
 		layer = -999999999, -- should be the last call of DrawWorld
 		enabled = true,
 		depends = {'gl4'},
 	}
 end
+
+
+-- Localized functions for performance
+local mathMax = math.max
+local mathFloor = math.floor
+local mathCeil = math.ceil
+local stringFormat = string.format
+local stringFind = string.find
+local pairs = pairs
+local ipairs = ipairs
+local type = type
+local pcall = pcall
+local select = select
+
+-- Localized Spring API for performance
+local spGetGameFrame = Spring.GetGameFrame
+local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetWind = Spring.GetWind
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spIsUnitAllied = Spring.IsUnitAllied
+local spGetUnitPieceMap = Spring.GetUnitPieceMap
+local spGetUnitHeight = Spring.GetUnitHeight
+local spGetUnitLosState = Spring.GetUnitLosState
+local spGetFeatureDefID = Spring.GetFeatureDefID
+local spGetFeaturePosition = Spring.GetFeaturePosition
+local spGetProjectileName = Spring.GetProjectileName
+local spGetModKeyState = Spring.GetModKeyState
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spGetTimerMicros = Spring.GetTimerMicros
+local spGetConfigString = Spring.GetConfigString
+local spGetAllFeatures = Spring.GetAllFeatures
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
+local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraDirection = Spring.GetCameraDirection
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
+
+-- Localized GL functions
+local glClear = gl.Clear
+local glCulling = gl.Culling
+local glDepthTest = gl.DepthTest
+local glDepthMask = gl.DepthMask
+local glCopyToTexture = gl.CopyToTexture
+local glRenderToTexture = gl.RenderToTexture
+local glDeleteTexture = gl.DeleteTexture
+local glCreateTexture = gl.CreateTexture
+local glLoadFont = gl.LoadFont
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -20,8 +73,8 @@ do
 -- Rendering passes:
 -- 1. Render all distortion effects to a screen-sized buffer, DistortionTexture
 -- 	1.1 Call widget:DrawDistortion(textureset)
---  
--- 2. Perform the distortion pass, 
+--
+-- 2. Perform the distortion pass,
 	-- inputs are DistortionTexture, Depth Buffers, ScreenCopy
 	-- Output is the final screen
 -- Perform a compression pass on distortionParams, culling idents
@@ -48,8 +101,8 @@ local spValidUnitID = Spring.ValidUnitID
 -- Weak:
 local spIsGUIHidden = Spring.IsGUIHidden
 
-local math_max = math.max
-local math_ceil = math.ceil
+local math_max = mathMax
+local math_ceil = mathCeil
 
 local unitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -131,9 +184,9 @@ local distortionEffectTypes = {
 	groundShockwave = 2,
 	airJet = 3,
 	gravityLens = 4,
-	fusionSphere = 5, 
-	cloakDistortion = 6, 
-	shieldSphere = 7, 
+	fusionSphere = 5,
+	cloakDistortion = 6,
+	shieldSphere = 7,
 	magnifier = 8,
 	twirl = 10,
 	motionBlur = 11,
@@ -156,24 +209,24 @@ local distortionParamKeyOrder = { -- This table is a 'quick-ish' way of building
 	effectStrength = 10, -- Default 1, multiply with any effect's final strength
 	startRadius = 11, -- Defaults to match radius, multiply with any effect's final radius
 	unused = 12,
-	
+
 	-- universalParams
-	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16, 
+	noiseStrength = 13, noiseScaleSpace = 14, distanceFalloff = 15, onlyModelMap = 16,
 
 	-- lifeParams:
-	--spawnFrame = 17, is reserved! 
+	--spawnFrame = 17, is reserved!
 	lifeTime = 18, rampUp = 19, decay = 20,
-	
+
 	-- effectParams
-	effectParam1 = 21, 
+	effectParam1 = 21,
 	riseRate = 21, -- note how riseRate is identical to effectParam1 for clarity
 	shockWidth = 21,    -- note how width is identical to effectParam1 for clarity
 	magnificationRate = 21,
 
 	effectParam2 = 22,  --note how refractiveIndex is identical to effectParam2 for clarity
 	refractiveIndex = 22,
-	
-	windAffected = 23,  effectType = 24, 
+
+	windAffected = 23,  effectType = 24,
 	--color2r = 21, color2g = 22, color2b = 23, colortime = 24, -- point distortions only, colortime in seconds for unit-attached
 }
 
@@ -224,14 +277,15 @@ local distortionShaderSourceCache = {
 
 local numAddDistortions = 0 -- how many times AddDistortion was called
 
-local spec = Spring.GetSpectatingState()
+local spec = spGetSpectatingState()
 
 local vsx, vsy, vpx, vpy
+local invVsx, invVsy = 0, 0
 local DistortionTexture -- RGBA 8bit
 local ScreenCopy -- RGBA 8bit
 
 local screenDistortionShader = nil
-local screenDistortionShaderSourceCache = {	
+local screenDistortionShaderSourceCache = {
 	shaderName = 'ScreenDistortionShader GL4',
 	vssrcpath = "LuaUI/Shaders/screen_distortion_combine_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/screen_distortion_combine_gl4.frag.glsl",
@@ -252,7 +306,7 @@ local fullScreenQuadVAO = nil
 
 
 local function goodbye(reason)
-	Spring.Echo('Deferred Distortions GL4 exiting:', reason)
+	spEcho('Deferred Distortions GL4 exiting:', reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -267,9 +321,9 @@ local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, in
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
-	if ScreenCopy then gl.DeleteTexture(ScreenCopy) end
-	ScreenCopy = gl.CreateTexture(vsx  , vsy, {
+	vsx, vsy, vpx, vpy = spGetViewGeometry()
+	if ScreenCopy then glDeleteTexture(ScreenCopy) end
+	ScreenCopy = glCreateTexture(vsx  , vsy, {
 		border = false,
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
@@ -278,8 +332,8 @@ function widget:ViewResize()
 	})
 	local GL_RGBA16F_ARB = 0x881A
 	--local GL_DEPTH_COMPONENT32 = 0x81A7
-	if DistortionTexture then gl.DeleteTexture(DistortionTexture) end
-	DistortionTexture = gl.CreateTexture(vsx , vsy, {
+	if DistortionTexture then glDeleteTexture(DistortionTexture) end
+	DistortionTexture = glCreateTexture(vsx , vsy, {
 		border = false,
 		format = GL_RGBA16F_ARB,
 		min_filter = GL.NEAREST,
@@ -288,13 +342,15 @@ function widget:ViewResize()
 		wrap_t = GL.CLAMP,
 		fbo = true,
 	})
-	if not ScreenCopy then Spring.Echo("Distortions GL4 Manager failed to create a ScreenCopy") return false end 
-	if not DistortionTexture then Spring.Echo("ScreenCopy Manager failed to create a DistortionTexture") return false end 
+	if not ScreenCopy then spEcho("Distortions GL4 Manager failed to create a ScreenCopy") return false end
+	if not DistortionTexture then spEcho("ScreenCopy Manager failed to create a DistortionTexture") return false end
+	invVsx = 1 / vsx
+	invVsy = 1 / vsy
 	return true
 end
 
 local function initGL4()
-	if not widget:ViewResize() then 
+	if not widget:ViewResize() then
 		goodbye("Failed to CreateTexture for Distortions GL4")
 		return false
 	end
@@ -310,7 +366,7 @@ local function initGL4()
 		goodbye("Failed to compile Screen Distortion GL4 shader")
 		return false
 	end
-	
+
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()--  -1, -1, 1, 0,   0,0,1, 0.5)
 	-- init the VBO
 	local vboLayout = {
@@ -322,7 +378,7 @@ local function initGL4()
 				-- for spot, this is direction.xyz for unitattached, or world anim params
 				-- for cone, this is direction.xyz and angle in radians
 				-- for beam this is end.xyz and radiusright
-			{id = 5, name = 'baseparams', 		size = 4}, -- yoffset, effectStrength, startRadius,  unused 
+			{id = 5, name = 'baseparams', 		size = 4}, -- yoffset, effectStrength, startRadius,  unused
 			{id = 6, name = 'universalParams', 		size = 4}, -- noiseStrength, noiseScaleSpace, distanceFalloff, onlyModelMap
 			{id = 7, name = 'lifeParams', 			size = 4},	-- spawnFrame, lifeTime, rampUp, decay
 			{id = 8, name = 'effectParams', size = 4}, -- effectParam1, effectParam2, windAffectd, effectType
@@ -331,7 +387,7 @@ local function initGL4()
 	}
 
 	local pointVBO, numVerts, pointIndexVBO, numIndices = InstanceVBOTable.makeSphereVBO(8, 4, 1) -- could use an icosahedron (v12/i60/f20) maybe?
-	--Spring.Echo('numVerts', numVerts, numIndices) -- (v45, i144, f45) for a sphere
+	--spEcho('numVerts', numVerts, numIndices) -- (v45, i144, f45) for a sphere
 	pointDistortionVBO 			= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Distortion VBO")
 	unitPointDistortionVBO 		= createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Distortion VBO", 10)
 	projectilePointDistortionVBO = createDistortionInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Distortion VBO")
@@ -373,7 +429,7 @@ local function InitializeDistortion(distortionTable, unitID)
 			end
 			--distortionparams[distortionParamKeyOrder.radius] = distortionparams[distortionParamKeyOrder.radius]
 			--distortionparams[distortionParamKeyOrder.a] =  distortionparams[distortionParamKeyOrder.a] or 1
-			distortionparams[distortionParamKeyOrder.lifeTime] = math.floor( distortionparams[distortionParamKeyOrder.lifeTime] ) or 0
+			distortionparams[distortionParamKeyOrder.lifeTime] = mathFloor( distortionparams[distortionParamKeyOrder.lifeTime] ) or 0
 			distortionparams[distortionParamKeyOrder.noiseStrength] = distortionTable.distortionConfig.noiseStrength or 1
 			distortionparams[distortionParamKeyOrder.noiseScaleSpace] = distortionTable.distortionConfig.noiseScaleSpace or 1
 			distortionparams[distortionParamKeyOrder.distanceFalloff] = distortionTable.distortionConfig.distanceFalloff or 1
@@ -387,29 +443,29 @@ local function InitializeDistortion(distortionTable, unitID)
 			else
 				distortionparams[distortionParamKeyOrder.startRadius] = distortionTable.distortionConfig.radius or 100
 			end
-			
+
 			--distortionparams[distortionParamKeyOrder.startRadius] = startRadius
 
 			distortionTable.distortionParamTable = distortionparams
 			--distortionTable.distortionConfig = nil -- never used again after initialization
 			local cnt = 0
 			for k,v in pairs(distortionTable.distortionParamTable) do
-				cnt = cnt +1 
+				cnt = cnt +1
 			end
 			if cnt ~= distortionParamTableSize then
-					
+
 				for k,v in pairs(distortionTable.distortionParamTable) do
-					Spring.Echo(k,v) 
+					spEcho(k,v)
 				end
-				Spring.Echo("DistortionTable size mismatch", cnt, distortionParamTableSize)
-				Spring.Echo(distortionTable)
+				spEcho("DistortionTable size mismatch", cnt, distortionParamTableSize)
+				spEcho(distortionTable)
 			end
 
 		end
 		if unitID then
-			local unitDefID = Spring.GetUnitDefID(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
 			if unitDefID and not unitDefPeiceMapCache[unitDefID] then
-				unitDefPeiceMapCache[unitDefID] = Spring.GetUnitPieceMap(unitID)
+				unitDefPeiceMapCache[unitDefID] = spGetUnitPieceMap(unitID)
 			end
 			local pieceMap = unitDefPeiceMapCache[unitDefID]
 
@@ -422,7 +478,7 @@ local function InitializeDistortion(distortionTable, unitID)
 				distortionTable.pieceIndex = pieceMap[distortionTable.pieceName]
 				distortionTable.distortionParamTable[pieceIndexPos] = distortionTable.pieceIndex
 			end
-				--Spring.Echo(distortionname, distortionParams.pieceName, pieceMap[distortionParams.pieceName])
+				--spEcho(distortionname, distortionParams.pieceName, pieceMap[distortionParams.pieceName])
 		end
 
 		distortionTable.initComplete = true
@@ -506,11 +562,27 @@ local function updateDistortionPosition(distortionVBO, instanceID, posx, posy, p
 	return instanceIndex
 end
 
+-- Specialized fast path for projectile position updates: no nil-checks, always writes pos+dir
+local function updateProjectilePosition(distortionVBO, instanceID, posx, posy, posz, dx, dy, dz)
+	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
+	if instanceIndex == nil then return nil end
+	instanceIndex = (instanceIndex - 1) * distortionVBO.instanceStep
+	local instData = distortionVBO.instanceData
+	instData[instanceIndex + 1] = posx
+	instData[instanceIndex + 2] = posy
+	instData[instanceIndex + 3] = posz
+	instData[instanceIndex + 5] = dx
+	instData[instanceIndex + 6] = dy
+	instData[instanceIndex + 7] = dz
+	distortionVBO.dirty = true
+	return instanceIndex
+end
+
 -- multiple distortions per unitdef/piece are possible, as the distortions are keyed by distortionname
 
 local function AddStaticDistortionsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefDistortions[unitDefID] then
-		if Spring.GetUnitIsBeingBuilt(unitID) then return end
+		if spGetUnitIsBeingBuilt(unitID) then return end
 		local unitDefDistortion = unitDefDistortions[unitDefID]
 		if unitDefDistortion.initComplete ~= true then  -- late init
 			for distortionname, distortionParams in pairs(unitDefDistortion) do
@@ -522,8 +594,8 @@ local function AddStaticDistortionsForUnit(unitID, unitDefID, noUpload, reason)
 			if distortionname ~= 'initComplete' then
 				local targetVBO = unitDistortionVBOMap[distortionParams.distortionType]
 
-				if (not spec) and distortionParams.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
-				AddDistortion(tostring(unitID) ..  distortionname, unitID, distortionParams.pieceIndex, targetVBO, distortionParams.distortionParamTable, noUpload)
+				if (not spec) and distortionParams.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
+				AddDistortion(stringFormat("%d%s", unitID, distortionname), unitID, distortionParams.pieceIndex, targetVBO, distortionParams.distortionParamTable, noUpload)
 			end
 		end
 	end
@@ -547,14 +619,14 @@ local function RemoveUnitAttachedDistortions(unitID, instanceID)
 					numremoved = numremoved + 1
 					popElementInstance(targetVBO,instanceID)
 				else
-					--Spring.Echo("Distortion attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
+					--spEcho("Distortion attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
 			end
-			--Spring.Echo("Removed distortions from unitID", unitID, numremoved, successes)
+			--spEcho("Removed distortions from unitID", unitID, numremoved, successes)
 			unitAttachedDistortions[unitID] = nil
 		end
 	else
-		--Spring.Echo("RemoveUnitAttachedDistortions: No distortions attached to", unitID)
+		--spEcho("RemoveUnitAttachedDistortions: No distortions attached to", unitID)
 	end
 	return numremoved
 end
@@ -572,12 +644,12 @@ local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 			unitAttachedDistortions[unitID][instanceID] = nil
 			return popElementInstance(targetVBO, instanceID)
 		else
-			Spring.Echo("RemoveDistortion tried to remove a non-existing unitdistortion", distortionshape, instanceID, unitID)
+			spEcho("RemoveDistortion tried to remove a non-existing unitdistortion", distortionshape, instanceID, unitID)
 		end
 	elseif distortionshape then
 		return popElementInstance(distortionVBOMap[distortionshape], instanceID)
 	else
-		Spring.Echo("RemoveDistortion tried to remove a non-existing distortion", distortionshape, instanceID, unitID)
+		spEcho("RemoveDistortion tried to remove a non-existing distortion", distortionshape, instanceID, unitID)
 	end
 	return nil
 end
@@ -587,7 +659,7 @@ local function LoadDistortionConfig()
 	local effectTypes = {}
 	local function findeffecttypes(t, res)
 		if not autoupdate then return end
-		for k, v in pairs(t) do 
+		for k, v in pairs(t) do
 			if type(v) == 'table' then
 				findeffecttypes(v, res)
 			elseif k == 'effectType' then
@@ -597,9 +669,9 @@ local function LoadDistortionConfig()
 		return res
 	end
 	local success, result =	pcall(VFS.Include, 'luaui/configs/DistortionGL4Config.lua')
-	--Spring.Echo("Loading GL4 distortion config", success, result)
+	--spEcho("Loading GL4 distortion config", success, result)
 	if success then
-		--Spring.Echo("Loaded GL4 distortion config")
+		--spEcho("Loaded GL4 distortion config")
 		unitDefDistortions = result.unitDefDistortions
 		unitEventDistortions = result.unitEventDistortions
 		featureDefDistortions = result.featureDefDistortions
@@ -609,11 +681,11 @@ local function LoadDistortionConfig()
 		findeffecttypes(featureDefDistortions, effectTypes)
 
 	else
-		Spring.Echo("Failed to load GL4 Unit distortion config", success, result)
+		spEcho("Failed to load GL4 Unit distortion config", success, result)
 	end
 
 	local success2, result2 =	pcall(VFS.Include, 'luaui/configs/DistortionGL4WeaponsConfig.lua')
-	--Spring.Echo("Loading GL4 weapon distortion config", success2, result2)
+	--spEcho("Loading GL4 weapon distortion config", success2, result2)
 	if success2 then
 		gibDistortion = result2.gibDistortion
 		InitializeDistortion(gibDistortion)
@@ -636,18 +708,18 @@ local function LoadDistortionConfig()
 		for weaponID, distortionTable in pairs(projectileDefDistortions) do
 			InitializeDistortion(distortionTable)
 		end
-		
+
 		findeffecttypes(gibDistortion, effectTypes)
 		findeffecttypes(muzzleFlashDistortions, effectTypes)
 		findeffecttypes(explosionDistortions, effectTypes)
 		findeffecttypes(projectileDefDistortions, effectTypes)
 	else
-		Spring.Echo("Failed to load GL4 weapon distortion config", success2, result2)
+		spEcho("Failed to load GL4 weapon distortion config", success2, result2)
 	end
-	if autoupdate and false then 
-		Spring.Echo("GL4 Distortion effect types found:")
+	if autoupdate and false then
+		spEcho("GL4 Distortion effect types found:")
 		for k,v in pairs(effectTypes) do
-			Spring.Echo(k,v)
+			spEcho(k,v)
 		end
 	end
 	return success and success2
@@ -700,16 +772,16 @@ function widget:Barrelfire(px, py, pz, weaponID, ownerID)
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
-	--Spring.Echo("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
+	--spEcho("UnitSCriptDistortion", unitID, unitDefID, distortionIndex, param, visibleUnits[unitID] )
 	if spValidUnitID(unitID) and spGetUnitIsDead(unitID) == false and visibleUnits[unitID] and unitEventDistortions.UnitScriptDistortions[unitDefID] and unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex] then
 		local distortionTable = unitEventDistortions.UnitScriptDistortions[unitDefID][distortionIndex]
 		if not distortionTable.alwaysVisible then
 			local px,py,pz = spGetUnitPosition(unitID)
 			if px == nil or spIsSphereInView(px,py,pz, distortionTable[4]) == false then return end
 		end
-		if (not spec) and distortionTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then return end
+		if (not spec) and distortionTable.alliedOnly == true and spIsUnitAllied(unitID) == false then return end
 		if distortionTable.initComplete == nil then InitializeDistortion(distortionTable, unitID) end
-		local instanceID = tostring(unitID) .. "_" .. tostring(unitName[unitDefID]) .. "UnitScriptDistortion" .. tostring(distortionIndex) .. "_" .. tostring(param)
+		local instanceID = stringFormat("%d_%s_UnitScriptDistortion%d_%s", unitID, unitName[unitDefID], distortionIndex, param)
 		AddDistortion(instanceID, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionTable.distortionParamTable)
 	end
 end
@@ -747,12 +819,12 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the distortions for thi
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("distortionGL4stats", "t")
+	widgetHandler:RemoveAction("distortionGL4skipdraw", "t")
 	-- TODO: delete the VBOs and shaders like a good boy
 	WG['distortionsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddDistortion')
 	widgetHandler:DeregisterGlobal('RemoveDistortion')
-
-	widgetHandler:DeregisterGlobal('UnitScriptDistortion')
 
 	deferredDistortionShader:Delete()
 	local ram = 0
@@ -760,12 +832,12 @@ function widget:Shutdown()
 	for distortiontype, vbo in pairs(projectileDistortionVBOMap) do ram = ram + vbo:Delete() end
 	for distortiontype, vbo in pairs(distortionVBOMap) do ram = ram + vbo:Delete() end
 
-	--Spring.Echo("distortionGL4 ram usage MB = ", ram / 1000000)
-	--Spring.Echo("featureDefDistortions", table.countMem(featureDefDistortions))
-	--Spring.Echo("unitEventDistortions", table.countMem(unitEventDistortions))
-	--Spring.Echo("unitDefDistortions", table.countMem(unitDefDistortions))
-	--Spring.Echo("projectileDefDistortions", table.countMem(projectileDefDistortions))
-	--Spring.Echo("explosionDistortions", table.countMem(explosionDistortions))
+	--spEcho("distortionGL4 ram usage MB = ", ram / 1000000)
+	--spEcho("featureDefDistortions", table.countMem(featureDefDistortions))
+	--spEcho("unitEventDistortions", table.countMem(unitEventDistortions))
+	--spEcho("unitDefDistortions", table.countMem(unitDefDistortions))
+	--spEcho("projectileDefDistortions", table.countMem(projectileDefDistortions))
+	--spEcho("explosionDistortions", table.countMem(explosionDistortions))
 
 	-- Note, these must be nil'ed manually, because
 	-- tables included from VFS.Include dont get GC'd unless specifically nil'ed
@@ -777,8 +849,8 @@ function widget:Shutdown()
 	explosionDistortions  = nil
 	gibDistortion = nil
 
-	gl.DeleteTexture(ScreenCopy)
-	gl.DeleteTexture(DistortionTexture)
+	glDeleteTexture(ScreenCopy)
+	glDeleteTexture(DistortionTexture)
 	ScreenCopy, DistortionTexture = nil, nil
 
 	--collectgarbage("collect")
@@ -791,15 +863,15 @@ local windZ = 0
 
 function widget:GameFrame(n)
 	gameFrame = n
-	local windDirX, _, windDirZ, windStrength = Spring.GetWind()
-	--windStrength = math.min(20, math.max(3, windStrength))
-	--Spring.Echo(windDirX,windDirZ,windStrength)
+	local windDirX, _, windDirZ, windStrength = spGetWind()
+	--windStrength = math.min(20, mathMax(3, windStrength))
+	--spEcho(windDirX,windDirZ,windStrength)
 	windX = windX + windDirX * 0.016 -- this is not smooth, should be smoothed on update with timeOffset!
 	windZ = windZ + windDirZ * 0.016
 	if distortionRemoveQueue[n] then
 		for instanceID, targetVBO in pairs(distortionRemoveQueue[n]) do
 			if targetVBO.instanceIDtoIndex[instanceID] then
-				--Spring.Echo("removing dead distortion", targetVBO.usedElements, 'id:', instanceID)
+				--spEcho("removing dead distortion", targetVBO.usedElements, 'id:', instanceID)
 				popElementInstance(targetVBO, instanceID)
 			end
 		end
@@ -823,7 +895,7 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 					end
 
 					-- bail if only for allies
-					if (not spec) and distortionTable.alliedOnly == true and Spring.IsUnitAllied(unitID) == false then
+					if (not spec) and distortionTable.alliedOnly == true and spIsUnitAllied(unitID) == false then
 						visible = false
 					end
 
@@ -846,22 +918,22 @@ local function eventDistortionSpawner(eventName, unitID, unitDefID, teamID)
 							if distortionTable.aboveUnit then -- if its above the unit, then add the aboveunit offset to the units height too!
 								-- this is done via a quick copy of the table
 								for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
-								local unitHeight = Spring.GetUnitHeight(unitID)
+								local unitHeight = spGetUnitHeight(unitID)
 								if unitHeight == nil then
-									local losstate = Spring.GetUnitLosState(unitID)
-									Spring.Echo("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, distortionname, 'losstate', losstate and losstate.los)
+									local losstate = spGetUnitLosState(unitID)
+									spEcho("Unitheight is nil for unitID", unitID, "unitDefName", unitName[unitDefID], eventName, distortionname, 'losstate', losstate and losstate.los)
 								end
 
 								distortionCacheTable[2] = distortionCacheTable[2] + distortionTable.aboveUnit + (unitHeight or 0)
 								distortionParamTable = distortionCacheTable
 							end
-							AddDistortion(eventName .. tostring(unitID) ..  distortionname, unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionParamTable)
+							AddDistortion(stringFormat("%s%d%s", eventName, unitID, distortionname), unitID, distortionTable.pieceIndex, unitDistortionVBOMap[distortionTable.distortionType], distortionParamTable)
 						else
 							for i=1, distortionParamTableSize do distortionCacheTable[i] = distortionParamTable[i] end
 							distortionCacheTable[1] = distortionCacheTable[1] + px
-							distortionCacheTable[2] = distortionParamTable[2] + py + ((distortionTable.aboveUnit and Spring.GetUnitHeight(unitID)) or 0)
+							distortionCacheTable[2] = distortionParamTable[2] + py + ((distortionTable.aboveUnit and spGetUnitHeight(unitID)) or 0)
 							distortionCacheTable[3] = distortionCacheTable[3] + pz
-							AddDistortion(eventName .. tostring(unitID) ..  distortionname, nil, distortionTable.pieceIndex, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
+							AddDistortion(stringFormat("%s%d%s", eventName, unitID, distortionname), nil, distortionTable.pieceIndex, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
 						end
 					end
 
@@ -917,11 +989,11 @@ end
 
 function widget:FeatureCreated(featureID,allyteam)
 	-- TODO: Allow team-colored feature distortions by getting teamcolor and putting it into distortionCacheTable
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = spGetFeatureDefID(featureID)
 	if featureDefDistortions[featureDefID] then
 		for distortionname, distortionTable in pairs(featureDefDistortions[featureDefID]) do
 			if not distortionTable.initComplete then InitializeDistortion(distortionTable) end
-			local px, py, pz = Spring.GetFeaturePosition(featureID)
+			local px, py, pz = spGetFeaturePosition(featureID)
 			if px then
 
 				local distortionParamTable = distortionTable.distortionParamTable
@@ -929,17 +1001,17 @@ function widget:FeatureCreated(featureID,allyteam)
 				distortionCacheTable[1] = distortionCacheTable[1] + px
 				distortionCacheTable[2] = distortionCacheTable[2] + py
 				distortionCacheTable[3] = distortionCacheTable[3] + pz
-				AddDistortion(tostring(featureID) ..  distortionname, nil, nil, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
+				AddDistortion(stringFormat("%d%s", featureID, distortionname), nil, nil, distortionVBOMap[distortionTable.distortionType], distortionCacheTable)
 			end
 		end
 	end
 end
 
 function widget:FeatureDestroyed(featureID)
-	local featureDefID = Spring.GetFeatureDefID(featureID)
+	local featureDefID = spGetFeatureDefID(featureID)
 	if featureDefDistortions[featureDefID] then
 		for distortionname, distortionTable in pairs(featureDefDistortions[featureDefID]) do
-			RemoveDistortion(distortionTable.distortionType, tostring(featureID) ..  distortionname)
+			RemoveDistortion(distortionTable.distortionType, stringFormat("%d%s", featureID, distortionname))
 		end
 	end
 end
@@ -953,127 +1025,240 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+-- Cache for the view ground rectangle, used to limit spGetProjectilesInRectangle
+-- to only projectiles whose ground-projected position could plausibly affect the
+-- visible frame. Avoids the previous full-map query which iterated every projectile
+-- on the entire map regardless of camera view.
+local viewRectFrame = -1
+local viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = 0, 0, mapSizeX, mapSizeZ
+-- Previous view rect; used to detect camera movement so we can skip the entire
+-- projectile update while paused with a static camera.
+local lastViewRectMinX, lastViewRectMinZ = -1, -1
+local lastViewRectMaxX, lastViewRectMaxZ = -1, -1
+local VIEW_RECT_PAD = 1500 -- padding for projectile arcs / effect radius slop
+local viewRectCornersX = {0, 0, 0, 0}
+local viewRectCornersY = {0, 0, 0, 0}
+-- Cached camera state so we can skip the TraceScreenRay calls when the camera
+-- hasn't moved (e.g. paused with a static view).
+local lastCamPx, lastCamPy, lastCamPz = nil, nil, nil
+local lastCamDx, lastCamDy, lastCamDz = nil, nil, nil
+
+local function updateViewGroundRect()
+	local drawFrame = Spring.GetDrawFrame and Spring.GetDrawFrame() or 0
+	if drawFrame == viewRectFrame then return end
+	viewRectFrame = drawFrame
+
+	-- Cheap early-out: if the camera position and forward direction are
+	-- byte-identical to the previous frame, the view rect can't have changed.
+	local cpx, cpy, cpz = spGetCameraPosition()
+	local cdx, cdy, cdz = spGetCameraDirection()
+	if cpx == lastCamPx and cpy == lastCamPy and cpz == lastCamPz
+		and cdx == lastCamDx and cdy == lastCamDy and cdz == lastCamDz then
+		return
+	end
+	lastCamPx, lastCamPy, lastCamPz = cpx, cpy, cpz
+	lastCamDx, lastCamDy, lastCamDz = cdx, cdy, cdz
+
+	viewRectCornersX[1], viewRectCornersY[1] = 0,   0
+	viewRectCornersX[2], viewRectCornersY[2] = vsx, 0
+	viewRectCornersX[3], viewRectCornersY[3] = 0,   vsy
+	viewRectCornersX[4], viewRectCornersY[4] = vsx, vsy
+	local minX, maxX =  1e30, -1e30
+	local minZ, maxZ =  1e30, -1e30
+	local hits = 0
+	for i = 1, 4 do
+		-- onlyCoords=true, useMinimap=false, includeSky=true to get the
+		-- ground/sky-plane intersection at each corner
+		local _, pos = spTraceScreenRay(viewRectCornersX[i], viewRectCornersY[i], true, false, true)
+		if type(pos) == 'table' then
+			hits = hits + 1
+			local x, z = pos[1], pos[3]
+			if x < minX then minX = x end
+			if x > maxX then maxX = x end
+			if z < minZ then minZ = z end
+			if z > maxZ then maxZ = z end
+		end
+	end
+	if hits < 2 then
+		-- Degenerate view (e.g. looking straight at the sky): fall back to whole map.
+		viewRectMinX, viewRectMinZ = 0, 0
+		viewRectMaxX, viewRectMaxZ = mapSizeX, mapSizeZ
+		return
+	end
+	-- Also include camera position so projectiles next to/behind the camera
+	-- still get picked up if they're within the padded range.
+	if cpx then
+		if cpx < minX then minX = cpx end
+		if cpx > maxX then maxX = cpx end
+		if cpz < minZ then minZ = cpz end
+		if cpz > maxZ then maxZ = cpz end
+	end
+	minX = minX - VIEW_RECT_PAD; if minX < 0 then minX = 0 end
+	minZ = minZ - VIEW_RECT_PAD; if minZ < 0 then minZ = 0 end
+	maxX = maxX + VIEW_RECT_PAD; if maxX > mapSizeX then maxX = mapSizeX end
+	maxZ = maxZ + VIEW_RECT_PAD; if maxZ > mapSizeZ then maxZ = mapSizeZ end
+	viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ = minX, minZ, maxX, maxZ
+end
+
 
 local function updateProjectileDistortions(newgameframe)
-	local nowprojectiles = Spring.GetVisibleProjectiles()
-	gameFrame = Spring.GetGameFrame()
-	local newgameframe = true
-	if gameFrame == lastGameFrame then newgameframe = false end
-	--Spring.Echo(gameFrame, lastGameFrame, newgameframe)
-	lastGameFrame = gameFrame
+	-- Use GetProjectilesInRectangle to also capture BeamLaser projectiles
+	-- (spGetVisibleProjectiles misses them). Restrict the rectangle to the
+	-- camera-visible ground footprint (with padding) instead of the whole map,
+	-- so off-screen projectiles don't pay CPU+VBO cost every frame.
+	updateViewGroundRect()
+
+	local gf = spGetGameFrame()
+	local newgameframe = (gf ~= lastGameFrame)
+	-- Skip entirely if neither the game frame advanced nor the view changed:
+	-- projectiles haven't moved, no new ones can spawn, and the visible set
+	-- can't have changed. This is the dominant cost while paused.
+	local viewRectChanged =
+		viewRectMinX ~= lastViewRectMinX or viewRectMaxX ~= lastViewRectMaxX or
+		viewRectMinZ ~= lastViewRectMinZ or viewRectMaxZ ~= lastViewRectMaxZ
+	if (not newgameframe) and (not viewRectChanged) then
+		return
+	end
+	lastViewRectMinX, lastViewRectMinZ = viewRectMinX, viewRectMinZ
+	lastViewRectMaxX, lastViewRectMaxZ = viewRectMaxX, viewRectMaxZ
+
+	local nowprojectiles = spGetProjectilesInRectangle(viewRectMinX, viewRectMinZ, viewRectMaxX, viewRectMaxZ, false, true)
+	gameFrame = gf
+	lastGameFrame = gf
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning distortions is to actually get them to update existing dead distortion candidates, this is very very hard to do sanely
 	-- BUG: having a lifeTime associated with each projectile kind of bugs out updates
 	local numadded = 0
 	local noUpload = true
-	for i= 1, #nowprojectiles do
+	local nowprojectilesLen = #nowprojectiles
+	local projectileDistortionVBOMapCache = projectileDistortionVBOMap
+	for i= 1, nowprojectilesLen do
 		local projectileID = nowprojectiles[i]
-		local px, py, pz = spGetProjectilePosition(projectileID)
-		if px then -- we are somehow getting projectiles with no position?
-			local distortionType = 'point' -- default
-			if trackedProjectiles[projectileID] then
-				if newgameframe then
-					--update proj pos
-					distortionType = trackedProjectileTypes[projectileID]
-					if distortionType ~= 'beam' then
+		local trackedProjectile = trackedProjectiles[projectileID]
+		if trackedProjectile then
+			-- Already tracked: only do per-frame work on real game frames,
+			-- and only for movable types (beams have fixed endpoints; 'none'
+			-- means the projectile had no distortion to add in the first place).
+			if newgameframe then
+				local distortionType = trackedProjectileTypes[projectileID]
+				if distortionType ~= 'beam' and distortionType ~= 'none' then
+					local px, py, pz = spGetProjectilePosition(projectileID)
+					if px then
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
-						local instanceIndex = updateDistortionPosition(projectileDistortionVBOMap[distortionType],
-							projectileID, px,py,pz, nil, dx,dy,dz)
-						if debugproj then Spring.Echo("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
+						local instanceIndex = updateProjectilePosition(projectileDistortionVBOMapCache[distortionType],
+							projectileID, px,py,pz, dx,dy,dz)
+						if debugproj then spEcho("Updated", instanceIndex, projectileID, px, py, pz,dx,dy,dz) end
 					end
-
 				end
-			else
-				-- add projectile
+				-- Refresh timestamp so the cleanup loop doesn't drop it.
+				trackedProjectiles[projectileID] = gameFrame
+			end
+			-- When !newgameframe, the cleanup loop doesn't run, so no need
+			-- to touch trackedProjectiles[id] at all.
+		else
+			-- Untracked: need position for the add branch.
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			if px then
+				local distortionType = 'none' -- 'none' = saw the projectile but added nothing
 				local weapon, piece = spGetProjectileType(projectileID)
 				if piece then
-					local explosionflags = spGetPieceProjectileParams(projectileID)
+					-- Frustum-cull gibs whose effect sphere is outside the
+					-- view (rectangle test is XZ-only and can include high
+					-- arcs above the camera frustum).
 					local gib = gibDistortion.distortionParamTable
-					gib[1] = px
-					gib[2] = py
-					gib[3] = pz
-					AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
+					if spIsSphereInView(px, py, pz, gib[4]) then
+						local explosionflags = spGetPieceProjectileParams(projectileID)
+						gib[1] = px
+						gib[2] = py
+						gib[3] = pz
+						AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, gib, noUpload)
+						distortionType = 'point'
+					end
 				else
 					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefDistortions[weaponDefID] and ( projectileID % (projectileDefDistortions[weaponDefID].fraction or 1) == 0 ) then
-						local distortionParamTable = projectileDefDistortions[weaponDefID].distortionParamTable
-						distortionType = projectileDefDistortions[weaponDefID].distortionType
-
-
-						distortionParamTable[1] = px
-						distortionParamTable[2] = py
-						distortionParamTable[3] = pz
-						if debugproj then Spring.Echo(distortionType, projectileDefDistortions[weaponDefID].distortionClassName) end
+					local projectileDefDistortion = projectileDefDistortions[weaponDefID]
+					if projectileDefDistortion and ( projectileID % (projectileDefDistortion.fraction or 1) == 0 ) then
+						local distortionParamTable = projectileDefDistortion.distortionParamTable
+						local thisType = projectileDefDistortion.distortionType
 
 						local dx,dy,dz = spGetProjectileVelocity(projectileID)
 
-						if distortionType == 'beam' then
-							distortionParamTable[5] = px + dx
-							distortionParamTable[6] = py + dy
-							distortionParamTable[7] = pz + dz
+						-- Frustum cull: skip projectiles whose effect bounds
+						-- are entirely outside the view.
+						local cullRadius = distortionParamTable[4] or 0
+						local inView
+						if thisType == 'beam' then
+							inView = spIsSphereInView(px, py, pz, cullRadius)
+								or spIsSphereInView(px + (dx or 0), py + (dy or 0), pz + (dz or 0), cullRadius)
 						else
-							-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
-							distortionParamTable[5] = dx
-							distortionParamTable[6] = dy
-							distortionParamTable[7] = dz
+							inView = spIsSphereInView(px, py, pz, cullRadius)
 						end
-						if debugproj then Spring.Echo(distortionType, px,py,pz, dx, dy,dz) end
+						if inView then
+							distortionParamTable[1] = px
+							distortionParamTable[2] = py
+							distortionParamTable[3] = pz
+							if debugproj then spEcho(thisType, projectileDefDistortion.distortionClassName) end
 
-						AddDistortion(projectileID, nil, nil, projectileDistortionVBOMap[distortionType], distortionParamTable,noUpload)
+							if thisType == 'beam' then
+								distortionParamTable[5] = px + dx
+								distortionParamTable[6] = py + dy
+								distortionParamTable[7] = pz + dz
+							else
+								-- for points and cones, velocity gives the pointing dir, and for cones it gives the pos super well.
+								distortionParamTable[5] = dx
+								distortionParamTable[6] = dy
+								distortionParamTable[7] = dz
+							end
+							if debugproj then spEcho(thisType, px,py,pz, dx, dy,dz) end
+
+							AddDistortion(projectileID, nil, nil, projectileDistortionVBOMapCache[thisType], distortionParamTable,noUpload)
+							distortionType = thisType
+						end
 						--AddDistortion(projectileID, nil, nil, projectilePointDistortionVBO, distortionParamTable)
-					else
-						--Spring.Echo("No projectile distortion defined for", projectileID, weaponDefID, px, pz)
 					end
 				end
 				numadded = numadded + 1
-				if debugproj then Spring.Echo("Adding projdistortion", projectileID, Spring.GetProjectileName(projectileID)) end
-				--trackedProjectiles[]
+				if debugproj then spEcho("Adding projdistortion", projectileID, spGetProjectileName(projectileID)) end
 				trackedProjectileTypes[projectileID] = distortionType
+				trackedProjectiles[projectileID] = gameFrame
 			end
-			trackedProjectiles[projectileID] = gameFrame
 		end
 	end
-	-- remove theones that werent updated
+	-- remove the ones that werent updated
 	local numremoved = 0
-	for projectileID, gf in pairs(trackedProjectiles) do
-		if gf < gameFrame then
-			-- SO says we can modify or remove elements while iterating, we just cant add
-			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then -- this means that this projectile
-				local distortionType = trackedProjectileTypes[projectileID]
-				if newgameframe and distortionType ~= 'beam' then
-					local dx,dy,dz = spGetProjectileVelocity(projectileID)
-					updateDistortionPosition(projectileDistortionVBOMap[distortionType],
-						projectileID, px,py,pz, nil, dx,dy,dz )
-				end
-			else
-				numremoved = numremoved + 1
-				trackedProjectiles[projectileID] = nil
-				local distortionType = trackedProjectileTypes[projectileID]
-				--RemoveDistortion('point', projectileID, nil)
-				if projectileDistortionVBOMap[distortionType].instanceIDtoIndex[projectileID] then -- god the indirections here ...
-					local success = popElementInstance(projectileDistortionVBOMap[distortionType], projectileID, noUpload)
-					if success == nil then PrintProjectileInfo(projectileID) end
-				end
-				trackedProjectileTypes[projectileID] = nil
+	if newgameframe then
+	-- Any tracked projectile whose timestamp wasn't refreshed this frame is
+	-- either dead or has left the view rect. In both cases we drop tracking
+	-- and pop its VBO entry. If it's alive and re-enters the view rect later,
+	-- the add branch above will re-add it. This avoids per-game-frame
+	-- spGetProjectilePosition probes on every off-screen alive projectile,
+	-- which was the dominant remaining cost.
+	for projectileID, pgf in pairs(trackedProjectiles) do
+		if pgf < gf then
+			numremoved = numremoved + 1
+			trackedProjectiles[projectileID] = nil
+			local distortionType = trackedProjectileTypes[projectileID]
+			local vbo = projectileDistortionVBOMapCache[distortionType]
+			if vbo and vbo.instanceIDtoIndex[projectileID] then -- god the indirections here ...
+				local success = popElementInstance(vbo, projectileID, noUpload)
+				if success == nil then PrintProjectileInfo(projectileID) end
 			end
+			trackedProjectileTypes[projectileID] = nil
 		end
 	end
+	end -- newgameframe guard
 	-- upload all changed elements in one go
-	for _, targetVBO in pairs(projectileDistortionVBOMap) do
-		if targetVBO.dirty then
-			uploadAllElements(targetVBO)
-		end
-	end
+	if projectilePointDistortionVBO.dirty then uploadAllElements(projectilePointDistortionVBO) end
+	if projectileBeamDistortionVBO.dirty then uploadAllElements(projectileBeamDistortionVBO) end
+	if projectileConeDistortionVBO.dirty then uploadAllElements(projectileConeDistortionVBO) end
 	--if debugproj then
-	--	Spring.Echo("#points", projectilePointDistortionVBO.usedElements, '#projs', #nowprojectiles )
+	--	spEcho("#points", projectilePointDistortionVBO.usedElements, '#projs', #nowprojectiles )
 	--end
 end
 
-local configCache = {lastUpdate = Spring.GetTimer()}
+local configCache = {lastUpdate = spGetTimer()}
 local function checkConfigUpdates()
-	if Spring.DiffTimers(Spring.GetTimer(), configCache.lastUpdate) > 0.5 then
+	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
 		local newconfa = VFS.LoadFile('luaui/configs/DistortionGL4Config.lua')
 		local newconfb = VFS.LoadFile('luaui/configs/DistortionGL4WeaponsConfig.lua')
 		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
@@ -1083,15 +1268,14 @@ local function checkConfigUpdates()
 			end
 			configCache.confa = newconfa
 			configCache.confb = newconfb
-			Spring.Echo("DistortionGL4: Config updated")
+			spEcho("DistortionGL4: Config updated")
 		end
-		configCache.lastUpdate = Spring.GetTimer()
+		configCache.lastUpdate = spGetTimer()
 	end
 end
 
 function widget:Update(dt)
 	if autoupdate then checkConfigUpdates() end
-	local tus = Spring.GetTimerMicros()
 
 	updateProjectileDistortions()
 end
@@ -1101,23 +1285,17 @@ end
 
 local function DrawDistortionFunction2(gf) -- For render-to-texture
 		-- Set is as black with zero alpha
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
+		glClear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
 
-		local alt, ctrl = Spring.GetModKeyState()
-
-		--if autoupdate and ctrl and (isSinglePlayer or spec) and (Spring.GetConfigInt('DevUI', 0) == 1) then
-		--	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		--else
-		--end
 		-- So we are gonna multiply each effect with its own alpha, and then add them together on the destination
-		-- This means we also will be ignoring the destination alpha channel. 
+		-- This means we also will be ignoring the destination alpha channel.
 		-- The default blending function is GL_FUNC_ADD
 		glBlending(GL.SRC_ALPHA, GL.ONE)
 		--if autoupdate and alt and (isSinglePlayer or spec) and devui then return end
 
-		gl.Culling(false)
-		gl.DepthTest(false)
-		gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+		glCulling(false)
+		glDepthTest(false)
+		glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
 		glTexture(0, "$map_gbuffer_zvaltex")
 		glTexture(1, "$model_gbuffer_zvaltex")
 		glTexture(2, "$map_gbuffer_normtex")
@@ -1125,13 +1303,13 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		glTexture(4, "$map_gbuffer_difftex")
 		glTexture(5, "$model_gbuffer_difftex")
 		glTexture(6, noisetex3dcube)
-		if shaderConfig.UNIFORMSBUFFERCOPY then 
+		if shaderConfig.UNIFORMSBUFFERCOPY then
 			local UniformsBufferCopy = WG['api_unitbufferuniform_copy'].GetUnitUniformBufferCopy()
 			if not UniformsBufferCopy then
-				Spring.Echo("DistortionGL4: UniformsBufferCopy not found")
+				spEcho("DistortionGL4: UniformsBufferCopy not found")
 				return
 			end
-			
+
 			UniformsBufferCopy:BindBufferRange(4)
 		end
 
@@ -1141,7 +1319,7 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		deferredDistortionShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
 		deferredDistortionShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
 		deferredDistortionShader:SetUniformFloat("windXZ", windX, windZ)
-	
+
 
 		-- Fixed worldpos distortions, cursors, projectiles, world distortions
 		deferredDistortionShader:SetUniformFloat("attachedtounitID", 0) -- worldpos stuff
@@ -1174,8 +1352,8 @@ local function DrawDistortionFunction2(gf) -- For render-to-texture
 		deferredDistortionShader:Deactivate()
 
 		for i = 0, 6 do glTexture(i, false) end
-		gl.Culling(GL.BACK)
-		gl.DepthTest(true)
+		glCulling(GL.BACK)
+		glDepthTest(true)
 		--gl.DepthMask(true) --"BK OpenGL state resets", was true but now commented out (redundant set of false states)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
@@ -1189,27 +1367,27 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		deferredDistortionShader = LuaShader.CheckShaderUpdates(distortionShaderSourceCache, 0) or deferredDistortionShader
 	end
 
-	local hasAtLeastOneDistortion = 
+	local hasAtLeastOneDistortion =
 		pointDistortionVBO.usedElements > 0 or
 		beamDistortionVBO.usedElements > 0 or
 		coneDistortionVBO.usedElements > 0 or
 		unitPointDistortionVBO.usedElements > 0 or
 		unitBeamDistortionVBO.usedElements > 0 or
 		unitConeDistortionVBO.usedElements > 0 or
-		projectilePointDistortionVBO.usedElements > 0 or 
-		projectileBeamDistortionVBO.usedElements > 0 or 
+		projectilePointDistortionVBO.usedElements > 0 or
+		projectileBeamDistortionVBO.usedElements > 0 or
 		projectileConeDistortionVBO.usedElements > 0
 
 	if (not hasAtLeastOneDistortion) then return end
-	
+
 	tracy.ZoneBeginN("CopyToTexture")
 	-- Blend the distortion:
-	gl.CopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
-	tracy.ZoneEnd() 
+	glCopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
+	tracy.ZoneEnd()
 
 
 
-	gl.RenderToTexture(DistortionTexture, DrawDistortionFunction2, Spring.GetGameFrame())
+	glRenderToTexture(DistortionTexture, DrawDistortionFunction2, spGetGameFrame())
 	--tracy.ZoneEnd()
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
@@ -1222,61 +1400,60 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	gl.Texture(2, ScreenCopy)
 	gl.Texture(3, DistortionTexture)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.Culling(false) -- ffs
-	gl.DepthTest(false)
-	gl.DepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-	--Spring.Echo("Drawing Distortion")
+	glCulling(false) -- ffs
+	glDepthTest(false)
+	glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+	--spEcho("Drawing Distortion")
 	screenDistortionShader:Activate()
-	
-	screenDistortionShader:SetUniformFloat("inverseScreenResolution", 1/vsx, 1/vsy)
+
+	screenDistortionShader:SetUniformFloat("inverseScreenResolution", invVsx, invVsy)
 	screenDistortionShader:SetUniformFloat("distortionOverallStrength", 1)
 	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
 	screenDistortionShader:Deactivate()
-	
+
 	for i = 0,3 do gl.Texture(i, false) end
 	tracy.ZoneEnd()
 
-	
-	gl.DepthTest(true)
+
+	glDepthTest(true)
 	--local t1 = 	Spring.GetTimerMicros()
 	--if (Spring.GetDrawFrame() % 50 == 0 ) then
 	--	local dt =  Spring.DiffTimers(t1,t0)
-	--	Spring.Echo("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
-	--	Spring.Echo("epoch is ", Spring.DiffTimers(t1,tf))
+	--	spEcho("Deltat is ", dt,'us, so total load should be', dt * Spring.GetFPS() / 10 ,'%')
+	--	spEcho("epoch is ", Spring.DiffTimers(t1,tf))
 	--end
 end
 
 if autoupdate then
 	function widget:DrawScreen()
-		--Spring.Echo("DrawScreen", deferredDistortionShader.DrawPrintf)
+		--spEcho("DrawScreen", deferredDistortionShader.DrawPrintf)
 		if deferredDistortionShader.DrawPrintf then deferredDistortionShader.DrawPrintf(0) end
 	end
 end
 
--- Register /luaui distortionGL4stats to dump distortion statistics
-function widget:TextCommand(command)
-	if string.find(command, "distortionGL4stats", nil, true) then
-		Spring.Echo(string.format("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
-				numAddDistortions,
-				pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
-				unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,
-				projectilePointDistortionVBO.usedElements, projectileBeamDistortionVBO.usedElements, projectileConeDistortionVBO.usedElements)
+local function distortionGL4statsCmd(_, line)
+	spEcho(stringFormat("distortionGL4Stats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d)",
+			numAddDistortions,
+			pointDistortionVBO.usedElements, beamDistortionVBO.usedElements, coneDistortionVBO.usedElements,
+			unitPointDistortionVBO.usedElements, unitBeamDistortionVBO.usedElements, unitConeDistortionVBO.usedElements,
+			projectilePointDistortionVBO.usedElements, projectileBeamDistortionVBO.usedElements, projectileConeDistortionVBO.usedElements)
 	)
-		return true
-	end
-	if string.find(command, "distortionGL4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		Spring.Echo("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+	return true
+end
+
+local function distortionGL4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("distortionGL4stats", distortionGL4statsCmd, nil, "t")
+	widgetHandler:AddAction("distortionGL4skipdraw", distortionGL4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize distortionGL4")
-	if Spring.GetConfigString("AllowDeferredMapRendering") == '0' or Spring.GetConfigString("AllowDeferredModelRendering") == '0' then
-		Spring.Echo('Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
+	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
+		spEcho('Distortion GL4  requires  AllowDeferredMapRendering and AllowDeferredModelRendering to be enabled in springsettings.cfg!')
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -1293,7 +1470,7 @@ function widget:Initialize()
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
 	end
 
-	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+	for _, featureID in ipairs(spGetAllFeatures()) do
 		widget:FeatureCreated(featureID)
 	end
 
@@ -1312,8 +1489,10 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('AddDistortion', WG['distortionsgl4'].AddDistortion)
 	widgetHandler:RegisterGlobal('RemoveDistortion', WG['distortionsgl4'].RemoveDistortion)
 	widgetHandler:RegisterGlobal('GetDistortionVBO', WG['distortionsgl4'].GetDistortionVBO)
+end
 
-	widgetHandler:RegisterGlobal('UnitScriptDistortion', UnitScriptDistortion)
+function widget:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
+	UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 

@@ -1,7 +1,7 @@
 return {
 	armzeus = {
 		buildpic = "ARMZEUS.DDS",
-		buildtime = 7250,
+		buildtime = 8000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 36 35",
@@ -11,9 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		health = 2950,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 3500,
 		maxacc = 0.138,
 		maxdec = 0.8625,
 		maxslope = 15,
@@ -25,8 +23,8 @@ return {
 		script = "Units/ARMZEUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 331.5,
-		speed = 47.4,
+		sightdistance = 380,
+		speed = 48,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.0428,
@@ -70,18 +68,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:barrelshot-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg2",
-				[4] = "deathceg3",
-				[5] = "deathceg4-lightning",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -115,7 +101,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				edgeeffectiveness = 0.15,
-				energypershot = 35,
+				energypershot = 10,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
@@ -143,7 +129,6 @@ return {
 				},
 				damage = {
 					default = 22,
-					vtol = 6,
 				},
 			},
 		},

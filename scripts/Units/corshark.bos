@@ -72,6 +72,12 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	if (gun_1 == torp2){
+		emit-sfx 1024 + 2 from torp1;
+	}
+	else if (gun_1 == torp1){
+		emit-sfx 1024 + 2 from torp2;
+	}
 	gun_1 = !gun_1;
 }
 

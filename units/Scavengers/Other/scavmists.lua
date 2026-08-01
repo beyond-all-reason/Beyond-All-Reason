@@ -95,8 +95,6 @@ for lvl, stats in pairs(lvlParams) do
 		hidedamage = true,
 		kamikaze = true,
 		kamikazedistance = 50,
-		idleautoheal = 5,
-		idletime = 600,
 		mass = 1000,
 		health = stats.health,
 		speed = 30.0,
@@ -131,11 +129,6 @@ for lvl, stats in pairs(lvlParams) do
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = stats.explosiongenerator,
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

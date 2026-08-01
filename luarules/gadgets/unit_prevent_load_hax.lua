@@ -29,7 +29,6 @@ local GetGameFrame = Spring.GetGameFrame
 local GetUnitCommands = Spring.GetUnitCommands
 local GetUnitTeam = Spring.GetUnitTeam
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
 local CMD_REMOVE = CMD.REMOVE
 
@@ -39,19 +38,19 @@ local CMD_REMOVE = CMD.REMOVE
 local watchList = {}
 
 function gadget:Initialize()
-	gadgetHandler:RegisterAllowCommand(CMD_INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD_REMOVE)
 	gadgetHandler:RegisterAllowCommand(CMD_LOAD_UNITS)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
   if fromSynced then return true end
-  if (cmdID == CMD_INSERT) then
+  if fromInsert then
      if watchList[unitID] then
        return false
      end
-     if (CMD_LOAD_UNITS == cmdParams[2]) then
-       return gadget:AllowCommand(unitID, unitDefID, teamID, CMD_LOAD_UNITS, {cmdParams[4], cmdParams[5], cmdParams[6], cmdParams[7]}, cmdOptions, "nr", playerID, false, false)
+     if (cmdID == CMD_LOAD_UNITS) then
+       fromInsert = nil
+       return gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
      end
      local cQueue = GetUnitCommands(unitID,20)
      if (#cQueue > 0) then

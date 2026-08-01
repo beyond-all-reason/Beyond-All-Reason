@@ -20,6 +20,7 @@ local SetFeatureReclaim = Spring.SetFeatureReclaim
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
+local mathMax = math.max
 
 local featureListMaxResource = {}
 local featureListReclaimTime = {}
@@ -27,12 +28,12 @@ local unitListReclaimSpeed = {}
 
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.reclaimSpeed > 0 then
-        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / 30
+        unitListReclaimSpeed[unitDefID] = defs.reclaimSpeed / Game.gameSpeed
     end
 end
 
 for featureDefID, fdefs in pairs(FeatureDefs) do
-    local maxResource = math.max(fdefs.metal, fdefs.energy)
+    local maxResource = mathMax(fdefs.metal, fdefs.energy)
 	
     if maxResource > 0 then
 		featureListMaxResource[featureDefID] = maxResource
@@ -45,9 +46,7 @@ local function getStep(featureDefID, unitDefID)
 	local reclaimTime = featureListReclaimTime[featureDefID]
 	local reclaimSpeed = unitListReclaimSpeed[unitDefID]
 	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then return nil end
-	local oldformula = (reclaimSpeed*0.70 + 10*0.30) * 1.5  / reclaimTime
-	local newformula = reclaimSpeed / reclaimTime
-	return (((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource
+	return ((0.05 * reclaimSpeed + 4.5) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
 end
 
 
@@ -104,8 +103,8 @@ end
 
 function gadget:GameFrame()
 	--flush featuresCreatedThisFrame
-	if featuresCreatedThisFrame then
-		for i=1,#featuresCreatedThisFrame do
+	if #featuresCreatedThisFrame > 0 then
+		for i = #featuresCreatedThisFrame, 1, -1 do
 			featuresCreatedThisFrame[i] = nil
 		end
 	end

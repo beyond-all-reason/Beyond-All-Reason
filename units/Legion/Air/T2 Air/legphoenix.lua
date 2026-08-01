@@ -2,11 +2,11 @@ return {
 	legphoenix = {
 		maxacc= 0.05,
 		blocking = false,
-		maxdec = 0.045,
+		maxdec = 0.025,
 		energycost = 25000,
 		metalcost = 450,
 		buildpic = "LEGPHOENIX.DDS",
-		buildtime = 40000,
+		buildtime = 46600,
 		canfly = true,
 		canattack = true,
 		canmove = true,
@@ -15,19 +15,16 @@ return {
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0525,
 		maxaileron = 0.01273,
-		maxbank = 0.8,
+		maxbank = 0.6,
 		health = 2000,
 		maxelevator = 0.00898,
-		maxpitch = 0.625,
-		maxrudder = 0.00498,
+		maxpitch = 0.3125,
+		maxrudder = 0.01,
 		maxslope = 10,
 		speed = 270,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/legphoenix.s3o",
 		script = "Units/legphoenix.cob",
@@ -75,20 +72,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -140,7 +124,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "",
-				soundstartvolume = 0,
 				soundtrigger = 0,
 				thickness = 4.5,
 				turret = true,
@@ -176,14 +159,14 @@ return {
 				range = 1280,
 				reloadtime = 7,
 				weapontype = "AircraftBomb",
-				damage = {
-					default = 0,
-					subs = 0,
-				},
 				customparams = {
 					bogus = 1,
 					nodecal = 1,
 					water_splash = 0, -- targetting weapon aircraftbomb
+				},
+				damage = {
+					default = 0,
+					subs = 0,
 				},
 			},
 			legphsound = {
@@ -195,14 +178,12 @@ return {
 				SoundHitDryVolume = 18,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
+					nodecal = 1,
 					noexplosionlight = 1,
 				},
 				damage = {
 					default = 0,
-				},
-				customparams = {
-					bogus = 1,
-					nodecal = 1,
 				},
 			},
 		},

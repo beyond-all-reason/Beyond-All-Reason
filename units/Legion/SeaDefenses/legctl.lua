@@ -14,8 +14,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 2200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
@@ -75,11 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -112,6 +105,7 @@ return {
 				bouncerebound = 0.6,
 				bounceslip = 0.6,
 				burnblow = true,
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -130,9 +124,7 @@ return {
 				range = 600,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
-				soundhitvolume = 3,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 12,
 				soundstart = "torpedo1",
 				startvelocity = 190,
 				tracks = true,

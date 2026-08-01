@@ -15,8 +15,6 @@ return {
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 650,
 		maxslope = 12,
@@ -79,11 +77,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:pilotlight",
-				[2] = "custom:flamestream",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -145,8 +138,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				startvelocity = 450,
 				texture1 = "null",
 				texture2 = "smoketraildark",

@@ -345,10 +345,12 @@ local function SpawnMexes(mexSpots)
 			if canBuildHere then
 				local mex = mexesList[math.random(1,#mexesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				Spring.SetUnitNeutral(unit, true)
-				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-				SpawnedMexes[i] = math.random(1,2)
+				if unit then
+					Spring.SetUnitNeutral(unit, true)
+					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpawnedMexes[i] = math.random(1,2)
+				end
 			end
 		end
 	end
@@ -384,10 +386,12 @@ local function SpawnGeos(geoSpots)
 			if canBuildHere then
 				local geo = geosList[math.random(1,#geosList)]
 				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				Spring.SetUnitNeutral(unit, true)
-				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-				SpawnedGeos[i] = math.random(2,3)
+				if unit then
+					Spring.SetUnitNeutral(unit, true)
+					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+					SpawnedGeos[i] = math.random(2,3)
+				end
 			end
 		end
 	end
@@ -429,9 +433,11 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						Spring.SetUnitNeutral(unit, true)
-						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+						if unit then
+							Spring.SetUnitNeutral(unit, true)
+							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+							Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+						end
 					end
 				end
 			end
@@ -473,9 +479,11 @@ local function SpawnMexGeoRandomStructures()
 					if canBuildHere then
 						local defence = defencesList[math.random(1,#defencesList)]
 						local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx2, posy2, posz2, math.random(0,3), GaiaTeamID)
-						Spring.SetUnitNeutral(unit, true)
-						Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-						Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+						if unit then
+							Spring.SetUnitNeutral(unit, true)
+							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+							Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+						end
 					end
 				end
 			end
@@ -515,9 +523,11 @@ local function SpawnRandomStructures()
 			if canBuildHere then
 				local defence = defencesList[math.random(1,#defencesList)]
 				local unit = Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
-				Spring.SetUnitNeutral(unit, true)
-				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+				if unit then
+					Spring.SetUnitNeutral(unit, true)
+					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+					Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+				end
 				break
 			end
 		end

@@ -12,7 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-local halfpi = math.pi / 2
+
+-- Localized functions for performance
+local mathPi = math.pi
+
+local halfpi = mathPi / 2
 
 local function cameraFlipHandler()
 	local camState = Spring.GetCameraState()
@@ -57,9 +61,9 @@ local function cameraFlipHandler()
 		lockCorrection = 0.1 * halfpi
 	end
 	if camState.ry > 0 then
-		camState.ry = camState.ry + math.pi + lockCorrection
+		camState.ry = camState.ry + mathPi + lockCorrection
 	else
-		camState.ry = camState.ry - math.pi - lockCorrection
+		camState.ry = camState.ry - mathPi - lockCorrection
 	end
 
 	Spring.SetCameraState(camState, 0)

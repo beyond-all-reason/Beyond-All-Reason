@@ -223,6 +223,7 @@ local armorDefs = {
 		"corlab",
 		"corllt",
 		"cormabm",
+		"legavantinuke",
 		"cormakr",
 		"cormart",
 		"cormaw",
@@ -251,6 +252,7 @@ local armorDefs = {
 		"corsolar",
 		"corstorm",
 		"corsy",
+		"legsy",
 		"cortarg",
 		"cortermite",
 		"cortorch",
@@ -485,11 +487,17 @@ local armorDefs = {
 	},
 	nanos = {
 		"armnanotc",
+		"armnanotct2",
 		"cornanotc",
+		"cornanotct2",
 		"armnanotcplat",
+		"armnanotc2plat",
 		"cornanotcplat",
+		"cornanotc2plat",
 		"legnanotc",
+		"legnanotct2",
 		"legnanotcplat",
+		"legnanotct2plat",
 	},
 	vtol = {
 		"armhvytrans",
@@ -602,6 +610,13 @@ local armorDefs = {
 		"legatorpbomber",
 		"critter_gull",
 		"armfify",
+		"legspcarrier",
+		"legspcon",
+		"legspfighter",
+		"legspradarsonarplane",
+		"legspsurfacegunship",
+		"legsptorpgunship",
+		"legspbomber",
 	},
 	shields = {
 		-- Intentionally left blank. To be used in shield weapondefs only!
@@ -619,12 +634,16 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"legcs",
 		"legvelite",
 		"leghastatus",
 		"leghastatusalt",
 		"legoptio",
 		"legpontus",
+
+		"legnavyscout",
+		"legnavyfrigate",
+		"legnavyaaship",
+		"legnavyconship",
 	},
 
 	hvyboats = {
@@ -647,20 +666,28 @@ local armorDefs = {
 		"armepoch",
 		"corprince",
 		"corblackhy",
+
+		"legnavydestro",
+		"legnavyartyship",
 	},
 
 	subs = {
 		"armsub",
 		"corsub",
+		"legnavysub",
 		"legstingray",
         "armsubk",
 		"corshark",
+		"leganavybattlesub",
         "corssub",
 		"armserp",
+		"leganavyheavysub",
 		"armacsub",
         "coracsub",
+		"leganavyconsub",
 		"armrecl",
 		"correcl",
+		"legnavyrezsub",
 		"coronager",
 		"cordesolator",
 		"armexcalibur",
@@ -757,10 +784,13 @@ end
 -- expose armor defs to custom params
 for unitName, unitDef in pairs (DEFS.unitDefs) do
 	if unitDef.customparams and unitDef.customparams.armordef then
-		local defCategory = armorDefs[unitDef.customparams.armordef]
+		local lowerCaseArmorDef = unitDef.customparams.armordef:lower()
+		clearArmorDef(unitName)
+		local defCategory = armorDefs[lowerCaseArmorDef]
 		if defCategory then
-			clearArmorDef(unitName)
 			defCategory[#defCategory+1] = unitName
+		else
+			armorDefs[lowerCaseArmorDef] = {unitName}
 		end
 	end
 end

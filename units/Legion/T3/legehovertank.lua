@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		builder = false,
 		buildpic = "legehovertank.DDS",
-		buildtime = 33000,
+		buildtime = 41600,
         collisionvolumescales = "63 32 63",
         collisionvolumeoffsets = "0 -15 0",
         collisionvolumetype = "cylY",
@@ -20,8 +20,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4900,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.022,--0.01788,
 		maxdec = 0.022,--0.01788,
 		maxslope = 16,
@@ -84,11 +82,6 @@ return {
 				[3] = "custom:bowsplash-small-hover",
 				[4] = "custom:hover-wake-large",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -139,7 +132,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				tolerance = 5000,
 				thickness = 4.0,
@@ -184,6 +176,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 140,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 225,
 				},

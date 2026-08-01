@@ -77,8 +77,6 @@ for difficulty, stats in pairs(difficultyParams) do
 		footprintz = 2,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
 		sightemitheight = 40,
 		mass = 9999999,
 		health = stats.health, --4450,
@@ -153,10 +151,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

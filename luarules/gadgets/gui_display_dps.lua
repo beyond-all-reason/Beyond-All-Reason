@@ -57,6 +57,13 @@ local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glCallList = gl.CallList
+local IsGUIHidden = Spring.IsGUIHidden
+local math_floor = math.floor
+local math_ceil = math.ceil
+local math_random = math.random
+local math_max = math.max
+local math_min = math.min
+local damageSortFunc = function(m1, m2) return m1.damage < m2.damage end
 
 local GL_GREATER = GL.GREATER
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -67,8 +74,10 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 --------------------------------------------------------------------------------
 
 local damageTable = {}
-local unitParalyze = {}
-local unitDamage = {}
+local unitParalyzeDmg = {}
+local unitParalyzeTime = {}
+local unitDamageDmg = {}
+local unitDamageTime = {}
 local deadList = {}
 local lastTime = 0
 local paused = false
@@ -80,9 +89,29 @@ local drawTextListsEmp = {}
 local myTeamID = Spring.GetMyTeamID()
 local _, fullview = Spring.GetSpectatingState()
 local chobbyInterface
+local ignoreDamageTypes = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+-- Do not display death-reason damage types which typically use overkill damage.
+ignoreDamageTypes[Game.envDamageTypes.Killed] = true
+-- ignoreDamageTypes[Game.envDamageTypes.Crushed] = true -- Seems like an exception.
+ignoreDamageTypes[Game.envDamageTypes.Reclaimed] = true
+ignoreDamageTypes[Game.envDamageTypes.TransportKilled] = true
+ignoreDamageTypes[Game.envDamageTypes.FactoryKilled] = true
+ignoreDamageTypes[Game.envDamageTypes.FactoryCancel] = true
+ignoreDamageTypes[Game.envDamageTypes.SetNegativeHealth] = true
+ignoreDamageTypes[Game.envDamageTypes.OutOfBounds] = true
+ignoreDamageTypes[Game.envDamageTypes.KilledByCheat] = true
+ignoreDamageTypes[Game.envDamageTypes.KilledByLua] = true
+
+-- We likely want to ignore most self-damages used to control e.g. build progress.
+ignoreDamageTypes[Game.envDamageTypes.Kamikaze] = true
+ignoreDamageTypes[Game.envDamageTypes.SelfD] = true
+ignoreDamageTypes[Game.envDamageTypes.ConstructionDecay] = true
+ignoreDamageTypes[Game.envDamageTypes.TurnedIntoFeature] = true -- end of build with unitDef->isFeature
+ignoreDamageTypes[Game.envDamageTypes.UnitScript] = true -- likely to be self-damage?
 
 function gadget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
@@ -109,21 +138,21 @@ end
 
 local function getTextSize(damage, paralyze)
 	--if paralyze then sizeMod = 2.25 end
-	return 15 + math.floor(3 * (2 * (1 - (100 / (100 + damage / 10)))))
+	return 15 + math_floor(3 * (2 * (1 - (100 / (100 + damage / 10)))))
 end
 
 local function displayDamage(unitID, unitDefID, damage, paralyze)
 	damageTable[1] = {
 		unitID = unitID,
-		damage = math.ceil(damage - 0.5),
+		damage = math_ceil(damage - 0.5),
 		height = unitHeight(unitDefID),
-		offset = 10 - math.random(0, 12),
+		offset = 10 - math_random(0, 12),
 		textSize = getTextSize(damage, paralyze),
 		heightOffset = 0,
 		lifeSpan = 1,
 		paralyze = paralyze,
-		fadeTime = math.max((0.03 - (damage / 333333)), 0.015),
-		riseTime = (math.min((damage / 2500), 2) + 1) / 3,
+		fadeTime = math_max((0.03 - (damage / 333333)), 0.015),
+		riseTime = (math_min((damage / 2500), 2) + 1) / 3,
 	}
 end
 
@@ -131,25 +160,27 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if not enabled then
 		return
 	end
-	if unitDamage[unitID] then
+	if unitDamageDmg[unitID] then
 		local ux, uy, uz = GetUnitViewPosition(unitID)
 		if ux ~= nil then
-			local damage = math.ceil(unitDamage[unitID].damage - 0.5)
+			local damage = math_ceil(unitDamageDmg[unitID] - 0.5)
 			deadList[1] = {
 				x = ux,
 				y = uy + unitHeight(unitDefID),
 				z = uz,
 				lifeSpan = 1,
-				fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.5,
-				riseTime = (math.min((damage / 2500), 2) + 1) / 3,
+				fadeTime = math_max((0.03 - (damage / 333333)), 0.015) * 0.5,
+				riseTime = (math_min((damage / 2500), 2) + 1) / 3,
 				damage = damage,
 				textSize = getTextSize(damage, false),
 				red = true,
 			}
 		end
 	end
-	unitDamage[unitID] = nil
-	unitParalyze[unitID] = nil
+	unitDamageDmg[unitID] = nil
+	unitDamageTime[unitID] = nil
+	unitParalyzeDmg[unitID] = nil
+	unitParalyzeTime[unitID] = nil
 	for i, v in pairs(damageTable) do
 		if v.unitID == unitID then
 			if not v.paralyze then
@@ -182,12 +213,12 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	end
 end
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not enabled then
 		return
 	end
 
-	if damage < 1.5 then
+	if damage < 1.5 or ignoreDamageTypes[weaponDefID] then
 		return
 	end
 
@@ -195,36 +226,36 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		return
 	end
 
-	if paralyzer and unitParalyze[unitID] then
-		unitParalyze[unitID].damage = unitParalyze[unitID].damage + damage
+	if paralyzer and unitParalyzeDmg[unitID] then
+		unitParalyzeDmg[unitID] = unitParalyzeDmg[unitID] + damage
 		return
-	elseif unitDamage[unitID] then
-		unitDamage[unitID].damage = unitDamage[unitID].damage + damage
+	elseif unitDamageDmg[unitID] then
+		unitDamageDmg[unitID] = unitDamageDmg[unitID] + damage
 		return
 	end
 
 	if paralyzer then
-		unitParalyze[unitID] = {}
-		unitParalyze[unitID].damage = damage
-		unitParalyze[unitID].time = lastTime + 0.1
+		unitParalyzeDmg[unitID] = damage
+		unitParalyzeTime[unitID] = lastTime + 0.1
 	else
-		unitDamage[unitID] = {}
-		unitDamage[unitID].damage = damage
-		unitDamage[unitID].time = lastTime + 0.1
+		unitDamageDmg[unitID] = damage
+		unitDamageTime[unitID] = lastTime + 0.1
 	end
 end
 
-local function calcDPS(inTable, paralyze, theTime)
-	for unitID, damageDef in pairs(inTable) do
-		if damageDef.time < theTime then
+local function calcDPS(dmgTable, timeTable, paralyze, theTime)
+	for unitID, t in pairs(timeTable) do
+		if t < theTime then
 			local unitDefID = GetUnitDefID(unitID)
-			if unitDefID and (damageDef.damage >= 1) then
-				displayDamage(unitID, unitDefID, damageDef.damage, paralyze)
-				damageDef.damage = 0
-				damageDef.time = (theTime + 1)
+			local dmg = dmgTable[unitID]
+			if unitDefID and dmg and (dmg >= 1) then
+				displayDamage(unitID, unitDefID, dmg, paralyze)
+				dmgTable[unitID] = 0
+				timeTable[unitID] = theTime + 1
 				changed = true
 			else
-				inTable[unitID] = nil
+				dmgTable[unitID] = nil
+				timeTable[unitID] = nil
 			end
 		end
 	end
@@ -293,10 +324,11 @@ function gadget:PlayerChanged(playerID)
 	_, fullview = Spring.GetSpectatingState()
 end
 
+local LOA_B1 = string.byte('L') -- 76, first byte of 'LobbyOverlayActive'
+
 function gadget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
+	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= 'LobbyOverlayActive' then return end
+	chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 end
 
 function checkEnabled()
@@ -343,22 +375,20 @@ function gadget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
-	if Spring.IsGUIHidden() then
+	if IsGUIHidden() then
 		return
 	end
 
 	local theTime = GetGameSeconds()
 	if theTime ~= lastTime then
-		if next(unitDamage) then
-			calcDPS(unitDamage, false, theTime)
+		if next(unitDamageTime) then
+			calcDPS(unitDamageDmg, unitDamageTime, false, theTime)
 		end
-		if next(unitParalyze) then
-			calcDPS(unitParalyze, true, theTime)
+		if next(unitParalyzeTime) then
+			calcDPS(unitParalyzeDmg, unitParalyzeTime, true, theTime)
 		end
 		if changed then
-			table.sort(damageTable, function(m1, m2)
-				return m1.damage < m2.damage
-			end)
+			table.sort(damageTable, damageSortFunc)
 			changed = false
 		end
 	end

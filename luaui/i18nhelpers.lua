@@ -10,7 +10,7 @@ local function refreshUnitDefs()
 		if isScavenger then
 			local proxyUnitDefName = unitDef.customParams.fromunit
 			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
-			proxyUnitDefName = proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
+			proxyUnitDefName = proxyUnitDef and proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
 
 			local fromUnitHumanName = Spring.I18N('units.names.' .. proxyUnitDefName)
 			humanName = Spring.I18N('units.scavenger', { name = fromUnitHumanName })
