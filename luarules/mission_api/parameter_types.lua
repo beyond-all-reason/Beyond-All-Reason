@@ -54,11 +54,11 @@ local enumSets = {
 }
 
 for enumType, enumSpec in pairs(enumSets) do
-	local memberSet = {}
+	local valueSet = {}
 	for _, value in ipairs(enumSpec.values) do
-		memberSet[value] = true
+		valueSet[value] = true
 	end
-	enums[enumType] = memberSet
+	enums[enumType] = valueSet
 end
 
 return {
