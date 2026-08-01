@@ -1809,11 +1809,11 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 
 	-- Three-tier enemy-builder visibility filter, evaluated once per emitNano
 	-- call and cached for LOS_CACHE_FRAMES frames:
-	--   tier 2 (IsUnitVisible true): fully seen -- full emission rate.
+	--   tier 2 (INLOS bit set): fully seen -- full emission rate.
 	--   tier 1 (INRADAR bit set, not visually seen): radar/sonar contact only
 	--     (e.g. detected submarine) -- ENEMY_RADAR_EMIT_SCALE fraction of
-	--     particles as a faint hint; per-particle IsPosInLos cull is skipped
-	--     because the nanopiece/target position may be underwater.
+	--     particles as a faint hint, except for underwater work which must not
+	--     reveal a sonar-only unit's activity.
 	--   tier 0 (not detected at all): no particles.
 	local builderVisTier = 2  -- default: fully visible (only matters when needLosCheck)
 	if needLosCheck then
@@ -1821,18 +1821,22 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 		if visFrame and (frame - visFrame) < LOS_CACHE_FRAMES then
 			builderVisTier = info.builderVisTier
 		else
-			if spIsUnitVisible(builderID, cachedAllyTeamID) then
+			local losBits = Spring.GetUnitLosState(builderID, cachedAllyTeamID, true) or 0
+			-- INLOS bit = 1; INRADAR bit = 2. The latter also covers sonar
+			-- contacts, which must not grant normal visual-LOS particle access.
+			if losBits % 2 == 1 then
 				builderVisTier = 2
 			else
-				local losBits = Spring.GetUnitLosState(builderID, cachedAllyTeamID, true) or 0
-				-- INRADAR bitmask bit = 2 (bit 1). losBits % 4 >= 2 isolates bit 1
-				-- regardless of higher bits (PREVLOS = 4, CONTRADAR = 8).
 				builderVisTier = (losBits % 4 >= 2) and 1 or 0
 			end
 			info.visCheckFrame  = frame
 			info.builderVisTier = builderVisTier
 		end
 		if builderVisTier == 0 then return end
+		-- A sonar/radar contact must not disclose underwater nano activity.
+		-- Check both endpoints: reclaim particles originate at the target while
+		-- normal particles originate at the builder.
+		if builderVisTier == 1 and (sy < 0 or endY < 0) then return end
 	end
 
 	-- Stagger denominator: divide the symmetric spread window
@@ -1925,8 +1929,8 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			-- LOS filter: enemy emissions hidden when not in our LOS / not full
 			-- view. Throttled per builder -- LOS at the builder location changes
 			-- slowly relative to emit rate. Skipped for tier-1 (radar/sonar
-			-- contact) builders: their nanopiece / target may be underwater and
-			-- IsPosInLos would drop all remaining particles incorrectly.
+			-- contact) builders: underwater contact-only streams were already
+			-- rejected above, while surface streams retain the intended ghost hint.
 			if needLosCheck and builderVisTier == 2 then
 				local losFrame = info.losFrame
 				local visible
