@@ -16,6 +16,7 @@ local lava = Spring.Lava
 local lavaMap = lava.isLavaMap
 local PACKET_HEADER = "$ll$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 local gameSpeed = Game.gameSpeed
 
@@ -385,7 +386,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(message, playerID)
-		if string.sub(message, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #message < PACKET_HEADER_LENGTH or string.byte(message, 1) ~= PH_B1 or string.sub(message, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
 
