@@ -5,6 +5,7 @@
 VFS.Include('common/wav.lua')
 
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local enumSets = GG['MissionAPI'].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG['MissionAPI'].TriggerDefinitions.Parameters
@@ -42,21 +43,23 @@ local function processSoundFile(soundfile)
 	end
 end
 
-local function processResourceIncomeSources(sources)
-	local sourcesAsSet = {}
-	for _, source in ipairs(sources) do
-		sourcesAsSet[source] = true
+local function processEnumSet(values)
+	local valueSet = {}
+	for _, value in ipairs(values) do
+		valueSet[value] = true
 	end
-	return sourcesAsSet
+	return valueSet
 end
 
 local processors = {
-	[ParameterTypes.Position]              = processPosition,
-	[ParameterTypes.Positions]             = processPositions,
-	[ParameterTypes.Orders]                = processOrders,
-	[ParameterTypes.SoundFile]             = processSoundFile,
-	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
+	[ParameterTypes.Position]  = processPosition,
+	[ParameterTypes.Positions] = processPositions,
+	[ParameterTypes.Orders]    = processOrders,
+	[ParameterTypes.SoundFile] = processSoundFile,
 }
+for enumSetType in pairs(enumSets) do
+	processors[enumSetType]    = processEnumSet
+end
 
 ----------------------------------------------------------------
 --- Public processing functions:
