@@ -1265,13 +1265,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
-			-- Pass PIP visible area if drawing in PIP minimap
-			if inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-				local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-			else
-				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
-			end
+			attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
 
