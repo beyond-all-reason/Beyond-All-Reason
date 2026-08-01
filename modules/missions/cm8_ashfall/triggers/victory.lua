@@ -1,6 +1,6 @@
 -- CM8 "Ashfall", Beat 6 — staged objectives; the verdict flows through matchflow.
--- Trimmed to the modules in tree (combat, matchflow): the lava tiers, the
--- scripted reveal, and the raptor waves wait on their modules.
+-- Trimmed to the modules in tree: the lava tiers and the scripted reveal still
+-- wait on theirs. The wave pressure these objectives drive lives in waves.lua.
 
 When(Team.Player.Has(UnitDef("corllt"), 4))
 	.Do(Objective("relieve_the_outpost").Complete())

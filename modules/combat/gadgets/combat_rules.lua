@@ -51,6 +51,9 @@ local function onUnitPreDamaged(_, unitID)
 end
 
 local function onGameFrame(_, frame)
+	if not guard.HasStunned() then
+		return
+	end
 	if frame % STUN_TOPUP_PERIOD == 0 then
 		for unitID in pairs(guard.stunned) do
 			if Spring.ValidUnitID(unitID) then
@@ -64,21 +67,25 @@ local function onGameFrame(_, frame)
 			Spring.SetUnitHealth(unitID, { paralyze = 0 })
 		end
 	end
-	if not guard.HasStunned() then
-		gadget.GameFrame = nil
-		gadgetHandler:UpdateCallIn("GameFrame")
-	end
 end
 
+---Install both hot callins, once, and leave them installed.
+---
+---They used to come and go with the ledger. That is not safe from inside a
+---callin: the handler DEFERS its list update while it is iterating
+---(callinDepth > 0), but the method field goes nil immediately, so the gadget
+---sits in the handler's list with a nil method and the next gadget reached in
+---that same loop dies on it. UnitDestroyed fires inside GameFrame whenever
+---anything destroys a unit there — a wave director ageing out a squad, for
+---one — so the toggle was a crash waiting for a protected unit to die.
+---
+---Both callins now guard on the ledger instead, which costs one comparison.
 local function syncHooks()
-	local wantHot = guard.HasProtected()
-	if wantHot ~= (gadget.UnitPreDamaged ~= nil) then
-		gadget.UnitPreDamaged = wantHot and onUnitPreDamaged or nil
-		gadgetHandler:UpdateCallIn("UnitPreDamaged")
-	end
-	if guard.HasStunned() and gadget.GameFrame == nil then
-		gadget.GameFrame = onGameFrame
-		gadgetHandler:UpdateCallIn("GameFrame")
+	for _, name in ipairs({ "UnitPreDamaged", "GameFrame" }) do
+		if gadget[name] == nil then
+			gadget[name] = name == "GameFrame" and onGameFrame or onUnitPreDamaged
+			gadgetHandler:UpdateCallIn(name)
+		end
 	end
 end
 
@@ -123,6 +130,9 @@ function gadget:Initialize()
 			syncHooks()
 		end,
 	}
+	-- Installed up front rather than on the first exception: the ledger is
+	-- what gates the behaviour now, not the hook.
+	syncHooks()
 end
 
 function gadget:Shutdown()

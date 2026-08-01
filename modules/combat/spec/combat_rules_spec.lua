@@ -127,15 +127,21 @@ describe("combat_rules", function()
 	end)
 
 	describe("the damage floor", function()
-		it("is hooked only while something is protected", function()
+		it("applies only while something is protected", function()
+			-- The callin stays installed and answers nothing when the ledger is
+			-- empty. It used to be added and removed with the ledger, which is
+			-- not safe from inside a callin: the handler defers its list update
+			-- while iterating, so a gadget that unhooks itself mid-loop is left
+			-- in the list with a nil method for the rest of that loop.
 			local h = newGadget()
 			h.spawn(7)
-			assert.is_nil(h.gadget.UnitPreDamaged)
+			assert.is_function(h.gadget.UnitPreDamaged)
+			assert.is_nil(h.preDamaged(7))
 			h.Combat.Protect(7)
 			assert.are.same({ 0, 0 }, { h.preDamaged(7) })
 			assert.is_nil(h.preDamaged(8))
 			h.Combat.Unprotect(7)
-			assert.is_nil(h.gadget.UnitPreDamaged)
+			assert.is_nil(h.preDamaged(7))
 		end)
 
 		it("survives one release of two overlapping lifetimes", function()
@@ -152,7 +158,7 @@ describe("combat_rules", function()
 			h.spawn(7)
 			h.Combat.Protect(7)
 			h.gadget:UnitDestroyed(7)
-			assert.is_nil(h.gadget.UnitPreDamaged)
+			assert.is_nil(h.preDamaged(7))
 			assert.is_false(h.Combat.IsProtected(7))
 		end)
 
@@ -184,7 +190,19 @@ describe("combat_rules", function()
 			assert.are.equal(150, h.paralyze[7])
 			h.gadget:GameFrame(60)
 			assert.are.equal(0, h.paralyze[7])
-			assert.is_nil(h.gadget.GameFrame)
+		end)
+
+		it("keeps its callin installed once the last stun ends", function()
+			-- Same reason as the damage floor: it guards instead of unhooking,
+			-- and a frame with nothing stunned is a comparison and a return.
+			local h = newGadget()
+			h.spawn(7)
+			h.Combat.Stun(7, 2)
+			h.gadget:GameFrame(60)
+			assert.is_function(h.gadget.GameFrame)
+			assert.has_no.errors(function()
+				h.gadget:GameFrame(90)
+			end)
 		end)
 	end)
 end)

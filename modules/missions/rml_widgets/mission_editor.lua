@@ -58,6 +58,7 @@ local pendingEdits = {}
 -- and ordered even pre-game, where GetGameFrame() and a fresh counter are both 0.
 local editSequence = math.floor(os.clock() * 1000)
 local liveSpans = nil
+local liveShades = nil
 local collapsedSections = {}
 local pickerBypassed = false
 local applyViewLayout, renderCurrent
@@ -159,6 +160,7 @@ end
 
 local function collectLiveSpans()
 	liveSpans = {}
+	liveShades = {}
 	local content = document and document:GetElementById("me-content")
 	if not content then
 		return
@@ -168,6 +170,20 @@ local function collectLiveSpans()
 		local key = spans[i]:GetAttribute("data-live")
 		if key then
 			liveSpans[#liveSpans + 1] = { element = spans[i], key = key }
+		end
+	end
+	-- Whole-element state lives on the trigger card, which is a div, and
+	-- carries no text: writing into it would erase the card.
+	--
+	-- "data-fired" is a contract with bar-mission-kit, which emits it in
+	-- view.rs::trigger_card. The two live in different repos and nothing
+	-- checks them against each other, so renaming it on one side alone is a
+	-- silent no-op — as it was, briefly.
+	local divs = content:GetElementsByTagName("div")
+	for i = 1, #divs do
+		local key = divs[i]:GetAttribute("data-fired")
+		if key then
+			liveShades[#liveShades + 1] = { element = divs[i], key = key }
 		end
 	end
 end
@@ -191,6 +207,12 @@ local function applyLive()
 		local value = state.values[entry.key]
 		if value then
 			entry.element.inner_rml = drawable(escape(value.text))
+			entry.element:SetClass("done", value.state == "done")
+		end
+	end
+	for _, entry in ipairs(liveShades or {}) do
+		local value = state.values[entry.key]
+		if value then
 			entry.element:SetClass("done", value.state == "done")
 		end
 	end
@@ -454,7 +476,9 @@ local function refresh()
 	if content then
 		content.inner_rml = drawable((serveStatusLine() or "") .. (view and view.form or ('<div class="me-opaque">' .. (err or "?") .. "</div>")))
 		attachHandlers()
+		-- Both caches hold element handles into markup that just went away.
 		liveSpans = nil
+		liveShades = nil
 	end
 end
 

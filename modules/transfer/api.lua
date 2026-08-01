@@ -90,6 +90,17 @@ return {
 		if Spring.GetGameRulesParam("isTakeInProgress") == 1 then
 			return true
 		end
+		-- Nor to a fiat Give. Its whole contract is "no policy question
+		-- asked", but the engine asks this callin anyway on the way through
+		-- Spring.TransferUnit — so without this the bypass bypasses nothing,
+		-- and a mission handing a Gaia outpost to the player is refused for
+		-- the entirely correct reason that Gaia is nobody's ally.
+		--
+		-- A rulesparam rather than an upvalue because VFS.Include is uncached:
+		-- the controller and the caller hold DIFFERENT copies of this file.
+		if Spring.GetGameRulesParam("isGiveInProgress") == 1 then
+			return true
+		end
 		local policyResult = UnitShared.GetCachedPolicyResult(fromTeamID, toTeamID, Spring)
 		mayUnitScratch[1] = unitID
 		local validation = UnitShared.ValidateUnits(policyResult, mayUnitScratch, Spring, nil, mayValidationScratch)

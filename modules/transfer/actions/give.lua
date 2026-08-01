@@ -26,5 +26,12 @@ end)
 ---@param request TransferGiveRequest
 ---@return integer transferred
 Actions.RegisterExecute(function(request)
-	return request.move(request.unitIDs, request.to, true)
+	-- Announce the fiat for the duration of the move. Spring.TransferUnit
+	-- fires AllowUnitTransfer, which asks the sharing policy — and a policy
+	-- that has no idea this is fiat will refuse a hand-over from a team
+	-- nobody is allied with. Same shape as isTakeInProgress.
+	Spring.SetGameRulesParam("isGiveInProgress", 1)
+	local moved = request.move(request.unitIDs, request.to, true)
+	Spring.SetGameRulesParam("isGiveInProgress", 0)
+	return moved
 end)

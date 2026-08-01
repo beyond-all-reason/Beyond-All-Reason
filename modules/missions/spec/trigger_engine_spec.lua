@@ -204,3 +204,109 @@ describe("TriggerEngine", function()
 		end)
 	end)
 end)
+
+describe("delayed triggers", function()
+	local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
+
+	---@param delayFrames integer
+	local function delayed(engine, delayFrames, holds, fired)
+		engine.Register({
+			id = "f.lua:1",
+			filename = "f.lua",
+			order = 1,
+			condition = { evaluate = function() return holds() end },
+			effects = { { execute = function() fired[#fired + 1] = true end } },
+			once = true,
+			delayFrames = delayFrames,
+		})
+	end
+
+	it("waits for the conditions to have held that long", function()
+		local engine, fired, holds = TriggerEngine.New(), {}, true
+		delayed(engine, 90, function() return holds end, fired)
+
+		engine.Evaluate({ frame = 100 })
+		assert.are.equal(0, #fired, "the clock starts, nothing fires")
+		engine.Evaluate({ frame = 180 })
+		assert.are.equal(0, #fired, "still short of the interval")
+		engine.Evaluate({ frame = 190 })
+		assert.are.equal(1, #fired)
+	end)
+
+	it("measures a CONTINUOUS hold — losing the condition resets the clock", function()
+		local engine, fired = TriggerEngine.New(), {}
+		local holds = true
+		delayed(engine, 90, function() return holds end, fired)
+
+		engine.Evaluate({ frame = 100 })
+		holds = false
+		engine.Evaluate({ frame = 150 })
+		holds = true
+		engine.Evaluate({ frame = 160 })
+		-- Were the clock still running from 100, this would fire.
+		engine.Evaluate({ frame = 200 })
+		assert.are.equal(0, #fired)
+		engine.Evaluate({ frame = 250 })
+		assert.are.equal(1, #fired)
+	end)
+
+	it("re-arms after each fire, so a repeating trigger is rate limited", function()
+		local engine, fired = TriggerEngine.New(), {}
+		engine.Register({
+			id = "f.lua:1",
+			filename = "f.lua",
+			order = 1,
+			condition = { evaluate = function() return true end },
+			effects = { { execute = function() fired[#fired + 1] = true end } },
+			once = false,
+			delayFrames = 30,
+		})
+		engine.Evaluate({ frame = 0 })
+		engine.Evaluate({ frame = 10 })
+		assert.are.equal(0, #fired)
+		engine.Evaluate({ frame = 30 })
+		assert.are.equal(1, #fired)
+		engine.Evaluate({ frame = 45 })
+		assert.are.equal(1, #fired, "the interval restarts at the fire")
+		-- Exactly one interval after the fire, with no cadence drift added.
+		engine.Evaluate({ frame = 60 })
+		assert.are.equal(2, #fired)
+		engine.Evaluate({ frame = 89 })
+		assert.are.equal(2, #fired)
+		engine.Evaluate({ frame = 90 })
+		assert.are.equal(3, #fired)
+	end)
+
+	it("polls even when its condition declares inputs — a countdown has no event", function()
+		local engine, fired = TriggerEngine.New(), {}
+		engine.Register({
+			id = "f.lua:1",
+			filename = "f.lua",
+			order = 1,
+			condition = { inputs = { "UnitFinished" }, evaluate = function() return true end },
+			effects = { { execute = function() fired[#fired + 1] = true end } },
+			once = true,
+			delayFrames = 30,
+		})
+		-- No OnEvent at all: an event-only trigger would never come due.
+		engine.Evaluate({ frame = 0 })
+		engine.Evaluate({ frame = 30 })
+		assert.are.equal(1, #fired)
+	end)
+
+	it("carries its countdowns in the save pile, and tolerates a checkpoint without them", function()
+		local engine = TriggerEngine.New()
+		assert.is_table(engine.GetState().heldSince)
+		engine.SetState({ fired = {} })
+		assert.is_table(engine.GetState().heldSince, "an older checkpoint predates delays")
+	end)
+
+	it("drops a countdown when its file unregisters", function()
+		local engine, fired = TriggerEngine.New(), {}
+		delayed(engine, 90, function() return true end, fired)
+		engine.Evaluate({ frame = 0 })
+		assert.is_not_nil(engine.GetState().heldSince["f.lua:1"])
+		engine.UnregisterFile("f.lua")
+		assert.is_nil(engine.GetState().heldSince["f.lua:1"])
+	end)
+end)

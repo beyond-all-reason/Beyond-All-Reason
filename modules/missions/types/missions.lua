@@ -10,6 +10,12 @@
 ---@alias MissionUnitGroup string roster group name, declared by units.lua Grouped(...)
 ---@alias ObjectiveName string
 ---@alias MissionTeamRole "player"|"enemy"|"gaia" spawn-time team role, resolved at arm
+--- Wall-clock seconds, never frames. An alias and not a bare number for the
+--- usual reason — a `number` has nothing to call itself in a sentence, so an
+--- editor can only offer a nameless box, and the one thing an author needs to
+--- know here is which unit they are typing in. The DSL converts on the way in
+--- using the engine's own tick rate, so "30" is thirty seconds at any speed.
+---@alias MissionSeconds number
 
 --- Mission bus vocabulary, CLOSED BY TYPE: every event name crossing the bus
 --- is a member of this alias, so the checker flags typos across every inputs/OnEvent consumer as type errors.
@@ -20,6 +26,10 @@
 ---| "UnitTaken"
 ---| "UnitEnteredLos"
 ---| "mission.objective_changed"
+---| "waves.wave_spawned"
+---| "waves.wave_cleared"
+---| "waves.boss_spawned"
+---| "waves.boss_defeated"
 
 --- A condition carries metadata about what can change its answer: inputs
 --- name bus events (nil = poll every cadence). Pure — reads only ctx, captures configuration never progress (progress lives in engine state, the savegame rule).
@@ -37,6 +47,11 @@
 ---@field TransferGroup fun(groupName: string, teamID: integer)
 ---@field Protect fun(name: string) combat-module protection by roster name
 ---@field Unprotect fun(name: string)
+---@field StartWaves fun(request: table) waves-module pressure, by pack
+---@field StopWaves fun(pack: string)
+---@field SetWaveIntensity fun(pack: string, intensity: number)
+---@field SurgeWaves fun(pack: string)
+---@field WaveStatus fun(pack: string): WaveStatus|nil
 ---@field frame integer current game frame
 
 --- A lazy effect built by a named verb (e.g. Objective("x").Complete()); the
@@ -82,11 +97,13 @@
 ---@field condition MissionCondition
 ---@field effects MissionEffect[] executed in Do order when the condition fires
 ---@field once boolean fire at most once (default true)
+---@field delayFrames integer hold the effects until the conditions have held this long; 0 fires at once
 
 --- The dot-only builder chain returned by When. There is no terminator: the
 --- loader finalizes all chains when the file's include returns; a chain without a Do fails the load.
 ---@class TriggerChain
 ---@field When fun(condition: MissionCondition): TriggerChain another condition; all must hold
+---@field After fun(seconds: MissionSeconds): TriggerChain hold the effects until the conditions have held that long
 ---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
 ---@field Once fun(once: boolean?): TriggerChain default true; pass false for repeating triggers
 
@@ -106,6 +123,7 @@
 --- reload from source; this table is reapplied on top.
 ---@class TriggerEngineState
 ---@field fired table<string, boolean> trigger id -> has fired
+---@field heldSince table<string, integer> trigger id -> frame its conditions first held, for delays
 
 --- What a required module's mission_dsl.lua returns. The loader composes the
 --- sandbox env from the missions manifest's requires list — the dependency
