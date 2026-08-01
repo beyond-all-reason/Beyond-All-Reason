@@ -146,6 +146,51 @@ local triggers = {
 		},
 		actions = { 'messageEngineerUnspotted' },
 	},
+
+	engineerSpottedByRadar = {
+		type = triggerTypes.UnitSpottedByRadar,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+		},
+		actions = { 'messageEngineerSpottedByRadar' },
+	},
+
+	engineerUnspottedByRadar = {
+		type = triggerTypes.UnitUnspottedByRadar,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			spottingAllyTeamID = 0,
+		},
+		actions = { 'messageEngineerUnspottedByRadar' },
+	},
+
+	engineerSpottedBySeismic = {
+		type = triggerTypes.UnitSpottedBySeismic,
+		settings = {
+			repeating = true,
+		},
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+		},
+		actions = { 'messageEngineerSpottedBySeismic' },
+	},
+
+	engineerUnspottedBySeismic = {
+		type = triggerTypes.UnitUnspottedBySeismic,
+		parameters = {
+			unitName = 'engineers',
+			unitDefName = 'corfast',
+			owningTeamID = 1,
+			timeout = 5.0, -- seconds without redetection before firing (default 1.0)
+		},
+		actions = { 'messageEngineerUnspottedBySeismic' },
+	},
 }
 
 local actions = {
@@ -336,6 +381,34 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Engineer unspotted!",
+		},
+	},
+
+	messageEngineerSpottedByRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer spotted by radar!",
+		},
+	},
+	
+	messageEngineerUnspottedByRadar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer unspotted by radar!",
+		},
+	},
+
+	messageEngineerSpottedBySeismic = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer spotted by seismic!",
+		},
+	},
+
+	messageEngineerUnspottedBySeismic = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer unspotted by seismic!",
 		},
 	},
 }
