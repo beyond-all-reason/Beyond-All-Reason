@@ -171,33 +171,72 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
     end
 end
 
-local function doUnitDamaged(unitID, unitDefID, unitTeam, damage)
-	local health, maxHealth = spGetUnitHealth(unitID)
+-- The con turret has no corpse of its own, so its remains are created here by
+-- hand. They MUST be created when the unit actually dies, never predicted from
+-- an incoming hit: UnitDamaged runs *after* the engine has already subtracted
+-- the damage, so testing `health - damage` there subtracts it twice and fires a
+-- hit early. That left a live, still-extracting Fortifier standing inside its
+-- own blocking wreck, whose collision box is far larger than the unit's and so
+-- absorbed the shots that should have finished it off.
+local lastDamage = {} -- con turret unitID -> damage of its most recent hit
+local lastDamageFrame = {} -- con turret unitID -> frame of that hit
 
-	if health - damage < 0 and damage < maxHealth * 0.5 then
-		local buildAsUnitName = mexTurretDefID[unitDefID]
-		local xx, yy, zz = Spring.GetUnitPosition(unitID)
-		local facing = Spring.GetUnitBuildFacing(unitID)
+local function createRemains(unitID, unitDefID, unitTeam)
+	local buildAsUnitName = mexTurretDefID[unitDefID]
+	if not buildAsUnitName then
+		return
+	end
 
-		-- todo: "damage" is not "recent damage" is not "damage severity"
-		if damage < maxHealth * 0.25 then
-			local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
-			if featureID then
-				Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
-			end
-		else
-			Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
+	-- Remains are only for units killed by damage: dead at <= 0 health, with a
+	-- damage event on this or the previous frame. This excludes reclaim,
+	-- self-destruct and being removed because the paired unit died — none of
+	-- which fire UnitDamaged, and none of which should leave remains.
+	local health = spGetUnitHealth(unitID)
+	if not health or health > 0 then
+		return
+	end
+	local damageFrame = lastDamageFrame[unitID]
+	if not damageFrame or Spring.GetGameFrame() - damageFrame > 1 then
+		return
+	end
+
+	local xx, yy, zz = Spring.GetUnitPosition(unitID)
+	if not xx then
+		return
+	end
+
+	-- severity of the killing blow still picks the remains, as before
+	local maxHealth = UnitDefs[unitDefID].health
+	local damage = lastDamage[unitID] or 0
+	local facing = Spring.GetUnitBuildFacing(unitID)
+
+	if damage >= maxHealth * 0.5 then
+		return -- obliterated outright: nothing left to salvage
+	elseif damage < maxHealth * 0.25 then
+		local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
+		if featureID then
+			Spring.SetFeatureResurrect(featureID, buildAsUnitName, facing, 0)
 		end
+	else
+		Spring.CreateFeature(buildAsUnitName .. "_heap", xx, yy, zz, facing, unitTeam)
 	end
 end
+
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if mexTurretDefID[unitDefID] and not paralyzer then
-        doUnitDamaged(unitID, unitDefID, unitTeam, damage)
-    end
+		lastDamage[unitID] = damage
+		lastDamageFrame[unitID] = Spring.GetGameFrame()
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	mexesToSwap[unitID] = nil
+
+	if mexTurretDefID[unitDefID] then
+		createRemains(unitID, unitDefID, unitTeam)
+		lastDamage[unitID] = nil
+		lastDamageFrame[unitID] = nil
+	end
 
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
 		local pairedUnitID = pairedUnits[unitID]
