@@ -14,6 +14,8 @@ local function MakeHashedPosTable(resolution)
 	resolution = resolution or 512
 	local mx = Game and Game.mapSizeX or 8192
 	local mz = Game and Game.mapSizeZ or 8192
+	local mfloor = math.floor
+	local mclamp = math.clamp
 
 	local HashPos = {
 		resolution = resolution,
@@ -22,16 +24,16 @@ local function MakeHashedPosTable(resolution)
 		numPos = mx*mz/(resolution*resolution)
 	}
 	function HashPos:hashPos(px,pz)
-		return math.floor(pz/self.resolution) * 1000 + math.floor(px/self.resolution)
+		return mfloor(pz/self.resolution) * 1000 + mfloor(px/self.resolution)
 	end
 
 	-- return x,y
 	function HashPos:unhash(h)
-		local z = math.floor(h/1000)
+		local z = mfloor(h/1000)
 		return h - 1000*z, z
 	end
 	function HashPos:hashtopos(h)
-		local z = math.floor(h/1000)
+		local z = mfloor(h/1000)
 		local cx = (h - 1000*z) * self.resolution + self.resolution/2
 		local cz = z*self.resolution + self.resolution/2
 		return cx,cz
@@ -45,11 +47,12 @@ local function MakeHashedPosTable(resolution)
 		return x1*x1 + z1*z1
 	end
 	local hashIDs = {}
-
+	local count = 0
 	for x=1, mx, resolution do
 		for z = 1, mz, resolution do
 			local hp = HashPos:hashPos(x,z)
-			hashIDs[#hashIDs+1] = hp
+			count = count + 1
+			hashIDs[count] = hp
 		end
 	end
 	HashPos.hashIDs = hashIDs
@@ -77,7 +80,7 @@ local function MakeHashedPosTable(resolution)
 			self:SortNewRegion(hp)
 			sorted = self.sortedPositions[hp]
 		end
-		n = math.clamp(n, 1, #sorted)
+		n = mclamp(n, 1, #sorted)
 		local hpn = sorted[n]
 		return self:hashtopos(hpn)
 	end

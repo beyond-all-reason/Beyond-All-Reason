@@ -78,10 +78,6 @@ return {
 				[1] = "custom:waterwake-tiny",
 				[2] = "custom:radarpulse_t1",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -135,7 +131,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 500,
 				texture1 = "null",
 				texture2 = "smoketrailbar",
@@ -147,6 +142,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 1,
 					vtol = 120,
@@ -180,7 +178,6 @@ return {
 				soundhit = "rockhit2",
 				soundhitwet = "splssml",
 				soundstart = "rockhvy2",
-				soundstartvolume = 8.5,
 				startvelocity = 420,
 				texture1 = "null",
 				texture2 = "smoketrailbar",

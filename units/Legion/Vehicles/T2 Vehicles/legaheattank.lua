@@ -1,7 +1,7 @@
 return {
 	legaheattank = {
 		maxacc = 0.02,
-		maxdec = 0.04,
+		maxdec = 0.1,
 		energycost = 19000,
 		metalcost = 1250,
 		buildpic = "LEGAHEATTANK.DDS",
@@ -10,6 +10,7 @@ return {
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "46 25 46",
 		collisionvolumetype = "CylY",
+		usepiececollisionvolumes = 1,
 		corpse = "DEAD",
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
@@ -82,10 +83,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -136,7 +133,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				tolerance = 5000,
 				thickness = 4.0,

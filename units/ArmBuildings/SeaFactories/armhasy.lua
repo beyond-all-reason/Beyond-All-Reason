@@ -4,6 +4,7 @@ return {
 		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 85000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "256 80 221",
 		collisionvolumetype = "Box",
@@ -62,13 +63,6 @@ return {
 				metal = 4807,
 				object = "Units/armhasy_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

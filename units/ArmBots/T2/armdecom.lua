@@ -26,6 +26,7 @@ return {
 		health = 3700,
 		hidedamage = true,
 		holdsteady = true,
+		mass = 2700, -- same as armcom's default mass (= metalcost)
 		maxacc = 0.18,
 		maxdec = 1.125,
 		maxslope = 20,
@@ -72,6 +73,7 @@ return {
 		},
 		customparams = {
 			decoyfor = "armcom",
+			firestateoncloak = 0,
 			isdecoycommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -85,11 +87,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -150,6 +147,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 5,
@@ -188,6 +188,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 62.5,
 					subs = 18.75,
@@ -224,6 +227,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 40,
 				},

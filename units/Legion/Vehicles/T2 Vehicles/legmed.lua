@@ -1,7 +1,7 @@
 return {
 	legmed = {
 		maxacc = 0.01,
-		maxdec = 0.02,
+		maxdec = 0.1,
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",
@@ -71,13 +71,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -107,7 +100,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
-				explosiongenerator = "custom:genericshellexplosion-large-bomb",
+				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 100,
 				flighttime = 5,
 				impulsefactor = 0.2,
@@ -181,6 +174,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

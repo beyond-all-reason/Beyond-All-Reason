@@ -17,7 +17,7 @@ return {
 		cantbetransported = true,
 		capturable = false,
 		category = "OBJECT",
-		explodeas = "TINYBUG_DEATH",
+		explodeas = "MICROBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
 		mass = 1,

@@ -71,12 +71,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -152,10 +146,8 @@ return {
 				separation = 2,
 				sizedecay = 0.08,
 				soundhit = "corlevlrhit",
-				soundhitvolume = 11.5,
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
-				soundstartvolume = 13,
 				stages = 12,
 				turret = true,
 				weapontype = "Cannon",

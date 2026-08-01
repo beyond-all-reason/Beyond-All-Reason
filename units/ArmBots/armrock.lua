@@ -24,7 +24,7 @@ return {
 		script = "Units/ARMROCK.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 338,
+		sightdistance = 380,
 		speed = 50.7,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -71,10 +71,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

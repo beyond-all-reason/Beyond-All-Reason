@@ -48,7 +48,12 @@ local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spDestroyUnit = Spring.DestroyUnit
+
+local waterIsLava = Spring.GetModOptions().map_waterislava
+local largeSplashCEG = waterIsLava and 'lavasplash_large' or 'watersplash_large'
+local smallSplashCEG = waterIsLava and 'lavasplash_small' or 'watersplash_small'
 
 local unitDefData = {}
 local transportDrops = {}
@@ -99,19 +104,23 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 		local velX, velY, velZ, velLength = spGetUnitVelocity(unitID)
 		local posX, posY, posZ = spGetUnitBasePosition(unitID)
 		if velLength > velocityThreshold then
-			spSpawnCEG('watersplash_large', posX, posY, posZ)
+			spSpawnCEG(largeSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.5, posX, posY, posZ, 'sfx')
 			if unitDefData[unitDefID] then
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
-					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					if spGetUnitRulesParam(unitID, "unit_effigy") then
+						spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+					else
+						spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					end
 				else
-					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
 				end
 			end
 		else
-			spSpawnCEG('watersplash_small', posX, posY, posZ)
+			spSpawnCEG(smallSplashCEG, posX, posY, posZ)
 			spPlaySoundFile('xplodep3', 0.3, posX, posY, posZ, 'sfx')
 		end
 		transportDrops[unitID] = nil
@@ -166,7 +175,7 @@ function gadget:GameFrame(frame)
 					if math.random(1, 6) == 1 then
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
-					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, data.drowningDamage, 0, nil, waterDamageDefID)
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit

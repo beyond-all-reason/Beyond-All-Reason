@@ -18,6 +18,7 @@ end
 local cmdname = 'give'
 local PACKET_HEADER = "$g$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 local isSilentUnitGift = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -87,20 +88,20 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		elseif givenSomethingAtFrame == Spring.GetGameFrame() then
 			return
 		end
 
-		local playername, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		local playername, _, spec = Spring.GetPlayerInfo(playerID)
+		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.give[accountID] then
 			authorized = true
 			givenSomethingAtFrame = Spring.GetGameFrame()
 		end
-		if authorized == nil then
+		if not authorized then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		elseif not spec then
@@ -118,12 +119,15 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local accountInfo = select(11, Spring.GetPlayerInfo(myPlayerID))
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.give[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.give
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function RequestGive(cmd, line, words, playerID)
-		if authorized and playerID == myPlayerID then
+		if isAuthorized() and playerID == myPlayerID then
 			local mx,my = Spring.GetMouseState()
 			local targettype,pos = Spring.TraceScreenRay(mx,my)
 			if targettype == 'unit' then
@@ -140,7 +144,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestGive)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestGive)
+		end
 	end
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction(cmdname)

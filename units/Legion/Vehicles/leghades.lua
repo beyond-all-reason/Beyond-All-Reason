@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGHADES.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 330,
 		trackoffset = 5,
 		trackstrength = 4,
 		tracktype = "armpincer_tracks",
@@ -81,10 +81,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -127,7 +123,6 @@ return {
 				soundhit = "xplomed1",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy1",
-				soundstartvolume = 2,
 				--sprayangle = 500,
 				turret = true,
 				weapontype = "Cannon",

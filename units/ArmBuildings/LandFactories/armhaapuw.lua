@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 42000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -85,11 +86,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

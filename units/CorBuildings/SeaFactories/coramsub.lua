@@ -4,6 +4,7 @@ return {
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11400,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 -6",
 		collisionvolumescales = "96 30 96",
 		collisionvolumetype = "Box",
@@ -46,6 +47,7 @@ return {
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -61,13 +63,6 @@ return {
 				metal = 800,
 				object = "Units/coramsub_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

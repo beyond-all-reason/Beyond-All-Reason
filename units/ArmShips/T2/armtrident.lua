@@ -4,13 +4,14 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 10500,
-		buildcostmetal = 1050,
+		energycost = 10500,
+		metalcost = 1050,
 		buildpic = "armtrident.dds",
 		buildtime = 18000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 42 84",
 		collisionvolumetype = "CylZ",
@@ -21,7 +22,7 @@ return {
 		footprintz = 6,
 		losemitheight = 56,
 		mass = 10000,
-		maxdamage = 3400,
+		health = 3400,
 		maxvelocity = 2.25,
 		minwaterdepth = 15,
 		movementclass = "BOAT9",
@@ -88,11 +89,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -154,8 +150,8 @@ return {
 					spawnrate = 5, 				--Spawnrate roughly in seconds.
 					maxunits = 4,				--Will spawn units until this amount has been reached.
 					startingdronecount = 2,
-					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					energycost = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 3,
 					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
@@ -203,8 +199,6 @@ return {
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
-				soundhitvolume = 3,
-				soundhitwetvolume = 12,
 				startvelocity = 300,
 				tracks = true,
 				turnrate = 64000,

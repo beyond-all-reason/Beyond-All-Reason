@@ -136,6 +136,7 @@ return {
 			childreninheritxp = "DRONE BOTCANNON",
 			parentsinheritxp = "MOBILEBUILT DRONE BOTCANNON",
 			effigy = "comeffigylvl4",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
@@ -186,10 +187,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -246,6 +243,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 475,
 					vtol = 235,
@@ -284,6 +284,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 425,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					-- commanders = 375,
 					default = 350, --278.4375,
@@ -314,8 +317,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -323,6 +324,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
@@ -358,12 +362,14 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 300,
 				},
@@ -401,7 +407,6 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundstartvolume = 50,
 				turret = true,
 				trajectoryheight = 1,
 				waterbounce = true,
@@ -416,6 +421,7 @@ return {
 					spawns_surface = "LAND", -- Available: "LAND SEA"
 					spawns_mode = "random",
 					stockpilelimit = 5,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 0,

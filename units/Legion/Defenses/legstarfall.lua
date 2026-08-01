@@ -33,6 +33,7 @@ return {
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -79,10 +80,6 @@ return {
 				[5] = "custom:smokegen-part",
 				[6] = "custom:smokegen-part2",
 				[7] = "custom:ventair-puff",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -136,7 +133,6 @@ return {
 				soundhit = "rflrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
-				soundhitvolume = 36,
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
@@ -172,10 +168,12 @@ return {
 				soundhit = "starfallchargup",
 				soundhitwet = "starfallchargup",
 				soundstart = "starfallchargup",
-				soundstartvolume = 124,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					default = 0,
 				},

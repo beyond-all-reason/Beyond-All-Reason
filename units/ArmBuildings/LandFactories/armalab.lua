@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMALAB.DDS",
 		buildtime = 25000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "124 75 140",
 		collisionvolumetype = "Box",
@@ -88,13 +89,6 @@ return {
 				object = "Units/arm5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

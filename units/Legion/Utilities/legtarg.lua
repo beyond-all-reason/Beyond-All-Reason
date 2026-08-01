@@ -5,9 +5,9 @@ return {
 		buildpic = "LEGTARG.DDS",
 		buildtime = 8700,
 		canrepeat = false,
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "60 101 52",
-		collisionvolumetype = "CylY",
+		collisionvolumeoffsets = "0 -10 0",
+		collisionvolumescales = "42 80 42",
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 7200,
 		energyupkeep = 100,
@@ -71,13 +71,6 @@ return {
 				object = "Units/arm4X4A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

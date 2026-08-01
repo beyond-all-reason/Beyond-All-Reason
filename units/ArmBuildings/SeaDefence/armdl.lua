@@ -69,13 +69,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			cloak = "kloak1",
@@ -107,6 +100,7 @@ return {
 				bouncerebound = 0.6,
 				bounceslip = 0.6,
 				burnblow = true,
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -125,9 +119,7 @@ return {
 				range = 600,
 				reloadtime = 1.5,
 				soundhit = "xplodep2",
-				soundhitvolume = 3,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 12,
 				soundstart = "torpedo1",
 				startvelocity = 190,
 				tracks = true,

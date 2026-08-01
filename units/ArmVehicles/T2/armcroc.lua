@@ -15,7 +15,7 @@ return {
 		health = 5000,
 		leavetracks = true,
 		maxacc = 0.03252,
-		maxdec = 0.06504,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 255,
 		metalcost = 750,
@@ -84,11 +84,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -122,10 +117,10 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulsefactor = 0.123,
+				impulsefactor = 1.1,
 				name = "Medium g2g gauss-cannon",
 				noselfdamage = true,
-				predictboost = 1,
+				predictboost = 0.6,
 				range = 480,
 				reloadtime = 1.6,
 				soundhit = "xplomed4",
@@ -133,7 +128,7 @@ return {
 				soundstart = "cannon2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weaponvelocity = 600,
 				damage = {
 					default = 225,
 					subs = 100,
@@ -182,6 +177,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 800,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 60,
 				},

@@ -19,6 +19,7 @@ end
 local screenshotWidthLq = 360
 local screenshotWidth = 600
 local screenshotWidthHq = 900
+local screenshotRequestTimeoutMs = 60000
 
 --------------------------------------------------------------------------------
 
@@ -27,46 +28,34 @@ local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 if gadgetHandler:IsSyncedCode() then
 
-	local charset = {}
-	do
-		-- [0-9a-zA-Z]
-		for c = 48, 57 do
-			table.insert(charset, string.char(c))
-		end
-		for c = 65, 90 do
-			table.insert(charset, string.char(c))
-		end
-		for c = 97, 122 do
-			table.insert(charset, string.char(c))
-		end
-	end
-	local function randomString(length)
-		if not length or length <= 0 then
-			return ''
-		end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationPlayerData = validation
 
+	-- Cache validation bytes to avoid string allocations in the hot path
+	local vb1, vb2 = string.byte(validation, 1, 2)
+	-- 's' = 115, 'd' = 100, 's' = 115
+	local sb1, sb2_d, sb2_s = 115, 100, 115
+
 	function gadget:RecvLuaMsg(msg, player)
-		if msg:sub(3, 4) == validation then
-			if msg:sub(1, 2) == "sd" then
-				local name = Spring.GetPlayerInfo(player, false)
-				-- Extract requestingPlayerID from position 5 onwards until first semicolon
-				local semicolonPos = string.find(msg, ";", 5)
-				local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
-				-- Everything after first semicolon (includes "screenshot;" + compressed data)
-				local data = string.sub(msg, semicolonPos + 1)
-				SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
-				return true
-			elseif msg:sub(1, 2) == "ss" then
-				-- Screenshot request from synced
-				-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
-				local screenshotData = string.sub(msg, 5) .. ";" .. player
-				SendToUnsynced("StartScreenshot", screenshotData)
-				return true
-			end
+		-- Fast allocation-free checks: length guard + byte comparisons before any sub()
+		if #msg < 5 then return end
+		local b3, b4 = string.byte(msg, 3, 4)
+		if b3 ~= vb1 or b4 ~= vb2 then return end
+		local b1, b2 = string.byte(msg, 1, 2)
+		if b1 ~= sb1 then return end
+		if b2 == sb2_d then -- "sd"
+			local name = Spring.GetPlayerInfo(player, false)
+			local semicolonPos = string.find(msg, ";", 5)
+			local requestingPlayerID = string.sub(msg, 5, semicolonPos - 1)
+			local data = string.sub(msg, semicolonPos + 1)
+			SendToUnsynced("ReceiveScreenshot", requestingPlayerID .. ";" .. name .. ";" .. data)
+			return true
+		elseif b2 == sb2_s then -- "ss"
+			-- Screenshot request from synced
+			-- Format: "ss" + width + ";" + targetPlayerID, then append requestingPlayerID
+			local screenshotData = string.sub(msg, 5) .. ";" .. player
+			SendToUnsynced("StartScreenshot", screenshotData)
+			return true
 		end
 	end
 
@@ -84,6 +73,8 @@ else
 	local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, texture, player, filename, saved, saveQueued, posX, posY, quality
 	local totalTime = 0
 	local screenshotCompressedBytes = 0
+	local screenshotRequestInProgress = false
+	local screenshotRequestStartedAt = 0
 
 	-- Font
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -94,16 +85,21 @@ else
 	local fontfileOutlineStrength = 1.7
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName,_,_,_,_,_,_,_,_,_,accountInfo = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.playerdata[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.playerdata
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("ReceiveScreenshot", ReceiveScreenshot)
 		gadgetHandler:AddSyncAction("StartScreenshot", StartScreenshot)
-		gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
-		gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
-		gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
+		if isAuthorized() then
+			gadgetHandler:AddChatAction('getscreenshot', GetScreenshot, "")
+			gadgetHandler:AddChatAction('getscreenshotlq', GetScreenshotLq, "")
+			gadgetHandler:AddChatAction('getscreenshothq', GetScreenshotHq, "")
+		end
 		gadget:ViewResize()
 	end
 
@@ -132,6 +128,10 @@ else
 
 	function gadget:Update(dt)
 		totalTime = totalTime + (dt * 1000)
+		if screenshotRequestInProgress and (totalTime - screenshotRequestStartedAt > screenshotRequestTimeoutMs) then
+			screenshotRequestInProgress = false
+			Spring.Echo("Screenshot request timed out after 60 seconds. You can try again.")
+		end
 	end
 
 	local function getPlayerIdFromName(targetPlayerName)
@@ -144,9 +144,22 @@ else
 		return nil
 	end
 
-	local function requestScreenshot(targetPlayerName, width)
-		if not authorized then
+	local function requestScreenshot(targetPlayerName, width, callerID)
+		if not isAuthorized() then
 			return
+		end
+		-- Only the client whose playerID matches the caller should send the request.
+		-- AddChatAction fires on every client, so without this guard every authorized
+		-- client would send a duplicate screenshot request.
+		if callerID ~= myPlayerID then
+			return
+		end
+		if screenshotRequestInProgress then
+			if totalTime - screenshotRequestStartedAt <= screenshotRequestTimeoutMs then
+				Spring.Echo("Screenshot request already in progress. Ignoring new request.")
+				return
+			end
+			screenshotRequestInProgress = false
 		end
 		if not targetPlayerName then
 			return
@@ -159,18 +172,20 @@ else
 		-- Send message to synced code, which will forward to unsynced
 		-- Format: width;targetPlayerID (requestingPlayerID comes from RecvLuaMsg player param)
 		Spring.SendLuaRulesMsg("ss" .. validation .. width .. ";" .. targetPlayerID)
+		screenshotRequestInProgress = true
+		screenshotRequestStartedAt = totalTime
 	end
 
 	function GetScreenshot(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidth)
+		requestScreenshot(words[1], screenshotWidth, player)
 	end
 
 	function GetScreenshotLq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthLq)
+		requestScreenshot(words[1], screenshotWidthLq, player)
 	end
 
 	function GetScreenshotHq(_, line, words, player)
-		requestScreenshot(words[1], screenshotWidthHq)
+		requestScreenshot(words[1], screenshotWidthHq, player)
 	end
 
 	-- Optimized encoding using base64 charset (6 bits per char)
@@ -479,7 +494,7 @@ else
 		local thirdSemicolonPos = string.find(data, ";")
 		local screenshotTypeCheck = thirdSemicolonPos and string.sub(data, thirdSemicolonPos + 1, thirdSemicolonPos + 1) or ""
 
-		if authorized and (mySpec or isSingleplayer or screenshotTypeCheck == '1') then
+		if isAuthorized() and (mySpec or isSingleplayer or screenshotTypeCheck == '1') then
 			PlayerDataBroadcast(myPlayerName, fullMsg)
 		end
 	end
@@ -628,6 +643,7 @@ else
 				screenshotVars.dataLast = totalTime
 
 				if screenshotVars.finished or totalTime - 4000 > screenshotVars.dataLast then
+					screenshotRequestInProgress = false
 					screenshotVars.finished = true
 					local compressedKB = screenshotCompressedBytes / 1024
 					Spring.Echo(string.format("Received screenshot from %s (%.0f KB, increased replay size)", playerName, compressedKB))

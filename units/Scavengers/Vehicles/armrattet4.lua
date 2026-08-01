@@ -69,10 +69,6 @@ return {
 				[1] = "custom:barrelshot-huge",
 				[2] = "custom:DUST_CLOUD_HUGE",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

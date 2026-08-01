@@ -37,11 +37,6 @@ return {
 			drone = 1,
 			nohealthbars = 1,
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

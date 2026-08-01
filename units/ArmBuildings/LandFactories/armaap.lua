@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMAAP.DDS",
 		buildtime = 32000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 4 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -54,6 +55,7 @@ return {
 			subfolder = "ArmBuildings/LandFactories",
 			techlevel = 2,
 			unitgroup = "buildert2",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -89,10 +91,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

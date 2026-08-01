@@ -73,13 +73,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxxl",
 				[2] = "custom:pilotlightxl",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -192,6 +186,9 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 820,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 100,
 					vtol = 150,
@@ -229,10 +226,8 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 1.1,
 				soundhitdry = "flamhit1",
-				soundhitvolume = 9.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundstartvolume = 7.3,
 				soundtrigger = false,
 				tolerance = 20000,
 				turret = true,

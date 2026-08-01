@@ -22,7 +22,6 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 230,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPNIX.s3o",
 		script = "Units/ARMPNIX.cob",
@@ -41,20 +40,6 @@ return {
 			subfolder = "ArmAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

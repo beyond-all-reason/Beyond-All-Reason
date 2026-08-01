@@ -74,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-sniper",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -164,10 +159,8 @@ return {
 				rgbcolor = "1 1 0",
 				size = 0.1,
 				soundhit = "sniperhit",
-				soundhitvolume = 10,
 				soundhitwet = "sizzle",
 				soundstart = "sniper3",
-				soundstartvolume = 20,
 				thickness = 0.5,
 				turret = true,
 				weapontype = "Cannon",

@@ -18,6 +18,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 -- TODO: do not use hardcoded unit names
 local unitDefData = {
@@ -38,11 +39,11 @@ local mexTurretDefID = {} -- the con, which is interactive and shows in GUI, etc
 
 for unitName, unitPair in pairs(unitDefData) do
 	local buildDef = UnitDefNames[unitName]
-	local conDef = UnitDefNames[unitPair.mex]
-	local mexDef = UnitDefNames[unitPair.con]
+	local conDef = UnitDefNames[unitPair.con]
+	local mexDef = UnitDefNames[unitPair.mex]
 
 	if buildDef and conDef and mexDef then
-		fakeBuildDefID[buildDef.id] = { mex = conDef.id, con = mexDef.id }
+		fakeBuildDefID[buildDef.id] = { con = conDef.id, mex = mexDef.id }
 		mexActualDefID[mexDef.id] = true
 		mexTurretDefID[conDef.id] = unitName -- for heaps/wrecks
 	end
@@ -61,13 +62,18 @@ end
 
 local mexesToSwap = {}
 local pairedUnits = {}
+local setMexSpeed = {}
+
+local function setExtractionRate(conID, mexID)
+	local extractionRate = Spring.GetUnitMetalExtraction(mexID)
+	Spring.CallCOBScript(conID, "SetSpeed", 0, (extractionRate or 0) * 1000) -- COB is scaled for integer-only
+end
 
 local function doSwapMex(unitID, unitTeam, unitData)
 	local Spring = Spring
 
 	local isUnitNeutral = Spring.GetUnitNeutral(unitID)
 	local unitHealth = spGetUnitHealth(unitID)
-	--local unitExtraction = Spring.GetUnitMetalExtraction(unitID) or 0
 
 	Spring.DestroyUnit(unitID, false, true) -- clears unitID from mexesToSwap in g:UnitDestroyed
 
@@ -81,6 +87,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitStealth(mexID, true)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -89,15 +96,15 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
 		return
 	end
+	Spring.SetUnitHealth(conID, unitHealth)
+
 	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6)
+	Spring.UnitAttach(mexID, conID, 6, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID
 	pairedUnits[mexID] = conID
-
-	Spring.SetUnitHealth(conID, unitHealth)
-	Spring.SetUnitStealth(conID, true)
+	setMexSpeed[conID] = mexID
 
 	if isUnitNeutral then
 		Spring.SetUnitNeutral(mexID, true)
@@ -126,6 +133,10 @@ function gadget:GameFrame(frame)
 		if frame > unitData.frame then
 			trySwapMex(unitID, unitData)
 		end
+	end
+
+	for conID, mexID in pairs(setMexSpeed) do
+		setExtractionRate(conID, mexID) -- used in unit animations
 	end
 end
 
@@ -191,16 +202,41 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if mexActualDefID[unitDefID] or mexTurretDefID[unitDefID] then
 		local pairedUnitID = pairedUnits[unitID]
 		if pairedUnitID then
+			pairedUnits[unitID] = nil
 			pairedUnits[pairedUnitID] = nil
 			Spring.DestroyUnit(pairedUnitID, false, true)
 		end
-    end
+	end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+	-- accepts CMD.ONOFF:
+	if mexTurretDefID[unitDefID] then
+		local mexID = pairedUnits[unitID]
+		if mexID then
+			spGiveOrderToUnit(mexID, cmdID, cmdParams, cmdOptions)
+			setMexSpeed[unitID] = mexID
+		end
+	end
+	return true
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD.ONOFF)
+
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		if not Spring.GetUnitIsBeingBuilt(unitID) then
-			gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			gadget:UnitFinished(unitID, unitDefID)
+
+			if mexActualDefID[unitDefID] then
+				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
+				if pairedUnitID then
+					pairedUnits[unitID] = pairedUnitID
+					pairedUnits[pairedUnitID] = unitID
+					setMexSpeed[pairedUnitID] = unitID
+				end
+			end
 		end
 	end
 end

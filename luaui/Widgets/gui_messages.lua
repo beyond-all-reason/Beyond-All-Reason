@@ -161,23 +161,23 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal('GadgetAddMessage', addMessage)
 	WG['messages'] = {}
 	WG['messages'].addMessage = function(text)
 		addMessage(text)
 	end
+	widgetHandler:AddAction("addmessage", addmessageCmd, nil, "t")
 end
 
-local uiSec = 0
+function widget:GadgetAddMessage(text)
+	addMessage(text)
+end
+
 local buildmenuBottomPos = false
+local uiSec = 0
 function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 0.5 then
 		uiSec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale",1)
-			widget:ViewResize()
-		end
 		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
 			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 		end
@@ -251,6 +251,7 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("addmessage", "t")
 	WG['messages'] = nil
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i].displaylist then
@@ -258,13 +259,13 @@ function widget:Shutdown()
 			messageLines[i].displaylist = nil
 		end
 	end
-	widgetHandler:DeregisterGlobal('GadgetAddMessage')
 end
 
-function widget:TextCommand(command)
-	if string.sub(command,1, 11) == "addmessage " then
-		addMessage(string.sub(command, 11))
+function addmessageCmd(_, line)
+	if line and line ~= "" then
+		addMessage(line)
 	end
+	return true
 end
 
 function widget:GetConfigData(data)

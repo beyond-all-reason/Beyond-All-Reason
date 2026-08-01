@@ -28,7 +28,7 @@ return {
 		script = "Units/LEGACV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 289.89999,
+		sightdistance = 330,
 		speed = 52.5,
 		terraformspeed = 1250,
 		trackstrength = 6,
@@ -95,11 +95,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:dust_cloud_dirt_light",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

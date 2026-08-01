@@ -671,10 +671,10 @@ else	-- UNSYNCED
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local mySpecState = Spring.GetSpectatingState()
 
-	if anonymousMode == "local" then
+	if anonymousMode == "local" and not mySpecState then
 		shuffleAllColors()
 	end
-	if anonymousMode == "local" or Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
+	if (anonymousMode == "local" and not mySpecState) or Spring.GetConfigInt("SimpleTeamColors", 0) == 1 then
 		setupAllTeamColors(true)
 	end
 
@@ -749,7 +749,7 @@ else	-- UNSYNCED
 			teamColorsTable = table.copy(trueTeamColorsTable)
 			ffaColors = table.copy(trueFfaColors)
 			survivalColors = table.copy(trueSurvivalColors)
-			Spring.SetConfigInt("UpdateTeamColors", 1)
+			updateTeamColors()  -- apply true colors directly; avoids setupAllTeamColors(true) re-computing with live game state
 		end
 	end
 end

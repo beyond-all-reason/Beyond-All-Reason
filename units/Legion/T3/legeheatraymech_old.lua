@@ -82,11 +82,6 @@ return {
 				[3] = "custom:barrelshot-flak",
 				[4] = "custom:footstep-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -133,6 +128,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					norangering = 1,
 				},
 				damage = {
@@ -171,7 +167,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray4burn",
 				scrollspeed = 5,
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				texture3 = "largebeam",
 				thickness = 6.5,
@@ -209,8 +204,6 @@ return {
 				soundhit = "xplonuk2",
 				soundhitwet = "splslrg",
 				soundstart = "krogun1",
-				soundhitvolume = 14,
-				soundstartvolume = 13.0,
 				separation = 2.0,
 				nogap = false,
 				size = 9,
@@ -249,10 +242,10 @@ return {
 				range = 0,
 				reloadtime = 1.5,
 				soundhit = "banthstep",
-				soundhitvolume = 35,
 				soundhitwet = "splssml",
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					nodecal = true,
 					noexplosionlight = 1,
 				},
@@ -289,14 +282,15 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				soundhitvolume = 7.5,
-				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				tolerance = 10000,
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 190,
 				},

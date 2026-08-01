@@ -74,11 +74,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -123,7 +118,6 @@ return {
 				range = 500,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
-				soundhitvolume = 15,
 				soundstart = "torpedo1",
 				startvelocity = 130,
 				tolerance = 12000,

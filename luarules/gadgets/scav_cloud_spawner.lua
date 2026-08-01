@@ -16,7 +16,7 @@ if not Spring.Utilities.Gametype.IsScavengers() then
     return
 end
 
-if gadgetHandler:IsSyncedCode() then -- Synced 
+if gadgetHandler:IsSyncedCode() then -- Synced
     local teams = Spring.GetTeamList()
     local scavTeamID = Spring.Utilities.GetScavTeamID()
     local mapx = Game.mapSizeX
@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
         [UnitDefNames["scavmistxl_scav"].id] = true,
         [UnitDefNames["scavmistxxl_scav"].id] = true,
     }
-    
+
     VFS.Include('common/wav.lua')
     local cooldown = 0 -- 1 minute cooldown at the start
 
@@ -65,7 +65,11 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                 randomy = spGetGroundHeight(randomx, randomz)
 
                 if GG.IsPosInRaptorScum(randomx, randomy, randomz) then
-                    spSpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
+                    if GG.SpawnEnvironmentalLightning then
+                        GG.SpawnEnvironmentalLightning("scavradiation", randomx, randomy+100, randomz)
+                    else
+                        spSpawnCEG("scavradiation-lightning",randomx,randomy+100,randomz,0,0,0)
+                    end
                     spPlaySoundFile("thunder" .. mRandom(1,5), 1.5, randomx, randomy+100, randomz)
 
                     --if math.random(0, 10) == 0 then
@@ -151,7 +155,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                             spDestroyFeature(featureID)
                         end
                         aliveWrecks[featureID].lastResurrectionCheck = select(3, spGetFeatureHealth(featureID))
-                        aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0166
+                        aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0083
                     else
                         local featureHealth, featureMaxHealth = spGetFeatureHealth(featureID)
                         spSpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)

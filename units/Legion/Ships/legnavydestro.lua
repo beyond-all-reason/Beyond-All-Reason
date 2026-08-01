@@ -9,8 +9,8 @@ return {
 		buildpic = "legnavydestro.DDS",
 		buildtime = 11500,
 		canmove = true,
-		collisionvolumeoffsets = "0 -5 -6",
-		collisionvolumescales = "35 48 84",
+		collisionvolumeoffsets = "0 -6 -4",
+		collisionvolumescales = "35 50 86",
 		collisionvolumetype = "ellipsoid",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
@@ -77,11 +77,6 @@ return {
 				[2] = "custom:waterwake-small",
 				[3] = "custom:bowsplash-small",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -136,7 +131,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3",
-				soundstartvolume = 28,
 				soundtrigger = 1,
 				thickness = 3.5,
 				turret = true,
@@ -176,7 +170,7 @@ return {
 				stockpiletime = 20,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 360,
+				weaponvelocity = 1000,
 				damage = {
 					default = 0,
 				},
@@ -190,7 +184,7 @@ return {
 					energycost = 500,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					metalcost = 15,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
 					controlradius = 900,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
-					deathdecayrate = 4,
+					deathdecayrate = 20,
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 20,

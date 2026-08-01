@@ -5,6 +5,7 @@ return {
 		buildpic = "CORLAB.DDS",
 		buildtime = 5000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "93 92 87",
 		collisionvolumetype = "Box",
@@ -80,10 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

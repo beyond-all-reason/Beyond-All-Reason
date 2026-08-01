@@ -17,7 +17,7 @@ return {
 		health = 580,
 		leavetracks = true,
 		maxacc = 0.03583,
-		maxdec = 0.07166,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 105,
@@ -29,7 +29,7 @@ return {
 		script = "Units/CORETER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 299,
+		sightdistance = 330,
 		speed = 41.4,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -77,13 +77,6 @@ return {
 				object = "Units/cor3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

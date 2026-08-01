@@ -5,7 +5,7 @@
 
 piece  base, heatray, lcheek, ldownbackleg, ldownloeg, lfin1, lfin2, lfin3, lfin4, lfin5, lfoot, lfootback, lheatsinkflap, lupbackleg, lupleg, neck, rcheek, rdownbackleg, rdownleg, rfin1, rfin2, rfin3, rfin4, rfin5, rfoot, rfootback, rheatsinkflap, rupbackleg, rupleg, tail1, tail2, tailbase, tailtip, topcheek, torpedolauncha, torpedotube, torpaimflare, torpaimx, heatrayaimflare, heatray_xy, lvent, rvent;
 
-static-var  isInWater, inWaterForm, isMoving, isAiming, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime;
+static-var  isInWater, inWaterForm, isMoving, isAiming, isFiring, restore_delay, gun_lasthead, gun_lastpitch, torp_lasthead, torp_deploy, gun_deploy, explosions, shieldup, gameframe, lastfired, firetime, aimAdj, oldsteerheading, cooldown, adjheading;
 
 static-var  Stunned;
 
@@ -27,6 +27,30 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIG_MOVE			16
 #define SIG_RESTORE			32
 #define SIG_LIGHT			64
+
+Steering(heading, steery, currentSpeed)
+{
+	//signal SIGNAL_MOVE;
+	//set-signal-mask SIGNAL_MOVE;
+	while(1)
+	{
+		if (isFiring)
+		{
+			cooldown = cooldown + 1;
+			if (cooldown > 90)
+			{
+				cooldown = 0;
+				isFiring = 0;
+				start-script RestoreAfterDelay();
+			}
+		}
+		
+		heading = get HEADING;
+		aimAdj = 2*(heading - oldsteerheading);
+		sleep 16;
+		oldsteerheading = heading;
+	}
+}
 
 //Very important, keep the turn neck to y-axis while aiming, it counter-rotates the head, so the heatray stays on target. Without, the head would be rotated by the torso and the heatray must constantly retarget.
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -1114,7 +1138,7 @@ transform() {
 	turn tail2 to x-axis <0.000000> speed <67.156234> / animSpeed;
 	turn tailbase to x-axis <0.000000> speed <186.544921> / animSpeed;
 	turn tailtip to x-axis <0.000000> speed <40.299038> / animSpeed;
-	sleep 300;
+	sleep 100;
 	return (0);
 }
 
@@ -1224,7 +1248,7 @@ CloseTorpedoLauncher(){
 	turn torpaimx to x-axis <0> speed <25.000000>;
 	turn torpedotube to x-axis [0] speed <25.000000>;
 	torp_deploy = FALSE;
-	sleep 500;
+	sleep 100;
 	move torpedolauncha to y-axis [-2.5] speed [-15];
 	move torpedotube to y-axis [0.355] speed [-3.181822];
 	move torpedotube to z-axis [-6] speed [-36.363630];
@@ -1261,30 +1285,6 @@ CloseMouth(){
 	turn topcheek to x-axis <-0.000000> speed <59.999978> ;
 }
 
-SweepFire()
-{
-	signal SIG_LIGHT;
-	set-signal-mask SIG_LIGHT;
-	while (TRUE)
-	{
-		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
-		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
-		{
-			emit-sfx 2048 from heatrayaimflare;
-			timer = timer + 1;
-		}
-		if (timer > 150)
-		{
-			//signal SIGNAL_AIM;
-			//timer = 0;
-			//start-script RestoreAfterDelay();
-		}
-		sleep 20;
-	}
-}
-
 // REMEMBER TO animspeed = 6 in Create() !!
 UnitSpeed(){
 	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
@@ -1310,10 +1310,7 @@ UnitSpeed(){
 
 Create()
 {
-	timeLeft = 0;
-    isfiring = 0;
-	timer = 0;
-	targetswap = 0;
+	start-script Steering();
 	firetime = 54;
 	lastfired = get(GAME_FRAME)-200;	
 	animspeed = 6;
@@ -1326,7 +1323,12 @@ Create()
 	isMoving = FALSE;
 	//isMoving = -1;
 	isAiming = FALSE;
-	restore_delay = 3000;
+	oldsteerheading = get HEADING;
+	aimAdj = 0;
+	cooldown = 0;
+	isFiring = 0;
+	restore_delay = 500;
+	adjheading = 0;
 	// Initializing with large negative values, to ensure first aim does wait-for-turn
 	gun_lasthead = -1000000;
 	torp_lasthead = -1000000;
@@ -1342,7 +1344,6 @@ Create()
 
 	start-script Movement();
 	start-script UnitSpeed();
-	start-script SweepFire();
 	call-script IN_WATER_CUSTOM();
 	
 	if ( isInWater ) {
@@ -1578,29 +1579,31 @@ SetStunned(State)
 {
     Stunned = State;
 }
+
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM_3;
+	sleep restore_delay;
+	start-script RestoreAfterDelayGun();
+}
+
 RestoreAfterDelayGun(addTime)
 {
 	signal SIG_RESTORE;
 	set-signal-mask SIG_RESTORE;
-    while((timeLeft > 1) || Stunned){
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-    timeLeft = 0;
-    isfiring = 0;
-	timer = 0;
-	targetswap = 0;
 	if (Stunned) {
         return (1);
     }
 	gun_lasthead = -1000000;
 	gun_lastpitch = -1000000;
+	aimAdj = 0;
+	//cooldown = 0;
+	//isFiring = 0;
 	call-script CloseMouth();
 	gun_deploy = FALSE;
 	turn heatray_xy to y-axis <0.000000> speed <90.000000>;
 	turn heatray_xy to x-axis <0.000000> speed <50.000000>;
+	turn neck to x-axis <5.164970> speed <160.000000>;
 	isAiming = FALSE;
 }
 
@@ -1609,16 +1612,7 @@ AimPrimary(heading, pitch)
 { 
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	if (timeLeft == 0)
-    {
-        start-script RestoreAfterDelayGun();
-    }
-	timeLeft = restore_delay;
-	if (get ABS(gun_lasthead - heading) > 500)
-	{
-		targetswap = 1;
-	}
-	gameframe = get(GAME_FRAME);
+	//gameframe = get(GAME_FRAME);
 	
 	//Heatray mechanics come first
 	if ( inWaterForm )
@@ -1631,10 +1625,25 @@ AimPrimary(heading, pitch)
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
 	
+	adjheading = heading;
+	if (heading > <90>)
+	{
+		adjheading = <90>;
+	}
+	if (heading < <-90>)
+	{
+		adjheading = <-90>;
+	}
+	
 	// checks if the mouth is deployed
 	turn neck to x-axis <0> speed <50>; //Fix leftover rotation from walk anim
-	turn heatray_xy to y-axis heading speed <100.000000>;
+	turn heatray_xy to y-axis adjheading - aimAdj speed <100.000000>;
 	turn heatray_xy to x-axis <0.000000> - pitch speed <50.000000>;
+	start-script RestoreAfterDelay();
+	if (cooldown > 30)
+	{
+		return (0);
+	}
 	if (gun_deploy == FALSE)
 	{
 		//if not, move it up to the deploy position, and wait
@@ -1643,13 +1652,12 @@ AimPrimary(heading, pitch)
 		gun_deploy = TRUE;
 	}
 	// if the turret can turn to its new heading in one frame, just return true and do not wait for turn
-	if ( (get ABS(gun_lasthead - heading)<1200) AND (get ABS(gun_lastpitch - pitch)<600) )
+	if ( (get ABS(gun_lasthead - heading)< <20>) AND (get ABS(gun_lastpitch - pitch)< <20>) )
 	{
 		gun_lasthead = heading;
 		gun_lastpitch = pitch;
 		// start the restore to neutral script
 		//start-script RestoreAfterDelayGun();
-		isfiring = 1;
 		return (1);
 	}
 	// if turret needs more than one frame to turn to new heading, wait for the turn
@@ -1660,14 +1668,12 @@ AimPrimary(heading, pitch)
 	gun_lastpitch = pitch;
 	// start the restore to neutral script
 	//start-script RestoreAfterDelayGun();
-	isfiring = 1;
 	return (1);
 }
 
 FirePrimary()
 {
-	gameframe = get(GAME_FRAME);
-	lastfired = gameframe;
+	isFiring = 1;
 	return (0);
 }
 

@@ -89,11 +89,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -132,7 +127,6 @@ return {
 				range = 0,
 				reloadtime = 30,
 				soundhit = "nukelaunchalarm",
-				soundhitvolume = 50,
 				tolerance = 10000,
 				turnrate = 10000,
 				weaponacceleration = 101,
@@ -140,7 +134,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 100,
 				customparams = {
+					bogus = 1,
 					scavforcecommandfire = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 0,
@@ -177,9 +173,7 @@ return {
 				smoketrailcastshadow = true,
 				soundhit = "nukearm",
 				soundhitwet = "nukewater",
-				soundhitwetvolume = 53,
 				soundstart = "nukelaunch",
-				soundstartvolume = 20,
 				stockpile = true,
 				stockpiletime = 140,
 				targetable = 1,
@@ -198,6 +192,7 @@ return {
 					scavforcecommandfire = true,
 					stockpilelimit = 10,
 					nuclear = 1,
+					weapons_group = 2,
 				},
 				damage = {
 					commanders = 2500,
@@ -223,7 +218,6 @@ return {
 				range = 720,
 				reloadtime = 8,
 				soundhit = "xplodep1",
-				soundhitvolume = 22,
 				soundstart = "torpedo1",
 				startvelocity = 150,
 				tolerance = 8000,
@@ -235,6 +229,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 290,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 340,
 					default = 800,

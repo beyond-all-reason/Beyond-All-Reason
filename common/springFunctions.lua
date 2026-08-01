@@ -6,6 +6,9 @@ local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
 local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
 local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
+local facingFunctions = VFS.Include(utilitiesDirectory .. 'facingFunctions.lua')
+
+local accountIDCache = {}
 
 local utilities = {
 	LoadTGA = tga.LoadTGA,
@@ -50,7 +53,25 @@ local utilities = {
 	CustomKeyToUsefulTable = tableFunctions.CustomKeyToUsefulTable,
 	SafeLuaTableParser = safeLuaTableParser.SafeLuaTableParser,
 
+	FacingToHeading = facingFunctions.FacingToHeading,
+	HeadingToFacing = facingFunctions.HeadingToFacing,
+	IsFacingEW = facingFunctions.IsFacingEW,
+
 	Color = colorFunctions,
+	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
+
+	GetAccountID = function(playerID)
+		local cached = accountIDCache[playerID]
+		if cached then
+			return cached
+		end
+		local accountInfo = select(11, Spring.GetPlayerInfo(playerID))
+		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		if accountID ~= -1 then
+			accountIDCache[playerID] = accountID
+		end
+		return accountID
+	end,
 }
 
 local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')

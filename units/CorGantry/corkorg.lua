@@ -75,13 +75,6 @@ return {
 				resurrectable = 0,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -174,6 +167,9 @@ return {
 					default = 5500,
 					vtol = 2750,
 				},
+				customparams = {
+					sound_volume_multiplier = 2.5,
+				}
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,
@@ -240,7 +236,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,

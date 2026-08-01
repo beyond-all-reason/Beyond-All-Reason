@@ -88,10 +88,10 @@ if not loadscreens[1] then
 end
 local backgroundTexture = loadscreens[math.random(#loadscreens)]
 
-if math.random(1,15) == 1 then
-	showDonationTip = true
-	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
-end
+--if math.random(1,15) == 1 then
+--	showDonationTip = true
+--	backgroundTexture = "bitmaps/loadpictures/manual/donations.jpg"
+--end
 
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 if string.find(backgroundTexture, "guide") then
@@ -173,9 +173,9 @@ if showTips then
 	randomTip = Spring.I18N('tips.loadscreen.' .. tipKeys[index])
 end
 
-if showDonationTip then
-	randomTip = Spring.I18N('tips.loadscreen.donations')
-end
+--if showDonationTip then
+--	randomTip = Spring.I18N('tips.loadscreen.donations')
+--end
 
 
 -- for guishader
@@ -447,18 +447,41 @@ function addon.DrawLoadScreen()
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
+
+	-- Handle viewport resize: recalculate layout and recreate shader resources
+	if vsx ~= ivsx or vsy ~= ivsy then
+		height = math.floor(vsy * 0.038)
+		posYorg = math.floor((0.065 * vsy)+0.5) / vsy
+		posX = math.floor(((((posYorg*1.44)*vsy)/vsx) * vsx)+0.5) / vsx
+		borderSize = math.max(1, math.floor(vsy * 0.0027))
+		ivsx, ivsy = vsx, vsy
+
+		if guishader and blurShader then
+			gl.DeleteTexture(screencopy or 0)
+			gl.DeleteTextureFBO(blurtex or 0)
+			gl.DeleteTextureFBO(blurtex2 or 0)
+			if gl.DeleteShader then
+				gl.DeleteShader(blurShader or 0)
+			end
+			blurShader = nil
+			screencopy = nil
+			blurtex = nil
+			blurtex2 = nil
+		end
+	end
+
 	local screenAspectRatio = vsx / vsy
 
 	local xDiv = 0
 	local yDiv = 0
 	local ratioComp = screenAspectRatio / aspectRatio
 
-	if math.abs(ratioComp-1)>0.15 then
-		if (ratioComp > 1) then
-			yDiv = (1 - ratioComp) * 0.5;
-		else
-			xDiv = (1 - (1 / ratioComp)) * 0.5;
-		end
+	if ratioComp > 1 then
+		-- Screen wider than image: crop top/bottom
+		yDiv = (1 - ratioComp) * 0.5
+	elseif ratioComp < 1 then
+		-- Screen taller than image: crop left/right
+		xDiv = (1 - (1 / ratioComp)) * 0.5
 	end
 
 	-- background

@@ -5,7 +5,6 @@ return {
 		builder = true,
 		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
-		canassist = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = true,
@@ -89,12 +88,6 @@ return {
 				object = "Units/cor3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

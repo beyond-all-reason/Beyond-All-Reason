@@ -34,7 +34,7 @@ local function hasGeoUnderneat(unitID)
 	local x, _, z = Spring.GetUnitPosition(unitID)
 	local units = Spring.GetUnitsInCylinder(x, z, 10)
 	for k, uID in ipairs(units) do
-		if isGeo[Spring.GetUnitDefID(uID)] then
+		if isGeo[Spring.GetUnitDefID(uID)] and Spring.GetUnitIsDead(uID) == false then
 			if unitID ~= uID then
 				return uID
 			end

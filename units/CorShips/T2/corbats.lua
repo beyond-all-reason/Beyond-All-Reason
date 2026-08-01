@@ -73,11 +73,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-large",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -123,6 +118,7 @@ return {
 				weaponvelocity = 422,
 				damage = {
 					default = 450,
+					subs = 90,
 					vtol = 65,
 				},
 			},

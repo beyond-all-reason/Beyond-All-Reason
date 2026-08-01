@@ -133,6 +133,7 @@ return {
 			childreninheritxp = "TURRET MOBILEBUILT",
 			parentsinheritxp = "TURRET MOBILEBUILT",
 			effigy = "comeffigylvl2",
+			firestateoncloak = 0,
 			minimum_respawn_stun = 5,
 			distance_stun_multiplier = 1,
 			fall_damage_multiplier = 5,--this ensures commander dies when it hits the ground so effigies can trigger respawn.
@@ -183,10 +184,6 @@ return {
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
 				[4] = "custom:genericshellexplosion-huge-lightning",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -262,6 +259,7 @@ return {
 					overrange_distance = 633,
 					projectile_destruction_method = "descend",
 					stockpilelimit = 3,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 800,
@@ -292,9 +290,7 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "lasrcrw2",
 				soundtrigger = 1,
-				soundstartvolume = 30,
 				soundhitdryvolume = 40,
-				soundhitwetvolume = 30,
 				texture3 = "largebeam",
 				thickness = 1.5,
 				tilelength = 150,
@@ -302,6 +298,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 22000,
 				},
@@ -340,6 +339,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 400,
 					subs = 200,
@@ -369,8 +371,6 @@ return {
 				soundhit = "xplomas2",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -378,11 +378,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
-					raptorqueen = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 			repulsor1 = {
@@ -460,6 +463,9 @@ return {
 					turret = true,
 					weapontype = "BeamLaser",
 					weaponvelocity = 1000,
+					customparams = {
+						weapons_group = 1,
+					},
 					damage = {
 						default = 25,
 					},
@@ -500,6 +506,10 @@ return {
 					turret = true,
 					weapontype = "LaserCannon",
 					weaponvelocity = 1,
+					customparams = {
+						weapons_group = 1,
+						weapons_role = "secondary",
+					},
 					damage = {
 						default = 20000,
 					},

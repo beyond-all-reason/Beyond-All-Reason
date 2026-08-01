@@ -9,8 +9,8 @@ return {
 		buildpic = "LEGACK.DDS",
 		buildtime = 9300,
 		canmove = true,
-		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "25 38 28",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "26 40 34",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energymake = 14,
@@ -113,13 +113,6 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

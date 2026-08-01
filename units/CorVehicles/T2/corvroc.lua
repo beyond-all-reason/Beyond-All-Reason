@@ -14,7 +14,7 @@ return {
 		health = 1390,
 		leavetracks = true,
 		maxacc = 0.02489,
-		maxdec = 0.04978,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 12,
 		metalcost = 880,
@@ -25,7 +25,7 @@ return {
 		script = "Units/CORVROC.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 221,
+		sightdistance = 330,
 		speed = 33,
 		stealth = true,
 		trackstrength = 8,
@@ -71,13 +71,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

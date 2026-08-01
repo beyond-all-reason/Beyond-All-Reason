@@ -148,12 +148,35 @@ function testAssertThrowsMessage()
 	end, "error")
 end
 
+function testAssertEqual()
+	-- test numeric mismatch
+	assertThrowsMessage(function()
+		assertEqual(1, 2)
+	end, "assertEqual failed: expected 2, actual 1")
+
+	-- test string mismatch
+	assertThrowsMessage(function()
+		assertEqual("a", "b")
+	end, 'assertEqual failed: expected "b", actual "a"')
+
+	-- test numeric vs string mismatch
+	assertThrowsMessage(function()
+		assertEqual(0, "0")
+	end, 'assertEqual failed: expected "0", actual 0')
+
+	-- test success cases
+	assertEqual(1, 1)
+	assertEqual("hello", "hello")
+	assertEqual(nil, nil)
+end
+
 function test()
 	sanityChecks()
 	testWaitUntil()
 	testAssertThrows()
 	testAssertSuccessBefore()
 	testAssertThrowsMessage()
+	testAssertEqual()
 	--failingTests()
 	failingWhileSucceedingTests()
 end
