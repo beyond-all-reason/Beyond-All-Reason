@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local tideIndex = 1
 	local tideContinueFrame = 0
+	local pendingCleanup = false
 	local gameframe = 0
 	local gameSpeed = Game.gameSpeed
 	local tideRhythm = {}
@@ -117,7 +118,16 @@ if gadgetHandler:IsSyncedCode() then
 		newTide.targetLevel = targetLevel
 		newTide.speed = speed
 		newTide.remainTime = remainTime
+		newTide.adjusted = true
 		table.insert (tideRhythm, nextTideIndex, newTide)
+	end
+
+	local function cleanupAdjustedTides()
+		for i = #tideRhythm, 1, -1 do
+			if tideRhythm[i].adjusted then
+				table.remove(tideRhythm, i)
+			end
+		end
 	end
 
 	function updateLava()
@@ -130,8 +140,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		if gameframe == tideContinueFrame then
 			tideIndex = tideIndex + 1
-			if tideIndex > table.getn(tideRhythm) then
+			if tideIndex > #tideRhythm then
 				tideIndex = 1
+				pendingCleanup = true
 			end
 			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
@@ -141,6 +152,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		_G.lavaGrow = lavaGrow
+
+		if pendingCleanup then
+			cleanupAdjustedTides()
+			pendingCleanup = false
+		end
 	end
 
 	function updateSlow(unitID, unitDefID, unitSlow)
@@ -569,7 +585,7 @@ else  -- UNSYCNED
 				return
 			end
 			if words[1] then
-				message = message .. ':' .. words[1] .. ' ' .. (words[2] or '0.25') .. ' ' .. (words[3] or '1')
+				message = message .. ':' .. words[1] .. ' ' .. (words[2] or '7.5') .. ' ' .. (words[3] or '1')
 			end
 			Spring.SendLuaRulesMsg(message)
 		end
