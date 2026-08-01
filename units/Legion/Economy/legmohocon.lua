@@ -4,6 +4,13 @@ return {						--costs should be same as legmohoconct and legmohoconin
 		activatewhenbuilt = true,
 		maxdec = 0,
 		buildangle = 2048,
+		-- builder flags exist so the engine draws the build-range ring when this
+		-- is being placed (like any nano turret); the def is swapped for the
+		-- legmohoconin + legmohoconct pair right after completion, so it never
+		-- acts as a builder itself (matches legmohoconct: 400 range, 400 bp)
+		builder = true,
+		builddistance = 400,
+		workertime = 400,
 		energycost = 14500,
 		metalcost = 1060,
 		buildpic = "LEGMOHOCON.DDS",
