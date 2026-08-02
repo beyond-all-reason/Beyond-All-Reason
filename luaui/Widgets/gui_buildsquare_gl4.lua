@@ -53,6 +53,7 @@ local spGetGroundNormal = Spring.GetGroundNormal
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -812,6 +813,28 @@ local function freeGL4Resources()
 	end
 end
 
+local function resetPreviewState()
+	for index = 1, previewRenderCacheCount do
+		previewRenderCaches[index] = nil
+	end
+	previewRenderCaches = {}
+	previewRenderCacheCount = 0
+	nextPreviewRenderCache = 1
+	previewRenderCacheLookup = {}
+	orderedPreviewCaches = {}
+	collectedPreviews = {}
+	collectedPreviewCount = 0
+	collectedDrawFrame = -1
+	collectedBatchChanged = true
+	residentBatchPreviewCount = 0
+	batchInstanceCount = 0
+	minimapInstanceCount = 0
+	extendedCellsDrawFrame = -1
+	drawSquareCount = 0
+	drawSquareCellCount = 0
+	buildSquareGameFrame = -1
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Widget callbacks
@@ -827,6 +850,12 @@ function widget:Initialize()
 	end
 
 	spSetEngineBuildSquareRendering(false)
+end
+
+function widget:PlayerChanged(playerID)
+	if playerID == spGetMyPlayerID() then
+		resetPreviewState()
+	end
 end
 
 function widget:Shutdown()

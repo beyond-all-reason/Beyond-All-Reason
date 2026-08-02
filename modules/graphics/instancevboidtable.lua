@@ -148,21 +148,9 @@ local function resizeInstanceVBOTable(iT)
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	newInstanceVBO:Define(iT.maxElements, iT.layout)
-	local oldInstanceVBO = iT.instanceVBO
-	local copied = false
-	if oldInstanceVBO then
-		local _, bufferSizeInBytes = oldInstanceVBO:GetBufferSize()
-		if oldInstanceVBO.CopyTo then
-			---@type integer
-			local copySizeInBytes = math.floor(bufferSizeInBytes)
-			copied = oldInstanceVBO:CopyTo(newInstanceVBO, copySizeInBytes)
-		end
-		oldInstanceVBO:Delete()
-	end
+	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
 	iT.instanceVBO = newInstanceVBO
-	if not copied then
-		iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
-	end
+	iT.instanceVBO:Upload(iT.instanceData,nil,0,1,iT.usedElements * iT.instanceStep)
 	if iT.VAO then -- reattach new if updated :D
 		iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
