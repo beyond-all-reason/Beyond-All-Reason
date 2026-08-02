@@ -3063,7 +3063,13 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
 								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
 						else
-							Spring.SendCommands("say "..inputMode..inputText)
+							if inputMode == 'a:' then
+								Spring.SendAllyChat(inputText)
+							elseif inputMode == 's:' then
+								Spring.SendSpectatorChat(inputText)
+							else
+								Spring.SendPublicChat(inputText)
+							end
 						end
 						lastMessage = inputText
 					end

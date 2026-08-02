@@ -245,6 +245,18 @@ local startScript = VFS.LoadFile("_script.txt")
 local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
 local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
 local RWS_MSG_CHUNK  = 4000
+
+local function getRestartWithStateScript()
+	local startPosTypePattern = "([Ss][Tt][Aa][Rr][Tt][Pp][Oo][Ss][Tt][Yy][Pp][Ee]%s*=%s*)%d+(%s*;)"
+	local script, replacements = startScript:gsub(startPosTypePattern, function(prefix, suffix)
+		return prefix .. "0" .. suffix
+	end, 1)
+	if replacements == 0 then
+		Spring.Echo("[Restart With State] Could not set fixed start-position mode; using the original start script.")
+	end
+	return script
+end
+
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1209,7 +1221,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		f:write(data)
 		f:close()
 		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
-		Spring.Restart("", startScript)
+		Spring.Restart("", getRestartWithStateScript())
 		return true
 	end
 	if msg == "rws:clear" then
