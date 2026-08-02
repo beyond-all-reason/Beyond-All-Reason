@@ -30,6 +30,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spRequestStartPosition = Spring.RequestStartPosition
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -1565,6 +1566,11 @@ function widget:MousePress(x, y, button)
 				end
 			end
 		end
+	end
+
+	if not isSpec then
+		spRequestStartPosition(worldX, worldY, worldZ, false)
+		return true
 	end
 
 	return false

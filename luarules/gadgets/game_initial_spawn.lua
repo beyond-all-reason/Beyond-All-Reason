@@ -31,6 +31,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetAllyTeamStartBox = Spring.GetAllyTeamStartBox
 	local spCreateUnit = Spring.CreateUnit
 	local spGetGroundHeight = Spring.GetGroundHeight
+	local spSetPlayerReadyState = Spring.SetPlayerReadyState
 	local mathRandom = math.random
 	local mathFloor = math.floor
 	local mathBitOr = math.bit_or
@@ -337,6 +338,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- when everyone is ready
 		if msg == "ready_to_start_game" then
 			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", READYSTATE_READY)
+			spSetPlayerReadyState(playerID, true)
 		end
 
 		-- keep track of who has joined
