@@ -846,7 +846,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function RelocateUnits(words)
-		if #words < 5 then
+		if #words < 4 then
 			return
 		end
 
