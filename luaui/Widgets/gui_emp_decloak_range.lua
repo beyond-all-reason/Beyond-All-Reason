@@ -90,9 +90,8 @@ local isSpy, isGremlin = {}, {}
 for udid, ud in pairs(UnitDefs) do
     local name = ud.name:lower()
     local decloakDist = ud.mincloakdistance or ud.decloakDistance or 0
-    if name:find("spy") or name:find("armamex") or name:find("corsktl")  then 
+    if name:find("spy") or name:find("armamex") then 
         -- spy's EMP radius from its self-destruct weapon
-        -- Skuttles maximum damage radius from its self-destruct weapon
         local wdefName = lower(ud.selfDExplosion)
         local wdef = WeaponDefNames[wdefName]
         if wdef then
