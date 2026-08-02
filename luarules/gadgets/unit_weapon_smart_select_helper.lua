@@ -117,7 +117,6 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			reloadFrames               = 0,
 			failedToFireFrameThreshold = 0,
 		}
-		smartUnitDefs[unitDefID] = unitDefData
 
 		for weaponNumber, weapon in pairs(unitDef.weapons) do
 			local weaponDef = WeaponDefs[weapon.weaponDef]
@@ -130,6 +129,11 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			elseif weaponDef.customParams.smart_trajectory_checker then
 				unitDefData.trajectoryCheckWeapon = weaponNumber
 			end
+		end
+
+		-- Smart weapons are prevalidated in alldefs but we keep a final guard to protect against regression.
+		if table.all({ "priorityWeapon", "backupWeapon", "trajectoryCheckWeapon" }, function(key) return unitDefData[key] > 0 end) then
+			smartUnitDefs[unitDefID] = unitDefData
 		end
 	end
 end
