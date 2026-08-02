@@ -799,7 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 								if not featureinfo.sinkStartedFrame then
 									featureinfo.sinkStartedFrame = gf
 								end
-								local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
+								local dx, dy, dz = GetFeatureDirection(featureID)
 								if featureinfo.fire then
 									SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultBurning, fz, false)
 								else
@@ -809,7 +809,7 @@ if gadgetHandler:IsSyncedCode() then
 								-- NOTE: this can create twitchy tree movement
 								-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
 								-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
-								SetFeatureDirection(featureID, dx, dy, dz, rx, ry, rz)		-- gets reset so we re-apply
+								SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 							end
 
 							local gh = spGetGroundHeight(fx, fz)
