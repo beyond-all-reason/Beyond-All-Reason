@@ -480,7 +480,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
-		elseif cmd == "modmarker" then
+		elseif cmd == "modmarker" or cmd == "modwhisper" then
 			subPermission = "modmarker"
 		end
 
@@ -638,6 +638,35 @@ if gadgetHandler:IsSyncedCode() then
 			local label = parts[6] or ""
 			if x and y and z then
 				SendToUnsynced("modmarker", x, y, z, label)
+			end
+		elseif cmd == "modwhisper" then
+			-- target may be a teamID (resolved via GetTeamInfo's leader) or a player name.
+			-- Delivery relays to unsynced since SendPrivateChat needs to run from there.
+			local parts = string.split(msg, ':')
+			local target = parts[3]
+			local message = table.concat(parts, ':', 4)
+			if target and message and message ~= "" then
+				local targetPlayerID = nil
+				local targetTeamID = tonumber(target)
+				if targetTeamID then
+					local _, leaderPlayerID = Spring.GetTeamInfo(targetTeamID, false)
+					if leaderPlayerID and leaderPlayerID >= 0 then
+						targetPlayerID = leaderPlayerID
+					end
+				else
+					for _, pid in ipairs(Spring.GetPlayerList()) do
+						local pname = Spring.GetPlayerInfo(pid, false)
+						if pname == target then
+							targetPlayerID = pid
+							break
+						end
+					end
+				end
+				if targetPlayerID then
+					SendToUnsynced("modwhisper_deliver", targetPlayerID, message)
+				else
+					SendToUnsynced("modwhisper_deliver", playerID, "[ModWhisper] Target '" .. target .. "' not found.")
+				end
 			end
 		end
 	end
@@ -1076,10 +1105,17 @@ else	-- UNSYNCED
 
 		addAuthorizedChatAction('test', 'desync', desync)
 		addAuthorizedChatAction('modmarker', 'modmarker', modmarker)
+		addAuthorizedChatAction('modmarker', 'modwhisper', modwhisper)
 		-- Moderator broadcast ping: the synced modmarker handler relays here, and
 		-- every client draws it locally (localOnly=true) so ALL players see it.
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
 			Spring.MarkerAddPoint(x, y, z, label or "", true)
+		end)
+		-- Reaches every client, but only the matching target actually sends anything.
+		gadgetHandler:AddSyncAction("modwhisper_deliver", function(_, targetPlayerID, message)
+			if targetPlayerID == Spring.GetMyPlayerID() then
+				Spring.SendPrivateChat(message, targetPlayerID)
+			end
 		end)
 		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
 			if requestPlayerID ~= Spring.GetMyPlayerID() then
@@ -1130,7 +1166,9 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('godmodeally')
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
+		gadgetHandler:RemoveChatAction('modwhisper')
 		gadgetHandler:RemoveSyncAction("modmarker")
+		gadgetHandler:RemoveSyncAction("modwhisper_deliver")
 		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
 	end
 	function loadMissiles(_, line, words, playerID)
@@ -1909,6 +1947,24 @@ else	-- UNSYNCED
 			local label = words[1] and table.concat(words, " ", 1) or ""
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modmarker:' .. x .. ':' .. y .. ':' .. z .. ':' .. label)
 		end
+	end
+
+	-- /luarules modwhisper <teamID|playername> <message> - private notice to
+	-- one player only, not a broadcast like modmarker. Reuses modmarker's permission.
+	function modwhisper(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		if not words[1] or not words[2] then
+			Spring.Echo("[ModWhisper] Usage: /luarules modwhisper <teamID|playername> <message>")
+			return
+		end
+		local target = words[1]
+		local message = table.concat(words, " ", 2)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modwhisper:' .. target .. ':' .. message)
 	end
 
 	function spawnunitexplosion(_, line, words, playerID)
