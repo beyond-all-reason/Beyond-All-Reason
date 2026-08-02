@@ -586,13 +586,19 @@ local function buildCircleDisplayList()
 				end
 			else
 				baseCount = 1
-				baseCircleColors[1] = config.spawnPointCircleColor
+				if not baseCircleColors[1] then
+					baseCircleColors[1] = {}
+				end
+				baseCircleColors[1][1] = config.spawnPointCircleColor[1]
+				baseCircleColors[1][2] = config.spawnPointCircleColor[2]
+				baseCircleColors[1][3] = config.spawnPointCircleColor[3]
+				baseCircleColors[1][4] = config.spawnPointCircleColor[4]
 			end
 			for j = baseCount + 1, #baseCircleColors do
 				baseCircleColors[j] = nil
 			end
 
-			local glowAlpha = config.spawnPointCircleColor[4] * 0.25
+			local glowAlpha = config.spawnPointCircleColor[4] * 0.2
 			for j = 1, colorCount do
 				if not glowColors[j] then
 					glowColors[j] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha }
