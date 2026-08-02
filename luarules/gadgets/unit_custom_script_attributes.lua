@@ -78,7 +78,7 @@ local weaponAttributeDefinitions = {
 -- Initialization
 
 local function usesCobUnitScript(unitDef)
-	return (unitDef.script or ""):find(".cob$") ~= nil
+	return (unitDef.scriptName or ""):find(".cob$") ~= nil
 end
 
 local function hasAttribute(def, attribute)
