@@ -17,18 +17,14 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:AddSyncAction("NotificationEvent", BroadcastEvent)
 	end
 
-    function BroadcastEvent(_,event, player, forceplay, posx, posy, posz)
+    function BroadcastEvent(_,event, player, forceplay)
 		if Script.LuaUI("NotificationEvent") and (forceplay or (tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or Spring.GetSpectatingState()))) then
 			if forceplay then
 				forceplay = " y"
 			else
 				forceplay = ""
 			end
-            if posx and posy and posz then
-			    Script.LuaUI.NotificationEvent(event .. " | " .. player .. " | " .. forceplay .. " | " .. posx .. " | " .. posy .. " | " .. posz)
-            else
-                Script.LuaUI.NotificationEvent(event .. " | " .. player .. " | " .. forceplay)
-            end
+			Script.LuaUI.NotificationEvent(event .. " " .. player .. forceplay)
 		end
 	end
 end
@@ -38,10 +34,7 @@ GG["notifications"] = {}
 ---@param idtype "playerID"|"teamID"|"allyTeamID"|nil Type of ID to target: "playerID" for specific player, "teamID" for all players on a team, "allyTeamID" for all players in an ally team, nil to send it to everyone.
 ---@param id number|string|nil PlayerID, TeamID, or AllyTeamID (converted to number internally)
 ---@param forceplay boolean|nil If true, skips spectator check and allows playing in pregame
----@param posx number|nil Position x
----@param posy number|nil Position y
----@param posz number|nil Position z
-GG["notifications"].queueNotification =  function(event, idtype, id, forceplay, posx, posy, posz)
+GG["notifications"].queueNotification =  function(event, idtype, id, forceplay)
     local playerIDs = {}
     if not id then id = -1 end
     id = tonumber(id)
@@ -74,9 +67,9 @@ GG["notifications"].queueNotification =  function(event, idtype, id, forceplay, 
     if #playerIDs > 0 then
         for i = 1,#playerIDs do
             if gadgetHandler:IsSyncedCode() then
-                SendToUnsynced("NotificationEvent", event, tostring(playerIDs[i]), forceplay, posx, posy, posz)
+                SendToUnsynced("NotificationEvent", event, tostring(playerIDs[i]), forceplay)
             else
-                BroadcastEvent("NotificationEvent", event, tostring(playerIDs[i]), forceplay, posx, posy, posz)
+                BroadcastEvent("NotificationEvent", event, tostring(playerIDs[i]), forceplay)
             end
         end
     end
