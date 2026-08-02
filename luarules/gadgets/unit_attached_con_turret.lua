@@ -214,7 +214,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
+		Spring.UnitAttach(unitID, nanoID, 3, true)
 		-- makes the attached con turret as non-interacting as possible
 		Spring.SetUnitBlocking(nanoID, false, false, false)
 		Spring.SetUnitNoSelect(nanoID, true)
@@ -228,7 +228,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
+		Spring.UnitAttach(unitID, nanoID, 3, true)
 		-- makes the attached con turret as non-interacting as possible 
 		Spring.SetUnitBlocking(nanoID, false, false, false)
         Spring.SetUnitNoSelect(nanoID, false)

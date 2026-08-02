@@ -658,7 +658,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 
 					--Spring.MoveCtrl.Enable(unitID)
 					if hatPoint then
-						Spring.UnitAttach(nearunitID, hatID, hatPoint)
+						Spring.UnitAttach(nearunitID, hatID, hatPoint, true)
 					end
 					Spring.SetUnitNoDraw(hatID, false)
 					Spring.SetUnitNoSelect(hatID, true)
