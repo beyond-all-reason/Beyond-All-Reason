@@ -439,7 +439,7 @@ local glStencilMask			= gl.StencilMask
 local glStencilFunc			= gl.StencilFunc
 local glStencilOp			= gl.StencilOp
 
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
 local spGetPositionLosState = Spring.GetPositionLosState

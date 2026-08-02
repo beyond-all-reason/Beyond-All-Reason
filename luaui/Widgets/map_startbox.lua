@@ -1568,7 +1568,8 @@ function widget:MousePress(x, y, button)
 		end
 	end
 
-	if not isSpec then
+	local pregameUnitSelected = WG["pregame-unit-selected"]
+	if not isSpec and not (pregameUnitSelected and pregameUnitSelected > 0) then
 		spRequestStartPosition(worldX, worldY, worldZ, false)
 		return true
 	end
