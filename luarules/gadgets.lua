@@ -352,9 +352,6 @@ local callInLists = {
 	"AllowWeaponInterceptTarget",
 	"UnitAutoTargetRange",
 	-- unsynced
-	"DrawUnit",
-	"DrawFeature",
-	"DrawShield",
 	"DrawProjectile",
 	"RecvSkirmishAIMessage",
 
@@ -418,9 +415,6 @@ local callInLists = {
 }
 
 local headlessDisabledCallIns = {
-	DrawUnit = true,
-	DrawFeature = true,
-	DrawShield = true,
 	DrawProjectile = true,
 	ViewResize = true,
 	DrawGenesis = true,
@@ -1655,33 +1649,6 @@ function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 	return
-end
-
-function gadgetHandler:DrawUnit(unitID, drawMode)
-	for _, g in ipairs(self.DrawUnitList) do
-		if g:DrawUnit(unitID, drawMode) then
-			return true
-		end
-	end
-	return false
-end
-
-function gadgetHandler:DrawFeature(featureID, drawMode)
-	for _, g in ipairs(self.DrawFeatureList) do
-		if g:DrawFeature(featureID, drawMode) then
-			return true
-		end
-	end
-	return false
-end
-
-function gadgetHandler:DrawShield(unitID, weaponID, drawMode)
-	for _, g in ipairs(self.DrawShieldList) do
-		if g:DrawShield(unitID, weaponID, drawMode) then
-			return true
-		end
-	end
-	return false
 end
 
 function gadgetHandler:DrawProjectile(projectileID, drawMode)
