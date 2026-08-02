@@ -700,7 +700,6 @@ local function computeContent(uDefID, uID, shiftBool)
 	local uWeps = uDef.weapons
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	local weaponNums = {}
 	local weaponDefToNum = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
@@ -713,7 +712,6 @@ local function computeContent(uDefID, uID, shiftBool)
 			else
 				wepCounts[wDefID] = 1
 				wepsCompact[#wepsCompact + 1] = wDefID
-				weaponNums[#wepsCompact] = i
 				weaponDefToNum[wDefID] = i
 			end
 		end
@@ -752,6 +750,7 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
+		local weaponNumber = weaponDefToNum[wDefId] or -1 -- No weaponNum for detonation weapons.
 
 		-- Handle projectiles that spawn additional projectiles.
 		-- Many properties (might) have nothing to do with the spawned projectile:
@@ -790,8 +789,8 @@ local function computeContent(uDefID, uID, shiftBool)
 		if range > 0 then
 			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
 			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-				oRld = spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTimeXP") or
-				       spGetUnitWeaponState(uID, weaponNums[i] or -1, "reloadTime")   or oRld
+				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or
+				       spGetUnitWeaponState(uID, weaponNumber, "reloadTime")   or oRld
 			end
 
 			local wpnName = uWep.description
