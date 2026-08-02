@@ -8,7 +8,7 @@
 ---@class Callins
 ---@field ActiveCommandChanged fun(self, cmdID: integer?, cmdType: integer?)?
 ---@field UnitCreated fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, builderID: integer?, ...: any)?
----@field UnitDestroyed fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, attackerID: integer?, attackerDefID: integer?, attackerTeam: integer?, weaponDefID: integer?, ...: any)?
+---@field UnitDestroyed fun(self, unitID: integer, unitDefID: integer, unitTeam: integer, attackerID: integer?, attackerDefID: integer?, attackerTeam: integer?, weaponDefID: integer, ...: any)?
 ---@field UnitGiven fun(self, unitID: integer, unitDefID: integer, newTeam: integer, oldTeam: integer, ...: any)?
 ---@field UnitTaken fun(self, unitID: integer, unitDefID: integer, newTeam: integer, oldTeam: integer, ...: any)?
 ---@field GameFrame fun(self, frame: integer, ...: any)?
