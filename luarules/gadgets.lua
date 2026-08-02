@@ -342,6 +342,7 @@ local callInLists = {
 	"AllowFeatureCreation",
 	"AllowResourceLevel",
 	"AllowResourceTransfer",
+	"ResourceExcess",
 	"AllowDirectUnitControl",
 	"AllowBuilderHoldFire",
 	"MoveCtrlNotify",
@@ -1879,6 +1880,15 @@ function gadgetHandler:AllowResourceTransfer(oldTeamID, newTeamID, res, amount)
 		end
 	end
 	return true
+end
+
+function gadgetHandler:ResourceExcess(resourceExcess)
+	for _, g in ipairs(self.ResourceExcessList) do
+		if g:ResourceExcess(resourceExcess) then
+			return true
+		end
+	end
+	return false
 end
 
 function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam,
