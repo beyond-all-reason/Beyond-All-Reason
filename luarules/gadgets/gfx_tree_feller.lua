@@ -519,7 +519,7 @@ if gadgetHandler:IsSyncedCode() then
 					-- weaponDefID == -7 is the weapon that crushes features
 					--if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
 					--Echo('tree dying...',featureID)
-					local dx, dy, dz = GetFeatureDirection(featureID)
+					local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
 					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesnt block anything
 					if weaponDefID == -7 then
 						--weapon is crush
@@ -527,7 +527,7 @@ if gadgetHandler:IsSyncedCode() then
 						DestroyFeature(featureID)
 						treesdying[featureID] = { frame = GetGameFrame(), posx = fx, posy = fy, posz = fz, fDefID = featureDefID, dirx = dx, diry = dy, dirz = dz, px = ppx, py = ppy, pz = ppz, strength = treeMass[featureDefID] / dmg, fire = fire, size = size, treeburnCEG = 'treeburn-' .. size, dissapearSpeed = dissapearSpeed, destroyFrame = destroyFrame } -- this prevents this tobedestroyed feature to be replaced multiple times
 						featureID = CreateFeature(featureDefID, fx, fy, fz)
-						SetFeatureDirection(featureID, dx, dy, dz)
+						SetFeatureDirection(featureID, dx, dy, dz, rx, ry, rz)
 						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 						--Echo('tree created... ',featureID)
 					else
@@ -540,7 +540,7 @@ if gadgetHandler:IsSyncedCode() then
 						-- same reason the crush path above must recreate.)
 						DestroyFeature(featureID)
 						featureID = CreateFeature(featureDefID, fx, fy, fz)
-						SetFeatureDirection(featureID, dx, dy, dz)
+						SetFeatureDirection(featureID, dx, dy, dz, rx, ry, rz)
 						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 					end
 					-- TREE CAUGHT FIRE FROM OTHER TREE
@@ -799,7 +799,7 @@ if gadgetHandler:IsSyncedCode() then
 								if not featureinfo.sinkStartedFrame then
 									featureinfo.sinkStartedFrame = gf
 								end
-								local dx, dy, dz = GetFeatureDirection(featureID)
+								local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
 								if featureinfo.fire then
 									SetFeaturePosition(featureID, fx, fy - featureinfo.dissapearSpeed * sinkSpeedMultBurning, fz, false)
 								else
@@ -809,7 +809,7 @@ if gadgetHandler:IsSyncedCode() then
 								-- NOTE: this can create twitchy tree movement
 								-- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
 								-- note 3 (Hornet): enabling this because 'some trees' absolutely do need it. Eg, Tangerine is fine, but Isthmus trees are not. Might be map feature setting issue in some way?
-								SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+								SetFeatureDirection(featureID, dx, dy, dz, rx, ry, rz)		-- gets reset so we re-apply
 							end
 
 							local gh = spGetGroundHeight(fx, fz)
