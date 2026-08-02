@@ -2728,7 +2728,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|extreme] Set zombie mode"
+			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
 		}
 	}
 }

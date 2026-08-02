@@ -23,37 +23,63 @@ local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.75 -- Chance a zombie will guard allies
 local REFRESH_ORDERS_CHANCE       = 0.005
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
+local ZOMBIE_REZ_FRAME_PARAM      = "zombie_rez_frame"
+local PUBLIC_RULES_PARAM_ACCESS   = { public = true }
 
 local ZOMBIE_MAX_XP               = 2    -- Maximum experience value for zombies, skewed towards median
 
+local standardTechToRezPowerSpeeds  = {
+	[0.5] = 1,
+	[1] = 1,
+	[1.5] = 3,
+	[2] = 8,
+	[2.5] = 25,
+	[3] = 42,
+	[3.5] = 63,
+	[4] = 83,
+	[4.5] = 104
+}
+
+local akumuTechToRezPowerSpeeds     = {
+	[0.5] = 1,
+	[1] = 2,
+	[1.5] = 5,
+	[2] = 12,
+	[2.5] = 38,
+	[3] = 64,
+	[3.5] = 86,
+	[4] = 108,
+	[4.5] = 130
+}
+
 local zombieModeConfigs           = {
 	normal = {
-		rezSpeed = 16,
-		rezMin = 60,
+		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
+		rezMin = 90,
 		rezMax = 180,
 		countMin = 1,
 		countMax = 1
 	},
 	hard = {
-		rezSpeed = 24,
-		rezMin = 30,
-		rezMax = 90,
+		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
+		rezMin = 60,
+		rezMax = 180,
 		countMin = 1,
 		countMax = 1
 	},
 	nightmare = {
-		rezSpeed = 24,
-		rezMin = 30,
-		rezMax = 90,
-		countMin = 2,
-		countMax = 5
+		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
+		rezMin = 60,
+		rezMax = 180,
+		countMin = 1,
+		countMax = 6
 	},
-	extreme = {
-		rezSpeed = 48,
-		rezMin = 30,
-		rezMax = 45,
-		countMin = 4,
-		countMax = 10
+	akumu = {
+		techToRezPowerSpeeds = akumuTechToRezPowerSpeeds,
+		rezMin = 60,
+		rezMax = 180,
+		countMin = 2,
+		countMax = 8
 	}
 }
 
@@ -63,6 +89,8 @@ local currentZombieConfig         = zombieModeConfigs.normal
 local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3 -- How often (in frames) to check if zombies need new orders
 local ZOMBIE_CHECK_INTERVAL       = Game.gameSpeed     -- How often (in frames) everything else is checked
 local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames) to check if zombies are stuck
+local REZ_SPEED_UPDATE_INTERVAL   = Game.gameSpeed * 60
+local TECH_LEVEL_ECHO_INTERVAL    = Game.gameSpeed * 10
 
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
@@ -115,6 +143,7 @@ local spGetUnitHealth             = Spring.GetUnitHealth
 local spSetUnitHealth             = Spring.SetUnitHealth
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
 local spGetUnitRulesParam         = Spring.GetUnitRulesParam
+local spSetFeatureRulesParam      = Spring.SetFeatureRulesParam
 local spGetFeatureDefID           = Spring.GetFeatureDefID
 local spTestMoveOrder             = Spring.TestMoveOrder
 local spSpawnCEG                  = Spring.SpawnCEG
@@ -156,10 +185,10 @@ end
 
 local ordersEnabled = true
 local gameFrame = 0
-local adjustedRezSpeed = currentZombieConfig.rezSpeed
+local adjustedRezPowerSpeed = currentZombieConfig.techToRezPowerSpeeds[1]
+local currentTechLevel = nil
 local isIdleMode = false
 local autoSpawningEnabled = true
-local debugMode = false
 
 local extraDefs = {}
 local factoriesWithCombatOptions = {}
@@ -193,11 +222,7 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
-		local spawnSeconds = floor(unitDef.metalCost / adjustedRezSpeed)
-
-		spawnSeconds = clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
-		local spawnFrames = spawnSeconds * Game.gameSpeed
-		zombieCorpseDefs[corpseDefID] = { unitDefID = unitDefID, spawnDelayFrames = spawnFrames }
+		zombieCorpseDefs[corpseDefID] = { unitDefID = unitDefID }
 
 		local zombieDefData = {}
 		local deathExplosionName = unitDef.deathExplosion
@@ -315,15 +340,50 @@ local function setGaiaStorage()
 	end
 end
 
-local function updateAdjustedRezSpeed()
-	local techGuesstimateMultiplier = 2
+local function getUnitRezPower(unitDef)
+	return math.max(1, unitDef.power or 1)
+end
+
+local function calculateSpawnDelayFrames(unitPower)
+	local spawnSeconds = floor(unitPower / adjustedRezPowerSpeed)
+	spawnSeconds = clamp(spawnSeconds, currentZombieConfig.rezMin, currentZombieConfig.rezMax)
+	return spawnSeconds * Game.gameSpeed
+end
+
+local function getRezPowerSpeedForTechLevel(config, techLevel)
+	local speeds = config.techToRezPowerSpeeds
+	if speeds[techLevel] then
+		return speeds[techLevel]
+	end
+	return speeds[1]
+end
+
+local function rebuildZombieCorpseSpawnDelays()
+	for _, corpseDefData in pairs(zombieCorpseDefs) do
+		local unitDef = unitDefs[corpseDefData.unitDefID]
+		if unitDef then
+			corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
+		end
+	end
+end
+
+local function updateAdjustedRezPowerSpeed()
+	local techLevel = 1
+	adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 	if GG.PowerLib and GG.PowerLib.HighestPlayerTeamPower and GG.PowerLib.TechGuesstimate then
 		local highestPowerData = GG.PowerLib.HighestPlayerTeamPower()
 		if highestPowerData and highestPowerData.power then
-			adjustedRezSpeed = currentZombieConfig.rezSpeed * GG.PowerLib.TechGuesstimate(highestPowerData.power) *
-			techGuesstimateMultiplier
+			techLevel = GG.PowerLib.TechGuesstimate(highestPowerData.power)
+			adjustedRezPowerSpeed = getRezPowerSpeedForTechLevel(currentZombieConfig, techLevel)
 		end
 	end
+
+	currentTechLevel = techLevel
+end
+
+local function updateRezSpeed()
+	updateAdjustedRezPowerSpeed()
+	rebuildZombieCorpseSpawnDelays()
 end
 
 local function applyZombieModeSettings(mode)
@@ -335,7 +395,7 @@ local function applyZombieModeSettings(mode)
 	currentZombieMode = mode
 	currentZombieConfig = config
 
-	updateAdjustedRezSpeed()
+	updateRezSpeed()
 end
 
 local function calculateHealthRatio(featureID)
@@ -550,11 +610,20 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 	end
 end
 
+local function setCorpseRezRulesParam(featureID, spawnFrame)
+	spSetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, spawnFrame, PUBLIC_RULES_PARAM_ACCESS)
+end
+
+local function clearCorpseRezRulesParam(featureID)
+	spSetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
+end
+
 local function resetSpawn(featureID, featureData, featureDefData)
-	local newFrame = featureData.tamperedFrame + featureDefData.spawnDelayFrames
+	local newFrame = featureData.tamperedFrame + featureData.spawnDelayFrames
 	featureData.spawnFrame = newFrame
 	featureData.creationFrame = featureData.tamperedFrame
 	featureData.tamperedFrame = nil
+	setCorpseRezRulesParam(featureID, newFrame)
 	corpseCheckFrames[newFrame] = corpseCheckFrames[newFrame] or {}
 	corpseCheckFrames[newFrame][#corpseCheckFrames[newFrame] + 1] = featureID
 end
@@ -587,13 +656,44 @@ local function setZombieStates(unitID, unitDefID)
 	spSetUnitRulesParam(unitID, "resurrected", 0, { inlos = true })
 end
 
+local function rollSpawnCount()
+	return random(currentZombieConfig.countMin, currentZombieConfig.countMax)
+end
+
+local function calculateSpawnCount(unitDefID)
+	local countMin = currentZombieConfig.countMin
+	local countMax = currentZombieConfig.countMax
+	if countMin == countMax then
+		return countMin
+	end
+
+	local unitDef = unitDefs[unitDefID]
+	if not unitDef then
+		return countMin
+	end
+
+	local rezTimeSeconds = calculateSpawnDelayFrames(getUnitRezPower(unitDef)) / Game.gameSpeed
+	local rezMin = currentZombieConfig.rezMin
+	local rezMax = currentZombieConfig.rezMax
+
+	if currentTechLevel == nil or currentTechLevel <= 1 then
+		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount())
+	end
+
+	if rezTimeSeconds == rezMin then
+		return rollSpawnCount()
+	end
+	if rezTimeSeconds == rezMax then
+		return math.min(rollSpawnCount(), rollSpawnCount(), rollSpawnCount())
+	end
+	return math.min(rollSpawnCount(), rollSpawnCount())
+end
+
 local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 	local unitDef = unitDefs[unitDefID]
 	local spawnCount = 1
 	if extraDefs[unitDefID].isMobile then
-		--We bias downwards because lower values are preferred, it should be uncommon to find strong zombies but still possible
-		spawnCount = floor((random(currentZombieConfig.countMin, currentZombieConfig.countMax) + random(currentZombieConfig.countMin,
-			currentZombieConfig.countMax)) / 2) --skew results towards average to produce better gameplay
+		spawnCount = calculateSpawnCount(unitDefID)
 	end
 	local size = unitDef.xsize
 	local unitDefToCreate = getScavVariantUnitDefID(unitDefID)
@@ -712,6 +812,14 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+
+	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
+		updateRezSpeed()
+	end
+
+	if frame % TECH_LEVEL_ECHO_INTERVAL == 0 then
+		Spring.Echo("current tech level: " .. tostring(currentTechLevel))
+	end
 
 	local corpsesToCheck = corpseCheckFrames[frame]
 	if corpsesToCheck then
@@ -837,9 +945,11 @@ local function queueCorpseForSpawning(featureID, override)
 
 	local featureDefID = spGetFeatureDefID(featureID)
 	if zombieCorpseDefs[featureDefID] then
-		local spawnDelayFrames = zombieCorpseDefs[featureDefID].spawnDelayFrames
+		local corpseDefData = zombieCorpseDefs[featureDefID]
+		local spawnDelayFrames = corpseDefData.spawnDelayFrames
 		local spawnFrame = gameFrame + spawnDelayFrames
 		corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame }
+		setCorpseRezRulesParam(featureID, spawnFrame)
 		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
 		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
 	end
@@ -850,6 +960,7 @@ function gadget:FeatureCreated(featureID, allyTeam)
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
+	clearCorpseRezRulesParam(featureID)
 	corpsesData[featureID] = nil
 end
 
@@ -984,6 +1095,7 @@ local function aggroTeamID(teamID)
 	return fightNearTargets(targetUnits)
 end
 
+
 local function aggroAllyID(allyID)
 	clearAllOrders()
 
@@ -1023,6 +1135,9 @@ local function setAutoSpawning(enabled)
 end
 
 local function clearAllZombieSpawns()
+	for featureID in pairs(corpsesData) do
+		clearCorpseRezRulesParam(featureID)
+	end
 	corpsesData = {}
 	corpseCheckFrames = {}
 end
@@ -1234,29 +1349,8 @@ local function commandClearZombieSpawns(_, line, words, playerID)
 	Spring.SendMessageToPlayer(playerID, "Cleared all queued zombie spawns")
 end
 
-local function commandToggleDebugMode(_, line, words, playerID)
-	if not isAuthorized(playerID) then
-		Spring.SendMessageToPlayer(playerID, UNAUTHORIZED_TEXT)
-		return
-	end
-
-	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiedebug 0|1")
-		return
-	end
-
-	local enabled = tonumber(words[1])
-	if enabled == nil or (enabled ~= 0 and enabled ~= 1) then
-		Spring.SendMessageToPlayer(playerID, "Invalid value. Use 0 to disable or 1 to enable")
-		return
-	end
-
-	debugMode = enabled == 1
-	Spring.SendMessageToPlayer(playerID, "Zombie debug mode " .. (debugMode and "enabled" or "disabled"))
-end
-
 local function setZombieMode(mode)
-	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
+	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
 		return false
 	end
 
@@ -1272,13 +1366,13 @@ local function commandSetZombieMode(_, line, words, playerID)
 	end
 
 	if #words == 0 then
-		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|extreme")
+		Spring.SendMessageToPlayer(playerID, "Usage: /luarules zombiemode normal|hard|nightmare|akumu")
 		return
 	end
 
 	local mode = string.lower(words[1])
-	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "extreme" then
-		Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or extreme")
+	if mode ~= "normal" and mode ~= "hard" and mode ~= "nightmare" and mode ~= "akumu" then
+		Spring.SendMessageToPlayer(playerID, "Invalid mode. Use: normal, hard, nightmare, or akumu")
 		return
 	end
 
@@ -1347,8 +1441,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction('zombieaggroally', commandAggroZombiesToAlly, "Make zombies aggro to entire ally team")
 	gadgetHandler:AddChatAction('zombiekillall', commandKillAllZombies, "Kill all zombies")
 	gadgetHandler:AddChatAction('zombieclearallorders', commandClearAllZombieOrders, "Clear allzombie orders")
-	gadgetHandler:AddChatAction('zombiedebug', commandToggleDebugMode, "Enable/disable debug mode")
-	gadgetHandler:AddChatAction('zombiemode', commandSetZombieMode, "Set zombie mode (normal/hard/nightmare/extreme)")
+	gadgetHandler:AddChatAction('zombiemode', commandSetZombieMode, "Set zombie mode (normal/hard/nightmare/akumu)")
 end
 
 function gadget:Shutdown()
@@ -1362,7 +1455,6 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('zombieaggroally')
 	gadgetHandler:RemoveChatAction('zombiekillall')
 	gadgetHandler:RemoveChatAction('zombieclearallorders')
-	gadgetHandler:RemoveChatAction('zombiedebug')
 	gadgetHandler:RemoveChatAction('zombiemode')
 end
 
