@@ -60,7 +60,7 @@ describe("mission_api.triggers.unit_spotted_by_seismic", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by owningTeamID via the unit's current team", function()
+	it("filters by owningTeamID", function()
 		local context, fired = newContext()
 		ping(trigger({ unitDefName = 'armpw', owningTeamID = 9 }), context, 0, 100, 1)
 		assert.are.equal(0, fired())
