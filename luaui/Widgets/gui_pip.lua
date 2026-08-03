@@ -195,6 +195,7 @@ config = {
 	drawNanoStreams = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1,  -- Show lightweight animated streams for active builder tasks
 	nanoStreamReflectUsage = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1,  -- Scale stream width/opacity by current build-power usage
 	nanoStreamDrawLimit = 512,  -- Hard cap for the single instanced nano-stream draw
+	nanoStreamMinZoom = 0.18,  -- Hide nanostreams when zoomed out below this level
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
@@ -15115,7 +15116,7 @@ end
 
 function gl4Prim.DrawNanoStreams()
 	local nano = gl4Prim.nanoStreams
-	if not config.drawNanoStreams or not nano.enabled then return end
+	if not config.drawNanoStreams or not nano.enabled or cameraState.zoom < config.nanoStreamMinZoom then return end
 	tracy.ZoneBeginN("W:PIP:NanoStreams")
 	gl4Prim.UpdateNanoStreams()
 	if nano.count == 0 then
