@@ -34,11 +34,10 @@ local function getTimeoutInterval(trigger)
 	return math.max(math.floor(timeout * Game.gameSpeed / SEISMIC_INTERVAL_FRAMES + 0.5), 1)
 end
 
-local function addSeismicContact(context, triggerID, unitID, unitDefID, seismicAllyTeamID)
+local function addSeismicContact(context, triggerID, unitID, unitDefID)
 	table.ensureTable(context.SeismicContacts, triggerID)[unitID] = {
 		interval = math.floor(Spring.GetGameFrame() / SEISMIC_INTERVAL_FRAMES),
 		unitDefID = unitDefID,
-		seismicAllyTeamID = seismicAllyTeamID,
 	}
 end
 
@@ -57,7 +56,7 @@ return {
 			if not match(trigger, context, unitID, unitDefID, seismicAllyTeamID) then
 				return
 			end
-			addSeismicContact(context, triggerID, unitID, unitDefID, seismicAllyTeamID)
+			addSeismicContact(context, triggerID, unitID, unitDefID)
 		end,
 
 		GameFrame = function(trigger, triggerID, context, frameNumber)
@@ -77,7 +76,7 @@ return {
 					contacts[unitID] = nil
 					-- Dying/crashing/exploding units can still emit pings.
 					-- Unit tracking can change in the delay before firing.
-					if Spring.GetUnitIsDead(unitID) == false and match(trigger, context, unitID, contact.unitDefID, contact.seismicAllyTeamID) then
+					if Spring.GetUnitIsDead(unitID) == false and match(trigger, context, unitID, contact.unitDefID, Spring.GetUnitAllyTeam(unitID)) then
 						context.ActivateTrigger(trigger)
 					end
 				end
