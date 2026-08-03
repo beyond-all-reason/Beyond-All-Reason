@@ -171,13 +171,9 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
     end
 end
 
--- The con turret has no corpse of its own, so its remains are created here by
--- hand. They MUST be created when the unit actually dies, never predicted from
--- an incoming hit: UnitDamaged runs *after* the engine has already subtracted
--- the damage, so testing `health - damage` there subtracts it twice and fires a
--- hit early. That left a live, still-extracting Fortifier standing inside its
--- own blocking wreck, whose collision box is far larger than the unit's and so
--- absorbed the shots that should have finished it off.
+-- The con turret has no corpse def; its remains are created manually on death.
+-- Lethality cannot be judged inside UnitDamaged (it reports post-damage health),
+-- so UnitDamaged only records the latest hit and UnitDestroyed creates the remains.
 local lastDamage = {} -- con turret unitID -> damage of its most recent hit
 local lastDamageFrame = {} -- con turret unitID -> frame of that hit
 
@@ -187,10 +183,9 @@ local function createRemains(unitID, unitDefID, unitTeam)
 		return
 	end
 
-	-- Remains are only for units killed by damage: dead at <= 0 health, with a
-	-- damage event on this or the previous frame. This excludes reclaim,
-	-- self-destruct and being removed because the paired unit died — none of
-	-- which fire UnitDamaged, and none of which should leave remains.
+	-- remains require a damage kill: dead at <= 0 health with a damage event on
+	-- this or the previous frame. Reclaim, self-destruct and pair-removal don't
+	-- fire UnitDamaged and leave no remains.
 	local health = spGetUnitHealth(unitID)
 	if not health or health > 0 then
 		return
@@ -205,13 +200,13 @@ local function createRemains(unitID, unitDefID, unitTeam)
 		return
 	end
 
-	-- severity of the killing blow still picks the remains, as before
+	-- killing-blow severity picks between wreck, heap and nothing
 	local maxHealth = UnitDefs[unitDefID].health
 	local damage = lastDamage[unitID] or 0
 	local facing = Spring.GetUnitBuildFacing(unitID)
 
 	if damage >= maxHealth * 0.5 then
-		return -- obliterated outright: nothing left to salvage
+		return -- obliterated: nothing left to salvage
 	elseif damage < maxHealth * 0.25 then
 		local featureID = Spring.CreateFeature(buildAsUnitName .. "_dead" , xx, yy, zz, facing, unitTeam)
 		if featureID then
