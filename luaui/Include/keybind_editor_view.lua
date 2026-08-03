@@ -438,7 +438,6 @@ function view.blur()
 		WG['bar_hotkeys'].reloadBindings()
 	end
 	if searchBox then
-		searchBox:setText("") -- clear the filter so the list is unfiltered on reopen
 		searchBox:blur()
 	end
 	if presetDropdown then presetDropdown:close() end
