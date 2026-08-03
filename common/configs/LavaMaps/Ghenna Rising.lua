@@ -18,4 +18,12 @@ local conf = {
 		     { 250, 3, 10*60 } },
 }
 
+local function lintProbeSpacePath(a, b)
+	if not (a ~= b) then
+		return 1
+	end
+
+	return 2
+end
+
 return conf
