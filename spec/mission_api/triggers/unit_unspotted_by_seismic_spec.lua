@@ -66,7 +66,16 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		assert.are.same({ 'unitName', 'unitDefName' }, unitUnspottedBySeismic.parameters.requiresOneOf)
 	end)
 
-	it("filters non-matching units", function()
+	it("filters non-matching unitNames", function()
+		local context, fired = newContext()
+		context.DoesUnitHaveName = function() return false end -- unit is never named
+		local t = trigger({ unitName = 'engineers' })
+		ping(t, context, 100, 1)
+		tick(t, context, 5 * SEISMIC_INTERVAL_FRAMES)
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters non-matching unitDefs", function()
 		local context, fired = newContext()
 		local t = trigger({ unitDefName = 'corfast' })
 		ping(t, context, 100, 1)
@@ -74,11 +83,28 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("skips firing before the timeout's intervals elapse", function()
+	it("filters non-matching spottingAllyTeamID", function()
 		local context, fired = newContext()
-		local t = trigger({ unitDefName = 'armpw' }) -- default 1s = 2 intervals
+		local t = trigger({ unitDefName = 'armpw', spottingAllyTeamID = 2 })
+		ping(t, context, 100, 1) -- pinged by allyTeam 0: does not match
+		tick(t, context, 5 * SEISMIC_INTERVAL_FRAMES)
+		assert.are.equal(0, fired())
+	end)
+
+	it("filters non-matching owningTeamID", function()
+		local context, fired = newContext()
+		Spring.GetUnitTeam = function(_unitID) return 5 end
+		local t = trigger({ unitDefName = 'armpw', owningTeamID = 3 })
+		ping(t, context, 100, 1)
+		tick(t, context, 5 * SEISMIC_INTERVAL_FRAMES)
+		assert.are.equal(0, fired())
+	end)
+
+	it("does not fire before the timeout intervals elapse", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' }) -- defaults to 1.0 sec => 2 intervals
 		ping(t, context, 100, 1) -- interval 0
-		tick(t, context, 1 * SEISMIC_INTERVAL_FRAMES) -- 1 interval of silence
+		tick(t, context, 1 * SEISMIC_INTERVAL_FRAMES) -- only 1 interval of silence
 		assert.are.equal(0, fired())
 	end)
 
@@ -173,14 +199,6 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		ping(t, context, 100) -- pinged by allyTeam 0: matches and is recorded
 		tick(t, context, 2 * SEISMIC_INTERVAL_FRAMES)
 		assert.are.equal(1, fired())
-	end)
-
-	it("does not record a ping from a non-matching spottingAllyTeamID", function()
-		local context, fired = newContext()
-		local t = trigger({ unitDefName = 'armpw', spottingAllyTeamID = 2 })
-		ping(t, context, 100) -- pinged by allyTeam 0: does not match
-		tick(t, context, 5 * SEISMIC_INTERVAL_FRAMES)
-		assert.are.equal(0, fired())
 	end)
 
 	it("skips firing for a unit that left its owningTeamID before timeout", function()
