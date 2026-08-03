@@ -1065,11 +1065,7 @@ local function activate(direction, mode, args)
 	activeDirection = direction
 	activeMode = mode
 	activeRadius = parseRadius(args)
-	if mode == "level" or mode == "smooth" then
-		activeCurve = 2.5
-		clayMode = true
-		activeIntensity = 0.5
-	end
+	extraState.swapModeParams(mode)
 	local modeLabels = { raise = "RAISE", lower = "LOWER", level = "LEVEL", smooth = "SMOOTH", ramp = "RAMP", restore = "RESTORE", erode = "ERODE" }
 	local modeLabel = modeLabels[mode] or mode
 	Echo("[Terraform Brush] Mode: " .. modeLabel .. " | Radius: " .. activeRadius .. " | Hold left-click to terraform, /terraformbrushoff to stop")
@@ -1114,7 +1110,40 @@ local function deactivateTerraform()
 	return true
 end
 
+-- Curve / intensity / clay live in one shared slot for every mode, but SMOOTH and
+-- LEVEL need their own soft defaults (gentle curve, low intensity, clay on) to feel
+-- right. Entering them used to overwrite the shared slot outright, so raise/lower
+-- inherited the soft settings and stayed wrong until the next map load. Instead keep
+-- one snapshot per mode group and swap it on every group change.
+-- Attached to extraState rather than new chunk-level locals (main chunk is at the
+-- 200-local limit).
+extraState.MODE_PARAM_GROUPS = {
+	raise = "sculpt", lower = "sculpt", ramp   = "sculpt", restore = "sculpt",
+	noise = "sculpt", erode = "sculpt", level  = "modify", smooth  = "modify",
+}
+extraState.paramGroup = "sculpt"
+extraState.modeParamSnapshots = {
+	modify = { curve = 2.5, intensity = 0.5, clay = true },
+}
+
+extraState.swapModeParams = function(mode)
+	local newGroup = extraState.MODE_PARAM_GROUPS[mode]
+	if not newGroup or newGroup == extraState.paramGroup then return end
+	-- Save what the outgoing group was using, then restore the incoming group's.
+	extraState.modeParamSnapshots[extraState.paramGroup] = {
+		curve = activeCurve, intensity = activeIntensity, clay = clayMode,
+	}
+	extraState.paramGroup = newGroup
+	local snap = extraState.modeParamSnapshots[newGroup]
+	if snap then
+		activeCurve     = snap.curve
+		activeIntensity = snap.intensity
+		clayMode        = snap.clay
+	end
+end
+
 local function setMode(mode)
+	extraState.swapModeParams(mode)
 	if mode == "raise" then
 		activeDirection = 1
 		activeMode = "raise"
@@ -1124,9 +1153,6 @@ local function setMode(mode)
 	elseif mode == "level" or mode == "smooth" then
 		activeDirection = 0
 		activeMode = mode
-		activeCurve = 2.5
-		clayMode = true
-		activeIntensity = 0.5
 		if activeShape == "ring" then
 			activeShape = "circle"
 		end
@@ -1500,8 +1526,8 @@ local function loadPreset(name)
 	end
 	-- Validate and apply with tonumber guards to prevent crashes from corrupted data
 	local ok, err = pcall(function()
-		-- Set mode FIRST so its defaults (curve/intensity/clayMode for "level") can be
-		-- overridden by the preset's saved values applied below.
+		-- Set mode FIRST so the mode group's curve/intensity/clayMode snapshot is swapped
+		-- in before the preset's own saved values overwrite it below.
 		if type(data.mode) == "string" then setMode(data.mode) end
 		if type(data.shape) == "string" then setShape(data.shape) end
 		if tonumber(data.radius) then setRadius(tonumber(data.radius)) end
@@ -2030,7 +2056,17 @@ local function doExportHeightmap()
 	-- Timestamped filename so multiple saves accumulate and can be listed in the
 	-- load picker (older format was a single overwriting file).
 	local stamp = os.date("%Y-%m-%d_%H-%M-%S")
-	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. Game.mapName .. "_" .. stamp
+	-- Generated canvases carry a per-restart uniquifier ("Editor Flat 12x12 s<time>"
+	-- or "<custom name> s<time>", see buildBlankMapStartScript). Strip it so a save
+	-- made on one canvas stays visible in the load picker on later canvases with
+	-- the same base name. Gated on blank-map mapoptions so a real map name that
+	-- happens to end in " s<digits>" is never truncated.
+	local mapName = Game.mapName or ""
+	local mo = Spring.GetMapOptions()
+	if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+		mapName = mapName:match("^(.-) s%d+$") or mapName
+	end
+	local baseName = HEIGHTMAPS_DIR .. "heightmap_export_" .. mapName .. "_" .. stamp
 	local filename = baseName .. ".png"
 
 	local pngFile = io.open(filename, "wb")
@@ -2679,13 +2715,28 @@ function widget:Initialize()
 			local out = {}
 			if not files then return out end
 			local mapName = Game.mapName or ""
-			local mapPrefix = "heightmap_export_" .. mapName
+			-- Generated canvases get a fresh uniquified name every restart ("Editor
+			-- Flat 12x12 s<time>" or "<custom name> s<time>"), so an exact-name
+			-- filter can never surface saves from a previous canvas. Filter by the
+			-- stripped base name instead, gated on blank-map mapoptions so a real
+			-- map name ending in " s<digits>" is never truncated; real maps keep
+			-- exact matching (same name implies same dimensions).
+			local canonical = mapName
+			local mo = Spring.GetMapOptions()
+			if type(mo) == "table" and ((tonumber(mo.blank_map_x) or 0) > 0 or (tonumber(mo.blank_map_y) or 0) > 0) then
+				canonical = mapName:match("^(.-) s%d+$") or mapName
+			end
+			local mapPrefix = "heightmap_export_" .. canonical
+			local escaped = mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1")
 			for _, path in ipairs(files) do
 				local base = path:match("([^/\\]+)%.png$") or path
-				-- Match "heightmap_export_<mapName>_<YYYY-MM-DD_HH-MM-SS>" and the
-				-- legacy un-stamped "heightmap_export_<mapName>" form.
-				local stamp = base:match("^" .. mapPrefix:gsub("[%-%+%[%]%(%)%$%^%%%?%*%.]", "%%%1") .. "_(.+)$")
+				-- Match "heightmap_export_<name>_<YYYY-MM-DD_HH-MM-SS>", the legacy
+				-- un-stamped "heightmap_export_<name>" form, and older generated-
+				-- canvas saves that still embed the " s<time>" uniquifier.
+				local stamp = base:match("^" .. escaped .. "_(.+)$")
+					or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
+					or (base:match("^" .. escaped .. " s%d+$") ~= nil)
 				if isThisMap then
 					local label
 					local sortKey = stamp or "0"
@@ -6286,8 +6337,13 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Full-map grid overlay: visible across the whole map regardless of brush active state
-	if gridOverlay then
+	-- Full-map grid overlay: visible across the whole map regardless of brush active state.
+	-- Skipped with the interface hidden (F5) or while a map capture is walking
+	-- the camera — the capture reprojects the rendered frame, so the grid would
+	-- be baked into the exported photo. Conditions are inlined rather than
+	-- hoisted into a helper: this chunk is at the Lua 5.1 200-local ceiling.
+	if gridOverlay and not Spring.IsGUIHidden()
+		and not (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy()) then
 		-- Debounce rebuilds: while actively terraforming, `gridDirty` flips true
 		-- every stroke tick. Rebuilding the full-map display list (thousands of
 		-- GetGroundHeight calls) every frame is wasted work — the visual is
@@ -6633,10 +6689,20 @@ function widget:DrawWorld()
 		if savedRadius    then activeRadius    = savedRadius    end
 	end
 
-	-- Suppress brush outline when placing/hovering/dragging symmetry origin
+	-- Suppress brush outline when placing/hovering/dragging symmetry origin, or
+	-- whenever the map labels tool owns the cursor (placing, dot hover/drag,
+	-- over its windows, or a comment is open)
+	-- ...or whenever the interface is hidden (F5) or a map capture is walking the
+	-- camera. Both mean "no cursor furniture in the world": the capture
+	-- reprojects the rendered frame, so a ring drawn here is baked into the
+	-- exported photo (and the symmetry mirror bakes in a second one).
 	local suppressBrush = extraState.symmetryPlacingOrigin
 		or extraState.symmetryDraggingOrigin
 		or extraState.symmetryHoveringOrigin
+		or Spring.IsGUIHidden()
+		or (WG.TerraformCapture and WG.TerraformCapture.isBusy and WG.TerraformCapture.isBusy())
+		or (WG.MapLabels and WG.MapLabels.shouldSuppressBrush
+			and WG.MapLabels.shouldSuppressBrush())
 
 	-- Animated glow outline — drawn every frame outside the display-list cache so it can pulse.
 	if activeMode and activeMode ~= "ramp" and not suppressBrush then

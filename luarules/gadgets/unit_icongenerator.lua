@@ -181,7 +181,7 @@ else
 	local renderX, renderY
 
 	local fbo
-	local pre_shader, clear_shader, post_shader
+	local pre_shader, post_shader
 	local albedo_tex, normal_tex, depth_tex
 	local final_tex, final_fbo
 	local halo_shader
@@ -205,6 +205,7 @@ else
 	local GL_RGBA = 0x1908
 	local GL_RGBA16F_ARB = 0x881A
 	local GL_DEPTH_COMPONENT32 = 0x81A7
+	local GL_FRAMEBUFFER = 0x8D40
 	local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 	local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
 	local GL_READ_FRAMEBUFFER_EXT = 0x8CA8
@@ -529,19 +530,6 @@ else
 			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
 		end
 
-		clear_shader = gl.CreateShader({
-			fragment = [[
-	  #version 150 compatibility
-      void main(void) {
-        gl_FragData[0] = vec4(0.0);
-        gl_FragData[1] = vec4(0.0);
-      }
-    ]]
-		})
-
-		if not clear_shader then
-			Spring.Log(gadget:GetInfo().name, LOG.ERROR, gl.GetShaderLog())
-		end
 	end
 
 	--------------------------------------------------------------------------------
@@ -554,8 +542,6 @@ else
 		gl.DeleteFBO(fbo)
 		gl.DeleteShader(pre_shader)
 
-		gl.DeleteShader(clear_shader)
-
 		gl.DeleteTexture(post_tex)
 		gl.DeleteFBO(post_fbo)
 		gl.DeleteShader(post_shader)
@@ -566,7 +552,7 @@ else
 		gl.DeleteShader(halo_shader)
 
 		fbo = nil
-		pre_shader, clear_shader, post_shader = nil, nil, nil, nil
+		pre_shader, post_shader = nil, nil
 		albedo_tex, normal_tex, depth_tex = nil, nil, nil
 		final_tex, final_fbo = nil, nil
 		post_tex, post_fbo = nil, nil
@@ -729,12 +715,13 @@ else
 		gl.LoadIdentity()
 
 		gl.DepthMask(true)
-		gl.ActiveFBO(fbo, gl.Clear, GL.DEPTH_BUFFER_BIT)
+		gl.ActiveFBO(fbo, function()
+			gl.Clear(GL.DEPTH_BUFFER_BIT)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color0", 0, 0, 0, 0)
+			gl.ClearAttachmentFBO(GL_FRAMEBUFFER, "color1", 0, 0, 0, 0)
+		end)
 		gl.DepthMask(false)
 
-		gl.UseShader(clear_shader)
-		gl.ActiveFBO(fbo, gl.TexRect, -1, -1, 1, 1)
-		gl.UseShader(0)
 		gl.ActiveFBO(post_fbo, gl.Clear, GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 
 		gl.PopMatrix()

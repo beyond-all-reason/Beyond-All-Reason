@@ -34,6 +34,8 @@ function M.attach(doc, ctx)
 		{ "sp-slider-size",                 "sp-size" },
 		{ "sp-slider-rotation",             "sp-rotation" },
 		{ "sp-slider-curve",                "sp-curve" },
+		{ "sp-slider-fractal",              "sp-fractal" },
+		{ "sp-slider-fractal-freq",         "sp-fractal-freq" },
 		{ "sp-slider-slope-max",            "sp-slope-max" },
 		{ "sp-slider-slope-min",            "sp-slope-min" },
 		{ "sp-slider-alt-min",              "sp-alt-min" },
@@ -84,6 +86,15 @@ function M.sync(doc, ctx, spState, setSummary)
 				if dm.splatRotationStr ~= s4 then dm.splatRotationStr = s4 end
 				local s5 = string.format("%.1f", spState.curve)
 				if dm.splatCurveStr ~= s5 then dm.splatCurveStr = s5 end
+
+				-- Fractal brush-edge warp labels
+				local fracStr = string.format("%.2f", spState.fractalAmount or 0)
+				if dm.splatFractalStr ~= fracStr then dm.splatFractalStr = fracStr end
+				local freq = spState.fractalFreq or 0.003
+				local freqSlider = math.floor(1 + (freq - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
+				freqSlider = math.max(1, math.min(50, freqSlider))
+				local freqStr = tostring(freqSlider)
+				if dm.splatFractalFreqStr ~= freqStr then dm.splatFractalFreqStr = freqStr end
 			end
 
 			-- Splat channel button highlights (data-class-active="spChannel == N")
@@ -98,6 +109,13 @@ function M.sync(doc, ctx, spState, setSummary)
 			syncAndFlash(getCachedEl(doc, "sp-slider-size"), "sp-size", tostring(spState.radius))
 			syncAndFlash(getCachedEl(doc, "sp-slider-rotation"), "sp-rotation", tostring(spState.rotationDeg))
 			syncAndFlash(getCachedEl(doc, "sp-slider-curve"), "sp-curve", tostring(math.floor(spState.curve * 10 + 0.5)))
+			syncAndFlash(getCachedEl(doc, "sp-slider-fractal"), "sp-fractal", tostring(math.floor((spState.fractalAmount or 0) * 100 + 0.5)))
+			do
+				local freq = spState.fractalFreq or 0.003
+				local freqSlider = math.floor(1 + (freq - 0.0002) / (0.01 - 0.0002) * 49 + 0.5)
+				freqSlider = math.max(1, math.min(50, freqSlider))
+				syncAndFlash(getCachedEl(doc, "sp-slider-fractal-freq"), "sp-fractal-freq", tostring(freqSlider))
+			end
 
 			-- Smart filter UI sync
 			do

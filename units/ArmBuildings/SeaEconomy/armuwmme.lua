@@ -33,6 +33,7 @@ return {
 			buildinggrounddecaltype = "decals/armuwmme_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 4,
+			standardextractor = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

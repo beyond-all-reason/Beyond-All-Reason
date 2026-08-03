@@ -93,6 +93,7 @@ return {
 				weaponvelocity = 200,
 				customparams = {
 					speceffect = "torpwaterpen",
+					tracking_turn_radius = 700,
 				},
 				damage = {
 					commanders = 30,

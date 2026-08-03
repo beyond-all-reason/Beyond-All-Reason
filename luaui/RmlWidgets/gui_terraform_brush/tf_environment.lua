@@ -728,6 +728,12 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-env-toggle-skyrot",   "img-env-toggle-skyrot",   "env-section-skyrot",   false)
 		envSectionToggle("btn-env-toggle-skydyn",   "img-env-toggle-skydyn",   "env-section-skydyn",   false)
 
+		-- Capture window collapsible sections (extra layers collapsed: rarely used)
+		envSectionToggle("btn-capture-toggle-output", "img-capture-toggle-output", "capture-section-output", true)
+		envSectionToggle("btn-capture-toggle-photo",  "img-capture-toggle-photo",  "capture-section-photo",  true)
+		envSectionToggle("btn-capture-toggle-units",  "img-capture-toggle-units",  "capture-section-units",  true)
+		envSectionToggle("btn-capture-toggle-extra",  "img-capture-toggle-extra",  "capture-section-extra",  false)
+
 		-- Sun & Shadows collapsible sections (default expanded)
 		envSectionToggle("btn-env-toggle-sundir",   "img-env-toggle-sundir",   "env-section-sundir",   true)
 		envSectionToggle("btn-env-toggle-sunint",   "img-env-toggle-sunint",   "env-section-sunint",   true)
@@ -771,6 +777,22 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-env-toggle-fresnel",  "img-env-toggle-fresnel",  "env-section-fresnel",  false)
 		envSectionToggle("btn-env-toggle-perlin",   "img-env-toggle-perlin",   "env-section-perlin",   false)
 		envSectionToggle("btn-env-toggle-blur",     "img-env-toggle-blur",     "env-section-blur",     false)
+
+		-- Tileset Terrain tool (TILESET) category sections
+		envSectionToggle("btn-toggle-ts-library", "img-toggle-ts-library", "section-ts-library", true)
+		envSectionToggle("btn-toggle-ts-metal",   "img-toggle-ts-metal",   "section-ts-metal",   false)
+		envSectionToggle("btn-toggle-ts-scale",   "img-toggle-ts-scale",   "section-ts-scale",   true)
+		envSectionToggle("btn-toggle-ts-normals", "img-toggle-ts-normals", "section-ts-normals", false)
+		envSectionToggle("btn-toggle-ts-cliffs",  "img-toggle-ts-cliffs",  "section-ts-cliffs",  false)
+		envSectionToggle("btn-toggle-ts-place",   "img-toggle-ts-place",   "section-ts-place",   false)
+		envSectionToggle("btn-toggle-ts-blend",   "img-toggle-ts-blend",   "section-ts-blend",   false)
+		envSectionToggle("btn-toggle-ts-curv",    "img-toggle-ts-curv",    "section-ts-curv",    false)
+		envSectionToggle("btn-toggle-ts-light",   "img-toggle-ts-light",   "section-ts-light",   false)
+		envSectionToggle("btn-toggle-ts-oldmap",  "img-toggle-ts-oldmap",  "section-ts-oldmap",  false)
+		envSectionToggle("btn-toggle-ts-biome",   "img-toggle-ts-biome",   "section-ts-biome",   false)
+		envSectionToggle("btn-toggle-ts-tints",   "img-toggle-ts-tints",   "section-ts-tints",   false)
+		envSectionToggle("btn-toggle-ts-debug",   "img-toggle-ts-debug",   "section-ts-debug",   false)
+		envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
 
 		-- Wire ± buttons for env color RGB sliders
 		do

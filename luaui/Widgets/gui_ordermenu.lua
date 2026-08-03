@@ -637,6 +637,7 @@ function widget:Initialize()
 	})
 	installFirestateNotifyHooks()
 	reloadBindings()
+	activeCommand = select(4, spGetActiveCommand())
 	widget:ViewResize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
@@ -782,11 +783,6 @@ function widget:Update(dt)
 	if clickCountDown == 0 then
 		doUpdate = true
 	end
-	previousActiveCommand = activeCommand
-	activeCommand = select(4, spGetActiveCommand())
-	if activeCommand ~= previousActiveCommand then
-		doUpdate = true
-	end
 
 	-- Poll for priority target changes on selected units to show/hide 'canceltarget'
 	cancelTargetPollSec = cancelTargetPollSec + dt
@@ -821,6 +817,14 @@ function widget:Update(dt)
 		ordermenuShows = true
 	end
 	tracy.ZoneEnd()
+end
+
+function widget:ActiveCommandChanged(cmdID)
+	previousActiveCommand = activeCommand
+	activeCommand = cmdID and select(4, spGetActiveCommand()) or nil
+	if activeCommand ~= previousActiveCommand then
+		doUpdate = true
+	end
 end
 
 local function RectQuad(px, py, sx, sy, offset)

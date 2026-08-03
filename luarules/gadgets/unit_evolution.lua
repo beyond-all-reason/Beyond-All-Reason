@@ -168,7 +168,7 @@ if gadgetHandler:IsSyncedCode() then
 		local experience = spGetUnitExperience(unitID)
 		local team = spGetUnitTeam(unitID)
 		local states = spGetUnitStates(unitID)
-		local dx, dy, dz = spGetUnitDirection(unitID)
+		local dx, dy, dz, rx, ry, rz = spGetUnitDirection(unitID)
 		local heading = Spring.GetUnitHeading(unitID)
 		local face = Spring.GetFacingFromHeading(heading)
 		local stockpile, stockpilequeued, stockpilebuildpercent = spGetUnitStockpile(unitID)
@@ -220,7 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 		spDestroyUnit(unitID, false, true)
 		spSetUnitExperience(newUnitID, experience)
 		spSetUnitStockpile(newUnitID, stockpile, stockpilebuildpercent)
-		spSetUnitDirection(newUnitID, dx, dy, dz)
+		spSetUnitDirection(newUnitID, dx, dy, dz, rx, ry, rz)
 
 		spGiveOrderToUnit(newUnitID, CMD.FIRE_STATE, states.firestate, 						 {})
 		spGiveOrderToUnit(newUnitID, CMD.MOVE_STATE, states.movestate, 						 {})
