@@ -315,8 +315,8 @@ function widget:Update(dt)
 
 	for i = 1, #mouseSelection do
 		uid = mouseSelection[i]
+		-- filter gaia units + ignored units (objects)
 		if not spGetUnitNoSelect(uid) and -- filter unselectable units
-			 -- filter gaia units + ignored units (objects)
 			(isGodMode or ((not spec or spGetUnitTeam(uid) ~= GaiaTeamID) and not ignoreUnits[spGetUnitDefID(uid)])) then
 			n = n + 1
 			included[n] = uid

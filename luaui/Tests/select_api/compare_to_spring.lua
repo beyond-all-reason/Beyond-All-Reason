@@ -69,12 +69,12 @@ local function compareUnitSets(springUnitSet, apiUnitSet, filter)
 
 			-- these have weird behaviour for the "Not_Builder" filter
 			-- they behave as expected for the "Builder" filter
+			-- api command selects these, but spring select doesn't
+			-- I think they spawn? don't seem to exist during build script
 			local isWeirdOutlier = (filter == "Not_Builder" and (
 					name == "cormlv" or
 					name == "armmlv"
 				))
-				-- api command selects these, but spring select doesn't
-				-- I think they spawn? don't seem to exist during build script
 				or name == "armdrone" or name == "corvacct"
 				or name == "armtl"
 
