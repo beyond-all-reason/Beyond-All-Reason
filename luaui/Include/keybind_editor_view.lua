@@ -58,7 +58,7 @@ local colorDim = "\255\160\160\160"
 local colorHeader = "\255\255\200\130"
 
 local searchBox, presetDropdown, resetDropdown, menuToggle
-local switchPreset, scrollFromY, resetToPreset
+local switchToPreset, scrollFromY, resetToPreset
 
 -- "Grid (60% Keyboard)" -> "Grid 60%" so the long names fit the picker.
 local function shortPresetLabel(name)
@@ -271,7 +271,7 @@ local function persistEdits()
 	return true
 end
 
-switchPreset = function(opt)
+switchToPreset = function(opt)
 	-- Non-destructive KeybindingFile switch; first pick of Custom seeds uikeys.txt.
 	persistEdits()
 
@@ -318,17 +318,18 @@ resetToPreset = function(opt)
 end
 
 local function ensureControls()
-	if searchBox then
+	-- One of each control type, since they are all created together below.
+	if searchBox and presetDropdown then
 		return
 	end
 
 	searchBox = Editbox.new({ placeholder = Spring.I18N('ui.keybinds.editor.search'), onChange = rebuildRows })
-	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchPreset })
+	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
 	resetDropdown = Dropdown.new({ options = resetOptions, placeholder = Spring.I18N('ui.keybinds.editor.reset'), onSelect = function(opt) pendingReset = opt end })
 end
 
 local function layoutHeader()
-	if not presetDropdown then
+	if not (searchBox and presetDropdown) then
 		return
 	end
 
@@ -382,7 +383,8 @@ local function captureGeometry()
 	local cancel = { bx1 + pad, btnY1, bx1 + pad + bw, btnY1 + bh }
 	local ok = { bx2 - pad - bw, btnY1, bx2 - pad, btnY1 + bh }
 	local boxS = floor(16 * scale)
-	local anyY = btnY1 + bh + floor(14 * scale)
+	local anyGap = floor(14 * scale)
+	local anyY = btnY1 + bh + anyGap
 	local anyBox = { bx1 + pad, anyY, bx1 + pad + boxS, anyY + boxS }
 	return bx1, by1, bx2, by2, ok, cancel, anyBox
 end
