@@ -26,12 +26,14 @@ local SUITE_WIDGETS = {
 	"Decal Capture",
 	"Decal Placer",
 	"Diffuse Painter",
+	"DrawFeatureShape GL4",
 	"Feature Placer",
 	"Grass Brush",
 	"Light Placer",
 	"Metal Brush",
 	"Splat Painter",
 	"Start Positions Tool",
+	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
 	"Terraformer Shared RmlUi Helpers",
@@ -40,6 +42,7 @@ local SUITE_WIDGETS = {
 	"Diffuse Library UI",
 	"Feature Placer UI",
 	"Weather Brush UI",
+	"Map Labels UI",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
@@ -69,6 +72,15 @@ function widget:Initialize()
 	local order = widgetHandler.orderList and widgetHandler.orderList["Terraform Brush"]
 	if order and order > 0 then
 		suiteEnabled = true
+		-- The suite came back enabled from a persisted order list, so enableSuite()
+		-- will never run this session. Widgets added to SUITE_WIDGETS since that
+		-- list was saved are not in it yet — enable the stragglers so newly shipped
+		-- suite widgets appear without a fresh game start.
+		for i = 1, #SUITE_WIDGETS do
+			if (widgetHandler.orderList[SUITE_WIDGETS[i]] or 0) <= 0 then
+				widgetHandler:EnableWidget(SUITE_WIDGETS[i])
+			end
+		end
 	end
 
 	-- handler = true hands us the RAW widgetHandler, which has no AddAction

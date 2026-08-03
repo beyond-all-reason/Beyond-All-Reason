@@ -40,6 +40,7 @@ return {
 			unitgroup = 'metal',
 			cvbuildable = true,
 			metal_extractor = 1,
+			standardextractor = true,
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

@@ -150,7 +150,7 @@ config = {
 	iconGhostSkipThreshold = 6000,  -- Skip ghost building pass above this count
 	iconMobileBlockThreshold = 5000,  -- Cache mobile VBO data above this count (rebuild every 2nd frame)
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
-	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
+	explosionOverlayAlpha = 0.85,  -- Strength of the above-icons explosion overlay (0-1)
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
@@ -192,9 +192,14 @@ config = {
 
 	drawDecals = true,  -- Show ground decals (explosion scars, footprints) from the decals GL4 widget
 	drawCommandFX = Spring.GetConfigInt("PipDrawCommandFX", 1) == 1,  -- Show brief fading command lines when orders are given (like Commands FX widget)
+	drawNanoStreams = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1,  -- Show lightweight animated streams for active builder tasks
+	nanoStreamReflectUsage = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1,  -- Scale stream width/opacity by current build-power usage
+	nanoStreamDrawLimit = 512,  -- Hard cap for the single instanced nano-stream draw
+	nanoStreamMinZoom = 0.18,  -- Hide nanostreams when zoomed out below this level
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
+	commandQueueRefreshBatchSize = 12,  -- Units whose command queues are refreshed per PIP content render
 	queuedBuildDrawLimit = 100,  -- Max queued building icons drawn per PIP refresh
 	queuedBuildDenseDrawLimit = 24, -- Max queued building icons drawn in dense visible-unit views
 	queuedBuildMinZoom = 0.18, -- Hide queued build icons when zoomed out below this
@@ -283,7 +288,7 @@ config = {
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
 	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
-	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
+	engineMinimapDecalStrength = 0.77,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
 
 -- State variables
@@ -512,6 +517,7 @@ local miscState = {
 	hasOpenedPIPThisGame = false,  -- Whether PIP has been opened/maximized at least once this game
 	pipUnits = {},
 	pipFeatures = {},
+	pipViewAllyTeamID = nil,  -- Allyteam whose LOS is represented by the current PIP render
 	allUnitsCache = {},  -- Cached all-units list for tracking/spec mode (avoids per-update GetAllUnits alloc)
 	allUnitsIndex = {},  -- [unitID] = index in allUnitsCache for O(1) swap-remove updates
 	allUnitsDirty = true,
@@ -1853,6 +1859,92 @@ local gl4Prim = {
 	lineUniformLocs = {},
 }
 
+-- One preallocated instance per active builder and one draw call for the layer.
+-- Worker tasks are sampled at sim cadence; UV motion stays smooth between scans.
+gl4Prim.nanoStreams = {
+	INSTANCE_STEP = 8,
+	SCAN_FRAMES = 2,
+	TEXTURE = "bitmaps/projectiletextures/nanopart.tga",
+	enabled = false,
+	vbo = nil,
+	vao = nil,
+	shader = nil,
+	data = nil,
+	count = 0,
+	lastScanFrame = -1000,
+	lastViewAllyTeamID = false,
+	uniformLocs = {},
+}
+
+gl4Prim.nanoStreams.shaderCode = {
+	vertex = [[
+		#version 330
+		layout(location = 0) in vec2 quadPos;
+		layout(location = 1) in vec4 endpoints;
+		layout(location = 2) in vec4 colorUsage;
+
+		uniform vec2 wtp_scale;
+		uniform vec2 wtp_offset;
+		uniform vec2 ndcScale;
+		uniform vec2 rotSC;
+		uniform vec2 rotCenter;
+		uniform float gameTime;
+		uniform float uiScale;
+		uniform float cameraZoom;
+
+		out vec4 f_color;
+		out vec2 f_texCoord;
+
+		void main() {
+			vec2 startPos = wtp_offset + endpoints.xy * wtp_scale;
+			vec2 endPos = wtp_offset + endpoints.zw * wtp_scale;
+			vec2 startDelta = startPos - rotCenter;
+			vec2 endDelta = endPos - rotCenter;
+			startPos = rotCenter + vec2(startDelta.x * rotSC.y - startDelta.y * rotSC.x, startDelta.x * rotSC.x + startDelta.y * rotSC.y);
+			endPos = rotCenter + vec2(endDelta.x * rotSC.y - endDelta.y * rotSC.x, endDelta.x * rotSC.x + endDelta.y * rotSC.y);
+
+			vec2 delta = endPos - startPos;
+			float lineLength = max(length(delta), 1.0);
+			vec2 perpendicular = vec2(-delta.y, delta.x) / lineLength;
+			float along = quadPos.y * 0.5 + 0.5;
+			float packedUsage = colorUsage.a;
+			float flowDirection = 1.0;
+			float usage = packedUsage;
+			if (packedUsage >= 1.5) {
+				usage = packedUsage - 2.0;
+				flowDirection = -1.0;
+			} else if (packedUsage <= -1.5) {
+				usage = -1.0;
+				flowDirection = -1.0;
+			}
+			float strength = usage < 0.0 ? 0.65 : sqrt(clamp(usage, 0.0, 1.0));
+			float widthZoom = clamp(sqrt(max(cameraZoom, 0.01) / 0.25), 0.75, 2.0);
+			float halfWidth = (0.65 + strength * 0.7) * widthZoom * uiScale * 2.0;
+			vec2 pipPos = mix(startPos, endPos, along) + perpendicular * quadPos.x * halfWidth;
+
+			gl_Position = vec4(pipPos * ndcScale - 1.0, 0.0, 1.0);
+			f_color = vec4(colorUsage.rgb, usage < 0.0 ? 0.48 : 0.12 + strength * 0.5);
+			float repeatZoomCompensation = 0.55 / max(cameraZoom, 0.01);
+			float repeats = max(lineLength * repeatZoomCompensation / (14.0 * uiScale), 2.0);
+			f_texCoord = vec2(along * repeats - gameTime * 2.4 * flowDirection, quadPos.x * 0.5 + 0.5);
+		}
+	]],
+	fragment = [[
+		#version 330
+		uniform sampler2D nanoTex;
+
+		in vec4 f_color;
+		in vec2 f_texCoord;
+		out vec4 fragColor;
+
+		void main() {
+			vec4 texel = texture(nanoTex, vec2(fract(f_texCoord.x), f_texCoord.y));
+			fragColor = vec4(f_color.rgb * texel.rgb, f_color.a * texel.a);
+		}
+	]],
+	uniformInt = { nanoTex = 0 },
+}
+
 -- Consolidated cache tables
 local cache = {
 	noModelFeatures = {},
@@ -1894,6 +1986,7 @@ local cache = {
 	unEmpableUnit = {},
 	isAirAttacker = {},   -- Air units with ground/sea attack weapons (bombers, gunships)
 	isExpensiveEco = {},  -- Non-commander buildings with cost >= 1000 (T2 mexes, fusions, etc.)
+	isBuilder = {},       -- Units capable of an active worker task
 	maxIconShatters = 4,
 	weaponIsLaser = {},
 	weaponIsBlaster = {},
@@ -2154,6 +2247,7 @@ local spFunc = {
 	GetFeatureDefID = Spring.GetFeatureDefID,
 	GetFeatureDirection = Spring.GetFeatureDirection,
 	GetFeaturePosition = Spring.GetFeaturePosition,
+	ValidFeatureID = Spring.ValidFeatureID,
 	GetFeatureTeam = Spring.GetFeatureTeam,
 	GetFeaturesInRectangle = Spring.GetFeaturesInRectangle,
 	IsUnitSelected = Spring.IsUnitSelected,
@@ -2170,6 +2264,9 @@ local spFunc = {
 	GetUnitIsStunned = Spring.GetUnitIsStunned,
 	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
 	GetUnitSelfDTime = Spring.GetUnitSelfDTime,
+	GetUnitWorkerTask = Spring.GetUnitWorkerTask,
+	GetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower,
+	ValidUnitID = Spring.ValidUnitID,
 	GetSelectedUnitsCount = Spring.GetSelectedUnitsCount,
 }
 
@@ -4321,11 +4418,61 @@ local function InitGL4Primitives()
 	gl4Prim.lineUniformLocs.mapLineFade = gl.GetUniformLocation(lShader, "mapLineFade")
 	gl4Prim.useGeometryShader = useGS
 
+	local nano = gl4Prim.nanoStreams
+	local nanoShader = gl.CreateShader(nano.shaderCode)
+	if nanoShader then
+		local nanoQuadVbo = gl4Prim.quadVBO
+		if not nanoQuadVbo then
+			nanoQuadVbo = gl.GetVBO(GL.ARRAY_BUFFER, false)
+			if nanoQuadVbo then
+				nanoQuadVbo:Define(4, {{id = 0, name = 'quadPos', size = 2}})
+				nanoQuadVbo:Upload({-1, -1, 1, -1, -1, 1, 1, 1})
+				gl4Prim.quadVBO = nanoQuadVbo
+			end
+		end
+		local nanoVbo = nanoQuadVbo and gl.GetVBO(GL.ARRAY_BUFFER, true)
+		local nanoVao = nanoVbo and gl.GetVAO()
+		if nanoVao then
+			nanoVbo:Define(config.nanoStreamDrawLimit, {
+				{id = 1, name = 'endpoints', size = 4},
+				{id = 2, name = 'colorUsage', size = 4},
+			})
+			nanoVao:AttachVertexBuffer(nanoQuadVbo)
+			nanoVao:AttachInstanceBuffer(nanoVbo)
+			local nanoData = {}
+			for i = 1, config.nanoStreamDrawLimit * nano.INSTANCE_STEP do nanoData[i] = 0 end
+			nano.shader = nanoShader
+			nano.vbo = nanoVbo
+			nano.vao = nanoVao
+			nano.data = nanoData
+			nano.uniformLocs = {
+				wtp_scale = gl.GetUniformLocation(nanoShader, "wtp_scale"),
+				wtp_offset = gl.GetUniformLocation(nanoShader, "wtp_offset"),
+				ndcScale = gl.GetUniformLocation(nanoShader, "ndcScale"),
+				rotSC = gl.GetUniformLocation(nanoShader, "rotSC"),
+				rotCenter = gl.GetUniformLocation(nanoShader, "rotCenter"),
+				gameTime = gl.GetUniformLocation(nanoShader, "gameTime"),
+				uiScale = gl.GetUniformLocation(nanoShader, "uiScale"),
+				cameraZoom = gl.GetUniformLocation(nanoShader, "cameraZoom"),
+			}
+			nano.enabled = true
+		else
+			if nanoVao then nanoVao:Delete() end
+			if nanoVbo then nanoVbo:Delete() end
+			gl.DeleteShader(nanoShader)
+		end
+	end
+
 	gl4Prim.enabled = true
 	--Spring.Echo("[PIP] GL4 primitive rendering enabled (circles, quads, lines)")
 end
 
 local function DestroyGL4Primitives()
+	local nano = gl4Prim.nanoStreams
+	if nano.shader then gl.DeleteShader(nano.shader); nano.shader = nil end
+	if nano.vao then nano.vao:Delete(); nano.vao = nil end
+	if nano.vbo then nano.vbo:Delete(); nano.vbo = nil end
+	nano.enabled = false
 	if gl4Prim.circles.shader then gl.DeleteShader(gl4Prim.circles.shader); gl4Prim.circles.shader = nil end
 	if gl4Prim.quads.shader   then gl.DeleteShader(gl4Prim.quads.shader);   gl4Prim.quads.shader = nil end
 	if gl4Prim.lineShader      then gl.DeleteShader(gl4Prim.lineShader);      gl4Prim.lineShader = nil end
@@ -6928,7 +7075,7 @@ local function DrawExplosionOverlay()
 				local effectiveRadius = explosion.radius
 				if effectiveRadius > 80 then effectiveRadius = effectiveRadius * 0.75 end
 				if explosion.isUnitExplosion then effectiveRadius = effectiveRadius * 1.33 end
-				local baseRadius = effectiveRadius * (0.24 + progress * 1.36)
+				local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
 				local fade = 1 - (age / lifetime)
 
 				-- Saturated colored glow (additive blend adds these to the scene)
@@ -6947,17 +7094,18 @@ local function DrawExplosionOverlay()
 					g = 0.4 + hueShift  -- 0.32-0.48: orange range
 					b = 0.05            -- Very little blue keeps it saturated
 				end
-				GL4AddCircle(explosion.x, explosion.z, baseRadius * 0.85, overlayAlpha,
-					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
+				GL4AddCircle(explosion.x, explosion.z, baseRadius, overlayAlpha,
+					r, g, b,  r * 0.55, g * 0.4, b * 0.2,  overlayAlpha * 0.5, 0)
 
 				-- Big flash overlay: white glow above icons for nukes/commanders/fusions
 				-- Flash runs at 1.7x speed matching Layer 5 timing
 				if explosion.isBigFlash and age / lifetime < 0.75 then
 					local ft = (age / lifetime) / 0.75  -- compress into 75% of explosion lifetime
 					local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
-					local flashR = effectiveRadius * (1.4 + ft * 1.2)
-					GL4AddCircle(explosion.x, explosion.z, flashR * 0.7, fa * config.explosionOverlayAlpha * 0.6,
-						1, 1, 1,  0.95, 0.93, 0.88,  0, 0)
+					local flashR = effectiveRadius * (1.8 + ft * 1.5)
+					local flashAlpha = fa * config.explosionOverlayAlpha * 0.6
+					GL4AddCircle(explosion.x, explosion.z, flashR, flashAlpha,
+						1, 1, 1,  0.95, 0.93, 0.88,  flashAlpha * 0.2, 0)
 				end
 			end
 			end -- LOS view filter else
@@ -8098,6 +8246,9 @@ function widget:Initialize()
 		if uDef.isFactory then
 			cache.isFactory[uDefID] = true
 		end
+		if (uDef.buildSpeed or 0) > 0 or uDef.isBuilder or uDef.isFactory then
+			cache.isBuilder[uDefID] = true
+		end
 		if uDef.iconType and iconTypes[uDef.iconType] and iconTypes[uDef.iconType].bitmap then
 			cache.unitIcon[uDefID] = iconTypes[uDef.iconType]
 		end
@@ -8709,6 +8860,22 @@ end
 	end
 	pipApi.setDrawCommandFX = function(value)
 		config.drawCommandFX = value
+		pipR2T.unitsNeedsUpdate = true
+	end
+	pipApi.getDrawNanoStreams = function()
+		return config.drawNanoStreams
+	end
+	pipApi.setDrawNanoStreams = function(value)
+		config.drawNanoStreams = value
+		gl4Prim.nanoStreams.lastScanFrame = -1000
+		pipR2T.unitsNeedsUpdate = true
+	end
+	pipApi.getNanoStreamReflectUsage = function()
+		return config.nanoStreamReflectUsage
+	end
+	pipApi.setNanoStreamReflectUsage = function(value)
+		config.nanoStreamReflectUsage = value
+		gl4Prim.nanoStreams.lastScanFrame = -1000
 		pipR2T.unitsNeedsUpdate = true
 	end
 	pipApi.getShowMapDrawings = function()
@@ -9344,6 +9511,7 @@ function widget:Shutdown()
 		-- The orphaned resources will be freed when the last PIP shuts down or the game ends
 		gl4Icons.enabled = false
 		gl4Prim.enabled = false
+		gl4Prim.nanoStreams.enabled = false
 	end
 
 	-- R2T textures are per-instance and safe to always delete
@@ -9678,7 +9846,7 @@ function widget:SetConfigData(data)
 	--if data.showTrackedPlayerCursor ~= nil then config.showTrackedPlayerCursor = data.showTrackedPlayerCursor end
 	if data.engineMinimapFallback ~= nil then config.engineMinimapFallback = data.engineMinimapFallback end
 	if data.engineMinimapExplosionOverlay ~= nil then config.engineMinimapExplosionOverlay = data.engineMinimapExplosionOverlay end
-	--if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
+	if data.engineMinimapFallbackThreshold ~= nil then config.engineMinimapFallbackThreshold = data.engineMinimapFallbackThreshold end
 	if data.tvEnabled ~= nil then
 		-- Only restore TV mode if we're a spectator (or tvModeSpectatorsOnly is off)
 		if data.tvEnabled and config.tvModeSpectatorsOnly and not Spring.GetSpectatingState() then
@@ -10051,15 +10219,15 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 	if unitCount > 1 then unitHash = unitHash + unitsToShow[unitCount] end
 	if unitCount > 2 then unitHash = unitHash + unitsToShow[math.floor(unitCount / 2)] end
 
-	-- Rolling refresh: refresh a small rotating batch each frame to avoid
-	-- GC spikes from GetUnitCommands.  With 50 units and batch=3, the full
-	-- list cycles in ~17 frames (~280ms at 60fps) — fast enough for waypoint display.
+	-- Rolling refresh: refresh a rotating batch each frame to avoid GC spikes
+	-- from GetUnitCommands. With 50 units and batch=12, the full list cycles
+	-- in ~5 frames while still avoiding a full queue scan every render.
 	local hashChanged = (unitHash ~= cmdQueueCache.lastUnitHash)
 	cmdQueueCache.lastUnitHash = unitHash
 
 	local refreshLimit = math.min(unitCount, 300)
-	-- Batch sizing: 3 per frame (tiny GC footprint), full refresh on selection change
-	local batchSize = hashChanged and refreshLimit or math.min(3, refreshLimit)
+	-- Full refresh on selection change; otherwise use the bounded rolling batch.
+	local batchSize = hashChanged and refreshLimit or math.min(config.commandQueueRefreshBatchSize, refreshLimit)
 	local counter = cmdQueueCache.counter
 	local batchStart = hashChanged and 1 or ((counter * batchSize) % refreshLimit) + 1
 	local batchEnd = math.min(batchStart + batchSize - 1, refreshLimit)
@@ -12338,6 +12506,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 			checkAllyTeamID = myAllyTeam
 		end
 	end
+	miscState.pipViewAllyTeamID = checkAllyTeamID
 
 	-- Pre-fetch player selections once (avoids per-unit WG lookup)
 	local playerSelections = nil
@@ -14843,6 +15012,145 @@ local function RenderCheapLayers()
 	end
 end
 
+function gl4Prim.IsNanoStreamUnitVisible(unitID, viewAllyTeamID)
+	if not viewAllyTeamID then return true end
+	local teamID = gl4Icons.unitTeamCache[unitID]
+	if not teamID then
+		teamID = spFunc.GetUnitTeam(unitID)
+		gl4Icons.unitTeamCache[unitID] = teamID
+	end
+	if not teamID then return false end
+	local allyTeamID = teamAllyTeamCache[teamID]
+	if allyTeamID == nil then
+		allyTeamID = spFunc.GetTeamAllyTeamID(teamID)
+		teamAllyTeamCache[teamID] = allyTeamID
+	end
+	if allyTeamID == viewAllyTeamID then return true end
+	local losBits = spFunc.GetUnitLosState(unitID, viewAllyTeamID, true)
+	return losBits and losBits % 2 == 1 or false
+end
+
+function gl4Prim.UpdateNanoStreams()
+	local nano = gl4Prim.nanoStreams
+	local frame = Spring.GetGameFrame()
+	local viewAllyTeamID = miscState.pipViewAllyTeamID
+	if frame < nano.lastScanFrame + nano.SCAN_FRAMES and viewAllyTeamID == nano.lastViewAllyTeamID then return end
+
+	nano.lastScanFrame = frame
+	nano.lastViewAllyTeamID = viewAllyTeamID
+	local count = 0
+	local data = nano.data
+	local units = miscState.pipUnits
+	local maxUnits = Game.maxUnits or 32000
+	tracy.ZoneBeginN("W:PIP:NanoStreams:Scan")
+	for i = 1, #units do
+		if count >= config.nanoStreamDrawLimit then break end
+		local builderID = units[i]
+		local unitDefID = gl4Icons.unitDefCache[builderID]
+		if not unitDefID then
+			unitDefID = spFunc.GetUnitDefID(builderID)
+			gl4Icons.unitDefCache[builderID] = unitDefID
+		end
+		if unitDefID and cache.isBuilder[unitDefID] and gl4Prim.IsNanoStreamUnitVisible(builderID, viewAllyTeamID) then
+			local cmdID, targetID = spFunc.GetUnitWorkerTask(builderID)
+			if targetID then
+				local targetIsFeature = false
+				local resolvedTargetID = targetID
+				if targetID >= maxUnits then
+					resolvedTargetID = targetID - maxUnits
+					targetIsFeature = spFunc.ValidFeatureID(resolvedTargetID)
+				elseif not spFunc.ValidUnitID(targetID) then
+					targetIsFeature = spFunc.ValidFeatureID(targetID)
+				end
+
+				local targetVisible = targetIsFeature or spFunc.ValidUnitID(resolvedTargetID)
+				if targetVisible and not targetIsFeature then
+					targetVisible = gl4Prim.IsNanoStreamUnitVisible(resolvedTargetID, viewAllyTeamID)
+				end
+				local targetX, targetY, targetZ
+				if targetVisible then
+					if targetIsFeature then
+						targetX, targetY, targetZ = spFunc.GetFeaturePosition(resolvedTargetID)
+						targetVisible = targetX and (not viewAllyTeamID or spFunc.IsPosInLos(targetX, targetY, targetZ, viewAllyTeamID))
+					else
+						targetX, targetY, targetZ = spFunc.GetUnitBasePosition(resolvedTargetID)
+					end
+				end
+
+				if targetVisible and targetX then
+					local originX, _, originZ = spFunc.GetUnitBasePosition(builderID)
+					local deltaX, deltaZ = targetX - (originX or targetX), targetZ - (originZ or targetZ)
+					if originX and deltaX * deltaX + deltaZ * deltaZ > 4 then
+						local teamID = gl4Icons.unitTeamCache[builderID]
+						local color = teamColors[teamID]
+						local usage = -1
+						if config.nanoStreamReflectUsage then
+							usage = math.max(0, math.min(1, spFunc.GetUnitCurrentBuildPower(builderID) or 0))
+						end
+						if cmdID == CMD.RECLAIM then
+							usage = usage < 0 and -2 or 2 + usage
+						end
+						local off = count * nano.INSTANCE_STEP
+						data[off + 1] = originX
+						data[off + 2] = originZ
+						data[off + 3] = targetX
+						data[off + 4] = targetZ
+						data[off + 5] = 0.3 + (color and color[1] or 1) * 0.7
+						data[off + 6] = 0.3 + (color and color[2] or 1) * 0.7
+						data[off + 7] = 0.3 + (color and color[3] or 1) * 0.7
+						data[off + 8] = usage
+						count = count + 1
+					end
+				end
+			end
+		end
+	end
+	tracy.ZoneEnd()
+	nano.count = count
+	if count > 0 then
+		tracy.ZoneBeginN("W:PIP:NanoStreams:Upload")
+		nano.vbo:Upload(data, nil, 0, 1, count * nano.INSTANCE_STEP)
+		tracy.ZoneEnd()
+	end
+end
+
+function gl4Prim.DrawNanoStreams()
+	local nano = gl4Prim.nanoStreams
+	if not config.drawNanoStreams or not nano.enabled or cameraState.zoom < config.nanoStreamMinZoom then return end
+	tracy.ZoneBeginN("W:PIP:NanoStreams")
+	gl4Prim.UpdateNanoStreams()
+	if nano.count == 0 then
+		tracy.ZoneEnd()
+		return
+	end
+
+	tracy.ZoneBeginN("W:PIP:NanoStreams:Draw")
+	local locs = nano.uniformLocs
+	local fboW = render.dim.r - render.dim.l
+	local fboH = render.dim.t - render.dim.b
+	local rotation = render.minimapRotation or 0
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glFunc.Texture(0, nano.TEXTURE)
+	gl.UseShader(nano.shader)
+	gl.UniformFloat(locs.wtp_scale, wtp.scaleX, wtp.scaleZ)
+	gl.UniformFloat(locs.wtp_offset, wtp.offsetX, wtp.offsetZ)
+	gl.UniformFloat(locs.ndcScale, 2 / fboW, 2 / fboH)
+	gl.UniformFloat(locs.rotSC, math.sin(rotation), math.cos(rotation))
+	gl.UniformFloat(locs.rotCenter, fboW * 0.5, fboH * 0.5)
+	gl.UniformFloat(locs.gameTime, gameTime)
+	gl.UniformFloat(locs.uiScale, render.contentScale or 1)
+	gl.UniformFloat(locs.cameraZoom, cameraState.zoom)
+	nano.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, nano.count)
+	gl.UseShader(0)
+	glFunc.Texture(0, false)
+	gl.DepthMask(true)
+	gl.DepthTest(true)
+	tracy.ZoneEnd()
+	tracy.ZoneEnd()
+end
+
 -- Render the expensive layers (units, features, projectiles, commands, markers, camera bounds)
 -- Called inside R2T context for the oversized unitsTex
 local function RenderExpensiveLayers()
@@ -14862,6 +15170,7 @@ local function RenderExpensiveLayers()
 	-- Measure draw time for performance monitoring
 	local drawStartTime = os.clock()
 	DrawUnitsAndFeatures(cachedSelectedUnits)
+	gl4Prim.DrawNanoStreams()
 	pipR2T.contentLastDrawTime = os.clock() - drawStartTime
 
 	DrawCommandQueuesOverlay(cachedSelectedUnits)
@@ -17927,10 +18236,9 @@ function widget:DrawScreen()
 				WG['minimap'].getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
 				WG['minimap'].getZoomLevel = minimapApi.getZoomLevel
 
-				-- Compute rotation-aware ortho bounds for fixed-function GL widgets.
+				-- Compute the visible rectangle in full-minimap pixel coordinates.
 				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
-				-- so we do NOT apply GL rotation. Instead we compute ortho bounds that match
-				-- each rotation's pixel coordinate mapping.
+				-- so we do not apply another GL rotation here.
 				--
 				-- Widget pixel coordinate conventions per rotation:
 				--   DEG_0:   pixelX = worldX/mapX * sx,            pixelY = sz - worldZ/mapZ * sz
@@ -17938,9 +18246,6 @@ function widget:DrawScreen()
 				--   DEG_180: pixelX = sx - worldX/mapX * sx,       pixelY = worldZ/mapZ * sz
 				--   DEG_270: pixelX = sx - worldZ/mapZ * sx,       pixelY = sz - worldX/mapX * sz
 				--
-				-- We compute the ortho bounds [left, right, bottom, top] so that the pixel
-				-- range corresponding to the visible world area maps to the full viewport.
-
 				local rotCategory = 0
 				if render.minimapRotation then
 					rotCategory = math.floor((render.minimapRotation / math.pi * 2 + 0.5) % 4)
@@ -17969,6 +18274,16 @@ function widget:DrawScreen()
 					visPixelBottom = (1 - worldB / mapInfo.mapSizeZ) * minimapHeight
 				end
 
+				-- Remap the full minimap viewport so its visible pixel rectangle fills the PIP.
+				-- This transform happens after vertex shading, so it also covers GL4 widgets
+				-- that write minimap NDC directly and therefore ignore the fixed-function matrix.
+				local visiblePixelWidth = visPixelRight - visPixelLeft
+				local visiblePixelHeight = visPixelTop - visPixelBottom
+				local overlayViewportWidth = minimapWidth * minimapWidth / visiblePixelWidth
+				local overlayViewportHeight = minimapHeight * minimapHeight / visiblePixelHeight
+				local overlayViewportX = render.dim.l - visPixelLeft * minimapWidth / visiblePixelWidth
+				local overlayViewportY = render.dim.b - visPixelBottom * minimapHeight / visiblePixelHeight
+
 				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
 					if w ~= widget then  -- Don't recursively call ourselves
 						-- Save current matrices
@@ -17976,16 +18291,18 @@ function widget:DrawScreen()
 						glFunc.PushMatrix()
 						gl.LoadIdentity()
 
-						-- Ortho maps the visible pixel range to NDC [-1,1], which maps to viewport.
-						-- bottom > top flips Y so widget Y-down coords map correctly to screen.
-						gl.Ortho(visPixelLeft, visPixelRight, visPixelBottom, visPixelTop, -1, 1)
+						-- Keep fixed-function widgets in the engine's full-minimap pixel space.
+						gl.Ortho(0, minimapWidth, 0, minimapHeight, -1, 1)
 
 						gl.MatrixMode(GL.MODELVIEW)
 						glFunc.PushMatrix()
 						gl.LoadIdentity()
 
-						-- Set viewport to PIP area so NDC [-1,1] maps to our PIP screen coords
-						gl.Viewport(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
+						-- Offset and scale the full minimap so the visible area fills the PIP.
+						gl.Viewport(
+							overlayViewportX, overlayViewportY,
+							overlayViewportWidth, overlayViewportHeight
+						)
 
 						-- Direct call instead of pcall closure to avoid per-widget per-frame allocations
 						-- Isolate external widget failures so matrix/scissor cleanup still runs.
@@ -19890,6 +20207,27 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	elseif cmdID == CMD.STOP then
 		-- Stop cancels self-destruct
 		selfDUnits[unitID] = nil
+
+		-- The command-queue overlay refreshes units in batches, so discard this
+		-- unit's stale waypoints instead of waiting for its next cache refresh.
+		cmdQueueCache.waypoints[unitID] = nil
+
+		-- Stop also invalidates this unit's pending command-path effects.
+		commandFX.lastTarget[unitID] = nil
+		local writeIdx = 0
+		for i = 1, commandFX.count do
+			local fx = commandFX.list[i]
+			if fx.unitID ~= unitID then
+				writeIdx = writeIdx + 1
+				if writeIdx ~= i then
+					commandFX.list[writeIdx] = fx
+				end
+			end
+		end
+		for i = writeIdx + 1, commandFX.count do
+			commandFX.list[i] = nil
+		end
+		commandFX.count = writeIdx
 	end
 
 	if not config.drawCommandFX then return end
@@ -19987,6 +20325,7 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	if commandFX.count < commandFX.MAX then
 		commandFX.count = commandFX.count + 1
 		commandFX.list[commandFX.count] = {
+			unitID = unitID,
 			unitX = startX, unitZ = startZ,
 			targetX = targetX, targetZ = targetZ,
 			cmdID = cmdID,

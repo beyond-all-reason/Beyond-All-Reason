@@ -59,9 +59,7 @@ else
 	end
 
 	function handleEvent(_, playerID, um)
-		if Script.LuaUI("LuaMemEvent") then
-			Script.LuaUI.LuaMemEvent(playerID, um)
-		end
+		Script.LuaUI.LuaMemEvent(playerID, um)
 	end
 
 	function gadget:Update()

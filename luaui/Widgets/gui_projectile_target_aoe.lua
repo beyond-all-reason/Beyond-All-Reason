@@ -79,7 +79,8 @@ local Config = {
 	circleDivs = 32,              -- Circle segments
 	baseLineWidth = 1.3,          -- Base line width
 	updateInterval = 0.25,        -- Seconds between projectile updates (0 = every frame)
-	impactFadeDuration = 0.6,     -- Seconds to fade out after impact
+	impactFadeDuration = 0.66,    -- Seconds to fade out after impact
+	impactFadeEndEarly = 1.2,      -- Seconds to start fading out before impact
 
 	-- Colors (RGBA)
 	allyColor = { 1.0, 0.3, 0.2, 1.0 },           -- Red for allied (your missiles)
@@ -96,6 +97,12 @@ local Config = {
 	rotationSpeedMin = 30,        -- Degrees per second at end
 	pulseMinOpacity = 0.2,
 	pulseMaxOpacity = 0.4,
+	targetMarkerTickStartRadius = 0.95,
+	targetMarkerTickEndRadius = 0.34,
+	targetMarkerTickLength = 0.15,
+	targetMarkerTickCloseExponent = 0.7,
+	targetMarkerTickEarlyProgress = 0.4,
+	targetMarkerTickEarlyDuration = 0.35,
 
 	-- Camera distance fade for smaller (non-nuke) starburst indicators
 	smallAoeFadeStartDist = 3200, -- Distance at which indicators start fading
@@ -127,6 +134,8 @@ local fadingImpactCount = 0       -- Number of active fading impacts
 local starburstWeapons = {}       -- Cache of starburst weapon info
 local circleList = nil            -- Display list for circle
 local targetMarkerList = nil      -- Display list for target marker
+local targetMarkerTickInnerRadius = 0
+local targetMarkerTickOuterRadius = 0
 local screenLineWidthScale = 1.0
 local myAllyTeamID = 0
 local myTeamID = 0
@@ -182,11 +191,9 @@ local function CreateDisplayLists()
 		end)
 	end)
 
-	-- Target marker (crosshair style with inner circle and ticks)
+	-- Target marker inner circle; the four ticks are animated separately.
 	targetMarkerList = glCreateList(function()
 		local innerRadius = 0.3
-		local outerRadius = 0.5
-		local tickLength = 0.15
 
 		-- Inner circle
 		glBeginEnd(GL_LINE_LOOP, function()
@@ -195,16 +202,6 @@ local function CreateDisplayLists()
 				glVertex(cos(theta) * innerRadius, 0, sin(theta) * innerRadius)
 			end
 		end)
-
-		-- Cross ticks pointing outward
-		for i = 0, 3 do
-			local angle = i * (pi / 2)
-			local cosA, sinA = cos(angle), sin(angle)
-			glBeginEnd(GL_LINES, function()
-				glVertex(cosA * outerRadius, 0, sinA * outerRadius)
-				glVertex(cosA * (outerRadius + tickLength), 0, sinA * (outerRadius + tickLength))
-			end)
-		end
 	end)
 
 
@@ -436,12 +433,27 @@ local function drawMinimapNukeTrefoils()
 	end
 end
 
-local function DrawTargetMarker(x, y, z, radius, rotation)
+local function DrawTargetMarkerTicks()
+	for i = 0, 3 do
+		local angle = i * (pi / 2)
+		local cosA, sinA = cos(angle), sin(angle)
+		glVertex(cosA * targetMarkerTickInnerRadius, 0, sinA * targetMarkerTickInnerRadius)
+		glVertex(cosA * targetMarkerTickOuterRadius, 0, sinA * targetMarkerTickOuterRadius)
+	end
+end
+
+local function DrawTargetMarker(x, y, z, radius, rotation, tickProgress)
+	local tickRadius = Config.targetMarkerTickStartRadius
+		+ (Config.targetMarkerTickEndRadius - Config.targetMarkerTickStartRadius) * tickProgress
+	targetMarkerTickInnerRadius = tickRadius
+	targetMarkerTickOuterRadius = tickRadius + Config.targetMarkerTickLength
+
 	glPushMatrix()
 	glTranslate(x, y, z)
 	glRotate(rotation, 0, 1, 0)
 	glScale(radius, radius, radius)
 	glCallList(targetMarkerList)
+	glBeginEnd(GL_LINES, DrawTargetMarkerTicks)
 	glPopMatrix()
 end
 
@@ -450,9 +462,16 @@ local function SetColor(color, alpha)
 end
 
 local function AddFadingImpact(data, currentTime, impactProgress)
+	if Config.impactFadeEndEarly > 0 then
+		return
+	end
+
 	local clampedProgress = impactProgress
 	if clampedProgress > 1 then clampedProgress = 1 elseif clampedProgress < 0 then clampedProgress = 0 end
 	local impactRingScale = 1 - clampedProgress * 0.5
+	local elapsed = currentTime - data.startTime
+	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * clampedProgress * 0.5
+	local rotation = -((elapsed * avgSpeed) % 360) * 0.5
 
 	fadingImpactCount = fadingImpactCount + 1
 	fadingImpacts[fadingImpactCount] = {
@@ -465,6 +484,7 @@ local function AddFadingImpact(data, currentTime, impactProgress)
 		initialFlightTime = data.initialFlightTime,
 		fadeStartTime = currentTime,
 		impactRingScale = impactRingScale,
+		rotation = rotation,
 	}
 end
 
@@ -694,6 +714,7 @@ local function UpdateTrackedProjectiles()
 
 						trackedProjectiles[proID] = {
 							generation = gen,
+							projectileID = proID,
 							weaponInfo = weaponInfo,
 							impactX = impactX,
 							impactY = impactY,
@@ -709,6 +730,7 @@ local function UpdateTrackedProjectiles()
 							projectileY = py,
 							projectileZ = pz,
 							startTime = currentTime,
+							initialDistance = distance,
 							initialFlightTime = estimatedFlightTime,
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
@@ -785,6 +807,35 @@ local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 	end
 	opacity = opacity * camFade
 
+	local projectileX, projectileY, projectileZ = spGetProjectilePosition(data.projectileID)
+	if not projectileX then
+		if Config.impactFadeEndEarly > 0 then
+			return
+		end
+		projectileX, projectileY, projectileZ = data.projectileX, data.projectileY, data.projectileZ
+	end
+	local remainingDX = tx - projectileX
+	local remainingDY = ty - projectileY
+	local remainingDZ = tz - projectileZ
+	local remainingDistance = sqrt(remainingDX * remainingDX + remainingDY * remainingDY + remainingDZ * remainingDZ)
+	if Config.impactFadeEndEarly > 0 and remainingDistance <= 8 then
+		return
+	end
+
+	local flightFade = 1
+	if Config.impactFadeEndEarly > 0 and remainingDistance > 0 then
+		local closingSpeed = data.speed
+		local velocityX, velocityY, velocityZ = spGetProjectileVelocity(data.projectileID)
+		if velocityX then
+			local liveClosingSpeed = (remainingDX * velocityX + remainingDY * velocityY + remainingDZ * velocityZ) * gameSpeed / remainingDistance
+			if liveClosingSpeed > 0 then closingSpeed = liveClosingSpeed end
+		end
+		if closingSpeed > 0 then
+			flightFade = min(1, remainingDistance / (closingSpeed * Config.impactFadeEndEarly))
+		end
+	end
+	opacity = opacity * flightFade
+
 	local avgSpeed = Config.rotationSpeedMax - (Config.rotationSpeedMax - Config.rotationSpeedMin) * progress * 0.5
 	local rotation = (elapsed * avgSpeed) % 360
 
@@ -803,9 +854,15 @@ local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 
 	-- Center target marker (rotating)
 	local markerSize = aoe * 0.4
-	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade
+	local markerOpacity = (0.6 + 0.3 * blinkPhase) * camFade * flightFade
+	local distanceProgress = 1 - remainingDistance / max(data.initialDistance, 1)
+	if distanceProgress > 1 then distanceProgress = 1 elseif distanceProgress < 0 then distanceProgress = 0 end
+	distanceProgress = distanceProgress ^ Config.targetMarkerTickCloseExponent
+	local earlyProgress = min(1, progress / Config.targetMarkerTickEarlyDuration)
+	local tickProgress = sqrt(earlyProgress) * Config.targetMarkerTickEarlyProgress
+	if distanceProgress > tickProgress then tickProgress = distanceProgress end
 	SetColor(color, markerOpacity)
-	DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5)
+	DrawTargetMarker(tx, ty + 3, tz, markerSize, -rotation * 0.5, tickProgress)
 end
 
 local function DrawFadingImpactIndicator(data, currentTime, camX, camY, camZ)
@@ -852,7 +909,8 @@ local function DrawFadingImpactIndicator(data, currentTime, camX, camY, camZ)
 
 	local markerSize = aoe * 0.4
 	SetColor(color, fadeMul * 0.5)
-	DrawTargetMarker(tx, ty + 3, tz, markerSize, 0)
+	local rotation = data.rotation - (currentTime - data.fadeStartTime) * Config.rotationSpeedMin * 0.5
+	DrawTargetMarker(tx, ty + 3, tz, markerSize, rotation, 1)
 
 	return true
 end

@@ -109,6 +109,15 @@ local Config = {
 		aoeLineWidthMult = 64,
 		aoeDiskBandCount = 12,
 		circleDivs = 96,
+		aoeTerrainOffset = 1,
+		aoeTerrainFlatness = 0.5,
+		aoeTerrainCircleCacheSize = 128,
+		aoeTerrainCircleCacheLifetime = 3,
+		aoeTerrainCircleCachePrecision = 2,
+		aoeTerrainQuality = {
+			{ maxTargets = 3, circleDivs = 48, intersectionSteps = 4 },
+			{ maxTargets = 6, circleDivs = 32, intersectionSteps = 3 },
+		},
 		maxFilledCircleAlpha = 0.35,
 		minFilledCircleAlpha = 0.15,
 		ringDamageLevels = { 0.8, 0.6, 0.4, 0.2 },
@@ -215,6 +224,13 @@ local State = {
 	aimData = defaultAimData,
 	isOverMinimap = false,
 	starburstPredictions = {},
+	aoeTerrainCircleLists = {},
+	aoeTerrainCircleListsByRadius = {},
+	aoeTerrainCircleListIndex = 1,
+	useTerrainAoeFootprint = true,
+	aoeTerrainCircleDivs = 48,
+	aoeTerrainIntersectionSteps = 4,
+	aoeTerrainQualityID = 1,
 }
 
 for udid, ud in pairs(UnitDefs) do
@@ -643,14 +659,148 @@ local function DrawScatterShape(data, ux, uz, ty, aimAngle, spreadAngle, rMin, r
 	glLineWidth(1)
 end
 
+local function SetAoeTerrainQuality(targetCount)
+	local qualities = Config.Render.aoeTerrainQuality
+	for i = 1, #qualities do
+		local quality = qualities[i]
+		if targetCount <= quality.maxTargets then
+			State.useTerrainAoeFootprint = true
+			State.aoeTerrainCircleDivs = quality.circleDivs
+			State.aoeTerrainIntersectionSteps = quality.intersectionSteps
+			State.aoeTerrainQualityID = i
+			return
+		end
+	end
+	State.useTerrainAoeFootprint = false
+end
+
+local function CreateAoeTerrainCircleList(x, y, z, radius)
+	local circles = Cache.Calculated.unitCircles
+	local divs = State.aoeTerrainCircleDivs
+	local circleStep = Config.Render.circleDivs / divs
+	local radiusSquared = radius * radius
+	local centerGroundY = spGetGroundHeight(x, z)
+	local hasGroundFootprint = centerGroundY and (centerGroundY - y) * (centerGroundY - y) <= radiusSquared
+	local isFlat = hasGroundFootprint and abs(centerGroundY - y) <= Config.Render.aoeTerrainFlatness
+	if isFlat then
+		for i = 0, divs - 1, divs / 8 do
+			local circle = circles[i * circleStep]
+			local groundY = spGetGroundHeight(x + circle[1] * radius, z + circle[2] * radius)
+			if abs(groundY - centerGroundY) > Config.Render.aoeTerrainFlatness then
+				isFlat = false
+				break
+			end
+		end
+	end
+
+	return glCreateList(function()
+		glBeginEnd(GL_LINE_LOOP, function()
+			for i = 0, divs - 1 do
+				local circle = circles[i * circleStep]
+				if isFlat then
+					glVertex(x + circle[1] * radius, y + Config.Render.aoeTerrainOffset, z + circle[2] * radius)
+				elseif hasGroundFootprint then
+					local lowDistance = 0
+					local lowValue = (centerGroundY - y) * (centerGroundY - y) - radiusSquared
+					local highDistance = radius
+					local highX = x + circle[1] * highDistance
+					local highZ = z + circle[2] * highDistance
+					local highY = spGetGroundHeight(highX, highZ)
+					local highValue = (highY - y) * (highY - y)
+					for _ = 1, State.aoeTerrainIntersectionSteps do
+						local distance = (lowDistance + highDistance) * 0.5
+						local px = x + circle[1] * distance
+						local pz = z + circle[2] * distance
+						local groundY = spGetGroundHeight(px, pz)
+						local heightDifference = groundY - y
+						local value = distance * distance + heightDifference * heightDifference - radiusSquared
+						if value <= 0 then
+							lowDistance = distance
+							lowValue = value
+						else
+							highDistance = distance
+							highValue = value
+						end
+					end
+
+					local valueRange = highValue - lowValue
+					local distance = valueRange > 0 and lowDistance + (highDistance - lowDistance) * (-lowValue / valueRange) or lowDistance
+					local px = x + circle[1] * distance
+					local pz = z + circle[2] * distance
+					glVertex(px, spGetGroundHeight(px, pz) + Config.Render.aoeTerrainOffset, pz)
+				else
+					glVertex(x, y + Config.Render.aoeTerrainOffset, z)
+				end
+			end
+		end)
+	end)
+end
+
 local function DrawCircle(x, y, z, radius)
-	glPushMatrix()
-	glTranslate(x, y, z)
-	glScale(radius, radius, radius)
+	if not State.useTerrainAoeFootprint then
+		glPushMatrix()
+		glTranslate(x, y + Config.Render.aoeTerrainOffset, z)
+		glScale(radius, radius, radius)
+		glCallList(State.circleList)
+		glPopMatrix()
+		return
+	end
 
-	glCallList(State.circleList)
+	local currentTime = osClock()
+	local cache = State.aoeTerrainCircleLists
+	local cacheByRadius = State.aoeTerrainCircleListsByRadius
+	local precision = Config.Render.aoeTerrainCircleCachePrecision
+	local entry = cacheByRadius[radius]
+	if entry
+		and entry.qualityID == State.aoeTerrainQualityID
+		and abs(entry.x - x) <= precision
+		and abs(entry.y - y) <= precision
+		and abs(entry.z - z) <= precision
+		and currentTime - entry.updatedTime <= Config.Render.aoeTerrainCircleCacheLifetime then
+		glCallList(entry.list)
+		return
+	end
 
-	glPopMatrix()
+	for i = 1, #cache do
+		entry = cache[i]
+		if entry
+			and entry.qualityID == State.aoeTerrainQualityID
+			and abs(entry.x - x) <= precision
+			and abs(entry.y - y) <= precision
+			and abs(entry.z - z) <= precision
+			and entry.radius == radius
+			and currentTime - entry.updatedTime <= Config.Render.aoeTerrainCircleCacheLifetime then
+			cacheByRadius[radius] = entry
+			glCallList(entry.list)
+			return
+		end
+	end
+
+	local list = CreateAoeTerrainCircleList(x, y, z, radius)
+	local index = State.aoeTerrainCircleListIndex
+	local previousEntry = cache[index]
+	if previousEntry and previousEntry.list and previousEntry.list ~= 0 then
+		glDeleteList(previousEntry.list)
+		if cacheByRadius[previousEntry.radius] == previousEntry then
+			cacheByRadius[previousEntry.radius] = nil
+		end
+	end
+	entry = { x = x, y = y, z = z, radius = radius, qualityID = State.aoeTerrainQualityID, updatedTime = currentTime, list = list }
+	cache[index] = entry
+	cacheByRadius[radius] = entry
+	State.aoeTerrainCircleListIndex = index % Config.Render.aoeTerrainCircleCacheSize + 1
+	glCallList(list)
+end
+
+local function ClearAoeTerrainCircleLists()
+	for _, entry in pairs(State.aoeTerrainCircleLists) do
+		if entry.list and entry.list ~= 0 then
+			glDeleteList(entry.list)
+		end
+	end
+	State.aoeTerrainCircleLists = {}
+	State.aoeTerrainCircleListsByRadius = {}
+	State.aoeTerrainCircleListIndex = 1
 end
 
 --------------------------------------------------------------------------------
@@ -909,6 +1059,7 @@ local function DeleteDisplayLists()
 			glDeleteList(trajectoryList)
 		end
 	end
+	ClearAoeTerrainCircleLists()
 end
 
 --------------------------------------------------------------------------------
@@ -949,6 +1100,7 @@ local function ClearStarburstPredictions()
 		end
 	end
 	State.starburstPredictions = {}
+	ClearAoeTerrainCircleLists()
 end
 
 local function UpdateSelection()
@@ -2046,6 +2198,21 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local distanceFromCamera = GetMouseDistance() or 1000
+	local targetCount = 1
+	if Config.General.drawAoeForAllSelectedUnits then
+		if formationTargets then
+			targetCount = 0
+			for i = 1, #aimUnits do
+				if formationTargets[aimUnits[i].unitID] then
+					targetCount = targetCount + 1
+				end
+			end
+		else
+			targetCount = #aimUnits
+		end
+	end
+	SetAoeTerrainQuality(targetCount)
+
 	if Config.General.drawAoeForAllSelectedUnits then
 		for i = 1, #aimUnits do
 			local aimUnit = aimUnits[i]
