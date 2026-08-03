@@ -265,6 +265,8 @@ local function persistEdits()
 		return false
 	end
 	edited = false
+	-- Lua only reads keybindings (GetKeyBindings and friends), so the console is the
+	-- only way to write them back.
 	spSendCommands("keysave " .. customKeysFile)
 	return true
 end
@@ -303,6 +305,9 @@ resetToPreset = function(opt)
 	end
 
 	edited = false
+	-- No engine call materialises a preset into uikeys.txt, so we load it live and dump
+	-- it back out. keysave rewrites the file from the keymap, dropping any hand-written
+	-- comments or unbind lines it held.
 	Spring.SetConfigString("KeybindingFile", opt.file)
 	WG['bar_hotkeys'].reloadBindings()
 	spSendCommands("keysave " .. customKeysFile)
