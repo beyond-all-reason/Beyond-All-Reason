@@ -501,8 +501,8 @@ local function drawCircle(cx, cz, radius, segments, thickness, colors, colorsGlo
 		for i = 1, glowCount do
 			local co = colorsGlow[i]
 			reuseColorTable[1], reuseColorTable[2], reuseColorTable[3], reuseColorTable[4] = co[1], co[2], co[3], 0
-			arcA1 = i * 2 * mathPi / glowCount
-			arcA2 = (i + 1) * 2 * mathPi / glowCount
+			arcA1 = (i - 1) * 2 * mathPi / glowCount
+			arcA2 = i * 2 * mathPi / glowCount
 
 			arcRadius = radius
 			arcThickness = radius * config.glowInnerRadiusCoefficient
@@ -529,9 +529,7 @@ local function drawCircle(cx, cz, radius, segments, thickness, colors, colorsGlo
 		tileSegments, tileColorCount = segments, #colors
 		tileColors = colors
 		glCulling(false)
-		glDepthTest(GL.LEQUAL)
 		glBeginEnd(GL.TRIANGLES, drawRingTiles)
-		glDepthTest(false)
 		glCulling(false)
 	end
 end
@@ -599,14 +597,14 @@ local function buildCircleDisplayList()
 			end
 
 			local glowAlpha = config.spawnPointCircleColor[4] * 0.2
-			for j = 1, colorCount do
+			for j = 1, baseCount do
 				if not glowColors[j] then
-					glowColors[j] = { circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha }
+					glowColors[j] = { baseCircleColors[j][1], baseCircleColors[j][2], baseCircleColors[j][3], glowAlpha }
 				else
-					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] = circleColors[j][1], circleColors[j][2], circleColors[j][3], glowAlpha
+					glowColors[j][1], glowColors[j][2], glowColors[j][3], glowColors[j][4] = baseCircleColors[j][1], baseCircleColors[j][2], baseCircleColors[j][3], glowAlpha
 				end
 			end
-			for j = colorCount + 1, #glowColors do
+			for j = baseCount + 1, #glowColors do
 				glowColors[j] = nil
 			end
 
@@ -932,6 +930,7 @@ local function updatePlacedCommanders()
 		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if x and y and z then
+				local r, g, b, a = spGetTeamColor(teamID)
 				commanderCount = commanderCount + 1
 				local commander = placedCommanders[commanderCount]
 				if not commander then
@@ -941,12 +940,17 @@ local function updatePlacedCommanders()
 				elseif commander.teamID ~= teamID or
 				       commander.position[1] ~= x or
 				       commander.position[2] ~= y or
-				       commander.position[3] ~= z then
+				       commander.position[3] ~= z or
+				       commander.colorR ~= r or
+				       commander.colorG ~= g or
+				       commander.colorB ~= b or
+				       commander.colorA ~= a then
 					modified = true
 				end
 
 				commander.position[1], commander.position[2], commander.position[3] = x, y, z
 				commander.teamID = teamID
+				commander.colorR, commander.colorG, commander.colorB, commander.colorA = r, g, b, a
 				commander.playerID = playerID
 				commander.playerName = name
 			end
