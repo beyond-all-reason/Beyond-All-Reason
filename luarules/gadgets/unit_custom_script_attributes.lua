@@ -17,6 +17,8 @@ function gadget:GetInfo()
 	}
 end
 
+local debug = true
+
 local spCallCobScript = Spring.CallCOBScript
 local gameSpeed = Game.gameSpeed
 local DEG2COBANGLE = COBSCALE / 360
@@ -59,7 +61,7 @@ local weaponAttributeDefinitions = {
 		numbered = true,
 		params   = { "sweepfire_firetime", "sweepfire_reloadtime" },
 		requires = "any",
-		process  = function(self, def) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
+		process  = function(self, def) Spring.Echo("SetSweepfireTimeWeapon for " .. def.name) return { customFrames(def, self.params[1]) or 0, customFrames(def, self.params[2]) or 0 } end,
 	},
 	{
 		method   = "SetTurretSpeedWeapon",
@@ -143,5 +145,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				spCallCobScript(unitID, methodName, 0, arguments)
 			end
 		end
+	end
+end
+
+-- Debug
+
+if debug then
+	for _, definitions in ipairs { unitAttributeDefinitions, weaponAttributeDefinitions } do
+		for _, definition in ipairs(definitions) do
+			local process = definition.process
+			definition.process = function (self, def)
+				Spring.Echo("Processing " .. definition.method .. " for " .. def.name)
+				return process(self, def)
+			end
+		end
+	end
+
+	local __CallCobScript = spCallCobScript
+	spCallCobScript = function(unitID, funcName, retArgs, ...)
+		Spring.Echo(("Script attribute: %d, %s, %s"):format(unitID, funcName, table.concat({...}, ", ")))
+		__CallCobScript(unitID, funcName, retArgs, ...)
 	end
 end
