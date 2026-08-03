@@ -77,12 +77,9 @@ _G.VFS.FileExists = function(path)
     return _G.VFS._ci_file_cache[cleanPath:lower()] ~= nil
 end
 
-_G.VFS.Include = function(path, env, mode)
-    -- Check cache first
-    if _G.VFS._cache[path] then
-        return _G.VFS._cache[path]
-    end
+_G.VFS._chunks = _G.VFS._chunks or {}
 
+_G.VFS.Include = function(path, env, mode)
     -- Try direct path first
     local realPath = path
     local file = io.open(path, "r")
@@ -103,16 +100,19 @@ _G.VFS.Include = function(path, env, mode)
     end
 
     -- Use loadfile/dofile instead of require to better simulate VFS and handle case-insensitive paths
-    local chunk, err = loadfile(realPath)
+    -- The engine re-executes an included file on every call, so only the compiled
+    -- chunk is reused: caching the result hands two defs the same table when one
+    -- unit file includes another, and whichever loads second mutates the first.
+    local chunk = _G.VFS._chunks[realPath]
+    if not chunk then
+        chunk = loadfile(realPath)
+        _G.VFS._chunks[realPath] = chunk
+    end
     if chunk then
-        -- Handle environment if provided
-        if env then
-            setfenv(chunk, env)
-        end
-        
+        setfenv(chunk, env or _G)
+
         local success, result = pcall(chunk)
         if success then
-            _G.VFS._cache[path] = result
             return result
         else
             print("Error loading " .. path .. ": " .. tostring(result))
