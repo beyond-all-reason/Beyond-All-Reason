@@ -135,6 +135,7 @@ local function buildResolvedCatalog()
 	end
 
 	L.other = Spring.I18N('ui.keybinds.editor.other')
+	L.otherLower = L.other:lower()
 	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
 	L.customOnly = Spring.I18N('ui.keybinds.editor.customOnly')
 	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
@@ -150,6 +151,7 @@ local function rebuildRows()
 	rows = {}
 	local query = searchBox and searchBox:getText():lower() or ""
 	local catalogActions = {}
+	local otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
 	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
@@ -221,10 +223,13 @@ local function rebuildRows()
 			for i = 1, #groupRows do
 				rows[#rows + 1] = groupRows[i]
 			end
+			if group.title == L.other then
+				otherGroupEnd = #rows
+			end
 		end
 	end
 
-	local otherMatch = query ~= "" and ("other"):find(query, 1, true)
+	local otherMatch = query ~= "" and L.otherLower:find(query, 1, true)
 	local others = {}
 	for action in pairs(working.byAction) do
 		if not catalogActions[action] and (query == "" or otherMatch or action:lower():find(query, 1, true)) then
@@ -234,9 +239,24 @@ local function rebuildRows()
 
 	if #others > 0 then
 		table.sort(others)
-		rows[#rows + 1] = { type = "header", text = L.other }
+
+		-- A catalog category can be titled the same as this generated one; when it is,
+		-- the leftovers join it after its own items instead of repeating the header.
+		local tail = {}
+		if otherGroupEnd then
+			for i = otherGroupEnd + 1, #rows do
+				tail[#tail + 1] = rows[i]
+				rows[i] = nil
+			end
+		else
+			rows[#rows + 1] = { type = "header", text = L.other }
+		end
+
 		for _, action in ipairs(others) do
 			rows[#rows + 1] = { type = "editable", action = action, label = action }
+		end
+		for i = 1, #tail do
+			rows[#rows + 1] = tail[i]
 		end
 	end
 
