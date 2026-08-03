@@ -179,8 +179,6 @@ local function findAllyReclaimerOf(targetID)
 			return uID
 		end
 	end
-
-	return nil
 end
 
 ----------------------------------------------------------------
@@ -324,8 +322,7 @@ function widget:GameFrame(frame)
 	if frame % POLL_INTERVAL ~= 0 then
 		return
 	end
-
-	-- Phase 1: Clean expired reclaim blacklist entries
+	-- Clean expired reclaim blacklist entries
 	for unitID, expiryFrame in pairs(reclaimBlacklist) do
 		if frame >= expiryFrame then
 			reclaimBlacklist[unitID] = nil
@@ -341,7 +338,7 @@ function widget:GameFrame(frame)
 		end
 	end
 
-	-- Phase 2: Monitor active repairs
+	-- Monitor active repairs
 	for builderID, info in pairs(activeRepairs) do
 		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
 		local wantsCloak = (cloakState and cloakState == 1)
@@ -375,18 +372,18 @@ function widget:GameFrame(frame)
 		end
 	end
 
-	-- Phase 3: Assign idle builders to repair targets
+	-- Assign idle builders to repair targets
 	for builderID, homePos in pairs(idleBuilders) do
 		local cloakState = spGetUnitRulesParam(builderID, 'wantcloak')
 		local wantsCloak = (cloakState and cloakState == 1)
 		if activeRepairs[builderID] then
 			-- Already assigned (shouldn't happen but guard against it)
+		elseif not isUnitAlive(builderID) then
+			idleBuilders[builderID] = nil
 		elseif wantsCloak then
 			-- It's still idle but wantscloak, so don't assign a target
 		elseif (spGetUnitCommandCount(builderID) or 0) > 0 then
 			-- No longer idle
-			idleBuilders[builderID] = nil
-		elseif not isUnitAlive(builderID) then
 			idleBuilders[builderID] = nil
 		elseif spGetUnitStates(builderID)["repeat"] then
 			-- The commands this widget issues end up getting repeated, which is weird.
