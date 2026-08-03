@@ -120,6 +120,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large",
 				flighttime = 0.610,
 				heightboostfactor = 0,
+				heightmod = 1,
 				impulsefactor = 2.0,
 				name = "Area Control Riot Cannon",
 				noselfdamage = true,
