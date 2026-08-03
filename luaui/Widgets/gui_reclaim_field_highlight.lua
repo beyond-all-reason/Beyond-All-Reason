@@ -571,6 +571,7 @@ local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^
 local drawEnabled = false
 local drawEnergyEnabled = false
 local actionActive = false
+local activeReclaimCommand = false
 local reclaimerSelected = false
 local resBotSelected = false
 local IsActiveReclaimCommand
@@ -3058,8 +3059,12 @@ local function disableHighlight()
 end
 
 IsActiveReclaimCommand = function()
+	return activeReclaimCommand
+end
+
+local function UpdateActiveReclaimCommand()
 	local _, _, _, cmdName = spGetActiveCommand()
-	return cmdName == 'Reclaim'
+	activeReclaimCommand = cmdName == 'Reclaim'
 end
 
 local UpdateDrawEnabled -- Uses the showOption setting to pick a function call.
@@ -4138,6 +4143,7 @@ end
 
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
+	UpdateActiveReclaimCommand()
 	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
 	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
@@ -4437,6 +4443,11 @@ function widget:GameStart()
 	-- Force full redraw with new draw state
 	dirty.needRedraw = true
 	dirty.forceFullRedraw = true
+end
+
+function widget:ActiveCommandChanged()
+	UpdateActiveReclaimCommand()
+	UpdateDrawEnabled()
 end
 
 function widget:Update(dt)

@@ -352,7 +352,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	local glClear               = gl.Clear
 	local GL_ALWAYS             = GL.ALWAYS
 	local GL_NOTEQUAL           = GL.NOTEQUAL
-	local GL_KEEP               = 0x1E00 --GL.KEEP
+	local GL_KEEP               = GL.KEEP
 	local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 	local GL_REPLACE            = GL.REPLACE
 
