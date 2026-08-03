@@ -20,10 +20,10 @@ return {
 			if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			if trigger.parameters.owningTeamID and unitTeam ~= trigger.parameters.owningTeamID then
+			if trigger.parameters.owningTeamID and trigger.parameters.owningTeamID ~= unitTeam then
 				return
 			end
-			if trigger.parameters.spottingAllyTeamID and radarAllyTeamID ~= trigger.parameters.spottingAllyTeamID then
+			if trigger.parameters.spottingAllyTeamID and trigger.parameters.spottingAllyTeamID ~= radarAllyTeamID then
 				return
 			end
 			context.ActivateTrigger(trigger)
