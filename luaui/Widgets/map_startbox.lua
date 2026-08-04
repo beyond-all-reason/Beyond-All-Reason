@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1000000,
 		enabled = true,
 		depends = {'gl4'}
 	}
@@ -19,6 +19,7 @@ local math = math
 local mathFloor = math.floor
 local mathRandom = math.random
 local mathAbs = math.abs
+	local mathHuge = math.huge
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -307,6 +308,10 @@ local function createCommanderNameList(name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
+		if not (x > -mathHuge and x < mathHuge and y > -mathHuge and y < mathHuge) then
+			return
+		end
+
 	if commanderNameList[teamID] == nil or commanderNameList[teamID]['name'] ~= name then
 		if commanderNameList[teamID] ~= nil then
 			gl.DeleteList(commanderNameList[teamID]['list'])

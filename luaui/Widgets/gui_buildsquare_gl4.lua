@@ -54,6 +54,10 @@ local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetBuildFacing = Spring.GetBuildFacing
+local spTestBuildOrder = Spring.TestBuildOrder
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -81,7 +85,7 @@ local CORNER_RADIUS = 0.22
 local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
 local EXTENDED_CELLS = 6
 local COMBINE_FOUR_CELLS = true
-local EXTENDED_ALPHA_NEAR = 0.12
+local EXTENDED_ALPHA_NEAR = 0.11
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = false
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
@@ -107,7 +111,7 @@ local STATUS_COLORS = {
 	[STATUS_BLOCKED]     = { 1.0, 0.1, 0.3, 0.33 },
 	[STATUS_OCCUPIED]    = { 0.75, 1.0, 0.15, 0.33 },
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN]        = { 0.75, 1.0, 0.15, 0.33 },
+	[STATUS_OPEN]        = { 0.45, 1.0, 0.15, 0.33 },
 }
 local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.38 }
 -- local STATUS_OUTLINE_COLORS = {
@@ -120,7 +124,7 @@ local STATUS_OUTLINE_COLORS = {
 	[STATUS_BLOCKED]     = { 0.80, 0.05, 0.15, 0.4 },
 	[STATUS_OCCUPIED]    = { 0.66, 0.15, 0.05, 0.4 },
 	[STATUS_RECLAIMABLE] = { 0.55, 0.20, 0.05, 0.4 },
-	[STATUS_OPEN]        = { 0.33, 0.25, 0.05, 0.4 },
+	[STATUS_OPEN]        = { 0.30, 0.30, 0.05, 0.4 },
 }
 local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
@@ -175,6 +179,8 @@ local statusCheckPeriod = 1
 local statusChecksEnabled = true
 local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
+local pregameStatuses = {}
+local pregameStatusCount = 0
 
 local MAX_CELLS = 4096
 
@@ -849,16 +855,19 @@ function widget:Initialize()
 		return
 	end
 
+	WG["buildsquare-gl4"] = true
 	spSetEngineBuildSquareRendering(false)
 end
 
 function widget:PlayerChanged(playerID)
 	if playerID == spGetMyPlayerID() then
 		resetPreviewState()
+		spSetEngineBuildSquareRendering(false)
 	end
 end
 
 function widget:Shutdown()
+	WG["buildsquare-gl4"] = nil
 	spSetEngineBuildSquareRendering(true)
 	freeGL4Resources()
 end
@@ -1234,6 +1243,72 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	)
 end
 
+local function collectPregameBuildSquare()
+	if spGetGameFrame() > 0 then
+		return
+	end
+
+	local pregameBuild = WG["pregame-build"]
+	local getPreGameDefID = pregameBuild and pregameBuild.getPreGameDefID
+	local unitDefID = getPreGameDefID and getPreGameDefID()
+	if not unitDefID then
+		return
+	end
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return
+	end
+
+	local mouseX, mouseY = spGetMouseState()
+	local _, position = spTraceScreenRay(
+		mouseX, mouseY, true, false, false, unitDef.modCategories.underwater
+	)
+	if not position then
+		return
+	end
+	local positionX = position[1]
+	local positionY = position[2]
+	local positionZ = position[3]
+	if not positionX or not positionY or not positionZ then
+		return
+	end
+
+	local facing = spGetBuildFacing()
+	local x, buildHeight, z = spPos2BuildPos(unitDefID, positionX, positionY, positionZ, facing)
+	if not x or not buildHeight or not z then
+		return
+	end
+
+	local footprint = getFootprintData(unitDefID, facing)
+	if not footprint then
+		return
+	end
+
+	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
+	local statusIndex = 0
+	for zi = 0, footprint.zsize - 1 do
+		for xi = 0, footprint.xsize - 1 do
+			statusIndex = statusIndex + 1
+			if placementValid then
+				pregameStatuses[statusIndex] = getPredictedCellStatus(
+					unitDef,
+					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
+					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
+					buildHeight
+				)
+			else
+				pregameStatuses[statusIndex] = STATUS_BLOCKED
+			end
+		end
+	end
+	for index = statusIndex + 1, pregameStatusCount do
+		pregameStatuses[index] = nil
+	end
+	pregameStatusCount = statusIndex
+
+	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
+end
+
 local function rebuildBatchBuffer()
 	tracy.ZoneBeginN("W:BuildSquare:BuildBatch")
 	local dataIndex = 0
@@ -1375,6 +1450,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
+	collectPregameBuildSquare()
 	if collectedPreviewCount == 0
 		or collectedDrawFrame < drawFrame - 1
 		or collectedDrawFrame > drawFrame then
