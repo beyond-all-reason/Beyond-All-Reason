@@ -1075,7 +1075,6 @@ local function getTargetTypeForUnitDef(unitsSortedForDef)
 		return nil
 	end
 
-	-- Check if any unit of this type has a persistent target
 	for i = 1, #unitsSortedForDef do
 		local unitID = unitsSortedForDef[i]
 		local targetDefID = WG['unittargeting'].getTargetType(unitID)
