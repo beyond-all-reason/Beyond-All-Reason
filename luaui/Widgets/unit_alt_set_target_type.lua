@@ -44,13 +44,13 @@ local math_pi = math.pi
 local math_floor = math.floor
 local math_clamp = math.clamp
 
-local trackedUnitsToTargetedDefs =  {}
+local trackedUnitsToTargetedDefs = {}
 local trackedUnitsToTargetID = {}
 local unitRanges = {}
-local cursorPos    -- current cursor position 	    (table{x,y,z})
-local snappedPos   -- snapped valid target position (table{x,y,z})
+local cursorPos     -- current cursor position 	    (table{x,y,z})
+local snappedPos    -- snapped valid target position (table{x,y,z})
 local snappedUnitID -- unit the command would snap to (highlighted as "selected")
-local resumeKey = nil -- Last position in the unit list
+local resumeKey 	-- Last position in the unit list
 local MAX_UNITS_PER_UPDATE = 100
 local MIN_UNITS_PER_UPDATE = 1
 local unitsToUpdate = MAX_UNITS_PER_UPDATE
@@ -106,12 +106,10 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDsToTarget)
 		local targetID = candidateUnits[index]
 		local targetTeam = spGetUnitTeam(targetID)
         if targetID ~= unitID and targetTeam and not spAreTeamsAllied(unitTeam, targetTeam) then
-			 for unitDefIDToTarget, _ in pairs(unitDefIDsToTarget) do
-			 	if spGetUnitDefID(targetID) == unitDefIDToTarget then
-					count = count + 1
-					unitsInRange[count] = targetID
-				end
-			 end
+			if unitDefIDsToTarget[spGetUnitDefID(targetID)] then
+				count = count + 1
+				unitsInRange[count] = targetID
+			end
         end
     end
 
@@ -205,7 +203,7 @@ local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 	-- range. This is less confusing for the player.
 	if trackedUnitsToTargetID[unitID] then
 		if spGetUnitDefID(trackedUnitsToTargetID[unitID]) then
-				table_insert(candidateUnits, 1, trackedUnitsToTargetID[unitID])
+			table_insert(candidateUnits, 1, trackedUnitsToTargetID[unitID])
 		else
 			trackedUnitsToTargetID[unitID] = nil
 		end
