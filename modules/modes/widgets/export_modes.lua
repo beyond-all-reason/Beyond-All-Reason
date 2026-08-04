@@ -100,6 +100,10 @@ local function buildExport()
 				name = mode.name,
 				desc = mode.desc,
 				allowRanked = mode.allowRanked,
+				-- Some modes need a bot on the field, not only options set:
+				-- PvE modes are activated by an AI's presence, so the lobby
+				-- has to be told to add one.
+				bots = mode.bots,
 				modOptions = buildEffectiveModOptions(defaults, mode, selector),
 			}
 		end

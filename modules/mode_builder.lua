@@ -195,6 +195,17 @@ function ModeBuilder.Grammar(grammar)
 			end
 		end
 
+		-- Chain verbs say something about the PRESET rather than about a
+		-- policy: not "pin this option" but "a game in this mode also needs
+		-- that". They write on the chain directly and serialize nothing.
+		for verbName, apply in pairs(grammar.chainVerbs or {}) do
+			assert(chain[verbName] == nil, "ModeBuilder.Grammar: chain verb collides with a chain field: " .. verbName)
+			chain[verbName] = function(...)
+				apply(chain, name, ...)
+				return chain
+			end
+		end
+
 		return chain
 	end
 end
