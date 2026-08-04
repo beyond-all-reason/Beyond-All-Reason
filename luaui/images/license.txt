@@ -51,5 +51,5 @@ All textures in this folder were made for Beyond All Reason by IceXuick, all rig
 
 All textures in this folder were made for Beyond All Reason by IceXuick, all rights reserved.
 
--- in flowui_gl4/leaderboard.png
+-- in leaderboard.png
 This icon was made by ZephyrSkies under the WTFPL license, no rights reserved.

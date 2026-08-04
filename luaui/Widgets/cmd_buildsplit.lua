@@ -15,15 +15,11 @@ end
 
 
 -- Localized Spring API for performance
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local floor = math.floor
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetSelUnitCount = Spring.GetSelectedUnitsCount
 local spGetSelUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local activeModifier = false
 
 local unitBuildOptions = {}
@@ -62,6 +58,25 @@ local function handleSetModifier(_, _, _, data)
 	activeModifier = data[1]
 end
 
+local function getBuilderInfos(unitIDs)
+	local builders = {}
+	for _, unitID in ipairs(unitIDs) do
+		local builderInfo = WG["api_build_orders"].getBuilderInfo(unitID)
+		if builderInfo and unitBuildOptions[builderInfo.unitDefID] then
+			table.insert(builders, builderInfo)
+		end
+	end
+	return builders
+end
+
+---@param builderIDs number[]
+---@param buildings BuildingInfo[]
+---@param cmdOpts table
+local function splitBuildings(builderIDs, buildings, cmdOpts)
+	local builders = getBuilderInfos(builderIDs)
+	WG["api_build_orders"].splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+end
+
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
 	isSpec = spGetSpectatingState()
@@ -72,9 +87,19 @@ function widget:Initialize()
 
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { true }, "p")
 	widgetHandler:AddAction("buildsplit", handleSetModifier, { false }, "r")
+
+	WG['build_split'] = {
+		isActive = function() return activeModifier end,
+		splitBuildings = splitBuildings,
+	}
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
+	-- Don't handle blueprint commands (let cmd_blueprint handle those)
+	if cmdID == GameCMD.BLUEPRINT_PLACE or cmdID == GameCMD.BLUEPRINT_CREATE then
+		return false
+	end
+
 	if not (cmdID < 0 and cmdOpts.shift and activeModifier) then
 		return false
 	end -- Note: All multibuilds require shift
@@ -106,59 +131,31 @@ function widget:Update()
 
 	local selUnits = spGetSelUnitsSorted()
 
-	local builders = {}
-	local builderCount = 0
+	local builderIDs = {}
 	for uDefID, uIDs in pairs(selUnits) do
-		local uBuilds = unitBuildOptions[uDefID]
-		if uBuilds then
-			for bi = 1, #uBuilds do
-				if uBuilds[bi] == buildID then
-					for ui = 1, #uIDs do
-						builderCount = builderCount + 1
-						builders[builderCount] = uIDs[ui]
-					end
-					break
-				end
+		local uDef = UnitDefs[uDefID]
+		if uDef and uDef.buildOptions and #uDef.buildOptions > 0 then
+			for _, uID in ipairs(uIDs) do
+				table.insert(builderIDs, uID)
 			end
 		end
 	end
 
-	if buildCount > builderCount then
-		local ratio = floor(buildCount / builderCount)
-		local excess = buildCount - builderCount * ratio -- == buildCount % builderCount
-		local buildingInd = 0
-		for bi = 1, builderCount do
-			for _ = 1, ratio do
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-			if bi <= excess then
-				buildingInd = buildingInd + 1
-				spGiveOrderToUnit(builders[bi], -buildID, buildLocs[buildingInd], { "shift" })
-			end
-		end
-	else
-		local ratio = floor(builderCount / buildCount)
-		local excess = builderCount - buildCount * ratio -- == builderCount % buildCount
-		local builderInd = 0
-
-		for bi = 1, buildCount do
-			local setUnits = {}
-			local setCount = 0
-			for _ = 1, ratio do
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-			if bi <= excess then
-				builderInd = builderInd + 1
-				setCount = setCount + 1
-				setUnits[setCount] = builders[builderInd]
-			end
-
-			spGiveOrderToUnitArray(setUnits, -buildID, buildLocs[bi], { "shift" })
-		end
+	local buildings = {}
+	for i = 1, buildCount do
+		---@type BuildingInfo
+		local buildingInfo = {}
+		buildingInfo.unitDefID = buildID
+		buildingInfo.position = { buildLocs[i][1], buildLocs[i][2], buildLocs[i][3] }
+		buildingInfo.facing = buildLocs[i][4]
+		table.insert(buildings, buildingInfo)
 	end
+
+	splitBuildings(builderIDs, buildings, { "shift" })
 
 	buildCount = 0
+end
+
+function widget:Shutdown()
+	WG['build_split'] = nil
 end

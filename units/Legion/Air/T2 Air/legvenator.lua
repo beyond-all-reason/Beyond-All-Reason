@@ -90,7 +90,6 @@ return {
 				soundhit = "flakhit",
 				soundhitwet = "splshsml",
 				soundstart = "flakfire",
-				soundstartvolume = 6,
 				sprayangle = 200,
 				turret = true,
 				weapontimer = 1,

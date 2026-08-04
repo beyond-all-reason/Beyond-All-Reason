@@ -132,9 +132,15 @@ if gadgetHandler:IsSyncedCode() then
 
 	function updateSlow(unitID, unitDefID, unitSlow)
 		if spMoveCtrlEnabled(unitID) then return false end
-		local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
-		local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-		local slowedAccRate = accDefs[unitDefID] * unitSlow
+		local baseSpeed = speedDefs[unitDefID]
+		local baseTurnRate = turnDefs[unitDefID]
+		local baseAccRate = accDefs[unitDefID]
+		if not unitSlow or not baseSpeed or not baseTurnRate or not baseAccRate then
+			return false
+		end
+		local slowedMaxSpeed = baseSpeed * unitSlow
+		local slowedTurnRate = baseTurnRate * unitSlow
+		local slowedAccRate = baseAccRate * unitSlow
 		local sucess = pcall(function()
 			spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 		end)
@@ -162,11 +168,15 @@ if gadgetHandler:IsSyncedCode() then
 				local x, y, z = spGetUnitBasePosition(unitID)
 				if y and y < lavaLevel then
 					if data.slowed then
-						local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow), 1-lavaSlow, .9)
-						if unitSlow ~= data.currentSlow then
-							local sucess = updateSlow(unitID, unitDefID, unitSlow)
-							if sucess then
-								data.currentSlow = unitSlow
+						if not speedDefs[unitDefID] or not turnDefs[unitDefID] or not accDefs[unitDefID] or not unitHeight[unitDefID] then
+							data.slowed = false
+						else
+							local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow), 1-lavaSlow, .9)
+							if unitSlow ~= data.currentSlow then
+								local sucess = updateSlow(unitID, unitDefID, unitSlow)
+								if sucess then
+									data.currentSlow = unitSlow
+								end
 							end
 						end
 					end

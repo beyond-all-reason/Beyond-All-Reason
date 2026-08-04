@@ -18,6 +18,7 @@ end
 local cmdname = 'give'
 local PACKET_HEADER = "$g$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 local isSilentUnitGift = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -87,7 +88,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		elseif givenSomethingAtFrame == Spring.GetGameFrame() then
 			return
@@ -143,7 +144,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestGive)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestGive)
+		end
 	end
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction(cmdname)

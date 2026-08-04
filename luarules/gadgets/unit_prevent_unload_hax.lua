@@ -53,9 +53,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	else
     -- prevent unloaded units from sliding across the map
         local px,py,pz = Spring.GetUnitPosition(unitID)
-        local dx,dy,dz = Spring.GetUnitDirection(unitID)
+        local dx,dy,dz,rx,ry,rz = Spring.GetUnitDirection(unitID)
         local frame = SpGetGameFrame() + frameMargin
-        unloadedUnits[unitID] = {["px"]=px,["py"]=py,["pz"]=pz,["dx"]=dx,["dy"]=dy,["dz"]=dz,["frame"]=frame}
+        unloadedUnits[unitID] = {["px"]=px,["py"]=py,["pz"]=pz,["dx"]=dx,["dy"]=dy,["dz"]=dz,["rx"]=rx,["ry"]=ry,["rz"]=rz,["frame"]=frame}
 
 		SpSetUnitVelocity(unitID, 0,0,0)
 	end
@@ -71,7 +71,7 @@ function gadget:GameFrame(frame)
         if data.frame == frame then
             -- reset position
             SpSetUnitPhysics(unitID,data.px,data.py,data.pz,0,0,0,0,0,0,0,0,0)
-            SpSetUnitDirection(unitID,data.dx,data.dy,data.dz)
+            SpSetUnitDirection(unitID,data.dx,data.dy,data.dz,data.rx,data.ry,data.rz)
             --Spring.GiveOrderToUnit(unitID,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
             data = nil
         end

@@ -23,7 +23,11 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetViewGeometry = Spring.GetViewGeometry
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spIsGUIHidden = Spring.IsGUIHidden
+local spIsSphereInView = Spring.IsSphereInView
 
 local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
@@ -34,159 +38,98 @@ local glScale = gl.Scale
 local glBlending = gl.Blending
 local glDepthTest = gl.DepthTest
 local glBillboard = gl.Billboard
-local glCallList = gl.CallList
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
-local glBeginEnd = gl.BeginEnd
-local glVertex = gl.Vertex
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_QUADS = GL.QUADS
 
-local sin = math.sin
-local cos = math.cos
-local pi = math.pi
-local pi2 = pi * 2
 local max = math.max
 local min = math.min
+local sqrt = math.sqrt
+local floor = math.floor
 
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
 local pingLifetime = 0.95
-local baseRadius = 16
-local maxRadius = 22
-local baseThickness = 2.4
+local baseRadius = 15
+local maxRadius = 19
+local onlyCloakedUnits = true
+local drawFlatOnMap = true
+local hideWhenTerrainOccluded = true
+local terrainOcclusionSamples = 6
+local terrainOcclusionMargin = 8
+local pingHeightOffset = drawFlatOnMap and 1.5 or 5
 
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------
 local pings = {}
+local pingCount = 0
+local pingPool = {}
+local pingPoolCount = 0
 local gameTime = 0
 local thicknessScale = 1.2
 
 --------------------------------------------------------------------------------
--- Display lists for arc geometry (pre-generated at unit radius with proportional thickness)
+-- Textures
 --------------------------------------------------------------------------------
-local displayLists = {
-	outerArcs = {},      -- 4 arcs at 60 degrees each
-	middleArcs = {},     -- 3 arcs at 80 degrees each
-	innerArcs = {},      -- 2 arcs at 120 degrees each
-	centerCircle = nil,  -- Full circle
-	-- Outlines (slightly larger versions for dark border)
-	outerOutlines = {},
-	middleOutlines = {},
-	innerOutlines = {},
+local atlasTexture = "LuaRules/Images/seismic_ping/seismic_atlas.png"
+local atlasSprites = {
+	outerRing = { 0 / 7, 0, 1 / 7, 1 },
+	outerOutline = { 1 / 7, 0, 2 / 7, 1 },
+	middleRing = { 2 / 7, 0, 3 / 7, 1 },
+	middleOutline = { 3 / 7, 0, 4 / 7, 1 },
+	innerRing = { 4 / 7, 0, 5 / 7, 1 },
+	innerOutline = { 5 / 7, 0, 6 / 7, 1 },
+	centerDot = { 6 / 7, 0, 7 / 7, 1 },
 }
 
--- Proportional thicknesses (relative to unit radius 1.0)
-local outerThicknessRatio = baseThickness * 1.05 / baseRadius
-local middleThicknessRatio = baseThickness * 0.8 / baseRadius
-local innerThicknessRatio = baseThickness * 1 / baseRadius
-local centerThicknessRatio = baseThickness * 1.8 / baseRadius
-local outlineExtra = 0.02  -- How much larger the outline is on each side
+-- Texture radius in source image does not fill full quad, so apply scale compensation.
+local outerQuadScale = 1.17
+local middleQuadScale = 1.18
+local innerQuadScale = 1.24
+local centerQuadScale = 2.2
 
 --------------------------------------------------------------------------------
--- Helper: Draw a thick arc as geometry (for display list creation)
+-- Draw a textured billboard quad
 --------------------------------------------------------------------------------
-local function DrawThickArcVertices(innerRadius, outerRadius, startAngle, endAngle, segments)
-	local angleStep = (endAngle - startAngle) / segments
-	for i = 0, segments - 1 do
-		local angle1 = startAngle + i * angleStep
-		local angle2 = startAngle + (i + 1) * angleStep
-		local cos1, sin1 = cos(angle1), sin(angle1)
-		local cos2, sin2 = cos(angle2), sin(angle2)
-		glVertex(cos1 * innerRadius, sin1 * innerRadius, 0)
-		glVertex(cos1 * outerRadius, sin1 * outerRadius, 0)
-		glVertex(cos2 * outerRadius, sin2 * outerRadius, 0)
-		glVertex(cos2 * innerRadius, sin2 * innerRadius, 0)
+local function DrawTexturedQuad(sprite, scale, rotation)
+	local s1, t1, s2, t2 = sprite[1], sprite[2], sprite[3], sprite[4]
+	glPushMatrix()
+	if rotation then
+		glRotate(rotation, 0, 0, 1)
 	end
+	glScale(scale, scale, 1)
+	glTexRect(-1, -1, 1, 1, s1, t1, s2, t2)
+	glPopMatrix()
+end
+
+-- Cheap terrain line test: if terrain crosses camera->ping center line, hide full ping.
+local function IsTerrainOccluded(camX, camY, camZ, pingX, pingY, pingZ)
+	local dx = pingX - camX
+	local dy = pingY - camY
+	local dz = pingZ - camZ
+	local distance = sqrt(dx * dx + dy * dy + dz * dz)
+	local samples = terrainOcclusionSamples + min(8, floor(distance / 700))
+	local step = 1 / (samples + 1)
+
+	for i = 1, samples do
+		local t = i * step
+		local sx = camX + dx * t
+		local sy = camY + dy * t
+		local sz = camZ + dz * t
+		if spGetGroundHeight(sx, sz) > sy + terrainOcclusionMargin then
+			return true
+		end
+	end
+
+	return false
 end
 
 --------------------------------------------------------------------------------
--- Create display lists for all arc types
---------------------------------------------------------------------------------
-local function CreateDisplayLists()
-	-- Outer arcs: 4 arcs, 60 degrees each, at unit radius with proportional thickness
-	local outerInner = 1.08 - outerThicknessRatio / 2
-	local outerOuter = 1.08 + outerThicknessRatio / 2
-	for i = 0, 3 do
-		local startAngle = (i * 90) * pi / 180
-		local arcLength = 60 * pi / 180
-		-- Outline (slightly larger)
-		displayLists.outerOutlines[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, outerInner - outlineExtra, outerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
-		end)
-		-- Main arc
-		displayLists.outerArcs[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, outerInner, outerOuter, startAngle, startAngle + arcLength, 12)
-		end)
-	end
-
-	-- Middle arcs: 3 arcs, 80 degrees each, at 0.85 of unit radius
-	local middleRadiusRatio = 0.85
-	local middleInner = middleRadiusRatio - middleThicknessRatio / 2
-	local middleOuter = middleRadiusRatio + middleThicknessRatio / 2
-	for i = 0, 2 do
-		local startAngle = (i * 120) * pi / 180
-		local arcLength = 80 * pi / 180
-		-- Outline (slightly larger)
-		displayLists.middleOutlines[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, middleInner - outlineExtra, middleOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 12)
-		end)
-		-- Main arc
-		displayLists.middleArcs[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, middleInner, middleOuter, startAngle, startAngle + arcLength, 12)
-		end)
-	end
-
-	-- Inner arcs: 2 arcs, 120 degrees each, at 0.66 of unit radius
-	local innerRadiusRatio = 0.66
-	local innerInner = innerRadiusRatio - innerThicknessRatio / 2
-	local innerOuter = innerRadiusRatio + innerThicknessRatio / 2
-	for i = 0, 1 do
-		local startAngle = (i * 180) * pi / 180
-		local arcLength = 120 * pi / 180
-		-- Outline (slightly larger)
-		displayLists.innerOutlines[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, innerInner - outlineExtra, innerOuter + outlineExtra, startAngle - 0.02, startAngle + arcLength + 0.02, 16)
-		end)
-		-- Main arc
-		displayLists.innerArcs[i] = glCreateList(function()
-			glBeginEnd(GL_QUADS, DrawThickArcVertices, innerInner, innerOuter, startAngle, startAngle + arcLength, 16)
-		end)
-	end
-
-	-- Center circle: full circle at unit radius with proportional thickness
-	local centerInner = 1 - centerThicknessRatio / 1.3
-	local centerOuter = 1.25 + centerThicknessRatio / 1.3
-	displayLists.centerCircle = glCreateList(function()
-		glBeginEnd(GL_QUADS, DrawThickArcVertices, centerInner, centerOuter, 0, pi2, 20)
-	end)
-end
-
---------------------------------------------------------------------------------
--- Delete display lists
---------------------------------------------------------------------------------
-local function DeleteDisplayLists()
-	for i = 0, 3 do
-		if displayLists.outerArcs[i] then glDeleteList(displayLists.outerArcs[i]) end
-		if displayLists.outerOutlines[i] then glDeleteList(displayLists.outerOutlines[i]) end
-	end
-	for i = 0, 2 do
-		if displayLists.middleArcs[i] then glDeleteList(displayLists.middleArcs[i]) end
-		if displayLists.middleOutlines[i] then glDeleteList(displayLists.middleOutlines[i]) end
-	end
-	for i = 0, 1 do
-		if displayLists.innerArcs[i] then glDeleteList(displayLists.innerArcs[i]) end
-		if displayLists.innerOutlines[i] then glDeleteList(displayLists.innerOutlines[i]) end
-	end
-	if displayLists.centerCircle then glDeleteList(displayLists.centerCircle) end
-end
-
---------------------------------------------------------------------------------
--- Draw a single seismic ping with rotating arcs using display lists
+-- Draw a single seismic ping with rotating textured rings
 --------------------------------------------------------------------------------
 local function DrawPing(ping, currentTime, cameraDistance)
 	local age = currentTime - ping.startTime
@@ -199,8 +142,13 @@ local function DrawPing(ping, currentTime, cameraDistance)
 	local wx, wy, wz = ping.x, ping.y, ping.z
 
 	glPushMatrix()
-	glTranslate(wx, wy + 5, wz)
-	glBillboard()
+	glTranslate(wx, wy + pingHeightOffset, wz)
+	if drawFlatOnMap then
+		glRotate(90, 1, 0, 0)
+	else
+		glBillboard()
+	end
+	glTexture(atlasTexture)
 
 	-- Calculate all progress/alpha values
 	local rotation1 = currentTime * 70
@@ -223,33 +171,21 @@ local function DrawPing(ping, currentTime, cameraDistance)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		-- Outer outlines
-		glColor(0.09, 0, 0, outerAlpha * 0.25)
-		for i = 0, 3 do
-			glPushMatrix()
-			glRotate(rotation1, 0, 0, 1)
-			glScale(outerRadius, outerRadius, 1)
-			glCallList(displayLists.outerOutlines[i])
-			glPopMatrix()
+		if outerAlpha > 0.001 then
+			glColor(0.09, 0, 0, outerAlpha * 0.25)
+			DrawTexturedQuad(atlasSprites.outerOutline, outerRadius * outerQuadScale, rotation1)
 		end
 
 		-- Middle outlines
-		glColor(0.09, 0, 0, middleAlpha * 0.25)
-		for i = 0, 2 do
-			glPushMatrix()
-			glRotate(rotation2, 0, 0, 1)
-			glScale(middleRadius, middleRadius, 1)
-			glCallList(displayLists.middleOutlines[i])
-			glPopMatrix()
+		if middleAlpha > 0.001 then
+			glColor(0.09, 0, 0, middleAlpha * 0.25)
+			DrawTexturedQuad(atlasSprites.middleOutline, middleRadius * middleQuadScale, rotation2)
 		end
 
 		-- Inner outlines
-		glColor(0.07, 0, 0, innerAlpha * 0.25)
-		for i = 0, 1 do
-			glPushMatrix()
-			glRotate(rotation3, 0, 0, 1)
-			glScale(innerRadius, innerRadius, 1)
-			glCallList(displayLists.innerOutlines[i])
-			glPopMatrix()
+		if innerAlpha > 0.001 then
+			glColor(0.07, 0, 0, innerAlpha * 0.25)
+			DrawTexturedQuad(atlasSprites.innerOutline, innerRadius * innerQuadScale, rotation3)
 		end
 	end
 
@@ -257,33 +193,21 @@ local function DrawPing(ping, currentTime, cameraDistance)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
 
 	-- Outer ring - 4 arcs rotating clockwise
-	glColor(1, 0.1, 0.09, outerAlpha)
-	for i = 0, 3 do
-		glPushMatrix()
-		glRotate(rotation1, 0, 0, 1)
-		glScale(outerRadius, outerRadius, 1)
-		glCallList(displayLists.outerArcs[i])
-		glPopMatrix()
+	if outerAlpha > 0.001 then
+		glColor(1, 0.1, 0.09, outerAlpha)
+		DrawTexturedQuad(atlasSprites.outerRing, outerRadius * outerQuadScale, rotation1)
 	end
 
 	-- Middle ring - 3 arcs rotating counter-clockwise
-	glColor(1, 0.22, 0.2, middleAlpha)
-	for i = 0, 2 do
-		glPushMatrix()
-		glRotate(rotation2, 0, 0, 1)
-		glScale(middleRadius, middleRadius, 1)
-		glCallList(displayLists.middleArcs[i])
-		glPopMatrix()
+	if middleAlpha > 0.001 then
+		glColor(1, 0.22, 0.2, middleAlpha)
+		DrawTexturedQuad(atlasSprites.middleRing, middleRadius * middleQuadScale, rotation2)
 	end
 
 	-- Inner ring - 2 arcs rotating clockwise
-	glColor(1, 0.37, 0.33, innerAlpha)
-	for i = 0, 1 do
-		glPushMatrix()
-		glRotate(rotation3, 0, 0, 1)
-		glScale(innerRadius, innerRadius, 1)
-		glCallList(displayLists.innerArcs[i])
-		glPopMatrix()
+	if innerAlpha > 0.001 then
+		glColor(1, 0.37, 0.33, innerAlpha)
+		DrawTexturedQuad(atlasSprites.innerRing, innerRadius * innerQuadScale, rotation3)
 	end
 
 	-- Center dot (shrinks from large to small with fade in/out)
@@ -298,12 +222,10 @@ local function DrawPing(ping, currentTime, cameraDistance)
 		end
 		local centerAlpha = max(0, centerAlphaMultiplier * 0.6)
 		glColor(1, 0.25, 0.23, centerAlpha)
-		glPushMatrix()
-		glScale(centerScale, centerScale, 1)
-		glCallList(displayLists.centerCircle)
-		glPopMatrix()
+		DrawTexturedQuad(atlasSprites.centerDot, centerScale * centerQuadScale)
 	end
 
+	glTexture(false)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	glPopMatrix()
 
@@ -314,30 +236,46 @@ end
 -- callins
 --------------------------------------------------------------------------------
 function gadget:Initialize()
-	CreateDisplayLists()
+end
+
+function gadget:ViewResize(vsx, vsy)
 end
 
 function gadget:Shutdown()
-	DeleteDisplayLists()
 end
 
 function gadget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	local spec, fullview = spGetSpectatingState()
 	local myAllyTeam = spGetMyAllyTeamID()
-	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitAllyTeam = spGetUnitAllyTeam(unitID)
 
 	if (spec or allyTeam == myAllyTeam) and unitAllyTeam ~= allyTeam then
 		if spec and not fullview then
 			if allyTeam ~= myAllyTeam then return end
 		end
+		if onlyCloakedUnits and not spGetUnitIsCloaked(unitID) then
+			return
+		end
 
-		table.insert(pings, {
-			x = x,
-			y = spGetGroundHeight(x, z) or y,
-			z = z,
-			strength = strength,
-			startTime = gameTime,
-		})
+		local ping
+		if pingPoolCount > 0 then
+			ping = pingPool[pingPoolCount]
+			pingPool[pingPoolCount] = nil
+			pingPoolCount = pingPoolCount - 1
+		else
+			ping = {}
+		end
+
+		ping.x = x
+		ping.y = spGetGroundHeight(x, z) or y
+		ping.z = z
+		ping.startTime = gameTime
+
+		pingCount = pingCount + 1
+		pings[pingCount] = ping
+
+		-- Inform LuaUI with full payload; widgets that only use first args stay compatible.
+		Script.LuaUI.UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	end
 end
 
@@ -345,44 +283,57 @@ function gadget:Update(dt)
 	gameTime = gameTime + dt
 end
 
-function gadget:DrawWorld()
-	if #pings == 0 or Spring.IsGUIHidden() then
+function gadget:DrawWorldPreUnit()
+	if pingCount == 0 or spIsGUIHidden() then
 		return
 	end
 
 	glDepthTest(false)
 
-	-- Get visible world bounds for culling
-	local cx, cy, cz = Spring.GetCameraPosition()
-	local cs = Spring.GetCameraState()
-	local vsx, vsy = spGetViewGeometry()
-
-	-- Calculate visible world area based on camera state
-	local viewDistance = cy / math.tan(math.rad(cs.fov or 45))
-	local viewWidth = viewDistance * (vsx / vsy)
-	local margin = maxRadius * thicknessScale * 3  -- Add margin for ping radius
-
-	local minX = cx - viewWidth - margin
-	local maxX = cx + viewWidth + margin
-	local minZ = cz - viewDistance - margin
-	local maxZ = cz + viewDistance + margin
+	local cx, cy, cz = spGetCameraPosition()
+	local cullRadius = maxRadius * thicknessScale * 2.5
 
 	local currentTime = gameTime
 	local i = 1
-	while i <= #pings do
+	while i <= pingCount do
 		local ping = pings[i]
-		-- Check if ping is within visible bounds
-		if ping.x < minX or ping.x > maxX or ping.z < minZ or ping.z > maxZ then
-			-- Ping is outside view, skip drawing but don't remove yet
-			if currentTime - ping.startTime > pingLifetime then
-				table.remove(pings, i)
+		if spIsSphereInView(ping.x, ping.y + pingHeightOffset, ping.z, cullRadius) then
+			local isOccluded = false
+			if hideWhenTerrainOccluded then
+				isOccluded = IsTerrainOccluded(cx, cy, cz, ping.x, ping.y + pingHeightOffset, ping.z)
+			end
+
+			if isOccluded then
+				if currentTime - ping.startTime > pingLifetime then
+					local dead = ping
+					pings[i] = pings[pingCount]
+					pings[pingCount] = nil
+					pingCount = pingCount - 1
+					pingPoolCount = pingPoolCount + 1
+					pingPool[pingPoolCount] = dead
+				else
+					i = i + 1
+				end
+			-- Ping is visible and not terrain-occluded, try to draw it
+			elseif not DrawPing(ping, currentTime, cy) then
+				local dead = ping
+				pings[i] = pings[pingCount]
+				pings[pingCount] = nil
+				pingCount = pingCount - 1
+				pingPoolCount = pingPoolCount + 1
+				pingPool[pingPoolCount] = dead
 			else
 				i = i + 1
 			end
 		else
-			-- Ping is visible, try to draw it
-			if not DrawPing(ping, currentTime, cy) then
-				table.remove(pings, i)
+			-- Ping is outside frustum, skip drawing but only remove when expired
+			if currentTime - ping.startTime > pingLifetime then
+				local dead = ping
+				pings[i] = pings[pingCount]
+				pings[pingCount] = nil
+				pingCount = pingCount - 1
+				pingPoolCount = pingPoolCount + 1
+				pingPool[pingPoolCount] = dead
 			else
 				i = i + 1
 			end

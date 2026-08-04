@@ -265,17 +265,17 @@ void main(void)
 	}
 	#else
 		int startpoint = 0;
-		int teamID = int(polyVerts[startpoint].x);
-		int endpoint = 2;
-		// fair warning: there is probably a bug here that causes an infinite loop if the last box is the same team as the first box
-		// also, its not very efficient
-		// Whoever reads this code, I'm sorry :'(
 		for (int i = 0; i < NUM_POLYGONS; i = i + 1){
-			while (int(polyVerts[endpoint].x) == teamID){
-				endpoint = endpoint + 1;
-				if (endpoint == NUM_POINTS){
-					break;
-				}
+			if (startpoint >= NUM_POINTS) {
+				break;
+			}
+
+			int teamID = int(polyVerts[startpoint].x);
+			int vertexCount = max(int(polyVerts[startpoint].y), 0);
+			int endpoint = min(startpoint + vertexCount, NUM_POINTS);
+			if ((endpoint - startpoint) < 3) {
+				startpoint = endpoint;
+				continue;
 			}
 
 			float signedDistance = sdPolygon2(mapWorldPos.xz, startpoint, endpoint - startpoint);
@@ -309,7 +309,6 @@ void main(void)
 			}
 			// Advance pointer
 			startpoint = endpoint;
-			teamID = int(polyVerts[startpoint].x);
 		}
 	#endif
 
