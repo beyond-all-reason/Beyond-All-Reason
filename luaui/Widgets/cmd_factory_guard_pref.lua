@@ -36,3 +36,14 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		Spring.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
 	end
 end
+
+-- A factory that changes hands is a factory you now own, and it should behave
+-- like the ones you built. Without this it keeps whatever guard state it had
+-- under its previous owner: a mission handing the player a captured base, or a
+-- teammate sharing a lab, leaves them a factory that quietly ignores their
+-- preference until they notice and set it by hand.
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end

@@ -606,8 +606,16 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- NullAI holds a seat and does nothing — a mission's seat-filler. A
+		-- team that will never act needs no commander; whatever should stand
+		-- on its ground, the mission's roster spawns itself. Native AI, so
+		-- its name comes from GetAIInfo, not GetTeamLuaAI.
+		local nativeAIName = isAI and select(4, Spring.GetAIInfo(teamID)) or nil
 		if not scenarioSpawnsUnits then
-			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
+			if
+				not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI"))
+				and nativeAIName ~= "NullAI"
+			then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 				if unitID then
 					startUnitList[#startUnitList + 1] = { unitID = unitID, teamID = teamID, x = x, y = y, z = z }

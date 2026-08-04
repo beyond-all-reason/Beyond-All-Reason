@@ -10,6 +10,12 @@
 ---@alias MissionUnitGroup string roster group name, declared by units.lua Grouped(...)
 ---@alias ObjectiveName string
 ---@alias MissionTeamRole "player"|"enemy"|"gaia" spawn-time team role, resolved at arm
+--- Wall-clock seconds, never frames. An alias and not a bare number for the
+--- usual reason — a `number` has nothing to call itself in a sentence, so an
+--- editor can only offer a nameless box, and the one thing an author needs to
+--- know here is which unit they are typing in. The DSL converts on the way in
+--- using the engine's own tick rate, so "30" is thirty seconds at any speed.
+---@alias MissionSeconds number
 
 --- Mission bus vocabulary, CLOSED BY TYPE: every event name crossing the bus
 --- is a member of this alias, so the checker flags typos across every inputs/OnEvent consumer as type errors.
@@ -20,6 +26,10 @@
 ---| "UnitTaken"
 ---| "UnitEnteredLos"
 ---| "mission.objective_changed"
+---| "waves.wave_spawned"
+---| "waves.wave_cleared"
+---| "waves.boss_spawned"
+---| "waves.boss_defeated"
 
 --- A condition carries metadata about what can change its answer: inputs
 --- name bus events (nil = poll every cadence). Pure — reads only ctx, captures configuration never progress (progress lives in engine state, the savegame rule).
@@ -37,6 +47,11 @@
 ---@field TransferGroup fun(groupName: string, teamID: integer)
 ---@field Protect fun(name: string) combat-module protection by roster name
 ---@field Unprotect fun(name: string)
+---@field StartWaves fun(request: table) waves-module pressure, by pack
+---@field StopWaves fun(pack: string)
+---@field SetWaveIntensity fun(pack: string, intensity: number)
+---@field SurgeWaves fun(pack: string)
+---@field WaveStatus fun(pack: string): WaveStatus|nil
 ---@field frame integer current game frame
 
 --- A lazy effect built by a named verb (e.g. Objective("x").Complete()); the
@@ -44,11 +59,43 @@
 ---@class MissionEffect
 ---@field execute fun(ctx: MissionContext)
 
---- The injected Objective verb's handle: Complete() builds the effect side,
---- IsComplete() the condition side.
+--- The injected Objective verb's handle. In trigger files: Complete() and
+--- Reveal() build the effect side, IsComplete() the condition side (Reveal
+--- marks the objective relevant so the tracker draws it; Complete implies
+--- Reveal). In objectives.lua — the definition-site sandbox — the same verb
+--- starts a declaration: Title/CompletedWhen/When/RevealedWhen/Foreshadow
+--- chain there and ONLY there, the way Spawn belongs to units.lua.
 ---@class MissionObjective
 ---@field Complete fun(): MissionEffect
+---@field Reveal fun(): MissionEffect
 ---@field IsComplete fun(): MissionCondition
+---@field Title fun(title: string): MissionObjectiveDeclaration objectives.lua sandbox only
+---@field CompletedWhen fun(condition: MissionCondition): MissionObjectiveDeclaration objectives.lua sandbox only
+---@field RevealedWhen fun(condition: MissionCondition): MissionObjectiveDeclaration objectives.lua sandbox only
+---@field Foreshadow fun(): MissionObjectiveDeclaration objectives.lua sandbox only
+
+--- The declaration chain in objectives.lua — the definition site for every
+--- objective id the mission speaks, the way units.lua is for unit names.
+--- Declaration order is the tracker's display order and the default reveal
+--- cadence (first line at arm, each next when its predecessor completes);
+--- the sequence gates reveal ONLY — completion gating stays explicit, via
+--- When. IsComplete is the reference side, valid in any condition slot.
+---@class MissionObjectiveDeclaration
+---@field Title fun(title: string): MissionObjectiveDeclaration display wording; defaults to the id with underscores as spaces
+---@field CompletedWhen fun(condition: MissionCondition): MissionObjectiveDeclaration one way to complete; a second CompletedWhen is another way (OR), each compiling to its own trigger
+---@field When fun(condition: MissionCondition): MissionObjectiveDeclaration another condition on the LATEST CompletedWhen; all in a disjunct must hold (AND)
+---@field RevealedWhen fun(condition: MissionCondition): MissionObjectiveDeclaration replace the default reveal cadence with the mission's own moment
+---@field Foreshadow fun(): MissionObjectiveDeclaration draw the line greyed-out before its reveal
+---@field IsComplete fun(): MissionCondition
+
+--- One declared objective, as objectives.lua's Finalize returns it.
+---@class MissionObjectiveDeclarationEntry
+---@field id string
+---@field title string
+---@field completions MissionCondition[][] disjuncts (one per CompletedWhen), each AND-composed into its own derived trigger; empty = a standing objective, transparent to the reveal cadence
+---@field revealedWhen MissionCondition|nil set by RevealedWhen
+---@field revealAtArm boolean|nil marked by the loader: no declared moment, no completable predecessor
+---@field foreshadow boolean
 
 --- A named-unit reference produced by the injected Unit verb. Both
 --- conditions are latched; the name is validated against the roster at load — unknown names never arm.
@@ -63,6 +110,15 @@
 ---@field At fun(fx: number, fz: number): MissionSpawnChain
 ---@field Named fun(name: MissionUnitName): MissionSpawnChain
 ---@field Grouped fun(group: MissionUnitGroup): MissionSpawnChain
+---@field Neutral fun(): MissionSpawnChain starts inert: neither shoots nor is shot at, until handed over
+
+--- The dot-only builder chain returned by Claim. No At: a claimed unit is
+--- already somewhere. OrSpawnAt is required, and says where to build one when
+--- the team turns out to have none.
+---@class MissionClaimChain
+---@field Named fun(name: MissionUnitName): MissionClaimChain
+---@field Grouped fun(group: MissionUnitGroup): MissionClaimChain
+---@field OrSpawnAt fun(fx: number, fz: number): MissionClaimChain
 
 --- One validated spawn entry, as Roster.Finalize returns it.
 ---@class MissionRosterEntry
@@ -72,6 +128,8 @@
 ---@field fz number
 ---@field name MissionUnitName|nil declared by Named
 ---@field group MissionUnitGroup|nil declared by Grouped
+---@field claim boolean|nil written by Claim: bind to an existing unit if the team has one
+---@field neutral boolean|nil written by Neutral: spawn inert, cleared when the unit changes hands
 
 --- A registered trigger. Identity = source filename + declaration order,
 --- stamped at registration — the unregister-by-identity key for hot reload.
@@ -82,11 +140,13 @@
 ---@field condition MissionCondition
 ---@field effects MissionEffect[] executed in Do order when the condition fires
 ---@field once boolean fire at most once (default true)
+---@field delayFrames integer hold the effects until the conditions have held this long; 0 fires at once
 
 --- The dot-only builder chain returned by When. There is no terminator: the
 --- loader finalizes all chains when the file's include returns; a chain without a Do fails the load.
 ---@class TriggerChain
 ---@field When fun(condition: MissionCondition): TriggerChain another condition; all must hold
+---@field After fun(seconds: MissionSeconds): TriggerChain hold the effects until the conditions have held that long
 ---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
 ---@field Once fun(once: boolean?): TriggerChain default true; pass false for repeating triggers
 
@@ -106,6 +166,7 @@
 --- reload from source; this table is reapplied on top.
 ---@class TriggerEngineState
 ---@field fired table<string, boolean> trigger id -> has fired
+---@field heldSince table<string, integer> trigger id -> frame its conditions first held, for delays
 
 --- What a required module's mission_dsl.lua returns. The loader composes the
 --- sandbox env from the missions manifest's requires list — the dependency

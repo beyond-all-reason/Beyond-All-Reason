@@ -1,0 +1,77 @@
+/* Mission objectives tracker. A quest log corner, not a window: no chrome,
+   no buttons, and the whole panel is transparent to the mouse — a HUD
+   readout must never cost a click that belonged to the game. */
+
+/* top/left/width are set from Lua (applyViewLayout): vw units resolve to 0
+   in this RmlUi build and `right:` anchors to the body box, not the
+   viewport. These are the pre-layout fallback only. */
+.mo-root {
+	position: absolute;
+	top: 140px;
+	left: 40px;
+	width: 320px;
+	z-index: 900;
+	pointer-events: none;
+	decorator: vertical-gradient( #111823d8 #0a0e14e0 );
+	border: 1px #223040;
+	border-radius: 8px;
+	padding: 10px 14px;
+	font-family: Exo 2;
+	font-size: 15px;
+	color: #d5dde7;
+}
+
+.mo-header {
+	font-size: 0.85em;
+	letter-spacing: 2px;
+	color: #7f93a8;
+	margin-bottom: 6px;
+	padding-bottom: 5px;
+	border-bottom: 1px #1d2938;
+}
+
+.mo-row {
+	display: flex;
+	align-items: center;
+	margin: 4px 0;
+	color: #e8eef5;
+}
+
+/* The mark is drawn, not typed: an 8px dot colored by state. A glyph here
+   is a bet on the game font's coverage; a box with border-radius is not. */
+.mo-mark {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 4px;
+	margin-right: 9px;
+	background-color: #e8b64c;
+}
+
+/* A foreshadowed line (Foreshadow() in objectives.lua) is on the board
+   before its reveal — the mission telling the player what is coming. Its
+   mark is a hollow ring. */
+.mo-pending {
+	color: #55667a;
+}
+
+.mo-pending .mo-mark {
+	background-color: #00000000;
+	border: 1px #55667a;
+}
+
+/* A completed line stays on the board — dimmed, its mark turned green — so
+   the list reads as a story so far, not a shrinking todo pile. */
+.mo-done {
+	color: #5c6b7a;
+}
+
+.mo-done .mo-mark {
+	background-color: #57a55a;
+}
+
+/* Risky property in its own block, same convention as the editor theme: if
+   the engine build lacks line-through, only this declaration dies. */
+.mo-done {
+	text-decoration: line-through;
+}
