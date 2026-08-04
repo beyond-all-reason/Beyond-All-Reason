@@ -124,9 +124,6 @@ local function buildUnitDefIndex(unitDefs, unitDefNames)
             if def.id then
                 index[def.id] = def
             end
-            if def.name then
-                index[def.name] = def
-            end
         end
     end
     for name, info in pairs(unitDefNames or {}) do
