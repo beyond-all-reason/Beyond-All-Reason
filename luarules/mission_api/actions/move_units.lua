@@ -16,7 +16,9 @@ local function moveUnits(unitName, position, direction, randomRadius)
             
             if direction then
                 local testposx, _, testposz = Spring.GetUnitPosition(unitID)
-                Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
+                if not (direction.x-testposx == 0 and direction.z-testposz == 0) then
+                    Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
+                end
             end
         end
     end
