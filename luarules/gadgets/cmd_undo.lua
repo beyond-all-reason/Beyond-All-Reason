@@ -163,7 +163,11 @@ if gadgetHandler:IsSyncedCode() then
 				local unitID = Spring.CreateUnit(params[2], unitX, Spring.GetGroundHeight(unitX, unitZ), unitZ, params[7], restoreTeamID)
 				if unitID ~= nil then
 					Spring.SetUnitHealth(unitID, params[3])
-					Spring.SetUnitDirection(unitID, params[8], params[9], params[10])
+					if params[12] ~= nil then
+						Spring.SetUnitDirection(unitID, params[8], params[9], params[10], params[12], params[13], params[14])
+					else
+						Spring.SetUnitDirection(unitID, params[8], params[9], params[10])
+					end
 					numRestoredUnits = numRestoredUnits + 1
 
 					if unitDef and unitDef.selfDExplosion then
@@ -291,7 +295,7 @@ if gadgetHandler:IsSyncedCode() then
 			local ux, uy, uz = Spring.GetUnitPosition(unitID)
 			local health, maxHealth = Spring.GetUnitHealth(unitID)
 			local buildFacing = Spring.GetUnitBuildFacing(unitID)
-			local dx, dy, dz = Spring.GetUnitDirection(unitID)
+			local dx, dy, dz, rx, ry, rz = Spring.GetUnitDirection(unitID)
 			local originalTeamID = teamID  -- capture before potential overwrite below
 			if attackerID ~= nil then
 				teamID = attackerTeamID or Spring.GetUnitTeam(attackerID) or teamID
@@ -301,7 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 			if teamSelfdUnits[teamID] == nil then
 				teamSelfdUnits[teamID] = {}
 			end
-			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz, originalTeamID}
+			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz, originalTeamID, rx, ry, rz}
 		end
 
 		selfdCmdUnits[unitID] = nil

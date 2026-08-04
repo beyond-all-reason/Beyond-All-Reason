@@ -131,6 +131,7 @@ local animCfg = {
 	cameraMoveDraw = -999,       -- drawCounter of the last detected camera move
 	cameraSettleDraws = 6,       -- draws of stillness before full-rate rebuilds resume
 	movingRebuildsPerFrame = 4,  -- alpha-only rebuild budget while the camera moves
+	visibilityGraceDraws = 2,    -- Ignore isolated distance/frustum rejects while the camera moves
 	-- Budget for building brand-new geometry (missing display lists). After a
 	-- full recluster hundreds of clusters need fresh lists; building them a few
 	-- per frame spreads that cost instead of stuttering in a single frame.
@@ -405,6 +406,12 @@ local batch = {
 	clusterJobBudget = 0.0016,  -- default clustering slice budget (seconds)
 	clusterJobBudgetMin = 0.0009,
 	clusterJobBudgetMax = 0.002,
+	clusterGeneration = 0,      -- Presentation generation shared by clusters and display lists
+	previousMetalClusters = nil,
+	previousMetalHulls = nil,
+	previousEnergyClusters = nil,
+	previousEnergyHulls = nil,
+	recyclePreviousHulls = nil,
 	-- When a hidden layer becomes visible while its clusters are stale, keep it
 	-- hidden until the pending time-sliced rebuild atomically swaps in fresh data.
 	waitForFreshMetal = false,
@@ -564,6 +571,7 @@ local areaTextRange = (1.75 * minTextAreaLength * (fontSizeMax / fontSizeMin)) ^
 local drawEnabled = false
 local drawEnergyEnabled = false
 local actionActive = false
+local activeReclaimCommand = false
 local reclaimerSelected = false
 local resBotSelected = false
 local IsActiveReclaimCommand
@@ -684,6 +692,7 @@ local animState = {
 	DeleteFadingCluster = nil,
 	GetClusterAnimAlphaAndScale = nil,
 	CreateFadingClusterDisplayList = nil,
+	RecycleHull = nil,
 }
 
 -- Helper function to compute a simple hash/signature of cluster state
@@ -902,14 +911,16 @@ local function syncSide(isEnergy)
 	-- self-contained fading records by pulling fields off the saved cluster ref.
 	for oldUid, hc in pairs(hullCopies) do
 		if not matchedOldUids[oldUid] then
-			if not fading[oldUid] then
+			local oldCluster = hc.cluster
+			-- A reused hull is already owned and rendered by a live replacement.
+			-- Fading it separately would draw the same area twice.
+			if not oldCluster.hullReused and not fading[oldUid] then
 				local startAlpha = hc.alpha or 1
 				local liveAnim = anims[oldUid]
 				if liveAnim and liveAnim.alpha then
 					startAlpha = liveAnim.alpha
 				end
 				if startAlpha > 0.01 then
-					local oldCluster = hc.cluster
 					local center = oldCluster.center
 					fading[oldUid] = {
 						hullCopy = hc.hull,
@@ -971,6 +982,10 @@ animState.DeleteFadingCluster = function(uid, isEnergy)
 		if entry.displayLists.edge then glDeleteList(entry.displayLists.edge) end
 		if entry.displayLists.text then glDeleteList(entry.displayLists.text) end
 		entry.displayLists = nil
+	end
+	if entry.hullCopy then
+		animState.RecycleHull(entry.hullCopy)
+		entry.hullCopy = nil
 	end
 	fading[uid] = nil
 end
@@ -1173,8 +1188,9 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 			entry.inView = true
 			entry.dist = 0
 			entry.fadeMult = 1
+			entry.lastInViewDraw = currentDrawCount
 		else
-			cache[cid] = { frame = currentDrawCount, generation = cameraGeneration, inView = true, dist = 0, fadeMult = 1 }
+			cache[cid] = { frame = currentDrawCount, generation = cameraGeneration, inView = true, dist = 0, fadeMult = 1, lastInViewDraw = currentDrawCount }
 		end
 		return true, 0, 1
 	end
@@ -1214,8 +1230,22 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 		end
 	end
 
-	-- Cache the result (reuse existing table to reduce GC pressure)
+	-- Camera motion can put a cluster just outside the conservative frustum or
+	-- fade boundary for one draw. Keep the previous accepted state briefly so
+	-- that transient rejection cannot zero its animation or delete its lists.
 	local cached = cache[cid]
+	if inView then
+		if cached then
+			cached.lastInViewDraw = currentDrawCount
+		end
+	elseif cached and cached.lastInViewDraw
+		and currentDrawCount - cached.lastInViewDraw <= animCfg.visibilityGraceDraws
+	then
+		inView = true
+		fadeMult = cached.fadeMult or 0
+	end
+
+	-- Cache the result (reuse existing table to reduce GC pressure)
 	if cached then
 		cached.frame = currentDrawCount
 		cached.generation = cameraGeneration
@@ -1228,7 +1258,8 @@ GetClusterVisibility = function(cid, isEnergy, currentDrawCount)
 			generation = cameraGeneration,
 			inView = inView,
 			dist = dist,
-			fadeMult = fadeMult
+			fadeMult = fadeMult,
+			lastInViewDraw = inView and currentDrawCount or nil,
 		}
 	end
 
@@ -1523,6 +1554,46 @@ do
 			end
 			hull[i] = nil
 		end
+	end
+
+	animState.RecycleHull = recycleHull
+
+	batch.recyclePreviousHulls = function()
+		local previousClusters = batch.previousMetalClusters
+		local previousHulls = batch.previousMetalHulls
+		if previousHulls then
+			for cid, hull in pairs(previousHulls) do
+				local oldCluster = previousClusters and previousClusters[cid]
+				local fadingEntry = oldCluster and oldCluster.uid and animState.fading[oldCluster.uid]
+				if oldCluster and oldCluster.hullReused then
+					oldCluster.hullReused = nil
+				elseif fadingEntry and fadingEntry.hullCopy == hull then
+					-- Ownership moved to the fade record.
+				else
+					recycleHull(hull)
+				end
+			end
+		end
+		batch.previousMetalClusters = nil
+		batch.previousMetalHulls = nil
+
+		previousClusters = batch.previousEnergyClusters
+		previousHulls = batch.previousEnergyHulls
+		if previousHulls then
+			for cid, hull in pairs(previousHulls) do
+				local oldCluster = previousClusters and previousClusters[cid]
+				local fadingEntry = oldCluster and oldCluster.uid and animState.fadingEnergy[oldCluster.uid]
+				if oldCluster and oldCluster.hullReused then
+					oldCluster.hullReused = nil
+				elseif fadingEntry and fadingEntry.hullCopy == hull then
+					-- Ownership moved to the fade record.
+				else
+					recycleHull(hull)
+				end
+			end
+		end
+		batch.previousEnergyClusters = nil
+		batch.previousEnergyHulls = nil
 	end
 
 	local function BoundingBox(cluster, points, maxRadius)
@@ -2881,32 +2952,32 @@ local function ClusterizeFeatures()
 		opticsObject:Run(stagingEnergyClusters, stagingEnergyHulls, stagingClusters, stagingHulls)
 	end
 
-	-- Atomic swap: recycle the old hulls and point the live globals at the new
-	-- staging tables. (Pre-clustering snapshots still hold the old hull refs for
-	-- fade-out, matching the previous synchronous recycle-then-sync ordering.)
+	-- Invalidate positional cid display lists before publishing the new cluster
+	-- arrays. Old hulls remain intact until identity matching has copied the few
+	-- that need to outlive this generation for fade-out.
 	batch.clusterTracyResource = nil
 	batch.setClusterTracyPhase(batch.clusterTracyNames.swap)
-	for cid, hull in pairs(featureConvexHulls) do
-		local oldCluster = featureClusters[cid]
-		if oldCluster and oldCluster.hullReused then
-			oldCluster.hullReused = nil
-		else
-			recycleHull(hull)
-		end
+	for cid in pairs(clusterDisplayLists) do
+		DeleteClusterDisplayList(cid, false)
 	end
+	for cid in pairs(energyClusterDisplayLists) do
+		DeleteClusterDisplayList(cid, true)
+	end
+	batch.clusterGeneration = batch.clusterGeneration + 1
+	batch.previousMetalClusters = featureClusters
+	batch.previousMetalHulls = featureConvexHulls
 	featureClusters = stagingClusters
 	featureConvexHulls = stagingHulls
 	if showEnergyFields then
-		for cid, hull in pairs(energyFeatureConvexHulls) do
-			local oldCluster = energyFeatureClusters[cid]
-			if oldCluster and oldCluster.hullReused then
-				oldCluster.hullReused = nil
-			else
-				recycleHull(hull)
-			end
-		end
+		batch.previousEnergyClusters = energyFeatureClusters
+		batch.previousEnergyHulls = energyFeatureConvexHulls
 		energyFeatureClusters = stagingEnergyClusters
 		energyFeatureConvexHulls = stagingEnergyHulls
+	else
+		batch.previousEnergyClusters = energyFeatureClusters
+		batch.previousEnergyHulls = energyFeatureConvexHulls
+		energyFeatureClusters = {}
+		energyFeatureConvexHulls = {}
 	end
 
 	-- A full rebuild supersedes any pending regional/incremental dirty state.
@@ -2921,7 +2992,10 @@ local function ClusterizeFeatures()
 	end
 
 	dirty.needCluster = false
-	dirty.needRedraw = true
+	-- DrawLiveCluster compiles current-generation lists within its per-draw
+	-- budget. Labels remain hidden until the corresponding list is ready.
+	dirty.needRedraw = false
+	dirty.forceFullRedraw = false
 
 	-- Calculate total map metal and update auto-scaled threshold
 	totalMapMetal = 0
@@ -2985,8 +3059,12 @@ local function disableHighlight()
 end
 
 IsActiveReclaimCommand = function()
+	return activeReclaimCommand
+end
+
+local function UpdateActiveReclaimCommand()
 	local _, _, _, cmdName = spGetActiveCommand()
-	return cmdName == 'Reclaim'
+	activeReclaimCommand = cmdName == 'Reclaim'
 end
 
 local UpdateDrawEnabled -- Uses the showOption setting to pick a function call.
@@ -3285,9 +3363,15 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	-- Quantize alpha to ~32 buckets so we don't rebuild every tiny change
 	local newHash = geomHash + floor(alphaMult * 32 + 0.5) * 0.0001
 	local oldHash = stateHashes[cid]
+	local clusterData = displayLists[cid]
+	if clusterData and clusterData.generation ~= batch.clusterGeneration then
+		DeleteClusterDisplayList(cid, isEnergy)
+		clusterData = nil
+		oldHash = nil
+	end
 
 	-- Only recreate if state actually changed
-	if oldHash and oldHash == newHash then
+	if oldHash and oldHash == newHash and clusterData then
 		return -- No change, keep existing display list
 	end
 	tracy.ZoneBeginN("W:ReclaimField:CompileDisplayList")
@@ -3295,7 +3379,6 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	if debugTiming then timingAccum.rebuilds = timingAccum.rebuilds + 1 end
 
 	-- Prepare clusterData table; if it exists preserve text (we'll recreate geometry only)
-	local clusterData = displayLists[cid]
 	if not clusterData then
 		clusterData = {}
 		displayLists[cid] = clusterData
@@ -3339,6 +3422,7 @@ CreateClusterDisplayList = function(cid, isEnergy, alphaMult)
 	-- Track the alpha used for the current gradient list so we can decide later
 	-- whether to rebuild on subsequent fade ticks.
 	clusterData.bakedAlpha = alphaMult
+	clusterData.generation = batch.clusterGeneration
 
 	displayLists[cid] = clusterData
 
@@ -3780,6 +3864,7 @@ local function UpdateReclaimFields()
 			Spring.Echo("[ReclaimFieldHighlight] cluster job error: " .. tostring(err))
 			batch.clusterJobActive = false
 			batch.clusterJobCo = nil
+			batch.recyclePreviousHulls()
 			for cid = 1, #featureClusters do
 				featureClusters[cid].hullReused = nil
 			end
@@ -3811,13 +3896,13 @@ local function UpdateReclaimFields()
 			end
 			tracy.ZoneBeginN("W:ReclaimField:Cluster:IdentitySync")
 			animState.SyncClusterIdentitiesAfterClustering()
+			batch.recyclePreviousHulls()
 			tracy.ZoneEnd()
 			lastClusterRebuildClock = now
 			lastCheckFrame = frame
 			lastCheckFrameClock = now
 			UpdateDrawEnabled()
 			UpdateDrawEnergyEnabled()
-			dirty.needRedraw = true
 			if debugTiming then
 				local dt = osClock() - tFinalize0
 				timingAccum.clusterFinalize = timingAccum.clusterFinalize + dt
@@ -4058,6 +4143,7 @@ end
 
 function widget:Initialize()
 	gameStarted = Spring.GetGameFrame() > 0
+	UpdateActiveReclaimCommand()
 	showResourceIcons = Spring.GetModOptions().scenariooptions ~= nil
 	screenx, screeny = widgetHandler:GetViewSizes()
 	local f = WG['fonts'] and WG['fonts'].getFont(2, 1.5)
@@ -4359,6 +4445,11 @@ function widget:GameStart()
 	dirty.forceFullRedraw = true
 end
 
+function widget:ActiveCommandChanged()
+	UpdateActiveReclaimCommand()
+	UpdateDrawEnabled()
+end
+
 function widget:Update(dt)
 	local tU0 = osClock()
 	-- Update camera scale when enabled
@@ -4475,6 +4566,9 @@ local function DrawLiveCluster(cid, isEnergy, drawGradient)
 		clusterData = energyClusterDisplayLists[cid]
 	else
 		clusterData = clusterDisplayLists[cid]
+	end
+	if clusterData and clusterData.generation ~= batch.clusterGeneration then
+		clusterData = nil
 	end
 	if drawGradient then
 		local needRebuild = false
@@ -4641,10 +4735,13 @@ function widget:DrawWorld()
 			local nc = numberColor
 			for clusterID = 1, #featureClusters do
 				local cluster = featureClusters[clusterID]
-				if cluster and cluster.textX then
+				local clusterData = clusterDisplayLists[clusterID]
+				if cluster and cluster.textX and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
 					if effAlpha > 0.001 then
-						local drawAlpha = max(effAlpha, 0.2)
+						local drawAlpha = effAlpha
 						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 						widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
 						local fs = cluster.font
@@ -4658,8 +4755,8 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.001 and entry.text then
-						local drawAlpha = max(alpha, 0.2)
+				if alpha > 0.001 and entry.text and entry.displayLists and entry.displayLists.gradient then
+					local drawAlpha = alpha
 					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 					widgetFont:SetTextColor(nc[1], nc[2], nc[3], nc[4] * drawAlpha)
 					local fs = entry.font or fontSizeMin
@@ -4675,10 +4772,13 @@ function widget:DrawWorld()
 			local enc = energyNumberColor
 			for clusterID = 1, #energyFeatureClusters do
 				local cluster = energyFeatureClusters[clusterID]
-				if cluster and cluster.textX then
+				local clusterData = energyClusterDisplayLists[clusterID]
+				if cluster and cluster.textX and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
 					if effAlpha > 0.001 then
-						local drawAlpha = max(effAlpha, 0.2)
+						local drawAlpha = effAlpha
 						widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 						widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
 						local fs = cluster.font * energyTextSizeMultiplier
@@ -4692,8 +4792,8 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.001 and entry.text then
-						local drawAlpha = max(alpha, 0.2)
+				if alpha > 0.001 and entry.text and entry.displayLists and entry.displayLists.gradient then
+					local drawAlpha = alpha
 					widgetFont:SetOutlineColor(0, 0, 0, 0.7 * drawAlpha)
 					widgetFont:SetTextColor(enc[1], enc[2], enc[3], enc[4] * drawAlpha)
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
@@ -4710,7 +4810,10 @@ function widget:DrawWorld()
 		if showMetal then
 			for clusterID = 1, #featureClusters do
 				local cluster = featureClusters[clusterID]
-				if cluster and cluster.textX then
+				local clusterData = clusterDisplayLists[clusterID]
+				if cluster and cluster.textX and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
 					if effAlpha > 0.01 then
 						local nc = numberColor
@@ -4724,7 +4827,7 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
+				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
 					local nc = numberColor
 					glColor(nc[1], nc[2], nc[3], nc[4] * alpha)
 					glPushMatrix()
@@ -4737,7 +4840,10 @@ function widget:DrawWorld()
 		if showEnergy then
 			for clusterID = 1, #energyFeatureClusters do
 				local cluster = energyFeatureClusters[clusterID]
-				if cluster and cluster.textX then
+				local clusterData = energyClusterDisplayLists[clusterID]
+				if cluster and cluster.textX and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
 					if effAlpha > 0.01 then
 						local enc = energyNumberColor
@@ -4751,7 +4857,7 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
+				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
 					local enc = energyNumberColor
 					glColor(enc[1], enc[2], enc[3], enc[4] * alpha)
 					glPushMatrix()
@@ -4775,7 +4881,10 @@ function widget:DrawWorld()
 			glTexture(":l:LuaUI/Images/metal.png")
 			for clusterID = 1, #featureClusters do
 				local cluster = featureClusters[clusterID]
-				if cluster and cluster.textX and cluster.text then
+				local clusterData = clusterDisplayLists[clusterID]
+				if cluster and cluster.textX and cluster.text and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, false)
 					if effAlpha > 0.01 then
 						local fs = cluster.font
@@ -4784,7 +4893,7 @@ function widget:DrawWorld()
 						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(effAlpha, 0.2))
+						glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * effAlpha)
 						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
@@ -4792,14 +4901,14 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fading) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
+				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
 					local fs = entry.font or fontSizeMin
 					local is = fs * iconSizeRatio
 					local tw = getTextWidth(entry.text) * fs
 					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * max(alpha, 0.2))
+					glColor(numberColor[1], numberColor[2], numberColor[3], numberColor[4] * alpha)
 					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end
@@ -4810,7 +4919,10 @@ function widget:DrawWorld()
 			glTexture(":l:LuaUI/Images/energy.png")
 			for clusterID = 1, #energyFeatureClusters do
 				local cluster = energyFeatureClusters[clusterID]
-				if cluster and cluster.textX and cluster.text then
+				local clusterData = energyClusterDisplayLists[clusterID]
+				if cluster and cluster.textX and cluster.text and clusterData and clusterData.gradient
+					and clusterData.generation == batch.clusterGeneration
+				then
 					local effAlpha = animState.GetClusterAnimAlphaAndScale(cluster.uid, true)
 					if effAlpha > 0.01 then
 						local fs = cluster.font * energyTextSizeMultiplier
@@ -4819,7 +4931,7 @@ function widget:DrawWorld()
 						local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 						glPushMatrix()
 						glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, cluster.textX, cluster.center.y, cluster.textZ, 1)
-						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(effAlpha, 0.2))
+						glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * effAlpha)
 						glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 						glPopMatrix()
 					end
@@ -4827,14 +4939,14 @@ function widget:DrawWorld()
 			end
 			for uid, entry in pairs(animState.fadingEnergy) do
 				local alpha = entry.alpha or 0
-				if alpha > 0.01 and entry.text then
+				if alpha > 0.01 and entry.text and entry.displayLists and entry.displayLists.gradient then
 					local fs = (entry.font or fontSizeMin) * energyTextSizeMultiplier
 					local is = fs * iconSizeRatio
 					local tw = getTextWidth(entry.text) * fs
 					local ix1 = -(tw + fs * iconGapRatio + is) * 0.5
 					glPushMatrix()
 					glMultMatrix(cosF, 0, negSinF, 0, negSinF, 0, negCosF, 0, 0, 1, 0, 0, entry.textX, entry.center.y, entry.textZ, 1)
-					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * max(alpha, 0.2))
+					glColor(energyNumberColor[1], energyNumberColor[2], energyNumberColor[3], energyNumberColor[4] * alpha)
 					glTexRect(ix1, -is * 0.5, ix1 + is, is * 0.5)
 					glPopMatrix()
 				end

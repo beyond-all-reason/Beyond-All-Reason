@@ -245,6 +245,18 @@ local startScript = VFS.LoadFile("_script.txt")
 local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
 local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
 local RWS_MSG_CHUNK  = 4000
+
+local function getRestartWithStateScript()
+	local startPosTypePattern = "([Ss][Tt][Aa][Rr][Tt][Pp][Oo][Ss][Tt][Yy][Pp][Ee]%s*=%s*)%d+(%s*;)"
+	local script, replacements = startScript:gsub(startPosTypePattern, function(prefix, suffix)
+		return prefix .. "0" .. suffix
+	end, 1)
+	if replacements == 0 then
+		Spring.Echo("[Restart With State] Could not set fixed start-position mode; using the original start script.")
+	end
+	return script
+end
+
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1209,7 +1221,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		f:write(data)
 		f:close()
 		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
-		Spring.Restart("", startScript)
+		Spring.Restart("", getRestartWithStateScript())
 		return true
 	end
 	if msg == "rws:clear" then
@@ -3165,8 +3177,8 @@ function init()
 		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
 		  type = "select",
 		  options = {
-			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_basic'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_advanced'),
 		  },
 		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
@@ -4050,6 +4062,26 @@ function init()
 			  for _, n in ipairs({0, 1, 2, 3, 4}) do
 				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
 					  WG['pip' .. n].setDrawCommandFX(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostreams", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostreams'), type = "bool", value = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostreams_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawNanoStreams", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawNanoStreams then
+					  WG['pip' .. n].setDrawNanoStreams(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostream_usage", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostream_usage'), type = "bool", value = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostream_usage_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipNanoStreamReflectUsage", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setNanoStreamReflectUsage then
+					  WG['pip' .. n].setNanoStreamReflectUsage(value)
 				  end
 			  end
 		  end,

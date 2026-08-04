@@ -61,9 +61,7 @@ else
 	end
 
 	function handleActivityEvent(_,playerID)
-		if Script.LuaUI("ActivityEvent") then
-			Script.LuaUI.ActivityEvent(playerID)
-		end
+		Script.LuaUI.ActivityEvent(playerID)
 	end
 
 	function gadget:Update()

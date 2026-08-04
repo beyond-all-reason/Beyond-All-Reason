@@ -55,9 +55,7 @@ else
 	end
 
 	function handleEvent(_,playerID,mem)
-		if Script.LuaUI("GpuMemEvent") then
-			Script.LuaUI.GpuMemEvent(playerID,mem)
-		end
+		Script.LuaUI.GpuMemEvent(playerID,mem)
 	end
 
 	function gadget:Update()

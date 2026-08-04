@@ -34,6 +34,7 @@ return {
 			buildinggrounddecaltype = "decals/corageo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
