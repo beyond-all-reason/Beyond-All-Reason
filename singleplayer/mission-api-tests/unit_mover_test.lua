@@ -65,7 +65,14 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = 'armstump', x = 2300, z = 1900, team = 0, unitName = 'tanks', quantity = 10 },
+				{
+					unitDefName = 'armstump',
+					x = 2300,
+					z = 1900,
+					team = 0,
+					unitName = 'tanks',
+					quantity = 10
+				},
 			},
 		},
 	},
@@ -74,8 +81,10 @@ local actions = {
         type = actionTypes.MoveUnits,
 		parameters = {
             unitName = "tanks",
-            posx = 2500,
-            posz = 2000,
+            position = {
+				x = 2500,
+				z = 2000,
+			},
             randomRadius = 300,
 		},
     },
@@ -84,10 +93,14 @@ local actions = {
         type = actionTypes.MoveUnits,
 		parameters = {
             unitName = "tanks",
-            posx = 2500,
-            posz = 2000,
-            dirx = 3000,
-            dirz = 3000,
+			position = {
+				x = 2500,
+				z = 2000,
+			},
+			direction = {
+				x = 3000,
+				z = 3000,
+			},
             randomRadius = 300,
 		},
     },
@@ -96,10 +109,14 @@ local actions = {
         type = actionTypes.MoveUnits,
 		parameters = {
             unitName = "tanks",
-            posx = 2500,
-            posz = 2000,
-            dirx = 1000,
-            dirz = 1000,
+			position = {
+				x = 2500,
+				z = 2000,
+			},
+			direction = {
+				x = 1000,
+				z = 1000,
+			},
             randomRadius = 300,
 		},
     },
@@ -108,10 +125,14 @@ local actions = {
         type = actionTypes.MoveUnits,
 		parameters = {
             unitName = "tanks",
-            posx = 2500,
-            posz = 2000,
-            dirx = 2500,
-            dirz = 2000,
+			position = {
+				x = 2500,
+				z = 2000,
+			},
+			direction = {
+				x = 2500,
+				z = 2000,
+			},
             randomRadius = 300,
 		},
     },
@@ -120,8 +141,10 @@ local actions = {
 		type = actionTypes.RotateUnits,
 		parameters = {
             unitName = "tanks",
-            dirx = 2500,
-            dirz = 2000,
+			direction = {
+				x = 2500,
+				z = 2000,
+			},
 		},
 	},
 
