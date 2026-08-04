@@ -194,13 +194,14 @@ function TransportAPI.GetPassengerSize(unitID)
 		return cachedUnitSizes[udefID]
 	end
 
-	-- fall back method to determine size based on footprint, this is UNWANTED!
-	local footprint = math.max(def.xsize, def.zsize) / 2
-	if     footprint <= 2  then cachedUnitSizes[udefID] = 1
-	elseif footprint <= 4  then cachedUnitSizes[udefID] = 4
-	elseif footprint <= 8  then cachedUnitSizes[udefID] = 16 
-	elseif footprint <= 16 then cachedUnitSizes[udefID] = 64 -- ?
-	else                        cachedUnitSizes[udefID] = 256 -- ?
+	-- fall back method to determine size based on mass (vanilla - like)
+	local mass = def.mass or 0
+	if mass <= 750 then
+		cachedUnitSizes[udefID] = 1
+	elseif def.cantBeTransported then
+		cachedUnitSizes[udefID] = 8
+	else
+		cachedUnitSizes[udefID] = 4
 	end
 	return cachedUnitSizes[udefID]
 end

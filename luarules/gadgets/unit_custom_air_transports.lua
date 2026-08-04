@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == false then
-	Spring.Echo("Custom transports disabled via modoption, skipping transport handler gadget")
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == "disabled" then
+	Spring.Echo("Custom transports disabled via modoption, skipping gadget"..gadget:GetInfo().name)
 	return false
 end
 
@@ -26,6 +26,11 @@ if not TransportAPI then
 	Spring.Echo("TransportAPI must be loaded before this gadget")
 	return false
 end
+
+local modOptions = Spring.GetModOptions() or {}
+local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
+local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
+local tractorbeamDefs       = tractorBeamMode and VFS.Include("tractor_beams_temp_defs/transporter_defs_"..tractorBeamMode..".lua") or {}
 
 -- TRANSPORTAPI LOCALS
 local GetPassengerSize = TransportAPI.GetPassengerSize
@@ -77,22 +82,22 @@ local reissueOrder = Game.Commands.ReissueOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 
 -- CUSTOM SETTINGS
-local LOAD_RADIUS = 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
-local UNLOAD_RADIUS = 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
+local LOAD_RADIUS = tractorbeamDefs.LOAD_RADIUS or 128    -- elmos XZ; transporter must be within this range to fire PerformLoad
+local UNLOAD_RADIUS = tractorbeamDefs.UNLOAD_RADIUS or 32  -- elmos XZ; transporter must be within this range to fire PerformUnload
 local CMD_AREA_LOAD = 39751 -- custom area-load command; needs to be logged in customcmds
 local CMD_LOAD_UNIT = 39752 -- custom load-unit command; needs to be logged in customcmds
 local CMD_LOAD_WAIT = 39753 -- custom load-wait command; needs to be logged in customcmds
 local CACHED_CYLINDER_UNITS_LIFESPAN = 1 -- 1 frame
 local CACHED_CYLINDER_UNITS_ROUNDING = 16 -- rounds position and radius to nearest multiple of this to reduce cache misses
-local ALLOW_ENEMY_LOAD_MODE = 2 -- Enemy loading mode:
+local ALLOW_ENEMY_LOAD_MODE = tractorbeamDefs.ALLOW_ENEMY_LOAD_MODE or 2 -- Enemy loading mode:
 --   1 = NONE: enemies can never be loaded (even explicit CMD_LOAD_UNIT is rejected)
 --   2 = Stunned only: stunned enemies are treated as neutral at the load stage; unstunned enemies are never loaded
 --   3 = Stunned + consecutive frames: stunned enemies load immediately; unstunned enemies load after
 --         minConsecutiveFramesToLoadEnemy frames within load range while barely moving (speed < 0.5 elmos/frame)
 --   4 = Mode 3 + reduced radius: unstunned enemies must be within ENEMY_LOAD_RADIUS for the consecutive-frames countdown
 --   5 = Mode 4 + no per-frame movegoal: the transporter will not receive a per-frame movegoal update toward a queued enemy unit
-local ENEMY_LOAD_RADIUS_MULTIPLIER = 0.5 -- how much small is the radius (modes 4-5)
-local MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = 60 -- how long does a transport has to hover over a barely moving enemy unit to start loading (modes 3-5)
+local ENEMY_LOAD_RADIUS_MULTIPLIER = tractorbeamDefs.ENEMY_LOAD_RADIUS_MULTIPLIER or 0.5 -- how much small is the radius (modes 4-5)
+local MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = tractorbeamDefs.MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY or 60 -- how long does a transport has to hover over a barely moving enemy unit to start loading (modes 3-5)
 
 -- CONSTANTS
 local MAP_SIZE_X = Game.mapSizeX

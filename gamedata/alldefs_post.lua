@@ -70,7 +70,9 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
-local _tractorbeamDefs       = VFS.Include("tractor_beams_temp_defs/transporter_defs.lua")
+local tractorBeamEnabled = modOptions.beta_tractorbeam ~= "disabled"
+local tractorBeamMode = tractorBeamEnabled and modOptions.beta_tractorbeam or nil
+local _tractorbeamDefs       = tractorBeamMode and VFS.Include("tractor_beams_temp_defs/transporter_defs_"..tractorBeamMode..".lua") or {}
 local transporterDefs        = _tractorbeamDefs.transporters
 local transporterDefaults    = _tractorbeamDefs.transporterDefaults
 local passengerSizes         = _tractorbeamDefs.passengerSizes
@@ -229,7 +231,7 @@ local function unitDef_Post(name, uDef)
 	----------------------------------------------------------------------------------------------------------
 
 	--- beta tractorbeam mod option
-	if modOptions.beta_tractorbeam == true then
+	if tractorBeamEnabled then
 		-- apply transporter overrides
 		local tentry = transporterDefs[name]
 		if tentry then

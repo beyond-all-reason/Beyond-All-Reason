@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
     return false
 end
 
-if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam == true then
-	Spring.Echo("Custom transports enabled via modoption, skipping UnderwaterPickup gadget")
+if Spring.GetModOptions and Spring.GetModOptions().beta_tractorbeam ~= "disabled" then
+	Spring.Echo("Custom transports enabled via modoption, skipping gadget"..gadget:GetInfo().name)
 	return false
 end
 

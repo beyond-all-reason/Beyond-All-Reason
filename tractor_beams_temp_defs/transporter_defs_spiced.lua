@@ -43,11 +43,18 @@
 	-- total weight = 0.5 + 3 + 3 + 1 = 7.5
 	-- speedMod = 1 - ((( 7.5 - 6 ) / (0.5 * 6)) * 0.3 = 0.85
 
-
 local DEFAULT_GENERIC_SCRIPT    = "units/generic_air_transport_lus.lua"
 local DEFAULT_WEAPONIZED_SCRIPT = "units/weaponized_air_transport_lus.lua"
 
 return {
+	-- Gadget settings
+	-- customizable constants for the gadget.
+	ALLOW_ENEMY_LOAD_MODE = 4, 	-- Stunned only
+	ENEMY_LOAD_RADIUS_MULTIPLIER = 0.7, 	-- enemy load range is this ratio of the normal load range
+	MIN_CONSECUTIVE_FRAMES_TO_LOAD_ENEMY = 60, -- enemy load range is this ratio of the normal load range
+	LOAD_RADIUS = 128,			-- elmos XZ; transporter must be within this range to fire PerformLoad
+	UNLOAD_RADIUS = 32, 		-- elmos XZ; transporter must be within this range to fire PerformUnload
+
     -- -------------------------------------------------------------------------
 	-- LAB BUILDOPTIONS
 	-- Per-factory explicit list of transports when beta_tractorbeam is active.
@@ -101,68 +108,112 @@ return {
 	-- -------------------------------------------------------------------------
 	transporters = {
 		armdfly = {
-			script = DEFAULT_WEAPONIZED_SCRIPT, -- has a weapon
+			script        = DEFAULT_WEAPONIZED_SCRIPT, -- has a weapon
+			metalcost     = 420,
+			energycost    = 10000,
+			health        = 1000,
+			sightdistance = 550,
+			speed         = 210, -- 210 (empty/non-oversized) -> 151.2 (comm or full oversized)
 			customparams = {
-				loadtime            = 60,
-				transporterseats    = 4,
-				transportcegname    = "armada_ion",
+				loadtime                       = 60,
+				transporterseats               = 4,
+				transportcegname               = "armada_ion",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.25,
+				transportercomspeedmodstrength = 0.25,
 			},
 		},
 		armatlas = {
+			speed = 170, -- 170 (empty/non-oversized) -> 136 (comm or full oversized)
 			customparams = {
-				loadtime            = 30,
-				transporterseats    = 2,
-				transportcegname    = "armada_ion",
+				loadtime                       = 30,
+				transporterseats               = 2,
+				transportcegname               = "armada_ion",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 		armhvytrans = {
+			speed = 100, -- 100 (empty/non-oversized) -> 80 (comm or full oversized)
 			customparams = {
-				loadtime            = 60,
-				transporterseats    = 4,
-				transportcegname    = "armada_ion",
+				loadtime                       = 60,
+				transporterseats               = 4,
+				transportcegname               = "armada_ion",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 		corseah = {
+			metalcost  = 320,
+			energycost = 7500,
+			health     = 1800,
+			speed      = 190, -- 190 (empty/non-oversized) -> 133 (comm or full oversized)
 			customparams = {
-				loadtime            = 90,
-				transporterseats    = 6,
-				transportcegname    = "cortex_grapple",
+				loadtime                       = 90,
+				transporterseats               = 6,
+				transportcegname               = "cortex_grapple",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.35,
+				transportercomspeedmodstrength = 0.35,
 			},
 		},
 		corhvytrans = {
+			speed = 100, -- 100 (empty/non-oversized) -> 80 (comm or full oversized)
 			customparams = {
-				loadtime            = 60,
-				transporterseats    = 4,
-				transportcegname    = "cortex_grapple",
+				loadtime                       = 60,
+				transporterseats               = 4,
+				transportcegname               = "cortex_grapple",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 		corvalk = {
+			speed = 170, -- 170 (empty/non-oversized) -> 136 (comm or full oversized)
 			customparams = {
-				loadtime            = 30,
-				transporterseats    = 2,
-				transportcegname    = "cortex_grapple",
+				loadtime                       = 30,
+				transporterseats               = 2,
+				transportcegname               = "cortex_grapple",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 		legstronghold = {
 			script = DEFAULT_WEAPONIZED_SCRIPT, -- has a weapon
+			health = 2200,
+			speed  = 170, -- 170 (empty/non-oversized) -> 144.5 (comm or full oversized)
 			customparams = {
-				loadtime            = 60,
-				transporterseats    = 4,
-				transportcegname    = "legion_grav_distort",
+				loadtime                       = 60,
+				transporterseats               = 4,
+				transportcegname               = "legion_grav_distort",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.25,
+				transportercomspeedmodstrength = 0.25,
 			},
 		},
 		legatrans = {
+			speed = 100, -- 100 (empty/non-oversized) -> 80 (comm or full oversized)
 			customparams = {
-				loadtime            = 60,
-				transporterseats    = 4,
-				transportcegname    = "legion_grav_distort",
+				loadtime                       = 60,
+				transporterseats               = 4,
+				transportcegname               = "legion_grav_distort",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 		leglts = {
+			speed = 170, -- 170 (empty/non-oversized) -> 136 (comm or full oversized)
 			customparams = {
-				loadtime            = 30,
-				transporterseats    = 2,
-				transportcegname    = "legion_grav_distort",
+				loadtime                       = 30,
+				transporterseats               = 2,
+				transportcegname               = "legion_grav_distort",
+				transporterspeedmodmode        = 2,
+				transporterspeedmodstrength    = 0.2,
+				transportercomspeedmodstrength = 0.2,
 			},
 		},
 	},

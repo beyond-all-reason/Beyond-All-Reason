@@ -27,7 +27,7 @@ if not TransportAPI then
 	return false
 end
 
-if not Spring.GetModOptions or Spring.GetModOptions().beta_tractorbeam == false then
+if not Spring.GetModOptions or Spring.GetModOptions().beta_tractorbeam == "disabled" then
 	Spring.Echo("Custom transports disabled via modoption, disabling " .. widget:GetInfo().name)
 	return false
 end

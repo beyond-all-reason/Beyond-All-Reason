@@ -1677,9 +1677,15 @@ local options = {
         key    	= "beta_tractorbeam",
         name   	= "Tractor beams",
         desc   	= "Experimental tractor beam transportation method",
-        type   	= "bool",
-        section = "options_experimental",
-        def  	= false,
+        type	= "list",
+        def		= "disabled",
+        section	= "options_experimental",
+        items	= {
+            { key= "disabled", 	name= "Disabled", 		desc="Disabled"},
+            { key= "vanilla", 	name= "Vanilla-like", 	desc="Tractor beam logic without balance adjustments"},
+            --{ key= "simplistic",name= "Simplistic", 	desc="Tractor beam logic with simple balance adjustments (unit sizes)"},
+            --{ key= "spiced", 	name= "Spiced",			desc="Tractor beam logic with additional effects: slows, abduction; and reviewed unit sizes" },
+        }
     },
 
     {
