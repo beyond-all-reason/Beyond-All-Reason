@@ -226,6 +226,9 @@ local metricKeys = {
 	metalExcess = "metalExcess",
 	energyExcess = "energyExcess",
 	armyValue = "armyValue",
+	landArmyValue = "landArmyValue",
+	airArmyValue = "airArmyValue",
+	navalArmyValue = "navalArmyValue",
 	defenseValue = "defenseValue",
 	utilityValue = "utilityValue",
 	economyValue = "economyValue",
@@ -246,6 +249,9 @@ local metricsAvailable = {
 	{ key="metalExcess", configLevel=constants.configLevel.expert, text="ME" },
 	{ key="energyExcess", configLevel=constants.configLevel.expert, text="EE" },
 	{ key="armyValue", configLevel=constants.configLevel.basic, text="AV" },
+	{ key="landArmyValue", configLevel=constants.configLevel.advanced, text="LAV" },
+	{ key="airArmyValue", configLevel=constants.configLevel.advanced, text="AAV" },
+	{ key="navalArmyValue", configLevel=constants.configLevel.advanced, text="NAV" },
 	{ key="defenseValue", configLevel=constants.configLevel.advanced, text="DV" },
 	{ key="utilityValue", configLevel=constants.configLevel.unavailable, text="UV" },
 	{ key="economyValue", configLevel=constants.configLevel.expert, text="EV" },
@@ -299,6 +305,19 @@ local function buildUnitDefs()
 		return isArmyUnit and not isCommander(unitDefId, unitDef)
 	end
 
+	local function isAirArmyUnit(unitDefID, unitDef)
+		return isArmyUnit(unitDefID, unitDef) and unitDef.canFly
+	end
+
+	local function isNavalArmyUnit(unitDefID, unitDef)
+		return isArmyUnit(unitDefID, unitDef) and unitDef.modCategories['ship']
+	end
+
+	local function isLandArmyUnit(unitDefID, unitDef)
+		return isArmyUnit(unitDefID, unitDef) and not
+		       (isAirArmyUnit(unitDefID, unitDef) or isNavalArmyUnit(unitDefID, unitDef))
+	end
+
 	local function isDefenseUnit(unitDefID, unitDef)
 		return unitDef.weapons and (#unitDef.weapons > 0) and (not unitDef.speed or (unitDef.speed == 0))
 	end
@@ -318,7 +337,9 @@ local function buildUnitDefs()
 	unitDefsToTrack.reclaimerUnitDefs = {}
 	unitDefsToTrack.energyConverterDefs = {}
 	unitDefsToTrack.buildPowerDefs = {}
-	unitDefsToTrack.armyUnitDefs = {}
+	unitDefsToTrack.landArmyUnitDefs = {}
+	unitDefsToTrack.airArmyUnitDefs = {}
+	unitDefsToTrack.navalArmyUnitDefs = {}
 	unitDefsToTrack.defenseUnitDefs = {}
 	unitDefsToTrack.utilityUnitDefs = {}
 	unitDefsToTrack.economyBuildingDefs = {}
@@ -336,8 +357,14 @@ local function buildUnitDefs()
 		if isBuildPower(unitDefID, unitDef) then
 			unitDefsToTrack.buildPowerDefs[unitDefID] = unitDef.buildSpeed
 		end
-		if isArmyUnit(unitDefID, unitDef) then
-			unitDefsToTrack.armyUnitDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
+		if isLandArmyUnit(unitDefID, unitDef) then
+			unitDefsToTrack.landArmyUnitDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
+		end
+		if isAirArmyUnit(unitDefID, unitDef) then
+			unitDefsToTrack.airArmyUnitDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
+		end
+		if isNavalArmyUnit(unitDefID, unitDef) then
+			unitDefsToTrack.navalArmyUnitDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
 		end
 		if isDefenseUnit(unitDefID, unitDef) then
 			unitDefsToTrack.defenseUnitDefs[unitDefID] = { unitDef.metalCost, unitDef.energyCost }
@@ -383,9 +410,17 @@ local function addToUnitCache(teamID, unitID, unitDefID)
 		addToUnitCacheInternal("buildPower", teamID, unitID,
 					   unitDefsToTrack.buildPowerDefs[unitDefID])
 	end
-	if unitDefsToTrack.armyUnitDefs[unitDefID] then
-		addToUnitCacheInternal("armyUnits", teamID, unitID,
-					   unitDefsToTrack.armyUnitDefs[unitDefID])
+	if unitDefsToTrack.landArmyUnitDefs[unitDefID] then
+		addToUnitCacheInternal("landArmyUnits", teamID, unitID,
+					   unitDefsToTrack.landArmyUnitDefs[unitDefID])
+	end
+	if unitDefsToTrack.airArmyUnitDefs[unitDefID] then
+		addToUnitCacheInternal("airArmyUnits", teamID, unitID,
+					   unitDefsToTrack.airArmyUnitDefs[unitDefID])
+	end
+	if unitDefsToTrack.navalArmyUnitDefs[unitDefID] then
+		addToUnitCacheInternal("navalArmyUnits", teamID, unitID,
+					   unitDefsToTrack.navalArmyUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.defenseUnitDefs[unitDefID] then
 		addToUnitCacheInternal("defenseUnits", teamID, unitID,
@@ -433,9 +468,17 @@ local function removeFromUnitCache(teamID, unitID, unitDefID)
 		removeFromUnitCacheInternal("buildPower", teamID, unitID,
 					   unitDefsToTrack.buildPowerDefs[unitDefID])
 	end
-	if unitDefsToTrack.armyUnitDefs[unitDefID] then
-		removeFromUnitCacheInternal("armyUnits", teamID, unitID,
-					   unitDefsToTrack.armyUnitDefs[unitDefID])
+	if unitDefsToTrack.landArmyUnitDefs[unitDefID] then
+		removeFromUnitCacheInternal("landArmyUnits", teamID, unitID,
+					   unitDefsToTrack.landArmyUnitDefs[unitDefID])
+	end
+	if unitDefsToTrack.airArmyUnitDefs[unitDefID] then
+		removeFromUnitCacheInternal("airArmyUnits", teamID, unitID,
+					   unitDefsToTrack.airArmyUnitDefs[unitDefID])
+	end
+	if unitDefsToTrack.navalArmyUnitDefs[unitDefID] then
+		removeFromUnitCacheInternal("navalArmyUnits", teamID, unitID,
+					   unitDefsToTrack.navalArmyUnitDefs[unitDefID])
 	end
 	if unitDefsToTrack.defenseUnitDefs[unitDefID] then
 		removeFromUnitCacheInternal("defenseUnits", teamID, unitID,
@@ -497,7 +540,7 @@ local function buildUnitCache()
 			return value
 		end,
 	}
-	unitCache.armyUnits = {
+	unitCache.defenseUnits = {
 		add = function(unitID, value)
 			local result = value[1]
 			--if options.useMetalEquivalent70 then
@@ -514,9 +557,12 @@ local function buildUnitCache()
 			return result
 		end,
 	}
-	unitCache.defenseUnits = unitCache.armyUnits
-	unitCache.utilityUnits = unitCache.armyUnits
-	unitCache.economyBuildings = unitCache.armyUnits
+
+	unitCache.utilityUnits = unitCache.defenseUnits
+	unitCache.economyBuildings = unitCache.defenseUnits
+	unitCache.landArmyUnits = unitCache.defenseUnits
+	unitCache.airArmyUnits = unitCache.defenseUnits
+	unitCache.navalArmyUnits = unitCache.defenseUnits
 
 	for _, allyID in ipairs(Spring.GetAllyTeamList()) do
 		if allyID ~= gaiaAllyID then
@@ -530,8 +576,12 @@ local function buildUnitCache()
 				cachedTotals[teamID].energyConverters = 0
 				unitCache[teamID].buildPower = {}
 				cachedTotals[teamID].buildPower = 0
-				unitCache[teamID].armyUnits = {}
-				cachedTotals[teamID].armyUnits = 0
+				unitCache[teamID].landArmyUnits = {}
+				cachedTotals[teamID].landArmyUnits = 0
+				unitCache[teamID].airArmyUnits = {}
+				cachedTotals[teamID].airArmyUnits = 0
+				unitCache[teamID].navalArmyUnits = {}
+				cachedTotals[teamID].navalArmyUnits = 0
 				unitCache[teamID].defenseUnits = {}
 				cachedTotals[teamID].defenseUnits = 0
 				unitCache[teamID].utilityUnits = {}
@@ -940,7 +990,15 @@ local function getOneStat(statKey, teamID)
 		local _, _, energyExcess, _, _ = Spring.GetTeamResourceStats(teamID, "e")
 		result = energyExcess
 	elseif statKey == metricKeys.armyValue then
-		result = cachedTotals[teamID].armyUnits
+		result = cachedTotals[teamID].landArmyUnits +
+		         cachedTotals[teamID].airArmyUnits +
+		         cachedTotals[teamID].navalArmyUnits
+	elseif statKey == metricKeys.landArmyValue then
+		result = cachedTotals[teamID].landArmyUnits
+	elseif statKey == metricKeys.airArmyValue then
+		result = cachedTotals[teamID].airArmyUnits
+	elseif statKey == metricKeys.navalArmyValue then
+		result = cachedTotals[teamID].navalArmyUnits
 	elseif statKey == metricKeys.defenseValue then
 		result = cachedTotals[teamID].defenseUnits
 	elseif statKey == metricKeys.utilityValue then
