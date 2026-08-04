@@ -36,6 +36,7 @@ return {
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,
 			unitgroup = "weapon",
+			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -71,10 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -120,7 +117,6 @@ return {
 				reloadtime = 0.75,
 				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpcexplo",
-				soundhitvolume = 36,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
 				turret = true,

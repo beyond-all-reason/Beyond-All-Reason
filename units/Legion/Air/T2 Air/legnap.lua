@@ -25,7 +25,6 @@ return {
 		maxslope = 10,
 		speed = 215,
 		maxwaterdepth = 0,
-		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/LEGNAP.s3o",
 		script = "Units/CORHURC.cob",
@@ -44,20 +43,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-large",
-				[2] = "crashing-large",
-				[3] = "crashing-large2",
-				[4] = "crashing-large3",
-				[5] = "crashing-large3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -112,6 +97,7 @@ return {
 					area_onhit_damage = 30,
 					area_onhit_range = 150,
 					area_onhit_time = 15,
+					water_splash = 0,
 				},
 				damage = {
 					default = 50,

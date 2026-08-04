@@ -81,11 +81,6 @@ return {
 				[5] = "custom:bowsplash-huge",
 				[6] = "custom:enginespurt-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -132,7 +127,6 @@ return {
 				reloadtime = 18,
 				rgbcolor = "0.9, 0.5, 0",
 				soundhit = "rflrpcexplo",
-				soundhitvolume = 42,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
 				turret = true,
@@ -174,6 +168,9 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 200,
 				},
@@ -207,10 +204,8 @@ return {
 				range = 2300,
 				reloadtime = 12,
 				soundhit = "lrpcexplo",
-				soundhitvolume = 36,
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
-				soundstartvolume = 28,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 900,

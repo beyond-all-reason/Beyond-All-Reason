@@ -44,11 +44,6 @@ return {
 			subfolder = "ArmAircraft",
 			unitgroup = "builder",
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

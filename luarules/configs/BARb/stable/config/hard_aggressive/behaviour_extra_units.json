@@ -50,7 +50,7 @@
 			},
 			"armnanotct2": {
 				"role": ["support"],
-				"since": 900
+				"since": 600
 			},
 
 				//CORTEX
@@ -78,7 +78,7 @@
 			},
 			"cornanotct2": {
 				"role": ["support"],
-				"since": 900
+				"since": 600
 			},
 
 				//LEGION
@@ -106,7 +106,7 @@
 			},
 			"legnanotct2": {
 				"role": ["support"],
-				"since": 900
+				"since": 600
 			}
 		}
 }

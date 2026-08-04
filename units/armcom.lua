@@ -87,6 +87,7 @@ return {
 			[27] = "armfhp",
 		},
 		customparams = {
+			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -130,10 +131,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -197,6 +194,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 5,
@@ -236,7 +236,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				customparams = {
-					norangering= 1,
+					norangering = 1,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 200,
@@ -265,10 +266,8 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2",
-				soundhitvolume = 36,
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,
@@ -276,10 +275,14 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					commanders = 0,
 					default = 99999,
-					scavboss = 1000,
+					scavboss = 10,
+					raptorqueen = 10,
 				},
 			},
 		},

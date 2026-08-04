@@ -1,17 +1,17 @@
 return {
 	legavroc = {
 		maxacc = 0.02489,
-		maxdec = 0.04978,
+		maxdec = 0.1,
 		energycost = 6500,
 		metalcost = 920,
 		buildpic = "LEGAVROC.DDS",
 		buildtime = 20130,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "46 30 54",
+		collisionvolumescales = "46 24 54",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		explodeas = "largexplosiongeneric",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		leavetracks = true,
@@ -26,7 +26,7 @@ return {
 		script = "Units/LEGAVROC_clean.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
-		sightdistance = 247,
+		sightdistance = 330,
 		stealth = true,
 		trackoffset = 0,
 		trackstrength = 8,
@@ -72,13 +72,6 @@ return {
 				object = "Units/arm3X3F.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

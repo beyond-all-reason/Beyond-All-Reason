@@ -5,6 +5,7 @@ return {
 		buildpic = "ARMAP.DDS",
 		buildtime = 5450,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "134 49 82",
 		collisionvolumetype = "Box",
@@ -50,6 +51,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBuildings/LandFactories",
 			unitgroup = "builder",
+			restrictions_inclusion = "_noair_",
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
@@ -85,10 +87,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 				[2] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

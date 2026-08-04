@@ -37,6 +37,7 @@ return {
 			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 1,
+			standardextractor = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
@@ -74,13 +75,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

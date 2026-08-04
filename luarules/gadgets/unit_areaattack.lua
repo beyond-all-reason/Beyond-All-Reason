@@ -20,7 +20,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local attackList = {}
 	local closeList = {}
-	local range = {}
 
 	local math_random = math.random
 	local math_pi = math.pi
@@ -28,12 +27,16 @@ if gadgetHandler:IsSyncedCode() then
 	local math_cos = math.cos
 	local math_sin = math.sin
 
+	local CMD_ATTACK = CMD.ATTACK
+	local reissueOrder = Game.Commands.ReissueOrder
+
 	local canAreaAttack = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
 			canAreaAttack[unitDefID] = WeaponDefs[unitDef.weapons[1].weaponDef].range
 		end
 	end
+	local range = canAreaAttack -- range per unitDefID, same data
 
 	local aadesc = {
 		name = "Area Attack",
@@ -59,18 +62,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
 		-- accepts: CMD_AREA_ATTACK_GROUND
-		if canAreaAttack[unitDefID] then
-			return true
-		else
-			return false
+		if canAreaAttack[unitDefID] and #cmdParams == 4 then
+			if cmdParams[4] > 1 then
+				return true
+			end
+			cmdParams[4] = nil
+			reissueOrder(unitID, CMD_ATTACK, cmdParams, cmdOptions, cmdTag, fromInsert)
 		end
+		return false
 	end
 
 	function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 		if cmd == CMD_AREA_ATTACK_GROUND then
 			local x,_,z = Spring.GetUnitPosition(u)
+			if not x then
+				return true, true
+			end
 			local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 			if dist <= range[ud] - param[4] then
 				attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}
@@ -84,7 +93,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(u, ud, team)
 		if canAreaAttack[ud] then
-			range[ud] = canAreaAttack[ud]	-- put the range inside canAreaAttack[ud]
 			Spring.InsertUnitCmdDesc(u,aadesc)
 		end
 	end

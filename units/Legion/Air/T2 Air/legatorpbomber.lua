@@ -43,20 +43,6 @@ return {
 			techlevel = 2,
 			unitgroup = "sub",
 		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -102,9 +88,7 @@ return {
 				range = 400,
 				reloadtime = 7,
 				soundhit = "xplodep2",
-				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 14,
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
@@ -119,6 +103,7 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					norangering = 1,
+					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 750,

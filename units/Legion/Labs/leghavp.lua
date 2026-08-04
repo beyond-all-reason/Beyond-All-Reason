@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGHAVP.DDS",
 		buildtime = 67300,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 105 196",
 		collisionvolumetype = "Box",
@@ -80,13 +81,6 @@ return {
 				object = "Units/cor7X7B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -50,17 +50,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-aa",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-tiny",
-				[2] = "crashing-tiny2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg3",
-				[2] = "airdeathceg4",
-				[3] = "airdeathceg2",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -114,7 +104,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 2,
 				soundTrigger = true,
 				sprayangle = 125,
 				texture1 = "shot",
@@ -124,13 +113,13 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 2500,
+				customparams = {
+					noattackrangearc= 1,
+				},
 				damage = {
 					commanders = 1,
 					default = 2,
 					vtol = 80,
-				},
-				customparams = {
-					noattackrangearc= 1,
 				},
 			},
 

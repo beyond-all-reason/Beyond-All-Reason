@@ -82,11 +82,6 @@ return {
 				[5] = "custom:bowsplash-huge",
 				[6] = "custom:enginespurt-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -157,6 +152,7 @@ return {
 				weaponvelocity = 1000,
 				customparams = {
 					noattackrangearc = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					commanders = 1,
@@ -193,6 +189,7 @@ return {
 				weaponvelocity = 1550,
 				customparams = {
 					noattackrangearc = 1,
+					weapons_role = "secondary",
 				},
 				damage = {
 					vtol = 250,

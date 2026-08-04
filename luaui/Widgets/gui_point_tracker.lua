@@ -362,8 +362,10 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawInMiniMap(sx, sy)
-	if not enabled then return	end
-	-- this fixes drawing on only 1 quadrant of minimap as pwe
+  if not enabled then return	end
+  -- Don't draw map marks inside the PIP minimap
+  if WG['minimap'] and WG['minimap'].isDrawingInPip then return end
+  -- this fixes drawing on only 1 quadrant of minimap as pwe
   gl.ClipDistance ( 1, false)
   gl.ClipDistance ( 3, false)
   DrawMapMarksWorld(1)

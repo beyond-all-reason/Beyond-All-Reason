@@ -34,7 +34,6 @@ local playedWelcome = false
 
 local silentTime = 0.7    -- silent time between queued notifications
 local globalVolume = 0.7
-local playTrackedPlayerNotifs = false
 local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
@@ -51,7 +50,6 @@ end
 --------------------------------------------------------------------------------
 
 local wavFileLengths = VFS.Include('sounds/sound_file_lengths.lua')
-VFS.Include('common/wav.lua')
 
 local voiceSet = Spring.GetConfigString('voiceset', defaultVoiceSet)
 if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
@@ -260,6 +258,7 @@ local commanders = {}
 local commandersDamages = {}
 local passedTime = 0
 local sec = 0
+local suspendUntilSec = 0
 
 local windNotGood = windFunctions.isWindBad()
 
@@ -445,7 +444,7 @@ end
 
 local function queueNotification(event, forceplay)
 	if Spring.GetGameFrame() > 20 or forceplay then
-		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+		if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
@@ -466,10 +465,12 @@ local function queueNotification(event, forceplay)
 	end
 end
 
-
-local function queueTutorialNotification(event)
-	if doTutorialMode and (not tutorialPlayed[event] or tutorialPlayed[event] < tutorialPlayLimit) then
-		queueNotification(event)
+function widget:RecvLuaMsg(message)
+	if message:find("suspendNotifications ") then
+		local duration = tonumber(message:sub(22))
+		if duration and duration > 0 then
+			suspendUntilSec = sec + duration
+		end
 	end
 end
 
@@ -489,7 +490,7 @@ local function gadgetNotificationEvent(msg)
 	end
 
 	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
 		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
@@ -500,8 +501,6 @@ end
 
 function widget:Initialize()
 	widget:PlayerChanged()
-
-	widgetHandler:RegisterGlobal('NotificationEvent', gadgetNotificationEvent)
 
 	WG['notifications'] = {}
 	for sound, params in pairs(notification) do
@@ -554,12 +553,6 @@ function widget:Initialize()
 	end
 	WG['notifications'].setMessages = function(value)
 		displayMessages = value
-	end
-	WG['notifications'].getPlayTrackedPlayerNotifs = function()
-		return playTrackedPlayerNotifs
-	end
-	WG['notifications'].setPlayTrackedPlayerNotifs = function(value)
-		playTrackedPlayerNotifs = value
 	end
 	WG['notifications'].addEvent = function(value, force)
 		if notification[value] then
@@ -636,9 +629,12 @@ function widget:Initialize()
 	end
 end
 
+function widget:NotificationEvent(msg)
+	gadgetNotificationEvent(msg)
+end
+
 function widget:Shutdown()
 	WG['notifications'] = nil
-	widgetHandler:DeregisterGlobal('NotificationEvent')
 end
 
 function widget:GameFrame(gf)
@@ -720,11 +716,11 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if isT2mobile[unitDefID] then
-			queueNotification('Tech2UnitReady')
+			queueNotification('UnitReady/Tech2UnitReady')
 		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3UnitReady')
+			queueNotification('UnitReady/Tech3UnitReady')
 		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4UnitReady')
+			queueNotification('UnitReady/Tech4UnitReady')
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
@@ -874,29 +870,26 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	commandersDamages[unitID] = nil
 end
 
+local function getSoundDuration(soundFile)
+	return wavFileLengths[string.sub(soundFile, 8)] or 3
+end
+
 local function playNextSound()
 	if #soundQueue > 0 then
 		local event = soundQueue[1]
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
+				if Spring.GetGameFrame() < 30 then
+					math.randomseed(tonumber(math.ceil(os.clock()*10))) -- brute force this because early game random seems not very random.
+				end
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
 				local mRare = #notification[event].voiceFilesRare > 1 and mathRandom(1, #notification[event].voiceFilesRare) or 1
 				if math.random() < 0.05 and notification[event].voiceFilesRare[mRare] then
 					Spring.PlaySoundFile(notification[event].voiceFilesRare[mRare], globalVolume, 'ui')
-					local duration = wavFileLengths[string.sub(notification[event].voiceFilesRare[mRare], 8)]
-					if not duration then
-						duration = ReadWAV(notification[event].voiceFilesRare[mRare])
-						duration = duration.Length
-					end
-					nextSoundQueued = sec + (duration or 3) + silentTime
+					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFilesRare[mRare]) + silentTime
 				elseif notification[event].voiceFiles[m] then
 					Spring.PlaySoundFile(notification[event].voiceFiles[m], globalVolume, 'ui')
-					local duration = wavFileLengths[string.sub(notification[event].voiceFiles[m], 8)]
-					if not duration then
-						duration = ReadWAV(notification[event].voiceFiles[m])
-						duration = duration.Length
-					end
-					nextSoundQueued = sec + (duration or 3) + silentTime
+					nextSoundQueued = sec + getSoundDuration(notification[event].voiceFiles[m]) + silentTime
 				else
 					spEcho('notification "'..event..'" missing sound file: #'..m)
 				end
@@ -949,7 +942,7 @@ function widget:Update(dt)
 		end
 
 		-- process sound queue
-		if sec >= nextSoundQueued then
+		if sec >= nextSoundQueued and sec >= suspendUntilSec then
 			playNextSound()
 		end
 
@@ -1042,12 +1035,10 @@ function widget:GetConfigData(data)
 		globalVolume = globalVolume,
 		spoken = spoken,
 		displayMessages = displayMessages,
-		playTrackedPlayerNotifs = playTrackedPlayerNotifs,
 		LastPlay = LastPlay,
 		tutorialMode = tutorialMode,
 		tutorialPlayed = tutorialPlayed,
 		tutorialPlayedThisGame = tutorialPlayedThisGame,
-		
 	}
 end
 
@@ -1067,9 +1058,6 @@ function widget:SetConfigData(data)
 	end
 	if data.displayMessages ~= nil then
 		displayMessages = data.displayMessages
-	end
-	if data.playTrackedPlayerNotifs ~= nil then
-		playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
 	end
 	if data.tutorialPlayed ~= nil then
 		tutorialPlayed = data.tutorialPlayed

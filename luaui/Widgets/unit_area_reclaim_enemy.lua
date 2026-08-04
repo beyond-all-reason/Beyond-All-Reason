@@ -69,7 +69,6 @@ function widget:CommandNotify(id, params, options)
 
 	-- x,y,radius of command
 	local selectedUnits = spGetSelectedUnits()
-	   
 	local areaUnits = spGetUnitsInCylinder(cx, cz, cr)
 	local enemyUnits = {}
 	-- get all enemy units in the area
@@ -107,7 +106,9 @@ function widget:CommandNotify(id, params, options)
 		if #newCmds ~= 0 or options.shift then
 			cmdOpts = cmdOpts + CMD.OPT_SHIFT
 		end
-		newCmds[#newCmds + 1] = { CMD_RECLAIM, unitID , cmdOpts }
+		-- cmd_reclaim with 1 arg reclaims specific unitid, 4 args untargeted
+		-- reclaim, 5 args is targeted area reclaim
+		newCmds[#newCmds + 1] = { CMD_RECLAIM, {unitID, cx, cy, cz, cr} , cmdOpts }
 	end
 
 	-- add the command to all units with reclaim

@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGAP.DDS",
 		buildtime = 6380,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "96 45 96",
 		collisionvolumetype = "Box",
@@ -48,6 +49,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
+			restrictions_inclusion = "_noair_",
 			airfactory = true,
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",
@@ -85,11 +87,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

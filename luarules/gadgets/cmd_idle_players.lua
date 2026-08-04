@@ -60,19 +60,12 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
+	local validation = string.randomString(2)
 	_G.validationIdle = validation
+
+	-- Cache prefix bytes for allocation-free hot-path check
+	local vb1, vb2 = string.byte(validation, 1, 2)
+	local afk_b1 = string.byte(AFKMessage, 1) -- first byte of "idleplayers "
 
 	local function CheckPlayerState(playerID)
 		local newval = playerInfoTable[playerID]
@@ -169,7 +162,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local numToTake = 0
 		for _,teamID in ipairs(teamList) do
-			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
+			local luaAI = GetTeamLuaAI(teamID)
+			local isAiTeam = select(4, GetTeamInfo(teamID, false))
+			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				numToTake = numToTake + 1
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
@@ -212,9 +207,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)~=validation and msg:sub(3,AFKMessageSize) ~= AFKMessage then --invalid message
-			return
-		end
+		if #msg < 2 + AFKMessageSize then return end
+		local b1, b2, b3 = string.byte(msg, 1, 3)
+		if b1 ~= vb1 or b2 ~= vb2 or b3 ~= afk_b1 then return end -- invalid message
+		if msg:sub(3, 2+AFKMessageSize) ~= AFKMessage then return end
 		local afk = tonumber(msg:sub(2+AFKMessageSize+1))
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
 		local previousPresent = playerInfoTableEntry.present

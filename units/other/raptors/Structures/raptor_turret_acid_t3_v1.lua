@@ -110,6 +110,8 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

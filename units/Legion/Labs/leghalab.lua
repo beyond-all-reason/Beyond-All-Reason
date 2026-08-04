@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGGANT.DDS",
 		buildtime = 67300,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 105 196",
 		collisionvolumetype = "Box",
@@ -87,10 +88,6 @@ return {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

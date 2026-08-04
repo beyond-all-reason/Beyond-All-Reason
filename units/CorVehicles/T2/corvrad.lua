@@ -16,7 +16,7 @@ return {
 		health = 570,
 		leavetracks = true,
 		maxacc = 0.02086,
-		maxdec = 0.04172,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 92,
@@ -79,11 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

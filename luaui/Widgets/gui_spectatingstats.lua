@@ -23,33 +23,42 @@ local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local ColorString = Spring.Utilities.Color.ToString
 
+local weaponShowGroups = { ["0"] = true, ["1"] = true }
+local weaponHideRoles = { secondary = true }
+
+local function displayWeaponDPS(weaponDef)
+	if not weaponDef.damages then
+		return false
+	end
+	local custom = weaponDef.customParams
+	return custom.bogus ~= "1" and weaponShowGroups[custom.weapons_group] and not weaponHideRoles[custom.weapons_role or ""]
+end
+
 local unitdefMobileDps = {}
 local unitdefStaticDps = {}
 local unitdefBuildespeed = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local totalDps = 0
 	local weapons = unitDef.weapons
-	if not unitDef.customParams.iscommander then
-		if #weapons > 0 then
-			for i = 1, #weapons do
-				local weaponDef = WeaponDefs[weapons[i].weaponDef]
-				if weaponDef.damages then
-					local maxDmg = 0
-					for _, v in pairs(weaponDef.damages) do
-						if v > maxDmg then
-							maxDmg = v
-						end
+	if #weapons > 0 then
+		for i = 1, #weapons do
+			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if displayWeaponDPS(weaponDef) then
+				local maxDmg = 0
+				for _, v in pairs(weaponDef.damages) do
+					if v > maxDmg then
+						maxDmg = v
 					end
-					local dps = math.floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
-					totalDps = totalDps + dps
 				end
+				local dps = math.floor(maxDmg * weaponDef.salvoSize / weaponDef.reload)
+				totalDps = totalDps + dps
 			end
-			if totalDps > 0 then
-				if unitDef.isBuilding then
-					unitdefStaticDps[unitDefID] = totalDps
-				else
-					unitdefMobileDps[unitDefID] = totalDps
-				end
+		end
+		if totalDps > 0 then
+			if unitDef.isBuilding then
+				unitdefStaticDps[unitDefID] = totalDps
+			else
+				unitdefMobileDps[unitDefID] = totalDps
 			end
 		end
 	end

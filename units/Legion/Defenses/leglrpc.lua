@@ -8,9 +8,9 @@ return {
 		buildpic = "LEGLRPC.DDS",
 		buildtime = 93000,
 		canrepeat = false,
-		--collisionvolumeoffsets = "0 0 -20",
-		--collisionvolumescales = "48 90 48",
-		--collisionvolumetype = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "64 90 64",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
@@ -32,6 +32,7 @@ return {
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
+			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -73,10 +74,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -129,8 +126,6 @@ return {
 				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,

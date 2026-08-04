@@ -19,7 +19,7 @@ return {
 		health = 3000,
 		leavetracks = true,
 		maxacc = 0.02547,
-		maxdec = 0.05093,
+		maxdec = 0.1,
 		maxwaterdepth = 0,
 		metalcost = 370,
 		movementclass = "MTANK3",
@@ -82,13 +82,6 @@ return {
 				object = "Units/cor3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

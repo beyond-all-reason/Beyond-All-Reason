@@ -30,14 +30,22 @@ else
 end
 
 local pveTeamID = Spring.Utilities.GetScavTeamID() or Spring.Utilities.GetRaptorTeamID()
+local GetGameSeconds = Spring.GetGameSeconds
+local GetAllUnits = Spring.GetAllUnits
+local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitTeam = Spring.GetUnitTeam
+local GetUnitPosition = Spring.GetUnitPosition
+local GetGroundHeight = Spring.GetGroundHeight
+local GiveOrderToUnit = Spring.GiveOrderToUnit
 
 local nukeDefs = {}
 for unitDefID, def in ipairs(UnitDefs) do
 	if def.weapons then
 		for i = 1, #def.weapons do
 			local wDef = WeaponDefs[def.weapons[i].weaponDef]
-			if wDef.targetable == 1 then
-				nukeDefs[unitDefID] = true
+			if wDef.targetable == 1 or wDef.customParams.pvenukecontroller then
+				nukeDefs[unitDefID] = wDef.reload
+                --nukeDefs[unitDefID] = true
 				break
 			end
 		end
@@ -45,17 +53,69 @@ for unitDefID, def in ipairs(UnitDefs) do
 end
 
 local aliveNukeLaunchers = {}
+local targetUnits = {}
+local targetUnitIndex = {}
+local attackCmdParams = {0, 0, 0}
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-    if nukeDefs[unitDefID] and (unitTeam == pveTeamID) then
-        aliveNukeLaunchers[unitID] = Spring.GetGameSeconds() + math.random(5,10)
+local function AddTargetUnit(unitID)
+    if not targetUnitIndex[unitID] then
+        targetUnits[#targetUnits + 1] = unitID
+        targetUnitIndex[unitID] = #targetUnits
     end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
-    if aliveNukeLaunchers[unitID] then
-        aliveNukeLaunchers[unitID] = nil
+local function RemoveTargetUnit(unitID)
+    local index = targetUnitIndex[unitID]
+    if not index then
+        return
     end
+
+    local lastIndex = #targetUnits
+    local lastUnitID = targetUnits[lastIndex]
+    targetUnits[index] = lastUnitID
+    targetUnitIndex[lastUnitID] = index
+    targetUnits[lastIndex] = nil
+    targetUnitIndex[unitID] = nil
+end
+
+local function UpdateTrackedUnit(unitID, unitDefID, unitTeam)
+    if nukeDefs[unitDefID] and unitTeam == pveTeamID then
+        aliveNukeLaunchers[unitID] = GetGameSeconds() + math.random(5,10)
+        RemoveTargetUnit(unitID)
+        return
+    end
+
+    aliveNukeLaunchers[unitID] = nil
+    if unitTeam ~= pveTeamID then
+        AddTargetUnit(unitID)
+    else
+        RemoveTargetUnit(unitID)
+    end
+end
+
+function gadget:Initialize()
+    local allUnits = GetAllUnits()
+    for i = 1, #allUnits do
+        local unitID = allUnits[i]
+        UpdateTrackedUnit(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
+    end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+    UpdateTrackedUnit(unitID, unitDefID, unitTeam)
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitTeam)
+    UpdateTrackedUnit(unitID, unitDefID, unitTeam)
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+    UpdateTrackedUnit(unitID, unitDefID, unitTeam)
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
+    aliveNukeLaunchers[unitID] = nil
+    RemoveTargetUnit(unitID)
 end
 
 local difficulties = {
@@ -73,7 +133,6 @@ local mapSizeZ = Game.mapSizeZ
 local targetGridCells = {}
 local numOfCellsX = math.ceil(mapSizeX/gridSize)
 local numOfCellsZ = math.ceil(mapSizeZ/gridSize)
-local GetGameSeconds = Spring.GetGameSeconds
 
 for cellX = 1, numOfCellsX do
     for cellZ = 1, numOfCellsZ do
@@ -88,31 +147,43 @@ for cellX = 1, numOfCellsX do
     end
 end
 
-function checkTargetCell(posx, posz, nukeID)
+local function checkTargetCell(posx, posz, now)
     local cellX = math.ceil(posx/gridSize)
     local cellZ = math.ceil(posz/gridSize)
     local cellData = targetGridCells[cellX][cellZ]
-    if cellData.locked < GetGameSeconds() then
-        cellData.locked = GetGameSeconds() + math.random(180,300)
+    if cellData.locked < now then
+        cellData.locked = now + math.random(180,300)
         return true
     end
     return false
 end
 
 function gadget:GameFrame(frame)
-    if frame%30 == 17 then
-        local allUnits = Spring.GetAllUnits()
-        for nukeID, cooldown in pairs(aliveNukeLaunchers) do
-            if cooldown <= GetGameSeconds() then
-                local targetID = allUnits[math.random(1,#allUnits)]
-                if Spring.GetUnitTeam(targetID) ~= Spring.GetUnitTeam(nukeID) then
-                    local x,y,z = Spring.GetUnitPosition(targetID)
+    if frame%30 ~= 17 then
+        return
+    end
+
+    local now = GetGameSeconds()
+    local targetCount = #targetUnits
+    if targetCount == 0 then
+        return
+    end
+
+    for nukeID, cooldown in pairs(aliveNukeLaunchers) do
+        if cooldown <= now then
+            local targetID = targetUnits[math.random(1, targetCount)]
+            if targetID and GetUnitTeam(targetID) ~= GetUnitTeam(nukeID) then
+                local x, y, z = GetUnitPosition(targetID)
+                if x and z then
                     x = x + math.random(-1024,1024)
                     z = z + math.random(-1024,1024)
-                    y = math.max(Spring.GetGroundHeight(x,z), 0)
-                    if x and z and x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x,z,nukeID) then
-                        Spring.GiveOrderToUnit(nukeID, CMD.ATTACK, {x, y, z}, 0)
-                        aliveNukeLaunchers[nukeID] = GetGameSeconds() + math.random(10,90)
+                    if x > 0 and x < mapSizeX and z > 0 and z < mapSizeZ and checkTargetCell(x, z, now) then
+                        y = math.max(GetGroundHeight(x, z), 0)
+                        attackCmdParams[1] = x
+                        attackCmdParams[2] = y
+                        attackCmdParams[3] = z
+                        GiveOrderToUnit(nukeID, CMD.ATTACK, attackCmdParams, 0)
+                        aliveNukeLaunchers[nukeID] = now + (nukeDefs[Spring.GetUnitDefID(nukeID)]*0.75)
                     end
                 end
             end

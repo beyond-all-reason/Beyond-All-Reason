@@ -73,11 +73,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -130,7 +125,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 50,
 				stockpile = true,
 				stockpiletime = 12,
 				thickness = 4,

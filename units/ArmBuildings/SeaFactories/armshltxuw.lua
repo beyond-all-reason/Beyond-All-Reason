@@ -4,6 +4,7 @@ return {
 		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 62000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
 		collisionvolumetype = "Box",
@@ -78,10 +79,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -75,11 +75,6 @@ return {
 				[1] = "custom:barrelshot-flak",
 				[2] = "custom:waterwake-medium-splash",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

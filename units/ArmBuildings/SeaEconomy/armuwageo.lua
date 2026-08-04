@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 0,
-		buildcostenergy = 27000,
-		buildcostmetal = 1600,
+		energycost = 27000,
+		metalcost = 1600,
 		buildpic = "ARMUWAGEO.DDS",
 		buildtime = 50000,
 		canrepeat = false,
@@ -17,7 +17,7 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 5,
 		footprintz = 5,
-		maxdamage = 3600,
+		health = 3600,
 		maxslope = 15,
 		maxwaterdepth = 99999,
 		minwaterdepth = 6,
@@ -34,6 +34,7 @@ return {
 			buildinggrounddecaltype = "decals/armageo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Cremuss, Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -46,11 +47,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

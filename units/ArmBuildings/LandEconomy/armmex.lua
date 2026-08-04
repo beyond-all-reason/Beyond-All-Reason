@@ -37,6 +37,7 @@ return {
 			buildinggrounddecaltype = "decals/armmex_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 1,
+			standardextractor = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
@@ -74,12 +75,6 @@ return {
 				object = "Units/arm3X3B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -9,6 +9,7 @@ return {
 		buildpic = "LEGVP.DDS",
 		buildtime = 5700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 19 0",
 		collisionvolumescales = "101 53 106",
 		collisionvolumetype = "Box",
@@ -99,10 +100,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

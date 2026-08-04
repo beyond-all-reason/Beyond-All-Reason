@@ -76,10 +76,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -154,6 +150,7 @@ return {
 					area_onhit_time = 10,
 					overrange_distance = 805,
 					projectile_destruction_method = "descend",
+					water_splash = 0,
 				},
 				damage = {
 					default = 30,
@@ -180,7 +177,6 @@ return {
 				soundhit = "xplomed2xs",
 				soundhitwet = "splsmed",
 				soundstart = "kroggie2xs",
-				soundstartvolume = 12,
 				sprayangle = 1500,
 				tolerance = 6000,
 				turret = true,
@@ -219,7 +215,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgun3",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
@@ -260,7 +255,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 7.5,
 				sprayangle = 968,
 				thickness = 1.4,
 				turret = true,
@@ -299,12 +293,14 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 12,
 				sprayangle = 1000,
 				thickness = 1.1,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 975,
+				customparams = {
+					weapons_role = "secondary",
+				},
 				damage = {
 					default = 75,
 				},

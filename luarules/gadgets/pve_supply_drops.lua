@@ -122,7 +122,8 @@ elseif lootboxesDensity == "normal" then
 	lootboxDensityMultiplier = 1
 end
 
-local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/(#teams-1))
+local numTeams = math.max(#teams - 1, 1)
+local SpawnChance = math.ceil((150/lootboxDensityMultiplier)/numTeams)
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
@@ -164,6 +165,9 @@ local function SpawnLootbox(posx, posy, posz)
 		spSetUnitNeutral(spawnedUnit, true)
 		spSetUnitAlwaysVisible(spawnedUnit, true)
 		spSpawnCEG("commander-spawn-alwaysvisible", posx, posy, posz, 0, 0, 0)
+		if GG.SpawnEnvironmentalLightning then
+			GG.SpawnEnvironmentalLightning("commanderspawn", posx, posy, posz)
+		end
 		spPlaySoundFile("commanderspawn-mono", 1.0, posx, posy, posz, 0, 0, 0, "sfx")
 		GG.ComSpawnDefoliate(posx, posy, posz)
 	end
@@ -253,7 +257,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		aliveLootboxes[unitID] = nil
 		aliveLootboxesCount = aliveLootboxesCount - 1
 		aliveLootboxCaptureDifficulty[unitID] = nil
-		
+
 		-- Remove from tier-specific tables
 		local tier = aliveLootboxTier[unitID]
 		if tier == 1 then
@@ -271,7 +275,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		end
 		aliveLootboxTier[unitID] = nil
 	end
-	
+
 	local unitName = unitDefNameCache[unitDefID]
 	if unitName and string.find(unitName, "scavbeacon", nil, true) then
 		if math.random() <= 0.33 then

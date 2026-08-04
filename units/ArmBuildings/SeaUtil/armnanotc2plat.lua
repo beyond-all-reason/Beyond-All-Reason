@@ -16,7 +16,7 @@ return {
 		collisionvolumescales = "46 80 46",
 		collisionvolumetype = "CylY",
 		energycost = 12800,
-		explodeas = "nanoboom",
+		explodeas = "advmetalmaker",
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
@@ -33,7 +33,7 @@ return {
 		objectname = "Units/armnanotc2plat.s3o",
 		script = "Units/armnanotc2plat.cob",
 		seismicsignature = 0,
-		selfdestructas = "nanoselfd",
+		selfdestructas = "advmetalmaker",
 		sightdistance = 500,
 		terraformspeed = 3000,
 		turnrate = 1,
@@ -50,13 +50,6 @@ return {
 			subfolder = "ArmBuildings/SeaUtil",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2-builder",
-				[2] = "deathceg3-builder",
-				[3] = "deathceg4-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

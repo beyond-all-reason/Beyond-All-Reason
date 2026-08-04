@@ -31,6 +31,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			cannot_capture_territory = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
@@ -53,11 +54,6 @@ return {
 				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -4,6 +4,7 @@ return {
 		buildpic = "legadvshipyard.DDS",
 		buildtime = 23550,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 10 -2",
 		collisionvolumescales = "186 78 183",
 		collisionvolumetype = "Box",
@@ -69,10 +70,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

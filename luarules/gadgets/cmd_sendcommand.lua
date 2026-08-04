@@ -18,6 +18,7 @@ end
 local cmdname = 'cmd'
 local PACKET_HEADER = "$c$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -38,16 +39,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
-		local playername, _, spec, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(playerID)
-		local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
+		local playername, _, spec = Spring.GetPlayerInfo(playerID)
+		local accountID = Spring.Utilities.GetAccountID(playerID)
 		local authorized = false
 		if _G.permissions.cmd[accountID] then
 			authorized = true
 		end
-		if authorized == nil then
+		if not authorized then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
 		elseif not spec then
@@ -65,9 +66,12 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local _, _, _, _, _, _, _, _, _, _, accountInfo = Spring.GetPlayerInfo(myPlayerID)
-	local accountID = (accountInfo and accountInfo.accountid) and tonumber(accountInfo.accountid) or -1
-	local authorized = SYNCED.permissions.cmd[accountID]
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local function isAuthorized()
+		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local perms = SYNCED.permissions.cmd
+		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
+	end
 
 	local function execCmd(_, playername, cmd)
 		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == '*' then
@@ -76,7 +80,7 @@ else	-- UNSYNCED
 	end
 
 	local function RequestCmd(cmd, line, words, playerID)
-		if authorized and playerID == myPlayerID then
+		if isAuthorized() and playerID == myPlayerID then
 			if words[1] ~= nil and words[2] ~= nil then
 				local command = words[2]
 				if #words > 2 then
@@ -94,7 +98,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		end
 		gadgetHandler:AddSyncAction("execCmd", execCmd)
 	end
 	function gadget:Shutdown()

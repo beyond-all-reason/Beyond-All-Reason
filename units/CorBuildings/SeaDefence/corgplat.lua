@@ -52,11 +52,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -101,7 +96,6 @@ return {
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",
 				soundstart = "corraid",
-				soundstartvolume = 9.5,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 500,

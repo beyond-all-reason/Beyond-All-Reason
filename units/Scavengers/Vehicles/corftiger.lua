@@ -83,10 +83,6 @@ return {
 				[2] = "custom:dust_cloud_dirt_light",
 				[3] = "custom:pilotlight",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

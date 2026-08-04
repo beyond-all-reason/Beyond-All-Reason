@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = false,
-		collisionvolumeoffsets = "0 5 12",
+		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "15 15 40",
 		collisionvolumetype = "CylZ",
 		cruisealtitude = 50,
@@ -51,20 +51,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:genericunitexplosion-large",
-			},
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
-				[2] = "airdeathceg3",
-				[3] = "airdeathceg4",
-			},
-		},
+			},		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -106,6 +93,7 @@ return {
 				reloadtime = 10,
 				weapontype = "AircraftBomb",
 				customparams = {
+					bogus = 1,
 				},
 				damage = {
 					default = 1,
@@ -130,6 +118,9 @@ return {
 				soundstart = "bombdropxx",
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
+				customparams = {
+					bogus = 1,
+				},
 				damage = {
 					vtol = 1000,
 					default = 1,

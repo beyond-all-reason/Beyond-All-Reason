@@ -150,7 +150,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin + progressbarHeight, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin + progressbarHeight}
 
 		if not voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 		end
 
 		-- progress bar
@@ -271,7 +271,7 @@ local function StartVote(name)	-- when called without params its just to refresh
 		end
 
 		if voteEndText then
-			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, WG.FlowUI.clampedOpacity)
 			font:Begin()
 			font:Print(titlecolor .. voteEndText, windowArea[1] + ((windowArea[3] - windowArea[1]) / 2), windowArea[2] + ((windowArea[4] - windowArea[2]) / 2)-(fontSize*0.3), fontSize*1.1, "con")
 			font:End()

@@ -56,8 +56,10 @@ end
 if not string.lines then
 	function string:lines()
 		local text = {}
+		local n = 0
 		local function helper(line)
-			text[#text + 1] = line
+			n = n + 1
+			text[n] = line
 			return ""
 		end
 		helper((self:gsub("(.-)\r?\n", helper)))
@@ -97,6 +99,22 @@ end
 -- print(string.partition("blaksjdfsaldkj","ldkj"))
 -- print(string.partition("blaksjdfsaldkj","aks"))
 
+if not string.randomString then
+	local mathRandom = math.random
+	local randomCharset = {}
+	for c = 48, 57 do randomCharset[#randomCharset + 1] = string.char(c) end
+	for c = 65, 90 do randomCharset[#randomCharset + 1] = string.char(c) end
+	for c = 97, 122 do randomCharset[#randomCharset + 1] = string.char(c) end
+	function string.randomString(length)
+		length = length or 4
+		local result = {}
+		for i = 1, length do
+			result[i] = randomCharset[mathRandom(1, #randomCharset)]
+		end
+		return table.concat(result)
+	end
+end
+
 if not string.formatSI then
 	local mathFloor = math.floor
 	local mathLog10 = math.log10
@@ -132,6 +150,11 @@ if not string.formatSI then
 		DIVIDE_LOG1K[i] = 1 / mathPow(1000, i)
 	end
 
+	local PRECISION_FORMATS = {}
+	for p = 0, 10 do
+		PRECISION_FORMATS[p] = "%." .. p .. "f"
+	end
+
 	--- Formats a number with an SI prefix, and at most 3 significant figures
 	---@param number number
 	---@param options table Optional parameters for formatting
@@ -162,7 +185,7 @@ if not string.formatSI then
 
 		local precision = 2 - mathFloor(numberLog10 - 3 * numberLog1k)
 
-		local str = stringFormat("%." .. precision .. "f", sign * number * DIVIDE_LOG1K[numberLog1k])
+		local str = stringFormat(PRECISION_FORMATS[precision], sign * number * DIVIDE_LOG1K[numberLog1k])
 
 		if precision > 0 and not (options and options.leaveTrailingZeros) then
 			str = str:gsub("%.?0+$", "")
