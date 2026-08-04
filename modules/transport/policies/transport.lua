@@ -31,7 +31,7 @@ Policies.Pipeline(Stages.unload)
 	.Unless(Stages.unload.NanoOnSlope, function(ctx)
 		return ctx.nano and (ctx.goalY < 0 or (ctx.groundNormalY or 1) < 0.9)
 	end)
-	.Select(Stages.unload.Allowed, function(ctx)
+	.Select(Stages.unload.Allowed, function()
 		return true
 	end)
 
