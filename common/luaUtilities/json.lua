@@ -417,7 +417,7 @@ do
 		
 		-- read_bool and read_null are both making an assumption that I have not tested:
 		-- I would expect that the string extraction is more expensive than actually 
-		-- making manual comparision of the byte values
+		-- making manual comparison of the byte values
 		local function read_bool () 
 			pos = pos + 3
 			local a,b,c,d = js_string:byte(pos-3,pos)

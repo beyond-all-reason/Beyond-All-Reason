@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 -- TODO: Fold this into one gadget with all the other silly projectile ceg spawners!
--- TODO: piece explo arent even registered
+-- TODO: piece explo aren't even registered
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ local cegtospawn = {
 local numcegtospawn = #cegtospawn
 
 function gadget:Initialize()
-	Script.SetWatchExplosion(-1, true) -- well that doesnt register anything!
+	Script.SetWatchExplosion(-1, true) -- well that doesn't register anything!
 end
 
 local spGetProjectileType = Spring.GetProjectileType

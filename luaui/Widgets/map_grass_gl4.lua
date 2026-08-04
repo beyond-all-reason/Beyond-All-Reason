@@ -91,7 +91,7 @@ local grassConfig = {
   grassBladeScale = 0.55, -- scales the baked patch mesh itself; lower this to make blades physically smaller regardless of patchSize
   grassMinSize = 0.55; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
   grassMaxSize = 1.5; -- Size for grassmap value of 254
-  grassShaderParams = { -- allcaps because thats how i know
+  grassShaderParams = { -- allcaps because that's how i know
     MAPCOLORFACTOR = 0.6, -- how much effect the minimapcolor has
     MAPCOLORBASE = 1.0,     --how much more to blend the bottom of the grass patches into map color
     ALPHATHRESHOLD = 0.01,--alpha limit under which to discard a fragment
@@ -229,7 +229,7 @@ local processChanges = false	-- auto enabled when map has grass or editmode togg
 local mousepos = {0,0,0}
 local cursorradius = 50
 local removeUnitGrassFrames = 25
-local placementMode = false -- this controls wether we are in 'game mode' or placement map dev mode
+local placementMode = false -- this controls whether we are in 'game mode' or placement map dev mode
 local externalBrushActive = false -- when true, suppress built-in painting UI (mouse, keys, circle)
 
 -- Spawn animation: grass grows from ground with elastic wobble when placed
@@ -514,7 +514,7 @@ local function mapHasSMFGrass() -- returns 255 is SMF has no grass, 0 if map has
   return highestgrassmapvalue
 end
 
-local function grassByteToPatchMult(grassbyte) -- coverts grassmap byte to size multiplier for instancebuffer
+local function grassByteToPatchMult(grassbyte) -- converts grassmap byte to size multiplier for instancebuffer
 	if grassbyte == 0 then return 0 end
 	return (grassConfig.grassMinSize + (grassConfig.grassMaxSize - grassConfig.grassMinSize) * (grassbyte/254.0) )
 end
@@ -1640,7 +1640,7 @@ function widget:DrawWorldPreUnit()
     end
 
 
-	-- NOTE THAT INDEXED DRAWING DOESNT WORK YET!
+	-- NOTE THAT INDEXED DRAWING DOESN'T WORK YET!
  	grassVAO:DrawArrays(GL.TRIANGLES, grassPatchVBOsize, 0, instanceCount, startInstanceIndex)
 
     if placementMode and Spring.GetGameFrame()%30 == 0 then spEcho("Drawing",instanceCount,"grass patches") end
@@ -1675,7 +1675,7 @@ function widget:NightFactorChanged(red, green, blue, shadow, altitude)
 	NightFactorChanged(red, green, blue, shadow, altitude)
 end
 
--- ahahahah you cant stop me:
+-- ahahahah you can't stop me:
 --[[
 
 import sys

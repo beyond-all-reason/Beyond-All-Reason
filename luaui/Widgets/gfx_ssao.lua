@@ -69,14 +69,14 @@ local glRawBindFBO = gl.RawBindFBO
 
 local shaderConfig = {
 	DEPTH_CLIP01 = tostring((Platform.glSupportClipSpaceControl and 1) or 0), -- no idea
-	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely dissabled now
+	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely disabled now
 }
 
 
 local definesSlidersParamsList = {
-	{name = 'SSAO_FIBONACCI', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use uniformly distributed rays intead of randomly distributed ones'},
+	{name = 'SSAO_FIBONACCI', default = 1, min = 0, max = 1, digits = 0, tooltip = 'Use uniformly distributed rays instead of randomly distributed ones'},
 	{name = 'SSAO_KERNEL_MINZ', default = 0.04, min = 0, max = 0.2, digits = 2, tooltip = 'How close vectors can be to tangent plane'},
-	{name = 'SSAO_RANDOM_LENGTH', default = 0.6, min = 0.2, max = 3, digits = 2, tooltip = 'A power term for the lenghts of the random vectors, small numbers are longer vectors'},
+	{name = 'SSAO_RANDOM_LENGTH', default = 0.6, min = 0.2, max = 3, digits = 2, tooltip = 'A power term for the lengths of the random vectors, small numbers are longer vectors'},
 	{name = 'SSAO_KERNEL_SIZE', default = 32, min = 1, max = 64, digits = 0, tooltip = 'how many samples are used for SSAO spatial sampling'},
 	--{name = 'MINISHADOWS', default = 0, min = 0, max = 1, digits = 0, tooltip = 'Wether to draw a downsampled shadow sampler'},
 	{name = 'SSAO_RADIUS', default = 8, min = 4, max = 16, digits = 1, tooltip = 'world space maximum sampling radius'},
@@ -168,8 +168,8 @@ local presets = {
 		SSAO_KERNEL_SIZE = 12, -- IGN noise + bilateral blur dissolves a 12-tap kernel cleanly at half-res
 		SSAO_MIN = 0.60,
 		SSAO_RADIUS = 9,
-		SSAO_RADIUS_FAR_SCALE = 2.5, -- modest scale-up; cheap preset doesnt need maximum reach
-		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesnt help really
+		SSAO_RADIUS_FAR_SCALE = 2.5, -- modest scale-up; cheap preset doesn't need maximum reach
+		USE_STENCIL = 0, -- There is a non-zero cpu cost of drawing the stencil, and at low resolutions, it doesn't help really
 	},
 	{ -- MEDIUM QUALITY
 		BLUR_CLAMP = 0.16,

@@ -89,8 +89,8 @@ end
 
 
 function DrawTextarea(x,y,width,height,scrollbar)
-	local scrollbarOffsetTop 		= 0	-- note: wont add the offset to the bottom, only to top
-	local scrollbarOffsetBottom 	= 0	-- note: wont add the offset to the top, only to bottom
+	local scrollbarOffsetTop 		= 0	-- note: won't add the offset to the bottom, only to top
+	local scrollbarOffsetBottom 	= 0	-- note: won't add the offset to the top, only to bottom
 	local scrollbarMargin    		= 10 * widgetScale
 	local scrollbarWidth     		= 8 * widgetScale
 	local scrollbarPosWidth  		= 4 * widgetScale

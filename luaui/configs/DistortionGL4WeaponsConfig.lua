@@ -58,7 +58,7 @@ local exampleDistortionBeamShockwave = {
 -- Auto-assign a distortionclass to each weaponDefID
 -- Override on a per-weaponDefID basis, and copy table before overriding
 
---------------------------------General Base Distortion Classes for further useage --------
+--------------------------------General Base Distortion Classes for further usage --------
 local BaseClasses = {
 	NoEffect = {
 		distortionType = 'point', -- or cone or beam
@@ -1150,7 +1150,7 @@ local projectileDefDistortions  = {
 
 
 			elseif weaponDef.type == 'DGun' then
-				--muzzleFlash = true --doesnt work
+				--muzzleFlash = true --doesn't work
 				sizeclass = "DGun"
 
 				projectileDefDistortions[weaponID] = GetDistortionClass("AirShockWaveDgun", sizeclass, overrideTable)
@@ -1210,7 +1210,7 @@ local projectileDefDistortions  = {
 
 				elseif weaponDef.type == 'BeamLaser' then
 					sizeclass = GetClosestSizeClass(radius*0.15) -- works
-					overrideTable = {lifeTime = 2} -- doesnt work
+					overrideTable = {lifeTime = 2} -- doesn't work
 
 				elseif weaponDef.type == 'DistortionningCannon' then
 					sizeclass = GetClosestSizeClass(radius*1.2)
@@ -1311,7 +1311,7 @@ local projectileDefDistortions  = {
 		end
 		Spring.Echo(Spring.GetGameFrame(),"DLGL4 weapons conf using",usedclasses,"distortion types")
 	end
-	AssignDistortionsToAllWeapons() -- disable this if it doest work
+	AssignDistortionsToAllWeapons() -- disable this if it doesn't work
 
 
 -----------------Manual Overrides--------------------

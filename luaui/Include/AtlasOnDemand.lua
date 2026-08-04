@@ -51,7 +51,7 @@ end
 -- DONE : Match gl.TextureInfo
 -- DONE Validate image size
 -- DONE unbind loaded tex after render
--- DONE font rendering and cacheing
+-- DONE font rendering and caching
 -- DONE Hmm yes nearest neighbour would be prudent for font atlasses maybe?
 -- DONE set padding differently for nearest neighbour version?
 -- DONE be smart and dont double-cache same thing
@@ -135,7 +135,7 @@ local function MakeAtlasOnDemand(config)
 	end
 
 	function QuadTreePrototype:FindSpot(width, height)
-		-- If it doesnt fit at all, return false
+		-- If it doesn't fit at all, return false
 		if self.w < width or self.h < height then
 			return false
 
@@ -326,7 +326,7 @@ local function MakeAtlasOnDemand(config)
 				return uvcoords, task
 
 		else
-				Spring.Echo(string.format("AtlasOnDemand %s Error: cant find space for %s of size %d x %d", self.name, tostring(id), xsize, ysize))
+				Spring.Echo(string.format("AtlasOnDemand %s Error: can't find space for %s of size %d x %d", self.name, tostring(id), xsize, ysize))
 				return {x = 0,y = 0,X =1, Y = 1,w = xsize, h = ysize,d = 0}
 		end
 	end
@@ -422,7 +422,7 @@ local function MakeAtlasOnDemand(config)
 				end
 			end
 		else
-			-- TODO this table copy is completely unnessecary
+			-- TODO this table copy is completely unnecessary
 			textparams = {
 				text = text,
 				font = params.font,
@@ -561,11 +561,11 @@ local function MakeAtlasOnDemand(config)
 
 		-- EXTREMELY IMPORTANT:
 		-- this entire matrix silliness is needed cause font:Print takes integer positions
-		-- And because otherwise it cant draw unstreched to non-square images
+		-- And because otherwise it can't draw unstreched to non-square images
 		gl.PushMatrix()
 		local xscale = self.xsize
 		local yscale = self.ysize
-		-- The next two operators translate the [-1;1] NDC space into the self.xsize and self.ysize dimensions, I dont think Z needs scaling, but it doesnt matter really
+		-- The next two operators translate the [-1;1] NDC space into the self.xsize and self.ysize dimensions, I dont think Z needs scaling, but it doesn't matter really
 		gl.Translate(-1,-1,0) -- translate to -1 so that NDC is now in [0;2] space
 		gl.Scale(2/xscale, 2/yscale, 2/yscale) -- scale so that it should now be in [self.xsize,self.ysize] space
 		for i, task in ipairs(taskList) do
@@ -698,7 +698,7 @@ local function MakeAtlasOnDemand(config)
 	end
 
 	---Draws the contents of the atlas to the bottom left corner of the screen
-	-- very useful for debugging what is on the atlas iself
+	-- very useful for debugging what is on the atlas itself
 	-- @param aliastest i dont remember what this does, so dont use it
 	-- @param noalpha draw the atlas without transparency
 	function AtlasOnDemand:DrawToScreen(aliastest,noalpha)

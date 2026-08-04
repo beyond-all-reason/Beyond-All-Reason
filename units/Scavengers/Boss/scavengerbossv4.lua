@@ -785,7 +785,7 @@ for difficulty, stats in pairs(difficultyParams) do
 					default = 0,
 				},
 			},
-			sensor_ground_near = { --senses any ground units. If sensor_groundscout is targetting, this is inactive.
+			sensor_ground_near = { --senses any ground units. If sensor_groundscout is targeting, this is inactive.
 				areaofeffect = 4,
 				avoidfeature = false,
 				craterareaofeffect = 0,

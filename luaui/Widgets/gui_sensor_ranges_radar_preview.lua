@@ -102,10 +102,10 @@ local function initgl4()
 	smallradVAO:AttachVertexBuffer(smol)
 	smallradVAO:AttachIndexBuffer(smoli)
 
-	local larg, largsize = InstanceVBOTable.makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
+	local large, largsize = InstanceVBOTable.makePlaneVBO(1, 1, largeradarrange / SHADERRESOLUTION)
 	local largi, largisize = InstanceVBOTable.makePlaneIndexVBO(largeradarrange / SHADERRESOLUTION, largeradarrange / SHADERRESOLUTION, true)
 	largeradVAO = gl.GetVAO()
-	largeradVAO:AttachVertexBuffer(larg)
+	largeradVAO:AttachVertexBuffer(large)
 	largeradVAO:AttachIndexBuffer(largi)
 end
 

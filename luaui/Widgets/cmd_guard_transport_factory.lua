@@ -435,7 +435,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
                 activeTransportToUnit[bestTransportID] = createdUnitID
                 unitToDestination[createdUnitID] = getValidRallyCommandDestination(createdUnitID)
-                -- The engine issues an inital move command to every unit to make sure it clears the factory.
+                -- The engine issues an initial move command to every unit to make sure it clears the factory.
                 -- We want get rid of that command before picking up. Otherwise, it'll get picked up
                 -- and dropped off, and then proceed to walk back to the factory and then to the rally.
                 -- In the interest of being future proof, we remove any move commands in the queue before

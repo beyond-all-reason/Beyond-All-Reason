@@ -189,7 +189,7 @@ local difficultyParameters = {
 	Now that we talked about tiers, let's talk about roles.
 	There will be 3 of these for Land and Sea, and only one for Air because there we don't really introduce any behaviours. They're just sent to enemy on fight command.
 
-	Raid - Quick and harrassing, these have no behaviours attached, they just rush in and act as cannon fodder and distraction.
+	Raid - Quick and harassing, these have no behaviours attached, they just rush in and act as cannon fodder and distraction.
 	Assault - Main combat force. These will focus on attacking what attacks them, pushing in and taking damage
 	Support - Long range units dealing damage or utility roles from afar. These will run away from you when they take damage.
 	MAKE SURE NOT TO PUT THE SAME UNIT IN 2 TABLES.

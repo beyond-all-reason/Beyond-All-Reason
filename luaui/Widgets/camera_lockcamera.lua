@@ -131,10 +131,10 @@ local function LockCamera(playerID)
 		if lockcameraHideEnemies and not isSpec then
 			spSendCommands("specteam " .. teamID)
 			if not fullView then
-				scheduledSpecFullView = 1 -- this is needed else the minimap/world doesnt update properly
+				scheduledSpecFullView = 1 -- this is needed else the minimap/world doesn't update properly
 				spSendCommands("specfullview")
 			else
-				scheduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
+				scheduledSpecFullView = 2 -- this is needed else the minimap/world doesn't update properly
 				spSendCommands("specfullview")
 			end
 			if not isSpec and lockcameraLos and mySpecStatus then
@@ -231,7 +231,7 @@ function widget:Update(dt)
 		local now = os_clock()
 		if desiredLosmodeChanged + 0.9 > now then
 			if (desiredLosmode == "los" and spGetMapDrawMode() == "normal") or (desiredLosmode == "normal" and spGetMapDrawMode() == "los") then
-				-- this is needed else the minimap/world doesnt update properly
+				-- this is needed else the minimap/world doesn't update properly
 				spSendCommands("togglelos")
 			end
 		elseif desiredLosmodeChanged + 2 < now then
@@ -240,7 +240,7 @@ function widget:Update(dt)
 	end
 
 	if scheduledSpecFullView ~= nil then
-		-- this is needed else the minimap/world doesnt update properly
+		-- this is needed else the minimap/world doesn't update properly
 		spSendCommands("specfullview")
 		scheduledSpecFullView = scheduledSpecFullView - 1
 		if scheduledSpecFullView == 0 then

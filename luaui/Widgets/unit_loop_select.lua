@@ -190,7 +190,7 @@ function widget:MouseRelease(mx, my)
 	-- First point is end-node
 	local s2x, s2y = lx, lz
 
-	-- Retain consistancy, check if last nodes value would be modifier in last interation
+	-- Retain consistency, check if last nodes value would be modifier in last interaction
 	-- i.e. if it was horz/vert w.r.t prev node
 	-- If it would be modified then, then we also need to modify it here,
 	-- otherwise we can get a 'break' in the loop
@@ -216,8 +216,8 @@ function widget:MouseRelease(mx, my)
 		-- This happens often due to integer screen coords
 		-- Proper solution: Handle vert/horz cases
 		-- Easiest solution: Add small number to make non-vert/horz
-		-- Note: These changes will propogate due to 's1x = s2x' etc
-		-- So changing values does not bring about inconsistancies or non-connecting lines
+		-- Note: These changes will propagate due to 's1x = s2x' etc
+		-- So changing values does not bring about inconsistencies or non-connecting lines
 		if (s2y == s1y) then
 			s2y = s2y + 0.01
 		end

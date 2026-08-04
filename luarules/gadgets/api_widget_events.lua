@@ -91,7 +91,7 @@ local scriptUnitFinished		= Script.LuaUI.UnitFinished
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if spec and specFullView then return end
 	-- Important: Enemy units finished within LOS do not get the respective widget:UnitFinished calls!
-	-- Also important: units that are created and finished in the same gameframe (like /give, or created fully built) are not in los yet, so this wont trigger!
+	-- Also important: units that are created and finished in the same gameframe (like /give, or created fully built) are not in los yet, so this won't trigger!
 	local unitisenemy = not spAreTeamsAllied(unitTeam, myTeamID)
 	local isinlos = spGetUnitLosState(unitID, myAllyTeamID, true) % 2
 	--Spring.Echo("gadget:UnitFinished",unitID, unitDefID, unitTeam, unitisenemy, isinlos)
@@ -114,7 +114,7 @@ end
 local scriptFeatureDestroyed = Script.LuaUI.FeatureDestroyed
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	-- assume that features are always in LOS
-	-- feauture allyTeam is equal to my allyteam when its a gaia feature, that is wierd
+	-- feature allyTeam is equal to my allyteam when it's a gaia feature, that is weird
 	-- am i always allied with gaia?
 	local isAllyUnit = (allyTeam == myAllyTeamID)
 	--Spring.Echo("Gadget:FeatureDestroyed", featureID, FeatureDefs[Spring.GetFeatureDefID(featureID)].name, Script.LuaUI('FeatureDestroyed') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView, allyTeam, Spring.GetMyTeamID())

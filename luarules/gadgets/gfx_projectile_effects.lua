@@ -18,7 +18,7 @@ end
 -- luarules\gadgets\fx_missile_smoke.lua
 -- luarules\gadgets\fx_missile_starburst_liftoff.lua
 -- luarules\gadgets\fx_submissile_splash.lua -- which was off anyway
--- Also, it should check wether water is even possibly present on the map, and not even check for those
+-- Also, it should check whether water is even possibly present on the map, and not even check for those
 
 if not gadgetHandler:IsSyncedCode() then
     return false

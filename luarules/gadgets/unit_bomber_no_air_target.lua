@@ -13,7 +13,7 @@ function gadget:GetInfo()
 end
 
 
--- air bombers can still attack air units cause their onlytargetcategory doesnt exclude them (notsub)
+-- air bombers can still attack air units cause their onlytargetcategory doesn't exclude them (notsub)
 
 local isBomber = {}
 local isAir = {}

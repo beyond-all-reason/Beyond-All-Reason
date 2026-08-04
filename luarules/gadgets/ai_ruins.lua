@@ -21,7 +21,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- these are used in poschecks.lua so arent localized here
+-- these are used in poschecks.lua so aren't localized here
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 local GaiaTeamID = Spring.GetGaiaTeamID()

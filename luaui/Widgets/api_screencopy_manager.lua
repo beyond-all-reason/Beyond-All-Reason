@@ -24,7 +24,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 -- GUIshader - Done -- dont care if its not sharpened, in fact!
 -- CAS - Done
 -- TODO:
-	-- distortionFBO - hard because large areas might have a noticable lack of sharpening...
+	-- distortionFBO - hard because large areas might have a noticeable lack of sharpening...
 
 -- Code snippet to use if you want to request a copy:
 -- also note that the first copy will return nil, as its all black!

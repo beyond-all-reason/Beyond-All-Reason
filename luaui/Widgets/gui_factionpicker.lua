@@ -58,7 +58,7 @@ do
 	end
 end
 if #factions == 0 then
-	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Recived")
+	Spring.Log(gadget:GetInfo().name, LOG.ERROR, "No Start Options Received")
 	return false
 end
 

@@ -417,7 +417,7 @@ local function refreshUnitInfo()
 						end
 					end
 
-				elseif unitDef.name == 'corkorg' then          --excluding korstomp from dps calcuation for juggernaut
+				elseif unitDef.name == 'corkorg' then          --excluding korstomp from dps calculation for juggernaut
 					unitExempt = true
 					if i==1 then
 						local defDmg

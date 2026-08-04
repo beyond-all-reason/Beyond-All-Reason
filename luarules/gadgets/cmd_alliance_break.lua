@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Unally on demand",
-		desc = "Removes an alliance when a dynamic ally attemps to backstab",
+		desc = "Removes an alliance when a dynamic ally attempts to backstab",
 		author = "BrainDamage",
 		date = "-",
 		license = "GNU GPL, v2 or later",

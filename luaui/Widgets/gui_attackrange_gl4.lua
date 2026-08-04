@@ -350,7 +350,7 @@ local function initializeUnitDefRing(unitDefID)
 			-- -1 for 360
 			-- 0.707 for 90
 
-			-- Because I cant be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
+			-- Because I can't be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
 			-- We are only going to display angles for weapons that actually point forward, e.g. mainDirXYZ of 0 0 1
 			-- we need to output two numbers here, and pack it into one float
 			-- The integer part will be the offset around the circle, from forward dir, in degrees, +-180

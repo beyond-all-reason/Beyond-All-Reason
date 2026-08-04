@@ -50,7 +50,7 @@ local GL_POINTS				= GL.POINTS
 local function AddPrimitiveAtUnit(unitID, unitDefID)
 	local gf = Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	if unitDefID == nil then return end -- these cant be selected
+	if unitDefID == nil then return end -- these can't be selected
 	local numVertices = 64 -- default to cornered rectangle  
 	local cornersize = 0
 	
@@ -77,9 +77,9 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 		selectionVBO, -- push into this Instance VBO Table
 			{length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 			spGetUnitTeam(unitID), -- teamID
-			numVertices, -- how many trianges should we make
+			numVertices, -- how many triangles should we make
 			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			0, 1, 0, 1, -- These are our default UV atlas transformations
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
 		unitID, -- this is the key inside the VBO TAble, 
 		true, -- update existing element

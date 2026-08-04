@@ -361,7 +361,7 @@ if gadgetHandler:IsSyncedCode() then
 	function updateDifficultyForSurvival()
 		t = GetGameSeconds
 		config.gracePeriod = t-1
-		bossAnger = 0  -- reenable scav spawning
+		bossAnger = 0  -- re-enable scav spawning
 		techAnger = 0
 		waveParameters.waveTechAnger = 0
 		playerAggression = 0
@@ -459,7 +459,7 @@ if gadgetHandler:IsSyncedCode() then
 			}
 		}
 
-		-> refference table to quickly check which unit is in which squad, and if it has a squad at all.
+		-> reference table to quickly check which unit is in which squad, and if it has a squad at all.
 		unitSquadTable = {
 			[unitID] = [squadID]
 		}

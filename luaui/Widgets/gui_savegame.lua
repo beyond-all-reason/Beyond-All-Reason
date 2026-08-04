@@ -52,7 +52,7 @@ local function trim(str)
 end
 
 --------------------------------------------------------------------------------
--- Savegame utlity functions
+-- Savegame utility functions
 --------------------------------------------------------------------------------
 -- FIXME: currently unused as it doesn't seem to give the correct order
 

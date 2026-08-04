@@ -4,7 +4,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name      = "LOS View",
-		desc      = "Turns LOS view on when playing and off when becomming spectator.",
+		desc      = "Turns LOS view on when playing and off when becoming spectator.",
 		author    = "Bluestone",
 		date      = "",
 		license   = "GNU GPL, v2 or later",
@@ -42,7 +42,7 @@ function widget:Initialize()
 end
 
 local gamestarted = false
-function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
+function widget:GameFrame(frame)	-- somehow widget:GameStart() didn't work
 	if frame == 1 and not gamestarted then
 		gamestarted = true
 		myPlayerID = Spring.GetMyPlayerID()

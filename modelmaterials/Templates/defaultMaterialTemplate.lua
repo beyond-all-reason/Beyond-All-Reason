@@ -87,7 +87,7 @@ vertex = [[
 		// shadowPosition
 		vec4 shadowVertexPos;
 
-		// auxilary varyings
+		// auxiliary varyings
 		float aoTerm;
 		float selfIllumMod;
 		float fogFactor;
@@ -156,7 +156,7 @@ vertex = [[
 	}
 
 	/***********************************************************************/
-	// Auxilary functions
+	// Auxiliary functions
 
 	vec2 GetWind(int period) {
 		vec2 wind;
@@ -506,7 +506,7 @@ fragment = [[
 		// shadowPosition
 		vec4 shadowVertexPos;
 
-		// auxilary varyings
+		// auxiliary varyings
 		float aoTerm;
 		float selfIllumMod;
 		float fogFactor;
@@ -813,7 +813,7 @@ fragment = [[
 			shUnproject(shG, rayDir),
 			shUnproject(shB, rayDir));
 
-		// A "max" is usually recomended to avoid negative values (can happen with SH)
+		// A "max" is usually recommended to avoid negative values (can happen with SH)
 		rgbColor = max(vec3(0.0), vec3(rgbColor));
 		return rgbColor;
 	}

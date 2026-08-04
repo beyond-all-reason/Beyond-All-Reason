@@ -159,7 +159,7 @@ function gadget:GameFrame(frame)
 				end
 			end
 
-			initializeList[unitID] = nil -- this concludes innitialization
+			initializeList[unitID] = nil -- this concludes initialization
 		end
 
 

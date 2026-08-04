@@ -136,7 +136,7 @@ void main(void)
 	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
 	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
 	
-	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
+	// bail early if there's shit here, but this might not be useful in the long term, due to no emissive application?
 	
 	if (tex1color.a < 0.005){
 		fragColor.rgba = vec4(0.0); 

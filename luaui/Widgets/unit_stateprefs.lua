@@ -57,7 +57,7 @@ local function pruneAllUnitPrefs()
 	end
 end
 
--- The config was previously using a seperate file, but after a bug with this file
+-- The config was previously using a separate file, but after a bug with this file
 -- it was decided to simply use the widgetHandler shared config instead.
 local function migrateOldConfig()
 	local oldConfigPath = "LuaUI/config/StatesPrefs.lua"

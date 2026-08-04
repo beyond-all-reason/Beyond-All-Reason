@@ -83,6 +83,6 @@ function widget:Shutdown()
 	end
 	if handle ~= nil then
 		io.close(handle)
-		spEcho("Writen Mex Spots To: " .. "MexSpots_" .. Game.mapName)
+		spEcho("Written Mex Spots To: " .. "MexSpots_" .. Game.mapName)
 	end
 end

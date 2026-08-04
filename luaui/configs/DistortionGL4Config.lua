@@ -2124,7 +2124,7 @@ do
 			unitDistortions[unitDefName] = {}
 		end
 		for i, airjet in ipairs(airjets) do
-			-- if that piece already has a distortion attached to it, we wont overwrite it.
+			-- if that piece already has a distortion attached to it, we won't overwrite it.
 			local alreadyhasjet = false
 			for j, distortion in pairs(unitDistortions[unitDefName]) do
 				if distortion.pieceName == airjet.piece then

@@ -25,7 +25,7 @@ local SELECTOR_BASENAME = 'selector.lua'
 
 local SAFEWRAP = 1
 -- 0: disabled
--- 1: enabled, but can be overriden by widget.GetInfo().unsafe
+-- 1: enabled, but can be overridden by widget.GetInfo().unsafe
 -- 2: always enabled
 
 local SAFEDRAW = false  -- requires SAFEWRAP to work
@@ -50,8 +50,8 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
 
-	-- disabling individual Spring functions isnt really good enough
-	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
+	-- disabling individual Spring functions isn't really good enough
+	-- disabling user widget draw access would probably do the job but that wouldn't be easy to do
 	Spring.SetTeamColor = function() return true end
 
 	if not Spring.GetSpectatingState() then
@@ -487,7 +487,7 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
 
-	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
+	-- The game sends a lua message, which should be base64'd to prevent weird character bullshit:
 	-- Lua Message Format:
 		-- leetspeek luaspads:base64message
 		-- lu@$p@d$:ABCEDFGS==
@@ -994,7 +994,7 @@ end
 
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
-	-- It will also create the widgetHandler usual api queing the calls.
+	-- It will also create the widgetHandler usual api queueing the calls.
 	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget', 'ReloadUserWidgetFromGame',
 		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
 	local queueReorder = widgetHandler.QueueReorder
