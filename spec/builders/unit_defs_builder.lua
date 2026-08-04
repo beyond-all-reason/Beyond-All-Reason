@@ -100,9 +100,10 @@ function UDFB:WithRealUnitDefs(loadHarness)
             return
         end
         ---@diagnostic disable-next-line: global-in-non-module
+        -- gamedata/unitdefs.lua includes unitdefs_post, which includes
+        -- alldefs_post, so the defs arrive fully processed. Running either pass
+        -- again here appends the generated category tokens a second time.
         _G.UnitDefs = defs
-        pcall(require, "gamedata.alldefs_post")
-        pcall(require, "gamedata.unitdefs_post")
 
         local loaded = _G.UnitDefs
         local names  = _G.UnitDefNames
