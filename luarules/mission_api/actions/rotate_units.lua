@@ -4,6 +4,8 @@ local function rotateUnits(unitName, direction)
     local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
+    local trackedUnitIDs = GG['MissionAPI'].trackedUnitIDs[unitName]
+
     for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
             if direction then
