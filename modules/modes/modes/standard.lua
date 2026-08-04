@@ -7,7 +7,7 @@ local Mode = ModeDSL.Mode
 -- Pins nothing, fields no bot. Ranked, because this preset IS standard
 -- multiplayer and picking it must not cost anyone their rating.
 return Mode("Standard")
-	.Desc("An ordinary game: no scripted mission, no PvE swarm.")
+	.Desc("An ordinary game.")
 	.Ranked()
 	.End("com")
 	.Unlocked()
