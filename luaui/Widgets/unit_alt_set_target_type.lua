@@ -23,6 +23,8 @@ local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
+local spGetTimer             = Spring.GetTimer
+local spDiffTimers           = Spring.DiffTimers
 local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetActiveCommand 	 = Spring.GetActiveCommand
 local spGetMouseState    	 = Spring.GetMouseState
@@ -38,6 +40,8 @@ local table_insert = table.insert
 local math_sin = math.sin
 local math_cos = math.cos
 local math_pi = math.pi
+local math_floor = math.floor
+local math_clamp = math.clamp
 
 local trackedUnitsToTargetedDefs =  {}
 local trackedUnitsToTargetID = {}
@@ -46,9 +50,13 @@ local cursorPos    -- current cursor position 	    (table{x,y,z})
 local snappedPos   -- snapped valid target position (table{x,y,z})
 local snappedUnitID -- unit the command would snap to (highlighted as "selected")
 local resumeKey = nil -- Last position in the unit list
-
-local UNITS_PER_UPDATE = 100
-local POLLING_RATE = 15
+local MAX_UNITS_PER_UPDATE = 100
+local MIN_UNITS_PER_UPDATE = 1
+local unitsToUpdate = MAX_UNITS_PER_UPDATE
+local TARGET_MS = 2          -- time budget for the widget
+local avgPerUnitMsCost = 0   -- smoothed cost of processing one tracked unit
+local COST_BLEND_RATIO = 0.2 -- smaller number = more smoothing
+local POLLING_RATE = 5
 local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -298,9 +306,10 @@ function widget:GameFrame(frame)
 		resumeKey = nil
 	end
 
+	local tLoop = spGetTimer()
 	local processed = 0
 	local unitID, targetUnitDefIDTable = next(trackedUnitsToTargetedDefs, resumeKey)
-	while unitID ~= nil and processed < UNITS_PER_UPDATE do
+	while unitID ~= nil and processed < math_floor(unitsToUpdate) do
 		targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
 		processed = processed + 1
 		resumeKey = unitID
@@ -310,6 +319,15 @@ function widget:GameFrame(frame)
 	-- Reached the end of the table; wrap around on the next update.
 	if unitID == nil then
 		resumeKey = nil
+	end
+
+	-- Keep this loop near TARGET_MS by scaling the budget.
+	local loopMs = spDiffTimers(spGetTimer(), tLoop) * 1000
+	if processed > 0 and loopMs > 0 then
+		local currentPerUnitCost = loopMs / processed
+		-- Smooth the average cost, since some batches can take longer than others
+		avgPerUnitMsCost = (avgPerUnitMsCost * (1.0 - COST_BLEND_RATIO) + currentPerUnitCost * COST_BLEND_RATIO)
+		unitsToUpdate = math_clamp(TARGET_MS / avgPerUnitMsCost, MIN_UNITS_PER_UPDATE, MAX_UNITS_PER_UPDATE)
 	end
 end
 
@@ -402,7 +420,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		trackedUnitsToTargetID[unitID] = targetID
 
 		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
-		if #selectedUnits < UNITS_PER_UPDATE then
+		if #selectedUnits < MAX_UNITS_PER_UPDATE then
 			targetUnitsInRangeWithDef(unitID, newTargetedDefs)
 		end
 	end
