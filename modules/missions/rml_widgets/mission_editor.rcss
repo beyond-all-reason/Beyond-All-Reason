@@ -35,6 +35,34 @@
 	white-space: nowrap;
 }
 
+/* Tab belongs to the game, not to this panel.
+ *
+ * RmlUi walks focusable elements on Tab, and every input, select and button in
+ * here was in that walk — so once the panel had been clicked, Tab cycled the
+ * form instead of selecting the commander. A player does not think of the
+ * editor as having stolen a key; they think Tab is broken.
+ *
+ * Clicking a field still focuses it, and typing still works: tab-index governs
+ * the keyboard WALK, not focus itself. Same treatment the terraform and weather
+ * brushes give their controls.
+ */
+.me-button,
+.me-input,
+.me-select {
+	tab-index: none;
+}
+
+/* By ELEMENT TYPE as well as by class. tab-index defaults per element type in
+ * RmlUi, and a class rule is not guaranteed to win that; the content of this
+ * panel is injected at runtime, so anything the view emits has to be covered
+ * whether or not it carries one of our classes. */
+input,
+select,
+textarea,
+button {
+	tab-index: none;
+}
+
 .me-button {
 	display: inline-block;
 	margin-left: 6px;
@@ -66,11 +94,36 @@
 	font-size: 0.7em;
 }
 
+/* The file row is a path plus an "open" affordance. The browser separates
+   them with a flex gap; RCSS has neither flex gap nor a way to fake one
+   between inline siblings, so the affordance carries its own margin — without
+   it the two run together and the row reads "triggers/waves.luaopen". */
+.me-file-open {
+	margin-left: 8px;
+	color: #4c5d70;
+}
+
+.me-file:hover .me-file-open {
+	color: #8fbcff;
+}
+
 .me-group {
 	display: block;
 	margin: 12px 0 4px 0;
 	color: #e8c884;
 	font-size: 0.8em;
+}
+
+/* A fired trigger tints and lifts its rule, so progression reads straight
+   down the column without stopping at a single chip. Faint on purpose: this
+   is a backdrop, and the chips stay the thing you actually read. */
+.me-card.done {
+	border-left-color: #4a7f5e;
+	background-color: #16221b;
+}
+
+.me-card.done .me-card-title {
+	color: #9fb8a8;
 }
 
 /* One flat card: triggers are left-ruled groups, not nested boxes. */

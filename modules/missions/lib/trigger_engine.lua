@@ -27,7 +27,10 @@ local TriggerEngine = {}
 ---@return MissionTriggerEngine
 function TriggerEngine.New()
 	local triggers = {} ---@type TriggerDescriptor[]
-	local state = { fired = {} } ---@type TriggerEngineState
+	-- `fired` is the save pile; `heldSince` joins it — the frame each delayed
+	-- trigger's conditions first held, which a checkpoint must carry or a
+	-- reloaded mission would restart every countdown.
+	local state = { fired = {}, heldSince = {} } ---@type TriggerEngineState
 	-- Derived, never serialized: input name -> { [id] = true } watchers;
 	-- poller ids (nil-inputs conditions); ids awaiting evaluation.
 	local watchers = {} ---@type table<string, table<string, boolean>>
@@ -54,9 +57,13 @@ function TriggerEngine.New()
 		end
 		triggers[#triggers + 1] = descriptor
 		local inputs = descriptor.condition.inputs
-		if inputs == nil then
+		-- A delayed trigger polls whatever its inputs say. Events tell you the
+		-- answer CHANGED; a countdown needs to be asked again on a frame when
+		-- nothing changed at all, which is precisely when it comes due.
+		if inputs == nil or (descriptor.delayFrames or 0) > 0 then
 			pollers[descriptor.id] = true
-		else
+		end
+		if inputs ~= nil then
 			for _, input in ipairs(inputs) do
 				watchers[input] = watchers[input] or {}
 				watchers[input][descriptor.id] = true
@@ -77,6 +84,7 @@ function TriggerEngine.New()
 			if trigger.filename == filename then
 				removed = removed + 1
 				state.fired[trigger.id] = nil
+				state.heldSince[trigger.id] = nil
 				pollers[trigger.id] = nil
 				dirty[trigger.id] = nil
 				for _, ids in pairs(watchers) do
@@ -120,13 +128,39 @@ function TriggerEngine.New()
 			local id = trigger.id
 			if pollers[id] or dirty[id] then
 				dirty[id] = nil
-				if not (trigger.once and state.fired[id]) and trigger.condition.evaluate(ctx) then
-					state.fired[id] = true
-					for _, effect in ipairs(trigger.effects) do
-						effect.execute(ctx)
+				if not (trigger.once and state.fired[id]) then
+					local holds = trigger.condition.evaluate(ctx)
+					local delay = trigger.delayFrames or 0
+					if not holds then
+						-- The countdown measures a CONTINUOUS hold, so losing
+						-- the condition puts the clock back to zero.
+						state.heldSince[id] = nil
+					elseif delay == 0 then
+						engine.Fire(trigger, ctx)
+					else
+						if state.heldSince[id] == nil then
+							state.heldSince[id] = ctx.frame
+						end
+						if ctx.frame - state.heldSince[id] >= delay then
+							-- Re-arm from the FIRE, not from the next tick:
+							-- restarting at whenever the cadence next looks
+							-- would add the cadence to every interval, so a
+							-- repeating trigger would drift slower and slower.
+							state.heldSince[id] = ctx.frame
+							engine.Fire(trigger, ctx)
+						end
 					end
 				end
 			end
+		end
+	end
+
+	---@param trigger TriggerDescriptor
+	---@param ctx MissionContext
+	engine.Fire = function(trigger, ctx)
+		state.fired[trigger.id] = true
+		for _, effect in ipairs(trigger.effects) do
+			effect.execute(ctx)
 		end
 	end
 
@@ -143,6 +177,8 @@ function TriggerEngine.New()
 	---@param saved TriggerEngineState
 	engine.SetState = function(saved)
 		state = saved
+		-- An older checkpoint predates delays and carries no countdowns.
+		state.heldSince = state.heldSince or {}
 	end
 
 	return engine
