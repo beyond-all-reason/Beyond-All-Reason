@@ -623,4 +623,79 @@ describe("UnitDefs invariants", function()
 
 		assert.same({}, bad)
 	end)
+
+	-- weapontype DGun is how the commander D-gun is declared; the engine derives manualFire from it.
+	local manualFireExempt = { armcom = true, armcom_scav = true, dummycom = true, dummycom_scav = true }
+
+	it("backs canmanualfire with a manual fire weapon", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			if (def.canmanualfire or def.candgun) and not manualFireExempt[name] then
+				local found = false
+				for _, weapon in pairs(def.weapondefs or {}) do
+					if type(weapon) == "table" and (weapon.manualfire or weapon.commandfire or tostring(weapon.weapontype or ""):lower() == "dgun") then
+						found = true
+					end
+				end
+
+				if not found then
+					bad[#bad + 1] = name
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	it("never makes cloaking cheaper while moving", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local standing = tonumber(def.cloakcost)
+			local moving = tonumber(def.cloakcostmoving)
+			local mobile = (tonumber(def.speed) or 0) > 0 or def.canmove == true
+
+			if mobile and standing and moving and moving < standing then
+				bad[#bad + 1] = string.format("%s cloakcost=%s cloakcostmoving=%s", name, tostring(standing), tostring(moving))
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	it("keeps buildangle inside one turn of engine heading", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local angle = def.buildangle
+			if angle ~= nil and (type(angle) ~= "number" or angle % 1 ~= 0 or angle < 0 or angle > 65536) then
+				bad[#bad + 1] = name .. " buildangle = " .. tostring(angle)
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	-- legmohobp is finished but unbuildable and still waiting on its portrait.
+	local buildpicExempt = { legmohobp = true, legmohobp_scav = true, legmohobpct = true, legmohobpct_scav = true }
+
+	it("points buildpic at a file that ships", function()
+		local checked = {}
+		local bad = {}
+		for name, def in pairs(defs) do
+			local buildpic = def.buildpic
+			if buildpic ~= nil and not buildpicExempt[name] then
+				if type(buildpic) ~= "string" or buildpic == "" then
+					bad[#bad + 1] = name .. " buildpic = " .. tostring(buildpic)
+				else
+					if checked[buildpic] == nil then
+						checked[buildpic] = VFS.FileExists("unitpics/" .. buildpic)
+					end
+					if not checked[buildpic] then
+						bad[#bad + 1] = name .. " -> " .. buildpic
+					end
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
 end)
