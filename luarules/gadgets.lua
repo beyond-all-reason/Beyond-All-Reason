@@ -342,6 +342,7 @@ local callInLists = {
 	"AllowFeatureCreation",
 	"AllowResourceLevel",
 	"AllowResourceTransfer",
+	"ResourceExcess",
 	"AllowDirectUnitControl",
 	"AllowBuilderHoldFire",
 	"MoveCtrlNotify",
@@ -351,9 +352,6 @@ local callInLists = {
 	"AllowWeaponInterceptTarget",
 	"UnitAutoTargetRange",
 	-- unsynced
-	"DrawUnit",
-	"DrawFeature",
-	"DrawShield",
 	"DrawProjectile",
 	"RecvSkirmishAIMessage",
 
@@ -417,9 +415,6 @@ local callInLists = {
 }
 
 local headlessDisabledCallIns = {
-	DrawUnit = true,
-	DrawFeature = true,
-	DrawShield = true,
 	DrawProjectile = true,
 	ViewResize = true,
 	DrawGenesis = true,
@@ -1656,33 +1651,6 @@ function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	return
 end
 
-function gadgetHandler:DrawUnit(unitID, drawMode)
-	for _, g in ipairs(self.DrawUnitList) do
-		if g:DrawUnit(unitID, drawMode) then
-			return true
-		end
-	end
-	return false
-end
-
-function gadgetHandler:DrawFeature(featureID, drawMode)
-	for _, g in ipairs(self.DrawFeatureList) do
-		if g:DrawFeature(featureID, drawMode) then
-			return true
-		end
-	end
-	return false
-end
-
-function gadgetHandler:DrawShield(unitID, weaponID, drawMode)
-	for _, g in ipairs(self.DrawShieldList) do
-		if g:DrawShield(unitID, weaponID, drawMode) then
-			return true
-		end
-	end
-	return false
-end
-
 function gadgetHandler:DrawProjectile(projectileID, drawMode)
 	for _, g in ipairs(self.DrawProjectileList) do
 		if g:DrawProjectile(projectileID, drawMode) then
@@ -1879,6 +1847,15 @@ function gadgetHandler:AllowResourceTransfer(oldTeamID, newTeamID, res, amount)
 		end
 	end
 	return true
+end
+
+function gadgetHandler:ResourceExcess(resourceExcess)
+	for _, g in ipairs(self.ResourceExcessList) do
+		if g:ResourceExcess(resourceExcess) then
+			return true
+		end
+	end
+	return false
 end
 
 function gadgetHandler:AllowDirectUnitControl(unitID, unitDefID, unitTeam,
