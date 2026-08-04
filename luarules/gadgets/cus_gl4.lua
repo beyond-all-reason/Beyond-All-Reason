@@ -1565,6 +1565,27 @@ local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
 local spSetFeatureFade = Spring.SetFeatureFade
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 
+-- Scripters should not have to know CUS GL4 exists, so instead of exposing a "tell CUS about it"
+-- call, we watch for the change ourselves. 
+local spGetUnitPaletteIndex = Spring.GetUnitPaletteIndex
+local spGetFeaturePaletteIndex = Spring.GetFeaturePaletteIndex
+local PALETTE_SWEEP_BUDGET = 128
+local cachedPaletteIndex = {} -- {objectID : custom palette index, or false for "team color"}
+local paletteSweepUnitKey = nil
+local paletteSweepFeatureKey = nil
+
+--- Records the palette index that an object's freshly uploaded instance data was built from, so
+--- the sweep has a truthful baseline to compare against.
+---@param objectID integer positive unitID, or negative featureID
+local function CachePaletteIndex(objectID)
+	if spGetUnitPaletteIndex == nil then return end -- engine without the custom palette API
+	if objectID >= 0 then
+		cachedPaletteIndex[objectID] = spGetUnitPaletteIndex(objectID) or false
+	else
+		cachedPaletteIndex[objectID] = spGetFeaturePaletteIndex(-objectID) or false
+	end
+end
+
 local function AddObject(objectID, drawFlag, reason)
 	if (drawFlag >= 128) then --icon
 		return
@@ -1598,6 +1619,10 @@ local function AddObject(objectID, drawFlag, reason)
 		objectIDtoDefID[objectID] = nil
 		return
 	end
+
+	-- AssignObjectToBin just uploaded instance data built from the live palette index; remember it
+	-- so SweepPaletteChanges can tell later whether it went stale.
+	CachePaletteIndex(objectID)
 	if objectID >= 0 then
 		spSetUnitEngineDrawMask(objectID, 255 - overrideDrawFlag) -- ~overrideDrawFlag & 255
 		cusUnitIDtoDrawFlag[objectID] = drawFlag
@@ -1687,6 +1712,100 @@ local function RemoveObjectFromBin(objectID, objectDefID, texKey, shader, flag, 
 	end
 end
 
+--- Re-uploads an object's instance data (instData) in place, without touching bin membership.
+--- 
+---@param objectID integer positive unitID, or negative featureID (the usual CUS GL4 convention)
+---@param reason string? debug label
+---@return boolean refreshed true if at least one bin was refreshed
+local function RefreshObjectInstanceData(objectID, reason)
+	if unitDrawBins == nil then return false end
+
+	local objectDefID = objectIDtoDefID[objectID]
+	if objectDefID == nil then return false end
+
+	local isUnit = (objectID >= 0)
+	local oldFlag
+	if isUnit then
+		if (not spValidUnitID(objectID)) or (Spring.GetUnitIsDead(objectID) == true) then return false end
+		oldFlag = cusUnitIDtoDrawFlag[objectID]
+	else
+		if not spValidFeatureID(-objectID) then return false end
+		oldFlag = cusFeatureIDtoDrawFlag[-1 * objectID]
+	end
+	if oldFlag == nil then return false end
+
+	local shader = GetShaderName(1, objectDefID) -- shader choice does not depend on the draw flag
+	local texKey = fastObjectDefIDtoTextureKey[objectDefID]
+	local uniformBinID = GetUniformBinID(objectDefID, "RefreshObjectInstanceData")
+	if (shader == false) or (texKey == nil) or (uniformBinID == nil) then return false end
+
+	local refreshed = false
+	local drawBinKeysLen = #drawBinKeys
+	for k = 1, drawBinKeysLen do
+		-- The deferred bin (flag 0) shares its uniformBin table, and therefore its IBO, with
+		-- the forward bin (flag 1), so iterating drawBinKeys covers it too.
+		local flag = drawBinKeys[k]
+		if overrideDrawFlagsCombined[flag] and HasAllBits(oldFlag, flag) then
+			local bin = unitDrawBins[flag][shader]
+			bin = bin and bin[uniformBinID]
+			bin = bin and bin[texKey]
+			local objectIndex = bin and bin.objectsIndex[objectID]
+			if objectIndex then
+				if isUnit then
+					bin.IBO:InstanceDataFromUnitIDs(objectID, objectTypeAttribID, objectIndex - 1)
+				else
+					bin.IBO:InstanceDataFromFeatureIDs(-1 * objectID, objectTypeAttribID, objectIndex - 1)
+				end
+				refreshed = true
+			end
+		end
+	end
+
+	if refreshed then
+		-- The upload above read the live palette index, so the cache is now in sync again. If
+		-- nothing was uploaded we deliberately leave the cache stale, so the next sweep retries.
+		CachePaletteIndex(objectID)
+	end
+
+	if debugmode then Spring.Echo("RefreshObjectInstanceData", objectID, oldFlag, refreshed, reason) end
+	return refreshed
+end
+
+local function SweepPaletteChanges()
+	if spGetUnitPaletteIndex == nil then return end -- engine without the custom palette API
+
+	local key = paletteSweepUnitKey
+	-- next() errors on a key that has since been removed, so drop a stale cursor
+	if key ~= nil and cusUnitIDtoDrawFlag[key] == nil then key = nil end
+	for _ = 1, PALETTE_SWEEP_BUDGET do
+		local unitID = next(cusUnitIDtoDrawFlag, key)
+		if unitID == nil then
+			key = nil -- wrapped around, restart from the top on the next update
+			break
+		end
+		key = unitID
+		if cachedPaletteIndex[unitID] ~= (spGetUnitPaletteIndex(unitID) or false) then
+			RefreshObjectInstanceData(unitID, "palettesweep") -- re-syncs the cache on success
+		end
+	end
+	paletteSweepUnitKey = key
+
+	key = paletteSweepFeatureKey
+	if key ~= nil and cusFeatureIDtoDrawFlag[key] == nil then key = nil end
+	for _ = 1, PALETTE_SWEEP_BUDGET do
+		local featureID = next(cusFeatureIDtoDrawFlag, key)
+		if featureID == nil then
+			key = nil
+			break
+		end
+		key = featureID
+		if cachedPaletteIndex[-featureID] ~= (spGetFeaturePaletteIndex(featureID) or false) then
+			RefreshObjectInstanceData(-featureID, "palettesweep") -- re-syncs the cache on success
+		end
+	end
+	paletteSweepFeatureKey = key
+end
+
 local function UpdateObject(objectID, drawFlag, reason)
 	if debugmode then Spring.Echo("UpdateObject", objectID, drawFlag, reason) end
 	if (drawFlag >= 128) then --icon
@@ -1763,6 +1882,7 @@ local function RemoveObject(objectID, reason) -- we get pos/neg objectID here
 		end
 	end
 	objectIDtoDefID[objectID] = nil
+	cachedPaletteIndex[objectID] = nil
 	if objectID >= 0 then
 		cusUnitIDtoDrawFlag[objectID] = nil
 		buildProgresses[objectID] = nil
@@ -2326,6 +2446,7 @@ function gadget:Initialize()
 	GG.CUSGL4.GetShader = GetShader
 	GG.CUSGL4.GetShaderName = GetShaderName
 	GG.CUSGL4.SetShaderUniforms = SetShaderUniforms
+	GG.CUSGL4.RefreshObjectInstanceData = RefreshObjectInstanceData
 	GG.CUSGL4.enabled = true
 
 end
@@ -2601,6 +2722,11 @@ function gadget:DrawWorldPreUnit()
 		tracy.ZoneEnd()
 		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:ProcessChangesFeatures")
 		ProcessFeatures(features, drawFlagsFeatures, "changed")
+		tracy.ZoneEnd()
+
+		-- Pick up Spring.SetUnit/SetFeaturePaletteIndex calls made by any widget or gadget
+		tracy.ZoneBeginN("G:CUS:DrawWorldPreUnit:SweepPaletteChanges")
+		SweepPaletteChanges()
 		tracy.ZoneEnd()
 
 		local deltat = Spring.DiffTimers(Spring.GetTimerMicros(),t0,  nil) -- in ms

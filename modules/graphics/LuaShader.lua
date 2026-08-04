@@ -128,7 +128,12 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	uint mouseUnused;
 	vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
 
-	vec4 teamColor[255]; //all team colors
+	// The engine calls this the palette: [0..254] = team colors, [255] = reserved,
+	// [256..2047] = the custom palette written by Spring.SetCustomPaletteColor().
+	// Index it with an object's paletteIndex (instData.z bits 0:10), not with its teamID.
+	// This must stay MAX_PALETTE_COLORS (2048) wide to match the engine's UniformParamsBuffer,
+	// or lookups into the custom range silently read out of bounds.
+	vec4 teamColor[2048];
 };
 
 // glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
