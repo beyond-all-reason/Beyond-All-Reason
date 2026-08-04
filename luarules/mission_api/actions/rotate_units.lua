@@ -10,7 +10,7 @@ local function rotateUnits(unitName, direction)
         if Spring.GetUnitIsDead(unitID) == false then
             if direction then
                 local testposx, _, testposz = Spring.GetUnitPosition(unitID)
-                if not (direction.x-testposx == 0 and direction.z-testposz == 0) then
+                if not (math.abs(direction.x-testposx) >= 0.001 and math.abs(direction.z-testposz) >= 0.001) then
                     Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
                 end
             end

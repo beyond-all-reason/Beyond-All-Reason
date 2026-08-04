@@ -9,6 +9,7 @@ local function moveUnits(unitName, position, direction, randomRadius)
     for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
             if randomRadius and randomRadius > 0 then
+                local randomRadius = math.ceil(randomRadius)
                 Spring.SetUnitPosition(unitID, position.x+math.random(-randomRadius, randomRadius), position.y, position.z+math.random(-randomRadius, randomRadius))
             else
                 Spring.SetUnitPosition(unitID, position.x, position.y, position.z)
@@ -16,7 +17,7 @@ local function moveUnits(unitName, position, direction, randomRadius)
             
             if direction then
                 local testposx, _, testposz = Spring.GetUnitPosition(unitID)
-                if not (direction.x-testposx == 0 and direction.z-testposz == 0) then
+                if not (math.abs(direction.x-testposx) > 0.001 and math.abs(direction.z-testposz) > 0.001) then
                     Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
                 end
             end
