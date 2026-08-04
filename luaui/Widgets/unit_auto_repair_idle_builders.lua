@@ -24,6 +24,7 @@ local spGetUnitHealth        = Spring.GetUnitHealth
 local spGetUnitStates        = Spring.GetUnitStates
 local spGetUnitCommandCount  = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local spGetUnitWorkerTask    = Spring.GetUnitWorkerTask
 local spGetUnitIsBeingBuilt  = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsDead        = Spring.GetUnitIsDead
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
@@ -158,8 +159,8 @@ local function onReclaimerStopped(reclaimerID)
 end
 
 local function isReclaimingUnit(reclaimerID, targetID)
-	local cmdID, _, _, p1, p2 = spGetUnitCurrentCommand(reclaimerID)
-	return cmdID == CMD_RECLAIM and p2 == nil and p1 == targetID
+	local cmdID, taskTargetID = spGetUnitWorkerTask(reclaimerID)
+	return cmdID == CMD_RECLAIM and taskTargetID == targetID
 end
 
 local function findAllyReclaimerOf(targetID)
