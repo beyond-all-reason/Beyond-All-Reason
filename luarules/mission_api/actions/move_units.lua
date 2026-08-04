@@ -11,12 +11,12 @@ local function moveUnits(unitName, position, direction, randomRadius)
             if randomRadius and randomRadius > 0 then
                 Spring.SetUnitPosition(unitID, position.x+math.random(-randomRadius, randomRadius), position.y, position.z+math.random(-randomRadius, randomRadius))
             else
-                Spring.SetUnitPosition(unitID, position.x, position.z, alwaysAboveSea)
+                Spring.SetUnitPosition(unitID, position.x, position.y, position.z)
             end
             
             if direction then
                 local testposx, _, testposz = Spring.GetUnitPosition(unitID)
-                Spring.SetUnitDirection(unitID, direction.x-testposx, 0, direction.z-testposz)
+                Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
             end
         end
     end
