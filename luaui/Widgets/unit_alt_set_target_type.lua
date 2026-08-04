@@ -375,17 +375,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	if shouldCleanupTargeting then
-		-- Cancel and re-issue the set-target so that old set target commands don't 
-		-- linger. This filters for a command targeting a specific unit, or coordinates.
-		local shouldReissueSetTarget = 	cmdID == CMD_SET_TARGET 
-								and not cmdOpts.shift
-
 		for _, unitID in ipairs(selectedUnits) do
 			cleanupUnitTargeting(unitID)
-			if shouldReissueSetTarget then
-				spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
-				spGiveOrderToUnit(unitID, CMD_SET_TARGET, cmdParams, 0)
-			end
 		end
 	end
 
