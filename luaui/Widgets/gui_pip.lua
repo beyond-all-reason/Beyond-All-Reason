@@ -133,6 +133,7 @@ config = {
 	centerSmoothness = 15,
 	trackingSmoothness = 8,
 	playerTrackingSmoothness = 4.5,
+	playerTrackingZoomStopThreshold = 0.00005,  -- Preserve the ease-out tail at overview-scale zooms
 	switchSmoothness = 30,
 	zoomMin = 0.04,
 	zoomMax = 2,
@@ -230,7 +231,7 @@ config = {
 	drawProjectiles = true,
 	zoomToCursor = true,
 	altKeyRequiredForZoom = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,  -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
-	mapEdgeMargin = 0,
+	mapEdgeMargin = 0.035,  -- Maximum fraction of the visible span allowed past each map edge
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
@@ -4696,6 +4697,12 @@ local function ClampCameraAxis(pos, visibleSize, mapSize, marginFraction)
 		return mapSize / 2
 	end
 	return math.min(math.max(pos, minPos), maxPos)
+end
+
+local function CalculatePipModeMinZoom(width, height)
+	local marginFraction = math.min(math.max(config.mapEdgeMargin or 0, 0), 0.49)
+	local fitZoom = math.min(width, height) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+	return fitZoom * (1 - 2 * marginFraction)
 end
 
 function RecalculateWorldCoordinates()
@@ -9257,7 +9264,7 @@ function widget:ViewResize()
 			rawW = render.dim.r - render.dim.l
 			rawH = render.dim.t - render.dim.b
 		end
-		pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+		pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 		if cameraState.zoom < pipModeMinZoom then
 			cameraState.zoom = pipModeMinZoom
 			cameraState.targetZoom = pipModeMinZoom
@@ -18886,7 +18893,7 @@ function widget:Update(dt)
 			local pipWidth, pipHeight = GetEffectivePipDimensions()
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
-			local newMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			local newMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 			pipModeMinZoom = newMinZoom
 			-- Clamp zoom to new min if needed
 			if cameraState.zoom < pipModeMinZoom then
@@ -19266,7 +19273,7 @@ function widget:Update(dt)
 					if not isMinimapMode then
 						local rawW = render.dim.r - render.dim.l
 						local rawH = render.dim.t - render.dim.b
-						pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+						pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 						if cameraState.zoom < pipModeMinZoom then
 							cameraState.zoom = pipModeMinZoom
 							cameraState.targetZoom = pipModeMinZoom
@@ -19347,7 +19354,8 @@ function widget:Update(dt)
 	end
 
 	-- Smooth zoom and camera center interpolation
-	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
+	local zoomStopThreshold = interactionState.trackingPlayerID and config.playerTrackingZoomStopThreshold or 0.001
+	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > zoomStopThreshold
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 	local apiTransitionActive = miscState.apiTransitionEndTime and miscState.apiTransitionEndTime > os.clock()
 	if not apiTransitionActive then
@@ -19414,9 +19422,10 @@ function widget:Update(dt)
 				zoomSmooth = miscState.apiTransitionZoomSmoothness
 			end
 			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * zoomSmooth, 1)
-			-- Snap to target when close enough to avoid the asymptotic interpolation
-			-- never reaching exact fitZoom (which would leave a sliver of void)
-			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
+			-- Snap to target when close enough to end asymptotic interpolation.
+			-- Player tracking uses a finer threshold so overview zoom eases to a stop.
+			local zoomSnapThreshold = interactionState.trackingPlayerID and config.playerTrackingZoomStopThreshold or 0.002
+			if math.abs(cameraState.zoom - cameraState.targetZoom) < zoomSnapThreshold then
 				cameraState.zoom = cameraState.targetZoom
 			end
 			-- Enforce zoom floor (can go stale after PIP resize / rotation change)
@@ -21994,7 +22003,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
-			pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 			if cameraState.zoom < pipModeMinZoom then
 				cameraState.zoom = pipModeMinZoom
 				cameraState.targetZoom = pipModeMinZoom
