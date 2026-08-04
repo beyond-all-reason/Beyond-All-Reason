@@ -20856,6 +20856,8 @@ function widget:IsAbove(mx, my)
 	if miscState.apiInteractionLocked then return false end
 	-- Don't claim mouse when GUI is hidden
 	if Spring.IsGUIHidden() then return false end
+	-- Ignore warped hidden-cursor coordinates while panning the main world camera.
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return false end
 
@@ -20899,12 +20901,12 @@ function widget:MouseWheel(up, value)
 	if Spring.IsGUIHidden() then return end
 	if isMinimapMode and miscState.minimapMinimized then return end
 	if not uiState.inMinMode then
-		local mx, my = spFunc.GetMouseState()
+		local mx, my, _, middleButton, _, _, cameraPanMode = spFunc.GetMouseState()
+		if cameraPanMode then return false end
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			-- When altKeyRequiredForZoom is enabled, pass scroll through unless ALT or middle mouse is held
 			if config.altKeyRequiredForZoom then
 				local alt = Spring.GetModKeyState()
-				local _, _, _, middleButton = spFunc.GetMouseState()
 				if not alt and not middleButton then return end
 			end
 			-- During activity focus, pass scroll through so the game camera zooms instead
@@ -20999,6 +21001,7 @@ function widget:MousePress(mx, my, mButton)
 	if miscState.apiInteractionLocked then return end
 	-- Don't process input when GUI is hidden
 	if Spring.IsGUIHidden() then return end
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
 	if WG['chat'] and WG['chat'].isMapDrawActive and WG['chat'].isMapDrawActive() then return false end
@@ -21703,6 +21706,7 @@ end
 function widget:MouseMove(mx, my, dx, dy, mButton)
 	if miscState.apiInteractionLocked then return end
 	if Spring.IsGUIHidden() then return end
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
