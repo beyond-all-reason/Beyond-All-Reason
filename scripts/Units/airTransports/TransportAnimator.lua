@@ -26,6 +26,7 @@ local spGetUnitCommands           = Spring.GetUnitCommands
 local spUnitScript                = Spring.UnitScript
 local spGetCOBScriptID            = Spring.GetCOBScriptID
 local spCallCOBScript             = Spring.CallCOBScript
+local spSetUnitBlocking           = Spring.SetUnitBlocking
 
 -- CONSTANTS
 local PI              = math.pi
@@ -292,6 +293,7 @@ function TransportAnimator.Load(passengerData, doAnim)
 	if not aborted then
 		passengerData.animProgress = 1
 		spUnitAttach(transporterID,passengerData.id, passengerData.slotID)
+		spSetUnitBlocking(passengerData.id, nil, nil, false, false) -- should not collide with projectiles or ray segments while attached
 	else
 		passengerData.animProgress = nil
 		local count = CargoHandler.Unregister(passengerData.id, cargo)
@@ -314,7 +316,8 @@ function TransportAnimator.Unload(passengerData, goalPosX, goalPosY, goalPosZ, d
 	passengerData.unloading = true
 	CargoHandler.BeginUnloading(cargo)
 	spUnitDetach(passengerData.id)
-
+	spSetUnitBlocking(passengerData.id, nil, nil, true, true) -- restore upon starting the detach process
+	
 	if doAnim ~= false then
 		spSetUnitRulesParam(passengerData.id, "inUnloadAnim", 1)
 		local slotPosX, slotPosY, slotPosZ = spGetUnitPiecePosDir(transporterID, passengerData.slotID)
