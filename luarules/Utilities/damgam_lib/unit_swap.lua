@@ -5,7 +5,7 @@ local function SwapUnit(unitID, newUnitName)
     local unitHealth, unitMaxHealth, unitParalyze, unitCapture, unitBuildProgress = Spring.GetUnitHealth(unitID)
     local unitExperience = Spring.GetUnitExperience(unitID)
     local unitPosX, unitPosY, unitPosZ = Spring.GetUnitPosition(unitID)
-    local unitDirectionX, unitDirectionY, unitDirectionZ = Spring.GetUnitDirection(unitID)
+    local unitDirectionX, unitDirectionY, unitDirectionZ, unitRightX, unitRightY, unitRightZ = Spring.GetUnitDirection(unitID)
     local unitVelocityX, unitVelocityY, unitVelocityZ = Spring.GetUnitVelocity(unitID)
     local unitResurrected = Spring.GetUnitRulesParam(unitID, "resurrected")
 
@@ -20,7 +20,7 @@ local function SwapUnit(unitID, newUnitName)
         local newUnitMaxHealth = select(2, Spring.GetUnitHealth(newUnitID))
         local newUnitHealth = (unitHealth/unitMaxHealth)*newUnitMaxHealth
         Spring.SetUnitHealth(newUnitID, newUnitHealth, unitCapture, unitParalyze, unitBuildProgress)
-        Spring.SetUnitDirection(newUnitID, unitDirectionX, unitDirectionY, unitDirectionZ)
+        Spring.SetUnitDirection(newUnitID, unitDirectionX, unitDirectionY, unitDirectionZ, unitRightX, unitRightY, unitRightZ)
         Spring.SetUnitVelocity(newUnitID, unitVelocityX, unitVelocityY, unitVelocityZ)
         if unitResurrected then
             Spring.SetUnitRulesParam(newUnitID, "resurrected", 1, {inlos=true})

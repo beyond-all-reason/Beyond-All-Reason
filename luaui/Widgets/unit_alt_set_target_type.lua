@@ -18,6 +18,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitsInCylinder   = Spring.GetUnitsInCylinder
+local spGetClosestEnemyUnit  = Spring.GetClosestEnemyUnit
 local spAreTeamsAllied       = Spring.AreTeamsAllied
 local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
@@ -117,6 +118,10 @@ local function MakeLine(x1, y1, z1, x2, y2, z2)
 end
 
 local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
+	if spGetClosestEnemyUnit then
+		return spGetClosestEnemyUnit(x, y, z, radius)
+	end
+
 	local candidateUnits = spGetUnitsInCylinder(x, z, radius)
 
 	local closestUnit = nil
@@ -264,8 +269,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		
 		if worldPos and worldPos[1] then
 			local myTeam = spGetMyTeamID()
-			-- Blocked on https://github.com/beyond-all-reason/RecoilEngine/issues/2793
-			-- targetID = Spring.GetClosestEnemyUnit(worldPos[1], worldPos[2], worldPos[3], SNAP_RADIUS, myTeam)
 			targetID = FindNearestEnemyUnit(
 				worldPos[1], worldPos[2], worldPos[3],
 				SNAP_RADIUS,

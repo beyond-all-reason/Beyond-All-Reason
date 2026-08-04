@@ -262,6 +262,7 @@ local function initUnitList()
 		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
 		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
 		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
+		['armfrock'] = { weapons = { 'air' } },  --floating AA rockets
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
 		['armkraken'] = { weapons = { 'cannon' } }, --adv torpedo launcher
@@ -272,6 +273,7 @@ local function initUnitList()
 		['armflak'] = { weapons = { 'air' } },
 		['armmercury'] = { weapons = { 'air' } },
 		['armemp'] = { weapons = { 'ground' } },
+		['armshockwave'] = { weapons = { 'ground' } },
 		['armamd'] = { weapons = { 'nuke' } }, --antinuke
 
 		['armbrtha'] = { weapons = { 'lrpc' } },
@@ -297,10 +299,12 @@ local function initUnitList()
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
 		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
+		['corfrock'] = { weapons = { 'air' } }, --floating AA rockets
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
 		['corfdoom'] = { weapons = { [1] = 'cannon' } },
 
 		['cortoast'] = { weapons = { 'cannon' } },
+		['corbhmth'] = { weapons = { 'cannon' } }, --cerberus
 		['corvipe'] = { weapons = { 'ground' } },
 		['cordoom'] = { weapons = { 'ground', 'ground', 'ground'} },
 		['corflak'] = { weapons = { 'air' } },
@@ -334,6 +338,8 @@ local function initUnitList()
 		['legperdition'] = { weapons = { 'cannon' } }, --T2 LR-AA
 		['legapopupdef'] = { weapons = { 'ground' } }, --popup riot/minigun turret
 		['leganavaltorpturret'] = { weapons = { 'ground' } }, --torpedo launcher
+		['leganavalaaturret'] = { weapons = { 'air' } }, --Fulmen
+		['legfrl'] = { weapons = { 'air' } }, --Polybolos
 
 		['legstarfall'] = { weapons = { 'lrpc' } },
 		['leglrpc'] = { weapons = { 'lrpc' } },
@@ -353,6 +359,12 @@ local function initUnitList()
 		['scavbeacon_t2_scav'] = { weapons = { 'ground' } },
 		['scavbeacon_t3_scav'] = { weapons = { 'ground' } },
 		['scavbeacon_t4_scav'] = { weapons = { 'ground' } },
+
+		['armbotrail'] = { weapons = { 'lrpc' } }, --pawn launcher
+		['armlwall'] = { weapons = { 'ground' } }, --armed wall
+		['cormwall'] = { weapons = { 'ground' } }, --armed wall
+		['legrwall'] = { weapons = { 'ground' } }, --armed wall
+		['legministarfall'] = { weapons = { 'cannon' } },
 
 		['armannit3'] = { weapons = { 'ground' } },
 		['armminivulc'] = { weapons = { 'ground' } },
@@ -439,7 +451,7 @@ local glStencilMask			= gl.StencilMask
 local glStencilFunc			= gl.StencilFunc
 local glStencilOp			= gl.StencilOp
 
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE --GL.KEEP
 
 local spGetPositionLosState = Spring.GetPositionLosState

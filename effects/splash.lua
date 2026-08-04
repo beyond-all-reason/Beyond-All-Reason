@@ -1086,7 +1086,7 @@ local definitions = {
             ttl                = [[120 r40]],
             rotParams          = [[-6 r12, -0.5 r1, -180 r360]],
             pos                = [[0, 5, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     circlewaves = {
@@ -1229,7 +1229,7 @@ local definitions = {
         ttl                = 120,
         rotParams          = [[-11 r22, -2 r4, -180 r360]],
         pos                = [[0.5, 1, 0.0]],
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     brightwakefoam = {
@@ -1252,7 +1252,7 @@ local definitions = {
             ttl                = [[120 r40]],
             rotParams          = [[-6 r12, -0.5 r1, -180 r360]],
             pos                = [[0, 5, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     circlewaves = {
@@ -1282,7 +1282,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[wave]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     waterrush = {
@@ -1312,7 +1312,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     sparks = {
@@ -1372,7 +1372,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[explowater]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     shockwave = {
@@ -1394,7 +1394,7 @@ local definitions = {
             sizegrowth         = [[-25 r5]],
             ttl                = 24,
             pos                = [[0, 0, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     -- shockwave_slow = {
@@ -1416,7 +1416,7 @@ local definitions = {
     --         sizegrowth         = [[-16 r4]],
     --         ttl                = 140,
     --         pos                = [[0, 0, 0]],
-    --         alwaysvisible      = true,
+    --         alwaysvisible      = false,
     --       },
     --     },
     dirt = {
@@ -1447,7 +1447,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
     groundflash_white = {
@@ -1463,9 +1463,9 @@ local definitions = {
                 sizegrowth         = 3,
                 ttl                = 125,
                 texture            = [[groundflashwhite]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
-        },    
+        },
   },
 
   ["splash-nuke"] = {
@@ -1488,7 +1488,7 @@ local definitions = {
         sizegrowth         = 2,
         ttl                = 160,
         pos                = [[0.5, 1, 0.0]],
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     brightflare = {
@@ -1533,7 +1533,7 @@ local definitions = {
             ttl                = [[80 r60]],
             pos                = [[0, 5, 0]],
             rotParams          = [[-6 r12, -0.5 r1, -180 r360]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
         brightwakefoam = {
@@ -1556,7 +1556,7 @@ local definitions = {
             ttl                = [[110 r40]],
             rotParams          = [[-2 r4, -0.5 r1, -180 r360]],
             pos                = [[0, 5, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
         brightwakewave = {
@@ -1579,7 +1579,7 @@ local definitions = {
             ttl                = [[110 r40]],
             rotParams          = [[-6 r12, -0.5 r1, -180 r360]],
             pos                = [[0, 0, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     circlewaves = {
@@ -1609,7 +1609,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[wave]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     waterrush = {
@@ -1639,7 +1639,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     sparks = {
@@ -1669,7 +1669,7 @@ local definitions = {
         sizemod            = 0.99,
         texture            = [[gunshotxl]],
         useairlos          = false,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     waterexplosion = {
@@ -1700,7 +1700,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[explowater]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     -- shockwave = {
@@ -1722,7 +1722,7 @@ local definitions = {
     --         sizegrowth         = [[-29 r6]],
     --         ttl                = 38,
     --         pos                = [[0, 5, 0]],
-    --         alwaysvisible      = true,
+    --         alwaysvisible      = false,
     --       },
     --     },
     shockwave_slow = {
@@ -1744,7 +1744,7 @@ local definitions = {
             sizegrowth         = [[-18 r5]],
             ttl                = 170,
             pos                = [[0, 0, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     dirt = {
@@ -1775,7 +1775,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
     groundflash_white = {
@@ -1791,9 +1791,9 @@ local definitions = {
                 sizegrowth         = 3,
                 ttl                = 145,
                 texture            = [[groundflashwhite]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
-        },    
+        },
   },
   ["splash-nukexl"] = {
     waterring = {
@@ -1815,7 +1815,7 @@ local definitions = {
         sizegrowth         = 2,
         ttl                = 170,
         pos                = [[0.5, 1, 0.0]],
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     brightflare = {
@@ -1881,7 +1881,7 @@ local definitions = {
             ttl                = [[120 r40]],
             pos                = [[0, 5, 0]],
             rotParams          = [[-2 r4, -0.5 r1, -180 r360]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
         brightwakewave = {
@@ -1903,7 +1903,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[110 r40]],
             pos                = [[0, 0, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     circlewaves = {
@@ -1933,7 +1933,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[wave]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     waterrush = {
@@ -1963,7 +1963,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[waterrush]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     sparks = {
@@ -1993,7 +1993,7 @@ local definitions = {
         sizemod            = 0.99,
         texture            = [[gunshotxl2]],
         useairlos          = false,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     waterexplosion = {
@@ -2024,7 +2024,7 @@ local definitions = {
         sizemod            = 1.0,
         texture            = [[explowater]],
         useairlos          = true,
-        alwaysvisible      = true,
+        alwaysvisible      = false,
       },
     },
     shockwave = {
@@ -2046,7 +2046,7 @@ local definitions = {
             sizegrowth         = [[-22 r6]],
             ttl                = 20,
             pos                = [[0, 5, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     shockwave_slow = {
@@ -2068,7 +2068,7 @@ local definitions = {
             sizegrowth         = [[-18 r5]],
             ttl                = 220,
             pos                = [[0, 0, 0]],
-            alwaysvisible      = true,
+            alwaysvisible      = false,
           },
         },
     dirt = {
@@ -2099,7 +2099,7 @@ local definitions = {
                 sizemod            = 1,
                 texture            = [[randomdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
     groundflash_white = {
@@ -2115,9 +2115,9 @@ local definitions = {
                 sizegrowth         = 5,
                 ttl                = 220,
                 texture            = [[groundflashwhite]],
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
-        },    
+        },
   },
 }
 

@@ -326,9 +326,7 @@ else	-- UNSYNCED
 				return
 			end
 		end
-		if Script.LuaUI("CameraBroadcastEvent") then
-			Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
-		end
+		Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
 	end
 
 	local lastCameraName

@@ -196,7 +196,7 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
 
 -- Globals

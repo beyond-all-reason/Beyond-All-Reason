@@ -95,6 +95,7 @@ local ignoreDamageTypes = {}
 --------------------------------------------------------------------------------
 
 -- Do not display death-reason damage types which typically use overkill damage.
+ignoreDamageTypes[Game.envDamageTypes.AircraftCrashed] = true
 ignoreDamageTypes[Game.envDamageTypes.Killed] = true
 -- ignoreDamageTypes[Game.envDamageTypes.Crushed] = true -- Seems like an exception.
 ignoreDamageTypes[Game.envDamageTypes.Reclaimed] = true
