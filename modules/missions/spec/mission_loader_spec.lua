@@ -51,7 +51,7 @@ local function newLoader(sources, requires)
 		-- a dispatcher with nothing on the other end.
 		LoadActions = function()
 			local registry = { byName = {}, list = {} }
-			for _, name in ipairs({ "load", "reload" }) do
+			for _, name in ipairs({ "load", "reload", "restart" }) do
 				local entry = { name = name }
 				local registrar = {
 					RegisterValidate = function(fn) entry.validate = fn end,
@@ -114,6 +114,9 @@ local function newLoader(sources, requires)
 		end,
 		Log = function(_, level, message)
 			h.log[#h.log + 1] = tostring(level) .. " " .. tostring(message)
+		end,
+		GetGameFrame = function()
+			return 0 -- fresh load: the re-arm path only wakes mid-match
 		end,
 		GetGameRulesParam = function(name)
 			return h.params[name]
@@ -305,6 +308,42 @@ When(Team.Player.Has(UnitDef("armpw"), 3))
 			h.frame(15)
 			assert.are.equal(1, h.params.objective_scout)
 			assert.is_nil(h.params.objective_build_pawns)
+		end)
+	end)
+
+	describe("a preserving reload", function()
+		it("keeps progress: the editor nudging a number is not a restart", function()
+			local h = newLoader(mission("t", {
+				["triggers/a_build.lua"] = BUILD,
+				["triggers/z_win.lua"] = VICTORY,
+			}))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_build_pawns)
+
+			-- Conditions no longer hold; a fresh run could never re-complete.
+			h.counts[0] = { armpw = 0 }
+			h.actions.mission("mission", "reload", { "reload" }, 0)
+			assert.are.equal(1, h.params.objective_build_pawns)
+			assert.are.equal(1, h.params.objective_win)
+		end)
+
+		it("restart is the fresh run reload used to be", function()
+			local h = newLoader(mission("t", {
+				["triggers/a_build.lua"] = BUILD,
+				["triggers/z_win.lua"] = VICTORY,
+			}))
+			h.counts[0] = { armpw = 3 }
+			h.mission("t")
+			h.frame(15)
+			assert.are.equal(1, h.params.objective_build_pawns)
+
+			h.counts[0] = { armpw = 0 }
+			h.actions.mission("mission", "restart", { "restart" }, 0)
+			assert.is_nil(h.params.objective_build_pawns)
+			h.frame(30)
+			assert.is_nil(h.params.objective_win)
 		end)
 	end)
 

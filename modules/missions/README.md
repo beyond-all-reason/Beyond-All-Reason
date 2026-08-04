@@ -14,14 +14,25 @@ flowchart TB
         LOADER["mission_loader gadget<br/>injected env = the API surface;<br/>wires only watched callins"]
         DSL["DSL builder<br/>When/.When/Do/Once — no terminator;<br/>finalized at include → TriggerDescriptor"]
         ENGINE["trigger engine<br/>input→watchers index · dirty marks<br/>state tables (the save pile)"]
-        BUS["event bus (engine.OnEvent)<br/>engine callins + module events<br/>('UnitFinished', 'mission.objective_changed')"]
+        BUS["event bus (GG.Missions.OnEvent)<br/>engine callins + module events<br/>('UnitFinished', 'mission.objective_changed', 'waves.wave_cleared')"]
         MF["matchflow module<br/>Victory/Defeat → pending verdict"]
         VG["verdict gadget<br/>deferred, idempotent Spring.GameOver"]
+        WV["waves module<br/>named directors; scavengers builds the spec"]
     end
     LUA -->|"VFS.Include per file<br/>(hot reload by identity)"| LOADER
     LOADER --> DSL -->|"descriptors"| ENGINE
     LOADER -->|"forward watched callins"| BUS --> ENGINE
     ENGINE -->|"execute effects"| MF
+    ENGINE -->|"execute effects"| WV
     ENGINE -->|"Objective(...).Complete() emits<br/>'mission.objective_changed'"| BUS
+    WV -->|"wave_spawned / wave_cleared / boss_defeated"| BUS
     MF --> VG
 ```
+
+The manifest's `requires` list is the whitelist of what a trigger file may
+say: each required module ships a `mission_dsl.lua` whose env is merged into
+the sandbox. `waves` contributes the verbs (`Waves.Begin/Intensify/Surge/End`
+and the wave conditions); `scavengers` contributes the packs those verbs take
+(`Scavengers.Skirmish/Assault/Horde`). A mission's scavengers need no bot —
+but they do need the scavenger unit defs, which a game only derives when asked
+(`forceallunits`, `ruins`, or a scavengers AI on the field).

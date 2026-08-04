@@ -38,6 +38,11 @@ return {
 			},
 			{ key = "scavengers", name = "Scavengers", desc = "Hold out against the scavenger swarm, then kill the boss." },
 			{ key = "raptors", name = "Raptors", desc = "Hold out against the raptor swarm, then kill the queen." },
+			{
+				key = "mission",
+				name = "Mission",
+				desc = "Run the chosen mission. The mission decides when it is won or lost, and every unit is loaded.",
+			},
 		},
 	},
 }

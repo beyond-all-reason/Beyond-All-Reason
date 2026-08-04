@@ -35,11 +35,20 @@ function Unit(name) end
 
 ---Declare one unit of the mission's opening world state. units.lua sandbox
 ---only — not injected into trigger files. Chain .At(fx, fz) (required, map
----fractions), .Named(name), .Grouped(group).
+---fractions), .Named(name), .Grouped(group), .Neutral().
 ---@param unitDef MissionUnitDefRef
 ---@param team MissionTeamRole
 ---@return MissionSpawnChain
 function Spawn(unitDef, team) end
+
+---Take a unit the team already owns instead of adding another, and give it a
+---mission name. units.lua sandbox only. Chain .Named(name), .Grouped(group)
+---and .OrSpawnAt(fx, fz) (required — it says where to build one when the team
+---turns out to have none).
+---@param unitDef MissionUnitDefRef
+---@param team MissionTeamRole
+---@return MissionClaimChain
+function Claim(unitDef, team) end
 
 ---@type { Player: MissionTeam }
 Team = {}

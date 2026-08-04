@@ -20,6 +20,10 @@
 
 local DSL = {}
 
+-- Seconds are what a mission author writes; frames are what the engine
+-- counts. The fallback keeps this pure enough to spec without Spring.
+local GAME_SPEED = (Game and Game.gameSpeed) or 30
+
 ---Build one trigger file's authoring surface: the `When` chain entry the
 ---loader injects, and the Finalize the loader calls after the include.
 ---@param filename string mission-relative path, e.g. "triggers/win.lua"
@@ -40,6 +44,7 @@ function DSL.ForFile(filename, sink)
 			conditions = { condition }, ---@type MissionCondition[]
 			effects = {}, ---@type MissionEffect[]
 			once = true,
+			delayFrames = 0,
 		}
 		chains[#chains + 1] = build
 
@@ -63,6 +68,22 @@ function DSL.ForFile(filename, sink)
 			assert(type(effect) == "table" and type(effect.execute) == "function",
 				filename .. ": Do expects an effect (a table with an execute function) — build one with a named verb like Objective(...).Complete()")
 			build.effects[#build.effects + 1] = effect
+			return chain
+		end
+
+		---Hold the effects back until the conditions have held for `seconds`.
+		---
+		---Measured from when they FIRST held, and reset if they stop holding:
+		---"this has been true for thirty seconds", not "thirty seconds after
+		---the first time it flickered true". A repeating trigger re-arms after
+		---each fire, so .After doubles as a rate limit.
+		---@param seconds number
+		---@return TriggerChain
+		chain.After = function(seconds)
+			assert(not finalized, filename .. ": After after Finalize — the file already loaded")
+			assert(type(seconds) == "number" and seconds >= 0,
+				filename .. ": .After expects a non-negative number of seconds")
+			build.delayFrames = math.floor(seconds * GAME_SPEED)
 			return chain
 		end
 
@@ -132,6 +153,7 @@ function DSL.ForFile(filename, sink)
 				condition = combined,
 				effects = build.effects,
 				once = build.once,
+				delayFrames = build.delayFrames,
 			})
 		end
 		return #chains
