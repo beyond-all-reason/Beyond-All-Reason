@@ -378,7 +378,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		-- linger. This filters for a command targeting a specific unit, or coordinates.
 		local shouldReissueSetTarget = 	cmdID == CMD_SET_TARGET 
 								and not cmdOpts.shift
-								and (#cmdParams == 1 or #cmdParams == 4)
 
 		for _, unitID in ipairs(selectedUnits) do
 			cleanupUnitTargeting(unitID)
