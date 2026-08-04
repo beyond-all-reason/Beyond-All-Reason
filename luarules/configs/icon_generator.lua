@@ -19,7 +19,7 @@ end
 -----------------------------------------------------------------------
 
 --// filename ext
-imageExt = ".png"   -- unfortumnately .dds wont be with mipmaps
+imageExt = ".png"   -- unfortunately .dds won't be with mipmaps
 
 --// render into a fbo in 4x size
 renderScale = 4

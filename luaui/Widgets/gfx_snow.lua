@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
   return {
     name      = "Snow",
-    desc      = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
+    desc      = "Lets it automatically snow on snow maps! - also togglable with /snow  (remembers per map)",
     author    = "Floris (original: trepan, Argh)",
     date      = "29 may 2015",
     license   = "GNU GPL, v2 or later",
@@ -300,7 +300,7 @@ local function snowCmd(_, _, params)
 	if (params[1] and params[1] == '1') or (not params[1] and (snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false)) then
 		snowMaps[currentMapname] = true
 		enabled = true
-		spEcho("Snow widget: snow enabled for this map. (Snow wont show when average fps is below "..minFps..".)")
+		spEcho("Snow widget: snow enabled for this map. (Snow won't show when average fps is below "..minFps..".)")
 		init()
 	else
 		snowMaps[currentMapname] = false

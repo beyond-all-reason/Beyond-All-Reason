@@ -600,7 +600,7 @@ extraState.readPenPressure = function(dt)
 		if val then
 			extraState.penPressure = max(0.0, min(1.0, val))
 		else
-			Spring.Echo("[TF Pen] WARN: unparseable content: [" .. raw:sub(1, 60) .. "]")
+			Spring.Echo("[TF Pen] WARN: unparsable content: [" .. raw:sub(1, 60) .. "]")
 			return
 		end
 	end

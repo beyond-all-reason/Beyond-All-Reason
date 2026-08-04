@@ -136,7 +136,7 @@ local function updateIcons()
 							 0, --Spring.GetUnitTeam(featureID), -- teamID
 							 4, -- how many vertices should we make ( 2 is a quad)
 							 gf, 0, 0.8 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
-							 1,0,1,0, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+							 1,0,1,0, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 							 0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 							unitID, -- this is the key inside the VBO Table, should be unique per unit
 							false, -- update existing element

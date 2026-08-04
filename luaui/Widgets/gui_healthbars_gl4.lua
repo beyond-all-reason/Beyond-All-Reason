@@ -196,7 +196,7 @@ local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 -- 0: default percentage progress bar
 -- 1: timer based full textured bar, with time left being read from unitformindex
 -- 2: timer based progress bar, with start and end times reading time left from uniformindex, uniformindex + 1 and timeInfo.x
--- 3: default percentage bar with overlayed texture progression
+-- 3: default percentage bar with overlaid texture progression
 -- 5: The stockpile bar, nasty as hell but whatevs, it
 
 -- TODO: should be a freaking bitmask instead
@@ -431,7 +431,7 @@ local debugmode = false
 local barHeight = 0.9
 local shaderConfig = { -- these are our shader defines
 	HEIGHTOFFSET = 3, -- Additional height added to everything
-	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
+	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	CLIPTOLERANCE = 1.2,
 	BARWIDTH = 2.56,
@@ -904,7 +904,7 @@ local function init()
 	unitReloadWatch = {}
 	unitBars = {}
 	for i, unitID in ipairs(Spring.GetAllUnits()) do -- gets radar blips too!
-		-- probably shouldnt be adding non-visible units
+		-- probably shouldn't be adding non-visible units
 
 		if fullview then
 			addBarsForUnit(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, 'initfullview')
@@ -934,7 +934,7 @@ local function initfeaturebars()
 			-- or shall we only instantiate bars when needed? probably number 2 is smarter...
 		--end -- maybe store resurrect progress here?
 
-		if featureDefID then -- dont add features that we cant get the ID of
+		if featureDefID then -- dont add features that we can't get the ID of
 			-- add a health bar for it (dont add one for pre-existing stuff)
 			widget:FeatureCreated(featureID)
 		else
@@ -1198,7 +1198,7 @@ function widget:GameFrame(n)
 		end
 	end
 
-	-- todo paralyzed and EMP doesnt work for enemy units :(
+	-- todo paralyzed and EMP doesn't work for enemy units :(
 	-- check EMP'd units
 	if (n + 1) % 3 == 0 then
 		for unitID, oldempvalue in pairs(unitEmpDamagedWatch) do

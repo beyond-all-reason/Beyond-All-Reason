@@ -698,7 +698,7 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
-local useGeometryShader = true	-- cant set it here, will be overwritten in initGL4()
+local useGeometryShader = true	-- can't set it here, will be overwritten in initGL4()
 
 -- Visual constants taken verbatim from gfx_nano_particles_gl4.lua
 -- (MODE_SETTINGS.shape) so the chunks look identical to nano spray.

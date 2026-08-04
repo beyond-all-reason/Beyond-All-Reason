@@ -131,7 +131,7 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 teamColor[255]; //all team colors
 };
 
-// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
+// glsl rotate convenience funcs: https://github.com/dmnsgn/glsl-rotate
 
 mat3 rotation3dX(float angle) {
 	float s = sin(angle);
@@ -216,7 +216,7 @@ vec2 heightmapUVatWorldPosMirrored(vec2 worldpos) {
 //  Returns:
 //      < 0  – sphere at least partially inside the X-Y clip box
 //      = 0  – sphere exactly touches at least one edge
-//      > 0  – sphere is more distance from the edge of frustrum by that many NDC units
+//      > 0  – sphere is more distance from the edge of frustum by that many NDC units
 //
 float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 {
@@ -247,7 +247,7 @@ float SphereInViewSignedDistance(vec3 centerWS,  float radiusWS)
 
 
 
-// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isnt needed either.
+// Note that this function does not check the Z or depth of the clip space, but in regular springrts top-down views, this isn't needed either.
 // the radius to cameradist ratio is a good proxy for visibility in the XY plane
 bool isSphereVisibleXY(vec4 wP, float wR){ //worldPos, worldRadius
 	vec3 ToCamera = wP.xyz - cameraViewInv[3].xyz; // vector from worldpos to camera
@@ -415,7 +415,7 @@ vec4 SLerp(vec4 qa, vec4 qb, float t) {
 	// Interpolation of orthogonal rotations (i.e. cosHalfTheta ~ 0)
 	// does not require special handling, however this usually represents
 	// "physically impossible" 180 degree turns with infinite speed so perhaps
-	// it can be handled in the following (cuurently disabled) special way
+	// it can be handled in the following (currently disabled) special way
 	#if 0
 	if (cosHalfTheta <= 0.005)
 		return mix(qa, qb, step(0.5, t));
@@ -561,7 +561,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
-					-- Figure out wether the glsl variable is a float, vec2-4
+					-- Figure out whether the glsl variable is a float, vec2-4
 					local glslvarcount = 1 -- default is 1
 					local dotposition = string.find(glslvariable, "%.")
 					local swizzle = 'x'

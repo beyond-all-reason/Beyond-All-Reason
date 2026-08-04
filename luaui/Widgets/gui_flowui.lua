@@ -524,7 +524,7 @@ end
 	optional
 		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
 		size = texture tile size
-		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
+		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isn't defined)
 		texture = file location
 ]]
 WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
@@ -839,7 +839,7 @@ end
 		draw a circle
 	params
 		x,z, radius
-		sides = number outside vertexes
+		sides = number outside vertices
 		color1 = (center) color
 	optional
 		color2 = edge color

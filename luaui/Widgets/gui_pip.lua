@@ -2189,7 +2189,7 @@ local cmdCursors = {
 	[CMD.LOAD_UNITS] = 'Load units',
 	[CMD.UNLOAD_UNIT] = 'Unload units',
 	[CMD.UNLOAD_UNITS] = 'Unload units',
-	[CMD.DGUN] = 'Attack',	-- DGun cursor doesnt work, use Attack instead
+	[CMD.DGUN] = 'Attack',	-- DGun cursor doesn't work, use Attack instead
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = 'settarget',
 }
 
@@ -17463,7 +17463,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 						tooltipText = tooltipText .. Spring.I18N('ui.pip.help_leftclick')
 					end
 					-- Use button's shortcut from getActionHotkey
-					-- In minimap mode, don't show shorcut for track units button
+					-- In minimap mode, don't show shortcut for track units button
 					local shortcut = nil
 					local suppressShortcut = isMinimapMode and visibleButtons[i].command == 'pip_track'
 					if not suppressShortcut and visibleButtons[i].actionName then

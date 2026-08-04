@@ -165,7 +165,7 @@ local function AddPrimitiveAtUnit(unitID, noUpload, waterLevel)
 		unitUnitDefID[unitID] = spGetUnitDefID(unitID)
 	end
 	local unitDefID = unitUnitDefID[unitID]
-	if unitDefID == nil then return end -- these cant be selected
+	if unitDefID == nil then return end -- these can't be selected
 
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0

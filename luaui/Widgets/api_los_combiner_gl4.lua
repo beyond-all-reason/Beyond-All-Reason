@@ -8,7 +8,7 @@ function widget:GetInfo()
 		author = "Beherith",
 		date = "2022.12.12",
 		license = "Lua code is GPL V2, GLSL is (c) Beherith",
-		layer = -10000, -- lol this isnt even a number
+		layer = -10000, -- lol this isn't even a number
 		enabled = false -- disabled by default, its crazy!
 	}
 end

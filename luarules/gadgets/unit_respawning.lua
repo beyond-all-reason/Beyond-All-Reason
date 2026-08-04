@@ -92,7 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
     function ReturnToBase(unitID, friendlyFire)
-		local x,y,z = spGetUnitPosition(unitID) -- usefull if you want to spawn explosions or other effects where you were.
+		local x,y,z = spGetUnitPosition(unitID) -- useful if you want to spawn explosions or other effects where you were.
 
 		local meta = respawnMetaList[unitID]
 		if meta.effigyID then

@@ -52,10 +52,10 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
 		elseif not spec then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when playing")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to send commands when playing")
 			return
 		elseif startPlayers[playername] ~= nil then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to send commands when you have been a player")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to send commands when you have been a player")
 			return
 		end
 		local params = string.split(msg, ':')

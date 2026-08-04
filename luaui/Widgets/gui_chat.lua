@@ -2824,7 +2824,7 @@ autocomplete = function(text, fresh)
 		end
 	end
 
-	-- if prev autocomplete words didnt result in suggestions, redo it freshly
+	-- if prev autocomplete words didn't result in suggestions, redo it freshly
 	if prevAutocompleteLetters and not autocompleteWords[1] and ssub(inputText, #text) ~= ' ' then
 		prevAutocompleteLetters = nil
 		autocomplete(text, true)
@@ -2983,7 +2983,7 @@ function state.insertInputTextAtCursor(text)
 end
 
 
-function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+function widget:TextInput(char)	-- if it isn't working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
 		if inputMode == 'label' and
 		   (state.mapmarkTriggerDown or state.mapmarkTextInputPending or state.mapmarkAwaitingFreshKeyPress) then

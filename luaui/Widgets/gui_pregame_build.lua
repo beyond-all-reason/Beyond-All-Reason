@@ -1503,7 +1503,7 @@ function widget:GameStart()
 	end
 
 
-	-- Deattach pregame action handlers
+	-- Detach pregame action handlers
 	widgetHandler:RemoveAction("stop")
 	widgetHandler:RemoveAction("buildfacing")
 	widgetHandler:RemoveAction("buildspacing")

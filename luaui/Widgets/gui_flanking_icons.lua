@@ -49,7 +49,7 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local instanceCache = {0,0,0,2,-- length,width,cornersize (0), extraheight
 					   0,4, -- teamID, vertices
 					   0,0,0,0, -- the gameFrame (for fading), the direction to rotate the circle, 0,0
-					   0,1,0,1,  -- These are our default UV atlas tranformations
+					   0,1,0,1,  -- These are our default UV atlas transformations
 					   0,0,0,0} -- these are just padding zeros, that will get filled in
 
 local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon fades, gameframe specifies last update

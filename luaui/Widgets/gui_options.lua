@@ -44,7 +44,7 @@ for key, code in ipairs(devLanguageCodes) do
 	devLanguageNames[key] = Spring.I18N.languages[code]
 end
 
--- detect potatos
+-- detect potatoes
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize or 0) / 1000 -- gpuMemorySize is in KB (only Nvidia reports nonzero), /1000 ≈ MB
@@ -325,7 +325,7 @@ local function setEngineFont()
 
 	Spring.SendCommands("font " .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"))
 
-	-- set spring engine default font cause it cant thee game archive fonts on launch
+	-- set spring engine default font cause it can't thee game archive fonts on launch
 	Spring.SetConfigString("SmallFontFile", "FreeSansBold.otf")
 	Spring.SetConfigString("FontFile", "FreeSansBold.otf")
 end
@@ -420,7 +420,7 @@ local inputTextInsertActive = false
 local floor = math.floor
 local inputMode = ''
 
-function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
+function widget:TextInput(char)	-- if it isn't working: chobby probably hijacked it
 	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
 		if inputTextInsertActive then
 			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition+2)
@@ -3990,7 +3990,7 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapIconScale", value)
-			  Spring.SendCommands("minimap unitsize " .. value)        -- spring wont remember what you set with '/minimap iconssize #'
+			  Spring.SendCommands("minimap unitsize " .. value)        -- spring won't remember what you set with '/minimap iconssize #'
 			  if WG['minimap'] and WG['minimap'].setBaseIconScale then
 				  WG['minimap'].setBaseIconScale(value)
 			  end
@@ -6407,7 +6407,7 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_forcerendering", group = "dev", category = types.dev, name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumpin of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
+		{ id = "water_forcerendering", group = "dev", category = types.dev, name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumping of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -6480,7 +6480,7 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_perlinstartfreq", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
+		{ id = "water_perlinstartfreq", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "The initial frequency of the bump map repetition rate. Larger numbers mean more tiles",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -6488,7 +6488,7 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_perlinlacunarity", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "How much smaller each additional repetion of the normal map should be. Larger numbers mean smaller",
+		{ id = "water_perlinlacunarity", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "How much smaller each additional repetition of the normal map should be. Larger numbers mean smaller",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -6496,7 +6496,7 @@ function init()
 			  Spring.SendCommands("water 4")
 		  end,
 		},
-		{ id = "water_perlinlamplitude", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "How strong each additional repetetion of the normal map should be",
+		{ id = "water_perlinlamplitude", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "How strong each additional repetition of the normal map should be",
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -6881,7 +6881,7 @@ function init()
 		end
 	end
 
-	-- while we have set config-ints, that isnt enough to have these settings applied ingame
+	-- while we have set config-ints, that isn't enough to have these settings applied ingame
 	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
 			if getOptionByID(k) then
@@ -7219,7 +7219,7 @@ function init()
 		end
 	end
 
-	-- make sure the slider knobs keeps within their slider's boudaries
+	-- make sure the slider knobs keeps within their slider's boundaries
 	local processedOptions = {}
 	local processedOptionsCount = 0
 	for i, option in pairs(options) do
@@ -7491,7 +7491,7 @@ function widget:Initialize()
 			Spring.SetConfigInt("ShadowMapSize", 1024)
 			Spring.SetConfigInt("Shadows", 0)
 			Spring.SetConfigInt("MSAALevel", 0)
-			Spring.SetConfigFloat("ui_opacity", 0.7)    -- set to be more opaque cause guishader isnt availible
+			Spring.SetConfigFloat("ui_opacity", 0.7)    -- set to be more opaque cause guishader isn't available
 		else
 			Spring.SendCommands("water 4")
 			Spring.SetConfigInt("Water", 4)
@@ -7538,7 +7538,7 @@ function widget:Initialize()
 		Spring.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })
 	end
 
-	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
+	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring won't remember what you set with '/minimap iconssize #'
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
@@ -7693,7 +7693,7 @@ function widget:GetConfigData()
 		cameraTransitionTime = cameraTransitionTime,
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
-		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
+		desiredWaterValue = desiredWaterValue,			-- configint water can't be used since we will set water 0 when no water is present
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 

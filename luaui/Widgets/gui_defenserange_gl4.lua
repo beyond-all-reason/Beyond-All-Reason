@@ -62,7 +62,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 --X merge mobile antis into this
 
 -- TODO3: 2022.10.10
-  -- allow specs to enable? Doesnt make much sense with new stencil based drawing...
+  -- allow specs to enable? Doesn't make much sense with new stencil based drawing...
   -- X LRPCs
   -- X Fog
   -- X dont check allied defenses for losness
@@ -85,7 +85,7 @@ local buttonConfig = {
 }
 
 local colorConfig = { --An array of R, G, B, Alpha
-    drawStencil = true, -- wether to draw the outer, merged rings (quite expensive!)
+    drawStencil = true, -- whether to draw the outer, merged rings (quite expensive!)
     distanceScaleStart = 2000, -- Linewidth is 100% up to this camera height
     distanceScaleEnd = 8000, -- Linewidth becomes 50% above this camera height
 	drawAllyCategoryBuildQueue = true,
@@ -261,7 +261,7 @@ local function initUnitList()
 		['armfhlt'] = { weapons = { 'ground' } },  --floating hlt
 		['armnavaldefturret'] = { weapons = { 'ground' } },  --cauterizer
 		['armanavaldefturret'] = { weapons = { 'ground' } },  --liquifier
-		['armfrt'] = { weapons = { 'air' } },  --floating rocket laucher
+		['armfrt'] = { weapons = { 'air' } },  --floating rocket launcher
 		['armfrock'] = { weapons = { 'air' } },  --floating AA rockets
 		['armfflak'] = { weapons = { 'air' } },  --floating flak AA
 		['armatl'] = { weapons = { 'ground' } }, --adv torpedo launcher
@@ -298,7 +298,7 @@ local function initUnitList()
 		['coranavaldefturret'] = { weapons = { 'ground' } },  --orthrus
 		['cortl'] = { weapons = { 'ground' } }, --torp launcher
 		['coratl'] = { weapons = { 'ground' } }, --T2 torp launcher
-		['corfrt'] = { weapons = { 'air' } }, --floating rocket laucher
+		['corfrt'] = { weapons = { 'air' } }, --floating rocket launcher
 		['corfrock'] = { weapons = { 'air' } }, --floating AA rockets
 		['corenaa'] = { weapons = { 'air' } }, --floating flak AA
 		['corfdoom'] = { weapons = { [1] = 'cannon' } },
@@ -739,7 +739,7 @@ local function checkEnemyUnitConfirmedDead(unitID, defense)
 	local _, losState, _ = spGetPositionLosState(x, y, z)
 	--spEcho("checkEnemyUnitConfirmedDead",unitID, losState, spGetUnitDefID(unitID), Spring.GetUnitIsDead(unitID))
 	if losState then -- visible
-		if Spring.GetUnitIsDead(unitID) ~= false then -- If its cloaked and jammed, we cant see it i think
+		if Spring.GetUnitIsDead(unitID) ~= false then -- If its cloaked and jammed, we can't see it i think
 			return true
 		end
 	end
@@ -773,8 +773,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 			removeme = true
 		else
 			removeme = checkEnemyUnitConfirmedDead(unitID, defense)
-			-- if we cant get unitDefID, then its probably an enemy unit
-			-- we also dont know the reason for removal, but we can check wether its pos is in los:
+			-- if we can't get unitDefID, then its probably an enemy unit
+			-- we also dont know the reason for removal, but we can check whether its pos is in los:
 		end
 	end
 	if removeme then
@@ -957,7 +957,7 @@ function widget:Update(dt)
 		if unitDefRings[buildUnitDefID] then
 			local rings = unitDefRings[buildUnitDefID]
 			-- only add to ally, independent of buttonconfig (ugh)
-			-- todo, this wont show the respective attack range ring if the button for it is off.
+			-- todo, this won't show the respective attack range ring if the button for it is off.
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
 			-- instead of during the draw pass
 

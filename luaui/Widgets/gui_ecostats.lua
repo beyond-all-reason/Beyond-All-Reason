@@ -168,7 +168,7 @@ local widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 local teamListLen = #spGetTeamList()
 local allyTeamListLen2 = #spGetAllyTeamList()
 local singleTeams = (teamListLen - 1 == allyTeamListLen2 - 1)
-local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots wont match when ffa
+local enableStartposbuttons = not Spring.Utilities.Gametype.IsFFA()	-- spots won't match when ffa
 local myFullview = select(2, spGetSpectatingState())
 local myTeamID = spGetMyTeamID()
 local myPlayerID = spGetMyPlayerID()

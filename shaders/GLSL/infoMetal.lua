@@ -1,6 +1,6 @@
 -- Beheriths notes:
 -- This entire lua file gets reloaded every time the f4 view is activated
--- Alpha is blended progressively, so high alphas result in immeditate display
+-- Alpha is blended progressively, so high alphas result in immediate display
 -- NO CONSTGAME HERE !
 -- lovely, so the _only_ context available for these shaders is:
 -- Spring.Echo("Loading infoMetal.lua")
@@ -60,13 +60,13 @@ return {
 			vec4 metal = bicubicSample(tex0, texCoord);
 			vec4 extraction = texture2D(tex1, texCoord);
 
-			// choose between red and cyan based on wether its being extracted
+			// choose between red and cyan based on whether its being extracted
 			gl_FragColor.rgb = mix(vec3(0.0, 1.0, 0.6), vec3(0.9, 0, 0), extraction.r);
 			
 			//Set it black if there is no metal here
 			gl_FragColor.rgb =  mix(vec3(0,0,0), gl_FragColor.rgb, metal.r);//step(0.05,metal.r));
 			
-			//Constrol the brightness of it.
+			//Control the brightness of it.
 			gl_FragColor.rgb =  mix(vec3(0,0,0), gl_FragColor.rgb, MetalViewBrightness * 1.0);
 			
 			gl_FragColor.a = 0.25; // default 0.25 quick blend

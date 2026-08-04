@@ -51,7 +51,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 	local gf = spGetGameFrame()
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant/dont have plates
+	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these can't/dont have plates
 
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 
@@ -64,7 +64,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload,reason)
 			0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
 			4, -- how many vertices should we make (4 is a quad)
 			gf, 0, decalInfo.alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,p,t,s, -- These are our default UV atlas tranformations, note how Y axis is flipped for atlas
+			q,p,t,s, -- These are our default UV atlas transformations, note how Y axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element

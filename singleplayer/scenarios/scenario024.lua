@@ -30,7 +30,7 @@ local scenariodata = {
 	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime 		= 180, -- par time in seconds
 	parresources	= 1, -- par resource amount
-	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty		= 15, -- Perceived difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "3 unit spawn rate", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{name = "1 unit spawn rate", playerhandicap = "armcv armck 11000 1 12000" , enemyhandicap = 0},

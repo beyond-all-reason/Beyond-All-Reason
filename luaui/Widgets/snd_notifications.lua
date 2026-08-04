@@ -240,7 +240,7 @@ end
 unitsOfInterestNames = nil
 
 
--- added this so they wont get immediately triggered after gamestart
+-- added this so they won't get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame() + 1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
 LastPlay['YouAreWastingMetal'] = spGetGameFrame()

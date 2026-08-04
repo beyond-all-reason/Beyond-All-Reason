@@ -20,7 +20,7 @@ Tips:
  
  ‣  After securing the bridge and claiming the metal on the western side of the river, you should have sufficient resources to advance your technology to Tier 2.
  
- ‣  The map doesnt contain very much contested resources, so you should be free to take the Metal Extractors on your side of the map
+ ‣  The map doesn't contain very much contested resources, so you should be free to take the Metal Extractors on your side of the map
  
  
 Scoring:
@@ -44,7 +44,7 @@ The difficulty modifier will change the amount of resources you and the enemy ca
 	playerstarty	= "25%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime 		= 1200, -- par time in seconds
 	parresources	= 100000, -- par resource amount
-	difficulty		= 2, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty		= 2, -- Perceived difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "Normal", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
         {name = "Beginner", playerhandicap = 50 , enemyhandicap = -50},

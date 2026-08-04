@@ -71,7 +71,7 @@ local ffaColors = {
 	"#9F0D05", -- 29
 	"#7EB900", -- 30
 }
--- delete excess so a table shuffe wont use the colors added on the bottom
+-- delete excess so a table shuffe won't use the colors added on the bottom
 if #ffaColors > #teamList-1 then
 	for i = #teamList, #ffaColors do
 		ffaColors[i] = nil
@@ -379,7 +379,7 @@ local teamColors = {
 			"#0B849B", -- 2
 			"#D8EEFF", -- 3
 		},
-		{ -- Eigth Team (Purple)
+		{ -- Eighth Team (Purple)
 			"#872DFA", -- 1
 			"#6809A1", -- 2
 			"#C4A9FF", -- 3

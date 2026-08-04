@@ -88,7 +88,7 @@ local moveTypeData = {
 
 -- Local functions
 
--- applies a mutiplicative factor to a unit's base movement stats: speed, wanted speed, turn rate, accel, decel
+-- applies a multiplicative factor to a unit's base movement stats: speed, wanted speed, turn rate, accel, decel
 -- The base stats come from UnitDefs and are scaled proportionally
 --
 -- TODO: unify with GG.ForceUpdateWantedMaxSpeed / unit_wanted_speed.lua

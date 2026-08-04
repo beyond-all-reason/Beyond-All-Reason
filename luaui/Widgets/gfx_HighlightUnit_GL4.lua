@@ -19,7 +19,7 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spEcho = Spring.Echo
 
 -- Notes: this API can be considered mildly deprecated, as CUS GL4 now handles the major consumers of this API.
--- This API is now fully deprecated, as the swith to quaternions breaks it entirely.
+-- This API is now fully deprecated, as the switch to quaternions breaks it entirely.
 
 
 local LuaShader = gl.LuaShader
@@ -122,7 +122,7 @@ void main() {
 	localModelPos.xyz = rotY * localModelPos.xyz;
 
 	vec4 worldModelPos = localModelPos;
-	if (parameters.x < 0.5) worldModelPos = modelWorldMatrix * localModelPos; // dynamic models must be tranformed into their correct pos
+	if (parameters.x < 0.5) worldModelPos = modelWorldMatrix * localModelPos; // dynamic models must be transformed into their correct pos
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
@@ -174,12 +174,12 @@ void main() {
 	float worldposfactor = fract(worldPos.y * ANIMFREQUENCY + (timeInfo.x + timeInfo.w)  * ANIMSPEED);
 
 	fragColor = v_hcolor; // Base highlight amount
-	fragColor.a = mix(fragColor.a, worldposfactor * fragColor.a, v_parameters.w); // mix in animation into plain highight
+	fragColor.a = mix(fragColor.a, worldposfactor * fragColor.a, v_parameters.w); // mix in animation into plain highlight
 
 	float opac = dot(normalize(v_normal), normalize(v_toeye));
 	opac = 1.0 - abs(opac);
 	opac = pow(opac, v_parameters.z) * v_parameters.y;
-	fragColor.a +=   mix(opac, opac * worldposfactor, v_parameters.w) ; // edge highlighing mixed according to animation
+	fragColor.a +=   mix(opac, opac * worldposfactor, v_parameters.w) ; // edge highlighting mixed according to animation
 
 	fragColor.rgb += opac * 1.3; // brighten all, a bit more
 
@@ -310,7 +310,7 @@ end
 
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits) -- extVisibleUnits is a table of [unitID:unitDefID]
 	-- use uniqueIDtoUnitID
-	-- at this point we cant pop back any more!
+	-- at this point we can't pop back any more!
 	-- Ok this is really bad, as I have no guarantee that this will run first of all the resets.
 	uniqueIDtoUnitID = {}
 	unitIDtoUniqueID = {}

@@ -40,7 +40,7 @@ local math_sin = math.sin
 
 -- A fun unit test is: /luarules benchmark armclaw armclaw 200 10 1000
 
--- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesnt ever shrink.
+-- Below is a concise implementation of a pool of reusable tables, that grows on demand, but doesn't ever shrink.
 local projTablePoolSize = 0
 local projTablePool = {}
 local function GetProjTable()

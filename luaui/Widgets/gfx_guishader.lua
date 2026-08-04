@@ -593,7 +593,7 @@ function widget:Initialize()
 		end
 	end
 
-	WG.guishader.DrawScreen = DrawScreen	-- widgethandler wont call DrawScreen when chobby interface is shown, but it will call this one as exception
+	WG.guishader.DrawScreen = DrawScreen	-- widgethandler won't call DrawScreen when chobby interface is shown, but it will call this one as exception
 
 	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
 	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)

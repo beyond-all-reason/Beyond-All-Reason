@@ -32,7 +32,7 @@ out DataGS {
 	mat3 tbnmatrix;
 };
 
-// This function takes in a set of UV coordinates [0,1] and tranforms it to correspond to the correct UV slice of an atlassed texture
+// This function takes in a set of UV coordinates [0,1] and transforms it to correspond to the correct UV slice of an atlassed texture
 vec2 transformUV(float u, float v){// this is needed for atlassing
 	//return vec2(uvoffsets.p * u + uvoffsets.q, uvoffsets.s * v + uvoffsets.t); old
 	float a = uvoffsets.t - uvoffsets.s;
@@ -77,7 +77,7 @@ void main()
 	#if 0
 		//if (isSphereVisibleXY(vec4(worldPos.xyz,1.0), 1.0* max(lengthwidthrotation.x, lengthwidthrotation.y))) {
 		//	gl_Position= vec4(-100,-100,-100,1);
-		//	return; // yay for useless visiblity culling!
+		//	return; // yay for useless visibility culling!
 		//}
 	#endif
 	

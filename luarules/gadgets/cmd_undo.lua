@@ -11,7 +11,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "Undo Self Destruction Havoc",
-		desc	= 'Restore selfdestructed units and the ones those killed (only availible to a select few playernames)',
+		desc	= 'Restore selfdestructed units and the ones those killed (only available to a select few playernames)',
 		author	= 'Floris',
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
@@ -22,8 +22,8 @@ end
 
 -- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
 
--- only works when being spectator and you werent a player before
--- only availible to a select few playernames
+-- only works when being spectator and you weren't a player before
+-- only available to a select few playernames
 
 local cmdname = 'undo'
 
@@ -44,7 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
 	local selfdBlastUnits = {}
-	local sceduledRestoreHeightmap = {}
+	local scheduledRestoreHeightmap = {}
 	local CMD_SELFD = CMD.SELFD
 	local enemyNearbyCacheFrame = {}
 	local enemyNearbyCacheValue = {}
@@ -112,14 +112,14 @@ if gadgetHandler:IsSyncedCode() then
 			selfdBlastUnits = cleanedBlast
 		end
 
-		-- apply sceduled heightmap restoration
-		local heightmapJobs = sceduledRestoreHeightmap[gameFrame]
+		-- apply scheduled heightmap restoration
+		local heightmapJobs = scheduledRestoreHeightmap[gameFrame]
 		if heightmapJobs then
 			for i = 1, #heightmapJobs do
 				local params = heightmapJobs[i]
 				Spring.RevertHeightMap(params[1], params[2], params[3], params[4], 1)
 			end
-			sceduledRestoreHeightmap[gameFrame] = nil
+			scheduledRestoreHeightmap[gameFrame] = nil
 		end
 	end
 
@@ -175,10 +175,10 @@ if gadgetHandler:IsSyncedCode() then
 						if wDef then
 							local radius = WeaponDefs[wDef.id].damageAreaOfEffect
 							if radius then
-								local jobs = sceduledRestoreHeightmap[scheduleHeightmapFrame]
+								local jobs = scheduledRestoreHeightmap[scheduleHeightmapFrame]
 								if not jobs then
 									jobs = {}
-									sceduledRestoreHeightmap[scheduleHeightmapFrame] = jobs
+									scheduledRestoreHeightmap[scheduleHeightmapFrame] = jobs
 								end
 								jobs[#jobs + 1] = {unitX - radius, unitZ - radius, unitX + radius, unitZ + radius}
 							end

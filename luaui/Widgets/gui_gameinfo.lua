@@ -215,8 +215,8 @@ function widget:ViewResize()
 end
 
 function DrawTextarea(x, y, width, height, scrollbar)
-	local scrollbarOffsetTop = 0    -- note: wont add the offset to the bottom, only to top
-	local scrollbarOffsetBottom = 0    -- note: wont add the offset to the top, only to bottom
+	local scrollbarOffsetTop = 0    -- note: won't add the offset to the bottom, only to top
+	local scrollbarOffsetBottom = 0    -- note: won't add the offset to the top, only to bottom
 	local scrollbarMargin = 14 * widgetScale
 	local scrollbarWidth = 8 * widgetScale
 	local scrollbarPosWidth = 4 * widgetScale
@@ -266,7 +266,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			local numLines
 			local line = fileLines[lineKey]
 			if string.find(line, '::') then
-				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
+				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesn't work in lua !#$@&*()&5$#
 				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::') or '') + 1)
 				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * 0.65 * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then

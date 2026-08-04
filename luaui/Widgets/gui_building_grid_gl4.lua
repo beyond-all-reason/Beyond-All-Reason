@@ -101,7 +101,7 @@ void main(void) {
 	float maxDist = MAXVIEWDIST;
 	vec3 camPos = cameraViewInv[3].xyz;
     float dist = distance(v_worldPos.xyz, mousePos.xyz);
-	// Specifiy the color of the output line
+	// Specify the color of the output line
 	float fadeDist = GRIDRADIUS * 16.0;
     float alpha = smoothstep(0.0, 1.0, ((fadeDist / (dist / RADIUSFALLOFF))) - RADIUSFALLOFF);
     float camDist = distance(camPos, mousePos.xyz);
@@ -193,7 +193,7 @@ function widget:Initialize()
 
             if col ~= Game.mapSizeZ then -- skip last
 				local strength = ((row/spacing) % config.strongLineSpacing == 0 and config.strongLineOpacity or config.weakLineOpacity) * opacity
-                -- horizonal lines
+                -- horizontal lines
                 VBOData[#VBOData + 1] = row
                 VBOData[#VBOData + 1] = col
 				VBOData[#VBOData + 1] = strength
@@ -240,7 +240,7 @@ function widget:DrawWorldPreUnit()
 
 	gl.LineWidth(1.75)
     gl.Culling(GL.BACK) -- not needed really, only for triangles
-    gl.DepthTest(GL.ALWAYS) -- so that it wont be drawn behind terrain
+    gl.DepthTest(GL.ALWAYS) -- so that it won't be drawn behind terrain
     gl.DepthMask(false) -- so that we dont write the depth of the drawn pixels
     gl.Texture(0, "$heightmap") -- bind engine heightmap texture to sampler 0
     gridShader:Activate()
