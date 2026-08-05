@@ -1311,38 +1311,53 @@ function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
 end
 
 function widget:PlayerChanged(playerID)
-	eco.isTeamRealDirty = true
 	local doReinit = false
-	if myFullview ~= select(2, spGetSpectatingState()) then
+	local prevFullview = myFullview
+	local prevInSpecMode = inSpecMode
+	local prevTeamID = myTeamID
+	local prevAllyID = myAllyID
+	local isSpec, currentFullview = spGetSpectatingState()
+	local currentInSpecMode = isSpec or isReplay
+	local currentTeamID = spGetMyTeamID()
+	local currentAllyID = spGetMyAllyTeamID()
+	local fullviewChanged = prevFullview ~= currentFullview
+	local specModeChanged = prevInSpecMode ~= currentInSpecMode
+	local teamChanged = prevTeamID ~= currentTeamID
+	local allyChanged = prevAllyID ~= currentAllyID
+	local visibilityScopeChanged = fullviewChanged or specModeChanged or (not currentInSpecMode and (teamChanged or allyChanged))
+	if playerID ~= myPlayerID or visibilityScopeChanged then
+		eco.isTeamRealDirty = true
+	end
+
+	if fullviewChanged then
 		if myFullview then
 			doReinit = true
 		else
 			removeGuiShaderRects()
 		end
 	end
-	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
-		if myTeamID ~= spGetMyTeamID() then
-			UpdateAllTeams()
-			refreshTeamCompositionList = true
-		end
+	if myFullview and teamChanged and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+		UpdateAllTeams()
+		refreshTeamCompositionList = true
 	end
-	myFullview = select(2, spGetSpectatingState())
-	myTeamID = spGetMyTeamID()
-	myAllyID = spGetMyAllyTeamID()
+	myFullview = currentFullview
+	myTeamID = currentTeamID
+	myAllyID = currentAllyID
 
-	if myFullview then
+	if myFullview and visibilityScopeChanged then
 		lastPlayerChange = spGetGameFrame()
-		if not (spGetSpectatingState() or isReplay) then
+		if not currentInSpecMode then
 			inSpecMode = false
 			UpdateAllies()
 		else
 			inSpecMode = true
-			setReclaimerUnits()
-			doReinit = true
+			if fullviewChanged or specModeChanged then
+				setReclaimerUnits()
+				doReinit = true
+			end
 		end
-		if playerID == myPlayerID then
-			doReinit = true
-		end
+	elseif specModeChanged then
+		inSpecMode = currentInSpecMode
 	end
 
 	if doReinit then

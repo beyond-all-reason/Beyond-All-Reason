@@ -77,6 +77,7 @@ local spGetGroundHeight        = Spring.GetGroundHeight
 local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition  = Spring.GetProjectilePosition
 local spGetProjectileVelocity  = Spring.GetProjectileVelocity
+local spTraceRayBetweenPositions = Spring.TraceRayBetweenPositions
 local spGetUnitHealth          = Spring.GetUnitHealth
 local spGetUnitIsDead          = Spring.GetUnitIsDead
 local spGetUnitPosition        = Spring.GetUnitPosition
@@ -273,11 +274,68 @@ do
 		return a.distanceSquared < b.distanceSquared
 	end
 
-	sortPenetratorCollisions = function(collisions, projectileID, penetrator)
+	local function getTraceCollisionDistances(collisions, projectileID, penetrator)
+		if not spTraceRayBetweenPositions then
+			return
+		end
+
+		local startX, startY, startZ = penetrator.posX, penetrator.posY, penetrator.posZ
+		local endX, endY, endZ = spGetProjectilePosition(projectileID)
+		if not startX or not startY or not startZ or not endX or not endY or not endZ then
+			return
+		end
+
+		local rayX = endX - startX
+		local rayY = endY - startY
+		local rayZ = endZ - startZ
+		local rayLengthSquared = rayX * rayX + rayY * rayY + rayZ * rayZ
+		if rayLengthSquared <= 0.01 then
+			return
+		end
+
+		local expected = 0
 		for index = 1, #collisions do
 			local collision = collisions[index]
-			local distanceSquared, cx, cy, cz
-			if collision.targetID then
+			if collision.targetID and not collision.shieldID then
+				expected = expected + 1
+			end
+		end
+		if expected == 0 then
+			return
+		end
+
+		local hits = spTraceRayBetweenPositions(startX, startY, startZ, endX, endY, endZ, "both")
+		local matched = 0
+		local distances = {}
+		for hitIndex = 1, #hits do
+			local hit = hits[hitIndex]
+			local hitDistance, hitID, hitType = hit[1], hit[2], hit[3]
+			for collisionIndex = 1, #collisions do
+				local collision = collisions[collisionIndex]
+				if collision.targetID == hitID
+					and not collision.shieldID
+					and collision.isUnit == (hitType == "unit")
+					and not distances[collisionIndex] then
+					distances[collisionIndex] = hitDistance * hitDistance
+					matched = matched + 1
+					break
+				end
+			end
+		end
+
+		if matched ~= expected then
+			return
+		end
+		return distances
+	end
+
+	sortPenetratorCollisions = function(collisions, projectileID, penetrator)
+		local traceDistances = getTraceCollisionDistances(collisions, projectileID, penetrator)
+		for index = 1, #collisions do
+			local collision = collisions[index]
+			local distanceSquared = traceDistances and traceDistances[index]
+			local cx, cy, cz
+			if distanceSquared == nil and collision.targetID then
 				if collision.hitX then
 					cx, cy, cz = collision.hitX, collision.hitY, collision.hitZ
 				else
@@ -285,10 +343,10 @@ do
 					collision.hitX, collision.hitY, collision.hitZ = cx, cy, cz
 				end
 			end
-			if cx then
+			if distanceSquared == nil and cx then
 				local dx, dy, dz = cx - penetrator.posX, cy - penetrator.posY, cz - penetrator.posZ
 				distanceSquared = dx * dx + dy * dy + dz * dz
-			else
+			elseif distanceSquared == nil then
 				distanceSquared = math_huge
 			end
 			collision.distanceSquared = distanceSquared

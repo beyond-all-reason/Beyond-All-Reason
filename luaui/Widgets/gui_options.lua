@@ -152,7 +152,7 @@ local math_isInRect = math.isInRect
 
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, scheduleInit
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, selectScrollOffset
 local guishaderWasActive = false
 
@@ -245,6 +245,18 @@ local startScript = VFS.LoadFile("_script.txt")
 local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
 local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
 local RWS_MSG_CHUNK  = 4000
+
+local function getRestartWithStateScript()
+	local startPosTypePattern = "([Ss][Tt][Aa][Rr][Tt][Pp][Oo][Ss][Tt][Yy][Pp][Ee]%s*=%s*)%d+(%s*;)"
+	local script, replacements = startScript:gsub(startPosTypePattern, function(prefix, suffix)
+		return prefix .. "0" .. suffix
+	end, 1)
+	if replacements == 0 then
+		Spring.Echo("[Restart With State] Could not set fixed start-position mode; using the original start script.")
+	end
+	return script
+end
+
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1049,6 +1061,12 @@ function widget:Update(dt)
 		return
 	end
 
+	-- widgetHandler:EnableWidget/DisableWidget are deferred but are used to change displayed options. This is a solution to update the options list after next frame.
+	if scheduleInit then
+		scheduleInit = nil
+		init()
+	end
+
 		-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
 		if not ambientplayerCheck then
 			ambientplayerCheck = true
@@ -1203,7 +1221,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		f:write(data)
 		f:close()
 		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
-		Spring.Restart("", startScript)
+		Spring.Restart("", getRestartWithStateScript())
 		return true
 	end
 	if msg == "rws:clear" then
@@ -2050,6 +2068,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		end
 		forceUpdate = true
+		scheduleInit = true
 		if id == "teamcolors" then
 			Spring.SendCommands("luarules reloadluaui")    -- cause several widgets are still using old colors
 		end
@@ -3158,8 +3177,8 @@ function init()
 		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
 		  type = "select",
 		  options = {
-			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_basic'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_advanced'),
 		  },
 		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
@@ -3569,7 +3588,7 @@ function init()
 			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 				  WG['bar_hotkeys'].reloadBindings()
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 
@@ -3582,7 +3601,7 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
@@ -3833,6 +3852,20 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "zoomtocursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomtocursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 1)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomInToMousePos", value and 1 or 0)
+		  end,
+		},
+		{ id = "zoomfromcursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomfromcursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomOutFromMousePos", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomOutFromMousePos", value and 1 or 0)
+		  end,
+		},
 		{ id = "invertmouse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
 		  onload = function(i)
 		  end,
@@ -4029,6 +4062,46 @@ function init()
 			  for _, n in ipairs({0, 1, 2, 3, 4}) do
 				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
 					  WG['pip' .. n].setDrawCommandFX(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostreams", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostreams'), type = "bool", value = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostreams_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawNanoStreams", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawNanoStreams then
+					  WG['pip' .. n].setDrawNanoStreams(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostream_usage", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostream_usage'), type = "bool", value = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostream_usage_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipNanoStreamReflectUsage", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setNanoStreamReflectUsage then
+					  WG['pip' .. n].setNanoStreamReflectUsage(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_mapdrawings", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawings'), type = "bool", value = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1, description = Spring.I18N('ui.settings.option.pip_mapdrawings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipShowMapDrawings", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setShowMapDrawings then
+					  WG['pip' .. n].setShowMapDrawings(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_mapdrawing_duration", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawing_duration'), type = "slider", min = 1, max = 60, step = 1, value = Spring.GetConfigFloat("PipMapDrawingDuration", 15), description = Spring.I18N('ui.settings.option.pip_mapdrawing_duration_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("PipMapDrawingDuration", value)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setMapDrawingDuration then
+					  WG['pip' .. n].setMapDrawingDuration(value)
 				  end
 			  end
 		  end,
@@ -7099,6 +7172,8 @@ function init()
 
 	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
 		options[getOptionByID('springcamheightmode')] = nil
+		options[getOptionByID('zoomtocursor')] = nil
+		options[getOptionByID('zoomfromcursor')] = nil
 	end
 
 	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then

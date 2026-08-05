@@ -401,16 +401,21 @@ else
 	local function EnableMousePressCallin()
 		-- only claim mouse clicks while the profiler is drawn (for the drill-down)
 		rawset(gadget, "MousePress", gadget.MousePress_)
+		rawset(gadget, "MouseRelease", gadget.MouseRelease_)
 		gadgetHandler:UpdateGadgetCallIn("MousePress", gadget)
+		gadgetHandler:UpdateGadgetCallIn("MouseRelease", gadget)
 	end
 
 	local function DisableMousePressCallin()
 		-- If this gadget currently owns the mouse press sequence, release ownership
 		-- before detaching MousePress so gadgetHandler won't call into stale owner state.
-		if gadgetHandler.mouseOwner == gadget then
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
 			rawset(gadgetHandler, "mouseOwner", nil)
 		end
 		gadgetHandler:RemoveGadgetCallIn("MousePress", gadget)
+		gadgetHandler:RemoveGadgetCallIn("MouseRelease", gadget)
 	end
 
 	local function SyncedCallinStarted(_, gname, cname)
@@ -672,7 +677,7 @@ else
 			end
 			avgTLoad[gname] = ((avgTLoad[gname] * framesMinusOne) + tLoad) / frames
 			local tColourString, sColourString = GetRedColourStrings(tTime, sLoad, gname, redStr, deltaTime)
-			if not sortByLoad or avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
+			if avgTLoad[gname] >= 0.02 or sLoad >= 2 then -- only show heavy ones
 				sorted[n] = { name = gname2name[gname] or gname, plainname = gname, fullname = gname .. ' \255\200\200\200(' .. cmaxname_t .. ',' .. cmaxname_space .. ')', tLoad = tLoad, sLoad = sLoad, tTime = tTime, tColourString = tColourString, sColourString = sColourString, avgTLoad = avgTLoad[gname] }
 				n = n + 1
 			end
@@ -1134,6 +1139,15 @@ else
 				end
 				return true -- consume the click so it doesn't fall through to the map
 			end
+		end
+		return false
+	end
+
+	function gadget:MouseRelease_()
+		if gadgetHandler.DisownMouse then
+			gadgetHandler:DisownMouse()
+		elseif gadgetHandler.mouseOwner == gadget then
+			rawset(gadgetHandler, "mouseOwner", nil)
 		end
 		return false
 	end

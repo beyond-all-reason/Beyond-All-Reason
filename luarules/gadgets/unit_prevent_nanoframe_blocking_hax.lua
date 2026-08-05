@@ -43,9 +43,10 @@ local function RemoveNanoFrame(i)
 		Spring.SetUnitBlocking(unitID, a,b, true, d,e,f,g) -- blocking for projectiles
 
 		local neutral = newNanoFrameNeutralState[unitID]
-		Spring.SetUnitNeutral(unitID, neutral)
-
-		--Spring.Echo("unset", unitID)
+		-- If a unit has already been set to neutral=false, don't overwrite that here
+		if Spring.GetUnitNeutral(unitID) then
+			Spring.SetUnitNeutral(unitID, neutral)
+		end
 	end
 	table.remove(newNanoFrames, i)
 	newNanoFrameNeutralState[unitID] = nil

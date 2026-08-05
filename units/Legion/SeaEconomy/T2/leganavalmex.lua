@@ -34,6 +34,7 @@ return {
 			buildinggrounddecaltype = "decals/leganavalmex_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 4,
+			standardextractor = true,
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
