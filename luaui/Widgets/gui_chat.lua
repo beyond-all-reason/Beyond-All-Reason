@@ -111,6 +111,7 @@ local allowMultiAutocomplete, allowMultiAutocompleteMax, maxLinesScrollFull = co
 local lineTTL, consoleLineCleanupTarget, soundErrorsLimit = config.lineTTL, config.consoleLineCleanupTarget, config.soundErrorsLimit
 local maxLinesScrollChatInput = config.maxLinesScrollChatInput
 local maxLinesScroll = config.maxLinesScroll
+local scrollingPosY = config.scrollingPosY
 
 -- Color configuration (keep local for performance)
 local colorOther, colorAlly, colorSpec, colorSpecName = {1,1,1}, {0,1,0}, {1,1,0}, {1,1,1}
@@ -145,6 +146,9 @@ local state = {
 	lastUnitShare = nil,
 	lastLineUnitShare = nil,
 	lastDrawUiUpdate = os.clock(),
+	gameFrameHappened = false,
+	deferredDrawWork = false,
+	skipOptionalDrawWork = false,
 	myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false),
 	mySpec = spGetSpectatingState(),
 	myTeamID = spGetMyTeamID(),
@@ -174,7 +178,30 @@ local state = {
 	cursorBlinkTimer = 0,
 	cursorBlinkDuration = 1,
 	inputMode = nil,
+	inputModeBeforeLabel = nil,
+	mapmarkWorldX = nil,
+	mapmarkWorldY = nil,
+	mapmarkWorldZ = nil,
+	mapmarkTriggerKey = nil,
+	mapmarkTriggerScanCode = nil,
+	mapmarkTriggerDown = false,
+	mapmarkTextInputPending = false,
+	mapmarkAwaitingFreshKeyPress = false,
+	mapmarkTriggerIdentityCaptured = false,
+	mapmarkPressedKeys = nil,
+	mapmarkPressedScans = nil,
+	mapmarkHistoryDraftIndex = nil,
+	mapmarkHistoryDraft = nil,
+	mapDrawActive = false,
+	mapDrawKey = nil,
+	mapDrawScanCode = nil,
+	mapDrawLastX = nil,
+	mapDrawLastZ = nil,
+	mapDrawLastTime = 0,
+	mapDrawLastLeftClickTime = 0,
 	inputTextInsertActive = false,
+	minimapViewportY = select(4, Spring.GetViewGeometry()),
+	minimapToWorld = VFS.Include('luaui/Include/minimap_utils.lua').minimapToWorld,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
@@ -269,7 +296,22 @@ local autocompleteCommandSources = {
 	synced = {},
 	unsynced = {},
 }
-local autocompleteGivecatFilters = { descriptions = {} }
+local autocompleteGivecatFilters = {
+	descriptions = {},
+	configParams = {},
+	unitCodenameCommands = {
+		give = true,
+		givecat = true,
+		removeunitdef = true,
+		spawnunitexplosion = true,
+		benchmark = true,
+		fightertest = true,
+		buildicon = true,
+		buildicons = true,
+		buildblock = true,
+		buildunblock = true,
+	},
+}
 
 local function formatAutocompleteCommand(source, cmd)
 	if source == 'synced' or source == 'unsynced' then
@@ -323,6 +365,37 @@ local function clearAutocompleteSource(source)
 	end
 end
 
+function state.applyAutocompleteCommandSnapshot(source, payload)
+	local sourceCommands = autocompleteCommandSources[source]
+	if not sourceCommands then
+		return
+	end
+	local commands = {}
+	local pos = 1
+	local payloadLen = slen(payload)
+	while pos <= payloadLen do
+		local sepStart, sepEnd = sfind(payload, ':', pos, true)
+		if not sepStart then
+			return
+		end
+		local cmdLen = tonumber(ssub(payload, pos, sepStart - 1))
+		if not cmdLen or cmdLen < 0 then
+			return
+		end
+		local cmdStart = sepEnd + 1
+		local cmdEnd = cmdStart + cmdLen - 1
+		if cmdEnd > payloadLen then
+			return
+		end
+		commands[#commands + 1] = ssub(payload, cmdStart, cmdEnd)
+		pos = cmdEnd + 1
+	end
+	clearAutocompleteSource(source)
+	for i = 1, #commands do
+		addAutocompleteCommand(source, commands[i])
+	end
+end
+
 local function refreshWidgetAutocompleteCommands()
 	clearAutocompleteSource('widget')
 	for textAction in pairs(widgetHandler.actionHandler.textActions) do
@@ -361,11 +434,25 @@ local function getGivecatAutocompletePrefix(text)
 end
 
 local function refreshGivecatAutocompleteFilters()
-	autocompleteGivecatFilters = { descriptions = {}, cmdTree = nil }
+	autocompleteGivecatFilters = {
+		descriptions = {},
+		cmdTree = nil,
+		configParams = {},
+		unitCodenameCommands = autocompleteGivecatFilters.unitCodenameCommands,
+	}
+	if Spring.GetConfigParams then
+		for _, configParam in ipairs(Spring.GetConfigParams()) do
+			if type(configParam.name) == 'string' and configParam.name ~= '' then
+				autocompleteGivecatFilters.configParams[#autocompleteGivecatFilters.configParams + 1] = configParam.name
+			end
+		end
+		table.sort(autocompleteGivecatFilters.configParams)
+	end
 
 	local language = Spring.GetConfigString('language', 'en')
 	local interfaceFile = VFS.LoadFile('language/' .. language .. '/interface.json') or VFS.LoadFile('language/en/interface.json')
 	clearAutocompleteSource('engine')
+	addAutocompleteCommand('engine', 'set')
 	if not interfaceFile then
 		for _, keybinding in pairs(Spring.GetKeyBindings() or {}) do
 			local cmd = keybinding and keybinding.command
@@ -483,6 +570,7 @@ function widget:LanguageChanged()
 		channelScopeAll = Spring.I18N('ui.chat.channelScopeAll'),
 		everyone = Spring.I18N('ui.chat.everyone'),
 		allies = Spring.I18N('ui.chat.allies'),
+		label = Spring.I18N('ui.chat.label'),
 		spectators = Spring.I18N('ui.chat.spectators'),
 		cmd = Spring.I18N('ui.chat.cmd'),
 		shortcut = Spring.I18N('ui.chat.shortcut'),
@@ -675,7 +763,7 @@ local function addChatLine(gameFrame, lineType, name, nameText, text, orgLineID,
 			playerName = name,
 			playerNameText = nameText,
 			channelScope = channelScope,
-			textOutline = (lineType ~= LineTypes.Spectator and (playernames[name] and playernames[name][5]) and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
+			textOutline = (lineType ~= LineTypes.Spectator and playernames[name] and not playernames[name][2] and playernames[name][5] and ColorIsDark(playernames[name][5][1], playernames[name][5][2], playernames[name][5][3])) or false,
 			text = (i > 1 and lineColor or '')..line,
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
@@ -720,6 +808,26 @@ local function cancelChatInput()
 	inputTextPosition = 0
 	inputSelectionStart = nil
 	inputTextInsertActive = false
+	if inputMode == 'label' then
+		if state.mapmarkHistoryDraftIndex ~= nil then
+			inputHistory[state.mapmarkHistoryDraftIndex] = state.mapmarkHistoryDraft
+		end
+		inputMode = state.inputModeBeforeLabel
+	end
+	state.inputModeBeforeLabel = nil
+	state.mapmarkWorldX = nil
+	state.mapmarkWorldY = nil
+	state.mapmarkWorldZ = nil
+	state.mapmarkTriggerKey = nil
+	state.mapmarkTriggerScanCode = nil
+	state.mapmarkTriggerDown = false
+	state.mapmarkTextInputPending = false
+	state.mapmarkAwaitingFreshKeyPress = false
+	state.mapmarkTriggerIdentityCaptured = false
+	state.mapmarkPressedKeys = nil
+	state.mapmarkPressedScans = nil
+	state.mapmarkHistoryDraftIndex = nil
+	state.mapmarkHistoryDraft = nil
 	inputHistoryCurrent = #inputHistory
 	autocompleteText = nil
 	state.autocompleteInfoText = nil
@@ -734,6 +842,215 @@ local function cancelChatInput()
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil	-- non handler = true: widgetHandler:DisownText()
 	updateDrawUi = true
+end
+
+state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitForTriggerRelease)
+	if not handleTextInput or chobbyInterface or Spring.IsGUIHidden() or showTextInput or widgetHandler.textOwner then
+		return false
+	end
+
+	cancelChatInput()
+	state.inputModeBeforeLabel = inputMode
+	state.mapmarkHistoryDraftIndex = #inputHistory
+	state.mapmarkHistoryDraft = inputHistory[#inputHistory]
+	inputMode = 'label'
+	state.mapmarkWorldX = x
+	state.mapmarkWorldY = y
+	state.mapmarkWorldZ = z
+	state.mapmarkTriggerKey = triggerKey
+	state.mapmarkTriggerScanCode = triggerScanCode
+	state.mapmarkPressedKeys = waitForTriggerRelease and Spring.GetPressedKeys() or nil
+	state.mapmarkPressedScans = waitForTriggerRelease and Spring.GetPressedScans and Spring.GetPressedScans() or nil
+	state.mapmarkTriggerIdentityCaptured = triggerKey ~= nil or triggerScanCode ~= nil or
+		(state.mapmarkPressedKeys and next(state.mapmarkPressedKeys) ~= nil) or
+		(state.mapmarkPressedScans and next(state.mapmarkPressedScans) ~= nil)
+	state.mapmarkTriggerDown = waitForTriggerRelease or state.mapmarkTriggerIdentityCaptured
+	state.mapmarkAwaitingFreshKeyPress = state.mapmarkTriggerDown
+	showTextInput = true
+	widgetHandler.textOwner = widget
+	if not state.mapmarkTriggerDown then
+		Spring.SDLStartTextInput()
+	end
+	updateTextInputDlist = true
+	updateDrawUi = true
+	return true
+end
+
+state.areMapmarkTriggerKeysPressed = function()
+	if not state.mapmarkTriggerIdentityCaptured then
+		return true
+	end
+
+	local pressedKeys = Spring.GetPressedKeys()
+	if state.mapmarkTriggerKey and Spring.GetKeyState(state.mapmarkTriggerKey) then
+		return true
+	end
+	if state.mapmarkPressedKeys then
+		for key in pairs(state.mapmarkPressedKeys) do
+			if pressedKeys[key] then
+				return true
+			end
+		end
+	end
+
+	local pressedScans = Spring.GetPressedScans and Spring.GetPressedScans() or {}
+	if state.mapmarkTriggerScanCode and pressedScans[state.mapmarkTriggerScanCode] then
+		return true
+	end
+	if state.mapmarkPressedScans then
+		for scanCode in pairs(state.mapmarkPressedScans) do
+			if pressedScans[scanCode] then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+state.finishMapmarkTriggerWait = function()
+	state.mapmarkTriggerKey = nil
+	state.mapmarkTriggerScanCode = nil
+	state.mapmarkTriggerDown = false
+	state.mapmarkTriggerIdentityCaptured = false
+	state.mapmarkPressedKeys = nil
+	state.mapmarkPressedScans = nil
+	inputText = ''
+	inputTextPosition = 0
+	inputSelectionStart = nil
+	if state.mapmarkHistoryDraftIndex ~= nil then
+		inputHistory[state.mapmarkHistoryDraftIndex] = ''
+	end
+	state.mapmarkTextInputPending = true
+	state.mapmarkAwaitingFreshKeyPress = true
+	updateTextInputDlist = true
+end
+
+state.getMapmarkWorldPosition = function(mx, my)
+	if not mx or not my then
+		mx, my = spGetMouseState()
+	end
+	for pipNumber = 0, 4 do
+		local pipApi = WG['pip' .. pipNumber]
+		if pipApi and pipApi.ScreenToWorld then
+			local x, z = pipApi.ScreenToWorld(mx, my)
+			if x and z then
+				return x, Spring.GetGroundHeight(x, z) + 5, z
+			end
+		end
+	end
+	if Spring.IsAboveMiniMap(mx, my) then
+		local x, y, z = state.minimapToWorld(mx, my, state.minimapViewportY)
+		if x and y and z then
+			return x, y + 5, z
+		end
+	end
+
+	local _, pos = Spring.TraceScreenRay(mx, my, true)
+	if type(pos) == 'table' then
+		return pos[1], Spring.GetGroundHeight(pos[1], pos[3]) + 5, pos[3]
+	end
+end
+
+state.mapActionMatchesCurrentModifiers = function(command, actions)
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	for i = 1, #actions do
+		local action = actions[i]
+		if action.command == command and type(action.boundWith) == 'string' then
+			local keySet = action.boundWith:match('([^,]+)$'):lower():gsub('%s+', '')
+			local expectedAlt, expectedCtrl, expectedMeta, expectedShift = false, false, false, false
+			local anyModifiers = false
+			while true do
+				if keySet:find('^any%+') then
+					anyModifiers = true
+					keySet = keySet:sub(5)
+				elseif keySet:find('^%*%+') then
+					anyModifiers = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^alt%+') then
+					expectedAlt = true
+					keySet = keySet:sub(5)
+				elseif keySet:find('^a%+') then
+					expectedAlt = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^ctrl%+') then
+					expectedCtrl = true
+					keySet = keySet:sub(6)
+				elseif keySet:find('^c%+') then
+					expectedCtrl = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^meta%+') then
+					expectedMeta = true
+					keySet = keySet:sub(6)
+				elseif keySet:find('^m%+') then
+					expectedMeta = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^shift%+') then
+					expectedShift = true
+					keySet = keySet:sub(7)
+				elseif keySet:find('^s%+') then
+					expectedShift = true
+					keySet = keySet:sub(3)
+				elseif keySet:find('^up%+') then
+					keySet = keySet:sub(4)
+				elseif keySet:find('^u%+') then
+					keySet = keySet:sub(3)
+				else
+					break
+				end
+			end
+			if anyModifiers or
+			   (alt == expectedAlt and ctrl == expectedCtrl and meta == expectedMeta and shift == expectedShift) then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+state.handleMapmarkAction = function(_, _, _, _, _, _, actions, key, scanCode)
+	if not state.mapActionMatchesCurrentModifiers('drawlabel', actions) then
+		return false
+	end
+	local x, y, z = state.getMapmarkWorldPosition()
+	if x and y and z then
+		state.stopMapDraw()
+		state.startMapmarkInput(x, y, z, key, scanCode, true)
+	end
+	return true
+end
+
+state.handleMapDrawAction = function(_, _, _, _, _, release, actions, key, scanCode)
+	if release then
+		if state.mapDrawActive and
+		   (key == state.mapDrawKey or (scanCode and scanCode == state.mapDrawScanCode)) then
+			state.stopMapDraw()
+			return true
+		end
+		return false
+	end
+	if not state.mapActionMatchesCurrentModifiers('drawinmap', actions) then
+		return false
+	end
+	if state.mapActionMatchesCurrentModifiers('drawlabel', actions) then
+		return false
+	end
+	if not state.mapDrawActive and not Spring.IsGUIHidden() then
+		state.mapDrawActive = true
+		state.mapDrawKey = key
+		state.mapDrawScanCode = scanCode
+		state.mapDrawLastX = nil
+		state.mapDrawLastZ = nil
+		state.mapDrawLastLeftClickTime = 0
+	end
+	return true
+end
+
+state.stopMapDraw = function()
+	state.mapDrawActive = false
+	state.mapDrawKey = nil
+	state.mapDrawScanCode = nil
+	state.mapDrawLastX = nil
+	state.mapDrawLastZ = nil
 end
 
 local function ensureInputHistoryDraft()
@@ -1378,14 +1695,14 @@ drawConsoleLine = function(i)
 end
 
 local function processConsoleLineGL(i)
-	if consoleLines[i] and not consoleLines[i].lineDisplayList then
+	if not state.skipOptionalDrawWork and consoleLines[i] and not consoleLines[i].lineDisplayList then
 		glDeleteList(consoleLines[i].lineDisplayList)
 		consoleLines[i].lineDisplayList = glCreateList(function()
 			drawConsoleLine(i)
 		end)
 	end
 	-- game time (for when viewing history)
-	if consoleLines[i] and not consoleLines[i].timeDisplayList and consoleLines[i].gameFrame then
+	if not state.skipOptionalDrawWork and consoleLines[i] and not consoleLines[i].timeDisplayList and consoleLines[i].gameFrame then
 		glDeleteList(consoleLines[i].timeDisplayList)
 		consoleLines[i].timeDisplayList = glCreateList(function()
 			drawGameTime(consoleLines[i].gameFrame)
@@ -1474,14 +1791,14 @@ drawChatLine = function(i)
 end
 
 local function processChatLineGL(i)
-	if chatLines[i] and not chatLines[i].lineDisplayList then
+	if not state.skipOptionalDrawWork and chatLines[i] and not chatLines[i].lineDisplayList then
 		glDeleteList(chatLines[i].lineDisplayList)
 		chatLines[i].lineDisplayList = glCreateList(function()
 			drawChatLine(i)
 		end)
 	end
 	-- game time (for when viewing history)
-	if chatLines[i] and not chatLines[i].timeDisplayList and chatLines[i].gameFrame then
+	if not state.skipOptionalDrawWork and chatLines[i] and not chatLines[i].timeDisplayList and chatLines[i].gameFrame then
 		glDeleteList(chatLines[i].timeDisplayList)
 		chatLines[i].timeDisplayList = glCreateList(function()
 			drawGameTime(chatLines[i].gameFrame)
@@ -1490,7 +1807,27 @@ local function processChatLineGL(i)
 end
 
 local uiSec = 0
+function widget:GameFrame()
+	state.gameFrameHappened = true
+end
+
 function widget:Update(dt)
+	if inputMode == 'label' and state.mapmarkTriggerDown then
+		if state.areMapmarkTriggerKeysPressed() == false then
+			state.finishMapmarkTriggerWait()
+		end
+	elseif inputMode == 'label' and state.mapmarkTextInputPending then
+		state.mapmarkTextInputPending = false
+		inputText = ''
+		inputTextPosition = 0
+		inputSelectionStart = nil
+		if state.mapmarkHistoryDraftIndex ~= nil then
+			inputHistory[state.mapmarkHistoryDraftIndex] = ''
+		end
+		Spring.SDLStartTextInput()
+		updateTextInputDlist = true
+	end
+
 	addLastUnitShareMessage()
 
 	cursorBlinkTimer = cursorBlinkTimer + dt
@@ -1629,13 +1966,15 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
-		if not chobbyInterface then
+		if not chobbyInterface and not state.mapmarkTriggerDown and not state.mapmarkTextInputPending then
 			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
-	elseif msg:sub(1,20) == 'gui_chat:chataction:' then
-		local source, mode, cmd = msg:match('^gui_chat:chataction:([^:]+):([^:]+):?(.*)$')
+	elseif sfind(msg, 'gui_chat:chataction:', 1, true) == 1 then
+		local source, mode, cmd = ssub(msg, 21):match('^([^:]+):([^:]+):?(.*)$')
 		if source and mode then
-			if mode == 'clear' then
+			if mode == 'snapshot' then
+				state.applyAutocompleteCommandSnapshot(source, cmd or '')
+			elseif mode == 'clear' then
 				clearAutocompleteSource(source)
 			elseif mode == 'add' and cmd ~= '' then
 				addAutocompleteCommand(source, cmd)
@@ -1665,12 +2004,15 @@ drawChatInput = function()
 		local inputHeight = floor(inputFontSize * 2.3)
 		local leftOffset = floor(lineHeight*0.7)
 		local distance =  (historyMode and inputHeight + elementMargin + elementMargin or elementMargin)
-		local isCmd = ssub(inputText, 1, 1) == '/'
+		local isLabel = inputMode == 'label'
+		local isCmd = not isLabel and ssub(inputText, 1, 1) == '/'
 		local usedFont = isCmd and font3 or font
 		local inputBottom = activationArea[2]+chatlogHeightDiff-distance-inputHeight
 		local inputTop = activationArea[2]+chatlogHeightDiff-distance
 		local modeText = I18N.everyone
-		if isCmd then
+		if isLabel then
+			modeText = I18N.label
+		elseif isCmd then
 			modeText = I18N.cmd
 		elseif inputMode == 'a:' then
 			modeText = I18N.allies
@@ -1679,7 +2021,7 @@ drawChatInput = function()
 		end
 		local modeTextPosX = floor(activationArea[1]+elementPadding+elementPadding+leftOffset)
 		local baseTextPosX = floor(modeTextPosX + (usedFont:GetTextWidth(modeText) * inputFontSize) + leftOffset + inputFontSize)
-		local showEmojiButton = not isCmd
+		local showEmojiButton = not isCmd and not isLabel
 		local emojiButtonSize = (inputTop - elementPadding) - (inputBottom + elementPadding)
 		local emojiButtonSpacing = floor(elementPadding * 1.4)
 		local buttonReserve = showEmojiButton and (emojiButtonSize + emojiButtonSpacing + elementPadding) or 0
@@ -2116,7 +2458,7 @@ drawTextInput = function()
 				glColor(1,1,1,0.075)
 				RectRound(state.emojiButtonRect[1], state.emojiButtonRect[2], state.emojiButtonRect[3], state.emojiButtonRect[4], elementCorner*0.6, 1,1,1,1)
 			end
-			if state.inputButtonRect and state.inputButtonRect[1] and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
+			if inputMode ~= 'label' and state.inputButtonRect and state.inputButtonRect[1] and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				glColor(1,1,1,0.075)
 				RectRound(state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4], elementCorner*0.6, 1,0,0,1)
@@ -2134,8 +2476,13 @@ drawTextInput = function()
 end
 
 function widget:DrawScreen()
+	-- Prefer a draw-only frame for cache rebuilds, but never defer them twice.
+	state.skipOptionalDrawWork = state.gameFrameHappened and not state.deferredDrawWork
+	state.deferredDrawWork = state.skipOptionalDrawWork
+	state.gameFrameHappened = false
+
 	if chobbyInterface then return end
-	if not chatLines[1] and not consoleLines[1] then return end
+	if not chatLines[1] and not consoleLines[1] and not showTextInput then return end
 
 	local now = clock()
 	local _, ctrl, _, _ = Spring.GetModKeyState()
@@ -2293,9 +2640,16 @@ end
 
 local loadedAutocompleteCommands = false
 autocomplete = function(text, fresh)
+	if inputMode == 'label' then
+		autocompleteText = nil
+		state.autocompleteInfoText = nil
+		state.autocompleteDisplayPrefix = nil
+		autocompleteWords = {}
+		return
+	end
+
 	if not loadedAutocompleteCommands then
 		loadedAutocompleteCommands = true
-		requestGadgetAutocompleteCommands()
 	end
 	refreshWidgetAutocompleteCommands()
 
@@ -2317,6 +2671,29 @@ autocomplete = function(text, fresh)
 		rawWords[#rawWords + 1] = word
 		words[#words+1] = word
 		letters = word
+	end
+	if isCmd and rawWords[1] == 'set' and ((trailingSpace and #rawWords >= 2) or #rawWords > 2) then
+		autocompleteWords = {}
+		prevAutocompleteLetters = nil
+	end
+	if isCmd then
+		if rawWords[1] == 'luarules' and not state.gadgetAutocompleteRequestSent then
+			local hasGadgetActions = false
+			for _ in pairs(autocompleteCommandSources.synced) do
+				hasGadgetActions = true
+				break
+			end
+			if not hasGadgetActions then
+				for _ in pairs(autocompleteCommandSources.unsynced) do
+					hasGadgetActions = true
+					break
+				end
+			end
+			if not hasGadgetActions then
+				state.gadgetAutocompleteRequestSent = true
+				requestGadgetAutocompleteCommands()
+			end
+		end
 	end
 	local givecatLetters = getGivecatAutocompletePrefix(text)
 	-- if there are still suggestions then try to continue before starting fresh with a new word
@@ -2341,6 +2718,9 @@ autocomplete = function(text, fresh)
 	if givecatLetters ~= nil then
 		state.autocompleteDisplayPrefix = givecatLetters
 		runAutocompleteSet(autocompleteGivecatFilters, givecatLetters, allowMultiAutocomplete, true)
+		if not autocompleteWords[1] and rawWords[1] == 'luarules' and rawWords[2] == 'givecat' and #rawWords == 3 then
+			runAutocompleteSet(autocompleteUnitCodename, givecatLetters, allowMultiAutocomplete, true)
+		end
 	elseif autocompleteWords[2] then
 		state.autocompleteDisplayPrefix = letters
 		usedCachedAutocompleteSet = runAutocompleteSet(autocompleteWords, letters, allowMultiAutocomplete, true)
@@ -2355,6 +2735,7 @@ autocomplete = function(text, fresh)
 		end
 		if not autocompleteWords[1] then
 			local commandNode
+			local commandAutocompleteSet
 			if isCmd then
 				local cmdTree = autocompleteGivecatFilters.cmdTree
 				local typedFromLuarulesNode = rawWords[1] == 'luarules' and rawWords[2] ~= nil
@@ -2368,31 +2749,35 @@ autocomplete = function(text, fresh)
 						commandNode = cmdTree[rawWords[1]]
 					end
 				end
+				if rawWords[1] == 'set' and ((trailingSpace and #rawWords == 1) or (not trailingSpace and #rawWords == 2)) then
+					commandAutocompleteSet = autocompleteGivecatFilters.configParams
+				end
 
-				if type(commandNode) == 'table' then
+				if type(commandNode) == 'table' or commandAutocompleteSet then
 					local paramNode = commandNode
 					local paramStart = typedFromLuarulesNode and 3 or 2
-					local paramEnd = trailingSpace and #rawWords or (#rawWords - 1)
-					for i = paramStart, paramEnd do
-						if type(paramNode) ~= 'table' then
-							break
+					if not commandAutocompleteSet then
+						local paramEnd = trailingSpace and #rawWords or (#rawWords - 1)
+						for i = paramStart, paramEnd do
+							if type(paramNode) ~= 'table' then
+								break
+							end
+							local token = rawWords[i]
+							if not token or token == '' then
+								break
+							end
+							local nextNode = paramNode[token]
+							if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
+								nextNode = paramNode[ssub(token, 3)]
+							end
+							if nextNode == nil then
+								break
+							end
+							paramNode = nextNode
 						end
-						local token = rawWords[i]
-						if not token or token == '' then
-							break
-						end
-						local nextNode = paramNode[token]
-						if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
-							nextNode = paramNode[ssub(token, 3)]
-						end
-						if nextNode == nil then
-							break
-						end
-						paramNode = nextNode
 					end
 
-					local paramAutocompleteSet
-					if type(paramNode) == 'table' then
+					if not commandAutocompleteSet and rawWords[1] ~= 'set' and type(paramNode) == 'table' then
 						local children = {}
 						for key, value in pairs(paramNode) do
 							if key ~= '_description' and (type(value) == 'string' or type(value) == 'table') then
@@ -2401,13 +2786,13 @@ autocomplete = function(text, fresh)
 						end
 						if #children > 0 then
 							table.sort(children)
-							paramAutocompleteSet = children
+							commandAutocompleteSet = children
 						end
 					end
 					local paramLetters = trailingSpace and '' or letters
-					if paramAutocompleteSet and (trailingSpace or paramLetters ~= '') then
+					if commandAutocompleteSet and (trailingSpace or paramLetters ~= '') then
 						state.autocompleteDisplayPrefix = paramLetters
-						runAutocompleteSet(paramAutocompleteSet, paramLetters, allowMultiAutocomplete, true)
+						runAutocompleteSet(commandAutocompleteSet, paramLetters, allowMultiAutocomplete, true)
 					end
 				end
 			end
@@ -2423,7 +2808,7 @@ autocomplete = function(text, fresh)
 				elseif not autocompleteWords[1] and #words <= 1 then
 					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(autocompleteCommands, letters, allowMultiAutocomplete)
-				elseif not autocompleteWords[1] then
+				elseif not autocompleteWords[1] and (rawWords[1] == 'give' or (rawWords[1] == 'luarules' and autocompleteGivecatFilters.unitCodenameCommands[rawWords[2]])) then
 					state.autocompleteDisplayPrefix = letters
 					runAutocompleteSet(autocompleteUnitCodename, letters, allowMultiAutocomplete)
 				end
@@ -2504,6 +2889,14 @@ autocomplete = function(text, fresh)
 						break
 					end
 					local nextNode = node[token]
+					if nextNode == nil and commandName == 'set' then
+						for key, value in pairs(node) do
+							if type(key) == 'string' and key:lower() == token:lower() then
+								nextNode = value
+								break
+							end
+						end
+					end
 					if nextNode == nil and ssub(token, 1, 2) == 'no' and #token > 2 then
 						nextNode = node[ssub(token, 3)]
 					end
@@ -2592,26 +2985,50 @@ end
 
 function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked it
 	if handleTextInput and not chobbyInterface and not Spring.IsGUIHidden() and showTextInput then
+		if inputMode == 'label' and
+		   (state.mapmarkTriggerDown or state.mapmarkTextInputPending or state.mapmarkAwaitingFreshKeyPress) then
+			return true
+		end
 		state.insertInputTextAtCursor(char)
 		return true
 	end
 end
 
-function widget:KeyRelease()
+function widget:KeyRelease(key, mods, label, unicode, scanCode)
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
+	if inputMode == 'label' and state.mapmarkTriggerDown and
+	   (not state.mapmarkTriggerIdentityCaptured or key == state.mapmarkTriggerKey or
+	   (scanCode and scanCode == state.mapmarkTriggerScanCode)) then
+		state.finishMapmarkTriggerWait()
+		return true
+	end
+	if state.mapDrawActive and
+	   (key == state.mapDrawKey or (scanCode and scanCode == state.mapDrawScanCode)) then
+		state.stopMapDraw()
+		return true
+	end
 	return false
 end
 
-function widget:KeyPress(key)
+function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 	if Spring.IsGUIHidden() or not handleTextInput then
 		return
+	end
+	if inputMode == 'label' and state.mapmarkAwaitingFreshKeyPress and
+	   not state.mapmarkTriggerDown and not state.mapmarkTextInputPending and not isRepeat then
+		state.mapmarkAwaitingFreshKeyPress = false
 	end
 
 	local alt, ctrl, _, shift = Spring.GetModKeyState()
 
-	if key == 13 then -- RETURN	 (keypad enter = 271)
+	if key == 13 or key == 271 then -- RETURN / keypad enter
 		if showTextInput then
-			if ctrl or alt or shift then
+			if inputMode == 'label' then
+				if state.mapmarkWorldX and state.mapmarkWorldY and state.mapmarkWorldZ then
+					Spring.MarkerAddPoint(state.mapmarkWorldX, state.mapmarkWorldY, state.mapmarkWorldZ, inputText, false)
+				end
+				cancelChatInput()
+			elseif ctrl or alt or shift then
 				-- switch mode
 				if ctrl then
 					inputMode = ''
@@ -2628,6 +3045,16 @@ function widget:KeyPress(key)
 						local command = ssub(inputText, 2)
 						if command == 'lr' then
 							command = 'luaui reload'
+						else
+							local configKey, commandSuffix = command:match('^[sS][eE][tT]%s+(%S+)(.*)$')
+							if configKey then
+								for _, configParam in ipairs(autocompleteGivecatFilters.configParams) do
+									if configParam:lower() == configKey:lower() then
+										command = 'set ' .. configParam .. commandSuffix
+										break
+									end
+								end
+							end
 						end
 						Spring.SendCommands(command)
 					else
@@ -2636,7 +3063,13 @@ function widget:KeyPress(key)
 							addChatLine(Spring.GetGameFrame(), LineTypes.System, "Moderation", "\255\255\000\000" .. Spring.I18N('ui.chat.moderation.prefix'),
 								Spring.I18N('ui.chat.moderation.blocked', { badWord = badWord }))
 						else
-							Spring.SendCommands("say "..inputMode..inputText)
+							if inputMode == 'a:' then
+								Spring.SendAllyChat(inputText)
+							elseif inputMode == 's:' then
+								Spring.SendSpectatorChat(inputText)
+							else
+								Spring.SendPublicChat(inputText)
+							end
 						end
 						lastMessage = inputText
 					end
@@ -2878,7 +3311,7 @@ function widget:KeyPress(key)
 			end
 			inputTextPosition = utf8.len(inputText)
 			cursorBlinkTimer = 0
-		elseif key == 273 then -- UP
+		elseif key == 273 and inputMode ~= 'label' then -- UP
 			inputSelectionStart = nil
 			inputHistoryCurrent = inputHistoryCurrent - 1
 			if inputHistoryCurrent < 1 then
@@ -2891,7 +3324,7 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
-		elseif key == 274 then -- DOWN
+		elseif key == 274 and inputMode ~= 'label' then -- DOWN
 			inputSelectionStart = nil
 			inputHistoryCurrent = inputHistoryCurrent + 1
 			if inputHistoryCurrent >= #inputHistory then
@@ -2902,7 +3335,7 @@ function widget:KeyPress(key)
 			cursorBlinkTimer = 0
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
-		elseif key == 9 then -- TAB
+		elseif key == 9 and inputMode ~= 'label' then -- TAB
 			inputSelectionStart = nil
 			if autocompleteText and autocompleteWords[1] then
 				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
@@ -2921,6 +3354,32 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
+	if state.mapDrawActive then
+		local worldX, worldY, worldZ = state.getMapmarkWorldPosition(x, y)
+		if worldX and worldY and worldZ then
+			local now = clock()
+			if button == 1 then
+				if now - state.mapDrawLastLeftClickTime < 0.3 then
+					local triggerKey = state.mapDrawKey
+					local triggerScanCode = state.mapDrawScanCode
+					state.stopMapDraw()
+					state.startMapmarkInput(worldX, worldY, worldZ, triggerKey, triggerScanCode, true)
+					return true
+				end
+				state.mapDrawLastLeftClickTime = now
+				state.mapDrawLastX = worldX
+				state.mapDrawLastZ = worldZ
+				state.mapDrawLastTime = now
+			elseif button == 2 then
+				Spring.MarkerAddPoint(worldX, worldY, worldZ, "", false)
+			elseif button == 3 then
+				Spring.MarkerErasePosition(worldX, worldY, worldZ)
+				state.mapDrawLastTime = now
+			end
+		end
+		return true
+	end
+
 	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
 		return false
 	end
@@ -2956,7 +3415,7 @@ function widget:MousePress(x, y, button)
 		updateTextInputDlist = true
 	end
 
-	if inputButton and state.inputButtonRect and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
+	if inputMode ~= 'label' and inputButton and state.inputButtonRect and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
 		if inputMode == 'a:' then
 			inputMode = ''
 		elseif inputMode == 's:' then
@@ -2971,7 +3430,36 @@ function widget:MousePress(x, y, button)
 	return false
 end
 
+function widget:MouseMove(x, y, dx, dy, button)
+	if not state.mapDrawActive or (button ~= 1 and button ~= 3) then
+		return
+	end
+
+	local now = clock()
+	if now - state.mapDrawLastTime >= 0.05 then
+		local worldX, worldY, worldZ = state.getMapmarkWorldPosition(x, y)
+		if worldX and worldY and worldZ then
+			if button == 1 and state.mapDrawLastX and state.mapDrawLastZ then
+				local lastY = Spring.GetGroundHeight(state.mapDrawLastX, state.mapDrawLastZ) + 5
+				Spring.MarkerAddLine(worldX, worldY, worldZ, state.mapDrawLastX, lastY, state.mapDrawLastZ, false)
+				state.mapDrawLastX = worldX
+				state.mapDrawLastZ = worldZ
+			elseif button == 3 then
+				Spring.MarkerErasePosition(worldX, worldY, worldZ)
+			end
+			state.mapDrawLastTime = now
+		end
+	end
+	return true
+end
+
 function widget:MouseRelease(x, y, button)
+	if state.mapDrawActive and (button == 1 or button == 2 or button == 3) then
+		state.mapDrawLastX = nil
+		state.mapDrawLastZ = nil
+		return true
+	end
+
 	if button ~= 1 or not handleTextInput or not showTextInput or Spring.IsGUIHidden() then
 		return false
 	end
@@ -3093,7 +3581,8 @@ function widget:AddConsoleLine(lines, priority)
 end
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
+	vsx, vsy = Spring.GetViewGeometry()
+	state.minimapViewportY = select(4, Spring.GetViewGeometry())
 
 	widgetScale = vsy * 0.00075 * ui_scale
 
@@ -3314,6 +3803,12 @@ function widget:Initialize()
 	WG['chat'].isInputActive = function()
 		return showTextInput
 	end
+	WG['chat'].isMapDrawActive = function()
+		return state.mapDrawActive
+	end
+	WG['chat'].startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode)
+		return state.startMapmarkInput(x, y, z, triggerKey, triggerScanCode)
+	end
 	WG['chat'].getInputButton = function()
 		return inputButton
 	end
@@ -3340,7 +3835,9 @@ function widget:Initialize()
 		if not handleTextInput then
 			cancelChatInput()
 		end
-		Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		if not state.mapmarkTriggerDown and not state.mapmarkTextInputPending then
+			Spring.SDLStartTextInput()	-- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+		end
 	end
 	WG['chat'].getChatVolume = function()
 		return sndChatFileVolume
@@ -3391,6 +3888,8 @@ function widget:Initialize()
 		processAddConsoleLine(params[1], params[2], orgLineID)
 	end
 
+	widgetHandler.actionHandler:AddAction(self, "drawlabel", state.handleMapmarkAction, nil, 'p')
+	widgetHandler.actionHandler:AddAction(self, "drawinmap", state.handleMapDrawAction, nil, 'pRr')
 	widgetHandler.actionHandler:AddAction(self, "clearconsole", clearconsoleCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchat", hidespecchatCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "hidespecchatplayer", hidespecchatplayerCmd, nil, 't')
@@ -3412,7 +3911,6 @@ function widget:Initialize()
 			autocompletePlayernames[#autocompletePlayernames+1] = historyName
 		end
 	end
-	requestGadgetAutocompleteCommands()
 end
 
 function widget:Shutdown()
@@ -3430,6 +3928,8 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 
+	widgetHandler.actionHandler:RemoveAction(self, "drawlabel", 'p')
+	widgetHandler.actionHandler:RemoveAction(self, "drawinmap", 'pRr')
 	widgetHandler.actionHandler:RemoveAction(self, "clearconsole")
 	widgetHandler.actionHandler:RemoveAction(self, "hidespecchat")
 	widgetHandler.actionHandler:RemoveAction(self, "hidespecchatplayer")

@@ -38,6 +38,7 @@ local hasBadCulling = false
 --------------------------------------------------------------------------------
 
 local spIsAABBInView = Spring.IsAABBInView
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 --------------------------------------------------------------------------------
@@ -837,6 +838,7 @@ end
 
 local borderMargin = 40
 local cachedCameraPosDir = {0, 0, 0, 0, 0, 0}
+local cachedMinY, cachedMaxY
 local function UpdateMirrorParams()
 	local function Distance2(x1, y1, z1, x2, y2, z2)
 		local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
@@ -850,8 +852,16 @@ local function UpdateMirrorParams()
 
 	local cpX, cpY, cpZ = Spring.GetCameraPosition()
 	local cdX, cdY, cdZ = Spring.GetCameraDirection()
+	local initMinY, initMaxY, currMinY, currMaxY = spGetGroundExtremes()
+	local minY = currMinY or initMinY
+	local maxY = currMaxY or initMaxY
 
 	local checkInView = false
+	if minY ~= cachedMinY or maxY ~= cachedMaxY then
+		checkInView = true
+		cachedMinY = minY
+		cachedMaxY = maxY
+	end
 
 	if Distance2(cpX, cpY, cpZ, cachedCameraPosDir[1], cachedCameraPosDir[2], cachedCameraPosDir[3]) > 900 then
 		checkInView = true
@@ -870,8 +880,6 @@ local function UpdateMirrorParams()
 	if not checkInView then
 		return
 	end
-
-	local minY, maxY = Spring.GetGroundExtremes()
 
 	mirrorParams = {}
 	-- spIsAABBInView params are copied from map_edge_extension.lua

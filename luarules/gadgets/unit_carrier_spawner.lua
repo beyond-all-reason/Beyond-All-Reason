@@ -23,6 +23,7 @@ local spGiveOrderToUnit         = Spring.GiveOrderToUnit
 local spSetUnitRulesParam       = Spring.SetUnitRulesParam
 local spGetUnitPosition			= Spring.GetUnitPosition
 local SetUnitNoSelect			= Spring.SetUnitNoSelect
+local SendToUnsynced				= SendToUnsynced
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spUseTeamResource 		= Spring.UseTeamResource
 local spGetTeamResources 		= Spring.GetTeamResources
@@ -44,6 +45,12 @@ local spGetUnitHealth 			= Spring.GetUnitHealth
 local spGetUnitCurrentCommand 	= Spring.GetUnitCurrentCommand
 local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
 local EditUnitCmdDesc			= Spring.EditUnitCmdDesc
+
+local function setDroneNoSelect(unitID, noSelect)
+	SetUnitNoSelect(unitID, noSelect)
+	SendToUnsynced("setUnitNoGroup", unitID, noSelect)
+end
+
 local FindUnitCmdDesc			= Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc			= Spring.InsertUnitCmdDesc
 local spGetGameSeconds 			= Spring.GetGameSeconds
@@ -365,7 +372,7 @@ local function undockUnit(unitID, subUnitID)
 			spUnitDetach(subUnitID)
 			mcDisable(subUnitID)
 			if not carrierMetaList[unitID].manualDrones then
-				SetUnitNoSelect(subUnitID, true)
+				setDroneNoSelect(subUnitID, true)
 			end
 			spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
 			droneMetaData.docked = false
@@ -381,7 +388,7 @@ local function undockUnit(unitID, subUnitID)
 			end
 
 			if dronetype == "printer" then
-				SetUnitNoSelect(subUnitID, false)
+				setDroneNoSelect(subUnitID, false)
 				spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
 				RemoveDrone(unitID,subUnitID)
 			end
@@ -638,7 +645,7 @@ local function spawnUnit(spawnData)
 							mcDisable(subUnitID)
 							spSetUnitVelocity(subUnitID, 0, 0, 0)
 							if not carrierData.manualDrones then
-								SetUnitNoSelect(subUnitID, true)
+								setDroneNoSelect(subUnitID, true)
 							end
 							spSetUnitUseAirLos(subUnitID, carrierData.isAirUnit)
 
@@ -661,7 +668,7 @@ local function spawnUnit(spawnData)
 						end
 
 						if not carrierData.manualDrones then
-							SetUnitNoSelect(subUnitID, true)
+							setDroneNoSelect(subUnitID, true)
 						end
 					elseif carriedDroneType == "printer" and carrierData.docking then
 						for subUnitID,value in pairsNext, carrierData.subUnitsList do
@@ -1085,7 +1092,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 
 					if standalone then
 						if not wild then
-							SetUnitNoSelect(subUnitID, false)
+							setDroneNoSelect(subUnitID, false)
 						end
 						spSetUnitRulesParam(subUnitID, "carrier_host_unit_id", nil, PRIVATE)
 						droneCarrierIdList[subUnitID] = nil
@@ -1638,7 +1645,7 @@ local function dockUnits(dockingqueue, queuestart, queueend)
 								Spring.MoveCtrl.Disable(subUnitID)
 								spSetUnitVelocity(subUnitID, 0, 0, 0)
 								if not carrierMetaList[unitID].manualDrones then
-									SetUnitNoSelect(subUnitID, true)
+									setDroneNoSelect(subUnitID, true)
 								end
 								spSetUnitUseAirLos(subUnitID, carrierMetaList[unitID].isAirUnit)
 								droneDocked = true

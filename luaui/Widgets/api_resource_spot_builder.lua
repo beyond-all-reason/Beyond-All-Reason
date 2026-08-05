@@ -55,6 +55,7 @@ local geoConstructors = {}
 local geoConstructorsDef = {}
 local geoBuildings = {}
 
+local standardExtractors = {}
 ------------------------------------------------------------
 -- populate unit tables
 ------------------------------------------------------------
@@ -66,6 +67,10 @@ for uDefID, uDef in pairs(UnitDefs) do
 	local customParams = uDef.customParams or {}
 	if customParams.geothermal then
 		geoBuildings[uDefID] = uDef.energyMake
+	end
+	-- Standard extractors produce just metal / energy and are available to all factions.
+	if customParams.standardextractor then
+		standardExtractors[uDefID] = true
 	end
 end
 
@@ -95,7 +100,6 @@ for uDefID, uDef in pairs(UnitDefs) do
 		end
 	end
 end
-
 
 ------------------------------------------------------------
 -- Building logic
@@ -178,9 +182,10 @@ local function getBestExtractorFromBuilders(units, constructorIds, extractors)
 	return bestExtractor
 end
 
----extractorCanBeUpgraded
+---Whether an allied extractor can be replaced: higher techlevel or same-tier higher yield always upgrades; otherwise specialty extractors (does more than just produce metal/energy) may replace standard extractors/other specialty extractors.
 ---@param currentExtractorUuid number uuid of current extractor
 ---@param newExtractorId number unitDefID of new extractor
+---@return boolean
 local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	local isAllied = Spring.AreTeamsAllied(spGetMyTeamID(), spGetUnitTeam(currentExtractorUuid))
 	if not isAllied then
@@ -188,27 +193,34 @@ local function extractorCanBeUpgraded(currentExtractorUuid, newExtractorId)
 	end
 
 	local currentExtractorId = spGetUnitDefID(currentExtractorUuid)
+	if currentExtractorId == newExtractorId then
+		return false
+	end
+
 	local newExtractor = UnitDefs[newExtractorId]
+	local currentExtractor = UnitDefs[currentExtractorId]
+
+	local newTechLevel = math.floor(tonumber(newExtractor.customParams.techlevel) or 1)
+	local currentTechLevel = math.floor(tonumber(currentExtractor.customParams.techlevel) or 1)
+	if newTechLevel < currentTechLevel then
+		return false
+	elseif newTechLevel > currentTechLevel then
+		return true
+	end
+
+
 	local newExtractorStrength = mexBuildings[newExtractorId] or geoBuildings[newExtractorId]
 	local currentExtractorStrength = mexBuildings[currentExtractorId] or geoBuildings[currentExtractorId]
-
 	if not (newExtractorStrength and currentExtractorStrength) then
 		return false
 	end
 
-	local newExtractorIsSpecial = newExtractor.stealth or #newExtractor.weapons > 0
-
-	if (newExtractorStrength > currentExtractorStrength) then
+	if newExtractorStrength > currentExtractorStrength then
 		return true
 	end
-	if (newExtractorStrength == currentExtractorStrength and newExtractorIsSpecial) then
-		return true
-	end
-	if currentExtractorStrength == newExtractorStrength then
-		return false
-	end
 
-	return false
+	local newIsStandard = standardExtractors[newExtractorId]
+	return not newIsStandard
 end
 
 ---Returns true if the specified extractor be built on this spot - considers upgrades and sidegrades

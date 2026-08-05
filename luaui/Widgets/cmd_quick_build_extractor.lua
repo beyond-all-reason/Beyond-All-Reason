@@ -182,6 +182,10 @@ function widget:Update(dt)
 			local x, y, z = spGetUnitPosition(unitUuid)
 
 			extractor = unitIsMex and bestMex or bestGeo
+			if not extractor then
+				clearGhostBuild()
+				return
+			end
 			local canUpgrade = spotBuilder.ExtractorCanBeUpgraded(unitUuid, extractor)
 			if not canUpgrade then
 				clearGhostBuild()

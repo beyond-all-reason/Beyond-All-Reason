@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 			pendingReHook = {}
 		end
 
-		local numGadgets = 15
+		local numGadgets = 8
 		while numGadgets > 0 and next(updateQueue) do
 			local gadgetName, fileName = next(updateQueue)
 			CheckForChanges(gadgetName, fileName, "synced")

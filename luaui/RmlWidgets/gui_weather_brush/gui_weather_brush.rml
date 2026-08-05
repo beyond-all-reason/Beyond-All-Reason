@@ -1,0 +1,63 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="gui_weather_brush.rcss" />
+</head>
+<body data-model="weather_brush_model">
+	<div id="wb-root" class="wb-root widget-shadow rounded-md bg-darkest p-2" data-class-hidden="hidden">
+		<!-- Title bar -->
+		<div class="flex flex-row justify-between items-center" style="padding: 0 2dp 6dp 2dp;">
+			<div id="wb-handle" class="wb-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Weather Library</div>
+			<div id="btn-wb-quit" class="wb-quit-btn" onclick="widget:OnQuit()"><img class="wb-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+
+		<!-- Weather Library section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">PRESETS</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div id="wb-library-grid" class="wb-library-grid mb-2">
+			<!-- Populated dynamically from weatherLibrary -->
+		</div>
+
+		<!-- Altitude section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">ALTITUDE</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div class="flex flex-row items-center mb-1">
+			<div class="text-lg text-light">Y OFFSET: <span class="text-xl font-bold wb-slider-val">{{altitude}}m</span></div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-2">
+			<div class="wb-sm-btn" onclick="widget:OnAltitudeStep(-50)">
+				<img class="wb-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
+			</div>
+			<input type="range" id="wb-slider-altitude" class="wb-slider" min="0" max="2000" step="10" data-value="altitude" onchange="widget:OnAltitudeChange(event)" />
+			<div class="wb-sm-btn" onclick="widget:OnAltitudeStep(50)">
+				<img class="wb-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
+			</div>
+			<input type="text" id="wb-altitude-numbox" class="wb-slider-numbox" data-value="altitude" onchange="widget:OnAltitudeChange(event)" onfocus="widget:OnAltitudeFocus()" onblur="widget:OnAltitudeBlur()" />
+		</div>
+
+		<!-- CEG Browser section header -->
+		<div class="wb-section-header">
+			<div class="wb-section-label">CEG BROWSER</div>
+			<div class="wb-section-line"></div>
+		</div>
+		<div class="wb-search-wrapper mb-1" style="margin-top: 4dp;">
+			<input type="text" id="wb-ceg-filter" class="wb-filter-input" maxlength="40" data-value="filter" onfocus="widget:OnFilterFocus()" onblur="widget:OnFilterBlur()" onchange="widget:OnFilterChange()" />
+			<div id="btn-wb-ceg-clear" class="wb-search-clear-btn" onclick="widget:OnClearCegs()"><img class="wb-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div id="wb-ceg-list" class="wb-ceg-list mb-1">
+			<!-- Populated dynamically with matching CEG names -->
+		</div>
+		<div class="wb-selected-footer">
+			<div class="wb-selected-label">Active:</div>
+			<div id="wb-selected-cegs-label" class="wb-selected-value">none</div>
+		</div>
+
+	</div>
+</body>
+</rml>

@@ -23,6 +23,8 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetAllUnits = Spring.GetAllUnits
+local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetSpectatingState = Spring.GetSpectatingState
 local spEcho = Spring.Echo
 
 -- Localize frequently used functions
@@ -79,6 +81,8 @@ local eventCallbacks = {
 local elapsedSeconds = 0
 local nextUpdateTime = PERIODIC_UPDATE_INTERVAL
 local periodicCheckCounter = 1
+local myPlayerId = spGetMyPlayerID()
+local _, fullView = spGetSpectatingState()
 
 local tablePool = {}
 local tablePoolSize = 0
@@ -503,9 +507,9 @@ function widget:Update(dt)
 end
 
 function widget:PlayerChanged(playerId)
-	-- Clear all data when player changes (spectating state changes)
-	local myPlayerId = Spring.GetMyPlayerID()
-	if playerId == myPlayerId then
+	local prevFullView = fullView
+	_, fullView = spGetSpectatingState()
+	if playerId == myPlayerId and prevFullView ~= fullView then
 		resetStateAndReinitialize()
 	end
 end

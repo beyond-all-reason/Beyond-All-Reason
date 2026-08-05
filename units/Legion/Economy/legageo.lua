@@ -35,6 +35,7 @@ return {
 			unitgroup = 'energy',
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/LEG_normal.dds",
 			removestop = true,

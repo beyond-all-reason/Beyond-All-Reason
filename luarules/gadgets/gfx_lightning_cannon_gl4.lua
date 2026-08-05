@@ -311,6 +311,10 @@ local function releaseRec(rec)
 end
 local idleSkipCounter = 0
 local lastBuildFrame  = -1   -- last sim frame for which the VBO was rebuilt
+local lastDrawSimFrame = -1
+local sawSpareDrawFrame = false
+local pendingBuildFrame = nil
+local pendingCleanupFrame = nil
 
 -- Paused-state camera tracking: while paused, only rebuild when camera moves
 -- (bolt state is frozen, so unchanged camera == unchanged output).
@@ -1444,6 +1448,27 @@ end
 --------------------------------------------------------------------------------
 local cleanupFrame = 0
 
+local function cleanupTrackedBolts(n)
+	local removeCount = 0
+	local anyRemain = false
+	for proID, rec in pairs(tracked) do
+		if n - (rec.lastSeenFrame or 0) > BOLT_LIFE_FRAMES + 2 then
+			removeCount = removeCount + 1
+			removeList[removeCount] = proID
+		else
+			anyRemain = true
+		end
+	end
+	for i = 1, removeCount do
+		local proID = removeList[i]
+		local rec = tracked[proID]
+		tracked[proID] = nil
+		removeList[i] = nil
+		if rec then releaseRec(rec) end
+	end
+	hasTracked = anyRemain
+end
+
 function gadget:Initialize()
 	if not initGL4() then return end
 
@@ -1465,24 +1490,7 @@ function gadget:GameFrame(n)
 	-- Periodic cleanup of stale tracked bolts (ghosts whose fade-out has finished)
 	if n > cleanupFrame then
 		cleanupFrame = n + 30
-		local removeCount = 0
-		local anyRemain = false
-		for proID, rec in pairs(tracked) do
-			if n - (rec.lastSeenFrame or 0) > BOLT_LIFE_FRAMES + 2 then
-				removeCount = removeCount + 1
-				removeList[removeCount] = proID
-			else
-				anyRemain = true
-			end
-		end
-		for i = 1, removeCount do
-			local proID = removeList[i]
-			local rec = tracked[proID]
-			tracked[proID] = nil
-			removeList[i] = nil
-			if rec then releaseRec(rec) end
-		end
-		hasTracked = anyRemain
+		pendingCleanupFrame = n
 	end
 end
 
@@ -1494,19 +1502,54 @@ end
 
 function gadget:DrawWorld()
 	local simFrame = spGetGameFrame()
+	local sameSimAsLastDraw = (simFrame == lastDrawSimFrame)
+	lastDrawSimFrame = simFrame
+
+	if pendingCleanupFrame then
+		if sameSimAsLastDraw or simFrame > pendingCleanupFrame then
+			cleanupTrackedBolts(pendingCleanupFrame)
+			pendingCleanupFrame = nil
+		end
+	end
+
 	-- Bolt visuals (flicker, segment hash) tick at 30 Hz via floor(timeInfo.z * 30.0),
-	-- which is the engine sim rate. Skip the projectile scan + VBO rebuild when the
-	-- sim frame hasn't advanced and just redraw the existing VBO. Huge saving at
-	-- render rates above sim rate (typical 60-144 fps vs 30 Hz sim).
+	-- which is the engine sim rate. Queue the projectile scan + VBO rebuild onto a
+	-- render-only frame when one exists, so it avoids the same rendered frame as
+	-- the sim step. If no spare drawframe exists, fall back to rebuilding here.
 	--
 	-- Exception: while paused, simFrame is frozen but the camera can still move.
 	-- The bolt set in the VBO was filtered by spIsAABBInView at the time of the
 	-- last build, so off-screen bolts at pause time stay invisible even after
 	-- panning. Always rebuild while paused to re-cull against the current view.
 	local _, _, isPaused = spGetGameSpeed()
-	if isPaused or simFrame ~= lastBuildFrame then
+	if isPaused then
+		pendingBuildFrame = nil
 		lastBuildFrame = simFrame
 		updateBolts()
+	else
+		local buildNow = false
+		if pendingBuildFrame then
+			if pendingBuildFrame == simFrame then
+				buildNow = sameSimAsLastDraw
+			else
+				-- No render-only frame arrived before the next simframe. Catch up here;
+				-- this is the low-FPS/catchup case where deferring is not achievable.
+				buildNow = true
+			end
+			if buildNow then
+				pendingBuildFrame = nil
+				lastBuildFrame = simFrame
+				updateBolts()
+			end
+		elseif simFrame ~= lastBuildFrame then
+			if sawSpareDrawFrame then
+				pendingBuildFrame = simFrame
+			else
+				lastBuildFrame = simFrame
+				updateBolts()
+			end
+		end
 	end
+	sawSpareDrawFrame = sameSimAsLastDraw
 	drawAll()
 end

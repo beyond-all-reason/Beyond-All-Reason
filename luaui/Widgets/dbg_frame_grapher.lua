@@ -101,8 +101,12 @@ out DataVS {
 void main() {
 	// current time will be equal to full right, e.g an x coord of 1
 
-  float rect_width_pixels  = time_duration_wasgf.y / viewGeometry.x - 1 / viewGeometry.x;
-  float rect_height_pixels = shaderparams.y * time_duration_wasgf.y / viewGeometry.y;
+  bool is_sim_frame = abs(time_duration_wasgf.z - 1.0) < 0.01;
+  float bar_gap_pixels = min(1.0, time_duration_wasgf.y * 0.35);
+  float min_width_pixels = is_sim_frame ? 4.0 : 1.0;
+  float min_height_pixels = is_sim_frame ? 10.0 : 1.0;
+  float rect_width_pixels  = max(time_duration_wasgf.y - bar_gap_pixels, min_width_pixels) / viewGeometry.x;
+  float rect_height_pixels = max(shaderparams.y * time_duration_wasgf.y, min_height_pixels) / viewGeometry.y;
   float rect_bottom_right  = 1.0 -  (shaderparams.x * 1.0 - time_duration_wasgf.x  ) / viewGeometry.x;
 
   if (time_duration_wasgf.z > 0.5) {
