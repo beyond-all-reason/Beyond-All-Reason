@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = 1.6
+local versionNumber = 1.7
 
 local widget = widget ---@type Widget
 
@@ -7,7 +7,7 @@ function widget:GetInfo()
 	return {
 		name = "FactoryQ Manager",
 		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v" .. string.format("%.1f", versionNumber) .. ")",
-		author = "very_bad_soldier, Chronographer",
+		author = "very_bad_soldier, Chronographer, Baldric",
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9000,
@@ -29,6 +29,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 
 --Changelog
+--1.7: added: contextual hotkeys - load actions only fire/consume while the preset panel is shown and armed, so they fall through to other widgets otherwise; added 'factory_preset_toggle' action (tap to show/arm, tap again to hide).
 --1.6: added: support of quotas and 'alt' queued priority units in preset
 --1.5: added repeat icon and bindable keybind actions to activate
 --1.4: fixed text alignment, changed layer cause other widgets are eating events otherwise (e.g. smartselect)
@@ -92,6 +93,7 @@ local lastBoxY = nil
 local boxCoords = {}
 local curModId = nil
 local renderPresets = false
+local loadEnabled = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -418,19 +420,58 @@ local function factoryPresetKeyHandler(_, _, args)
 	local selUnit, unitDef = getSingleFactory()
 	local gr = tonumber(key)
 
-	if selUnit == nil then return end
+	if selUnit == nil then return false end
 
 	if mode == "save" then
 		saveQueue(selUnit, unitDef, gr)
+		return true
 	elseif mode == "load" then
+		-- only act on (and consume) the load hotkey while the preset panel is shown AND the load has been armed
+		if not (renderPresets and loadEnabled) then return false end
 		loadQueue(selUnit, unitDef, gr)
+		return true
 	end
 
+	return false
 end
 
-local function factoryPresetRender(_, _, _, data)
-	data = data or {}
-	renderPresets = data[1]
+local function factoryPresetShow(_, _, _, _, _, release)
+	if not release then
+		renderPresets = true
+		loadEnabled = true
+	else
+		renderPresets = false
+		loadEnabled = false
+	end
+	return false
+end
+
+-- Contextual show/arm handler (action: factory_preset_toggle). 
+-- State machine (renderPresets, loadEnabled):
+--   press   while not shown          -> show the panel            (true, false)
+--   release while shown & not armed  -> arm the load hotkeys      (true, true)
+--   press   while shown              -> nothing but the load hotkeys are armed
+--   release while shown & armed      -> hide panel & disarm       (false, false)
+local function factoryPresetToggle(_, _, _, _, _, release)
+	if getSingleFactory() == nil then
+		return false
+	end
+
+	if not release then
+		if not renderPresets then
+			renderPresets = true
+		end
+	else
+		if renderPresets then
+			if not loadEnabled then
+				loadEnabled = true
+			else
+				renderPresets = false
+				loadEnabled = false
+			end
+		end
+	end
+
 	return false
 end
 
@@ -747,13 +788,19 @@ function widget:Initialize()
 	curModId = string.upper(Game.gameShortName or "")
 
 	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {false}, "r")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetShow, nil, "pr")
+	widgetHandler:AddAction("factory_preset_toggle", factoryPresetToggle, nil, "pr")
 end
 
 function widget:Update()
 	local now = Spring.GetGameSeconds()
 	local timediff = now - lastGameSeconds
+
+	-- reset the show/arm state whenever a single factory is no longer selected
+	if (renderPresets or loadEnabled) and getSingleFactory() == nil then
+		renderPresets = false
+		loadEnabled = false
+	end
 
 	if renderPresets then
 		-- meta (space)
@@ -797,6 +844,7 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("factory_preset")
 	widgetHandler:RemoveAction("factory_preset_show")
+	widgetHandler:RemoveAction("factory_preset_toggle")
 end
 
 function printDebug(value)
