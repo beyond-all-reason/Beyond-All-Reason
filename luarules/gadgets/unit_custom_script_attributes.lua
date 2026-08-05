@@ -17,7 +17,7 @@ function gadget:GetInfo()
 	}
 end
 
-local debug = true
+local debug = false
 
 local spCallCobScript = Spring.CallCOBScript
 local gameSpeed = Game.gameSpeed
