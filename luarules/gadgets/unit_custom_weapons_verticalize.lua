@@ -298,7 +298,7 @@ local function getTargetPosition(projectileID)
 	if type(target) == "table" then
 		xyz = target
 	elseif targetType == targetedUnit then
-		xyz = { getUnitPositionWithError(unitID, Spring.GetProjectileTeamID(projectileID)) }
+		xyz = { getUnitPositionWithError(target, Spring.GetProjectileTeamID(projectileID)) }
 		xyz[2] = math_max(Spring.GetGroundHeight(xyz[1], xyz[3]), 0)
 	end
 	return xyz
