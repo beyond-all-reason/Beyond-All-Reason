@@ -10,10 +10,13 @@ local scenariodata = {
 
 Commander...intel report that it is cortex ba... ,it is...functio...,seek and des... transmission interrupted!
     					 ]],
-	briefing 		= [[Tips:  - Build a Shield as soon as possible
-								 - Try to Capture enemy constructor to gain access to foe Tech
-								 - Don't forget early AA
-]],
+	briefing 		= [[
+	
+Tips:
+    1. Build a Shield as soon as possible.
+    2. Try to capture an enemy constructor to gain access to foe Tech.
+    3. Don't forget early anti-air.
+	]],
 
 	mapfilename		= "Death Valley v1", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
 	playerstartx	= "19%", -- X position of where player comm icon should be drawn, from top left of the map

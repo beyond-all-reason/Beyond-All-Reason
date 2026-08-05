@@ -32,7 +32,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
 			selectionscalemult = 1,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			techlevel = 2,
 			unitgroup = 'weapon',
 			restrictions_inclusion = "_notacnukes_",

@@ -38,7 +38,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			--removewait = true,
-			subfolder = "ArmBuildings/LandDefenceOffence",
+			subfolder = "ArmBuildings/LandDefenseOffense",
 			techlevel = 2,
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "BOTCANNON",

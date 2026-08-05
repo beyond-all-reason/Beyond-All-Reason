@@ -6,7 +6,7 @@ local scenariodata = {
 	author			= "Watch The Fort", -- your name here
 	imagepath		= "scenario020.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "", -- This text will be drawn over image
-    summary         = [[An abandoned enemy base lies nearby, though its defences still work. Destroy it, Commander!]],
+    summary         = [[An abandoned enemy base lies nearby, though its defenses still work. Destroy it, Commander!]],
 	briefing 		= [[The enemy is purely defending, so you won't have to worry about any incoming attacks.
 There are multiple approaches to the base, with some more defended than others.]],
 

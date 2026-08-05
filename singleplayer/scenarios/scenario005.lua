@@ -9,15 +9,15 @@ local scenariodata = {
 	author			= "Zow", -- your name here
 	imagepath		= "scenario005.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "", -- This text will be drawn over image
-    summary         = [[Your Armada commander lost the blueprints to most factories and units. Oops! But perhaps your Cortex enemy has a solution for you...]],
-	briefing 		= [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Graverobber and Armada Lazarus) can resurrect and repair units, but cannot build structures. They are also stealthy, so they dont show up on the enemy's radar. Use your commander's d-gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
+    summary         = [[Your Armada Commander lost the blueprints to most factories and units. Oops! But perhaps your Cortex enemy has a solution for you...]],
+	briefing 		= [[In this challenge, most Armada combat units and factories are disabled. Use your Commander and static defenses to hold your frontline and your expansions. Find and resurrect an enemy constructor to build combat units. Resurrection Bots (Cortex Graverobber and Armada Lazarus) can resurrect and repair units, but cannot build structures. They are also stealthy, so they dont show up on the enemy's radar. Use your commander's D-Gun wisely, as it completely destroys units, including their wrecks. Use terrain to your advantage when playing defensively.
 
 Score:
 	1. Speed: destroy the enemy Commander as fast as possible.
 	2. Efficiency: minimize the amount of metal and energy used.
 
 Tips:
-	1. Light laser towers can be effective as a low cost option to hold a front line and expansions before you steal enemy tech.
+	1. Light Laser Towers can be effective as a low cost option to hold a front line and expansions before you steal enemy tech.
 	2. Send constructors to the front line to build turrets and other defensive structures!
 	3. Nano towers can be a very effective source of repair in a large radius.
 	4. You will be forced onto the Armada side. Try to get your hands on Cortex technology if possible!

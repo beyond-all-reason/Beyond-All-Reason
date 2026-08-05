@@ -34,7 +34,7 @@ return {
 			model_author = "Tharsy",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "CorBuildings/LandDefenseOffense",
 			techlevel = 2,
 		},
 		featuredefs = {

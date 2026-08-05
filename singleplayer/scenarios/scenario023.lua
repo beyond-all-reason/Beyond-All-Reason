@@ -6,18 +6,18 @@ local scenariodata = {
 	author			= "Beherith, AKU", -- your name here
 	isnew 			= true,
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
+	imageflavor		= "Units will act automatically during the benchmark.", -- This text will be drawn over image
     summary         = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
 	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
-		
-	A total of 2000 simulation frames are tested. 
-	
-	The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
 
-	/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
-	For this benchmark, it is
+A total of 2000 simulation frames are tested.
 
-	/luarules benchmark corak armpw 650 10 2040
+The internal command to run a benchmark of various units against each other needs cheating enabled, and is the following:
+
+/luarules benchmark [unitname1] [unitname2] [maxunits] [spawnstep] [spawnradius] 
+For this benchmark, it is
+
+/luarules benchmark corak armpw 650 10 2040
 
 	]],
 

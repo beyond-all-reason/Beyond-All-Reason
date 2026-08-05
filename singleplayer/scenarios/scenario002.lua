@@ -6,10 +6,10 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario002.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "In a 1v1 situation, the first to DGun dies.", -- This text will be drawn over image
-    summary         = [[How Does DGunning enemy Commander work? Try it here.]],
-	briefing 		= [[In order to preven unfair situations in multiplayer games when the victory conditions are to destroy all enemy Commanders, DGunning the last standing enemy Commander is forbidden. If the last enemy Commander is dgunned, the team who DGunned the last Commander loses, instead of the team who got DGunned.
+    summary         = [[How Does D-Gunning enemy Commander work? Try it here.]],
+	briefing 		= [[In order to prevent unfair situations in multiplayer games when the victory conditions are to destroy all enemy Commanders, D-Gunning the last standing enemy Commander is forbidden. If the last enemy Commander is D-Gunned, the team who D-Gunned the last Commander loses, instead of the team who got D-Gunned.
 
-    You will have to resort to other methods of killing the last commands.
+    You will have to resort to other methods of killing the last Commander.
     ]],
 
 	mapfilename		= "BarR 1.1", -- the name of the map to be displayed here

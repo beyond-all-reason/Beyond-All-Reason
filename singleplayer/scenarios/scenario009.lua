@@ -5,24 +5,24 @@ local scenariodata = {
 	title			= "Back from the Dead", -- can be anything
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario009.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "All is not lost", -- This text will be drawn over image
-    summary         = [[After a ferocious battle, you are left with only a handful of Rezzer's, tasked to resurrect your army. Beware though, it seems that you might not be alone with this goal]],
+	imageflavor		= "All is not lost.", -- This text will be drawn over image
+    summary         = [[After a ferocious battle, you are left with only a handful of Rezzer's, tasked to resurrect your army. Beware though, it seems that you might not be alone with this goal.]],
 	briefing 		= [[You will start with some Graverobbers (Resurrection and Repair Bots), that can resurrect units from their wrecks, though they are unable to resurrect units that have been destroyed beyond repair into just heaps of metal. While Graverobbers cannot build any units on their own, your only hope is to find the wrecks of some construction bots and rebuild everything anew. Units that are resurrected, become active with 0 health, but Graverobbers will continue to repair them back to full health. Graverobbers can also reclaim wrecks from the battlefield for their metal very rapidly, if needed.
 
 Tips:
- - Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
- - You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging
- - Repairing units does not cost any resources.
- - Wrecks of units contain about 60% of their original metal cost, so resurrecting them will be more cost effective, but also slower.
- - Reclaiming is much faster than resurrecting, and can also help you fund your economy very rapidly
- - Resurrect Construction Units and a Factory as soon as possible!
- - There can also be neutral units among the wreckage, these will only return fire if attacked.
- - You can capture neutral (or enemy) units and structures with Commanders and Decoy Commanders
+    1. Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
+    2. You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging.
+    3. Repairing units does not cost any resources.
+    4. Wrecks of units contain about 60% of their original metal cost, so resurrecting them will be more cost effective, but also slower.
+    5. Reclaiming is much faster than resurrecting, and can also help you fund your economy very rapidly.
+    6. Resurrect Construction Units and a Factory as soon as possible!
+    7. There can also be neutral units among the wreckage, these will only return fire if attacked.
+    8. You can capture neutral (or enemy) units and structures with Commanders and Decoy Commanders.
 
 Scoring:
- - Time taken to complete the scenario
- - Resources spent to get a confirmed kill on all enemy units.
- ]],
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+ 	]],
 
 	mapfilename		= "Tundra_V2", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
 	playerstartx	= "15%", -- X position of where player comm icon should be drawn, from top left of the map

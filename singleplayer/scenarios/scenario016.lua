@@ -6,29 +6,28 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	isnew = true,
 	imagepath		= "scenario016.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Neurope has experienced quite the geological shift", -- This text will be drawn over image
-    summary         = [[Multiple allegiances have formed around continental Neurope, and you must retake the entire continental area from the northwest island]],
-	briefing 		= [[One large alliance of three commanders controls the center of the continent, the other is formed between the east, southeast and southwest. The northern and central territories have attempted to remain neutral, but are gearing up for battle. 
- 
-You will start on the northwestern large island, and the northern resource rich island is still unclaimed according to our scouting reports. 
- 
+	imageflavor		= "Neurope has experienced quite the geological shift.", -- This text will be drawn over image
+    summary         = [[Multiple allegiances have formed around continental Neurope, and you must retake the entire continental area from the northwest island.]],
+	briefing 		= [[One large alliance of three commanders controls the center of the continent, the other is formed between the east, southeast and southwest. The northern and central territories have attempted to remain neutral, but are gearing up for battle.
+
+You will start on the northwestern large island, and the northern resource rich island is still unclaimed according to our scouting reports.
+
 Tips:
- - The northwest sea contains abundant metal, and tidal forces are strong for generating energy.
- - The northern island should be occupied as soon as possible, start off with a Vehicle or Bot factory to secure your starting island, then make and Aircraft plant and use transports to ferry constructors to the island. 
- - Initially, the warring factions will be occupied with each other, but may send early aircraft and hovercraft scouts to your location. 
- - Aircraft carriers offer protection from nuclear warheads.
- 
- 
+    1. The northwest sea contains abundant metal, and tidal forces are strong for generating energy.
+    2. The northern island should be occupied as soon as possible, start off with a Vehicle or Bot factory to secure your starting island, then make and Aircraft plant and use transports to ferry constructors to the island.
+    3. Initially, the warring factions will be occupied with each other, but may send early aircraft and hovercraft scouts to your location.
+    4. Aircraft carriers offer protection from nuclear warheads.
+
 Scoring:
- - Time taken to complete the scenario
- - Resources spent to destroy all enemy units.
- 
-The difficulty modifier will change the amount of resources you and the enemy receive from metal and energy structures:
- - Beginner: You +50%, enemy -50%
- - Novice: You +25%, enemy -25%
- - Normal: Regular resources for both sides
- - Hard: Regular resources for you, +50% for the enemy
- - Brutal: Regular resources for you, +100% for the enemy
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: Regular resources for you, +50% for the enemy
+    5. Brutal: Regular resources for you, +100% for the enemy
     ]],
 
 	mapfilename		= "Neurope_Remake 4.2", -- the name of the map to be displayed here

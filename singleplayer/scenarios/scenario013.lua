@@ -5,33 +5,22 @@ local scenariodata = {
 	title			= "Testing the Waters", -- can be anything
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario013.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Shipyards can be assisted by all constructors", -- This text will be drawn over image
-    summary         = [[Test your skill in naval and aircraft warfare on one of the widest maps. You must defeat a single enemy, who like you, is still quite new to naval combat..]],
+	imageflavor		= "Shipyards can be assisted by all constructors.", -- This text will be drawn over image
+    summary         = [[Test your skill in naval and aircraft warfare on one of the widest maps. You must defeat a single enemy, who like you, is still quite new to naval combat...]],
 	briefing 		= [[Naval battles in BAR are focused on the interaction between ships, submarines, hovercraft, aircraft and occasionally, amphibious units.
- 
- 
+
 Tips:
- 
- ‣  The Cortex Duck (Tier 2 Bot) amphibous bot armed with a short-range laser, and a torpedo launcher. It is the only amphibous unit capable of firing while underwater.
- 
- ‣  The Armada Platypus (Tier 2 Bot) has a short range laser, and an Anti-Aircraft missile, and can provide excellent raiding and support while swimming above the water.
- 
- ‣  Some Experimental Gantry (Tier 3) units are amphibious, and some stand tall enough to fire their weapons at surface targets while in water.
- 
- ‣  Large maps provide great incentives to use Nuclear Missiles, so take care to defend yourself with either: Land nuclear missile defence or a mobile form of it.
- 
- ‣  Aircraft carriers can repair aircraft while at sea, and even have an anti-nuclear missile.
- 
- ‣  Flagships offer the highest concentration of ranged firepower possible.
- 
- ‣  Torpedo bombers can quickly dispose of any fleet without sufficient anti-air cover.
- 
- 
+    1. The Cortex Duck (Tier 2 Bot) amphibous bot armed with a short-range laser, and a torpedo launcher. It is the only amphibous unit capable of firing while underwater.
+    2. The Armada Platypus (Tier 2 Bot) has a short range laser, and an Anti-Aircraft missile, and can provide excellent raiding and support while swimming above the water.
+    3. Some Experimental Gantry (Tier 3) units are amphibious, and some stand tall enough to fire their weapons at surface targets while in water.
+    4. Large maps provide great incentives to use Nuclear Missiles, so take care to defend yourself with either: Land nuclear missile defense or a mobile form of it.
+    5. Aircraft carriers can repair aircraft while at sea, and even have an anti-nuclear missile.
+    6. Flagships offer the highest concentration of ranged firepower possible.
+    7. Torpedo bombers can quickly dispose of any fleet without sufficient anti-air cover.
+
 Scoring:
-
- ‣  Time taken to destroy all enemy units
- ‣  Resources spent to kill the enemy commander
-
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
     ]],
 
 	mapfilename		= "Shore_to_Shore_V3", -- the name of the map to be displayed here

@@ -31,7 +31,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "ArmBuildings/LandDefenceOffence",
+			subfolder = "ArmBuildings/LandDefenseOffense",
 			techlevel = 2,
 		},
 		featuredefs = {

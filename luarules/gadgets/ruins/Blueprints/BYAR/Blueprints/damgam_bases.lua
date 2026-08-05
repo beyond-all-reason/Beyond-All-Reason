@@ -25,7 +25,7 @@ local function redBase1()
 		tiers = { tiers.T2, tiers.T3 },
 		radius = 196,
 		buildings = {
-			-- Defences / Nanos
+			-- Defenses / Nanos
 			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196,  zOffset =  -64, direction = 0 },
 			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196,  zOffset =   64, direction = 0 },
 			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196,  zOffset =    0, direction = 0 },
@@ -77,7 +77,7 @@ local function blueBase1()
 		tiers = { tiers.T2, tiers.T3 },
 		radius = 196,
 		buildings = {
-			-- Defences / Nanos
+			-- Defenses / Nanos
 			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196,  zOffset =  -64, direction = 0 },
 			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196,  zOffset =   64, direction = 0 },
 			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196,  zOffset =    0, direction = 0 },
@@ -125,7 +125,7 @@ local function blueBase2()
 			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24,  zOffset =  24, direction = 1 },
 			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24,  zOffset = -24, direction = 1 },
 
-			-- Defences
+			-- Defenses
 			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  -64,  zOffset = -160, direction = 2 },
 			{ unitDefID = UDN.armferret_scav.id, xOffset =   72,  zOffset =   72, direction = 3 },
 			{ unitDefID = UDN.armbeamer_scav.id, xOffset = -160,  zOffset = -128, direction = 3 },
@@ -200,7 +200,7 @@ local function redBase2()
 			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24,  zOffset =  24, direction = 3 },
 			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24,  zOffset = -24, direction = 3 },
 
-			-- Defences
+			-- Defenses
 			{ unitDefID = UDN.corerad_scav.id, xOffset =  -80,  zOffset =  -80, direction = 0 },
 			{ unitDefID = UDN.corhllt_scav.id, xOffset = -128,  zOffset =  160, direction = 0 },
 			{ unitDefID = UDN.corerad_scav.id, xOffset =   80,  zOffset =  -80, direction = 0 },

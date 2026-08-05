@@ -84,7 +84,7 @@
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.
 
 //eps-step - scales metal income; // ecoFactor = teamSize*eps_step+(1-eps_step);  affect next eenergy and m-income:
-// 1) during new builder task creation; 2) for tier selection from factory 3) for making defences 4) for checking if enough income to build super weapon
+// 1) during new builder task creation; 2) for tier selection from factory 3) for making defenses 4) for checking if enough income to build super weapon
 
 //buildpower -  Mobile buildpower to metal income ratio,
 // works but with regard to behaviour->UnitDef->build_speed. With 1.25 and m-income=100 means AI will try to build at max 125 mobile build_speed in total.

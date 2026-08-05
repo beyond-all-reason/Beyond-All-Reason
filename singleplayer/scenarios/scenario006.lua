@@ -8,7 +8,7 @@ local scenariodata = {
     title           = "Infantry Simulator", -- can be anything
 	author			= "Zow", -- your name here
     imagepath       = "scenario006.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-    imageflavor     = "You can resurrect your fallen infantry units", -- This text will be drawn over image
+    imageflavor     = "You can resurrect your fallen infantry units.", -- This text will be drawn over image
     summary         = [[Defeat two hostile but primitive Barbarians with nothing but your own primitive infantry.]],
     briefing        = [[Both you and your enemy may only make infantry units. Since you're up against a larger enemy, be sure to expand quickly and reclaim/resurrect effectively to maintain an advantage. Don't forget to raid the enemy!
 
@@ -17,7 +17,7 @@ Score:
     2. Efficiency: minimize the amount of metal and energy used.
 
 Tips:
-    1. Light laser towers are incredibly effective against small amounts of infantry.
+    1. Light Laser Towers are incredibly effective against small amounts of infantry.
     2. Resurrecting a fallen infantry unit will immediately add it to your army. Use this to stage epic comebacks.
     3. Infantry can be very effective at finding and killing enemy commanders. Be sure to take control of the wreck after killing the first one.
     4. Grunts have more range than Pawns, but less damage for their cost. Both have their strengths and weaknesses!

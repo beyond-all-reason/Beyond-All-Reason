@@ -7,36 +7,36 @@ local scenariodata = {
 	isnew = true,
 	imagepath		= "scenario022.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "River Assault", -- This text will be drawn over image
-    summary         = [[After a ferocious battle, Cortex Commander decided to join Armada forces. Unfortunately, other Cortex commanders discovered the intent of the treacherous plan and sent a mighty force to prevent it.]],
-	briefing 		= [[You will start with some Lazarus (Resurrection and Repair Bots), that can resurrect units from their wrecks. Your Only hope is to hide your position and build mighty army to crush all opposing forces.
+    summary         = [[After a ferocious battle, a Cortex Commander decided to join Armada forces. Unfortunately, other Cortex commanders discovered the intent of the treacherous plan and sent a mighty force to prevent it.]],
+	briefing 		= [[You will start with some Lazarus (Resurrection and Repair Bots), that can resurrect units from their wrecks. Your only hope is to hide your position and build a mighty army to crush all opposing forces.
        
-	!!! DO NOT UNDERESTIMATE YOUR ENEMY !!!
+!!! DO NOT UNDERESTIMATE YOUR ENEMY !!!
       
-  While you will be fighting for life , don't forget to fortify your Ally too, since WE can't lose Cortex Command Tower. 
+While you will be fighting for your life, don't forget to fortify your Ally too, since WE can't lose the Cortex Command Tower. 
   
 Reinforcements:
- - You and Your Ally will receive first contingency around 9th minute from the begin of mission 
- - Enemy will be getting Reinforcements every 8 and 20 minutes 
+    1. You and your Ally will receive first contingency around 9th minute from the begin of mission.
+    2. The enemy will be getting Reinforcements every 8 and 20 minutes.
     
 Tips:
- - Sharing is Caring! When you share limited units & buildings with your Ally this will strengthens economy and combat capabilities of both.
- - To gain access to Ally units, build Decoy Commander and capture one of your Ally Constructor unit. 
- - Use Radar Jamming units to hide your presence from enemy Radar.
- - Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
- - You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging
- - Repairing units does not cost any resources.
-     
+    1. Sharing is Caring! When you share limited units & buildings with your Ally this will strengthens economy and combat capabilities of both.
+    2. To gain access to Ally units, build Decoy Commander and capture one of your Ally Constructor unit.
+    3. Use Radar Jamming units to hide your presence from enemy Radar.
+    4. Resurrection bots will use Energy to resurrect units, at a flat cost of 75e per second while resurrecting.
+    5. You can issue Area-Resurrect and Area-Reclaim commands by right-click dragging.
+    6. Repairing units does not cost any resources.
+
 Scoring:
- - Time taken to finish the scenario
- - Resources spent to complete victory condition.
-     
-											     IMPORTANT CHANGE!!
-	Beginner: Your Resources = +50%, Enemy Resources = -20%
-	Novice:   Your Resources  = +25%, Enemy Resources= -10%
-	Normal:   Your Resources   = 0,       Enemy Resources= 0
-	Hard:     Your Resources   = -10%,  Enemy Resources= +25%
-	Brutal:   Your Resources    = -20%,  Enemy Resources= +50%
-]],
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: You -10%, +25% for the enemy
+    5. Brutal: You -20%, +50% for the enemy
+    ]],
 
 	mapfilename		= "Lake Carne v2", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
 	playerstartx	= "16%", -- X position of where player comm icon should be drawn, from top left of the map

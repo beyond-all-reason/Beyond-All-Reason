@@ -453,7 +453,7 @@
 				"energyKey": "x",
 				"energy": "Cycle through energy production",
 				"intelKey": "c",
-				"intel": "Cycle through radar/defence/etc",
+				"intel": "Cycle through radar/defense/etc",
 				"factoriesKey": "v",
 				"factories": "Cycle through factories",
 				"rotate": "Change facing of buildings"
@@ -856,7 +856,7 @@
 			"unknown": "(unknown)",
 			"coop": "%{name} (co-op)",
 			"runnersUp": "Runners-up:",
-			"enemiesDestroyed": "Destroying enemy units and defences",
+			"enemiesDestroyed": "Destroying enemy units and defenses",
 			"resourcesDestroyed": "Destroying enemy resource production",
 			"resourcesEfficiency": "Efficient use of resources",
 			"resourcesProduced": "%{playerColor}%{player}%{textColor} produced the most resources (%{score}).",

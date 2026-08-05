@@ -6,25 +6,25 @@ local scenariodata = {
 
 	author			= "Beherith", -- your name here
 	imagepath		= "scenario012.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Mines explode on the slightest touch", -- This text will be drawn over image
+	imageflavor		= "Mines explode on the slightest touch.", -- This text will be drawn over image
     summary         = [[The Armada are amassing reinforcements at a rally point near one of your stealthy outposts. You do not have any technology except for minelayers and scouts. Lay mines around the area, and then you must distract and draw these forces onto minefields, without allowing Armada to detect and destroy your base of operations.]],
 	briefing 		= [[
+
 Tips:
- - Mines automatically detonate if an enemy gets within range of it, or if it is destroyed.
- - Mines can be manually detonated immediately by self-destructing them (Ctrl + D).
- - Use scout vehicles to lure enemy units onto minefields.
- - Minelayers are stealthy, thus do not show up on the enemy radar. They also have a short range radar jammer, to hide any mines under construction.
- - Mines are also stealthy, and automatically cloak once built, becoming undetectable by the enemy.
- - Keeping mines cloaked costs energy, and running out of energy can result in them losing their cloaks temporarily.
- - Minelayers have a large area-of-effect mine-clearing weapon, which they can activate by force-firing at the ground.
- - All cloaked units (even mines) will lose their cloaking if they get too close to an enemy unit.
- - You can build walls of Dragon’s Teeth to funnel enemy units onto minefields.
+    1. Mines automatically detonate if an enemy gets within range of it, or if it is destroyed.
+    2. Mines can be manually detonated immediately by self-destructing them (Ctrl + D).
+    3. Use scout vehicles to lure enemy units onto minefields.
+    4. Minelayers are stealthy, thus do not show up on the enemy radar. They also have a short range radar jammer, to hide any mines under construction.
+    5. Mines are also stealthy, and automatically cloak once built, becoming undetectable by the enemy.
+    6. Keeping mines cloaked costs energy, and running out of energy can result in them losing their cloaks temporarily.
+    7. Minelayers have a large area-of-effect mine-clearing weapon, which they can activate by force-firing at the ground.
+    8. All cloaked units (even mines) will lose their cloaking if they get too close to an enemy unit.
+    9. You can build walls of Dragon’s Teeth to funnel enemy units onto minefields.
 
 Scoring:
- - Lure and destroy the enemy forces as quickly as you can
- - Be efficient by using the least amount of resources to dispatch the enemy forces
-
- ]],
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+    ]],
 
 	mapfilename		= "Avalanche 3.4", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
 	playerstartx	= "85%", -- X position of where player comm icon should be drawn, from top left of the map

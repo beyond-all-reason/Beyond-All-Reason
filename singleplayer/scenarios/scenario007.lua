@@ -5,27 +5,25 @@ local scenariodata = {
 	title			= "The Sky is the Limit", -- can be anything
 	author			= "BasiC",
 	imagepath		= "scenario007.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Acidic water damages any unit coming into contact with it", -- This text will be drawn over image
-    summary         = [[Acidic rains prevent any land or sea units, so you must take to the skies to defeat two enemy Commanders. The acidic environment also prevent use of the usual anti-air defensive turrets. Bomb your way to victory.]],
-	briefing 		= [[
-The environmental conditions prevent the use of your mainstay army options, so plan your aircraft raids on the enemy platforms wisely.
-
+	imageflavor		= "Acidic water damages any unit coming into contact with it.", -- This text will be drawn over image
+    summary         = [[Acidic rains prevent any land or sea units, so you must take to the skies to defeat two enemy Commanders. The acidic environment also prevents use of the usual anti-air defensive turrets. Bomb your way to victory.]],
+	briefing 		= [[The environmental conditions prevent the use of your mainstay army options, so plan your aircraft raids on the enemy platforms wisely.
 
 Tips:
- - Fighters are your only defense against enemy aircraft, and you will need them quickly.
- - Wind Generators are more vulnerable when built close together, as they damage adjacent units and structures when destroyed. Space them well [Hotkeys Z and X while building a grid of them]
- - Aircraft in general cost a lot of energy to build
- - The energy output of wind generators fluctuate, so it is recommended to build at least one Energy Storage building to smooth out the intermittent supply.
- - You can build Air Transports to ferry your Commander between the rocky pillars, but do so only when safe, as enemy fighters can easily shoot down a vulnerable Air Transport, instantly killing any transported unit
- - You can also transport Nano Turrets in Air Transports
- - Armada has access to Banshees, which are excellent early gunship aircraft
- - Armada can build Twilights, which are cloakable and stealthy metal extractors. These will be much more difficult to raid for the enemy, but when you run out of energy, their cloaking fields may fail until you restore your energy supplies
-
+    1. Fighters are your only defense against enemy aircraft, and you will need them quickly.
+    2. Wind Generators are more vulnerable when built close together, as they damage adjacent units and structures when destroyed. Space them well [Hotkeys Z and X while building a grid of them].
+    3. Aircraft in general cost a lot of energy to build.
+    4. The energy output of wind generators fluctuate, so it is recommended to build at least one Energy Storage building to smooth out the intermittent supply.
+    5. You can build Air Transports to ferry your Commander between the rocky pillars, but do so only when safe, as enemy fighters can easily shoot down a vulnerable Air Transport, instantly killing any transported unit.
+    6. You can also transport Nano Turrets in Air Transports.
+    7. Armada has access to Banshees, which are excellent early gunship aircraft.
+    8. Armada can build Twilights, which are cloakable and stealthy metal extractors. These will be much more difficult to raid for the enemy, but when you run out of energy, their cloaking fields may fail until you restore your energy supplies.
 
 Scoring:
 	1. Speed: destroy the enemy Commanders as fast as possible.
 	2. Efficiency: minimize the amount of metal and energy used.
-]],
+	]],
+	
 	mapfilename		= "AcidicQuarry 5.16", -- the name of the map to be displayed here, and which to play on, no .smf ending needed
 	playerstartx	= "15%", -- X position of where player comm icon should be drawn, from top left of the map
 	playerstarty	= "75%", -- Y position of where player comm icon should be drawn, from top left of the map

@@ -8,24 +8,24 @@ local scenariodata = {
 	imagepath		= "scenario017.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Construction units and Nano turrets can assist in building anything.", -- This text will be drawn over image
     summary         = [[You and a team of two other Commanders are tasked with destroying all other Commanders on the enemy team.]],
-	briefing 		= [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they arent the brightest bulbs, they will make holding your portion of the map easier. 
+	briefing 		= [[Three enemy Commanders are also gaining a foothold in this area. The map is made up of three main lanes, you must push through your lane to destroy all of them. Two friendly Commanders have joined in the fight with you, and while they arent the brightest bulbs, they will make holding your portion of the map easier.
  
 Tips:
- - Almost all units can pass the shallow water separating the lanes on the map. 
- - Wind on this map is both tempting and treacherous, as it can attain high velocites, but can also die down at a moments notice. 
- - You can buffer the variable energy production from wind generators with energy storage structures, or augment them with Solar generators. 
- - The enemy may send aircraft against you early on, so make sure to make some light anti-air defense in your base. 
- 
+    1. Almost all units can pass the shallow water separating the lanes on the map.
+    2. Wind on this map is both tempting and treacherous, as it can attain high velocites, but can also die down at a moments notice.
+    3. You can buffer the variable energy production from wind generators with energy storage structures, or augment them with Solar generators.
+    4. The enemy may send aircraft against you early on, so make sure to make some light anti-air defense in your base.
+
 Scoring:
- - Time taken to complete the scenario
- - Resources spent to destroy all enemy units.
- 
-The difficulty modifier will change the amount of resources you and the enemy receive from metal and energy structures:
- - Beginner: You +50%, enemy -50%
- - Novice: You +25%, enemy -25%
- - Normal: Regular resources for both sides
- - Hard: Regular resources for you, +50% for the enemy
- - Brutal: Regular resources for you, +100% for the enemy
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: Regular resources for you, +50% for the enemy
+    5. Brutal: Regular resources for you, +100% for the enemy
     ]],
 
 	mapfilename		= "Archsimkats_Valley_V1", -- the name of the map to be displayed here

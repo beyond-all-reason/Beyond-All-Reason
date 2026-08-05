@@ -6,36 +6,26 @@ local scenariodata = {
 	author			= "Beherith", -- your name here
 	isnew = true,
 	imagepath		= "scenario015.jpg", -- placed next to lua file, should be 3:1 ratio banner style
-	imageflavor		= "Its cold and lonely up here", -- This text will be drawn over image
+	imageflavor		= "Its cold and lonely up here.", -- This text will be drawn over image
     summary         = [[7 enemy Commanders are allied against you, at the top of Throne. Destroy all of them to keep your crown.]],
-	briefing 		= [[The seven outcroppings on the edge of Throne all occupied by enemy Commanders. They will send early scouting forces, and if left to expand too much, will advance in technology rapidly. The third level is secured for you with the most basic defences, and some light anti-air.
- 
- 
-Tips:
- 
- ‣  Secure at least the third level as soon as possible, and expand very quickly to claim all the metal on it. 
- 
- ‣  Wind is an excellent source of energy on this map.
- 
- ‣  The enemies arent the sharpest knife in the drawer, but will pose a threat if left to expand to the second level. 
- 
- ‣  Reduce the difficulty of the scenario if you find it too hard. 
- 
- 
-Scoring:
- 
- ‣  Time taken to complete the scenario
- ‣  Resources spent to destroy all enemy units.
-  
- 
-The difficulty modifier will change the amount of resources you and the enemy can use:
- 
- ‣  Beginner: You +50%, enemy -50%
- ‣  Novice: You +25%, enemy -25%
- ‣  Normal: Regular resources for both sides
- ‣  Hard: Regular resources for you, +50% for the enemy
- ‣  Brutal: Regular resources for you, +100% for the enemy
+	briefing 		= [[The seven outcroppings on the edge of Throne all occupied by enemy Commanders. They will send early scouting forces, and if left to expand too much, will advance in technology rapidly. The third level is secured for you with the most basic defenses, and some light anti-air.
 
+Tips:
+    1. Secure at least the third level as soon as possible, and expand very quickly to claim all the metal on it.
+    2. Wind is an excellent source of energy on this map.
+    3. The enemies arent the sharpest knife in the drawer, but will pose a threat if left to expand to the second level.
+    4. Reduce the difficulty of the scenario if you find it too hard.
+
+Scoring:
+	1. Speed: destroy the enemy Commanders as fast as possible.
+	2. Efficiency: minimize the amount of metal and energy used.
+
+The difficulty modifier will change the amount of resources you and the enemy can use:
+    1. Beginner: You +50%, enemy -50%
+    2. Novice: You +25%, enemy -25%
+    3. Normal: Regular resources for both sides
+    4. Hard: Regular resources for you, +50% for the enemy
+    5. Brutal: Regular resources for you, +100% for the enemy
     ]],
 
 	mapfilename		= "Throne_V8", -- the name of the map to be displayed here

@@ -210,7 +210,7 @@ void EnableWallTargets()
 	AiLog("[WallTargets] explicit wall defs: found=" + explicitWallsFound + " missing=" + explicitWallsMissing);
 	
 	EnableWallBreakingFireState();
-	EnableDefenceFireState();
+	EnableDefenseFireState();
 	EnableGlobalWallPressure();
 	EnableStaticWallPressure();
 }
@@ -246,7 +246,7 @@ void EnableWallBreakingFireState()
 	}
 }
 
-void EnableDefenceFireState()
+void EnableDefenseFireState()
 {
 	array<string> units = {
 		// Armed Armada static defenses

@@ -33,13 +33,13 @@ void AiSave(OStream& ostream)
 {
 }
 
-void AiMakeDefence(int cluster, const AIFloat3& in pos)
+void AiMakeDefense(int cluster, const AIFloat3& in pos)
 {
 	if ((ai.frame > 5 * MINUTE)
 		|| (aiEconomyMgr.metal.income > 10.f)
 		|| (aiEnemyMgr.mobileThreat > 0.f))
 	{
-		aiMilitaryMgr.DefaultMakeDefence(cluster, pos);
+		aiMilitaryMgr.DefaultMakeDefense(cluster, pos);
 	}
 }
 

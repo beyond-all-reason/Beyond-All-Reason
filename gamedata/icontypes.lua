@@ -188,11 +188,11 @@ local icontypes = {
 		size = 1.9425
 	},
 	armatl = {
-		bitmap = "icons/defence_2_naval.png",
+		bitmap = "icons/defense_2_naval.png",
 		size = 1.46999991
 	},
 	leganavaltorpturret = {
-		bitmap = "icons/defence_2_naval.png",
+		bitmap = "icons/defense_2_naval.png",
 		size = 1.46999991
 	},
 	armatlas = {
@@ -340,7 +340,7 @@ local icontypes = {
 		size = 1.83749986
 	},
 	armdl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	armdrag = {
@@ -432,19 +432,19 @@ local icontypes = {
 		size = 1.57499993
 	},
 	armfhlt = {
-		bitmap = "icons/defence_1_laser.png",
+		bitmap = "icons/defense_1_laser.png",
 		size = 1.3
 	},
 	armnavaldefturret = {
-		bitmap = "icons/defence_t15_gauss_impulse.png",
+		bitmap = "icons/defense_t15_gauss_impulse.png",
 		size = 1.6
 	},
 	cornavaldefturret = {
-		bitmap = "icons/defence_t15_plasma_aoe.png",
+		bitmap = "icons/defense_t15_plasma_aoe.png",
 		size = 1.6
 	},
 	legnavaldefturret = {
-		bitmap = "icons/defence_t15_rocket.png",
+		bitmap = "icons/defense_t15_rocket.png",
 		size = 1.6
 	},
 	legsy = {
@@ -488,11 +488,11 @@ local icontypes = {
 		size = 2.0
 	},
 	coranavaldefturret = {
-		bitmap = "icons/defence_t2_aoe_plasma_laser.png",
+		bitmap = "icons/defense_t2_aoe_plasma_laser.png",
 		size = 2.0
 	},
 	leganavaldefturret = {
-		bitmap = "icons/defence_t2_shotgun_mg.png",
+		bitmap = "icons/defense_t2_shotgun_mg.png",
 		size = 2.0
 	},
 	armfhp = {
@@ -576,7 +576,7 @@ local icontypes = {
 		size = 1.56999993
 	},
 	armgplat = {
-		bitmap = "icons/defence_0_0.8.png",
+		bitmap = "icons/defense_0_0.8.png",
 		size = 0.83999997
 	},
 	armgremlin = {
@@ -596,7 +596,7 @@ local icontypes = {
 		size = 1.02899992
 	},
 	armhlt = {
-		bitmap = "icons/defence_1.5_laser.png",
+		bitmap = "icons/defense_1.5_laser.png",
 		size = 1.30249989
 	},
 	armhp = {
@@ -652,7 +652,7 @@ local icontypes = {
 		size = 4.19999981
 	},
 	armllt = {
-		bitmap = "icons/defence_0_laser.png",
+		bitmap = "icons/defense_0_laser.png",
 		size = 0.83999997
 	},
 	armlship = {
@@ -1093,7 +1093,7 @@ local icontypes = {
 		size = 1.04999995
 	},
 	armtl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	armtorps = {
@@ -1381,7 +1381,7 @@ local icontypes = {
 		size = 1.9425
 	},
 	coratl = {
-		bitmap = "icons/defence_2_naval.png",
+		bitmap = "icons/defense_2_naval.png",
 		size = 1.46999991
 	},
 	coravp = {
@@ -1513,11 +1513,11 @@ local icontypes = {
 		size = 2.8
 	},
 	cordl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	legctl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	cordoom = {
@@ -1613,7 +1613,7 @@ local icontypes = {
 		size = 1.57499993
 	},
 	corfhlt = {
-		bitmap = "icons/defence_1_laser.png",
+		bitmap = "icons/defense_1_laser.png",
 		size = 1.3
 	},
 	corfhp = {
@@ -1733,7 +1733,7 @@ local icontypes = {
 		size = 3.09749985
 	},
 	corgplat = {
-		bitmap = "icons/defence_0_0.8.png",
+		bitmap = "icons/defense_0_0.8.png",
 		size = 0.83999997
 	},
 	corhal = {
@@ -1741,15 +1741,15 @@ local icontypes = {
 		size = 1.39649999
 	},
 	corhllllt = {
-		bitmap = "icons/defence_hllllt.png",
+		bitmap = "icons/defense_hllllt.png",
 		size = 1.68699992
 	},
 	corhllt = {
-		bitmap = "icons/defence_hllt.png",
+		bitmap = "icons/defense_hllt.png",
 		size = 1.10870004
 	},
 	corhlt = {
-		bitmap = "icons/defence_1.5_laser.png",
+		bitmap = "icons/defense_1.5_laser.png",
 		size = 1.30249989
 	},
 	corhp = {
@@ -1821,7 +1821,7 @@ local icontypes = {
 		size = 1.25999999
 	},
 	corllt = {
-		bitmap = "icons/defence_0_laser.png",
+		bitmap = "icons/defense_0_laser.png",
 		size = 0.83999997
 	},
 	cormabm = {
@@ -2261,7 +2261,7 @@ local icontypes = {
 		size = 1.67999995
 	},
 	cortl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	cortoast = {
@@ -2689,11 +2689,11 @@ local icontypes = {
 		size = 0.41999999
 	},
 	leghive = {
-		bitmap = "icons/defence_t15_dronecarry.png",
+		bitmap = "icons/defense_t15_dronecarry.png",
 		size = 1.65999997
 	},
 	legfhive = {
-		bitmap = "icons/defence_t15_dronecarry.png",
+		bitmap = "icons/defense_t15_dronecarry.png",
 		size = 1.65999997
 	},
 	legdrone = {
@@ -2833,7 +2833,7 @@ local icontypes = {
 		size = 3
 	},
 	leglht = {
-		bitmap = "icons/defence_0_laser.png",
+		bitmap = "icons/defense_0_laser.png",
 		size = 0.80000001
 	},
 	leglab = {
@@ -2897,11 +2897,11 @@ local icontypes = {
 		size = 1.3125
 	},
 	legmg = {
-		bitmap = "icons/defence_2_mg.png",
+		bitmap = "icons/defense_2_mg.png",
 		size = 1.3
 	},
 	legfmg = {
-		bitmap = "icons/defence_2_mg.png",
+		bitmap = "icons/defense_2_mg.png",
 		size = 1.3
 	},
 	legmh = {
@@ -3037,7 +3037,7 @@ local icontypes = {
 		size = 1.04999995
 	},
 	legtl = {
-		bitmap = "icons/defence_1_naval.png",
+		bitmap = "icons/defense_1_naval.png",
 		size = 1.10249984
 	},
 	legfeconv = {

@@ -26,7 +26,7 @@ return {
   },
   {
     name = 'RaptorsAI',
-    desc = 'Raptor Defence'
+    desc = 'Raptor Defense'
   },
 }
 
