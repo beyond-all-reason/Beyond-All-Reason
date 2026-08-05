@@ -171,7 +171,6 @@ AimWeapon1(heading, pitch)
     if (timeLeft == 0)
     {
         start-script TimeToRestore();
-		return (0);
     }
     timeLeft = reloadTime;
 	if (get ABS(oldhead - heading) > 500)
