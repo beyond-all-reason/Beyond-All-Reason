@@ -81,6 +81,10 @@ local thumbRefreshTimer = 0
 local needsListRefresh = false
 local depthTex  -- shared depth buffer for rendering
 
+local function thumbCachePath(name)
+	return THUMB_CACHE_DIR .. name:gsub("[^%w_%-]", "_") .. ".png"
+end
+
 local function toRmlImageSrc(path)
 	if not path or path == "" then return nil end
 	local normalized = path:gsub("\\", "/"):gsub("^/+", "")
@@ -286,7 +290,7 @@ local function renderOneThumb(name, defID)
 		gl.DepthTest(false)
 
 		-- Save while the FBO is still active (proven-required pattern).
-		local filePath = THUMB_CACHE_DIR .. name:gsub("[^%w_%-]", "_") .. ".png"
+		local filePath = thumbCachePath(name)
 		gl.SaveImage(0, 0, THUMB_SIZE, THUMB_SIZE, filePath, { alpha = false })
 		savedPath = filePath
 
@@ -319,7 +323,14 @@ local function startThumbGeneration()
 		if items then
 			for _, entry in ipairs(items) do
 				if not thumbTextures[entry.name] then
-					thumbQueue[#thumbQueue + 1] = { name = entry.name, defID = entry.id }
+					-- Reuse the on-disk PNG from a previous session/reload; only
+					-- render thumbs that have never been generated on this install.
+					local cached = thumbCachePath(entry.name)
+					if VFS.FileExists(cached, VFS.RAW_FIRST) then
+						thumbTextures[entry.name] = cached
+					else
+						thumbQueue[#thumbQueue + 1] = { name = entry.name, defID = entry.id }
+					end
 				end
 			end
 		end

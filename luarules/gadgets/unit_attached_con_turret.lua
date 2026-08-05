@@ -43,6 +43,7 @@ local SpGetUnitTransporter = Spring.GetUnitTransporter
 local SpGetHeadingFromVector = Spring.GetHeadingFromVector
 local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
+local SendToUnsynced = SendToUnsynced
 
 --repairs and reclaims start at the edge of the unit radius
 --so we need to increase our search radius by the maximum unit radius
@@ -214,10 +215,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
+		Spring.UnitAttach(unitID, nanoID, 3, true)
 		-- makes the attached con turret as non-interacting as possible
 		Spring.SetUnitBlocking(nanoID, false, false, false)
 		Spring.SetUnitNoSelect(nanoID, true)
+		SendToUnsynced("setUnitNoGroup", nanoID, true)
 		attached_builders[nanoID] = unitID
 		attached_builder_def[nanoID] = SpGetUnitDefID(nanoID)
 	end
@@ -228,8 +230,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			-- unit limit hit or invalid spawn surface
 			return
 		end
-		Spring.UnitAttach(unitID, nanoID, 3)
-		-- makes the attached con turret as non-interacting as possible 
+		Spring.UnitAttach(unitID, nanoID, 3, true)
+		-- makes the attached con turret as non-interacting as possible
 		Spring.SetUnitBlocking(nanoID, false, false, false)
         Spring.SetUnitNoSelect(nanoID, false)
 		attached_builders[nanoID] = unitID
@@ -242,7 +244,7 @@ function gadget:GameFrame(gameFrame)
 
 	if gameFrame % 15 == 0 then
 	    -- go on a slowupdate cycle
-		for nanoID, baseUnitID in pairs(attached_builders) do	
+		for nanoID, baseUnitID in pairs(attached_builders) do
 			auto_repair_routine(nanoID, attached_builder_def[nanoID], baseUnitID)
 		end
 	end

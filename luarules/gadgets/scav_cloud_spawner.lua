@@ -158,13 +158,13 @@ if gadgetHandler:IsSyncedCode() then -- Synced
                         aliveWrecks[featureID].age = aliveWrecks[featureID].age+0.0083
                     else
                         local featureHealth, featureMaxHealth = spGetFeatureHealth(featureID)
-                        spSpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
-                        local random = mRandom()
-                        spSetFeatureHealth(featureID, featureHealth-(featureMaxHealth*0.05*random))
-                        SendToUnsynced("featureReclaimFrame", featureID, featureHealth-(featureMaxHealth*0.05*random))
-                        --Spring.Echo("killing", featureHealth)
-                        if featureHealth <= 0 then
-                            spDestroyFeature(featureID)
+                        if featureHealth and featureMaxHealth then
+                            spSpawnCEG("scaspawn-trail", posx, posy, posz, 0,0,0)
+                            local random = mRandom()
+                            local updatedHealth = featureHealth - (featureMaxHealth * 0.05 * random)
+                            spSetFeatureHealth(featureID, updatedHealth, true)
+                            SendToUnsynced("featureReclaimFrame", featureID, updatedHealth)
+                            --Spring.Echo("killing", featureHealth)
                         end
                     end
                 end

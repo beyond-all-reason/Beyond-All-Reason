@@ -473,7 +473,7 @@ local GL_LEQUAL             = GL.LEQUAL
 local GL_LINE_LOOP          = GL.LINE_LOOP
 local GL_NOTEQUAL           = GL.NOTEQUAL
 
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local GL_KEEP               = GL.KEEP
 local GL_REPLACE            = GL.REPLACE --GL.KEEP
 
 local spGetUnitDefID        = Spring.GetUnitDefID
@@ -685,7 +685,11 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		-- we need to check if the unit has on/off weapon states, and only add the one active
 		local weaponOnOff
 		-- on off can be set on a building, we need to check that
-		if unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
+		if weaponType == 2 then
+			-- nano/build range: never gated by on/off — a builder's build power is
+			-- not affected by its on/off state (e.g. the Legion Fortifier turret is
+			-- onoffable, but that only toggles its paired extractor)
+		elseif unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
 			weaponOnOff = unitsOnOff[unitID] or 1
 			drawIt = (weaponOnOff == 1)
 		elseif unitOnOffable[unitDefID] and unitOnOffName[unitDefID] then -- this is a unit or building with 2 weapons
@@ -995,9 +999,9 @@ function widget:Initialize()
 		unitToggles[i] = v
 	end
 
-	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
-	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "p")
-	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "p")
+	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "pt")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, {direction = 1}, "pt")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, {direction = -1}, "pt")
 
 	myAllyTeam = Spring.GetMyAllyTeamID()
 	myTeamID = spGetMyTeamID()
@@ -1265,13 +1269,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
-			-- Pass PIP visible area if drawing in PIP minimap
-			if inMiniMap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-				local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-				attackRangeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-			else
-				attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
-			end
+			attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
 

@@ -247,10 +247,10 @@ end
 ---               INIT                 ---
 ------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
-	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
-	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
-	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "p")
+	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "pt")
+	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "pt")
+	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "pt")
+	widgetHandler:AddAction("buildmenu_pregame_deselect", buildmenuPregameDeselectHandler, nil, "pt")
 
 	Spring.Log(widget:GetInfo().name, LOG.INFO, "Pregame Queue Initializing. Local SubLogic is assumed available.")
 
@@ -594,20 +594,21 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges, alpha)
+local function DrawBuilding(buildData, borderColor, drawRanges, alpha, drawOutline)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local buildingWidth, buildingHeight = GetBuildingDimensions(bDefID, facing)
 	local halfBuildingWidth, halfBuildingHeight = buildingWidth * HALF, buildingHeight * HALF
 
 	gl.DepthTest(false)
-	gl.Color(borderColor)
-
-	gl.Shape(GL.LINE_LOOP, {
-		{ v = { bx - halfBuildingWidth, by, bz - halfBuildingHeight } },
-		{ v = { bx + halfBuildingWidth, by, bz - halfBuildingHeight } },
-		{ v = { bx + halfBuildingWidth, by, bz + halfBuildingHeight } },
-		{ v = { bx - halfBuildingWidth, by, bz + halfBuildingHeight } },
-	})
+	if drawOutline ~= false then
+		gl.Color(borderColor)
+		gl.Shape(GL.LINE_LOOP, {
+			{ v = { bx - halfBuildingWidth, by, bz - halfBuildingHeight } },
+			{ v = { bx + halfBuildingWidth, by, bz - halfBuildingHeight } },
+			{ v = { bx + halfBuildingWidth, by, bz + halfBuildingHeight } },
+			{ v = { bx - halfBuildingWidth, by, bz + halfBuildingHeight } },
+		})
+	end
 
 	if drawRanges then
 		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
@@ -1364,6 +1365,7 @@ function widget:DrawWorld()
 	end
 
 	if selBuildData and showSelectedBuilding then
+		local drawSelectedOutline = WG["buildsquare-gl4"] == nil
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
 			selBuildQueueDefID,
@@ -1384,17 +1386,17 @@ function widget:DrawWorld()
 		
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha)
+			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		elseif isMex then
 			if WG.ExtractorSnap.position or isMetalMap then
 				local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-				DrawBuilding(selBuildData, color, true, selectedAlpha)
+				DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 			else
-				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
+				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha, drawSelectedOutline)
 			end
 		else
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha)
+			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		end
 	end
 

@@ -268,7 +268,7 @@ local function closeHandler()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("teamstatus_close", closeHandler, nil, "p")
+	widgetHandler:AddAction("teamstatus_close", closeHandler, nil, "pt")
 
 	refreshHeaders()
 	guiData.mainPanel.visible = false
@@ -339,13 +339,13 @@ function widget:ApmEvent(teamID, apm)
 	teamAPM[teamID] = apm
 end
 
-function widget:GameFrame(n,forceupdate)
+function widget:GameFrame(n,forceupdate,allowGameoverUpdate)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		forceupdate = true
 	end
 
-	if gameover then return end
+	if gameover and not allowGameoverUpdate then return end
 
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
@@ -469,9 +469,9 @@ end
 
 function widget:GameOver()
 	gameover = true
+	widget:GameFrame(GetGameFrame(),true,true)
 	if replaceEndStats then
 		guiData.mainPanel.visible = true
-		widget:GameFrame(GetGameFrame(),true)
 		Spring.SendCommands("endgraph 0")
 	end
 end
