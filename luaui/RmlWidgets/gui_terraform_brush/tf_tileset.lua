@@ -13,14 +13,25 @@ local WG = WG
 local KNOBS = {
 	{ "scaleSoil", "%.0f" }, { "scaleRocky", "%.0f" }, { "scaleCliff", "%.0f" },
 	{ "scalePlat", "%.0f" }, { "scaleFoot", "%.0f" },
-	{ "normalStrength", "%.2f" }, { "cliffNormStrength", "%.2f" }, { "footNormStrength", "%.2f" },
+	-- albedo tiling per flat layer, as a multiple of that layer's shape scale
+	-- (albDecouple is the checkbox below, not a slider — same as debugView)
+	{ "albTileSoil", "%.2f" }, { "albTileRocky", "%.2f" }, { "albTilePlat", "%.2f" },
+	{ "normalStrength", "%.2f" },
+	{ "soilNormStrength", "%.2f" }, { "rockyNormStrength", "%.2f" }, { "platNormStrength", "%.2f" },
+	{ "cliffNormStrength", "%.2f" }, { "footNormStrength", "%.2f" },
 	{ "cliffStartDeg", "%.1f" }, { "chunkyCliff", "%d" }, { "foothillsSpanDeg", "%.1f" }, { "footFloor", "%.2f" },
 	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
-	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" },
-	{ "splatInfluence", "%.2f" }, { "antiTileWarp", "%.0f" }, { "macroVar", "%.2f" }, { "albedoSortMode", "%d" },
-	{ "staggerAmount", "%.2f" }, { "maskScale1", "%.0f" }, { "maskScale2", "%.0f" }, { "lumaBlend", "%.2f" },
+	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusPatch", "%.2f" },
+	{ "splatInfluence", "%.2f" },
+	{ "splatPunchTalus", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
+	{ "antiTileWarp", "%.0f" }, { "parallaxAmp", "%.2f" },
+	{ "macroVar", "%.2f" }, { "macroLod", "%.1f" }, { "albedoSortMode", "%d" },
+	{ "staggerAmount", "%.2f" }, { "maskScale1", "%.0f" }, { "maskScale2", "%.0f" },
+	{ "lumaBlend", "%.2f" }, { "heightBlend", "%.2f" }, { "heightDepth", "%.2f" },
 	{ "curvHighlight", "%.2f" }, { "curvShadow", "%.2f" }, { "curvRadius", "%.0f" },
-	{ "specStrength", "%.2f" }, { "hemiAmbient", "%.2f" }, { "aoStrength", "%.2f" }, { "wetBand", "%.0f" },
+	{ "specStrength", "%.2f" }, { "specAA", "%.2f" },
+	{ "hemiAmbient", "%.2f" }, { "aoStrength", "%.2f" },
+	{ "wetBand", "%.0f" }, { "wetGloss", "%.2f" },
 	{ "shadowMode", "%d" }, { "shadowBias", "%.4f" },
 	{ "smtBlend", "%.2f" }, { "oldCliffBlend", "%.2f" },
 	{ "tintR", "%.2f" }, { "tintG", "%.2f" }, { "tintB", "%.2f" },
@@ -31,6 +42,9 @@ local KNOBS = {
 	{ "metalInfluence", "%.2f" }, { "metalness", "%.2f" }, { "metalReflect", "%.2f" },
 	{ "metalRoughMul", "%.2f" }, { "metalScale", "%.0f" }, { "metalRelief", "%.2f" },
 	{ "metalEdge", "%.2f" },
+	-- silhouette band: which terrain layer skirts a spot (0 soil, 1 talus,
+	-- 2 cliff, 3 plateau) and how much it darkens
+	{ "metalApronLayer", "%d" }, { "metalApronTone", "%.2f" },
 	{ "metalTintR", "%.2f" }, { "metalTintG", "%.2f" }, { "metalTintB", "%.2f" },
 	-- debugView is not a slider anymore — it's the DEBUG multi-toggle, mirrored to
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
@@ -51,6 +65,7 @@ function M.attach(doc, ctx)
 	-- fresh document: the SHADER checkbox is back at its markup default, so drop
 	-- the cache and let the next M.sync re-stamp it from the widget
 	ctx.widgetState.tsShaderLast = nil
+	ctx.widgetState.tsAlbDecoupleLast = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
 	for _, k in ipairs(KNOBS) do
@@ -135,6 +150,21 @@ function M.sync(doc, ctx, setSummary)
 		end
 	end
 	uiState.updatingFromCode = false
+
+	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
+	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).
+	if knobs.albDecouple ~= nil then
+		local dec = knobs.albDecouple >= 1
+		if widgetState.tsAlbDecoupleLast ~= dec then
+			widgetState.tsAlbDecoupleLast = dec
+			local el = doc:GetElementById("btn-ts-alb-decouple")
+			if el then
+				el:SetAttribute("src", dec
+					and "/luaui/images/terraform_brush/check_on.png"
+					or  "/luaui/images/terraform_brush/check_off.png")
+			end
+		end
+	end
 
 	-- Mirror debugView -> tsDebugView so the DEBUG multi-toggle highlight tracks the
 	-- widget (initial state + console-driven /tileset changes); debugView has no slider.

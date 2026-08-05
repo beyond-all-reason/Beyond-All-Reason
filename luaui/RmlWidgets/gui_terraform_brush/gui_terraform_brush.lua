@@ -6722,6 +6722,24 @@ local initialModel = {
 			widgetState.tilesetActive = true
 		end
 	end,
+	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
+	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
+	-- look without having to reset the three sliders.
+	onTsToggleAlbDecouple = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setKnob and WG.TilesetTerrain.getKnobs) then return end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and knobs.albDecouple and knobs.albDecouple >= 1)
+		WG.TilesetTerrain.setKnob("albDecouple", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		widgetState.tsAlbDecoupleLast = on
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-alb-decouple")
+		if el then
+			el:SetAttribute("src",
+				on and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+	end,
 	onTilesetKnob = function(_event, key)
 		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
 		local v = _elemSliderVal("ts-slider-" .. key, 0)
