@@ -72,5 +72,5 @@ local function cameraFlipHandler()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("cameraflip", cameraFlipHandler, nil, "p")
+	widgetHandler:AddAction("cameraflip", cameraFlipHandler, nil, "pt")
 end

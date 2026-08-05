@@ -243,7 +243,7 @@ function widget:Initialize()
 
 	Spring.SetConfigInt("MiniMapCanFlip", 0)
 
-	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "p")
+	widgetHandler:AddAction("minimap_rotate", minimapRotateHandler, nil, "pt")
 
 	-- Apply the current camera heading immediately so the minimap starts in the
 	-- correct orientation on game start/reload, without waiting for the first
