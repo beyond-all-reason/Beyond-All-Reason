@@ -55,6 +55,11 @@ local defaultHungarianUnits	= 20 -- Need a baseline to start from when no config
 local minHungarianUnits		= 10 -- If we kept reducing maxUnits it can get to a point where it can never increase, so we enforce minimums on the algorithms.
 local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are great enough for time to be meaningful
 
+-- Fill the line edges-first: nearest unit to either edge, then the other edge,
+-- then the midpoint, then midpoints of each half, bisecting inward. Each spot greedily
+-- takes the nearest unassigned unit. Set false to restore Hungarian/NoX assignment.
+local edgeInAssignment = true
+
 -- Alpha loss per second after releasing mouse
 local lineFadeRate = 2.0
 
@@ -677,7 +682,9 @@ function widget:MouseRelease(mx, my, mButton)
                 local interpNodes = GetInterpNodes(mUnits)
 
                 local orders
-                if (#mUnits <= maxHungarianUnits) then
+                if edgeInAssignment then
+                    orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shift and not meta)
+                elseif (#mUnits <= maxHungarianUnits) then
                     orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
                 else
                     orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -916,6 +923,105 @@ end
 ---------------------------------------------------------------------------------------------------------
 -- Matching Algorithms
 ---------------------------------------------------------------------------------------------------------
+
+function GetOrdersEdgeIn(nodes, units, unitCount, shifted)
+    -- Spots on the line are filled edges-first, bisecting inward.
+    -- Fill order: the edge nearest to any unit, then the opposite edge, then the
+    -- midpoint, then the midpoints of each half (breadth-first), and so on.
+    -- Each spot greedily takes the nearest still-unassigned unit, so the line's
+    -- overall shape forms immediately even when most units are far away.
+
+    -- Cache unit positions
+    local ux, uz, uID = {}, {}, {}
+    local m = 0
+    for u = 1, unitCount do
+        local x, _, z
+        if shifted then
+            x, _, z = GetUnitFinalPosition(units[u])
+        else
+            x, _, z = spGetUnitPosition(units[u])
+        end
+        if x then
+            m = m + 1
+            ux[m] = x
+            uz[m] = z
+            uID[m] = units[u]
+        end
+    end
+
+    if m == 0 then
+        return {}
+    end
+
+    -- Decide which edge is filled first: the one closest to any unit
+    local firstEdge, secondEdge = 1, unitCount
+    if unitCount > 1 then
+        local bestFirst, bestLast = huge, huge
+        local n1, nN = nodes[1], nodes[unitCount]
+        for i = 1, m do
+            local dx, dz = n1[1] - ux[i], n1[3] - uz[i]
+            local d = dx*dx + dz*dz
+            if d < bestFirst then bestFirst = d end
+            dx, dz = nN[1] - ux[i], nN[3] - uz[i]
+            d = dx*dx + dz*dz
+            if d < bestLast then bestLast = d end
+        end
+        if bestLast < bestFirst then
+            firstEdge, secondEdge = unitCount, 1
+        end
+    end
+
+    -- Build the fill order: both edges, then breadth-first bisection of the index range
+    local fillOrder = { firstEdge }
+    local fillCount = 1
+    if unitCount > 1 then
+        fillCount = 2
+        fillOrder[2] = secondEdge
+
+        local queue = { {1, unitCount} }
+        local qHead = 1
+        while queue[qHead] do
+            local lo, hi = queue[qHead][1], queue[qHead][2]
+            qHead = qHead + 1
+            if hi - lo >= 2 then
+                local mid = floor((lo + hi) * 0.5)
+                fillCount = fillCount + 1
+                fillOrder[fillCount] = mid
+                queue[#queue + 1] = {lo, mid}
+                queue[#queue + 1] = {mid, hi}
+            end
+        end
+    end
+
+    -- Each spot, in fill order, takes the nearest unassigned unit
+    local taken = {}
+    local orders = {}
+    local oCount = 0
+    for f = 1, fillCount do
+        if oCount >= m then
+            break
+        end
+        local node = nodes[fillOrder[f]]
+        local nx, nz = node[1], node[3]
+        local best, bestDist
+        for i = 1, m do
+            if not taken[i] then
+                local dx, dz = nx - ux[i], nz - uz[i]
+                local d = dx*dx + dz*dz
+                if not best or d < bestDist then
+                    best = i
+                    bestDist = d
+                end
+            end
+        end
+        taken[best] = true
+        oCount = oCount + 1
+        orders[oCount] = {uID[best], node}
+    end
+
+    return orders
+end
+
 
 function GetOrdersNoX(nodes, units, unitCount, shifted)
     -- Remember when  we start
@@ -1519,7 +1625,9 @@ function widget:Initialize()
 				if #mUnits > 0 then
 					local interpNodes = GetInterpNodes(mUnits)
 					local orders
-					if #mUnits <= maxHungarianUnits then
+					if edgeInAssignment then
+						orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shift and not meta)
+					elseif #mUnits <= maxHungarianUnits then
 						orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
 					else
 						orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -1614,7 +1722,9 @@ function widget:Initialize()
             end
             local interpNodes = GetInterpNodes(mUnits)
             local orders
-            if #mUnits <= maxHungarianUnits then
+            if edgeInAssignment then
+                orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shifted)
+            elseif #mUnits <= maxHungarianUnits then
                 orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)
             else
                 orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shifted)
