@@ -508,7 +508,7 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = (selectedUnitsLen <= 200 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
+	local unitTargetsMap = (selectedUnitsLen <= 100 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
 	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
