@@ -504,11 +504,12 @@ local function splitTargetsIntoRivers(units, targets)
 end
 
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = (selectedUnitsLen <= 100 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
+	local split = splitStrategy or (selectedUnitsLen <= 100 and splitTargetsIntoRivers) or splitTargets
+	local unitTargetsMap = split(selectedUnits, filteredTargets)
 	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
@@ -518,9 +519,9 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	if options.shift and options.meta then
-		splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
@@ -554,8 +555,9 @@ end
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
 ---@field protectAllies boolean? Unfiltered commands target your own units instead of allies.
+---@field splitStrategy function? Pins the split strategy instead of choosing it by selection size.
 
-local function commandConfig(targetTypes, targetAllegiance, handler, protectAllies)
+local function commandConfig(targetTypes, targetAllegiance, handler, protectAllies, splitStrategy)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -566,6 +568,7 @@ local function commandConfig(targetTypes, targetAllegiance, handler, protectAlli
 		allowedTargetTypes = allowedTargetTypes,
 		targetAllegiance   = targetAllegiance,
 		protectAllies      = protectAllies,
+		splitStrategy      = splitStrategy,
 	}
 	return config
 end
@@ -574,8 +577,8 @@ end
 local areaToTargetCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, nil, nil, splitTargets),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, nil, nil, splitTargets),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, nil, true),
@@ -765,7 +768,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	command.handle(cmdId, selectedUnits, filteredTargets, options)
+	command.handle(cmdId, selectedUnits, filteredTargets, options, command.splitStrategy)
 	return true
 end
 
