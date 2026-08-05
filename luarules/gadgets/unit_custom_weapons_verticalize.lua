@@ -77,7 +77,6 @@ local math_sqrt = math.sqrt
 local math_floor = math.floor
 local math_diag = math.diag
 local math_pi = math.pi
-local math_cos = math.cos
 local math_acos = math.acos
 local math_sin = math.sin
 local math_asin = math.asin
