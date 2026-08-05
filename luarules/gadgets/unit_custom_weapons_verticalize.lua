@@ -102,20 +102,8 @@ local inSpawnProjectile = false
 
 --------------------------------------------------------------------------------
 -- Vectors minilib -------------------------------------------------------------
--- TODO: Make a vector module or change the code back to use multivalue passing.
 
-local RAD_EPSILON = 1e-8
-local ARC_EPSILON = 1e-6
 local ARC_NORMAL_EPSILON = 1 - 1e-6
-local xyza = { 0, 0, 0, 1 } -- float3 with an augment term for distance
-
-local function magnitude(vector)
-	return math_diag(vector[1], vector[2], vector[3])
-end
-
-local function getMagnitude(vector)
-	return vector[4] or magnitude(vector) -- Assumes the augment term is valid. Careful.
-end
 
 local function distanceXZ(position1, position2)
 	return math_diag(position1[1] - position2[1], position1[3] - position2[3])
@@ -125,57 +113,6 @@ local function isInCylinder(vector, origin, radius)
 	local v1, v3 = vector[1], vector[3]
 	local o1, o3 = origin[1], origin[3]
 	return radius * radius >= (v1 - o1) * (v1 - o1) + (v3 - o3) * (v3 - o3)
-end
-
-local function dot(vector1, vector2)
-	return vector1[1] * vector2[1] + vector1[2] * vector2[2] + vector1[3] * vector2[3]
-end
-
-local function getAngleBetween(vector1, vector2)
-	return math_acos(dot(vector1, vector2) / getMagnitude(vector1) / getMagnitude(vector2))
-end
-
----Modifies its `vector1` input.
-local function rotateTo(vector1, vector2)
-	local scale = getMagnitude(vector1) / getMagnitude(vector2)
-	vector1[1] = vector2[1] * scale
-	vector1[2] = vector2[2] * scale
-	vector1[3] = vector2[3] * scale
-end
-
----Spherical linear interpolation between two vectors with numerical safety checks.
----
----Modifies its `vector1` input.
----@return integer? misalignment `nil`: none, `-1`: opposite vectors, `1`: parallel vectors
-local function slerp(vector1, vector2, factor)
-	if factor <= ARC_EPSILON then
-		return
-	end
-
-	if factor >= ARC_NORMAL_EPSILON then
-		rotateTo(vector1, vector2)
-		return
-	end
-
-	local v11, v12, v13 = vector1[1], vector1[2], vector1[3]
-	local v21, v22, v23 = vector2[1], vector2[2], vector2[3]
-	local m1 = getMagnitude(vector1)
-	local m2 = getMagnitude(vector2)
-
-	local cos_angle = (v11 * v21 + v12 * v22 + v13 * v23) / (m1 * m2)
-
-	if math_abs(cos_angle) >= ARC_NORMAL_EPSILON then
-		return cos_angle < 0 and -1 or 1
-	end
-
-	local angle = math_acos(cos_angle)
-	local weight1 = math_sin((1 - factor) * angle) / m1
-	local weight2 = math_sin(factor * angle) / m2
-	local scale = m1 / math_sin(angle)
-
-	vector1[1] = (v11 * weight1 + v21 * weight2) * scale
-	vector1[2] = (v12 * weight1 + v22 * weight2) * scale
-	vector1[3] = (v13 * weight1 + v23 * weight2) * scale
 end
 
 local function updateSpeedAndPosition(position, velocity, acceleration, speedMax)
@@ -387,27 +324,32 @@ local function register(projectileID, weaponDefID)
 		return
 	end
 
-	local weapon = weapons[weaponDefID]
 	local position = getPosition(projectileID)
 	local target = getTargetPosition(projectileID)
+	if not target then
+		return
+	end
+
+	local weapon = weapons[weaponDefID]
 	local turnRadius = weapon.turnRadius
 	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
 	local ascentAboveTarget = target[2] + weapon.cruiseHeight - turnRadius
 	local ascendHeight = math_max(ascentAboveLauncher, ascentAboveTarget)
 
 	local projectile = {
-		acceleration    = weapon.acceleration,
-		speedMax        = weapon.speedMax,
-		speedMin        = weapon.speedMin,
-		turnRate        = weapon.turnRate,
-		chaseFactor     = weapon.chaseFactor,
-		target          = target,
-		ascendHeight    = ascendHeight,
-		turnRadius      = turnRadius,
+		acceleration     = weapon.acceleration,
+		speedMax         = weapon.speedMax,
+		speedMin         = weapon.speedMin,
+		turnRate         = weapon.turnRate,
+		chaseFactor      = weapon.chaseFactor,
+		target           = target,
+		ascendHeight     = ascendHeight,
+		turnRadius       = turnRadius,
 
-		phase           = 1, -- indexes the flight plan phases
-		pitch           = 0, -- will update
-		cruiseEndRadius = 0, -- will update
+		phase            = 1,
+		pitch            = 1,
+		cruiseEndRadius  = 0,
+		cruiseEndInverse = 0,
 	}
 
 	local cruiseDistance = distanceXZ(position, target) - weapon.rangeMinimum
@@ -454,14 +396,16 @@ local function turnToLevel(projectileID, projectile, frame)
 	local pitch = velocity[2] / velocity[4]
 
 	-- StarburstProjectile disables turning at 8.1 degrees to target, then keeps constant pitch.
-	if pitch <= 0 or math_abs(pitch - projectile.pitch) > 1e-3 then
+	if projectile.pitch - pitch > projectile.turnRate * 0.5 then
 		projectile.pitch = pitch
 		return frame + 1
 	end
 
 	projectile.phase = projectile.phase + 1
-	projectile.cruiseEndRadius = (1 + projectile.chaseFactor) * projectile.speedMax / projectile.turnRate
-	local cruiseDistance = distanceXZ(getPosition(projectileID), projectile.target) - projectile.cruiseEndRadius
+	local cruiseEndRadius = (1 + projectile.chaseFactor) * projectile.speedMax / projectile.turnRate
+	projectile.cruiseEndRadius = cruiseEndRadius
+	projectile.cruiseEndInverse = 1 / cruiseEndRadius
+	local cruiseDistance = distanceXZ(getPosition(projectileID), projectile.target) - cruiseEndRadius
 	return frame + math_floor(cruiseDistance / projectile.speedMax) - checkWindowFrames
 end
 
@@ -484,26 +428,47 @@ local function cruise(projectileID, projectile, frame)
 	Spring.SetProjectileTarget(projectileID, target[1], target[2], target[3])
 end
 
+---@return boolean alignedToTarget
 local function updateGuidance(position, velocity, projectile)
 	local dx = projectile.target[1] - position[1]
 	local dz = projectile.target[3] - position[3]
 	local distance = math_diag(dx, dz)
 
-	local radius = (1 + projectile.chaseFactor) * projectile.speedMax / projectile.turnRate
-	local sinPitch = math_clamp(1 - distance / radius, 0, 1)
+	local sinPitch = 1 - distance * projectile.cruiseEndInverse
+	if sinPitch < 0 then sinPitch = 0 end
 	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
+	local invDistance = cosPitch / distance
 
-	local towardTarget = xyza -- unitary vector
-	towardTarget[1] = dx / distance * cosPitch
-	towardTarget[2] = -sinPitch
-	towardTarget[3] = dz / distance * cosPitch
+	-- Unit vector towards target
+	local tx = dx * invDistance
+	local ty = -sinPitch
+	local tz = dz * invDistance
 
-	local angleBetween = getAngleBetween(velocity, towardTarget)
-	if angleBetween > RAD_EPSILON then
-		slerp(velocity, towardTarget, projectile.turnRate / angleBetween)
+	local speed = velocity[4]
+	local cosAngle = (velocity[1] * tx + velocity[2] * ty + velocity[3] * tz) / speed
+
+	if cosAngle >= ARC_NORMAL_EPSILON then
+		return true
+	end
+
+	local angle = math_acos(cosAngle < -1 and -1 or cosAngle)
+	local factor = projectile.turnRate / angle
+
+	if factor < ARC_NORMAL_EPSILON then
+		local weight1 = math_sin((1 - factor) * angle) / speed
+		local weight2 = math_sin(factor * angle)
+		local scale = speed / math_sin(angle)
+		velocity[1] = (velocity[1] * weight1 + tx * weight2) * scale
+		velocity[2] = (velocity[2] * weight1 + ty * weight2) * scale
+		velocity[3] = (velocity[3] * weight1 + tz * weight2) * scale
+	else
+		velocity[1] = tx * speed
+		velocity[2] = ty * speed
+		velocity[3] = tz * speed
 	end
 
 	updateSpeedAndPosition(position, velocity, projectile.acceleration, projectile.speedMax)
+	return false
 end
 
 local function verticalize(projectileID, projectile)
@@ -512,7 +477,12 @@ local function verticalize(projectileID, projectile)
 	velocity[1], velocity[2], velocity[3] = projectile.vx, projectile.vy, projectile.vz
 	velocity[4] = projectile.speed
 
-	updateGuidance(position, velocity, projectile)
+	if updateGuidance(position, velocity, projectile) then
+		scripted[projectileID] = nil
+		Spring.SetProjectileMoveControl(projectileID, false)
+		return
+	end
+
 	spSetProjectilePosition(projectileID, position[1], position[2], position[3])
 	spSetProjectileVelocity(projectileID, velocity[1], velocity[2], velocity[3])
 
