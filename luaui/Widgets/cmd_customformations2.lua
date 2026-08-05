@@ -57,8 +57,8 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 
 -- Fill the line edges-first: nearest unit to either edge, then the other edge,
 -- then the midpoint, then midpoints of each half, bisecting inward. Each spot greedily
--- takes the nearest unassigned unit. Set false to restore Hungarian/NoX assignment.
-local edgeInAssignment = true
+-- takes the nearest unassigned unit. Toggled via Settings > Control ("Edge-in line formations").
+local edgeInAssignment = false
 
 -- Alpha loss per second after releasing mouse
 local lineFadeRate = 2.0
@@ -913,10 +913,14 @@ end
 function widget:GetConfigData() -- Saving
     return {
         ['maxHungarianUnits'] = maxHungarianUnits,
+        ['edgeInAssignment'] = edgeInAssignment,
     }
 end
 function widget:SetConfigData(data) -- Loading
     maxHungarianUnits = data['maxHungarianUnits'] or defaultHungarianUnits
+    if data['edgeInAssignment'] ~= nil then
+        edgeInAssignment = data['edgeInAssignment']
+    end
 end
 
 
@@ -1498,6 +1502,12 @@ function widget:Initialize()
 	end
 	WG.customformations.setRepeatForSingleUnit = function(value)
 		repeatForSingleUnit = value
+	end
+	WG.customformations.getEdgeInAssignment = function()
+		return edgeInAssignment
+	end
+	WG.customformations.setEdgeInAssignment = function(value)
+		edgeInAssignment = value
 	end
 
 	-- External formation dragging API (for PIP window, etc.)

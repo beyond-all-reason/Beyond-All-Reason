@@ -3920,6 +3920,14 @@ function init()
 			  saveOptionValue('CustomFormations2', 'customformations', 'setRepeatForSingleUnit', { 'repeatForSingleUnit' }, value)
 		  end,
 		},
+		{ id = "line_formation_edge_in", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.line_formation_edge_in'), type = "bool", value = (WG.customformations ~= nil and WG.customformations.getEdgeInAssignment()), description = Spring.I18N('ui.settings.option.line_formation_edge_in_descr'),
+		  onload = function(i)
+			  loadWidgetData("CustomFormations2", "line_formation_edge_in", { 'edgeInAssignment' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('CustomFormations2', 'customformations', 'setEdgeInAssignment', { 'edgeInAssignment' }, value)
+		  end,
+		},
 
 		-- INTERFACE
 		{ id = "label_ui_interface", group = "ui", name = Spring.I18N('ui.settings.option.label_interface'), category = types.basic },

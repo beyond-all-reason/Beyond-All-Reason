@@ -1774,6 +1774,8 @@
 				"lockcamera_los_descr": "When viewing a players camera and los, shows shaded los ranges too",
 				"drag_multicommand_shift": "Repeat command when dragging",
 				"drag_multicommand_shift_descr": "When dragging right-click with a single unit selected, issue repeat commands while holding shift",
+				"line_formation_edge_in": "Edge-in line formations",
+				"line_formation_edge_in_descr": "Assign line formation spots edges-first, bisecting inward: the nearest units anchor both ends and the center first, so a dragged line takes shape immediately even when most selected units are far away",
 				"playertv_countdown": "Player TV countdown",
 				"playertv_countdown_descr": "Countdown time before it switches player",
 				"displayselectedname": "Display selected playername",
