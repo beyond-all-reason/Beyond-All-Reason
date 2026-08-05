@@ -7,8 +7,8 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
     return {
         name = "Terraformer Shared RmlUi Helpers",
-        desc = "Feature-owned shared helpers (DP-ratio, document registry, draggable panels) used by the realtime terraformer RmlUi widgets: terraform brush, weather brush, feature placer and decal placer.",
-        author = "Mupersega",
+        desc = "Feature-owned shared helpers (DP-ratio, document registry, draggable panels, scrollable panel bodies) used by the realtime terraformer RmlUi widgets: terraform brush, weather brush, feature placer and decal placer.",
+        author = "PtaQ",
         date = "2026",
         license = "GNU GPL, v2 or later",
         layer = -999999,
@@ -45,15 +45,104 @@ WG.TerraformerShared.getDpRatio = function() return currentDpRatio end
 -- layout off the target element instead of mirroring position through WG.*.
 local registeredDocuments = {}
 
+-- === Scrollable panel bodies ===
+-- Every floating terraformer window pins its header and puts the rest of its
+-- content in a `.tf-panel-body` scroll box (see the RML files). RCSS can only
+-- give those a fixed vh cap, which is wrong for a window that can be dragged
+-- anywhere: a panel near the top of the screen has far more room below it than
+-- one near the bottom. So the cap is recomputed here from each window's live
+-- position and the viewport height. Bounding the height also lets the drag
+-- clamp keep a window fully on-screen.
+local panelBodies = {}    -- [docName] = { {root=, body=, lastStyle=}, ... }
+local panelBodyTick = 0
+local wheelHeld = false
+local PANEL_BODY_MIN_PX = 120
+-- Covers the window's bottom padding (the scroll box does not reach the frame
+-- edge) plus a couple of pixels of breathing room at the screen edge.
+local PANEL_BODY_GAP_PX = 18
+local PANEL_BODY_POLL_FRAMES = 15
+
+local function collectPanelBodies(docName)
+    local doc = registeredDocuments[docName]
+    local list = {}
+    if doc then
+        local found = doc:QuerySelectorAll(".tf-panel-body")
+        if found then
+            for i = 1, #found do
+                local bodyEl = found[i]
+                local rootEl = bodyEl.parent_node
+                if rootEl then
+                    list[#list + 1] = { root = rootEl, body = bodyEl }
+                end
+            end
+        end
+    end
+    panelBodies[docName] = list
+    return list
+end
+
+local function sizePanelBodies()
+    local _, vsy = Spring.GetViewGeometry()
+    if not vsy or vsy <= 0 then return end
+    for docName in pairs(registeredDocuments) do
+        -- Empty is not cached: a document can register before its body element
+        -- exists, and the retry costs one selector query per idle document.
+        local list = panelBodies[docName]
+        if not list or #list == 0 then list = collectPanelBodies(docName) end
+        for i = 1, #list do
+            local e = list[i]
+            -- A window hidden by data-if (or a `hidden` class) has no height;
+            -- skip it and size it on the first tick after it is shown.
+            if e.root.offset_height > 0 then
+                -- body.offset_top is the pinned header's height (the window
+                -- root is the offset parent), so this is "screen bottom minus
+                -- where the scroll box starts", less a small breathing gap.
+                local avail = vsy - e.root.offset_top - e.body.offset_top - PANEL_BODY_GAP_PX
+                if avail < PANEL_BODY_MIN_PX then avail = PANEL_BODY_MIN_PX end
+                avail = math.floor(avail)
+                local style = "max-height: " .. avail .. "px;"
+                -- A locked slider owns the mouse wheel (the brush drives it
+                -- from anywhere on screen), so panel scrolling stands down
+                -- while one is armed rather than fighting over the cursor.
+                if wheelHeld then style = style .. " overflow-y: hidden;" end
+                if e.lastStyle ~= style then
+                    e.lastStyle = style
+                    e.body:SetAttribute("style", style)
+                end
+            end
+        end
+    end
+end
+
+-- Re-cap every registered document's panel bodies right now. Widgets call this
+-- after something that changes the space below a window (end of a drag).
+WG.TerraformerShared.refreshPanelBodies = function()
+    panelBodyTick = PANEL_BODY_POLL_FRAMES
+    sizePanelBodies()
+end
+
+-- Tell the panels that something else (a locked brush slider) currently owns
+-- the mouse wheel, so they stop scrolling until it is released.
+WG.TerraformerShared.setWheelHeld = function(held)
+    held = held and true or false
+    if held ~= wheelHeld then
+        wheelHeld = held
+        WG.TerraformerShared.refreshPanelBodies()
+    end
+end
+
 WG.TerraformerShared.registerDocument = function(name, document)
     if name and document then
         registeredDocuments[name] = document
+        -- Any cached body handles belong to the previous document instance.
+        panelBodies[name] = nil
     end
 end
 
 WG.TerraformerShared.unregisterDocument = function(name)
     if name then
         registeredDocuments[name] = nil
+        panelBodies[name] = nil
     end
 end
 
@@ -127,6 +216,11 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
         if ds.active then
             ds.active = false
             ds.rootEl = nil
+            -- The window moved, so the room left below it changed. Guarded:
+            -- a document can outlive this widget's Shutdown.
+            if WG.TerraformerShared and WG.TerraformerShared.refreshPanelBodies then
+                WG.TerraformerShared.refreshPanelBodies()
+            end
         end
     end, false)
 
@@ -184,8 +278,20 @@ WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
     }
 end
 
+function widget:Update()
+    -- Panel bodies are re-capped on a poll rather than on events: a window can
+    -- change the space below it by being dragged, by a resize, or by simply
+    -- being opened, and the reads are cheap.
+    panelBodyTick = panelBodyTick - 1
+    if panelBodyTick <= 0 then
+        panelBodyTick = PANEL_BODY_POLL_FRAMES
+        sizePanelBodies()
+    end
+end
+
 function widget:ViewResize()
     currentDpRatio = calculateDpRatio()
+    WG.TerraformerShared.refreshPanelBodies()
 end
 
 function widget:Shutdown()
@@ -196,6 +302,9 @@ function widget:Shutdown()
         WG.TerraformerShared.getDocument = nil
         WG.TerraformerShared.getElementRect = nil
         WG.TerraformerShared.attachDraggable = nil
+        WG.TerraformerShared.refreshPanelBodies = nil
+        WG.TerraformerShared.setWheelHeld = nil
     end
     registeredDocuments = {}
+    panelBodies = {}
 end
