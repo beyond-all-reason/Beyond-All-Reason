@@ -5175,6 +5175,10 @@
 								</div>
 							</div>
 							<div class="tf-biome-grid flex flex-row gap-1 mb-1">
+								<div class="tf-biome-tile" data-class-active="tsBiome == 'protodesert'" data-event-mousedown="onPickBiome('protodesert')">
+									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
+									<div class="tf-biome-name">Protodesert</div>
+								</div>
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'bismuth'" data-event-mousedown="onPickBiome('bismuth')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_bismuth.png" />
 									<div class="tf-biome-name">Bismuth</div>

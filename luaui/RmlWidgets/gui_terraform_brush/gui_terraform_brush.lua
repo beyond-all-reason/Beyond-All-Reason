@@ -767,7 +767,8 @@ widgetState.applySkybox = applySkybox
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
 local BIOME_SKYBOX_MATCH = {
 	bismuth     = "spaceskybox",      -- starry sky
-	teizer      = "goldsunrise",      -- sunset
+	teizer      = "goldsunrise",      -- sunset (bespoke desert kept the old pick)
+	protodesert = "goldsunrise",      -- the renamed original Teizer stand-in set
 	enborelde   = "earthskybox",      -- sunny blue sky with clouds
 	namaqualand = "redplanet",        -- red desert planet
 	palehang    = "allthatglitters",  -- crystal-desert sky (Theta Crystals family)
