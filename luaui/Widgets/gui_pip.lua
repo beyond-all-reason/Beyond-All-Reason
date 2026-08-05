@@ -13056,6 +13056,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		local radarWobbleAmp = cappedIconRadius * math.sqrt(math.abs(wtp.scaleX)) * 0.03
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
 		local unitpicsActive = gl4Icons.unitpicsActive and config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
@@ -13120,9 +13121,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					-- Radar wobble must be applied BEFORE rotation to match shader order
 					if inRadar then
 						local phase = (uID * 0.37) % 6.2832
-						local wobbleAmp = cappedIconRadius * 0.3
-						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
-						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+						cx = cx + math.sin(gameTime * 3.0 + phase) * radarWobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * radarWobbleAmp
 					end
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
