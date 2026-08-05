@@ -1,3 +1,4 @@
+local widget = widget ---@type Widget
 
 -- This widget intercepts area commands with modifiers (shift+space, or ctrl, or alt) and reissues them as targeted orders.
 --
@@ -31,7 +32,6 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local tableInsert = table.insert
 local tableSort = table.sort
@@ -61,6 +61,13 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local UNIT_ID_MAX = Game.maxUnits
+
+-- featureId is normalised to Game.maxUnits + featureId because of:
+-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
+-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
+-- offset due to be removed in future engine version
+local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID
 
 local commandLimit = 2000
 
@@ -70,8 +77,8 @@ local myAllyTeamID
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
 
----@field position1 table {x, y, z}
----@field position2 table {x, y, z}
+---@param position1 table {x, y, z}
+---@param position2 table {x, y, z}
 local function distanceSq(position1, position2)
 	local dx = position1.x - position2.x
 	local dz = position1.z - position2.z
@@ -81,6 +88,16 @@ end
 ---@return table {x, y, z}
 local function toPositionTable(x, y, z)
 	return { x = x, y = y, z = z }
+end
+
+local getFeaturePosition; do
+	local function getFeaturePositionFromObjectID(targetID)
+		return spGetFeaturePosition(targetID)
+	end
+	local function getFeaturePositionFromOffsetID(targetID)
+		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
+	end
+	getFeaturePosition = offsetFeatureID and getFeaturePositionFromOffsetID or getFeaturePositionFromObjectID
 end
 
 ----------------------------------------------------------------------------------------------------------
@@ -116,8 +133,7 @@ end
 
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets)
-	---@type table<number,TransportData>
-	local transportTypeDataMap = {}
+	local transportTypeDataMap = {} ---@type table<number,TransportData>
 	local validTransportsForUnitTypeMap = {}
 	local passengerPriorities = {}
 	local passengerPositions = {}
@@ -146,8 +162,7 @@ local function distributeTargetsToTransports(transports, targets)
 						}
 					end
 					local position = toPositionTable(spGetUnitPosition(transportUnitId))
-					---@class TransportInfo
-					local transportInfo = { capacity = remainingCapacity, position = position }
+					local transportInfo = { capacity = remainingCapacity, position = position } ---@class TransportInfo
 					transportTypeDataMap[transportDefId].transportsInfo[transportUnitId] = transportInfo
 					tableInsert(transportTypeDataMap[transportDefId].transportIdsList, transportUnitId)
 				end
@@ -301,26 +316,47 @@ end
 --- End of transport logic
 ---------------------------------------------------------------------------------------
 
+local function byDistanceToUnit(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(spGetUnitPosition(targetIdA))
+			local positionB = toPositionTable(spGetUnitPosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
+local function byDistanceToFeature(position, closestFirst)
+	if closestFirst ~= false then
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
+			return distanceSq(position, positionA) < distanceSq(position, positionB)
+		end
+	else
+		return function(targetIdA, targetIdB)
+			local positionA = toPositionTable(getFeaturePosition(targetIdA))
+			local positionB = toPositionTable(getFeaturePosition(targetIdB))
+			return distanceSq(position, positionA) > distanceSq(position, positionB)
+		end
+	end
+end
+
 local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 	local avgPosition = toPositionTable(spGetUnitArrayCentroid(selectedUnits))
-	tableSort(filteredTargets, function(targetIdA, targetIdB)
-		local positionA, positionB
-
-		-- Have to convert back to featureId
-		if targetIdA > Game.maxUnits then
-			positionA = toPositionTable(spGetFeaturePosition(targetIdA - Game.maxUnits))
-			positionB = toPositionTable(spGetFeaturePosition(targetIdB - Game.maxUnits))
-		else
-			positionA = toPositionTable(spGetUnitPosition(targetIdA))
-			positionB = toPositionTable(spGetUnitPosition(targetIdB))
-		end
-
-		if closestFirst then
-			return distanceSq(avgPosition, positionA) < distanceSq(avgPosition, positionB)
-		else
-			return distanceSq(avgPosition, positionA) > distanceSq(avgPosition, positionB)
-		end
-	end)
+	if not filteredTargets[1] then
+		return
+	elseif filteredTargets[1] <= UNIT_ID_MAX then
+		tableSort(filteredTargets, byDistanceToUnit(avgPosition, closestFirst))
+	else
+		tableSort(filteredTargets, byDistanceToFeature(avgPosition, closestFirst))
+	end
 end
 
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
@@ -363,8 +399,9 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
 	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
+		selectedUnitTable[1] = selectedUnitId
 		sortTargetsByDistance(selectedUnitTable, targets, true)
 		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
 	end
@@ -412,10 +449,12 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
 	end
-	local config = {} --- @type CommandConfig
-	config.handle = handler or defaultHandler
-	config.allowedTargetTypes = allowedTargetTypes
-	config.targetAllegiance = targetAllegiance
+	--- @type CommandConfig
+	local config = {
+		handle             = handler or defaultHandler,
+		allowedTargetTypes = allowedTargetTypes,
+		targetAllegiance   = targetAllegiance,
+	}
 	return config
 end
 
@@ -507,15 +546,12 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 				shouldInsert = true
 			end
 		end
-		if shouldInsert then
-			if not Engine.FeatureSupport.noOffsetForFeatureID then
-				-- featureId is normalised to Game.maxUnits + featureId because of:
-				-- https://springrts.com/wiki/Lua_CMDs#CMDTYPE.ICON_UNIT_FEATURE_OR_AREA
-				-- "expect 1 parameter in return (unitd or Game.maxUnits+featureid)"
-				-- offset due to be removed in future engine version
-				featureId = featureId + Game.maxUnits
+		if matched then
+			if offsetFeatureID then
+				featureId = featureId + UNIT_ID_MAX
 			end
-			tableInsert(filteredTargets, featureId)
+			count = count + 1
+			filteredTargets[count] = featureId
 		end
 	end
 	return filteredTargets
