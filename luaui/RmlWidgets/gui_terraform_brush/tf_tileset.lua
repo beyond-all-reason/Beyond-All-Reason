@@ -36,9 +36,21 @@ local KNOBS = {
 	-- dm.tsDebugView in M.sync below (so it's intentionally omitted from this list).
 }
 
+-- Every section under the SHADER switch: grayed out while the switch is off,
+-- because nothing in them affects an engine-rendered map.
+local TUNING_FRAMES = {
+	"frame-ts-library", "frame-ts-metal", "frame-ts-scale", "frame-ts-normals",
+	"frame-ts-cliffs", "frame-ts-place", "frame-ts-blend", "frame-ts-curv",
+	"frame-ts-light", "frame-ts-oldmap", "frame-ts-biome", "frame-ts-tints",
+	"frame-ts-debug", "frame-ts-presets",
+}
+
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 	ctx.widgetState.tsLastVal = ctx.widgetState.tsLastVal or {}
+	-- fresh document: the SHADER checkbox is back at its markup default, so drop
+	-- the cache and let the next M.sync re-stamp it from the widget
+	ctx.widgetState.tsShaderLast = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
 	-- centrally in tf_environment.lua (envSectionToggle), like every other tool.
 	for _, k in ipairs(KNOBS) do
@@ -53,6 +65,25 @@ function M.sync(doc, ctx, setSummary)
 	local dm = widgetState.dmHandle
 	-- Only push values while the TILESET tool owns the panel.
 	if not dm or dm.activeTool ~= "ts" then return end
+
+	-- Master SHADER switch: mirror the widget (covers the persisted-off startup
+	-- state and console-driven /tileset shader). With the shader off every tuning
+	-- section below it is inert, so gray them out.
+	if WG.TilesetTerrain.isActive then
+		local on = WG.TilesetTerrain.isActive() and true or false
+		if widgetState.tsShaderLast ~= on then
+			widgetState.tsShaderLast = on
+			local el = doc:GetElementById("btn-ts-shader")
+			if el then
+				el:SetAttribute("src", on
+					and "/luaui/images/terraform_brush/check_on.png"
+					or  "/luaui/images/terraform_brush/check_off.png")
+			end
+			if ctx.setDisabledIds then
+				ctx.setDisabledIds(doc, TUNING_FRAMES, not on)
+			end
+		end
+	end
 
 	-- Keep the BIOME LIBRARY active-tile highlight in sync with the widget
 	-- (covers the initial state + console-driven /tileset biome changes).

@@ -5148,6 +5148,12 @@
 
 			<div id="tf-tileset-controls" data-if="activeTool == 'ts'">
 
+				<div class="flex flex-row gap-1 items-center mb-1">
+					<img id="btn-ts-shader" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleShader()" />
+					<div class="text-sm text-light">Tileset shader</div>
+				</div>
+				<div class="text-base text-light mb-1" style="opacity: 0.7;">Off hands the ground back to the engine, so old maps keep their own textures.</div>
+
 				<div class="tf-section-frame" id="frame-ts-library">
 						<div id="btn-toggle-ts-library" class="tf-section-title-row" style="cursor: pointer;">
 							<img id="img-toggle-ts-library" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />

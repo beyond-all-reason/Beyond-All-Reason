@@ -6802,6 +6802,22 @@ local initialModel = {
 			if bkey then syncSkyboxToBiome(bkey) end
 		end
 	end,
+	-- Master SHADER switch. Off releases the map shader (and the $minimap/$grass
+	-- overrides) back to the engine, so maps that ship hand-authored textures
+	-- render the way they were authored; the tuning sections gray out in M.sync.
+	onTsToggleShader = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setActive) then return end
+		local was = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()
+		local on = WG.TilesetTerrain.setActive(not was)
+		playSound(on and "toggleOn" or "toggleOff")
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-shader")
+		if el then
+			el:SetAttribute("src",
+				on and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+	end,
 	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
 	-- widget's METAL_STYLES and swap the metal material + knob baseline live).
 	onPickMetalStyle = function(_event, key)
