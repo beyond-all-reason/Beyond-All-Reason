@@ -39,6 +39,7 @@ local tableNew = table.new
 local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
+local mathSqrt = math.sqrt
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
@@ -108,6 +109,30 @@ local getFeaturePosition; do
 		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
 	end
 	getFeaturePosition = offsetFeatureID and getFeaturePositionFromOffsetID or getFeaturePositionFromObjectID
+end
+
+local getFeatureID; do
+	local function getFeatureIDFromObjectID(targetID)
+		return targetID
+	end
+	local function getFeatureIDFromOffsetID(targetID)
+		return targetID - UNIT_ID_MAX
+	end
+	getFeatureID = offsetFeatureID and getFeatureIDFromOffsetID or getFeatureIDFromObjectID
+end
+
+---Shim for feature centroids which do not have an engine callout.
+local function getObjectArrayCentroid(targets, targetsAreFeatures)
+	if not targetsAreFeatures then
+		return spGetUnitArrayCentroid(targets)
+	end
+	local sumX, sumY, sumZ = 0, 0, 0
+	local count = #targets
+	for i = 1, count do
+		local x, y, z = spGetFeaturePosition(getFeatureID(targets[i]))
+		sumX, sumY, sumZ = sumX + x, sumY + y, sumZ + z
+	end
+	return sumX / count, sumY / count, sumZ / count
 end
 
 ----------------------------------------------------------------------------------------------------------
@@ -427,12 +452,63 @@ local function splitTargets(selectedUnits, filteredTargets)
 	return unitTargetsMap
 end
 
+local function sortByProjection(position, projection, units, count)
+	local indexUnit, valueUnit = tableNew(count, 0), tableNew(count, 0)
+	for i = 1, count do
+		indexUnit[i] = i
+		local x, _, z = position(units[i])
+		valueUnit[i] = projection(x, z)
+	end
+	tableSort(indexUnit, function(a, b) return valueUnit[a] < valueUnit[b] end)
+	return indexUnit
+end
+
+local function splitTargetsIntoRivers(units, targets)
+	local targetsAreFeatures = targets[1] > UNIT_ID_MAX
+	local targetPosition = targetsAreFeatures and getFeaturePosition or spGetUnitPosition
+	local tcx, tcy, tcz = getObjectArrayCentroid(targets, targetsAreFeatures)
+	local ucx, ucy, ucz = spGetUnitArrayCentroid(units)
+
+	local dx, dz = tcx - ucx, tcz - ucz
+	local length = mathSqrt(dx * dx + dz * dz)
+
+	if length < 24 then
+		return splitTargets(units, targets)
+	end
+
+	local ux, uz = dx / length, dz / length
+	local px, pz = -uz, ux -- Use the perpendicular or the rivers will be sidelong stripes.
+
+	local function projection(x, z) return (x - ucx) * px + (z - ucz) * pz end
+
+	local countTargets = #targets
+	local countUnits = #units
+
+	local indexUnit = sortByProjection(spGetUnitPosition, projection, units, countUnits)
+	local indexTarget = sortByProjection(targetPosition, projection, targets, countTargets)
+
+	local result = tableNew(0, countUnits)
+	local perUnit = math.ceil(countTargets / countUnits)
+	for i = 1, countUnits do
+		local unit = units[indexUnit[i]]
+		local start = (i - 1) * perUnit + 1
+		local finish = mathMin(i * perUnit, countTargets)
+		local count = finish - start + 1
+		local tlist = tableNew(count, 0)
+		for j = start, finish do
+			tlist[j - start + 1] = targets[indexTarget[j]]
+		end
+		result[unit] = tlist
+	end
+	return result
+end
+
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local unitTargetsMap = (selectedUnitsLen <= 200 and splitTargetsIntoRivers or splitTargets)(selectedUnits, filteredTargets)
 	local selectedUnitTable = { 0 }
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		selectedUnitTable[1] = selectedUnitId
