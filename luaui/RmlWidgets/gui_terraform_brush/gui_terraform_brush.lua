@@ -11430,6 +11430,16 @@ function widget:Update()
 			-- erode controls: visible only in erode terraform mode
 			local inErode = tfActive and tfState and tfState.mode == "erode"
 			setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
+			-- Feature SELECTION / Reroll rows sit outside tf-feature-controls (they
+			-- belong above it in the panel), so activeTool does not gate them, and
+			-- their flags are only written by tf_features.sync, which runs for the
+			-- Features tool alone. Clear them here or the last state stays up and
+			-- follows you into whatever tool you switch to.
+			if not fpActive then
+				setDm("fpShowSelection", false)
+				setDm("fpShowReroll", false)
+				setDm("fpHasSelection", false)
+			end
 			-- clay/full-restore visibility
 			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
 			setDm("tfInRestore", inTfRestore and true or false)
