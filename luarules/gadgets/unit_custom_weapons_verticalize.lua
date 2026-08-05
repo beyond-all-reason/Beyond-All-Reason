@@ -114,19 +114,6 @@ local function isInCylinder(vector, origin, radius)
 	return radius * radius >= (v1 - o1) * (v1 - o1) + (v3 - o3) * (v3 - o3)
 end
 
-local function updateSpeedAndPosition(position, velocity, acceleration, speedMax)
-	local speed = velocity[4]
-	local speedNew = speed + acceleration
-	local ratio = speedNew < speedMax and speedNew / speed or 1
-	velocity[1] = velocity[1] * ratio
-	velocity[2] = velocity[2] * ratio
-	velocity[3] = velocity[3] * ratio
-	velocity[4] = speed * ratio
-	position[1] = position[1] + velocity[1]
-	position[2] = position[2] + velocity[2]
-	position[3] = position[3] + velocity[3]
-end
-
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
 
@@ -427,10 +414,15 @@ local function cruise(projectileID, projectile, frame)
 	Spring.SetProjectileTarget(projectileID, target[1], target[2], target[3])
 end
 
----@return boolean alignedToTarget
-local function updateGuidance(position, velocity, projectile)
-	local dx = projectile.target[1] - position[1]
-	local dz = projectile.target[3] - position[3]
+local function verticalize(projectileID, projectile)
+	-- We avoid callouts by tracking projectiles entirely via lua.
+	local px, py, pz = projectile.px, projectile.py, projectile.pz
+	local vx, vy, vz = projectile.vx, projectile.vy, projectile.vz
+	local speed = projectile.speed
+
+	local target = projectile.target
+	local dx = target[1] - px
+	local dz = target[3] - pz
 	local distance = math_diag(dx, dz)
 
 	local sinPitch = 1 - distance * projectile.cruiseEndInverse
@@ -443,51 +435,39 @@ local function updateGuidance(position, velocity, projectile)
 	local ty = -sinPitch
 	local tz = dz * invDistance
 
-	local speed = velocity[4]
-	local cosAngle = (velocity[1] * tx + velocity[2] * ty + velocity[3] * tz) / speed
+	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
 
 	if cosAngle >= ARC_NORMAL_EPSILON then
-		return true
-	end
-
-	local angle = math_acos(cosAngle < -1 and -1 or cosAngle)
-	local factor = projectile.turnRate / angle
-
-	if factor < ARC_NORMAL_EPSILON then
-		local weight1 = math_sin((1 - factor) * angle) / speed
-		local weight2 = math_sin(factor * angle)
-		local scale = speed / math_sin(angle)
-		velocity[1] = (velocity[1] * weight1 + tx * weight2) * scale
-		velocity[2] = (velocity[2] * weight1 + ty * weight2) * scale
-		velocity[3] = (velocity[3] * weight1 + tz * weight2) * scale
-	else
-		velocity[1] = tx * speed
-		velocity[2] = ty * speed
-		velocity[3] = tz * speed
-	end
-
-	updateSpeedAndPosition(position, velocity, projectile.acceleration, projectile.speedMax)
-	return false
-end
-
-local function verticalize(projectileID, projectile)
-	local position, velocity = positionGuidance, velocityGuidance
-	position[1], position[2], position[3] = projectile.px, projectile.py, projectile.pz
-	velocity[1], velocity[2], velocity[3] = projectile.vx, projectile.vy, projectile.vz
-	velocity[4] = projectile.speed
-
-	if updateGuidance(position, velocity, projectile) then
 		scripted[projectileID] = nil
 		Spring.SetProjectileMoveControl(projectileID, false)
 		return
 	end
 
-	spSetProjectilePosition(projectileID, position[1], position[2], position[3])
-	spSetProjectileVelocity(projectileID, velocity[1], velocity[2], velocity[3])
+	-- Spherical-lerp velocity toward the target up to the turnRate
+	local angle = math_acos(cosAngle < -1.0 and -1.0 or cosAngle)
+	local factor = projectile.turnRate / angle
+	if factor < ARC_NORMAL_EPSILON then
+		local weight1 = math_sin((1 - factor) * angle) / speed
+		local weight2 = math_sin(factor * angle)
+		local scale = speed / math_sin(angle)
+		vx = (vx * weight1 + tx * weight2) * scale
+		vy = (vy * weight1 + ty * weight2) * scale
+		vz = (vz * weight1 + tz * weight2) * scale
+	else
+		vx, vy, vz = tx * speed, ty * speed, tz * speed
+	end
 
-	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
-	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
-	projectile.speed = velocity[4]
+	local speedNew = speed + projectile.acceleration
+	local ratio = speedNew < projectile.speedMax and speedNew / speed or 1.0
+	vx, vy, vz = vx * ratio, vy * ratio, vz * ratio
+	px, py, pz = px + vx, py + vy, pz + vz
+
+	projectile.px, projectile.py, projectile.pz = px, py, pz
+	projectile.vx, projectile.vy, projectile.vz = vx, vy, vz
+	projectile.speed = speed * ratio
+
+	spSetProjectilePosition(projectileID, px, py, pz)
+	spSetProjectileVelocity(projectileID, vx, vy, vz)
 end
 
 local enginePhases = { ascend, turnToLevel, cruise } -- end into => verticalize
