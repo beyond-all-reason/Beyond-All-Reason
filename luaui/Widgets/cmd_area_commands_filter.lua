@@ -381,15 +381,39 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 end
 
 local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if targetIdx % #filteredTargets == unitIdx % #filteredTargets or unitIdx % #selectedUnits == targetIdx % #selectedUnits then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
+	local selectedCount = #selectedUnits
+	local targetCount = #filteredTargets
+	local unitTargetsMap = tableNew(0, selectedCount)
+	for index = 1, selectedCount do
+		unitTargetsMap[selectedUnits[index]] = {}
+	end
+	if selectedCount == 0 or targetCount == 0 then
+		return unitTargetsMap
+	end
+
+	-- We save microseconds by diagonalizing on the index.
+	for index = 1, mathMin(selectedCount, targetCount) do
+		local list = unitTargetsMap[selectedUnits[index]]
+		list[#list + 1] = filteredTargets[index]
+	end
+
+	-- So the more expensive loop runs on a smaller range.
+	if selectedCount < targetCount then
+		local unitIndex = 0
+		for index = selectedCount + 1, targetCount do
+			unitIndex = unitIndex % selectedCount + 1
+			local list = unitTargetsMap[selectedUnits[unitIndex]]
+			list[#list + 1] = filteredTargets[index]
+		end
+	elseif targetCount < selectedCount then
+		local targetIndex = 0
+		for index = targetCount + 1, selectedCount do
+			targetIndex = targetIndex % targetCount + 1
+			local list = unitTargetsMap[selectedUnits[index]]
+			list[#list + 1] = filteredTargets[targetIndex]
 		end
 	end
+
 	return unitTargetsMap
 end
 
