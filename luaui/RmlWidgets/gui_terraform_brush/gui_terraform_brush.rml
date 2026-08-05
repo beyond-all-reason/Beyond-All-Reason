@@ -43,6 +43,7 @@
 			</div>
 		</div>
 		<div id="status-summary" class="tf-status-summary mb-1"></div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="frame-terrain">
 			<div id="btn-toggle-terrain" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-toggle-terrain" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -5650,6 +5651,7 @@
 
 			</div><!-- /tf-tileset-controls -->
 
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SKYBOX LIBRARY (separate floating window) ============ -->
@@ -5661,6 +5663,7 @@
 			</div>
 			<div id="btn-skybox-library-close" class="tf-quit-btn" data-event-mousedown="onEnvSkyboxLibClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-sm text-keybind mb-1">Click a thumbnail to change the skybox at runtime.</div>
 		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
@@ -5756,6 +5759,7 @@
 		</div>
 		</div><!-- /env-section-skydyn -->
 		</div><!-- /frame-skydyn -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SUN & SHADOWS (floating window) ============ -->
@@ -5764,6 +5768,7 @@
 			<div id="tf-env-sun-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Sun &amp; Shadows</div>
 			<div id="btn-env-sun-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-sundir">
 			<div id="btn-env-toggle-sundir" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-sundir" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -5882,6 +5887,7 @@
 		<div id="env-suncol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-suncol -->
 		</div><!-- /frame-suncol -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ FOG & ATMOSPHERE (floating window) ============ -->
@@ -5890,6 +5896,7 @@
 			<div id="tf-env-fog-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Fog &amp; Atmosphere</div>
 			<div id="btn-env-fog-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-fogdist">
 			<div id="btn-env-toggle-fogdist" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-fogdist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6167,6 +6174,7 @@
 		<div id="env-snowcol-preview" class="lp-color-preview mb-1"></div>
 		</div><!-- /env-section-snow -->
 		</div><!-- /frame-snow -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ GROUND LIGHTING (floating window) ============ -->
@@ -6178,6 +6186,7 @@
 			</div>
 			<div id="btn-env-ground-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-gambient">
 			<div id="btn-env-toggle-gambient" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-gambient" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6265,6 +6274,7 @@
 		</div>
 		</div><!-- /env-section-gspecular -->
 		</div><!-- /frame-gspecular -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ UNIT LIGHTING (floating window) ============ -->
@@ -6276,6 +6286,7 @@
 			</div>
 			<div id="btn-env-unit-lighting-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-uambient">
 			<div id="btn-env-toggle-uambient" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-uambient" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6363,6 +6374,7 @@
 		</div>
 		</div><!-- /env-section-uspecular -->
 		</div><!-- /frame-uspecular -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ MAP RENDERING (floating window) ============ -->
@@ -6371,6 +6383,7 @@
 			<div id="tf-env-map-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Map Rendering</div>
 			<div id="btn-env-map-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="env-frame-rendertoggle">
 			<div id="btn-env-toggle-rendertoggle" class="tf-section-title-row" style="cursor: pointer;">
 				<img id="img-env-toggle-rendertoggle" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
@@ -6427,6 +6440,7 @@
 		</div>
 		</div><!-- /env-section-mapparams -->
 		</div><!-- /frame-mapparams -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ WATER (floating window) ============ -->
@@ -6435,6 +6449,7 @@
 			<div id="tf-env-water-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Water</div>
 			<div id="btn-env-water-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">WATER TYPE</div>
@@ -6940,6 +6955,7 @@
 			<input type="text" id="slider-env-lava-fogheight-numbox" class="tf-slider-numbox" value="20" />
 		</div>
 		</div><!-- /env-lava-sections -->
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ DIMENSIONS (floating window) ============ -->
@@ -6948,6 +6964,7 @@
 			<div id="tf-env-dimensions-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Dimensions</div>
 			<div id="btn-env-dimensions-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- MAP SIZE (read-only) -->
 		<div class="tf-section-frame">
@@ -7029,6 +7046,7 @@
 				</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SPLAT TEX PARAMS (separate floating window) ============ -->
@@ -7037,6 +7055,7 @@
 			<div id="tf-splattex-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Splat Tex Params</div>
 			<div id="btn-splattex-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">SPLAT TEX MULTIPLIERS</div>
@@ -7103,6 +7122,7 @@
 				<input type="text" id="slider-env-splatscale-3-numbox" class="tf-slider-numbox" value="0" />
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ GRASS CONFIG (separate floating window) ============ -->
@@ -7111,6 +7131,7 @@
 			<div id="tf-grasscfg-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Grass Config</div>
 			<div id="btn-grasscfg-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
 				<div class="tf-collapsible-title">COLORIZATION</div>
@@ -7150,6 +7171,7 @@
 			<div id="btn-gb-grasscfg-refresh" class="tf-action-btn" style="flex: 1;"><div class="tf-action-btn-text">REFRESH</div></div>
 			<div id="btn-gb-grasscfg-save" class="tf-action-btn tf-save-btn" style="flex: 1;"><div class="tf-action-btn-text">EXPORT CONFIG</div></div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ LIGHT LIBRARY (separate floating window) ============ -->
@@ -7158,6 +7180,7 @@
 			<div id="tf-light-library-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Light Library</div>
 			<div id="btn-light-library-close" class="tf-quit-btn" data-event-mousedown="onLlClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-1">
@@ -7204,6 +7227,7 @@
 				<div class="tf-action-btn-text">REFRESH</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ NOISE PARAMETERS (separate floating window) ============ -->
@@ -7212,6 +7236,7 @@
 			<div id="tf-noise-handle" class="tf-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Noise Parameters</div>
 			<div id="btn-noise-close" class="tf-quit-btn" data-event-mousedown="onNoClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="tf-section-frame" id="frame-noise-type">
 			<div id="btn-toggle-noise-type" class="tf-section-title-row" style="cursor: pointer;">
@@ -7314,6 +7339,7 @@
 			<div id="btn-noise-seed-up" class="tf-sm-btn" data-event-mousedown="onNoSeedUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
 			<input type="text" id="slider-noise-seed-numbox" class="tf-slider-numbox" value="0" />
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SETTINGS WINDOW (floating, toggled by gear button) ============ -->
@@ -7322,6 +7348,7 @@
 			<div id="tf-settings-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Settings</div>
 			<div id="btn-settings-close" class="tf-quit-btn" data-event-mousedown="onGuideCloseSettings()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<!-- Tab bar -->
 		<div class="flex flex-row gap-1 mb-2">
@@ -7468,6 +7495,7 @@
 				<div id="pill-ui-clear-units" class="tf-dj-toggle-pill">RUN</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
@@ -7476,6 +7504,7 @@
 			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project</div>
 			<div id="btn-project-close" class="tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Re-saving the same name updates it.</div>
 
@@ -7504,6 +7533,7 @@
 				<div class="tf-action-btn-text">SAVE PROJECT</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ OPEN PROJECT WINDOW (floating, opened from FILE menu) ============ -->
@@ -7512,6 +7542,7 @@
 			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Open Project</div>
 			<div id="btn-project-open-close" class="tf-quit-btn" data-event-mousedown="onProjectOpenClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. This restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
 
@@ -7531,6 +7562,7 @@
 				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ CAPTURE WINDOW (floating, opened from the header rail) ============ -->
@@ -7539,6 +7571,7 @@
 			<div id="tf-capture-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Capture</div>
 			<div id="btn-capture-close" class="tf-quit-btn" data-event-mousedown="onCaptureClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 		<div class="text-sm text-keybind">Map photo + one SVG layer per unit, for Figma.</div>
 
 		<div class="tf-section-frame" id="capture-frame-output">
@@ -7649,6 +7682,7 @@
 			<div class="tf-capture-result-head">{{captureResultHead}}</div>
 			<div class="tf-capture-result-path">{{captureResult}}</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<!-- ============ NEW MAP WINDOW (floating, opened from FILE menu) ============ -->
@@ -7657,6 +7691,7 @@
 			<div id="tf-newmap-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">New Map</div>
 			<div id="btn-newmap-close" class="tf-quit-btn" data-event-mousedown="onNewMapClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="text-base text-keybind mb-2">Create a fresh flat map and reload the current session onto it. Unsaved terrain edits will be lost.</div>
 
@@ -7796,6 +7831,7 @@
 				<div class="tf-action-btn-text">CANCEL</div>
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 
 	<div id="tf-guide-floating-tip" class="tf-guide-floating-tip hidden"></div>

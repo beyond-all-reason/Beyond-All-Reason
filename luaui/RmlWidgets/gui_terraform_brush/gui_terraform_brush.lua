@@ -867,6 +867,42 @@ local function buildRootStyle()
 		currentLeftVw, currentTopVh)
 end
 
+-- Every floating window pins its header and puts the rest of its content in a
+-- `.tf-panel-body` scroll box (see the RML). Capping those to the space left
+-- below each window is shared work across the whole editor suite, so it lives
+-- in WG.TerraformerShared; this is just the "re-measure now" nudge for the
+-- moments this widget knows about. Defined on widgetState rather than as a
+-- file local — this chunk is close to Lua 5.1's 200-local ceiling.
+function widgetState.refreshPanelBodies()
+	local ts = WG.TerraformerShared
+	if ts and ts.refreshPanelBodies then ts.refreshPanelBodies() end
+end
+
+-- GL overlays that paint on top of a panel element (texture previews) have to
+-- be clipped to the scroll box that element lives in — RmlUi clips its own
+-- rendering, but a raw gl.TexRect would keep painting over the pinned header or
+-- past the bottom of the panel once the content is scrolled. Returns true when
+-- a scissor was pushed; the caller must then gl.Scissor(false).
+function widgetState.pushPanelClip(el)
+	local vsy = select(2, GetViewGeometry())
+	if not vsy or vsy <= 0 then return false end
+	local node = el
+	while node do
+		if node:IsClassSet("tf-panel-body") then
+			local w, h = node.offset_width, node.offset_height
+			if w > 0 and h > 0 then
+				gl.Scissor(math.floor(node.absolute_left),
+					math.floor(vsy - node.absolute_top - h),
+					math.ceil(w), math.ceil(h))
+				return true
+			end
+			return false
+		end
+		node = node.parent_node
+	end
+	return false
+end
+
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
 -- by onCl* (and any future) model-king handlers inside initialModel.
 local clearPassthrough
@@ -9896,6 +9932,8 @@ local function attachEventListeners()
 				ds.active = false
 				ds.rootEl = nil
 				ds.snapRects = nil
+				-- The window moved, so the room left below it changed.
+				widgetState.refreshPanelBodies()
 			end
 		end, false)
 
@@ -10822,6 +10860,9 @@ function widget:DrawScreenPost()
 
 	local logDraw = not widgetState.spPreviewDrawLogged
 
+	-- Clip to the panel's scroll box so a scrolled-out swatch stops painting.
+	local spClipped = widgetState.pushPanelClip(els[1])
+
 	for i = 1, 4 do
 
 		local div = els[i]
@@ -10897,6 +10938,8 @@ function widget:DrawScreenPost()
 	end
 
 	widgetState.spPreviewDrawLogged = true
+
+	if spClipped then gl.Scissor(false) end
 
 	if shader then gl.UseShader(0) end
 
@@ -11154,6 +11197,17 @@ function widget:Update()
 		if widgetState.rootElement then
 			widgetState.rootElement:SetAttribute("style", buildRootStyle())
 		end
+		widgetState.refreshPanelBodies()
+	end
+
+	-- A locked slider takes over the mouse wheel (widget:MouseWheel drives it
+	-- from anywhere on screen), so the scrollable panel bodies stand down while
+	-- one is armed instead of fighting over the wheel under the cursor.
+	local pbLocked = next(widgetState.lockedSliders) ~= nil
+	if pbLocked ~= widgetState.panelBodyWheelHeld then
+		widgetState.panelBodyWheelHeld = pbLocked
+		local ts = WG.TerraformerShared
+		if ts and ts.setWheelHeld then ts.setWheelHeld(pbLocked) end
 	end
 
 	local tfState = WG.TerraformBrush and WG.TerraformBrush.getState()
@@ -12437,8 +12491,15 @@ end
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
 
-	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
-		WG.TerraformerShared.unregisterDocument("terraform_brush")
+	if WG.TerraformerShared then
+		-- Hand the mouse wheel back before leaving: a slider locked at shutdown
+		-- would otherwise leave every sibling panel unable to scroll.
+		if WG.TerraformerShared.setWheelHeld then
+			WG.TerraformerShared.setWheelHeld(false)
+		end
+		if WG.TerraformerShared.unregisterDocument then
+			WG.TerraformerShared.unregisterDocument("terraform_brush")
+		end
 	end
 
 	-- If a text input had focus when we shut down, SDL text-input mode is still
@@ -12459,6 +12520,7 @@ function widget:Shutdown()
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
+	widgetState.panelBodyWheelHeld = nil
 	-- Open Project row handles belong to the closed document too; a queued
 	-- rebuild must not run against it after shutdown.
 	widgetState.projectOpenRowEls = {}
