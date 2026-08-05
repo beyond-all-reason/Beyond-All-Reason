@@ -1,15 +1,28 @@
-local widget = widget ---@type RulesUnsyncedCallins
 
--- When performing an area command for one of the `allowedCommands` below:
--- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
--- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
--- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
--- - If Meta is pressed, orders are put in front of the order queue.
--- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
+-- This widget intercepts area commands with modifiers (shift+space, or ctrl, or alt) and reissues them as targeted orders.
+--
+-- (1) The hovered target when the command is issued is used to determine filtering.
+-- (2) Alt and Ctrl are your target filter modifiers:
+--     => units: Alt selects by unit type (unitDefID) and Ctrl selects by unit team (see allegiance notes).
+--     => features: Alt selects by type (rezzAsDefID) and Ctrl selects by tech level (feature must be resurrectable).
+-- (3) You can filter by unit type and unit team together or separately.
+--     But feature type "beats" feature tech since it is more specific.
+-- (4) Hovering an enemy unit and using the Ctrl "team" filter instead checks for neutrality or hostility:
+--     => hover an enemy wall with Ctrl: Filtering will keep neutral targets.
+--     => hover an enemy wall w/no Ctrl: Filtering will keep hostile targets.
+--     => hover an enemy Pawn with Ctrl: Filtering will keep hostile targets.
+--     => hover an enemy Pawn w/no Ctrl: Filtering will keep hostile targets.
+-- (5) Shift + Space divide orders between your selected units rather than issue the same orders to all of them.
+-- (6) Shift and Space separately queue-last and queue-first as they normally would.
+-- (7) Splitting orders and filtering targets can be combined. Just mix and match the modifiers.
+--
+-- See the `areaToTargetCommands` table for configuration and information on each command's behaviors, which may be unique.
+-- In particular, Reclaim orders skip allied units when you hover your own units, while Guard, Repair, and Load do not.
+
 function widget:GetInfo()
 	return {
 		name = "Area Command Filter",
-		desc = "Hold Alt or Ctrl with an area command (Reclaim, Load, Attack, etc.) centered on a unit or feature to filter targets.",
+		desc = "Resend area commands as targeted orders. Space+Shift split orders across units. Alt/Ctrl filter per the hovered target.",
 		author = "SuperKitowiec. Based on Specific Unit Reclaimer and Loader by Google Frog",
 		date = "October 16, 2025",
 		license = "GNU GPL, v2 or later",
