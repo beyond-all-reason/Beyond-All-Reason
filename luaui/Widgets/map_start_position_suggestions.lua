@@ -677,7 +677,7 @@ local function drawTutorial()
 	fontTutorial:Print(
 		cachedTutorialText,
 		vsx * 0.5,
-		vsy * 0.75,
+		vsy * 0.61,
 		config.tutorialTextSize*resMult,
 		"cao"
 	)
@@ -696,8 +696,7 @@ function widget:ViewResize()
 	fontTutorial = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14,
-		1
+		(config.tutorialTextSize*resMult) / 14
 	)
 end
 
