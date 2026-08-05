@@ -43,6 +43,8 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
 local spGetUnitRadius = Spring.GetUnitRadius
 local spGetUnitStates = Spring.GetUnitStates
@@ -287,6 +289,14 @@ end
 --------------------------------------------------------------------------------
 -- MOUSE LOGIC
 --------------------------------------------------------------------------------
+local function GetUnitAimTargetPosition(unitID)
+	local x, y, z, aimX, aimY, aimZ = spGetUnitPosition(unitID, false, true)
+	if not aimX then return x, y, z end
+
+	local velocityX, velocityY, velocityZ = spGetUnitVelocity(unitID)
+	return aimX, aimY, aimZ, velocityX or 0, velocityY or 0, velocityZ or 0
+end
+
 local function GetMouseTargetPosition(weaponType, aimingUnitID)
 	local isDgun = weaponType == "dgun"
 	local mx, my = spGetMouseState()
@@ -340,14 +350,14 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 		end
 
 		if not shouldIgnoreUnit then
-			return spGetUnitPosition(unitID)
+			return GetUnitAimTargetPosition(unitID)
 		end
 
 		local unitProperties = Cache.UnitProperties
 		local unitDefID = spGetUnitDefID(unitID)
 
 		if unitProperties.alwaysTargetUnit[unitDefID] then
-			return spGetUnitPosition(unitID)
+			return GetUnitAimTargetPosition(unitID)
 		end
 
 		local groundPosition = GetGroundPosition()
@@ -356,7 +366,7 @@ local function GetMouseTargetPosition(weaponType, aimingUnitID)
 		end
 
 		if unitProperties.isHover[unitDefID] and spGetGroundHeight(groundPosition[1], groundPosition[3]) < 0 then
-			return spGetUnitPosition(unitID)
+			return GetUnitAimTargetPosition(unitID)
 		end
 
 		return groundPosition[1], groundPosition[2], groundPosition[3]
@@ -435,8 +445,10 @@ local function CreateStarburstTrajectoryList(prediction)
 	end)
 end
 
-local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, prediction)
-	local px, py, pz, weaponDirX, weaponDirY, weaponDirZ = spGetUnitWeaponVectors(unitID, weaponInfo.weaponNum)
+local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ, prediction, px, py, pz, weaponDirX, weaponDirY, weaponDirZ)
+	if not px then
+		px, py, pz, weaponDirX, weaponDirY, weaponDirZ = spGetUnitWeaponVectors(unitID, weaponInfo.weaponNum)
+	end
 	if not px then return nil end
 
 	py = py + 2
@@ -453,59 +465,117 @@ local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, pr
 	local acceleration = weaponInfo.weaponAcceleration
 	local turnRate = weaponInfo.turnRate
 	if turnRate == 0 then turnRate = 0.06 end
+	local tracking = weaponInfo.tracking
+	local maxGoodDif = cos(tracking * 0.6)
+	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
+	local targetMoves = weaponInfo.tracks
+		and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
+	if not weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0) then
+		local baseX, baseY, baseZ, aimX, aimY, aimZ = spGetUnitPosition(unitID, false, true)
+		local sourceX, sourceY, sourceZ = aimX or baseX or px, aimY or baseY or py, aimZ or baseZ or pz
+		local dx, dy, dz = tx - sourceX, ty - sourceY, tz - sourceZ
+		local leadFrames = sqrt(dx * dx + dy * dy + dz * dz) / maxSpeed
+		local leadX, leadY, leadZ = targetVelocityX * leadFrames, targetVelocityY * leadFrames, targetVelocityZ * leadFrames
+		local leadLength = sqrt(leadX * leadX + leadY * leadY + leadZ * leadZ)
+		if weaponInfo.leadLimit >= 0 and leadLength > 0 then
+			local maxLead = weaponInfo.leadLimit + weaponInfo.leadBonus * (spGetUnitExperience(unitID) or 0)
+			if leadLength > maxLead then
+				local leadScale = maxLead / leadLength
+				leadX, leadY, leadZ = leadX * leadScale, leadY * leadScale, leadZ * leadScale
+			end
+		end
+		tx = min(mapSizeX, max(0, tx + leadX))
+		ty = ty + leadY
+		tz = min(mapSizeZ, max(0, tz + leadZ))
+		local groundY = spGetGroundHeight(tx, tz)
+		if groundY and ty < groundY + 2 then ty = groundY + 2 end
+	end
 	-- The engine decrements uptime before the first trajectory update.
 	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
+	local turnToTarget = true
 
 	for frame = 1, 512 do
+		if targetMoves then
+			tx = min(mapSizeX, max(0, tx + targetVelocityX))
+			ty = ty + targetVelocityY
+			tz = min(mapSizeZ, max(0, tz + targetVelocityZ))
+		end
+
+		local targetDX, targetDY, targetDZ = tx - px, ty - py, tz - pz
+		local targetLength = sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
+		if targetLength <= 8 then
+			pathCount = pathCount + 1
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
+			return tx, ty, tz, pathCount
+		end
+
 		if ascentFrames > 0 then
 			speed = min(speed + acceleration, maxSpeed)
 			ascentFrames = ascentFrames - 1
 		else
-			local targetDX, targetDY, targetDZ = tx - px, ty - py, tz - pz
-			local targetLength = sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
-			if targetLength <= 8 then
-				pathCount = pathCount + 1
-				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
-				return nil, nil, nil, pathCount
-			end
-
 			local targetDirX, targetDirY, targetDirZ = targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
 			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
-			if directionDotTarget > 0.99 then
+			local steerRate
+			if turnToTarget then
+				if directionDotTarget > 0.99 then
+					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
+					turnToTarget = false
+				else
+					steerRate = turnRate
+				end
+			else
+				speed = min(speed + acceleration, maxSpeed)
+				if directionDotTarget > maxGoodDif then
+					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
+				elseif tracking > 0 then
+					steerRate = tracking
+				end
+			end
+			if steerRate then
+				local turnX = targetDirX - dirX * directionDotTarget
+				local turnY = targetDirY - dirY * directionDotTarget
+				local turnZ = targetDirZ - dirZ * directionDotTarget
+				local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
+				if turnLength > 0 then
+					turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
+					dirX = dirX + turnX * steerRate
+					dirY = dirY + turnY * steerRate
+					dirZ = dirZ + turnZ * steerRate
+					local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
+					dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
+				end
+			end
+			if not turnToTarget and not targetMoves then
 				local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, tx, ty, tz, false)
-				pathCount = pathCount + 1
 				if hitDistance and hitDistance + 8 < targetLength then
+					pathCount = pathCount + 1
 					pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
 					return hitX, hitY, hitZ, pathCount
 				end
+				pathCount = pathCount + 1
 				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
-				return nil, nil, nil, pathCount
-			end
-
-			local turnX = targetDirX - dirX * directionDotTarget
-			local turnY = targetDirY - dirY * directionDotTarget
-			local turnZ = targetDirZ - dirZ * directionDotTarget
-			local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
-			if turnLength > 0 then
-				turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
-				dirX = dirX + turnX * turnRate
-				dirY = dirY + turnY * turnRate
-				dirZ = dirZ + turnZ * turnRate
-				local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-				dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
+				return tx, ty, tz, pathCount
 			end
 		end
 
 		local nextX, nextY, nextZ = px + dirX * speed, py + dirY * speed, pz + dirZ * speed
 		local groundY = spGetGroundHeight(nextX, nextZ)
-		if groundY and nextY <= groundY then
-			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
+		if groundY and nextY < groundY then
+			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
 			if not hitX then
+				hitDistance = speed
 				hitX, hitY, hitZ = nextX, groundY, nextZ
 			end
+			if hitDistance + 8 < targetLength then
+				pathCount = pathCount + 1
+				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
+				return hitX, hitY, hitZ, pathCount
+			end
+		end
+		if not turnToTarget and targetLength <= speed + 8 then
 			pathCount = pathCount + 1
-			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
-			return hitX, hitY, hitZ, pathCount
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
+			return tx, ty, tz, pathCount
 		end
 		px, py, pz = nextX, nextY, nextZ
 		if frame % 4 == 0 then
@@ -514,30 +584,46 @@ local function GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, pr
 		end
 	end
 
-	return nil, nil, nil, pathCount
+	return tx, ty, tz, pathCount
 end
 
-local function GetCachedStarburstTarget(weaponInfo, unitID, tx, ty, tz)
+local function GetCachedStarburstTarget(weaponInfo, unitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ)
 	local predictions = State.starburstPredictions
 	local prediction = predictions[unitID]
 	if not prediction then
 		prediction = { pathX = {}, pathY = {}, pathZ = {} }
 		predictions[unitID] = prediction
 	end
+	local launchX, launchY, launchZ, launchDirX, launchDirY, launchDirZ = spGetUnitWeaponVectors(unitID, weaponInfo.weaponNum)
+	if not launchX then return tx, ty, tz end
 	local currentTime = osClock()
 	if prediction.unitID == unitID
 		and prediction.weaponNum == weaponInfo.weaponNum
-		and abs(prediction.targetX - tx) < 4
-		and abs(prediction.targetY - ty) < 4
-		and abs(prediction.targetZ - tz) < 4
+		and prediction.targetX == tx
+		and prediction.targetY == ty
+		and prediction.targetZ == tz
+		and prediction.targetVelocityX == targetVelocityX
+		and prediction.targetVelocityY == targetVelocityY
+		and prediction.targetVelocityZ == targetVelocityZ
+		and prediction.launchX == launchX
+		and prediction.launchY == launchY
+		and prediction.launchZ == launchZ
+		and (not weaponInfo.fixedLauncher or (
+			prediction.launchDirX == launchDirX
+			and prediction.launchDirY == launchDirY
+			and prediction.launchDirZ == launchDirZ
+		))
 		and currentTime - prediction.updatedTime < 0.1 then
 		return prediction.x, prediction.y, prediction.z
 	end
 
-	local hitX, hitY, hitZ, pathCount = GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, prediction)
+	local hitX, hitY, hitZ, pathCount = GetStarburstGroundCollisionPos(weaponInfo, unitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ, prediction, launchX, launchY, launchZ, launchDirX, launchDirY, launchDirZ)
 	prediction.unitID = unitID
 	prediction.weaponNum = weaponInfo.weaponNum
 	prediction.targetX, prediction.targetY, prediction.targetZ = tx, ty, tz
+	prediction.targetVelocityX, prediction.targetVelocityY, prediction.targetVelocityZ = targetVelocityX, targetVelocityY, targetVelocityZ
+	prediction.launchX, prediction.launchY, prediction.launchZ = launchX, launchY, launchZ
+	prediction.launchDirX, prediction.launchDirY, prediction.launchDirZ = launchDirX, launchDirY, launchDirZ
 	prediction.updatedTime = currentTime
 	prediction.x, prediction.y, prediction.z = hitX or tx, hitY or ty, hitZ or tz
 	prediction.pathCount = pathCount or 0
@@ -549,6 +635,12 @@ local function GetCachedStarburstTarget(weaponInfo, unitID, tx, ty, tz)
 		prediction.trajectoryList = CreateStarburstTrajectoryList(prediction)
 	end
 	return prediction.x, prediction.y, prediction.z
+end
+
+local function ProjectImpactToGround(x, y, z)
+	local groundY = spGetGroundHeight(x, z)
+	if groundY then y = groundY end
+	return x, y, z
 end
 
 -- Clamp the max range for scatter calculations
@@ -941,6 +1033,10 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.weaponAcceleration = weaponDef.weaponAcceleration
 		info.uptime = weaponDef.uptime
 		info.turnRate = weaponDef.turnRate
+		info.tracking = weaponDef.tracks and (weaponDef.turnRate or 0) or 0
+		info.tracks = weaponDef.tracks
+		info.leadLimit = weaponDef.leadLimit or -1
+		info.leadBonus = weaponDef.leadBonus or 0
 		info.fixedLauncher = weaponDef.fixedLauncher
 		-- Check for nuclear weapons (customParams.nuclear)
 		if info.isNuke then
@@ -2103,7 +2199,7 @@ function widget:Shutdown()
 	DeleteDisplayLists()
 end
 
-local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCamera, drawStockpile)
+local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ, distanceFromCamera, drawStockpile)
 	local ux, uy, uz = spGetUnitPosition(aimingUnitID)
 	if not ux then return end
 
@@ -2127,7 +2223,8 @@ local function DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCa
 
 	if not weaponInfo.waterWeapon and ty < 0 then ty = 0 end
 	if weaponInfo.isStarburst then
-		tx, ty, tz = GetCachedStarburstTarget(weaponInfo, aimingUnitID, tx, ty, tz)
+		tx, ty, tz = GetCachedStarburstTarget(weaponInfo, aimingUnitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ)
+		tx, ty, tz = ProjectImpactToGround(tx, ty, tz)
 	end
 	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 
@@ -2175,7 +2272,7 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local formationTargets = GetCustomFormationTargets(activeCommand)
-	local tx, ty, tz
+	local tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ
 	if formationTargets then
 		local target = formationTargets[aimingUnitID]
 		if not target then
@@ -2184,7 +2281,7 @@ function widget:DrawWorldPreUnit()
 		end
 		tx, ty, tz = target[1], target[2], target[3]
 	else
-		tx, ty, tz = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
+		tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ = GetMouseTargetPosition(weaponInfos.primary.type, aimingUnitID)
 		if not tx then
 			ResetPulseAnimation()
 			return
@@ -2218,13 +2315,13 @@ function widget:DrawWorldPreUnit()
 			local aimUnit = aimUnits[i]
 			local target = formationTargets and formationTargets[aimUnit.unitID]
 			if target then
-				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, target[1], target[2], target[3], distanceFromCamera, aimUnit.unitID == aimingUnitID)
+				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, target[1], target[2], target[3], nil, nil, nil, distanceFromCamera, aimUnit.unitID == aimingUnitID)
 			elseif not formationTargets then
-				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, tx, ty, tz, distanceFromCamera, aimUnit.unitID == aimingUnitID)
+				DrawUnitAoe(aimUnit.weaponInfos, aimUnit.unitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ, distanceFromCamera, aimUnit.unitID == aimingUnitID)
 			end
 		end
 	else
-		DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, distanceFromCamera, true)
+			DrawUnitAoe(weaponInfos, aimingUnitID, tx, ty, tz, targetVelocityX, targetVelocityY, targetVelocityZ, distanceFromCamera, true)
 	end
 end
 

@@ -1960,6 +1960,7 @@ local cache = {
 	projectileSizes = {},
 	explosions = {},
 	laserBeams = {},
+	laserBeamIndices = {},
 	iconShatters = {},
 	seismicPings = {},
 	-- Transport-related properties
@@ -5653,18 +5654,24 @@ local function DrawProjectile(pID, pDefID)
 					local colorData = cache.weaponColor[pDefID]
 					local thickness = cache.weaponThickness[pDefID]
 
-					-- Store laser beam for rendering (with short lifetime)
-					table.insert(cache.laserBeams, {
-						ox = ox,
-						oz = oz,
-						tx = tx,
-						tz = tz,
-						r = colorData[1],
-						g = colorData[2],
-						b = colorData[3],
-						thickness = thickness,
-						startTime = gameTime
-					})
+					-- Refresh one cache entry per projectile so paused beams cannot accumulate duplicates.
+					local beamIndex = cache.laserBeamIndices[pID]
+					local beam = beamIndex and cache.laserBeams[beamIndex]
+					if not beam then
+						beam = { projectileID = pID }
+						beamIndex = #cache.laserBeams + 1
+						cache.laserBeams[beamIndex] = beam
+						cache.laserBeamIndices[pID] = beamIndex
+					end
+					beam.ox = ox
+					beam.oz = oz
+					beam.tx = tx
+					beam.tz = tz
+					beam.r = colorData[1]
+					beam.g = colorData[2]
+					beam.b = colorData[3]
+					beam.thickness = thickness
+					beam.startTime = gameTime
 
 					return -- Don't draw as a projectile
 				end
@@ -6306,8 +6313,13 @@ local function DrawLaserBeams()
 
 		-- Remove beams older than 0.15 seconds (swap-to-end compaction)
 		if age > 0.15 then
-			cache.laserBeams[i] = cache.laserBeams[n]
+			local lastBeam = cache.laserBeams[n]
+			cache.laserBeamIndices[beam.projectileID] = nil
+			cache.laserBeams[i] = lastBeam
 			cache.laserBeams[n] = nil
+			if i < n then
+				cache.laserBeamIndices[lastBeam.projectileID] = i
+			end
 			n = n - 1
 		-- LOS view filter: skip beams whose origin is outside the viewed allyteam's LOS
 		elseif beamLosAlly and not spFunc.IsPosInLos(beam.ox, 0, beam.oz, beamLosAlly) then
@@ -13044,6 +13056,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		local radarWobbleAmp = cappedIconRadius * math.sqrt(math.abs(wtp.scaleX)) * 0.03
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
 		local unitpicsActive = gl4Icons.unitpicsActive and config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
@@ -13108,9 +13121,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					-- Radar wobble must be applied BEFORE rotation to match shader order
 					if inRadar then
 						local phase = (uID * 0.37) % 6.2832
-						local wobbleAmp = cappedIconRadius * 0.3
-						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
-						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+						cx = cx + math.sin(gameTime * 3.0 + phase) * radarWobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * radarWobbleAmp
 					end
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
