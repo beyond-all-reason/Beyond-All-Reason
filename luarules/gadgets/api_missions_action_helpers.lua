@@ -37,9 +37,7 @@ GG["MissionAPIActionHelper"].addEnergyPerSecond = function(teamID, energyPerSeco
     end
     resourcing.energyPerSecond[teamID] = resourcing.energyPerSecond[teamID] + energyPerSecond
 
-    if not resourcing.active then
-        resourcing.active = true
-    end
+    resourcing.active = true
 end
 
 function gadget:GameFrame(frame)
