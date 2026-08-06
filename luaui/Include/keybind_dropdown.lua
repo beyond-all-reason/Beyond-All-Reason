@@ -48,6 +48,16 @@ function Dropdown:setRect(x1, y1, x2, y2, fontSize)
 	end
 end
 
+function Dropdown:setOptions(options)
+	self.options = options or {}
+	if self.selected > #self.options then
+		self.selected = 1
+	end
+
+	local r = self.rect
+	self:setRect(r[1], r[2], r[3], r[4], self.fontSize)
+end
+
 function Dropdown:setSelected(i)
 	if i and self.options[i] then
 		self.selected = i
