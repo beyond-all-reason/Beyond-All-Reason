@@ -76,10 +76,12 @@ local function build()
 
 	local byAction = {}
 	local order = {}
+	local binds = {}
 
 	for _, b in ipairs(bindings) do
 		local id = actionId(b)
 		local raw = b.boundWith
+		binds[#binds + 1] = { keyset = raw, action = id }
 
 		local entry = byAction[id]
 		if not entry then
@@ -97,7 +99,7 @@ local function build()
 		actions[i] = byAction[order[i]]
 	end
 
-	return { actions = actions, layout = layout }
+	return { actions = actions, layout = layout, binds = binds }
 end
 
 return {

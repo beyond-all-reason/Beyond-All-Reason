@@ -1,10 +1,10 @@
 -- Interactive view for the in-game keybind editor, hosted as the first tab of
 -- the Keybind/Mouse Info panel. Immediate-mode, drawn live every frame.
 --
--- The picker lists the shipped profiles and the player's own. Shipped ones are not
--- editable: the first edit while one is selected forks it into a new profile, so a
--- player never has to pick "make a copy" before changing a key. Every edit applies
--- live and is stored into the active profile immediately - no staging.
+-- The picker lists the shipped profiles and the player's own. Edits are staged in the
+-- working model and touch neither the engine nor disk until Save, which is also where
+-- a shipped profile forks: saving over a read-only one creates a copy instead. Unsaved
+-- work is marked with a "*" on the profile name and guarded on the way out.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local catalog = VFS.Include("luaui/configs/keybind_catalog.lua")
@@ -40,9 +40,9 @@ local L = {}
 local rows = {}
 local scroll = 0
 local dragging = false
+local dirty = false
 local capturing
 local captureAny = false -- pending capture binds with the Any+ (match-any-modifier) qualifier
-local edited = false
 local lastClickTime, lastClickId
 
 local font
@@ -62,6 +62,7 @@ local switchToPreset, scrollFromY
 local dialog
 
 local profileButtons = {
+	{ id = "save" },
 	{ id = "copy" },
 	{ id = "rename" },
 	{ id = "delete" },
@@ -75,12 +76,17 @@ end
 local presetOptions = {}
 
 local function buildPresetOptions()
+	local active = profiles.activeName()
+	local function label(name, display)
+		return (dirty and name == active) and (display .. " *") or display
+	end
+
 	presetOptions = {}
 	for _, b in ipairs(profiles.builtins) do
-		presetOptions[#presetOptions + 1] = { label = shortPresetLabel(b.name), name = b.name, builtin = true }
+		presetOptions[#presetOptions + 1] = { label = label(b.name, shortPresetLabel(b.name)), name = b.name, builtin = true }
 	end
 	for _, name in ipairs(profiles.list()) do
-		presetOptions[#presetOptions + 1] = { label = name, name = name }
+		presetOptions[#presetOptions + 1] = { label = label(name, name), name = name }
 	end
 
 	return presetOptions
@@ -150,6 +156,11 @@ local function buildResolvedCatalog()
 	L.rename = Spring.I18N('ui.keybinds.editor.rename')
 	L.delete = Spring.I18N('ui.keybinds.editor.delete')
 	L.copyTitle = Spring.I18N('ui.keybinds.editor.copyTitle')
+	L.save = Spring.I18N('ui.keybinds.editor.save')
+	L.saveTitle = Spring.I18N('ui.keybinds.editor.saveTitle')
+	L.discard = Spring.I18N('ui.keybinds.editor.discard')
+	L.unsavedTitle = Spring.I18N('ui.keybinds.editor.unsavedTitle')
+	L.unsavedMessage = Spring.I18N('ui.keybinds.editor.unsavedMessage')
 	L.renameTitle = Spring.I18N('ui.keybinds.editor.renameTitle')
 	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
 	L.accept = Spring.I18N('ui.keybinds.editor.accept')
@@ -278,7 +289,7 @@ end
 
 local function seedWorkingFromEngine()
 	local model = keybindModel.build()
-	working = { byAction = {}, layout = model.layout }
+	working = { byAction = {}, layout = model.layout, binds = model.binds }
 	for _, entry in ipairs(model.actions) do
 		local copy = {}
 		for _, k in ipairs(entry.keysets) do
@@ -288,30 +299,17 @@ local function seedWorkingFromEngine()
 	end
 end
 
-local function reseed()
-	seedWorkingFromEngine()
-	rebuildRows()
+local function setDirty(value)
+	dirty = value
 end
 
-local function persistEdits()
-	if not edited then
-		return false
+local function stagedBinds()
+	local out = {}
+	for i, b in ipairs(working.binds) do
+		out[i] = { keyset = b.keyset, action = b.action }
 	end
-	edited = false
 
-	local profile = profiles.get(profiles.activeName())
-	if profile then
-		profile.binds = profiles.snapshotLive()
-		profiles.save()
-	end
-	-- Lua only reads keybindings (GetKeyBindings and friends), so the console is the
-	-- only way to write them back.
-	spSendCommands("keysave " .. customKeysFile)
-	-- A player migrated off a preset still has the config pointing at that preset file,
-	-- which would be reloaded over these edits on the next launch.
-	Spring.SetConfigString("KeybindingFile", customKeysFile)
-
-	return true
+	return out
 end
 
 local function applyActiveProfile(name, fromName)
@@ -330,41 +328,17 @@ local function applyActiveProfile(name, fromName)
 	end
 end
 
--- A shipped profile is read-only, so the first edit made while one is selected forks
--- it: the player never has to pick "make a copy" before changing a key.
-local function forkIfShipped()
-	local name = profiles.activeName()
-	if profiles.get(name) then
-		return
-	end
-
-	profiles.create(L.newProfile, profiles.snapshotLive())
-	Spring.SetConfigString("KeybindingFile", customKeysFile)
-	-- So the file the config now points at exists before anything reloads it.
-	spSendCommands("keysave " .. customKeysFile)
-	buildPresetOptions()
-	presetDropdown:setOptions(presetOptions)
-	presetDropdown:setSelected(currentPresetIndex())
-	if menuToggle then
-		menuToggle(profiles.getActive(), false)
-	end
-end
-
-switchToPreset = function(opt)
-	persistEdits()
-
-	local fromName = profiles.activeName()
-	if not profiles.materialize(opt.name) then
-		return
-	end
-	profiles.setActive(opt.name)
-	applyActiveProfile(opt.name, fromName)
-end
-
 local function refreshPicker()
 	buildPresetOptions()
 	presetDropdown:setOptions(presetOptions)
 	presetDropdown:setSelected(currentPresetIndex())
+end
+
+-- Staging changes the picker too: the active profile picks up the unsaved marker.
+local function markStaged()
+	setDirty(true)
+	refreshPicker()
+	rebuildRows()
 end
 
 local function openDialog(d)
@@ -376,20 +350,114 @@ local function openDialog(d)
 	end
 end
 
-local function acceptDialog()
+local function closeDialog()
 	local d = dialog
 	dialog = nil
+	nameBox:blur()
+
+	return d
+end
+
+local function cancelDialog()
+	local d = closeDialog()
+	if d and d.cancel then
+		d.cancel()
+	end
+end
+
+local function discardDialog()
+	local d = closeDialog()
+	if d and d.discard then
+		d.discard()
+	end
+end
+
+local function acceptDialog()
+	local text = dialog and not dialog.message
+		and nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "") or ""
+	local d = closeDialog()
 	if not d then
 		return
 	end
 
-	local text = d.message and "" or nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
-	nameBox:blur()
+	-- An empty name would make the profile unselectable, so treat it as a cancel.
 	if not d.message and text == "" then
+		if d.cancel then d.cancel() end
 		return
 	end
 
 	d.accept(text)
+end
+
+-- Push the staged keymap into the engine and store it against the given profile.
+local function applyStaged(name, fromName)
+	local profile = profiles.get(name)
+	if profile then
+		profile.binds = stagedBinds()
+		profiles.save()
+	end
+
+	profiles.setActive(name)
+	profiles.materialize(name)
+	setDirty(false)
+	refreshPicker()
+	applyActiveProfile(name, fromName)
+end
+
+-- Saving over a shipped profile is a fork: it asks for a name and writes a new one.
+local function startSave(andThen)
+	local name = profiles.activeName()
+	if profiles.get(name) then
+		applyStaged(name)
+		if andThen then andThen() end
+
+		return
+	end
+
+	openDialog({
+		title = L.saveTitle,
+		initial = profiles.uniqueName(L.newProfile),
+		accept = function(text)
+			local created = profiles.create(text, stagedBinds())
+			applyStaged(created, name)
+			if andThen then andThen() end
+		end,
+	})
+end
+
+-- Staged edits are not in the engine yet, so anything that would replace them asks
+-- first. Returns whether it could go ahead immediately.
+local function guardDirty(proceed, onCancel)
+	if not dirty then
+		proceed()
+
+		return true
+	end
+
+	openDialog({
+		title = L.unsavedTitle,
+		message = L.unsavedMessage,
+		accept = function() startSave(proceed) end,
+		discard = function()
+			setDirty(false)
+			proceed()
+		end,
+		cancel = onCancel,
+	})
+
+	return false
+end
+
+switchToPreset = function(opt)
+	guardDirty(function()
+		local fromName = profiles.activeName()
+		if not profiles.materialize(opt.name) then
+			return
+		end
+
+		profiles.setActive(opt.name)
+		applyActiveProfile(opt.name, fromName)
+	end, refreshPicker)
 end
 
 local function startCopy()
@@ -398,15 +466,9 @@ local function startCopy()
 		title = L.copyTitle,
 		initial = profiles.uniqueName(from),
 		accept = function(text)
-			persistEdits()
-			local created = profiles.copy(from, text)
-			if not created then
-				return
-			end
-
-			profiles.materialize(created)
-			refreshPicker()
-			applyActiveProfile(created, from)
+			-- Copies what is on screen rather than what was last saved, so pending
+			-- edits come along instead of being silently dropped.
+			applyStaged(profiles.create(text, stagedBinds()), from)
 		end,
 	})
 end
@@ -429,16 +491,12 @@ local function startDelete()
 		title = L.delete,
 		message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
 		accept = function()
-			edited = false
+			setDirty(false)
 			profiles.delete(name)
 
 			-- Whatever the store fell back to has to be made live; the deleted profile
 			-- is still what the engine has loaded.
-			local nextName = profiles.activeName()
-			profiles.setActive(nextName)
-			profiles.materialize(nextName)
-			refreshPicker()
-			applyActiveProfile(nextName, name)
+			applyStaged(profiles.activeName(), name)
 		end,
 	})
 end
@@ -491,10 +549,12 @@ local function dialogGeometry()
 	local btnY1 = by1 + pad
 	local cancel = { bx1 + pad, btnY1, bx1 + pad + bw, btnY1 + bh }
 	local ok = { bx2 - pad - bw, btnY1, bx2 - pad, btnY1 + bh }
+	local midX = (bx1 + bx2) * 0.5
+	local discard = { floor(midX - bw * 0.5), btnY1, floor(midX + bw * 0.5), btnY1 + bh }
 	local fieldY1 = btnY1 + bh + floor(20 * scale)
 	local field = { bx1 + pad, fieldY1, bx2 - pad, fieldY1 + floor(26 * scale) }
 
-	return bx1, by1, bx2, by2, ok, cancel, field
+	return bx1, by1, bx2, by2, ok, cancel, field, discard
 end
 
 -- Capture-modal box + button/checkbox rects, recomputed so draw and mousePress agree.
@@ -561,10 +621,6 @@ function view.setArea(x1, y1, x2, y2, s)
 end
 
 function view.blur()
-	-- Flush edits and reload once on the way out, not per keystroke.
-	if persistEdits() and WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
-		WG['bar_hotkeys'].reloadBindings()
-	end
 	if searchBox then
 		searchBox:blur()
 	end
@@ -572,6 +628,12 @@ function view.blur()
 	if nameBox then nameBox:blur() end
 	capturing = nil
 	dialog = nil
+end
+
+-- The host calls this before closing; false means a dialog is now asking what to do
+-- with staged edits and the close should not happen yet.
+function view.confirmClose(proceed)
+	return guardDirty(proceed)
 end
 
 function view.setMenuToggle(fn)
@@ -590,9 +652,6 @@ function view.wantsTextOwner()
 		or (presetDropdown and presetDropdown:isOpen())
 end
 
--- Edits apply live (bind/unbind); the uikeys.txt write + reload defer to persistEdits
--- (panel close / preset switch) to avoid per-keystroke console spam.
-
 -- Compared by displayed key, not raw, so a scancode capture of a key already bound
 -- in keysym form (Enter vs "return") dedupes. exceptRaw skips the keyset being rebound.
 local function actionHasKeyset(action, newKeyset, exceptRaw)
@@ -609,31 +668,61 @@ local function actionHasKeyset(action, newKeyset, exceptRaw)
 	return false
 end
 
-local function rebindKeyset(action, oldRaw, newKeyset)
-	forkIfShipped()
-	spSendCommands("unbind " .. oldRaw .. " " .. action)
-	if not actionHasKeyset(action, newKeyset, oldRaw) then
-		spSendCommands("bind " .. newKeyset .. " " .. action)
+-- The bind list is kept in engine order because two actions on one keyset are tried
+-- in bind order; edits touch it in place rather than rebuilding it.
+local function stageAdd(action, raw)
+	working.binds[#working.binds + 1] = { keyset = raw, action = action }
+
+	local ks = working.byAction[action]
+	if not ks then
+		ks = {}
+		working.byAction[action] = ks
 	end
-	edited = true
-	reseed()
+	ks[#ks + 1] = { raw = raw, display = keybindModel.displayKeyset(raw, working.layout) }
+end
+
+local function stageRemove(action, raw)
+	for i = #working.binds, 1, -1 do
+		local b = working.binds[i]
+		if b.action == action and b.keyset == raw then
+			table.remove(working.binds, i)
+			break
+		end
+	end
+
+	local ks = working.byAction[action] or {}
+	for i = #ks, 1, -1 do
+		if ks[i].raw == raw then
+			table.remove(ks, i)
+			break
+		end
+	end
+	-- An action with nothing bound is not one the engine would report, so drop it.
+	if #ks == 0 then
+		working.byAction[action] = nil
+	end
+end
+
+local function rebindKeyset(action, oldRaw, newKeyset)
+	stageRemove(action, oldRaw)
+	if not actionHasKeyset(action, newKeyset) then
+		stageAdd(action, newKeyset)
+	end
+	markStaged()
 end
 
 local function addKeyset(action, newKeyset)
 	if actionHasKeyset(action, newKeyset) then
 		return
 	end
-	forkIfShipped()
-	spSendCommands("bind " .. newKeyset .. " " .. action)
-	edited = true
-	reseed()
+
+	stageAdd(action, newKeyset)
+	markStaged()
 end
 
 local function removeKeyset(action, raw)
-	forkIfShipped()
-	spSendCommands("unbind " .. raw .. " " .. action)
-	edited = true
-	reseed()
+	stageRemove(action, raw)
+	markStaged()
 end
 
 -- One key can drive several actions (e.g. backspace = mutesound + edit_backspace),
@@ -923,7 +1012,7 @@ function view.draw()
 	for _, b in ipairs(profileButtons) do
 		local r = b.rect
 		if r then
-			local enabled = own or b.id == "copy"
+			local enabled = own or b.id == "copy" or (b.id == "save" and dirty)
 			UiButton(r[1], r[2], r[3], r[4])
 			if enabled and mx >= r[1] and mx <= r[3] and my >= r[2] and my <= r[4] then
 				Highlight(r[1], r[2], r[3], r[4], floor(6 * scale), 1, { 1, 1, 1 })
@@ -1026,7 +1115,7 @@ function view.draw()
 	end
 
 	if dialog then
-		local bx1, by1, bx2, by2, ok, cancel, field = dialogGeometry()
+		local bx1, by1, bx2, by2, ok, cancel, field, discard = dialogGeometry()
 		local cs = floor(6 * scale)
 		local cx = (bx1 + bx2) * 0.5
 		local tfs = floor(rowHeight * 0.6)
@@ -1035,23 +1124,29 @@ function view.draw()
 		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
 		UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
-		UiButton(cancel[1], cancel[2], cancel[3], cancel[4])
-		UiButton(ok[1], ok[2], ok[3], ok[4])
-		if mx >= cancel[1] and mx <= cancel[3] and my >= cancel[2] and my <= cancel[4] then
-			Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, 1, { 1, 1, 1 })
+		local buttons = { cancel, ok }
+		if dialog.discard then
+			buttons[#buttons + 1] = discard
 		end
-		if mx >= ok[1] and mx <= ok[3] and my >= ok[2] and my <= ok[4] then
-			Highlight(ok[1], ok[2], ok[3], ok[4], cs, 1, { 1, 1, 1 })
+		for _, r in ipairs(buttons) do
+			UiButton(r[1], r[2], r[3], r[4])
+			if mx >= r[1] and mx <= r[3] and my >= r[2] and my <= r[4] then
+				Highlight(r[1], r[2], r[3], r[4], cs, 1, { 1, 1, 1 })
+			end
 		end
 
 		font:Begin()
 		font:Print(colorText .. fitText(dialog.title, bx2 - bx1 - floor(32 * scale), tfs), cx, by2 - floor(26 * scale), tfs, "cov")
+		if dialog.discard then
+			font:Print(colorText .. L.discard, (discard[1] + discard[3]) * 0.5, (discard[2] + discard[4]) * 0.5, sfs, "cov")
+		end
 		if dialog.message then
 			font:Print(colorDim .. fitText(dialog.message, bx2 - bx1 - floor(32 * scale), sfs),
 				cx, (field[2] + field[4]) * 0.5, sfs, "cov")
 		end
 		font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
-		font:Print(colorText .. L.accept, (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+		font:Print(colorText .. (dialog.discard and L.save or L.accept),
+			(ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
 		font:End()
 
 		if not dialog.message then
@@ -1129,13 +1224,14 @@ function view.mousePress(x, y, button)
 
 	if dialog then
 		if button == 1 then
-			local bx1, by1, bx2, by2, ok, cancel, field = dialogGeometry()
+			local bx1, by1, bx2, by2, ok, cancel, field, discard = dialogGeometry()
 			if x >= ok[1] and x <= ok[3] and y >= ok[2] and y <= ok[4] then
 				acceptDialog()
+			elseif dialog.discard and x >= discard[1] and x <= discard[3] and y >= discard[2] and y <= discard[4] then
+				discardDialog()
 			elseif (x >= cancel[1] and x <= cancel[3] and y >= cancel[2] and y <= cancel[4])
 				or x < bx1 or x > bx2 or y < by1 or y > by2 then
-				dialog = nil
-				nameBox:blur()
+				cancelDialog()
 			elseif not dialog.message then
 				nameBox:mousePress(x, y)
 			end
@@ -1175,7 +1271,9 @@ function view.mousePress(x, y, button)
 		if r and x >= r[1] and x <= r[3] and y >= r[2] and y <= r[4] then
 			searchBox:blur()
 			presetDropdown:close()
-			if b.id == "copy" then
+			if b.id == "save" then
+				if dirty then startSave() end
+			elseif b.id == "copy" then
 				startCopy()
 			elseif activeIsOwn() then
 				if b.id == "rename" then startRename() else startDelete() end
@@ -1239,8 +1337,7 @@ end
 function view.keyPress(key, scanCode)
 	if dialog then
 		if key == KEYSYMS.ESCAPE then
-			dialog = nil
-			nameBox:blur()
+			cancelDialog()
 		elseif key == KEYSYMS.RETURN then
 			acceptDialog()
 		elseif not dialog.message then

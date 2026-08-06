@@ -138,6 +138,15 @@ function widget:DrawScreen()
 	end
 end
 
+-- The editor may want to ask about unsaved keybind changes first, in which case it
+-- closes the panel itself once the player answers.
+local function closePanel()
+	keybindEditor.confirmClose(function()
+		show = false
+		keybindEditor.blur()
+	end)
+end
+
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	-- While a modal is up the editor gets everything - its prompt says Esc cancels.
 	if show and keybindEditor.isModal() then
@@ -155,8 +164,7 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	end
 
 	if key == 27 then
-		show = false
-		keybindEditor.blur()
+		closePanel()
 		return
 	end
 end
@@ -192,8 +200,7 @@ local function mouseEvent(x, y, button, release)
 			return true
 		else
 			showOnceMore = show -- show once more because the guishader lags behind
-			show = false
-			keybindEditor.blur()
+			closePanel()
 		end
 	end
 end
@@ -260,13 +267,15 @@ function widget:Initialize()
 
 	WG['keybinds'] = {}
 	WG['keybinds'].toggle = function(state)
-		if state ~= nil then
-			show = state
-		else
-			show = not show
+		local wanted = state
+		if wanted == nil then
+			wanted = not show
 		end
-		if not show then
-			keybindEditor.blur()
+
+		if wanted then
+			show = true
+		else
+			closePanel()
 		end
 	end
 	WG['keybinds'].isvisible = function()
