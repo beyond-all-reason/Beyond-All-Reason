@@ -59,6 +59,7 @@ local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMyPlayerID = Spring.GetMyPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetBuildFacing = Spring.GetBuildFacing
 local spTestBuildOrder = Spring.TestBuildOrder
 local spGetTimer = Spring.GetTimer
@@ -92,6 +93,7 @@ local EXTENDED_ALPHA_NEAR = 0.1
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = true
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
+local SHOW_INVALID_FOOTPRINT_BOUNDARY = true
 local EXTENDED_STATUS_UPDATE_INTERVAL = 0.20
 local TARGET_STATUS_CHECKS_PER_GAME_FRAME = 64
 local TARGET_STATUS_CELLS_PER_GAME_FRAME = 512
@@ -101,6 +103,8 @@ local SIMPLIFIED_OUTLINE_SCALE = 0.5
 local SIMPLIFIED_CORNER_RADIUS_SCALE = 0.5
 local SIMPLIFIED_BUILDING_THRESHOLD = 384
 local SIMPLIFIED_CELL_THRESHOLD = 8192
+local MINIMUM_SCREEN_DIAMETER = 3.0
+local MINIMUM_DETAILED_CELL_DIAMETER = 2.0
 local SIMPLIFIED_MINIMAP_ENABLED = true
 local MAX_MINIMAP_BUILDINGS = 16384
 local MAX_BATCH_CELLS = 262144
@@ -497,6 +501,22 @@ local function getEffectiveExtendedCells()
 	return effectiveExtendedCells, buildSquareGameFrame, statusCheckPeriod, drawSquareCount, simplifiedFootprintMode
 end
 
+local function needsDistanceSimplification(footprint, x, z)
+	local minX = x - footprint.halfXsize * SQUARE_SIZE
+	local maxX = minX + footprint.xsize * SQUARE_SIZE
+	local minZ = z - footprint.halfZsize * SQUARE_SIZE
+	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
+	local screenLeftX = spWorldToScreenCoords(minX, spGetGroundHeight(minX, z), z)
+	local screenRightX = spWorldToScreenCoords(maxX, spGetGroundHeight(maxX, z), z)
+	local _, screenTopY = spWorldToScreenCoords(x, spGetGroundHeight(x, minZ), minZ)
+	local _, screenBottomY = spWorldToScreenCoords(x, spGetGroundHeight(x, maxZ), maxZ)
+	if not screenLeftX or not screenRightX or not screenTopY or not screenBottomY then
+		return false
+	end
+	return mathAbs(screenRightX - screenLeftX) / footprint.xsize < MINIMUM_DETAILED_CELL_DIAMETER
+		or mathAbs(screenBottomY - screenTopY) / footprint.zsize < MINIMUM_DETAILED_CELL_DIAMETER
+end
+
 local function getPredictedCellStatus(unitDef, worldX, worldZ, buildHeight)
 	if worldX < 0 or worldZ < 0 or worldX >= MAP_SIZE_X or worldZ >= MAP_SIZE_Z then
 		return STATUS_BLOCKED, STATUS_OPEN
@@ -681,6 +701,7 @@ uniform sampler2D heightmapTex;
 uniform float heightOffset;
 uniform float cellInset;
 uniform float cellSize;
+uniform float minimumScreenDiameter;
 uniform int isMiniMap;
 uniform int rotationMiniMap;
 
@@ -712,7 +733,18 @@ void main() {
 	if (isMiniMap == 0) {
 		vec2 uvhm = heightmapUVatWorldPos(vec2(wx, wz));
 		float wy = textureLod(heightmapTex, uvhm, 0.0).x + heightOffset;
-		gl_Position = cameraViewProj * vec4(wx, wy, wz, 1.0);
+		vec4 clipPosition = cameraViewProj * vec4(wx, wy, wz, 1.0);
+		if (simplified > 0.5) {
+			vec2 centerWorldPos = a_cellData.xy + quadSize * 0.5;
+			vec4 centerClipPosition = cameraViewProj * vec4(centerWorldPos.x, wy, centerWorldPos.y, 1.0);
+			vec2 centerNdcPosition = centerClipPosition.xy / centerClipPosition.w;
+			vec2 cornerNdcOffset = clipPosition.xy / clipPosition.w - centerNdcPosition;
+			float halfDiagonalPixels = length(cornerNdcOffset * viewGeometry.xy * 0.5);
+			float minimumHalfDiagonal = minimumScreenDiameter * 0.5;
+			float expansion = max(1.0, minimumHalfDiagonal / max(halfDiagonalPixels, 0.001));
+			clipPosition.xy = (centerNdcPosition + cornerNdcOffset * expansion) * clipPosition.w;
+		}
+		gl_Position = clipPosition;
 	} else {
 		vec2 ndcxy = vec2(wx, wz) / mapSize.xy * 2.0 - 1.0;
 		if (rotationMiniMap == 0) {
@@ -750,6 +782,7 @@ uniform float simplifiedCornerRadiusScale;
 uniform float cornerRadius;
 uniform float footprintBoundaryEnabled;
 uniform float footprintBoundaryWidth;
+uniform float showInvalidFootprintBoundary;
 uniform vec4 invalidFootprintBoundaryColor;
 
 void main() {
@@ -763,7 +796,9 @@ void main() {
 	vec4 cellColor = mix(v_color, v_outlineColor, outline);
 	vec3 color = cellColor.rgb;
 	float alpha = cellColor.a;
-	if (footprintBoundaryEnabled > 0.5 && v_queuedFootprintConflict > 0.5) {
+	bool showQueuedFootprintBoundary = footprintBoundaryEnabled > 0.5 && v_queuedFootprintConflict > 0.5;
+	bool showInvalidPlacementBoundary = showInvalidFootprintBoundary > 0.5 && v_footprintValid < 0.5;
+	if (showQueuedFootprintBoundary || showInvalidPlacementBoundary) {
 		float leftEdge = mod(floor(v_footprintEdges), 2.0);
 		float rightEdge = mod(floor(v_footprintEdges / 2.0), 2.0);
 		float topEdge = mod(floor(v_footprintEdges / 4.0), 2.0);
@@ -817,11 +852,13 @@ local function initGL4Resources()
 			heightOffset = HEIGHT_OFFSET,
 			cellInset = CELL_DISTANCE * 0.5,
 			cellSize = SQUARE_SIZE,
+			minimumScreenDiameter = MINIMUM_SCREEN_DIAMETER,
 			cornerRadius = CORNER_RADIUS,
 			simplifiedOutlineScale = SIMPLIFIED_OUTLINE_SCALE,
 			simplifiedCornerRadiusScale = SIMPLIFIED_CORNER_RADIUS_SCALE,
 			footprintBoundaryEnabled = FOOTPRINT_BOUNDARY_ENABLED and 1.0 or 0.0,
 			footprintBoundaryWidth = FOOTPRINT_BOUNDARY_WIDTH,
+			showInvalidFootprintBoundary = SHOW_INVALID_FOOTPRINT_BOUNDARY and 1.0 or 0.0,
 			invalidFootprintBoundaryColor = INVALID_FOOTPRINT_BOUNDARY_COLOR,
 		},
 	})
@@ -1060,6 +1097,17 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
+	local xsize = footprint.xsize
+	local zsize = footprint.zsize
+	local totalXSize = xsize + extendedCells * 2
+	local totalZSize = zsize + extendedCells * 2
+	local sourceCellCount = totalXSize * totalZSize
+	if sourceCellCount <= 0 or sourceCellCount > MAX_CELLS then
+		return
+	end
+	-- Avoid a one-frame VBO overflow before the next frame enables global simplification.
+	simplified = simplified or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
+		or needsDistanceSimplification(footprint, placementX, placementZ)
 	local renderCache = orderedPreviewCaches[sequenceIndex]
 	if extendedCells == 0 and renderCache
 		and renderCache.unitDefID == unitDefID and renderCache.facing == facing
@@ -1080,15 +1128,6 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		end
 	end
 
-	local xsize = footprint.xsize
-	local zsize = footprint.zsize
-
-	local totalXSize = xsize + extendedCells * 2
-	local totalZSize = zsize + extendedCells * 2
-	local sourceCellCount = totalXSize * totalZSize
-	if sourceCellCount <= 0 or sourceCellCount > MAX_CELLS then
-		return
-	end
 	local cellScale = COMBINE_FOUR_CELLS
 		and xsize % 2 == 0 and zsize % 2 == 0 and extendedCells % 2 == 0 and 2 or 1
 	local renderXSize = totalXSize / cellScale
