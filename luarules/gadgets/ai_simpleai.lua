@@ -390,17 +390,12 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 								if xoffset ~= 0 and zoffset ~= 0 then
 									local projectturret = SimpleTurretDefs:RandomChoice()
 									if buildOptions[projectturret] then
-										spGiveOrderToUnit(
-											unitID,
-											-projectturret,
-											{
-												mexspotpos.x + xoffset,
-												mexspotpos.y,
-												mexspotpos.z + zoffset,
-												random(0, 3),
-											},
-											{ "shift" }
-										)
+										spGiveOrderToUnit(unitID, -projectturret, {
+											mexspotpos.x + xoffset,
+											mexspotpos.y,
+											mexspotpos.z + zoffset,
+											random(0, 3),
+										}, { "shift" })
 									end
 								end
 							end
@@ -620,16 +615,11 @@ if gadgetHandler:IsSyncedCode() then
 														if targetDefID and isBuilding[targetDefID] then
 															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
 															if tUnitX then
-																spGiveOrderToUnit(
-																	unitID,
-																	CMD_MOVE,
-																	{
-																		tUnitX + random(-100, 100),
-																		tUnitY,
-																		tUnitZ + random(-100, 100),
-																	},
-																	0
-																)
+																spGiveOrderToUnit(unitID, CMD_MOVE, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, 0)
 																break
 															end
 														end
@@ -655,16 +645,11 @@ if gadgetHandler:IsSyncedCode() then
 														if targetDefID and isBuilding[targetDefID] then
 															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
 															if tUnitX then
-																spGiveOrderToUnit(
-																	unitID,
-																	CMD_MOVE,
-																	{
-																		tUnitX + random(-100, 100),
-																		tUnitY,
-																		tUnitZ + random(-100, 100),
-																	},
-																	0
-																)
+																spGiveOrderToUnit(unitID, CMD_MOVE, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, 0)
 																break
 															end
 														end
@@ -718,16 +703,11 @@ if gadgetHandler:IsSyncedCode() then
 																local tUnitX, tUnitY, tUnitZ =
 																	spGetUnitPosition(targetUnit)
 																if tUnitX then
-																	spGiveOrderToUnit(
-																		unitID,
-																		CMD_FIGHT,
-																		{
-																			tUnitX + random(-100, 100),
-																			tUnitY,
-																			tUnitZ + random(-100, 100),
-																		},
-																		{ "shift", "alt", "ctrl" }
-																	)
+																	spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																		tUnitX + random(-100, 100),
+																		tUnitY,
+																		tUnitZ + random(-100, 100),
+																	}, { "shift", "alt", "ctrl" })
 																	break
 																end
 															end
@@ -738,32 +718,22 @@ if gadgetHandler:IsSyncedCode() then
 													if targetUnitNear then
 														local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnitNear)
 														if tUnitX then
-															spGiveOrderToUnit(
-																unitID,
-																CMD_FIGHT,
-																{
-																	tUnitX + random(-100, 100),
-																	tUnitY,
-																	tUnitZ + random(-100, 100),
-																},
-																{ "shift", "alt", "ctrl" }
-															)
+															spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																tUnitX + random(-100, 100),
+																tUnitY,
+																tUnitZ + random(-100, 100),
+															}, { "shift", "alt", "ctrl" })
 														end
 													elseif n % 3600 <= 15 * SimpleAITeamIDsCount then
 														local targetUnit = spGetUnitNearestEnemy(unitID, 999999, false)
 														if targetUnit then
 															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
 															if tUnitX then
-																spGiveOrderToUnit(
-																	unitID,
-																	CMD_FIGHT,
-																	{
-																		tUnitX + random(-100, 100),
-																		tUnitY,
-																		tUnitZ + random(-100, 100),
-																	},
-																	{ "shift", "alt", "ctrl" }
-																)
+																spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, { "shift", "alt", "ctrl" })
 															end
 														end
 													end

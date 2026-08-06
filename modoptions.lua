@@ -1375,7 +1375,12 @@ local options = {
 		section = "options_extra",
 		bitmask = 2,
 		items = {
-			{ key = "dynamic", name = "Dynamic", lock = { "evocomleveluptime" }, unlock = { "evocomlevelupmultiplier" } },
+			{
+				key = "dynamic",
+				name = "Dynamic",
+				lock = { "evocomleveluptime" },
+				unlock = { "evocomlevelupmultiplier" },
+			},
 			{ key = "timed", name = "Timed", lock = { "evocomlevelupmultiplier" }, unlock = { "evocomleveluptime" } },
 		},
 	},

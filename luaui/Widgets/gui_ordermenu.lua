@@ -840,7 +840,8 @@ function widget:Update(dt)
 	end
 
 	if
-		(WG["guishader"] and not displayListGuiShader) or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0))
+		(WG["guishader"] and not displayListGuiShader)
+		or (#commands == 0 and (not alwaysShow or spGetGameFrame() == 0))
 	then
 		ordermenuShows = false
 	else
@@ -1401,15 +1402,12 @@ function widget:DrawScreen()
 									local modeDescr = getCachedTranslation("ui.orderMenu." .. modeDescrKey)
 									local generalDescr = tooltip
 									if generalDescr ~= "" and hotkey ~= "" then
-										generalDescr = getCachedTranslation(
-											"ui.orderMenu.hotkeyTooltip",
-											{
-												hotkey = hotkey:upper(),
-												tooltip = generalDescr,
-												highlightColor = "\255\255\215\100",
-												textColor = "\255\240\240\240",
-											}
-										)
+										generalDescr = getCachedTranslation("ui.orderMenu.hotkeyTooltip", {
+											hotkey = hotkey:upper(),
+											tooltip = generalDescr,
+											highlightColor = "\255\255\215\100",
+											textColor = "\255\240\240\240",
+										})
 										hotkeyApplied = true
 									end
 									if modeDescr ~= "" and generalDescr ~= "" then
@@ -1423,15 +1421,12 @@ function widget:DrawScreen()
 							end
 
 							if tooltip ~= "" and hotkey ~= "" and not hotkeyApplied then
-								tooltip = getCachedTranslation(
-									"ui.orderMenu.hotkeyTooltip",
-									{
-										hotkey = hotkey:upper(),
-										tooltip = tooltip,
-										highlightColor = "\255\255\215\100",
-										textColor = "\255\240\240\240",
-									}
-								)
+								tooltip = getCachedTranslation("ui.orderMenu.hotkeyTooltip", {
+									hotkey = hotkey:upper(),
+									tooltip = tooltip,
+									highlightColor = "\255\255\215\100",
+									textColor = "\255\240\240\240",
+								})
 							end
 							if tooltip ~= "" then
 								local title

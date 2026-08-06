@@ -442,7 +442,8 @@ local function periodicBuilderCheck()
 	periodicCheckCounter = periodicCheckCounter + 1
 	for unitId, _ in pairs(unitBuildCommands) do
 		if
-			(unitId + periodicCheckCounter) % PERIODIC_CHECK_DIVISOR == 1 and not unitsAwaitingCommandProcessing[unitId]
+			(unitId + periodicCheckCounter) % PERIODIC_CHECK_DIVISOR == 1
+			and not unitsAwaitingCommandProcessing[unitId]
 		then
 			local forceDeepCheck = ((unitId + periodicCheckCounter) % DEEP_CHECK_DIVISOR == 1)
 			checkBuilder(unitId, forceDeepCheck)

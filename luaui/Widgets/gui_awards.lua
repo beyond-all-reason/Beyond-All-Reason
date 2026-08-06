@@ -135,15 +135,12 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			local heightoffset = 0
 			if winnerTeamID >= 0 then
 				font:Print(
-					Spring.I18N(
-						"ui.awards.resourcesProduced",
-						{
-							playerColor = colourNames(winnerTeamID),
-							player = winnerName,
-							textColor = white,
-							score = mathFloor(winnerScore),
-						}
-					),
+					Spring.I18N("ui.awards.resourcesProduced", {
+						playerColor = colourNames(winnerTeamID),
+						player = winnerName,
+						textColor = white,
+						score = mathFloor(winnerScore),
+					}),
 					widgetX + mathFloor(70 * widgetScale),
 					widgetY + widgetHeightScaled - offset - mathFloor(10 * widgetScale) - heightoffset,
 					14 * widgetScale,
@@ -153,15 +150,12 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			end
 			if secondTeamID >= 0 then
 				font:Print(
-					Spring.I18N(
-						"ui.awards.damageTaken",
-						{
-							playerColor = colourNames(secondTeamID),
-							player = secondName,
-							textColor = white,
-							score = mathFloor(secondScore),
-						}
-					),
+					Spring.I18N("ui.awards.damageTaken", {
+						playerColor = colourNames(secondTeamID),
+						player = secondName,
+						textColor = white,
+						score = mathFloor(secondScore),
+					}),
 					widgetX + mathFloor(70 * widgetScale),
 					widgetY + widgetHeightScaled - offset - mathFloor(10 * widgetScale) - heightoffset,
 					14 * widgetScale,
@@ -171,15 +165,12 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			end
 			if thirdTeamID >= 0 then
 				font:Print(
-					Spring.I18N(
-						"ui.awards.sleptLongest",
-						{
-							playerColor = colourNames(thirdTeamID),
-							player = thirdName,
-							textColor = white,
-							score = mathFloor(thirdScore / 60),
-						}
-					),
+					Spring.I18N("ui.awards.sleptLongest", {
+						playerColor = colourNames(thirdTeamID),
+						player = thirdName,
+						textColor = white,
+						score = mathFloor(thirdScore / 60),
+					}),
 					widgetX + mathFloor(70 * widgetScale),
 					widgetY + widgetHeightScaled - offset - mathFloor(10 * widgetScale) - heightoffset,
 					14 * widgetScale,

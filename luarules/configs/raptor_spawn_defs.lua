@@ -622,15 +622,12 @@ local function addNewSquad(squadParams) -- params: {type = "basic", minAnger = 0
 		end
 
 		for _ = 1, squadParams.weight do
-			table.insert(
-				squadSpawnOptionsTable[squadParams.type],
-				{
-					minAnger = squadParams.minAnger,
-					maxAnger = squadParams.maxAnger,
-					units = squadParams.units,
-					weight = squadParams.weight,
-				}
-			)
+			table.insert(squadSpawnOptionsTable[squadParams.type], {
+				minAnger = squadParams.minAnger,
+				maxAnger = squadParams.maxAnger,
+				units = squadParams.units,
+				weight = squadParams.weight,
+			})
 		end
 	end
 end
@@ -3077,11 +3074,12 @@ for name, unitDef in pairs(UnitDefNames) do
 		--Spring.Echo(name, unitDef.customParams)
 		if unitDef.customParams.raptorcustomsquad and unitDef.customParams.raptorcustomsquad == "1" then
 			local customSquadTable = {}
-			customSquadTable.units =
-				{ {
+			customSquadTable.units = {
+				{
 					count = tonumber(unitDef.customParams.raptorsquadunitsamount) or 1,
 					unit = name,
-				} }
+				},
+			}
 			customSquadTable.minAnger = tonumber(unitDef.customParams.raptorsquadminanger) or 0
 			customSquadTable.maxAnger = tonumber(unitDef.customParams.raptorsquadmaxanger) or 999
 			customSquadTable.weight = tonumber(unitDef.customParams.raptorsquadweight) or 1

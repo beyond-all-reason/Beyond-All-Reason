@@ -13436,8 +13436,7 @@ function widget:DrawScreenPost()
 	-- Feature 3: when the Tileset Terrain shader is active, the 4 splat channels
 	-- blend its 4 layers, so the swatches should preview those layer textures
 	-- instead of the map's DNTS normals. Re-run discovery whenever it flips.
-	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
-			and true
+	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) and true
 		or false
 	if tilesetActive ~= widgetState.spPreviewTilesetActive then
 		widgetState.spPreviewTilesetActive = tilesetActive
