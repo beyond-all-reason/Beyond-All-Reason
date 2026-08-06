@@ -24,12 +24,12 @@ local function processPositions(positions)
 end
 
 local function processOrders(orders)
-	for i, order in ipairs(orders) do
+	for _, order in ipairs(orders) do
 		local commandID = order[1]
 		if type(commandID) == 'string' then
 			local unitDef = UnitDefNames[commandID]
 			if unitDef then
-				orders[i] = { -unitDef.id, order[2], order[3] }
+				order[1] = -unitDef.id
 			end
 		end
 	end
