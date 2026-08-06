@@ -14,6 +14,16 @@ https://www.beyondallreason.info/guides
 
 ## Development Quick Start
 
+> **Fastest path — [BAR-Devtools](https://github.com/beyond-all-reason/BAR-Devtools):** one command sets up the engine, game repos, type checker, formatter, tests, and a local server in an isolated container.
+>
+> ```bash
+> git clone https://github.com/beyond-all-reason/BAR-Devtools.git
+> cd BAR-Devtools
+> just setup::init
+> ```
+>
+> Prefer to wire it up by hand? The manual steps below still work.
+
 Beyond All Reason (BAR), consists of 2 primary components, the lobby (Chobby - https://github.com/beyond-all-reason/BYAR-Chobby) and the game code itself (this repository).
 
 The game runs on top of the Recoil engine https://github.com/beyond-all-reason/spring.
@@ -47,6 +57,26 @@ Ensure that you have the correct path by looking for the file `Beyond-All-Reason
 7. (Optional, Advanced) If you want to run automated integration tests, see the [testing documentation](tools/headless_testing/README.md)
 
 More on the `.sdd` directory to run raw LUA and the structure expected by Spring Engine is [documented here](https://springrts.com/wiki/Gamedev:Structure).
+
+---
+
+## Bulk Migrations
+
+Large, repo-wide mechanical changes (indexing style, deprecated API renames, module namespacing) are applied as automated codemods maintained in [BAR-Devtools](https://github.com/beyond-all-reason/BAR-Devtools). A migration lands as one transform + format commit, so open branches must be replayed through the same transforms to merge cleanly.
+
+**After a migration lands on `master`, replay it onto your branch:**
+
+```bash
+just bar::fmt-mig                        # apply the codemod transforms + stylua
+git commit -am "apply code transforms"   # throwaway commit, squashed on merge
+git merge origin/master                  # only real conflicts remain
+```
+
+Maintainers regenerate the stacked branches/PRs with `just bar::fmt-mig-generate --update-prs`; the stack lands by merging **only the tip (`fmt-llm`)**.
+
+### Log
+
+- **2026-07 — Type-safety cleanup** — `t["x"]` -> `t.x` (valid identifiers only), deprecated `Spring.*` alias renames, `Spring.{Utilities,I18N,Debug,Lava,...}` -> `BAR.*` namespace, vendored LuaCATS test types, and an LLM-assisted type-error triage. Turns on the EmmyLua type-check CI gate.
 
 ---
 
