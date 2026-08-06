@@ -228,6 +228,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	dispatchTriggerCallin('UnitCreated', unitID, unitDefID, unitTeam, builderID)
 end
 
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+	dispatchTriggerCallin('UnitCommand', unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	dispatchTriggerCallin('UnitDestroyed', unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
