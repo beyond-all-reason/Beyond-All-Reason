@@ -297,12 +297,41 @@ local function getFootprintData(unitDefID, facing)
 	return footprint
 end
 
+local function addQueuedBuildFootprint(unitDefID, x, z, facing)
+	local queuedFootprint = getFootprintData(unitDefID, facing or 0)
+	if not queuedFootprint then
+		return
+	end
+	queuedBuildFootprintCount = queuedBuildFootprintCount + 1
+	local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
+	queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
+	queuedBuildFootprint.minX = x - queuedFootprint.halfXsize * SQUARE_SIZE
+	queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
+	queuedBuildFootprint.minZ = z - queuedFootprint.halfZsize * SQUARE_SIZE
+	queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
+end
+
 local function updateQueuedBuildFootprints(gameFrame)
-	if queuedBuildFootprintsGameFrame == gameFrame then
+	if gameFrame > 0 and queuedBuildFootprintsGameFrame == gameFrame then
 		return
 	end
 	queuedBuildFootprintsGameFrame = gameFrame
 	queuedBuildFootprintCount = 0
+
+	if gameFrame <= 0 then
+		local pregameBuild = WG["pregame-build"]
+		local getBuildQueue = pregameBuild and pregameBuild.getBuildQueue
+		local buildQueue = getBuildQueue and getBuildQueue()
+		if buildQueue then
+			for queueIndex = 1, #buildQueue do
+				local buildData = buildQueue[queueIndex]
+				if buildData[1] and buildData[2] and buildData[4] then
+					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5])
+				end
+			end
+		end
+		return
+	end
 
 	local selectedUnits = spGetSelectedUnits()
 	for selectedIndex = 1, #selectedUnits do
@@ -313,16 +342,7 @@ local function updateQueuedBuildFootprints(gameFrame)
 				local commandID = command.id
 				local params = command.params
 				if commandID < 0 and params and params[1] and params[3] then
-					local queuedFootprint = getFootprintData(-commandID, params[4] or 0)
-					if queuedFootprint then
-						queuedBuildFootprintCount = queuedBuildFootprintCount + 1
-						local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
-						queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
-						queuedBuildFootprint.minX = params[1] - queuedFootprint.halfXsize * SQUARE_SIZE
-						queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
-						queuedBuildFootprint.minZ = params[3] - queuedFootprint.halfZsize * SQUARE_SIZE
-						queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
-					end
+					addQueuedBuildFootprint(-commandID, params[1], params[3], params[4])
 				end
 			end
 		end
