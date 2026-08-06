@@ -48,7 +48,7 @@ function gadget:GameFrame(frame)
     ---------------
     -- Resourcing
     ---------------
-    if frame%30 == 21 then
+    if frame % Game.gameSpeed == 21 then
         if resourcing.active then
             for teamID, amount in pairs(resourcing.metalPerSecond) do
                 if amount then
