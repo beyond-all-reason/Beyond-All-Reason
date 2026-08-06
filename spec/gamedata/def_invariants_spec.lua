@@ -301,7 +301,7 @@ describe("UnitDefs invariants", function()
 				if not state or state % 1 ~= 0 or state < 0 or state > 3 then
 					bad[#bad + 1] = name .. " firestateoncloak = " .. tostring(raw)
 				end
-				if not def.cancloak and type(def.cloakcost) ~= "number" then
+				if not def.cancloak and (tonumber(def.cloakcost) or 0) <= 0 then
 					bad[#bad + 1] = name .. " sets firestateoncloak but cannot cloak"
 				end
 			end
@@ -625,7 +625,8 @@ describe("UnitDefs invariants", function()
 	end)
 
 	-- weapontype DGun is how the commander D-gun is declared; the engine derives manualFire from it.
-	local manualFireExempt = { armcom = true, armcom_scav = true, dummycom = true, dummycom_scav = true }
+	-- dummycom is the pregame placeholder for a random faction choice and ships no weapondefs at all.
+	local manualFireExempt = { dummycom = true, dummycom_scav = true }
 
 	it("backs canmanualfire with a manual fire weapon", function()
 		local bad = {}
