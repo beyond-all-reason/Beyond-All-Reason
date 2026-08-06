@@ -168,8 +168,8 @@ for unitDefID, defs in pairs(UnitDefs) do
 end
 
 local sameTeamColors = false
-if WG["playercolorpalette"] ~= nil and WG["playercolorpalette"].getSameTeamColors ~= nil then
-	sameTeamColors = WG["playercolorpalette"].getSameTeamColors()
+if WG.playercolorpalette ~= nil and WG.playercolorpalette.getSameTeamColors ~= nil then
+	sameTeamColors = WG.playercolorpalette.getSameTeamColors()
 end
 
 --------------------------------------------------------------------------------
@@ -476,7 +476,7 @@ function widget:Update(dt)
 	-- Check color palette changes less frequently (every 0.5 seconds instead of every frame)
 	if colorCheckSec > 0.5 then
 		colorCheckSec = 0
-		local playerColorPalette = WG["playercolorpalette"]
+		local playerColorPalette = WG.playercolorpalette
 		if playerColorPalette ~= nil then
 			local getSameTeamColors = playerColorPalette.getSameTeamColors
 			if getSameTeamColors and sameTeamColors ~= getSameTeamColors() then

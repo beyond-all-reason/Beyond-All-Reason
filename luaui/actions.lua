@@ -220,8 +220,8 @@ function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
 	end
 
 	for _, bAction in ipairs(actions) do
-		local cmd = bAction["command"]
-		local extra = bAction["extra"]
+		local cmd = bAction.command
+		local extra = bAction.extra
 		local words = string.split(extra)
 
 		if TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions, key, scanCode) then

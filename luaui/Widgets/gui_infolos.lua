@@ -202,9 +202,9 @@ function widget:Initialize()
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5
 
-	WG["infolosapi"] = {}
-	WG["infolosapi"].GetInfoLOSTexture = GetInfoLOSTexture
-	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG["infolosapi"].GetInfoLOSTexture)
+	WG.infolosapi = {}
+	WG.infolosapi.GetInfoLOSTexture = GetInfoLOSTexture
+	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG.infolosapi.GetInfoLOSTexture)
 end
 
 function widget:Shutdown()
@@ -212,7 +212,7 @@ function widget:Shutdown()
 		gl.DeleteTexture(tex)
 	end
 	infoTextures = {}
-	WG["infolosapi"] = nil
+	WG.infolosapi = nil
 	widgetHandler:DeregisterGlobal("GetInfoLOSTexture")
 end
 

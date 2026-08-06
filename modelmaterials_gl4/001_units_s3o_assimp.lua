@@ -375,24 +375,24 @@ local cusUnitMaterials = GG.CUS.unitMaterialDefs
 local unitMaterials = {}
 
 local wreckAtlases = {
-	["arm"] = {
+	arm = {
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	cor = {
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
 	},
 }
 local wreckAtlases = {
-	["arm"] = {
+	arm = {
 		"unittextures/Arm_wreck_color.dds",
 		"unittextures/Arm_wreck_other.dds",
 		"unittextures/Arm_wreck_color_normal.dds",
 	},
-	["cor"] = {
+	cor = {
 		"unittextures/cor_color_wreck.dds",
 		"unittextures/cor_other_wreck.dds",
 		"unittextures/cor_color_wreck_normal.dds",
@@ -414,7 +414,7 @@ for id = 1, #UnitDefs do
 
 		local wreckAtlas = wreckAtlases[facName]
 
-		if udef.modCategories["tank"] then
+		if udef.modCategories.tank then
 			if facName == "arm" then
 				unitMaterials[id] = {
 					"unitsNormalMapArmTanks",

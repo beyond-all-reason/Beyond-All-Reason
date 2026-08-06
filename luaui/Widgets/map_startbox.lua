@@ -277,8 +277,8 @@ end
 
 local function createCommanderNameList(name, teamID)
 	commanderNameList[teamID] = {}
-	commanderNameList[teamID]["name"] = name
-	commanderNameList[teamID]["list"] = gl.CreateList(function()
+	commanderNameList[teamID].name = name
+	commanderNameList[teamID].list = gl.CreateList(function()
 		local x, y = 0, 0
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
@@ -316,15 +316,15 @@ local function drawName(x, y, name, teamID)
 		return
 	end
 
-	if commanderNameList[teamID] == nil or commanderNameList[teamID]["name"] ~= name then
+	if commanderNameList[teamID] == nil or commanderNameList[teamID].name ~= name then
 		if commanderNameList[teamID] ~= nil then
-			gl.DeleteList(commanderNameList[teamID]["list"])
+			gl.DeleteList(commanderNameList[teamID].list)
 		end
 		createCommanderNameList(name, teamID)
 	end
 	glPushMatrix()
 	glTranslate(mathFloor(x), mathFloor(y), 0)
-	glCallList(commanderNameList[teamID]["list"])
+	glCallList(commanderNameList[teamID].list)
 	glPopMatrix()
 end
 
@@ -432,7 +432,7 @@ end
 
 local allSpawnPositions = {}
 local function notifySpawnPositionsChanged()
-	if not WG["quick_start_updateSpawnPositions"] then
+	if not WG.quick_start_updateSpawnPositions then
 		return
 	end
 
@@ -450,7 +450,7 @@ local function notifySpawnPositionsChanged()
 			end
 		end
 	end
-	WG["quick_start_updateSpawnPositions"](allSpawnPositions)
+	WG.quick_start_updateSpawnPositions(allSpawnPositions)
 end
 
 function widget:LanguageChanged()
@@ -578,8 +578,8 @@ local function DrawStartPolygons(inminimap)
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
@@ -1063,8 +1063,8 @@ function widget:Initialize()
 
 	tooCloseToSpawn = Spring.GetGameRulesParam("tooCloseToSpawn") or 350
 
-	WG["map_startbox"] = {}
-	WG["map_startbox"].GetEffectiveStartPosition = getEffectiveStartPosition
+	WG.map_startbox = {}
+	WG.map_startbox.GetEffectiveStartPosition = getEffectiveStartPosition
 
 	updateTeamList()
 	assignTeamColors()
@@ -1125,7 +1125,7 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 	gl.DeleteFont(shadowFont)
-	WG["map_startbox"] = nil
+	WG.map_startbox = nil
 end
 
 --------------------------------------------------------------------------------
@@ -1235,7 +1235,7 @@ function widget:DrawInMiniMap(sx, sz)
 	end
 
 	-- Check if we're being called from PIP minimap
-	local inPip = WG["minimap"] and WG["minimap"].isDrawingInPip
+	local inPip = WG.minimap and WG.minimap.isDrawingInPip
 
 	DrawStartPolygons(true)
 	DrawStartUnitIcons(sx, sz, inPip)
@@ -1305,10 +1305,10 @@ function widget:Update(delta)
 			and not amPlaced
 			and not playedChooseStartLoc
 			and placeVoiceNotifTimer < os.clock()
-			and WG["notifications"]
+			and WG.notifications
 		then
 			playedChooseStartLoc = true
-			WG["notifications"].addEvent("ChooseStartLoc", true)
+			WG.notifications.addEvent("ChooseStartLoc", true)
 		end
 	end
 

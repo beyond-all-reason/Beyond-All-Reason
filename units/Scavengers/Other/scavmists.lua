@@ -21,7 +21,7 @@ local lvlParams = {
 		landturretburst = 4, --same here
 		waterburst = 8, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
-	["xl"] = {
+	xl = {
 		autoheal = 250,
 		buildtime = 17000,
 		explodeas = "", --"mistexploxl",
@@ -43,7 +43,7 @@ local lvlParams = {
 		landturretburst = 4, --same here
 		waterburst = 10, --remember, around 50% actually ends up spawning on average due to burnblow+sprayangle interaction
 	},
-	["xxl"] = {
+	xxl = {
 		autoheal = 500,
 		buildtime = 25500,
 		explodeas = "", --"mistexploxxl",

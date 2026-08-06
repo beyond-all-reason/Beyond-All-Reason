@@ -1,5 +1,5 @@
 return {
-	["blacksmoke"] = {
+	blacksmoke = {
 		dirtg = {
 			air = true,
 			class = [[CSimpleParticleSystem]],

@@ -1,7 +1,7 @@
 -- "missiletrailcorroyspecial"
 
 return {
-	["missiletrailmship"] = {
+	missiletrailmship = {
 		engine = {
 			air = true,
 			class = [[CBitmapMuzzleFlame]],
@@ -81,7 +81,7 @@ return {
 		},
 	},
 
-	["missiletrailcorroyspecial"] = {
+	missiletrailcorroyspecial = {
 		smoke = {
 			air = true,
 			class = [[CSimpleParticleSystem]],
