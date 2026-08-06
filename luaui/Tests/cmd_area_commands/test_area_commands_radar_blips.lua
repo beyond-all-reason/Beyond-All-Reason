@@ -96,8 +96,8 @@ function test()
 
 	assert(isInCylinder(bx, bz, 200, Spring.ENEMY_UNITS, blipID), "radar-only blips excluded from spatial search")
 
-	assert(Spring.GetUnitDefID(blipID) == nil, ("unitDefID should be nil, got %q"):format(Spring.GetUnitDefID(blipID)))
-	assert(Spring.GetUnitDefID(neutralBlipID) == nil, ("unitDefID should be nil, got %q"):format(Spring.GetUnitDefID(neutralBlipID)))
+	assert(Spring.GetUnitDefID(blipID) == nil, "blipDefID should be nil")
+	assert(Spring.GetUnitDefID(neutralBlipID) == nil, "neutralBlipDefID should be nil")
 	assert(Spring.GetUnitDefID(typedID) ~= nil, "unitDefID should be non-nil when a radar blip has been seen before")
 
 	assert(Spring.GetUnitNeutral(neutralBlipID) == true, "GetUnitNeutral should read true on a neutral radar blip")
