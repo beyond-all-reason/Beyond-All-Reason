@@ -28,9 +28,7 @@ GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond
     end
     resourcing.metalPerSecond[teamID] = resourcing.metalPerSecond[teamID] + metalPerSecond
 
-    if not resourcing.active then
-        resourcing.active = true
-    end
+    resourcing.active = true
 end
 
 GG["MissionAPIActionHelper"].addEnergyPerSecond = function(teamID, energyPerSecond)
