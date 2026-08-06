@@ -51,6 +51,18 @@ return {
 				object = "Units/leganavaldefturret_dead.s3o",
 				reclaimable = true,
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 6300,
+				footprintx = 5,
+				footprintz = 5,
+				height = 4,
+				metal = 312,
+				object = "Units/cor5X5C.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+			},
 		},
 		sfxtypes = {
 			explosiongenerators = {
