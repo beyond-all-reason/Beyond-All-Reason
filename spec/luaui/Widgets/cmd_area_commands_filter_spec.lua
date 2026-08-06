@@ -350,11 +350,11 @@ local function hasShift(opts)
 	return false
 end
 
-local AREA_RADIUS = 10000
-local ENTIRE_AREA = { 0, 0, 0, 10000 } -- big
+local AREA_RADIUS = 1000
+local INSIDE_AREA = { 0, 0, 0, AREA_RADIUS } -- big
 
 local function notify(env, cmdId, options)
-	return env.widget:CommandNotify(cmdId, ENTIRE_AREA, options)
+	return env.widget:CommandNotify(cmdId, INSIDE_AREA, options)
 end
 
 -- ============================================================
@@ -525,7 +525,7 @@ describe("cmd_area_commands_filter", function()
 
 		it("keeps a neutral blip on Ctrl when hovered is neutral", function()
 			local c = newContext()
-			c:addUnit(1, "armpw", { team = 0, x = 5000 })
+			c:addUnit(1, "armpw", { team = 0, x = 2 * AREA_RADIUS })
 			c:addUnit(10, "armdrag", { team = 1, x = 5, neutral = true })
 			c:addUnit(11, blipName, { team = 1, x = 10, neutral = true })
 			c:addUnit(12, "corak", { team = 1, x = 15 })
@@ -538,7 +538,7 @@ describe("cmd_area_commands_filter", function()
 
 		it("drops a hostile blip on Ctrl when hovered is neutral", function()
 			local c = newContext()
-			c:addUnit(1, "armpw", { team = 0, x = 5000 })
+			c:addUnit(1, "armpw", { team = 0, x = 2 * AREA_RADIUS })
 			c:addUnit(10, "armdrag", { team = 1, x = 5, neutral = true })
 			c:addUnit(11, blipName, { team = 1, x = 10 })
 			c:select(1)
@@ -645,7 +645,7 @@ describe("cmd_area_commands_filter", function()
 
 		it("protects allies on Reclaim hovering your own units (targets MY_UNITS)", function()
 			local c = newContext()
-			c:addUnit(1, "armpw", { team = 0, x = 5000 })
+			c:addUnit(1, "armpw", { team = 0, x = 2 * AREA_RADIUS })
 			c:addUnit(2, "armpw", { team = 0, x = 5 })
 			c:addUnit(3, "corak", { team = 2, x = 10 })
 			c:select(1)
