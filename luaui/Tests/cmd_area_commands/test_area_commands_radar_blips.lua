@@ -12,7 +12,8 @@
       because IsUnitVisible includes INRADAR.
    2. Spring.GetUnitDefID(blip) is nil for an unseen blip (IsUnitTyped).
    3. It is non-nil for a unit that was seen, then tracked (PREVLOS+CONTRADAR).
- 
+   4. Spring.GetUnitNeutral reads unit neutrality with INRADAR, untyped.
+
  TraceScreenRay hits a radar blip or a unit icon but not a unit ghost.
  It uses GuiTraceRay with useRadar=true so treats blips as icon spheres.
  
@@ -20,9 +21,6 @@
  
  Of the above, maybe the trace will change? Maybe ghosts will become real?
 ]]
-
-local ATTACKER_DEF = "armpw"
-local ENEMY_DEF = "armpw"
 
 function skip()
 	return Spring.GetGameFrame() <= 0
@@ -38,17 +36,10 @@ end
 
 -- Together with SetUnitLosMask, we can force exact LOS bits. Without this, the bits are replaced.
 local function forceLosState(unitID, allyTeam, state)
-	SyncedRun(
-		function(locals)
-			Spring.SetUnitLosMask(
-				locals.unitID, locals.allyTeam,
-				{ los = true, radar = true, prevLos = true, contRadar = true }
-			)
-			Spring.SetUnitLosState(locals.unitID, locals.allyTeam, locals.state)
-		end,
-		50,
-		{ unitID = unitID, allyTeam = allyTeam, state = state }
-	)
+	SyncedRun(function(locals)
+		Spring.SetUnitLosMask(locals.unitID, locals.allyTeam, { los = true, radar = true, prevLos = true, contRadar = true })
+		Spring.SetUnitLosState(locals.unitID, locals.allyTeam, locals.state)
+	end)
 end
 
 local function isInCylinder(cx, cz, radius, allegiance, unitID)
@@ -61,46 +52,50 @@ local function isInCylinder(cx, cz, radius, allegiance, unitID)
 	return false
 end
 
+local function spawn(def, teamID, x, z, neutral)
+	-- Not `return SyncedRun(...)` to avoid dropping the locals? I think?
+	local unitID = SyncedRun(function(locals)
+		local y = Spring.GetGroundHeight(locals.x, locals.z)
+		local id = Spring.CreateUnit(locals.def, locals.x, y, locals.z, "south", locals.teamID)
+		if id and locals.neutral then
+			Spring.SetUnitNeutral(id, true)
+		end
+		return id
+	end)
+	return unitID
+end
+
 function test()
+	local def = "armpw"
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local myTeamID = Spring.GetMyTeamID()
 	local enemyTeamID = Spring.GetGaiaTeamID() -- arbitrary choice
 
-	-- Check outside the attacker's sight distance so the only visibility is what we force.
+	-- Place enemies outside the attacker's sight so only forced LOS is visible.
 	local ax, az = Game.mapSizeX / 2, Game.mapSizeZ / 2
-	local ex, ez = ax + 1000, az
-	local tx, tz = ax + 1000, az + 120
+	local bx, bz = ax + 1000, az
 
-	local attackerID = SyncedRun(function(locals)
-		local y = Spring.GetGroundHeight(locals.ax, locals.az)
-		return Spring.CreateUnit(locals.def, locals.ax, y, locals.az, "south", locals.myTeamID)
-	end, 50, { def = ATTACKER_DEF, ax = ax, az = az, myTeamID = myTeamID })
-	assert(attackerID, "failed to create attacker")
-
-	local blipID = SyncedRun(function(locals)
-		local y = Spring.GetGroundHeight(locals.ex, locals.ez)
-		return Spring.CreateUnit(locals.def, locals.ex, y, locals.ez, "south", locals.enemyTeamID)
-	end, 50, { def = ENEMY_DEF, ex = ex, ez = ez, enemyTeamID = enemyTeamID })
-	assert(blipID, "failed to create unseen radar blip")
-
-	local typedID = SyncedRun(function(locals)
-		local y = Spring.GetGroundHeight(locals.tx, locals.tz)
-		return Spring.CreateUnit(locals.def, locals.tx, y, locals.tz, "south", locals.enemyTeamID)
-	end, 50, { def = ENEMY_DEF, tx = tx, tz = tz, enemyTeamID = enemyTeamID })
-	assert(typedID, "failed to create typed radar blip")
+	local attackerID = spawn(def, myTeamID, ax, az)
+	local blipID = spawn(def, enemyTeamID, bx, bz) -- unseen radar blip
+	local neutralBlipID = spawn(def, enemyTeamID, ax + 1000, az - 120, true) -- unseen neutral blip
+	local typedID = spawn(def, enemyTeamID, ax + 1000, az + 120) -- seen, then radar
+	assert(attackerID and blipID and typedID and neutralBlipID, "failed to create units")
 
 	forceLosState(blipID, myAllyTeamID, { los = false, radar = true, prevLos = false, contRadar = false })
 	forceLosState(typedID, myAllyTeamID, { los = false, radar = true, prevLos = true, contRadar = true })
+	forceLosState(neutralBlipID, myAllyTeamID, { los = false, radar = true, prevLos = false, contRadar = false })
 
 	Test.waitFrames(5) -- begin actual scenario test --
 
 	assert(not Spring.GetSpectatingState(), "test must run as a player")
 
-	assert(isInCylinder(ex, ez, 200, Spring.ENEMY_UNITS, blipID), "radar-only blips excluded from spatial search")
+	assert(isInCylinder(bx, bz, 200, Spring.ENEMY_UNITS, blipID), "radar-only blips excluded from spatial search")
 
 	assert(Spring.GetUnitDefID(blipID) == nil, "unitDefID should be nil, got " .. tostring(Spring.GetUnitDefID(blipID)))
-
+	assert(Spring.GetUnitDefID(neutralBlipID) == nil, "unitDefID should be nil, got " .. tostring(Spring.GetUnitDefID(neutralBlipID)))
 	assert(Spring.GetUnitDefID(typedID) ~= nil, "unitDefID should be non-nil when a radar blip has been seen before")
+
+	assert(Spring.GetUnitNeutral(neutralBlipID) == true, "GetUnitNeutral should read true on a neutral radar blip")
 
 	Spring.GiveOrderToUnit(attackerID, CMD.ATTACK, { blipID }, 0)
 	Test.waitFrames(5)
