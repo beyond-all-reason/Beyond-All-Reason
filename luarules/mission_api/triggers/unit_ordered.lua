@@ -20,7 +20,7 @@ local CMD_BUILD  = CMD.BUILD
 -- The semantics remain correct (the unit was so-ordered), but the command may be dropped.
 
 local function matchesCommand(command, cmdID, cmdParams)
-	return (command == CMD_ANY)
+	return (command == CMD_ANY and cmdID)
 		or (command == CMD_BUILD and cmdID < 0)
 		or (cmdID == command)
 		or (cmdID == CMD_INSERT and cmdParams and matchesCommand(command, cmdParams[2]))
