@@ -1631,8 +1631,6 @@
 				"gridmenu_shiftkeymodifier_descr": "When holding down shift key and using hotkeys to queue units, queue this many units.",
 				"keylayout": "Keyboard Layout",
 				"keylayout_descr": "Set the keyboard layout",
-				"keybindings": "Keybind Preset",
-				"keybindings_descr": "Set the keybind preset. Buildmenu will automatically change to match preset, unless custom is chosen",
 				"buildmenu": "Build menu",
 				"buildmenu_bottom": "bottom position",
 				"buildmenu_bottom_descr": "Relocate the buildmenu to the bottom of the screen",
