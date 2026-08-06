@@ -703,4 +703,57 @@ describe("UnitDefs invariants", function()
 
 		assert.same({}, bad)
 	end)
+
+	local function withoutScavSuffix(name)
+		return (name:gsub("_scav$", ""))
+	end
+
+	-- These nine and their scavenger copies point at a heap they never define, so the
+	-- reference stays unqualified and lands on the global heap feature instead. Listed
+	-- in issue 8630; drop each name as its wreck chain is fixed.
+	local danglingFeaturedead = {
+		armanavaldefturret = true,
+		armhasy = true,
+		armnavaldefturret = true,
+		coranavaldefturret = true,
+		corhasy = true,
+		cornavaldefturret = true,
+		leganavaldefturret = true,
+		legfmg = true,
+		legnavaldefturret = true,
+	}
+
+	it("points featuredead at a wreck the same unit defines", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local features = def.featuredefs or {}
+			if not danglingFeaturedead[withoutScavSuffix(name)] then
+				for key, feature in pairs(features) do
+					local target = type(feature) == "table" and feature.featuredead
+					if target and not features[tostring(target):lower()] then
+						bad[#bad + 1] = name .. "." .. key .. " -> " .. tostring(target)
+					end
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	-- legmohoconin names a wreck while defining no featuredefs at all. Listed in issue 8630.
+	local danglingCorpse = { legmohoconin = true }
+
+	it("points corpse at a featuredef the unit defines", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local corpse = def.corpse
+			if corpse ~= nil and corpse ~= "" and not danglingCorpse[withoutScavSuffix(name)] then
+				if not (def.featuredefs or {})[tostring(corpse):lower()] then
+					bad[#bad + 1] = name .. " corpse -> " .. tostring(corpse)
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
 end)
