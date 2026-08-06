@@ -7,13 +7,27 @@
 -- shape the engine round-trips.
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
+local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local ACTIVE_FILE = "uikeys.txt"
 local STORE_VERSION = 1
 
--- The shipped presets a player can select but not edit; editing forks a profile.
-local builtins = {
-	{ name = "Grid", file = "luaui/configs/hotkeys/grid_keys.txt" },
-	{ name = "Grid (60% Keyboard)", file = "luaui/configs/hotkeys/grid_keys_60pct.txt" },
+-- The shipped profiles a player can select but not edit; editing forks a copy. They
+-- carry binds rather than a file path so every surface reads one shape, and applying
+-- one takes the same path as applying a player's own profile.
+local builtins = {}
+do
+	local ok, decoded = pcall(Json.decode, VFS.LoadFile(DEFAULTS_PATH))
+	if ok and type(decoded) == "table" and type(decoded.profiles) == "table" then
+		builtins = decoded.profiles
+	else
+		Spring.Echo("[keybind_profiles] could not load " .. DEFAULTS_PATH .. "; no built-in profiles")
+	end
+end
+
+-- Only for upgrades: the preset a player was on is recorded as a bind-file path.
+local legacyPresetNames = {
+	["luaui/configs/hotkeys/grid_keys.txt"] = "Grid",
+	["luaui/configs/hotkeys/grid_keys_60pct.txt"] = "Grid (60% Keyboard)",
 }
 
 local store
@@ -120,21 +134,11 @@ end
 
 -- Players upgrading from the old preset picker keep what they had: whatever is live
 -- becomes a profile, so removing Legacy does not silently reset anyone.
-local function builtinByFile(file)
-	for _, b in ipairs(builtins) do
-		if b.file == file then
-			return b
-		end
-	end
-
-	return nil
-end
-
 local function migrate()
 	store = emptyStore()
 
 	-- Already on a preset that survives the change; it stays selectable as a builtin.
-	if builtinByFile(Spring.GetConfigString("KeybindingFile", "")) then
+	if legacyPresetNames[Spring.GetConfigString("KeybindingFile", "")] then
 		return
 	end
 
@@ -275,7 +279,7 @@ end
 
 -- Write a profile out where the engine can keyreload it, and return that path.
 function M.materialize(name)
-	local profile = M.get(name)
+	local profile = M.get(name) or M.isBuiltin(name)
 	if not profile then
 		return nil
 	end
