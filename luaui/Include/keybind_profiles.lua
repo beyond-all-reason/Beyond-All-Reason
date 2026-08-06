@@ -137,11 +137,19 @@ end
 local function migrate()
 	store = emptyStore()
 
+	local configured = Spring.GetConfigString("KeybindingFile", "")
+
 	-- Already on a preset that survives the change; it stays selectable as a builtin.
-	local survivor = legacyPresetNames[Spring.GetConfigString("KeybindingFile", "")]
+	local survivor = legacyPresetNames[configured]
 	if survivor then
 		store.active = survivor
 		M.save()
+		return
+	end
+
+	-- Never picked one, so there is nothing of the player's to carry over and the
+	-- live bindings are just engine defaults.
+	if configured == "" then
 		return
 	end
 
@@ -215,6 +223,16 @@ function M.getActive()
 	M.load()
 
 	return store.active
+end
+
+-- The selection, or the first shipped profile when it is missing or stale.
+function M.activeName()
+	local active = M.getActive()
+	if active and (M.get(active) or M.isBuiltin(active)) then
+		return active
+	end
+
+	return builtins[1] and builtins[1].name or nil
 end
 
 function M.setActive(name)

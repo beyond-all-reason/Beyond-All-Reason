@@ -86,23 +86,13 @@ local function buildPresetOptions()
 	return presetOptions
 end
 
--- Falls back to the first shipped profile so the picker always has a selection.
-local function currentProfileName()
-	local active = profiles.getActive()
-	if active and (profiles.get(active) or profiles.isBuiltin(active)) then
-		return active
-	end
-
-	return profiles.builtins[1] and profiles.builtins[1].name or nil
-end
-
 -- Shipped profiles can be copied but not renamed or deleted.
 local function activeIsOwn()
-	return profiles.get(currentProfileName()) ~= nil
+	return profiles.get(profiles.activeName()) ~= nil
 end
 
 local function currentPresetIndex()
-	local name = currentProfileName()
+	local name = profiles.activeName()
 	for i = 1, #presetOptions do
 		if presetOptions[i].name == name then
 			return i
@@ -309,7 +299,7 @@ local function persistEdits()
 	end
 	edited = false
 
-	local profile = profiles.get(currentProfileName())
+	local profile = profiles.get(profiles.activeName())
 	if profile then
 		profile.binds = profiles.snapshotLive()
 		profiles.save()
@@ -340,7 +330,7 @@ end
 -- A shipped profile is read-only, so the first edit made while one is selected forks
 -- it: the player never has to pick "make a copy" before changing a key.
 local function forkIfShipped()
-	local name = currentProfileName()
+	local name = profiles.activeName()
 	if profiles.get(name) then
 		return
 	end
@@ -360,7 +350,7 @@ end
 switchToPreset = function(opt)
 	persistEdits()
 
-	local fromName = currentProfileName()
+	local fromName = profiles.activeName()
 	if not profiles.materialize(opt.name) then
 		return
 	end
@@ -400,7 +390,7 @@ local function acceptDialog()
 end
 
 local function startCopy()
-	local from = currentProfileName()
+	local from = profiles.activeName()
 	openDialog({
 		title = L.copyTitle,
 		initial = profiles.uniqueName(from),
@@ -419,7 +409,7 @@ local function startCopy()
 end
 
 local function startRename()
-	local from = currentProfileName()
+	local from = profiles.activeName()
 	openDialog({
 		title = L.renameTitle,
 		initial = from,
@@ -431,7 +421,7 @@ local function startRename()
 end
 
 local function startDelete()
-	local name = currentProfileName()
+	local name = profiles.activeName()
 	openDialog({
 		title = L.delete,
 		message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
@@ -441,7 +431,7 @@ local function startDelete()
 
 			-- Whatever the store fell back to has to be made live; the deleted profile
 			-- is still what the engine has loaded.
-			local nextName = currentProfileName()
+			local nextName = profiles.activeName()
 			profiles.setActive(nextName)
 			profiles.materialize(nextName)
 			refreshPicker()
