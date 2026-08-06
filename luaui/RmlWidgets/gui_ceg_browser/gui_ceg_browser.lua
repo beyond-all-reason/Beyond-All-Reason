@@ -21,13 +21,13 @@ end
 
 function widget:GetInfo()
     return {
-        name    = "CEG Browser",
+        name    = "CEG Effects Browser", -- renamed cause it was default enabled and a rename is like a reset to a new default!
         desc    = "RmlUi CEG Browser -- browse, filter and preview Core Effect Generators and sounds in-game",
         author  = "Steel",
         date    = "2026",
         license = "GNU GPL, v2 or later",
         layer   = 0,
-        enabled = true,
+        enabled = false,
     }
 end
 
