@@ -59,6 +59,7 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 -- then the midpoint, then midpoints of each half, bisecting inward. Each spot greedily
 -- takes the nearest unassigned unit. Toggled via Settings > Control ("Edge-in line formations").
 local edgeInAssignment = false
+local maxEdgeInUnits = 250 -- Max units edge-in may sort in one go (O(n2) greedy); NoX handles bigger drags. Configurable.
 
 -- Alpha loss per second after releasing mouse
 local lineFadeRate = 2.0
@@ -682,7 +683,7 @@ function widget:MouseRelease(mx, my, mButton)
                 local interpNodes = GetInterpNodes(mUnits)
 
                 local orders
-                if edgeInAssignment then
+                if edgeInAssignment and (#mUnits <= maxEdgeInUnits) then
                     orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shift and not meta)
                 elseif (#mUnits <= maxHungarianUnits) then
                     orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -1643,7 +1644,7 @@ function widget:Initialize()
 				if #mUnits > 0 then
 					local interpNodes = GetInterpNodes(mUnits)
 					local orders
-					if edgeInAssignment then
+					if edgeInAssignment and #mUnits <= maxEdgeInUnits then
 						orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shift and not meta)
 					elseif #mUnits <= maxHungarianUnits then
 						orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -1740,7 +1741,7 @@ function widget:Initialize()
             end
             local interpNodes = GetInterpNodes(mUnits)
             local orders
-            if edgeInAssignment then
+            if edgeInAssignment and #mUnits <= maxEdgeInUnits then
                 orders = GetOrdersEdgeIn(interpNodes, mUnits, #mUnits, shifted)
             elseif #mUnits <= maxHungarianUnits then
                 orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)
