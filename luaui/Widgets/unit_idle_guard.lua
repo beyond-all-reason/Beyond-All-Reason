@@ -14,7 +14,7 @@ end
 
 local CMD_GUARD = CMD.GUARD
 local OPT_SHIFT = CMD.OPT_SHIFT
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID

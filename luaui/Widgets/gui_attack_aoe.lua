@@ -36,7 +36,7 @@ local rad = math.rad
 
 local osClock = os.clock
 
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetCameraPosition = Spring.GetCameraPosition

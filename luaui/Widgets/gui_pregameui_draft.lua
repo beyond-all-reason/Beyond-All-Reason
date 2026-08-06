@@ -33,8 +33,8 @@ local font =
 	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
-local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetLocalPlayerID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local isFFA = Spring.Utilities.Gametype.IsFFA()
 local isReplay = Spring.IsReplay()
@@ -990,7 +990,7 @@ function widget:GameSetup(state, ready, playerStates)
 	if
 		not spec
 		and not ihavejoined
-		and Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") == nil
+		and Spring.GetGameRulesParam("player_" .. Spring.GetLocalPlayerID() .. "_joined") == nil
 	then
 		Spring.SendLuaRulesMsg("joined_game")
 		ihavejoined = true

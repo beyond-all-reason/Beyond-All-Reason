@@ -160,7 +160,7 @@ if gadgetHandler:IsSyncedCode() then
 else -- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetUnitLosState = Spring.GetUnitLosState
-	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local GetMyAllyTeamID = Spring.GetLocalAllyTeamID
 	local SetUnitNoGroup = Spring.SetUnitNoGroup
 
 	local function notifyCrashingAircraft(unitID, unitDefID, unitTeam)
