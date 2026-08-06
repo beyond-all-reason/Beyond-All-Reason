@@ -45,7 +45,7 @@ local hasBadCulling = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Li
 
 local spGetUnitTeam = Spring.GetUnitTeam
 
-local myTeamID = Spring.GetMyTeamID()
+local myTeamID = Spring.GetLocalTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}

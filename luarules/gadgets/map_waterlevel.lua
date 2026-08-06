@@ -158,7 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else -- UNSYNCED
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
 		local acID = Spring.Utilities.GetAccountID(myPlayerID)

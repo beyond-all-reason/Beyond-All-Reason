@@ -26,7 +26,7 @@ local mathMax = math.max
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 
 ---------------------------
@@ -471,7 +471,7 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
 local myTeamID = spGetMyTeamID()
 
 --------------------------------------------------------------------------------
@@ -1047,7 +1047,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, { direction = 1 }, "pt")
 	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, { direction = -1 }, "pt")
 
-	myAllyTeam = Spring.GetMyAllyTeamID()
+	myAllyTeam = Spring.GetLocalAllyTeamID()
 	myTeamID = spGetMyTeamID()
 
 	updateSelection = true
