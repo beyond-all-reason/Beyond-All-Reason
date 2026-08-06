@@ -208,16 +208,16 @@ function widget:Initialize()
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5
 
-	WG["api_los_combiner"] = {}
-	WG["api_los_combiner"].GetInfoLOSTexture = GetInfoLOSTexture
-	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG["api_los_combiner"].GetInfoLOSTexture)
+	WG.api_los_combiner = {}
+	WG.api_los_combiner.GetInfoLOSTexture = GetInfoLOSTexture
+	widgetHandler:RegisterGlobal("GetInfoLOSTexture", WG.api_los_combiner.GetInfoLOSTexture)
 end
 
 function widget:Shutdown()
 	for i, infoTexture in pairs(infoTextures) do
 		gl.DeleteTexture(infoTexture)
 	end
-	WG["api_los_combiner"] = nil
+	WG.api_los_combiner = nil
 	widgetHandler:DeregisterGlobal("GetInfoLOSTexture")
 end
 
@@ -257,7 +257,7 @@ if autoreload then
 
 		gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY, 16)
 		gl.Texture(0, "$info:los")
-		gl.TexRect(texX, 0, texX + shaderConfig["LOSXSIZE"], shaderConfig["LOSYSIZE"], 0, 1, 1, 0)
+		gl.TexRect(texX, 0, texX + shaderConfig.LOSXSIZE, shaderConfig.LOSYSIZE, 0, 1, 1, 0)
 		gl.Texture(0, false)
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

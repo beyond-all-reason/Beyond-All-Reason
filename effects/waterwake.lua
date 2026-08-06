@@ -1,7 +1,7 @@
 -- waterwake
 
 return {
-	["waterwake"] = {
+	waterwake = {
 		wake = {
 			air = true,
 			class = [[CWakeProjectile]],

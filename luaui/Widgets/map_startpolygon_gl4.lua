@@ -92,8 +92,8 @@ local function DrawStartPolygons(inminimap)
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return

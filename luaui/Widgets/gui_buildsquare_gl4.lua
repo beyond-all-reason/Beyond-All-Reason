@@ -849,7 +849,7 @@ local function goodbye(reason)
 end
 
 local function getCurrentHeightOffset()
-	if spGetGameFrame() <= 0 and WG["map_startbox"] ~= nil then
+	if spGetGameFrame() <= 0 and WG.map_startbox ~= nil then
 		return PREGAME_STARTBOX_HEIGHT_OFFSET
 	end
 	return HEIGHT_OFFSET

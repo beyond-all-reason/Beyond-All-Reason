@@ -19,7 +19,7 @@ end
 
 -- Options here
 local terminal_spark_effect = "genericshellexplosion-splash-lightning" -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
-local visual_chain_weapon = WeaponDefNames["lightning_chain"].id -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
+local visual_chain_weapon = WeaponDefNames.lightning_chain.id -- can refactor into sparkWeapons if per-unit effects defined by customParams are desired
 
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -158,10 +158,10 @@ function gadget:ProjectileDestroyed(proID)
 
 							-- NB: Lightning sparks have no team/owner. So are not subject to LOS (natural force). But they give no credit for damage (stats, xp, etc).
 							spSpawnProjectile(lightning.weaponDefID, {
-								["pos"] = { lightning.x, lightning.y, lightning.z },
+								pos = { lightning.x, lightning.y, lightning.z },
 								["end"] = { ex, ey, ez },
-								["ttl"] = 2,
-								["owner"] = -1,
+								ttl = 2,
+								owner = -1,
 							})
 							count = count - 1 -- spark target count accounting
 						end
@@ -197,10 +197,10 @@ function gadget:ProjectileDestroyed(proID)
 			spSpawnProjectile(
 				visual_chain_weapon,
 				{
-					["pos"] = { lightning.x, height1, lightning.z },
+					pos = { lightning.x, height1, lightning.z },
 					["end"] = { newx, height2, newz },
-					["ttl"] = 2,
-					["owner"] = -1,
+					ttl = 2,
+					owner = -1,
 				}
 			)
 			spSpawnCEG(terminal_spark_effect, newx, height2, newz, 0, 0, 0)

@@ -588,16 +588,16 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					if not printf then
 						printf = {}
 					end
-					printf["vars"] = printf["vars"] or {}
+					printf.vars = printf.vars or {}
 					local vardata = {
 						name = glslvariable,
 						count = glslvarcount,
 						line = i,
-						index = #printf["vars"],
+						index = #printf.vars,
 						swizzle = swizzle,
 						shaderstage = "f",
 					}
-					table.insert(printf["vars"], vardata)
+					table.insert(printf.vars, vardata)
 					local replacementstring = string.format(
 						"if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;",
 						vardata.index,
@@ -612,7 +612,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 			-- If any substitutions were made, reassemble the shader source
 			if printf then
 				-- Define the shader storage buffer object, with at most SSBOSize entries
-				printf.SSBOSize = math.max(#printf["vars"], 16)
+				printf.SSBOSize = math.max(#printf.vars, 16)
 				--Spring.Echo("SSBOSize", printf.SSBOSize)
 				printf.SSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER)
 				printf.SSBO:Define(printf.SSBOSize, { { id = 0, name = "printfData", size = 4 } })

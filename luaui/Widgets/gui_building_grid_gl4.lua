@@ -153,15 +153,15 @@ local function getForceShowUnitDefID()
 end
 
 function widget:Initialize()
-	WG["buildinggrid"] = {}
-	WG["buildinggrid"].getOpacity = function()
+	WG.buildinggrid = {}
+	WG.buildinggrid.getOpacity = function()
 		return opacity
 	end
-	WG["buildinggrid"].setOpacity = function(value)
+	WG.buildinggrid.setOpacity = function(value)
 		opacity = value
 		-- widget needs reloading wholly
 	end
-	WG["buildinggrid"].setForceShow = function(reason, enabled, unitDefID)
+	WG.buildinggrid.setForceShow = function(reason, enabled, unitDefID)
 		if enabled then
 			forceShow[reason] = unitDefID
 		else

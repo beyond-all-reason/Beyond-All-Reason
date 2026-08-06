@@ -135,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Resolve dummy weaponDefID (dummy unit fires the projectile)
 	local dummyWeaponDefID
 	do
-		local ud = UnitDefNames and UnitDefNames["ceg_test_projectile_unit"]
+		local ud = UnitDefNames and UnitDefNames.ceg_test_projectile_unit
 		if ud and ud.weapons and ud.weapons[1] then
 			dummyWeaponDefID = ud.weapons[1].weaponDef
 		end
