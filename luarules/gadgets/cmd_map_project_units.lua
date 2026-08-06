@@ -46,7 +46,7 @@ local BEGIN_HEADER = "$mpunits_begin$"
 local DATA_HEADER = "$mpunits_data$"
 local END_HEADER = "$mpunits_end$"
 
-local isSingleplayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSingleplayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
 local pending = nil -- entries accumulated between $mpunits_begin$ and $mpunits_end$
 local pendingBad = 0 -- entries dropped at parse time (unknown unit def)

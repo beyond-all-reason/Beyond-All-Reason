@@ -516,16 +516,16 @@ local function getCaptions(role)
 	local roles = role:split("/")
 
 	if #roles == 1 then
-		title = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		description = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		title = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		description = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
 	elseif #roles > 1 then
-		local title1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
-		local title2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
-		title = Spring.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
+		local title1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".title")
+		local title2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".title")
+		title = BAR.I18N("ui.startPositionSuggestions.multiRole.title", { role1 = title1, role2 = title2 })
 
-		local description1 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
-		local description2 = Spring.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
-		description = Spring.I18N(
+		local description1 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[1] .. ".description")
+		local description2 = BAR.I18N("ui.startPositionSuggestions.roles." .. roles[2] .. ".description")
+		description = BAR.I18N(
 			"ui.startPositionSuggestions.multiRole.description",
 			{ role1 = description1, role2 = description2 }
 		)
@@ -677,7 +677,7 @@ local function drawTutorial()
 	end
 
 	if not cachedTutorialText then
-		cachedTutorialText = wrapText(Spring.I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
+		cachedTutorialText = wrapText(BAR.I18N("ui.startPositionSuggestions.tutorial"), config.tutorialMaxWidthChars)
 	end
 
 	fontTutorial:SetOutlineColor(0, 0, 0, 1)

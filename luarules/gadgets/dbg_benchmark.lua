@@ -25,7 +25,7 @@ function isAuthorized(playerID, subPermission)
 		return true
 	end
 	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = BAR.Utilities.GetAccountID(playerID)
 	local hasPermission = false
 	-- check catch-all devhelpers permission (by accountID and by name for late joiners)
 	if

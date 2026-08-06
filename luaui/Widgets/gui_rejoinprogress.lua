@@ -54,7 +54,7 @@ local colorZero0 = { 0, 0, 0, 0 }
 local colorGreenDark = { 0, 0.55, 0, 1 }
 local colorGreenBright = { 0, 1, 0, 1 }
 
-local catchingUpText = Spring.I18N("ui.rejoin.catchingUp")
+local catchingUpText = BAR.I18N("ui.rejoin.catchingUp")
 local lastGameTimeText = nil
 local cachedTitleText = nil
 

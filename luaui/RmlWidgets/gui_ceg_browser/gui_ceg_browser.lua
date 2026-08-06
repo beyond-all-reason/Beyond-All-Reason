@@ -1192,10 +1192,10 @@ local init_model = {
 	end,
 
 	sendCheat = function(ev)
-		local isSP = Spring.Utilities
-			and Spring.Utilities.Gametype
-			and Spring.Utilities.Gametype.IsSinglePlayer
-			and Spring.Utilities.Gametype.IsSinglePlayer()
+		local isSP = BAR.Utilities
+			and BAR.Utilities.Gametype
+			and BAR.Utilities.Gametype.IsSinglePlayer
+			and BAR.Utilities.Gametype.IsSinglePlayer()
 		spSendCommands(isSP and "cheat" or "say !cheat")
 		-- Optimistically toggle; Update will sync from engine within ~1s
 		if dm_handle then

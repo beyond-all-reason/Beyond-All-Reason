@@ -41,7 +41,7 @@ else
 	local myPlayerID = Spring.GetMyPlayerID()
 	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
 	local function isAuthorized()
-		local acID = Spring.Utilities.GetAccountID(myPlayerID)
+		local acID = BAR.Utilities.GetAccountID(myPlayerID)
 		local perms = SYNCED.permissions.sysinfo
 		return perms and (perms[acID] or (myPlayerName and perms[myPlayerName]))
 	end

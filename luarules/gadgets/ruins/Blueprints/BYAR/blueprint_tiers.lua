@@ -1,5 +1,5 @@
 local UDN = UnitDefNames
-local gaiaTeamID = Spring.Utilities.GetScavTeamID() or Spring.GetGaiaTeamID()
+local gaiaTeamID = BAR.Utilities.GetScavTeamID() or Spring.GetGaiaTeamID()
 
 local wallUnitDefs = {
 	["arm"] = {

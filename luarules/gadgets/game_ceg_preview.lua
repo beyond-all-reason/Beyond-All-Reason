@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	local function isAuthorized(playerID)
 		local playername = Spring.GetPlayerInfo(playerID)
-		local accountID = Spring.Utilities and Spring.Utilities.GetAccountID and Spring.Utilities.GetAccountID(playerID)
+		local accountID = BAR.Utilities and BAR.Utilities.GetAccountID and BAR.Utilities.GetAccountID(playerID)
 		-- accountID of -1 means offline/singleplayer -- treat as no valid account
 		if accountID and accountID <= 0 then
 			accountID = nil

@@ -1574,7 +1574,7 @@ function widget:DrawScreen()
 							local text
 							local textColor = "\255\215\255\215"
 							if units.unitRestricted[uDefID] then
-								text = Spring.I18N("ui.buildMenu.disabled", {
+								text = BAR.I18N("ui.buildMenu.disabled", {
 									unit = unitTranslatedHumanName[uDefID],
 									textColor = textColor,
 									warnColor = "\255\166\166\166",
@@ -1584,7 +1584,7 @@ function widget:DrawScreen()
 							end
 							local tooltip = unitTranslatedTooltip[uDefID]
 							if unitMetal_extractor[uDefID] then
-								tooltip = tooltip .. "\n" .. Spring.I18N("ui.buildMenu.areamex_tooltip")
+								tooltip = tooltip .. "\n" .. BAR.I18N("ui.buildMenu.areamex_tooltip")
 							end
 							WG["tooltip"].ShowTooltip("buildmenu", "\255\240\240\240" .. tooltip, nil, nil, text)
 						end
@@ -1661,8 +1661,8 @@ function widget:DrawScreen()
 					if WG["tooltip"] then
 						local text = "\255\240\240\240"
 							.. (
-								paginatorHovered == 1 and Spring.I18N("ui.buildMenu.previousPage")
-								or Spring.I18N("ui.buildMenu.nextPage")
+								paginatorHovered == 1 and BAR.I18N("ui.buildMenu.previousPage")
+								or BAR.I18N("ui.buildMenu.nextPage")
 							)
 						WG["tooltip"].ShowTooltip("buildmenu", text)
 					end

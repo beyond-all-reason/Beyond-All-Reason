@@ -455,7 +455,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 									--Spring.SendCommands({"pause 1"})
 								end
 								Spring.Echo(s)
-								Spring.Debug.TraceFullEcho(
+								BAR.Debug.TraceFullEcho(
 									nil,
 									nil,
 									nil,
@@ -522,7 +522,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 								instanceID,
 								". Ensure that you remove invalid units from your instance tables"
 							)
-							Spring.Debug.TraceFullEcho()
+							BAR.Debug.TraceFullEcho()
 						end
 					end
 				elseif objecttype == "unitDefID" then

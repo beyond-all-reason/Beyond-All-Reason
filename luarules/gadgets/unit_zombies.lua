@@ -1072,7 +1072,7 @@ local function isAuthorized(playerID)
 		return true
 	end
 	local playername = Spring.GetPlayerInfo(playerID)
-	local accountID = Spring.Utilities.GetAccountID(playerID)
+	local accountID = BAR.Utilities.GetAccountID(playerID)
 	if
 		(
 			_G

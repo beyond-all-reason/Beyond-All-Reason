@@ -29,11 +29,11 @@ local unitCount = 0
 do
 	local hats
 
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
+	if BAR.Utilities.Gametype.GetCurrentHolidays()["aprilfools"] then
 		hats = "april"
 	end
 
-	if Spring.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
+	if BAR.Utilities.Gametype.GetCurrentHolidays()["halloween"] then
 		hats = "halloween"
 	end
 

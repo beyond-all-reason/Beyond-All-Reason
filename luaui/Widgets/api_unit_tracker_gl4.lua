@@ -129,7 +129,7 @@ local scriptLuauiAlliedUnitsChanged
 
 local function Scream(reason, unitID) -- This will pause the game and play some sound to alert anyone in debug mode of issue
 	--Spring.Debug.TraceFullEcho(nil,nil,nil, reason)
-	Spring.Debug.TraceEcho("API Unit Tracker error", reason)
+	BAR.Debug.TraceEcho("API Unit Tracker error", reason)
 	if unitID ~= nil then
 		-- gather as much info as possible about this unitID
 		local unitDefID = spGetUnitDefID(unitID)
@@ -153,7 +153,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 			true
 		)
 	end
-	Spring.Debug.TraceFullEcho()
+	BAR.Debug.TraceFullEcho()
 	local unittrackerapinil = nil
 	unittrackerapinil = unittrackerapinil + 1 -- this intentionally crashes this widget so that it will show up in analytics
 	if debuglevel >= 3 then
@@ -164,7 +164,7 @@ end
 
 local function alliedUnitsChanged()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	if Script.LuaUI("AlliedUnitsChanged") then
 		Script.LuaUI.AlliedUnitsChanged(visibleUnits, numVisibleUnits)
@@ -177,7 +177,7 @@ end
 
 local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numAlliedUnits)
+		BAR.Debug.TraceEcho(numAlliedUnits)
 	end
 	if alliedUnits[unitID] then
 		if debuglevel >= 2 then
@@ -203,7 +203,7 @@ end
 
 local function alliedUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numAlliedUnits)
+		BAR.Debug.TraceEcho(numAlliedUnits)
 	end
 	if alliedUnits[unitID] then
 		local unitDefID = alliedUnits[unitID]
@@ -224,14 +224,14 @@ end
 
 local function GetAlliedUnits()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	return alliedUnits, numAlliedUnits
 end
 
 local function visibleUnitsChanged()
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	if Script.LuaUI("VisibleUnitsChanged") then
 		Script.LuaUI.VisibleUnitsChanged(visibleUnits, numVisibleUnits)
@@ -265,7 +265,7 @@ local instanceVBOCacheTable = {
 
 local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numVisibleUnits)
+		BAR.Debug.TraceEcho(numVisibleUnits)
 	end
 	if visibleUnits[unitID] then -- already known
 		if debuglevel >= 2 then
@@ -305,7 +305,7 @@ end
 
 local function visibleUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numVisibleUnits)
+		BAR.Debug.TraceEcho(numVisibleUnits)
 		if lastknownunitpos[unitID] then
 			lastknownunitpos[unitID] = nil
 		end
@@ -333,7 +333,7 @@ end
 
 local function GetVisibleUnits()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	return visibleUnits, numVisibleUnits
 end
@@ -386,7 +386,7 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 			or unitDefIgnore[unitDefID]
 		then
 			if debuglevel >= (verbose or 0) then
-				Spring.Debug.TraceEcho()
+				BAR.Debug.TraceEcho()
 				spEcho(
 					"not isValidLivingSeenUnit",
 					"unitDefID",
@@ -864,10 +864,10 @@ function widget:GameStart()
 			if Spring.IsReplay() then
 				return
 			end
-			if Spring.Utilities.GetPlayerCount() < 2 then
+			if BAR.Utilities.GetPlayerCount() < 2 then
 				return
 			end
-			if Spring.Utilities.Gametype.IsSinglePlayer == true then
+			if BAR.Utilities.Gametype.IsSinglePlayer == true then
 				return
 			end
 		end

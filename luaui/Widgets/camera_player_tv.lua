@@ -74,7 +74,7 @@ local playersList = spGetPlayerList()
 local spGetTeamColor = Spring.GetTeamColor
 local spGetPlayerInfo = Spring.GetPlayerInfo
 
-local ColorIsDark = Spring.Utilities.Color.ColorIsDark
+local ColorIsDark = BAR.Utilities.Color.ColorIsDark
 
 local aiTeams = {}
 local teamColorKeys = {}
@@ -290,12 +290,12 @@ local function refreshUiDrawing()
 		-- Player TV Button
 		if showTvButton then
 			if not toggled and not lockPlayerID then
-				text = "\255\222\255\222   " .. Spring.I18N("ui.playerTV.playerTV") .. "    "
+				text = "\255\222\255\222   " .. BAR.I18N("ui.playerTV.playerTV") .. "    "
 				color1 = { 0, 0.8 * mult, 0, buttonOpacity }
 				color2 = { 0, 0.55 * mult, 0, buttonOpacity }
 			else
 				text = "\255\255\222\222   "
-					.. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N("ui.playerTV.cancelPlayerTV") or Spring.I18N(
+					.. (nextTrackingPlayerChange - os.clock() > -1 and BAR.I18N("ui.playerTV.cancelPlayerTV") or BAR.I18N(
 						"ui.playerTV.cancelCamera"
 					))
 					.. "    "
@@ -344,7 +344,7 @@ local function refreshUiDrawing()
 
 		-- Player Camera Button
 		if showCameraButton then
-			text = "\255\255\255\255   " .. Spring.I18N("ui.playerTV.playerCamera") .. "   "
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerCamera") .. "   "
 			color1 = { 0.6 * mult, 0.6 * mult, 0.6 * mult, buttonOpacity }
 			color2 = { 0.4 * mult, 0.4 * mult, 0.4 * mult, buttonOpacity }
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
@@ -389,11 +389,11 @@ local function refreshUiDrawing()
 
 		-- Player Viewpoint Button
 		if not toggled2 then
-			text = "\255\255\255\255   " .. Spring.I18N("ui.playerTV.playerView") .. "   "
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerView") .. "   "
 			color1 = { 0.6 * mult, 0.6 * mult, 0.6 * mult, buttonOpacity }
 			color2 = { 0.4 * mult, 0.4 * mult, 0.4 * mult, buttonOpacity }
 		else
-			text = "\255\255\255\255   " .. Spring.I18N("ui.playerTV.globalView") .. "   "
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.globalView") .. "   "
 			color1 = { 0.88 * mult, 0.1 * mult, 0.1 * mult, buttonOpacity }
 			color2 = { 0.6 * mult, 0.05 * mult, 0.05 * mult, buttonOpacity }
 		end
@@ -459,12 +459,12 @@ local function refreshUiDrawing()
 			)
 
 			local text = "\255\255\225\225   "
-				.. (nextTrackingPlayerChange - os.clock() > -1 and Spring.I18N("ui.playerTV.cancelPlayerTV") or Spring.I18N(
+				.. (nextTrackingPlayerChange - os.clock() > -1 and BAR.I18N("ui.playerTV.cancelPlayerTV") or BAR.I18N(
 					"ui.playerTV.cancelCamera"
 				))
 				.. "    "
 			if not toggled and not lockPlayerID then
-				text = "\255\225\255\225   " .. Spring.I18N("ui.playerTV.playerTV") .. "    "
+				text = "\255\225\255\225   " .. BAR.I18N("ui.playerTV.playerTV") .. "    "
 			end
 			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
@@ -511,9 +511,9 @@ local function refreshUiDrawing()
 			toggleButton2[1] < left and 1 or 0
 		)
 
-		local text = "\255\255\255\244   " .. Spring.I18N("ui.playerTV.globalView") .. "   "
+		local text = "\255\255\255\244   " .. BAR.I18N("ui.playerTV.globalView") .. "   "
 		if not toggled2 then
-			text = "\255\255\255\255   " .. Spring.I18N("ui.playerTV.playerView") .. "   "
+			text = "\255\255\255\255   " .. BAR.I18N("ui.playerTV.playerView") .. "   "
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 		local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
@@ -560,7 +560,7 @@ local function refreshUiDrawing()
 				toggleButton3[1] < left and 1 or 0
 			)
 
-			local text = "\255\255\255\244   " .. Spring.I18N("ui.playerTV.playerCamera") .. "   "
+			local text = "\255\255\255\244   " .. BAR.I18N("ui.playerTV.playerCamera") .. "   "
 			local fontSize = (widgetHeight * widgetScale) * 0.5 * math.clamp(1 + ((1 - (vsy / 1200)) * 0.33), 1, 1.15)
 			local textWidth = mathFloor(font:GetTextWidth(text) * fontSize)
 			font:Begin()
@@ -843,15 +843,15 @@ function widget:Update(dt)
 		if WG["tooltip"] and not toggled and not lockPlayerID then
 			if buttonHovered and buttonHovered == 1 and not aiTeams[myTeamID] then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.tooltip"))
+				WG["tooltip"].ShowTooltip("playertv", BAR.I18N("ui.playerTV.tooltip"))
 			end
 			if buttonHovered and buttonHovered == 2 then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerViewTooltip"))
+				WG["tooltip"].ShowTooltip("playertv", BAR.I18N("ui.playerTV.playerViewTooltip"))
 			end
 			if buttonHovered and buttonHovered == 3 then
 				Spring.SetMouseCursor("cursornormal")
-				WG["tooltip"].ShowTooltip("playertv", Spring.I18N("ui.playerTV.playerCameraTooltip"))
+				WG["tooltip"].ShowTooltip("playertv", BAR.I18N("ui.playerTV.playerCameraTooltip"))
 			end
 		end
 
@@ -942,7 +942,7 @@ local function drawContent()
 					local _, _, _, aiName = Spring.GetAIInfo(myTeamID)
 					local niceName = Spring.GetGameRulesParam("ainame_" .. myTeamID)
 					name = niceName or aiName
-					name = Spring.I18N("ui.playersList.aiName", { name = name })
+					name = BAR.I18N("ui.playersList.aiName", { name = name })
 				end
 				if not name then
 					name = "---"

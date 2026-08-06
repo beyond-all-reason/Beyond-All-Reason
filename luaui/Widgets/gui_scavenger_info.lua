@@ -1,4 +1,4 @@
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
+local scavengersAIEnabled = BAR.Utilities.Gametype.IsScavengers()
 
 if not scavengersAIEnabled then
 	return
@@ -181,7 +181,7 @@ function DrawWindow()
 	)
 
 	-- title background
-	local title = Spring.I18N("ui.topbar.button.scavengers")
+	local title = BAR.I18N("ui.topbar.button.scavengers")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,

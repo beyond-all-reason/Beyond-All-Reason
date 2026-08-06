@@ -45,8 +45,8 @@ end
 local luaFiles = VFS.DirList("units/", "*.lua", nil, true)
 
 local legionEnabled = Spring.GetModOptions().experimentallegionfaction
-local scavengersEnabled = Spring.Utilities.Gametype.IsScavengers()
-local raptorsEnabled = Spring.Utilities.Gametype.IsRaptors()
+local scavengersEnabled = BAR.Utilities.Gametype.IsScavengers()
+local raptorsEnabled = BAR.Utilities.Gametype.IsRaptors()
 
 if Spring.GetModOptions().ruins == "enabled" then
 	legionEnabled = true
