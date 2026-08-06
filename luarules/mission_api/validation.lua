@@ -419,6 +419,20 @@ validators[Types.Facing] = function(facing)
 		end
 	end
 
+validators[Types.Command] = function(command)
+	if type(command) == 'number' then
+		if not knownCMDs[command] then
+			return { { message = "Unknown command ID: " .. tostring(command) } }
+		end
+	elseif type(command) == 'string' then
+		if not UnitDefNames[command] then
+			return { { message = "Invalid unitDefName: " .. command } }
+		end
+	else
+		return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+	end
+end
+
 validators[Types.SoundFile] = function(soundfile)
 	local luaTypeResult = validators[Types.String](soundfile)
 	if luaTypeResult then

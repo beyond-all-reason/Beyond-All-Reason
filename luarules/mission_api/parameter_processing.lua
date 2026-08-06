@@ -40,6 +40,15 @@ local function processOrders(orders)
 	end
 end
 
+local function processCommand(command)
+	if type(command) == 'string' then
+		local unitDef = UnitDefNames[command]
+		if unitDef then
+			return -unitDef.id
+		end
+	end
+end
+
 local function processSoundFile(soundfile)
 	local wavData = ReadWAV(soundfile)
 	if wavData then
@@ -59,6 +68,7 @@ local processors = {
 	[ParameterTypes.Position]              = processPosition,
 	[ParameterTypes.Positions]             = processPositions,
 	[ParameterTypes.Orders]                = processOrders,
+	[ParameterTypes.Command]               = processCommand,
 	[ParameterTypes.SoundFile]             = processSoundFile,
 	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
 }
