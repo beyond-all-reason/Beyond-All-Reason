@@ -20,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		myAllyTeamID = Spring.GetLocalAllyTeamID()
 		spec, fullView = Spring.GetSpectatingState()
+		---@diagnostic disable-next-line: undefined-global
 	end
 
 	function gadget:PlayerChanged(playerID)
@@ -28,7 +29,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
 		local allyTeam = spGetUnitAllyTeam(unitID)
-		if (spec and fullview) or (allyTeam and allyTeam ~= myAllyTeamID) then
+		if (spec and fullView) or (allyTeam and allyTeam ~= myAllyTeamID) then
 			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
 			if losstate and losstate.los and Script.LuaUI("EnemyUnitDestroyed") then
 				Script.LuaUI.EnemyUnitDestroyed(

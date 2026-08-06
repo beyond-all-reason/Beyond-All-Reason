@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-global
+
 ------------------------------------------------------
 -- License:	Public Domain
 -- Author:	Nemo, Smoth
