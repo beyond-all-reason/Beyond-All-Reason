@@ -41,6 +41,9 @@ local function processOrders(orders)
 end
 
 local function processCommand(command)
+	if command == CMD.ANY or command == CMD.BUILD then
+		return
+	end
 	if type(command) == 'string' then
 		local unitDef = UnitDefNames[command]
 		if unitDef then

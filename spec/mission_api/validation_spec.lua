@@ -20,14 +20,15 @@ local function withCommandIDs(names, firstID)
 end
 
 local function installCommandTables()
-	_G.CMD     = withCommandIDs({ 'STOP', 'MOVE', 'ATTACK', 'RECLAIM', 'GUARD', 'REPAIR', 'FIGHT' }, 0)
+	_G.CMD     = withCommandIDs({ 'STOP', 'MOVE', 'ATTACK', 'RECLAIM', 'GUARD', 'REPAIR', 'FIGHT', 'STOCKPILE' }, 0)
 	_G.GameCMD = withCommandIDs({ 'AREA_ATTACK_GROUND' }, 1000)
+	_G.CMD.ANY, _G.CMD.BUILD = 'a', 'b' -- filter sentinels (see common/constants.lua)
 end
 
-local savedCMD, savedGameCMD = _G.CMD, _G.GameCMD -- Restore after validation.
+local savedCMD, savedGameCMD = _G.CMD, _G.GameCMD
 installCommandTables()
-local validation    = VFS.Include('luarules/mission_api/validation.lua')
-_G.CMD, _G.GameCMD  = savedCMD, savedGameCMD
+local validation = VFS.Include('luarules/mission_api/validation.lua') -- Wrap in safety code and restore.
+_G.CMD, _G.GameCMD = savedCMD, savedGameCMD
 savedCMD, savedGameCMD = nil, nil
 
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
@@ -827,6 +828,25 @@ describe("mission_api.validation", function()
 			it("accepts a build order authored as a unitDefName", function()
 				validateCommand('armsolar')
 				assert.are.same({}, logged)
+			end)
+
+			it("accepts the ANY qualifier", function()
+				validateCommand(CMD.ANY)
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts the BUILD qualifier", function()
+				validateCommand(CMD.BUILD)
+				assert.are.same({}, logged)
+			end)
+
+			it("warns (without erroring) for a command consumed in AllowCommand", function()
+				validateCommand(CMD.STOCKPILE)
+				assert.is_true(hasError(
+					"Command " .. CMD.STOCKPILE .. " is consumed in :AllowCommand by unit_stockpile_limit " ..
+					"(stockpile-capped units); UnitOrdered will not observe it. Trigger: t, Parameter: command"
+				))
+				assert.is_falsy(GG['MissionAPI'].HasValidationErrors)
 			end)
 
 			it("rejects an unknown command id", function()

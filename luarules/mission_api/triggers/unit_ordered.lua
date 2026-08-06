@@ -1,6 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local CMD_INSERT = CMD.INSERT
+local CMD_ANY    = CMD.ANY
+local CMD_BUILD  = CMD.BUILD
 
 -- Units receive commands "directly" or "inserted" into the command queue by `CMD_INSERT`.
 
@@ -10,9 +12,11 @@ local CMD_INSERT = CMD.INSERT
 -- passes the actual command to the unit (GiveCommandReal+AllowedCommand checks are last).
 -- The semantics remain correct (the unit was so-ordered), but the command may be dropped.
 
--- The trigger does not validate against commandParams except to check a packed commandID:
-local function matchesInsertedCommand(command, cmdID, cmdParams)
-	return cmdID == CMD_INSERT and cmdParams[2] == command
+local function matchesCommand(command, cmdID, cmdParams)
+	return (command == CMD_ANY)
+		or (command == CMD_BUILD and cmdID < 0)
+		or (command == cmdID)
+		or (command == CMD_INSERT and cmdParams and matchesCommand(command, cmdParams[2]))
 end
 
 return {
@@ -27,7 +31,7 @@ return {
 	},
 	callins = {
 		UnitCommand = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, cmdID, cmdParams)
-			if trigger.parameters.command ~= cmdID and not matchesInsertedCommand(trigger.parameters.command, cmdID, cmdParams) then
+			if not matchesCommand(trigger.parameters.command, cmdID, cmdParams) then
 				return
 			end
 			if trigger.parameters.fromMission ~= true and GG['MissionAPI'].issuingOrders then
