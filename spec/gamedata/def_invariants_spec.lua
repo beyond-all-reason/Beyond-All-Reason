@@ -719,6 +719,31 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
+	-- alldefs_post rescales metal and hitpoints for blocks named dead and heap only, so a
+	-- stage under any other name silently keeps whatever the file hardcodes. The rock teeth
+	-- and dragon eye stages are deliberate exceptions, confirmed in issue 8630.
+	local knownWreckStages = {
+		dead = true,
+		heap = true,
+		rockteeth = true,
+		rockteethx = true,
+		dragonseyes_dead = true,
+		cdragonseyes_dead = true,
+	}
+
+	it("names every wreck stage so the normaliser finds it", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			for key in pairs(def.featuredefs or {}) do
+				if not knownWreckStages[tostring(key):lower()] then
+					bad[#bad + 1] = name .. "." .. tostring(key)
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	it("points corpse at a featuredef the unit defines", function()
 		local bad = {}
 		for name, def in pairs(defs) do
