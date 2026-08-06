@@ -23,7 +23,7 @@ local KNOBS = {
 	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
 	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusPatch", "%.2f" },
 	{ "talusStartDeg", "%.1f" }, { "talusFullDeg", "%.1f" },
-	{ "splatInfluence", "%.2f" },
+	{ "splatInfluence", "%.2f" }, { "cliffProtect", "%d" },
 	{ "splatPunchTalus", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" }, { "parallaxAmp", "%.2f" },
 	{ "macroVar", "%.2f" }, { "macroLod", "%.1f" }, { "albedoSortMode", "%d" },
