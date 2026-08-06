@@ -22,8 +22,8 @@ local CMD_BUILD  = CMD.BUILD
 local function matchesCommand(command, cmdID, cmdParams)
 	return (command == CMD_ANY)
 		or (command == CMD_BUILD and cmdID < 0)
-		or (command == cmdID)
-		or (command == CMD_INSERT and cmdParams and matchesCommand(command, cmdParams[2]))
+		or (cmdID == command)
+		or (cmdID == CMD_INSERT and cmdParams and matchesCommand(command, cmdParams[2]))
 end
 
 return {
