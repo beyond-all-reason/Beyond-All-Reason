@@ -1170,7 +1170,14 @@ local function _isGeneratedBlankMap()
 end
 
 local function _newMapSplatNeedsDnts()
-	return _isGeneratedBlankMap() and #dntsSets == 0
+	if not _isGeneratedBlankMap() or #dntsSets > 0 then return false end
+	-- No library pack installed. That only matters when the library would be
+	-- needed to PICK a set (a fresh New Map): a loaded map project is
+	-- self-contained and injects its own DNTS set through the blank-map keys,
+	-- so the tool must not gate on a pack the map never reads.
+	local mapOpts = Spring.GetMapOptions()
+	local tex1 = type(mapOpts) == "table" and mapOpts.blank_map_splatdetailnormaltex1 or nil
+	return type(tex1) ~= "string" or tex1 == ""
 end
 
 local function _newMapSplatEnginePathMissing()
