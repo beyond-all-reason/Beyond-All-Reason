@@ -975,25 +975,33 @@ function GetOrdersEdgeIn(nodes, units, unitCount, shifted)
         end
     end
 
-    -- Build the fill order: both edges, then breadth-first bisection of the index range
+    -- Build the fill order: both edges, then bisection of the index range.
+    -- Each level emits all left-half midpoints before all right-half midpoints
+    -- (bit-reversal order): plain left-to-right level order would degrade into
+    -- long sequential runs once levels get wide.
     local fillOrder = { firstEdge }
     local fillCount = 1
     if unitCount > 1 then
         fillCount = 2
         fillOrder[2] = secondEdge
 
-        local queue = { {1, unitCount} }
-        local qHead = 1
-        while queue[qHead] do
-            local lo, hi = queue[qHead][1], queue[qHead][2]
-            qHead = qHead + 1
-            if hi - lo >= 2 then
-                local mid = floor((lo + hi) * 0.5)
-                fillCount = fillCount + 1
-                fillOrder[fillCount] = mid
-                queue[#queue + 1] = {lo, mid}
-                queue[#queue + 1] = {mid, hi}
+        local level = { {1, unitCount} }
+        while level[1] do
+            local lefts, rights = {}, {}
+            for i = 1, #level do
+                local lo, hi = level[i][1], level[i][2]
+                if hi - lo >= 2 then
+                    local mid = floor((lo + hi) * 0.5)
+                    fillCount = fillCount + 1
+                    fillOrder[fillCount] = mid
+                    lefts[#lefts + 1] = {lo, mid}
+                    rights[#rights + 1] = {mid, hi}
+                end
             end
+            for i = 1, #rights do
+                lefts[#lefts + 1] = rights[i]
+            end
+            level = lefts
         end
     end
 
