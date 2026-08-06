@@ -58,7 +58,8 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 -- Fill the line edges-first: nearest unit to either edge, then the other edge,
 -- then the midpoint, then midpoints of each half, bisecting inward. Each spot greedily
 -- takes the nearest unassigned unit. Toggled via Settings > Control ("Edge-in line formations").
-local edgeInAssignment = false
+local defaultEdgeInAssignment = false -- Need a baseline to start from when no config data saved
+local edgeInAssignment = defaultEdgeInAssignment
 local maxEdgeInUnits = 250 -- Max units edge-in may sort in one go (O(n2) greedy); NoX handles bigger drags. Configurable.
 
 -- Alpha loss per second after releasing mouse
@@ -921,6 +922,8 @@ function widget:SetConfigData(data) -- Loading
     maxHungarianUnits = data['maxHungarianUnits'] or defaultHungarianUnits
     if data['edgeInAssignment'] ~= nil then
         edgeInAssignment = data['edgeInAssignment']
+    else
+        edgeInAssignment = defaultEdgeInAssignment
     end
 end
 
