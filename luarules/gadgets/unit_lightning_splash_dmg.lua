@@ -194,15 +194,12 @@ function gadget:ProjectileDestroyed(proID)
 			projectileCacheTable["end"][2] = height2
 			projectileCacheTable["end"][3] = newz
 			--spSpawnProjectile(visual_chain_weapon, projectileCacheTable)
-			spSpawnProjectile(
-				visual_chain_weapon,
-				{
-					["pos"] = { lightning.x, height1, lightning.z },
-					["end"] = { newx, height2, newz },
-					["ttl"] = 2,
-					["owner"] = -1,
-				}
-			)
+			spSpawnProjectile(visual_chain_weapon, {
+				["pos"] = { lightning.x, height1, lightning.z },
+				["end"] = { newx, height2, newz },
+				["ttl"] = 2,
+				["owner"] = -1,
+			})
 			spSpawnCEG(terminal_spark_effect, newx, height2, newz, 0, 0, 0)
 		end
 

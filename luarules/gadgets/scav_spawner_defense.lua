@@ -951,15 +951,12 @@ if gadgetHandler:IsSyncedCode() then
 						for j = 1, unitNumber, 1 do
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
-								table.insert(
-									spawnQueue,
-									{
-										burrow = burrowID,
-										unitName = scavName,
-										team = scavTeamID,
-										squadID = squadCounter,
-									}
-								)
+								table.insert(spawnQueue, {
+									burrow = burrowID,
+									unitName = scavName,
+									team = scavTeamID,
+									squadID = squadCounter,
+								})
 							end
 						end
 					elseif not UnitDefNames[scavName] then
@@ -2091,27 +2088,17 @@ if gadgetHandler:IsSyncedCode() then
 								if turretUnitID then
 									setScavXP(turretUnitID)
 									if UnitDefNames[uName].isFactory then
-										Spring.GiveOrderToUnit(
-											turretUnitID,
-											CMD.FIGHT,
-											{
-												spawnPosX + mRandom(-256, 256),
-												spawnPosY,
-												spawnPosZ + mRandom(-256, 256),
-											},
-											{ "meta" }
-										)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.FIGHT, {
+											spawnPosX + mRandom(-256, 256),
+											spawnPosY,
+											spawnPosZ + mRandom(-256, 256),
+										}, { "meta" })
 									else
-										Spring.GiveOrderToUnit(
-											turretUnitID,
-											CMD.PATROL,
-											{
-												spawnPosX + mRandom(-128, 128),
-												spawnPosY,
-												spawnPosZ + mRandom(-128, 128),
-											},
-											{ "meta" }
-										)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {
+											spawnPosX + mRandom(-128, 128),
+											spawnPosY,
+											spawnPosZ + mRandom(-128, 128),
+										}, { "meta" })
 									end
 								end
 							until turretUnitID or attempts > 10
