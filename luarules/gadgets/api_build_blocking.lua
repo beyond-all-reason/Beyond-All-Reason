@@ -364,8 +364,8 @@ if gadgetHandler:IsSyncedCode() then
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------
 elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myTeamID = Spring.GetMyTeamID()
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myTeamID = Spring.GetLocalTeamID()
 
 	local function HandleBuildBlocked(_, unitDefID, reasonsStr)
 		if Script.LuaUI.UnitBlocked then
@@ -382,8 +382,8 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 			gadgetHandler:RemoveSyncAction("BuildBlocked_" .. myTeamID)
 		end
 
-		myPlayerID = Spring.GetMyPlayerID()
-		myTeamID = Spring.GetMyTeamID()
+		myPlayerID = Spring.GetLocalPlayerID()
+		myTeamID = Spring.GetLocalTeamID()
 
 		if myTeamID then
 			gadgetHandler:AddSyncAction("BuildBlocked_" .. myTeamID, HandleBuildBlocked)

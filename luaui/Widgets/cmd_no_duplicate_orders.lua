@@ -50,7 +50,7 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		widget:PlayerChanged()
 	end
-	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
+	for _, unitID in ipairs(Spring.GetTeamUnits(Spring.GetLocalTeamID())) do
 		if GetUnitIsBeingBuilt(unitID) then
 			widget:UnitCreated(unitID)
 		end

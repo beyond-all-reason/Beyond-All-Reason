@@ -16,7 +16,7 @@ end
 local tableInsert = table.insert
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 
 local myTeamID
 
