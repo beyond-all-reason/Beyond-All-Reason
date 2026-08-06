@@ -5614,6 +5614,8 @@ function init()
 		  end,
 		},
 
+		{ id = "cegbrowser", group = "dev", category = types.dev, widget = "CEG Effects Browser", name = Spring.I18N('ui.settings.option.cegbrowser'), type = "bool", value = GetWidgetToggleValue("CEG Effects Browser"), description = Spring.I18N('ui.settings.option.cegbrowser_descr') },
+
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
 		{ id = "language_dev", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.language'), type = "select", options = devLanguageNames, value = devLanguageCodes[Spring.I18N.getLocale()],
