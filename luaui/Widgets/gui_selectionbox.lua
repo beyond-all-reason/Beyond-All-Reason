@@ -107,7 +107,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	-- Don't track selection if minimap left-click-move is enabled
-	if WG["minimap"] and WG["minimap"].getLeftClickMove and WG["minimap"].getLeftClickMove() then
+	if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
 		return false
 	end
 
@@ -144,7 +144,7 @@ function widget:Update()
 
 	if leftPressed then
 		-- Don't track selection if minimap left-click-move is enabled
-		if WG["minimap"] and WG["minimap"].getLeftClickMove and WG["minimap"].getLeftClickMove() then
+		if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
 			if minimapSelectionActive then
 				minimapSelectionActive = false
 			end
@@ -200,7 +200,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	-- Skip if PIP minimap replacement is active (it handles its own selection box)
-	if WG["minimap"] and WG["minimap"].isPipMinimapActive and WG["minimap"].isPipMinimapActive() then
+	if WG.minimap and WG.minimap.isPipMinimapActive and WG.minimap.isPipMinimapActive() then
 		return
 	end
 
@@ -210,7 +210,7 @@ function widget:DrawInMiniMap(minimapWidth, minimapHeight)
 	end
 
 	-- Don't draw if minimap left-click-move is enabled
-	if WG["minimap"] and WG["minimap"].getLeftClickMove and WG["minimap"].getLeftClickMove() then
+	if WG.minimap and WG.minimap.getLeftClickMove and WG.minimap.getLeftClickMove() then
 		return
 	end
 

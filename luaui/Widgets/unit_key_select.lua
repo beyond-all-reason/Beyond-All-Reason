@@ -26,5 +26,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG["keyselect"] = nil
+	WG.keyselect = nil
 end

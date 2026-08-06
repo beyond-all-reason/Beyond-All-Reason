@@ -942,7 +942,7 @@ local function showBuildGrid()
 	if gridShowing then
 		return
 	end
-	local bg = WG["buildinggrid"]
+	local bg = WG.buildinggrid
 	if bg and bg.setForceShow and gridForceShowDefID then
 		bg.setForceShow("terraform", true, gridForceShowDefID)
 		gridShowing = true
@@ -953,7 +953,7 @@ local function hideBuildGrid()
 	if not gridShowing then
 		return
 	end
-	local bg = WG["buildinggrid"]
+	local bg = WG.buildinggrid
 	if bg and bg.setForceShow then
 		bg.setForceShow("terraform", false)
 		gridShowing = false
@@ -8071,7 +8071,7 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	-- When game chat input is open, pass all keys through so chat works normally
-	if WG["chat"] and WG["chat"].isInputActive() then
+	if WG.chat and WG.chat.isInputActive() then
 		return false
 	end
 

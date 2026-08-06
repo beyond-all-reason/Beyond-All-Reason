@@ -768,9 +768,9 @@ local function LoadPosition()
 	if rx < 0 or ry < 0 then
 		return
 	end
-	root.style["position"] = "absolute"
-	root.style["left"] = math.floor((rx / 1000) * vsx) .. "px"
-	root.style["top"] = math.floor((ry / 1000) * vsy) .. "px"
+	root.style.position = "absolute"
+	root.style.left = math.floor((rx / 1000) * vsx) .. "px"
+	root.style.top = math.floor((ry / 1000) * vsy) .. "px"
 end
 
 ----------------------------------------------------------------

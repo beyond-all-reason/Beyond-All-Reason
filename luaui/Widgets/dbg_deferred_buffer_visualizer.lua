@@ -51,7 +51,7 @@ deferredbuffer_info = {
 	["$model_gbuffer_emittex"] = "for emissive materials (bloom would be the canonical use) New in version 95",
 	["$model_gbuffer_misctex"] = "for arbitrary shader data New in version 95",
 	["$model_gbuffer_zvaltex"] = "contains the depth values (z-buffer) of the models in view. ",
-	["depthcopy"] = "A copy of the current depth buffer. ",
+	depthcopy = "A copy of the current depth buffer. ",
 }
 
 local currentbuffer = 13 -- starts with model_gbuffer_normtex

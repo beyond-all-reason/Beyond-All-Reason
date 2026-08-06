@@ -87,7 +87,7 @@ function REPORTS.generateMappingReport()
 
 	sideTotals = { [SIDES.ARMADA] = 0, [SIDES.CORTEX] = 0, [SIDES.LEGION] = 0 }
 	sideComplete = { [SIDES.ARMADA] = 0, [SIDES.CORTEX] = 0, [SIDES.LEGION] = 0 }
-	uncategorizedUnits = { [SIDES.ARMADA] = {}, [SIDES.CORTEX] = {}, [SIDES.LEGION] = {}, ["UNKNOWN"] = {} }
+	uncategorizedUnits = { [SIDES.ARMADA] = {}, [SIDES.CORTEX] = {}, [SIDES.LEGION] = {}, UNKNOWN = {} }
 
 	-- Iterate the minimal data, but fetch details from UnitDefs
 	for unitNameLower, buildingCoreData in pairs(masterBuildingDataMinimal) do
@@ -162,7 +162,7 @@ function REPORTS.generateMappingReport()
 					table.insert(uncategorizedUnits[side], reportLine)
 				end
 			else
-				table.insert(uncategorizedUnits["UNKNOWN"], reportLine)
+				table.insert(uncategorizedUnits.UNKNOWN, reportLine)
 			end
 		else
 			Spring.Log(
@@ -191,7 +191,7 @@ function REPORTS.generateMappingReport()
 			)
 		)
 	end
-	local unknownCount = #uncategorizedUnits["UNKNOWN"]
+	local unknownCount = #uncategorizedUnits.UNKNOWN
 	if unknownCount > 0 then
 		table.insert(
 			reportLines,
