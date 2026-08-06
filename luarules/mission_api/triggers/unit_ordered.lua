@@ -6,7 +6,14 @@ local CMD_BUILD  = CMD.BUILD
 
 -- Units receive commands "directly" or "inserted" into the command queue by `CMD_INSERT`.
 
--- Commands here use the engine commandID, including build orders, which we must convert.
+-- Some commands like `CMD.STOCKPILE` are consumed within :AllowCommand. We never see them.
+-- This list is manageable: `CMD.CLOAK`, `CMD.STOCKPILE`, and `GameCMD.UNIT_SET_TARGET`.
+
+-- In-game, the allow-consume and notify-consume patterns both trip units' "cantdo" sounds.
+-- Players can experience an objective completion as a task-failed-successfully unit noise.
+
+-- Commands here use the engine commandID, including build orders, which we must convert,
+-- or are matched against one of the Command qualifiers: "AnyCommand" or "AnyUnitDef".
 
 -- There is a technical gap with verifying the order. :UnitCommand fires before the engine
 -- passes the actual command to the unit (GiveCommandReal+AllowedCommand checks are last).
