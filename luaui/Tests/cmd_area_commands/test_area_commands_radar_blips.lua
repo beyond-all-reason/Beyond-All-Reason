@@ -114,4 +114,14 @@ function test()
 	end)
 	Test.waitFrames(5)
 	assert(Spring.GetUnitCommandCount(attackerID) >= 1, "engine should accept attacks on a radar blip")
+
+	-- TraceScreenRay? In headless? It's more likely than you think.
+	local by = Spring.GetGroundHeight(bx, bz)
+	Spring.SetCameraState({ mode = 1 }, 0) -- overhead, looking down
+	Spring.SetCameraTarget(bx, by, bz, 0)
+	Test.waitFrames(5)
+
+	local sx, sy = Spring.WorldToScreenCoords(bx, by, bz)
+	local kind, tracedID = Spring.TraceScreenRay(sx, sy)
+	assert(kind == "unit", "TraceScreenRay should return a radar blip as a unit")
 end
