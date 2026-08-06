@@ -354,6 +354,12 @@
 				"other": "Other",
 				"pressKey": "Press a key or mouse button...",
 				"newProfile": "New Profile",
+				"copy": "Copy",
+				"rename": "Rename",
+				"delete": "Delete",
+				"copyTitle": "Copy profile",
+				"renameTitle": "Rename profile",
+				"deleteConfirm": "Delete \"%{name}\"? This cannot be undone.",
 				"anyMod": "Ignore modifiers",
 				"accept": "Accept",
 				"cancel": "Cancel"

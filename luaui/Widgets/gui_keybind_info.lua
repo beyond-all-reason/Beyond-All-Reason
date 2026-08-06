@@ -139,8 +139,8 @@ function widget:DrawScreen()
 end
 
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
-	-- While capturing a key, the editor gets everything - its prompt says Esc cancels.
-	if show and keybindEditor.isCapturing() then
+	-- While a modal is up the editor gets everything - its prompt says Esc cancels.
+	if show and keybindEditor.isModal() then
 		return keybindEditor.keyPress(key, scanCode)
 	end
 

@@ -54,8 +54,18 @@ local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 local colorHeader = "\255\255\200\130"
 
-local searchBox, presetDropdown, menuToggle
+local searchBox, presetDropdown, nameBox, menuToggle
 local switchToPreset, scrollFromY
+
+-- Set while a profile dialog is up: { title, message, accept }. A message means a
+-- confirmation, otherwise the name field is shown.
+local dialog
+
+local profileButtons = {
+	{ id = "copy" },
+	{ id = "rename" },
+	{ id = "delete" },
+}
 
 -- "Grid (60% Keyboard)" -> "Grid 60%" so the long names fit the picker.
 local function shortPresetLabel(name)
@@ -72,7 +82,6 @@ local function buildPresetOptions()
 	for _, name in ipairs(profiles.list()) do
 		presetOptions[#presetOptions + 1] = { label = name, name = name }
 	end
-	presetOptions[#presetOptions + 1] = { label = L.newProfile, isNew = true }
 
 	return presetOptions
 end
@@ -87,10 +96,15 @@ local function currentProfileName()
 	return profiles.builtins[1] and profiles.builtins[1].name or nil
 end
 
+-- Shipped profiles can be copied but not renamed or deleted.
+local function activeIsOwn()
+	return profiles.get(currentProfileName()) ~= nil
+end
+
 local function currentPresetIndex()
 	local name = currentProfileName()
 	for i = 1, #presetOptions do
-		if not presetOptions[i].isNew and presetOptions[i].name == name then
+		if presetOptions[i].name == name then
 			return i
 		end
 	end
@@ -142,6 +156,11 @@ local function buildResolvedCatalog()
 	L.otherLower = L.other:lower()
 	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
 	L.newProfile = Spring.I18N('ui.keybinds.editor.newProfile')
+	L.copy = Spring.I18N('ui.keybinds.editor.copy')
+	L.rename = Spring.I18N('ui.keybinds.editor.rename')
+	L.delete = Spring.I18N('ui.keybinds.editor.delete')
+	L.copyTitle = Spring.I18N('ui.keybinds.editor.copyTitle')
+	L.renameTitle = Spring.I18N('ui.keybinds.editor.renameTitle')
 	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
 	L.accept = Spring.I18N('ui.keybinds.editor.accept')
 	L.cancel = Spring.I18N('ui.keybinds.editor.cancel')
@@ -342,21 +361,93 @@ switchToPreset = function(opt)
 	persistEdits()
 
 	local fromName = currentProfileName()
-	if opt.isNew then
-		-- Seeded from what is live, so a new profile starts where the player already is.
-		local created = profiles.create(L.newProfile, profiles.snapshotLive())
-		profiles.materialize(created)
-		buildPresetOptions()
-		presetDropdown:setOptions(presetOptions)
-		applyActiveProfile(created, fromName)
-		return
-	end
-
 	if not profiles.materialize(opt.name) then
 		return
 	end
 	profiles.setActive(opt.name)
 	applyActiveProfile(opt.name, fromName)
+end
+
+local function refreshPicker()
+	buildPresetOptions()
+	presetDropdown:setOptions(presetOptions)
+	presetDropdown:setSelected(currentPresetIndex())
+end
+
+local function openDialog(d)
+	dialog = d
+	searchBox:blur()
+	if not d.message then
+		nameBox:setText(d.initial or "")
+		nameBox:focus()
+	end
+end
+
+local function acceptDialog()
+	local d = dialog
+	dialog = nil
+	if not d then
+		return
+	end
+
+	local text = d.message and "" or nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
+	nameBox:blur()
+	if not d.message and text == "" then
+		return
+	end
+
+	d.accept(text)
+end
+
+local function startCopy()
+	local from = currentProfileName()
+	openDialog({
+		title = L.copyTitle,
+		initial = profiles.uniqueName(from),
+		accept = function(text)
+			persistEdits()
+			local created = profiles.copy(from, text)
+			if not created then
+				return
+			end
+
+			profiles.materialize(created)
+			refreshPicker()
+			applyActiveProfile(created, from)
+		end,
+	})
+end
+
+local function startRename()
+	local from = currentProfileName()
+	openDialog({
+		title = L.renameTitle,
+		initial = from,
+		accept = function(text)
+			profiles.rename(from, text)
+			refreshPicker()
+		end,
+	})
+end
+
+local function startDelete()
+	local name = currentProfileName()
+	openDialog({
+		title = L.delete,
+		message = Spring.I18N("ui.keybinds.editor.deleteConfirm", { name = name }),
+		accept = function()
+			edited = false
+			profiles.delete(name)
+
+			-- Whatever the store fell back to has to be made live; the deleted profile
+			-- is still what the engine has loaded.
+			local nextName = currentProfileName()
+			profiles.setActive(nextName)
+			profiles.materialize(nextName)
+			refreshPicker()
+			applyActiveProfile(nextName, name)
+		end,
+	})
 end
 
 local function ensureControls()
@@ -367,6 +458,7 @@ local function ensureControls()
 
 	searchBox = Editbox.new({ placeholder = Spring.I18N('ui.keybinds.editor.search'), onChange = rebuildRows })
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
+	nameBox = Editbox.new({ maxChars = 40 })
 end
 
 local function layoutHeader()
@@ -383,7 +475,33 @@ local function layoutHeader()
 
 	presetDropdown:setRect(area.x2 - presetW, rowBottom, area.x2, rowTop, btnFs)
 
-	searchBox:setRect(area.x1, rowBottom, area.x2 - presetW - gap, rowTop, btnFs)
+	local btnW = floor(78 * scale)
+	local btnsX1 = area.x2 - presetW - gap - (#profileButtons * (btnW + gap) - gap)
+	for i, b in ipairs(profileButtons) do
+		local x1 = btnsX1 + (i - 1) * (btnW + gap)
+		b.rect = { x1, rowBottom, x1 + btnW, rowTop }
+	end
+
+	searchBox:setRect(area.x1, rowBottom, btnsX1 - gap, rowTop, btnFs)
+end
+
+local function dialogGeometry()
+	local w = floor(420 * scale)
+	local h = floor(150 * scale)
+	local cx = (area.x1 + area.x2) * 0.5
+	local cy = (area.y1 + area.y2) * 0.5
+	local bx1, bx2 = floor(cx - w * 0.5), floor(cx + w * 0.5)
+	local by1, by2 = floor(cy - h * 0.5), floor(cy + h * 0.5)
+	local bw = floor(120 * scale)
+	local bh = floor(28 * scale)
+	local pad = floor(16 * scale)
+	local btnY1 = by1 + pad
+	local cancel = { bx1 + pad, btnY1, bx1 + pad + bw, btnY1 + bh }
+	local ok = { bx2 - pad - bw, btnY1, bx2 - pad, btnY1 + bh }
+	local fieldY1 = btnY1 + bh + floor(20 * scale)
+	local field = { bx1 + pad, fieldY1, bx2 - pad, fieldY1 + floor(26 * scale) }
+
+	return bx1, by1, bx2, by2, ok, cancel, field
 end
 
 -- Capture-modal box + button/checkbox rects, recomputed so draw and mousePress agree.
@@ -458,21 +576,24 @@ function view.blur()
 		searchBox:blur()
 	end
 	if presetDropdown then presetDropdown:close() end
+	if nameBox then nameBox:blur() end
 	capturing = nil
+	dialog = nil
 end
 
 function view.setMenuToggle(fn)
 	menuToggle = fn
 end
 
-function view.isCapturing()
-	return capturing ~= nil
+-- True while a modal owns the panel, so the host hands it every key.
+function view.isModal()
+	return capturing ~= nil or dialog ~= nil
 end
 
 -- True while the editor needs keys first (search, capture, open dropdown), so the
 -- host claims textOwner and keys don't leak to bound actions.
 function view.wantsTextOwner()
-	return (searchBox and searchBox:isFocused()) or capturing ~= nil
+	return (searchBox and searchBox:isFocused()) or capturing ~= nil or dialog ~= nil
 		or (presetDropdown and presetDropdown:isOpen())
 end
 
@@ -802,6 +923,24 @@ function view.draw()
 	Scroller(barX1, lb, area.x2, listTop, #rows * rowHeight, scroll * rowHeight)
 
 	searchBox:draw()
+
+	local own = activeIsOwn()
+	local bfs = floor(rowHeight * 0.55)
+	font:Begin()
+	for _, b in ipairs(profileButtons) do
+		local r = b.rect
+		if r then
+			local enabled = own or b.id == "copy"
+			UiButton(r[1], r[2], r[3], r[4])
+			if enabled and mx >= r[1] and mx <= r[3] and my >= r[2] and my <= r[4] then
+				Highlight(r[1], r[2], r[3], r[4], floor(6 * scale), 1, { 1, 1, 1 })
+			end
+			font:Print((enabled and colorText or colorDim) .. fitText(L[b.id], r[3] - r[1] - pad * 2, bfs),
+				(r[1] + r[3]) * 0.5, (r[2] + r[4]) * 0.5, bfs, "cov")
+		end
+	end
+	font:End()
+
 	presetDropdown:draw()
 
 	if capturing then
@@ -892,6 +1031,41 @@ function view.draw()
 		font:Print((hasChain and colorText or colorDim) .. L.accept, (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
 		font:End()
 	end
+
+	if dialog then
+		local bx1, by1, bx2, by2, ok, cancel, field = dialogGeometry()
+		local cs = floor(6 * scale)
+		local cx = (bx1 + bx2) * 0.5
+		local tfs = floor(rowHeight * 0.6)
+		local sfs = floor(rowHeight * 0.5)
+
+		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+		UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
+
+		UiButton(cancel[1], cancel[2], cancel[3], cancel[4])
+		UiButton(ok[1], ok[2], ok[3], ok[4])
+		if mx >= cancel[1] and mx <= cancel[3] and my >= cancel[2] and my <= cancel[4] then
+			Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, 1, { 1, 1, 1 })
+		end
+		if mx >= ok[1] and mx <= ok[3] and my >= ok[2] and my <= ok[4] then
+			Highlight(ok[1], ok[2], ok[3], ok[4], cs, 1, { 1, 1, 1 })
+		end
+
+		font:Begin()
+		font:Print(colorText .. fitText(dialog.title, bx2 - bx1 - floor(32 * scale), tfs), cx, by2 - floor(26 * scale), tfs, "cov")
+		if dialog.message then
+			font:Print(colorDim .. fitText(dialog.message, bx2 - bx1 - floor(32 * scale), sfs),
+				cx, (field[2] + field[4]) * 0.5, sfs, "cov")
+		end
+		font:Print(colorText .. L.cancel, (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
+		font:Print(colorText .. L.accept, (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
+		font:End()
+
+		if not dialog.message then
+			nameBox:setRect(field[1], field[2], field[3], field[4], sfs)
+			nameBox:draw()
+		end
+	end
 end
 
 scrollFromY = function(y)
@@ -960,6 +1134,23 @@ function view.mousePress(x, y, button)
 		return false
 	end
 
+	if dialog then
+		if button == 1 then
+			local bx1, by1, bx2, by2, ok, cancel, field = dialogGeometry()
+			if x >= ok[1] and x <= ok[3] and y >= ok[2] and y <= ok[4] then
+				acceptDialog()
+			elseif (x >= cancel[1] and x <= cancel[3] and y >= cancel[2] and y <= cancel[4])
+				or x < bx1 or x > bx2 or y < by1 or y > by2 then
+				dialog = nil
+				nameBox:blur()
+			elseif not dialog.message then
+				nameBox:mousePress(x, y)
+			end
+		end
+
+		return true
+	end
+
 	-- In the modal, mouse1 drives its controls; only side buttons (mouse4+) bind.
 	if capturing then
 		local bx1, by1, bx2, by2, ok, cancel, anyBox = captureGeometry()
@@ -984,6 +1175,21 @@ function view.mousePress(x, y, button)
 
 	if button ~= 1 then
 		return true
+	end
+
+	for _, b in ipairs(profileButtons) do
+		local r = b.rect
+		if r and x >= r[1] and x <= r[3] and y >= r[2] and y <= r[4] then
+			searchBox:blur()
+			presetDropdown:close()
+			if b.id == "copy" then
+				startCopy()
+			elseif activeIsOwn() then
+				if b.id == "rename" then startRename() else startDelete() end
+			end
+
+			return true
+		end
 	end
 
 	local ddWasOpen = presetDropdown:isOpen()
@@ -1027,13 +1233,31 @@ function view.mousePress(x, y, button)
 end
 
 function view.textInput(char)
+	if dialog then
+		return not dialog.message and nameBox:textInput(char)
+	end
 	if searchBox and searchBox:isFocused() then
 		return searchBox:textInput(char)
 	end
+
 	return false
 end
 
 function view.keyPress(key, scanCode)
+	if dialog then
+		if key == KEYSYMS.ESCAPE then
+			dialog = nil
+			nameBox:blur()
+		elseif key == KEYSYMS.RETURN then
+			acceptDialog()
+		elseif not dialog.message then
+			-- Focus is dropped by the editbox on Escape/Return, which are handled above.
+			nameBox:keyPress(key)
+		end
+
+		return true
+	end
+
 	if capturing then
 		if key == 27 then
 			capturing = nil

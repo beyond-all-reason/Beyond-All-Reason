@@ -252,7 +252,7 @@ function M.rename(oldName, newName)
 end
 
 function M.copy(name, newName)
-	local src = M.get(name)
+	local src = M.get(name) or M.isBuiltin(name)
 	if not src then
 		return nil
 	end
