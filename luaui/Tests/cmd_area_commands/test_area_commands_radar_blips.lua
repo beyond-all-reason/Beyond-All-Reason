@@ -17,9 +17,13 @@
  TraceScreenRay hits a radar blip or a unit icon but not a unit ghost.
  It uses GuiTraceRay with useRadar=true so treats blips as icon spheres.
  
- The headless TestRunner uses a player read handle and no globallos/godmode.
+ The headless TestRunner uses a fullview spectator via globallos/godmode.
+ So we send the view commands below to see things as an allyTeam, and then
+ send orders through SyncedRun to pretend not to be a spectator. Instead, we
+ probably could just turn off globallos and godmode. Dunno.
  
  Of the above, maybe the trace will change? Maybe ghosts will become real?
+ That is not a substantial reason to keep this file around so OK to merc.
 ]]
 
 function skip()
