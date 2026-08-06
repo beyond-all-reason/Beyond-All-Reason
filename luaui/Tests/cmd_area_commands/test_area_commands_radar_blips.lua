@@ -30,11 +30,13 @@ function setup()
 	Test.clearMap()
 	-- The headless runner spectates with full view
 	Spring.SendCommands("specfullview 0")
+	Test.waitFrames(5)
 end
 
 function cleanup()
 	-- restore default spectator full view
 	Spring.SendCommands("specfullview 3")
+	Test.waitFrames(5)
 	Test.clearMap()
 end
 
