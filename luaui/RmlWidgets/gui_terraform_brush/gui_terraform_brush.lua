@@ -767,7 +767,8 @@ widgetState.applySkybox = applySkybox
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
 local BIOME_SKYBOX_MATCH = {
 	bismuth     = "spaceskybox",      -- starry sky
-	teizer      = "goldsunrise",      -- sunset
+	teizer      = "goldsunrise",      -- sunset (bespoke desert kept the old pick)
+	protodesert = "goldsunrise",      -- the renamed original Teizer stand-in set
 	enborelde   = "earthskybox",      -- sunny blue sky with clouds
 	namaqualand = "redplanet",        -- red desert planet
 	palehang    = "allthatglitters",  -- crystal-desert sky (Theta Crystals family)
@@ -865,6 +866,42 @@ local function buildRootStyle()
 	-- emit position here so dragging can override it inline.
 	return string.format("left: %.2fvw; top: %.2fvh;",
 		currentLeftVw, currentTopVh)
+end
+
+-- Every floating window pins its header and puts the rest of its content in a
+-- `.tf-panel-body` scroll box (see the RML). Capping those to the space left
+-- below each window is shared work across the whole editor suite, so it lives
+-- in WG.TerraformerShared; this is just the "re-measure now" nudge for the
+-- moments this widget knows about. Defined on widgetState rather than as a
+-- file local — this chunk is close to Lua 5.1's 200-local ceiling.
+function widgetState.refreshPanelBodies()
+	local ts = WG.TerraformerShared
+	if ts and ts.refreshPanelBodies then ts.refreshPanelBodies() end
+end
+
+-- GL overlays that paint on top of a panel element (texture previews) have to
+-- be clipped to the scroll box that element lives in — RmlUi clips its own
+-- rendering, but a raw gl.TexRect would keep painting over the pinned header or
+-- past the bottom of the panel once the content is scrolled. Returns true when
+-- a scissor was pushed; the caller must then gl.Scissor(false).
+function widgetState.pushPanelClip(el)
+	local vsy = select(2, GetViewGeometry())
+	if not vsy or vsy <= 0 then return false end
+	local node = el
+	while node do
+		if node:IsClassSet("tf-panel-body") then
+			local w, h = node.offset_width, node.offset_height
+			if w > 0 and h > 0 then
+				gl.Scissor(math.floor(node.absolute_left),
+					math.floor(vsy - node.absolute_top - h),
+					math.ceil(w), math.ceil(h))
+				return true
+			end
+			return false
+		end
+		node = node.parent_node
+	end
+	return false
 end
 
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
@@ -6686,6 +6723,24 @@ local initialModel = {
 			widgetState.tilesetActive = true
 		end
 	end,
+	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
+	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
+	-- look without having to reset the three sliders.
+	onTsToggleAlbDecouple = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setKnob and WG.TilesetTerrain.getKnobs) then return end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and knobs.albDecouple and knobs.albDecouple >= 1)
+		WG.TilesetTerrain.setKnob("albDecouple", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		widgetState.tsAlbDecoupleLast = on
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-alb-decouple")
+		if el then
+			el:SetAttribute("src",
+				on and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
+		end
+	end,
 	onTilesetKnob = function(_event, key)
 		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
 		local v = _elemSliderVal("ts-slider-" .. key, 0)
@@ -6764,6 +6819,22 @@ local initialModel = {
 		if widgetState.tsSkyboxSync and WG.TilesetTerrain and WG.TilesetTerrain.getActiveBiome then
 			local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
 			if bkey then syncSkyboxToBiome(bkey) end
+		end
+	end,
+	-- Master SHADER switch. Off releases the map shader (and the $minimap/$grass
+	-- overrides) back to the engine, so maps that ship hand-authored textures
+	-- render the way they were authored; the tuning sections gray out in M.sync.
+	onTsToggleShader = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setActive) then return end
+		local was = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()
+		local on = WG.TilesetTerrain.setActive(not was)
+		playSound(on and "toggleOn" or "toggleOff")
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-shader")
+		if el then
+			el:SetAttribute("src",
+				on and "/luaui/images/terraform_brush/check_on.png"
+				or  "/luaui/images/terraform_brush/check_off.png")
 		end
 	end,
 	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
@@ -9896,6 +9967,8 @@ local function attachEventListeners()
 				ds.active = false
 				ds.rootEl = nil
 				ds.snapRects = nil
+				-- The window moved, so the room left below it changed.
+				widgetState.refreshPanelBodies()
 			end
 		end, false)
 
@@ -10822,6 +10895,9 @@ function widget:DrawScreenPost()
 
 	local logDraw = not widgetState.spPreviewDrawLogged
 
+	-- Clip to the panel's scroll box so a scrolled-out swatch stops painting.
+	local spClipped = widgetState.pushPanelClip(els[1])
+
 	for i = 1, 4 do
 
 		local div = els[i]
@@ -10897,6 +10973,8 @@ function widget:DrawScreenPost()
 	end
 
 	widgetState.spPreviewDrawLogged = true
+
+	if spClipped then gl.Scissor(false) end
 
 	if shader then gl.UseShader(0) end
 
@@ -11154,6 +11232,17 @@ function widget:Update()
 		if widgetState.rootElement then
 			widgetState.rootElement:SetAttribute("style", buildRootStyle())
 		end
+		widgetState.refreshPanelBodies()
+	end
+
+	-- A locked slider takes over the mouse wheel (widget:MouseWheel drives it
+	-- from anywhere on screen), so the scrollable panel bodies stand down while
+	-- one is armed instead of fighting over the wheel under the cursor.
+	local pbLocked = next(widgetState.lockedSliders) ~= nil
+	if pbLocked ~= widgetState.panelBodyWheelHeld then
+		widgetState.panelBodyWheelHeld = pbLocked
+		local ts = WG.TerraformerShared
+		if ts and ts.setWheelHeld then ts.setWheelHeld(pbLocked) end
 	end
 
 	local tfState = WG.TerraformBrush and WG.TerraformBrush.getState()
@@ -11341,6 +11430,16 @@ function widget:Update()
 			-- erode controls: visible only in erode terraform mode
 			local inErode = tfActive and tfState and tfState.mode == "erode"
 			setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
+			-- Feature SELECTION / Reroll rows sit outside tf-feature-controls (they
+			-- belong above it in the panel), so activeTool does not gate them, and
+			-- their flags are only written by tf_features.sync, which runs for the
+			-- Features tool alone. Clear them here or the last state stays up and
+			-- follows you into whatever tool you switch to.
+			if not fpActive then
+				setDm("fpShowSelection", false)
+				setDm("fpShowReroll", false)
+				setDm("fpHasSelection", false)
+			end
 			-- clay/full-restore visibility
 			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
 			setDm("tfInRestore", inTfRestore and true or false)
@@ -12437,8 +12536,15 @@ end
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
 
-	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
-		WG.TerraformerShared.unregisterDocument("terraform_brush")
+	if WG.TerraformerShared then
+		-- Hand the mouse wheel back before leaving: a slider locked at shutdown
+		-- would otherwise leave every sibling panel unable to scroll.
+		if WG.TerraformerShared.setWheelHeld then
+			WG.TerraformerShared.setWheelHeld(false)
+		end
+		if WG.TerraformerShared.unregisterDocument then
+			WG.TerraformerShared.unregisterDocument("terraform_brush")
+		end
 	end
 
 	-- If a text input had focus when we shut down, SDL text-input mode is still
@@ -12459,6 +12565,7 @@ function widget:Shutdown()
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
+	widgetState.panelBodyWheelHeld = nil
 	-- Open Project row handles belong to the closed document too; a queued
 	-- rebuild must not run against it after shutdown.
 	widgetState.projectOpenRowEls = {}

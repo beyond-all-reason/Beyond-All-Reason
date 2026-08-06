@@ -251,10 +251,10 @@ function widget:Initialize()
 
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", changeUnitTypeAutogroupHandler, nil, "p") -- With a parameter, adds all units of this type to a specific autogroup
-	widgetHandler:AddAction("remove_from_autogroup", changeUnitTypeAutogroupHandler, { removeAll = true }, "p") -- Without a parameter, removes all units of this type from autogroups
-	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "p") -- Removes the closest of selected units from groups and selects only it
-	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "p") -- Changes the autogroup preset
+	widgetHandler:AddAction("add_to_autogroup", changeUnitTypeAutogroupHandler, nil, "pt") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", changeUnitTypeAutogroupHandler, { removeAll = true }, "pt") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", removeOneUnitFromGroupHandler, nil, "pt") -- Removes the closest of selected units from groups and selects only it
+	widgetHandler:AddAction("load_autogroup_preset", loadAutogroupPresetHandler, nil, "pt") -- Changes the autogroup preset
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
