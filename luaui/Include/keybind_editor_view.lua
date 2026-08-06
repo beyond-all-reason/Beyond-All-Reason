@@ -307,6 +307,9 @@ local function persistEdits()
 	-- Lua only reads keybindings (GetKeyBindings and friends), so the console is the
 	-- only way to write them back.
 	spSendCommands("keysave " .. customKeysFile)
+	-- A player migrated off a preset still has the config pointing at that preset file,
+	-- which would be reloaded over these edits on the next launch.
+	Spring.SetConfigString("KeybindingFile", customKeysFile)
 
 	return true
 end
