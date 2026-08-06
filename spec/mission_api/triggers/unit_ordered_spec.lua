@@ -9,6 +9,8 @@ _G.CMD = _G.CMD or {}
 _G.CMD.INSERT  = 34
 _G.CMD.MOVE    = 10
 _G.CMD.RECLAIM = 90
+_G.CMD.ANY     = 'a'
+_G.CMD.BUILD   = 'b'
 
 _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
 
@@ -108,15 +110,39 @@ describe("mission_api.triggers.unit_ordered", function()
 		assert.are.equal(1, fired())
 	end)
 
+	it("fires on any command when command is CMD.ANY", function()
+		local context, fired = newContext()
+		order(trigger({ command = CMD.ANY, unitDefName = 'armpw' }), context, CMD.RECLAIM, { 1, 2, 3, 4 })
+		assert.are.equal(1, fired())
+	end)
+
+	it("fires on any build order when command is CMD.BUILD", function()
+		local context, fired = newContext()
+		order(trigger({ command = CMD.BUILD, unitDefName = 'armpw' }), context, -2, { 100, 0, 200 })
+		assert.are.equal(1, fired())
+	end)
+
+	it("filters non-build commands when command is CMD.BUILD", function()
+		local context, fired = newContext()
+		order(trigger({ command = CMD.BUILD, unitDefName = 'armpw' }), context, CMD.MOVE, { 0, 0, 0 })
+		assert.are.equal(0, fired())
+	end)
+
+	it("fires on a build order inserted into the queue when command is CMD.BUILD", function()
+		local context, fired = newContext()
+		order(trigger({ command = CMD.BUILD, unitDefName = 'armpw' }), context, CMD.INSERT, { 0, -2, 0, 100, 0, 200 })
+		assert.are.equal(1, fired())
+	end)
+
 	it("filters mission-issued orders by default", function()
 		local context, fired = newContext()
 		order(trigger({ command = CMD.MOVE, unitDefName = 'armpw' }), context, CMD.MOVE, { 0, 0, 0 }, { issuingOrders = true })
 		assert.are.equal(0, fired())
 	end)
 
-	it("fires on mission-issued orders when fromMission is false", function()
+	it("fires on mission-issued orders when fromMission is true", function()
 		local context, fired = newContext()
-		order(trigger({ command = CMD.MOVE, unitDefName = 'armpw', fromMission = false }), context, CMD.MOVE, { 0, 0, 0 }, { issuingOrders = true })
+		order(trigger({ command = CMD.MOVE, unitDefName = 'armpw', fromMission = true }), context, CMD.MOVE, { 0, 0, 0 }, { issuingOrders = true })
 		assert.are.equal(1, fired())
 	end)
 
