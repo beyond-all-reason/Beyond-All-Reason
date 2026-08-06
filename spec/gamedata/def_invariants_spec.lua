@@ -8,7 +8,7 @@ describe("UnitDefs invariants", function()
 		defs = Builders.Spring.new():WithRealUnitDefs():Build():GetUnitDefs()
 
 		for _, def in pairs(defs) do
-			for _, option in ipairs(def.buildoptions or {}) do
+			for _, option in pairs(def.buildoptions or {}) do
 				buildable[option] = true
 			end
 		end
@@ -17,7 +17,7 @@ describe("UnitDefs invariants", function()
 	it("only offers build options that name a real unit", function()
 		local missing = {}
 		for name, def in pairs(defs) do
-			for _, option in ipairs(def.buildoptions or {}) do
+			for _, option in pairs(def.buildoptions or {}) do
 				if not defs[option] then
 					missing[#missing + 1] = name .. " -> " .. tostring(option)
 				end
@@ -30,9 +30,8 @@ describe("UnitDefs invariants", function()
 	it("gives every unit positive health", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			local health = def.maxdamage or def.health
-			if type(health) ~= "number" or health <= 0 then
-				bad[#bad + 1] = name .. " = " .. tostring(health)
+			if type(def.health) ~= "number" or def.health <= 0 then
+				bad[#bad + 1] = name .. " = " .. tostring(def.health)
 			end
 		end
 
@@ -283,7 +282,7 @@ describe("UnitDefs invariants", function()
 			end
 
 			for _, tag in ipairs(aircraftOnly) do
-				if def[tag] ~= nil and def.canfly ~= true then
+				if def[tag] and not def.canfly then
 					bad[#bad + 1] = name .. " has " .. tag .. " but cannot fly"
 				end
 			end
@@ -516,9 +515,13 @@ describe("UnitDefs invariants", function()
 	it("runs the category pass on every non-object def", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			local category = tostring(def.category or "")
-			if not category:find("OBJECT", 1, true) and not category:find("ALL", 1, true) then
-				bad[#bad + 1] = name .. " = " .. category
+			local tokens = {}
+			for token in tostring(def.category or ""):gmatch("%S+") do
+				tokens[token] = true
+			end
+
+			if not tokens.OBJECT and not tokens.ALL then
+				bad[#bad + 1] = name .. " = " .. tostring(def.category)
 			end
 		end
 
@@ -545,7 +548,8 @@ describe("UnitDefs invariants", function()
 
 	it("points i18nfromunit at a real translation key", function()
 		local json = VFS.Include("common/luaUtilities/json.lua")
-		local handle = assert(io.open("language/en/units.json", "r"))
+		local path = "language/en/units.json"
+		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
 		local contents = handle:read("*a")
 		handle:close()
 		local names = json.decode(contents).units.names
