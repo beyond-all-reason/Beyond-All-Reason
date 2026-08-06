@@ -77,16 +77,20 @@ local presetOptions = {}
 
 local function buildPresetOptions()
 	local active = profiles.activeName()
-	local function label(name, display)
-		return (dirty and name == active) and (display .. " *") or display
-	end
+	-- Editing a shipped profile does not change it: what is on screen is an unsaved new
+	-- profile, so the picker says that instead of marking the read-only one as modified.
+	local pending = dirty and profiles.isBuiltin(active) ~= nil
 
 	presetOptions = {}
 	for _, b in ipairs(profiles.builtins) do
-		presetOptions[#presetOptions + 1] = { label = label(b.name, shortPresetLabel(b.name)), name = b.name, builtin = true }
+		presetOptions[#presetOptions + 1] = { label = shortPresetLabel(b.name), name = b.name, builtin = true }
 	end
 	for _, name in ipairs(profiles.list()) do
-		presetOptions[#presetOptions + 1] = { label = label(name, name), name = name }
+		local marked = (dirty and name == active) and (name .. " *") or name
+		presetOptions[#presetOptions + 1] = { label = marked, name = name }
+	end
+	if pending then
+		presetOptions[#presetOptions + 1] = { label = L.newProfile .. " *", pending = true }
 	end
 
 	return presetOptions
@@ -98,6 +102,11 @@ local function activeIsOwn()
 end
 
 local function currentPresetIndex()
+	local last = presetOptions[#presetOptions]
+	if last and last.pending then
+		return #presetOptions
+	end
+
 	local name = profiles.activeName()
 	for i = 1, #presetOptions do
 		if presetOptions[i].name == name then
@@ -449,6 +458,11 @@ local function guardDirty(proceed, onCancel)
 end
 
 switchToPreset = function(opt)
+	-- The pending entry is already what is on screen; picking it is not a switch.
+	if opt.pending then
+		return
+	end
+
 	guardDirty(function()
 		local fromName = profiles.activeName()
 		if not profiles.materialize(opt.name) then
