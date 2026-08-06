@@ -69,8 +69,7 @@ local function CheckTresholds()
 		if sum < unblocklimit and data.blocked and (currentCounter - data.blocked > unblocklimit) then
 			data.blocked = false
 			Echo(Spring.I18N("ui.mapDrawBlocker.unblock", {
-				player = (WG.playernames and WG.playernames.getPlayername)
-						and WG.playernames.getPlayername(player)
+				player = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(player)
 					or GetPlayerInfo(player, false),
 			}))
 		end

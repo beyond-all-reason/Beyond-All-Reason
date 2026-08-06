@@ -1,9 +1,9 @@
-function skip()
+local function skip()
 	-- TODO re-enable and debug. Disabled 2025-12-22 to unblock CICD
 	return true
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 	Test.levelHeightMap()
 
@@ -11,14 +11,14 @@ function setup()
 	Spring.SendCommands("setspeed 5")
 end
 
-function cleanup()
+local function cleanup()
 	Spring.SendCommands("globallos")
 	Spring.SendCommands("setspeed 1")
 
 	Test.clearMap()
 end
 
-function runCritterTest()
+local function runCritterTest()
 	local WAIT_FRAMES = 204 -- enough to trigger critter cleanup/restoring by gaia_critters
 	local unitName = "armpw"
 	local critterName = "critter_crab"
@@ -188,6 +188,8 @@ function runCritterTest()
 	assert(countAliveCritters() == 36)
 end
 
-function test()
+local function test()
 	runCritterTest()
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
