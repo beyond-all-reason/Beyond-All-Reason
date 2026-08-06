@@ -138,7 +138,10 @@ local function migrate()
 	store = emptyStore()
 
 	-- Already on a preset that survives the change; it stays selectable as a builtin.
-	if legacyPresetNames[Spring.GetConfigString("KeybindingFile", "")] then
+	local survivor = legacyPresetNames[Spring.GetConfigString("KeybindingFile", "")]
+	if survivor then
+		store.active = survivor
+		M.save()
 		return
 	end
 

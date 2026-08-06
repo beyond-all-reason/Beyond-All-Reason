@@ -1,16 +1,16 @@
 -- Interactive view for the in-game keybind editor, hosted as the first tab of
 -- the Keybind/Mouse Info panel. Immediate-mode, drawn live every frame.
 --
--- Preset picker mirrors Settings: switching is a non-destructive KeybindingFile
--- change (seeding uikeys.txt from the current binds the first time Custom is
--- picked), applied live. Rebinding is only allowed on Custom, and each edit
--- applies and saves to uikeys.txt immediately - no staging.
+-- The picker lists the shipped profiles and the player's own. Shipped ones are not
+-- editable: the first edit while one is selected forks it into a new profile, so a
+-- player never has to pick "make a copy" before changing a key. Every edit applies
+-- live and is stored into the active profile immediately - no staging.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = VFS.Include("luaui/configs/keybind_catalog.lua")
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
+local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
 local view = {}
@@ -23,13 +23,12 @@ local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetScanSymbol = Spring.GetScanSymbol
 
--- The engine's own name for the editable preset; the editor only allows edits on it.
-local customKeysFile = "uikeys.txt"
+-- The engine loads this one file; a profile is applied by writing it here.
+local customKeysFile = profiles.activeFile
 
 local area = { x1 = 0, y1 = 0, x2 = 0, y2 = 0 }
 local scale = 1
 local rowHeight = 22
-local hintH = 0
 local listTop = 0
 local barX1 = 0
 local listRight = 0
@@ -41,7 +40,6 @@ local L = {}
 local rows = {}
 local scroll = 0
 local dragging = false
-local editable = false -- true only on Custom (uikeys.txt)
 local capturing
 local captureAny = false -- pending capture binds with the Any+ (match-any-modifier) qualifier
 local edited = false
@@ -65,29 +63,43 @@ local function shortPresetLabel(name)
 end
 
 local presetOptions = {}
-for i = 1, #keyConfig.keybindingLayouts do
-	presetOptions[i] = {
-		label = shortPresetLabel(keyConfig.keybindingLayouts[i]),
-		file = keyConfig.keybindingLayoutFiles[i],
-	}
+
+local function buildPresetOptions()
+	presetOptions = {}
+	for _, b in ipairs(profiles.builtins) do
+		presetOptions[#presetOptions + 1] = { label = shortPresetLabel(b.name), name = b.name, builtin = true }
+	end
+	for _, name in ipairs(profiles.list()) do
+		presetOptions[#presetOptions + 1] = { label = name, name = name }
+	end
+	presetOptions[#presetOptions + 1] = { label = L.newProfile, isNew = true }
+
+	return presetOptions
+end
+
+-- Falls back to the first shipped profile so the picker always has a selection.
+local function currentProfileName()
+	local active = profiles.getActive()
+	if active and (profiles.get(active) or profiles.isBuiltin(active)) then
+		return active
+	end
+
+	return profiles.builtins[1] and profiles.builtins[1].name or nil
 end
 
 local function currentPresetIndex()
-	local file = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1])
+	local name = currentProfileName()
 	for i = 1, #presetOptions do
-		if presetOptions[i].file == file then
+		if not presetOptions[i].isNew and presetOptions[i].name == name then
 			return i
 		end
 	end
+
 	return 1
 end
 
-local function listBottom()
-	return editable and area.y1 or (area.y1 + hintH)
-end
-
 local function visibleRows()
-	return math.max(1, floor((listTop - listBottom()) / rowHeight))
+	return math.max(1, floor((listTop - area.y1) / rowHeight))
 end
 
 local function maxScroll()
@@ -129,7 +141,7 @@ local function buildResolvedCatalog()
 	L.other = Spring.I18N('ui.keybinds.editor.other')
 	L.otherLower = L.other:lower()
 	L.pressKey = Spring.I18N('ui.keybinds.editor.pressKey')
-	L.customOnly = Spring.I18N('ui.keybinds.editor.customOnly')
+	L.newProfile = Spring.I18N('ui.keybinds.editor.newProfile')
 	L.anyMod = Spring.I18N('ui.keybinds.editor.anyMod')
 	L.accept = Spring.I18N('ui.keybinds.editor.accept')
 	L.cancel = Spring.I18N('ui.keybinds.editor.cancel')
@@ -277,33 +289,74 @@ local function persistEdits()
 		return false
 	end
 	edited = false
+
+	local profile = profiles.get(currentProfileName())
+	if profile then
+		profile.binds = profiles.snapshotLive()
+		profiles.save()
+	end
 	-- Lua only reads keybindings (GetKeyBindings and friends), so the console is the
 	-- only way to write them back.
 	spSendCommands("keysave " .. customKeysFile)
+
 	return true
 end
 
-switchToPreset = function(opt)
-	-- Non-destructive KeybindingFile switch; first pick of Custom seeds uikeys.txt.
-	persistEdits()
-
-	local fromLabel = presetOptions[currentPresetIndex()].label
-	local file = opt.file
-	if file == customKeysFile and not VFS.FileExists(file) then
-		spSendCommands("keysave " .. file)
-	end
-	Spring.SetConfigString("KeybindingFile", file)
-	if fromLabel ~= opt.label then
-		Spring.Echo("Keybind preset: " .. fromLabel .. " -> " .. opt.label)
+local function applyActiveProfile(name, fromName)
+	Spring.SetConfigString("KeybindingFile", customKeysFile)
+	if fromName and fromName ~= name then
+		Spring.Echo("Keybind profile: " .. fromName .. " -> " .. name)
 	end
 	if menuToggle then
-		menuToggle(opt.label)
+		menuToggle(name, profiles.isBuiltin(name) ~= nil)
 	end
+
 	if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 		WG['bar_hotkeys'].reloadBindings()
 	else
 		view.refresh()
 	end
+end
+
+-- A shipped profile is read-only, so the first edit made while one is selected forks
+-- it: the player never has to pick "make a copy" before changing a key.
+local function forkIfShipped()
+	local name = currentProfileName()
+	if profiles.get(name) then
+		return
+	end
+
+	profiles.create(L.newProfile, profiles.snapshotLive())
+	Spring.SetConfigString("KeybindingFile", customKeysFile)
+	-- So the file the config now points at exists before anything reloads it.
+	spSendCommands("keysave " .. customKeysFile)
+	buildPresetOptions()
+	presetDropdown:setOptions(presetOptions)
+	presetDropdown:setSelected(currentPresetIndex())
+	if menuToggle then
+		menuToggle(profiles.getActive(), false)
+	end
+end
+
+switchToPreset = function(opt)
+	persistEdits()
+
+	local fromName = currentProfileName()
+	if opt.isNew then
+		-- Seeded from what is live, so a new profile starts where the player already is.
+		local created = profiles.create(L.newProfile, profiles.snapshotLive())
+		profiles.materialize(created)
+		buildPresetOptions()
+		presetDropdown:setOptions(presetOptions)
+		applyActiveProfile(created, fromName)
+		return
+	end
+
+	if not profiles.materialize(opt.name) then
+		return
+	end
+	profiles.setActive(opt.name)
+	applyActiveProfile(opt.name, fromName)
 end
 
 local function ensureControls()
@@ -368,7 +421,10 @@ function view.refresh()
 	ensureControls()
 	seedWorkingFromEngine()
 	resolvedCatalog = nil
-	editable = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1]) == customKeysFile
+	-- Ahead of the picker, which labels its "new profile" entry from L.
+	buildResolvedCatalog()
+	buildPresetOptions()
+	presetDropdown:setOptions(presetOptions)
 	presetDropdown:setSelected(currentPresetIndex())
 	layoutHeader()
 	rebuildRows()
@@ -379,7 +435,6 @@ function view.setArea(x1, y1, x2, y2, s)
 	area.x1, area.y1, area.x2, area.y2 = x1, y1, x2, y2
 	scale = s or 1
 	rowHeight = floor(22 * scale)
-	hintH = floor(24 * scale)
 
 	local pad = floor(6 * scale)
 	local headerH = floor(34 * scale)
@@ -441,6 +496,7 @@ local function actionHasKeyset(action, newKeyset, exceptRaw)
 end
 
 local function rebindKeyset(action, oldRaw, newKeyset)
+	forkIfShipped()
 	spSendCommands("unbind " .. oldRaw .. " " .. action)
 	if not actionHasKeyset(action, newKeyset, oldRaw) then
 		spSendCommands("bind " .. newKeyset .. " " .. action)
@@ -453,12 +509,14 @@ local function addKeyset(action, newKeyset)
 	if actionHasKeyset(action, newKeyset) then
 		return
 	end
+	forkIfShipped()
 	spSendCommands("bind " .. newKeyset .. " " .. action)
 	edited = true
 	reseed()
 end
 
 local function removeKeyset(action, raw)
+	forkIfShipped()
 	spSendCommands("unbind " .. raw .. " " .. action)
 	edited = true
 	reseed()
@@ -683,7 +741,7 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 		return
 	end
 
-	local hovered = editable and mx >= area.x1 and mx <= listRight and my <= top and my > bottom
+	local hovered = mx >= area.x1 and mx <= listRight and my <= top and my > bottom
 	if hovered then
 		RectRound(area.x1, bottom, listRight, top, 0, 0, 0, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.06 })
 	end
@@ -699,30 +757,23 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	local gap = floor(6 * scale)
 	local glyphW = floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
-	local rightGap = editable and (pad + glyphW) or pad
-	-- When editable, reserve room on the right so "+" always fits.
-	local chipLimit = editable and (listRight - addW - floor(8 * scale)) or listRight
+	local rightGap = pad + glyphW
+	-- Room reserved on the right so "+" always fits.
+	local chipLimit = listRight - addW - floor(8 * scale)
 	local chipArea = chipLimit - keyAreaX1
 
 	local mets, cx = layoutRowChips(row.action, fs, pad, rightGap, chipArea, gap)
 	for _, m in ipairs(mets) do
-		if editable then
-			local overRemove = mx >= m.removeX1 and mx <= m.x + m.w and my >= c1 and my <= c2
-			local overBody = mx >= m.x and mx < m.removeX1 and my >= c1 and my <= c2
-			RectRound(m.x, c1, m.x + m.w, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, overBody and 0.5 or 0.35 })
-			font:Print(colorKey .. m.disp, m.x + pad, cyc, m.fs, "ov")
-			font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", m.removeX1 + rightGap * 0.5, cyc, fs, "cov")
-		else
-			RectRound(m.x, c1, m.x + m.w, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, 0.25 })
-			font:Print(colorKey .. m.disp, m.x + pad, cyc, m.fs, "ov")
-		end
+		local overRemove = mx >= m.removeX1 and mx <= m.x + m.w and my >= c1 and my <= c2
+		local overBody = mx >= m.x and mx < m.removeX1 and my >= c1 and my <= c2
+		RectRound(m.x, c1, m.x + m.w, c2, floor(3 * scale), 1, 1, 1, 1, { 0, 0, 0, overBody and 0.5 or 0.35 })
+		font:Print(colorKey .. m.disp, m.x + pad, cyc, m.fs, "ov")
+		font:Print((overRemove and "\255\235\090\090" or colorDim) .. "x", m.removeX1 + rightGap * 0.5, cyc, fs, "cov")
 	end
 
-	if editable then
-		local overAdd = mx >= cx and mx <= cx + addW and my >= c1 and my <= c2
-		RectRound(cx, c1, cx + addW, c2, floor(3 * scale), 1, 1, 1, 1, { 0.2, 0.45, 0.25, overAdd and 0.6 or 0.4 })
-		font:Print(colorText .. "+", (cx + cx + addW) * 0.5, cyc, fs, "cov")
-	end
+	local overAdd = mx >= cx and mx <= cx + addW and my >= c1 and my <= c2
+	RectRound(cx, c1, cx + addW, c2, floor(3 * scale), 1, 1, 1, 1, { 0.2, 0.45, 0.25, overAdd and 0.6 or 0.4 })
+	font:Print(colorText .. "+", (cx + cx + addW) * 0.5, cyc, fs, "cov")
 end
 
 function view.draw()
@@ -737,7 +788,7 @@ function view.draw()
 	local rowCount = visibleRows()
 	local fs = rowHeight * 0.55
 	local pad = floor(6 * scale)
-	local lb = listBottom()
+	local lb = area.y1
 
 	font:Begin()
 	for r = 1, rowCount do
@@ -752,12 +803,6 @@ function view.draw()
 
 	searchBox:draw()
 	presetDropdown:draw()
-
-	if not editable then
-		font:Begin()
-		font:Print(colorDim .. L.customOnly, (area.x1 + area.x2) * 0.5, area.y1 + hintH * 0.5, fs, "cov")
-		font:End()
-	end
 
 	if capturing then
 		local bx1, by1, bx2, by2, ok, cancel, anyBox = captureGeometry()
@@ -850,7 +895,7 @@ function view.draw()
 end
 
 scrollFromY = function(y)
-	local lb = listBottom()
+	local lb = area.y1
 	local f = (listTop - y) / math.max(1, listTop - lb)
 	if f < 0 then f = 0 elseif f > 1 then f = 1 end
 	scroll = floor(f * maxScroll() + 0.5)
@@ -859,7 +904,7 @@ end
 
 function view.mouseWheel(up, value)
 	local mx, my = spGetMouseState()
-	if not (mx >= area.x1 and mx <= area.x2 and my >= listBottom() and my <= listTop) then
+	if not (mx >= area.x1 and mx <= area.x2 and my >= area.y1 and my <= listTop) then
 		return false
 	end
 	scroll = scroll + (up and -3 or 3)
@@ -958,13 +1003,13 @@ function view.mousePress(x, y, button)
 	end
 	searchBox:blur()
 
-	if x >= barX1 and x <= area.x2 and y >= listBottom() and y <= listTop then
+	if x >= barX1 and x <= area.x2 and y >= area.y1 and y <= listTop then
 		dragging = true
 		scrollFromY(y)
 		return true
 	end
 
-	if editable and x >= area.x1 and x <= listRight and y >= listBottom() and y <= listTop then
+	if x >= area.x1 and x <= listRight and y >= area.y1 and y <= listTop then
 		-- The band can end in a partial row that draw never paints, so clamp to the
 		-- painted count or a click in that strip would edit an unseen row.
 		local r = floor((listTop - y) / rowHeight) + 1

@@ -353,7 +353,7 @@
 				"search": "Search...",
 				"other": "Other",
 				"pressKey": "Press a key or mouse button...",
-				"customOnly": "Switch the preset to Custom to edit keybinds",
+				"newProfile": "New Profile",
 				"anyMod": "Ignore modifiers",
 				"accept": "Accept",
 				"cancel": "Cancel"

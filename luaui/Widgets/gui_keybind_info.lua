@@ -239,14 +239,17 @@ function widget:Initialize()
 		return true
 	end, nil, "t")
 
-	keybindEditor.setMenuToggle(function(label)
+	keybindEditor.setMenuToggle(function(name, shipped)
 		if not (widgetHandler.DisableWidget and widgetHandler.EnableWidget) then
 			return
 		end
-		if label == "Custom" then
+		-- Only a shipped profile implies a build menu; a player's own profile leaves
+		-- whichever one they already run alone.
+		if not shipped then
 			return
 		end
-		if label:lower():find("grid", 1, true) then
+
+		if name:lower():find("grid", 1, true) then
 			widgetHandler:DisableWidget('Build menu')
 			widgetHandler:EnableWidget('Grid menu')
 		else
