@@ -1,7 +1,7 @@
 -- Guards the shared keybind data contract (common/configs/keybind_catalog.json and
--- keybind_presets.json) against drift: structural conformance to the schemas, plus
--- referential integrity the schemas can't express (preset files exist on disk, every
--- catalog i18n key resolves in the English source).
+-- keybind_defaults.json) against drift: structural conformance to the schemas, plus
+-- referential integrity the schemas can't express (every catalog i18n key resolves
+-- in the English source).
 --
 -- Reads the JSON directly rather than through the Lua adapters, because the adapters
 -- use VFS.LoadFile, which the test harness does not mock.
@@ -26,32 +26,33 @@ local function i18nExists(dottedKey)
 	return node ~= nil
 end
 
-describe("keybind preset registry", function()
-	local registry = loadJson("common/configs/keybind_presets.json")
+describe("shipped keybind profiles", function()
+	local defaults = loadJson("common/configs/keybind_defaults.json")
 
-	it("is an object with a non-empty presets list", function()
-		assert(type(registry.presets) == "table", "presets must be a list")
-		assert(#registry.presets > 0, "presets must not be empty")
+	it("is an object with a non-empty profiles list", function()
+		assert(type(defaults.profiles) == "table", "profiles must be a list")
+		assert(#defaults.profiles > 0, "profiles must not be empty")
 	end)
 
-	it("gives every preset a name and an existing bind file", function()
-		for _, preset in ipairs(registry.presets) do
-			assert(type(preset.name) == "string", "preset missing name")
-			assert(type(preset.file) == "string", "preset missing file: " .. tostring(preset.name))
-			-- uikeys.txt (Custom) is created on demand, so only shipped files must exist
-			if preset.file ~= "uikeys.txt" then
-				assert(VFS.FileExists(preset.file), "preset file missing: " .. preset.file)
+	it("gives every profile a unique name and a non-empty bind list", function()
+		local seen = {}
+		for _, profile in ipairs(defaults.profiles) do
+			assert(type(profile.name) == "string" and profile.name ~= "", "profile missing name")
+			assert(not seen[profile.name], "duplicate profile name: " .. tostring(profile.name))
+			seen[profile.name] = true
+			assert(type(profile.binds) == "table" and #profile.binds > 0,
+				"profile has no binds: " .. profile.name)
+		end
+	end)
+
+	it("gives every bind a keyset and an action", function()
+		for _, profile in ipairs(defaults.profiles) do
+			for i, bind in ipairs(profile.binds) do
+				local where = profile.name .. " bind " .. i
+				assert(type(bind.keyset) == "string" and bind.keyset ~= "", "no keyset: " .. where)
+				assert(type(bind.action) == "string" and bind.action ~= "", "no action: " .. where)
 			end
 		end
-	end)
-
-	it("maps the Custom preset to uikeys.txt", function()
-		local custom
-		for _, preset in ipairs(registry.presets) do
-			if preset.name == "Custom" then custom = preset end
-		end
-		assert(custom, "no Custom preset")
-		assert(custom.file == "uikeys.txt", "Custom must map to uikeys.txt")
 	end)
 end)
 

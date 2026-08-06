@@ -9,15 +9,15 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | File | What it is | Schema |
 |---|---|---|
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
-| `keybind_presets.json` | Ordered registry of presets (display name -> bind file), with the Custom preset flagged. | `keybind_presets.schema.json` |
+| `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
 
 Both are validated in CI by `spec/keybind_catalog_spec.lua` (structure + referential
-integrity: preset files exist, every i18n key resolves).
+integrity: every i18n key resolves, every bind has a keyset and an action).
 
-The actual bindings live in the plain-text bind files the registry points at
-(`luaui/configs/hotkeys/*.txt`, and `uikeys.txt` for Custom). Those are already portable -
-a consumer reads or copies them directly; only the registry (which file is which preset)
-needs sharing.
+A profile is a whole keymap, never a delta - applying one replaces everything, so
+there is no base layer to reason about. The shipped profiles carry their bindings
+inline rather than pointing at bind files, so a consumer reads one shape whether the
+profile came from this file or from the player's own.
 
 ## Catalog item kinds
 
@@ -41,25 +41,32 @@ suppressed by coincidence - so they surface neither as a row nor under "Other".
 ## The config contract (behavior each surface implements)
 
 Structure lives in the schemas; these are the operations, which a schema can't express.
-Every surface answers the same questions from the same facts:
+Every surface answers the same questions from the same facts.
 
-- **Which preset are we on?** Read the engine config string `KeybindingFile`. Match it
-  against `keybind_presets.json` `file` values. `uikeys.txt` means **Custom**; anything
-  else is the named preset. If it points at nothing valid, fall back to the first entry.
-- **Switch preset.** Set `KeybindingFile` to the target preset's `file`, then reload the
-  bindings.
-- **Seed Custom.** The first time Custom is selected, `uikeys.txt` may not exist yet - seed
-  it from the currently active bindings so the user starts from what they had.
-- **Reset Custom to a preset.** Overwrite `uikeys.txt` with the chosen preset's bindings,
-  then reload. (Destructive to the user's custom binds - confirm first.)
+The player's own profiles live in `LuaUI/Config/keybind_profiles.json`, in the same
+shape as the shipped ones plus an `active` field naming the selected profile. That file
+is per-install rather than shared, but its format is the contract - a surface that can
+read one can read the other.
+
+- **Which profile are we on?** Read `active` from the player's profile store. If it names
+  nothing that exists in either file, fall back to the first shipped profile.
+- **Apply a profile.** Write its binds out as `bind <keyset> <action>` lines (plus a
+  leading `fakemeta <key>` if it has one), point the engine config string `KeybindingFile`
+  at that file, and reload. Reloading clears the keymap first, which is why a profile has
+  to define every binding it wants.
+- **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
+  so the first edit made while one is selected forks it into a copy and edits that.
+- **Create / rename / delete.** Names are the identity, so they must stay unique across
+  both files; disambiguate rather than overwrite. Deleting the active profile means
+  falling back and applying whatever is left.
 
 ### Same rules, different plumbing
 
 | Operation | In-game (LuaUI) | Lobby (Chobby / web) |
 |---|---|---|
-| Read current preset | `Spring.GetConfigString("KeybindingFile")` | read the same engine config value |
-| Switch preset | `Spring.SetConfigString` + `keyreload` | write the config value the game reads on launch |
-| Seed / reset Custom | `keysave` a preset's binds into `uikeys.txt` | copy the preset file's contents into `uikeys.txt` |
+| Read the profile set | `VFS.LoadFile` both JSON files | read the same two files |
+| Apply a profile | write `uikeys.txt`, `Spring.SetConfigString`, `keyreload` | write `uikeys.txt` and the config value the game reads on launch |
+| Persist an edit | snapshot `Spring.GetKeyBindings` back into the active profile | rewrite the profile entry directly |
 
 ## i18n
 
