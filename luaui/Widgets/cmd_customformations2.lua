@@ -6,7 +6,7 @@ function widget:GetInfo()
         name      = "CustomFormations2",
         desc      = "Allows you to draw your own formation line.",
         author    = "Errrrrrr, Niobium", -- based on 'Custom Formations' by jK and gunblob
-        version   = "v4.4",
+        version   = "v4.5",
         date      = "June, 2023",
         license   = "GNU GPL, v2 or later",
         layer     = 10000,
