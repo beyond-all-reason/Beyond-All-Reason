@@ -16,7 +16,6 @@ end
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local UnitDefs = UnitDefs
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitBuildeeRadius = Spring.GetUnitBuildeeRadius
 local spGetFeaturePosition = Spring.GetFeaturePosition
