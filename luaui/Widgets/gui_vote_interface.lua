@@ -42,7 +42,7 @@ local myPlayerName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myP
 
 local isreplay = Spring.IsReplay()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
 local math_isInRect = math.isInRect
 local sfind = string.find
 local ssub = string.sub
@@ -439,7 +439,7 @@ local function StartVote(name) -- when called without params its just to refresh
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:SetTextColor(1, 1, 1, 1)
 			font2:Print(
-				(weAreVoteOwner and Spring.I18N("ui.voting.endVote") or Spring.I18N("ui.voting.no")),
+				(weAreVoteOwner and BAR.I18N("ui.voting.endVote") or BAR.I18N("ui.voting.no")),
 				noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2),
 				noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3),
 				fontSize,
@@ -477,7 +477,7 @@ local function StartVote(name) -- when called without params its just to refresh
 					elementCorner * 0.4
 				)
 				font2:Print(
-					Spring.I18N("ui.voting.yes"),
+					BAR.I18N("ui.voting.yes"),
 					yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2),
 					yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3),
 					fontSize,
@@ -727,9 +727,9 @@ function widget:AddConsoleLine(lines, priority)
 					if sfind(line, "* Vote for command", nil, true) then
 						voteEndTime = os.clock() + voteEndDelay
 						if sfind(line, " passed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votepassed")
+							voteEndText = BAR.I18N("ui.voting.votepassed")
 						elseif sfind(line, " failed", nil, true) then
-							voteEndText = Spring.I18N("ui.voting.votefailed")
+							voteEndText = BAR.I18N("ui.voting.votefailed")
 						end
 						MinimizeVote()
 					end
@@ -742,7 +742,7 @@ function widget:AddConsoleLine(lines, priority)
 						or sfind(line, " vote (command executed directly by ", nil, true)
 					then
 						voteEndTime = os.clock() + voteEndDelay
-						voteEndText = Spring.I18N("ui.voting.votecancelled")
+						voteEndText = BAR.I18N("ui.voting.votecancelled")
 						MinimizeVote()
 					end
 					-- > [teh]cluster2[00] * [Z]kynet, you cannot vote currently, there is no vote in progress.

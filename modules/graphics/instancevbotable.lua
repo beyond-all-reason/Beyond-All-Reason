@@ -505,7 +505,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 			"instead of ",
 			iT.instanceStep
 		)
-		Spring.Debug.TraceFullEcho(20, 20, 20, "pushElementInstance Failure:" .. iT.myName)
+		BAR.Debug.TraceFullEcho(20, 20, 20, "pushElementInstance Failure:" .. iT.myName)
 	end
 	local iTusedElements = iT.usedElements
 	local iTStep = iT.instanceStep
@@ -549,7 +549,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 		if isvalidid == false then
 			Spring.Echo("Error: Attempted to push an invalid unit/featureID", unitID, "into", iT.myName)
 			noUpload = true
-			Spring.Debug.TraceFullEcho(20, 20, 20, "invalid unit/featureID in " .. iT.myName)
+			BAR.Debug.TraceFullEcho(20, 20, 20, "invalid unit/featureID in " .. iT.myName)
 		end
 		iT.indextoUnitID[thisInstanceIndex] = unitID
 	end
@@ -592,7 +592,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 			iT.myName,
 			"but it does not exist in it"
 		)
-		Spring.Debug.TraceFullEcho(10, 10, 3, iT.myName)
+		BAR.Debug.TraceFullEcho(10, 10, 3, iT.myName)
 		return nil
 	end
 	if iT.usedElements == 0 then -- Dont remove the last element
@@ -685,7 +685,7 @@ local function popElementInstance(iT, instanceID, noUpload)
 								s = s .. " " .. tostring(zombie) .. "/" .. tostring(gf)
 								Spring.Echo("ZOMBIE instanceID", zombie, "gf", gf)
 								--Spring.SendCommands({"pause 1"})
-								Spring.Debug.TraceFullEcho(nil, nil, nil, iT.myName)
+								BAR.Debug.TraceFullEcho(nil, nil, nil, iT.myName)
 							end
 							Spring.Echo(s)
 							iT.zombies = {}

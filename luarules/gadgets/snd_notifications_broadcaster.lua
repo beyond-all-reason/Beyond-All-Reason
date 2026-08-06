@@ -23,9 +23,8 @@ if not gadgetHandler:IsSyncedCode() then
 			and (
 				forceplay
 				or (
-					tonumber(player) and (
-						(tonumber(player) == Spring.GetLocalPlayerID()) or Spring.GetSpectatingState()
-					)
+					tonumber(player)
+					and ((tonumber(player) == Spring.GetLocalPlayerID()) or Spring.GetSpectatingState())
 				)
 			)
 		then

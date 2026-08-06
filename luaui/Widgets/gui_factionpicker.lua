@@ -112,7 +112,7 @@ local function drawFactionpicker()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.66)
 	font2:Print(
-		Spring.I18N("ui.factionPicker.pick"),
+		BAR.I18N("ui.factionPicker.pick"),
 		backgroundRect[1] + contentPadding,
 		backgroundRect[4] - contentPadding - (fontSize * 0.7),
 		fontSize,
@@ -157,7 +157,7 @@ local function drawFactionpicker()
 		-- faction name
 		font2:Print(
 			(disabled and "\255\170\170\170" or "\255\255\255\255")
-				.. Spring.I18N("units.factions." .. factions[i].faction),
+				.. BAR.I18N("units.factions." .. factions[i].faction),
 			factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5),
 			factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5),
 			fontSize * 0.96,
@@ -165,7 +165,7 @@ local function drawFactionpicker()
 		)
 
 		if WG.tooltip ~= nil then
-			local text = Spring.I18N("ui.factionPicker.factions." .. factions[i].faction)
+			local text = BAR.I18N("ui.factionPicker.factions." .. factions[i].faction)
 			local tooltip = ""
 			local maxWidth = WG.tooltip.getFontsize() * 80
 			local textLines, numLines = font2:WrapText(text, maxWidth)
@@ -175,7 +175,7 @@ local function drawFactionpicker()
 				{ factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4] },
 				tooltip,
 				nil,
-				Spring.I18N("units.factions." .. factions[i].faction)
+				BAR.I18N("units.factions." .. factions[i].faction)
 			)
 		end
 	end
@@ -436,7 +436,7 @@ function widget:DrawScreen()
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 				font2:Print(
-					Spring.I18N("units.factions." .. factions[i].faction),
+					BAR.I18N("units.factions." .. factions[i].faction),
 					factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5),
 					factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5),
 					fontSize * 0.96,

@@ -82,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 	local allyTeamEvalFrame = {}
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
-	local isFFA = Spring.Utilities.Gametype.IsFFA()
+	local isFFA = BAR.Utilities.Gametype.IsFFA()
 
 	local gameoverFrame
 	local gameoverWinners
