@@ -262,7 +262,7 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	collisions[#collisions + 1] = {
 		targetID = targetID,
 		isUnit = isUnit,
-		health = max(health, 1),
+		health = max(health or 0, 1),
 		healthMax = healthMax,
 		armorType = armorType,
 		damage = damage,
@@ -590,7 +590,7 @@ function gadget:FeaturePreDamaged(
 end
 
 ---@type ShieldPreDamagedCallback
-local function shieldPreDamaged(
+local shieldPreDamaged = function(
 	projectileID,
 	attackerID,
 	shieldWeaponIndex,

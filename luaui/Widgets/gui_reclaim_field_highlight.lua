@@ -4611,13 +4611,6 @@ function widget:Shutdown()
 		animState.DeleteFadingCluster(uid, true)
 	end
 
-	-- Clean up old monolithic display lists (for compatibility)
-	if drawFeatureConvexHullGradientList ~= nil then
-		glDeleteList(drawFeatureConvexHullGradientList)
-	end
-	if drawFeatureConvexHullEdgeList ~= nil then
-		glDeleteList(drawFeatureConvexHullEdgeList)
-	end
 	if drawEnergyConvexHullEdgeList ~= nil then
 		glDeleteList(drawEnergyConvexHullEdgeList)
 	end

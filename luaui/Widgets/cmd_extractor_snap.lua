@@ -277,7 +277,7 @@ function widget:Update()
 				)
 			end
 		elseif activeUnitShape then
-			clearGhostBuild()
+			clear()
 		end
 	end
 end

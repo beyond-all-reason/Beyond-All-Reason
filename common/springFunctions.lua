@@ -10,7 +10,11 @@ local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
 
-local utilities = {
+-- forward-declare: IsDevModeCached (upstream #6918) references `utilities`
+-- inside its own constructor, where the local is not yet in scope — that
+-- resolved as a GLOBAL (nil at call time). Declare first, then assign.
+local utilities
+utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
