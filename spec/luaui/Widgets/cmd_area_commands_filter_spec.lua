@@ -659,7 +659,7 @@ describe("cmd_area_commands_filter", function()
 		end)
 
 		-- Unsure if we prevent guard on all enemy teams atm:
-		it("Guard on a ceasefired enemy retargets that enemy's team (as though allied + filterTeam)", function()
+		it("targets an enemy team (as though allied + filterTeam) on Guard hovering a ceasefired unit", function()
 			local c = newContext()
 			c:addUnit(1, "armpw", { team = 0 })
 			c:addUnit(10, "corak", { team = 1, x = 5 }) -- ceasefired enemy, hovered
@@ -669,12 +669,13 @@ describe("cmd_area_commands_filter", function()
 			c:addUnit(14, "corak", { team = 2, x = 20 }) -- allied unit
 			c:select(1)
 			c:hoverUnit(10)
-			-- Make team 2 an ally of team 0 for this scenario:
-			c.teamAllyTeam[2] = 0
-			c.units[3].allyTeam = 0
 			-- Make team 1 a ceasefired enemy of team 0 for this scenario:
 			c.ceasefire[1] = { [0] = true } -- AreTeamsAllied(1, 0) -> true
 			c.ceasefire[0] = { [1] = true } -- two-way ceasefire
+			-- Make team 2 an ally of team 0 for this scenario:
+			c.teamAllyTeam[2] = 0
+			c.teamAllyTeam[3] = 2
+			c.units[14].allyTeam = 0
 			local env = loadWidget(c)
 			assert.is_true(notify(env, CMD.GUARD, { shift = true, meta = true }))
 			assert.same({ 10, 11 }, targetList(c.orders)) -- only team 1
