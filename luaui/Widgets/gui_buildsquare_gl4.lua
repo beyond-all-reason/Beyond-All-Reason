@@ -53,7 +53,13 @@ local spGetGroundNormal = Spring.GetGroundNormal
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local spGetBuildFacing = Spring.GetBuildFacing
+local spTestBuildOrder = Spring.TestBuildOrder
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -81,9 +87,9 @@ local CORNER_RADIUS = 0.22
 local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
 local EXTENDED_CELLS = 6
 local COMBINE_FOUR_CELLS = true
-local EXTENDED_ALPHA_NEAR = 0.12
+local EXTENDED_ALPHA_NEAR = 0.11
 local EXTENDED_ALPHA_FAR = 0.05
-local FOOTPRINT_BOUNDARY_ENABLED = false
+local FOOTPRINT_BOUNDARY_ENABLED = true
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
 local EXTENDED_STATUS_UPDATE_INTERVAL = 0.20
 local TARGET_STATUS_CHECKS_PER_GAME_FRAME = 64
@@ -107,7 +113,7 @@ local STATUS_COLORS = {
 	[STATUS_BLOCKED]     = { 1.0, 0.1, 0.3, 0.33 },
 	[STATUS_OCCUPIED]    = { 0.75, 1.0, 0.15, 0.33 },
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN]        = { 0.75, 1.0, 0.15, 0.33 },
+	[STATUS_OPEN]        = { 0.45, 1.0, 0.15, 0.33 },
 }
 local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.38 }
 -- local STATUS_OUTLINE_COLORS = {
@@ -117,10 +123,10 @@ local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.38 }
 -- 	[STATUS_OPEN]        = { 0.85, 1.00, 0.50, 0.7 },
 -- }
 local STATUS_OUTLINE_COLORS = {
-	[STATUS_BLOCKED]     = { 0.80, 0.05, 0.15, 0.4 },
+	[STATUS_BLOCKED]     = { 0.50, 0.05, 0.05, 0.4 },
 	[STATUS_OCCUPIED]    = { 0.66, 0.15, 0.05, 0.4 },
 	[STATUS_RECLAIMABLE] = { 0.55, 0.20, 0.05, 0.4 },
-	[STATUS_OPEN]        = { 0.33, 0.25, 0.05, 0.4 },
+	[STATUS_OPEN]        = { 0.30, 0.30, 0.05, 0.4 },
 }
 local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
@@ -175,6 +181,11 @@ local statusCheckPeriod = 1
 local statusChecksEnabled = true
 local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
+local pregameStatuses = {}
+local pregameStatusCount = 0
+local queuedBuildFootprints = {}
+local queuedBuildFootprintCount = 0
+local queuedBuildFootprintsGameFrame = -1
 
 local MAX_CELLS = 4096
 
@@ -281,6 +292,55 @@ local function getFootprintData(unitDefID, facing)
 	}
 	unitCaches[facing] = footprint
 	return footprint
+end
+
+local function updateQueuedBuildFootprints(gameFrame)
+	if queuedBuildFootprintsGameFrame == gameFrame then
+		return
+	end
+	queuedBuildFootprintsGameFrame = gameFrame
+	queuedBuildFootprintCount = 0
+
+	local selectedUnits = spGetSelectedUnits()
+	for selectedIndex = 1, #selectedUnits do
+		local commands = spGetUnitCommands(selectedUnits[selectedIndex], -1)
+		if commands then
+			for commandIndex = 1, #commands do
+				local command = commands[commandIndex]
+				local commandID = command.id
+				local params = command.params
+				if commandID < 0 and params and params[1] and params[3] then
+					local queuedFootprint = getFootprintData(-commandID, params[4] or 0)
+					if queuedFootprint then
+						queuedBuildFootprintCount = queuedBuildFootprintCount + 1
+						local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
+						queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
+						queuedBuildFootprint.minX = params[1] - queuedFootprint.halfXsize * SQUARE_SIZE
+						queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
+						queuedBuildFootprint.minZ = params[3] - queuedFootprint.halfZsize * SQUARE_SIZE
+						queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
+					end
+				end
+			end
+		end
+	end
+end
+
+local function hasQueuedBuildFootprintOverlap(unitDefID, x, z, facing, gameFrame)
+	updateQueuedBuildFootprints(gameFrame)
+	local footprint = getFootprintData(unitDefID, facing)
+	local minX = x - footprint.halfXsize * SQUARE_SIZE
+	local maxX = minX + footprint.xsize * SQUARE_SIZE
+	local minZ = z - footprint.halfZsize * SQUARE_SIZE
+	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
+	for index = 1, queuedBuildFootprintCount do
+		local queuedFootprint = queuedBuildFootprints[index]
+		if minX < queuedFootprint.maxX and maxX > queuedFootprint.minX
+			and minZ < queuedFootprint.maxZ and maxZ > queuedFootprint.minZ then
+			return true
+		end
+	end
+	return false
 end
 
 local function appendCollectedPreview(renderCache)
@@ -590,6 +650,7 @@ out vec4 v_color;
 out vec4 v_outlineColor;
 flat out float v_footprintEdges;
 flat out float v_footprintValid;
+flat out float v_queuedFootprintConflict;
 flat out float v_simplified;
 out vec2 v_cellUV;
 
@@ -621,7 +682,8 @@ void main() {
 	v_outlineColor = a_outlineColor;
 	float packedFootprintData = mix(a_cellData.w, 0.0, simplified);
 	v_footprintEdges = mod(packedFootprintData, 16.0);
-	v_footprintValid = step(15.5, packedFootprintData);
+	v_footprintValid = step(15.5, mod(packedFootprintData, 32.0));
+	v_queuedFootprintConflict = step(31.5, packedFootprintData);
 	v_simplified = simplified;
 	v_cellUV = cellUV;
 	if (isMiniMap == 0) {
@@ -655,6 +717,7 @@ in vec4 v_color;
 in vec4 v_outlineColor;
 flat in float v_footprintEdges;
 flat in float v_footprintValid;
+flat in float v_queuedFootprintConflict;
 flat in float v_simplified;
 in vec2 v_cellUV;
 out vec4 fragColor;
@@ -677,7 +740,7 @@ void main() {
 	vec4 cellColor = mix(v_color, v_outlineColor, outline);
 	vec3 color = cellColor.rgb;
 	float alpha = cellColor.a;
-	if (footprintBoundaryEnabled > 0.5 && v_footprintValid < 0.5) {
+	if (footprintBoundaryEnabled > 0.5 && v_queuedFootprintConflict > 0.5) {
 		float leftEdge = mod(floor(v_footprintEdges), 2.0);
 		float rightEdge = mod(floor(v_footprintEdges / 2.0), 2.0);
 		float topEdge = mod(floor(v_footprintEdges / 4.0), 2.0);
@@ -849,16 +912,19 @@ function widget:Initialize()
 		return
 	end
 
+	WG["buildsquare-gl4"] = true
 	spSetEngineBuildSquareRendering(false)
 end
 
 function widget:PlayerChanged(playerID)
 	if playerID == spGetMyPlayerID() then
 		resetPreviewState()
+		spSetEngineBuildSquareRendering(false)
 	end
 end
 
 function widget:Shutdown()
+	WG["buildsquare-gl4"] = nil
 	spSetEngineBuildSquareRendering(true)
 	freeGL4Resources()
 end
@@ -953,7 +1019,14 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 			break
 		end
 	end
-	if ONLY_WHEN_BLOCKED and footprintIsValid then
+	local centerGridX = math.floor(x / SQUARE_SIZE)
+	local centerGridZ = math.floor(z / SQUARE_SIZE)
+	local placementX = centerGridX * SQUARE_SIZE
+	local placementZ = centerGridZ * SQUARE_SIZE
+	local queuedFootprintConflict = hasQueuedBuildFootprintOverlap(
+		unitDefID, placementX, placementZ, facing, gameFrame
+	)
+	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
 	local renderCache = orderedPreviewCaches[sequenceIndex]
@@ -961,7 +1034,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		and renderCache.unitDefID == unitDefID and renderCache.facing == facing
 		and renderCache.inputX == x and renderCache.inputZ == z
 		and renderCache.colorValid and renderCache.extendedStatusCount == 0
-		and renderCache.simplifiedMode == simplified then
+		and renderCache.simplifiedMode == simplified
+		and renderCache.queuedFootprintConflict == queuedFootprintConflict then
 		local previewWasDrawnLastFrame = renderCache.lastDrawFrame == extendedCellsDrawFrame - 1
 		local statusCheckDue = not previewWasDrawnLastFrame
 			or renderCache.statusCheckGameFrame == nil
@@ -991,12 +1065,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	local renderCellCount = renderXSize * renderZSize
 	local renderInstanceCount = simplified and 1 or renderCellCount
 	drawSquareCellCount = drawSquareCellCount + sourceCellCount
-	local centerGridX = math.floor(x / SQUARE_SIZE)
-	local centerGridZ = math.floor(z / SQUARE_SIZE)
 	local sx = centerGridX - footprint.halfXsize
 	local sz = centerGridZ - footprint.halfZsize
-	local placementX = centerGridX * SQUARE_SIZE
-	local placementZ = centerGridZ * SQUARE_SIZE
 	renderCache = getPreviewRenderCache(unitDefID, placementX, placementZ, facing, sequenceIndex)
 	renderCache.inputX = x
 	renderCache.inputZ = z
@@ -1027,7 +1097,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
 	local extendedStatusCount = sourceCellCount - footprintCellCount
 	local needsColorUpload = not renderCache.colorValid or renderCache.simplifiedMode ~= simplified
-		or openYardmapStatusesChanged
+		or openYardmapStatusesChanged or renderCache.queuedFootprintConflict ~= queuedFootprintConflict
 
 	if not needsColorUpload and statusCheckDue then
 		for cellIdx = 1, footprintCellCount do
@@ -1059,6 +1129,7 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 		renderCache.sourceCellCount = sourceCellCount
 		renderCache.statusCheckGameFrame = gameFrame
 		renderCache.extendedStatusCount = extendedStatusCount
+		renderCache.queuedFootprintConflict = queuedFootprintConflict
 		for cellIdx = 1, footprintCellCount do
 			local status = statuses[cellIdx] or STATUS_BLOCKED
 			renderCache.footprintStatuses[cellIdx] = status
@@ -1234,6 +1305,72 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	)
 end
 
+local function collectPregameBuildSquare()
+	if spGetGameFrame() > 0 then
+		return
+	end
+
+	local pregameBuild = WG["pregame-build"]
+	local getPreGameDefID = pregameBuild and pregameBuild.getPreGameDefID
+	local unitDefID = getPreGameDefID and getPreGameDefID()
+	if not unitDefID then
+		return
+	end
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return
+	end
+
+	local mouseX, mouseY = spGetMouseState()
+	local _, position = spTraceScreenRay(
+		mouseX, mouseY, true, false, false, unitDef.modCategories.underwater
+	)
+	if not position then
+		return
+	end
+	local positionX = position[1]
+	local positionY = position[2]
+	local positionZ = position[3]
+	if not positionX or not positionY or not positionZ then
+		return
+	end
+
+	local facing = spGetBuildFacing()
+	local x, buildHeight, z = spPos2BuildPos(unitDefID, positionX, positionY, positionZ, facing)
+	if not x or not buildHeight or not z then
+		return
+	end
+
+	local footprint = getFootprintData(unitDefID, facing)
+	if not footprint then
+		return
+	end
+
+	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
+	local statusIndex = 0
+	for zi = 0, footprint.zsize - 1 do
+		for xi = 0, footprint.xsize - 1 do
+			statusIndex = statusIndex + 1
+			if placementValid then
+				pregameStatuses[statusIndex] = getPredictedCellStatus(
+					unitDef,
+					x + (xi - footprint.halfXsize) * SQUARE_SIZE,
+					z + (zi - footprint.halfZsize) * SQUARE_SIZE,
+					buildHeight
+				)
+			else
+				pregameStatuses[statusIndex] = STATUS_BLOCKED
+			end
+		end
+	end
+	for index = statusIndex + 1, pregameStatusCount do
+		pregameStatuses[index] = nil
+	end
+	pregameStatusCount = statusIndex
+
+	widget:DrawBuildSquare(unitDefID, x, z, facing, pregameStatuses)
+end
+
 local function rebuildBatchBuffer()
 	tracy.ZoneBeginN("W:BuildSquare:BuildBatch")
 	local dataIndex = 0
@@ -1312,6 +1449,7 @@ local function rebuildBatchBuffer()
 					cellScale
 				)
 				local footprintValidityFlag = renderCache.footprintIsValid and 16 or 0
+				local queuedFootprintConflictFlag = renderCache.queuedFootprintConflict and 32 or 0
 				for cellIndex = 0, renderCache.batchNumCells - 1 do
 					local geometryIndex = cellIndex * 4
 					local colorIndex = cellIndex * 8
@@ -1322,7 +1460,8 @@ local function rebuildBatchBuffer()
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = geometryData[geometryIndex + 3]
 					dataIndex = dataIndex + 1
-					batchInstanceData[dataIndex] = geometryData[geometryIndex + 4] + footprintValidityFlag
+					batchInstanceData[dataIndex] = geometryData[geometryIndex + 4]
+						+ footprintValidityFlag + queuedFootprintConflictFlag
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 1]
 					dataIndex = dataIndex + 1
@@ -1375,6 +1514,7 @@ end
 
 function widget:DrawWorldPreUnit()
 	local drawFrame = beginBuildSquareDrawFrame(spGetDrawFrame())
+	collectPregameBuildSquare()
 	if collectedPreviewCount == 0
 		or collectedDrawFrame < drawFrame - 1
 		or collectedDrawFrame > drawFrame then

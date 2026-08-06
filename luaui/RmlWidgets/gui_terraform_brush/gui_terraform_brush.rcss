@@ -122,6 +122,13 @@ body {
 	pointer-events: none;
 }
 
+/* Scroll bodies and scrollbar styling live in terraform_shared/styles.rcss.
+   The brush panel starts at 25vh, so its pre-layout fallback cap is shorter
+   than the shared default. */
+.tf-root .tf-panel-body {
+	max-height: 62vh;
+}
+
 /* === Root Positioning === */
 /*
  * Width uses `vw` so the panel scales with viewport width (same visual
@@ -179,9 +186,6 @@ body {
 	z-index: 900;
 	width: 13vw;
 	min-width: 220px;
-	max-height: 80vh;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -1424,8 +1428,6 @@ body {
 	z-index: 920;
 	width: 300dp;
 	min-width: 260dp;
-	max-height: 84vh;
-	overflow-y: auto;
 }
 
 /* New Map: compact section divider label */
@@ -1816,24 +1818,7 @@ body {
 	margin-bottom: 4dp;
 }
 
-.tf-preset-dropdown scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-
-.tf-preset-dropdown scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-
-.tf-preset-dropdown scrollbarvertical slidertrack {
-	background-color: #2a2a2a;
-	border-radius: 4dp;
-}
+/* Scrollbar styling is shared — see the `scrollbarvertical` rules up top. */
 
 .tf-preset-row {
 	display: flex;
@@ -1925,22 +1910,6 @@ body {
 	margin-top: 4dp;
 	margin-bottom: 4dp;
 	padding: 4dp;
-}
-
-.tf-hm-browser scrollbarvertical {
-	width: 8dp;
-	margin-left: 2dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar {
-	background-color: #6a6a6a;
-	border-radius: 4dp;
-}
-.tf-hm-browser scrollbarvertical sliderbar:hover {
-	background-color: #8a8a8a;
-}
-.tf-hm-browser scrollbarvertical slidertrack {
-	background-color: #1f2027;
-	border-radius: 4dp;
 }
 
 .tf-hm-header {
@@ -3115,8 +3084,6 @@ body {
 	z-index: 920;
 	width: 320dp;
 	min-height: 200dp;
-	max-height: 80vh;
-	overflow-y: auto;
 }
 
 .tf-settings-glyph {
@@ -3559,9 +3526,6 @@ margin-top: 3dp;
 	z-index: 920;
 	width: 13vw;
 	min-width: 220px;
-	max-height: 84vh;
-	overflow-x: hidden;
-	overflow-y: auto;
 }
 
 /* The size/tiles/time line. This is the control that stops a capture being a

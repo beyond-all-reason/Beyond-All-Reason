@@ -746,7 +746,7 @@ function widget:Initialize()
 
 	curModId = string.upper(Game.gameShortName or "")
 
-	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
+	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "pt")
 	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {true}, "p")
 	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, {false}, "r")
 end
