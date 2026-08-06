@@ -24,6 +24,7 @@ local autoReload = false -- refresh shader code every second (disable in product
 
 local StartBoxes = {} -- list of xXyY
 local noRushTime = Spring.GetModOptions().norushtimer * 60 * 30
+local NUM_BOXES = 0
 if noRushTime == 0 then
 	return
 end

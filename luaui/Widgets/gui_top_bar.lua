@@ -2949,7 +2949,9 @@ function widget:DrawScreen()
 						0,
 						0,
 						button == firstButton and 1 or 0,
+						---@diagnostic disable-next-line: undefined-global
 						{ 1, 1, 1, mb and 0.13 or 0.03 },
+						---@diagnostic disable-next-line: undefined-global
 						{ 0.44, 0.44, 0.44, mb and 0.4 or 0.2 }
 					)
 					local mult = 1

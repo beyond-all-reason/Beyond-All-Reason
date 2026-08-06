@@ -1672,7 +1672,8 @@ end
 local showToggledOff = false
 local function checkPause()
 	-- pause/unpause when the options/quitscreen interface shows
-	local _, _, isClientPaused, _ = Spring.GetGameState()
+	local _, _, currentIsClientPaused, _ = Spring.GetGameState()
+	isClientPaused = currentIsClientPaused
 	if not isClientPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
@@ -1695,6 +1696,7 @@ local prevQuitscreen = false
 local pauseCheckTimer = 0
 local lastPauseCheckClock = os_clock()
 local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
+local isClientPaused = false
 local function checkQuitscreen()
 	if not canPauseGame then
 		return
@@ -12917,7 +12919,7 @@ function widget:GetConfigData()
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
-		customPresets = customPresets,
+		customPresets = customPresetOptions,
 		changesRequireRestart = changesRequireRestart,
 		requireRestartDefaults = requireRestartDefaults,
 

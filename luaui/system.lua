@@ -39,6 +39,7 @@ if System == nil then
 		--
 		--  Custom LuaUI variables
 		--
+		---@diagnostic disable-next-line: undefined-global
 		Commands = Commands,
 		fontHandler = fontHandler,
 		LUAUI_DIRNAME = LUAUI_DIRNAME,
