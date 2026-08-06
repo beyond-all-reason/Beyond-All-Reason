@@ -36,6 +36,7 @@ local glDeleteShader = gl.DeleteShader
 local glUseShader = gl.UseShader
 local glGetShaderLog = gl.GetShaderLog
 local glGetUniformLocation = gl.GetUniformLocation
+local glUniform = gl.Uniform
 local glUniformInt = gl.UniformInt
 local glGetVBO = gl.GetVBO
 local glGetVAO = gl.GetVAO
@@ -85,9 +86,9 @@ local OPEN_YARDMAP_ONLY_WHEN_BLOCKED = true
 local CELL_DISTANCE = 2
 local CORNER_RADIUS = 0.22
 local STYLE_OPEN_YARDMAP_CELLS_AS_EXTENDED = true
-local EXTENDED_CELLS = 6
+local EXTENDED_CELLS = 0
 local COMBINE_FOUR_CELLS = true
-local EXTENDED_ALPHA_NEAR = 0.11
+local EXTENDED_ALPHA_NEAR = 0.1
 local EXTENDED_ALPHA_FAR = 0.05
 local FOOTPRINT_BOUNDARY_ENABLED = true
 local FOOTPRINT_BOUNDARY_WIDTH = 0.22
@@ -113,9 +114,9 @@ local STATUS_COLORS = {
 	[STATUS_BLOCKED]     = { 1.0, 0.1, 0.3, 0.33 },
 	[STATUS_OCCUPIED]    = { 0.75, 1.0, 0.15, 0.33 },
 	[STATUS_RECLAIMABLE] = { 0.40, 1.0, 0.20, 0.33 },
-	[STATUS_OPEN]        = { 0.45, 1.0, 0.15, 0.33 },
+	[STATUS_OPEN]        = { 0.70, 0.90, 0.10, 0.33 },
 }
-local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.38 }
+local VALID_FOOTPRINT_COLOR = { 0.0, 1.0, 0.3, 0.45 }
 -- local STATUS_OUTLINE_COLORS = {
 -- 	[STATUS_BLOCKED]     = { 0.85, 0.05, 0.15, 0.5 },
 -- 	[STATUS_OCCUPIED]    = { 0.18, 0.25, 0.02, 0.7 },
@@ -132,6 +133,7 @@ local VALID_FOOTPRINT_OUTLINE_COLOR = { 0.66, 1.00, 0.66, 0.5 }
 local INVALID_FOOTPRINT_BOUNDARY_COLOR = { 1.00, 0.15, 0.15, 0.4 }
 
 local HEIGHT_OFFSET = 0.5
+local PREGAME_STARTBOX_HEIGHT_OFFSET = 2.0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -140,6 +142,7 @@ local HEIGHT_OFFSET = 0.5
 local shaderProgram = nil
 local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
+local heightOffsetLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -767,6 +770,13 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+local function getCurrentHeightOffset()
+	if spGetGameFrame() <= 0 and WG["map_startbox"] ~= nil then
+		return PREGAME_STARTBOX_HEIGHT_OFFSET
+	end
+	return HEIGHT_OFFSET
+end
+
 local function initGL4Resources()
 	local uboMatDefs = glGetEngineUniformBufferDef(0)
 	local uboParamDefs = glGetEngineUniformBufferDef(1)
@@ -804,6 +814,7 @@ local function initGL4Resources()
 	shaderProgram = shaderID
 	isMiniMapLoc = glGetUniformLocation(shaderID, "isMiniMap")
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
+	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
 
 	local quadVerts = {
 		0.0, 0.0,
@@ -1536,6 +1547,7 @@ function widget:DrawWorldPreUnit()
 	glDepthTest(false)
 	glBlending(true)
 	glUseShader(shaderProgram)
+	glUniform(heightOffsetLoc, getCurrentHeightOffset())
 	glUniformInt(isMiniMapLoc, 0)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)
