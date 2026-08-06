@@ -16,8 +16,7 @@ function SetWantedAim(weaponID, heading, pitch)
 	weapons[weaponID].wtdPitch = -pitch
 end
 
-function WeaponFire(weaponID)
-end
+function WeaponFire(weaponID) end
 
 function WeaponShot(weaponID)
 	local ct = weapons[weaponID].counter

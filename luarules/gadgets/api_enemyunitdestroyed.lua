@@ -1,20 +1,19 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "EnemyUnitDestroyed",
-		desc	= 'Calls Script.LuaUI.EnemyUnitDestroyed for enemy units dying in allied LOS',
-		author	= 'Beherith',
-		date	= '20211029',
-		license	= 'GNU GPL, v2 or later',
-		layer	= -999999,
-		enabled	= false -- api_widget_events.lua exists
+		name = "EnemyUnitDestroyed",
+		desc = "Calls Script.LuaUI.EnemyUnitDestroyed for enemy units dying in allied LOS",
+		author = "Beherith",
+		date = "20211029",
+		license = "GNU GPL, v2 or later",
+		layer = -999999,
+		enabled = false, -- api_widget_events.lua exists
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	local spGetUnitAllyTeam =  Spring.GetUnitAllyTeam
+	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
 	local spec, fullView = Spring.GetSpectatingState()
 
@@ -32,7 +31,15 @@ if not gadgetHandler:IsSyncedCode() then
 		if (spec and fullview) or (allyTeam and allyTeam ~= myAllyTeamID) then
 			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
 			if losstate and losstate["los"] and Script.LuaUI("EnemyUnitDestroyed") then
-				Script.LuaUI.EnemyUnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID, weaponDefID)
+				Script.LuaUI.EnemyUnitDestroyed(
+					unitID,
+					unitDefID,
+					teamID,
+					attackerID,
+					attackerDefID,
+					attackerTeamID,
+					weaponDefID
+				)
 			end
 		end
 	end

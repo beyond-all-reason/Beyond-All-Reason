@@ -1,5 +1,4 @@
-local lutVS =
-[[
+local lutVS = [[
 	#version 150 compatibility
 
 	void main() {
@@ -7,8 +6,7 @@ local lutVS =
 	}
 ]]
 
-local lutFS =
-[[
+local lutFS = [[
 	#version 150 compatibility
 
 	const uint NUM_SAMPLES = 1024u;
@@ -127,26 +125,25 @@ local lutFS =
 	}
 ]]
 
-
 local GL_RG16F = 0x822F
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 
 local function new(class, textureSize, gOption)
-	return setmetatable(
-	{
+	return setmetatable({
 		gOption = math.clamp(gOption or 3, 1, 4), --clamp between 1 and 3
 		textureSize = textureSize or 512,
 
 		shader = nil,
 		tex = nil,
 		fbo = nil,
-
 	}, class)
 end
 
 local GenBrdfLut = setmetatable({}, {
-	__call = function(self, ...) return new(self, ...) end,
-	})
+	__call = function(self, ...)
+		return new(self, ...)
+	end,
+})
 GenBrdfLut.__index = GenBrdfLut
 
 function GenBrdfLut:Initialize()
@@ -165,7 +162,7 @@ function GenBrdfLut:Initialize()
 
 	self.fbo = gl.CreateFBO({
 		color0 = self.tex,
-		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
+		drawbuffers = { GL_COLOR_ATTACHMENT0_EXT },
 	})
 
 	if not self.fbo then
@@ -178,7 +175,7 @@ function GenBrdfLut:Initialize()
 		vertex = lutVS,
 		fragment = lutFS,
 		uniformInt = {
-			texSize = {self.textureSize, self.textureSize},
+			texSize = { self.textureSize, self.textureSize },
 		},
 	})
 
@@ -198,13 +195,15 @@ end
 
 function GenBrdfLut:Execute(saveDebug)
 	if self.shader and gl.IsValidFBO(self.fbo) then
-		gl.ActiveShader(self.shader, function ()
+		gl.ActiveShader(self.shader, function()
 			gl.ActiveFBO(self.fbo, function()
 				gl.DepthTest(false)
 				gl.Blending(false)
 				gl.PushPopMatrix(function()
-					gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
-					gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
+					gl.MatrixMode(GL.PROJECTION)
+					gl.LoadIdentity()
+					gl.MatrixMode(GL.MODELVIEW)
+					gl.LoadIdentity()
 					gl.TexRect(-1, -1, 1, 1)
 				end)
 				if saveDebug then

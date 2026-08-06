@@ -2,3 +2,8 @@ common/luaUtilities/
 .lux/
 recoil-lua-library/
 mapgenerator/
+icons/icon_atlas.lua
+unittextures/decals_features/featureaoplates_atlas.lua
+luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua
+luaui/images/decals_gl4/decalsgl4_atlas_normal.lua
+unittextures/decals/unitaoplates_atlas.lua

@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "Corpse link",
-		desc    = "Links corpses to their previous owner",
-		author  = "SethDGamre",
-		date    = "4 November 2025",
+		name = "Corpse link",
+		desc = "Links corpses to their previous owner",
+		author = "SethDGamre",
+		date = "4 November 2025",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		handler = true,
 		enabled = not Engine.FeatureSupport.FeatureCreatedPassesSourceUnitID,
 	}
@@ -75,7 +75,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 	local positionHash = getPositionHash(x, z)
 	unitDefLink[positionHash] = {
 		unitID = unitID,
-		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT
+		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT,
 	}
 end
 
