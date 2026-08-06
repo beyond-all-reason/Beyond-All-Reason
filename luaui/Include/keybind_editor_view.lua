@@ -44,7 +44,6 @@ local dragging = false
 local editable = false -- true only on Custom (uikeys.txt)
 local capturing
 local captureAny = false -- pending capture binds with the Any+ (match-any-modifier) qualifier
-local pendingReset
 local edited = false
 local lastClickTime, lastClickId
 
@@ -57,8 +56,8 @@ local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 local colorHeader = "\255\255\200\130"
 
-local searchBox, presetDropdown, resetDropdown, menuToggle
-local switchToPreset, scrollFromY, resetToPreset
+local searchBox, presetDropdown, menuToggle
+local switchToPreset, scrollFromY
 
 -- "Grid (60% Keyboard)" -> "Grid 60%" so the long names fit the picker.
 local function shortPresetLabel(name)
@@ -71,13 +70,6 @@ for i = 1, #keyConfig.keybindingLayouts do
 		label = shortPresetLabel(keyConfig.keybindingLayouts[i]),
 		file = keyConfig.keybindingLayoutFiles[i],
 	}
-end
-
-local resetOptions = {}
-for i = 1, #presetOptions do
-	if presetOptions[i].file ~= customKeysFile then
-		resetOptions[#resetOptions + 1] = presetOptions[i]
-	end
 end
 
 local function currentPresetIndex()
@@ -314,29 +306,6 @@ switchToPreset = function(opt)
 	end
 end
 
--- Reset Custom to a clean copy of a shipped preset: load that preset live, dump it
--- over uikeys.txt, then reload as Custom. Discards pending Custom edits by design.
-resetToPreset = function(opt)
-	-- The dump only holds the preset if the reload actually swapped the live binds in,
-	-- so without it we would write the unchanged custom binds back and report success.
-	if not (WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings) then
-		Spring.Echo("Keybind reset needs the BAR Hotkeys widget enabled")
-		return
-	end
-
-	edited = false
-	-- No engine call materialises a preset into uikeys.txt, so we load it live and dump
-	-- it back out. keysave rewrites the file from the keymap, dropping any hand-written
-	-- comments or unbind lines it held.
-	Spring.SetConfigString("KeybindingFile", opt.file)
-	WG['bar_hotkeys'].reloadBindings()
-	spSendCommands("keysave " .. customKeysFile)
-	Spring.SetConfigString("KeybindingFile", customKeysFile)
-	WG['bar_hotkeys'].reloadBindings()
-	Spring.Echo("Keybind custom reset from preset: " .. opt.label)
-	view.refresh()
-end
-
 local function ensureControls()
 	-- One of each control type, since they are all created together below.
 	if searchBox and presetDropdown then
@@ -345,7 +314,6 @@ local function ensureControls()
 
 	searchBox = Editbox.new({ placeholder = Spring.I18N('ui.keybinds.editor.search'), onChange = rebuildRows })
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
-	resetDropdown = Dropdown.new({ options = resetOptions, placeholder = Spring.I18N('ui.keybinds.editor.reset'), onSelect = function(opt) pendingReset = opt end })
 end
 
 local function layoutHeader()
@@ -362,30 +330,7 @@ local function layoutHeader()
 
 	presetDropdown:setRect(area.x2 - presetW, rowBottom, area.x2, rowTop, btnFs)
 
-	local searchRight = area.x2 - presetW - gap
-	if editable then
-		local resetW = floor(150 * scale)
-		resetDropdown:setRect(searchRight - resetW, rowBottom, searchRight, rowTop, btnFs)
-		searchRight = searchRight - resetW - gap
-	end
-	searchBox:setRect(area.x1, rowBottom, searchRight, rowTop, btnFs)
-end
-
--- Confirm-modal box + button rects, recomputed so draw and mousePress agree.
-local function confirmGeometry()
-	local w = floor(360 * scale)
-	local h = floor(104 * scale)
-	local cx = (area.x1 + area.x2) * 0.5
-	local cy = (area.y1 + area.y2) * 0.5
-	local bx1, bx2 = floor(cx - w * 0.5), floor(cx + w * 0.5)
-	local by1, by2 = floor(cy - h * 0.5), floor(cy + h * 0.5)
-	local bw = floor(120 * scale)
-	local bh = floor(28 * scale)
-	local pad = floor(16 * scale)
-	local btnY1 = by1 + pad
-	local cancel = { bx1 + pad, btnY1, bx1 + pad + bw, btnY1 + bh }
-	local ok = { bx2 - pad - bw, btnY1, bx2 - pad, btnY1 + bh }
-	return bx1, by1, bx2, by2, ok, cancel
+	searchBox:setRect(area.x1, rowBottom, area.x2 - presetW - gap, rowTop, btnFs)
 end
 
 -- Capture-modal box + button/checkbox rects, recomputed so draw and mousePress agree.
@@ -425,9 +370,6 @@ function view.refresh()
 	resolvedCatalog = nil
 	editable = Spring.GetConfigString("KeybindingFile", keyConfig.keybindingLayoutFiles[1]) == customKeysFile
 	presetDropdown:setSelected(currentPresetIndex())
-	if not editable then
-		resetDropdown:close()
-	end
 	layoutHeader()
 	rebuildRows()
 end
@@ -461,9 +403,7 @@ function view.blur()
 		searchBox:blur()
 	end
 	if presetDropdown then presetDropdown:close() end
-	if resetDropdown then resetDropdown:close() end
 	capturing = nil
-	pendingReset = nil
 end
 
 function view.setMenuToggle(fn)
@@ -479,8 +419,6 @@ end
 function view.wantsTextOwner()
 	return (searchBox and searchBox:isFocused()) or capturing ~= nil
 		or (presetDropdown and presetDropdown:isOpen())
-		or (resetDropdown and resetDropdown:isOpen())
-		or pendingReset ~= nil
 end
 
 -- Edits apply live (bind/unbind); the uikeys.txt write + reload defer to persistEdits
@@ -814,39 +752,10 @@ function view.draw()
 
 	searchBox:draw()
 	presetDropdown:draw()
-	if editable then
-		resetDropdown:draw()
-	end
 
 	if not editable then
 		font:Begin()
 		font:Print(colorDim .. L.customOnly, (area.x1 + area.x2) * 0.5, area.y1 + hintH * 0.5, fs, "cov")
-		font:End()
-	end
-
-	if pendingReset then
-		local bx1, by1, bx2, by2, ok, cancel = confirmGeometry()
-		local cs = floor(6 * scale)
-
-		RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
-		UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
-		UiButton(cancel[1], cancel[2], cancel[3], cancel[4])
-		UiButton(ok[1], ok[2], ok[3], ok[4])
-		if mx >= cancel[1] and mx <= cancel[3] and my >= cancel[2] and my <= cancel[4] then
-			Highlight(cancel[1], cancel[2], cancel[3], cancel[4], cs, 1, { 1, 1, 1 })
-		end
-		if mx >= ok[1] and mx <= ok[3] and my >= ok[2] and my <= ok[4] then
-			Highlight(ok[1], ok[2], ok[3], ok[4], cs, 1, { 1, 1, 1 })
-		end
-
-		local cx = (bx1 + bx2) * 0.5
-		local tfs = floor(rowHeight * 0.6)
-		local sfs = floor(rowHeight * 0.5)
-		font:Begin()
-		font:Print(colorText .. "Reset keybinds to " .. pendingReset.label .. "?", cx, by2 - floor(26 * scale), tfs, "cov")
-		font:Print(colorDim .. "Overwrites your current custom binds.", cx, by2 - floor(48 * scale), sfs, "cov")
-		font:Print(colorText .. "Cancel", (cancel[1] + cancel[3]) * 0.5, (cancel[2] + cancel[4]) * 0.5, sfs, "cov")
-		font:Print(colorText .. "Reset", (ok[1] + ok[3]) * 0.5, (ok[2] + ok[4]) * 0.5, sfs, "cov")
 		font:End()
 	end
 
@@ -1006,21 +915,6 @@ function view.mousePress(x, y, button)
 		return false
 	end
 
-	if pendingReset then
-		if button == 1 then
-			local bx1, by1, bx2, by2, ok, cancel = confirmGeometry()
-			if x >= ok[1] and x <= ok[3] and y >= ok[2] and y <= ok[4] then
-				local opt = pendingReset
-				pendingReset = nil
-				resetToPreset(opt)
-			elseif (x >= cancel[1] and x <= cancel[3] and y >= cancel[2] and y <= cancel[4])
-				or x < bx1 or x > bx2 or y < by1 or y > by2 then
-				pendingReset = nil
-			end
-		end
-		return true
-	end
-
 	-- In the modal, mouse1 drives its controls; only side buttons (mouse4+) bind.
 	if capturing then
 		local bx1, by1, bx2, by2, ok, cancel, anyBox = captureGeometry()
@@ -1049,7 +943,6 @@ function view.mousePress(x, y, button)
 
 	local ddWasOpen = presetDropdown:isOpen()
 	if presetDropdown:mousePress(x, y) then
-		resetDropdown:close()
 		searchBox:blur()
 		capturing = nil
 		return true
@@ -1058,18 +951,6 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	if editable then
-		local rdWasOpen = resetDropdown:isOpen()
-		if resetDropdown:mousePress(x, y) then
-			presetDropdown:close()
-			searchBox:blur()
-			capturing = nil
-			return true
-		end
-		if rdWasOpen then
-			return true
-		end
-	end
 
 	if searchBox:mousePress(x, y) then
 		capturing = nil
@@ -1108,17 +989,6 @@ function view.textInput(char)
 end
 
 function view.keyPress(key, scanCode)
-	if pendingReset then
-		if key == 27 then
-			pendingReset = nil
-		elseif key == 13 then
-			local opt = pendingReset
-			pendingReset = nil
-			resetToPreset(opt)
-		end
-		return true
-	end
-
 	if capturing then
 		if key == 27 then
 			capturing = nil
@@ -1135,11 +1005,6 @@ function view.keyPress(key, scanCode)
 
 	if presetDropdown and presetDropdown:isOpen() then
 		if key == 27 then presetDropdown:close() end
-		return true
-	end
-
-	if resetDropdown and resetDropdown:isOpen() then
-		if key == 27 then resetDropdown:close() end
 		return true
 	end
 

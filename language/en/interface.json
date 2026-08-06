@@ -354,7 +354,6 @@
 				"other": "Other",
 				"pressKey": "Press a key or mouse button...",
 				"customOnly": "Switch the preset to Custom to edit keybinds",
-				"reset": "Reset to...",
 				"anyMod": "Ignore modifiers",
 				"accept": "Accept",
 				"cancel": "Cancel"
