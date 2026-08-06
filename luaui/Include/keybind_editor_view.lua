@@ -1157,7 +1157,7 @@ function view.keyRelease(key, scanCode)
 		return false
 	end
 
-	-- Skip the release of a press we already appended; engine-only keys (no keyPress) land here.
+	-- Skip the release of a press we already appended; a press we never saw lands here.
 	if capturing.pressed[scanCode] then
 		capturing.pressed[scanCode] = nil
 		return true

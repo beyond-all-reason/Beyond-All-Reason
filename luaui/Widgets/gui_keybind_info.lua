@@ -161,9 +161,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
 	end
 end
 
--- Some engine actions (cameraflip, volume, ...) execute on key-down without
--- routing the press through LuaUI, so capture can't see the press. We still
--- get the release, so fall back to capturing on release.
+-- Capture also listens on release: a press consumed by a bound action before the
+-- modal claimed text focus never reaches us, but its release still does.
 function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if show then
 		return keybindEditor.keyRelease(key, scanCode)
