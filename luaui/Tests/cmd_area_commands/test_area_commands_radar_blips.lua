@@ -28,9 +28,13 @@ end
 
 function setup()
 	Test.clearMap()
+	-- The headless runner spectates with full view
+	Spring.SendCommands("specfullview 0")
 end
 
 function cleanup()
+	-- restore default spectator full view
+	Spring.SendCommands("specfullview 3")
 	Test.clearMap()
 end
 
@@ -87,7 +91,8 @@ function test()
 
 	Test.waitFrames(5) -- begin actual scenario test --
 
-	assert(not Spring.GetSpectatingState(), "test must run as a player")
+	local _, fullView = Spring.GetSpectatingState()
+	assert(not fullView, "read access must be limited to an allyteam")
 
 	assert(isInCylinder(bx, bz, 200, Spring.ENEMY_UNITS, blipID), "radar-only blips excluded from spatial search")
 
@@ -97,7 +102,10 @@ function test()
 
 	assert(Spring.GetUnitNeutral(neutralBlipID) == true, "GetUnitNeutral should read true on a neutral radar blip")
 
-	Spring.GiveOrderToUnit(attackerID, CMD.ATTACK, { blipID }, 0)
+	SyncedRun(function(locals)
+		-- Order synced: a spectator can't command through the widget handle.
+		Spring.GiveOrderToUnit(locals.attackerID, CMD.ATTACK, { locals.blipID }, 0)
+	end)
 	Test.waitFrames(5)
 	assert(Spring.GetUnitCommandCount(attackerID) >= 1, "engine should accept attacks on a radar blip")
 end
