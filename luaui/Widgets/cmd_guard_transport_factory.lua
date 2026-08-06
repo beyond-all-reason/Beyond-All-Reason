@@ -173,11 +173,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["transportFactoryGuard"] = {}
-	WG["transportFactoryGuard"].getBlacklistOrderedUnits = function()
+	WG.transportFactoryGuard = {}
+	WG.transportFactoryGuard.getBlacklistOrderedUnits = function()
 		return blacklistOrderedUnits
 	end
-	WG["transportFactoryGuard"].setBlacklistOrderedUnits = function(value)
+	WG.transportFactoryGuard.setBlacklistOrderedUnits = function(value)
 		blacklistOrderedUnits = value
 	end
 

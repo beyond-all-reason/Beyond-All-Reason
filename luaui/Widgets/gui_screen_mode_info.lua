@@ -19,7 +19,7 @@ local spGetCameraState = Spring.GetCameraState
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spGetConfigString = Spring.GetConfigString
 local spGetViewGeometry = Spring.GetViewGeometry
-local i18n = Spring.I18N
+local i18n = BAR.I18N
 
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
@@ -73,7 +73,7 @@ function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG["fonts"].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 end
 
 function widget:Initialize()
@@ -81,7 +81,7 @@ function widget:Initialize()
 end
 
 function widget:DrawScreen()
-	if WG["topbar"] and WG["topbar"].showingQuit() then
+	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
 

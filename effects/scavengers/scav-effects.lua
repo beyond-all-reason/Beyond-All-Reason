@@ -1,7 +1,7 @@
 -- Effects for Scavengers
 
 return {
-	["scavradiation"] = {
+	scavradiation = {
 		usedefaultexplosions = false,
 		topclouds = {
 			air = true,
@@ -132,7 +132,7 @@ return {
 			},
 		},
 	},
-	["scavmist"] = {
+	scavmist = {
 		usedefaultexplosions = false,
 		grounddust = {
 			air = true,
@@ -194,7 +194,7 @@ return {
 			},
 		},
 	},
-	["scavmistxl"] = {
+	scavmistxl = {
 		usedefaultexplosions = false,
 		grounddust = {
 			air = true,
@@ -260,7 +260,7 @@ return {
 		--   },
 		-- },
 	},
-	["scav_mist_explosion"] = {
+	scav_mist_explosion = {
 		electricstorm = {
 			air = true,
 			class = [[CExpGenSpawner]],
@@ -710,7 +710,7 @@ return {
 			},
 		},
 	},
-	["scav_commander_explosion"] = {
+	scav_commander_explosion = {
 		centerflare = {
 			air = true,
 			class = [[CHeatCloudProjectile]],
@@ -1262,7 +1262,7 @@ return {
 		--   },
 		-- },
 	},
-	["lightning_storm_scav"] = {
+	lightning_storm_scav = {
 		-- groundflash = {
 		--   circlealpha        = 1,
 		--   circlegrowth       = 0,
@@ -1306,7 +1306,7 @@ return {
 			},
 		},
 	},
-	["lightning_storm_scavmist"] = {
+	lightning_storm_scavmist = {
 		groundflash = {
 			circlealpha = 1,
 			circlegrowth = 0,
@@ -1350,7 +1350,7 @@ return {
 			},
 		},
 	},
-	["lightning_stormflares_scav"] = {
+	lightning_stormflares_scav = {
 		-- groundflash = {
 		--   circlealpha        = 0.9,
 		--   circlegrowth       = -0.05,

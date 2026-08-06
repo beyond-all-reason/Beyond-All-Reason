@@ -40,8 +40,8 @@ local raptorStartBoxTexture = "LuaUI/Images/rapt-tileable_v002_small.tga"
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 
-local scavengerAIAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
-local raptorsAIAllyTeamID = Spring.Utilities.GetRaptorAllyTeamID()
+local scavengerAIAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
+local raptorsAIAllyTeamID = BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -92,8 +92,8 @@ local function DrawStartPolygons(inminimap)
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			spEcho("Start Polygons: Adv map shading not available, and no depth copy available")
 			return
@@ -116,7 +116,7 @@ local function DrawStartPolygons(inminimap)
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
-	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetMyAllyTeamID() or -1)
+	startPolygonShader:SetUniformInt("myAllyTeamID", Spring.GetLocalAllyTeamID() or -1)
 
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	startPolygonShader:Deactivate()

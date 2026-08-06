@@ -1,5 +1,5 @@
-local devUI = Spring.Utilities.ShowDevUI()
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local devUI = BAR.Utilities.ShowDevUI()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isSpectator = Spring.GetSpectatingState()
 
 pipNumber = pipNumber or 1
@@ -1547,7 +1547,7 @@ local trackedPlayerSelections = {}
 local trackedPlayerSelectionSeeded = {}
 
 local function GetPlayerSelectedUnitsFromWG()
-	local wgApi = WG["allyselectedunits"]
+	local wgApi = WG.allyselectedunits
 	return wgApi and wgApi.getPlayerSelectedUnits
 end
 
@@ -2373,7 +2373,7 @@ do
 	}
 	mapInfo.minGroundHeight, mapInfo.maxGroundHeight = Spring.GetGroundExtremes()
 	local waterIsLava = Spring.GetModOptions().map_waterislava
-	mapInfo.isLava = Spring.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
+	mapInfo.isLava = BAR.Lava.isLavaMap or (waterIsLava and waterIsLava ~= 0 and waterIsLava ~= "0")
 end
 mapInfo.hasWater = mapInfo.minGroundHeight < 0 or mapInfo.isLava
 mapInfo.dynamicWaterLevel = nil -- current water/lava level (nil = static sea level = 0)
@@ -2389,15 +2389,15 @@ mapInfo.lavaSwirlAmp = 0.003
 mapInfo.mapRatio = Game.mapSizeZ / Game.mapSizeX -- Y/X aspect ratio for square-texel tiling
 mapInfo.lavaColorCorrection = { 1.0, 1.0, 1.0 } -- default: no color correction
 if mapInfo.isLava then
-	mapInfo.lavaCoastWidth = Spring.Lava.coastWidth or 25.0
-	mapInfo.lavaUvScale = Spring.Lava.uvScale or 2.0
-	mapInfo.lavaSwirlFreq = Spring.Lava.swirlFreq or 0.025
-	mapInfo.lavaSwirlAmp = Spring.Lava.swirlAmp or 0.003
-	mapInfo.lavaDiffuseEmitTex = Spring.Lava.diffuseEmitTex -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
+	mapInfo.lavaCoastWidth = BAR.Lava.coastWidth or 25.0
+	mapInfo.lavaUvScale = BAR.Lava.uvScale or 2.0
+	mapInfo.lavaSwirlFreq = BAR.Lava.swirlFreq or 0.025
+	mapInfo.lavaSwirlAmp = BAR.Lava.swirlAmp or 0.003
+	mapInfo.lavaDiffuseEmitTex = BAR.Lava.diffuseEmitTex -- e.g. "LuaUI/images/lava/lava2_diffuseemit.dds"
 	mapInfo.lavaDistortionTex = "LuaUI/images/lavadistortion.png" -- big flowing distortion texture
-	mapInfo.lavaTideAmplitude = Spring.Lava.tideAmplitude or 2
-	mapInfo.lavaTidePeriod = Spring.Lava.tidePeriod or 200
-	local cc = Spring.Lava.coastColor
+	mapInfo.lavaTideAmplitude = BAR.Lava.tideAmplitude or 2
+	mapInfo.lavaTidePeriod = BAR.Lava.tidePeriod or 200
+	local cc = BAR.Lava.coastColor
 	if cc and type(cc) == "string" then
 		local cr, cg, cb = cc:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
 		if cr then
@@ -2407,7 +2407,7 @@ if mapInfo.isLava then
 	-- Parse colorCorrection: a final color multiplier applied to ALL lava output.
 	-- Acid/green lava maps use e.g. vec3(0.15, 1.0, 0.45) while red lava uses (1,1,1).
 	mapInfo.lavaColorCorrection = { 1.0, 1.0, 1.0 }
-	local ccStr = Spring.Lava.colorCorrection
+	local ccStr = BAR.Lava.colorCorrection
 	if ccStr and type(ccStr) == "string" then
 		local cr2, cg2, cb2 = ccStr:match("vec3%s*%((.-),%s*(.-),%s*(.-)%)")
 		if cr2 then
@@ -2639,7 +2639,7 @@ local buttons = {
 			state.losViewEnabled = not state.losViewEnabled
 			if state.losViewEnabled then
 				-- Store the current allyteam when enabling LOS view
-				state.losViewAllyTeam = Spring.GetMyAllyTeamID()
+				state.losViewAllyTeam = Spring.GetLocalAllyTeamID()
 				-- Immediately scan enemy buildings the viewed allyteam knows about
 				-- Only include buildings the allyteam has seen (LOS_INLOS or LOS_PREVLOS)
 				if cameraState.mySpecState then
@@ -2693,11 +2693,11 @@ local buttons = {
 				interactionState.trackingPlayerID = nil
 				pipR2T.frameNeedsUpdate = true
 			else
-				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, isSpec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 
 				if isSpec then
 					-- Spectator: Track team leader (keep existing behavior)
-					local myTeamID = Spring.GetMyTeamID()
+					local myTeamID = Spring.GetLocalTeamID()
 					local targetPlayerID = nil
 
 					-- Get the team leader's player ID from team info
@@ -2705,7 +2705,7 @@ local buttons = {
 
 					-- Verify this player is active and not self
 					if leaderPlayerID then
-						local myPlayerID = Spring.GetMyPlayerID()
+						local myPlayerID = Spring.GetLocalPlayerID()
 						if leaderPlayerID ~= myPlayerID then
 							local name, active = spFunc.GetPlayerInfo(leaderPlayerID, false)
 							if name and active then
@@ -2739,7 +2739,7 @@ local buttons = {
 						local targetPlayerID = teammates[currentIndex]
 
 						-- Double-check we're not tracking ourselves
-						if targetPlayerID ~= Spring.GetMyPlayerID() then
+						if targetPlayerID ~= Spring.GetLocalPlayerID() then
 							interactionState.trackingPlayerID = targetPlayerID
 							interactionState.lastTrackedTeammate = targetPlayerID
 							-- Clear unit tracking when starting player tracking
@@ -5342,7 +5342,7 @@ local function RecoverInvalidAnimationState()
 end
 
 local function UpdateGuishaderBlur()
-	if WG["guishader"] then
+	if WG.guishader then
 		-- Determine the correct bounds based on mode
 		local blurL, blurB, blurR, blurT
 		if isMinimapMode and miscState.minimapMinimized then
@@ -5368,7 +5368,7 @@ local function UpdateGuishaderBlur()
 		end
 
 		-- Use InsertDlist for rounded corner blur support
-		if WG["guishader"].InsertDlist then
+		if WG.guishader.InsertDlist then
 			-- Clean up old dlist ourselves before creating new one
 			if render.guishaderDlist then
 				gl.DeleteList(render.guishaderDlist)
@@ -5379,10 +5379,10 @@ local function UpdateGuishaderBlur()
 				render.RectRound(blurL, blurB, blurR, blurT, render.elementCorner)
 			end)
 			-- Use force=true to ensure immediate stencil texture update
-			WG["guishader"].InsertDlist(render.guishaderDlist, "pip" .. pipNumber, true)
-		elseif WG["guishader"].InsertRect then
+			WG.guishader.InsertDlist(render.guishaderDlist, "pip" .. pipNumber, true)
+		elseif WG.guishader.InsertRect then
 			-- Fallback to InsertRect if InsertDlist not available
-			WG["guishader"].InsertRect(blurL, blurB, blurR, blurT, "pip" .. pipNumber)
+			WG.guishader.InsertRect(blurL, blurB, blurR, blurT, "pip" .. pipNumber)
 		end
 	end
 end
@@ -5465,7 +5465,7 @@ local function GetAliveTeammates(out)
 		out[i] = nil
 	end
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local _, _, _, myTeamID = spFunc.GetPlayerInfo(myPlayerID, false)
 	if not myTeamID then
 		return out
@@ -8054,7 +8054,7 @@ end
 
 local function FindMyCommander()
 	-- Find the player's starting commander unit
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	if not myTeamID then
 		return nil
 	end
@@ -8459,8 +8459,8 @@ local function IssueCommandAtPoint(cmdID, wx, wz, usingRMB, forceQueue, radius)
 		else
 			-- Build command - check if it's an extractor/geo that needs spot snapping
 			local buildDefID = -cmdID
-			local resourceSpotFinder = WG["resource_spot_finder"]
-			local resourceSpotBuilder = WG["resource_spot_builder"]
+			local resourceSpotFinder = WG.resource_spot_finder
+			local resourceSpotBuilder = WG.resource_spot_builder
 
 			if resourceSpotFinder and resourceSpotBuilder then
 				local mexBuildings = resourceSpotBuilder.GetMexBuildings()
@@ -8519,62 +8519,62 @@ local function RegisterMinimapWGAPI()
 	if not isMinimapMode then
 		return
 	end
-	WG["minimap"] = {}
-	WG["minimap"].getHeight = function()
+	WG.minimap = {}
+	WG.minimap.getHeight = function()
 		if miscState.minimapMinimized then
 			return 0
 		end
 		local padding = WG.FlowUI and WG.FlowUI.elementPadding or 5
 		return (render.dim.t - render.dim.b) + padding
 	end
-	WG["minimap"].getMaxHeight = function()
+	WG.minimap.getMaxHeight = function()
 		return math.floor(config.minimapModeMaxHeight * render.vsy), config.minimapModeMaxHeight
 	end
-	WG["minimap"].setMaxHeight = function(value)
+	WG.minimap.setMaxHeight = function(value)
 		Spring.SetConfigFloat("MinimapMaxHeight", value)
 		config.minimapModeMaxHeight = value
 		widget:ViewResize()
 	end
-	WG["minimap"].getLeftClickMove = function()
+	WG.minimap.getLeftClickMove = function()
 		return config.leftButtonPansCamera
 	end
-	WG["minimap"].setLeftClickMove = function(value)
+	WG.minimap.setLeftClickMove = function(value)
 		config.leftButtonPansCamera = value
 		Spring.SetConfigInt("MinimapLeftClickMove", value and 1 or 0)
 	end
-	WG["minimap"].isPipMinimapActive = function()
+	WG.minimap.isPipMinimapActive = function()
 		return true
 	end
-	WG["minimap"].isDrawingInPip = false
-	WG["minimap"].getScreenBounds = function()
+	WG.minimap.isDrawingInPip = false
+	WG.minimap.getScreenBounds = function()
 		return render.dim.l, render.dim.b, render.dim.r, render.dim.t
 	end
-	WG["minimap"].getVisibleWorldArea = function()
+	WG.minimap.getVisibleWorldArea = function()
 		return render.world.l, render.world.r, render.world.b, render.world.t
 	end
-	WG["minimap"].getRotation = function()
+	WG.minimap.getRotation = function()
 		return render.minimapRotation or 0
 	end
-	WG["minimap"].getNormalizedVisibleArea = function()
+	WG.minimap.getNormalizedVisibleArea = function()
 		local normVisLeft = render.world.l / mapInfo.mapSizeX
 		local normVisRight = render.world.r / mapInfo.mapSizeX
 		local normVisBottom = render.world.b / mapInfo.mapSizeZ
 		local normVisTop = render.world.t / mapInfo.mapSizeZ
 		return normVisLeft, normVisRight, normVisBottom, normVisTop
 	end
-	WG["minimap"].getZoomLevel = function()
+	WG.minimap.getZoomLevel = function()
 		return mapInfo.mapSizeX / (render.world.r - render.world.l)
 	end
-	WG["minimap"].getShowSpectatorPings = function()
+	WG.minimap.getShowSpectatorPings = function()
 		return config.showSpectatorPings
 	end
-	WG["minimap"].setShowSpectatorPings = function(value)
+	WG.minimap.setShowSpectatorPings = function(value)
 		config.showSpectatorPings = value
 	end
-	WG["minimap"].getEngineMinimapFallback = function()
+	WG.minimap.getEngineMinimapFallback = function()
 		return config.engineMinimapFallback
 	end
-	WG["minimap"].setEngineMinimapFallback = function(value)
+	WG.minimap.setEngineMinimapFallback = function(value)
 		config.engineMinimapFallback = value
 		if not value and miscState.engineMinimapActive then
 			-- Turning off fallback while engine minimap is showing: restore icon scale and re-minimize
@@ -8589,19 +8589,19 @@ local function RegisterMinimapWGAPI()
 			pipR2T.unitsNeedsUpdate = true
 		end
 	end
-	WG["minimap"].getEngineMinimapFallbackThreshold = function()
+	WG.minimap.getEngineMinimapFallbackThreshold = function()
 		return config.engineMinimapFallbackThreshold
 	end
-	WG["minimap"].setEngineMinimapFallbackThreshold = function(value)
+	WG.minimap.setEngineMinimapFallbackThreshold = function(value)
 		config.engineMinimapFallbackThreshold = value
 	end
-	WG["minimap"].getEngineMinimapExplosionOverlay = function()
+	WG.minimap.getEngineMinimapExplosionOverlay = function()
 		return config.engineMinimapExplosionOverlay
 	end
-	WG["minimap"].setEngineMinimapExplosionOverlay = function(value)
+	WG.minimap.setEngineMinimapExplosionOverlay = function(value)
 		config.engineMinimapExplosionOverlay = value
 	end
-	WG["minimap"].setBaseIconScale = function(value)
+	WG.minimap.setBaseIconScale = function(value)
 		if miscState.engineMinimapActive then
 			miscState.baseMinimapIconScale = value
 		end
@@ -8748,7 +8748,7 @@ function TrackPlayerApi(playerID, transitionTime)
 		return false
 	end
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	if playerID == myPlayerID then
 		return false
 	end
@@ -9318,7 +9318,7 @@ function widget:Initialize()
 	end
 
 	gameHasStarted = (Spring.GetGameFrame() > 0)
-	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+	miscState.startX, _, miscState.startZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
 
 	-- Initialize GL4 instanced icon rendering (after cache is built so unitIcon data is available)
 	InitGL4Icons()
@@ -9364,12 +9364,12 @@ function widget:Initialize()
 		local initScanAllyTeam = nil
 		local initScanIsSpec, initScanFullview = Spring.GetSpectatingState()
 		if not initScanIsSpec then
-			initScanAllyTeam = Spring.GetMyAllyTeamID()
+			initScanAllyTeam = Spring.GetLocalAllyTeamID()
 		elseif state.losViewEnabled and state.losViewAllyTeam then
 			initScanAllyTeam = state.losViewAllyTeam
 		elseif initScanIsSpec and not initScanFullview then
 			-- Spectator without fullview: scan ghosts from their allyteam's perspective
-			initScanAllyTeam = Spring.GetMyAllyTeamID()
+			initScanAllyTeam = Spring.GetLocalAllyTeamID()
 		end
 		if initScanAllyTeam then
 			local allUnits = Spring.GetAllUnits()
@@ -9683,7 +9683,7 @@ function widget:Initialize()
 end
 
 function widget:ViewResize()
-	font = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
 	render.vsx, render.vsy = Spring.GetViewGeometry()
@@ -9717,8 +9717,8 @@ function widget:ViewResize()
 		local maxHeight = config.minimapModeMaxHeight
 		-- Dynamically determine max width from topbar position (like gui_minimap does)
 		local effectiveMaxWidth = config.minimapModeMaxWidth
-		if WG["topbar"] and WG["topbar"].GetPosition then
-			local topbarArea = WG["topbar"].GetPosition()
+		if WG.topbar and WG.topbar.GetPosition then
+			local topbarArea = WG.topbar.GetPosition()
 			if topbarArea and topbarArea[1] then
 				local margin = WG.FlowUI and (WG.FlowUI.elementMargin * 6) or 10
 				effectiveMaxWidth = (topbarArea[1] - margin) / render.vsx
@@ -10342,11 +10342,11 @@ function widget:Shutdown()
 	end
 
 	-- Remove guishader blur
-	if WG["guishader"] then
-		if WG["guishader"].RemoveDlist then
-			WG["guishader"].RemoveDlist("pip" .. pipNumber)
-		elseif WG["guishader"].RemoveRect then
-			WG["guishader"].RemoveRect("pip" .. pipNumber)
+	if WG.guishader then
+		if WG.guishader.RemoveDlist then
+			WG.guishader.RemoveDlist("pip" .. pipNumber)
+		elseif WG.guishader.RemoveRect then
+			WG.guishader.RemoveRect("pip" .. pipNumber)
 		end
 	end
 	-- Clean up guishader dlist
@@ -10377,7 +10377,7 @@ function widget:Shutdown()
 			Spring.SetConfigInt("MiniMapDrawPings", miscState.oldMinimapDrawPings)
 		end
 		-- Re-enable the gui_minimap widget if it exists
-		if widgetHandler.knownWidgets and widgetHandler.knownWidgets["Minimap"] then
+		if widgetHandler.knownWidgets and widgetHandler.knownWidgets.Minimap then
 			widgetHandler:EnableWidget("Minimap")
 		end
 	end
@@ -10404,7 +10404,7 @@ function widget:Shutdown()
 	WG["pip" .. pipNumber] = nil
 	if isMinimapMode then
 		WG.pip_minimap = nil
-		WG["minimap"] = nil
+		WG.minimap = nil
 	end
 
 	for i = 1, #buttons do
@@ -10916,7 +10916,7 @@ local function DrawCommandFXOverlay()
 	elseif not cameraState.mySpecState then
 		useCommandColors = true -- player viewing own ally commands
 	end
-	local myTeamID = not useCommandColors and Spring.GetMyTeamID() or nil
+	local myTeamID = not useCommandColors and Spring.GetLocalTeamID() or nil
 
 	if useGL4 then
 		gl4Prim.normLines.count = 0
@@ -11292,8 +11292,8 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 	-- Handle Area Mex command preview
 	if activeCmdID == CMD_AREA_MEX then
 		local wx, wz = PipToWorldCoords(mx, my)
-		local metalSpots = WG["resource_spot_finder"] and WG["resource_spot_finder"].metalSpotsList
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalSpots = WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
 		if metalSpots and not metalMap then
 			-- Draw circle showing area
@@ -11314,15 +11314,15 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 			glFunc.Color(1, 1, 1, 1)
 
 			-- Draw preview icons for all spots in area
-			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
 					frameSel = Spring.GetSelectedUnits()
 				end
 				local selectedUnits = frameSel
-				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
-				local selectedMex = WG["resource_spot_builder"]
-					and WG["resource_spot_builder"].GetBestExtractorFromBuilders(
+				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
+				local selectedMex = WG.resource_spot_builder
+					and WG.resource_spot_builder.GetBestExtractorFromBuilders(
 						selectedUnits,
 						mexConstructors,
 						mexBuildings
@@ -11364,24 +11364,23 @@ local function DrawBuildPreview(mx, my, iconRadiusZoomDistMult)
 		local wy = spFunc.GetGroundHeight(wx, wz)
 
 		-- Check if this is a mex/geo that needs spot snapping
-		local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
-		local geoBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetGeoBuildings()
+		local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
+		local geoBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetGeoBuildings()
 		local isMex = mexBuildings and mexBuildings[buildDefID]
 		local isGeo = geoBuildings and geoBuildings[buildDefID]
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
-		if isMex and not metalMap and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-			local metalSpots = WG["resource_spot_finder"].metalSpotsList
+		if isMex and not metalMap and WG.resource_spot_finder and WG.resource_spot_builder then
+			local metalSpots = WG.resource_spot_finder.metalSpotsList
 			local nearestSpot =
-				WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
+				WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
 			if nearestSpot then
 				wx, wz = nearestSpot.x, nearestSpot.z
 				wy = nearestSpot.y
 			end
-		elseif isGeo and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-			local geoSpots = WG["resource_spot_finder"].geoSpotsList
-			local nearestSpot =
-				WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
+		elseif isGeo and WG.resource_spot_finder and WG.resource_spot_builder then
+			local geoSpots = WG.resource_spot_finder.geoSpotsList
+			local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
 			if nearestSpot then
 				wx, wz = nearestSpot.x, nearestSpot.z
 				wy = nearestSpot.y
@@ -13466,7 +13465,7 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 
 	-- Draw start unit icon before game starts (when commander is not yet placed)
 	if not gameHasStarted and not isMinimapMode and miscState.startX and miscState.startX >= 0 then
-		local myTeamID = Spring.GetMyTeamID()
+		local myTeamID = Spring.GetLocalTeamID()
 		local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 		if startDefID and cacheUnitIcon[startDefID] then
 			local iconData = cacheUnitIcon[startDefID]
@@ -13565,7 +13564,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- Pre-compute per-frame visibility context (avoids redundant API calls per unit)
 	local checkAllyTeamID = nil
 	local _, fullview = Spring.GetSpectatingState()
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	if interactionState.trackingPlayerID and cameraState.mySpecState then
 		local _, _, _, playerTeamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 		if playerTeamID then
@@ -13579,7 +13578,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		checkAllyTeamID = state.losViewAllyTeam
 	elseif not cameraState.mySpecState then
-		local myTeamID = Spring.GetMyTeamID()
+		local myTeamID = Spring.GetLocalTeamID()
 		checkAllyTeamID = teamAllyTeamCache[myTeamID] or Spring.GetTeamAllyTeamID(myTeamID)
 	elseif cameraState.mySpecState then
 		if not fullview then
@@ -13978,9 +13977,9 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		config.showTrackedPlayerCursor
 		and config.trackedPlayerCursorGroundGlow
 		and interactionState.trackingPlayerID
-		and WG["allycursors"]
+		and WG.allycursors
 	then
-		local allyCursors = WG["allycursors"]
+		local allyCursors = WG.allycursors
 		local trackedPlayerID = interactionState.trackingPlayerID
 		local trackedName, _, trackedSpec, trackedTeamID = spFunc.GetPlayerInfo(trackedPlayerID, false)
 		if trackedName and not trackedSpec and trackedTeamID then
@@ -14263,12 +14262,12 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 						local displayName
 						if cache.isDecoyCommander[dID] then
 							if cache.isScavCommander[dID] then
-								displayName = Spring.I18N("units.scavDecoyCommanderNameTag")
+								displayName = BAR.I18N("units.scavDecoyCommanderNameTag")
 							else
-								displayName = Spring.I18N("units.decoyCommanderNameTag")
+								displayName = BAR.I18N("units.decoyCommanderNameTag")
 							end
 						elseif cache.isScavCommander[dID] then
-							displayName = Spring.I18N("units.scavCommanderNameTag")
+							displayName = BAR.I18N("units.scavCommanderNameTag")
 						elseif entry then
 							displayName = entry.name
 						end
@@ -14403,11 +14402,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	if
 		config.showTrackedPlayerCursor
 		and not config.trackedPlayerCursorGroundGlow
-		and WG["allycursors"]
-		and WG["allycursors"].getCursor
+		and WG.allycursors
+		and WG.allycursors.getCursor
 		and interactionState.trackingPlayerID
 	then
-		local cursor, isNotIdle = WG["allycursors"].getCursor(interactionState.trackingPlayerID)
+		local cursor, isNotIdle = WG.allycursors.getCursor(interactionState.trackingPlayerID)
 		if cursor and isNotIdle then
 			local wx, wz = cursor[1], cursor[3]
 			local cx, cy = WorldToPipCoords(wx, wz)
@@ -14787,7 +14786,7 @@ end
 -- Helper function to render PIP contents (units, features, ground, command queues)
 -- Helper function to determine if LOS overlay should be shown and which allyteam to use
 local function ShouldShowLOS()
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 
 	-- If tracking a player's camera, use their allyteam (priority over LOS view)
@@ -15412,8 +15411,8 @@ local function DrawBuildCursorWithRotation()
 		else
 			wx, wz = worldTraceX, worldTraceZ
 		end
-		local metalSpots = WG["resource_spot_finder"] and WG["resource_spot_finder"].metalSpotsList
-		local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+		local metalSpots = WG.resource_spot_finder and WG.resource_spot_finder.metalSpotsList
+		local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
 		if metalSpots and not metalMap then
 			-- Apply rotation transform
@@ -15444,15 +15443,15 @@ local function DrawBuildCursorWithRotation()
 			glFunc.Color(1, 1, 1, 1)
 
 			-- Draw preview icons for all spots in area
-			local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
+			local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
 			if mexBuildings then
 				if not frameSel then
 					frameSel = Spring.GetSelectedUnits()
 				end
 				local selectedUnits = frameSel
-				local mexConstructors = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexConstructors()
-				local selectedMex = WG["resource_spot_builder"]
-					and WG["resource_spot_builder"].GetBestExtractorFromBuilders(
+				local mexConstructors = WG.resource_spot_builder and WG.resource_spot_builder.GetMexConstructors()
+				local selectedMex = WG.resource_spot_builder
+					and WG.resource_spot_builder.GetBestExtractorFromBuilders(
 						selectedUnits,
 						mexConstructors,
 						mexBuildings
@@ -15537,22 +15536,22 @@ local function DrawBuildCursorWithRotation()
 	local wy = spFunc.GetGroundHeight(wx, wz)
 
 	-- Snap mex/geo to nearest resource spot, otherwise snap to build grid
-	local mexBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetMexBuildings()
-	local geoBuildings = WG["resource_spot_builder"] and WG["resource_spot_builder"].GetGeoBuildings()
+	local mexBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetMexBuildings()
+	local geoBuildings = WG.resource_spot_builder and WG.resource_spot_builder.GetGeoBuildings()
 	local isMex = mexBuildings and mexBuildings[buildDefID]
 	local isGeo = geoBuildings and geoBuildings[buildDefID]
-	local metalMap = WG["resource_spot_finder"] and WG["resource_spot_finder"].isMetalMap
+	local metalMap = WG.resource_spot_finder and WG.resource_spot_finder.isMetalMap
 
-	if isMex and not metalMap and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-		local metalSpots = WG["resource_spot_finder"].metalSpotsList
-		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
+	if isMex and not metalMap and WG.resource_spot_finder and WG.resource_spot_builder then
+		local metalSpots = WG.resource_spot_finder.metalSpotsList
+		local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, metalSpots, buildDefID)
 		if nearestSpot then
 			wx, wz = nearestSpot.x, nearestSpot.z
 			wy = nearestSpot.y
 		end
-	elseif isGeo and WG["resource_spot_finder"] and WG["resource_spot_builder"] then
-		local geoSpots = WG["resource_spot_finder"].geoSpotsList
-		local nearestSpot = WG["resource_spot_builder"].FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
+	elseif isGeo and WG.resource_spot_finder and WG.resource_spot_builder then
+		local geoSpots = WG.resource_spot_finder.geoSpotsList
+		local nearestSpot = WG.resource_spot_builder.FindNearestValidSpotForExtractor(wx, wz, geoSpots, buildDefID)
 		if nearestSpot then
 			wx, wz = nearestSpot.x, nearestSpot.z
 			wy = nearestSpot.y
@@ -16616,7 +16615,7 @@ local function RenderPipContents()
 	-- Blit map ruler AFTER rotation pop so marks stay at screen edges
 	-- The ruler texture already maps world coordinates for the current rotation angle
 	if uiState.drawingGround and config.showMapRuler then
-		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+		local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 		if not spec then
 			BlitMapRuler()
 		end
@@ -16649,7 +16648,7 @@ local function DrawBoxSelection()
 
 	-- Check if selectionbox widget is enabled
 	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox")
-		and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
+		and (widgetHandler.orderList.Selectionbox and widgetHandler.knownWidgets.Selectionbox.active)
 
 	-- Get modifier key states (ignoring alt as requested)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -17267,7 +17266,7 @@ local function DrawTrackedPlayerMinimap()
 		playerName, active, isSpec, teamID = spFunc.GetPlayerInfo(interactionState.trackingPlayerID, false)
 	else
 		-- Use local player's team
-		teamID = Spring.GetMyTeamID()
+		teamID = Spring.GetLocalTeamID()
 	end
 	if not teamID then
 		interactionState.pipMinimapBounds = nil
@@ -18398,7 +18397,7 @@ local function UpdateDecalTexture()
 	end
 	pipR2T.decalLastCheckFrame = frame
 
-	local decalsAPI = WG["decalsgl4"]
+	local decalsAPI = WG.decalsgl4
 	if not decalsAPI then
 		return
 	end
@@ -18449,7 +18448,7 @@ local function UpdateLOSTexture(currentTime)
 		return
 	end
 
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	-- Can only use engine LOS if:
 	-- 1. Same allyteam as us
 	-- 2. If tracking a player, must have fullview enabled (engine LOS requires fullview for enemy teams)
@@ -18689,8 +18688,8 @@ local function HandleHoverAndCursor(mx, my)
 			or (mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t)
 		)
 	then
-		if WG["info"] and WG["info"].clearCustomHover then
-			WG["info"].clearCustomHover()
+		if WG.info and WG.info.clearCustomHover then
+			WG.info.clearCustomHover()
 		end
 		interactionState.lastHoveredUnitID = nil
 		interactionState.lastHoveredFeatureID = nil
@@ -18706,11 +18705,11 @@ local function HandleHoverAndCursor(mx, my)
 		interactionState.lastHoverCursorCheckTime = currentTime
 
 		-- Update info widget with custom hover
-		if WG["info"] and WG["info"].setCustomHover then
+		if WG.info and WG.info.setCustomHover then
 			local wx, wz = PipToWorldCoords(mx, my)
 			local uID = GetUnitAtPoint(wx, wz)
 			if uID then
-				WG["info"].setCustomHover("unit", uID)
+				WG.info.setCustomHover("unit", uID)
 				interactionState.lastHoveredUnitID = uID
 				interactionState.lastHoveredFeatureID = nil
 			else
@@ -18718,16 +18717,16 @@ local function HandleHoverAndCursor(mx, my)
 				if cameraState.zoom >= config.zoomFeatures then
 					local fID = GetFeatureAtPoint(wx, wz)
 					if fID then
-						WG["info"].setCustomHover("feature", fID)
+						WG.info.setCustomHover("feature", fID)
 						interactionState.lastHoveredFeatureID = fID
 						interactionState.lastHoveredUnitID = nil
 					else
-						WG["info"].clearCustomHover()
+						WG.info.clearCustomHover()
 						interactionState.lastHoveredUnitID = nil
 						interactionState.lastHoveredFeatureID = nil
 					end
 				else
-					WG["info"].clearCustomHover()
+					WG.info.clearCustomHover()
 					interactionState.lastHoveredUnitID = nil
 					interactionState.lastHoveredFeatureID = nil
 				end
@@ -18875,13 +18874,13 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_trackplayer" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				local aliveTeammates = GetAliveTeammates(pools.aliveTeammates)
 				if (interactionState.trackingPlayerID or spec or (#aliveTeammates > 0)) and not miscState.tvEnabled then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
 			elseif btn.command == "pip_view" then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				if spec then
 					visibleButtons[#visibleButtons + 1] = btn
 				end
@@ -18968,7 +18967,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 				and my >= render.dim.b
 				and my <= render.dim.b + render.usedButtonSize
 			then
-				if visibleButtons[i].tooltipKey and WG["tooltip"] then
+				if visibleButtons[i].tooltipKey and WG.tooltip then
 					local tooltipKey = visibleButtons[i].tooltipKey
 					if visibleButtons[i].tooltipActiveKey then
 						if
@@ -18982,10 +18981,10 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 						end
 					end
 					-- Generate tooltip with shortcut key on new line if available
-					local tooltipText = Spring.I18N(tooltipKey)
+					local tooltipText = BAR.I18N(tooltipKey)
 					-- For help button: append left-click hint only when leftButtonPansCamera is enabled
 					if visibleButtons[i].command == "pip_help" and config.leftButtonPansCamera then
-						tooltipText = tooltipText .. Spring.I18N("ui.pip.help_leftclick")
+						tooltipText = tooltipText .. BAR.I18N("ui.pip.help_leftclick")
 					end
 					-- Use button's shortcut from getActionHotkey
 					-- In minimap mode, don't show shorcut for track units button
@@ -18997,7 +18996,7 @@ local function DrawInteractiveOverlays(mx, my, usedButtonSize)
 					if shortcut and shortcut ~= "" then
 						tooltipText = tooltipText .. "\n" .. shortcut
 					end
-					WG["tooltip"].ShowTooltip("pip" .. pipNumber, tooltipText, nil, nil, nil)
+					WG.tooltip.ShowTooltip("pip" .. pipNumber, tooltipText, nil, nil, nil)
 				end
 				glFunc.Color(1, 1, 1, 0.12)
 				glFunc.Texture(false)
@@ -19060,7 +19059,7 @@ pools.RunDeferredPipMaintenance = function(dt)
 	--      defID that differs from ghost.defID.
 	local cleanupAllyTeam
 	if not cameraState.mySpecState then
-		cleanupAllyTeam = Spring.GetMyAllyTeamID()
+		cleanupAllyTeam = Spring.GetLocalAllyTeamID()
 	elseif state.losViewEnabled and state.losViewAllyTeam then
 		cleanupAllyTeam = state.losViewAllyTeam
 	end
@@ -19137,7 +19136,7 @@ pools.RunDeferredPipMaintenance = function(dt)
 		if now - miscState.specGhostScanTime >= 2.0 then
 			tracy.ZoneBeginN("W:PIP:Maintenance:SpecGhostScan")
 			miscState.specGhostScanTime = now
-			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetMyAllyTeamID()
+			local scanAllyTeam = (state.losViewEnabled and state.losViewAllyTeam) or Spring.GetLocalAllyTeamID()
 			local stale = pools.liveSet
 			for gID in pairs(stale) do
 				stale[gID] = nil
@@ -19309,8 +19308,8 @@ function widget:DrawScreen()
 
 		-- Hover highlight
 		if mx >= btnL and mx <= btnR and my >= btnB and my <= btnT then
-			if WG["tooltip"] then
-				WG["tooltip"].ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.minimap_maximize"), nil, nil, nil)
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.minimap_maximize"), nil, nil, nil)
 			end
 			glFunc.Color(1, 1, 1, 0.12)
 			glFunc.Texture(false)
@@ -19416,8 +19415,8 @@ function widget:DrawScreen()
 			and my >= uiState.minModeB - render.elementPadding
 			and my <= uiState.minModeB + buttonSize + render.elementPadding
 		then
-			if WG["tooltip"] then
-				WG["tooltip"].ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.tooltip"), nil, nil, nil)
+			if WG.tooltip then
+				WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.tooltip"), nil, nil, nil)
 			end
 			glFunc.Color(1, 1, 1, 0.12)
 			glFunc.Texture(false)
@@ -19884,7 +19883,7 @@ function widget:DrawScreen()
 
 			-- Blit map ruler directly to screen (not in oversized texture — rulers are edge-fixed)
 			if uiState.drawingGround and config.showMapRuler then
-				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+				local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 				if not spec then
 					UpdateMapRulerTexture()
 					if pipR2T.rulerTex then
@@ -19907,7 +19906,7 @@ function widget:DrawScreen()
 
 			-- Draw minimap overlays from other widgets (only in minimap mode)
 			-- This is done here in DrawScreen (not in R2T) because matrix manipulation works correctly here
-			if isMinimapMode and WG["minimap"] and widgetHandler and widgetHandler.DrawInMiniMapList then
+			if isMinimapMode and WG.minimap and widgetHandler and widgetHandler.DrawInMiniMapList then
 				tracy.ZoneBeginN("W:PIP:DrawInMiniMapWidgets")
 				local minimapWidth = render.dim.r - render.dim.l
 				local minimapHeight = render.dim.t - render.dim.b
@@ -19919,7 +19918,7 @@ function widget:DrawScreen()
 				gl.Scissor(render.dim.l, render.dim.b, minimapWidth, minimapHeight)
 
 				-- Set a flag that widgets can check during their DrawInMiniMap
-				WG["minimap"].isDrawingInPip = true
+				WG.minimap.isDrawingInPip = true
 
 				-- Update module-level upvalues for the minimap API functions (avoids per-frame closures)
 				-- For shaders: pass in world-normalized coords (NOT Y-flipped), shaders do their own flip
@@ -19930,8 +19929,8 @@ function widget:DrawScreen()
 				minimapApi.zoom = mapInfo.mapSizeX / (worldR - worldL)
 
 				-- Expose pre-created functions (no per-frame allocation)
-				WG["minimap"].getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
-				WG["minimap"].getZoomLevel = minimapApi.getZoomLevel
+				WG.minimap.getNormalizedVisibleArea = minimapApi.getNormalizedVisibleArea
+				WG.minimap.getZoomLevel = minimapApi.getZoomLevel
 
 				-- Compute the visible rectangle in full-minimap pixel coordinates.
 				-- Widgets handle rotation themselves via getCurrentMiniMapRotationOption(),
@@ -20018,7 +20017,7 @@ function widget:DrawScreen()
 				end
 
 				-- Clear the flag and disable scissor
-				WG["minimap"].isDrawingInPip = false
+				WG.minimap.isDrawingInPip = false
 				gl.Scissor(false)
 
 				-- Reset GL state that widgets may have left dirty
@@ -20125,8 +20124,8 @@ function widget:DrawScreen()
 			if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 				if render.dim.r - mx + my - render.dim.b <= render.usedButtonSize then
 					hover = true
-					if WG["tooltip"] then
-						WG["tooltip"].ShowTooltip("pip" .. pipNumber, Spring.I18N("ui.pip.resize"), nil, nil, nil)
+					if WG.tooltip then
+						WG.tooltip.ShowTooltip("pip" .. pipNumber, BAR.I18N("ui.pip.resize"), nil, nil, nil)
 					end
 				end
 			end
@@ -20191,10 +20190,10 @@ function widget:DrawScreen()
 				and my <= render.dim.t - render.elementPadding
 			then
 				hover = true
-				if WG["tooltip"] then
-					WG["tooltip"].ShowTooltip(
+				if WG.tooltip then
+					WG.tooltip.ShowTooltip(
 						"pip" .. pipNumber,
-						Spring.I18N(isMinimapMode and "ui.pip.minimap_minimize" or "ui.pip.minimize"),
+						BAR.I18N(isMinimapMode and "ui.pip.minimap_minimize" or "ui.pip.minimize"),
 						nil,
 						nil,
 						nil
@@ -20525,7 +20524,7 @@ end
 -- Timer for periodic ghost building cleanup (checks ghosts outside PIP viewport)
 -- ghostCleanupTimer stored in cache table to avoid a top-level local
 cache.ghostCleanupTimer = 0
-cache.guishaderWasActive = WG["guishader"] ~= nil
+cache.guishaderWasActive = WG.guishader ~= nil
 cache.guishaderCheckTimer = 0
 
 function widget:Update(dt)
@@ -20539,7 +20538,7 @@ function widget:Update(dt)
 	cache.guishaderCheckTimer = cache.guishaderCheckTimer + dt
 	if cache.guishaderCheckTimer >= 0.5 then
 		cache.guishaderCheckTimer = 0
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not cache.guishaderWasActive then
 			UpdateGuishaderBlur()
 		end
@@ -20779,11 +20778,11 @@ function widget:Update(dt)
 			Spring.SendCommands("minimap minimize 1")
 			-- Update guishader blur: remove when hidden, re-add when shown
 			if wantMinimized then
-				if WG["guishader"] then
-					if WG["guishader"].RemoveDlist then
-						WG["guishader"].RemoveDlist("pip" .. pipNumber)
-					elseif WG["guishader"].RemoveRect then
-						WG["guishader"].RemoveRect("pip" .. pipNumber)
+				if WG.guishader then
+					if WG.guishader.RemoveDlist then
+						WG.guishader.RemoveDlist("pip" .. pipNumber)
+					elseif WG.guishader.RemoveRect then
+						WG.guishader.RemoveRect("pip" .. pipNumber)
 					end
 				end
 			else
@@ -21000,7 +20999,7 @@ function widget:Update(dt)
 
 	-- Check if selectionbox widget state has changed and update command colors accordingly
 	local selectionboxEnabled = widgetHandler:IsWidgetKnown("Selectionbox")
-		and (widgetHandler.orderList["Selectionbox"] and widgetHandler.knownWidgets["Selectionbox"].active)
+		and (widgetHandler.orderList.Selectionbox and widgetHandler.knownWidgets.Selectionbox.active)
 	if selectionboxEnabled ~= drawData.lastSelectionboxEnabled then
 		drawData.lastSelectionboxEnabled = selectionboxEnabled
 		if selectionboxEnabled then
@@ -21633,7 +21632,7 @@ function widget:Update(dt)
 		-- Don't do this in minimap mode - the minimap should show the full map
 		local isSpec = Spring.GetSpectatingState()
 		if not isSpec and not interactionState.trackingPlayerID then
-			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+			local newX, _, newZ = Spring.GetTeamStartPosition(Spring.GetLocalTeamID())
 			if newX ~= miscState.startX then
 				miscState.startX, miscState.startZ = newX, newZ
 				-- Apply map margin limits to start position
@@ -21728,7 +21727,7 @@ function widget:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 		return
 	end
 
-	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local myAllyTeam = Spring.GetLocalAllyTeamID()
 	local spec, fullview = Spring.GetSpectatingState()
 	local unitAllyTeam = unitID and Spring.GetUnitAllyTeam(unitID)
 
@@ -22167,14 +22166,14 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		else
 			local _, fullview = Spring.GetSpectatingState()
 			if not fullview then
-				viewAllyTeam = Spring.GetMyAllyTeamID()
+				viewAllyTeam = Spring.GetLocalAllyTeamID()
 			end
 		end
 		if viewAllyTeam and unitAllyTeam ~= viewAllyTeam then
 			return
 		end
 	else
-		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local myAllyTeam = Spring.GetLocalAllyTeamID()
 		if unitAllyTeam ~= myAllyTeam then
 			return
 		end
@@ -22283,7 +22282,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	-- Catches buildings built outside the PIP viewport while fullview is ON
 	-- Only ghost buildings the viewed allyteam has actually seen (PREVLOS or INLOS)
 	if cameraState.mySpecState and cache.isBuilding[unitDefID] then
-		local myAllyTeam = Spring.GetMyAllyTeamID()
+		local myAllyTeam = Spring.GetLocalAllyTeamID()
 		local uAllyTeam = Spring.GetTeamAllyTeamID(unitTeam)
 		if uAllyTeam ~= myAllyTeam then
 			local losBits = Spring.GetUnitLosState(unitID, myAllyTeam, true)
@@ -22678,7 +22677,7 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			if triggerFocus and config.activityFocusHideForSpectators and cameraState.mySpecState then
 				triggerFocus = false
 			end
-			if triggerFocus and playerID == Spring.GetMyPlayerID() then
+			if triggerFocus and playerID == Spring.GetLocalPlayerID() then
 				triggerFocus = false
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
@@ -23038,7 +23037,7 @@ function widget:MousePress(mx, my, mButton)
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then
 		return
 	end
-	if WG["chat"] and WG["chat"].isMapDrawActive and WG["chat"].isMapDrawActive() then
+	if WG.chat and WG.chat.isMapDrawActive and WG.chat.isMapDrawActive() then
 		return false
 	end
 
@@ -23435,7 +23434,7 @@ function widget:MousePress(mx, my, mButton)
 				-- Show player tracking button when tracking, when spectating, or when having alive teammates
 				local showPlayerTrackButton = isTrackingPlayer
 				if not showPlayerTrackButton then
-					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+					local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 					local aliveTeammates = GetAliveTeammates()
 					showPlayerTrackButton = spec or (#aliveTeammates > 0)
 				end
@@ -23475,7 +23474,7 @@ function widget:MousePress(mx, my, mButton)
 							end
 						-- Show pip_view button only for spectators
 						elseif btn.command == "pip_view" then
-							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+							local _, _, spec = spFunc.GetPlayerInfo(Spring.GetLocalPlayerID(), false)
 							if spec then
 								visibleButtons[#visibleButtons + 1] = btn
 							end

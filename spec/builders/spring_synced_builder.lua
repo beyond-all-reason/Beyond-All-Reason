@@ -724,6 +724,7 @@ function SB:WithGlobalsDefined(fn, persist)
 	local instance = self
 	-- Save current globals
 	local prevSpring = _G.Spring
+	local prevBAR = _G.BAR
 	local prevVFS = _G.VFS
 	local prevGame = _G.Game
 	local prevLOG = _G.LOG
@@ -733,6 +734,7 @@ function SB:WithGlobalsDefined(fn, persist)
 
 	-- Set up mocks for the duration of the function
 	_G.Spring = _G.Spring or {}
+	_G.BAR = _G.BAR or {} -- post-detach namespace; the codemod rewrites the mocks below onto it
 	local mock = self:BuildSpring()
 
 	-- Expose all Spring functions to global Spring object
@@ -773,7 +775,7 @@ function SB:WithGlobalsDefined(fn, persist)
 			return default or 0
 		end
 	end
-	_G.Spring.Utilities = _G.Spring.Utilities
+	_G.BAR.Utilities = _G.BAR.Utilities
 		or {
 			Gametype = {
 				IsScavengers = function()
@@ -828,25 +830,46 @@ function SB:WithGlobalsDefined(fn, persist)
 		return {}
 	end
 
-	_G.LOG = _G.LOG or { DEBUG = "DEBUG", INFO = "INFO", WARNING = "WARNING", ERROR = "ERROR" }
-	_G.Game = _G.Game or {}
-	_G.Game.gameSpeed = _G.Game.gameSpeed or 30
-	-- Make sure these are available in the environment
-	_G.pairs = pairs
-	_G.ipairs = ipairs
-	_G.math = math
-	_G.table = table
-	_G.string = string
-	_G.type = type
-	_G.tostring = tostring
-	_G.tonumber = tonumber
-	_G.unpack = unpack or table.unpack
-	_G.print = print
-	_G.error = error
-	_G.pcall = pcall
-	_G.select = select
-	_G.next = next
-	_G.require = require
+	-- Mock VFS.Include cache to intercept system.lua load
+	local originalVFSInclude = _G.VFS.Include
+	_G.VFS.Include = function(path, ...)
+		if path == "gamedata/system.lua" then
+			return {
+				lowerkeys = function(t)
+					return t
+				end,
+				reftable = function(ref, tbl)
+					tbl = tbl or {}
+					setmetatable(tbl, { __index = ref })
+					return tbl
+				end,
+				VFS = _G.VFS,
+				Spring = _G.Spring,
+				BAR = _G.BAR,
+				-- Export standard Lua libs as system.lua does
+				pairs = pairs,
+				ipairs = ipairs,
+				math = math,
+				table = table,
+				string = string,
+				tonumber = tonumber,
+				tostring = tostring,
+				type = type,
+				unpack = unpack or table.unpack,
+				print = print,
+				error = error,
+				pcall = pcall,
+				select = select,
+				next = next,
+				require = require,
+			}
+		end
+		if originalVFSInclude then
+			return originalVFSInclude(path, ...)
+		end
+		-- Fallback if original was nil (unlikely given setup)
+		return {}
+	end
 
 	-- Execute the function with globals set up
 	local success, result = pcall(fn)
@@ -857,6 +880,18 @@ function SB:WithGlobalsDefined(fn, persist)
 	-- If not persisting, restore original globals
 	if not persist then
 		_G.Spring = prevSpring
+		_G.VFS = prevVFS
+		_G.Game = prevGame
+		_G.LOG = prevLOG
+		string.split = prevSplit
+		_G.UnitDefs = prevUnitDefs
+		_G.UnitDefNames = prevUnitDefNames
+	end
+
+	-- If not persisting, restore original globals
+	if not persist then
+		_G.Spring = prevSpring
+		_G.BAR = prevBAR
 		_G.VFS = prevVFS
 		_G.Game = prevGame
 		_G.LOG = prevLOG

@@ -15,7 +15,7 @@ end
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID

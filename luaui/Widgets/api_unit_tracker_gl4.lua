@@ -16,8 +16,8 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -129,7 +129,7 @@ local scriptLuauiAlliedUnitsChanged
 
 local function Scream(reason, unitID) -- This will pause the game and play some sound to alert anyone in debug mode of issue
 	--Spring.Debug.TraceFullEcho(nil,nil,nil, reason)
-	Spring.Debug.TraceEcho("API Unit Tracker error", reason)
+	BAR.Debug.TraceEcho("API Unit Tracker error", reason)
 	if unitID ~= nil then
 		-- gather as much info as possible about this unitID
 		local unitDefID = spGetUnitDefID(unitID)
@@ -153,7 +153,7 @@ local function Scream(reason, unitID) -- This will pause the game and play some 
 			true
 		)
 	end
-	Spring.Debug.TraceFullEcho()
+	BAR.Debug.TraceFullEcho()
 	local unittrackerapinil = nil
 	unittrackerapinil = unittrackerapinil + 1 -- this intentionally crashes this widget so that it will show up in analytics
 	if debuglevel >= 3 then
@@ -164,7 +164,7 @@ end
 
 local function alliedUnitsChanged()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	if Script.LuaUI("AlliedUnitsChanged") then
 		Script.LuaUI.AlliedUnitsChanged(visibleUnits, numVisibleUnits)
@@ -177,7 +177,7 @@ end
 
 local function alliedUnitsAdd(unitID, unitDefID, unitTeam, silent)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numAlliedUnits)
+		BAR.Debug.TraceEcho(numAlliedUnits)
 	end
 	if alliedUnits[unitID] then
 		if debuglevel >= 2 then
@@ -203,7 +203,7 @@ end
 
 local function alliedUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numAlliedUnits)
+		BAR.Debug.TraceEcho(numAlliedUnits)
 	end
 	if alliedUnits[unitID] then
 		local unitDefID = alliedUnits[unitID]
@@ -224,14 +224,14 @@ end
 
 local function GetAlliedUnits()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	return alliedUnits, numAlliedUnits
 end
 
 local function visibleUnitsChanged()
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	if Script.LuaUI("VisibleUnitsChanged") then
 		Script.LuaUI.VisibleUnitsChanged(visibleUnits, numVisibleUnits)
@@ -265,7 +265,7 @@ local instanceVBOCacheTable = {
 
 local function visibleUnitsAdd(unitID, unitDefID, unitTeam, silent, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numVisibleUnits)
+		BAR.Debug.TraceEcho(numVisibleUnits)
 	end
 	if visibleUnits[unitID] then -- already known
 		if debuglevel >= 2 then
@@ -305,7 +305,7 @@ end
 
 local function visibleUnitsRemove(unitID, reason)
 	if debuglevel >= 3 then
-		Spring.Debug.TraceEcho(numVisibleUnits)
+		BAR.Debug.TraceEcho(numVisibleUnits)
 		if lastknownunitpos[unitID] then
 			lastknownunitpos[unitID] = nil
 		end
@@ -333,7 +333,7 @@ end
 
 local function GetVisibleUnits()
 	if debuglevel >= 2 then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	return visibleUnits, numVisibleUnits
 end
@@ -341,7 +341,7 @@ end
 local spec, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local myAllyTeamID = spGetMyAllyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 
 local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 	--[[
@@ -386,7 +386,7 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 			or unitDefIgnore[unitDefID]
 		then
 			if debuglevel >= (verbose or 0) then
-				Spring.Debug.TraceEcho()
+				BAR.Debug.TraceEcho()
 				spEcho(
 					"not isValidLivingSeenUnit",
 					"unitDefID",
@@ -693,10 +693,10 @@ local function initializeAllUnits()
 		widget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initializeAllUnits", true) -- silent is true
 	end
 
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 end
@@ -802,7 +802,7 @@ function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = spGetSpectatingState()
 	local currentAllyTeamID = spGetMyAllyTeamID()
 	local currentTeamID = spGetMyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
+	local currentPlayerID = Spring.GetLocalPlayerID()
 
 	local reinit = false
 
@@ -864,10 +864,10 @@ function widget:GameStart()
 			if Spring.IsReplay() then
 				return
 			end
-			if Spring.Utilities.GetPlayerCount() < 2 then
+			if BAR.Utilities.GetPlayerCount() < 2 then
 				return
 			end
-			if Spring.Utilities.Gametype.IsSinglePlayer == true then
+			if BAR.Utilities.Gametype.IsSinglePlayer == true then
 				return
 			end
 		end
@@ -915,7 +915,7 @@ function widget:Initialize()
 	spec, fullview = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
+	myPlayerID = Spring.GetLocalPlayerID()
 
 	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
 	scriptLuauiVisibleUnitRemoved = Script.LuaUI.VisibleUnitRemoved
@@ -929,11 +929,11 @@ function widget:Initialize()
 		initGL4()
 	end
 
-	WG["unittrackerapi"] = {}
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi = {}
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	initializeAllUnits()
 	widgetHandler:RegisterGlobal("GadgetCrashingAircraft1", GadgetCrashingAircraft)
 	RegisterTextAction("debugapiunittracker", debugapiunittrackerCmd)
@@ -956,7 +956,7 @@ function widget:AddConsoleLine(lines, priority)
 	end
 	local username, frameNumber, gotChecksum, correctChecksum = lines:match(syncerrorpattern)
 	if username and frameNumber and gotChecksum and correctChecksum then
-		local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+		local myPlayerName = Spring.GetPlayerInfo(Spring.GetLocalPlayerID())
 		if myPlayerName == username then
 			-- Yes, we have desynced, time to send a LuaUIMsg to notify the server
 			-- desyncee, gameID, frame, gameversion, engine version, map, chobby version?
@@ -998,10 +998,10 @@ function widget:Shutdown()
 	visibleUnitsTeam = {}
 	numVisibleUnits = 0
 
-	WG["unittrackerapi"].visibleUnits = visibleUnits
-	WG["unittrackerapi"].visibleUnitsTeam = visibleUnitsTeam
-	WG["unittrackerapi"].alliedUnits = alliedUnits
-	WG["unittrackerapi"].alliedUnitsTeam = alliedUnitsTeam
+	WG.unittrackerapi.visibleUnits = visibleUnits
+	WG.unittrackerapi.visibleUnitsTeam = visibleUnitsTeam
+	WG.unittrackerapi.alliedUnits = alliedUnits
+	WG.unittrackerapi.alliedUnitsTeam = alliedUnitsTeam
 	visibleUnitsChanged()
 	alliedUnitsChanged()
 

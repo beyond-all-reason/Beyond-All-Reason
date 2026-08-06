@@ -14,7 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local ignoreUnitDefs = {}
@@ -116,7 +116,7 @@ local function init()
 		gl.DeleteList(drawLists[k])
 	end
 	drawLists = {}
-	font = WG["fonts"].getFont(2, 1.5)
+	font = WG.fonts.getFont(2, 1.5)
 
 	spec, fullView = spGetSpectatingState()
 

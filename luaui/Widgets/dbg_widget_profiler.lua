@@ -109,7 +109,7 @@ local detailColour = "\255\255\255\255"
 local deltaTime
 local redStrength = {}
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
 
 if Spring.GetTimerMicros and Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
 	spGetTimer = Spring.GetTimerMicros

@@ -39,11 +39,11 @@ local function IsIgnoredPlayer(playerID)
 end
 
 function widget:Initialize()
-	WG["mapmarkping"] = {}
-	WG["mapmarkping"].getMapmarkVolume = function()
+	WG.mapmarkping = {}
+	WG.mapmarkping.getMapmarkVolume = function()
 		return volume
 	end
-	WG["mapmarkping"].setMapmarkVolume = function(value)
+	WG.mapmarkping.setMapmarkVolume = function(value)
 		volume = value
 	end
 end

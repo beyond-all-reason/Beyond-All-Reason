@@ -17,7 +17,7 @@ local spEcho = Spring.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local pveAllyTeamID = Spring.Utilities.GetScavAllyTeamID() or Spring.Utilities.GetRaptorAllyTeamID()
+local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 
 ---- Config stuff ------------------
 local autoReload = false -- refresh shader code every second (disable in production!)
@@ -82,8 +82,8 @@ function widget:DrawWorldPreUnit()
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG["screencopymanager"] and WG["screencopymanager"].GetDepthCopy() then
-			gl.Texture(0, WG["screencopymanager"].GetDepthCopy())
+		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
+			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
 		else
 			return
 		end

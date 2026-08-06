@@ -1,6 +1,6 @@
 local voidWater = false
 local waterLevel = Spring.GetModOptions().map_waterlevel
-local waterIsLava = Spring.Lava.isLavaMap
+local waterIsLava = BAR.Lava.isLavaMap
 local minHeight, _, _, _ = Spring.GetGroundExtremes()
 local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
@@ -145,7 +145,7 @@ end
 
 -- returns true if the given unitDefID can be built by the pregame start unit
 local function canSelectPreGameDef(uDefID)
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	if not startDefID or not UnitDefs[startDefID] or not UnitDefs[startDefID].buildOptions then
 		return false

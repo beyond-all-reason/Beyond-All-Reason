@@ -14,9 +14,9 @@ function widget:GetInfo()
 end
 
 -- Local references to Spring API calls
-local spGetMyTeamID = Spring.GetMyTeamID
-local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetGameFrame = Spring.GetGameFrame
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -52,11 +52,11 @@ function widget:Initialize()
 	state.vsx = vsx
 	state.vsy = vsy
 	state.isGUIHidden = spIsGUIHidden()
-	WG["sharedstate"] = state
+	WG.sharedstate = state
 end
 
 function widget:Shutdown()
-	WG["sharedstate"] = nil
+	WG.sharedstate = nil
 end
 
 function widget:PlayerChanged(playerID)

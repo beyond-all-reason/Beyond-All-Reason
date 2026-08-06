@@ -58,7 +58,7 @@ local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua c
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
+	font = WG.fonts.getFont()
 
 	for opacity, list in pairs(mapinfoList) do
 		glDeleteList(list)
@@ -150,7 +150,7 @@ local function createMapinfoList(opacityMultiplier)
 			text = Game.mapDescription
 			font:SetTextColor(1, 1, 1, textOpacity * 0.6 * opacityMultiplier)
 			font:Print(
-				Spring.I18N("ui.mapinfo.author") .. ":  " .. mapinfo.author,
+				BAR.I18N("ui.mapinfo.author") .. ":  " .. mapinfo.author,
 				textOffsetX,
 				-usedTextOffsetY + 0.8,
 				textSize,

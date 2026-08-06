@@ -19,9 +19,9 @@ local allyTeamName = {}
 local textcolor = "\255\200\200\200"
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
-local ColorString = Spring.Utilities.Color.ToString
+local ColorString = BAR.Utilities.Color.ToString
 
 local weaponShowGroups = { ["0"] = true, ["1"] = true }
 local weaponHideRoles = { secondary = true }

@@ -352,14 +352,14 @@ for barname, bt in pairs(barTypeMap) do
 	cache[15] = bt.maxcolor[3]
 	cache[16] = bt.maxcolor[4]
 
-	bt["cache"] = cache
+	bt.cache = cache
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local spec, fullview = spGetSpectatingState()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local GetUnitWeaponState = Spring.GetUnitWeaponState
 
 local chobbyInterface
@@ -648,7 +648,7 @@ end
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
 	if debugmode then
-		Spring.Debug.TraceEcho(unitBars[unitID])
+		BAR.Debug.TraceEcho(unitBars[unitID])
 	end
 	--spEcho("Caller1:", tostring()".name), "caller2:", tostring(debug.getinfo(3).name))
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
@@ -674,7 +674,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
 		if debugmode then
-			Spring.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
+			BAR.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitdefID, barname)
 		end
 		return nil
 	end
@@ -682,7 +682,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	if unitBars[unitID] == nil then
 		if debugmode then
 			spEcho("A unit has no bars yet", UnitDefs[unitDefID].name, spGetUnitPosition(unitID))
-			Spring.Debug.TraceFullEcho()
+			BAR.Debug.TraceFullEcho()
 			Spring.SendCommands({ "pause 1" })
 			spEcho("No bars unit, last seen at", unitID)
 			Spring.MarkerAddPoint(spGetUnitPosition(unitID))
@@ -738,7 +738,7 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 	local instanceKey = unitID .. "_" .. barname
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then
-			Spring.Debug.TraceEcho(reason)
+			BAR.Debug.TraceEcho(reason)
 		end
 		unitBars[unitID] = unitBars[unitID] - 1
 		popElementInstance(healthBarVBO, instanceKey)
@@ -847,7 +847,7 @@ end
 
 local function addBarToFeature(featureID, barname)
 	if debugmode then
-		Spring.Debug.TraceEcho()
+		BAR.Debug.TraceEcho()
 	end
 	local featureDefID = Spring.GetFeatureDefID(featureID)
 
@@ -1063,19 +1063,19 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	WG["healthbars"] = {}
-	WG["healthbars"].getScale = function()
+	WG.healthbars = {}
+	WG.healthbars.getScale = function()
 		return barScale
 	end
-	WG["healthbars"].setScale = function(value)
+	WG.healthbars.setScale = function(value)
 		barScale = value
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getHeight = function()
+	WG.healthbars.getHeight = function()
 		return barHeight
 	end
-	WG["healthbars"].setHeight = function(value)
+	WG.healthbars.setHeight = function(value)
 		barHeight = value
 		shaderSourceCache.shaderConfig.BARHEIGHT = barHeight
 		shaderSourceCache.shaderConfig.BARCORNER = 0.06 + (shaderConfig.BARHEIGHT / 9)
@@ -1083,18 +1083,18 @@ function widget:Initialize()
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getVariableSizes = function()
+	WG.healthbars.getVariableSizes = function()
 		return variableBarSizes
 	end
-	WG["healthbars"].setVariableSizes = function(value)
+	WG.healthbars.setVariableSizes = function(value)
 		variableBarSizes = value
 		init()
 		initfeaturebars()
 	end
-	WG["healthbars"].getDrawWhenGuiHidden = function()
+	WG.healthbars.getDrawWhenGuiHidden = function()
 		return drawWhenGuiHidden
 	end
-	WG["healthbars"].setDrawWhenGuiHidden = function(value)
+	WG.healthbars.setDrawWhenGuiHidden = function(value)
 		drawWhenGuiHidden = value
 	end
 
@@ -1155,7 +1155,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	spec, fullview = spGetSpectatingState()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
@@ -1166,9 +1166,9 @@ end
 
 function widget:PlayerChanged(playerID)
 	local currentspec, currentfullview = spGetSpectatingState()
-	local currentTeamID = Spring.GetMyTeamID()
-	local currentAllyTeamID = Spring.GetMyAllyTeamID()
-	local currentPlayerID = Spring.GetMyPlayerID()
+	local currentTeamID = Spring.GetLocalTeamID()
+	local currentAllyTeamID = Spring.GetLocalAllyTeamID()
+	local currentPlayerID = Spring.GetLocalPlayerID()
 	local reinit = false
 
 	if debugmode then
@@ -1314,7 +1314,7 @@ function widget:GameFrame(n)
 				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
 				--spEcho("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
 				if numStockpiled == nil then
-					Spring.Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
+					BAR.Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
 				end
 
 				uniformcache[1] = numStockpiled + stockpileBuild -- less hacky

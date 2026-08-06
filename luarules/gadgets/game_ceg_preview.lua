@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 	--------------------------------------------------------------------------------
 	local function isAuthorized(playerID)
 		local playername = Spring.GetPlayerInfo(playerID)
-		local accountID = Spring.Utilities and Spring.Utilities.GetAccountID and Spring.Utilities.GetAccountID(playerID)
+		local accountID = BAR.Utilities and BAR.Utilities.GetAccountID and BAR.Utilities.GetAccountID(playerID)
 		-- accountID of -1 means offline/singleplayer -- treat as no valid account
 		if accountID and accountID <= 0 then
 			accountID = nil
@@ -135,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- Resolve dummy weaponDefID (dummy unit fires the projectile)
 	local dummyWeaponDefID
 	do
-		local ud = UnitDefNames and UnitDefNames["ceg_test_projectile_unit"]
+		local ud = UnitDefNames and UnitDefNames.ceg_test_projectile_unit
 		if ud and ud.weapons and ud.weapons[1] then
 			dummyWeaponDefID = ud.weapons[1].weaponDef
 		end

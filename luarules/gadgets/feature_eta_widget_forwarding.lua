@@ -83,10 +83,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 else
-	local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 	local spGetSpectatingState = Spring.GetSpectatingState
 
-	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerID = Spring.GetLocalPlayerID()
 	local myAllyTeamID = spGetMyAllyTeamID()
 	local _, fullview = spGetSpectatingState()
 

@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.Utilities.Gametype.IsScavengers() and not Spring.Utilities.Gametype.IsRaptors() then
+if BAR.Utilities.Gametype.IsScavengers() and not BAR.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Deactivated!")
@@ -156,8 +156,8 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	local bossIDs = {}
 	local bosses = { resistances = bossResistance, statuses = {}, playerDamages = {} }
-	local scavTeamID = Spring.Utilities.GetScavTeamID()
-	local scavAllyTeamID = Spring.Utilities.GetScavAllyTeamID()
+	local scavTeamID = BAR.Utilities.GetScavTeamID()
+	local scavAllyTeamID = BAR.Utilities.GetScavAllyTeamID()
 	local lsx1, lsz1, lsx2, lsz2
 	local burrows = {}
 	local squadsTable = {}
@@ -951,15 +951,12 @@ if gadgetHandler:IsSyncedCode() then
 						for j = 1, unitNumber, 1 do
 							if mRandom() <= config.spawnChance or j == 1 then
 								squadCounter = squadCounter + 1
-								table.insert(
-									spawnQueue,
-									{
-										burrow = burrowID,
-										unitName = scavName,
-										team = scavTeamID,
-										squadID = squadCounter,
-									}
-								)
+								table.insert(spawnQueue, {
+									burrow = burrowID,
+									unitName = scavName,
+									team = scavTeamID,
+									squadID = squadCounter,
+								})
 							end
 						end
 					elseif not UnitDefNames[scavName] then
@@ -2091,27 +2088,17 @@ if gadgetHandler:IsSyncedCode() then
 								if turretUnitID then
 									setScavXP(turretUnitID)
 									if UnitDefNames[uName].isFactory then
-										Spring.GiveOrderToUnit(
-											turretUnitID,
-											CMD.FIGHT,
-											{
-												spawnPosX + mRandom(-256, 256),
-												spawnPosY,
-												spawnPosZ + mRandom(-256, 256),
-											},
-											{ "meta" }
-										)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.FIGHT, {
+											spawnPosX + mRandom(-256, 256),
+											spawnPosY,
+											spawnPosZ + mRandom(-256, 256),
+										}, { "meta" })
 									else
-										Spring.GiveOrderToUnit(
-											turretUnitID,
-											CMD.PATROL,
-											{
-												spawnPosX + mRandom(-128, 128),
-												spawnPosY,
-												spawnPosZ + mRandom(-128, 128),
-											},
-											{ "meta" }
-										)
+										Spring.GiveOrderToUnit(turretUnitID, CMD.PATROL, {
+											spawnPosX + mRandom(-128, 128),
+											spawnPosY,
+											spawnPosZ + mRandom(-128, 128),
+										}, { "meta" })
 									end
 								end
 							until turretUnitID or attempts > 10
@@ -3308,13 +3295,13 @@ else -- UNSYNCED
 		if hasScavEvent then
 			local scavEventArgs = {}
 			if type ~= nil then
-				scavEventArgs["type"] = type
+				scavEventArgs.type = type
 			end
 			if num ~= nil then
-				scavEventArgs["number"] = num
+				scavEventArgs.number = num
 			end
 			if tech ~= nil then
-				scavEventArgs["tech"] = tech
+				scavEventArgs.tech = tech
 			end
 			Script.LuaUI.ScavEvent(scavEventArgs)
 		end

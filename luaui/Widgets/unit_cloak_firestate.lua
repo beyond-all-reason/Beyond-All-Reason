@@ -16,7 +16,7 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
 VFS.Include("luaui/Include/user_firestate_commands.lua")
 
@@ -70,12 +70,12 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			local cloaktargetstate = cloakFireState[unitDefID]
 			local cloakTargetUserState = CustomFirestateDefs.fromEngineFirestate(cloaktargetstate)
 			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= cloakTargetUserState then
-				WG["firestate"].setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
+				WG.firestate.setFirestateForUnits(cloakTargetUserState, { unitID }, { userInitiated = false })
 			end
 		else -- decloak and restore previous fire state
 			local decloaktargetState = decloakFireState[unitID] or CustomFirestateDefs.HOLD_FIRE
 			if CustomFirestateDefs.getUnitUserFirestate(unitID) ~= decloaktargetState then
-				WG["firestate"].setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
+				WG.firestate.setFirestateForUnits(decloaktargetState, { unitID }, { userInitiated = false }) --revert to last state
 			end
 			cloakActive[unitID] = nil
 			decloakFireState[unitID] = nil
@@ -116,8 +116,8 @@ end
 function widget:Initialize()
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
-	local priorUserFirestateFunction = WG["firestate"].userFirestateChanged
-	WG["firestate"].userFirestateChanged = function(unitID, userState)
+	local priorUserFirestateFunction = WG.firestate.userFirestateChanged
+	WG.firestate.userFirestateChanged = function(unitID, userState)
 		userFirestateChangedWhileCloaked(unitID, userState)
 		if priorUserFirestateFunction then
 			priorUserFirestateFunction(unitID, userState)

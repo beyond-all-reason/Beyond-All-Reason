@@ -82,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 	local allyTeamEvalFrame = {}
 	local playerList = GetPlayerList()
 	local killTeamQueue = {}
-	local isFFA = Spring.Utilities.Gametype.IsFFA()
+	local isFFA = BAR.Utilities.Gametype.IsFFA()
 
 	local gameoverFrame
 	local gameoverWinners
@@ -396,8 +396,8 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.CallCOBScript(unitID, "GameOverAnim", 0, true)
 						else
 							local scriptEnv = Spring.UnitScript.GetScriptEnv(unitID)
-							if scriptEnv and scriptEnv["GameOverAnim"] then
-								Spring.UnitScript.CallAsUnit(unitID, scriptEnv["GameOverAnim"], true)
+							if scriptEnv and scriptEnv.GameOverAnim then
+								Spring.UnitScript.CallAsUnit(unitID, scriptEnv.GameOverAnim, true)
 							end
 						end
 					end
@@ -544,7 +544,7 @@ else -- Unsynced
 		if Spring.IsReplay() then
 			return
 		end
-		local myTeamID = Spring.GetMyAllyTeamID()
+		local myTeamID = Spring.GetLocalAllyTeamID()
 		local cur_max = Spring.GetTeamStatsHistory(myTeamID)
 		local stats = Spring.GetTeamStatsHistory(myTeamID, cur_max, cur_max)
 		stats = stats[1]

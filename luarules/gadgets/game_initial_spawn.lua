@@ -242,8 +242,8 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
 	----------------------------------------------------------------
-	local isFFA = Spring.Utilities.Gametype.IsFFA()
-	local isTeamFFA = isFFA and Spring.Utilities.Gametype.IsTeams()
+	local isFFA = BAR.Utilities.Gametype.IsFFA()
+	local isTeamFFA = isFFA and BAR.Utilities.Gametype.IsTeams()
 
 	----------------------------------------------------------------
 	-- Draft Spawn Order -- only enabled when startPosType is 2
@@ -790,7 +790,7 @@ else -- UNSYNCED
 	end
 
 	local function sendStartPositions()
-		local myPlayerID = Spring.GetMyPlayerID()
+		local myPlayerID = Spring.GetLocalPlayerID()
 		local players = Spring.GetPlayerList()
 		local lowestActive
 		for i = 1, #players do

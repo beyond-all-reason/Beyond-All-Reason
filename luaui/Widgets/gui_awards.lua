@@ -59,7 +59,7 @@ local function colourNames(teamID)
 		return ""
 	end
 	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
-	return Spring.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
+	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
 local function round(num, idp)
@@ -73,10 +73,10 @@ local function findPlayerName(teamID)
 	if plList[1] then
 		name = plList[1]
 		if #plList > 1 then
-			name = Spring.I18N("ui.awards.coop", { name = name })
+			name = BAR.I18N("ui.awards.coop", { name = name })
 		end
 	else
-		name = Spring.I18N("ui.awards.unknown")
+		name = BAR.I18N("ui.awards.unknown")
 	end
 
 	return name
@@ -91,7 +91,7 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 	local winnerName, secondName, thirdName
 
 	--award is: 0 for a normal award, 1 for the cow award, 2 for the no-cow awards
-	local notAwardedText = Spring.I18N("ui.awards.notAwarded")
+	local notAwardedText = BAR.I18N("ui.awards.notAwarded")
 
 	winnerName = winnerTeamID >= 0 and findPlayerName(winnerTeamID) or notAwardedText
 	secondName = secondTeamID >= 0 and findPlayerName(secondTeamID) or notAwardedText
@@ -135,7 +135,7 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			local heightoffset = 0
 			if winnerTeamID >= 0 then
 				font:Print(
-					Spring.I18N("ui.awards.resourcesProduced", {
+					BAR.I18N("ui.awards.resourcesProduced", {
 						playerColor = colourNames(winnerTeamID),
 						player = winnerName,
 						textColor = white,
@@ -150,7 +150,7 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			end
 			if secondTeamID >= 0 then
 				font:Print(
-					Spring.I18N("ui.awards.damageTaken", {
+					BAR.I18N("ui.awards.damageTaken", {
 						playerColor = colourNames(secondTeamID),
 						player = secondName,
 						textColor = white,
@@ -165,7 +165,7 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 			end
 			if thirdTeamID >= 0 then
 				font:Print(
-					Spring.I18N("ui.awards.sleptLongest", {
+					BAR.I18N("ui.awards.sleptLongest", {
 						playerColor = colourNames(thirdTeamID),
 						player = thirdName,
 						textColor = white,
@@ -205,7 +205,7 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 				)
 			end
 			font:Print(
-				"\255\120\120\120" .. Spring.I18N("ui.awards.runnersUp"),
+				"\255\120\120\120" .. BAR.I18N("ui.awards.runnersUp"),
 				widgetX + mathFloor(512 * widgetScale),
 				widgetY + widgetHeightScaled - offset - mathFloor(5 * widgetScale),
 				14 * widgetScale,
@@ -274,14 +274,8 @@ local function createBackground()
 	if Background then
 		Background = gl.DeleteList(Background)
 	end
-	if WG["guishader"] then
-		WG["guishader"].InsertRect(
-			widgetX,
-			widgetY,
-			widgetX + widgetWidthScaled,
-			widgetY + widgetHeightScaled,
-			"awards"
-		)
+	if WG.guishader then
+		WG.guishader.InsertRect(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, "awards")
 	end
 
 	Background = gl.CreateList(function()
@@ -305,7 +299,7 @@ local function createBackground()
 
 		titleFont:Begin()
 		titleFont:Print(
-			"\255\254\184\64" .. Spring.I18N("ui.awards.awards"),
+			"\255\254\184\64" .. BAR.I18N("ui.awards.awards"),
 			widgetX + widgetWidthScaled / 2,
 			widgetY + widgetHeightScaled - mathFloor(75 * widgetScale),
 			72 * widgetScale,
@@ -315,7 +309,7 @@ local function createBackground()
 
 		font:Begin()
 		font:Print(
-			Spring.I18N("ui.awards.score"),
+			BAR.I18N("ui.awards.score"),
 			widgetX + widgetWidthScaled / 2 + mathFloor(275 * widgetScale),
 			widgetY + widgetHeightScaled - mathFloor(65 * widgetScale),
 			15 * widgetScale,
@@ -330,9 +324,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	viewScreenX, viewScreenY = spGetViewGeometry()
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
-	titleFont = WG["fonts"].getFont(2, 4, 0.2, 1)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
+	titleFont = WG.fonts.getFont(2, 4, 0.2, 1)
 
 	-- fix geometry
 	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))
@@ -377,27 +371,25 @@ local function ProcessAwards(awards)
 
 	local offset = 120
 	if awards.ecoKill[1].teamID >= 0 then
-		FirstAward =
-			createAward("fuscup", 0, Spring.I18N("ui.awards.resourcesDestroyed"), white, awards.ecoKill, offset)
+		FirstAward = createAward("fuscup", 0, BAR.I18N("ui.awards.resourcesDestroyed"), white, awards.ecoKill, offset)
 		offset = offset + offsetAdd
 	end
 	if awards.fightKill[1].teamID >= 0 then
-		SecondAward =
-			createAward("bullcup", 0, Spring.I18N("ui.awards.enemiesDestroyed"), white, awards.fightKill, offset)
+		SecondAward = createAward("bullcup", 0, BAR.I18N("ui.awards.enemiesDestroyed"), white, awards.fightKill, offset)
 		offset = offset + offsetAdd
 	end
 	if awards.efficiency[1].teamID >= 0 then
 		ThirdAward =
-			createAward("comwreath", 0, Spring.I18N("ui.awards.resourcesEfficiency"), white, awards.efficiency, offset)
+			createAward("comwreath", 0, BAR.I18N("ui.awards.resourcesEfficiency"), white, awards.efficiency, offset)
 		offset = offset + offsetAdd
 	end
 
 	if traitorWinner.score > threshold then
-		FourthAward = createAward("traitor", 0, Spring.I18N("ui.awards.traitor"), white, awards.traitor, offset)
+		FourthAward = createAward("traitor", 0, BAR.I18N("ui.awards.traitor"), white, awards.traitor, offset)
 		offset = offset + offsetAdd
 	end
 	if cowAwardWinner ~= -1 then
-		CowAward = createAward("cow", 1, Spring.I18N("ui.awards.didEverything"), white, awards.goldenCow, offset)
+		CowAward = createAward("cow", 1, BAR.I18N("ui.awards.didEverything"), white, awards.goldenCow, offset)
 		offset = offset + offsetAdd
 	end
 	-- make sure the other awards lines are at the bottom
@@ -423,7 +415,7 @@ function widget:MousePress(x, y, button)
 		if
 			x > widgetX + widgetWidthScaled - quitRightX - mathFloor(5 * widgetScale)
 			and (x < widgetX + widgetWidthScaled - quitRightX + mathFloor(20 * widgetScale) * font:GetTextWidth(
-				Spring.I18N("ui.awards.leave")
+				BAR.I18N("ui.awards.leave")
 			) + mathFloor(5 * widgetScale))
 			and (y > widgetY + mathFloor((50 - 5) * widgetScale))
 			and (y < widgetY + mathFloor((50 + 17 + 5) * widgetScale))
@@ -439,7 +431,7 @@ function widget:MousePress(x, y, button)
 		if
 			(x > widgetX + widgetWidthScaled - graphsRightX - mathFloor(5 * widgetScale))
 			and (x < widgetX + widgetWidthScaled - graphsRightX + mathFloor(20 * widgetScale) * font:GetTextWidth(
-				Spring.I18N("ui.awards.showGraphs")
+				BAR.I18N("ui.awards.showGraphs")
 			) + mathFloor(5 * widgetScale))
 			and (
 				y > widgetY + mathFloor((50 - 5) * widgetScale)
@@ -448,8 +440,8 @@ function widget:MousePress(x, y, button)
 		then
 			Spring.SendCommands("endgraph 2")
 
-			if WG["guishader"] then
-				WG["guishader"].RemoveRect("awards")
+			if WG.guishader then
+				WG.guishader.RemoveRect("awards")
 			end
 			drawAwards = false
 		end
@@ -465,8 +457,8 @@ function widget:MousePress(x, y, button)
 				and (y < widgetY + widgetHeightScaled - mathFloor((10 - 5) * widgetScale))
 			)
 		then
-			if WG["guishader"] then
-				WG["guishader"].RemoveRect("awards")
+			if WG.guishader then
+				WG.guishader.RemoveRect("awards")
 			end
 			drawAwards = false
 		end
@@ -510,7 +502,7 @@ function widget:DrawScreen()
 	if
 		(x > widgetX + widgetWidthScaled - quitRightX - mathFloor(5 * widgetScale))
 		and (x < widgetX + widgetWidthScaled - quitRightX + mathFloor(20 * widgetScale) * font2:GetTextWidth(
-			Spring.I18N("ui.awards.leave")
+			BAR.I18N("ui.awards.leave")
 		) + mathFloor(5 * widgetScale))
 		and (y > widgetY + mathFloor((50 - 5) * widgetScale))
 		and (y < widgetY + mathFloor((50 + 17 + 5) * widgetScale))
@@ -520,7 +512,7 @@ function widget:DrawScreen()
 		quitColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 	end
 	font2:Print(
-		quitColour .. Spring.I18N("ui.awards.leave"),
+		quitColour .. BAR.I18N("ui.awards.leave"),
 		widgetX + widgetWidthScaled - quitRightX,
 		widgetY + mathFloor(50 * widgetScale),
 		20 * widgetScale,
@@ -531,7 +523,7 @@ function widget:DrawScreen()
 	if
 		(x > widgetX + widgetWidthScaled - graphsRightX - (5 * widgetScale))
 		and (x < widgetX + widgetWidthScaled - graphsRightX + mathFloor(20 * widgetScale) * font2:GetTextWidth(
-			Spring.I18N("ui.awards.showGraphs")
+			BAR.I18N("ui.awards.showGraphs")
 		) + mathFloor(5 * widgetScale))
 		and (y > widgetY + mathFloor((50 - 5) * widgetScale))
 		and (y < widgetY + mathFloor((50 + 17 + 5)) * widgetScale)
@@ -541,7 +533,7 @@ function widget:DrawScreen()
 		graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 	end
 	font2:Print(
-		graphColour .. Spring.I18N("ui.awards.showGraphs"),
+		graphColour .. BAR.I18N("ui.awards.showGraphs"),
 		widgetX + widgetWidthScaled - graphsRightX,
 		widgetY + mathFloor(50 * widgetScale),
 		20 * widgetScale,
@@ -607,7 +599,7 @@ function widget:Shutdown()
 	if Background then
 		gl.DeleteList(Background)
 	end
-	if WG["guishader"] then
-		WG["guishader"].RemoveRect("awards")
+	if WG.guishader then
+		WG.guishader.RemoveRect("awards")
 	end
 end

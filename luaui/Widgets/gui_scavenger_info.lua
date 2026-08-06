@@ -1,4 +1,4 @@
-local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
+local scavengersAIEnabled = BAR.Utilities.Gametype.IsScavengers()
 
 if not scavengersAIEnabled then
 	return
@@ -74,8 +74,8 @@ function widget:ViewResize()
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font, loadedFontSize = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -181,7 +181,7 @@ function DrawWindow()
 	)
 
 	-- title background
-	local title = Spring.I18N("ui.topbar.button.scavengers")
+	local title = BAR.I18N("ui.topbar.button.scavengers")
 	local titleFontSize = 18 * widgetScale
 	titleRect = {
 		screenX,
@@ -222,7 +222,7 @@ function widget:DrawScreen()
 		-- draw the text panel
 		glCallList(textList)
 
-		if WG["guishader"] then
+		if WG.guishader then
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
@@ -233,7 +233,7 @@ function widget:DrawScreen()
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG["guishader"].InsertDlist(backgroundGuishader, "text")
+			WG.guishader.InsertDlist(backgroundGuishader, "text")
 		end
 		showOnceMore = false
 
@@ -244,8 +244,8 @@ function widget:DrawScreen()
 		then
 			Spring.SetMouseCursor("cursornormal")
 		end
-	elseif dlistcreated and WG["guishader"] then
-		WG["guishader"].DeleteDlist("text")
+	elseif dlistcreated and WG.guishader then
+		WG.guishader.DeleteDlist("text")
 		dlistcreated = nil
 	end
 end
@@ -308,15 +308,15 @@ end
 
 function widget:Initialize()
 	if textFile then
-		WG["scavengerinfo"] = {}
-		WG["scavengerinfo"].toggle = function(state)
+		WG.scavengerinfo = {}
+		WG.scavengerinfo.toggle = function(state)
 			if state ~= nil then
 				show = state
 			else
 				show = not show
 			end
 		end
-		WG["scavengerinfo"].isvisible = function()
+		WG.scavengerinfo.isvisible = function()
 			return show
 		end
 
@@ -341,8 +341,8 @@ function widget:Shutdown()
 		glDeleteList(textList)
 		textList = nil
 	end
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("text")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("text")
 	end
 end
 

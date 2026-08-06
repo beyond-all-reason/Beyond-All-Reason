@@ -19,7 +19,7 @@ local tableSort = table.sort
 
 -- Localized Spring API for performance
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetMouseState = Spring.GetMouseState
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -240,12 +240,12 @@ end
 unitsOfInterestNames = nil
 
 -- added this so they wont get immediately triggered after gamestart
-LastPlay["YouAreOverflowingMetal"] = spGetGameFrame() + 1200
+LastPlay.YouAreOverflowingMetal = spGetGameFrame() + 1200
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
-LastPlay["YouAreWastingMetal"] = spGetGameFrame()
-LastPlay["YouAreWastingEnergy"] = spGetGameFrame()
-LastPlay["WholeTeamWastingMetal"] = spGetGameFrame()
-LastPlay["WholeTeamWastingEnergy"] = spGetGameFrame()
+LastPlay.YouAreWastingMetal = spGetGameFrame()
+LastPlay.YouAreWastingEnergy = spGetGameFrame()
+LastPlay.WholeTeamWastingMetal = spGetGameFrame()
+LastPlay.WholeTeamWastingEnergy = spGetGameFrame()
 
 local soundQueue = {}
 local nextSoundQueued = 0
@@ -272,8 +272,8 @@ local lastMouseX, lastMouseY = spGetMouseState()
 local isSpec = spGetSpectatingState()
 local isReplay = Spring.IsReplay()
 local myTeamID = spGetMyTeamID()
-local myPlayerID = Spring.GetMyPlayerID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myPlayerID = Spring.GetLocalPlayerID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local myRank = select(9, Spring.GetPlayerInfo(myPlayerID))
 
 local spGetTeamResources = Spring.GetTeamResources
@@ -288,35 +288,35 @@ local tutorialPlayed = {} -- store the number of times a tutorial event has play
 local tutorialPlayedThisGame = {} -- log that a tutorial event has played this game
 
 local unitIsReadyTab = {
-	{ UnitDefNames["armvulc"].id, "UnitReady/RagnarokIsReady" },
-	{ UnitDefNames["armbanth"].id, "UnitReady/TitanIsReady" },
-	{ UnitDefNames["armepoch"].id, "UnitReady/FlagshipIsReady" },
-	{ UnitDefNames["armthor"].id, "UnitReady/ThorIsReady" },
-	{ UnitDefNames["armfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["armckfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["armuwfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["armafus"].id, "UnitReady/AdvancedFusionIsReady" },
-	{ UnitDefNames["armsilo"].id, "UnitReady/NuclearSiloIsReady" },
+	{ UnitDefNames.armvulc.id, "UnitReady/RagnarokIsReady" },
+	{ UnitDefNames.armbanth.id, "UnitReady/TitanIsReady" },
+	{ UnitDefNames.armepoch.id, "UnitReady/FlagshipIsReady" },
+	{ UnitDefNames.armthor.id, "UnitReady/ThorIsReady" },
+	{ UnitDefNames.armfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.armckfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.armuwfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.armafus.id, "UnitReady/AdvancedFusionIsReady" },
+	{ UnitDefNames.armsilo.id, "UnitReady/NuclearSiloIsReady" },
 
-	{ UnitDefNames["corbuzz"].id, "UnitReady/CalamityIsReady" },
-	{ UnitDefNames["corkorg"].id, "UnitReady/JuggernautIsReady" },
-	{ UnitDefNames["corjugg"].id, "UnitReady/BehemothIsReady" },
-	{ UnitDefNames["corblackhy"].id, "UnitReady/FlagshipIsReady" },
-	{ UnitDefNames["corfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["coruwfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["corafus"].id, "UnitReady/AdvancedFusionIsReady" },
-	{ UnitDefNames["corsilo"].id, "UnitReady/NuclearSiloIsReady" },
+	{ UnitDefNames.corbuzz.id, "UnitReady/CalamityIsReady" },
+	{ UnitDefNames.corkorg.id, "UnitReady/JuggernautIsReady" },
+	{ UnitDefNames.corjugg.id, "UnitReady/BehemothIsReady" },
+	{ UnitDefNames.corblackhy.id, "UnitReady/FlagshipIsReady" },
+	{ UnitDefNames.corfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.coruwfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.corafus.id, "UnitReady/AdvancedFusionIsReady" },
+	{ UnitDefNames.corsilo.id, "UnitReady/NuclearSiloIsReady" },
 
-	{ UnitDefNames["legstarfall"] and UnitDefNames["legstarfall"].id, "UnitReady/StarfallIsReady" },
-	{ UnitDefNames["legelrpcmech"] and UnitDefNames["legelrpcmech"].id, "UnitReady/AstraeusIsReady" },
-	{ UnitDefNames["legeheatraymech"] and UnitDefNames["legeheatraymech"].id, "UnitReady/SolinvictusIsReady" },
-	{ UnitDefNames["legfus"] and UnitDefNames["legfus"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["leganavalfusion"] and UnitDefNames["leganavalfusion"].id, "UnitReady/FusionIsReady" },
-	{ UnitDefNames["legafus"] and UnitDefNames["legafus"].id, "UnitReady/AdvancedFusionIsReady" },
-	{ UnitDefNames["legsilo"] and UnitDefNames["legsilo"].id, "UnitReady/NuclearSiloIsReady" },
+	{ UnitDefNames.legstarfall and UnitDefNames.legstarfall.id, "UnitReady/StarfallIsReady" },
+	{ UnitDefNames.legelrpcmech and UnitDefNames.legelrpcmech.id, "UnitReady/AstraeusIsReady" },
+	{ UnitDefNames.legeheatraymech and UnitDefNames.legeheatraymech.id, "UnitReady/SolinvictusIsReady" },
+	{ UnitDefNames.legfus and UnitDefNames.legfus.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.leganavalfusion and UnitDefNames.leganavalfusion.id, "UnitReady/FusionIsReady" },
+	{ UnitDefNames.legafus and UnitDefNames.legafus.id, "UnitReady/AdvancedFusionIsReady" },
+	{ UnitDefNames.legsilo and UnitDefNames.legsilo.id, "UnitReady/NuclearSiloIsReady" },
 }
 
-if UnitDefNames["armcom_scav"] then -- quick check if scav units exist
+if UnitDefNames.armcom_scav then -- quick check if scav units exist
 	local unitIsReadyScavAppend = {}
 	for i = 1, #unitIsReadyTab do
 		if UnitDefNames[UnitDefs[unitIsReadyTab[1][1]].name .. "_scav"].id then
@@ -488,8 +488,8 @@ end
 function widget:PlayerChanged(playerID)
 	isSpec = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
-	myPlayerID = Spring.GetMyPlayerID()
-	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myPlayerID = Spring.GetLocalPlayerID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
 	doTutorialMode = (not isReplay and not isSpec and tutorialMode)
 	updateCommanders()
 end
@@ -506,7 +506,7 @@ local function gadgetNotificationEvent(msg)
 		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
 		if
 			forceplay
-			or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID()))
+			or (tonumber(player) and (tonumber(player) == Spring.GetLocalPlayerID()))
 			or (isSpec and tonumber(player) == lockPlayerID)
 		then
 			queueNotification(event, forceplay)
@@ -517,16 +517,16 @@ end
 function widget:Initialize()
 	widget:PlayerChanged()
 
-	WG["notifications"] = {}
+	WG.notifications = {}
 	for sound, params in pairs(notification) do
-		WG["notifications"]["getNotification" .. sound] = function()
+		WG.notifications["getNotification" .. sound] = function()
 			return notificationList[sound] or false
 		end
-		WG["notifications"]["setNotification" .. sound] = function(value)
+		WG.notifications["setNotification" .. sound] = function(value)
 			notificationList[sound] = value
 		end
 	end
-	WG["notifications"].getNotificationList = function()
+	WG.notifications.getNotificationList = function()
 		local soundInfo = {}
 
 		for i, event in pairs(notificationOrder) do
@@ -535,50 +535,50 @@ function widget:Initialize()
 		end
 
 		tableSort(soundInfo, function(a, b)
-			local nameA = Spring.I18N(a[3]) or ""
-			local nameB = Spring.I18N(b[3]) or ""
+			local nameA = BAR.I18N(a[3]) or ""
+			local nameB = BAR.I18N(b[3]) or ""
 			return string.lower(nameA) < string.lower(nameB)
 		end)
 
 		return soundInfo
 	end
-	WG["notifications"].getTutorial = function()
+	WG.notifications.getTutorial = function()
 		return tutorialMode
 	end
-	WG["notifications"].setTutorial = function(value)
+	WG.notifications.setTutorial = function(value)
 		tutorialMode = value
 		if tutorialMode then
 			tutorialPlayed = {}
 		end
 		widget:PlayerChanged()
 	end
-	WG["notifications"].getVolume = function()
+	WG.notifications.getVolume = function()
 		return globalVolume
 	end
-	WG["notifications"].setVolume = function(value)
+	WG.notifications.setVolume = function(value)
 		globalVolume = value
 	end
-	WG["notifications"].getSpoken = function()
+	WG.notifications.getSpoken = function()
 		return spoken
 	end
-	WG["notifications"].setSpoken = function(value)
+	WG.notifications.setSpoken = function(value)
 		spoken = value
 	end
-	WG["notifications"].getMessages = function()
+	WG.notifications.getMessages = function()
 		return displayMessages
 	end
-	WG["notifications"].setMessages = function(value)
+	WG.notifications.setMessages = function(value)
 		displayMessages = value
 	end
-	WG["notifications"].addEvent = function(value, force)
+	WG.notifications.addEvent = function(value, force)
 		if notification[value] then
 			queueNotification(value, force)
 		end
 	end
-	WG["notifications"].queueNotification = function(event, forceplay)
+	WG.notifications.queueNotification = function(event, forceplay)
 		queueNotification(event, forceplay)
 	end
-	WG["notifications"].playNotification = function(event)
+	WG.notifications.playNotification = function(event)
 		if notification[event] then
 			if notification[event].voiceFiles and #notification[event].voiceFiles > 0 then
 				local m = #notification[event].voiceFiles > 1 and mathRandom(1, #notification[event].voiceFiles) or 1
@@ -600,26 +600,26 @@ function widget:Initialize()
 					"ui"
 				)
 			end
-			if displayMessages and WG["messages"] and notification[event].textID and not notification[event].notext then
+			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
 				if not notification[event].customText then
-					WG["messages"].addMessage(Spring.I18N(notification[event].textID))
+					WG.messages.addMessage(BAR.I18N(notification[event].textID))
 				else
-					WG["messages"].addMessage(notification[event].textID)
+					WG.messages.addMessage(notification[event].textID)
 				end
 			end
 		end
 	end
 
-	WG["notifications"].resetEventDelay = function(event)
+	WG.notifications.resetEventDelay = function(event)
 		LastPlay[event] = spGetGameFrame()
 	end
 
-	WG["notifications"].addNotificationDefs = function(tableOfNotifs)
+	WG.notifications.addNotificationDefs = function(tableOfNotifs)
 		notificationTable = table.merge(notificationTable, tableOfNotifs)
 		processNotificationDefs()
 	end
 
-	WG["notifications"].addUnitDetected = function(unitName, notifName)
+	WG.notifications.addUnitDetected = function(unitName, notifName)
 		if UnitDefNames[unitName] then
 			unitsOfInterest[UnitDefNames[unitName].id] = notifName
 		end
@@ -629,13 +629,13 @@ function widget:Initialize()
 	end
 
 	RegisteredCustomNotifWidgets = {}
-	WG["notifications"].registerCustomNotifWidget = function(widgetName)
+	WG.notifications.registerCustomNotifWidget = function(widgetName)
 		if not RegisteredCustomNotifWidgets[widgetName] then
 			RegisteredCustomNotifWidgets[widgetName] = true
 		end
 	end
 
-	WG["notifications"].registeredCustomNotifWidgets = function()
+	WG.notifications.registeredCustomNotifWidgets = function()
 		return RegisteredCustomNotifWidgets
 	end
 
@@ -645,7 +645,7 @@ function widget:Initialize()
 		Spring.Echo("Notification Sound Items Loaded")
 	end
 
-	if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+	if BAR.Utilities.Gametype.IsRaptors() and BAR.Utilities.Gametype.IsScavengers() then
 		queueNotification("RaptorsAndScavsMixed")
 	end
 end
@@ -655,7 +655,7 @@ function widget:NotificationEvent(msg)
 end
 
 function widget:Shutdown()
-	WG["notifications"] = nil
+	WG.notifications = nil
 end
 
 function widget:GameFrame(gf)
@@ -671,7 +671,7 @@ function widget:GameFrame(gf)
 			spGetTeamResources(myTeamID, "metal")
 
 		-- raptors and scavs mixed check
-		if Spring.Utilities.Gametype.IsRaptors() and Spring.Utilities.Gametype.IsScavengers() then
+		if BAR.Utilities.Gametype.IsRaptors() and BAR.Utilities.Gametype.IsScavengers() then
 			queueNotification("RaptorsAndScavsMixed")
 		end
 
@@ -930,8 +930,8 @@ local function playNextSound()
 					"ui"
 				)
 			end
-			if displayMessages and WG["messages"] and notification[event].textID and not notification[event].notext then
-				WG["messages"].addMessage(Spring.I18N(notification[event].textID))
+			if displayMessages and WG.messages and notification[event].textID and not notification[event].notext then
+				WG.messages.addMessage(BAR.I18N(notification[event].textID))
 			end
 		end
 
@@ -991,7 +991,7 @@ function widget:Update(dt)
 		--else
 		isIdle = false
 		--end
-		if WG["rejoin"] and WG["rejoin"].showingRejoining() then
+		if WG.rejoin and WG.rejoin.showingRejoining() then
 			isIdle = true
 		end
 

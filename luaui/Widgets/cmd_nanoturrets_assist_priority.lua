@@ -19,7 +19,7 @@ local GetUnitDefID = Spring.GetUnitDefID
 local UnitDefs = UnitDefs
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
-local myTeam = Spring.GetMyTeamID()
+local myTeam = Spring.GetLocalTeamID()
 
 local nanoDefs = {}
 
@@ -42,8 +42,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			if nanoDefs[GetUnitDefID(id)] ~= nil then
 				local commandQueue = GetUnitCommands(id, 10)
 				if
-					(commandQueue[2] ~= nil and commandQueue[2]["id"] == CMD_FIGHT)
-					or (commandQueue[1] ~= nil and commandQueue[1]["id"] == CMD_FIGHT)
+					(commandQueue[2] ~= nil and commandQueue[2].id == CMD_FIGHT)
+					or (commandQueue[1] ~= nil and commandQueue[1].id == CMD_FIGHT)
 					or commandQueue[1] == nil
 				then
 					-- Echo("giving repair command to " .. id)

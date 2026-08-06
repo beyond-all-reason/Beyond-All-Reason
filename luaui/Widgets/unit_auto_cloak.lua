@@ -14,21 +14,21 @@ end
 
 -- defaults
 local unitdefConfigNames = {
-	["armdecom"] = false,
-	["cordecom"] = false,
-	["armferret"] = false,
-	["armamb"] = false,
-	["armpb"] = false,
-	["armsnipe"] = false,
-	["corsktl"] = false,
-	["armgremlin"] = true,
-	["armamex"] = true,
-	["armshockwave"] = true,
-	["armckfus"] = true,
-	["armspy"] = true,
-	["corspy"] = true,
-	["legaspy"] = true,
-	["corphantom"] = true,
+	armdecom = false,
+	cordecom = false,
+	armferret = false,
+	armamb = false,
+	armpb = false,
+	armsnipe = false,
+	corsktl = false,
+	armgremlin = true,
+	armamex = true,
+	armshockwave = true,
+	armckfus = true,
+	armspy = true,
+	corspy = true,
+	legaspy = true,
+	corphantom = true,
 }
 -- convert unitname -> unitDefID
 local unitdefConfig = {}
@@ -43,7 +43,7 @@ local CMD_CLOAK = 37382
 local cloak = CMD_CLOAK --just simplified Var
 local cloakunits = {} -- get UnitID for initial local function
 local giveOrderToUnit = Spring.GiveOrderToUnit --optimization
-local spUnitTeam = Spring.GetMyTeamID --optimization
+local spUnitTeam = Spring.GetLocalTeamID --optimization
 
 local function cloakDeActive(unitID, unitDefID) --DeActivator of Cloak for all units with clock
 	if unitdefConfig[unitDefID] then
@@ -82,11 +82,11 @@ function widget:Initialize()
 		maybeRemoveSelf()
 	end
 
-	WG["autocloak"] = {}
-	WG["autocloak"].getUnitdefConfig = function()
+	WG.autocloak = {}
+	WG.autocloak.getUnitdefConfig = function()
 		return unitdefConfig
 	end
-	WG["autocloak"].setUnitdefConfig = function(data)
+	WG.autocloak.setUnitdefConfig = function(data)
 		local type, value = data[1], data[2]
 		unitdefConfig[type] = value
 	end

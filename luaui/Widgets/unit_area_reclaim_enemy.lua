@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local allyTeam = Spring.GetMyAllyTeamID()
+local allyTeam = Spring.GetLocalAllyTeamID()
 
 -- Speedups
 
@@ -71,7 +71,7 @@ function widget:CommandNotify(id, params, options)
 	-- get all enemy units in the area
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
-		local enemyUnit = not Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetMyTeamID())
+		local enemyUnit = not Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetLocalTeamID())
 		if enemyUnit then
 			table.insert(enemyUnits, unitID)
 		end

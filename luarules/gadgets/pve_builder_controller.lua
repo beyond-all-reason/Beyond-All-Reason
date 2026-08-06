@@ -16,16 +16,16 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-if Spring.Utilities.Gametype.IsRaptors() then
+if BAR.Utilities.Gametype.IsRaptors() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Raptor Defense Spawner Activated!")
-elseif Spring.Utilities.Gametype.IsScavengers() then
+elseif BAR.Utilities.Gametype.IsScavengers() then
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Scav Defense Spawner Activated!")
 else
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Defense Spawner Deactivated!")
 	return false
 end
 
-local scavengerAITeamID = Spring.Utilities.GetScavTeamID()
+local scavengerAITeamID = BAR.Utilities.GetScavTeamID()
 
 local builderDefs = {}
 for unitDefID, data in pairs(UnitDefs) do
@@ -94,16 +94,11 @@ function gadget:GameFrame(frame)
 						if #turretOptions > 1 then
 							local turret = turretOptions[math.random(1, #turretOptions)]
 							local x, y, z = Spring.GetUnitPosition(unitID)
-							Spring.GiveOrderToUnit(
-								unitID,
-								-turret,
-								{
-									x + math.random(-data.range, data.range),
-									y,
-									z + math.random(-data.range, data.range),
-								},
-								{}
-							)
+							Spring.GiveOrderToUnit(unitID, -turret, {
+								x + math.random(-data.range, data.range),
+								y,
+								z + math.random(-data.range, data.range),
+							}, {})
 							if data.isFactory then
 								for i = 1, math.random(1, 5) do
 									Spring.GiveOrderToUnit(unitID, -turret, {

@@ -31,11 +31,11 @@ local sp = {
 	GetTeamRulesParam = Spring.GetTeamRulesParam,
 	GetTeamList = Spring.GetTeamList,
 	SetMouseCursor = Spring.SetMouseCursor,
-	GetMyAllyTeamID = Spring.GetMyAllyTeamID,
+	GetMyAllyTeamID = Spring.GetLocalAllyTeamID,
 	GetTeamUnitDefCount = Spring.GetTeamUnitDefCount,
 	GetSpectatingState = Spring.GetSpectatingState,
 	GetTeamResources = Spring.GetTeamResources,
-	GetMyTeamID = Spring.GetMyTeamID,
+	GetMyTeamID = Spring.GetLocalTeamID,
 	GetMouseState = Spring.GetMouseState,
 	GetWind = Spring.GetWind,
 	GetGameSpeed = Spring.GetGameSpeed,
@@ -68,8 +68,8 @@ local myAllyTeamList = sp.GetTeamList(myAllyTeamID)
 local numTeamsInAllyTeam = #myAllyTeamList
 
 -- Game mode / state
-local numPlayers = Spring.Utilities.GetPlayerCount()
-local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local numPlayers = BAR.Utilities.GetPlayerCount()
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local _modOpts = Spring.GetModOptions()
 local isScenario = _modOpts ~= nil and _modOpts.scenariooptions ~= nil
 local chobbyLoaded = false
@@ -96,7 +96,7 @@ local avgWindValue, riskWindValue
 local currentWind = 0
 local currentWindText = "\255\255\255\2550"
 local prevWind = nil
-local displayTidalSpeed = not Spring.Lava.isLavaMap
+local displayTidalSpeed = not BAR.Lava.isLavaMap
 local tidalSpeed = Spring.GetTidal() -- for now assumed that it is not dynamically changed
 local tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
 local tidalWaveAnimationHeight = 10
@@ -105,16 +105,16 @@ local minWind = Game.windMin
 local maxWind = Game.windMax
 local minWindText = "\255\166\166\166" .. tostring(minWind)
 local maxWindText = "\255\166\166\166" .. tostring(maxWind)
-local noWindText1 = "\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind1")
-local noWindText2 = "\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind2")
+local noWindText1 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind1")
+local noWindText2 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind2")
 local windFunctions = VFS.Include("common/wind_functions.lua")
 
 local function refreshWindTidalTextCache()
 	tidalSpeedText = "\255\255\255\255" .. tostring(tidalSpeed)
 	minWindText = "\255\166\166\166" .. tostring(minWind)
 	maxWindText = "\255\166\166\166" .. tostring(maxWind)
-	noWindText1 = "\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind1")
-	noWindText2 = "\255\200\200\200" .. Spring.I18N("ui.topbar.wind.nowind2")
+	noWindText1 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind1")
+	noWindText2 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind2")
 end
 
 -- Commanders
@@ -304,8 +304,8 @@ function widget:ViewResize()
 	UiButton = WG.FlowUI.Draw.Button
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	font = WG["fonts"].getFont()
-	font2 = WG["fonts"].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
 	for n, _ in pairs(dlist.windText) do
 		dlist.windText[n] = glDeleteList(dlist.windText[n])
@@ -358,7 +358,7 @@ local function updateButtons()
 	local prevButtonsArea = buttonsArea
 
 	-- if not buttonsArea['buttons'] then -- With this condition it doesn't actually update buttons if they were already added
-	buttonsArea["buttons"] = {}
+	buttonsArea.buttons = {}
 
 	local margin = bgpadding
 	local textPadding = mathFloor(fontsize * 0.8)
@@ -368,7 +368,7 @@ local function updateButtons()
 
 	local function addButton(name, text)
 		local width = mathFloor((font2:GetTextWidth(text) * fontsize) + textPadding)
-		buttonsArea["buttons"][name] = {
+		buttonsArea.buttons[name] = {
 			buttonsArea[3] - offset - width,
 			buttonsArea[2] + margin,
 			buttonsArea[3] - offset,
@@ -377,47 +377,47 @@ local function updateButtons()
 			buttonsArea[3] - offset - (width / 2),
 		}
 		if not lastbutton then
-			buttonsArea["buttons"][name][3] = buttonsArea[3]
+			buttonsArea.buttons[name][3] = buttonsArea[3]
 		end
 		offset = mathFloor(offset + width + 0.5)
 		lastbutton = name
 	end
 
 	if not gameIsOver and chobbyLoaded then
-		addButton("quit", Spring.I18N("ui.topbar.button.lobby"))
+		addButton("quit", BAR.I18N("ui.topbar.button.lobby"))
 	else
-		addButton("quit", Spring.I18N("ui.topbar.button.quit"))
+		addButton("quit", BAR.I18N("ui.topbar.button.quit"))
 	end
 	if not gameIsOver and not spec and gameStarted and not isSinglePlayer then
-		addButton("resign", Spring.I18N("ui.topbar.button.resign"))
+		addButton("resign", BAR.I18N("ui.topbar.button.resign"))
 	end
 
-	if WG["options"] then
-		addButton("options", Spring.I18N("ui.topbar.button.settings"))
+	if WG.options then
+		addButton("options", BAR.I18N("ui.topbar.button.settings"))
 	end
-	if WG["keybinds"] then
-		addButton("keybinds", Spring.I18N("ui.topbar.button.keys"))
+	if WG.keybinds then
+		addButton("keybinds", BAR.I18N("ui.topbar.button.keys"))
 	end
-	if WG["changelog"] and not isScenario then
-		addButton("changelog", Spring.I18N("ui.topbar.button.changes"))
+	if WG.changelog and not isScenario then
+		addButton("changelog", BAR.I18N("ui.topbar.button.changes"))
 	end
-	if WG["teamstats"] and not isScenario then
-		addButton("stats", Spring.I18N("ui.topbar.button.stats"))
+	if WG.teamstats and not isScenario then
+		addButton("stats", BAR.I18N("ui.topbar.button.stats"))
 	end
 	if gameIsOver then
-		addButton("graphs", Spring.I18N("ui.topbar.button.graphs"))
+		addButton("graphs", BAR.I18N("ui.topbar.button.graphs"))
 	end
-	if WG["scavengerinfo"] then
-		addButton("scavengers", Spring.I18N("ui.topbar.button.scavengers"))
+	if WG.scavengerinfo then
+		addButton("scavengers", BAR.I18N("ui.topbar.button.scavengers"))
 	end
-	if isScenario and WG["missioninfo"] then
-		addButton("mission", Spring.I18N("ui.topbar.button.mission"))
+	if isScenario and WG.missioninfo then
+		addButton("mission", BAR.I18N("ui.topbar.button.mission"))
 	end
-	if isSinglePlayer and cfg.allowSavegame and WG["savegame"] then
-		addButton("save", Spring.I18N("ui.topbar.button.save"))
+	if isSinglePlayer and cfg.allowSavegame and WG.savegame then
+		addButton("save", BAR.I18N("ui.topbar.button.save"))
 	end
 
-	buttonsArea["buttons"][lastbutton][1] = buttonsArea["buttons"][lastbutton][1] - sidePadding
+	buttonsArea.buttons[lastbutton][1] = buttonsArea.buttons[lastbutton][1] - sidePadding
 	offset = offset + sidePadding
 	buttonsArea[1] = buttonsArea[3] - offset - margin
 
@@ -434,7 +434,7 @@ local function updateButtons()
 		font2:Begin(true)
 		font2:SetTextColor(0.92, 0.92, 0.92, 1)
 		font2:SetOutlineColor(0, 0, 0, 1)
-		for name, params in pairs(buttonsArea["buttons"]) do
+		for name, params in pairs(buttonsArea.buttons) do
 			font2:Print(
 				params[5],
 				params[6],
@@ -496,13 +496,13 @@ local function updateComs(forceText)
 
 	comcountChanged = nil
 
-	if WG["tooltip"] and refreshUi then
-		WG["tooltip"].AddTooltip(
+	if WG.tooltip and refreshUi then
+		WG.tooltip.AddTooltip(
 			"coms",
 			area,
-			Spring.I18N("ui.topbar.commanderCountTooltip"),
+			BAR.I18N("ui.topbar.commanderCountTooltip"),
 			nil,
-			Spring.I18N("ui.topbar.commanderCount")
+			BAR.I18N("ui.topbar.commanderCount")
 		)
 	end
 end
@@ -557,18 +557,17 @@ local function updateWind()
 		glPopMatrix()
 	end)
 
-	if WG["tooltip"] and refreshUi then
-		local avgWindValueForTooltip = windFunctions.isNoWind() and Spring.I18N("ui.topbar.wind.nowind1")
-			or avgWindValue
-		WG["tooltip"].AddTooltip(
+	if WG.tooltip and refreshUi then
+		local avgWindValueForTooltip = windFunctions.isNoWind() and BAR.I18N("ui.topbar.wind.nowind1") or avgWindValue
+		WG.tooltip.AddTooltip(
 			"wind",
 			area,
-			Spring.I18N(
+			BAR.I18N(
 				"ui.topbar.windspeedTooltip",
 				{ avgWindValue = avgWindValueForTooltip, riskWindValue = riskWindValue, warnColor = textWarnColor }
 			),
 			nil,
-			Spring.I18N("ui.topbar.windspeed")
+			BAR.I18N("ui.topbar.windspeed")
 		)
 	end
 end
@@ -610,13 +609,13 @@ local function updateTidal()
 		glPopMatrix()
 	end)
 
-	if WG["tooltip"] and refreshUi then
-		WG["tooltip"].AddTooltip(
+	if WG.tooltip and refreshUi then
+		WG.tooltip.AddTooltip(
 			"tidal",
 			area,
-			Spring.I18N("ui.topbar.tidalspeedTooltip"),
+			BAR.I18N("ui.topbar.tidalspeedTooltip"),
 			nil,
-			Spring.I18N("ui.topbar.tidalspeed")
+			BAR.I18N("ui.topbar.tidalspeed")
 		)
 	end
 end
@@ -774,42 +773,41 @@ local function updateResbarText(res, force)
 
 				if res == "metal" then
 					text = (
-						allyteamOverflowingMetal
-							and "   " .. Spring.I18N("ui.topbar.resources.wastingMetal") .. "   "
-						or "   " .. Spring.I18N("ui.topbar.resources.overflowing") .. "   "
+						allyteamOverflowingMetal and "   " .. BAR.I18N("ui.topbar.resources.wastingMetal") .. "   "
+						or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   "
 					)
 					if
 						not supressOverflowNotifs
-						and WG["notifications"]
+						and WG.notifications
 						and not isMetalmap
 						and (not WG.sharedMetalFrame or WG.sharedMetalFrame + 60 < gameFrame)
 					then
 						if allyteamOverflowingMetal then
 							if numTeamsInAllyTeam > 1 then
-								WG["notifications"].queueNotification("WholeTeamWastingMetal")
+								WG.notifications.queueNotification("WholeTeamWastingMetal")
 							else
-								WG["notifications"].queueNotification("YouAreWastingMetal")
+								WG.notifications.queueNotification("YouAreWastingMetal")
 							end
 						elseif r[res][6] > 0.75 then -- supress if you are deliberately overflowing by adjustingthe share slider down
-							WG["notifications"].queueNotification("YouAreOverflowingMetal")
+							WG.notifications.queueNotification("YouAreOverflowingMetal")
 						end
 					end
 				else
 					text = (
 						allyteamOverflowingEnergy
-							and "   " .. Spring.I18N("ui.topbar.resources.wastingEnergy") .. "   "
-						or "   " .. Spring.I18N("ui.topbar.resources.overflowing") .. "   "
+							and "   " .. BAR.I18N("ui.topbar.resources.wastingEnergy") .. "   "
+						or "   " .. BAR.I18N("ui.topbar.resources.overflowing") .. "   "
 					)
 					if
 						not supressOverflowNotifs
-						and WG["notifications"]
+						and WG.notifications
 						and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame + 60 < gameFrame)
 					then
 						if allyteamOverflowingEnergy then
 							if numTeamsInAllyTeam > 1 then
-								WG["notifications"].queueNotification("WholeTeamWastingEnergy")
+								WG.notifications.queueNotification("WholeTeamWastingEnergy")
 							else
-								WG["notifications"].queueNotification("YouAreWastingEnergy")
+								WG.notifications.queueNotification("YouAreWastingEnergy")
 							end
 						end
 					end
@@ -1292,17 +1290,17 @@ local function updateResbar(res)
 	end)
 
 	local resourceTranslations = {
-		metal = Spring.I18N("ui.topbar.resources.metal"),
-		energy = Spring.I18N("ui.topbar.resources.energy"),
+		metal = BAR.I18N("ui.topbar.resources.metal"),
+		energy = BAR.I18N("ui.topbar.resources.energy"),
 	}
 
 	local resourceName = resourceTranslations[res]
 
 	-- add/update tooltips
-	if WG["tooltip"] and conversionIndicatorArea then
+	if WG.tooltip and conversionIndicatorArea then
 		-- always update for now
 		if res == "energy" then
-			WG["tooltip"].AddTooltip(
+			WG.tooltip.AddTooltip(
 				res .. "_share_slider",
 				{
 					resbarDrawinfo[res].barArea[1],
@@ -1310,11 +1308,11 @@ local function updateResbar(res)
 					conversionIndicatorArea[1],
 					shareIndicatorArea[res][4],
 				},
-				Spring.I18N("ui.topbar.resources.shareEnergyTooltip"),
+				BAR.I18N("ui.topbar.resources.shareEnergyTooltip"),
 				nil,
-				Spring.I18N("ui.topbar.resources.shareEnergyTooltipTitle")
+				BAR.I18N("ui.topbar.resources.shareEnergyTooltipTitle")
 			)
-			WG["tooltip"].AddTooltip(
+			WG.tooltip.AddTooltip(
 				res .. "_share_slider2",
 				{
 					conversionIndicatorArea[3],
@@ -1322,19 +1320,19 @@ local function updateResbar(res)
 					resbarDrawinfo[res].barArea[3],
 					shareIndicatorArea[res][4],
 				},
-				Spring.I18N("ui.topbar.resources.shareEnergyTooltip"),
+				BAR.I18N("ui.topbar.resources.shareEnergyTooltip"),
 				nil,
-				Spring.I18N("ui.topbar.resources.shareEnergyTooltipTitle")
+				BAR.I18N("ui.topbar.resources.shareEnergyTooltipTitle")
 			)
-			WG["tooltip"].AddTooltip(
+			WG.tooltip.AddTooltip(
 				res .. "_metalmaker_slider",
 				conversionIndicatorArea,
-				Spring.I18N("ui.topbar.resources.conversionTooltip"),
+				BAR.I18N("ui.topbar.resources.conversionTooltip"),
 				nil,
-				Spring.I18N("ui.topbar.resources.conversionTooltipTitle")
+				BAR.I18N("ui.topbar.resources.conversionTooltipTitle")
 			)
 		else
-			WG["tooltip"].AddTooltip(
+			WG.tooltip.AddTooltip(
 				res .. "_share_slider",
 				{
 					resbarDrawinfo[res].barArea[1],
@@ -1342,32 +1340,32 @@ local function updateResbar(res)
 					resbarDrawinfo[res].barArea[3],
 					shareIndicatorArea[res][4],
 				},
-				Spring.I18N("ui.topbar.resources.shareMetalTooltip"),
+				BAR.I18N("ui.topbar.resources.shareMetalTooltip"),
 				nil,
-				Spring.I18N("ui.topbar.resources.shareMetalTooltipTitle")
+				BAR.I18N("ui.topbar.resources.shareMetalTooltipTitle")
 			)
 		end
 
 		if refreshUi then
-			WG["tooltip"].AddTooltip(res .. "_pull", {
+			WG.tooltip.AddTooltip(res .. "_pull", {
 				resbarDrawinfo[res].textPull[2] - (resbarDrawinfo[res].textPull[4] * 2.5),
 				resbarDrawinfo[res].textPull[3],
 				resbarDrawinfo[res].textPull[2] + (resbarDrawinfo[res].textPull[4] * 0.5),
 				resbarDrawinfo[res].textPull[3] + resbarDrawinfo[res].textPull[4],
-			}, Spring.I18N("ui.topbar.resources.pullTooltip", { resource = resourceName }))
-			WG["tooltip"].AddTooltip(res .. "_income", {
+			}, BAR.I18N("ui.topbar.resources.pullTooltip", { resource = resourceName }))
+			WG.tooltip.AddTooltip(res .. "_income", {
 				resbarDrawinfo[res].textIncome[2] - (resbarDrawinfo[res].textIncome[4] * 2.5),
 				resbarDrawinfo[res].textIncome[3],
 				resbarDrawinfo[res].textIncome[2] + (resbarDrawinfo[res].textIncome[4] * 0.5),
 				resbarDrawinfo[res].textIncome[3] + resbarDrawinfo[res].textIncome[4],
-			}, Spring.I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName }))
+			}, BAR.I18N("ui.topbar.resources.incomeTooltip", { resource = resourceName }))
 			--WG['tooltip'].AddTooltip(res .. '_expense', { resbarDrawinfo[res].textExpense[2] - (4 * widgetScale), resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[2] + (30 * widgetScale), resbarDrawinfo[res].textExpense[3] + resbarDrawinfo[res].textExpense[4] }, Spring.I18N('ui.topbar.resources.expenseTooltip', { resource = resourceName }))
-			WG["tooltip"].AddTooltip(res .. "_storage", {
+			WG.tooltip.AddTooltip(res .. "_storage", {
 				resbarDrawinfo[res].textStorage[2] - (resbarDrawinfo[res].textStorage[4] * 2.75),
 				resbarDrawinfo[res].textStorage[3],
 				resbarDrawinfo[res].textStorage[2],
 				resbarDrawinfo[res].textStorage[3] + resbarDrawinfo[res].textStorage[4],
-			}, Spring.I18N("ui.topbar.resources.storageTooltip", { resource = resourceName }))
+			}, BAR.I18N("ui.topbar.resources.storageTooltip", { resource = resourceName }))
 		end
 	end
 end
@@ -1572,13 +1570,13 @@ function init()
 
 	-- metal
 	local width = mathFloor(totalWidth / 4.4)
-	resbarArea["metal"] =
+	resbarArea.metal =
 		{ topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar("metal")
 
 	--energy
-	resbarArea["energy"] =
+	resbarArea.energy =
 		{ topbarArea[1] + filledWidth, topbarArea[2], topbarArea[1] + filledWidth + width, topbarArea[4] }
 	filledWidth = filledWidth + width + widgetSpaceMargin
 	updateResbar("energy")
@@ -1628,8 +1626,8 @@ function init()
 	buttonsArea = { topbarArea[3] - width, topbarArea[2] + smallVPad, topbarArea[3], topbarArea[4] }
 	updateButtons()
 
-	if WG["topbar"] then
-		WG["topbar"].GetPosition = function()
+	if WG.topbar then
+		WG.topbar.GetPosition = function()
 			local leftSkewOffset = cfg.useSkew and mathFloor((topbarArea[4] - topbarArea[2]) * skewTan) or 0
 			return {
 				topbarArea[1] + leftSkewOffset + widgetSpaceMargin,
@@ -1641,7 +1639,7 @@ function init()
 			}
 		end
 
-		WG["topbar"].GetFreeArea = function()
+		WG.topbar.GetFreeArea = function()
 			return {
 				topbarArea[1] + filledWidth,
 				topbarArea[2],
@@ -1650,7 +1648,7 @@ function init()
 				widgetScale,
 			}
 		end
-		WG["topbar"].GetSkewConfig = function()
+		WG.topbar.GetSkewConfig = function()
 			return {
 				useSkew = cfg.useSkew,
 				skewTan = skewTan,
@@ -1869,7 +1867,7 @@ function widget:Update(dt)
 
 	if now > timers.nextGuishaderCheck then
 		timers.nextGuishaderCheck = now + timers.guishaderCheckUpdateRate
-		local guishaderActive = WG["guishader"] ~= nil
+		local guishaderActive = WG.guishader ~= nil
 		if guishaderActive and not guishaderEnabled then
 			guishaderEnabled = guishaderActive
 			init()
@@ -1913,11 +1911,11 @@ function widget:Update(dt)
 				-- make sure conversion/overflow sliders are adjusted
 				if mmLevel then
 					local currentMmLevel = sp.GetTeamRulesParam(myTeamID, "mmLevel")
-					if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r["energy"][6] then
+					if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r.energy[6] then
 						mmLevel = currentMmLevel
 						updateResbar("energy")
 					end
-					if metalOverflowLevel ~= r["metal"][6] then
+					if metalOverflowLevel ~= r.metal[6] then
 						updateResbar("metal")
 					end
 				end
@@ -1926,11 +1924,11 @@ function widget:Update(dt)
 			-- make sure conversion/overflow sliders are adjusted
 			if mmLevel then
 				local currentMmLevel = sp.GetTeamRulesParam(myTeamID, "mmLevel")
-				if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r["energy"][6] then
+				if mmLevel ~= currentMmLevel or energyOverflowLevel ~= r.energy[6] then
 					mmLevel = currentMmLevel
 					updateResbar("energy")
 				end
-				if metalOverflowLevel ~= r["metal"][6] then
+				if metalOverflowLevel ~= r.metal[6] then
 					updateResbar("metal")
 				end
 			end
@@ -1947,18 +1945,18 @@ function widget:Update(dt)
 		local prevR = r
 		r = { metal = { sp.GetTeamResources(myTeamID, "metal") }, energy = { sp.GetTeamResources(myTeamID, "energy") } }
 		-- check if we need to smooth the resources
-		local metalDiff7 = r["metal"][7] - prevR["metal"][7]
-		local metalDiff8 = r["metal"][8] - prevR["metal"][8]
-		local energyDiff7 = r["energy"][7] - prevR["energy"][7]
-		local energyDiff8 = r["energy"][8] - prevR["energy"][8]
-		local metalStorage = r["metal"][2]
-		local energyStorage = r["energy"][2]
+		local metalDiff7 = r.metal[7] - prevR.metal[7]
+		local metalDiff8 = r.metal[8] - prevR.metal[8]
+		local energyDiff7 = r.energy[7] - prevR.energy[7]
+		local energyDiff8 = r.energy[8] - prevR.energy[8]
+		local metalStorage = r.metal[2]
+		local energyStorage = r.energy[2]
 
 		if
-			(r["metal"][7] > 1 and metalDiff7 ~= 0 and r["metal"][7] / metalStorage > 0.05)
-			or (r["metal"][8] > 1 and metalDiff8 ~= 0 and r["metal"][8] / metalStorage > 0.05)
-			or (r["energy"][7] > 1 and energyDiff7 ~= 0 and r["energy"][7] / energyStorage > 0.05)
-			or (r["energy"][8] > 1 and energyDiff8 ~= 0 and r["energy"][8] / energyStorage > 0.05)
+			(r.metal[7] > 1 and metalDiff7 ~= 0 and r.metal[7] / metalStorage > 0.05)
+			or (r.metal[8] > 1 and metalDiff8 ~= 0 and r.metal[8] / metalStorage > 0.05)
+			or (r.energy[7] > 1 and energyDiff7 ~= 0 and r.energy[7] / energyStorage > 0.05)
+			or (r.energy[8] > 1 and energyDiff8 ~= 0 and r.energy[8] / energyStorage > 0.05)
 		then
 			smoothedResources = r
 		end
@@ -2167,7 +2165,7 @@ local function drawQuitScreen()
 	Spring.SetMouseCursor("cursornormal")
 
 	dlist.quit = glCreateList(function()
-		if WG["guishader"] then
+		if WG.guishader then
 			glColor(0, 0, 0, (0.18 * fadeProgress))
 		else
 			glColor(0, 0, 0, (0.35 * fadeProgress))
@@ -2182,19 +2180,19 @@ local function drawQuitScreen()
 			local h = mathFloor(w / 3.5)
 
 			local fontSize = h / 6
-			local text = Spring.I18N("ui.topbar.quit.reallyQuit")
+			local text = BAR.I18N("ui.topbar.quit.reallyQuit")
 			teamResign = false
 
 			if not spec then
-				text = Spring.I18N("ui.topbar.quit.reallyQuitResign")
+				text = BAR.I18N("ui.topbar.quit.reallyQuitResign")
 				if not gameIsOver and chobbyLoaded then
 					if numPlayers < 3 then
-						text = Spring.I18N("ui.topbar.quit.reallyResign")
+						text = BAR.I18N("ui.topbar.quit.reallyResign")
 					else
 						if getPlayerLiveAllyCount() >= 1 then
 							teamResign = true
 						end
-						text = Spring.I18N("ui.topbar.quit.reallyResignSpectate")
+						text = BAR.I18N("ui.topbar.quit.reallyResignSpectate")
 					end
 				end
 			end
@@ -2321,7 +2319,7 @@ local function drawQuitScreen()
 					padding * 0.5
 				)
 				font2:Print(
-					Spring.I18N("ui.topbar.quit.stay"),
+					BAR.I18N("ui.topbar.quit.stay"),
 					quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2),
 					quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3),
 					fontSize,
@@ -2368,7 +2366,7 @@ local function drawQuitScreen()
 					padding * 0.5
 				)
 				font2:Print(
-					Spring.I18N("ui.topbar.quit.resign"),
+					BAR.I18N("ui.topbar.quit.resign"),
 					quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2),
 					quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3),
 					fontSize,
@@ -2412,7 +2410,7 @@ local function drawQuitScreen()
 						padding * 0.5
 					)
 					font2:Print(
-						Spring.I18N("ui.topbar.quit.teamResign"),
+						BAR.I18N("ui.topbar.quit.teamResign"),
 						quitscreenTeamResignArea[1] + ((quitscreenTeamResignArea[3] - quitscreenTeamResignArea[1]) / 2),
 						quitscreenTeamResignArea[2]
 							+ ((quitscreenTeamResignArea[4] - quitscreenTeamResignArea[2]) / 2)
@@ -2423,7 +2421,7 @@ local function drawQuitScreen()
 				end
 				if mouseOver and teamResign then
 					font:Print(
-						Spring.I18N("ui.topbar.hint." .. mouseOver),
+						BAR.I18N("ui.topbar.hint." .. mouseOver),
 						quitscreenTeamResignArea[1] - buttonMargin,
 						quitscreenArea[2] + (2.5 * fontSize / 3),
 						fontSize * 0.9,
@@ -2469,7 +2467,7 @@ local function drawQuitScreen()
 					padding * 0.5
 				)
 				font2:Print(
-					Spring.I18N("ui.topbar.quit.quit"),
+					BAR.I18N("ui.topbar.quit.quit"),
 					quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2),
 					quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3),
 					fontSize,
@@ -2482,9 +2480,9 @@ local function drawQuitScreen()
 	end)
 
 	-- background
-	if WG["guishader"] then
-		WG["guishader"].setScreenBlur(true)
-		WG["guishader"].insertRenderDlist(dlist.quit)
+	if WG.guishader then
+		WG.guishader.setScreenBlur(true)
+		WG.guishader.insertRenderDlist(dlist.quit)
 	else
 		glCallList(dlist.quit)
 	end
@@ -2784,7 +2782,7 @@ function widget:DrawScreen()
 			r2tHelper.RenderToTexture(uiTex, renderUi, true)
 		end
 
-		if WG["guishader"] then
+		if WG.guishader then
 			if uiBgList then
 				glDeleteList(uiBgList)
 			end
@@ -2794,7 +2792,7 @@ function widget:DrawScreen()
 				gl.TexRect(topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], false, true)
 				gl.Texture(false)
 			end)
-			WG["guishader"].InsertDlist(uiBgList, "topbar_background")
+			WG.guishader.InsertDlist(uiBgList, "topbar_background")
 		end
 	end
 
@@ -2901,17 +2899,17 @@ function widget:DrawScreen()
 		end
 	end
 
-	if showButtons and dlist.buttons and buttonsArea["buttons"] then
+	if showButtons and dlist.buttons and buttonsArea.buttons then
 		-- changelog changes highlight
-		if WG["changelog"] and WG["changelog"].haschanges() then
+		if WG.changelog and WG.changelog.haschanges() then
 			local button = "changelog"
-			if buttonsArea["buttons"][button] then
+			if buttonsArea.buttons[button] then
 				local paddingsize = 1
 				RectRound(
-					buttonsArea["buttons"][button][1] + paddingsize,
-					buttonsArea["buttons"][button][2] + paddingsize,
-					buttonsArea["buttons"][button][3] - paddingsize,
-					buttonsArea["buttons"][button][4] - paddingsize,
+					buttonsArea.buttons[button][1] + paddingsize,
+					buttonsArea.buttons[button][2] + paddingsize,
+					buttonsArea.buttons[button][3] - paddingsize,
+					buttonsArea.buttons[button][4] - paddingsize,
 					3.5 * widgetScale,
 					0,
 					0,
@@ -2923,15 +2921,15 @@ function widget:DrawScreen()
 		end
 
 		-- hovered?
-		if not showQuitscreen and buttonsArea["buttons"] and hoveringTopbar == "menu" then
-			for button, pos in pairs(buttonsArea["buttons"]) do
+		if not showQuitscreen and buttonsArea.buttons and hoveringTopbar == "menu" then
+			for button, pos in pairs(buttonsArea.buttons) do
 				if mathIsInRect(mx, my, pos[1], pos[2], pos[3], pos[4]) then
 					local paddingsize = 1
 					RectRound(
-						buttonsArea["buttons"][button][1] + paddingsize,
-						buttonsArea["buttons"][button][2] + paddingsize,
-						buttonsArea["buttons"][button][3] - paddingsize,
-						buttonsArea["buttons"][button][4] - paddingsize,
+						buttonsArea.buttons[button][1] + paddingsize,
+						buttonsArea.buttons[button][2] + paddingsize,
+						buttonsArea.buttons[button][3] - paddingsize,
+						buttonsArea.buttons[button][4] - paddingsize,
 						3.5 * widgetScale,
 						0,
 						0,
@@ -2941,10 +2939,10 @@ function widget:DrawScreen()
 					)
 					glBlending(GL.SRC_ALPHA, GL.ONE)
 					RectRound(
-						buttonsArea["buttons"][button][1],
-						buttonsArea["buttons"][button][2],
-						buttonsArea["buttons"][button][3],
-						buttonsArea["buttons"][button][4],
+						buttonsArea.buttons[button][1],
+						buttonsArea.buttons[button][2],
+						buttonsArea.buttons[button][3],
+						buttonsArea.buttons[button][4],
 						3.5 * widgetScale,
 						0,
 						0,
@@ -2955,11 +2953,11 @@ function widget:DrawScreen()
 					)
 					local mult = 1
 					RectRound(
-						buttonsArea["buttons"][button][1],
-						buttonsArea["buttons"][button][4]
-							- ((buttonsArea["buttons"][button][4] - buttonsArea["buttons"][button][2]) * 0.4),
-						buttonsArea["buttons"][button][3],
-						buttonsArea["buttons"][button][4],
+						buttonsArea.buttons[button][1],
+						buttonsArea.buttons[button][4]
+							- ((buttonsArea.buttons[button][4] - buttonsArea.buttons[button][2]) * 0.4),
+						buttonsArea.buttons[button][3],
+						buttonsArea.buttons[button][4],
 						3.3 * widgetScale,
 						0,
 						0,
@@ -2969,11 +2967,11 @@ function widget:DrawScreen()
 						{ 1, 1, 1, 0.18 * mult }
 					)
 					RectRound(
-						buttonsArea["buttons"][button][1],
-						buttonsArea["buttons"][button][2],
-						buttonsArea["buttons"][button][3],
-						buttonsArea["buttons"][button][2]
-							+ ((buttonsArea["buttons"][button][4] - buttonsArea["buttons"][button][2]) * 0.25),
+						buttonsArea.buttons[button][1],
+						buttonsArea.buttons[button][2],
+						buttonsArea.buttons[button][3],
+						buttonsArea.buttons[button][2]
+							+ ((buttonsArea.buttons[button][4] - buttonsArea.buttons[button][2]) * 0.25),
 						3.3 * widgetScale,
 						0,
 						0,
@@ -2990,8 +2988,8 @@ function widget:DrawScreen()
 	end
 
 	if dlist.quit then
-		if WG["guishader"] then
-			WG["guishader"].removeRenderDlist(dlist.quit)
+		if WG.guishader then
+			WG.guishader.removeRenderDlist(dlist.quit)
 		end
 		glDeleteList(dlist.quit)
 		dlist.quit = nil
@@ -3009,11 +3007,8 @@ end
 
 local function adjustSliders(x, y)
 	if draggingShareIndicator and not spec then
-		local shareValue = (x - resbarDrawinfo[draggingShareIndicator]["barArea"][1])
-			/ (
-				resbarDrawinfo[draggingShareIndicator]["barArea"][3]
-				- resbarDrawinfo[draggingShareIndicator]["barArea"][1]
-			)
+		local shareValue = (x - resbarDrawinfo[draggingShareIndicator].barArea[1])
+			/ (resbarDrawinfo[draggingShareIndicator].barArea[3] - resbarDrawinfo[draggingShareIndicator].barArea[1])
 		if shareValue < 0 then
 			shareValue = 0
 		end
@@ -3027,8 +3022,8 @@ local function adjustSliders(x, y)
 
 	if draggingConversionIndicator and not spec then
 		local convValue = mathFloor(
-			(x - resbarDrawinfo["energy"]["barArea"][1])
-				/ (resbarDrawinfo["energy"]["barArea"][3] - resbarDrawinfo["energy"]["barArea"][1])
+			(x - resbarDrawinfo.energy.barArea[1])
+				/ (resbarDrawinfo.energy.barArea[3] - resbarDrawinfo.energy.barArea[1])
 				* 100
 		)
 		if convValue < 12 then
@@ -3071,8 +3066,8 @@ local function hideWindows()
 
 	showQuitscreen = nil
 
-	if WG["guishader"] then
-		WG["guishader"].setScreenBlur(false)
+	if WG.guishader then
+		WG.guishader.setScreenBlur(false)
 	end
 
 	if gameIsOver then -- Graphs window can only be open after game end
@@ -3117,8 +3112,8 @@ local function applyButtonAction(button)
 			if oldShowQuitscreen then
 				if isvisible ~= true then
 					showQuitscreen = oldShowQuitscreen
-					if WG["guishader"] then
-						WG["guishader"].setScreenBlur(true)
+					if WG.guishader then
+						WG.guishader.setScreenBlur(true)
 					end
 				end
 			else
@@ -3128,7 +3123,7 @@ local function applyButtonAction(button)
 	elseif button == "options" then
 		toggleWindow("options")
 	elseif button == "save" then
-		if isSinglePlayer and cfg.allowSavegame and WG["savegame"] then
+		if isSinglePlayer and cfg.allowSavegame and WG.savegame then
 			local time = os.date("%Y%m%d_%H%M%S")
 			Spring.SendCommands("savegame " .. time)
 		end
@@ -3166,7 +3161,7 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then -- ESC
-		if not WG["options"] or (WG["options"].disallowEsc and not WG["options"].disallowEsc()) then
+		if not WG.options or (WG.options.disallowEsc and not WG.options.disallowEsc()) then
 			local escDidSomething = hideWindows()
 			if cfg.escapeKeyPressesQuit and not escDidSomething then
 				applyButtonAction("quit")
@@ -3198,8 +3193,8 @@ function widget:MousePress(x, y, button)
 					end
 
 					showQuitscreen = nil
-					if WG["guishader"] then
-						WG["guishader"].setScreenBlur(false)
+					if WG.guishader then
+						WG.guishader.setScreenBlur(false)
 					end
 				end
 				if
@@ -3243,8 +3238,8 @@ function widget:MousePress(x, y, button)
 					end
 					Spring.SendCommands("spectator")
 					showQuitscreen = nil
-					if WG["guishader"] then
-						WG["guishader"].setScreenBlur(false)
+					if WG.guishader then
+						WG.guishader.setScreenBlur(false)
 					end
 				end
 				if
@@ -3265,14 +3260,14 @@ function widget:MousePress(x, y, button)
 					end
 					Spring.SendCommands("say !cv resign")
 					showQuitscreen = nil
-					if WG["guishader"] then
-						WG["guishader"].setScreenBlur(false)
+					if WG.guishader then
+						WG.guishader.setScreenBlur(false)
 					end
 				end
 			else
 				showQuitscreen = nil
-				if WG["guishader"] then
-					WG["guishader"].setScreenBlur(false)
+				if WG.guishader then
+					WG.guishader.setScreenBlur(false)
 				end
 			end
 			return true
@@ -3284,10 +3279,10 @@ function widget:MousePress(x, y, button)
 					mathIsInRect(
 						x,
 						y,
-						shareIndicatorArea["metal"][1],
-						shareIndicatorArea["metal"][2],
-						shareIndicatorArea["metal"][3],
-						shareIndicatorArea["metal"][4]
+						shareIndicatorArea.metal[1],
+						shareIndicatorArea.metal[2],
+						shareIndicatorArea.metal[3],
+						shareIndicatorArea.metal[4]
 					)
 				then
 					draggingShareIndicator = "metal"
@@ -3297,10 +3292,10 @@ function widget:MousePress(x, y, button)
 					mathIsInRect(
 						x,
 						y,
-						shareIndicatorArea["energy"][1],
-						shareIndicatorArea["energy"][2],
-						shareIndicatorArea["energy"][3],
-						shareIndicatorArea["energy"][4]
+						shareIndicatorArea.energy[1],
+						shareIndicatorArea.energy[2],
+						shareIndicatorArea.energy[3],
+						shareIndicatorArea.energy[4]
 					)
 				then
 					draggingShareIndicator = "energy"
@@ -3329,8 +3324,8 @@ function widget:MousePress(x, y, button)
 			end
 		end
 
-		if buttonsArea["buttons"] then
-			for button, pos in pairs(buttonsArea["buttons"]) do
+		if buttonsArea.buttons then
+			for button, pos in pairs(buttonsArea.buttons) do
 				if mathIsInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					applyButtonAction(button)
 					return true
@@ -3426,9 +3421,9 @@ function widget:Initialize()
 		displayComCounter = true
 	end
 
-	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "startUnit")] then
+	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "startUnit")] then
 		textures.com = ":n:Icons/"
-			.. UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), "startUnit")].name
+			.. UnitDefs[Spring.GetTeamRulesParam(Spring.GetLocalTeamID(), "startUnit")].name
 			.. ".png"
 	end
 
@@ -3459,37 +3454,37 @@ function widget:Initialize()
 		end
 	end
 
-	WG["topbar"] = {}
+	WG.topbar = {}
 
-	WG["topbar"].showingQuit = function()
+	WG.topbar.showingQuit = function()
 		return showQuitscreen
 	end
 
-	WG["topbar"].hideWindows = function()
+	WG.topbar.hideWindows = function()
 		hideWindows()
 	end
 
-	WG["topbar"].setAutoHideButtons = function(value)
+	WG.topbar.setAutoHideButtons = function(value)
 		refreshUi = true
 		autoHideButtons = value
 		showButtons = not value
 		updateButtons()
 	end
 
-	WG["topbar"].getAutoHideButtons = function()
+	WG.topbar.getAutoHideButtons = function()
 		return autoHideButtons
 	end
 
-	WG["topbar"].getShowButtons = function()
+	WG.topbar.getShowButtons = function()
 		return showButtons
 	end
 
-	WG["topbar"].updateTopBarEnergy = function(value)
+	WG.topbar.updateTopBarEnergy = function(value)
 		draggingConversionIndicatorValue = value
 		updateResbar("energy")
 	end
 
-	WG["topbar"].setResourceBarsVisible = function(visible)
+	WG.topbar.setResourceBarsVisible = function(visible)
 		if showResourceBars == visible then
 			return
 		end
@@ -3511,7 +3506,7 @@ function widget:Initialize()
 		end
 	end
 
-	WG["topbar"].getResourceBarsVisible = function()
+	WG.topbar.getResourceBarsVisible = function()
 		return showResourceBars
 	end
 
@@ -3520,7 +3515,7 @@ function widget:Initialize()
 	currentWindText = "\255\255\255\255" .. currentWind
 	refreshWindTidalTextCache()
 
-	guishaderEnabled = WG["guishader"] ~= nil
+	guishaderEnabled = WG.guishader ~= nil
 	widget:ViewResize()
 
 	if gameFrame > 0 then
@@ -3528,10 +3523,10 @@ function widget:Initialize()
 	end
 
 	if
-		WG["resource_spot_finder"]
-		and WG["resource_spot_finder"].metalSpotsList
-		and #WG["resource_spot_finder"].metalSpotsList > 0
-		and #WG["resource_spot_finder"].metalSpotsList <= 2
+		WG.resource_spot_finder
+		and WG.resource_spot_finder.metalSpotsList
+		and #WG.resource_spot_finder.metalSpotsList > 0
+		and #WG.resource_spot_finder.metalSpotsList <= 2
 	then -- probably speedmetal kind of map
 		isMetalmap = true
 	end
@@ -3551,11 +3546,11 @@ function widget:Shutdown()
 		for n, _ in pairs(dlist.windText) do
 			dlist.windText[n] = glDeleteList(dlist.windText[n])
 		end
-		for n, _ in pairs(dlist.resbar["metal"]) do
-			dlist.resbar["metal"][n] = glDeleteList(dlist.resbar["metal"][n])
+		for n, _ in pairs(dlist.resbar.metal) do
+			dlist.resbar.metal[n] = glDeleteList(dlist.resbar.metal[n])
 		end
-		for n, _ in pairs(dlist.resbar["energy"]) do
-			dlist.resbar["energy"][n] = glDeleteList(dlist.resbar["energy"][n])
+		for n, _ in pairs(dlist.resbar.energy) do
+			dlist.resbar.energy[n] = glDeleteList(dlist.resbar.energy[n])
 		end
 		for res, _ in pairs(dlist.resValues) do
 			dlist.resValues[res] = glDeleteList(dlist.resValues[res])
@@ -3574,31 +3569,31 @@ function widget:Shutdown()
 		uiTex = nil
 	end
 
-	if WG["guishader"] then
-		WG["guishader"].DeleteDlist("topbar_background")
+	if WG.guishader then
+		WG.guishader.DeleteDlist("topbar_background")
 	end
 
-	if WG["tooltip"] then
-		WG["tooltip"].RemoveTooltip("coms")
-		WG["tooltip"].RemoveTooltip("wind")
+	if WG.tooltip then
+		WG.tooltip.RemoveTooltip("coms")
+		WG.tooltip.RemoveTooltip("wind")
 		local res = "energy"
-		WG["tooltip"].RemoveTooltip(res .. "_share_slider")
-		WG["tooltip"].RemoveTooltip(res .. "_share_slider2")
-		WG["tooltip"].RemoveTooltip(res .. "_metalmaker_slider")
-		WG["tooltip"].RemoveTooltip(res .. "_pull")
-		WG["tooltip"].RemoveTooltip(res .. "_income")
-		WG["tooltip"].RemoveTooltip(res .. "_storage")
-		WG["tooltip"].RemoveTooltip(res .. "_current")
+		WG.tooltip.RemoveTooltip(res .. "_share_slider")
+		WG.tooltip.RemoveTooltip(res .. "_share_slider2")
+		WG.tooltip.RemoveTooltip(res .. "_metalmaker_slider")
+		WG.tooltip.RemoveTooltip(res .. "_pull")
+		WG.tooltip.RemoveTooltip(res .. "_income")
+		WG.tooltip.RemoveTooltip(res .. "_storage")
+		WG.tooltip.RemoveTooltip(res .. "_current")
 		res = "metal"
-		WG["tooltip"].RemoveTooltip(res .. "_share_slider")
-		WG["tooltip"].RemoveTooltip(res .. "_share_slider2")
-		WG["tooltip"].RemoveTooltip(res .. "_pull")
-		WG["tooltip"].RemoveTooltip(res .. "_income")
-		WG["tooltip"].RemoveTooltip(res .. "_storage")
-		WG["tooltip"].RemoveTooltip(res .. "_current")
+		WG.tooltip.RemoveTooltip(res .. "_share_slider")
+		WG.tooltip.RemoveTooltip(res .. "_share_slider2")
+		WG.tooltip.RemoveTooltip(res .. "_pull")
+		WG.tooltip.RemoveTooltip(res .. "_income")
+		WG.tooltip.RemoveTooltip(res .. "_storage")
+		WG.tooltip.RemoveTooltip(res .. "_current")
 	end
 
-	WG["topbar"] = nil
+	WG.topbar = nil
 end
 
 function widget:GetConfigData()

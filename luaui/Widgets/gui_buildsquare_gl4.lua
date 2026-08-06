@@ -56,7 +56,7 @@ local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetMyPlayerID = Spring.GetMyPlayerID
+local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -849,7 +849,7 @@ local function goodbye(reason)
 end
 
 local function getCurrentHeightOffset()
-	if spGetGameFrame() <= 0 and WG["map_startbox"] ~= nil then
+	if spGetGameFrame() <= 0 and WG.map_startbox ~= nil then
 		return PREGAME_STARTBOX_HEIGHT_OFFSET
 	end
 	return HEIGHT_OFFSET

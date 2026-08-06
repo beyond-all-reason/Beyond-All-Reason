@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 -- Skip entirely on real lava maps (map_lava.lua handles damage there)
-local springLava = Spring.Lava
+local springLava = BAR.Lava
 if springLava and springLava.isLavaMap then
 	return
 end

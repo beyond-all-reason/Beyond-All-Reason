@@ -11,10 +11,10 @@ function cleanup()
 end
 
 function test()
-	assert(WG["resource_spot_builder"], "resource_spot_builder API widget not loaded")
-	assert(WG["resource_spot_builder"].ExtractorCanBeUpgraded, "ExtractorCanBeUpgraded missing")
+	assert(WG.resource_spot_builder, "resource_spot_builder API widget not loaded")
+	assert(WG.resource_spot_builder.ExtractorCanBeUpgraded, "ExtractorCanBeUpgraded missing")
 
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = Spring.GetLocalTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 0
@@ -49,7 +49,7 @@ function test()
 		end)
 		assert(currentUnitID, "failed to create " .. currentName)
 
-		local canUpgrade = WG["resource_spot_builder"].ExtractorCanBeUpgraded(currentUnitID, UnitDefNames[newName].id)
+		local canUpgrade = WG.resource_spot_builder.ExtractorCanBeUpgraded(currentUnitID, UnitDefNames[newName].id)
 		assertEqual(
 			canUpgrade,
 			expected,
@@ -63,3 +63,5 @@ function test()
 		)
 	end
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }
