@@ -15,19 +15,27 @@ local STORE_VERSION = 1
 -- carry binds rather than a file path so every surface reads one shape, and applying
 -- one takes the same path as applying a player's own profile.
 local builtins = {}
+-- Presets the game stopped offering. Their bindings ship alongside the current ones
+-- purely so a player who was still on one keeps their keys, as a profile of their own.
+local retired = {}
 do
 	local ok, decoded = pcall(Json.decode, VFS.LoadFile(DEFAULTS_PATH))
 	if ok and type(decoded) == "table" and type(decoded.profiles) == "table" then
 		builtins = decoded.profiles
+		retired = type(decoded.retired) == "table" and decoded.retired or {}
 	else
 		Spring.Echo("[keybind_profiles] could not load " .. DEFAULTS_PATH .. "; no built-in profiles")
 	end
 end
 
 -- Only for upgrades: the preset a player was on is recorded as a bind-file path.
-local legacyPresetNames = {
+local shippedPresetFiles = {
 	["luaui/configs/hotkeys/grid_keys.txt"] = "Grid",
 	["luaui/configs/hotkeys/grid_keys_60pct.txt"] = "Grid (60% Keyboard)",
+}
+local retiredPresetFiles = {
+	["luaui/configs/hotkeys/legacy_keys.txt"] = "Legacy",
+	["luaui/configs/hotkeys/legacy_keys_60pct.txt"] = "Legacy (60% Keyboard)",
 }
 
 local store
@@ -132,15 +140,15 @@ function M.save()
 	return true
 end
 
--- Players upgrading from the old preset picker keep what they had: whatever is live
--- becomes a profile, so removing Legacy does not silently reset anyone.
+-- Players upgrading from the old preset picker keep what they had, so dropping the
+-- preset list does not silently reset anyone.
 local function migrate()
 	store = emptyStore()
 
 	local configured = Spring.GetConfigString("KeybindingFile", "")
 
 	-- Already on a preset that survives the change; it stays selectable as a builtin.
-	local survivor = legacyPresetNames[configured]
+	local survivor = shippedPresetFiles[configured]
 	if survivor then
 		store.active = survivor
 		M.save()
@@ -153,17 +161,29 @@ local function migrate()
 		return
 	end
 
-	local binds = M.snapshotLive()
-	if #binds == 0 then
+	local profile
+	local retiredName = retiredPresetFiles[configured]
+	if retiredName then
+		-- Taken from the shipped copy rather than the live keymap, so this does not
+		-- depend on anything having loaded the retired preset first.
+		for _, r in ipairs(retired) do
+			if r.name == retiredName then
+				profile = { name = r.name, binds = r.binds, fakeMeta = r.fakeMeta }
+			end
+		end
+	else
+		local binds = M.snapshotLive()
+		if #binds > 0 then
+			profile = { name = "Custom", binds = binds, fakeMeta = readFakeMeta(VFS.LoadFile(ACTIVE_FILE)) }
+		end
+	end
+
+	if not profile then
 		return
 	end
 
-	store.profiles[1] = {
-		name = "Custom",
-		binds = binds,
-		fakeMeta = readFakeMeta(VFS.LoadFile(ACTIVE_FILE)),
-	}
-	store.active = "Custom"
+	store.profiles[1] = profile
+	store.active = profile.name
 	M.save()
 end
 

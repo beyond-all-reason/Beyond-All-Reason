@@ -9,7 +9,7 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | File | What it is | Schema |
 |---|---|---|
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
-| `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
+| `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap, plus retired ones kept for migration. | `keybind_defaults.schema.json` |
 
 Both are validated in CI by `spec/keybind_catalog_spec.lua` (structure + referential
 integrity: every i18n key resolves, every bind has a keyset and an action).
@@ -18,6 +18,10 @@ A profile is a whole keymap, never a delta - applying one replaces everything, s
 there is no base layer to reason about. The shipped profiles carry their bindings
 inline rather than pointing at bind files, so a consumer reads one shape whether the
 profile came from this file or from the player's own.
+
+The `retired` list holds presets the game no longer offers. They are never selectable;
+they exist so a player still pointed at one keeps their keys, as a profile of their own
+named after the preset. A surface that only ever shows current profiles can ignore it.
 
 ## Catalog item kinds
 

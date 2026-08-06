@@ -29,6 +29,12 @@ end
 describe("shipped keybind profiles", function()
 	local defaults = loadJson("common/configs/keybind_defaults.json")
 
+	-- Retired presets are not selectable, but migration builds a leftover player's
+	-- profile straight out of them, so they have to hold up to the same checks.
+	local all = {}
+	for _, profile in ipairs(defaults.profiles) do all[#all + 1] = profile end
+	for _, profile in ipairs(defaults.retired or {}) do all[#all + 1] = profile end
+
 	it("is an object with a non-empty profiles list", function()
 		assert(type(defaults.profiles) == "table", "profiles must be a list")
 		assert(#defaults.profiles > 0, "profiles must not be empty")
@@ -36,7 +42,7 @@ describe("shipped keybind profiles", function()
 
 	it("gives every profile a unique name and a non-empty bind list", function()
 		local seen = {}
-		for _, profile in ipairs(defaults.profiles) do
+		for _, profile in ipairs(all) do
 			assert(type(profile.name) == "string" and profile.name ~= "", "profile missing name")
 			assert(not seen[profile.name], "duplicate profile name: " .. tostring(profile.name))
 			seen[profile.name] = true
@@ -46,7 +52,7 @@ describe("shipped keybind profiles", function()
 	end)
 
 	it("gives every bind a keyset and an action", function()
-		for _, profile in ipairs(defaults.profiles) do
+		for _, profile in ipairs(all) do
 			for i, bind in ipairs(profile.binds) do
 				local where = profile.name .. " bind " .. i
 				assert(type(bind.keyset) == "string" and bind.keyset ~= "", "no keyset: " .. where)
