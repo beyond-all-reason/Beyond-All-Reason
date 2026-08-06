@@ -2712,6 +2712,7 @@
 			"NightModeToggle": "Toggle automatic night-mode transitions",
 			"PrintSun": "Print current sun/atmosphere lighting settings",
 			"waterlevel": "[value] Adjust map water level offset",
+			"lavalevel": "Progress to the next lava tide (no args) or set a specific lava level: [level] ([speed] [dwellTime])",
 			"battleroyaledebug": "Reset battle royale radius to half start radius (debug)",
 			"HasRaptorEvent": "[0/1] Disable (0) or enable (1) LuaUI raptor event notifications",
 			"HasScavEvent": "[0/1] Disable (0) or enable (1) LuaUI scavenger event notifications",
