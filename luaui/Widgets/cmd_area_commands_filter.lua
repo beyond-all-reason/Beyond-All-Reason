@@ -613,21 +613,19 @@ end
 
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	local featureDefId = spGetFeatureDefID(targetId)
-	if not featureDefId then
-		return
-	end
-
 	local targetUnitDefName = spGetFeatureResurrect(targetId)
-	if (targetUnitDefName or "") == "" then
-		return
-	end
+	local hasUnitDefName = (targetUnitDefName or "") ~= ""
 
-	local filterType = options.alt
-	local filterTech = not filterType and options.ctrl -- With both filters active, the narrower (type) wins.
+	local filterType = hasUnitDefName and options.alt
+	local filterTech = hasUnitDefName and not filterType and options.ctrl
 
 	local featuresInArea = spGetFeaturesInCylinder(cmdX, cmdZ, radius)
 	if not featuresInArea[1] then
 		return
+	end
+
+	if not filterType and not filterTech then
+		return featuresInArea
 	end
 
 	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
@@ -637,6 +635,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 		local featureId = featuresInArea[i]
 		local matched = false
 		if filterType then
+			-- Type out-specifies tech level, so do not check it.
 			matched = spGetFeatureDefID(featureId) == featureDefId
 		elseif filterTech then
 			local unitDefName = spGetFeatureResurrect(featureId)
