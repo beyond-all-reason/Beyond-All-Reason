@@ -193,6 +193,24 @@ describe("UnitDefs invariants", function()
 		return count == 3
 	end
 
+	-- The engine still honours these, so a def using them moves correctly and looks fine in game,
+	-- but the category pass and the max speed modoption both read uDef.speed, so such a def ends
+	-- up NOTMOBILE and does not scale with the lobby setting.
+	local supersededSpeedKeys = { maxvelocity = "speed", cruisealt = "cruisealtitude" }
+
+	it("uses no superseded speed keys", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			for key, replacement in pairs(supersededSpeedKeys) do
+				if def[key] ~= nil then
+					bad[#bad + 1] = name .. " uses " .. key .. ", wants " .. replacement
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	-- The engine reads a run-together offset like "0-20 0" as -20 on the y axis, but the emit
 	-- height pass in alldefs_post takes the second whitespace separated token, so a missing
 	-- space silently ships a sight and radar height the volume does not agree with.
