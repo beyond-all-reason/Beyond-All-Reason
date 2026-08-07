@@ -194,14 +194,19 @@ describe("UnitDefs invariants", function()
 	end
 
 	-- The engine still honours these, so a def using them moves correctly and looks fine in game,
-	-- but the category pass and the max speed modoption both read uDef.speed, so such a def ends
-	-- up NOTMOBILE and does not scale with the lobby setting.
-	local supersededSpeedKeys = { maxvelocity = "speed", cruisealt = "cruisealtitude" }
+	-- but our own passes read the modern names: the category pass and the max speed modoption
+	-- read speed, and the selection volume pass gives a unit with maxacc the larger mobile scale.
+	local supersededKeys = {
+		maxvelocity = "speed",
+		cruisealt = "cruisealtitude",
+		acceleration = "maxacc",
+		brakerate = "maxdec",
+	}
 
-	it("uses no superseded speed keys", function()
+	it("uses no superseded movement keys", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			for key, replacement in pairs(supersededSpeedKeys) do
+			for key, replacement in pairs(supersededKeys) do
 				if def[key] ~= nil then
 					bad[#bad + 1] = name .. " uses " .. key .. ", wants " .. replacement
 				end
