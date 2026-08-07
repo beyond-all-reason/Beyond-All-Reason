@@ -9,7 +9,7 @@ return {
 		canrepeat = false,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		decoyfor = "scavdrag",
+		decoyfor = "corscavdrag",
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
