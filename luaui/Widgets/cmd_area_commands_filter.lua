@@ -187,24 +187,27 @@ local function distributeTargetsToTransports(transports, targets)
 		local transportSizeLimit = transportDef.sizeLimit
 
 		for _, targetId in ipairs(targets) do
+			-- Radar blips have no readable def, so treat as cantBeTransported.
 			local passengerDefId = spGetUnitDefID(targetId)
-			local isValid = false
-			local position = toPositionTable(spGetUnitPosition(targetId))
-			passengerPositions[targetId] = position
-			validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
+			if passengerDefId then
+				local isValid = false
+				local position = toPositionTable(spGetUnitPosition(targetId))
+				passengerPositions[targetId] = position
+				validTransportsForUnitTypeMap[passengerDefId] = validTransportsForUnitTypeMap[passengerDefId] or {}
 
-			if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
-				isValid = true
-			elseif not cantBeTransported[passengerDefId] then
-				local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
-				if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+				if validTransportsForUnitTypeMap[passengerDefId][transDefId] then
 					isValid = true
-					validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+				elseif not cantBeTransported[passengerDefId] then
+					local passengerFootprintX = unitXSize[passengerDefId] / springFootprintScale
+					if unitMass[passengerDefId] <= transportMassLimit and passengerFootprintX <= transportSizeLimit then
+						isValid = true
+						validTransportsForUnitTypeMap[passengerDefId][transDefId] = true
+					end
 				end
-			end
-			if isValid then
-				passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
-				tableInsert(transportTypeData.allValidPassengers, targetId)
+				if isValid then
+					passengerPriorities[targetId] = (passengerPriorities[targetId] or 0) + 1
+					tableInsert(transportTypeData.allValidPassengers, targetId)
+				end
 			end
 		end
 		if #transportTypeData.allValidPassengers == 0 then
