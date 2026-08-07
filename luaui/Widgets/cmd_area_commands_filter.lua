@@ -77,12 +77,6 @@ local commandLimit = 2000
 
 local myTeamID, myAllyTeamID
 
-local unitNeutrality = {}
-for unitDefID, unitDef in ipairs(UnitDefs) do
-	local isSetNeutral = unitDef.customParams.objectify or string.sub(unitDef.name, 1, 7) == "critter"
-	unitNeutrality[unitDefID] = isSetNeutral and true or false
-end
-
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
 ---------------------------------------------------------------------------------------
@@ -512,16 +506,12 @@ local areaToTargetCommands = {
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, protectAllies)
 	local targetDefId = spGetUnitDefID(targetId)
-	if not targetDefId then
-		return
-	end
-
 	local targetTeam = spGetUnitTeam(targetId) or -1
 	local isEnemyTarget = spGetUnitAllyTeam(targetId) ~= myAllyTeamID -- Unit can be a ceasefired enemy.
 	local isAlliedTarget = spAreTeamsAllied(targetTeam, myTeamID) -- So prefer to check on alliance.
 
 	local filterTeam = options.ctrl
-	local filterType = options.alt
+	local filterType = targetDefId and options.alt
 	if not filterTeam and not protectAllies and isAlliedTarget and isEnemyTarget then
 		filterTeam = true -- ALLY_UNITS excludes ceasefired allyTeams.
 	end
@@ -539,7 +529,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 			return
 		end
 		allegiance = ENEMY_UNITS -- Enemy teams cannot be distinguished, but neutral vs hostile can.
-		if filterTeam and unitNeutrality[targetDefId] and spGetUnitNeutral(targetId) then
+		if filterTeam and spGetUnitNeutral(targetId) then
 			filterNeutral = true -- Strange case: Targeting neutrals with Ctrl filters for neutrals.
 		else
 			filterHostile = true -- We want to replicate the behavior of exclude_walls_area_attacks.
@@ -572,9 +562,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 		local firstDrop
 		for index = 1, #unitsInArea do
 			local unitID = unitsInArea[index]
-			-- Gate behind both def-based neutrality and actual neutral state (for decoy popups):
-			local isNeutral = unitNeutrality[spGetUnitDefID(unitID)] and spGetUnitNeutral(unitID)
-			if isNeutral == dropNeutrality then
+			if spGetUnitNeutral(unitID) == dropNeutrality then
 				firstDrop = index
 				break
 			end
@@ -587,8 +575,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, allegiance, pr
 			end
 			for index = firstDrop + 1, #unitsInArea do
 				local unitID = unitsInArea[index]
-				local isNeutral = unitNeutrality[spGetUnitDefID(unitID)] and spGetUnitNeutral(unitID)
-				if isNeutral ~= dropNeutrality then
+				if spGetUnitNeutral(unitID) ~= dropNeutrality then
 					count = count + 1
 					keep[count] = unitID
 				end
