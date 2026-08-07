@@ -11,12 +11,7 @@ local function loadActionDefinitions()
 		ACTIONS_DIR,
 	}
 	for _, subDir in pairs(VFS.SubDirs(ACTIONS_DIR, "*", nil, true)) do
-		actionsSubdirs[#actionsSubdirs + 1] = subDir
-	end
-
-	repeat
-		--Spring.Echo("Mission API Actions SubDir", actionsSubdirs[1])
-		local actionFiles = VFS.DirList(actionsSubdirs[1], ACTION_FILES_PATTERN)
+		local actionFiles = VFS.DirList(subDir, ACTION_FILES_PATTERN)
 		for _, filePath in ipairs(actionFiles) do
 			local actionDefinitions = VFS.Include(filePath)
 			for _, actionDefinition in ipairs(actionDefinitions) do
@@ -28,10 +23,7 @@ local function loadActionDefinitions()
 				actionFunctions[typesCount] = actionDefinition.actionFunction
 			end
 		end
-
-
-		table.remove(actionsSubdirs, 1)
-	until #actionsSubdirs == 0
+	end
 
 	return {
 		Types = types,
