@@ -5427,7 +5427,7 @@ local initialModel = {
 			elseif widgetState.envActive then
 				saved = { tool = "environment" }
 			elseif widgetState.lightActive and lpSt and lpSt.active then
-				saved = { tool = "lights" }
+				saved = { tool = "lights", mode = lpSt.mode }
 			elseif widgetState.startposActive and stSt and stSt.active then
 				saved = { tool = "startpos", mode = stSt.mode }
 			elseif widgetState.cloneActive and clSt and clSt.active then
@@ -5458,26 +5458,28 @@ local initialModel = {
 			local s = widgetState.passthroughSaved
 			widgetState.passthroughSaved = nil
 			if s then
+				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode;
+				-- Weather's setMode only picks the submode without re-arming the tool.
 				if s.tool == "terraform" and WG.TerraformBrush then
 					WG.TerraformBrush.setMode(s.mode or "raise")
 				elseif s.tool == "features" and WG.FeaturePlacer then
 					WG.FeaturePlacer.setMode(s.mode or "point")
 				elseif s.tool == "weather" and WG.WeatherBrush then
-					WG.WeatherBrush.setMode(s.mode or "place")
+					WG.WeatherBrush.activate(s.mode or "scatter")
 				elseif s.tool == "splat" and WG.SplatPainter then
-					WG.SplatPainter.setMode("paint")
+					WG.SplatPainter.activate()
 				elseif s.tool == "metal" and WG.MetalBrush then
-					WG.MetalBrush.setMode(s.mode or "add")
+					WG.MetalBrush.activate(s.mode or "stamp")
 				elseif s.tool == "grass" and WG.GrassBrush then
-					WG.GrassBrush.setMode(s.mode or "add")
+					WG.GrassBrush.activate(s.mode or "paint")
 				elseif s.tool == "environment" then
 					widgetState.envActive = true
 				elseif s.tool == "lights" and WG.LightPlacer then
 					widgetState.lightActive = true
-					WG.LightPlacer.setMode("scatter")
+					WG.LightPlacer.setMode(s.mode or "scatter")
 				elseif s.tool == "startpos" and WG.StartPosTool then
 					widgetState.startposActive = true
-					WG.StartPosTool.setMode(s.mode or "express")
+					WG.StartPosTool.activate(s.mode or "express")
 				elseif s.tool == "clone" and WG.CloneTool then
 					widgetState.cloneActive = true
 					WG.CloneTool.activate()
