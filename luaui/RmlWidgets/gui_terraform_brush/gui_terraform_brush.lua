@@ -769,7 +769,8 @@ local BIOME_SKYBOX_MATCH = {
 	bismuth     = "spaceskybox",      -- starry sky
 	teizer      = "goldsunrise",      -- sunset (bespoke desert kept the old pick)
 	protodesert = "goldsunrise",      -- the renamed original Teizer stand-in set
-	enborelde   = "earthskybox",      -- sunny blue sky with clouds
+	enborelde   = "earthskybox",      -- sunny blue sky with clouds (bespoke earthlike kept the old pick)
+	prototemperate = "earthskybox",   -- the renamed original Enborelde stand-in set
 	namaqualand = "redplanet",        -- red desert planet
 	palehang    = "allthatglitters",  -- crystal-desert sky (Theta Crystals family)
 }

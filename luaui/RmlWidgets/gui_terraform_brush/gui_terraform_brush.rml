@@ -5179,6 +5179,10 @@
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_protodesert.png" />
 									<div class="tf-biome-name">Protodesert</div>
 								</div>
+								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
+									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
+									<div class="tf-biome-name">Prototemperate</div>
+								</div>
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'bismuth'" data-event-mousedown="onPickBiome('bismuth')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_bismuth.png" />
 									<div class="tf-biome-name">Bismuth</div>
