@@ -7,10 +7,8 @@ local function loadActionDefinitions()
 	local typesCount = 0
 	local parameters = {}
 	local actionFunctions = {}
-	local actionsSubdirs = {
-		ACTIONS_DIR,
-	}
-	for _, subDir in pairs(VFS.SubDirs(ACTIONS_DIR, "*", nil, true)) do
+	local actionsSubdirs = VFS.SubDirs(ACTIONS_DIR, "*", nil, true)
+	for _, subDir in pairs(actionsSubdirs) do
 		local actionFiles = VFS.DirList(subDir, ACTION_FILES_PATTERN)
 		for _, filePath in ipairs(actionFiles) do
 			local actionDefinitions = VFS.Include(filePath)
