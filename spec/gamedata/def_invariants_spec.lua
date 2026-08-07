@@ -566,6 +566,27 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
+	-- alldefs_post skips the whole category pass for a def carrying OBJECT, on the grounds that
+	-- objects should not be targetable, so anything sitting beside it undoes that.
+	it("gives object defs no category besides OBJECT", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local tokens = {}
+			for token in tostring(def.category or ""):gmatch("%S+") do
+				tokens[#tokens + 1] = token:upper()
+			end
+
+			for i = 1, #tokens do
+				if tokens[i] == "OBJECT" and #tokens > 1 then
+					bad[#bad + 1] = name .. " = " .. table.concat(tokens, " ")
+					break
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	it("keeps fall damage multipliers numeric and non-negative", function()
 		local bad = {}
 		for name, def in pairs(defs) do
