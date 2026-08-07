@@ -126,6 +126,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 360,
 				customparams = {
+					bogus = 1,
 					norangering = 1,
 				},
 				damage = {
@@ -163,7 +164,6 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "heatray4burn",
 				scrollspeed = 5,
-				soundstartvolume = 11,
 				soundtrigger = 1,
 				texture3 = "largebeam",
 				thickness = 6.5,
@@ -210,7 +210,6 @@ return {
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "railgunxl",
-				soundstartvolume = 30,
 				thickness = 4,
 				firetolerance = 7000,
 				tolerance = 7000,

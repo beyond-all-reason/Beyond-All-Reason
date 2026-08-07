@@ -1,11 +1,17 @@
-local function WrappedInclude(x)
-	local env = getfenv()
-	local prevGTC = env.GetTeamCount -- typically nil but also works otherwise
-	env.GetTeamCount = Spring.Utilities.GetAllyTeamCount -- for legacy mapside boxes
-	local ret = VFS.Include(x, env)
-	env.GetTeamCount = prevGTC
-	return ret
-end
+-- Startbox resolution: canonical contract for lobby implementations.
+-- The lobby (bar-lobby, BYAR-Chobby) produces these modoptions; this module
+-- consumes them. Any lobby-side resolution must mirror resolveArrangement
+-- below so previews match what the game enforces.
+--
+-- Modoptions (declared in modoptions.lua):
+--   mapmetadata_startboxes_set     base64url(zlib(json)) of { num_teams_str: arrangement, ... }
+--   mapmetadata_startbox_override  base64url(zlib(json)) of a single arrangement
+--
+-- arrangement shape == maps-metadata `startboxesInfo`:
+--   https://github.com/beyond-all-reason/maps-metadata schemas/map_list.yaml
+
+local SplineLib = VFS.Include("common/lib_spline.lua")
+local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
 local function GetStartboxName(midX, midZ)
 	if (midX < 0.33) then
@@ -35,114 +41,263 @@ local function GetStartboxName(midX, midZ)
 	end
 end
 
-local function ParseBoxes ()
-	local mapsideBoxes = "mapconfig/map_startboxes.lua"
-	local modsideBoxes = "LuaRules/Configs/StartBoxes/" .. (Game.mapName or "") .. ".lua"
+local function decodeModoption(raw)
+	if not raw or #raw == 0 then
+		return nil
+	end
 
-	local startBoxConfig
+	local okDecode, decoded = pcall(base64.Decode, raw)
+	if not okDecode or not decoded then
+		return nil
+	end
 
-	if VFS.FileExists (modsideBoxes) then
-		startBoxConfig = WrappedInclude (modsideBoxes)
-	elseif VFS.FileExists (mapsideBoxes) then
-		startBoxConfig = WrappedInclude (mapsideBoxes)
-	else
-		startBoxConfig = { }
-		local startboxString = Spring.GetModOptions().startboxes
-		local startboxStringLoadedBoxes = false
-		if startboxString then
-			local springieBoxes = loadstring(startboxString)()
-			for id, box in pairs(springieBoxes) do
-				startboxStringLoadedBoxes = true -- Autohost always sends a table. Often it is empty.
-				local midX = (box[1]+box[3]) / 2
-				local midZ = (box[2]+box[4]) / 2
+	local decompressed = VFS.ZlibDecompress(decoded)
+	if not decompressed then
+		return nil
+	end
 
-				box[1] = box[1]*Game.mapSizeX
-				box[2] = box[2]*Game.mapSizeZ
-				box[3] = box[3]*Game.mapSizeX
-				box[4] = box[4]*Game.mapSizeZ
+	local okJson, parsed = pcall(Json.decode, decompressed)
+	if not okJson or type(parsed) ~= "table" then
+		return nil
+	end
 
-				local longName, shortName = GetStartboxName(midX, midZ)
+	return parsed
+end
 
-				startBoxConfig[id] = {
-					boxes = {{
-						{box[1], box[2]},
-						{box[1], box[4]},
-						{box[3], box[4]},
-						{box[3], box[2]},
-					}},
-					startpoints = {
-						{(box[1]+box[3]) / 2, (box[2]+box[4]) / 2}
-					},
-					nameLong = longName,
-					nameShort = shortName
-				}
+local function getActiveAllyTeamCount()
+	local gaiaAllyTeamID
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	if gaiaTeamID then
+		gaiaAllyTeamID = Spring.GetTeamAllyTeamID(gaiaTeamID)
+	end
+
+	local count = 0
+	for _, atID in ipairs(Spring.GetAllyTeamList()) do
+		if atID ~= gaiaAllyTeamID then
+			count = count + 1
+		end
+	end
+
+	return count
+end
+
+local function matchOverride(override, numTeams)
+	if override and override.startboxes and #override.startboxes == numTeams then
+		return override
+	end
+
+	return nil
+end
+
+local function matchSetExact(set, numTeams)
+	if not set then return nil end
+
+	return set[tostring(numTeams)]
+end
+
+local function matchSetLarger(set, numTeams)
+	if not set then return nil end
+
+	local bestKey, bestNum
+	for k in pairs(set) do
+		local kn = tonumber(k)
+		if kn and kn > numTeams and (not bestNum or kn < bestNum) then
+			bestKey = k
+			bestNum = kn
+		end
+	end
+
+	return bestKey and set[bestKey] or nil
+end
+
+local function matchSetSmaller(set, numTeams)
+	if not set then return nil end
+
+	local bestKey, bestNum
+	for k in pairs(set) do
+		local kn = tonumber(k)
+		if kn and kn < numTeams and (not bestNum or kn > bestNum) then
+			bestKey = k
+			bestNum = kn
+		end
+	end
+
+	return bestKey and set[bestKey] or nil
+end
+
+local function resolveArrangement(override, set, numTeams)
+	local match = matchOverride(override, numTeams)
+	if match then return match, "modoption_override" end
+
+	match = matchSetExact(set, numTeams)
+	if match then return match, "modoption_set" end
+
+	match = matchSetLarger(set, numTeams)
+	if match then return match, "modoption_set" end
+
+	match = matchSetSmaller(set, numTeams)
+	if match then return match, "modoption_set" end
+
+	-- No modoption arrangement applies; defer to the engine startrect.
+	return nil, nil
+end
+
+local function isExplicitSource(configSource)
+	return configSource == "modoption_override" or configSource == "modoption_set"
+end
+
+local function expandPoly(poly)
+	if #poly == 2 then
+		local x1, z1 = poly[1].x, poly[1].y
+		local x2, z2 = poly[2].x, poly[2].y
+
+		return {
+			{ x1, z1 },
+			{ x2, z1 },
+			{ x2, z2 },
+			{ x1, z2 },
+		}
+	end
+
+	local out = {}
+	for i, p in ipairs(poly) do
+		if p.strength ~= nil then
+			out[i] = { p.x, p.y, p.strength }
+		else
+			out[i] = { p.x, p.y }
+		end
+	end
+
+	return out
+end
+
+local function transformArrangement(arrangement)
+	local config = {}
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+	local scaleX, scaleZ = mapSizeX / 200, mapSizeZ / 200
+
+	for i, box in ipairs(arrangement.startboxes) do
+		local allyTeamID = i - 1
+		local poly = expandPoly(box.poly)
+
+		local elmoPolygon = {}
+		local sumX, sumZ = 0, 0
+		for j, p in ipairs(poly) do
+			local x = p[1] * scaleX
+			local z = p[2] * scaleZ
+			if p[3] ~= nil then
+				elmoPolygon[j] = { x, z, p[3] }
+			else
+				elmoPolygon[j] = { x, z }
 			end
+			sumX = sumX + x
+			sumZ = sumZ + z
 		end
 
-		if not startboxStringLoadedBoxes then
-			local mapSizeX = Game.mapSizeX
-			local mapSizeZ = Game.mapSizeZ
-			if mapSizeZ > mapSizeX then
-				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ * 0.2},
-						{mapSizeX, mapSizeZ * 0.2},
-						{mapSizeX, 0}
-					}},
-					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.1}
-					},
-					nameLong = "North",
-					nameShort = "N"
-				}
-				startBoxConfig[1] = {
-					boxes = {{
-						{0, mapSizeZ * 0.8},
-						{0, mapSizeZ},
-						{mapSizeX, mapSizeZ},
-						{mapSizeX, mapSizeZ * 0.8}
-					}},
-					startpoints = {
-						{mapSizeX * 0.5, mapSizeZ * 0.9}
-					},
-					nameLong = "South",
-					nameShort = "S"
-				}
-			else
-				startBoxConfig[0] = {
-					boxes = {{
-						{0, 0},
-						{0, mapSizeZ},
-						{mapSizeX * 0.2, mapSizeZ},
-						{mapSizeX * 0.2, 0},
-					}},
-					startpoints = {
-						{mapSizeX * 0.1, mapSizeZ * 0.5}
-					},
-					nameLong = "West",
-					nameShort = "W"
-				}
-				startBoxConfig[1] = {
-					boxes = {{
-						{mapSizeX * 0.8, 0},
-						{mapSizeX * 0.8, mapSizeZ - 1},
-						{mapSizeX, mapSizeZ - 1},
-						{mapSizeX, 0},
-					}},
-					startpoints = {
-						{mapSizeX * 0.9, mapSizeZ * 0.5}
-					},
-					nameLong = "East",
-					nameShort = "E"
-				}
+		local count = #elmoPolygon
+		local centerX = sumX / count
+		local centerZ = sumZ / count
+		local nameLong, nameShort = GetStartboxName(centerX / mapSizeX, centerZ / mapSizeZ)
+
+		config[allyTeamID] = {
+			boxes = { elmoPolygon },
+			startpoints = { { centerX, centerZ } },
+			nameLong = nameLong,
+			nameShort = nameShort,
+		}
+	end
+
+	return config
+end
+
+local function buildFallback()
+	local mapSizeX = Game.mapSizeX
+	local mapSizeZ = Game.mapSizeZ
+
+	if mapSizeZ > mapSizeX then
+		return {
+			[0] = {
+				boxes = {{
+					{0, 0},
+					{0, mapSizeZ * 0.2},
+					{mapSizeX, mapSizeZ * 0.2},
+					{mapSizeX, 0},
+				}},
+				startpoints = {{ mapSizeX * 0.5, mapSizeZ * 0.1 }},
+				nameLong = "North",
+				nameShort = "N",
+			},
+			[1] = {
+				boxes = {{
+					{0, mapSizeZ * 0.8},
+					{0, mapSizeZ},
+					{mapSizeX, mapSizeZ},
+					{mapSizeX, mapSizeZ * 0.8},
+				}},
+				startpoints = {{ mapSizeX * 0.5, mapSizeZ * 0.9 }},
+				nameLong = "South",
+				nameShort = "S",
+			},
+		}
+	end
+
+	return {
+		[0] = {
+			boxes = {{
+				{0, 0},
+				{0, mapSizeZ},
+				{mapSizeX * 0.2, mapSizeZ},
+				{mapSizeX * 0.2, 0},
+			}},
+			startpoints = {{ mapSizeX * 0.1, mapSizeZ * 0.5 }},
+			nameLong = "West",
+			nameShort = "W",
+		},
+		[1] = {
+			boxes = {{
+				{mapSizeX * 0.8, 0},
+				{mapSizeX * 0.8, mapSizeZ - 1},
+				{mapSizeX, mapSizeZ - 1},
+				{mapSizeX, 0},
+			}},
+			startpoints = {{ mapSizeX * 0.9, mapSizeZ * 0.5 }},
+			nameLong = "East",
+			nameShort = "E",
+		},
+	}
+end
+
+local function ParseBoxes()
+	local numTeams = getActiveAllyTeamCount()
+
+	local modoptions = Spring.GetModOptions()
+	local parsedOverride = decodeModoption(modoptions.mapmetadata_startbox_override)
+	local parsedSet = decodeModoption(modoptions.mapmetadata_startboxes_set)
+
+	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, numTeams)
+
+	local startBoxConfig
+	if arrangement then
+		startBoxConfig = transformArrangement(arrangement)
+	else
+		startBoxConfig = buildFallback()
+		configSource = "fallback"
+	end
+
+	for _, entry in pairs(startBoxConfig) do
+		local boxes = entry.boxes
+		if boxes then
+			for i = 1, #boxes do
+				local poly = boxes[i]
+				local tessellated = SplineLib.TessellateRing(poly)
+				tessellated.anchors = poly
+				boxes[i] = tessellated
 			end
 		end
 	end
 
-	-- fix rendering z-fighting
 	local maxZ = Game.mapSizeZ - 1
-	for boxid, box in pairs(startBoxConfig) do
+	for _, box in pairs(startBoxConfig) do
 		local boxes = box.boxes
 		for i = 1, #boxes do
 			local boxRow = boxes[i]
@@ -155,7 +310,7 @@ local function ParseBoxes ()
 		end
 	end
 
-	return startBoxConfig
+	return startBoxConfig, configSource, isExplicitSource(configSource)
 end
 
 return ParseBoxes

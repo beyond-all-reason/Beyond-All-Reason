@@ -76,7 +76,6 @@ return {
 				[1] = "custom:waterwake-medium",
 				[2] = "custom:bowsplash-small",
 				[3] = "custom:pilotlight",
-				[4] = "custom:flamestream",
 			},
 		},
 		sounds = {

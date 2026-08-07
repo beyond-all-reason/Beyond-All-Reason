@@ -2,7 +2,7 @@ return {
 	legamphtank = {
 		maxacc = 0.03572,
 		activatewhenbuilt = true,
-		maxdec = 0.07144,
+		maxdec = 0.1,
 		energycost = 2000,
 		metalcost = 200,
 		buildpic = "LEGAMPHTANK.DDS",

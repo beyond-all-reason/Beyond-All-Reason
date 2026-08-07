@@ -4,7 +4,7 @@
 
 #include "../opencloseanim.h"
 
-static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame, segacceleration;
+static-var segvelocity, segtarget, segposition, segdelta, timetozero, deceleratethreshold, gameFrame, segacceleration, lastshotframe;
 
 
 static-var aimy1velocity, aimy1target, aimy1position, aimy1delta, aimy1acceleration;
@@ -175,6 +175,7 @@ Create()
 	deceleratethreshold= 0;
 	gameFrame= 0;
 	segacceleration =  SEG_ACCELERATION;
+	lastshotframe = 0;
 
 	aimy1velocity= 0;
 	aimy1target =0;
@@ -207,7 +208,8 @@ Deactivate()
 
 SetMaxReloadTime(reloadMS)
 {
-	restore_delay = reloadMS * 2;
+	//restore_delay = reloadMS * 2;
+	restore_delay = 10000;
 }
 
 static-var  Stunned;
@@ -237,9 +239,13 @@ AimWeapon1(heading, pitch)
 	// Only calls OpenCloseAnim(1) and the rest of the AimWeapon function 
 	// if the time left to shoot is less that 5 seconds. 
 	frameslefttoshot = (GET WEAPON_RELOADSTATE(1)) - (GET GAME_FRAME);
-    if (frameslefttoshot > 150)
+    if (frameslefttoshot > 150) 
     {
-        return (0);
+		if (lastshotframe < (GET GAME_FRAME))
+		{
+			start-script OpenCloseAnim(0);
+        	return (0);
+		}
     }
 	start-script OpenCloseAnim(1);
 
@@ -289,6 +295,7 @@ Shot1()
 	//emit-sfx 1024 + 0 from flare;
 	//segtarget = segtarget +  (Rand( 100, 200 ));
 	//aimy1target = aimy1target +  (Rand( 0, 400 ) - 200);
+	lastshotframe = (GET GAME_FRAME) + 150;
 	return (TRUE);
 }
 
@@ -337,8 +344,8 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 static-var isSmoking;
 DamagedSmoke(healthpercent, randpiece) // ah yes, clever use of stack variables 
 {
-	var healthpercent;
-	var randpiece;
+	//var healthpercent;
+	//var randpiece;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

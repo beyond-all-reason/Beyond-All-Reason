@@ -58,6 +58,7 @@ end
 local needsInit			= true
 local showValue			= false
 local metalViewOnly		= false
+local lavaWaterLevel		= nil
 
 local circleSpaceUsage	= 0.62
 local circleInnerOffset	= 0.28
@@ -542,15 +543,18 @@ function widget:GameFrame(gf)
 end
 
 local function getWaterLevel()
-	local lrs = WG.lavaRenderState
-	if lrs and lrs.level then
-		return lrs.level
+	if lavaWaterLevel then
+		return lavaWaterLevel
 	end
 	local level = Spring.GetGameRulesParam("lavaLevel")
 	if level and level ~= -99999 then
 		return level
 	end
 	return 0
+end
+
+function widget:LavaRenderState(tideLevel)
+	lavaWaterLevel = tideLevel
 end
 
 -- Draw above-water metalspots before units (old method, no ghost occlusion)
