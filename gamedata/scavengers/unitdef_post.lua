@@ -1,7 +1,9 @@
 -- -- UnitDef postprocessing specific to Scavenger units only
 
 local function scavUnitDef_Post(name, uDef)
-	uDef.category = uDef.category .. ' SCAVENGER'
+	if not string.find(uDef.category, "OBJECT", 1, true) then
+		uDef.category = uDef.category .. ' SCAVENGER'
+	end
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
 	uDef.decloakonfire = true
