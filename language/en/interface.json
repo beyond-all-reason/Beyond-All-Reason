@@ -349,8 +349,16 @@
 		},
 		"keybinds": {
 			"title": "Keybinds",
-			"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-			"howtochangekeybinds":"To change them: in Settings/Control tab, set Keybindings to Custom to create the BAR/data/uikeys.txt file.\nEdit this file and type /keyreload in chat to reload them.",
+			"editor": {
+				"search": "Search...",
+				"other": "Other",
+				"pressKey": "Press a key or mouse button...",
+				"customOnly": "Switch the preset to Custom to edit keybinds",
+				"reset": "Reset to...",
+				"anyMod": "Ignore modifiers",
+				"accept": "Accept",
+				"cancel": "Cancel"
+			},
 			"chat": {
 				"title": "Chat",
 				"send": "Send chat message",
@@ -360,11 +368,6 @@
 				"spectators": "Send chat message to spectators",
 				"ignoreKey": "ctrl + left click on name",
 				"ignore": "Ignore player"
-			},
-			"menus": {
-				"title": "Menus",
-				"settings": "Settings",
-				"share": "Share units / resources"
 			},
 			"camera": {
 				"title": "Camera movement",
@@ -376,13 +379,30 @@
 				"tilt": "Change camera angle",
 				"dragKey": "middle click (+ drag)",
 				"drag": "Drag camera",
-				"flip": "Flip camera"
+				"flip": "Flip camera",
+				"moveForward": "Move camera forward",
+				"moveBack": "Move camera back",
+				"moveLeft": "Move camera left",
+				"moveRight": "Move camera right",
+				"moveUp": "Move camera up",
+				"moveDown": "Move camera down",
+				"moveFast": "Move camera faster",
+				"moveSlow": "Move camera slower",
+				"setAnchor": "Set camera anchor %{n}",
+				"jumpAnchor": "Jump to camera anchor %{n}",
+				"pipSwitch": "Swap camera with picture-in-picture",
+				"pipCopy": "Copy camera to picture-in-picture",
+				"pipTrack": "Track selection in picture-in-picture",
+				"fovIncrease": "Increase field of view",
+				"fovDecrease": "Decrease field of view",
+				"moveReset": "Reset camera",
+				"moveRotate": "Rotate camera",
+				"moveTilt": "Tilt camera"
 			},
 			"cameraModes": {
 				"title": "Camera modes",
 				"changeKey": "ctrl + f1,2,3,4,5",
 				"change": "Change camera type",
-				"fullscreenKey": "alt + backspace",
 				"fullscreen": "Toggle fullscreen",
 				"overview": "Toggle overview camera",
 				"los": "Toggle LOS view",
@@ -390,80 +410,97 @@
 				"traversability": "Show passability (for selected unit)",
 				"mapmarks": "Cycle through map marks",
 				"resourceSpots": "Show metal map",
-				"interface": "Hide GUI"
+				"interface": "Hide GUI",
+				"cycle": "Cycle camera mode",
+				"fps": "FPS camera",
+				"overhead": "Overhead camera",
+				"rotatable": "Rotatable overhead camera",
+				"free": "Free camera",
+				"track": "Track selected unit",
+				"trackMode": "Toggle unit tracking"
+			},
+			"mapViews": {
+				"title": "Map views",
+				"fogOfWar": "Toggle Fog of War"
+			},
+			"interfaceDisplay": {
+				"title": "Interface & display",
+				"settings": "Settings",
+				"unitStats": "Unit stats",
+				"gameInfo": "Game info",
+				"saveGame": "Save game",
+				"screenshot": "Take screenshot",
+				"widgetSelector": "Open widget selector",
+				"firingRange": "Display firing range"
 			},
 			"sound": {
 				"title": "Sound",
-				"volumeKey": "-/+",
-				"volume": "Change volume",
-				"mute": "Toggle mute"
+				"mute": "Toggle mute",
+				"volumeUp": "Increase volume",
+				"volumeDown": "Decrease volume"
 			},
 			"selection": {
 				"title": "Selecting units",
 				"unitsKey": "left mouse (+ drag)",
-				"units": "Select or deselect units"
+				"units": "Select or deselect units",
+				"commAppend": "Add commander to selection",
+				"commFocus": "Select and go to commander",
+				"boxAny": "Box select: all units",
+				"boxAppend": "Box select: add to selection",
+				"boxDeselect": "Box select: remove from selection",
+				"boxMobile": "Box select: mobile units only",
+				"boxIdle": "Box select: idle units only",
+				"boxSame": "Box select: matching unit types",
+				"loopActivate": "Loop select: activate",
+				"loopAdd": "Loop select: add to selection",
+				"loopInvert": "Loop select: invert selection"
 			},
 			"issueContextOrders": {
-				"title": "Giving orders",
 				"orderKey": "right mouse (single click)",
 				"order": "Give order to unit(s)",
 				"formationOrderKey": "right mouse (drag)",
 				"formationOrder": "Give formation order to unit(s)"
 			},
 			"orders": {
-				"title": "Selecting orders",
-				"defaultKey": "(none)",
-				"default": "default order (usually move)",
-				"move": "move",
-				"attack": "attack",
-				"stop": "stop (clears order queue)",
-				"repair": "repair",
-				"reclaim": "reclaim",
-				"resurrect": "resurrect",
-				"patrol": "patrol",
-				"fight": "fight",
-				"setTarget": "set priority target",
-				"cancelTarget": "cancel priority target",
-				"wait": "wait (pause current command)",
-				"cloak": "cloak",
-				"dGun": "manual fire (dgun)",
-				"selfDestruct": "self-destruct"
+				"title": "Orders",
+				"move": "Move",
+				"attack": "Attack",
+				"stop": "Stop (clears order queue)",
+				"repair": "Repair",
+				"reclaim": "Reclaim",
+				"resurrect": "Resurrect",
+				"patrol": "Patrol",
+				"fight": "Fight",
+				"setTarget": "Set priority target",
+				"cancelTarget": "Cancel priority target",
+				"wait": "Wait (pause current command)",
+				"waitQueued": "Wait (queued)",
+				"cloak": "Cloak",
+				"dGun": "DGun",
+				"selfDestruct": "Self-destruct",
+				"selfDestructQueued": "Self-destruct (queued)"
 			},
 			"issueOrders": {
-				"title": "Giving selected orders",
 				"orderKey": "left mouse (single click)",
 				"order": "Give order to unit(s)",
 				"revert": "Revert to default order",
-				"revertKey": "right mouse (single click)",
-				"formationKey": "right mouse + drag",
-				"formation": "Give formation order to unit(s)"
+				"revertKey": "right mouse (single click)"
 			},
 			"queues": {
 				"title": "Queueing orders",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
-				"prepend": "Add order to start of order queue"
+				"prepend": "Add order to start of order queue",
+				"skipCurrent": "Skip current command",
+				"cancelLast": "Cancel last command"
 			},
 			"buildOrders": {
-				"title": "Selecting build orders",
-				"selectTileKey": "(mouse)",
-				"selectTile": "Select from units build-menu",
-				"metalKey": "z",
-				"metal": "Cycle through mexes",
-				"energyKey": "x",
-				"energy": "Cycle through energy production",
-				"intelKey": "c",
-				"intel": "Cycle through radar/defence/etc",
-				"factoriesKey": "v",
-				"factories": "Cycle through factories",
-				"rotate": "Change facing of buildings"
+				"rotate": "Rotate building placement",
+				"rotateBack": "Rotate building placement (reverse)"
 			},
 			"issueBuildOrders": {
-				"title": "Giving build orders",
 				"orderKey": "left mouse",
 				"order": "Give build order",
-				"deselectKey": "right mouse",
-				"deselect": "De-select build order",
 				"lineKey": "shift + (build order)",
 				"line": "Build in a line",
 				"gridKey": "shift + alt + (build order)",
@@ -472,19 +509,17 @@
 				"spacingDown": "Decrease build spacing"
 			},
 			"massSelect": {
-				"title": "Group selection",
 				"all": "Select all units",
 				"builders": "Select all constructors",
-				"createGroupKey": "ctrl + (num)",
-				"createGroup": "Add units to group (num=1,2,..)",
-				"createAutoGroupKey": "alt + (num)",
-				"createAutoGroup": "Add unit type to autogroup (num=1,2,..)",
 				"removeAutoGroupKey": "alt + `",
 				"removeAutoGroup": "Remove unit type from autogroup",
-				"groupKey": "(num)",
-				"group": "Select all units assigned to group (num)",
 				"sameType": "Select all units of same type as selected",
-				"damaged": "Select damaged units"
+				"damaged": "Select damaged units",
+				"sameTypeVisible": "Select same type as current, on screen",
+				"half": "Select half of current selection",
+				"idleTransports": "Select all idle transports",
+				"waitingVisible": "Select waiting units, on screen",
+				"deselectAll": "Deselect all"
 			},
 			"drawing": {
 				"title": "Drawing",
@@ -493,14 +528,95 @@
 				"drawKey": "` + drag left mouse",
 				"draw": "Draw on map",
 				"eraseKey": "` + drag right mouse",
-				"erase": "Erase drawings and markers"
+				"erase": "Erase drawings and markers",
+				"drawInMap": "Draw",
+				"drawLabel": "Place label"
 			},
 			"console": {
-				"title": "Console commands",
-				"eraseKey": "/clearmapmarks",
 				"erase": "Erase all drawings and markers",
-				"pauseKey": "/pause",
 				"pause": "Pause"
+			},
+			"moreOrders": {
+				"title": "More orders",
+				"areaAttack": "Area attack",
+				"guard": "Guard",
+				"capture": "Capture",
+				"restore": "Restore terrain",
+				"setTargetNoGround": "Set unit target",
+				"loadUnits": "Load units",
+				"unloadUnits": "Unload units",
+				"gatherWait": "Gather wait",
+				"manualLaunch": "Manual launch",
+				"stopProduction": "Stop production"
+			},
+			"unitStates": {
+				"title": "Unit states",
+				"fireHold": "Fire state: Hold fire",
+				"fireReturn": "Fire state: Return fire",
+				"fireAtWill": "Fire state: Fire at will",
+				"moveHold": "Move state: Hold position",
+				"moveManeuver": "Move state: Maneuver",
+				"moveRoam": "Move state: Roam",
+				"onoffToggle": "Toggle unit on/off",
+				"onoffOff": "Turn unit off",
+				"onoffOn": "Turn unit on",
+				"repeatOff": "Repeat off",
+				"repeatOn": "Repeat on",
+				"trajectory": "Trajectory %{n}"
+			},
+			"controlGroups": {
+				"title": "Control groups",
+				"select": "Select control group %{n}",
+				"assign": "Assign selection to control group %{n}",
+				"clear": "Remove selection from control groups",
+				"addAuto": "Add unit type to auto-group %{n}",
+				"removeOne": "Remove closest unit from its group",
+				"preset": "Load auto-group preset %{n}",
+				"focus": "Select control group %{n} and focus camera",
+				"add": "Add selection to control group %{n}",
+				"selectAdd": "Add control group %{n} to selection",
+				"selectToggle": "Toggle control group %{n} in selection"
+			},
+			"factory": {
+				"queueMode": "Toggle factory repeat mode",
+				"guard": "Factory guard mode %{n}",
+				"loadPreset": "Load factory preset %{n}",
+				"savePreset": "Save factory preset %{n}",
+				"showPresets": "Show factory presets"
+			},
+			"gridMenu": {
+				"title": "Grid menu",
+				"buildKey": "Row %{row}, column %{col}",
+				"nextPage": "Next page",
+				"cycleBuilder": "Cycle builder"
+			},
+			"spectating": {
+				"title": "Spectator",
+				"spectate": "Spectate team %{n}"
+			},
+			"buildHotkeys": {
+				"title": "Build",
+				"unit": "Build %{n}",
+				"areaMex": "Area mex",
+				"skipAlliedUpgrade": "Toggle skipping allied units when upgrading",
+				"split": "Split build orders between builders"
+			},
+			"blueprints": {
+				"title": "Blueprints",
+				"create": "Create blueprint",
+				"place": "Place blueprint",
+				"delete": "Delete blueprint",
+				"next": "Next blueprint",
+				"prev": "Previous blueprint"
+			},
+			"gameSpeed": {
+				"title": "Game speed"
+			},
+			"gameControl": {
+				"title": "Game control",
+				"increaseSpeed": "Increase game speed",
+				"decreaseSpeed": "Decrease game speed",
+				"voteForcestart": "Vote forcestart"
 			}
 		},
 		"blueprint": {
