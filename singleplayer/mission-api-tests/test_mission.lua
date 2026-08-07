@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -10,8 +10,8 @@ local triggers = {
 			maxRepeats = 3,
 		},
 		parameters = {
-			gameFrame = 1,
-			interval = 280,
+			seconds = 0,
+			interval = 9,
 		},
 		actions = { 'spawnCons1' },
 	},
@@ -19,7 +19,7 @@ local triggers = {
 	spawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			seconds = 40,
 		},
 		actions = { 'spawnEnergyGrid1', 'nameEnergyGrid1' },
 	},
@@ -27,7 +27,7 @@ local triggers = {
 	killCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 200,
+			seconds = 7,
 		},
 		actions = { 'killCons1', 'messageConsKilled' },
 	},
@@ -35,7 +35,7 @@ local triggers = {
 	selfDestructCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 480,
+			seconds = 16,
 		},
 		actions = { 'selfDestructCons1', 'messageSelfDestructCons1' },
 	},
@@ -43,7 +43,7 @@ local triggers = {
 	reclaimCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 760,
+			seconds = 25,
 		},
 		actions = { 'despawnCons1', 'messageConsReclaimed' },
 	},
@@ -51,7 +51,7 @@ local triggers = {
 	transferCons1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 900,
+			seconds = 30,
 		},
 		actions = { 'transferCons1', 'messageTransferCons1' },
 	},
@@ -59,7 +59,7 @@ local triggers = {
 	transferCons2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1100,
+			seconds = 37,
 		},
 		actions = { 'transferCons2', 'messageTransferCons2' },
 	},
@@ -67,7 +67,7 @@ local triggers = {
 	despawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1300,
+			seconds = 43,
 		},
 		actions = { 'despawnEnergyGrid1', 'messageEnergyGrid1Reclaimed' },
 	},
@@ -75,7 +75,7 @@ local triggers = {
 	doNotKillCons = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1400,
+			seconds = 47,
 		},
 		actions = { 'unnameCons', 'killCons1', 'messageConsNotKilled' },
 	},
@@ -83,7 +83,7 @@ local triggers = {
 	explosionOnFusions = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1500,
+			seconds = 50,
 		},
 		actions = { 'spawnExplosion' },
 	},
@@ -91,7 +91,7 @@ local triggers = {
 	gameEnd = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1700,
+			seconds = 57,
 		},
 		actions = { 'gameEnd' },
 	},

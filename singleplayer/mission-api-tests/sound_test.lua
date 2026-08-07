@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -6,7 +6,7 @@ local triggers = {
 	spawnEye = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1,
+			seconds = 0,
 		},
 		actions = { 'spawnEye' },
 	},
@@ -17,8 +17,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 30,
-			interval = 210,
+			seconds = 1,
+			interval = 7,
 		},
 		actions = { 'playSoundPosition', 'messageSoundPosition' },
 	},
@@ -29,8 +29,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playVoiceQueued1', 'playVoiceQueued2', 'messageSoundsQueued' },
 	},
@@ -41,8 +41,8 @@ local triggers = {
 			repeating = true,
 		},
 		parameters = {
-			gameFrame = 90,
-			interval = 210,
+			seconds = 3,
+			interval = 7,
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
 	},

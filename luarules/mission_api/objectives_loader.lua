@@ -1,4 +1,3 @@
-local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
 
@@ -9,7 +8,7 @@ local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
 		trigger = {
 			type = triggerTypes.TimeElapsed,
 			parameters = {
-				gameFrame = 90,
+				seconds = 3,
 			},
 		},
 		nextStage = 'secondStage',
@@ -17,13 +16,11 @@ local schemaUtils = VFS.Include('luarules/mission_api/schema_utils.lua')
 	},
 ]]
 
-local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(triggersSchema.Parameters, parameterTypes.Types.Quantity)
-
-
 local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stages)
 	local objectives = rawObjectives or {}
 
 	local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
+	local triggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(GG['MissionAPI'].TriggerDefinitions.Parameters, parameterTypes.Types.Quantity)
 
 	-- Build objective-to-stages mapping from stages structure
 	local objectiveToStages = {}

@@ -475,9 +475,9 @@ end
 --- Trigger/Action Validation Functions:
 ----------------------------------------------------------------
 
-local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
-local triggersSchemaSettings = triggersSchema.Settings
-local triggersSchemaParameters = triggersSchema.Parameters
+local triggerDefinitions = GG['MissionAPI'].TriggerDefinitions
+local triggersSchemaSettings = triggerDefinitions.Settings
+local triggersSchemaParameters = triggerDefinitions.Parameters
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include('luarules/mission_api/objectives_schema.lua').Settings
