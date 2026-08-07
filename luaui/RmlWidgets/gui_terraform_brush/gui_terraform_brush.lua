@@ -10541,6 +10541,20 @@ function widget:DrawScreenPost()
 		widgetState.spPreviewVerified = false
 		widgetState.spPreviewRetries = 0
 	end
+	-- A biome swap keeps the shader active (no flip above) while replacing the
+	-- four layer textures, which left the swatches stuck on the previous biome.
+	-- Re-arm discovery whenever the channel set itself changes.
+	if tilesetActive and WG.TilesetTerrain.getChannelTextures then
+		local chTex = WG.TilesetTerrain.getChannelTextures()
+		local sig = type(chTex) == "table"
+			and (tostring(chTex[1]) .. "|" .. tostring(chTex[2]) .. "|" .. tostring(chTex[3]) .. "|" .. tostring(chTex[4]))
+			or ""
+		if sig ~= widgetState.spPreviewTilesetSig then
+			widgetState.spPreviewTilesetSig = sig
+			widgetState.spPreviewVerified = false
+			widgetState.spPreviewRetries = 0
+		end
+	end
 
 	if not widgetState.spPreviewVerified then
 
@@ -10700,6 +10714,7 @@ function widget:DrawScreenPost()
 		-- Tileset Terrain shader owns the channels: override any map DNTS discovery
 		-- with the tileset's per-channel layer diffuse (rendered as lit diffuse,
 		-- isDNTS = false). Falls back to whatever was found if a texture is missing.
+		local tilesetPending = false
 		if tilesetActive and WG.TilesetTerrain.getChannelTextures then
 			local chTex = WG.TilesetTerrain.getChannelTextures()
 			if type(chTex) == "table" then
@@ -10708,7 +10723,14 @@ function widget:DrawScreenPost()
 					local p = chTex[i]
 					if type(p) == "string" and p ~= "" then
 						local info = gl.TextureInfo(p)
-						if info and info.xsize and info.xsize > 0 then tf[i] = p end
+						if info and info.xsize and info.xsize > 0 then
+							tf[i] = p
+						else
+							-- Layer texture declared but not loadable yet: don't let a
+							-- partial set (or the map-DNTS fallback) win the race and
+							-- get cached as verified — keep retrying until the cap.
+							tilesetPending = true
+						end
 					end
 				end
 				if next(tf) then found = tf; isDNTS = false end
@@ -10719,7 +10741,7 @@ function widget:DrawScreenPost()
 
 		widgetState.spPreviewIsDNTS = isDNTS
 
-		if next(found) or widgetState.spPreviewRetries >= 120 then
+		if (next(found) and not tilesetPending) or widgetState.spPreviewRetries >= 120 then
 
 			widgetState.spPreviewVerified = true
 
