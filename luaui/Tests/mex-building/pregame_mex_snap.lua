@@ -77,7 +77,7 @@ function test()
 
 	-- did the mex get placed in the right spot?
 	buildQueue = WG['pregame-build'].getBuildQueue()
-	assert(#buildQueue == 1)
+	assertEqual(#buildQueue, 1)
 	assertTablesEqual(buildQueue[1], {
 		mexUnitDefId,
 		snappedPosition.x,

@@ -51,9 +51,15 @@ layout(std140, binding=4) buffer UniformsBufferCopy {
 	SUniformsBuffer uniCopy[];
 };
 
+uniform uint numEntries;
+
 void main(void)
 {
 	uint index = gl_GlobalInvocationID.x;
+	if (index >= numEntries) {
+		return;
+	}
+
 	uniCopy[index].composite = uni[index].composite;
 	uniCopy[index].maxHealth = uni[index].maxHealth;
 	uniCopy[index].health = uni[index].health;
@@ -66,22 +72,37 @@ void main(void)
 }
 ]]
 
-local numEntries = 32768
-local structSize = 128
+local numEntries
+local structSizeInBytes
+local structSizeInVec4s
 
 local copyRequested = false
 
 local UniformsBufferCopy
 
 function widget:Initialize()
+	if not gl.GetEngineModelUniformDataSize then
+		spEcho("UnitBufferUniform Copy: engine does not support gl.GetEngineModelUniformDataSize")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	numEntries, structSizeInBytes = gl.GetEngineModelUniformDataSize(0)
+	if not numEntries or not structSizeInBytes or structSizeInBytes % 16 ~= 0 then
+		spEcho("UnitBufferUniform Copy: invalid engine model uniform buffer size")
+		widgetHandler:RemoveWidget()
+		return
+	end
+	structSizeInVec4s = structSizeInBytes / 16
+
 	UniformsBufferCopy = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
 	UniformsBufferCopy:Define(numEntries, {
-		{id = 0, name = "uints", size = structSize},
+		{id = 0, name = "modelUniformData", type = GL.FLOAT_VEC4, size = structSizeInVec4s},
 	}
 	)
 	pcache = {}
 	
-	for i = 0,  (numEntries * structSize -1) do 
+	for i = 0, (numEntries * structSizeInVec4s * 4 - 1) do
 		pcache[i+1] = 0
 	end
 	UniformsBufferCopy:Upload(pcache)
@@ -91,6 +112,7 @@ function widget:Initialize()
 		compute = cmpSrc,
 		uniformInt = {
 			heightmapTex = 0,
+			numEntries = numEntries,
 		},
 		uniformFloat = {
 			frameTime = 0.016,
@@ -127,6 +149,6 @@ function widget:DrawScreenPost()
 	end
 	UniformsBufferCopy:BindBufferRange(4) -- dunno why, but if we dont, it gets lost after a few seconds
 	cmpShader:Activate()
-	gl.DispatchCompute((Game.maxUnits/32), 1, 1)
+	gl.DispatchCompute(math.ceil(numEntries / 32), 1, 1)
 	cmpShader:Deactivate()
 end

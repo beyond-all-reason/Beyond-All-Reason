@@ -14,7 +14,7 @@ return {
 		collisionvolumetype = "CylY",
 		cloakcost = 0.001,
 		cloakcostmoving = 0,
-		corpse = "CDRAGONSEYES_DEAD",
+		corpse = "HEAP",
 		energyupkeep = 0,
 		footprintx = 1,
 		footprintz = 1,
@@ -40,7 +40,7 @@ return {
 			subfolder = "CorBuildings/LandUtil",
 		},
 		featuredefs = {
-			cdragonseyes_dead = {
+			heap = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",

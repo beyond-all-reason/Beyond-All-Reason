@@ -129,11 +129,13 @@ local function experimentalExtraUnits(name, unitDef)
 	-- Cortex T3 Gantry
 	if name == "corgant" then
 		local numBuildoptions = #buildoptions
+		buildoptions[numBuildoptions + 1] = "corves"  -- Vesuvius
 	end
 
 	-- Cortex T3 Underwater Gantry
 	if name == "corgantuw" then
 		local numBuildoptions = #buildoptions
+		buildoptions[numBuildoptions + 1] = "corves"  -- Vesuvius
 	end
 
 	-- Legion T1 Land Constructors
@@ -161,6 +163,7 @@ local function experimentalExtraUnits(name, unitDef)
 	if name == "leggant" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
+		buildoptions[numBuildoptions + 2] = "legapollyon" -- Apollyon - Heavy Gatling Tank
 	end
 end
 

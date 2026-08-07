@@ -1,7 +1,7 @@
 return {
 	legmed = {
 		maxacc = 0.01,
-		maxdec = 0.02,
+		maxdec = 0.1,
 		energycost = 22500,
 		metalcost = 1500,
 		buildpic = "LEGMED.DDS",

@@ -88,6 +88,7 @@ local clicks = {}
 local unitList = {}
 
 local idleList = {}
+local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
 
 local font, font2, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 local guishaderWasActive = false
@@ -104,7 +105,7 @@ local function refreshUnitDefs()
 			end
 			if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') and not string.find(unitDef.name, 'infestor') and (unitDef.canAssist or unitDef.buildOptions[1] or (showRez and unitDef.canResurrect)) and not unitDef.customParams.isairbase then
 				unitConf[unitDefID] = unitDef.isFactory
-		end
+			end
 		end
 	end
 end
@@ -292,13 +293,16 @@ local function drawContent()
 	end
 end
 
+local function isWorkerUnitIdle(unitID, unitDefID)
+	return inIdleWorkerTask[unitID]
+		or (unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
+end
+
 local function updateList(force)
 	local prevIdleList = idleList
 	idleList = {}
-	local queue
 	for unitID, unitDefID in pairs(unitList) do
-		queue = unitConf[unitDefID] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)
-		if queue == 0 then
+		if isWorkerUnitIdle(unitID, unitDefID) then
 			if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
 				if idleList[unitDefID] then
 					idleList[unitDefID][#idleList[unitDefID] + 1] = unitID

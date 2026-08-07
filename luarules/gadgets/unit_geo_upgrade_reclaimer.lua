@@ -18,6 +18,7 @@ end
 
 
 local transferInstantly = true	-- false = transfer geo on completion
+local SendToUnsynced = SendToUnsynced
 
 
 _G.transferredUnits = {}
@@ -49,6 +50,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
 			Spring.SetUnitNoSelect(geo, true)
+			SendToUnsynced("setUnitNoGroup", geo, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(geo)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
@@ -66,6 +68,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		local geo = hasGeoUnderneat(unitID)
 		if geo then
 			Spring.SetUnitNoSelect(geo, false)
+			SendToUnsynced("setUnitNoGroup", geo, false)
 		end
 	end
 end

@@ -114,19 +114,17 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "corgant" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
-		buildoptions[numBuildoptions + 2] = "corgolt4"  -- Epic Tzar
-		buildoptions[numBuildoptions + 3] = "corakt4"   -- Epic Grunt
-		buildoptions[numBuildoptions + 4] = "corthermite" -- Thermite/Epic Termite
-		buildoptions[numBuildoptions + 5] = "cormandot4" -- Epic Commando
+		buildoptions[numBuildoptions + 2] = "corakt4"   -- Epic Grunt
+		buildoptions[numBuildoptions + 3] = "corthermite" -- Thermite/Epic Termite
+		buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
 	end
 
 	-- Cortex T3 Underwater Gantry
 	if name == "corgantuw" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
-		buildoptions[numBuildoptions + 2] = "corgolt4"  -- Epic Tzar
-		buildoptions[numBuildoptions + 3] = "corakt4"   -- Epic Grunt
-		buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
+		buildoptions[numBuildoptions + 2] = "corakt4"   -- Epic Grunt
+		buildoptions[numBuildoptions + 3] = "cormandot4" -- Epic Commando
 	end
 
 	-- Legion T1 Land Constructors
