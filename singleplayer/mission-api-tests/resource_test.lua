@@ -25,6 +25,14 @@ local triggers = {
 		actions = { 'addMetalAndEnergy', 'messageWaveMetalAndEnergy' },
 	},
 
+	waveMetalAndEnergyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 180,
+		},
+		actions = { 'removeMetalAndEnergy', 'messageWaveMetalAndEnergyRemove' },
+	},
+
 	waveMetalOnly = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
@@ -33,12 +41,28 @@ local triggers = {
 		actions = { 'addMetalOnly', 'messageWaveMetalOnly' },
 	},
 
+	waveMetalOnlyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 300,
+		},
+		actions = { 'removeMetalOnly', 'messageWaveMetalOnlyRemove' },
+	},
+
 	waveEnergyOnly = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
 		actions = { 'addEnergyOnly', 'messageWaveEnergyOnly' },
+	},
+
+	waveEnergyOnlyRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 420,
+		},
+		actions = { 'removeEnergyOnly', 'messageWaveEnergyOnlyRemove' },
 	},
 
 	waveMex = {
@@ -103,6 +127,30 @@ local triggers = {
 			seconds = 37,
 		},
 		actions = { 'orderUnitIncomeReclaimerReclaim' },
+	},
+
+	waveMetalAndEnergyPerSecond = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1200,
+		},
+		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
+	},
+
+	waveMetalAndEnergyPerSecondRemove = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1400,
+		},
+		actions = { 'removeMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecondRemove'},
+	},
+
+	waveMetalAndEnergyPerSecond2 = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 1600,
+		},
+		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
 	},
 
 	-- ── ResourceStored ────────────────────────────────────────────────────────
@@ -377,6 +425,59 @@ local actions = {
 		},
 	},
 
+	-- ── AddResources (Remove) (metal + energy together) ────────────────────────────────
+
+	removeMetalAndEnergy = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			metal = -500,
+			energy = -1000,
+		},
+	},
+
+	-- ── AddResources (Remove) (metal only) ─────────────────────────────────────────────
+
+	removeMetalOnly = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			metal = -250,
+		},
+	},
+
+	-- ── AddResources (Remove) (energy only) ────────────────────────────────────────────
+
+	removeEnergyOnly = {
+		type = actionTypes.AddResources,
+		parameters = {
+			teamID = 0,
+			energy = -500,
+		},
+	},
+
+	-- ── AddResources (Per Second) (metal + energy together) ────────────────────────────────
+
+	addMetalAndEnergyPerSecond = {
+		type = actionTypes.AddResourcesPerSecond,
+		parameters = {
+			teamID = 0,
+			metal = 50,
+			energy = 2000,
+		},
+	},
+
+	-- ── AddResources (Remove) (Per Second) (metal + energy together) ────────────────────────────────
+
+	removeMetalAndEnergyPerSecond = {
+		type = actionTypes.AddResourcesPerSecond,
+		parameters = {
+			teamID = 0,
+			metal = -75,
+			energy = -2500,
+		},
+	},
+
 	-- ── Wave messages ─────────────────────────────────────────────────────────
 
 	messageWaveMex = {
@@ -439,6 +540,41 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Resource Test] Adding 500 energy.",
+		},
+	},
+
+	messageWaveMetalAndEnergyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 500 metal and 1000 energy.",
+		},
+	},
+
+	messageWaveMetalOnlyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 250 metal.",
+		},
+	},
+
+	messageWaveEnergyOnlyRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 500 energy.",
+		},
+	},
+
+	messageWaveMetalAndEnergyPerSecond = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Adding 50 metal and 2000 energy per second.",
+		},
+	},
+
+	messageWaveMetalAndEnergyPerSecondRemove = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] Removing 75 metal and 2500 energy per second.",
 		},
 	},
 
