@@ -145,6 +145,7 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.GameFrame[T.UnitEnteredLocation])
 			assert.is_function(C.GameFrame[T.UnitLeftLocation])
 			assert.is_function(C.GameFrame[T.UnitDwellLocation])
+			assert.is_function(C.GameFrame[T.ConstructionProgress])
 
 			-- Event-driven triggers:
 			assert.is_function(C.MetaUnitAdded[T.UnitExists])

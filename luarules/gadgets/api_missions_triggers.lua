@@ -26,6 +26,7 @@ local statistics
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
+local constructionState         = {}
 local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
@@ -161,6 +162,7 @@ function gadget:Initialize()
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
+		ConstructionState        = constructionState,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
