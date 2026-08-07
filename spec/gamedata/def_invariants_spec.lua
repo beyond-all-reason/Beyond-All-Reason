@@ -167,20 +167,25 @@ describe("UnitDefs invariants", function()
 		return count == 3
 	end
 
-	it("writes volume scales as three numbers", function()
+	-- The engine reads a run-together offset like "0-20 0" as -20 on the y axis, but the emit
+	-- height pass in alldefs_post takes the second whitespace separated token, so a missing
+	-- space silently ships a sight and radar height the volume does not agree with.
+	local volumeKeys = {
+		"collisionvolumeoffsets", "collisionvolumescales",
+		"selectionvolumeoffsets", "selectionvolumescales",
+	}
+
+	it("writes volume offsets and scales as three numbers", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			if def.collisionvolumescales ~= nil then
-				if not isTriple(def.collisionvolumescales) then
-					bad[#bad + 1] = name .. ".collisionvolumescales = " .. tostring(def.collisionvolumescales)
-				end
-				if def.collisionvolumetype == nil then
-					bad[#bad + 1] = name .. " has collisionvolumescales but no collisionvolumetype"
+			for _, key in ipairs(volumeKeys) do
+				if def[key] ~= nil and not isTriple(def[key]) then
+					bad[#bad + 1] = name .. "." .. key .. " = " .. tostring(def[key])
 				end
 			end
 
-			if def.selectionvolumescales ~= nil and not isTriple(def.selectionvolumescales) then
-				bad[#bad + 1] = name .. ".selectionvolumescales = " .. tostring(def.selectionvolumescales)
+			if def.collisionvolumescales ~= nil and def.collisionvolumetype == nil then
+				bad[#bad + 1] = name .. " has collisionvolumescales but no collisionvolumetype"
 			end
 		end
 
