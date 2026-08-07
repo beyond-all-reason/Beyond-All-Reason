@@ -1,69 +1,77 @@
 ---@meta actions
 
---- Mission-runtime types: the trigger engine's descriptors and the authoring
---- DSL's chain/condition/effect shapes. The DSL surface is dot-only AND
---- closure-free: every chain step is a plain call with parens, no colon
---- methods, no metatables, and no function bodies in mission files — effects
---- are lazy objects built by named verbs. Mission files must load identically
---- in the synced sandbox (which strips rawset) and in busted.
+--- Mission-runtime types: trigger engine descriptors and the authoring DSL's
+--- chain/condition/effect shapes, dot-only and closure-free. Mission files must load identically in the synced sandbox (which strips rawset) and in busted.
 
---- Domain aliases: the DSL's typed parameters. These names are LOAD-BEARING
---- beyond the checker — the mission kit derives its semantic model from them
---- (alias name -> slot semantic, literal unions -> editor enums), so a verb
---- annotated with these types is understood by the editor without kit code.
+--- Domain aliases: the DSL's typed parameters. Names are LOAD-BEARING beyond
+--- the checker — the mission kit derives its semantic model from them (alias -> slot semantic, literal unions -> editor enums).
 ---@alias UnitDefName string unit def name, e.g. "armpw"
+---@alias MissionUnitName string roster unit name, declared by units.lua Named(...)
+---@alias MissionUnitGroup string roster group name, declared by units.lua Grouped(...)
 ---@alias ObjectiveName string
+---@alias MissionTeamRole "player"|"enemy"|"gaia" spawn-time team role, resolved at arm
 
---- The mission bus vocabulary, CLOSED BY TYPE: every event name that may
---- cross the bus is a member of this alias. Engine callins are one producer,
---- modules are another — same kind of string, one type. Adding an event
---- means extending this alias; the checker then walks you to every consumer
---- (inputs declarations, OnEvent emitters) and flags typos as type errors —
---- the state heritage is tied together by the compiler, not convention.
+--- Mission bus vocabulary, CLOSED BY TYPE: every event name crossing the bus
+--- is a member of this alias, so the checker flags typos across every inputs/OnEvent consumer as type errors.
 ---@alias MissionEventName
 ---| "UnitFinished"
 ---| "UnitDestroyed"
 ---| "UnitGiven"
 ---| "UnitTaken"
+---| "UnitEnteredLos"
 ---| "mission.objective_changed"
 
---- A condition is not a bare predicate — it carries metadata about what can
---- change its answer (mission_authoring_dsl.md, "Conditions declare their
---- inputs"). Inputs name events on the mission bus (MissionEventName).
---- nil inputs = poll every cadence — the fallback stays.
---- Pure: reads only the ctx it is handed; captures configuration (team ids,
---- unit names), never progress. Progress lives in the engine's state tables;
---- inputs are configuration, dirty flags are derived (the savegame rule).
+--- A condition carries metadata about what can change its answer: inputs
+--- name bus events (nil = poll every cadence). Pure — reads only ctx, captures configuration never progress (progress lives in engine state, the savegame rule).
 ---@class MissionCondition
 ---@field evaluate fun(ctx: MissionContext): boolean
 ---@field inputs MissionEventName[]|nil events that can change this answer; nil = poll every cadence
 
---- What the engine hands every condition and effect. The gadget builds it from
---- Spring; specs build it from plain tables.
+--- What the engine hands every condition and effect: the gadget builds it
+--- from Spring, specs from plain tables. Unit destroyed/spotted answers are latched — once true, stay true.
 ---@class MissionContext
 ---@field GetUnitDefCount fun(teamID: integer, unitDefName: string): integer count of finished units of that def
 ---@field IsObjectiveComplete fun(name: string): boolean
+---@field IsUnitDestroyed fun(name: string): boolean
+---@field IsUnitSpotted fun(name: string, allyTeamID: integer): boolean
+---@field TransferGroup fun(groupName: string, teamID: integer)
+---@field Protect fun(name: string) combat-module protection by roster name
+---@field Unprotect fun(name: string)
 ---@field frame integer current game frame
 
---- A lazy effect built by a named verb (Objective("x").Complete(),
---- MatchFlow.Victory(Team.Player)). The engine executes it when the trigger's
---- condition fires. Like conditions, effects capture configuration only —
---- never progress, and never author-written function bodies.
+--- A lazy effect built by a named verb (e.g. Objective("x").Complete()); the
+--- engine executes it when the trigger fires. Captures configuration only, never progress.
 ---@class MissionEffect
 ---@field execute fun(ctx: MissionContext)
 
 --- The injected Objective verb's handle: Complete() builds the effect side,
---- IsComplete() the condition side — victory triggers watch objective state
---- rather than living inside the objective's own trigger.
+--- IsComplete() the condition side.
 ---@class MissionObjective
 ---@field Complete fun(): MissionEffect
 ---@field IsComplete fun(): MissionCondition
 
---- The injected MatchFlow verbs: lazy mirrors of the matchflow module api.
---- They take the Team handle so mission lines read as English.
----@class MissionMatchFlow
----@field Victory fun(team: MissionTeam): MissionEffect
----@field Defeat fun(team: MissionTeam): MissionEffect
+--- A named-unit reference produced by the injected Unit verb. Both
+--- conditions are latched; the name is validated against the roster at load — unknown names never arm.
+---@class MissionUnitRef
+---@field name MissionUnitName
+---@field IsDestroyed fun(): MissionCondition
+---@field IsSpotted fun(team: MissionTeam): MissionCondition
+
+--- The dot-only builder chain returned by Spawn. Positions are map fractions
+--- until real maps pin real coordinates; At is required — a chain without one fails the load.
+---@class MissionSpawnChain
+---@field At fun(fx: number, fz: number): MissionSpawnChain
+---@field Named fun(name: MissionUnitName): MissionSpawnChain
+---@field Grouped fun(group: MissionUnitGroup): MissionSpawnChain
+
+--- One validated spawn entry, as Roster.Finalize returns it.
+---@class MissionRosterEntry
+---@field def UnitDefName
+---@field team MissionTeamRole
+---@field fx number map-fraction position, resolved against map size at spawn
+---@field fz number
+---@field name MissionUnitName|nil declared by Named
+---@field group MissionUnitGroup|nil declared by Grouped
 
 --- A registered trigger. Identity = source filename + declaration order,
 --- stamped at registration — the unregister-by-identity key for hot reload.
@@ -75,9 +83,8 @@
 ---@field effects MissionEffect[] executed in Do order when the condition fires
 ---@field once boolean fire at most once (default true)
 
---- The dot-only builder chain returned by When. Every step returns the
---- chain. There is no terminator: the loader finalizes all chains when the
---- file's include returns, and a chain without a Do fails the load.
+--- The dot-only builder chain returned by When. There is no terminator: the
+--- loader finalizes all chains when the file's include returns; a chain without a Do fails the load.
 ---@class TriggerChain
 ---@field When fun(condition: MissionCondition): TriggerChain another condition; all must hold
 ---@field Do fun(effect: MissionEffect): TriggerChain repeatable; effects run in Do order
@@ -99,3 +106,15 @@
 --- reload from source; this table is reapplied on top.
 ---@class TriggerEngineState
 ---@field fired table<string, boolean> trigger id -> has fired
+
+--- What a required module's mission_dsl.lua returns. The loader composes the
+--- sandbox env from the missions manifest's requires list — the dependency
+--- list IS the vocabulary whitelist; a global collision is a load error.
+---@class MissionDslFile
+---@field filename string mission-relative trigger file path
+---@field Register fun(descriptor: TriggerDescriptor)
+---@field names table<string, boolean> roster unit names, for load-time validation
+---@field groups table<string, boolean> roster group names, for load-time validation
+
+---@class MissionDslContribution
+---@field ForFile fun(file: MissionDslFile): { env: table<string, any>, Finalize: fun()|nil }
