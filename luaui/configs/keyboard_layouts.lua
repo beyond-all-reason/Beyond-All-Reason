@@ -329,6 +329,9 @@ local layouts = {
 	'workman',
 }
 
+-- Single-letter modifier abbreviations (uikeys.txt: A/C/M/S, * for Any).
+local modAbbrev = { A = "ALT+", C = "CTRL+", M = "META+", S = "SHIFT+" }
+
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
 		return ""
@@ -336,45 +339,20 @@ local function sanitizeKey(key, layout)
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	key = key:upper():gsub("ANY%+", '')
+	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
 	key = key:gsub("SC_(.)", function(c)
 		return scanToCode[layout][c] or c
 	end)
+	-- The backslash key comes through as the keysym word, missing the SC_ mapping above.
+	key = key:gsub("BACKSLASH", "\\")
+	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
+	key = key:gsub("%f[%u]([ACMS])%+", function(m) return modAbbrev[m] end)
 
 	return key
-end
-
-local keybindingLayouts = {
-	'Grid', -- the first element will be the default value if a fallback is ever needed
-	'Grid (60% Keyboard)',
-	'Legacy',
-	'Legacy (60% Keyboard)',
-	'Custom'
-}
-
-local keybindingPresets = {
-	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
-	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
-	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
-	[keybindingLayouts[5]] = 'uikeys.txt',
-}
-
-local keybindingLayoutFiles = {}
-local presetKeybindings = {}
-
-for i, v in ipairs(keybindingLayouts) do
-	local file = keybindingPresets[v]
-	keybindingLayoutFiles[i] = file
-	presetKeybindings[file] = v
 end
 
 return {
 	layouts = layouts,
 	scanToCode = scanToCode,
 	sanitizeKey = sanitizeKey,
-	keybindingLayouts = keybindingLayouts,
-	keybindingLayoutFiles = keybindingLayoutFiles,
-	keybindingPresets = keybindingPresets,
-	presetKeybindings = presetKeybindings,
 }

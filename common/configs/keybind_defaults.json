@@ -1,0 +1,6155 @@
+{
+	"version": 1,
+	"profiles": [
+		{
+			"name": "Grid",
+			"binds": [
+				{
+					"keyset": "esc",
+					"action": "select AllMap++_ClearSelection_SelectNum_0+"
+				},
+				{
+					"keyset": "esc",
+					"action": "quitmessage"
+				},
+				{
+					"keyset": "Shift+esc",
+					"action": "quitmenu"
+				},
+				{
+					"keyset": "Ctrl+Shift+esc",
+					"action": "quitforce"
+				},
+				{
+					"keyset": "Alt+Shift+esc",
+					"action": "reloadforce"
+				},
+				{
+					"keyset": "Any+escape",
+					"action": "edit_escape"
+				},
+				{
+					"keyset": "Any+pause",
+					"action": "pause"
+				},
+				{
+					"keyset": "esc",
+					"action": "teamstatus_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "customgameinfo_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "buildmenu_pregame_deselect"
+				},
+				{
+					"keyset": "Alt+backspace",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "selectbox_same"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectbox_idle"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_append"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_any"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectbox_deselect"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "selectbox_mobile"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectloop"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectloop_invert"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectloop_add"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "buildsplit"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "commandinsert prepend_between"
+				},
+				{
+					"keyset": "alt+sc_.",
+					"action": "attack_range_inc"
+				},
+				{
+					"keyset": "alt+sc_comma",
+					"action": "attack_range_dec"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "chat"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_a",
+					"action": "chatswitchally"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_s",
+					"action": "chatswitchspec"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "edit_complete"
+				},
+				{
+					"keyset": "Any+backspace",
+					"action": "edit_backspace"
+				},
+				{
+					"keyset": "Any+delete",
+					"action": "edit_delete"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Alt+left",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Alt+right",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "edit_prev_line"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "edit_next_line"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "edit_prev_char"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "edit_next_char"
+				},
+				{
+					"keyset": "Ctrl+left",
+					"action": "edit_prev_word"
+				},
+				{
+					"keyset": "Ctrl+right",
+					"action": "edit_next_word"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "edit_return"
+				},
+				{
+					"keyset": "Ctrl+v",
+					"action": "pastetext"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "moveback"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "moveright"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "Any+pageup",
+					"action": "moveup"
+				},
+				{
+					"keyset": "Any+pagedown",
+					"action": "movedown"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "movereset"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "moverotate"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "movetilt"
+				},
+				{
+					"keyset": "ctrl+sc_o",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "ctrl+sc_p",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "sc_numpad1",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "sc_numpad7",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "Meta+ctrl+tab",
+					"action": "pip1_copy"
+				},
+				{
+					"keyset": "Meta+tab",
+					"action": "pip1_switch"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "pip1_track"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "toggle_allied_upgrade"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "gridmenu_category 1"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "gridmenu_category 2"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "gridmenu_category 3"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "gridmenu_category 4"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "gridmenu_category 1"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "gridmenu_category 2"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "gridmenu_category 3"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "gridmenu_category 4"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "gridmenu_key 1 1"
+				},
+				{
+					"keyset": "Any+sc_x",
+					"action": "gridmenu_key 1 2"
+				},
+				{
+					"keyset": "Any+sc_c",
+					"action": "gridmenu_key 1 3"
+				},
+				{
+					"keyset": "Any+sc_v",
+					"action": "gridmenu_key 1 4"
+				},
+				{
+					"keyset": "Any+sc_a",
+					"action": "gridmenu_key 2 1"
+				},
+				{
+					"keyset": "Any+sc_s",
+					"action": "gridmenu_key 2 2"
+				},
+				{
+					"keyset": "Any+sc_d",
+					"action": "gridmenu_key 2 3"
+				},
+				{
+					"keyset": "Any+sc_f",
+					"action": "gridmenu_key 2 4"
+				},
+				{
+					"keyset": "Any+sc_q",
+					"action": "gridmenu_key 3 1"
+				},
+				{
+					"keyset": "Any+sc_w",
+					"action": "gridmenu_key 3 2"
+				},
+				{
+					"keyset": "Any+sc_e",
+					"action": "gridmenu_key 3 3"
+				},
+				{
+					"keyset": "Any+sc_r",
+					"action": "gridmenu_key 3 4"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "gridmenu_next_page"
+				},
+				{
+					"keyset": "sc_.",
+					"action": "gridmenu_cycle_builder"
+				},
+				{
+					"keyset": "1",
+					"action": "specteam 0"
+				},
+				{
+					"keyset": "2",
+					"action": "specteam 1"
+				},
+				{
+					"keyset": "3",
+					"action": "specteam 2"
+				},
+				{
+					"keyset": "4",
+					"action": "specteam 3"
+				},
+				{
+					"keyset": "5",
+					"action": "specteam 4"
+				},
+				{
+					"keyset": "6",
+					"action": "specteam 5"
+				},
+				{
+					"keyset": "7",
+					"action": "specteam 6"
+				},
+				{
+					"keyset": "8",
+					"action": "specteam 7"
+				},
+				{
+					"keyset": "9",
+					"action": "specteam 8"
+				},
+				{
+					"keyset": "Alt+0",
+					"action": "add_to_autogroup 0"
+				},
+				{
+					"keyset": "Alt+1",
+					"action": "add_to_autogroup 1"
+				},
+				{
+					"keyset": "Alt+2",
+					"action": "add_to_autogroup 2"
+				},
+				{
+					"keyset": "Alt+3",
+					"action": "add_to_autogroup 3"
+				},
+				{
+					"keyset": "Alt+4",
+					"action": "add_to_autogroup 4"
+				},
+				{
+					"keyset": "Alt+5",
+					"action": "add_to_autogroup 5"
+				},
+				{
+					"keyset": "Alt+6",
+					"action": "add_to_autogroup 6"
+				},
+				{
+					"keyset": "Alt+7",
+					"action": "add_to_autogroup 7"
+				},
+				{
+					"keyset": "Alt+8",
+					"action": "add_to_autogroup 8"
+				},
+				{
+					"keyset": "Alt+9",
+					"action": "add_to_autogroup 9"
+				},
+				{
+					"keyset": "Shift+Alt+0",
+					"action": "load_autogroup_preset 0"
+				},
+				{
+					"keyset": "Shift+Alt+1",
+					"action": "load_autogroup_preset 1"
+				},
+				{
+					"keyset": "Shift+Alt+2",
+					"action": "load_autogroup_preset 2"
+				},
+				{
+					"keyset": "Shift+Alt+3",
+					"action": "load_autogroup_preset 3"
+				},
+				{
+					"keyset": "Shift+Alt+4",
+					"action": "load_autogroup_preset 4"
+				},
+				{
+					"keyset": "Shift+Alt+5",
+					"action": "load_autogroup_preset 5"
+				},
+				{
+					"keyset": "Shift+Alt+6",
+					"action": "load_autogroup_preset 6"
+				},
+				{
+					"keyset": "Shift+Alt+7",
+					"action": "load_autogroup_preset 7"
+				},
+				{
+					"keyset": "Shift+Alt+8",
+					"action": "load_autogroup_preset 8"
+				},
+				{
+					"keyset": "Shift+Alt+9",
+					"action": "load_autogroup_preset 9"
+				},
+				{
+					"keyset": "0,0",
+					"action": "group focus 0"
+				},
+				{
+					"keyset": "1,1",
+					"action": "group focus 1"
+				},
+				{
+					"keyset": "2,2",
+					"action": "group focus 2"
+				},
+				{
+					"keyset": "3,3",
+					"action": "group focus 3"
+				},
+				{
+					"keyset": "4,4",
+					"action": "group focus 4"
+				},
+				{
+					"keyset": "5,5",
+					"action": "group focus 5"
+				},
+				{
+					"keyset": "6,6",
+					"action": "group focus 6"
+				},
+				{
+					"keyset": "7,7",
+					"action": "group focus 7"
+				},
+				{
+					"keyset": "8,8",
+					"action": "group focus 8"
+				},
+				{
+					"keyset": "9,9",
+					"action": "group focus 9"
+				},
+				{
+					"keyset": "0",
+					"action": "group select 0"
+				},
+				{
+					"keyset": "1",
+					"action": "group select 1"
+				},
+				{
+					"keyset": "2",
+					"action": "group select 2"
+				},
+				{
+					"keyset": "3",
+					"action": "group select 3"
+				},
+				{
+					"keyset": "4",
+					"action": "group select 4"
+				},
+				{
+					"keyset": "5",
+					"action": "group select 5"
+				},
+				{
+					"keyset": "6",
+					"action": "group select 6"
+				},
+				{
+					"keyset": "7",
+					"action": "group select 7"
+				},
+				{
+					"keyset": "8",
+					"action": "group select 8"
+				},
+				{
+					"keyset": "9",
+					"action": "group select 9"
+				},
+				{
+					"keyset": "Ctrl+0",
+					"action": "group set 0"
+				},
+				{
+					"keyset": "Ctrl+1",
+					"action": "group set 1"
+				},
+				{
+					"keyset": "Ctrl+2",
+					"action": "group set 2"
+				},
+				{
+					"keyset": "Ctrl+3",
+					"action": "group set 3"
+				},
+				{
+					"keyset": "Ctrl+4",
+					"action": "group set 4"
+				},
+				{
+					"keyset": "Ctrl+5",
+					"action": "group set 5"
+				},
+				{
+					"keyset": "Ctrl+6",
+					"action": "group set 6"
+				},
+				{
+					"keyset": "Ctrl+7",
+					"action": "group set 7"
+				},
+				{
+					"keyset": "Ctrl+8",
+					"action": "group set 8"
+				},
+				{
+					"keyset": "Ctrl+9",
+					"action": "group set 9"
+				},
+				{
+					"keyset": "Shift+0",
+					"action": "group selectadd 0"
+				},
+				{
+					"keyset": "Shift+1",
+					"action": "group selectadd 1"
+				},
+				{
+					"keyset": "Shift+2",
+					"action": "group selectadd 2"
+				},
+				{
+					"keyset": "Shift+3",
+					"action": "group selectadd 3"
+				},
+				{
+					"keyset": "Shift+4",
+					"action": "group selectadd 4"
+				},
+				{
+					"keyset": "Shift+5",
+					"action": "group selectadd 5"
+				},
+				{
+					"keyset": "Shift+6",
+					"action": "group selectadd 6"
+				},
+				{
+					"keyset": "Shift+7",
+					"action": "group selectadd 7"
+				},
+				{
+					"keyset": "Shift+8",
+					"action": "group selectadd 8"
+				},
+				{
+					"keyset": "Shift+9",
+					"action": "group selectadd 9"
+				},
+				{
+					"keyset": "Ctrl+Shift+0",
+					"action": "group add 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+1",
+					"action": "group add 1"
+				},
+				{
+					"keyset": "Ctrl+Shift+2",
+					"action": "group add 2"
+				},
+				{
+					"keyset": "Ctrl+Shift+3",
+					"action": "group add 3"
+				},
+				{
+					"keyset": "Ctrl+Shift+4",
+					"action": "group add 4"
+				},
+				{
+					"keyset": "Ctrl+Shift+5",
+					"action": "group add 5"
+				},
+				{
+					"keyset": "Ctrl+Shift+6",
+					"action": "group add 6"
+				},
+				{
+					"keyset": "Ctrl+Shift+7",
+					"action": "group add 7"
+				},
+				{
+					"keyset": "Ctrl+Shift+8",
+					"action": "group add 8"
+				},
+				{
+					"keyset": "Ctrl+Shift+9",
+					"action": "group add 9"
+				},
+				{
+					"keyset": "Ctrl+Alt+0",
+					"action": "group selecttoggle 0"
+				},
+				{
+					"keyset": "Ctrl+Alt+1",
+					"action": "group selecttoggle 1"
+				},
+				{
+					"keyset": "Ctrl+Alt+2",
+					"action": "group selecttoggle 2"
+				},
+				{
+					"keyset": "Ctrl+Alt+3",
+					"action": "group selecttoggle 3"
+				},
+				{
+					"keyset": "Ctrl+Alt+4",
+					"action": "group selecttoggle 4"
+				},
+				{
+					"keyset": "Ctrl+Alt+5",
+					"action": "group selecttoggle 5"
+				},
+				{
+					"keyset": "Ctrl+Alt+6",
+					"action": "group selecttoggle 6"
+				},
+				{
+					"keyset": "Ctrl+Alt+7",
+					"action": "group selecttoggle 7"
+				},
+				{
+					"keyset": "Ctrl+Alt+8",
+					"action": "group selecttoggle 8"
+				},
+				{
+					"keyset": "Ctrl+Alt+9",
+					"action": "group selecttoggle 9"
+				},
+				{
+					"keyset": "meta+alt+0",
+					"action": "factory_preset save 0"
+				},
+				{
+					"keyset": "meta+alt+1",
+					"action": "factory_preset save 1"
+				},
+				{
+					"keyset": "meta+alt+2",
+					"action": "factory_preset save 2"
+				},
+				{
+					"keyset": "meta+alt+3",
+					"action": "factory_preset save 3"
+				},
+				{
+					"keyset": "meta+alt+4",
+					"action": "factory_preset save 4"
+				},
+				{
+					"keyset": "meta+alt+5",
+					"action": "factory_preset save 5"
+				},
+				{
+					"keyset": "meta+alt+6",
+					"action": "factory_preset save 6"
+				},
+				{
+					"keyset": "meta+alt+7",
+					"action": "factory_preset save 7"
+				},
+				{
+					"keyset": "meta+alt+8",
+					"action": "factory_preset save 8"
+				},
+				{
+					"keyset": "meta+alt+9",
+					"action": "factory_preset save 9"
+				},
+				{
+					"keyset": "meta+0",
+					"action": "factory_preset load 0"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "factory_preset load 1"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "factory_preset load 2"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "factory_preset load 3"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "factory_preset load 4"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "factory_preset load 5"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "factory_preset load 6"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "factory_preset load 7"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "factory_preset load 8"
+				},
+				{
+					"keyset": "meta+9",
+					"action": "factory_preset load 9"
+				},
+				{
+					"keyset": "any+sc_space",
+					"action": "factory_preset_show"
+				},
+				{
+					"keyset": "Alt+sc_=",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+sc_-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+numpad+",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+numpad-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "Shift+sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Shift+sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Shift+Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "Shift+Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Shift+sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Ctrl+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Ctrl+sc_b",
+					"action": "selfd"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_b",
+					"action": "selfd queued"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "Shift+sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Shift+sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Alt+sc_f",
+					"action": "chain force forcestart | say !cv forcestart"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "stop"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "stop"
+				},
+				{
+					"keyset": "sc_h",
+					"action": "patrol"
+				},
+				{
+					"keyset": "Shift+sc_h",
+					"action": "patrol"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "unit_stats"
+				},
+				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
+				},
+				{
+					"keyset": "sc_j",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "Shift+sc_j",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "Shift+sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "Any+sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "sc_m",
+					"action": "restore"
+				},
+				{
+					"keyset": "Shift+sc_m",
+					"action": "restore"
+				},
+				{
+					"keyset": "sc_n",
+					"action": "command_skip_current"
+				},
+				{
+					"keyset": "Ctrl+sc_n",
+					"action": "command_cancel_last"
+				},
+				{
+					"keyset": "sc_o",
+					"action": "guard"
+				},
+				{
+					"keyset": "Shift+sc_o",
+					"action": "guard"
+				},
+				{
+					"keyset": "sc_p",
+					"action": "gatherwait"
+				},
+				{
+					"keyset": "Shift+sc_p",
+					"action": "gatherwait"
+				},
+				{
+					"keyset": "sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Shift+sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "sc_s",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Shift+sc_s",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Alt+sc_s",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Shift+Alt+sc_s",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Ctrl+sc_s",
+					"action": "canceltarget"
+				},
+				{
+					"keyset": "sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "Shift+sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "capture"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "capture"
+				},
+				{
+					"keyset": "sc_y",
+					"action": "wait"
+				},
+				{
+					"keyset": "Shift+sc_y",
+					"action": "wait queued"
+				},
+				{
+					"keyset": "sc_b,sc_b",
+					"action": "onoff 0"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "onoff 1"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b",
+					"action": "onoff 0"
+				},
+				{
+					"keyset": "Shift+sc_b",
+					"action": "onoff 1"
+				},
+				{
+					"keyset": "sc_b,sc_b,sc_b",
+					"action": "trajectory_toggle 1"
+				},
+				{
+					"keyset": "sc_b,sc_b",
+					"action": "trajectory_toggle 0"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "trajectory_toggle 2"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b,Shift+sc_b",
+					"action": "trajectory_toggle 1"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b",
+					"action": "trajectory_toggle 0"
+				},
+				{
+					"keyset": "Shift+sc_b",
+					"action": "trajectory_toggle 2"
+				},
+				{
+					"keyset": "sc_l,sc_l,sc_l",
+					"action": "firestate 1"
+				},
+				{
+					"keyset": "sc_l,sc_l",
+					"action": "firestate 0"
+				},
+				{
+					"keyset": "sc_l",
+					"action": "firestate 2"
+				},
+				{
+					"keyset": "Shift+sc_l,Shift+sc_l,Shift+sc_l",
+					"action": "firestate 1"
+				},
+				{
+					"keyset": "Shift+sc_l,Shift+sc_l",
+					"action": "firestate 0"
+				},
+				{
+					"keyset": "Shift+sc_l",
+					"action": "firestate 2"
+				},
+				{
+					"keyset": "sc_;,sc_;,sc_;",
+					"action": "movestate 1"
+				},
+				{
+					"keyset": "sc_;,sc_;",
+					"action": "movestate 0"
+				},
+				{
+					"keyset": "sc_;",
+					"action": "movestate 2"
+				},
+				{
+					"keyset": "Shift+sc_;,Shift+sc_;,Shift+sc_;",
+					"action": "movestate 1"
+				},
+				{
+					"keyset": "Shift+sc_;,Shift+sc_;",
+					"action": "movestate 0"
+				},
+				{
+					"keyset": "Shift+sc_;",
+					"action": "movestate 2"
+				},
+				{
+					"keyset": "sc_t,sc_t",
+					"action": "repeat 0"
+				},
+				{
+					"keyset": "sc_t",
+					"action": "repeat 1"
+				},
+				{
+					"keyset": "Shift+sc_t,Shift+sc_t",
+					"action": "repeat 0"
+				},
+				{
+					"keyset": "Shift+sc_t",
+					"action": "repeat 1"
+				},
+				{
+					"keyset": "Ctrl+sc_g,Ctrl+sc_g",
+					"action": "factoryguard 0"
+				},
+				{
+					"keyset": "Ctrl+sc_g",
+					"action": "factoryguard 1"
+				},
+				{
+					"keyset": "Any+sc_'",
+					"action": "togglelos"
+				},
+				{
+					"keyset": "Ctrl+sc_t",
+					"action": "toggleoverview"
+				},
+				{
+					"keyset": "Alt+sc_o",
+					"action": "cameraflip"
+				},
+				{
+					"keyset": "Ctrl+f5",
+					"action": "viewta"
+				},
+				{
+					"keyset": "Ctrl+f6",
+					"action": "viewspring"
+				},
+				{
+					"keyset": "Ctrl+f7",
+					"action": "HideInterface"
+				},
+				{
+					"keyset": "Any+f5",
+					"action": "LastMsgPos"
+				},
+				{
+					"keyset": "Any+f6",
+					"action": "ShowPathTraversability"
+				},
+				{
+					"keyset": "Any+f7",
+					"action": "ShowMetalMap"
+				},
+				{
+					"keyset": "Any+f8",
+					"action": "ShowElevation"
+				},
+				{
+					"keyset": "f10",
+					"action": "options"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
+					"keyset": "Any+f12",
+					"action": "screenshot png"
+				},
+				{
+					"keyset": "Ctrl+sc_`",
+					"action": "group unset"
+				},
+				{
+					"keyset": "Alt+sc_`",
+					"action": "remove_from_autogroup"
+				},
+				{
+					"keyset": "sc_`,sc_`",
+					"action": "drawlabel"
+				},
+				{
+					"keyset": "sc_`",
+					"action": "drawinmap"
+				},
+				{
+					"keyset": "Ctrl+sc_e",
+					"action": "select AllMap++_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+tab",
+					"action": "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"
+				},
+				{
+					"keyset": "Shift+tab",
+					"action": "selectcomm append"
+				},
+				{
+					"keyset": "tab",
+					"action": "selectcomm focus"
+				},
+				{
+					"keyset": "sc_q",
+					"action": "select Visible+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_q",
+					"action": "select PrevSelection++_ClearSelection_SelectPart_50+"
+				},
+				{
+					"keyset": "Ctrl+sc_w",
+					"action": "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_r",
+					"action": "select AllMap+_Transport_Idle+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_y",
+					"action": "select Visible+_Waiting+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Alt+sc_q",
+					"action": "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "numpad2",
+					"action": "moveback"
+				},
+				{
+					"keyset": "numpad6",
+					"action": "moveright"
+				},
+				{
+					"keyset": "numpad4",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "numpad8",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "numpad9",
+					"action": "moveup"
+				},
+				{
+					"keyset": "numpad3",
+					"action": "movedown"
+				},
+				{
+					"keyset": "numpad1",
+					"action": "movefast"
+				},
+				{
+					"keyset": "backspace",
+					"action": "MuteSound"
+				},
+				{
+					"keyset": "numpad+",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_=",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "numpad-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "Ctrl+F1",
+					"action": "set_camera_anchor 1"
+				},
+				{
+					"keyset": "Ctrl+F2",
+					"action": "set_camera_anchor 2"
+				},
+				{
+					"keyset": "Ctrl+F3",
+					"action": "set_camera_anchor 3"
+				},
+				{
+					"keyset": "Ctrl+F4",
+					"action": "set_camera_anchor 4"
+				},
+				{
+					"keyset": "F1",
+					"action": "focus_camera_anchor 1"
+				},
+				{
+					"keyset": "F2",
+					"action": "focus_camera_anchor 2"
+				},
+				{
+					"keyset": "F3",
+					"action": "focus_camera_anchor 3"
+				},
+				{
+					"keyset": "F4",
+					"action": "focus_camera_anchor 4"
+				},
+				{
+					"keyset": "Alt+sc_b",
+					"action": "blueprint_place"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "blueprint_create"
+				},
+				{
+					"keyset": "Alt+sc_y",
+					"action": "blueprint_delete"
+				},
+				{
+					"keyset": "Alt+sc_[",
+					"action": "blueprint_prev"
+				},
+				{
+					"keyset": "Alt+sc_]",
+					"action": "blueprint_next"
+				},
+				{
+					"keyset": "Alt+sc_g",
+					"action": "factoryqueuemode"
+				}
+			]
+		},
+		{
+			"name": "Grid (60% Keyboard)",
+			"binds": [
+				{
+					"keyset": "esc",
+					"action": "select AllMap++_ClearSelection_SelectNum_0+"
+				},
+				{
+					"keyset": "esc",
+					"action": "quitmessage"
+				},
+				{
+					"keyset": "Shift+esc",
+					"action": "quitmenu"
+				},
+				{
+					"keyset": "Ctrl+Shift+esc",
+					"action": "quitforce"
+				},
+				{
+					"keyset": "Alt+Shift+esc",
+					"action": "reloadforce"
+				},
+				{
+					"keyset": "Any+escape",
+					"action": "edit_escape"
+				},
+				{
+					"keyset": "Any+pause",
+					"action": "pause"
+				},
+				{
+					"keyset": "esc",
+					"action": "teamstatus_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "customgameinfo_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "buildmenu_pregame_deselect"
+				},
+				{
+					"keyset": "Alt+backspace",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "selectbox_same"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectbox_idle"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_append"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_any"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectbox_deselect"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "selectbox_mobile"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectloop"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectloop_invert"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectloop_add"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "buildsplit"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "commandinsert prepend_between"
+				},
+				{
+					"keyset": "alt+sc_.",
+					"action": "attack_range_inc"
+				},
+				{
+					"keyset": "alt+sc_comma",
+					"action": "attack_range_dec"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "chat"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_a",
+					"action": "chatswitchally"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_s",
+					"action": "chatswitchspec"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "edit_complete"
+				},
+				{
+					"keyset": "Any+backspace",
+					"action": "edit_backspace"
+				},
+				{
+					"keyset": "Any+delete",
+					"action": "edit_delete"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Alt+left",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Alt+right",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "edit_prev_line"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "edit_next_line"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "edit_prev_char"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "edit_next_char"
+				},
+				{
+					"keyset": "Ctrl+left",
+					"action": "edit_prev_word"
+				},
+				{
+					"keyset": "Ctrl+right",
+					"action": "edit_next_word"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "edit_return"
+				},
+				{
+					"keyset": "Ctrl+v",
+					"action": "pastetext"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "moveback"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "moveright"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "Any+pageup",
+					"action": "moveup"
+				},
+				{
+					"keyset": "Any+pagedown",
+					"action": "movedown"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "movereset"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "moverotate"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "movetilt"
+				},
+				{
+					"keyset": "ctrl+sc_o",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "ctrl+sc_p",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "sc_numpad1",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "sc_numpad7",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "Meta+ctrl+tab",
+					"action": "pip1_copy"
+				},
+				{
+					"keyset": "Meta+tab",
+					"action": "pip1_switch"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "pip1_track"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "toggle_allied_upgrade"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "gridmenu_category 1"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "gridmenu_category 2"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "gridmenu_category 3"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "gridmenu_category 4"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "gridmenu_category 1"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "gridmenu_category 2"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "gridmenu_category 3"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "gridmenu_category 4"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "gridmenu_key 1 1"
+				},
+				{
+					"keyset": "Any+sc_x",
+					"action": "gridmenu_key 1 2"
+				},
+				{
+					"keyset": "Any+sc_c",
+					"action": "gridmenu_key 1 3"
+				},
+				{
+					"keyset": "Any+sc_v",
+					"action": "gridmenu_key 1 4"
+				},
+				{
+					"keyset": "Any+sc_a",
+					"action": "gridmenu_key 2 1"
+				},
+				{
+					"keyset": "Any+sc_s",
+					"action": "gridmenu_key 2 2"
+				},
+				{
+					"keyset": "Any+sc_d",
+					"action": "gridmenu_key 2 3"
+				},
+				{
+					"keyset": "Any+sc_f",
+					"action": "gridmenu_key 2 4"
+				},
+				{
+					"keyset": "Any+sc_q",
+					"action": "gridmenu_key 3 1"
+				},
+				{
+					"keyset": "Any+sc_w",
+					"action": "gridmenu_key 3 2"
+				},
+				{
+					"keyset": "Any+sc_e",
+					"action": "gridmenu_key 3 3"
+				},
+				{
+					"keyset": "Any+sc_r",
+					"action": "gridmenu_key 3 4"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "gridmenu_next_page"
+				},
+				{
+					"keyset": "sc_.",
+					"action": "gridmenu_cycle_builder"
+				},
+				{
+					"keyset": "1",
+					"action": "specteam 0"
+				},
+				{
+					"keyset": "2",
+					"action": "specteam 1"
+				},
+				{
+					"keyset": "3",
+					"action": "specteam 2"
+				},
+				{
+					"keyset": "4",
+					"action": "specteam 3"
+				},
+				{
+					"keyset": "5",
+					"action": "specteam 4"
+				},
+				{
+					"keyset": "6",
+					"action": "specteam 5"
+				},
+				{
+					"keyset": "7",
+					"action": "specteam 6"
+				},
+				{
+					"keyset": "8",
+					"action": "specteam 7"
+				},
+				{
+					"keyset": "9",
+					"action": "specteam 8"
+				},
+				{
+					"keyset": "Alt+0",
+					"action": "add_to_autogroup 0"
+				},
+				{
+					"keyset": "Alt+1",
+					"action": "add_to_autogroup 1"
+				},
+				{
+					"keyset": "Alt+2",
+					"action": "add_to_autogroup 2"
+				},
+				{
+					"keyset": "Alt+3",
+					"action": "add_to_autogroup 3"
+				},
+				{
+					"keyset": "Alt+4",
+					"action": "add_to_autogroup 4"
+				},
+				{
+					"keyset": "Alt+5",
+					"action": "add_to_autogroup 5"
+				},
+				{
+					"keyset": "Alt+6",
+					"action": "add_to_autogroup 6"
+				},
+				{
+					"keyset": "Alt+7",
+					"action": "add_to_autogroup 7"
+				},
+				{
+					"keyset": "Alt+8",
+					"action": "add_to_autogroup 8"
+				},
+				{
+					"keyset": "Alt+9",
+					"action": "add_to_autogroup 9"
+				},
+				{
+					"keyset": "Shift+Alt+0",
+					"action": "load_autogroup_preset 0"
+				},
+				{
+					"keyset": "Shift+Alt+1",
+					"action": "load_autogroup_preset 1"
+				},
+				{
+					"keyset": "Shift+Alt+2",
+					"action": "load_autogroup_preset 2"
+				},
+				{
+					"keyset": "Shift+Alt+3",
+					"action": "load_autogroup_preset 3"
+				},
+				{
+					"keyset": "Shift+Alt+4",
+					"action": "load_autogroup_preset 4"
+				},
+				{
+					"keyset": "Shift+Alt+5",
+					"action": "load_autogroup_preset 5"
+				},
+				{
+					"keyset": "Shift+Alt+6",
+					"action": "load_autogroup_preset 6"
+				},
+				{
+					"keyset": "Shift+Alt+7",
+					"action": "load_autogroup_preset 7"
+				},
+				{
+					"keyset": "Shift+Alt+8",
+					"action": "load_autogroup_preset 8"
+				},
+				{
+					"keyset": "Shift+Alt+9",
+					"action": "load_autogroup_preset 9"
+				},
+				{
+					"keyset": "0,0",
+					"action": "group focus 0"
+				},
+				{
+					"keyset": "1,1",
+					"action": "group focus 1"
+				},
+				{
+					"keyset": "2,2",
+					"action": "group focus 2"
+				},
+				{
+					"keyset": "3,3",
+					"action": "group focus 3"
+				},
+				{
+					"keyset": "4,4",
+					"action": "group focus 4"
+				},
+				{
+					"keyset": "5,5",
+					"action": "group focus 5"
+				},
+				{
+					"keyset": "6,6",
+					"action": "group focus 6"
+				},
+				{
+					"keyset": "7,7",
+					"action": "group focus 7"
+				},
+				{
+					"keyset": "8,8",
+					"action": "group focus 8"
+				},
+				{
+					"keyset": "9,9",
+					"action": "group focus 9"
+				},
+				{
+					"keyset": "0",
+					"action": "group select 0"
+				},
+				{
+					"keyset": "1",
+					"action": "group select 1"
+				},
+				{
+					"keyset": "2",
+					"action": "group select 2"
+				},
+				{
+					"keyset": "3",
+					"action": "group select 3"
+				},
+				{
+					"keyset": "4",
+					"action": "group select 4"
+				},
+				{
+					"keyset": "5",
+					"action": "group select 5"
+				},
+				{
+					"keyset": "6",
+					"action": "group select 6"
+				},
+				{
+					"keyset": "7",
+					"action": "group select 7"
+				},
+				{
+					"keyset": "8",
+					"action": "group select 8"
+				},
+				{
+					"keyset": "9",
+					"action": "group select 9"
+				},
+				{
+					"keyset": "Ctrl+0",
+					"action": "group set 0"
+				},
+				{
+					"keyset": "Ctrl+1",
+					"action": "group set 1"
+				},
+				{
+					"keyset": "Ctrl+2",
+					"action": "group set 2"
+				},
+				{
+					"keyset": "Ctrl+3",
+					"action": "group set 3"
+				},
+				{
+					"keyset": "Ctrl+4",
+					"action": "group set 4"
+				},
+				{
+					"keyset": "Ctrl+5",
+					"action": "group set 5"
+				},
+				{
+					"keyset": "Ctrl+6",
+					"action": "group set 6"
+				},
+				{
+					"keyset": "Ctrl+7",
+					"action": "group set 7"
+				},
+				{
+					"keyset": "Ctrl+8",
+					"action": "group set 8"
+				},
+				{
+					"keyset": "Ctrl+9",
+					"action": "group set 9"
+				},
+				{
+					"keyset": "Shift+0",
+					"action": "group selectadd 0"
+				},
+				{
+					"keyset": "Shift+1",
+					"action": "group selectadd 1"
+				},
+				{
+					"keyset": "Shift+2",
+					"action": "group selectadd 2"
+				},
+				{
+					"keyset": "Shift+3",
+					"action": "group selectadd 3"
+				},
+				{
+					"keyset": "Shift+4",
+					"action": "group selectadd 4"
+				},
+				{
+					"keyset": "Shift+5",
+					"action": "group selectadd 5"
+				},
+				{
+					"keyset": "Shift+6",
+					"action": "group selectadd 6"
+				},
+				{
+					"keyset": "Shift+7",
+					"action": "group selectadd 7"
+				},
+				{
+					"keyset": "Shift+8",
+					"action": "group selectadd 8"
+				},
+				{
+					"keyset": "Shift+9",
+					"action": "group selectadd 9"
+				},
+				{
+					"keyset": "Ctrl+Shift+0",
+					"action": "group add 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+1",
+					"action": "group add 1"
+				},
+				{
+					"keyset": "Ctrl+Shift+2",
+					"action": "group add 2"
+				},
+				{
+					"keyset": "Ctrl+Shift+3",
+					"action": "group add 3"
+				},
+				{
+					"keyset": "Ctrl+Shift+4",
+					"action": "group add 4"
+				},
+				{
+					"keyset": "Ctrl+Shift+5",
+					"action": "group add 5"
+				},
+				{
+					"keyset": "Ctrl+Shift+6",
+					"action": "group add 6"
+				},
+				{
+					"keyset": "Ctrl+Shift+7",
+					"action": "group add 7"
+				},
+				{
+					"keyset": "Ctrl+Shift+8",
+					"action": "group add 8"
+				},
+				{
+					"keyset": "Ctrl+Shift+9",
+					"action": "group add 9"
+				},
+				{
+					"keyset": "Ctrl+Alt+0",
+					"action": "group selecttoggle 0"
+				},
+				{
+					"keyset": "Ctrl+Alt+1",
+					"action": "group selecttoggle 1"
+				},
+				{
+					"keyset": "Ctrl+Alt+2",
+					"action": "group selecttoggle 2"
+				},
+				{
+					"keyset": "Ctrl+Alt+3",
+					"action": "group selecttoggle 3"
+				},
+				{
+					"keyset": "Ctrl+Alt+4",
+					"action": "group selecttoggle 4"
+				},
+				{
+					"keyset": "Ctrl+Alt+5",
+					"action": "group selecttoggle 5"
+				},
+				{
+					"keyset": "Ctrl+Alt+6",
+					"action": "group selecttoggle 6"
+				},
+				{
+					"keyset": "Ctrl+Alt+7",
+					"action": "group selecttoggle 7"
+				},
+				{
+					"keyset": "Ctrl+Alt+8",
+					"action": "group selecttoggle 8"
+				},
+				{
+					"keyset": "Ctrl+Alt+9",
+					"action": "group selecttoggle 9"
+				},
+				{
+					"keyset": "Alt+sc_=",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+sc_-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+numpad+",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+numpad-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "Shift+sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Shift+sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Shift+Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "Shift+Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Shift+sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Ctrl+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Ctrl+sc_b",
+					"action": "selfd"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_b",
+					"action": "selfd queued"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "Shift+sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Shift+sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Alt+sc_f",
+					"action": "chain force forcestart | say !cv forcestart"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "stop"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "stop"
+				},
+				{
+					"keyset": "sc_h",
+					"action": "patrol"
+				},
+				{
+					"keyset": "Shift+sc_h",
+					"action": "patrol"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "unit_stats"
+				},
+				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
+				},
+				{
+					"keyset": "sc_j",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "Shift+sc_j",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "Shift+sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "Any+sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "sc_m",
+					"action": "restore"
+				},
+				{
+					"keyset": "Shift+sc_m",
+					"action": "restore"
+				},
+				{
+					"keyset": "sc_n",
+					"action": "command_skip_current"
+				},
+				{
+					"keyset": "Ctrl+sc_n",
+					"action": "command_cancel_last"
+				},
+				{
+					"keyset": "sc_p",
+					"action": "gatherwait"
+				},
+				{
+					"keyset": "Shift+sc_p",
+					"action": "gatherwait"
+				},
+				{
+					"keyset": "sc_o",
+					"action": "guard"
+				},
+				{
+					"keyset": "Shift+sc_o",
+					"action": "guard"
+				},
+				{
+					"keyset": "sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Shift+sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "sc_s",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Shift+sc_s",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Alt+sc_s",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Shift+Alt+sc_s",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Ctrl+sc_s",
+					"action": "canceltarget"
+				},
+				{
+					"keyset": "sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "Shift+sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "capture"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "capture"
+				},
+				{
+					"keyset": "sc_y",
+					"action": "wait"
+				},
+				{
+					"keyset": "Shift+sc_y",
+					"action": "wait queued"
+				},
+				{
+					"keyset": "sc_b,sc_b",
+					"action": "onoff 0"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "onoff 1"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b",
+					"action": "onoff 0"
+				},
+				{
+					"keyset": "Shift+sc_b",
+					"action": "onoff 1"
+				},
+				{
+					"keyset": "sc_b,sc_b,sc_b",
+					"action": "trajectory_toggle 1"
+				},
+				{
+					"keyset": "sc_b,sc_b",
+					"action": "trajectory_toggle 0"
+				},
+				{
+					"keyset": "sc_b",
+					"action": "trajectory_toggle 2"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b,Shift+sc_b",
+					"action": "trajectory_toggle 1"
+				},
+				{
+					"keyset": "Shift+sc_b,Shift+sc_b",
+					"action": "trajectory_toggle 0"
+				},
+				{
+					"keyset": "Shift+sc_b",
+					"action": "trajectory_toggle 2"
+				},
+				{
+					"keyset": "sc_l,sc_l,sc_l",
+					"action": "firestate 1"
+				},
+				{
+					"keyset": "sc_l,sc_l",
+					"action": "firestate 0"
+				},
+				{
+					"keyset": "sc_l",
+					"action": "firestate 2"
+				},
+				{
+					"keyset": "Shift+sc_l,Shift+sc_l,Shift+sc_l",
+					"action": "firestate 1"
+				},
+				{
+					"keyset": "Shift+sc_l,Shift+sc_l",
+					"action": "firestate 0"
+				},
+				{
+					"keyset": "Shift+sc_l",
+					"action": "firestate 2"
+				},
+				{
+					"keyset": "sc_;,sc_;,sc_;",
+					"action": "movestate 1"
+				},
+				{
+					"keyset": "sc_;,sc_;",
+					"action": "movestate 0"
+				},
+				{
+					"keyset": "sc_;",
+					"action": "movestate 2"
+				},
+				{
+					"keyset": "Shift+sc_;,Shift+sc_;,Shift+sc_;",
+					"action": "movestate 1"
+				},
+				{
+					"keyset": "Shift+sc_;,Shift+sc_;",
+					"action": "movestate 0"
+				},
+				{
+					"keyset": "Shift+sc_;",
+					"action": "movestate 2"
+				},
+				{
+					"keyset": "sc_t,sc_t",
+					"action": "repeat 0"
+				},
+				{
+					"keyset": "sc_t",
+					"action": "repeat 1"
+				},
+				{
+					"keyset": "Shift+sc_t,Shift+sc_t",
+					"action": "repeat 0"
+				},
+				{
+					"keyset": "Shift+sc_t",
+					"action": "repeat 1"
+				},
+				{
+					"keyset": "Ctrl+sc_g,Ctrl+sc_g",
+					"action": "factoryguard 0"
+				},
+				{
+					"keyset": "Ctrl+sc_g",
+					"action": "factoryguard 1"
+				},
+				{
+					"keyset": "Any+sc_'",
+					"action": "togglelos"
+				},
+				{
+					"keyset": "Ctrl+sc_t",
+					"action": "toggleoverview"
+				},
+				{
+					"keyset": "Alt+sc_o",
+					"action": "cameraflip"
+				},
+				{
+					"keyset": "Ctrl+meta+5",
+					"action": "viewta"
+				},
+				{
+					"keyset": "Ctrl+meta+6",
+					"action": "viewspring"
+				},
+				{
+					"keyset": "Ctrl+meta+7",
+					"action": "HideInterface"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "LastMsgPos"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "ShowPathTraversability"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "ShowMetalMap"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "ShowElevation"
+				},
+				{
+					"keyset": "f10",
+					"action": "options"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
+					"keyset": "Any+f12",
+					"action": "screenshot png"
+				},
+				{
+					"keyset": "Ctrl+meta+sc_q",
+					"action": "group unset"
+				},
+				{
+					"keyset": "Alt+sc_q",
+					"action": "remove_from_autogroup"
+				},
+				{
+					"keyset": "meta+sc_q,meta+sc_q",
+					"action": "drawlabel"
+				},
+				{
+					"keyset": "meta+sc_q",
+					"action": "drawinmap"
+				},
+				{
+					"keyset": "Ctrl+sc_e",
+					"action": "select AllMap++_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+tab",
+					"action": "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"
+				},
+				{
+					"keyset": "Shift+tab",
+					"action": "selectcomm append"
+				},
+				{
+					"keyset": "tab",
+					"action": "selectcomm focus"
+				},
+				{
+					"keyset": "sc_q",
+					"action": "select Visible+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_q",
+					"action": "select PrevSelection++_ClearSelection_SelectPart_50+"
+				},
+				{
+					"keyset": "Ctrl+sc_w",
+					"action": "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_r",
+					"action": "select AllMap+_Transport_Idle+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_y",
+					"action": "select Visible+_Waiting+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+Alt+sc_q",
+					"action": "select PrevSelection+_Not_Building_Not_RelativeHealth_60+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "numpad2",
+					"action": "moveback"
+				},
+				{
+					"keyset": "numpad6",
+					"action": "moveright"
+				},
+				{
+					"keyset": "numpad4",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "numpad8",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "numpad9",
+					"action": "moveup"
+				},
+				{
+					"keyset": "numpad3",
+					"action": "movedown"
+				},
+				{
+					"keyset": "numpad1",
+					"action": "movefast"
+				},
+				{
+					"keyset": "backspace",
+					"action": "MuteSound"
+				},
+				{
+					"keyset": "numpad+",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_=",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "numpad-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "Ctrl+meta+1",
+					"action": "set_camera_anchor 1"
+				},
+				{
+					"keyset": "Ctrl+meta+2",
+					"action": "set_camera_anchor 2"
+				},
+				{
+					"keyset": "Ctrl+meta+3",
+					"action": "set_camera_anchor 3"
+				},
+				{
+					"keyset": "Ctrl+meta+4",
+					"action": "set_camera_anchor 4"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "focus_camera_anchor 1"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "focus_camera_anchor 2"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "focus_camera_anchor 3"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "focus_camera_anchor 4"
+				},
+				{
+					"keyset": "Alt+sc_b",
+					"action": "blueprint_place"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "blueprint_create"
+				},
+				{
+					"keyset": "Alt+sc_y",
+					"action": "blueprint_delete"
+				},
+				{
+					"keyset": "Alt+sc_[",
+					"action": "blueprint_prev"
+				},
+				{
+					"keyset": "Alt+sc_]",
+					"action": "blueprint_next"
+				}
+			]
+		}
+	],
+	"retired": [
+		{
+			"name": "Legacy",
+			"binds": [
+				{
+					"keyset": "esc",
+					"action": "select AllMap++_ClearSelection_SelectNum_0+"
+				},
+				{
+					"keyset": "esc",
+					"action": "quitmessage"
+				},
+				{
+					"keyset": "Shift+esc",
+					"action": "quitmenu"
+				},
+				{
+					"keyset": "Ctrl+Shift+esc",
+					"action": "quitforce"
+				},
+				{
+					"keyset": "Alt+Shift+esc",
+					"action": "reloadforce"
+				},
+				{
+					"keyset": "Any+escape",
+					"action": "edit_escape"
+				},
+				{
+					"keyset": "Any+pause",
+					"action": "pause"
+				},
+				{
+					"keyset": "esc",
+					"action": "teamstatus_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "customgameinfo_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "buildmenu_pregame_deselect"
+				},
+				{
+					"keyset": "Alt+backspace",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "selectbox_same"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectbox_idle"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_append"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_any"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectbox_deselect"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "selectbox_mobile"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectloop"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectloop_invert"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectloop_add"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "buildsplit"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "commandinsert prepend_between"
+				},
+				{
+					"keyset": "alt+sc_.",
+					"action": "attack_range_inc"
+				},
+				{
+					"keyset": "alt+sc_comma",
+					"action": "attack_range_dec"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "chat"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_a",
+					"action": "chatswitchally"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_s",
+					"action": "chatswitchspec"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "edit_complete"
+				},
+				{
+					"keyset": "Any+backspace",
+					"action": "edit_backspace"
+				},
+				{
+					"keyset": "Any+delete",
+					"action": "edit_delete"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Alt+left",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Alt+right",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "edit_prev_line"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "edit_next_line"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "edit_prev_char"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "edit_next_char"
+				},
+				{
+					"keyset": "Ctrl+left",
+					"action": "edit_prev_word"
+				},
+				{
+					"keyset": "Ctrl+right",
+					"action": "edit_next_word"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "edit_return"
+				},
+				{
+					"keyset": "Ctrl+v",
+					"action": "pastetext"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "moveback"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "moveright"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "Any+pageup",
+					"action": "moveup"
+				},
+				{
+					"keyset": "Any+pagedown",
+					"action": "movedown"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "movereset"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "moverotate"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "movetilt"
+				},
+				{
+					"keyset": "ctrl+sc_o",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "ctrl+sc_p",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "sc_numpad1",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "sc_numpad7",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "Meta+ctrl+tab",
+					"action": "pip1_copy"
+				},
+				{
+					"keyset": "Meta+tab",
+					"action": "pip1_switch"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "pip1_track"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "toggle_allied_upgrade"
+				},
+				{
+					"keyset": "1",
+					"action": "specteam 0"
+				},
+				{
+					"keyset": "2",
+					"action": "specteam 1"
+				},
+				{
+					"keyset": "3",
+					"action": "specteam 2"
+				},
+				{
+					"keyset": "4",
+					"action": "specteam 3"
+				},
+				{
+					"keyset": "5",
+					"action": "specteam 4"
+				},
+				{
+					"keyset": "6",
+					"action": "specteam 5"
+				},
+				{
+					"keyset": "7",
+					"action": "specteam 6"
+				},
+				{
+					"keyset": "8",
+					"action": "specteam 7"
+				},
+				{
+					"keyset": "9",
+					"action": "specteam 8"
+				},
+				{
+					"keyset": "Alt+0",
+					"action": "add_to_autogroup 0"
+				},
+				{
+					"keyset": "Alt+1",
+					"action": "add_to_autogroup 1"
+				},
+				{
+					"keyset": "Alt+2",
+					"action": "add_to_autogroup 2"
+				},
+				{
+					"keyset": "Alt+3",
+					"action": "add_to_autogroup 3"
+				},
+				{
+					"keyset": "Alt+4",
+					"action": "add_to_autogroup 4"
+				},
+				{
+					"keyset": "Alt+5",
+					"action": "add_to_autogroup 5"
+				},
+				{
+					"keyset": "Alt+6",
+					"action": "add_to_autogroup 6"
+				},
+				{
+					"keyset": "Alt+7",
+					"action": "add_to_autogroup 7"
+				},
+				{
+					"keyset": "Alt+8",
+					"action": "add_to_autogroup 8"
+				},
+				{
+					"keyset": "Alt+9",
+					"action": "add_to_autogroup 9"
+				},
+				{
+					"keyset": "Shift+Alt+0",
+					"action": "load_autogroup_preset 0"
+				},
+				{
+					"keyset": "Shift+Alt+1",
+					"action": "load_autogroup_preset 1"
+				},
+				{
+					"keyset": "Shift+Alt+2",
+					"action": "load_autogroup_preset 2"
+				},
+				{
+					"keyset": "Shift+Alt+3",
+					"action": "load_autogroup_preset 3"
+				},
+				{
+					"keyset": "Shift+Alt+4",
+					"action": "load_autogroup_preset 4"
+				},
+				{
+					"keyset": "Shift+Alt+5",
+					"action": "load_autogroup_preset 5"
+				},
+				{
+					"keyset": "Shift+Alt+6",
+					"action": "load_autogroup_preset 6"
+				},
+				{
+					"keyset": "Shift+Alt+7",
+					"action": "load_autogroup_preset 7"
+				},
+				{
+					"keyset": "Shift+Alt+8",
+					"action": "load_autogroup_preset 8"
+				},
+				{
+					"keyset": "Shift+Alt+9",
+					"action": "load_autogroup_preset 9"
+				},
+				{
+					"keyset": "0,0",
+					"action": "group focus 0"
+				},
+				{
+					"keyset": "1,1",
+					"action": "group focus 1"
+				},
+				{
+					"keyset": "2,2",
+					"action": "group focus 2"
+				},
+				{
+					"keyset": "3,3",
+					"action": "group focus 3"
+				},
+				{
+					"keyset": "4,4",
+					"action": "group focus 4"
+				},
+				{
+					"keyset": "5,5",
+					"action": "group focus 5"
+				},
+				{
+					"keyset": "6,6",
+					"action": "group focus 6"
+				},
+				{
+					"keyset": "7,7",
+					"action": "group focus 7"
+				},
+				{
+					"keyset": "8,8",
+					"action": "group focus 8"
+				},
+				{
+					"keyset": "9,9",
+					"action": "group focus 9"
+				},
+				{
+					"keyset": "0",
+					"action": "group select 0"
+				},
+				{
+					"keyset": "1",
+					"action": "group select 1"
+				},
+				{
+					"keyset": "2",
+					"action": "group select 2"
+				},
+				{
+					"keyset": "3",
+					"action": "group select 3"
+				},
+				{
+					"keyset": "4",
+					"action": "group select 4"
+				},
+				{
+					"keyset": "5",
+					"action": "group select 5"
+				},
+				{
+					"keyset": "6",
+					"action": "group select 6"
+				},
+				{
+					"keyset": "7",
+					"action": "group select 7"
+				},
+				{
+					"keyset": "8",
+					"action": "group select 8"
+				},
+				{
+					"keyset": "9",
+					"action": "group select 9"
+				},
+				{
+					"keyset": "Ctrl+0",
+					"action": "group set 0"
+				},
+				{
+					"keyset": "Ctrl+1",
+					"action": "group set 1"
+				},
+				{
+					"keyset": "Ctrl+2",
+					"action": "group set 2"
+				},
+				{
+					"keyset": "Ctrl+3",
+					"action": "group set 3"
+				},
+				{
+					"keyset": "Ctrl+4",
+					"action": "group set 4"
+				},
+				{
+					"keyset": "Ctrl+5",
+					"action": "group set 5"
+				},
+				{
+					"keyset": "Ctrl+6",
+					"action": "group set 6"
+				},
+				{
+					"keyset": "Ctrl+7",
+					"action": "group set 7"
+				},
+				{
+					"keyset": "Ctrl+8",
+					"action": "group set 8"
+				},
+				{
+					"keyset": "Ctrl+9",
+					"action": "group set 9"
+				},
+				{
+					"keyset": "Shift+0",
+					"action": "group selectadd 0"
+				},
+				{
+					"keyset": "Shift+1",
+					"action": "group selectadd 1"
+				},
+				{
+					"keyset": "Shift+2",
+					"action": "group selectadd 2"
+				},
+				{
+					"keyset": "Shift+3",
+					"action": "group selectadd 3"
+				},
+				{
+					"keyset": "Shift+4",
+					"action": "group selectadd 4"
+				},
+				{
+					"keyset": "Shift+5",
+					"action": "group selectadd 5"
+				},
+				{
+					"keyset": "Shift+6",
+					"action": "group selectadd 6"
+				},
+				{
+					"keyset": "Shift+7",
+					"action": "group selectadd 7"
+				},
+				{
+					"keyset": "Shift+8",
+					"action": "group selectadd 8"
+				},
+				{
+					"keyset": "Shift+9",
+					"action": "group selectadd 9"
+				},
+				{
+					"keyset": "Ctrl+Shift+0",
+					"action": "group add 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+1",
+					"action": "group add 1"
+				},
+				{
+					"keyset": "Ctrl+Shift+2",
+					"action": "group add 2"
+				},
+				{
+					"keyset": "Ctrl+Shift+3",
+					"action": "group add 3"
+				},
+				{
+					"keyset": "Ctrl+Shift+4",
+					"action": "group add 4"
+				},
+				{
+					"keyset": "Ctrl+Shift+5",
+					"action": "group add 5"
+				},
+				{
+					"keyset": "Ctrl+Shift+6",
+					"action": "group add 6"
+				},
+				{
+					"keyset": "Ctrl+Shift+7",
+					"action": "group add 7"
+				},
+				{
+					"keyset": "Ctrl+Shift+8",
+					"action": "group add 8"
+				},
+				{
+					"keyset": "Ctrl+Shift+9",
+					"action": "group add 9"
+				},
+				{
+					"keyset": "Ctrl+Alt+0",
+					"action": "group selecttoggle 0"
+				},
+				{
+					"keyset": "Ctrl+Alt+1",
+					"action": "group selecttoggle 1"
+				},
+				{
+					"keyset": "Ctrl+Alt+2",
+					"action": "group selecttoggle 2"
+				},
+				{
+					"keyset": "Ctrl+Alt+3",
+					"action": "group selecttoggle 3"
+				},
+				{
+					"keyset": "Ctrl+Alt+4",
+					"action": "group selecttoggle 4"
+				},
+				{
+					"keyset": "Ctrl+Alt+5",
+					"action": "group selecttoggle 5"
+				},
+				{
+					"keyset": "Ctrl+Alt+6",
+					"action": "group selecttoggle 6"
+				},
+				{
+					"keyset": "Ctrl+Alt+7",
+					"action": "group selecttoggle 7"
+				},
+				{
+					"keyset": "Ctrl+Alt+8",
+					"action": "group selecttoggle 8"
+				},
+				{
+					"keyset": "Ctrl+Alt+9",
+					"action": "group selecttoggle 9"
+				},
+				{
+					"keyset": "meta+alt+0",
+					"action": "factory_preset save 0"
+				},
+				{
+					"keyset": "meta+alt+1",
+					"action": "factory_preset save 1"
+				},
+				{
+					"keyset": "meta+alt+2",
+					"action": "factory_preset save 2"
+				},
+				{
+					"keyset": "meta+alt+3",
+					"action": "factory_preset save 3"
+				},
+				{
+					"keyset": "meta+alt+4",
+					"action": "factory_preset save 4"
+				},
+				{
+					"keyset": "meta+alt+5",
+					"action": "factory_preset save 5"
+				},
+				{
+					"keyset": "meta+alt+6",
+					"action": "factory_preset save 6"
+				},
+				{
+					"keyset": "meta+alt+7",
+					"action": "factory_preset save 7"
+				},
+				{
+					"keyset": "meta+alt+8",
+					"action": "factory_preset save 8"
+				},
+				{
+					"keyset": "meta+alt+9",
+					"action": "factory_preset save 9"
+				},
+				{
+					"keyset": "meta+0",
+					"action": "factory_preset load 0"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "factory_preset load 1"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "factory_preset load 2"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "factory_preset load 3"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "factory_preset load 4"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "factory_preset load 5"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "factory_preset load 6"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "factory_preset load 7"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "factory_preset load 8"
+				},
+				{
+					"keyset": "meta+9",
+					"action": "factory_preset load 9"
+				},
+				{
+					"keyset": "any+sc_space",
+					"action": "factory_preset_show"
+				},
+				{
+					"keyset": "Any+sc_h",
+					"action": "sharedialog"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
+				},
+				{
+					"keyset": "Shift+backspace",
+					"action": "togglecammode"
+				},
+				{
+					"keyset": "Ctrl+backspace",
+					"action": "togglecammode"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "toggleoverview"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "increaseViewRadius"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "decreaseViewRadius"
+				},
+				{
+					"keyset": "Alt+insert",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+delete",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+sc_=",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+sc_-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+numpad+",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+numpad-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "Shift+sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Shift+sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Shift+Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "Shift+Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Shift+sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Alt+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Alt+Shift+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Ctrl+sc_d",
+					"action": "selfd"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_d",
+					"action": "selfd queued"
+				},
+				{
+					"keyset": "sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "Shift+sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Shift+sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Alt+sc_f",
+					"action": "chain force forcestart | say !cv forcestart"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "guard"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "guard"
+				},
+				{
+					"keyset": "sc_j",
+					"action": "canceltarget"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "Shift+sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "Any+sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "sc_l",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "Shift+sc_l",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "sc_m",
+					"action": "move"
+				},
+				{
+					"keyset": "Shift+sc_m",
+					"action": "move"
+				},
+				{
+					"keyset": "sc_n",
+					"action": "command_skip_current"
+				},
+				{
+					"keyset": "Ctrl+sc_n",
+					"action": "command_cancel_last"
+				},
+				{
+					"keyset": "sc_p",
+					"action": "patrol"
+				},
+				{
+					"keyset": "Shift+sc_p",
+					"action": "patrol"
+				},
+				{
+					"keyset": "sc_q,sc_q",
+					"action": "drawlabel"
+				},
+				{
+					"keyset": "sc_q",
+					"action": "drawinmap"
+				},
+				{
+					"keyset": "sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Shift+sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Ctrl+sc_r",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "sc_s",
+					"action": "stop"
+				},
+				{
+					"keyset": "Shift+sc_s",
+					"action": "stop"
+				},
+				{
+					"keyset": "Ctrl+sc_s",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "Shift+sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "wait"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "wait queued"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "onoff"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "onoff"
+				},
+				{
+					"keyset": "Any+sc_l",
+					"action": "togglelos"
+				},
+				{
+					"keyset": "Ctrl+sc_t",
+					"action": "trackmode"
+				},
+				{
+					"keyset": "Any+sc_t",
+					"action": "track"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "moveslow"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "movefast"
+				},
+				{
+					"keyset": "Ctrl+f1",
+					"action": "viewfps"
+				},
+				{
+					"keyset": "Ctrl+f2",
+					"action": "viewta"
+				},
+				{
+					"keyset": "Ctrl+f3",
+					"action": "viewspring"
+				},
+				{
+					"keyset": "Ctrl+f4",
+					"action": "viewrot"
+				},
+				{
+					"keyset": "Ctrl+f5",
+					"action": "viewfree"
+				},
+				{
+					"keyset": "Any+f1",
+					"action": "ShowElevation"
+				},
+				{
+					"keyset": "Any+f2",
+					"action": "ShowPathTraversability"
+				},
+				{
+					"keyset": "Any+f3",
+					"action": "LastMsgPos"
+				},
+				{
+					"keyset": "Any+f4",
+					"action": "ShowMetalMap"
+				},
+				{
+					"keyset": "Any+f5",
+					"action": "HideInterface"
+				},
+				{
+					"keyset": "Any+f6",
+					"action": "MuteSound"
+				},
+				{
+					"keyset": "Any+f7",
+					"action": "DynamicSky"
+				},
+				{
+					"keyset": "f10",
+					"action": "options"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
+					"keyset": "Any+f12",
+					"action": "screenshot png"
+				},
+				{
+					"keyset": "Ctrl+Shift+f8",
+					"action": "savegame"
+				},
+				{
+					"keyset": "Alt+enter",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "sc_`,sc_`",
+					"action": "drawlabel"
+				},
+				{
+					"keyset": "sc_`",
+					"action": "drawinmap"
+				},
+				{
+					"keyset": "Ctrl+sc_a",
+					"action": "select AllMap++_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_b",
+					"action": "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"
+				},
+				{
+					"keyset": "Ctrl+sc_c",
+					"action": "selectcomm focus"
+				},
+				{
+					"keyset": "Ctrl+sc_v",
+					"action": "select AllMap+_Not_Builder_InPrevSel_Not_InHotkeyGroup+_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_w",
+					"action": "select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_x",
+					"action": "select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_z",
+					"action": "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armmex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armmex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armamex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armamex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmext15"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmext15"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_corexp"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_corexp"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armmoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armmoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormexp"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormexp"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_coruwmme"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_coruwmme"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armuwmme"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armuwmme"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "Ctrl+Alt+sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armadvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armadvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coradvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coradvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legadvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legadvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armmmkr"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armmmkr"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_cormmkr"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_cormmkr"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legadveconv"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legadveconv"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armtide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armtide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_cortide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_cortide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legtide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legtide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armuwfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armuwfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coruwfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coruwfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armuwmmm"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armuwmmm"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coruwmmm"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coruwmmm"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armllt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armllt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corllt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corllt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_leglht"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_leglht"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armpb"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armpb"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corvipe"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corvipe"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legapopupdef"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legapopupdef"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armgplat"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armgplat"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corgplat"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corgplat"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armtl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armtl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_cortl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_cortl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legtl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legtl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armsonar"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armsonar"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corsonar"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corsonar"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armfrt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armfrt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corfrt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corfrt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legfrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legfrl"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armnanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armnanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armnanotcplat"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armnanotcplat"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_cornanotcplat"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_cornanotcplat"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armlab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armlab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_cornanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_cornanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corlab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corlab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legnanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legnanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_leglab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_leglab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armsy"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corsy"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legsy"
+				},
+				{
+					"keyset": "numpad2",
+					"action": "moveback"
+				},
+				{
+					"keyset": "numpad6",
+					"action": "moveright"
+				},
+				{
+					"keyset": "numpad4",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "numpad8",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "numpad9",
+					"action": "moveup"
+				},
+				{
+					"keyset": "numpad3",
+					"action": "movedown"
+				},
+				{
+					"keyset": "numpad1",
+					"action": "movefast"
+				},
+				{
+					"keyset": "numpad+",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_=",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "numpad-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "Any+sc_;",
+					"action": "losradar"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "unit_stats"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_o",
+					"action": "cameraflip"
+				},
+				{
+					"keyset": "Alt+sc_y",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Shift+Alt+sc_y",
+					"action": "settarget"
+				},
+				{
+					"keyset": "sc_y",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Shift+sc_y",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Ctrl+sc_`",
+					"action": "group unset"
+				},
+				{
+					"keyset": "Alt+sc_`",
+					"action": "remove_from_autogroup"
+				},
+				{
+					"keyset": "Alt+sc_b",
+					"action": "blueprint_place"
+				},
+				{
+					"keyset": "Alt+sc_c",
+					"action": "blueprint_create"
+				},
+				{
+					"keyset": "Alt+sc_d",
+					"action": "blueprint_delete"
+				},
+				{
+					"keyset": "Alt+sc_[",
+					"action": "blueprint_prev"
+				},
+				{
+					"keyset": "Alt+sc_]",
+					"action": "blueprint_next"
+				},
+				{
+					"keyset": "Alt+sc_g",
+					"action": "factoryqueuemode"
+				}
+			]
+		},
+		{
+			"name": "Legacy (60% Keyboard)",
+			"binds": [
+				{
+					"keyset": "esc",
+					"action": "select AllMap++_ClearSelection_SelectNum_0+"
+				},
+				{
+					"keyset": "esc",
+					"action": "quitmessage"
+				},
+				{
+					"keyset": "Shift+esc",
+					"action": "quitmenu"
+				},
+				{
+					"keyset": "Ctrl+Shift+esc",
+					"action": "quitforce"
+				},
+				{
+					"keyset": "Alt+Shift+esc",
+					"action": "reloadforce"
+				},
+				{
+					"keyset": "Any+escape",
+					"action": "edit_escape"
+				},
+				{
+					"keyset": "Any+pause",
+					"action": "pause"
+				},
+				{
+					"keyset": "esc",
+					"action": "teamstatus_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "customgameinfo_close"
+				},
+				{
+					"keyset": "esc",
+					"action": "buildmenu_pregame_deselect"
+				},
+				{
+					"keyset": "Alt+backspace",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "Any+sc_z",
+					"action": "selectbox_same"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectbox_idle"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_append"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectbox_any"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectbox_deselect"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "selectbox_mobile"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "selectloop"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "selectloop_invert"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "selectloop_add"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "buildsplit"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "commandinsert prepend_between"
+				},
+				{
+					"keyset": "alt+sc_.",
+					"action": "attack_range_inc"
+				},
+				{
+					"keyset": "alt+sc_comma",
+					"action": "attack_range_dec"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "chat"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_a",
+					"action": "chatswitchally"
+				},
+				{
+					"keyset": "Alt+ctrl+sc_s",
+					"action": "chatswitchspec"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "edit_complete"
+				},
+				{
+					"keyset": "Any+backspace",
+					"action": "edit_backspace"
+				},
+				{
+					"keyset": "Any+delete",
+					"action": "edit_delete"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Alt+left",
+					"action": "edit_home"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Alt+right",
+					"action": "edit_end"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "edit_prev_line"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "edit_next_line"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "edit_prev_char"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "edit_next_char"
+				},
+				{
+					"keyset": "Ctrl+left",
+					"action": "edit_prev_word"
+				},
+				{
+					"keyset": "Ctrl+right",
+					"action": "edit_next_word"
+				},
+				{
+					"keyset": "Any+enter",
+					"action": "edit_return"
+				},
+				{
+					"keyset": "Ctrl+v",
+					"action": "pastetext"
+				},
+				{
+					"keyset": "Any+up",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "Any+down",
+					"action": "moveback"
+				},
+				{
+					"keyset": "Any+right",
+					"action": "moveright"
+				},
+				{
+					"keyset": "Any+left",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "Any+pageup",
+					"action": "moveup"
+				},
+				{
+					"keyset": "Any+pagedown",
+					"action": "movedown"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "movereset"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "moverotate"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "movetilt"
+				},
+				{
+					"keyset": "ctrl+sc_o",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "ctrl+sc_p",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "sc_numpad1",
+					"action": "fov_dec 5"
+				},
+				{
+					"keyset": "sc_numpad7",
+					"action": "fov_inc 5"
+				},
+				{
+					"keyset": "Meta+ctrl+tab",
+					"action": "pip1_copy"
+				},
+				{
+					"keyset": "Meta+tab",
+					"action": "pip1_switch"
+				},
+				{
+					"keyset": "Alt+sc_t",
+					"action": "pip1_track"
+				},
+				{
+					"keyset": "Any+alt",
+					"action": "toggle_allied_upgrade"
+				},
+				{
+					"keyset": "1",
+					"action": "specteam 0"
+				},
+				{
+					"keyset": "2",
+					"action": "specteam 1"
+				},
+				{
+					"keyset": "3",
+					"action": "specteam 2"
+				},
+				{
+					"keyset": "4",
+					"action": "specteam 3"
+				},
+				{
+					"keyset": "5",
+					"action": "specteam 4"
+				},
+				{
+					"keyset": "6",
+					"action": "specteam 5"
+				},
+				{
+					"keyset": "7",
+					"action": "specteam 6"
+				},
+				{
+					"keyset": "8",
+					"action": "specteam 7"
+				},
+				{
+					"keyset": "9",
+					"action": "specteam 8"
+				},
+				{
+					"keyset": "Alt+0",
+					"action": "add_to_autogroup 0"
+				},
+				{
+					"keyset": "Alt+1",
+					"action": "add_to_autogroup 1"
+				},
+				{
+					"keyset": "Alt+2",
+					"action": "add_to_autogroup 2"
+				},
+				{
+					"keyset": "Alt+3",
+					"action": "add_to_autogroup 3"
+				},
+				{
+					"keyset": "Alt+4",
+					"action": "add_to_autogroup 4"
+				},
+				{
+					"keyset": "Alt+5",
+					"action": "add_to_autogroup 5"
+				},
+				{
+					"keyset": "Alt+6",
+					"action": "add_to_autogroup 6"
+				},
+				{
+					"keyset": "Alt+7",
+					"action": "add_to_autogroup 7"
+				},
+				{
+					"keyset": "Alt+8",
+					"action": "add_to_autogroup 8"
+				},
+				{
+					"keyset": "Alt+9",
+					"action": "add_to_autogroup 9"
+				},
+				{
+					"keyset": "Shift+Alt+0",
+					"action": "load_autogroup_preset 0"
+				},
+				{
+					"keyset": "Shift+Alt+1",
+					"action": "load_autogroup_preset 1"
+				},
+				{
+					"keyset": "Shift+Alt+2",
+					"action": "load_autogroup_preset 2"
+				},
+				{
+					"keyset": "Shift+Alt+3",
+					"action": "load_autogroup_preset 3"
+				},
+				{
+					"keyset": "Shift+Alt+4",
+					"action": "load_autogroup_preset 4"
+				},
+				{
+					"keyset": "Shift+Alt+5",
+					"action": "load_autogroup_preset 5"
+				},
+				{
+					"keyset": "Shift+Alt+6",
+					"action": "load_autogroup_preset 6"
+				},
+				{
+					"keyset": "Shift+Alt+7",
+					"action": "load_autogroup_preset 7"
+				},
+				{
+					"keyset": "Shift+Alt+8",
+					"action": "load_autogroup_preset 8"
+				},
+				{
+					"keyset": "Shift+Alt+9",
+					"action": "load_autogroup_preset 9"
+				},
+				{
+					"keyset": "0,0",
+					"action": "group focus 0"
+				},
+				{
+					"keyset": "1,1",
+					"action": "group focus 1"
+				},
+				{
+					"keyset": "2,2",
+					"action": "group focus 2"
+				},
+				{
+					"keyset": "3,3",
+					"action": "group focus 3"
+				},
+				{
+					"keyset": "4,4",
+					"action": "group focus 4"
+				},
+				{
+					"keyset": "5,5",
+					"action": "group focus 5"
+				},
+				{
+					"keyset": "6,6",
+					"action": "group focus 6"
+				},
+				{
+					"keyset": "7,7",
+					"action": "group focus 7"
+				},
+				{
+					"keyset": "8,8",
+					"action": "group focus 8"
+				},
+				{
+					"keyset": "9,9",
+					"action": "group focus 9"
+				},
+				{
+					"keyset": "0",
+					"action": "group select 0"
+				},
+				{
+					"keyset": "1",
+					"action": "group select 1"
+				},
+				{
+					"keyset": "2",
+					"action": "group select 2"
+				},
+				{
+					"keyset": "3",
+					"action": "group select 3"
+				},
+				{
+					"keyset": "4",
+					"action": "group select 4"
+				},
+				{
+					"keyset": "5",
+					"action": "group select 5"
+				},
+				{
+					"keyset": "6",
+					"action": "group select 6"
+				},
+				{
+					"keyset": "7",
+					"action": "group select 7"
+				},
+				{
+					"keyset": "8",
+					"action": "group select 8"
+				},
+				{
+					"keyset": "9",
+					"action": "group select 9"
+				},
+				{
+					"keyset": "Ctrl+0",
+					"action": "group set 0"
+				},
+				{
+					"keyset": "Ctrl+1",
+					"action": "group set 1"
+				},
+				{
+					"keyset": "Ctrl+2",
+					"action": "group set 2"
+				},
+				{
+					"keyset": "Ctrl+3",
+					"action": "group set 3"
+				},
+				{
+					"keyset": "Ctrl+4",
+					"action": "group set 4"
+				},
+				{
+					"keyset": "Ctrl+5",
+					"action": "group set 5"
+				},
+				{
+					"keyset": "Ctrl+6",
+					"action": "group set 6"
+				},
+				{
+					"keyset": "Ctrl+7",
+					"action": "group set 7"
+				},
+				{
+					"keyset": "Ctrl+8",
+					"action": "group set 8"
+				},
+				{
+					"keyset": "Ctrl+9",
+					"action": "group set 9"
+				},
+				{
+					"keyset": "Shift+0",
+					"action": "group selectadd 0"
+				},
+				{
+					"keyset": "Shift+1",
+					"action": "group selectadd 1"
+				},
+				{
+					"keyset": "Shift+2",
+					"action": "group selectadd 2"
+				},
+				{
+					"keyset": "Shift+3",
+					"action": "group selectadd 3"
+				},
+				{
+					"keyset": "Shift+4",
+					"action": "group selectadd 4"
+				},
+				{
+					"keyset": "Shift+5",
+					"action": "group selectadd 5"
+				},
+				{
+					"keyset": "Shift+6",
+					"action": "group selectadd 6"
+				},
+				{
+					"keyset": "Shift+7",
+					"action": "group selectadd 7"
+				},
+				{
+					"keyset": "Shift+8",
+					"action": "group selectadd 8"
+				},
+				{
+					"keyset": "Shift+9",
+					"action": "group selectadd 9"
+				},
+				{
+					"keyset": "Ctrl+Shift+0",
+					"action": "group add 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+1",
+					"action": "group add 1"
+				},
+				{
+					"keyset": "Ctrl+Shift+2",
+					"action": "group add 2"
+				},
+				{
+					"keyset": "Ctrl+Shift+3",
+					"action": "group add 3"
+				},
+				{
+					"keyset": "Ctrl+Shift+4",
+					"action": "group add 4"
+				},
+				{
+					"keyset": "Ctrl+Shift+5",
+					"action": "group add 5"
+				},
+				{
+					"keyset": "Ctrl+Shift+6",
+					"action": "group add 6"
+				},
+				{
+					"keyset": "Ctrl+Shift+7",
+					"action": "group add 7"
+				},
+				{
+					"keyset": "Ctrl+Shift+8",
+					"action": "group add 8"
+				},
+				{
+					"keyset": "Ctrl+Shift+9",
+					"action": "group add 9"
+				},
+				{
+					"keyset": "Ctrl+Alt+0",
+					"action": "group selecttoggle 0"
+				},
+				{
+					"keyset": "Ctrl+Alt+1",
+					"action": "group selecttoggle 1"
+				},
+				{
+					"keyset": "Ctrl+Alt+2",
+					"action": "group selecttoggle 2"
+				},
+				{
+					"keyset": "Ctrl+Alt+3",
+					"action": "group selecttoggle 3"
+				},
+				{
+					"keyset": "Ctrl+Alt+4",
+					"action": "group selecttoggle 4"
+				},
+				{
+					"keyset": "Ctrl+Alt+5",
+					"action": "group selecttoggle 5"
+				},
+				{
+					"keyset": "Ctrl+Alt+6",
+					"action": "group selecttoggle 6"
+				},
+				{
+					"keyset": "Ctrl+Alt+7",
+					"action": "group selecttoggle 7"
+				},
+				{
+					"keyset": "Ctrl+Alt+8",
+					"action": "group selecttoggle 8"
+				},
+				{
+					"keyset": "Ctrl+Alt+9",
+					"action": "group selecttoggle 9"
+				},
+				{
+					"keyset": "Any+sc_h",
+					"action": "sharedialog"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
+				},
+				{
+					"keyset": "Shift+backspace",
+					"action": "togglecammode"
+				},
+				{
+					"keyset": "Ctrl+backspace",
+					"action": "togglecammode"
+				},
+				{
+					"keyset": "Any+tab",
+					"action": "toggleoverview"
+				},
+				{
+					"keyset": "Any+home",
+					"action": "increaseViewRadius"
+				},
+				{
+					"keyset": "Any+end",
+					"action": "decreaseViewRadius"
+				},
+				{
+					"keyset": "Alt+insert",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+delete",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+sc_=",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+sc_-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "Alt+numpad+",
+					"action": "increasespeed"
+				},
+				{
+					"keyset": "Alt+numpad-",
+					"action": "decreasespeed"
+				},
+				{
+					"keyset": "sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "Shift+sc_[",
+					"action": "buildfacing inc"
+				},
+				{
+					"keyset": "sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Shift+sc_]",
+					"action": "buildfacing dec"
+				},
+				{
+					"keyset": "Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Shift+Alt+sc_z",
+					"action": "buildspacing inc"
+				},
+				{
+					"keyset": "Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "Shift+Alt+sc_x",
+					"action": "buildspacing dec"
+				},
+				{
+					"keyset": "sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Shift+sc_a",
+					"action": "attack"
+				},
+				{
+					"keyset": "Alt+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Alt+Shift+sc_a",
+					"action": "areaattack"
+				},
+				{
+					"keyset": "Alt+b",
+					"action": "debug"
+				},
+				{
+					"keyset": "Alt+v",
+					"action": "debugcolvol"
+				},
+				{
+					"keyset": "Alt+p",
+					"action": "debugpath"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manualfire"
+				},
+				{
+					"keyset": "sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Shift+sc_d",
+					"action": "manuallaunch"
+				},
+				{
+					"keyset": "Ctrl+sc_d",
+					"action": "selfd"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_d",
+					"action": "selfd queued"
+				},
+				{
+					"keyset": "sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "Shift+sc_e",
+					"action": "reclaim"
+				},
+				{
+					"keyset": "sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Shift+sc_f",
+					"action": "fight"
+				},
+				{
+					"keyset": "Alt+sc_f",
+					"action": "chain force forcestart | say !cv forcestart"
+				},
+				{
+					"keyset": "sc_g",
+					"action": "guard"
+				},
+				{
+					"keyset": "Shift+sc_g",
+					"action": "guard"
+				},
+				{
+					"keyset": "sc_j",
+					"action": "canceltarget"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "Shift+sc_k",
+					"action": "cloak"
+				},
+				{
+					"keyset": "sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "Any+sc_k",
+					"action": "wantcloak"
+				},
+				{
+					"keyset": "sc_l",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "Shift+sc_l",
+					"action": "loadunits"
+				},
+				{
+					"keyset": "sc_m",
+					"action": "move"
+				},
+				{
+					"keyset": "Shift+sc_m",
+					"action": "move"
+				},
+				{
+					"keyset": "sc_n",
+					"action": "command_skip_current"
+				},
+				{
+					"keyset": "Ctrl+sc_n",
+					"action": "command_cancel_last"
+				},
+				{
+					"keyset": "sc_p",
+					"action": "patrol"
+				},
+				{
+					"keyset": "Shift+sc_p",
+					"action": "patrol"
+				},
+				{
+					"keyset": "sc_q,sc_q",
+					"action": "drawlabel"
+				},
+				{
+					"keyset": "sc_q",
+					"action": "drawinmap"
+				},
+				{
+					"keyset": "sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Shift+sc_r",
+					"action": "repair"
+				},
+				{
+					"keyset": "Ctrl+sc_r",
+					"action": "resurrect"
+				},
+				{
+					"keyset": "sc_s",
+					"action": "stop"
+				},
+				{
+					"keyset": "Shift+sc_s",
+					"action": "stop"
+				},
+				{
+					"keyset": "Ctrl+sc_s",
+					"action": "stopproduction"
+				},
+				{
+					"keyset": "sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "Shift+sc_u",
+					"action": "unloadunits"
+				},
+				{
+					"keyset": "sc_w",
+					"action": "wait"
+				},
+				{
+					"keyset": "Shift+sc_w",
+					"action": "wait queued"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "onoff"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "onoff"
+				},
+				{
+					"keyset": "Any+sc_l",
+					"action": "togglelos"
+				},
+				{
+					"keyset": "Ctrl+sc_t",
+					"action": "trackmode"
+				},
+				{
+					"keyset": "Any+sc_t",
+					"action": "track"
+				},
+				{
+					"keyset": "Any+ctrl",
+					"action": "moveslow"
+				},
+				{
+					"keyset": "Any+shift",
+					"action": "movefast"
+				},
+				{
+					"keyset": "Ctrl+meta+1",
+					"action": "viewfps"
+				},
+				{
+					"keyset": "Ctrl+meta+2",
+					"action": "viewta"
+				},
+				{
+					"keyset": "Ctrl+meta+3",
+					"action": "viewspring"
+				},
+				{
+					"keyset": "Ctrl+meta+4",
+					"action": "viewrot"
+				},
+				{
+					"keyset": "Ctrl+meta+5",
+					"action": "viewfree"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "ShowElevation"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "ShowPathTraversability"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "LastMsgPos"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "ShowMetalMap"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "HideInterface"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "MuteSound"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "DynamicSky"
+				},
+				{
+					"keyset": "f11",
+					"action": "luaui selector"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "screenshot png"
+				},
+				{
+					"keyset": "Ctrl+Shift+f8",
+					"action": "savegame"
+				},
+				{
+					"keyset": "Alt+enter",
+					"action": "fullscreen"
+				},
+				{
+					"keyset": "Ctrl+sc_a",
+					"action": "select AllMap++_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_b",
+					"action": "select AllMap+_Builder_Idle+_ClearSelection_SelectOne+"
+				},
+				{
+					"keyset": "Ctrl+sc_c",
+					"action": "selectcomm focus"
+				},
+				{
+					"keyset": "Ctrl+sc_v",
+					"action": "select AllMap+_Not_Builder_InPrevSel_Not_InHotkeyGroup+_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_w",
+					"action": "select AllMap+_Not_Aircraft_Weapons+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_x",
+					"action": "select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+"
+				},
+				{
+					"keyset": "Ctrl+sc_z",
+					"action": "select AllMap+_InPrevSel+_ClearSelection_SelectAll+"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armmex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armmex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armamex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armamex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmex"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmext15"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmext15"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_corexp"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_corexp"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armmoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armmoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_legmoho"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_legmoho"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_cormexp"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_cormexp"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_coruwmme"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_coruwmme"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "buildunit_armuwmme"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "buildunit_armuwmme"
+				},
+				{
+					"keyset": "sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "Shift+sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "Ctrl+Alt+sc_z",
+					"action": "areamex"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legsolar"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legsolar"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legwin"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legwin"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armadvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armadvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coradvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coradvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legadvsol"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legadvsol"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armmmkr"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armmmkr"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_corfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_corfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_cormmkr"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_cormmkr"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legadveconv"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legadveconv"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armtide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armtide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_cortide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_cortide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_legtide"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_legtide"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armuwfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armuwfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coruwfus"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coruwfus"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_armuwmmm"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_armuwmmm"
+				},
+				{
+					"keyset": "sc_x",
+					"action": "buildunit_coruwmmm"
+				},
+				{
+					"keyset": "Shift+sc_x",
+					"action": "buildunit_coruwmmm"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armllt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armllt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corllt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corllt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_leglht"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_leglht"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armrl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armpb"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armpb"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corvipe"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corvipe"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legapopupdef"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legapopupdef"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legflak"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legflak"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armgplat"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armgplat"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corgplat"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corgplat"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armtl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armtl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_cortl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_cortl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legtl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legtl"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armsonar"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armsonar"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corsonar"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corsonar"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legfrad"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legfrad"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_armfrt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_armfrt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_corfrt"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_corfrt"
+				},
+				{
+					"keyset": "sc_c",
+					"action": "buildunit_legfrl"
+				},
+				{
+					"keyset": "Shift+sc_c",
+					"action": "buildunit_legfrl"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armnanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armnanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armnanotcplat"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armnanotcplat"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_cornanotcplat"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_cornanotcplat"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armlab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armlab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_cornanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_cornanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corlab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corlab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legnanotc"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legnanotc"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_leglab"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_leglab"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legvp"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legvp"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legap"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legap"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_armsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_armsy"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_corsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_corsy"
+				},
+				{
+					"keyset": "sc_v",
+					"action": "buildunit_legsy"
+				},
+				{
+					"keyset": "Shift+sc_v",
+					"action": "buildunit_legsy"
+				},
+				{
+					"keyset": "numpad2",
+					"action": "moveback"
+				},
+				{
+					"keyset": "numpad6",
+					"action": "moveright"
+				},
+				{
+					"keyset": "numpad4",
+					"action": "moveleft"
+				},
+				{
+					"keyset": "numpad8",
+					"action": "moveforward"
+				},
+				{
+					"keyset": "numpad9",
+					"action": "moveup"
+				},
+				{
+					"keyset": "numpad3",
+					"action": "movedown"
+				},
+				{
+					"keyset": "numpad1",
+					"action": "movefast"
+				},
+				{
+					"keyset": "numpad+",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_=",
+					"action": "snd_volume_increase"
+				},
+				{
+					"keyset": "sc_-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "numpad-",
+					"action": "snd_volume_decrease"
+				},
+				{
+					"keyset": "Any+sc_;",
+					"action": "losradar"
+				},
+				{
+					"keyset": "Any+space",
+					"action": "unit_stats"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_o",
+					"action": "cameraflip"
+				},
+				{
+					"keyset": "Alt+sc_y",
+					"action": "settarget"
+				},
+				{
+					"keyset": "Shift+Alt+sc_y",
+					"action": "settarget"
+				},
+				{
+					"keyset": "sc_y",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Shift+sc_y",
+					"action": "settargetnoground"
+				},
+				{
+					"keyset": "Ctrl+meta+sc_q",
+					"action": "group unset"
+				},
+				{
+					"keyset": "Alt+sc_q",
+					"action": "remove_from_autogroup"
+				},
+				{
+					"keyset": "Alt+sc_b",
+					"action": "blueprint_place"
+				},
+				{
+					"keyset": "Alt+sc_c",
+					"action": "blueprint_create"
+				},
+				{
+					"keyset": "Alt+sc_d",
+					"action": "blueprint_delete"
+				},
+				{
+					"keyset": "Alt+sc_[",
+					"action": "blueprint_prev"
+				},
+				{
+					"keyset": "Alt+sc_]",
+					"action": "blueprint_next"
+				}
+			]
+		}
+	]
+}
