@@ -12,9 +12,9 @@
 local statisticsTriggerCounts = {}
 local processTriggersOfType, activateTrigger
 
-local function init(deps)
-	processTriggersOfType = deps.processTriggersOfType
-	activateTrigger       = deps.activateTrigger
+local function init(dependencies)
+	processTriggersOfType = dependencies.processTriggersOfType
+	activateTrigger       = dependencies.activateTrigger
 end
 
 local function updateUnitStatistics(triggerType, teamID, unitDefName, unitNames, direction)

@@ -114,7 +114,7 @@ function widget:DrawScreen()
 	end
 
 	local y = 0.19
-	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then y = 0.68 end
+	if (Game.startPosType == 2) and (draftMode ~= nil and draftMode ~= "disabled") then y = 0.55 end
 	glPushMatrix()
 	glTranslate((vsx * 0.5), (vsy * y), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)

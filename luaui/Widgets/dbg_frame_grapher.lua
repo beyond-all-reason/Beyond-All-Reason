@@ -10,7 +10,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher",
-		desc = "Draw frame time graph in bottom right, bar height is time elapsed between frames, blue bars are estimated sim frames, purple bars are CTO errors, and bars are shaded black if their CTO error differs from ideal",
+    desc = "Draw frame time graph in bottom right; bar height is elapsed frame time. Colors: red=sim, yellow=update, green=draw, blue=swap, magenta=error",
 		author = "Beherith",
 		date = "2021.mar.29",
 		license = "GNU GPL, v2 or later",
@@ -40,14 +40,49 @@ local rectShader = nil
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
+local glColor = gl.Color
+local glText = gl.Text
+local glGetTextWidth = gl.GetTextWidth
+local glBeginEnd = gl.BeginEnd
+local glVertex = gl.Vertex
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local drawInstanceVBO     = InstanceVBOTable.drawInstanceVBO
 
 local maxframes = 2500
+local vsx, vsy = 0, 0
+local uiScale = 1
+
+local graphHeightScale = 16
+local pixelsPerMs = 8
 
 local rectInstanceTable = nil
 local rectInstancePtr = 0
+
+local legendRightPadding = 12
+local legendBottomPadding = 12
+local legendFontSize = 11
+local legendLineHeight = 13
+local legendBaseRightPadding = 12
+local legendBaseBottomPadding = 12
+local legendBaseFontSize = 11
+local legendBaseLineHeight = 13
+local legendTextScaleBoost = 1.53
+
+local rulerTickLen = 8
+local rulerPaddingToLegend = 26
+local rulerFontSize = 10
+local rulerBaseTickLen = 8
+local rulerBasePaddingToLegend = 26
+local rulerBaseFontSize = 10
+local rulerTickMs = {0, 8, 16, 24, 33}
+local legendEntries = {
+  {1.0, 0.0, 0.0, "SIM"},
+  {1.0, 1.0, 0.0, "Update"},
+  {0.0, 1.0, 0.0, "Draw"},
+  {0.0, 0.0, 1.0, "Swap"},
+  {1.0, 0.0, 1.0, "Error"},
+}
 
 local vsSrc = [[
 #version 420
@@ -55,7 +90,7 @@ local vsSrc = [[
 layout (location = 0) in vec4 coords; // a set of coords coming from vertex buffer
 layout (location = 1) in vec4 time_duration_wasgf; // a 'time' for the frame, in milliseconds, and a duration also in ms, w = frametimeoffset
 
-uniform vec4 shaderparams; // .y contains the current actual time
+uniform vec4 shaderparams; // .x contains current time, .y contains bar height scale
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -66,8 +101,12 @@ out DataVS {
 void main() {
 	// current time will be equal to full right, e.g an x coord of 1
 
-  float rect_width_pixels  = time_duration_wasgf.y / viewGeometry.x - 1 / viewGeometry.x;
-  float rect_height_pixels = 8 * time_duration_wasgf.y / viewGeometry.y;
+  bool is_sim_frame = abs(time_duration_wasgf.z - 1.0) < 0.01;
+  float bar_gap_pixels = min(1.0, time_duration_wasgf.y * 0.35);
+  float min_width_pixels = is_sim_frame ? 4.0 : 1.0;
+  float min_height_pixels = is_sim_frame ? 10.0 : 1.0;
+  float rect_width_pixels  = max(time_duration_wasgf.y - bar_gap_pixels, min_width_pixels) / viewGeometry.x;
+  float rect_height_pixels = max(shaderparams.y * time_duration_wasgf.y, min_height_pixels) / viewGeometry.y;
   float rect_bottom_right  = 1.0 -  (shaderparams.x * 1.0 - time_duration_wasgf.x  ) / viewGeometry.x;
 
   if (time_duration_wasgf.z > 0.5) {
@@ -139,6 +178,9 @@ void main() {
 
 
 function widget:Initialize()
+  local viewSizeX, viewSizeY = Spring.GetViewGeometry()
+  self:ViewResize(viewSizeX, viewSizeY)
+
   local rectvbo, numVertices = InstanceVBOTable.makeRectVBO(0,0,1,1,0,0,1,1)
   rectInstanceTable = InstanceVBOTable.makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+100, "framegraphervbotable")
   rectInstanceTable.VAO = InstanceVBOTable.makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
@@ -159,6 +201,27 @@ function widget:Initialize()
   end
   timerstart = Spring.GetTimerMicros()
   timerold = Spring.GetTimerMicros()
+end
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+  if not viewSizeX or not viewSizeY then
+    viewSizeX, viewSizeY = Spring.GetViewGeometry()
+  end
+  vsx = viewSizeX
+  vsy = viewSizeY
+
+  uiScale = math.max(1, vsy / 1440)
+  graphHeightScale = 16 * uiScale
+  pixelsPerMs = graphHeightScale * 0.5
+
+  legendRightPadding = math.floor(legendBaseRightPadding * uiScale + 0.5)
+  legendBottomPadding = math.floor(legendBaseBottomPadding * uiScale + 0.5)
+  legendFontSize = math.floor(legendBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
+  legendLineHeight = math.floor(legendBaseLineHeight * uiScale * legendTextScaleBoost + 0.5)
+
+  rulerTickLen = math.floor(rulerBaseTickLen * uiScale + 0.5)
+  rulerPaddingToLegend = math.floor(rulerBasePaddingToLegend * uiScale + 0.5)
+  rulerFontSize = math.floor(rulerBaseFontSize * uiScale * legendTextScaleBoost + 0.5)
 end
 
 function widget:Shutdown()
@@ -324,9 +387,51 @@ function widget:DrawScreen()
   rectShader:Activate()
    -- We should be setting individual uniforms AFTER activate
   local shadertime = spDiffTimers(Spring.GetTimerMicros(), timerstart, nil, true) * 1000 -- in MILLISECONDS
-  rectShader:SetUniform("shaderparams", shadertime,0,0,0)
+  rectShader:SetUniform("shaderparams", shadertime, graphHeightScale, 0, 0)
   drawInstanceVBO(rectInstanceTable)
   rectShader:Deactivate()
+
+  local legendX = vsx - legendRightPadding
+  local legendY = legendBottomPadding
+
+  local legendMaxWidth = glGetTextWidth("Frame Colors") * legendFontSize
+  for i = 1, #legendEntries do
+    local entryWidth = glGetTextWidth("■ " .. legendEntries[i][4]) * legendFontSize
+    if entryWidth > legendMaxWidth then
+      legendMaxWidth = entryWidth
+    end
+  end
+
+  local rulerX = legendX - legendMaxWidth - rulerPaddingToLegend
+  local rulerTopY = legendY + rulerTickMs[#rulerTickMs] * pixelsPerMs
+
+  glColor(1, 1, 1, 1)
+  glText("Frame Colors", legendX, legendY + (#legendEntries * legendLineHeight), legendFontSize, "or")
+  for i = 1, #legendEntries do
+    local entry = legendEntries[i]
+    glColor(entry[1], entry[2], entry[3], 1)
+    glText("■ " .. entry[4], legendX, legendY + ((#legendEntries - i) * legendLineHeight), legendFontSize, "or")
+  end
+
+  glColor(1, 1, 1, 0.85)
+  glBeginEnd(GL.LINES, function()
+    glVertex(rulerX, legendY, 0)
+    glVertex(rulerX, rulerTopY, 0)
+    for i = 1, #rulerTickMs do
+      local tickY = legendY + rulerTickMs[i] * pixelsPerMs
+      glVertex(rulerX - rulerTickLen, tickY, 0)
+      glVertex(rulerX, tickY, 0)
+    end
+  end)
+
+  for i = 1, #rulerTickMs do
+    local tickMs = rulerTickMs[i]
+    local tickY = legendY + tickMs * pixelsPerMs
+    glText(tickMs .. "ms", rulerX - rulerTickLen - (4 * uiScale), tickY - (rulerFontSize * 0.35), rulerFontSize, "or")
+  end
+
+  glColor(1, 1, 1, 1)
+
   wasgameframe = 0
   prevframems = lastframeduration
   gameFrameHappened = false

@@ -65,6 +65,9 @@ function CommandNotify(id, params, options)
 end
 
 function DrawScreen(vsx, vsy)
+	if Platform and Platform.isHeadless then
+		return
+	end
 	widgetHandler:SetViewSize(vsx, vsy)
 	return widgetHandler:DrawScreen()
 end

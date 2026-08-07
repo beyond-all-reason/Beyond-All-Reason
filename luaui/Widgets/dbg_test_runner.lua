@@ -815,7 +815,8 @@ Test = {
 	prepareWidget = function(widgetName)
 		-- Enable widget with locals access and store state for later restoring
 		-- through restoreWidget(s).
-		assert(widgetHandler.knownWidgets[widgetName] ~= nil)
+		assert(widgetHandler.knownWidgets[widgetName] ~= nil,
+			string.format("prepareWidget: unknown widget %q — not in widgetHandler.knownWidgets", widgetName))
 
 		initialWidgetActive[widgetName] = widgetHandler.knownWidgets[widgetName].active or false
 		if initialWidgetActive[widgetName] then
@@ -824,7 +825,8 @@ Test = {
 		widgetHandler:EnableWidgetRaw(widgetName, true)
 
 		local widget = widgetHandler:FindWidget(widgetName)
-		assert(widget)
+		assert(widget,
+			string.format("prepareWidget: widget %q returned nil from FindWidget after EnableWidgetRaw", widgetName))
 		return widget
 	end,
 	restoreWidget = function(widgetName)
@@ -832,7 +834,8 @@ Test = {
 		-- Otherwise testrunner will run it automatically through restoreWidgets.
 		local wasActive = initialWidgetActive[widgetName]
 		initialWidgetActive[widgetName] = nil
-		assert(wasActive ~= nil)
+		assert(wasActive ~= nil,
+			string.format("restoreWidget: widget %q was never prepared (no entry in initialWidgetActive)", widgetName))
 
 		widgetHandler:DisableWidgetRaw(widgetName)
 		if wasActive then

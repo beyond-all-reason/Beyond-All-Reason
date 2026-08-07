@@ -5,7 +5,6 @@ return {
 		builder = true,
 		buildpic = "legmlv.DDS",
 		buildtime = 3640,
-		canassist = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = true,
