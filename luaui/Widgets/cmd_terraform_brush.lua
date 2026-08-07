@@ -1061,7 +1061,20 @@ local function parseRadius(args)
 	return DEFAULT_RADIUS
 end
 
+-- Height edits are refused by the synced gadget without /cheat, and /cheat is a
+-- toggle — users who flip it blindly can turn it OFF and then brush into silence.
+-- Nudge it on whenever a terrain mode is engaged; the IsCheatingEnabled guard
+-- means this can only ever enable, never disable. On a server that disallows
+-- cheating the command is simply refused and the gadget's echo explains the rest.
+-- (Attached to extraState: main chunk is at the 200-local limit.)
+extraState.ensureCheat = function()
+	if not Spring.IsReplay() and not Spring.IsCheatingEnabled() then
+		Spring.SendCommands("cheat")
+	end
+end
+
 local function activate(direction, mode, args)
+	extraState.ensureCheat()
 	activeDirection = direction
 	activeMode = mode
 	activeRadius = parseRadius(args)
@@ -1143,6 +1156,7 @@ extraState.swapModeParams = function(mode)
 end
 
 local function setMode(mode)
+	extraState.ensureCheat()
 	extraState.swapModeParams(mode)
 	if mode == "raise" then
 		activeDirection = 1
@@ -2376,12 +2390,23 @@ extraState._noiseSetters = {
 	setNoiseSeed        = setNoiseSeed,
 }
 
-function widget:Initialize()
-	if extraState.heightmapExportCustomMax <= extraState.heightmapExportCustomMin then
+-- Seed the custom export range from the map's terrain extremes when it was never
+-- meaningfully set (pristine 0..1 default or a degenerate max<=min). Without this
+-- entering CUSTOM mode keeps 0..1, which clamps every real height to white and
+-- produces a blank/washed heightmap export. Attached to extraState to avoid a
+-- chunk-level local (200-local limit).
+extraState._seedExportCustomRange = function()
+	local cmin = extraState.heightmapExportCustomMin
+	local cmax = extraState.heightmapExportCustomMax
+	if cmax <= cmin or (cmin == 0 and cmax == 1) then
 		local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
 		extraState.heightmapExportCustomMin = initMinH or currMinH or 0
 		extraState.heightmapExportCustomMax = initMaxH or currMaxH or 1
 	end
+end
+
+function widget:Initialize()
+	extraState._seedExportCustomRange()
 	widgetHandler:AddAction("terraformbrush", function(_, _, args)
 		if activeMode then
 			return deactivateTerraform()
@@ -2433,6 +2458,7 @@ function widget:Initialize()
 		setHeightmapExportRangeMode = function(value)
 			if value == "initial" or value == "custom" then
 				extraState.heightmapExportRangeMode = value
+				if value == "custom" then extraState._seedExportCustomRange() end
 			else
 				extraState.heightmapExportRangeMode = "auto"
 			end
@@ -2443,6 +2469,7 @@ function widget:Initialize()
 				extraState.heightmapExportRangeMode = "initial"
 			elseif mode == "initial" then
 				extraState.heightmapExportRangeMode = "custom"
+				extraState._seedExportCustomRange()
 			else
 				extraState.heightmapExportRangeMode = "auto"
 			end
