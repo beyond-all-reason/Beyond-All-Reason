@@ -9,7 +9,7 @@ return {
 		buildtime = 8800,
 		canrepeat = false,
 		cantbetransported = false,
-		collisionvolumeoffsets = "0-20 0",
+		collisionvolumeoffsets = "0 -20 0",
 		collisionvolumescales = "32 160 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
