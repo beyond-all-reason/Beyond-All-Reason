@@ -3,6 +3,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 describe("UnitDefs invariants", function()
 	local defs
 	local buildable = {}
+	local reachable = {}
 
 	setup(function()
 		defs = Builders.Spring.new():WithRealUnitDefs():Build():GetUnitDefs()
@@ -10,6 +11,24 @@ describe("UnitDefs invariants", function()
 		for _, def in pairs(defs) do
 			for _, option in pairs(def.buildoptions or {}) do
 				buildable[option] = true
+			end
+		end
+
+		local queue = {}
+		for _, commander in ipairs({ "armcom", "corcom", "legcom" }) do
+			if defs[commander] then
+				reachable[commander] = true
+				queue[#queue + 1] = commander
+			end
+		end
+
+		while #queue > 0 do
+			local current = table.remove(queue)
+			for _, option in pairs(defs[current].buildoptions or {}) do
+				if defs[option] and not reachable[option] then
+					reachable[option] = true
+					queue[#queue + 1] = option
+				end
 			end
 		end
 	end)
@@ -666,6 +685,28 @@ describe("UnitDefs invariants", function()
 		for name, def in pairs(defs) do
 			local proxy = (def.customparams or {}).i18nfromunit
 			if proxy ~= nil and not names[proxy] then
+				bad[#bad + 1] = name .. " -> units.names." .. tostring(proxy)
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	-- Cosmetics, dev units and gadget spawns have no entry and are never shown in a build menu,
+	-- so this only covers what a player can actually build, following i18nhelpers through
+	-- i18nfromunit the way the interface does.
+	it("names every unit a commander can reach through its build tree", function()
+		local json = VFS.Include("common/luaUtilities/json.lua")
+		local path = "language/en/units.json"
+		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
+		local contents = handle:read("*a")
+		handle:close()
+		local names = json.decode(contents).units.names
+
+		local bad = {}
+		for name in pairs(reachable) do
+			local proxy = (defs[name].customparams or {}).i18nfromunit or name
+			if not names[proxy] then
 				bad[#bad + 1] = name .. " -> units.names." .. tostring(proxy)
 			end
 		end
