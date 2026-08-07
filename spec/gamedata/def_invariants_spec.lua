@@ -27,10 +27,14 @@ describe("UnitDefs invariants", function()
 		assert.same({}, missing)
 	end)
 
+	-- The CEG browser's projectile carrier is spawned and removed by a gadget without ever taking
+	-- damage, and sets the legacy maxdamage tag instead of health.
+	local healthless = { ceg_test_projectile_unit = true }
+
 	it("gives every unit positive health", function()
 		local bad = {}
 		for name, def in pairs(defs) do
-			if type(def.health) ~= "number" or def.health <= 0 then
+			if not healthless[name:gsub("_scav$", "")] and (type(def.health) ~= "number" or def.health <= 0) then
 				bad[#bad + 1] = name .. " = " .. tostring(def.health)
 			end
 		end
