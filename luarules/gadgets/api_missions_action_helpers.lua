@@ -47,7 +47,7 @@ function gadget:GameFrame(frame)
     ---------------
     -- Resourcing
     ---------------
-    if resourcing.active and frame % Game.gameSpeed == 21 then
+    if resourcing.active and frame % math.ceil(Game.gameSpeed*0.5) == 0 then
         for teamID, amount in pairs(resourcing.metalPerSecond) do
             if amount > 0 then
                 spAddTeamResource(teamID, "metal", amount)
