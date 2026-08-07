@@ -1,8 +1,8 @@
 return {
 	corsentinel = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
 		energycost = 13500,
 		metalcost = 1350,
@@ -23,7 +23,7 @@ return {
 		losemitheight = 56,
 		mass = 5000,
 		health = 3800,
-		maxvelocity = 2.1,
+		speed = 63,
 		minwaterdepth = 15,
 		movementclass = "BOAT9",
 		nochasecategory = "VTOL",
