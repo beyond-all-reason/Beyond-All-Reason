@@ -7,19 +7,16 @@ local function loadActionDefinitions()
 	local typesCount = 0
 	local parameters = {}
 	local actionFunctions = {}
-	local actionsSubdirs = VFS.SubDirs(ACTIONS_DIR, "*", nil, true)
-	for _, subDir in pairs(actionsSubdirs) do
-		local actionFiles = VFS.DirList(subDir, ACTION_FILES_PATTERN)
-		for _, filePath in ipairs(actionFiles) do
-			local actionDefinitions = VFS.Include(filePath)
-			for _, actionDefinition in ipairs(actionDefinitions) do
-				typesCount = typesCount + 1
-				local actionType = actionDefinition.type
+	local actionFiles = VFS.DirList(ACTIONS_DIR, ACTION_FILES_PATTERN, nil, true)
+	for _, filePath in ipairs(actionFiles) do
+		local actionDefinitions = VFS.Include(filePath)
+		for _, actionDefinition in ipairs(actionDefinitions) do
+			typesCount = typesCount + 1
+			local actionType = actionDefinition.type
 
-				types[actionType] = typesCount
-				parameters[typesCount] = actionDefinition.parameters or {}
-				actionFunctions[typesCount] = actionDefinition.actionFunction
-			end
+			types[actionType] = typesCount
+			parameters[typesCount] = actionDefinition.parameters or {}
+			actionFunctions[typesCount] = actionDefinition.actionFunction
 		end
 	end
 
