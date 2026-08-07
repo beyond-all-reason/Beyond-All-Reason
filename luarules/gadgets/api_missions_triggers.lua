@@ -30,6 +30,7 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
+local seismicContacts           = {}
 
 
 ----------------------------------------------------------------
@@ -162,6 +163,7 @@ function gadget:Initialize()
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
+		SeismicContacts          = seismicContacts,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
 
@@ -180,12 +182,12 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn('AllowUnitBuildStep')
 	end
 
-	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
+	local needsReclaimTracking = table.any(triggers, function(trigger)
 		return trigger.type == triggerTypes.FeatureReclaimed
 			or trigger.type == triggerTypes.FeatureDestroyed
 	end)
 
-	if not needsReclaimIncome and not needsFeatureReclaimTracking then
+	if not needsReclaimIncome and not needsReclaimTracking then
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
 end
@@ -259,6 +261,18 @@ end
 
 function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	dispatchTriggerCallin('UnitLeftLos', unitID, unitTeam, losAllyTeamID, unitDefID)
+end
+
+function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	dispatchTriggerCallin('UnitEnteredRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
+end
+
+function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	dispatchTriggerCallin('UnitSeismicPing', x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+end
+
+function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
+	dispatchTriggerCallin('UnitLeftRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
