@@ -1257,6 +1257,11 @@ body {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 5dp;
+	/* RmlUi scopes z-index to siblings within the nearest stacking context, so
+	   the FILE menu's z-index:1000 only orders it inside its wrap — the header
+	   subtree as a whole still painted under later flow siblings (the status
+	   summary strip drew over the open dropdown). Lift the whole header. */
+	z-index: 10;
 }
 
 /* Top tier: wordmark (left, shrinks) + window controls (right, fixed) */
