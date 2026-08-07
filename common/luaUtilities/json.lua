@@ -18,6 +18,7 @@
 --   compat-5.1 if using Lua 5.0
 --
 -- CHANGELOG
+--   0.9.50.2 BAR change: fix issues decoding unicode and backslash in loadstring
 --   0.9.50.1 BAR changes by Beherith: fix issue when decoding empty arrays.
 --	 0.9.50 Radical performance improvement on decode from Eike Decker. Many thanks!
 --	 0.9.40 Changed licence to MIT License (MIT)
@@ -112,6 +113,71 @@ local function encode (v)
   base.assert(false,'encode attempt to encode unsupported type ' .. vtype .. ':' .. base.tostring(v))
 end
 
+
+-- A code point as the Lua decimal escapes for its UTF-8 bytes, so the result survives
+-- being handed to loadstring below. Always three digits, or a digit following in the
+-- string would be swallowed into the escape.
+local function utf8Escapes(code)
+	local bytes
+	if code < 0x80 then
+		bytes = { code }
+	elseif code < 0x800 then
+		bytes = { 0xC0 + math.floor(code / 0x40), 0x80 + code % 0x40 }
+	elseif code < 0x10000 then
+		bytes = { 0xE0 + math.floor(code / 0x1000), 0x80 + math.floor(code / 0x40) % 0x40, 0x80 + code % 0x40 }
+	else
+		bytes = { 0xF0 + math.floor(code / 0x40000), 0x80 + math.floor(code / 0x1000) % 0x40,
+			0x80 + math.floor(code / 0x40) % 0x40, 0x80 + code % 0x40 }
+	end
+
+	for i = 1, #bytes do
+		bytes[i] = string.format("\\%03d", bytes[i])
+	end
+
+	return table.concat(bytes)
+end
+
+-- Strings are unescaped by handing the literal to loadstring, which accepts every JSON
+-- escape except \uXXXX and \/ - Lua 5.1 rejects both outright, taking the whole decode
+-- down with them. Rewrite only those two into forms it does accept.
+local function rewriteJsonOnlyEscapes(literal)
+	local out = {}
+	local pos = 1
+	local len = #literal
+
+	while pos <= len do
+		local char = literal:sub(pos, pos)
+		if char ~= "\\" then
+			out[#out + 1] = char
+			pos = pos + 1
+		else
+			local following = literal:sub(pos + 1, pos + 1)
+			if following == "/" then
+				out[#out + 1] = "/"
+				pos = pos + 2
+			elseif following == "u" then
+				local code = tonumber(literal:sub(pos + 2, pos + 5), 16)
+				pos = pos + 6
+				-- Anything above the BMP arrives as a surrogate pair.
+				if code and code >= 0xD800 and code <= 0xDBFF and literal:sub(pos, pos + 1) == "\\u" then
+					local low = tonumber(literal:sub(pos + 2, pos + 5), 16)
+					if low and low >= 0xDC00 and low <= 0xDFFF then
+						code = 0x10000 + (code - 0xD800) * 0x400 + (low - 0xDC00)
+						pos = pos + 6
+					end
+				end
+				out[#out + 1] = code and utf8Escapes(code) or ""
+			else
+				-- Kept as-is, which also steps past an escaped backslash so the character
+				-- after it is not mistaken for an escape of its own.
+				out[#out + 1] = char .. following
+				pos = pos + 2
+			end
+		end
+	end
+
+	return table.concat(out)
+end
 
 --- Decodes a JSON string and returns the decoded value as a Lua data structure / value.
 -- @param s The string to scan.
@@ -381,17 +447,30 @@ do
 		-- read a string, double and single quoted ones
 		local function read_string (tok)
 			local start = pos
+			local rewrite = false
 			--local returnString = {}
 			repeat
 				local t = next_token(tok)
 				if t == c_esc then 
+					-- pos sits on the escaped character. u and / are the two JSON escapes Lua
+					-- has no equivalent for, and the interpreters disagree on them: 5.1 quietly
+					-- drops the backslash while LuaJIT refuses to compile at all. Neither can be
+					-- left to loadstring, so flag them here rather than reacting to a failure.
+					local e = js_string:byte(pos)
+					if e == 117 or e == 47 then
+						rewrite = true
+					end
 					--table.insert(returnString, js_string:sub(start, pos-2))
 					--table.insert(returnString, escapechar[ js_string:byte(pos) ])
 					pos = pos + 1
 					--start = pos
 				end -- jump over escaped chars, no matter what
 			until t == true
-			return (base.loadstring("return " .. js_string:sub(start-1, pos-1) ) ())
+			local literal = js_string:sub(start-1, pos-1)
+			if rewrite then
+				literal = rewriteJsonOnlyEscapes(literal)
+			end
+			return (base.loadstring("return " .. literal) ())
 
 			-- We consider the situation where no escaped chars were encountered separately,
 			-- and use the fastest possible return in this case.
