@@ -25,7 +25,7 @@ local mathMin = math.min
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local config = VFS.Include("LuaRules/Configs/raptor_spawn_defs.lua")
+local config = VFS.Include("modules/raptors/data/settings.lua")
 
 local customScale = 1
 local widgetScale = customScale
