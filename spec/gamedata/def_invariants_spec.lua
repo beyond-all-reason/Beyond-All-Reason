@@ -27,6 +27,32 @@ describe("UnitDefs invariants", function()
 		assert.same({}, missing)
 	end)
 
+	it("never lists the same build option twice", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local seen = {}
+			for _, option in pairs(def.buildoptions or {}) do
+				if seen[option] then
+					bad[#bad + 1] = name .. " lists " .. tostring(option) .. " twice"
+				end
+				seen[option] = true
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	it("points decoyfor at a unit that exists", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			if def.decoyfor ~= nil and not defs[tostring(def.decoyfor):lower()] then
+				bad[#bad + 1] = name .. " -> " .. tostring(def.decoyfor)
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	-- The CEG browser's projectile carrier is spawned and removed by a gadget without ever taking
 	-- damage, and sets the legacy maxdamage tag instead of health.
 	local healthless = { ceg_test_projectile_unit = true }
