@@ -7,7 +7,7 @@ local CMD_BUILD  = CMD.BUILD
 -- Units receive commands "directly" or "inserted" into the command queue by `CMD_INSERT`.
 
 -- Some commands like `CMD.STOCKPILE` are consumed within :AllowCommand. We never see them.
--- This list is manageable: `CMD.CLOAK`, `CMD.STOCKPILE`, and `GameCMD.UNIT_SET_TARGET`.
+-- A comprehensive list is in validation.lua, and beyond-all-reason/Beyond-All-Reason#8663.
 
 -- In-game, the allow-consume and notify-consume patterns both trip units' "cantdo" sounds.
 -- Players can experience an objective completion as a task-failed-successfully unit noise.
