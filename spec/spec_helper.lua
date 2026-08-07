@@ -31,7 +31,10 @@ _G.Spring = _G.Spring or {
         if LOG_LEVELS[level] and LOG_LEVELS[level] >= LOG_LEVELS[_G.CURRENT_LOG_LEVEL] then
             print(string.format("[%s] %s: %s", tag, level, message))
         end
-    end
+    end,
+	GetGameFrame = function()
+		return 0
+	end,
 }
 
 _G.Spring.Echo = _G.Spring.Echo or function(...)
@@ -40,11 +43,12 @@ end
 
 _G.GG = _G.GG or {}
 
-_G.unpack = _G.unpack or table.unpack or function(t, i, j)
-    i = i or 1; j = j or #t
+local function unpackFallback(t, i, j)
+    i = i or 1 j = j or #t
     if i > j then return end
-    return t[i], _G.unpack(t, i+1, j)
+    return t[i], unpackFallback(t, i+1, j)
 end
+_G.unpack = _G.unpack or table.unpack or unpackFallback
 
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
@@ -60,11 +64,13 @@ _G.VFS.FileExists = function(path)
 
     -- Fallback: Case-insensitive check using cached file list
     if not _G.VFS._ci_file_cache then
+		---@type table<string, string|nil>
         _G.VFS._ci_file_cache = {}
         -- Find all files, excluding .git directory
-        local handle = io.popen("find . -name '.git' -prune -o -type f -print")
+        local handle = io.popen("find . -name '.git' -prune -o -type f -print") --[[@as any]]
         if handle then
             for line in handle:lines() do
+				---@cast line string
                 -- Strip leading ./
                 local p = line:gsub("^%./", "")
                 _G.VFS._ci_file_cache[p:lower()] = p
@@ -103,6 +109,7 @@ _G.VFS.Include = function(path, env, mode)
     end
 
     -- Use loadfile/dofile instead of require to better simulate VFS and handle case-insensitive paths
+	---@diagnostic disable-next-line: redundant-parameter
     local chunk, err = loadfile(realPath)
     if chunk then
         -- Handle environment if provided
@@ -163,7 +170,7 @@ _G.VFS.SubDirs = function(path)
         local parent = path:match("(.+)/[^/]+$") or "."
         local base = path:match("([^/]+)$")
         if base then
-            local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
+            local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base)) --[[@as any]]
             if pHandle then
                 local match = pHandle:read("*l")
                 if match then searchPath = match end
@@ -173,7 +180,7 @@ _G.VFS.SubDirs = function(path)
     end
 
     local dirs = {}
-    local handle = io.popen(string.format("find %s -maxdepth 1 -type d", searchPath))
+    local handle = io.popen(string.format("find %s -maxdepth 1 -type d 2>/dev/null", searchPath)) --[[@as any]]
     if handle then
         for line in handle:lines() do
             if line ~= searchPath then
@@ -200,7 +207,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
         local parent = directory:match("(.+)/[^/]+$") or "."
         local base = directory:match("([^/]+)$")
         if base then
-            local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base))
+            local pHandle = io.popen(string.format("find %s -maxdepth 1 -type d -iname '%s'", parent, base)) --[[@as any]]
             if pHandle then
                 local match = pHandle:read("*l")
                 if match then searchDir = match end
@@ -218,7 +225,7 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
         cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
     end
 
-    local handle = io.popen(cmd)
+    local handle = io.popen(cmd) --[[@as any]]
     if handle then
         for line in handle:lines() do
             table.insert(files, line)
@@ -229,10 +236,10 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
     return files
 end
 
-_G.VFS.MAP = 1
-_G.VFS.MOD = 2
-_G.VFS.BASE = 4
-_G.VFS_MODES = _G.VFS.MAP + _G.VFS.MOD + _G.VFS.BASE
+_G.VFS.MAP = "m"
+_G.VFS.MOD = "M"
+_G.VFS.BASE = "b"
+_G.VFS_MODES = _G.VFS.MAP .. _G.VFS.MOD .. _G.VFS.BASE
 
 -- to enable, `luarocks install inspect`
 _G.inspect = (function()
@@ -241,4 +248,3 @@ _G.inspect = (function()
     -- fallback: no-op string (won't break prints/concats)
     return function(_) return _ end
 end)()
-
