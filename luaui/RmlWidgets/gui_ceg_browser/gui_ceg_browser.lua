@@ -691,6 +691,7 @@ local init_model = {
     pageDisplay  = "1 / 1",
     totalCount   = "",
     isCollapsed  = true,
+    showMinimizeHint = 1,
 
     -- UI scale
     scaleLabel   = "100%",
@@ -1011,6 +1012,7 @@ local init_model = {
 
     toggleCollapse = function(ev)
         dm_handle.isCollapsed = not dm_handle.isCollapsed
+        dm_handle.showMinimizeHint = 0
         if dm_handle.isCollapsed then
             preCollapseInfoOpen   = infoOpen
             preCollapseSoundsOpen = soundsOpen
@@ -1188,13 +1190,17 @@ local init_model = {
 
     playFireSound = function(ev)
         if selectedFireSound and selectedFireSound ~= "" then
-            spSendLuaRulesMsg("ceg_preview_sound:" .. selectedFireSound)
+            local p = "sounds/" .. selectedFireSound
+            if not p:find("%.[%a%d]+$") then p = p .. ".wav" end
+            Spring.PlaySoundFile(p, 0.7, "ui")
         end
     end,
 
     playImpactSound = function(ev)
         if selectedImpactSound and selectedImpactSound ~= "" then
-            spSendLuaRulesMsg("ceg_preview_sound:" .. selectedImpactSound)
+            local p = "sounds/" .. selectedImpactSound
+            if not p:find("%.[%a%d]+$") then p = p .. ".wav" end
+            Spring.PlaySoundFile(p, 0.7, "ui")
         end
     end,
 }
