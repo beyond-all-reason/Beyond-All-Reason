@@ -88,6 +88,14 @@ local function onUnitBuildspeedDebuffEnd(unitID)
 	debuffedUnits[unitID] = nil
 end
 
+function widget:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
+	onUnitBuildspeedDebuff(unitID, startFrame, expireFrame)
+end
+
+function widget:UnitBuildspeedDebuffEndHealthbars(unitID)
+	onUnitBuildspeedDebuffEnd(unitID)
+end
+
 function widget:UnitDestroyed(unitID)
 	debuffedUnits[unitID] = nil
 end
@@ -98,11 +106,4 @@ end
 
 function widget:Initialize()
 	widget:ViewResize()
-	widgetHandler:RegisterGlobal("UnitBuildspeedDebuffHealthbars",    onUnitBuildspeedDebuff)
-	widgetHandler:RegisterGlobal("UnitBuildspeedDebuffEndHealthbars", onUnitBuildspeedDebuffEnd)
-end
-
-function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("UnitBuildspeedDebuffHealthbars")
-	widgetHandler:DeregisterGlobal("UnitBuildspeedDebuffEndHealthbars")
 end

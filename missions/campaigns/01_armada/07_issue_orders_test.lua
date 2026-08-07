@@ -1,4 +1,4 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local lobbyData = {
@@ -40,7 +40,7 @@ local triggers = {
 	spawnAttackers = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'spawnAttackers', 'attackGround', 'messageAttackGround', 'spawnEyesA', 'spawnEyesB' },
 	},
@@ -48,7 +48,7 @@ local triggers = {
 	targets1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 200,
+			seconds = 7,
 		},
 		actions = { 'spawnTargets1a', 'spawnTargets1b', 'spawnTargets1c', 'attackNamedUnits', 'messageAttackNamedUnits' },
 	},
@@ -56,7 +56,7 @@ local triggers = {
 	targets2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 400,
+			seconds = 13,
 		},
 		actions = { 'spawnTargets2', 'fight', 'messageFight' },
 	},
@@ -64,7 +64,7 @@ local triggers = {
 	spawnEnergyGrid1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 600,
+			seconds = 20,
 		},
 		actions = { 'spawnEnergyGrid1', 'guardEnergyGrid', 'messageGuardEnergyGrid' },
 	},
@@ -72,7 +72,7 @@ local triggers = {
 	reclaimEnergyGrid = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 800,
+			seconds = 27,
 		},
 		actions = { 'reclaimEnergyGrid', 'messageReclaimEnergyGrid' },
 	},
@@ -80,7 +80,7 @@ local triggers = {
 	stop = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1100,
+			seconds = 37,
 		},
 		actions = { 'stop', 'messageStop', 'spawnWreck1', 'spawnWreck2', 'spawnWreck3' },
 	},
@@ -88,7 +88,7 @@ local triggers = {
 	reclaimWrecks = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			seconds = 40,
 		},
 		actions = { 'reclaimWrecks', 'messageReclaimWrecks' },
 	},
@@ -96,7 +96,7 @@ local triggers = {
 	artilleryAreaAttack = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1400,
+			seconds = 47,
 		},
 		actions = { 'spawnArtilleryTargets', 'spawnArtillery', 'artilleryAreaAttack', 'messageArtilleryAreaAttack' },
 	},

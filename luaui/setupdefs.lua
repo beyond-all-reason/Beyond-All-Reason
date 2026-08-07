@@ -21,7 +21,7 @@ for _,ud in pairs(UnitDefs) do
 	ud.canParalyze    = false
 	ud.canStockpile   = false
 	ud.canAttackWater = false
-	ud.wDefs = {}
+	ud.wDefs = table.new(#ud.weapons, 0)
 	for i, wt in ipairs(ud.weapons) do
 		local wd = WeaponDefs[wt.weaponDef]
 		ud.wDefs[i] = wd
@@ -39,7 +39,7 @@ end
 
 -- setup the UnitDefNames{} table
 do
-	local tbl = {}
+	local tbl = table.new(0, #UnitDefs)
 	for _,def in pairs(UnitDefs) do
 		tbl[def.name] = def
 	end
@@ -48,7 +48,7 @@ end
 
 -- setup the FeatureDefNames{} table
 do
-	local tbl = {}
+	local tbl = table.new(0, #FeatureDefs)
 	for _,def in pairs(FeatureDefs) do
 		tbl[def.name] = def
 	end
@@ -57,7 +57,7 @@ end
 
 -- setup the WeaponDefNames{} table
 do
-	local tbl = {}
+	local tbl = table.new(0, #WeaponDefs)
 	for _,def in pairs(WeaponDefs) do
 		tbl[def.name] = def
 	end

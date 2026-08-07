@@ -333,35 +333,33 @@ local function SocketConnect(host, port)
 	return true
 end
 
-function widget:TextCommand(command)
-	if string.find(command, "joystick", nil, true) then
-		command = string.lower(command)
-		if string.find(command, "ps3", nil, true) then
-			spEcho("Enabling PS3 controller layout")
-			PS3()
-		elseif string.find(command, "ps4",nil, true) then
-			spEcho("Enabling PS4 controller layout")
-			PS4()
-		elseif string.find(command, "xbox", nil, true) then
-			spEcho("Enabling XBox Series S controller layout")
-			XBoxSeriesS()
-		elseif string.find(command, "xbox360", nil, true) then
-			spEcho("Enabling XBox 360 controller layout")
-			XBox360()
-		elseif string.find(command, "xiaomi", nil, true) then
-			spEcho("Enabling Xiaomi wireless controller layout")
-			XiaomiWireless()
-		else
-			spEcho("Could not find a matching controller type for command", command)
-		end
-		return true
+local function joystickCmd(_, line)
+	local command = string.lower(line or "")
+	if string.find(command, "ps3", nil, true) then
+		spEcho("Enabling PS3 controller layout")
+		PS3()
+	elseif string.find(command, "ps4", nil, true) then
+		spEcho("Enabling PS4 controller layout")
+		PS4()
+	elseif string.find(command, "xbox", nil, true) then
+		spEcho("Enabling XBox Series S controller layout")
+		XBoxSeriesS()
+	elseif string.find(command, "xbox360", nil, true) then
+		spEcho("Enabling XBox 360 controller layout")
+		XBox360()
+	elseif string.find(command, "xiaomi", nil, true) then
+		spEcho("Enabling Xiaomi wireless controller layout")
+		XiaomiWireless()
+	else
+		spEcho("Could not find a matching controller type for command", command)
 	end
-	return false
+	return true
 end
 
 function widget:Initialize()
 	Spring.SendCommands({"set SmoothTimeOffset 2"})
 	spEcho("Started Camera Joystick, make sure you are running the joystick server, and switch camera to Ctrl+F4")
+	widgetHandler:AddAction("joystick", joystickCmd, nil, "t")
 	if debugMode then dumpConfig() end
 	local connected = SocketConnect(host, port)
 	if connected then
@@ -369,6 +367,10 @@ function widget:Initialize()
 	else
 		widgetHandler:RemoveWidget()
 	end
+end
+
+function widget:Shutdown()
+	widgetHandler:RemoveAction("joystick", "t")
 end
 
 local function joystatetostr(js)

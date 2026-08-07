@@ -44,8 +44,8 @@ local config = {
 	circleRadius = 300,
 	circleThickness = 6,
 
-	playerTextSize = 140,
-	roleTextSize = 90,
+	playerTextSize = 90,
+	roleTextSize = 65,
 	tutorialTextSize = 20,
 
 	spawnPointCircleColor = { 1, 1, 1, 0.6 },
@@ -78,12 +78,18 @@ local SpringIsGUIHidden = Spring.IsGUIHidden
 local SpringGetCameraRotation = Spring.GetCameraRotation
 local SpringGetGameFrame = Spring.GetGameFrame
 
+local glBlending = gl.Blending
 local glColor = gl.Color
 local glDepthTest = gl.DepthTest
+local glPopAttrib = gl.PopAttrib
+local glPushAttrib = gl.PushAttrib
 local glPushMatrix = gl.PushMatrix
+local glResetState = gl.ResetState
 local glTranslate = gl.Translate
 local glRotate = gl.Rotate
 local glPopMatrix = gl.PopMatrix
+local glTexture = gl.Texture
+local glUseShader = gl.UseShader
 
 -- types
 -- =====
@@ -410,8 +416,6 @@ local function buildCircleDisplayList()
 		return
 	end
 
-	glDepthTest(false)
-
 	local circleColors = {}
 	local baseCircleColors = {}
 	local glowColors = {}
@@ -519,8 +523,6 @@ local function buildTextDisplayList(cameraFlipped, cameraMode, cameraRy)
 		return
 	end
 
-	glDepthTest(false)
-
 	for _, teamStartPosition in pairs(startPositions) do
 		for i, position in ipairs(teamStartPosition) do
 			local sx, sz = position.spawnPoint.x, position.spawnPoint.z
@@ -578,8 +580,17 @@ local function drawAllStartLocationsText()
 end
 
 local function drawAllStartLocations()
+	glPushAttrib(GL.ALL_ATTRIB_BITS)
+	glResetState()
+	glUseShader(0)
+	glTexture(false)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	glDepthTest(false)
+
 	drawAllStartLocationsCircles()
 	drawAllStartLocationsText()
+
+	glPopAttrib()
 end
 
 local function wrapLine(str, maxLength)
@@ -666,7 +677,7 @@ local function drawTutorial()
 	fontTutorial:Print(
 		cachedTutorialText,
 		vsx * 0.5,
-		vsy * 0.75,
+		vsy * 0.61,
 		config.tutorialTextSize*resMult,
 		"cao"
 	)
@@ -675,7 +686,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	resMult = vsy/1440
-	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.6
+	local baseFontSize = mathMax(config.playerTextSize, config.roleTextSize) * 0.8
 	font = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 		baseFontSize*resMult,
@@ -685,8 +696,7 @@ function widget:ViewResize()
 	fontTutorial = gl.LoadFont(
 		"fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
 		config.tutorialTextSize*resMult,
-		(config.tutorialTextSize*resMult) / 14,
-		1
+		(config.tutorialTextSize*resMult) / 14
 	)
 end
 

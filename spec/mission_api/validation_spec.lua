@@ -5,12 +5,13 @@ GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 GG['MissionAPI'].ActionDefinitions = VFS.Include('luarules/mission_api/actions_loader.lua').LoadActionDefinitions()
+GG['MissionAPI'].TriggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 
 local validation    = VFS.Include('luarules/mission_api/validation.lua')
-local triggerSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
+local triggerDefinitions = GG['MissionAPI'].TriggerDefinitions
 
-local triggerTypes  = triggerSchema.Types
+local triggerTypes  = triggerDefinitions.Types
 local actionTypes   = actionDefinitions.Types
 
 -- Mirrors the normalisation done by triggers_loader before calling ValidateTriggers.
@@ -21,7 +22,7 @@ local function normalizeTrigger(raw)
 	s.maxRepeats    = s.maxRepeats or nil
 	s.difficulties  = s.difficulties or nil
 	s.coop          = s.coop or false
-	s.active        = s.active or true
+	s.active        = s.active == nil and true or s.active
 	raw.settings    = s
 	raw.triggered   = false
 	raw.repeatCount = 0
@@ -44,7 +45,7 @@ describe("mission_api.validation", function()
 		_G.FeatureDefNames       = {}
 		_G.WeaponDefNames        = {}
 		GG['MissionAPI']         = {
-			TriggerTypes      = triggerTypes,
+			TriggerDefinitions = triggerDefinitions,
 			Modules           = {},
 			ActionDefinitions = actionDefinitions,
 			Objectives        = {},
@@ -73,7 +74,7 @@ describe("mission_api.validation", function()
 			validation.ValidateTriggers({
 				t = normalizeTrigger({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 1 },
+					parameters = { seconds = 1 },
 					actions    = { 'ok' },
 				}),
 			}, rawActions)
@@ -99,12 +100,12 @@ describe("mission_api.validation", function()
 					}),
 					badActionID = normalizeTrigger({
 						type       = triggerTypes.TimeElapsed,
-						parameters = { gameFrame = 1 },
+						parameters = { seconds = 1 },
 						actions    = { 'doesNotExist' },
 					}),
 					badPrereq = normalizeTrigger({
 						type       = triggerTypes.TimeElapsed,
-						parameters = { gameFrame = 1 },
+						parameters = { seconds = 1 },
 						settings   = { prerequisites = { 'noSuchTrigger' } },
 						actions    = { 'ok' },
 					}),
@@ -112,7 +113,7 @@ describe("mission_api.validation", function()
 
 				assert.is_true(hasError("Trigger missing type. Trigger: noType"))
 				assert.is_true(hasError("Trigger has invalid type. Trigger: badType"))
-				assert.is_true(hasError("Trigger missing required parameter. Trigger: missingParam, Parameter: gameFrame"))
+				assert.is_true(hasError("Trigger missing required parameter. Trigger: missingParam, Parameter: seconds"))
 				assert.is_true(hasError("Trigger has invalid action ID: badActionID, Action: doesNotExist"))
 				assert.is_true(hasError("Trigger prerequisite does not exist. Trigger: badPrereq, Prerequisite triggerID: noSuchTrigger"))
 			end)
@@ -125,7 +126,7 @@ describe("mission_api.validation", function()
 			GG['MissionAPI'].Triggers = {
 				t = normalizeTrigger({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 1 },
+					parameters = { seconds = 1 },
 					actions    = { 'ok' },
 				}),
 			}
@@ -141,7 +142,7 @@ describe("mission_api.validation", function()
 			GG['MissionAPI'].Triggers = {
 				t = normalizeTrigger({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 1 },
+					parameters = { seconds = 1 },
 					actions    = { 'ok', 'noType', 'missingParam' },
 				}),
 			}
@@ -162,7 +163,7 @@ describe("mission_api.validation", function()
 			GG['MissionAPI'].Triggers = {
 				t = normalizeTrigger({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 1 },
+					parameters = { seconds = 1 },
 					actions    = { 'ok' },
 				}),
 			}
@@ -193,7 +194,7 @@ describe("mission_api.validation", function()
 					textKey = "Do the thing.",
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
-						parameters = { gameFrame = 90 },
+						parameters = { seconds = 90 },
 					},
 				},
 			})
@@ -229,7 +230,7 @@ describe("mission_api.validation", function()
 					trigger = {
 						settings   = { repeating = true },
 						type       = triggerTypes.TimeElapsed,
-						parameters = { gameFrame = 1 },
+						parameters = { seconds = 1 },
 					},
 				},
 			})
@@ -242,7 +243,7 @@ describe("mission_api.validation", function()
 					textKey = "ok",
 					trigger = {
 						type       = triggerTypes.TimeElapsed,
-						parameters = { gameFrame = 1 },
+						parameters = { seconds = 1 },
 						actions    = { 'someAction' },
 					},
 				},
@@ -254,7 +255,7 @@ describe("mission_api.validation", function()
 			validation.ValidateObjectives({
 				noTypeTrigger = {
 					textKey = "ok",
-					trigger = { parameters = { gameFrame = 1 } },
+					trigger = { parameters = { seconds = 1 } },
 				},
 			})
 			assert.is_true(hasError("Objective trigger missing type. Objective trigger: noTypeTrigger"))
@@ -280,7 +281,7 @@ describe("mission_api.validation", function()
 					},
 				},
 			})
-			assert.is_true(hasError("Objective trigger missing required parameter. Objective trigger: missingParam, Parameter: gameFrame"))
+			assert.is_true(hasError("Objective trigger missing required parameter. Objective trigger: missingParam, Parameter: seconds"))
 		end)
 	end)
 
@@ -380,7 +381,7 @@ describe("mission_api.validation", function()
 			GG['MissionAPI'].Triggers = {
 				t = normalizeTrigger({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 1 },
+					parameters = { seconds = 1 },
 					actions    = { 'a' },
 				}),
 			}
@@ -406,17 +407,17 @@ describe("mission_api.validation", function()
 			it("rejects wrong type", function()
 				triggerErrors({
 					type       = triggerTypes.TimeElapsed,
-					parameters = { gameFrame = 'bad' },
+					parameters = { seconds = 'bad' },
 					actions    = { 'ok' },
 				})
-				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: gameFrame"))
+				assert.is_true(hasError("Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds"))
 			end)
 		end)
 
 		describe("Boolean", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.DespawnUnits, parameters = { unitName = 'x', selfDestruct = 'bad' } })
-				assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Action: a, Parameter: selfDestruct"))
+				actionErrors({ type = actionTypes.PlaySound, parameters = { soundfile = "x", enqueue = 'bad' } })
+				assert.is_true(hasError("Unexpected parameter type, expected boolean, got string. Action: a, Parameter: enqueue"))
 			end)
 		end)
 

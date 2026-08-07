@@ -4,10 +4,10 @@
 
 VFS.Include('common/wav.lua')
 
-local Types = GG['MissionAPI'].Modules.ParameterTypes.Types
+local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 local actionDefinitions = GG['MissionAPI'].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
-local triggersSchemaParameters = VFS.Include('luarules/mission_api/triggers_schema.lua').Parameters
+local triggersSchemaParameters = GG['MissionAPI'].TriggerDefinitions.Parameters
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -51,11 +51,11 @@ local function processResourceIncomeSources(sources)
 end
 
 local processors = {
-	[Types.Position]              = processPosition,
-	[Types.Positions]             = processPositions,
-	[Types.Orders]                = processOrders,
-	[Types.SoundFile]             = processSoundFile,
-	[Types.ResourceIncomeSources] = processResourceIncomeSources,
+	[ParameterTypes.Position]              = processPosition,
+	[ParameterTypes.Positions]             = processPositions,
+	[ParameterTypes.Orders]                = processOrders,
+	[ParameterTypes.SoundFile]             = processSoundFile,
+	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
 }
 
 ----------------------------------------------------------------

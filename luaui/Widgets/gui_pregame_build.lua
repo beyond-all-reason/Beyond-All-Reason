@@ -609,20 +609,21 @@ local function addUnitShape(id, unitDefID, px, py, pz, rotationY, teamID, alpha)
 	return unitshapes[id]
 end
 
-local function DrawBuilding(buildData, borderColor, drawRanges, alpha)
+local function DrawBuilding(buildData, borderColor, drawRanges, alpha, drawOutline)
 	local bDefID, bx, by, bz, facing = buildData[1], buildData[2], buildData[3], buildData[4], buildData[5]
 	local buildingWidth, buildingHeight = GetBuildingDimensions(bDefID, facing)
 	local halfBuildingWidth, halfBuildingHeight = buildingWidth * HALF, buildingHeight * HALF
 
 	gl.DepthTest(false)
-	gl.Color(borderColor)
-
-	gl.Shape(GL.LINE_LOOP, {
-		{ v = { bx - halfBuildingWidth, by, bz - halfBuildingHeight } },
-		{ v = { bx + halfBuildingWidth, by, bz - halfBuildingHeight } },
-		{ v = { bx + halfBuildingWidth, by, bz + halfBuildingHeight } },
-		{ v = { bx - halfBuildingWidth, by, bz + halfBuildingHeight } },
-	})
+	if drawOutline ~= false then
+		gl.Color(borderColor)
+		gl.Shape(GL.LINE_LOOP, {
+			{ v = { bx - halfBuildingWidth, by, bz - halfBuildingHeight } },
+			{ v = { bx + halfBuildingWidth, by, bz - halfBuildingHeight } },
+			{ v = { bx + halfBuildingWidth, by, bz + halfBuildingHeight } },
+			{ v = { bx - halfBuildingWidth, by, bz + halfBuildingHeight } },
+		})
+	end
 
 	if drawRanges then
 		local isMex = UnitDefs[bDefID] and UnitDefs[bDefID].extractsMetal > 0
@@ -1379,6 +1380,7 @@ function widget:DrawWorld()
 	end
 
 	if selBuildData and showSelectedBuilding then
+		local drawSelectedOutline = WG["buildsquare-gl4"] == nil
 		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		local testOrder = spTestBuildOrder(
 			selBuildQueueDefID,
@@ -1399,17 +1401,17 @@ function widget:DrawWorld()
 
 		if not isMex then
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha)
+			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		elseif isMex then
 			if WG.ExtractorSnap.position or isMetalMap then
 				local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-				DrawBuilding(selBuildData, color, true, selectedAlpha)
+				DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 			else
-				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha)
+				DrawBuilding(selBuildData, BORDER_COLOR_INVALID, true, selectedAlpha, drawSelectedOutline)
 			end
 		else
 			local color = testOrder and (isSelectedSpawned and BORDER_COLOR_SPAWNED or BORDER_COLOR_VALID) or BORDER_COLOR_INVALID
-			DrawBuilding(selBuildData, color, true, selectedAlpha)
+			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		end
 	end
 

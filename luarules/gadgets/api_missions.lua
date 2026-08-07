@@ -92,12 +92,12 @@ function gadget:Initialize()
 
 	objectivesController = VFS.Include('luarules/mission_api/objectives_loader.lua')
 	stagesController = VFS.Include('luarules/mission_api/stages_loader.lua')
+
 	actionsController = VFS.Include('luarules/mission_api/actions_loader.lua')
 	GG['MissionAPI'].ActionDefinitions = actionsController.LoadActionDefinitions()
 
-	local triggersSchema = VFS.Include('luarules/mission_api/triggers_schema.lua')
 	triggersController = VFS.Include('luarules/mission_api/triggers_loader.lua')
-	GG['MissionAPI'].TriggerTypes = triggersSchema.Types
+	GG['MissionAPI'].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
 	loadMission(missionOptions.missionScriptPath);
 end

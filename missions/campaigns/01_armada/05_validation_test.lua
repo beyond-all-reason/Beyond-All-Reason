@@ -2,7 +2,7 @@
 --- Start the mission and look for validation errors in the log.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local lobbyData = {
@@ -75,7 +75,7 @@ local objectives = {
 		trigger = {
 			settings = { repeating = true },  -- error: trigger must not have a settings field
 			type = triggerTypes.TimeElapsed,
-			parameters = { gameFrame = 100000000 },
+			parameters = { seconds = 100000000 },
 		},
 	},
 
@@ -89,7 +89,7 @@ local objectives = {
 	objectiveWithMissingTriggerType = {
 		textKey = "trigger_with_missing_type",
 		trigger = {
-			parameters = { gameFrame = 100000000 },  -- error: missing trigger type
+			parameters = { seconds = 100000000 },  -- error: missing trigger type
 		},
 	},
 
@@ -102,7 +102,7 @@ local objectives = {
 		textKey = "trigger_must_not_have_actions",
 		trigger = {
 			type = triggerTypes.TimeElapsed,
-			parameters = { gameFrame = 100000000 },
+			parameters = { seconds = 100000000 },
 			actions = { 'someAction' },  -- error: objective trigger must not have actions
 		},
 	},
@@ -121,7 +121,7 @@ local triggers = {
 	triggerWithInvalidActionID = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 100000000,
+			seconds = 100000000,
 		},
 		actions = { 'invalidActionID' },
 	},
@@ -137,7 +137,7 @@ local triggers = {
 			active = 0,
 		},
 		parameters = {
-			gameFrame = 100000000,
+			seconds = 100000000,
 		},
 		actions = { 'actionMissingType' },
 	},
@@ -440,7 +440,7 @@ local actions = {
 	},
 
 	actionReferencingSpawnedUnitName = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'spawnedCom',
 		},
@@ -485,7 +485,7 @@ local actions = {
 
 	-- This valid action references a unitName that only exists in UnitLoadout;
 	actionReferencingLoadoutUnitName = {
-		type = actionTypes.DespawnUnits,
+		type = actionTypes.DestroyUnits,
 		parameters = {
 			unitName = 'loadoutCom',
 		},

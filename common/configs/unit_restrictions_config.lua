@@ -36,7 +36,10 @@ local function shouldShowWaterUnits()
 		voidWater = mapinfo.voidwater
 	end
 
-	if voidWater then
+	local lava = Spring.Lava
+	local isLava = lava and lava.isLavaMap
+
+	if voidWater or isLava then
 		return false
 	end
 

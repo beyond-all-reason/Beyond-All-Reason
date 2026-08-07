@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() or Platform.gl then
+if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() or not Platform.isHeadless then
 	return
 end
 

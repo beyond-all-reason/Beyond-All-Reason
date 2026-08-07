@@ -4,7 +4,8 @@
 #include "exptype.h"
 
 piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
-    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, hatpoint, crown, medalsilver, medalbronze, medalgold;
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1, nanol1, nanol2, nanol3, leye, reye, cagelight, cagelight_emit, crown, medalsilver, medalbronze, medalgold,
+	hatcosmeticpoint, rightshouldercosmeticpoint, leftshouldercosmeticpoint, necklacecosmeticpoint, beltcosmeticpoint;
 
 static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
       bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved, shotcount;
@@ -779,7 +780,6 @@ Create()
 	hide rbigflash;
 	hide nanospray;
 	hide aimx1;
-	hide hatpoint;
 	hide aimy1;
 	hide teleport;
 	hide rbigflash;
