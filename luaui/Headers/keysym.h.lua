@@ -13,7 +13,7 @@
 
 -- From SDL_keysym.h
 
-KEYSYMS = {
+local KEYSYM_VALUES = {
 
   UNKNOWN    = 0,
   FIRST      = 0,
@@ -273,3 +273,35 @@ KEYSYMS = {
   -- Add any other keys here
   LAST   = 323
 }
+
+
+-- KEYSYMS is deprecated in favour of Spring.GetKeyCode(name) (see issue #2611:
+-- these legacy SDL1.2 values can't represent keys like F13-F20). It stays fully
+-- available for now - same values, still iterable - but warns on use to nudge
+-- migration. Deprecation only; no behaviour change.
+local warnedKeysym = {}
+local function warnKeysym(key)
+  local name = (key ~= nil) and tostring(key) or "*"
+  if warnedKeysym[name] then return end
+  warnedKeysym[name] = true
+
+  if Spring and Spring.Log and LOG and LOG.DEPRECATED then
+    -- default (empty) section: on release its floor is INFO, so a DEPRECATED
+    -- message gets through; named sections floor at WARNING and would swallow it.
+    Spring.Log("", LOG.DEPRECATED, "KEYSYMS is deprecated, use Spring.GetKeyCode() instead"
+      .. ((key ~= nil) and (" (KEYSYMS." .. name .. ")") or ""))
+  end
+end
+
+-- proxy: warns on access/iteration, returns the original values (no drift), and
+-- keeps pairs() working via __pairs (backported into this Lua from 5.2)
+KEYSYMS = setmetatable({}, {
+  __index = function(_, key)
+    warnKeysym(key)
+    return KEYSYM_VALUES[key]
+  end,
+  __pairs = function()
+    warnKeysym(nil)
+    return next, KEYSYM_VALUES, nil
+  end,
+})
