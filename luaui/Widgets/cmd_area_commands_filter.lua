@@ -683,7 +683,7 @@ function widget:CommandNotify(cmdId, params, options)
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 	local targetType, targetId = spTraceScreenRay(spWorldToScreenCoords(cmdX, cmdY, cmdZ))
-	if not command.allowedTargetTypes[targetType] then
+	if not hasSplitModifiers(options) and not command.allowedTargetTypes[targetType] then
 		return false
 	end
 
