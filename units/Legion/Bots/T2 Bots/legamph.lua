@@ -1,7 +1,6 @@
 return {
 	legamph = {
 		activatewhenbuilt = true,
-		brakerate = 0.5,
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,

@@ -1,7 +1,7 @@
 return {
 	legkeres = {
-		acceleration = 0.02,
-		brakerate = 0.04,
+		maxacc = 0.02,
+		maxdec = 0.04,
 		energycost = 57000,
 		metalcost = 2600,
 		buildpic = "LEGKERES.DDS",
