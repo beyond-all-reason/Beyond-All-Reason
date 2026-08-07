@@ -1,7 +1,5 @@
 return {
 	legministarfall = {
-		acceleration = 0,
-		brakerate = 0,
 		buildangle = 29096,
 		energycost = 60000,
 		metalcost = 2000,

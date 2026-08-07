@@ -1,6 +1,5 @@
 return {
 	cords = {
-		acceleration = 0.05,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 14600,

@@ -1,8 +1,6 @@
 return {
 	leguwgeo = {
-		acceleration = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 4096,
 		energycost = 13000,
 		metalcost = 540,

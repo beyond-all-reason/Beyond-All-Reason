@@ -1,8 +1,6 @@
 return {
 	leganavaladvgeo = {
-		acceleration = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 0,
 		energycost = 27000,
 		metalcost = 1500,

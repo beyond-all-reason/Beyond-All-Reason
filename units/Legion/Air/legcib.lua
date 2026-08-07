@@ -1,6 +1,5 @@
 return {
 	legcib = {
-		acceleration = 0.2,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 3500,
