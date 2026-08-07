@@ -37,6 +37,7 @@ return {
 				desc = "Teams earn points by capturing territory to stay in the game.",
 			},
 			{ key = "scavengers", name = "Scavengers", desc = "Hold out against the scavenger swarm, then kill the boss." },
+			{ key = "raptors", name = "Raptors", desc = "Hold out against the raptor swarm, then kill the queen." },
 		},
 	},
 }
