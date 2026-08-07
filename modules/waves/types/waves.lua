@@ -1,0 +1,274 @@
+---@meta waves
+
+--- The waves module's vocabulary: the WaveSpec seam a flavor module fills in,
+--- the director state a savegame carries, and the order shapes the gadget
+--- executes. Everything here is plain data — the spec holds NUMBERS resolved
+--- once at Start, never modoption reads, and progress lives in state, never
+--- in closures.
+
+--- Which pool a squad is drawn from. Buckets are keyed by archetype and
+--- surface so the composer never asks a sea burrow for tanks.
+---@alias WaveBucketName
+---| "basicLand"
+---| "basicSea"
+---| "basicAirLand"
+---| "basicAirSea"
+---| "specialLand"
+---| "specialSea"
+---| "specialAirLand"
+---| "specialAirSea"
+---| "healerLand"
+---| "healerSea"
+
+--- Where a burrow may appear. "initialbox" grows out of the director team's
+--- start box with anger; "avoid" places anywhere outside player sensors.
+---@alias WaveBurrowPlacement "initialbox"|"initialbox_post"|"alwaysbox"|"avoid"
+
+--- What the ground under a position is. The composer picks a bucket by it.
+---@alias WaveSurface "land"|"sea"|"mixed"|"death"
+
+--- One unit slot in a squad: a def NAME (resolution to an id happens once at
+--- Start, where Spring exists) and how many of it the squad wants.
+---@class WaveSquadUnit
+---@field def UnitDefName
+---@field count integer
+
+--- One candidate squad in a bucket. minAnger/maxAnger is the bracket the
+--- squad is eligible in; weight is its share of the pick (the builder repeats
+--- an entry `weight` times, so a uniform draw over the filtered list IS the
+--- weighted draw).
+---@class WaveBucketEntry
+---@field minAnger number
+---@field maxAnger number
+---@field weight integer
+---@field units WaveSquadUnit[]
+
+--- A population-capped singleton spawn (commanders, decoys): at most
+--- maxAlive of this def, and only while the wave's anger is in bracket.
+---@class WavePopulationEntry
+---@field minAnger number
+---@field maxAnger number
+---@field maxAlive integer
+
+--- Everything the director needs about burrows.
+---@class WaveBurrowConfig
+---@field defs table<UnitDefName, { minAnger: number, maxAnger: number }> candidates, first in-bracket wins
+---@field placement WaveBurrowPlacement
+---@field size number footprint radius used by the placement cascade
+---@field spawnSquare number half-width of the box units spawn in around a burrow
+---@field spawnSquareIncrement number how much that box grows per failed probe
+---@field useScum boolean prefer creep-covered ground (needs GG.IsPosInRaptorScum)
+---@field maxBurrows number
+---@field spawnRate number seconds between burrow spawn attempts
+
+--- A creep structure the director sprinkles between waves.
+---@class WaveStructureEntry
+---@field minAnger number
+---@field maxAnger number
+---@field spawnedPerWave number fractional values are a per-wave chance
+---@field maxExisting number
+---@field surface WaveSurface
+
+--- The boss: what it is, how many, and how tough it starts.
+---@class WaveBossConfig
+---@field defName UnitDefName
+---@field count integer
+---@field minHealthFraction number floor on spawn health, as a fraction of max
+---@field stagger { health: number, time: number }|nil flavor bank; nil disables
+
+--- Dials resolved ONCE at Start. Everything the monolith mutated on its
+--- config lives here or in scheduler state; the spec itself is immutable.
+---@class WaveParams
+---@field gracePeriod number seconds before the director does anything
+---@field bossTime number absolute second the boss is due (grace included)
+---@field bossTimeSpan number the boss ramp alone, without grace — the /3600 scaling base
+---@field techAngerBossTime number boss time as the tech clock reads it (host pace dial applied)
+---@field gracePeriodRamped number grace as the tech clock reads it before the first boss
+---@field graceRamp boolean whether the ramped grace applies pre-first-boss
+---@field spawnRate number seconds between waves
+---@field turretSpawnRate number seconds between structure waves
+---@field minWaveSize number
+---@field maxWaveSize number
+---@field bossFightWaveSizeScale number percent of the envelope during a boss fight
+---@field economyScale number
+---@field perPlayerMultiplier number
+---@field spawnMultiplier number
+---@field spawnChance number
+---@field angerBonus number aggression gained per burrow killed
+---@field maxXP number
+---@field airStartAnger number tech anger below which air waves never fire
+---@field tier2MinAnger number the "still opening" threshold the wheel reads
+---@field teamCount integer human teams at Start, gaia excluded
+---@field unitCap integer
+---@field endless boolean
+---@field dynamicDifficulty { min: number, max: number, lower: number, upper: number }|nil
+---@field difficultyRows WaveDifficultyRow[]|nil endless cycles walk these
+---@field difficultyIndex integer|nil which row is live
+
+--- One row of the endless ladder. NextCycle folds it into fresh params.
+---@class WaveDifficultyRow
+---@field bossName UnitDefName
+---@field bossTime number
+---@field spawnRate number
+---@field burrowSpawnRate number
+---@field turretSpawnRate number
+---@field spawnChance number
+---@field minScavs number
+---@field maxScavs number
+---@field maxBurrows number
+---@field maxXP number
+---@field angerBonus number
+---@field bossResistanceMult number
+---@field damageMod number
+---@field healthMod number
+---@field bossStagger { health: number, time: number }|nil
+
+--- The flavor seam. Every hook is optional; a spec with none still plays.
+---@class WaveHooks
+---@field surfaceOf fun(x: number, y: number, z: number, size: number): WaveSurface
+---@field onWaveComposed fun(state: WaveDirectorState, count: integer)|nil
+---@field onUnitSpawned fun(unitID: integer, defName: UnitDefName, state: WaveDirectorState)|nil
+---@field onBurrowSpawned fun(unitID: integer, x: number, y: number, z: number)|nil
+---@field onBossSpawned fun(unitID: integer, state: WaveDirectorState)|nil
+---@field onBossKilled fun(unitID: integer, state: WaveDirectorState)|nil
+---@field onCycleComplete fun(state: WaveDirectorState)|nil
+---@field onUnitTick fun(unitID: integer, defID: integer, state: WaveDirectorState)|nil called on the sweep, per unit
+---@field behaviourOf fun(defID: integer): WaveBehaviour|nil
+---@field targetsOf fun(): integer[], integer[] plain targets, high-value targets
+
+--- The seam itself: one plain table, immutable after Start.
+---@class WaveSpec
+---@field name string unique director name; also the savegame key
+---@field teamID integer the team waves spawn for
+---@field allyTeamID integer|nil resolved at Start when absent
+---@field rulesParamPrefix string GameRulesParam namespace ("scav" reproduces legacy names)
+---@field params WaveParams
+---@field buckets table<WaveBucketName, WaveBucketEntry[]>
+---@field populations table<string, table<UnitDefName, WavePopulationEntry>>
+---@field burrows WaveBurrowConfig
+---@field structures table<UnitDefName, WaveStructureEntry>|nil
+---@field boss WaveBossConfig|nil
+---@field aggression { burrowKilled: number, ecoPenalty: table<integer, number> }
+---@field events { toLuaUI: string|nil, useWaveMsg: boolean }
+---@field hooks WaveHooks
+---@field specRef { module: string, builder: string, overrides: table }|nil rebuild recipe for load
+
+--- The integrals a savegame cannot recompute.
+---@class WaveAngerState
+---@field techAnger number 0-999, the roster clock
+---@field bossAnger number 0-100+, the boss countdown
+---@field aggression number decays every tick, gains when a burrow dies
+---@field aggressionLevel number the integral of aggression — boss anger's second source
+---@field ecoValue number per-second boss anger from the players' eco footprint
+---@field pastFirstBoss boolean
+
+--- The archetype wheel: eight counters, one per wave flavor.
+---@class WaveWheelState
+---@field base integer
+---@field air integer
+---@field special integer
+---@field basic integer
+---@field small integer
+---@field larger integer
+---@field huge integer
+---@field epic integer
+
+--- What one wave asked for. Derived per wave, kept so the next composition
+--- and the structure wave read the same anger.
+---@class WaveShape
+---@field sizeMultiplier number
+---@field timeMultiplier number
+---@field airPercentage number
+---@field specialPercentage number
+---@field techAnger number the anger this wave composes at (dynamic difficulty applied)
+
+--- One queued spawn, in the exact shape the drain consumes.
+---@class WaveQueueEntry
+---@field burrow integer
+---@field unitName UnitDefName
+---@field team integer
+---@field squadID integer 1 starts a new squad; >1 continues it
+---@field wave integer which wave this entry belongs to
+---@field alwaysVisible boolean|nil
+
+--- A live squad. Lifetime is measured in WAVES: squadLife decrements per
+--- wave and 0 means self-destruct — the anti-stalemate mechanism.
+---@class WaveSquad
+---@field units integer[]
+---@field life integer
+---@field role string
+---@field regroupEnabled boolean
+---@field regrouping boolean
+---@field needsRegroup boolean
+---@field needsRefresh boolean
+---@field burrow integer|nil
+---@field target { x: number, y: number, z: number }|nil
+
+--- The whole save pile for one director. Derived state (resolved rosters,
+--- bucket indexes, world closures, GameRulesParams) is deliberately absent.
+---@class WaveDirectorState
+---@field name string
+---@field anger WaveAngerState
+---@field wheel WaveWheelState
+---@field params WaveParams mutable copy — endless cycles and XP drift live here
+---@field shape WaveShape
+---@field intensity number the mission dial, 1.0 = the spec's own pace
+---@field surge WaveShape|nil one-shot override consumed by the next wave
+---@field waveNumber integer
+---@field wavesCleared integer
+---@field cycle integer endless loop counter, 1-based
+---@field timeOfLastWave number
+---@field timeOfLastBurrow number
+---@field firstWaveDue number|nil the opening wave's fixed appointment; nil once it has landed
+---@field announcedFirstWave boolean
+---@field spawnQueue WaveQueueEntry[]
+---@field squads WaveSquad[]
+---@field unitSquad table<integer, integer> unit id -> squad index
+---@field burrows table<integer, boolean>
+---@field spawnBox { x1: number, z1: number, x2: number, z2: number }|nil
+---@field startBox { x1: number, z1: number, x2: number, z2: number }|nil
+---@field spawnAreaMultiplier number
+---@field spawnRetries integer
+---@field firstSpawn boolean
+---@field fullySpawned boolean
+---@field waveAlive table<integer, integer> wave number -> units still alive
+---@field waveUnits table<integer, integer> unit id -> the wave it came in with
+---@field boss { spawned: integer, killed: integer, ids: table<integer, boolean>, aliveMaxHealth: number }
+---@field stopped boolean
+
+--- What the director tells the gadget to do this tick. The gadget is a dumb
+--- executor: every decision, including composition, already happened.
+---@alias WaveOrderKind
+---| "burrow"
+---| "wave"
+---| "boss"
+---| "structures"
+---| "drain"
+---| "squads"
+---| "sweep"
+---| "box"
+---| "publish"
+---| "event"
+
+---@class WaveOrder
+---@field kind WaveOrderKind
+---@field entries WaveQueueEntry[]|nil composed spawns, for "wave"
+---@field count integer|nil how many entries the wave composed
+---@field ceiling number|nil the envelope the wave was composed against
+---@field name string|nil event name, for "event"
+---@field number number|nil event payload
+---@field tech number|nil event payload
+---@field minBurrows number|nil for "burrow"
+
+--- What Status(name) answers. Monotonic counters — mission conditions latch
+--- against them, so they never go backwards inside a cycle.
+---@class WaveStatus
+---@field techAnger number
+---@field bossAnger number
+---@field waveNumber integer
+---@field wavesCleared integer
+---@field bossesKilled integer
+---@field bossesSpawned integer
+---@field cycle integer
+---@field intensity number
+---@field active boolean
