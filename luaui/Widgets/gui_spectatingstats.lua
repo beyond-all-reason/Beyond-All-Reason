@@ -26,12 +26,24 @@ local ColorString = Spring.Utilities.Color.ToString
 local weaponShowGroups = { ["0"] = true, ["1"] = true }
 local weaponHideRoles = { secondary = true }
 
-local function displayWeaponDPS(weaponDef)
-	if not weaponDef.damages then
-		return false
-	end
-	local custom = weaponDef.customParams
-	return custom.bogus ~= "1" and weaponShowGroups[custom.weapons_group] and not weaponHideRoles[custom.weapons_role or ""]
+local function isFakeWeapon(weaponDef)
+	return weaponDef.customParams.bogus == "1"
+end
+
+local function isDisplayWeapon(weaponDef)
+	return weaponShowGroups[weaponDef.customParams.weapons_group]
+		and not weaponHideRoles[weaponDef.customParams.weapons_role or ""]
+end
+
+local function isSmartSubweapon(weaponDef, unitDef)
+	return unitDef.customParams.weapons_smart_select ~= nil
+		and (weaponDef.customParams.smart_backup or weaponDef.customParams.smart_trajectory_checker)
+end
+
+local function displayWeaponDPS(weaponDef, unitDef)
+	return not isFakeWeapon(weaponDef)
+		and isDisplayWeapon(weaponDef)
+		and not isSmartSubweapon(weaponDef, unitDef)
 end
 
 local unitdefMobileDps = {}
@@ -43,7 +55,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if #weapons > 0 then
 		for i = 1, #weapons do
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
-			if displayWeaponDPS(weaponDef) then
+			if displayWeaponDPS(weaponDef, unitDef) then
 				local maxDmg = 0
 				for _, v in pairs(weaponDef.damages) do
 					if v > maxDmg then
