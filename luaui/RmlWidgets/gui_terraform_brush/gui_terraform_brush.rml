@@ -15,7 +15,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.8</span>
+					<span class="tf-title-version">1.9</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -5420,6 +5420,16 @@
 								<input type="text" id="ts-slider-talusPatch-numbox" class="tf-slider-numbox" readonly value="0.9" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus start</div>
+								<input type="range" id="ts-slider-talusStartDeg" class="tf-slider" min="5" max="45" step="0.1" value="23.1" data-event-change="onTilesetKnob('talusStartDeg')" />
+								<input type="text" id="ts-slider-talusStartDeg-numbox" class="tf-slider-numbox" readonly value="23.1" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus full</div>
+								<input type="range" id="ts-slider-talusFullDeg" class="tf-slider" min="10" max="60" step="0.1" value="45.6" data-event-change="onTilesetKnob('talusFullDeg')" />
+								<input type="text" id="ts-slider-talusFullDeg-numbox" class="tf-slider-numbox" readonly value="45.6" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="text-base text-light" style="flex: 0 0 96dp;">Plateau height</div>
 								<input type="range" id="ts-slider-platHeight" class="tf-slider" min="0" max="1" step="0.005" value="0.60" data-event-change="onTilesetKnob('platHeight')" />
 								<input type="text" id="ts-slider-platHeight-numbox" class="tf-slider-numbox" readonly value="0.60" />
@@ -5447,6 +5457,11 @@
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Splat paint</div>
 							<input type="range" id="ts-slider-splatInfluence" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('splatInfluence')" />
 							<input type="text" id="ts-slider-splatInfluence-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Protect cliffs</div>
+							<input type="range" id="ts-slider-cliffProtect" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('cliffProtect')" />
+							<input type="text" id="ts-slider-cliffProtect-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="text-base text-light" style="flex: 0 0 96dp;">Punch talus</div>

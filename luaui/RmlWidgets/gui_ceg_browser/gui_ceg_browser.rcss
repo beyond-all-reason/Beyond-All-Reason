@@ -169,6 +169,17 @@ body, div, p, span, input, button {
 .winbtn.danger   { background-color: #3d0808; border-color: #552222; color: #f87171; }
 .winbtn.danger:hover { background-color: #5a1010; }
 
+/* Draws attention to the minimize button on first load so new users notice
+   it - a static glow matching gui_modtools' .mt-minimize-btn.highlight,
+   driven by a one-time hint flag that clears on first click (not tied to
+   isCollapsed, so it won't reappear on every re-collapse). */
+.winbtn.minimize.highlight {
+    background-color: #243626;
+    border-color: #22c55e;
+    color: #a8c09a;
+    box-shadow: inset 0dp 0dp 0dp 1dp #22c55ea6, 0dp 0dp 6dp #22c55e47;
+}
+
 /* ── Content area ── */
 .content {
     margin-top: 6dp;
