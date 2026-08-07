@@ -180,12 +180,12 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn('AllowUnitBuildStep')
 	end
 
-	local needsReclaimTracking = table.any(triggers, function(trigger)
+	local needsFeatureReclaimTracking = table.any(triggers, function(trigger)
 		return trigger.type == triggerTypes.FeatureReclaimed
 			or trigger.type == triggerTypes.FeatureDestroyed
 	end)
 
-	if not needsReclaimIncome and not needsReclaimTracking then
+	if not needsReclaimIncome and not needsFeatureReclaimTracking then
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
 end
