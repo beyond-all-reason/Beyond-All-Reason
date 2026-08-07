@@ -137,9 +137,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	--config -- see also in unsynced
-	local radius = 315 --outer radius of area denial ring
+	local radius = 250 --outer radius of area denial ring
 	local width = 30 --width of area denial ring
-	local effectlength = 10 --how long area denial lasts, in seconds
+	local effectlength = 7 --how long area denial lasts, in seconds
 	local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
 	--locals
@@ -148,6 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 	local SpDestroyUnit = Spring.DestroyUnit
 	local SpGetUnitDefID = Spring.GetUnitDefID
 	local SpValidUnitID = Spring.ValidUnitID
+	local SpAddUnitExperience = Spring.AddUnitExperience
 	local Mmin = math.min
 
 
@@ -165,6 +166,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	junoWeaponsNames = nil
 
+	local experienceMod = 0.3
+
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
@@ -173,6 +176,12 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SpawnCEG("juno-damage", px, py + 8, pz, 0, 1, 0)
 				end
 				if aID and SpValidUnitID(aID) then
+					local health, healthMax = Spring.GetUnitHealth(uID)
+					local attackerPower = UnitDefs[aDefID].power
+					local defenderPower = UnitDefs[uDefID].power
+					local scaledExpMod = 0.1 * experienceMod * (defenderPower / attackerPower)
+					local scaledDamage = math.max(health / healthMax, 0)
+					SpAddUnitExperience(aID, scaledExpMod * scaledDamage)
 					SpDestroyUnit(uID, false, false, aID)
 				else
 					SpDestroyUnit(uID, false, false) -- leavewreck, makeselfdexplosion

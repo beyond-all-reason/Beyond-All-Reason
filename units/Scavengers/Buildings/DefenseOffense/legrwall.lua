@@ -83,7 +83,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
 			},
 		},
 		sounds = {
@@ -135,17 +134,16 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 950,
-				reloadtime = 4,
+				reloadtime = 4.5,
 				rgbcolor = "0.34 0.64 0.94",
 				soundhit = "mavgun3",
 				soundhitwet = "splshbig",
 				soundstart = "lancefire",
-				soundstartvolume = 26,
 				thickness = 3,
 				tolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 3000,
+				weaponvelocity = 3160,
 				customparams = {
 					overpenetrate = true,
 				},

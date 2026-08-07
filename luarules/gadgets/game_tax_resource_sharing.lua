@@ -76,6 +76,10 @@ function gadget:AllowResourceTransfer(senderTeamId, receiverTeamId, resourceType
 
 	-- rShare is the share slider setting, don't exceed their share slider max when sharing
 	local maxShare = rStor * rShare - rCur
+	
+	if amount <= 0 or maxShare <= 0 then
+		return false
+	end
 
 	local taxedAmount = math_min((1-sharingTax)*amount, maxShare)
 	local totalAmount = taxedAmount / (1-sharingTax)

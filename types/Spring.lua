@@ -1,15 +1,18 @@
--- TODO: delete when recoil-lua-library publishes SpringSynced types
----@class SpringSynced
----@field CMD table
----@field Log fun(section: string, level: number, ...: any)
----@field GetModOptions fun(): table
----@field GetGameFrame fun(): number
----@field IsCheatingEnabled fun(): boolean
----@field GetTeamRulesParam fun(teamID: number, key: string): any
----@field SetTeamRulesParam fun(teamID: number, key: string, value: any)
----@field GetUnitDefID fun(unitID: number): number?
----@field ValidUnitID fun(unitID: number): boolean
----@field GetTeamLuaAI fun(teamID: number): string
+---@class UnitScriptTable
+---@field CallAsUnit fun(unitID: integer, fn: function, ...: any): any
+---@field WaitForMove fun(pieceNum: integer, axis: integer)
+---@field WaitForTurn fun(pieceNum: integer, axis: integer)
+---@field WaitForScale fun(pieceNum: integer)
+---@field GetUnitCOBValue fun(unitID: integer, cobVal: integer, ...: any): integer
+---@field SetUnitCOBValue fun(unitID: integer, cobVal: integer, param: integer|boolean): nil
+---@field Sleep fun(ms: number)
+---@field StartThread fun(fn: function, ...: any)
+---@field SetSignalMask fun(mask: integer)
+---@field Signal fun(mask: integer)
+---@field Hide fun(pieceNum: integer)
+---@field Show fun(pieceNum: integer)
+---@field GetScriptEnv fun(unitID: integer): table
+---@field GetLongestReloadTime fun(unitID: integer): number
 
 -- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
 ---@class ResourceData
@@ -57,4 +60,9 @@
 ---@field unitDefId string
 ---@field unitDef table?
 ---@field [string] any
+
+--- BAR extends engine `ObjectRenderingTable` in `luarules/Utilities/unitrendering.lua`.
+---@class ObjectRenderingTable
+---@field ActivateMaterial fun(objectID: integer, lod: integer)
+---@field DeactivateMaterial fun(objectID: integer, lod: integer)
 

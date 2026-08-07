@@ -61,6 +61,7 @@ return {
             paratrooper = true,
 			water_fall_damage_multiplier = 0,
 			fall_damage_multiplier = 0,
+			firestateoncloak = 0,
 			nopvebuilder = true,
 		},
 		sfxtypes = {
@@ -119,8 +120,6 @@ return {
 				soundhit = "xplomas2s",
 				soundhitwet = "sizzlexs",
 				soundstart = "disigun1",
-				soundhitvolume = 36,
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,

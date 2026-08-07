@@ -253,14 +253,14 @@ function gadget:FeatureCreated(featureID, allyTeam)
 	if isComWreck[Spring.GetFeatureDefID(featureID)] then
 		local px,py,pz = Spring.GetFeaturePosition(featureID)
 		local rx,ry,rz = Spring.GetFeatureRotation(featureID)
-		local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+		local dx,dy,dz,rightx,righty,rightz = Spring.GetFeatureDirection(featureID)
 		local heading = Spring.GetFeatureHeading(featureID)
 		local teamID = Spring.GetFeatureTeam(featureID)
 		Spring.DestroyFeature(featureID)
 		local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px, py, pz, heading, teamID)
 		if xmasFeatureID then
 			Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
-			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+			Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz,rightx,righty,rightz)
 			local featureResurrect = Spring.GetFeatureResurrect(featureID)
 			Spring.SetFeatureResurrect(xmasFeatureID, featureResurrect, "s", 0)
 		end

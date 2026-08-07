@@ -28,7 +28,7 @@ return {
 		script = "Units/LEGACV.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
-		sightdistance = 289.89999,
+		sightdistance = 330,
 		speed = 52.5,
 		terraformspeed = 1250,
 		trackstrength = 6,

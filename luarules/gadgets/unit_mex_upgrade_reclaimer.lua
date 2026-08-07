@@ -18,6 +18,7 @@ end
 
 
 local transferInstantly = true	-- false = transfer mex on completion
+local SendToUnsynced = SendToUnsynced
 
 
 _G.transferredUnits = {}
@@ -66,6 +67,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			Spring.SetUnitNoSelect(mex, true)
+			SendToUnsynced("setUnitNoGroup", mex, true)
 			if transferInstantly then
 				local mexTeamID = Spring.GetUnitTeam(mex)
 				if mexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(mexTeamID, false)) then
@@ -83,6 +85,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local mex = hasMexBeneath(unitID)
 		if mex then
 			Spring.SetUnitNoSelect(mex, false)
+			SendToUnsynced("setUnitNoGroup", mex, false)
 		end
     end
 end

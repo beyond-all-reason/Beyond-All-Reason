@@ -127,8 +127,6 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
-				soundhitvolume = 7.5,
-				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				weapontimer = 1,

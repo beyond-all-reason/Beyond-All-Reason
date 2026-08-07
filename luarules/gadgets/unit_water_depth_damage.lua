@@ -48,6 +48,7 @@ local spSpawnCEG = Spring.SpawnCEG
 local spPlaySoundFile = Spring.PlaySoundFile
 local spTestMoveOrder = Spring.TestMoveOrder
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spDestroyUnit = Spring.DestroyUnit
 
 local waterIsLava = Spring.GetModOptions().map_waterislava
@@ -109,9 +110,13 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				local health, maxHealth = spGetUnitHealth(unitID)
 				local damage = (unitDefData[unitDefID].fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 				if damage >= health then
-					spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					if spGetUnitRulesParam(unitID, "unit_effigy") then
+						spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
+					else
+						spDestroyUnit(unitID) --this ensures a wreck is left behind. If damage is too great, it destroys the heap.
+					end
 				else
-					spAddUnitDamage(unitID, damage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, damage, 0, nil, waterDamageDefID)
 				end
 			end
 		else
@@ -170,7 +175,7 @@ function gadget:GameFrame(frame)
 					if math.random(1, 6) == 1 then
 						spPlaySoundFile('alien_electric', 0.50, posX, posY, posZ, 'sfx')
 					end
-					spAddUnitDamage(unitID, data.drowningDamage, 0, gaiaTeamID, waterDamageDefID)
+					spAddUnitDamage(unitID, data.drowningDamage, 0, nil, waterDamageDefID)
 				end
 			else
 				drowningUnitsWatch[unitID] = nil --dead unit
