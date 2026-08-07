@@ -14,6 +14,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local spAddTeamResource = Spring.AddTeamResource
+local spUseTeamResource = Spring.UseTeamResource
+
 GG["MissionAPIActionHelper"] = {}
 
 local resourcing = {
@@ -47,16 +50,16 @@ function gadget:GameFrame(frame)
     if resourcing.active and frame % Game.gameSpeed == 21 then
         for teamID, amount in pairs(resourcing.metalPerSecond) do
             if amount > 0 then
-                Spring.AddTeamResource(teamID, "metal", amount)
+                spAddTeamResource(teamID, "metal", amount)
             elseif amount < 0 then
-                Spring.UseTeamResource(teamID, "metal", -amount)
+                spUseTeamResource(teamID, "metal", -amount)
             end
         end
         for teamID, amount in pairs(resourcing.energyPerSecond) do
             if amount > 0 then
-                Spring.AddTeamResource(teamID, "energy", amount)
+                spAddTeamResource(teamID, "energy", amount)
             elseif amount < 0 then
-                Spring.UseTeamResource(teamID, "energy", -amount)
+                spUseTeamResource(teamID, "energy", -amount)
             end
         end
     end
