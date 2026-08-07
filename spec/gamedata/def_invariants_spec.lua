@@ -720,15 +720,13 @@ describe("UnitDefs invariants", function()
 	end)
 
 	-- alldefs_post rescales metal and hitpoints for blocks named dead and heap only, so a
-	-- stage under any other name silently keeps whatever the file hardcodes. The rock teeth
-	-- and dragon eye stages are deliberate exceptions, confirmed in issue 8630.
+	-- stage under any other name silently keeps whatever the file hardcodes. Dragon's teeth
+	-- and walls leave rock teeth rather than rubble, which is deliberate; see issue 8630.
 	local knownWreckStages = {
 		dead = true,
 		heap = true,
 		rockteeth = true,
 		rockteethx = true,
-		dragonseyes_dead = true,
-		cdragonseyes_dead = true,
 	}
 
 	it("names every wreck stage so the normaliser finds it", function()
