@@ -624,7 +624,7 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
-	it("points normaltex at a file that ships", function()
+	it("points normaltex at a file that exists", function()
 		local checked = {}
 		local bad = {}
 		for name, def in pairs(defs) do
@@ -638,6 +638,30 @@ describe("UnitDefs invariants", function()
 					end
 					if not checked[normaltex] then
 						bad[#bad + 1] = name .. " -> " .. normaltex
+					end
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
+	-- A def with no script at all falls back to <unitname>.cob, but a named script that is not
+	-- there leaves the unit with nothing driving it, so it never plays its death animation.
+	it("points script at a file that exists", function()
+		local checked = {}
+		local bad = {}
+		for name, def in pairs(defs) do
+			local script = def.script
+			if script ~= nil then
+				if type(script) ~= "string" or script == "" then
+					bad[#bad + 1] = name .. " script = " .. tostring(script)
+				else
+					if checked[script] == nil then
+						checked[script] = VFS.FileExists("scripts/" .. script) or VFS.FileExists(script)
+					end
+					if not checked[script] then
+						bad[#bad + 1] = name .. " -> " .. script
 					end
 				end
 			end
@@ -741,7 +765,7 @@ describe("UnitDefs invariants", function()
 	-- legmohobp is finished but unbuildable and still waiting on its portrait.
 	local buildpicExempt = { legmohobp = true, legmohobp_scav = true, legmohobpct = true, legmohobpct_scav = true }
 
-	it("points buildpic at a file that ships", function()
+	it("points buildpic at a file that exists", function()
 		local checked = {}
 		local bad = {}
 		for name, def in pairs(defs) do
