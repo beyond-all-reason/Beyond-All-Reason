@@ -41,6 +41,26 @@ local function fallbackToDefault(currentKeys)
 end
 
 
+-- back-fill the engine mouse-role binds when a config (e.g. a Custom snapshot) lacks them
+local function isActionBound(action)
+	for _, b in ipairs(Spring.GetKeyBindings()) do
+		if b.command == action then
+			return true
+		end
+	end
+	return false
+end
+
+local function ensureMouseRoleBinds()
+	if not isActionBound("mouseprimary") then
+		Spring.SendCommands("bind Any+mouse1 mouseprimary")
+	end
+	if not isActionBound("mousesecondary") then
+		Spring.SendCommands("bind Any+mouse3 mousesecondary")
+	end
+end
+
+
 local function reloadBindings()
 	-- Second parameter here is just a fallback if this config is undefined
 	currentLayout = Spring.GetConfigString("KeyboardLayout", 'qwerty')
@@ -57,6 +77,8 @@ local function reloadBindings()
 	else
 		spEcho("BAR Hotkeys: No hotkey file found")
 	end
+
+	ensureMouseRoleBinds()
 
 	reloadWidgetsBindings()
 end

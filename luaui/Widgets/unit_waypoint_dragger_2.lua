@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 function widget:GetInfo()
 	return {
 		name      = "Waypoint Dragger",
@@ -257,7 +259,7 @@ function widget:MousePress(mx, my, mb)
 	local _, _, _, shift = spGetModKeyState()
 	local numWayPts              = 0
 	if not shift then return false end
-	if mb ~= 1 then return false end
+	if not mouseRoles.isPrimaryButton(mb) then return false end
 	numWayPts = GetWayPointsNearCursor(selWayPtsTbl, mx, my)
 	if numWayPts == 0 then
 		return false
