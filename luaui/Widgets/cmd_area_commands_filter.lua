@@ -611,6 +611,14 @@ local function getTechLevel(unitDefName)
 	return unitDef and unitDef.customParams.techlevel
 end
 
+local function hasSplitModifiers(options)
+	return options.shift and options.meta
+end
+
+local function hasFilterModifiers(options)
+	return options.alt or options.ctrl
+end
+
 local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	local featureDefId = spGetFeatureDefID(targetId)
 	local targetUnitDefName = spGetFeatureResurrect(targetId)
@@ -625,7 +633,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	end
 
 	if not filterType and not filterTech then
-		return featuresInArea
+		return hasSplitModifiers(options) and featuresInArea or nil
 	end
 
 	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
@@ -652,14 +660,6 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	if count > 0 then
 		return filteredTargets
 	end
-end
-
-local function hasSplitModifiers(options)
-	return options.shift and options.meta
-end
-
-local function hasFilterModifiers(options)
-	return options.alt or options.ctrl
 end
 
 function widget:CommandNotify(cmdId, params, options)
