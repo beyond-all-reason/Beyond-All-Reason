@@ -320,20 +320,37 @@ validators[Types.Area] = function(area)
 		end
 	end
 
-validators[Types.ResourceIncomeSources] = function(sources)
-	local luaTypeResult = validators[Types.Table](sources)
-	if luaTypeResult then return luaTypeResult end
-	if #sources == 0 then
-		return { { message = "Resource income sources table must not be empty" } }
+
+local function getValidatorFromEnumSetSpec(emumSetSpec)
+	local noun = emumSetSpec.noun
+	local generalPlural = string.upper(string.sub(noun, 1, 1)) .. string.sub(noun, 2) .. 's'
+	local emptyMessage = generalPlural .. " table must not be empty"
+	local allowedList = "'" .. table.concat(emumSetSpec.values, "', '") .. "'"
+
+	local members = {}
+	for _, value in ipairs(emumSetSpec.values) do
+		members[value] = true
 	end
 
-	local result = {}
-	for i, source in ipairs(sources) do
-		if not parameterTypeEnums[Types.ResourceIncomeSources][source] then
-			result[#result + 1] = { message = "Invalid resource income source [" .. i .. "]: '" .. tostring(source) .. "'. Must be one of: 'extractor', 'production', 'reclaim', 'transfer'" }
+	return function(values)
+		local luaTypeResult = validators[Types.Table](values)
+		if luaTypeResult then return luaTypeResult end
+		if #values == 0 then
+			return { { message = emptyMessage } }
 		end
+
+		local result = {}
+		for i, value in ipairs(values) do
+			if not members[value] then
+				result[#result + 1] = { message = "Invalid " .. noun .. " [" .. i .. "]: '" .. tostring(value) .. "'. Must be one of: " .. allowedList }
+			end
+		end
+		if #result > 0 then return result end
 	end
-	if #result > 0 then return result end
+end
+
+for enumSetType, spec in pairs(parameterTypes.EnumSets) do
+	validators[enumSetType] = getValidatorFromEnumSetSpec(spec)
 end
 
 --- String Validators:
