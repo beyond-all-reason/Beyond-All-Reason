@@ -807,7 +807,6 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('GadgetPlayMusicTrack', GadgetPlayMusicTrack)
 	isChangingTrack = false
 	if spGetGameFrame() == 0 and Spring.GetConfigInt('music_loadscreen', 1) == 1 then
 		currentTrack = Spring.GetConfigString('music_loadscreen_track', '')
@@ -963,15 +962,8 @@ function widget:Initialize()
 	end
 end
 
-function GadgetPlayMusicTrack(track)
-	if WG['music'] then
-		WG['music'].playTrack(track)
-	end
-end
-
 function widget:Shutdown()
 	shutdown = true
-	widgetHandler:DeregisterGlobal('GadgetPlayMusicTrack')
 	Spring.SetConfigInt('music', (playing and 1 or 0))
 
 	if WG['guishader'] then
