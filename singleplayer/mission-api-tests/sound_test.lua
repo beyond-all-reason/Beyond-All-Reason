@@ -46,6 +46,14 @@ local triggers = {
 		},
 		actions = { 'playSoundNotification', 'messageSoundNotification' },
 	},
+
+	playMusic = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			gameFrame = 150,
+		},
+		actions = { 'playMusic', 'messageMusicNotification' },
+	},
 }
 
 local actions = {
@@ -91,6 +99,14 @@ local actions = {
 		},
 	},
 
+	playMusic = {
+		type = actionTypes.PlayMusic,
+		parameters = {
+			soundfile = 'music/original/events/aprilfools/menu/Ryan Krause - Friend or Foe ( Bassfahrer Metal Cover).ogg',
+		},
+	},
+
+
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
@@ -111,6 +127,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Nuke spotted, after the other two voices.",
+		},
+	},
+
+	messageMusicNotification = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Playing Trigger Music Track.",
 		},
 	},
 }
