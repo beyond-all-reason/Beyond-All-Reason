@@ -357,12 +357,6 @@ local function notify(env, cmdId, options)
 	return env.widget:CommandNotify(cmdId, INSIDE_AREA, options)
 end
 
--- ============================================================
--- == Tests ===================================================
-
--- All tests have to verify true/false return from CommandNotify
--- and the exact number of orders (0 or a precise full account).
-
 local function assert_is_split(orders)
 	local byUnit = {}
 	for _, order in ipairs(orders) do
@@ -387,6 +381,12 @@ local function assert_is_split(orders)
 	-- NB: Condition your tests so that this is the case (or there is no point to them).
 	assert.is_true(units > 1, "targets should be distributed across more than one unit")
 end
+
+-- ============================================================
+-- == Tests ===================================================
+
+-- All tests have to verify true/false return from CommandNotify
+-- and the exact number of orders (0 or a precise full account).
 
 describe("cmd_area_commands_filter", function()
 	describe("activation guards", function()
