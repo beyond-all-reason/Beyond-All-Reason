@@ -633,7 +633,15 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options)
 	end
 
 	if not filterType and not filterTech then
-		return hasSplitModifiers(options) and featuresInArea or nil
+		if not hasSplitModifiers(options) then
+			return
+		end
+		if offsetFeatureID then
+			for i = 1, #featuresInArea do
+				featuresInArea[i] = featuresInArea[i] + UNIT_ID_MAX
+			end
+		end
+		return featuresInArea
 	end
 
 	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
