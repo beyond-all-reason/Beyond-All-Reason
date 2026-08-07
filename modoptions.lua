@@ -1522,7 +1522,7 @@ local options = {
             { key = "disabled", name = "Disabled", desc = "Disabled"},
             { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
             { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
-            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+            { key = "nightmare", name = "Nightmare", desc = "Fast revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
         }
     },
 
