@@ -400,8 +400,14 @@ local function splitTargets(selectedUnits, filteredTargets)
 
 	-- We save microseconds by diagonalizing on the index.
 	for index = 1, mathMin(selectedCount, targetCount) do
-		local list = unitTargetsMap[selectedUnits[index]]
-		list[#list + 1] = filteredTargets[index]
+		local targetID = filteredTargets[index]
+		local unitID = selectedUnits[index]
+		if targetID == unitID then
+			-- Never hand a unit its own unitID. Just advance.
+			unitID = selectedUnits[index % selectedCount + 1]
+		end
+		local list = unitTargetsMap[unitID]
+		list[#list + 1] = targetID
 	end
 
 	-- So the more expensive loop runs on a smaller range.
@@ -409,15 +415,25 @@ local function splitTargets(selectedUnits, filteredTargets)
 		local unitIndex = 0
 		for index = selectedCount + 1, targetCount do
 			unitIndex = unitIndex % selectedCount + 1
-			local list = unitTargetsMap[selectedUnits[unitIndex]]
-			list[#list + 1] = filteredTargets[index]
+			local targetID = filteredTargets[index]
+			local unitID = selectedUnits[unitIndex]
+			if targetID == unitID then
+				unitID = selectedUnits[unitIndex % selectedCount + 1]
+			end
+			local list = unitTargetsMap[unitID]
+			list[#list + 1] = targetID
 		end
 	elseif targetCount < selectedCount then
 		local targetIndex = 0
 		for index = targetCount + 1, selectedCount do
 			targetIndex = targetIndex % targetCount + 1
-			local list = unitTargetsMap[selectedUnits[index]]
-			list[#list + 1] = filteredTargets[targetIndex]
+			local targetID = filteredTargets[targetIndex]
+			local unitID = selectedUnits[index]
+			if targetID == unitID then
+				unitID = selectedUnits[index % selectedCount + 1]
+			end
+			local list = unitTargetsMap[unitID]
+			list[#list + 1] = targetID
 		end
 	end
 
