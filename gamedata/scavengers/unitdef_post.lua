@@ -370,11 +370,10 @@ local function scavUnitDef_Post(name, uDef)
 		-- Legion T2 Land Constructors
 		if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "legmohocon_scav" -- Advanced Metal Fortifier - Metal Extractor with Constructor Turret
-			uDef.buildoptions[numBuildoptions + 2] = "legwint2_scav" -- T2 Wind Generator
-			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2_scav" -- T2 Constructor Turret
-			uDef.buildoptions[numBuildoptions + 4] = "legrwall_scav" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
-			uDef.buildoptions[numBuildoptions + 5] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
+			uDef.buildoptions[numBuildoptions + 1] = "legwint2_scav" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2_scav" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 3] = "legrwall_scav" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
+			uDef.buildoptions[numBuildoptions + 4] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
 		end
 
 		-- Legion T2 Sea Constructors
