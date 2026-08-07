@@ -25,6 +25,7 @@ return {
 			local unitDefName = parameters.unitDefName
 
 			-- Units can be "renamed" so our most (only) narrow category is `unitDefName`.
+			-- Re-deriving this set is a high cost. It could be maintained incrementally for performance.
 			local candidates = unitDefName
 				and Spring.GetTeamUnitsByDefs(parameters.teamID, UnitDefNames[unitDefName].id)
 				or Spring.GetTeamUnits(parameters.teamID)
