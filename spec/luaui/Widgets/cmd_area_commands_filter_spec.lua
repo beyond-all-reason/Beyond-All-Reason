@@ -447,36 +447,25 @@ describe("cmd_area_commands_filter", function()
 	local blipName = nil -- unidentified
 
 	describe("when hovering unidentified radar blips", function()
-		-- ! Choose between this or the below:
-		it("passes the command through on Alt", function()
+		it("does not filter by type on Alt", function()
 			local c = newContext()
 			c:addUnit(1, "armpw", { team = 0 })
 			c:addUnit(10, blipName, { team = 1, x = 5 }) -- blip under cursor
+			c:addUnit(11, "armpw", { team = 1, x = 5 })
+			c:addUnit(12, "corak", { team = 1, x = 5 })
 			c:select(1)
 			c:hoverUnit(10)
 			local env = loadWidget(c)
-			assert.is_false(notify(env, CMD.ATTACK, { alt = true }))
-			assert.equals(0, #c.orders)
+			-- Still filters units, trying to discard any neutrals:
+			assert.is_true(notify(env, CMD.ATTACK, { alt = true }))
+			assert.same({ 10, 11, 12 }, targetList(c.orders))
 		end)
 
-		-- ! Choose between this or the above:
-		-- it("targets only other radar blips on Alt", function()
-		-- 	local c = newContext()
-		-- 	c:addUnit(1, "armpw", { team = 0 })
-		-- 	c:addUnit(10, blipName, { team = 1, x = 5 }) -- blip under cursor
-		-- 	c:addUnit(11, "armpw", { team = 1 }) -- identified unit
-		-- 	c:select(1)
-		-- 	c:hoverUnit(10)
-		-- 	local env = loadWidget(c)
-		-- 	assert.is_true(notify(env, CMD.ATTACK, { alt = true }))
-		-- 	assert.same({ 10 }, targetList(c.orders))
-		-- end)
-
-		it("targets by its readable team on Ctrl", function()
+		it("filters by hostility, not team, on Ctrl", function()
 			local c = newContext()
 			c:addUnit(1, "armpw", { team = 0 })
-			c:addUnit(10, blipName, { team = 1, x = 5 }) -- hostile blip under cursor
-			c:addUnit(11, "corak", { team = 1, x = 10 }) -- visible hostile
+			c:addUnit(10, blipName, { team = 1, x = 5 })
+			c:addUnit(11, "corak", { team = 2, x = 10 })
 			c:select(1)
 			c:hoverUnit(10)
 			local env = loadWidget(c)
@@ -632,7 +621,7 @@ describe("cmd_area_commands_filter", function()
 
 		it("does not target itself when in the area", function()
 			local c = newContext()
-			c:addUnit(1, "armpw", { team = 0, x = -20 })
+			c:addUnit(1, "armpw", { team = 0, x = 10 })
 			c:addUnit(2, "armpw", { team = 0, x = 20 })
 			c:select(1, 2)
 			c:hoverUnit(2)
@@ -893,8 +882,8 @@ describe("cmd_area_commands_filter", function()
 			c:select(1)
 			c:hoverUnit(10)
 			local env = loadWidget(c)
-			assert.has_no.errors(function() notify(env, CMD.LOAD_UNITS, { shift = true, meta = true }) end)
-			assert.equals(0, #c.orders) -- neither the enemy nor the blip is loadable
+			assert.is_true(function() notify(env, CMD.LOAD_UNITS, { shift = true, meta = true }) end)
+			assert.same({ 10 }, targetList(c.orders))
 		end)
 	end)
 end)
