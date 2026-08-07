@@ -24,6 +24,7 @@ local TriggerEngine = VFS.Include("modules/missions/lib/trigger_engine.lua")
 local DSL = VFS.Include("modules/missions/lib/dsl.lua")
 local Verbs = VFS.Include("modules/missions/lib/verbs.lua")
 local Roster = VFS.Include("modules/missions/lib/roster.lua")
+local Placement = VFS.Include("modules/placement/api.lua")
 
 local MISSIONS_DIR = "modules/missions/"
 local EVALUATE_PERIOD = 15 -- frames
@@ -37,6 +38,7 @@ local namedUnits = {} ---@type table<string, integer> name -> unitID
 local unitNames = {} ---@type table<integer, string> unitID -> name
 local groupUnits = {} ---@type table<string, integer[]>
 local spawnedUnits = {} ---@type integer[] everything the roster spawned, for reload cleanup
+local silencedUnits = {} ---@type table<integer, boolean> spawned Neutral: holding fire until handed over
 
 --- The engine's view of the world. Built once; frame is updated per tick.
 ---@type MissionContext
@@ -100,12 +102,27 @@ local ctx = {
 		-- Through the module that owns transfer, never Spring.TransferUnit
 		-- here: one pipeline validates, prices and announces every handover,
 		-- and the active mode's .Allow(Transfer.Units) is what opens it.
+		--
+		-- The engine clears the neutral flag as part of the transfer, so
+		-- nothing here has to: measured, neutral=true team=2 going in,
+		-- neutral=false team=0 coming out.
+		--
+		-- Hold fire is NOT cleared, and must be. A base that has changed hands
+		-- is expected to defend its new owner, and an inherited outpost that
+		-- sits out the waves it exists to survive is worse than one that never
+		-- arrived.
 		local Transfer = ModuleHandler.Get("transfer")
 		for owner, batch in pairs(byOwner) do
 			if fiat then
 				Transfer.Give(batch, teamID)
 			else
 				Transfer.Units(batch, teamID, owner)
+			end
+		end
+		for _, unitID in ipairs(units) do
+			if silencedUnits[unitID] and Spring.ValidUnitID(unitID) then
+				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 2 }, 0)
+				silencedUnits[unitID] = nil
 			end
 		end
 	end,
@@ -122,6 +139,31 @@ local ctx = {
 		if unitID ~= nil and Spring.ValidUnitID(unitID) then
 			ModuleHandler.Get("combat").Unprotect(unitID)
 		end
+	end,
+	---Wave pressure, through the module that owns it. The mission names a
+	---PACK; the flavor module turns that into a spec and the waves module
+	---runs it — the same director a multiplayer game gets, at a different
+	---intensity and with no bot on the field.
+	---@param request table what Waves.Begin composed
+	StartWaves = function(request)
+		local flavor = ModuleHandler.Get(request.module)
+		if flavor == nil or flavor.Start == nil then
+			Spring.Log(LOG_TAG, LOG.ERROR, "Waves.Begin: module " .. tostring(request.module) .. " cannot start waves")
+			return
+		end
+		flavor.Start(request)
+	end,
+	StopWaves = function(pack)
+		ModuleHandler.Get("waves").Stop(pack)
+	end,
+	SetWaveIntensity = function(pack, intensity)
+		ModuleHandler.Get("waves").SetIntensity(pack, intensity)
+	end,
+	SurgeWaves = function(pack)
+		ModuleHandler.Get("waves").Surge(pack)
+	end,
+	WaveStatus = function(pack)
+		return ModuleHandler.Get("waves").Status(pack)
 	end,
 }
 
@@ -250,6 +292,36 @@ local function despawnRoster()
 		end
 	end
 	namedUnits, unitNames, groupUnits, spawnedUnits = {}, {}, {}, {}
+	silencedUnits = {}
+end
+
+-- Which trigger ids have been published as fired. Derived, not progress: the
+-- engine's own state is the truth, this only avoids re-writing a param that
+-- has not changed.
+local publishedFired = {} ---@type table<string, boolean>
+
+---Publish what has FIRED, so an editor can shade a trigger it has watched
+---happen. Deliberately not "is the condition true": a once-trigger stays
+---fired after its condition goes false, and an editor shading off the live
+---condition would flicker back to unfired.
+local function publishFired()
+	for id in pairs(engine.GetState().fired) do
+		if not publishedFired[id] then
+			publishedFired[id] = true
+			Spring.SetGameRulesParam("mission_trigger_fired_" .. id, 1)
+		end
+	end
+end
+
+---Erase the fired pile. Progress clears with the triggers, so a reload is a
+---fresh run and the editor stops showing last run's progression.
+local function resetFired()
+	for name in pairs(Spring.GetGameRulesParams()) do
+		if name:find("^mission_trigger_fired_") then
+			Spring.SetGameRulesParam(name, nil)
+		end
+	end
+	publishedFired = {}
 end
 
 ---Erase the objective progress pile. The loader owns the objective_ prefix;
@@ -261,6 +333,36 @@ local function resetObjectives()
 			Spring.SetGameRulesParam(name, nil)
 		end
 	end
+end
+
+---VFS.Include wraps a Lua error in engine bookkeeping — the include mode, the
+---pcall depth, the environment flag — and buries the one line an author needs
+---in the middle of it. A mission file that names a unit wrong should read as a
+---mission problem, not as a VFS problem, so this unwraps it:
+---
+---  [LuaVFS::Include(synced=true)][pcall] file=<path> error=2 (<msg>) ptop=2 ...
+---
+---becomes `<mission-relative path>: <msg>`. Anything that does not match the
+---wrapper is passed through untouched — a surprise is better read raw than
+---mangled by a pattern that did not expect it.
+---@param err any
+---@return string
+local function readableLoadError(err)
+	local text = tostring(err)
+	-- Anchored on both ends of the wrapper so a message containing its own
+	-- parentheses (they usually do — `Named(...)`) still comes out whole.
+	local inner = text:match("error=%-?%d+ %((.*)%) ptop=")
+	if inner == nil then
+		return text
+	end
+	local path = text:match("file=(%S+)")
+	-- The chunk name and line point into the DSL, where the CHECK lives. The
+	-- mistake is in the mission file, which the message already names.
+	inner = inner:gsub('^%[string "[^"]*"%]:%d+: ', "")
+	if path ~= nil then
+		return (path:gsub("^" .. MISSIONS_DIR, "")) .. ": " .. inner
+	end
+	return inner
 end
 
 ---Load units.lua through its sandbox (Spawn chains; the sandbox IS the API
@@ -276,12 +378,13 @@ local function parseRoster(missionName)
 		local file = Roster.ForFile(missionName .. "/units.lua")
 		VFS.Include(rosterPath, {
 			Spawn = file.Spawn,
+			Claim = file.Claim,
 			UnitDef = Verbs.UnitDef,
 		})
 		return file.Finalize()
 	end)
 	if not ok then
-		Spring.Log(LOG_TAG, LOG.ERROR, tostring(entries))
+		Spring.Log(LOG_TAG, LOG.ERROR, readableLoadError(entries))
 		return nil
 	end
 	return entries
@@ -292,6 +395,27 @@ end
 ---@param entries MissionRosterEntry[]
 ---@param playerTeam MissionTeam
 ---@return boolean ok
+---The unit a Claim entry should bind to, if the team already has one. Picks
+---the lowest unit id so two clients of the same game agree: GetTeamUnits order
+---is not promised, and a mission that bound a different unit per client would
+---desync the moment a trigger asked about it.
+---@param teamID integer
+---@param defName string
+---@return integer|nil
+local function existingUnitOf(teamID, defName)
+	local wanted = UnitDefNames[defName]
+	if wanted == nil then
+		return nil
+	end
+	local found = nil
+	for _, unitID in ipairs(Spring.GetTeamUnits(teamID) or {}) do
+		if Spring.GetUnitDefID(unitID) == wanted.id and (found == nil or unitID < found) then
+			found = unitID
+		end
+	end
+	return found
+end
+
 local function spawnRoster(entries, playerTeam)
 	despawnRoster()
 	local teamFor = {
@@ -313,14 +437,55 @@ local function spawnRoster(entries, playerTeam)
 			despawnRoster()
 			return false
 		end
-		local x, z = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
-		local unitID = Spring.CreateUnit(entry.def, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		-- A claim takes what is already standing; only an empty seat is built
+		-- for. Ownership follows: the mission cleans up what it created and
+		-- leaves alone what it borrowed.
+		local unitID = entry.claim and existingUnitOf(teamID, entry.def) or nil
+		local claimed = unitID ~= nil
 		if unitID == nil then
-			Spring.Log(LOG_TAG, LOG.ERROR, "could not spawn roster unit " .. entry.def .. " (unit limit)")
-			despawnRoster()
-			return false
+			local wantX, wantZ = entry.fx * Game.mapSizeX, entry.fz * Game.mapSizeZ
+			-- Positions are map fractions so a roster plays on any map, which
+			-- means the author cannot know what is at that point on THIS one.
+			-- Ask placement for the nearest spot the unit can actually stand
+			-- on: an exact hit costs one test and moves nothing, and a fraction
+			-- that lands on a cliff, off the edge, or inside something else
+			-- gets nudged rather than spawning a unit nobody can use.
+			--
+			-- Surface is deliberately unconstrained: a roster may want a ship.
+			local def = UnitDefNames[entry.def]
+			local footprint = math.max(def.xsize or 8, def.zsize or 8) * 4
+			local x, y, z, why = Placement.NearestValid(wantX, wantZ, {
+				radius = footprint * 6,
+				footprint = footprint,
+				surface = "any",
+			})
+			if x == nil then
+				Spring.Log(LOG_TAG, LOG.ERROR, "no room for roster unit " .. entry.def
+					.. " near (" .. math.floor(wantX) .. "," .. math.floor(wantZ) .. "): " .. tostring(why))
+				despawnRoster()
+				return false
+			end
+			unitID = Spring.CreateUnit(entry.def, x, y, z, 0, teamID)
+			if unitID == nil then
+				Spring.Log(LOG_TAG, LOG.ERROR, "could not spawn roster unit " .. entry.def .. " (unit limit)")
+				despawnRoster()
+				return false
+			end
 		end
-		spawnedUnits[#spawnedUnits + 1] = unitID
+		if not claimed then
+			spawnedUnits[#spawnedUnits + 1] = unitID
+		end
+		-- Only ever applied to what the mission placed. A claimed unit belongs
+		-- to a team that is presumably using it.
+		if entry.neutral and not claimed then
+			-- Neutral stops the unit being SHOT AT automatically. It does not
+			-- stop it shooting, which is the half that matters for a derelict
+			-- the player is sent to walk up to. Hold fire is what silences it,
+			-- and it is the pairing ai_ruins uses for the same reason.
+			Spring.SetUnitNeutral(unitID, true)
+			Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+			silencedUnits[unitID] = true
+		end
 		if entry.name ~= nil then
 			namedUnits[entry.name] = unitID
 			unitNames[unitID] = entry.name
@@ -432,7 +597,7 @@ local function loadMission(missionName)
 		end
 	end)
 	if not parsed then
-		Spring.Log(LOG_TAG, LOG.ERROR, tostring(err))
+		Spring.Log(LOG_TAG, LOG.ERROR, readableLoadError(err))
 		return false
 	end
 
@@ -440,6 +605,7 @@ local function loadMission(missionName)
 	-- progress that belonged to it goes with it.
 	engine = staging
 	resetObjectives()
+	resetFired()
 	syncWatchedCallins()
 	-- CreateUnit raises; a bad roster is a load error, not a stack trace out
 	-- of the chat action.
@@ -522,6 +688,16 @@ function gadget:Initialize()
 		Active = function()
 			return activeMission
 		end,
+		---The mission bus, open to other modules.
+		---
+		---Engine callins reach the engine through syncWatchedCallins; a module
+		---event has no callin to hook, so the module that raises it says so
+		---here. Same convention mission.objective_changed already uses
+		---internally — this only makes it reachable from outside.
+		---@param name MissionEventName
+		OnEvent = function(name)
+			engine.OnEvent(name)
+		end,
 	}
 	gadgetHandler:AddChatAction("mission", missionChatAction, "missions: /mission load <name> | /mission reload")
 end
@@ -536,5 +712,6 @@ function gadget:GameFrame(frame)
 	if activeMission ~= nil and frame % EVALUATE_PERIOD == 0 then
 		ctx.frame = frame
 		engine.Evaluate(ctx)
+		publishFired()
 	end
 end
