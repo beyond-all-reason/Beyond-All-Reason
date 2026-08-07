@@ -537,6 +537,35 @@ describe("UnitDefs invariants", function()
 		assert.same({}, bad)
 	end)
 
+	-- The category pass appends what it computes onto whatever the file already wrote, so a
+	-- hand-written token the pass disagrees with leaves the def carrying both halves of a pair.
+	-- Weapon target filters match on any bit, so such a def reads as armed and unarmed at once.
+	local categoryOpposites = {
+		{ "WEAPON", "NOWEAPON" },
+		{ "MOBILE", "NOTMOBILE" },
+		{ "VTOL", "NOTAIR" },
+		{ "HOVER", "NOTHOVER" },
+		{ "SHIP", "NOTSHIP" },
+	}
+
+	it("never puts a category and its opposite on the same def", function()
+		local bad = {}
+		for name, def in pairs(defs) do
+			local tokens = {}
+			for token in tostring(def.category or ""):gmatch("%S+") do
+				tokens[token:upper()] = true
+			end
+
+			for _, pair in ipairs(categoryOpposites) do
+				if tokens[pair[1]] and tokens[pair[2]] then
+					bad[#bad + 1] = name .. " has " .. pair[1] .. " and " .. pair[2]
+				end
+			end
+		end
+
+		assert.same({}, bad)
+	end)
+
 	it("keeps fall damage multipliers numeric and non-negative", function()
 		local bad = {}
 		for name, def in pairs(defs) do
