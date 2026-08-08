@@ -66,7 +66,7 @@ local function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttri
 end
 
 local function clearInstanceTable(iT)
-	-- this wont resize it, but quickly sets it to empty
+	-- this won't resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
 	iT.indextoInstanceID = {}

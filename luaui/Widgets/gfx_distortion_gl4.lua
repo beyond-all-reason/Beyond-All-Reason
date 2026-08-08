@@ -80,7 +80,7 @@ do
 -- Perform a compression pass on distortionParams, culling idents
 end
 
------------------------------ Localize for optmization ------------------------------------
+----------------------------- Localize for optimization ------------------------------------
 local glBlending = gl.Blending
 local glTexture = gl.Texture
 
@@ -410,12 +410,12 @@ end
 
 
 ---InitializeDistortion(distortionTable, unitID)
----Takes a distortion definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
 ---@param unitID number
 local function InitializeDistortion(distortionTable, unitID)
 	if not distortionTable.initComplete then  -- late init
-		-- do the table to flattable conversion, if it doesnt exist yet
+		-- do the table to flattable conversion, if it doesn't exist yet
 		if not distortionTable.distortionParamTable then -- perform correct init
 			local distortionparams = {}
 			for i = 1, distortionParamTableSize do distortionparams[i] = 0 end
@@ -505,13 +505,13 @@ end
 ---AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 ---Note that instanceID can be nil if an auto-generated one is OK.
 ---If the distortion is not attached to a unit, and its lifeTime is > 0, then it will be automatically added to the removal queue
----TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesnt have to be changed
+---TODO: is spawnframe even a good idea here, as it might fuck with updates, and is the only thing that doesn't have to be changed
 ---@param instanceID any usually nil, supply an existing instance ID if you want to update an existing distortion,
 ---@param unitID nil if worldpos, supply valid unitID if you want to attach it to something
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
 ---@param targetVBO table specify which one you want it to
 ---@param distortionparams table a valid table of distortion parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
+---@param noUpload bool true if it shouldn't be uploaded to gpu yet
 ---@return instanceID for future reuse
 local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
 	if instanceID == nil then
@@ -964,7 +964,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedDistortions(unitID)
 end
 
--- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+-- THIS ONE DOESN'T WORK, some shit is being pulled and i can't get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
 	--eventDistortionSpawner("UnitTaken", unitID, unitDefID, teamID)
 --end
@@ -1224,7 +1224,7 @@ local function updateProjectileDistortions(newgameframe)
 			end
 		end
 	end
-	-- remove the ones that werent updated
+	-- remove the ones that weren't updated
 	local numremoved = 0
 	if newgameframe then
 	-- Any tracked projectile whose timestamp wasn't refreshed this frame is

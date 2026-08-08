@@ -334,7 +334,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
--- TODO: restore ability to do `/luarules reload`, maybe readd MetaUnitAdded
+-- TODO: restore ability to do `/luarules reload`, maybe re-add MetaUnitAdded
 
 function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	if cachedUnitDefs[unitDefID].isBuilder then

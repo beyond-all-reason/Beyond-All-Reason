@@ -1,9 +1,9 @@
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
 // unit_hitbyweaponid_and_smoke.h
-// This header defines wether a unit should rock when hit by a weapon
-// And wether it should emit smoke if the unit's health is below a threshold
+// This header defines whether a unit should rock when hit by a weapon
+// And whether it should emit smoke if the unit's health is below a threshold
 // Note: DO NOT use this if you intend to use the HitByWeaponId or HitByWeapon callins!
-// NOTE: Due to the architecture, reloading a cob script while a unit isSmoking wont clear the static var so it wont ever smoke again
+// NOTE: Due to the architecture, reloading a cob script while a unit isSmoking won't clear the static var so it won't ever smoke again
 // Needs the following
 
 //#define BASEPIECE base
@@ -66,9 +66,9 @@ static-var isSmoking;
 		#if HEALTH_SMOKE_THRESHOLD > 1
 			// Dont do anything if we are being built
 			if (get BUILD_PERCENT_LEFT) return (100);
-			// Dont start a damagedSmoke thread if we arent low health
+			// Dont start a damagedSmoke thread if we aren't low health
 			if ((get HEALTH) > HEALTH_SMOKE_THRESHOLD){
-				// Start a thread if werent previously smoking
+				// Start a thread if weren't previously smoking
 				if (isSmoking == 0)	{ 
 					isSmoking = 1;
 					start-script DamagedSmoke();
@@ -87,7 +87,7 @@ static-var isSmoking;
 		damageamount = damageamount / (100 * UNITSIZE);
 		if (damageamount < 3  ) return (0);
 
-		// While signals could be used here, it doesnt help the looks really.
+		// While signals could be used here, it doesn't help the looks really.
 
 		//#define SIGNAL_RECOIL 65536
 		//signal SIGNAL_RECOIL;
@@ -141,11 +141,11 @@ static-var isSmoking;
 	HitByWeapon(anglex, anglez)	// angle[x|z] is always [-500;500], but engine does not give us damage, hence the need for HitByWeaponId
 	{
 		#if (HEALTH_SMOKE_THRESHOLD > 1)
-			// Dont even start a thread if we arent low health
+			// Dont even start a thread if we aren't low health
 			if ((get HEALTH) > HEALTH_SMOKE_THRESHOLD) return (100);
 			// Dont start a thread if we are being built
 			if (get BUILD_PERCENT_LEFT) return (100);
-			// Start a thread if werent previously smoking
+			// Start a thread if weren't previously smoking
 			if (isSmoking == 0)	{ 
 				isSmoking = 1;
 				start-script DamagedSmoke();

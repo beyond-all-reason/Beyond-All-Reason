@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
--- this gadget wont do: Spring.KillTeam(...)
+-- this gadget won't do: Spring.KillTeam(...)
 
 if not gadgetHandler:IsSyncedCode() then
 	return

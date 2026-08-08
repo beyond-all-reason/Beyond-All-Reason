@@ -62,7 +62,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		--	-- Has a default value, as indicated, if not chosen:
 		-- evolution_condition = "timer",    		-- condition type for the evolution. "timer", "timer_global", "health", "power", or "xp"
-		-- evolution_timer = 600, 					-- set the timer used for the timer condition. Given in secons from when the unit was created.
+		-- evolution_timer = 600, 					-- set the timer used for the timer condition. Given in seconds from when the unit was created.
 		-- evolution_health_threshold = 0,			-- threshold for triggering the "health" evolution condition.
 		-- evolution_power_threshold = 600,			-- threshold for triggering the "power" evolution condition.
 		-- evolution_xp_threshold = 0.8,			-- threshold for triggering the "xp" evolution condition. Max rank icon reached at 0.8

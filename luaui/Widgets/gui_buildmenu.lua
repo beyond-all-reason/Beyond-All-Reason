@@ -442,7 +442,7 @@ local function UpdateGridGeometry()
 			currentPage = pages
 		end
 
-		-- remove a row if there isnt enough room for the paginator UI
+		-- remove a row if there isn't enough room for the paginator UI
 		if not stickToBottom then
 			if paginatorCellHeight < (0.06 * (1 - ((colls / 4) * 0.25))) * vsy then
 				rows = rows - 1
@@ -457,7 +457,7 @@ local function UpdateGridGeometry()
 		pages = 1
 	end
 
-	-- these are globals so it can be re-used (hover highlight)
+	-- these are globals so it can be reused (hover highlight)
 	cellPadding = math_floor(cellSize * cfgCellPadding)
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
@@ -487,7 +487,7 @@ local function RefreshCommands()
 			for k, uDefID in ipairs(units.unitOrder) do
 				if cmdUnitdefsTemp[uDefID] and not units.unitHidden[uDefID] then
 					cmdsCount = cmdsCount + 1
-					-- mimmick output of spGetActiveCmdDescs
+					-- mimic output of spGetActiveCmdDescs
 					cmds[cmdsCount] = {
 						id = -uDefID,
 						name = unitName[uDefID],
@@ -1737,7 +1737,7 @@ local function buildUnitHandler(_, _, _, data)
 		end
 	end
 
-	-- didnt find a suitable binding to cycle from
+	-- didn't find a suitable binding to cycle from
 	if not (pressedKey or pressedScan) then return end
 
 	-- Clear and reuse temp table instead of creating new one

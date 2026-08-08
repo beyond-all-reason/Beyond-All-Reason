@@ -98,9 +98,9 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeamID, noUpload)
 			{
 				length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
 				unitTeamID, -- teamID
-				numVertices, -- how many trianges should we make
+				numVertices, -- how many triangles should we make
 				gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-				0, 1, 0, 1, -- These are our default UV atlas tranformations
+				0, 1, 0, 1, -- These are our default UV atlas transformations
 				0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 			},
 			unitID, -- this is the key inside the VBO TAble,

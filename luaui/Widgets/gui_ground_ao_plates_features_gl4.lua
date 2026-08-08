@@ -103,7 +103,7 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 	local gf = Spring.GetGameFrame()
 	featureDefID = featureDefID or Spring.GetFeatureDefID(featureID)
 
-	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then return end -- these cant have plates
+	if featureDefID == nil or featureDefIDtoDecalInfo[featureDefID] == nil then return end -- these can't have plates
 	local decalInfo = featureDefIDtoDecalInfo[featureDefID]
 
 	--local texname = "unittextures/decals/".. UnitDefs[featureDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
@@ -118,9 +118,9 @@ local function AddPrimitiveAtUnit(featureID, featureDefID, noUpload)
 		groundPlateVBO, -- push into this Instance VBO Table
 			{decalInfo.sizez, decalInfo.sizex, 0, additionalheight,	-- lengthwidthcornerheight
 			0, --Spring.GetUnitTeam(featureID), -- teamID
-			numVertices, -- how many trianges should we make
+			numVertices, -- how many triangles should we make
 			gf, 0, decalInfo.alpha * decalAlpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,p,t,s, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
+			q,p,t,s, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 		featureID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element

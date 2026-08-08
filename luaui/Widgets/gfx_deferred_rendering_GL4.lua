@@ -118,7 +118,7 @@ do
 	-- at a rez of 32 elmos, dsd would need:
 	-- 256*256*16 voxels (1 million?) yeesh
 
--- Features are not light-attachable at the moment, and shouldnt be as they are immobile, use global lights
+-- Features are not light-attachable at the moment, and shouldn't be as they are immobile, use global lights
 
 -- preliminary perf:
 	-- yeah raymarch is expensive!
@@ -145,7 +145,7 @@ do
 	-- Some falloff issues result in a bit of overdraw
 	-- allow for customizable attenuation
 	-- XX list type configs for events
-	-- Handle playerchanged -- hasnt crashed yet :P
+	-- Handle playerchanged -- hasn't crashed yet :P
 		-- clear every goddamned unit light and buffer
 	-- FIX SSAO widget for day-night cycle changes - done!
 
@@ -201,7 +201,7 @@ local function loadTeamColors()
 end
 loadTeamColors()
 
------------------------------ Localize for optmization ------------------------------------
+----------------------------- Localize for optimization ------------------------------------
 
 -- Localized GL functions
 local glBlending = gl.Blending
@@ -501,12 +501,12 @@ end
 
 
 ---InitializeLight(lightTable, unitID)
----Takes a light definition table, and tries to check wether its already been initialized, if not, it inits it in-place
+---Takes a light definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param lightTable table
 ---@param unitID number
 local function InitializeLight(lightTable, unitID)
 	if not lightTable.initComplete then  -- late init
-		-- do the table to flattable conversion, if it doesnt exist yet
+		-- do the table to flattable conversion, if it doesn't exist yet
 		if not lightTable.lightParamTable then -- perform correct init
 			local lightparams = {}
 			for i = 1, lightParamTableSize do lightparams[i] = 0 end
@@ -571,7 +571,7 @@ end
 ---@param pieceIndex number if worldpos, supply valid piece index  if you want to attach it to something, 0 attaches to world offset
 ---@param targetVBO table specify which one you want it to
 ---@param lightparams table a valid table of light parameters
----@param noUpload bool true if it shouldnt be uploaded to gpu yet
+---@param noUpload bool true if it shouldn't be uploaded to gpu yet
 ---@return instanceID for future reuse
 local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
 	if instanceID == nil then
@@ -1330,7 +1330,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	RemoveUnitAttachedLights(unitID)
 end
 
--- THIS ONE DOESNT WORK, some shit is being pulled and i cant get the unit height of the unit being taken here!
+-- THIS ONE DOESN'T WORK, some shit is being pulled and i can't get the unit height of the unit being taken here!
 --function widget:UnitTaken(unitID, unitDefID, teamID)
 	--eventLightSpawner("UnitTaken", unitID, unitDefID, teamID)
 --end
@@ -1523,11 +1523,11 @@ local function updateProjectileLights(newgameframe)
 			delayedProjectileLightFrames[projectileID] = nil
 		end
 	end
-	-- remove theones that werent updated
+	-- remove theones that weren't updated
 	local numremoved = 0
 	for projectileID, gf in pairs(trackedProjectiles) do
 		if gf < gameFrame then
-			-- SO says we can modify or remove elements while iterating, we just cant add
+			-- SO says we can modify or remove elements while iterating, we just can't add
 			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
 			local px, py, pz = spGetProjectilePosition(projectileID)
 			if px then -- this means that this projectile

@@ -136,7 +136,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function gadget:Initialize()
-	-- disable gadget when deathmode is "killall" or "none", or scoremode isnt regular
+	-- disable gadget when deathmode is "killall" or "none", or scoremode isn't regular
 	local deathmode = Spring.GetModOptions().deathmode
 	if deathmode ~= 'com' and deathmode ~= 'own_com' and deathmode ~= 'territorial_domination' and deathmode ~= 'builders' then
 		gadgetHandler:RemoveGadget(self)
@@ -158,7 +158,7 @@ function gadget:Initialize()
 		gadget:UnitCreated(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 
-	-- for debug purpose: destroy comless allyteams (usefull when team has no coms because of error and you do luarules reload)
+	-- for debug purpose: destroy comless allyteams (useful when team has no coms because of error and you do luarules reload)
 	if Spring.GetGameFrame() > 1 then
 		for allyTeamID, count in ipairs(aliveComCount) do
 			if count <= 0 then

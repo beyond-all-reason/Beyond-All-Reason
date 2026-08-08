@@ -340,7 +340,7 @@ end
 --- Parses the filter definition and returns a function that determines if a unit passes the
 --- filter.
 ---
---- The parsing will only occure the first time this function is called, after that it is stored in
+--- The parsing will only occur the first time this function is called, after that it is stored in
 --- a lookup table.
 --- @param filterDef string The filter definition string.
 --- @return function the function to call to execute the filter

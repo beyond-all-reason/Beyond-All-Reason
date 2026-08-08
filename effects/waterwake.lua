@@ -389,7 +389,7 @@ return {
     --    colormap           = [[0.20 0.20 0.20 0.11   0.25 0.25 0.25 0.20   0.11 0.11 0.11 0.11   0 0 0 0.01]],
     --    dir                = [[dir]],
     --    frontoffset        = 0,
-    --    fronttexture       = [[explowaveblastxl]],	-- this doesnt exist
+    --    fronttexture       = [[explowaveblastxl]],	-- this doesn't exist
     --    length             = 45,
     --    sidetexture        = [[none]],
     --    size               = [[55 r4]],

@@ -520,7 +520,7 @@ if gadgetHandler:IsSyncedCode() then
 					--if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
 					--Echo('tree dying...',featureID)
 					local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
-					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesnt block anything
+					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesn't block anything
 					if weaponDefID == -7 then
 						--weapon is crush
 						--crushed features cannot be saved by returning 0 damage. Must create new one!
@@ -531,7 +531,7 @@ if gadgetHandler:IsSyncedCode() then
 						SetFeatureBlocking(featureID, false, false, false, false, false, false, false)
 						--Echo('tree created... ',featureID)
 					else
-						Damage = 0 -- so it doesnt take multiple frames for tree to get killed.
+						Damage = 0 -- so it doesn't take multiple frames for tree to get killed.
 						-- Map-placed tree features are treated as STATIC geometry by the GL4
 						-- renderer: their draw matrix is baked once and never refreshed, so
 						-- the per-frame Spring.SetFeatureDirection spin that topples the trunk

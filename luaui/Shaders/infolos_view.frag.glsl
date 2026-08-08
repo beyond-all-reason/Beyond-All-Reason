@@ -115,12 +115,12 @@ float filteredStep( in float p, in float resolution)
 
 // TODO LIST:
 // Shade map edge extension via a clamped sampling of the edge so its pretty
-// Pull back water surface stuff so that the water surface is the one thats being shaded
+// Pull back water surface stuff so that the water surface is the one that's being shaded
 // Blend also the fact that underwater stuff needs alternate handling
 // Add a nice static noise, that is slaved to screenUV and time maybe, instead of others?
 // Experiment with scanline-type shading for terrible areas
 // How should radar jammed areas be handled, if at all?
-// We dont have any sonar info, thats pretty bad in the usability front. 
+// We dont have any sonar info, that's pretty bad in the usability front.
 
 */
 

@@ -261,7 +261,7 @@ local function actualizeHistory()
 	local numAccounts, numNames = 0, 0
 	for _, names in pairs(history) do
 		numAccounts = numAccounts + 1
-		numNames = numNames + #names	-- wont count custom alias
+		numNames = numNames + #names	-- won't count custom alias
 	end
 	if numAccounts > maxHistorySize or numNames > maxNamesSize then
 		-- cleanup logic: remove oldest entries based on date

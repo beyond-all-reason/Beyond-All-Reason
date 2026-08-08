@@ -17,10 +17,10 @@
 --  items:    array of item strings for list options
 --  section:  so lobbies can order options in categories/panels
 --  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
---  collumn:  moves the option 1 row up if value is greater than the preivous row's one, default: 1
+--  column:  moves the option 1 row up if value is greater than the previous row's one, default: 1
 --         |  negative value forces new row, absolute value is used
 --         |  zero moves to the left, 1 is default, 2 is half way to the right
---         |  recommened values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
+--         |  recommended values: for 2 columns: 1 and 2, for 3 columns 1, 1.66, and 2.33
 --
 --  lock:     if type is bool: hides the table of keys when set to TRUE     <<< can not hide separators >>>
 --      |     if type is list: add under each item what it should SHOW when set to
@@ -114,7 +114,7 @@ local options = {
     {
         key    	= "maxunits",
         name   	= "Max Units Per Player",
-        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
+        desc   	= "Keep in mind there is an absolute limit of units, 32 000, divided between each team. If you set this value higher than possible it will force itself down to the maximum it can be.",
         type   	= "number",
         def    	= 2000,
         min    	= 500,
@@ -194,7 +194,7 @@ local options = {
             { key = "disabled", name = "Disabled" },
             { key = "global",   name = "Shuffle Globally",               desc = "You can distinguish different players and everyone sees the same colors globally. Diplomacy is the same as usual except using colors instead of names (e.g. \"Red, let's ally against Blue\")." },
             { key = "local",    name = "Shuffle Locally",                desc = "You can distinguish different players but everyone sees different colors locally. Diplomacy is harder but possible using positions (e.g. \"Southeast, let's ally against Northeast\")." },
-            { key = "disco",    name = "Shuffle Locally (Continiously)", desc = "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness." },
+            { key = "disco",    name = "Shuffle Locally (Continuously)", desc = "Same as local shuffle, except that colors are reshuffled every 2 mins for extra spicyness." },
             { key = "allred",   name = "Everyone Is Red",                desc = "You cannot distinguish different players, they all have the same color (red by default, can be changed in accessibility settings). Diplomacy is very hard." },
         },
     },
@@ -797,7 +797,7 @@ local options = {
 
 	{
 		key		= "sub_header",
-		name	= "To Play Add a Scavangers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
+		name	= "To Play Add a Scavengers AI to the enemy Team: [Add AI], [ScavengersDefense AI]",
 		desc	= "",
 		section	= "scav_defense_options",
 		type	= "subheader",
@@ -1418,7 +1418,7 @@ local options = {
     },
 
     {
-        key 	= "assistdronesenabled", -- TODO, turn this into booleam modoption
+        key 	= "assistdronesenabled", -- TODO, turn this into boolean modoption
         name 	= "Commander Drones",
         type 	= "list",
         def 	= "disabled",
@@ -1958,7 +1958,7 @@ local options = {
         desc    = "This is a dummy to hide some modoptions to not bloat the changed options panel with unneeded information",
         section = "dev",
         type    = "bool",
-        -- This doesn't have a default on purpse, do not add one
+        -- This doesn't have a default on purpose, do not add one
         unlock  = {"dummyboolfeelfreetotouch", "factionlimiter", "date_year", "date_month", "date_day", "date_hour"},
     },
     { key     = "date_year", name    = "Year", desc    = "Spads (Multiplayer) / Skirmish Interface (Singleplayer) fed, auto-overwriten", section = "dev", type = "number", def = 0, min = 0, max = 3000, step = 1, },
@@ -1989,7 +1989,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     --
     -- The modoptions below are intended to be set automatically by lobby/spads based on the selected
-    -- map name. They are used for a dynamic map configuration where the configruation values are not
+    -- map name. They are used for a dynamic map configuration where the configuration values are not
     -- tied to either game version or reside inside of the map file, allowing for independent distribution
     -- from the maps metadata source of truth: https://github.com/beyond-all-reason/maps-metadata
     {
@@ -2133,7 +2133,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetal",
         name	= "Starting Metal",
-        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2145,7 +2145,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startmetalstorage",
         name	= "Starting Metal Storage",
-        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting metal. Determines amount of metal and metal storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2157,7 +2157,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergy",
         name	= "Starting Energy",
-        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 0 - 10 000). Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,
@@ -2169,7 +2169,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
     {
         key		= "startenergystorage",
         name	= "Starting Energy Storage",
-        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
+        desc	= "(Range 1000 - 20 000). Only works if it's higher than Starting energy. Determines amount of energy and energy storage that each player will start with",
         type	= "number",
         section	= "options_cheats",
         def		= 1000,

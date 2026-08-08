@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 
 local unitDefs = {}
-local shared = {} -- shared amongst the lua unitdef enviroments
+local shared = {} -- shared amongst the lua unitdef environments
 
 local preProcFile  = 'gamedata/unitdefs_pre.lua'
 local postProcFile = 'gamedata/unitdefs_post.lua'

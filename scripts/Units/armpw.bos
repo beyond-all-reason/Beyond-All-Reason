@@ -1130,7 +1130,7 @@ DrawWeapon1()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIGNAL_AIM1; // Teminates other aim threads, but not ready threads
+	signal SIGNAL_AIM1; // Terminates other aim threads, but not ready threads
 
 	if (bAnimate) { // Stop doing pushups
 		call-script StopAnimation();

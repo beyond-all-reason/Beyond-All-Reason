@@ -73,9 +73,9 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 		{
 			unitConf[unitDefID].iconSize, unitConf[unitDefID].iconSize, 8, unitConf[unitDefID].height ,  -- lengthwidthcornerheight
 			0, -- teamID
-			4, -- how many trianges should we make (2 = cornerrect)
+			4, -- how many triangles should we make (2 = cornerrect)
 			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			0, 1, 0, 1, -- These are our default UV atlas transformations
 			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
 		},
 		unitID, -- this is the key inside the VBO TAble,

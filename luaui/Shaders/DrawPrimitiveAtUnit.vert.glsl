@@ -109,7 +109,7 @@ void main()
 	#if (FULL_ROTATION == 1)
 		v_fullrotation = mat3(modelMatrix);
 	#endif
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
+	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_numvertices = 0u; // this checks the drawFlag of whether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
 	// TODO: allow overriding this check, to draw things even if unit (like a building) is not drawn
 	POST_VERTEX
 }

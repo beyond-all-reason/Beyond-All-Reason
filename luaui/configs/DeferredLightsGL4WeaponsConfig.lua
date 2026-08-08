@@ -45,7 +45,7 @@ local exampleLight = {
 -- Auto-assign a lightclass to each weaponDefID
 -- Override on a per-weaponDefID basis, and copy table before overriding
 
---------------------------------General Base Light Classes for further useage --------
+--------------------------------General Base Light Classes for further usage --------
 local BaseClasses = {
 	LaserProjectile = {
 		lightType = 'beam', -- or cone or beam
@@ -427,7 +427,7 @@ local function AssignLightsToAllWeapons()
 		-- end
 
 		if weaponDef.type == 'BeamLaser' then
-			--muzzleFlash = true -- doesnt work
+			--muzzleFlash = true -- doesn't work
 
 
 			if not weaponDef.paralyzer then
@@ -521,7 +521,7 @@ local function AssignLightsToAllWeapons()
 			projectileDefLights[weaponID].lightConfig.selfshadowing = 1 -- Screen Space Light Shadows
 
 		elseif weaponDef.type == 'DGun' then
-			muzzleFlash = true --doesnt work
+			muzzleFlash = true --doesn't work
 			sizeclass = "Medium"
 			t.a = orgMult*0.66 * 1.5
 			projectileDefLights[weaponID] = GetLightClass("CannonProjectile", "Warm", sizeclass, t)
@@ -1626,7 +1626,7 @@ projectileDefLightsNames = nil
 --		currently disabled this for CannonProjectile, so lights don't disappear half-way down trajectory
 --		For FlameProjectile this does work very nice to add more colorvariation - and with manual lifetime tweaks makes it work for pyro + cordemont4
 -- 3.	DGun only has explosion GL4 lights, projectile lights do not seem to show/work properly (also muzzleflash does not work on DGun weapons)
--- 4.	When projectiles hit water, they get asigned a different explosion CEG, but also lighting is removed. I think some subtle blue-ish explo light on water can make it look better.. but how?
+-- 4.	When projectiles hit water, they get assigned a different explosion CEG, but also lighting is removed. I think some subtle blue-ish explo light on water can make it look better.. but how?
 
 
 --------------------------------------------------------------------------------

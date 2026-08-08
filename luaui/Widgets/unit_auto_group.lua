@@ -438,11 +438,11 @@ function widget:SetConfigData(data)
 		end
 		local groupData = data.groups
 		if groupData and type(groupData) == 'table' then
-			for _, nam in ipairs(groupData) do
-				if type(nam) == 'table' then
-					local gr = UnitDefNames[nam[1]]
+			for _, name in ipairs(groupData) do
+				if type(name) == 'table' then
+					local gr = UnitDefNames[name[1]]
 					if gr ~= nil then
-						unit2group[gr.id] = tonumber(nam[2])
+						unit2group[gr.id] = tonumber(name[2])
 					end
 				end
 			end

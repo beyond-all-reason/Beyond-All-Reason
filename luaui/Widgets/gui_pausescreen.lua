@@ -54,7 +54,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 local sizeMultiplier = 1
 local maxAlpha = 0.65
 local maxShaderAlpha = 0.25
-local maxNonShaderAlpha = 0.12            --background alpha when shaders arent availible
+local maxNonShaderAlpha = 0.12            --background alpha when shaders aren't available
 local boxWidth = 200
 local boxHeight = 35
 local slideTime = 0.12
@@ -152,7 +152,7 @@ function widget:Update(dt)
 	if paused and not lastPause then
 		--new pause
 		if widgetInitTime + 5 > now then
-			-- so if you do /luaui reload when paused, it wont re-animate
+			-- so if you do /luaui reload when paused, it won't re-animate
 			pauseTimestamp = now - (slideTime + autoFadeTime)
 		end
 	end
@@ -321,7 +321,7 @@ function widget:DrawScreenEffects()
 	end
 	if shaderProgram and showPauseScreen and WG['screencopymanager'] and WG['screencopymanager'].GetScreenCopy then
 		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
-		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- cant get this method to work
+		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- can't get this method to work
 		glTexture(0, screencopy)
 		glUseShader(shaderProgram)
 		glUniform(alphaLoc, shaderAlpha)

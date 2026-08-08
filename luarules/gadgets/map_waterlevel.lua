@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 			if modOptions.map_waterlevel ~= 0 then
 				waterlevel = modOptions.map_waterlevel
 
-				-- adjust tidal strength if previosuly not present and applicable
+				-- adjust tidal strength if previously not present and applicable
 				if (modOptions.map_tidal == nil or modOptions.map_tidal == "unchanged")
 					and Spring.GetTidal() == 0
 					and select(1, Spring.GetGroundExtremes()) > 0

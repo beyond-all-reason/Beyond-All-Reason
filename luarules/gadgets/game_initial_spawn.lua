@@ -524,7 +524,7 @@ if gadgetHandler:IsSyncedCode() then
 		if readyState == READYSTATE_READY_FORCED then
 			-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
 			if not startPointTable[teamID] then
-				startPointTable[teamID] = { -5000, -5000 } -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
+				startPointTable[teamID] = { -5000, -5000 } -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (that's what the StartPointGuesser wants)
 			end
 		else
 			-- player placed startpoint OR game is starting and player is ready

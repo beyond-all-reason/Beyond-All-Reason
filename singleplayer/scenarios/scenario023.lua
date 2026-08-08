@@ -8,7 +8,7 @@ local scenariodata = {
 	imagepath		= "scenario023.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor		= "Units will act automatically during the benchmark", -- This text will be drawn over image
     summary         = [[This is a quick, ~3 minute benchmark script. You may leave after the benchmark is complete.]],
-	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
+	briefing 		= [[This scenario starts a benchmark by spawning 650 units to continuously fight against 650 units. Use Bots/Tanks/Aircraft an option for close to a real game's match benchmark and collision an option for synthetic testing multithreading abilities of the game's engine. The average Sim, Draw and Update times are shown on screen. The game will automatically center the camera over the units, do not move the camera while the benchmark is running, and do not interact with the units. The game will return after printing the results to screen and infolog, and submitting them to the server.
 		
 	A total of 2000 simulation frames are tested. 
 	
@@ -26,7 +26,7 @@ local scenariodata = {
 	playerstarty	= "10%", -- Y position of where player comm icon should be drawn, from top left of the map
 	partime 		= 180, -- par time in seconds
 	parresources	= 1, -- par resource amount
-	difficulty		= 15, -- Percieved difficulty at 'normal' level: integer 1-10
+	difficulty		= 15, -- Perceived difficulty at 'normal' level: integer 1-10
     defaultdifficulty = "Bots", -- an entry of the difficulty table
     difficulties    = { -- Array for sortedness, Keys are text that appears in selector (as well as in scoring!), values are handicap levels
 		{name = "Bots", playerhandicap = "corak armpw 650 10 2040" , enemyhandicap = 0},

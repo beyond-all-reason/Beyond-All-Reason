@@ -17,7 +17,7 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-local highQuality = true		-- doesnt seem to do anything
+local highQuality = true		-- doesn't seem to do anything
 local autofocus = true
 local mousefocus = not autofocus
 local focusDepth = 300

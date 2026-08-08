@@ -21,7 +21,7 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local offscreenDelay = 3
 local idleDelay = Spring.GetConfigInt("LimitIdleFpsDelay", 60)
 local vsyncValueActive = Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesnt work at all
+local vsyncValueIdle = Spring.GetConfigInt("IdleFpsDivider", 4)    -- sometimes vsync > 4 doesn't work at all
 
 local limitFpsWhenIdle = Spring.GetConfigInt("LimitIdleFps", 0) == 1
 

@@ -37,7 +37,7 @@ end
 local function RgbToLinear(c)
 	-- Convert Gamma corrected RGB (0-1) to linear RGB
 
-	-- See https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ for an explanation of this transfert function
+	-- See https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ for an explanation of this transfer function
     if c <= 0.04045 then
         return c / 12.92
     end

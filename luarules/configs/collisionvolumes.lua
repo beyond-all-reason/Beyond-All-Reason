@@ -37,7 +37,7 @@ Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boole
 		    0,1,0[,    -- vType, tType, axis [,  -- Optional
 			0,0,0]}    -- Aimpoint X offset, Aimpoint Y offset, Aimpoint Z offset]},
 		off={32,48,32,0,-10,0,0,1,0},
-	}                  -- Aimpoint offsets are relative to unit's base position (aka unit coordiante space)
+	}                  -- Aimpoint offsets are relative to unit's base position (aka unit coordinate space)
 	pieceCollisionVolume["arm_big_bertha"] = {
 		["0"]={true,       -- [pieceIndexNumber]={enabled,
 			   48,74,48,   --            Volume X scale, Volume Y scale, Volume Z scale,

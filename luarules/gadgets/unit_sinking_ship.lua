@@ -31,7 +31,7 @@ function gadget:FeatureCreated(featureID)
 	if spGetGroundHeight(x, z) < -25 then
 		local vx, vy, vz = spGetFeatureVelocity(featureID)
 		local rx, ry, rz = spGetFeatureRotation(featureID) --> nil | number pitch, number yaw, number roll
-		spSetFeaturePhysics(featureID, x, y, z, vx * damping, 0, vz * damping,	-- setting vanlue for Y doesnt have effect,
+		spSetFeaturePhysics(featureID, x, y, z, vx * damping, 0, vz * damping,	-- setting vanlue for Y doesn't have effect,
 			rx, ry, rz) --, 0, 0, 0 ) --number dragx, number dragy, number dragz,
 	end
 end

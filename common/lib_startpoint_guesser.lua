@@ -241,7 +241,7 @@ function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TOD
     local claimRadius2Div16Sq = (claimRadius2/16)*(claimRadius2/16)
     for x=1,mmapx,xres2 do
     for z=1,mmapz,zres2 do
-        -- is this metal aready claimed?
+        -- is this metal already claimed?
         local isFree = true
         for _,startpoint in pairs(startPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
             local sx,sz = startpoint[1],startpoint[2]

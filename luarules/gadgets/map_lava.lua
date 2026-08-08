@@ -141,10 +141,10 @@ if gadgetHandler:IsSyncedCode() then
 		local slowedMaxSpeed = baseSpeed * unitSlow
 		local slowedTurnRate = baseTurnRate * unitSlow
 		local slowedAccRate = baseAccRate * unitSlow
-		local sucess = pcall(function()
+		local success = pcall(function()
 			spSetMoveData(unitID, {maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate})
 		end)
-		return sucess
+		return success
 	end
 
 	-- Bulk-restore all slowed units when lava retreats below the map surface
@@ -173,8 +173,8 @@ if gadgetHandler:IsSyncedCode() then
 						else
 							local unitSlow = clamp(1-(((lavaLevel-y) / unitHeight[unitDefID])*lavaSlow), 1-lavaSlow, .9)
 							if unitSlow ~= data.currentSlow then
-								local sucess = updateSlow(unitID, unitDefID, unitSlow)
-								if sucess then
+								local success = updateSlow(unitID, unitDefID, unitSlow)
+								if success then
 									data.currentSlow = unitSlow
 								end
 							end
@@ -224,8 +224,8 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					if lavaUnits[unitID].slowed and (unitSlow ~= lavaUnits[unitID].currentSlow) then
-						local sucess = updateSlow(unitID, unitDefID, unitSlow)
-						if sucess then
+						local success = updateSlow(unitID, unitDefID, unitSlow)
+						if success then
 							lavaUnits[unitID].currentSlow = unitSlow
 						end
 					end
@@ -416,7 +416,7 @@ else  -- UNSYCNED
 		SPECULAREXPONENT = lava.specularExp,  -- the specular exponent of the lava plane
 		SPECULARSTRENGTH = 1.0, -- The peak brightness of specular highlights
 		LOSDARKNESS = lava.losDarkness, -- how much to darken the out-of-los areas of the lava plane
-		SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can recieve
+		SHADOWSTRENGTH = lava.shadowStrength, -- how much light a shadowed fragment can receive
 		OUTOFMAPHEIGHT = -100, -- what value to use when we are sampling the heightmap outside of the true bounds
 		SWIRLFREQUENCY = lava.swirlFreq, -- How fast the main lava texture swirls around default 0.025
 		SWIRLAMPLITUDE = lava.swirlAmp, -- How much the main lava texture is swirled around default 0.003

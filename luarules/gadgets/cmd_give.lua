@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name    = "Give Command",
-		desc	= 'Give units (only availible to a select few playernames in testhost only)',
+		desc	= 'Give units (only available to a select few playernames in testhost only)',
 		author	= 'Floris',
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
@@ -66,24 +66,24 @@ if gadgetHandler:IsSyncedCode() then
 			if unitDef.name == unitName then  unitDefID = udid break end
 		end
 		if unitDefID == nil then
-			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
+			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isn't valid")
 			return
 		end
-		local succesfullyCreated = 0
+		local successfullyCreated = 0
 		for i=1, amount do
 			local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 			if unitID ~= nil then
-				succesfullyCreated = succesfullyCreated + 1
+				successfullyCreated = successfullyCreated + 1
 				if xp and type(xp) == 'number' then
 					Spring.SetUnitExperience(unitID, xp)
 				end
 			end
 		end
-		if succesfullyCreated > 0 then
+		if successfullyCreated > 0 then
 			if isSilentUnitGift[unitDefID] == nil then
-				Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
+				Spring.SendMessageToTeam(teamID, "You have been given: "..successfullyCreated.." "..unitName)
 			end
-			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
+			Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..successfullyCreated.." "..unitName)
 		end
 	end
 
@@ -105,10 +105,10 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		elseif not spec then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when playing")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to give units when playing")
 			return
 		elseif startPlayers[playername] ~= nil then
-			Spring.SendMessageToPlayer(playerID, "You arent allowed to give units when you have been a player")
+			Spring.SendMessageToPlayer(playerID, "You aren't allowed to give units when you have been a player")
 			return
 		end
 		local params = string.split(msg, ':')
