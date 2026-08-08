@@ -12,12 +12,9 @@ local function reclaimUnits(unitName, reclaimerTeam)
                 reclaimerTeam = Spring.GetUnitTeam(unitID)
             end
             local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-            if unitDef and unitDef.metalCost then
-                Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost)
-            end
-            -- if unitDef and unitDef.energyCost then -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
-            --     Spring.AddTeamResource(reclaimerTeam, "energy", unitDef.energyCost)
-            -- end
+            Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost) 
+            -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
+            -- Spring.AddTeamResource(reclaimerTeam, "energy", unitDef.energyCost)
             Spring.DestroyUnit(unitID, false, true)
         end
 	end
