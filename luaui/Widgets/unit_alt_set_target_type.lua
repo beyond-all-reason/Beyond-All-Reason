@@ -24,21 +24,40 @@ local spGetUnitTeam          = Spring.GetUnitTeam
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit      = Spring.GiveOrderToUnit
 local spGetSelectedUnits     = Spring.GetSelectedUnits
+local spGetTimer             = Spring.GetTimer
+local spDiffTimers           = Spring.DiffTimers
 local spGetMyTeamID          = Spring.GetMyTeamID
 local spGetActiveCommand 	 = Spring.GetActiveCommand
 local spGetMouseState    	 = Spring.GetMouseState
 local spTraceScreenRay   	 = Spring.TraceScreenRay
 local spGetModKeyState   	 = Spring.GetModKeyState
 local spGetUnitRulesParam    = Spring.GetUnitRulesParam
+local spGetUnitRadius         = Spring.GetUnitRadius
+local spGetGroundHeight       = Spring.GetGroundHeight
+local spValidUnitID           = Spring.ValidUnitID
+local ENEMY_UNITS 			  = Spring.ENEMY_UNITS
 
 local table_insert = table.insert
+local math_sin = math.sin
+local math_cos = math.cos
+local math_pi = math.pi
+local math_floor = math.floor
+local math_clamp = math.clamp
 
-local trackedUnitsToUnitDefID = {}
+local trackedUnitsToTargetedDefs = {}
+local trackedUnitsToTargetID = {}
 local unitRanges = {}
-local cursorPos  -- current cursor position 	  (table{x,y,z})
-local snappedPos -- snapped valid target position (table{x,y,z})
-
-local POLLING_RATE = 15
+local cursorPos     -- current cursor position 	    (table{x,y,z})
+local snappedPos    -- snapped valid target position (table{x,y,z})
+local snappedUnitID -- unit the command would snap to (highlighted as "selected")
+local resumeKey 	-- Last position in the unit list
+local MAX_UNITS_PER_UPDATE = 100
+local MIN_UNITS_PER_UPDATE = 1
+local unitsToUpdate = MAX_UNITS_PER_UPDATE
+local TARGET_MS = 2          -- time budget for the widget
+local avgPerUnitMsCost = 0   -- smoothed cost of processing one tracked unit
+local COST_BLEND_RATIO = 0.2 -- smaller number = more smoothing
+local POLLING_RATE = 5
 local CMD_STOP = CMD.STOP
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -68,7 +87,7 @@ for udid, ud in pairs(UnitDefs) do
 	unitRanges[udid] = maxRange
 end
 
-local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
+local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDsToTarget)
     local unitsInRange = {}
 
 	local unitTeam = spGetUnitTeam(unitID)
@@ -81,16 +100,16 @@ local function GetUnitsInAttackRangeWithDef(unitID, unitDefIDToTarget)
     if maxRange == nil or maxRange <= 0 then return unitsInRange end
 	maxRange = maxRange * UNIT_RANGE_MULTIPLIER
 
-    local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange)
+    local candidateUnits = spGetUnitsInCylinder(ux, uz, maxRange, ENEMY_UNITS)
 	local count = 0
 	for index = 1, #candidateUnits do
 		local targetID = candidateUnits[index]
-        if targetID ~= unitID and spGetUnitDefID(targetID) == unitDefIDToTarget then
-			local targetTeam = spGetUnitTeam(targetID)
-			if targetTeam and not spAreTeamsAllied(unitTeam, targetTeam) then
+		local targetTeam = spGetUnitTeam(targetID)
+        if targetID ~= unitID and targetTeam and not spAreTeamsAllied(unitTeam, targetTeam) then
+			if unitDefIDsToTarget[spGetUnitDefID(targetID)] then
 				count = count + 1
 				unitsInRange[count] = targetID
-            end
+			end
         end
     end
 
@@ -110,11 +129,35 @@ end
 local function clear()
     cursorPos = nil
     snappedPos = nil
+    snappedUnitID = nil
 end
 
 local function MakeLine(x1, y1, z1, x2, y2, z2)
     gl.Vertex(x1, y1, z1)
     gl.Vertex(x2, y2, z2)
+end
+
+local SELECTION_RING_SEGMENTS = 48
+
+-- Emit a ring of vertices around (cx, cz) that hugs the terrain.
+local function MakeGroundRing(cx, cz, radius)
+    for i = 0, SELECTION_RING_SEGMENTS do
+        local a = (i / SELECTION_RING_SEGMENTS) * math_pi * 2
+        local px = cx + math_sin(a) * radius
+        local pz = cz + math_cos(a) * radius
+        gl.Vertex(px, spGetGroundHeight(px, pz) + 4, pz)
+    end
+end
+
+-- Emit a filled disc (triangle fan) around (cx, cz) that hugs the terrain.
+local function MakeGroundDisc(cx, cz, radius)
+    gl.Vertex(cx, spGetGroundHeight(cx, cz) + 4, cz)
+    for i = 0, SELECTION_RING_SEGMENTS do
+        local a = (i / SELECTION_RING_SEGMENTS) * math_pi * 2
+        local px = cx + math_sin(a) * radius
+        local pz = cz + math_cos(a) * radius
+        gl.Vertex(px, spGetGroundHeight(px, pz) + 4, pz)
+    end
 end
 
 local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
@@ -146,7 +189,6 @@ local function FindNearestEnemyUnit(x, y, z, radius, myTeam)
 	return closestUnit
 end
 
-local commandsToGiveCache = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0) -- can insert active target also
 local commandsToGivePool = table.new(TARGET_BY_TYPE_COUNT_MAX, 0)
 local nextCmdOpts = { "shift" }
 do
@@ -154,13 +196,23 @@ do
 		commandsToGivePool[i] = { CMD_SET_TARGET, -1, nextCmdOpts }
 	end
 end
+local function targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
+	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefIDTable)
 
-local function targetUnitsInRangeWithDef(unitID, targetUnitDefID)
-	local candidateUnits = GetUnitsInAttackRangeWithDef(unitID, targetUnitDefID)
+	-- Always keep the originally-targeted unit on the list, even when it is out of
+	-- range. This is less confusing for the player.
+	if trackedUnitsToTargetID[unitID] then
+		if spGetUnitDefID(trackedUnitsToTargetID[unitID]) then
+			table_insert(candidateUnits, 1, trackedUnitsToTargetID[unitID])
+		else
+			trackedUnitsToTargetID[unitID] = nil
+		end
+	end
+
 	if candidateUnits[1] then
 		local unitTargetID = spGetUnitRulesParam(unitID, "unitTargetID")
 		local commandTarget = { CMD_SET_TARGET, unitTargetID }
-		local commandsToGive = commandsToGiveCache
+		local commandsToGive = table.new(TARGET_BY_TYPE_COUNT_MAX + 1, 0)
 		commandsToGive[1] = { CMD_SET_TARGET, candidateUnits[1] }
 		local candidateCount = #candidateUnits
 		for index = 2, candidateCount do
@@ -188,8 +240,22 @@ end
 function widget:DrawWorld()
     if not cursorPos or not snappedPos then return end
     gl.DepthTest(false)
+
+    -- Highlight the unit that would be snapped to, so it reads as "selected".
+    if snappedUnitID and spValidUnitID(snappedUnitID) then
+        local ux, _, uz = spGetUnitPosition(snappedUnitID)
+        if ux then
+            local radius = (spGetUnitRadius(snappedUnitID) or 32) * 1.15
+		    gl.Color(1, 1, 0.3, 0.13)
+            gl.BeginEnd(GL.TRIANGLE_FAN, MakeGroundDisc, ux, uz, radius)
+            gl.LineWidth(2)
+    		gl.Color(1, 1, 0.3, 0.7)
+            gl.BeginEnd(GL.LINE_LOOP, MakeGroundRing, ux, uz, radius)
+        end
+    end
+
     gl.LineWidth(2)
-    gl.Color(0.3, 1, 0.3, 0.45)
+    gl.Color(1, 1, 0.3, 0.45)
     gl.BeginEnd(GL.LINE_STRIP, MakeLine, cursorPos.x, cursorPos.y, cursorPos.z, snappedPos.x, snappedPos.y, snappedPos.z)
     gl.LineWidth(1)
     gl.DepthTest(true)
@@ -198,7 +264,7 @@ end
 local function handleSelectionLine()
 	local _, cmdID = spGetActiveCommand()
     local alt, ctrl, meta, shift = spGetModKeyState()
-	local correctCommand = cmdID == CMD_SET_TARGET and alt and not ctrl and not meta and not shift
+	local correctCommand = cmdID == CMD_SET_TARGET and alt and not ctrl and not meta
 	if not correctCommand then
         clear()
         return
@@ -223,6 +289,7 @@ local function handleSelectionLine()
 			-- Enable the line
 			snappedPos = { x = ux, 			y = uy, 		 z = uz }
 			cursorPos  = { x = worldPos[1], y = worldPos[2], z = worldPos[3] }
+			snappedUnitID = targetID
 		else
 			clear()
 			return
@@ -237,13 +304,39 @@ function widget:GameFrame(frame)
 		return
 	end
 
-	for unitID, targetUnitDefID in pairs(trackedUnitsToUnitDefID) do
-		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
+	if resumeKey ~= nil and trackedUnitsToTargetedDefs[resumeKey] == nil then
+		-- Our resume key is invalid now
+		resumeKey = nil
+	end
+
+	local tLoop = spGetTimer()
+	local processed = 0
+	local unitID, targetUnitDefIDTable = next(trackedUnitsToTargetedDefs, resumeKey)
+	while unitID ~= nil and processed < math_floor(unitsToUpdate) do
+		targetUnitsInRangeWithDef(unitID, targetUnitDefIDTable)
+		processed = processed + 1
+		resumeKey = unitID
+		unitID, targetUnitDefIDTable = next(trackedUnitsToTargetedDefs, unitID)
+	end
+
+	-- Reached the end of the table; wrap around on the next update.
+	if unitID == nil then
+		resumeKey = nil
+	end
+
+	-- Keep this loop near TARGET_MS by scaling the budget.
+	local loopMs = spDiffTimers(spGetTimer(), tLoop) * 1000
+	if processed > 0 and loopMs > 0 then
+		local currentPerUnitCost = loopMs / processed
+		-- Smooth the average cost, since some batches can take longer than others
+		avgPerUnitMsCost = (avgPerUnitMsCost * (1.0 - COST_BLEND_RATIO) + currentPerUnitCost * COST_BLEND_RATIO)
+		unitsToUpdate = math_clamp(TARGET_MS / avgPerUnitMsCost, MIN_UNITS_PER_UPDATE, MAX_UNITS_PER_UPDATE)
 	end
 end
 
 local function cleanupUnitTargeting(unitID)
-	trackedUnitsToUnitDefID[unitID] = nil
+	trackedUnitsToTargetedDefs[unitID] = nil
+	trackedUnitsToTargetID[unitID] = nil
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
@@ -307,9 +400,20 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	for _, unitID in ipairs(selectedUnits) do
+		local newTargetedDefs = {}
+		if cmdOpts.shift and trackedUnitsToTargetedDefs[unitID] then
+			newTargetedDefs = trackedUnitsToTargetedDefs[unitID]
+		end
 		cleanupUnitTargeting(unitID)
-		trackedUnitsToUnitDefID[unitID] = targetUnitDefID
-		targetUnitsInRangeWithDef(unitID, targetUnitDefID)
+		newTargetedDefs[targetUnitDefID] = true
+		trackedUnitsToTargetedDefs[unitID] = newTargetedDefs
+
+		trackedUnitsToTargetID[unitID] = targetID
+
+		spGiveOrderToUnit(unitID, CMD_UNIT_CANCEL_TARGET)
+		if #selectedUnits < MAX_UNITS_PER_UPDATE then
+			targetUnitsInRangeWithDef(unitID, newTargetedDefs)
+		end
 	end
 
 	return true
@@ -334,4 +438,8 @@ function widget:Initialize()
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	cleanupUnitTargeting(unitID)
 end
