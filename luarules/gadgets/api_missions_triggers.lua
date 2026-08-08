@@ -23,6 +23,8 @@ local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
+local needsBuildOwnerMap
+local needsBuildStartSet
 
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
@@ -30,6 +32,8 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
+local nanoframeOwners           = {}
+local underConstruction         = {}
 
 
 ----------------------------------------------------------------
@@ -99,6 +103,24 @@ local function isFeatureInArea(featureID, area)
 	return math.isPointInArea(featureX, featureZ, area)
 end
 
+-- Attempt at single-assigning a construction task owner to each buildee.
+local function isNanoframeOwner(nanoframeID, builderDefName, builderName)
+	if not builderDefName and not builderName then
+		return true
+	end
+	local builder = nanoframeOwners[nanoframeID]
+	if not builder then
+		return false
+	end
+	if builderDefName and builderDefName ~= UnitDefs[builder.defID].name then
+		return false
+	end
+	if builderName and not doesUnitHaveName(builder.id, builderName) then
+		return false
+	end
+	return true
+end
+
 ----------------------------------------------------------------
 --- Trigger Call-in Dispatch:
 ----------------------------------------------------------------
@@ -158,6 +180,8 @@ function gadget:Initialize()
 		ActivateTrigger          = activateTrigger,
 		DoesUnitHaveName         = doesUnitHaveName,
 		DoesFeatureHaveName      = doesFeatureHaveName,
+		IsNanoframeOwner         = isNanoframeOwner,
+		WasUnderConstruction     = underConstruction,
 		GetUnitsInArea           = getUnitsInArea,
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
@@ -188,6 +212,20 @@ function gadget:Initialize()
 	if not needsReclaimIncome and not needsFeatureReclaimTracking then
 		gadgetHandler:RemoveCallIn('AllowFeatureBuildStep')
 	end
+
+	-- Only upkeep the nanoframe-owner map when ConstructionFinished or ConstructionCanceled
+	-- filter by builders. ConstructionStarted gets its builderID from UnitCreated directly,
+	-- and none of the triggers in the family require params builderDefName and builderName.
+	needsBuildOwnerMap = table.any(triggers, function(trigger)
+		return (trigger.parameters.builderName or trigger.parameters.builderDefName)
+			and (trigger.type == triggerTypes.ConstructionFinished or trigger.type == triggerTypes.ConstructionCanceled)
+	end)
+
+	-- ConstructionFinished can't read beingBuilt at UnitFinished (the unit reads finished)
+	-- so needs a record of which units were built, rather than spawn or warp in at start.
+	needsBuildStartSet = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.ConstructionFinished
+	end)
 end
 
 function gadget:GameFrame(frameNumber)
@@ -226,6 +264,16 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	dispatchTriggerCallin('UnitCreated', unitID, unitDefID, unitTeam, builderID)
+
+	local beingBuilt = Spring.GetUnitIsBeingBuilt(unitID)
+	if beingBuilt then
+		if needsBuildStartSet then
+			underConstruction[unitID] = true
+		end
+		if needsBuildOwnerMap and builderID then
+			nanoframeOwners[unitID] = { id = builderID, defID = Spring.GetUnitDefID(builderID) }
+		end
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -241,6 +289,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if attackerTeam and not Spring.AreTeamsAllied(attackerTeam, unitTeam) then
 		statistics.Increment(triggerTypes.TotalUnitsKilled, attackerTeam, unitDefName, unitNames)
 	end
+
+	underConstruction[unitID] = nil
+	nanoframeOwners[unitID] = nil
 
 	untrackUnitID(unitID)
 end
@@ -263,6 +314,9 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	dispatchTriggerCallin('UnitFinished', unitID, unitDefID, unitTeam)
+
+	underConstruction[unitID] = nil
+	nanoframeOwners[unitID] = nil
 
 	-- Don't count units spawned by SpawnUnits action
 	if GG['MissionAPI'].spawningUnit then return end
