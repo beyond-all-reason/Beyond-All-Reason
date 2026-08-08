@@ -2118,6 +2118,8 @@ local function importHeightmap(_, optLine, args)
 		Echo("[Terraform Brush] Usage: /terraformimport <filename.png>")
 		return
 	end
+	extraState._importFallbackMin = nil
+	extraState._importFallbackMax = nil
 	pendingImportFile = filename
 	Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 end
@@ -2125,6 +2127,10 @@ end
 local function doImportHeightmapRead()
 	local filename = pendingImportFile
 	pendingImportFile = nil
+	local fallbackMin = extraState._importFallbackMin
+	local fallbackMax = extraState._importFallbackMax
+	extraState._importFallbackMin = nil
+	extraState._importFallbackMax = nil
 
 	local squareSize = Game.squareSize
 
@@ -2146,10 +2152,16 @@ local function doImportHeightmapRead()
 
 	local sidecarHadRange = (minH ~= nil and maxH ~= nil)
 	if not sidecarHadRange then
-		local gMin, gMax = Spring.GetGroundExtremes()
-		minH = gMin or -200
-		maxH = gMax or 800
-		Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
+		if fallbackMin and fallbackMax and fallbackMax > fallbackMin then
+			minH = fallbackMin
+			maxH = fallbackMax
+			Echo("[Terraform Brush] No PNG/sidecar range yet, using project height range: " .. minH .. " to " .. maxH)
+		else
+			local gMin, gMax = Spring.GetGroundExtremes()
+			minH = gMin or -200
+			maxH = gMax or 800
+			Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
+		end
 	end
 
 	local heightRange = maxH - minH
@@ -2437,6 +2449,14 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
+		importHeightmap = function(filename, fallbackMin, fallbackMax)
+			if not filename or filename == "" then return false end
+			extraState._importFallbackMin = tonumber(fallbackMin)
+			extraState._importFallbackMax = tonumber(fallbackMax)
+			pendingImportFile = filename
+			Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
+			return true
+		end,
 		setMode = setMode,
 		setShape = setShape,
 		rotate = rotateBy,
@@ -2764,22 +2784,23 @@ function widget:Initialize()
 					or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
 					or (base:match("^" .. escaped .. " s%d+$") ~= nil)
-				if isThisMap then
-					local label
-					local sortKey = stamp or "0"
-					if stamp then
-						-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
-						local y, mo, d, h, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
-						if y then
-							label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
-						else
-							label = stamp
-						end
+				local genericStamp = stamp or base:match("_(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)$")
+				local label
+				local sortKey = genericStamp or (isThisMap and "1" or "0_" .. base)
+				if genericStamp then
+					-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
+					local y, mo, d, h, mi = genericStamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
+					if y then
+						label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
 					else
-						label = "(legacy)"
+						label = genericStamp
 					end
-					out[#out + 1] = { path = path, label = label, sortKey = sortKey }
+				elseif isThisMap then
+					label = "(legacy)"
+				else
+					label = "external"
 				end
+				out[#out + 1] = { path = path, label = label, sortKey = sortKey }
 			end
 			table.sort(out, function(a, b) return a.sortKey > b.sortKey end)
 			return out

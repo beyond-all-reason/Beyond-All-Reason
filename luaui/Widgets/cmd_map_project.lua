@@ -1567,7 +1567,12 @@ local function phaseHeightmap(c)
 		if tb.getImportStatus() then return false end  -- another import in flight; wait
 		c.ackBase = Spring.GetGameRulesParam(ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
-		Spring.SendCommands("terraformimport " .. path)
+		local range = loadJob.manifest.map and loadJob.manifest.map.height_range
+		if tb.importHeightmap then
+			tb.importHeightmap(path, range and range.min, range and range.max)
+		else
+			Spring.SendCommands("terraformimport " .. path)
+		end
 		c.sent = true
 		c.ticks = 0
 		echoP("heightmap: importing " .. path .. " ...")
