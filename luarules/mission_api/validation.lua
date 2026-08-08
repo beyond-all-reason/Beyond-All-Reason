@@ -26,6 +26,30 @@ for cmdID in pairs(GameCMD) do
 	knownCMDs[cmdID] = true
 end
 
+-- These commands use an allow-consume pattern that causes them never to reach :UnitCommand.
+-- Rather, the :AllowCommand callin catches them, executes their behavior and returns false.
+local consumedInAllowCommand = {}
+for _, entry in ipairs({
+	{ CMD.CLOAK,                         'unit_cloak (replaced by WANT_CLOAK)' },
+	{ CMD.STOCKPILE,                     'unit_stockpile_limit (stockpile-capped units)' },
+	{ GameCMD.UNIT_SET_TARGET,           'unit_target_on_the_move' },
+	{ GameCMD.UNIT_SET_TARGET_NO_GROUND, 'unit_target_on_the_move' },
+	{ GameCMD.UNIT_SET_TARGET_RECTANGLE, 'unit_target_on_the_move' },
+	{ GameCMD.UNIT_CANCEL_TARGET,        'unit_target_on_the_move' },
+	{ GameCMD.PRIORITY,                  'unit_builder_priority' },
+	{ GameCMD.FACTORY_GUARD,             'unit_factory_guard' },
+	{ GameCMD.STOP_PRODUCTION,           'cmd_factory_stop_production' },
+	{ GameCMD.QUOTA_BUILD_TOGGLE,        'unit_factory_quota' },
+	{ GameCMD.LAND_AT,                   'unit_air_plants' },
+	{ GameCMD.SMART_TOGGLE,              'unit_weapon_smart_select_helper' },
+	{ GameCMD.CARRIER_SPAWN_ONOFF,       'unit_carrier_spawner' },
+	{ GameCMD.MANUAL_LAUNCH,             'cmd_manual_launch (reissued as CMD.MANUALFIRE)' },
+}) do
+	if entry[1] then
+		consumedInAllowCommand[entry[1]] = entry[2]
+	end
+end
+
 local function validateLuaType(value, expectedType)
 	local actualType = type(value)
 	if value ~= nil and actualType ~= expectedType then
@@ -419,6 +443,27 @@ validators[Types.Facing] = function(facing)
 		end
 	end
 
+validators[Types.Command] = function(command)
+	if command == CMD.ANY or command == CMD.BUILD then
+		return
+	end
+	if type(command) == 'number' then
+		if not knownCMDs[command] then
+			return { { message = "Unknown command ID: " .. tostring(command) } }
+		end
+		local consumer = consumedInAllowCommand[command]
+		if consumer then
+			return { { severity = 'warning', message = "Command " .. tostring(command) .. " is consumed in :AllowCommand by " .. consumer .. "; UnitOrdered will not observe it" } }
+		end
+	elseif type(command) == 'string' then
+		if not UnitDefNames[command] then
+			return { { message = "Invalid unitDefName: " .. command } }
+		end
+	else
+		return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+	end
+end
+
 validators[Types.SoundFile] = function(soundfile)
 	local luaTypeResult = validators[Types.String](soundfile)
 	if luaTypeResult then
@@ -511,7 +556,8 @@ local function validate(schemaParameters, actionOrTriggerType, actionOrTriggerPa
 			else
 				local validationResults = validators[parameter.type](value, actionOrTrigger, actionOrTriggerID, parameter.name) or {}
 				for _, validationResult in pairs(validationResults) do
-					logError(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
+					local log = validationResult.severity == 'warning' and logWarn or logError
+					log(validationResult.message .. ". " .. actionOrTrigger .. ": " .. actionOrTriggerID .. ", Parameter: " .. parameter.name .. (validationResult.parameterNameSuffix or ''))
 				end
 			end
 		end

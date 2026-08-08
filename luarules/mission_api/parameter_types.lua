@@ -39,6 +39,9 @@ local types = {
 
 	-- Function Validators:
 	Function = 'Function',
+
+	-- Number-or-String Validators:
+	Command = 'Command',
 }
 
 local enums = {
