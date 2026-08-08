@@ -334,4 +334,17 @@ function widget:Initialize()
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
+
+	WG['unittargeting'] = {}
+	WG['unittargeting'].getTargetType = function(unitID)
+		return trackedUnitsToUnitDefID[unitID]
+	end
+end
+
+function widget:Shutdown()
+	WG['unittargeting'] = nil
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	cleanupUnitTargeting(unitID)
 end
