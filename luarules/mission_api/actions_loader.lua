@@ -2,13 +2,12 @@ local ACTIONS_DIR = 'luarules/mission_api/actions/'
 local ACTION_FILES_PATTERN = '*.lua'
 
 local function loadActionDefinitions()
-	local actionFiles = VFS.DirList(ACTIONS_DIR, ACTION_FILES_PATTERN)
 
 	local types = {}
 	local typesCount = 0
 	local parameters = {}
 	local actionFunctions = {}
-
+	local actionFiles = VFS.DirList(ACTIONS_DIR, ACTION_FILES_PATTERN, nil, true)
 	for _, filePath in ipairs(actionFiles) do
 		local actionDefinitions = VFS.Include(filePath)
 		for _, actionDefinition in ipairs(actionDefinitions) do
