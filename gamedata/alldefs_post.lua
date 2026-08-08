@@ -805,6 +805,20 @@ local weaponTypeSoundMultiplier = {
 	},
 }
 
+--[[ Model-specific cavitation selection retained for future testing.
+local torpedoTrailModelVariants = {
+	["cordepthcharge.s3o"] = "depthcharge",
+	["coradvtorpedo.s3o"] = "coradv",
+	["legfattorpedo.s3o"] = "legfat",
+}
+
+local torpedoTrailCEGs = {
+	["torpedotrail-tiny"] = true,
+	["torpedotrail-small"] = true,
+	["torpedotrail-large"] = true,
+}
+]]
+
 local function ProcessSoundDefaults(wd)
 
 	local defaultDamage = 10
@@ -873,6 +887,20 @@ local function weaponDef_Post(name, wDef)
 	local customparams = wDef.customparams
 	local damage = wDef.damage
 	local shield = wDef.shield
+	--[[ Model-specific cavitation selection retained for future testing.
+	local modelName = wDef.model and string.lower(wDef.model)
+	local trailVariant = modelName and torpedoTrailModelVariants[modelName]
+
+	if trailVariant and torpedoTrailCEGs[wDef.cegtag] then
+		wDef.cegtag = wDef.cegtag .. "-" .. trailVariant
+	end
+	]]
+
+	-- Underwater-launched torpedoes should rise toward surface targets sooner.
+	-- Preserve explicit special effects used by air-launched and other custom weapons.
+	if wDef.weapontype == "TorpedoLauncher" and not customparams.speceffect then
+		customparams.speceffect = "torpsurfacetrack"
+	end
 
 	if not SaveDefsToCustomParams then
 		-------------- EXPERIMENTAL MODOPTIONS

@@ -64,6 +64,7 @@ local specialEffectFunction = {}
 local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 
 local weaponDefEffect = {}
+local torpedoStayUnderwaterDefs = {}
 
 local projectiles = {}
 local projectilesData = {}
@@ -557,60 +558,206 @@ specialEffectFunction.cannonwaterpen = function(params, projectileID)
 end
 
 -- Water penetration (torpedo)
--- Torpedoes are usually tracking with either very high or very low turn rates, both of which work out poorly.
--- This reduces vertical dive speed, with stronger correction allowed for closer targets, emphasizing horizontal motion.
--- It still has an issue with a projectile with low turn rate dropped vertically above a tiny target underneath.
-
-local waterDepthSubs = -20
-local waterDepthDeep = -80
+-- Uses the per-weapon turn radius to smoothly scale correction strength while
+-- preserving gentler water entry and continuous surface-depth tracking.
 
 weaponCustomParamKeys.torpwaterpen = {
 	tracking_turn_radius = tonumber, -- turn radius of a tracking projectile, larger gives stronger correction
 }
 
-local function torpedoWaterPen(params, projectileID)
+local minSubTargetDiveSpeed = -0.08
+local surfaceTargetDepth = -2
+local surfaceDepthCorrection = 0.025
+local minSurfaceDiveSpeed = -0.12
+local minShoreSurfaceDiveSpeed = -4
+local maxSurfaceRiseSpeed = 0.2
+local maxUnderwaterSurfaceRiseSpeed = 1.25
+local surfaceArrivalLeadFrames = 20
+local surfaceTransitionStartDepth = -12
+local defaultTrackingTurnRadius = 180
+local waterEntryCorrectionStartDistance = 180
+local minWaterEntryCorrection = 0.45
+local maxWaterEntryCorrection = 0.85
+local goldenRatio = (1 + math.sqrt(5)) / 2
+local minSurfaceTrackingCorrection = 0.1
+local maxSurfaceTrackingCorrection = 0.15
+local torpedoWaterEntryCorrected = {}
+local shoreTorpedoEnteredWater = {}
+local shoreTorpedoBreachCeiling = 2
+
+local function torpedoWaterPen(params, projectileID, predictSurfaceArrival, initialWaterEntry, targetX, targetY, targetZ, allowSteepSurfaceDive)
+	local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
 	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
-	if not (positionX and targetX) then
-		return true
+	local diveSpeed = 0
+	local smooth = 0.45
+	local trackingSurfaceTarget = false
+	local surfaceTransition = 0
+
+	if not targetX then
+		local targetType, targetID = spGetProjectileTarget(projectileID)
+		if targetType == targetedUnit and targetID then
+			targetX, targetY, targetZ = spGetUnitPosition(targetID)
+		end
 	end
 
-	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-	if -velocityY <= speed * 0.1 then
-		spSetProjectileVelocity(projectileID, velocityX, 0, velocityZ)
-		return true
+	if targetX and positionX then
+		local distance = math_diag(
+			positionX - targetX,
+			positionY - targetY,
+			positionZ - targetZ
+		)
+		local trackingTurnRadius = params and params.tracking_turn_radius or defaultTrackingTurnRadius
+		local closeness = math_clamp(1.2 - distance / trackingTurnRadius, 0.25, 1.0)
+		local proximityBlend = (closeness - 0.25) / 0.75
+
+		if targetY < -10 then
+			-- Submerged targets keep their downward tracking bias and leave the
+			-- continuous surface controller after this initial correction.
+			diveSpeed = math.min(velocityY / 4, minSubTargetDiveSpeed)
+			smooth = 0.45 + 0.55 * proximityBlend
+		else
+			trackingSurfaceTarget = true
+			local depthControlSpeed = (surfaceTargetDepth - positionY) * surfaceDepthCorrection
+			local surfaceSpeed = depthControlSpeed
+			local surfaceRiseLimit = maxSurfaceRiseSpeed
+			local surfaceDiveLimit = allowSteepSurfaceDive and minShoreSurfaceDiveSpeed or minSurfaceDiveSpeed
+			surfaceTransition = math_clamp(
+				(positionY - surfaceTransitionStartDepth) /
+					(surfaceTargetDepth - surfaceTransitionStartDepth),
+				0,
+				1
+			)
+			surfaceTransition = surfaceTransition * surfaceTransition * (3 - 2 * surfaceTransition)
+
+			if predictSurfaceArrival then
+				local deltaX = targetX - positionX
+				local deltaZ = targetZ - positionZ
+				local horizontalDistance = math.sqrt(deltaX * deltaX + deltaZ * deltaZ)
+				local horizontalSpeed = math.sqrt(velocityX * velocityX + velocityZ * velocityZ)
+
+				if horizontalSpeed > 0.01 then
+					local travelFrames = horizontalDistance / horizontalSpeed
+					local correctionFrames
+					if allowSteepSurfaceDive and positionY > surfaceTargetDepth then
+						correctionFrames = math.max(travelFrames, 1)
+					else
+						correctionFrames = math.max(travelFrames - surfaceArrivalLeadFrames, 1)
+					end
+					local predictedSurfaceSpeed = math_clamp(
+						(surfaceTargetDepth - positionY) / correctionFrames,
+						surfaceDiveLimit,
+						maxUnderwaterSurfaceRiseSpeed
+					)
+					surfaceRiseLimit = maxUnderwaterSurfaceRiseSpeed
+					if allowSteepSurfaceDive and predictedSurfaceSpeed < depthControlSpeed then
+						surfaceSpeed = predictedSurfaceSpeed
+					else
+						surfaceSpeed = predictedSurfaceSpeed +
+							(depthControlSpeed - predictedSurfaceSpeed) * surfaceTransition
+					end
+				end
+			end
+
+			diveSpeed = math_clamp(
+				surfaceSpeed,
+				surfaceDiveLimit,
+				surfaceRiseLimit
+			)
+			if predictSurfaceArrival then
+				smooth = 0.5 + 0.35 * proximityBlend
+			elseif initialWaterEntry then
+				-- Water-entry torpedoes should not flatten into an abrupt turn.
+				-- A golden-ratio ease-in keeps most of the correction inside 120 elmos.
+				local directTargetBlend = math_clamp(1 - distance / waterEntryCorrectionStartDistance, 0, 1)
+				directTargetBlend = directTargetBlend ^ goldenRatio
+				smooth = minWaterEntryCorrection +
+					(maxWaterEntryCorrection - minWaterEntryCorrection) * directTargetBlend
+			else
+				-- After entry, retain a light surface-depth correction without
+				-- repeatedly arresting the projectile's vertical velocity.
+				smooth = minSurfaceTrackingCorrection +
+					(maxSurfaceTrackingCorrection - minSurfaceTrackingCorrection) * proximityBlend
+			end
+		end
 	end
 
-	-- Allow some non-physical reasoning so we can hit very-close and very-shallow targets.
-	local distance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
-	local waterDepth = spGetGroundHeight(positionX, positionZ)
-
-	local closeness = math_clamp(1.2 - distance / params.tracking_turn_radius, 0.25, 1.0)
-	local shallowness = math_clamp(1 - waterDepth / waterDepthDeep, 0.75, 1.0) -- keep gameplay on the "surface"
-	local surfaceness = math_clamp(1 - targetY / waterDepthSubs, 0.0, 1.0)
-
-	local shallowTerm = 1.0 - shallowness * surfaceness
-	local distanceTerm = 1.0 - closeness * surfaceness
-	local diveSpeedWanted = -speed * shallowTerm * distanceTerm
-	velocityY = (velocityY + diveSpeedWanted * 2) / 3
-
-	-- Apply terrain avoidance proportionate to the shallowness of the water depth.
 	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
-	local avoidanceY = velocityY - normalY * (
-		velocityX * (normalX + 0) * 0.5 +
-		velocityY * (normalY + 1) * 0.5 +
-		velocityZ * (normalZ + 0) * 0.5
+	local terrainCorrectedY = velocityY - normalY * (
+		velocityX * normalX +
+		velocityY * normalY +
+		velocityZ * normalZ
 	)
-	velocityY = velocityY + (avoidanceY - velocityY) * (shallowness * 0.5 + 0.5)
+	if terrainCorrectedY < diveSpeed then
+		terrainCorrectedY = diveSpeed
+	end
+
+	-- Progressively suppress extra seafloor-normal lift as the torpedo settles
+	-- into its surface running depth, preventing both a sharp handoff and breaching.
+	if surfaceTransition > 0 then
+		terrainCorrectedY = terrainCorrectedY +
+			(diveSpeed - terrainCorrectedY) * surfaceTransition
+	end
+
+	if velocityY > 0 then
+		smooth = math.max(smooth, 0.5 + 0.35 * surfaceTransition)
+	end
+	velocityY = velocityY + (terrainCorrectedY - velocityY) * smooth
 
 	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
+	return trackingSurfaceTarget
 end
 
 specialEffectFunction.torpwaterpen = function(params, projectileID)
 	if isProjectileInWater(projectileID) then
-		torpedoWaterPen(params, projectileID)
+		local initialWaterEntry = not torpedoWaterEntryCorrected[projectileID]
+		torpedoWaterEntryCorrected[projectileID] = true
+		return not torpedoWaterPen(params, projectileID, false, initialWaterEntry)
+	end
+end
+
+specialEffectFunction.torpsurfacetrack = function(projectileID)
+	local stayUnderwater = torpedoStayUnderwaterDefs[spGetProjectileDefID(projectileID)]
+	local inWater = isProjectileInWater(projectileID)
+
+	if stayUnderwater and inWater then
+		shoreTorpedoEnteredWater[projectileID] = true
+	elseif not inWater then
+		if shoreTorpedoEnteredWater[projectileID] then
+			local _, positionY = spGetProjectilePosition(projectileID)
+			local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+			local returnSpeed = -positionY
+
+			if velocityY > returnSpeed then
+				spSetProjectileVelocity(projectileID, velocityX, returnSpeed, velocityZ)
+			end
+			return false
+		end
+		return
+	end
+
+	local targetType, targetID = spGetProjectileTarget(projectileID)
+	if targetType ~= targetedUnit or not targetID then
+		return false
+	end
+
+	local targetX, targetY, targetZ = spGetUnitPosition(targetID)
+	if not targetY or targetY < -10 then
 		return true
 	end
+
+	torpedoWaterPen(nil, projectileID, true, false, targetX, targetY, targetZ, stayUnderwater)
+
+	if stayUnderwater then
+		local _, positionY = spGetProjectilePosition(projectileID)
+		local velocityX, velocityY, velocityZ = spGetProjectileVelocity(projectileID)
+		local maxRiseSpeed = shoreTorpedoBreachCeiling - positionY
+
+		if velocityY > maxRiseSpeed then
+			spSetProjectileVelocity(projectileID, velocityX, maxRiseSpeed, velocityZ)
+		end
+	end
+
+	return false
 end
 
 --------------------------------------------------------------------------------
@@ -629,6 +776,10 @@ function gadget:Initialize()
 	local cruiseEngagedMetatable = { __call = cruiseEngaged }
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
+		if weaponDef.customParams.torpedo_stay_underwater then
+			torpedoStayUnderwaterDefs[weaponDefID] = true
+		end
+
 		if weaponDef.customParams.speceffect then
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
@@ -668,6 +819,8 @@ end
 
 function gadget:ProjectileDestroyed(projectileID)
 	projectiles[projectileID] = nil
+	torpedoWaterEntryCorrected[projectileID] = nil
+	shoreTorpedoEnteredWater[projectileID] = nil
 end
 
 function gadget:GameFrame(frame)
