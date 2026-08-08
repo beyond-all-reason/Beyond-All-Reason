@@ -312,6 +312,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function setTargetPassive(unitID, unitData)
+		if not unitData then
+			return
+		end
 		unitData.activeTarget = false
 		unitData.currentIndex = 1
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
@@ -333,8 +336,10 @@ if gadgetHandler:IsSyncedCode() then
 	-- Unit adding/removal
 
 	local function sendTargetsToUnsynced(unitID)
-		--tracy.ZoneBeginN(string.format("sendTargetsToUnsynced %d", unitID))
-		for index, targetData in ipairs(setTargetData[unitID].targets) do
+		local targetList = setTargetData[unitID].targets
+		local targetCount = #targetList
+		for index = 1, targetCount do
+			local targetData = targetList[index]
 			if not targetData.sent then
 				targetData.sent = true
 				local target = targetData.target
@@ -345,26 +350,22 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		--tracy.ZoneEnd()
+		SendToUnsynced("targetList", unitID, targetCount + 1)
 	end
 
 	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] then
-			activeTargets[unitID] = nil
-			if not inAttackCommand(unitID) then
-				spSetUnitTarget(unitID, nil)
-			end
-		elseif pausedTargets[unitID] then
-			pausedTargets[unitID] = nil
+		if activeTargets[unitID] and not inAttackCommand(unitID) then
+			spSetUnitTarget(unitID, nil)
+		end
+		if keeptrack then
+			setTargetPassive(unitID, setTargetData[unitID])
+		else
+			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
 		end
 		removeFromQueue(unitID)
-		if keeptrack then
-			SendToUnsynced("targetIndex", unitID, 1, false)
-		elseif setTargetData[unitID] then
-			setTargetPassive(unitID, setTargetData[unitID])
-			setTargetData[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0)
-		end
+		setTargetData[unitID] = nil
+		activeTargets[unitID] = nil
+		pausedTargets[unitID] = nil
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 	end
 
