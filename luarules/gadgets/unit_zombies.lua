@@ -10,6 +10,12 @@ function gadget:GetInfo()
 	}
 end
 
+-- To customize zombie respawn time, use customParams.zombie_respawn_time (seconds):
+--   < 0  never respawn as a zombie
+--   0    respawn instantly
+--   > 0  custom respawn delay in seconds
+-- this overrides default timing based on unit power, difficulty, and gamestate.
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
