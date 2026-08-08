@@ -117,6 +117,52 @@ local triggers = {
 		actions = { 'messageConstructionFinishedSolar' },
 	},
 
+	constructionStartedByDecoy = {
+		type = triggerTypes.ConstructionStarted,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'decoys',
+		},
+		actions = { 'messageConstructionStartedByDecoy' },
+	},
+
+	constructionFinishedByDecoy = {
+		type = triggerTypes.ConstructionFinished,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'decoys',
+		},
+		actions = { 'messageConstructionFinishedByDecoy' },
+	},
+
+	spawnCancelDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 10, -- The build is underway before the reclaim.
+		},
+		actions = { 'spawnCanceler', 'orderCancelerBuild' },
+	},
+
+	reclaimCancelDemo = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 21, -- Reclaim mid-build: ~11s into a ~32s solar.
+		},
+		actions = { 'nameDoomedSolar', 'reclaimDoomedSolar' },
+	},
+
+	constructionCanceledSolar = {
+		type = triggerTypes.ConstructionCanceled,
+		parameters = {
+			unitDefName = 'armsolar',
+			teamID = 0,
+			builderName = 'canceler',
+		},
+		actions = { 'messageConstructionCanceledSolar' },
+	},
+
 	unitRessed = {
 		type = triggerTypes.UnitResurrected,
 		parameters = {
@@ -276,6 +322,63 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "Construction of solar finished!",
+		},
+	},
+
+	messageConstructionStartedByDecoy = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Solar construction started by the decoy commander!",
+		},
+	},
+
+	messageConstructionFinishedByDecoy = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The decoy commander finished a solar!",
+		},
+	},
+
+	messageConstructionCanceledSolar = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "The canceler's solar was reclaimed mid-build (canceled)!",
+		},
+	},
+
+	spawnCanceler = {
+		type = actionTypes.SpawnUnits,
+		parameters = {
+			unitLoadout = {
+				{ unitDefName = 'armck', x = 2400, z = 2400, team = 0, unitName = 'canceler' },
+			},
+		},
+	},
+
+	orderCancelerBuild = {
+		type = actionTypes.IssueOrders,
+		parameters = {
+			unitName = 'canceler',
+			orders = {
+				{ 'armsolar', { 2400, 0, 2480 } },
+			},
+		},
+	},
+
+	nameDoomedSolar = {
+		type = actionTypes.NameUnits,
+		parameters = {
+			unitName = 'doomedSolar',
+			teamID = 0,
+			unitDefName = 'armsolar',
+			area = { x = 2400, z = 2480, radius = 100 },
+		},
+	},
+
+	reclaimDoomedSolar = {
+		type = actionTypes.ReclaimUnits,
+		parameters = {
+			unitName = 'doomedSolar',
 		},
 	},
 
