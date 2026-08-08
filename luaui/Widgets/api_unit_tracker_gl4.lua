@@ -312,8 +312,8 @@ local function isValidLivingSeenUnit(unitID, unitDefID, verbose)
 		if unitDefID == nil or
 			spValidUnitID(unitID) ~= true or
 			spGetUnitIsDead(unitID) == true or
-			((not fullview) and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 0)) or -- outside of LOS
-			unitDefIgnore[unitDefID] then
+			((not fullview) and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 0)) -- outside of LOS
+			or unitDefIgnore[unitDefID] then
 			if debuglevel >= (verbose or 0) then
 				Spring.Debug.TraceEcho()
 				spEcho("not isValidLivingSeenUnit",
@@ -716,8 +716,8 @@ function widget:PlayerChanged(playerID)
 	end
 
 	-- testing for visible units changed
-	if (currentspec ~= spec) or -- we change from spec to non spec (I dont think its possible to go from player to non-fullview spec in one go)
-		(currentfullview ~= fullview) or
+	if (currentspec ~= spec) -- we change from spec to non spec (I dont think its possible to go from player to non-fullview spec in one go)
+		or (currentfullview ~= fullview) or
 		((currentAllyTeamID ~= myAllyTeamID) and not currentspec and not currentfullview) then -- our ALLYteam changes while playing, and we are not in fullview
 		reinit = true
 	end

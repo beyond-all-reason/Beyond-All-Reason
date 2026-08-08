@@ -5138,6 +5138,7 @@ function extraState.drawMeasureWorld()
 		local R = isHover and 11 or 8
 		glLineWidth(5)
 		glColor(0, 0, 0, 0.60)
+		-- stylua: ignore start
 		glBeginEnd(GL.LINE_LOOP, function()
 			glVertex(hx,     hy, hz - R) ; glVertex(hx + R, hy, hz    )
 			glVertex(hx,     hy, hz + R) ; glVertex(hx - R, hy, hz    )
@@ -5148,6 +5149,7 @@ function extraState.drawMeasureWorld()
 			glVertex(hx,     hy, hz - R) ; glVertex(hx + R, hy, hz    )
 			glVertex(hx,     hy, hz + R) ; glVertex(hx - R, hy, hz    )
 		end)
+		-- stylua: ignore end
 		if isHover then
 			local R2 = R + 7
 			glLineWidth(1.5)

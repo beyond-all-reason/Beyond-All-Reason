@@ -1139,9 +1139,9 @@ function widget:PlayerChanged(playerID)
 	if debugmode then spEcho("HBGL4 widget:PlayerChanged",'spec', currentspec, 'fullview', currentfullview, 'teamID', currentTeamID, 'allyTeamID', currentAllyTeamID, "playerID", currentPlayerID) end
 
 	-- cases where we need to trigger:
-	if (currentspec ~= spec) or -- we transition from spec to player, yes this is needed
-		(currentfullview ~= fullview) or -- we turn on or off fullview
-		((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
+	if (currentspec ~= spec) -- we transition from spec to player, yes this is needed
+		or (currentfullview ~= fullview) -- we turn on or off fullview
+		or ((currentAllyTeamID ~= myAllyTeamID) and not currentfullview)  -- our ALLYteam changes, and we are not in fullview
 
 		then
 		-- do the actual reinit stuff, but first change my own

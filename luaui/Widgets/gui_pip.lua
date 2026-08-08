@@ -9121,8 +9121,8 @@ function widget:ViewResize()
 			                  oldVsx > 0 and oldVsy > 0 and
 			                  (render.dim.r - render.dim.l) >= minSize and
 			                  (render.dim.t - render.dim.b) >= minSize and
-			                  render.dim.r > minSize and  -- Not stuck at bottom-left
-			                  render.dim.t > minSize
+			                  render.dim.r > minSize -- Not stuck at bottom-left
+			                  and render.dim.t > minSize
 
 			if dimsValid then
 				render.dim.l, render.dim.r, render.dim.b, render.dim.t = render.dim.l/oldVsx, render.dim.r/oldVsx, render.dim.b/oldVsy, render.dim.t/oldVsy
