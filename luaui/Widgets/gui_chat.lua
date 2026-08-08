@@ -2994,6 +2994,24 @@ function widget:TextInput(char)	-- if it isnt working: chobby probably hijacked 
 	end
 end
 
+function widget:cycleInputMode(reverse)
+	local inputModeOrder = {'', 's:', 'a:'}
+	local zeroModeIndex = 0 -- use zero-based index for modulo, and add 1 before accessing inputModeOrder
+	for i, mode in ipairs(inputModeOrder) do
+		if mode == inputMode then
+			zeroModeIndex = i - 1
+			break
+		end
+	end
+
+	local modeCount = mySpec and #inputModeOrder - 1 or #inputModeOrder
+	local direction = reverse and -1 or 1
+	local newZeroIndex = (zeroModeIndex + direction) % modeCount
+	inputMode = inputModeOrder[newZeroIndex + 1] -- convert back to 1-based index
+
+	updateTextInputDlist = true
+end
+
 function widget:KeyRelease(key, mods, label, unicode, scanCode)
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
 	if inputMode == 'label' and state.mapmarkTriggerDown and
@@ -3336,13 +3354,17 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			prevAutocompleteLetters = nil
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= 'label' then -- TAB
-			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
-				inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
-				inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
-				inputHistory[#inputHistory] = inputText
-				autocompleteText = nil
-				autocompleteWords = {}
+			if inputText == '' then
+				self:cycleInputMode(shift)
+			else
+				inputSelectionStart = nil
+				if autocompleteText and autocompleteWords[1] then
+					inputText = utf8.sub(inputText, 1, inputTextPosition) .. autocompleteText .. utf8.sub(inputText, inputTextPosition+1)
+					inputTextPosition = inputTextPosition + utf8.len(autocompleteText)
+					inputHistory[#inputHistory] = inputText
+					autocompleteText = nil
+					autocompleteWords = {}
+				end
 			end
 		else
 			-- regular chars/keys handled in widget:TextInput
@@ -3416,14 +3438,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if inputMode ~= 'label' and inputButton and state.inputButtonRect and math_isInRect(x, y, state.inputButtonRect[1], state.inputButtonRect[2], state.inputButtonRect[3], state.inputButtonRect[4]) then
-		if inputMode == 'a:' then
-			inputMode = ''
-		elseif inputMode == 's:' then
-			inputMode = mySpec and '' or 'a:'
-		else
-			inputMode = 's:'
-		end
-		updateTextInputDlist = true
+		self:cycleInputMode()
 		return true
 	end
 
