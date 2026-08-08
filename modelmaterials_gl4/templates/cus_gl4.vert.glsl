@@ -13,8 +13,8 @@ layout (location = 6) in uvec4 instData;
 
 // u32 matOffset
 // u32 uniOffset
-// u32 {teamIdx, drawFlag, unused, unused}
-// u32 unused
+// u32 {paletteIndex[0:10], reserved[11:15], numPieces[16:31]}
+// u32 bposeMatOffset
 
 #if USEQUATERNIONS == 0 
 	layout(std140, binding = 0) readonly buffer MatrixBuffer {
@@ -614,8 +614,8 @@ void main(void)
 	pieceVertexPosOrig.w = modelPos.y / (max(1.0, UNITUNIFORMS.userDefined[2].w)); //11 is unit height
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
-	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	teamCol = teamColor[teamIndex];
+	uint paletteIndex = instData.z & 0x07FFu; // 0..254 = team, 256..2047 = custom palette
+	teamCol = teamColor[paletteIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
