@@ -480,7 +480,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
-		elseif cmd == "modmarker" or cmd == "modwhisper" then
+		elseif cmd == "modmarker" or cmd == "modwhisper" or cmd == "modbroadcast" then
 			subPermission = "modmarker"
 		end
 
@@ -667,6 +667,11 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					SendToUnsynced("modwhisper_deliver", playerID, "[ModWhisper] Target '" .. target .. "' not found.")
 				end
+			end
+		elseif cmd == "modbroadcast" then
+			local colorKey, soundID, text = msg:match("modbroadcast:([^:]*):([^:]*):(.*)$")
+			if colorKey and (soundID and soundID ~= "" or text and text ~= "") then
+				SendToUnsynced("modbroadcast", colorKey, soundID, text)
 			end
 		end
 	end
@@ -1106,6 +1111,7 @@ else	-- UNSYNCED
 		addAuthorizedChatAction('test', 'desync', desync)
 		addAuthorizedChatAction('modmarker', 'modmarker', modmarker)
 		addAuthorizedChatAction('modmarker', 'modwhisper', modwhisper)
+		addAuthorizedChatAction('modmarker', 'modbroadcast', modbroadcast)
 		-- Moderator broadcast ping: the synced modmarker handler relays here, and
 		-- every client draws it locally (localOnly=true) so ALL players see it.
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
@@ -1116,6 +1122,21 @@ else	-- UNSYNCED
 			if targetPlayerID == Spring.GetMyPlayerID() then
 				Spring.SendPrivateChat(message, targetPlayerID)
 			end
+		end)
+		-- Relays text to this client's own LuaUI (WG is nil here); soundID (if any)
+		-- is normalized and played directly.
+		gadgetHandler:AddSyncAction("modbroadcast", function(_, colorKey, soundID, text)
+			if soundID and soundID ~= "" then
+				local p = soundID
+				if p:sub(1, 7) ~= "sounds/" then
+					p = "sounds/" .. p
+				end
+				if not p:find("%.[%a%d]+$") then
+					p = p .. ".wav"
+				end
+				Spring.PlaySoundFile(p, 0.7, "ui")
+			end
+			Spring.SendLuaUIMsg("modbroadcast:" .. colorKey .. ":" .. (text or ""))
 		end)
 		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
 			if requestPlayerID ~= Spring.GetMyPlayerID() then
@@ -1167,8 +1188,10 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
 		gadgetHandler:RemoveChatAction('modwhisper')
+		gadgetHandler:RemoveChatAction('modbroadcast')
 		gadgetHandler:RemoveSyncAction("modmarker")
 		gadgetHandler:RemoveSyncAction("modwhisper_deliver")
+		gadgetHandler:RemoveSyncAction("modbroadcast")
 		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
 	end
 	function loadMissiles(_, line, words, playerID)
@@ -1965,6 +1988,40 @@ else	-- UNSYNCED
 		local target = words[1]
 		local message = table.concat(words, " ", 2)
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modwhisper:' .. target .. ':' .. message)
+	end
+
+	-- /luarules modbroadcast [color] [sound] <message text> - color/sound are
+	-- optional, auto-detected from leading words (color = exact match, sound =
+	-- contains "/" or has an extension); "/luarules modbroadcast <message>" works alone.
+	local MODBROADCAST_COLOR_NAMES = { white = true, red = true, yellow = true, green = true, cyan = true }
+	function modbroadcast(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		if not words[1] then
+			Spring.Echo("[ModBroadcast] Usage: /luarules modbroadcast [color] [sound] <message text>")
+			return
+		end
+		local idx = 1
+		local colorKey = "white"
+		if MODBROADCAST_COLOR_NAMES[words[idx]] then
+			colorKey = words[idx]
+			idx = idx + 1
+		end
+		local soundID = ""
+		if words[idx] and (words[idx]:find("/") or words[idx]:match("%.%a+$")) then
+			soundID = words[idx]
+			idx = idx + 1
+		end
+		local text = words[idx] and table.concat(words, " ", idx) or ""
+		if soundID == "" and text == "" then
+			Spring.Echo("[ModBroadcast] Usage: /luarules modbroadcast [color] [sound] <message text>")
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modbroadcast:' .. colorKey .. ':' .. soundID .. ':' .. text)
 	end
 
 	function spawnunitexplosion(_, line, words, playerID)
