@@ -2,6 +2,8 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local CMD_INSERT = CMD.INSERT
 
+-- ! Has no engine event. Cannot be determined reliably through lua code. Needs resolving.
+
 -- Production orders are received by a factory and become build orders in a factory queue.
 -- For any other types of orders, unit and rally orders, see UnitOrdered and RallyOrdered.
 -- For detailed notes on what this all means, see the comments at the top of unit_ordered.
