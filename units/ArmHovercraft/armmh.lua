@@ -134,6 +134,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 600,
 				customparams = {
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 5,
 					overrange_distance = 817,
 					projectile_destruction_method = "descend",
 				},
