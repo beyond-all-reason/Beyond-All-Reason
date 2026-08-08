@@ -7,6 +7,8 @@
 </head>
 <body data-model="terraform_brush_model">
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
+		<div class="flex flex-col-reverse">
+		<div id="status-summary" class="tf-status-summary mb-1"></div>
 		<div class="tf-header mb-2">
 			<div class="tf-header-top">
 				<div id="tf-handle" class="tf-drag-handle tf-title text-outline-darker">
@@ -42,7 +44,7 @@
 				<div id="btn-settings" class="tf-header-btn tf-settings-btn" data-class-active="settingsOpen" data-event-mousedown="onGuideToggleSettings()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/settings.png" /></div>
 			</div>
 		</div>
-		<div id="status-summary" class="tf-status-summary mb-1"></div>
+		</div>
 		<div class="tf-panel-body">
 		<div class="tf-section-frame" id="frame-terrain">
 			<div id="btn-toggle-terrain" class="tf-section-title-row" style="cursor: pointer;">

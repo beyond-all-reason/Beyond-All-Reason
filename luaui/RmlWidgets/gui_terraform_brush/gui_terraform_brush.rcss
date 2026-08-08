@@ -1933,15 +1933,19 @@ body {
 .tf-hm-header:hover {
 	color: #cbd5e1;
 }
-.tf-hm-header-chevron {
-	display: inline-block;
-	width: 14dp;
-	margin-right: 4dp;
-	color: #64748b;
-	transition: transform 0.12s;
-}
 .tf-hm-header-text {
 	flex: 1;
+}
+.tf-hm-refresh {
+	width: 14dp;
+	height: 14dp;
+	padding: 2dp;
+	margin-left: 6dp;
+	image-color: #94a3b8;
+	cursor: pointer;
+}
+.tf-hm-refresh:hover {
+	image-color: #ffffff;
 }
 .tf-hm-browser.collapsed .tf-hm-header {
 	border-bottom: 1dp transparent;

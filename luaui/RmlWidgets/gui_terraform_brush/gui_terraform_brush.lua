@@ -358,6 +358,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 		heightmapExportRangeMode = "auto",
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
+		windowPositions = {},
 	},
 	-- ========================================================================
 	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
@@ -459,12 +460,23 @@ function loadUiPrefs()
 	if type(data.heightmapExportCustomMax) == "number" then
 		widgetState.uiPrefs.heightmapExportCustomMax = data.heightmapExportCustomMax
 	end
+	if type(data.windowPositions) == "table" then
+		local positions = {}
+		for id, pos in pairs(data.windowPositions) do
+			if type(id) == "string" and type(pos) == "table"
+					and type(pos.x) == "number" and type(pos.y) == "number" then
+				positions[id] = { x = pos.x, y = pos.y }
+			end
+		end
+		widgetState.uiPrefs.windowPositions = positions
+	end
 end
 
-function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
+function saveUiPrefs()
+	Spring.CreateDir(UI_PREFS_DIR)
 	local f = io.open(UI_PREFS_FILE, "w")
 	if not f then return end
-	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n}\n",
+	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
 		tostring(widgetState.uiPrefs.disableTips and true or false),
 		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
 		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
@@ -481,10 +493,43 @@ function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
 		widgetState.uiPrefs.heightmapExportRangeMode or "auto",
 		tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
 		tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1))
+	local ids = {}
+	for id in pairs(widgetState.uiPrefs.windowPositions or {}) do ids[#ids + 1] = id end
+	table.sort(ids)
+	for i = 1, #ids do
+		local id = ids[i]
+		local pos = widgetState.uiPrefs.windowPositions[id]
+		f:write(string.format("\t\t[%q] = { x = %.8f, y = %.8f },\n", id, pos.x, pos.y))
+	end
+	f:write("\t},\n}\n")
 	f:close()
 end
 
 widgetState.saveUiPrefs = saveUiPrefs
+
+function widgetState.restoreWindowPosition(rootId, rootEl)
+	local pos = widgetState.uiPrefs.windowPositions[rootId]
+	if not pos or not rootEl then return end
+	local vsx, vsy = GetViewGeometry()
+	if not vsx or not vsy or vsx <= 0 or vsy <= 0 then return end
+	local x = math.max(0, math.min(vsx - 1, pos.x * vsx))
+	local y = math.max(0, math.min(vsy - 1, pos.y * vsy))
+	rootEl.style.left = math.floor(x + 0.5) .. "px"
+	rootEl.style.top = math.floor(y + 0.5) .. "px"
+	if rootEl == widgetState.rootElement then
+		currentLeftVw = x / vsx * 100
+		currentTopVh = y / vsy * 100
+	end
+end
+
+function widgetState.saveWindowPosition(rootId, rootEl, vsx, vsy)
+	if not rootId or not rootEl or not vsx or not vsy or vsx <= 0 or vsy <= 0 then return end
+	widgetState.uiPrefs.windowPositions[rootId] = {
+		x = rootEl.offset_left / vsx,
+		y = rootEl.offset_top / vsy,
+	}
+	saveUiPrefs()
+end
 
 -- =============================================================================
 -- Blue-dot hint config: advertises one ergonomy-enhancing subtool per tool
@@ -9398,17 +9443,15 @@ local function attachEventListeners()
 			-- (deferred DOM commits mean both clears see empty element, then both appends land).
 			local function esc(s) return (s:gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;")) end
 			local parts = {}
-			local isCollapsed = importDropdown:IsClassSet("collapsed")
-			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- ▸ / ▾
 			local headerLabel = count > 0
 				and ("Saved heightmaps  (" .. count .. ")")
 				or  "Saved heightmaps"
 			parts[#parts+1] = string.format(
 				'<div id="tf-hm-header" class="tf-hm-header">'
-				.. '<span id="tf-hm-chevron" class="tf-hm-header-chevron">%s</span>'
 				.. '<span class="tf-hm-header-text">%s</span>'
+				.. '<img id="tf-hm-refresh" class="tf-hm-refresh" src="/luaui/images/terraform_brush/rot_cw.png" title="Refresh heightmaps" />'
 				.. '</div>',
-				chevron, headerLabel
+				headerLabel
 			)
 
 			for i, entry in ipairs(entries) do
@@ -9457,18 +9500,22 @@ local function attachEventListeners()
 				end
 			end
 
-			-- Wire collapsible header: clicking header toggles collapsed class
-			-- and refreshes chevron without rebuilding the list.
+			-- Wire collapsible header: clicking header toggles collapsed class.
 			local headerEl = doc:GetElementById("tf-hm-header")
 			if headerEl then
 				headerEl:AddEventListener("click", function(event)
 					playSound("click")
 					local nowCollapsed = not importDropdown:IsClassSet("collapsed")
 					importDropdown:SetClass("collapsed", nowCollapsed)
-					local chevEl = doc:GetElementById("tf-hm-chevron")
-					if chevEl then
-						chevEl.inner_rml = nowCollapsed and "&#9656;" or "&#9662;"
-					end
+					event:StopPropagation()
+				end, false)
+			end
+
+			local refreshEl = doc:GetElementById("tf-hm-refresh")
+			if refreshEl then
+				refreshEl:AddEventListener("click", function(event)
+					playSound("click")
+					rebuildImportList()
 					event:StopPropagation()
 				end, false)
 			end
@@ -9516,21 +9563,7 @@ local function attachEventListeners()
 		quitBtn:AddEventListener("click", function(event)
 			playSound("exit")
 			clearPassthrough()
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
-			if WG.CloneTool then WG.CloneTool.deactivate() end
-			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-			widgetState.envActive = false
-			widgetState.lightActive = false
-			widgetState.startposActive = false
-			widgetState.cloneActive = false
-			widgetState.decalsActive = false
+			_deactivateAllTools()
 			event:StopPropagation()
 		end, false)
 	end
@@ -9930,7 +9963,9 @@ local function attachEventListeners()
 			if not rootEl then return end
 			local handleEl = getCachedEl(doc, handleId)
 			if not handleEl then return end
-			allW[#allW + 1] = { rootEl = rootEl, handleId = handleId }
+			local rootId = rootEl:GetAttribute("id")
+			allW[#allW + 1] = { rootEl = rootEl, handleId = handleId, rootId = rootId }
+			widgetState.restoreWindowPosition(rootId, rootEl)
 
 			handleEl:AddEventListener("mousedown", function(event)
 				local p = event.parameters
@@ -9939,6 +9974,7 @@ local function attachEventListeners()
 				local vsx, vsy = GetViewGeometry()
 				ds.active = true
 				ds.rootEl = rootEl
+				ds.rootId = rootId
 				ds.offsetX = mx - rootEl.offset_left
 				ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 				ds.ew = rootEl.offset_width
@@ -9967,6 +10003,7 @@ local function attachEventListeners()
 		-- End drag on any mouseup in the document
 		doc:AddEventListener("mouseup", function(event)
 			if ds.active then
+				widgetState.saveWindowPosition(ds.rootId, ds.rootEl, ds.vsx, ds.vsy)
 				if ds.rootEl == widgetState.rootElement then
 					local vsx, vsy = ds.vsx, ds.vsy
 					if vsx > 0 and vsy > 0 and ds.rootEl then
@@ -9976,6 +10013,7 @@ local function attachEventListeners()
 				end
 				ds.active = false
 				ds.rootEl = nil
+				ds.rootId = nil
 				ds.snapRects = nil
 				-- The window moved, so the room left below it changed.
 				widgetState.refreshPanelBodies()
