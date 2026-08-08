@@ -1,51 +1,39 @@
-local schema = VFS.Include('luarules/mission_api/actions_schema.lua')
-local parameters = schema.Parameters
+local ACTIONS_DIR = 'luarules/mission_api/actions/'
+local ACTION_FILES_PATTERN = '*.lua'
 
---[[
-	actionId = {
-		type = actionTypes.EnableTrigger,
-		parameters = {
-			triggerId = 'triggerId'
-		}
+local function loadActionDefinitions()
+	local actionFiles = VFS.DirList(ACTIONS_DIR, ACTION_FILES_PATTERN)
+
+	local types = {}
+	local typesCount = 0
+	local parameters = {}
+	local actionFunctions = {}
+
+	for _, filePath in ipairs(actionFiles) do
+		local actionDefinitions = VFS.Include(filePath)
+		for _, actionDefinition in ipairs(actionDefinitions) do
+			typesCount = typesCount + 1
+			local actionType = actionDefinition.type
+
+			types[actionType] = typesCount
+			parameters[typesCount] = actionDefinition.parameters or {}
+			actionFunctions[typesCount] = actionDefinition.actionFunction
+		end
+	end
+
+	return {
+		Types = types,
+		Parameters = parameters,
+		Functions = actionFunctions,
 	}
-]]
-
-local actions = {}
-
-local function prevalidateActions()
-	for actionId, action in pairs(actions) do
-		if not action.type then
-			Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing type: " .. actionId)
-		end
-
-		for _, parameter in pairs(parameters[action.type]) do
-			local value = action.parameters[parameter.name]
-			local type = type(value)
-
-			if value == nil and parameter.required then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Action missing required parameter. Action: " .. actionId .. ", Parameter: " .. parameter.name)
-			end
-
-			if value ~= nil and type ~= parameter.type then
-				Spring.Log('actions_loader.lua', LOG.ERROR, "[Mission API] Unexpected parameter type, expected " .. parameter.type .. ", got " .. type .. ". Action: " .. actionId .. ", Parameter: " .. parameter.name)
-			end
-		end
-	end
 end
 
-local function preprocessRawActions(rawActions)
-	for actionId, rawAction in pairs(rawActions) do	
-		actions[actionId] = table.copy(rawAction)
-	end
-
-	prevalidateActions()
-end
-
-local function getActions()
+local function processRawActions(rawActions)
+	local actions = table.map(rawActions, table.copy)
 	return actions
 end
 
 return {
-	GetActions = getActions,
-	PreprocessRawActions = preprocessRawActions,
+	LoadActionDefinitions = loadActionDefinitions,
+	ProcessRawActions = processRawActions,
 }
