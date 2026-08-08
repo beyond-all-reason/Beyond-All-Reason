@@ -1061,7 +1061,20 @@ local function parseRadius(args)
 	return DEFAULT_RADIUS
 end
 
+-- Height edits are refused by the synced gadget without /cheat, and /cheat is a
+-- toggle — users who flip it blindly can turn it OFF and then brush into silence.
+-- Nudge it on whenever a terrain mode is engaged; the IsCheatingEnabled guard
+-- means this can only ever enable, never disable. On a server that disallows
+-- cheating the command is simply refused and the gadget's echo explains the rest.
+-- (Attached to extraState: main chunk is at the 200-local limit.)
+extraState.ensureCheat = function()
+	if not Spring.IsReplay() and not Spring.IsCheatingEnabled() then
+		Spring.SendCommands("cheat")
+	end
+end
+
 local function activate(direction, mode, args)
+	extraState.ensureCheat()
 	activeDirection = direction
 	activeMode = mode
 	activeRadius = parseRadius(args)
@@ -1143,6 +1156,7 @@ extraState.swapModeParams = function(mode)
 end
 
 local function setMode(mode)
+	extraState.ensureCheat()
 	extraState.swapModeParams(mode)
 	if mode == "raise" then
 		activeDirection = 1
@@ -2104,6 +2118,8 @@ local function importHeightmap(_, optLine, args)
 		Echo("[Terraform Brush] Usage: /terraformimport <filename.png>")
 		return
 	end
+	extraState._importFallbackMin = nil
+	extraState._importFallbackMax = nil
 	pendingImportFile = filename
 	Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 end
@@ -2111,6 +2127,10 @@ end
 local function doImportHeightmapRead()
 	local filename = pendingImportFile
 	pendingImportFile = nil
+	local fallbackMin = extraState._importFallbackMin
+	local fallbackMax = extraState._importFallbackMax
+	extraState._importFallbackMin = nil
+	extraState._importFallbackMax = nil
 
 	local squareSize = Game.squareSize
 
@@ -2132,10 +2152,16 @@ local function doImportHeightmapRead()
 
 	local sidecarHadRange = (minH ~= nil and maxH ~= nil)
 	if not sidecarHadRange then
-		local gMin, gMax = Spring.GetGroundExtremes()
-		minH = gMin or -200
-		maxH = gMax or 800
-		Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
+		if fallbackMin and fallbackMax and fallbackMax > fallbackMin then
+			minH = fallbackMin
+			maxH = fallbackMax
+			Echo("[Terraform Brush] No PNG/sidecar range yet, using project height range: " .. minH .. " to " .. maxH)
+		else
+			local gMin, gMax = Spring.GetGroundExtremes()
+			minH = gMin or -200
+			maxH = gMax or 800
+			Echo("[Terraform Brush] No metadata file, using map height range: " .. minH .. " to " .. maxH)
+		end
 	end
 
 	local heightRange = maxH - minH
@@ -2376,12 +2402,23 @@ extraState._noiseSetters = {
 	setNoiseSeed        = setNoiseSeed,
 }
 
-function widget:Initialize()
-	if extraState.heightmapExportCustomMax <= extraState.heightmapExportCustomMin then
+-- Seed the custom export range from the map's terrain extremes when it was never
+-- meaningfully set (pristine 0..1 default or a degenerate max<=min). Without this
+-- entering CUSTOM mode keeps 0..1, which clamps every real height to white and
+-- produces a blank/washed heightmap export. Attached to extraState to avoid a
+-- chunk-level local (200-local limit).
+extraState._seedExportCustomRange = function()
+	local cmin = extraState.heightmapExportCustomMin
+	local cmax = extraState.heightmapExportCustomMax
+	if cmax <= cmin or (cmin == 0 and cmax == 1) then
 		local initMinH, initMaxH, currMinH, currMaxH = Spring.GetGroundExtremes()
 		extraState.heightmapExportCustomMin = initMinH or currMinH or 0
 		extraState.heightmapExportCustomMax = initMaxH or currMaxH or 1
 	end
+end
+
+function widget:Initialize()
+	extraState._seedExportCustomRange()
 	widgetHandler:AddAction("terraformbrush", function(_, _, args)
 		if activeMode then
 			return deactivateTerraform()
@@ -2412,6 +2449,14 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
+		importHeightmap = function(filename, fallbackMin, fallbackMax)
+			if not filename or filename == "" then return false end
+			extraState._importFallbackMin = tonumber(fallbackMin)
+			extraState._importFallbackMax = tonumber(fallbackMax)
+			pendingImportFile = filename
+			Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
+			return true
+		end,
 		setMode = setMode,
 		setShape = setShape,
 		rotate = rotateBy,
@@ -2433,6 +2478,7 @@ function widget:Initialize()
 		setHeightmapExportRangeMode = function(value)
 			if value == "initial" or value == "custom" then
 				extraState.heightmapExportRangeMode = value
+				if value == "custom" then extraState._seedExportCustomRange() end
 			else
 				extraState.heightmapExportRangeMode = "auto"
 			end
@@ -2443,6 +2489,7 @@ function widget:Initialize()
 				extraState.heightmapExportRangeMode = "initial"
 			elseif mode == "initial" then
 				extraState.heightmapExportRangeMode = "custom"
+				extraState._seedExportCustomRange()
 			else
 				extraState.heightmapExportRangeMode = "auto"
 			end
@@ -2737,22 +2784,23 @@ function widget:Initialize()
 					or base:match("^" .. escaped .. " s%d+_(.+)$")
 				local isThisMap = (base == mapPrefix) or (stamp ~= nil)
 					or (base:match("^" .. escaped .. " s%d+$") ~= nil)
-				if isThisMap then
-					local label
-					local sortKey = stamp or "0"
-					if stamp then
-						-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
-						local y, mo, d, h, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
-						if y then
-							label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
-						else
-							label = stamp
-						end
+				local genericStamp = stamp or base:match("_(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)$")
+				local label
+				local sortKey = genericStamp or (isThisMap and "1" or "0_" .. base)
+				if genericStamp then
+					-- stamp format YYYY-MM-DD_HH-MM-SS → display as "YYYY-MM-DD HH:MM"
+					local y, mo, d, h, mi = genericStamp:match("^(%d+)%-(%d+)%-(%d+)_(%d+)%-(%d+)")
+					if y then
+						label = string.format("%s-%s-%s %s:%s", y, mo, d, h, mi)
 					else
-						label = "(legacy)"
+						label = genericStamp
 					end
-					out[#out + 1] = { path = path, label = label, sortKey = sortKey }
+				elseif isThisMap then
+					label = "(legacy)"
+				else
+					label = "external"
 				end
+				out[#out + 1] = { path = path, label = label, sortKey = sortKey }
 			end
 			table.sort(out, function(a, b) return a.sortKey > b.sortKey end)
 			return out
