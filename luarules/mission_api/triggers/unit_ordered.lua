@@ -19,6 +19,8 @@ local CMD_BUILD  = CMD.BUILD
 -- passes the actual command to the unit (GiveCommandReal+AllowedCommand checks are last).
 -- The semantics remain correct (the unit was so-ordered), but the command may be dropped.
 
+-- Final note on this hodgepodge: Factory build queues never satisfy the current trigger.
+
 local function matchesCommand(command, cmdID, cmdParams)
 	return (command == CMD_ANY and cmdID)
 		or (command == CMD_BUILD and cmdID < 0)
