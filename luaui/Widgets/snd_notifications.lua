@@ -38,6 +38,7 @@ local muteWhenIdle = true
 --local idleTime = 10        -- after this much sec: mark user as idle
 local displayMessages = true
 local spoken = true
+local mapPings = true
 local idleBuilderNotificationDelay = 10 * 30    -- (in gameframes)
 local tutorialPlayLimit = 2        -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
@@ -442,14 +443,19 @@ local function applyNotificationRules(notifDef)
 	end
 end
 
-local function queueNotification(event, forceplay)
+local function queueNotification(event, forceplay, posx, posy, posz)
 	if Spring.GetGameFrame() > 20 or forceplay then
 		if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
 			if notificationList[event] and notification[event] then
 				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (notification[event].delay * 30)) then
 					if not isInQueue(event) then
 						if checkNotificationRules(notification[event]) then
-							soundQueue[#soundQueue + 1] = event
+							soundQueue[#soundQueue + 1] = {
+								event = event,
+								posx = tonumber(posx),
+								posy = tonumber(posy),
+								posz = tonumber(posz),
+							}
 							applyNotificationRules(notification[event])
 						else
 							LastPlay[event] = spGetGameFrame() - ((notification[event].delay - 2)*30)
@@ -488,13 +494,37 @@ local function gadgetNotificationEvent(msg)
 	if gameframe < 60 then
 		return
 	end
+	local event, player, forceplay, posx, posy, posz
+	local cutmsg = msg .. ""
 
-	local forceplay = (string.sub(msg, string.len(msg) - 1) == ' y')
+	if cutmsg ~= "" then
+		event = string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1)
+		cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+	end
+
+	if cutmsg ~= "" then
+		player = tonumber(string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1))
+		cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+	end
+
+	if cutmsg ~= "" then
+		forceplay = string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1)
+		cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+	end
+
+	if cutmsg ~= "" then
+		posx = tonumber(string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1))
+		cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+		posy = tonumber(string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1))
+		cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+		posz = tonumber(cutmsg)
+		--position.z = tonumber(string.sub(cutmsg, 1, string.find(cutmsg, " | ", nil, true) - 1))
+		--cutmsg = string.sub(cutmsg, string.find(cutmsg, " | ", nil, true) + 3, string.len(cutmsg))
+	end
+
 	if not isSpec or (isSpec and lockPlayerID ~= nil) or forceplay then
-		local event = string.sub(msg, 1, string.find(msg, " ", nil, true) - 1)
-		local player = string.sub(msg, string.find(msg, " ", nil, true) + 1, string.len(msg))
-		if forceplay or (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
-			queueNotification(event, forceplay)
+		if forceplay or (player and (player == Spring.GetMyPlayerID())) or (isSpec and player == lockPlayerID) then
+			queueNotification(event, forceplay, posx, posy, posz)
 		end
 	end
 end
@@ -548,19 +578,25 @@ function widget:Initialize()
 	WG['notifications'].setSpoken = function(value)
 		spoken = value
 	end
+	WG['notifications'].getMapPings = function()
+		return mapPings
+	end
+	WG['notifications'].setMapPings = function(value)
+		mapPings = value
+	end
 	WG['notifications'].getMessages = function()
 		return displayMessages
 	end
 	WG['notifications'].setMessages = function(value)
 		displayMessages = value
 	end
-	WG['notifications'].addEvent = function(value, force)
+	WG['notifications'].addEvent = function(value, forceplay, posx, posy, posz)
 		if notification[value] then
-			queueNotification(value, force)
+			queueNotification(value, forceplay, posx, posy, posz)
 		end
 	end
-	WG['notifications'].queueNotification = function(event, forceplay)
-		queueNotification(event, forceplay)
+	WG['notifications'].queueNotification = function(event, forceplay, posx, posy, posz)
+		queueNotification(event, forceplay, posx, posy, posz)
 	end
 	WG['notifications'].playNotification = function(event)
 		if notification[event] then
@@ -620,7 +656,7 @@ function widget:Initialize()
 	if not WG.NotificationSoundDefsLoaded then -- To prevent reloads and warning spam when changing/refreshing announcers
 		Spring.LoadSoundDef("gamedata/soundsVoice.lua")
 		WG.NotificationSoundDefsLoaded = true
-		Spring.Echo("Notification Sound Items Loaded")
+		--Spring.Echo("Notification Sound Items Loaded")
 	end
 
 
@@ -665,7 +701,8 @@ function widget:GameFrame(gf)
 		for unitID, frame in pairs(idleBuilder) do
 			if Spring.GetUnitTeam(unitID) == myTeamID then
 				if frame < gf and m_currentLevel > m_storage*0.5 and e_currentLevel > e_storage*0.5 then
-					queueNotification('IdleConstructors')
+					local posx, posy, posz = spGetUnitPosition(unitID)
+					queueNotification('IdleConstructors', false, posx, posy, posz)
 					idleBuilder[unitID] = nil    -- do not repeat
 				end
 			else
@@ -716,16 +753,20 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
 
 		if isT2mobile[unitDefID] then
-			queueNotification('UnitReady/Tech2UnitReady')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('UnitReady/Tech2UnitReady', false, posx, posy, posz)
 		elseif isT3mobile[unitDefID] then
-			queueNotification('UnitReady/Tech3UnitReady')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('UnitReady/Tech3UnitReady', false, posx, posy, posz)
 		elseif isT4mobile[unitDefID] then
-			queueNotification('UnitReady/Tech4UnitReady')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('UnitReady/Tech4UnitReady', false, posx, posy, posz)
 		end
 
 		for index,tab in pairs(unitIsReadyTab) do -- Play Unit Is Ready notifs based on the table's content
 			if unitDefID == tab[1] then
-				queueNotification(tab[2])
+				local posx, posy, posz = spGetUnitPosition(unitID)
+				queueNotification(tab[2], false, posx, posy, posz)
 				break
 			end
 		end
@@ -733,11 +774,14 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 
 	if #Spring.GetTeamList(myAllyTeamID) > 1 then
 		if isT2mobile[unitDefID] then
-			queueNotification('Tech2TeamReached')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('Tech2TeamReached', false, posx, posy, posz)
 		elseif isT3mobile[unitDefID] then
-			queueNotification('Tech3TeamReached')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('Tech3TeamReached', false, posx, posy, posz)
 		elseif isT4mobile[unitDefID] then
-			queueNotification('Tech4TeamReached')
+			local posx, posy, posz = spGetUnitPosition(unitID)
+			queueNotification('Tech4TeamReached', false, posx, posy, posz)
 		end
 	end
 end
@@ -756,31 +800,32 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
-	queueNotification('UnitDetected/EnemyDetected')
+	local posx, posy, posz = spGetUnitPosition(unitID)
+	queueNotification('UnitDetected/EnemyDetected', false, posx, posy, posz)
 	if isAircraft[udefID] then
-		queueNotification('UnitDetected/AircraftDetected')
+		queueNotification('UnitDetected/AircraftDetected', false, posx, posy, posz)
 	end
 	if isT2mobile[udefID] then
-		queueNotification('UnitDetected/Tech2UnitDetected')
+		queueNotification('UnitDetected/Tech2UnitDetected', false, posx, posy, posz)
 	end
 	if isT3mobile[udefID] then
-		queueNotification('UnitDetected/Tech3UnitDetected')
+		queueNotification('UnitDetected/Tech3UnitDetected', false, posx, posy, posz)
 	end
 	if isT4mobile[udefID] then
-		queueNotification('UnitDetected/Tech4UnitDetected')
+		queueNotification('UnitDetected/Tech4UnitDetected', false, posx, posy, posz)
 	end
 	if isMine[udefID] then
 		-- ignore when far away
-		local x, _, z = spGetUnitPosition(unitID)
-		if #Spring.GetUnitsInCylinder(x, z, 1700, myTeamID) > 0 then
-			queueNotification('UnitDetected/MinesDetected')
+		local posx, posy, posz = spGetUnitPosition(unitID)
+		if #Spring.GetUnitsInCylinder(posx, posz, 1700, myTeamID) > 0 then
+			queueNotification('UnitDetected/MinesDetected', false, posx, posy, posz)
 		end
 	end
 
 	-- notify about units of interest
 	if udefID and unitsOfInterest[udefID] and not taggedUnitsOfInterest[unitID] then
 		taggedUnitsOfInterest[unitID] = true
-		queueNotification(unitsOfInterest[udefID])
+		queueNotification(unitsOfInterest[udefID], false, posx, posy, posz)
 	end
 end
 
@@ -858,7 +903,8 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 					end
 				end
 				if totalDamage >= commanders[unitID] * 0.2 and spGetUnitHealth(unitID)/commanders[unitID] <= 0.85 then
-					queueNotification('ComHeavyDamage')
+					local posx, posy, posz = spGetUnitPosition(unitID)
+					queueNotification('ComHeavyDamage', false, posx, posy, posz)
 				end
 			end
 		end
@@ -876,7 +922,7 @@ end
 
 local function playNextSound()
 	if #soundQueue > 0 then
-		local event = soundQueue[1]
+		local event = soundQueue[1].event
 		if not muteWhenIdle or not isIdle or notification[event].tutorial then
 			if spoken and #notification[event].voiceFiles > 0 then
 				if Spring.GetGameFrame() < 30 then
@@ -896,9 +942,21 @@ local function playNextSound()
 			end
 			if notification[event].soundEffect then
 				Spring.PlaySoundFile(soundEffectsFolder .. notification[event].soundEffect .. ".wav", globalVolume, 'ui')
+				if soundQueue[1].posx then
+					--Spring.Echo("NotifPosition", soundQueue[1].posx, soundQueue[1].posy, soundQueue[1].posz)
+					Spring.SetLastMessagePosition(soundQueue[1].posx, soundQueue[1].posy, soundQueue[1].posz)
+				end
 			end
 			if displayMessages and WG['messages'] and notification[event].textID and (not notification[event].notext) then
-				WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				if soundQueue[1].posx then
+					--WG['messages'].addMessage("| X: " .. math.ceil(soundQueue[1].posx) .. " | Z: " .. math.ceil(soundQueue[1].posz) .. " | " .. Spring.I18N(notification[event].textID))
+					WG['messages'].addMessage("|🚩| " .. Spring.I18N(notification[event].textID))
+					if mapPings then
+						Spring.MarkerAddPoint(soundQueue[1].posx, Spring.GetGroundHeight(soundQueue[1].posx, soundQueue[1].posz), soundQueue[1].posz, "|🚩| " .. Spring.I18N(notification[event].textID), true)
+					end
+				else
+					WG['messages'].addMessage(Spring.I18N(notification[event].textID))
+				end
 			end
 		end
 
@@ -1034,6 +1092,7 @@ function widget:GetConfigData(data)
 		notificationList = notificationList,
 		globalVolume = globalVolume,
 		spoken = spoken,
+		mapPings = mapPings,
 		displayMessages = displayMessages,
 		LastPlay = LastPlay,
 		tutorialMode = tutorialMode,
@@ -1055,6 +1114,9 @@ function widget:SetConfigData(data)
 	end
 	if data.spoken ~= nil then
 		spoken = data.spoken
+	end
+	if data.mapPings ~= nil then
+		mapPings = data.mapPings
 	end
 	if data.displayMessages ~= nil then
 		displayMessages = data.displayMessages
