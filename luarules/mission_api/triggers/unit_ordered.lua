@@ -44,8 +44,9 @@ return {
 		-- What we get instead is a post-processing, pre-execution event indicating a sent command.
 		-- The gaps are described at length above. In particular, we perfectly miss factory queues.
 		--
-		-- This is fine for normal orders; they are "unlikely to be executed by the recipient unit".
+		-- Missing normal orders is okay; these are "unlikely to be executed by the recipient unit".
 		-- For orders that go to the factory queue specifically, though, we need a separate trigger.
+		-- Factories _do_ execute a limited set of orders, generally setting factory-specific state.
 		UnitCommand = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, cmdID, cmdParams)
 			if not matchesCommand(trigger.parameters.command, cmdID, cmdParams) then
 				return
