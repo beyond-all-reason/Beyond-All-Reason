@@ -39,6 +39,10 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
+		-- The trigger wants an incoming order that is likely to be executed by the recipient unit.
+		--
+		-- What we get instead is a post-processing, pre-execution event indicating a sent command.
+		-- The gaps are described at length above. In particular, we perfectly miss factory queues.
 		UnitCommand = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, cmdID, cmdParams)
 			if not matchesCommand(trigger.parameters.command, cmdID, cmdParams) then
 				return
