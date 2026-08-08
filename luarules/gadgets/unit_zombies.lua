@@ -23,6 +23,7 @@ local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.75 -- Chance a zombie will guard allies
 local REFRESH_ORDERS_CHANCE       = 0.005
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
+local TIMER_NEAR_MAX_THRESHOLD    = 5 * Game.gameSpeed
 local ZOMBIE_REZ_FRAME_PARAM      = "zombie_rez_frame"
 local PUBLIC_RULES_PARAM_ACCESS   = { public = true }
 
@@ -58,28 +59,32 @@ local zombieModeConfigs           = {
 		rezMin = 90,
 		rezMax = 180,
 		countMin = 1,
-		countMax = 1
+		countMax = 1,
+		zombieCorpses = false
 	},
 	hard = {
-		techToRezPowerSpeeds = standardTechToRezPowerSpeeds,
+		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
 		rezMin = 60,
 		rezMax = 180,
 		countMin = 1,
-		countMax = 1
+		countMax = 1,
+		zombieCorpses = false
 	},
 	nightmare = {
 		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
 		rezMin = 60,
 		rezMax = 180,
 		countMin = 2,
-		countMax = 6
+		countMax = 6,
+		zombieCorpses = false
 	},
 	akumu = {
 		techToRezPowerSpeeds = harderTechToRezPowerSpeeds,
 		rezMin = 60,
 		rezMax = 180,
-		countMin = 3,
-		countMax = 9
+		countMin = 2,
+		countMax = 8,
+		zombieCorpses = true
 	}
 }
 
@@ -90,7 +95,6 @@ local ZOMBIE_ORDER_CHECK_INTERVAL = Game.gameSpeed * 3 -- How often (in frames) 
 local ZOMBIE_CHECK_INTERVAL       = Game.gameSpeed     -- How often (in frames) everything else is checked
 local STUCK_CHECK_INTERVAL        = Game.gameSpeed * 12 -- How often (in frames) to check if zombies are stuck
 local REZ_SPEED_UPDATE_INTERVAL   = Game.gameSpeed * 60
-local TECH_LEVEL_ECHO_INTERVAL    = Game.gameSpeed * 10
 
 local STUCK_DISTANCE              = 50                 -- How far (in units) a zombie can move before being considered stuck
 local MAX_NOGO_ZONES              = 10                 -- How many no-go zones a zombie can have before being considered stuck
@@ -218,11 +222,20 @@ local spawnEffects = {
 	"xploelc3",
 }
 
-for unitDefID, unitDef in pairs(unitDefs) do
+	for unitDefID, unitDef in pairs(unitDefs) do
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
-		zombieCorpseDefs[corpseDefID] = { unitDefID = unitDefID }
+		local corpseDefData = { unitDefID = unitDefID }
+		local customRespawnTime = tonumber(unitDef.customParams and unitDef.customParams.zombie_respawn_time)
+		if customRespawnTime then
+			if customRespawnTime < 0 then
+				corpseDefData.neverRespawn = true
+			else
+				corpseDefData.customRespawnTime = customRespawnTime
+			end
+		end
+		zombieCorpseDefs[corpseDefID] = corpseDefData
 
 		local zombieDefData = {}
 		local deathExplosionName = unitDef.deathExplosion
@@ -360,9 +373,15 @@ end
 
 local function rebuildZombieCorpseSpawnDelays()
 	for _, corpseDefData in pairs(zombieCorpseDefs) do
-		local unitDef = unitDefs[corpseDefData.unitDefID]
-		if unitDef then
-			corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
+		if corpseDefData.neverRespawn then
+			corpseDefData.spawnDelayFrames = nil
+		elseif corpseDefData.customRespawnTime then
+			corpseDefData.spawnDelayFrames = floor(corpseDefData.customRespawnTime * Game.gameSpeed)
+		else
+			local unitDef = unitDefs[corpseDefData.unitDefID]
+			if unitDef then
+				corpseDefData.spawnDelayFrames = calculateSpawnDelayFrames(getUnitRezPower(unitDef))
+			end
 		end
 	end
 end
@@ -797,6 +816,15 @@ end
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	local featureData = corpsesData[featureID]
 	if featureData then
+		if not featureData.tamperedFrame then
+			local remainingFrames = featureData.spawnFrame - gameFrame
+			if remainingFrames < featureData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
+				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+				if featureX then
+					spSpawnCEG("scaspawn-trail", featureX, featureY + 15, featureZ, 0, 0, 0)
+				end
+			end
+		end
 		featureData.tamperedFrame = gameFrame
 	end
 	return true
@@ -815,10 +843,6 @@ function gadget:GameFrame(frame)
 
 	if frame % REZ_SPEED_UPDATE_INTERVAL == 0 then
 		updateRezSpeed()
-	end
-
-	if frame % TECH_LEVEL_ECHO_INTERVAL == 0 then
-		Spring.Echo("current tech level: " .. tostring(currentTechLevel))
 	end
 
 	local corpsesToCheck = corpseCheckFrames[frame]
@@ -944,15 +968,26 @@ local function queueCorpseForSpawning(featureID, override)
 	end
 
 	local featureDefID = spGetFeatureDefID(featureID)
-	if zombieCorpseDefs[featureDefID] then
-		local corpseDefData = zombieCorpseDefs[featureDefID]
-		local spawnDelayFrames = corpseDefData.spawnDelayFrames
-		local spawnFrame = gameFrame + spawnDelayFrames
-		corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame }
-		setCorpseRezRulesParam(featureID, spawnFrame)
-		corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
-		corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
+	local corpseDefData = zombieCorpseDefs[featureDefID]
+	if not corpseDefData or corpseDefData.neverRespawn then
+		return
 	end
+
+	local spawnDelayFrames = corpseDefData.spawnDelayFrames
+	if spawnDelayFrames == 0 then
+		local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+		if featureX then
+			local healthReductionRatio = calculateHealthRatio(featureID)
+			spawnZombies(featureID, corpseDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+		end
+		return
+	end
+
+	local spawnFrame = gameFrame + spawnDelayFrames
+	corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame }
+	setCorpseRezRulesParam(featureID, spawnFrame)
+	corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
+	corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
 end
 
 function gadget:FeatureCreated(featureID, allyTeam)
@@ -989,7 +1024,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	if isZombie(unitID) then
+	if isZombie(unitID) and not currentZombieConfig.zombieCorpses then
 		local health = spGetUnitHealth(unitID)
 		if damage >= health then
 			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
