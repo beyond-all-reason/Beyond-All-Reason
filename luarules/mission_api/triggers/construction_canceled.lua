@@ -1,7 +1,12 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+-- This is very difficult to track if we mean anything outside "in-progress unit destroyed".
+-- Builders can die yet construction does not "cancel" - other builders can finish the unit.
+-- Builders can cancel the command, yet may resume it, or keep the command but be in a Wait.
+-- The nanoframe can be captured by enemies; if in a factory, the factory keeps on building.
+
 return {
-	type = 'ConstructionFinished',
+	type = 'ConstructionCanceled',
 	parameters = {
 		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
@@ -11,8 +16,8 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
-		UnitFinished = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
-			if not context.WasUnderConstruction(unitID) then
+		UnitDestroyed = function(trigger, triggerID, context, unitID, unitDefID, unitTeam)
+			if not Spring.GetUnitIsBeingBuilt(unitID) then
 				return
 			end
 
@@ -23,9 +28,7 @@ return {
 			if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 				return
 			end
-			-- We likely must guard against unusual cases like in-progress capture by enemy teams.
-			-- When a factory is captured while building, instead, it calls StopBuild immediately.
-			if parameters.teamID and not parameters.teamID ~= unitTeam then
+			if parameters.teamID and parameters.teamID ~= unitTeam then
 				return
 			end
 			if not context.IsNanoframeOwner(unitID, parameters.builderDefName, parameters.builderName) then
