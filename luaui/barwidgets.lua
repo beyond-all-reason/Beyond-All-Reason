@@ -244,6 +244,7 @@ local callInLists = {
 	'RankingEvent',
 	'MouseCursorEvent',
 	'CameraBroadcastEvent',
+	'FirestateUpdate',
 	'FeatureReclaimStartedETA',
 	'UnitBuildspeedDebuffHealthbars',
 	'UnitBuildspeedDebuffEndHealthbars',
@@ -2989,6 +2990,15 @@ function widgetHandler:CameraBroadcastEvent(playerID, cameraState)
 	tracy.ZoneBeginN("W:CameraBroadcastEvent")
 	for _, w in ipairs(self.CameraBroadcastEventList) do
 		w:CameraBroadcastEvent(playerID, cameraState)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:FirestateUpdate(unitID, state)
+	tracy.ZoneBeginN("W:FirestateUpdate")
+	for _, w in ipairs(self.FirestateUpdateList) do
+		w:FirestateUpdate(unitID, state)
 	end
 	tracy.ZoneEnd()
 	return

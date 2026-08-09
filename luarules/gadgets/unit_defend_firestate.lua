@@ -48,11 +48,11 @@ local metaData = {}
 local gameFrame = 0
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitSeparation = Spring.GetUnitSeparation
+local getUnitUserFirestate
 
 local function addWeaponWatches(weaponDefIDs)
 	for index = 1, #weaponDefIDs do
@@ -133,8 +133,8 @@ local function checkDefendUnitHealth(attackerID, meta)
 	meta[HP_CHECK_FRAME] = gameFrame + HP_CHECK_INTERVAL_FRAMES
 end
 
-local function updateDefendWatchFromRulesParam(unitID)
-	local state = spGetUnitRulesParam(unitID, CustomFirestateDefs.RULES_PARAM)
+local function updateDefendWatchFromFirestate(unitID)
+	local state = getUnitUserFirestate and getUnitUserFirestate(unitID)
 	setDefendWatch(unitID, state == CustomFirestateDefs.DEFEND)
 end
 
@@ -148,7 +148,7 @@ end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_FIRE_STATE then
-		updateDefendWatchFromRulesParam(unitID)
+		updateDefendWatchFromFirestate(unitID)
 	end
 end
 
@@ -157,7 +157,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	updateDefendWatchFromRulesParam(unitID)
+	updateDefendWatchFromFirestate(unitID)
 end
 
 function gadget:UnitCloaked(unitID, unitDefID, unitTeam)
@@ -236,12 +236,12 @@ end
 
 function gadget:Initialize()
 	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs = WeaponThreat.buildDefendData()
-
+	getUnitUserFirestate = GG.getUnitUserFirestate
 	for _, unitID in ipairs(spGetAllUnits()) do
 		local unitDefID = spGetUnitDefID(unitID)
 		local meta = createUnitMeta(unitDefID)
 		metaData[unitID] = meta
-		updateDefendWatchFromRulesParam(unitID)
+		updateDefendWatchFromFirestate(unitID)
 		if spGetUnitIsCloaked(unitID) then
 			meta[CLOAKED] = true
 		end

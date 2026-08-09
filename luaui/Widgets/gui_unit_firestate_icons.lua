@@ -252,11 +252,14 @@ local function userStateToIconState(userState)
 end
 
 local function resolveActualUserFirestate(unitID)
-	if not spValidUnitID(unitID) then return nil end
-	if Spring.GetModOptions().experimental_defend_firestate then
-		return CustomFirestateDefs.getUnitUserFirestate(unitID)
+	if not spValidUnitID(unitID) then
+		return nil
 	end
-	return CustomFirestateDefs.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+	local userFirestate = CustomFirestateDefs.getUnitUserFirestate(unitID)
+	if userFirestate == CustomFirestateDefs.UNKNOWN then
+		return nil
+	end
+	return userFirestate
 end
 
 local function migrateUserSelectedFirestateStore()
@@ -358,7 +361,26 @@ local function refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActual
 	if returnFireVBO.dirty then uploadAllElements(returnFireVBO) end
 end
 
+local function onCachedFirestateChanged(unitID, state)
+	local unitDefID = visibleUnits[unitID]
+	if not unitDefID then
+		return
+	end
+	local teamID = unitToTeam[unitID]
+	if teamID == nil or teamID == gaiaTeamID then
+		return
+	end
+	local commandActualState = state
+	if state == CustomFirestateDefs.UNKNOWN then
+		commandActualState = nil
+	end
+	refreshUnitFirestateIcon(unitID, unitDefID, teamID, commandActualState)
+end
+
 local function applyFireStateOrder(unitID, unitDefID, teamID, userState, userInitiated, wasStagedByApi)
+	if userState == nil or userState == CustomFirestateDefs.UNKNOWN then
+		return
+	end
 	if userInitiated then
 		setUserSelectedFirestate(unitID, userState)
 	elseif userSelectedFirestate[unitID] == nil then
@@ -371,7 +393,11 @@ local function applyFireStateOrder(unitID, unitDefID, teamID, userState, userIni
 		visibleUnits[unitID] = unitDefID
 		unitToTeam[unitID] = teamID
 	end
-	refreshUnitFirestateIcon(unitID, unitDefID, teamID, userState)
+	local actualState = userState
+	if Spring.GetModOptions().experimental_defend_firestate then
+		actualState = resolveActualUserFirestate(unitID) or userState
+	end
+	refreshUnitFirestateIcon(unitID, unitDefID, teamID, actualState)
 end
 
 --------------------------------------------------------------------------------
@@ -386,7 +412,6 @@ function widget:Initialize()
 
 	migrateUserSelectedFirestateStore()
 
-	-- Build team → allyteam mapping
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		local teams = Spring.GetTeamList(allyTeamID)
 		allyTeamTeamCount[allyTeamID] = #teams
@@ -396,8 +421,18 @@ function widget:Initialize()
 		end
 	end
 
+	if WG['firestate'] and WG['firestate'].addFirestateChangedListener then
+		WG['firestate'].addFirestateChangedListener(onCachedFirestateChanged)
+	end
+
 	if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
 		widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+	end
+end
+
+function widget:Shutdown()
+	if WG['firestate'] and WG['firestate'].removeFirestateChangedListener then
+		WG['firestate'].removeFirestateChangedListener(onCachedFirestateChanged)
 	end
 end
 
