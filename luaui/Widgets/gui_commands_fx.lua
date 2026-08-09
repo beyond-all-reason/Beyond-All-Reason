@@ -415,11 +415,12 @@ local function getQueueFingerprint(unitID)
 	-- GetUnitCurrentCommand returns values directly — zero table allocation
 	local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
 	if not cmdID then return nil, cmdCount end
-	-- Numeric fingerprint: cmdCount + cmdID + quantized position
+	-- Numeric fingerprint: fast cache lookup by command count, ID, and coarse position.
+	-- Cache hits also verify the complete target below before sharing a queue.
 	local qp1 = mathFloor((p1 or 0) * 0.0625) % 1024
 	local qp3 = mathFloor((p3 or 0) * 0.0625) % 1024
 	local fid = cmdID < 0 and (50000 - cmdID) or cmdID
-	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount
+	return cmdCount * 4294967296 + fid * 1048576 + qp1 * 1024 + qp3, cmdCount, p1, p2, p3
 end
 
 local function releaseQueue(command)
@@ -771,10 +772,11 @@ function widget:Update(dt)
 				unitCommand[cmd.unitID] = i
 
 				-- Try to share queue with another unit that has identical commands
-				local fingerprint, cmdCount = getQueueFingerprint(cmd.unitID)
+				local fingerprint, cmdCount, p1, p2, p3 = getQueueFingerprint(cmd.unitID)
 				local cached = fingerprint and queueShareCache[fingerprint]
 				local our_q, qsize
-				if cached and cached.generation == qGen and cached.queue then
+				if cached and cached.generation == qGen and cached.queue
+					and cached.targetP1 == p1 and cached.targetP2 == p2 and cached.targetP3 == p3 then
 					-- Reuse existing parsed queue (zero allocation)
 					cached.refCount = cached.refCount + 1
 					our_q = cached.queue
@@ -799,6 +801,9 @@ function widget:Update(dt)
 						entry.refCount = 1
 						entry.generation = qGen
 						entry.fingerprint = fingerprint
+						entry.targetP1 = p1
+						entry.targetP2 = p2
+						entry.targetP3 = p3
 						queueShareCache[fingerprint] = entry
 						commands[i].sharedQueue = entry
 					else
