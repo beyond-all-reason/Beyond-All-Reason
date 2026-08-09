@@ -432,9 +432,7 @@ local function HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 end
 
 local function ForwardAnalyticsEvent(eventType, eventData)
-	if Script.LuaUI and Script.LuaUI.DGunGriefingDetection then
-		Script.LuaUI.DGunGriefingDetection(eventType, eventData)
-	end
+	Script.LuaUI.DGunGriefingDetection(eventType, eventData)
 end
 
 local function GetGameID()
@@ -450,24 +448,29 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 		return -- not one of our allies that was damaged
 	end
 
-	if attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeamID then
-		local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-		if unitX then
-			local cache = recentlyDamagedAlliedUnits[unitID]
-			if cache then
-				cache.x = unitX
-				cache.y = unitY
-				cache.z = unitZ
-				cache.expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW
-			else
-				recentlyDamagedAlliedUnits[unitID] = {
-					x = unitX,
-					y = unitY,
-					z = unitZ,
-					expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW,
-				}
-			end
-		end
+	if not (attackerTeam and attackerTeam ~= gaiaTeamID and GetAllyTeamID(attackerTeam) ~= myAllyTeamID) then
+		return
+	end
+
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		return
+	end
+
+	local expiresFrame = spGetGameFrame() + ALLY_DAMAGE_WINDOW
+	local cache = recentlyDamagedAlliedUnits[unitID]
+	if cache then
+		cache.x = unitX
+		cache.y = unitY
+		cache.z = unitZ
+		cache.expiresFrame = expiresFrame
+	else
+		recentlyDamagedAlliedUnits[unitID] = {
+			x = unitX,
+			y = unitY,
+			z = unitZ,
+			expiresFrame = expiresFrame,
+		}
 	end
 end
 
@@ -545,9 +548,7 @@ function gadget:GameFrame(currentFrame)
 		PruneExpiredContacts(currentFrame)
 	end
 
-	while nextContactPruneFrame <= currentFrame do
-		nextContactPruneFrame = nextContactPruneFrame + CACHE_PRUNE_INTERVAL
-	end
+	nextContactPruneFrame = nextContactPruneFrame + CACHE_PRUNE_INTERVAL
 end
 
 function gadget:PlayerChanged(playerID)
@@ -556,15 +557,8 @@ end
 
 -- Observe DGun commands and write analytics
 function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if teamID ~= myTeamID then
-		return -- not one of our commands
-	end
-	if cmdID ~= CMD_DGUN then
-		return
-	end
-
-	if not isCommander[unitDefID] then
-		return -- decoy dguns are not relevant
+	if not (cmdID == CMD_DGUN and teamID == myTeamID and isCommander[unitDefID]) then
+		return -- only care about DGUN commands issued by this player fired from non-decoy comms
 	end
 
 	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
@@ -587,8 +581,6 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	local enemiesNearby, explanation = HasKnownEnemyNearby(teamID, targetX, targetY, targetZ)
 
 	local risksAllies, allyThreatInfo = HandleDGunAllyRisk(teamID, startX, startY, startZ, endX, endY, endZ)
-
-	Spring.Echo(risksAllies, allyThreatInfo)
 
 	-- If no allies threatened, then it's a nominal dgun
 	if not risksAllies and not allyThreatInfo then
@@ -625,8 +617,6 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		})
 		return
 	end
-
-	Spring.Echo("we should have stopped already", risksAllies, allyThreatInfo)
 
 	-- Otherwise it's classified as griefing
 	ForwardAnalyticsEvent("dgun_grief_positive", {
