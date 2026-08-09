@@ -2976,9 +2976,9 @@ function init()
 		  end,
 	  	},
 
-		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticleLights", 1) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
+		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
 		  onchange = function(i, value)
-			Spring.SetConfigInt("NanoParticleLights", value and 1 or 0)
+			Spring.SetConfigInt("NanoParticlesUpdateLuaUI", value and 1 or 0)
 		  end,
 		},
 
