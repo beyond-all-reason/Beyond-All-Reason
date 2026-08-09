@@ -50,6 +50,7 @@ local VFS_RAW_FIRST = VFS.RAW_FIRST
 local spSetEngineBuildSquareRendering = Spring.SetEngineBuildSquareRendering or function() end
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
 local spGetGroundNormal = Spring.GetGroundNormal
 local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
@@ -147,6 +148,7 @@ local shaderProgram = nil
 local isMiniMapLoc = nil
 local rotationMiniMapLoc = nil
 local heightOffsetLoc = nil
+local waterLevelLoc = nil
 local quadVBO = nil
 local batchInstanceVBO = nil
 local batchVAO = nil
@@ -654,6 +656,7 @@ local function getPreviewRenderCache(unitDefID, x, z, facing, sequenceIndex)
 	end
 
 	cache.unitDefID = unitDefID
+	cache.floatOnWater = UnitDefs[unitDefID].floatOnWater and 1 or 0
 	cache.x = x
 	cache.z = z
 	cache.facing = facing
@@ -686,6 +689,7 @@ layout (location = 0) in vec2 a_cornerPos;
 layout (location = 1) in vec4 a_cellData;
 layout (location = 2) in vec4 a_color;
 layout (location = 3) in vec4 a_outlineColor;
+layout (location = 4) in float a_floatOnWater;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -699,6 +703,7 @@ out vec2 v_cellUV;
 
 uniform sampler2D heightmapTex;
 uniform float heightOffset;
+uniform float waterLevel;
 uniform float cellInset;
 uniform float cellSize;
 uniform float minimumScreenDiameter;
@@ -732,7 +737,8 @@ void main() {
 	v_cellUV = cellUV;
 	if (isMiniMap == 0) {
 		vec2 uvhm = heightmapUVatWorldPos(vec2(wx, wz));
-		float wy = textureLod(heightmapTex, uvhm, 0.0).x + heightOffset;
+		float wy = textureLod(heightmapTex, uvhm, 0.0).x;
+		wy = mix(wy, max(wy, waterLevel), a_floatOnWater) + heightOffset;
 		vec4 clipPosition = cameraViewProj * vec4(wx, wy, wz, 1.0);
 		if (simplified > 0.5) {
 			vec2 centerWorldPos = a_cellData.xy + quadSize * 0.5;
@@ -850,6 +856,7 @@ local function initGL4Resources()
 		},
 		uniformFloat = {
 			heightOffset = HEIGHT_OFFSET,
+			waterLevel = 0,
 			cellInset = CELL_DISTANCE * 0.5,
 			cellSize = SQUARE_SIZE,
 			minimumScreenDiameter = MINIMUM_SCREEN_DIAMETER,
@@ -872,6 +879,7 @@ local function initGL4Resources()
 	isMiniMapLoc = glGetUniformLocation(shaderID, "isMiniMap")
 	rotationMiniMapLoc = glGetUniformLocation(shaderID, "rotationMiniMap")
 	heightOffsetLoc = glGetUniformLocation(shaderID, "heightOffset")
+	waterLevelLoc = glGetUniformLocation(shaderID, "waterLevel")
 
 	local quadVerts = {
 		0.0, 0.0,
@@ -891,6 +899,7 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color",    size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	batchVAO = glGetVAO()
@@ -902,6 +911,7 @@ local function initGL4Resources()
 		{ id = 1, name = "a_cellData", size = 4 },
 		{ id = 2, name = "a_color",    size = 4 },
 		{ id = 3, name = "a_outlineColor", size = 4 },
+		{ id = 4, name = "a_floatOnWater", size = 1 },
 	})
 
 	minimapVAO = glGetVAO()
@@ -1480,6 +1490,8 @@ local function rebuildBatchBuffer()
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[3]
 			minimapDataIndex = minimapDataIndex + 1
 			minimapInstanceData[minimapDataIndex] = minimapOutlineColor[4]
+			minimapDataIndex = minimapDataIndex + 1
+			minimapInstanceData[minimapDataIndex] = renderCache.floatOnWater
 			minimapCount = minimapCount + 1
 		end
 
@@ -1510,6 +1522,8 @@ local function rebuildBatchBuffer()
 				batchInstanceData[dataIndex] = colorData[7]
 				dataIndex = dataIndex + 1
 				batchInstanceData[dataIndex] = colorData[8]
+				dataIndex = dataIndex + 1
+				batchInstanceData[dataIndex] = renderCache.floatOnWater
 			else
 				local cellScale = renderCache.batchCellScale or 1
 				local geometryData = getCellGeometry(
@@ -1548,6 +1562,8 @@ local function rebuildBatchBuffer()
 					batchInstanceData[dataIndex] = colorData[colorIndex + 7]
 					dataIndex = dataIndex + 1
 					batchInstanceData[dataIndex] = colorData[colorIndex + 8]
+					dataIndex = dataIndex + 1
+					batchInstanceData[dataIndex] = renderCache.floatOnWater
 				end
 			end
 			instanceCount = instanceCount + renderCache.batchNumCells
@@ -1607,6 +1623,7 @@ function widget:DrawWorldPreUnit()
 	glBlending(true)
 	glUseShader(shaderProgram)
 	glUniform(heightOffsetLoc, getCurrentHeightOffset())
+	glUniform(waterLevelLoc, spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
 	glUniformInt(isMiniMapLoc, 0)
 	batchVAO:DrawArrays(GL_TRIANGLE_STRIP, 4, 0, batchInstanceCount)
 	glUseShader(0)
