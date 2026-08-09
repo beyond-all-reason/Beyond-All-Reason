@@ -265,11 +265,6 @@ local FEEDBACK_EMIT_MIN_GAP = 60   -- ~2s at 30 sim Hz
 --     of every frame. Particle speed is small vs typical unit movement over
 --     1-2 frames so this is visually identical.
 local LOS_CACHE_FRAMES           = 7
--- When an enemy builder is detected by radar/sonar but not visually visible
--- (e.g. a submarine), show only this fraction of its particles. Gives a
--- subtle hint that something is happening there without revealing full detail.
--- Set to 0 to suppress entirely when only detected, 1.0 to show in full.
-local ENEMY_RADAR_EMIT_SCALE     = 0.20
 local HOMING_RUN_EVERY           = 4
 -- Repair-completion poll cadence (sim frames). At 2Hz, HP/buildProgress polls
 -- are visually indistinguishable from per-pass and cut Spring->C calls by ~80%
@@ -1811,14 +1806,10 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	-- gate entirely (full view, ally builder, or LOS filter disabled).
 	local needLosCheck = LOS_FILTER and (not cachedSpecFullView) and (info.allyTeam ~= cachedAllyTeamID)
 
-	-- Three-tier enemy-builder visibility filter, evaluated once per emitNano
-	-- call and cached for LOS_CACHE_FRAMES frames:
-	--   tier 2 (INLOS bit set): fully seen -- full emission rate.
-	--   tier 1 (INRADAR bit set, not visually seen): radar/sonar contact only
-	--     (e.g. detected submarine) -- ENEMY_RADAR_EMIT_SCALE fraction of
-	--     particles as a faint hint, except for underwater work which must not
-	--     reveal a sonar-only unit's activity.
-	--   tier 0 (not detected at all): no particles.
+	-- Enemy-builder visibility filter, evaluated once per emitNano call and
+	-- cached for LOS_CACHE_FRAMES frames. Radar, sonar, and AirLOS-only
+	-- contacts do not emit; regular LOS is checked again at the particle origin
+	-- below because inverse particles originate at their target.
 	local builderVisTier = 2  -- default: fully visible (only matters when needLosCheck)
 	if needLosCheck then
 		local visFrame = info.visCheckFrame
@@ -1826,21 +1817,17 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			builderVisTier = info.builderVisTier
 		else
 			local losBits = Spring.GetUnitLosState(builderID, cachedAllyTeamID, true) or 0
-			-- INLOS bit = 1; INRADAR bit = 2. The latter also covers sonar
-			-- contacts, which must not grant normal visual-LOS particle access.
+			-- INLOS bit = 1; INRADAR bit = 2. Neither radar nor sonar contacts
+			-- may grant particle access.
 			if losBits % 2 == 1 then
 				builderVisTier = 2
 			else
-				builderVisTier = (losBits % 4 >= 2) and 1 or 0
+				builderVisTier = 0
 			end
 			info.visCheckFrame  = frame
 			info.builderVisTier = builderVisTier
 		end
 		if builderVisTier == 0 then return end
-		-- A sonar/radar contact must not disclose underwater nano activity.
-		-- Check both endpoints: reclaim particles originate at the target while
-		-- normal particles originate at the builder.
-		if builderVisTier == 1 and (sy < 0 or endY < 0) then return end
 	end
 
 	-- Stagger denominator: divide the symmetric spread window
@@ -1859,9 +1846,6 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	for i = 1, count do
 		repeat
 			if fadeBandKeep and mathRandom() > fadeBandKeep then break end
-			-- Radar/sonar-only builder: stochastically drop most particles so
-			-- only a faint ghost-spray hints at the undetected unit's activity.
-			if builderVisTier == 1 and mathRandom() > ENEMY_RADAR_EMIT_SCALE then break end
 
 			local jx = jitterTable[jitterCursor]
 			local jy = jitterTable[jitterCursor + 1]
@@ -1930,12 +1914,10 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				end
 			end
 
-			-- LOS filter: enemy emissions hidden when not in our LOS / not full
-			-- view. Throttled per builder -- LOS at the builder location changes
-			-- slowly relative to emit rate. Skipped for tier-1 (radar/sonar
-			-- contact) builders: underwater contact-only streams were already
-			-- rejected above, while surface streams retain the intended ghost hint.
-			if needLosCheck and builderVisTier == 2 then
+			-- LOS filter: enemy emissions hidden when not in regular LOS / not
+			-- full view. Throttled per builder -- LOS at the builder location
+			-- changes slowly relative to emit rate.
+			if needLosCheck then
 				local losFrame = info.losFrame
 				local visible
 				if losFrame and (frame - losFrame) < LOS_CACHE_FRAMES then
