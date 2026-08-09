@@ -1,6 +1,3 @@
--- Firestate visibility/control bridge is always required (ally/godmode filtering).
--- Defend combat stance behavior stays behind experimental_defend_firestate.
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -158,6 +155,7 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spIsGodModeEnabled = Spring.IsGodModeEnabled
 local spAreTeamsAllied = Spring.AreTeamsAllied
+local osClock = os.clock
 
 local allFirestates = {}
 local lastSentToUi = {}
@@ -165,6 +163,8 @@ local myTeamID = spGetMyTeamID()
 local isSpectating = select(1, spGetSpectatingState())
 local isGodMode = spIsGodModeEnabled()
 local luaUiReady = false
+local ACCESS_CHECK_INTERVAL = 1
+local nextAccessCheckTime = 0
 
 local function refreshAccessState()
 	myTeamID = spGetMyTeamID()
@@ -229,11 +229,16 @@ function gadget:PlayerChanged(playerID)
 end
 
 function gadget:Update()
-	local previousGodMode = isGodMode
-	local previousSpectating = isSpectating
-	refreshAccessState()
-	if isGodMode ~= previousGodMode or isSpectating ~= previousSpectating then
-		publishAll()
+	local now = osClock()
+	if now >= nextAccessCheckTime then
+		nextAccessCheckTime = now + ACCESS_CHECK_INTERVAL
+		local previousGodMode = isGodMode
+		local previousSpectating = isSpectating
+		local previousMyTeamID = myTeamID
+		refreshAccessState()
+		if isGodMode ~= previousGodMode or isSpectating ~= previousSpectating or myTeamID ~= previousMyTeamID then
+			publishAll()
+		end
 	end
 	local isReady = Script.LuaUI('FirestateUpdate') and true or false
 	if isReady and not luaUiReady then
