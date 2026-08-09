@@ -316,7 +316,7 @@ local function GetInterpNodes(mUnits)
     local sPos = fNodes[1]
     local sX = sPos[1]
     local sZ = sPos[3]
-    local sY=spGetGroundHeight(sX, sZ)
+    local sY = max(spGetGroundHeight(sX, sZ), 0)
     local sDist = 0
 
     local eIdx = 2
@@ -347,14 +347,14 @@ local function GetInterpNodes(mUnits)
         local nFrac = (reqDist - sDist) / (eDist - sDist)
         local nX = sX * (1 - nFrac) + eX * nFrac
         local nZ = sZ * (1 - nFrac) + eZ * nFrac
-        local nY = spGetGroundHeight(nX, nZ)
+        local nY = max(spGetGroundHeight(nX, nZ), 0)
         interpNodes[n + 1] = {nX, nY, nZ}
     end
 
     ePos = fNodes[#fNodes]
     eX = ePos[1]
     eZ = ePos[3]
-    eY = spGetGroundHeight(eX, eZ)
+    eY = max(spGetGroundHeight(eX, eZ), 0)
     interpNodes[number] = {eX, eY, eZ}
 
     return interpNodes
