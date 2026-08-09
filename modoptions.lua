@@ -1520,9 +1520,10 @@ local options = {
         hidden  = false,
         items 	= {
             { key = "disabled", name = "Disabled", desc = "Disabled"},
-            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
-            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
-            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+            { key = "normal", name = "Normal", desc = "Normal revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Faster revival rate, stronger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Faster revival rate, stronger Zombies, 2-5 spawn per corpse." },
+            { key = "akumu", name = "Akumu", desc = "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses." },
         }
     },
 
