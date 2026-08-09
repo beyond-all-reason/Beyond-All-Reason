@@ -845,10 +845,10 @@ local function techsplitTweaks(name, uDef)
         uDef.yardmap = "ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee"
         uDef.objectname = "Units/ARMSHLTXBIG.s3o"
         uDef.script = "Units/techsplit/ARMSHLTXBIG.cob"
-        uDef.featuredefs.armshlt_dead.object = "Units/armshltxbig_dead.s3o"
-        uDef.featuredefs.armshlt_dead.footprintx = 11
-        uDef.featuredefs.armshlt_dead.footprintz = 11
-        uDef.featuredefs.armshlt_dead.collisionvolumescales = "155 95 180"
+        uDef.featuredefs.dead.object = "Units/armshltxbig_dead.s3o"
+        uDef.featuredefs.dead.footprintx = 11
+        uDef.featuredefs.dead.footprintz = 11
+        uDef.featuredefs.dead.collisionvolumescales = "155 95 180"
         uDef.customparams.buildinggrounddecalsizex = 18
         uDef.customparams.buildinggrounddecalsizez = 18
     end 

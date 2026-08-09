@@ -39,7 +39,7 @@ end
 local scriptUnitDestroyed		= Script.LuaUI.UnitDestroyed
 local scriptUnitDestroyedByTeam	= Script.LuaUI.UnitDestroyedByTeam
 
-function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDefID, attTeamID)
+function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDefID, attTeamID, weaponDefID)
 	local isAllyUnit = spAreTeamsAllied(unitTeam, myTeamID)
 	--Spring.Echo("Gadget:UnitDest", unitID, Script.LuaUI('UnitDestroyedByTeam') , "isAllyUnit", isAllyUnit, "spec", spec, "specFullView", specFullView)
 	-- we need to check if any widget uses the callin, otherwise it is not bound and will produce error spam
@@ -47,20 +47,20 @@ function gadget:UnitDestroyed (unitID, unitDefID, unitTeam, attUnitID, attUnitDe
 		if spec then
 			scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attTeamID)
 			if not specFullView and not isAllyUnit and (spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 1) then
-				scriptUnitDestroyed (unitID, unitDefID, unitTeam)
+				scriptUnitDestroyed (unitID, unitDefID, unitTeam, nil, nil, nil, weaponDefID)
 			end
 		else
 			local attackerInLos = attUnitID and (spGetUnitLosState(attUnitID, myAllyTeamID, true) % 2 == 1)
 			if isAllyUnit then
 				scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
 			elseif spGetUnitLosState(unitID, myAllyTeamID, true) % 2 == 1 then
-					scriptUnitDestroyed (unitID, unitDefID, unitTeam)
+					scriptUnitDestroyed (unitID, unitDefID, unitTeam, nil, nil, nil, weaponDefID)
 					scriptUnitDestroyedByTeam (unitID, unitDefID, unitTeam, attackerInLos and attTeamID or nil)
 			end
 		end
 	else
 		if not isAllyUnit and (not (spec and specFullView) and (spGetUnitLosState(unitID, spGetMyAllyTeamID(), true) % 2 == 1)) then
-			scriptUnitDestroyed (unitID, unitDefID, unitTeam)
+			scriptUnitDestroyed (unitID, unitDefID, unitTeam, nil, nil, nil, weaponDefID)
 		end
 	end
 end

@@ -473,7 +473,7 @@ local GL_LEQUAL             = GL.LEQUAL
 local GL_LINE_LOOP          = GL.LINE_LOOP
 local GL_NOTEQUAL           = GL.NOTEQUAL
 
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local GL_KEEP               = GL.KEEP
 local GL_REPLACE            = GL.REPLACE --GL.KEEP
 
 local spGetUnitDefID        = Spring.GetUnitDefID
@@ -685,7 +685,11 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		-- we need to check if the unit has on/off weapon states, and only add the one active
 		local weaponOnOff
 		-- on off can be set on a building, we need to check that
-		if unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
+		if weaponType == 2 then
+			-- nano/build range: never gated by on/off — a builder's build power is
+			-- not affected by its on/off state (e.g. the Legion Fortifier turret is
+			-- onoffable, but that only toggles its paired extractor)
+		elseif unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
 			weaponOnOff = unitsOnOff[unitID] or 1
 			drawIt = (weaponOnOff == 1)
 		elseif unitOnOffable[unitDefID] and unitOnOffName[unitDefID] then -- this is a unit or building with 2 weapons

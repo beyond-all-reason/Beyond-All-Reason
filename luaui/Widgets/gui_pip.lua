@@ -133,6 +133,7 @@ config = {
 	centerSmoothness = 15,
 	trackingSmoothness = 8,
 	playerTrackingSmoothness = 4.5,
+	playerTrackingZoomStopThreshold = 0.00005,  -- Preserve the ease-out tail at overview-scale zooms
 	switchSmoothness = 30,
 	zoomMin = 0.04,
 	zoomMax = 2,
@@ -150,7 +151,7 @@ config = {
 	iconGhostSkipThreshold = 6000,  -- Skip ghost building pass above this count
 	iconMobileBlockThreshold = 5000,  -- Cache mobile VBO data above this count (rebuild every 2nd frame)
 	explosionOverlay = true,  -- Re-render explosions on top of unit icons (additive glow)
-	explosionOverlayAlpha = 0.66,  -- Strength of the above-icons explosion overlay (0-1)
+	explosionOverlayAlpha = 0.85,  -- Strength of the above-icons explosion overlay (0-1)
 	healthDarkenMax = 0.2,  -- Maximum darkening for damaged units on GL4 icons (0-1, 0.18 = 18%)
 	activityFocusIgnoreSpectators = true,  -- Don't trigger camera focus for spectator map markers
 	activityFocusHideForSpectators = true,  -- Hide the activity focus button when spectating (default: disabled for spectators)
@@ -195,6 +196,7 @@ config = {
 	drawNanoStreams = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1,  -- Show lightweight animated streams for active builder tasks
 	nanoStreamReflectUsage = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1,  -- Scale stream width/opacity by current build-power usage
 	nanoStreamDrawLimit = 512,  -- Hard cap for the single instanced nano-stream draw
+	nanoStreamMinZoom = 0.18,  -- Hide nanostreams when zoomed out below this level
 	commandFXIgnoreNewUnits = true,  -- Ignore commands given to newly finished units (rally point orders)
 	commandFXOpacity = 0.2,  -- Initial opacity of command FX lines
 	commandFXDuration = 0.66,  -- Seconds for command FX lines to fully fade out
@@ -229,7 +231,7 @@ config = {
 	drawProjectiles = true,
 	zoomToCursor = true,
 	altKeyRequiredForZoom = Spring.GetConfigInt("PipAltKeyRequiredForZoom", 1) == 1,  -- When true, scrolling over the PIP only zooms if ALT is held (otherwise passes through to the game)
-	mapEdgeMargin = 0,
+	mapEdgeMargin = 0.035,  -- Maximum fraction of the visible span allowed past each map edge
 	showButtonsOnHoverOnly = true,
 	switchInheritsTracking = false,
 	switchTransitionTime = 0.15,
@@ -287,7 +289,7 @@ config = {
 	engineMinimapFallback = true,  -- Use engine minimap when fully zoomed out (performance fallback)
 	engineMinimapFallbackThreshold = 4000,  -- Unit count threshold before engine minimap fallback activates
 	engineMinimapExplosionOverlay = true,  -- Draw explosion overlay on top of engine minimap
-	engineMinimapDecalStrength = 0.8,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
+	engineMinimapDecalStrength = 0.77,  -- Decal overlay strength on engine minimap (0-1, lower = subtler scorch marks) decals do overlap with the engine minimap (unit icons), so this can be used to reduce their prominence if desired
 }
 
 -- State variables
@@ -1958,6 +1960,7 @@ local cache = {
 	projectileSizes = {},
 	explosions = {},
 	laserBeams = {},
+	laserBeamIndices = {},
 	iconShatters = {},
 	seismicPings = {},
 	-- Transport-related properties
@@ -4697,6 +4700,12 @@ local function ClampCameraAxis(pos, visibleSize, mapSize, marginFraction)
 	return math.min(math.max(pos, minPos), maxPos)
 end
 
+local function CalculatePipModeMinZoom(width, height)
+	local marginFraction = math.min(math.max(config.mapEdgeMargin or 0, 0), 0.49)
+	local fitZoom = math.min(width, height) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+	return fitZoom * (1 - 2 * marginFraction)
+end
+
 function RecalculateWorldCoordinates()
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
@@ -5645,18 +5654,24 @@ local function DrawProjectile(pID, pDefID)
 					local colorData = cache.weaponColor[pDefID]
 					local thickness = cache.weaponThickness[pDefID]
 
-					-- Store laser beam for rendering (with short lifetime)
-					table.insert(cache.laserBeams, {
-						ox = ox,
-						oz = oz,
-						tx = tx,
-						tz = tz,
-						r = colorData[1],
-						g = colorData[2],
-						b = colorData[3],
-						thickness = thickness,
-						startTime = gameTime
-					})
+					-- Refresh one cache entry per projectile so paused beams cannot accumulate duplicates.
+					local beamIndex = cache.laserBeamIndices[pID]
+					local beam = beamIndex and cache.laserBeams[beamIndex]
+					if not beam then
+						beam = { projectileID = pID }
+						beamIndex = #cache.laserBeams + 1
+						cache.laserBeams[beamIndex] = beam
+						cache.laserBeamIndices[pID] = beamIndex
+					end
+					beam.ox = ox
+					beam.oz = oz
+					beam.tx = tx
+					beam.tz = tz
+					beam.r = colorData[1]
+					beam.g = colorData[2]
+					beam.b = colorData[3]
+					beam.thickness = thickness
+					beam.startTime = gameTime
 
 					return -- Don't draw as a projectile
 				end
@@ -6298,8 +6313,13 @@ local function DrawLaserBeams()
 
 		-- Remove beams older than 0.15 seconds (swap-to-end compaction)
 		if age > 0.15 then
-			cache.laserBeams[i] = cache.laserBeams[n]
+			local lastBeam = cache.laserBeams[n]
+			cache.laserBeamIndices[beam.projectileID] = nil
+			cache.laserBeams[i] = lastBeam
 			cache.laserBeams[n] = nil
+			if i < n then
+				cache.laserBeamIndices[lastBeam.projectileID] = i
+			end
 			n = n - 1
 		-- LOS view filter: skip beams whose origin is outside the viewed allyteam's LOS
 		elseif beamLosAlly and not spFunc.IsPosInLos(beam.ox, 0, beam.oz, beamLosAlly) then
@@ -7074,7 +7094,7 @@ local function DrawExplosionOverlay()
 				local effectiveRadius = explosion.radius
 				if effectiveRadius > 80 then effectiveRadius = effectiveRadius * 0.75 end
 				if explosion.isUnitExplosion then effectiveRadius = effectiveRadius * 1.33 end
-				local baseRadius = effectiveRadius * (0.24 + progress * 1.36)
+				local baseRadius = effectiveRadius * (0.27 + progress * 1.8)
 				local fade = 1 - (age / lifetime)
 
 				-- Saturated colored glow (additive blend adds these to the scene)
@@ -7093,17 +7113,18 @@ local function DrawExplosionOverlay()
 					g = 0.4 + hueShift  -- 0.32-0.48: orange range
 					b = 0.05            -- Very little blue keeps it saturated
 				end
-				GL4AddCircle(explosion.x, explosion.z, baseRadius * 0.85, overlayAlpha,
-					r, g, b,  r * 0.3, g * 0.2, b * 0.1,  0, 0)
+				GL4AddCircle(explosion.x, explosion.z, baseRadius, overlayAlpha,
+					r, g, b,  r * 0.55, g * 0.4, b * 0.2,  overlayAlpha * 0.5, 0)
 
 				-- Big flash overlay: white glow above icons for nukes/commanders/fusions
 				-- Flash runs at 1.7x speed matching Layer 5 timing
 				if explosion.isBigFlash and age / lifetime < 0.75 then
 					local ft = (age / lifetime) / 0.75  -- compress into 75% of explosion lifetime
 					local fa = math.min(1, (1-ft)*(1-ft)*(1-ft) * 1.2 + (1-ft) * 0.12)
-					local flashR = effectiveRadius * (1.4 + ft * 1.2)
-					GL4AddCircle(explosion.x, explosion.z, flashR * 0.7, fa * config.explosionOverlayAlpha * 0.6,
-						1, 1, 1,  0.95, 0.93, 0.88,  0, 0)
+					local flashR = effectiveRadius * (1.8 + ft * 1.5)
+					local flashAlpha = fa * config.explosionOverlayAlpha * 0.6
+					GL4AddCircle(explosion.x, explosion.z, flashR, flashAlpha,
+						1, 1, 1,  0.95, 0.93, 0.88,  flashAlpha * 0.2, 0)
 				end
 			end
 			end -- LOS view filter else
@@ -9255,7 +9276,7 @@ function widget:ViewResize()
 			rawW = render.dim.r - render.dim.l
 			rawH = render.dim.t - render.dim.b
 		end
-		pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+		pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 		if cameraState.zoom < pipModeMinZoom then
 			cameraState.zoom = pipModeMinZoom
 			cameraState.targetZoom = pipModeMinZoom
@@ -13035,6 +13056,7 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		-- Cap icon size for nametag/health bar positioning to match the capped shader icons
 		local cappedIconRadius = math.min(iconRadiusZoomDistMult,
 			Spring.GetConfigFloat("MinimapIconScale", 3.5) * (mapInfo.mapSizeX * mapInfo.mapSizeZ / 40000) ^ 0.25 * math.sqrt(0.95) * resScale)
+		local radarWobbleAmp = cappedIconRadius * math.sqrt(math.abs(wtp.scaleX)) * 0.03
 		-- When unitpics are shown, icons are rendered larger (unitpicSizeMult + borders).
 		-- Precompute the per-icon multiplier and total border size to position nametags correctly.
 		local unitpicsActive = gl4Icons.unitpicsActive and config.showUnitpics and cameraState.targetZoom >= config.unitpicZoomThreshold
@@ -13099,9 +13121,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 					-- Radar wobble must be applied BEFORE rotation to match shader order
 					if inRadar then
 						local phase = (uID * 0.37) % 6.2832
-						local wobbleAmp = cappedIconRadius * 0.3
-						cx = cx + math.sin(gameTime * 3.0 + phase) * wobbleAmp
-						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * wobbleAmp
+						cx = cx + math.sin(gameTime * 3.0 + phase) * radarWobbleAmp
+						cy = cy + math.cos(gameTime * 2.7 + phase * 1.3) * radarWobbleAmp
 					end
 					if isRotated then
 						local dx, dy = cx - rotCX, cy - rotCY
@@ -15114,7 +15135,7 @@ end
 
 function gl4Prim.DrawNanoStreams()
 	local nano = gl4Prim.nanoStreams
-	if not config.drawNanoStreams or not nano.enabled then return end
+	if not config.drawNanoStreams or not nano.enabled or cameraState.zoom < config.nanoStreamMinZoom then return end
 	tracy.ZoneBeginN("W:PIP:NanoStreams")
 	gl4Prim.UpdateNanoStreams()
 	if nano.count == 0 then
@@ -18884,7 +18905,7 @@ function widget:Update(dt)
 			local pipWidth, pipHeight = GetEffectivePipDimensions()
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
-			local newMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			local newMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 			pipModeMinZoom = newMinZoom
 			-- Clamp zoom to new min if needed
 			if cameraState.zoom < pipModeMinZoom then
@@ -19264,7 +19285,7 @@ function widget:Update(dt)
 					if not isMinimapMode then
 						local rawW = render.dim.r - render.dim.l
 						local rawH = render.dim.t - render.dim.b
-						pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+						pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 						if cameraState.zoom < pipModeMinZoom then
 							cameraState.zoom = pipModeMinZoom
 							cameraState.targetZoom = pipModeMinZoom
@@ -19345,7 +19366,8 @@ function widget:Update(dt)
 	end
 
 	-- Smooth zoom and camera center interpolation
-	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > 0.001
+	local zoomStopThreshold = interactionState.trackingPlayerID and config.playerTrackingZoomStopThreshold or 0.001
+	local zoomNeedsUpdate = math.abs(cameraState.zoom - cameraState.targetZoom) > zoomStopThreshold
 	local centerNeedsUpdate = math.abs(cameraState.wcx - cameraState.targetWcx) > 0.1 or math.abs(cameraState.wcz - cameraState.targetWcz) > 0.1
 	local apiTransitionActive = miscState.apiTransitionEndTime and miscState.apiTransitionEndTime > os.clock()
 	if not apiTransitionActive then
@@ -19412,9 +19434,10 @@ function widget:Update(dt)
 				zoomSmooth = miscState.apiTransitionZoomSmoothness
 			end
 			cameraState.zoom = cameraState.zoom + (cameraState.targetZoom - cameraState.zoom) * math.min(dt * zoomSmooth, 1)
-			-- Snap to target when close enough to avoid the asymptotic interpolation
-			-- never reaching exact fitZoom (which would leave a sliver of void)
-			if math.abs(cameraState.zoom - cameraState.targetZoom) < 0.002 then
+			-- Snap to target when close enough to end asymptotic interpolation.
+			-- Player tracking uses a finer threshold so overview zoom eases to a stop.
+			local zoomSnapThreshold = interactionState.trackingPlayerID and config.playerTrackingZoomStopThreshold or 0.002
+			if math.abs(cameraState.zoom - cameraState.targetZoom) < zoomSnapThreshold then
 				cameraState.zoom = cameraState.targetZoom
 			end
 			-- Enforce zoom floor (can go stale after PIP resize / rotation change)
@@ -20845,6 +20868,8 @@ function widget:IsAbove(mx, my)
 	if miscState.apiInteractionLocked then return false end
 	-- Don't claim mouse when GUI is hidden
 	if Spring.IsGUIHidden() then return false end
+	-- Ignore warped hidden-cursor coordinates while panning the main world camera.
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return false end
 
@@ -20888,12 +20913,12 @@ function widget:MouseWheel(up, value)
 	if Spring.IsGUIHidden() then return end
 	if isMinimapMode and miscState.minimapMinimized then return end
 	if not uiState.inMinMode then
-		local mx, my = spFunc.GetMouseState()
+		local mx, my, _, middleButton, _, _, cameraPanMode = spFunc.GetMouseState()
+		if cameraPanMode then return false end
 		if mx >= render.dim.l and mx <= render.dim.r and my >= render.dim.b and my <= render.dim.t then
 			-- When altKeyRequiredForZoom is enabled, pass scroll through unless ALT or middle mouse is held
 			if config.altKeyRequiredForZoom then
 				local alt = Spring.GetModKeyState()
-				local _, _, _, middleButton = spFunc.GetMouseState()
 				if not alt and not middleButton then return end
 			end
 			-- During activity focus, pass scroll through so the game camera zooms instead
@@ -20988,6 +21013,7 @@ function widget:MousePress(mx, my, mButton)
 	if miscState.apiInteractionLocked then return end
 	-- Don't process input when GUI is hidden
 	if Spring.IsGUIHidden() then return end
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Guard against uninitialized render dimensions
 	if not render.dim.l or not render.dim.r or not render.dim.b or not render.dim.t then return end
 	if WG['chat'] and WG['chat'].isMapDrawActive and WG['chat'].isMapDrawActive() then return false end
@@ -21692,6 +21718,7 @@ end
 function widget:MouseMove(mx, my, dx, dy, mButton)
 	if miscState.apiInteractionLocked then return end
 	if Spring.IsGUIHidden() then return end
+	if select(7, spFunc.GetMouseState()) then return false end
 	-- Get modifier key states
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 
@@ -21992,7 +22019,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			-- Use raw (non-rotated) dimensions so zoom limit is the same regardless of rotation
 			local rawW = render.dim.r - render.dim.l
 			local rawH = render.dim.t - render.dim.b
-			pipModeMinZoom = math.min(rawW, rawH) / math.max(mapInfo.mapSizeX, mapInfo.mapSizeZ)
+			pipModeMinZoom = CalculatePipModeMinZoom(rawW, rawH)
 			if cameraState.zoom < pipModeMinZoom then
 				cameraState.zoom = pipModeMinZoom
 				cameraState.targetZoom = pipModeMinZoom

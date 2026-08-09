@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1000000,
 		enabled = true,
 		depends = {'gl4'}
 	}
@@ -19,6 +19,7 @@ local math = math
 local mathFloor = math.floor
 local mathRandom = math.random
 local mathAbs = math.abs
+	local mathHuge = math.huge
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -30,6 +31,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spRequestStartPosition = Spring.RequestStartPosition
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -306,6 +308,10 @@ local function createCommanderNameList(name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
+		if not (x > -mathHuge and x < mathHuge and y > -mathHuge and y < mathHuge) then
+			return
+		end
+
 	if commanderNameList[teamID] == nil or commanderNameList[teamID]['name'] ~= name then
 		if commanderNameList[teamID] ~= nil then
 			gl.DeleteList(commanderNameList[teamID]['list'])
@@ -1565,6 +1571,12 @@ function widget:MousePress(x, y, button)
 				end
 			end
 		end
+	end
+
+	local pregameUnitSelected = WG["pregame-unit-selected"]
+	if not isSpec and not (pregameUnitSelected and pregameUnitSelected > 0) then
+		spRequestStartPosition(worldX, worldY, worldZ, false)
+		return true
 	end
 
 	return false
