@@ -14,8 +14,8 @@ return {
 		type = 'AddResourcesPerSecond',
 		parameters = {
 			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
-			{ name = 'metal', required = false, type = ParameterTypes.Number }, -- Can be negative if you want to take resources instead
-			{ name = 'energy', required = false, type = ParameterTypes.Number }, -- Can be negative if you want to take resources instead
+			{ name = 'metal', required = false, type = ParameterTypes.Number },
+			{ name = 'energy', required = false, type = ParameterTypes.Number },
 			requiresOneOf = { 'metal', 'energy' },
 		},
 		actionFunction = addResourcesPerSecond,

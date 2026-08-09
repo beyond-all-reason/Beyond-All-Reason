@@ -50,16 +50,16 @@ function gadget:GameFrame(frame)
     if resourcing.active and frame % Game.gameSpeed*0.5 == 0 then
         for teamID, amount in pairs(resourcing.metalPerSecond) do
             if amount > 0 then
-                spAddTeamResource(teamID, "metal", amount)
+                spAddTeamResource(teamID, "metal", amount*0.5)
             elseif amount < 0 then
-                spUseTeamResource(teamID, "metal", -amount)
+                spUseTeamResource(teamID, "metal", -amount*0.5)
             end
         end
         for teamID, amount in pairs(resourcing.energyPerSecond) do
             if amount > 0 then
-                spAddTeamResource(teamID, "energy", amount)
+                spAddTeamResource(teamID, "energy", amount*0.5)
             elseif amount < 0 then
-                spUseTeamResource(teamID, "energy", -amount)
+                spUseTeamResource(teamID, "energy", -amount*0.5)
             end
         end
     end
