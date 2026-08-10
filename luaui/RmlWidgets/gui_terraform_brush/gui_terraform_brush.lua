@@ -6681,24 +6681,25 @@ local initialModel = {
 		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
 	end,
 
-	-- data-event-click="onTfCapMaxUp()" etc.
+	-- data-event-click="onTfCapMaxUp()" etc. Bounds follow the dynamic
+	-- height-band envelope (updateHeightBandSliderBounds), not a fixed ±500.
 	onTfCapMaxUp = function(_event)
-		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
+		capMaxValue = math.min(widgetState.heightBandHi or 500, capMaxValue + HEIGHT_CAP_STEP)
 		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMaxDown = function(_event)
-		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
+		capMaxValue = math.max(widgetState.heightBandLo or -500, capMaxValue - HEIGHT_CAP_STEP)
 		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMinUp = function(_event)
-		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
+		capMinValue = math.min(widgetState.heightBandHi or 500, capMinValue + HEIGHT_CAP_STEP)
 		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
 		applyCap("min", capMinValue)
 	end,
 	onTfCapMinDown = function(_event)
-		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
+		capMinValue = math.max(widgetState.heightBandLo or -500, capMinValue - HEIGHT_CAP_STEP)
 		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
 		applyCap("min", capMinValue)
 	end,
@@ -11540,6 +11541,42 @@ function widget:DrawWorldReflection()
 	drawSkyFadeOverlay()
 end
 
+-- Sliders whose useful range is the map's height band. All ship with a
+-- hardcoded ±500 in the RML, which walls off the height cap (and altitude
+-- filters) on tall maps: CM03 tops out well past 500 and even TYPED values
+-- clamp to the slider attributes (wireSliderNumbox reads min/max from them).
+local HEIGHT_BAND_SLIDERS = {
+	"slider-cap-max", "slider-cap-min", "slider-cl-height",
+	"slider-gb-alt-min", "slider-gb-alt-max",
+	"fp-slider-alt-min", "fp-slider-alt-max",
+	"sp-slider-alt-min", "sp-slider-alt-max",
+	"surf-hard-slider-alt-min", "surf-hard-slider-alt-max",
+}
+
+-- Widen those sliders to a padded envelope of the map's real height range,
+-- never narrower than the legacy ±500. Uses the union of init and current
+-- ground extremes, so it covers real maps at boot and grows as project loads
+-- or imports replace the canvas terrain (current extremes only ever widen —
+-- fine here, an envelope is exactly what a bound wants). Cheap early-out:
+-- only touches elements when the rounded band actually changes.
+local function updateHeightBandSliderBounds(doc)
+	local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+	local bandMin = math.min(initMin or 0, currMin or 0)
+	local bandMax = math.max(initMax or 0, currMax or 0)
+	local lo = math.min(-500, math.floor((bandMin - 100) / 100) * 100)
+	local hi = math.max(500, math.ceil((bandMax + 200) / 100) * 100)
+	if widgetState.heightBandLo == lo and widgetState.heightBandHi == hi then return end
+	widgetState.heightBandLo = lo
+	widgetState.heightBandHi = hi
+	for i = 1, #HEIGHT_BAND_SLIDERS do
+		local el = getCachedEl(doc, HEIGHT_BAND_SLIDERS[i])
+		if el then
+			el:SetAttribute("min", tostring(lo))
+			el:SetAttribute("max", tostring(hi))
+		end
+	end
+end
+
 function widget:Update()
 	local ok, err = pcall(function()
 
@@ -12070,6 +12107,9 @@ function widget:Update()
 	end
 
 	local doc = widgetState.document
+
+	-- Keep height-band slider bounds in step with the map's real height range
+	if doc then updateHeightBandSliderBounds(doc) end
 
 	-- Blue-dot hint gating: hide dots already seen or when tips disabled,
 	-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
