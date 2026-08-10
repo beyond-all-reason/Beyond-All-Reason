@@ -39,6 +39,21 @@ end
 -- Synced half is empty: gadget runs entirely in unsynced space.
 if gadgetHandler:IsSyncedCode() then return end
 
+-- Engines from 2026.08 carry this effect natively, behind the NanoParticles*
+-- springsettings. It does the same job from C++ with none of the Spring->Lua
+-- call overhead, so there is nothing left for this gadget to add; running both
+-- would just draw every particle twice.
+if Engine.FeatureSupport and Engine.FeatureSupport.nanoParticlesGL4 then
+	-- Mode 1 zeroed MaxNanoParticles to silence the engine spray. The native
+	-- effect draws from that same budget, so leaving it at 0 would mean no nano
+	-- particles at all -- restore it before standing down.
+	if (Spring.GetConfigInt("MaxNanoParticles", 0) or 0) <= 0 then
+		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 15000) or 15000) * 0.6))
+	end
+
+	return false
+end
+
 --------------------------------------------------------------------------------
 -- Imports / locals
 --------------------------------------------------------------------------------
