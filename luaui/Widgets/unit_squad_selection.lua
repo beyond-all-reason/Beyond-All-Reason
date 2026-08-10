@@ -2029,7 +2029,8 @@ function widget:Update(dt)
 		else
 			local alt, _, _, shift = spGetModKeyState()
 			local maxDistSq = config.rightClickMoveRange > 0 and config.rightClickMoveRange * config.rightClickMoveRange or nil
-			if config.rightClickMovesSquad and (alt or spGetSelectedUnits()[1] == nil) then
+			local _, activeCmdID = spGetActiveCommand()
+			if config.rightClickMovesSquad and not activeCmdID and (alt or spGetSelectedUnits()[1] == nil) then
 				-- Squad-move engaged: RMB commands the closest squad.
 				if not (shift and highlightLockedSquad) then
 					local hx, hz = getMouseWorldPos()
@@ -2238,6 +2239,11 @@ function widget:MousePress(x, y, button)
 				y = y,
 			}
 		elseif config.rightClickMovesSquad and (alt or spGetSelectedUnits()[1] == nil) then
+			-- Skip when an active command is pending (fight, patrol, build, etc.): RMB cancels it, so intercepting would hijack the cancel.
+			local _, activeCmdID = spGetActiveCommand()
+			if activeCmdID then
+				return false
+			end
 			if spTraceScreenRay(x, y) ~= "unit" then
 				local sq
 				if shift and highlightLockedSquad and #highlightLockedSquad > 0 then
