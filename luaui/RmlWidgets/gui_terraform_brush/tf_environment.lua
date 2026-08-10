@@ -794,6 +794,14 @@ function M.attach(doc, ctx)
 		envSectionToggle("btn-toggle-ts-debug",   "img-toggle-ts-debug",   "section-ts-debug",   false)
 		envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
 
+		-- SURFACE tool (tileset variant paint) sections
+		envSectionToggle("btn-toggle-surf-palette", "img-toggle-surf-palette", "section-surf-palette", true)
+		envSectionToggle("btn-toggle-surf-hard",    "img-toggle-surf-hard",    "section-surf-hard",    true)
+		envSectionToggle("btn-toggle-surf-brush",   "img-toggle-surf-brush",   "section-surf-brush",   true)
+		envSectionToggle("btn-toggle-surf-fill",    "img-toggle-surf-fill",    "section-surf-fill",    false)
+		envSectionToggle("btn-toggle-surf-sculpt",  "img-toggle-surf-sculpt",  "section-surf-sculpt",  false)
+		envSectionToggle("btn-toggle-surf-grading", "img-toggle-surf-grading", "section-surf-grading", false)
+
 		-- Wire ± buttons for env color RGB sliders
 		do
 			local colorSliders = {

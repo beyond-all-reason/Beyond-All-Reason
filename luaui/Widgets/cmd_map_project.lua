@@ -327,6 +327,56 @@ local function stepSplat()
 	return true
 end
 
+-- SURFACE variant mask (the tileset paint tool, dev_surface_painter.lua):
+-- mask PNG like the splat, plus a small surface.lua carrying biome + slot
+-- assignment — the mask channels are meaningless without knowing WHICH top
+-- variants they weight. Same request/poll shape as the splat step.
+local function stepSurface()
+	local sp = WG.SurfacePainter
+	local c = job.cursor
+	if not c.requested then
+		if not (sp and sp.hasMaskState and sp.hasMaskState()) then
+			sectionSkip("surface", "no surface paint state (painter inactive or never used)")
+			return true
+		end
+		sp.saveMask(job.dir .. "surface.png")
+		c.requested = true
+		c.ticks = 0
+		return false
+	end
+	c.ticks = c.ticks + 1
+	if sp.isSavePending() then
+		if c.ticks > SPLAT_TIMEOUT_TICKS then
+			warn("surface mask save timed out (painter draw pump never ran)")
+			sectionSkip("surface", "timeout")
+			return true
+		end
+		return false
+	end
+	local bytes = fileSize(job.dir .. "surface.png")
+	if not bytes then
+		sectionSkip("surface", "painter reported done but file missing")
+		return true
+	end
+	local meta = (sp.getPersist and sp.getPersist()) or {}
+	local lines = {
+		"return {",
+		string.format("\tbiome = %q,", tostring(meta.biome or "")),
+		string.format("\tslot1 = %q,", tostring(meta.slot1 or "")),
+		string.format("\tslot2 = %q,", tostring(meta.slot2 or "")),
+		"}",
+		"",
+	}
+	if not writeFile(job.dir .. "surface.lua", table.concat(lines, "\n")) then
+		warn("surface.lua write failed — the mask will load without slot assignments")
+	end
+	sectionOk("surface", "surface.png", bytes,
+		(meta.slot1 or meta.slot2)
+			and ("slots " .. tostring(meta.slot1 or "-") .. " / " .. tostring(meta.slot2 or "-"))
+			or "no slots assigned")
+	return true
+end
+
 -- Baked diffuse capture (per-square PNGs + enabled shading channels).
 -- On real (compiled) maps EVERY square is captured, so a map whose diffuse was
 -- generated externally (World Machine workflow) carries its full texture in
@@ -1210,7 +1260,7 @@ local function stepManifest()
 	add("")
 	add("\tsections = {")
 	-- Fixed emission order (deterministic diffs); only sections actually written.
-	local order = { "heightmap", "splat", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "labels", "environment", "weather", "grass" }
+	local order = { "heightmap", "splat", "surface", "diffuse", "metal", "features", "units", "decals", "startpos", "startboxes", "lights", "labels", "environment", "weather", "grass" }
 	for _, name in ipairs(order) do
 		local s = findSection(name)
 		if s then
@@ -1227,6 +1277,9 @@ local function stepManifest()
 				local extraFields = ""
 				if name == "units" and job.unitsCount then
 					extraFields = string.format(" count = %d,", job.unitsCount)
+				end
+				if name == "surface" then
+					extraFields = ' meta = "surface.lua",'
 				end
 				if name == "grass" then
 					if job.grassPatchResolution then
@@ -1269,6 +1322,7 @@ local STEPS = {
 	{ name = "prepare",     run = stepPrepare },
 	{ name = "heightmap",   run = stepHeightmap },
 	{ name = "splat",       run = stepSplat },
+	{ name = "surface",     run = stepSurface },
 	{ name = "diffuse",     run = stepDiffuse },
 	{ name = "metal",       run = stepMetal },
 	{ name = "features",    run = stepFeatures },
@@ -1682,6 +1736,61 @@ local function phaseDntsSplat(c)
 	return true
 end
 
+-- Phase 2b: SURFACE variant mask. Restores the tileset biome + variant slot
+-- assignment from surface.lua first (the mask channels only mean something
+-- against those), then blits surface.png into the painter's mask — same
+-- request/poll shape as the splat phase. Soft-skips when the write-dir
+-- widgets (dev_tileset_terrain / dev_surface_painter) are not loaded.
+local function phaseSurface(c)
+	local maskPath = sectionFile("surface")
+	if not maskPath then return true end
+	local sp = WG.SurfacePainter
+	if not (sp and sp.loadMask) then
+		loadSkip("surface", "surface painter widget not loaded")
+		return true
+	end
+	if not c.surfMetaDone then
+		c.surfMetaDone = true
+		local meta = readLuaFile(loadJob.dir .. "surface.lua")
+		local T = WG.TilesetTerrain
+		if meta and T then
+			if meta.biome and meta.biome ~= "" and T.setBiome then
+				T.setBiome(meta.biome)
+			end
+			if sp.applySlots then
+				sp.applySlots((meta.slot1 and meta.slot1 ~= "") and meta.slot1 or nil,
+					(meta.slot2 and meta.slot2 ~= "") and meta.slot2 or nil)
+			end
+		elseif not T then
+			echoP("WARNING: surface.png present but the tileset widget is not loaded — the mask loads with no variants bound")
+		end
+	end
+	if not c.surfRequested then
+		if not sp.loadMask(maskPath) then
+			loadSkip("surface", "load request rejected")
+			return true
+		end
+		c.surfRequested = true
+		c.surfTicks = 0
+		return false
+	end
+	if sp.isLoadPending() then
+		c.surfTicks = c.surfTicks + 1
+		if c.surfTicks > SPLAT_LOAD_TIMEOUT then
+			loadSkip("surface", "timed out waiting for the painter draw pump")
+			return true
+		end
+		return false
+	end
+	local result = sp.getLoadResult and sp.getLoadResult()
+	if result == "ok" then
+		loadOk("surface", nil)
+	else
+		loadSkip("surface", tostring(result or "no result reported"))
+	end
+	return true
+end
+
 -- Phase 3: diffuse. Per-square PNGs blitted into painter-owned seed+composite
 -- textures (later paint bakes over the loaded state), channel PNGs into the
 -- painter's channel textures. Files discovered by glob — the save side keeps
@@ -2061,6 +2170,7 @@ end
 local LOAD_PHASES = {
 	{ name = "heightmap",       run = phaseHeightmap },
 	{ name = "dnts+splat",      run = phaseDntsSplat },
+	{ name = "surface",         run = phaseSurface },
 	{ name = "diffuse",         run = phaseDiffuse },
 	{ name = "metal",           run = phaseMetal },
 	{ name = "features",        run = phaseFeatures },

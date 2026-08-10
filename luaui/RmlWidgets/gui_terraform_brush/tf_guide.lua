@@ -23,11 +23,13 @@ function M.attach(doc, ctx)
 	if sliderPen then trackSliderDrag(sliderPen, "pen-sensitivity") end
 
 	-- Guide hint mouseover/mouseout listeners (justified: dynamic loop over hints table)
+	-- The hint is looked up at HOVER time, not captured: contextual hints
+	-- (btn-splat under the tileset shader) mutate guideHints entries at runtime.
 	for elemId, hint in pairs(guideHints) do
 		local el = doc:GetElementById(elemId)
 		if el then
 			el:AddEventListener("mouseover", function(event)
-				if widgetState.guideMode then widgetState.currentHint = hint end
+				if widgetState.guideMode then widgetState.currentHint = guideHints[elemId] end
 			end, false)
 			el:AddEventListener("mouseout", function(event)
 				if widgetState.guideMode then widgetState.currentHint = nil end

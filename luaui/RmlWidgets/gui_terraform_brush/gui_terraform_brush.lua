@@ -1138,6 +1138,11 @@ local function _deactivateAllTools()
 	widgetState.decalsActive   = false
 	if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
 	widgetState.tilesetActive  = false
+	if WG.SurfacePainter then WG.SurfacePainter.deactivate() end
+	-- SURFACE hard submode drives WG.SplatPainter (deactivated above); the pin
+	-- that keeps the SURFACE panel open over it must drop with the engine.
+	widgetState.surfHardActive = false
+	widgetState.surfPickerSlot = nil   -- leaving the tool closes the variant picker
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
@@ -1231,6 +1236,13 @@ local function _mapHasUsableSplatTexture()
 end
 
 local function _splatToolUnavailable()
+	-- While the tileset shader owns the ground, $ssmf_splat_distr is repurposed
+	-- as its override mask (R=auto, G=talus, B=cliff, A=plateau) — the legacy
+	-- DNTS panel would paint nonsense. Hard-surface painting lives in the
+	-- SURFACE tool (HARD submode) instead, which reuses the same engine.
+	if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+		return true
+	end
 	if _newMapSplatUnavailable() then return true end
 	-- Generated blank maps expose only a 1x1 fallback splat distribution; the
 	-- splat painter PROMOTES that to a map-sized editable target (see
@@ -2324,6 +2336,47 @@ local initialModel = {
 	tsBiome = "",
 	tsDebugView = 0,   -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
+	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
+	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
+	surfPreset = "dot",
+	surfErase = false,
+	surfHasVariants = false,
+	surfHasSculpted = false,
+	surfShaderOff = false,
+	surfCoverageStr = "\226\128\148",
+	surfCoverageAmber = false,
+	surfSlot1Name = "\226\128\148",
+	surfSlot2Name = "\226\128\148",
+	surfFillV1 = true,
+	surfFillV2 = true,
+	-- NOW PAINTING strip + slot rail (persistent selection readout)
+	surfNowName = "base (erase)",
+	surfNowDetail = "",
+	surfNowMode = "PAINT",
+	surfSelSlot = 0,          -- 0 = base/erase, 1/2 = variant slots
+	surfSlot1Assigned = false,
+	surfSlot2Assigned = false,
+	surfSlot1Share = "",
+	surfSlot2Share = "",
+	surfBaseShare = "",
+	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
+	surfPickerTitle = "",
+	surfPickerHasPaint = false,
+	surfClearArm = false,     -- CLEAR VARIANT armed, waiting for the confirm click
+	surfClearAllArm = false,  -- CLEAR ALL armed
+	-- SURFACE SOFT|HARD submode. SOFT = variant mask (WG.SurfacePainter);
+	-- HARD = splat override channels of the tileset shader (WG.SplatPainter,
+	-- reused headless: the panel stays SURFACE while that engine paints).
+	surfMode = "soft",
+	surfBiomeName = "\226\128\148",  -- active tileset biome, shown under the submode row
+	surfHardCh = 1,           -- active splat channel: 1 AUTO / 2 TALUS / 3 CLIFF / 4 PLATEAU
+	surfHardNowName = "AUTO",
+	surfHardNowDetail = "",
+	surfHardAvoidWater = false,
+	surfHardAvoidCliffs = false,
+	surfHardAltMin = false,
+	surfHardAltMax = false,
+	surfHardExportFmt = "PNG",
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -6669,6 +6722,10 @@ local initialModel = {
 		playSound("toolSwitch")
 		clearPassthrough()
 		if not WG.SplatPainter then return end
+		if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+			Spring.Echo("[Terraform Brush] Tileset shader active \226\128\148 surface painting lives in SURFACE (hard overrides included). DNTS splat applies to legacy maps only.")
+			return
+		end
 		if _splatToolUnavailable() then
 			if _newMapSplatNeedsDnts() then
 				Spring.Echo("[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. No DNTS splat-set pack is installed, so the tool stays unavailable on blank maps for now.")
@@ -6764,6 +6821,266 @@ local initialModel = {
 			widgetState.tilesetActive = true
 		end
 	end,
+	-- SURFACE tool: paints the soft-top variant mask of the tileset shader.
+	-- Active state lives in the painter widget (splat pattern), toggle UX like
+	-- the TILESET button.
+	onTfSwitchSurface = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.SurfacePainter then return end
+		local st = WG.SurfacePainter.getState and WG.SurfacePainter.getState()
+		-- Engaged in EITHER submode? (hard = SplatPainter running under the pin)
+		if (st and st.active) or widgetState.surfHardActive then
+			_deactivateAllTools()
+			if WG.TerraformBrush then
+				local ts = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
+			end
+		else
+			_deactivateAllTools()
+			local dm = widgetState.dmHandle
+			if dm and dm.surfMode == "hard" and WG.SplatPainter then
+				WG.SplatPainter.activate()
+				widgetState.surfHardActive = true
+			else
+				WG.SurfacePainter.activate()
+			end
+		end
+	end,
+	-- SOFT|HARD submode row. Swaps the live engine under the SURFACE tool:
+	-- SOFT = WG.SurfacePainter (variant mask), HARD = WG.SplatPainter painting
+	-- the tileset shader's override channels. The splat engine keeps full
+	-- ownership of mouse/keys/draw while active; widgetState.surfHardActive
+	-- pins the panel to 'surf' so the legacy SPLAT panel never opens.
+	onSurfMode = function(_event, mode)
+		local dm = widgetState.dmHandle
+		if not dm or (mode ~= "soft" and mode ~= "hard") then return end
+		if dm.surfMode == mode then return end
+		if mode == "hard" then
+			local ti = gl.TextureInfo and gl.TextureInfo("$ssmf_splat_distr")
+			if not (WG.SplatPainter and ti and (ti.xsize or 0) > 0) then
+				Spring.Echo("[Terraform Brush] SURFACE hard mode needs a splat distribution texture; this map exposes none.")
+				return
+			end
+		end
+		dm.surfMode = mode
+		playSound("modeSwitch")
+		-- Only swap engines when the SURFACE tool is actually engaged.
+		local st = WG.SurfacePainter and WG.SurfacePainter.getState and WG.SurfacePainter.getState()
+		local engaged = (st and st.active) or widgetState.surfHardActive
+		if not engaged then return end
+		_deactivateAllTools()   -- clears surfHardActive too
+		if mode == "hard" then
+			WG.SplatPainter.activate()
+			widgetState.surfHardActive = true
+			-- Strokes must be visible: the shader gates the override mask on
+			-- splatInfluence, so a zeroed knob would make painting look broken.
+			local T = WG.TilesetTerrain
+			if T and T.getKnobs and T.setKnob then
+				local k = T.getKnobs()
+				if k and (k.splatInfluence or 0) <= 0 then
+					T.setKnob("splatInfluence", 1)
+					Spring.Echo("[Terraform Brush] splat influence was 0 \226\128\148 enabled so hard-surface strokes show.")
+				end
+			end
+		else
+			if WG.SurfacePainter then WG.SurfacePainter.activate() end
+		end
+	end,
+	-- SURFACE brush + fill sliders (ids surf-slider-<key>). The BRUSH section
+	-- serves both submodes: in HARD the size/strength/falloff sliders drive the
+	-- splat engine instead (same slider-unit mappings as the legacy panel).
+	onSurfSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SurfacePainter then return end
+		-- RmlUi delivers change events a few frames after the value is stamped,
+		-- by which time updatingFromCode is false again. SOFT and HARD share
+		-- these three sliders, so an echo from the mode we just LEFT would
+		-- otherwise write one engine's value into the other (onTilesetKnob
+		-- carries the same guard).
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then return end
+		local dm = widgetState.dmHandle
+		if dm and dm.surfMode == "hard" then
+			local hsp = WG.SplatPainter
+			if not hsp then return end
+			if key == "size" then
+				hsp.setRadius(_elemSliderVal("surf-slider-size", 72))
+			elseif key == "strength" then
+				hsp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+			elseif key == "falloff" then
+				hsp.setCurve(_elemSliderVal("surf-slider-falloff", 10) / 10)
+			end
+			return
+		end
+		local sp = WG.SurfacePainter
+		if key == "size" then
+			sp.setRadius(_elemSliderVal("surf-slider-size", 72))
+		elseif key == "strength" then
+			sp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+		elseif key == "falloff" then
+			sp.setCurve(_elemSliderVal("surf-slider-falloff", 5) / 10)
+		elseif key == "spacing" then
+			sp.setSpacing(_elemSliderVal("surf-slider-spacing", 0))
+		elseif key == "fill-scale" then
+			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
+		elseif key == "fill-seed" then
+			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
+		end
+	end,
+	onSurfPreset = function(_event, name)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setPreset) then return end
+		if WG.SurfacePainter.setPreset(name) then playSound("click") end
+	end,
+	onSurfEraseToggle = function(_event)
+		if not WG.SurfacePainter then return end
+		local st = WG.SurfacePainter.getState() or {}
+		WG.SurfacePainter.setEraseMode(not st.eraseMode)
+		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
+	-- slot's variant (no-op when the slot is empty — the palette assigns).
+	onSurfSelectBase = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setVariant) then return end
+		WG.SurfacePainter.setVariant("")
+		playSound("click")
+	end,
+	onSurfSlotSelect = function(_event, n)
+		if not WG.SurfacePainter then return end
+		local slot = tonumber(n)
+		local st = WG.SurfacePainter.getState() or {}
+		local asset = (slot == 1) and st.slot1 or st.slot2
+		if asset and asset ~= "" and WG.SurfacePainter.setVariant then
+			WG.SurfacePainter.setVariant(asset)
+			playSound("click")
+		else
+			-- Empty slot: the whole chip opens its picker, so filling a slot
+			-- never depends on hitting the small caret.
+			widgetState.surfPickerSlot = slot
+			widgetState.surfPaletteSig = nil
+			playSound("dropdown")
+		end
+	end,
+	-- Lock row: mirrors the shared cliffProtect shader knob. For the SURFACE
+	-- brush the sweep-around is structural (variants only touch the soft top);
+	-- the knob still governs the legacy splat path, so keep it honest here.
+	onSurfLockToggle = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then return end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and (knobs.cliffProtect or 0) >= 1)
+		WG.TilesetTerrain.setKnob("cliffProtect", on and 1 or 0)
+		widgetState.surfLockLast = nil   -- tf_surface.sync re-stamps the icon
+		playSound(on and "toggleOn" or "toggleOff")
+	end,
+	onSurfNoiseFill = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then return end
+		WG.SurfacePainter.noiseFill()
+		playSound("click")
+	end,
+	onSurfFillToggle = function(_event, n)
+		if not WG.SurfacePainter then return end
+		local st = WG.SurfacePainter.getState() or {}
+		local dm = widgetState.dmHandle
+		if tonumber(n) == 1 then
+			WG.SurfacePainter.setFillV1(not st.fillV1)
+			if dm then dm.surfFillV1 = not st.fillV1 end
+		else
+			WG.SurfacePainter.setFillV2(not st.fillV2)
+			if dm then dm.surfFillV2 = not st.fillV2 end
+		end
+		playSound("tick")
+	end,
+	-- CLEAR buttons arm on the first click and execute on the second (the
+	-- spec's "with confirm"; projectDeleteConfirming precedent).
+	onSurfClearVariant = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then return end
+		if dm.surfClearArm then
+			dm.surfClearArm = false
+			if WG.SurfacePainter.clearVariant() then
+				playSound("reset")
+			else
+				-- Base/erase selected: nothing to clear — say so instead of a
+				-- silent no-op the user reads as "cleared".
+				Spring.Echo("[Surface] select a variant tile first, then CLEAR VARIANT")
+			end
+		else
+			dm.surfClearArm = true
+			dm.surfClearAllArm = false
+			playSound("click")
+		end
+	end,
+	onSurfClearAll = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then return end
+		if dm.surfClearAllArm then
+			dm.surfClearAllArm = false
+			if WG.SurfacePainter.clearAll() then playSound("reset") end
+		else
+			dm.surfClearAllArm = true
+			dm.surfClearArm = false
+			playSound("click")
+		end
+	end,
+	-- GRADING group tints are shader knobs; ids surf-slider-<knobKey>
+	onSurfKnob = function(_event, key)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
+		-- No fallback default here: tint knobs default to 1.0, desat to 0, so a
+		-- failed element lookup writing 0 would black the whole group out.
+		local v = _elemSliderVal("surf-slider-" .. key, nil)
+		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
+	end,
+	-- ── SURFACE HARD submode (splat overrides via WG.SplatPainter) ──────────
+	-- All onSurfHard* handlers talk to the splat ENGINE only; the legacy
+	-- SPLAT panel keeps its own onSpl*/sp-* namespace untouched.
+	onSurfHardChannel = function(_event, n)
+		if not WG.SplatPainter then return end
+		playSound("modeSwitch")
+		WG.SplatPainter.setChannel(tonumber(n) or 1)
+	end,
+	onSurfHardFilter = function(_event, key)
+		if not WG.SplatPainter then return end
+		local sp = WG.SplatPainter
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes
+			or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+	end,
+	onSurfHardSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then return end
+		local sp = WG.SplatPainter
+		if key == "slope-max" then
+			sp.setSmartFilter("slopeMax", _elemSliderVal("surf-hard-slider-slope-max", 45))
+		elseif key == "alt-min" then
+			local v = _elemSliderVal("surf-hard-slider-alt-min", 0)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMaxEnable and v > (sf.altMax or 0) then sp.setSmartFilter("altMax", v) end
+			sp.setSmartFilter("altMin", v)
+		elseif key == "alt-max" then
+			local v = _elemSliderVal("surf-hard-slider-alt-max", 200)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMinEnable and v < (sf.altMin or 0) then sp.setSmartFilter("altMin", v) end
+			sp.setSmartFilter("altMax", v)
+		end
+	end,
+	onSurfHardUndo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then WG.SplatPainter.undo() end
+	end,
+	onSurfHardRedo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then WG.SplatPainter.redo() end
+	end,
+	onSurfHardCycleFormat = function(_event)
+		playSound("click")
+		if WG.SplatPainter then WG.SplatPainter.cycleExportFormat() end
+	end,
+	onSurfHardSave = function(_event)
+		playSound("save")
+		if WG.SplatPainter then WG.SplatPainter.saveSplats() end
+	end,
 	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
 	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
 	-- look without having to reset the three sliders.
@@ -6789,7 +7106,8 @@ local initialModel = {
 		-- after updatingFromCode is back to false, and GetAttribute can then read
 		-- clamped/stale values back into the knobs (per-swap config drift).
 		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then return end
-		-- nil fallback, not 0: a failed element lookup must not zero the knob.
+		-- nil fallback, not 0: a failed element lookup must not zero the knob
+		-- (same hazard onSurfKnob already guards against).
 		local v = _elemSliderVal("ts-slider-" .. key, nil)
 		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
 	end,
@@ -7911,6 +8229,30 @@ local guideHints = {
 	["btn-env-save"] = "Export all current environment settings to a Lua file in the Terraform Brush/Lightmaps/ folder for use by mappers.",
 	["btn-env-load"] = "Load the most recent saved environment config for this map from the Terraform Brush/Lightmaps/ folder.",
 	["btn-lights"]      = "Place deferred GL4 lights on the map. Supports point, cone, and beam lights with scatter, single, and remove modes.",
+	-- SURFACE tool (tileset variant paint)
+	["btn-surface"]     = "Paint soft-surface VARIANTS of the active tileset biome over the automatic base. Hard surfaces (cliffs and the intermediary) are never affected — that is the point.",
+	["btn-surf-preset-dot"]  = "DOT: small brush, low strength, soft falloff — the ZBrush-2% workflow. Dot variants in lightly so the base stays dominant.",
+	["btn-surf-preset-wash"] = "WASH: large brush at very low strength for broad, subtle variant drift.",
+	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
+	["btn-surf-erase"]  = "Erase mode: strokes return the surface to the BASE variant. Right-click always erases.",
+	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
+	["btn-surf-lock"]   = "Cliff protection for the legacy splat path. The SURFACE brush never touches hard surfaces regardless — variants only retexture the soft top.",
+	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
+	-- SURFACE SOFT|HARD submode + HARD SURFACES section
+	["btn-surf-mode-soft"] = "SOFT: paint soft-top variants of the biome over the automatic base. Hard surfaces are never touched.",
+	["btn-surf-mode-hard"] = "HARD: paint the tileset shader's override channels — force talus, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
+	["btn-surf-hard-ch1"]  = "AUTO: painting removes any override so the shader's slope-driven surface returns.",
+	["btn-surf-hard-ch2"]  = "TALUS: force the talus/scree material where painted, regardless of slope.",
+	["btn-surf-hard-ch3"]  = "CLIFF: force cliff rock where painted, regardless of slope.",
+	["btn-surf-hard-ch4"]  = "PLATEAU: force the plateau cap material where painted, regardless of height.",
+	["btn-surf-hard-water"]  = "Skip pixels below water level while painting hard overrides.",
+	["btn-surf-hard-cliffs"] = "Skip pixels steeper than the max-slope threshold while painting hard overrides.",
+	["btn-surf-hard-altmin"] = "Only paint above a minimum altitude.",
+	["btn-surf-hard-altmax"] = "Only paint below a maximum altitude.",
+	["btn-surf-hard-undo"] = "Undo the last hard-override stroke. Keyboard shortcut: Ctrl+Z.",
+	["btn-surf-hard-redo"] = "Redo a hard-override stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
+	["btn-surf-hard-save"] = "Export the splat distribution texture (override mask) to Terraform Brush/Splats/.",
+	["btn-ts-paint-surfaces"] = "Switch to the SURFACE tool: paint soft-top variants (SOFT) or force talus/cliff/plateau overrides (HARD) on the tileset ground.",
 	-- SHAPE buttons
 	["btn-circle"]      = "Round brush with smooth radial falloff. The most natural-looking shape for hills and depressions.",
 	["btn-square"]      = "Square brush with hard corners. Great for angular structures, walls and grid-aligned terrain edits.",
@@ -8931,6 +9273,21 @@ local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
 local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
 local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
 local tfTileset = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_tileset.lua")
+-- Guarded include: tf_surface.lua was added mid-development, and a file the
+-- VFS can't see (added after game start — the .sdd archive is scanned at
+-- launch, /luaui reload does not rescan) must degrade to "no SURFACE tool",
+-- not kill the whole panel.
+local tfSurface
+do
+	-- Env must be passed explicitly: under pcall, VFS.Include no longer sees
+	-- the widget environment, so the module's `local WG = WG` captures nil.
+	local ok, mod = pcall(VFS.Include, "luaui/RmlWidgets/gui_terraform_brush/tf_surface.lua", getfenv(1))
+	if ok and type(mod) == "table" then
+		tfSurface = mod
+	else
+		Spring.Echo("[TFBrush] tf_surface.lua unavailable (" .. tostring(mod) .. ") — SURFACE tool disabled; restart the game if the file was just added")
+	end
+end
 local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
 
 -- Shared context passed to all extracted tool modules
@@ -9546,6 +9903,21 @@ local function attachEventListeners()
 		-- click handled declaratively via onclick="widget:tfSwitchGrass()"
 	end
 
+	-- Splat launch button: hover explains the contextual disable while the
+	-- tileset shader owns the splat texture (grass no-data precedent).
+	do
+		local splatBtn = getCachedEl(doc, "btn-splat")
+		if splatBtn then
+			splatBtn:AddEventListener("mouseover", function(event)
+				local T = WG.TilesetTerrain
+				widgetState.splatHoverTilesetOn = (T and T.isActive and T.isActive()) and true or false
+			end, false)
+			splatBtn:AddEventListener("mouseout", function(event)
+				widgetState.splatHoverTilesetOn = false
+			end, false)
+		end
+	end
+
 	-- Decals launch button
 	local decalsBtn = getCachedEl(doc, "btn-decals")
 	-- (click handled declaratively via onclick="widget:tfSwitchDecals()")
@@ -9904,6 +10276,7 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	tfTileset.attach(doc, ctx)
+	if tfSurface then tfSurface.attach(doc, ctx) end
 	tfLights.attach(doc, ctx)
 	tfNoise.attach(doc, ctx)
 
@@ -10536,10 +10909,66 @@ local function drawSkyboxThumbnailPreviews()
 	gl.Blending(false)
 end
 
+-- GL albedo thumbnails for the SURFACE palette tiles (called from
+-- DrawScreenPost). Same approach as the splat channel previews below: the RML
+-- tile holds an empty .tf-surf-thumb rect and we overdraw it with gl.TexRect.
+-- The 4K albedos are already resident (the terrain shader binds these same
+-- textures), while an RmlUi <img> would decode the full uncompressed bitmap
+-- into the TexMemPool — the skybox-library bad_alloc lesson.
+local function drawSurfPaletteThumbs()
+	local dm = widgetState.dmHandle
+	if not dm or dm.activeTool ~= "surf" then return end
+	if widgetState.lobbyHidden then return end
+	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
+	-- not laid out can still report a stale non-zero box (the splat-preview
+	-- lesson), so every container that can hide these thumbs must be tested
+	-- explicitly: the whole palette frame is data-if'd away in HARD, and the
+	-- section itself collapses.
+	if dm.surfMode ~= "soft" then return end
+	local sec = widgetState.surfPaletteSectionEl
+	if sec and sec:IsClassSet("hidden") then return end
+	local els = widgetState.surfPaletteEls
+	if not els or #els == 0 then return end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		-- Entries tag their owning section (sculpt grid, picker); a collapsed or
+		-- closed owner must not paint its thumbs over whatever took its place.
+		local owner = els[i].sec
+		if owner and owner:IsClassSet("hidden") then div = nil end
+		if div and tex then
+			-- collapsed sections / hidden panels report zero size, which is the
+			-- same guard the splat previews rely on
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if gl.Texture(0, tex) then
+					-- centered crop: a full 4K tile at 52dp reads as noise,
+					-- a quarter-window shows the material's actual character
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then gl.Scissor(false) end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
 function widget:DrawScreenPost()
 
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
+
+	-- SURFACE palette tile thumbnails (early-outs on its own tool check).
+	drawSurfPaletteThumbs()
 
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
@@ -11314,10 +11743,42 @@ function widget:Update()
 	local mbState = WG.MetalBrush and WG.MetalBrush.getState()
 	local gbState = WG.GrassBrush and WG.GrassBrush.getState()
 	local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
+	-- SURFACE painter active flag on widgetState, NOT a local: this function
+	-- has flirted with Lua 5.1's 200-local ceiling before (see the wbSync note).
+	widgetState.surfActive = (WG.SurfacePainter and WG.SurfacePainter.getState
+		and (WG.SurfacePainter.getState() or {}).active) and true or false
 	local tfActive = tfState and tfState.active
 	local fpActive = fpState and fpState.active
 	local wbActive = wbState and wbState.active
 	local spActive = spState and spState.active
+	-- SURFACE hard submode pin is only meaningful while its engine (the splat
+	-- painter) runs; anything that kills the engine (hotkey off, reload) must
+	-- also drop the pin or the panel would sit on a dead tool.
+	if widgetState.surfHardActive and not spActive then
+		widgetState.surfHardActive = false
+	end
+	-- Self-healing invariant: under the tileset shader the legacy splat panel
+	-- is never legitimate ($ssmf_splat_distr is the override mask), so any
+	-- splat-engine activation that arrives without the pin (/splatpaint
+	-- action, GUI widget reload over a live engine) is adopted by the SURFACE
+	-- tool's HARD submode instead of opening the legacy panel.
+	-- Only adopt when the SURFACE UI can actually take over (its module and
+	-- engine both loaded); otherwise the panel would show an unwired section
+	-- while the splat engine paints unlabelled.
+	if spActive and not widgetState.surfHardActive and tfSurface and WG.SurfacePainter
+			and WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+		widgetState.surfHardActive = true
+		if widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "hard" then
+			widgetState.dmHandle.surfMode = "hard"
+		end
+	end
+	-- Mirror invariant: the SOFT engine being live means the panel must read
+	-- SOFT, or HARD's chips and the shared brush sliders would drive an engine
+	-- that is not painting (/surfacepaint while the panel was left in HARD).
+	if widgetState.surfActive and widgetState.dmHandle
+			and widgetState.dmHandle.surfMode ~= "soft" then
+		widgetState.dmHandle.surfMode = "soft"
+	end
 	local mbActive = mbState and mbState.active
 	local gbActive = gbState and gbState.active
 	local envActive = widgetState.envActive
@@ -11353,7 +11814,7 @@ function widget:Update()
 		clActive = false
 	end
 	-- Deactivate decals mode when any other (real) tool becomes active
-	if decalsActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or dfpActive) then
+	if decalsActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or dfpActive or widgetState.surfActive) then
 		widgetState.decalsActive = false
 		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
 		decalsActive = false
@@ -11361,12 +11822,18 @@ function widget:Update()
 	-- Deactivate tileset mode when any other tool becomes active. The terraform
 	-- brush has no *Active branch in the tool derivation below (it maps to ""),
 	-- so without this the tileset panel would linger when you switch to it.
-	if widgetState.tilesetActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive) then
+	if widgetState.tilesetActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.surfActive) then
 		widgetState.tilesetActive = false
+	end
+	-- Deactivate the SURFACE painter when any other tool becomes active (its
+	-- active flag lives in the painter widget, like the splat painter's).
+	if widgetState.surfActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive) then
+		if WG.SurfacePainter then WG.SurfacePainter.deactivate() end
+		widgetState.surfActive = false
 	end
 
 	-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
-	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive or widgetState.passthroughMode) and not widgetState.panelHidden
+	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive or widgetState.surfActive or widgetState.passthroughMode) and not widgetState.panelHidden
 	if widgetState.rootElement then
 		widgetState.rootElement:SetClass("hidden", not panelVisible)
 	end
@@ -11397,7 +11864,9 @@ function widget:Update()
 		if widgetState.decalsActive then tool = "dc"
 		elseif fpActive then tool = "fp"
 		elseif wbActive then tool = "wb"
-		elseif spActive then tool = "sp"
+		-- Hard-submode pin: the splat ENGINE is active but the SURFACE panel
+		-- owns it — the legacy splat panel must not open.
+		elseif spActive then tool = widgetState.surfHardActive and "surf" or "sp"
 		elseif mbActive then tool = "mb"
 		elseif gbActive then tool = "gb"
 		elseif envActive then tool = "env"
@@ -11405,10 +11874,16 @@ function widget:Update()
 		elseif stpActive then tool = "stp"
 		elseif clActive then tool = "cl"
 		elseif dfpActive then tool = "diff"
+		elseif widgetState.surfActive then tool = "surf"
 		elseif widgetState.tilesetActive then tool = "ts"
 		end
 		if widgetState.dmHandle then
 			if widgetState.dmHandle.activeTool ~= tool then widgetState.dmHandle.activeTool = tool end
+			-- SURFACE clear-confirm arms don't survive leaving the tool
+			if tool ~= "surf" then
+				if widgetState.dmHandle.surfClearArm then widgetState.dmHandle.surfClearArm = false end
+				if widgetState.dmHandle.surfClearAllArm then widgetState.dmHandle.surfClearAllArm = false end
+			end
 			-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
 			-- .active visual; only one button across both rows should highlight. When a non-tf
 			-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
@@ -11428,6 +11903,18 @@ function widget:Update()
 				setDm("newMapEngineSplatNotice", generatedBlankMap)
 					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
 					setDm("spToolDisabled", _splatToolUnavailable())
+					-- Contextual SPLAT-button hint: while the tileset shader owns
+					-- the splat texture, hovering the disabled button must explain
+					-- where the workflow moved (tf_guide reads guideHints live).
+					do
+						local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) and true or false
+						if widgetState.splatHintTsLast ~= tsOn then
+							widgetState.splatHintTsLast = tsOn
+							guideHints["btn-splat"] = tsOn
+								and "Tileset shader active \226\128\148 surface painting lives in SURFACE (hard overrides included). DNTS splat applies to legacy maps only."
+								or "Paint the splatmap distribution texture that controls which ground detail texture is visible in each area of the map."
+						end
+					end
 			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
 			setDm("clonePasteTransformsVisible", showTransforms and true or false)
 			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
@@ -11480,12 +11967,14 @@ function widget:Update()
 				dm.lpLibraryOpen = false
 			end
 			-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
+			-- and for SURFACE (v1 brush is circle-only)
 			local hideShape = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
+				or widgetState.surfActive or widgetState.surfHardActive
 			setDm("tfShapeRowVisible", not hideShape)
 			-- smooth submodes: visible only in smooth/level terraform mode
 			local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive
-				or envActive or lpActive or stpActive or clActive or decalsActive
+				or envActive or lpActive or stpActive or clActive or decalsActive or widgetState.surfActive
 			local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
 			setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
 			-- erode controls: visible only in erode terraform mode
@@ -11632,6 +12121,7 @@ function widget:Update()
 		do
 			local hideShape2 = envActive or clActive or stpActive or wbActive
 				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
+				or widgetState.surfActive or widgetState.surfHardActive
 			if widgetState.dmHandle then
 				if widgetState.dmHandle.tfRampMode ~= false then widgetState.dmHandle.tfRampMode = false end
 				if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then widgetState.dmHandle.tfShapeRowVisible = not hideShape2 end
@@ -11670,6 +12160,17 @@ function widget:Update()
 				if tsBtnEl then tsBtnEl:SetClass("hidden", not tsAvail) end
 			end
 		end
+		do
+			-- SURFACE tool button: shown only when the variant paint widget is
+			-- loaded (dev_surface_painter.lua, write dir — same reveal pattern).
+			-- Also requires the UI module: painter without panel = dead button.
+			local surfAvail = (WG.SurfacePainter ~= nil) and (tfSurface ~= nil)
+			if widgetState.surfBtnShown ~= surfAvail then
+				widgetState.surfBtnShown = surfAvail
+				local surfBtnEl = getCachedEl(doc, "btn-surface")
+				if surfBtnEl then surfBtnEl:SetClass("hidden", not surfAvail) end
+			end
+		end
 	end
 
 	if mbActive then
@@ -11681,7 +12182,13 @@ function widget:Update()
 		tfGrass.sync(doc, ctx, gbState, setSummary, sumEl)
 
 	elseif spActive then
-		tfSplat.sync(doc, ctx, spState, setSummary)
+		-- Hard-submode pin: SURFACE panel drives the splat engine, so it gets
+		-- the surf sync (surfMode == 'hard' branch), not the legacy splat one.
+		if widgetState.surfHardActive and tfSurface then
+			tfSurface.sync(doc, ctx, WG.SurfacePainter and WG.SurfacePainter.getState and WG.SurfacePainter.getState(), setSummary)
+		else
+			tfSplat.sync(doc, ctx, spState, setSummary)
+		end
 
 	elseif dfpActive then
 		local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
@@ -11710,6 +12217,11 @@ function widget:Update()
 
 	elseif decalsActive then
 		tfDecals.sync(doc, ctx, setSummary)
+
+	elseif widgetState.surfActive then
+		if tfSurface then
+			tfSurface.sync(doc, ctx, WG.SurfacePainter and WG.SurfacePainter.getState(), setSummary)
+		end
 
 	elseif widgetState.tilesetActive then
 		tfTileset.sync(doc, ctx, setSummary)
@@ -12461,8 +12973,18 @@ function widget:Update()
 		local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
 		if sumEl2 then
 			local sep = '<span class="tf-ss-sep">|</span>'
-			setInnerRmlIfChanged(sumEl2, "status-summary", 
+			setInnerRmlIfChanged(sumEl2, "status-summary",
 				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass yet - click Grass tool to paint</span>')
+		end
+	end
+	-- Same treatment for the SPLAT button while the tileset shader disables it:
+	-- hovering must say where hard-surface painting moved.
+	if widgetState.splatHoverTilesetOn then
+		local sumEl4 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+		if sumEl4 then
+			local sep = '<span class="tf-ss-sep">|</span>'
+			setInnerRmlIfChanged(sumEl4, "status-summary",
+				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">SPLAT</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Tileset shader active - hard surfaces moved to SURFACE (HARD)</span>')
 		end
 	end
 	-- Reactive refresh of section warn chips after state sync
