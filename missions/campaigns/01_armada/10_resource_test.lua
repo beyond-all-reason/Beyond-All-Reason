@@ -1,7 +1,3 @@
----
---- Resource triggers and actions test mission.
----
-
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 

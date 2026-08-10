@@ -1,9 +1,5 @@
----
---- Test mission demonstrating UnitLoadout and FeatureLoadout.
----
-
-local triggerTypes   = GG['MissionAPI'].TriggerDefinitions.Types
-local actionTypes    = GG['MissionAPI'].ActionDefinitions.Types
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local actionTypes  = GG['MissionAPI'].ActionDefinitions.Types
 
 local lobbyData = {
 	missionId = "loadout_test",
@@ -196,7 +192,6 @@ local actions = {
 }
 
 local unitLoadout    = {
-	-- Player team (team 0).
 	{ unitDefName = 'armck', x = 1780, z = 1850, facing = 'e', teamName = 'thePlayerTeam', unitName = 'player-con' },
 	{ unitDefName = 'corck', x = 1780, z = 1800, facing = 'e', teamName = 'thePlayerTeam',
 	  orders = {
@@ -204,7 +199,6 @@ local unitLoadout    = {
 	  },
 	},
 
-	-- Enemy team (team 1)
 	{ unitDefName = 'corsolar', x = 1700, z = 2150, facing = 'w', teamName = 'theEnemyTeam' },
 	{ unitDefName = 'corsolar', x = 1800, z = 2150, facing = 's', teamName = 'theEnemyTeam' },
 }

@@ -1,7 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTeam)
+local function removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTeamName)
     local tracking = GG['MissionAPI'].Modules.Tracking
+  local reclaimerTeamID = reclaimerTeamName and GG['MissionAPI'].Teams[reclaimerTeamName]
 	if tracking.IsUnitNameUntracked(unitName) then return end
 
     -- Copying table as UnitKilled trigger with SpawnUnits with the same name could cause infinite loop.
@@ -9,20 +10,20 @@ local function removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTe
 	for unitID in pairs(trackedUnitIDs) do
         if Spring.GetUnitIsDead(unitID) == false then
             if reclaim then
-                if not reclaimerTeam then
-                    reclaimerTeam = Spring.GetUnitTeam(unitID)
+                if not reclaimerTeamID then
+                    reclaimerTeamID = Spring.GetUnitTeam(unitID)
                 end
                 local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)]
                 if unitDef and unitDef.metalCost then
-                    Spring.AddTeamResource(reclaimerTeam, "metal", unitDef.metalCost)
+                    Spring.AddTeamResource(reclaimerTeamID, "metal", unitDef.metalCost)
                 end
                 -- if unitDef and unitDef.energyCost then -- We don't give energy from reclaims, but putting it here just in case someone needs it later.
-                --     Spring.AddTeamResource(reclaimerTeam, "energy", unitDef.energyCost)
+                --     Spring.AddTeamResource(reclaimerTeamID, "energy", unitDef.energyCost)
                 -- end
             end
             Spring.DestroyUnit(unitID, selfDestruct, despawn)
         end
-	end 
+	end
 end
 
 local function destroyUnits(unitName)
@@ -39,11 +40,11 @@ local function selfDestructUnits(unitName)
     removeUnits(unitName, selfDestruct, despawn, reclaim, nil)
 end
 
-local function reclaimUnits(unitName, reclaimerTeam)
+local function reclaimUnits(unitName, reclaimerTeamName)
     local selfDestruct = false
     local despawn = true
     local reclaim = true
-    removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTeam)
+    removeUnits(unitName, selfDestruct, despawn, reclaim, reclaimerTeamName)
 end
 
 local function despawnUnits(unitName)
@@ -72,7 +73,7 @@ return {
 	    type = 'ReclaimUnits',
 	    parameters = {
 	    	{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-	    	{ name = 'reclaimerTeam', required = false, type = ParameterTypes.TeamID },
+	    	{ name = 'reclaimerTeam', required = false, type = ParameterTypes.TeamName },
 	    },
 	    actionFunction = reclaimUnits,
     },

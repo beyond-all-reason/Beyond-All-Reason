@@ -79,13 +79,13 @@ local triggers = {
 			seconds = 3,
 			interval = 7,
 		},
-		actions = { 'playSoundNotification', 'messageSoundNotification' },
+		actions = { 'playSoundNotificationFromUnitDetection', 'messageSoundNotification' },
 	},
 
 	playMusic = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			seconds = 5,
 		},
 		actions = { 'playMusic', 'messageMusicNotification' },
 	},
@@ -149,7 +149,7 @@ local actions = {
 		},
 	},
 
-	playSoundNotification = {
+	playSoundNotificationFromUnitDetection = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {

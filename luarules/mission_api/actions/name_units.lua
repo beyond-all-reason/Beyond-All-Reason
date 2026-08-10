@@ -1,7 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function nameUnits(unitName, teamID, unitDefName, area)
+local function nameUnits(unitName, teamName, unitDefName, area)
 	local tracking = GG['MissionAPI'].Modules.Tracking
+	local teamID = teamName and GG['MissionAPI'].Teams[teamName]
 	local hasFilterOtherThanTeamID = unitDefName or area
 
 	local allUnitsOfTeam = {}
@@ -50,10 +51,10 @@ return {
 		type = 'NameUnits',
 		parameters = {
 			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
-			{ name = 'teamID', required = false, type = ParameterTypes.Number },
+			{ name = 'teamName', required = false, type = ParameterTypes.TeamName },
 			{ name = 'unitDefName', required = false, type = ParameterTypes.String },
 			{ name = 'area', required = false, type = ParameterTypes.Area },
-			requiresOneOf = { 'teamID', 'unitDefName', 'area' },
+			requiresOneOf = { 'teamName', 'unitDefName', 'area' },
 		},
 		actionFunction = nameUnits,
 	}

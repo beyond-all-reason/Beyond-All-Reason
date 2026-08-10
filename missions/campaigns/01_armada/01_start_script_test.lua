@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
+local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 -- display in lobby, inspired by https://www.figma.com/design/XmKdpNvdclGEVwW6c2EaKH/BAR_new-client?node-id=228-2&p=f&t=m6SWIi6tC92CRpZi-0
 local lobbyData = {
@@ -77,7 +77,7 @@ local triggers = {
 			difficulties = { "Beginner" },
 		},
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'addMarkerBeginner' },
 	},
@@ -88,7 +88,7 @@ local triggers = {
 			difficulties = { "Normal" },
 		},
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'addMarkerNormal' },
 	},
@@ -99,7 +99,7 @@ local triggers = {
 			difficulties = { "Hard" },
 		},
 		parameters = {
-			gameFrame = 60,
+			seconds = 2,
 		},
 		actions = { 'addMarkerHard' },
 	},

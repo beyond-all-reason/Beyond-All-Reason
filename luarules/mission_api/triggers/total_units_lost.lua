@@ -6,7 +6,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'TotalUnitsLost',
 	parameters = {
-		{ name = 'teamID',      required = true,  type = ParameterTypes.TeamID },
+		{ name = 'teamName',      required = true,  type = ParameterTypes.TeamName },
 		{ name = 'quantity',    required = true,  type = ParameterTypes.Quantity },
 		{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },

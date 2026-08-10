@@ -1,7 +1,11 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function defeat(losingAllyTeamIDs)
+local function defeat(losingAllyTeamNames)
 	local allAllyTeamIDs = Spring.GetAllyTeamList()
+	local losingAllyTeamIDs = {}
+	for _, name in ipairs(losingAllyTeamNames) do
+		losingAllyTeamIDs[#losingAllyTeamIDs + 1] = GG['MissionAPI'].AllyTeams[name]
+	end
 	local winningAllyTeamIDs = {}
 	for _, allyTeamID in pairs(allAllyTeamIDs) do
 		if not table.contains(losingAllyTeamIDs, allyTeamID) then
@@ -15,7 +19,7 @@ return {
 	{
 		type = 'Defeat',
 		parameters = {
-			{ name = 'allyTeamIDs', required = true, type = ParameterTypes.AllyTeamIDs },
+			{ name = 'allyTeamNames', required = true, type = ParameterTypes.AllyTeamNames },
 		},
 		actionFunction = defeat,
 	}

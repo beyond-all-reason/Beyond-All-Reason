@@ -1,6 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function addResources(teamID, metal, energy)
+local function addResources(teamName, metal, energy)
+	local teamID = GG['MissionAPI'].Teams[teamName]
 	if metal then
 		Spring.AddTeamResource(teamID, 'metal', metal)
 	end
@@ -13,7 +14,7 @@ return {
 	{
 		type = 'AddResources',
 		parameters = {
-			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
+			{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 			{ name = 'metal', required = false, type = ParameterTypes.Number },
 			{ name = 'energy', required = false, type = ParameterTypes.Number },
 			requiresOneOf = { 'metal', 'energy' },

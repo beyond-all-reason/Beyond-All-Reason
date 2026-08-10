@@ -238,7 +238,7 @@ local actions = {
 		type = actionTypes.TransferUnits,
 		parameters = {
 			unitName = 'unknownUnitName',
-			newTeam = 777,
+			newTeamName = 777,
 		},
 	},
 

@@ -929,6 +929,9 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		[actionTypes.IssueOrders] = true,
 		[actionTypes.UnnameUnits] = true,
 		[actionTypes.TransferUnits] = true,
+		[actionTypes.DestroyUnits] = true,
+		[actionTypes.SelfDestructUnits] = true,
+		[actionTypes.ReclaimUnits] = true,
 		[actionTypes.DespawnUnits] = true,
 	}
 
