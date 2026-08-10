@@ -57,6 +57,11 @@ function widget:CommandNotify(id, params, options)
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
+			if #units == 1 then
+				-- only one executing unit, just place command at center and exit
+				spGiveOrderToUnit(units[1], CMD.UNLOAD_UNIT, { params[1], params[2], params[3] }, { shift = shift })
+				return true
+			end
 			--if (2 * mathPi * ray*ray)/(#units) >= 128*128 then -- Surface check to prevent clumping (needs GUI before enabling check)
 			local alpha = 1
 			local b = math.floor(alpha * math_sqrt(#units))
