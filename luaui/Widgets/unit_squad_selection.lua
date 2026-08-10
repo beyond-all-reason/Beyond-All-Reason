@@ -60,12 +60,12 @@ local config = {
 	cyclingToNextSquad = true, -- when full squad/type is selected, exclude it to cycle to next
 	leftClickSelectsSquad = true, -- left-click can be used to select squads
 	leftClickAlternativeSelection = false, -- switches left-click (replace and append) between the normal selection — the whole closest squad, any kind, no distance cap — and the alternative one defined by leftClickAlternativeArgs. Bind a hotkey via `squad_setting toggle leftClickAlternativeSelection` to flip on demand
-	leftClickAlternativeArgs = { 1, 0.5, "distance_850" }, -- what the alternative left-click selection does; same tokens as the squad_select_portion action: step values, an optional "distance_<N>" cap and an optional "manual"/"reserve" squad-kind filter. Default is 100% then 50% within 850 elmos. 
+	leftClickAlternativeArgs = { 1, 0.5, "distance_850" }, -- what the alternative left-click selection does; same tokens as the squad_select_portion action: step values, an optional "distance_<N>" cap and an optional "manual"/"reserve" squad-kind filter. Default is 100% then 50% within 850 elmos.
 	leftClickAppendFiltersDomain = true, -- when true, left-click Shift-append squads whose domains ⊆ the selection's. Using it again within inDoubleTapWindow flips to the opposite value.
 	leftClickFilteredRetargets = true, -- when true, Alt+Ctrl-click (replace-mode filtered) acts like the `retarget` keyword: even if the closest unit's type isn't in the current selection, treat the click as a fresh selection on that new type instead of using the selection's types as the filter. Append mode is unaffected.
 	rightClickSquadCreate = false, -- right-click creates squads; bind a hotkey via `squad_setting toggle rightClickSquadCreate` to flip on demand
 	rightClickMovesSquad = true, -- right-click commands the closest squad
-	rightClickMoveRange = 850, -- max world-distance (elmos) from the cursor for the right-click-move feature to highlight/pick a squad; 0 = unlimited
+	rightClickMoveRange = 850, -- max world-distance (elmos) from the cursor for the right-click-move feature to highlight/pick a squad; 0 = unlimited. Also caps the passive closest-squad highlight, even when rightClickMovesSquad is off — left-click select itself has no cap, so a squad farther than this is still selectable, just not previewed
 	ctrlRightClickCreatesSquad = false, -- Ctrl+right-click creates a squad (click still passes through, so the engine's move-in-formation runs too which can cause issues)
 	ctrlRightClickDragCreatesSquad = true, -- hold Ctrl then right-click drag past the engine's MouseDragFrontCommandThreshold to create a squad (click still passes through but does nothing by default)
 	commandCreatesSquad = false, -- experimental
@@ -2069,13 +2069,9 @@ function widget:Update(dt)
 					highlightTarget = findClosestSquad(nil, nil, nil, hx, hz, nil, maxDistSq)
 					if highlightTarget then
 						local sel = analyzeSelection()
-						-- Mirror squad_select's cycle-when-full: if the closest squad is already fully selected, a plain squad-select skips to the next closest, so highlight that one instead.
-						if config.cyclingToNextSquad and squadFullySelected(highlightTarget, sel.selectedSet) then
-							highlightTarget = findClosestSquad(nil, nil, sel.selectedSet, hx, hz, nil, maxDistSq) or highlightTarget
-						end
-						-- Don't redundantly highlight a squad that's already fully selected
-						if not alt and squadFullySelected(highlightTarget, sel.selectedSet) then
-							highlightTarget = nil
+						if squadFullySelected(highlightTarget, sel.selectedSet) then
+							-- Mirror squad_select's cycle-when-full: a fully-selected closest squad makes a plain squad-select skip to the next closest, so highlight that one instead.
+							highlightTarget = config.cyclingToNextSquad and findClosestSquad(nil, nil, sel.selectedSet, hx, hz, nil, maxDistSq) or nil
 						end
 					end
 				end
