@@ -1232,6 +1232,7 @@ local function loadgrassCmd(_, _, params)
 	LoadGrassTGA(filename)
 	defineUploadGrassInstanceVBOData()
 	MakeAndAttachToVAO()
+	processChanges = true  -- grass-less boot leaves this false; see loadGrass API
 	--grassVAO:AttachInstanceBuffer(grassInstanceVBO)
 end
 
@@ -1485,6 +1486,11 @@ function widget:Initialize()
 		if not ok then return end
 		defineUploadGrassInstanceVBOData()
 		MakeAndAttachToVAO()
+		-- On maps that booted without engine grass, processChanges initialized
+		-- false and DrawWorldPreUnit bails on it before looking at the instance
+		-- data — the loaded grass existed but stayed invisible until something
+		-- (the Grass tool button) called enableEditMode.
+		processChanges = true
 	end
 	WG['grassgl4'].clearGrass = function()
 		cleargrassCmd(nil, nil, {})
