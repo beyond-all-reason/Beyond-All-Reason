@@ -1,11 +1,11 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
     spawnTanks = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 90,
+			seconds = 3,
 		},
 		actions = { 'spawnTanks' },
 	},
@@ -13,7 +13,7 @@ local triggers = {
     teleportTanksWithoutSetDirection = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			seconds = 5,
 		},
 		actions = { 'teleportTanksWithoutSetDirection1' },
 	},
@@ -21,7 +21,7 @@ local triggers = {
     teleportTanksWithSetDirection1 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 300,
+			seconds = 10,
 		},
 		actions = { 'teleportTanksWithSetDirection1' },
 	},
@@ -29,7 +29,7 @@ local triggers = {
     teleportTanksWithSetDirection2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 450,
+			seconds = 15,
 		},
 		actions = { 'teleportTanksWithSetDirection2' },
 	},
@@ -37,7 +37,7 @@ local triggers = {
     teleportTanksWithSetDirection3 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 600,
+			seconds = 20,
 		},
 		actions = { 'teleportTanksWithSetDirection3' },
 	},
@@ -45,7 +45,7 @@ local triggers = {
     teleportTanksWithoutSetDirection2 = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 750,
+			seconds = 25,
 		},
 		actions = { 'teleportTanksWithoutSetDirection1' },
 	},
@@ -53,7 +53,7 @@ local triggers = {
     rotateTanksTowardsCenterOfTheGroup = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 900,
+			seconds = 30,
 		},
 		actions = { 'rotateTanksTowardsCenterOfTheGroup' },
 	},

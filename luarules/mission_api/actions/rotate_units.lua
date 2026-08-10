@@ -1,5 +1,7 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
+
+
 local function rotateUnits(unitName, direction)
     local tracking = GG['MissionAPI'].Modules.Tracking
 	if tracking.IsUnitNameUntracked(unitName) then return end
@@ -10,7 +12,7 @@ local function rotateUnits(unitName, direction)
         if Spring.GetUnitIsDead(unitID) == false then
             if direction then
                 local testposx, _, testposz = Spring.GetUnitPosition(unitID)
-                if not (math.abs(direction.x-testposx) >= 0.001 and math.abs(direction.z-testposz) >= 0.001) then
+                if math.abs(direction.x-testposx) >= 0.001 or math.abs(direction.z-testposz) >= 0.001 then
                     Spring.SetUnitDirection(unitID, direction.x-testposx, direction.y, direction.z-testposz)
                 end
             end
