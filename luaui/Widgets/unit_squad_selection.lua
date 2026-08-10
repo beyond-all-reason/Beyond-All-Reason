@@ -26,8 +26,8 @@ end
 ---@class SquadConfig
 ---@field cyclingToNextSquad boolean
 ---@field leftClickSelectsSquad boolean
----@field leftClickSteps (number|string)[]
----@field leftClickStepsEnabled boolean
+---@field leftClickAlternativeSelection boolean
+---@field leftClickAlternativeArgs (number|string)[]
 ---@field leftClickAppendFiltersDomain boolean
 ---@field leftClickFilteredRetargets boolean
 ---@field rightClickSquadCreate boolean
@@ -59,8 +59,8 @@ end
 local config = {
 	cyclingToNextSquad = true, -- when full squad/type is selected, exclude it to cycle to next
 	leftClickSelectsSquad = true, -- left-click can be used to select squads
-	leftClickSteps = { 1, 0.5, "distance_850" }, -- step values + optional distance cap for left-click selection; 100% then 50% within 850 elmos. Only active if leftClickStepsEnabled is true.
-	leftClickStepsEnabled = false, -- when true, left-click (replace and append) uses leftClickSteps; when false (default), both use {1} (whole squad, no distance cap). Bind a hotkey via `squad_setting toggle leftClickStepsEnabled` to flip on demand
+	leftClickAlternativeSelection = false, -- switches left-click (replace and append) between the normal selection — the whole closest squad, any kind, no distance cap — and the alternative one defined by leftClickAlternativeArgs. Bind a hotkey via `squad_setting toggle leftClickAlternativeSelection` to flip on demand
+	leftClickAlternativeArgs = { 1, 0.5, "distance_850" }, -- what the alternative left-click selection does; same tokens as the squad_select_portion action: step values, an optional "distance_<N>" cap and an optional "manual"/"reserve" squad-kind filter. Default is 100% then 50% within 850 elmos. 
 	leftClickAppendFiltersDomain = true, -- when true, left-click Shift-append squads whose domains ⊆ the selection's. Using it again within inDoubleTapWindow flips to the opposite value.
 	leftClickFilteredRetargets = true, -- when true, Alt+Ctrl-click (replace-mode filtered) acts like the `retarget` keyword: even if the closest unit's type isn't in the current selection, treat the click as a fresh selection on that new type instead of using the selection's types as the filter. Append mode is unaffected.
 	rightClickSquadCreate = false, -- right-click creates squads; bind a hotkey via `squad_setting toggle rightClickSquadCreate` to flip on demand
@@ -103,11 +103,9 @@ end
 local spEcho = Spring.Echo
 local spGetLocalTeamID = Spring.GetLocalTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
----@type fun(unitID: number): integer?
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetSelectedUnits = Spring.GetSelectedUnits
----@type fun(unitIDs: number[], append?: boolean) Re-typed: unit IDs are `number` here (Spring.GetSelectedUnits returns number[]), but the engine annotation wants integer[].
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -115,15 +113,12 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetLocalPlayerID = Spring.GetLocalPlayerID
----@type fun(groupID: number): number[]?
 local spGetGroupUnits = Spring.GetGroupUnits
----@type fun(unitID: number): integer?
 local spGetUnitGroup = Spring.GetUnitGroup
 local spGetMouseCursor = Spring.GetMouseCursor
 local spGetConfigInt = Spring.GetConfigInt
 local spIsReplay = Spring.IsReplay
 local spGetGroundHeight = Spring.GetGroundHeight
----@type fun(unitID: number): integer?
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetTeamColor = Spring.GetTeamColor
 local spSendCommands = Spring.SendCommands
@@ -140,7 +135,7 @@ local constrain = Util.constrain
 local approach = Util.approach
 local indexToColor = Util.indexToColor
 local stepToCount = Util.stepToCount
-local parsePortionArgs = Util.parsePortionArgs
+local parseSelectArgs = Util.parseSelectArgs
 local sortUnitsByDistance = Util.sortUnitsByDistance
 local squadFullySelected = Util.squadFullySelected
 local countSelectedIn = Util.countSelectedIn
@@ -821,14 +816,29 @@ end
 -- Cylinder radius (elmos) for perf heuristic.
 local SEARCH_RADIUS = 850
 
+-- Squad-kind gate shared by both scans: "manual" keeps player-created squads,
+-- "reserve" keeps per-factory + uncategorized reserves, nil keeps everything.
+---@param sq Squad
+---@param squadKind SquadKind?
+---@return boolean
+local function squadMatchesKind(sq, squadKind)
+	if not squadKind then
+		return true
+	end
+	if squadKind == "reserve" then
+		return sq.isReserve == true
+	end
+	return not sq.isReserve
+end
+
 -- Full scan over every tracked unit. Fallback when the cylinder finds nothing.
-local function findClosestSquadFullScan(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq)
+local function findClosestSquadFullScan(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq, squadKind)
 	local bestUnit = nil
 	local bestDistSq = maxDistSq or math.huge
 
 	for _, squad in ipairs(squads) do
-		local squadOk = true
-		if domainFilter then
+		local squadOk = squadMatchesKind(squad, squadKind)
+		if squadOk and domainFilter then
 			for j = 1, #squad do
 				local did = defidOf[squad[j]]
 				local d = did and unitDomain[did]
@@ -877,8 +887,9 @@ end
 ---@param wz number Cursor world z.
 ---@param domainFilter table<Domain, boolean>? Allowed domains; rejects entire squads containing any other domain.
 ---@param maxDistSq number? Squared world-distance cap; nil falls back to SEARCH_RADIUS then a full scan.
+---@param squadKind SquadKind? Restrict to manual or reserve squads; nil considers both.
 ---@return Squad? squad, number? closestUnit
-local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq)
+local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq, squadKind)
 	local radius = maxDistSq and math.sqrt(maxDistSq) or SEARCH_RADIUS
 	local candidates = spGetUnitsInCylinder(wx, wz, radius)
 
@@ -889,7 +900,7 @@ local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFil
 	for i = 1, #candidates do
 		local u = candidates[i]
 		local squad = unitSquad[u] -- nil for untracked units (enemy/allied/non-combat)
-		if squad and not (exclude and exclude[u]) and not (groupSet and not groupSet[u]) then
+		if squad and squadMatchesKind(squad, squadKind) and not (exclude and exclude[u]) and not (groupSet and not groupSet[u]) then
 			if not filterDefs or (defidOf[u] and filterDefs[defidOf[u]]) then
 				-- domainFilter is squad-level: check the whole squad, not just its in-cylinder units. Memoized so each squad is inspected once.
 				local squadOk = true
@@ -927,7 +938,7 @@ local function findClosestSquad(filterDefs, groupSet, exclude, wx, wz, domainFil
 
 	-- Unbounded miss: a qualifying squad, if any, is farther than SEARCH_RADIUS.
 	if not bestUnit and not maxDistSq then
-		return findClosestSquadFullScan(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq)
+		return findClosestSquadFullScan(filterDefs, groupSet, exclude, wx, wz, domainFilter, maxDistSq, squadKind)
 	end
 
 	return bestUnit and unitSquad[bestUnit] or nil, bestUnit
@@ -1027,12 +1038,13 @@ end
 ---@param sel SelectionInfo
 ---@param wx number
 ---@param wz number
+---@param squadKind SquadKind? Restrict the closest-unit peek to this squad kind.
 ---@return table<number, boolean>? filterDefs
-local function resolveFilterDefs(sel, wx, wz)
+local function resolveFilterDefs(sel, wx, wz, squadKind)
 	if sel.hasTrackedUnits then
 		return sel.selectedTypeSet
 	end
-	local _, closest = findClosestSquad(nil, nil, nil, wx, wz)
+	local _, closest = findClosestSquad(nil, nil, nil, wx, wz, nil, nil, squadKind)
 	if not closest then
 		return nil
 	end
@@ -1053,15 +1065,16 @@ end
 ---@param sel SelectionInfo
 ---@param wx number
 ---@param wz number
+---@param squadKind SquadKind? Restrict the closest-unit peek to this squad kind.
 ---@return table<number, boolean>? filterDefs
-local function resolveRetargetFilterDefs(sel, wx, wz)
-	local _, closest = findClosestSquad(nil, nil, nil, wx, wz)
+local function resolveRetargetFilterDefs(sel, wx, wz, squadKind)
+	local _, closest = findClosestSquad(nil, nil, nil, wx, wz, nil, nil, squadKind)
 	if not closest then
-		return resolveFilterDefs(sel, wx, wz)
+		return resolveFilterDefs(sel, wx, wz, squadKind)
 	end
 	local defId = defidOf[closest]
 	if not defId then
-		return resolveFilterDefs(sel, wx, wz)
+		return resolveFilterDefs(sel, wx, wz, squadKind)
 	end
 	if sel.hasTrackedUnits and sel.selectedTypeSet[defId] then
 		return sel.selectedTypeSet
@@ -1106,6 +1119,7 @@ end
 ---@field filterDefs table<number, boolean>? defID set; narrows the pool to matching unit types.
 ---@field groupSet table<number, boolean>? unitID set; narrows the pool to control-group members.
 ---@field maxDistance number? Cap the pool to units within this world distance of the cursor.
+---@field squadKind SquadKind? Only consider manual squads or reserve squads; nil (default) considers both.
 ---@field cycleWhenFull boolean? When the closest squad's pool is already fully selected, re-pick a squad with those units excluded.
 ---@field useDomainFilter boolean? Restrict squad cycling to domains ("land"/"air"/"naval") present in the selection. Ignored when no tracked units are selected.
 ---@field isMousePress boolean? True for left-click-initiated selection, false for action/hotkey-initiated.
@@ -1154,6 +1168,10 @@ local function doSquadSelect(opts)
 	if not (#steps == 1 and steps[1] == 1) then
 		kind = kind .. ":portion"
 	end
+	-- Squad-kind restriction is part of the identity too
+	if opts.squadKind then
+		kind = kind .. ":" .. opts.squadKind
+	end
 
 	-- Compute the double-tap window match against the previous tap, then snapshot its append flag and kind before we overwrite lastSquadSelect below.
 	local inDoubleTapWindow = false
@@ -1199,7 +1217,7 @@ local function doSquadSelect(opts)
 	local maxDistanceSq = opts.maxDistance and opts.maxDistance * opts.maxDistance or nil
 	local domainFilter = opts.useDomainFilter and sel.hasTrackedUnits and sel.selectedDomainSet or nil
 
-	local targetSquad = findClosestSquad(filterDefs, groupSet, nil, wx, wz, domainFilter)
+	local targetSquad = findClosestSquad(filterDefs, groupSet, nil, wx, wz, domainFilter, nil, opts.squadKind)
 	if not targetSquad then
 		return
 	end
@@ -1229,7 +1247,7 @@ local function doSquadSelect(opts)
 	if opts.cycleWhenFull and fullySelected then
 		-- If cycling finds no other squad (e.g. the player previously appended their way through every squad so nothing is unselected), keep the original target so a replace tap still replaces with the closest squad instead of silently doing nothing.
 		-- For append, the empty pickUnits result later short-circuits to a no-op.
-		local cycledTarget = findClosestSquad(filterDefs, groupSet, sel.selectedSet, wx, wz, domainFilter)
+		local cycledTarget = findClosestSquad(filterDefs, groupSet, sel.selectedSet, wx, wz, domainFilter, nil, opts.squadKind)
 		if cycledTarget then
 			targetSquad = cycledTarget
 			pool, stepPool = buildPools(targetSquad, filterDefs, groupSet, maxDistanceSq, wx, wz)
@@ -1269,12 +1287,11 @@ end
 -------------------------------------------------------------------------------
 
 local function squadSelect(_, _, args)
-	local arg = args and args[1]
-	local append = arg == "append" or arg == "append_domain"
-	local useDomainFilter = arg == "append_domain"
+	local append, useDomainFilter, _, squadKind = parseSelectArgs(args) -- steps/maxDistance intentionally ignored: whole-squad action
 	doSquadSelect({
 		append = append,
 		useDomainFilter = useDomainFilter,
+		squadKind = squadKind,
 		cycleWhenFull = append or config.cyclingToNextSquad,
 	})
 	return true
@@ -1345,12 +1362,9 @@ local function squadSelectFiltered(_, _, args)
 	if not wx then
 		return true
 	end
-	local arg = args and args[1]
-	local append = arg == "append" or arg == "append_domain"
-	local useDomainFilter = arg == "append_domain"
-	local retarget = arg == "retarget"
+	local append, useDomainFilter, retarget, squadKind = parseSelectArgs(args) -- steps/maxDistance intentionally ignored: whole-squad action
 	local sel = analyzeSelection()
-	local filterDefs = (retarget and not append) and resolveRetargetFilterDefs(sel, wx, wz) or resolveFilterDefs(sel, wx, wz)
+	local filterDefs = (retarget and not append) and resolveRetargetFilterDefs(sel, wx, wz, squadKind) or resolveFilterDefs(sel, wx, wz, squadKind)
 	if not filterDefs then
 		return true
 	end
@@ -1358,6 +1372,7 @@ local function squadSelectFiltered(_, _, args)
 		append = append,
 		useDomainFilter = useDomainFilter,
 		filterDefs = filterDefs,
+		squadKind = squadKind,
 		cycleWhenFull = append or config.cyclingToNextSquad,
 	})
 	return true
@@ -1371,38 +1386,39 @@ local function squadSelectGroup(_, _, args)
 	if not groupNum then
 		return true
 	end
-	local arg = args[2]
-	local append = arg == "append" or arg == "append_domain"
-	local useDomainFilter = arg == "append_domain"
+	-- steps/maxDistance intentionally ignored, which also swallows the leading group number.
+	local append, useDomainFilter, _, squadKind = parseSelectArgs(args)
 	doSquadSelect({
 		append = append,
 		useDomainFilter = useDomainFilter,
 		groupSet = buildGroupSet(groupNum),
+		squadKind = squadKind,
 		cycleWhenFull = append or config.cyclingToNextSquad,
 	})
 	return true
 end
 
 local function squadSelectPortion(_, _, args)
-	local append, useDomainFilter, steps, maxDistance = parsePortionArgs(args)
+	local append, useDomainFilter, _, squadKind, steps, maxDistance = parseSelectArgs(args)
 	doSquadSelect({
 		append = append,
 		useDomainFilter = useDomainFilter,
 		steps = steps,
 		maxDistance = maxDistance,
+		squadKind = squadKind,
 		cycleWhenFull = append,
 	})
 	return true
 end
 
 local function squadSelectPortionFiltered(_, _, args)
-	local append, useDomainFilter, steps, maxDistance, retarget = parsePortionArgs(args)
+	local append, useDomainFilter, retarget, squadKind, steps, maxDistance = parseSelectArgs(args)
 	local wx, wz = getMouseWorldPos()
 	if not wx then
 		return true
 	end
 	local sel = analyzeSelection()
-	local filterDefs = (retarget and not append) and resolveRetargetFilterDefs(sel, wx, wz) or resolveFilterDefs(sel, wx, wz)
+	local filterDefs = (retarget and not append) and resolveRetargetFilterDefs(sel, wx, wz, squadKind) or resolveFilterDefs(sel, wx, wz, squadKind)
 	if not filterDefs then
 		return true
 	end
@@ -1412,6 +1428,7 @@ local function squadSelectPortionFiltered(_, _, args)
 		steps = steps,
 		filterDefs = filterDefs,
 		maxDistance = maxDistance,
+		squadKind = squadKind,
 		cycleWhenFull = append,
 	})
 	return true
@@ -1429,13 +1446,14 @@ local function squadSelectPortionGroup(_, _, args)
 	for i = 2, #args do
 		remaining[#remaining + 1] = args[i]
 	end
-	local append, useDomainFilter, steps, maxDistance = parsePortionArgs(remaining)
+	local append, useDomainFilter, _, squadKind, steps, maxDistance = parseSelectArgs(remaining)
 	doSquadSelect({
 		append = append,
 		useDomainFilter = useDomainFilter,
 		steps = steps,
 		groupSet = buildGroupSet(groupNum),
 		maxDistance = maxDistance,
+		squadKind = squadKind,
 		cycleWhenFull = append,
 	})
 	return true
@@ -1675,8 +1693,8 @@ local function squadSetting(_, _, args)
 			spEcho('[Squad] excludedUnitTypes = "' .. config[key] .. '" (applied)')
 			return
 		end
-		-- Table-typed keys collect all remaining args as a list of numbers and
-		-- distance_<N> tokens. Passing no values clears the list.
+		-- Table-typed keys collect all remaining args as a list of numbers plus
+		-- distance_<N> and squad-kind tokens. Passing no values clears the list.
 		if type(config[key]) == "table" then
 			local list = {}
 			for i = 3, #args do
@@ -1684,7 +1702,7 @@ local function squadSetting(_, _, args)
 				local n = tonumber(tok)
 				if n then
 					list[#list + 1] = n
-				elseif tok:match("^distance_%d+%.?%d*$") then
+				elseif tok:match("^distance_%d+%.?%d*$") or tok == "manual" or tok == "reserve" or tok == "any" then
 					list[#list + 1] = tok
 				end
 			end
@@ -1808,8 +1826,8 @@ function widget:Initialize()
 	-- get<Key>/set<Key> pairs for every exposed config key.
 	local exposedSettings = {
 		"leftClickSelectsSquad",
-		"leftClickSteps",
-		"leftClickStepsEnabled",
+		"leftClickAlternativeSelection",
+		"leftClickAlternativeArgs",
 		"leftClickAppendFiltersDomain",
 		"leftClickFilteredRetargets",
 		"cyclingToNextSquad",
@@ -2302,10 +2320,14 @@ function widget:MousePress(x, y, button)
 			return false
 		end
 
-		local stepsConfig = config.leftClickStepsEnabled and config.leftClickSteps or { 1 }
-		local _, _, steps, maxDistance = parsePortionArgs(stepsConfig)
-		if #steps == 0 then
-			steps = { 1 }
+		-- Normal mode: the whole closest squad, any kind, no distance cap.
+		-- Alternative mode: leftClickAlternativeArgs in full — step values,
+		-- distance cap and squad-kind filter.
+		local steps, maxDistance, squadKind = { 1 }, nil, nil
+		if config.leftClickAlternativeSelection then
+			local _, _, _, cfgSquadKind, cfgSteps, cfgMaxDistance = parseSelectArgs(config.leftClickAlternativeArgs)
+			steps = #cfgSteps > 0 and cfgSteps or { 1 }
+			maxDistance, squadKind = cfgMaxDistance, cfgSquadKind
 		end
 		-- Whole-squad mode = the config is just {1}. Anything else (including {0.5} or {5}) is portion mode.
 		local wholeSquad = #steps == 1 and steps[1] == 1
@@ -2318,6 +2340,7 @@ function widget:MousePress(x, y, button)
 			useDomainFilter = append and config.leftClickAppendFiltersDomain,
 			steps = steps,
 			maxDistance = maxDistance,
+			squadKind = squadKind,
 			isMousePress = true,
 			cycleWhenFull = append or (wholeSquad and config.cyclingToNextSquad),
 		}
@@ -2328,7 +2351,7 @@ function widget:MousePress(x, y, button)
 				return false
 			end
 			local sel = analyzeSelection()
-			opts.filterDefs = (config.leftClickFilteredRetargets and not append) and resolveRetargetFilterDefs(sel, wx, wz) or resolveFilterDefs(sel, wx, wz)
+			opts.filterDefs = (config.leftClickFilteredRetargets and not append) and resolveRetargetFilterDefs(sel, wx, wz, squadKind) or resolveFilterDefs(sel, wx, wz, squadKind)
 			if not opts.filterDefs then
 				return false
 			end
