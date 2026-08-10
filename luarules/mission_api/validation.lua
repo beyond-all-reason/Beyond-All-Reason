@@ -321,16 +321,13 @@ validators[Types.Area] = function(area)
 	end
 
 
-local function getValidatorFromEnumSetSpec(emumSetSpec)
+local function getValidatorFromEnumSetSpec(emumSetSpec, enumSetName)
 	local noun = emumSetSpec.noun
 	local generalPlural = string.upper(string.sub(noun, 1, 1)) .. string.sub(noun, 2) .. 's'
 	local emptyMessage = generalPlural .. " table must not be empty"
 	local allowedList = "'" .. table.concat(emumSetSpec.values, "', '") .. "'"
 
-	local members = {}
-	for _, value in ipairs(emumSetSpec.values) do
-		members[value] = true
-	end
+	local members = parameterTypes.Enums[enumSetName]
 
 	return function(values)
 		local luaTypeResult = validators[Types.Table](values)
@@ -349,8 +346,8 @@ local function getValidatorFromEnumSetSpec(emumSetSpec)
 	end
 end
 
-for enumSetType, spec in pairs(parameterTypes.EnumSets) do
-	validators[enumSetType] = getValidatorFromEnumSetSpec(spec)
+for enumSetName, spec in pairs(parameterTypes.EnumSets) do
+	validators[enumSetName] = getValidatorFromEnumSetSpec(spec, enumSetName)
 end
 
 --- String Validators:
