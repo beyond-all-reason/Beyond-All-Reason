@@ -2379,6 +2379,14 @@ local function doImportHeightmapSend()
 		SendLuaRulesMsg((extraState._newmapCertify and "$c$" or "") .. MSG.IMPORT_END)
 		tessellationDirtyFrames = 60
 		extraState._importNeedsShadowRefresh = 60
+		-- The tileset shader anchors gravel/plateau placement to the ground
+		-- extremes, which this import just replaced wholesale. Arm its
+		-- re-snapshot window (tracks for a few seconds, so the async synced
+		-- apply lands inside it) instead of leaving placement anchored to the
+		-- pre-import canvas.
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+			WG.TilesetTerrain.refreshHeightRef()
+		end
 	end
 end
 

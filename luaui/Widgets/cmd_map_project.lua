@@ -1590,6 +1590,11 @@ local function phaseHeightmap(c)
 	end
 	local ack = Spring.GetGameRulesParam(ACK_PARAM) or 0
 	if ack > c.ackBase then
+		-- the tileset shader anchors gravel/plateau placement to the ground
+		-- extremes; the import just replaced them wholesale, so re-snapshot
+		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
+			WG.TilesetTerrain.refreshHeightRef()
+		end
 		loadOk("heightmap", "sim-acknowledged")
 		return true
 	end
