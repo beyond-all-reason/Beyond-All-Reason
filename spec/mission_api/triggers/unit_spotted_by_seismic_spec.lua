@@ -10,9 +10,19 @@ _G.UnitDefs = { [1] = { name = 'armpw' }, [2] = { name = 'corfast' } }
 
 local unitSpottedBySeismic = VFS.Include('luarules/mission_api/triggers/unit_spotted_by_seismic.lua')
 local onSeismicPing = unitSpottedBySeismic.callins.UnitSeismicPing
+local onSeismicInterval = unitSpottedBySeismic.callins.SeismicInterval
+
+-- The first sweep banks the ping as a score of 2. Two more sweeps decrease toward a falloff.
+local SWEEPS_TO_FALLOFF_AFTER_ONE_PING = 3
 
 describe("mission_api.triggers.unit_spotted_by_seismic", function()
+	-- Each test below takes a fresh triggerID, rather than risk sharing state across triggers.
+	local triggerID
+	local triggerCount = 0
+
 	before_each(function()
+		triggerCount = triggerCount + 1
+		triggerID = 'spotted-' .. triggerCount -- Safe.
 		Spring.GetUnitTeam = function(_unitID) return 3 end
 	end)
 
@@ -29,10 +39,14 @@ describe("mission_api.triggers.unit_spotted_by_seismic", function()
 		return context, function() return fired end
 	end
 
-	local triggerID = 't'
-
 	local function ping(t, context, seismicAllyTeamID, unitID, unitDefID)
 		onSeismicPing(t, triggerID, context, 0, 0, 0, 1, seismicAllyTeamID, unitID, unitDefID)
+	end
+
+	local function tickSilent(t, context, intervals)
+		for _ = 1, intervals do -- NB: Always from 1
+			onSeismicInterval(t, triggerID, context)
+		end
 	end
 
 	it("declares its type and parameters", function()
@@ -50,7 +64,9 @@ describe("mission_api.triggers.unit_spotted_by_seismic", function()
 
 	it("filters by unitName", function()
 		local context, fired = newContext()
-		ping(trigger({ unitName = 'scouts' }), context, 0, 100, 1)
+		local t = trigger({ unitName = 'scouts' })
+		context.DoesUnitHaveName = function() return false end
+		ping(t, context, 0, 100, 1)
 		assert.are.equal(0, fired())
 	end)
 
@@ -78,13 +94,61 @@ describe("mission_api.triggers.unit_spotted_by_seismic", function()
 		assert.are.equal(1, fired())
 	end)
 
-	-- This includes both SlowUpdate/automatic pings from the engine and any extra scripted pings.
-	it("fires on every ping, with no deduplication", function()
+	it("fires only on the leading edge, and stays locked while pings continue", function()
 		local context, fired = newContext()
 		local t = trigger({ unitDefName = 'armpw' })
 		for _ = 1, 10 do
 			ping(t, context, 0, 100, 1)
 		end
-		assert.are.equal(10, fired())
+		assert.are.equal(1, fired())
+	end)
+
+	it("stays locked across intervals while the unit keeps pinging", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' })
+		for _ = 1, 20 do
+			ping(t, context, 0, 100, 1)
+			tickSilent(t, context, 1)
+		end
+		assert.are.equal(1, fired())
+	end)
+
+	-- Need some concrete behaviors that are not statistical:
+	it("stays locked for a unit pinging every other interval", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' })
+		for _ = 1, 50 do
+			ping(t, context, 0, 100, 1)
+			tickSilent(t, context, 1)
+			tickSilent(t, context, 1)
+		end
+		assert.are.equal(1, fired())
+	end)
+
+	it("stays locked while the contact is still draining", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' })
+		ping(t, context, 0, 100, 1)
+		tickSilent(t, context, SWEEPS_TO_FALLOFF_AFTER_ONE_PING - 1)
+		ping(t, context, 0, 100, 1)
+		assert.are.equal(1, fired())
+	end)
+
+	it("re-arms once the contact falls off, and fires again on the next ping", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' })
+		ping(t, context, 0, 100, 1)
+		tickSilent(t, context, SWEEPS_TO_FALLOFF_AFTER_ONE_PING)
+		ping(t, context, 0, 100, 1)
+		assert.are.equal(2, fired())
+	end)
+
+	it("locks each unit independently", function()
+		local context, fired = newContext()
+		local t = trigger({ unitDefName = 'armpw' })
+		ping(t, context, 0, 100, 1)
+		ping(t, context, 0, 101, 1)
+		ping(t, context, 0, 100, 1)
+		assert.are.equal(2, fired())
 	end)
 end)
