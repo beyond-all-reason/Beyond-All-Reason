@@ -183,6 +183,7 @@ if Spring.GetConfigInt("version", 0) < version then
 	--Spring.SetConfigFloat("NanoParticlesUpdateLuaUISampleRate", 0.32)
 end
 
+Spring.SetConfigInt("NanoParticleMode", 1)
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)
