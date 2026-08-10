@@ -2,10 +2,18 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function addResources(teamID, metal, energy)
 	if metal then
-		Spring.AddTeamResource(teamID, 'metal', metal)
+		if metal > 0 then
+            Spring.AddTeamResource(teamID, "metal", metal)
+        elseif metal < 0 then
+            Spring.UseTeamResource(teamID, "metal", -metal)
+        end
 	end
 	if energy then
-		Spring.AddTeamResource(teamID, 'energy', energy)
+		if energy > 0 then
+            Spring.AddTeamResource(teamID, "energy", energy)
+        elseif energy < 0 then
+            Spring.UseTeamResource(teamID, "energy", -energy)
+        end
 	end
 end
 
