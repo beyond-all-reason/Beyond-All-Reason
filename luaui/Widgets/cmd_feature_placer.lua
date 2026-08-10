@@ -152,11 +152,12 @@ local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
 local CATEGORY_ORDER = {
-	"rocks", "trees", "foliage", "crystals", "christmas",
+	"geo", "rocks", "trees", "foliage", "crystals", "christmas",
 	"raptor", "armada_wrecks", "cortex_wrecks", "legion_wrecks", "other",
 }
 
 local CATEGORY_LABELS = {
+	geo = "Geo",
 	rocks = "Rocks",
 	trees = "Trees",
 	foliage = "Foliage",
@@ -170,6 +171,11 @@ local CATEGORY_LABELS = {
 }
 
 local function classifyFeature(name, def)
+	-- Geothermal vents get their own category: real maps ship a def named
+	-- plain "geovent" (often model-less) next to the game's editor_geovent,
+	-- and both buried in Other made it easy to place the wrong one.
+	if def and def.geoThermal then return "geo" end
+
 	-- Exclude debris and heaps entirely
 	if name:find("_heap$") then return nil end
 	if name:find("debris") then return nil end
