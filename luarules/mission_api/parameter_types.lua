@@ -47,18 +47,15 @@ local enums = {
 }
 
 local enumSets = {
-	[types.ResourceIncomeSources] = {
-		noun = 'resource income source',
-		values = { 'extractor', 'production', 'reclaim', 'transfer' },
-	},
+	[types.ResourceIncomeSources] = { 'extractor', 'production', 'reclaim', 'transfer' },
 }
 
-for enumType, enumSpec in pairs(enumSets) do
+for enumSetName, enumSetValues in pairs(enumSets) do
 	local valueSet = {}
-	for _, value in ipairs(enumSpec.values) do
+	for _, value in ipairs(enumSetValues) do
 		valueSet[value] = true
 	end
-	enums[enumType] = valueSet
+	enums[enumSetName] = valueSet
 end
 
 return {

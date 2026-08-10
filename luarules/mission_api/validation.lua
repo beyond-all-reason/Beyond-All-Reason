@@ -321,13 +321,10 @@ validators[Types.Area] = function(area)
 	end
 
 
-local function getValidatorFromEnumSetSpec(emumSetSpec, enumSetName)
-	local noun = emumSetSpec.noun
-	local generalPlural = string.upper(string.sub(noun, 1, 1)) .. string.sub(noun, 2) .. 's'
-	local emptyMessage = generalPlural .. " table must not be empty"
-	local allowedList = "'" .. table.concat(emumSetSpec.values, "', '") .. "'"
-
-	local members = parameterTypes.Enums[enumSetName]
+local function getValidatorFromEnumSetSpec(enumSetName, enumSetList)
+	local valueSet = parameterTypes.Enums[enumSetName]
+	local emptyMessage = enumSetName .. " table must not be empty"
+	local allowedList = "'" .. table.concat(enumSetList, "', '") .. "'"
 
 	return function(values)
 		local luaTypeResult = validators[Types.Table](values)
@@ -338,16 +335,16 @@ local function getValidatorFromEnumSetSpec(emumSetSpec, enumSetName)
 
 		local result = {}
 		for i, value in ipairs(values) do
-			if not members[value] then
-				result[#result + 1] = { message = "Invalid " .. noun .. " [" .. i .. "]: '" .. tostring(value) .. "'. Must be one of: " .. allowedList }
+			if not valueSet[value] then
+				result[#result + 1] = { message = "Invalid " .. enumSetName .. " [" .. i .. "]: '" .. tostring(value) .. "'. Must be one of: " .. allowedList }
 			end
 		end
 		if #result > 0 then return result end
 	end
 end
 
-for enumSetName, spec in pairs(parameterTypes.EnumSets) do
-	validators[enumSetName] = getValidatorFromEnumSetSpec(spec, enumSetName)
+for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
+	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
 end
 
 --- String Validators:
