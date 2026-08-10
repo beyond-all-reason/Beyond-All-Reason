@@ -101,19 +101,39 @@ local function stepToCount(step, poolSize)
 	return math.min(math.floor(step), poolSize)
 end
 
--- Parse portion action args: optional "append"/"append_domain" keyword,
--- optional "distance_<N>" modifier that caps selection to units within N
--- world-distance of the cursor, plus step numbers. "append_domain" implies
--- append and restricts to domains present in the current selection.
+-- Squad-kind keywords accepted by every selection action: restrict the search to
+-- manual squads (player-created) or reserve squads (per-factory + uncategorized).
+-- "any" is the default and only exists so a bind can state it explicitly.
+---@alias SquadKind "manual"|"reserve"
+local SQUAD_KIND_TOKENS = {
+	manual = "manual",
+	reserve = "reserve",
+	any = false, -- recognized as a token, but imposes no filter
+}
+
+-- Parse the args of any squad_select* action. Every token is optional and
+-- position-independent:
+--   "append"        — add to the selection instead of replacing it
+--   "append_domain" — implies append, and restricts cycling to the domains
+--                     ("land"/"air"/"naval") present in the current selection
+--   "retarget"      — filtered actions only; let a replace-mode click swing the
+--                     type filter to the closest unit's type
+--   "manual"/"reserve"/"any" — squad-kind filter (see SQUAD_KIND_TOKENS)
+--   "distance_<N>"  — cap the selection to units within N world-distance of the cursor
+--   numbers         — step values, in order
+--
+-- The whole-squad actions ignore the returned steps and maxDistance, so a stray
+-- number (e.g. squad_select_group's leading group number) is harmless there.
 ---@param args (string|number)[]? Raw action args.
----@return boolean append, boolean useDomainFilter, number[] steps, number? maxDistance, boolean retarget
-local function parsePortionArgs(args)
+---@return boolean append, boolean useDomainFilter, boolean retarget, SquadKind? squadKind, number[] steps, number? maxDistance
+local function parseSelectArgs(args)
 	if not args then
-		return false, false, {}, nil, false
+		return false, false, false, nil, {}, nil
 	end
 	local append = false
 	local useDomainFilter = false
 	local retarget = false
+	local squadKind = nil
 	local steps = {}
 	local maxDistance
 	for i = 1, #args do
@@ -125,6 +145,8 @@ local function parsePortionArgs(args)
 			useDomainFilter = true
 		elseif arg == "retarget" then
 			retarget = true
+		elseif SQUAD_KIND_TOKENS[arg] ~= nil then
+			squadKind = SQUAD_KIND_TOKENS[arg] or nil
 		elseif type(arg) == "string" and arg:sub(1, 9) == "distance_" then
 			local d = tonumber(arg:sub(10))
 			if d and d > 0 then
@@ -137,7 +159,7 @@ local function parsePortionArgs(args)
 			end
 		end
 	end
-	return append, useDomainFilter, steps, maxDistance, retarget
+	return append, useDomainFilter, retarget, squadKind, steps, maxDistance
 end
 
 -- Sort a unit array in-place by distance to a world point.
@@ -381,7 +403,7 @@ return {
 	hsvToRgb = hsvToRgb,
 	indexToColor = indexToColor,
 	stepToCount = stepToCount,
-	parsePortionArgs = parsePortionArgs,
+	parseSelectArgs = parseSelectArgs,
 	sortUnitsByDistance = sortUnitsByDistance,
 	squadFullySelected = squadFullySelected,
 	countSelectedIn = countSelectedIn,
