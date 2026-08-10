@@ -5421,6 +5421,16 @@
 								<input type="text" id="ts-slider-gravelBlend-numbox" class="tf-slider-numbox" readonly value="0.12" />
 							</div>
 							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus evidence</div>
+								<input type="range" id="ts-slider-talusEvidence" class="tf-slider" min="0" max="1" step="0.01" value="1.00" data-event-change="onTilesetKnob('talusEvidence')" />
+								<input type="text" id="ts-slider-talusEvidence-numbox" class="tf-slider-numbox" readonly value="1.00" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Cavity floor</div>
+								<input type="range" id="ts-slider-cavityFloor" class="tf-slider" min="0" max="0.8" step="0.01" value="0.30" data-event-change="onTilesetKnob('cavityFloor')" />
+								<input type="text" id="ts-slider-cavityFloor-numbox" class="tf-slider-numbox" readonly value="0.30" />
+							</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
 								<div class="text-base text-light" style="flex: 0 0 96dp;">Talus scatter</div>
 								<input type="range" id="ts-slider-talusPatch" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.9" data-event-change="onTilesetKnob('talusPatch')" />
 								<input type="text" id="ts-slider-talusPatch-numbox" class="tf-slider-numbox" readonly value="0.9" />

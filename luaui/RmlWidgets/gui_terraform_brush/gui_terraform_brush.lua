@@ -6798,7 +6798,13 @@ local initialModel = {
 	end,
 	onTilesetKnob = function(_event, key)
 		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
-		local v = _elemSliderVal("ts-slider-" .. key, 0)
+		-- Drop the deferred echo of programmatic slider stamps: tf_tileset.M.sync
+		-- raises change events via SetAttribute that RmlUi delivers frames later,
+		-- after updatingFromCode is back to false, and GetAttribute can then read
+		-- clamped/stale values back into the knobs (per-swap config drift).
+		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then return end
+		-- nil fallback, not 0: a failed element lookup must not zero the knob.
+		local v = _elemSliderVal("ts-slider-" .. key, nil)
 		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
 	end,
 	-- DEBUG view multi-toggle (replaces the old debugView slider). Sets the knob and

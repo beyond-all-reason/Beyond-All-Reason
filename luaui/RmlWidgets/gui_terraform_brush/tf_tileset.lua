@@ -21,7 +21,7 @@ local KNOBS = {
 	{ "cliffNormStrength", "%.2f" }, { "footNormStrength", "%.2f" },
 	{ "cliffStartDeg", "%.1f" }, { "chunkyCliff", "%d" }, { "foothillsSpanDeg", "%.1f" }, { "footFloor", "%.2f" },
 	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
-	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusPatch", "%.2f" },
+	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusEvidence", "%.2f" }, { "cavityFloor", "%.2f" }, { "talusPatch", "%.2f" },
 	{ "talusStartDeg", "%.1f" }, { "talusFullDeg", "%.1f" },
 	{ "splatInfluence", "%.2f" }, { "cliffProtect", "%d" },
 	{ "splatPunchTalus", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
@@ -134,6 +134,7 @@ function M.sync(doc, ctx, setSummary)
 	local cache = widgetState.tsLastVal
 	local ds = uiState.draggingSlider
 	uiState.updatingFromCode = true
+	local stamped = false
 	for _, k in ipairs(KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
@@ -144,13 +145,20 @@ function M.sync(doc, ctx, setSummary)
 			if cache[id] ~= slStr then
 				cache[id] = slStr
 				local sl = doc:GetElementById(id)
-				if sl then sl:SetAttribute("value", slStr) end
+				if sl then sl:SetAttribute("value", slStr) stamped = true end
 				local nb = doc:GetElementById(id .. "-numbox")
 				if nb then nb:SetAttribute("value", string.format(k[2], v)) end
 			end
 		end
 	end
 	uiState.updatingFromCode = false
+	-- RmlUi delivers the change events these SetAttribute stamps raise on a
+	-- LATER frame, when updatingFromCode is already false. onTilesetKnob uses
+	-- this timestamp to drop that deferred echo — otherwise every programmatic
+	-- restamp (biome swap seeds ~a dozen knobs) reads back clamped/stale slider
+	-- values into the knob table, compounding per swap (the "red talus area
+	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
+	if stamped then uiState.tsStampFrame = Spring.GetDrawFrame() end
 
 	-- Decouple-albedo checkbox: a knob, but rendered as a checkbox rather than a
 	-- 0/1 slider, so mirror it by hand (covers startup + console /tileset changes).
