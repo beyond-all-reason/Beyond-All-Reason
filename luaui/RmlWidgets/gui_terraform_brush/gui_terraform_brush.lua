@@ -12413,6 +12413,44 @@ function widget:Update()
 				stampBadge:SetClass("hidden", not isStamp)
 			end
 
+			-- Adopt cap changes made brush-side (Alt+Shift scroll lives in
+			-- cmd_terraform_brush and writes heightCapMax directly): mirror them
+			-- into the panel's cap state and slider, unless the user is mid-drag
+			-- on that slider or typing in its numbox. Without this the scroll
+			-- combo moved the real cap while the panel sat on the stale value —
+			-- and the next panel interaction stomped the cap right back.
+			do
+				local scrollCap = state.heightCapMax
+				if scrollCap and scrollCap ~= 0 and scrollCap ~= capMaxValue
+						and uiState.draggingSlider ~= "capmax" then
+					local nb = doc and getCachedEl(doc, "slider-cap-max-numbox")
+					if not (nb and widgetState.focusedRmlInput == nb) then
+						capMaxValue = scrollCap
+						-- The scroll combo explicitly asked for a cap: flip the
+						-- master toggle on so what the user sees matches what clamps.
+						if not capEnabled then
+							capEnabled = true
+							dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png"
+						end
+						if capMinValue > capMaxValue then
+							capMinValue = capMaxValue
+							applyCap("min", capMinValue)
+							local elMin = doc and getCachedEl(doc, "slider-cap-min")
+							if elMin then
+								local vs = tostring(capMinValue)
+								elMin:SetAttribute("value", vs)
+								widgetState.lastAttrValue["slider-cap-min"] = vs
+							end
+						end
+						local el = doc and getCachedEl(doc, "slider-cap-max")
+						if el then
+							local vs = tostring(capMaxValue)
+							el:SetAttribute("value", vs)
+							widgetState.lastAttrValue["slider-cap-max"] = vs
+						end
+					end
+				end
+			end
 			local lengthStr = string.format("%.1f", state.lengthScale)
 			local capMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
 			local capMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
