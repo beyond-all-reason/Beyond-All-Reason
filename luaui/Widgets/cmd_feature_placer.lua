@@ -2357,6 +2357,18 @@ function widget:DrawScreen()
 	gl.Color(1, 1, 1, 1)
 end
 
+-- The geo-circles widget (Geothermalspots) removes itself on maps that boot
+-- without geothermal features, so the first vent placed at runtime needs it
+-- brought back; once alive it tracks further vents through its own
+-- FeatureCreated. SendCommands like ensureBuildGridLoaded, so the call works
+-- from any context.
+function widget:FeatureCreated(featureID, allyTeamID)
+	local def = FeatureDefs[GetFeatureDefID(featureID)]
+	if def and def.geoThermal and not WG.geothermalspots then
+		Spring.SendCommands("luaui enablewidget Geothermalspots")
+	end
+end
+
 ----------------------------------------------------------------
 -- Initialize / Shutdown
 ----------------------------------------------------------------
