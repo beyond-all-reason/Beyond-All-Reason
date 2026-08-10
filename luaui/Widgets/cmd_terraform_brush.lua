@@ -7063,9 +7063,15 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 
 	if not activeMode then
-		-- Tool switching keys (only when NOT in terrain mode, so terrain keys take priority)
-		if not mods.ctrl and not mods.alt and WG.TerraformBrushUI and WG.TerraformBrushUI.handleToolKey then
-			if WG.TerraformBrushUI.handleToolKey(key) then
+		-- Tool switching keys (only when NOT in terrain mode, so terrain keys take
+		-- priority). Gated on the editor actually being in use: with no tool or
+		-- passthrough panel up, an enabled-but-dormant Terraformer must pass every
+		-- key through to the engine's own keybinds instead of clicking tool
+		-- buttons from cold (f/m/g/... were invisibly swallowed in normal games).
+		local ui = WG.TerraformBrushUI
+		if not mods.ctrl and not mods.alt and ui and ui.handleToolKey
+				and (not ui.isEngaged or ui.isEngaged()) then
+			if ui.handleToolKey(key) then
 				return true
 			end
 		end

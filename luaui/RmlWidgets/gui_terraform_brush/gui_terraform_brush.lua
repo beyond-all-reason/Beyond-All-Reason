@@ -10582,6 +10582,12 @@ function widget:Initialize()
 			local ctrl = widgetState.heightCapSectionCtrl
 			if ctrl and ctrl.expand then ctrl.expand() end
 		end,
+		-- True while the editor is actually in use (a tool or passthrough has
+		-- the panel up). Gates tool-switch hotkeys in cmd_terraform_brush so an
+		-- enabled-but-dormant Terraformer never swallows engine keybinds.
+		isEngaged = function()
+			return widgetState.panelEngaged == true
+		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
 		getPanelBounds = function()
@@ -11834,6 +11840,11 @@ function widget:Update()
 
 	-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
 	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive or widgetState.surfActive or widgetState.passthroughMode) and not widgetState.panelHidden
+	-- "Editor engaged" flag for hotkey gating: some tool (or passthrough) has
+	-- the panel up. Merely having the widget enabled must not swallow keys —
+	-- cmd_terraform_brush checks isEngaged() before tool-switch handling, so a
+	-- dormant Terraformer leaves f/m/g/etc. to the engine's own keybinds.
+	widgetState.panelEngaged = panelVisible and true or false
 	if widgetState.rootElement then
 		widgetState.rootElement:SetClass("hidden", not panelVisible)
 	end
