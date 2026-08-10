@@ -6,10 +6,11 @@ local everything = {
 	-- granular devhelper sub-permissions (checked when devhelpers is false):
 	-- devhelpers_units = true,	-- givecat, xpunits, destroyunits, removeunits, reclaimunits, transferunits, wreckunits, spawnceg, spawnunitexplosion, removeunitdef
 	-- devhelpers_teams = true,	-- playertoteam, killteam
-	-- devhelpers_terrain = true,	-- fightertest, globallos, clearwrecks, reducewrecks
+	-- devhelpers_terrain = true,	-- benchmark, globallos, clearwrecks, reducewrecks
 	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -18,8 +19,9 @@ local moderator = {
 	undo = true,
 	cmd = false,
 	devhelpers = false,
-	playerdata = false,
+	playerdata = true,
 	waterlevel = false,
+	modmarker = true,
 	sysinfo = true,
 	volcano = true,
 }
@@ -32,6 +34,7 @@ local eventmanager = {
 	devhelpers_teams = true,	-- playertoteam, killteam
 	playerdata = false,
 	waterlevel = true,
+	modmarker = true,
 	sysinfo = false,
 	volcano = true,
 }
@@ -41,6 +44,7 @@ local singleplayer = {		-- note: these permissions override others when singlepl
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
+	modmarker = true,
 	playerdata = true,
 	sysinfo = false,
 	volcano = true,
@@ -69,8 +73,11 @@ return {
 	[51535] = everything,	-- Nightmare2512
 	[130329] = everything,	-- SethDGamre
 	[36669] = everything,	-- Steel
+	[197109] = everything,	-- Gabba_Gandalf
+	[57158] = everything,	-- Endorphins
 
 	-- moderator
+	[3] = moderator,		-- Teifion
 	[3133] = moderator,		-- Lexon
 	[258984] = moderator,	-- ScavengersOffenseAI
 	[22297] = moderator,	-- Shadhunter
@@ -79,8 +86,9 @@ return {
 	[57869] = moderator,	-- [BAC]SnekVonPess
 	[21114] = moderator,	-- [FH]Amojini
 	[168817] = moderator,	-- SongbirdOfChirping
-	[57158] = moderator,	-- Endorphins
 	[88808] = moderator,	-- Shadowisperke
+	[591000] = moderator,	-- krolya
+	[4102] = moderator,		-- KayZee
 
 	-- event manager
 	[132545] = eventmanager,	-- Praedyth (KOTH organizer)

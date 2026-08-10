@@ -319,6 +319,14 @@ local function postProcessScavengerUnitDefs()
 	end
 end
 
+local function exportYardmaps()
+	for _, unitDef in pairs(UnitDefs) do
+		if unitDef.yardmap then
+			unitDef.customparams.buildsquare_yardmap = unitDef.yardmap
+		end
+	end
+end
+
 --------------------------------------------------------------
 -- UnitDef processing
 --------------------------------------------------------------
@@ -337,3 +345,4 @@ end
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
+exportYardmaps()

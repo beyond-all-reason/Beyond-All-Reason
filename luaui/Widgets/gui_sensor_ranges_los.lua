@@ -196,7 +196,7 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local GL_NOTEQUAL = GL.NOTEQUAL
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_KEEP = 0x1E00 --GL.KEEP
+local GL_KEEP = GL.KEEP
 local GL_REPLACE = GL.REPLACE
 
 -- Globals
@@ -233,11 +233,12 @@ local function InitializeUnits()
 end
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
+	local wasFullview = spec and fullview
 	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+	local isFullview = spec and fullview
+	if isFullview ~= wasFullview or ((not isFullview) and allyTeamID ~= myPrevAllyTeamID) then
 		InitializeUnits()
 	end
 end

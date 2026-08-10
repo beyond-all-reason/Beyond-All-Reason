@@ -24,7 +24,7 @@ return {
 		script = "Units/CORCRASH.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 379.60001,
+		sightdistance = 380,
 		speed = 53.49,
 		turninplace = true,
 		turninplaceanglelimit = 90,

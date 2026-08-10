@@ -80,7 +80,7 @@ local spawnCount = 0
 local spawnNames = {}
 local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
 
-for weaponDefID = 1, #WeaponDefs do
+for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
 	if wdcp.spawns_name then
 		local unitNames = strSplit(wdcp.spawns_name)
@@ -132,10 +132,10 @@ local function SpawnUnit(spawnData)
 			if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
 				return -- Out of bounds
 			end
-			
+
 			local validSurface = false
 			local y = spGetGroundHeight(x, z)
-			
+
 			if not spawnDef.surface then
 				validSurface = true
 			elseif spawnData.y < mathMax(y+32, 32) then
@@ -155,7 +155,7 @@ local function SpawnUnit(spawnData)
 			local ownerID = spawnData.ownerID
 			local weaponDefID = spawnData.weaponDefID
 			local weaponSpawnData = ownerID and weaponDefID and spawnNames[ownerID] and spawnNames[ownerID].weapon[weaponDefID]
-			
+
 			local spawnUnitName
 			if weaponSpawnData then
 				local mode = spawnDef.mode
@@ -180,12 +180,12 @@ local function SpawnUnit(spawnData)
 				-- Fallback: use pre-split names
 				spawnUnitName = spawnDef.unitNames and spawnDef.unitNames[1]
 			end
-			
+
 			if not spawnUnitName or not UnitDefNames[spawnUnitName] then
 				spEcho('INVALID UNIT NAME IN UNIT EXPLOSION SPAWNER', spawnUnitName)
 				return
 			end
-			
+
 			local unitID = spCreateUnit(spawnUnitName, x, spawnData.y, z, 0, spawnData.teamID)
 			if not unitID then
 				return -- Unit limit hit
@@ -203,16 +203,18 @@ local function SpawnUnit(spawnData)
 
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
-				
+
 				local ownx, owny, ownz = spGetUnitPosition(ownerID)
 				if ownx then
 					local dx = (x - ownx)
 					local dz = (z - ownz)
 					local l = mathSqrt((dx*dx) + (dz*dz))
-					dx = dx/l
-					dz = dz/l
-					spSetUnitDirection(unitID, dx, 0, dz)
-					spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
+					if l > 0 then
+						dx = dx/l
+						dz = dz/l
+						spSetUnitDirection(unitID, dx, 0, dz)
+						spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
+					end
 				end
 			end
 
@@ -267,7 +269,13 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 
 	if spawnDefs[weaponDefID] then
 		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = spGetProjectileTeamID(proID)
+		local teamID = proID and spGetProjectileTeamID(proID)
+		if not teamID and ownerID then
+			teamID = spGetUnitTeam(ownerID)
+		end
+		if not teamID then
+			return
+		end
 
 		-- Don't let awakening children embrace the glory of their birthright
 		-- i.e. relegate spawn to GameFrame not to be damaged by the very explosion that bore them

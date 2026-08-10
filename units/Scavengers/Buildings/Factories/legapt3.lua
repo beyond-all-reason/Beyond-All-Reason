@@ -8,6 +8,7 @@ return {
 		buildpic = "LEGAP.DDS",
 		buildtime = 72400,
 		canmove = true,
+		canReclaim = false,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -14 -23",
 		collisionvolumescales = "220 66 100",

@@ -2,7 +2,7 @@
 --- Statistics triggers test mission.
 ---
 
-local triggerTypes = GG['MissionAPI'].TriggerTypes
+local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types
 
 local triggers = {
@@ -12,7 +12,7 @@ local triggers = {
 	spawnBots = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 30,
+			seconds = 1,
 		},
 		actions = { 'spawnFriendlyBot', 'spawnEnemyBot', 'nameFriendlyBotAlias', 'nameEnemyBotAlias' },
 	},
@@ -20,7 +20,7 @@ local triggers = {
 	killFriendlyBot = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 180,
+			seconds = 6,
 		},
 		actions = { 'killFriendlyBot' },
 	},
@@ -28,7 +28,7 @@ local triggers = {
 	spawnCapture = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 240,
+			seconds = 8,
 		},
 		actions = { 'spawnCapturable', 'spawnCapturer', 'nameCaptureTargetAlias' },
 	},
@@ -36,7 +36,7 @@ local triggers = {
 	orderCapture = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 270,
+			seconds = 9,
 		},
 		actions = { 'orderCapture' },
 	},
@@ -44,7 +44,7 @@ local triggers = {
 	spawnBuilders = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 510,
+			seconds = 17,
 		},
 		actions = { 'spawnConstructor', 'orderBuild' },
 	},
