@@ -1649,6 +1649,12 @@ local function phaseHeightmap(c)
 		if WG.TilesetTerrain and WG.TilesetTerrain.refreshHeightRef then
 			WG.TilesetTerrain.refreshHeightRef()
 		end
+		-- same story for the custom heightmap-export range: it was seeded from
+		-- the blank canvas, so re-seed it from the project terrain (no-op if
+		-- the user hand-typed a range)
+		if WG.TerraformBrush and WG.TerraformBrush.reseedExportRange then
+			WG.TerraformBrush.reseedExportRange(5)
+		end
 		loadOk("heightmap", "sim-acknowledged")
 		return true
 	end

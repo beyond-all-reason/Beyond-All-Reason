@@ -2573,6 +2573,7 @@
 				<div class="text-lg text-light" style="flex: 0 0 32dp; margin-left: 1dp; opacity: 0.96; text-align: right; letter-spacing: 0.2dp;">MAX</div>
 				<input type="text" id="input-tf-export-max" class="tf-slider-numbox" value="1" style="flex: 0 0 64dp; width: 64dp;" data-event-change="onTfExportCustomMaxChange()" />
 			</div>
+			<div id="btn-export-fit" class="tf-action-btn tf-action-btn-sm" style="flex: 0 0 auto; min-width: 36dp;" data-event-click="onTfExportFit()"><div class="tf-action-btn-text">FIT</div></div>
 		</div>
 		<div id="import-dropdown" class="tf-hm-browser hidden"></div>
 		<div id="import-progress-row" class="hidden mb-1">

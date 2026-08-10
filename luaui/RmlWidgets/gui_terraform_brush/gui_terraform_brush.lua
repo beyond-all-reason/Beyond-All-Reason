@@ -7481,6 +7481,10 @@ local initialModel = {
 		if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		playSound("click")
 	end,
+	-- NB: the custom range never goes into uiPrefs. These change events also
+	-- fire (deferred) for every programmatic stamp of the input, so persisting
+	-- here is what used to burn the canvas seed (-75..696) into the prefs and
+	-- resurrect it on every map.
 	onTfExportCustomMinChange = function(_event)
 		if not WG.TerraformBrush then return end
 		local doc = widgetState.document
@@ -7488,8 +7492,6 @@ local initialModel = {
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end,
 	onTfExportCustomMaxChange = function(_event)
@@ -7499,8 +7501,15 @@ local initialModel = {
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
+	end,
+	-- FIT: snap the custom range to the terrain's exact extremes (vertex scan).
+	onTfExportFit = function(_event)
+		if not (WG.TerraformBrush and WG.TerraformBrush.fitExportRangeToTerrain) then return end
+		local mn, mx = WG.TerraformBrush.fitExportRangeToTerrain()
+		if mn then
+			playSound("click")
+			Spring.Echo(string.format("[Terraform Brush] Export range fit to terrain: %.2f .. %.2f", mn, mx))
 		end
 	end,
 
@@ -8354,6 +8363,7 @@ local guideHints = {
 	["btn-ts-preset-toggle"]= "Open or close the tileset preset list to load or delete a saved config.",
 	-- Export / Import
 	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
+	["btn-export-fit"]  = "Snap the custom export range to the terrain's exact current extremes (full heightmap scan).",
 	["btn-import"]      = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
 	["newmap-name-input"] = "Optional name for the new map. Leave blank for automatic naming (Editor Flat <size>). Saved heightmaps group under this name across sessions.",
 	-- Feature Placer sub-modes
@@ -10305,8 +10315,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end)
 	wireExportRangeInput(exportMaxInput, function()
@@ -10314,8 +10322,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end)
 
@@ -10473,8 +10479,10 @@ function widget:Initialize()
 			else
 				WG.TerraformBrush.setHeightmapExportRangeMode("auto")
 			end
-			WG.TerraformBrush.setHeightmapExportCustomMin((type(up.heightmapExportCustomMin) == "number" and up.heightmapExportCustomMin) or state.exportInitMin or 0)
-			WG.TerraformBrush.setHeightmapExportCustomMax((type(up.heightmapExportCustomMax) == "number" and up.heightmapExportCustomMax) or state.exportInitMax or 1)
+			-- The custom min/max are deliberately NOT restored from prefs: the
+			-- range is map-specific, and re-applying another map's numbers (or
+			-- the stale canvas seed) is exactly what clipped project exports.
+			-- The brush widget seeds fresh values from the real terrain.
 		end
 	end
 
