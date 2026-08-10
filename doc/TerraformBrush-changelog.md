@@ -12,6 +12,7 @@ Version numbers follow the `tf-brush-improvements-N` branch scheme: branch `N` c
 - Map projects now round-trip the SURFACE variant mask, including biome and slot assignments.
 - Added a FIT button that snaps the custom heightmap export range to the terrain's exact current extremes.
 - Added Talus evidence and Cavity floor tuning knobs to the Tileset height layers.
+- Added placeable geothermal vents: a game-side vent feature makes working geo spots (engine smoke, geo build placement, geo circles) available on blank canvases and map projects through the Feature Placer, with project round-tripping. The vent model is a placeholder pending a dedicated asset.
 
 ### Improvements
 
@@ -28,6 +29,8 @@ Version numbers follow the `tf-brush-improvements-N` branch scheme: branch `N` c
 - Fixed a GL instance-table error when elements were removed while deferred pushes were pending (affected feature ghost previews).
 - The legacy SPLAT tool is disabled while the tileset shader owns the splat texture, with a hover explainer pointing at SURFACE HARD mode.
 - Removed stale "waiting on engine support" skybox notices; runtime skybox swaps now work on generated maps.
+- Grass loaded from a map project now renders immediately instead of waiting for the Grass tool to be opened once.
+- Grass undo/redo now reports what it did (or why it could not) instead of silently doing nothing.
 - Tidied the custom export-range row layout.
 
 ## 1.10 - 2026-08-08
