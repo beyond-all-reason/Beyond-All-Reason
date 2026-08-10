@@ -12,7 +12,7 @@ Version numbers follow the `tf-brush-improvements-N` branch scheme: branch `N` c
 - Map projects now round-trip the SURFACE variant mask, including biome and slot assignments.
 - Added a FIT button that snaps the custom heightmap export range to the terrain's exact current extremes.
 - Added Talus evidence and Cavity floor tuning knobs to the Tileset height layers.
-- Added placeable geothermal vents: a game-side vent feature makes working geo spots (engine smoke, geo build placement, geo circles) available on blank canvases and map projects through the Feature Placer, with project round-tripping. The vent model is a placeholder pending a dedicated asset.
+- Added placeable geothermal vents: game-side vent features make working geo spots (engine smoke, geo build placement, geo circles) available on blank canvases and map projects through the Feature Placer, with project round-tripping. Two variants under the new Geo catalog category: Geothermal Vent (selectable rock marker plus crack) and Geothermal Crack (Moose's pure black-crack vent, as shipped on his maps). The rock model is a placeholder pending a dedicated asset.
 
 ### Improvements
 

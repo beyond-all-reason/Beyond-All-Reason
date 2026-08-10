@@ -1,16 +1,20 @@
 -----------------------------------------------------------------------------
---  editor_geovent
+--  editor_geovent / editor_geocrack
 -----------------------------------------------------------------------------
--- Game-side geothermal vent so map-editor sessions (generated blank canvases
+-- Game-side geothermal vents so map-editor sessions (generated blank canvases
 -- and map projects) can place working geo spots: engine geo smoke, needGeo
 -- build placement and the geo-circles widget all key off a live feature whose
 -- def carries geothermal=true, and a canvas has no map archive to supply one.
--- Real maps keep shipping their own "geovent" def; this one uses a distinct
--- name so it never shadows them.
 --
--- The small rock is a stand-in model until a dedicated vent asset lands; the
--- engine's native geothermal smoke column is what actually marks the spot.
+-- The crack visual is Moose's geocrack (shipped on Eight Horses, Esker Creek,
+-- High Noon Remake, Salmiakki, Special Creek, Sunderance, Otago and others;
+-- offered by the author for the editor). It draws through the engine's
+-- building ground decal path, so no model is needed for the crack itself.
+-- Distinct def/texture names (editor_*, unittextures/editor_geovent_crack.dds)
+-- so maps that ship their own "geovent"/"geocrack"/geo.dds are never shadowed.
 
+-- Rock-marker variant: selectable body + crack + smoke. The rock model is a
+-- stand-in until a dedicated vent asset lands.
 local vent = {
 	name = "editor_geovent",
 	description = "Geothermal Vent",
@@ -29,18 +33,53 @@ local vent = {
 	footprintZ = 4,
 	upright = false,
 	hitdensity = 0,
+	useBuildingGroundDecal = true,
+	buildingGroundDecalDecaySpeed = 2.0,
+	buildingGroundDecalType = "editor_geovent_crack.dds",
+	buildingGroundDecalSizeX = 4,
+	buildingGroundDecalSizeY = 4,
 	customparams = {
 		category = "geo",
-		-- Scorched patch under the vent via the feature ground-plate system
-		-- (gui_ground_ao_plates_features_gl4). Only textures already in the
-		-- featureaoplates atlas qualify, and the atlas has no crack art yet,
-		-- so a dark AO blotch stands in: reads as a burnt vent mouth. Replace
-		-- with a real crack texture once one lands in the atlas.
-		decalinfo_texfile = "rocks30_def_01_aoplane.tga",
-		decalinfo_sizex = "7",
-		decalinfo_sizez = "7",
-		decalinfo_alpha = "0.95",
 	},
 }
 
-return { editor_geovent = vent }
+-- Moose's pure-crack vent: modelless, the black crack decal IS the feature.
+-- Kept faithful to his geocrack def (noSelect for gameplay clicks; the
+-- Feature Placer picks features through GetFeaturesInCylinder, so it can
+-- still be selected and moved in the editor).
+local crack = {
+	name = "editor_geocrack",
+	description = "Geothermal Crack",
+	alwaysvisible = true,
+	blocking = false,
+	burnable = false,
+	flammable = false,
+	geothermal = true,
+	indestructible = true,
+	noselect = true,
+	reclaimable = false,
+	autoreclaimable = false,
+	energy = 0,
+	metal = 0,
+	damage = 10000,
+	footprintX = 0,
+	footprintZ = 0,
+	height = 8,
+	upright = false,
+	hitdensity = 0,
+	useBuildingGroundDecal = true,
+	buildingGroundDecalDecaySpeed = 2.0,
+	buildingGroundDecalType = "editor_geovent_crack.dds",
+	buildingGroundDecalSizeX = 4,
+	buildingGroundDecalSizeY = 4,
+	customparams = {
+		author = "Moose",
+		category = "geo",
+		randomrotate = "true",
+	},
+}
+
+return {
+	editor_geovent = vent,
+	editor_geocrack = crack,
+}
