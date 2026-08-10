@@ -31,6 +31,15 @@ local vent = {
 	hitdensity = 0,
 	customparams = {
 		category = "geo",
+		-- Scorched patch under the vent via the feature ground-plate system
+		-- (gui_ground_ao_plates_features_gl4). Only textures already in the
+		-- featureaoplates atlas qualify, and the atlas has no crack art yet,
+		-- so a dark AO blotch stands in: reads as a burnt vent mouth. Replace
+		-- with a real crack texture once one lands in the atlas.
+		decalinfo_texfile = "rocks30_def_01_aoplane.tga",
+		decalinfo_sizex = "7",
+		decalinfo_sizez = "7",
+		decalinfo_alpha = "0.95",
 	},
 }
 
