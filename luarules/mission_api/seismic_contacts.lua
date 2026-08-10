@@ -6,7 +6,6 @@
 --------------------------------------------------------------------------------
 
 -- Automatic seismic pings are raised only on the unit's SlowUpdate when moveType->progressState is Active.
-local SEISMIC_INTERVAL_FRAMES = 15
 --
 -- We are "sampling" over time intervals of at least this length (half a second), then, and our detection
 -- heuristic is a type of Bernoulli walk over those intervals, though non-automatic pings also can occur.
@@ -89,20 +88,7 @@ local function updateScores(triggerID, undetected)
 	return count
 end
 
-local function forget(triggerID, unitID)
-	local contacts = contactsByTrigger[triggerID]
-	if contacts then
-		contacts[unitID] = nil
-	end
-end
-
-local function isIntervalEnd(frameNumber)
-	return frameNumber % SEISMIC_INTERVAL_FRAMES == 0
-end
-
 return {
-	IsIntervalEnd = isIntervalEnd,
-	RecordPing    = recordPing,
-	UpdateScores  = updateScores,
-	Forget        = forget,
+	RecordPing   = recordPing,
+	UpdateScores = updateScores,
 }

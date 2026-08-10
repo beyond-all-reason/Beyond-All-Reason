@@ -34,16 +34,9 @@ return {
 			end
 		end,
 
-		GameFrame = function(trigger, triggerID, context, frameNumber)
-			if not SeismicContacts.IsIntervalEnd(frameNumber) then
-				return
-			end
+		SeismicInterval = function(trigger, triggerID, context)
 			-- Falloff only re-arms this trigger. UnitUnspottedBySeismic is what reports it.
 			SeismicContacts.UpdateScores(triggerID)
-		end,
-
-		UnitDestroyed = function(trigger, triggerID, context, unitID)
-			SeismicContacts.Forget(triggerID, unitID)
 		end,
 	},
 }

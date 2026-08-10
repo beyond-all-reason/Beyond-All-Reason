@@ -49,10 +49,7 @@ return {
 			SeismicContacts.RecordPing(triggerID, unitID)
 		end,
 
-		GameFrame = function(trigger, triggerID, context, frameNumber)
-			if not SeismicContacts.IsIntervalEnd(frameNumber) then
-				return
-			end
+		SeismicInterval = function(trigger, triggerID, context)
 			for index = 1, SeismicContacts.UpdateScores(triggerID, undetected) do
 				local unitID = undetected[index]
 				-- Dying/crashing/exploding units can still emit pings.
@@ -61,10 +58,6 @@ return {
 					context.ActivateTrigger(trigger)
 				end
 			end
-		end,
-
-		UnitDestroyed = function(trigger, triggerID, context, unitID)
-			SeismicContacts.Forget(triggerID, unitID)
 		end,
 	},
 }

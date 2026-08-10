@@ -24,6 +24,9 @@ local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
 local statistics
 
+-- The cadence a unit raises seismic pings and sampling interval for seismic triggers
+local SEISMIC_INTERVAL_FRAMES = 15
+
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas      = {}
 local dwellingUnitsInAreas      = {}
@@ -198,6 +201,10 @@ function gadget:GameFrame(frameNumber)
 	end
 
 	dispatchTriggerCallin('GameFrame', frameNumber)
+
+	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
+		dispatchTriggerCallin('SeismicInterval', frameNumber)
+	end
 end
 
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
