@@ -783,19 +783,6 @@ local function applySkybox(texturePath)
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
-	-- Engine limitation (verified at Recoil 2026.06.12): SetSkyBoxTexture routes
-	-- to ISky::SetLuaTexture, which only the CSkyBox sky class overrides. A map
-	-- that booted without a mapinfo skybox runs the procedural sky, where the
-	-- call is a complete silent no-op. Warn once so users know why nothing
-	-- changes; still apply, since newer engines may honour the swap.
-	if not widgetState._skyboxSwapProbed then
-		widgetState._skyboxSwapProbed = true
-		local mOk, mi = pcall(VFS.Include, "mapinfo.lua")
-		local baked = mOk and type(mi) == "table" and mi.atmosphere and mi.atmosphere.skyBox
-		if type(baked) ~= "string" or baked == "" then
-			Spring.Echo("[Terraform Brush] This map booted without a skybox, so the engine runs the procedural sky. Current engines ignore runtime skybox swaps on such maps (waiting on queued Recoil changes).")
-		end
-	end
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
@@ -1955,8 +1942,8 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 
 	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
 	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
-	-- of the procedural cloud dome; runtime skybox swapping only works once the sky
-	-- is a CSkyBox. Read back in mapgenerator/mapinfo_template.lua.
+	-- of the procedural cloud dome, so the map boots with the chosen sky already up.
+	-- Read back in mapgenerator/mapinfo_template.lua.
 	if skyboxPath and skyboxPath ~= "" then
 		opt[#opt + 1] = "blank_map_skybox=" .. skyboxPath .. ";"
 	end
@@ -2065,7 +2052,7 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	end
 
 	-- The manifest records the skybox basename; find it in the library so the
-	-- engine bakes a real cubemap sky (runtime swaps need a CSkyBox).
+	-- engine bakes a real cubemap sky and the project reopens with its own sky.
 	local skyboxPath = nil
 	if type(m.skybox) == "string" and m.skybox ~= "" then
 		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -2315,7 +2302,6 @@ local initialModel = {
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
 	newMapEnvStr = "Default",
-	newMapEngineSkyboxNotice = false,
 	newMapEngineSplatNotice = false,
 	newMapSplatNeedsDnts = false,
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
@@ -11439,7 +11425,6 @@ function widget:Update()
 				local generatedBlankMap = _isGeneratedBlankMap()
 			setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
 			setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
-				setDm("newMapEngineSkyboxNotice", generatedBlankMap)
 				setDm("newMapEngineSplatNotice", generatedBlankMap)
 					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
 					setDm("spToolDisabled", _splatToolUnavailable())

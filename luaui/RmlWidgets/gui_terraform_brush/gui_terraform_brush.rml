@@ -4593,9 +4593,6 @@
 				<div class="tf-env-btn-text">DIMENSIONS</div>
 			</div>
 		</div>
-		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
-			<div class="text-sm text-keybind">On New Map, skybox swapping is still waiting on queued Recoil engine changes. Existing maps still swap skyboxes at runtime.</div>
-		</div>
 		</div><!-- /section-env-buttons -->
 		</div><!-- /frame-env-buttons -->
 
@@ -5802,9 +5799,6 @@
 		<div class="tf-panel-body">
 
 		<div class="text-sm text-keybind mb-1">Click a thumbnail to change the skybox at runtime.</div>
-		<div class="tf-section-frame mb-1" data-if="newMapEngineSkyboxNotice">
-			<div class="text-sm text-keybind">Editor Flat skyboxes on New Map are still blocked on queued Recoil engine support. This library continues to work on existing maps.</div>
-		</div>
 
 		<div id="env-skybox-grid" class="env-skybox-grid">
 			<!-- Populated dynamically from skyboxes/ folder -->
