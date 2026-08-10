@@ -4,6 +4,32 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the `tf-brush-improvements-N` branch scheme: branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.11 - in development
+
+### New
+
+- Added the SURFACE tool for tileset maps. SOFT mode paints soft-top variants of the active biome over the automatic base: two variant slots with per-slot pickers, a NOW PAINTING readout, coverage meter, dot/wash/fill presets, brush spacing, noise fill seeded from the tileset noise field, sculpted-feature layers, and group grading for tops and rock. HARD mode forces talus, cliff, or plateau material anywhere through the tileset shader's override mask, with smart filters, undo/redo, and splat export.
+- Map projects now round-trip the SURFACE variant mask, including biome and slot assignments.
+- Added a FIT button that snaps the custom heightmap export range to the terrain's exact current extremes.
+- Added Talus evidence and Cavity floor tuning knobs to the Tileset height layers.
+
+### Improvements
+
+- The height cap and all altitude-filter sliders now scale to the map's real height range instead of a hardcoded -500..500, so caps above 500 elevation are reachable by slider and by typing.
+- Custom heightmap export ranges now seed from the map's actual terrain via an exact heightmap scan, re-seed after imports and project loads, and no longer leak from one map into another through saved preferences.
+- The tileset shader re-anchors its gravel and plateau height reference after heightmap imports and project loads.
+
+### Fixes
+
+- An enabled but idle Terraformer no longer swallows its tool hotkeys (F, M, G, K, P, W, V, J) from engine keybinds. Tool keys now require the editor to actually be in use; opening a tool from the header rail re-enables them.
+- Fixed custom heightmap export ranges initializing to the blank canvas constants (-75..696) on map projects, which clipped all terrain above 696 in exports.
+- Fixed height cap changes made with the Alt+Shift scroll combo not updating the panel's slider and readout.
+- Fixed tileset tuning knobs drifting a little further on every biome swap (deferred slider-change echoes read stale values back into the knobs).
+- Fixed a GL instance-table error when elements were removed while deferred pushes were pending (affected feature ghost previews).
+- The legacy SPLAT tool is disabled while the tileset shader owns the splat texture, with a hover explainer pointing at SURFACE HARD mode.
+- Removed stale "waiting on engine support" skybox notices; runtime skybox swaps now work on generated maps.
+- Tidied the custom export-range row layout.
+
 ## 1.10 - 2026-08-08
 
 ### New
