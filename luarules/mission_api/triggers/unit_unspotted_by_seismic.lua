@@ -1,19 +1,19 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
 
 -- Seismic sensors have no engine "left range" event. It is a ping/heartbeat.
 
--- Zero/negative timeouts are not validation errors, same as in TimeElapsed.
--- Instead, they indicate to fire on the first lapse in the series of pings.
--- For that, we use the engine's automatic update interval, on `SlowUpdate`.
+-- A unit only pings while it happens to be moving at its slow update, so a gap in the series is not
+-- a loss of detection: moving in short enough bursts skips pings without ever leaving coverage.
+-- Falloff is scored against a sustained ping rate instead. See seismic_contacts.lua.
 
 -- This exists as a built-in because actions cannot see the unit that fired a trigger.
 -- A `Custom` action passed the triggering target data (unitID, unitDefID, unitTeam)
 -- could replace it with a plain recipe: a UnitSpottedBySeismic and a per-unit timer.
 
-local SEISMIC_INTERVAL_FRAMES = 15
-local DEFAULT_TIMEOUT_SECONDS = 1.0
-
-local function match(trigger, context, unitID, unitDefID, seismicAllyTeamID)
+-- Filters that hold for a unit at any time, so they can be rechecked once its contact falls off.
+-- spottingAllyTeamID is not among them: only a ping says which allyTeam heard it.
+local function matchesUnit(trigger, context, unitID, unitDefID)
 	if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return false
 	end
@@ -23,23 +23,11 @@ local function match(trigger, context, unitID, unitDefID, seismicAllyTeamID)
 	if trigger.parameters.owningTeamID and trigger.parameters.owningTeamID ~= Spring.GetUnitTeam(unitID) then
 		return false
 	end
-	if trigger.parameters.spottingAllyTeamID and trigger.parameters.spottingAllyTeamID ~= seismicAllyTeamID then
-		return false
-	end
 	return true
 end
 
-local function getTimeoutInterval(trigger)
-	local timeout = trigger.parameters.timeout or DEFAULT_TIMEOUT_SECONDS
-	return math.max(math.floor(timeout * Game.gameSpeed / SEISMIC_INTERVAL_FRAMES + 0.5), 1)
-end
-
-local function addSeismicContact(context, triggerID, unitID, unitDefID)
-	table.ensureTable(context.SeismicContacts, triggerID)[unitID] = {
-		interval = math.floor(Spring.GetGameFrame() / SEISMIC_INTERVAL_FRAMES),
-		unitDefID = unitDefID,
-	}
-end
+-- Reused each interval to collect the contacts that fell off.
+local undetected = {}
 
 return {
 	type = 'UnitUnspottedBySeismic',
@@ -48,46 +36,35 @@ return {
 		{ name = 'unitDefName',        required = false, type = ParameterTypes.UnitDefName },
 		{ name = 'owningTeamID',       required = false, type = ParameterTypes.TeamID },
 		{ name = 'spottingAllyTeamID', required = false, type = ParameterTypes.AllyTeamID },
-		{ name = 'timeout',            required = false, type = ParameterTypes.Number },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
 		UnitSeismicPing = function(trigger, triggerID, context, x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
-			if not match(trigger, context, unitID, unitDefID, seismicAllyTeamID) then
+			if not matchesUnit(trigger, context, unitID, unitDefID) then
 				return
 			end
-			addSeismicContact(context, triggerID, unitID, unitDefID)
+			if trigger.parameters.spottingAllyTeamID and trigger.parameters.spottingAllyTeamID ~= seismicAllyTeamID then
+				return
+			end
+			SeismicContacts.RecordPing(triggerID, unitID)
 		end,
 
 		GameFrame = function(trigger, triggerID, context, frameNumber)
-			if frameNumber % SEISMIC_INTERVAL_FRAMES ~= 0 then
+			if not SeismicContacts.IsIntervalEnd(frameNumber) then
 				return
 			end
-
-			local contacts = context.SeismicContacts[triggerID]
-			if not contacts then
-				return
-			end
-
-			local currentInterval = frameNumber / SEISMIC_INTERVAL_FRAMES
-			local timeoutInterval = getTimeoutInterval(trigger)
-			for unitID, contact in pairs(contacts) do
-				if currentInterval - contact.interval >= timeoutInterval then
-					contacts[unitID] = nil
-					-- Dying/crashing/exploding units can still emit pings.
-					-- Unit tracking can change in the delay before firing.
-					if Spring.GetUnitIsDead(unitID) == false and match(trigger, context, unitID, contact.unitDefID, Spring.GetUnitAllyTeam(unitID)) then
-						context.ActivateTrigger(trigger)
-					end
+			for index = 1, SeismicContacts.UpdateScores(triggerID, undetected) do
+				local unitID = undetected[index]
+				-- Dying/crashing/exploding units can still emit pings.
+				-- Unit tracking can change in the delay before firing.
+				if Spring.GetUnitIsDead(unitID) == false and matchesUnit(trigger, context, unitID, Spring.GetUnitDefID(unitID)) then
+					context.ActivateTrigger(trigger)
 				end
 			end
 		end,
 
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
-			local contacts = context.SeismicContacts[triggerID]
-			if contacts then
-				contacts[unitID] = nil
-			end
+			SeismicContacts.Forget(triggerID, unitID)
 		end,
 	},
 }

@@ -30,7 +30,6 @@ local dwellingUnitsInAreas      = {}
 local teamReclaimIncome         = {}
 local teamReclaimIncomeSnapshot = {}
 local reclaimedFeatures         = {}
-local seismicContacts           = {}
 
 
 ----------------------------------------------------------------
@@ -163,7 +162,6 @@ function gadget:Initialize()
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
-		SeismicContacts          = seismicContacts,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
 

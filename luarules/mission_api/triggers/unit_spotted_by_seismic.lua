@@ -1,6 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
 
--- Fires every time a matching enemy unit moves within an allyTeam's seismic coverage.
+-- Fires when a matching enemy unit is picked up by an allyTeam's seismic coverage.
+-- This is generally while the unit is moving within that range; there are caveats.
 
 -- Synced gadgets receive seismic pings for all units, even fully visible ones.
 
@@ -27,7 +29,21 @@ return {
 			if trigger.parameters.spottingAllyTeamID and trigger.parameters.spottingAllyTeamID ~= seismicAllyTeamID then
 				return
 			end
-			context.ActivateTrigger(trigger)
+			if SeismicContacts.RecordPing(triggerID, unitID) then
+				context.ActivateTrigger(trigger)
+			end
+		end,
+
+		GameFrame = function(trigger, triggerID, context, frameNumber)
+			if not SeismicContacts.IsIntervalEnd(frameNumber) then
+				return
+			end
+			-- Falloff only re-arms this trigger. UnitUnspottedBySeismic is what reports it.
+			SeismicContacts.UpdateScores(triggerID)
+		end,
+
+		UnitDestroyed = function(trigger, triggerID, context, unitID)
+			SeismicContacts.Forget(triggerID, unitID)
 		end,
 	},
 }
