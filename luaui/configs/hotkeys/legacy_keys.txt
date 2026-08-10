@@ -115,8 +115,8 @@ bind Ctrl+sc_x select AllMap+_InPrevSel_Not_InHotkeyGroup+_SelectAll+
 bind Ctrl+sc_z select AllMap+_InPrevSel+_ClearSelection_SelectAll+
 
 // cycle camera through selected units
-bind sc_. cycleselected
-bind sc_, cycleselected_prev
+bind sc_. cycleselected next
+bind sc_, cycleselected prev
 
 // building hotkeys
 bind sc_z buildunit_armmex

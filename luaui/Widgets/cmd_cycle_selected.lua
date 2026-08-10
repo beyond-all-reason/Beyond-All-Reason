@@ -36,11 +36,7 @@ local function selectionChanged(currentSel)
 end
 
 local function resetCycle(currentSel)
-	-- Copy before sorting so we don't mutate the caller's table
-	cycleUnits = {}
-	for i = 1, #currentSel do
-		cycleUnits[i] = currentSel[i]
-	end
+	cycleUnits = currentSel
 	table.sort(cycleUnits)
 	unitIndex = 0
 end
@@ -54,7 +50,7 @@ local function focusUnit(unitID)
 	return false
 end
 
-local function handleCycleSelected(_, _, _, data)
+local function handleCycleSelected(_, _, words)
 	local currentSel = Spring.GetSelectedUnits()
 	if #currentSel < 1 then
 		return
@@ -69,7 +65,7 @@ local function handleCycleSelected(_, _, _, data)
 		return
 	end
 
-	local direction = (data and data.direction) or 1
+	local direction = (words and words[1] == "prev") and -1 or 1
 
 	-- Try up to unitCount times in case some IDs became invalid
 	for _ = 1, unitCount do
@@ -86,10 +82,8 @@ end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("cycleselected")
-	widgetHandler:RemoveAction("cycleselected_prev")
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("cycleselected", handleCycleSelected, { direction = 1 }, "p")
-	widgetHandler:AddAction("cycleselected_prev", handleCycleSelected, { direction = -1 }, "p")
+	widgetHandler:AddAction("cycleselected", handleCycleSelected, nil, "p")
 end
