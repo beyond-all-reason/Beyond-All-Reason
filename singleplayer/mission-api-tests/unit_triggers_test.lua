@@ -187,7 +187,6 @@ local triggers = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
-			timeout = 5.0, -- seconds without redetection before firing (default 1.0)
 		},
 		actions = { 'messageEngineerUnspottedBySeismic' },
 	},
