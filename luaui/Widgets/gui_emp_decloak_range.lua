@@ -9,8 +9,8 @@ function widget:GetInfo()
     return {
         name      = "EMP + decloak range",
         desc      = "When spy/gremlin is selected, displays EMP range always and decloak range only while cloaked; main-pass opacity pulses per prop",
-        author    = "[teh]decay, updated by ChatGPT",
-        date      = "16 May 2025",
+        author    = "[teh]decay, updated by ChatGPT + Maxie12",
+        date      = "01 August 2026",
         license   = "The BSD License",
         layer     = 0,
         version   = 8,
@@ -90,7 +90,7 @@ local isSpy, isGremlin = {}, {}
 for udid, ud in pairs(UnitDefs) do
     local name = ud.name:lower()
     local decloakDist = ud.mincloakdistance or ud.decloakDistance or 0
-    if name:find("spy") or name:find("armamex") then
+    if name:find("spy") or name:find("armamex") then 
         -- spy's EMP radius from its self-destruct weapon
         local wdefName = lower(ud.selfDExplosion)
         local wdef = WeaponDefNames[wdefName]
@@ -103,7 +103,7 @@ for udid, ud in pairs(UnitDefs) do
     if name:find("armgremlin") or name:find("armamb") or name:find("armpb") or name:find("armferret")
        or name:find("armckfus") or name:find("armsnipe") or name:find("armshockwave")
        or name:find("eyes") or name:find("mine")
-       or name:find("armcom") or name:find("corcom") or name:find("legcom") then
+       or name:find("armcom") or name:find("corcom") or name:find("legcom") or name:find("corsktl") then
         isGremlin[udid] = decloakDist
     end
 end

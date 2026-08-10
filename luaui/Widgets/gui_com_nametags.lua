@@ -266,12 +266,21 @@ local function RemoveLists()
 	comnameIconList = {}
 end
 
+local function GetComnameListKey(attributes)
+	local name = attributes[1] or ""
+	local c = attributes[2] or { 1, 1, 1, 1 }
+	local rank = attributes[6] or 0
+	local skill = attributes[8] or ""
+	return stringFormat("%s|%.4f|%.4f|%.4f|%.4f|%s|%s", name, c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1, rank, skill)
+end
+
 
 local function createComnameList(attributes)
-	if comnameList[attributes[1]] ~= nil then
-		glDeleteList(comnameList[attributes[1]])
+	local listKey = GetComnameListKey(attributes)
+	if comnameList[listKey] ~= nil then
+		glDeleteList(comnameList[listKey])
 	end
-	comnameList[attributes[1]] = glCreateList(function()
+	comnameList[listKey] = glCreateList(function()
 		local x,y = 0,0
 		if (anonymousMode == "disabled" or spec) and showPlayerRank and attributes[6] and not isSinglePlayer then
 			x = (playerRankSize*0.5)
@@ -329,13 +338,54 @@ end
 
 
 local function CheckCom(unitID, unitDefID, unitTeam)
-	if comHeight[unitDefID] and unitTeam ~= GaiaTeam then
-		if unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	if not comHeight[unitDefID] or unitTeam == GaiaTeam then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
 		end
-	elseif comms[unitID] then
-		comms[unitID] = nil
+		return false
 	end
+
+	local oldAttributes = comms[unitID]
+	local newAttributes = GetCommAttributes(unitID, unitDefID)
+	if not newAttributes then
+		if comms[unitID] then
+			comms[unitID] = nil
+			if comnameIconList[unitID] then
+				glDeleteList(comnameIconList[unitID])
+				comnameIconList[unitID] = nil
+			end
+		end
+		return false
+	end
+
+	comms[unitID] = newAttributes
+
+	if not oldAttributes then
+		return true
+	end
+
+	local hasChanged = (
+		oldAttributes[1] ~= newAttributes[1]
+		or oldAttributes[6] ~= newAttributes[6]
+		or oldAttributes[8] ~= newAttributes[8]
+		or oldAttributes[2][1] ~= newAttributes[2][1]
+		or oldAttributes[2][2] ~= newAttributes[2][2]
+		or oldAttributes[2][3] ~= newAttributes[2][3]
+		or oldAttributes[2][4] ~= newAttributes[2][4]
+	)
+
+	if hasChanged then
+		if comnameIconList[unitID] then
+			glDeleteList(comnameIconList[unitID])
+			comnameIconList[unitID] = nil
+		end
+	end
+
+	return hasChanged
 end
 
 
@@ -373,9 +423,8 @@ local function CheckAllComs()
 			if comUnits then
 				for i = 1, #comUnits do
 					local unitID = comUnits[i]
-					if not comms[unitID] then
-						local unitDefID = spGetUnitDefID(unitID)
-						comms[unitID] = GetCommAttributes(unitID, unitDefID)
+					local unitDefID = spGetUnitDefID(unitID)
+					if unitDefID and CheckCom(unitID, unitDefID, teamID) then
 						commsChanged = true
 					end
 				end
@@ -396,7 +445,8 @@ local function CheckAllComs()
 	-- Pre-create display lists for any new or refreshed commanders
 	if commsChanged or colorChanged then
 		for unitID, attributes in pairs(comms) do
-			if attributes[1] and not comnameList[attributes[1]] then
+			local listKey = GetComnameListKey(attributes)
+			if attributes[1] and not comnameList[listKey] then
 				createComnameList(attributes)
 			end
 		end
@@ -431,26 +481,8 @@ function widget:Update(dt)
 		if not singleTeams and playerColorPalette ~= nil and playerColorPalette.getSameTeamColors then
 			local currentTeamID = spGetMyTeamID()
 			if myTeamID ~= currentTeamID then
-				-- old
-				local teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
-				local name = spGetPlayerInfo(teamPlayerID, false)
-				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
-				if comnameList[name] ~= nil then
-					comnameList[name] = glDeleteList(comnameList[name])
-				end
-				if comnameIconList[name] ~= nil then
-					comnameIconList[name] = glDeleteList(comnameIconList[name])
-				end
 				myTeamID = currentTeamID
-				teamPlayerID = select(2, spGetTeamInfo(myTeamID, false))
-				name = spGetPlayerInfo(teamPlayerID, false)
-				name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID)) or name
-				if comnameList[name] ~= nil then
-					comnameList[name] = glDeleteList(comnameList[name])
-				end
-				if comnameIconList[name] ~= nil then
-					comnameIconList[name] = glDeleteList(comnameIconList[name])
-				end
+				RemoveLists()
 				CheckAllComs()
 				sec = 0
 			end
@@ -467,7 +499,8 @@ end
 local spGetGroundHeight = Spring.GetGroundHeight
 
 local function DrawName(attributes)
-	if comnameList[attributes[1]] == nil then
+	local listKey = GetComnameListKey(attributes)
+	if comnameList[listKey] == nil then
 		createComnameList(attributes)
 	end
 	glTranslate(0, attributes[3], 0)
@@ -475,7 +508,7 @@ local function DrawName(attributes)
 	if nameScaling then
 		glScale(usedFontSize / fontSize, usedFontSize / fontSize, usedFontSize / fontSize)
 	end
-	glCallList(comnameList[attributes[1]])
+	glCallList(comnameList[listKey])
 	if nameScaling then
 		glScale(1, 1, 1)
 	end
@@ -519,11 +552,11 @@ function widget:ViewResize()
 end
 
 local function createComnameIconList(unitID, attributes)
-	if comnameIconList[attributes[1]] ~= nil then
+	if comnameIconList[unitID] ~= nil then
 		-- Don't recreate if it already exists unless forced
 		return
 	end
-	comnameIconList[attributes[1]] = glCreateList(function()
+	comnameIconList[unitID] = glCreateList(function()
 		local x, y, z = spGetUnitPosition(unitID)
 		if x and y and z then
 			x, z = spWorldToScreenCoords(x, y, z)
@@ -587,7 +620,8 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 					if not isOccludedByTerrain(camX, camY, camZ, ux, nametagY, uz) then
 						local sx, sy = spWorldToScreenCoords(ux, nametagY, uz)
 						if sx and sy and sx > -200 and sx < vsx + 200 and sy > -100 and sy < vsy + 100 then
-							if comnameList[attributes[1]] == nil then
+							local listKey = GetComnameListKey(attributes)
+							if comnameList[listKey] == nil then
 								createComnameList(attributes)
 							end
 							-- Approximate the previous billboarded scale: the world-space
@@ -602,7 +636,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 							glPushMatrix()
 							glTranslate(sx, sy, 0)
 							glScale(screenScale, screenScale, screenScale)
-							glCallList(comnameList[attributes[1]])
+							glCallList(comnameList[listKey])
 							glPopMatrix()
 						end
 					end
@@ -615,7 +649,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 	if next(drawScreenUnits) then
 		for unitID, attributes in pairs(drawScreenUnits) do
 			-- Only create the display list if it doesn't exist or has changed
-			if not comnameIconList[attributes[1]] then
+			if not comnameIconList[unitID] then
 				createComnameIconList(unitID, attributes)
 			end
 
@@ -642,7 +676,7 @@ function widget:DrawScreenEffects()	-- using DrawScreenEffects so nametags rende
 				glPushMatrix()
 				glTranslate(x, z, 0)
 				glScale(finalScale, finalScale, finalScale)
-				glCallList(comnameIconList[attributes[1]])
+				glCallList(comnameIconList[unitID])
 				glPopMatrix()
 			end
 		end
@@ -718,7 +752,7 @@ function widget:Initialize()
 				end
 			end
 
-			if name ~= '' and not comnameList[name] then
+			if name ~= '' then
 				local r, g, b, a = spGetTeamColor(teamID)
 				local skill
 				if showSkillValue then
@@ -736,7 +770,10 @@ function widget:Initialize()
 					end
 				end
 				local attrs = { name, { r, g, b, a }, 0, { 0, 0, 0, 1 }, nil, playerRank and playerRank + 1, 0, skill }
-				createComnameList(attrs)
+				local listKey = GetComnameListKey(attrs)
+				if not comnameList[listKey] then
+					createComnameList(attrs)
+				end
 			end
 		end
 	end
@@ -756,7 +793,15 @@ function widget:PlayerChanged(playerID)
 
 	local name, _ = spGetPlayerInfo(playerID, false)
 	name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-	comnameList[name] = nil
+	for _, attributes in pairs(comms) do
+		if attributes[1] == name then
+			local listKey = GetComnameListKey(attributes)
+			if comnameList[listKey] ~= nil then
+				glDeleteList(comnameList[listKey])
+				comnameList[listKey] = nil
+			end
+		end
+	end
 	sec = 99
 
 	if spec and prevSpec ~= spec then
@@ -771,14 +816,18 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	comms[unitID] = nil
+	if comnameIconList[unitID] then
+		glDeleteList(comnameIconList[unitID])
+		comnameIconList[unitID] = nil
+	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or unitTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+	CheckCom(unitID, unitDefID, spGetUnitTeam(unitID) or newTeam or unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)

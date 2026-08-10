@@ -5,7 +5,6 @@ return {
 		builder = true,
 		buildpic = "ARMMLV.DDS",
 		buildtime = 3520,
-		canassist = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = true,

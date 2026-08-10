@@ -152,8 +152,8 @@ local math_isInRect = math.isInRect
 
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
-local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, scheduleInit
+local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, selectScrollOffset
 local guishaderWasActive = false
 
 local glColor = gl.Color
@@ -242,6 +242,21 @@ local spectatorHUDConfigOptions = {
 }
 
 local startScript = VFS.LoadFile("_script.txt")
+local rwsBuffer      = nil  -- reassembly buffer for restart-with-state chunks (save path)
+local rwsRestoreData = nil  -- serialised state to send to gadget after restart (restore path)
+local RWS_MSG_CHUNK  = 4000
+
+local function getRestartWithStateScript()
+	local startPosTypePattern = "([Ss][Tt][Aa][Rr][Tt][Pp][Oo][Ss][Tt][Yy][Pp][Ee]%s*=%s*)%d+(%s*;)"
+	local script, replacements = startScript:gsub(startPosTypePattern, function(prefix, suffix)
+		return prefix .. "0" .. suffix
+	end, 1)
+	if replacements == 0 then
+		Spring.Echo("[Restart With State] Could not set fixed start-position mode; using the original start script.")
+	end
+	return script
+end
+
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptionsCopy()) do
@@ -1046,6 +1061,12 @@ function widget:Update(dt)
 		return
 	end
 
+	-- widgetHandler:EnableWidget/DisableWidget are deferred but are used to change displayed options. This is a solution to update the options list after next frame.
+	if scheduleInit then
+		scheduleInit = nil
+		init()
+	end
+
 		-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
 		if not ambientplayerCheck then
 			ambientplayerCheck = true
@@ -1177,6 +1198,37 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
+	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	if msg == "rws:begin" then
+		rwsBuffer = {}
+		return true
+	end
+	local rwsChunk = msg:match("^rws:chunk:(.*)")
+	if rwsChunk then
+		if rwsBuffer then rwsBuffer[#rwsBuffer + 1] = rwsChunk end
+		return true
+	end
+	if msg == "rws:commit" then
+		if not rwsBuffer then return true end
+		local data = table.concat(rwsBuffer)
+		rwsBuffer = nil
+		Spring.CreateDir("LuaUI/Config")
+		local f, err = io.open("LuaUI/Config/restart_state.lua", "w")
+		if not f then
+			Spring.Echo("[Restart With State] Could not write state file: " .. tostring(err))
+			return true
+		end
+		f:write(data)
+		f:close()
+		Spring.Echo("[Restart With State] State saved (" .. tostring(#data) .. " bytes). Restarting...")
+		Spring.Restart("", getRestartWithStateScript())
+		return true
+	end
+	if msg == "rws:clear" then
+		local f = io.open("LuaUI/Config/restart_state.lua", "w")
+		if f then f:close() end
+		return true
+	end
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 		updateGrabinput()
@@ -1439,13 +1491,19 @@ function widget:DrawScreen()
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
 				local oPadding = math.floor(4 * widgetScale)
 				local y = optionButtons[showSelectOptions][4] - oPadding
-				local yPos = y
 				optionSelect = {}
-				local i = 0
-				for k, option in pairs(options[showSelectOptions].options) do
-					i = i + 1
-					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
+
+				-- count total items and clamp scroll offset
+				local numItems = 0
+				for _ in pairs(options[showSelectOptions].options) do
+					numItems = numItems + 1
 				end
+				local maxVisible = math.min(numItems, 16)
+				if selectScrollOffset == nil then selectScrollOffset = 0 end
+				selectScrollOffset = math.max(0, math.min(selectScrollOffset, numItems - maxVisible))
+
+				-- yPos at bottom of last visible item
+				local yPos = y - (((oHeight + oPadding + oPadding) * maxVisible) - oPadding)
 
 				-- get max text option width
 				local fontSize = oHeight * 0.85
@@ -1466,29 +1524,52 @@ function widget:DrawScreen()
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
 					local i = 0
+					local vi = 0 -- visible index in the current scrollbar
 					for k, option in pairs(options[showSelectOptions].options) do
 						i = i + 1
-						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1] + maxWidth), math.floor(yPos + oPadding) - 1, k }
+						if i > selectScrollOffset and vi < maxVisible then
+							vi = vi + 1
+							local itemYPos = math.floor(y - (((oHeight + oPadding + oPadding) * vi) - oPadding))
+							optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(itemYPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1] + maxWidth), math.floor(itemYPos + oPadding) - 1, k }
 
-						if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
-							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(yPos + oPadding))
-							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-								Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, 'ui')
+							if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
+								UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(itemYPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(itemYPos + oPadding))
+								if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
+									Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, 'ui')
+								end
+								prevSelectHover = k
 							end
-							prevSelectHover = k
+							if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
+								fontOption[i]:Begin()
+								fontOption[i]:SetOutlineColor(0,0,0,0.4)
+								fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, itemYPos - (oHeight / 2) - oPadding, fontSize, "no")
+								fontOption[i]:End()
+							else
+								font:Begin()
+								font:SetOutlineColor(0,0,0,0.4)
+								font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, itemYPos - (oHeight / 2) - oPadding, fontSize, "no")
+								font:End()
+							end
 						end
-						if options[showSelectOptions].optionsFont and fontOption and fontOption[i] then
-							fontOption[i]:Begin()
-							fontOption[i]:SetOutlineColor(0,0,0,0.4)
-							fontOption[i]:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
-							fontOption[i]:End()
-						else
-							font:Begin()
-							font:SetOutlineColor(0,0,0,0.4)
-							font:Print(optionColor .. option, optionButtons[showSelectOptions][1] + 7, yPos - (oHeight / 2) - oPadding, fontSize, "no")
-							font:End()
-						end
+					end
+					-- scrollbar
+					if numItems > 16 then
+						local sbWidth = math.max(3, math.floor(4 * widgetScale))
+						local dropY1 = yPos - oHeight - oPadding
+						local dropY2 = optionButtons[showSelectOptions][2]
+						local dropH = dropY2 - dropY1
+						local sbX1 = optionButtons[showSelectOptions][1] + maxWidth - sbWidth
+						local sbX2 = optionButtons[showSelectOptions][1] + maxWidth
+						-- track
+						gl.Color(0.15, 0.15, 0.15, 0.85)
+						gl.Rect(sbX1, dropY1, sbX2, dropY2)
+						-- thumb
+						local thumbH = math.max(dropH * maxVisible / numItems, sbWidth * 2)
+						local thumbY2 = dropY2 - (selectScrollOffset / (numItems - maxVisible)) * (dropH - thumbH)
+						local thumbY1 = thumbY2 - thumbH
+						gl.Color(0.65, 0.65, 0.65, 0.9)
+						gl.Rect(sbX1, thumbY1, sbX2, thumbY2)
+						gl.Color(1, 1, 1, 1)
 					end
 				end)
 				if WG['guishader'] then
@@ -1699,6 +1780,17 @@ end
 function widget:MouseWheel(up, value)
 	local x, y = Spring.GetMouseState()
 	if show then
+		if showSelectOptions ~= nil then
+			local numItems = 0
+			for _ in pairs(options[showSelectOptions].options) do numItems = numItems + 1 end
+			local maxVisible = math.min(numItems, 16)
+			if selectScrollOffset == nil then selectScrollOffset = 0 end
+			if up then
+				selectScrollOffset = math.max(0, selectScrollOffset - 1)
+			else
+				selectScrollOffset = math.min(numItems - maxVisible, selectScrollOffset + 1)
+			end
+		end
 		return true
 	end
 end
@@ -1865,6 +1957,7 @@ function mouseEvent(mx, my, button, release)
 								end
 								if showSelectOptions == nil then
 									showSelectOptions = i
+									selectScrollOffset = 0
 								elseif showSelectOptions == i then
 									--showSelectOptions = nil
 								end
@@ -1975,6 +2068,7 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		end
 		forceUpdate = true
+		scheduleInit = true
 		if id == "teamcolors" then
 			Spring.SendCommands("luarules reloadluaui")    -- cause several widgets are still using old colors
 		end
@@ -2260,10 +2354,11 @@ function init()
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
 			lighteffects_screenspaceshadows = 0,
+			lighteffects_nanoparticlelights = false,
 			distortioneffects = false,
 			snow = false,
 			particles = 10000,
-			nanoparticletype = 0,
+			nanoparticletype = 1,
 			guishader = 0,
 			decalsgl4 = 0,
 			decals = 0,
@@ -2284,6 +2379,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
 			lighteffects_screenspaceshadows = 1,
+			lighteffects_nanoparticlelights = false,
 			distortioneffects = true,
 			snow = false,
 			particles = 15000,
@@ -2308,6 +2404,7 @@ function init()
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 2,
+			lighteffects_nanoparticlelights = true,
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
@@ -2331,6 +2428,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 3,
+			lighteffects_nanoparticlelights = true,
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
@@ -2354,6 +2452,7 @@ function init()
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
 			lighteffects_screenspaceshadows = 4,
+			lighteffects_nanoparticlelights = true,
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
@@ -2877,6 +2976,12 @@ function init()
 		  end,
 	  	},
 
+		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
+		  onchange = function(i, value)
+			Spring.SetConfigInt("NanoParticlesUpdateLuaUI", value and 1 or 0)
+		  end,
+		},
+
 		{ id = "distortioneffects", group = "gfx", category = types.basic, widget = "Distortion GL4", name = Spring.I18N('ui.settings.option.distortioneffects'), type = "bool", value = GetWidgetToggleValue("Distortion GL4"), description = Spring.I18N('ui.settings.option.distortioneffects_descr') },
 
 		{ id = "darkenmap", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.darkenmap'), min = 0, max = 0.33, step = 0.01, type = "slider", value = 0, description = Spring.I18N('ui.settings.option.darkenmap_descr'),
@@ -2898,12 +3003,36 @@ function init()
 		  end,
 		},
 
-		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		{ id = "losopacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.losopacity'), type = "slider", min = 0.01, max = 1, step = 0.01, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 0.66, description = '',
 		  onload = function(i)
 			  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getStrength ~= nil and WG.fogdiaglines.getStrength()) or 0.30, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines", { 'strength' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setStrength', { 'strength' }, value)
+		  end,
+		},
+
+		{ id = "fogdiaglines_blur", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.lineofsight')..widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.fogdiaglines_blur'), type = "slider", min = 0, max = 1, step = 0.01, value = (WG.fogdiaglines ~= nil and WG.fogdiaglines.getBlurriness ~= nil and WG.fogdiaglines.getBlurriness()) or 0.187, description = '',
+		  onload = function(i)
+			  loadWidgetData("Fog Diagonal Lines GL4", "fogdiaglines_blur", { 'blurriness' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Fog Diagonal Lines GL4', 'fogdiaglines', 'setBlurriness', { 'blurriness' }, value)
+		  end,
+		},
+
+		{ id = "territorial_domination_height_opacity", group = "gfx", category = types.advanced, name = Spring.I18N('ui.settings.option.territorial_domination_height_opacity'), type = "slider", min = 0.5, max = 2.0, step = 0.05, value = Spring.GetConfigFloat("territorial_domination_height_opacity", 1.0), description = Spring.I18N('ui.settings.option.territorial_domination_height_opacity_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("territorial_domination_height_opacity", value)
 		  end,
 		},
 
@@ -3033,9 +3162,9 @@ function init()
 			  Spring.SetConfigInt("MaxParticles", value)
 			  -- Keep the engine nano-spray budget in sync when the gadget is
 			  -- handing particles back to the engine (NanoParticleMode 0).
-			  if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+			  if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 				  Spring.SetConfigInt("MaxNanoParticles", math.floor(value * 0.34))
-				if Spring.GetConfigInt("NanoParticleMode", 2) == 0 then
+				if Spring.GetConfigInt("NanoParticleMode", 1) == 0 then
 					Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
 				else
 					Spring.SetConfigInt("MaxNanoParticles", 0)
@@ -3048,11 +3177,10 @@ function init()
 		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
 		  type = "select",
 		  options = {
-			  Spring.I18N('ui.settings.option.nanoparticletype_simple'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_smart'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_shapes'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_basic'),
+			  Spring.I18N('ui.settings.option.nanoparticletype_advanced'),
 		  },
-		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 2)) or 2) + 1,
+		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
 		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
 		  onload = function(i)
 		  end,
@@ -3084,10 +3212,6 @@ function init()
 			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
 		  end,
 		},
-
-		{ id = "label_gfx_game", group = "gfx", name = Spring.I18N('ui.settings.option.label_game'), category = types.advanced },
-		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 
 		-- SOUND
@@ -3464,7 +3588,7 @@ function init()
 			  if WG['bar_hotkeys'] and WG['bar_hotkeys'].reloadBindings then
 				  WG['bar_hotkeys'].reloadBindings()
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 
@@ -3477,7 +3601,7 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
-			  init()
+			  scheduleInit = true
 		  end,
 		},
 		{ id = "gridmenu_alwaysreturn", group = "control", category = types.advanced, name = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn'), type = "bool", value = (WG['gridmenu'] ~= nil and WG['gridmenu'].getAlwaysReturn ~= nil and WG['gridmenu'].getAlwaysReturn()), description = Spring.I18N('ui.settings.option.gridmenu_alwaysreturn_descr'),
@@ -3728,6 +3852,20 @@ function init()
 			  end
 		  end,
 		},
+		{ id = "zoomtocursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomtocursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomInToMousePos", 1)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomInToMousePos", value and 1 or 0)
+		  end,
+		},
+		{ id = "zoomfromcursor", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.zoomfromcursor'), type = "bool", value = tonumber(Spring.GetConfigInt("CamSpringZoomOutFromMousePos", 0)) == 1, description = "",
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("CamSpringZoomOutFromMousePos", value and 1 or 0)
+		  end,
+		},
 		{ id = "invertmouse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.invertmouse'), type = "bool", value = tonumber(Spring.GetConfigInt("InvertMouse", 0)) == 1, description = "",
 		  onload = function(i)
 		  end,
@@ -3861,6 +3999,9 @@ function init()
 		{ id = "minimap_maxheight", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.minimap') .. widgetOptionColor .. "  " .. Spring.I18N('ui.settings.option.minimap_maxheight'), type = "slider", min = 0.2, max = 0.4, step = 0.01, value = Spring.GetConfigFloat("MinimapMaxHeight", 0.32), description = Spring.I18N('ui.settings.option.minimap_maxheight_descr'),
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("MinimapMaxHeight", value)
+			  if WG['minimap'] and WG['minimap'].setMaxHeight then
+				  WG['minimap'].setMaxHeight(value)
+			  end
 		  end,
 		},
 		{ id = "minimapleftclick", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.minimapleftclick'), type = "bool", value = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1, description = Spring.I18N('ui.settings.option.minimapleftclick_descr'),
@@ -3921,6 +4062,46 @@ function init()
 			  for _, n in ipairs({0, 1, 2, 3, 4}) do
 				  if WG['pip' .. n] and WG['pip' .. n].setDrawCommandFX then
 					  WG['pip' .. n].setDrawCommandFX(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostreams", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostreams'), type = "bool", value = Spring.GetConfigInt("PipDrawNanoStreams", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostreams_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipDrawNanoStreams", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setDrawNanoStreams then
+					  WG['pip' .. n].setDrawNanoStreams(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_nanostream_usage", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_nanostream_usage'), type = "bool", value = Spring.GetConfigInt("PipNanoStreamReflectUsage", 1) == 1, description = Spring.I18N('ui.settings.option.pip_nanostream_usage_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipNanoStreamReflectUsage", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setNanoStreamReflectUsage then
+					  WG['pip' .. n].setNanoStreamReflectUsage(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_mapdrawings", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawings'), type = "bool", value = Spring.GetConfigInt("PipShowMapDrawings", 1) == 1, description = Spring.I18N('ui.settings.option.pip_mapdrawings_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("PipShowMapDrawings", value and 1 or 0)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setShowMapDrawings then
+					  WG['pip' .. n].setShowMapDrawings(value)
+				  end
+			  end
+		  end,
+		},
+		{ id = "pip_mapdrawing_duration", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_mapdrawing_duration'), type = "slider", min = 1, max = 60, step = 1, value = Spring.GetConfigFloat("PipMapDrawingDuration", 15), description = Spring.I18N('ui.settings.option.pip_mapdrawing_duration_descr'),
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("PipMapDrawingDuration", value)
+			  for _, n in ipairs({0, 1, 2, 3, 4}) do
+				  if WG['pip' .. n] and WG['pip' .. n].setMapDrawingDuration then
+					  WG['pip' .. n].setMapDrawingDuration(value)
 				  end
 			  end
 		  end,
@@ -4261,7 +4442,7 @@ function init()
 		--  end,
 		--},
 		{ id = "autoeraser", group = "ui", category = types.basic, widget = "Auto mapmark eraser", name = Spring.I18N('ui.settings.option.autoeraser'), type = "bool", value = GetWidgetToggleValue("Auto mapmark eraser"), description = Spring.I18N('ui.settings.option.autoeraser_descr') },
-		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 10, max = 200, step = 1, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
+		{ id = "autoeraser_erasetime", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.autoeraser_erasetime'), type = "slider", min = 5, max = 600, step = 5, value = 60, description = Spring.I18N('ui.settings.option.autoeraser_erasetime_descr'),
 		  onload = function(i)
 			  loadWidgetData("Auto mapmark eraser", "autoeraser_erasetime", { 'eraseTime' })
 		  end,
@@ -4588,6 +4769,10 @@ function init()
 		{ id = "unitenergyicons", group = "ui", category = types.advanced, widget = "Unit Energy Icons", name = Spring.I18N('ui.settings.option.unitenergyicons'), type = "bool", value = GetWidgetToggleValue("Unit Energy Icons"), description = Spring.I18N('ui.settings.option.unitenergyicons_descr') },
 
 		{ id = "unitidlebuildericons", group = "ui", category = types.advanced, widget = "Unit Idle Builder Icons", name = Spring.I18N('ui.settings.option.unitidlebuildericons'), type = "bool", value = GetWidgetToggleValue("Unit Idle Builder Icons"), description = Spring.I18N('ui.settings.option.unitidlebuildericons_descr') },
+
+		{ id = "unitfirestateicons", group = "ui", category = types.advanced, widget = "Unit Fire State Icons", name = Spring.I18N('ui.settings.option.unitfirestateicons'), type = "bool", value = GetWidgetToggleValue("Unit Fire State Icons"), description = Spring.I18N('ui.settings.option.unitfirestateicons_descr') },
+
+		{ id = "resurrectionhalos", group = "ui", category = types.advanced, widget = "Resurrection Halos GL4", name = Spring.I18N('ui.settings.option.resurrectionhalos'), type = "bool", value = GetWidgetToggleValue("Resurrection Halos GL4"), description = Spring.I18N('ui.settings.option.resurrectionhalos_descr') },
 
 		{ id = "nametags_rank", group = "ui", category = types.advanced, name = Spring.I18N('ui.settings.option.nametags_rank'), type = "bool", value = true, description = Spring.I18N('ui.settings.option.nametags_rank_descr'),
 		  onload = function(i)
@@ -5066,6 +5251,13 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
+		{ id = "smartselect_includeresurrectors", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeresurrectors'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeresurrectors_descr'),
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeResurrectors', { 'includeResurrectors' }, value)
+		  end,
+		},
 		{ id = "smartselect_includeantinuke", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.smartselect_includeantinuke'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.smartselect_includeantinuke_descr'),
 		  onload = function(i)
 		  end,
@@ -5188,6 +5380,7 @@ function init()
 		},
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, widget = "BombersDefaultHoldFire", name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = GetWidgetToggleValue("BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr') },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr') },
 
 		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = Spring.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = Spring.I18N('ui.settings.option.settargetdefault_descr') },
@@ -5371,6 +5564,12 @@ function init()
 			  Spring.Restart("", startScript)
 		  end,
 		},
+		{ id = "restart_with_state", group = "dev", category = types.dev, name = Spring.I18N('ui.settings.option.restart_with_state'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.restart_with_state_descr'),
+		  onchange = function(i, value)
+			  options[getOptionByID('restart_with_state')].value = false
+			  Spring.SendLuaRulesMsg("restart_with_state")
+		  end,
+		},
 
 		{ id = "label_dev_debug", group = "dev", name = Spring.I18N('ui.settings.option.label_debug'), category = types.dev },
 		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
@@ -5414,6 +5613,8 @@ function init()
 			  Spring.SetConfigInt("StoreDefaultSettings", (value and 1 or 0))
 		  end,
 		},
+
+		{ id = "cegbrowser", group = "dev", category = types.dev, widget = "CEG Effects Browser", name = Spring.I18N('ui.settings.option.cegbrowser'), type = "bool", value = GetWidgetToggleValue("CEG Effects Browser"), description = Spring.I18N('ui.settings.option.cegbrowser_descr') },
 
 		{ id = "startboxeditor", group = "dev", category = types.dev, widget = "Startbox Editor", name = Spring.I18N('ui.settings.option.startboxeditor'), type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = Spring.I18N('ui.settings.option.startboxeditor_descr') },
 
@@ -6760,12 +6961,16 @@ function init()
 						newOptions[count] = { id="music_track_"..v[2], group="sound", basic=true, name=v[1], type="text"}
 					end
 					count = count + 1
-					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="click",--..'\n'..v[4],
-						  onclick = function()
-							  if WG['music'] ~= nil and WG['music'].playTrack then
-								  WG['music'].playTrack(v[3])
-							  end
-						  end,
+					newOptions[count] = { id="music_track_"..count, group="sound", basic=true, name=widgetOptionColor.."   "..v[2], type="bool", value=Spring.GetConfigInt("MusicSwitch " .. v[2], 1) == 1, --..'\n'..v[4],
+						onclick = function()
+						  	if WG['music'] ~= nil and WG['music'].playTrack then
+								WG['music'].playTrack(v[3])
+						  	end
+						end,
+						onchange = function(_, value)
+			  				Spring.SetConfigInt("MusicSwitch " .. v[2], value and 1 or 0)
+							--Spring.Echo(value, v[1], v[2], v[3], Spring.GetConfigInt("MusicSwitch " .. v[2], 1))
+		  				end,
 					}
 				end
 			end
@@ -6969,10 +7174,16 @@ function init()
 
 	if Spring.GetConfigInt("CamMode", 2) ~= 2 then
 		options[getOptionByID('springcamheightmode')] = nil
+		options[getOptionByID('zoomtocursor')] = nil
+		options[getOptionByID('zoomfromcursor')] = nil
 	end
 
 	if Spring.GetConfigString("KeybindingFile") ~= "uikeys.txt" then
 		options[getOptionByID('gridmenu')] = nil
+	end
+
+	if not isSinglePlayer then
+		options[getOptionByID('restart_with_state')] = nil
 	end
 
 	-- add user widgets
@@ -7198,6 +7409,21 @@ end
 
 
 function widget:Initialize()
+	-- Restart-with-state restore: if a saved state file exists from a previous
+	-- restart-with-state trigger, read it now (io is available in LuaUI) and
+	-- schedule it to be forwarded to the gadget on the first game frame.
+	local RWS_FILE = "LuaUI/Config/restart_state.lua"
+	local f = io.open(RWS_FILE, "r")
+	if f then
+		local content = f:read("*all")
+		f:close()
+		if content and content ~= "" then
+			rwsRestoreData = content
+		end
+		-- Clear the file immediately so we don't restore again on the next restart
+		local fc = io.open(RWS_FILE, "w")
+		if fc then fc:close() end
+	end
 
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
@@ -7426,6 +7652,20 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "devmode", devmodeCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "profile", profileCmd, nil, 't')
 	widgetHandler.actionHandler:AddAction(self, "grapher", grapherCmd, nil, 't')
+end
+
+function widget:GameFrame(n)
+	-- Send the saved restore state to the gadget on the very first frame.
+	-- We wait until frame 1 so that all gadgets are fully initialised.
+	if rwsRestoreData and n == 1 then
+		local data = rwsRestoreData
+		rwsRestoreData = nil
+		Spring.SendLuaRulesMsg("rws_restore_begin")
+		for i = 1, #data, RWS_MSG_CHUNK do
+			Spring.SendLuaRulesMsg("rws_restore_chunk:" .. data:sub(i, i + RWS_MSG_CHUNK - 1))
+		end
+		Spring.SendLuaRulesMsg("rws_restore_commit")
+	end
 end
 
 function widget:Shutdown()

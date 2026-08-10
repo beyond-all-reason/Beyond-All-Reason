@@ -57,7 +57,7 @@ function test()
 
 	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
-	assert(#(widget.blueprints) == 1)
+	assertEqual(#(widget.blueprints), 1)
 
 	Test.clearMap()
 
@@ -89,7 +89,7 @@ function test()
 
 	Test.waitFrames(delay)
 
-	assert(widget.blueprintPlacementActive)
+	assert(widget.blueprintPlacementActive, "blueprintPlacementActive was nil or false")
 
 	local sx, sy = Spring.WorldToScreenCoords(x, y, z)
 	Spring.WarpMouse(sx, sy)
@@ -102,6 +102,6 @@ function test()
 
 	local builderQueue = Spring.GetUnitCommands(builderUnitID, -1)
 
-	assert(#builderQueue == 1)
-	assert(builderQueue[1].id == -blueprintUnitDefID)
+	assertEqual(#builderQueue, 1)
+	assertEqual(builderQueue[1].id, -blueprintUnitDefID)
 end

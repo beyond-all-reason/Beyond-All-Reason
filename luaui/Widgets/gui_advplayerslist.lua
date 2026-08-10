@@ -207,6 +207,7 @@ local sidePics = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
 local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
+widget._advPlayersListDrawState = { lastDrawGameFrame = curFrame, sawSpareDrawFrame = false }
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {Spring.GetConfigInt("anonymousColorR", 255)/255, Spring.GetConfigInt("anonymousColorG", 0)/255, Spring.GetConfigInt("anonymousColorB", 0)/255}
@@ -248,6 +249,7 @@ local updateFastRateMult = 1	-- goes up when more players	auto adjusts in Update
 
 local aliveAllyTeams = {}
 local populatedAllyTeams = {}
+local gameOverWinnerAllyTeams = {}  -- allyteam IDs that won; their players keep their display after disconnect
 local allyTeamMaxStorage = {}
 
 local tipTextTime = 0
@@ -273,6 +275,7 @@ local lastFpsData = {}
 local lastApmData = {}
 local lastSystemData = {}
 local lastGpuMemData = {}
+local lastLuaMemData = {}
 
 local activeDrawPlayers = {}  -- set of playerIDs with active point/pencil/eraser timers
 local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detection
@@ -307,6 +310,10 @@ local sideDefs = {
 
 --Name for absent/resigned players
 local absentName = " --- "
+
+-- Persists the last known player name per teamID across GetAllPlayers rebuilds
+local lastKnownTeamNames = {}
+local pendingInitRefresh = false  -- triggers one doPlayerUpdate after all widgets have initialized
 
 local gameStarted = false
 local gameStartRefreshed = spGetGameFrame() > 30
@@ -621,6 +628,7 @@ if mySpecStatus or numTeamsInAllyTeam <= 1 then
 end
 
 local teamRanking = {}
+local allyTeamRanking = nil
 local isPvE = Spring.Utilities.Gametype.IsPvE()
 
 ---------------------------------------------------------------------------------------------------
@@ -772,29 +780,29 @@ local function LockCamera(playerID)
     UpdateRecentBroadcasters()
 end
 
-function GpuMemEvent(playerID, percentage)
+local function GpuMemEvent(playerID, percentage)
     lastGpuMemData[playerID] = percentage
 end
 
-function FpsEvent(playerID, fps)
-	lastFpsData[playerID] = fps
-	WG.playerFPS = WG.playerFPS or {}
-	WG.playerFPS[playerID] = fps
+local function LuaMemEvent(playerID, um)
+    lastLuaMemData[playerID] = um
 end
 
-function RankingEvent(allyTeamRanking)
-	WG.allyTeamRanking = allyTeamRanking
+local function FpsEvent(playerID, fps)
+	lastFpsData[playerID] = fps
+end
+
+local function RankingEvent(ranking)
+    allyTeamRanking = ranking
 	SortList()
 	CreateLists()
 end
 
-function ApmEvent(teamID, fps)
+local function ApmEvent(teamID, fps)
 	lastApmData[teamID] = fps
-	WG.teamAPM = WG.teamAPM or {}
-	WG.teamAPM[teamID] = fps
 end
 
-function SystemEvent(playerID, system)
+local function SystemEvent(playerID, system)
     local lines, length = 0, 0
     local function helper(line)
         lines = lines + 1;
@@ -805,12 +813,9 @@ function SystemEvent(playerID, system)
     end
     helper( system:gsub("(.-)\r?\n", helper) )
     lastSystemData[playerID] = system
-
-    WG.playerSystemData = WG.playerSystemData or {}
-    WG.playerSystemData[playerID] = system
 end
 
-function ActivityEvent(playerID)
+local function ActivityEvent(playerID)
     lastActivity[playerID] = osClock()
 end
 
@@ -837,6 +842,14 @@ local function SetOriginalColourNames()
 end
 
 function widget:PlayerChanged(playerID)
+    -- Capture name before doPlayerUpdate rebuilds the player table
+    local p = player[playerID]
+    if p and p.team and p.name and p.name ~= absentName and not p.spec then
+        local _, newActive, newSpec = sp.GetPlayerInfo(playerID, false)
+        if newSpec or not newActive then
+            lastKnownTeamNames[p.team] = p.name
+        end
+    end
     myPlayerID = Spring.GetMyPlayerID()
     myAllyTeamID = Spring.GetLocalAllyTeamID()
     myTeamID = Spring.GetLocalTeamID()
@@ -861,8 +874,32 @@ function widget:PlayerRemoved(playerID, reason)
 end
 
 function widget:TeamDied(teamID)
+    -- Capture name before doPlayerUpdate rebuilds the player table
+    if not lastKnownTeamNames[teamID] then
+        for pID = 0, specOffset-1 do
+            local p = player[pID]
+            if p and p.team == teamID and p.name and p.name ~= absentName and not p.spec then
+                lastKnownTeamNames[teamID] = p.name
+                break
+            end
+        end
+    end
     player[teamID + specOffset] = CreatePlayerFromTeam(teamID)
     doPlayerUpdate()
+    -- Explicitly mark real player entries on the dead team as dead.
+    -- Engine API (GetTeamInfo isDead) may not yet reflect the new state during this callin,
+    -- so we force the flag after doPlayerUpdate() has rebuilt all entries.
+    for pID = 0, specOffset-1 do
+        local p = player[pID]
+        if p and p.team == teamID and not p.spec then
+            p.dead = true
+        end
+    end
+    -- Also mark the ghost slot dead immediately so DrawName shows the strikethrough
+    -- without waiting for the next full update cycle.
+    if player[teamID + specOffset] then
+        player[teamID + specOffset].dead = true
+    end
 end
 
 -- rank players inside each team based on production and damage dealt
@@ -929,15 +966,36 @@ local function speclistCmd(_, _, params)
 	CreateLists()
 end
 
+function widget:ActivityEvent(playerID)
+    ActivityEvent(playerID)
+end
+
+function widget:FpsEvent(playerID, fps)
+    FpsEvent(playerID, fps)
+end
+
+function widget:ApmEvent(teamID, apm)
+    ApmEvent(teamID, apm)
+end
+
+function widget:GpuMemEvent(playerID, mem)
+    GpuMemEvent(playerID, mem)
+end
+
+function widget:LuaMemEvent(playerID, mem)
+    LuaMemEvent(playerID, mem)
+end
+
+function widget:SystemEvent(playerID, systemData)
+    SystemEvent(playerID, systemData)
+end
+
+function widget:RankingEvent(ranking)
+    RankingEvent(ranking)
+end
+
 function widget:Initialize()
 	widget:ViewResize()
-
-	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
-	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
-	widgetHandler:RegisterGlobal('ApmEvent', ApmEvent)
-	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
-	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-	widgetHandler:RegisterGlobal('RankingEvent', RankingEvent)
 	UpdateRecentBroadcasters()
 
 	mySpecStatus, fullView, _ = spGetSpectatingState()
@@ -961,6 +1019,7 @@ function widget:Initialize()
 	InitializePlayers()
 	GetAliveAllyTeams()
 	SortList()
+	pendingInitRefresh = true  -- refresh after other widgets (e.g. playernames) have initialized
     SetModulesPositionX()
 
     -- when PvE: rank players inside each team based on production and damage dealt
@@ -1019,6 +1078,12 @@ function widget:GameOver(winningAllyTeams)
     if isPvE and not isSinglePlayer then
         rankTeamPlayers()
     end
+    -- Track winning allyteams so disconnected winners keep their display
+    gameOverWinnerAllyTeams = {}
+    for _, allyTeamID in ipairs(winningAllyTeams) do
+        gameOverWinnerAllyTeams[allyTeamID] = true
+    end
+    doPlayerUpdate()  -- refresh so winners who leave aren't shown as dead
 end
 
 function widget:GameFrame(n)
@@ -1060,12 +1125,6 @@ function widget:Shutdown()
 		mainList2Tex = nil
 	end
     WG['advplayerlist_api'] = nil
-    widgetHandler:DeregisterGlobal('ActivityEvent')
-	widgetHandler:DeregisterGlobal('FpsEvent')
-	widgetHandler:DeregisterGlobal('ApmEvent')
-    widgetHandler:DeregisterGlobal('GpuMemEvent')
-    widgetHandler:DeregisterGlobal('SystemEvent')
-    widgetHandler:DeregisterGlobal('RankingEvent')
     if ShareSlider then
         gl_DeleteList(ShareSlider)
     end
@@ -1124,12 +1183,49 @@ function GetAllPlayers()
     teamN = table.maxn(allteams) - 1 --remove gaia
     for i = 0, teamN - 1 do
         local teamPlayers = sp.GetPlayerList(i, true)
+        -- If team is empty, try to find who was on it before rebuilding the ghost
+        if #teamPlayers == 0 and not lastKnownTeamNames[i] then
+            -- Try player entries still carrying this team (works right as player leaves)
+            for pID = 0, specOffset - 1 do
+                local ep = player[pID]
+                if ep and ep.team == i and ep.name and ep.name ~= absentName and not ep.spec then
+                    lastKnownTeamNames[i] = ep.name
+                    break
+                end
+            end
+            -- Try via team leader stored in GetTeamInfo (works when player is now a spec)
+            if not lastKnownTeamNames[i] then
+                local teamLeaderID = select(2, sp.GetTeamInfo(i, false))
+                if teamLeaderID and teamLeaderID >= 0 then
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(teamLeaderID, false)
+                    if pName and not pSpec and pTeam == i then
+                        lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
+                            and WG.playernames.getPlayername(teamLeaderID) or pName
+                    end
+                end
+            end
+            -- Try GetPlayerList including inactive/spec players
+            if not lastKnownTeamNames[i] then
+                local allTeamPlayers = sp.GetPlayerList(i, false)
+                for _, pID in ipairs(allTeamPlayers) do
+                    local pName, _, pSpec, pTeam = sp.GetPlayerInfo(pID, false)
+                    if pName and not pSpec and pTeam == i then
+                        lastKnownTeamNames[i] = (WG.playernames and WG.playernames.getPlayername)
+                            and WG.playernames.getPlayername(pID) or pName
+                        break
+                    end
+                end
+            end
+        end
         player[i + specOffset] = CreatePlayerFromTeam(i)
+        if lastKnownTeamNames[i] then
+            player[i + specOffset].lastKnownName = lastKnownTeamNames[i]
+        end
         for _, playerID in ipairs(teamPlayers) do
             player[playerID] = CreatePlayer(playerID)
         end
     end
-    local specPlayers = sp.GetTeamList()
+    local specPlayers = sp.GetPlayerList(-1, false) or {}
     for _, playerID in ipairs(specPlayers) do
         local name, active, spec = sp.GetPlayerInfo(playerID, false)
         if spec then
@@ -1222,6 +1318,7 @@ end
 
 function CreatePlayer(playerID)
     local tname, _, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank, _, accountInfo, desynced = sp.GetPlayerInfo(playerID)
+    local accountID = nil
 	if accountInfo and accountInfo.accountid then
 		accountID = tonumber(accountInfo.accountid)
 	end
@@ -1238,7 +1335,7 @@ function CreatePlayer(playerID)
 	local pname = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID) or tname
 	local isAliasName = tname ~= pname
 	tname = pname
-    local _, _, _, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
+    local _, _, teamIsDead, _, tside, tallyteam, tincomeMultiplier = sp.GetTeamInfo(tteam, false)
     local tred, tgreen, tblue = sp.GetTeamColor(tteam)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and playerID ~= myPlayerID then
 		tred, tgreen, tblue = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
@@ -1290,7 +1387,7 @@ function CreatePlayer(playerID)
         ping = tping,
         cpu = tcpu,
         country = tcountry,
-        dead = false,
+        dead = teamIsDead or false,
         spec = tspec,
         ai = false,
         energy = energy,
@@ -1345,6 +1442,7 @@ function CreatePlayerFromTeam(teamID)
             tdead = false
         else
             ttotake = IsTakeable(teamID)
+            tdead = isDead  -- winning players who leave should not show as dead
         end
 
         tai = false
@@ -1539,14 +1637,14 @@ function SortAllyTeams(vOffset)
     -- adds ally teams to the draw list (own ally team first)
     -- (labels and separators are drawn)
     local allyTeamList = sp.GetAllyTeamList()
-	if WG.allyTeamRanking then
-		allyTeamList = WG.allyTeamRanking
+    if allyTeamRanking then
+        allyTeamList = allyTeamRanking
 	end
 
 	-- find own ally team
 	vOffset = 12 / 2.66
 	local ownAllyTeamDrawn = false
-	if not WG.allyTeamRanking or not enemyListShow then
+    if not allyTeamRanking or not enemyListShow then
 		local showOwnAlly = not mySpecStatus or (not hideDeadAllyTeams or (aliveAllyTeams[myAllyTeamID] and populatedAllyTeams[myAllyTeamID]))
 		if showOwnAlly then
 		ownAllyTeamDrawn = true
@@ -1568,7 +1666,7 @@ function SortAllyTeams(vOffset)
 	if numberOfEnemies > 0 then
 
 		-- "Enemies" label
-		if not WG.allyTeamRanking or not enemyListShow then
+        if not allyTeamRanking or not enemyListShow then
 			if ownAllyTeamDrawn then
 				vOffset = vOffset + 13
 			end
@@ -1582,8 +1680,8 @@ function SortAllyTeams(vOffset)
 		-- add the others
 		if enemyListShow or not ownAllyTeamDrawn then
 			local firstenemy = true
-			for _, allyTeamID in ipairs(allyTeamList) do
-				if (WG.allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
+            for _, allyTeamID in ipairs(allyTeamList) do
+                if (allyTeamRanking or allyTeamID ~= myAllyTeamID) and (not hideDeadAllyTeams or aliveAllyTeams[allyTeamID]) then
 					if firstenemy then
 						firstenemy = false
 					else
@@ -1620,6 +1718,9 @@ function SortPlayers(teamID, allyTeamID, vOffset)
     -- Adds players to the draw list (self first)
     local playersList = sp.GetPlayerList(teamID, true)
     local noPlayer = true
+    -- When spectating a dead ally team, own section is hidden; don't also filter out
+    -- the alive teams being shown as fallback enemies -- show them regardless of enemyListShow
+    local canShow = enemyListShow or (mySpecStatus and not aliveAllyTeams[myAllyTeamID])
 
     -- add own player (if not spec)
     if myTeamID == teamID then
@@ -1639,7 +1740,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         if playerID ~= myPlayerID then
             if player[playerID].name ~= nil then
                 if player[playerID].spec ~= true then
-                    if enemyListShow or player[playerID].allyteam == myAllyTeamID then
+                    if canShow or player[playerID].allyteam == myAllyTeamID then
                         vOffset = vOffset + (playerOffset*playerScale)
                         drawListOffset[#drawListOffset + 1] = vOffset
                         drawList[#drawList + 1] = playerID -- new player (with ID)
@@ -1653,7 +1754,7 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add AI teams
     if select(4, sp.GetTeamInfo(teamID, false)) then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             -- is AI
             vOffset = vOffset + (playerOffset*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
@@ -1663,9 +1764,25 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         end
     end
 
+    -- after game over, keep showing winner players at full height even if they disconnected
+    if noPlayer and gameOverWinnerAllyTeams[allyTeamID] then
+        for pID = 0, specOffset - 1 do
+            local p = player[pID]
+            if p and p.team == teamID and p.spec ~= true and p.name and p.name ~= absentName then
+                if canShow or p.allyteam == myAllyTeamID then
+                    vOffset = vOffset + (playerOffset*playerScale)
+                    drawListOffset[#drawListOffset + 1] = vOffset
+                    drawList[#drawList + 1] = pID
+                    p.posY = vOffset
+                    noPlayer = false
+                end
+            end
+        end
+    end
+
     -- add no player token if no player found in this team at this point
     if noPlayer then
-        if enemyListShow or player[specOffset + teamID].allyteam == myAllyTeamID then
+        if canShow or player[specOffset + teamID].allyteam == myAllyTeamID then
             vOffset = vOffset + ((playerOffset - deadPlayerHeightReduction)*playerScale)
             drawListOffset[#drawListOffset + 1] = vOffset
             drawList[#drawList + 1] = specOffset + teamID  -- no players team
@@ -1734,10 +1851,15 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-    if updateMainLists then
+    local drawGameFrame = spGetGameFrame()
+    local drawState = self._advPlayersListDrawState
+    local renderOnlyFrame = drawGameFrame == drawState.lastDrawGameFrame
+    if updateMainLists and (renderOnlyFrame or not drawState.sawSpareDrawFrame) then
         doCreateLists(updateMainLists[1], updateMainLists[2], updateMainLists[3])
         updateMainLists = nil
     end
+    drawState.sawSpareDrawFrame = renderOnlyFrame
+    drawState.lastDrawGameFrame = drawGameFrame
 
 	AdvPlayersListAtlas:RenderTasks()
 	--AdvPlayersListAtlas:DrawToScreen()
@@ -1780,6 +1902,25 @@ function widget:DrawScreen()
                             DrawEraser(posY, p.eraserTime - now)
                         end
                     end
+                end
+            end
+        end
+        gl_Texture(false)
+        gl.PopMatrix()
+        gl.PushMatrix()
+    end
+
+    -- Draw the take signal outside render-to-texture so it extends beyond widget bounds (and can blink)
+    if m_take.active and mySpecStatus == false and blink then
+        local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
+        local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
+        gl.Scale(widgetScale, widgetScale, 0)
+        gl.Translate(scaleDiffX, scaleDiffY, 0)
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    DrawTakeSignal(widgetPosY + widgetHeight - drawListOffset[i])
                 end
             end
         end
@@ -2075,7 +2216,7 @@ function drawMainList()
                 if numberOfEnemies == 0 or enemyListShow then
                     enemyAmount = ""
                 end
-                if WG.allyTeamRanking and enemyListShow then
+                if allyTeamRanking and enemyListShow then
                     DrawLabel(" "..Spring.I18N('ui.playersList.leaderboard'), drawListOffset[i], true)
                     leaderboardOffset = drawListOffset[i]
                 else
@@ -2297,13 +2438,16 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local ping = p.ping
     local cpu = p.cpu
     local spec = p.spec
-    local totake = p.totake
     local needm = p.needm
     local neede = p.neede
     local dead = p.dead
     local ai = p.ai
     local alliances = p.alliances
     local posY = widgetPosY + widgetHeight - vOffset
+    -- Center elements vertically in the shorter absent (non-AI ghost) row
+    if playerID >= specOffset and not ai then
+        posY = posY - (deadPlayerHeightReduction / 2) * playerScale
+    end
     local tipPosY = widgetPosY + ((widgetHeight - vOffset) * widgetScale)
 	local desynced = p.desynced
 	local accountID = p.accountID
@@ -2354,14 +2498,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             if mySpecStatus == false then
                 if onlyMainList2 then
                     if allyteam == myAllyTeamID then
-                        if m_take.active then
-                            if totake then
-                                DrawTakeSignal(posY)
-                                if tipY then
-                                    TakeTip(mouseX)
-                                end
-                            end
-                        end
+                        -- take signal + its tooltip are handled live in DrawScreen/Update (outside the
+                        -- render-to-texture) so they can extend beyond the widget bounds and blink
                         if m_share.active and not dead and not hideShareIcons then
                             DrawShareButtons(posY, needm, neede)
                             if tipY then
@@ -2449,7 +2587,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
             -- draws CPU usage and ping icons (except AI and ghost teams)
             DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
+                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastLuaMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
             end
         end
     end
@@ -2469,13 +2607,15 @@ end
 
 function DrawTakeSignal(posY)
     if blink then
-        -- Draws a blinking rectangle if the player of the same team left (/take option)
+        -- Draws a blinking arrow + "TAKE" label if a same-team player left (/take option)
         gl_Color(0.7, 0.7, 0.7)
         gl_Texture(pics["arrowPic"])
-        DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+        DrawRect(widgetPosX - (14*playerScale), posY, widgetPosX, posY + (16*playerScale))
         gl_Color(1, 1, 1)
         gl_Texture(pics["takePic"])
-        DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
+        -- take.dds is a square image (90x90), so keep a 1:1 aspect to avoid distortion
+        DrawRect(widgetPosX - (57*playerScale), posY - (14*playerScale), widgetPosX - (12*playerScale), posY + (31*playerScale))
+        gl_Color(1, 1, 1, 1)
     end
 end
 
@@ -2795,14 +2935,27 @@ end
 function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desynced)
     local willSub = ""
     local ignored = WG.ignoredAccounts and (WG.ignoredAccounts[accountID] or WG.ignoredAccounts[name] ~= nil)
+    local pDraw = player[playerID]
     local isAbsent = false
     if name == absentName then
         isAbsent = true
-        local teamPlayerID = select(2,Spring.GetTeamInfo(team, false))
-        local playerName = Spring.GetPlayerInfo(teamPlayerID, false)
-        playerName = (WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(teamPlayerID) or playerName
-        if playerName then --and aliveAllyTeams[player[playerID].allyteam] then
-            name = player[playerID].name
+        local lastKnownName = pDraw and pDraw.lastKnownName
+        if not lastKnownName and team then
+            -- Live fallback: resolve via the team leader player ID stored in the engine
+            local teamLeaderID = select(2, Spring.GetTeamInfo(team, false))
+            if teamLeaderID and teamLeaderID >= 0 then
+                local pName, _, pSpec, pTeam = Spring.GetPlayerInfo(teamLeaderID, false)
+                if pName and pName ~= "" and not pSpec and pTeam == team then
+                    lastKnownName = (WG.playernames and WG.playernames.getPlayername)
+                        and WG.playernames.getPlayername(teamLeaderID) or pName
+                    -- Persist so GetAllPlayers picks it up and doesn't look it up again
+                    lastKnownTeamNames[team] = lastKnownName
+                    if pDraw then pDraw.lastKnownName = lastKnownName end
+                end
+            end
+        end
+        if lastKnownName then
+            name = lastKnownName
         end
     end
 
@@ -2815,7 +2968,6 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
 
     local nameText = name
-	local pDraw = player[playerID]
 	if WG.playernames and not pDraw.history then
 		pDraw.history = WG.playernames.getAccountHistory(accountID) or {}
 	end
@@ -2848,11 +3000,12 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     else
         font2:SetTextColor(sp.GetTeamColor(team))
     end
-    if isAbsent then
+    if isAbsent or (pDraw and pDraw.dead) then
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:SetTextColor(0.45,0.45,0.45,1)
     end
-    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (4*playerScale), fontsize, "o")
+    local nameYOffset = isAbsent and 5 or 4
+    font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + (nameYOffset*playerScale), fontsize, "o")
 
     --desynced = playerID == 1
     local pScale = (0.5+playerScale)*0.67  --dont scale too much for the already smaller bonus font
@@ -2876,13 +3029,15 @@ function DrawName(name, nameIsAlias, team, posY, dark, playerID, accountID, desy
     end
     font2:End()
 
-    if ignored or desynced then
+    if ignored or desynced or (pDraw and pDraw.dead) then
         local x = m_name.posX + widgetPosX + 2 + xPadding
-        local y = posY + (7*playerScale)
+        local y = isAbsent and (posY + (8*playerScale)) or (posY + (7*playerScale))
         local w = (font2:GetTextWidth(nameText) * fontsize) + 2
-        local h = (2*playerScale)
+        local h = isAbsent and (1.5*playerScale) or (2*playerScale)
 		if desynced then
 			gl_Color(1, 0.2, 0.2, 0.9)
+		elseif pDraw and pDraw.dead then
+			gl_Color(0.45, 0.45, 0.45, 0.9)
 		else
 			gl_Color(1, 1, 1, 0.9)
 		end
@@ -3062,13 +3217,6 @@ function DrawEraser(posY, time)
     gl_Color(1, 1, 1, 1)
 end
 
-function TakeTip(mouseX)
-    if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-        tipText = Spring.I18N('ui.playersList.takeUnits')
-        tipTextTime = osClock()
-    end
-end
-
 function NameTip(mouseX, playerID, accountID, nameIsAlias)
 	local pTip = player[playerID]
 	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
@@ -3213,7 +3361,7 @@ function IncomeTip(mouseX, energyIncome, metalIncome, name, teamID)
     end
 end
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec, apm)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, luamem, system, name, teamID, spec, apm)
     if mouseX >= widgetPosX + (m_cpuping.posX + (13*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + (23*playerScale)) * widgetScale then
         if pingLvl < 2000 then
             pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
@@ -3234,6 +3382,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, 
 		tipText = tipText .. "    " .. Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if gpumem ~= nil then
             tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
+        end
+        if luamem ~= nil then
+            tipText = tipText .. "    Lua: " .. luamem .. "MB\n"
         end
         tipTextTitle = (spec and "\255\240\240\240" or colourNames(teamID)) .. name
         if system ~= nil then
@@ -3290,27 +3441,19 @@ function CreateShareSlider()
     end)
 end
 
--- Pre-extract thresholds for fast lookup (avoids table access in hot path)
-local cpuThresholds = {}
-local pingThresholds = {}
-for level, data in ipairs(pingLevelData) do
-    cpuThresholds[level] = data.cpuThreshold
-    pingThresholds[level] = data.pingThreshold
-end
-
 function GetCpuLvl(cpuUsage)
-    if cpuUsage < cpuThresholds[1] then return 1
-    elseif cpuUsage < cpuThresholds[2] then return 2
-    elseif cpuUsage < cpuThresholds[3] then return 3
-    elseif cpuUsage < cpuThresholds[4] then return 4
+    if cpuUsage < pingLevelData[1].cpuThreshold then return 1
+    elseif cpuUsage < pingLevelData[2].cpuThreshold then return 2
+    elseif cpuUsage < pingLevelData[3].cpuThreshold then return 3
+    elseif cpuUsage < pingLevelData[4].cpuThreshold then return 4
     else return 5 end
 end
 
 function GetPingLvl(ping)
-    if ping < pingThresholds[1] then return 1
-    elseif ping < pingThresholds[2] then return 2
-    elseif ping < pingThresholds[3] then return 3
-    elseif ping < pingThresholds[4] then return 4
+    if ping < pingLevelData[1].pingThreshold then return 1
+    elseif ping < pingLevelData[2].pingThreshold then return 2
+    elseif ping < pingLevelData[3].pingThreshold then return 3
+    elseif ping < pingLevelData[4].pingThreshold then return 4
     else return 5 end
 end
 
@@ -3807,6 +3950,7 @@ function CheckPlayersChange()
                 if p.spec == false then
                     if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
                         player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
+                        player[p.team + specOffset].lastKnownName = p.name
                         sorting = true
                     end
                 end
@@ -3818,6 +3962,7 @@ function CheckPlayersChange()
                     if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
                         -- (update the no players team)
                         player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
+                        player[p.team + specOffset].lastKnownName = p.name
                     end
                     p.team = nil -- remove team
                 end
@@ -3829,6 +3974,7 @@ function CheckPlayersChange()
                 if table.maxn(sp.GetPlayerList(p.team, true)) == 0 then
                     -- check if there is no more player in the team + update
                     player[p.team + specOffset] = CreatePlayerFromTeam(p.team)
+                    player[p.team + specOffset].lastKnownName = p.name
                 end
                 p.team = teamID
 				if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
@@ -3940,9 +4086,35 @@ function IsTakeable(teamID)
 end
 
 function widget:Update(delta)
+    if pendingInitRefresh then
+        pendingInitRefresh = false
+        doPlayerUpdate()
+    end
     --handles takes & related messages
     local mx, my = spGetMouseState()
     hoverPlayerlist = false
+
+    -- the take icon is drawn to the left of the panel, so detect hovering it independently of the panel bounds
+    local overTakeIcon = false
+    if m_take.active and mySpecStatus == false
+        and mx >= widgetPosX - 57 * widgetScale and mx <= widgetPosX - 1 * widgetScale then
+        for i, drawObject in ipairs(drawList) do
+            if drawObject >= 0 then
+                local p = player[drawObject]
+                if p and not p.spec and p.allyteam == myAllyTeamID and p.totake then
+                    local posY = widgetPosY + ((widgetHeight - drawListOffset[i]) * widgetScale)
+                    if my >= posY and my <= posY + (16 * widgetScale * playerScale) then
+                        overTakeIcon = true
+                        tipText = Spring.I18N('ui.playersList.takeUnits')
+                        tipTextTitle = nil
+                        tipTextTime = osClock()
+                        break
+                    end
+                end
+            end
+        end
+    end
+
     if math_isInRect(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
 
@@ -3959,10 +4131,12 @@ function widget:Update(delta)
 				tipTextTime = osClock()
 			end
 		end
+    end
 
-        if tipText and WG['tooltip'] then
-            WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
-        end
+    if (hoverPlayerlist or overTakeIcon) and tipText and WG['tooltip'] then
+        WG['tooltip'].ShowTooltip('advplayerlist', tipText, nil, nil, tipTextTitle)
+    end
+    if hoverPlayerlist or overTakeIcon then
         Spring.SetMouseCursor('cursornormal')
     end
 

@@ -184,7 +184,7 @@ local function changeUnitTypeAutogroupHandler(_, _, args, data)
 	local gr = args and args[1]
 	local removeAll = data and data['removeAll']
 
-	changeUnitTypeAutogroup(gr, removeAll)
+	return changeUnitTypeAutogroup(gr, removeAll)
 end
 
 local function removeOneUnitFromGroupHandler(_, _, args)

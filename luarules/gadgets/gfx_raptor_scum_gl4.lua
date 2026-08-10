@@ -68,15 +68,22 @@ if gadgetHandler:IsSyncedCode() then
 			raptor_turret_basic_t3_v1 = {radius = 600, growthrate = 0.4},
 			raptor_turret_basic_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_basic_t4_v1 = {radius = 800, growthrate = 0.8},
+			raptor_turret_basic_t4_v2 = {radius = 800, growthrate = 0.8},
 			raptor_turret_antiair_t3_v1 = {radius = 600, growthrate = 0.4},
 			raptor_turret_antiair_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_antiair_t4_v1 = {radius = 800, growthrate = 0.8},
 			raptor_turret_acid_t3_v1 = {radius = 600, growthrate = 0.4},
 			raptor_turret_acid_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_acid_t4_v1 = {radius = 800, growthrate = 0.8},
+			raptor_turret_acid_t4_v2 = {radius = 800, growthrate = 0.8},
 			raptor_turret_emp_t3_v1 = {radius = 600, growthrate = 0.4},
 			raptor_turret_emp_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_emp_t4_v1 = {radius = 800, growthrate = 0.8},
+			raptor_turret_emp_t4_v2 = {radius = 800, growthrate = 0.8},
+			raptor_turret_brood_t3_v1 = {radius = 600, growthrate = 0.4},
+			raptor_turret_brood_t2_v1 = {radius = 400, growthrate = 0.2},
+			raptor_turret_brood_t4_v1 = {radius = 800, growthrate = 0.8},
+			raptor_turret_brood_t4_v2 = {radius = 800, growthrate = 0.8},
 			raptor_turret_antinuke_t3_v1 = {radius = 600, growthrate = 0.4},
 			raptor_turret_antinuke_t2_v1 = {radius = 400, growthrate = 0.2},
 			raptor_turret_meteor_t4_v1 = {radius = 800, growthrate = 0.8},
@@ -345,7 +352,7 @@ elseif not Spring.Utilities.Gametype.IsScavengers() then	-- UNSYNCED
 	local glClear               = gl.Clear
 	local GL_ALWAYS             = GL.ALWAYS
 	local GL_NOTEQUAL           = GL.NOTEQUAL
-	local GL_KEEP               = 0x1E00 --GL.KEEP
+	local GL_KEEP               = GL.KEEP
 	local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 	local GL_REPLACE            = GL.REPLACE
 

@@ -12,7 +12,7 @@ return {						--costs should be same as legmohocon and legmohoconct
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "7 4 7",
 		collisionvolumetype = "CylY",
-		corpse = "DEAD",
+		corpse = "",
 		energyupkeep = 20,
 		explodeas = "",
 		extractsmetal = 0.004,

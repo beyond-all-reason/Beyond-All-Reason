@@ -9,7 +9,7 @@ return {
 		canrepeat = false,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		decoyfor = "scavdrag",
+		decoyfor = "corscavdrag",
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
@@ -80,7 +80,6 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:flamestreamxm",
 			},
 		},
 		sounds = {
@@ -134,8 +133,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,

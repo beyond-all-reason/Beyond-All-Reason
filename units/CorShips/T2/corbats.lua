@@ -118,6 +118,7 @@ return {
 				weaponvelocity = 422,
 				damage = {
 					default = 450,
+					subs = 90,
 					vtol = 65,
 				},
 			},

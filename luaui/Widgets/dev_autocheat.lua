@@ -16,7 +16,18 @@ function widget:GetInfo()
 	}
 end
 
+function widget:Initialize()
+	if Spring.IsReplay() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
 function widget:Update(f)
+	local modOpts = Spring.GetModOptions()
+	if modOpts ~= nil and modOpts.scenariooptions ~= nil then
+		widgetHandler:RemoveCallIn('Update')
+		return
+	end
 	if not Spring.IsCheatingEnabled() then
 		Spring.SendCommands("say !cheats")
 		Spring.SendCommands("say !hostsay /globallos")

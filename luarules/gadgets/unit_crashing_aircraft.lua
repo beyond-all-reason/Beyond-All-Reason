@@ -42,6 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_STOP = CMD.STOP
 
 	local crashing = {}
+	GG.Crashing = crashing  -- read-only reference for other gadgets
 	local crashingCount = 0
 
 	local isAircon = {}
@@ -152,6 +153,7 @@ else	-- UNSYNCED
 	local GetSpectatingState = Spring.GetSpectatingState
 	local GetUnitLosState = Spring.GetUnitLosState
 	local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+	local SetUnitNoGroup = Spring.SetUnitNoGroup
 
 	local function notifyCrashingAircraft(unitID, unitDefID, unitTeam)
 		if GG.FireSmoke and GG.FireSmoke.CrashingAircraft then
@@ -163,6 +165,7 @@ else	-- UNSYNCED
 	end
 
 	local function crashingAircraft(_, unitID, unitDefID, unitTeam)
+		SetUnitNoGroup(unitID, true)
 		local _, fullView = GetSpectatingState()
 		if fullView then
 			notifyCrashingAircraft(unitID, unitDefID, unitTeam)

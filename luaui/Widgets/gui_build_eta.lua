@@ -133,14 +133,13 @@ local function featureReclaimStartedETA(featureID, step)
 	end
 end
 
-function widget:Initialize()
-	widget:ViewResize()
-	widgetHandler:RegisterGlobal("FeatureReclaimStartedETA", featureReclaimStartedETA)
-	init()
+function widget:FeatureReclaimStartedETA(featureID, step)
+	featureReclaimStartedETA(featureID, step)
 end
 
-function widget:Shutdown()
-	widgetHandler:DeregisterGlobal("FeatureReclaimStartedETA")
+function widget:Initialize()
+	widget:ViewResize()
+	init()
 end
 
 function widget:LanguageChanged()
@@ -191,9 +190,9 @@ local function updateEta(eta, newProgress, gameSeconds, abs)
 				eta.timeLeft = newTime
 			end
 
-			if eta.display == nil and eta.timeLeft < minETASecs then
+			if eta.display == nil and eta.timeLeft and eta.timeLeft < minETASecs then
 				eta.display = false
-			elseif eta.timeLeft >= minETASecs then
+			elseif eta.timeLeft and eta.timeLeft >= minETASecs then
 				eta.display = true
 			end
 		end

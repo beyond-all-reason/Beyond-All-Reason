@@ -18,6 +18,7 @@ end
 local cmdname = 'cmd'
 local PACKET_HEADER = "$c$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+local PH_B1 = string.byte(PACKET_HEADER, 1)
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -38,7 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if #msg < PACKET_HEADER_LENGTH or string.byte(msg, 1) ~= PH_B1 or string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
@@ -47,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		if _G.permissions.cmd[accountID] then
 			authorized = true
 		end
-		if authorized == nil then
+		if not authorized then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to send commands for a player")
 			return
 		elseif not spec then
@@ -97,7 +98,9 @@ else	-- UNSYNCED
 	end
 
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		if isAuthorized() then
+			gadgetHandler:AddChatAction(cmdname, RequestCmd)
+		end
 		gadgetHandler:AddSyncAction("execCmd", execCmd)
 	end
 	function gadget:Shutdown()

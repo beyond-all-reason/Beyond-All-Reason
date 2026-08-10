@@ -5,7 +5,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Deferred rendering GL4",
-		version = 3,
+		version = 4,
 		desc = "Collects and renders cone, point and beam lights",
 		author = "Beherith",
 		date = "2022.06.10",
@@ -42,7 +42,6 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetProjectileName = Spring.GetProjectileName
 local spGetWind = Spring.GetWind
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -228,7 +227,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileType = Spring.GetProjectileType
-local spGetPieceProjectileParams = Spring.GetPieceProjectileParams
 local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spIsSphereInView  = Spring.IsSphereInView
@@ -343,6 +341,44 @@ local projectileConeLightVBO = {} -- for rockets
 local projectileLightVBOMap -- a table of the above 3, keyed by light type
 
 local cursorPointLightVBO = {} -- this will contain ally and player cursor lights
+local predictivePointLightVBO = {} -- dedicated VBO for gadget-fed predictive nano lights
+local engineNano = {
+	vbo = nil,
+	batchCount = 0,
+	spawnCount = 0,
+	acceptedSpawnCount = 0,
+	sampleRejectedCount = 0,
+	frameCapRejectedCount = 0,
+	activeCapRejectedCount = 0,
+	offscreenCapRejectedCount = 0,
+	activePeak = 0,
+	expiryCount = 0,
+	appendUploadCount = 0,
+	correctionUploadCount = 0,
+	updateCount = 0,
+	removeCount = 0,
+	spawnFrame = -1,
+	spawnsThisFrame = 0,
+	offscreenSpawnsThisFrame = 0,
+	offscreenActive = 0,
+	offscreenByID = {},
+	expiryByFrame = {},
+	expiryFrameByID = {},
+	eventStride = 13,
+	spawnEvent = 1,
+	updateEvent = 2,
+	removeEvent = 3,
+	resetEvent = 4,
+	radius = 33,
+	alpha = 0.05,
+	lifetimeMult = 1,
+	minLifetime = 14,
+	maxLifetime = 96,
+	maxSpawnsPerFrame = 48,
+	maxOffscreenSpawnsPerFrame = 12,
+	maxActive = 768,
+	maxOffscreenActive = 192,
+}
 
 local lightRemoveQueue = {} -- stores lights that have expired life {gameframe = {lightIDs ... }}
 
@@ -383,6 +419,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements = InstanceVBOTable.uploadAllElements
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
@@ -481,6 +518,10 @@ local function initGL4()
 	pointLightVBO 			= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Point Light VBO")
 	unitPointLightVBO 		= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Unit Point Light VBO", 10)
 	cursorPointLightVBO 	= createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Cursor Point Light VBO")
+	predictivePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Predictive Point Light VBO")
+	if Engine.FeatureSupport.nanoParticleUpdateCallin then
+		engineNano.vbo = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Engine Nano Point Light VBO")
+	end
 	projectilePointLightVBO = createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
@@ -602,6 +643,137 @@ local function AddLight(instanceID, unitID, pieceIndex, targetVBO, lightparams, 
 	end
 	numAddLights = numAddLights + 1
 	return instanceID
+end
+
+function engineNano.equalizeColor(r, g, b)
+	local luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+	if luma < 0.001 then return r, g, b end
+	r, g, b = r * 0.55 / luma, g * 0.55 / luma, b * 0.55 / luma
+	local maxChannel = mathMax(r, mathMax(g, b))
+	if maxChannel > 1 then
+		r, g, b = r / maxChannel, g / maxChannel, b / maxChannel
+	end
+	return r, g, b
+end
+
+function engineNano.spawn(instanceID, x, y, z, vx, vy, vz, remainingLife, r, g, b, frame, isVisible)
+	if remainingLife < 1 then return end
+	r, g, b = engineNano.equalizeColor(r, g, b)
+	local lifetime = mathFloor(remainingLife * engineNano.lifetimeMult + 0.5)
+	lifetime = mathMin(engineNano.maxLifetime, mathMax(engineNano.minLifetime, lifetime))
+	local params = lightCacheTable
+	params[1], params[2], params[3], params[4] = x, y, z, engineNano.radius
+	params[5], params[6], params[7], params[8] = vx, vy, vz, 1
+	params[9], params[10], params[11], params[12] = r, g, b, engineNano.alpha
+	params[13], params[14], params[15], params[16] = 0.35, 0.15, 0.20, 0
+	params[17], params[18], params[19], params[20] = frame, lifetime, lifetime, 0
+	params[21], params[22], params[23], params[24] = r, g, b, 0
+	params[25], params[26], params[27], params[28], params[29] = 0, 0, 0, 0, 0
+	pushElementInstance(engineNano.vbo, params, instanceID, true, true, nil)
+	local expiryFrame = frame + lifetime
+	local expiryQueue = engineNano.expiryByFrame[expiryFrame]
+	if expiryQueue == nil then
+		expiryQueue = {}
+		engineNano.expiryByFrame[expiryFrame] = expiryQueue
+	end
+	expiryQueue[instanceID] = true
+	engineNano.expiryFrameByID[instanceID] = expiryFrame
+	if not isVisible then
+		engineNano.offscreenByID[instanceID] = true
+		engineNano.offscreenActive = engineNano.offscreenActive + 1
+	end
+	numAddLights = numAddLights + 1
+end
+
+function engineNano.update(instanceID, x, y, z, vx, vy, vz, remainingLife, r, g, b, frame)
+	local instanceIndex = engineNano.vbo.instanceIDtoIndex[instanceID]
+	if not instanceIndex then return end
+
+	local base = (instanceIndex - 1) * engineNano.vbo.instanceStep
+	local data = engineNano.vbo.instanceData
+	data[base + 1], data[base + 2], data[base + 3] = x, y, z
+	data[base + 5], data[base + 6], data[base + 7], data[base + 8] = vx, vy, vz, 1
+	data[base + 17] = frame
+	uploadElementRange(engineNano.vbo, instanceIndex - 1, instanceIndex)
+	engineNano.correctionUploadCount = engineNano.correctionUploadCount + 1
+end
+
+if Engine.FeatureSupport.nanoParticleUpdateCallin then
+	function widget:NanoParticleUpdate(events, eventCount, eventFrame)
+		tracy.ZoneBeginN("W:DeferredNanoLights")
+		local nano = engineNano
+		if not nano.vbo then
+			tracy.ZoneEnd()
+			return
+		end
+		gameFrame = eventFrame
+		nano.batchCount = nano.batchCount + 1
+		if nano.spawnFrame ~= eventFrame then
+			nano.spawnFrame = eventFrame
+			nano.spawnsThisFrame = 0
+			nano.offscreenSpawnsThisFrame = 0
+		end
+		eventCount = mathMin(eventCount, mathFloor(#events / nano.eventStride))
+		local appendStart = nano.vbo.usedElements
+		local offset = 1
+		for _ = 1, eventCount do
+			local operation = events[offset]
+			local instanceID = events[offset + 1]
+			if operation == nano.spawnEvent then
+				nano.spawnCount = nano.spawnCount + 1
+				local isVisible = spIsSphereInView(events[offset + 2], events[offset + 3], events[offset + 4], nano.radius)
+				if not isVisible and (nano.offscreenSpawnsThisFrame >= nano.maxOffscreenSpawnsPerFrame or nano.offscreenActive >= nano.maxOffscreenActive) then
+					nano.offscreenCapRejectedCount = nano.offscreenCapRejectedCount + 1
+				elseif nano.spawnsThisFrame >= nano.maxSpawnsPerFrame then
+					nano.frameCapRejectedCount = nano.frameCapRejectedCount + 1
+				elseif nano.vbo.usedElements >= nano.maxActive then
+					nano.activeCapRejectedCount = nano.activeCapRejectedCount + 1
+				else
+					nano.spawnsThisFrame = nano.spawnsThisFrame + 1
+					if not isVisible then nano.offscreenSpawnsThisFrame = nano.offscreenSpawnsThisFrame + 1 end
+					nano.acceptedSpawnCount = nano.acceptedSpawnCount + 1
+					nano.spawn(instanceID,
+						events[offset + 2], events[offset + 3], events[offset + 4],
+						events[offset + 5], events[offset + 6], events[offset + 7],
+						events[offset + 8], events[offset + 9], events[offset + 10], events[offset + 11], eventFrame, isVisible)
+					if nano.vbo.usedElements > nano.activePeak then
+						nano.activePeak = nano.vbo.usedElements
+					end
+				end
+			elseif operation == nano.updateEvent then
+				nano.updateCount = nano.updateCount + 1
+				nano.update(instanceID,
+					events[offset + 2], events[offset + 3], events[offset + 4],
+					events[offset + 5], events[offset + 6], events[offset + 7],
+					events[offset + 8], events[offset + 9], events[offset + 10], events[offset + 11], eventFrame)
+			elseif operation == nano.removeEvent then
+				nano.removeCount = nano.removeCount + 1
+				if nano.vbo.instanceIDtoIndex[instanceID] then
+					popElementInstance(nano.vbo, instanceID, false)
+					if nano.offscreenByID[instanceID] then
+						nano.offscreenByID[instanceID] = nil
+						nano.offscreenActive = nano.offscreenActive - 1
+					end
+					nano.expiryFrameByID[instanceID] = nil
+				end
+			elseif operation == nano.resetEvent then
+				InstanceVBOTable.clearInstanceTable(nano.vbo)
+				nano.expiryByFrame = {}
+				nano.expiryFrameByID = {}
+				nano.offscreenByID = {}
+				nano.offscreenActive = 0
+				appendStart = nano.vbo.usedElements
+			end
+			offset = offset + nano.eventStride
+		end
+		if nano.vbo.usedElements > appendStart then
+			tracy.ZoneBeginN("W:DeferredNanoLights:AppendUpload")
+			uploadElementRange(nano.vbo, appendStart, nano.vbo.usedElements)
+			nano.appendUploadCount = nano.appendUploadCount + 1
+			tracy.ZoneEnd()
+		end
+		tracy.ZoneEnd()
+	end
 end
 
 ---AddPointLight
@@ -1174,6 +1346,8 @@ function widget:VisibleUnitRemoved(unitID) -- remove all the lights for this uni
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("dlgl4stats", "t")
+	widgetHandler:RemoveAction("dlgl4skipdraw", "t")
 	WG['lightsgl4'] = nil
 	widgetHandler:DeregisterGlobal('AddPointLight')
 	widgetHandler:DeregisterGlobal('AddBeamLight')
@@ -1182,7 +1356,11 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('RemoveLight')
 	widgetHandler:DeregisterGlobal('GetLightVBO')
 
-	widgetHandler:DeregisterGlobal('UnitScriptLight')
+	widgetHandler:DeregisterGlobal('EnvLightningPointLight')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightSpawn')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightCorrect')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightFade')
+	widgetHandler:DeregisterGlobal('EnvNanoBallisticLightRemove')
 
 	deferredLightShader:Delete()
 	local ram = 0
@@ -1190,6 +1368,10 @@ function widget:Shutdown()
 	for lighttype, vbo in pairs(projectileLightVBOMap) do ram = ram + vbo:Delete() end
 	for lighttype, vbo in pairs(lightVBOMap) do ram = ram + vbo:Delete() end
 	ram = ram + cursorPointLightVBO:Delete()
+	ram = ram + predictivePointLightVBO:Delete()
+	if engineNano.vbo then
+		ram = ram + engineNano.vbo:Delete()
+	end
 
 	--spEcho("DLGL4 ram usage MB = ", ram / 1000000)
 	--spEcho("featureDefLights", table.countMem(featureDefLights))
@@ -1235,6 +1417,23 @@ function widget:GameFrame(n)
 			end
 		end
 		lightRemoveQueue[n] = nil
+	end
+	local nanoExpiryQueue = engineNano.expiryByFrame[n]
+	if nanoExpiryQueue then
+		for instanceID in pairs(nanoExpiryQueue) do
+			if engineNano.expiryFrameByID[instanceID] == n then
+				if engineNano.vbo.instanceIDtoIndex[instanceID] then
+					popElementInstance(engineNano.vbo, instanceID, false)
+					engineNano.expiryCount = engineNano.expiryCount + 1
+				end
+				if engineNano.offscreenByID[instanceID] then
+					engineNano.offscreenByID[instanceID] = nil
+					engineNano.offscreenActive = engineNano.offscreenActive - 1
+				end
+				engineNano.expiryFrameByID[instanceID] = nil
+			end
+		end
+		engineNano.expiryByFrame[n] = nil
 	end
 end
 
@@ -1388,6 +1587,39 @@ local function PrintProjectileInfo(projectileID)
 	Spring.Debug.TraceFullEcho()
 end
 
+local defaultProjectileLightDelayWaterline = 2
+local defaultProjectileLightDelayFrames = 0
+local delayedProjectileLightFrames = {}
+local function ShouldDelayProjectileLight(projectileLight, projectileID, py)
+	if not projectileLight or not projectileLight.delayUntilSubmerged then
+		return false
+	end
+
+	-- Skipped projectiles are intentionally not tracked yet, so this can try again
+	-- on later frames after they enter the water.
+	if not py or py > (projectileLight.delayWaterline or defaultProjectileLightDelayWaterline) then
+		delayedProjectileLightFrames[projectileID] = nil
+		return true
+	end
+
+	local delayFrames = projectileLight.delayFrames or defaultProjectileLightDelayFrames
+	if delayFrames <= 0 then
+		return false
+	end
+
+	local readyFrame = delayedProjectileLightFrames[projectileID]
+	if not readyFrame then
+		readyFrame = gameFrame + delayFrames
+		delayedProjectileLightFrames[projectileID] = readyFrame
+	end
+	if gameFrame < readyFrame then
+		return true
+	end
+
+	delayedProjectileLightFrames[projectileID] = nil
+	return false
+end
+
 
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
@@ -1421,6 +1653,8 @@ local function updateProjectileLights(newgameframe)
 			else
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
+				local skipProjectileTracking = false
+
 				if piece then
 					local gib = gibLight.lightParamTable
 					gib[1] = px
@@ -1428,18 +1662,21 @@ local function updateProjectileLights(newgameframe)
 					gib[3] = pz
 					AddLight(projectileID, nil, nil, projectilePointLightVBO, gib, noUpload)
 				else
-					local weaponDefID = spGetProjectileDefID ( projectileID )
-					if projectileDefLights[weaponDefID] and ( projectileID % (projectileDefLights[weaponDefID].fraction or 1) == 0 ) then
-						local lightParamTable = projectileDefLights[weaponDefID].lightParamTable
-						lightType = projectileDefLights[weaponDefID].lightType
+					local weaponDefID = spGetProjectileDefID(projectileID)
+					local projectileLight = projectileDefLights[weaponDefID]
 
+					if ShouldDelayProjectileLight(projectileLight, projectileID, py) then
+						skipProjectileTracking = true
+					elseif projectileLight and (projectileID % (projectileLight.fraction or 1) == 0) then
+						local lightParamTable = projectileLight.lightParamTable
+						lightType = projectileLight.lightType
 
 						lightParamTable[1] = px
 						lightParamTable[2] = py
 						lightParamTable[3] = pz
-						if debugproj then spEcho(lightType, projectileDefLights[weaponDefID].lightClassName) end
+						if debugproj then spEcho(lightType, projectileLight.lightClassName) end
 
-						local dx,dy,dz = spGetProjectileVelocity(projectileID)
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 
 						if lightType == 'beam' then
 							lightParamTable[5] = px + dx
@@ -1463,12 +1700,19 @@ local function updateProjectileLights(newgameframe)
 						--AddPointLight(projectileID, nil, nil, projectilePointLightVBO, testprojlighttable)
 					end
 				end
-				numadded = numadded + 1
-				if debugproj then spEcho("Adding projlight", projectileID, Spring.GetProjectileName(projectileID)) end
-				--trackedProjectiles[]
-				trackedProjectileTypes[projectileID] = lightType
+
+				if not skipProjectileTracking then
+					numadded = numadded + 1
+					--trackedProjectiles[]
+					trackedProjectileTypes[projectileID] = lightType
+					trackedProjectiles[projectileID] = gameFrame
+				end
 			end
-			trackedProjectiles[projectileID] = gameFrame
+		end
+	end
+	for projectileID, readyFrame in pairs(delayedProjectileLightFrames) do
+		if readyFrame < gameFrame - 300 then
+			delayedProjectileLightFrames[projectileID] = nil
 		end
 	end
 	-- remove theones that werent updated
@@ -1509,30 +1753,37 @@ local function updateProjectileLights(newgameframe)
 	--end
 end
 
-local configCache = {lastUpdate = Spring.GetTimer()}
+local AUTOUPDATE_CONFIG_POLL_INTERVAL = 1.5
+local AUTOUPDATE_SHADER_POLL_INTERVAL = 0.5
+
+local configCache = {lastUpdate = spGetTimer()}
+local shaderUpdateCache = {lastUpdate = spGetTimer()}
 local function checkConfigUpdates()
-	if spDiffTimers(spGetTimer(), configCache.lastUpdate) > 0.5 then
-		local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
-		local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
-		if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
-			LoadLightConfig()
-			if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
-				widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
-			end
-			local allFeatures = spGetAllFeatures()
-			local allFeaturesLen = #allFeatures
-			for i = 1, allFeaturesLen do
-				widget:FeatureDestroyed(allFeatures[i], true)
-			end
-			for i = 1, allFeaturesLen do
-				widget:FeatureCreated(allFeatures[i], true)
-			end
-			if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
-			configCache.confa = newconfa
-			configCache.confb = newconfb
-		end
-		configCache.lastUpdate = spGetTimer()
+	local now = spGetTimer()
+	if spDiffTimers(now, configCache.lastUpdate) <= AUTOUPDATE_CONFIG_POLL_INTERVAL then
+		return
 	end
+
+	local newconfa = VFS.LoadFile('luaui/configs/DeferredLightsGL4config.lua')
+	local newconfb = VFS.LoadFile('luaui/configs/DeferredLightsGL4WeaponsConfig.lua')
+	if newconfa ~= configCache.confa or newconfb ~= configCache.confb then
+		LoadLightConfig()
+		if WG['unittrackerapi'] and WG['unittrackerapi'].visibleUnits then
+			widget:VisibleUnitsChanged(WG['unittrackerapi'].visibleUnits, nil)
+		end
+		local allFeatures = spGetAllFeatures()
+		local allFeaturesLen = #allFeatures
+		for i = 1, allFeaturesLen do
+			widget:FeatureDestroyed(allFeatures[i], true)
+		end
+		for i = 1, allFeaturesLen do
+			widget:FeatureCreated(allFeatures[i], true)
+		end
+		if pointLightVBO.dirty then uploadAllElements(pointLightVBO) end
+		configCache.confa = newconfa
+		configCache.confb = newconfb
+	end
+	configCache.lastUpdate = now
 end
 
 local expavg = 0
@@ -1540,6 +1791,9 @@ local sec = 1
 function widget:Update(dt)
 	if autoupdate then checkConfigUpdates() end
 	local tus = spGetTimerMicros()
+	if predictivePointLightVBO.dirty then
+		uploadAllElements(predictivePointLightVBO)
+	end
 
 	-- update/handle Cursor Lights!
 	if WG['allycursors'] and WG['allycursors'].getLights() then
@@ -1557,9 +1811,11 @@ function widget:Update(dt)
 			cursorLights = {}
 		end
 		local cursors, notIdle = WG['allycursors'].getCursors()
+		local isCursorVisible = WG['allycursors'].isCursorVisible
 		for playerID, cursor in pairs(cursors) do
 			local teamColor = teamColors[playerID]
-			if teamColor and not cursor[8] and notIdle[playerID] then
+			local visibleToViewer = (not isCursorVisible) or isCursorVisible(playerID)
+			if teamColor and not cursor[8] and notIdle[playerID] and visibleToViewer then
 				if not cursorLights[playerID] and not cursor[8] then
 					local params = cursorLightParams.lightParamTable	-- see lightParamKeyOrder for which key contains what
 					params[1], params[2], params[3] = cursor[1], cursor[2] + cursorLightHeight, cursor[3]
@@ -1576,6 +1832,9 @@ function widget:Update(dt)
 						updateLightPosition(cursorPointLightVBO, cursorLights[playerID], cursor[1], cursor[2]+cursorLightHeight, cursor[3])
 					end
 				end
+			elseif cursorLights[playerID] then
+				popElementInstance(cursorPointLightVBO, cursorLights[playerID])
+				cursorLights[playerID] = nil
 			end
 		end
 		uploadAllElements(cursorPointLightVBO)
@@ -1617,15 +1876,24 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--if true then return end
 	if skipdraw then return end
 	if autoupdate then
-		deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+		local now = spGetTimer()
+		if spDiffTimers(now, shaderUpdateCache.lastUpdate) > AUTOUPDATE_SHADER_POLL_INTERVAL then
+			deferredLightShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or deferredLightShader
+			shaderUpdateCache.lastUpdate = now
+		end
 	end
 
 	if pointLightVBO.usedElements > 0 or
+		predictivePointLightVBO.usedElements > 0 or
+		(engineNano.vbo and engineNano.vbo.usedElements > 0) or
 		unitPointLightVBO.usedElements > 0 or
 		beamLightVBO.usedElements > 0 or
 		unitConeLightVBO.usedElements > 0 or
 		coneLightVBO.usedElements > 0 or
-		cursorPointLightVBO.usedElements > 0
+		cursorPointLightVBO.usedElements > 0 or
+		projectilePointLightVBO.usedElements > 0 or
+		projectileBeamLightVBO.usedElements > 0 or
+		projectileConeLightVBO.usedElements > 0
 		then
 
 		local alt, ctrl = spGetModKeyState()
@@ -1693,6 +1961,10 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		end
 
 		pointLightVBO:draw()
+		predictivePointLightVBO:draw()
+		if engineNano.vbo then
+			engineNano.vbo:draw()
+		end
 		projectilePointLightVBO:draw()
 
 
@@ -1732,26 +2004,30 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 	--end
 end
 
--- Register /luaui dlgl4stats to dump light statistics
-function widget:TextCommand(command)
-	if stringFind(command, "dlgl4stats", nil, true) then
-		spEcho(stringFormat("DLGLStats Total = %d , (PBC=%d,%d,%d), (unitPBC=%d,%d,%d), (projPBC=%d,%d,%d), Cursor = %d",
-				numAddLights,
-				pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
-				unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
-				projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
-				cursorPointLightVBO.usedElements))
-		return true
-	end
-	if stringFind(command, "dlgl4skipdraw", nil, true) then
-		skipdraw = not skipdraw
-		spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
-		return true
-	end
-	return false
+local function dlgl4statsCmd(_, line)
+	local engineNanoLights = engineNano.vbo and engineNano.vbo.usedElements or 0
+	local gadgetNanoLights = predictivePointLightVBO.usedElements or 0
+	spEcho(stringFormat("DLGLStats Total=%d PBC=(%d,%d,%d) unitPBC=(%d,%d,%d) projPBC=(%d,%d,%d) Nano=(%d engine,%d gadget,%d total,%d peak/%d cap,%d offscreen/%d quota) batches=%d events=(%d spawn/%d accepted,%d sampled,%d framecap,%d activecap,%d offscreen-cap,%d update,%d expire,%d remove) uploads=(%d append,%d correction) Cursor=%d",
+			numAddLights,
+			pointLightVBO.usedElements, beamLightVBO.usedElements, coneLightVBO.usedElements,
+			unitPointLightVBO.usedElements, unitBeamLightVBO.usedElements, unitConeLightVBO.usedElements,
+			projectilePointLightVBO.usedElements, projectileBeamLightVBO.usedElements, projectileConeLightVBO.usedElements,
+			engineNanoLights, gadgetNanoLights, engineNanoLights + gadgetNanoLights, engineNano.activePeak, engineNano.maxActive, engineNano.offscreenActive, engineNano.maxOffscreenActive,
+			engineNano.batchCount, engineNano.spawnCount, engineNano.acceptedSpawnCount, engineNano.sampleRejectedCount, engineNano.frameCapRejectedCount, engineNano.activeCapRejectedCount, engineNano.offscreenCapRejectedCount, engineNano.updateCount, engineNano.expiryCount, engineNano.removeCount,
+			engineNano.appendUploadCount, engineNano.correctionUploadCount,
+			cursorPointLightVBO.usedElements))
+	return true
+end
+
+local function dlgl4skipdrawCmd(_, line)
+	skipdraw = not skipdraw
+	spEcho("Deferred Rendering GL4 skipdraw set to", skipdraw)
+	return true
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("dlgl4stats", dlgl4statsCmd, nil, "t")
+	widgetHandler:AddAction("dlgl4skipdraw", dlgl4skipdrawCmd, nil, "t")
 
 	Spring.Debug.TraceEcho("Initialize DLGL4")
 	if spGetConfigString("AllowDeferredMapRendering") == '0' or spGetConfigString("AllowDeferredModelRendering") == '0' then
@@ -1843,13 +2119,110 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('RemoveLight', WG['lightsgl4'].RemoveLight)
 	widgetHandler:RegisterGlobal('GetLightVBO', WG['lightsgl4'].GetLightVBO)
 
-	widgetHandler:RegisterGlobal('UnitScriptLight', UnitScriptLight)
+	-- Gadget bridge: gfx_environmental_lightning_gl4 (a gadget, no WG access) flashes
+	-- a short-lived point light at each lightning burst origin via Script.LuaUI.
+	-- The gadget owns all tuning (see its lightning configs); this just forwards the
+	-- already-resolved values to AddPointLight. r2/g2/b2 = same color so the light
+	-- does not animate toward black; sustain holds full brightness before the fade.
+	-- Args: x,y,z, radius, r,g,b,a, lifetime, sustain, modelfactor, specular,
+	--       scattering, lensflare, spawnframe.
+	WG['lightsgl4'].EnvLightningPointLight = function(x, y, z, radius, r, g, b, a,
+			lifetime, sustain, modelfactor, specular, scattering, lensflare, spawnframe)
+		AddPointLight(nil, nil, nil, pointLightVBO,
+			x, y, z, radius,
+			r, g, b, a,                                   -- color + brightness
+			r, g, b, 0,                                   -- r2,g2,b2 = same color, colortime 0
+			modelfactor, specular, scattering, lensflare, -- light surface response
+			spawnframe, lifetime, sustain)                -- spawnframe, lifetime, sustain (auto-expire)
+	end
+	widgetHandler:RegisterGlobal('EnvLightningPointLight', WG['lightsgl4'].EnvLightningPointLight)
+
+	-- Gadget bridge: predictive nano point lights. Gadget sends one spawn event
+	-- per selected particle, plus sparse correction events when trajectory
+	-- changes (homing / terrain correction). Widget integrates in-between.
+	WG['lightsgl4'].EnvNanoBallisticLightSpawn = function(instanceID,
+			x, y, z, vx, vy, vz,
+			radius, r, g, b, a,
+			lifetime, sustain,
+			modelfactor, specular, scattering, lensflare,
+			spawnframe,
+			updateEvery,
+			correctionMinFrames)
+		if not instanceID or not lifetime or lifetime < 1 then
+			return false
+		end
+		local sf = spawnframe or gameFrame
+		local lightparams = {
+			x, y, z, radius,
+			vx, vy, vz, 1.0,
+			r, g, b, a,
+			modelfactor or 0.35, specular or 0.15, scattering or 0.25, lensflare or 0,
+			sf, lifetime, sustain or lifetime, 0,
+			r, g, b, 0,
+			0,
+			0, 0, 0, 0,
+		}
+		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		if instanceIndex then
+			instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+			local instData = predictivePointLightVBO.instanceData
+			instData[instanceIndex + 1] = x
+			instData[instanceIndex + 2] = y
+			instData[instanceIndex + 3] = z
+			instData[instanceIndex + 5] = vx
+			instData[instanceIndex + 6] = vy
+			instData[instanceIndex + 7] = vz
+			instData[instanceIndex + 8] = 1.0
+			instData[instanceIndex + spawnFramePos] = f
+			predictivePointLightVBO.dirty = true
+		end
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
+		local f = frame or gameFrame
+		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not instanceIndex then return false end
+		local ff = mathFloor(fadeFrames or 1)
+		if ff < 1 then ff = 1 end
+		instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+		local instData = predictivePointLightVBO.instanceData
+		instData[instanceIndex + spawnFramePos] = f
+		instData[instanceIndex + 18] = ff
+		instData[instanceIndex + 19] = 0
+		local deathtime = math_ceil(f + ff)
+		if lightRemoveQueue[deathtime] == nil then
+			lightRemoveQueue[deathtime] = {}
+		end
+		lightRemoveQueue[deathtime][instanceID] = predictivePointLightVBO
+		predictivePointLightVBO.dirty = true
+		return true
+	end
+	WG['lightsgl4'].EnvNanoBallisticLightRemove = function(instanceID)
+		if predictivePointLightVBO.instanceIDtoIndex[instanceID] then
+			popElementInstance(predictivePointLightVBO, instanceID)
+		end
+		return true
+	end
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightSpawn', WG['lightsgl4'].EnvNanoBallisticLightSpawn)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightCorrect', WG['lightsgl4'].EnvNanoBallisticLightCorrect)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightFade', WG['lightsgl4'].EnvNanoBallisticLightFade)
+	widgetHandler:RegisterGlobal('EnvNanoBallisticLightRemove', WG['lightsgl4'].EnvNanoBallisticLightRemove)
 end
 
 if autoupdate then
 	function widget:DrawScreen()
 		if deferredLightShader.DrawPrintf then deferredLightShader.DrawPrintf() end
 	end
+end
+
+function widget:UnitScriptLight(unitID, unitDefID, lightIndex, param)
+	UnitScriptLight(unitID, unitDefID, lightIndex, param)
 end
 --------------------------- Ingame Configurables -------------------
 

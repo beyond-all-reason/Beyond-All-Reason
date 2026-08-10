@@ -752,7 +752,7 @@ local function calculateWidgetDimensions()
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
 	if WG['topbar'] and WG['topbar'].getShowButtons() then
 		local topBarPosition = WG['topbar'].GetPosition()
-		widgetDimensions.top = topBarPosition[2] -- widgetDimensions.distanceFromTopBar
+		widgetDimensions.top = (topBarPosition[6] or topBarPosition[2]) -- widgetDimensions.distanceFromTopBar
 	else
 		widgetDimensions.top = viewScreenHeight
 	end
@@ -1309,6 +1309,7 @@ local function updateStatsTexture()
 		font:End()
 	end
 
+	gl.Blending(true)
 	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
@@ -2121,6 +2122,7 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
+	gl.Blending(true)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then
