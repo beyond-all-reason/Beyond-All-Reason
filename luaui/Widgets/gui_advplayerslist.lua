@@ -3736,7 +3736,8 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
 
 		-- player color described in text (colorblind accessibility)
 		-- originalColourNames is only filled once the game has started; before that team colors arent final
-		if m_color.active and not spec and originalColourNames[playerID] then
+		-- AI colors are assigned at load and never change, so they dont need that guard
+		if m_color.active and not spec and (originalColourNames[playerID] or pTip.ai) then
 			local r, g, b = colourNames(pTip.team, true)
 			title = " \255\255\255\255[" .. ConvertRGBToClosestName(r, g, b) .. "]"
 		end
@@ -3772,7 +3773,7 @@ function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
 			tipTextTime = osClock()
 			tipTextTitle = (
 				spec and "\255\240\240\240"
-				or (originalColourNames[playerID] and colourNames(pTip.team))
+				or ((originalColourNames[playerID] or pTip.ai) and colourNames(pTip.team))
 				or "\255\255\255\255"
 			)
 				.. pTip.name
