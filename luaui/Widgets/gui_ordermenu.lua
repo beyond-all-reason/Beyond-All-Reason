@@ -177,6 +177,7 @@ local cancelTargetLastState = false
 local prevCmdCount = 0
 local prevCmdIDs = {}
 local prevCmdStates = {}
+local prevCmdModes = {}
 local prevActiveCmd = nil
 local commandsVisuallyChanged = true
 
@@ -497,8 +498,8 @@ local function refreshCommands()
 				break
 			end
 			if isStateCommand[cmd.id] then
-				local s = cmd.cachedText
-				if s ~= prevCmdStates[i] then
+				local mode = (cmd.id == CMD.FIRE_STATE) and (cmd.virtualIndex or 1) or (tonumber(cmd.params[1]) + 1)
+				if cmd.cachedText ~= prevCmdStates[i] or mode ~= prevCmdModes[i] then
 					commandsVisuallyChanged = true
 					break
 				end
@@ -517,16 +518,20 @@ local function refreshCommands()
 			prevCmdIDs[i] = commands[i].id
 			if isStateCommand[commands[i].id] then
 				prevCmdStates[i] = commands[i].cachedText
+				prevCmdModes[i] = (commands[i].id == CMD.FIRE_STATE) and (commands[i].virtualIndex or 1) or (tonumber(commands[i].params[1]) + 1)
 			elseif commands[i].id == CMD.WAIT then
 				prevCmdStates[i] = cachedWaitState
+				prevCmdModes[i] = nil
 			else
 				prevCmdStates[i] = nil
+				prevCmdModes[i] = nil
 			end
 		end
 		-- Clear excess fingerprint entries
 		for i = cmdCount + 1, #prevCmdIDs do
 			prevCmdIDs[i] = nil
 			prevCmdStates[i] = nil
+			prevCmdModes[i] = nil
 		end
 		-- Invalidate print text cache since display changed
 		for k in pairs(printTextCache) do
