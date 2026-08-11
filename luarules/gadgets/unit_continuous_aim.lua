@@ -107,6 +107,7 @@ local convertedUnitsNames = {
 	['legfloat'] = 5,
 	['leggat'] = 5,
 	['leggob'] = 5,
+	['leggobt3'] = 5,
 	['leginc'] = 1,
 	['cordemon'] = 6,
 	['corcrwh'] = 7,
