@@ -1356,6 +1356,8 @@
 				"notifications_messages_descr": "Displays notifications on screen",
 				"notifications_spoken": "Voice Notifications",
 				"notifications_spoken_descr": "Plays voice notifications",
+				"notifications_map_pings": "Map Ping Notifications",
+				"notifications_map_pings_descr": "Uses map ping for notifications with position",
 				"notifications_substitute": "Substitute Missing Notifications",
 				"notifications_substitute_descr": "Missing notifications in your current set will be substituted by Cephis.",
 				"notifications_volume": "Volume",
