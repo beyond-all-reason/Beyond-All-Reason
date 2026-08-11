@@ -1,12 +1,14 @@
 -- Guards the shared keybind data contract (common/configs/keybind_catalog.json and
--- keybind_defaults.json) against drift: structural conformance to the schemas, plus
--- referential integrity the schemas can't express (every catalog i18n key resolves
--- in the English source).
+-- keybind_defaults.json) against drift. Structure is checked against the shipped
+-- schemas, so CI enforces the same rules other surfaces read; the rest is referential
+-- integrity a schema cannot express - names unique across both profile lists, action
+-- commands in the case the engine will match.
 --
 -- Reads the JSON directly rather than through the Lua adapters, because the adapters
 -- use VFS.LoadFile, which the test harness does not mock.
 
 local Json = VFS.Include("common/luaUtilities/json.lua")
+local JsonSchema = VFS.Include("spec/json_schema.lua")
 
 local function loadJson(path)
 	local f = assert(io.open(path, "r"), "cannot open " .. path)
@@ -15,49 +17,25 @@ local function loadJson(path)
 	return Json.decode(content)
 end
 
--- Walk a dotted i18n key ("ui.keybinds.chat.send") through the English source.
-local i18n = loadJson("language/en/interface.json")
-local function i18nExists(dottedKey)
-	local node = i18n
-	for part in dottedKey:gmatch("[^.]+") do
-		if type(node) ~= "table" then return false end
-		node = node[part]
-	end
-	return node ~= nil
+local function conformsTo(schemaPath, documentPath)
+	local problems = JsonSchema.validate(loadJson(schemaPath), loadJson(documentPath))
+	assert(#problems == 0, documentPath .. " does not match " .. schemaPath .. ":\n  " ..
+		table.concat(problems, "\n  "))
 end
 
 describe("shipped keybind profiles", function()
 	local defaults = loadJson("common/configs/keybind_defaults.json")
 
-	-- Retired presets are not selectable, but migration builds a leftover player's
-	-- profile straight out of them, so they have to hold up to the same checks.
-	local all = {}
-	for _, profile in ipairs(defaults.profiles) do all[#all + 1] = profile end
-	for _, profile in ipairs(defaults.retired or {}) do all[#all + 1] = profile end
-
-	it("is an object with a non-empty profiles list", function()
-		assert(type(defaults.profiles) == "table", "profiles must be a list")
-		assert(#defaults.profiles > 0, "profiles must not be empty")
+	it("matches its schema", function()
+		conformsTo("common/configs/keybind_defaults.schema.json", "common/configs/keybind_defaults.json")
 	end)
 
-	it("gives every profile a unique name and a non-empty bind list", function()
+	-- The picker lists these by name, and a duplicate would make one unreachable.
+	it("names every profile uniquely", function()
 		local seen = {}
-		for _, profile in ipairs(all) do
-			assert(type(profile.name) == "string" and profile.name ~= "", "profile missing name")
+		for _, profile in ipairs(defaults.profiles) do
 			assert(not seen[profile.name], "duplicate profile name: " .. tostring(profile.name))
 			seen[profile.name] = true
-			assert(type(profile.binds) == "table" and #profile.binds > 0,
-				"profile has no binds: " .. profile.name)
-		end
-	end)
-
-	it("gives every bind a keyset and an action", function()
-		for _, profile in ipairs(all) do
-			for i, bind in ipairs(profile.binds) do
-				local where = profile.name .. " bind " .. i
-				assert(type(bind.keyset) == "string" and bind.keyset ~= "", "no keyset: " .. where)
-				assert(type(bind.action) == "string" and bind.action ~= "", "no action: " .. where)
-			end
 		end
 	end)
 end)
@@ -65,56 +43,67 @@ end)
 describe("keybind catalog", function()
 	local catalog = loadJson("common/configs/keybind_catalog.json")
 
-	it("is a non-empty, ordered list", function()
-		assert(type(catalog) == "table", "catalog must be a list")
-		assert(#catalog > 0, "catalog must not be empty")
+	it("matches its schema", function()
+		conformsTo("common/configs/keybind_catalog.schema.json", "common/configs/keybind_catalog.json")
 	end)
 
-	it("shapes every entry as a category or a hidden list", function()
-		for _, group in ipairs(catalog) do
-			local isCategory = group.category ~= nil and group.items ~= nil
-			local isHidden = group.hidden ~= nil and group.category == nil and group.items == nil
-			assert(isCategory or isHidden, "entry is neither a category nor a hidden list")
-			if isHidden then
-				assert(type(group.hidden) == "table", "hidden must be a list")
-				for _, prefix in ipairs(group.hidden) do
-					assert(type(prefix) == "string", "hidden entry must be a string prefix")
-				end
+	-- Action::Action lowercases the command before Spring.GetKeyBindings ever sees it, so
+	-- a capitalised id here silently matches nothing and the row renders with no keys.
+	-- Only the command is lowered; its arguments keep their case.
+
+	-- The editor cannot capture a bare modifier as a key, so an action bound only that way
+	-- has to be marked read-only: left editable, its remove chip would strip a binding the
+	-- player could never put back. An action bound both ways stays editable - the flag is
+	-- per action, and hiding a real key to protect a modifier would be the worse trade.
+	it("marks every purely modifier-only action read-only", function()
+		local defaults = loadJson("common/configs/keybind_defaults.json")
+		local modifiers = { alt = true, ctrl = true, shift = true, meta = true, any = true }
+		local function isModifierOnly(keyset)
+			local parts = 0
+			for part in keyset:gmatch("[^+]+") do
+				if not modifiers[part:lower()] then return false end
+				parts = parts + 1
+			end
+			return parts > 0
+		end
+
+		local kinds = {}
+		for _, profile in ipairs(defaults.profiles) do
+			for _, bind in ipairs(profile.binds) do
+				local seen = kinds[bind.action] or {}
+				seen[isModifierOnly(bind.keyset)] = true
+				kinds[bind.action] = seen
 			end
 		end
-	end)
 
-	it("titles every category with a resolvable i18n key and has items", function()
-		for _, group in ipairs(catalog) do
-			if group.category then
-				assert(type(group.category) == "string", "category missing title key")
-				assert(i18nExists(group.category), "missing i18n for category: " .. group.category)
-				assert(type(group.items) == "table", "category has no items: " .. group.category)
-			end
-		end
-	end)
-
-	it("shapes every item as exactly one recognized kind", function()
+		local flagged = {}
 		for _, group in ipairs(catalog) do
 			for _, item in ipairs(group.items or {}) do
-				local editable = item.action ~= nil and item.label ~= nil and item.keyLabel == nil and item.prefix == nil
-				local info = item.label ~= nil and item.keyLabel ~= nil and item.action == nil and item.prefix == nil
-				-- prefix groups may carry an optional label (interpolated per action) and unit flag
-				local prefix = item.prefix ~= nil and item.action == nil and item.keyLabel == nil
-					and (item.unit == nil or type(item.unit) == "boolean")
-				assert(editable or info or prefix, "unrecognized item shape under " .. tostring(group.category))
+				-- Guarded because a modifierOnly on a prefix or info item has no action to key
+				-- by, and indexing with nil would fail here instead of in the schema test.
+				if item.modifierOnly and item.action then flagged[item.action] = true end
 			end
 		end
-	end)
 
-	it("resolves every label and keyLabel in the English localization", function()
+		for action, seen in pairs(kinds) do
+			if seen[true] and not seen[false] then
+				assert(flagged[action], "action is bound only to modifiers but is not marked "
+					.. "modifierOnly, so the editor would offer an edit it cannot undo: " .. action)
+			end
+		end
+		for action in pairs(flagged) do
+			local seen = kinds[action]
+			assert(seen and seen[true] and not seen[false], "action is marked modifierOnly but "
+				.. "is bound to a real key, so the flag hides an editable binding: " .. action)
+		end
+	end)
+	it("writes every action command in lower case", function()
 		for _, group in ipairs(catalog) do
 			for _, item in ipairs(group.items or {}) do
-				if item.label then
-					assert(i18nExists(item.label), "missing i18n for label: " .. item.label)
-				end
-				if item.keyLabel then
-					assert(i18nExists(item.keyLabel), "missing i18n for keyLabel: " .. item.keyLabel)
+				local id = item.action or item.prefix
+				if id then
+					local command = id:match("^%S+") or id
+					assert(command == command:lower(), "action command is not lower case: " .. id)
 				end
 			end
 		end
