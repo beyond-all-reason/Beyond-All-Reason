@@ -284,6 +284,9 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	statistics.Increment(triggerTypes.TotalUnitsCaptured, newTeam, unitDefName, unitNames)
 end
 
+-- Sensor callins are relatively hot and require complicated routing.
+-- They are replaced with one mark-and-sweep and an update per frame.
+
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end

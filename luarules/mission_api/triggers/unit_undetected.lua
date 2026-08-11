@@ -1,5 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-local DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
+local DetectionLevels = GG['MissionAPI'].Modules.DetectionLevels
 
 -- Fires when a matching unit's detection level falls from the sensor set watched by the trigger.
 -- Sensors progress from least to most accurate: unseen -> seismic ping -> in radar -> in vision.
@@ -11,7 +11,7 @@ local DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 
 -- Death is not a loss of detection. A killed unit drops from sensor tracking without reporting.
 
-local bit_and = math.bit_and
+local FIRES_ON_UNDETECTED = false
 
 local function matchesUnit(parameters, context, unitID, unitDefID)
 	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
@@ -38,22 +38,8 @@ return {
 	},
 	callins = {
 		-- Artificial callin raised once a frame, for units whose sensor state was touched.
-		DetectionUpdate = function(trigger, triggerID, context, dirtyUnits)
-			local parameters = trigger.parameters
-			local sensorAllyTeam = parameters.sensorAllyTeam
-			local levelMask = DetectionLevels.LevelMaskOf(triggerID, parameters.sensorTypes)
+		DetectionUpdate = DetectionLevels.NewDetectionUpdate(FIRES_ON_UNDETECTED, matchesUnit),
 
-			for unitID in pairs(dirtyUnits) do
-				local levelBit = DetectionLevels.LevelBitOf(unitID, sensorAllyTeam)
-				local isDetected = bit_and(levelBit, levelMask) ~= 0
-				if DetectionLevels.UpdateLatch(triggerID, unitID, isDetected) and not isDetected then
-					-- Dying units remain detectable, and unit tracking can change between updates.
-					if Spring.GetUnitIsDead(unitID) == false and matchesUnit(parameters, context, unitID, Spring.GetUnitDefID(unitID)) then
-						context.ActivateTrigger(trigger)
-					end
-				end
-			end
-		end,
 		UnitDestroyed = function(trigger, triggerID, context, unitID)
 			DetectionLevels.Forget(triggerID, unitID)
 		end,

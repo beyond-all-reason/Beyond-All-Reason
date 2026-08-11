@@ -127,17 +127,41 @@ local function levelMaskOf(triggerID, sensorTypes)
 	return levelMask
 end
 
----Records whether the unit is inside the trigger's sensors and reports only the changes.
----@return boolean changed
-local function updateLatch(triggerID, unitID, isDetected)
-	local latched = table.ensureTable(latches, triggerID)
-	if isDetected == (latched[unitID] == true) then
-		return false
+---Builds the once-a-frame handler for a detection trigger. UnitDetected and UnitUndetected run
+---the same sweep and differ only in which edge they report, so the edge protocol lives here
+---rather than in two copies of it. Each trigger still owns its own filters, which it passes in
+---and which are read only on an edge, never per unit per frame.
+
+---Build a handler for a detection trigger. UnitDetected and UnitUndetected run
+---on the same update sweep and differ only by one boolean comparison operator.
+---@param fireOnDetection boolean true := rising, false := falling
+---@param matchesUnit fun(parameters, context, unitID, unitDefID): boolean
+local function newDetectionUpdate(fireOnDetection, matchesUnit)
+	return function(trigger, triggerID, context, dirtyUnits)
+		local parameters = trigger.parameters
+		local sensorAllyTeam = parameters.sensorAllyTeam
+		local levelMask = levelMaskOf(triggerID, parameters.sensorTypes)
+		local latched = table.ensureTable(latches, triggerID)
+
+		for unitID in pairs(dirtyUnits) do
+			local levelBit = levelBitOf(unitID, sensorAllyTeam)
+			local isDetected = bit_and(levelBit, levelMask) ~= 0
+
+			if isDetected ~= (latched[unitID] == true) then
+				latched[unitID] = isDetected or nil
+				-- Dying units remain detectable, and unit tracking can change between updates.
+				if isDetected == fireOnDetection
+					and Spring.GetUnitIsDead(unitID) == false
+					and matchesUnit(parameters, context, unitID, Spring.GetUnitDefID(unitID))
+				then
+					context.ActivateTrigger(trigger)
+				end
+			end
+		end
 	end
-	latched[unitID] = isDetected or nil
-	return true
 end
 
+---Death is not a loss of detection, so this reports nothing and only drops the latch.
 local function forget(triggerID, unitID)
 	local latched = latches[triggerID]
 	if latched then
@@ -146,9 +170,9 @@ local function forget(triggerID, unitID)
 end
 
 return {
-	LevelBitOf              = levelBitOf,
-	LevelMaskOf             = levelMaskOf,
-	UpdateLatch             = updateLatch,
-	Forget                  = forget,
-	ResolveSensorAllyTeams  = resolveSensorAllyTeams,
+	LevelBitOf             = levelBitOf,
+	LevelMaskOf            = levelMaskOf,
+	NewDetectionUpdate     = newDetectionUpdate,
+	Forget                 = forget,
+	ResolveSensorAllyTeams = resolveSensorAllyTeams,
 }
