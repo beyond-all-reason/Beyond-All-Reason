@@ -1063,6 +1063,19 @@ else	-- UNSYNCED
 
 
 
+	-- Modbroadcast draw state, unsynced, reaches all players.
+	local modbroadcastActive = nil
+	local MODBROADCAST_DURATION  = 7
+	local MODBROADCAST_HOLD      = 1
+	local MODBROADCAST_FONT_SIZE = 42
+	local MODBROADCAST_COLORS = {
+		white  = { r = 1,    g = 1,    b = 1    },
+		red    = { r = 1,    g = 0.30, b = 0.30 },
+		yellow = { r = 1,    g = 0.85, b = 0.20 },
+		green  = { r = 0.40, g = 1,    b = 0.40 },
+		cyan   = { r = 0.30, g = 0.90, b = 1    },
+	}
+
 	function gadget:Initialize()
 		local myPlayerID = Spring.GetMyPlayerID()
 		local function addAuthorizedChatAction(permission, action, handler)
@@ -1123,8 +1136,7 @@ else	-- UNSYNCED
 				Spring.SendPrivateChat(message, targetPlayerID)
 			end
 		end)
-		-- Relays text to this client's own LuaUI (WG is nil here); soundID (if any)
-		-- is normalized and played directly.
+		-- soundID normalized and played directly; text sets draw state for DrawScreen.
 		gadgetHandler:AddSyncAction("modbroadcast", function(_, colorKey, soundID, text)
 			if soundID and soundID ~= "" then
 				local p = soundID
@@ -1136,7 +1148,10 @@ else	-- UNSYNCED
 				end
 				Spring.PlaySoundFile(p, 0.7, "ui")
 			end
-			Spring.SendLuaUIMsg("modbroadcast:" .. colorKey .. ":" .. (text or ""))
+			if text and text ~= "" then
+				local color = MODBROADCAST_COLORS[colorKey] or MODBROADCAST_COLORS.white
+				modbroadcastActive = { text = text, r = color.r, g = color.g, b = color.b, startTime = Spring.GetGameSeconds() }
+			end
 		end)
 		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
 			if requestPlayerID ~= Spring.GetMyPlayerID() then
@@ -1701,6 +1716,23 @@ else	-- UNSYNCED
 			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
 			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
 		end
+
+		if modbroadcastActive then
+			local elapsed = Spring.GetGameSeconds() - modbroadcastActive.startTime
+			if elapsed >= MODBROADCAST_DURATION then
+				modbroadcastActive = nil
+			else
+				local alpha = 1
+				if elapsed > MODBROADCAST_HOLD then
+					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
+				end
+				local vsx, vsy = Spring.GetViewGeometry()
+				local c = modbroadcastActive
+				gl.Color(c.r, c.g, c.b, alpha)
+				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
+				gl.Color(1, 1, 1, 1)
+			end
+		end
 	end
 
 	function gadget:UnitCreated()
@@ -1990,9 +2022,8 @@ else	-- UNSYNCED
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modwhisper:' .. target .. ':' .. message)
 	end
 
-	-- /luarules modbroadcast [color] [sound] <message text> - color/sound are
-	-- optional, auto-detected from leading words (color = exact match, sound =
-	-- contains "/" or has an extension); "/luarules modbroadcast <message>" works alone.
+	-- /luarules modbroadcast [color] [sound] <message text> - color/sound
+	-- auto-detected from leading words, both optional.
 	local MODBROADCAST_COLOR_NAMES = { white = true, red = true, yellow = true, green = true, cyan = true }
 	function modbroadcast(_, line, words, playerID)
 		if playerID ~= Spring.GetMyPlayerID() then
