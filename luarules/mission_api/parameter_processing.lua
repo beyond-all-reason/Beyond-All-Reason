@@ -50,12 +50,21 @@ local function processResourceIncomeSources(sources)
 	return sourcesAsSet
 end
 
+local function processSensorTypes(sensorTypes)
+	local sensorTypesAsSet = {}
+	for _, sensorType in ipairs(sensorTypes) do
+		sensorTypesAsSet[sensorType] = true
+	end
+	return sensorTypesAsSet
+end
+
 local processors = {
 	[ParameterTypes.Position]              = processPosition,
 	[ParameterTypes.Positions]             = processPositions,
 	[ParameterTypes.Orders]                = processOrders,
 	[ParameterTypes.SoundFile]             = processSoundFile,
 	[ParameterTypes.ResourceIncomeSources] = processResourceIncomeSources,
+	[ParameterTypes.SensorTypes]           = processSensorTypes,
 }
 
 ----------------------------------------------------------------

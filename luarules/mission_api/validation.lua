@@ -336,6 +336,22 @@ validators[Types.ResourceIncomeSources] = function(sources)
 	if #result > 0 then return result end
 end
 
+validators[Types.SensorTypes] = function(sensorTypes)
+	local luaTypeResult = validators[Types.Table](sensorTypes)
+	if luaTypeResult then return luaTypeResult end
+	if #sensorTypes == 0 then
+		return { { message = "Sensor types table must not be empty" } }
+	end
+
+	local result = {}
+	for i, sensorType in ipairs(sensorTypes) do
+		if not parameterTypeEnums[Types.SensorTypes][sensorType] then
+			result[#result + 1] = { message = "Invalid sensor type [" .. i .. "]: '" .. tostring(sensorType) .. "'. Must be one of: 'vision', 'radar', 'seismic'" }
+		end
+	end
+	if #result > 0 then return result end
+end
+
 --- String Validators:
 
 validators[Types.StageID] = function(stageID)

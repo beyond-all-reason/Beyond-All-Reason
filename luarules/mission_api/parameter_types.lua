@@ -14,6 +14,7 @@ local types = {
 	UnitLoadout = 'UnitLoadout',
 	FeatureLoadout = 'FeatureLoadout',
 	ResourceIncomeSources = 'ResourceIncomeSources',
+	SensorTypes = 'SensorTypes',
 
 	-- String Validators:
 	String = 'String',
@@ -44,6 +45,7 @@ local types = {
 local enums = {
 	[types.Facing] = { [0] = true, [1] = true, [2] = true, [3] = true, n = true, s = true, e = true, w = true, north = true, south = true, east = true, west = true },
 	[types.ResourceIncomeSources] = { extractor = true, production = true, reclaim = true, transfer = true },
+	[types.SensorTypes] = { vision = true, radar = true, seismic = true },
 }
 
 return {
