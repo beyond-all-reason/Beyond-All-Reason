@@ -13,8 +13,11 @@
 -- Distinct def/texture names (editor_*, unittextures/editor_geovent_crack.dds)
 -- so maps that ship their own "geovent"/"geocrack"/geo.dds are never shadowed.
 
--- Rock-marker variant: selectable body + crack + smoke. The rock model is a
--- stand-in until a dedicated vent asset lands.
+-- Mesh-marker variant: selectable rock body + smoke, deliberately NO crack
+-- decal — this is the def for geo outputs with actual geometry (e.g. an
+-- industrial vent structure on a non-flat spot). The rock model is a
+-- stand-in until a dedicated vent asset lands; the flat-crack look lives in
+-- editor_geocrack below.
 local vent = {
 	name = "editor_geovent",
 	description = "Geothermal Vent",
@@ -33,11 +36,6 @@ local vent = {
 	footprintZ = 4,
 	upright = false,
 	hitdensity = 0,
-	useBuildingGroundDecal = true,
-	buildingGroundDecalDecaySpeed = 2.0,
-	buildingGroundDecalType = "editor_geovent_crack.dds",
-	buildingGroundDecalSizeX = 4,
-	buildingGroundDecalSizeY = 4,
 	customparams = {
 		category = "geo",
 	},

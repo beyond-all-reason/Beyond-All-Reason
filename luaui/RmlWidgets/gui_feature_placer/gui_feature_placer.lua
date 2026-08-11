@@ -463,6 +463,16 @@ local function computeTileWidth()
 	return tileW
 end
 
+-- Picker labels for the geo defs: the raw names don't say which variant is
+-- which. crack = flat surface crack decal; mesh = placeholder rock body, no
+-- crack (for future non-flat geo outputs); plain geovent (map-shipped) =
+-- just the interactive geo spot and its smoke.
+local FEATURE_DISPLAY_NAMES = {
+	editor_geocrack = "geovent+crack",
+	editor_geovent  = "geovent+mesh",
+	geovent         = "geovent",
+}
+
 local function createTileElement(doc, entry, tileW, selectedSet)
 	local name = entry.name
 	local itemEl = doc:CreateElement("div")
@@ -490,7 +500,7 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
-	nameEl.inner_rml = name
+	nameEl.inner_rml = FEATURE_DISPLAY_NAMES[name] or name
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)
@@ -659,7 +669,10 @@ local function rebuildFeatureList(filter)
 	end
 
 	for _, entry in ipairs(toShow) do
-		if lowerFilter == "" or entry.name:lower():find(lowerFilter, 1, true) then
+		-- Match the display label too (geo defs render as "geovent+mesh" etc.)
+		local shown = FEATURE_DISPLAY_NAMES[entry.name]
+		if lowerFilter == "" or entry.name:lower():find(lowerFilter, 1, true)
+			or (shown and shown:lower():find(lowerFilter, 1, true)) then
 			virtualItems[#virtualItems + 1] = entry
 		end
 	end
