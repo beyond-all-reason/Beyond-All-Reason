@@ -11,19 +11,16 @@ local keyNameAlias = { enter = "return" }
 -- Keychain separator (U+2192) shown between taps, since the engine's "," collides with a bound comma key.
 local chainSep = " \226\134\146 "
 
+-- One engine keyset element as the player's keyboard layout would label it.
+-- The Any+ qualifier is not shown: it is fixed per action rather than chosen, so there is
+-- nothing on that key for a player to change. sanitizeKey is what drops it.
 local function displayElement(raw, layout)
-	-- Pull the Any+ qualifier out before sanitizeKey (which drops it) so it stays
-	-- visible and Any+X reads differently from a plain X.
-	local anyPrefix = ""
-	raw = raw:gsub("[Aa][Nn][Yy]%+", function() anyPrefix = "Any + "; return "" end)
-	raw = raw:gsub("%*%+", function() anyPrefix = "Any + "; return "" end)
-
 	local mods, key = raw:match("^(.-)([^+]*)$")
 	if key and keyNameAlias[key:lower()] then
 		raw = mods .. keyNameAlias[key:lower()]
 	end
 
-	return anyPrefix .. keyConfig.sanitizeKey(raw, layout):gsub("%+", " + ")
+	return (keyConfig.sanitizeKey(raw, layout):gsub("%+", " + "))
 end
 
 -- Split a chain on separator commas. A comma is the bound key rather than a separator
@@ -45,6 +42,50 @@ local function splitChain(raw)
 	return elems
 end
 
+-- Whether two keysets are the same binding, which is a different question from whether
+-- they print the same. Any+ and a bare modifier set resolve differently when the engine
+-- picks an action, and scancodes and keycodes are separate maps that land on different
+-- physical keys off qwerty, so both distinctions survive here. Only spellings of one key
+-- fold. Display is no use for this: it drops exactly the qualifiers that decide priority.
+local canonicalMods = { "any", "alt", "ctrl", "meta", "shift" }
+local modToken = {
+	["any+"] = "any", ["*+"] = "any", ["alt+"] = "alt",
+	["ctrl+"] = "ctrl", ["meta+"] = "meta", ["shift+"] = "shift",
+}
+
+local function canonicalElement(raw)
+	local rest, held = raw, {}
+	local stripped = true
+	while stripped do
+		stripped = false
+		for token, name in pairs(modToken) do
+			if rest:sub(1, #token):lower() == token then
+				held[name] = true
+				rest = rest:sub(#token + 1)
+				stripped = true
+			end
+		end
+	end
+
+	local key = rest:lower()
+	local scan = key:sub(1, 3) == "sc_"
+	if scan then
+		key = key:sub(4)
+	end
+	key = keyNameAlias[key] or key
+
+	local out = {}
+	for _, name in ipairs(canonicalMods) do
+		if held[name] then
+			out[#out + 1] = name
+		end
+	end
+	out[#out + 1] = (scan and "sc:" or "kc:") .. key
+
+	return table.concat(out, "+")
+end
+
+-- A whole keyset, joining a chain with the arrow separator.
 local function displayKeyset(raw, layout)
 	if not raw:find(",", 1, true) then
 		return displayElement(raw, layout)
@@ -56,6 +97,15 @@ local function displayKeyset(raw, layout)
 	end
 
 	return table.concat(parts, chainSep)
+end
+
+local function canonicalKeyset(raw)
+	local parts = splitChain(raw)
+	for i = 1, #parts do
+		parts[i] = canonicalElement(parts[i])
+	end
+
+	return table.concat(parts, ",")
 end
 
 -- A bound action is identified by the full command string passed to /bind:
@@ -70,6 +120,7 @@ local function actionId(b)
 	return b.command
 end
 
+-- Snapshot of every bound action, with both raw and display forms of its keysets.
 local function build()
 	local layout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 	local bindings = Spring.GetKeyBindings() or {}
@@ -105,6 +156,7 @@ end
 return {
 	build = build,
 	displayKeyset = displayKeyset,
+	canonicalKeyset = canonicalKeyset,
 	splitChain = splitChain,
 	chainSep = chainSep,
 }

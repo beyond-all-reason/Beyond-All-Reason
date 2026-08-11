@@ -1,49 +1,56 @@
 -- Store for user keybind profiles, persisted to LuaUI/Config/keybind_profiles.json.
 --
--- Profiles are whole snapshots, never deltas: keyreload clears the keymap before it
--- loads, so a profile always defines every binding it wants. Snapshots come from
--- Spring.GetKeyBindings rather than from parsing uikeys.txt, so nothing here has to
--- understand the bind-file grammar; only the emitter writes it, and only in the one
+-- Profiles are whole snapshots, never deltas: keyreload clears the keymap before it loads,
+-- so a profile always defines every binding it wants. The emitter writes them in the one
 -- shape the engine round-trips.
+--
+-- Migration is the exception: a player's own file has to be read as written, so the reader
+-- below understands the subset of the bind-file grammar that changes what ends up bound -
+-- bind, the three unbinds, keyload and fakemeta. Everything after migration goes through
+-- Spring.GetKeyBindings instead.
+
+local Json = Json or VFS.Include('common/luaUtilities/json.lua')
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local ACTIVE_FILE = "uikeys.txt"
+local BACKUP_FILE = "uikeys.txt.bak"
 local STORE_VERSION = 1
 
 -- The shipped profiles a player can select but not edit; editing forks a copy. They
 -- carry binds rather than a file path so every surface reads one shape, and applying
 -- one takes the same path as applying a player's own profile.
 local builtins = {}
--- Presets the game stopped offering. Their bindings ship alongside the current ones
--- purely so a player who was still on one keeps their keys, as a profile of their own.
-local retired = {}
+local emitPriority = {}
 do
 	local ok, decoded = pcall(Json.decode, VFS.LoadFile(DEFAULTS_PATH))
 	if ok and type(decoded) == "table" and type(decoded.profiles) == "table" then
 		builtins = decoded.profiles
-		retired = type(decoded.retired) == "table" and decoded.retired or {}
+		if type(decoded.priority) == "table" then
+			emitPriority = decoded.priority
+		end
 	else
 		Spring.Echo("[keybind_profiles] could not load " .. DEFAULTS_PATH .. "; no built-in profiles")
 	end
 end
 
--- Only for upgrades: the preset a player was on is recorded as a bind-file path.
-local shippedPresetFiles = {
+-- Only for upgrades: the preset a player was on is recorded as a bind-file path. Maps
+-- each of those paths to the profile that now covers it.
+local presetFiles = {
 	["luaui/configs/hotkeys/grid_keys.txt"] = "Grid",
 	["luaui/configs/hotkeys/grid_keys_60pct.txt"] = "Grid (60% Keyboard)",
-}
-local retiredPresetFiles = {
 	["luaui/configs/hotkeys/legacy_keys.txt"] = "Legacy",
 	["luaui/configs/hotkeys/legacy_keys_60pct.txt"] = "Legacy (60% Keyboard)",
 }
 
 local store
 
+-- Shape a fresh store file takes.
 local function emptyStore()
 	return { version = STORE_VERSION, active = nil, profiles = {} }
 end
 
+-- Position of one of the player's own profiles, nil when the name is not theirs.
 local function indexOf(name)
 	for i, p in ipairs(store.profiles) do
 		if p.name == name then
@@ -56,6 +63,7 @@ end
 
 local M = { builtins = builtins, activeFile = ACTIVE_FILE }
 
+-- The shipped profile of that name, nil when the player owns it instead.
 function M.isBuiltin(name)
 	for _, b in ipairs(builtins) do
 		if b.name == name then
@@ -66,27 +74,85 @@ function M.isBuiltin(name)
 	return nil
 end
 
--- Every binding currently live, in the order the engine reports them.
-function M.snapshotLive()
-	local binds = {}
-	for _, b in ipairs(Spring.GetKeyBindings() or {}) do
-		local action = b.command
-		if b.extra and b.extra ~= "" then
-			action = action .. " " .. b.extra
+-- Where an action sits in the shipped priority list, last for anything unlisted.
+local function priorityRank(action)
+	for i = 1, #emitPriority do
+		local prefix = emitPriority[i]
+		if action:sub(1, #prefix) == prefix then
+			return i
 		end
-		binds[#binds + 1] = { keyset = b.boundWith, action = action }
 	end
 
-	return binds
+	return #emitPriority + 1
+end
+
+-- Two actions on one key are tried in the order they were bound, so file order is what
+-- settles which one wins. Sorting by declared priority keeps that decision with the
+-- action instead of with whoever edited last. Equal ranks hold their existing order, so
+-- only the listed actions move.
+local function byPriority(binds)
+	local ordered = {}
+	for i = 1, #binds do
+		ordered[i] = { bind = binds[i], rank = priorityRank(binds[i].action), pos = i }
+	end
+
+	table.sort(ordered, function(a, b)
+		if a.rank ~= b.rank then
+			return a.rank < b.rank
+		end
+
+		return a.pos < b.pos
+	end)
+
+	local out = {}
+	for i = 1, #ordered do
+		out[i] = ordered[i].bind
+	end
+
+	return out
+end
+
+-- Stamped into every file we write so migration can tell our own output from a file the
+-- player wrote, and recover which profile was live when the store holding it is gone.
+-- The engine drops everything from "//" to end of line, so it costs nothing on load.
+local GENERATED_PREFIX = "// keybind editor profile: "
+local GENERATED_PATTERN = "^" .. (GENERATED_PREFIX:gsub("(%W)", "%%%1")) .. "([^\r\n]*)"
+
+local function generatedName(text)
+	if not text then
+		return nil
+	end
+
+	local name = text:match(GENERATED_PATTERN)
+
+	return (name ~= nil and name ~= "") and name or nil
 end
 
 -- uikeys.txt only needs the bind lines; keyreload clears and sets fakemeta itself.
 local function toBindFile(profile)
-	local out = {}
-	if profile.fakeMeta then
+	local out = { GENERATED_PREFIX .. tostring(profile.name) }
+	-- One token only: anything longer emits a fakemeta directive the engine cannot parse.
+	if profile.fakeMeta and profile.fakeMeta ~= "" and not profile.fakeMeta:find("%s") then
 		out[#out + 1] = "fakemeta " .. profile.fakeMeta
 	end
+	-- The store is writable by the player and by other surfaces, so a malformed entry is
+	-- reachable here. Dropping one costs a keybind; letting it through takes the whole
+	-- hotkey loader down with it.
+	local binds, dropped = {}, 0
 	for _, b in ipairs(profile.binds or {}) do
+		if type(b) == "table" and type(b.keyset) == "string" and type(b.action) == "string"
+			and b.keyset ~= "" and b.action ~= "" then
+			binds[#binds + 1] = b
+		else
+			dropped = dropped + 1
+		end
+	end
+	if dropped > 0 then
+		Spring.Echo("[keybind_profiles] skipped " .. dropped .. " malformed binding(s) in profile "
+			.. tostring(profile.name))
+	end
+
+	for _, b in ipairs(byPriority(binds)) do
 		out[#out + 1] = "bind " .. b.keyset .. " " .. b.action
 	end
 
@@ -95,19 +161,91 @@ end
 
 -- The engine has no Lua getter for the fakemeta key, so migration is the only
 -- chance to carry a non-default one over from the file the player already had.
+-- Reads the bind lines back out of a keybind file. Needed for the player's own
+-- uikeys.txt at migration time: the live keymap is whichever preset they had selected,
+-- so it cannot stand in for what their own file holds.
+local function readBindFile(text, depth)
+	if not text then
+		return nil
+	end
+
+	depth = depth or 1
+	local breaks = "[^" .. string.char(13, 10) .. "]+"
+	local binds = {}
+
+	-- The engine matches an unbind on the command name alone, so "unbindaction factory_preset"
+	-- takes every "factory_preset load N" with it.
+	local function drop(match)
+		for i = #binds, 1, -1 do
+			if match(binds[i]) then
+				table.remove(binds, i)
+			end
+		end
+	end
+
+	for line in text:gmatch(breaks) do
+		-- Everything from "//" is a comment to the engine, so it is gone before anything reads
+		-- the line as a directive.
+		line = line:gsub("//.*", ""):gsub("%s+$", "")
+		local keyset, action = line:match("^%s*bind%s+(%S+)%s+(.-)%s*$")
+		if keyset and action ~= "" then
+			binds[#binds + 1] = { keyset = keyset, action = action }
+		elseif line:match("^%s*unbindall%s*$") then
+			binds = {}
+		elseif line:match("^%s*unbindaction%s+%S") then
+			local command = line:match("^%s*unbindaction%s+(%S+)")
+			drop(function(b) return b.action:match("^%S+") == command end)
+		elseif line:match("^%s*unbindkeyset%s+%S") then
+			local target = line:match("^%s*unbindkeyset%s+(%S+)"):lower()
+			drop(function(b) return b.keyset:lower() == target end)
+		elseif line:match("^%s*unbind%s+%S") then
+			local target, command = line:match("^%s*unbind%s+(%S+)%s+(%S+)")
+			if target then
+				target = target:lower()
+				drop(function(b) return b.keyset:lower() == target and b.action:match("^%S+") == command end)
+			end
+		else
+			-- A player's file can pull in others the same way the shipped presets did, and
+			-- those bindings are just as much theirs. Depth-capped rather than cycle-tracked.
+			local included = line:match("^%s*keyload%s+(%S+)")
+			if included and depth < 8 then
+				local text = VFS.LoadFile(included)
+				if text then
+					for _, b in ipairs(readBindFile(text, depth + 1) or {}) do
+						binds[#binds + 1] = b
+					end
+				else
+					Spring.Echo("[keybind_profiles] Error: keyload could not read " .. included
+						.. "; any bindings it held are missing from the migrated profile")
+				end
+			end
+		end
+	end
+
+	return binds
+end
+
 local function readFakeMeta(text)
 	if not text then
 		return nil
 	end
-	local value = text:match("\n%s*fakemeta%s*([^\n]*)")
+	-- Horizontal whitespace only: %s would match the line break and swallow the
+	-- next line as the value when fakemeta is present but unset.
+	-- Leading newline so the directive is still found on the first line, which is where
+	-- toBindFile puts it.
+	local value = ("\n" .. text):match("\n[ \t]*fakemeta[ \t]*([^\n]*)")
 	if not value then
 		return nil
 	end
 
-	return (value:gsub("//.*", ""):gsub("%s+$", ""))
+	value = value:gsub("//.*", ""):gsub("%s+$", "")
+
+	return value ~= "" and value or nil
 end
 
+-- A name no existing profile holds, for copies.
 function M.uniqueName(base)
+	M.load()
 	if not indexOf(base) and not M.isBuiltin(base) then
 		return base
 	end
@@ -120,6 +258,7 @@ function M.uniqueName(base)
 	return base .. " " .. n
 end
 
+-- Writes the store back to disk.
 function M.save()
 	local file = io.open(PROFILES_PATH, "w")
 	if not file then
@@ -142,51 +281,69 @@ end
 
 -- Players upgrading from the old preset picker keep what they had, so dropping the
 -- preset list does not silently reset anyone.
+-- The player's file as it was before any of this touched it. Written once and never again,
+-- including on a later migration, so the copy is always the original rather than our own
+-- output. Nothing reads it back: it exists for a human with a broken keymap.
+local function backupActiveFile()
+	local existing = io.open(BACKUP_FILE, "r")
+	if existing then
+		existing:close()
+
+		return
+	end
+
+	local text = VFS.LoadFile(ACTIVE_FILE)
+	if not text then
+		return
+	end
+
+	local file = io.open(BACKUP_FILE, "w")
+	if not file then
+		Spring.Echo("[keybind_profiles] Error: could not write " .. BACKUP_FILE
+			.. "; continuing without a copy of the original keymap")
+
+		return
+	end
+
+	file:write(text)
+	file:close()
+	Spring.Echo("[keybind_profiles] kept the original " .. ACTIVE_FILE .. " as " .. BACKUP_FILE)
+end
+
 local function migrate()
+	backupActiveFile()
 	store = emptyStore()
 
+	-- Every preset still ships, so a player on one only needs it selected; there is nothing
+	-- of theirs to carry across.
 	local configured = Spring.GetConfigString("KeybindingFile", "")
+	local preset = presetFiles[configured]
 
-	-- Already on a preset that survives the change; it stays selectable as a builtin.
-	local survivor = shippedPresetFiles[configured]
-	if survivor then
-		store.active = survivor
-		M.save()
-		return
-	end
+	-- Whichever file actually held their bindings: the one they pointed the engine at when
+	-- that is not a preset we still ship, otherwise the uikeys.txt a preset leaves unloaded.
+	-- The player's own file is a profile in its own right, whatever else they had going on.
+	local ownPath = (not preset and configured ~= "") and configured or ACTIVE_FILE
+	local ownText = VFS.LoadFile(ownPath)
+	local written = generatedName(ownText)
 
-	-- Never picked one, so there is nothing of the player's to carry over and the
-	-- live bindings are just engine defaults.
-	if configured == "" then
-		return
-	end
-
-	local profile
-	local retiredName = retiredPresetFiles[configured]
-	if retiredName then
-		-- Taken from the shipped copy rather than the live keymap, so this does not
-		-- depend on anything having loaded the retired preset first.
-		for _, r in ipairs(retired) do
-			if r.name == retiredName then
-				profile = { name = r.name, binds = r.binds, fakeMeta = r.fakeMeta }
-			end
-		end
+	if written and M.isBuiltin(written) then
+		-- Our own copy of a shipped profile. Select it rather than importing a duplicate.
+		store.active = written
 	else
-		local binds = M.snapshotLive()
-		if #binds > 0 then
-			profile = { name = "Custom", binds = binds, fakeMeta = readFakeMeta(VFS.LoadFile(ACTIVE_FILE)) }
+		local own = readBindFile(ownText)
+		if own and #own > 0 then
+			local name = written or "Custom"
+			store.profiles[1] = { name = name, binds = own, fakeMeta = readFakeMeta(ownText) }
+			store.active = preset or name
+		else
+			store.active = preset
 		end
 	end
 
-	if not profile then
-		return
-	end
-
-	store.profiles[1] = profile
-	store.active = profile.name
 	M.save()
 end
 
+-- Reads the store once, migrating an older layout on the way in.
 function M.load()
 	if store then
 		return store
@@ -214,6 +371,9 @@ function M.load()
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
+			if type(p.fakeMeta) ~= "string" or p.fakeMeta == "" or p.fakeMeta:find("%s") then
+				p.fakeMeta = nil
+			end
 			kept[#kept + 1] = p
 		end
 	end
@@ -222,6 +382,7 @@ function M.load()
 	return store
 end
 
+-- Names of the player's own profiles, in store order.
 function M.list()
 	M.load()
 	local names = {}
@@ -232,6 +393,7 @@ function M.list()
 	return names
 end
 
+-- One of the player's own profiles by name.
 function M.get(name)
 	M.load()
 	local i = indexOf(name)
@@ -239,6 +401,7 @@ function M.get(name)
 	return i and store.profiles[i] or nil
 end
 
+-- The selected profile, shipped or the player's own.
 function M.getActive()
 	M.load()
 
@@ -255,6 +418,7 @@ function M.activeName()
 	return builtins[1] and builtins[1].name or nil
 end
 
+-- Records the selection; the store owns this, not the engine config.
 function M.setActive(name)
 	M.load()
 	store.active = name
@@ -262,16 +426,21 @@ function M.setActive(name)
 	return M.save()
 end
 
+-- Adds a profile of the player's own and selects it.
 function M.create(name, binds, fakeMeta)
 	M.load()
 	name = M.uniqueName(name)
-	store.profiles[#store.profiles + 1] = { name = name, binds = binds or M.snapshotLive(), fakeMeta = fakeMeta }
+	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMeta }
 	store.active = name
-	M.save()
+	if not M.save() then
+		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
+			.. "; profile " .. name .. " will be gone next launch")
+	end
 
 	return name
 end
 
+-- Renames one of the player's own, following the selection if it moves.
 function M.rename(oldName, newName)
 	M.load()
 	local i = indexOf(oldName)
@@ -284,25 +453,15 @@ function M.rename(oldName, newName)
 	if store.active == oldName then
 		store.active = newName
 	end
-	M.save()
+	if not M.save() then
+		Spring.Echo("[keybind_profiles] Error: could not write " .. PROFILES_PATH
+			.. "; the rename to " .. newName .. " will be gone next launch")
+	end
 
 	return newName
 end
 
-function M.copy(name, newName)
-	local src = M.get(name) or M.isBuiltin(name)
-	if not src then
-		return nil
-	end
-
-	local binds = {}
-	for i, b in ipairs(src.binds) do
-		binds[i] = { keyset = b.keyset, action = b.action }
-	end
-
-	return M.create(newName or (name .. " copy"), binds, src.fakeMeta)
-end
-
+-- Removes one of the player's own.
 function M.delete(name)
 	M.load()
 	local i = indexOf(name)
@@ -336,7 +495,5 @@ function M.materialize(name)
 
 	return ACTIVE_FILE
 end
-
-M.toBindFile = toBindFile
 
 return M
