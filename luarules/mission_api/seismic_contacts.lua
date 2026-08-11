@@ -40,7 +40,21 @@ local SCORE_LIMIT = 8
 --     p = 0     -> 4.0s        p = 0.34 -> 20.5s       p = 0.67 -> 1.0h
 --     p = 0.25  -> 10.7s       p = 0.50 -> 2.2min      p = 0.90 -> unreachable
 
--- Scores per [triggerID][unitID]. Each trigger file includes its own copy of this module, and
+-- A contact is held for at least this many intervals before any falloff is reported.
+local DWELL_INTERVALS = 8
+--
+-- Score alone leaves symmetric triggers worst-behaved at low ping rates, not high ones. A lone ping reaches
+-- falloff in three intervals, so a unit pinging seldom spends each one on a complete spotted/unspotted cycle.
+-- Both triggers peak at around p = 0.2 with nearly 24 transitions/min, at a flap rate of every five seconds.
+--
+-- With "dwell" intervals and the same scenario, p = 0.2:
+--     dwell = 0 -> 24 per min     dwell = 8  -> 15 per min
+--     dwell = 4 -> 20 per min     dwell = 16 -> 10 per min
+--
+-- Holding a contact for an interval floor merges them into one detection and keeps the falloff distribution.
+-- The cost is that any detected unit remains "spotted" for some time after it has left the detection radius.
+
+-- Contacts : [triggerID][unitID]. Each trigger file includes its own copy of this module, and
 -- VFS.Include re-runs the file, so this clears whenever the trigger definitions are reloaded.
 local contactsByTrigger = {}
 
@@ -56,14 +70,14 @@ local function recordPing(triggerID, unitID)
 		return false
 	end
 
-	contacts[unitID] = { score = 0, pinged = true }
+	contacts[unitID] = { score = 0, pinged = true, intervals = 0 }
 	return true
 end
 
 ---Fallen contacts are collected into `undetected` for triggers that report them and
 ---drop before we return them so the trigger is re-armed for those units either way.
 ---@return integer fallenOffCount
-local function updateScores(triggerID, undetected)
+local function updateContacts(triggerID, undetected)
 	local contacts = contactsByTrigger[triggerID]
 	if not contacts then
 		return 0
@@ -77,18 +91,23 @@ local function updateScores(triggerID, undetected)
 		else
 			contact.score = contact.score - 1
 			if contact.score <= 0 then
-				contacts[unitID] = nil
-				count = count + 1
-				if undetected then
-					undetected[count] = unitID
+				if contact.intervals >= DWELL_INTERVALS then
+					contacts[unitID] = nil
+					count = count + 1
+					if undetected then
+						undetected[count] = unitID
+					end
+				else
+					contact.score = 0 -- locked while being held for the dwell period
 				end
 			end
 		end
+		contact.intervals = contact.intervals + 1
 	end
 	return count
 end
 
 return {
-	RecordPing   = recordPing,
-	UpdateScores = updateScores,
+	RecordPing     = recordPing,
+	UpdateContacts = updateContacts,
 }

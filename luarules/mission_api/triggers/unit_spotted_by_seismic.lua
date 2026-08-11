@@ -36,7 +36,7 @@ return {
 
 		SeismicInterval = function(trigger, triggerID, context)
 			-- Falloff only re-arms this trigger. UnitUnspottedBySeismic is what reports it.
-			SeismicContacts.UpdateScores(triggerID)
+			SeismicContacts.UpdateContacts(triggerID)
 		end,
 	},
 }

@@ -7,12 +7,7 @@ local SeismicContacts = VFS.Include('luarules/mission_api/seismic_contacts.lua')
 -- a loss of detection: moving in short enough bursts skips pings without ever leaving coverage.
 -- Falloff is scored against a sustained ping rate instead. See seismic_contacts.lua.
 
--- This exists as a built-in because actions cannot see the unit that fired a trigger.
--- A `Custom` action passed the triggering target data (unitID, unitDefID, unitTeam)
--- could replace it with a plain recipe: a UnitSpottedBySeismic and a per-unit timer.
-
 -- Filters that hold for a unit at any time, so they can be rechecked once its contact falls off.
--- spottingAllyTeamID is not among them: only a ping says which allyTeam heard it.
 local function matchesUnit(trigger, context, unitID, unitDefID)
 	if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
 		return false
@@ -49,8 +44,10 @@ return {
 			SeismicContacts.RecordPing(triggerID, unitID)
 		end,
 
+		-- Artificial callin that we raise once every 15 frames in GameFrame,
+		-- matching the full interval of the sliding window on seismic pings.
 		SeismicInterval = function(trigger, triggerID, context)
-			for index = 1, SeismicContacts.UpdateScores(triggerID, undetected) do
+			for index = 1, SeismicContacts.UpdateContacts(triggerID, undetected) do
 				local unitID = undetected[index]
 				-- Dying/crashing/exploding units can still emit pings.
 				-- Unit tracking can change in the delay before firing.
