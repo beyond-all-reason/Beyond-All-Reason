@@ -12294,6 +12294,21 @@ function widget:Update()
 		end
 		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
 
+		-- Weather readout (without one the strip keeps the previous tool's
+		-- line). Six groups like the other tools — see tf_decals for why.
+		do
+			local f = wbState.frequency or 0
+			local fStr = f >= 10 and string.format("%.0fs", f)
+				or f >= 1 and string.format("%.1fs", f)
+				or string.format("%.2fs", f)
+			setSummary("WEATHER", "#fdc04c",
+				"", (wbState.mode or "scatter"):upper(),
+				"R ", tostring(math.floor(wbState.radius or 0)),
+				"Cnt ", tostring(wbState.spawnCount or 0),
+				"Freq ", fStr,
+				"Fx ", tostring(wbState.persistentCount or 0))
+		end
+
 		-- Sync weather brush slider/label values from state.
 		-- Wrapped in a local function so its locals don't count against the
 		-- widget:Update pcall function's 200-local-variable limit.
@@ -12856,9 +12871,13 @@ function widget:Update()
 					lv("R ", tostring(state.radius)),
 					sep,
 					lv("Int ", string.format("%.1f", state.intensity)),
-					sep,
-					lv("Crv ", string.format("%.1f", state.curve)),
 				}
+				-- Restore appends Str below and Crv barely matters there — drop
+				-- it so the line fits the strip.
+				if state.mode ~= "restore" then
+					parts[#parts + 1] = sep
+					parts[#parts + 1] = lv("Crv ", string.format("%.1f", state.curve))
+				end
 				if state.velocityIntensity and state.dragVelocityFactor then
 					parts[#parts + 1] = sep
 					parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fdc04c;">' .. string.format("x%.1f", state.dragVelocityFactor) .. '</span>'

@@ -38,9 +38,13 @@ function M.sync(doc, ctx, setSummary)
 
 		local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()
 		if dpState then
+			-- Six groups like the other tools: the strip is a space-evenly flex
+			-- row, so a sparse line floats off the left edge instead of aligning.
 			setSummary("DECALS", "#fdc04c",
 				"", (dpState.mode or "idle"):upper(),
 				"R ", tostring(dpState.radius or 0),
+				"Rot ", tostring(math.floor(dpState.rotation or 0)),
+				"Cnt ", tostring(dpState.decalCount or 0),
 				"Sel ", tostring(#(dpState.selectedDecals or {})))
 
 			uiState.updatingFromCode = true
@@ -153,7 +157,7 @@ function M.sync(doc, ctx, setSummary)
 
 			uiState.updatingFromCode = false
 		else
-			setSummary("DECALS", "#fdc04c", "", "LIBRARY", "", "", "", "")
+			setSummary("DECALS", "#fdc04c", "", "LIBRARY")
 		end
 
 end
