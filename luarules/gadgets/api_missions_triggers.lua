@@ -22,6 +22,7 @@ end
 local actionsDispatcher
 local triggerTypes, triggers, callins, triggerContext
 local trackedUnitNames
+local seismicContacts
 local statistics
 
 -- The cadence a unit raises seismic pings and sampling interval for seismic triggers
@@ -139,6 +140,7 @@ local function markDetectionDirty(unitID)
 		dirtyUnitCount = dirtyUnitCount + 1
 	end
 end
+local inactiveSeismicContacts = {}
 
 ----------------------------------------------------------------
 --- Call-ins:
@@ -156,6 +158,8 @@ function gadget:Initialize()
 	trackedUnitNames        = GG['MissionAPI'].trackedUnitNames
 
 	actionsDispatcher       = VFS.Include('luarules/mission_api/actions_dispatcher.lua')
+
+	seismicContacts         = GG['MissionAPI'].Modules.SeismicContacts
 
 	statistics              = VFS.Include('luarules/mission_api/statistics.lua')
 	statistics.Init({ processTriggersOfType = processTriggersOfType, activateTrigger = activateTrigger })
@@ -213,11 +217,12 @@ function gadget:GameFrame(frameNumber)
 	dispatchTriggerCallin('GameFrame', frameNumber)
 
 	if frameNumber % SEISMIC_INTERVAL_FRAMES == 0 then
-		dispatchTriggerCallin('SeismicInterval', frameNumber)
+		for index = 1, seismicContacts.UpdateContacts(inactiveSeismicContacts) do
+			markDetectionDirty(inactiveSeismicContacts[index])
+		end
 	end
 
 	if dirtyUnitCount > 0 then
-		-- After SeismicInterval, which can lower a contact's detection level.
 		dispatchTriggerCallin('DetectionUpdate', dirtyUnits)
 		for unitID in pairs(dirtyUnits) do
 			dirtyUnits[unitID] = nil
@@ -296,6 +301,7 @@ end
 
 function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
 	dispatchTriggerCallin('UnitSeismicPing', x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
+	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
 	markDetectionDirty(unitID)
 end
 

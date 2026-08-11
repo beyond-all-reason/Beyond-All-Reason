@@ -13,14 +13,14 @@ local DetectionLevels = VFS.Include('luarules/mission_api/detection_levels.lua')
 
 local bit_and = math.bit_and
 
-local function matchesUnit(trigger, context, unitID, unitDefID)
-	if trigger.parameters.unitName and not context.DoesUnitHaveName(unitID, trigger.parameters.unitName) then
+local function matchesUnit(parameters, context, unitID, unitDefID)
+	if parameters.unitName and not context.DoesUnitHaveName(unitID, parameters.unitName) then
 		return false
 	end
-	if trigger.parameters.unitDefName and trigger.parameters.unitDefName ~= UnitDefs[unitDefID].name then
+	if parameters.unitDefName and parameters.unitDefName ~= UnitDefs[unitDefID].name then
 		return false
 	end
-	if trigger.parameters.owningTeamID and trigger.parameters.owningTeamID ~= Spring.GetUnitTeam(unitID) then
+	if parameters.owningTeamID and parameters.owningTeamID ~= Spring.GetUnitTeam(unitID) then
 		return false
 	end
 	return true
@@ -48,7 +48,7 @@ return {
 				local isDetected = bit_and(levelBit, levelMask) ~= 0
 				if DetectionLevels.UpdateLatch(triggerID, unitID, isDetected) and not isDetected then
 					-- Dying units remain detectable, and unit tracking can change between updates.
-					if Spring.GetUnitIsDead(unitID) == false and matchesUnit(trigger, context, unitID, Spring.GetUnitDefID(unitID)) then
+					if Spring.GetUnitIsDead(unitID) == false and matchesUnit(parameters, context, unitID, Spring.GetUnitDefID(unitID)) then
 						context.ActivateTrigger(trigger)
 					end
 				end

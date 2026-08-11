@@ -34,6 +34,7 @@ local LOS_ISTYPED = 12
 -- detection events when updating both radar and vision together; radar's
 -- PREVLOS and CONTRADAR are used in the engine's own unit isTyped tests.
 
+local isSeismicContact = GG['MissionAPI'].Modules.SeismicContacts.IsContact
 local bit_and = math.bit_and
 
 local levelMasks = {}
@@ -74,7 +75,7 @@ local function levelForAllyTeam(unitID, allyTeamID)
 	if bit_and(losStatus, LOS_INRADAR) ~= 0 then
 		return bit_and(losStatus, LOS_ISTYPED) == LOS_ISTYPED and 3 or 2
 	end
-	return 0
+	return isSeismicContact(unitID, allyTeamID) and 1 or 0
 end
 
 ---The level bit a unit currently sits at. Without a sensorAllyTeam, the highest level held
@@ -127,9 +128,6 @@ local function levelMaskOf(triggerID, sensorTypes)
 end
 
 ---Records whether the unit is inside the trigger's sensors and reports only the changes.
----One latch serves both triggers: UnitDetected wants the rise, UnitUndetected the fall, and
----holding it per trigger is what keeps differently-configured triggers from stealing each
----other's edges when one sensor update raises several call-ins at once.
 ---@return boolean changed
 local function updateLatch(triggerID, unitID, isDetected)
 	local latched = table.ensureTable(latches, triggerID)
@@ -140,7 +138,6 @@ local function updateLatch(triggerID, unitID, isDetected)
 	return true
 end
 
----Death is not a loss of detection, so this reports nothing and only drops the latch.
 local function forget(triggerID, unitID)
 	local latched = latches[triggerID]
 	if latched then

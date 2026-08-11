@@ -38,6 +38,29 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
     print(...)
 end
 
+-- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
+-- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
+_G.math.bit_and = _G.math.bit_and or function(...)
+    local result
+    for _, value in ipairs({ ... }) do
+        if result == nil then
+            result = value
+        else
+            local folded, bit = 0, 1
+            while result > 0 and value > 0 do
+                if result % 2 == 1 and value % 2 == 1 then
+                    folded = folded + bit
+                end
+                result = math.floor(result / 2)
+                value = math.floor(value / 2)
+                bit = bit * 2
+            end
+            result = folded
+        end
+    end
+    return result or 0
+end
+
 -- Team layout, for modules that read it once at load rather than per call. Two playing
 -- allyTeams and Gaia on its own, which is the arrangement a mission likely runs under.
 _G.Spring.GetGaiaTeamID = _G.Spring.GetGaiaTeamID or function() return 2 end

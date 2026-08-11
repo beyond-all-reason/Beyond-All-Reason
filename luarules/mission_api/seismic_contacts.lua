@@ -1,8 +1,9 @@
 --------------------------------------------------------------------------------
---- Shared contact tracking for UnitSpottedBySeismic and UnitUnspottedBySeismic.
+--- Shared contact tracking and state magic for UnitDetected and UnitUndetected.
 ---
---- Each trigger reads the same ping series and must agree when a contact raises
---- and lowers the detection level. The per-trigger state still uses `context`.
+--- The engine holds no seismic bit, so this is the one detection level we keep
+--- ourselves. It is a property of a unit and an allyTeam, not of any trigger,
+--- so filtering belongs to the triggers reading it. See detection_levels.lua.
 --------------------------------------------------------------------------------
 
 -- Automatic seismic pings are raised only on the unit's SlowUpdate when moveType->progressState is Active.
@@ -64,62 +65,62 @@ local DWELL_INTERVALS = 8
 
 -- Module code -----------------------------------------------------------------
 
--- Contacts : [triggerID][unitID]. Each trigger file includes its own copy of this module, and
--- VFS.Include re-runs the file, so this clears whenever the trigger definitions are reloaded.
-local contactsByTrigger = {}
+-- Contacts : [allyTeamID][unitID]. A unit inside two allyTeams' coverages is a contact for
+-- each of them separately, since each hears its own ping and holds its own detection level.
+local contactsByAllyTeam = {}
 
----A unit sitting inside two allyTeams' coverages raises a ping for each allyTeam.
 ---We set a flag (rather than counting); an interval either found movement or not.
----@return boolean addedNewContact
-local function recordPing(triggerID, unitID)
-	local contacts = table.ensureTable(contactsByTrigger, triggerID)
+local function recordPing(allyTeamID, unitID)
+	local contacts = table.ensureTable(contactsByAllyTeam, allyTeamID)
 	local contact = contacts[unitID]
 
 	if contact then
 		contact.pinged = true
-		return false
+		return
 	end
 
 	contacts[unitID] = { score = 0, pinged = true, intervals = 0 }
-	return true
 end
 
----Fallen contacts are collected into `undetected` for triggers that report them and
----drop before we return them so the trigger is re-armed for those units either way.
----@return integer fallenOffCount
-local function updateContacts(triggerID, undetected)
-	local contacts = contactsByTrigger[triggerID]
-	if not contacts then
-		return 0
-	end
+---Whether the unit is a seismic contact with detection level 1.
+---@return boolean
+local function isContact(unitID, allyTeamID)
+	local contacts = contactsByAllyTeam[allyTeamID]
+	return contacts ~= nil and contacts[unitID] ~= nil
+end
 
+---Scores an interval for every contact of every allyTeam, dropping any that have fallen off.
+---Fallen units are collected into `undetected` so their detection level can be reevaluated.
+---@return integer fallenOffCount
+local function updateContacts(undetected)
 	local count = 0
-	for unitID, contact in pairs(contacts) do
-		if contact.pinged then
-			contact.pinged = false
-			contact.score = math.min(contact.score + SCORE_GAIN, SCORE_LIMIT)
-		else
-			contact.score = contact.score - 1
-			if contact.score <= 0 then
-				if contact.intervals >= DWELL_INTERVALS then
-					contacts[unitID] = nil
-					count = count + 1
-					if undetected then
+	for _, contacts in pairs(contactsByAllyTeam) do
+		for unitID, contact in pairs(contacts) do
+			if contact.pinged then
+				contact.pinged = false
+				contact.score = math.min(contact.score + SCORE_GAIN, SCORE_LIMIT)
+			else
+				contact.score = contact.score - 1
+				if contact.score <= 0 then
+					if contact.intervals >= DWELL_INTERVALS then
+						contacts[unitID] = nil
+						count = count + 1
 						undetected[count] = unitID
+					else
+						contact.score = 0 -- locked while being held for the dwell period
 					end
-				else
-					contact.score = 0 -- locked while being held for the dwell period
 				end
 			end
+			contact.intervals = contact.intervals + 1
 		end
-		contact.intervals = contact.intervals + 1
 	end
-	return count
+	return count -- Allows table reuse without tombstones.
 end
 
 -- Export ----------------------------------------------------------------------
 
 return {
+	IsContact      = isContact,
 	RecordPing     = recordPing,
 	UpdateContacts = updateContacts,
 }

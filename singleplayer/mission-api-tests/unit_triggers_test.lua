@@ -147,29 +147,31 @@ local triggers = {
 		actions = { 'messageEngineerUnspotted' },
 	},
 
-	engineerSpottedByRadar = {
-		type = triggerTypes.UnitSpottedByRadar,
+	engineerDetectedByRadar = {
+		type = triggerTypes.UnitDetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
+			sensorTypes = { 'radar' },
 		},
-		actions = { 'messageEngineerSpottedByRadar' },
+		actions = { 'messageEngineerDetectedByRadar' },
 	},
 
-	engineerUnspottedByRadar = {
-		type = triggerTypes.UnitUnspottedByRadar,
+	engineerUndetectedByRadar = {
+		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
-			spottingAllyTeamID = 0,
+			sensorAllyTeam = 0,
+			sensorTypes = { 'radar' },
 		},
-		actions = { 'messageEngineerUnspottedByRadar' },
+		actions = { 'messageEngineerUndetectedByRadar' },
 	},
 
-	engineerSpottedBySeismic = {
-		type = triggerTypes.UnitSpottedBySeismic,
+	engineerDetectedBySeismic = {
+		type = triggerTypes.UnitDetected,
 		settings = {
 			repeating = true,
 		},
@@ -177,18 +179,20 @@ local triggers = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
+			sensorTypes = { 'seismic' },
 		},
-		actions = { 'messageEngineerSpottedBySeismic' },
+		actions = { 'messageEngineerDetectedBySeismic' },
 	},
 
-	engineerUnspottedBySeismic = {
-		type = triggerTypes.UnitUnspottedBySeismic,
+	engineerUndetectedBySeismic = {
+		type = triggerTypes.UnitUndetected,
 		parameters = {
 			unitName = 'engineers',
 			unitDefName = 'corfast',
 			owningTeamID = 1,
+			sensorTypes = { 'seismic' },
 		},
-		actions = { 'messageEngineerUnspottedBySeismic' },
+		actions = { 'messageEngineerUndetectedBySeismic' },
 	},
 }
 
@@ -383,31 +387,31 @@ local actions = {
 		},
 	},
 
-	messageEngineerSpottedByRadar = {
+	messageEngineerDetectedByRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Engineer spotted by radar!",
-		},
-	},
-	
-	messageEngineerUnspottedByRadar = {
-		type = actionTypes.SendMessage,
-		parameters = {
-			message = "Engineer unspotted by radar!",
+			message = "Engineer detected by radar!",
 		},
 	},
 
-	messageEngineerSpottedBySeismic = {
+	messageEngineerUndetectedByRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Engineer spotted by seismic!",
+			message = "Engineer undetected by radar!",
 		},
 	},
 
-	messageEngineerUnspottedBySeismic = {
+	messageEngineerDetectedBySeismic = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Engineer unspotted by seismic!",
+			message = "Engineer detected by seismic!",
+		},
+	},
+
+	messageEngineerUndetectedBySeismic = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "Engineer undetected by seismic!",
 		},
 	},
 }
