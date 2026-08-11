@@ -60,6 +60,9 @@ local keyAreaX1 = 0
 
 local working
 local resolvedCatalog
+-- Grouped chips per action. Derived purely from working.byAction, and every path that
+-- changes that rebuilds the rows, so rebuildRows is where it gets dropped.
+local chipGroups = {}
 local catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 local L = {}
 local rows = {}
@@ -88,6 +91,11 @@ local dangerFillHover = { 0.66, 0.14, 0.14, 1 }
 local confirmFill = { 0.17, 0.38, 0.21, 1 }
 local confirmFillHover = { 0.24, 0.52, 0.29, 1 }
 local confirmFillMuted = { 0.11, 0.20, 0.13, 1 }
+local pillFill = { 0.22, 0.22, 0.22, 1 }
+local sheenTop = { 1, 1, 1, 0.05 }
+local sheenNone = { 1, 1, 1, 0 }
+local hoverWash = { 1, 1, 1, 0.08 }
+local rowWash = { 1, 1, 1, 0.06 }
 
 local searchBox, presetDropdown, nameBox, menuToggle
 local switchToPreset, scrollFromY
@@ -317,6 +325,7 @@ end
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
 -- search box and the category column.
 local function rebuildRows()
+	chipGroups = {}
 	if not resolvedCatalog then
 		buildResolvedCatalog()
 	end
@@ -998,6 +1007,13 @@ function view.setArea(x1, y1, x2, y2, s)
 	barX1 = listRight + floor(4 * scale)
 	keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
 
+	-- Shortened here rather than in the draw loop: the column width and the font size are
+	-- both settled by now, and this runs on a resize where the loop runs every frame.
+	local labelW = sidebarW - pad * 2
+	for _, c in ipairs(categories) do
+		c.fitted = text.fit(font, c.label, labelW, rowHeight * 0.55)
+	end
+
 	clampScroll()
 end
 
@@ -1490,6 +1506,11 @@ end
 -- never shown, so an action carrying both a plain and an Any+ binding of the same key
 -- reads as that key twice; the chip stands for every binding behind it.
 local function rowChipGroups(action)
+	local cached = chipGroups[action]
+	if cached then
+		return cached
+	end
+
 	local groups, byDisplay = {}, {}
 	for _, k in ipairs(working.byAction[action] or {}) do
 		local group = byDisplay[k.display]
@@ -1500,6 +1521,8 @@ local function rowChipGroups(action)
 		end
 		group.raws[#group.raws + 1] = k.raw
 	end
+
+	chipGroups[action] = groups
 
 	return groups
 end
@@ -1598,12 +1621,21 @@ local function categoryRect(i)
 	return area.x1, top - rowHeight, area.x1 + sidebarW, top
 end
 
--- Buttons are drawn here rather than through Draw.Button: that caches each distinct
--- button into a display list compiled mid-frame on a budget, and the immediate and
--- replayed forms differ, so a button sized to its own label alternates between them.
 -- The grid menu is 3x4 with row 1 along the bottom, matching the keyboard rows it is
 -- bound to (ZXCV under ASDF under QWER) and the order gui_gridmenu draws them in.
 local gridRows, gridCols = 3, 4
+
+-- The ids never change, so they are built once rather than concatenated per cell per frame.
+local gridKeyActions, gridCategoryActions = {}, {}
+for row = 1, gridRows do
+	gridKeyActions[row] = {}
+	for col = 1, gridCols do
+		gridKeyActions[row][col] = "gridmenu_key " .. row .. " " .. col
+	end
+end
+for c = 1, gridCols do
+	gridCategoryActions[c] = "gridmenu_category " .. c
+end
 
 -- Two grids side by side: the build grid as it opens, and the same grid once a category
 -- is picked, which is where Back and Next page live. Sized to roughly what the menu
@@ -1647,7 +1679,7 @@ local function drawButtonFace(r, base)
 	local cs = floor(4 * scale)
 	RectRound(r[1], r[2], r[3], r[4], cs, 1, 1, 1, 1, base, base)
 	RectRound(r[1], r[2], r[3], (r[2] + r[4]) * 0.5, cs, 0, 0, 1, 1,
-		{ 1, 1, 1, 0.05 }, { 1, 1, 1, 0 })
+		sheenTop, sheenNone)
 end
 
 local function drawSidebar(mx, my, fs, pad)
@@ -1661,9 +1693,10 @@ local function drawSidebar(mx, my, fs, pad)
 			if selected then
 				RectRound(x1, y1, x2, y2, floor(3 * scale), 1, 1, 1, 1, { 1, 1, 1, 0.13 }, { 1, 1, 1, 0.13 })
 			elseif mx >= x1 and mx <= x2 and my > y1 and my <= y2 then
-				RectRound(x1, y1, x2, y2, floor(3 * scale), 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.06 })
+				RectRound(x1, y1, x2, y2, floor(3 * scale), 1, 1, 1, 1, rowWash, rowWash)
 			end
-			queueText((selected and colorAction or colorDim) .. text.fit(font, c.label, sidebarW - pad * 2, fs),
+			-- Falls back when the catalog was rebuilt since the last layout pass.
+			queueText((selected and colorAction or colorDim) .. (c.fitted or c.label),
 				x1 + pad, (y1 + y2) * 0.5, fs, "ov")
 		end
 	end
@@ -1671,10 +1704,10 @@ end
 
 -- Label left, key right, sized like a category button. Used for every pill in this view.
 local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, cs, mx, my, dim)
-	local fill = { 0.22, 0.22, 0.22, 1 }
+	local fill = pillFill
 	RectRound(x1, y1, x2, y2, cs, 1, 1, 1, 1, fill, fill)
 	if not dim and isInRect(mx, my, x1, y1, x2, y2) then
-		RectRound(x1, y1, x2, y2, cs, 1, 1, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0.08 })
+		RectRound(x1, y1, x2, y2, cs, 1, 1, 1, 1, hoverWash, hoverWash)
 	end
 	-- Key is right aligned and gets only the width it needs, so the label keeps the rest
 	-- and stays readable.
@@ -1721,15 +1754,16 @@ local function drawGridMenu(mx, my)
 	local stripFs = floor(strip * 0.45)
 	-- Solid enough to read against the panel on its own, so the cells need no container
 	-- or outline behind them.
-	local fill = { 0.22, 0.22, 0.22, 1 }
+	local fill = pillFill
 
 	-- Same header the list puts above a category, so the two views read alike.
 	RectRound(listX1, listTop - headH, listRight, listTop, 0, 0, 0, 0, 0,
-		{ 1, 1, 1, 0.05 }, { 1, 1, 1, 0.05 })
+		sheenTop, sheenTop)
 	queueText(colorHeader .. gridGroup.title, listX1 + floor(6 * scale), listTop - headH * 0.5,
 		floor(rowHeight * 0.55) * 0.95, "ov")
 
-	for _, gx in ipairs({ x1, x2 }) do
+	for pass = 1, 2 do
+		local gx = (pass == 1) and x1 or x2
 		for row = 1, gridRows do
 			for col = 1, gridCols do
 				local cx1, cy1, cx2, cy2 = gridCellRect(row, col, gx, gridBottom, cell)
@@ -1739,9 +1773,9 @@ local function drawGridMenu(mx, my)
 				if gx == x1 then
 					if isInRect(mx, my, cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad) then
 						RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, cs, 1, 1, 1, 1,
-							{ 1, 1, 1, 0.08 }, { 1, 1, 1, 0.08 })
+							hoverWash, hoverWash)
 					end
-					queueText(colorKey .. gridKeyText("gridmenu_key " .. row .. " " .. col),
+					queueText(colorKey .. gridKeyText(gridKeyActions[row][col]),
 						cx2 - pad * 3, cy2 - pad * 2 - keyFs, keyFs, "ro")
 				end
 			end
@@ -1751,7 +1785,7 @@ local function drawGridMenu(mx, my)
 	for c = 1, gridCols do
 		local cx1 = x1 + (c - 1) * cell
 		drawGridPill(cx1 + pad, stripY, cx1 + cell - pad, stripY + strip,
-			gridGroup.categoryLabels[c] or "", gridKeyText("gridmenu_category " .. c),
+			gridGroup.categoryLabels[c] or "", gridKeyText(gridCategoryActions[c]),
 			stripFs, pad, cs, mx, my)
 	end
 
@@ -1777,7 +1811,7 @@ local function gridPress(x, y)
 		for col = 1, gridCols do
 			local cx1, cy1, cx2, cy2 = gridCellRect(row, col, x1, gridBottom, cell)
 			if isInRect(x, y, cx1, cy1, cx2, cy2) then
-				local action = "gridmenu_key " .. row .. " " .. col
+				local action = gridKeyActions[row][col]
 				startCapture(action, gridGroup.cellLabel(row, col), gridKeyRaw(action))
 
 				return true
@@ -1789,7 +1823,7 @@ local function gridPress(x, y)
 		for c = 1, gridCols do
 			local cx1 = x1 + (c - 1) * cell
 			if x >= cx1 and x <= cx1 + cell then
-				local action = "gridmenu_category " .. c
+				local action = gridCategoryActions[c]
 				startCapture(action, gridGroup.categoryLabels[c], gridKeyRaw(action))
 
 				return true
@@ -1819,7 +1853,7 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	local cyc = (top + bottom) * 0.5
 
 	if row.type == "header" then
-		RectRound(listX1, bottom, listRight, top, 0, 0, 0, 0, 0, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0.05 })
+		RectRound(listX1, bottom, listRight, top, 0, 0, 0, 0, 0, sheenTop, sheenTop)
 		queueText(colorHeader .. row.text, listX1 + pad, cyc, fs * 0.95, "ov")
 		return
 	end
@@ -1828,7 +1862,7 @@ local function drawRow(row, top, bottom, mx, my, fs, pad)
 	-- row's top is the next one's bottom and a closed test highlights both.
 	local hovered = mx >= listX1 and mx <= listRight and my <= top and my > bottom
 	if hovered then
-		RectRound(listX1, bottom, listRight, top, 0, 0, 0, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.06 })
+		RectRound(listX1, bottom, listRight, top, 0, 0, 0, 0, 0, rowWash, rowWash)
 	end
 
 	-- Indented and followed by an arrow, to read as a way through rather than a binding.
