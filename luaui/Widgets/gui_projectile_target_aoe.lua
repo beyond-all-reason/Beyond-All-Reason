@@ -150,7 +150,7 @@ local currentGeneration = 0       -- Generation counter for tracking (avoids tem
 --------------------------------------------------------------------------------
 local function BuildWeaponCache()
 	for wdid, wd in pairs(WeaponDefs) do
-		if wd.type == "StarburstLauncher" and wd.interceptor == 0 then
+		if wd.type == "StarburstLauncher" and wd.interceptor == 0 and not wd.tracks then
 			local aoe = wd.damageAreaOfEffect or 0
 			if aoe >= Config.minAoeThreshold then
 				local isNuke = wd.customParams and wd.customParams.nuclear

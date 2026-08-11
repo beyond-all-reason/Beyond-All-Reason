@@ -1986,6 +1986,8 @@
 				"echocamerastate_descr": "Echoes contents of Spring.GetCameraState()",
 				"storedefaultsettings": "Store default settings",
 				"storedefaultsettings_descr": "Do not remove engine defaults from springsettings.cfg",
+				"cegbrowser": "CEG Effects Browser",
+				"cegbrowser_descr": "Custom Explosion Generators (CEGs) are used to create particle effects in engine. This widget allows you to browse, filter and preview CEGs in-game.",
 				"startboxeditor": "Startbox editor",
 				"startboxeditor_descr": "LMB to draw (either clicks or drag), RMB to accept a polygon, D to remove last polygon\nS to add a team startbox to startboxes_mapname.txt\n(S overwrites the export file for the first team)",
 				"tonemap": "Unit tonemapping",
@@ -2852,7 +2854,7 @@
 			"zombiekillall": "Kill all zombies",
 			"zombieclearallorders": "Clear all zombie orders",
 			"zombiedebug": "[0/1] Disable or enable zombie debug mode",
-			"zombiemode": "[normal|hard|nightmare|extreme] Set zombie mode"
+			"zombiemode": "[normal|hard|nightmare|akumu] Set zombie mode"
 		}
 	}
 }

@@ -22,7 +22,7 @@ local function handleSetCommand(_, commandDef)
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("select", handleSetCommand, nil, "pt")
+	widgetHandler:AddAction("select", handleSetCommand, nil, "p")
 end
 
 function widget:Shutdown()

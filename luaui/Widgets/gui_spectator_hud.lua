@@ -1309,6 +1309,7 @@ local function updateStatsTexture()
 		font:End()
 	end
 
+	gl.Blending(true)
 	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
@@ -2121,6 +2122,7 @@ function widget:DrawGenesis()
 end
 
 function widget:DrawScreen()
+	gl.Blending(true)
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	if not widgetEnabled or not haveFullView then

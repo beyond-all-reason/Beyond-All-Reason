@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
-		stealthy = true,
+		stealth = true,
 		yardmap = "ooooooooo",
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
