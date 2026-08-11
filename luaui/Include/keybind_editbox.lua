@@ -3,6 +3,9 @@
 
 local utf8 = VFS.Include('common/luaUtilities/utf8.lua')
 
+local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+
+
 local Editbox = {}
 Editbox.__index = Editbox
 
@@ -11,10 +14,12 @@ local floor = math.floor
 local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 
+-- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
 	return WG['fonts'].getFont()
 end
 
+-- Single-line text field with a caret, selection and word motion.
 function Editbox.new(opts)
 	opts = opts or {}
 
@@ -44,6 +49,7 @@ function Editbox:getText()
 	return self.text
 end
 
+-- Replaces the contents, caret to the end.
 function Editbox:setText(t)
 	self.text = t or ""
 	self.caret = utf8.len(self.text)
@@ -54,23 +60,16 @@ function Editbox:setText(t)
 	end
 end
 
+-- SDL text input is owned by the panel, not by this field: blurring the search box to
+-- click a keybind must not stop text events while the editor is still open.
 function Editbox:focus()
-	if not self.focused then
-		self.focused = true
-		if Spring.SDLStartTextInput then
-			Spring.SDLStartTextInput()
-		end
-	end
+	self.focused = true
 end
 
+-- Gives up focus and any drag in progress.
 function Editbox:blur()
-	if self.focused then
-		self.focused = false
-		self.dragging = false
-		if Spring.SDLStopTextInput then
-			Spring.SDLStopTextInput()
-		end
-	end
+	self.focused = false
+	self.dragging = false
 end
 
 function Editbox:isFocused()
@@ -81,10 +80,12 @@ function Editbox:hasSelection()
 	return self.selAnchor ~= nil and self.selAnchor ~= self.caret
 end
 
+-- The highlighted range, low end first.
 function Editbox:selRange()
 	return math.min(self.selAnchor, self.caret), math.max(self.selAnchor, self.caret)
 end
 
+-- Removes the highlighted range, caret left where it began.
 function Editbox:deleteSelection()
 	if not self:hasSelection() then
 		return false
@@ -98,6 +99,7 @@ function Editbox:deleteSelection()
 	return true
 end
 
+-- Moves the caret, growing the selection when the caller asks to extend.
 function Editbox:setCaret(pos, extend)
 	if extend then
 		if not self.selAnchor then
@@ -153,6 +155,7 @@ function Editbox:indexFromX(x)
 	return n
 end
 
+-- Takes a typed character, replacing any selection.
 function Editbox:textInput(char)
 	if not self.focused then
 		return false
@@ -175,6 +178,7 @@ function Editbox:textInput(char)
 	return true
 end
 
+-- Editing and motion keys; printable characters arrive through textInput instead.
 function Editbox:keyPress(key)
 	if not self.focused then
 		return false
@@ -226,6 +230,7 @@ function Editbox:keyPress(key)
 	return true
 end
 
+-- Click to place the caret, or start a drag selection.
 function Editbox:mousePress(x, y)
 	if x < self.rect[1] or x > self.rect[3] or y < self.rect[2] or y > self.rect[4] then
 		return false
@@ -244,6 +249,7 @@ function Editbox:mousePress(x, y)
 	return true
 end
 
+-- Recomputes caret and selection pixel offsets after the text or rect changes.
 local function update(self)
 	if self.dragging then
 		local mx, _, lmb = Spring.GetMouseState()
