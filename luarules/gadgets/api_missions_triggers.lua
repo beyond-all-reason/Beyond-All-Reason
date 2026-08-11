@@ -178,7 +178,6 @@ function gadget:Initialize()
 		IsFeatureInArea          = isFeatureInArea,
 		PreviousUnitsInAreas     = previousUnitsInAreas,
 		DwellingUnitsInAreas     = dwellingUnitsInAreas,
-		MarkDetectionDirty       = markDetectionDirty,
 		GetReclaimIncomeSnapshot = function(teamID) return teamReclaimIncomeSnapshot[teamID] end,
 	}
 
