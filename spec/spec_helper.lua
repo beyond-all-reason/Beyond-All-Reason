@@ -38,6 +38,12 @@ _G.Spring.Echo = _G.Spring.Echo or function(...)
     print(...)
 end
 
+-- Team layout, for modules that read it once at load rather than per call. Two playing
+-- allyTeams and Gaia on its own, which is the arrangement a mission likely runs under.
+_G.Spring.GetGaiaTeamID = _G.Spring.GetGaiaTeamID or function() return 2 end
+_G.Spring.GetAllyTeamList = _G.Spring.GetAllyTeamList or function() return { 0, 1, 2 } end
+_G.Spring.GetTeamAllyTeamID = _G.Spring.GetTeamAllyTeamID or function(teamID) return teamID end
+
 _G.GG = _G.GG or {}
 
 _G.CMD     = _G.CMD or {}
