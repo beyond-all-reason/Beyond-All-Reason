@@ -296,6 +296,30 @@ local function drawCursorInfo(worldX, worldZ)
 
 	local sx, sy = WorldToScreenCoords(worldX, GetGroundHeight(worldX, worldZ), worldZ)
 
+	-- Anchor the readout just below the brush outline, right-aligned to its
+	-- right edge: close to where the eye already is, but never over the area
+	-- being painted. Sample 8 points on the shape's bounding circle
+	-- (circumradius — square/hexagon outlines reach past ss.radius at the
+	-- corners) for the outline's screen-space bottom and right extents,
+	-- whatever the camera angle.
+	do
+		local ss = getSharedState()
+		local bound = ss.radius or 0
+		if ss.shape == "square" then bound = bound * 1.4143
+		elseif ss.shape == "hexagon" then bound = bound * 1.1548 end
+		local bottomY, rightX = sy, sx
+		for i = 0, 7 do
+			local a = i * (pi * 0.25)
+			local px = worldX + bound * cos(a)
+			local pz = worldZ + bound * sin(a)
+			local psx, psy = WorldToScreenCoords(px, GetGroundHeight(px, pz), pz)
+			if psy and psy < bottomY then bottomY = psy end
+			if psx and psx > rightX then rightX = psx end
+		end
+		sx = rightX
+		sy = bottomY - 30
+	end
+
 	local text
 	if subMode == "stamp" then
 		text = format("STAMP: %.1f  [spot: %.2f]", metalValue, spotMetal * 0.001)
@@ -304,9 +328,9 @@ local function drawCursorInfo(worldX, worldZ)
 	end
 
 	glColor(0, 0, 0, 0.92)
-	glText(text, sx + 2, sy + 18, 24, "co")
+	glText(text, sx + 2, sy - 2, 24, "ro")
 	glColor(1, 1, 1, 1.0)
-	glText(text, sx, sy + 20, 24, "co")
+	glText(text, sx, sy, 24, "ro")
 end
 
 -- ============================================================
