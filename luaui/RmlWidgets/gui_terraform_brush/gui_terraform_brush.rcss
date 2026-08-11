@@ -176,8 +176,16 @@ body {
 /* Bump section titles up one size inside env float windows */
 .tf-env-float-window .text-sm.text-light.font-bold { font-size: 1rem; }
 /* Bump green label text up one size inside env float windows for readability */
-.tf-env-float-window .text-sm.text-keybind { font-size: 1rem; }
-.tf-skybox-library-root .text-sm.text-keybind { font-size: 1rem; }
+.tf-env-float-window .text-sm.text-keybind { font-size: 1.125rem; }
+.tf-skybox-library-root .text-sm.text-keybind { font-size: 1.125rem; }
+
+/* Slider row title cell (left column of every label + slider + value row).
+   The slider sets the row height, so the label has vertical headroom: run it
+   one size over text-base. Column widened 96 -> 100dp for the larger glyphs. */
+.tf-slider-label {
+	font-size: 1.125rem;
+	flex: 0 0 100dp;
+}
 
 /* === Environment floating windows (shared base) === */
 .tf-env-float-window {
@@ -1550,6 +1558,9 @@ body {
 }
 
 /* === Quit Button === */
+/* Hover-only override: every window X pairs this with tf-header-btn, which
+   supplies the box (22dp, rounded, transparent border). Later in the sheet
+   than .tf-header-btn:hover, so the red wins on hover. */
 .tf-quit-btn:hover {
 	background-color: #4a2424;
 	border-color: #cc666690;
