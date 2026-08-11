@@ -188,6 +188,7 @@
 			"tooltipctrl": "CTRL-click to continuously clear"
 		},
 		"buildMenu": {
+			"back": "Back",
 			"category_econ": "Economy",
 			"category_combat": "Combat",
 			"category_utility": "Utility",
@@ -350,22 +351,26 @@
 		"keybinds": {
 			"title": "Keybinds",
 			"editor": {
+				"allCategories": "All",
 				"search": "Search...",
 				"other": "Other",
 				"pressKey": "Press a key or mouse button...",
 				"newProfile": "New Profile",
-				"copy": "Copy",
-				"rename": "Rename",
+				"duplicate": "Duplicate",
+				"edit": "Edit",
 				"delete": "Delete",
 				"save": "Save",
+				"reset": "Discard Changes",
+				"resetConfirm": "Discard your unsaved keybind changes?",
 				"saveTitle": "Save as new profile",
 				"discard": "Discard",
 				"unsavedTitle": "Unsaved changes",
 				"unsavedMessage": "Your keybind changes have not been saved yet.",
-				"copyTitle": "Copy profile",
-				"renameTitle": "Rename profile",
+				"duplicateTitle": "Duplicate profile",
+				"editTitle": "Edit profile",
 				"deleteConfirm": "Delete \"%{name}\"? This cannot be undone.",
-				"anyMod": "Ignore modifiers",
+				"applyFailedTitle": "Could not apply profile",
+				"applyFailedMessage": "\"%{name}\" could not be written to disk, so your keybinds are unchanged. Check that the game folder is writable.",
 				"accept": "Accept",
 				"cancel": "Cancel"
 			},
@@ -380,7 +385,7 @@
 				"ignore": "Ignore player"
 			},
 			"camera": {
-				"title": "Camera movement",
+				"title": "Camera",
 				"zoomKey": "scrollwheel",
 				"zoom": "Zoom camera",
 				"panKey": "arrow keys / mouse at screen edge",
@@ -434,7 +439,7 @@
 				"fogOfWar": "Toggle Fog of War"
 			},
 			"interfaceDisplay": {
-				"title": "Interface & display",
+				"title": "Interface",
 				"settings": "Settings",
 				"unitStats": "Unit stats",
 				"gameInfo": "Game info",
@@ -497,7 +502,7 @@
 				"revertKey": "right mouse (single click)"
 			},
 			"queues": {
-				"title": "Queueing orders",
+				"title": "Order modifiers",
 				"append": "Add order to end of order queue",
 				"appendKey": "shift + (some order)",
 				"prepend": "Add order to start of order queue",
@@ -547,7 +552,6 @@
 				"pause": "Pause"
 			},
 			"moreOrders": {
-				"title": "More orders",
 				"areaAttack": "Area attack",
 				"guard": "Guard",
 				"capture": "Capture",
@@ -601,7 +605,6 @@
 				"cycleBuilder": "Cycle builder"
 			},
 			"spectating": {
-				"title": "Spectator",
 				"spectate": "Spectate team %{n}"
 			},
 			"buildHotkeys": {
@@ -619,11 +622,8 @@
 				"next": "Next blueprint",
 				"prev": "Previous blueprint"
 			},
-			"gameSpeed": {
-				"title": "Game speed"
-			},
 			"gameControl": {
-				"title": "Game control",
+				"title": "Spectating",
 				"increaseSpeed": "Increase game speed",
 				"decreaseSpeed": "Decrease game speed",
 				"voteForcestart": "Vote forcestart"
