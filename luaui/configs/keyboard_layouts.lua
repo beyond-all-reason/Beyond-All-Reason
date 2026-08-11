@@ -329,8 +329,15 @@ local layouts = {
 	'workman',
 }
 
--- Single-letter modifier abbreviations (uikeys.txt: A/C/M/S, * for Any).
-local modAbbrev = { A = "ALT+", C = "CTRL+", M = "META+", S = "SHIFT+" }
+-- The order the engine writes modifiers in, and the one every surface should read and emit.
+local modifierOrder = { "Alt", "Ctrl", "Meta", "Shift" }
+
+-- Single-letter abbreviations, as uikeys.txt may spell them (A/C/M/S; * for Any). Derived so
+-- the vocabulary is stated once.
+local modAbbrev = {}
+for _, name in ipairs(modifierOrder) do
+	modAbbrev[name:sub(1, 1):upper()] = name:upper() .. "+"
+end
 
 -- Printable keys the engine reports by name. The scancode names are positional, so
 -- they map to the qwerty character and pick up the layout translation afterwards;
@@ -389,4 +396,5 @@ return {
 	layouts = layouts,
 	scanToCode = scanToCode,
 	sanitizeKey = sanitizeKey,
+	modifierOrder = modifierOrder,
 }

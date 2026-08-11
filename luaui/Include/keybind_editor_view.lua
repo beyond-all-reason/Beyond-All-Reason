@@ -7,19 +7,12 @@
 -- work is marked with a "*" on the profile name and guarded on the way out.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
-local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
+local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
 -- Shape and rules are documented in common/configs/keybinds.README.md; this is the
 -- contract Chobby and the lobby read too, so it is data rather than Lua.
-local catalog = {}
-do
-	local ok, decoded = pcall(Json.decode, VFS.LoadFile('common/configs/keybind_catalog.json'))
-	if ok and type(decoded) == "table" then
-		catalog = decoded
-	else
-		Spring.Echo('[keybind_editor] could not load common/configs/keybind_catalog.json; no catalog')
-	end
-end
+local catalog = keybindConfig.load('common/configs/keybind_catalog.json') or {}
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
@@ -1333,7 +1326,12 @@ local function appendChain(el)
 	c.lastPress = now
 end
 
-local modNames = { "Alt+", "Ctrl+", "Meta+", "Shift+" }
+-- Derived from the one canonical list so a modifier added there is understood here too.
+-- modPrefix below emits in the same order, reading the state Spring returns positionally.
+local modNames = {}
+for i, name in ipairs(keyConfig.modifierOrder) do
+	modNames[i] = name .. "+"
+end
 
 -- Strip modifiers by name so a "+"-key (e.g. numpad+) survives; the Any+ qualifier is
 -- carried on the capture rather than in the element.

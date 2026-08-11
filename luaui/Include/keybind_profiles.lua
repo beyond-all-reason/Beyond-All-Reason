@@ -10,6 +10,7 @@
 -- Spring.GetKeyBindings instead.
 
 local Json = Json or VFS.Include('common/luaUtilities/json.lua')
+local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
@@ -23,14 +24,14 @@ local STORE_VERSION = 1
 local builtins = {}
 local emitPriority = {}
 do
-	local ok, decoded = pcall(Json.decode, VFS.LoadFile(DEFAULTS_PATH))
-	if ok and type(decoded) == "table" and type(decoded.profiles) == "table" then
+	local decoded = keybindConfig.load(DEFAULTS_PATH)
+	if decoded and type(decoded.profiles) == "table" then
 		builtins = decoded.profiles
 		if type(decoded.priority) == "table" then
 			emitPriority = decoded.priority
 		end
 	else
-		Spring.Echo("[keybind_profiles] could not load " .. DEFAULTS_PATH .. "; no built-in profiles")
+		Spring.Echo("[keybind_profiles] Error: " .. DEFAULTS_PATH .. " has no profiles; none shipped")
 	end
 end
 
