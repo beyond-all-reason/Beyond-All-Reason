@@ -5381,11 +5381,7 @@
 								<input type="text" id="surf-slider-spacing-numbox" class="tf-slider-numbox" readonly value="off" />
 							</div>
 							<div class="text-base text-light mb-1" style="opacity: 0.7;">Spacing 0 paints continuously; otherwise one stamp every N elmos of drag.</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<img id="btn-surf-lock" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onSurfLockToggle()" />
-								<div class="text-sm text-light">Cliffs and foothills protected</div>
-							</div>
-							<div class="text-base text-light" style="opacity: 0.7;">Variants only ever retexture the soft top — hard surfaces ignore the brush by design. The lock also guards the legacy splat path.</div>
+							<div class="text-base text-light" style="opacity: 0.7;">Variants only ever retexture the soft top — hard surfaces ignore the brush by design. Cliff protection for the LAYERS overrides is a shader setting, in the TILESET window.</div>
 						</div>
 						<div class="text-base text-light" style="opacity: 0.7;" data-if="surfMode == 'hard'">LMB paints the selected override channel, RMB erases it. Keys 1&#8211;4 pick the channel.</div>
 					</div>
@@ -5839,11 +5835,12 @@
 							<input type="range" id="ts-slider-splatInfluence" class="tf-slider" min="0" max="1" step="0.005" value="1" data-event-change="onTilesetKnob('splatInfluence')" />
 							<input type="text" id="ts-slider-splatInfluence-numbox" class="tf-slider-numbox" readonly value="1" />
 						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Protect cliffs</div>
-							<input type="range" id="ts-slider-cliffProtect" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('cliffProtect')" />
-							<input type="text" id="ts-slider-cliffProtect-numbox" class="tf-slider-numbox" readonly value="1" />
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-ts-cliff-protect" class="tf-mode-btn tf-ts-row-btn" data-class-active="tsCliffProtectOn" data-event-mousedown="onTsToggleCliffProtect()">
+								<div class="tf-btn-text">PROTECT CLIFFS</div>
+							</div>
 						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">Soft strokes (talus, plateau) sweep around cliff bodies instead of eating them. Painting CLIFF is a force and always lands, protected or not.</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Punch talus</div>
 							<input type="range" id="ts-slider-splatPunchTalus" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.55" data-event-change="onTilesetKnob('splatPunchTalus')" />

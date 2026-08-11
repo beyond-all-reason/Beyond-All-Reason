@@ -2421,6 +2421,9 @@ local initialModel = {
 	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
 	tsShaderOn = false,
+	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off —
+	-- a button rather than a 0/1 slider); synced from WG.TilesetTerrain.
+	tsCliffProtectOn = true,
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
 	tsBiome = "",
@@ -7073,17 +7076,6 @@ local initialModel = {
 			playSound("dropdown")
 		end
 	end,
-	-- Lock row: mirrors the shared cliffProtect shader knob. For the SURFACE
-	-- brush the sweep-around is structural (variants only touch the soft top);
-	-- the knob still governs the legacy splat path, so keep it honest here.
-	onSurfLockToggle = function(_event)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then return end
-		local knobs = WG.TilesetTerrain.getKnobs()
-		local on = not (knobs and (knobs.cliffProtect or 0) >= 1)
-		WG.TilesetTerrain.setKnob("cliffProtect", on and 1 or 0)
-		widgetState.surfLockLast = nil   -- tf_surface.sync re-stamps the icon
-		playSound(on and "toggleOn" or "toggleOff")
-	end,
 	onSurfNoiseFill = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then return end
 		WG.SurfacePainter.noiseFill()
@@ -7198,6 +7190,18 @@ local initialModel = {
 	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
 	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
 	-- look without having to reset the three sliders.
+	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The
+	-- guard is one-way — soft strokes sweep around cliff bodies, painted CLIFF
+	-- always lands — so this only ever governs talus/plateau paint.
+	onTsToggleCliffProtect = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then return end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and (knobs.cliffProtect or 0) >= 1)
+		WG.TilesetTerrain.setKnob("cliffProtect", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		local d = widgetState.dmHandle
+		if d then d.tsCliffProtectOn = on end
+	end,
 	onTsToggleAlbDecouple = function(_event)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setKnob and WG.TilesetTerrain.getKnobs) then return end
 		local knobs = WG.TilesetTerrain.getKnobs()
@@ -8359,7 +8363,7 @@ local guideHints = {
 	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
 	["btn-surf-erase"]  = "Erase mode: strokes return the surface to the BASE variant. Right-click always erases.",
 	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
-	["btn-surf-lock"]   = "Cliff protection for the legacy splat path. The SURFACE brush never touches hard surfaces regardless — variants only retexture the soft top.",
+	["btn-ts-cliff-protect"] = "Keep soft strokes (talus, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
 	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
 	-- HARD SURFACES section (LAYERS tool)
 	["btn-surf-hard-ch1"]  = "AUTO: painting removes any override so the shader's slope-driven surface returns.",

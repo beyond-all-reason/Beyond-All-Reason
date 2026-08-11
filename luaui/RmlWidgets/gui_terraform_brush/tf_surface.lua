@@ -64,7 +64,6 @@ function M.attach(doc, ctx)
 	widgetState.surfPaletteSectionEl = doc:GetElementById("section-surf-palette")
 	-- fresh document: rebuild the palette + re-stamp checkboxes on next sync
 	widgetState.surfPaletteSig = nil
-	widgetState.surfLockLast = nil
 	widgetState.surfPaletteEls = {}   -- { {el, tex} } for the GL thumbnail pass
 	widgetState.surfTintLast = widgetState.surfTintLast or {}
 
@@ -527,22 +526,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 		end
 	end
 
-	-- Cliff-protect lock row mirrors the shared shader knob. For THIS tool the
-	-- sweep-around is structural (variants only retexture the soft top), but
-	-- the knob still governs the legacy splat path, so reflect it honestly.
-	if T and T.getKnobs then
-		local knobs = T.getKnobs()
-		local lock = knobs and (knobs.cliffProtect or 0) >= 1
-		if widgetState.surfLockLast ~= lock then
-			widgetState.surfLockLast = lock
-			local el = doc:GetElementById("btn-surf-lock")
-			if el then
-				el:SetAttribute("src", lock
-					and "/luaui/images/terraform_brush/check_on.png"
-					or  "/luaui/images/terraform_brush/check_off.png")
-			end
-		end
-	end
+	-- Cliff protection moved to the TILESET window (PROTECT CLIFFS button): it
+	-- is a shader knob, and for THIS tool the sweep-around is structural
+	-- anyway — variants only ever retexture the soft top.
 	-- GRADING sliders (group tints live as shader knobs; shared with HARD)
 	syncTints(doc, ctx)
 

@@ -24,7 +24,10 @@ local KNOBS = {
 	{ "platHeight", "%.2f" }, { "platBlend", "%.2f" }, { "cliffBlend", "%.2f" },
 	{ "gravelHeight", "%.2f" }, { "gravelBlend", "%.2f" }, { "talusEvidence", "%.2f" }, { "cavityFloor", "%.2f" }, { "talusPatch", "%.2f" },
 	{ "talusStartDeg", "%.1f" }, { "talusFullDeg", "%.1f" },
-	{ "splatInfluence", "%.2f" }, { "cliffProtect", "%d" },
+	-- cliffProtect is not here: it is on/off, so it renders as the PROTECT
+	-- CLIFFS highlight button (mirrored to dm.tsCliffProtectOn below), not a
+	-- 0/1 slider.
+	{ "splatInfluence", "%.2f" },
 	{ "splatPunchTalus", "%.2f" }, { "splatPunchCliff", "%.2f" }, { "splatPunchPlat", "%.2f" },
 	{ "antiTileWarp", "%.0f" }, { "parallaxAmp", "%.2f" },
 	{ "macroVar", "%.2f" }, { "macroLod", "%.1f" }, { "albedoSortMode", "%d" },
@@ -171,6 +174,14 @@ function M.sync(doc, ctx, setSummary)
 					or  "/luaui/images/terraform_brush/check_off.png")
 			end
 		end
+	end
+
+	-- PROTECT CLIFFS button highlight: a knob, but rendered as a button rather
+	-- than a 0/1 slider, so mirror it by hand (covers startup, biome swaps and
+	-- console /tileset changes).
+	if knobs.cliffProtect ~= nil then
+		local cp = knobs.cliffProtect >= 1
+		if dm.tsCliffProtectOn ~= cp then dm.tsCliffProtectOn = cp end
 	end
 
 	-- Mirror debugView -> tsDebugView so the DEBUG multi-toggle highlight tracks the
