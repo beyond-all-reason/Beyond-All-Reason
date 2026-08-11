@@ -5,6 +5,7 @@ require("spec_helper")
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+RegisterMissionApiModules()
 
 local triggerDefinitions = VFS.Include('luarules/mission_api/triggers_loader.lua').LoadTriggerDefinitions()
 local parameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')

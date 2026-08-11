@@ -70,7 +70,7 @@ _G.Spring.GetTeamAllyTeamID = _G.Spring.GetTeamAllyTeamID or function(teamID) re
 _G.GG = _G.GG or {}
 
 -- Build the modules and shims and shams for the Mission API. These have a specific load order.
-function _G.registerMissionApiModules()
+function _G.RegisterMissionApiModules()
     _G.GG['MissionAPI'] = _G.GG['MissionAPI'] or {}
     local modules = _G.GG['MissionAPI'].Modules or {}
     _G.GG['MissionAPI'].Modules = modules
