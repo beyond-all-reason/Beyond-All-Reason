@@ -2251,6 +2251,91 @@ function capUI.set(key, value)
 	capUI.sync()
 end
 
+-- Opens the Save Project As dialog: prefills the name (current project >
+-- last-typed > slugified map name) and rebuilds the existing-projects list,
+-- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
+-- As semantics). Shared by FILE > Save As... and by FILE > Save when the
+-- session has no current project yet. On widgetState, not a chunk local:
+-- the main chunk is near the Lua 5.1 200-local ceiling.
+widgetState.openProjectSaveDialog = function()
+	local d = widgetState.dmHandle
+	if d then
+		d.fileMenuOpen = false
+		d.projectSaveOpen = true
+		d.projectSaveHint = ""
+		d.projectSaveUnits = widgetState.projectSaveUnits and true or false
+	end
+	widgetState.projectUnitsDropArmed = nil
+	widgetState.projectOverwriteArmed = nil
+	local doc = widgetState.document
+	local mp = WG.MapProject
+	local inp = doc and doc:GetElementById("input-project-name")
+	if inp then
+		local name = (mp and mp.current and mp.current()) or widgetState.projectNameStr
+		if not name or name == "" then
+			name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
+		end
+		widgetState.projectNameStr = name
+		inp:SetAttribute("value", name)
+	end
+	local listEl = doc and doc:GetElementById("tf-project-save-list")
+	if not listEl then return end
+	listEl.inner_rml = ""
+	if not (mp and mp.listDetailed) then
+		listEl.inner_rml = '<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
+		return
+	end
+	local projects = mp.listDetailed()
+	if #projects == 0 then
+		listEl.inner_rml = '<div class="tf-hm-empty">No projects yet — this save will create the first one.</div>'
+		return
+	end
+	-- Same imperative row build and tf-hm-* styling as the Open Project list
+	-- (see onFileOpenProject for why the rows are not data-model driven).
+	local function esc(s) return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
+	local parts = {}
+	for i, p in ipairs(projects) do
+		local stamp = tostring(p.modified or "")
+		local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
+		local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi)
+			or (stamp ~= "" and stamp or "(no date)")
+		parts[#parts + 1] = string.format(
+			'<div id="tf-psave-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
+			.. '<div class="tf-hm-date">%s</div>'
+			.. '<div class="tf-hm-mapname">%s</div>'
+			.. '<div class="tf-hm-badge">%sx%s</div>'
+			.. '</div></div>',
+			i, esc(when), esc(p.name or p.slug),
+			esc(p.size_x or "?"), esc(p.size_z or "?"))
+	end
+	listEl.inner_rml = table.concat(parts)
+	for i, p in ipairs(projects) do
+		local row = doc:GetElementById("tf-psave-r" .. i)
+		if row then
+			local slug = p.slug
+			row:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				playSound("click")
+				-- The row fills the NAME field; SAVE still commits (and still
+				-- asks its overwrite/units questions). A new target voids any
+				-- armed second-click confirm.
+				widgetState.projectNameStr = slug
+				widgetState.projectOverwriteArmed = nil
+				widgetState.projectUnitsDropArmed = nil
+				local doc2 = widgetState.document
+				local inp2 = doc2 and doc2:GetElementById("input-project-name")
+				if inp2 then inp2:SetAttribute("value", slug) end
+				local d2 = widgetState.dmHandle
+				if d2 then d2.projectSaveHint = "" end
+				for j = 1, #projects do
+					local r = doc2 and doc2:GetElementById("tf-psave-r" .. j)
+					if r then r:SetClass("selected", j == i) end
+				end
+			end, false)
+		end
+	end
+end
+
 local initialModel = {
 	radius = 100,
 	shapeName = "Circle",
@@ -2300,10 +2385,11 @@ local initialModel = {
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
 	newMapOpen = false,
-	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
+	-- Save Project dialog (FILE > Save As, backed by WG.MapProject)
 	projectSaveOpen = false,
 	projectSaveHint = "",
 	projectSaveUnits = false,  -- "save units loadout" toggle (position/team of every unit)
+	projectCurrentName = "",   -- FILE > Save target ("" = none yet → Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
@@ -4967,7 +5053,19 @@ local initialModel = {
 	-- ===== FILE menu + New Map dialog handlers =====
 	onFileMenuToggle = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.fileMenuOpen = not d.fileMenuOpen end
+		local d = widgetState.dmHandle
+		if d then
+			d.fileMenuOpen = not d.fileMenuOpen
+			-- Refresh the Save item's target label on every open (the current
+			-- project changes when a save finishes or a project is deleted).
+			if d.fileMenuOpen then
+				local mp = WG.MapProject
+				local cur = (mp and mp.current and mp.current()) or ""
+				-- Slugs go up to 64 chars; don't let one stretch the menu.
+				if #cur > 24 then cur = cur:sub(1, 23) .. "\226\128\166" end
+				d.projectCurrentName = cur
+			end
+		end
 	end,
 	onFileNewMap = function(_event)
 		playSound("click")
@@ -5016,37 +5114,47 @@ local initialModel = {
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
 	end,
-	-- ===== Save Project dialog handlers (backed by WG.MapProject) =====
+	-- ===== Save / Save As dialog handlers (backed by WG.MapProject) =====
+	-- FILE > Save: one-click save to the session's current project (the one
+	-- last opened or saved). No current project yet → act as Save As.
+	onFileSave = function(_event)
+		playSound("click")
+		local mp = WG.MapProject
+		local current = mp and mp.current and mp.current() or nil
+		if not (current and mp.save) then
+			widgetState.openProjectSaveDialog()
+			return
+		end
+		local d = widgetState.dmHandle
+		if d then d.fileMenuOpen = false end
+		if mp.isBusy and mp.isBusy() then
+			Spring.Echo("[Terraform Brush] cannot save: a save or load is already running")
+			return
+		end
+		-- Keep the project's units loadout as it is on disk: re-record it when
+		-- the project has one, never silently add or drop one. Changing that is
+		-- what the Save As dialog's toggle is for.
+		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
+		if mp.save(current, { saveUnits = keepUnits }) then
+			playSound("save")
+		end
+	end,
 	onFileSaveProject = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle
-		if d then
-			d.fileMenuOpen = false
-			d.projectSaveOpen = true
-			d.projectSaveHint = ""
-			d.projectSaveUnits = widgetState.projectSaveUnits and true or false
-		end
-		widgetState.projectUnitsDropArmed = nil
-		-- Prefill: last used name, else the slugified map name.
-		local doc = widgetState.document
-		local inp = doc and doc:GetElementById("input-project-name")
-		if inp then
-			local name = widgetState.projectNameStr
-			if not name or name == "" then
-				name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
-			end
-			widgetState.projectNameStr = name
-			inp:SetAttribute("value", name)
-		end
+		widgetState.openProjectSaveDialog()
 	end,
 	onProjectSaveClose = function(_event)
 		playSound("click")
 		local d = widgetState.dmHandle; if d then d.projectSaveOpen = false end
+		-- Never leave a second-click confirm armed for the next open.
+		widgetState.projectOverwriteArmed = nil
+		widgetState.projectUnitsDropArmed = nil
 	end,
 	onProjectSaveUnitsToggle = function(_event)
 		playSound("click")
 		widgetState.projectSaveUnits = not widgetState.projectSaveUnits
 		widgetState.projectUnitsDropArmed = nil
+		widgetState.projectOverwriteArmed = nil
 		local d = widgetState.dmHandle
 		if d then
 			d.projectSaveUnits = widgetState.projectSaveUnits
@@ -5078,6 +5186,19 @@ local initialModel = {
 			return
 		end
 		widgetState.projectNameStr = name
+		-- Save As over an existing project that is NOT the session's current
+		-- one: overwrite is allowed (modern Save As), but never silently —
+		-- first SAVE arms, second commits.
+		local mp = WG.MapProject
+		local current = mp.current and mp.current() or nil
+		if name ~= current
+			and widgetState.projectOverwriteArmed ~= name
+			and mp.exists and mp.exists(name) then
+			widgetState.projectOverwriteArmed = name
+			if d then d.projectSaveHint = "'" .. name .. "' already exists — press SAVE PROJECT again to overwrite it." end
+			return
+		end
+		widgetState.projectOverwriteArmed = nil
 		-- Toggle-off re-save of a project that HAS a units loadout would silently
 		-- drop it (stale-section cleanup). Require a second SAVE click to confirm.
 		if not widgetState.projectSaveUnits
@@ -5090,7 +5211,8 @@ local initialModel = {
 		widgetState.projectUnitsDropArmed = nil
 		if WG.MapProject.save(name, { saveUnits = widgetState.projectSaveUnits and true or false }) then
 			playSound("save")
-			if d then d.projectSaveHint = "Saving to MapProjects/" .. name .. "/ — progress in console." end
+			-- Modern Save As: commit closes the dialog; progress is in console.
+			if d then d.projectSaveOpen = false end
 		else
 			if d then d.projectSaveHint = "Save could not start (see console)." end
 		end
@@ -10029,6 +10151,9 @@ local function attachEventListeners()
 		end, false)
 		projectNameInput:AddEventListener("change", function(event)
 			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+			-- Editing the name retargets the save: any armed overwrite confirm
+			-- was for the previous text.
+			widgetState.projectOverwriteArmed = nil
 		end, false)
 	end
 
@@ -13102,6 +13227,120 @@ function widget:Update()
 			setInnerRmlIfChanged(sumEl4, "status-summary",
 				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">SPLAT</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Tileset shader active - hard surfaces moved to SURFACE (HARD)</span>')
 		end
+	end
+	-- Project save takes over the status summary strip (last override = top
+	-- priority): green SAVING with one segment per saver step while running,
+	-- then SAVED: <name> held 4 s, faded out, and the tool's own readout
+	-- faded back in. Timers use os.clock — the readout must run while paused.
+	do
+		local mp = WG.MapProject
+		local sumEl3 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+		local step, total, stepName
+		if mp and mp.saveProgress then step, total, stepName = mp.saveProgress() end
+		if step then
+			widgetState.saveWasRunning = true
+			widgetState.saveDoneUntil = nil
+			widgetState.saveDoneInfo = nil
+			widgetState.saveFadeInStart = nil
+			if sumEl3 then
+				sumEl3.style.opacity = "1"
+				local buf = {
+					'<span class="tf-ss-mode" style="color: #35d07f;">SAVING</span>',
+					'<span class="tf-ss-sep">|</span>',
+					'<div class="tf-ss-segwrap">',
+				}
+				for i = 1, total do
+					buf[#buf + 1] = (i < step) and '<div class="tf-ss-seg done"></div>'
+						or (i == step) and '<div class="tf-ss-seg cur"></div>'
+						or '<div class="tf-ss-seg"></div>'
+				end
+				buf[#buf + 1] = '</div>'
+				buf[#buf + 1] = '<span class="tf-ss-label">' .. tostring(stepName or "") .. '</span>'
+				setInnerRmlIfChanged(sumEl3, "status-summary", table.concat(buf))
+			end
+		elseif widgetState.saveWasRunning then
+			-- The save just ended: latch its outcome and start the 4 s hold.
+			widgetState.saveWasRunning = false
+			local last = mp and mp.lastSave and mp.lastSave()
+			if last and last.slug then
+				widgetState.saveDoneInfo = last
+				widgetState.saveDoneUntil = os.clock() + 4
+			end
+		end
+		if sumEl3 and not step and widgetState.saveDoneUntil then
+			local now = os.clock()
+			local FADE = 0.6
+			local info = widgetState.saveDoneInfo
+			if not info or now >= widgetState.saveDoneUntil + FADE then
+				-- Hand the strip back; the tool readout fades in below.
+				widgetState.saveDoneUntil = nil
+				widgetState.saveDoneInfo = nil
+				widgetState.saveFadeInStart = now
+			else
+				local rml
+				if info.ok then
+					rml = '<span class="tf-ss-mode" style="color: #35d07f;">SAVED:</span>'
+						.. '<span class="tf-ss-val"> ' .. info.slug .. '</span>'
+				else
+					rml = '<span class="tf-ss-mode" style="color: #e05252;">SAVE FAILED:</span>'
+						.. '<span class="tf-ss-val"> ' .. info.slug .. ' (see console)</span>'
+				end
+				setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+				local o = 1
+				if now > widgetState.saveDoneUntil then
+					o = 1 - (now - widgetState.saveDoneUntil) / FADE
+				end
+				sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
+			end
+		end
+		-- Ease the normal tool output back in after the SAVED text faded out.
+		if sumEl3 and widgetState.saveFadeInStart then
+			local t = (os.clock() - widgetState.saveFadeInStart) / 0.4
+			if t >= 1 then
+				widgetState.saveFadeInStart = nil
+				sumEl3.style.opacity = "1"
+			else
+				sumEl3.style.opacity = string.format("%.2f", math.max(0, t))
+			end
+		end
+		-- Snappier version of the same fade for normal tool/mode switches:
+		-- hold the OLD readout while fading out (the new tool already rewrote
+		-- the strip this frame, so replay last frame's snapshot), then let the
+		-- new readout fade in. Suppressed while the save display owns the strip.
+		local saveOwnsStrip = (step ~= nil) or widgetState.saveDoneUntil or widgetState.saveFadeInStart
+		do
+			local dmT = widgetState.dmHandle
+			local toolKey = dmT and (tostring(dmT.activeTool or "") .. "/" .. tostring(dmT.activeMode or "")) or ""
+			if toolKey ~= widgetState.ssToolKey then
+				local hadPrev = widgetState.ssToolKey ~= nil
+				widgetState.ssToolKey = toolKey
+				if sumEl3 and hadPrev and not saveOwnsStrip then
+					widgetState.ssSwitchStart = os.clock()
+					widgetState.ssSwitchOldRml = widgetState.ssPrevFrameRml
+				end
+			end
+		end
+		if saveOwnsStrip then
+			widgetState.ssSwitchStart = nil
+			widgetState.ssSwitchOldRml = nil
+		elseif sumEl3 and widgetState.ssSwitchStart then
+			local OUT, IN = 0.09, 0.12
+			local e = os.clock() - widgetState.ssSwitchStart
+			if e < OUT then
+				if widgetState.ssSwitchOldRml then
+					setInnerRmlIfChanged(sumEl3, "status-summary", widgetState.ssSwitchOldRml)
+				end
+				sumEl3.style.opacity = string.format("%.2f", math.max(0, 1 - e / OUT))
+			elseif e < OUT + IN then
+				sumEl3.style.opacity = string.format("%.2f", math.min(1, (e - OUT) / IN))
+			else
+				widgetState.ssSwitchStart = nil
+				widgetState.ssSwitchOldRml = nil
+				sumEl3.style.opacity = "1"
+			end
+		end
+		-- Snapshot this frame's final readout; the next switch fades it out.
+		widgetState.ssPrevFrameRml = widgetState.lastInnerRml["status-summary"]
 	end
 	-- Reactive refresh of section warn chips after state sync
 	if widgetState.warnRefreshFuncs then for i = 1, #widgetState.warnRefreshFuncs do widgetState.warnRefreshFuncs[i]() end end

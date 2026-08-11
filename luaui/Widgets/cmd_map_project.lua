@@ -63,6 +63,15 @@ local job = nil      -- active save job, nil when idle
 local loadJob = nil  -- active load job, nil when idle (never both at once)
 local unitsRx = nil  -- receive buffer for the synced units export (stepUnits)
 
+-- The project this session IS: set when a load starts (the session exists to
+-- replay that project) and when a save completes. FILE > Save targets it.
+local currentSlug = nil
+
+-- Outcome of the most recent save ({ok, slug}), for the UI's transient
+-- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
+-- running save disappears.
+local lastSaveInfo = nil
+
 ----------------------------------------------------------------
 -- Small helpers
 ----------------------------------------------------------------
@@ -1346,10 +1355,13 @@ local STEPS = {
 local function finishSave()
 	if job.failed then
 		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
+		lastSaveInfo = { ok = false, slug = job.slug }
 		job = nil
 		return
 	end
 	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
+	currentSlug = job.slug
+	lastSaveInfo = { ok = true, slug = job.slug }
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1393,6 +1405,13 @@ local function startSave(slug, opts)
 	}
 	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
 	return true
+end
+
+-- Does a project folder with a readable manifest exist? (UI overwrite guard:
+-- Save As over an existing project asks for a second click first.)
+local function projectExists(slug)
+	if not validateSlug(slug) then return false end
+	return readPrevManifest(PROJECTS_DIR .. slug .. "/") ~= nil
 end
 
 -- Does a saved project include a units section? (UI confirm guard: warns
@@ -1493,6 +1512,8 @@ local function deleteProject(slug)
 	else
 		echoP(string.format("deleted project '%s' (%d files)", slug, removed))
 	end
+	-- The session's Save target is gone; the next Save must ask for a name.
+	if currentSlug == slug then currentSlug = nil end
 	return true
 end
 
@@ -2352,6 +2373,7 @@ local function maybeStartLoad()
 		byteWarned = {},
 		missingWarned = {},
 	}
+	currentSlug = loadJob.slug
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d",
 			loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
@@ -2508,6 +2530,19 @@ function widget:Initialize()
 		listDetailed = listProjectsDetailed,
 		delete = deleteProject,
 		hasUnitsSection = projectHasUnits,
+		exists = projectExists,
+		-- Slug of the project this session was loaded from or last saved to
+		-- (nil until one of those happens) — the FILE > Save target.
+		current = function() return currentSlug end,
+		-- (step, total, stepName) of the running save, nil when idle — drives
+		-- the status-strip segment bar in the terraform UI.
+		saveProgress = function()
+			if not job then return nil end
+			local step = math.min(job.step, #STEPS)
+			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
+		end,
+		-- {ok, slug} of the most recent save (nil until one finishes).
+		lastSave = function() return lastSaveInfo end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
 		isBusy = function() return job ~= nil or loadJob ~= nil end,

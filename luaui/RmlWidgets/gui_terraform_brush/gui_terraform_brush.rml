@@ -32,7 +32,11 @@
 					<div id="btn-file" class="tf-header-btn tf-file-btn" data-class-active="fileMenuOpen" data-event-mousedown="onFileMenuToggle()"><img class="tf-header-icon" src="/luaui/images/terraform_brush/folder.png" /></div>
 					<div id="tf-file-menu" class="tf-file-menu" data-if="fileMenuOpen">
 						<div id="btn-file-newmap" class="tf-file-menu-item" data-event-mousedown="onFileNewMap()">New Map...</div>
-						<div id="btn-file-saveproject" class="tf-file-menu-item" data-event-mousedown="onFileSaveProject()">Save Project...</div>
+						<div id="btn-file-save" class="tf-file-menu-item" data-event-mousedown="onFileSave()">
+							<div data-if="projectCurrentName == ''">Save</div>
+							<div data-if="projectCurrentName != ''">Save '{{projectCurrentName}}'</div>
+						</div>
+						<div id="btn-file-saveproject" class="tf-file-menu-item" data-event-mousedown="onFileSaveProject()">Save As...</div>
 						<div id="btn-file-openproject" class="tf-file-menu-item" data-event-mousedown="onFileOpenProject()">Open Project...</div>
 					</div>
 				</div>
