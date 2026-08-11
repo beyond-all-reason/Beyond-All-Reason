@@ -332,6 +332,18 @@ local layouts = {
 -- Single-letter modifier abbreviations (uikeys.txt: A/C/M/S, * for Any).
 local modAbbrev = { A = "ALT+", C = "CTRL+", M = "META+", S = "SHIFT+" }
 
+-- Printable keys the engine reports by name. The scancode names are positional, so
+-- they map to the qwerty character and pick up the layout translation afterwards;
+-- the keycode names are the character outright.
+local scanKeyWords = {
+	minus = "-", equals = "=", comma = ",", apostrophe = "'", period = ".",
+	semicolon = ";", leftbracket = "[", rightbracket = "]", slash = "/",
+	backquote = "`", backslash = "\\",
+}
+local keyCodeWords = {
+	backquote = "`", tilde = "`", caret = "^", backslash = "\\",
+}
+
 local function sanitizeKey(key, layout)
 	if not (type(key) == "string") then
 		return ""
@@ -339,12 +351,34 @@ local function sanitizeKey(key, layout)
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
-	key = key:gsub("SC_(.)", function(c)
-		return scanToCode[layout][c] or c
+	-- The engine names the punctuation keys with words rather than the character they
+	-- produce ("sc_backquote", "backslash"). Fold those back first so they render as
+	-- the key itself, and so the scancode form still picks up the layout mapping below.
+	key = key:gsub("[Ss][Cc]_(%a%a+)", function(word)
+		return "sc_" .. (scanKeyWords[word:lower()] or word)
 	end)
-	-- The backslash key comes through as the keysym word, missing the SC_ mapping above.
-	key = key:gsub("BACKSLASH", "\\")
+	-- Whole words wherever they sit, not just the last one: a chain's first tap is a key
+	-- name too. Anything not a key name falls through unchanged, modifiers included.
+	key = key:gsub("%f[%a](%a%a+)%f[%A]", function(word)
+		return keyCodeWords[word:lower()] or word
+	end)
+
+	key = key:upper():gsub("ANY%+", ""):gsub("%*%+", "")
+
+	-- Callers pass whole keysets, chains included, so a key name runs to the next comma
+	-- rather than to the end of the string. The leading "." takes one character before the
+	-- comma test so a bound comma key reads as itself instead of a separator.
+	-- Only a single character is positional: matching one character of a named key would
+	-- remap its first letter instead, which renders sc_space as "OPACE" on dvorak.
+	local positional = scanToCode[layout] or scanToCode.qwerty
+	key = key:gsub("SC_(.[^,]*)", function(token)
+		if #token == 1 then
+			return positional[token] or token
+		end
+
+		-- Named keys sit in the same place on every layout, so the name is the label.
+		return token
+	end)
 	-- Expand a single-letter modifier token (frontier so it doesn't eat the A in META+).
 	key = key:gsub("%f[%u]([ACMS])%+", function(m) return modAbbrev[m] end)
 
