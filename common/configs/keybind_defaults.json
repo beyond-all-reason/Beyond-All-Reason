@@ -1,5 +1,6 @@
 {
 	"version": 1,
+	"priority": [],
 	"profiles": [
 		{
 			"name": "Grid",
@@ -2610,9 +2611,7 @@
 					"action": "blueprint_next"
 				}
 			]
-		}
-	],
-	"retired": [
+		},
 		{
 			"name": "Legacy",
 			"binds": [

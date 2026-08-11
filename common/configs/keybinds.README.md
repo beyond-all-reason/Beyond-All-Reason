@@ -9,19 +9,29 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 | File | What it is | Schema |
 |---|---|---|
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
-| `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap, plus retired ones kept for migration. | `keybind_defaults.schema.json` |
+| `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
 
-Both are validated in CI by `spec/keybind_catalog_spec.lua` (structure + referential
-integrity: every i18n key resolves, every bind has a keyset and an action).
+Both are validated in CI by `spec/keybind_catalog_spec.lua`: each file against its schema,
+profile names unique across the shipped set, every purely modifier-only action marked
+read-only, and every action command written in lower case.
+
+They are separate because a catalog entry is per action while a binding is per action *and*
+profile. The four shipped profiles share only 207 of the 381 actions they bind between them,
+so there is no single default keyset to hang off a catalog row - merging the two would mean
+every row carrying a keyset-per-profile map, which is this file re-expressed inside the
+catalog. The sets differ both ways as well: 41 bound actions have no catalog entry - 25 of
+those are listed as hidden on purpose, the other 16 surface under "Other" - and 8 catalog
+entries are bound in no profile. Adding a bindable
+action usually means touching both - the catalog for where it appears, a profile for what
+it is bound to out of the box.
 
 A profile is a whole keymap, never a delta - applying one replaces everything, so
 there is no base layer to reason about. The shipped profiles carry their bindings
 inline rather than pointing at bind files, so a consumer reads one shape whether the
 profile came from this file or from the player's own.
 
-The `retired` list holds presets the game no longer offers. They are never selectable;
-they exist so a player still pointed at one keeps their keys, as a profile of their own
-named after the preset. A surface that only ever shows current profiles can ignore it.
+Every shipped profile is selectable and read-only; editing one forks a copy under a name
+the player chooses.
 
 ## Catalog item kinds
 
@@ -38,9 +48,52 @@ Each category's `items` entry is exactly one of:
 `action` is the bind command exactly as `/bind` expects and `GetKeyBindings` reports it
 (command plus space-separated args, e.g. `select AllMap++_ClearSelection_SelectAll+`).
 
+An editable or prefix entry may carry `"anyMod": true`, meaning bind it with the `Any+`
+qualifier so it fires whatever modifiers are held. It is a property of the action rather
+than a choice offered to the player, so a surface applies it on every rebind and never
+shows it as a control. The engine already forces the same for its own stateful commands
+(`drawinmap`, `move*`), and an action the catalog does not list keeps whatever qualifier
+it is already bound with.
+
+An editable entry may carry `"shiftPair": true` for an action the engine can only express
+as two binds - one bare, one `Shift+` - because its handler ignores Shift. A surface writes
+both from one capture and clears both together, so the halves cannot end up on different
+keys. Such an action holds exactly one key, not a list.
+
+`"modifierOnly": true` marks an action bound to a bare modifier. It is shown read-only: an
+editor cannot capture a modifier as a key, so a removed binding could not be put back.
+
 A single leading `{ "hidden": ["<action id>", ...] }` entry (not a category) lists actions
 that are bound but never shown - matched by exact id, not prefix, so a future action can't be
 suppressed by coincidence - so they surface neither as a row nor under "Other".
+
+## Ordering
+
+Two orderings, meaning different things.
+
+**Catalog order is presentation.** Where an item sits decides where it appears in an
+editor and nothing else. Reorganize freely.
+
+**Bind order in `keybind_defaults.json` is precedence.** The array is written out as bind
+lines in order, the engine stamps each with an incrementing index, and two actions on one
+keyset are tried in that order - first to succeed wins. Position matters only against
+other binds on the same keyset; where a bind sits in the file overall does not.
+
+When adding a bind to a shipped profile:
+
+- On a keyset nothing else uses, position is free. Put it next to related binds.
+- On a keyset that already carries an action, the earlier entry gets first refusal. Place
+  it above only if it should win.
+- Do not reorder existing binds to tidy the file. That silently changes precedence.
+
+A handler that declines (returns falsy) does not hold the key - the next action on that
+keyset is tried. Ordering only settles contests between handlers that would both succeed,
+so "the wrong thing fires" is not automatically an ordering problem.
+
+`priority` is the override for when the natural order is wrong: action prefixes, highest
+first, applied when a profile is written out. It is a stable sort, so listing an action
+moves that action and leaves everything else where it was. It ships empty, because preset
+order already encodes the intended precedence - add to it only for a case you can point at.
 
 ## The config contract (behavior each surface implements)
 
