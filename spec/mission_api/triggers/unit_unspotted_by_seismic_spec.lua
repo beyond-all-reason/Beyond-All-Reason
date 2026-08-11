@@ -13,8 +13,9 @@ local onSeismicPing = unitUnspottedBySeismic.callins.UnitSeismicPing
 local onSeismicInterval = unitUnspottedBySeismic.callins.SeismicInterval -- an artificial callin
 
 -- Mirror constants from seismic_contacts.lua. The update interval is in api_missions_trigger.lua.
-local INTERVALS_TO_FULL_SCORE = 4 -- Movement while in detection range builds up higher detection.
-local INTERVALS_TO_FALLOFF = 8 -- Silence (motionless, out of range) draings the detection score.
+local INTERVALS_TO_FULL_SCORE = 8 -- Movement while in detection range builds up higher detection.
+local INTERVALS_TO_FALLOFF = 16 -- Silence (motionless, out of range) draings the detection score.
+local INTERVALS_TO_DWELL = 8 -- A contact is held this long before any falloff whatever its score.
 
 describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 	-- Contact scoring lives in the seismic_contacts module, keyed by triggerID, so
@@ -127,11 +128,14 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("fires sooner for a contact that never built a full score", function()
+	-- A lone ping scores 2 and drains in 2 intervals, but the dwell floor holds the drained
+	-- contact to the same 8 intervals as a full one. Otherwise every isolated ping would spend
+	-- itself on a complete spotted/unspotted cycle, meaning perfect on/off trigger flapping.
+	it("holds a minimal contact for the complete dwell floor", function()
 		local context, fired = newContext()
 		local t = trigger({ unitDefName = 'armpw' })
-		advance(t, context, { 100 }) -- a lone ping scores 2, so drains in 2 intervals
-		silence(t, context, 1)
+		advance(t, context, { 100 })
+		silence(t, context, INTERVALS_TO_DWELL - 1)
 		assert.are.equal(0, fired())
 		silence(t, context, 1)
 		assert.are.equal(1, fired())
@@ -189,10 +193,10 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local context, fired = newContext()
 		local t = trigger({ unitDefName = 'armpw' })
 		advance(t, context, { 100 })
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(1, fired())
 		advance(t, context, { 100 })
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(2, fired())
 	end)
 
@@ -201,7 +205,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local t = trigger({ unitDefName = 'armpw' })
 		advance(t, context, { 100 })
 		advance(t, context, { 101 }) -- unit 101 starts an interval later
-		silence(t, context, 1) -- unit 100 has drained, 101 has not
+		silence(t, context, INTERVALS_TO_DWELL - 1) -- unit 100 is up, 101 is not
 		assert.are.equal(1, fired())
 		silence(t, context, 1)
 		assert.are.equal(2, fired())
@@ -213,7 +217,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local t = trigger({ unitDefName = 'armpw' })
 		advance(t, context, { 100 })
 		Spring.GetUnitIsDead = function(_unitID) return true end
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(0, fired())
 	end)
 
@@ -221,7 +225,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local context, fired = newContext()
 		local t = trigger({ unitDefName = 'armpw', spottingAllyTeamID = 0 })
 		advance(t, context, { 100 }) -- pinged by allyTeam 0: matches and is recorded
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(1, fired())
 	end)
 
@@ -230,7 +234,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local t = trigger({ unitDefName = 'armpw', owningTeamID = 3 }) -- team 3 required
 		advance(t, context, { 100 }) -- recorded on team 3
 		Spring.GetUnitTeam = function(_unitID) return 5 end -- transferred to team 5
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(0, fired())
 	end)
 
@@ -239,7 +243,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		local t = trigger({ unitName = 'engineers' }) -- 'engineers' required
 		advance(t, context, { 100 }) -- recorded in 'engineers'
 		context.DoesUnitHaveName = function() return false end -- unnamed
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(0, fired())
 	end)
 
@@ -249,7 +253,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 		Spring.GetUnitAllyTeam = nil -- explodes when called
 		local t = trigger({ unitDefName = 'armpw', spottingAllyTeamID = 0 })
 		advance(t, context, { 100 })
-		silence(t, context, 2)
+		silence(t, context, INTERVALS_TO_DWELL)
 		assert.are.equal(1, fired())
 	end)
 
@@ -262,7 +266,7 @@ describe("mission_api.triggers.unit_unspotted_by_seismic", function()
 			ping(t, context, 100)
 		end
 		advance(t, context)
-		silence(t, context, 1)
+		silence(t, context, INTERVALS_TO_DWELL - 1)
 		assert.are.equal(0, fired())
 		silence(t, context, 1)
 		assert.are.equal(1, fired())

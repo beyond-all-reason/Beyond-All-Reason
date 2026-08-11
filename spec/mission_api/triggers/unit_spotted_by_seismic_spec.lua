@@ -12,8 +12,9 @@ local unitSpottedBySeismic = VFS.Include('luarules/mission_api/triggers/unit_spo
 local onSeismicPing = unitSpottedBySeismic.callins.UnitSeismicPing
 local onSeismicInterval = unitSpottedBySeismic.callins.SeismicInterval
 
--- The first sweep banks the ping as a score of 2. Two more sweeps decrease toward a falloff.
-local SWEEPS_TO_FALLOFF_AFTER_ONE_PING = 3
+-- The first sweep banks the ping as a score of 2, which drains in two more sweeps. The dwell
+-- floor then holds the drained contact until it has been tracked for eight sweeps in total.
+local SWEEPS_TO_FALLOFF_AFTER_ONE_PING = 9
 
 describe("mission_api.triggers.unit_spotted_by_seismic", function()
 	-- Each test below takes a fresh triggerID, rather than risk sharing state across triggers.

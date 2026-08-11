@@ -17,6 +17,14 @@
 -- It is perfectly possible to stutter-step your way through infinite seismic detectors on RecoilEngine.
 -- You just have to be either a genius or a computer. So low detection rates become longer falloff time.
 
+-- Configuration ---------------------------------------------------------------
+
+-- * To get a guaranteed time-to-undetected after departure, use: time = SCORE_LIMIT / 2.
+-- * To get a guaranteed time-to-flap after first detection, use: time = DWELL_INTERVALS / 2.
+-- * To get a ping rate that neither gains nor loses score, use: freq = 1 / (1 + SCORE_GAIN).
+-- * Keep SCORE_GAIN as it is. +2/-1 (described below) are built on the log-likelihood.
+-- * Keep the DWELL below the LIMIT, so single pings fall out noticeably faster than clusers.
+
 -- A ping adds SCORE_GAIN and an empty interval subtracts one. The score is held within [0, SCORE_LIMIT].
 local SCORE_GAIN = 2
 --
@@ -28,17 +36,17 @@ local SCORE_GAIN = 2
 -- detection rate rather than as a loss of detection.
 
 -- A contact holding a full score and then going undetected falls off in exactly SCORE_LIMIT intervals.
-local SCORE_LIMIT = 8
+local SCORE_LIMIT = 16
 --
 -- The weakest contact reaches falloff in three intervals; by design, the score limit must exceed gain.
+-- A full score takes 8 pings (4.0s of movement) to build and 16 intervals (8.0s) to drain, and a weak
+-- contact drains sooner but is then held for DWELL_INTERVALS, so releases run from 4.0s to 8.0s.
 --
--- A weak contact then has `gain + 1` intervals (1.5s) to falloff, and a strong one, 8 intervals (4.0s).
--- Movement within the seismic radius increases detection score. A full score requires 2.0s of movement.
---
--- Expected falloff time from a full score solves E[T_s] = 1 + p*E[T_min(s+GAIN,LIMIT)] + (1-p)*E[T_s-1],
--- and climbs steeply as true-p approaches and passes the floor:
---     p = 0     -> 4.0s        p = 0.34 -> 20.5s       p = 0.67 -> 1.0h
---     p = 0.25  -> 10.7s       p = 0.50 -> 2.2min      p = 0.90 -> unreachable
+-- Expected falloff from a full score solves E[T_s] = 1 + p*E[T_min(s+GAIN,LIMIT)] + (1-p)*E[T_s-1], with
+-- E[T_0] = 0. All ping rates (p) below 1.0 eventually reach falloff but over an exponentially increasing
+-- time curve beginning from the fixed rate (p* = 1 / (1 + gain) = 0.33) and up, and a gentle trend below.
+--     p = 0     ->  8.0s       p = 0.33 ->  70.7s      p = 0.50 ->   1.9 hours
+--     p = 0.25  -> 26.1s       p = 0.40 ->   4.8min    p = 0.60 -> 112.0 hours
 
 -- A contact is held for at least this many intervals before any falloff is reported.
 local DWELL_INTERVALS = 8
@@ -54,12 +62,14 @@ local DWELL_INTERVALS = 8
 -- Holding a contact for an interval floor merges them into one detection and keeps the falloff distribution.
 -- The cost is that any detected unit remains "spotted" for some time after it has left the detection radius.
 
+-- Module code -----------------------------------------------------------------
+
 -- Contacts : [triggerID][unitID]. Each trigger file includes its own copy of this module, and
 -- VFS.Include re-runs the file, so this clears whenever the trigger definitions are reloaded.
 local contactsByTrigger = {}
 
 ---A unit sitting inside two allyTeams' coverages raises a ping for each allyTeam.
----We set a flag (rather than counting): an interval either found movement or not.
+---We set a flag (rather than counting); an interval either found movement or not.
 ---@return boolean addedNewContact
 local function recordPing(triggerID, unitID)
 	local contacts = table.ensureTable(contactsByTrigger, triggerID)
@@ -106,6 +116,8 @@ local function updateContacts(triggerID, undetected)
 	end
 	return count
 end
+
+-- Export ----------------------------------------------------------------------
 
 return {
 	RecordPing     = recordPing,
