@@ -285,28 +285,23 @@ function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitEnteredLos', unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, losAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitLeftLos', unitID, unitTeam, losAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
 function gadget:UnitEnteredRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitEnteredRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
 function gadget:UnitSeismicPing(x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
-	dispatchTriggerCallin('UnitSeismicPing', x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
 	seismicContacts.RecordPing(seismicAllyTeamID, unitID)
 	markDetectionDirty(unitID)
 end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
-	dispatchTriggerCallin('UnitLeftRadar', unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
 end
 
