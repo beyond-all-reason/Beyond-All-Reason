@@ -231,7 +231,8 @@ function migratePresets(presets)
 			toDelete[#toDelete + 1] = key
 		end
 	end
-
+	if #toDelete == 0 then return end
+	Spring.Echo("FactoryQ Manager: Warning - Removed old presets. Newly saved presets will persist between games.")
 	for _, oldKey in ipairs(toDelete) do
 		presets[oldKey] = nil
 	end
