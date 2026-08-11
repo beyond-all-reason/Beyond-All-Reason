@@ -33,7 +33,8 @@ return {
 				context.ActivateTrigger(trigger)
 			end
 		end,
-
+		-- Artificial callin that we raise once every 15 frames in GameFrame,
+		-- matching the full interval of the sliding window on seismic pings.
 		SeismicInterval = function(trigger, triggerID, context)
 			-- Falloff only re-arms this trigger. UnitUnspottedBySeismic is what reports it.
 			SeismicContacts.UpdateContacts(triggerID)

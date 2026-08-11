@@ -34,6 +34,7 @@ return {
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {
+		-- This traces against an extinguishing ping rate to determine falloff.
 		UnitSeismicPing = function(trigger, triggerID, context, x, y, z, strength, seismicAllyTeamID, unitID, unitDefID)
 			if not matchesUnit(trigger, context, unitID, unitDefID) then
 				return
@@ -43,7 +44,6 @@ return {
 			end
 			SeismicContacts.RecordPing(triggerID, unitID)
 		end,
-
 		-- Artificial callin that we raise once every 15 frames in GameFrame,
 		-- matching the full interval of the sliding window on seismic pings.
 		SeismicInterval = function(trigger, triggerID, context)
