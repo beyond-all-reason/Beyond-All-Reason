@@ -2442,6 +2442,10 @@ local initialModel = {
 	surfSlot2Name = "\226\128\148",
 	surfFillV1 = true,
 	surfFillV2 = true,
+	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
+	-- (the fill shader preserves channels it is not allowed to write), so the
+	-- button grays out rather than looking broken.
+	surfCanFill = false,
 	-- NOW PAINTING strip + slot rail (persistent selection readout)
 	surfNowName = "base (erase)",
 	surfNowDetail = "",
@@ -7078,6 +7082,18 @@ local initialModel = {
 	end,
 	onSurfNoiseFill = function(_event)
 		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then return end
+		-- The fill shader only writes a channel whose slot carries a variant
+		-- AND whose V1/V2 chip is on; with neither eligible it preserves the
+		-- mask verbatim, so the button silently did nothing. The RML grays it
+		-- in that state (dm.surfCanFill) — this is the backstop that explains.
+		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
+		if not ((st.slot1 and st.fillV1) or (st.slot2 and st.fillV2)) then
+			Spring.Echo("[Terraform Brush] SURFACE fill did nothing \226\128\148 " ..
+				((not st.slot1 and not st.slot2)
+					and "assign a variant to slot 1 or 2 first (the caret on a slot chip)."
+					or "enable V1 or V2 below."))
+			return
+		end
 		WG.SurfacePainter.noiseFill()
 		playSound("click")
 	end,
@@ -8308,23 +8324,31 @@ local function trackSliderDrag(element, id)
 end
 
 -- Helper: sync slider value from state and flash green if it changed externally
+-- Returns true when it actually issued a SetAttribute. Callers that arm an
+-- echo-suppression window (the deferred change event a stamp raises) must key
+-- that window off this, NOT off "sync ran" — sync runs every frame, so an
+-- unconditional stamp timestamp suppresses the user's own slider input
+-- forever. See tf_surface / tf_tileset.
 local function syncAndFlash(el, id, newValStr)
-	if not el or not newValStr then return end
-	if uiState.draggingSlider == id then return end
+	if not el or not newValStr then return false end
+	if uiState.draggingSlider == id then return false end
 	local prev = widgetState.prevSyncValues[id]
 	-- Dirty-check: skip SetAttribute if value unchanged since last write.
 	-- Avoids triggering RmlUI slider re-layout on no-op syncs.
+	local wrote = false
 	if prev ~= newValStr then
 		el:SetAttribute("value", newValStr)
 		-- Keep lastAttrValue cache coherent so setAttrValueIfChanged users
 		-- don't re-issue the same write if they target the same element.
 		widgetState.lastAttrValue[id] = newValStr
+		wrote = true
 	end
 	widgetState.prevSyncValues[id] = newValStr
 	if prev and prev ~= newValStr and not widgetState.lockedSliders[id] then
 		widgetState.sliderFlashes[id] = { el = el, timer = 1.0 }
 		el:SetClass("slider-flash", true)
 	end
+	return wrote
 end
 
 -- ============ Guide Mode ============

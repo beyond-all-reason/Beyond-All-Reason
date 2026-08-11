@@ -353,22 +353,23 @@ local function syncHard(doc, ctx, setSummary)
 	-- BRUSH sliders mirror the splat engine in this submode (same slider-unit
 	-- mappings as the legacy panel: strength*100, curve*10).
 	uiState.updatingFromCode = true
-	local ds = uiState.draggingSlider
-	syncAndFlash(getCachedEl(doc, "surf-slider-size"), "surf-size", tostring(spState.radius or 100))
-	syncAndFlash(getCachedEl(doc, "surf-slider-strength"), "surf-strength", tostring(math.floor((spState.strength or 0.15) * 100 + 0.5)))
-	syncAndFlash(getCachedEl(doc, "surf-slider-falloff"), "surf-falloff", tostring(math.floor((spState.curve or 1.0) * 10 + 0.5)))
-	do
-		local s1 = getCachedEl(doc, "surf-hard-slider-slope-max")
-		if s1 and ds ~= "surf-hard-slope-max" then s1:SetAttribute("value", tostring(sf.slopeMax or 45)) end
-		local s2 = getCachedEl(doc, "surf-hard-slider-alt-min")
-		if s2 and ds ~= "surf-hard-alt-min" then s2:SetAttribute("value", tostring(sf.altMin or 0)) end
-		local s3 = getCachedEl(doc, "surf-hard-slider-alt-max")
-		if s3 and ds ~= "surf-hard-alt-max" then s3:SetAttribute("value", tostring(sf.altMax or 200)) end
+	local stamped = false
+	local function ss(id, key, val)
+		if syncAndFlash(getCachedEl(doc, id), key, val) then stamped = true end
 	end
+	ss("surf-slider-size", "surf-size", tostring(spState.radius or 100))
+	ss("surf-slider-strength", "surf-strength", tostring(math.floor((spState.strength or 0.15) * 100 + 0.5)))
+	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((spState.curve or 1.0) * 10 + 0.5)))
+	-- Smart-filter sliders go through the same dirty-checked path: stamping
+	-- them every frame raised a change event every frame, which the echo guard
+	-- then had to swallow — taking the user's real drags with it.
+	ss("surf-hard-slider-slope-max", "surf-hard-slope-max", tostring(sf.slopeMax or 45))
+	ss("surf-hard-slider-alt-min", "surf-hard-alt-min", tostring(sf.altMin or 0))
+	ss("surf-hard-slider-alt-max", "surf-hard-alt-max", tostring(sf.altMax or 200))
 	do
+		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
 		local function nb(id, txt)
-			local el = getCachedEl(doc, id)
-			if el then el:SetAttribute("value", txt) end
+			setAttrValueIfChanged(getCachedEl(doc, id), id, txt)
 		end
 		nb("surf-slider-size-numbox", tostring(spState.radius or 100))
 		nb("surf-slider-strength-numbox", string.format("%.2f", spState.strength or 0.15))
@@ -380,8 +381,9 @@ local function syncHard(doc, ctx, setSummary)
 	uiState.updatingFromCode = false
 	-- SOFT and HARD share Size/Strength/Falloff; RmlUi echoes these stamps back
 	-- as change events a few frames later, so the handlers ignore anything that
-	-- close to a stamp (see onSurfSlider).
-	uiState.surfStampFrame = Spring.GetDrawFrame()
+	-- close to a stamp (see onSurfSlider). ONLY arm that window on a real
+	-- stamp — this sync runs every frame.
+	if stamped then uiState.surfStampFrame = Spring.GetDrawFrame() end
 
 	-- GRADING serves both submodes.
 	syncTints(doc, ctx)
@@ -465,6 +467,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 	setDm("surfPreset", surfState.preset or "")
 	setDm("surfFillV1", surfState.fillV1 and true or false)
 	setDm("surfFillV2", surfState.fillV2 and true or false)
+	-- FILL WITH NOISE only writes a channel that is both assigned and enabled.
+	setDm("surfCanFill", ((surfState.slot1 and surfState.fillV1)
+		or (surfState.slot2 and surfState.fillV2)) and true or false)
 	setDm("surfSlot1Name", shortAsset(surfState.slot1))
 	setDm("surfSlot2Name", shortAsset(surfState.slot2))
 	setDm("surfSlot1Assigned", surfState.slot1 ~= nil)
@@ -534,16 +539,20 @@ function M.sync(doc, ctx, surfState, setSummary)
 
 	-- Brush + fill sliders / numboxes
 	uiState.updatingFromCode = true
-	syncAndFlash(getCachedEl(doc, "surf-slider-size"), "surf-size", tostring(surfState.radius or 72))
-	syncAndFlash(getCachedEl(doc, "surf-slider-strength"), "surf-strength", tostring(math.floor((surfState.strength or 0.15) * 100 + 0.5)))
-	syncAndFlash(getCachedEl(doc, "surf-slider-falloff"), "surf-falloff", tostring(math.floor((surfState.curve or 0.5) * 10 + 0.5)))
-	syncAndFlash(getCachedEl(doc, "surf-slider-spacing"), "surf-spacing", tostring(surfState.spacing or 0))
-	syncAndFlash(getCachedEl(doc, "surf-slider-fill-scale"), "surf-fill-scale", tostring(surfState.fillScale or 1400))
-	syncAndFlash(getCachedEl(doc, "surf-slider-fill-seed"), "surf-fill-seed", tostring(surfState.fillSeed or 0))
+	local stamped = false
+	local function ss(id, key, val)
+		if syncAndFlash(getCachedEl(doc, id), key, val) then stamped = true end
+	end
+	ss("surf-slider-size", "surf-size", tostring(surfState.radius or 72))
+	ss("surf-slider-strength", "surf-strength", tostring(math.floor((surfState.strength or 0.15) * 100 + 0.5)))
+	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((surfState.curve or 0.5) * 10 + 0.5)))
+	ss("surf-slider-spacing", "surf-spacing", tostring(surfState.spacing or 0))
+	ss("surf-slider-fill-scale", "surf-fill-scale", tostring(surfState.fillScale or 1400))
+	ss("surf-slider-fill-seed", "surf-fill-seed", tostring(surfState.fillSeed or 0))
 	do
+		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
 		local function nb(id, txt)
-			local el = getCachedEl(doc, id)
-			if el then el:SetAttribute("value", txt) end
+			setAttrValueIfChanged(getCachedEl(doc, id), id, txt)
 		end
 		nb("surf-slider-size-numbox", tostring(surfState.radius or 72))
 		nb("surf-slider-strength-numbox", string.format("%.2f", surfState.strength or 0.15))
@@ -553,7 +562,11 @@ function M.sync(doc, ctx, surfState, setSummary)
 		nb("surf-slider-fill-seed-numbox", tostring(surfState.fillSeed or 0))
 	end
 	uiState.updatingFromCode = false
-	uiState.surfStampFrame = Spring.GetDrawFrame()   -- see syncHard's note
+	-- ONLY when a slider was actually re-stamped (see syncHard's note): this
+	-- sync runs every frame, so arming the window unconditionally would swallow
+	-- every change event the user's own dragging raises — which is exactly what
+	-- left FILL AND SEED dead (scale/seed never reached the painter).
+	if stamped then uiState.surfStampFrame = Spring.GetDrawFrame() end
 
 	if setSummary then
 		local what

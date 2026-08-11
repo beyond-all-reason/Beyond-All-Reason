@@ -5395,7 +5395,7 @@
 					</div>
 					<div id="section-surf-fill" class="hidden">
 						<div class="flex flex-row gap-1 mb-1">
-							<div id="btn-surf-noise-fill" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfNoiseFill()">
+							<div id="btn-surf-noise-fill" class="tf-lp-action-btn" style="flex: 1;" data-class-disabled="!surfCanFill" data-event-mousedown="onSurfNoiseFill()">
 								<div class="tf-action-btn-text">FILL WITH NOISE</div>
 							</div>
 						</div>
@@ -5418,6 +5418,7 @@
 							</div>
 						</div>
 						<div class="text-base text-light mb-1" style="opacity: 0.7;">Seeds the whole mask from the tileset noise field (grunt-work done, erase and adjust). Only assigned slots fill.</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="!surfCanFill">Nothing to fill yet — assign a variant to slot 1 or 2 (the caret on a slot chip) and leave its V1/V2 chip on.</div>
 						<div class="flex flex-row gap-1 mb-1">
 							<div id="btn-surf-clear-variant" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearVariant()">
 								<div class="tf-action-btn-text" data-if="!surfClearArm">CLEAR VARIANT</div>
