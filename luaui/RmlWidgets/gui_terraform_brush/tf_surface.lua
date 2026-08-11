@@ -1,10 +1,13 @@
--- tf_surface.lua: SURFACE (tileset variant paint) tool UI module for
--- gui_terraform_brush. The paint engine lives in the write-dir widget
--- dev_surface_painter.lua (WG.SurfacePainter); the variant catalog, mask
+-- tf_surface.lua: UI module for the SURFACE (soft variant paint) and LAYERS
+-- (hard splat-override paint) tools of gui_terraform_brush. Both run as
+-- activeTool 'surf' and share this panel; dm.surfMode ('soft'/'hard') picks
+-- which sections show. The soft engine lives in the write-dir widget
+-- dev_surface_painter.lua (WG.SurfacePainter), the hard engine is the Splat
+-- Painter reused headless (WG.SplatPainter); the variant catalog, mask
 -- binding and shader taps live in dev_tileset_terrain.lua (WG.TilesetTerrain).
--- This module owns the panel: palette tile grid (built imperatively — the
--- variant list is per-biome and dynamic), brush rows, fill/seed, sculpted
--- hint, and the two GROUP tint rows (TOPS / ROCK, meeting 2026-08-05).
+-- Panel: palette tile grid (built imperatively — the variant list is
+-- per-biome and dynamic), brush rows, fill/seed, sculpted hint, and the two
+-- GROUP tint rows (TOPS / ROCK, meeting 2026-08-05).
 local M = {}
 
 -- Capture engine globals as module upvalues: RmlUi-dispatched event closures
@@ -385,8 +388,8 @@ local function syncHard(doc, ctx, setSummary)
 	syncTints(doc, ctx)
 
 	if setSummary then
-		setSummary("SURFACE", "#fdc04c",
-			"", "HARD \194\183 " .. info[1],
+		setSummary("LAYERS", "#fdc04c",
+			"", info[1],
 			"R ", tostring(spState.radius or 0),
 			"Str ", string.format("%.2f", spState.strength or 0),
 			"Undo ", tostring(spState.undoCount or 0))

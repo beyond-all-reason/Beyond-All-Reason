@@ -343,6 +343,31 @@ body {
 	font-size: 1.4rem;
 }
 
+/* Save-progress segments in the status summary (FILE > Save): one box per
+   saver step — done = bright green, current pulses, rest stay dark.
+   The strip itself is a space-evenly flex row, so the segments sit inside
+   their own flex wrapper (one compact bar, not 18 spread-out items). Divs,
+   not inline-block spans: RmlUi has no inline-block, empty spans collapse. */
+.tf-ss-segwrap {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+.tf-ss-seg {
+	width: 9dp;
+	height: 9dp;
+	margin-right: 2dp;
+	border-radius: 1dp;
+	background-color: #2a2a34;
+}
+.tf-ss-seg.done {
+	background-color: #35d07f;
+}
+.tf-ss-seg.cur {
+	background-color: #1f8f58;
+	animation: pulse-opacity 0.8s infinite;
+}
+
 /* === Mode Buttons === */
 .tf-mode-btn {
 	flex: 1;
@@ -699,14 +724,14 @@ body {
 	background-color: #2b2113;
 }
 
-/* Tileset tool */
-.tf-btn-tileset.active {
+/* Surface tool (soft variants; lit via dm.surfSoftOn) */
+.tf-btn-surface.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
 
-/* Surface tool (also lit while the HARD submode drives the splat engine) */
-.tf-btn-surface.active {
+/* Layers tool (hard overrides through the splat engine; lit via dm.surfHardOn) */
+.tf-btn-layers.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -1617,6 +1642,20 @@ body {
 .tf-btn-splat.disabled {
 	pointer-events: auto;
 	cursor: default;
+}
+
+/* UNITS placeholder: permanently grayed until the unit placer panel lands.
+   Hit-testing stays alive so hovering can explain itself in the readout. */
+.tf-btn-units {
+	background-color: #252528;
+	border-color: #33333540;
+	cursor: default;
+	opacity: 0.4;
+}
+.tf-btn-units:hover {
+	background-color: #2a2a2e;
+	border-color: #33333560;
+	opacity: 0.55;
 }
 
 /* Pulsating summary text (used for "No grass data for this map") */
@@ -2645,7 +2684,7 @@ body {
 	border-color: #ffd47a;
 }
 
-.tf-btn-tileset.active:hover {
+.tf-btn-layers.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
@@ -3495,6 +3534,24 @@ margin-top: 3dp;
 	opacity: 0.35;
 }
 
+/* === TILESET window head row: SHADER toggle + PAINT SURFACES launcher ===== */
+/* Text-only mode buttons (metal-submode look). SHADER lights up while the
+   tileset shader renders the ground; PAINT SURFACES picks up the shared
+   .disabled gray whenever the shader is off (data-class-disabled). */
+.tf-ts-row-btn {
+	height: 36dp;
+	justify-content: center;
+	padding-bottom: 0dp;
+}
+.tf-ts-row-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-ts-row-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
 /* === BIOME LIBRARY picker (TILESET tool) ================================== */
 /* Clickable thumbnail tiles; active tile driven by data-class-active="tsBiome  */
 /* == '<key>'". Thumbnails at /luaui/images/terraform_brush/biome_<key>.png.    */
@@ -3678,16 +3735,7 @@ margin-top: 3dp;
 	color: #fdc04c;
 }
 
-/* === SURFACE SOFT|HARD submode row + HARD SURFACES section === */
-.tf-surf-mode-btn {
-	height: 36dp;
-	justify-content: center;
-	padding-bottom: 0dp;
-}
-.tf-surf-mode-btn.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
+/* === HARD SURFACES section (LAYERS tool) === */
 .tf-surf-ch-btn {
 	height: 32dp;
 	justify-content: center;

@@ -102,10 +102,25 @@
 			</div>
 		<div id="section-tools">
 		<div id="tf-tools-rows" class="flex flex-row gap-1 mb-1">
+			<!-- Front pair swaps with the tileset shader: SURFACE+LAYERS while it
+			     renders the ground, DIFFUSE+SPLAT on legacy engine-rendered maps. -->
+			<div id="btn-surface" class="tf-mode-btn tf-btn-surface hidden" data-class-active="surfSoftOn" data-event-mousedown="onTfSwitchSurface()">
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
+				<div class="tf-btn-text">SURFACE</div>
+			</div>
+			<div id="btn-layers" class="tf-mode-btn tf-btn-layers hidden" data-class-active="surfHardOn" data-event-mousedown="onTfSwitchLayers()">
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
+				<div class="tf-btn-text">LAYERS</div>
+			</div>
 			<div id="btn-diffuse" class="tf-mode-btn tf-btn-diffuse hidden" data-class-active="activeTool == 'diff'" data-event-mousedown="onTfSwitchDiffuse()">
 				<div class="tf-keybind-badge">D</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
 				<div class="tf-btn-text">DIFFUSE</div>
+			</div>
+			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" data-class-disabled="spToolDisabled" data-event-mousedown="onTfSwitchSplat()">
+				<div class="tf-keybind-badge">P</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
+				<div class="tf-btn-text">SPLAT</div>
 			</div>
 			<div id="btn-metal" class="tf-mode-btn tf-btn-metal" data-class-active="activeTool == 'mb'" data-event-mousedown="onTfSwitchMetal()">
 				<div class="tf-keybind-badge">M</div>
@@ -122,11 +137,6 @@
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_grass.png" />
 				<div class="tf-btn-text">GRASS</div>
 			</div>
-			<div id="btn-splat" class="tf-mode-btn tf-btn-splat" data-class-active="activeTool == 'sp'" data-class-disabled="spToolDisabled" data-event-mousedown="onTfSwitchSplat()">
-				<div class="tf-keybind-badge">P</div>
-				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
-				<div class="tf-btn-text">SPLAT</div>
-			</div>
 			<div id="btn-decals" class="tf-mode-btn tf-btn-decals" data-class-active="activeTool == 'dc'" data-event-mousedown="onTfSwitchDecals()">
 				<div class="tf-keybind-badge">G</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_decals.png" />
@@ -134,6 +144,12 @@
 			</div>
 		</div>
 		<div id="tf-tools-rows2" class="flex flex-row gap-1 mb-1">
+			<!-- Placeholder: unit placer panel (ubdev-style) lands here later.
+			     Grayed out; hovering explains itself in the status readout. -->
+			<div id="btn-units" class="tf-mode-btn tf-btn-units">
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/env_unit.png" />
+				<div class="tf-btn-text">UNITS</div>
+			</div>
 			<div id="btn-weather" class="tf-mode-btn tf-btn-weather" data-class-active="activeTool == 'wb'" data-event-mousedown="onTfSwitchWeather()">
 				<div class="tf-keybind-badge">W</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_weather.png" />
@@ -149,23 +165,15 @@
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_startpos.png" />
 				<div class="tf-btn-text">STARTS</div>
 			</div>
-			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" data-class-active="activeTool == 'env'" data-event-mousedown="onTfSwitchEnv()">
-				<div class="tf-keybind-badge">V</div>
-				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_environment.png" />
-				<div class="tf-btn-text">SCENE</div>
-			</div>
 			<div id="btn-clone" class="tf-mode-btn tf-btn-clone" data-class-active="activeTool == 'cl'" data-event-mousedown="onClOnClone()">
 				<div class="tf-keybind-badge">J</div>
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_clone.png" />
 				<div class="tf-btn-text">CLONE</div>
 			</div>
-			<div id="btn-tileset" class="tf-mode-btn tf-btn-tileset hidden" data-class-active="activeTool == 'ts'" data-event-mousedown="onTfSwitchTileset()">
-				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
-				<div class="tf-btn-text">TILESET</div>
-			</div>
-			<div id="btn-surface" class="tf-mode-btn tf-btn-surface hidden" data-class-active="activeTool == 'surf'" data-event-mousedown="onTfSwitchSurface()">
-				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_splat.png" />
-				<div class="tf-btn-text">SURFACE</div>
+			<div id="btn-environment" class="tf-mode-btn tf-btn-environment" data-class-active="activeTool == 'env'" data-event-mousedown="onTfSwitchEnv()">
+				<div class="tf-keybind-badge">V</div>
+				<img class="tf-icon-md" src="/luaui/images/terraform_brush/mode_environment.png" />
+				<div class="tf-btn-text">SCENE</div>
 			</div>
 		</div>
 		</div>
@@ -4597,6 +4605,12 @@
 				<div class="tf-env-btn-text">DIMENSIONS</div>
 			</div>
 		</div>
+		<div class="flex flex-row gap-1 mb-1">
+			<div id="btn-env-tileset" class="tf-env-btn" style="flex: 1;">
+				<img class="tf-env-btn-icon" src="/luaui/images/terraform_brush/mode_splat.png" />
+				<div class="tf-env-btn-text">TILESET</div>
+			</div>
+		</div>
 		</div><!-- /section-env-buttons -->
 		</div><!-- /frame-env-buttons -->
 
@@ -5149,19 +5163,367 @@
 
 		</div><!-- /tf-light-controls -->
 
-			<div id="tf-tileset-controls" data-if="activeTool == 'ts'">
 
-				<div class="flex flex-row gap-1 items-center mb-1">
-					<img id="btn-ts-shader" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onTsToggleShader()" />
-					<div class="text-sm text-light">Tileset shader</div>
+			<!-- SURFACE (tileset variant paint) tool: paints the soft-top variant
+			     mask of the Tileset Terrain shader. Hard surfaces (cliff +
+			     intermediary) are the LAYERS tool's business, not this one's.
+			     Both tools share this panel: SURFACE shows the surfMode == 'soft'
+			     sections, LAYERS (splat-override channels of the tileset shader,
+			     R=auto G=talus B=cliff A=plateau via the Splat Painter engine)
+			     shows the 'hard' ones. The old SOFT|HARD switcher is gone — the
+			     two tool buttons in the TOOLS grid pick the mode directly. -->
+			<div id="tf-surface-controls" data-if="activeTool == 'surf'">
+
+				<div class="tf-section-frame" id="frame-surf-mode">
+					<div class="text-base text-light" style="opacity: 0.75;">Biome: <span class="font-bold">{{surfBiomeName}}</span></div>
 				</div>
-				<div class="text-base text-light mb-1" style="opacity: 0.7;">Off hands the ground back to the engine, so old maps keep their own textures.</div>
+
+				<div data-if="surfMode == 'soft'">
+					<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — strokes are stored in the mask but invisible. Flip the SHADER switch in the TILESET window (SCENE menu).</div>
+				</div>
+
+				<!-- HARD SURFACES: splat-override paint (engine = cmd_splat_painter,
+				     reused headless — the legacy SPLAT panel stays untouched). -->
+				<div class="tf-section-frame" id="frame-surf-hard" data-if="surfMode == 'hard'">
+					<div id="btn-toggle-surf-hard" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-hard" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+						<div class="tf-collapsible-title">HARD SURFACES</div>
+					</div>
+					<div id="section-surf-hard">
+						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — hard strokes drive the legacy DNTS splats instead of tileset overrides. Flip the SHADER switch in the TILESET window (SCENE menu).</div>
+						<!-- NOW PAINTING (hard): what the next stroke forces -->
+						<div id="surf-hard-now-strip" class="surf-now-strip mb-1">
+							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-talus="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4"></div>
+							<div class="surf-now-text">
+								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-talus="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4">{{surfHardNowName}}</div>
+								<div class="text-base text-light" style="opacity: 0.7;">{{surfHardNowDetail}}</div>
+							</div>
+						</div>
+						<!-- Override channel chips (splat channels R/G/B/A) -->
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-surf-hard-ch1" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 1" data-event-mousedown="onSurfHardChannel(1)">
+								<div class="tf-btn-text surf-hard-text-auto">AUTO</div>
+							</div>
+							<div id="btn-surf-hard-ch2" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 2" data-event-mousedown="onSurfHardChannel(2)">
+								<div class="tf-btn-text surf-hard-text-talus">TALUS</div>
+							</div>
+							<div id="btn-surf-hard-ch3" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 3" data-event-mousedown="onSurfHardChannel(3)">
+								<div class="tf-btn-text surf-hard-text-cliff">CLIFF</div>
+							</div>
+							<div id="btn-surf-hard-ch4" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 4" data-event-mousedown="onSurfHardChannel(4)">
+								<div class="tf-btn-text surf-hard-text-plateau">PLATEAU</div>
+							</div>
+						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. TALUS / CLIFF / PLATEAU force that material where painted.</div>
+						<!-- Smart filters (Splat Painter engine set) -->
+						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">SMART FILTERS</div>
+						<div class="flex flex-row items-center gap-1 mb-1">
+							<div id="btn-surf-hard-water" class="tf-overlay-chip" data-class-active="surfHardAvoidWater" data-event-mousedown="onSurfHardFilter('avoidWater')">
+								<div class="tf-overlay-chip-label">Avoid Water</div>
+							</div>
+							<div id="btn-surf-hard-cliffs" class="tf-overlay-chip" data-class-active="surfHardAvoidCliffs" data-event-mousedown="onSurfHardFilter('avoidCliffs')">
+								<div class="tf-overlay-chip-label">Avoid Cliffs</div>
+							</div>
+							<div id="btn-surf-hard-altmin" class="tf-overlay-chip" data-class-active="surfHardAltMin" data-event-mousedown="onSurfHardFilter('altMinEnable')">
+								<div class="tf-overlay-chip-label">Alt Min</div>
+							</div>
+							<div id="btn-surf-hard-altmax" class="tf-overlay-chip" data-class-active="surfHardAltMax" data-event-mousedown="onSurfHardFilter('altMaxEnable')">
+								<div class="tf-overlay-chip-label">Alt Max</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAvoidCliffs">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Max slope</div>
+							<input type="range" id="surf-hard-slider-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" data-event-change="onSurfHardSlider('slope-max')" />
+							<input type="text" id="surf-hard-slider-slope-max-numbox" class="tf-slider-numbox" readonly value="45" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMin">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Alt min</div>
+							<input type="range" id="surf-hard-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfHardSlider('alt-min')" />
+							<input type="text" id="surf-hard-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMax">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Alt max</div>
+							<input type="range" id="surf-hard-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfHardSlider('alt-max')" />
+							<input type="text" id="surf-hard-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
+						</div>
+						<!-- Undo / redo + save (Splat Painter history and export) -->
+						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">UNDO &amp; SAVE</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div id="btn-surf-hard-undo" class="tf-history-btn" data-event-mousedown="onSurfHardUndo()">
+								<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
+							</div>
+							<div id="btn-surf-hard-redo" class="tf-history-btn" data-event-mousedown="onSurfHardRedo()">
+								<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
+							</div>
+							<div class="text-base text-light" style="opacity: 0.7;">Ctrl+Z / Ctrl+Shift+Z</div>
+						</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-surf-hard-format" class="tf-action-btn" style="flex: 0 0 auto; min-width: 50dp;" data-event-mousedown="onSurfHardCycleFormat()">
+								<div class="tf-action-btn-text">{{surfHardExportFmt}}</div>
+							</div>
+							<div id="btn-surf-hard-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSurfHardSave()">
+								<div class="tf-action-btn-text">SAVE SPLATS</div>
+							</div>
+						</div>
+					</div>
+				</div><!-- /frame-surf-hard -->
+
+				<!-- SURFACE PALETTE -->
+				<div class="tf-section-frame" id="frame-surf-palette" data-if="surfMode == 'soft'">
+					<div id="btn-toggle-surf-palette" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-palette" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+						<div class="tf-collapsible-title">SURFACE PALETTE</div>
+					</div>
+					<div id="section-surf-palette">
+						<!-- NOW PAINTING: persistent readout of what the next stroke does -->
+						<div id="surf-now-strip" class="surf-now-strip mb-1" data-class-surf-now-erase="surfErase">
+							<div id="surf-now-thumb" class="surf-now-thumb"></div>
+							<div class="surf-now-text">
+								<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2">{{surfNowName}}</div>
+								<div class="text-base text-light" style="opacity: 0.7;">{{surfNowDetail}}</div>
+							</div>
+							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
+								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
+							</div>
+						</div>
+						<!-- SLOT RAIL: base + the two paint channels, explicit -->
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="surf-slot-base" class="surf-slot-chip" data-class-active="surfSelSlot == 0" data-event-mousedown="onSurfSelectBase()">
+								<div id="surf-slot-base-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-info">
+									<div class="text-base font-bold text-light">BASE</div>
+									<div class="text-base text-light" style="opacity: 0.7;">{{surfBaseShare}}</div>
+								</div>
+							</div>
+							<div id="surf-slot-1" class="surf-slot-chip surf-slot-c1" data-class-active="surfSelSlot == 1" data-class-surf-slot-empty="!surfSlot1Assigned" data-event-mousedown="onSurfSlotSelect(1)">
+								<div id="surf-slot-1-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-info">
+									<div class="text-base font-bold surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
+									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot1Share}}</div>
+								</div>
+								<div id="surf-slot-1-pick" class="surf-slot-pick">&#9662;</div>
+								<div id="surf-slot-1-free" class="surf-slot-free" data-if="surfSlot1Assigned">&#215;</div>
+							</div>
+							<div id="surf-slot-2" class="surf-slot-chip surf-slot-c2" data-class-active="surfSelSlot == 2" data-class-surf-slot-empty="!surfSlot2Assigned" data-event-mousedown="onSurfSlotSelect(2)">
+								<div id="surf-slot-2-thumb" class="surf-slot-thumb"></div>
+								<div class="surf-slot-info">
+									<div class="text-base font-bold surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
+									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot2Share}}</div>
+								</div>
+								<div id="surf-slot-2-pick" class="surf-slot-pick">&#9662;</div>
+								<div id="surf-slot-2-free" class="surf-slot-free" data-if="surfSlot2Assigned">&#215;</div>
+							</div>
+						</div>
+						<!-- Per-slot variant picker: opened by a slot's caret, so the
+						     full texture library only occupies space while choosing. -->
+						<div id="surf-picker" class="surf-picker hidden">
+							<div class="flex flex-row items-center mb-1">
+								<div class="text-base font-bold text-light" style="flex: 1;">{{surfPickerTitle}}</div>
+								<div id="surf-picker-close" class="surf-slot-free" style="position: relative; top: 0;">&#215;</div>
+							</div>
+							<div id="surf-palette-grid"></div>
+							<div class="text-base text-light" style="opacity: 0.7;" data-if="surfPickerHasPaint">This slot already carries paint &#8212; picking re-skins those areas.</div>
+						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasVariants">No top variants in this biome &#8212; pick Teizer-5 or Enborelde in the TILESET window (SCENE menu).</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 60dp;">Coverage</div>
+							<div class="surf-cov-track">
+								<div id="surf-coverage-bar" class="surf-cov-fill"></div>
+								<div id="surf-cov-v1" class="surf-cov-fill surf-cov-c1"></div>
+								<div id="surf-cov-v2" class="surf-cov-fill surf-cov-c2"></div>
+							</div>
+							<div class="text-base text-light" data-class-surf-cov-amber="surfCoverageAmber" style="min-width: 38dp; text-align: right;">{{surfCoverageStr}}</div>
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Dot lightly &#8212; the base stays dominant. Alt-click the map to eyedrop.</div>
+					</div>
+				</div><!-- /frame-surf-palette -->
+
+				<!-- BRUSH -->
+				<div class="tf-section-frame" id="frame-surf-brush">
+					<div id="btn-toggle-surf-brush" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-brush" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
+						<div class="tf-collapsible-title">BRUSH</div>
+					</div>
+					<div id="section-surf-brush">
+						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfMode == 'soft'">
+							<div id="btn-surf-preset-dot" class="tf-overlay-chip" data-class-active="surfPreset == 'dot'" data-event-mousedown="onSurfPreset('dot')">
+								<div class="tf-overlay-chip-label">DOT</div>
+							</div>
+							<div id="btn-surf-preset-wash" class="tf-overlay-chip" data-class-active="surfPreset == 'wash'" data-event-mousedown="onSurfPreset('wash')">
+								<div class="tf-overlay-chip-label">WASH</div>
+							</div>
+							<div id="btn-surf-preset-fill" class="tf-overlay-chip" data-class-active="surfPreset == 'fill'" data-event-mousedown="onSurfPreset('fill')">
+								<div class="tf-overlay-chip-label">FILL</div>
+							</div>
+							<div id="btn-surf-erase" class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
+								<div class="tf-overlay-chip-label">ERASE</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Size</div>
+							<input type="range" id="surf-slider-size" class="tf-slider" min="8" max="2000" step="1" value="72" data-event-change="onSurfSlider('size')" />
+							<input type="text" id="surf-slider-size-numbox" class="tf-slider-numbox" readonly value="72" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Strength</div>
+							<input type="range" id="surf-slider-strength" class="tf-slider" min="1" max="100" step="1" value="15" data-event-change="onSurfSlider('strength')" />
+							<input type="text" id="surf-slider-strength-numbox" class="tf-slider-numbox" readonly value="0.15" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Falloff</div>
+							<input type="range" id="surf-slider-falloff" class="tf-slider" min="1" max="50" step="1" value="5" data-event-change="onSurfSlider('falloff')" />
+							<input type="text" id="surf-slider-falloff-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div data-if="surfMode == 'soft'">
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<div class="text-base text-light" style="flex: 0 0 96dp;">Spacing</div>
+								<input type="range" id="surf-slider-spacing" class="tf-slider" min="0" max="256" step="4" value="0" data-event-change="onSurfSlider('spacing')" />
+								<input type="text" id="surf-slider-spacing-numbox" class="tf-slider-numbox" readonly value="off" />
+							</div>
+							<div class="text-base text-light mb-1" style="opacity: 0.7;">Spacing 0 paints continuously; otherwise one stamp every N elmos of drag.</div>
+							<div class="flex flex-row gap-1 items-center mb-1">
+								<img id="btn-surf-lock" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onSurfLockToggle()" />
+								<div class="text-sm text-light">Cliffs and foothills protected</div>
+							</div>
+							<div class="text-base text-light" style="opacity: 0.7;">Variants only ever retexture the soft top — hard surfaces ignore the brush by design. The lock also guards the legacy splat path.</div>
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;" data-if="surfMode == 'hard'">LMB paints the selected override channel, RMB erases it. Keys 1&#8211;4 pick the channel.</div>
+					</div>
+				</div><!-- /frame-surf-brush -->
+
+				<!-- FILL AND SEED -->
+				<div class="tf-section-frame tf-collapsed" id="frame-surf-fill" data-if="surfMode == 'soft'">
+					<div id="btn-toggle-surf-fill" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-fill" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">FILL AND SEED</div>
+					</div>
+					<div id="section-surf-fill" class="hidden">
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-surf-noise-fill" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfNoiseFill()">
+								<div class="tf-action-btn-text">FILL WITH NOISE</div>
+							</div>
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Scale</div>
+							<input type="range" id="surf-slider-fill-scale" class="tf-slider" min="200" max="4000" step="25" value="1400" data-event-change="onSurfSlider('fill-scale')" />
+							<input type="text" id="surf-slider-fill-scale-numbox" class="tf-slider-numbox" readonly value="1400" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Seed</div>
+							<input type="range" id="surf-slider-fill-seed" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onSurfSlider('fill-seed')" />
+							<input type="text" id="surf-slider-fill-seed-numbox" class="tf-slider-numbox" readonly value="0" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div id="btn-surf-fill-v1" class="tf-overlay-chip" data-class-active="surfFillV1" data-event-mousedown="onSurfFillToggle(1)">
+								<div class="tf-overlay-chip-label">V1 {{surfSlot1Name}}</div>
+							</div>
+							<div id="btn-surf-fill-v2" class="tf-overlay-chip" data-class-active="surfFillV2" data-event-mousedown="onSurfFillToggle(2)">
+								<div class="tf-overlay-chip-label">V2 {{surfSlot2Name}}</div>
+							</div>
+						</div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;">Seeds the whole mask from the tileset noise field (grunt-work done, erase and adjust). Only assigned slots fill.</div>
+						<div class="flex flex-row gap-1 mb-1">
+							<div id="btn-surf-clear-variant" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearVariant()">
+								<div class="tf-action-btn-text" data-if="!surfClearArm">CLEAR VARIANT</div>
+								<div class="tf-action-btn-text" data-if="surfClearArm">CONFIRM?</div>
+							</div>
+							<div id="btn-surf-clear-all" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearAll()">
+								<div class="tf-action-btn-text" data-if="!surfClearAllArm">CLEAR ALL</div>
+								<div class="tf-action-btn-text" data-if="surfClearAllArm">CONFIRM?</div>
+							</div>
+						</div>
+					</div>
+				</div><!-- /frame-surf-fill -->
+
+				<!-- SCULPTED FEATURES -->
+				<div class="tf-section-frame tf-collapsed" id="frame-surf-sculpt" data-if="surfMode == 'soft'">
+					<div id="btn-toggle-surf-sculpt" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-sculpt" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">SCULPTED FEATURES</div>
+					</div>
+					<div id="section-surf-sculpt" class="hidden">
+						<div id="surf-sculpt-grid"></div>
+						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasSculpted">This tileset has not tagged its sculpted (normal-only, multi-rotation) layers yet — any variant tile paints the same way.</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Workflow: pepper the sculpted layer in, keep it only where the baked rotation happens to match the landmark, erase the rest (the DoK wreck-ripple trick).</div>
+					</div>
+				</div><!-- /frame-surf-sculpt -->
+
+				<!-- GRADING -->
+				<div class="tf-section-frame tf-collapsed" id="frame-surf-grading">
+					<div id="btn-toggle-surf-grading" class="tf-section-title-row" style="cursor: pointer;">
+						<img id="img-toggle-surf-grading" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
+						<div class="tf-collapsible-title">GRADING</div>
+					</div>
+					<div id="section-surf-grading" class="hidden">
+						<div class="text-sm text-light mb-1">TOPS (base + variants)</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint R</div>
+							<input type="range" id="surf-slider-topsTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintR')" />
+							<input type="text" id="surf-slider-topsTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint G</div>
+							<input type="range" id="surf-slider-topsTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintG')" />
+							<input type="text" id="surf-slider-topsTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint B</div>
+							<input type="range" id="surf-slider-topsTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintB')" />
+							<input type="text" id="surf-slider-topsTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Desaturate</div>
+							<input type="range" id="surf-slider-topsDesat" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onSurfKnob('topsDesat')" />
+							<input type="text" id="surf-slider-topsDesat-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">ROCK (intermediary + cliff)</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint R</div>
+							<input type="range" id="surf-slider-rockTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintR')" />
+							<input type="text" id="surf-slider-rockTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint G</div>
+							<input type="range" id="surf-slider-rockTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintG')" />
+							<input type="text" id="surf-slider-rockTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint B</div>
+							<input type="range" id="surf-slider-rockTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintB')" />
+							<input type="text" id="surf-slider-rockTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="text-base text-light" style="flex: 0 0 96dp;">Desaturate</div>
+							<input type="range" id="surf-slider-rockDesat" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onSurfKnob('rockDesat')" />
+							<input type="text" id="surf-slider-rockDesat-numbox" class="tf-slider-numbox" readonly value="0.00" />
+						</div>
+						<div class="text-base text-light" style="opacity: 0.7;">Layers share their base: retint the group and every variant follows. Per-layer tints stay in the TILESET window (SCENE menu).</div>
+					</div>
+				</div><!-- /frame-surf-grading -->
+
+			</div><!-- /tf-surface-controls -->
+
+		</div><!-- /tf-panel-body -->
+	</div>
+
+	<!-- ============ TILESET (separate floating window, opened from SCENE) ============ -->
+	<div id="tf-env-tileset-root" class="tf-env-float-window widget-shadow rounded-md bg-darkest p-2-5" data-if="envTilesetVisible" style="left: 30vw; top: 6vh;">
+		<div class="flex flex-row justify-between items-center mb-2">
+			<div id="tf-env-tileset-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Tileset</div>
+			<div id="btn-env-tileset-close" class="tf-quit-btn"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
+		<div class="tf-panel-body">
+			<div id="tf-tileset-controls">
 
 				<div class="flex flex-row gap-1 mb-1">
-					<div id="btn-ts-paint-surfaces" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onTfSwitchSurface()">
-						<div class="tf-action-btn-text">PAINT SURFACES</div>
+					<div id="btn-ts-shader" class="tf-mode-btn tf-ts-row-btn" data-class-active="tsShaderOn" data-event-mousedown="onTsToggleShader()">
+						<div class="tf-btn-text">ACTIVATE SHADER</div>
+					</div>
+					<div id="btn-ts-paint-surfaces" class="tf-mode-btn tf-ts-row-btn" data-class-disabled="!tsShaderOn" data-event-mousedown="onTfSwitchSurface()">
+						<div class="tf-btn-text">PAINT SURFACES</div>
 					</div>
 				</div>
+				<div class="text-base text-light mb-1" style="opacity: 0.7;">Shader off hands the ground back to the engine, so old maps keep their own textures.</div>
 
 				<div class="tf-section-frame" id="frame-ts-library">
 						<div id="btn-toggle-ts-library" class="tf-section-title-row" style="cursor: pointer;">
@@ -5191,10 +5553,6 @@
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'prototemperate'" data-event-mousedown="onPickBiome('prototemperate')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_prototemperate.png" />
 									<div class="tf-biome-name">Prototemperate</div>
-								</div>
-								<div class="tf-biome-tile" data-class-active="tsBiome == 'bismuth'" data-event-mousedown="onPickBiome('bismuth')">
-									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_bismuth.png" />
-									<div class="tf-biome-name">Bismuth</div>
 								</div>
 								<div class="tf-biome-tile" data-class-active="tsBiome == 'palehang'" data-event-mousedown="onPickBiome('palehang')">
 									<img class="tf-biome-thumb" src="/luaui/images/terraform_brush/biome_palehang.png" />
@@ -5793,353 +6151,6 @@
 				</div><!-- /frame-ts-presets -->
 
 			</div><!-- /tf-tileset-controls -->
-
-			<!-- SURFACE (tileset variant paint) tool: paints the soft-top variant
-			     mask of the Tileset Terrain shader. Hard surfaces (cliff +
-			     intermediary) are not in this tool's vocabulary by design. -->
-			<div id="tf-surface-controls" data-if="activeTool == 'surf'">
-
-				<!-- SOFT|HARD submode row: SOFT paints the tileset variant mask
-				     (soft tops only, dev_surface_painter engine); HARD paints the
-				     splat-override channels of the tileset shader (R=auto, G=talus,
-				     B=cliff, A=plateau) through the Splat Painter engine. -->
-				<div class="tf-section-frame" id="frame-surf-mode">
-					<div class="flex flex-row gap-1 mb-1">
-						<div id="btn-surf-mode-soft" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfMode == 'soft'" data-event-mousedown="onSurfMode('soft')">
-							<div class="tf-btn-text">SOFT</div>
-						</div>
-						<div id="btn-surf-mode-hard" class="tf-mode-btn tf-surf-mode-btn" data-class-active="surfMode == 'hard'" data-event-mousedown="onSurfMode('hard')">
-							<div class="tf-btn-text">HARD</div>
-						</div>
-					</div>
-					<div class="text-base text-light" style="opacity: 0.75;">Biome: <span class="font-bold">{{surfBiomeName}}</span></div>
-				</div>
-
-				<div data-if="surfMode == 'soft'">
-					<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — strokes are stored in the mask but invisible. Flip the SHADER switch in the TILESET tool.</div>
-				</div>
-
-				<!-- HARD SURFACES: splat-override paint (engine = cmd_splat_painter,
-				     reused headless — the legacy SPLAT panel stays untouched). -->
-				<div class="tf-section-frame" id="frame-surf-hard" data-if="surfMode == 'hard'">
-					<div id="btn-toggle-surf-hard" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-hard" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-						<div class="tf-collapsible-title">HARD SURFACES</div>
-					</div>
-					<div id="section-surf-hard">
-						<div class="text-base text-light mb-1" style="opacity: 0.8;" data-if="surfShaderOff">Tileset shader is OFF — hard strokes drive the legacy DNTS splats instead of tileset overrides. Flip the SHADER switch in the TILESET tool.</div>
-						<!-- NOW PAINTING (hard): what the next stroke forces -->
-						<div id="surf-hard-now-strip" class="surf-now-strip mb-1">
-							<div id="surf-hard-now-swatch" class="surf-now-thumb" data-class-surf-hard-swatch-auto="surfHardCh == 1" data-class-surf-hard-swatch-talus="surfHardCh == 2" data-class-surf-hard-swatch-cliff="surfHardCh == 3" data-class-surf-hard-swatch-plateau="surfHardCh == 4"></div>
-							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-hard-text-auto="surfHardCh == 1" data-class-surf-hard-text-talus="surfHardCh == 2" data-class-surf-hard-text-cliff="surfHardCh == 3" data-class-surf-hard-text-plateau="surfHardCh == 4">{{surfHardNowName}}</div>
-								<div class="text-base text-light" style="opacity: 0.7;">{{surfHardNowDetail}}</div>
-							</div>
-						</div>
-						<!-- Override channel chips (splat channels R/G/B/A) -->
-						<div class="flex flex-row gap-1 mb-1">
-							<div id="btn-surf-hard-ch1" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 1" data-event-mousedown="onSurfHardChannel(1)">
-								<div class="tf-btn-text surf-hard-text-auto">AUTO</div>
-							</div>
-							<div id="btn-surf-hard-ch2" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 2" data-event-mousedown="onSurfHardChannel(2)">
-								<div class="tf-btn-text surf-hard-text-talus">TALUS</div>
-							</div>
-							<div id="btn-surf-hard-ch3" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 3" data-event-mousedown="onSurfHardChannel(3)">
-								<div class="tf-btn-text surf-hard-text-cliff">CLIFF</div>
-							</div>
-							<div id="btn-surf-hard-ch4" class="tf-mode-btn tf-surf-ch-btn" data-class-active="surfHardCh == 4" data-event-mousedown="onSurfHardChannel(4)">
-								<div class="tf-btn-text surf-hard-text-plateau">PLATEAU</div>
-							</div>
-						</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;">AUTO paints the override away — the shader's slope-driven placement returns. TALUS / CLIFF / PLATEAU force that material where painted.</div>
-						<!-- Smart filters (Splat Painter engine set) -->
-						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">SMART FILTERS</div>
-						<div class="flex flex-row items-center gap-1 mb-1">
-							<div id="btn-surf-hard-water" class="tf-overlay-chip" data-class-active="surfHardAvoidWater" data-event-mousedown="onSurfHardFilter('avoidWater')">
-								<div class="tf-overlay-chip-label">Avoid Water</div>
-							</div>
-							<div id="btn-surf-hard-cliffs" class="tf-overlay-chip" data-class-active="surfHardAvoidCliffs" data-event-mousedown="onSurfHardFilter('avoidCliffs')">
-								<div class="tf-overlay-chip-label">Avoid Cliffs</div>
-							</div>
-							<div id="btn-surf-hard-altmin" class="tf-overlay-chip" data-class-active="surfHardAltMin" data-event-mousedown="onSurfHardFilter('altMinEnable')">
-								<div class="tf-overlay-chip-label">Alt Min</div>
-							</div>
-							<div id="btn-surf-hard-altmax" class="tf-overlay-chip" data-class-active="surfHardAltMax" data-event-mousedown="onSurfHardFilter('altMaxEnable')">
-								<div class="tf-overlay-chip-label">Alt Max</div>
-							</div>
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAvoidCliffs">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Max slope</div>
-							<input type="range" id="surf-hard-slider-slope-max" class="tf-slider" min="5" max="89" step="1" value="45" data-event-change="onSurfHardSlider('slope-max')" />
-							<input type="text" id="surf-hard-slider-slope-max-numbox" class="tf-slider-numbox" readonly value="45" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMin">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Alt min</div>
-							<input type="range" id="surf-hard-slider-alt-min" class="tf-slider" min="-500" max="500" step="1" value="0" data-event-change="onSurfHardSlider('alt-min')" />
-							<input type="text" id="surf-hard-slider-alt-min-numbox" class="tf-slider-numbox" readonly value="0" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfHardAltMax">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Alt max</div>
-							<input type="range" id="surf-hard-slider-alt-max" class="tf-slider" min="-500" max="500" step="1" value="200" data-event-change="onSurfHardSlider('alt-max')" />
-							<input type="text" id="surf-hard-slider-alt-max-numbox" class="tf-slider-numbox" readonly value="200" />
-						</div>
-						<!-- Undo / redo + save (Splat Painter history and export) -->
-						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">UNDO &amp; SAVE</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div id="btn-surf-hard-undo" class="tf-history-btn" data-event-mousedown="onSurfHardUndo()">
-								<img class="tf-icon-sm" src="/luaui/images/terraform_brush/undo.png" />
-							</div>
-							<div id="btn-surf-hard-redo" class="tf-history-btn" data-event-mousedown="onSurfHardRedo()">
-								<img class="tf-icon-sm" src="/luaui/images/terraform_brush/redo.png" />
-							</div>
-							<div class="text-base text-light" style="opacity: 0.7;">Ctrl+Z / Ctrl+Shift+Z</div>
-						</div>
-						<div class="flex flex-row gap-1 mb-1">
-							<div id="btn-surf-hard-format" class="tf-action-btn" style="flex: 0 0 auto; min-width: 50dp;" data-event-mousedown="onSurfHardCycleFormat()">
-								<div class="tf-action-btn-text">{{surfHardExportFmt}}</div>
-							</div>
-							<div id="btn-surf-hard-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSurfHardSave()">
-								<div class="tf-action-btn-text">SAVE SPLATS</div>
-							</div>
-						</div>
-					</div>
-				</div><!-- /frame-surf-hard -->
-
-				<!-- SURFACE PALETTE -->
-				<div class="tf-section-frame" id="frame-surf-palette" data-if="surfMode == 'soft'">
-					<div id="btn-toggle-surf-palette" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-palette" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-						<div class="tf-collapsible-title">SURFACE PALETTE</div>
-					</div>
-					<div id="section-surf-palette">
-						<!-- NOW PAINTING: persistent readout of what the next stroke does -->
-						<div id="surf-now-strip" class="surf-now-strip mb-1" data-class-surf-now-erase="surfErase">
-							<div id="surf-now-thumb" class="surf-now-thumb"></div>
-							<div class="surf-now-text">
-								<div class="text-lg font-bold text-light" data-class-surf-text-c1="surfSelSlot == 1" data-class-surf-text-c2="surfSelSlot == 2">{{surfNowName}}</div>
-								<div class="text-base text-light" style="opacity: 0.7;">{{surfNowDetail}}</div>
-							</div>
-							<div class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
-								<div class="tf-overlay-chip-label">{{surfNowMode}}</div>
-							</div>
-						</div>
-						<!-- SLOT RAIL: base + the two paint channels, explicit -->
-						<div class="flex flex-row gap-1 mb-1">
-							<div id="surf-slot-base" class="surf-slot-chip" data-class-active="surfSelSlot == 0" data-event-mousedown="onSurfSelectBase()">
-								<div id="surf-slot-base-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold text-light">BASE</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfBaseShare}}</div>
-								</div>
-							</div>
-							<div id="surf-slot-1" class="surf-slot-chip surf-slot-c1" data-class-active="surfSelSlot == 1" data-class-surf-slot-empty="!surfSlot1Assigned" data-event-mousedown="onSurfSlotSelect(1)">
-								<div id="surf-slot-1-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold surf-text-c1">1 &#183; {{surfSlot1Name}}</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot1Share}}</div>
-								</div>
-								<div id="surf-slot-1-pick" class="surf-slot-pick">&#9662;</div>
-								<div id="surf-slot-1-free" class="surf-slot-free" data-if="surfSlot1Assigned">&#215;</div>
-							</div>
-							<div id="surf-slot-2" class="surf-slot-chip surf-slot-c2" data-class-active="surfSelSlot == 2" data-class-surf-slot-empty="!surfSlot2Assigned" data-event-mousedown="onSurfSlotSelect(2)">
-								<div id="surf-slot-2-thumb" class="surf-slot-thumb"></div>
-								<div class="surf-slot-info">
-									<div class="text-base font-bold surf-text-c2">2 &#183; {{surfSlot2Name}}</div>
-									<div class="text-base text-light" style="opacity: 0.7;">{{surfSlot2Share}}</div>
-								</div>
-								<div id="surf-slot-2-pick" class="surf-slot-pick">&#9662;</div>
-								<div id="surf-slot-2-free" class="surf-slot-free" data-if="surfSlot2Assigned">&#215;</div>
-							</div>
-						</div>
-						<!-- Per-slot variant picker: opened by a slot's caret, so the
-						     full texture library only occupies space while choosing. -->
-						<div id="surf-picker" class="surf-picker hidden">
-							<div class="flex flex-row items-center mb-1">
-								<div class="text-base font-bold text-light" style="flex: 1;">{{surfPickerTitle}}</div>
-								<div id="surf-picker-close" class="surf-slot-free" style="position: relative; top: 0;">&#215;</div>
-							</div>
-							<div id="surf-palette-grid"></div>
-							<div class="text-base text-light" style="opacity: 0.7;" data-if="surfPickerHasPaint">This slot already carries paint &#8212; picking re-skins those areas.</div>
-						</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasVariants">No top variants in this biome &#8212; pick Teizer-5 or Enborelde in the TILESET tool.</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 60dp;">Coverage</div>
-							<div class="surf-cov-track">
-								<div id="surf-coverage-bar" class="surf-cov-fill"></div>
-								<div id="surf-cov-v1" class="surf-cov-fill surf-cov-c1"></div>
-								<div id="surf-cov-v2" class="surf-cov-fill surf-cov-c2"></div>
-							</div>
-							<div class="text-base text-light" data-class-surf-cov-amber="surfCoverageAmber" style="min-width: 38dp; text-align: right;">{{surfCoverageStr}}</div>
-						</div>
-						<div class="text-base text-light" style="opacity: 0.7;">Dot lightly &#8212; the base stays dominant. Alt-click the map to eyedrop.</div>
-					</div>
-				</div><!-- /frame-surf-palette -->
-
-				<!-- BRUSH -->
-				<div class="tf-section-frame" id="frame-surf-brush">
-					<div id="btn-toggle-surf-brush" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-brush" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-						<div class="tf-collapsible-title">BRUSH</div>
-					</div>
-					<div id="section-surf-brush">
-						<div class="flex flex-row gap-1 items-center mb-1" data-if="surfMode == 'soft'">
-							<div id="btn-surf-preset-dot" class="tf-overlay-chip" data-class-active="surfPreset == 'dot'" data-event-mousedown="onSurfPreset('dot')">
-								<div class="tf-overlay-chip-label">DOT</div>
-							</div>
-							<div id="btn-surf-preset-wash" class="tf-overlay-chip" data-class-active="surfPreset == 'wash'" data-event-mousedown="onSurfPreset('wash')">
-								<div class="tf-overlay-chip-label">WASH</div>
-							</div>
-							<div id="btn-surf-preset-fill" class="tf-overlay-chip" data-class-active="surfPreset == 'fill'" data-event-mousedown="onSurfPreset('fill')">
-								<div class="tf-overlay-chip-label">FILL</div>
-							</div>
-							<div id="btn-surf-erase" class="tf-overlay-chip" data-class-active="surfErase" data-event-mousedown="onSurfEraseToggle()">
-								<div class="tf-overlay-chip-label">ERASE</div>
-							</div>
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Size</div>
-							<input type="range" id="surf-slider-size" class="tf-slider" min="8" max="2000" step="1" value="72" data-event-change="onSurfSlider('size')" />
-							<input type="text" id="surf-slider-size-numbox" class="tf-slider-numbox" readonly value="72" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Strength</div>
-							<input type="range" id="surf-slider-strength" class="tf-slider" min="1" max="100" step="1" value="15" data-event-change="onSurfSlider('strength')" />
-							<input type="text" id="surf-slider-strength-numbox" class="tf-slider-numbox" readonly value="0.15" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Falloff</div>
-							<input type="range" id="surf-slider-falloff" class="tf-slider" min="1" max="50" step="1" value="5" data-event-change="onSurfSlider('falloff')" />
-							<input type="text" id="surf-slider-falloff-numbox" class="tf-slider-numbox" readonly value="0.5" />
-						</div>
-						<div data-if="surfMode == 'soft'">
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<div class="text-base text-light" style="flex: 0 0 96dp;">Spacing</div>
-								<input type="range" id="surf-slider-spacing" class="tf-slider" min="0" max="256" step="4" value="0" data-event-change="onSurfSlider('spacing')" />
-								<input type="text" id="surf-slider-spacing-numbox" class="tf-slider-numbox" readonly value="off" />
-							</div>
-							<div class="text-base text-light mb-1" style="opacity: 0.7;">Spacing 0 paints continuously; otherwise one stamp every N elmos of drag.</div>
-							<div class="flex flex-row gap-1 items-center mb-1">
-								<img id="btn-surf-lock" class="tf-icon-sm" src="/luaui/images/terraform_brush/check_on.png" style="cursor: pointer;" data-event-mousedown="onSurfLockToggle()" />
-								<div class="text-sm text-light">Cliffs and foothills protected</div>
-							</div>
-							<div class="text-base text-light" style="opacity: 0.7;">Variants only ever retexture the soft top — hard surfaces ignore the brush by design. The lock also guards the legacy splat path.</div>
-						</div>
-						<div class="text-base text-light" style="opacity: 0.7;" data-if="surfMode == 'hard'">LMB paints the selected override channel, RMB erases it. Keys 1&#8211;4 pick the channel.</div>
-					</div>
-				</div><!-- /frame-surf-brush -->
-
-				<!-- FILL AND SEED -->
-				<div class="tf-section-frame tf-collapsed" id="frame-surf-fill" data-if="surfMode == 'soft'">
-					<div id="btn-toggle-surf-fill" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-fill" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-						<div class="tf-collapsible-title">FILL AND SEED</div>
-					</div>
-					<div id="section-surf-fill" class="hidden">
-						<div class="flex flex-row gap-1 mb-1">
-							<div id="btn-surf-noise-fill" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfNoiseFill()">
-								<div class="tf-action-btn-text">FILL WITH NOISE</div>
-							</div>
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Scale</div>
-							<input type="range" id="surf-slider-fill-scale" class="tf-slider" min="200" max="4000" step="25" value="1400" data-event-change="onSurfSlider('fill-scale')" />
-							<input type="text" id="surf-slider-fill-scale-numbox" class="tf-slider-numbox" readonly value="1400" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Seed</div>
-							<input type="range" id="surf-slider-fill-seed" class="tf-slider" min="0" max="100" step="1" value="0" data-event-change="onSurfSlider('fill-seed')" />
-							<input type="text" id="surf-slider-fill-seed-numbox" class="tf-slider-numbox" readonly value="0" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div id="btn-surf-fill-v1" class="tf-overlay-chip" data-class-active="surfFillV1" data-event-mousedown="onSurfFillToggle(1)">
-								<div class="tf-overlay-chip-label">V1 {{surfSlot1Name}}</div>
-							</div>
-							<div id="btn-surf-fill-v2" class="tf-overlay-chip" data-class-active="surfFillV2" data-event-mousedown="onSurfFillToggle(2)">
-								<div class="tf-overlay-chip-label">V2 {{surfSlot2Name}}</div>
-							</div>
-						</div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;">Seeds the whole mask from the tileset noise field (grunt-work done, erase and adjust). Only assigned slots fill.</div>
-						<div class="flex flex-row gap-1 mb-1">
-							<div id="btn-surf-clear-variant" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearVariant()">
-								<div class="tf-action-btn-text" data-if="!surfClearArm">CLEAR VARIANT</div>
-								<div class="tf-action-btn-text" data-if="surfClearArm">CONFIRM?</div>
-							</div>
-							<div id="btn-surf-clear-all" class="tf-lp-action-btn" style="flex: 1;" data-event-mousedown="onSurfClearAll()">
-								<div class="tf-action-btn-text" data-if="!surfClearAllArm">CLEAR ALL</div>
-								<div class="tf-action-btn-text" data-if="surfClearAllArm">CONFIRM?</div>
-							</div>
-						</div>
-					</div>
-				</div><!-- /frame-surf-fill -->
-
-				<!-- SCULPTED FEATURES -->
-				<div class="tf-section-frame tf-collapsed" id="frame-surf-sculpt" data-if="surfMode == 'soft'">
-					<div id="btn-toggle-surf-sculpt" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-sculpt" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-						<div class="tf-collapsible-title">SCULPTED FEATURES</div>
-					</div>
-					<div id="section-surf-sculpt" class="hidden">
-						<div id="surf-sculpt-grid"></div>
-						<div class="text-base text-light mb-1" style="opacity: 0.7;" data-if="!surfHasSculpted">This tileset has not tagged its sculpted (normal-only, multi-rotation) layers yet — any variant tile paints the same way.</div>
-						<div class="text-base text-light" style="opacity: 0.7;">Workflow: pepper the sculpted layer in, keep it only where the baked rotation happens to match the landmark, erase the rest (the DoK wreck-ripple trick).</div>
-					</div>
-				</div><!-- /frame-surf-sculpt -->
-
-				<!-- GRADING -->
-				<div class="tf-section-frame tf-collapsed" id="frame-surf-grading">
-					<div id="btn-toggle-surf-grading" class="tf-section-title-row" style="cursor: pointer;">
-						<img id="img-toggle-surf-grading" class="tf-icon-sm" src="/luaui/images/terraform_brush/plus.png" />
-						<div class="tf-collapsible-title">GRADING</div>
-					</div>
-					<div id="section-surf-grading" class="hidden">
-						<div class="text-sm text-light mb-1">TOPS (base + variants)</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint R</div>
-							<input type="range" id="surf-slider-topsTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintR')" />
-							<input type="text" id="surf-slider-topsTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint G</div>
-							<input type="range" id="surf-slider-topsTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintG')" />
-							<input type="text" id="surf-slider-topsTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint B</div>
-							<input type="range" id="surf-slider-topsTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('topsTintB')" />
-							<input type="text" id="surf-slider-topsTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Desaturate</div>
-							<input type="range" id="surf-slider-topsDesat" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onSurfKnob('topsDesat')" />
-							<input type="text" id="surf-slider-topsDesat-numbox" class="tf-slider-numbox" readonly value="0.00" />
-						</div>
-						<div class="text-sm text-light mb-1" style="margin-top: 4dp;">ROCK (intermediary + cliff)</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint R</div>
-							<input type="range" id="surf-slider-rockTintR" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintR')" />
-							<input type="text" id="surf-slider-rockTintR-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint G</div>
-							<input type="range" id="surf-slider-rockTintG" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintG')" />
-							<input type="text" id="surf-slider-rockTintG-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Tint B</div>
-							<input type="range" id="surf-slider-rockTintB" class="tf-slider" min="0.3" max="1.8" step="0.0075" value="1.0" data-event-change="onSurfKnob('rockTintB')" />
-							<input type="text" id="surf-slider-rockTintB-numbox" class="tf-slider-numbox" readonly value="1.00" />
-						</div>
-						<div class="flex flex-row gap-1 items-center mb-1">
-							<div class="text-base text-light" style="flex: 0 0 96dp;">Desaturate</div>
-							<input type="range" id="surf-slider-rockDesat" class="tf-slider" min="0" max="1" step="0.005" value="0" data-event-change="onSurfKnob('rockDesat')" />
-							<input type="text" id="surf-slider-rockDesat-numbox" class="tf-slider-numbox" readonly value="0.00" />
-						</div>
-						<div class="text-base text-light" style="opacity: 0.7;">Layers share their base: retint the group and every variant follows. Per-layer tints stay in the TILESET tool.</div>
-					</div>
-				</div><!-- /frame-surf-grading -->
-
-			</div><!-- /tf-surface-controls -->
-
 		</div><!-- /tf-panel-body -->
 	</div>
 
@@ -7987,12 +7998,12 @@
 	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
 	<div id="tf-project-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 30vh;" data-if="projectSaveOpen">
 		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project</div>
+			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project As</div>
 			<div id="btn-project-close" class="tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
 
-		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Re-saving the same name updates it.</div>
+		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Type a new name, or pick an existing project below to overwrite it.</div>
 
 		<div class="flex flex-row justify-between items-center mb-1">
 			<div class="text-lg text-light">NAME</div>
@@ -8001,6 +8012,8 @@
 		<div class="flex flex-row gap-1 mb-2">
 			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="64" value="" />
 		</div>
+
+		<div id="tf-project-save-list" class="tf-hm-browser mb-2" style="max-height: 28vh;"></div>
 
 		<!-- Opt-in mission drafting: record position/team of every unit on the map -->
 		<div class="flex flex-row gap-1 items-center mb-1">

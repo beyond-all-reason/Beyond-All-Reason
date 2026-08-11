@@ -1,5 +1,6 @@
 -- tf_tileset.lua: Tileset Terrain tuning UI module for gui_terraform_brush.
 -- Folds the /tileset prototype's knob panel into the TF brush as the TILESET
+-- floating window, opened from the SCENE menu and independent of the active
 -- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
 -- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
 -- generated from the same spec below, so this list and the .rml stay in step.
@@ -63,8 +64,8 @@ local TUNING_FRAMES = {
 function M.attach(doc, ctx)
 	local trackSliderDrag = ctx.trackSliderDrag
 	ctx.widgetState.tsLastVal = ctx.widgetState.tsLastVal or {}
-	-- fresh document: the SHADER checkbox is back at its markup default, so drop
-	-- the cache and let the next M.sync re-stamp it from the widget
+	-- fresh document: the section gray-out is back at its markup default, so
+	-- drop the cache and let the next M.sync re-apply it from the widget
 	ctx.widgetState.tsShaderLast = nil
 	ctx.widgetState.tsAlbDecoupleLast = nil
 	-- Slider drag tracking only. Section collapse for the ts-* frames is wired
@@ -79,22 +80,19 @@ function M.sync(doc, ctx, setSummary)
 	if not doc or not WG.TilesetTerrain then return end
 	local widgetState = ctx.widgetState
 	local dm = widgetState.dmHandle
-	-- Only push values while the TILESET tool owns the panel.
-	if not dm or dm.activeTool ~= "ts" then return end
+	-- Only push values while the TILESET floating window (SCENE menu) is open.
+	-- It is independent of the active tool by design, so this is the only gate.
+	if not dm or not dm.envTilesetVisible then return end
 
-	-- Master SHADER switch: mirror the widget (covers the persisted-off startup
-	-- state and console-driven /tileset shader). With the shader off every tuning
-	-- section below it is inert, so gray them out.
+	-- Master SHADER button: mirror the widget (covers the persisted-off startup
+	-- state and console-driven /tileset shader). dm.tsShaderOn drives the
+	-- button highlight AND grays the PAINT SURFACES neighbour; with the shader
+	-- off every tuning section below is inert too, so gray those out here.
 	if WG.TilesetTerrain.isActive then
 		local on = WG.TilesetTerrain.isActive() and true or false
+		if dm.tsShaderOn ~= on then dm.tsShaderOn = on end
 		if widgetState.tsShaderLast ~= on then
 			widgetState.tsShaderLast = on
-			local el = doc:GetElementById("btn-ts-shader")
-			if el then
-				el:SetAttribute("src", on
-					and "/luaui/images/terraform_brush/check_on.png"
-					or  "/luaui/images/terraform_brush/check_off.png")
-			end
 			if ctx.setDisabledIds then
 				ctx.setDisabledIds(doc, TUNING_FRAMES, not on)
 			end
