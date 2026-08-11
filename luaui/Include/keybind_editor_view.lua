@@ -1330,6 +1330,12 @@ local function appendChain(el)
 		return
 	end
 
+	-- The first real press replaces what the modal opened showing.
+	if c.seeded then
+		c.seeded = false
+		c.elems = {}
+	end
+
 	local now = spGetTimer()
 	if #c.elems == 0 then
 		c.elems[1] = el
@@ -1397,6 +1403,8 @@ local function startCapture(action, label, oldRaws)
 		oldRaws = oldRaws,
 		pair = pair,
 		elems = elems,
+		-- Showing the existing binding rather than anything the player has pressed.
+		seeded = #elems > 0,
 		pressed = {},
 		lastPress = nil,
 		-- Matches the engine's KeyChainTimeout default; BAR ships a tighter 333ms.
@@ -1919,11 +1927,13 @@ local function drawCaptureModal(mx, my)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 	local bigfs = floor(rowHeight * 0.95)
-	local hasChain = #capturing.elems > 0
-	-- Preview held modifiers only while forming the first element, through the same
-	-- formatter a finished keyset uses so the two do not render differently.
+	-- Preview held modifiers while forming the first element, through the same formatter a
+	-- finished keyset uses so the two do not render differently. A capture opened on an
+	-- existing binding still shows it, but a held modifier previews over the top - the player
+	-- is part-way through a replacement - and letting go puts the original back.
 	local heldRaw = modPrefix()
 	local held = heldRaw ~= "" and keybindModel.displayKeyset(heldRaw, working.layout) or ""
+	local hasChain = #capturing.elems > 0 and not (capturing.seeded and held ~= "")
 	local chainStr
 	if hasChain then
 		chainStr = keybindModel.displayKeyset(chainRaw(), working.layout)
