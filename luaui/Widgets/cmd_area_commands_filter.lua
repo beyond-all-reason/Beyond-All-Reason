@@ -840,8 +840,8 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local selectedUnits = getCapableUnits(spGetSelectedUnits(), command.capableDefs)
-	if not selectedUnits then
+	local capableUnits = getCapableUnits(spGetSelectedUnits(), command.capableDefs)
+	if not capableUnits then
 		return false
 	end
 
@@ -869,7 +869,7 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	-- The handle can decide to place no orders, e.g. when no passenger fits any transport.
-	return command.handle(cmdId, selectedUnits, filteredTargets, options, targetType) > 0
+	return command.handle(cmdId, capableUnits, filteredTargets, options, targetType) > 0
 end
 
 local function initialize()
