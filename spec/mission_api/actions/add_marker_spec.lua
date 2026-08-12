@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -16,10 +18,7 @@ describe("mission_api.actions.add_marker", function()
         for k in pairs(GG['MissionAPI'].markerNames) do
             GG['MissionAPI'].markerNames[k] = nil
         end
-        Spring._markerCalls = {}
-        Spring.MarkerAddPoint = function(x, y, z, label, local_)
-            Spring._markerCalls[#Spring._markerCalls + 1] = { x = x, y = y, z = z, label = label, local_ = local_ }
-        end
+        _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
     it("declares its type and parameters", function()

@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -11,10 +13,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 describe("mission_api.actions.draw_lines", function()
 
     before_each(function()
-        Spring._lineCalls = {}
-        Spring.MarkerAddLine = function(x1, y1, z1, x2, y2, z2, ...)
-            Spring._lineCalls[#Spring._lineCalls + 1] = { x1=x1, y1=y1, z1=z1, x2=x2, y2=y2, z2=z2 }
-        end
+        _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
     it("declares its type and parameters", function()

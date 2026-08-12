@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -11,9 +13,6 @@ GG['MissionAPI'].Modules.Tracking = {
     IsUnitNameUntracked = function(name) return trackedUnitIDs[name] == nil end,
 }
 
-Spring.GetUnitAllyTeam    = function(id)     return 0 end
-Spring.GetTeamAllyTeamID  = function(teamID) return 0 end
-Spring.TransferUnit       = function()       end
 
 local actions  = VFS.Include('luarules/mission_api/actions/transfer_units.lua')
 local action   = actions[1]
@@ -32,12 +31,10 @@ describe("mission_api.actions.transfer_units", function()
 
     before_each(function()
         clearTracking()
-        Spring._transferCalls = {}
+        _G.Spring = SpringSyncedBuilder.new():Build()
+        -- No teams are registered on the mock, so pin ally teams explicitly.
         Spring.GetUnitAllyTeam   = function(id)     return 0 end
         Spring.GetTeamAllyTeamID = function(teamID) return 1 end  -- different ally team by default
-        Spring.TransferUnit = function(unitID, newTeam, given)
-            Spring._transferCalls[#Spring._transferCalls + 1] = { unitID=unitID, newTeam=newTeam, given=given }
-        end
     end)
 
     it("declares its type and parameters", function()

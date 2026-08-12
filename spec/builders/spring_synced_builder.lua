@@ -16,6 +16,16 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field setDataCalls table
 ---@field __resourceSetCalls table
 ---@field __clearResourceDataCalls fun()
+---@field _addCalls table
+---@field _useCalls table
+---@field __clearResourceCalls fun()
+---@field _markerCalls table
+---@field _lineCalls table
+---@field _gameOverCalls table
+---@field _explosionCalls table
+---@field _giveOrderCalls table
+---@field _transferCalls table
+---@field __clearCalls fun()
 ---@field GetLoggedMessages fun(): table
 ---@field __getInitialUnits fun(): table
 
@@ -294,6 +304,14 @@ function SB:BuildSpring()
     end
 
     local resourceSetCalls = {}
+    local addCalls = {}
+    local useCalls = {}
+    local markerCalls = {}
+    local lineCalls = {}
+    local gameOverCalls = {}
+    local explosionCalls = {}
+    local giveOrderCalls = {}
+    local transferCalls = {}
 
     local function recordSetCall(teamID, resourceType, data)
         table.insert(resourceSetCalls, {
@@ -442,6 +460,28 @@ function SB:BuildSpring()
                 resourceSetCalls[i] = nil
             end
         end,
+        _addCalls = addCalls,
+        _useCalls = useCalls,
+        __clearResourceCalls = function()
+            for i = #addCalls, 1, -1 do addCalls[i] = nil end
+            for i = #useCalls, 1, -1 do useCalls[i] = nil end
+        end,
+        _markerCalls = markerCalls,
+        _lineCalls = lineCalls,
+        _gameOverCalls = gameOverCalls,
+        _explosionCalls = explosionCalls,
+        _giveOrderCalls = giveOrderCalls,
+        _transferCalls = transferCalls,
+        __clearCalls = function()
+            local tracked = {
+                resourceSetCalls, addCalls, useCalls, markerCalls, lineCalls,
+                gameOverCalls, explosionCalls, giveOrderCalls, transferCalls,
+            }
+            for i = 1, #tracked do
+                local list = tracked[i]
+                for j = #list, 1, -1 do list[j] = nil end
+            end
+        end,
 
         GetPlayerList = function(teamID)
             if teamID then
@@ -530,6 +570,50 @@ function SB:BuildSpring()
             return true
         end,
 
+        GiveOrderArrayToUnitMap = function(unitMap, orders)
+            table.insert(giveOrderCalls, { unitMap = unitMap, orders = orders })
+            return true
+        end,
+
+        MarkerAddPoint = function(x, y, z, label, localOnly)
+            table.insert(markerCalls, { x = x, y = y, z = z, label = label, local_ = localOnly })
+        end,
+
+        MarkerAddLine = function(x1, y1, z1, x2, y2, z2)
+            table.insert(lineCalls, { x1 = x1, y1 = y1, z1 = z1, x2 = x2, y2 = y2, z2 = z2 })
+        end,
+
+        GameOver = function(winners)
+            table.insert(gameOverCalls, winners)
+        end,
+
+        SpawnExplosion = function(x, y, z, dx, dy, dz, params)
+            table.insert(explosionCalls, { x = x, y = y, z = z, dx = dx, dy = dy, dz = dz, params = params })
+        end,
+
+        GetAllyTeamList = function()
+            local seen = {}
+            local allyTeams = {}
+            for _, teamData in pairs(builtTeams) do
+                local allyTeam = teamData.allyTeam or teamData.id
+                if allyTeam and not seen[allyTeam] then
+                    seen[allyTeam] = true
+                    allyTeams[#allyTeams + 1] = allyTeam
+                end
+            end
+            table.sort(allyTeams)
+            return allyTeams
+        end,
+
+        GetUnitAllyTeam = function(unitID)
+            for _, teamData in pairs(builtTeams) do
+                if teamData.units and teamData.units[unitID] then
+                    return teamData.allyTeam or teamData.id
+                end
+            end
+            return nil
+        end,
+
         AddTeamResource = function(teamID, resourceType, amount)
             local teamData = builtTeams[teamID]
             if teamData then
@@ -539,6 +623,20 @@ function SB:BuildSpring()
                     teamData.energy.current = teamData.energy.current + amount
                 end
             end
+            table.insert(addCalls, { teamID = teamID, resource = resourceType, amount = amount })
+            return true, amount
+        end,
+
+        UseTeamResource = function(teamID, resourceType, amount)
+            local teamData = builtTeams[teamID]
+            if teamData then
+                if resourceType == "metal" then
+                    teamData.metal.current = teamData.metal.current - amount
+                elseif resourceType == "energy" then
+                    teamData.energy.current = teamData.energy.current - amount
+                end
+            end
+            table.insert(useCalls, { teamID = teamID, resource = resourceType, amount = amount })
             return true, amount
         end,
 
@@ -562,6 +660,8 @@ function SB:BuildSpring()
         end,
 
         TransferUnit = function(unitID, newTeamID, given)
+            table.insert(transferCalls, { unitID = unitID, newTeam = newTeamID, given = given })
+
             local currentTeamID = nil
             local unitDefID = nil
             for teamId, teamBuilder in pairs(builtTeams) do

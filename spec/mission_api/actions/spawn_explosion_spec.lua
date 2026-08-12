@@ -1,11 +1,12 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
 
 _G.WeaponDefNames = {}
-Spring.SpawnExplosion = function() end
 
 local actions  = VFS.Include('luarules/mission_api/actions/spawn_explosion.lua')
 local action   = actions[1]
@@ -14,12 +15,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 describe("mission_api.actions.spawn_explosion", function()
 
     before_each(function()
-        Spring._explosionCalls = {}
-        Spring.SpawnExplosion = function(x, y, z, dx, dy, dz, params)
-            Spring._explosionCalls[#Spring._explosionCalls + 1] = {
-                x=x, y=y, z=z, dx=dx, dy=dy, dz=dz, params=params
-            }
-        end
+        _G.Spring = SpringSyncedBuilder.new():Build()
         _G.WeaponDefNames = {
             bomb = {
                 id = 42,

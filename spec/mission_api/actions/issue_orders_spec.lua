@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -33,10 +35,7 @@ describe("mission_api.actions.issue_orders", function()
 
     before_each(function()
         clearTracking()
-        Spring._giveOrderCalls = {}
-        Spring.GiveOrderArrayToUnitMap = function(unitMap, orders)
-            Spring._giveOrderCalls[#Spring._giveOrderCalls + 1] = { unitMap = unitMap, orders = orders }
-        end
+        _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
     it("declares its type and parameters", function()

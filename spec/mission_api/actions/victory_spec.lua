@@ -1,5 +1,7 @@
 require("spec_helper")
 
+local SpringSyncedBuilder = VFS.Include('spec/builders/spring_synced_builder.lua')
+
 GG['MissionAPI'] = GG['MissionAPI'] or {}
 GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
 GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
@@ -11,10 +13,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 describe("mission_api.actions.victory", function()
 
     before_each(function()
-        Spring._gameOverCalls = {}
-        Spring.GameOver = function(winners)
-            Spring._gameOverCalls[#Spring._gameOverCalls + 1] = winners
-        end
+        _G.Spring = SpringSyncedBuilder.new():Build()
     end)
 
     it("declares its type and parameters", function()
