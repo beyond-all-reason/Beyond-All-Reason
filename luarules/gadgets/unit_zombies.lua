@@ -31,7 +31,9 @@ local REFRESH_ORDERS_CHANCE       = 0.005
 local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD    = 5 * Game.gameSpeed
 local ZOMBIE_REZ_FRAME_PARAM      = "zombie_rez_frame"
+local WAS_ZOMBIE_PARAM            = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS   = { public = true }
+local WAS_ZOMBIE_TIMEOUT_FRAMES   = Game.gameSpeed * 3
 
 local ZOMBIE_MAX_XP               = 2    -- Maximum experience value for zombies, skewed towards median
 
@@ -124,6 +126,8 @@ local MOVE_STATE_HOLD_POSITION    = 0
 local ENABLE_REPEAT               = 1
 local NULL_ATTACKER               = -1
 local ENVIRONMENTAL_DAMAGE_ID     = Game.envDamageTypes.GroundCollision
+local WATER_DAMAGE_DEF_ID         = Game.envDamageTypes.Water
+local INVALID_LAVA_LEVEL          = -99999
 local UNAUTHORIZED_TEXT           = "You are not authorized to use zombie commands" --i18n library doesn't exist in gadget space.
 
 local MAP_SIZE_X                  = Game.mapSizeX
@@ -134,7 +138,9 @@ local spGetUnitNearestEnemy       = Spring.GetUnitNearestEnemy
 local spValidUnitID               = Spring.ValidUnitID
 local spGetGroundHeight           = Spring.GetGroundHeight
 local spGetUnitPosition           = Spring.GetUnitPosition
+local spGetUnitBasePosition       = Spring.GetUnitBasePosition
 local spGetFeaturePosition        = Spring.GetFeaturePosition
+local spGetGameRulesParam         = Spring.GetGameRulesParam
 local spCreateUnit                = Spring.CreateUnit
 local spTransferUnit              = Spring.TransferUnit
 local spGetUnitDefID              = Spring.GetUnitDefID
@@ -154,6 +160,7 @@ local spSetUnitHealth             = Spring.SetUnitHealth
 local spSetUnitRulesParam         = Spring.SetUnitRulesParam
 local spGetUnitRulesParam         = Spring.GetUnitRulesParam
 local spSetFeatureRulesParam      = Spring.SetFeatureRulesParam
+local spGetFeatureRulesParam      = Spring.GetFeatureRulesParam
 local spGetFeatureDefID           = Spring.GetFeatureDefID
 local spTestMoveOrder             = Spring.TestMoveOrder
 local spSpawnCEG                  = Spring.SpawnCEG
@@ -207,6 +214,9 @@ local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
+local pendingWasZombieUnits = {}
+local pendingUnitXp = {}
+local heapingZombies = {}
 local zombieHeapDefs = {}
 local fightingDefs = {}
 local unitDefWithWeaponRanges = {}
@@ -643,6 +653,22 @@ local function clearCorpseRezRulesParam(featureID)
 	spSetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
 end
 
+local function setCorpseWasZombieRulesParam(featureID)
+	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, 1, PUBLIC_RULES_PARAM_ACCESS)
+end
+
+local function clearCorpseWasZombieRulesParam(featureID)
+	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
+end
+
+local function isWasZombieCorpse(featureID, corpseData)
+	if corpseData and corpseData.wasZombie then
+		return true
+	end
+	local wasZombieParam = spGetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM)
+	return wasZombieParam and wasZombieParam == 1
+end
+
 local function resetSpawn(featureID, featureData, featureDefData)
 	local newFrame = featureData.tamperedFrame + featureData.spawnDelayFrames
 	featureData.spawnFrame = newFrame
@@ -714,10 +740,10 @@ local function calculateSpawnCount(unitDefID)
 	return math.min(rollSpawnCount(), rollSpawnCount())
 end
 
-local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
+local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z, wasZombie, pastXp)
 	local unitDef = unitDefs[unitDefID]
 	local spawnCount = 1
-	if extraDefs[unitDefID].isMobile then
+	if not wasZombie and extraDefs[unitDefID].isMobile then
 		spawnCount = calculateSpawnCount(unitDefID)
 	end
 	local size = unitDef.xsize
@@ -736,6 +762,15 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		sizeName = "tiny"
 	end
 
+	if pastXp == nil then
+		local corpseData = corpsesData[featureID]
+		if corpseData and corpseData.pastXp ~= nil then
+			pastXp = corpseData.pastXp
+		else
+			pastXp = spGetFeatureRulesParam(featureID, "previous_xp") or 0
+		end
+	end
+
 	spDestroyFeature(featureID)
 	corpsesData[featureID] = nil
 	playSpawnSound(x, y, z)
@@ -748,9 +783,11 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z)
 		local unitID = spCreateUnit(unitDefToCreate, randomX, adjustedY, randomZ, 0, gaiaTeamID)
 		if unitID then
 			spSpawnCEG("scav-spawnexplo-" .. sizeName, randomX, adjustedY, randomZ, 0, 0, 0)
+			local generatedXp = 0
 			if modOptions.zombies ~= "normal" then
-				spSetUnitExperience(unitID, (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2) -- to skew the experience towards the median
+				generatedXp = (random() * ZOMBIE_MAX_XP + random() * ZOMBIE_MAX_XP) / 2
 			end
+			spSetUnitExperience(unitID, math.max(pastXp, generatedXp))
 			local unitHealth = spGetUnitHealth(unitID)
 			spSetUnitHealth(unitID, unitHealth * healthReductionRatio)
 			spSetUnitRulesParam(unitID, "zombie", 1)
@@ -868,7 +905,7 @@ function gadget:GameFrame(frame)
 					resetSpawn(featureID, corpseData, featureDefData)
 				else
 					local healthReductionRatio = calculateHealthRatio(featureID)
-					spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+					spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ, corpseData.wasZombie, corpseData.pastXp)
 				end
 			end
 		end
@@ -878,6 +915,16 @@ function gadget:GameFrame(frame)
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
 		spAddTeamResource(gaiaTeamID, "metal", 1000000)
 		spAddTeamResource(gaiaTeamID, "energy", 1000000)
+		for unitID, timeoutFrame in pairs(pendingWasZombieUnits) do
+			if timeoutFrame < frame then
+				pendingWasZombieUnits[unitID] = nil
+			end
+		end
+		for unitID, xpData in pairs(pendingUnitXp) do
+			if xpData.timeout < frame then
+				pendingUnitXp[unitID] = nil
+			end
+		end
 		for featureID, featureData in pairs(corpsesData) do
 			if featureData.spawnFrame - frame < WARNING_TIME then
 				local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
@@ -968,7 +1015,7 @@ function gadget:GameFrame(frame)
 	end
 end
 
-local function queueCorpseForSpawning(featureID, override)
+local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
 	if not override and not autoSpawningEnabled then
 		return
 	end
@@ -979,29 +1026,53 @@ local function queueCorpseForSpawning(featureID, override)
 		return
 	end
 
+	wasZombie = wasZombie or isWasZombieCorpse(featureID)
+	if pastXp == nil then
+		local existingCorpseData = corpsesData[featureID]
+		if existingCorpseData and existingCorpseData.pastXp ~= nil then
+			pastXp = existingCorpseData.pastXp
+		else
+			pastXp = spGetFeatureRulesParam(featureID, "previous_xp") or 0
+		end
+	end
+
 	local spawnDelayFrames = corpseDefData.spawnDelayFrames
 	if spawnDelayFrames == 0 then
 		local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
 		if featureX then
 			local healthReductionRatio = calculateHealthRatio(featureID)
-			spawnZombies(featureID, corpseDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+			spawnZombies(featureID, corpseDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ, wasZombie, pastXp)
 		end
 		return
 	end
 
 	local spawnFrame = gameFrame + spawnDelayFrames
-	corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame }
+	corpsesData[featureID] = { featureDefID = featureDefID, spawnDelayFrames = spawnDelayFrames, creationFrame = gameFrame, spawnFrame = spawnFrame, wasZombie = wasZombie, pastXp = pastXp }
 	setCorpseRezRulesParam(featureID, spawnFrame)
 	corpseCheckFrames[spawnFrame] = corpseCheckFrames[spawnFrame] or {}
 	corpseCheckFrames[spawnFrame][#corpseCheckFrames[spawnFrame] + 1] = featureID
 end
 
-function gadget:FeatureCreated(featureID, allyTeam)
-	queueCorpseForSpawning(featureID, false)
+function gadget:FeatureCreated(featureID, allyTeam, sourceID)
+	local wasZombie = false
+	local pastXp = 0
+	if sourceID and pendingWasZombieUnits[sourceID] then
+		wasZombie = true
+		pendingWasZombieUnits[sourceID] = nil
+		setCorpseWasZombieRulesParam(featureID)
+	end
+	if sourceID and pendingUnitXp[sourceID] then
+		pastXp = pendingUnitXp[sourceID].xp
+		pendingUnitXp[sourceID] = nil
+	else
+		pastXp = spGetFeatureRulesParam(featureID, "previous_xp") or 0
+	end
+	queueCorpseForSpawning(featureID, false, wasZombie, pastXp)
 end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	clearCorpseRezRulesParam(featureID)
+	clearCorpseWasZombieRulesParam(featureID)
 	corpsesData[featureID] = nil
 end
 
@@ -1024,27 +1095,84 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if zombieHeapDefs[unitDefID] then
+		pendingUnitXp[unitID] = { xp = spGetUnitExperience(unitID) or 0, timeout = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES }
+	end
+	if isZombie(unitID) and currentZombieConfig.zombieCorpses and not heapingZombies[unitID] then
+		pendingWasZombieUnits[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES
+	end
+	heapingZombies[unitID] = nil
 	flyingUnits[unitID] = nil
 	zombieWatch[unitID] = nil
 	zombiesBeingBuilt[unitID] = nil
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
-	if isZombie(unitID) and not currentZombieConfig.zombieCorpses then
-		local health = spGetUnitHealth(unitID)
-		if damage >= health then
-			local unitX, unitY, unitZ = spGetUnitPosition(unitID)
-			if unitX and unitY and unitZ then
-				local defData = zombieHeapDefs[unitDefID]
-				if defData then
-					spDestroyUnit(unitID, false, true, attackerID)
-					spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID, owner = unitID})
-					if defData.heapDefID then
-						spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
-					end
-				end
-			end
+local function isUnitInLava(unitID)
+	local _, unitY = spGetUnitBasePosition(unitID)
+	if not unitY then
+		return false
+	end
+
+	local lavaLevel = spGetGameRulesParam("lavaLevel")
+	if lavaLevel and lavaLevel > INVALID_LAVA_LEVEL and unitY < lavaLevel then
+		return true
+	end
+
+	local waterTypeOverlay = GG.WaterTypeOverlay
+	if waterTypeOverlay and waterTypeOverlay.isActive() and waterTypeOverlay.getActiveType() == "lava" then
+		local overlayLevel = waterTypeOverlay.getLevel()
+		if overlayLevel and unitY < overlayLevel then
+			return true
 		end
+	end
+
+	return false
+end
+
+local function shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID)
+	if weaponDefID == WATER_DAMAGE_DEF_ID then
+		return true
+	end
+	if not isUnitInLava(unitID) then
+		return false
+	end
+	if not weaponDefID or weaponDefID < 0 then
+		return true
+	end
+	if not attackerID or attackerID < 0 or not spValidUnitID(attackerID) then
+		return true
+	end
+	return false
+end
+
+local function leaveZombieHeap(unitID, unitDefID, attackerID)
+	local unitX, unitY, unitZ = spGetUnitPosition(unitID)
+	if not unitX then
+		return
+	end
+	local defData = zombieHeapDefs[unitDefID]
+	if not defData then
+		return
+	end
+	heapingZombies[unitID] = true
+	spDestroyUnit(unitID, false, true, attackerID)
+	spSpawnExplosion(unitX, unitY, unitZ, 0, 0, 0, {weaponDef = defData.explosionDefID, owner = unitID})
+	if defData.heapDefID then
+		spCreateFeature(defData.heapDefID, unitX, unitY, unitZ)
+	end
+end
+
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
+	if not isZombie(unitID) then
+		return
+	end
+	local leaveHeap = not currentZombieConfig.zombieCorpses or shouldAlwaysLeaveHeap(unitID, weaponDefID, attackerID)
+	if not leaveHeap then
+		return
+	end
+	local health = spGetUnitHealth(unitID)
+	if damage >= health then
+		leaveZombieHeap(unitID, unitDefID, attackerID)
 	end
 end
 
@@ -1056,7 +1184,10 @@ local function createZombieFromFeature(featureID)
 			if featureX then
 				local featureDefData = zombieCorpseDefs[featureDefID]
 				local healthReductionRatio = calculateHealthRatio(featureID)
-				spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ)
+				local corpseData = corpsesData[featureID]
+				local wasZombie = isWasZombieCorpse(featureID, corpseData)
+				local pastXp = corpseData and corpseData.pastXp
+				spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ, wasZombie, pastXp)
 				return true
 			end
 		end
