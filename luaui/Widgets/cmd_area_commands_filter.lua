@@ -7,7 +7,7 @@ local widget = widget ---@type Widget
 --     => units: Alt selects by unit type (unitDefID) and Ctrl selects by unit team (see allegiance notes).
 --     => features: Alt selects by type (rezzAsDefID) and Ctrl selects by tech level (feature must be resurrectable).
 -- (3) You can filter by unit type and unit team together or separately.
---     But feature type "beats" feature tech since it is more specific.
+--     Feature type and feature tech both work: either match keeps the target.
 -- (4) Hovering an enemy unit and using the Ctrl "team" filter instead checks for neutrality or hostility:
 --     => hover an enemy wall with Ctrl: Filtering will keep neutral targets.
 --     => any other hover, Ctrl/no Ctrl: Filtering will keep hostile targets.
@@ -737,30 +737,36 @@ local function narrowFeatures(featuresInArea, targetId, options)
 	local hasUnitDefName = (targetUnitDefName or "") ~= ""
 
 	local filterType = hasUnitDefName and options.alt
-	local filterTech = hasUnitDefName and not filterType and options.ctrl
+	local filterTech = hasUnitDefName and options.ctrl
 
 	if not filterType and not filterTech then
 		return nil, true
 	end
 
-	local featureDefId = spGetFeatureDefID(targetId)
-	local targetTechLevel = filterTech and getTechLevel(targetUnitDefName)
-
 	local filteredTargets, count = {}, 0
-	for index = 1, #featuresInArea do
-		local featureId = featuresInArea[index]
-		local matched
-		if filterType then
-			-- Type out-specifies tech level, so do not check it.
-			matched = spGetFeatureDefID(featureId) == featureDefId
-		else
-			matched = getTechLevel(spGetFeatureResurrect(featureId)) == targetTechLevel
+
+	-- The two filters union, but sharing a type means sharing a tech level, so tech already
+	-- covers everything type would have matched. Only one of the two tests is ever needed.
+	if filterTech then
+		local targetTechLevel = getTechLevel(targetUnitDefName)
+		for index = 1, #featuresInArea do
+			local featureId = featuresInArea[index]
+			if getTechLevel(spGetFeatureResurrect(featureId)) == targetTechLevel then
+				count = count + 1
+				filteredTargets[count] = featureId
+			end
 		end
-		if matched then
-			count = count + 1
-			filteredTargets[count] = featureId
+	else
+		local featureDefId = spGetFeatureDefID(targetId)
+		for index = 1, #featuresInArea do
+			local featureId = featuresInArea[index]
+			if spGetFeatureDefID(featureId) == featureDefId then
+				count = count + 1
+				filteredTargets[count] = featureId
+			end
 		end
 	end
+
 	if count > 0 then
 		return filteredTargets
 	end
@@ -773,7 +779,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, canTarget)
 	end
 	local filteredTargets, seedUnusable = narrowFeatures(featuresInArea, targetId, options)
 	if seedUnusable then
-		return true, nil
+		return false, nil
 	end
 	return true, filteredTargets and toFeatureTargetIDs(filteredTargets)
 end
@@ -840,7 +846,7 @@ function widget:CommandNotify(cmdId, params, options)
 	elseif seedType == UNIT then
 		filtered, filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, command.targetAllegiance, command.protectAllies)
 	else
-		filtered = true
+		filtered = false
 	end
 
 	local mixedTargets
