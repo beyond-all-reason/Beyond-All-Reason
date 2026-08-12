@@ -74,6 +74,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 	v44   (Floris): added rendertotexture draw method
 	v45   (Floris): support PvE team ranking leaderboard style
 	v46   (Floris): support alternative (historic) playernames based on accountID's
+	v47   (JosephGarrone): add support for text description of player colors within player tooltip
 ]]--
 
 --------------------------------------------------------------------------------
@@ -270,12 +271,14 @@ local tookFrame = -120
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
-local lastActivity = {}
-local lastFpsData = {}
-local lastApmData = {}
-local lastSystemData = {}
-local lastGpuMemData = {}
-local lastLuaMemData = {}
+local last = {  -- grouped in one table to stay under the 200 locals limit
+    activity = {},
+    fpsData = {},
+    apmData = {},
+    systemData = {},
+    gpuMemData = {},
+    luaMemData = {},
+}
 
 local activeDrawPlayers = {}  -- set of playerIDs with active point/pencil/eraser timers
 local accountIDLookup = {}    -- accountID -> playerID for fast duplicate detection
@@ -385,7 +388,7 @@ local forceMainListRefresh = true
 --------------------------------------------------
 
 local modules = {}
-local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_resources, m_income
+local m_indent, m_rank, m_side, m_allyID, m_playerID, m_ID, m_name, m_share, m_chat, m_cpuping, m_country, m_alliance, m_skill, m_color, m_resources, m_income
 
 -- these are not considered as normal module since they dont take any place and wont affect other's position
 -- (they have no module.width and are not part of modules)
@@ -489,6 +492,18 @@ m_skill = {
     position = position,
     posX = 0,
     pic = pics["tsPic"],
+}
+position = position + 1
+
+m_color = {
+    name = "colorTooltip",
+    spec = true,
+    play = true,
+    active = false,
+    default = false,
+    width = 0,
+    position = position,
+    posX = 0,
 }
 position = position + 1
 
@@ -596,6 +611,7 @@ modules = {
     m_ID,
     m_playerID,
     --m_side,
+    m_color,
     m_name,
     m_skill,
     m_resources,
@@ -781,15 +797,15 @@ local function LockCamera(playerID)
 end
 
 local function GpuMemEvent(playerID, percentage)
-    lastGpuMemData[playerID] = percentage
+    last.gpuMemData[playerID] = percentage
 end
 
 local function LuaMemEvent(playerID, um)
-    lastLuaMemData[playerID] = um
+    last.luaMemData[playerID] = um
 end
 
 local function FpsEvent(playerID, fps)
-	lastFpsData[playerID] = fps
+	last.fpsData[playerID] = fps
 end
 
 local function RankingEvent(ranking)
@@ -799,7 +815,7 @@ local function RankingEvent(ranking)
 end
 
 local function ApmEvent(teamID, fps)
-	lastApmData[teamID] = fps
+	last.apmData[teamID] = fps
 end
 
 local function SystemEvent(playerID, system)
@@ -812,11 +828,11 @@ local function SystemEvent(playerID, system)
         return ""
     end
     helper( system:gsub("(.-)\r?\n", helper) )
-    lastSystemData[playerID] = system
+    last.systemData[playerID] = system
 end
 
 local function ActivityEvent(playerID)
-    lastActivity[playerID] = osClock()
+    last.activity[playerID] = osClock()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -2456,8 +2472,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     local alphaActivity = 0
 
     -- keyboard/mouse activity
-    if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-        alphaActivity = math.clamp((8 - mathFloor(now - lastActivity[playerID])) / 5.5, 0, 1)
+    if last.activity[playerID] ~= nil and type(last.activity[playerID]) == "number" then
+        alphaActivity = math.clamp((8 - mathFloor(now - last.activity[playerID])) / 5.5, 0, 1)
         alphaActivity = 0.33 + (alphaActivity * 0.21)
         alpha = alphaActivity
     end
@@ -2485,8 +2501,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 			DrawPlayerID(playerID, posY, dark, spec)
 		end
 	end
-    if tipY and accountID then
-        NameTip(mouseX, playerID, accountID, nameIsAlias)
+    if tipY and (accountID or m_color.active) then
+        NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
     end
     if not spec then
         --player
@@ -2585,9 +2601,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
     if onlyMainList2 and m_cpuping.active and not isSinglePlayer then
         if cpuLvl ~= nil then
             -- draws CPU usage and ping icons (except AI and ghost teams)
-            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, lastFpsData[playerID])
+            DrawPingCpu(pingLvl, cpuLvl, posY, spec, cpu, last.fpsData[playerID])
             if tipY then
-                PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastLuaMemData[playerID], lastSystemData[playerID], name, team, spec, lastApmData[team])
+                PingCpuTip(mouseX, ping, cpu, last.fpsData[playerID], last.gpuMemData[playerID], last.luaMemData[playerID], last.systemData[playerID], name, team, spec, last.apmData[team])
             end
         end
     end
@@ -3217,36 +3233,81 @@ function DrawEraser(posY, time)
     gl_Color(1, 1, 1, 1)
 end
 
-function NameTip(mouseX, playerID, accountID, nameIsAlias)
-	local pTip = player[playerID]
-	if accountID and mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
-		if WG.playernames and not pTip.history then
-			pTip.history = WG.playernames.getAccountHistory(accountID) or {}
-		end
-		if pTip.history and (nameIsAlias or #pTip.history > 1) then
-			local text = ''
-		 	local c = 0
+-- every color the game assigns is named in common/configs/team_colors.lua and matches exactly;
+-- the perceptual nearest-match handles everything else (host-defined colors, anonymous mode)
+-- (built inside a function so the tables dont count against the main chunk's 200 locals limit)
+local ConvertRGBToClosestName = (function()
+    local palette = {}
+    local exactNames = {}
+    for hex, key in pairs(VFS.Include("common/configs/team_colors.lua").colorNames) do
+        local r, g, b = tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16)
+        palette[#palette + 1] = { key = key, r = r, g = g, b = b }
+        exactNames[r * 65536 + g * 256 + b] = key
+    end
+    return function(r, g, b)
+        local bestKey = exactNames[r * 65536 + g * 256 + b]
+        if not bestKey then
+            local bestDist = math.huge
+            for i = 1, #palette do
+                local c = palette[i]
+                -- "redmean" distance: cheap approximation of perceptual color difference
+                local rmean = (r + c.r) * 0.5
+                local dr, dg, db = r - c.r, g - c.g, b - c.b
+                local d = (2 + rmean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rmean) / 256) * db * db
+                if d < bestDist then
+                    bestDist = d
+                    bestKey = c.key
+                end
+            end
+        end
+        return Spring.I18N('ui.playersList.color.' .. bestKey)
+    end
+end)()
 
-            local pname = Spring.GetPlayerInfo(playerID, false)
-			for i, name in ipairs(pTip.history) do
-				if pTip.name ~= name then
-					if c > 0 then
-						text = text .. '\n'
+function NameTip(mouseX, playerID, accountID, nameIsAlias, spec)
+	local pTip = player[playerID]
+	if mouseX >= widgetPosX + (m_name.posX + (1*playerScale)) * widgetScale and mouseX <= widgetPosX + (m_name.posX + m_name.width) * widgetScale and WG.playernames then
+		local text = ''
+		local title = ''
+
+		-- player color described in text (colorblind accessibility)
+		-- originalColourNames is only filled once the game has started; before that team colors arent final
+		-- AI colors are assigned at load and never change, so they dont need that guard
+		if m_color.active and not spec and (originalColourNames[playerID] or pTip.ai) then
+			local r, g, b = colourNames(pTip.team, true)
+			title = " \255\255\255\255[" .. ConvertRGBToClosestName(r, g, b) .. "]"
+		end
+
+		-- player historical names
+		if accountID then
+			if not pTip.history then
+				pTip.history = WG.playernames.getAccountHistory(accountID) or {}
+			end
+			if pTip.history and (nameIsAlias or #pTip.history > 1) then
+				local c = 0
+
+	            local pname = Spring.GetPlayerInfo(playerID, false)
+				for i, name in ipairs(pTip.history) do
+					if pTip.name ~= name then
+						if c > 0 then
+							text = text .. '\n'
+						end
+	                    if name == pname then
+	                        text = text .. '> '
+	                    else
+	                        text = text .. '  '
+	                    end
+						text = text .. name
+			 			c = c + 1
 					end
-                    if name == pname then
-                        text = text .. '> '
-                    else
-                        text = text .. '  '
-                    end
-					text = text .. name
-		 			c = c + 1
 				end
 			end
-			if c > 0 then
-				tipText = text
-				tipTextTime = osClock()
-				tipTextTitle = (originalColourNames[playerID] and colourNames(pTip.team) or "\255\255\255\255") .. pTip.name
-			end
+		end
+
+		if #text > 0 or #title > 0 then
+			tipText = text
+			tipTextTime = osClock()
+			tipTextTitle = (spec and "\255\240\240\240" or ((originalColourNames[playerID] or pTip.ai) and colourNames(pTip.team)) or "\255\255\255\255") .. pTip.name .. title
 		end
 	end
 end
@@ -3823,7 +3884,7 @@ function widget:GetConfigData()
             specListShow = specListShow,
             enemyListShow = enemyListShowUserPref,  -- Save user preference, not auto-disabled state
             gameFrame = spGetGameFrame(),
-            lastSystemData = lastSystemData,
+            lastSystemData = last.systemData,
             alwaysHideSpecs = alwaysHideSpecs,
             transitionTime = transitionTime,
             hasresetskill = true,
@@ -3929,7 +3990,7 @@ function widget:SetConfigData(data)
     SetModulesPositionX()
 
     if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= spGetGameFrame() and data.gameFrame > spGetGameFrame() - 300 then
-        lastSystemData = data.lastSystemData
+        last.systemData = data.lastSystemData
     end
 end
 
