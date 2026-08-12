@@ -166,7 +166,24 @@ if Spring.GetConfigInt("version", 0) < version then
 		Spring.SetConfigString("voiceset", 'en/cephis')
 	end
 end
+version = 9
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
 
+	if Spring.GetConfigInt("NanoParticleLights", 1) == 0 then
+		Spring.SetConfigInt("NanoParticlesUpdateLuaUI", 0)
+	else
+		Spring.SetConfigInt("NanoParticlesUpdateLuaUI", 1)
+	end
+
+	Spring.SetConfigInt("NanoParticlesGL4", 1)
+	Spring.SetConfigInt("NanoParticlesHoming", 1)
+	Spring.SetConfigInt("NanoParticlesGroundClamp", 1)
+	Spring.SetConfigInt("NanoParticlesReclaimBurst", 1)
+	--Spring.SetConfigFloat("NanoParticlesUpdateLuaUISampleRate", 0.32)
+end
+
+Spring.SetConfigInt("NanoParticleMode", 1)
 
 -- apply the old pre-engine implementation stored camera minimum zoom level
 local oldMinCamHeight = Spring.GetConfigInt("MinimumCameraHeight", -1)

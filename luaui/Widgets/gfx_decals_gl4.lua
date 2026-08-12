@@ -563,7 +563,9 @@ local function AddDecal(decaltexturename, posx, posz, rotation,
 		false) -- noupload, dont use unless you know what you want to batch push/pop
 	if lifetime then
 		local deathtime = spawnframe + lifetime
-		if decalRemoveQueue[deathtime] == nil then
+		if deathtime ~= deathtime then -- NaN check
+			spEcho("gfx_decals_gl4: NaN deathtime for decal index", decalIndex, "spawnframe:", spawnframe, "lifetime:", lifetime)
+		elseif decalRemoveQueue[deathtime] == nil then
 			decalRemoveQueue[deathtime] = {decalIndex}
 		else
 			decalRemoveQueue[deathtime][#decalRemoveQueue[deathtime] + 1 ] = decalIndex
@@ -1147,6 +1149,9 @@ function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
 	local random = mathRandom
 
 	local radius = params[2] * (1 + (random()-0.5) * params[3])
+	if radius <= 0 or radius ~= radius then
+		return
+	end
 	local elevation = spGetGroundHeight(px, pz)
 	local exploHeight = py - (elevation >= 0 and elevation or elevation * params[15])
 	if exploHeight >= radius then

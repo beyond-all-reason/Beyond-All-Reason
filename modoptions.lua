@@ -276,6 +276,15 @@ local options = {
 		def		= false,
 	},
 
+    {
+        key 	= "comm_trans_slow",
+        name 	= "Slow Commander Transport",
+        desc 	= "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished.",
+        type 	= "bool",
+        section = "options_main",
+        def 	= false,
+    },
+
 	{
 		key		= "sub_header",
 		section	= "options_main",
@@ -1511,9 +1520,10 @@ local options = {
         hidden  = false,
         items 	= {
             { key = "disabled", name = "Disabled", desc = "Disabled"},
-            { key = "normal", name = "Normal", desc = "Slow revival rate, normal strength."},
-            { key = "hard", name = "Hard", desc = "Fast revival rate, stronger Scavenger Zombies." },
-            { key = "nightmare", name = "Nightmare", desc = "Extreme revival rate, stronger Scavenger Zombies, 2-5 spawn per corpse." },
+            { key = "normal", name = "Normal", desc = "Normal revival rate, normal strength."},
+            { key = "hard", name = "Hard", desc = "Faster revival rate, stronger Zombies." },
+            { key = "nightmare", name = "Nightmare", desc = "Faster revival rate, stronger Zombies, 2-5 spawn per corpse." },
+            { key = "akumu", name = "Akumu", desc = "Faster revival rate, stronger Zombies, 2-8 spawn per corpse, zombies leave corpses." },
         }
     },
 
@@ -1663,7 +1673,7 @@ local options = {
 	{
         key    	= "legionsimplifiedmexes",
         name   	= "Legion Simplified Mexes",
-        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.  Legion light T1 units are given a higher metal cost but lower E cost, and heavy T1 units are given a higher E cost and slightly lower metal cost.",
+        desc   	= "Changes the legion T1 mex to act the same as the other T1 mexes.\nAlso buffs the solar/wind generators on par with other factions.\nGoblin cost 25m/500e -> 30m/420e, Satyr 400 -> 600e",
         type   	= "bool",
         section = "options_experimental",
         def  	= false,

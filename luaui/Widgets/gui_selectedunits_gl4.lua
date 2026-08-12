@@ -74,7 +74,7 @@ local glTexture             = gl.Texture
 local glClear               = gl.Clear
 local GL_ALWAYS             = GL.ALWAYS
 local GL_NOTEQUAL           = GL.NOTEQUAL
-local GL_KEEP               = 0x1E00 --GL.KEEP
+local GL_KEEP               = GL.KEEP
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
@@ -249,7 +249,7 @@ local function AddPrimitiveAtUnit(unitID, noUpload, waterLevel)
 end
 
 
-local function DrawSelections(selectionVBO, shader)
+local function DrawSelections(selectionVBO, shader, ignoreDepth)
 	if selectionVBO.usedElements > -1 then
 		-- DrawWorld can inherit culling state from other render passes/widgets.
 		-- Force culling off so platter winding/order differences cannot hide them.
@@ -261,7 +261,7 @@ local function DrawSelections(selectionVBO, shader)
 		shader:Activate()
 		shader:SetUniform("iconDistance", 99999) -- pass
 		glStencilTest(true) --https://learnopengl.com/Advanced-OpenGL/Stencil-testing
-		glDepthTest(true) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
+		glDepthTest(not ignoreDepth) -- One really interesting thing is that the depth test does not seem to be obeyed within DrawWorldPreUnit
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		glClear(GL_STENCIL_BUFFER_BIT) -- set stencil buffer to 0
 
@@ -273,7 +273,7 @@ local function DrawSelections(selectionVBO, shader)
 
 		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
-		glDepthTest(true)
+		glDepthTest(not ignoreDepth)
 
 		shader:SetUniform("addRadius", 1.3)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
@@ -297,7 +297,7 @@ end
 if mapHasWater then
 	widgetDrawWorld = function()
 		-- Water-affected ground platters are drawn post-water to avoid refraction distortion.
-		DrawSelections(selectionVBOWater, waterShader)
+		DrawSelections(selectionVBOWater, waterShader, true)
 		DrawSelections(selectionVBOUnfinished, unbuiltShader)
 	end
 else

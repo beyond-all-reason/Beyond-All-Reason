@@ -88,9 +88,7 @@ return {
 				range = 400,
 				reloadtime = 7,
 				soundhit = "xplodep2",
-				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
-				soundhitwetvolume = 14,
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
@@ -105,6 +103,7 @@ return {
 				customparams = {
 					speceffect = "torpwaterpen",
 					norangering = 1,
+					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 750,

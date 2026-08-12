@@ -154,6 +154,10 @@ local flexCallIns = {
 	'StockpileChanged',
 	'SelectionChanged',
 	'DrawGenesis',
+	'DrawGroundPreForward',
+	'DrawGroundPostForward',
+	'DrawGroundPreDeferred',
+	'DrawGroundPostDeferred',
 	'DrawGroundDeferred',
 	'DrawWorld',
 	'DrawWorldPreUnit',
@@ -179,6 +183,9 @@ local flexCallIns = {
 	'FeatureDestroyed',
 	'UnsyncedHeightMapUpdate',
 }
+if Engine.FeatureSupport.nanoParticleUpdateCallin then
+	flexCallIns[#flexCallIns + 1] = 'NanoParticleUpdate'
+end
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
 	flexCallInMap[ci] = true
@@ -257,6 +264,7 @@ local callInLists = {
 	'UnitParalyzeDamageHealthbars',
 	'UnitParalyzeDamageEffect',
 	'SelectedUnitsClear',
+	'SelectedUnitsSet',
 	'SelectedUnitsBatchUpdate',
 	'SelectedUnitsRemove',
 	'SelectedUnitsAdd',
@@ -1636,6 +1644,46 @@ function widgetHandler:DrawGenesis()
 	return
 end
 
+function widgetHandler:DrawGroundPreForward()
+	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	local list = self.DrawGroundPreForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostForward()
+	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	local list = self.DrawGroundPostForwardList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostForward()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPreDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	local list = self.DrawGroundPreDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPreDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:DrawGroundPostDeferred()
+	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	local list = self.DrawGroundPostDeferredList
+	for i = #list, 1, -1 do
+		list[i]:DrawGroundPostDeferred()
+	end
+	tracy.ZoneEnd()
+	return
+end
+
 function widgetHandler:DrawGroundDeferred()
 	tracy.ZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
@@ -1861,10 +1909,13 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-  for _,w in ripairs(self.DrawBuildSquareList) do
-    w:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-  end
-  return
+	tracy.ZoneBeginN("W:DrawBuildSquare")
+	local list = self.DrawBuildSquareList
+	for i = #list, 1, -1 do
+		list[i]:DrawBuildSquare(unitDefID, x, z, facing, statuses)
+	end
+	tracy.ZoneEnd()
+	return
 end
 
 function widgetHandler:SunChanged()
@@ -2997,6 +3048,15 @@ function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	return
 end
 
+function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
+	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	local list = self.NanoParticleUpdateList
+	for i = #list, 1, -1 do
+		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	tracy.ZoneBeginN("W:UnitScriptDistortion")
 	for _, w in ipairs(self.UnitScriptDistortionList) do
@@ -3118,6 +3178,15 @@ function widgetHandler:SelectedUnitsClear(playerID)
 	tracy.ZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
+	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	for _, w in ipairs(self.SelectedUnitsSetList) do
+		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
 	tracy.ZoneEnd()
 	return

@@ -480,7 +480,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "teams"
 		elseif cmd == "globallos" or cmd == "clearwrecks" or cmd == "reducewrecks" then
 			subPermission = "terrain"
-		elseif cmd == "modmarker" then
+		elseif cmd == "modmarker" or cmd == "modwhisper" or cmd == "modbroadcast" then
 			subPermission = "modmarker"
 		end
 
@@ -638,6 +638,40 @@ if gadgetHandler:IsSyncedCode() then
 			local label = parts[6] or ""
 			if x and y and z then
 				SendToUnsynced("modmarker", x, y, z, label)
+			end
+		elseif cmd == "modwhisper" then
+			-- target may be a teamID (resolved via GetTeamInfo's leader) or a player name.
+			-- Delivery relays to unsynced since SendPrivateChat needs to run from there.
+			local parts = string.split(msg, ':')
+			local target = parts[3]
+			local message = table.concat(parts, ':', 4)
+			if target and message and message ~= "" then
+				local targetPlayerID = nil
+				local targetTeamID = tonumber(target)
+				if targetTeamID then
+					local _, leaderPlayerID = Spring.GetTeamInfo(targetTeamID, false)
+					if leaderPlayerID and leaderPlayerID >= 0 then
+						targetPlayerID = leaderPlayerID
+					end
+				else
+					for _, pid in ipairs(Spring.GetPlayerList()) do
+						local pname = Spring.GetPlayerInfo(pid, false)
+						if pname == target then
+							targetPlayerID = pid
+							break
+						end
+					end
+				end
+				if targetPlayerID then
+					SendToUnsynced("modwhisper_deliver", targetPlayerID, message)
+				else
+					SendToUnsynced("modwhisper_deliver", playerID, "[ModWhisper] Target '" .. target .. "' not found.")
+				end
+			end
+		elseif cmd == "modbroadcast" then
+			local colorKey, soundID, text = msg:match("modbroadcast:([^:]*):([^:]*):(.*)$")
+			if colorKey and (soundID and soundID ~= "" or text and text ~= "") then
+				SendToUnsynced("modbroadcast", colorKey, soundID, text)
 			end
 		end
 	end
@@ -846,7 +880,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function RelocateUnits(words)
-		if #words < 5 then
+		if #words < 4 then
 			return
 		end
 
@@ -1029,6 +1063,19 @@ else	-- UNSYNCED
 
 
 
+	-- Modbroadcast draw state, unsynced, reaches all players.
+	local modbroadcastActive = nil
+	local MODBROADCAST_DURATION  = 7
+	local MODBROADCAST_HOLD      = 1
+	local MODBROADCAST_FONT_SIZE = 42
+	local MODBROADCAST_COLORS = {
+		white  = { r = 1,    g = 1,    b = 1    },
+		red    = { r = 1,    g = 0.30, b = 0.30 },
+		yellow = { r = 1,    g = 0.85, b = 0.20 },
+		green  = { r = 0.40, g = 1,    b = 0.40 },
+		cyan   = { r = 0.30, g = 0.90, b = 1    },
+	}
+
 	function gadget:Initialize()
 		local myPlayerID = Spring.GetMyPlayerID()
 		local function addAuthorizedChatAction(permission, action, handler)
@@ -1076,10 +1123,35 @@ else	-- UNSYNCED
 
 		addAuthorizedChatAction('test', 'desync', desync)
 		addAuthorizedChatAction('modmarker', 'modmarker', modmarker)
+		addAuthorizedChatAction('modmarker', 'modwhisper', modwhisper)
+		addAuthorizedChatAction('modmarker', 'modbroadcast', modbroadcast)
 		-- Moderator broadcast ping: the synced modmarker handler relays here, and
 		-- every client draws it locally (localOnly=true) so ALL players see it.
 		gadgetHandler:AddSyncAction("modmarker", function(_, x, y, z, label)
 			Spring.MarkerAddPoint(x, y, z, label or "", true)
+		end)
+		-- Reaches every client, but only the matching target actually sends anything.
+		gadgetHandler:AddSyncAction("modwhisper_deliver", function(_, targetPlayerID, message)
+			if targetPlayerID == Spring.GetMyPlayerID() then
+				Spring.SendPrivateChat(message, targetPlayerID)
+			end
+		end)
+		-- soundID normalized and played directly; text sets draw state for DrawScreen.
+		gadgetHandler:AddSyncAction("modbroadcast", function(_, colorKey, soundID, text)
+			if soundID and soundID ~= "" then
+				local p = soundID
+				if p:sub(1, 7) ~= "sounds/" then
+					p = "sounds/" .. p
+				end
+				if not p:find("%.[%a%d]+$") then
+					p = p .. ".wav"
+				end
+				Spring.PlaySoundFile(p, 0.7, "ui")
+			end
+			if text and text ~= "" then
+				local color = MODBROADCAST_COLORS[colorKey] or MODBROADCAST_COLORS.white
+				modbroadcastActive = { text = text, r = color.r, g = color.g, b = color.b, startTime = Spring.GetGameSeconds() }
+			end
 		end)
 		gadgetHandler:AddSyncAction("devhelper_selectunits", function(_, requestPlayerID, requestID)
 			if requestPlayerID ~= Spring.GetMyPlayerID() then
@@ -1130,7 +1202,11 @@ else	-- UNSYNCED
 		gadgetHandler:RemoveChatAction('godmodeally')
 		gadgetHandler:RemoveChatAction('desync')
 		gadgetHandler:RemoveChatAction('modmarker')
+		gadgetHandler:RemoveChatAction('modwhisper')
+		gadgetHandler:RemoveChatAction('modbroadcast')
 		gadgetHandler:RemoveSyncAction("modmarker")
+		gadgetHandler:RemoveSyncAction("modwhisper_deliver")
+		gadgetHandler:RemoveSyncAction("modbroadcast")
 		gadgetHandler:RemoveSyncAction("devhelper_selectunits")
 	end
 	function loadMissiles(_, line, words, playerID)
@@ -1640,6 +1716,23 @@ else	-- UNSYNCED
 			s = s .. string.format("Sim = ~%3.2fms  (%3.2fms)\nUpdate = ~%3.2fms (%3.2fms)\nDraw = ~%3.2fms (%3.2fms)", ss, simTime, su, updateTime, sd,  drawTime)
 			gl.Text(s, 600*uiScale, 600*uiScale, 16*uiScale)
 		end
+
+		if modbroadcastActive then
+			local elapsed = Spring.GetGameSeconds() - modbroadcastActive.startTime
+			if elapsed >= MODBROADCAST_DURATION then
+				modbroadcastActive = nil
+			else
+				local alpha = 1
+				if elapsed > MODBROADCAST_HOLD then
+					alpha = 1 - ((elapsed - MODBROADCAST_HOLD) / (MODBROADCAST_DURATION - MODBROADCAST_HOLD))
+				end
+				local vsx, vsy = Spring.GetViewGeometry()
+				local c = modbroadcastActive
+				gl.Color(c.r, c.g, c.b, alpha)
+				gl.Text(c.text, vsx / 2, vsy / 2, MODBROADCAST_FONT_SIZE, "cvo")
+				gl.Color(1, 1, 1, 1)
+			end
+		end
 	end
 
 	function gadget:UnitCreated()
@@ -1909,6 +2002,57 @@ else	-- UNSYNCED
 			local label = words[1] and table.concat(words, " ", 1) or ""
 			Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modmarker:' .. x .. ':' .. y .. ':' .. z .. ':' .. label)
 		end
+	end
+
+	-- /luarules modwhisper <teamID|playername> <message> - private notice to
+	-- one player only, not a broadcast like modmarker. Reuses modmarker's permission.
+	function modwhisper(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		if not words[1] or not words[2] then
+			Spring.Echo("[ModWhisper] Usage: /luarules modwhisper <teamID|playername> <message>")
+			return
+		end
+		local target = words[1]
+		local message = table.concat(words, " ", 2)
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modwhisper:' .. target .. ':' .. message)
+	end
+
+	-- /luarules modbroadcast [color] [sound] <message text> - color/sound
+	-- auto-detected from leading words, both optional.
+	local MODBROADCAST_COLOR_NAMES = { white = true, red = true, yellow = true, green = true, cyan = true }
+	function modbroadcast(_, line, words, playerID)
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
+		if not isAuthorized(playerID, "modmarker") then
+			return
+		end
+		if not words[1] then
+			Spring.Echo("[ModBroadcast] Usage: /luarules modbroadcast [color] [sound] <message text>")
+			return
+		end
+		local idx = 1
+		local colorKey = "white"
+		if MODBROADCAST_COLOR_NAMES[words[idx]] then
+			colorKey = words[idx]
+			idx = idx + 1
+		end
+		local soundID = ""
+		if words[idx] and (words[idx]:find("/") or words[idx]:match("%.%a+$")) then
+			soundID = words[idx]
+			idx = idx + 1
+		end
+		local text = words[idx] and table.concat(words, " ", idx) or ""
+		if soundID == "" and text == "" then
+			Spring.Echo("[ModBroadcast] Usage: /luarules modbroadcast [color] [sound] <message text>")
+			return
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':modbroadcast:' .. colorKey .. ':' .. soundID .. ':' .. text)
 	end
 
 	function spawnunitexplosion(_, line, words, playerID)

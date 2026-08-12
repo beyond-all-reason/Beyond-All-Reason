@@ -1443,6 +1443,7 @@ local function drawUnitInfo()
 
 	if displayUnitID then
 		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills")
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills:Rank")
 		exp = spGetUnitExperience(displayUnitID)
 		if exp and exp > 0.009 and WG['rankicons'] and rankTextures then
 			if displayUnitID then
@@ -1452,15 +1453,17 @@ local function drawUnitInfo()
 					local rankIconMarginX = math_floor((height * vsy * 0.015) + 0.5)
 					local rankIconMarginY = math_floor((height * vsy * 0.18) + 0.5)
 					glColor(1, 1, 1, 0.88)
-					glTexture(':lr' .. (rankIconSize * 2) .. ',' .. (rankIconSize * 2) .. ':' .. rankTextures[rank])
+					glTexture(':l:' .. rankTextures[rank])
 					glTexRect(backgroundRect[3] - rankIconMarginX - rankIconSize, backgroundRect[4] - rankIconMarginY - rankIconSize, backgroundRect[3] - rankIconMarginX, backgroundRect[4] - rankIconMarginY)
 					glTexture(false)
 					glColor(1, 1, 1, 1)
 				end
 			end
 		end
+		tracy.ZoneEnd()
+		tracy.ZoneBeginN("W:Info:DrawUnitInfo:RankKills:Kills")
 		local kills = spGetUnitRulesParam(displayUnitID, "kills")
-		if kills then
+		if kills and kills > 0 then
 			local rankIconSize = math_floor((height * vsy * 0.16))
 			local rankIconMarginY = math_floor((height * vsy * 0.07) + 0.5)
 			local rankIconMarginX = math_floor((height * vsy * 0.053) + 0.5)
@@ -1473,6 +1476,7 @@ local function drawUnitInfo()
 			font2:Print('\255\215\215\215'..kills, backgroundRect[3] - rankIconMarginX - (rankIconSize * 0.5), backgroundRect[4] - (rankIconMarginY * 2.05) - (fontSize * 0.31), fontSize * 0.87, "oc")
 			font2:End()
 		end
+		tracy.ZoneEnd()
 		tracy.ZoneEnd()
 	end
 
@@ -2356,13 +2360,23 @@ function widget:DrawScreen()
 		})
 		tracy.ZoneEnd()
 	end
+	local warmedDisplayUnitpicThisFrame = false
+	if displayMode ~= 'selection' and displayUnitDefID and unitDefInfo[displayUnitDefID].buildPic and not selectionUnitpicWarm.warmed[displayUnitDefID] then
+		tracy.ZoneBeginN("W:Info:DisplayUnitpicWarmup")
+		warmedDisplayUnitpicThisFrame = true
+		if glTexture("#" .. displayUnitDefID) then
+			selectionUnitpicWarm.warmed[displayUnitDefID] = true
+		end
+		glTexture(false)
+		tracy.ZoneEnd()
+	end
 	local selectionUnitpicsWarmDone = true
 	local warmedSelectionUnitpicThisFrame = false
-	if selectionUnitpicWarm.count > 0 then
+	if not warmedDisplayUnitpicThisFrame and selectionUnitpicWarm.count > 0 then
 		warmedSelectionUnitpicThisFrame = true
 		selectionUnitpicsWarmDone = flushSelectionUnitpicWarmQueue()
 	end
-	if infoTex and updateTex and selectionUnitpicsWarmDone and not warmedSelectionUnitpicThisFrame then
+	if infoTex and updateTex and selectionUnitpicsWarmDone and not warmedSelectionUnitpicThisFrame and not warmedDisplayUnitpicThisFrame then
 		tracy.ZoneBeginN("W:Info:DrawScreen:RenderInfoTexture")
 		updateTex = nil
 		gl.R2tHelper.RenderToTexture(infoTex,

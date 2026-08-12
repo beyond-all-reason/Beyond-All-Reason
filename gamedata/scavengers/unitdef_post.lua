@@ -1,7 +1,9 @@
 -- -- UnitDef postprocessing specific to Scavenger units only
 
 local function scavUnitDef_Post(name, uDef)
-	uDef.category = uDef.category .. ' SCAVENGER'
+	if not string.find(uDef.category, "OBJECT", 1, true) then
+		uDef.category = uDef.category .. ' SCAVENGER'
+	end
 	uDef.customparams.isscavenger = true
 	uDef.capturable = false
 	uDef.decloakonfire = true
@@ -370,11 +372,10 @@ local function scavUnitDef_Post(name, uDef)
 		-- Legion T2 Land Constructors
 		if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then
 			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions + 1] = "legmohocon_scav" -- Advanced Metal Fortifier - Metal Extractor with Constructor Turret
-			uDef.buildoptions[numBuildoptions + 2] = "legwint2_scav" -- T2 Wind Generator
-			uDef.buildoptions[numBuildoptions + 3] = "legnanotct2_scav" -- T2 Constructor Turret
-			uDef.buildoptions[numBuildoptions + 4] = "legrwall_scav" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
-			uDef.buildoptions[numBuildoptions + 5] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
+			uDef.buildoptions[numBuildoptions + 1] = "legwint2_scav" -- T2 Wind Generator
+			uDef.buildoptions[numBuildoptions + 2] = "legnanotct2_scav" -- T2 Constructor Turret
+			uDef.buildoptions[numBuildoptions + 3] = "legrwall_scav" -- Dragon's Constitution - T2 (not Pop-up) Wall Turret
+			uDef.buildoptions[numBuildoptions + 4] = "leggatet3_scav" -- Elysium - Advanced Shield Generator
 		end
 
 		-- Legion T2 Sea Constructors
@@ -388,6 +389,7 @@ local function scavUnitDef_Post(name, uDef)
 		if name == "leggant_scav" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions + 1] = "legbunk_scav" -- Pilum - Fast Assault Mech
+			uDef.buildoptions[numBuildoptions + 2] = "legapollyon_scav" -- Apollyon - Heavy Gatling Tank
 		end
 
 	-- Scavengers Units ------------------------------------------------------------------------------------------------------------------------
@@ -539,6 +541,7 @@ local function scavUnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 1] = "legsrailt4_scav" -- Epic Arquebus
 			uDef.buildoptions[numBuildoptions + 2] = "leggobt3_scav" -- Epic Goblin
 			uDef.buildoptions[numBuildoptions + 3] = "legpede_scav" -- Mukade - Heavy Multi Weapon Centipede
+			uDef.buildoptions[numBuildoptions + 4] = "legeheatraymech_old_scav" -- Old Sol Invictus - Quad Heatray Mech
 		end
 
 	-- Release candidate units --------------------------------------------------------------------------------------------------------------------------------------------------------

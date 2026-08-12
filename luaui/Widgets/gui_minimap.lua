@@ -334,6 +334,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then return end
 	if dualscreenMode then return end
 	if minimized then return end
+	if WG['chat'] and WG['chat'].isMapDrawActive and WG['chat'].isMapDrawActive() then return false end
 
 	leftclicked = false
 

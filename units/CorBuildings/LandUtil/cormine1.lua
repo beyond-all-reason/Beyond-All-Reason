@@ -82,7 +82,6 @@ return {
 				reloadtime = 1,
 				soundhit = "minexpl1",
 				soundhitwet = "",
-				soundhitwetvolume = 0,
 				tolerance = 1000000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

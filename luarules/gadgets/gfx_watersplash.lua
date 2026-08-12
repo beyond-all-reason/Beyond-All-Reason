@@ -4,7 +4,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name      = "Watereffects",
-		desc      = "Make splash sound in water",
+		desc      = "Add splashes in water",
 		version   = "1.1",
 		author    = "Jools ,Nixtux",
 		date      = "April,2012",

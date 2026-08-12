@@ -190,7 +190,7 @@ end
 --
 
 
-local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions)
+local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, actions, key, scanCode)
   local callInfoList = actionMap[cmd]
   if (callInfoList == nil) then
     return false
@@ -199,7 +199,7 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
     --local widget = callInfo[1]
     local func   = callInfo[2]
     local data   = callInfo[3]
-    if (func(cmd, optLine, optWords, data, isRepeat, release, actions)) then
+    if (func(cmd, optLine, optWords, data, isRepeat, release, actions, key, scanCode)) then
       return true
     end
   end
@@ -207,7 +207,7 @@ local function TryAction(actionMap, cmd, optLine, optWords, isRepeat, release, a
 end
 
 
-function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
+function actionHandler:KeyAction(press, key, _, isRepeat, scanCode, actions)
   if (not(actions and next(actions))) then return false end
 
   local actionSet
@@ -222,7 +222,7 @@ function actionHandler:KeyAction(press, _, _, isRepeat, _, actions)
     local extra = bAction["extra"]
     local words = string.split(extra)
 
-    if (TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions)) then
+    if (TryAction(actionSet, cmd, extra, words, isRepeat, not press, actions, key, scanCode)) then
       return true
     end
   end

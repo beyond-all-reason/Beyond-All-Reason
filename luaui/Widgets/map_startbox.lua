@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1000000,
 		enabled = true,
 		depends = {'gl4'}
 	}
@@ -19,6 +19,7 @@ local math = math
 local mathFloor = math.floor
 local mathRandom = math.random
 local mathAbs = math.abs
+	local mathHuge = math.huge
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetMyTeamID
@@ -30,6 +31,8 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
+local spRequestStartPosition = Spring.RequestStartPosition
 local glDrawGroundCircle = gl.DrawGroundCircle
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -306,6 +309,10 @@ local function createCommanderNameList(name, teamID)
 end
 
 local function drawName(x, y, name, teamID)
+		if not (x > -mathHuge and x < mathHuge and y > -mathHuge and y < mathHuge) then
+			return
+		end
+
 	if commanderNameList[teamID] == nil or commanderNameList[teamID]['name'] ~= name then
 		if commanderNameList[teamID] ~= nil then
 			gl.DeleteList(commanderNameList[teamID]['list'])
@@ -513,6 +520,7 @@ local shaderSourceCache = {
 			myAllyTeamID = -1,
 			isMiniMap = 0,
 			roationMiniMap = 0,
+			waterSurfaceMode = 0,
 			mapNormals = 1,
 			heightMapTex = 2,
 			scavTexture = 3,
@@ -520,6 +528,7 @@ local shaderSourceCache = {
 		},
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
+			waterLevel = 0,
 			isMiniMap = 0,
 			pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 		},
@@ -593,14 +602,15 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
-
-	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-		startPolygonShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-	else
-		startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+	local selectedUnitDefID = WG["pregame-unit-selected"]
+	local selectedUnitDef = selectedUnitDefID and UnitDefs[selectedUnitDefID]
+	local waterSurfaceMode = not inminimap and selectedUnitDef and selectedUnitDef.floatOnWater
+	startPolygonShader:SetUniformInt("waterSurfaceMode", waterSurfaceMode and 1 or 0)
+	if waterSurfaceMode then
+		startPolygonShader:SetUniform("waterLevel", spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
 	end
+
+	startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 	fullScreenRectVAO:DrawArrays(GL_TRIANGLES)
 	startPolygonShader:Deactivate()
@@ -617,13 +627,7 @@ local function DrawStartCones(inminimap)
 	startConeShader:SetUniform("isMinimap", inminimap and 1 or 0)
 	startConeShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 
-	-- Pass PIP visible area if drawing in PIP minimap
-	if inminimap and WG['minimap'] and WG['minimap'].isDrawingInPip and WG['minimap'].getNormalizedVisibleArea then
-		local left, right, bottom, top = WG['minimap'].getNormalizedVisibleArea()
-		startConeShader:SetUniform("pipVisibleArea", left, right, bottom, top)
-	else
-		startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
-	end
+	startConeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
 	startConeShader:SetUniformFloat("startPosScale", startPosScale)
 
@@ -1577,6 +1581,12 @@ function widget:MousePress(x, y, button)
 				end
 			end
 		end
+	end
+
+	local pregameUnitSelected = WG["pregame-unit-selected"]
+	if not isSpec and not (pregameUnitSelected and pregameUnitSelected > 0) then
+		spRequestStartPosition(worldX, worldY, worldZ, false)
+		return true
 	end
 
 	return false
