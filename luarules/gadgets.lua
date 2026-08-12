@@ -353,8 +353,8 @@ local callInLists = {
 	"UnitAutoTargetRange",
 
 	-- Synthetic callins
-	-- "UnitBuildStepsPost",
-	-- "FeatureBuildStepsPost",
+	"UnitBuildStepsPost",
+	"FeatureBuildStepsPost",
 
 	-- unsynced
 	"DrawProjectile",
@@ -487,6 +487,8 @@ end
 --  to keep up with the times and adapt as the gaps fill in from the other side.
 --
 --  [IMPORTANT]
+--  > Add each callin to `syntheticCallinHold` and to `syntheticCallinUpdate`.
+--  > 
 --  > The engine does not know these names, so `Script.UpdateCallIn` is a no-op.
 --  > 
 --  > Synthetic callins that subscribe to engine callins are kept installed for
@@ -495,8 +497,8 @@ end
 
 -- [SyntheticCallinName] := EngineCallinName[]
 local syntheticCallinHold = {
-	UnitBuildStepsPost    = { 'AllowUnitBuildStep',    'GameFramePost' },
-	FeatureBuildStepsPost = { 'AllowFeatureBuildStep', 'GameFramePost' },
+	UnitBuildStepsPost    = { 'GameFramePost', 'AllowUnitBuildStep' },
+	FeatureBuildStepsPost = { 'GameFramePost', 'AllowFeatureBuildStep' },
 }
 
 local callinHoldSummary = {}
@@ -511,6 +513,91 @@ for name, subscriptions in pairs(syntheticCallinHold) do
 	end
 end
 
+-- Summary callins of per-frame build steps:
+-- gadget:UnitBuildStepsPost(unitID)
+-- gadget:FeatureBuildStepsPost(featureID)
+
+local markUnitSteps = false
+local unitStepMarked = {}
+local unitStepList = {}
+local unitStepCount = 0
+
+local markFeatureSteps = false
+local featureStepMarked = {}
+local featureStepList = {}
+local featureStepCount = 0
+
+local function dropUnitBuildStepMarks()
+	for i = 1, unitStepCount do
+		unitStepMarked[unitStepList[i]] = nil
+	end
+	unitStepCount = 0
+end
+
+local function dropFeatureBuildStepMarks()
+	for i = 1, featureStepCount do
+		featureStepMarked[featureStepList[i]] = nil
+	end
+	featureStepCount = 0
+end
+
+-- [SyntheticCallinName] := handleUpdateCallin
+local syntheticCallinUpdate = {
+	UnitBuildStepsPost = function(active)
+		if not active and markUnitSteps then
+			dropUnitBuildStepMarks()
+		end
+		markUnitSteps = active
+	end,
+	FeatureBuildStepsPost = function(active)
+		if not active and markFeatureSteps then
+			dropFeatureBuildStepMarks()
+		end
+		markFeatureSteps = active
+	end,
+}
+
+function gadgetHandler:UnitBuildStepsPost()
+	local count = unitStepCount
+	if count == 0 then
+		return
+	end
+	unitStepCount = 0
+
+	-- Clear marks first so a subscriber that throws does not leave any marks.
+	for i = 1, count do
+		unitStepMarked[unitStepList[i]] = nil
+	end
+
+	local list = self.UnitBuildStepsPostList
+	for i = 1, count do
+		local unitID = unitStepList[i]
+		for _, g in ipairs(list) do
+			g:UnitBuildStepsPost(unitID)
+		end
+	end
+end
+
+function gadgetHandler:FeatureBuildStepsPost()
+	local count = featureStepCount
+	if count == 0 then
+		return
+	end
+	featureStepCount = 0
+
+	-- Clear marks first so a subscriber that throws does not leave any marks.
+	for i = 1, count do
+		featureStepMarked[featureStepList[i]] = nil
+	end
+
+	local list = self.FeatureBuildStepsPostList
+	for i = 1, count do
+		local featureID = featureStepList[i]
+		for _, g in ipairs(list) do
+			g:FeatureBuildStepsPost(featureID)
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1043,6 +1130,16 @@ function gadgetHandler:UpdateCallIn(name)
 
 	_G[name] = nil
 
+	local callinHolds = syntheticCallinHold[name]
+	if callinHolds then
+		-- Synthetic call-ins are dispatched by the game so have no engine hook.
+		syntheticCallinUpdate[name](#self[listName] > 0)
+		for _, backer in ipairs(callinHolds) do
+			self:UpdateCallIn(backer)
+		end
+		return
+	end
+
 	if isHeadless and headlessDisabledCallIns[name] then
 		Script.UpdateCallIn(name)
 		return
@@ -1415,6 +1512,8 @@ end
 
 function gadgetHandler:GameFramePost(frameNum)
 	callinDepth = 1 -- See notes on GameFrame.
+	self:UnitBuildStepsPost()
+	self:FeatureBuildStepsPost()
 	tracy.ZoneBeginN("G:GameFramePost")
 	local list = self.GameFramePostList
 	for i = #list, 1, -1 do
@@ -1833,6 +1932,11 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 			return false
 		end
 	end
+	if markUnitSteps and not unitStepMarked[unitID] then
+		unitStepMarked[unitID] = true
+		unitStepCount = unitStepCount + 1
+		unitStepList[unitStepCount] = unitID
+	end
 	tracy.ZoneEnd()
 	return true
 end
@@ -1871,6 +1975,11 @@ function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
 		if not g:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part) then
 			return false
 		end
+	end
+	if markFeatureSteps and not featureStepMarked[featureID] then
+		featureStepMarked[featureID] = true
+		featureStepCount = featureStepCount + 1
+		featureStepList[featureStepCount] = featureID
 	end
 	return true
 end
