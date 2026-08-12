@@ -61,9 +61,6 @@ local ENEMY_UNITS = Spring.ENEMY_UNITS
 local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local MY_UNITS = Spring.MY_UNITS
-local FEATURE = "feature"
-local UNIT = "unit"
-local MIXED = "mixed"
 local UNIT_ID_MAX = Game.maxUnits
 
 -- featureId is normalised to Game.maxUnits + featureId because of:
@@ -72,8 +69,12 @@ local UNIT_ID_MAX = Game.maxUnits
 -- offset due to be removed in future engine version
 local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID
 
-local commandLimit = 2000
+local FEATURE = "feature"
+local UNIT = "unit"
+local MIXED = "mixed"
+
 local metaMixesTargets = true -- quick flag for testing whether this is weird
+local commandLimit = 2000
 
 local myTeamID, myAllyTeamID
 
