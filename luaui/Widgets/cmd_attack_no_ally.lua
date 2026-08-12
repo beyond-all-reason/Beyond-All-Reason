@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local mouseRoles = VFS.Include("luaui/Include/mouse_roles.lua")
+
 function widget:GetInfo()
 	return {
 		name         = "Attack no Ally",
@@ -54,7 +56,7 @@ end
 	-- Right mouse button
 function widget:MousePress(x, y, button)
 
-	if button ~= 3 then
+	if not mouseRoles.isSecondaryButton(button) then
 		return false
 	end
 
@@ -72,7 +74,7 @@ function widget:MousePress(x, y, button)
 	return false
 end
 function widget:MouseMove(x, y, dx, dy, button)
-	if not rmbDragTracking or button ~= 3 then
+	if not rmbDragTracking or not mouseRoles.isSecondaryButton(button) then
 		return false
 	end
 
@@ -84,7 +86,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	if button ~= 3 then
+	if not mouseRoles.isSecondaryButton(button) then
 		return false
 	end
 
