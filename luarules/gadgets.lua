@@ -487,13 +487,8 @@ local syntheticCallinHold   = synthetic.hold
 local callinHoldSummary     = synthetic.holdSummary
 local syntheticCallinUpdate = synthetic.update
 
-local unitStepMarked = synthetic.unitStepMarked
-local unitStepList = synthetic.unitStepList
-local unitStepCount = synthetic.unitStepCount
-
-local featureStepMarked = synthetic.featureStepMarked
-local featureStepList = synthetic.featureStepList
-local featureStepCount = synthetic.featureStepCount
+local unitStepMarked,    unitStepList,    unitStepCount    = synthetic.getMarks('unitStep')
+local featureStepMarked, featureStepList, featureStepCount = synthetic.getMarks('featureStep')
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

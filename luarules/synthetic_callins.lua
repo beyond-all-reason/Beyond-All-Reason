@@ -64,47 +64,59 @@ for name, callinHolds in pairs(syntheticCallinHold) do
 end
 
 --------------------------------------------------------------------------------
---  Build step marks  ----------------------------------------------------------
-return syntheticCallinHold, callinHoldSummary
+--  Callin mark-and-sweep  -----------------------------------------------------
+--  
+--  Entries below gain the `prefixMarked`, `prefixList` and `prefixCount` tables
+--  and a pair of functions for dropping swept-up marks and updating the callin.
+--  These are exported with the module / included wherever the file is required.
 
-local unitStepMarked,    unitStepList,    unitStepCount    = {}, {}, {}
-local featureStepMarked, featureStepList, featureStepCount = {}, {}, {}
-
-local function dropUnitBuildStepMarks()
-	for i = 1, unitStepCount[1] or 0 do
-		unitStepMarked[unitStepList[i]] = nil
-	end
-	unitStepCount[1] = nil
-end
-
-local function dropFeatureBuildStepMarks()
-	for i = 1, featureStepCount[1] or 0 do
-		featureStepMarked[featureStepList[i]] = nil
-	end
-	featureStepCount[1] = nil
-end
-
-local syntheticCallinUpdate = {
-	UnitBuildStepsPost = function(active)
-		if active then
-			unitStepCount[1] = unitStepCount[1] or 0
-		else
-			dropUnitBuildStepMarks()
-		end
-	end,
-	FeatureBuildStepsPost = function(active)
-		if active then
-			featureStepCount[1] = featureStepCount[1] or 0
-		else
-			dropFeatureBuildStepMarks()
-		end
-	end,
+-- [SyntheticCallinName] := markPrefix
+local syntheticCallinMarks = {
+	UnitBuildStepsPost    = 'unitStep',
+	FeatureBuildStepsPost = 'featureStep',
 }
 
+local function makeDropMarks(marked, list, count)
+	return function()
+		for i = 1, count[1] or 0 do
+			marked[list[i]] = nil
+		end
+		count[1] = nil
+	end
+end
+
+-- [markPrefix] := { marked, list, count, drop }
+local marks = {}
+local syntheticCallinUpdate = {}
+
+for name, prefix in pairs(syntheticCallinMarks) do
+	local marked, list, count = {}, {}, {}
+	local drop = makeDropMarks(marked, list, count)
+
+	marks[prefix] = { marked = marked, list = list, count = count, drop = drop }
+
+	syntheticCallinUpdate[name] = function(active)
+		if active then
+			count[1] = count[1] or 0
+		else
+			drop()
+		end
+	end
+end
+
+-- markPrefix -> marked, list, count
+local function getMarks(prefix)
+	local mark = marks[prefix]
+	assert(mark, "synthetic_callins: no marks configured for '" .. tostring(prefix) .. "'")
+	return mark.marked, mark.list, mark.count
+end
+
 --------------------------------------------------------------------------------
---  Dispatch  -------------------------------------------------------------------
+--  Dispatch  ------------------------------------------------------------------
 --
 --  We can attach to the gadgetHandler at load time, so callins are declared here.
+--  
+--  UnitAutoTargetRange has its implementation in gadgets.lua, instead.
 
 function gadgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.MetaUnitAddedList) do
@@ -117,6 +129,8 @@ function gadgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 		g:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
 end
+
+local unitStepMarked, unitStepList, unitStepCount = getMarks('unitStep')
 
 function gadgetHandler:UnitBuildStepsPost()
 	local count = unitStepCount[1]
@@ -139,6 +153,8 @@ function gadgetHandler:UnitBuildStepsPost()
 	end
 end
 
+local featureStepMarked, featureStepList, featureStepCount = getMarks('featureStep')
+
 function gadgetHandler:FeatureBuildStepsPost()
 	local count = featureStepCount[1]
 	if not count or count == 0 then
@@ -160,16 +176,12 @@ function gadgetHandler:FeatureBuildStepsPost()
 	end
 end
 
+--------------------------------------------------------------------------------
+--  Exports  -------------------------------------------------------------------
+
 return {
-	hold              = syntheticCallinHold,   -- [SyntheticCallinName] := EngineCallinName[]
-	holdSummary       = callinHoldSummary,     -- [EngineCallinName]    := SyntheticCallinListName[]
-	update            = syntheticCallinUpdate, -- [SyntheticCallinName] := handleUpdateCallin
-
-	unitStepMarked    = unitStepMarked,
-	unitStepList      = unitStepList,
-	unitStepCount     = unitStepCount,
-
-	featureStepMarked = featureStepMarked,
-	featureStepList   = featureStepList,
-	featureStepCount  = featureStepCount,
+	hold        = syntheticCallinHold,   -- [SyntheticCallinName] := EngineCallinName[]
+	holdSummary = callinHoldSummary,     -- [EngineCallinName]    := SyntheticCallinListName[]
+	update      = syntheticCallinUpdate, -- [SyntheticCallinName] := handleUpdateCallin
+	getMarks    = getMarks,              -- markPrefix -> marked, list, count
 }
