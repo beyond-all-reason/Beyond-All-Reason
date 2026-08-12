@@ -28,8 +28,8 @@ local ZOMBIE_MAX_ORDERS_ISSUED    = 2
 local ZOMBIE_FACTORY_BUILD_COUNT  = 20
 local ZOMBIE_GUARD_CHANCE         = 0.75 -- Chance a zombie will guard allies
 local REFRESH_ORDERS_CHANCE       = 0.005
-local WARNING_TIME                = 15 * Game.gameSpeed -- Frames to start warning before reanimation
-local TIMER_NEAR_MAX_THRESHOLD    = 5 * Game.gameSpeed
+local WARNING_TIME                = Game.gameSpeed * 15 -- Frames to start warning before reanimation
+local TIMER_NEAR_MAX_THRESHOLD    = Game.gameSpeed * 5 -- Frames to start warning before reanimation
 local ZOMBIE_REZ_FRAME_PARAM      = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM            = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS   = { public = true }
@@ -116,7 +116,7 @@ local CMD_MOVE_STATE              = CMD.MOVE_STATE
 local CMD_GUARD                   = CMD.GUARD
 local CMD_FIRE_STATE              = CMD.FIRE_STATE
 local CMD_MOVE                    = CMD.MOVE
-local CMD_RECLAIM                 = CMD.RECLAIM
+local CMD_CAPTURE                 = CMD.CAPTURE
 local CMD_FIGHT                   = CMD.FIGHT
 local CMD_OPT_SHIFT               = {"shift"}
 
@@ -127,7 +127,6 @@ local ENABLE_REPEAT               = 1
 local NULL_ATTACKER               = -1
 local ENVIRONMENTAL_DAMAGE_ID     = Game.envDamageTypes.GroundCollision
 local WATER_DAMAGE_DEF_ID         = Game.envDamageTypes.Water
-local INVALID_LAVA_LEVEL          = -99999
 local UNAUTHORIZED_TEXT           = "You are not authorized to use zombie commands" --i18n library doesn't exist in gadget space.
 
 local MAP_SIZE_X                  = Game.mapSizeX
@@ -214,13 +213,14 @@ local zombieCorpseDefs = {}
 local zombieWatch = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
-local pendingWasZombieUnits = {}
+local wereZombies = {}
 local pendingUnitXp = {}
+local pendingZombieCaptures = {}
 local heapingZombies = {}
 local zombieHeapDefs = {}
 local fightingDefs = {}
 local unitDefWithWeaponRanges = {}
-local repairingUnits = {}
+local capturingUnits = {}
 local aaOnlyUnits = {}
 local antiUnderWaterOnlyUnits = {}
 local flyingUnits = {}
@@ -281,7 +281,7 @@ local spawnEffects = {
 	end
 
 	if unitDef.canRepair then
-		repairingUnits[unitDefID] = true
+		capturingUnits[unitDefID] = true
 	end
 
 	if unitDef.weapons and #unitDef.weapons > 0 then
@@ -549,10 +549,10 @@ local function updateOrders(unitID, unitDefID, closestKnownEnemy, currentCommand
 	local weaponRange = unitDefWithWeaponRanges[unitDefID]
 	local data = zombieWatch[unitID]
 
-	if repairingUnits[unitDefID] and closestKnownEnemy and not data.isStuck then
+	if capturingUnits[unitDefID] and closestKnownEnemy and not data.isStuck then
 		local enemyDefID = spGetUnitDefID(closestKnownEnemy)
-		if enemyDefID and unitDefs[enemyDefID].reclaimable then
-			spGiveOrderToUnit(unitID, CMD_RECLAIM, { closestKnownEnemy }, 0)
+		if enemyDefID and unitDefs[enemyDefID].capturable ~= false then
+			spGiveOrderToUnit(unitID, CMD_CAPTURE, { closestKnownEnemy }, 0)
 		else
 			data.isStuck = true
 		end
@@ -653,7 +653,7 @@ local function clearCorpseRezRulesParam(featureID)
 	spSetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
 end
 
-local function isWasZombieCorpse(featureID, corpseData)
+local function wasZombieCorpse(featureID, corpseData)
 	if corpseData and corpseData.wasZombie then
 		return true
 	end
@@ -907,9 +907,9 @@ function gadget:GameFrame(frame)
 	if frame % ZOMBIE_CHECK_INTERVAL == 0 then
 		spAddTeamResource(gaiaTeamID, "metal", 1000000)
 		spAddTeamResource(gaiaTeamID, "energy", 1000000)
-		for unitID, timeoutFrame in pairs(pendingWasZombieUnits) do
+		for unitID, timeoutFrame in pairs(wereZombies) do
 			if timeoutFrame < frame then
-				pendingWasZombieUnits[unitID] = nil
+				wereZombies[unitID] = nil
 			end
 		end
 		for unitID, xpData in pairs(pendingUnitXp) do
@@ -936,11 +936,11 @@ function gadget:GameFrame(frame)
 				zombieWatch[unitID] = nil
 			elseif ordersEnabled then
 				local currentCommand = spGetUnitCurrentCommand(unitID)
-				local refreshOrders = currentCommand ~= CMD_FIGHT and random() <= REFRESH_ORDERS_CHANCE
+				local refreshOrders = currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_CAPTURE and random() <= REFRESH_ORDERS_CHANCE
 
-				if refreshOrders or (currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD) then
+				if refreshOrders or (currentCommand ~= CMD_FIGHT and currentCommand ~= CMD_GUARD and currentCommand ~= CMD_CAPTURE) then
 					local closestKnownEnemy
-					if repairingUnits[unitDefID] or unitDefWithWeaponRanges[unitDefID] then
+					if capturingUnits[unitDefID] or unitDefWithWeaponRanges[unitDefID] then
 						closestKnownEnemy = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
 					end
 
@@ -1018,7 +1018,7 @@ local function queueCorpseForSpawning(featureID, override, wasZombie, pastXp)
 		return
 	end
 
-	wasZombie = wasZombie or isWasZombieCorpse(featureID)
+	wasZombie = wasZombie or wasZombieCorpse(featureID)
 	if pastXp == nil then
 		local existingCorpseData = corpsesData[featureID]
 		if existingCorpseData and existingCorpseData.pastXp ~= nil then
@@ -1048,9 +1048,9 @@ end
 function gadget:FeatureCreated(featureID, allyTeam, sourceID)
 	local wasZombie = false
 	local pastXp = 0
-	if sourceID and pendingWasZombieUnits[sourceID] then
+	if sourceID and wereZombies[sourceID] then
 		wasZombie = true
-		pendingWasZombieUnits[sourceID] = nil
+		wereZombies[sourceID] = nil
 		spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, 1, PUBLIC_RULES_PARAM_ACCESS)
 	end
 	if sourceID and pendingUnitXp[sourceID] then
@@ -1064,7 +1064,6 @@ end
 
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	clearCorpseRezRulesParam(featureID)
-	spSetFeatureRulesParam(featureID, WAS_ZOMBIE_PARAM, nil, PUBLIC_RULES_PARAM_ACCESS)
 	corpsesData[featureID] = nil
 end
 
@@ -1091,12 +1090,29 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		pendingUnitXp[unitID] = { xp = spGetUnitExperience(unitID) or 0, timeout = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES }
 	end
 	if isZombie(unitID) and currentZombieConfig.zombieCorpses and not heapingZombies[unitID] then
-		pendingWasZombieUnits[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES
+		wereZombies[unitID] = gameFrame + WAS_ZOMBIE_TIMEOUT_FRAMES
 	end
 	heapingZombies[unitID] = nil
+	pendingZombieCaptures[unitID] = nil
 	flyingUnits[unitID] = nil
 	zombieWatch[unitID] = nil
 	zombiesBeingBuilt[unitID] = nil
+end
+
+function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
+	if isZombie(builderID) then
+		pendingZombieCaptures[unitID] = true
+	end
+	return true
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if pendingZombieCaptures[unitID] then
+		pendingZombieCaptures[unitID] = nil
+		if not isZombie(unitID) then
+			setZombie(unitID)
+		end
+	end
 end
 
 local function isUnitInLava(unitID)
@@ -1106,7 +1122,7 @@ local function isUnitInLava(unitID)
 	end
 
 	local lavaLevel = spGetGameRulesParam("lavaLevel")
-	if lavaLevel and lavaLevel > INVALID_LAVA_LEVEL and unitY < lavaLevel then
+	if lavaLevel ~= nil and unitY < lavaLevel then
 		return true
 	end
 
@@ -1177,7 +1193,7 @@ local function createZombieFromFeature(featureID)
 				local featureDefData = zombieCorpseDefs[featureDefID]
 				local healthReductionRatio = calculateHealthRatio(featureID)
 				local corpseData = corpsesData[featureID]
-				local wasZombie = isWasZombieCorpse(featureID, corpseData)
+				local wasZombie = wasZombieCorpse(featureID, corpseData)
 				local pastXp = corpseData and corpseData.pastXp
 				spawnZombies(featureID, featureDefData.unitDefID, healthReductionRatio, featureX, featureY, featureZ, wasZombie, pastXp)
 				return true
