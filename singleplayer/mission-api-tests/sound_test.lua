@@ -50,7 +50,7 @@ local triggers = {
 	playMusic = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 150,
+			seconds = 5,
 		},
 		actions = { 'playMusic', 'messageMusicNotification' },
 	},

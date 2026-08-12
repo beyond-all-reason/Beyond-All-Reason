@@ -23,6 +23,23 @@ local function identityTable()
 end
 
 GG['MissionAPI'] = GG['MissionAPI'] or {}
+GG['MissionAPI'].Modules = GG['MissionAPI'].Modules or {}
+GG['MissionAPI'].Modules.ParameterTypes = VFS.Include('luarules/mission_api/parameter_types.lua')
+
+--- The real condition descriptors, keyed by type name, so mission parameters can
+--- be checked against the schemas they will actually be validated against
+--- in-engine. Loaded before the identity tables below replace
+--- ConditionDefinitions.
+local declaredParameters = {}
+for _, filePath in ipairs(VFS.DirList('luarules/mission_api/conditions/', '*.lua')) do
+	local descriptor = VFS.Include(filePath)
+	local declared = {}
+	for _, parameter in ipairs(descriptor.parameters or {}) do
+		declared[parameter.name] = true
+	end
+	declaredParameters[descriptor.type] = declared
+end
+
 GG['MissionAPI'].ConditionDefinitions = {
 	Types       = identityTable(),
 	EventTypes  = identityTable(),
@@ -126,6 +143,37 @@ describe("mission test files", function()
 			end
 			if condition.entry.amount ~= nil then
 				problems[#problems + 1] = condition.where .. ': amount'
+			end
+		end
+		table.sort(problems)
+		assert.are.same({}, problems)
+	end)
+
+	it("only passes parameters its condition type declares", function()
+		-- Catches parameters left behind by a rename, such as the TimeElapsed
+		-- `gameFrame` that became `seconds`. In-engine these are load-time
+		-- validation errors; this finds them without starting the game.
+		local problems = {}
+		for _, condition in ipairs(allConditions()) do
+			local declared = declaredParameters[condition.entry.type]
+			if declared then
+				for parameterName in pairs(condition.entry.parameters or {}) do
+					if type(parameterName) == 'string' and not declared[parameterName] then
+						problems[#problems + 1] = condition.where .. ': ' .. parameterName
+					end
+				end
+			end
+		end
+		table.sort(problems)
+		assert.are.same({}, problems)
+	end)
+
+	it("knows the schema of every condition type the missions use", function()
+		-- Guards the check above: an unknown type would silently skip it.
+		local problems = {}
+		for _, condition in ipairs(allConditions()) do
+			if not declaredParameters[condition.entry.type] then
+				problems[#problems + 1] = condition.where
 			end
 		end
 		table.sort(problems)

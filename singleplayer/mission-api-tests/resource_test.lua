@@ -29,7 +29,7 @@ local triggers = {
 	waveMetalAndEnergyRemove = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 180,
+			seconds = 6,
 		},
 		actions = { 'removeMetalAndEnergy', 'messageWaveMetalAndEnergyRemove' },
 	},
@@ -45,7 +45,7 @@ local triggers = {
 	waveMetalOnlyRemove = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 300,
+			seconds = 10,
 		},
 		actions = { 'removeMetalOnly', 'messageWaveMetalOnlyRemove' },
 	},
@@ -61,7 +61,7 @@ local triggers = {
 	waveEnergyOnlyRemove = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 420,
+			seconds = 14,
 		},
 		actions = { 'removeEnergyOnly', 'messageWaveEnergyOnlyRemove' },
 	},
@@ -133,7 +133,7 @@ local triggers = {
 	waveMetalAndEnergyPerSecond = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1200,
+			seconds = 40,
 		},
 		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
 	},
@@ -141,7 +141,7 @@ local triggers = {
 	waveMetalAndEnergyPerSecondRemove = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1400,
+			seconds = 47,
 		},
 		actions = { 'removeMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecondRemove'},
 	},
@@ -149,7 +149,7 @@ local triggers = {
 	waveMetalAndEnergyPerSecond2 = {
 		type = eventTypes.TimeElapsed,
 		parameters = {
-			gameFrame = 1600,
+			seconds = 54,
 		},
 		actions = { 'addMetalAndEnergyPerSecond', 'messageWaveMetalAndEnergyPerSecond'},
 	},
