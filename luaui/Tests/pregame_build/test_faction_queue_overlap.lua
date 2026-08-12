@@ -1,7 +1,9 @@
 local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
 
 function skip()
-	return Spring.GetGameFrame() <= 0 or not Spring.TestBuildOrderOverlap
+	return Spring.GetGameFrame() <= 0
+		or not Spring.TestBuildOrderOverlap
+		or Game.useYardmapsForQueuedBuildOverlap == false
 end
 
 function test()
