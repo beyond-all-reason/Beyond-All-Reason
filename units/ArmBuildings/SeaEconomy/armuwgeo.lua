@@ -1,5 +1,7 @@
 return {
 	armuwgeo = {
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
 		buildangle = 2048,
 		energycost = 13000,

@@ -1,5 +1,7 @@
 return {
 	coruwgeo = {
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
 		buildangle = 4096,
 		energycost = 13000,
