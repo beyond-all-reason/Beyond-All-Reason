@@ -176,15 +176,28 @@ local triggers = {
 		actions = { 'messageEnergyStored' },
 	},
 
-	bothResourcesStored = {
+	-- A metric measures one value, so "metal AND energy" is two conditions
+	-- chained by a prerequisite rather than one condition with two thresholds.
+	enoughMetalForBoth = {
 		type = metricTypes.ResourceStored,
 		parameters = {
 			teamID = 0,
 			resource = 'metal',
-			resource = 'energy',
 		},
 		atLeast = 1800,
+		actions = { 'messageMetalForBoth' },
+	},
+
+	bothResourcesStored = {
+		type = metricTypes.ResourceStored,
+		parameters = {
+			teamID = 0,
+			resource = 'energy',
+		},
 		atLeast = 3500,
+		settings = {
+			prerequisites = { 'enoughMetalForBoth' },
+		},
 		actions = { 'messageBothStored' },
 	},
 
@@ -606,6 +619,13 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = "[Resource Test] has >= 3000 energy stored.",
+		},
+	},
+
+	messageMetalForBoth = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = "[Resource Test] has >= 1800 metal (half of the combined check).",
 		},
 	},
 

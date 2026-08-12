@@ -121,6 +121,12 @@ end
 -- edge triggered: firing once when the value enters the satisfied range, and
 -- re-arming only once it leaves again, so a condition that stays true does not
 -- fire every sample.
+--
+-- The edge is only consumed once the condition actually fires. A trigger that is
+-- satisfied but currently blocked -- by an unmet prerequisite, the wrong stage or
+-- difficulty -- keeps its edge and fires as soon as it becomes valid. Otherwise
+-- "energy >= 3500 once metal >= 1800" would silently never fire when energy
+-- happened to arrive first.
 local function evaluateMetric(trigger, value)
 	trigger.lastValue = value
 
@@ -139,8 +145,11 @@ local function evaluateMetric(trigger, value)
 		return false
 	end
 
-	trigger.metricSatisfied = true
-	return activateTrigger(trigger)
+	local fired = activateTrigger(trigger)
+	if fired then
+		trigger.metricSatisfied = true
+	end
+	return fired
 end
 
 local function getUnitsInArea(trigger)

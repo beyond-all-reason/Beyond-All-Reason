@@ -180,6 +180,52 @@ describe("mission test files", function()
 		assert.are.same({}, problems)
 	end)
 
+	it("declares no key twice in a table constructor", function()
+		-- Lua keeps the last value when a key repeats, with no error, so a
+		-- duplicate is invisible to every check that inspects the loaded table.
+		-- It has to be caught in the source text. Converting a condition that
+		-- took both metal and energy into the single-value metric form produced
+		-- exactly this: `resource` and `atLeast` each written twice, leaving the
+		-- trigger silently checking only energy.
+		local problems = {}
+
+		for _, filePath in ipairs(VFS.DirList('singleplayer/mission-api-tests/', '*.lua')) do
+			local missionName = filePath:match('([^/]+)%.lua$')
+			local depth, seen = 0, {}
+
+			local handle = io.open(filePath, 'r')
+			local lineNumber = 0
+			for line in handle:lines() do
+				lineNumber = lineNumber + 1
+				if not line:match('^%s*%-%-') then
+					local code = line:gsub('%-%-.*$', '')
+					local key = code:match('^%s*([A-Za-z_][A-Za-z0-9_]*)%s*=')
+					if key then
+						seen[depth] = seen[depth] or {}
+						if seen[depth][key] then
+							problems[#problems + 1] = missionName .. ':' .. lineNumber
+								.. ": duplicate key '" .. key .. "'"
+						else
+							seen[depth][key] = lineNumber
+						end
+					end
+					for _ in code:gmatch('{') do
+						depth = depth + 1
+						seen[depth] = {}
+					end
+					for _ in code:gmatch('}') do
+						seen[depth] = nil
+						depth = math.max(0, depth - 1)
+					end
+				end
+			end
+			handle:close()
+		end
+
+		table.sort(problems)
+		assert.are.same({}, problems)
+	end)
+
 	it("puts objective completion effects under onComplete", function()
 		local problems = {}
 		for missionName, mission in pairs(missions) do
