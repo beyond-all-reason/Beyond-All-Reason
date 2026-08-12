@@ -2358,7 +2358,6 @@ function init()
 			distortioneffects = false,
 			snow = false,
 			particles = 10000,
-			nanoparticletype = 1,
 			guishader = 0,
 			decalsgl4 = 0,
 			decals = 0,
@@ -2383,7 +2382,6 @@ function init()
 			distortioneffects = true,
 			snow = false,
 			particles = 15000,
-			nanoparticletype = 2,
 			guishader = 0,
 			decalsgl4 = 1,
 			decals = 1,
@@ -2408,7 +2406,6 @@ function init()
 			distortioneffects = true,
 		 	snow = true,
 		 	particles = 20000,
-			nanoparticletype = 2,
 			decalsgl4 = 1,
 		 	decals = 2,
 			shadowslider = 4,
@@ -2432,7 +2429,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 30000,
-			nanoparticletype = 2,
 			decalsgl4 = 1,
 			decals = 3,
 			shadowslider = 5,
@@ -2456,7 +2452,6 @@ function init()
 			distortioneffects = true,
 			snow = true,
 			particles = 40000,
-			nanoparticletype = 2,
 			decalsgl4 = 1,
 			decals = 4,
 			shadowslider = 6,
@@ -2976,9 +2971,9 @@ function init()
 		  end,
 	  	},
 
-		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticleLights", 1) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
+		{ id = "lighteffects_nanoparticlelights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticlelights'), type = "bool", value = Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1, description = Spring.I18N('ui.settings.option.nanoparticlelights_descr'),
 		  onchange = function(i, value)
-			Spring.SetConfigInt("NanoParticleLights", value and 1 or 0)
+			Spring.SetConfigInt("NanoParticlesUpdateLuaUI", value and 1 or 0)
 		  end,
 		},
 
@@ -3169,28 +3164,6 @@ function init()
 				else
 					Spring.SetConfigInt("MaxNanoParticles", 0)
 				end
-			  end
-		  end,
-		},
-
-		{ id = "nanoparticletype", group = "gfx", category = types.basic,
-		  name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.nanoparticletype'),
-		  type = "select",
-		  options = {
-			  Spring.I18N('ui.settings.option.nanoparticletype_basic'),
-			  Spring.I18N('ui.settings.option.nanoparticletype_advanced'),
-		  },
-		  value = (tonumber(Spring.GetConfigInt("NanoParticleMode", 1)) or 1) + 1,
-		  description = Spring.I18N('ui.settings.option.nanoparticletype_descr'),
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  local mode = value - 1
-			  Spring.SetConfigInt("NanoParticleMode", mode)
-			  if mode == 0 then
-				  Spring.SetConfigInt("MaxNanoParticles", math.floor(Spring.GetConfigInt("MaxParticles", 15000) * 0.34))
-			  else
-				  Spring.SetConfigInt("MaxNanoParticles", 0)
 			  end
 		  end,
 		},

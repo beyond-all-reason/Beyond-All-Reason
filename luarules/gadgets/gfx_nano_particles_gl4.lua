@@ -39,6 +39,21 @@ end
 -- Synced half is empty: gadget runs entirely in unsynced space.
 if gadgetHandler:IsSyncedCode() then return end
 
+-- Engines from 2026.08 carry this effect natively, behind the NanoParticles*
+-- springsettings. It does the same job from C++ with none of the Spring->Lua
+-- call overhead, so there is nothing left for this gadget to add; running both
+-- would just draw every particle twice.
+if Engine.FeatureSupport and Engine.FeatureSupport.nanoParticlesGL4 then
+	-- Mode 1 zeroed MaxNanoParticles to silence the engine spray. The native
+	-- effect draws from that same budget, so leaving it at 0 would mean no nano
+	-- particles at all -- restore it before standing down.
+	if (Spring.GetConfigInt("MaxNanoParticles", 0) or 0) <= 0 then
+		Spring.SetConfigInt("MaxNanoParticles", math.floor((Spring.GetConfigInt("MaxParticles", 15000) or 15000) * 0.6))
+	end
+
+	return false
+end
+
 --------------------------------------------------------------------------------
 -- Imports / locals
 --------------------------------------------------------------------------------
@@ -136,7 +151,7 @@ local RENDER_MODE = "shape"
 -- Color brightness equalization, in [0..1]:
 local NanoParticleColorEqualize = 0.7   -- [0..1]
 -- Global unit particle rate/amount multiplier. 1.0 = unchanged. 0.5 = half particles per unit
-local NanoParticleRate        = 0.32   -- [0..1]
+local NanoParticlesRate       = 0.32   -- [0..1]
 -- Reclaiming units: tighten target-radius spawn spread so the cloud doesn't
 -- fill the whole unit footprint. 0.6 = 40% less spread.
 local RECLAIM_UNIT_JITTER_SCALE = 0.6
@@ -245,9 +260,10 @@ local BUILD_RANGE_MAX_EXTENSION = 1.1
 -- builder's actual throughput rather than its nanopiece count -- otherwise
 -- multi-arm factories with modest buildpower (e.g. shipyards) hog far more
 -- of the particle budget than a high-power single-piece constructor doing
--- the same amount of work. Per-visit count is capped at nPieces so no piece
--- emits twice in one visit. A fractional accumulator on info preserves
--- sub-1.0 rates across visits.
+-- the same amount of work. Emissions are distributed round-robin across
+-- nano pieces; high-throughput builders can emit more than once per piece in
+-- a visit. A fractional accumulator on info preserves sub-1.0 rates across
+-- visits.
 local EMIT_REF_BUILDSPEED = 100
 
 -- Visibility-feedback floor: if a builder has any active build power but its
@@ -264,11 +280,6 @@ local FEEDBACK_EMIT_MIN_GAP = 60   -- ~2s at 30 sim Hz
 --     of every frame. Particle speed is small vs typical unit movement over
 --     1-2 frames so this is visually identical.
 local LOS_CACHE_FRAMES           = 7
--- When an enemy builder is detected by radar/sonar but not visually visible
--- (e.g. a submarine), show only this fraction of its particles. Gives a
--- subtle hint that something is happening there without revealing full detail.
--- Set to 0 to suppress entirely when only detected, 1.0 to show in full.
-local ENEMY_RADAR_EMIT_SCALE     = 0.20
 local HOMING_RUN_EVERY           = 4
 -- Repair-completion poll cadence (sim frames). At 2Hz, HP/buildProgress polls
 -- are visually indistinguishable from per-pass and cut Spring->C calls by ~80%
@@ -329,7 +340,7 @@ local MIN_SCAN_STRIDE = 1
 local MAX_SCAN_STRIDE = 2
 
 -- Engine constants (rts/Sim/Projectiles/ProjectileHandler.cpp)
-local NANO_SPEED      = 4.0	-- engine default: 3.0
+local NANO_SPEED      = 4.0	-- engine default: 4.0 (recently updated)
 
 -- Anti-clump: half-width (elmos) of the symmetric stagger window around the
 -- nanopiece. Particles in a batch are spread along their velocity in
@@ -375,9 +386,12 @@ local GAME_SPEED     = Game.gameSpeed or 30
 -- particle reads still hit a local rather than a table key.
 local U = {}
 
+U.NANO_PARTICLES_HOMING = Spring.GetConfigInt("NanoParticlesHoming", 0) ~= 0
+U.NANO_PARTICLES_RECLAIM_BURST = Spring.GetConfigInt("NanoParticlesReclaimBurst", 0) ~= 0
+
 -- Optional terrain clamp for particle paths. Disabled by default because it
 -- adds extra ground-height queries in hot paths.
-U.GROUND_CLAMP_ENABLED = true
+U.GROUND_CLAMP_ENABLED = Spring.GetConfigInt("NanoParticlesGroundClamp", 0) ~= 0
 U.GROUND_CLAMP_MARGIN  = 11.0
 -- In-flight correction cadence. Enabled mode can periodically reproject active
 -- particles above terrain to prevent straight-line tunneling through cliffs.
@@ -1807,14 +1821,10 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	-- gate entirely (full view, ally builder, or LOS filter disabled).
 	local needLosCheck = LOS_FILTER and (not cachedSpecFullView) and (info.allyTeam ~= cachedAllyTeamID)
 
-	-- Three-tier enemy-builder visibility filter, evaluated once per emitNano
-	-- call and cached for LOS_CACHE_FRAMES frames:
-	--   tier 2 (INLOS bit set): fully seen -- full emission rate.
-	--   tier 1 (INRADAR bit set, not visually seen): radar/sonar contact only
-	--     (e.g. detected submarine) -- ENEMY_RADAR_EMIT_SCALE fraction of
-	--     particles as a faint hint, except for underwater work which must not
-	--     reveal a sonar-only unit's activity.
-	--   tier 0 (not detected at all): no particles.
+	-- Enemy-builder visibility filter, evaluated once per emitNano call and
+	-- cached for LOS_CACHE_FRAMES frames. Radar, sonar, and AirLOS-only
+	-- contacts do not emit; regular LOS is checked again at the particle origin
+	-- below because inverse particles originate at their target.
 	local builderVisTier = 2  -- default: fully visible (only matters when needLosCheck)
 	if needLosCheck then
 		local visFrame = info.visCheckFrame
@@ -1822,21 +1832,17 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			builderVisTier = info.builderVisTier
 		else
 			local losBits = Spring.GetUnitLosState(builderID, cachedAllyTeamID, true) or 0
-			-- INLOS bit = 1; INRADAR bit = 2. The latter also covers sonar
-			-- contacts, which must not grant normal visual-LOS particle access.
+			-- INLOS bit = 1; INRADAR bit = 2. Neither radar nor sonar contacts
+			-- may grant particle access.
 			if losBits % 2 == 1 then
 				builderVisTier = 2
 			else
-				builderVisTier = (losBits % 4 >= 2) and 1 or 0
+				builderVisTier = 0
 			end
 			info.visCheckFrame  = frame
 			info.builderVisTier = builderVisTier
 		end
 		if builderVisTier == 0 then return end
-		-- A sonar/radar contact must not disclose underwater nano activity.
-		-- Check both endpoints: reclaim particles originate at the target while
-		-- normal particles originate at the builder.
-		if builderVisTier == 1 and (sy < 0 or endY < 0) then return end
 	end
 
 	-- Stagger denominator: divide the symmetric spread window
@@ -1855,9 +1861,6 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 	for i = 1, count do
 		repeat
 			if fadeBandKeep and mathRandom() > fadeBandKeep then break end
-			-- Radar/sonar-only builder: stochastically drop most particles so
-			-- only a faint ghost-spray hints at the undetected unit's activity.
-			if builderVisTier == 1 and mathRandom() > ENEMY_RADAR_EMIT_SCALE then break end
 
 			local jx = jitterTable[jitterCursor]
 			local jy = jitterTable[jitterCursor + 1]
@@ -1926,12 +1929,10 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 				end
 			end
 
-			-- LOS filter: enemy emissions hidden when not in our LOS / not full
-			-- view. Throttled per builder -- LOS at the builder location changes
-			-- slowly relative to emit rate. Skipped for tier-1 (radar/sonar
-			-- contact) builders: underwater contact-only streams were already
-			-- rejected above, while surface streams retain the intended ghost hint.
-			if needLosCheck and builderVisTier == 2 then
+			-- LOS filter: enemy emissions hidden when not in regular LOS / not
+			-- full view. Throttled per builder -- LOS at the builder location
+			-- changes slowly relative to emit rate.
+			if needLosCheck then
 				local losFrame = info.losFrame
 				local visible
 				if losFrame and (frame - losFrame) < LOS_CACHE_FRAMES then
@@ -2023,7 +2024,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 			-- Inverse particles converge on the builder. If the builder moves
 			-- before the particle dies, the original straight-line trajectory
 			-- ends at a stale location. Track so applyHoming() can re-aim.
-			if inverse and pid then
+			if inverse and pid and U.NANO_PARTICLES_HOMING then
 				local list = homingByBuilder[builderID]
 				if not list then
 					list = {}
@@ -2107,6 +2108,7 @@ local function emitNano(builderID, info, endX, endY, endZ, inverse, jitterRadius
 						break
 					end
 				end
+				if not U.NANO_PARTICLES_HOMING then break end
 				-- Per-particle landing offset (jitter encodes a unique end-point)
 				-- so spray spread is preserved at the destination as the target moves.
 				local landingX = sx + fdx * len
@@ -2416,7 +2418,7 @@ U._accrueColdVirtualStream = function(unitID, info, meta, frame)
 	if not (bp and bp > 0) then return end
 
 	info.lastVisitFrame = frame
-	local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * (NanoParticleRate or 1.0)
+	local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * (NanoParticlesRate or 1.0)
 	local accum = (info.emitAccum or 0) + rate
 	local emits = mathFloor(accum)
 	info.emitAccum = accum - emits
@@ -3142,7 +3144,7 @@ function U.updateParticleMaintenance(frame, preUsed, runHoming, runGroundClamp)
 
 	tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance")
 	local dirtyMin, dirtyMax = math.huge, -1
-	if runHoming and frame >= (deathBuckets.__nextHomingFrame or 0) then
+	if runHoming and U.NANO_PARTICLES_HOMING and frame >= (deathBuckets.__nextHomingFrame or 0) then
 		tracy.ZoneBeginN("G:NanoParticles:RunFrame:ParticleMaintenance:Homing")
 		deathBuckets.__nextHomingFrame = frame + HOMING_RUN_EVERY
 		dirtyMin, dirtyMax = applyHoming(frame, dirtyMin, dirtyMax)
@@ -3451,7 +3453,7 @@ local function scanBuilders(frame, includeMaintenance)
 							if info.isFactory then jitterRadius = nil end
 							info.lastVisitFrame = frame
 							local elapsed = 1
-							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticleRate or 1.0)
+							local rate = (info.buildSpeed * bp / EMIT_REF_BUILDSPEED) * elapsed * (NanoParticlesRate or 1.0)
 							local accum = (info.emitAccum or 0) + rate
 							emits = mathFloor(accum)
 							info.emitAccum = accum - emits
@@ -3814,8 +3816,8 @@ local function runNanoFrame(n, phase, totalPhases)
 	totalPhases = totalPhases or 1
 	tracy.ZoneBeginN("G:NanoParticles:RunFrame")
 	local doScan = (totalPhases <= 1) or phase == 1
-	local doHoming = totalPhases > 1 and phase == 2
-	local doGroundClamp = totalPhases > 1
+	local doHoming = U.NANO_PARTICLES_HOMING and totalPhases > 1 and phase == 2
+	local doGroundClamp = U.GROUND_CLAMP_ENABLED and totalPhases > 1
 		and ((totalPhases <= 3 and phase == 2) or (totalPhases >= 4 and phase == 3))
 	local doCull = (totalPhases <= 1) or phase == totalPhases
 	if DEBUG then
@@ -3877,13 +3879,13 @@ function gadget:Update()
 	if n >= (deathBuckets.__nextNanoSettingsPollFrame or 0) then
 		deathBuckets.__nextNanoSettingsPollFrame = n + 30
 		-- Optional deferred nano lights (off by default):
-		--  NanoParticleLights = 0/1 enables bridge to deferred lights widget.
+		--  NanoParticlesUpdateLuaUI = 0/1 enables bridge to deferred lights widget.
 		local nl = deathBuckets.__nanoLight
 		if not nl then
 			nl = {activeCount = 0, active = {}, ids = {} }
 			deathBuckets.__nanoLight = nl
 		end
-		nl.enabled = (Spring.GetConfigInt("NanoParticleLights", 1) == 1)
+		nl.enabled = (Spring.GetConfigInt("NanoParticlesUpdateLuaUI", 0) == 1)
 		if nl.enabled then
 			nl.spawnRadius = 33
 			nl.alpha = 0.05
@@ -3916,6 +3918,8 @@ function gadget:Update()
 			nl.fadeReady = false
 		end
 
+		U.refreshFeatureToggles()
+
 		local mode = Spring.GetConfigInt("NanoParticleMode", 1)
 		if mode ~= NANO_PARTICLE_MODE then
 			applyParticleMode(mode, false)
@@ -3938,16 +3942,13 @@ function gadget:Update()
 		if refreshColorEqualize() then
 			refreshTeamColors()
 		end
-		-- Global particle amount multiplier: clamp into [0..4] in case it was
-		-- set out of range from a console / widget. No cache invalidation
-		-- needed -- the value is read directly each visit when computing emit
-		-- rate.
+		-- Match the native engine's per-emitter amount control in gadget mode.
 		do
-			local a = NanoParticleRate or 1.0
+			local a = Spring.GetConfigFloat("NanoParticlesRate", 0.32)
 			if type(a) ~= "number" then a = 1.0 end
 			if a < 0.0 then a = 0.0 end
 			if a > 1.0 then a = 1.0 end
-			NanoParticleRate = a
+			NanoParticlesRate = a
 		end
 	end
 
@@ -4274,6 +4275,48 @@ fadeOutHomingFwd = function(unitID, includeSkipList)
 	end
 end
 
+U.refreshFeatureToggles = function()
+	local homingEnabled = Spring.GetConfigInt("NanoParticlesHoming", 0) ~= 0
+	if homingEnabled ~= U.NANO_PARTICLES_HOMING then
+		U.NANO_PARTICLES_HOMING = homingEnabled
+		if not homingEnabled then
+			for builderID, list in pairs(homingByBuilder) do U.recycleTrackList(list); homingByBuilder[builderID] = nil end
+			for targetID, list in pairs(homingFwdByTarget) do U.recycleTrackList(list); homingFwdByTarget[targetID] = nil end
+		end
+	end
+
+	local groundClampEnabled = Spring.GetConfigInt("NanoParticlesGroundClamp", 0) ~= 0
+	if groundClampEnabled ~= U.GROUND_CLAMP_ENABLED then
+		U.GROUND_CLAMP_ENABLED = groundClampEnabled
+		if not groundClampEnabled then
+			for index = #groundClampParticles, 1, -1 do
+				groundClampFree[#groundClampFree + 1] = groundClampParticles[index]
+				groundClampParticles[index] = nil
+			end
+			groundClampCursor = 1
+			for builderID in pairs(U._groundClampGateCache) do U._groundClampGateCache[builderID] = nil end
+			for _, list in pairs(homingByBuilder) do
+				for index = 1, #list do list[index].gc = nil end
+			end
+			for _, list in pairs(homingFwdByTarget) do
+				for index = 1, #list do list[index].gc = nil end
+			end
+		end
+	end
+
+	local reclaimBurstEnabled = Spring.GetConfigInt("NanoParticlesReclaimBurst", 0) ~= 0
+	if reclaimBurstEnabled ~= U.NANO_PARTICLES_RECLAIM_BURST then
+		U.NANO_PARTICLES_RECLAIM_BURST = reclaimBurstEnabled
+		if not reclaimBurstEnabled then
+			for targetID in pairs(reclaimedTargets) do reclaimedTargets[targetID] = nil end
+			for targetID in pairs(reclaimTargetBuildProgress) do reclaimTargetBuildProgress[targetID] = nil end
+			for _, info in pairs(builderCache) do
+				if info then info.reclaimTarget = nil end
+			end
+		end
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	emitTargetPosCache[unitID] = nil
 	recentFactoryBuildTargetCache[unitID] = nil
@@ -4284,7 +4327,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	-- reclaimers, not just the one that landed the final tick), this is the
 	-- trigger: attackerID present + no weapon + we tracked reclaimers => fire
 	-- the burst, then distribute particles across every tracked contributor.
-	if attackerID and (not weaponDefID or weaponDefID < 0) and reclaimedTargets[unitID] then
+	if U.NANO_PARTICLES_RECLAIM_BURST and attackerID and (not weaponDefID or weaponDefID < 0) and reclaimedTargets[unitID] then
 		-- Read cached build progress (set by the scan loop while the unit was alive).
 		-- spGetUnitIsBeingBuilt returns nil for dead units in unsynced context.
 		local bp = reclaimTargetBuildProgress[unitID] or 1.0

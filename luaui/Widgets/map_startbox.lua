@@ -31,6 +31,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetWaterPlaneLevel = Spring.GetWaterPlaneLevel
 local spRequestStartPosition = Spring.RequestStartPosition
 local glDrawGroundCircle = gl.DrawGroundCircle
 
@@ -519,6 +520,7 @@ local shaderSourceCache = {
 			myAllyTeamID = -1,
 			isMiniMap = 0,
 			roationMiniMap = 0,
+			waterSurfaceMode = 0,
 			mapNormals = 1,
 			heightMapTex = 2,
 			scavTexture = 3,
@@ -526,6 +528,7 @@ local shaderSourceCache = {
 		},
 		uniformFloat = {
 			pingData = {0,0,0,-10000}, -- x,y,z, time
+			waterLevel = 0,
 			isMiniMap = 0,
 			pipVisibleArea = {0, 1, 0, 1}, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
 		},
@@ -599,6 +602,13 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
+	local selectedUnitDefID = WG["pregame-unit-selected"]
+	local selectedUnitDef = selectedUnitDefID and UnitDefs[selectedUnitDefID]
+	local waterSurfaceMode = not inminimap and selectedUnitDef and selectedUnitDef.floatOnWater
+	startPolygonShader:SetUniformInt("waterSurfaceMode", waterSurfaceMode and 1 or 0)
+	if waterSurfaceMode then
+		startPolygonShader:SetUniform("waterLevel", spGetWaterPlaneLevel and spGetWaterPlaneLevel() or 0)
+	end
 
 	startPolygonShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
 
